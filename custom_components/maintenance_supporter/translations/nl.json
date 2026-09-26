@@ -489,7 +489,9 @@
       "invalid_notify_service": "Ongeldig formaat voor de meldingsservice. Gebruik 'notify.servicenaam' (bijv. notify.mobile_app_phone).",
       "notify_service_not_found": "Deze meldingsservice is niet gevonden in Home Assistant. Controleer de servicenaam.",
       "nfc_tag_duplicate": "Deze NFC-tag is al gekoppeld aan een andere taak.",
-      "invalid_shopping_list_entity": "De boodschappenlijst moet een to-do-entiteit zijn (todo.…)."
+      "invalid_shopping_list_entity": "De boodschappenlijst moet een to-do-entiteit zijn (todo.…).",
+      "invalid_schedule": "De planning is onvolledig — kies minstens één weekdag (of een agenda voor een agendagestuurde taak).",
+      "invalid_delta_target": "Bij het tellen van opgebouwd gebruik (deltamodus) moet de doelwaarde groter zijn dan 0."
     },
     "abort": {
       "already_configured": "Dit onderhoudsobject is al geconfigureerd.",
@@ -497,7 +499,9 @@
       "template_not_found": "Het geselecteerde sjabloon is niet gevonden.",
       "missing_data": "Vereiste gegevens zijn niet opgegeven.",
       "reconfigure_successful": "Configuratie succesvol bijgewerkt.",
-      "reconfigure_cancelled": "Herconfiguratie geannuleerd."
+      "reconfigure_cancelled": "Herconfiguratie geannuleerd.",
+      "entity_unavailable": "De gekozen entiteit is nu niet beschikbaar. Probeer het opnieuw zodra ze een status meldt.",
+      "unknown": "Er is een onverwachte fout opgetreden. Begin opnieuw."
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "Deze NFC-tag is al gekoppeld aan een andere taak.",
       "invalid_notify_icon": "Het notificatiepictogram moet een mdi:-pictogramnaam zijn (bijv. mdi:air-filter).",
       "invalid_shopping_list_entity": "De boodschappenlijst moet een to-do-entiteit zijn (todo.…).",
-      "invalid_search_template": "De zoeklink moet een http(s)-URL met {q} zijn."
+      "invalid_search_template": "De zoeklink moet een http(s)-URL met {q} zijn.",
+      "invalid_schedule": "De planning is onvolledig — kies minstens één weekdag (of een agenda voor een agendagestuurde taak).",
+      "invalid_delta_target": "Bij het tellen van opgebouwd gebruik (deltamodus) moet de doelwaarde groter zijn dan 0."
+    },
+    "abort": {
+      "entity_unavailable": "De gekozen entiteit is nu niet beschikbaar. Probeer het opnieuw zodra ze een status meldt."
     }
   },
   "entity": {

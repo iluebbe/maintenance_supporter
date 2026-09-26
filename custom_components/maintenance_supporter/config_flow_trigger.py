@@ -209,6 +209,19 @@ def _state_selector(entity_id: str | None, *, multiple: bool = False) -> Any:
     return selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT))
 
 
+def _delta_target_invalid(user_input: dict[str, Any]) -> bool:
+    """A delta counter fires every N units of use — N must be positive.
+
+    The WS validator (``_validate_trigger_config``) refuses a target ≤ 0 in
+    delta mode, but the flow-built trigger never went through it: a flow
+    could save a counter that fired on every reading (bug audit 2026-09-26).
+    """
+    if not user_input.get(CONF_TRIGGER_DELTA_MODE):
+        return False
+    target = user_input.get(CONF_TRIGGER_TARGET_VALUE)
+    return target is None or target <= 0
+
+
 def _parse_states(raw: Any) -> list[str]:
     """Normalize an on-states submission — list from the state selector,
     comma string from the legacy text fallback."""
@@ -614,11 +627,15 @@ class TriggerConfigMixin:
         on_complete: Callable[[], ConfigFlowResult],
     ) -> ConfigFlowResult:
         """Core logic for counter trigger configuration."""
+        errors: dict[str, str] = {}
         if user_input is not None:
             cancel = await self._mixin_check_go_back(user_input)
             if cancel is not None:
                 return cancel
+            if _delta_target_invalid(user_input):
+                errors[CONF_TRIGGER_TARGET_VALUE] = "invalid_delta_target"
 
+        if user_input is not None and not errors:
             tc = self._current_task["trigger_config"]
             tc[CONF_TRIGGER_TARGET_VALUE] = user_input[CONF_TRIGGER_TARGET_VALUE]
             tc[CONF_TRIGGER_DELTA_MODE] = user_input.get(CONF_TRIGGER_DELTA_MODE, False)
@@ -696,6 +713,7 @@ class TriggerConfigMixin:
         return self.async_show_form(
             step_id=step_id,
             data_schema=vol.Schema(self._mixin_add_go_back(schema_fields)),
+            errors=errors,
             description_placeholders={
                 "entity_id": self._trigger_entity_id or "",
                 "attribute": attribute or "state",
@@ -1019,7 +1037,14 @@ class TriggerConfigMixin:
             if condition_type == TriggerType.THRESHOLD:
                 above = user_input.get(CONF_TRIGGER_ABOVE)
                 below = user_input.get(CONF_TRIGGER_BELOW)
-                if threshold_limits_overlap(above, below):
+                limits = (above, below, user_input.get(CONF_TRIGGER_EQUALS), user_input.get(CONF_TRIGGER_NOT_EQUALS))
+                if all(limit is None for limit in limits):
+                    # A condition without any limit can never trigger; the
+                    # plain threshold step refused it, the compound one saved
+                    # it and the WS validator then rejected the task on its
+                    # next edit (bug audit 2026-09-26).
+                    errors["base"] = "invalid_threshold"
+                elif threshold_limits_overlap(above, below):
                     # Store nothing from the refused attempt: a field left
                     # blank on the retry must not inherit its value (#156).
                     errors["base"] = "overlapping_threshold"
@@ -1038,8 +1063,11 @@ class TriggerConfigMixin:
                     if for_min:
                         cond["trigger_for_minutes"] = for_min
             elif condition_type == TriggerType.COUNTER:
-                cond["trigger_target_value"] = user_input.get(CONF_TRIGGER_TARGET_VALUE, 0)
-                cond["trigger_delta_mode"] = user_input.get(CONF_TRIGGER_DELTA_MODE, False)
+                if _delta_target_invalid(user_input):
+                    errors[CONF_TRIGGER_TARGET_VALUE] = "invalid_delta_target"
+                else:
+                    cond["trigger_target_value"] = user_input.get(CONF_TRIGGER_TARGET_VALUE, 0)
+                    cond["trigger_delta_mode"] = user_input.get(CONF_TRIGGER_DELTA_MODE, False)
             elif condition_type == TriggerType.STATE_CHANGE:
                 from_state = (user_input.get(CONF_TRIGGER_FROM_STATE) or "").strip().lower()
                 if from_state:
@@ -1064,19 +1092,22 @@ class TriggerConfigMixin:
                 return await on_complete()
 
         schema_fields: dict[Any, Any] = {}
+        # step="any" like the plain threshold/counter steps: the default step
+        # of 1 made the browser refuse a limit such as 0.5 bar in a compound
+        # condition (bug audit 2026-09-26).
         if condition_type == TriggerType.THRESHOLD:
             schema_fields = {
                 vol.Optional(CONF_TRIGGER_ABOVE): selector.NumberSelector(
-                    selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX)
+                    selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX, step="any")
                 ),
                 vol.Optional(CONF_TRIGGER_BELOW): selector.NumberSelector(
-                    selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX)
+                    selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX, step="any")
                 ),
                 vol.Optional(CONF_TRIGGER_EQUALS): selector.NumberSelector(
-                    selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX)
+                    selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX, step="any")
                 ),
                 vol.Optional(CONF_TRIGGER_NOT_EQUALS): selector.NumberSelector(
-                    selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX)
+                    selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX, step="any")
                 ),
                 vol.Optional(CONF_TRIGGER_FOR_MINUTES, default=0): selector.NumberSelector(
                     selector.NumberSelectorConfig(
@@ -1091,7 +1122,7 @@ class TriggerConfigMixin:
         elif condition_type == TriggerType.COUNTER:
             schema_fields = {
                 vol.Required(CONF_TRIGGER_TARGET_VALUE): selector.NumberSelector(
-                    selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX)
+                    selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX, step="any")
                 ),
                 vol.Optional(CONF_TRIGGER_DELTA_MODE, default=False): selector.BooleanSelector(),
             }
@@ -1149,7 +1180,10 @@ class TriggerConfigMixin:
                 return cancel
 
             action = user_input.get("compound_action", "finish")
-            if action == "add":
+            # A compound needs two conditions (the WS validator's rule); with
+            # one, "finish" saved a trigger every later panel edit refused
+            # (bug audit 2026-09-26) — go on to the second condition instead.
+            if action == "add" or len(self._compound_conditions) < 2:
                 return await add_condition_step()
 
             tc = self._current_task["trigger_config"]
@@ -1161,12 +1195,16 @@ class TriggerConfigMixin:
         condition_count = len(self._compound_conditions)
         logic = getattr(self, "_compound_logic", "AND")
 
-        options = [
-            selector.SelectOptionDict(
-                value="finish",
-                label=f"Finish ({condition_count} conditions, {logic})",
-            ),
-        ]
+        options = (
+            [
+                selector.SelectOptionDict(
+                    value="finish",
+                    label=f"Finish ({condition_count} conditions, {logic})",
+                ),
+            ]
+            if condition_count >= 2
+            else []
+        )
         if condition_count < 5:
             options.append(
                 selector.SelectOptionDict(
@@ -1176,7 +1214,7 @@ class TriggerConfigMixin:
             )
 
         schema_dict: dict[Any, Any] = {
-            vol.Required("compound_action", default="finish"): selector.SelectSelector(
+            vol.Required("compound_action", default="finish" if condition_count >= 2 else "add"): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=options,
                     mode=selector.SelectSelectorMode.LIST,

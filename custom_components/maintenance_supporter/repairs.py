@@ -28,6 +28,7 @@ from .const import (
     ScheduleType,
 )
 from .helpers.aggregate import object_name
+from .helpers.issues import DEVICE_LINK_LOST_PREFIX, STALE_ACTION_PREFIX
 from .helpers.schedule import (
     FLAT_RECURRENCE_KEYS,
     normalize_task_storage,
@@ -814,9 +815,9 @@ async def async_create_fix_flow(
     """Create a repair flow for the given issue."""
     if issue_id.startswith("orphan_admin_panel_user_"):
         return OrphanAdminPanelUserRepairFlow()
-    if issue_id.startswith("stale_action_entity_"):
+    if issue_id.startswith(STALE_ACTION_PREFIX):
         return StaleActionEntityRepairFlow()
-    if issue_id.startswith("device_link_lost_"):
+    if issue_id.startswith(DEVICE_LINK_LOST_PREFIX):
         return DeviceLinkRepairFlow()
     if issue_id == "document_storage_issues":
         return DocumentStorageRepairFlow()

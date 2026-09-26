@@ -14,6 +14,7 @@ serving view, sensor and frontend build on top of it.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging
 import math
@@ -203,6 +204,12 @@ class DocumentStore:
         # every new blob, told when the last reference goes. Optional so the
         # store stays usable on its own (tests, tooling).
         self.text_index: DocumentTextIndex | None = None
+        # Serialises every blob-registry transition that spans an await (the
+        # executor write/delete). Without it an upload of content whose last
+        # document was being deleted at the same moment registered the blob
+        # while the delete removed the file underneath it — a document
+        # pointing at nothing (bug audit 2026-09-26, SEC-6).
+        self._blob_lock = asyncio.Lock()
 
     # ------------------------------------------------------------------
     # Paths
@@ -331,15 +338,18 @@ class DocumentStore:
         if object_doc_count >= MAX_DOCS_PER_OBJECT:
             raise ValueError("too_many_documents")
 
-        digest, wrote_new = await self.hass.async_add_executor_job(self._store_blob_sync, content)
+        async with self._blob_lock:
+            digest, wrote_new = await self.hass.async_add_executor_job(self._store_blob_sync, content)
 
-        # Register / adopt the blob and bump its refcount.
-        blob = self.blobs.get(digest)
-        deduped = blob is not None
-        if blob is None:
-            blob = {"size": len(content), "mime": mime, "refcount": 0}
-            self.blobs[digest] = blob
-        blob["refcount"] += 1
+            # Register / adopt the blob and bump its refcount — in the same
+            # critical section as the write, so a concurrent last-reference
+            # delete cannot remove the file between the two.
+            blob = self.blobs.get(digest)
+            deduped = blob is not None
+            if blob is None:
+                blob = {"size": len(content), "mime": mime, "refcount": 0}
+                self.blobs[digest] = blob
+            blob["refcount"] += 1
 
         duplicate_in_object = next(
             (did for did, d in self.documents.items() if d.get("object_id") == object_id and d.get("hash") == digest),
@@ -386,9 +396,16 @@ class DocumentStore:
         if path.exists():
             return digest, False
         self._blobs_dir.mkdir(parents=True, exist_ok=True)
-        tmp = path.with_name(path.name + ".tmp")
-        tmp.write_bytes(content)
-        os.replace(tmp, path)  # atomic
+        # A temp name of its own per write: two uploads of the same content
+        # shared "<digest>.tmp", and the second os.replace found it already
+        # moved away — a 500 for a perfectly good upload (bug audit
+        # 2026-09-26). Replacing an identical blob is harmless.
+        tmp = path.with_name(f"{path.name}.{uuid4().hex}.tmp")
+        try:
+            tmp.write_bytes(content)
+            os.replace(tmp, path)  # atomic
+        finally:
+            tmp.unlink(missing_ok=True)
         return digest, True
 
     async def async_add_weblink(
@@ -716,24 +733,47 @@ class DocumentStore:
         return freed
 
     async def _deref_blob(self, doc: dict[str, Any]) -> int:
-        """Decrement a file doc's blob refcount; delete the blob at 0."""
+        """Decrement a file doc's blob refcount; delete the blob at 0.
+
+        Under the blob lock (see ``_blob_lock``): the file delete must not
+        interleave with an upload adopting the same content.
+        """
         if doc.get("kind") != KIND_FILE:
             return 0
         digest = doc.get("hash")
         if not isinstance(digest, str):
             return 0
-        blob = self.blobs.get(digest)
-        if blob is None:
+        async with self._blob_lock:
+            blob = self.blobs.get(digest)
+            if blob is None:
+                return 0
+            blob["refcount"] = blob.get("refcount", 1) - 1
+            if blob["refcount"] <= 0:
+                size = int(blob.get("size", 0))
+                self.blobs.pop(digest, None)
+                if self.text_index is not None:
+                    await self.text_index.async_forget(digest)
+                await self.hass.async_add_executor_job(self._delete_blob_sync, digest)
+                return size
             return 0
-        blob["refcount"] = blob.get("refcount", 1) - 1
-        if blob["refcount"] <= 0:
-            size = int(blob.get("size", 0))
-            self.blobs.pop(digest, None)
-            if self.text_index is not None:
-                await self.text_index.async_forget(digest)
-            await self.hass.async_add_executor_job(self._delete_blob_sync, digest)
-            return size
-        return 0
+
+    async def async_rehome(self, doc_ids: set[str], object_id: str) -> int:
+        """Re-stamp documents onto another object. Returns the docs moved.
+
+        A shared spare-part pool that moves to a borrower when its owner is
+        deleted (#111) takes its manual along: the part keeps its ``doc_id``,
+        and the document must not go down with the old owner (bug audit
+        2026-09-26, SEC-10). Unknown ids are skipped.
+        """
+        moved = 0
+        for doc_id in doc_ids:
+            doc = self.documents.get(doc_id)
+            if doc is not None and doc.get("object_id") != object_id:
+                doc["object_id"] = object_id
+                moved += 1
+        if moved:
+            await self._async_save()
+        return moved
 
     def _delete_blob_sync(self, digest: str) -> None:
         """Delete a blob file and its extracted-text sidecar (executor)."""

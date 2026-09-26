@@ -22,6 +22,8 @@ import { personOf, renderPersonAvatar, type PersonDisplay } from "./helpers/pers
 import { phaseLabel } from "./helpers/phases";
 import { renderEventTitles } from "./helpers/event-titles";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
+import { fetchSettingsOnce, FALLBACK_SETTINGS, type SettingsCache } from "./helpers/settings-cache";
+import { canWrite } from "./helpers/permissions";
 import "./maintenance-card-editor";
 import "./components/complete-dialog";
 import type { MaintenanceCompleteDialog } from "./components/complete-dialog";
@@ -32,7 +34,6 @@ import {
   openCreateObjectDialog,
   openCreateTaskDialog,
   openTaskQuickActions,
-  getRowActionStyle,
 } from "./dialog-mount";
 
 interface CardDoc {
@@ -53,6 +54,13 @@ export class MaintenanceSupporterCard extends LitElement {
   @state() private _config: CardConfig = { type: "custom:maintenance-supporter-card" };
   /** #145: global "Task row actions" style, resolved once from the settings cache. */
   @state() private _globalRowStyle = "buttons_compact";
+  /** Household settings (feature switches gate the complete dialog, the
+   *  write delegation gates the header's create buttons) — page cache. */
+  @state() private _settings: SettingsCache = FALLBACK_SETTINGS;
+  /** The first object list has arrived (or failed). Until then the card
+   *  shows a loading line — it used to flash "No maintenance tasks yet" and
+   *  then an unscoped list before the saved view's scope landed. */
+  @state() private _firstLoadDone = false;
   @state() private _objects: MaintenanceObjectResponse[] = [];
   @state() private _stats: StatisticsResponse | null = null;
   @state() private _unsub: (() => void) | null = null;
@@ -165,20 +173,30 @@ export class MaintenanceSupporterCard extends LitElement {
   }
 
   private async _loadData(): Promise<void> {
-    // #145: resolve the household's row-action style once (cached settings).
-    void getRowActionStyle(this.hass).then((s) => { this._globalRowStyle = s; }).catch(() => undefined);
+    // #145: resolve the household's row-action style once (cached settings);
+    // the same answer carries the feature switches + write delegation.
+    void fetchSettingsOnce(this.hass).then((s) => {
+      this._settings = s;
+      this._globalRowStyle = s.rowActionStyle;
+    }).catch(() => undefined);
+    // The saved view's scope loads alongside the objects and lands FIRST, so
+    // the first list paint is already scoped — the rows used to flash
+    // unfiltered until the view round-trip finished.
+    const viewScope = this._loadViewFilters();
     try {
       const [objResult, statsResult] = await Promise.all([
         this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/objects", compact: true }),
         this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/statistics" }),
       ]);
+      await viewScope;
       this._objects = hydrateObjects((objResult as { objects: MaintenanceObjectResponse[] }).objects);
       this._stats = statsResult as StatisticsResponse;
       syncCurrencyDecimals(this._stats.budget);
     } catch {
       // WS not available yet
     }
-    await this._loadViewFilters();
+    await viewScope;
+    this._firstLoadDone = true;
   }
 
   /** Display name of the task's responsible user, or "" when the badge must
@@ -399,6 +417,43 @@ export class MaintenanceSupporterCard extends LitElement {
     await this._loadData();
   };
 
+  /** The row's Complete action — the SAME derivation the panel uses (phase
+   *  override, parts incl. shared pools, tag-scan gate, restock default,
+   *  checklist ticks, feature gating) through helpers/complete-dialog-args. */
+  private _openComplete(entryId: string, task: MaintenanceTask): void {
+    const dlg = this.shadowRoot!.querySelector<MaintenanceCompleteDialog>("maintenance-complete-dialog")!;
+    fillAndOpenCompleteDialog(
+      dlg,
+      buildCompleteDialogArgs({
+        entryId,
+        taskId: task.id,
+        taskName: task.name,
+        task,
+        objects: this._objects,
+        lang: this._lang,
+        features: this._settings.features,
+        currencySymbol: currencySymbolOf(this._stats?.budget),
+      }),
+      this._lang,
+    );
+  }
+
+  /** Header badges from the LIVE object list — the statistics call ran once
+   *  per load, so the subscription updated the rows while the badges kept
+   *  the old counts (bug audit 2026-09-26). Same rule as the server's
+   *  compute_status_counts: a task counts in the bucket of its status. */
+  private get _headerCounts(): { overdue: number; due_soon: number; triggered: number } {
+    const counts = { overdue: 0, due_soon: 0, triggered: 0 };
+    for (const obj of this._objects) {
+      for (const task of obj.tasks) {
+        if (task.status === "overdue" || task.status === "due_soon" || task.status === "triggered") {
+          counts[task.status] += 1;
+        }
+      }
+    }
+    return counts;
+  }
+
   /** Open the per-task quick-actions dialog (Complete / Skip / Reset / Edit /
    *  QR / Delete) — full per-task panel parity. Mounted on document.body via
    *  the shared dialog-mount helper, so the card works on any dashboard
@@ -415,9 +470,11 @@ export class MaintenanceSupporterCard extends LitElement {
     // setting (any "buttons*" style → labelled HA button, "icons" → icon).
     const useButtons = (this._config.action_style ?? (this._globalRowStyle === "icons" ? "icons" : "buttons")) === "buttons";
     const showActions = this._config.show_actions !== false;
+    // Creating objects/tasks is write tier — the panel's canWrite rule.
+    const showCreate = showActions && canWrite(this.hass?.user, this._settings.access);
     const compact = this._config.compact || false;
     const tasks = this._flatTasks;
-    const s = this._stats;
+    const s = this._objects.length || this._stats ? this._headerCounts : null;
 
     return html`
       <ha-card>
@@ -433,7 +490,7 @@ export class MaintenanceSupporterCard extends LitElement {
                   </div>
                 `
               : nothing}
-            ${showActions
+            ${showCreate
               ? html`
                   <mwc-icon-button
                     class="hdr-add"
@@ -453,7 +510,9 @@ export class MaintenanceSupporterCard extends LitElement {
               : nothing}
           </div>
         </div>
-        ${tasks.length === 0
+        ${!this._firstLoadDone
+          ? html`<div class="card-loading">${t("loading", L)}</div>`
+          : tasks.length === 0
           ? this._objects.some((o) => o.tasks.length > 0)
             ? html`<div class="empty-card">
                 <!-- (#86) tasks exist but none match the filter (default:
@@ -531,22 +590,7 @@ export class MaintenanceSupporterCard extends LitElement {
                               title="${t("complete", L)}"
                               @click=${(e: Event) => {
                                 e.stopPropagation();
-                                const dlg = this.shadowRoot!.querySelector<MaintenanceCompleteDialog>("maintenance-complete-dialog")!;
-                                fillAndOpenCompleteDialog(
-                                  dlg,
-                                  buildCompleteDialogArgs({
-                                    entryId: entry_id,
-                                    taskId: task.id,
-                                    taskName: task.name,
-                                    task,
-                                    objects: this._objects,
-                                    lang: L,
-                                    checklist: task.checklist || [],
-                                    adaptiveEnabled: !!task.adaptive_config?.enabled,
-                                    currencySymbol: currencySymbolOf(this._stats?.budget),
-                                  }),
-                                  L,
-                                );
+                                this._openComplete(entry_id, task);
                               }}
                             >
                               <ha-icon slot="start" icon="mdi:check"></ha-icon>${t("complete", L)}
@@ -560,26 +604,7 @@ export class MaintenanceSupporterCard extends LitElement {
                               @click=${(e: Event) => {
                                 // Stop the row's open-task handler from also firing
                                 e.stopPropagation();
-                                const dlg = this.shadowRoot!.querySelector<MaintenanceCompleteDialog>("maintenance-complete-dialog")!;
-                                // The SAME derivation the panel uses (phase
-                                // override, parts incl. shared pools, tag-scan
-                                // gate, restock default, checklist ticks) — the
-                                // card used to forward a subset.
-                                fillAndOpenCompleteDialog(
-                                  dlg,
-                                  buildCompleteDialogArgs({
-                                    entryId: entry_id,
-                                    taskId: task.id,
-                                    taskName: task.name,
-                                    task,
-                                    objects: this._objects,
-                                    lang: L,
-                                    checklist: task.checklist || [],
-                                    adaptiveEnabled: !!task.adaptive_config?.enabled,
-                                    currencySymbol: currencySymbolOf(this._stats?.budget),
-                                  }),
-                                  L,
-                                );
+                                this._openComplete(entry_id, task);
                               }}
                             >
                               <ha-icon icon="mdi:check"></ha-icon>
@@ -637,6 +662,11 @@ export class MaintenanceSupporterCard extends LitElement {
       .badge.due_soon { background: var(--warning-color, #ff9800); }
       .badge.triggered { background: #ff5722; }
 
+      .card-loading {
+        padding: 24px 16px;
+        text-align: center;
+        color: var(--secondary-text-color);
+      }
       .empty-card {
         padding: 24px 16px;
         text-align: center;

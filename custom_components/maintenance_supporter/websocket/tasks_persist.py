@@ -13,20 +13,37 @@ from ..const import (
     BATTERY_FLEET_TASK_FLAG,
     CONF_OBJECT,
     CONF_TASKS,
-    DEFAULT_WARNING_DAYS,
     DOMAIN,
+    FLAT_SCHEDULE_TYPES,
     MAX_TASKS_PER_OBJECT,
 )
 from ..helpers.aggregate import get_store, is_object_entry
+from ..helpers.dates import parse_iso_date
 from ..helpers.entry_tasks import insert_new_task
+from ..helpers.global_options import get_default_warning_days
 from ..helpers.sanitize import cap_task_fields
 from ..helpers.schedule import (
+    Schedule,
     normalize_task_storage,
 )
 
 # ---------------------------------------------------------------------------
 # Task CRUD
 # ---------------------------------------------------------------------------
+
+
+def _checked_due_date(value: Any) -> str:
+    """The canonical ISO form of a service-supplied ``due_date``.
+
+    The service schemas only require a string, so "next tuesday" was stored
+    as a one-time task's due date — the task then never came due (bug audit
+    2026-09-26). Raises ValueError, which the services report as invalid
+    input.
+    """
+    parsed = parse_iso_date(value) if isinstance(value, str) else None
+    if parsed is None:
+        raise ValueError(f"due_date must be a valid date (YYYY-MM-DD), got {value!r}")
+    return parsed.isoformat()
 
 
 async def async_persist_task(
@@ -64,7 +81,7 @@ async def async_create_task_simple(
     interval_days: int | None = None,
     interval_unit: str = "days",
     due_date: str | None = None,
-    warning_days: int = DEFAULT_WARNING_DAYS,
+    warning_days: int | None = None,
     enabled: bool = True,
     notes: str | None = None,
     schedule: dict[str, Any] | None = None,
@@ -76,8 +93,12 @@ async def async_create_task_simple(
     For the full field set (triggers, checklists, completion actions, …) use
     the panel / card dialogs or the ``task/create`` WS command.
 
-    Raises ValueError if the entry_id is not a maintenance object or the name
-    is empty.
+    Raises ValueError if the entry_id is not a maintenance object, the name
+    is empty or the due date is not a date.
+
+    ``warning_days`` defaults to the integration-wide setting like every
+    other create path — it was the bare constant 7 here (bug audit
+    2026-09-26).
 
     Like the config-flow save handlers (see ``helpers/sanitize``), this runs
     :func:`cap_task_fields` before persisting: the ``add_task`` *service*
@@ -99,19 +120,20 @@ async def async_create_task_simple(
         "type": task_type,
         "enabled": enabled,
         "schedule_type": schedule_type,
-        "warning_days": warning_days,
+        "warning_days": warning_days if warning_days is not None else get_default_warning_days(hass),
         "created_at": dt_util.now().date().isoformat(),
     }
     if schedule:
         # Calendar kinds: persist the nested schedule (normalize treats it as
-        # authoritative over the flat fields).
-        task_data["schedule"] = schedule
+        # authoritative over the flat fields) — canonicalised like the WS
+        # create path does; it was stored raw (bug audit 2026-09-26).
+        task_data["schedule"] = Schedule.from_dict(schedule).to_dict()
     if interval_days is not None:
         task_data["interval_days"] = interval_days
     if interval_unit and interval_unit != "days":
         task_data["interval_unit"] = interval_unit
     if due_date:
-        task_data["due_date"] = due_date
+        task_data["due_date"] = _checked_due_date(due_date)
     if notes:
         task_data["notes"] = notes
     # Same sanitising as the config-flow create path, applied BEFORE the
@@ -169,6 +191,8 @@ async def async_update_task_simple(
         raise ValueError(f"No task {task_id!r} in {entry.title!r}")
 
     task = dict(new_tasks[task_id])
+    if updates.get("due_date") is not None:
+        updates = {**updates, "due_date": _checked_due_date(updates["due_date"])}
     for key in _UPDATABLE_FLAT_FIELDS:
         if key in updates and updates[key] is not None:
             task[key] = updates[key]
@@ -187,7 +211,17 @@ async def async_update_task_simple(
     if updates.get("schedule_type") is not None:
         task["schedule_type"] = updates["schedule_type"]
     if updates.get("schedule"):
-        task["schedule"] = updates["schedule"]
+        task["schedule"] = Schedule.from_dict(updates["schedule"]).to_dict()
+    elif isinstance(task.get("schedule"), dict) and Schedule.from_dict(task["schedule"]).is_calendar_kind and (
+        any(updates.get(key) is not None for key in ("interval_days", "interval_unit", "due_date"))
+        or updates.get("schedule_type") in FLAT_SCHEDULE_TYPES
+    ):
+        # A flat recurrence edit on a calendar-kind task: normalize keeps a
+        # calendar schedule authoritative and DROPS the flat keys, so the
+        # interval the caller set silently vanished. Same rule as the WS
+        # task/update — the flat fields rebuild the schedule (bug audit
+        # 2026-09-26).
+        task.pop("schedule", None)
 
     cap_task_fields(task)
     new_tasks[task_id] = normalize_task_storage(task)
@@ -280,11 +314,14 @@ async def async_move_task(
             if isinstance(pdef, dict) and isinstance(pdef.get("consumes_parts"), list):
                 pdef["consumes_parts"] = _stamp_part_links(pdef["consumes_parts"], source.entry_id)
 
-    state = deepcopy(src_store.get_task_state(task_id))
-    state.pop("next_history_ref", None)
-    for entry in state.get("history") or []:
-        if isinstance(entry, dict):
-            entry.pop("ref_no", None)
+    def _strip_refs(state: dict[str, Any]) -> dict[str, Any]:
+        state.pop("next_history_ref", None)
+        for entry in state.get("history") or []:
+            if isinstance(entry, dict):
+                entry.pop("ref_no", None)
+        return state
+
+    state = _strip_refs(deepcopy(src_store.get_task_state(task_id)))
 
     # Group memberships: snapshot, let the delete sweep them, re-add under the target.
     from ..const import CONF_GROUPS
@@ -305,21 +342,27 @@ async def async_move_task(
         vacation_exempt = isinstance(exempt, list) and task_id in exempt
     doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     doc_links = doc_store.task_links(task_id) if doc_store is not None else {}
-    photo_ids: set[str] = set()
-    for entry in state.get("history") or []:
-        if isinstance(entry, dict):
-            photo_ids.update(history_photo_ids(entry))
-    # Re-home only the photos that are linked to this task alone — a doc
-    # shared with the object's other tasks stays where it is (link kept).
-    rehome_ids = {
-        did for did in photo_ids if did in doc_links and (doc_store.get(did) or {}).get("task_ids") == [task_id]
-    }
+    # Photos linked to this task alone are re-homed with it — a doc shared
+    # with the object's other tasks stays where it is (link kept). Which of
+    # them the history uses is decided on the FINAL state below.
+    sole_task_docs = {did for did in doc_links if (doc_store.get(did) or {}).get("task_ids") == [task_id]}
 
     existing = target.data.get(CONF_TASKS, {})
     if len(existing) >= MAX_TASKS_PER_OBJECT:
         raise ValueError(f"The target object already has the maximum of {MAX_TASKS_PER_OBJECT} tasks")
 
-    await async_delete_task(hass, source, task_id)
+    # The delete awaits before it drops the Store state; take the state as
+    # it was at that moment — a completion landing during the awaits was
+    # lost from the snapshot above (bug audit 2026-09-26).
+    final_state: dict[str, Any] = {}
+    await async_delete_task(hass, source, task_id, removed_state=final_state)
+    if final_state:
+        state = _strip_refs(final_state)
+    photo_ids: set[str] = set()
+    for entry in state.get("history") or []:
+        if isinstance(entry, dict):
+            photo_ids.update(history_photo_ids(entry))
+    rehome_ids = photo_ids & sole_task_docs
 
     new_data = dict(target.data)
     new_tasks = dict(new_data.get(CONF_TASKS, {}))

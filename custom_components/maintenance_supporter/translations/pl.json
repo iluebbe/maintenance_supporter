@@ -489,7 +489,9 @@
       "invalid_notify_service": "Nieprawidłowy format usługi powiadomień. Użyj „notify.service_name” (np. notify.mobile_app_phone).",
       "notify_service_not_found": "Tej usługi powiadomień nie znaleziono w Home Assistant. Sprawdź nazwę usługi.",
       "nfc_tag_duplicate": "Ten tag NFC jest już powiązany z innym zadaniem.",
-      "invalid_shopping_list_entity": "Lista zakupów musi być encją listy zadań (todo.…)."
+      "invalid_shopping_list_entity": "Lista zakupów musi być encją listy zadań (todo.…).",
+      "invalid_schedule": "Harmonogram jest niekompletny — wybierz co najmniej jeden dzień tygodnia (lub kalendarz dla zadania sterowanego kalendarzem).",
+      "invalid_delta_target": "Przy zliczaniu skumulowanego użycia (tryb delta) wartość docelowa musi być większa od 0."
     },
     "abort": {
       "already_configured": "Ten obiekt konserwacji jest już skonfigurowany.",
@@ -497,7 +499,9 @@
       "template_not_found": "Nie znaleziono wybranego szablonu.",
       "missing_data": "Nie podano wymaganych danych.",
       "reconfigure_successful": "Konfiguracja zaktualizowana pomyślnie.",
-      "reconfigure_cancelled": "Rekonfiguracja anulowana."
+      "reconfigure_cancelled": "Rekonfiguracja anulowana.",
+      "entity_unavailable": "Wybrana encja jest teraz niedostępna. Spróbuj ponownie, gdy zgłosi stan.",
+      "unknown": "Wystąpił nieoczekiwany błąd. Zacznij od nowa."
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "Ten tag NFC jest już powiązany z innym zadaniem.",
       "invalid_notify_icon": "Ikona powiadomienia musi być nazwą ikony mdi: (np. mdi:air-filter).",
       "invalid_shopping_list_entity": "Lista zakupów musi być encją listy zadań (todo.…).",
-      "invalid_search_template": "Link wyszukiwania musi być adresem URL http(s) zawierającym {q}."
+      "invalid_search_template": "Link wyszukiwania musi być adresem URL http(s) zawierającym {q}.",
+      "invalid_schedule": "Harmonogram jest niekompletny — wybierz co najmniej jeden dzień tygodnia (lub kalendarz dla zadania sterowanego kalendarzem).",
+      "invalid_delta_target": "Przy zliczaniu skumulowanego użycia (tryb delta) wartość docelowa musi być większa od 0."
+    },
+    "abort": {
+      "entity_unavailable": "Wybrana encja jest teraz niedostępna. Spróbuj ponownie, gdy zgłosi stan."
     }
   },
   "entity": {

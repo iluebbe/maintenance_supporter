@@ -10,6 +10,7 @@ from homeassistant.core import HomeAssistant
 if TYPE_CHECKING:
     from ...sensor import MaintenanceSensor
 
+from ...helpers.trigger_fallback import counter_baseline
 from .base_trigger import BaseTrigger
 
 _LOGGER = logging.getLogger(__name__)
@@ -50,7 +51,9 @@ class CounterTrigger(BaseTrigger):
         # e.g. 80, falling back to the config's 0 on restart would re-fire the
         # just-completed task (issue #102 family).
         if self._delta_mode:
-            saved = self.config.get("_trigger_state", {}).get(self.entity_id, {}).get("baseline_value")
+            # The shared lookup (helpers.trigger_fallback.counter_baseline):
+            # the entity's Store baseline, else the configured initial one.
+            saved = counter_baseline(self.config, self.entity_id)
             if saved is not None:
                 self._baseline_value = saved
                 _LOGGER.debug(

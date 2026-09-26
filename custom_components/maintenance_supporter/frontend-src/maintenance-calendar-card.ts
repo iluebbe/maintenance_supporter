@@ -32,7 +32,9 @@ import {
   buildCalendarBuckets,
   buildPastBuckets,
   isoDateLocal,
+  pastHistoryGaps,
   type CalendarEvent,
+  type HistoryEntryShape,
 } from "./helpers/calendar-bucket";
 import { calendarStyles } from "./calendar-styles";
 import { syncLocaleFromHass, sharedStyles, currencySymbolOf, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatWeekday, formatMonth, langOf, formatCost, syncCurrencyDecimals} from "./styles";
@@ -77,6 +79,11 @@ export class MaintenanceCalendarCard extends LitElement {
   // 2+ configured object_filter values — restricts the card to this set.
   private _configuredObjects: string[] = [];
   @state() private _unsub: (() => void) | null = null;
+  /** Past mode: full histories of the tasks whose list payload (last 20
+   *  entries) may not reach back over the whole window. */
+  @state() private _pastHistory: Record<string, HistoryEntryShape[]> = {};
+  private _pastHistorySig = "";
+  private _pastSeq = 0;
 
   private _dataLoaded = false;
   private _lastConnection: unknown = null;
@@ -141,6 +148,9 @@ export class MaintenanceCalendarCard extends LitElement {
   updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
     syncLocaleFromHass(this, changedProps);
+    if (this.hass && this._pastDays > 0 && (changedProps.has("_objects") || changedProps.has("_pastDays"))) {
+      void this._loadPastHistories();
+    }
     if (changedProps.has("hass") && this.hass) {
       if (!this._dataLoaded) {
         this._dataLoaded = true;
@@ -175,6 +185,33 @@ export class MaintenanceCalendarCard extends LitElement {
     } catch {
       // WS not available yet
     }
+  }
+
+  /** Fetch the full history of every task `pastHistoryGaps` names (refetch
+   *  only when that set or its entry counts change); only the newest round
+   *  may land. */
+  private async _loadPastHistories(): Promise<void> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const gaps = pastHistoryGaps(this._objects, today, this._pastDays || 30);
+    const sig = gaps.map((g) => g.sig).join("|");
+    if (sig === this._pastHistorySig) return;
+    this._pastHistorySig = sig;
+    const seq = ++this._pastSeq;
+    const results = await Promise.all(gaps.map(async (g) => {
+      try {
+        const r = await this.hass.connection.sendMessagePromise<{ history?: HistoryEntryShape[] }>({
+          type: "maintenance_supporter/task/history",
+          entry_id: g.entryId,
+          task_id: g.taskId,
+        });
+        return [g.key, r.history ?? []] as const;
+      } catch {
+        return null; // degrade to the listed window for this task
+      }
+    }));
+    if (seq !== this._pastSeq) return;
+    this._pastHistory = Object.fromEntries(results.filter((r): r is readonly [string, HistoryEntryShape[]] => r !== null));
   }
 
   private async _subscribe(): Promise<void> {
@@ -294,7 +331,7 @@ export class MaintenanceCalendarCard extends LitElement {
     today.setHours(0, 0, 0, 0);
     const isPast = this._pastDays > 0;
     const buckets = isPast
-      ? buildPastBuckets(objects, today, this._pastDays, userFilter)
+      ? buildPastBuckets(objects, today, this._pastDays, userFilter, this._pastHistory)
       : buildCalendarBuckets(objects, today, this._windowDays, userFilter);
 
     const todayIso = isoDateLocal(today);
@@ -316,7 +353,9 @@ export class MaintenanceCalendarCard extends LitElement {
         ? html`<span class="cal-event-recur">${
             ev.interval_unit && ev.interval_unit !== "days"
               ? `${ev.interval_days} ${t("unit_" + ev.interval_unit, L)}`
-              : t("cal_every_n_days", L).replace("{n}", String(ev.interval_days))
+              : ev.interval_days === 1
+                ? t("cal_every_day", L)
+                : t("cal_every_n_days", L).replace("{n}", String(ev.interval_days))
           }</span>`
         : nothing;
       const isSensor = ev.schedule_type === "sensor_based";

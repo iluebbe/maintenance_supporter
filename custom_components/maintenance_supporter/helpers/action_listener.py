@@ -21,7 +21,7 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
-from homeassistant.core import Context, Event, HomeAssistant, callback
+from homeassistant.core import Context, Event, EventOrigin, HomeAssistant, callback
 
 from ..const import (
     CONF_TASKS,
@@ -114,6 +114,15 @@ def register_action_listener(hass: HomeAssistant) -> Callable[[], None]:
     """
 
     async def _on_task_completed(event: Event) -> None:
+        # Only OUR completions: the coordinator fires the event locally. The
+        # same event type can be fired from outside — the REST/WebSocket
+        # fire_event API or a mobile_app webhook (any logged-in user's phone)
+        # — and a forged payload naming a task ran its configured service
+        # call without the task ever being completed (bug audit 2026-09-26,
+        # SEC-7). Automations wired on the event itself are unaffected.
+        if event.origin is not EventOrigin.local:
+            _LOGGER.warning("Ignoring a %s event fired from outside Home Assistant (origin %s)", EVENT_TASK_COMPLETED, event.origin)
+            return
         entry_id = event.data.get("entry_id")
         task_id = event.data.get("task_id")
         if not entry_id or not task_id:

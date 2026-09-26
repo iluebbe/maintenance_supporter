@@ -489,7 +489,9 @@
       "invalid_notify_service": "Ugyldigt format for notifikationstjeneste. Brug 'notify.service_name' (f.eks. notify.mobile_app_phone).",
       "notify_service_not_found": "Denne notifikationstjeneste blev ikke fundet i Home Assistant. Bekræft venligst tjenestens navn.",
       "nfc_tag_duplicate": "Dette NFC-mærke er allerede knyttet til en anden opgave.",
-      "invalid_shopping_list_entity": "Indkøbslisten skal være en opgaveentitet (todo.…)."
+      "invalid_shopping_list_entity": "Indkøbslisten skal være en opgaveentitet (todo.…).",
+      "invalid_schedule": "Tidsplanen er ufuldstændig — vælg mindst én ugedag (eller en kalender for en kalenderstyret opgave).",
+      "invalid_delta_target": "Ved optælling af forbrug (deltatilstand) skal målværdien være større end 0."
     },
     "abort": {
       "already_configured": "Dette vedligeholdelsesobjekt er allerede konfigureret.",
@@ -497,7 +499,9 @@
       "template_not_found": "Den valgte skabelon blev ikke fundet.",
       "missing_data": "Påkrævede data blev ikke angivet.",
       "reconfigure_successful": "Konfigurationen blev opdateret.",
-      "reconfigure_cancelled": "Omkonfiguration annulleret."
+      "reconfigure_cancelled": "Omkonfiguration annulleret.",
+      "entity_unavailable": "Den valgte entitet er ikke tilgængelig lige nu. Prøv igen, når den melder en tilstand.",
+      "unknown": "Der opstod en uventet fejl. Start venligst forfra."
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "Dette NFC-mærke er allerede knyttet til en anden opgave.",
       "invalid_notify_icon": "Notifikationsikonet skal være et mdi:-ikonnavn (f.eks. mdi:air-filter).",
       "invalid_shopping_list_entity": "Indkøbslisten skal være en opgaveentitet (todo.…).",
-      "invalid_search_template": "Søgelinket skal være en http(s)-URL, der indeholder {q}."
+      "invalid_search_template": "Søgelinket skal være en http(s)-URL, der indeholder {q}.",
+      "invalid_schedule": "Tidsplanen er ufuldstændig — vælg mindst én ugedag (eller en kalender for en kalenderstyret opgave).",
+      "invalid_delta_target": "Ved optælling af forbrug (deltatilstand) skal målværdien være større end 0."
+    },
+    "abort": {
+      "entity_unavailable": "Den valgte entitet er ikke tilgængelig lige nu. Prøv igen, når den melder en tilstand."
     }
   },
   "entity": {

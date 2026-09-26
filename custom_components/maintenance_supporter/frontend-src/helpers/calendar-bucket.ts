@@ -288,12 +288,45 @@ const HISTORY_TYPE_TO_STATUS: Record<string, string> = {
   trigger_removed: "ok", // config change, not a due/triggered event
 };
 
-interface HistoryEntryShape {
+export interface HistoryEntryShape {
   timestamp?: string;
   type?: string;
   notes?: string;
   cost?: number;
   duration?: number;
+}
+
+/** `${entry_id}/${task_id}` — the key of a task's fetched full history. */
+export function pastHistoryKey(entryId: string, taskId: string): string {
+  return `${entryId}/${taskId}`;
+}
+
+/** Tasks whose LIST history (the payload diet keeps the last 20 entries)
+ *  may be missing entries inside the past window: more entries exist
+ *  (`history_count`) and the oldest listed one is still inside the window.
+ *  A daily task showed only its last 20 days in the 30/90-day past view
+ *  (DRY audit 2026-09-26). `sig` changes when the task gains / loses
+ *  entries, so the card refetches only then. */
+export function pastHistoryGaps(
+  objects: MaintenanceObjectResponse[],
+  today: Date,
+  pastDays: number,
+): Array<{ entryId: string; taskId: string; key: string; sig: string }> {
+  const windowStart = buildPastWindowDates(today, pastDays)[0];
+  const out: Array<{ entryId: string; taskId: string; key: string; sig: string }> = [];
+  for (const obj of objects) {
+    for (const task of obj.tasks || []) {
+      const listed = (task.history || []) as HistoryEntryShape[];
+      const count = task.history_count ?? listed.length;
+      if (count <= listed.length) continue;
+      const stamps = listed.map((h) => (typeof h?.timestamp === "string" ? h.timestamp : "")).filter(Boolean);
+      const oldest = stamps.length ? stamps.reduce((a, b) => (a < b ? a : b)).slice(0, 10) : "";
+      if (oldest && oldest < windowStart) continue; // the window is fully listed
+      const key = pastHistoryKey(obj.entry_id, task.id);
+      out.push({ entryId: obj.entry_id, taskId: task.id, key, sig: `${key}:${count}:${stamps[stamps.length - 1] ?? ""}` });
+    }
+  }
+  return out;
 }
 
 /** Build a list of N consecutive ISO dates ending today (local). */
@@ -320,6 +353,9 @@ export function buildPastBuckets(
   today: Date,
   pastDays: number,
   userFilter: string | null = null,
+  /** Full histories fetched for the tasks `pastHistoryGaps` named, keyed by
+   *  `pastHistoryKey` — they replace the windowed list history. */
+  fullHistory: Readonly<Record<string, HistoryEntryShape[]>> = {},
 ): CalendarDayBucket[] {
   const days = buildPastWindowDates(today, pastDays);
   const windowStart = days[0];
@@ -334,7 +370,7 @@ export function buildPastBuckets(
     const tasks = obj.tasks || [];
     for (const task of tasks) {
       if (userFilter && task.responsible_user_id !== userFilter) continue;
-      const history = (task.history || []) as HistoryEntryShape[];
+      const history = fullHistory[pastHistoryKey(entryId, task.id)] ?? ((task.history || []) as HistoryEntryShape[]);
       for (const h of history) {
         if (typeof h?.timestamp !== "string") continue;
         const dateKey = h.timestamp.slice(0, 10);  // YYYY-MM-DD

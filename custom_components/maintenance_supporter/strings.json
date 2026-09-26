@@ -489,7 +489,9 @@
       "invalid_notify_service": "Invalid notification service format. Use 'notify.service_name' (e.g., notify.mobile_app_phone).",
       "notify_service_not_found": "This notification service was not found in Home Assistant. Please verify the service name.",
       "nfc_tag_duplicate": "This NFC tag is already linked to another task.",
-      "invalid_shopping_list_entity": "The shopping list must be a to-do entity (todo.…)."
+      "invalid_shopping_list_entity": "The shopping list must be a to-do entity (todo.…).",
+      "invalid_schedule": "The schedule is incomplete — pick at least one weekday (or a calendar for a calendar-driven task).",
+      "invalid_delta_target": "When counting accumulated use (delta mode), the target value must be greater than 0."
     },
     "abort": {
       "already_configured": "This maintenance object is already configured.",
@@ -497,7 +499,9 @@
       "template_not_found": "The selected template was not found.",
       "missing_data": "Required data was not provided.",
       "reconfigure_successful": "Configuration updated successfully.",
-      "reconfigure_cancelled": "Reconfiguration cancelled."
+      "reconfigure_cancelled": "Reconfiguration cancelled.",
+      "entity_unavailable": "The selected entity is not available right now. Try again once it reports a state.",
+      "unknown": "An unexpected error occurred. Please start again."
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "This NFC tag is already linked to another task.",
       "invalid_notify_icon": "The notification icon must be an mdi: icon name (e.g. mdi:air-filter).",
       "invalid_shopping_list_entity": "The shopping list must be a to-do entity (todo.…).",
-      "invalid_search_template": "The search link must be an http(s) URL containing {q}."
+      "invalid_search_template": "The search link must be an http(s) URL containing {q}.",
+      "invalid_schedule": "The schedule is incomplete — pick at least one weekday (or a calendar for a calendar-driven task).",
+      "invalid_delta_target": "When counting accumulated use (delta mode), the target value must be greater than 0."
+    },
+    "abort": {
+      "entity_unavailable": "The selected entity is not available right now. Try again once it reports a state."
     }
   },
   "entity": {

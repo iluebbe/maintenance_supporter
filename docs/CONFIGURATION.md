@@ -67,7 +67,7 @@ These toggles control which advanced feature sections appear in the UI. Disablin
 > **Operator mode (read-only end-user view, 1.0.44+)** is not a global flag — it's derived from the HA user role plus an explicit per-user override list:
 >
 > - **Admins** (and the HA owner) always see the full panel.
-> - **Non-admin** users see Operator mode by default — only `Complete` and `Skip` on each task; Settings tab + every create/edit/delete control hidden.
+> - **Non-admin** users see Operator mode by default — the household actions (`Complete`, `Skip`, `Reset`, `Postpone`, `Snooze`) on each task; Settings tab + every create/edit/delete control hidden.
 > - Admins can grant non-admin users full panel access by adding their HA user IDs to the `admin_panel_user_ids` list. This is editable through:
 >   - the panel's **Settings → Panel Access** section (multi-checkbox with all non-admin users), or
 >   - HA Settings → Devices & services → Maintenance Supporter → Configure → **Panel Access**.

@@ -58,6 +58,9 @@ export class MaintenanceStorageSectionCard extends LitElement {
 
   private _initiallyLoaded = false;
   private _searchTimer = 0;
+  /** Only the newest query's answer may land: a slow reply for "fil" used to
+   *  overwrite the one for "filter" (bug audit 2026-09-26). */
+  private _searchSeq = 0;
 
   private get _lang(): string {
     return langOf(this.hass);
@@ -121,6 +124,7 @@ export class MaintenanceStorageSectionCard extends LitElement {
 
   private async _doSearch(): Promise<void> {
     const q = this._query.trim();
+    const seq = ++this._searchSeq;
     if (!q) {
       this._results = [];
       return;
@@ -130,8 +134,10 @@ export class MaintenanceStorageSectionCard extends LitElement {
         type: "maintenance_supporter/documents/search",
         query: q,
       });
+      if (seq !== this._searchSeq) return;
       this._results = r.results || [];
     } catch (e) {
+      if (seq !== this._searchSeq) return;
       this._error = describeWsError(e, this._lang);
       this._results = [];
     }

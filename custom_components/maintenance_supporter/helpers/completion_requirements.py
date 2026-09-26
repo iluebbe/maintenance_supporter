@@ -21,7 +21,10 @@ on an automatic completion — nobody did the work, so nobody is asked for it.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
 
 # Requestable fields, in the order they are shown and reported. Kept as a
 # tuple so the WS schema, the sanitizer and the TS dialog agree by
@@ -77,3 +80,29 @@ def missing_completion_fields(
         "user": bool(completed_by),
     }
     return [field for field in required if not supplied[field]]
+
+
+def own_photo_doc_ids(hass: HomeAssistant, object_id: str, photo_doc_ids: list[str] | None) -> list[str]:
+    """Keep only the ids that name an uploaded FILE document of this object.
+
+    A completion (or a history edit) took any ``photo_doc_ids`` on trust:
+    another object's document — or a web link — satisfied a required photo,
+    got linked to the task and was even re-homed with it on ``task/move``
+    (bug audit 2026-09-26). Unknown / foreign ids are dropped, like
+    ``sanitize_consumes_parts`` drops unknown parts; a required photo that
+    only had foreign ids is then reported missing by the choke point.
+    """
+    if not photo_doc_ids:
+        return []
+    from ..const import DOCUMENT_STORE_KEY, DOMAIN
+    from .documents import KIND_FILE
+
+    store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    if store is None:
+        return []
+    kept: list[str] = []
+    for doc_id in photo_doc_ids:
+        doc = store.documents.get(doc_id)
+        if doc is not None and doc.get("kind") == KIND_FILE and doc.get("object_id") == object_id:
+            kept.append(doc_id)
+    return kept

@@ -308,11 +308,9 @@ async def test_completion_survives_a_missing_or_failing_notifier(hass: HomeAssis
     await hass.async_block_till_done()
     assert len(completed_events) == 2
     # No (or a foreign) notification manager in hass.data: the hook is a no-op.
-    from types import SimpleNamespace
-
     hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY] = object()
     try:
-        await coordinator._async_notify_completed(TASK_ID_2, SimpleNamespace(name="Salt"), "qr", None, "2026-09-11T10:00:00+00:00")
+        await coordinator._async_notify_completed(TASK_ID_2, "Salt", "qr", None, "2026-09-11T10:00:00+00:00")
     finally:
         hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY] = nm
 

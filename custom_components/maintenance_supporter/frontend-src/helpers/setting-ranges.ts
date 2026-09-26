@@ -34,3 +34,10 @@ export function settingIntRange(key: string): [number, number] {
   if (!r) throw new Error(`not an int-ranged setting: ${key}`);
   return r;
 }
+
+/** Vacation buffer days (`vacation/update` buffer_days). Not a registry
+ *  setting — the bound lives in the WS schema of websocket/vacation.py;
+ *  tests/test_frontend_const_parity.py pins this tuple to it. The panel's
+ *  settings view and the Lovelace vacation card both validate against it
+ *  (the view dropped an out-of-range value silently, the card sent it). */
+export const VACATION_BUFFER_DAYS_RANGE: readonly [number, number] = [0, 14];

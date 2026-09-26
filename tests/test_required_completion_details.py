@@ -336,6 +336,14 @@ async def test_every_requirable_field_can_be_satisfied(
 
     obj = _object_entry(hass, required=[field])
     await setup_integration(hass, global_entry, obj)
+    # A photo must be an uploaded file of THIS object (bug audit 2026-09-26, SEC-3).
+    photo_id = "unused"
+    if field == "photo":
+        from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY, DOMAIN
+        from custom_components.maintenance_supporter.websocket import object_id_for_entry
+
+        store = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
+        photo_id = (await store.async_add_file(object_id_for_entry(obj), content=b"img", filename="p.jpg", mime="image/jpeg", tags=["photo"]))["id"]
 
     # What the completion dialog sends when the user filled that one field.
     payload: dict[str, Any] = {"id": 1, "type": "x", "entry_id": obj.entry_id, "task_id": TASK_ID_1}
@@ -344,7 +352,7 @@ async def test_every_requirable_field_can_be_satisfied(
             "notes": {"notes": "did it"},
             "cost": {"cost": 12.5},
             "duration": {"duration": 30},
-            "photo": {"photo_doc_ids": ["doc-1"]},
+            "photo": {"photo_doc_ids": [photo_id]},
             "user": {},  # server-side: taken from the authenticated connection
         }[field]
     )

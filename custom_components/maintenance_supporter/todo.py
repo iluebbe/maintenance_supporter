@@ -29,14 +29,14 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     COMPLETION_PROVENANCE_NOTES,
     CONF_OBJECT,
-    CONF_TASK_ENABLED,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     NOTIFIABLE_STATUSES,
     MaintenanceStatus,
 )
-from .helpers.calendar_source import with_event_titles
+from .helpers.pause import is_task_inert
+from .helpers.todo_mirror import mirror_summary
 
 if TYPE_CHECKING:
     from . import MaintenanceSupporterConfigEntry
@@ -118,16 +118,12 @@ class MaintenanceTodoList(TodoListEntity):
             live = coordinator.data.get(CONF_TASKS, {}) if coordinator and coordinator.data else {}
 
             for task_id, task_cfg in entry.data.get(CONF_TASKS, {}).items():
-                if not task_cfg.get(CONF_TASK_ENABLED, True):
-                    continue
-                if task_cfg.get("archived_at") is not None:
+                # Disabled, archived (retired) or paused (v2.20, N3: frozen) —
+                # none belongs on the actionable To-do list.
+                if is_task_inert(task_cfg, obj_data):
                     continue
                 task_live = live.get(task_id, {})
                 status = task_live.get("_status", MaintenanceStatus.OK)
-                # Archived is retired; paused (v2.20, N3) is frozen — neither
-                # belongs on the actionable To-do list.
-                if status in (MaintenanceStatus.ARCHIVED, MaintenanceStatus.PAUSED):
-                    continue
                 due_iso = task_live.get("_next_due")
                 due: date | None = None
                 if isinstance(due_iso, str):
@@ -138,8 +134,9 @@ class MaintenanceTodoList(TodoListEntity):
                 items.append(
                     TodoItem(
                         uid=f"{entry.entry_id}:{task_id}",
-                        # #189: a calendar-driven task names the next events.
-                        summary=with_event_titles(f"{obj_name}: {task_cfg.get('name', '')}", task_live.get("_next_event_titles")),
+                        # The shared row text (bug audit 2026-09-26): the due
+                        # phase (#139) and the next calendar events (#189).
+                        summary=mirror_summary(obj_name, {**task_cfg, **task_live}),
                         status=(TodoItemStatus.NEEDS_ACTION if status in _ACTION_STATUSES else TodoItemStatus.COMPLETED),
                         due=due,
                     )

@@ -18,6 +18,7 @@ from .config_flow_helpers import (
     interval_unit_selector,
     schedule_from_calendar_input,
     season_ends_schema,
+    select_default,
 )
 from .const import (
     CONF_ADVANCED_SCHEDULE_TIME,
@@ -231,10 +232,18 @@ class TaskCrudMixin:
                     )
                 )
                 updated_task[CONF_TASK_ENABLED] = user_input.get(CONF_TASK_ENABLED, updated_task.get(CONF_TASK_ENABLED, True))
+                # Notes / link are pre-filled as suggested values, so an
+                # emptied field arrives absent — and now clears. Before, the
+                # handler only ever SET them and the form's ``default=`` put
+                # the stored text back anyway (bug audit 2026-09-26).
                 if user_input.get(CONF_TASK_NOTES):
                     updated_task[CONF_TASK_NOTES] = user_input[CONF_TASK_NOTES]
+                else:
+                    updated_task.pop(CONF_TASK_NOTES, None)
                 if user_input.get(CONF_TASK_DOCUMENTATION_URL):
                     updated_task[CONF_TASK_DOCUMENTATION_URL] = user_input[CONF_TASK_DOCUMENTATION_URL]
+                else:
+                    updated_task.pop(CONF_TASK_DOCUMENTATION_URL, None)
                 if user_input.get(CONF_TASK_LAST_PERFORMED):
                     write_anchor(updated_task, str(user_input[CONF_TASK_LAST_PERFORMED]))
                 pool = user_input.get(CONF_TASK_ASSIGNEE_POOL, [])
@@ -280,13 +289,12 @@ class TaskCrudMixin:
                     updated_task.pop(CONF_TASK_NFC_TAG, None)
                 # Proof of presence: completion only via NFC/QR scan.
                 updated_task["require_tag_scan"] = bool(user_input.get("require_tag_scan"))
-                # v2.20 (#83): reading unit — clear by submitting "".
-                if CONF_TASK_READING_UNIT in user_input:
-                    ru = (user_input.get(CONF_TASK_READING_UNIT) or "").strip()
-                    if ru:
-                        updated_task[CONF_TASK_READING_UNIT] = ru
-                    else:
-                        updated_task.pop(CONF_TASK_READING_UNIT, None)
+                # v2.20 (#83): reading unit — an emptied field clears it.
+                ru = (user_input.get(CONF_TASK_READING_UNIT) or "").strip()
+                if ru:
+                    updated_task[CONF_TASK_READING_UNIT] = ru
+                else:
+                    updated_task.pop(CONF_TASK_READING_UNIT, None)
                 # #161 phase 2: reading slots, one "Name | Unit" per line. Ids
                 # are kept for lines whose name already exists (delta chain).
                 if "readings_text" in user_input:
@@ -328,37 +336,22 @@ class TaskCrudMixin:
             if task.get(CONF_TASK_LAST_PERFORMED)
             else vol.Optional(CONF_TASK_LAST_PERFORMED)
         )
-        notes_key = (
-            vol.Optional(CONF_TASK_NOTES, default=task.get(CONF_TASK_NOTES))
-            if task.get(CONF_TASK_NOTES)
-            else vol.Optional(CONF_TASK_NOTES)
-        )
-        doc_url_key = (
-            vol.Optional(CONF_TASK_DOCUMENTATION_URL, default=task.get(CONF_TASK_DOCUMENTATION_URL))
-            if task.get(CONF_TASK_DOCUMENTATION_URL)
-            else vol.Optional(CONF_TASK_DOCUMENTATION_URL)
-        )
-        icon_key = (
-            vol.Optional(CONF_TASK_ICON, default=task.get(CONF_TASK_ICON))
-            if task.get(CONF_TASK_ICON)
-            else vol.Optional(CONF_TASK_ICON)
-        )
+        # Clearable text fields carry the stored value as a SUGGESTED value:
+        # the frontend leaves an emptied field out of the submission, and a
+        # ``default=<stored>`` then re-inserted it — notes, the link, the
+        # icons, the NFC tag, the unit and the labels could never be removed
+        # here (bug audit 2026-09-26). The handler treats absence as "clear".
+        def _suggested(key: str, value: Any) -> vol.Optional:
+            return vol.Optional(key, description={"suggested_value": value}) if value else vol.Optional(key)
+
+        notes_key = _suggested(CONF_TASK_NOTES, task.get(CONF_TASK_NOTES))
+        doc_url_key = _suggested(CONF_TASK_DOCUMENTATION_URL, task.get(CONF_TASK_DOCUMENTATION_URL))
+        icon_key = _suggested(CONF_TASK_ICON, task.get(CONF_TASK_ICON))
         # #185: push-notification icon override (empty = the type's default).
-        notify_icon_key = (
-            vol.Optional(CONF_TASK_NOTIFY_ICON, default=task.get(CONF_TASK_NOTIFY_ICON))
-            if task.get(CONF_TASK_NOTIFY_ICON)
-            else vol.Optional(CONF_TASK_NOTIFY_ICON)
-        )
-        nfc_tag_key = (
-            vol.Optional(CONF_TASK_NFC_TAG, default=task.get(CONF_TASK_NFC_TAG))
-            if task.get(CONF_TASK_NFC_TAG)
-            else vol.Optional(CONF_TASK_NFC_TAG)
-        )
-        reading_unit_key = (
-            vol.Optional(CONF_TASK_READING_UNIT, default=task.get(CONF_TASK_READING_UNIT))
-            if task.get(CONF_TASK_READING_UNIT)
-            else vol.Optional(CONF_TASK_READING_UNIT)
-        )
+        notify_icon_key = _suggested(CONF_TASK_NOTIFY_ICON, task.get(CONF_TASK_NOTIFY_ICON))
+        nfc_tag_key = _suggested(CONF_TASK_NFC_TAG, task.get(CONF_TASK_NFC_TAG))
+        reading_unit_key = _suggested(CONF_TASK_READING_UNIT, task.get(CONF_TASK_READING_UNIT))
+        labels_key = _suggested(CONF_TASK_LABELS_TEXT, ", ".join(task.get("labels") or []))
         due_date_key = (
             vol.Required(CONF_TASK_DUE_DATE, default=task.get(CONF_TASK_DUE_DATE))
             if task.get(CONF_TASK_DUE_DATE)
@@ -372,17 +365,21 @@ class TaskCrudMixin:
                 continue
             user_options.append(selector.SelectOptionDict(value=user.id, label=user.name or user.id))
 
-        # Guard the default: a stored None (or a user since deleted, hence no
-        # longer in the dropdown) would fail the select's own validation and
-        # 400 the whole form on save.
-        user_id_default = task.get(CONF_RESPONSIBLE_USER_ID) or ""
-        if user_id_default not in {o["value"] for o in user_options}:
-            user_id_default = ""
-        user_id_key = vol.Optional(CONF_RESPONSIBLE_USER_ID, default=user_id_default)
+        # Guard every select default (config_flow_helpers.select_default): a
+        # stored None, or a user since deleted (hence no longer in the
+        # dropdown), would fail the select's own validation and 400 the whole
+        # form on save.
+        user_id_key = vol.Optional(CONF_RESPONSIBLE_USER_ID, default=select_default(task.get(CONF_RESPONSIBLE_USER_ID), user_options))
         # Rotation pool options = the real users (no empty sentinel).
         pool_options = [o for o in user_options if o["value"]]
-        pool_default = task.get("assignee_pool", [])
-        rotation_default = task.get("rotation_strategy", "")
+        pool_default = select_default(task.get("assignee_pool") or [], pool_options)
+        rotation_default = select_default(task.get("rotation_strategy"), ["", *ROTATION_STRATEGIES])
+        # A task created over the WS API may carry a free-text type the
+        # dropdown does not list — offer it, or the form could never be saved
+        # without silently retyping the task.
+        stored_type = task.get("type")
+        if isinstance(stored_type, str) and stored_type and stored_type not in type_options:
+            type_options.append(stored_type)
         # Completion window (optional): only carry a default when one is stored,
         # so the NumberSelector renders empty for the "no restriction" case.
         ecd_stored = task.get("earliest_completion_days")
@@ -528,10 +525,7 @@ class TaskCrudMixin:
                             translation_key="task_priority",
                         )
                     ),
-                    vol.Optional(
-                        CONF_TASK_LABELS_TEXT,
-                        default=", ".join(task.get("labels", [])),
-                    ): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
+                    labels_key: selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
                     nfc_tag_key: selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
                     vol.Optional("require_tag_scan", default=bool(task.get("require_tag_scan"))): selector.BooleanSelector(),
                     reading_unit_key: selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),

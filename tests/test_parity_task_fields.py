@@ -53,6 +53,13 @@ _PANEL_KEY_ALIASES = {"task_type": "type"}
 _PANEL_SIBLING_WS = {
     "task/set_environmental_entity": "adaptive_config",
 }
+# The config-flow twin: fields a flow step persists through a SHARED writer
+# instead of a direct ``updated_task[...] =`` assignment. The adaptive step
+# writes through the WS layer's ``_persist_adaptive_config`` since the bug
+# audit of 2026-09-26 (one write path: immediate save + refresh).
+_CONFIG_FLOW_SIBLING_WRITERS = {
+    "_persist_adaptive_config": "adaptive_config",
+}
 
 # ─── Intentional divergences (each needs a reason) ──────────────────────────
 # Panel-only: advanced completion features the legacy config-flow never grew.
@@ -150,6 +157,9 @@ def _config_flow_fields() -> set[str]:
             resolved = _resolve_conf(conf_name)
             if resolved:
                 fields.add(resolved)
+        for writer, storage_key in _CONFIG_FLOW_SIBLING_WRITERS.items():
+            if f"await {writer}(" in src:
+                fields.add(storage_key)
     return fields - _INTERNAL_KEYS - _CONFIG_FLOW_TRANSPORT_KEYS
 
 

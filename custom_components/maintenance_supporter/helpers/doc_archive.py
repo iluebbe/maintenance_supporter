@@ -111,11 +111,14 @@ def _object_part_ids(hass: HomeAssistant, object_id: str) -> set[str]:
     return set()
 
 
-def build_documents_archive(hass: HomeAssistant, entry_ids: set[str] | None = None) -> bytes:
-    """Build a documents ZIP for the selected objects (None = all).
+class ArchiveTooLarge(ValueError):
+    """The selection's files exceed what an import accepts (MAX_ARCHIVE_BYTES)."""
 
-    Runs on the event loop for the metadata gather (reads config entries) but
-    the heavy blob reads happen here synchronously — call via the executor.
+
+def _gather_archive(hass: HomeAssistant, entry_ids: set[str] | None) -> tuple[Any, dict[str, Any], list[str]]:
+    """The manifest and the blob digests of the selected objects (None = all).
+
+    Metadata only — reads config entries and the document store.
     """
     from ..const import CONF_OBJECT
     from ..export import object_entries
@@ -141,23 +144,78 @@ def build_documents_archive(hass: HomeAssistant, entry_ids: set[str] | None = No
         if docs:
             manifest_objects.append({"object_id": object_id, "object_name": obj.get("name", ""), "documents": docs})
 
-    manifest = {"version": ARCHIVE_VERSION, "objects": manifest_objects}
+    return store, {"version": ARCHIVE_VERSION, "objects": manifest_objects}, sorted(blob_hashes)
 
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+
+def _write_archive(store: Any, manifest: dict[str, Any], blob_hashes: list[str], target: Any) -> None:
+    """Write the ZIP to ``target`` (a path or binary file object) — blocking.
+
+    Each blob is streamed from disk into the archive (``ZipFile.write``), so
+    memory stays flat however large the documents are. Refuses up front a
+    selection whose files exceed MAX_ARCHIVE_BYTES: the import refuses such
+    an archive anyway, and the export used to assemble the whole ZIP in
+    memory with no ceiling (bug audit 2026-09-26).
+    """
+    blobs: list[tuple[str, Any]] = []
+    total = 0
+    for h in blob_hashes:
+        if store is None:
+            break
+        try:
+            path = store.blob_path(h)
+        except ValueError:
+            continue
+        if not path.is_file():
+            _LOGGER.warning("Documents archive: blob %s missing on disk, skipped", h[:12])
+            continue
+        total += path.stat().st_size
+        if total > MAX_ARCHIVE_BYTES:
+            raise ArchiveTooLarge(
+                f"The selected documents exceed {MAX_ARCHIVE_BYTES // (1024 * 1024)} MB, "
+                "more than an archive import accepts — export fewer objects at a time."
+            )
+        blobs.append((h, path))
+    with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr(MANIFEST_NAME, json.dumps(manifest, ensure_ascii=False, indent=2))
-        for h in sorted(blob_hashes):
-            if store is None:
-                break
-            try:
-                path = store.blob_path(h)
-            except ValueError:
-                continue
-            if path.is_file():
-                zf.writestr(f"{BLOB_DIR}{h}", path.read_bytes())
-            else:
-                _LOGGER.warning("Documents archive: blob %s missing on disk, skipped", h[:12])
+        for h, path in blobs:
+            zf.write(path, arcname=f"{BLOB_DIR}{h}")
+
+
+def build_documents_archive(hass: HomeAssistant, entry_ids: set[str] | None = None) -> bytes:
+    """Build a documents ZIP in memory for the selected objects (None = all).
+
+    Blocking — call via the executor. The HTTP export streams through
+    :func:`async_build_documents_archive_file` instead; this in-memory form
+    stays for tooling and tests.
+    """
+    store, manifest, blob_hashes = _gather_archive(hass, entry_ids)
+    buf = io.BytesIO()
+    _write_archive(store, manifest, blob_hashes, buf)
     return buf.getvalue()
+
+
+async def async_build_documents_archive_file(hass: HomeAssistant, entry_ids: set[str] | None = None) -> str:
+    """Write the documents ZIP to a temporary file and return its path.
+
+    The caller streams it out and deletes it. Raises :class:`ArchiveTooLarge`
+    (nothing left behind) when the selection exceeds the import ceiling.
+    """
+    import os
+    import tempfile
+
+    store, manifest, blob_hashes = _gather_archive(hass, entry_ids)
+
+    def _write() -> str:
+        fd, path = tempfile.mkstemp(prefix="maintenance-documents-", suffix=".zip")
+        os.close(fd)
+        try:
+            _write_archive(store, manifest, blob_hashes, path)
+        except BaseException:
+            os.unlink(path)
+            raise
+        return path
+
+    return await hass.async_add_executor_job(_write)
 
 
 async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str, Any]:

@@ -489,7 +489,9 @@
       "invalid_notify_service": "Ungültiges Format des Benachrichtigungsdienstes. Verwenden Sie 'notify.dienstname' (z.B. notify.mobile_app_phone).",
       "notify_service_not_found": "Dieser Benachrichtigungsdienst wurde in Home Assistant nicht gefunden. Bitte prüfen Sie den Dienstnamen.",
       "nfc_tag_duplicate": "Dieses NFC-Tag ist bereits mit einer anderen Aufgabe verknüpft.",
-      "invalid_shopping_list_entity": "Die Einkaufsliste muss eine To-do-Entität sein (todo.…)."
+      "invalid_shopping_list_entity": "Die Einkaufsliste muss eine To-do-Entität sein (todo.…).",
+      "invalid_schedule": "Der Zeitplan ist unvollständig – wähle mindestens einen Wochentag (oder einen Kalender für eine kalendergesteuerte Aufgabe).",
+      "invalid_delta_target": "Beim Zählen des Verbrauchs (Delta-Modus) muss der Zielwert größer als 0 sein."
     },
     "abort": {
       "already_configured": "Dieses Wartungsobjekt ist bereits konfiguriert.",
@@ -497,7 +499,9 @@
       "template_not_found": "Die ausgewählte Vorlage wurde nicht gefunden.",
       "missing_data": "Erforderliche Daten wurden nicht angegeben.",
       "reconfigure_successful": "Konfiguration erfolgreich aktualisiert.",
-      "reconfigure_cancelled": "Neukonfiguration abgebrochen."
+      "reconfigure_cancelled": "Neukonfiguration abgebrochen.",
+      "entity_unavailable": "Die ausgewählte Entität ist gerade nicht verfügbar. Versuche es erneut, sobald sie einen Zustand meldet.",
+      "unknown": "Ein unerwarteter Fehler ist aufgetreten. Bitte beginne von vorn."
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "Dieses NFC-Tag ist bereits mit einer anderen Aufgabe verknüpft.",
       "invalid_notify_icon": "Das Benachrichtigungs-Icon muss ein mdi:-Iconname sein (z.B. mdi:air-filter).",
       "invalid_shopping_list_entity": "Die Einkaufsliste muss eine To-do-Entität sein (todo.…).",
-      "invalid_search_template": "Der Suchlink muss eine http(s)-URL mit {q} sein."
+      "invalid_search_template": "Der Suchlink muss eine http(s)-URL mit {q} sein.",
+      "invalid_schedule": "Der Zeitplan ist unvollständig – wähle mindestens einen Wochentag (oder einen Kalender für eine kalendergesteuerte Aufgabe).",
+      "invalid_delta_target": "Beim Zählen des Verbrauchs (Delta-Modus) muss der Zielwert größer als 0 sein."
+    },
+    "abort": {
+      "entity_unavailable": "Die ausgewählte Entität ist gerade nicht verfügbar. Versuche es erneut, sobald sie einen Zustand meldet."
     }
   },
   "entity": {

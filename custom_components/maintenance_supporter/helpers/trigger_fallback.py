@@ -15,7 +15,7 @@ every rule is individually testable.
 from __future__ import annotations
 
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -147,17 +147,77 @@ def evaluate_threshold(
     return FallbackResult(current_value=last_value, active=active)
 
 
+def _finite(raw: Any) -> float | None:
+    if isinstance(raw, bool):
+        return None
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return None
+    return value if math.isfinite(value) else None
+
+
+def counter_baseline(trigger_config: Mapping[str, Any], entity_id: str | None) -> float | None:
+    """THE baseline a delta counter measures *entity_id* against.
+
+    The entity's own living baseline from the Store
+    (``_trigger_state[entity].baseline_value`` — moved on every completion),
+    else the configured initial ``trigger_baseline_value``. Four copies of
+    this lookup had drifted: the coordinator took the FIRST entity's
+    baseline for whatever entity's reading it showed, and the sensor
+    predictor ignored the Store and forecast from the initial baseline, so a
+    serviced odometer task predicted "due now" (bug audit 2026-09-26, DRY
+    BR-A10 / SCH-8).
+    """
+    state = trigger_config.get("_trigger_state")
+    if entity_id and isinstance(state, Mapping):
+        own = state.get(entity_id)
+        if isinstance(own, Mapping) and own.get("baseline_value") is not None:
+            return _finite(own["baseline_value"])
+    return _finite(trigger_config.get("trigger_baseline_value"))
+
+
+def counter_progress(
+    get_state: StateGetter,
+    trigger_config: Mapping[str, Any],
+    entity_ids: list[str],
+) -> tuple[float | None, float | None]:
+    """``(reading, baseline)`` of ONE delta-counter entity — the one furthest
+    along — so a progress display never subtracts one entity's baseline from
+    another entity's reading. Entities without a live reading only count when
+    none has one (then the first with a baseline, reading ``None``)."""
+    attribute = trigger_config.get("attribute")
+    best: tuple[float, float] | None = None
+    fallback_baseline: float | None = None
+    for eid in entity_ids:
+        baseline = counter_baseline(trigger_config, eid)
+        if baseline is None:
+            continue
+        if fallback_baseline is None:
+            fallback_baseline = baseline
+        value = _numeric_entity_value(get_state, eid, attribute)
+        if value is not None and (best is None or value - baseline > best[0] - best[1]):
+            best = (value, baseline)
+    if best is not None:
+        return best
+    return None, fallback_baseline
+
+
 def evaluate_counter(
     get_state: StateGetter,
     trigger_config: dict[str, Any],
     entity_ids: list[str],
 ) -> FallbackResult:
-    """Counter: value (or delta from a per-entity baseline) reaches a target."""
+    """Counter: value (or delta from a per-entity baseline) reaches a target.
+
+    In delta mode the reported value is the reading of the entity furthest
+    along (:func:`counter_progress`), so the coordinator's delta pairs the
+    reading with ITS baseline.
+    """
     attribute = trigger_config.get("attribute")
     entity_logic = trigger_config.get("entity_logic", "any")
     target = trigger_config.get("trigger_target_value", 0)  # pragma: no mutate (WS-required; default only guards hand-edited data)
     delta_mode = trigger_config.get("trigger_delta_mode", False)
-    trigger_state = trigger_config.get("_trigger_state", {})
 
     per_entity: list[bool] = []
     last_value: float | None = None
@@ -168,12 +228,15 @@ def evaluate_counter(
             continue
         last_value = value
         if delta_mode:
-            baseline = trigger_state.get(eid, {}).get("baseline_value")
-            if baseline is None:
-                baseline = trigger_config.get("trigger_baseline_value")
+            baseline = counter_baseline(trigger_config, eid)
             per_entity.append(baseline is not None and (value - baseline) >= target)
         else:
             per_entity.append(value >= target)
+
+    if delta_mode:
+        reading, _baseline = counter_progress(get_state, trigger_config, entity_ids)
+        if reading is not None:
+            last_value = reading
 
     active = _aggregate(per_entity, entity_logic) if per_entity else None
     return FallbackResult(current_value=last_value, active=active)

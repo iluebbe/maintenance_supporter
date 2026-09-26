@@ -454,9 +454,6 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
     return True
 
 
-BROKEN_LINK_ISSUE_PREFIX = "broken_part_link_"
-
-
 def _raise_broken_link_issue(hass: HomeAssistant, entry: ConfigEntry, part_ids: list[str]) -> None:
     """Tell the user a completion could not decrement what it was linked to.
 
@@ -467,11 +464,13 @@ def _raise_broken_link_issue(hass: HomeAssistant, entry: ConfigEntry, part_ids: 
     """
     from homeassistant.helpers import issue_registry as ir
 
+    from .helpers.issues import broken_part_link_issue_id
+
     object_name = _object_name(entry)
     ir.async_create_issue(
         hass,
         DOMAIN,
-        f"{BROKEN_LINK_ISSUE_PREFIX}{entry.entry_id}",
+        broken_part_link_issue_id(entry.entry_id),
         is_fixable=False,
         severity=ir.IssueSeverity.WARNING,
         translation_key="broken_part_link",

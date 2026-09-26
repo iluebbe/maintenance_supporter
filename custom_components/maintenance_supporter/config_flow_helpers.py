@@ -159,6 +159,23 @@ def calendar_current(task: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def select_default(value: Any, options: list[Any], fallback: Any = "") -> Any:
+    """A stored value made safe as a ``SelectSelector`` default.
+
+    HA validates the submitted form against the select's options, and a
+    stored value the options no longer carry — a deleted user, a user
+    promoted to admin (no longer on the non-admin list), the ``None`` the
+    panel dialog persisted for "no rotation" — came back as the field's
+    default and failed that validation on every save: the whole form was
+    unsaveable (bug audit 2026-09-26). A multi-select keeps only its still
+    valid members; a single select falls back to ``fallback``.
+    """
+    allowed = {opt["value"] if isinstance(opt, dict) else opt for opt in options}
+    if isinstance(value, (list, tuple)):
+        return [v for v in value if v in allowed]
+    return value if value in allowed else fallback
+
+
 def interval_unit_selector() -> selector.SelectSelector:
     """Shared days/weeks/months/years dropdown for the interval unit.
 

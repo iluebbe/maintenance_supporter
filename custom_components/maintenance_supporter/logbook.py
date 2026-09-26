@@ -31,7 +31,7 @@ from .const import (
     slugify_object_name,
     task_unique_id,
 )
-from .helpers.i18n import normalize_language
+from .helpers.i18n import format_text, normalize_language
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -197,10 +197,8 @@ _STRINGS: dict[str, dict[str, str]] = {
 
 
 def _t(hass: HomeAssistant, key: str, **kwargs: str) -> str:
-    lang = normalize_language(hass)
-    table = _STRINGS.get(lang, _STRINGS["en"])
-    text = table.get(key, _STRINGS["en"][key])
-    return text.format(**kwargs) if kwargs else text
+    """Logbook line in the HA language (the shared i18n.format_text)."""
+    return format_text(_STRINGS, normalize_language(hass), key, **kwargs)
 
 
 def _entry_name(data: Mapping[str, Any]) -> str:

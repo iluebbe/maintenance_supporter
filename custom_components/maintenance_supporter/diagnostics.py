@@ -44,7 +44,35 @@ TO_REDACT = {
     "mpn",
     "gtin",
     "storage_location",
+    # Per-member avatar overrides (#169): user ids with names/initials.
+    "member_display",
+    # The HA user an on-complete action runs as (a user UUID, bug audit
+    # 2026-09-26) — see also _redact_actions for the action's payload.
+    "configured_by",
 }
+
+REDACTED = "**REDACTED**"
+
+
+def _redact_actions(data: Mapping[str, Any]) -> dict[str, Any]:
+    """Redact the free-form payload of every task's on-complete action.
+
+    The ``data`` of a service call is whatever the user typed (a message, a
+    phone number, a URL with a token) — while the service name and target
+    stay, they are what one debugs. A blanket ``"data"`` key in TO_REDACT
+    would hit unrelated structures, so this is targeted (bug audit
+    2026-09-26, SEC-11).
+    """
+    tasks = data.get(CONF_TASKS)
+    if not isinstance(tasks, dict):
+        return dict(data)
+    new_tasks: dict[str, Any] = {}
+    for task_id, task in tasks.items():
+        action = task.get("on_complete_action") if isinstance(task, dict) else None
+        if isinstance(action, dict) and action.get("data"):
+            task = {**task, "on_complete_action": {**action, "data": REDACTED}}
+        new_tasks[task_id] = task
+    return {**data, CONF_TASKS: new_tasks}
 
 
 async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: MaintenanceSupporterConfigEntry) -> dict[str, Any]:
@@ -53,12 +81,15 @@ async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: Mainten
 
     diag: dict[str, Any] = {
         "entry": {
-            "title": entry.title,
-            "unique_id": entry.unique_id,
+            # An object entry's title IS the object name (redacted in the
+            # data below) and its unique id is the slug of that name — both
+            # went out in the clear (bug audit 2026-09-26, SEC-11).
+            "title": entry.title if is_global else REDACTED,
+            "unique_id": entry.unique_id if is_global else REDACTED,
             "version": entry.version,
             "is_global": is_global,
         },
-        "data": async_redact_data(entry.data, TO_REDACT),
+        "data": async_redact_data(_redact_actions(entry.data), TO_REDACT),
     }
 
     if is_global:

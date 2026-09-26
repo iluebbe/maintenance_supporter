@@ -12,8 +12,12 @@ import { LitElement, html, css, nothing } from "lit";
 import { isSafeHttpUrl } from "../helpers/url";
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { property, state } from "lit/decorators.js";
-import { t, STATUS_COLORS, langOf } from "../styles";
+import { t, langOf } from "../styles";
 import { describeWsError } from "../ws-errors";
+import { statusColor, statusKey, statusLabel } from "../renderers/status";
+import { fetchSettingsOnce } from "../helpers/settings-cache";
+import { canWrite, NO_DELEGATION, type WriteAccess } from "../helpers/permissions";
+import { confirmAction } from "../helpers/confirm";
 import type { HomeAssistant, MaintenanceObject, MaintenanceTask } from "../types";
 
 interface ObjectFull {
@@ -30,6 +34,9 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
   @state() private _data: ObjectFull | null = null;
   @state() private _busy = false;
   @state() private _error = "";
+  /** Operator-write delegation — Add task / Edit / Archive / Delete follow
+   *  canWrite() like the panel (DRY audit 2026-09-26). */
+  @state() private _access: WriteAccess = NO_DELEGATION;
 
   private get _lang(): string {
     return langOf(this.hass);
@@ -39,7 +46,10 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     this._entryId = entryId;
     this._error = "";
     this._open = true;
-    await this._load();
+    await Promise.all([
+      this._load(),
+      fetchSettingsOnce(this.hass).then((s) => { this._access = s.access; }),
+    ]);
   }
 
   public close(): void {
@@ -79,9 +89,13 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
 
   private async _onDelete(): Promise<void> {
     if (!this._entryId || !this._data) return;
-    const confirmText = t("delete_object_confirm", this._lang)
-      || `Delete "${this._data.object.name}" and all its tasks?`;
-    if (!window.confirm(confirmText)) return;
+    const ok = await confirmAction(this.hass, {
+      title: t("delete", this._lang),
+      message: t("delete_object_confirm", this._lang),
+      confirmText: t("delete", this._lang),
+      danger: true,
+    });
+    if (!ok) return;
     this._busy = true;
     this._error = "";
     try {
@@ -107,8 +121,12 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     if (!this._entryId || !this._data) return;
     const archived = !!this._data.object.archived;
     if (!archived) {
-      const confirmText = t("confirm_archive_object", this._lang);
-      if (!window.confirm(confirmText)) return;
+      const ok = await confirmAction(this.hass, {
+        title: t("archive_object", this._lang),
+        message: t("confirm_archive_object", this._lang),
+        confirmText: t("archive_object", this._lang),
+      });
+      if (!ok) return;
     }
     this._busy = true;
     this._error = "";
@@ -148,7 +166,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     const data = this._data;
     const obj = data?.object;
     const tasks = data?.tasks || [];
-    const isAdmin = (this.hass?.user?.is_admin ?? true) as boolean;
+    const writer = canWrite(this.hass?.user, this._access);
 
     return html`
       <div class="backdrop" @click=${this.close}></div>
@@ -173,9 +191,9 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
                       <div class="task-list">
                         ${tasks.map((task) => html`
                           <div class="task-row" @click=${() => this._onTaskClick(task.id)}>
-                            <span class="status-dot" style="background: ${STATUS_COLORS[task.status] || "#ccc"}"></span>
+                            <span class="status-dot" style="background: ${statusColor(task)}"></span>
                             <span class="task-name">${task.name}</span>
-                            <span class="task-status">${t(task.status || "ok", L)}</span>
+                            <span class="task-status ${statusKey(task)}">${statusLabel(statusKey(task), L)}</span>
                           </div>
                         `)}
                       </div>
@@ -191,7 +209,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
                   `
                 : nothing}
 
-              ${isAdmin
+              ${writer
                 ? html`
                     <div class="actions">
                       <button class="btn primary" @click=${this._onAddTask} ?disabled=${this._busy}>

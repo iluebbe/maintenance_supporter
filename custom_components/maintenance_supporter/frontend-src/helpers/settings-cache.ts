@@ -17,6 +17,7 @@
  */
 
 import type { HomeAssistant } from "../types";
+import { NO_DELEGATION, type WriteAccess } from "./permissions";
 
 export interface SettingsCache {
   features: {
@@ -27,6 +28,36 @@ export interface SettingsCache {
   defaultWarningDays: number;
   /** #145: global "Task row actions" style (buttons_compact | buttons | icons). */
   rowActionStyle: string;
+  /** Operator-write delegation (helpers/permissions.canWrite) — the
+   *  Lovelace dialogs and section cards gate Edit/Delete on it like the
+   *  panel does, instead of on `is_admin` alone (DRY audit 2026-09-26). */
+  access: WriteAccess;
+  /** Currency display for amounts outside the panel (quick-actions stats,
+   *  the complete dialog's cost suggestion). */
+  budget: { currency_symbol?: string; currency_decimals?: number } | null;
+}
+
+/** THE parser of the `maintenance_supporter/settings` fields surfaces
+ *  outside the settings view read. */
+export function parseSettings(r: SettingsWire | null | undefined): SettingsCache {
+  return {
+    features: { ...FALLBACK_SETTINGS.features, ...(r?.features ?? {}) },
+    defaultWarningDays: r?.general?.default_warning_days ?? FALLBACK_SETTINGS.defaultWarningDays,
+    rowActionStyle: r?.general?.row_action_style ?? FALLBACK_SETTINGS.rowActionStyle,
+    access: {
+      operatorWriteEnabled: r?.operator_write_enabled === true,
+      operatorIds: Array.isArray(r?.admin_panel_user_ids) ? r!.admin_panel_user_ids!.filter((x) => typeof x === "string") : [],
+    },
+    budget: r?.budget ?? null,
+  };
+}
+
+export interface SettingsWire {
+  features?: Partial<SettingsCache["features"]>;
+  general?: { default_warning_days?: number; row_action_style?: string };
+  operator_write_enabled?: boolean;
+  admin_panel_user_ids?: string[];
+  budget?: { currency_symbol?: string; currency_decimals?: number };
 }
 
 export const FALLBACK_SETTINGS: SettingsCache = {
@@ -37,6 +68,8 @@ export const FALLBACK_SETTINGS: SettingsCache = {
   },
   defaultWarningDays: 7,
   rowActionStyle: "buttons_compact",
+  access: NO_DELEGATION,
+  budget: null,
 };
 
 interface CacheSlot {
@@ -52,15 +85,8 @@ export function fetchSettingsOnce(hass: HomeAssistant): Promise<SettingsCache> {
   const s = slot();
   if (s.promise) return s.promise;
   const p: Promise<SettingsCache> = hass.connection
-    .sendMessagePromise<{
-      features?: SettingsCache["features"];
-      general?: { default_warning_days?: number; row_action_style?: string };
-    }>({ type: "maintenance_supporter/settings" })
-    .then((r) => ({
-      features: r.features ?? FALLBACK_SETTINGS.features,
-      defaultWarningDays: r.general?.default_warning_days ?? 7,
-      rowActionStyle: r.general?.row_action_style ?? FALLBACK_SETTINGS.rowActionStyle,
-    }))
+    .sendMessagePromise<SettingsWire>({ type: "maintenance_supporter/settings" })
+    .then((r) => parseSettings(r))
     .catch(() => {
       // Only drop OUR promise — an invalidate + refetch may have replaced it.
       if (s.promise === p) s.promise = null;

@@ -23,7 +23,8 @@ import { renderRecommendationBars } from "./recommendation";
 import { renderSeasonalCardCompact, renderSeasonalCardExpanded } from "./seasonal";
 import { renderCostDurationCard } from "./charts";
 import { renderDaysProgress } from "./progress";
-import { renderHistoryEntry, renderHistoryFilters, renderHistoryList, type HistoryContext } from "./history";
+import { newestFirst, renderHistoryEntry, renderHistoryFilters, renderHistoryList, type HistoryContext } from "./history";
+import { renderStatusBadge } from "./status";
 import { clampPhaseCursor, effectivePhase, hasPhases } from "../helpers/phases";
 import { renderEventTitles } from "../helpers/event-titles";
 import "../components/task-documents";
@@ -119,11 +120,6 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
   const L = ctx.lang;
   const isOperator = ctx.isOperator;
 
-  // Determine status chip — use the backend-computed status. A completed
-  // one-time task is shown as archived ("done") rather than its raw "ok".
-  const statusClass = task.archived ? "archived" : (task.is_done ? "done" : (task.status === "due_soon" ? "warning" : (task.status || "ok")));
-  const statusText = task.archived ? t("archived", L) : (task.is_done ? t("completed", L) : t(task.status || "ok", L));
-
   return html`
     <div class="task-header">
       <div class="task-header-title">
@@ -131,7 +127,7 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
         ${renderRefChip(ctx.taskRef ?? null, t("ref_number", L))}
         <span class="breadcrumb-separator">·</span>
         <span class="object-name-breadcrumb" @click=${() => ctx.showObject()}>${ctx.objectName}</span>
-        <span class="status-chip ${statusClass}">${statusText}</span>
+        ${renderStatusBadge(task, L, "chip")}
         ${task.due_override ? html`<span class="postponed-badge" title="${t("postponed_to", L)}">
           <ha-icon icon="mdi:calendar-arrow-right"></ha-icon>${formatDate(task.due_override, L)}
         </span>` : nothing}
@@ -168,9 +164,14 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
               ${!isOperator ? html`
                 <div class="popup-menu-item" @click=${() => ctx.duplicateTask()}>${t("duplicate", L)}</div>
                 <div class="popup-menu-item" @click=${() => ctx.moveTask()}>${t("move_task", L)}</div>
-                <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptReset(); }}>${t("reset", L)}</div>
-                <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptPostpone(); }}>${t("postpone", L)}…</div>
-                <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.snoozeTask(); }}>${t("snooze", L)}</div>
+              ` : nothing}
+              <!-- Reset / Postpone / Snooze are household actions (read tier,
+                   helpers/permissions HOUSEHOLD_ACTIONS): offered to everyone,
+                   like Complete / Skip and the Lovelace quick-actions Reset. -->
+              <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptReset(); }}>${t("reset", L)}</div>
+              <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptPostpone(); }}>${t("postpone", L)}…</div>
+              <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.snoozeTask(); }}>${t("snooze", L)}</div>
+              ${!isOperator ? html`
                 <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.toggleArchive(!!task.archived); }}>${task.archived ? t("unarchive", L) : t("archive", L)}</div>
                 <div class="popup-menu-divider"></div>
                 <div class="popup-menu-item danger" @click=${() => { ctx.closeMoreMenu(); ctx.deleteTask(); }}>${t("delete", L)}</div>
@@ -421,7 +422,9 @@ function renderRecommendationCard(task: MaintenanceTask, ctx: TaskDetailContext)
 
 function renderRecentActivities(task: MaintenanceTask, ctx: TaskDetailContext) {
   const L = ctx.lang;
-  const recent = task.history.slice(-3).reverse();
+  // By timestamp, not array order: a backdated completion (#133) is appended
+  // last but belongs further down (bug audit 2026-09-26).
+  const recent = newestFirst(task.history).slice(0, 3);
 
   if (recent.length === 0) {
     return nothing;

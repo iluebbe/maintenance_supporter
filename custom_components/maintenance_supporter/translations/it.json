@@ -489,7 +489,9 @@
       "invalid_notify_service": "Formato del servizio di notifica non valido. Usa 'notify.nome_servizio' (es.: notify.mobile_app_phone).",
       "notify_service_not_found": "Questo servizio di notifica non è stato trovato in Home Assistant. Verifica il nome del servizio.",
       "nfc_tag_duplicate": "Questo tag NFC è già collegato a un'altra attività.",
-      "invalid_shopping_list_entity": "La lista della spesa deve essere un'entità to-do (todo.…)."
+      "invalid_shopping_list_entity": "La lista della spesa deve essere un'entità to-do (todo.…).",
+      "invalid_schedule": "La pianificazione è incompleta: scegli almeno un giorno della settimana (o un calendario per un'attività guidata dal calendario).",
+      "invalid_delta_target": "Nel conteggio dell'uso accumulato (modalità delta) il valore obiettivo deve essere maggiore di 0."
     },
     "abort": {
       "already_configured": "Questo oggetto di manutenzione è già configurato.",
@@ -497,7 +499,9 @@
       "template_not_found": "Il modello selezionato non è stato trovato.",
       "missing_data": "I dati richiesti non sono stati forniti.",
       "reconfigure_successful": "Configurazione aggiornata con successo.",
-      "reconfigure_cancelled": "Riconfigurazione annullata."
+      "reconfigure_cancelled": "Riconfigurazione annullata.",
+      "entity_unavailable": "L'entità selezionata non è disponibile al momento. Riprova quando segnala uno stato.",
+      "unknown": "Si è verificato un errore imprevisto. Ricomincia da capo."
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "Questo tag NFC è già collegato a un'altra attività.",
       "invalid_notify_icon": "L'icona di notifica deve essere un nome di icona mdi: (es. mdi:air-filter).",
       "invalid_shopping_list_entity": "La lista della spesa deve essere un'entità to-do (todo.…).",
-      "invalid_search_template": "Il link di ricerca deve essere un URL http(s) contenente {q}."
+      "invalid_search_template": "Il link di ricerca deve essere un URL http(s) contenente {q}.",
+      "invalid_schedule": "La pianificazione è incompleta: scegli almeno un giorno della settimana (o un calendario per un'attività guidata dal calendario).",
+      "invalid_delta_target": "Nel conteggio dell'uso accumulato (modalità delta) il valore obiettivo deve essere maggiore di 0."
+    },
+    "abort": {
+      "entity_unavailable": "L'entità selezionata non è disponibile al momento. Riprova quando segnala uno stato."
     }
   },
   "entity": {

@@ -12,14 +12,12 @@ from homeassistant.components import websocket_api
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers import issue_registry as ir
 from homeassistant.util import dt as dt_util
 
 from ..const import (
     BATTERY_FLEET_TASK_FLAG,
     CONF_OBJECT,
     CONF_TASKS,
-    DEFAULT_WARNING_DAYS,
     DOMAIN,
     FLAT_SCHEDULE_TYPES,
     MAX_ASSIGNEE_POOL,
@@ -47,6 +45,7 @@ from ..const import (
 from ..helpers.aggregate import get_store
 from ..helpers.dates import INTERVAL_UNITS
 from ..helpers.entry_tasks import write_task
+from ..helpers.global_options import get_default_warning_days
 from ..helpers.notify_icons import is_valid_icon
 from ..helpers.permissions import require_write
 from ..helpers.sanitize import strip_task_runtime_state
@@ -134,6 +133,50 @@ def _normalize_nfc_tag(
         if nfc_warn:
             warnings.append(nfc_warn)
     return nfc_val
+
+
+def _refuse_archived_object(connection: websocket_api.ActiveConnection, msg: dict[str, Any], entry: ConfigEntry) -> bool:
+    """Send ``archived`` and return True for an archived object.
+
+    ``task/move`` refused an archived target, but ``task/create`` and
+    ``task/duplicate`` added tasks to one — tasks nobody sees (the object is
+    hidden) that still notified (bug audit 2026-09-26).
+    """
+    if not (entry.data.get(CONF_OBJECT) or {}).get("archived_at"):
+        return False
+    connection.send_error(msg["id"], "archived", "An archived object cannot get new tasks")
+    return True
+
+
+def _valid_due_date(connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> bool:
+    """False (after ``invalid_format``) when ``msg["due_date"]`` is set but not
+    an ISO date; canonicalises it in place. The schema only capped the length,
+    so any string became a one-time task's due date — which then never came
+    due (bug audit 2026-09-26)."""
+    if msg.get("due_date") is None:
+        return True
+    parsed = _parse_iso_date(connection, msg["id"], msg["due_date"], field="due_date", code="invalid_format")
+    if parsed is None:
+        return False
+    msg["due_date"] = parsed.isoformat()
+    return True
+
+
+async def _responsible_user_missing(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any], *, current: Any = None
+) -> bool:
+    """Send ``invalid_user`` and return True when ``responsible_user_id`` names
+    no user. ``user/assign`` checked it, create/update stored any id — the
+    task then showed an unknown assignee and per-user notifications went
+    nowhere (bug audit 2026-09-26). Empty / None mean "unassigned"; the
+    ``current`` (stored) value passes unchecked — an older client re-sends it
+    on every save and must not be refused for someone else's deletion."""
+    user_id = msg.get("responsible_user_id")
+    if not user_id or user_id == current or await hass.auth.async_get_user(user_id) is not None:
+        return False
+    connection.send_error(msg["id"], "invalid_user", "User not found")
+    return True
+
 
 # ws_update_task: wire key -> storage key. Almost all are identity; the one
 # rename is deliberate and load-bearing: the WS message envelope reserves
@@ -244,9 +287,9 @@ _TASK_CREATE_SCHEMA: dict[Any, Any] =     {
         # Nested recurrence (calendar kinds: weekdays / nth_weekday / day_of_month).
         # Validated/canonicalized in the handler via Schedule.from_dict.
         vol.Optional("schedule"): vol.Any(dict, None),
-        vol.Optional("warning_days", default=DEFAULT_WARNING_DAYS): vol.All(
-            int, vol.Range(min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1])
-        ),
+        # No schema default: an omitted value takes the integration-wide
+        # setting (get_default_warning_days), not the constant 7 (BR-A4).
+        vol.Optional("warning_days"): vol.All(int, vol.Range(min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1])),
         vol.Optional("earliest_completion_days"): vol.Any(
             vol.All(int, vol.Range(min=EARLIEST_COMPLETION_RANGE[0], max=EARLIEST_COMPLETION_RANGE[1])), None
         ),
@@ -323,14 +366,20 @@ async def ws_create_task(
     msg: dict[str, Any],
 ) -> None:
     """Add a new task to an existing maintenance object."""
+    # The only await before the entry read — done first so nothing below
+    # works on a snapshot taken before it.
+    if await _responsible_user_missing(hass, connection, msg):
+        return
     entry = _load_object_entry(hass, connection, msg)
-    if entry is None:
+    if entry is None or _refuse_archived_object(connection, msg, entry):
         return
 
     task_id = uuid4().hex
     name = msg["name"].strip()
     if not name:
         connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
+        return
+    if not _valid_due_date(connection, msg):
         return
 
     task_data: dict[str, Any] = {
@@ -339,7 +388,7 @@ async def ws_create_task(
         "name": name,
         "type": msg.get("task_type", "custom"),
         "enabled": msg.get("enabled", True),
-        "warning_days": msg.get("warning_days", DEFAULT_WARNING_DAYS),
+        "warning_days": msg["warning_days"] if msg.get("warning_days") is not None else get_default_warning_days(hass),
         # Anchor for next_due fallback when last_performed is None (issue #30).
         # Use HA's timezone-aware "today" to match next_due computation.
         "created_at": dt_util.now().date().isoformat(),
@@ -627,6 +676,11 @@ async def ws_update_task(
     msg: dict[str, Any],
 ) -> None:
     """Update an existing task."""
+    # First, before the task is read for the edit: the user lookup is an await.
+    peek = hass.config_entries.async_get_entry(msg["entry_id"])
+    current = ((peek.data.get(CONF_TASKS) or {}).get(msg["task_id"]) or {}).get("responsible_user_id") if peek else None
+    if await _responsible_user_missing(hass, connection, msg, current=current):
+        return
     ctx = _load_object_task(hass, connection, msg)
     if ctx is None:
         return
@@ -674,6 +728,9 @@ async def ws_update_task(
     # Normalise empty NFC tag to None and check uniqueness
     if "nfc_tag_id" in msg:
         _normalize_nfc_tag(hass, msg, tc_warnings, exclude_task_id=task_id)
+
+    if not _valid_due_date(connection, msg):
+        return
 
     # Validate last_performed date format if provided
     if (
@@ -739,6 +796,11 @@ async def ws_update_task(
     # D#183: an empty mirror list means "off" — drop the key, don't store [].
     if "mirror_todo_entities" in msg and not msg["mirror_todo_entities"]:
         task.pop("mirror_todo_entities", None)
+    # No rotation is ABSENCE: the dialog sends null on every save, and the
+    # stored None came back as the options flow's select default, failing
+    # its validation — the task form could not be saved (bug audit 2026-09-26).
+    if "rotation_strategy" in msg and not msg["rotation_strategy"]:
+        task.pop("rotation_strategy", None)
 
     # The loop above copies values verbatim, which is wrong for part links:
     # `task/create` validates them and `task/update` did not, so an edit could
@@ -923,6 +985,8 @@ async def async_delete_task(
     hass: HomeAssistant,
     entry: ConfigEntry,
     task_id: str,
+    *,
+    removed_state: dict[str, Any] | None = None,
 ) -> bool:
     """Remove a task and all its side-state from an object entry.
 
@@ -931,13 +995,17 @@ async def async_delete_task(
     / entity-registry / group-ref / repair-issue cleanup, but NOT the entry
     reload and NOT any WS reply — the caller reloads (once, even for a batch) and
     replies. Returns False when ``task_id`` isn't in the entry.
+
+    ``removed_state`` (task/move): filled with the task's Store state as it
+    was at the moment of removal — the mirror cleanup before it awaits, and a
+    completion landing there was lost from a snapshot taken earlier (bug
+    audit 2026-09-26).
     """
     new_data = dict(entry.data)
     new_tasks = dict(new_data.get(CONF_TASKS, {}))
     if task_id not in new_tasks:
         return False
 
-    old_trigger_config = new_tasks[task_id].get("trigger_config")
     # Adopted problem-sensor task? Preserve its notes + one-time setup
     # (responsible user, priority, labels, part link) for a later re-adopt
     # (no-op for everything else).
@@ -960,6 +1028,8 @@ async def async_delete_task(
         mirror = hass.data.get(DOMAIN, {}).get("todo_mirror")
         if mirror is not None and hasattr(mirror, "async_forget_task"):
             await mirror.async_forget_task(store, task_id)
+        if removed_state is not None:
+            removed_state.update(deepcopy(store.get_task_state(task_id)))
         store.remove_task(task_id)
         await store.async_save()
 
@@ -1006,16 +1076,12 @@ async def async_delete_task(
                 },
             )
 
-    # Clean up any repair issues referencing this task
-    if old_trigger_config:
-        from ..entity.triggers import normalize_entity_ids
+    # Every repair issue about this task — not only its missing-trigger
+    # ones: a stale completion-action target outlived the task in Settings →
+    # Repairs with nothing left to fix (bug audit 2026-09-26, BR-A8).
+    from ..helpers.issues import async_purge_task_issues
 
-        for eid in normalize_entity_ids(old_trigger_config):
-            ir.async_delete_issue(
-                hass,
-                DOMAIN,
-                f"missing_trigger_{entry.entry_id}_{task_id}_{eid}",
-            )
+    async_purge_task_issues(hass, entry.entry_id, task_id)
 
     return True
 
@@ -1047,6 +1113,8 @@ async def ws_duplicate_task(
     if ctx is None:
         return
     entry, _rd, source = ctx
+    if _refuse_archived_object(connection, msg, entry):
+        return
 
     new_task = deepcopy(dict(source))
     new_task["id"] = uuid4().hex

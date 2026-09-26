@@ -7,7 +7,7 @@ import { objectRef, parseRef, renderRefChip, taskRef, type HasRef } from "./help
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
-import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, STATUS_ICONS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, syncCurrencyDecimals} from "./styles";
+import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, syncCurrencyDecimals} from "./styles";
 import { OVERVIEW_TABS, type OverviewTab } from "./helpers/overview-tabs";
 import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
 import { openHtmlInNewTab, openSignedDocument, signApiPath } from "./helpers/document-url";
@@ -122,6 +122,9 @@ import "./components/task-detail-view";
 import { computeWindow, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
 import { INITIAL_STICKY, nextStickyState, stickyStateOnSelect, stickyTop, type StickyState } from "./helpers/sticky-pane";
 import { invalidateSettingsCache } from "./helpers/settings-cache";
+import { canWrite } from "./helpers/permissions";
+import { renderStatusBadge } from "./renderers/status";
+import { TOAST_MS, ACTION_TOAST_MS } from "./helpers/toast";
 import { buildHistoryEntryDraft } from "./helpers/history-draft";
 import { readingSlotDelta } from "./helpers/reading-slots";
 import { runWs } from "./helpers/ws-run";
@@ -390,7 +393,9 @@ export class MaintenanceSupporterPanel extends LitElement {
    *   - admins (incl. the owner) always see the full panel
    *   - a non-admin sees the full panel only when operator-write delegation is
    *     enabled AND their ID is in the `admin_panel_user_ids` allowlist
-   *   - everyone else sees operator mode (Complete / Skip only)
+   *   - everyone else sees operator mode (the household actions only:
+   *     Complete / Skip / Reset / Postpone / Snooze — helpers/permissions
+   *     HOUSEHOLD_ACTIONS, read tier on the server)
    *
    * Delegation defaults OFF, so out of the box every non-admin is read-only.
    * The switch + allowlist are managed by an admin under Settings → Panel
@@ -398,10 +403,11 @@ export class MaintenanceSupporterPanel extends LitElement {
    * server mirrors this exact rule in helpers/permissions.user_may_write.
    */
   private get _isOperator(): boolean {
-    const u = this.hass?.user;
-    if (!u) return true; // pre-hass state: render safe default
-    if (u.is_admin) return false;
-    return !(this._operatorWriteEnabled && this._adminPanelUserIds.includes(u.id));
+    // No user yet (pre-hass state) → read-only, the safe default.
+    return !canWrite(this.hass?.user, {
+      operatorWriteEnabled: this._operatorWriteEnabled,
+      operatorIds: this._adminPanelUserIds,
+    });
   }
 
   private _popstateHandler = (e: PopStateEvent) => this._onPopState(e);
@@ -996,8 +1002,17 @@ export class MaintenanceSupporterPanel extends LitElement {
       }
       this._showTask(entryId, taskId);
       if (action === "complete") {
+        // The printed "Complete" QR IS the scan (docs: proof of presence) —
+        // without via_tag_scan a require_tag_scan task refused the very
+        // completion its own sticker opened (bug audit 2026-09-26).
         requestAnimationFrame(() => {
-          this._openCompleteDialog(entryId, taskId, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled);
+          this._openCompleteDialog(entryId, taskId, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled, { viaTagScan: true });
+        });
+      } else if (action === "skip") {
+        // The settings view prints "Skip" QR codes too; the scan used to
+        // land on the plain task page with no skip prompt.
+        requestAnimationFrame(() => {
+          if (task.allow_skip !== false) void this._promptSkipTask(entryId, taskId);
         });
       } else if (action === "quick_complete") {
         // v1.3.0: silent complete using pre-configured defaults; falls back
@@ -1017,9 +1032,17 @@ export class MaintenanceSupporterPanel extends LitElement {
     return type === "counter" || type === "state_change";
   }
 
+  /** Newest request per entity — quick range-chip clicks (7 → 30 → 90) put
+   *  several fetches in flight, and a slower OLDER answer landed last and
+   *  showed the wrong window under the new chip (bug audit 2026-09-26). */
+  private _detailStatsSeq = new Map<string, number>();
+
   private async _fetchDetailStats(entityId: string, isCounter: boolean): Promise<void> {
     if (!this._statsService) return;
+    const seq = (this._detailStatsSeq.get(entityId) ?? 0) + 1;
+    this._detailStatsSeq.set(entityId, seq);
     const points = await this._statsService.getDetailStats(entityId, isCounter, this._chartRangeDays);
+    if (this._detailStatsSeq.get(entityId) !== seq) return;
     const updated = new Map(this._detailStatsData);
     updated.set(entityId, points);
     this._detailStatsData = updated;
@@ -1556,7 +1579,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._toastUndo = null;
     this._toastActionLabel = "";
     this._toastMessage = msg;
-    this._toastTimer = setTimeout(() => { this._toastMessage = ""; this._toastTimer = null; }, 4000);
+    this._toastTimer = setTimeout(() => { this._toastMessage = ""; this._toastTimer = null; }, TOAST_MS);
   }
 
   /** A toast with an action button (label defaults to Undo). Used for
@@ -1575,7 +1598,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._toastUndo = undo;
     this._toastTimer = setTimeout(() => {
       this._toastMessage = ""; this._toastUndo = null; this._toastTimer = null;
-    }, 7000);
+    }, ACTION_TOAST_MS);
   }
 
   private _runToastUndo(): void {
@@ -1936,8 +1959,9 @@ export class MaintenanceSupporterPanel extends LitElement {
       // v2.21: admin-hidden templates stay out of the gallery.
       this._templates = (res.templates || []).filter((tpl) => !tpl.disabled);
       this._homeProfile = res.profile ?? null;
-    } catch {
-      this._showToast(t("action_error", this._lang));
+    } catch (e) {
+      // The server's reason, like every _runAction path (DRY audit 2026-09-26).
+      this._showToast(describeWsError(e, this._lang));
     }
   }
 
@@ -1953,8 +1977,9 @@ export class MaintenanceSupporterPanel extends LitElement {
       await this._loadData();
       this._showToast(t("template_created", this._lang));
       if (res?.entry_id) this._showObject(res.entry_id);
-    } catch {
-      this._showToast(t("action_error", this._lang));
+    } catch (e) {
+      // e.g. "Limit reached" / a create_failed reason instead of "Action failed".
+      this._showToast(describeWsError(e, this._lang));
     } finally {
       this._templateBusy = false;
     }
@@ -2265,7 +2290,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
     const ok = await dlg?.confirm({
       title: t("delete", this._lang),
-      message: t("confirm_delete_object", this._lang),
+      message: t("delete_object_confirm", this._lang),
       confirmText: t("delete", this._lang),
       danger: true,
     });
@@ -2329,7 +2354,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
     const ok = await dlg?.confirm({
       title: t("delete", this._lang),
-      message: t("confirm_delete_task", this._lang),
+      message: t("delete_task_confirm", this._lang),
       confirmText: t("delete", this._lang),
       danger: true,
     });
@@ -2734,24 +2759,47 @@ export class MaintenanceSupporterPanel extends LitElement {
     });
   }
 
+  /** Ticks not yet confirmed by a reload, per task — and the chain that
+   *  sends them one after another. Two quick ticks each built the FULL
+   *  state from the not-yet-reloaded task, so the second send wrote the
+   *  first item back to unticked (bug audit 2026-09-26). Now every send is
+   *  built at send time from the fresh task PLUS the pending ticks, and the
+   *  sends are serialized so the server applies them in click order. */
+  private _checklistPending = new Map<string, Record<string, boolean>>();
+  private _checklistChain: Promise<unknown> = Promise.resolve();
+
   /** #73: persist one checklist tick. Sends the FULL current state (the
    *  server replaces, not merges — idempotent) and reloads so the progress
    *  header and any other open surface agree. */
-  private async _setChecklistItem(entryId: string, taskId: string, item: string, done: boolean): Promise<void> {
-    const obj = this._getObject(entryId);
-    const task = obj?.tasks.find((x) => x.id === taskId);
-    if (!task) return;
-    const state: Record<string, boolean> = {};
-    // #139: a phased task ticks the checklist of the phase currently due.
-    const steps = effectivePhase(task)?.checklist ?? (task.checklist || []);
-    for (const step of steps) {
-      const current = task.checklist_progress?.[step] ?? false;
-      state[step] = step === item ? done : current;
-    }
-    await this._runAction({
-      type: "maintenance_supporter/task/checklist_progress",
-      entry_id: entryId, task_id: taskId, checklist_state: state,
+  private _setChecklistItem(entryId: string, taskId: string, item: string, done: boolean): Promise<void> {
+    const key = `${entryId}/${taskId}`;
+    this._checklistPending.set(key, { ...(this._checklistPending.get(key) ?? {}), [item]: done });
+    const run = this._checklistChain.then(async () => {
+      const task = this._getObject(entryId)?.tasks.find((x) => x.id === taskId);
+      if (!task) return;
+      const pending = this._checklistPending.get(key) ?? {};
+      const state: Record<string, boolean> = {};
+      // #139: a phased task ticks the checklist of the phase currently due.
+      const steps = effectivePhase(task)?.checklist ?? (task.checklist || []);
+      for (const step of steps) {
+        state[step] = step in pending ? pending[step] : (task.checklist_progress?.[step] ?? false);
+      }
+      await this._runAction({
+        type: "maintenance_supporter/task/checklist_progress",
+        entry_id: entryId, task_id: taskId, checklist_state: state,
+      });
+      // _runAction reloaded: the ticks sent so far are in the task now —
+      // drop exactly those, keep any tick made while this send was out.
+      const now = this._checklistPending.get(key);
+      if (now) {
+        for (const [step, value] of Object.entries(state)) {
+          if (step in now && now[step] === value) delete now[step];
+        }
+        if (Object.keys(now).length === 0) this._checklistPending.delete(key);
+      }
     });
+    this._checklistChain = run.catch(() => undefined);
+    return run;
   }
 
   private _openCompleteDialog(
@@ -2782,7 +2830,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         objects: this._objects,
         lang: this._lang,
         checklist,
-        checklistsEnabled: this._features.checklists,
+        features: this._features,
         adaptiveEnabled,
         currencySymbol: this._currencySymbol,
         viaTagScan: opts?.viaTagScan,
@@ -3086,11 +3134,7 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  is its own span so narrow/tight rows can drop it (#150: the pill ate a
    *  third of a phone row) while `title`/`aria-label` keep the text reachable. */
   private _statusBadge(archived: boolean, isDone: boolean, status: string) {
-    const L = this._lang;
-    const cls = archived ? "archived" : (isDone ? "done" : status);
-    const iconKey = archived ? "archived" : (isDone ? "completed" : status);
-    const label = archived ? t("archived", L) : (isDone ? t("completed", L) : t(status, L));
-    return html`<span class="status-badge ${cls}" role="img" title="${label}" aria-label="${label}"><ha-icon icon="${STATUS_ICONS[iconKey] || "mdi:circle-medium"}"></ha-icon><span class="status-label">${label}</span></span>`;
+    return renderStatusBadge({ archived, is_done: isDone, status }, this._lang);
   }
 
   private _setOverviewTab(tab: OverviewTab): void {
@@ -3638,7 +3682,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           <div class="object-card-header">
             <span class="object-card-name">${this._objRef(obj.object)}${obj.object.name}</span>
             ${obj.object.paused
-              ? html`<span class="paused-badge" title="${t("object_paused_badge", L)}${obj.object.paused_until ? ` — ${obj.object.paused_until}` : ""}">
+              ? html`<span class="paused-badge" title="${t("object_paused_badge", L)}${obj.object.paused_until ? ` — ${formatDate(obj.object.paused_until, L)}` : ""}">
                   <ha-icon icon="mdi:pause-circle-outline"></ha-icon>
                 </span>`
               : nothing}
@@ -3647,7 +3691,9 @@ export class MaintenanceSupporterPanel extends LitElement {
                   <ha-icon icon="mdi:paperclip"></ha-icon>${obj.object.document_count}
                 </span>`
               : nothing}
-            <span class="object-card-count">${obj.tasks.length} ${t("tasks_lower", L)}</span>
+            <span class="object-card-count">${obj.tasks.length === 1
+              ? t("templates_task_count_one", L)
+              : t("templates_task_count", L).replace("{n}", String(obj.tasks.length))}</span>
           </div>
           ${obj.object.manufacturer || obj.object.model
             ? html`<div class="object-card-meta">${[obj.object.manufacturer, obj.object.model].filter(Boolean).join(" ")}</div>`
@@ -4040,13 +4086,12 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private async _deleteGroup(groupId: string, name: string): Promise<void> {
     const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
-    const ok = dlg
-      ? await dlg.confirm({
-          title: t("delete_group", this._lang),
-          message: t("delete_group_confirm", this._lang).replace("{name}", name),
-          confirmText: t("delete", this._lang),
-        })
-      : confirm(`${t("delete_group_confirm", this._lang).replace("{name}", name)}`);
+    const ok = await dlg?.confirm({
+      title: t("delete_group", this._lang),
+      message: t("delete_group_confirm", this._lang).replace("{name}", name),
+      confirmText: t("delete", this._lang),
+      danger: true,
+    });
     if (!ok) return;
     await this._runAction({
       type: "maintenance_supporter/group/delete",

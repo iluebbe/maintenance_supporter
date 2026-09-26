@@ -66,6 +66,10 @@ export class MaintenanceDocumentsSection extends LitElement {
   @state() private _dragOver = false;
 
   private _loadedFor: string | null = null;
+  /** Only the newest list fetch may land (bug audit 2026-09-26): the panel
+   *  REUSES this element when the user moves to another object, and a slow
+   *  answer for the previous object overwrote the new one's list. */
+  private _loadSeq = 0;
   private _localeReady = false;
 
   private _isImage(doc: MaintenanceDocument): boolean {
@@ -89,34 +93,60 @@ export class MaintenanceDocumentsSection extends LitElement {
       void ensureLocale(this._lang).then(() => this.requestUpdate());
     }
     if (this.hass && this.entryId && this._loadedFor !== this.entryId) {
+      const switched = this._loadedFor !== null;
       this._loadedFor = this.entryId;
+      if (switched) this._resetForObject();
       void this._load();
     }
   }
 
+  /** Another object in the same element: nothing of the previous one may
+   *  survive — its list, thumbnails, an open link / edit form (whose Save
+   *  would have written to the NEW object) or a message. */
+  private _resetForObject(): void {
+    this._docs = [];
+    this._loaded = false;
+    this._thumbs = {};
+    this._filter = "";
+    this._error = "";
+    this._hint = "";
+    this._addingLink = false;
+    this._linkUrl = "";
+    this._linkTitle = "";
+    this._linkDescription = "";
+    this._editingId = "";
+    this._lightboxUrl = "";
+  }
+
   private async _load(): Promise<void> {
+    const entryId = this.entryId;
+    const seq = ++this._loadSeq;
+    const stale = () => seq !== this._loadSeq || entryId !== this.entryId;
     try {
       const r = await this.hass.connection.sendMessagePromise<{ documents: MaintenanceDocument[] }>({
         type: "maintenance_supporter/documents/list",
-        entry_id: this.entryId,
+        entry_id: entryId,
       });
+      if (stale()) return;
       this._docs = r.documents || [];
       this._loaded = true;
       this._error = "";
       this._thumbs = {};
-      void this._loadThumbs();
+      void this._loadThumbs(stale);
     } catch (e) {
+      if (stale()) return;
       this._error = describeWsError(e, this._lang);
       this._loaded = true;
     }
   }
 
   /** Pre-sign a serve URL for each image doc so it can render as a thumbnail. */
-  private async _loadThumbs(): Promise<void> {
+  private async _loadThumbs(stale: () => boolean = () => false): Promise<void> {
     await Promise.all(
       this._docs.filter((d) => this._isImage(d)).map(async (d) => {
         try {
           const url = await this._sign(d);
+          if (stale()) return;
           this._thumbs = { ...this._thumbs, [d.id]: url };
         } catch {
           /* leave the fallback icon */
@@ -173,6 +203,9 @@ export class MaintenanceDocumentsSection extends LitElement {
 
   private async _uploadFiles(files: File[], category?: string): Promise<void> {
     const cat = category ?? this._category;
+    // Captured: the element may be moved to another object mid-upload — the
+    // remaining files still belong to the object the user dropped them on.
+    const entryId = this.entryId;
     this._busy = true;
     this._error = "";
     this._hint = "";
@@ -184,7 +217,7 @@ export class MaintenanceDocumentsSection extends LitElement {
       for (const file of files) {
         let doc;
         try {
-          doc = await uploadDocument(this.hass, this.entryId, file, [cat]);
+          doc = await uploadDocument(this.hass, entryId, file, [cat]);
         } catch (e) {
           const key = e instanceof Error ? e.message : "";
           if (key !== "doc_too_large" && key !== "doc_upload_failed") throw e;
@@ -194,6 +227,7 @@ export class MaintenanceDocumentsSection extends LitElement {
         if (doc.duplicate_in_object) dupInObject++;
         else if (doc.deduped) deduped++;
       }
+      if (entryId !== this.entryId) return; // the list shown is another object's now
       if (dupInObject) this._hint = t("doc_dup_in_object", this._lang);
       else if (deduped) this._hint = t("doc_deduped", this._lang);
       await this._load();
@@ -299,12 +333,13 @@ export class MaintenanceDocumentsSection extends LitElement {
   private async _addLink(): Promise<void> {
     const url = this._linkUrl.trim();
     if (!url) return;
+    const entryId = this.entryId;
     this._busy = true;
     this._error = "";
     try {
       await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/documents/add_link",
-        entry_id: this.entryId,
+        entry_id: entryId,
         url,
         title: this._linkTitle.trim() || null,
         description: this._linkDescription.trim() || null,

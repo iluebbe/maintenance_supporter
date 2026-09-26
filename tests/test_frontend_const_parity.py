@@ -449,6 +449,31 @@ def test_ts_setting_int_ranges_match_registry() -> None:
     assert ts_ranges == INT_RANGES, "setting-ranges.ts SETTING_INT_RANGES drifted from settings_registry.INT_RANGES"
 
 
+def test_ts_vacation_buffer_range_matches_ws_schema() -> None:
+    """The vacation buffer bound lives in the `vacation/update` WS schema,
+    not the settings registry. Both editors (the panel's settings view and
+    the Lovelace vacation card) validate against the TS mirror
+    VACATION_BUFFER_DAYS_RANGE — one had dropped an out-of-range value
+    silently, the other sent it (DRY audit 2026-09-26)."""
+    import voluptuous as vol
+
+    from custom_components.maintenance_supporter.websocket.vacation import ws_vacation_update
+
+    schema = ws_vacation_update._ws_schema  # type: ignore[attr-defined]
+    validators = schema.schema if isinstance(schema, vol.Schema) else schema
+    field = next(v for k, v in validators.items() if str(k) == "buffer_days")
+    ranges = [v for v in getattr(field, "validators", []) if isinstance(v, vol.Range)]
+    assert len(ranges) == 1, "buffer_days no longer carries exactly one vol.Range"
+    py_range = (ranges[0].min, ranges[0].max)
+
+    src = _SETTING_RANGES_TS.read_text(encoding="utf-8")
+    match = re.search(r"VACATION_BUFFER_DAYS_RANGE[^=]*=\s*\[(\d+),\s*(\d+)\]", src)
+    assert match, "VACATION_BUFFER_DAYS_RANGE not found in setting-ranges.ts"
+    assert (int(match.group(1)), int(match.group(2))) == py_range, (
+        "setting-ranges.ts VACATION_BUFFER_DAYS_RANGE drifted from websocket/vacation.py buffer_days"
+    )
+
+
 # ─── DRY round 2026-09: WS error codes, document categories, reference regex ──
 
 _WS_ERRORS_TS = _FRONTEND / "ws-errors.ts"

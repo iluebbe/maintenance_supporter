@@ -223,11 +223,13 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
     if task_data.get("assignee_pool") is not None:
         task_data["assignee_pool"] = sanitize_assignee_pool(task_data["assignee_pool"])
 
-    rs = task_data.get("rotation_strategy")
-    if rs is not None:
+    # Absence means "no rotation": a stored None / "" (the panel dialog sends
+    # null for "none") is dropped too — as a select default it made the
+    # options-flow task form unsaveable (bug audit 2026-09-26).
+    if "rotation_strategy" in task_data:
         from ..const import ROTATION_STRATEGIES
 
-        if rs not in ROTATION_STRATEGIES:
+        if task_data["rotation_strategy"] not in ROTATION_STRATEGIES:
             task_data.pop("rotation_strategy", None)
 
     if task_data.get("required_completion_fields") is not None:

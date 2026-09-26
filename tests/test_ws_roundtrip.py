@@ -893,6 +893,8 @@ async def test_task_create_with_every_optional_field(
     are set at once.
     """
     await setup_integration(hass, global_entry, object_entry)
+    # A real user: task/create refuses an unknown assignee (bug audit 2026-09-26).
+    assignee = await hass.auth.async_create_user("Assignee")
 
     _task_id, task = await _create_task_via_ws(
         hass,
@@ -907,7 +909,7 @@ async def test_task_create_with_every_optional_field(
             "last_performed": "2025-12-01",
             "notes": "Check gaskets for cracks before refit.",
             "documentation_url": "https://example.com/service-manual.pdf",
-            "responsible_user_id": "user-uuid-abc",
+            "responsible_user_id": assignee.id,
             "entity_slug": "maximal_task_sensor",
             "custom_icon": "mdi:wrench",
             "nfc_tag_id": "NFC-MAX-001",
@@ -925,7 +927,7 @@ async def test_task_create_with_every_optional_field(
     assert task["warning_days"] == 4
     assert task["notes"] == "Check gaskets for cracks before refit."
     assert task["documentation_url"] == "https://example.com/service-manual.pdf"
-    assert task["responsible_user_id"] == "user-uuid-abc"
+    assert task["responsible_user_id"] == assignee.id
     assert task["entity_slug"] == "maximal_task_sensor"
     assert task["custom_icon"] == "mdi:wrench"
     assert task["nfc_tag_id"] == "NFC-MAX-001"

@@ -139,7 +139,8 @@ describe("task-detail renderer", () => {
     expect(host.querySelector(".task-name-breadcrumb")!.textContent).to.include("Filter Wechsel");
     expect(host.querySelector(".object-name-breadcrumb")!.textContent).to.include("Pool Pump");
     const chip = host.querySelector(".status-chip")!;
-    expect(chip.classList.contains("warning")).to.be.true;
+    // The status key itself (renderers/status.ts), no longer the "warning" alias.
+    expect(chip.classList.contains("due_soon")).to.be.true;
   });
 
   it("Complete routes to openComplete with the task; Skip to promptSkip", () => {
@@ -163,15 +164,18 @@ describe("task-detail renderer", () => {
     expect(buttons[1].getAttribute("variant")).to.equal("warning");
   });
 
-  it("operator mode: only Complete/Skip buttons; menu carries just QR + worksheet", () => {
+  it("operator mode: only Complete/Skip buttons; menu carries QR, worksheet and the household actions", () => {
     const host = mount(task(), ctx({ isOperator: true, moreMenuOpen: true }));
     // The ⋮ stays (QR + worksheet moved into it), but write actions don't.
+    // Reset / Postpone / Snooze are READ tier on the server (any household
+    // member) — hiding them was the audit 2026-09-26 finding FE-A3.
     expect(host.querySelector(".more-menu-wrapper"), "menu present").to.exist;
     const buttons = [...host.querySelectorAll(".task-header-actions ha-button")];
     expect(buttons.length).to.equal(2); // Complete + Skip only
     const items = [...host.querySelectorAll(".popup-menu-item")].map((i) => i.textContent?.trim() || "");
-    expect(items.length).to.equal(2);
-    expect(items.join(" ")).to.not.match(/edit|archive|delete|duplicate|reset/i);
+    expect(items.length).to.equal(5);
+    expect(items.join(" ")).to.match(/reset/i);
+    expect(items.join(" ")).to.not.match(/edit|archive|delete|duplicate|move/i);
   });
 
   it("open more-menu lists edit/qr/worksheet/duplicate/reset/postpone/snooze/archive/delete and fires callbacks", () => {

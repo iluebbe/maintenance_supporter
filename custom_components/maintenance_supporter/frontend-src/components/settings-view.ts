@@ -13,7 +13,8 @@ import { AVATAR_PALETTE, personOf, renderPersonAvatar } from "../helpers/person"
 import { OBJECT_COLUMNS, sanitizeColumns } from "../helpers/object-columns";
 import { downloadTextFile } from "../helpers/download";
 import { invalidateSettingsCache } from "../helpers/settings-cache";
-import { SETTING_INT_RANGES, settingIntRange } from "../helpers/setting-ranges";
+import { SETTING_INT_RANGES, VACATION_BUFFER_DAYS_RANGE, settingIntRange } from "../helpers/setting-ranges";
+import { ToastTimer } from "../helpers/toast";
 import { isoDateLocal } from "../helpers/calendar-bucket";
 import { runWs } from "../helpers/ws-run";
 import { authFetch } from "../helpers/photo-upload";
@@ -505,9 +506,18 @@ export class MaintenanceSettingsView extends LitElement {
     }
   };
 
+  private readonly _toastTimer = new ToastTimer();
+
   private _showToast(msg: string): void {
     this._toast = msg;
-    setTimeout(() => { this._toast = ""; }, 3000);
+    this._toastTimer.schedule(() => { this._toast = ""; });
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    // A pending hide must not fire into a detached view (DRY audit 2026-09-26).
+    this._toastTimer.clear();
+    this._toast = "";
   }
 
   /** One WS round-trip; a rejection becomes a toast carrying the server's
@@ -1401,8 +1411,8 @@ export class MaintenanceSettingsView extends LitElement {
           </div>
           <label class="vac-field">
             <span class="filter-label">${t("vacation_buffer", L)}</span>
-            <input type="number" min="0" max="14" .value=${String(this._vacBuffer)}
-              @change=${(e: Event) => this._setVacationBuffer(parseInt((e.target as HTMLInputElement).value, 10) || 0)} />
+            <input type="number" min=${VACATION_BUFFER_DAYS_RANGE[0]} max=${VACATION_BUFFER_DAYS_RANGE[1]} .value=${String(this._vacBuffer)}
+              @change=${(e: Event) => this._setVacationBuffer(e)} />
           </label>
         </div>
 
@@ -1564,9 +1574,21 @@ export class MaintenanceSettingsView extends LitElement {
     this._saveVacation(patch);
   }
 
-  private _setVacationBuffer(value: number): void {
-    if (value < 0 || value > 14) return;
-    this._saveVacation({ buffer_days: value });
+  /** Out of range used to be dropped SILENTLY here while the Lovelace
+   *  vacation card sent it and showed the server's error — now both reject
+   *  it up front with the same message (DRY audit 2026-09-26). */
+  private _setVacationBuffer(e: Event): void {
+    const input = e.target as HTMLInputElement;
+    const [min, max] = VACATION_BUFFER_DAYS_RANGE;
+    const v = Number(input.value);
+    if (input.value.trim() !== "" && Number.isInteger(v) && v >= min && v <= max) {
+      this._saveVacation({ buffer_days: v });
+      return;
+    }
+    this._showToast(
+      t("settings_value_out_of_range", this._lang).replace("{min}", String(min)).replace("{max}", String(max)),
+    );
+    input.value = String(this._vacBuffer);
   }
 
   private _toggleVacationExempt(taskId: string, on: boolean): void {

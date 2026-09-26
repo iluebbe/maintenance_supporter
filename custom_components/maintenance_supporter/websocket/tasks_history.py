@@ -213,8 +213,16 @@ async def ws_update_history_entry(
     # document and its links — only the entry forgets it. The legacy
     # scalar is folded into the list the moment the entry is edited.
     if "photo_doc_ids" in msg:
+        from ..helpers.completion_requirements import own_photo_doc_ids
+        from . import object_id_for_entry
+
         old_photos = history_photo_ids(patched)
-        new_photos = normalize_photo_doc_ids(msg["photo_doc_ids"])
+        requested = normalize_photo_doc_ids(msg["photo_doc_ids"])
+        # A NEW photo must be a file of this object (bug audit 2026-09-26,
+        # same rule as task/complete); one the entry already carries stays
+        # even when it lives elsewhere now (a shared photo of a moved task).
+        own = set(own_photo_doc_ids(hass, object_id_for_entry(entry), [d for d in requested if d not in old_photos]))
+        new_photos = [d for d in requested if d in old_photos or d in own]
         patched.pop("photo_doc_id", None)
         if new_photos:
             patched["photo_doc_ids"] = new_photos
@@ -225,6 +233,18 @@ async def ws_update_history_entry(
                 if doc_id not in old_photos:
                     await rd.coordinator._link_completion_photo(doc_id, task_id)
 
+    # The parts / photo steps above await: a completion (or another edit)
+    # that landed meanwhile would be wiped by writing back the snapshot read
+    # at the top. Patch the entry into the CURRENT history, found again by
+    # its timestamp (bug audit 2026-09-26).
+    history = list(store.get_history(task_id))
+    target_index = next(
+        (i for i, h in enumerate(history) if h.get("timestamp") == msg["original_timestamp"]),
+        None,
+    )
+    if target_index is None:
+        connection.send_error(msg["id"], "not_found", f"No history entry with timestamp {msg['original_timestamp']!r}")
+        return
     history[target_index] = patched
     store.set_history(task_id, history)
 

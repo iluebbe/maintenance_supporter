@@ -28,6 +28,7 @@ from .helpers.task_fields import INTERVAL_DAYS_RANGE
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
 
 # Cap for the adaptive MINIMUM interval (one year). Shared with the
 # task/set_adaptive WS schema since the parity round — same field, two UIs.
@@ -39,11 +40,11 @@ class AdaptiveMixin:
 
     # -- provided by the assembled MaintenanceOptionsFlow --
     if TYPE_CHECKING:
+        hass: HomeAssistant
         config_entry: ConfigEntry
         _selected_task_id: str | None
 
         def _show_task_action_menu(self) -> ConfigFlowResult: ...
-        def _update_config_entry(self, new_data: dict[str, Any]) -> None: ...
         def async_show_form(self, **kwargs: Any) -> ConfigFlowResult: ...
 
     async def async_step_adaptive_scheduling(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
@@ -83,6 +84,11 @@ class AdaptiveMixin:
             adaptive_config[CONF_SENSOR_PREDICTION_ENABLED] = user_input.get(CONF_SENSOR_PREDICTION_ENABLED, True)
             env_entity = user_input.get(CONF_ENVIRONMENTAL_ENTITY)
             if env_entity:
+                # The attribute belongs to the entity it was picked for — a
+                # new entity kept reading the old one's attribute (the WS
+                # command drops it; bug audit 2026-09-26).
+                if env_entity != adaptive_config.get("environmental_entity"):
+                    adaptive_config.pop("environmental_attribute", None)
                 adaptive_config["environmental_entity"] = env_entity
             else:
                 adaptive_config.pop("environmental_entity", None)
@@ -93,18 +99,13 @@ class AdaptiveMixin:
                 base = read_legacy_fields(task)["interval_days"]
                 adaptive_config["base_interval"] = base if base is not None else 30
 
-            if store is not None:
-                store.set_adaptive_config(self._selected_task_id or "", adaptive_config)
-                store.async_delay_save()
-            else:
-                # Legacy: write to ConfigEntry.data
-                new_data = dict(self.config_entry.data)
-                new_tasks = dict(new_data.get(CONF_TASKS, {}))
-                updated_task = dict(new_tasks.get(self._selected_task_id or "", {}))
-                updated_task[CONF_ADAPTIVE_CONFIG] = adaptive_config
-                new_tasks[self._selected_task_id or ""] = updated_task
-                new_data[CONF_TASKS] = new_tasks
-                self._update_config_entry(new_data)
+            # ONE write path with the panel (task/set_adaptive): save now and
+            # refresh. The flow's own copy only delay-saved (a restart within
+            # the debounce lost the change) and never refreshed, so the new
+            # tuning showed only after the next poll (bug audit 2026-09-26).
+            from .websocket.analysis import _persist_adaptive_config
+
+            await _persist_adaptive_config(self.hass, self.config_entry, self._selected_task_id or "", adaptive_config)
 
             return self._show_task_action_menu()
 

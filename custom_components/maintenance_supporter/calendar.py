@@ -22,7 +22,7 @@ from .const import (
 from .helpers.aggregate import merged_tasks
 from .helpers.dates import interval_span_days, parse_hhmm
 from .helpers.global_options import is_schedule_time_enabled
-from .helpers.i18n import normalize_language
+from .helpers.i18n import format_text, normalize_language
 from .models.maintenance_task import MaintenanceTask
 
 if TYPE_CHECKING:
@@ -442,12 +442,8 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
 
 
 def _cal_t(key: str, lang: str, **kwargs: str) -> str:
-    """Get calendar translation string."""
-    strings = _CAL_STRINGS.get(lang, _CAL_STRINGS["en"])
-    text = strings.get(key, _CAL_STRINGS["en"].get(key, key))
-    if kwargs:
-        text = text.format(**kwargs)
-    return text
+    """Get calendar translation string (the shared i18n.format_text)."""
+    return format_text(_CAL_STRINGS, lang, key, **kwargs)
 
 
 # babel's get_day_names lazily reads locale data files from disk on first use
@@ -573,13 +569,14 @@ async def async_setup_entry(
 def _task_label(task: MaintenanceTask, hass: HomeAssistant | None = None) -> str:
     """Task name, with the due cycle phase appended for phased tasks (#139)
     and, for a calendar-driven task, the next events' titles (#189)."""
-    phase = task.current_phase_name
-    label = f"{task.name} · {phase}" if phase else task.name
-    if hass is None:
-        return label
-    from .helpers.calendar_source import next_event_titles, with_event_titles
+    from .helpers.calendar_source import next_event_titles
+    from .helpers.phases import task_label
 
-    return with_event_titles(label, next_event_titles(hass, task._schedule(), task.next_due))
+    titles = next_event_titles(hass, task._schedule(), task.next_due) if hass is not None else None
+    return task_label(
+        {"name": task.name, "phases": task.phases, "phase_sequence": task.phase_sequence, "phase_cursor": task.phase_cursor},
+        titles,
+    )
 
 class MaintenanceCalendar(CalendarEntity):
     """Calendar entity aggregating all maintenance tasks."""
@@ -684,9 +681,16 @@ class MaintenanceCalendar(CalendarEntity):
 
             # Merge static (ConfigEntry) + dynamic (Store) task data
             tasks_data = merged_tasks(entry)
+            schedule_time_enabled = self._is_schedule_time_feature_enabled()
 
             for task_id, task_dict in tasks_data.items():
                 task = MaintenanceTask.from_dict(task_dict)
+                # The coordinator's feature-flag gate: with time-of-day
+                # scheduling switched off a stored schedule_time must not
+                # count (the fallback status below would read OVERDUE after
+                # HH:MM on the due day while the sensor says due soon).
+                if not schedule_time_enabled:
+                    task.schedule_time = None
 
                 if not task.enabled:
                     continue
@@ -701,7 +705,7 @@ class MaintenanceCalendar(CalendarEntity):
                 if live.get("_trigger_current_value") is not None:
                     task._trigger_current_value = live["_trigger_current_value"]
 
-                event = self._create_event_for_task(task, obj_name, start_d, end_d)
+                event = self._create_event_for_task(task, obj_name, start_d, end_d, live_status=live.get("_status"))
                 if event:
                     events.append(event)
 
@@ -718,8 +722,17 @@ class MaintenanceCalendar(CalendarEntity):
         object_name: str,
         start_d: date,
         end_d: date,
+        *,
+        live_status: str | None = None,
     ) -> CalendarEvent | None:
-        """Create a calendar event for a task if within range."""
+        """Create a calendar event for a task if within range.
+
+        ``live_status`` is the coordinator's computed status; the calendar
+        recomputed its own, without the schedule_time feature gate, and its
+        prefix disagreed with the task sensor (bug audit 2026-09-26, DRY
+        BR-A9). The model's status is only the fallback before the first
+        refresh.
+        """
         lang = self._lang
 
         if task.schedule_type == ScheduleType.MANUAL:
@@ -756,7 +769,7 @@ class MaintenanceCalendar(CalendarEntity):
         if next_due < start_d or next_due > end_d:
             return None
 
-        status = task.status
+        status = live_status or task.status
         prefix = STATUS_PREFIX.get(status, "")
 
         # Build translated description

@@ -489,7 +489,9 @@
       "invalid_notify_service": "Neplatný formát služby oznámení. Použijte „notify.service_name“ (např. notify.mobile_app_phone).",
       "notify_service_not_found": "Tato služba oznámení nebyla v Home Assistant nalezena. Ověřte název služby.",
       "nfc_tag_duplicate": "Tento NFC tag je již spojen s jiným úkolem.",
-      "invalid_shopping_list_entity": "Nákupní seznam musí být entita seznamu úkolů (todo.…)."
+      "invalid_shopping_list_entity": "Nákupní seznam musí být entita seznamu úkolů (todo.…).",
+      "invalid_schedule": "Rozvrh je neúplný — vyberte alespoň jeden den v týdnu (nebo kalendář u úkolu řízeného kalendářem).",
+      "invalid_delta_target": "Při počítání přírůstku (režim delta) musí být cílová hodnota větší než 0."
     },
     "abort": {
       "already_configured": "Tento objekt údržby je již nakonfigurován.",
@@ -497,7 +499,9 @@
       "template_not_found": "Vybraná šablona nebyla nalezena.",
       "missing_data": "Požadovaná data nebyla poskytnuta.",
       "reconfigure_successful": "Konfigurace úspěšně aktualizována.",
-      "reconfigure_cancelled": "Překonfigurování zrušeno."
+      "reconfigure_cancelled": "Překonfigurování zrušeno.",
+      "entity_unavailable": "Vybraná entita teď není dostupná. Zkuste to znovu, až bude hlásit stav.",
+      "unknown": "Došlo k neočekávané chybě. Začněte prosím znovu."
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "Tento NFC tag je již spojen s jiným úkolem.",
       "invalid_notify_icon": "Ikona oznámení musí být název ikony mdi: (např. mdi:air-filter).",
       "invalid_shopping_list_entity": "Nákupní seznam musí být entita seznamu úkolů (todo.…).",
-      "invalid_search_template": "Odkaz pro vyhledávání musí být URL http(s) obsahující {q}."
+      "invalid_search_template": "Odkaz pro vyhledávání musí být URL http(s) obsahující {q}.",
+      "invalid_schedule": "Rozvrh je neúplný — vyberte alespoň jeden den v týdnu (nebo kalendář u úkolu řízeného kalendářem).",
+      "invalid_delta_target": "Při počítání přírůstku (režim delta) musí být cílová hodnota větší než 0."
+    },
+    "abort": {
+      "entity_unavailable": "Vybraná entita teď není dostupná. Zkuste to znovu, až bude hlásit stav."
     }
   },
   "entity": {

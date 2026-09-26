@@ -13,6 +13,8 @@ import { t, langOf, formatNumber } from "../styles";
 import type { HomeAssistant, ReadingSlot, ReadingValue } from "../types";
 import { describeWsError } from "../ws-errors";
 import { PhotoUploadController } from "../helpers/photo-upload-controller";
+import { parseDurationMinutes } from "../helpers/duration";
+import { confirmAction } from "../helpers/confirm";
 import "./ms-date-field";
 import "./history-photo";
 import "./ms-photo-picker";
@@ -158,6 +160,10 @@ export class MaintenanceHistoryEditDialog extends LitElement {
           consumers: Array<{ entry_id: string; task_id: string }>;
         }>;
       };
+      // The dialog was closed or reopened for ANOTHER entry while this was in
+      // flight: its options (and quantities) belong to that other entry now
+      // (bug audit 2026-09-26 — out-of-order answers).
+      if (this._draft !== draft) return;
       const options: PartOption[] = [];
       for (const row of result.parts || []) {
         const own = row.entry_id === draft.entry_id;
@@ -193,6 +199,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
       this._partQty = qty;
       this._partQtyOriginal = this._partSelectionKey();
     } catch {
+      if (this._draft !== draft) return;
       this._partOptions = [];  // parts UI unavailable — the rest still edits
     }
   }
@@ -227,7 +234,15 @@ export class MaintenanceHistoryEditDialog extends LitElement {
   private async _delete(): Promise<void> {
     if (!this._draft || !this._originalSnapshot) return;
     const L = this._lang;
-    if (!window.confirm(t("history_delete_confirm", L))) return;
+    // The confirm dialog, not the browser's native modal — this dialog is
+    // also mounted on dashboards (DRY audit 2026-09-26).
+    const confirmed = await confirmAction(this.hass, {
+      title: t("history_delete_entry", L),
+      message: t("history_delete_confirm", L),
+      confirmText: t("delete", L),
+      danger: true,
+    });
+    if (!confirmed || !this._draft || !this._originalSnapshot) return;
     this._saving = true;
     this._error = "";
     try {
@@ -387,11 +402,11 @@ export class MaintenanceHistoryEditDialog extends LitElement {
           </label>
           <label>
             <span>${t("duration", L)}</span>
-            <input type="number" min="0"
+            <input type="number" min="0" step="1" inputmode="numeric"
               .value=${d.duration != null ? String(d.duration) : ""}
               @input=${(e: Event) => {
-                const v = (e.target as HTMLInputElement).value;
-                this._set("duration", v ? Number(v) : null);
+                // Whole minutes, like the server stores them (helpers/duration).
+                this._set("duration", parseDurationMinutes((e.target as HTMLInputElement).value));
               }} />
           </label>
         </div>

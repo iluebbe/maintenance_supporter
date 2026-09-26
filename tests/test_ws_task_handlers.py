@@ -139,7 +139,8 @@ async def test_ws_create_task_with_all_fields(
             "warning_days": 14,
             "notes": "Check everything",
             "documentation_url": "https://example.com/docs",
-            "responsible_user_id": "user123",
+            # A real user: task/create refuses an unknown assignee (bug audit 2026-09-26).
+            "responsible_user_id": (await hass.auth.async_create_user("Assignee")).id,
             "entity_slug": "pump_filter",
         },
     )

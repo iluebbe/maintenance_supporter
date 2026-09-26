@@ -489,7 +489,9 @@
       "invalid_notify_service": "Formato del servicio de notificación no válido. Use 'notify.nombre_servicio' (ej.: notify.mobile_app_phone).",
       "notify_service_not_found": "Este servicio de notificación no se encontró en Home Assistant. Verifique el nombre del servicio.",
       "nfc_tag_duplicate": "Esta etiqueta NFC ya está vinculada a otra tarea.",
-      "invalid_shopping_list_entity": "La lista de la compra debe ser una entidad de tareas (todo.…)."
+      "invalid_shopping_list_entity": "La lista de la compra debe ser una entidad de tareas (todo.…).",
+      "invalid_schedule": "La programación está incompleta: elige al menos un día de la semana (o un calendario para una tarea guiada por calendario).",
+      "invalid_delta_target": "Al contar el uso acumulado (modo delta), el valor objetivo debe ser mayor que 0."
     },
     "abort": {
       "already_configured": "Este objeto de mantenimiento ya está configurado.",
@@ -497,7 +499,9 @@
       "template_not_found": "La plantilla seleccionada no se encontró.",
       "missing_data": "No se proporcionaron los datos requeridos.",
       "reconfigure_successful": "Configuración actualizada correctamente.",
-      "reconfigure_cancelled": "Reconfiguración cancelada."
+      "reconfigure_cancelled": "Reconfiguración cancelada.",
+      "entity_unavailable": "La entidad seleccionada no está disponible ahora mismo. Inténtalo de nuevo cuando informe un estado.",
+      "unknown": "Se ha producido un error inesperado. Vuelve a empezar."
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "Esta etiqueta NFC ya está vinculada a otra tarea.",
       "invalid_notify_icon": "El icono de notificación debe ser un nombre de icono mdi: (p. ej. mdi:air-filter).",
       "invalid_shopping_list_entity": "La lista de la compra debe ser una entidad de tareas (todo.…).",
-      "invalid_search_template": "El enlace de búsqueda debe ser una URL http(s) que contenga {q}."
+      "invalid_search_template": "El enlace de búsqueda debe ser una URL http(s) que contenga {q}.",
+      "invalid_schedule": "La programación está incompleta: elige al menos un día de la semana (o un calendario para una tarea guiada por calendario).",
+      "invalid_delta_target": "Al contar el uso acumulado (modo delta), el valor objetivo debe ser mayor que 0."
+    },
+    "abort": {
+      "entity_unavailable": "La entidad seleccionada no está disponible ahora mismo. Inténtalo de nuevo cuando informe un estado."
     }
   },
   "entity": {

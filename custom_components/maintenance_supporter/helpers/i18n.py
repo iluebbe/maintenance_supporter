@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
+import logging
+from collections.abc import Mapping
+from typing import Any
+
 from homeassistant.core import HomeAssistant
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def normalize_language(hass: HomeAssistant) -> str:
@@ -33,3 +39,36 @@ def normalize_language_code(code: str | None) -> str:
     if lang.startswith("pt") and lang.endswith("br"):
         return "pt-br"
     return lang[:2]
+
+
+def format_text(tables: Mapping[str, Mapping[str, str]], lang: str, key: str, **kwargs: Any) -> str:
+    """Look *key* up in a per-language string table and fill its placeholders.
+
+    THE formatter behind the integration's Python string tables — the
+    notification, calendar, logbook and Assist copies each had their own
+    (bug audit 2026-09-26, DRY BR-A6). One rule set for all of them:
+
+    * a missing language or a missing key falls back to the English line
+      (per key), a key missing everywhere to the key itself;
+    * values are inserted verbatim. ``str.format`` never re-parses a
+      substituted value, so a task named "Filter {A}" needs no escaping —
+      the notification copy doubled the braces anyway and users read
+      "Filter {{A}}" on their phones;
+    * a translation with a stray placeholder falls back to the English
+      line instead of taking the whole message down.
+    """
+    english = tables.get("en", {})
+    text = tables.get(lang, english).get(key)
+    if text is None:
+        text = english.get(key, key)
+    if not kwargs:
+        return text
+    try:
+        return text.format(**kwargs)
+    except (KeyError, IndexError, ValueError):
+        _LOGGER.warning("Malformed translation %s/%s — using the English text", lang, key)
+        fallback = english.get(key, key)
+        try:
+            return fallback.format(**kwargs)
+        except (KeyError, IndexError, ValueError):
+            return fallback

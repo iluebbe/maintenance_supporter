@@ -87,27 +87,14 @@ def speak(key: str, language: str | None, **fmt: Any) -> str:
     Falls back to English per key, so a translation that is missing one line
     costs that line and not the whole answer.
     """
-    from .i18n import normalize_language_code
+    from .i18n import format_text, normalize_language_code
 
     if not _TABLE:
         # async_load has not run (a direct handler call in a test, or setup
         # raced); read synchronously rather than answer nothing.
         _TABLE.update(_load_all())
 
-    lang = normalize_language_code(language)
-    text = _TABLE.get(lang, {}).get(key)
-    if text is None:
-        text = _TABLE.get(FALLBACK_LANGUAGE, {}).get(key)
-    if text is None:
-        return key
-    try:
-        return text.format(**fmt)
-    except (KeyError, IndexError):
-        # A translation with a stray placeholder must not take the answer down;
-        # the parity test exists to keep this branch unreachable.
-        _LOGGER.warning("Malformed Assist response %s/%s", lang, key)
-        english = _TABLE.get(FALLBACK_LANGUAGE, {}).get(key, key)
-        try:
-            return english.format(**fmt)
-        except (KeyError, IndexError):
-            return english
+    # The shared formatter: per-key English fallback, and a translation with a
+    # stray placeholder falls back to the English line instead of taking the
+    # answer down (the parity test keeps that branch unreachable).
+    return format_text(_TABLE, normalize_language_code(language), key, **fmt)

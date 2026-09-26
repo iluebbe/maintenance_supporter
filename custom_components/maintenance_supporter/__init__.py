@@ -60,7 +60,6 @@ from .const import (
     CONF_TASKS,
     CONF_WEEKLY_DIGEST_ENABLED,
     DEFAULT_PANEL_ENABLED,
-    DEFAULT_WARNING_DAYS,
     DOCUMENT_TEXT_INDEX_KEY,
     DOMAIN,
     EVENT_UNSUBS_KEY,
@@ -102,11 +101,13 @@ from .helpers.aggregate import object_name as aggregate_object_name
 from .helpers.assist_sentences import async_sync as async_sync_assist_sentences
 from .helpers.dates import INTERVAL_UNITS, local_date_from_iso
 from .helpers.documents import DocumentStore
-from .helpers.global_options import get_global_entry
+from .helpers.global_options import get_default_warning_days, get_global_entry
 from .helpers.notification_gates import task_may_notify
 from .helpers.notification_manager import NotificationManager
 from .helpers.notify_hooks import KIND_LEAD_TIME
+from .helpers.pause import is_task_inert
 from .helpers.permissions import service_tier
+from .helpers.phases import task_label
 from .helpers.schedule import normalize_task_storage
 from .helpers.task_fields import (
     INTERVAL_DAYS_RANGE,
@@ -322,6 +323,12 @@ async def async_maybe_send_warranty_reminders(hass: HomeAssistant, *, force: boo
         if entry.unique_id == GLOBAL_UNIQUE_ID:
             continue
         obj = entry.data.get(CONF_OBJECT) or {}
+        # A retired (archived) object's warranty is nobody's business any
+        # more — the lead-reminder loop below already skipped them (bug audit
+        # 2026-09-26). A paused object keeps its reminder: the warranty runs
+        # out whether the pool is in its winter pause or not.
+        if obj.get("archived_at") is not None:
+            continue
         expiry = obj.get("warranty_expiry")
         if not expiry:
             continue
@@ -371,21 +378,18 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
         obj = entry.data.get(CONF_OBJECT) or {}
         if obj.get("archived_at") is not None:
             continue
-        # v2.20 (N3): a seasonally paused object's schedules are frozen — no
-        # lead reminders until it resumes.
-        if obj.get("paused_at") is not None:
-            continue
         rd = getattr(entry, "runtime_data", None)
         coordinator = getattr(rd, "coordinator", None)
         if coordinator is None:
             continue
         # Merged data so last_performed reflects the Store, not stale entry data.
         merged = coordinator._get_merged_tasks_data()
+        payload = (coordinator.data or {}).get(CONF_TASKS) or {}
         obj_name = aggregate_object_name(entry)
         for task_id, task_data in merged.items():
-            if not task_data.get("enabled", True):
-                continue
-            if task_data.get("archived_at") is not None:
+            # Disabled / archived task or a seasonally paused object (v2.20,
+            # N3: schedules frozen) — the one inert predicate.
+            if is_task_inert(task_data, obj):
                 continue
             # The per-task gates the lead-time kind declares (#173 mute,
             # vacation, snooze) — before the model is even built.
@@ -400,7 +404,10 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
             await nm.async_send_lead_reminder(
                 entry_id=entry.entry_id,
                 task_id=task_id,
-                task_name=task.name,
+                # The label every other reminder carries (due phase #139,
+                # next calendar events #189) — this one sent the bare name
+                # (bug audit 2026-09-26).
+                task_name=task_label(task_data, (payload.get(task_id) or {}).get("_next_event_titles")),
                 object_name=obj_name,
                 days=days,
                 next_due=task.next_due.isoformat() if task.next_due else None,
@@ -740,7 +747,9 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                 interval_days=call.data.get("interval_days"),
                 interval_unit=call.data.get("interval_unit", "days"),
                 due_date=call.data.get("due_date"),
-                warning_days=call.data.get("warning_days", DEFAULT_WARNING_DAYS),
+                # The integration-wide default like every other create path —
+                # the bare constant 7 ignored the setting (bug audit 2026-09-26).
+                warning_days=call.data["warning_days"] if "warning_days" in call.data else get_default_warning_days(hass),
                 enabled=call.data.get("enabled", True),
                 notes=call.data.get("notes"),
                 schedule=call.data.get("schedule"),
@@ -1646,8 +1655,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
             from homeassistant.helpers import issue_registry as ir
 
             from .helpers.device_link import is_self_link
+            from .helpers.issues import device_link_lost_issue_id
 
-            issue_id = f"device_link_lost_{entry.entry_id}"
+            issue_id = device_link_lost_issue_id(entry.entry_id)
             if resolved is None:
                 # Two distinct stories share one issue id (so resolve/delete
                 # stays single-path): the linked device is GONE, or the link
@@ -2135,11 +2145,14 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         _sync_missing_global_entry_issue(hass)
         return
 
-    # A "lost its device link" notice belongs to the object; deleting the object
-    # answers it, so it must not outlive it as an orphan in the Repairs list.
-    from homeassistant.helpers import issue_registry as ir
+    # Every repair issue about the object — its device link, a broken part
+    # link, its tasks' missing trigger entities and stale action targets —
+    # answers itself with the object gone. Only the device-link notice was
+    # deleted; the others stayed in Repairs for good, with a fix flow that had
+    # nothing left to fix (bug audit 2026-09-26).
+    from .helpers.issues import async_purge_entry_issues
 
-    ir.async_delete_issue(hass, DOMAIN, f"device_link_lost_{entry.entry_id}")
+    async_purge_entry_issues(hass, entry.entry_id)
 
     # #111: hand any shared spare-part pool to a borrower BEFORE the Store goes
     # — the stock numbers exist nowhere else. Must happen here rather than in
@@ -2174,7 +2187,16 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     # belongs.
     doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     if isinstance(doc_store, DocumentStore):
-        await doc_store.async_remove_object(object_id_for_entry(entry))
+        object_id = object_id_for_entry(entry)
+        removed_doc_ids = {doc["id"] for doc in doc_store.for_object(object_id)}
+        await doc_store.async_remove_object(object_id)
+        # ...and the references OTHER objects hold to those documents: a
+        # completion photo on a moved task's history, a spare part's manual.
+        # A document delete already forgot them; an object delete left them
+        # dangling (bug audit 2026-09-26, SEC-10).
+        from .helpers.documents import async_forget_doc_ids
+
+        await async_forget_doc_ids(hass, removed_doc_ids)
 
     _LOGGER.debug("Removed store for entry %s", entry.entry_id)
     # The global summary coordinator has no listener for entry removal, so tell

@@ -2090,6 +2090,19 @@ async def test_runtime_empty_on_states(
     assert CONF_TRIGGER_ON_STATES not in task["trigger_config"]
 
 
+async def _add_second_condition(hass: HomeAssistant, flow_id: str, entity_id: str) -> ConfigFlowResult:
+    """A compound trigger needs two conditions — the WS validator refuses one,
+    so the flow no longer offers finish before the second (BI-A3, bug audit
+    2026-09-26). Adds a plain threshold condition on ``entity_id``."""
+    result = await hass.config_entries.flow.async_configure(flow_id, user_input={"compound_action": "add"})
+    assert result["step_id"] == "compound_condition_entity"
+    result = await hass.config_entries.flow.async_configure(flow_id, user_input={CONF_TRIGGER_ENTITY: [entity_id]})
+    result = await hass.config_entries.flow.async_configure(flow_id, user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD})
+    result = await hass.config_entries.flow.async_configure(flow_id, user_input={CONF_TRIGGER_ABOVE: 1.0})
+    assert result["step_id"] == "compound_review"
+    return result
+
+
 async def test_compound_condition_counter_flow(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
@@ -2146,6 +2159,7 @@ async def test_compound_condition_counter_flow(
     )
     assert result["step_id"] == "compound_review"
 
+    result = await _add_second_condition(hass, result["flow_id"], "sensor.count_a")
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={"compound_action": "finish"},
@@ -2218,6 +2232,7 @@ async def test_compound_condition_state_change_flow(
     )
     assert result["step_id"] == "compound_review"
 
+    result = await _add_second_condition(hass, result["flow_id"], "binary_sensor.motion")
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={"compound_action": "finish"},
@@ -2285,6 +2300,7 @@ async def test_compound_condition_runtime_flow(
     )
     assert result["step_id"] == "compound_review"
 
+    result = await _add_second_condition(hass, result["flow_id"], "sensor.rt_hours")
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={"compound_action": "finish"},
@@ -2507,7 +2523,8 @@ async def test_compound_review_go_back(
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        user_input={"compound_action": "finish", "go_back": True},
+        # "add": with one condition "finish" is not offered (BI-A3, bug audit 2026-09-26).
+        user_input={"compound_action": "add", "go_back": True},
     )
     assert result["step_id"] == "compound_logic"
 

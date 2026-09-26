@@ -489,7 +489,9 @@
       "invalid_notify_service": "अमान्य सूचना सेवा प्रारूप। 'notify.service_name' का उपयोग करें (उदा. notify.mobile_app_phone)।",
       "notify_service_not_found": "यह सूचना सेवा Home Assistant में नहीं मिली। कृपया सेवा का नाम सत्यापित करें।",
       "nfc_tag_duplicate": "यह NFC टैग पहले से ही किसी अन्य कार्य से जुड़ा हुआ है।",
-      "invalid_shopping_list_entity": "शॉपिंग सूची एक टू-डू इकाई (todo.…) होनी चाहिए।"
+      "invalid_shopping_list_entity": "शॉपिंग सूची एक टू-डू इकाई (todo.…) होनी चाहिए।",
+      "invalid_schedule": "अनुसूची अधूरी है — कम से कम एक सप्ताह का दिन चुनें (या कैलेंडर-आधारित कार्य के लिए एक कैलेंडर)।",
+      "invalid_delta_target": "संचित उपयोग गिनते समय (डेल्टा मोड) लक्ष्य मान 0 से अधिक होना चाहिए।"
     },
     "abort": {
       "already_configured": "यह रखरखाव ऑब्जेक्ट पहले से ही कॉन्फ़िगर किया गया है।",
@@ -497,7 +499,9 @@
       "template_not_found": "चयनित टेम्पलेट नहीं मिला।",
       "missing_data": "आवश्यक डेटा प्रदान नहीं किया गया।",
       "reconfigure_successful": "कॉन्फ़िगरेशन सफलतापूर्वक अपडेट किया गया।",
-      "reconfigure_cancelled": "पुनः कॉन्फ़िगरेशन रद्द किया गया।"
+      "reconfigure_cancelled": "पुनः कॉन्फ़िगरेशन रद्द किया गया।",
+      "entity_unavailable": "चयनित एंटिटी अभी उपलब्ध नहीं है। जब वह कोई स्थिति बताए तब फिर से प्रयास करें।",
+      "unknown": "एक अप्रत्याशित त्रुटि हुई। कृपया फिर से शुरू करें।"
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "यह NFC टैग पहले से ही किसी अन्य कार्य से जुड़ा हुआ है।",
       "invalid_notify_icon": "सूचना आइकन एक mdi: आइकन नाम होना चाहिए (जैसे mdi:air-filter)।",
       "invalid_shopping_list_entity": "शॉपिंग सूची एक टू-डू इकाई (todo.…) होनी चाहिए।",
-      "invalid_search_template": "खोज लिंक {q} वाला http(s) URL होना चाहिए."
+      "invalid_search_template": "खोज लिंक {q} वाला http(s) URL होना चाहिए.",
+      "invalid_schedule": "अनुसूची अधूरी है — कम से कम एक सप्ताह का दिन चुनें (या कैलेंडर-आधारित कार्य के लिए एक कैलेंडर)।",
+      "invalid_delta_target": "संचित उपयोग गिनते समय (डेल्टा मोड) लक्ष्य मान 0 से अधिक होना चाहिए।"
+    },
+    "abort": {
+      "entity_unavailable": "चयनित एंटिटी अभी उपलब्ध नहीं है। जब वह कोई स्थिति बताए तब फिर से प्रयास करें।"
     }
   },
   "entity": {

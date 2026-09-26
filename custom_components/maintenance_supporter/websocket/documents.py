@@ -382,10 +382,17 @@ async def ws_search(
                 by_digest.setdefault(digest, []).append(did)
         for hit in await store.text_index.async_search(msg["query"], limit=limit * 2):
             for did in by_digest.get(hit["digest"], []):
+                # The search awaits: a document deleted meanwhile raised a
+                # KeyError here and the whole search failed (bug audit
+                # 2026-09-26) — it simply is no hit any more.
+                live = store.documents.get(did)
+                if live is None:
+                    doc_hits.pop(did, None)
+                    continue
                 cur = doc_hits.get(did)
                 if cur is None:
                     doc_hits[did] = {
-                        **_doc_hit(did, store.documents[did], obj_map),
+                        **_doc_hit(did, live, obj_map),
                         "score": hit["score"],
                         "match": "content",
                         "page": hit["page"],
@@ -395,7 +402,7 @@ async def ws_search(
                     cur["page"] = hit["page"]
                     cur["snippet"] = hit["snippet"]
                     cur["score"] = max(cur["score"], hit["score"]) + min(cur["score"], hit["score"]) // 4
-    documents = sorted(doc_hits.values(), key=lambda d: -d["score"])[:limit]
+    documents = sorted((hit for did, hit in doc_hits.items() if did in store.documents), key=lambda d: -d["score"])[:limit]
 
     # History notes across every task of every object.
     history: list[dict[str, Any]] = []

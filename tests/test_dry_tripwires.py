@@ -147,8 +147,10 @@ def test_no_translation_literal_fallbacks() -> None:
     """`t(key) || "Literal"` is dead code — styles.t() never returns "" (it
     falls back to English, then to the key) — and the ~90 literals had
     drifted from en.json (16 differed, three were German). Strip the tail;
-    a missing key belongs in en.json, not inline."""
-    fallback = re.compile(r'(?<![\w.])t\([^()]*\)\s*\|\|\s*"')
+    a missing key belongs in en.json, not inline. Any quote style counts:
+    two `` t(...) || `Delete "${name}"?` `` template-literal tails had
+    slipped past the double-quote-only pattern (DRY audit 2026-09-26)."""
+    fallback = re.compile(r"""(?<![\w.])t\([^()]*\)\s*\|\|\s*["'`]""")
     offenders = {
         p.name: n
         for p in _frontend_sources()

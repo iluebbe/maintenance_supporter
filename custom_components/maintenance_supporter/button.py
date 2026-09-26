@@ -18,7 +18,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     COMPLETION_PROVENANCE_NOTES,
     CONF_OBJECT,
-    CONF_TASK_ENABLED,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
@@ -27,6 +26,7 @@ from .const import (
 )
 from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
+from .helpers.pause import is_task_inert
 
 if TYPE_CHECKING:
     from . import MaintenanceSupporterConfigEntry
@@ -107,11 +107,12 @@ class MaintenanceActionButton(MaintenanceEntity, ButtonEntity):
             return False
         if not self._task_data:
             return False
-        # Archived task → its complete/skip/reset buttons go unavailable (inert).
-        if self._task_data.get("archived_at") is not None:
-            return False
+        # An inert task — archived, disabled, or its object paused — has
+        # nothing to press: the coordinator refuses every action on it. The
+        # pause was missing here, so the buttons of a paused object looked
+        # usable and only raised on press (bug audit 2026-09-26).
         task_cfg = self.coordinator.entry.data.get(CONF_TASKS, {}).get(self._task_id, {})
-        return bool(task_cfg.get(CONF_TASK_ENABLED, True))
+        return not is_task_inert({**task_cfg, **self._task_data}, self.coordinator.entry.data.get(CONF_OBJECT, {}))
 
     async def async_press(self) -> None:
         """Run the action via the shared coordinator method (single source)."""

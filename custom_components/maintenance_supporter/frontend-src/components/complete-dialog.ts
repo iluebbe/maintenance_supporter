@@ -9,9 +9,15 @@ import { describeWsError } from "../ws-errors";
 import { partLinkKey, type LinkedPart } from "../helpers/shared-parts";
 import { REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import { PhotoUploadController } from "../helpers/photo-upload-controller";
+import { parseDurationMinutes } from "../helpers/duration";
 import "./ms-date-field";
 import "./ms-photo-picker";
 import { photoPickerStyles } from "./ms-photo-picker";
+
+/** The server's bounds (websocket USED_PARTS_FIELD quantity / task/complete
+ *  restock_quantity) — validated on save with a message, never dropped. */
+const USED_QTY_RANGE: [number, number] = [0.01, 999];
+const RESTOCK_QTY_RANGE: [number, number] = [0.01, 9999];
 
 export class MaintenanceCompleteDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -88,6 +94,11 @@ export class MaintenanceCompleteDialog extends LitElement {
   /** Keyed by `partLinkKey` — the (entry_id, part_id) pair — because two
    *  objects can carry the same part id, so part_id alone would merge pools. */
   @state() private _usedParts: Record<string, TaskPartLink> = {};
+  /** The TYPED quantity per used part (same key). The field used to write
+   *  back a parsed number on every keystroke — clearing "1" to type "3"
+   *  snapped back to "1" first, giving "13" (bug audit 2026-09-26). The
+   *  text is kept as typed and parsed on save. */
+  @state() private _usedQtyText: Record<string, string> = {};
 
   /** #73: in-cycle ticks (keyed by item TEXT) recorded on the task detail —
    *  prefill the dialog so nobody re-ticks what is already done. */
@@ -120,6 +131,15 @@ export class MaintenanceCompleteDialog extends LitElement {
     // untick or adjust before completing. The whole link is kept, entry_id
     // included, so a shared pool survives the edit (#111).
     this._usedParts = Object.fromEntries(this.consumesParts.map((l) => [partLinkKey(l), { ...l }]));
+    this._usedQtyText = {};
+  }
+
+  /** "Value must be between {min} and {max}" with locale-formatted bounds. */
+  private _rangeError(min: number, max: number): string {
+    const L = this.lang;
+    return t("settings_value_out_of_range", L)
+      .replace("{min}", formatNumber(min, L, { maximumFractionDigits: 2 }))
+      .replace("{max}", formatNumber(max, L, { maximumFractionDigits: 2 }));
   }
 
   private _toggleCheck(idx: number): void {
@@ -149,10 +169,9 @@ export class MaintenanceCompleteDialog extends LitElement {
         const cost = parseFloat(this._cost);
         if (!isNaN(cost) && cost >= 0) data.cost = cost;
       }
-      if (this._duration) {
-        const dur = parseInt(this._duration, 10);
-        if (!isNaN(dur) && dur >= 0) data.duration = dur;
-      }
+      // Whole minutes — the server coerces to int (helpers/duration).
+      const dur = parseDurationMinutes(this._duration);
+      if (dur !== null) data.duration = dur;
       if (this.checklist.length > 0) {
         data.checklist_state = this._checklistState;
       }
@@ -195,17 +214,36 @@ export class MaintenanceCompleteDialog extends LitElement {
         const rv = parseFloat(this._readingValue);
         if (!isNaN(rv)) data.reading_value = rv;
       }
-      if (this.restockDefault !== null && this._restockQty !== "") {
-        const rq = parseFloat(this._restockQty);
-        if (!isNaN(rq) && rq >= 1) data.restock_quantity = rq;
+      if (this.restockDefault !== null && this._restockQty.trim() !== "") {
+        // Fractions are real purchases (0.5 kg, 2.5 l) — the old `>= 1` guard
+        // dropped them silently and the part's default quantity was stocked
+        // instead. Out of the server's range: say so, send nothing.
+        const rq = parseFloat(this._restockQty.replace(",", "."));
+        if (!Number.isFinite(rq) || rq < RESTOCK_QTY_RANGE[0] || rq > RESTOCK_QTY_RANGE[1]) {
+          this._error = this._rangeError(...RESTOCK_QTY_RANGE);
+          this._loading = false;
+          return;
+        }
+        data.restock_quantity = rq;
       }
       // #99: with a parts section shown, send the explicit selection — it
       // replaces the automatic consumes_parts deduction (empty = none used).
       // entry_id travels only when the pool is somebody else's (#111), so an
       // own-part payload is byte-identical to what shipped before.
       if (this.parts.length > 0) {
-        data.used_parts = Object.values(this._usedParts)
-          .filter((l) => Number.isFinite(l.quantity) && l.quantity > 0)
+        // The typed quantities, parsed now (see _usedQtyText).
+        const used: TaskPartLink[] = [];
+        for (const [key, link] of Object.entries(this._usedParts)) {
+          const raw = this._usedQtyText[key];
+          const qty = raw === undefined ? link.quantity : parseFloat(raw.replace(",", "."));
+          if (!Number.isFinite(qty) || qty < USED_QTY_RANGE[0] || qty > USED_QTY_RANGE[1]) {
+            this._error = this._rangeError(...USED_QTY_RANGE);
+            this._loading = false;
+            return;
+          }
+          used.push({ ...link, quantity: qty });
+        }
+        data.used_parts = used
           .map((l) =>
             l.entry_id
               ? { part_id: l.part_id, quantity: l.quantity, entry_id: l.entry_id }
@@ -374,7 +412,12 @@ export class MaintenanceCompleteDialog extends LitElement {
                         @change=${(e: Event) => {
                           const next = { ...this._usedParts };
                           if ((e.target as HTMLInputElement).checked) next[key] = next[key] || base;
-                          else delete next[key];
+                          else {
+                            delete next[key];
+                            const text = { ...this._usedQtyText };
+                            delete text[key];
+                            this._usedQtyText = text;
+                          }
                           this._usedParts = next;
                         }} />
                       <span
@@ -384,14 +427,18 @@ export class MaintenanceCompleteDialog extends LitElement {
                       >
                     </label>
                     ${checked
-                      ? html`<input class="used-part-qty" type="number" min="0.01" max="999" step="0.01"
-                          .value=${String(link.quantity)}
+                      ? html`<input class="used-part-qty" type="number" min=${USED_QTY_RANGE[0]} max=${USED_QTY_RANGE[1]} step="0.01"
+                          .value=${this._usedQtyText[key] ?? String(link.quantity)}
                           @input=${(e: Event) => {
-                            const v = parseFloat((e.target as HTMLInputElement).value);
-                            this._usedParts = {
-                              ...this._usedParts,
-                              [key]: { ...base, quantity: Number.isFinite(v) && v >= 0.01 ? v : 1 },
-                            };
+                            const raw = (e.target as HTMLInputElement).value;
+                            this._usedQtyText = { ...this._usedQtyText, [key]: raw };
+                            // A valid entry also feeds the live cost suggestion;
+                            // an empty / partial one leaves the last number
+                            // alone and is judged on save.
+                            const v = parseFloat(raw.replace(",", "."));
+                            if (Number.isFinite(v) && v >= USED_QTY_RANGE[0]) {
+                              this._usedParts = { ...this._usedParts, [key]: { ...base, quantity: v } };
+                            }
                           }} />`
                       : nothing}
                   </div>`;
@@ -406,7 +453,7 @@ export class MaintenanceCompleteDialog extends LitElement {
             ? html`
               <label class="field">
                 <span class="field-label">${t("restock_quantity_label", L)}</span>
-                <input type="number" step="0.01" min="0.01" class="field-input"
+                <input type="number" step="0.01" min=${RESTOCK_QTY_RANGE[0]} max=${RESTOCK_QTY_RANGE[1]} class="field-input"
                   .value=${this._restockQty}
                   @input=${(e: Event) => (this._restockQty = (e.target as HTMLInputElement).value)} />
               </label>`
@@ -432,7 +479,7 @@ export class MaintenanceCompleteDialog extends LitElement {
           </label>
           <label class="field">
             <span class="field-label">${t("duration_minutes", L)}${this._req("duration")}</span>
-            <input type="number" step="0.01" min="0" class="field-input"
+            <input type="number" step="1" min="0" inputmode="numeric" class="field-input"
               .value=${this._duration}
               @input=${(e: Event) => (this._duration = (e.target as HTMLInputElement).value)} />
           </label>

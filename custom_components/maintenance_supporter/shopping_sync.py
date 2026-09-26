@@ -50,10 +50,12 @@ from homeassistant.core import (
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.storage import Store
 
-from .const import COMPLETION_PROVENANCE_NOTES, CONF_SHOPPING_LIST_ENTITY, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_SHOPPING_LIST_ENTITY, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
 from .helpers.global_options import get_global_options
 from .helpers.managed_timer import ManagedTimer
 from .helpers.parts import PART_REF_FIELD
+from .helpers.pause import is_task_inert
+from .helpers.todo_mirror import mirror_summary
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -288,18 +290,21 @@ class ShoppingListSync:
             if store is None or coordinator is None:
                 continue
             obj_name = coordinator.maintenance_object.name
+            obj_data = ce.data.get(CONF_OBJECT) or {}
             for tid, td in (ce.data.get(CONF_TASKS) or {}).items():
                 ref = td.get(PART_REF_FIELD)
                 if not isinstance(ref, dict) or not ref.get("part_id"):
                     continue
-                if not td.get("enabled", True):
+                # A disabled, retired (bug audit 2026-08-29, P-F13) or paused
+                # reminder is not shopping — the pause check was missing
+                # (bug audit 2026-09-26: the one inert predicate).
+                if is_task_inert(td, obj_data):
                     continue
-                if td.get("archived_at") is not None:
-                    continue  # a retired reminder is not shopping (bug audit 2026-08-29, P-F13)
                 if store.get_last_performed(tid) is not None:
                     continue  # completed reminder — history, not shopping
-                # Same summary shape as our own to-do platform.
-                out[f"{ce.entry_id}:{tid}"] = f"{obj_name}: {td.get('name', tid)}"
+                # Same row text as our own to-do platform (a buy task has no
+                # phases or calendar events, so the text is its bare name).
+                out[f"{ce.entry_id}:{tid}"] = mirror_summary(obj_name, {"id": tid, **td})
         return out
 
     async def _complete_buy_task(self, key: str) -> None:

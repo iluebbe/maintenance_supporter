@@ -11,6 +11,19 @@ import { expect, fixture, html, oneEvent } from "@open-wc/testing";
 import "../components/history-edit-dialog.js";
 import type { HistoryEntryDraft, MaintenanceHistoryEditDialog } from "../components/history-edit-dialog";
 import { type SentMessage, createMockHass } from "./_test-utils.js";
+import type { MaintenanceConfirmDialog } from "../components/confirm-dialog";
+
+/** Answer the confirm dialog (helpers/confirm) — the delete asks through it
+ *  since the audit 2026-09-26, no longer through window.confirm. */
+async function answerConfirm(yes: boolean): Promise<void> {
+  let dlg: MaintenanceConfirmDialog | null = null;
+  for (let i = 0; i < 50 && !dlg?.shadowRoot?.querySelector("ha-dialog"); i++) {
+    await new Promise((r) => setTimeout(r, 10));
+    dlg = document.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog[data-ms-lovelace-confirm]");
+  }
+  const buttons = dlg!.shadowRoot!.querySelectorAll<HTMLElement>(".dialog-actions ha-button");
+  buttons[yes ? buttons.length - 1 : 0].click();
+}
 
 function draft(): HistoryEntryDraft {
   return {
@@ -39,16 +52,17 @@ async function mount(deleteHandler: () => unknown = () => ({ success: true, rema
 }
 
 describe("history-edit dialog: delete entry (#170)", () => {
-  const realConfirm = window.confirm;
-  afterEach(() => { window.confirm = realConfirm; });
+  afterEach(() => {
+    document.querySelectorAll("maintenance-confirm-dialog[data-ms-lovelace-confirm]").forEach((d) => d.remove());
+  });
 
   it("confirms, sends the delete with the original timestamp and reports deleted", async () => {
-    window.confirm = () => true;
     const { el, sent } = await mount();
     const btn = el.shadowRoot!.querySelector<HTMLButtonElement>("button.delete-entry")!;
     expect(btn, "delete button").to.exist;
     const evt = oneEvent(el, "history-entry-saved");
     btn.click();
+    await answerConfirm(true);
     const detail = (await evt).detail as Record<string, unknown>;
     expect(detail).to.deep.equal({ entry_id: "e1", task_id: "t1", deleted: true });
     const del = sent.find((m) => m.type === "maintenance_supporter/task/history/delete")!;
@@ -58,18 +72,18 @@ describe("history-edit dialog: delete entry (#170)", () => {
   });
 
   it("sends nothing when the confirm is declined", async () => {
-    window.confirm = () => false;
     const { el, sent } = await mount();
     el.shadowRoot!.querySelector<HTMLButtonElement>("button.delete-entry")!.click();
+    await answerConfirm(false);
     await new Promise((r) => setTimeout(r, 20));
     expect(sent.some((m) => m.type === "maintenance_supporter/task/history/delete")).to.equal(false);
     expect(el.shadowRoot!.querySelector("button.delete-entry"), "dialog still open").to.exist;
   });
 
   it("keeps the dialog open with the error when the backend refuses", async () => {
-    window.confirm = () => true;
     const { el } = await mount(() => { throw { code: "not_found", message: "gone" }; });
     el.shadowRoot!.querySelector<HTMLButtonElement>("button.delete-entry")!.click();
+    await answerConfirm(true);
     await new Promise((r) => setTimeout(r, 30));
     await el.updateComplete;
     expect(el.shadowRoot!.querySelector(".error")?.textContent ?? "").to.not.equal("");

@@ -489,7 +489,9 @@
       "invalid_notify_service": "Ugyldig format for varslingstjeneste. Bruk «notify.service_name» (f.eks. notify.mobile_app_phone).",
       "notify_service_not_found": "Denne varslingstjenesten ble ikke funnet i Home Assistant. Kontroller tjenestenavnet.",
       "nfc_tag_duplicate": "Denne NFC-taggen er allerede koblet til en annen oppgave.",
-      "invalid_shopping_list_entity": "Handlelisten må være en gjøremålsentitet (todo.…)."
+      "invalid_shopping_list_entity": "Handlelisten må være en gjøremålsentitet (todo.…).",
+      "invalid_schedule": "Tidsplanen er ufullstendig — velg minst én ukedag (eller en kalender for en kalenderstyrt oppgave).",
+      "invalid_delta_target": "Ved telling av akkumulert bruk (deltamodus) må målverdien være større enn 0."
     },
     "abort": {
       "already_configured": "Dette vedlikeholdsobjektet er allerede konfigurert.",
@@ -497,7 +499,9 @@
       "template_not_found": "Den valgte malen ble ikke funnet.",
       "missing_data": "Nødvendige data ble ikke oppgitt.",
       "reconfigure_successful": "Konfigurasjonen ble oppdatert.",
-      "reconfigure_cancelled": "Rekonfigurering avbrutt."
+      "reconfigure_cancelled": "Rekonfigurering avbrutt.",
+      "entity_unavailable": "Den valgte entiteten er ikke tilgjengelig akkurat nå. Prøv igjen når den rapporterer en tilstand.",
+      "unknown": "Det oppstod en uventet feil. Start på nytt."
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "Denne NFC-taggen er allerede koblet til en annen oppgave.",
       "invalid_notify_icon": "Varslingsikonet må være et mdi:-ikonnavn (f.eks. mdi:air-filter).",
       "invalid_shopping_list_entity": "Handlelisten må være en gjøremålsentitet (todo.…).",
-      "invalid_search_template": "Søkelenken må være en http(s)-URL som inneholder {q}."
+      "invalid_search_template": "Søkelenken må være en http(s)-URL som inneholder {q}.",
+      "invalid_schedule": "Tidsplanen er ufullstendig — velg minst én ukedag (eller en kalender for en kalenderstyrt oppgave).",
+      "invalid_delta_target": "Ved telling av akkumulert bruk (deltamodus) må målverdien være større enn 0."
+    },
+    "abort": {
+      "entity_unavailable": "Den valgte entiteten er ikke tilgjengelig akkurat nå. Prøv igjen når den rapporterer en tilstand."
     }
   },
   "entity": {

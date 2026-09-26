@@ -17,8 +17,10 @@ import { sharedStyles } from "../styles";
 import { panelStyles } from "../panel-styles";
 
 const STATUSES = ["ok", "due_soon", "overdue", "triggered", "done", "archived", "paused"];
-// The task-detail view uses a SEPARATE `.status-chip` set in panel-styles.ts.
-const CHIP_STATUSES = ["ok", "warning", "overdue", "done"];
+// The task-detail view uses a SEPARATE `.status-chip` set in panel-styles.ts
+// — keyed like the pills since the audit 2026-09-26 (due_soon, not the old
+// "warning"; triggered / paused / archived had no rule at all).
+const CHIP_STATUSES = ["ok", "due_soon", "overdue", "triggered", "paused", "archived", "done"];
 
 @customElement("badge-contrast-probe")
 class BadgeContrastProbe extends LitElement {

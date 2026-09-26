@@ -14,7 +14,7 @@
  * default rather than leak the previous task's.
  */
 
-import type { MaintenanceTask, ReadingSlot, TaskPartLink } from "../types";
+import type { AdvancedFeatures, MaintenanceTask, ReadingSlot, TaskPartLink } from "../types";
 import { readingHistory, type ReadingHistoryEntry } from "./reading-slots";
 import type { MaintenanceCompleteDialog } from "../components/complete-dialog";
 import { describePartLink, partsForCompletion, type LinkedPart, type PartOwner } from "./shared-parts";
@@ -77,6 +77,14 @@ export interface BuildCompleteDialogArgsOptions {
    *  Defaults to true — the Lovelace paths never gated on the feature. */
   checklistsEnabled?: boolean;
   adaptiveEnabled?: boolean;
+  /** The household's feature switches. When given they gate the dialog
+   *  HERE, for every surface: the checklist (task-level from `checklist`
+   *  or the task, and a phase checklist) needs `checklists`, the adaptive
+   *  feedback needs `adaptive` AND the task's own adaptive_config. The
+   *  Lovelace card and the quick-actions dialog showed both although the
+   *  feature was switched off — only the panel gated (DRY audit
+   *  2026-09-26). */
+  features?: Pick<AdvancedFeatures, "checklists" | "adaptive">;
   currencySymbol?: string;
   viaTagScan?: boolean;
 }
@@ -93,13 +101,19 @@ export function buildCompleteDialogArgs(o: BuildCompleteDialogArgsOptions): Comp
   const isBuy = !!task?.part_ref;
   const objParts = o.objects.find((obj) => obj.entry_id === o.entryId)?.parts || [];
   const refPart = isBuy ? objParts.find((pt) => pt.id === task!.part_ref!.part_id) : undefined;
-  const checklistsEnabled = o.checklistsEnabled ?? true;
+  const checklistsEnabled = o.features ? o.features.checklists : (o.checklistsEnabled ?? true);
+  const taskChecklist = o.features
+    ? (o.features.checklists ? (o.checklist ?? task?.checklist ?? []) : [])
+    : (o.checklist ?? []);
+  const adaptive = o.features
+    ? o.features.adaptive && (o.adaptiveEnabled ?? !!task?.adaptive_config?.enabled)
+    : !!o.adaptiveEnabled;
   return {
     entry_id: o.entryId,
     task_id: o.taskId,
     task_name: o.taskName,
-    checklist: phase ? (checklistsEnabled ? phase.checklist : []) : (o.checklist ?? []),
-    adaptive_enabled: !!o.adaptiveEnabled,
+    checklist: phase ? (checklistsEnabled ? phase.checklist : []) : taskChecklist,
+    adaptive_enabled: adaptive,
     required_completion_fields: phase ? phase.requiredFields : (task?.required_completion_fields || []),
     task_type: task?.type || "",
     reading_unit: task?.reading_unit || "",

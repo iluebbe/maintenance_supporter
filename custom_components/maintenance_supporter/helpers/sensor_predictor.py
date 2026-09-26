@@ -36,6 +36,7 @@ from ..const import (
 )
 from .history import completed_entries
 from .schedule import read_legacy_fields
+from .trigger_fallback import counter_baseline
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -172,9 +173,15 @@ class SensorPredictor:
             return None
 
         trigger_config = task_data.get("trigger_config") or {}
-        entity_id = trigger_config.get("entity_id")
-        if not entity_id:
+        # Every trigger shape: a catalog-adopted task names its sensor(s) in
+        # ``entity_ids`` only and was never predicted (bug audit 2026-09-26,
+        # SCH-9). The forecast follows the first sensor.
+        from ..entity.triggers import normalize_entity_ids
+
+        entity_ids = normalize_entity_ids(trigger_config) if trigger_config.get("type") != "compound" else []
+        if not entity_ids:
             return None
+        entity_id = entity_ids[0]
 
         trigger_type = trigger_config.get("type", "threshold")
         if trigger_type not in ("threshold", "counter"):
@@ -508,11 +515,14 @@ class SensorPredictor:
             # Counter: predict when delta reaches target
             target = trigger_config.get("trigger_target_value")
             delta_mode = trigger_config.get("trigger_delta_mode", False)
-            baseline = trigger_config.get("trigger_baseline_value", 0)
             if target is None:
                 return None
             if delta_mode:
-                # Current delta = current - baseline
+                # Current delta = current - baseline, against the entity's
+                # LIVING baseline (moved on every service) — the initial
+                # config value made a serviced counter look long overdue
+                # (bug audit 2026-09-26, SCH-8).
+                baseline = counter_baseline(trigger_config, degradation.entity_id)
                 current_delta = current - (baseline or 0)
                 threshold_value = float(target)
                 current = current_delta

@@ -62,6 +62,15 @@ export class MaintenanceObjectHistorySection extends LitElement {
   @state() private _printing = false;
 
   private _loadedFor: string | null = null;
+  /** What the full histories were fetched against — every task's entry
+   *  count + its recent window. A completion, an edit or a deletion changes
+   *  it; the section used to fetch ONCE per object and then showed (and
+   *  printed) the stale booklet until the object was reopened (bug audit
+   *  2026-09-26). */
+  private _loadedSignature = "";
+  /** Only the newest fetch may land — an older, slower one must not
+   *  overwrite it (or another object's) with outdated entries. */
+  private _loadSeq = 0;
   private _localeReady = false;
 
   connectedCallback(): void {
@@ -98,8 +107,24 @@ export class MaintenanceObjectHistorySection extends LitElement {
       this._filterTask = "";
       this._from = "";
       this._to = "";
+      this._loadedSignature = this._historySignature();
       void this._loadFullHistories();
+    } else if (this.entryId && changed.has("tasks")) {
+      // Same object, new task list (the panel's subscription delta): refetch
+      // when a history actually changed — filters and print options stay.
+      const signature = this._historySignature();
+      if (signature !== this._loadedSignature) {
+        this._loadedSignature = signature;
+        void this._loadFullHistories();
+      }
     }
+  }
+
+  /** Cheap change detector over the list payload: ids, total counts and
+   *  the recent window (catches an edited cost or a deleted entry, not only
+   *  new ones). */
+  private _historySignature(): string {
+    return JSON.stringify(this.tasks.map((task) => [task.id, task.history_count ?? null, task.history ?? []]));
   }
 
   /** Fetch every task's full history in parallel; tasks whose fetch fails
@@ -107,7 +132,12 @@ export class MaintenanceObjectHistorySection extends LitElement {
   private async _loadFullHistories(): Promise<void> {
     const entryId = this.entryId;
     const tasks = this.tasks;
-    if (!tasks.length) return;
+    const seq = ++this._loadSeq;
+    if (!tasks.length) {
+      this._full = {};
+      this._loading = false;
+      return;
+    }
     this._loading = true;
     const results = await Promise.all(
       tasks.map(async (task) => {
@@ -123,7 +153,8 @@ export class MaintenanceObjectHistorySection extends LitElement {
         }
       }),
     );
-    if (this.entryId !== entryId) return; // navigated away meanwhile
+    // Navigated away, or a newer fetch was started meanwhile.
+    if (this.entryId !== entryId || seq !== this._loadSeq) return;
     this._full = Object.fromEntries(results);
     this._loading = false;
   }

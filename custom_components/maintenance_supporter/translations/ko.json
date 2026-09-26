@@ -489,7 +489,9 @@
       "invalid_notify_service": "알림 서비스 형식이 잘못되었습니다. 'notify.service_name' 형식을 사용하세요(예: notify.mobile_app_phone).",
       "notify_service_not_found": "이 알림 서비스를 Home Assistant에서 찾을 수 없습니다. 서비스 이름을 확인해 주세요.",
       "nfc_tag_duplicate": "이 NFC 태그는 이미 다른 작업에 연결되어 있습니다.",
-      "invalid_shopping_list_entity": "쇼핑 목록은 할 일 엔티티(todo.…)여야 합니다."
+      "invalid_shopping_list_entity": "쇼핑 목록은 할 일 엔티티(todo.…)여야 합니다.",
+      "invalid_schedule": "일정이 완성되지 않았습니다 — 요일을 하나 이상 선택하세요(캘린더 기반 작업은 캘린더를 선택).",
+      "invalid_delta_target": "누적 사용량을 셀 때(델타 모드) 목표값은 0보다 커야 합니다."
     },
     "abort": {
       "already_configured": "이 유지보수 대상은 이미 구성되어 있습니다.",
@@ -497,7 +499,9 @@
       "template_not_found": "선택한 템플릿을 찾을 수 없습니다.",
       "missing_data": "필수 데이터가 제공되지 않았습니다.",
       "reconfigure_successful": "구성이 성공적으로 업데이트되었습니다.",
-      "reconfigure_cancelled": "재구성이 취소되었습니다."
+      "reconfigure_cancelled": "재구성이 취소되었습니다.",
+      "entity_unavailable": "선택한 엔티티를 지금 사용할 수 없습니다. 상태를 보고하면 다시 시도하세요.",
+      "unknown": "예기치 않은 오류가 발생했습니다. 처음부터 다시 시작하세요."
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "이 NFC 태그는 이미 다른 작업에 연결되어 있습니다.",
       "invalid_notify_icon": "알림 아이콘은 mdi: 아이콘 이름이어야 합니다(예: mdi:air-filter).",
       "invalid_shopping_list_entity": "쇼핑 목록은 할 일 엔티티(todo.…)여야 합니다.",
-      "invalid_search_template": "검색 링크는 {q}를 포함한 http(s) URL이어야 합니다."
+      "invalid_search_template": "검색 링크는 {q}를 포함한 http(s) URL이어야 합니다.",
+      "invalid_schedule": "일정이 완성되지 않았습니다 — 요일을 하나 이상 선택하세요(캘린더 기반 작업은 캘린더를 선택).",
+      "invalid_delta_target": "누적 사용량을 셀 때(델타 모드) 목표값은 0보다 커야 합니다."
+    },
+    "abort": {
+      "entity_unavailable": "선택한 엔티티를 지금 사용할 수 없습니다. 상태를 보고하면 다시 시도하세요."
     }
   },
   "entity": {

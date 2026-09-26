@@ -36,9 +36,10 @@ RETRY_MAX_ATTEMPTS = 10
 
 
 class BaseTrigger(ABC):
-    # Class-level default: subclasses built without __init__ in tests still
-    # carry the flag (see the instance comment in __init__).
+    # Class-level defaults: subclasses built without __init__ in tests still
+    # carry the flags (see the instance comments in __init__).
     _recovered_since_reset: bool = True
+    _evaluated_once: bool = True
     """Base class for all maintenance triggers."""
 
     def __init__(
@@ -61,6 +62,10 @@ class BaseTrigger(ABC):
         # not lift the coordinator's post-completion cooldown - only an
         # activation after the value was seen on the other side is.
         self._recovered_since_reset = True
+        # False until the first real evaluation of this instance — the one
+        # that runs after every restart and every entry reload (each task
+        # edit reloads). See _evaluate_and_update.
+        self._evaluated_once = False
         self._current_value: float | None = None
         self._unsub_listener: CALLBACK_TYPE | None = None
         # One timer per purpose (a retry and a subclass's for/hold window can
@@ -230,13 +235,41 @@ class BaseTrigger(ABC):
         was_triggered = self._triggered
         is_triggered = self.evaluate(value)
         self._triggered = is_triggered
+        initial = not self._evaluated_once
+        self._evaluated_once = True
         if not is_triggered:
             self._recovered_since_reset = True
 
         if is_triggered and not was_triggered:
-            self._on_trigger_activated(value)
+            if initial and self._already_announced():
+                self._restore_activation(value)
+            else:
+                self._on_trigger_activated(value)
         elif not is_triggered and was_triggered:
             self._on_trigger_deactivated(value)
+
+    def _already_announced(self) -> bool:
+        """Whether the task's activation is already on record (the coordinator
+        reads its history). Looked up on the coordinator's CLASS: a mocked
+        coordinator (unit tests) and the compound condition proxy, which only
+        delegates per instance, have none and keep announcing as before."""
+        check = getattr(type(self._coordinator), "trigger_already_announced", None)
+        return callable(check) and check(self._coordinator, self._task_id) is True
+
+    def _restore_activation(self, value: float) -> None:
+        """Re-latch an activation that was announced before this instance
+        existed — repaint only: no second TRIGGERED history entry, no second
+        activation event. A threshold/counter/runtime task still over its
+        limit wrote both again on every restart and every task edit (entry
+        reload), while the state-change latch already only repainted (bug
+        audit 2026-09-26, SCH-10)."""
+        _LOGGER.debug("Trigger %s restored as active (already announced): %s", self.entity_id, value)
+        self.entity.async_update_trigger_state(
+            is_triggered=True,
+            current_value=value,
+            trigger_entity_id=self.entity_id,
+        )
+        self._request_coordinator_refresh()
 
     @abstractmethod
     def evaluate(self, value: float) -> bool:
@@ -299,8 +332,10 @@ class BaseTrigger(ABC):
             self.entity_id,
         )
 
-        # Update entity state
-        self.entity.async_update_trigger_state(
+        # Update entity state — it answers whether the TASK recovered (all
+        # entities of "any" clear, the "all" set broken up), not just this
+        # entity; None (a proxy entity) keeps the per-entity meaning.
+        task_recovered = self.entity.async_update_trigger_state(
             is_triggered=False,
             current_value=value,
             trigger_entity_id=self.entity_id,
@@ -326,7 +361,10 @@ class BaseTrigger(ABC):
         # This hook only fires on the evaluate path: a manual complete/skip
         # resets the trigger via reset(), which never lands here, so the
         # manual flow cannot double-record.
-        if self.config.get("auto_complete_on_recovery"):
+        # Only on the task's own recovery (bug audit 2026-09-26, SCH-5): one of
+        # several sensors clearing while another still holds the task — or an
+        # "all" task whose set was never complete — is not the work being done.
+        if self.config.get("auto_complete_on_recovery") and task_recovered is not False:
             # cancel_on_close=False: a completion in flight must land even
             # when the recovery coincides with a reload of the entry.
             self._track(self._coordinator.async_auto_complete_on_recovery(self._task_id, value), cancel_on_close=False)

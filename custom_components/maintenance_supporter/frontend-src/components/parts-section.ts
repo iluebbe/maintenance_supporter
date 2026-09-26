@@ -141,7 +141,7 @@ export class MaintenancePartsSection extends LitElement {
 
   private async _save(): Promise<void> {
     const f = this._editing;
-    if (!f || !f.name.trim()) return;
+    if (this._busy || !f || !f.name.trim()) return;
     const payload = this._formValue(f);
     const type = f.id ? "maintenance_supporter/part/update" : "maintenance_supporter/part/create";
     const result = await this._send<{ part_id?: string }>(f.id ? { type, part_id: f.id, ...payload } : { type, ...payload });
@@ -164,6 +164,10 @@ export class MaintenancePartsSection extends LitElement {
   }
 
   private async _restock(part: MaintenancePart): Promise<void> {
+    // Enter + a click on ✓ (or a double Enter) fired two restocks — the
+    // stock went up twice (bug audit 2026-09-26). _send sets _busy before
+    // its first await, so the second call lands here and stops.
+    if (this._busy) return;
     const qty = parseFloat(this._restockQty);
     if (!Number.isFinite(qty) || qty === 0) {
       // Don't silently swallow a no-op amount — keep the input open and mark
@@ -242,7 +246,7 @@ export class MaintenancePartsSection extends LitElement {
                         if (e.key === "Escape") this._restockFor = null;
                       }}
                     />
-                    <ha-icon-button title=${t("save", L)} @click=${() => this._restock(part)}
+                    <ha-icon-button title=${t("save", L)} .disabled=${this._busy} @click=${() => this._restock(part)}
                       ><ha-icon icon="mdi:check"></ha-icon
                     ></ha-icon-button>
                   `

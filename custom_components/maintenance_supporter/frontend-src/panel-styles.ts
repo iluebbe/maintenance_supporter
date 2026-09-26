@@ -769,7 +769,7 @@ export const panelStyles = css`
     color: #000;
   }
 
-  .status-chip.warning {
+  .status-chip.due_soon {
     background: var(--warning-color, #ff9800);
     color: #000;
   }
@@ -777,6 +777,23 @@ export const panelStyles = css`
   .status-chip.overdue {
     background: var(--error-color, #f44336);
     color: white;
+  }
+
+  /* Key set = renderers/status.ts STATUS_KEYS (tripwired): triggered, paused
+     and archived had no rule, so their header chip rendered as bare text. */
+  .status-chip.triggered {
+    background: var(--deep-orange-color, #ff5722);
+    color: white;
+  }
+
+  .status-chip.paused {
+    background: var(--info-color, #2196f3);
+    color: white;
+  }
+
+  .status-chip.archived {
+    background: var(--disabled-color, #9e9e9e);
+    color: #000;
   }
 
   .status-chip.done {

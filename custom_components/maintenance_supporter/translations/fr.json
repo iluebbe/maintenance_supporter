@@ -489,7 +489,9 @@
       "invalid_notify_service": "Format du service de notification invalide. Utilisez 'notify.nom_du_service' (ex. : notify.mobile_app_phone).",
       "notify_service_not_found": "Ce service de notification n'a pas été trouvé dans Home Assistant. Veuillez vérifier le nom du service.",
       "nfc_tag_duplicate": "Ce tag NFC est déjà lié à une autre tâche.",
-      "invalid_shopping_list_entity": "La liste de courses doit être une entité de tâches (todo.…)."
+      "invalid_shopping_list_entity": "La liste de courses doit être une entité de tâches (todo.…).",
+      "invalid_schedule": "Le planning est incomplet — choisissez au moins un jour de la semaine (ou un calendrier pour une tâche pilotée par calendrier).",
+      "invalid_delta_target": "En mode delta (comptage de l'usage cumulé), la valeur cible doit être supérieure à 0."
     },
     "abort": {
       "already_configured": "Cet objet de maintenance est déjà configuré.",
@@ -497,7 +499,9 @@
       "template_not_found": "Le modèle sélectionné n'a pas été trouvé.",
       "missing_data": "Les données requises n'ont pas été fournies.",
       "reconfigure_successful": "Configuration mise à jour avec succès.",
-      "reconfigure_cancelled": "Reconfiguration annulée."
+      "reconfigure_cancelled": "Reconfiguration annulée.",
+      "entity_unavailable": "L'entité sélectionnée n'est pas disponible pour le moment. Réessayez lorsqu'elle signale un état.",
+      "unknown": "Une erreur inattendue s'est produite. Veuillez recommencer."
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "Ce tag NFC est déjà lié à une autre tâche.",
       "invalid_notify_icon": "L'icône de notification doit être un nom d'icône mdi: (p. ex. mdi:air-filter).",
       "invalid_shopping_list_entity": "La liste de courses doit être une entité de tâches (todo.…).",
-      "invalid_search_template": "Le lien de recherche doit être une URL http(s) contenant {q}."
+      "invalid_search_template": "Le lien de recherche doit être une URL http(s) contenant {q}.",
+      "invalid_schedule": "Le planning est incomplet — choisissez au moins un jour de la semaine (ou un calendrier pour une tâche pilotée par calendrier).",
+      "invalid_delta_target": "En mode delta (comptage de l'usage cumulé), la valeur cible doit être supérieure à 0."
+    },
+    "abort": {
+      "entity_unavailable": "L'entité sélectionnée n'est pas disponible pour le moment. Réessayez lorsqu'elle signale un état."
     }
   },
   "entity": {

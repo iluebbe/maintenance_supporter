@@ -265,7 +265,9 @@ def _task_block(hass: HomeAssistant, entry: Any, obj: Mapping[str, Any], task_id
 
         model = MaintenanceTask.from_dict(td)
         schedule_type = str(getattr(model.schedule_type, "value", model.schedule_type)) if model.schedule_type else None
-        interval_days = model.interval_days
+        # Real days, unit-aware: the raw count said 6 for a 6-month task
+        # (bug audit 2026-09-26, DRY BR-A3). None = no recurrence.
+        interval_days = model._schedule().span_days() or None
     except Exception:  # noqa: BLE001 - a malformed task must not break a notification
         schedule_type = str(td.get("schedule_type") or "") or None
         interval_days = td.get("interval_days")

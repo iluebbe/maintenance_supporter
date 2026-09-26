@@ -489,7 +489,9 @@
       "invalid_notify_service": "通知サービスの形式が無効です。「notify.service_name」を使用してください (例: notify.mobile_app_phone)。",
       "notify_service_not_found": "この通知サービスは Home Assistant で見つかりませんでした。サービス名を確認してください。",
       "nfc_tag_duplicate": "この NFC タグは既に別のタスクに関連付けられています。",
-      "invalid_shopping_list_entity": "買い物リストはToDoエンティティ（todo.…）である必要があります。"
+      "invalid_shopping_list_entity": "買い物リストはToDoエンティティ（todo.…）である必要があります。",
+      "invalid_schedule": "スケジュールが不完全です — 少なくとも 1 つの曜日を選択してください（カレンダー連動のタスクではカレンダーを選択）。",
+      "invalid_delta_target": "累積使用量をカウントする場合（デルタモード）、目標値は 0 より大きくする必要があります。"
     },
     "abort": {
       "already_configured": "このメンテナンス対象は既に構成されています。",
@@ -497,7 +499,9 @@
       "template_not_found": "選択したテンプレートが見つかりませんでした。",
       "missing_data": "必須データが提供されませんでした。",
       "reconfigure_successful": "構成が正常に更新されました。",
-      "reconfigure_cancelled": "再構成がキャンセルされました。"
+      "reconfigure_cancelled": "再構成がキャンセルされました。",
+      "entity_unavailable": "選択したエンティティは現在利用できません。状態が報告されたら再試行してください。",
+      "unknown": "予期しないエラーが発生しました。最初からやり直してください。"
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "この NFC タグは既に別のタスクに関連付けられています。",
       "invalid_notify_icon": "通知アイコンは mdi: アイコン名である必要があります（例: mdi:air-filter）。",
       "invalid_shopping_list_entity": "買い物リストはToDoエンティティ（todo.…）である必要があります。",
-      "invalid_search_template": "検索リンクは {q} を含む http(s) URL である必要があります。"
+      "invalid_search_template": "検索リンクは {q} を含む http(s) URL である必要があります。",
+      "invalid_schedule": "スケジュールが不完全です — 少なくとも 1 つの曜日を選択してください（カレンダー連動のタスクではカレンダーを選択）。",
+      "invalid_delta_target": "累積使用量をカウントする場合（デルタモード）、目標値は 0 より大きくする必要があります。"
+    },
+    "abort": {
+      "entity_unavailable": "選択したエンティティは現在利用できません。状態が報告されたら再試行してください。"
     }
   },
   "entity": {

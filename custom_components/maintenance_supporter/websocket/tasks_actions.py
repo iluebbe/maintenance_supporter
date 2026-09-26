@@ -177,6 +177,17 @@ async def ws_complete_task(
             connection.send_error(msg["id"], "invalid_input", str(err))
             return
 
+    # Only this object's uploaded files count as completion photos — a
+    # foreign doc id satisfied a required photo and got linked (and later
+    # re-homed by task/move). This command is the one completion surface
+    # that carries photos (bug audit 2026-09-26).
+    from ..helpers.completion_requirements import own_photo_doc_ids
+    from . import object_id_for_entry
+
+    photo_doc_ids = own_photo_doc_ids(
+        hass, object_id_for_entry(_entry), normalize_photo_doc_ids(msg.get("photo_doc_ids"), msg.get("photo_doc_id"))
+    )
+
     try:
         await rd.coordinator.complete_maintenance(
             source="panel",
@@ -186,7 +197,7 @@ async def ws_complete_task(
             duration=msg.get("duration"),
             checklist_state=msg.get("checklist_state"),
             feedback=msg.get("feedback"),
-            photo_doc_ids=normalize_photo_doc_ids(msg.get("photo_doc_ids"), msg.get("photo_doc_id")) or None,
+            photo_doc_ids=photo_doc_ids or None,
             reading_value=msg.get("reading_value"),
             reading_values=reading_values,
             restock_quantity=msg.get("restock_quantity"),
@@ -478,11 +489,16 @@ async def ws_checklist_progress(
     a step IS doing the work — the same household member who may complete the
     task must be able to record partial progress.
     """
-    ctx = _load_object_task(hass, connection, msg, need_coordinator=True)
+    from ..helpers.phases import effective_field
+
+    # Merged view: the phase cursor lives in the Store. A phased task (#139)
+    # shows the CURRENT phase's checklist; validating against the task-level
+    # list dropped every tick on it (bug audit 2026-09-26).
+    ctx = _load_object_task(hass, connection, msg, merged=True, need_coordinator=True)
     if ctx is None:
         return
     _entry, rd, task = ctx
-    task_items = set(task.get("checklist") or [])
+    task_items = set(effective_field(task, "checklist") or [])
     state = {item: bool(done) for item, done in msg["checklist_state"].items() if item in task_items}
     # Progress lives ONLY in the Store (no legacy fallback) — degrade to a
     # clean error instead of an AttributeError when it failed to load.

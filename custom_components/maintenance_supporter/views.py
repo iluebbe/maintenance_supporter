@@ -36,6 +36,9 @@ EXCERPT_URL = "/api/maintenance_supporter/document/{doc_id}/excerpt"
 # Documents archive (ZIP with blobs) — the one export carrying file contents.
 DOCS_ARCHIVE_URL = "/api/maintenance_supporter/documents/archive"
 
+# The documents archive is streamed out in pieces of this size.
+_ARCHIVE_CHUNK_BYTES = 1024 * 1024
+
 # Survives the hass.data[DOMAIN] pop on last-entry unload (see registrar).
 _VIEWS_REGISTERED_KEY = f"{DOMAIN}_views_registered"
 
@@ -78,9 +81,18 @@ class DocumentUploadView(HomeAssistantView):
         self.hass = hass
 
     async def post(self, request: web.Request) -> web.Response:
-        """Store the uploaded file as a content-addressed blob + metadata."""
-        if not user_can_write(self.hass, request["hass_user"]):
+        """Store the uploaded file as a content-addressed blob + metadata.
+
+        Writers may upload anything. Every other signed-in user may upload a
+        completion PHOTO — completing is open to them, and a task demanding
+        a photo could otherwise not be completed by the household member who
+        did the work (bug audit 2026-09-26): an image, tagged exactly
+        ``photo``, under the same per-object caps.
+        """
+        user = request["hass_user"]
+        if user is None:
             return self.json_message("Not authorized", HTTPStatus.FORBIDDEN)
+        may_write = user_can_write(self.hass, user)
 
         # aiohttp caps request bodies at 1 MiB by default; allow the full
         # per-file limit plus a margin for multipart framing.
@@ -91,6 +103,11 @@ class DocumentUploadView(HomeAssistantView):
         file_field = data.get("file")
         if not isinstance(entry_id, str) or not isinstance(file_field, web.FileField):
             return self.json_message("entry_id and file are required", HTTPStatus.BAD_REQUEST)
+        if not may_write and not (
+            [t for t in data.getall("tags", []) if isinstance(t, str)] == ["photo"]
+            and (file_field.content_type or "").startswith("image/")
+        ):
+            return self.json_message("Not authorized", HTTPStatus.FORBIDDEN)
 
         entry = self.hass.config_entries.async_get_entry(entry_id)
         if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
@@ -274,22 +291,47 @@ class DocumentsArchiveView(HomeAssistantView):
         return bool(user and user.is_admin)
 
     async def get(self, request: web.Request) -> web.StreamResponse:
-        """Stream the documents archive ZIP (all objects or ?entry_ids=…)."""
+        """Stream the documents archive ZIP (all objects or ?entry_ids=…).
+
+        Written to a temporary file and streamed from there in chunks — the
+        whole archive used to be built in memory with no ceiling (bug audit
+        2026-09-26). A selection larger than an import accepts is refused
+        with 413 and a message saying so.
+        """
         if not self._require_admin(request):
             return web.Response(status=HTTPStatus.FORBIDDEN)
-        from .helpers.doc_archive import build_documents_archive
+        import os
+
+        from .helpers.doc_archive import ArchiveTooLarge, async_build_documents_archive_file
 
         raw = request.query.get("entry_ids")
         entry_ids = {e for e in raw.split(",") if e} if raw else None
-        content = await self.hass.async_add_executor_job(build_documents_archive, self.hass, entry_ids)
-        return web.Response(
-            body=content,
-            content_type="application/zip",
-            headers={
-                hdrs.CONTENT_DISPOSITION: _content_disposition("maintenance-documents.zip", inline=False),
-                "X-Content-Type-Options": "nosniff",
-            },
-        )
+        try:
+            path = await async_build_documents_archive_file(self.hass, entry_ids)
+        except ArchiveTooLarge as err:
+            return self.json_message(str(err), HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
+
+        run = self.hass.async_add_executor_job
+        try:
+            response = web.StreamResponse(
+                headers={
+                    hdrs.CONTENT_DISPOSITION: _content_disposition("maintenance-documents.zip", inline=False),
+                    "X-Content-Type-Options": "nosniff",
+                }
+            )
+            response.content_type = "application/zip"
+            response.content_length = await run(os.path.getsize, path)
+            await response.prepare(request)
+            handle = await run(open, path, "rb")
+            try:
+                while chunk := await run(handle.read, _ARCHIVE_CHUNK_BYTES):
+                    await response.write(chunk)
+            finally:
+                await run(handle.close)
+            await response.write_eof()
+            return response
+        finally:
+            await run(os.unlink, path)
 
     async def post(self, request: web.Request) -> web.Response:
         """Restore a documents archive ZIP (blobs + metadata)."""

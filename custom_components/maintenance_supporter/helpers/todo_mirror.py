@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -43,8 +44,8 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
 
 from ..const import COMPLETION_PROVENANCE_NOTES, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID, UNAVAILABLE_STATES, MaintenanceStatus
-from .calendar_source import with_event_titles
 from .managed_timer import ManagedTimer
+from .phases import task_label
 
 if TYPE_CHECKING:
     from ..coordinator import MaintenanceCoordinator
@@ -68,10 +69,14 @@ def mirror_lists(task: dict[str, Any]) -> list[str]:
     return [e for e in raw if isinstance(e, str) and e] if isinstance(raw, list) else []
 
 
-def mirror_summary(object_name: str, task: dict[str, Any]) -> str:
-    """The row text — same shape as our own to-do platform (the next calendar
-    events included, #189) and the shopping sync."""
-    return with_event_titles(f"{object_name}: {task.get('name', task.get('id', ''))}", task.get("_next_event_titles"))
+def mirror_summary(object_name: str, task: Mapping[str, Any]) -> str:
+    """The to-do row text — "<object>: <task label>" — shared by the mirror,
+    our own to-do platform and the shopping sync. The label is the one
+    ``phases.task_label`` (due phase #139, next events #189); the rows used
+    the bare name (bug audit 2026-09-26). A phase-less task's text is
+    unchanged, so its mirrored rows keep matching; a phased task's row is
+    replaced once by the reconcile's "text changed" path (by uid)."""
+    return f"{object_name}: {task_label(task)}"
 
 
 @callback

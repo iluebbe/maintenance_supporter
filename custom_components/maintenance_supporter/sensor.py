@@ -41,6 +41,7 @@ from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .entity.triggers import BaseTrigger, create_triggers, normalize_entity_ids
 from .helpers.dates import parse_hhmm
 from .helpers.global_options import is_schedule_time_enabled
+from .helpers.pause import is_task_inert
 from .helpers.schedule import read_legacy_fields
 from .helpers.status import compute_status_from_task_dict
 
@@ -354,15 +355,14 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         signal = SIGNAL_TASK_RESET.format(entry_id=self.coordinator.entry.entry_id, task_id=self._task_id)
         self.async_on_remove(async_dispatcher_connect(self.hass, signal, self._handle_task_reset))
 
-        # v2.10.0: an archived task is inert — keep the status listener above
-        # (so unarchive repaints immediately) but never wire up its triggers.
-        if task_data.get("archived_at") is not None:
-            return
-
-        # v2.20 (N3): same for a seasonally paused object — the pause/resume
-        # WS commands reload the entry, so triggers wire up again on resume.
-        obj_data = self.coordinator.entry.data.get(CONF_OBJECT, {})
-        if obj_data.get("paused_at") is not None:
+        # An inert task — archived (v2.10.0), disabled, or its object
+        # seasonally paused (v2.20, N3) — keeps the status listener above (so
+        # unarchive repaints immediately) but never wires up its triggers:
+        # every lifecycle change reloads the entry, which wires them again.
+        # A DISABLED task used to be wired, and a sensor crossing its limit
+        # wrote a TRIGGERED history entry and fired the activation event for
+        # a task that reads OK (bug audit 2026-09-26).
+        if is_task_inert(task_data, self.coordinator.entry.data.get(CONF_OBJECT, {})):
             return
 
         if not trigger_config:
@@ -387,8 +387,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             # all({one: True}) pass and falsely activated the task while the
             # sibling sensors were still fine (bug audit 2026-08-22). Setup
             # below overwrites entries for entities that restore triggered.
-            if len(self._triggers) > 1:
-                self._trigger_states = {t.entity_id: False for t in self._triggers}
+            self._seed_trigger_states()
             for trigger in self._triggers:
                 await trigger.async_setup()
             _LOGGER.debug(
@@ -408,12 +407,22 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         self._trigger_values = {}
         await super().async_will_remove_from_hass()
 
+    def _seed_trigger_states(self) -> None:
+        """Every entity of a multi-entity trigger starts at False, so
+        ``entity_logic == "all"`` quantifies over ALL of them (single-entity
+        triggers use the direct assignment and need no map)."""
+        self._trigger_states = {t.entity_id: False for t in self._triggers} if len(self._triggers) > 1 else {}
+
     @callback
     def _handle_task_reset(self) -> None:
         """Reset all trigger instances after task completion/skip/reset."""
         for trigger in self._triggers:
             trigger.reset()
-        self._trigger_states = {}
+        # Re-seed, not clear: an empty map let the FIRST entity crossing its
+        # limit after a completion satisfy all({one: True}) — the "all" task
+        # re-triggered (history entry + event) while its sibling sensors were
+        # fine (bug audit 2026-09-26, SCH-5).
+        self._seed_trigger_states()
         self._trigger_values = {}
 
         if self.coordinator.data is not None:
@@ -433,14 +442,22 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         is_triggered: bool,
         current_value: float | None = None,
         trigger_entity_id: str | None = None,
-    ) -> None:
+    ) -> bool:
         """Update trigger state from trigger callback.
 
         For multi-entity triggers, aggregates per-entity states using the
         configured entity_logic ("any" or "all").
+
+        Returns True when the TASK-level trigger state went from active to
+        inactive — the recovery an ``auto_complete_on_recovery`` task may
+        complete on. One entity of several recovering is not that: with
+        "any" a sibling still holds the task, with "all" the task may never
+        have been triggered (bug audit 2026-09-26, SCH-5).
         """
         if self.coordinator.data is None:
-            return
+            # No read model yet: nothing to aggregate against — a deactivation
+            # keeps the historical per-entity meaning.
+            return not is_triggered
 
         tasks = self.coordinator.data.get(CONF_TASKS, {})
         task = tasks.get(self._task_id, {})
@@ -482,6 +499,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         # trigger_active attribute must repaint regardless.
         if new_status != old_status or task.get("_trigger_active", False) != prev_active:
             self.async_write_ha_state()
+        return bool(prev_active) and not task.get("_trigger_active", False)
 
     @staticmethod
     def _compute_live_status(task: dict[str, Any]) -> str:

@@ -489,7 +489,9 @@
       "invalid_notify_service": "Formato de serviço de notificação inválido. Use 'notify.nome_do_servico' (ex.: notify.mobile_app_phone).",
       "notify_service_not_found": "Este serviço de notificação não foi encontrado no Home Assistant. Verifique o nome do serviço.",
       "nfc_tag_duplicate": "Esta tag NFC já está vinculada a outra tarefa.",
-      "invalid_shopping_list_entity": "A lista de compras deve ser uma entidade de tarefas (todo.…)."
+      "invalid_shopping_list_entity": "A lista de compras deve ser uma entidade de tarefas (todo.…).",
+      "invalid_schedule": "O agendamento está incompleto — escolha pelo menos um dia da semana (ou um calendário para uma tarefa guiada por calendário).",
+      "invalid_delta_target": "Ao contar o uso acumulado (modo delta), o valor alvo precisa ser maior que 0."
     },
     "abort": {
       "already_configured": "Este objeto de manutenção já está configurado.",
@@ -497,7 +499,9 @@
       "template_not_found": "O modelo selecionado não foi encontrado.",
       "missing_data": "Os dados obrigatórios não foram fornecidos.",
       "reconfigure_successful": "Configuração atualizada com sucesso.",
-      "reconfigure_cancelled": "Reconfiguração cancelada."
+      "reconfigure_cancelled": "Reconfiguração cancelada.",
+      "entity_unavailable": "A entidade selecionada não está disponível agora. Tente de novo quando ela informar um estado.",
+      "unknown": "Ocorreu um erro inesperado. Comece de novo."
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "Esta tag NFC já está vinculada a outra tarefa.",
       "invalid_notify_icon": "O ícone de notificação deve ser um nome de ícone mdi: (ex.: mdi:air-filter).",
       "invalid_shopping_list_entity": "A lista de compras deve ser uma entidade de tarefas (todo.…).",
-      "invalid_search_template": "O link de busca deve ser uma URL http(s) contendo {q}."
+      "invalid_search_template": "O link de busca deve ser uma URL http(s) contendo {q}.",
+      "invalid_schedule": "O agendamento está incompleto — escolha pelo menos um dia da semana (ou um calendário para uma tarefa guiada por calendário).",
+      "invalid_delta_target": "Ao contar o uso acumulado (modo delta), o valor alvo precisa ser maior que 0."
+    },
+    "abort": {
+      "entity_unavailable": "A entidade selecionada não está disponível agora. Tente de novo quando ela informar um estado."
     }
   },
   "entity": {

@@ -942,7 +942,7 @@ async def test_import_json_caps_checklist(
 
     import json as _json
 
-    long_item = "X" * 600  # > MAX_CHECKLIST_ITEM_LENGTH (500) → must be dropped
+    long_item = "X" * 600  # > MAX_CHECKLIST_ITEM_LENGTH (500) → truncated like cap_task_fields
     valid_items = [f"step {i}" for i in range(150)]  # > MAX_CHECKLIST_ITEMS (100)
     json_data = _json.dumps(
         {

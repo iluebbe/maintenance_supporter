@@ -12,6 +12,9 @@ import { t, ensureLocale, langOf } from "../styles";
 import { registerCustomCard } from "../helpers/register-card";
 import { describeWsError } from "../ws-errors";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
+import { fetchSettingsOnce } from "../helpers/settings-cache";
+import { canWrite, NO_DELEGATION, type WriteAccess } from "../helpers/permissions";
+import { confirmAction } from "../helpers/confirm";
 import type { HomeAssistant } from "../types";
 
 interface GroupEntry {
@@ -36,6 +39,8 @@ export class MaintenanceGroupsSectionCard extends LitElement {
   @state() private _newName = "";
   @state() private _editingId: string | null = null;
   @state() private _editingName = "";
+  /** Operator-write delegation — group CRUD is write tier (canWrite). */
+  @state() private _access: WriteAccess = NO_DELEGATION;
 
   private _hasInitiallyLoaded = false;
 
@@ -51,8 +56,12 @@ export class MaintenanceGroupsSectionCard extends LitElement {
     return langOf(this.hass);
   }
 
-  private get _isAdmin(): boolean {
-    return (this.hass?.user?.is_admin ?? true) as boolean;
+  /** Group create / rename / delete are WRITE tier on the server: admins,
+   *  plus allowlisted operators with delegation on — the panel's rule
+   *  (helpers/permissions). `is_admin` alone hid the controls from a
+   *  delegated operator (DRY audit 2026-09-26). */
+  private get _canWrite(): boolean {
+    return canWrite(this.hass?.user, this._access);
   }
 
   updated(changedProps: Map<string, unknown>): void {
@@ -60,6 +69,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
     if (changedProps.has("hass") && this.hass && !this._hasInitiallyLoaded) {
       this._hasInitiallyLoaded = true;
       void this._load();
+      void fetchSettingsOnce(this.hass).then((s) => { this._access = s.access; });
       void ensureLocale(this._lang).then(() => this.requestUpdate());
     }
   }
@@ -77,7 +87,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
   }
 
   private async _addGroup(): Promise<void> {
-    if (!this._isAdmin) return;
+    if (!this._canWrite) return;
     const name = this._newName.trim();
     if (!name) return;
     this._busy = true;
@@ -102,7 +112,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
   }
 
   private async _saveEdit(): Promise<void> {
-    if (!this._isAdmin || !this._editingId) return;
+    if (!this._canWrite || !this._editingId) return;
     const name = this._editingName.trim();
     if (!name) return;
     this._busy = true;
@@ -124,9 +134,14 @@ export class MaintenanceGroupsSectionCard extends LitElement {
   }
 
   private async _deleteGroup(id: string, name: string): Promise<void> {
-    if (!this._isAdmin) return;
-    const confirmText = t("group_delete_confirm", this._lang).replace("{name}", name);
-    if (!window.confirm(confirmText)) return;
+    if (!this._canWrite) return;
+    const ok = await confirmAction(this.hass, {
+      title: t("delete", this._lang),
+      message: t("delete_group_confirm", this._lang).replace("{name}", name),
+      confirmText: t("delete", this._lang),
+      danger: true,
+    });
+    if (!ok) return;
     this._busy = true;
     try {
       await this.hass.connection.sendMessagePromise({
@@ -210,7 +225,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
                           : html`
                               <span class="group-name">${g.name || "Unnamed"}</span>
                               <span class="task-count">${taskCount}</span>
-                              ${this._isAdmin
+                              ${this._canWrite
                                 ? html`
                                     <button class="icon-btn"
                                       title="${t("edit", L)}"
@@ -233,7 +248,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
                 </div>
               `}
 
-          ${this._isAdmin
+          ${this._canWrite
             ? html`
                 <div class="add-row">
                   <input type="text"

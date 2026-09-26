@@ -14,7 +14,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { sharedStyles, t, STATUS_COLORS, formatDate, formatInterval, formatRecurrence, formatCost, formatDuration, currencySymbolOf, langOf, syncCurrencyDecimals} from "../styles";
+import { sharedStyles, t, formatDate, formatInterval, formatRecurrence, formatCost, formatDuration, currencySymbolOf, langOf, syncCurrencyDecimals} from "../styles";
 import { describeWsError } from "../ws-errors";
 import { isoDateLocal } from "../helpers/calendar-bucket";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args";
@@ -22,7 +22,12 @@ import { phaseLabel } from "../helpers/phases";
 import { buildHistoryEntryDraft } from "../helpers/history-draft";
 import { readingSlotDelta } from "../helpers/reading-slots";
 import { taskRef } from "../helpers/reference";
-import { renderHistoryEntry } from "../renderers/history";
+import { newestFirst, renderHistoryEntry } from "../renderers/history";
+import { renderStatusBadge, statusColor } from "../renderers/status";
+import { fetchSettingsOnce } from "../helpers/settings-cache";
+import { canWrite, NO_DELEGATION, type WriteAccess } from "../helpers/permissions";
+import { confirmAction } from "../helpers/confirm";
+import { ToastTimer } from "../helpers/toast";
 import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
 import { renderRecommendationBars } from "../renderers/recommendation";
@@ -69,7 +74,10 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     completion_actions: false,
   };
   @state() private _toast = "";
-  private _featuresLoaded = false;
+  private readonly _toastTimer = new ToastTimer();
+  /** Operator-write delegation (helpers/permissions): Edit / Archive /
+   *  Delete follow canWrite() like the panel, not `is_admin` alone. */
+  @state() private _access: WriteAccess = NO_DELEGATION;
   /** Currency symbol for the complete dialog's cost suggestion — read off
    *  the same settings response as the feature flags. */
   private _currencySymbol = "";
@@ -97,30 +105,30 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
 
   /** Pull the active feature flags so adaptive sections only render when
    *  Adaptive / Seasonal / Environmental are actually enabled (matches the
-   *  panel's behaviour). Cached after first load. */
+   *  panel's behaviour), plus the write delegation and currency. Through
+   *  the page-wide settings cache (one fetch per page, invalidated by
+   *  global/update) — the private fetch here bypassed it and never
+   *  re-read after a settings change (DRY audit 2026-09-26). A failed
+   *  fetch serves the all-off fallback and asks again next open. */
   private async _loadFeatures(): Promise<void> {
-    if (this._featuresLoaded) return;
-    try {
-      const r = await this.hass.connection.sendMessagePromise<{
-        features?: Partial<AdvancedFeatures>;
-        budget?: { currency_symbol?: string; currency_decimals?: number };
-      }>({ type: "maintenance_supporter/settings" });
-      if (r?.features) {
-        this._features = { ...this._features, ...r.features };
-      }
-      this._currencySymbol = currencySymbolOf(r?.budget);
-      syncCurrencyDecimals(r?.budget);
-      this._featuresLoaded = true;
-    } catch {
-      // Settings endpoint unavailable — leave defaults (all false), the
-      // adaptive panel will then stay hidden.
-    }
+    const settings = await fetchSettingsOnce(this.hass);
+    this._features = { ...this._features, ...settings.features };
+    this._access = settings.access;
+    this._currencySymbol = currencySymbolOf(settings.budget ?? undefined);
+    syncCurrencyDecimals(settings.budget ?? undefined);
   }
 
   public close(): void {
     this._open = false;
     this._task = null;
     this._error = "";
+    this._toastTimer.clear();
+    this._toast = "";
+  }
+
+  private _showToast(msg: string, ms?: number): void {
+    this._toast = msg;
+    this._toastTimer.schedule(() => { this._toast = ""; }, ms);
   }
 
   private async _loadTask(): Promise<void> {
@@ -195,8 +203,9 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
           task,
           objects,
           lang: this._lang,
-          checklist: task.checklist || [],
-          adaptiveEnabled: !!task.adaptive_config?.enabled,
+          // The feature switches gate the checklist and the adaptive
+          // feedback exactly like the panel (DRY audit 2026-09-26).
+          features: this._features,
           currencySymbol: this._currencySymbol,
         }),
       );
@@ -258,9 +267,13 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
 
   private async _onDelete(): Promise<void> {
     if (!this._entryId || !this._taskId) return;
-    const confirmText = t("delete_task_confirm", this._lang)
-      || `Delete "${this._task?.name}"?`;
-    if (!window.confirm(confirmText)) return;
+    const confirmed = await confirmAction(this.hass, {
+      title: t("delete", this._lang),
+      message: t("delete_task_confirm", this._lang),
+      confirmText: t("delete", this._lang),
+      danger: true,
+    });
+    if (!confirmed) return;
     const ok = await this._runWs({
       type: "maintenance_supporter/task/delete",
       entry_id: this._entryId,
@@ -316,11 +329,10 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       interval: this._task.suggested_interval,
     });
     if (ok) {
-      this._toast = t("suggestion_applied", this._lang);
+      this._showToast(t("suggestion_applied", this._lang));
       this._notifyChanged("apply_suggestion");
       // Refresh local task so the recommendation card hides
       await this._loadTask();
-      setTimeout(() => { this._toast = ""; }, 2500);
     }
   }
 
@@ -338,13 +350,12 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
         entry_id: this._entryId,
         task_id: this._taskId,
       });
-      this._toast = r.recommended_interval
+      this._showToast(r.recommended_interval
         // The analyzer always works in DAYS (helpers/interval_analyzer.py), so
         // the unit is pinned here rather than taken from the task's own unit.
         ? `${t("reanalyze_result", this._lang)}: ${formatInterval(r.recommended_interval, "days", this._lang)} (${r.data_points} pts)`
-        : t("reanalyze_insufficient_data", this._lang);
+        : t("reanalyze_insufficient_data", this._lang));
       await this._loadTask();
-      setTimeout(() => { this._toast = ""; }, 3500);
     } catch (e) {
       this._error = describeWsError(e, this._lang);
     } finally {
@@ -440,45 +451,40 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
    *  existing history-edit dialog (which lives in the same dialog-mount). */
   private _renderDetails(task: MaintenanceTask) {
     const L = this._lang;
+    // The list payload carries only the most recent entries (payload diet,
+    // 20) — the stats come from the server's totals over the WHOLE history,
+    // not from that window: a task done 30 times read "20" here (DRY audit
+    // 2026-09-26). The list itself stays the recent window, newest first by
+    // timestamp (a backdated #133 completion is appended last).
     const history = (task.history || []) as HistoryEntry[];
-    const completed = history.filter((h) => h.type === "completed");
-    const totalCost = completed.reduce(
-      (s, h) => s + (typeof h.cost === "number" ? h.cost : 0),
-      0,
-    );
-    const avgDuration = (() => {
-      const durs = completed
-        .map((h) => (typeof h.duration === "number" ? h.duration : null))
-        .filter((d): d is number => d != null);
-      if (!durs.length) return null;
-      return Math.round(durs.reduce((s, d) => s + d, 0) / durs.length);
-    })();
+    const totalEntries = task.history_count ?? history.length;
+    const recent = newestFirst(history).slice(0, 20);
 
     return html`
       <div class="details">
         <div class="stats-grid">
           <div class="stat">
             <span class="stat-label">${t("times_performed", L)}</span>
-            <span class="stat-value">${completed.length}</span>
+            <span class="stat-value">${task.times_performed ?? 0}</span>
           </div>
           <div class="stat">
             <span class="stat-label">${t("total_cost", L)}</span>
-            <span class="stat-value">${formatCost(totalCost, this._currencySymbol, L)}</span>
+            <span class="stat-value">${formatCost(task.total_cost ?? 0, this._currencySymbol, L)}</span>
           </div>
           <div class="stat">
             <span class="stat-label">${t("avg_duration", L)}</span>
-            <span class="stat-value">${formatDuration(avgDuration, L)}</span>
+            <span class="stat-value">${formatDuration(task.average_duration != null ? Math.round(task.average_duration) : null, L)}</span>
           </div>
         </div>
         <div class="history-header">
           <strong>${t("history", L)}</strong>
-          <span class="history-count">${history.length}</span>
+          <span class="history-count">${totalEntries}</span>
         </div>
         ${history.length === 0
           ? html`<div class="history-empty">${t("history_empty", L)}</div>`
           : html`
               <div class="history-list">
-                ${[...history].reverse().slice(0, 20).map((entry) => renderHistoryEntry(entry, {
+                ${recent.map((entry) => renderHistoryEntry(entry, {
                   lang: L,
                   hass: this.hass,
                   currencySymbol: this._currencySymbol,
@@ -487,8 +493,8 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                   readingSlotDelta: (e, slotId) => readingSlotDelta(history, e, slotId),
                   taskRef: this._taskRef,
                 }, { compact: true }))}
-                ${history.length > 20
-                  ? html`<div class="history-more">… +${history.length - 20} ${t("older_entries", L)}</div>`
+                ${totalEntries > recent.length
+                  ? html`<div class="history-more">… +${totalEntries - recent.length} ${t("older_entries", L)}</div>`
                   : nothing}
               </div>
             `}
@@ -500,7 +506,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     if (!this._open) return nothing;
     const L = this._lang;
     const task = this._task;
-    const isAdmin = (this.hass?.user?.is_admin ?? true) as boolean;
+    const writer = canWrite(this.hass?.user, this._access);
 
     return html`
       <div class="backdrop" @click=${this.close}></div>
@@ -509,8 +515,9 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
           ? html`
               <div class="header">
                 <div class="title">
-                  <span class="status-dot" style="background: ${STATUS_COLORS[task.status] || "#ccc"}"></span>
+                  <span class="status-dot" style="background: ${statusColor(task)}"></span>
                   <span class="task-name">${task.name}</span>
+                  ${renderStatusBadge(task, L)}
                 </div>
                 <div class="object">
                   <button class="link-inline" @click=${() => {
@@ -597,30 +604,33 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                         ${t("reset", L)}
                       </ha-button>
                     </div>
-                    ${isAdmin
-                      ? html`
-                          <div class="actions secondary-row">
-                            <ha-button size="small" appearance="outlined" variant="neutral" @click=${this._onEdit} .disabled=${this._busy}>
-                              <ha-icon slot="start" icon="mdi:pencil"></ha-icon>
-                              ${t("edit", L)}
-                            </ha-button>
-                            <ha-button size="small" appearance="outlined" variant="neutral" @click=${this._onQr} .disabled=${this._busy}>
-                              <ha-icon slot="start" icon="mdi:qrcode"></ha-icon>
-                              ${t("qr_code", L)}
-                            </ha-button>
-                            <ha-button size="small" appearance="outlined" variant="neutral"
-                              @click=${task.archived ? this._onUnarchive : this._onArchive}
-                              .disabled=${this._busy}>
-                              <ha-icon slot="start" icon="${task.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
-                              ${task.archived ? t("unarchive", L) : t("archive", L)}
-                            </ha-button>
-                            <ha-button size="small" appearance="outlined" variant="danger" class="danger" @click=${this._onDelete} .disabled=${this._busy}>
-                              <ha-icon slot="start" icon="mdi:delete"></ha-icon>
-                              ${t("delete", L)}
-                            </ha-button>
-                          </div>
-                        `
-                      : nothing}
+                    <!-- QR is read tier (the panel offers it to operators too);
+                         Edit / Archive / Delete follow canWrite() — the panel's
+                         operator delegation, not is_admin alone. -->
+                    <div class="actions secondary-row">
+                      ${writer
+                        ? html`<ha-button size="small" appearance="outlined" variant="neutral" class="qa-edit" @click=${this._onEdit} .disabled=${this._busy}>
+                            <ha-icon slot="start" icon="mdi:pencil"></ha-icon>
+                            ${t("edit", L)}
+                          </ha-button>`
+                        : nothing}
+                      <ha-button size="small" appearance="outlined" variant="neutral" class="qa-qr" @click=${this._onQr} .disabled=${this._busy}>
+                        <ha-icon slot="start" icon="mdi:qrcode"></ha-icon>
+                        ${t("qr_code", L)}
+                      </ha-button>
+                      ${writer
+                        ? html`<ha-button size="small" appearance="outlined" variant="neutral" class="qa-archive"
+                            @click=${task.archived ? this._onUnarchive : this._onArchive}
+                            .disabled=${this._busy}>
+                            <ha-icon slot="start" icon="${task.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
+                            ${task.archived ? t("unarchive", L) : t("archive", L)}
+                          </ha-button>
+                          <ha-button size="small" appearance="outlined" variant="danger" class="danger qa-delete" @click=${this._onDelete} .disabled=${this._busy}>
+                            <ha-icon slot="start" icon="mdi:delete"></ha-icon>
+                            ${t("delete", L)}
+                          </ha-button>`
+                        : nothing}
+                    </div>
                     <div class="details-toggle">
                       <button class="link" @click=${() => { this._showDetails = !this._showDetails; }}>
                         <ha-icon icon="${this._showDetails ? 'mdi:chevron-up' : 'mdi:chevron-down'}"></ha-icon>

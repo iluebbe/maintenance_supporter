@@ -130,7 +130,13 @@ async def ws_update_group(
 
     group = dict(groups[group_id])
     if "name" in msg:
-        group["name"] = msg["name"]
+        # Same rule as group/create: "   " passed the length check and
+        # renamed the group to nothing (bug audit 2026-09-26).
+        name = msg["name"].strip()
+        if not name:
+            connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
+            return
+        group["name"] = name
     if "description" in msg:
         group["description"] = msg["description"]
     if "task_refs" in msg:

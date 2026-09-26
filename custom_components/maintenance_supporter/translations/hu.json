@@ -489,7 +489,9 @@
       "invalid_notify_service": "Érvénytelen értesítésiszolgáltatás-formátum. Használja a „notify.szolgaltatas_nev” alakot (pl. notify.mobile_app_phone).",
       "notify_service_not_found": "Ez az értesítési szolgáltatás nem található a Home Assistantban. Ellenőrizze a szolgáltatás nevét.",
       "nfc_tag_duplicate": "Ez az NFC címke már egy másik feladathoz van rendelve.",
-      "invalid_shopping_list_entity": "A bevásárlólistának teendő-entitásnak kell lennie (todo.…)."
+      "invalid_shopping_list_entity": "A bevásárlólistának teendő-entitásnak kell lennie (todo.…).",
+      "invalid_schedule": "Az ütemezés hiányos — válassz legalább egy napot a héten (vagy egy naptárt a naptárvezérelt feladathoz).",
+      "invalid_delta_target": "A halmozott használat számlálásakor (delta mód) a célértéknek 0-nál nagyobbnak kell lennie."
     },
     "abort": {
       "already_configured": "Ez a karbantartási objektum már be van állítva.",
@@ -497,7 +499,9 @@
       "template_not_found": "A kiválasztott sablon nem található.",
       "missing_data": "A szükséges adatok nem lettek megadva.",
       "reconfigure_successful": "A konfiguráció sikeresen frissítve.",
-      "reconfigure_cancelled": "Az újrakonfigurálás megszakítva."
+      "reconfigure_cancelled": "Az újrakonfigurálás megszakítva.",
+      "entity_unavailable": "A kiválasztott entitás jelenleg nem érhető el. Próbáld újra, amint állapotot jelent.",
+      "unknown": "Váratlan hiba történt. Kérlek, kezdd újra."
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "Ez az NFC címke már egy másik feladathoz van rendelve.",
       "invalid_notify_icon": "Az értesítési ikonnak mdi: ikonnévnek kell lennie (pl. mdi:air-filter).",
       "invalid_shopping_list_entity": "A bevásárlólistának teendő-entitásnak kell lennie (todo.…).",
-      "invalid_search_template": "A keresőhivatkozásnak {q}-t tartalmazó http(s) URL-nek kell lennie."
+      "invalid_search_template": "A keresőhivatkozásnak {q}-t tartalmazó http(s) URL-nek kell lennie.",
+      "invalid_schedule": "Az ütemezés hiányos — válassz legalább egy napot a héten (vagy egy naptárt a naptárvezérelt feladathoz).",
+      "invalid_delta_target": "A halmozott használat számlálásakor (delta mód) a célértéknek 0-nál nagyobbnak kell lennie."
+    },
+    "abort": {
+      "entity_unavailable": "A kiválasztott entitás jelenleg nem érhető el. Próbáld újra, amint állapotot jelent."
     }
   },
   "entity": {

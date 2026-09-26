@@ -92,7 +92,12 @@ def build_provider_from_workday_options(
     if not workdays:
         return None  # a config with no working days can't drive roll-back
 
-    excludes = set(options.get("excludes") or ("sat", "sun", "holiday"))
+    # Only a MISSING key means Workday's default; an explicit empty list is
+    # the user's "exclude nothing" (holidays count as working days) — the
+    # `or` fallback read it as the default and skipped every holiday (bug
+    # audit 2026-09-26, SCH-12). Same rule as ``workdays`` above.
+    raw_excludes = options.get("excludes")
+    excludes = set(("sat", "sun", "holiday") if raw_excludes is None else raw_excludes)
     holidays_excluded = "holiday" in excludes
 
     calendar: Any = None

@@ -16,6 +16,8 @@ import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf, syncLocaleFromHass } from "../styles";
 import { registerCustomCard } from "../helpers/register-card";
 import { describeWsError } from "../ws-errors";
+import { VACATION_BUFFER_DAYS_RANGE } from "../helpers/setting-ranges";
+import { confirmAction } from "../helpers/confirm";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
 import "./ms-date-field";
 import type { HomeAssistant } from "../types";
@@ -43,7 +45,8 @@ export class MaintenanceVacationSectionCard extends LitElement {
   @state() private _error = "";
   @state() private _localStart = "";
   @state() private _localEnd = "";
-  @state() private _localBuffer = 7;
+  /** Typed text — validated against VACATION_BUFFER_DAYS_RANGE on Save. */
+  @state() private _localBuffer = "3";
   @state() private _dirty = false;
 
   private _loaded = false;
@@ -83,7 +86,7 @@ export class MaintenanceVacationSectionCard extends LitElement {
       this._state = r;
       this._localStart = r.start || "";
       this._localEnd = r.end || "";
-      this._localBuffer = r.buffer_days ?? 7;
+      this._localBuffer = String(r.buffer_days ?? 3);
       this._dirty = false;
     } catch (e) {
       this._error = describeWsError(e, this._lang);
@@ -108,6 +111,15 @@ export class MaintenanceVacationSectionCard extends LitElement {
 
   private async _save(): Promise<void> {
     if (!this._isAdmin) return;
+    // Same range + message as the settings view (DRY audit 2026-09-26): an
+    // out-of-range buffer is named up front instead of round-tripping into
+    // a voluptuous error.
+    const [min, max] = VACATION_BUFFER_DAYS_RANGE;
+    const buffer = Number(this._localBuffer);
+    if (this._localBuffer.trim() === "" || !Number.isInteger(buffer) || buffer < min || buffer > max) {
+      this._error = t("settings_value_out_of_range", this._lang).replace("{min}", String(min)).replace("{max}", String(max));
+      return;
+    }
     this._busy = true;
     this._error = "";
     try {
@@ -115,7 +127,7 @@ export class MaintenanceVacationSectionCard extends LitElement {
         type: "maintenance_supporter/vacation/update",
         start: this._localStart || null,
         end: this._localEnd || null,
-        buffer_days: this._localBuffer,
+        buffer_days: buffer,
       });
       this._state = r;
       this._dirty = false;
@@ -128,7 +140,13 @@ export class MaintenanceVacationSectionCard extends LitElement {
 
   private async _endNow(): Promise<void> {
     if (!this._isAdmin) return;
-    if (!window.confirm(t("vacation_end_now_confirm", this._lang))) return;
+    // The confirm dialog, not the browser's native modal (DRY audit 2026-09-26).
+    const confirmed = await confirmAction(this.hass, {
+      title: t("vacation_end_now", this._lang),
+      message: t("vacation_end_now_confirm", this._lang),
+      confirmText: t("vacation_end_now", this._lang),
+    });
+    if (!confirmed) return;
     this._busy = true;
     try {
       const r = await this.hass.connection.sendMessagePromise<VacationState>({
@@ -224,12 +242,11 @@ export class MaintenanceVacationSectionCard extends LitElement {
                   </div>
                   <div class="date-field buffer">
                     <label>${t("vacation_buffer", L)}</label>
-                    <input type="number" min="0" max="14"
-                      .value=${String(this._localBuffer)}
+                    <input type="number" min=${VACATION_BUFFER_DAYS_RANGE[0]} max=${VACATION_BUFFER_DAYS_RANGE[1]}
+                      .value=${this._localBuffer}
                       ?disabled=${this._busy}
                       @input=${(e: Event) => {
-                        this._localBuffer = parseInt(
-                          (e.target as HTMLInputElement).value, 10) || 0;
+                        this._localBuffer = (e.target as HTMLInputElement).value;
                         this._dirty = true;
                       }} />
                   </div>

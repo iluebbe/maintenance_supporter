@@ -14,6 +14,7 @@
  */
 
 import type { MaintenanceTask } from "../types";
+import { isoDateLocal } from "./calendar-bucket";
 
 export interface WorksheetLabels {
   title: string;          // "Work sheet"
@@ -44,6 +45,16 @@ export interface WorksheetExcerpt {
   /** Absolute base URL of the vendored pdf.js assets; when set, the sheet
    *  renders the excerpt pages inline (downscaled 2-up) via pdf.js. */
   vendorBase?: string;
+}
+
+/** The printing day in the USER's calendar and date format. The raw
+ *  `nowIso.slice(0, 10)` was the UTC day (`toISOString()`), so a sheet
+ *  printed after midnight east of UTC — or in the evening west of it —
+ *  carried the wrong date, and in ISO order regardless of the profile's
+ *  date format (bug audit 2026-09-26). */
+function printedOn(nowIso: string, formatDate: (iso: string) => string): string {
+  const d = new Date(nowIso);
+  return Number.isNaN(d.getTime()) ? nowIso.slice(0, 10) : formatDate(isoDateLocal(d));
 }
 
 const esc = (v: unknown): string =>
@@ -164,6 +175,6 @@ export function buildTaskWorksheetHtml(
         }
       } catch (e) { console.warn("excerpt inline render failed", e); }
     </script>` : ""}` : ""}
-  <footer>${esc(objectName)} · ${esc(task.name)} · ${esc(L.printedOn)} ${esc(nowIso.slice(0, 10))}</footer>
+  <footer>${esc(objectName)} · ${esc(task.name)} · ${esc(L.printedOn)} ${esc(printedOn(nowIso, formatDate))}</footer>
 </body></html>`;
 }

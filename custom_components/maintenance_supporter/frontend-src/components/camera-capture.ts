@@ -53,11 +53,25 @@ export class MsCameraCapture extends LitElement {
   /** Which way we believe the current camera faces (for the id-less fallback). */
   private _facing: "user" | "environment" = "environment";
   private _stream: MediaStream | null = null;
+  /** Set while open() is acquiring the camera. `_open` only flips once the
+   *  stream is attached, so a double tap started TWO getUserMedia calls —
+   *  the first stream was overwritten, never stopped, and kept the camera
+   *  (and its LED) busy (bug audit 2026-09-26). */
+  private _opening = false;
 
   /** Open the viewfinder. Resolves once the stream is attached or the
    *  fallback event has fired — callers do not need to await it. */
   async open(): Promise<void> {
-    if (this._open) return;
+    if (this._open || this._opening) return;
+    this._opening = true;
+    try {
+      await this._acquireAndShow();
+    } finally {
+      this._opening = false;
+    }
+  }
+
+  private async _acquireAndShow(): Promise<void> {
     const md = typeof navigator !== "undefined" ? navigator.mediaDevices : undefined;
     if (!md || typeof md.getUserMedia !== "function") {
       this._unavailable("no_media_devices");

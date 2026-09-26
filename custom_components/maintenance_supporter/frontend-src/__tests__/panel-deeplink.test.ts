@@ -144,14 +144,19 @@ describe("panel deep links (QR scan routing)", () => {
     expect(complete!.via_tag_scan).to.equal(true);
   });
 
-  it("a plain complete (no scan) opens the dialog WITHOUT the scan flag", async () => {
+  it("the printed Complete QR (action=complete) counts as the scan", async () => {
+    // action=complete URLs come ONLY from the QR generator (qr dialog, work
+    // sheet, batch print) — the docs promise that scanning the printed QR
+    // satisfies "Require tag scan". The 2026-08-29 version of this test
+    // pinned the opposite, so a gated task refused its own sticker (bug
+    // audit 2026-09-26, FE-5).
     setDeepLink("entry_id=e1&task_id=t1&action=complete");
     const { el } = await mountPanel([obj("e1", [task({ name: "Gated", require_tag_scan: true })])]);
     await settleRaf(el);
     await waitForOpenCompleteDialog(el);
     const dlg = completeDialog(el)!;
-    expect(dlg.viaTagScan).to.equal(false);
-    expect(dlg.shadowRoot!.querySelector(".scan-required-note"), "note shown").to.exist;
+    expect(dlg.viaTagScan).to.equal(true);
+    expect(dlg.shadowRoot!.querySelector(".scan-required-note"), "no 'scan required' note — this was the scan").to.equal(null);
   });
 
   it("any other quick_complete refusal relays the server's message", async () => {

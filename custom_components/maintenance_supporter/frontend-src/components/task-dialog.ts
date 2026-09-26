@@ -15,6 +15,7 @@ import {
 
 import { describeWsError } from "../ws-errors";
 import { runWs } from "../helpers/ws-run";
+import { parseDurationMinutes } from "../helpers/duration";
 import type { TriggerType } from "../types";
 import { REQUIRED_COMPLETION_KEYS, REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import "./ms-textfield";
@@ -1534,8 +1535,8 @@ export class MaintenanceTaskDialog extends LitElement {
         if (this._qcNotes.trim()) qcd.notes = this._qcNotes.trim();
         const cost = parseFloat(this._qcCost);
         if (!isNaN(cost) && cost >= 0) qcd.cost = cost;
-        const dur = parseInt(this._qcDuration, 10);
-        if (!isNaN(dur) && dur >= 0) qcd.duration = dur;
+        const dur = parseDurationMinutes(this._qcDuration);
+        if (dur !== null) qcd.duration = dur;
         if (this._qcFeedback) qcd.feedback = this._qcFeedback;
         data.quick_complete_defaults = Object.keys(qcd).length ? qcd : null;
       }

@@ -587,11 +587,27 @@ async def test_upload_too_large(
     assert resp.status == HTTPStatus.REQUEST_ENTITY_TOO_LARGE
 
 
-async def test_upload_forbidden_for_non_writer(hass: HomeAssistant) -> None:
-    """A non-admin without operator-write delegation is rejected (403)."""
+async def test_upload_forbidden_for_non_writer(
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    hass_read_only_access_token: str,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """A non-admin without operator-write delegation is rejected (403) —
+    except for a completion photo (bug audit 2026-09-26, SEC-3: completing
+    is open to every user, so is attaching the photo a task demands)."""
+    await setup_integration(hass, global_entry, object_entry)
+    client = await hass_client(hass_read_only_access_token)
+    form = FormData()
+    form.add_field("entry_id", object_entry.entry_id)
+    form.add_field("file", b"%PDF-1.4", filename="manual.pdf", content_type="application/pdf")
+    resp = await client.post(UPLOAD_URL, data=form)
+    assert resp.status == HTTPStatus.FORBIDDEN
+
     view = DocumentUploadView(hass)
     request = MagicMock()
-    request.__getitem__.return_value = MagicMock(is_admin=False, id="u1")
+    request.__getitem__.return_value = None  # no authenticated user at all
     resp = await view.post(request)
     assert resp.status == HTTPStatus.FORBIDDEN
 

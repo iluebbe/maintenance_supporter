@@ -489,7 +489,9 @@
       "invalid_notify_service": "Geçersiz bildirim servisi biçimi. 'notify.servis_adi' kullanın (örn. notify.mobile_app_phone).",
       "notify_service_not_found": "Bu bildirim servisi Home Assistant'ta bulunamadı. Lütfen servis adını doğrulayın.",
       "nfc_tag_duplicate": "Bu NFC etiketi zaten başka bir göreve bağlı.",
-      "invalid_shopping_list_entity": "Alışveriş listesi bir yapılacaklar varlığı olmalıdır (todo.…)."
+      "invalid_shopping_list_entity": "Alışveriş listesi bir yapılacaklar varlığı olmalıdır (todo.…).",
+      "invalid_schedule": "Zamanlama eksik — en az bir haftanın gününü seçin (veya takvime bağlı bir görev için bir takvim).",
+      "invalid_delta_target": "Birikmiş kullanım sayılırken (delta modu) hedef değer 0'dan büyük olmalıdır."
     },
     "abort": {
       "already_configured": "Bu bakım nesnesi zaten yapılandırılmış.",
@@ -497,7 +499,9 @@
       "template_not_found": "Seçilen şablon bulunamadı.",
       "missing_data": "Gerekli veriler sağlanmadı.",
       "reconfigure_successful": "Yapılandırma başarıyla güncellendi.",
-      "reconfigure_cancelled": "Yeniden yapılandırma iptal edildi."
+      "reconfigure_cancelled": "Yeniden yapılandırma iptal edildi.",
+      "entity_unavailable": "Seçilen varlık şu anda kullanılamıyor. Bir durum bildirdiğinde tekrar deneyin.",
+      "unknown": "Beklenmeyen bir hata oluştu. Lütfen baştan başlayın."
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "Bu NFC etiketi zaten başka bir göreve bağlı.",
       "invalid_notify_icon": "Bildirim simgesi bir mdi: simge adı olmalıdır (örn. mdi:air-filter).",
       "invalid_shopping_list_entity": "Alışveriş listesi bir yapılacaklar varlığı olmalıdır (todo.…).",
-      "invalid_search_template": "Arama bağlantısı {q} içeren bir http(s) URL olmalıdır."
+      "invalid_search_template": "Arama bağlantısı {q} içeren bir http(s) URL olmalıdır.",
+      "invalid_schedule": "Zamanlama eksik — en az bir haftanın gününü seçin (veya takvime bağlı bir görev için bir takvim).",
+      "invalid_delta_target": "Birikmiş kullanım sayılırken (delta modu) hedef değer 0'dan büyük olmalıdır."
+    },
+    "abort": {
+      "entity_unavailable": "Seçilen varlık şu anda kullanılamıyor. Bir durum bildirdiğinde tekrar deneyin."
     }
   },
   "entity": {

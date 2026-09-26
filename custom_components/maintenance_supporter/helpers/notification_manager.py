@@ -42,7 +42,7 @@ from ..const import (
     TaskPriority,
 )
 from .global_options import get_global_options
-from .i18n import normalize_language
+from .i18n import format_text, normalize_language
 from .notification_gates import STATUS_ENABLED_KEYS, status_reminder_enabled, task_may_notify
 from .notify_hooks import (
     KIND_BUDGET,
@@ -1037,13 +1037,10 @@ def build_action_buttons(
 
 
 def _notif_t(key: str, lang: str, **kwargs: str) -> str:
-    """Get notification translation string."""
-    strings = _NOTIFICATION_STRINGS.get(lang, _NOTIFICATION_STRINGS["en"])
-    text = strings.get(key, _NOTIFICATION_STRINGS["en"].get(key, key))
-    if kwargs:
-        safe_kwargs = {k: str(v).replace("{", "{{").replace("}", "}}") for k, v in kwargs.items()}
-        text = text.format(**safe_kwargs)
-    return text
+    """Get notification translation string (the shared i18n.format_text —
+    values go in verbatim; the brace doubling this copy did put "{{A}}" on
+    phones, bug audit 2026-09-26)."""
+    return format_text(_NOTIFICATION_STRINGS, lang, key, **kwargs)
 
 
 async def get_user_notify_services(hass: HomeAssistant, user_id: str) -> list[str]:
@@ -1869,13 +1866,8 @@ class NotificationManager:
             if actor_name:
                 who = _notif_t("completed_by", lang, name=actor_name)
         reason = _notif_t(f"reason_{src}" if f"reason_{src}" in _NOTIFICATION_STRINGS["en"] else "reason_unknown", lang)
-        title = _notif_t("completed_title", lang)
+        title = self._styled_title(_notif_t("completed_title", lang), task_name, object_name)
         message = _notif_t("completed_message", lang, task=task_name, object=object_name, reason=reason, who=who)
-        style = self.title_style
-        if style == "object_name" and object_name:
-            title = object_name
-        elif style == "task_name" and task_name:
-            title = task_name
         context = notification_context(
             self.hass,
             KIND_COMPLETED,
@@ -1939,15 +1931,18 @@ class NotificationManager:
             title = "Maintenance"
             message = f"{task_name} ({object_name})"
 
-        # v1.4.0 (#44): override title with object/task name so phone
-        # notification stacks remain distinguishable at a glance.
+        return self._styled_title(title, task_name, object_name), message
+
+    def _styled_title(self, title: str, task_name: str, object_name: str) -> str:
+        """v1.4.0 (#44): the configured title style — the object or task name
+        instead of the generic title, so phone notification stacks stay
+        distinguishable at a glance. One place for every per-task push."""
         style = self.title_style
         if style == "object_name" and object_name:
-            title = object_name
-        elif style == "task_name" and task_name:
-            title = task_name
-
-        return title, message
+            return object_name
+        if style == "task_name" and task_name:
+            return task_name
+        return title
 
     async def _async_send_notification_to_service(
         self,
@@ -2200,16 +2195,11 @@ class NotificationManager:
         if not self._admit([lead_task_key], self._priority_rank(self._task_config(entry_id, task_id))):
             return
 
-        lang = self._lang
-        title = _notif_t("due_soon_title", lang)
-        message = _notif_t(
-            "due_soon_message",
-            lang,
-            task=task_name,
-            object=object_name,
-            days=str(days),
-            due=next_due if next_due is not None else "?",
-        )
+        # The due-soon message of the status path, #44 title style included
+        # — this copy built its own and always titled "due soon", so lead
+        # reminders were the one push a stack could not tell apart (bug
+        # audit 2026-09-26).
+        title, message = self._build_message(MaintenanceStatus.DUE_SOON, self._lang, task_name, object_name, days, next_due)
 
         context = notification_context(
             self.hass,

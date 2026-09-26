@@ -984,7 +984,10 @@ async def ws_import_json(
                 if not isinstance(cl, list):
                     task_data.pop("checklist", None)
                 else:
-                    cleaned = [item.strip() for item in cl if isinstance(item, str) and len(item) <= MAX_CHECKLIST_ITEM_LENGTH]
+                    # Truncate like cap_task_fields (every other write path);
+                    # an over-long step used to vanish from the import
+                    # without a trace (bug audit 2026-09-26).
+                    cleaned = [item.strip()[:MAX_CHECKLIST_ITEM_LENGTH] for item in cl if isinstance(item, str)]
                     cleaned = [c for c in cleaned if c]
                     task_data["checklist"] = cleaned[:MAX_CHECKLIST_ITEMS]
 

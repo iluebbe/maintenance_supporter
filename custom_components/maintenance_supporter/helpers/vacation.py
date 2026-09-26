@@ -29,12 +29,16 @@ from ..const import (
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    ScheduleType,
 )
 from .dates import add_interval, parse_iso_date
-from .schedule import _CALENDAR_KINDS, Schedule
+from .pause import is_task_inert
+from .status import effective_warning_days
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
+
+    from ..models.maintenance_task import MaintenanceTask
 
 
 @dataclass(frozen=True)
@@ -204,7 +208,12 @@ def _project_time_based(
     window_end: date,
     interval_unit: str | None = None,
 ) -> list[PreviewEvent]:
-    """Project DUE_SOON / OVERDUE dates for a time-based task."""
+    """Project DUE_SOON / OVERDUE dates for a bare interval (no task model).
+
+    Kept for callers that only hold the flat numbers; the preview itself goes
+    through :func:`task_next_due` so postpones, seasons and the planned anchor
+    are honoured.
+    """
     if not interval_days or interval_days <= 0:
         return []
     anchor = last_performed or created_at or today
@@ -214,6 +223,33 @@ def _project_time_based(
     return _events_from_next_due(next_due, warning_days, today, window_start, window_end)
 
 
+def task_next_due(task: MaintenanceTask, today: date) -> date | None:
+    """``MaintenanceTask.next_due`` evaluated for an explicit *today*.
+
+    The preview used to re-derive the due date from the flat interval fields
+    and so ignored a postpone (``due_override``), the seasonal window, the
+    planned anchor, a finite series and every one-time task (bug audit
+    2026-09-26, DRY BR-A1). It now asks the task's own Schedule with exactly
+    the inputs the model property uses; only *today* (the first-time anchor)
+    is injectable. ``tests/test_audit_2026_09_26_t2_runtime.py`` pins this to
+    the property for today == now.
+    """
+    last: date | None = None
+    if task.last_performed:
+        try:
+            last = date.fromisoformat(task.last_performed)
+        except (ValueError, TypeError):
+            return None  # the model's "malformed anchor = no next_due" rule
+    return task._schedule().next_due(
+        last_performed=last,
+        created_at=parse_iso_date(task.created_at),
+        last_planned_due=parse_iso_date(task.last_planned_due),
+        today=today,
+        times_performed=task.times_performed,
+        due_override=parse_iso_date(task.due_override),
+    )
+
+
 def compute_preview(
     state: VacationState,
     tasks: Iterable[Mapping[str, Any]],
@@ -221,15 +257,18 @@ def compute_preview(
 ) -> list[dict[str, Any]]:
     """Project status changes for each task during [start, end+buffer].
 
-    Each input *task* dict must carry: ``task_id``, ``entry_id``,
-    ``object_name``, ``task_name``, ``schedule_type``, plus the dynamic
-    fields ``last_performed``, ``created_at``, ``interval_days``,
-    ``warning_days``, ``enabled`` (all optional).
+    Each input *task* is the task's merged storage dict (static config +
+    Store state, exactly what ``MaintenanceTask.from_dict`` reads) plus the
+    row identity ``task_id``, ``entry_id``, ``object_name``, ``task_name``.
+    The caller drops tasks of paused objects (it holds the object dict);
+    archived and disabled tasks are dropped here as well.
 
     Returns a list of preview rows; tasks with no projected events in the
     window are omitted (caller may still want to display the task list
     elsewhere).
     """
+    from ..models.maintenance_task import MaintenanceTask  # models import helpers
+
     if state.start is None or state.end is None:
         return []
     today = today or dt_util.now().date()
@@ -240,59 +279,41 @@ def compute_preview(
 
     rows: list[dict[str, Any]] = []
     for t in tasks:
-        if not t.get("enabled", True):
+        # Archived / disabled tasks never fire — the preview listed archived
+        # ones as "will be due" (bug audit 2026-09-26). Paused objects are the
+        # caller's half of the same predicate.
+        if is_task_inert(dict(t), {}):
             continue
         task_id = str(t.get("task_id") or "")
         if not task_id:
             continue
-        schedule_type = t.get("schedule_type") or "time_based"
+        task = MaintenanceTask.from_dict(dict(t))
+        schedule_type = task.schedule_type
 
         events: list[PreviewEvent] = []
         kind: str
         confidence: str
 
-        if schedule_type == "time_based":
-            events = _project_time_based(
-                last_performed=_coerce_date(t.get("last_performed")),
-                created_at=_coerce_date(t.get("created_at")),
-                interval_days=t.get("interval_days"),
-                warning_days=_task_warning_days(t),
-                today=today,
-                window_start=window_start,
-                window_end=window_end,
-                interval_unit=t.get("interval_unit"),
-            )
-            kind = "time_based"
-            confidence = "deterministic"
-        elif schedule_type == "sensor_based":
+        if schedule_type == ScheduleType.SENSOR_BASED:
             # Sensor triggers are non-deterministic. Surface every sensor task
             # in the window with a single "may fire anytime" event so the user
             # can decide per-task whether to exempt or pre-complete.
             events = [PreviewEvent(date=window_start, status="triggered_est")]
             kind = "sensor_based"
             confidence = "unpredictable"
-        elif schedule_type in _CALENDAR_KINDS:
-            # Calendar kinds (weekdays / nth_weekday / day_of_month / calendar
-            # entity): project the next occurrence via the Schedule (the flat
-            # fields can't express it).
-            raw = t.get("schedule")
-            sched = Schedule.from_dict(raw) if isinstance(raw, dict) else None
-            nd = (
-                sched.next_due(
-                    last_performed=_coerce_date(t.get("last_performed")),
-                    created_at=_coerce_date(t.get("created_at")),
-                    last_planned_due=None,
-                    today=today,
-                )
-                if sched
-                else None
-            )
-            events = _events_from_next_due(nd, _task_warning_days(t), today, window_start, window_end) if nd else []
+        else:
+            # Interval, calendar kinds and one-time tasks: the task's own next
+            # due date and its span-capped warning window — the same inputs
+            # the status ladder uses, so a weekly task with a 14-day warning
+            # doesn't preview as "due soon" for two weeks. Manual tasks (and a
+            # finished series / done one-off) have no next due and drop out.
+            nd = task_next_due(task, today)
+            if nd is None:
+                continue
+            warning = effective_warning_days(_task_warning_days(t), task._schedule().span_days())
+            events = _events_from_next_due(nd, warning, today, window_start, window_end)
             kind = schedule_type
             confidence = "deterministic"
-        else:
-            # Manual / one-time tasks have no auto-due — never appear here.
-            continue
 
         if not events:
             continue

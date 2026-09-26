@@ -10,19 +10,19 @@ from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from ..const import (
+    CONF_OBJECT,
     CONF_VACATION_BUFFER_DAYS,
     CONF_VACATION_ENABLED,
     CONF_VACATION_END,
     CONF_VACATION_EXEMPT_TASK_IDS,
     CONF_VACATION_START,
-    DEFAULT_WARNING_DAYS,
     DOMAIN,
     MAX_ID_LENGTH,
     MAX_VACATION_EXEMPT_TASKS,
 )
 from ..helpers.aggregate import object_name
 from ..helpers.dates import parse_iso_date
-from ..helpers.schedule import read_legacy_fields
+from ..helpers.pause import is_task_inert
 from ..helpers.vacation import compute_preview, get_vacation_state
 from . import _get_merged_tasks, _get_object_entries, _load_global_options, _parse_iso_date, _save_global_options
 
@@ -133,34 +133,26 @@ async def ws_vacation_preview(
         connection.send_result(msg["id"], {"rows": [], "window_end": None})
         return
 
-    # Build the flat task list expected by compute_preview.
+    # Hand the preview each task's MERGED dict (static + Store) so it builds
+    # the real MaintenanceTask — a hand-picked flat subset dropped
+    # due_override, the seasonal window, the planned anchor and one-time due
+    # dates (bug audit 2026-09-26, DRY BR-A1). Inert tasks (archived,
+    # disabled, paused object) fire nothing during the absence either, so
+    # they are no preview rows.
     tasks: list[dict[str, Any]] = []
     for entry in _get_object_entries(hass):
         obj_name = object_name(entry)
-        # Merge dynamic store fields (last_performed, etc.) when available.
-        merged = _get_merged_tasks(entry)
-
-        for task_id, task_data in merged.items():
-            sched = read_legacy_fields(task_data)
+        obj = entry.data.get(CONF_OBJECT, {})
+        for task_id, task_data in _get_merged_tasks(entry).items():
+            if is_task_inert(task_data, obj):
+                continue
             tasks.append(
                 {
+                    **task_data,
                     "task_id": task_id,
                     "entry_id": entry.entry_id,
                     "object_name": obj_name,
                     "task_name": task_data.get("name", ""),
-                    "schedule_type": sched["schedule_type"],
-                    "interval_days": sched["interval_days"],
-                    "interval_unit": sched["interval_unit"],
-                    # Nested schedule so the preview can project calendar kinds.
-                    "schedule": task_data.get("schedule"),
-                    "warning_days": task_data.get("warning_days", DEFAULT_WARNING_DAYS),
-                    "last_performed": task_data.get("last_performed"),
-                    "created_at": task_data.get("created_at"),
-                    "enabled": task_data.get("enabled", True),
-                    # The preview's Skip button must follow the task's own
-                    # rule — the row had no field and offered it to every
-                    # time-based task (bug review 2026-09-04).
-                    "allow_skip": task_data.get("allow_skip") is not False,
                 }
             )
 

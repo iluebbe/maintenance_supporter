@@ -16,6 +16,7 @@ from homeassistant.config_entries import ConfigFlowResult, OptionsFlow
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import selector
 
+from .config_flow_helpers import select_default
 from .const import (
     BUDGET_CURRENCIES,
     CONF_ACTION_COMPLETE_ENABLED,
@@ -574,9 +575,12 @@ class GlobalOptionsFlow(OptionsFlow):
                         CONF_OPERATOR_WRITE_ENABLED,
                         default=self._opt(CONF_OPERATOR_WRITE_ENABLED),
                     ): selector.BooleanSelector(),
+                    # A deleted user or one promoted to admin is no longer an
+                    # option — keeping it as default made the step unsaveable
+                    # (bug audit 2026-09-26); it drops out on the next save.
                     vol.Optional(
                         CONF_ADMIN_PANEL_USER_IDS,
-                        default=self._opt(CONF_ADMIN_PANEL_USER_IDS),
+                        default=select_default(self._opt(CONF_ADMIN_PANEL_USER_IDS) or [], options),
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=options,
@@ -620,9 +624,11 @@ class GlobalOptionsFlow(OptionsFlow):
 
             # Trim + cap the optional sidebar title; blank clears the override
             # (panel falls back to the default "Maintenance").
+            # An emptied field arrives ABSENT (the frontend drops it) and the
+            # options merge kept the old title — map absence to "" so blank
+            # really clears (bug audit 2026-09-26).
             raw_title = user_input.get(CONF_PANEL_TITLE)
-            if isinstance(raw_title, str):
-                user_input[CONF_PANEL_TITLE] = raw_title.strip()[:MAX_PANEL_TITLE_LENGTH]
+            user_input[CONF_PANEL_TITLE] = (raw_title if isinstance(raw_title, str) else "").strip()[:MAX_PANEL_TITLE_LENGTH]
 
             # D#182: shopping-search template — blank = automatic (country,
             # then UI language); otherwise an http(s) URL with {q}.
@@ -758,9 +764,11 @@ class GlobalOptionsFlow(OptionsFlow):
         """Per-status notification toggles, intervals, quiet hours, daily limit."""
         if user_input is not None:
             # Same cap as the WS settings path (settings registry max_len).
+            # The frontend leaves an emptied field OUT of the submission, so
+            # absence means "cleared" — the merge in _save_and_return would
+            # otherwise keep the old template (bug audit 2026-09-26).
             extra = user_input.get(CONF_NOTIFY_EXTRA_DATA)
-            if isinstance(extra, str):
-                user_input[CONF_NOTIFY_EXTRA_DATA] = extra[:MAX_NOTIFY_EXTRA_DATA_LENGTH]
+            user_input[CONF_NOTIFY_EXTRA_DATA] = (extra if isinstance(extra, str) else "")[:MAX_NOTIFY_EXTRA_DATA_LENGTH]
             return self._save_and_return(user_input)
 
         current = self._current
@@ -878,12 +886,13 @@ class GlobalOptionsFlow(OptionsFlow):
                         CONF_NOTIFY_EVENT_ONLY,
                         default=self._opt(CONF_NOTIFY_EVENT_ONLY),
                     ): selector.BooleanSelector(),
-                    # default (not suggested_value): an emptied optional text
-                    # field is omitted from user_input and the old template
-                    # survived - a default round-trips "" (bug audit 2026-09-12).
+                    # suggested_value, not default: HA's form drops an emptied
+                    # field from the submission and a default re-inserted the
+                    # old template, so it could never be cleared (bug audit
+                    # 2026-09-26; the handler maps absence to "").
                     vol.Optional(
                         CONF_NOTIFY_EXTRA_DATA,
-                        default=self._opt(CONF_NOTIFY_EXTRA_DATA),
+                        description={"suggested_value": self._opt(CONF_NOTIFY_EXTRA_DATA)},
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiline=True)
                     ),

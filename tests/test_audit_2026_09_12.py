@@ -259,6 +259,8 @@ async def test_options_flow_stores_ints_for_int_settings_and_offers_a_clearable_
     result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "notification_settings"})
     assert result["type"] == FlowResultType.FORM
     marker = next(k for k in result["data_schema"].schema if getattr(k, "schema", None) == CONF_NOTIFY_EXTRA_DATA)
-    assert marker.default() == '{"a": 1}', "the field carries a default, so an emptied field submits '' instead of vanishing"
-    await hass.config_entries.options.async_configure(result["flow_id"], user_input={CONF_NOTIFY_EXTRA_DATA: ""})
+    # Bug audit 2026-09-26: HA's form DROPS an emptied field, so a default re-inserted the old
+    # template — it is a suggested value now and the handler reads absence as "cleared".
+    assert marker.description == {"suggested_value": '{"a": 1}'}
+    await hass.config_entries.options.async_configure(result["flow_id"], user_input={})
     assert g.options[CONF_NOTIFY_EXTRA_DATA] == ""

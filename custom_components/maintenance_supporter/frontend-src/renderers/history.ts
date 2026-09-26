@@ -26,6 +26,24 @@ import { matchesQuery } from "../helpers/search-match";
  *  a different concept: what belongs in the object's record.) */
 export const EDITABLE_HISTORY_TYPES: readonly HistoryEntryType[] = ["completed", "reset", "skipped"];
 
+/** Newest first BY TIMESTAMP. The store appends, so array order is entry
+ *  order — a backdated completion (#133) lands last although it happened
+ *  before the ones above it, and every "reverse the array" view showed it
+ *  as the newest (bug audit 2026-09-26). Stable: entries with the same (or
+ *  an unparsable) timestamp keep "later appended = newer". */
+export function newestFirst<T extends { timestamp?: string | null }>(history: readonly T[] | null | undefined): T[] {
+  const ms = (e: T): number => {
+    const raw = e.timestamp ?? "";
+    // Date-only strings are local days (like formatDate) — not UTC midnight.
+    const v = Date.parse(raw.length === 10 ? `${raw}T00:00:00` : raw);
+    return Number.isNaN(v) ? -Infinity : v;
+  };
+  return (history ?? [])
+    .map((entry, index) => ({ entry, index, at: ms(entry) }))
+    .sort((a, b) => (b.at - a.at) || (b.index - a.index))
+    .map((x) => x.entry);
+}
+
 /** What one history row needs — the panel's HistoryContext is a superset;
  *  the dialog and the overview card build just this. */
 export interface HistoryEntryContext {
@@ -119,7 +137,7 @@ export function renderHistoryList(task: MaintenanceTask, ctx: HistoryContext) {
 
   return html`
     <div class="history-timeline">
-      ${[...filtered].reverse().map((entry: HistoryEntry) => renderHistoryEntry(entry, ctx))}
+      ${newestFirst(filtered).map((entry: HistoryEntry) => renderHistoryEntry(entry, ctx))}
     </div>
   `;
 }

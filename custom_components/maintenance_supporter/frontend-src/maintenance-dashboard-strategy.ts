@@ -150,7 +150,9 @@ const DUE_DATE_VIEWS: Array<{
 }> = [
   {
     title: "Overdue",
-    icon: "mdi:alert-circle",
+    // The shared overdue icon — "mdi:alert-circle" is the DUE-SOON one, the
+    // exact drift status-constants.ts was created to end (DRY audit 2026-09-26).
+    icon: STATUS_ICONS.overdue,
     path: "overdue",
     filter: { filter_due_max_days: -1 },
     matches: (d) => d <= -1,

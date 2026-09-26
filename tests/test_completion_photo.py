@@ -235,10 +235,11 @@ async def test_ws_complete_with_unknown_photo_still_completes(
     await setup_integration(hass, global_entry, obj)
 
     conn = await _complete(hass, obj, photo_doc_ids=["does-not-exist"])
-    # Completion succeeds; the (unknown) id is still recorded on the entry.
+    # Completion succeeds; the unknown id is dropped — only this object's own
+    # uploaded files count as completion photos (bug audit 2026-09-26, SEC-3).
     conn.send_result.assert_called_once()
     completed = [h for h in await _history(hass, obj) if h["type"] == HistoryEntryType.COMPLETED]
-    assert completed and completed[-1]["photo_doc_ids"] == ["does-not-exist"]
+    assert completed and "photo_doc_ids" not in completed[-1]
 
 
 # ─── History edit (#161: add / remove photos after the fact) ────────────────

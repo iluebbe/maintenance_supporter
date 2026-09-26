@@ -65,6 +65,8 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Australia:** bushfire preparation is suggested in every state (not only in the south-west's climate classes) and
   termite protection on the whole mainland; the cyclone region now follows the northern and Queensland coasts instead
   of a band across the continent, so Alice Springs no longer gets storm shutters. Pools get a salt-cell cleaning task.
+- **Household members** see *Reset*, *Postpone* and *Snooze* in the panel as well — the server always accepted them
+  from everyone; editing still needs write access.
 - **New gallery category *Building & Safety*:** smoke and fire safety, backflow and drainage, radon, frost, storm,
   wildfire and earthquake preparation, roofs, windows and doors moved out of *Home & HVAC*, which keeps heating,
   cooling, water and energy — each group now stays scannable.
@@ -102,6 +104,37 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Shopping list sync** could adopt a checked row with the same text and restock a part nobody bought.
 - **Unsafe links** (`javascript:` and similar) could be stored through the setup and options dialogs and the
   imports; they are dropped on every path now.
+- **Notifications and labels:** lead reminders, completion notifications, to-do items and calendar events name the
+  due phase and the next calendar events like the status notifications, and follow the title style setting; names
+  with braces are no longer mangled.
+- **Sensor triggers:** a disabled task no longer records trigger activations; with *all sensors* a completed task
+  needs every sensor again, and auto-complete waits until the task itself recovers; a restart or a task edit no
+  longer writes a second *triggered* history entry for a trigger that is still active; counter progress pairs each
+  sensor's reading with its own start value (also in the forecast); tasks adopted from the catalog get sensor
+  forecasts.
+- **Vacation preview** now shows what the task itself will do — postponed dates, seasons, one-time tasks — and
+  leaves out archived, disabled and paused tasks.
+- **Repairs** about a deleted task or object are removed with it; a paused object's buttons are unavailable and its
+  parts are not put on the shopping list; warranty reminders skip archived objects.
+- **Suggested intervals** are only offered for day intervals (a months task was turned into days).
+- **Setup and options dialogs:** a counter with a start value needs a positive target, a compound condition a
+  limit and at least two conditions; forms with a removed user or an unknown type can be saved again; dates, notes,
+  links, the panel title and the notification extra data can be cleared; adaptive settings take effect at once.
+- **Tasks via services and the panel:** the interval of a calendar-kind task can be changed through `update_task`;
+  a due date must be a real date; new tasks take the configured warning days; a task cannot be added to an archived
+  object or assigned to an unknown user; checklist ticks on a phase checklist are kept.
+- **Completion photos** can be taken by every household member (photo uploads only; other documents still need
+  write access), and only this object's photos are linked to a completion.
+- **Data safety:** editing a history entry or moving a task no longer drops a completion that happened meanwhile;
+  two identical uploads at once no longer fail; deleting an object leaves no dangling document links; a completion
+  event sent from outside no longer runs the completion action; the CSV export neutralises formulas; the documents
+  archive is streamed and refused above the import limit; diagnostics redact object names and personal data.
+- **Panel and cards:** status chips for triggered, paused and archived tasks; quick actions show the full statistics
+  (not just the last 20 entries) and follow operator permissions and the feature switches; the complete dialog keeps
+  a cleared quantity empty and accepts fractional restocks; restocking and checklist ticks cannot double-submit; the
+  history is ordered by date (backdated entries included); the printed *Complete* QR counts as the required scan and
+  the *Skip* QR opens the skip prompt; the object history refreshes after changes; switching objects quickly no
+  longer mixes up documents, charts or search results; "1 task", "every day" and dates in the profile format.
 
 ## [2.92.0] - 2026-09-26
 

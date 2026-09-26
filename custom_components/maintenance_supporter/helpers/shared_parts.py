@@ -31,14 +31,16 @@ from ..const import (
     CONF_PARTS,
     CONF_TASK_CONSUMES_PARTS,
     CONF_TASKS,
+    DOCUMENT_STORE_KEY,
     DOMAIN,
     STORES_CACHE_KEY,
 )
 from .aggregate import get_object_entries, object_name
+from .issues import SHARED_PARTS_MOVED_PREFIX, shared_parts_moved_issue_id
 
 _LOGGER = logging.getLogger(__name__)
 
-TRANSFER_ISSUE_PREFIX = "shared_parts_moved_"
+TRANSFER_ISSUE_PREFIX = SHARED_PARTS_MOVED_PREFIX
 
 
 # Every maintenance OBJECT entry (the global entry is not one) — the
@@ -179,6 +181,16 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
         heir, data={**heir.data, CONF_PARTS: heir_parts, CONF_TASKS: heir_tasks}
     )
 
+    # The parts' manuals go along (bug audit 2026-09-26, SEC-10): documents
+    # are object-owned, and the owner's are removed with it right after this —
+    # the moved parts' doc_id pointed at nothing. Re-stamped onto the heir.
+    part_doc_ids = {str(part["doc_id"]) for part in pools.values() if isinstance(part.get("doc_id"), str) and part["doc_id"]}
+    doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    if part_doc_ids and doc_store is not None:
+        from ..websocket import object_id_for_entry
+
+        await doc_store.async_rehome(part_doc_ids, object_id_for_entry(heir))
+
     # Carry the stock over.
     heir_store = hass.data.get(STORES_CACHE_KEY, {}).get(heir.entry_id)
     if heir_store is None:
@@ -201,7 +213,7 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
     ir.async_create_issue(
         hass,
         DOMAIN,
-        f"{TRANSFER_ISSUE_PREFIX}{heir.entry_id}",
+        shared_parts_moved_issue_id(heir.entry_id),
         is_fixable=False,
         severity=ir.IssueSeverity.WARNING,
         translation_key="shared_parts_moved",

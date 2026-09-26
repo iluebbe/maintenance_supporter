@@ -489,7 +489,9 @@
       "invalid_notify_service": "Ogiltigt format för aviseringstjänst. Använd ”notify.service_name” (t.ex. notify.mobile_app_phone).",
       "notify_service_not_found": "Denna aviseringstjänst hittades inte i Home Assistant. Verifiera tjänstens namn.",
       "nfc_tag_duplicate": "Denna NFC-tagg är redan kopplad till en annan uppgift.",
-      "invalid_shopping_list_entity": "Inköpslistan måste vara en att-göra-entitet (todo.…)."
+      "invalid_shopping_list_entity": "Inköpslistan måste vara en att-göra-entitet (todo.…).",
+      "invalid_schedule": "Schemat är ofullständigt — välj minst en veckodag (eller en kalender för en kalenderstyrd uppgift).",
+      "invalid_delta_target": "Vid räkning av ackumulerad användning (deltaläge) måste målvärdet vara större än 0."
     },
     "abort": {
       "already_configured": "Detta underhållsobjekt är redan konfigurerat.",
@@ -497,7 +499,9 @@
       "template_not_found": "Den valda mallen hittades inte.",
       "missing_data": "Nödvändig data har inte tillhandahållits.",
       "reconfigure_successful": "Konfigurationen uppdaterades framgångsrikt.",
-      "reconfigure_cancelled": "Omkonfigurering avbröts."
+      "reconfigure_cancelled": "Omkonfigurering avbröts.",
+      "entity_unavailable": "Den valda entiteten är inte tillgänglig just nu. Försök igen när den rapporterar ett tillstånd.",
+      "unknown": "Ett oväntat fel inträffade. Börja om."
     }
   },
   "options": {
@@ -1203,7 +1207,12 @@
       "nfc_tag_duplicate": "Denna NFC-tagg är redan kopplad till en annan uppgift.",
       "invalid_notify_icon": "Aviseringsikonen måste vara ett mdi:-ikonnamn (t.ex. mdi:air-filter).",
       "invalid_shopping_list_entity": "Inköpslistan måste vara en att-göra-entitet (todo.…).",
-      "invalid_search_template": "Söklänken måste vara en http(s)-URL som innehåller {q}."
+      "invalid_search_template": "Söklänken måste vara en http(s)-URL som innehåller {q}.",
+      "invalid_schedule": "Schemat är ofullständigt — välj minst en veckodag (eller en kalender för en kalenderstyrd uppgift).",
+      "invalid_delta_target": "Vid räkning av ackumulerad användning (deltaläge) måste målvärdet vara större än 0."
+    },
+    "abort": {
+      "entity_unavailable": "Den valda entiteten är inte tillgänglig just nu. Försök igen när den rapporterar ett tillstånd."
     }
   },
   "entity": {
