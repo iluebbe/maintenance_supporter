@@ -146,10 +146,10 @@ def _battery_lifetime_catalog(hass: HomeAssistant) -> list[dict[str, Any]]:
 
         names: dict[str, str] = {}
         # HA 2026.9 deprecates mapping-style access on DeviceRegistry.devices
-        # (.values() raises a deprecation error there — caught below, which
-        # silently emptied this whole catalog) and iterates ENTRIES; 2026.8 and
-        # older iterate ids and need .values(). Probe the collection itself,
-        # same as repairs.py.
+        # (.values() logs a deprecation warning for custom integrations and
+        # stops working in 2027.9) and iterates ENTRIES; 2026.8 and older
+        # iterate ids and need .values(). Probe the collection itself, same as
+        # repairs.py.
         registry_devices = dr.async_get(hass).devices
         all_devices: list[Any] = list(
             cast(Any, registry_devices).values() if isinstance(registry_devices, Mapping) else registry_devices
@@ -167,6 +167,9 @@ def _battery_lifetime_catalog(hass: HomeAssistant) -> list[dict[str, Any]]:
                         break
         return lifetime_catalog(hass, list(discover_battery_types(hass)), model_names=names)
     except Exception:  # noqa: BLE001 - a settings read must never fail on the fleet
+        # Logged, not swallowed: an HA API change here once went unnoticed
+        # because the table simply came back shorter.
+        _LOGGER.warning("Battery lifetime table could not be built", exc_info=True)
         return []
 
 

@@ -738,12 +738,10 @@ class SensorPredictor:
         Returns sorted list of (timestamp_seconds, value) tuples.
         """
         try:
-            from homeassistant.components.recorder import (  # type: ignore[attr-defined]
-                get_instance,
-            )
             from homeassistant.components.recorder.statistics import (
                 statistics_during_period,
             )
+            from homeassistant.helpers.recorder import get_instance
         except ImportError:
             _LOGGER.debug("Recorder statistics module not available")
             return []

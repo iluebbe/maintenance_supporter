@@ -232,8 +232,11 @@ async def test_update_data_with_environmental_factor(
 async def test_update_data_prediction_exception(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test _async_update_data catches SensorPredictor exceptions gracefully."""
+    """Test _async_update_data catches SensorPredictor exceptions gracefully —
+    logged as a warning the first time (not a silent debug line), debug on
+    every later refresh so a persistent failure cannot flood the log."""
     hass.states.async_set("sensor.temp", "25")
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
     task = build_task_data(
@@ -257,9 +260,13 @@ async def test_update_data_prediction_exception(
         coordinator = entry.runtime_data.coordinator
         await coordinator.async_refresh()
         await hass.async_block_till_done()
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
 
     # Should not crash — data still valid
     assert "_status" in coordinator.data[CONF_TASKS][TASK_ID_1]
+    levels = [r.levelname for r in caplog.records if r.getMessage().startswith("Sensor prediction failed")]
+    assert levels.count("WARNING") == 1 and "DEBUG" in levels[levels.index("WARNING") + 1 :]
 
 
 async def test_update_data_prediction_returns_none(

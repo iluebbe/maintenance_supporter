@@ -3,6 +3,8 @@ gree/daikin "Filter Cleaning" counted runtime on hvac_action."""
 
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
@@ -74,3 +76,47 @@ async def test_heal_runs_at_object_setup(hass: HomeAssistant, global_config_entr
     await setup_integration(hass, global_config_entry, entry)
     tc = hass.config_entries.async_get_entry(entry.entry_id).data[CONF_TASKS]["t1"]["trigger_config"]
     assert "attribute" not in tc and "cool" in tc["trigger_on_states"]
+
+
+async def test_heal_keeps_the_runtime_counted_so_far(
+    hass: HomeAssistant, global_config_entry: MockConfigEntry, hass_storage: dict[str, Any]
+) -> None:
+    """TROUBLESHOOTING promises "The runtime accumulated so far is kept": the
+    heal rewrites only the trigger's shape, and the counter lives in the
+    Store keyed by task + entity, which the heal leaves unchanged."""
+    daikin = _climate(hass, "daikin", "d9")
+    hass.states.async_set(daikin, "off")
+    entry = MockConfigEntry(
+        domain="maintenance_supporter",
+        version=1,
+        minor_version=6,
+        title="Bedroom AC",
+        unique_id="maintenance_supporter_bedroom_ac_heal",
+        data=build_object_entry_data(object_data=build_object_data(name="Bedroom AC"), tasks={"t1": _task(daikin, OLD_STATES)}),
+    )
+    entry.add_to_hass(hass)
+    key = f"maintenance_supporter.{entry.entry_id}"
+    hass_storage[key] = {
+        "version": 1,
+        "minor_version": 1,
+        "key": key,
+        "data": {"tasks": {"t1": {"trigger_runtime": {daikin: {"accumulated_seconds": 36000.0}}}}},
+    }
+    await setup_integration(hass, global_config_entry, entry)
+
+    tc = hass.config_entries.async_get_entry(entry.entry_id).data[CONF_TASKS]["t1"]["trigger_config"]
+    assert "attribute" not in tc and "fan_only" in tc["trigger_on_states"], "healed"
+    store = entry.runtime_data.store
+    assert store.get_trigger_runtime("t1", daikin)["accumulated_seconds"] == 36000.0
+    # …and the live trigger (now counting the climate STATE) starts from it.
+    from homeassistant.helpers.entity_platform import async_get_platforms
+
+    triggers = [
+        t
+        for platform in async_get_platforms(hass, "maintenance_supporter")
+        if platform.domain == "sensor" and platform.config_entry is entry
+        for ent in platform.entities.values()
+        for t in getattr(ent, "_triggers", [])
+    ]
+    assert len(triggers) == 1
+    assert triggers[0]._accumulated_seconds == 36000.0

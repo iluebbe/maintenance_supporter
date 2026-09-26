@@ -24,6 +24,7 @@ so the engine stays pure and sync.
 
 from __future__ import annotations
 
+import logging
 import statistics
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
@@ -40,6 +41,8 @@ from .dates import (
     parse_iso_date,
     roll_back_to_business_day,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 # Recurrence kinds. Phase 2 covers the v2.6.x set; the calendar kinds
 # (weekdays / nth_weekday / day_of_month) arrive with the roadmap feature.
@@ -70,12 +73,14 @@ _CALENDAR_DEFAULT_SPAN_DAYS = 7
 # runtime is up) every calendar-entity schedule simply has no occurrences.
 CalendarOccurrenceProvider = Callable[[str], Sequence[date]]
 _calendar_provider: CalendarOccurrenceProvider | None = None
+_provider_failures_logged: set[str] = set()
 
 
 def set_calendar_occurrence_provider(provider: CalendarOccurrenceProvider | None) -> None:
     """Install (or, with ``None``, remove) the calendar-entity occurrence source."""
     global _calendar_provider  # process-wide hook by design
     _calendar_provider = provider
+    _provider_failures_logged.clear()
 
 
 def calendar_occurrences(entity_id: str) -> tuple[date, ...]:
@@ -89,6 +94,10 @@ def calendar_occurrences(entity_id: str) -> tuple[date, ...]:
     try:
         raw = _calendar_provider(entity_id)
     except Exception:  # noqa: BLE001 — a broken provider must never take next_due down
+        # Once per entity: next_due is recomputed on every refresh.
+        if entity_id not in _provider_failures_logged:
+            _provider_failures_logged.add(entity_id)
+            _LOGGER.warning("Calendar dates of %s could not be read", entity_id, exc_info=True)
         return ()
     return tuple(sorted({d for d in raw if isinstance(d, date)}))
 

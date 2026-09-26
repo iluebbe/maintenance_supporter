@@ -73,6 +73,9 @@ def _make_mock_entity(hass: HomeAssistant, task_id: str = TASK_ID_1) -> MagicMoc
     mock_coordinator = AsyncMock()
     mock_coordinator.async_persist_trigger_runtime = AsyncMock()
     mock_coordinator.async_add_trigger_history_entry = AsyncMock()
+    # Synchronous on the real coordinator — an AsyncMock here leaves an
+    # un-awaited coroutine behind on every trigger edge.
+    mock_coordinator.note_trigger_edge = MagicMock()
     mock_entity.coordinator = mock_coordinator
 
     return mock_entity

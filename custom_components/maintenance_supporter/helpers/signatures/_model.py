@@ -290,11 +290,16 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
     unit = (state.attributes.get("unit_of_measurement") if state else None) or "h"
     # Canonical → display unit: time counters are stored in hours, odometers in
     # kilometres; the entity may display s/min/d resp. miles.
+    # Every duration unit HA lets a user pick as display unit is listed —
+    # a missing one silently fell back to 1.0 (a "24 h" floor became "24 w").
     factor = {
+        "μs": 3_600_000_000.0,
+        "ms": 3_600_000.0,
         "s": 3600.0,
         "min": 60.0,
         "h": 1.0,
         "d": 1 / 24,
+        "w": 1 / 168,
         "km": 1.0,
         "mi": 0.62137,
         # energy counters are canonical in kWh (wallbox cable inspection)

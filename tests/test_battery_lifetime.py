@@ -277,3 +277,44 @@ def test_intervals_ignore_unparseable_dates() -> None:
     assert bl._intervals({"dates": ["2025-01-01", "2025-07-01"]}) == [], "the first date is the anchor unless corrected"
     assert bl._intervals({"dates": ["nope"]}) == []
 
+
+async def test_settings_table_names_learned_models_from_the_device_registry(hass: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The Settings lifetime table resolves a model key to "Manufacturer
+    Model" by walking the device registry — version-neutrally: HA 2026.9
+    deprecates mapping-style access on ``DeviceRegistry.devices``."""
+    from homeassistant.helpers import device_registry as dr
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.maintenance_supporter.helpers import battery_fleet as bf
+    from custom_components.maintenance_supporter.websocket.dashboard import _battery_lifetime_catalog
+
+    other = MockConfigEntry(domain="acme_locks")
+    other.add_to_hass(hass)
+    dr.async_get(hass).async_get_or_create(
+        config_entry_id=other.entry_id, identifiers={("acme_locks", "front")}, manufacturer="Acme", model="Lock"
+    )
+    monkeypatch.setattr(bf, "read_batteries", lambda _hass: [SimpleNamespace(model_key="acme|lock")])
+    monkeypatch.setattr(bf, "discover_battery_types", lambda _hass: ["LR6"])
+    seen: dict[str, Any] = {}
+
+    def _catalog(_hass: Any, types: list[str], *, model_names: dict[str, str]) -> list[dict[str, Any]]:
+        seen.update(types=types, names=model_names)
+        return [{"type": "AA"}]
+
+    monkeypatch.setattr(bl, "lifetime_catalog", _catalog)
+    assert _battery_lifetime_catalog(hass) == [{"type": "AA"}]
+    assert seen == {"types": ["LR6"], "names": {"acme|lock": "Acme Lock"}}
+
+
+async def test_settings_table_failure_is_logged_not_swallowed(hass: Any, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture) -> None:
+    """A settings read must survive a broken fleet read — but visibly: the
+    HA 2026.9 registry change went unnoticed here behind a silent ``[]``."""
+    from custom_components.maintenance_supporter.helpers import battery_fleet as bf
+    from custom_components.maintenance_supporter.websocket.dashboard import _battery_lifetime_catalog
+
+    def _boom(_hass: Any) -> list[Any]:
+        raise RuntimeError("registry changed")
+
+    monkeypatch.setattr(bf, "read_batteries", _boom)
+    assert _battery_lifetime_catalog(hass) == []
+    assert any(r.levelname == "WARNING" and r.exc_info for r in caplog.records if "lifetime table" in r.getMessage())

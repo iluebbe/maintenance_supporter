@@ -650,7 +650,7 @@ async def test_fetch_statistics_parses_rows(
 
     with (
         patch(
-            "homeassistant.components.recorder.get_instance",
+            "homeassistant.helpers.recorder.get_instance",
             return_value=mock_instance,
         ),
         patch(
@@ -997,7 +997,7 @@ async def test_parse_statistics_bad_start_and_bad_value(
     mock_instance.async_add_executor_job = AsyncMock(return_value=raw_stats)
 
     with patch(
-        "homeassistant.components.recorder.get_instance",
+        "homeassistant.helpers.recorder.get_instance",
         return_value=mock_instance,
     ):
         result = await sp._async_fetch_statistics_points("sensor.test", 30)

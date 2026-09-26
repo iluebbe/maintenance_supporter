@@ -4,6 +4,7 @@ hard-coded 10 % / 20 %."""
 
 from __future__ import annotations
 
+import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -143,3 +144,44 @@ async def test_pinned_percent_floor_survives_even_at_the_old_default_value(hass:
     pinned = ConsumableSignature(keys=("ink",), task_name="Replace Ink", direction="percent_left", below_percent=10)
     assert _threshold_for(following, hass, "sensor.ink") == 5.0
     assert _threshold_for(pinned, hass, "sensor.ink") == 10.0
+
+
+@pytest.mark.parametrize(
+    ("unit", "expected"),
+    [("h", 48.0), ("min", 2880.0), ("d", 2.0), ("w", round(48 / 168, 3)), ("ms", 172_800_000.0), ("μs", 172_800_000_000.0)],
+)
+async def test_duration_floor_follows_every_display_unit_ha_offers(hass: HomeAssistant, unit: str, expected: float) -> None:
+    """A duration sensor may be displayed in any unit HA's DurationConverter
+    offers. ``w``/``ms``/``μs`` were missing from the conversion table and fell
+    back to 1.0 — a 48 h floor became 48 WEEKS, so the task was due at once."""
+    from homeassistant.util.unit_conversion import DurationConverter
+
+    from custom_components.maintenance_supporter.helpers.signatures._model import (
+        ConsumableSignature,
+        _threshold_for,
+    )
+
+    assert unit in {str(u) for u in DurationConverter.VALID_UNITS}
+    hass.states.async_set("sensor.filter_left", "10", {"unit_of_measurement": unit})
+    sig = ConsumableSignature(keys=("filter",), task_name="Replace Filter", direction="duration_left", below_hours=48)
+    assert _threshold_for(sig, hass, "sensor.filter_left") == expected
+
+
+async def test_every_ha_duration_unit_is_in_the_conversion_table(hass: HomeAssistant) -> None:
+    """Tripwire: a unit HA adds to DurationConverter must get a factor here
+    (an unknown unit silently converts 1:1)."""
+    from homeassistant.util.unit_conversion import DurationConverter
+
+    from custom_components.maintenance_supporter.helpers.signatures._model import (
+        ConsumableSignature,
+        _threshold_for,
+    )
+
+    sig = ConsumableSignature(keys=("filter",), task_name="Replace Filter", direction="duration_left", below_hours=1)
+    for unit in DurationConverter.VALID_UNITS:
+        if unit is None:
+            continue
+        hass.states.async_set("sensor.filter_left", "10", {"unit_of_measurement": str(unit)})
+        got = _threshold_for(sig, hass, "sensor.filter_left")
+        want = DurationConverter.convert(1, "h", str(unit))
+        assert got == pytest.approx(round(want, 3)), unit

@@ -151,7 +151,7 @@ async def _mock_fetch(
         "homeassistant.components.recorder.statistics.statistics_during_period",
         return_value=mock_result,
     ):
-        with patch("homeassistant.components.recorder.get_instance") as mock_gi:
+        with patch("homeassistant.helpers.recorder.get_instance") as mock_gi:
             mock_gi.return_value.async_add_executor_job = _mock_executor
             return await analyzer._async_fetch_statistics(entity_id)
 
@@ -258,7 +258,7 @@ async def test_fetch_statistics_error_handled(hass: HomeAssistant) -> None:
         "homeassistant.components.recorder.statistics.statistics_during_period",
         side_effect=HomeAssistantError("Recorder error"),
     ):
-        with patch("homeassistant.components.recorder.get_instance") as mock_gi:
+        with patch("homeassistant.helpers.recorder.get_instance") as mock_gi:
             mock_gi.return_value.async_add_executor_job = _mock_executor
             result = await analyzer._async_fetch_statistics("sensor.temp")
 

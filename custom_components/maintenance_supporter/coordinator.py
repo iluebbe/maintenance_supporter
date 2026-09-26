@@ -144,7 +144,21 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._startup_time: float = time.monotonic()
         self._entity_missing_refresh_count: dict[str, int] = {}  # task_id -> count
         self._entity_unavailable_logged: dict[str, bool] = {}  # task_id -> logged?
+        # (task_id, stage) whose analysis failure was already logged loudly —
+        # the first one is a warning, repeats on later refreshes stay debug.
+        self._analysis_failures_logged: set[tuple[str, str]] = set()
         self._trigger_entity_states: dict[str, str] = {}  # task_id -> TriggerEntityState
+
+    def _log_analysis_failure(self, task_id: str, stage: str, message: str) -> None:
+        """Log a swallowed analysis error — loudly once, then quietly.
+
+        The refresh must survive it, but a silent debug line hid real breakage
+        (an HA API change) before; repeats every refresh would flood the log.
+        """
+        key = (task_id, stage)
+        level = logging.DEBUG if key in self._analysis_failures_logged else logging.WARNING
+        self._analysis_failures_logged.add(key)
+        _LOGGER.log(level, message, task_id, exc_info=True)
 
     def _is_schedule_time_feature_enabled(self) -> bool:
         """Return True iff the global advanced flag for time-of-day scheduling is on."""
@@ -394,11 +408,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         "seasonal_reason": analysis.seasonal_adjustment_reason,
                     }
                 except Exception:  # noqa: BLE001 — never let analysis break refresh
-                    _LOGGER.debug(
-                        "Adaptive interval analysis failed for task %s",
-                        task_id,
-                        exc_info=True,
-                    )
+                    self._log_analysis_failure(task_id, "adaptive", "Adaptive interval analysis failed for task %s")
 
             # Sensor-driven predictions (Phase 3)
             # Only for sensor_based tasks with threshold/counter triggers
@@ -464,11 +474,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                                     int(si * env.adjustment_factor),
                                 )
                 except Exception:  # noqa: BLE001 - one task's prediction failure must not break the whole coordinator update
-                    _LOGGER.debug(
-                        "Sensor prediction failed for task %s",
-                        task_id,
-                        exc_info=True,
-                    )
+                    self._log_analysis_failure(task_id, "prediction", "Sensor prediction failed for task %s")
 
             result[CONF_TASKS][task_id] = task_result
 

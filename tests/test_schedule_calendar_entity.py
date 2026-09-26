@@ -72,7 +72,7 @@ def test_provider_output_is_sorted_and_deduplicated(provider: dict[str, list[dat
     assert calendar_occurrences("") == ()
 
 
-def test_broken_provider_degrades_to_no_occurrences() -> None:
+def test_broken_provider_degrades_to_no_occurrences(caplog: pytest.LogCaptureFixture) -> None:
     def _boom(_eid: str) -> list[date]:
         raise RuntimeError("cache exploded")
 
@@ -82,6 +82,9 @@ def test_broken_provider_degrades_to_no_occurrences() -> None:
         assert _next(_sched(), last=None) is None
     finally:
         set_calendar_occurrence_provider(None)
+    # Degrades, but never silently — and once per entity, not per refresh.
+    warnings = [r for r in caplog.records if r.levelname == "WARNING" and BIO in r.getMessage()]
+    assert len(warnings) == 1 and warnings[0].exc_info is not None
 
 
 # ─── next_due semantics ──────────────────────────────────────────────────
