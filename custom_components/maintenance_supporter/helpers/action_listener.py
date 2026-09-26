@@ -21,7 +21,7 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
-from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.core import Context, Event, HomeAssistant, callback
 
 from ..const import (
     CONF_TASKS,
@@ -29,7 +29,7 @@ from ..const import (
     EVENT_TASK_COMPLETED,
     GLOBAL_UNIQUE_ID,
 )
-from .sanitize import _FORBIDDEN_ACTION_DOMAINS
+from .sanitize import _FORBIDDEN_ACTION_DOMAINS, ACTION_OWNER_KEY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -77,8 +77,24 @@ async def _dispatch_action(hass: HomeAssistant, action: dict[str, Any]) -> None:
         return
     data = action.get("data") if isinstance(action.get("data"), dict) else None
     target = action.get("target") if isinstance(action.get("target"), dict) else None
+    # Run as the user who configured it: HA then refuses admin-only services
+    # (cloud.remote_connect, downloader, …) to an operator. Without a user
+    # the call ran with system rights (bug audit 2026-09-26). Actions saved
+    # before the stamp existed (or by an import/admin flow) keep running as
+    # before; a removed user's action is not run in their name.
+    context: Context | None = None
+    owner = action.get(ACTION_OWNER_KEY)
+    if isinstance(owner, str) and owner:
+        if await hass.auth.async_get_user(owner) is None:
+            _LOGGER.warning(
+                "on_complete_action %s.%s skipped: the user who configured it no longer exists — save the task again",
+                domain,
+                name,
+            )
+            return
+        context = Context(user_id=owner)
     try:
-        await hass.services.async_call(domain, name, service_data=data, target=target, blocking=False)
+        await hass.services.async_call(domain, name, service_data=data, target=target, blocking=False, context=context)
     except Exception:
         _LOGGER.exception(
             "on_complete_action service-call failed: %s.%s data=%r target=%r",

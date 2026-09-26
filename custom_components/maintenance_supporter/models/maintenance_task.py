@@ -19,7 +19,7 @@ from ..const import (
     ScheduleType,
 )
 from ..helpers.dates import parse_iso_date
-from ..helpers.history import completed_entries
+from ..helpers.history import completed_entries, finite_amount
 from ..helpers.phases import current_phase
 from ..helpers.schedule import Schedule, read_legacy_fields
 from ..helpers.status import compute_status, effective_warning_days, is_past_schedule_time
@@ -296,26 +296,22 @@ class MaintenanceTask:
         """Sum of all costs in history."""
         total = 0.0
         for entry in self.history:
-            cost = entry.get("cost")
-            if cost is None:
-                continue
-            try:
-                total += float(cost)
-            except (ValueError, TypeError):
-                continue
+            cost = finite_amount(entry.get("cost")) if isinstance(entry, dict) else None
+            if cost is not None:
+                total += cost
         return total
 
     @property
     def average_duration(self) -> float | None:
         """Average duration of completed maintenance in minutes."""
         durations = [
-            entry["duration"]
-            for entry in self.history
-            if entry.get("type") == HistoryEntryType.COMPLETED and entry.get("duration") is not None
+            minutes
+            for entry in completed_entries(self.history)
+            if (minutes := finite_amount(entry.get("duration"))) is not None
         ]
         if not durations:
             return None
-        return float(sum(durations)) / len(durations)
+        return sum(durations) / len(durations)
 
     @property
     def last_entry(self) -> dict[str, Any] | None:
@@ -402,8 +398,10 @@ class MaintenanceTask:
         if is_latest:
             # Save the PLANNED grid date as the anchor before resetting — not
             # next_due, which returns a postpone override and would shift the
-            # cadence permanently (see _planned_grid_due).
-            if self.interval_anchor == "planned":
+            # cadence permanently (see _planned_grid_due). Calendar kinds keep
+            # it too: it is the occurrence this completion covers (early
+            # completion — Schedule.next_due).
+            if self.interval_anchor == "planned" or self._schedule().is_calendar_kind:
                 grid = self._planned_grid_due()
                 if grid is not None:
                     self.last_planned_due = grid.isoformat()
@@ -500,8 +498,9 @@ class MaintenanceTask:
         """
         # Save the PLANNED grid date as the anchor before resetting — not
         # next_due, which returns a postpone override (same cadence-shift bug
-        # as complete(); see _planned_grid_due).
-        if self.interval_anchor == "planned":
+        # as complete(); see _planned_grid_due). Calendar kinds: the skipped
+        # occurrence (see complete()).
+        if self.interval_anchor == "planned" or self._schedule().is_calendar_kind:
             grid = self._planned_grid_due()
             if grid is not None:
                 self.last_planned_due = grid.isoformat()

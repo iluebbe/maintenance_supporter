@@ -137,10 +137,24 @@ def _entity_logic_field(entity_ids: list[Any]) -> dict[Any, Any]:
     }
 
 
-def _interval_warning_fields(hass: HomeAssistant, tc: dict[str, Any] | None = None) -> dict[Any, Any]:
-    """The safety-interval + warning-days tail shared by all four type steps."""
+def _interval_warning_fields(
+    hass: HomeAssistant, tc: dict[str, Any] | None = None, stored: dict[str, Any] | None = None
+) -> dict[Any, Any]:
+    """The safety-interval + warning-days tail shared by all four type steps.
+
+    ``stored``: when editing an existing trigger, the task's current interval,
+    unit and warning days — without them the form showed "days" and the
+    global warning default and saved them over the task (bug audit
+    2026-09-26).
+    """
+    stored = stored or {}
+    interval_key = (
+        vol.Optional(CONF_TASK_INTERVAL_DAYS, description={"suggested_value": stored["interval_days"]})
+        if stored.get("interval_days")
+        else vol.Optional(CONF_TASK_INTERVAL_DAYS)
+    )
     return {
-        vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
+        interval_key: selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=INTERVAL_DAYS_RANGE[0],
                 max=INTERVAL_DAYS_RANGE[1],
@@ -148,7 +162,7 @@ def _interval_warning_fields(hass: HomeAssistant, tc: dict[str, Any] | None = No
                 mode=selector.NumberSelectorMode.BOX,
             )
         ),
-        vol.Optional(CONF_TASK_INTERVAL_UNIT, default="days"): interval_unit_selector(),
+        vol.Optional(CONF_TASK_INTERVAL_UNIT, default=stored.get("interval_unit") or "days"): interval_unit_selector(),
         vol.Optional(
             CONF_TRIGGER_COMBINATOR,
             default=(tc or {}).get(CONF_TRIGGER_COMBINATOR, DEFAULT_ENTITY_LOGIC),
@@ -164,7 +178,7 @@ def _interval_warning_fields(hass: HomeAssistant, tc: dict[str, Any] | None = No
         ),
         vol.Optional(
             CONF_TASK_WARNING_DAYS,
-            default=get_default_warning_days(hass),
+            default=stored["warning_days"] if stored.get("warning_days") is not None else get_default_warning_days(hass),
         ): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
@@ -360,6 +374,14 @@ class TriggerConfigMixin:
                 **(
                     {"trigger_runtime_max_session_seconds": prev_tc["trigger_runtime_max_session_seconds"]}
                     if "trigger_runtime_max_session_seconds" in prev_tc
+                    else {}
+                ),
+                # The trigger∧interval combinator: the type steps default
+                # their field from it — rebuilt without it, every edit
+                # silently turned "all" back into "any".
+                **(
+                    {CONF_TRIGGER_COMBINATOR: prev_tc[CONF_TRIGGER_COMBINATOR]}
+                    if prev_tc.get(CONF_TRIGGER_COMBINATOR)
                     else {}
                 ),
             }
@@ -573,7 +595,9 @@ class TriggerConfigMixin:
             **_recovery_field(self._current_task.get("trigger_config")),
         }
         schema_fields.update(_entity_logic_field(self._current_task.get("trigger_config", {}).get("entity_ids", [])))
-        schema_fields.update(_interval_warning_fields(self.hass, self._current_task.get("trigger_config")))
+        schema_fields.update(
+            _interval_warning_fields(self.hass, self._current_task.get("trigger_config"), self._current_task.get("_edit_defaults"))
+        )
 
         return self.async_show_form(
             step_id=step_id,
@@ -649,7 +673,12 @@ class TriggerConfigMixin:
                     step="any",
                 )
             ),
-            vol.Optional(CONF_TRIGGER_DELTA_MODE, default=False): selector.BooleanSelector(),
+            vol.Optional(
+                CONF_TRIGGER_DELTA_MODE,
+                default=bool(
+                    ((self._current_task.get("_edit_defaults") or {}).get("trigger_config") or prev_tc).get(CONF_TRIGGER_DELTA_MODE, False)
+                ),
+            ): selector.BooleanSelector(),
             baseline_key: selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=0,
@@ -660,7 +689,9 @@ class TriggerConfigMixin:
             **_recovery_field(prev_tc),
         }
         schema_fields.update(_entity_logic_field(self._current_task.get("trigger_config", {}).get("entity_ids", [])))
-        schema_fields.update(_interval_warning_fields(self.hass, self._current_task.get("trigger_config")))
+        schema_fields.update(
+            _interval_warning_fields(self.hass, self._current_task.get("trigger_config"), self._current_task.get("_edit_defaults"))
+        )
 
         return self.async_show_form(
             step_id=step_id,
@@ -735,7 +766,9 @@ class TriggerConfigMixin:
             **_recovery_field(self._current_task.get("trigger_config")),
         }
         schema_fields.update(_entity_logic_field(self._current_task.get("trigger_config", {}).get("entity_ids", [])))
-        schema_fields.update(_interval_warning_fields(self.hass, self._current_task.get("trigger_config")))
+        schema_fields.update(
+            _interval_warning_fields(self.hass, self._current_task.get("trigger_config"), self._current_task.get("_edit_defaults"))
+        )
 
         return self.async_show_form(
             step_id=step_id,
@@ -807,7 +840,9 @@ class TriggerConfigMixin:
             **_recovery_field(current_tc),
         }
         schema_fields.update(_entity_logic_field(self._current_task.get("trigger_config", {}).get("entity_ids", [])))
-        schema_fields.update(_interval_warning_fields(self.hass, self._current_task.get("trigger_config")))
+        schema_fields.update(
+            _interval_warning_fields(self.hass, self._current_task.get("trigger_config"), self._current_task.get("_edit_defaults"))
+        )
 
         return self.async_show_form(
             step_id=step_id,

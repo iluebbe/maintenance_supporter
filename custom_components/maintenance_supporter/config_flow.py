@@ -37,7 +37,6 @@ from .const import (
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
-    slugify_object_name,
 )
 from .helpers.i18n import normalize_language
 from .helpers.schedule import normalize_task_storage
@@ -252,13 +251,10 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
 
             name = user_input[CONF_OBJECT_NAME]
 
-            # Validate unique name (case-insensitive to match slug-based unique_id)
-            existing_names = [
-                entry.data.get(CONF_OBJECT, {}).get(CONF_OBJECT_NAME, "").lower()
-                for entry in self.hass.config_entries.async_entries(DOMAIN)
-                if entry.unique_id != GLOBAL_UNIQUE_ID
-            ]
-            if name.lower() in existing_names:
+            # Validate unique name (helpers.object_names: by slug, current names)
+            from .helpers.object_names import name_taken
+
+            if name_taken(self.hass, name):
                 errors[CONF_OBJECT_NAME] = "name_exists"
             else:
                 # Build object data
@@ -345,11 +341,10 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
         if user_input is not None:
             name = user_input[CONF_OBJECT_NAME]
             # Validate unique name (skip self)
-            for other in self.hass.config_entries.async_entries(DOMAIN):
-                if other.entry_id != entry.entry_id and other.unique_id != GLOBAL_UNIQUE_ID:
-                    if other.data.get(CONF_OBJECT, {}).get("name", "").lower() == name.lower():
-                        errors["base"] = "name_exists"
-                        break
+            from .helpers.object_names import name_taken
+
+            if name_taken(self.hass, name, exclude_entry_id=entry.entry_id):
+                errors["base"] = "name_exists"
 
             if not errors:
                 # Migrate name-slug-based unique_ids BEFORE overwriting the
@@ -368,6 +363,9 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
                 obj_data["documentation_url"] = user_input.get(CONF_OBJECT_DOCUMENTATION_URL) or None
                 # v1.4.10 (#46)
                 obj_data["notes"] = (user_input.get(CONF_OBJECT_NOTES) or "").strip() or None
+                from .helpers.sanitize import cap_object_fields
+
+                cap_object_fields(obj_data)
 
                 new_data = dict(entry.data)
                 new_data[CONF_OBJECT] = obj_data
@@ -437,9 +435,13 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
         obj_data = dict(user_input.get(CONF_OBJECT, {}))
         cap_object_fields(obj_data)
         object_name = obj_data.get(CONF_OBJECT_NAME, "Unknown")
-        object_slug = slugify_object_name(object_name)
+        from .helpers.object_names import object_unique_id
 
-        await self.async_set_unique_id(f"maintenance_supporter_{object_slug}")
+        # A replacement may reuse the name of the object it retires.
+        unique_id = object_unique_id(self.hass, object_name, exclude_entry_id=obj_data.get("predecessor_entry_id"))
+        if unique_id is None:
+            return self.async_abort(reason="already_configured")
+        await self.async_set_unique_id(unique_id)
         self._abort_if_unique_id_configured()
 
         obj_data.setdefault("task_ids", [])
@@ -493,13 +495,10 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
 
             name = user_input[CONF_OBJECT_NAME]
 
-            # Validate unique name (case-insensitive to match slug-based unique_id)
-            existing_names = [
-                entry.data.get(CONF_OBJECT, {}).get(CONF_OBJECT_NAME, "").lower()
-                for entry in self.hass.config_entries.async_entries(DOMAIN)
-                if entry.unique_id != GLOBAL_UNIQUE_ID
-            ]
-            if name.lower() in existing_names:
+            # Validate unique name (helpers.object_names: by slug, current names)
+            from .helpers.object_names import name_taken
+
+            if name_taken(self.hass, name):
                 errors[CONF_OBJECT_NAME] = "name_exists"
             else:
                 from .helpers.sanitize import cap_object_fields
@@ -794,9 +793,12 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
             )
 
         object_name = self._object_data.get(CONF_OBJECT_NAME, "Unknown")
-        object_slug = slugify_object_name(object_name)
+        from .helpers.object_names import object_unique_id
 
-        await self.async_set_unique_id(f"maintenance_supporter_{object_slug}")
+        unique_id = object_unique_id(self.hass, object_name)
+        if unique_id is None:
+            return self.async_abort(reason="already_configured")
+        await self.async_set_unique_id(unique_id)
         self._abort_if_unique_id_configured()
 
         # Add task_ids to object

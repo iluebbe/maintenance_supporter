@@ -20,6 +20,26 @@ export interface UploadedDocument {
   duplicate_in_object?: string | null;
 }
 
+/** `fetch` to one of our HTTP views with a FRESH access token. HA renews
+ *  the token only on a WebSocket reconnect or inside `hass.fetchWithAuth`;
+ *  it expires after 30 minutes, so in a tab open longer every photo,
+ *  document and archive upload failed with 401 until a reload (bug audit
+ *  2026-09-26). The global `fetch` stays (the wtr tests stub it). */
+export async function authFetch(hass: HomeAssistant, url: string, init: RequestInit): Promise<Response> {
+  const auth = hass.auth;
+  if (auth?.expired && auth.refreshAccessToken) {
+    try {
+      await auth.refreshAccessToken();
+    } catch {
+      // The request then answers 401 and the caller reports the failure.
+    }
+  }
+  return fetch(url, {
+    ...init,
+    headers: { ...((init.headers as Record<string, string> | undefined) ?? {}), Authorization: `Bearer ${auth?.data?.access_token ?? ""}` },
+  });
+}
+
 /** Upload one file as a document of `entryId`, tagged with `tags`. Throws
  *  `Error("doc_too_large")` on a 413 and `Error("doc_upload_failed")` on
  *  any other refusal (a network failure propagates as-is). */
@@ -33,11 +53,7 @@ export async function uploadDocument(
   form.append("entry_id", entryId);
   for (const tag of tags) form.append("tags", tag);
   form.append("file", file, file.name);
-  const resp = await fetch("/api/maintenance_supporter/document/upload", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${hass.auth?.data?.access_token ?? ""}` },
-    body: form,
-  });
+  const resp = await authFetch(hass, "/api/maintenance_supporter/document/upload", { method: "POST", body: form });
   if (resp.status === 413) throw new Error("doc_too_large");
   if (!resp.ok) throw new Error("doc_upload_failed");
   const doc = (await resp.json()) as Partial<UploadedDocument>;

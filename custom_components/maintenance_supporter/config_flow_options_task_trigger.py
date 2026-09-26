@@ -187,7 +187,20 @@ class TriggerStepsMixin(TriggerConfigMixin):
         # (bug review 2026-09-04). The type steps also default their
         # recovery/baseline/combinator fields from it.
         task = self.config_entry.data.get(CONF_TASKS, {}).get(self._selected_task_id or "", {})
-        self._current_task = {"trigger_config": dict(task.get("trigger_config") or {})}
+        from .helpers.schedule import read_legacy_fields
+
+        flat = read_legacy_fields(task)
+        self._current_task = {
+            "trigger_config": dict(task.get("trigger_config") or {}),
+            # The form defaults of the shared steps: the task's own interval,
+            # unit and warning days, and the stored trigger (delta mode).
+            "_edit_defaults": {
+                "interval_days": flat.get("interval_days"),
+                "interval_unit": flat.get("interval_unit") or "days",
+                "warning_days": task.get("warning_days"),
+                "trigger_config": dict(task.get("trigger_config") or {}),
+            },
+        }
         self._trigger_on_complete = self._save_edited_trigger
         self._on_cancel = self._show_task_action_menu
         return await self.async_step_opt_sensor_select()
@@ -228,6 +241,10 @@ class TriggerStepsMixin(TriggerConfigMixin):
             updated_task["schedule_type"] = self._current_task[CONF_TASK_SCHEDULE_TYPE]
         if CONF_TASK_INTERVAL_DAYS in self._current_task:
             updated_task["interval_days"] = int(self._current_task[CONF_TASK_INTERVAL_DAYS])
+            # Always with its unit: normalize_task_storage falls back to the
+            # stored unit for an absent flat key, so "10 days" was saved as
+            # 10 weeks on a weekly task (bug audit 2026-09-26).
+            updated_task["interval_unit"] = self._current_task.get("interval_unit", "days")
         if CONF_TASK_WARNING_DAYS in self._current_task:
             updated_task["warning_days"] = int(self._current_task[CONF_TASK_WARNING_DAYS])
 

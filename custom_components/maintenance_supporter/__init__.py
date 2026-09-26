@@ -106,6 +106,7 @@ from .helpers.global_options import get_global_entry
 from .helpers.notification_gates import task_may_notify
 from .helpers.notification_manager import NotificationManager
 from .helpers.notify_hooks import KIND_LEAD_TIME
+from .helpers.permissions import service_tier
 from .helpers.schedule import normalize_task_storage
 from .helpers.task_fields import (
     INTERVAL_DAYS_RANGE,
@@ -755,18 +756,21 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     hass.services.async_register(DOMAIN, SERVICE_COMPLETE, _handle_complete, schema=SERVICE_COMPLETE_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_RESET, _handle_reset, schema=SERVICE_RESET_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_SKIP, _handle_skip, schema=SERVICE_SKIP_SCHEMA)
-    hass.services.async_register(DOMAIN, SERVICE_EXPORT, _handle_export, schema=SERVICE_EXPORT_SCHEMA)
+    # Content services hold a calling user to the tier of the matching WS
+    # command (helpers.permissions.service_tier); complete/reset/skip stay
+    # open to everyone like their panel actions.
+    hass.services.async_register(DOMAIN, SERVICE_EXPORT, service_tier(hass, _handle_export, admin=True), schema=SERVICE_EXPORT_SCHEMA)
     hass.services.async_register(
         DOMAIN,
         SERVICE_ADD_OBJECT,
-        _handle_add_object,
+        service_tier(hass, _handle_add_object),
         schema=SERVICE_ADD_OBJECT_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
     )
     hass.services.async_register(
         DOMAIN,
         SERVICE_ADD_TASK,
-        _handle_add_task,
+        service_tier(hass, _handle_add_task),
         schema=SERVICE_ADD_TASK_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
     )
@@ -897,13 +901,13 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     hass.services.async_register(
         DOMAIN,
         SERVICE_UPDATE_TASK,
-        _handle_update_task,
+        service_tier(hass, _handle_update_task),
         schema=SERVICE_UPDATE_TASK_SCHEMA,
     )
     hass.services.async_register(
         DOMAIN,
         SERVICE_DELETE_TASK,
-        _handle_delete_task,
+        service_tier(hass, _handle_delete_task),
         schema=SERVICE_DELETE_TASK_SCHEMA,
     )
     hass.services.async_register(

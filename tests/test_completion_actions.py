@@ -142,6 +142,15 @@ async def test_action_listener_invokes_configured_service(
         calls.append(call)
 
     hass.services.async_register("test_listener", "ping", _capture)
+    # The action runs as the user who saved it; the mock connection's user is
+    # not a real HA user (the dispatch skips a removed user's action), so
+    # stamp a real one.
+    admin = await hass.auth.async_create_user("Admin", group_ids=["system-admin"])
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    tasks = {k: dict(v) for k, v in entry.data["tasks"].items()}
+    tasks[task_id]["on_complete_action"] = {**tasks[task_id]["on_complete_action"], "configured_by": admin.id}
+    hass.config_entries.async_update_entry(entry, data={**entry.data, "tasks": tasks})
+    await hass.async_block_till_done()
 
     conn = _conn()
     await call_ws_handler(

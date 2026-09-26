@@ -40,6 +40,7 @@ from ..const import (
     MAX_URL_LENGTH,
 )
 from .task_fields import EARLIEST_COMPLETION_RANGE
+from .url_safety import is_safe_url
 
 # Per-field cap for task dicts. Values mirror the voluptuous schemas in
 # websocket/tasks.py so an admin who reaches the same field through the UI
@@ -154,6 +155,7 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
     - `checklist` → list of strings, each ≤ 500 chars, list ≤ 100 items
     """
     _cap_strings(task_data, _TASK_STR_LIMITS)
+    _drop_unsafe_url(task_data)
 
     iv = task_data.get("interval_days")
     if isinstance(iv, int):
@@ -364,11 +366,14 @@ _MAX_TARGET_FIELD_LENGTH = 200
 _FORBIDDEN_ACTION_DOMAINS = frozenset({"shell_command", "python_script", "hassio", "homeassistant", "recorder", "backup"})
 
 
-def cap_action_field(task_data: dict[str, Any]) -> None:
+def cap_action_field(task_data: dict[str, Any], *, keep_owner: bool = False) -> None:
     """Validate + truncate task_data['on_complete_action'] in-place.
 
     Drops the entire field on any structural problem. Passes silently when
-    not present (it's optional).
+    not present (it's optional). ``configured_by`` — the user the action runs
+    as (``action_listener``) — is server-stamped: kept only for the WS update
+    path's stored action (``keep_owner``), dropped from anything else a
+    client or an import could have written.
     """
     import re
 
@@ -421,7 +426,24 @@ def cap_action_field(task_data: dict[str, Any]) -> None:
         if serialised is not None and len(serialised) <= _MAX_ACTION_DATA_BYTES:
             cleaned["data"] = data
 
+    owner = action.get(ACTION_OWNER_KEY)
+    if keep_owner and isinstance(owner, str) and 0 < len(owner) <= 64:
+        cleaned[ACTION_OWNER_KEY] = owner
+
     task_data["on_complete_action"] = cleaned
+
+
+# The user a completion action runs as (see helpers.action_listener).
+ACTION_OWNER_KEY = "configured_by"
+
+
+def stamp_action_owner(task_data: dict[str, Any], user_id: str | None) -> None:
+    """Record who configured the task's completion action — it then runs
+    with that user's rights, so an operator cannot schedule an admin-only
+    service (bug audit 2026-09-26). Call after :func:`cap_action_field`."""
+    action = task_data.get("on_complete_action")
+    if isinstance(action, dict) and user_id:
+        action[ACTION_OWNER_KEY] = user_id
 
 
 def cap_quick_complete_defaults_field(task_data: dict[str, Any]) -> None:
@@ -467,7 +489,21 @@ def cap_quick_complete_defaults_field(task_data: dict[str, Any]) -> None:
 def cap_object_fields(obj_data: dict[str, Any]) -> dict[str, Any]:
     """Truncate user-controllable strings on an object dict in-place."""
     _cap_strings(obj_data, _OBJECT_STR_LIMITS)
+    _drop_unsafe_url(obj_data)
     return obj_data
+
+
+def _drop_unsafe_url(data: dict[str, Any]) -> None:
+    """Drop a ``documentation_url`` that is not http(s)/path-relative —
+    every create and edit path runs through the cap helpers, so this is the
+    one place a ``javascript:`` link from a flow or an import stops (bug
+    audit 2026-09-26; the WS layer refuses it with an error before)."""
+    url = data.get("documentation_url")
+    if isinstance(url, str) and url and not is_safe_url(url):
+        import logging
+
+        logging.getLogger(__name__).warning("Dropped an unsafe documentation link (%.40s)", url)
+        data["documentation_url"] = None
 
 
 def cap_group_fields(group_data: dict[str, Any]) -> dict[str, Any]:

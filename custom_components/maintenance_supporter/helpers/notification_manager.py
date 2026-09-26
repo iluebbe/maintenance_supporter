@@ -75,6 +75,14 @@ _NOTIFY_SERVICE_MISSING_ISSUE_ID = "notify_service_missing"
 # adds noise; the sentinel is a singleton, not a real timestamp.
 _SENT_ONCE = datetime.max  # noqa: DTZ901 - intentional naive sentinel, see comment above
 
+# A "notify once" status re-arms when the task leaves it — a threshold that
+# recovered without a completion, an overdue task that was postponed — so the
+# next time it gets there it is announced again (bug audit 2026-09-26: the
+# freezer alarm fired once, ever). The stamp then holds the re-arm time and
+# a new push waits at least this long: a sensor flapping around its limit
+# cannot turn "once" into a stream.
+_REARM_MIN_SECONDS = 3600
+
 # The manager's bookkeeping survives a restart (2026-09-13): what was sent when
 # (incl. the "once" marks), snoozes, the daily counter, the lead dedup, the
 # fairness sets and the reminders quiet hours are holding. Without it every
@@ -1201,13 +1209,31 @@ class NotificationManager:
     def _status_due(self, key: str, interval_hours: int) -> bool:
         """Whether a status notification for ``key`` is due now: never sent,
         or the repeat interval has elapsed. A "notify once" status (interval
-        0) that was sent is never due again until the state is cleared."""
+        0) that was sent is not due again while the task stays in it; once
+        the task left the status (``rearm_left_statuses``) it is due again
+        after ``_REARM_MIN_SECONDS``."""
         last = self._last_notified.get(key)
         if last is None:
             return True
         if last == _SENT_ONCE:
             return False
-        return not (interval_hours > 0 and (dt_util.now() - last).total_seconds() < interval_hours * 3600)
+        min_seconds = interval_hours * 3600 if interval_hours > 0 else _REARM_MIN_SECONDS
+        return (dt_util.now() - last).total_seconds() >= min_seconds
+
+    def rearm_left_statuses(self, entry_id: str, task_id: str, current_status: str | None) -> None:
+        """Re-arm the "notify once" stamps of the statuses the task is no
+        longer in. Checked on every refresh (not on the transition), so a
+        status left while Home Assistant was down re-arms too."""
+        changed = False
+        for status in NOTIFIABLE_STATUSES:
+            if status == current_status:
+                continue
+            key = notification_key(entry_id, task_id, status)
+            if self._last_notified.get(key) == _SENT_ONCE:
+                self._last_notified[key] = dt_util.now()
+                changed = True
+        if changed:
+            self._dirty()
 
     def _stamp_status_sent(self, key: str, interval_hours: int) -> None:
         self._last_notified[key] = _SENT_ONCE if interval_hours == 0 else dt_util.now()

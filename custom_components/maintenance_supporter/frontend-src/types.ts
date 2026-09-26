@@ -657,8 +657,10 @@ export interface HomeAssistant {
    *  `config._panel_custom` (the panel card imports ours from there, #174). */
   panels?: Record<string, { url_path?: string; title?: string | null; config?: { _panel_custom?: { name?: string; module_url?: string } } | null }>;
   /** Current access token — used for authenticated `fetch()` to our HTTP
-   *  document views (a WebSocket frame can't carry a multipart file upload). */
-  auth?: { data?: { access_token?: string } };
+   *  document views (a WebSocket frame can't carry a multipart file upload).
+   *  It expires after 30 minutes; `helpers/photo-upload.ts authFetch`
+   *  renews it first. */
+  auth?: { data?: { access_token?: string }; expired?: boolean; refreshAccessToken?: () => Promise<void> };
 }
 
 export interface HAUser {

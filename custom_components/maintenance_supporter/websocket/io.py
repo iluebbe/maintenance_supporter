@@ -37,6 +37,7 @@ from ..const import (
 from ..helpers.aggregate import get_store, object_name
 from ..helpers.dates import normalize_hhmm, parse_iso_date
 from ..helpers.global_options import get_default_warning_days
+from ..helpers.history import finite_amount
 from ..helpers.phases import clamp_phase_cursor, sanitize_phase_defs, sanitize_phase_sequence
 from ..helpers.qr_generator import (
     _ACTION_ICON_MAP,
@@ -102,6 +103,15 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
         rv = clean.get("reading_value")
         if rv is not None and (isinstance(rv, bool) or not isinstance(rv, (int, float)) or not math.isfinite(rv)):
             clean.pop("reading_value", None)
+        # Duration: text or NaN made the object's average-duration sum raise
+        # on every refresh (bug audit 2026-09-26) — numeric text is kept as a
+        # number, anything else dropped.
+        if "duration" in clean:
+            minutes = finite_amount(clean["duration"])
+            if minutes is None:
+                clean.pop("duration", None)
+            else:
+                clean["duration"] = int(minutes) if minutes.is_integer() else minutes
         if "reading_values" in clean:
             from ..helpers.reading_slots import history_reading_values
 

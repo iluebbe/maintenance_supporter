@@ -486,3 +486,24 @@ async def test_setting_the_option_in_the_panel_starts_the_mirror(hass: HomeAssis
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=12))
     await hass.async_block_till_done()
     assert not any("Filter" in s for s in todo.summaries())
+
+
+async def test_a_checked_row_with_our_text_is_not_adopted(hass: HomeAssistant) -> None:
+    """Bug audit 2026-09-26: step 3a adopted ANY unclaimed row with the same
+    text — also a CHECKED one (the user's own, or ours that could not be
+    deleted). The next pass read it as "bought": the buy task closed and the
+    part was restocked although nobody bought anything, every cycle."""
+    todo, entry, sync = await _setup(hass)
+    buy_id = _buy_task_id(entry)
+    (summary,) = sync._desired().values()
+    stale = todo.seed(summary)
+    todo.check_off(stale)
+
+    await sync.async_resync()
+    await sync.async_resync()
+
+    (rec,) = sync._data["items"].values()
+    assert rec["uid"] != stale, "the checked row was adopted"
+    assert entry.runtime_data.store.get_part_stock("p1") == 1, "restocked without a purchase"
+    merged = entry.runtime_data.coordinator._get_merged_tasks_data()[buy_id]
+    assert not [h for h in merged["history"] if h["type"] == "completed"]

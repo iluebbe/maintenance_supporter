@@ -527,17 +527,15 @@ async def ws_create_from_template(
     name = (msg.get("name") or default_name).strip() or default_name
     # Auto-number on collision: applying the same template twice (or owning
     # three litter boxes) must not fail with already_configured — the second
-    # object becomes "Name 2", then "Name 3", … The check mirrors the config
-    # flow's duplicate detection (object name, case-insensitive).
-    existing_names = {
-        str(e.data.get(CONF_OBJECT, {}).get(CONF_OBJECT_NAME, "")).strip().lower()
-        for e in _get_object_entries(hass)
-    }
-    if name.strip().lower() in existing_names:
+    # object becomes "Name 2", then "Name 3", … The check is the config
+    # flow's own (helpers.object_names).
+    from ..helpers.object_names import name_taken
+
+    if name_taken(hass, name):
         base = name[: MAX_NAME_LENGTH - 4]
         for n in range(2, 100):
             candidate = f"{base} {n}"
-            if candidate.strip().lower() not in existing_names:
+            if not name_taken(hass, candidate):
                 name = candidate
                 break
     object_id = uuid4().hex

@@ -16,6 +16,7 @@ import { invalidateSettingsCache } from "../helpers/settings-cache";
 import { SETTING_INT_RANGES, settingIntRange } from "../helpers/setting-ranges";
 import { isoDateLocal } from "../helpers/calendar-bucket";
 import { runWs } from "../helpers/ws-run";
+import { authFetch } from "../helpers/photo-upload";
 import { countryName, detectionReasons, dwellingLabel, type HomeProfile } from "../helpers/home-profile";
 import "./ms-date-field";
 
@@ -2065,11 +2066,7 @@ export class MaintenanceSettingsView extends LitElement {
     try {
       const form = new FormData();
       form.append("file", file, file.name);
-      const resp = await fetch("/api/maintenance_supporter/documents/archive", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${this.hass.auth?.data?.access_token ?? ""}` },
-        body: form,
-      });
+      const resp = await authFetch(this.hass, "/api/maintenance_supporter/documents/archive", { method: "POST", body: form });
       if (!resp.ok) {
         this._showToast(t("action_error", this._lang));
       } else {

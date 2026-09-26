@@ -151,8 +151,12 @@ def test_warning_window_days_unit_unchanged() -> None:
         interval_anchor="completion",
         last_performed=today.isoformat(),  # next_due = today + 3 → days=3
     )
-    # span = 3 days, so effective warning = min(7, 3) = 3; days_until_due = 3 → due_soon
+    # span = 3 days, so effective warning = min(7, 3 - 1) = 2 (bug audit
+    # 2026-09-26: capped BELOW the span — the old cap of 3 made the task due
+    # soon on the day it was completed, i.e. for its whole cycle).
     assert t.days_until_due == 3
+    assert t.status == MaintenanceStatus.OK
+    t.last_performed = (today - timedelta(days=1)).isoformat()  # days = 2
     assert t.status == MaintenanceStatus.DUE_SOON
 
 

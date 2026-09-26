@@ -17,13 +17,14 @@ gated by ``global/update``) — write access cannot be self-granted.
 
 from __future__ import annotations
 
+from collections.abc import Callable, Coroutine
 from functools import wraps
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.websocket_api.connection import ActiveConnection
 from homeassistant.components.websocket_api.const import WebSocketCommandHandler
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import Unauthorized
+from homeassistant.core import HomeAssistant, ServiceCall, ServiceResponse
+from homeassistant.exceptions import Unauthorized, UnknownUser
 
 from ..const import CONF_ADMIN_PANEL_USER_IDS, CONF_OPERATOR_WRITE_ENABLED
 from .global_options import get_global_options
@@ -92,3 +93,33 @@ def require_write(func: WebSocketCommandHandler) -> WebSocketCommandHandler:
         func(hass, connection, msg)
 
     return with_write
+
+
+ServiceHandler = Callable[[ServiceCall], Coroutine[Any, Any, ServiceResponse]]
+
+
+def service_tier(hass: HomeAssistant, handler: ServiceHandler, *, admin: bool = False) -> ServiceHandler:
+    """The service-call twin of ``require_write`` (``admin=True``: of
+    ``require_admin``).
+
+    Home Assistant does not gate custom services by user — any account can
+    call them over the WebSocket ``call_service`` command or REST, so a
+    plain user could delete tasks through ``delete_task`` although the
+    panel's commands refuse it (bug audit 2026-09-26). A call carrying a
+    user is held to the tier of the matching WS command, the way HA's own
+    admin services check it; calls without one (automations, scripts
+    started by the system) pass.
+    """
+
+    @wraps(handler)
+    async def guarded(call: ServiceCall) -> ServiceResponse:
+        user_id = call.context.user_id
+        if user_id is not None:
+            user = await hass.auth.async_get_user(user_id)
+            if user is None:
+                raise UnknownUser(context=call.context)
+            if not (user.is_admin if admin else user_can_write(hass, user)):
+                raise Unauthorized(context=call.context)
+        return await handler(call)
+
+    return guarded

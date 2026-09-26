@@ -50,23 +50,30 @@ def _days_ago(n: int) -> str:
 
 
 def test_span_capped_warning_window_agrees() -> None:
-    """A 5-day task postponed 10 days out: the 14-day warning is capped at the
-    5-day span, so the task reads OK — in the model AND the twin (which
+    """A 5-day task postponed 10 days out: the 14-day warning is capped below
+    the 5-day span, so the task reads OK — in the model AND the twin (which
     used to compare against the raw 14 and say DUE_SOON)."""
     data = build_task_data(interval_days=5, warning_days=14, last_performed=_days_ago(1))
     data["due_override"] = (dt_util.now().date() + timedelta(days=10)).isoformat()
     task = MaintenanceTask.from_dict(data)
     assert task.days_until_due == 10
-    assert task.effective_warning_days == 5
+    assert task.effective_warning_days == 4
     _agree(task, MaintenanceStatus.OK)
     # A payload without the published cap falls back to the raw window —
     # the drift the coordinator field closes.
     stale = _payload(task)
     del stale["_warning_days_effective"]
     assert compute_status_from_task_dict(stale) == MaintenanceStatus.DUE_SOON
-    assert effective_warning_days(14, 5) == 5
+    assert effective_warning_days(14, 5) == 4
     assert effective_warning_days(14, None) == 14
     assert effective_warning_days(14, 0) == 14
+    # Bug audit 2026-09-26: a weekly task with the default 7-day warning is
+    # not "due soon" on the day it was completed; a daily one only on the day.
+    assert effective_warning_days(7, 7) == 6
+    assert effective_warning_days(7, 1) == 0
+    weekly = MaintenanceTask.from_dict(build_task_data(interval_days=7, warning_days=7, last_performed=_days_ago(0)))
+    _agree(weekly, MaintenanceStatus.OK)
+    _agree(MaintenanceTask.from_dict(build_task_data(interval_days=7, warning_days=7, last_performed=_days_ago(1))), MaintenanceStatus.DUE_SOON)
 
 
 def test_time_based_ladder_agrees() -> None:

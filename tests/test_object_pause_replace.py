@@ -298,6 +298,9 @@ async def test_paused_until_auto_resumes_on_refresh(hass: HomeAssistant, global_
     rows = await _rows(hass, obj_entry.entry_id)
     assert rows[0]["status"] == "ok"
     assert obj_entry.runtime_data.store.get_last_performed(TASK_ID_1) == "2027-04-01"
+    # Bug audit 2026-09-26: like object/resume, the entry is reloaded — the
+    # sensor triggers skipped while paused are only wired by a setup.
+    assert obj_entry.runtime_data.coordinator is not coordinator, "auto-resume did not reload the entry"
 
 
 async def test_paused_object_disappears_from_todo_and_calendar(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:

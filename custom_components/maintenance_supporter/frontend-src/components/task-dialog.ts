@@ -282,6 +282,12 @@ export class MaintenanceTaskDialog extends LitElement {
 
   // User assignment
   @state() private _responsibleUserId: string | null = null;
+  // What an edit loaded for the two LIVE fields other surfaces change while
+  // the dialog is open — a completion (NFC, voice, another user) moves the
+  // anchor and rotates the assignee. Sent back only when edited here, else
+  // Save rolled that completion back (bug audit 2026-09-26).
+  private _loadedLastPerformed = "";
+  private _loadedResponsibleUserId: string | null = null;
   @state() private _assigneePool: string[] = [];
   @state() private _rotationStrategy = "";
   @state() private _availableUsers: HAUser[] = [];
@@ -435,6 +441,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._mirrorTodoEntities = [...(task.mirror_todo_entities || [])];
     this._enabled = task.enabled !== false;
     this._lastPerformed = task.last_performed || "";
+    this._loadedLastPerformed = this._lastPerformed;
     this._nfcTagId = task.nfc_tag_id || "";
     this._requireTagScan = !!task.require_tag_scan;
     this._allowSkip = task.allow_skip !== false;
@@ -447,6 +454,7 @@ export class MaintenanceTaskDialog extends LitElement {
       (task.consumes_parts || []).map((l) => [partLinkKey(l), { ...l }]),
     );
     this._responsibleUserId = task.responsible_user_id || null;
+    this._loadedResponsibleUserId = this._responsibleUserId;
     this._assigneePool = [...(task.assignee_pool || [])];
     this._rotationStrategy = task.rotation_strategy || "";
 
@@ -1352,7 +1360,9 @@ export class MaintenanceTaskDialog extends LitElement {
       // D#183: always sent — [] clears the mirror targets.
       data.mirror_todo_entities = this._mirrorTodoEntities.filter(Boolean);
       data.enabled = this._enabled;
-      data.last_performed = this._lastPerformed || null;
+      if (!this._taskId || this._lastPerformed !== this._loadedLastPerformed) {
+        data.last_performed = this._lastPerformed || null;
+      }
       data.nfc_tag_id = this._nfcTagId || null;
       data.require_tag_scan = this._requireTagScan;
       data.allow_skip = this._allowSkip;
@@ -1405,7 +1415,9 @@ export class MaintenanceTaskDialog extends LitElement {
             : { part_id: l.part_id, quantity: l.quantity },
         );
       }
-      data.responsible_user_id = this._responsibleUserId;
+      if (!this._taskId || this._responsibleUserId !== this._loadedResponsibleUserId) {
+        data.responsible_user_id = this._responsibleUserId;
+      }
       data.assignee_pool = this._assigneePool;
       data.required_completion_fields = this._requiredCompletion;
       data.rotation_strategy =

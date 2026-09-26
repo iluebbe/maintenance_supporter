@@ -366,7 +366,9 @@ custom_components/maintenance_supporter/
 │   ├── saved_views.py             (150 lines)  Named, shared panel-filter views
 │   ├── threshold_calculator.py    (131 lines)  Threshold suggestion engine
 │   ├── action_listener.py         (110 lines)  On-complete action listener
-│   ├── permissions.py              (94 lines)  @require_write / @require_admin authorization
+│   ├── permissions.py             (127 lines)  @require_write / @require_admin authorization; `service_tier` holds service callers to the same tiers
+│   ├── object_names.py             (53 lines)  One object-name rule (by slug, current names) + a free config-entry unique id
+│   ├── url_safety.py               (42 lines)  Which stored links are safe (http/https, path-relative) — shared by WS, flows, imports
 │   ├── aggregate.py                (85 lines)  compute_status_counts — the single KPI source
 │   ├── i18n.py                     (35 lines)  normalize_language_code (pt-br is its own table key)
 │   ├── integration_signatures.py   (26 lines)  Compatibility shim → signatures/

@@ -18,6 +18,8 @@ from ..const import (
 )
 from ..helpers.aggregate import object_name
 from ..helpers.trigger_fallback import threshold_limits_overlap
+from ..helpers.url_safety import _SAFE_URL_SCHEMES as _SAFE_URL_SCHEMES
+from ..helpers.url_safety import is_safe_url
 from . import (
     _get_object_entries,
 )
@@ -26,36 +28,8 @@ from . import (
 # Validation helpers
 # ---------------------------------------------------------------------------
 
-_SAFE_URL_SCHEMES = {"http", "https"}
-
-
-def _is_safe_url(url: str | None) -> bool:
-    """Reject javascript:, data:, protocol-relative and other dangerous URLs.
-
-    Only http/https and genuine path-relative URLs (no host) pass. ASCII control
-    characters and surrounding whitespace are stripped first, since urlparse and
-    browsers ignore them and they can otherwise mask a "//host" or scheme-less
-    host (e.g. ``"   //evil.com"`` or ``"\t//evil.com"``).
-    """
-    if not url:
-        return True
-    from urllib.parse import urlparse
-
-    cleaned = "".join(ch for ch in url if ch.isprintable()).strip()
-    if not cleaned:
-        return True
-    # Block protocol-relative URLs like //evil.com
-    if cleaned.startswith("//"):
-        return False
-    try:
-        parsed = urlparse(cleaned)
-    except Exception:  # noqa: BLE001 - any malformed URL is rejected as unsafe
-        return False
-    scheme = parsed.scheme.lower()
-    if scheme in _SAFE_URL_SCHEMES:
-        return True
-    # An empty scheme is only safe for a true path-relative URL with no host.
-    return scheme == "" and not parsed.netloc
+# The URL rule lives in helpers.url_safety (every write path shares it).
+_is_safe_url = is_safe_url
 
 
 # ---------------------------------------------------------------------------

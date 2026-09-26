@@ -278,6 +278,12 @@ class Schedule:
         """True when the recurrence has an end condition (count and/or until)."""
         return self.ends_count is not None or self.ends_until is not None
 
+    @property
+    def is_calendar_kind(self) -> bool:
+        """A fixed calendar (weekdays, nth weekday, day of month, calendar
+        entity) rather than an interval — completions cover occurrences."""
+        return self.kind in _CALENDAR_KINDS
+
     def next_due(
         self,
         *,
@@ -319,6 +325,22 @@ class Schedule:
         if self.kind == KIND_ONE_TIME:
             return result
         result = self._roll_to_season(result)
+        # Calendar kinds: completing or skipping ahead of the date covers that
+        # occurrence — complete()/skip() remember it in ``last_planned_due``.
+        # The next occurrence strictly after the completion day was the very
+        # date just done, so a Monday task completed on Saturday was due again
+        # two days later and overdue on Tuesday (bug audit 2026-09-26). Only
+        # an exact match counts: a stale value (e.g. from a former interval
+        # schedule) never swallows an occurrence.
+        if (
+            self.kind in _CALENDAR_KINDS
+            and result is not None
+            and last_performed is not None
+            and last_planned_due is not None
+            and result == last_planned_due
+            and result > last_performed
+        ):
+            result = self._roll_to_season(self._calendar_occurrence(result, inclusive=False))
 
         # Finite series ends once the next occurrence would fall past until.
         if self.ends_until is not None and result is not None and result > self.ends_until:

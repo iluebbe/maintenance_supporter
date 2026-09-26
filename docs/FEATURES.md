@@ -970,7 +970,11 @@ Full task CRUD from automations, scripts and voice (2.19+): `add_object`,
 response — ids, the task's sensor `entity_id`, status, next due, last
 completion and the live trigger reading with target and unit per task,
 filterable by object and status) join the long-standing `complete` / `skip` / `reset` /
-`export_data`. Household attribution (#128): `complete` takes an optional
+`export_data`. A call made by a person (the service call carries their user)
+follows the panel's rules: creating, editing and deleting need write access
+(admins, or operators when delegation is on) and `export_data` is admin-only;
+`complete` / `skip` / `reset` / `list_tasks` stay open to everyone, and
+automations are not affected. Household attribution (#128): `complete` takes an optional
 `completed_by` **person entity** (defaulting to the calling user), and
 `update_task` can assign or clear the responsible user — see
 [Examples](EXAMPLES.md#attribute-and-assign-chores-from-automations-128).

@@ -1563,6 +1563,69 @@ async def test_edit_trigger_keeps_panel_managed_keys(
     assert tc["trigger_runtime_max_session_seconds"] == 3600
 
 
+async def test_edit_trigger_starts_from_the_task_and_keeps_the_unit(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Bug audit 2026-09-26: the edit form showed "days", the global warning
+    default, "any" and delta off whatever the task had, and saved the flat
+    interval without its unit — normalize_task_storage then kept the stored
+    unit, so "10 days" on a weekly task became 10 weeks."""
+    hass.states.async_set("sensor.odometer", "27000", {"unit_of_measurement": "km"})
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
+    new_data = dict(object_config_entry.data)
+    new_tasks = dict(new_data[CONF_TASKS])
+    task = dict(new_tasks[task_id])
+    for key in ("interval_days", "interval_unit", "schedule_type", "interval_anchor"):
+        task.pop(key, None)
+    task["schedule"] = {"kind": "interval", "every": 10, "unit": "weeks"}
+    task["warning_days"] = 0
+    task["trigger_config"] = {
+        "type": TriggerType.COUNTER,
+        "entity_id": "sensor.odometer",
+        "entity_ids": ["sensor.odometer"],
+        "attribute": None,
+        CONF_TRIGGER_TARGET_VALUE: 15000.0,
+        CONF_TRIGGER_DELTA_MODE: True,
+        "trigger_combinator": "all",
+    }
+    new_tasks[task_id] = task
+    new_data[CONF_TASKS] = new_tasks
+    hass.config_entries.async_update_entry(object_config_entry, data=new_data)
+    await hass.async_block_till_done()
+
+    result, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "edit_trigger"})
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "edit_trigger_proceed"})
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={CONF_TRIGGER_ENTITY: ["sensor.odometer"]})
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={CONF_TRIGGER_ATTRIBUTE: "_state"})
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={CONF_TRIGGER_TYPE: TriggerType.COUNTER})
+    assert result["step_id"] == "opt_trigger_counter"
+    defaults = {str(k): k.default() for k in result["data_schema"].schema if hasattr(k, "default") and k.default is not vol.UNDEFINED}
+    assert defaults["interval_unit"] == "weeks"
+    assert defaults[CONF_TASK_WARNING_DAYS] == 0
+    assert defaults["trigger_combinator"] == "all"
+    assert defaults[CONF_TRIGGER_DELTA_MODE] is True
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TRIGGER_TARGET_VALUE: 15000.0,
+            CONF_TRIGGER_DELTA_MODE: True,
+            "interval_days": 10,
+            "interval_unit": "days",
+            "trigger_combinator": "all",
+            CONF_TASK_WARNING_DAYS: 0,
+        },
+    )
+    assert result["step_id"] == "task_action"
+    saved = object_config_entry.data[CONF_TASKS][task_id]
+    assert saved["schedule"]["every"] == 10 and saved["schedule"].get("unit", "days") == "days", saved.get("schedule")
+    assert saved["warning_days"] == 0
+    assert saved["trigger_config"]["trigger_combinator"] == "all"
+
+
 async def test_remove_trigger_selective_entity_removal(
     hass: HomeAssistant,
     global_config_entry: ConfigEntry,

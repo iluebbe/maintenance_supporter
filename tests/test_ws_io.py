@@ -761,6 +761,10 @@ async def test_yaml_export_import_roundtrip(
     )
     yaml_content = conn.send_result.call_args[0][1]["data"]
     assert "objects:" in yaml_content  # sanity: it really is YAML
+    # Import next to the original: its name must be free (names are unique).
+    hass.config_entries.async_update_entry(
+        object_entry, data={**object_entry.data, "object": {**object_entry.data["object"], "name": "Before the restore"}}
+    )
 
     conn = _mock_connection()
     await call_ws_handler(

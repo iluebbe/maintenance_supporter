@@ -190,6 +190,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         new_data = build_resumed_entry_data(dict(self.entry.data), self._store, today.isoformat())
         self.hass.config_entries.async_update_entry(self.entry, data=new_data)
         await self._store.async_save()
+        # Like the object/resume command: the sensor triggers were not set up
+        # while the object was paused — only a reload wires them (scheduled,
+        # this runs inside the refresh the reload would tear down).
+        self.hass.config_entries.async_schedule_reload(self.entry.entry_id)
         _LOGGER.info(
             "Seasonal pause on '%s' ended (paused_until reached) — resumed",
             obj_data.get("name"),
@@ -785,6 +789,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         if not nm.enabled:
             return
+
+        for task_id, task_result in task_results.items():
+            nm.rearm_left_statuses(self.entry.entry_id, task_id, task_result.get("_status"))
 
         obj_name = self.maintenance_object.name
 
@@ -1501,7 +1508,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._require_active(task_id, merged[task_id], translation_key="task_inactive_postpone")
         task = MaintenanceTask.from_dict(merged[task_id])
         task.due_override = until.isoformat()
-        await self._persist_and_signal_task_change(task_id, task)
+        # Only the due date moves: the sensor triggers keep their progress
+        # (runtime hours, counter baseline) — no reset signal, no cooldown.
+        await self._persist_and_signal_task_change(task_id, task, occurrence_done=False)
         _LOGGER.debug("Occurrence postponed to %s: %s on %s", until, task.name, self.maintenance_object.name)
 
     def _is_inert(self, task_data: dict[str, Any]) -> bool:
@@ -1653,23 +1662,29 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self,
         task_id: str,
         task: MaintenanceTask,
+        *,
+        occurrence_done: bool = True,
     ) -> None:
         """Single source of truth for the post-mutation persistence dance.
 
-        Used by complete/reset/skip — every path that mutates a task's
-        dynamic state (last_performed, history) flows through here so the
-        Store-vs-ConfigEntry split, the recently-completed marker, the
-        dispatcher signal and the refresh request stay in lockstep.
+        Used by complete/reset/skip/postpone — every path that mutates a
+        task's dynamic state (last_performed, history, due_override) flows
+        through here so the Store-vs-ConfigEntry split, the recently-completed
+        marker, the dispatcher signal and the refresh request stay in
+        lockstep. ``occurrence_done=False`` (postpone) only moves the due
+        date: the triggers keep their progress, so neither the reset signal
+        nor the completion marker is sent.
         """
         # Dynamic state only → Store (no ConfigEntry write needed)
         self._persist_dynamic_state(task_id, task)
         await self._store.async_save()  # Flush immediately for user actions
-        self._recently_completed[task_id] = time.monotonic()
-        self._completion_cooldown.discard(task_id)  # complete_maintenance re-adds it
-        async_dispatcher_send(
-            self.hass,
-            SIGNAL_TASK_RESET.format(entry_id=self.entry.entry_id, task_id=task_id),
-        )
+        if occurrence_done:
+            self._recently_completed[task_id] = time.monotonic()
+            self._completion_cooldown.discard(task_id)  # complete_maintenance re-adds it
+            async_dispatcher_send(
+                self.hass,
+                SIGNAL_TASK_RESET.format(entry_id=self.entry.entry_id, task_id=task_id),
+            )
         await self.async_refresh_now()
 
     def _lifecycle_event_payload(

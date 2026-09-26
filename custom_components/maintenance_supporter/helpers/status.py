@@ -24,10 +24,13 @@ from .dates import parse_hhmm
 
 
 def effective_warning_days(warning_days: int, span_days: int | None) -> int:
-    """The warning window, capped at one interval measured in real days
+    """The warning window, capped below one interval measured in real days
     (issue #58: a 6-*month* task must not collapse a 14-day warning to
-    ``min(14, 6)``). ``span_days`` ``None``/0 = no cap (manual, one-off)."""
-    return min(warning_days, span_days) if span_days else warning_days
+    ``min(14, 6)``). The cap is ``span - 1``: a weekly task with the default
+    7-day warning was "due soon" from the day it was completed — for its
+    whole cycle, with a due-soon push right after the completion (bug audit
+    2026-09-26). ``span_days`` ``None``/0 = no cap (manual, one-off)."""
+    return min(warning_days, max(span_days - 1, 0)) if span_days else warning_days
 
 
 def is_past_schedule_time(schedule_time: str | None) -> bool:

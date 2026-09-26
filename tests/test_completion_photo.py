@@ -354,6 +354,7 @@ async def test_export_import_repoints_photos_and_part_docs(hass: HomeAssistant) 
     data = build_export_data(hass)
     obj_export = next(o for o in data["objects"] if o["entry_id"] == obj.entry_id)
     assert {d["id"] for d in obj_export["documents"]} == {photo, legacy, manual["id"]}
+    obj_export["object"]["name"] = "Restored copy"  # object names are unique
 
     conn = _conn()
     await call_ws_handler(ws_import_json, hass, conn, {"id": 1, "type": "x", "json_content": json.dumps(data)})

@@ -210,8 +210,19 @@ class ShoppingListSync:
             existing = mapping.get(key)
             if existing is not None and existing.get("uid") in by_uid:
                 continue
+            # Only an OPEN row: a checked "Pump: Buy filter" (the user's own,
+            # or ours that could not be deleted) was adopted and on the next
+            # pass read as "bought" — restocking a part nobody bought, every
+            # cycle (bug audit 2026-09-26).
             twin = next(
-                (i for i in listed if i.get("uid") and i["uid"] not in owned_uids and i.get("summary") == summary),
+                (
+                    i
+                    for i in listed
+                    if i.get("uid")
+                    and i["uid"] not in owned_uids
+                    and i.get("summary") == summary
+                    and i.get("status") != "completed"
+                ),
                 None,
             )
             if twin is not None:
@@ -242,11 +253,15 @@ class ShoppingListSync:
             # exactly the rows just created, in add order) so a provider that
             # normalises the text still hands us the right uid.
             relisted = await self._get_items(entity) or []
-            unclaimed = [i for i in relisted if i.get("uid") and i["uid"] not in known]
+            unclaimed = [i for i in relisted if i.get("uid") and i["uid"] not in known and i.get("status") != "completed"]
+            # Positional only when it is unambiguous: one row added, one new
+            # open row listed — else a family member's row added meanwhile
+            # could be claimed (and later removed as ours).
+            positional = len(added_keys) == 1 and len(unclaimed) == 1
             for key in added_keys:
                 rec = mapping[key]
                 twin = next((i for i in unclaimed if i.get("summary") == rec["summary"]), None)
-                if twin is None and unclaimed:
+                if twin is None and positional:
                     twin = unclaimed[0]
                 if twin is not None:
                     rec["uid"] = twin["uid"]

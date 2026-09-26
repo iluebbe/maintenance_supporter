@@ -1573,10 +1573,13 @@ async def test_on_complete_action_persists_full_shape(
     )
 
     action = task.get("on_complete_action")
+    # configured_by: the saving user — the action runs with their rights
+    # (bug audit 2026-09-26).
     assert action == {
         "service": "light.turn_on",
         "target": {"entity_id": "light.workshop"},
         "data": {"brightness": 200, "color_name": "green"},
+        "configured_by": "mock-ws-user",
     }
 
 

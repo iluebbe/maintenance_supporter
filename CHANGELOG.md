@@ -72,6 +72,36 @@ All notable changes to Maintenance Supporter are documented in this file.
 ### 🐛 Fixed
 
 - The template gallery said "1 tasks" for single-task templates.
+- **Completing early on a calendar schedule:** a weekly Monday task completed on Saturday was due again two days
+  later and overdue on Tuesday; a "1st of the month" task skipped on the 29th was overdue on the 2nd. Completing or
+  skipping now covers the occurrence that was due; a late completion still leaves the next one due.
+- **Postponing a task reset its sensor progress** — a runtime task at 90 of 100 hours dropped to 0, a counter
+  re-based. Postpone now only moves the due date.
+- **"Notify once" notifications fired once, ever:** after the first *triggered* (or *overdue*) push a task stayed
+  silent until it was completed — a freezer alarm that recovered on its own never alerted again. The notification
+  re-arms when the task leaves the status (with an hour's guard against a sensor flapping around its limit).
+- **The automatic end of a seasonal pause** did not start the sensor triggers again until a restart.
+- **Weekly tasks were "due soon" for their whole cycle** with the default 7-day warning, and sent a due-soon push
+  right after being completed. The warning window is now capped just below one cycle.
+- **Manual seasonal factors** stopped the adaptive analysis after a restart.
+- **Replacing an object under its own name failed** (the name the dialog suggests). Object names are now checked
+  against the objects' current names — a renamed object's old name is free again, and a new object with it no
+  longer fails at the last setup step, losing the tasks just entered.
+- **Editing a trigger in the options dialog** saved "10 days" as 10 weeks on a weekly task and reset the warning
+  days, the trigger/interval combination and the delta mode; the form now starts from the task's values.
+- **Saving the task dialog** while the task was completed elsewhere (NFC, voice, another person) rolled that
+  completion back; the last-performed date and the assignee are only sent when changed in the dialog.
+- **Uploads failed in a tab open for more than 30 minutes** (completion photos, documents, the documents archive):
+  the access token is now renewed first.
+- **An imported history with text durations** (e.g. `"30"`) stopped the object from refreshing; costs and durations
+  are now read defensively and cleaned on import.
+- **Permissions:** the services `add_object`, `add_task`, `update_task`, `delete_task` and `export_data` now hold a
+  calling user to the same rules as the panel (write access, export for admins); automations are unaffected. A
+  completion action runs with the rights of the person who configured it, so it cannot call admin-only services on
+  behalf of an operator.
+- **Shopping list sync** could adopt a checked row with the same text and restock a part nobody bought.
+- **Unsafe links** (`javascript:` and similar) could be stored through the setup and options dialogs and the
+  imports; they are dropped on every path now.
 
 ## [2.92.0] - 2026-09-26
 

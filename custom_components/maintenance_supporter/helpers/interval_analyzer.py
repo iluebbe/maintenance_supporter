@@ -38,6 +38,27 @@ from .history import completed_entries
 from .schedule import read_legacy_fields
 
 
+def month_overrides(raw: Any) -> dict[int, float] | None:
+    """Manual seasonal factors as ``{month 1-12: factor}``.
+
+    Stored with int keys, but the JSON store hands them back as strings
+    after a restart — ``1 <= "7"`` then raised in the analysis (swallowed by
+    the coordinator, so adaptive scheduling silently died for the task; bug
+    audit 2026-09-26). Invalid entries are dropped.
+    """
+    if not isinstance(raw, dict):
+        return None
+    out: dict[int, float] = {}
+    for key, value in raw.items():
+        try:
+            month, factor = int(key), float(value)
+        except (TypeError, ValueError):
+            continue
+        if 1 <= month <= 12 and math.isfinite(factor):
+            out[month] = factor
+    return out or None
+
+
 def hemisphere(hass: Any) -> str:
     """``"south"`` / ``"north"`` from HA's configured latitude — the seasonal
     anchor the adaptive analysis takes. ``None`` (an un-onboarded HA) reads
@@ -189,7 +210,7 @@ class IntervalAnalyzer:
         if recommended is not None and seasonal_enabled:
             intervals_with_months = self._compute_intervals_with_months(history)
             hemisphere = adaptive_config.get("hemisphere", "north")
-            manual_overrides = adaptive_config.get("seasonal_overrides")
+            manual_overrides = month_overrides(adaptive_config.get("seasonal_overrides"))
 
             current_month = adaptive_config.get("_current_month") or dt_util.now().month
 

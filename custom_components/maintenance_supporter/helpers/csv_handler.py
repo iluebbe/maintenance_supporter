@@ -313,10 +313,9 @@ def import_objects_csv(
             task_data["enabled"] = False
         doc_url = (row.get("documentation_url") or "").strip()
         if doc_url:
-            from urllib.parse import urlparse
+            from .url_safety import is_safe_url
 
-            scheme = urlparse(doc_url).scheme.lower()
-            if scheme in ("", "http", "https"):
+            if is_safe_url(doc_url):  # the "//host" form got through the old scheme check
                 task_data["documentation_url"] = doc_url
         custom_icon = (row.get("custom_icon") or "").strip()
         if custom_icon:

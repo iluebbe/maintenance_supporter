@@ -2068,7 +2068,7 @@ def test_is_safe_url_valid() -> None:
 def test_is_safe_url_exception() -> None:
     """Lines 44-45: exception in urlparse returns False."""
     with patch(
-        "urllib.parse.urlparse",
+        "custom_components.maintenance_supporter.helpers.url_safety.urlparse",
         side_effect=ValueError("bad url"),
     ):
         assert _is_safe_url("https://example.com") is False

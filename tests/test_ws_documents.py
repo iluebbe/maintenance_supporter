@@ -205,15 +205,18 @@ async def test_export_import_roundtrips_documents(
     obj_export = next(o for o in data["objects"] if o["entry_id"] == object_entry.entry_id)
     assert sorted(d["kind"] for d in obj_export["documents"]) == ["file", "weblink"]
     file_hash = next(d["hash"] for d in obj_export["documents"] if d["kind"] == "file")
+    # Restored next to the original, so under its own name (object names are
+    # unique — a re-import of the same name is refused).
+    obj_export["object"]["name"] = "Pool Pump (restored)"
 
     conn = _conn()
     await call_ws_handler(ws_import_json, hass, conn, {"id": 1, "type": "x", "json_content": _json.dumps(data)})
     await hass.async_block_till_done()
 
-    # Two "Pool Pump" objects now (original + imported); both carry 2 documents,
-    # and the imported file doc shares the existing blob (same content).
+    # Two pumps now (original + imported); both carry 2 documents, and the
+    # imported file doc shares the existing blob (same content).
     data2 = build_export_data(hass)
-    pumps = [o for o in data2["objects"] if o["object"]["name"] == "Pool Pump"]
+    pumps = [o for o in data2["objects"] if o["object"]["name"] in ("Pool Pump", "Pool Pump (restored)")]
     assert len(pumps) == 2
     assert all(len(o["documents"]) == 2 for o in pumps)
     assert store.blobs[file_hash]["refcount"] == 2
