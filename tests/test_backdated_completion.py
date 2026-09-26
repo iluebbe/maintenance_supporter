@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 
+from freezegun import freeze_time
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import (
@@ -111,8 +112,14 @@ def test_missed_entry_anchors_against_backfill() -> None:
     assert task.last_performed == lp_before
 
 
+@freeze_time("2026-09-26T12:00:00+00:00")
 def test_same_day_backdate_counts_as_latest() -> None:
-    """A timestamped completion on the last_performed day still advances."""
+    """A timestamped completion on the last_performed day still advances.
+
+    Frozen at noon UTC: the suite's time zone may be US/Pacific (set by HA's
+    test fixtures), and "now minus five minutes" run just after local
+    midnight fell on the previous day — red CI on the v2.92.0 release commit.
+    """
     today = dt_util.now()
     task = MaintenanceTask(name="X", interval_days=30, last_performed=today.date().isoformat())
     task.history = []
