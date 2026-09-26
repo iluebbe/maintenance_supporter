@@ -41,6 +41,13 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Home Assistant 2026.9: no more deprecation warning from the battery lifetime table.** Opening the settings read
   the device registry the pre-2026.9 way; HA logged a warning for it and would have stopped answering in 2027.9. It is
   read version-neutrally now.
+- **Importing settings checked only the first invalid field**: a settings file with an invalid *part search* URL
+  (even a `javascript:` one) saved it as-is, and the checks after the first invalid field never ran. Each invalid
+  field is now dropped with a warning and the rest is validated again — the same rules as saving in the panel.
+- **The complete / skip / reset actions accept every entity of a task**: picking a task's *next due* or *days until
+  due* sensor (or one of its buttons) as the target failed with "no task for this entity".
+- **A damaged spare-part record no longer breaks the setup**: a hand-edited entry with a malformed part stopped the
+  sensor platform from loading; such a record is repaired (or dropped) once at start-up with a warning.
 - **Failures that were swallowed silently are logged**: the battery lifetime table, a broken calendar source (once per
   calendar) and the adaptive-interval and sensor-prediction analyses (a warning the first time per task, debug after
   that) — an HA API change there went unnoticed before. Recorder statistics are read through Home Assistant's public
