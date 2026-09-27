@@ -82,6 +82,12 @@ def _tokens(*texts: str | None) -> set[str]:
 # ─── which object a device is ────────────────────────────────────────────
 
 
+def _attr(device: Any, name: str) -> str:
+    """A device attribute that HA 2026.9's sub-devices (ChildDeviceEntry)
+    do not carry — model and manufacturer — read safely."""
+    return str(getattr(device, name, None) or "")
+
+
 def _integration_of(hass: HomeAssistant, device: Any) -> set[str]:
     return {
         e.domain
@@ -108,7 +114,7 @@ def candidate_object(hass: HomeAssistant, device_id: str) -> dict[str, Any] | No
     device = dev_reg.async_get(device_id)
     if device is None:
         return None
-    dev_words = _tokens(device.name_by_user, device.name, device.model, device.manufacturer)
+    dev_words = _tokens(device.name_by_user, device.name, _attr(device, "model"), _attr(device, "manufacturer"))
     dev_domains = _integration_of(hass, device)
     scored: list[tuple[int, str, str, list[str]]] = []
     for entry in get_object_entries(hass):
@@ -123,9 +129,9 @@ def candidate_object(hass: HomeAssistant, device_id: str) -> dict[str, Any] | No
             other = dev_reg.async_get(bound)
             if (
                 other is not None
-                and (device.model or "")
-                and other.model == device.model
-                and other.manufacturer == device.manufacturer
+                and _attr(device, "model")
+                and _attr(other, "model") == _attr(device, "model")
+                and _attr(other, "manufacturer") == _attr(device, "manufacturer")
                 and dev_domains & _integration_of(hass, other)
             ):
                 score, reasons = 3, ["sibling"]
