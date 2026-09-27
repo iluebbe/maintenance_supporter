@@ -2,6 +2,24 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **English where your language was expected** (translation audit): the warranty reminder push was English in
+  16 languages; the generated Maintenance dashboard (its views, the empty state, the KPI line and its editor) was
+  English for everyone; notes the integration writes into a task's history ("Completed from dashboard button",
+  "Sensor trigger activated", "Skipped from notification" …) showed in English in the history, the object history,
+  its search and the printed service record — they are now translated where they are shown, old entries included;
+  refusals in the panel ("Another object already has this name", an archived object, import problems, a task that
+  is archived or paused …) read in your language, with the task's name, instead of an English sentence; two
+  choices in the setup dialog ("From completion date / From planned date", "Finish / Add another condition") and
+  the names and descriptions of our cards and dashboards in Home Assistant's pickers are translated; the new
+  state/province picker names the regions in your language (Flandern, Schottland, Kärnten …); French calendar
+  events said "Calibration" instead of "Étalonnage"; an unset sidebar title follows the server language
+  ("Wartung", "Onderhoud" …). New tests fail the build when a Python text table copies English, when a setup
+  choice has a fixed English label, or when a refusal key or history note is missing its translation.
+
 ## [2.94.0] - 2026-09-27
 
 ### ✨ Added

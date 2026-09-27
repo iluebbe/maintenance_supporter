@@ -1718,6 +1718,18 @@
         "brown": "갈색",
         "blue_grey": "청회색"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "완료일 기준",
+        "planned": "예정일 기준 (밀림 없음)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "완료",
+        "add": "조건 추가"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "“{task_name}”은(는) 건너뛰기가 비활성화되어 있습니다."
+    },
+    "object_name_taken": {
+      "message": "다른 객체가 이미 이 이름을 사용하고 있습니다."
+    },
+    "name_empty": {
+      "message": "이름은 비워 둘 수 없습니다."
+    },
+    "task_not_duplicable": {
+      "message": "예비 부품 구매 작업이나 배터리 플릿 작업은 복제할 수 없습니다."
+    },
+    "fleet_not_duplicable": {
+      "message": "배터리 플릿 객체는 복제할 수 없습니다."
+    },
+    "parts_limit": {
+      "message": "객체 하나에 예비 부품을 최대 {max}개까지 둘 수 있습니다."
+    },
+    "task_limit": {
+      "message": "객체 하나에 작업을 최대 {max}개까지 둘 수 있습니다."
+    },
+    "archived_cannot_pause": {
+      "message": "보관된 객체는 일시 중지할 수 없습니다 — 먼저 복원하세요."
+    },
+    "archived_cannot_replace": {
+      "message": "보관된 객체는 교체할 수 없습니다 — 먼저 복원하세요."
+    },
+    "archived_no_new_tasks": {
+      "message": "보관된 객체에는 새 작업을 추가할 수 없습니다 — 먼저 복원하세요."
+    },
+    "import_not_json_yaml": {
+      "message": "파일이 유효한 JSON 또는 YAML이 아닙니다."
+    },
+    "import_no_objects_list": {
+      "message": "파일에 \"objects\" 목록이 있어야 합니다."
+    },
+    "import_no_objects": {
+      "message": "파일에 객체가 없습니다."
+    },
+    "import_csv_no_objects": {
+      "message": "CSV 파일에 유효한 객체가 없습니다."
+    },
+    "import_too_many": {
+      "message": "파일에 포함된 객체가 {max}개를 초과합니다."
+    },
+    "import_too_large": {
+      "message": "파일이 {limit}보다 큽니다."
+    },
+    "until_in_past": {
+      "message": "종료일은 미래 날짜여야 합니다."
+    },
+    "postpone_too_far": {
+      "message": "새 날짜는 {days}일 이내여야 합니다."
+    },
+    "date_in_future": {
+      "message": "날짜는 미래일 수 없습니다."
+    },
+    "range_end_before_start": {
+      "message": "종료는 시작과 같거나 그 이후여야 합니다."
+    },
+    "notify_not_configured": {
+      "message": "알림이 설정되지 않았습니다 — 먼저 설정에서 알림 서비스를 선택하세요."
+    },
+    "battery_notes_unavailable": {
+      "message": "Battery Notes 통합을 사용할 수 없습니다."
+    },
+    "no_battery_devices": {
+      "message": "배터리 기기를 찾을 수 없습니다."
+    },
+    "fleet_not_set_up": {
+      "message": "배터리 플릿이 아직 설정되지 않았습니다."
+    },
+    "move_same_object": {
+      "message": "작업이 이미 해당 객체에 속해 있습니다."
+    },
+    "move_target_archived": {
+      "message": "대상 객체가 보관되어 있습니다."
+    },
+    "move_part_task": {
+      "message": "예비 부품 구매 작업은 해당 부품에 그대로 남습니다."
+    },
+    "move_fleet_task": {
+      "message": "배터리 플릿 작업은 이동할 수 없습니다."
+    },
+    "move_objects_not_loaded": {
+      "message": "작업을 이동하려면 두 객체가 모두 로드되어 있어야 합니다."
+    },
+    "view_name_empty": {
+      "message": "저장된 보기에는 이름이 필요합니다."
+    },
+    "qr_no_url": {
+      "message": "Home Assistant URL이 설정되어 있지 않습니다 — 설정 → 시스템 → 네트워크에서 외부 또는 내부 URL을 설정하세요."
     }
   },
   "triggers": {

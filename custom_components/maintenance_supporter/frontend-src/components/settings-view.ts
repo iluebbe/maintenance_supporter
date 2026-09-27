@@ -55,6 +55,8 @@ interface SettingsResponse {
     shopping_list_entity?: string;
     panel_enabled: boolean;
     panel_title: string;
+    /** 2.94: the sidebar title an empty field means (server language). */
+    panel_title_default?: string;
     /** Opt-in copy of the shipped Assist sentences into the config dir. */
     install_assist_sentences?: boolean;
     /** #146: household "low" floors (percent) for discovery + battery fleet. */
@@ -1063,7 +1065,7 @@ export class MaintenanceSettingsView extends LitElement {
           <label class="setting-row">
             <span class="setting-label">${t("settings_panel_title", L)}</span>
             <input type="text" .value=${g.panel_title ?? ""}
-              placeholder="Maintenance"
+              placeholder=${g.panel_title_default || "Maintenance"}
               maxlength="50"
               @change=${(e: Event) => this._updateSetting("panel_title", (e.target as HTMLInputElement).value.trim())} />
           </label>

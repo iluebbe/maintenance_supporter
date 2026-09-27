@@ -44,6 +44,7 @@ from ..helpers.qr_generator import (
     generate_qr_svg,
     generate_qr_svg_data_uri,
 )
+from ..helpers.ws_errors import send_translated_error
 from ..websocket.tasks import _check_nfc_tag_duplicate, _validate_trigger_config
 from . import ID_FIELD, _get_object_entries, _load_object_entry, _load_object_task, _merge_global_options
 
@@ -529,7 +530,7 @@ async def ws_get_templates(
 
     result = {
         "categories": {cat_id: {k: v for k, v in cat.items()} for cat_id, cat in TEMPLATE_CATEGORIES.items()},
-        "profile": profile.as_dict(),
+        "profile": profile.as_dict(lang),
         "templates": [
             {
                 "id": t.id,
@@ -652,16 +653,16 @@ async def ws_import_csv(
     csv_content = msg["csv_content"]
     # Guard against oversized payloads (max 1MB / 1000 objects)
     if len(csv_content) > MAX_IMPORT_PAYLOAD_BYTES:
-        connection.send_error(msg["id"], "too_large", "CSV content exceeds 1MB limit")
+        send_translated_error(connection, msg["id"], "too_large", "CSV content exceeds 1MB limit", translation_key="import_too_large", translation_placeholders={"limit": "1 MB"})
         return
 
     objects = import_objects_csv(csv_content, hass=hass)
     if len(objects) > 1000:
-        connection.send_error(msg["id"], "too_many", "CSV contains more than 1000 objects")
+        send_translated_error(connection, msg["id"], "too_many", "CSV contains more than 1000 objects", translation_key="import_too_many", translation_placeholders={"max": "1000"})
         return
 
     if not objects:
-        connection.send_error(msg["id"], "empty_csv", "No valid objects found in CSV")
+        send_translated_error(connection, msg["id"], "empty_csv", "No valid objects found in CSV", translation_key="import_csv_no_objects")
         return
 
     created = []
@@ -906,18 +907,18 @@ async def ws_import_json(
 
     raw = msg["json_content"]
     if len(raw) > MAX_JSON_IMPORT_PAYLOAD_BYTES:
-        connection.send_error(msg["id"], "too_large", "Content exceeds 10MB limit")
+        send_translated_error(connection, msg["id"], "too_large", "Content exceeds 10MB limit", translation_key="import_too_large", translation_placeholders={"limit": "10 MB"})
         return
 
     try:
         data = _parse_structured(raw)
     except ValueError:
-        connection.send_error(msg["id"], "invalid_format", "Content is not valid JSON or YAML")
+        send_translated_error(connection, msg["id"], "invalid_format", "Content is not valid JSON or YAML", translation_key="import_not_json_yaml")
         return
 
     has_settings = isinstance(data, dict) and isinstance(data.get("global_settings"), dict)
     if not isinstance(data, dict) or ("objects" not in data and not has_settings):
-        connection.send_error(msg["id"], "invalid_format", "JSON must contain an 'objects' array")
+        send_translated_error(connection, msg["id"], "invalid_format", "JSON must contain an 'objects' array", translation_key="import_no_objects_list")
         return
 
     # A settings export (see export.build_settings_export) may travel alone or
@@ -928,15 +929,15 @@ async def ws_import_json(
 
     objects = data.get("objects", [])
     if not isinstance(objects, list):
-        connection.send_error(msg["id"], "invalid_format", "'objects' must be an array")
+        send_translated_error(connection, msg["id"], "invalid_format", "'objects' must be an array", translation_key="import_no_objects_list")
         return
 
     if len(objects) > 1000:
-        connection.send_error(msg["id"], "too_many", "JSON contains more than 1000 objects")
+        send_translated_error(connection, msg["id"], "too_many", "JSON contains more than 1000 objects", translation_key="import_too_many", translation_placeholders={"max": "1000"})
         return
 
     if not objects and not settings_applied:
-        connection.send_error(msg["id"], "empty", "No objects found in JSON")
+        send_translated_error(connection, msg["id"], "empty", "No objects found in JSON", translation_key="import_no_objects")
         return
 
     created = []
@@ -1441,7 +1442,7 @@ async def ws_generate_qr(
             url_mode=url_mode,
         )
     except ValueError as err:
-        connection.send_error(msg["id"], "no_url", str(err))
+        send_translated_error(connection, msg["id"], "no_url", str(err), translation_key="qr_no_url")
         return
     from functools import partial
 

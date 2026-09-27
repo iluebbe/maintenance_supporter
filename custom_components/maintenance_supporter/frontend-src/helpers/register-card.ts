@@ -15,6 +15,12 @@ interface CustomCardEntry {
   preview?: boolean;
 }
 
+/** The registered card-picker entries — read (and localized in place) by
+ *  helpers/picker-i18n.ts; this module stays the only one touching the list. */
+export function registeredCustomCards(): CustomCardEntry[] {
+  return (window as unknown as { customCards?: CustomCardEntry[] }).customCards ?? [];
+}
+
 export function registerCustomCard(entry: CustomCardEntry): void {
   const w = window as unknown as { customCards?: CustomCardEntry[] };
   w.customCards = w.customCards || [];

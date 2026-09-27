@@ -29,7 +29,7 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MAX_PANEL_TITLE_LENGTH,
-    PANEL_TITLE,
+    PANEL_TITLES,
     THRESHOLD_PERCENT_RANGE,
 )
 from .settings_registry import setting_default
@@ -103,16 +103,22 @@ def get_panel_title(hass: HomeAssistant) -> str:
 
     Reads the user-set `panel_title` option from the global config entry so a
     user can rename the sidebar entry (e.g. to avoid clashing with HA's built-in
-    "Maintenance" dashboard, 2026.5+). Falls back to the default `PANEL_TITLE`
-    when unset, blank, or not a string. Trimmed and length-capped.
+    "Maintenance" dashboard, 2026.5+). Falls back to the default title in the
+    server's language when unset, blank, or not a string. Trimmed and
+    length-capped.
     """
     raw = get_global_options(hass).get(CONF_PANEL_TITLE)
-    if not isinstance(raw, str):
-        return PANEL_TITLE
-    title = raw.strip()
+    title = raw.strip() if isinstance(raw, str) else ""
     if not title:
-        return PANEL_TITLE
+        return default_panel_title(hass)
     return title[:MAX_PANEL_TITLE_LENGTH]
+
+
+def default_panel_title(hass: HomeAssistant) -> str:
+    """The sidebar title an unset ``panel_title`` means, in the server's language."""
+    from .i18n import normalize_language
+
+    return PANEL_TITLES.get(normalize_language(hass), PANEL_TITLES["en"])
 
 
 def _percent_option(hass: HomeAssistant, key: str, default: int) -> int:

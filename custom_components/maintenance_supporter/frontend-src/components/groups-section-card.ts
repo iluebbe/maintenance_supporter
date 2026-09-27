@@ -323,6 +323,6 @@ if (!customElements.get("maintenance-groups-section-card")) {
 registerCustomCard({
   type: "maintenance-groups-section-card",
   name: "Maintenance Supporter — Groups",
-  description: "Inline group CRUD",
+  description: "Create, rename and delete task groups right on the dashboard.",
   preview: false,
 });

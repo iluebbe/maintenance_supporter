@@ -34,6 +34,7 @@ from ..const import (
     MAX_NFC_TAG_LENGTH,
     MAX_NOTIFY_ICON_LENGTH,
     MAX_READING_UNIT_LENGTH,
+    MAX_TASKS_PER_OBJECT,
     MAX_TEXT_LENGTH,
     MAX_TYPE_LENGTH,
     MAX_URL_LENGTH,
@@ -62,6 +63,7 @@ from ..helpers.task_fields import (
     TASK_PRIORITIES,
     WARNING_DAYS_RANGE,
 )
+from ..helpers.ws_errors import send_translated_error
 from . import (
     ID_FIELD,
     _load_object_entry,
@@ -144,7 +146,7 @@ def _refuse_archived_object(connection: websocket_api.ActiveConnection, msg: dic
     """
     if not (entry.data.get(CONF_OBJECT) or {}).get("archived_at"):
         return False
-    connection.send_error(msg["id"], "archived", "An archived object cannot get new tasks")
+    send_translated_error(connection, msg["id"], "archived", "An archived object cannot get new tasks", translation_key="archived_no_new_tasks")
     return True
 
 
@@ -400,7 +402,7 @@ async def ws_create_task(
     task_id = uuid4().hex
     name = msg["name"].strip()
     if not name:
-        connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
+        send_translated_error(connection, msg["id"], "invalid_input", "Name must not be empty", translation_key="name_empty")
         return
     if not _valid_due_date(connection, msg):
         return
@@ -485,7 +487,7 @@ async def ws_create_task(
         task_data["notes"] = msg["notes"]
     if msg.get("documentation_url") is not None:
         if not _is_safe_url(msg["documentation_url"]):
-            connection.send_error(msg["id"], "invalid_url", "Only http/https URLs are allowed")
+            send_translated_error(connection, msg["id"], "invalid_url", "Only http/https URLs are allowed", translation_key="unsafe_url")
             return
         task_data["documentation_url"] = msg["documentation_url"]
     if msg.get("responsible_user_id") is not None:
@@ -604,7 +606,7 @@ async def ws_create_task(
             history=initial_history,
         )
     except ValueError as err:
-        connection.send_error(msg["id"], "limit_reached", str(err))
+        send_translated_error(connection, msg["id"], "limit_reached", str(err), translation_key="task_limit", translation_placeholders={"max": str(MAX_TASKS_PER_OBJECT)})
         return
 
     result = {"task_id": task_id}
@@ -649,7 +651,7 @@ async def ws_update_task(
     if "name" in msg:
         msg["name"] = msg["name"].strip()
         if not msg["name"]:
-            connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
+            send_translated_error(connection, msg["id"], "invalid_input", "Name must not be empty", translation_key="name_empty")
             return
 
     # Battery Fleet guard (issue #106): the single fleet task without its
@@ -701,7 +703,7 @@ async def ws_update_task(
 
     # Validate documentation_url if provided
     if "documentation_url" in msg and not _is_safe_url(msg["documentation_url"]):
-        connection.send_error(msg["id"], "invalid_url", "Only http/https URLs are allowed")
+        send_translated_error(connection, msg["id"], "invalid_url", "Only http/https URLs are allowed", translation_key="unsafe_url")
         return
 
     # D#183: mirror targets — same sanitize + own-platform refusal as create;
@@ -1069,7 +1071,7 @@ async def ws_duplicate_task(
     from ..helpers.parts import PART_REF_FIELD
 
     if source.get(PART_REF_FIELD) or source.get(BATTERY_FLEET_TASK_FLAG):
-        connection.send_error(msg["id"], "invalid_input", "A spare-part buy task or the battery fleet task cannot be duplicated")
+        send_translated_error(connection, msg["id"], "invalid_input", "A spare-part buy task or the battery fleet task cannot be duplicated", translation_key="task_not_duplicable")
         return
 
     new_task = deepcopy(dict(source))
@@ -1113,10 +1115,10 @@ async def ws_move_task(
     if target is None:
         return
     if target.entry_id == entry.entry_id:
-        connection.send_error(msg["id"], "invalid_target", "The task already belongs to that object")
+        send_translated_error(connection, msg["id"], "invalid_target", "The task already belongs to that object", translation_key="move_same_object")
         return
     if (target.data.get(CONF_OBJECT) or {}).get("archived_at"):
-        connection.send_error(msg["id"], "invalid_target", "The target object is archived")
+        send_translated_error(connection, msg["id"], "invalid_target", "The target object is archived", translation_key="move_target_archived")
         return
     from .tasks_persist import TaskMoveRefused, async_move_task
 
@@ -1124,10 +1126,10 @@ async def ws_move_task(
         await async_move_task(hass, entry, target, msg["task_id"])
     except TaskMoveRefused as err:
         # task_not_movable / object_not_loaded — raised before anything changed.
-        connection.send_error(msg["id"], err.code, str(err))
+        send_translated_error(connection, msg["id"], err.code, str(err), translation_key=err.translation_key)
         return
     except ValueError as err:
-        connection.send_error(msg["id"], "limit_reached", str(err))
+        send_translated_error(connection, msg["id"], "limit_reached", str(err), translation_key="task_limit", translation_placeholders={"max": str(MAX_TASKS_PER_OBJECT)})
         return
     await hass.config_entries.async_reload(entry.entry_id)
     await hass.config_entries.async_reload(target.entry_id)

@@ -1718,6 +1718,18 @@
         "brown": "Braun",
         "blue_grey": "Blaugrau"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "Ab Erledigung",
+        "planned": "Ab geplantem Datum (kein Drift)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Fertigstellen",
+        "add": "Bedingung hinzufügen"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "Überspringen ist für „{task_name}“ deaktiviert."
+    },
+    "object_name_taken": {
+      "message": "Ein anderes Objekt trägt bereits diesen Namen."
+    },
+    "name_empty": {
+      "message": "Der Name darf nicht leer sein."
+    },
+    "task_not_duplicable": {
+      "message": "Die Kauf-Aufgabe eines Ersatzteils oder die Aufgabe der Batterie-Flotte kann nicht dupliziert werden."
+    },
+    "fleet_not_duplicable": {
+      "message": "Das Objekt der Batterie-Flotte kann nicht dupliziert werden."
+    },
+    "parts_limit": {
+      "message": "Ein Objekt kann höchstens {max} Ersatzteile haben."
+    },
+    "task_limit": {
+      "message": "Ein Objekt kann höchstens {max} Aufgaben haben."
+    },
+    "archived_cannot_pause": {
+      "message": "Ein archiviertes Objekt kann nicht pausiert werden — bitte zuerst wiederherstellen."
+    },
+    "archived_cannot_replace": {
+      "message": "Ein archiviertes Objekt kann nicht ersetzt werden — bitte zuerst wiederherstellen."
+    },
+    "archived_no_new_tasks": {
+      "message": "Ein archiviertes Objekt kann keine neuen Aufgaben erhalten — bitte zuerst wiederherstellen."
+    },
+    "import_not_json_yaml": {
+      "message": "Die Datei ist kein gültiges JSON oder YAML."
+    },
+    "import_no_objects_list": {
+      "message": "Die Datei muss eine Liste \"objects\" enthalten."
+    },
+    "import_no_objects": {
+      "message": "Die Datei enthält keine Objekte."
+    },
+    "import_csv_no_objects": {
+      "message": "Die CSV-Datei enthält keine gültigen Objekte."
+    },
+    "import_too_many": {
+      "message": "Die Datei enthält mehr als {max} Objekte."
+    },
+    "import_too_large": {
+      "message": "Die Datei ist größer als {limit}."
+    },
+    "until_in_past": {
+      "message": "Das Enddatum muss in der Zukunft liegen."
+    },
+    "postpone_too_far": {
+      "message": "Das neue Datum muss innerhalb von {days} Tagen liegen."
+    },
+    "date_in_future": {
+      "message": "Das Datum darf nicht in der Zukunft liegen."
+    },
+    "range_end_before_start": {
+      "message": "Das Ende muss am oder nach dem Beginn liegen."
+    },
+    "notify_not_configured": {
+      "message": "Benachrichtigungen sind nicht eingerichtet — bitte zuerst in den Einstellungen einen Benachrichtigungsdienst wählen."
+    },
+    "battery_notes_unavailable": {
+      "message": "Die Integration Battery Notes ist nicht verfügbar."
+    },
+    "no_battery_devices": {
+      "message": "Es wurden keine Geräte mit Batterien gefunden."
+    },
+    "fleet_not_set_up": {
+      "message": "Die Batterie-Flotte ist noch nicht eingerichtet."
+    },
+    "move_same_object": {
+      "message": "Die Aufgabe gehört bereits zu diesem Objekt."
+    },
+    "move_target_archived": {
+      "message": "Das Zielobjekt ist archiviert."
+    },
+    "move_part_task": {
+      "message": "Die Kauf-Aufgabe eines Ersatzteils bleibt bei ihrem Ersatzteil."
+    },
+    "move_fleet_task": {
+      "message": "Die Aufgabe der Batterie-Flotte kann nicht verschoben werden."
+    },
+    "move_objects_not_loaded": {
+      "message": "Zum Verschieben einer Aufgabe müssen beide Objekte geladen sein."
+    },
+    "view_name_empty": {
+      "message": "Eine gespeicherte Ansicht braucht einen Namen."
+    },
+    "qr_no_url": {
+      "message": "Keine Home-Assistant-URL konfiguriert — bitte unter Einstellungen → System → Netzwerk eine externe oder interne URL setzen."
     }
   },
   "triggers": {

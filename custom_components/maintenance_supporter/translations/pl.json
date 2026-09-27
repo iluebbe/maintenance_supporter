@@ -1718,6 +1718,18 @@
         "brown": "Brązowy",
         "blue_grey": "Niebieskoszary"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "Od daty wykonania",
+        "planned": "Od daty planowanej (bez przesunięć)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Zakończ",
+        "add": "Dodaj warunek"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "Pomijanie jest wyłączone dla „{task_name}”."
+    },
+    "object_name_taken": {
+      "message": "Inny obiekt ma już tę nazwę."
+    },
+    "name_empty": {
+      "message": "Nazwa nie może być pusta."
+    },
+    "task_not_duplicable": {
+      "message": "Zadania zakupu części zamiennej ani zadania floty baterii nie można zduplikować."
+    },
+    "fleet_not_duplicable": {
+      "message": "Obiektu floty baterii nie można zduplikować."
+    },
+    "parts_limit": {
+      "message": "Obiekt może mieć najwyżej {max} części zamiennych."
+    },
+    "task_limit": {
+      "message": "Obiekt może mieć najwyżej {max} zadań."
+    },
+    "archived_cannot_pause": {
+      "message": "Zarchiwizowanego obiektu nie można wstrzymać — najpierw go przywróć."
+    },
+    "archived_cannot_replace": {
+      "message": "Zarchiwizowanego obiektu nie można zastąpić — najpierw go przywróć."
+    },
+    "archived_no_new_tasks": {
+      "message": "Do zarchiwizowanego obiektu nie można dodawać nowych zadań — najpierw go przywróć."
+    },
+    "import_not_json_yaml": {
+      "message": "Plik nie zawiera prawidłowego JSON ani YAML."
+    },
+    "import_no_objects_list": {
+      "message": "Plik musi zawierać listę \"objects\"."
+    },
+    "import_no_objects": {
+      "message": "Plik nie zawiera żadnych obiektów."
+    },
+    "import_csv_no_objects": {
+      "message": "Plik CSV nie zawiera żadnych prawidłowych obiektów."
+    },
+    "import_too_many": {
+      "message": "Plik zawiera więcej niż {max} obiektów."
+    },
+    "import_too_large": {
+      "message": "Plik jest większy niż {limit}."
+    },
+    "until_in_past": {
+      "message": "Data końcowa musi być w przyszłości."
+    },
+    "postpone_too_far": {
+      "message": "Nowa data musi przypadać w ciągu {days} dni."
+    },
+    "date_in_future": {
+      "message": "Data nie może być w przyszłości."
+    },
+    "range_end_before_start": {
+      "message": "Koniec nie może być wcześniejszy niż początek."
+    },
+    "notify_not_configured": {
+      "message": "Powiadomienia nie są skonfigurowane — najpierw wybierz usługę powiadomień w ustawieniach."
+    },
+    "battery_notes_unavailable": {
+      "message": "Integracja Battery Notes jest niedostępna."
+    },
+    "no_battery_devices": {
+      "message": "Nie znaleziono urządzeń z bateriami."
+    },
+    "fleet_not_set_up": {
+      "message": "Flota baterii nie jest jeszcze skonfigurowana."
+    },
+    "move_same_object": {
+      "message": "Zadanie już należy do tego obiektu."
+    },
+    "move_target_archived": {
+      "message": "Obiekt docelowy jest zarchiwizowany."
+    },
+    "move_part_task": {
+      "message": "Zadanie zakupu części zamiennej pozostaje przy swojej części."
+    },
+    "move_fleet_task": {
+      "message": "Zadania floty baterii nie można przenieść."
+    },
+    "move_objects_not_loaded": {
+      "message": "Aby przenieść zadanie, oba obiekty muszą być wczytane."
+    },
+    "view_name_empty": {
+      "message": "Zapisany widok musi mieć nazwę."
+    },
+    "qr_no_url": {
+      "message": "Nie skonfigurowano adresu URL Home Assistant — ustaw zewnętrzny lub wewnętrzny URL w Ustawienia → System → Sieć."
     }
   },
   "triggers": {

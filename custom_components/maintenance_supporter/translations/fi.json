@@ -1718,6 +1718,18 @@
         "brown": "Ruskea",
         "blue_grey": "Siniharmaa"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "Suorituspäivästä",
+        "planned": "Suunnitellusta päivästä (ei poikkeamaa)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Valmis",
+        "add": "Lisää ehto"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "Ohittaminen on poistettu käytöstä tehtävältä ”{task_name}”."
+    },
+    "object_name_taken": {
+      "message": "Toisella kohteella on jo tämä nimi."
+    },
+    "name_empty": {
+      "message": "Nimi ei voi olla tyhjä."
+    },
+    "task_not_duplicable": {
+      "message": "Varaosan ostotehtävää tai paristokannan tehtävää ei voi monistaa."
+    },
+    "fleet_not_duplicable": {
+      "message": "Paristokannan kohdetta ei voi monistaa."
+    },
+    "parts_limit": {
+      "message": "Kohteella voi olla enintään {max} varaosaa."
+    },
+    "task_limit": {
+      "message": "Kohteella voi olla enintään {max} tehtävää."
+    },
+    "archived_cannot_pause": {
+      "message": "Arkistoitua kohdetta ei voi keskeyttää — palauta se ensin."
+    },
+    "archived_cannot_replace": {
+      "message": "Arkistoitua kohdetta ei voi korvata — palauta se ensin."
+    },
+    "archived_no_new_tasks": {
+      "message": "Arkistoidulle kohteelle ei voi lisätä uusia tehtäviä — palauta se ensin."
+    },
+    "import_not_json_yaml": {
+      "message": "Tiedosto ei ole kelvollista JSONia tai YAMLia."
+    },
+    "import_no_objects_list": {
+      "message": "Tiedostossa on oltava \"objects\"-luettelo."
+    },
+    "import_no_objects": {
+      "message": "Tiedostossa ei ole kohteita."
+    },
+    "import_csv_no_objects": {
+      "message": "CSV-tiedostossa ei ole kelvollisia kohteita."
+    },
+    "import_too_many": {
+      "message": "Tiedostossa on yli {max} kohdetta."
+    },
+    "import_too_large": {
+      "message": "Tiedosto on suurempi kuin {limit}."
+    },
+    "until_in_past": {
+      "message": "Päättymispäivän on oltava tulevaisuudessa."
+    },
+    "postpone_too_far": {
+      "message": "Uuden päivämäärän on oltava {days} päivän sisällä."
+    },
+    "date_in_future": {
+      "message": "Päivämäärä ei voi olla tulevaisuudessa."
+    },
+    "range_end_before_start": {
+      "message": "Loppu ei voi olla ennen alkua."
+    },
+    "notify_not_configured": {
+      "message": "Ilmoituksia ei ole määritetty — valitse ensin ilmoituspalvelu asetuksista."
+    },
+    "battery_notes_unavailable": {
+      "message": "Battery Notes -integraatio ei ole käytettävissä."
+    },
+    "no_battery_devices": {
+      "message": "Paristollisia laitteita ei löytynyt."
+    },
+    "fleet_not_set_up": {
+      "message": "Paristokantaa ei ole vielä määritetty."
+    },
+    "move_same_object": {
+      "message": "Tehtävä kuuluu jo kyseiseen kohteeseen."
+    },
+    "move_target_archived": {
+      "message": "Valittu kohde on arkistoitu."
+    },
+    "move_part_task": {
+      "message": "Varaosan ostotehtävä pysyy varaosansa yhteydessä."
+    },
+    "move_fleet_task": {
+      "message": "Paristokannan tehtävää ei voi siirtää."
+    },
+    "move_objects_not_loaded": {
+      "message": "Molempien kohteiden on oltava ladattuina, jotta tehtävän voi siirtää."
+    },
+    "view_name_empty": {
+      "message": "Tallennettu näkymä tarvitsee nimen."
+    },
+    "qr_no_url": {
+      "message": "Home Assistantin URL-osoitetta ei ole määritetty — aseta ulkoinen tai sisäinen URL kohdassa Asetukset → Järjestelmä → Verkko."
     }
   },
   "triggers": {

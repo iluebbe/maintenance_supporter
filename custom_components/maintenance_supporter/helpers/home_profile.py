@@ -20,7 +20,14 @@ from homeassistant.core import HomeAssistant
 
 from ..const import CONF_HOME_REGION, CONF_HOME_TYPE, DOMAIN, HOME_REGION_AUTO, HOME_TYPES
 from .climate import TRAIT_FREEZE, TRAIT_TERMITES, TRAIT_WILDFIRE, ClimateInfo, describe, load_grids
-from .region import RegionGrid, load_region_grid, load_region_names, regions_of
+from .region import (
+    RegionGrid,
+    load_region_grid,
+    load_region_name_translations,
+    load_region_names,
+    localize_region_names,
+    regions_of,
+)
 
 DWELLING_HOUSE = "house"
 DWELLING_APARTMENT = "apartment"
@@ -253,6 +260,13 @@ class HomeProfile:
     region_detected: str | None = None
     region_source: str = "auto"  # "setting" | "auto"
     region_names: Mapping[str, str] = field(default_factory=dict)
+    region_translations: Mapping[str, Mapping[str, str]] = field(default_factory=dict)
+
+    def region_names_in(self, lang: str) -> dict[str, str]:
+        """Every covered region's name in ``lang`` (English fallback)."""
+        return localize_region_names(
+            dict(self.region_names), {k: dict(v) for k, v in self.region_translations.items()}, lang
+        )
 
     @property
     def traits(self) -> frozenset[str]:
@@ -285,7 +299,8 @@ class HomeProfile:
     def has_winter(self) -> bool:
         return self.climate.has_winter if self.climate else True
 
-    def as_dict(self) -> dict[str, Any]:
+    def as_dict(self, lang: str = "en") -> dict[str, Any]:
+        names = self.region_names_in(lang)
         return {
             "dwelling": self.dwelling,
             "dwelling_detected": self.dwelling_detected,
@@ -297,11 +312,11 @@ class HomeProfile:
             "traits": sorted(self.traits),
             "features": sorted(self.features),
             "region": self.region,
-            "region_name": self.region_names.get(self.region or ""),
+            "region_name": names.get(self.region or ""),
             "region_detected": self.region_detected,
-            "region_detected_name": self.region_names.get(self.region_detected or ""),
+            "region_detected_name": names.get(self.region_detected or ""),
             "region_source": self.region_source,
-            "regions": regions_of(self.country, dict(self.region_names)),
+            "regions": regions_of(self.country, names),
         }
 
 
@@ -325,6 +340,7 @@ class HomeRegion:
     detected: str | None
     source: str  # "setting" | "auto"
     names: Mapping[str, str]
+    translations: Mapping[str, Mapping[str, str]] = field(default_factory=dict)
 
 
 async def async_home_region(hass: HomeAssistant, country: str | None) -> HomeRegion:
@@ -340,7 +356,9 @@ async def async_home_region(hass: HomeAssistant, country: str | None) -> HomeReg
             cache["names"] = await hass.async_add_executor_job(load_region_names)
         except (OSError, ValueError, KeyError, zlib.error):
             cache["names"] = {}
+        cache["translations"] = await hass.async_add_executor_job(load_region_name_translations)
     names: dict[str, str] = cache["names"]
+    translations: dict[str, dict[str, str]] = cache.get("translations", {})
     if country and country not in cache:
         try:
             cache[country] = await hass.async_add_executor_job(load_region_grid, country)
@@ -351,8 +369,8 @@ async def async_home_region(hass: HomeAssistant, country: str | None) -> HomeReg
     detected = grid.at(*location) if grid and location else None
     setting = str(global_option(hass, CONF_HOME_REGION) or HOME_REGION_AUTO)
     if setting in names and country and setting.startswith(f"{country}-"):
-        return HomeRegion(setting, detected, "setting", names)
-    return HomeRegion(detected, detected, "auto", names)
+        return HomeRegion(setting, detected, "setting", names, translations)
+    return HomeRegion(detected, detected, "auto", names, translations)
 
 
 async def async_home_place(hass: HomeAssistant) -> tuple[str | None, str | None]:
@@ -384,4 +402,5 @@ async def async_home_profile(hass: HomeAssistant) -> HomeProfile:
         region_detected=region.detected,
         region_source=region.source,
         region_names=region.names,
+        region_translations=region.translations,
     )

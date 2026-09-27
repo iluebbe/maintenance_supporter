@@ -37,6 +37,7 @@ from ..helpers.battery_fleet_setup import (
     set_track_self_charging,
 )
 from ..helpers.permissions import require_write
+from ..helpers.ws_errors import send_translated_error
 
 
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/battery_fleet/overview"})
@@ -141,7 +142,7 @@ async def ws_battery_fleet_history(hass: HomeAssistant, connection: websocket_ap
 async def ws_battery_fleet_setup(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
     """Create (or reconcile) the Battery Fleet object + type-parts + task."""
     if not has_batteries(hass):
-        connection.send_error(msg["id"], "not_available", "No battery devices found")
+        send_translated_error(connection, msg["id"], "not_available", "No battery devices found", translation_key="no_battery_devices")
         return
     result = await async_setup_battery_fleet(hass, language=msg.get("language"))
     connection.send_result(msg["id"], result)
@@ -161,7 +162,7 @@ async def ws_battery_fleet_set_excluded(
 ) -> None:
     """Manually exclude a battery from the fleet (or take it back in) — #107."""
     if not set_battery_excluded(hass, msg["entity_id"], msg["excluded"]):
-        connection.send_error(msg["id"], "not_configured", "Battery Fleet is not set up")
+        send_translated_error(connection, msg["id"], "not_configured", "Battery Fleet is not set up", translation_key="fleet_not_set_up")
         return
     connection.send_result(msg["id"], {"success": True})
 
@@ -180,7 +181,7 @@ async def ws_battery_fleet_set_included(
 ) -> None:
     """Manually ADD a battery the discovery heuristics miss (#135)."""
     if not set_battery_included(hass, msg["entity_id"], msg["included"]):
-        connection.send_error(msg["id"], "not_configured", "Battery Fleet is not set up")
+        send_translated_error(connection, msg["id"], "not_configured", "Battery Fleet is not set up", translation_key="fleet_not_set_up")
         return
     connection.send_result(msg["id"], {"success": True})
 
@@ -198,7 +199,7 @@ async def ws_battery_fleet_set_track_self_charging(
 ) -> None:
     """Fleet-wide opt-in: keep self-charging devices in the roster (#135)."""
     if not set_track_self_charging(hass, msg["enabled"]):
-        connection.send_error(msg["id"], "not_configured", "Battery Fleet is not set up")
+        send_translated_error(connection, msg["id"], "not_configured", "Battery Fleet is not set up", translation_key="fleet_not_set_up")
         return
     connection.send_result(msg["id"], {"success": True})
 
@@ -216,7 +217,7 @@ async def ws_battery_fleet_set_due_without_sensor(
 ) -> None:
     """Fleet-wide option: a passed forecast on a sensorless note is due (D#162)."""
     if not set_due_without_sensor(hass, msg["enabled"]):
-        connection.send_error(msg["id"], "not_configured", "Battery Fleet is not set up")
+        send_translated_error(connection, msg["id"], "not_configured", "Battery Fleet is not set up", translation_key="fleet_not_set_up")
         return
     connection.send_result(msg["id"], {"success": True})
 
@@ -265,6 +266,6 @@ async def ws_battery_fleet_record_replacement(
         elif code == "invalid_date":
             connection.send_error(msg["id"], "invalid_date", "replaced_at is not an ISO datetime")
         else:
-            connection.send_error(msg["id"], "not_available", "Battery Notes is not available")
+            send_translated_error(connection, msg["id"], "not_available", "Battery Notes is not available", translation_key="battery_notes_unavailable")
         return
     connection.send_result(msg["id"], result)

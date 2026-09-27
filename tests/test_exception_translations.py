@@ -11,7 +11,10 @@ tripwires close the gap between the CODE and strings.json:
 * no new user-facing raise sneaks in without a translation key — the only
   exceptions are internal codes the WebSocket layer maps to its own error
   codes (listed below, each with the reason);
-* every ``exceptions`` key in strings.json is still used somewhere.
+* every ``exceptions`` key in strings.json is still used somewhere;
+* the same holds for the WebSocket refusals that carry a key
+  (``helpers/ws_errors.send_translated_error``, the task/move refusals) —
+  the panel shows them in the user's language (i18n audit 2026-09-27).
 """
 
 from __future__ import annotations
@@ -65,6 +68,24 @@ def _raises() -> list[tuple[str, int, str, dict[str, ast.expr], ast.Call]]:
     return out
 
 
+def _ws_refusals() -> list[tuple[str, int, dict[str, ast.expr]]]:
+    """``send_translated_error(...)`` calls and ``TaskMoveRefused(code, msg, key)``."""
+    out = []
+    for path in sorted(COMPONENT.rglob("*.py")):
+        rel = path.relative_to(COMPONENT).as_posix()
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if not isinstance(node, ast.Call):
+                continue
+            fn = node.func
+            name = fn.id if isinstance(fn, ast.Name) else fn.attr if isinstance(fn, ast.Attribute) else ""
+            kws = {k.arg: k.value for k in node.keywords if k.arg}
+            if name == "send_translated_error":
+                out.append((rel, node.lineno, kws))
+            elif name == "TaskMoveRefused" and len(node.args) == 3:
+                out.append((rel, node.lineno, {"translation_key": node.args[2]}))
+    return out
+
+
 def _message_prefix(call: ast.Call) -> str:
     if not call.args:
         return ""
@@ -111,12 +132,29 @@ def test_every_raised_translation_key_exists_with_its_placeholders() -> None:
     for key in RUNTIME_KEYS:
         if key not in exceptions:
             problems.append(f"runtime key {key!r} missing in strings.json exceptions")
+    for rel, line, kws in _ws_refusals():
+        key_node = kws.get("translation_key")
+        if not isinstance(key_node, ast.Constant):
+            continue  # forwarded from a raised exception (checked above)
+        key = key_node.value
+        if key not in exceptions:
+            problems.append(f"{rel}:{line} ws key {key!r} missing in strings.json exceptions")
+            continue
+        wanted = set(re.findall(r"{(\w+)}", exceptions[key]))
+        ph = kws.get("translation_placeholders")
+        given = {k.value for k in ph.keys if isinstance(k, ast.Constant)} if isinstance(ph, ast.Dict) else set()
+        if wanted != given:
+            problems.append(f"{rel}:{line} ws key {key!r}: message wants {sorted(wanted)}, code passes {sorted(given)}")
     assert not problems, "\n".join(problems)
 
 
 def test_every_exception_string_is_used() -> None:
     used = set(RUNTIME_KEYS)
     for _rel, _line, _name, kws, _call in _raises():
+        node = kws.get("translation_key")
+        if isinstance(node, ast.Constant):
+            used.add(node.value)
+    for _rel, _line, kws in _ws_refusals():
         node = kws.get("translation_key")
         if isinstance(node, ast.Constant):
             used.add(node.value)

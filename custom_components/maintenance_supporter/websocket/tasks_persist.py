@@ -243,9 +243,10 @@ class TaskMoveRefused(ValueError):
     trigger state).
     """
 
-    def __init__(self, code: str, message: str) -> None:
+    def __init__(self, code: str, message: str, translation_key: str) -> None:
         super().__init__(message)
         self.code = code
+        self.translation_key = translation_key
 
 
 def _stamp_part_links(links: Any, entry_id: str) -> Any:
@@ -293,9 +294,9 @@ async def async_move_task(
     # A buy task follows its spare part and the fleet task IS the battery
     # fleet — neither can live on another object (bug audit 2026-09-12).
     if task_data.get(PART_REF_FIELD):
-        raise TaskMoveRefused("task_not_movable", "A spare-part buy task stays with its part")
+        raise TaskMoveRefused("task_not_movable", "A spare-part buy task stays with its part", "move_part_task")
     if task_data.get(BATTERY_FLEET_TASK_FLAG):
-        raise TaskMoveRefused("task_not_movable", "The battery fleet task cannot be moved")
+        raise TaskMoveRefused("task_not_movable", "The battery fleet task cannot be moved", "move_fleet_task")
 
     # Both Stores must be loaded (entry disabled / setup-retry / mid-reload
     # = no runtime_data): the config would move while history, readings and
@@ -303,7 +304,7 @@ async def async_move_task(
     src_store = get_store(hass, source.entry_id)
     tgt_store = get_store(hass, target.entry_id)
     if src_store is None or tgt_store is None:
-        raise TaskMoveRefused("object_not_loaded", "Both objects must be loaded to move a task")
+        raise TaskMoveRefused("object_not_loaded", "Both objects must be loaded to move a task", "move_objects_not_loaded")
 
     task_data.pop("ref_no", None)
     # The task now belongs to the target object — like the duplicate /

@@ -28,6 +28,7 @@ import {
 } from "../helpers/service-record";
 import { openHtmlInNewTab, preopenTab, signDocumentPath } from "../helpers/document-url";
 import { objectRef, taskRef } from "../helpers/reference";
+import { historyNoteText } from "../helpers/history-note";
 import { docDisplayName } from "../helpers/document-categories";
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import "./ms-date-field";
@@ -280,6 +281,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
     const printable = filtered.map((e) => ({
       ...e,
       completedBy: e.completedBy ? this.userName(e.completedBy) : null,
+      notes: e.notes ? historyNoteText(e.notes, L) : null,
     }));
     const htmlDoc = buildServiceRecordHtml(
       o,
@@ -406,7 +408,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
                       ${e.cost != null ? html`<span>${formatCost(e.cost, this.currencySymbol, L)}</span>` : nothing}
                       ${e.duration != null ? html`<span>${formatDuration(e.duration, L)}</span>` : nothing}
                     </span>
-                    ${e.notes ? html`<span class="notes" title=${e.notes}>${e.notes}</span>` : nothing}
+                    ${e.notes ? html`<span class="notes" title=${historyNoteText(e.notes, L)}>${historyNoteText(e.notes, L)}</span>` : nothing}
                   </div>
                 `)}
               </div>

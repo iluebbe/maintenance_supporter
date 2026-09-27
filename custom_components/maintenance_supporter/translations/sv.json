@@ -1718,6 +1718,18 @@
         "brown": "Brun",
         "blue_grey": "Blågrå"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "Från slutförandedatum",
+        "planned": "Från planerat datum (ingen drift)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Slutför",
+        "add": "Lägg till villkor"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "Att hoppa över är avstängt för ”{task_name}”."
+    },
+    "object_name_taken": {
+      "message": "Ett annat objekt har redan det här namnet."
+    },
+    "name_empty": {
+      "message": "Namnet får inte vara tomt."
+    },
+    "task_not_duplicable": {
+      "message": "En köpuppgift för en reservdel eller batteriflottans uppgift kan inte dupliceras."
+    },
+    "fleet_not_duplicable": {
+      "message": "Batteriflottans objekt kan inte dupliceras."
+    },
+    "parts_limit": {
+      "message": "Ett objekt kan ha högst {max} reservdelar."
+    },
+    "task_limit": {
+      "message": "Ett objekt kan ha högst {max} uppgifter."
+    },
+    "archived_cannot_pause": {
+      "message": "Ett arkiverat objekt kan inte pausas — återställ det först."
+    },
+    "archived_cannot_replace": {
+      "message": "Ett arkiverat objekt kan inte ersättas — återställ det först."
+    },
+    "archived_no_new_tasks": {
+      "message": "Ett arkiverat objekt kan inte få nya uppgifter — återställ det först."
+    },
+    "import_not_json_yaml": {
+      "message": "Filen är inte giltig JSON eller YAML."
+    },
+    "import_no_objects_list": {
+      "message": "Filen måste innehålla en \"objects\"-lista."
+    },
+    "import_no_objects": {
+      "message": "Filen innehåller inga objekt."
+    },
+    "import_csv_no_objects": {
+      "message": "CSV-filen innehåller inga giltiga objekt."
+    },
+    "import_too_many": {
+      "message": "Filen innehåller fler än {max} objekt."
+    },
+    "import_too_large": {
+      "message": "Filen är större än {limit}."
+    },
+    "until_in_past": {
+      "message": "Slutdatumet måste ligga i framtiden."
+    },
+    "postpone_too_far": {
+      "message": "Det nya datumet måste ligga inom {days} dagar."
+    },
+    "date_in_future": {
+      "message": "Datumet får inte ligga i framtiden."
+    },
+    "range_end_before_start": {
+      "message": "Slutet måste vara samtidigt med eller efter starten."
+    },
+    "notify_not_configured": {
+      "message": "Aviseringar är inte konfigurerade — välj först en aviseringstjänst i inställningarna."
+    },
+    "battery_notes_unavailable": {
+      "message": "Integrationen Battery Notes är inte tillgänglig."
+    },
+    "no_battery_devices": {
+      "message": "Inga enheter med batterier hittades."
+    },
+    "fleet_not_set_up": {
+      "message": "Batteriflottan är inte konfigurerad ännu."
+    },
+    "move_same_object": {
+      "message": "Uppgiften hör redan till det objektet."
+    },
+    "move_target_archived": {
+      "message": "Målobjektet är arkiverat."
+    },
+    "move_part_task": {
+      "message": "En köpuppgift för en reservdel stannar hos sin reservdel."
+    },
+    "move_fleet_task": {
+      "message": "Batteriflottans uppgift kan inte flyttas."
+    },
+    "move_objects_not_loaded": {
+      "message": "Båda objekten måste vara inlästa för att flytta en uppgift."
+    },
+    "view_name_empty": {
+      "message": "En sparad vy behöver ett namn."
+    },
+    "qr_no_url": {
+      "message": "Ingen Home Assistant-URL är konfigurerad — ange en extern eller intern URL i Inställningar → System → Nätverk."
     }
   },
   "triggers": {

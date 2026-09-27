@@ -1718,6 +1718,18 @@
         "brown": "棕色",
         "blue_grey": "蓝灰色"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "从完成日期起算",
+        "planned": "从计划日期起算 (无偏差)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "完成",
+        "add": "添加条件"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "“{task_name}”已禁止跳过。"
+    },
+    "object_name_taken": {
+      "message": "已有其他对象使用此名称。"
+    },
+    "name_empty": {
+      "message": "名称不能为空。"
+    },
+    "task_not_duplicable": {
+      "message": "备件购买任务和电池群任务无法复制。"
+    },
+    "fleet_not_duplicable": {
+      "message": "电池群对象无法复制。"
+    },
+    "parts_limit": {
+      "message": "一个对象最多可有 {max} 个备件。"
+    },
+    "task_limit": {
+      "message": "一个对象最多可有 {max} 个任务。"
+    },
+    "archived_cannot_pause": {
+      "message": "已归档的对象无法暂停 — 请先恢复。"
+    },
+    "archived_cannot_replace": {
+      "message": "已归档的对象无法更换 — 请先恢复。"
+    },
+    "archived_no_new_tasks": {
+      "message": "已归档的对象无法添加新任务 — 请先恢复。"
+    },
+    "import_not_json_yaml": {
+      "message": "该文件不是有效的 JSON 或 YAML。"
+    },
+    "import_no_objects_list": {
+      "message": "文件必须包含 \"objects\" 列表。"
+    },
+    "import_no_objects": {
+      "message": "文件中没有任何对象。"
+    },
+    "import_csv_no_objects": {
+      "message": "CSV 文件中没有有效的对象。"
+    },
+    "import_too_many": {
+      "message": "文件包含的对象超过 {max} 个。"
+    },
+    "import_too_large": {
+      "message": "文件大小超过 {limit}。"
+    },
+    "until_in_past": {
+      "message": "结束日期必须是将来的日期。"
+    },
+    "postpone_too_far": {
+      "message": "新日期必须在 {days} 天以内。"
+    },
+    "date_in_future": {
+      "message": "日期不能是将来的时间。"
+    },
+    "range_end_before_start": {
+      "message": "结束时间不能早于开始时间。"
+    },
+    "notify_not_configured": {
+      "message": "尚未设置通知 — 请先在设置中选择通知服务。"
+    },
+    "battery_notes_unavailable": {
+      "message": "Battery Notes 集成不可用。"
+    },
+    "no_battery_devices": {
+      "message": "未找到带电池的设备。"
+    },
+    "fleet_not_set_up": {
+      "message": "电池群尚未设置。"
+    },
+    "move_same_object": {
+      "message": "此任务已属于该对象。"
+    },
+    "move_target_archived": {
+      "message": "目标对象已归档。"
+    },
+    "move_part_task": {
+      "message": "备件购买任务会保留在其备件下。"
+    },
+    "move_fleet_task": {
+      "message": "电池群任务无法移动。"
+    },
+    "move_objects_not_loaded": {
+      "message": "必须加载两个对象才能移动任务。"
+    },
+    "view_name_empty": {
+      "message": "已保存的视图需要一个名称。"
+    },
+    "qr_no_url": {
+      "message": "未配置 Home Assistant URL — 请在“设置 → 系统 → 网络”中设置外部或内部 URL。"
     }
   },
   "triggers": {

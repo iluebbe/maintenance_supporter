@@ -1718,6 +1718,18 @@
         "brown": "Marrón",
         "blue_grey": "Gris azulado"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "Desde la fecha de finalización",
+        "planned": "Desde la fecha planificada (sin desviación)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Finalizar",
+        "add": "Añadir condición"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "Omitir está desactivado para «{task_name}»."
+    },
+    "object_name_taken": {
+      "message": "Otro objeto ya tiene este nombre."
+    },
+    "name_empty": {
+      "message": "El nombre no puede estar vacío."
+    },
+    "task_not_duplicable": {
+      "message": "Una tarea de compra de un repuesto o la tarea de la flota de baterías no se puede duplicar."
+    },
+    "fleet_not_duplicable": {
+      "message": "El objeto de la flota de baterías no se puede duplicar."
+    },
+    "parts_limit": {
+      "message": "Un objeto puede tener como máximo {max} repuestos."
+    },
+    "task_limit": {
+      "message": "Un objeto puede tener como máximo {max} tareas."
+    },
+    "archived_cannot_pause": {
+      "message": "Un objeto archivado no se puede pausar — restáuralo primero."
+    },
+    "archived_cannot_replace": {
+      "message": "Un objeto archivado no se puede sustituir — restáuralo primero."
+    },
+    "archived_no_new_tasks": {
+      "message": "Un objeto archivado no puede recibir tareas nuevas — restáuralo primero."
+    },
+    "import_not_json_yaml": {
+      "message": "El archivo no es JSON ni YAML válido."
+    },
+    "import_no_objects_list": {
+      "message": "El archivo debe contener una lista \"objects\"."
+    },
+    "import_no_objects": {
+      "message": "El archivo no contiene objetos."
+    },
+    "import_csv_no_objects": {
+      "message": "El archivo CSV no contiene objetos válidos."
+    },
+    "import_too_many": {
+      "message": "El archivo contiene más de {max} objetos."
+    },
+    "import_too_large": {
+      "message": "El archivo ocupa más de {limit}."
+    },
+    "until_in_past": {
+      "message": "La fecha de fin debe estar en el futuro."
+    },
+    "postpone_too_far": {
+      "message": "La nueva fecha debe estar dentro de los próximos {days} días."
+    },
+    "date_in_future": {
+      "message": "La fecha no puede estar en el futuro."
+    },
+    "range_end_before_start": {
+      "message": "El fin debe ser igual o posterior al inicio."
+    },
+    "notify_not_configured": {
+      "message": "Las notificaciones no están configuradas — elige primero un servicio de notificación en los ajustes."
+    },
+    "battery_notes_unavailable": {
+      "message": "La integración Battery Notes no está disponible."
+    },
+    "no_battery_devices": {
+      "message": "No se encontraron dispositivos con batería."
+    },
+    "fleet_not_set_up": {
+      "message": "La flota de baterías aún no está configurada."
+    },
+    "move_same_object": {
+      "message": "La tarea ya pertenece a ese objeto."
+    },
+    "move_target_archived": {
+      "message": "El objeto de destino está archivado."
+    },
+    "move_part_task": {
+      "message": "Una tarea de compra de un repuesto se queda con su repuesto."
+    },
+    "move_fleet_task": {
+      "message": "La tarea de la flota de baterías no se puede mover."
+    },
+    "move_objects_not_loaded": {
+      "message": "Ambos objetos deben estar cargados para mover una tarea."
+    },
+    "view_name_empty": {
+      "message": "Una vista guardada necesita un nombre."
+    },
+    "qr_no_url": {
+      "message": "No hay ninguna URL de Home Assistant configurada — establece una URL externa o interna en Ajustes → Sistema → Red."
     }
   },
   "triggers": {

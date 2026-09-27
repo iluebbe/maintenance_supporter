@@ -1718,6 +1718,18 @@
         "brown": "Marron",
         "blue_grey": "Gris bleu"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "Depuis la date de réalisation",
+        "planned": "Depuis la date prévue (sans dérive)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Terminer",
+        "add": "Ajouter une condition"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "Le saut est désactivé pour « {task_name} »."
+    },
+    "object_name_taken": {
+      "message": "Un autre objet porte déjà ce nom."
+    },
+    "name_empty": {
+      "message": "Le nom ne doit pas être vide."
+    },
+    "task_not_duplicable": {
+      "message": "Une tâche d'achat de pièce détachée ou la tâche du parc de piles ne peut pas être dupliquée."
+    },
+    "fleet_not_duplicable": {
+      "message": "L'objet du parc de piles ne peut pas être dupliqué."
+    },
+    "parts_limit": {
+      "message": "Un objet peut avoir au maximum {max} pièces détachées."
+    },
+    "task_limit": {
+      "message": "Un objet peut avoir au maximum {max} tâches."
+    },
+    "archived_cannot_pause": {
+      "message": "Un objet archivé ne peut pas être mis en pause — restaurez-le d'abord."
+    },
+    "archived_cannot_replace": {
+      "message": "Un objet archivé ne peut pas être remplacé — restaurez-le d'abord."
+    },
+    "archived_no_new_tasks": {
+      "message": "Un objet archivé ne peut pas recevoir de nouvelles tâches — restaurez-le d'abord."
+    },
+    "import_not_json_yaml": {
+      "message": "Le fichier n'est pas un JSON ou un YAML valide."
+    },
+    "import_no_objects_list": {
+      "message": "Le fichier doit contenir une liste \"objects\"."
+    },
+    "import_no_objects": {
+      "message": "Le fichier ne contient aucun objet."
+    },
+    "import_csv_no_objects": {
+      "message": "Le fichier CSV ne contient aucun objet valide."
+    },
+    "import_too_many": {
+      "message": "Le fichier contient plus de {max} objets."
+    },
+    "import_too_large": {
+      "message": "Le fichier dépasse {limit}."
+    },
+    "until_in_past": {
+      "message": "La date de fin doit être dans le futur."
+    },
+    "postpone_too_far": {
+      "message": "La nouvelle date doit se situer dans les {days} prochains jours."
+    },
+    "date_in_future": {
+      "message": "La date ne doit pas être dans le futur."
+    },
+    "range_end_before_start": {
+      "message": "La fin doit être identique ou postérieure au début."
+    },
+    "notify_not_configured": {
+      "message": "Les notifications ne sont pas configurées — choisissez d'abord un service de notification dans les paramètres."
+    },
+    "battery_notes_unavailable": {
+      "message": "L'intégration Battery Notes n'est pas disponible."
+    },
+    "no_battery_devices": {
+      "message": "Aucun appareil à piles n'a été trouvé."
+    },
+    "fleet_not_set_up": {
+      "message": "Le parc de piles n'est pas encore configuré."
+    },
+    "move_same_object": {
+      "message": "La tâche appartient déjà à cet objet."
+    },
+    "move_target_archived": {
+      "message": "L'objet cible est archivé."
+    },
+    "move_part_task": {
+      "message": "Une tâche d'achat de pièce détachée reste avec sa pièce."
+    },
+    "move_fleet_task": {
+      "message": "La tâche du parc de piles ne peut pas être déplacée."
+    },
+    "move_objects_not_loaded": {
+      "message": "Les deux objets doivent être chargés pour déplacer une tâche."
+    },
+    "view_name_empty": {
+      "message": "Une vue enregistrée doit avoir un nom."
+    },
+    "qr_no_url": {
+      "message": "Aucune URL Home Assistant n'est configurée — définissez une URL externe ou interne dans Paramètres → Système → Réseau."
     }
   },
   "triggers": {

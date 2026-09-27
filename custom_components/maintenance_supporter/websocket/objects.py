@@ -35,6 +35,7 @@ from ..helpers.aggregate import get_coordinator_data, get_store, is_object_entry
 from ..helpers.pause import reanchor_recurring_task
 from ..helpers.permissions import require_write
 from ..helpers.sanitize import cap_object_fields, strip_object_reference, strip_task_runtime_state
+from ..helpers.ws_errors import send_translated_error
 from . import (
     ID_FIELD,
     _build_object_response,
@@ -309,7 +310,7 @@ async def ws_create_object(
     """Create a new maintenance object via config flow."""
     name = msg["name"].strip()
     if not name:
-        connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
+        send_translated_error(connection, msg["id"], "invalid_input", "Name must not be empty", translation_key="name_empty")
         return
 
     manufacturer = (msg.get("manufacturer") or "").strip() or None
@@ -325,7 +326,7 @@ async def ws_create_object(
     # v1.4.0 (#43): documentation_url
     documentation_url = (msg.get("documentation_url") or "").strip() or None
     if documentation_url and not _is_safe_url(documentation_url):
-        connection.send_error(msg["id"], "invalid_url", "Only http/https URLs are allowed")
+        send_translated_error(connection, msg["id"], "invalid_url", "Only http/https URLs are allowed", translation_key="unsafe_url")
         return
 
     # v1.4.10 (#46): notes (free-form, may contain newlines)
@@ -386,7 +387,7 @@ async def ws_update_object(
     if "name" in msg:
         msg["name"] = msg["name"].strip()
         if not msg["name"]:
-            connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
+            send_translated_error(connection, msg["id"], "invalid_input", "Name must not be empty", translation_key="name_empty")
             return
         # The same name rule as every create path (helpers.object_names): a
         # rename onto another object's name went through, and the next
@@ -397,7 +398,7 @@ async def ws_update_object(
         from ..helpers.object_names import name_changed_onto_taken
 
         if name_changed_onto_taken(hass, entry, msg["name"]):
-            connection.send_error(msg["id"], "invalid_input", "Another object already has this name")
+            send_translated_error(connection, msg["id"], "invalid_input", "Another object already has this name", translation_key="object_name_taken")
             return
 
     # Strip manufacturer/model/serial_number
@@ -418,7 +419,7 @@ async def ws_update_object(
             stripped = (msg["documentation_url"] or "").strip()
             msg["documentation_url"] = stripped or None
         if msg["documentation_url"] and not _is_safe_url(msg["documentation_url"]):
-            connection.send_error(msg["id"], "invalid_url", "Only http/https URLs are allowed")
+            send_translated_error(connection, msg["id"], "invalid_url", "Only http/https URLs are allowed", translation_key="unsafe_url")
             return
 
     # v1.4.10 (#46): notes — strip but keep newlines, empty -> None
@@ -534,7 +535,7 @@ async def ws_duplicate_object(
     from ..const import BATTERY_FLEET_OBJECT_FLAG
 
     if src_obj.get(BATTERY_FLEET_OBJECT_FLAG):
-        connection.send_error(msg["id"], "invalid_input", "The battery fleet object cannot be duplicated")
+        send_translated_error(connection, msg["id"], "invalid_input", "The battery fleet object cannot be duplicated", translation_key="fleet_not_duplicable")
         return
     new_obj = deepcopy(dict(src_obj))
     new_obj["id"] = uuid4().hex
@@ -824,7 +825,7 @@ async def ws_pause_object(
 
     obj = dict(entry.data.get(CONF_OBJECT, {}))
     if obj.get("archived_at") is not None:
-        connection.send_error(msg["id"], "archived", "An archived object cannot be paused")
+        send_translated_error(connection, msg["id"], "archived", "An archived object cannot be paused", translation_key="archived_cannot_pause")
         return
     if obj.get("paused_at") is not None:
         connection.send_error(msg["id"], "already_paused", "Object already paused")
@@ -836,7 +837,7 @@ async def ws_pause_object(
         if until_date is None:
             return
         if until_date <= dt_util.now().date():
-            connection.send_error(msg["id"], "invalid_date", "until must be a future date")
+            send_translated_error(connection, msg["id"], "invalid_date", "until must be a future date", translation_key="until_in_past")
             return
 
     now_iso = dt_util.now().isoformat()
@@ -928,7 +929,7 @@ async def ws_replace_object(
 
     src_obj = entry.data.get(CONF_OBJECT, {})
     if src_obj.get("archived_at") is not None:
-        connection.send_error(msg["id"], "archived", "An archived object cannot be replaced")
+        send_translated_error(connection, msg["id"], "archived", "An archived object cannot be replaced", translation_key="archived_cannot_replace")
         return
 
     name = (msg.get("name") or "").strip() or str(src_obj.get(CONF_OBJECT_NAME, "")).strip() or "Object"

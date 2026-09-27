@@ -229,6 +229,7 @@ def interval_anchor_selector() -> selector.SelectSelector:
                 selector.SelectOptionDict(value="planned", label="From planned date (no drift)"),
             ],
             mode=selector.SelectSelectorMode.DROPDOWN,
+            translation_key="interval_anchor",
         )
     )
 

@@ -91,7 +91,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cleaning": "Nettoyage",
         "inspection": "Inspection",
         "replacement": "Remplacement",
-        "calibration": "Calibration",
+        "calibration": "Étalonnage",
         "service": "Service",
         "reading": "Relevé",
         "custom": "Personnalisé",

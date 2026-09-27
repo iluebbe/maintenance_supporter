@@ -1718,6 +1718,18 @@
         "brown": "भूरा",
         "blue_grey": "नीला-धूसर"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "पूर्ण तिथि से",
+        "planned": "नियोजित तिथि से (कोई विचलन नहीं)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "पूरा करें",
+        "add": "शर्त जोड़ें"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "“{task_name}” के लिए छोड़ना बंद है।"
+    },
+    "object_name_taken": {
+      "message": "यह नाम पहले से किसी दूसरे ऑब्जेक्ट का है।"
+    },
+    "name_empty": {
+      "message": "नाम खाली नहीं हो सकता।"
+    },
+    "task_not_duplicable": {
+      "message": "स्पेयर पार्ट का खरीद कार्य या बैटरी फ्लीट का कार्य डुप्लिकेट नहीं किया जा सकता।"
+    },
+    "fleet_not_duplicable": {
+      "message": "बैटरी फ्लीट ऑब्जेक्ट को डुप्लिकेट नहीं किया जा सकता।"
+    },
+    "parts_limit": {
+      "message": "एक ऑब्जेक्ट में अधिकतम {max} स्पेयर पार्ट्स हो सकते हैं।"
+    },
+    "task_limit": {
+      "message": "एक ऑब्जेक्ट में अधिकतम {max} कार्य हो सकते हैं।"
+    },
+    "archived_cannot_pause": {
+      "message": "संग्रहीत ऑब्जेक्ट को रोका नहीं जा सकता — पहले इसे पुनर्स्थापित करें।"
+    },
+    "archived_cannot_replace": {
+      "message": "संग्रहीत ऑब्जेक्ट को बदला नहीं जा सकता — पहले इसे पुनर्स्थापित करें।"
+    },
+    "archived_no_new_tasks": {
+      "message": "संग्रहीत ऑब्जेक्ट में नए कार्य नहीं जोड़े जा सकते — पहले इसे पुनर्स्थापित करें।"
+    },
+    "import_not_json_yaml": {
+      "message": "फ़ाइल मान्य JSON या YAML नहीं है।"
+    },
+    "import_no_objects_list": {
+      "message": "फ़ाइल में \"objects\" सूची होनी चाहिए।"
+    },
+    "import_no_objects": {
+      "message": "फ़ाइल में कोई ऑब्जेक्ट नहीं है।"
+    },
+    "import_csv_no_objects": {
+      "message": "CSV फ़ाइल में कोई मान्य ऑब्जेक्ट नहीं है।"
+    },
+    "import_too_many": {
+      "message": "फ़ाइल में {max} से अधिक ऑब्जेक्ट हैं।"
+    },
+    "import_too_large": {
+      "message": "फ़ाइल {limit} से बड़ी है।"
+    },
+    "until_in_past": {
+      "message": "समाप्ति तिथि भविष्य में होनी चाहिए।"
+    },
+    "postpone_too_far": {
+      "message": "नई तिथि {days} दिनों के भीतर होनी चाहिए।"
+    },
+    "date_in_future": {
+      "message": "तिथि भविष्य में नहीं हो सकती।"
+    },
+    "range_end_before_start": {
+      "message": "अंत, प्रारंभ के समान या उसके बाद होना चाहिए।"
+    },
+    "notify_not_configured": {
+      "message": "सूचनाएँ सेट नहीं हैं — पहले सेटिंग्स में कोई सूचना सेवा चुनें।"
+    },
+    "battery_notes_unavailable": {
+      "message": "Battery Notes इंटीग्रेशन उपलब्ध नहीं है।"
+    },
+    "no_battery_devices": {
+      "message": "कोई बैटरी वाला डिवाइस नहीं मिला।"
+    },
+    "fleet_not_set_up": {
+      "message": "बैटरी फ्लीट अभी सेट नहीं की गई है।"
+    },
+    "move_same_object": {
+      "message": "यह कार्य पहले से उसी ऑब्जेक्ट का है।"
+    },
+    "move_target_archived": {
+      "message": "लक्ष्य ऑब्जेक्ट संग्रहीत है।"
+    },
+    "move_part_task": {
+      "message": "स्पेयर पार्ट का खरीद कार्य अपने पार्ट के साथ ही रहता है।"
+    },
+    "move_fleet_task": {
+      "message": "बैटरी फ्लीट के कार्य को दूसरी जगह नहीं ले जाया जा सकता।"
+    },
+    "move_objects_not_loaded": {
+      "message": "कार्य ले जाने के लिए दोनों ऑब्जेक्ट लोड होने चाहिए।"
+    },
+    "view_name_empty": {
+      "message": "सहेजे गए व्यू का नाम होना ज़रूरी है।"
+    },
+    "qr_no_url": {
+      "message": "कोई Home Assistant URL कॉन्फ़िगर नहीं है — सेटिंग्स → सिस्टम → नेटवर्क में एक बाहरी या आंतरिक URL सेट करें।"
     }
   },
   "triggers": {

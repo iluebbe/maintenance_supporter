@@ -17,6 +17,7 @@ from homeassistant.core import HomeAssistant
 from ..const import CONF_SAVED_FILTER_VIEWS, DOMAIN, MAX_ID_LENGTH, MAX_VIEW_NAME_LENGTH
 from ..helpers.permissions import require_write
 from ..helpers.saved_views import list_saved_views, remove_view, sanitize_view, upsert_view
+from ..helpers.ws_errors import send_translated_error
 from . import ID_FIELD, _get_global_entry, _merge_global_options
 
 
@@ -62,7 +63,7 @@ async def ws_save_saved_view(
         view_id=msg.get("view_id"),
     )
     if clean is None:
-        connection.send_error(msg["id"], "invalid_view", "A view needs a non-empty name")
+        send_translated_error(connection, msg["id"], "invalid_view", "A view needs a non-empty name", translation_key="view_name_empty")
         return
     try:
         views, saved_id = upsert_view(list_saved_views(hass), clean)

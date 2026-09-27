@@ -1342,10 +1342,11 @@ class GlobalOptionsFlow(OptionsFlow):
                 )
             ),
         }
-        regions = regions_of(profile.country, dict(profile.region_names))
+        region_names = profile.region_names_in(lang)
+        regions = regions_of(profile.country, region_names)
         if regions:
             codes = {r["code"] for r in regions}
-            detected_name = profile.region_names.get(profile.region_detected or "") or _settings_text(self.hass, "region_none")
+            detected_name = region_names.get(profile.region_detected or "") or _settings_text(self.hass, "region_none")
             fields[
                 vol.Optional(
                     CONF_HOME_REGION,

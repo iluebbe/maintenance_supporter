@@ -1718,6 +1718,18 @@
         "brown": "Kahverengi",
         "blue_grey": "Mavi gri"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "Tamamlama tarihinden",
+        "planned": "Planlanan tarihten (kayma olmaz)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Bitir",
+        "add": "Koşul ekle"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "“{task_name}” için atlama devre dışı."
+    },
+    "object_name_taken": {
+      "message": "Bu ada sahip başka bir nesne zaten var."
+    },
+    "name_empty": {
+      "message": "Ad boş olamaz."
+    },
+    "task_not_duplicable": {
+      "message": "Yedek parça satın alma görevi veya pil filosu görevi çoğaltılamaz."
+    },
+    "fleet_not_duplicable": {
+      "message": "Pil filosu nesnesi çoğaltılamaz."
+    },
+    "parts_limit": {
+      "message": "Bir nesnenin en fazla {max} yedek parçası olabilir."
+    },
+    "task_limit": {
+      "message": "Bir nesnenin en fazla {max} görevi olabilir."
+    },
+    "archived_cannot_pause": {
+      "message": "Arşivlenmiş bir nesne duraklatılamaz — önce geri yükleyin."
+    },
+    "archived_cannot_replace": {
+      "message": "Arşivlenmiş bir nesne değiştirilemez — önce geri yükleyin."
+    },
+    "archived_no_new_tasks": {
+      "message": "Arşivlenmiş bir nesneye yeni görev eklenemez — önce geri yükleyin."
+    },
+    "import_not_json_yaml": {
+      "message": "Dosya geçerli bir JSON veya YAML değil."
+    },
+    "import_no_objects_list": {
+      "message": "Dosya bir \"objects\" listesi içermelidir."
+    },
+    "import_no_objects": {
+      "message": "Dosya hiç nesne içermiyor."
+    },
+    "import_csv_no_objects": {
+      "message": "CSV dosyası geçerli bir nesne içermiyor."
+    },
+    "import_too_many": {
+      "message": "Dosya {max} taneden fazla nesne içeriyor."
+    },
+    "import_too_large": {
+      "message": "Dosya boyutu {limit} sınırını aşıyor."
+    },
+    "until_in_past": {
+      "message": "Bitiş tarihi gelecekte olmalıdır."
+    },
+    "postpone_too_far": {
+      "message": "Yeni tarih {days} gün içinde olmalıdır."
+    },
+    "date_in_future": {
+      "message": "Tarih gelecekte olamaz."
+    },
+    "range_end_before_start": {
+      "message": "Bitiş, başlangıçla aynı veya daha sonra olmalıdır."
+    },
+    "notify_not_configured": {
+      "message": "Bildirimler ayarlanmamış — önce ayarlardan bir bildirim servisi seçin."
+    },
+    "battery_notes_unavailable": {
+      "message": "Battery Notes entegrasyonu kullanılamıyor."
+    },
+    "no_battery_devices": {
+      "message": "Pilli cihaz bulunamadı."
+    },
+    "fleet_not_set_up": {
+      "message": "Pil filosu henüz kurulmadı."
+    },
+    "move_same_object": {
+      "message": "Görev zaten o nesneye ait."
+    },
+    "move_target_archived": {
+      "message": "Hedef nesne arşivlenmiş."
+    },
+    "move_part_task": {
+      "message": "Yedek parça satın alma görevi kendi parçasıyla birlikte kalır."
+    },
+    "move_fleet_task": {
+      "message": "Pil filosu görevi taşınamaz."
+    },
+    "move_objects_not_loaded": {
+      "message": "Bir görevi taşımak için her iki nesnenin de yüklenmiş olması gerekir."
+    },
+    "view_name_empty": {
+      "message": "Kayıtlı bir görünümün bir adı olmalıdır."
+    },
+    "qr_no_url": {
+      "message": "Yapılandırılmış bir Home Assistant URL'si yok — Ayarlar → Sistem → Ağ bölümünden bir dış veya iç URL ayarlayın."
     }
   },
   "triggers": {

@@ -18,6 +18,7 @@ from ..helpers.parts import (
     normalize_part,
 )
 from ..helpers.permissions import require_write
+from ..helpers.ws_errors import send_translated_error
 from . import ID_FIELD, _get_runtime_data, _load_object_entry
 
 
@@ -72,7 +73,7 @@ async def ws_create_part(
         return
     parts = _parts_of(entry)
     if len(parts) >= MAX_PARTS_PER_OBJECT:
-        connection.send_error(msg["id"], "limit_reached", f"At most {MAX_PARTS_PER_OBJECT} parts per object")
+        send_translated_error(connection, msg["id"], "limit_reached", f"At most {MAX_PARTS_PER_OBJECT} parts per object", translation_key="parts_limit", translation_placeholders={"max": str(MAX_PARTS_PER_OBJECT)})
         return
     try:
         # msg["id"] is the WS envelope's message id — NEVER the part id; force

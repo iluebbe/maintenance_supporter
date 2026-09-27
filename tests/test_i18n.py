@@ -625,6 +625,93 @@ def test_py_language_tables_placeholder_parity() -> None:
                 }
 
 
+# Reviewed (table, language, key) pairs whose value is the English word by
+# nature of the language (calendar field labels such as "Type" or
+# "Service", Danish/Norwegian "for").
+_PY_TABLE_VALUE_OK: dict[str, dict[str, set[str]]] = {
+    "calendar._CAL_STRINGS": {
+        "de": {"service"},
+        "nl": {"type", "interval", "service"},
+        "fr": {"type", "inspection", "service"},
+        "cs": {"interval"},
+        "da": {"type", "interval", "service"},
+        "nb": {"type", "service"},
+        "sv": {"service"},
+    },
+    "notification_manager._NOTIFICATION_STRINGS": {"da": {"completed_message"}, "nb": {"completed_message"}},
+}
+
+
+def test_py_language_tables_values_are_translated() -> None:
+    """Key parity is not translation: the warranty push shipped English in
+    16 languages for months (i18n audit 2026-09-27) because only the keys
+    were checked. A value identical to English in a Latin-script language,
+    or without native script in ru/uk/zh/ja/hi/ko, fails — unless it is only
+    placeholders and punctuation, or a reviewed cognate above."""
+    bad: list[str] = []
+    for name, table in _py_language_tables().items():
+        allowed = _PY_TABLE_VALUE_OK.get(name, {})
+        for lang, block in table.items():
+            if lang == "en":
+                continue
+            for key, value in block.items():
+                prose = _TOKEN_RE.sub("", value)
+                if not re.search(r"[^\W\d_]{2}", prose) or key in allowed.get(lang, set()):
+                    continue
+                native = _NATIVE_SCRIPTS.get(lang)
+                if native is not None:
+                    if re.search(r"[A-Za-z]{3}", prose) and not native.search(prose):
+                        bad.append(f"{name} [{lang}] {key}: {value!r} (no native script)")
+                elif value == table["en"][key]:
+                    bad.append(f"{name} [{lang}] {key}: {value!r} (copied English)")
+    assert not bad, "untranslated python-table values:\n" + "\n".join(bad)
+
+
+def test_flow_select_options_with_fixed_english_labels_have_a_translation_key() -> None:
+    """A SelectOptionDict with a literal label shows that English text in
+    every language unless its selector has a translation_key (the interval
+    anchor and the compound-trigger step did, i18n audit 2026-09-27).
+    Runtime-built labels (names, localized table lookups) are not literals."""
+    import ast
+
+    comp = Path(__file__).resolve().parent.parent / "custom_components" / "maintenance_supporter"
+    bad: list[str] = []
+    for path in sorted(comp.glob("config_flow*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for call in ast.walk(tree):
+            if not (isinstance(call, ast.Call) and getattr(call.func, "attr", "") == "SelectSelectorConfig"):
+                continue
+            if any(kw.arg == "translation_key" for kw in call.keywords):
+                continue
+            for node in ast.walk(call):
+                if isinstance(node, ast.Call) and getattr(node.func, "attr", "") == "SelectOptionDict":
+                    label = next((kw.value for kw in node.keywords if kw.arg == "label"), None)
+                    if isinstance(label, ast.Constant) and isinstance(label.value, str) and re.search(r"[A-Za-z]{3}", label.value):
+                        bad.append(f"{path.name}:{node.lineno} {label.value!r}")
+        # options assembled in a list first, handed to a selector later
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and getattr(node.func, "attr", "") == "SelectOptionDict":
+                label = next((kw.value for kw in node.keywords if kw.arg == "label"), None)
+                text = label.value if isinstance(label, ast.Constant) else None
+                if isinstance(text, str) and re.search(r"[A-Za-z]{3}", text) and f"{path.name}:{node.lineno} {text!r}" not in bad:
+                    # accepted only when the same file passes a translation_key
+                    # for these values (checked above for inline options)
+                    src = path.read_text(encoding="utf-8")
+                    if "translation_key=" not in src:
+                        bad.append(f"{path.name}:{node.lineno} {text!r}")
+    assert not bad, "fixed English select labels without a translation_key:\n" + "\n".join(bad)
+
+
+def test_default_sidebar_title_is_translated() -> None:
+    from custom_components.maintenance_supporter.const import PANEL_TITLES
+
+    assert set(PANEL_TITLES) == _PY_TABLE_LANGUAGES
+    for lang, title in PANEL_TITLES.items():
+        native = _NATIVE_SCRIPTS.get(lang)
+        assert native is None or native.search(title), lang
+        assert lang in ("en", "fr") or title != PANEL_TITLES["en"], lang  # fr: "Maintenance"
+
+
 # ---------------------------------------------------------------------------
 # services.yaml <-> strings.json
 

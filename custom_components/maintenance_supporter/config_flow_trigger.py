@@ -1117,10 +1117,8 @@ class TriggerConfigMixin:
 
         options = (
             [
-                selector.SelectOptionDict(
-                    value="finish",
-                    label=f"Finish ({condition_count} conditions, {logic})",
-                ),
+                # the count and logic are in the step description
+                selector.SelectOptionDict(value="finish", label="Finish"),
             ]
             if condition_count >= 2
             else []
@@ -1138,6 +1136,7 @@ class TriggerConfigMixin:
                 selector.SelectSelectorConfig(
                     options=options,
                     mode=selector.SelectSelectorMode.LIST,
+                    translation_key="compound_action",
                 )
             ),
         }

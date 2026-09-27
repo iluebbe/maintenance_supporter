@@ -28,6 +28,7 @@ from ..const import (
 from ..helpers.aggregate import get_object_entries, get_runtime_data, get_store, is_object_entry, object_name, task_entity_id
 from ..helpers.aggregate import object_slug as aggregate_object_slug
 from ..helpers.phases import current_phase_summary
+from ..helpers.ws_errors import send_translated_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -608,7 +609,7 @@ def _parse_iso_date(
         from homeassistant.util import dt as dt_util
 
         if parsed > dt_util.now().date():
-            connection.send_error(msg_id, "invalid_date", f"{field} must not be in the future")
+            send_translated_error(connection, msg_id, "invalid_date", f"{field} must not be in the future", translation_key="date_in_future")
             return None
     return parsed
 

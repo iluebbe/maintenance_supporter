@@ -27,7 +27,7 @@ describe("dashboard KPI chips (#86)", () => {
     );
     // Reactive template, not the literal number.
     expect(content).to.include("{{ states('sensor.maintenance_supporter_overdue') }}");
-    expect(content).to.include("overdue");
+    expect(content).to.include("Overdue");
   });
 
   it("falls back to the literal WS counts when no summary sensor exists", () => {
@@ -40,15 +40,15 @@ describe("dashboard KPI chips (#86)", () => {
     // No entity templates at all — the counts are baked in as real numbers.
     expect(content).to.not.include("states(");
     expect(content).to.not.include("unknown");
-    expect(content).to.include("**2** overdue");
-    expect(content).to.include("**1** triggered");
-    expect(content).to.include("**3** due soon");
-    expect(content).to.include("**4** ok");
+    expect(content).to.include("**2** Overdue");
+    expect(content).to.include("**1** Triggered");
+    expect(content).to.include("**3** Due Soon");
+    expect(content).to.include("**4** OK");
   });
 
   it("shows an em dash rather than a template when neither id nor count is available", () => {
     const content = contentOf(kpiMarkdownCard({}, {}));
     expect(content).to.not.include("states(");
-    expect(content).to.include("**—** overdue");
+    expect(content).to.include("**—** Overdue");
   });
 });

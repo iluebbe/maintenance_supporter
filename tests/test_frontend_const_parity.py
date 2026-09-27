@@ -149,10 +149,11 @@ def test_ts_schedule_type_keys_cover_every_enum_value() -> None:
 
 
 def test_supported_langs_match_locale_files() -> None:
-    """styles.SUPPORTED_LANGS must list exactly the shipped locales/*.json files
-    (minus 'en', the bundled default) — else a new language silently serves
-    English because ensureLocale never fetches it."""
-    src = _STYLES_TS.read_text(encoding="utf-8")
+    """SUPPORTED_LANGS (helpers/locale-core.ts, re-exported by styles.ts) must
+    list exactly the shipped locales/*.json files (minus 'en', the bundled
+    default) — else a new language silently serves English because
+    ensureLocale never fetches it."""
+    src = (_FRONTEND / "helpers" / "locale-core.ts").read_text(encoding="utf-8")
     start = src.index("const SUPPORTED_LANGS")
     block = src[start : src.index("])", start)]
     ts_langs = set(_quoted_strings(block))
@@ -529,8 +530,9 @@ def test_ts_vacation_buffer_range_matches_ws_schema() -> None:
 
 _WS_ERRORS_TS = _FRONTEND / "ws-errors.ts"
 _WEBSOCKET_DIR = _FRONTEND.parent / "websocket"
-# `connection.send_error(msg["id"], "<code>", …)` — single- or multi-line.
-_SEND_ERROR_RE = re.compile(r'send_error\(\s*msg\["id"\],\s*"([a-z_]+)"')
+# `connection.send_error(msg["id"], "<code>", …)` or, with a translation key
+# (i18n audit 2026-09-27), `send_translated_error(connection, msg["id"], "<code>", …)`.
+_SEND_ERROR_RE = re.compile(r'send_(?:translated_)?error\(\s*(?:connection,\s*)?msg\["id"\],\s*"([a-z_]+)"')
 
 
 def _backend_error_codes() -> set[str]:

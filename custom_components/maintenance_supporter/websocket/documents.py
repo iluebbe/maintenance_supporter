@@ -30,6 +30,7 @@ from ..const import (
 from ..helpers.aggregate import object_name
 from ..helpers.permissions import require_write
 from ..helpers.search_match import query_tokens, score_fields, snippet
+from ..helpers.ws_errors import send_translated_error
 from . import ID_FIELD, _get_object_entries, _load_object_entry, object_id_for_entry
 from .tasks import _is_safe_url
 
@@ -132,7 +133,7 @@ async def ws_documents_add_link(
     # meaningless as a stored external reference (and _is_safe_url treats those
     # as "safe", so the explicit prefix check is required here).
     if not url.lower().startswith(("http://", "https://")) or not _is_safe_url(url):
-        connection.send_error(msg["id"], "invalid_url", "Only http/https URLs are allowed")
+        send_translated_error(connection, msg["id"], "invalid_url", "Only http/https URLs are allowed", translation_key="unsafe_url")
         return
 
     title = msg.get("title")

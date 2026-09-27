@@ -1718,6 +1718,18 @@
         "brown": "Marrone",
         "blue_grey": "Grigio blu"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "Dalla data di completamento",
+        "planned": "Dalla data pianificata (nessuna deriva)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Termina",
+        "add": "Aggiungi condizione"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "Il salto è disattivato per «{task_name}»."
+    },
+    "object_name_taken": {
+      "message": "Un altro oggetto ha già questo nome."
+    },
+    "name_empty": {
+      "message": "Il nome non può essere vuoto."
+    },
+    "task_not_duplicable": {
+      "message": "Un'attività di acquisto ricambi o l'attività del parco batterie non può essere duplicata."
+    },
+    "fleet_not_duplicable": {
+      "message": "L'oggetto del parco batterie non può essere duplicato."
+    },
+    "parts_limit": {
+      "message": "Un oggetto può avere al massimo {max} ricambi."
+    },
+    "task_limit": {
+      "message": "Un oggetto può avere al massimo {max} attività."
+    },
+    "archived_cannot_pause": {
+      "message": "Un oggetto archiviato non può essere messo in pausa — ripristinalo prima."
+    },
+    "archived_cannot_replace": {
+      "message": "Un oggetto archiviato non può essere sostituito — ripristinalo prima."
+    },
+    "archived_no_new_tasks": {
+      "message": "Un oggetto archiviato non può ricevere nuove attività — ripristinalo prima."
+    },
+    "import_not_json_yaml": {
+      "message": "Il file non è un JSON o YAML valido."
+    },
+    "import_no_objects_list": {
+      "message": "Il file deve contenere un elenco \"objects\"."
+    },
+    "import_no_objects": {
+      "message": "Il file non contiene oggetti."
+    },
+    "import_csv_no_objects": {
+      "message": "Il file CSV non contiene oggetti validi."
+    },
+    "import_too_many": {
+      "message": "Il file contiene più di {max} oggetti."
+    },
+    "import_too_large": {
+      "message": "Il file supera {limit}."
+    },
+    "until_in_past": {
+      "message": "La data di fine deve essere nel futuro."
+    },
+    "postpone_too_far": {
+      "message": "La nuova data deve rientrare nei prossimi {days} giorni."
+    },
+    "date_in_future": {
+      "message": "La data non può essere nel futuro."
+    },
+    "range_end_before_start": {
+      "message": "La fine deve coincidere con l'inizio o essere successiva."
+    },
+    "notify_not_configured": {
+      "message": "Le notifiche non sono configurate — scegli prima un servizio di notifica nelle impostazioni."
+    },
+    "battery_notes_unavailable": {
+      "message": "L'integrazione Battery Notes non è disponibile."
+    },
+    "no_battery_devices": {
+      "message": "Non è stato trovato alcun dispositivo a batteria."
+    },
+    "fleet_not_set_up": {
+      "message": "Il parco batterie non è ancora configurato."
+    },
+    "move_same_object": {
+      "message": "L'attività appartiene già a quell'oggetto."
+    },
+    "move_target_archived": {
+      "message": "L'oggetto di destinazione è archiviato."
+    },
+    "move_part_task": {
+      "message": "Un'attività di acquisto ricambi resta con il suo ricambio."
+    },
+    "move_fleet_task": {
+      "message": "L'attività del parco batterie non può essere spostata."
+    },
+    "move_objects_not_loaded": {
+      "message": "Entrambi gli oggetti devono essere caricati per spostare un'attività."
+    },
+    "view_name_empty": {
+      "message": "Una vista salvata deve avere un nome."
+    },
+    "qr_no_url": {
+      "message": "Nessun URL di Home Assistant configurato — imposta un URL esterno o interno in Impostazioni → Sistema → Rete."
     }
   },
   "triggers": {

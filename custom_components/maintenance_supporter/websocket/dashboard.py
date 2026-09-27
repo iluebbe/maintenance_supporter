@@ -91,7 +91,7 @@ from ..const import (
     TIME_HHMMSS_PATTERN,
 )
 from ..helpers.aggregate import compute_status_counts
-from ..helpers.global_options import get_global_options
+from ..helpers.global_options import default_panel_title, get_global_options
 from ..helpers.notify_targets import build_notify_targets
 from ..helpers.region import is_region_setting
 from ..helpers.settings_registry import (
@@ -192,6 +192,7 @@ def _build_full_settings(
     battery_notes: dict[str, Any] | None = None,
     battery_lifetimes: list[dict[str, Any]] | None = None,
     part_search_url_default: str = "",
+    panel_title_default: str = "",
 ) -> dict[str, Any]:
     """Build a full settings dict from global entry options.
 
@@ -271,6 +272,8 @@ def _build_full_settings(
             "notify_targets": notify_targets or [],
             "panel_enabled": _opt(options, CONF_PANEL_ENABLED),
             "panel_title": _opt(options, CONF_PANEL_TITLE),
+            # What an empty title means — the default in the server's language.
+            "panel_title_default": panel_title_default,
             # Opt-in copy of the shipped Assist sentences into
             # <config>/custom_sentences/ (the only place the classic
             # conversation agent reads them from).
@@ -364,6 +367,7 @@ async def ws_get_settings(
                 battery_notes=bn,
                 battery_lifetimes=_battery_lifetime_catalog(hass),
                 part_search_url_default=_search_url_default(hass),
+                panel_title_default=default_panel_title(hass),
             ),
         )
         return
@@ -377,6 +381,7 @@ async def ws_get_settings(
             battery_notes=bn,
             battery_lifetimes=_battery_lifetime_catalog(hass),
             part_search_url_default=_search_url_default(hass),
+            panel_title_default=default_panel_title(hass),
         ),
     )
 
@@ -965,6 +970,7 @@ async def ws_update_global_settings(
             notify_targets=build_notify_targets(hass, current=merged.get(CONF_NOTIFY_SERVICE, "")),
             battery_lifetimes=_battery_lifetime_catalog(hass),
             part_search_url_default=_search_url_default(hass),
+            panel_title_default=default_panel_title(hass),
         ),
     )
 

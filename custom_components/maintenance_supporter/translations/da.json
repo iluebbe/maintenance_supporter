@@ -1718,6 +1718,18 @@
         "brown": "Brun",
         "blue_grey": "Blågrå"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "Fra fuldførelsesdato",
+        "planned": "Fra planlagt dato (ingen drift)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Afslut",
+        "add": "Tilføj betingelse"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "Spring over er slået fra for ”{task_name}”."
+    },
+    "object_name_taken": {
+      "message": "Et andet objekt har allerede dette navn."
+    },
+    "name_empty": {
+      "message": "Navnet må ikke være tomt."
+    },
+    "task_not_duplicable": {
+      "message": "En købsopgave for en reservedel eller batteriflådens opgave kan ikke duplikeres."
+    },
+    "fleet_not_duplicable": {
+      "message": "Batteriflådens objekt kan ikke duplikeres."
+    },
+    "parts_limit": {
+      "message": "Et objekt kan højst have {max} reservedele."
+    },
+    "task_limit": {
+      "message": "Et objekt kan højst have {max} opgaver."
+    },
+    "archived_cannot_pause": {
+      "message": "Et arkiveret objekt kan ikke sættes på pause — gendan det først."
+    },
+    "archived_cannot_replace": {
+      "message": "Et arkiveret objekt kan ikke udskiftes — gendan det først."
+    },
+    "archived_no_new_tasks": {
+      "message": "Et arkiveret objekt kan ikke få nye opgaver — gendan det først."
+    },
+    "import_not_json_yaml": {
+      "message": "Filen er ikke gyldig JSON eller YAML."
+    },
+    "import_no_objects_list": {
+      "message": "Filen skal indeholde en \"objects\"-liste."
+    },
+    "import_no_objects": {
+      "message": "Filen indeholder ingen objekter."
+    },
+    "import_csv_no_objects": {
+      "message": "CSV-filen indeholder ingen gyldige objekter."
+    },
+    "import_too_many": {
+      "message": "Filen indeholder mere end {max} objekter."
+    },
+    "import_too_large": {
+      "message": "Filen er større end {limit}."
+    },
+    "until_in_past": {
+      "message": "Slutdatoen skal ligge i fremtiden."
+    },
+    "postpone_too_far": {
+      "message": "Den nye dato skal ligge inden for {days} dage."
+    },
+    "date_in_future": {
+      "message": "Datoen må ikke ligge i fremtiden."
+    },
+    "range_end_before_start": {
+      "message": "Slutningen skal ligge på eller efter starten."
+    },
+    "notify_not_configured": {
+      "message": "Notifikationer er ikke sat op — vælg først en notifikationstjeneste i indstillingerne."
+    },
+    "battery_notes_unavailable": {
+      "message": "Integrationen Battery Notes er ikke tilgængelig."
+    },
+    "no_battery_devices": {
+      "message": "Der blev ikke fundet nogen enheder med batterier."
+    },
+    "fleet_not_set_up": {
+      "message": "Batteriflåden er ikke sat op endnu."
+    },
+    "move_same_object": {
+      "message": "Opgaven hører allerede til det objekt."
+    },
+    "move_target_archived": {
+      "message": "Målobjektet er arkiveret."
+    },
+    "move_part_task": {
+      "message": "En købsopgave for en reservedel bliver hos sin reservedel."
+    },
+    "move_fleet_task": {
+      "message": "Batteriflådens opgave kan ikke flyttes."
+    },
+    "move_objects_not_loaded": {
+      "message": "Begge objekter skal være indlæst for at flytte en opgave."
+    },
+    "view_name_empty": {
+      "message": "En gemt visning skal have et navn."
+    },
+    "qr_no_url": {
+      "message": "Der er ikke konfigureret nogen Home Assistant-URL — angiv en ekstern eller intern URL under Indstillinger → System → Netværk."
     }
   },
   "triggers": {

@@ -21,6 +21,7 @@ from ..const import (
     MAX_TIMESTAMP_LENGTH,
 )
 from ..helpers.completion_photos import MAX_COMPLETION_PHOTOS, normalize_photo_doc_ids
+from ..helpers.ws_errors import send_exception_error, send_translated_error
 from ..models.maintenance_task import MaintenanceTask
 from . import (
     ID_FIELD,
@@ -218,7 +219,7 @@ async def ws_complete_task(
         # The dialog normally prevents these, so reaching here means an
         # older/cached frontend or a scripted call — answer with the
         # exception's own key rather than a traceback.
-        connection.send_error(msg["id"], err.translation_key or "completion_details_required", str(err))
+        send_exception_error(connection, msg["id"], err, "completion_details_required")
         return
     connection.send_result(msg["id"], {"success": True})
 
@@ -276,7 +277,7 @@ async def ws_quick_complete_task(
         # The task demands details the quick-complete defaults do not cover —
         # same fallback as `no_defaults`: the caller opens the full dialog.
         # Other refusals (too_early, task_inactive) keep their own key.
-        connection.send_error(msg["id"], err.translation_key or "completion_details_required", str(err))
+        send_exception_error(connection, msg["id"], err, "completion_details_required")
         return
     connection.send_result(msg["id"], {"success": True, "via": "quick"})
 
@@ -313,7 +314,7 @@ async def ws_skip_task(
     except ServiceValidationError as err:
         # #150: the task carries a skip lock; an inactive task keeps its own
         # key (task_inactive_skip) so the panel can say why.
-        connection.send_error(msg["id"], err.translation_key or "skip_disabled", str(err))
+        send_exception_error(connection, msg["id"], err, "skip_disabled")
         return
     connection.send_result(msg["id"], {"success": True})
 
@@ -354,7 +355,7 @@ async def ws_reset_task(
         )
     except ServiceValidationError as err:
         # An archived / disabled / paused task keeps its own key (task_inactive).
-        connection.send_error(msg["id"], err.translation_key or "task_inactive", str(err))
+        send_exception_error(connection, msg["id"], err, "task_inactive")
         return
     connection.send_result(msg["id"], {"success": True})
 
@@ -428,13 +429,13 @@ async def ws_postpone_task(
     from ..const import MAX_INTERVAL_DAYS
 
     if until > dt_util.now().date() + timedelta(days=MAX_INTERVAL_DAYS):
-        connection.send_error(msg["id"], "invalid_date", f"until must be within {MAX_INTERVAL_DAYS} days")
+        send_translated_error(connection, msg["id"], "invalid_date", f"until must be within {MAX_INTERVAL_DAYS} days", translation_key="postpone_too_far", translation_placeholders={"days": str(MAX_INTERVAL_DAYS)})
         return
 
     try:
         await rd.coordinator.async_postpone_task(msg["task_id"], until)
     except ServiceValidationError as err:
-        connection.send_error(msg["id"], err.translation_key or "task_inactive", str(err))
+        send_exception_error(connection, msg["id"], err, "task_inactive")
         return
     connection.send_result(msg["id"], {"success": True})
 
@@ -465,7 +466,7 @@ async def ws_snooze_task(
 
     nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
     if nm is None:
-        connection.send_error(msg["id"], "unavailable", "Notifications not configured")
+        send_translated_error(connection, msg["id"], "unavailable", "Notifications not configured", translation_key="notify_not_configured")
         return
     nm.snooze_task(msg["entry_id"], msg["task_id"])
     connection.send_result(msg["id"], {"success": True})

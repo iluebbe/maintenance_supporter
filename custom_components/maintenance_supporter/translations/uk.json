@@ -1718,6 +1718,18 @@
         "brown": "Коричневий",
         "blue_grey": "Сіро-блакитний"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "Від дати виконання",
+        "planned": "Від запланованої дати (без зміщення)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Завершити",
+        "add": "Додати умову"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "Пропуск вимкнено для «{task_name}»."
+    },
+    "object_name_taken": {
+      "message": "Цю назву вже має інший об'єкт."
+    },
+    "name_empty": {
+      "message": "Назва не може бути порожньою."
+    },
+    "task_not_duplicable": {
+      "message": "Завдання купівлі запчастини та завдання парку батарей не можна дублювати."
+    },
+    "fleet_not_duplicable": {
+      "message": "Об'єкт парку батарей не можна дублювати."
+    },
+    "parts_limit": {
+      "message": "Об'єкт може мати не більше {max} запчастин."
+    },
+    "task_limit": {
+      "message": "Об'єкт може мати не більше {max} завдань."
+    },
+    "archived_cannot_pause": {
+      "message": "Архівований об'єкт не можна призупинити — спочатку відновіть його."
+    },
+    "archived_cannot_replace": {
+      "message": "Архівований об'єкт не можна замінити — спочатку відновіть його."
+    },
+    "archived_no_new_tasks": {
+      "message": "До архівованого об'єкта не можна додавати нові завдання — спочатку відновіть його."
+    },
+    "import_not_json_yaml": {
+      "message": "Файл не є коректним JSON або YAML."
+    },
+    "import_no_objects_list": {
+      "message": "Файл має містити список \"objects\"."
+    },
+    "import_no_objects": {
+      "message": "Файл не містить об'єктів."
+    },
+    "import_csv_no_objects": {
+      "message": "CSV-файл не містить дійсних об'єктів."
+    },
+    "import_too_many": {
+      "message": "Файл містить понад {max} об'єктів."
+    },
+    "import_too_large": {
+      "message": "Розмір файлу перевищує {limit}."
+    },
+    "until_in_past": {
+      "message": "Дата завершення має бути в майбутньому."
+    },
+    "postpone_too_far": {
+      "message": "Нова дата має бути в межах {days} днів."
+    },
+    "date_in_future": {
+      "message": "Дата не може бути в майбутньому."
+    },
+    "range_end_before_start": {
+      "message": "Кінець не може бути раніше за початок."
+    },
+    "notify_not_configured": {
+      "message": "Сповіщення не налаштовано — спершу виберіть службу сповіщень у налаштуваннях."
+    },
+    "battery_notes_unavailable": {
+      "message": "Інтеграція Battery Notes недоступна."
+    },
+    "no_battery_devices": {
+      "message": "Пристроїв із батареями не знайдено."
+    },
+    "fleet_not_set_up": {
+      "message": "Парк батарей ще не налаштовано."
+    },
+    "move_same_object": {
+      "message": "Завдання вже належить цьому об'єкту."
+    },
+    "move_target_archived": {
+      "message": "Цільовий об'єкт перебуває в архіві."
+    },
+    "move_part_task": {
+      "message": "Завдання купівлі запчастини залишається при своїй запчастині."
+    },
+    "move_fleet_task": {
+      "message": "Завдання парку батарей не можна перемістити."
+    },
+    "move_objects_not_loaded": {
+      "message": "Щоб перемістити завдання, обидва об'єкти мають бути завантажені."
+    },
+    "view_name_empty": {
+      "message": "Збереженому поданню потрібна назва."
+    },
+    "qr_no_url": {
+      "message": "URL Home Assistant не налаштовано — задайте зовнішню або внутрішню URL-адресу в розділі Налаштування → Система → Мережа."
     }
   },
   "triggers": {

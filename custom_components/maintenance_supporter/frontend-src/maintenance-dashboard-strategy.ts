@@ -31,6 +31,7 @@
  */
 
 import { ACTIONABLE_STATUSES, STATUS_ICONS } from "./status-constants";
+import { ensureLocale, t } from "./helpers/locale-core";
 import { loadHistoryEntryDraft } from "./helpers/history-draft";
 
 interface MaintenanceObjectResp {
@@ -68,6 +69,54 @@ interface HassLike {
   };
   areas?: Record<string, AreaEntry>;
   floors?: Record<string, FloorEntry>;
+}
+
+// ── i18n ──────────────────────────────────────────────────────────────────
+// The strategy bundle stays small and Lit-free, so it carries no English
+// table: every string it shows names its locale key and its English text
+// (kept equal to en.json by tests/test_i18n.py). ``_lang`` is set from hass
+// before a dashboard is generated or the editor renders.
+const STRINGS = {
+  maintenance: "Maintenance",
+  overview: "Overview",
+  overdue: "Overdue",
+  triggered: "Triggered",
+  due_soon: "Due Soon",
+  ok: "OK",
+  today: "Today",
+  today_this_week: "This week",
+  unassigned: "Unassigned",
+  tasks: "Tasks",
+  strat_this_month: "This Month",
+  strat_later: "Later",
+  strat_week: "Week",
+  strat_fortnight: "Fortnight",
+  strat_month: "Month",
+  strat_year: "Year",
+  strat_other: "Other",
+  strat_status: "Status",
+  strat_empty_title: "No maintenance objects yet",
+  strat_empty_content: "Open the Maintenance panel to add your first object — pool pump, HVAC filter, vehicle, anything that needs scheduled care.",
+  strat_open_panel: "Open Maintenance panel",
+  strat_add_object: "Add object",
+  strat_not_loaded: "**Maintenance Supporter** is not loaded. Install/enable the integration first.",
+  strat_group_by: "Group views by",
+  strat_group_area: "By area (default)",
+  strat_group_status: "By status (Overdue / Triggered / Due Soon / OK)",
+  strat_group_floor: "By floor (uses HA floors)",
+  strat_group_due_date: "By due date (Overdue / Today / Week / Month / Later)",
+  strat_group_calendar: "Rolling calendar (Week / Fortnight / Month / Year)",
+  strat_editor_help: "The \"Overview\" view is always first. Empty groups are skipped.",
+} as const;
+type StringKey = keyof typeof STRINGS;
+let _lang = "en";
+const s = (key: StringKey): string => t(key, _lang, STRINGS[key]);
+
+/** Load the user's language before generating (the English fallbacks keep
+ *  working when the fetch fails). */
+async function useLanguage(hass: { language?: string } | undefined): Promise<void> {
+  _lang = hass?.language || "en";
+  await ensureLocale(_lang);
 }
 
 type GroupBy = "area" | "status" | "floor" | "due_date" | "calendar";
@@ -127,21 +176,21 @@ const STATE_NOT_RUNNING = "NOT_RUNNING";
 
 const STATUS_VIEWS: Array<{
   status: string;
-  title: string;
+  title: StringKey;
   icon: string;
   path: string;
 }> = [
   // Icons come from the shared STATUS_ICONS so the generated dashboard
   // matches the panel (this table used to hardcode its own set — "Overdue"
   // wore the panel's due-soon icon).
-  { status: "overdue", title: "Overdue", icon: STATUS_ICONS.overdue, path: "overdue" },
-  { status: "triggered", title: "Triggered", icon: STATUS_ICONS.triggered, path: "triggered" },
-  { status: "due_soon", title: "Due Soon", icon: STATUS_ICONS.due_soon, path: "due-soon" },
-  { status: "ok", title: "OK", icon: STATUS_ICONS.ok, path: "ok" },
+  { status: "overdue", title: "overdue", icon: STATUS_ICONS.overdue, path: "overdue" },
+  { status: "triggered", title: "triggered", icon: STATUS_ICONS.triggered, path: "triggered" },
+  { status: "due_soon", title: "due_soon", icon: STATUS_ICONS.due_soon, path: "due-soon" },
+  { status: "ok", title: "ok", icon: STATUS_ICONS.ok, path: "ok" },
 ];
 
 const DUE_DATE_VIEWS: Array<{
-  title: string;
+  title: StringKey;
   icon: string;
   path: string;
   filter: { filter_due_min_days?: number; filter_due_max_days?: number };
@@ -149,7 +198,7 @@ const DUE_DATE_VIEWS: Array<{
   matches: (days: number) => boolean;
 }> = [
   {
-    title: "Overdue",
+    title: "overdue",
     // The shared overdue icon — "mdi:alert-circle" is the DUE-SOON one, the
     // exact drift status-constants.ts was created to end (DRY audit 2026-09-26).
     icon: STATUS_ICONS.overdue,
@@ -158,28 +207,28 @@ const DUE_DATE_VIEWS: Array<{
     matches: (d) => d <= -1,
   },
   {
-    title: "Today",
+    title: "today",
     icon: "mdi:calendar-today",
     path: "today",
     filter: { filter_due_min_days: 0, filter_due_max_days: 0 },
     matches: (d) => d === 0,
   },
   {
-    title: "This Week",
+    title: "today_this_week",
     icon: "mdi:calendar-week",
     path: "this-week",
     filter: { filter_due_min_days: 1, filter_due_max_days: 7 },
     matches: (d) => d >= 1 && d <= 7,
   },
   {
-    title: "This Month",
+    title: "strat_this_month",
     icon: "mdi:calendar-month",
     path: "this-month",
     filter: { filter_due_min_days: 8, filter_due_max_days: 30 },
     matches: (d) => d >= 8 && d <= 30,
   },
   {
-    title: "Later",
+    title: "strat_later",
     icon: "mdi:calendar-clock",
     path: "later",
     filter: { filter_due_min_days: 31 },
@@ -234,10 +283,10 @@ export function kpiMarkdownCard(ids: SummaryEntityIds = {}, counts: SummaryCount
     type: "markdown",
     text_only: true,
     content: [
-      `🔴 **${kpiValue("overdue", ids, counts)}** overdue`,
-      `⚡ **${kpiValue("triggered", ids, counts)}** triggered`,
-      `🟡 **${kpiValue("due_soon", ids, counts)}** due soon`,
-      `🟢 **${kpiValue("ok", ids, counts)}** ok`,
+      `🔴 **${kpiValue("overdue", ids, counts)}** ${s("overdue")}`,
+      `⚡ **${kpiValue("triggered", ids, counts)}** ${s("triggered")}`,
+      `🟡 **${kpiValue("due_soon", ids, counts)}** ${s("due_soon")}`,
+      `🟢 **${kpiValue("ok", ids, counts)}** ${s("ok")}`,
     ].join(" · "),
   };
 }
@@ -254,7 +303,7 @@ export function kpiMarkdownCard(ids: SummaryEntityIds = {}, counts: SummaryCount
 //     rip our object-add dialog out of the panel into a custom element.
 function emptyStateView(): ViewConfig {
   return {
-    title: "Maintenance",
+    title: s("maintenance"),
     type: "panel",
     cards: [
       {
@@ -262,13 +311,12 @@ function emptyStateView(): ViewConfig {
         icon: "mdi:wrench-clock",
         icon_color: "primary",
         content_only: true,
-        title: "No maintenance objects yet",
-        content:
-          "Open the Maintenance panel to add your first object — pool pump, HVAC filter, vehicle, anything that needs scheduled care.",
+        title: s("strat_empty_title"),
+        content: s("strat_empty_content"),
         buttons: [
           {
             icon: "mdi:wrench",
-            text: "Open Maintenance panel",
+            text: s("strat_open_panel"),
             appearance: "filled",
             variant: "brand",
             tap_action: {
@@ -278,7 +326,7 @@ function emptyStateView(): ViewConfig {
           },
           {
             icon: "mdi:plus",
-            text: "Add object",
+            text: s("strat_add_object"),
             appearance: "outlined",
             variant: "brand",
             tap_action: {
@@ -295,7 +343,7 @@ function emptyStateView(): ViewConfig {
 function overviewView(summaryIds: SummaryEntityIds = {}, counts: SummaryCounts = {}): ViewConfig {
   const kpiCard = kpiMarkdownCard(summaryIds, counts);
   return {
-    title: "Overview",
+    title: s("overview"),
     icon: "mdi:wrench-clock",
     path: "overview",
     type: "sections",
@@ -313,7 +361,7 @@ function overviewView(summaryIds: SummaryEntityIds = {}, counts: SummaryCounts =
           cards: [
             {
               type: "heading",
-              heading: "Status",
+              heading: s("strat_status"),
               heading_style: "title",
             },
             kpiCard,
@@ -321,8 +369,8 @@ function overviewView(summaryIds: SummaryEntityIds = {}, counts: SummaryCounts =
         },
       ],
       visibility: [LARGE_SCREEN_CONDITION],
-      content_label: "Tasks",
-      sidebar_label: "Status",
+      content_label: s("tasks"),
+      sidebar_label: s("strat_status"),
     },
     sections: [
       makeCardSection({
@@ -377,7 +425,7 @@ function viewsByArea(
   const unassigned = byArea.get(null);
   if (unassigned && unassigned.length > 0) {
     views.push({
-      title: "Unassigned",
+      title: s("unassigned"),
       icon: "mdi:help-circle-outline",
       path: "unassigned",
       type: "sections",
@@ -406,7 +454,7 @@ function viewsByStatus(objects: MaintenanceObjectResp[]): ViewConfig[] {
   for (const v of STATUS_VIEWS) {
     if (!present.has(v.status)) continue;
     views.push({
-      title: v.title,
+      title: s(v.title),
       icon: v.icon,
       path: v.path,
       type: "sections",
@@ -473,7 +521,7 @@ function viewsByFloor(
   const unassigned = byFloor.get(null);
   if (unassigned && unassigned.length > 0) {
     views.push({
-      title: "Other",
+      title: s("strat_other"),
       icon: "mdi:help-circle-outline",
       path: "other",
       type: "sections",
@@ -496,19 +544,19 @@ function viewsByCalendar(_objects: MaintenanceObjectResp[]): ViewConfig[] {
   // window_days. Window-chips inside the card are hidden because the
   // tab-bar already serves as the window selector.
   const WINDOWS: Array<{
-    title: string;
+    title: StringKey;
     icon: string;
     path: string;
     window_days: 7 | 14 | 30 | 365;
   }> = [
-    { title: "Week", icon: "mdi:calendar-week", path: "cal-7", window_days: 7 },
-    { title: "Fortnight", icon: "mdi:calendar-week-begin", path: "cal-14", window_days: 14 },
-    { title: "Month", icon: "mdi:calendar-month", path: "cal-30", window_days: 30 },
-    { title: "Year", icon: "mdi:calendar-clock", path: "cal-365", window_days: 365 },
+    { title: "strat_week", icon: "mdi:calendar-week", path: "cal-7", window_days: 7 },
+    { title: "strat_fortnight", icon: "mdi:calendar-week-begin", path: "cal-14", window_days: 14 },
+    { title: "strat_month", icon: "mdi:calendar-month", path: "cal-30", window_days: 30 },
+    { title: "strat_year", icon: "mdi:calendar-clock", path: "cal-365", window_days: 365 },
   ];
 
   return WINDOWS.map((w) => ({
-    title: w.title,
+    title: s(w.title),
     icon: w.icon,
     path: w.path,
     type: "panel",
@@ -540,7 +588,7 @@ function viewsByDueDate(objects: MaintenanceObjectResp[]): ViewConfig[] {
   DUE_DATE_VIEWS.forEach((v, i) => {
     if (!presentBuckets.has(i)) return;
     views.push({
-      title: v.title,
+      title: s(v.title),
       icon: v.icon,
       path: v.path,
       type: "sections",
@@ -596,6 +644,7 @@ export class MaintenanceDashboardStrategy extends HTMLElement {
       };
     }
 
+    await useLanguage(hass);
     let response: { objects: MaintenanceObjectResp[] };
     try {
       response = await hass.connection.sendMessagePromise<{
@@ -603,17 +652,11 @@ export class MaintenanceDashboardStrategy extends HTMLElement {
       }>({ type: "maintenance_supporter/objects" });
     } catch {
       return {
-        title: "Maintenance",
+        title: s("maintenance"),
         views: [
           {
-            title: "Maintenance",
-            cards: [
-              {
-                type: "markdown",
-                content:
-                  "**Maintenance Supporter** is not loaded. Install/enable the integration first.",
-              },
-            ],
+            title: s("maintenance"),
+            cards: [{ type: "markdown", content: s("strat_not_loaded") }],
           },
         ],
       };
@@ -626,7 +669,7 @@ export class MaintenanceDashboardStrategy extends HTMLElement {
     // "no tasks") — that's a useless first impression. Show an actionable
     // empty-state instead so the user knows where to click next.
     if (objects.length === 0) {
-      return { title: "Maintenance", views: [emptyStateView()] };
+      return { title: s("maintenance"), views: [emptyStateView()] };
     }
 
     const groupBy: GroupBy = config?.group_by ?? "area";
@@ -665,7 +708,7 @@ export class MaintenanceDashboardStrategy extends HTMLElement {
     } catch { /* fall back to the documented default ids */ }
 
     return {
-      title: "Maintenance",
+      title: s("maintenance"),
       views: [
         overviewView(summaryIds, counts),
         ...(viewBuilders[groupBy] ?? viewBuilders.area)(),
@@ -684,13 +727,17 @@ export class MaintenanceDashboardStrategy extends HTMLElement {
 // We keep the editor as a plain HTMLElement (no Lit dependency) because the
 // strategy file otherwise stays Lit-free. It's enough HTML for one <select>.
 
-const GROUP_BY_OPTIONS: Array<{ value: GroupBy; label: string }> = [
-  { value: "area", label: "By area (default)" },
-  { value: "status", label: "By status (Overdue / Triggered / Due Soon / OK)" },
-  { value: "floor", label: "By floor (uses HA floors)" },
-  { value: "due_date", label: "By due date (Overdue / Today / Week / Month / Later)" },
-  { value: "calendar", label: "Rolling calendar (Week / Fortnight / Month / Year)" },
+const GROUP_BY_OPTIONS: Array<{ value: GroupBy; label: StringKey }> = [
+  { value: "area", label: "strat_group_area" },
+  { value: "status", label: "strat_group_status" },
+  { value: "floor", label: "strat_group_floor" },
+  { value: "due_date", label: "strat_group_due_date" },
+  { value: "calendar", label: "strat_group_calendar" },
 ];
+
+function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+}
 
 class MaintenanceStrategyEditor extends HTMLElement {
   private _config: MaintenanceDashboardStrategyConfig = {
@@ -699,7 +746,9 @@ class MaintenanceStrategyEditor extends HTMLElement {
   private _hass: HassLike | undefined;
 
   set hass(hass: HassLike | undefined) {
+    const changed = (hass?.language || "en") !== _lang;
     this._hass = hass;
+    if (changed) void useLanguage(hass).then(() => this._render());
   }
 
   setConfig(config: MaintenanceDashboardStrategyConfig): void {
@@ -715,7 +764,7 @@ class MaintenanceStrategyEditor extends HTMLElement {
     const current = this._config.group_by ?? "area";
     const options = GROUP_BY_OPTIONS.map(
       (o) =>
-        `<option value="${o.value}"${o.value === current ? " selected" : ""}>${o.label}</option>`,
+        `<option value="${o.value}"${o.value === current ? " selected" : ""}>${escapeHtml(s(o.label))}</option>`,
     ).join("");
     this.innerHTML = `
       <style>
@@ -734,11 +783,9 @@ class MaintenanceStrategyEditor extends HTMLElement {
         }
       </style>
       <div class="editor">
-        <label for="group-by">Group views by</label>
+        <label for="group-by">${escapeHtml(s("strat_group_by"))}</label>
         <select id="group-by">${options}</select>
-        <div class="help">
-          The "Overview" view is always first. Empty groups are skipped.
-        </div>
+        <div class="help">${escapeHtml(s("strat_editor_help"))}</div>
       </div>
     `;
     const select = this.querySelector("#group-by") as HTMLSelectElement | null;

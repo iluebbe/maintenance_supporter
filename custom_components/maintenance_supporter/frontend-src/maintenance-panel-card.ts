@@ -22,6 +22,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { registerCustomCard } from "./helpers/register-card";
+import { localizePickerWhenReady } from "./helpers/picker-i18n";
 import { OVERVIEW_TABS, type OverviewTab } from "./helpers/overview-tabs";
 import { langOf, t } from "./styles";
 import type { HomeAssistant, SavedView } from "./types";
@@ -365,3 +366,4 @@ registerCustomCard({
   description: "The complete Maintenance Supporter panel as a card — for a panel view / dashboard subview without the sidebar entry.",
   preview: false,
 });
+localizePickerWhenReady();

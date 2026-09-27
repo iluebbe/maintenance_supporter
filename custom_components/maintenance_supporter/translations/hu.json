@@ -1718,6 +1718,18 @@
         "brown": "Barna",
         "blue_grey": "Kékesszürke"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "Az elvégzés dátumától",
+        "planned": "A tervezett dátumtól (nincs csúszás)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Befejezés",
+        "add": "Feltétel hozzáadása"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "A kihagyás le van tiltva ennél: „{task_name}”."
+    },
+    "object_name_taken": {
+      "message": "Ezt a nevet már egy másik objektum használja."
+    },
+    "name_empty": {
+      "message": "A név nem lehet üres."
+    },
+    "task_not_duplicable": {
+      "message": "Alkatrész vásárlási feladata vagy az elemflotta feladata nem duplikálható."
+    },
+    "fleet_not_duplicable": {
+      "message": "Az elemflotta objektuma nem duplikálható."
+    },
+    "parts_limit": {
+      "message": "Egy objektumnak legfeljebb {max} alkatrésze lehet."
+    },
+    "task_limit": {
+      "message": "Egy objektumnak legfeljebb {max} feladata lehet."
+    },
+    "archived_cannot_pause": {
+      "message": "Archivált objektum nem szüneteltethető — először állítsa vissza."
+    },
+    "archived_cannot_replace": {
+      "message": "Archivált objektum nem cserélhető le — először állítsa vissza."
+    },
+    "archived_no_new_tasks": {
+      "message": "Archivált objektumhoz nem adhatók új feladatok — először állítsa vissza."
+    },
+    "import_not_json_yaml": {
+      "message": "A fájl nem érvényes JSON vagy YAML."
+    },
+    "import_no_objects_list": {
+      "message": "A fájlnak tartalmaznia kell egy \"objects\" listát."
+    },
+    "import_no_objects": {
+      "message": "A fájl nem tartalmaz objektumokat."
+    },
+    "import_csv_no_objects": {
+      "message": "A CSV-fájl nem tartalmaz érvényes objektumokat."
+    },
+    "import_too_many": {
+      "message": "A fájl több mint {max} objektumot tartalmaz."
+    },
+    "import_too_large": {
+      "message": "A fájl nagyobb, mint {limit}."
+    },
+    "until_in_past": {
+      "message": "A befejezés dátumának a jövőben kell lennie."
+    },
+    "postpone_too_far": {
+      "message": "Az új dátumnak {days} napon belül kell lennie."
+    },
+    "date_in_future": {
+      "message": "A dátum nem lehet a jövőben."
+    },
+    "range_end_before_start": {
+      "message": "A vége nem lehet korábbi a kezdeténél."
+    },
+    "notify_not_configured": {
+      "message": "Az értesítések nincsenek beállítva — először válasszon értesítési szolgáltatást a beállításokban."
+    },
+    "battery_notes_unavailable": {
+      "message": "A Battery Notes integráció nem érhető el."
+    },
+    "no_battery_devices": {
+      "message": "Nem található elemes eszköz."
+    },
+    "fleet_not_set_up": {
+      "message": "Az elemflotta még nincs beállítva."
+    },
+    "move_same_object": {
+      "message": "A feladat már ehhez az objektumhoz tartozik."
+    },
+    "move_target_archived": {
+      "message": "A célobjektum archiválva van."
+    },
+    "move_part_task": {
+      "message": "Az alkatrész vásárlási feladata az alkatrésznél marad."
+    },
+    "move_fleet_task": {
+      "message": "Az elemflotta feladata nem helyezhető át."
+    },
+    "move_objects_not_loaded": {
+      "message": "Feladat áthelyezéséhez mindkét objektumnak betöltve kell lennie."
+    },
+    "view_name_empty": {
+      "message": "A mentett nézethez név szükséges."
+    },
+    "qr_no_url": {
+      "message": "Nincs Home Assistant URL beállítva — adjon meg külső vagy belső URL-t a Beállítások → Rendszer → Hálózat alatt."
     }
   },
   "triggers": {

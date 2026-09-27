@@ -132,6 +132,11 @@ async def test_ws_skip_reports_inactive_task_with_its_own_code(hass: HomeAssista
     )
     conn.send_result.assert_not_called()
     assert conn.send_error.call_args[0][1] == "task_inactive_skip"
+    # i18n audit 2026-09-27: the translation (with the task name) reaches the panel
+    kwargs = conn.send_error.call_args.kwargs
+    assert kwargs["translation_domain"] == "maintenance_supporter"
+    assert kwargs["translation_key"] == "task_inactive_skip"
+    assert "task_name" in kwargs["translation_placeholders"]
 
 
 # ── notification manager (findings B-5 / B-6) ────────────────────────────

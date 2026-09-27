@@ -369,6 +369,13 @@ MAX_REMINDER_LEADS = 10
 # --- Panel ---
 PANEL_NAME = "maintenance-supporter"
 PANEL_TITLE = "Maintenance"
+# The default sidebar title in the server's language (an unset panel_title).
+PANEL_TITLES: dict[str, str] = {
+    "en": PANEL_TITLE, "de": "Wartung", "nl": "Onderhoud", "fr": "Maintenance", "it": "Manutenzione",
+    "es": "Mantenimiento", "pt": "Manutenção", "pt-br": "Manutenção", "ru": "Обслуживание", "uk": "Обслуговування",
+    "pl": "Konserwacja", "cs": "Údržba", "sv": "Underhåll", "zh": "维护", "da": "Vedligeholdelse", "fi": "Huolto",
+    "nb": "Vedlikehold", "ja": "メンテナンス", "hi": "रखरखाव", "hu": "Karbantartás", "ko": "유지보수", "tr": "Bakım",
+}  # fmt: skip
 PANEL_ICON = "mdi:wrench-clock"
 PANEL_URL = "/maintenance_supporter_panel"
 CARD_URL = "/maintenance_supporter_card"

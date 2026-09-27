@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 import struct
 import sys
 import zlib
@@ -79,7 +80,9 @@ def region_of(props: dict[str, Any]) -> tuple[str, str] | None:
         code, name = props.get("region_cod"), props.get("region")
         return (code, _IT_NAMES.get(name, name)) if code and name else None
     code = props.get("iso_3166_2") or ""
-    return (code, props["name"]) if code.startswith(f"{cc}-") else None
+    # Natural Earth's placeholder codes (Australia's "AU-X02~" external
+    # territories) are no ISO subdivision — their cells count as no region.
+    return (code, props["name"]) if re.fullmatch(rf"{cc}-[A-Z0-9]{{1,3}}", code) else None
 
 
 def rings(geometry: dict[str, Any]) -> list[list[tuple[float, float]]]:

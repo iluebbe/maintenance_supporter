@@ -285,6 +285,6 @@ if (!customElements.get("maintenance-budget-section-card")) {
 registerCustomCard({
   type: "maintenance-budget-section-card",
   name: "Maintenance Supporter — Budget",
-  description: "Inline monthly + yearly budget editor",
+  description: "Edit the monthly and yearly budget right on the dashboard.",
   preview: false,
 });

@@ -26,6 +26,9 @@ MAGIC = b"MSRG2\n"
 REGION_AUTO = "auto"
 _CODE = re.compile(r"^[A-Z]{2}-[A-Z0-9]{1,3}$")
 _DATA = Path(__file__).resolve().parent.parent / "data" / "regions" / "regions.bin"
+# The names in every language (the grid carries the map source's own names,
+# which mix languages: "Kärnten", "Lombardia", "Québec").
+_NAMES_I18N = _DATA.parent / "names_i18n.json"
 _REFINED = 255
 # A home on the coast can sit in a sea cell: the nearest region within this
 # many coarse cells counts (0.3°, about 30 km).
@@ -137,6 +140,24 @@ def load_region_grid(country: str, path: Path = _DATA) -> RegionGrid | None:
         refined,
         blocks,
     )
+
+
+def load_region_name_translations(path: Path = _NAMES_I18N) -> dict[str, dict[str, str]]:
+    """``{code: {language: name}}`` (blocking); empty when the file is missing."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def localize_region_names(names: dict[str, str], translations: dict[str, dict[str, str]], lang: str) -> dict[str, str]:
+    """Each region's name in ``lang`` — else English, else the map's own name."""
+    out = {}
+    for code, name in names.items():
+        per_lang = translations.get(code) or {}
+        out[code] = per_lang.get(lang) or per_lang.get("en") or name
+    return out
 
 
 def regions_of(country: str | None, names: dict[str, str]) -> list[dict[str, str]]:

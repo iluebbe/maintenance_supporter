@@ -1718,6 +1718,18 @@
         "brown": "茶",
         "blue_grey": "ブルーグレー"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "完了日から",
+        "planned": "予定日から（ずれなし）"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "完了",
+        "add": "条件を追加"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "「{task_name}」はスキップが無効になっています。"
+    },
+    "object_name_taken": {
+      "message": "この名前は既に別のオブジェクトで使われています。"
+    },
+    "name_empty": {
+      "message": "名前を空にすることはできません。"
+    },
+    "task_not_duplicable": {
+      "message": "部品の購入タスクや電池フリートのタスクは複製できません。"
+    },
+    "fleet_not_duplicable": {
+      "message": "電池フリートのオブジェクトは複製できません。"
+    },
+    "parts_limit": {
+      "message": "1つのオブジェクトに登録できる部品は最大 {max} 個です。"
+    },
+    "task_limit": {
+      "message": "1つのオブジェクトに登録できるタスクは最大 {max} 件です。"
+    },
+    "archived_cannot_pause": {
+      "message": "アーカイブ済みのオブジェクトは一時停止できません — 先に復元してください。"
+    },
+    "archived_cannot_replace": {
+      "message": "アーカイブ済みのオブジェクトは置き換えできません — 先に復元してください。"
+    },
+    "archived_no_new_tasks": {
+      "message": "アーカイブ済みのオブジェクトには新しいタスクを追加できません — 先に復元してください。"
+    },
+    "import_not_json_yaml": {
+      "message": "ファイルが有効な JSON または YAML ではありません。"
+    },
+    "import_no_objects_list": {
+      "message": "ファイルには \"objects\" リストが必要です。"
+    },
+    "import_no_objects": {
+      "message": "ファイルにオブジェクトが含まれていません。"
+    },
+    "import_csv_no_objects": {
+      "message": "CSV ファイルに有効なオブジェクトが含まれていません。"
+    },
+    "import_too_many": {
+      "message": "ファイルに含まれるオブジェクトが {max} 件を超えています。"
+    },
+    "import_too_large": {
+      "message": "ファイルが {limit} を超えています。"
+    },
+    "until_in_past": {
+      "message": "終了日は未来の日付にしてください。"
+    },
+    "postpone_too_far": {
+      "message": "新しい日付は {days} 日以内にしてください。"
+    },
+    "date_in_future": {
+      "message": "日付に未来は指定できません。"
+    },
+    "range_end_before_start": {
+      "message": "終了は開始と同じか、それより後にしてください。"
+    },
+    "notify_not_configured": {
+      "message": "通知が設定されていません — 先に設定で通知サービスを選択してください。"
+    },
+    "battery_notes_unavailable": {
+      "message": "Battery Notes 統合を利用できません。"
+    },
+    "no_battery_devices": {
+      "message": "電池を使用するデバイスが見つかりませんでした。"
+    },
+    "fleet_not_set_up": {
+      "message": "電池フリートはまだ設定されていません。"
+    },
+    "move_same_object": {
+      "message": "このタスクは既にそのオブジェクトに属しています。"
+    },
+    "move_target_archived": {
+      "message": "移動先のオブジェクトはアーカイブ済みです。"
+    },
+    "move_part_task": {
+      "message": "部品の購入タスクは、その部品に紐づいたままになります。"
+    },
+    "move_fleet_task": {
+      "message": "電池フリートのタスクは移動できません。"
+    },
+    "move_objects_not_loaded": {
+      "message": "タスクを移動するには、両方のオブジェクトが読み込まれている必要があります。"
+    },
+    "view_name_empty": {
+      "message": "保存済みビューには名前が必要です。"
+    },
+    "qr_no_url": {
+      "message": "Home Assistant の URL が設定されていません — 設定 → システム → ネットワークで外部または内部 URL を設定してください。"
     }
   },
   "triggers": {

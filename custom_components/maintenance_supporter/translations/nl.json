@@ -1718,6 +1718,18 @@
         "brown": "Bruin",
         "blue_grey": "Blauwgrijs"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "Vanaf voltooiing",
+        "planned": "Vanaf geplande datum (geen drift)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Voltooien",
+        "add": "Voorwaarde toevoegen"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "Overslaan is uitgeschakeld voor „{task_name}”."
+    },
+    "object_name_taken": {
+      "message": "Een ander object heeft deze naam al."
+    },
+    "name_empty": {
+      "message": "De naam mag niet leeg zijn."
+    },
+    "task_not_duplicable": {
+      "message": "Een kooptaak voor een reserveonderdeel of de taak van de batterijvloot kan niet worden gedupliceerd."
+    },
+    "fleet_not_duplicable": {
+      "message": "Het object van de batterijvloot kan niet worden gedupliceerd."
+    },
+    "parts_limit": {
+      "message": "Een object kan maximaal {max} reserveonderdelen hebben."
+    },
+    "task_limit": {
+      "message": "Een object kan maximaal {max} taken hebben."
+    },
+    "archived_cannot_pause": {
+      "message": "Een gearchiveerd object kan niet worden gepauzeerd — herstel het eerst."
+    },
+    "archived_cannot_replace": {
+      "message": "Een gearchiveerd object kan niet worden vervangen — herstel het eerst."
+    },
+    "archived_no_new_tasks": {
+      "message": "Een gearchiveerd object kan geen nieuwe taken krijgen — herstel het eerst."
+    },
+    "import_not_json_yaml": {
+      "message": "Het bestand is geen geldige JSON of YAML."
+    },
+    "import_no_objects_list": {
+      "message": "Het bestand moet een lijst \"objects\" bevatten."
+    },
+    "import_no_objects": {
+      "message": "Het bestand bevat geen objecten."
+    },
+    "import_csv_no_objects": {
+      "message": "Het CSV-bestand bevat geen geldige objecten."
+    },
+    "import_too_many": {
+      "message": "Het bestand bevat meer dan {max} objecten."
+    },
+    "import_too_large": {
+      "message": "Het bestand is groter dan {limit}."
+    },
+    "until_in_past": {
+      "message": "De einddatum moet in de toekomst liggen."
+    },
+    "postpone_too_far": {
+      "message": "De nieuwe datum moet binnen {days} dagen liggen."
+    },
+    "date_in_future": {
+      "message": "De datum mag niet in de toekomst liggen."
+    },
+    "range_end_before_start": {
+      "message": "Het einde moet op of na het begin liggen."
+    },
+    "notify_not_configured": {
+      "message": "Meldingen zijn niet ingesteld — kies eerst een meldingsservice in de instellingen."
+    },
+    "battery_notes_unavailable": {
+      "message": "De integratie Battery Notes is niet beschikbaar."
+    },
+    "no_battery_devices": {
+      "message": "Er zijn geen apparaten met batterijen gevonden."
+    },
+    "fleet_not_set_up": {
+      "message": "De batterijvloot is nog niet ingesteld."
+    },
+    "move_same_object": {
+      "message": "De taak hoort al bij dat object."
+    },
+    "move_target_archived": {
+      "message": "Het doelobject is gearchiveerd."
+    },
+    "move_part_task": {
+      "message": "Een kooptaak voor een reserveonderdeel blijft bij dat onderdeel."
+    },
+    "move_fleet_task": {
+      "message": "De taak van de batterijvloot kan niet worden verplaatst."
+    },
+    "move_objects_not_loaded": {
+      "message": "Beide objecten moeten geladen zijn om een taak te verplaatsen."
+    },
+    "view_name_empty": {
+      "message": "Een opgeslagen weergave heeft een naam nodig."
+    },
+    "qr_no_url": {
+      "message": "Er is geen Home Assistant-URL geconfigureerd — stel een externe of interne URL in via Instellingen → Systeem → Netwerk."
     }
   },
   "triggers": {

@@ -14,6 +14,9 @@ the Python standard library only — see `helpers/region.py` for the format.
 Only the location configured in Home Assistant is looked up, locally; the
 *State, province or region* setting overrides the result.
 
+`names_i18n.json` holds each region's name in the 22 languages (the map's own
+names mix languages: "Kärnten", "Lombardia", "Québec").
+
 Built by `scripts/build_region_grid.py` from Natural Earth's 1:10m
 *Admin 1 – States, Provinces* map (https://www.naturalearthdata.com/), which is
 in the public domain (https://www.naturalearthdata.com/about/terms-of-use/).

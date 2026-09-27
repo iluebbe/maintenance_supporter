@@ -1718,6 +1718,18 @@
         "brown": "Brown",
         "blue_grey": "Blue grey"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "From completion date",
+        "planned": "From planned date (no drift)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Finish",
+        "add": "Add condition"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "Skipping is disabled for “{task_name}”."
+    },
+    "object_name_taken": {
+      "message": "Another object already has this name."
+    },
+    "name_empty": {
+      "message": "The name must not be empty."
+    },
+    "task_not_duplicable": {
+      "message": "A spare-part buy task or the battery fleet task cannot be duplicated."
+    },
+    "fleet_not_duplicable": {
+      "message": "The battery fleet object cannot be duplicated."
+    },
+    "parts_limit": {
+      "message": "An object can have at most {max} spare parts."
+    },
+    "task_limit": {
+      "message": "An object can have at most {max} tasks."
+    },
+    "archived_cannot_pause": {
+      "message": "An archived object cannot be paused — restore it first."
+    },
+    "archived_cannot_replace": {
+      "message": "An archived object cannot be replaced — restore it first."
+    },
+    "archived_no_new_tasks": {
+      "message": "An archived object cannot get new tasks — restore it first."
+    },
+    "import_not_json_yaml": {
+      "message": "The file is not valid JSON or YAML."
+    },
+    "import_no_objects_list": {
+      "message": "The file must contain an \"objects\" list."
+    },
+    "import_no_objects": {
+      "message": "The file contains no objects."
+    },
+    "import_csv_no_objects": {
+      "message": "The CSV file contains no valid objects."
+    },
+    "import_too_many": {
+      "message": "The file contains more than {max} objects."
+    },
+    "import_too_large": {
+      "message": "The file is larger than {limit}."
+    },
+    "until_in_past": {
+      "message": "The end date must be in the future."
+    },
+    "postpone_too_far": {
+      "message": "The new date must be within {days} days."
+    },
+    "date_in_future": {
+      "message": "The date must not be in the future."
+    },
+    "range_end_before_start": {
+      "message": "The end must be on or after the start."
+    },
+    "notify_not_configured": {
+      "message": "Notifications are not set up — choose a notification service in the settings first."
+    },
+    "battery_notes_unavailable": {
+      "message": "The Battery Notes integration is not available."
+    },
+    "no_battery_devices": {
+      "message": "No battery devices were found."
+    },
+    "fleet_not_set_up": {
+      "message": "The battery fleet is not set up yet."
+    },
+    "move_same_object": {
+      "message": "The task already belongs to that object."
+    },
+    "move_target_archived": {
+      "message": "The target object is archived."
+    },
+    "move_part_task": {
+      "message": "A spare-part buy task stays with its part."
+    },
+    "move_fleet_task": {
+      "message": "The battery fleet task cannot be moved."
+    },
+    "move_objects_not_loaded": {
+      "message": "Both objects must be loaded to move a task."
+    },
+    "view_name_empty": {
+      "message": "A saved view needs a name."
+    },
+    "qr_no_url": {
+      "message": "No Home Assistant URL is configured — set an external or internal URL in Settings → System → Network."
     }
   },
   "triggers": {

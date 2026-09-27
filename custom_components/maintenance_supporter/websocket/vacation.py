@@ -26,6 +26,7 @@ from ..helpers.aggregate import object_name
 from ..helpers.dates import parse_iso_date
 from ..helpers.pause import is_task_inert
 from ..helpers.vacation import compute_preview, get_vacation_state
+from ..helpers.ws_errors import send_translated_error
 from . import ID_FIELD, _get_merged_tasks, _get_object_entries, _load_global_options, _parse_iso_date, _save_global_options
 
 
@@ -100,7 +101,7 @@ async def ws_vacation_update(
     sd = parse_iso_date(options.get(CONF_VACATION_START))
     ed = parse_iso_date(options.get(CONF_VACATION_END))
     if sd is not None and ed is not None and ed < sd:
-        connection.send_error(msg["id"], "invalid_range", "end must be on or after start")
+        send_translated_error(connection, msg["id"], "invalid_range", "end must be on or after start", translation_key="range_end_before_start")
         return
 
     if "buffer_days" in msg:

@@ -16,6 +16,7 @@ from ..const import (
     MAX_TEXT_LENGTH,
 )
 from ..helpers.permissions import require_write
+from ..helpers.ws_errors import send_translated_error
 from . import ID_FIELD, _get_global_entry, _load_global_options, _save_global_options
 
 
@@ -71,7 +72,7 @@ async def ws_create_group(
 
     name = msg["name"].strip()
     if not name:
-        connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
+        send_translated_error(connection, msg["id"], "invalid_input", "Name must not be empty", translation_key="name_empty")
         return
 
     group_id = uuid4().hex
@@ -132,7 +133,7 @@ async def ws_update_group(
         # renamed the group to nothing (bug audit 2026-09-26).
         name = msg["name"].strip()
         if not name:
-            connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
+            send_translated_error(connection, msg["id"], "invalid_input", "Name must not be empty", translation_key="name_empty")
             return
         group["name"] = name
     if "description" in msg:

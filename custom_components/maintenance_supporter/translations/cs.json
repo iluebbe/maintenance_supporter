@@ -1718,6 +1718,18 @@
         "brown": "Hnědá",
         "blue_grey": "Modrošedá"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "Od data dokončení",
+        "planned": "Od plánovaného data (bez posunu)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Dokončit",
+        "add": "Přidat podmínku"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "Přeskočení je pro „{task_name}“ vypnuto."
+    },
+    "object_name_taken": {
+      "message": "Tento název už má jiný objekt."
+    },
+    "name_empty": {
+      "message": "Název nesmí být prázdný."
+    },
+    "task_not_duplicable": {
+      "message": "Nákupní úkol náhradního dílu ani úkol flotily baterií nelze duplikovat."
+    },
+    "fleet_not_duplicable": {
+      "message": "Objekt flotily baterií nelze duplikovat."
+    },
+    "parts_limit": {
+      "message": "Objekt může mít nejvýše {max} náhradních dílů."
+    },
+    "task_limit": {
+      "message": "Objekt může mít nejvýše {max} úkolů."
+    },
+    "archived_cannot_pause": {
+      "message": "Archivovaný objekt nelze pozastavit — nejprve jej obnovte."
+    },
+    "archived_cannot_replace": {
+      "message": "Archivovaný objekt nelze nahradit — nejprve jej obnovte."
+    },
+    "archived_no_new_tasks": {
+      "message": "Archivovanému objektu nelze přidávat nové úkoly — nejprve jej obnovte."
+    },
+    "import_not_json_yaml": {
+      "message": "Soubor není platný JSON ani YAML."
+    },
+    "import_no_objects_list": {
+      "message": "Soubor musí obsahovat seznam \"objects\"."
+    },
+    "import_no_objects": {
+      "message": "Soubor neobsahuje žádné objekty."
+    },
+    "import_csv_no_objects": {
+      "message": "Soubor CSV neobsahuje žádné platné objekty."
+    },
+    "import_too_many": {
+      "message": "Soubor obsahuje více než {max} objektů."
+    },
+    "import_too_large": {
+      "message": "Soubor je větší než {limit}."
+    },
+    "until_in_past": {
+      "message": "Datum konce musí být v budoucnosti."
+    },
+    "postpone_too_far": {
+      "message": "Nové datum musí být nejpozději za {days} dní."
+    },
+    "date_in_future": {
+      "message": "Datum nesmí být v budoucnosti."
+    },
+    "range_end_before_start": {
+      "message": "Konec nesmí být před začátkem."
+    },
+    "notify_not_configured": {
+      "message": "Oznámení nejsou nastavena — nejprve v nastavení vyberte službu oznámení."
+    },
+    "battery_notes_unavailable": {
+      "message": "Integrace Battery Notes není k dispozici."
+    },
+    "no_battery_devices": {
+      "message": "Nebyla nalezena žádná zařízení s baterií."
+    },
+    "fleet_not_set_up": {
+      "message": "Flotila baterií ještě není nastavena."
+    },
+    "move_same_object": {
+      "message": "Úkol už k tomuto objektu patří."
+    },
+    "move_target_archived": {
+      "message": "Cílový objekt je archivován."
+    },
+    "move_part_task": {
+      "message": "Nákupní úkol náhradního dílu zůstává u svého dílu."
+    },
+    "move_fleet_task": {
+      "message": "Úkol flotily baterií nelze přesunout."
+    },
+    "move_objects_not_loaded": {
+      "message": "Pro přesun úkolu musí být načteny oba objekty."
+    },
+    "view_name_empty": {
+      "message": "Uložené zobrazení potřebuje název."
+    },
+    "qr_no_url": {
+      "message": "Není nastavena adresa URL Home Assistantu — nastavte externí nebo interní URL v Nastavení → Systém → Síť."
     }
   },
   "triggers": {

@@ -12,6 +12,8 @@
  * message when nothing matches, so the user never sees a silent failure.
  */
 import { t } from "./styles";
+import { localizeBackendError } from "./helpers/backend-errors";
+import { normLang } from "./helpers/locale-core";
 
 /**
  * Every error code the backend's `send_error(msg["id"], "<code>", …)` calls
@@ -214,10 +216,27 @@ export function describeWsError(e: unknown, lang: string, fallback?: string): st
   if (typeof e === "string") return e;
   if (typeof e !== "object" || e === null) return fallback;
 
-  const err = e as { message?: string; error?: { message?: string; code?: string }; code?: string };
+  type WsErr = {
+    message?: string;
+    code?: string;
+    translation_key?: string;
+    translation_domain?: string;
+    translation_placeholders?: Record<string, unknown> | null;
+  };
+  const err = e as WsErr & { error?: WsErr };
   const raw = err.message || err.error?.message || "";
   const code = err.code || err.error?.code || "";
   const codeKey = code ? WS_ERROR_CODE_KEYS[code] : undefined;
+
+  // A refusal the backend sent with a translation key reads in full, in the
+  // user's language — Home Assistant ships those texts (strings.json
+  // `exceptions`, helpers/backend-errors.ts).
+  const translated = localizeBackendError(
+    err.translation_domain ?? err.error?.translation_domain,
+    err.translation_key ?? err.error?.translation_key,
+    err.translation_placeholders ?? err.error?.translation_placeholders,
+  );
+  if (translated) return translated;
   if (!raw && !codeKey) return fallback;
 
   const parsed = _parse(raw);
@@ -245,7 +264,11 @@ export function describeWsError(e: unknown, lang: string, fallback?: string): st
     default:
       if (codeKey) {
         const headline = t(codeKey, lang);
-        return raw && !_restatesCode(raw, code) ? `${headline} (${raw})` : headline;
+        // The server's own detail is English: it rides along for English
+        // users only (i18n audit 2026-09-27 — "Limit reached (This object
+        // already has …)" read half English everywhere else).
+        const english = normLang(lang) === "en";
+        return english && raw && !_restatesCode(raw, code) ? `${headline} (${raw})` : headline;
       }
       // Unknown shape — show the raw message so debugging is possible
       return raw || fallback;

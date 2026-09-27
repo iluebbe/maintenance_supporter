@@ -8,6 +8,7 @@ import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, t, ensureLocale, isLoc
 import { openSignedDocument } from "./helpers/document-url";
 import { isSafeHttpUrl } from "./helpers/url";
 import { registerCustomCard } from "./helpers/register-card";
+import { localizePickerWhenReady } from "./helpers/picker-i18n";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -791,3 +792,5 @@ registerCustomCard({
   description: "Overview of your maintenance tasks with quick actions.",
   preview: true,
 });
+// The picker entries of every bundle, in the user's language once HA is up.
+localizePickerWhenReady();

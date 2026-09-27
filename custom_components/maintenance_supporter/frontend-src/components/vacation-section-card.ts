@@ -333,6 +333,6 @@ if (!customElements.get("maintenance-vacation-section-card")) {
 registerCustomCard({
   type: "maintenance-vacation-section-card",
   name: "Maintenance Supporter — Vacation",
-  description: "Inline vacation mode toggle + dates",
+  description: "Switch vacation mode on or off and set its dates right on the dashboard.",
   preview: false,
 });

@@ -1718,6 +1718,18 @@
         "brown": "Brun",
         "blue_grey": "Blågrå"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "Fra fullføringsdato",
+        "planned": "Fra planlagt dato (ingen avdrift)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Fullfør",
+        "add": "Legg til betingelse"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "Hopp over er slått av for «{task_name}»."
+    },
+    "object_name_taken": {
+      "message": "Et annet objekt har allerede dette navnet."
+    },
+    "name_empty": {
+      "message": "Navnet kan ikke være tomt."
+    },
+    "task_not_duplicable": {
+      "message": "En kjøpsoppgave for en reservedel eller batteriflåtens oppgave kan ikke dupliseres."
+    },
+    "fleet_not_duplicable": {
+      "message": "Batteriflåtens objekt kan ikke dupliseres."
+    },
+    "parts_limit": {
+      "message": "Et objekt kan ha maks {max} reservedeler."
+    },
+    "task_limit": {
+      "message": "Et objekt kan ha maks {max} oppgaver."
+    },
+    "archived_cannot_pause": {
+      "message": "Et arkivert objekt kan ikke settes på pause — gjenopprett det først."
+    },
+    "archived_cannot_replace": {
+      "message": "Et arkivert objekt kan ikke erstattes — gjenopprett det først."
+    },
+    "archived_no_new_tasks": {
+      "message": "Et arkivert objekt kan ikke få nye oppgaver — gjenopprett det først."
+    },
+    "import_not_json_yaml": {
+      "message": "Filen er ikke gyldig JSON eller YAML."
+    },
+    "import_no_objects_list": {
+      "message": "Filen må inneholde en \"objects\"-liste."
+    },
+    "import_no_objects": {
+      "message": "Filen inneholder ingen objekter."
+    },
+    "import_csv_no_objects": {
+      "message": "CSV-filen inneholder ingen gyldige objekter."
+    },
+    "import_too_many": {
+      "message": "Filen inneholder mer enn {max} objekter."
+    },
+    "import_too_large": {
+      "message": "Filen er større enn {limit}."
+    },
+    "until_in_past": {
+      "message": "Sluttdatoen må ligge i fremtiden."
+    },
+    "postpone_too_far": {
+      "message": "Den nye datoen må være innen {days} dager."
+    },
+    "date_in_future": {
+      "message": "Datoen kan ikke ligge i fremtiden."
+    },
+    "range_end_before_start": {
+      "message": "Slutten må være samtidig med eller etter starten."
+    },
+    "notify_not_configured": {
+      "message": "Varsler er ikke satt opp — velg først en varslingstjeneste i innstillingene."
+    },
+    "battery_notes_unavailable": {
+      "message": "Battery Notes-integrasjonen er ikke tilgjengelig."
+    },
+    "no_battery_devices": {
+      "message": "Fant ingen enheter med batterier."
+    },
+    "fleet_not_set_up": {
+      "message": "Batteriflåten er ikke satt opp ennå."
+    },
+    "move_same_object": {
+      "message": "Oppgaven hører allerede til det objektet."
+    },
+    "move_target_archived": {
+      "message": "Målobjektet er arkivert."
+    },
+    "move_part_task": {
+      "message": "En kjøpsoppgave for en reservedel blir værende hos reservedelen."
+    },
+    "move_fleet_task": {
+      "message": "Batteriflåtens oppgave kan ikke flyttes."
+    },
+    "move_objects_not_loaded": {
+      "message": "Begge objektene må være lastet inn for å flytte en oppgave."
+    },
+    "view_name_empty": {
+      "message": "En lagret visning må ha et navn."
+    },
+    "qr_no_url": {
+      "message": "Ingen Home Assistant-URL er konfigurert — angi en ekstern eller intern URL under Innstillinger → System → Nettverk."
     }
   },
   "triggers": {

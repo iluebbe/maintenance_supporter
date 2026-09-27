@@ -1718,6 +1718,18 @@
         "brown": "Коричневый",
         "blue_grey": "Серо-голубой"
       }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "От даты выполнения",
+        "planned": "От плановой даты (без смещения)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Завершить",
+        "add": "Добавить условие"
+      }
     }
   },
   "services": {
@@ -2231,6 +2243,96 @@
     },
     "skip_disabled": {
       "message": "Пропуск отключён для «{task_name}»."
+    },
+    "object_name_taken": {
+      "message": "Это имя уже занято другим объектом."
+    },
+    "name_empty": {
+      "message": "Имя не может быть пустым."
+    },
+    "task_not_duplicable": {
+      "message": "Задачу покупки запчасти и задачу парка батарей нельзя дублировать."
+    },
+    "fleet_not_duplicable": {
+      "message": "Объект парка батарей нельзя дублировать."
+    },
+    "parts_limit": {
+      "message": "У объекта может быть не более {max} запчастей."
+    },
+    "task_limit": {
+      "message": "У объекта может быть не более {max} задач."
+    },
+    "archived_cannot_pause": {
+      "message": "Архивированный объект нельзя приостановить — сначала восстановите его."
+    },
+    "archived_cannot_replace": {
+      "message": "Архивированный объект нельзя заменить — сначала восстановите его."
+    },
+    "archived_no_new_tasks": {
+      "message": "В архивированный объект нельзя добавлять новые задачи — сначала восстановите его."
+    },
+    "import_not_json_yaml": {
+      "message": "Файл не является корректным JSON или YAML."
+    },
+    "import_no_objects_list": {
+      "message": "Файл должен содержать список \"objects\"."
+    },
+    "import_no_objects": {
+      "message": "Файл не содержит объектов."
+    },
+    "import_csv_no_objects": {
+      "message": "CSV-файл не содержит допустимых объектов."
+    },
+    "import_too_many": {
+      "message": "Файл содержит более {max} объектов."
+    },
+    "import_too_large": {
+      "message": "Размер файла превышает {limit}."
+    },
+    "until_in_past": {
+      "message": "Дата окончания должна быть в будущем."
+    },
+    "postpone_too_far": {
+      "message": "Новая дата должна быть в пределах {days} дней."
+    },
+    "date_in_future": {
+      "message": "Дата не может быть в будущем."
+    },
+    "range_end_before_start": {
+      "message": "Окончание не может быть раньше начала."
+    },
+    "notify_not_configured": {
+      "message": "Уведомления не настроены — сначала выберите сервис уведомлений в настройках."
+    },
+    "battery_notes_unavailable": {
+      "message": "Интеграция Battery Notes недоступна."
+    },
+    "no_battery_devices": {
+      "message": "Устройства с батареями не найдены."
+    },
+    "fleet_not_set_up": {
+      "message": "Парк батарей ещё не настроен."
+    },
+    "move_same_object": {
+      "message": "Задача уже принадлежит этому объекту."
+    },
+    "move_target_archived": {
+      "message": "Целевой объект находится в архиве."
+    },
+    "move_part_task": {
+      "message": "Задача покупки запчасти остаётся при своей запчасти."
+    },
+    "move_fleet_task": {
+      "message": "Задачу парка батарей нельзя переместить."
+    },
+    "move_objects_not_loaded": {
+      "message": "Чтобы переместить задачу, оба объекта должны быть загружены."
+    },
+    "view_name_empty": {
+      "message": "Сохранённому представлению нужно имя."
+    },
+    "qr_no_url": {
+      "message": "URL Home Assistant не настроен — укажите внешний или внутренний URL в разделе Настройки → Система → Сеть."
     }
   },
   "triggers": {
