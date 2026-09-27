@@ -343,10 +343,17 @@ async def test_a_wear_counter_reset_after_completion_is_not_a_second_completion(
     hass.states.async_set(blades, str(limit + 5), {"unit_of_measurement": "h"})
     await hass.async_block_till_done()
     assert coordinator.data["tasks"][task_id]["_trigger_active"] is True
-    with patch.object(hass.auth, "async_get_user", return_value=object()):
+    with (
+        patch.object(hass.auth, "async_get_user", return_value=object()),
+        patch("custom_components.maintenance_supporter.helpers.action_listener._POST_ACTION_REFRESH_S", 0),
+    ):
         await coordinator.complete_maintenance(task_id, notes="new blades")
         await hass.async_block_till_done()
     assert len(presses) == 1
+    # the task shows the reset counter right away (found live: it kept the
+    # pre-press reading until the next periodic refresh, up to 5 minutes)
+    assert coordinator.data["tasks"][task_id]["_trigger_current_value"] == 0
+    assert coordinator.data["tasks"][task_id]["_trigger_active"] is False
     freezer.tick(timedelta(minutes=5))
     hass.states.async_set(blades, "1", {"unit_of_measurement": "h"})
     await hass.async_block_till_done()
@@ -356,3 +363,89 @@ async def test_a_wear_counter_reset_after_completion_is_not_a_second_completion(
     hass.states.async_set(blades, str(limit + 1), {"unit_of_measurement": "h"})
     await hass.async_block_till_done()
     assert coordinator.data["tasks"][task_id]["_trigger_active"] is True
+
+
+
+async def test_the_value_shows_during_the_completion_cooldown_without_reactivating(hass: HomeAssistant) -> None:
+    """The post-completion cooldown keeps the fallback sweep from
+    re-activating the task off a still-low sensor — it must not also hide the
+    reading (the detail view had no value and no chart for ten minutes)."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import ws_adopt_integration_setups
+
+    await setup_integration(hass, make_global_entry(hass))
+    device_id = await _seed_roborock(hass, button_disabled_by=None)
+    conn = make_ws_connection()
+    await call_ws_handler(ws_adopt_integration_setups, hass, conn, {"id": 1, "type": "x", "selections": [{"device_id": device_id}]})
+    entry = _object(hass)
+    task_id = next(tid for tid, t in entry.data[CONF_TASKS].items() if "Brush" in t["name"])
+    sensor = "sensor.s8_main_brush_time_left"
+    hass.states.async_set(sensor, "1", {"unit_of_measurement": "h"})
+    await hass.async_block_till_done()
+    coordinator = entry.runtime_data.coordinator
+    await coordinator.complete_maintenance(task_id, notes="done")
+    await hass.async_block_till_done()
+    # still low (the user completed before swapping the part): shown, not re-triggered
+    hass.states.async_set(sensor, "2", {"unit_of_measurement": "h"})
+    await coordinator.async_refresh_now()
+    task = coordinator.data["tasks"][task_id]
+    assert task["_trigger_current_value"] == 2.0
+    assert task["_trigger_active"] is False
+
+
+async def test_adopting_reloads_each_object_once(hass: HomeAssistant) -> None:
+    """Adopting reloaded the object after EVERY task — on a large install one
+    device took well over 30 s while the dialog waited (production, 2.95).
+    Now every touched object reloads once, after all its tasks are stored."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import ws_adopt_integration_setups
+
+    await setup_integration(hass, make_global_entry(hass))
+    device_id = await _seed_roborock(hass)
+    reloads: list[str] = []
+    real_reload = hass.config_entries.async_reload
+
+    async def _counting_reload(entry_id: str) -> bool:
+        reloads.append(entry_id)
+        return await real_reload(entry_id)
+
+    conn = make_ws_connection()
+    with patch.object(hass.config_entries, "async_reload", _counting_reload):
+        await call_ws_handler(ws_adopt_integration_setups, hass, conn, {"id": 1, "type": "x", "selections": [{"device_id": device_id}]})
+    assert not conn.send_error.called, conn.send_error.call_args
+    entry = _object(hass)
+    assert len(entry.data[CONF_TASKS]) == 2
+    assert reloads == [entry.entry_id]
+    # the tasks' entities exist once the result is out
+    assert entry.runtime_data.coordinator.data["tasks"].keys() == entry.data[CONF_TASKS].keys()
+
+
+async def test_a_selection_that_blows_up_still_reloads_what_was_stored(hass: HomeAssistant) -> None:
+    from custom_components.maintenance_supporter.websocket import integration_setups as mod
+
+    await setup_integration(hass, make_global_entry(hass))
+    device_id = await _seed_roborock(hass)
+    calls = {"n": 0}
+    real_build = mod.build_setup_trigger
+
+    def _build_then_crash(*args, **kwargs):
+        calls["n"] += 1
+        if calls["n"] == 2:
+            raise RuntimeError("boom")
+        return real_build(*args, **kwargs)
+
+    reloads: list[str] = []
+    real_reload = hass.config_entries.async_reload
+
+    async def _counting_reload(entry_id: str) -> bool:
+        reloads.append(entry_id)
+        return await real_reload(entry_id)
+
+    conn = make_ws_connection()
+    with (
+        patch.object(mod, "build_setup_trigger", _build_then_crash),
+        patch.object(hass.config_entries, "async_reload", _counting_reload),
+        pytest.raises(RuntimeError),
+    ):
+        await call_ws_handler(mod.ws_adopt_integration_setups, hass, conn, {"id": 1, "type": "x", "selections": [{"device_id": device_id}]})
+    entry = _object(hass)
+    assert len(entry.data[CONF_TASKS]) == 1
+    assert reloads == [entry.entry_id], "the stored task's object is reloaded despite the crash"

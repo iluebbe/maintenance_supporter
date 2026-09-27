@@ -2050,6 +2050,8 @@ export const panelStyles = css`
     align-items: center;
     gap: 16px;
   }
+  /* 2.95: confirmations are neutral like HA's own toasts; red is for errors. */
+  .toast.info { background: var(--ms-toast-info-bg, #323232); }
   .toast-undo {
     font: inherit; font-weight: 600; color: #fff; cursor: pointer;
     background: transparent; border: 1px solid rgba(255,255,255,.6);

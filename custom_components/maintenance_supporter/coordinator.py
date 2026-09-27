@@ -640,9 +640,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if task.trigger_config is None:
             return
 
-        # Don't re-activate triggers during the cooldown period after completion
-        if task_id in self._recently_completed:
-            return
+        # Don't re-activate triggers during the cooldown period after
+        # completion — but keep reading the value: the detail view showed no
+        # value and no chart for ten minutes after a completion, even when
+        # the counter had visibly been reset (2.95 counter resets, found live).
+        in_cooldown = task_id in self._recently_completed
 
         from .entity.triggers import normalize_entity_ids
 
@@ -678,6 +680,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         if result.current_value is not None:
             task._trigger_current_value = result.current_value
+        if in_cooldown:
+            return  # the value for display only — no re-activation yet
         if result.active is not None:
             if task._trigger_active and not result.active:
                 # A recovery only this sweep saw still ends the episode.

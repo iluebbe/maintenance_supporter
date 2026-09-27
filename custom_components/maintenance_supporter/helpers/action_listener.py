@@ -17,6 +17,7 @@ recorded as completed.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from collections.abc import Callable
 from typing import Any
@@ -59,22 +60,23 @@ def _split_service(spec: str) -> tuple[str, str] | None:
     return domain, name
 
 
-async def _dispatch_action(hass: HomeAssistant, action: dict[str, Any]) -> None:
-    """Run the configured service-call with HA's standard call signature."""
+async def _dispatch_action(hass: HomeAssistant, action: dict[str, Any]) -> bool:
+    """Run the configured service-call with HA's standard call signature.
+    True when the call was issued."""
     parts = _split_service(action.get("service", ""))
     if parts is None:
         _LOGGER.warning(
             "on_complete_action.service must be 'domain.service', got %r",
             action.get("service"),
         )
-        return
+        return False
     domain, name = parts
     # Defense-in-depth: refuse privileged domains at dispatch too, so an action
     # stored before the write-time denylist existed (or via any path that skips
     # cap_action_field) can never run shell/scripts/host control on completion.
     if domain in _FORBIDDEN_ACTION_DOMAINS:
         _LOGGER.warning("on_complete_action refused: %s is a privileged service domain", domain)
-        return
+        return False
     data = action.get("data") if isinstance(action.get("data"), dict) else None
     target = action.get("target") if isinstance(action.get("target"), dict) else None
     # Run as the user who configured it: HA then refuses admin-only services
@@ -91,7 +93,7 @@ async def _dispatch_action(hass: HomeAssistant, action: dict[str, Any]) -> None:
                 domain,
                 name,
             )
-            return
+            return False
         context = Context(user_id=owner)
     try:
         await hass.services.async_call(domain, name, service_data=data, target=target, blocking=False, context=context)
@@ -103,6 +105,8 @@ async def _dispatch_action(hass: HomeAssistant, action: dict[str, Any]) -> None:
             data,
             target,
         )
+        return False
+    return True
 
 
 @callback
@@ -112,6 +116,10 @@ def register_action_listener(hass: HomeAssistant) -> Callable[[], None]:
     Returns the unsubscribe callback so callers can clean up on integration
     teardown.
     """
+
+    # entry_id → its pending post-action refresh (cancelled on unload; a
+    # background task, so a stopping Home Assistant cancels it too)
+    pending: dict[str, asyncio.Task[None]] = {}
 
     async def _on_task_completed(event: Event) -> None:
         # Only OUR completions: the coordinator fires the event locally. The
@@ -139,6 +147,38 @@ def register_action_listener(hass: HomeAssistant) -> Callable[[], None]:
         # because that counter recovered (reset in the vendor app).
         if action.get("skip_auto") and event.data.get("source") == "auto_recovery":
             return
-        await _dispatch_action(hass, action)
+        if not await _dispatch_action(hass, action):
+            return
+        # The action often changes what the task watches (a reset button puts
+        # the counter back to full) — but the completion's own refresh ran
+        # before it landed, so the task kept showing the old reading until the
+        # next periodic update (found live, 2.95). Read it again shortly after.
+        if (previous := pending.pop(entry_id, None)) is not None:
+            previous.cancel()
+        pending[entry_id] = hass.async_create_background_task(
+            _refresh_entry(hass, pending, entry_id), f"{DOMAIN} refresh after completion action"
+        )
 
-    return hass.bus.async_listen(EVENT_TASK_COMPLETED, _on_task_completed)
+    unsub_event = hass.bus.async_listen(EVENT_TASK_COMPLETED, _on_task_completed)
+
+    @callback
+    def _unsubscribe() -> None:
+        unsub_event()
+        for task in pending.values():
+            task.cancel()
+        pending.clear()
+
+    return _unsubscribe
+
+
+_POST_ACTION_REFRESH_S = 3
+
+
+async def _refresh_entry(hass: HomeAssistant, pending: dict[str, asyncio.Task[None]], entry_id: str) -> None:
+    await asyncio.sleep(_POST_ACTION_REFRESH_S)
+    pending.pop(entry_id, None)
+    entry = hass.config_entries.async_get_entry(entry_id)
+    runtime = getattr(entry, "runtime_data", None) if entry is not None else None
+    coordinator = getattr(runtime, "coordinator", None)
+    if coordinator is not None:
+        await coordinator.async_refresh_now()

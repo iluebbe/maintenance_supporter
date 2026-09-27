@@ -141,102 +141,106 @@ async def ws_adopt_problem_sensors(
     # dialog lets the user say which sensors belong together.
     name_to_entry: dict[str, str] = {}
 
-    for sel in msg["selections"]:
-        entity_id = sel["entity_id"]
-        entry_id = sel.get("entry_id")
-        device_id = sel.get("device_id")
-        group_name = str(sel.get("object_name") or "").strip().casefold()
-        batch.begin()
-        try:
-            if not entry_id and device_id and device_id in device_to_entry:
-                entry_id = device_to_entry[device_id]
-            if not entry_id and group_name and group_name in name_to_entry:
-                entry_id = name_to_entry[group_name]
-            if not entry_id:
-                entry_id = await batch.create_object(
-                    name=sel.get("object_name") or sel["name"],
-                    ha_device_id=device_id or None,
+    # Reload the touched objects even when a selection blew up mid-way —
+    # their tasks are already stored.
+    try:
+        for sel in msg["selections"]:
+            entity_id = sel["entity_id"]
+            entry_id = sel.get("entry_id")
+            device_id = sel.get("device_id")
+            group_name = str(sel.get("object_name") or "").strip().casefold()
+            batch.begin()
+            try:
+                if not entry_id and device_id and device_id in device_to_entry:
+                    entry_id = device_to_entry[device_id]
+                if not entry_id and group_name and group_name in name_to_entry:
+                    entry_id = name_to_entry[group_name]
+                if not entry_id:
+                    entry_id = await batch.create_object(
+                        name=sel.get("object_name") or sel["name"],
+                        ha_device_id=device_id or None,
+                    )
+                    if device_id:
+                        device_to_entry[device_id] = entry_id
+                    if group_name:
+                        name_to_entry[group_name] = entry_id
+
+                entry = batch.target_entry(entry_id)
+                if entry is None:
+                    batch.errors.append({"entity_id": entity_id, "reason": "target object not found"})
+                    continue
+                # 2.94: the sensor goes to THE object its device most likely is
+                # (the dialog's default) and that object has no device yet —
+                # link it, so the next discovery finds it by device, as the
+                # suggested setups do. Any other pick stays unlinked.
+                if device_id and not (entry.data.get(CONF_OBJECT) or {}).get("ha_device_id"):
+                    from ..helpers.adopt_match import candidate_object
+
+                    match = candidate_object(hass, device_id)
+                    if match is not None and match["entry_id"] == entry.entry_id:
+                        new_data = dict(entry.data)
+                        new_data[CONF_OBJECT] = {**new_data.get(CONF_OBJECT, {}), "ha_device_id": device_id}
+                        hass.config_entries.async_update_entry(entry, data=new_data)
+                        entry = hass.config_entries.async_get_entry(entry.entry_id) or entry
+
+                task = build_problem_task(entity_id, sel["name"], for_minutes=sel.get("for_minutes") or 0)
+                task_data = {
+                    "id": uuid4().hex,
+                    "object_id": entry.data.get(CONF_OBJECT, {}).get("id", ""),
+                    "name": task["name"],
+                    "type": task["task_type"],
+                    "enabled": True,
+                    "schedule": task["schedule"],
+                    "trigger_config": task["trigger_config"],
+                }
+                # Un-adopt → re-adopt: restore (and consume) the notes and one-time
+                # setup the deleted predecessor task had accumulated for this
+                # sensor. Restored part links are re-validated below alongside the
+                # dialog's suggestion (the target object/parts may have changed).
+                from ..const import CONF_PARTS
+                from ..helpers.parts import sanitize_consumes_parts
+
+                stashed = pop_stashed_config(hass, entity_id) or {}
+                for field in ("notes", "responsible_user_id", "priority", "labels"):
+                    if stashed.get(field):
+                        task_data[field] = stashed[field]
+                # An explicit dialog pick wins over the stashed responsible user.
+                if sel.get("responsible_user_id"):
+                    task_data["responsible_user_id"] = sel["responsible_user_id"]
+                # Link the suggested spare part — or, absent one, the stashed link —
+                # validated against the target object's parts (an unknown id is
+                # silently dropped, same as the task-CRUD path).
+                raw_links = (
+                    [{"part_id": sel["part_id"], "quantity": 1}] if sel.get("part_id") else stashed.get("consumes_parts") or []
                 )
-                if device_id:
-                    device_to_entry[device_id] = entry_id
-                if group_name:
-                    name_to_entry[group_name] = entry_id
+                if raw_links:
+                    # foreign_part_ids keeps pooled #111 cross-object links — the
+                    # CRUD paths pass it, this copy had forgotten it (a re-adopted
+                    # task silently lost its pooled part link).
+                    from . import foreign_part_resolver
 
-            entry = batch.target_entry(entry_id)
-            if entry is None:
-                batch.errors.append({"entity_id": entity_id, "reason": "target object not found"})
-                continue
-            # 2.94: the sensor goes to THE object its device most likely is
-            # (the dialog's default) and that object has no device yet —
-            # link it, so the next discovery finds it by device, as the
-            # suggested setups do. Any other pick stays unlinked.
-            if device_id and not (entry.data.get(CONF_OBJECT) or {}).get("ha_device_id"):
-                from ..helpers.adopt_match import candidate_object
+                    links = sanitize_consumes_parts(
+                        raw_links,
+                        set(entry.data.get(CONF_PARTS) or {}),
+                        foreign_part_ids=foreign_part_resolver(hass),
+                    )
+                    if links:
+                        task_data["consumes_parts"] = links
+                # 2.95: the fingerprint — the sensor this task was adopted from.
+                from ..helpers.task_origin import ORIGIN_KEY, problem_sensor_origin
 
-                match = candidate_object(hass, device_id)
-                if match is not None and match["entry_id"] == entry.entry_id:
-                    new_data = dict(entry.data)
-                    new_data[CONF_OBJECT] = {**new_data.get(CONF_OBJECT, {}), "ha_device_id": device_id}
-                    hass.config_entries.async_update_entry(entry, data=new_data)
-                    entry = hass.config_entries.async_get_entry(entry.entry_id) or entry
-
-            task = build_problem_task(entity_id, sel["name"], for_minutes=sel.get("for_minutes") or 0)
-            task_data = {
-                "id": uuid4().hex,
-                "object_id": entry.data.get(CONF_OBJECT, {}).get("id", ""),
-                "name": task["name"],
-                "type": task["task_type"],
-                "enabled": True,
-                "schedule": task["schedule"],
-                "trigger_config": task["trigger_config"],
-            }
-            # Un-adopt → re-adopt: restore (and consume) the notes and one-time
-            # setup the deleted predecessor task had accumulated for this
-            # sensor. Restored part links are re-validated below alongside the
-            # dialog's suggestion (the target object/parts may have changed).
-            from ..const import CONF_PARTS
-            from ..helpers.parts import sanitize_consumes_parts
-
-            stashed = pop_stashed_config(hass, entity_id) or {}
-            for field in ("notes", "responsible_user_id", "priority", "labels"):
-                if stashed.get(field):
-                    task_data[field] = stashed[field]
-            # An explicit dialog pick wins over the stashed responsible user.
-            if sel.get("responsible_user_id"):
-                task_data["responsible_user_id"] = sel["responsible_user_id"]
-            # Link the suggested spare part — or, absent one, the stashed link —
-            # validated against the target object's parts (an unknown id is
-            # silently dropped, same as the task-CRUD path).
-            raw_links = (
-                [{"part_id": sel["part_id"], "quantity": 1}] if sel.get("part_id") else stashed.get("consumes_parts") or []
-            )
-            if raw_links:
-                # foreign_part_ids keeps pooled #111 cross-object links — the
-                # CRUD paths pass it, this copy had forgotten it (a re-adopted
-                # task silently lost its pooled part link).
-                from . import foreign_part_resolver
-
-                links = sanitize_consumes_parts(
-                    raw_links,
-                    set(entry.data.get(CONF_PARTS) or {}),
-                    foreign_part_ids=foreign_part_resolver(hass),
-                )
-                if links:
-                    task_data["consumes_parts"] = links
-            # 2.95: the fingerprint — the sensor this task was adopted from.
-            from ..helpers.task_origin import ORIGIN_KEY, problem_sensor_origin
-
-            task_data[ORIGIN_KEY] = problem_sensor_origin(entity_id)
-            await batch.persist_task(entry, task_data)
-            created.append({"entry_id": entry_id, "task_id": task_data["id"], "name": task_data["name"]})
-        except (ValueError, KeyError) as err:
-            # Roll back an object created in THIS iteration whose task failed —
-            # never leave an empty, task-less orphan object behind (and undo the
-            # device/name reuse pointers so a later selection re-creates it).
-            if await batch.fail({"entity_id": entity_id, "reason": str(err)}):
-                if device_id:
-                    device_to_entry.pop(device_id, None)
-                if group_name:
-                    name_to_entry.pop(group_name, None)
-
+                task_data[ORIGIN_KEY] = problem_sensor_origin(entity_id)
+                await batch.persist_task(entry, task_data)
+                created.append({"entry_id": entry_id, "task_id": task_data["id"], "name": task_data["name"]})
+            except (ValueError, KeyError) as err:
+                # Roll back an object created in THIS iteration whose task failed —
+                # never leave an empty, task-less orphan object behind (and undo the
+                # device/name reuse pointers so a later selection re-creates it).
+                if await batch.fail({"entity_id": entity_id, "reason": str(err)}):
+                    if device_id:
+                        device_to_entry.pop(device_id, None)
+                    if group_name:
+                        name_to_entry.pop(group_name, None)
+    finally:
+        await batch.finish()
     connection.send_result(msg["id"], batch.result(created=created))

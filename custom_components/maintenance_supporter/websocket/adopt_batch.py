@@ -7,6 +7,11 @@ so no task-less orphan survives. The counters, the target-entry guard and the
 rollback lived twice; the integration copy did not take back the tasks it had
 already persisted into a rolled-back object (a device whose second task failed
 reported one created task that no longer existed).
+
+Every touched object is reloaded ONCE, by :meth:`finish` — persisting through
+``async_persist_task`` reloaded the object after EVERY task, and on a real
+install (thousands of entities) adopting one device took well over 30 s
+while the dialog waited (reported from production, 2.95).
 """
 
 from __future__ import annotations
@@ -37,6 +42,8 @@ class AdoptBatch:
         # batch's tasks went into it (both undone by fail()).
         self._new_entry_id: str | None = None
         self._new_entry_tasks = 0
+        # Objects that received tasks — reloaded once by finish().
+        self._touched: set[str] = set()
 
     def begin(self) -> None:
         """Start a selection: nothing has been created for it yet."""
@@ -68,10 +75,14 @@ class AdoptBatch:
         return entry
 
     async def persist_task(self, entry: ConfigEntry, task_data: dict[str, Any]) -> None:
-        """Persist one adopted task and count it."""
-        from .tasks_persist import async_persist_task
+        """Persist one adopted task and count it (the object reloads once, in
+        :meth:`finish`)."""
+        from ..helpers.entry_tasks import insert_new_task
 
-        await async_persist_task(self.hass, entry, task_data)
+        store = insert_new_task(self.hass, entry, task_data)
+        if store is not None:
+            await store.async_save()
+        self._touched.add(entry.entry_id)
         self.tasks_created += 1
         if entry.entry_id == self._new_entry_id:
             self._new_entry_tasks += 1
@@ -86,10 +97,19 @@ class AdoptBatch:
             return False
         self.objects_created -= 1
         self.tasks_created -= self._new_entry_tasks
+        self._touched.discard(entry_id)
         self.begin()
         if self.hass.config_entries.async_get_entry(entry_id) is not None:
             await self.hass.config_entries.async_remove(entry_id)
         return True
+
+    async def finish(self) -> None:
+        """Reload every object that received tasks — once each — so their
+        entities exist before the result goes out."""
+        for entry_id in sorted(self._touched):
+            if self.hass.config_entries.async_get_entry(entry_id) is not None:
+                await self.hass.config_entries.async_reload(entry_id)
+        self._touched.clear()
 
     def result(self, **extra: Any) -> dict[str, Any]:
         """The WS result: counters, endpoint extras, the object total, errors."""

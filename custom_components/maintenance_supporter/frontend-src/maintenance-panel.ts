@@ -272,6 +272,9 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _moreMenuOpen = false;
   @state() private _objMenuOpen = false;
   @state() private _toastMessage = "";
+  /** error = red (a refusal, a failure); info = neutral like HA's own
+   *  toasts — a success used to show in the error red too (2.95). */
+  @state() private _toastKind: "error" | "info" = "error";
   @state() private _toastUndo: (() => void) | null = null;
   @state() private _toastActionLabel = "";
   // Narrow-viewport disclosure (UX 2026-07): filters and create-actions are
@@ -1572,8 +1575,16 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   // --- Toast ---
 
-  private _showToast(msg: string): void {
+  /** A count sentence with its own singular for exactly one ("1 devices"
+   *  read in every language, 2.95). Both keys literal, so the locale
+   *  hygiene scan sees them. */
+  private _countText(key: string, oneKey: string, placeholder: string, n: number, L: string = this._lang): string {
+    return n === 1 ? t(oneKey, L) : t(key, L).replace(`{${placeholder}}`, String(n));
+  }
+
+  private _showToast(msg: string, kind: "error" | "info" = "error"): void {
     if (this._toastTimer) clearTimeout(this._toastTimer);
+    this._toastKind = kind;
     this._toastUndo = null;
     this._toastActionLabel = "";
     this._toastMessage = msg;
@@ -1591,6 +1602,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _showUndoToast(msg: string, undo: () => void): void {
     if (this._toastTimer) clearTimeout(this._toastTimer);
+    this._toastKind = "info";
     this._toastActionLabel = "";
     this._toastMessage = msg;
     this._toastUndo = undo;
@@ -1890,7 +1902,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const tasks = e.detail?.tasks_created ?? 0;
     const created = (e.detail?.created ?? []) as Array<{ entry_id: string; task_id: string; name: string }>;
     await this._loadData();
-    const msg = t("adopt_problem_done", this._lang).replace("{tasks}", String(tasks));
+    const msg = this._countText("adopt_problem_done", "adopt_problem_done_one", "tasks", tasks);
     if (created.length > 0) {
       // Adopted tasks are fully configurable from day one (responsible user,
       // priority, documents) — surface that with a direct path to the first.
@@ -1904,7 +1916,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         }
       });
     } else {
-      this._showToast(msg);
+      this._showToast(msg, "info");
     }
   }
 
@@ -1929,7 +1941,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (obj && tk) {
       this._showTask(obj.entry_id, tk.id);
     }
-    this._showToast(t("battery_fleet_setup_done", this._lang));
+    this._showToast(t("battery_fleet_setup_done", this._lang), "info");
   }
 
   private _openSuggestedSetups(): void {
@@ -1939,7 +1951,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _onResetsWired(e: CustomEvent): void {
     const count = e.detail?.wired ?? 0;
-    this._showToast(t("reset_offers_done", this._lang).replace("{count}", String(count)));
+    this._showToast(this._countText("reset_offers_done", "reset_offers_done_one", "count", count), "info");
     this._resetOffersLoaded = false;
     this._resetOffersCount = 0;
     this._maybeLoadResetOffers();
@@ -1948,7 +1960,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _onSetupsAdopted(e: CustomEvent): void {
     const tasks = e.detail?.tasks_created ?? 0;
-    this._showToast(t("setups_done", this._lang).replace("{tasks}", String(tasks)));
+    this._showToast(this._countText("setups_done", "setups_done_one", "tasks", tasks), "info");
     this._loadData();
   }
 
@@ -1984,7 +1996,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           await this._loadData();
         },
         successToast: t("template_created", this._lang),
-        onSuccess: (m) => this._showToast(m),
+        onSuccess: (m) => this._showToast(m, "info"),
         onError: (m) => this._showToast(m),
       },
     );
@@ -2122,7 +2134,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     await this._loadData();
     const msg = bulkResultMessage(doneMsg(done.length), failed, this._lang);
     if (undo && done.length > 0) this._showUndoToast(msg, () => undo(done));
-    else this._showToast(msg);
+    else this._showToast(msg, failed.length > 0 ? "error" : "info");
   }
 
   /** One WS message per selected task row. */
@@ -2297,7 +2309,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       busy: (b) => { this._actionLoading = b; },
       reload: () => this._loadData(),
       successToast: opts?.successToast,
-      onSuccess: (m) => this._showToast(m),
+      onSuccess: (m) => this._showToast(m, "info"),
       onError: (m) => this._showToast(m),
     });
     return res === undefined ? null : ((res ?? {}) as T);
@@ -2559,9 +2571,10 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._showToast(
         `${t("reanalyze_result", this._lang)}: ${res.recommended_interval} ${t("days", this._lang)} ` +
         `(${t(`confidence_${res.confidence}`, this._lang)}, ${res.data_points} ${t("data_points", this._lang)})`,
+        "info",
       );
     } else {
-      this._showToast(t("reanalyze_insufficient_data", this._lang));
+      this._showToast(t("reanalyze_insufficient_data", this._lang), "info");
     }
   }
 
@@ -2666,7 +2679,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       }
       return;
     }
-    this._showToast(t("quick_complete_success", this._lang));
+    this._showToast(t("quick_complete_success", this._lang), "info");
     // Silent success: the list must reflect the completion right away — the
     // subscription delta may lag or be coalesced.
     try { await this._loadData(); } catch { /* subscription will sync */ }
@@ -2974,7 +2987,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         .hass=${this.hass}
         @saved-views-changed=${(e: CustomEvent<{ views: SavedView[] }>) => this._onSavedViewsChanged(e)}
       ></maintenance-saved-views-dialog>
-      ${this._toastMessage ? html`<div class="toast">
+      ${this._toastMessage ? html`<div class="toast ${this._toastKind}" role=${this._toastKind === "error" ? "alert" : "status"}>
         <span>${this._toastMessage}</span>
         ${this._toastUndo ? html`<button class="toast-undo" @click=${() => this._runToastUndo()}>${this._toastActionLabel || t("undo", this._lang)}</button>` : nothing}
       </div>` : nothing}
@@ -4642,21 +4655,21 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (young && this._gsSetupsCount > 0 && !dismissed.has("setups")) {
       chips.push({
         id: "setups", icon: "mdi:auto-fix",
-        text: t("gs_setups_chip", L).replace("{n}", String(this._gsSetupsCount)),
+        text: this._countText("gs_setups_chip", "gs_setups_chip_one", "n", this._gsSetupsCount, L),
         run: () => this._openSuggestedSetups(),
       });
     }
     if (young && this._gsAdoptCount > 0 && !dismissed.has("adopt")) {
       chips.push({
         id: "adopt", icon: "mdi:alert-circle-check-outline",
-        text: t("gs_adopt_chip", L).replace("{n}", String(this._gsAdoptCount)),
+        text: this._countText("gs_adopt_chip", "gs_adopt_chip_one", "n", this._gsAdoptCount, L),
         run: () => this._openAdoptProblemSensors(),
       });
     }
     if (this._resetOffersCount > 0 && !dismissed.has("resets")) {
       chips.push({
         id: "resets", icon: "mdi:counter",
-        text: t("gs_reset_chip", L).replace("{n}", String(this._resetOffersCount)),
+        text: this._countText("gs_reset_chip", "gs_reset_chip_one", "n", this._resetOffersCount, L),
         run: () => this._openSuggestedSetups(),
       });
     }

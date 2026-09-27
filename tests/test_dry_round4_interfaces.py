@@ -229,7 +229,7 @@ async def test_integration_adopt_rollback_uncounts_the_removed_tasks(
     """A fresh object whose SECOND task fails is removed with the first one —
     and neither is reported as created (the integration copy of the scaffold
     kept counting the first task of the removed object)."""
-    import custom_components.maintenance_supporter.websocket.tasks_persist as tp
+    import custom_components.maintenance_supporter.helpers.entry_tasks as tp
     from custom_components.maintenance_supporter.websocket.integration_setups import ws_adopt_integration_setups
 
     from .test_integration_setups import _seed_roborock
@@ -237,16 +237,16 @@ async def test_integration_adopt_rollback_uncounts_the_removed_tasks(
     await setup_integration(hass, make_global_entry(hass))
     device_id = await _seed_roborock(hass)
 
-    original = tp.async_persist_task
+    original = tp.insert_new_task  # adopting stores via insert_new_task (one reload per object, 2.95)
     calls = {"n": 0}
 
-    async def _second_fails(*args: Any, **kwargs: Any) -> Any:
+    def _second_fails(*args: Any, **kwargs: Any) -> Any:
         calls["n"] += 1
         if calls["n"] == 2:
             raise ValueError("persist boom")
-        return await original(*args, **kwargs)
+        return original(*args, **kwargs)
 
-    monkeypatch.setattr(tp, "async_persist_task", _second_fails)
+    monkeypatch.setattr(tp, "insert_new_task", _second_fails)
     conn = make_ws_connection()
     await call_ws_handler(ws_adopt_integration_setups, hass, conn, {"id": 1, "type": "x", "selections": [{"device_id": device_id}]})
     await hass.async_block_till_done()
@@ -264,7 +264,7 @@ async def test_integration_adopt_failure_in_existing_object_keeps_its_count(
 ) -> None:
     """Into an EXISTING object nothing is rolled back: the task persisted
     before the failure stays — and stays counted."""
-    import custom_components.maintenance_supporter.websocket.tasks_persist as tp
+    import custom_components.maintenance_supporter.helpers.entry_tasks as tp
     from custom_components.maintenance_supporter.websocket.integration_setups import ws_adopt_integration_setups
 
     from .conftest import make_object_entry
@@ -275,16 +275,16 @@ async def test_integration_adopt_failure_in_existing_object_keeps_its_count(
     await setup_integration(hass, global_entry, target)
     device_id = await _seed_roborock(hass)
 
-    original = tp.async_persist_task
+    original = tp.insert_new_task  # adopting stores via insert_new_task (one reload per object, 2.95)
     calls = {"n": 0}
 
-    async def _second_fails(*args: Any, **kwargs: Any) -> Any:
+    def _second_fails(*args: Any, **kwargs: Any) -> Any:
         calls["n"] += 1
         if calls["n"] == 2:
             raise ValueError("persist boom")
-        return await original(*args, **kwargs)
+        return original(*args, **kwargs)
 
-    monkeypatch.setattr(tp, "async_persist_task", _second_fails)
+    monkeypatch.setattr(tp, "insert_new_task", _second_fails)
     conn = make_ws_connection()
     await call_ws_handler(
         ws_adopt_integration_setups,

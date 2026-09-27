@@ -50,6 +50,20 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **Adopting suggested setups took well over 30 seconds on a larger install** (reported from a production system
+  with ~4,400 entities): the object was reloaded after every single adopted task while the dialog waited. The tasks
+  are now stored first and every object is reloaded once — adopting a device with eight tasks does one reload
+  instead of eight. The same applies to adopting problem sensors.
+- **Confirmations showed in the error red:** every message at the bottom of the panel was red, a success too
+  ("3 tasks now reset their counter on completion"). Confirmations are now neutral like Home Assistant's own; red
+  is left for refusals and failures.
+- **"1 devices", "1 tasks":** the getting-started hints and the adopt / counter-reset confirmations have their own
+  singular in every language.
+- **A sensor task showed no reading after it was completed:** for ten minutes after a completion the task detail
+  had no current value and no chart — the post-completion cooldown, which keeps a still-low sensor from triggering
+  the task again right away, also stopped reading the sensor. The value is read again (without re-triggering), and
+  after a completion action (such as a counter reset) the task refreshes a few seconds later, so the reset counter
+  shows instead of the reading from just before it.
 - **Suggested setups — catalog fixes:** Haier hOn purifier filters now match the fork the HACS store installs today;
   on the older fork the filter wear was read the wrong way round (the task fell due right after a filter change) —
   tasks adopted from it are repaired once at start-up, as long as their trigger is still the one the catalog wrote.

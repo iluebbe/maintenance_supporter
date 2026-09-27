@@ -411,16 +411,16 @@ async def test_adopt_rolls_back_new_object_when_task_persist_fails(
 ) -> None:
     """If the task persist fails after a fresh object was created, that object is
     removed (no task-less orphan) and objects_created is not over-counted."""
-    import custom_components.maintenance_supporter.websocket.tasks_persist as tp
+    import custom_components.maintenance_supporter.helpers.entry_tasks as tp
     from custom_components.maintenance_supporter.websocket.problem_sensors import ws_adopt_problem_sensors
 
     await setup_integration(hass, global_entry)
     _problem_sensor(hass, "binary_sensor.doomed_problem", "Doomed", "on")
 
-    async def _boom(*_a: object, **_k: object) -> None:
+    def _boom(*_a: object, **_k: object) -> None:
         raise ValueError("persist boom")
 
-    monkeypatch.setattr(tp, "async_persist_task", _boom)
+    monkeypatch.setattr(tp, "insert_new_task", _boom)
 
     conn = make_ws_connection()
     await call_ws_handler(
