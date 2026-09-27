@@ -10,7 +10,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { docDisplayName } from "../helpers/document-categories";
 import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf } from "../styles";
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
 import { openSignedDocument } from "../helpers/document-url";
 import { isSafeHttpUrl } from "../helpers/url";
 import { formatBytes } from "../helpers/format-bytes";
@@ -78,18 +78,14 @@ export class MaintenanceStorageSectionCard extends LitElement {
   }
 
   private async _load(): Promise<void> {
-    this._busy = true;
-    try {
-      this._summary = await this.hass.connection.sendMessagePromise<StorageSummary>({
-        type: "maintenance_supporter/documents/storage",
-      });
-      this._error = "";
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._loaded = true;
-      this._busy = false;
-    }
+    const r = await runWs<StorageSummary>(this, { type: "maintenance_supporter/documents/storage" }, {
+      busy: (b) => { this._busy = b; },
+      onError: (m) => { this._error = m; },
+    });
+    this._loaded = true;
+    if (r === undefined) return;
+    this._summary = r;
+    this._error = "";
   }
 
   private _nameFor(objectId: string): string {
@@ -129,18 +125,19 @@ export class MaintenanceStorageSectionCard extends LitElement {
       this._results = [];
       return;
     }
-    try {
-      const r = await this.hass.connection.sendMessagePromise<{ results: SearchResult[] }>({
-        type: "maintenance_supporter/documents/search",
-        query: q,
-      });
-      if (seq !== this._searchSeq) return;
-      this._results = r.results || [];
-    } catch (e) {
-      if (seq !== this._searchSeq) return;
-      this._error = describeWsError(e, this._lang);
+    let failure = "";
+    const r = await runWs<{ results: SearchResult[] }>(
+      this,
+      { type: "maintenance_supporter/documents/search", query: q },
+      { onError: (m) => { failure = m; } },
+    );
+    if (seq !== this._searchSeq) return;
+    if (r === undefined) {
+      this._error = failure;
       this._results = [];
+      return;
     }
+    this._results = r?.results || [];
   }
 
   private async _openResult(doc: SearchResult): Promise<void> {
@@ -151,11 +148,7 @@ export class MaintenanceStorageSectionCard extends LitElement {
       if (isSafeHttpUrl(doc.url)) window.open(doc.url, "_blank", "noopener");
       return;
     }
-    try {
-      await openSignedDocument(this.hass, doc.id);
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    }
+    await runWs(this, () => openSignedDocument(this.hass, doc.id), { onError: (m) => { this._error = m; } });
   }
 
   private _renderResult(doc: SearchResult, L: string) {

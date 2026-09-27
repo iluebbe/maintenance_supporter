@@ -7,7 +7,7 @@ import { objectRef, parseRef, renderRefChip, taskRef, type HasRef } from "./help
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
-import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, syncCurrencyDecimals} from "./styles";
+import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, formatQty, syncCurrencyDecimals} from "./styles";
 import { OVERVIEW_TABS, type OverviewTab } from "./helpers/overview-tabs";
 import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
 import { openHtmlInNewTab, openSignedDocument, preopenTab, signApiPath } from "./helpers/document-url";
@@ -21,11 +21,11 @@ import { downloadTextFile } from "./helpers/download";
 import { renderNotesMarkdown } from "./helpers/notes-markdown";
 import { buildTaskWorksheetHtml, type WorksheetExcerpt, type WorksheetLabels } from "./helpers/worksheet";
 import { describePartLink } from "./helpers/shared-parts";
+import { docDisplayName } from "./helpers/document-categories";
 import { effectivePhase } from "./helpers/phases";
 import { renderEventTitles } from "./helpers/event-titles";
 import { recommendationReason, type HomeProfile, type TemplateRecommendation } from "./helpers/home-profile";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
-import { describeWsError } from "./ws-errors";
 import { panelStyles } from "./panel-styles";
 
 // Global search (#171): what the panel needs to know about a hit — enough
@@ -121,13 +121,14 @@ import { renderPersonChip, type PersonDisplay } from "./helpers/person";
 import "./components/task-detail-view";
 import { computeWindow, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
 import { INITIAL_STICKY, nextStickyState, stickyStateOnSelect, stickyTop, type StickyState } from "./helpers/sticky-pane";
-import { invalidateSettingsCache } from "./helpers/settings-cache";
+import { invalidateSettingsCache, parseSettings, type SettingsWire } from "./helpers/settings-cache";
 import { canWrite } from "./helpers/permissions";
 import { renderStatusBadge } from "./renderers/status";
 import { TOAST_MS, ACTION_TOAST_MS } from "./helpers/toast";
 import { buildHistoryEntryDraft } from "./helpers/history-draft";
 import { readingSlotDelta } from "./helpers/reading-slots";
-import { runWs } from "./helpers/ws-run";
+import { bulkResultMessage, runWs, runWsEach } from "./helpers/ws-run";
+import { STATUS_ORDER, statusRank } from "./status-constants";
 
 type View = "overview" | "object" | "task" | "all_objects" | "all_parts";
 
@@ -166,8 +167,10 @@ type GroupByMode = "none" | "area" | "group" | "user" | "object";
 const SORT_MODES: readonly SortMode[] = ["due_date", "object", "type", "task_name", "area", "assigned_user", "group"];
 const GROUP_BY_MODES: readonly GroupByMode[] = ["none", "area", "group", "user", "object"];
 // (OVERVIEW_TABS: imported from helpers/overview-tabs.ts.)
-/** The dashboard list's status filter options (the <select> in the toolbar). */
-const STATUS_FILTERS: readonly string[] = ["overdue", "due_soon", "triggered", "ok"];
+/** The dashboard list's status filter options (the <select> in the toolbar)
+ *  — in the urgency order every list sorts by (it offered due soon before
+ *  triggered, the one copy out of line; DRY audit 2026-09-26). */
+const STATUS_FILTERS: readonly string[] = STATUS_ORDER;
 /** #179: the object page's collapsible sections — the ids saved under
  *  LS_KEYS.objectSections and accepted by the `?section=` deep link. */
 type ObjectSection = "tasks" | "documents" | "parts" | "history";
@@ -769,25 +772,17 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (budgetResult) { this._budget = budgetResult as BudgetStatus; syncCurrencyDecimals(this._budget); }
     if (groupsResult) this._groups = (groupsResult as { groups: Record<string, MaintenanceGroup> }).groups || {};
     if (settingsResult) {
-      const sr = settingsResult as {
-        features: AdvancedFeatures;
-        admin_panel_user_ids?: string[];
-        operator_write_enabled?: boolean;
-        general?: { default_warning_days?: number; row_action_style?: string; row_action_notice_pending?: boolean; ref_numbers_in_lists?: boolean };
-        objects_table_columns?: string[];
-      };
-      this._features = sr.features;
-      this._adminPanelUserIds = sr.admin_panel_user_ids || [];
-      this._operatorWriteEnabled = sr.operator_write_enabled ?? false;
-      const dwd = sr.general?.default_warning_days;
-      if (typeof dwd === "number" && dwd >= 0 && dwd <= 365) {
-        this._defaultWarningDays = dwd;
-      }
-      const ras = sr.general?.row_action_style;
-      this._rowActionStyle = ras === "icons" || ras === "buttons" ? ras : "buttons_compact";
-      this._rowActionNotice = sr.general?.row_action_notice_pending === true;
-      this._refsInLists = sr.general?.ref_numbers_in_lists === true;
-      this._objectsTableColumns = sanitizeColumns(sr.objects_table_columns);
+      // The one settings parser (helpers/settings-cache) — the panel kept its
+      // own copy of the field rules (DRY audit 2026-09-26).
+      const s = parseSettings(settingsResult as SettingsWire);
+      this._features = s.features;
+      this._adminPanelUserIds = [...s.access.operatorIds];
+      this._operatorWriteEnabled = s.access.operatorWriteEnabled;
+      this._defaultWarningDays = s.defaultWarningDays;
+      this._rowActionStyle = s.rowActionStyle;
+      this._rowActionNotice = s.rowActionNoticePending;
+      this._refsInLists = s.refsInLists;
+      this._objectsTableColumns = sanitizeColumns(s.objectsTableColumns);
     }
 
     // Fetch mini-sparkline data for overview (non-blocking)
@@ -1235,8 +1230,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         });
       }
     }
-    const statusOrder: Record<string, number> = { overdue: 0, triggered: 1, due_soon: 2, ok: 3 };
-    const byStatus = (a: TaskRow, b: TaskRow) => (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9);
+    const byStatus = (a: TaskRow, b: TaskRow) => statusRank(a.status) - statusRank(b.status);
     const byDays = (a: TaskRow, b: TaskRow) => (a.days_until_due ?? 99999) - (b.days_until_due ?? 99999);
     const byDue = (a: TaskRow, b: TaskRow) => byStatus(a, b) || byDays(a, b);
     const areaName = (r: TaskRow) =>
@@ -1774,7 +1768,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         out.push({
           kind: d.match === "content" ? "content" : "document",
           entryId: d.entry_id, docId: d.id, docKind: d.kind, url: d.url, page: d.page ?? null,
-          label: d.title || d.filename || d.url || "", sub: d.object_name || "", snippet: d.snippet || "",
+          label: docDisplayName(d), sub: d.object_name || "", snippet: d.snippet || "",
           score: d.score, icon: d.kind === "weblink" ? "mdi:link-variant" : "mdi:file-document-outline",
         });
       }
@@ -1913,23 +1907,25 @@ export class MaintenanceSupporterPanel extends LitElement {
   // --- Suggested setups (integration signatures, v2.28) ---
 
   private async _setupBatteryFleet(): Promise<void> {
-    try {
-      const res = await this.hass.connection.sendMessagePromise<{ entry_id: string; task_id?: string }>({
-        type: "maintenance_supporter/battery_fleet/setup",
-        language: this.hass.language || "en",
-      });
-      this._batteryFleetSetupAvailable = false;
-      await this._loadData();
-      // Jump to the fleet task so the user lands on its battery detail section.
-      const obj = this._objects.find((o) => o.entry_id === res.entry_id);
-      const tk = obj?.tasks.find((t2) => t2.id === res.task_id) || obj?.tasks[0];
-      if (obj && tk) {
-        this._showTask(obj.entry_id, tk.id);
-      }
-      this._showToast(t("battery_fleet_setup_done", this._lang));
-    } catch (e) {
-      this._showToast(describeWsError(e, this._lang));
+    const res = await runWs<{ entry_id: string; task_id?: string }>(
+      this,
+      { type: "maintenance_supporter/battery_fleet/setup", language: this.hass.language || "en" },
+      {
+        reload: async () => {
+          this._batteryFleetSetupAvailable = false;
+          await this._loadData();
+        },
+        onError: (m) => this._showToast(m),
+      },
+    );
+    if (res === undefined) return;
+    // Jump to the fleet task so the user lands on its battery detail section.
+    const obj = this._objects.find((o) => o.entry_id === res?.entry_id);
+    const tk = obj?.tasks.find((t2) => t2.id === res?.task_id) || obj?.tasks[0];
+    if (obj && tk) {
+      this._showTask(obj.entry_id, tk.id);
     }
+    this._showToast(t("battery_fleet_setup_done", this._lang));
   }
 
   private _openSuggestedSetups(): void {
@@ -1948,41 +1944,38 @@ export class MaintenanceSupporterPanel extends LitElement {
   private async _openTemplateGallery(): Promise<void> {
     this._templateGalleryOpen = true;
     // Refetched on every open (the last list shows meanwhile): the home
-    // profile behind the recommendations can change in Settings.
-    try {
-      const res = await this.hass.connection.sendMessagePromise<{
-        categories: Record<string, { icon?: string }>;
-        templates: Array<{ id: string; name: string; category: string; tasks: unknown[]; disabled?: boolean } & TemplateRecommendation>;
-        profile?: HomeProfile;
-      }>({ type: "maintenance_supporter/templates", language: this._lang });
-      this._templateCategories = res.categories || {};
-      // v2.21: admin-hidden templates stay out of the gallery.
-      this._templates = (res.templates || []).filter((tpl) => !tpl.disabled);
-      this._homeProfile = res.profile ?? null;
-    } catch (e) {
-      // The server's reason, like every _runAction path (DRY audit 2026-09-26).
-      this._showToast(describeWsError(e, this._lang));
-    }
+    // profile behind the recommendations can change in Settings. A refusal
+    // toasts the server's reason, like every _runAction path (DRY audit
+    // 2026-09-26).
+    const res = await runWs<{
+      categories: Record<string, { icon?: string }>;
+      templates: Array<{ id: string; name: string; category: string; tasks: unknown[]; disabled?: boolean } & TemplateRecommendation>;
+      profile?: HomeProfile;
+    }>(this, { type: "maintenance_supporter/templates", language: this._lang }, { onError: (m) => this._showToast(m) });
+    if (res === undefined) return;
+    this._templateCategories = res?.categories || {};
+    // v2.21: admin-hidden templates stay out of the gallery.
+    this._templates = (res?.templates || []).filter((tpl) => !tpl.disabled);
+    this._homeProfile = res?.profile ?? null;
   }
 
   private async _createFromTemplate(templateId: string): Promise<void> {
-    this._templateBusy = true;
-    try {
-      const res = await this.hass.connection.sendMessagePromise<{ entry_id?: string }>({
-        type: "maintenance_supporter/object/from_template",
-        language: this._lang,
-        template_id: templateId,
-      });
-      this._templateGalleryOpen = false;
-      await this._loadData();
-      this._showToast(t("template_created", this._lang));
-      if (res?.entry_id) this._showObject(res.entry_id);
-    } catch (e) {
-      // e.g. "Limit reached" / a create_failed reason instead of "Action failed".
-      this._showToast(describeWsError(e, this._lang));
-    } finally {
-      this._templateBusy = false;
-    }
+    // e.g. "Limit reached" / a create_failed reason instead of "Action failed".
+    const res = await runWs<{ entry_id?: string }>(
+      this,
+      { type: "maintenance_supporter/object/from_template", language: this._lang, template_id: templateId },
+      {
+        busy: (b) => { this._templateBusy = b; },
+        reload: async () => {
+          this._templateGalleryOpen = false;
+          await this._loadData();
+        },
+        successToast: t("template_created", this._lang),
+        onSuccess: (m) => this._showToast(m),
+        onError: (m) => this._showToast(m),
+      },
+    );
+    if (res?.entry_id) this._showObject(res.entry_id);
   }
 
   private _categoryName(catId: string): string {
@@ -2090,30 +2083,47 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._bulkSelected = allSelected ? new Set() : new Set(keys);
   }
 
-  /** Run one WS message per selected row (the endpoints are per-task); reports
-   *  how many succeeded and refreshes once at the end. */
-  private async _runBulk(
+  /** THE bulk loop of both selection modes (task rows, objects): one WS call
+   *  per item (helpers/ws-run runWsEach — the endpoints are per item), ONE
+   *  refresh at the end, and one toast with the successful count plus how
+   *  many failed and why. The task and the object loop were identical
+   *  copies that swallowed every reason (DRY audit 2026-09-26). The undo
+   *  receives the items that went through. */
+  private async _runBulkItems<K>(
+    items: K[],
+    build: (item: K) => Record<string, unknown>,
+    doneMsg: (n: number) => string,
+    endSelection: () => void,
+    undo?: (done: K[]) => void,
+  ): Promise<void> {
+    if (items.length === 0) return;
+    this._actionLoading = true;
+    const { done, failed } = await runWsEach(this, items, build);
+    this._actionLoading = false;
+    endSelection();
+    await this._loadData();
+    const msg = bulkResultMessage(doneMsg(done.length), failed, this._lang);
+    if (undo && done.length > 0) this._showUndoToast(msg, () => undo(done));
+    else this._showToast(msg);
+  }
+
+  /** One WS message per selected task row. */
+  private _runBulk(
     rows: TaskRow[],
     build: (row: TaskRow) => Record<string, unknown>,
     doneMsg: (n: number) => string,
-    undo?: () => void,
+    undo?: (done: TaskRow[]) => void,
   ): Promise<void> {
-    const selected = rows.filter((r) => this._bulkSelected.has(this._bulkKey(r)));
-    if (selected.length === 0) return;
-    this._actionLoading = true;
-    let ok = 0;
-    for (const row of selected) {
-      try {
-        await this.hass.connection.sendMessagePromise(build(row));
-        ok++;
-      } catch { /* keep going; report the successful count */ }
-    }
-    this._actionLoading = false;
-    this._bulkSelected = new Set();
-    this._bulkMode = false;
-    await this._loadData();
-    if (undo && ok > 0) this._showUndoToast(doneMsg(ok), undo);
-    else this._showToast(doneMsg(ok));
+    return this._runBulkItems(
+      rows.filter((r) => this._bulkSelected.has(this._bulkKey(r))),
+      build,
+      doneMsg,
+      () => {
+        this._bulkSelected = new Set();
+        this._bulkMode = false;
+      },
+      undo,
+    );
   }
 
   /** #188: move every selected task to one object (the single-task move's
@@ -2161,24 +2171,18 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   /** One WS call per selected object, sequentially (config entries are
-   *  removed one at a time on the backend); the successful count is reported. */
-  private async _runObjBulk(type: string, doneMsg: (n: number) => string, undo?: (ids: string[]) => Promise<void>): Promise<void> {
-    const ids = [...this._objBulkSelected];
-    if (ids.length === 0) return;
-    this._actionLoading = true;
-    const done: string[] = [];
-    for (const id of ids) {
-      try {
-        await this.hass.connection.sendMessagePromise({ type, entry_id: id });
-        done.push(id);
-      } catch { /* keep going; report the successful count */ }
-    }
-    this._actionLoading = false;
-    this._objBulkSelected = new Set();
-    this._objBulkMode = false;
-    await this._loadData();
-    if (undo && done.length > 0) this._showUndoToast(doneMsg(done.length), () => { void undo(done); });
-    else this._showToast(doneMsg(done.length));
+   *  removed one at a time on the backend). */
+  private _runObjBulk(type: string, doneMsg: (n: number) => string, undo?: (ids: string[]) => Promise<void>): Promise<void> {
+    return this._runBulkItems(
+      [...this._objBulkSelected],
+      (id) => ({ type, entry_id: id }),
+      doneMsg,
+      () => {
+        this._objBulkSelected = new Set();
+        this._objBulkMode = false;
+      },
+      undo ? (done) => { void undo(done); } : undefined,
+    );
   }
 
   private async _objBulkDelete(): Promise<void> {
@@ -2241,15 +2245,13 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private _bulkArchive(rows: TaskRow[]): void {
-    // Capture the selection so the undo can unarchive exactly those.
-    const keys = rows.filter((r) => this._bulkSelected.has(this._bulkKey(r)))
-      .map((r) => ({ entry_id: r.entry_id, task_id: r.task_id }));
     void this._runBulk(
       rows,
       (row) => ({ type: "maintenance_supporter/task/archive", entry_id: row.entry_id, task_id: row.task_id }),
       (n) => t("bulk_archived", this._lang).replace("{n}", String(n)),
-      async () => {
-        for (const k of keys) {
+      // The undo unarchives exactly the rows that were archived.
+      async (done) => {
+        for (const k of done) {
           try {
             await this.hass.connection.sendMessagePromise({
               type: "maintenance_supporter/task/unarchive", entry_id: k.entry_id, task_id: k.task_id,
@@ -2272,18 +2274,15 @@ export class MaintenanceSupporterPanel extends LitElement {
     msg: Record<string, unknown>,
     opts?: { successToast?: string },
   ): Promise<T | null> {
-    this._actionLoading = true;
-    try {
-      const res = await this.hass.connection.sendMessagePromise<T>(msg);
-      await this._loadData();
-      if (opts?.successToast) this._showToast(opts.successToast);
-      return (res ?? {}) as T;
-    } catch (e) {
-      this._showToast(describeWsError(e, this._lang));
-      return null;
-    } finally {
-      this._actionLoading = false;
-    }
+    // helpers/ws-run runWs bound to the panel's busy flag, reload and toast.
+    const res = await runWs<T>(this, msg, {
+      busy: (b) => { this._actionLoading = b; },
+      reload: () => this._loadData(),
+      successToast: opts?.successToast,
+      onSuccess: (m) => this._showToast(m),
+      onError: (m) => this._showToast(m),
+    });
+    return res === undefined ? null : ((res ?? {}) as T);
   }
 
   private async _deleteObject(entryId: string): Promise<void> {
@@ -2620,14 +2619,17 @@ export class MaintenanceSupporterPanel extends LitElement {
   private async _handleQuickComplete(
     entryId: string, taskId: string, task: MaintenanceTask,
   ): Promise<void> {
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/task/quick_complete",
-        entry_id: entryId, task_id: taskId,
-      });
-      this._showToast(t("quick_complete_success", this._lang));
-    } catch (e: unknown) {
-      const code = (e as { code?: string })?.code || "";
+    let failure: { message: string; code: string } | null = null;
+    const res = await runWs(
+      this,
+      { type: "maintenance_supporter/task/quick_complete", entry_id: entryId, task_id: taskId },
+      {
+        fallbackKey: "action_error",
+        onError: (message, e) => { failure = { message, code: (e as { code?: string })?.code || "" }; },
+      },
+    );
+    if (res === undefined) {
+      const { message, code } = failure ?? { message: "", code: "" };
       // Both refusals mean "the dialog has to collect something": no
       // quick-complete defaults configured, or the task demands completion
       // details a silent complete cannot supply. The dialog opens as the
@@ -2642,10 +2644,11 @@ export class MaintenanceSupporterPanel extends LitElement {
       } else {
         // Relay the server's reason (too_early carries the earliest date)
         // instead of a generic "action failed".
-        this._showToast(describeWsError(e, this._lang, t("action_error", this._lang)));
+        this._showToast(message);
       }
       return;
     }
+    this._showToast(t("quick_complete_success", this._lang));
     // Silent success: the list must reflect the completion right away — the
     // subscription delta may lag or be coalesced.
     try { await this._loadData(); } catch { /* subscription will sync */ }
@@ -2696,7 +2699,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             ),
           };
           excerpt = {
-            title: manual.title || manual.filename || "Manual",
+            title: docDisplayName(manual) || "Manual",
             startPage: start, endPage: start + count - 1,
             // Absolute URL: the sheet lives on a blob: page, where a
             // relative /api/... href cannot resolve (caught live).
@@ -3277,10 +3280,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             @change=${(e: Event) => { this._filterStatus = (e.target as HTMLSelectElement).value; this._activeViewId = ""; }}
           >
             <option value="">${t("all", L)}</option>
-            <option value="overdue">${t("overdue", L)}</option>
-            <option value="due_soon">${t("due_soon", L)}</option>
-            <option value="triggered">${t("triggered", L)}</option>
-            <option value="ok">${t("ok", L)}</option>
+            ${STATUS_FILTERS.map((s) => html`<option value=${s} ?selected=${this._filterStatus === s}>${t(s, L)}</option>`)}
           </select>
         </label>
         <label class="filter-field">
@@ -3867,7 +3867,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                         : nothing}
                     </td>
                     <td>${row.object_name || "—"}</td>
-                    <td>${row.stock !== null ? `${row.stock}${row.unit ? ` ${row.unit}` : ""}` : "—"}</td>
+                    <td>${row.stock !== null ? formatQty(row.stock, row.unit, L) : "—"}</td>
                     <td>${row.reorder_threshold ?? "—"}</td>
                     <td>${row.cost != null ? formatCost(row.cost, currency, L) : "—"}</td>
                     <td>${row.storage_location || "—"}</td>
@@ -4398,10 +4398,9 @@ export class MaintenanceSupporterPanel extends LitElement {
                   .then((d) => d?.openCreate(obj.entry_id));
               }}>${t("add_first_task", L)}</ha-button>
             </div>`
-          : html`<div class="task-table object-tasks">${[...visibleTasks].sort((a, b) => {
-              const so: Record<string, number> = { overdue: 0, triggered: 1, due_soon: 2, ok: 3 };
-              return (so[a.status] ?? 9) - (so[b.status] ?? 9) || (a.days_until_due ?? 99999) - (b.days_until_due ?? 99999);
-            }).map((task) => html`
+          : html`<div class="task-table object-tasks">${[...visibleTasks].sort((a, b) =>
+              statusRank(a.status) - statusRank(b.status) || (a.days_until_due ?? 99999) - (b.days_until_due ?? 99999),
+            ).map((task) => html`
               <div class="task-row${!task.enabled ? ' task-disabled' : ''}">
                 <span class="cell-badges">
                   ${this._statusBadge(!!task.archived, !!task.is_done, task.status)}

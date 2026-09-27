@@ -37,7 +37,8 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import intent
 
-from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_TASKS, DOMAIN, NOTIFIABLE_STATUSES
+from .helpers.aggregate import get_object_entries, iter_live_tasks, priority_rank
 from .helpers.aggregate import object_name as aggregate_object_name
 
 INTENT_LIST_TASKS = "MaintenanceSupporterListTasks"
@@ -49,7 +50,9 @@ INTENT_PART_STOCK = "MaintenanceSupporterPartStock"
 INTENT_POSTPONE_TASK = "MaintenanceSupporterPostponeTask"
 INTENT_SKIP_TASK = "MaintenanceSupporterSkipTask"
 
-_ACTIONABLE = ("due_soon", "overdue", "triggered")
+# "What needs attention" = the statuses a reminder can be about (the shared
+# const set; this module spelled its own tuple — DRY audit 2026-09-26 B).
+_ACTIONABLE = NOTIFIABLE_STATUSES
 
 # Spoken responses live in assist_sentences/responses/<lang>.json — 38 keys
 # across 22 languages is far too much to read past on the way to the
@@ -71,48 +74,40 @@ def _sp(key: str, language: str | None, **fmt: Any) -> str:
 def _task_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
     """Live snapshot of every active (non-archived) task across all objects.
 
-    Same shape/source as the ``list_tasks`` service: the coordinator's computed
+    Same shape/source as the ``list_tasks`` service — both walk
+    :func:`~.helpers.aggregate.iter_live_tasks`: the coordinator's computed
     payload, so status/next_due reflect the Store, not stale entry data.
     """
-    tasks: list[dict[str, Any]] = []
-    for ce in hass.config_entries.async_entries(DOMAIN):
-        if ce.unique_id == GLOBAL_UNIQUE_ID:
-            continue
-        rd = getattr(ce, "runtime_data", None)
-        coordinator = getattr(rd, "coordinator", None) if rd else None
-        if coordinator is None or not coordinator.data:
-            continue
-        obj = ce.data.get(CONF_OBJECT, {})
-        object_name = obj.get("name", ce.title)
-        for task_id, task in coordinator.data.get(CONF_TASKS, {}).items():
-            status = str(task.get("_status", ""))
-            if status == "archived":
-                continue
-            # Cycle phases (#139): name the step currently due, so answers
-            # say WHICH work is meant ("Mower blades — next step: replace").
-            from .helpers.phases import current_phase
+    from .helpers.phases import current_phase
 
-            phase = current_phase(task)
-            tasks.append(
-                {
-                    "entry_id": ce.entry_id,
-                    "task_id": task_id,
-                    "object_name": object_name,
-                    # The object's room, so a satellite can answer for where it
-                    # is standing rather than for the whole house.
-                    "area_id": obj.get("area_id") or None,
-                    "name": str(task.get("name") or ""),
-                    # Whose turn it is — for a rotation this is the current duty.
-                    "responsible_user_id": task.get("responsible_user_id") or None,
-                    "status": status,
-                    "days_until_due": task.get("_days_until_due"),
-                    "next_due": task.get("_next_due"),
-                    "phase": str(phase["name"]) if phase else None,
-                    # #134: high-priority work is named as such and listed first
-                    # within the same urgency bucket.
-                    "priority": str(task.get("priority") or "normal"),
-                }
-            )
+    tasks: list[dict[str, Any]] = []
+    for ce, task_id, task in iter_live_tasks(hass):
+        obj = ce.data.get(CONF_OBJECT) or {}
+        # Cycle phases (#139): name the step currently due, so answers
+        # say WHICH work is meant ("Mower blades — next step: replace").
+        phase = current_phase(task)
+        tasks.append(
+            {
+                "entry_id": ce.entry_id,
+                "task_id": task_id,
+                # The shared display-name rule (an empty name falls back to
+                # the entry title — this copy kept "", unlike list_tasks).
+                "object_name": aggregate_object_name(ce),
+                # The object's room, so a satellite can answer for where it
+                # is standing rather than for the whole house.
+                "area_id": obj.get("area_id") or None,
+                "name": str(task.get("name") or ""),
+                # Whose turn it is — for a rotation this is the current duty.
+                "responsible_user_id": task.get("responsible_user_id") or None,
+                "status": str(task.get("_status", "")),
+                "days_until_due": task.get("_days_until_due"),
+                "next_due": task.get("_next_due"),
+                "phase": str(phase["name"]) if phase else None,
+                # #134: high-priority work is named as such and listed first
+                # within the same urgency bucket.
+                "priority": str(task.get("priority") or "normal"),
+            }
+        )
     return tasks
 
 
@@ -310,12 +305,11 @@ class ListTasksIntent(intent.IntentHandler):
 
         # Most urgent first: overdue (most days) → due today → due soon.
         # Within the same due day, high-priority work is named first (#134).
-        _PRIO_RANK = {"high": 0, "normal": 1, "low": 2}
         tasks.sort(
             key=lambda t: (
                 t["days_until_due"] is None,
                 t["days_until_due"] or 0,
-                _PRIO_RANK.get(t.get("priority") or "normal", 1),
+                priority_rank(t.get("priority")),
             )
         )
 
@@ -615,8 +609,8 @@ class SnoozeTaskIntent(intent.IntentHandler):
         response = intent_obj.create_response()
 
         from . import NOTIFICATION_MANAGER_KEY
-        from .const import CONF_SNOOZE_DURATION_HOURS, DEFAULT_SNOOZE_DURATION_HOURS
-        from .helpers.global_options import get_global_options
+        from .const import CONF_SNOOZE_DURATION_HOURS
+        from .helpers.global_options import global_option
 
         nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
         if nm is None:
@@ -627,7 +621,7 @@ class SnoozeTaskIntent(intent.IntentHandler):
             return response
 
         nm.snooze_task(target["entry_id"], target["task_id"])
-        hours = get_global_options(hass).get(CONF_SNOOZE_DURATION_HOURS, DEFAULT_SNOOZE_DURATION_HOURS)
+        hours = global_option(hass, CONF_SNOOZE_DURATION_HOURS)
         if isinstance(hours, float) and hours.is_integer():
             hours = int(hours)  # "4 hours", not "4.0 hours"
         response.async_set_speech(
@@ -642,9 +636,7 @@ def _part_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
     from .const import CONF_PARTS
 
     rows: list[dict[str, Any]] = []
-    for ce in hass.config_entries.async_entries(DOMAIN):
-        if ce.unique_id == GLOBAL_UNIQUE_ID:
-            continue
+    for ce in get_object_entries(hass):
         object_name = aggregate_object_name(ce)
         rd = getattr(ce, "runtime_data", None)
         store = getattr(rd, "store", None) if rd else None

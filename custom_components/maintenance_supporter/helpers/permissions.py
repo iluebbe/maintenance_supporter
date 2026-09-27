@@ -27,7 +27,7 @@ from homeassistant.core import HomeAssistant, ServiceCall, ServiceResponse
 from homeassistant.exceptions import Unauthorized, UnknownUser
 
 from ..const import CONF_ADMIN_PANEL_USER_IDS, CONF_OPERATOR_WRITE_ENABLED
-from .global_options import get_global_options
+from .global_options import global_option
 
 if TYPE_CHECKING:
     from homeassistant.auth.models import User
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 def operator_user_ids(hass: HomeAssistant) -> list[str]:
     """Return the operator allowlist (``admin_panel_user_ids``) as string ids."""
-    raw = get_global_options(hass).get(CONF_ADMIN_PANEL_USER_IDS, []) or []
+    raw = global_option(hass, CONF_ADMIN_PANEL_USER_IDS) or []
     return [uid for uid in raw if isinstance(uid, str)]
 
 
@@ -47,7 +47,7 @@ def operator_write_enabled(hass: HomeAssistant) -> bool:
     is read-only; an admin must explicitly enable this for allowlisted
     non-admins to gain content CRUD.
     """
-    return get_global_options(hass).get(CONF_OPERATOR_WRITE_ENABLED, False) is True
+    return global_option(hass, CONF_OPERATOR_WRITE_ENABLED) is True
 
 
 def user_can_write(hass: HomeAssistant, user: User | None) -> bool:

@@ -8,6 +8,18 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
+from ._shared import (
+    ANNUAL_SERVICE_DISTANCE_TO_SERVICE,
+    ANNUAL_SERVICE_MILEAGE,
+    ANNUAL_SERVICE_ODOMETER,
+    ANNUAL_SERVICE_TESLA_ODOMETER,
+    BIKE_CHAIN_ODOMETER,
+    BIKE_CHAIN_TOTAL_DISTANCE,
+    BIKE_SERVICE_TOTAL_DISTANCE,
+    TIRE_ROTATION_MILEAGE,
+    TIRE_ROTATION_ODOMETER,
+    TIRE_ROTATION_TESLA_ODOMETER,
+)
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "kia_uvo": IntegrationSignature(
@@ -20,8 +32,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(target vs remaining) are unverified — odometer delta instead."
         ),
         tasks=(
-            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_ODOMETER,
+            TIRE_ROTATION_ODOMETER,
         ),
     ),
     "tesla_custom": IntegrationSignature(
@@ -33,8 +45,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "translation_key; DISTANCE, TOTAL_INCREASING, native miles)."
         ),
         tasks=(
-            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_ODOMETER,
+            TIRE_ROTATION_ODOMETER,
         ),
     ),
     "renault": IntegrationSignature(
@@ -45,8 +57,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(translation_key 'mileage', DISTANCE, TOTAL_INCREASING, km)."
         ),
         tasks=(
-            ConsumableSignature(("mileage",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_MILEAGE,
+            TIRE_ROTATION_MILEAGE,
         ),
     ),
     "mbapi2020": IntegrationSignature(
@@ -58,8 +70,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "serviceintervaldays/distance) — lifetime km counter."
         ),
         tasks=(
-            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_ODOMETER,
+            TIRE_ROTATION_ODOMETER,
         ),
     ),
     "vw_eu_data_act": IntegrationSignature(
@@ -72,8 +84,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "unofficial WeConnect APIs were locked down upstream)."
         ),
         tasks=(
-            ConsumableSignature(("mileage",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_MILEAGE,
+            TIRE_ROTATION_MILEAGE,
         ),
     ),
     "subaru": IntegrationSignature(
@@ -81,8 +93,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         verified="2026-07-18 @ home-assistant/core dev",
         source=("home-assistant/core homeassistant/components/subaru/sensor.py (key sc.ODOMETER, translation_key 'odometer')."),
         tasks=(
-            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_ODOMETER,
+            TIRE_ROTATION_ODOMETER,
         ),
     ),
     "volvo": IntegrationSignature(
@@ -90,8 +102,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         verified="2026-07-18 @ home-assistant/core dev",
         source=("home-assistant/core homeassistant/components/volvo/sensor.py (key 'odometer', api_field 'odometer')."),
         tasks=(
-            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_ODOMETER,
+            TIRE_ROTATION_ODOMETER,
         ),
     ),
     "polestar_api": IntegrationSignature(
@@ -112,8 +124,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         verified="2026-07-19 @ itchannel/fordpass-ha master sensor.py",
         source="HACS fordpass: dict-key 'odometer' sensor (name-style, suffix match).",
         tasks=(
-            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_ODOMETER,
+            TIRE_ROTATION_ODOMETER,
         ),
     ),
     "toyota": IntegrationSignature(
@@ -121,8 +133,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         verified="2026-07-19 @ DurgNomis-drol/ha_toyota master sensor.py",
         source="HACS toyota: tk 'odometer', DISTANCE, TOTAL_INCREASING.",
         tasks=(
-            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_ODOMETER,
+            TIRE_ROTATION_ODOMETER,
         ),
     ),
     "mg_saic": IntegrationSignature(
@@ -136,8 +148,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "'Mileage Since Last Charge' does not end in _mileage — no clash)."
         ),
         tasks=(
-            ConsumableSignature(("mileage",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_MILEAGE,
+            TIRE_ROTATION_MILEAGE,
         ),
     ),
     "myskoda": IntegrationSignature(
@@ -152,7 +164,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "editorial 15000 km interval here."
         ),
         tasks=(
-            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+            TIRE_ROTATION_MILEAGE,
             ConsumableSignature(("inspection",), "Annual Service", "duration_left", below_hours=336),
             ConsumableSignature(("inspection_in_km",), "Annual Service", "value_below", delta_units=1000),
             ConsumableSignature(("oil_service_in_days",), "Oil Service", "duration_left", below_hours=336),
@@ -171,7 +183,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "Countdowns replace the generic odometer service duty."
         ),
         tasks=(
-            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+            TIRE_ROTATION_MILEAGE,
             ConsumableSignature(("service_inspection_time",), "Annual Service", "duration_left", below_hours=336),
             ConsumableSignature(("service_inspection_distance",), "Annual Service", "value_below", delta_units=1000),
             ConsumableSignature(("oil_change_time",), "Oil Service", "duration_left", below_hours=336),
@@ -187,8 +199,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         verified="2026-07-20 @ home-assistant/core dev",
         source=("core tesla_fleet: key/tk 'vehicle_state_odometer' (TOTAL_INCREASING, MILES, DISTANCE)."),
         tasks=(
-            ConsumableSignature(("vehicle_state_odometer",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("vehicle_state_odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_TESLA_ODOMETER,
+            TIRE_ROTATION_TESLA_ODOMETER,
         ),
     ),
     "teslemetry": IntegrationSignature(
@@ -196,8 +208,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         verified="2026-07-20 @ home-assistant/core dev",
         source=("core teslemetry: key/tk 'vehicle_state_odometer' (TOTAL_INCREASING, MILES, DISTANCE)."),
         tasks=(
-            ConsumableSignature(("vehicle_state_odometer",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("vehicle_state_odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_TESLA_ODOMETER,
+            TIRE_ROTATION_TESLA_ODOMETER,
         ),
     ),
     "tessie": IntegrationSignature(
@@ -205,8 +217,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         verified="2026-07-20 @ home-assistant/core dev",
         source=("core tessie: key/tk 'vehicle_state_odometer' (TOTAL_INCREASING, MILES, DISTANCE)."),
         tasks=(
-            ConsumableSignature(("vehicle_state_odometer",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("vehicle_state_odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_TESLA_ODOMETER,
+            TIRE_ROTATION_TESLA_ODOMETER,
         ),
     ),
     "ituran": IntegrationSignature(
@@ -214,8 +226,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         verified="2026-07-20 @ home-assistant/core dev",
         source=("core ituran: tk 'mileage' (KILOMETERS, DISTANCE) — fleet-tracker odometer."),
         tasks=(
-            ConsumableSignature(("mileage",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_MILEAGE,
+            TIRE_ROTATION_MILEAGE,
         ),
     ),
     "starline": IntegrationSignature(
@@ -223,8 +235,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         verified="2026-07-20 @ home-assistant/core dev",
         source=("core starline: tk 'mileage' (KILOMETERS, TOTAL_INCREASING) — alarm-system odometer."),
         tasks=(
-            ConsumableSignature(("mileage",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_MILEAGE,
+            TIRE_ROTATION_MILEAGE,
         ),
     ),
     "bosch_ebike": IntegrationSignature(
@@ -239,8 +251,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "re-baselines on completion, like the car duties."
         ),
         tasks=(
-            ConsumableSignature(("total_distance",), "Lubricate Chain", "usage_delta", delta_units=250),
-            ConsumableSignature(("total_distance",), "Bike Service", "usage_delta", delta_units=2000),
+            BIKE_CHAIN_TOTAL_DISTANCE,
+            BIKE_SERVICE_TOTAL_DISTANCE,
         ),
     ),
     "stromer": IntegrationSignature(
@@ -251,8 +263,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "— the eBike's odometer. Same drivetrain duties as Bosch eBike."
         ),
         tasks=(
-            ConsumableSignature(("total_distance",), "Lubricate Chain", "usage_delta", delta_units=250),
-            ConsumableSignature(("total_distance",), "Bike Service", "usage_delta", delta_units=2000),
+            BIKE_CHAIN_TOTAL_DISTANCE,
+            BIKE_SERVICE_TOTAL_DISTANCE,
         ),
     ),
     # --- Round 14 (2026-09-25) --------------------------------------------
@@ -269,7 +281,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "no editorial 15000 km interval (myskoda precedent)."
         ),
         tasks=(
-            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+            TIRE_ROTATION_MILEAGE,
             ConsumableSignature(("days_before_maintenance",), "Annual Service", "duration_left", below_hours=336),
             ConsumableSignature(("mileage_before_maintenance",), "Annual Service", "value_below", delta_units=1000),
         ),
@@ -320,9 +332,9 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "service countdowns replace the generic odometer service duty."
         ),
         tasks=(
-            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            TIRE_ROTATION_ODOMETER,
             ConsumableSignature(("days_till_service_needed",), "Annual Service", "duration_left", below_hours=336),
-            ConsumableSignature(("distance_to_service",), "Annual Service", "value_below", delta_units=1000),
+            ANNUAL_SERVICE_DISTANCE_TO_SERVICE,
             ConsumableSignature(("oil_life",), "Oil Service", "percent_left"),
         ),
     ),
@@ -338,7 +350,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "duty; the intermediate-service pair is left out (no duty name)."
         ),
         tasks=(
-            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+            TIRE_ROTATION_MILEAGE,
             ConsumableSignature(("main_service_time",), "Annual Service", "duration_left", below_hours=336),
             ConsumableSignature(("main_service_range",), "Annual Service", "value_below", delta_units=1000),
             ConsumableSignature(("oil_service_time",), "Oil Service", "duration_left", below_hours=336),
@@ -354,8 +366,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "suggested MILES for imperial accounts)."
         ),
         tasks=(
-            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_ODOMETER,
+            TIRE_ROTATION_ODOMETER,
         ),
     ),
     "smartcar": IntegrationSignature(
@@ -370,8 +382,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "sibling percent sensors apply — its scale is unverified."
         ),
         tasks=(
-            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_ODOMETER,
+            TIRE_ROTATION_ODOMETER,
         ),
     ),
     "lucidmotors": IntegrationSignature(
@@ -383,8 +395,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "odometer (declared MEASUREMENT, but only ever grows)."
         ),
         tasks=(
-            ConsumableSignature(("mileage",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_MILEAGE,
+            TIRE_ROTATION_MILEAGE,
         ),
     ),
     "abrp": IntegrationSignature(
@@ -392,8 +404,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         verified="2026-09-25 @ MichelFR/ha-abrp main",
         source=("HACS abrp sensor.py: tk 'odometer' (telemetry odometer_km, KILOMETERS, DISTANCE, TOTAL_INCREASING)."),
         tasks=(
-            ConsumableSignature(("odometer",), "Annual Service", "usage_delta", delta_units=15000),
-            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ANNUAL_SERVICE_ODOMETER,
+            TIRE_ROTATION_ODOMETER,
         ),
     ),
     # Separate domain from pypolestar's polestar_api above.
@@ -409,9 +421,9 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "the generic odometer service duty."
         ),
         tasks=(
-            ConsumableSignature(("odometer",), "Tire Rotation", "usage_delta", delta_units=10000),
+            TIRE_ROTATION_ODOMETER,
             ConsumableSignature(("days_to_service",), "Annual Service", "duration_left", below_hours=336),
-            ConsumableSignature(("distance_to_service",), "Annual Service", "value_below", delta_units=1000),
+            ANNUAL_SERVICE_DISTANCE_TO_SERVICE,
         ),
     ),
     "specialized_turbo": IntegrationSignature(
@@ -423,7 +435,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "drivetrain duties as Bosch eBike."
         ),
         tasks=(
-            ConsumableSignature(("odometer",), "Lubricate Chain", "usage_delta", delta_units=250),
+            BIKE_CHAIN_ODOMETER,
             ConsumableSignature(("odometer",), "Bike Service", "usage_delta", delta_units=2000),
         ),
     ),
@@ -435,7 +447,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "TOTAL_INCREASING). Cowboy bikes run a carbon belt drive — no "
             "chain to lubricate, so only the drivetrain service interval."
         ),
-        tasks=(ConsumableSignature(("total_distance",), "Bike Service", "usage_delta", delta_units=2000),),
+        tasks=(BIKE_SERVICE_TOTAL_DISTANCE,),
     ),
     "ha_bosch_ebike": IntegrationSignature(
         name="Bosch eBike (Smart System & eBike System 2)",
@@ -454,7 +466,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         tasks=(
             ConsumableSignature(("service_due_in_days",), "Bike Service", "duration_left", below_hours=336),
             ConsumableSignature(("service_due_in_km",), "Bike Service", "value_below", delta_units=100),
-            ConsumableSignature(("odometer",), "Lubricate Chain", "usage_delta", delta_units=250),
+            BIKE_CHAIN_ODOMETER,
         ),
     ),
 }

@@ -13,7 +13,7 @@ import { css, html, LitElement, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 
 import { t, ensureLocale, langOf } from "../styles";
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
 import type { HomeAssistant, SavedView, SavedViewFilters } from "../types";
 
 interface ViewsResponse {
@@ -65,39 +65,27 @@ export class MaintenanceSavedViewsDialog extends LitElement {
   private _save = async (): Promise<void> => {
     const name = this._name.trim();
     if (!name || this._busy || !this._filters) return;
-    this._busy = true;
-    this._error = "";
-    try {
-      const res = await this.hass.connection.sendMessagePromise<ViewsResponse>({
-        type: "maintenance_supporter/views/save",
-        name,
-        filters: this._filters,
-      });
-      this._name = "";
-      this._emitChanged(res.views || []);
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+    const res = await this._runWs({ type: "maintenance_supporter/views/save", name, filters: this._filters });
+    if (res === undefined) return;
+    this._name = "";
+    this._emitChanged(res?.views || []);
   };
 
   private _delete = async (viewId: string): Promise<void> => {
     if (this._busy) return;
-    this._busy = true;
-    this._error = "";
-    try {
-      const res = await this.hass.connection.sendMessagePromise<ViewsResponse>({
-        type: "maintenance_supporter/views/delete",
-        view_id: viewId,
-      });
-      this._emitChanged(res.views || []);
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+    const res = await this._runWs({ type: "maintenance_supporter/views/delete", view_id: viewId });
+    if (res === undefined) return;
+    this._emitChanged(res?.views || []);
   };
+
+  /** helpers/ws-run runWs bound to the busy flag and the error line. */
+  private _runWs(payload: Record<string, unknown>): Promise<ViewsResponse | null | undefined> {
+    this._error = "";
+    return runWs<ViewsResponse>(this, payload, {
+      busy: (b) => { this._busy = b; },
+      onError: (m) => { this._error = m; },
+    });
+  }
 
   render() {
     if (!this._open) return html``;

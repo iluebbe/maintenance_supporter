@@ -25,8 +25,9 @@ from aiohttp import hdrs, web
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.http import HomeAssistantView
 
-from .const import DOMAIN, GLOBAL_UNIQUE_ID, MAX_DOCS_PER_OBJECT, MAX_NAME_LENGTH
+from .const import DOMAIN, MAX_DOCS_PER_OBJECT, MAX_NAME_LENGTH
 from .helpers import documents as docmod
+from .helpers.aggregate import is_object_entry
 from .helpers.documents import KIND_FILE
 from .helpers.permissions import user_can_write
 
@@ -110,7 +111,7 @@ class DocumentUploadView(HomeAssistantView):
             return self.json_message("Not authorized", HTTPStatus.FORBIDDEN)
 
         entry = self.hass.config_entries.async_get_entry(entry_id)
-        if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
+        if entry is None or not is_object_entry(entry):
             return self.json_message("Object not found", HTTPStatus.NOT_FOUND)
 
         from .websocket import object_id_for_entry

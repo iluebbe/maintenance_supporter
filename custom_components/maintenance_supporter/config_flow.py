@@ -38,6 +38,7 @@ from .const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
+from .helpers.global_options import get_global_entry
 from .helpers.i18n import normalize_language
 from .helpers.schedule import normalize_task_storage
 from .helpers.task_fields import WARNING_DAYS_RANGE
@@ -77,9 +78,7 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle the initial step."""
         # Check if global entry exists
-        global_exists = any(entry.unique_id == GLOBAL_UNIQUE_ID for entry in self.hass.config_entries.async_entries(DOMAIN))
-
-        if not global_exists:
+        if get_global_entry(self.hass) is None:
             return await self.async_step_global_setup()
 
         return self.async_show_menu(
@@ -273,30 +272,16 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
                 from .helpers.sanitize import cap_object_fields, cap_task_fields
 
                 today_iso = dt_util.now().date().isoformat()
-                from .helpers.home_profile import async_climate
-                from .templates import build_template_task, template_tasks
+                from .templates import async_build_template_tasks
 
-                create_lang = normalize_language(self.hass)
                 # Seasons follow the home's hemisphere and climate.
-                climate = await async_climate(self.hass)
-                self._tasks = {}
-                for tt in template_tasks(template, has_winter=climate.has_winter if climate else True):
-                    task_id = uuid4().hex
-                    task_data = {
-                        "id": task_id,
-                        "object_id": self._object_data["id"],
-                        **build_template_task(
-                            tt,
-                            create_lang,
-                            hemisphere=climate.hemisphere if climate else "north",
-                            has_winter=climate.has_winter if climate else True,
-                            country=str(self.hass.config.country).upper() if self.hass.config.country else None,
-                        ),
-                        "history": [],
-                        "created_at": today_iso,
-                    }
+                self._tasks = await async_build_template_tasks(
+                    self.hass, template, normalize_language(self.hass), self._object_data["id"]
+                )
+                for task_data in self._tasks.values():
+                    # Server-managed, not user-editable (no parity concern).
+                    task_data.update({"history": [], "created_at": today_iso})
                     cap_task_fields(task_data)
-                    self._tasks[task_id] = task_data
                 cap_object_fields(self._object_data)
 
                 self._object_data["task_ids"] = list(self._tasks.keys())

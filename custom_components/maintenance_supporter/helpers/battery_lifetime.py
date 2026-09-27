@@ -220,9 +220,9 @@ def sanitize_lifetime_overrides(raw: Any) -> dict[str, int]:
 
 def lifetime_overrides(hass: HomeAssistant) -> dict[str, int]:
     from ..const import CONF_BATTERY_LIFETIME_MONTHS
-    from .global_options import get_global_options
+    from .global_options import global_option
 
-    return sanitize_lifetime_overrides(get_global_options(hass).get(CONF_BATTERY_LIFETIME_MONTHS))
+    return sanitize_lifetime_overrides(global_option(hass, CONF_BATTERY_LIFETIME_MONTHS))
 
 
 # ── the replacement log (learning) ───────────────────────────────────────────

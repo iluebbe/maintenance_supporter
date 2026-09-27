@@ -32,7 +32,7 @@ from datetime import date, timedelta
 from itertools import pairwise
 from typing import Any
 
-from ..const import MAX_INTERVAL_DAYS
+from ..const import MAX_INTERVAL_DAYS, SCHEDULE_OFFSET_MAX_DAYS
 from .dates import (
     INTERVAL_UNITS,
     add_interval,
@@ -109,7 +109,7 @@ _MAX_PLANNED_STEPS = 2000
 
 # (#83) offset bound: ±15 days covers every sensible "N days before/after the
 # pattern date" case without letting a bogus payload shift schedules by years.
-_MAX_OFFSET_DAYS = 15
+_MAX_OFFSET_DAYS = SCHEDULE_OFFSET_MAX_DAYS  # const: one source for flows, WS and TS
 
 
 def _coerce_int(raw: object) -> int | None:

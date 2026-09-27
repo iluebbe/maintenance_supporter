@@ -484,9 +484,9 @@ def get_battery_recovered_percent(hass: HomeAssistant) -> int:
     """#180: the level a low battery must rise ABOVE to count as recovered
     (replaced). Out-of-range / junk values fall back to the default."""
     from ..const import BATTERY_RECOVERED_PERCENT_RANGE, CONF_BATTERY_RECOVERED_PERCENT, DEFAULT_BATTERY_RECOVERED_PERCENT
-    from .global_options import get_global_options
+    from .global_options import global_option
 
-    raw = get_global_options(hass).get(CONF_BATTERY_RECOVERED_PERCENT, DEFAULT_BATTERY_RECOVERED_PERCENT)
+    raw = global_option(hass, CONF_BATTERY_RECOVERED_PERCENT)
     try:
         value = int(raw)
     except (TypeError, ValueError):
@@ -501,10 +501,9 @@ def get_battery_auto_record_recovery(hass: HomeAssistant) -> bool:
     type's cells from stock, see :func:`_schedule_auto_record`). Advanced
     option, off by default."""
     from ..const import CONF_BATTERY_AUTO_RECORD_RECOVERY
-    from .global_options import get_global_options
-    from .settings_registry import setting_default
+    from .global_options import global_option
 
-    return bool(get_global_options(hass).get(CONF_BATTERY_AUTO_RECORD_RECOVERY, setting_default(CONF_BATTERY_AUTO_RECORD_RECOVERY)))
+    return bool(global_option(hass, CONF_BATTERY_AUTO_RECORD_RECOVERY))
 
 
 # ── #180: the low-recovery latch ─────────────────────────────────────────────

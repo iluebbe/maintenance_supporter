@@ -26,8 +26,6 @@ from ..const import (
     CONF_OBJECT_MODEL,
     CONF_TASKS,
     DOMAIN,
-    MAX_CHECKLIST_ITEM_LENGTH,
-    MAX_CHECKLIST_ITEMS,
     MAX_ENTITY_SLUG_LENGTH,
     MAX_ID_LENGTH,
     MAX_IMPORT_PAYLOAD_BYTES,
@@ -47,7 +45,7 @@ from ..helpers.qr_generator import (
     generate_qr_svg_data_uri,
 )
 from ..websocket.tasks import _check_nfc_tag_duplicate, _validate_trigger_config
-from . import _get_object_entries, _load_object_entry, _load_object_task
+from . import ID_FIELD, _get_object_entries, _load_object_entry, _load_object_task, _merge_global_options
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -560,7 +558,7 @@ async def ws_get_templates(
         vol.Optional("format", default="json"): vol.In(["json", "yaml"]),
         vol.Optional("include_history", default=True): bool,
         # Selective export: restrict to these object entry_ids (omit = all).
-        vol.Optional("entry_ids"): [vol.All(str, vol.Length(max=MAX_ID_LENGTH))],
+        vol.Optional("entry_ids"): [ID_FIELD],
     }
 )
 @websocket_api.require_admin
@@ -589,7 +587,7 @@ async def ws_export_data(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/csv/export",
-        vol.Optional("entry_ids"): [vol.All(str, vol.Length(max=MAX_ID_LENGTH))],
+        vol.Optional("entry_ids"): [ID_FIELD],
     }
 )
 @websocket_api.require_admin
@@ -610,7 +608,7 @@ async def ws_export_csv(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/objects/csv",
-        vol.Optional("entry_ids"): [vol.All(str, vol.Length(max=MAX_ID_LENGTH))],
+        vol.Optional("entry_ids"): [ID_FIELD],
     }
 )
 @websocket_api.async_response
@@ -881,9 +879,7 @@ def _apply_settings_import(hass: HomeAssistant, raw: dict[str, Any]) -> list[str
 
     if not filtered:
         return []
-    merged = dict(entry.options or entry.data)
-    merged.update(filtered)
-    hass.config_entries.async_update_entry(entry, options=merged)
+    _merge_global_options(hass, entry, filtered)
     _LOGGER.info("Settings import applied %d key(s)", len(filtered))
     return sorted(filtered)
 
@@ -1212,42 +1208,12 @@ async def ws_import_json(
             from ..helpers.sanitize import seed_rotation_assignee
 
             seed_rotation_assignee(task_data)
-            # Sanitize checklist: only keep string items within length budget,
-            # cap total items. Drops malformed entries silently rather than
-            # rejecting the whole import — same forgiving model as the other
-            # fields above.
-            cl = task_data.get("checklist")
-            if cl is not None:
-                if not isinstance(cl, list):
-                    task_data.pop("checklist", None)
-                else:
-                    # Truncate like cap_task_fields (every other write path);
-                    # an over-long step used to vanish from the import
-                    # without a trace (bug audit 2026-09-26).
-                    cleaned = [item.strip()[:MAX_CHECKLIST_ITEM_LENGTH] for item in cl if isinstance(item, str)]
-                    cleaned = [c for c in cleaned if c]
-                    task_data["checklist"] = cleaned[:MAX_CHECKLIST_ITEMS]
-
-            # #161 phase 2: reading slots — same shape rules as the WS write.
-            if task_data.get("readings") is not None:
-                from ..helpers.reading_slots import sanitize_reading_slots
-
-                slots = sanitize_reading_slots(task_data["readings"])
-                if slots:
-                    task_data["readings"] = slots
-                else:
-                    task_data.pop("readings", None)
-
-            # D#183: mirror targets — todo.* ids only, deduped, capped; an
-            # empty result drops the key (same rules as the WS write paths).
-            if task_data.get("mirror_todo_entities") is not None:
-                from ..helpers.sanitize import sanitize_mirror_todo_entities
-
-                mirrors = sanitize_mirror_todo_entities(task_data["mirror_todo_entities"])
-                if mirrors:
-                    task_data["mirror_todo_entities"] = mirrors
-                else:
-                    task_data.pop("mirror_todo_entities", None)
+            # checklist (strip + truncate + cap), reading slots and to-do
+            # mirror targets are NOT re-sanitized here: the config flow's
+            # websocket step runs cap_task_fields on every imported task —
+            # the same code, and nothing in between reads them (DRY audit
+            # 2026-09-26 B). The rotation seed above stays: it looks at the
+            # raw strategy, which cap_task_fields would drop first.
 
             # #185: notify_icon — same shape rule as the WS write paths; a
             # malformed or empty value drops the override (type default).
@@ -1422,8 +1388,8 @@ async def ws_import_json(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/qr/generate",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Optional("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Optional("task_id"): ID_FIELD,
         vol.Optional("action", default="view"): vol.In(["view", "complete", "quick_complete"]),
         vol.Optional("url_mode", default="server"): vol.In(["server", "local", "companion"]),
         vol.Optional("base_url"): vol.All(vol.Url(), vol.Length(max=512)),
@@ -1512,11 +1478,11 @@ def _cached_qr_svg(url: str, icon: str | None) -> str:
     {
         vol.Required("type"): "maintenance_supporter/qr/batch_generate",
         vol.Optional("entry_ids"): vol.All(
-            [vol.All(str, vol.Length(max=MAX_ID_LENGTH))],
+            [ID_FIELD],
             vol.Length(max=1000),
         ),
         vol.Optional("task_ids"): vol.All(
-            [vol.All(str, vol.Length(max=MAX_ID_LENGTH))],
+            [ID_FIELD],
             vol.Length(max=2000),
         ),
         vol.Required("actions"): vol.All(

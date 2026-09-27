@@ -17,14 +17,15 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
-from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, MAX_ID_LENGTH, MAX_NAME_LENGTH
-from ..helpers.aggregate import is_object_entry
+from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, MAX_NAME_LENGTH
 from ..helpers.integration_signatures import (
     SIGNATURES,
     build_setup_trigger,
     discover_integration_setups,
 )
 from ..helpers.permissions import require_write
+from . import ID_FIELD
+from .adopt_batch import AdoptBatch
 
 
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/integration_setups/discover"})
@@ -40,9 +41,9 @@ async def ws_discover_integration_setups(
 
 _SELECTION_SCHEMA = vol.Schema(
     {
-        vol.Required("device_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("device_id"): ID_FIELD,
         # Existing target object; omit to create a fresh object for the device.
-        vol.Optional("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Optional("entry_id"): ID_FIELD,
         vol.Optional("object_name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         # Subset of suggested task names to adopt; omit = all suggested.
         vol.Optional("task_names"): vol.All(
@@ -75,26 +76,21 @@ async def ws_adopt_integration_setups(
     msg: dict[str, Any],
 ) -> None:
     """Create sensor-wired maintenance tasks for the selected suggestions."""
-    from ..export import object_entries
     from ..helpers.i18n import normalize_language
     from ..templates import localize_template_text
-    from .objects import async_create_object
-    from .tasks_persist import async_persist_task
 
     lang = normalize_language(hass)
     # Re-run discovery server-side: the wiring (entities, thresholds) comes
     # from the verified catalog, never from the client.
     setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
 
-    tasks_created = 0
-    objects_created = 0
-    errors: list[dict[str, str]] = []
+    batch = AdoptBatch(hass)
 
     for sel in msg["selections"]:
         device_id = sel["device_id"]
         setup = setups.get(device_id)
         if setup is None:
-            errors.append({"device_id": device_id, "reason": "no suggestion for this device"})
+            batch.errors.append({"device_id": device_id, "reason": "no suggestion for this device"})
             continue
         wanted = set(sel.get("task_names") or [t["task_name"] for t in setup["tasks"]])
         # Keyed by (task_name, direction): one integration can ship a task name
@@ -103,26 +99,18 @@ async def ws_adopt_integration_setups(
         sig_by_key = {
             (s.task_name, s.direction): s for s in SIGNATURES[setup["integration"]].tasks
         }
-        created_entry_id: str | None = None
+        batch.begin()
         try:
             entry_id = sel.get("entry_id") or setup["suggested_entry_id"]
             if not entry_id:
-                entry_id = await async_create_object(
-                    hass,
+                entry_id = await batch.create_object(
                     name=sel.get("object_name") or setup["suggested_object_name"],
                     ha_device_id=device_id,
                 )
-                created_entry_id = entry_id
-                objects_created += 1
 
-            entry = hass.config_entries.async_get_entry(entry_id)
-            # Same guard as websocket._load_object_entry: the global settings
-            # entry is NOT a valid adoption target — async_persist_task writes
-            # CONF_TASKS + CONF_OBJECT["task_ids"] into whatever entry it is
-            # handed, so a client-supplied global entry_id would corrupt it.
-            # (is_object_entry() rejects None too; the explicit test narrows the type.)
-            if entry is None or not is_object_entry(entry):
-                errors.append({"device_id": device_id, "reason": "target object not found"})
+            entry = batch.target_entry(entry_id)
+            if entry is None:
+                batch.errors.append({"device_id": device_id, "reason": "target object not found"})
                 continue
 
             # #105: adopting into a user-picked existing object that isn't
@@ -166,8 +154,7 @@ async def ws_adopt_integration_setups(
                 baseline = baselines.get(task["task_name"])
                 if baseline is not None and sig.direction == "usage_delta":
                     trigger["trigger_baseline_value"] = float(baseline)
-                await async_persist_task(
-                    hass,
+                await batch.persist_task(
                     entry,
                     {
                         "id": uuid4().hex,
@@ -181,19 +168,10 @@ async def ws_adopt_integration_setups(
                         "trigger_config": trigger,
                     },
                 )
-                tasks_created += 1
         except (ValueError, KeyError) as err:
-            errors.append({"device_id": device_id, "reason": str(err)})
-            if created_entry_id is not None:
-                objects_created -= 1
-                if hass.config_entries.async_get_entry(created_entry_id) is not None:
-                    await hass.config_entries.async_remove(created_entry_id)
+            # Removes an object created for this device together with the
+            # tasks already persisted into it — and un-counts both (the
+            # tasks were over-reported before the DRY audit 2026-09-26).
+            await batch.fail({"device_id": device_id, "reason": str(err)})
 
-    result: dict[str, Any] = {
-        "tasks_created": tasks_created,
-        "objects_created": objects_created,
-        "total": len(object_entries(hass)),
-    }
-    if errors:
-        result["errors"] = errors
-    connection.send_result(msg["id"], result)
+    connection.send_result(msg["id"], batch.result())

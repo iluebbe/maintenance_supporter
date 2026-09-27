@@ -17,6 +17,7 @@ from .const import (
     MaintenanceStatus,
     TriggerEntityState,
 )
+from .entity.triggers import normalize_entity_ids
 from .helpers.schedule import read_legacy_fields
 
 if TYPE_CHECKING:
@@ -188,20 +189,9 @@ def _check_trigger_status(hass: HomeAssistant, data: Mapping[str, Any]) -> list[
         if not trigger_config:
             continue
 
-        entity_ids: list[str] = list(trigger_config.get("entity_ids", []))
-        if not entity_ids:
-            single = trigger_config.get("entity_id")
-            if single:
-                entity_ids = [single]
-        # Compound triggers: collect entity_ids from conditions
-        if not entity_ids and trigger_config.get("type") == "compound":
-            for cond in trigger_config.get("conditions", []):
-                for eid in cond.get("entity_ids", []):
-                    if eid not in entity_ids:
-                        entity_ids.append(eid)
-                cond_eid = cond.get("entity_id")
-                if cond_eid and cond_eid not in entity_ids:
-                    entity_ids.append(cond_eid)
+        # The shared walk (compound conditions incl. their nested
+        # trigger_config, which this copy missed — DRY audit 2026-09-26 B).
+        entity_ids = normalize_entity_ids(trigger_config)
         if not entity_ids:
             continue
 
@@ -254,7 +244,8 @@ def _check_data_quality(data: Mapping[str, Any]) -> list[str]:
             warnings.append(f"Task {task_id} is time-based but has no interval")
 
         trigger = task.get("trigger_config")
-        if trigger and trigger.get("type") != "compound" and not trigger.get("entity_id"):
+        # A trigger stored with only the plural entity_ids has an entity too.
+        if trigger and trigger.get("type") != "compound" and not normalize_entity_ids(trigger):
             warnings.append(f"Task {task_id} has trigger config but no entity")
 
     return warnings

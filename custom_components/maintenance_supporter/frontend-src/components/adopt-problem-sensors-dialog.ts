@@ -10,7 +10,8 @@ import { css, html, LitElement, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 
 import { t, ensureLocale, langOf } from "../styles";
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
+import { TRIGGER_FOR_MINUTES_RANGE } from "../helpers/setting-ranges";
 import { UserService } from "../user-service";
 import type { HAUser, HomeAssistant } from "../types";
 
@@ -82,33 +83,29 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
     this._objectNames = {};
     this._responsible = "";
     this._forMinutes = "0";
-    try {
-      if (!this._userService) this._userService = new UserService(this.hass);
-      else this._userService.updateHass(this.hass);
-      const [resp, users, objs] = await Promise.all([
-        this.hass.connection.sendMessagePromise<DiscoverResponse>({
-          type: "maintenance_supporter/problem_sensors/discover",
-        }),
-        // Best-effort: adoption works fine without the user list.
-        this._userService.getUsers().catch(() => [] as HAUser[]),
-        // Best-effort too: the existing objects feed the name suggestions.
-        this.hass.connection
-          .sendMessagePromise<{ objects: Array<{ entry_id: string; object: { name: string; archived_at?: string | null } }> }>({
-            type: "maintenance_supporter/objects",
-          })
-          .catch(() => ({ objects: [] })),
-      ]);
-      this._objects = (objs.objects || [])
-        .filter((o) => !o.object.archived_at)
-        .map((o) => ({ entry_id: o.entry_id, name: o.object.name }));
-      this._sensors = resp.sensors || [];
-      this._selected = new Set(this._sensors.map((s) => s.entity_id));
-      this._users = users;
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._loading = false;
-    }
+    if (!this._userService) this._userService = new UserService(this.hass);
+    else this._userService.updateHass(this.hass);
+    const [resp, users, objs] = await Promise.all([
+      runWs<DiscoverResponse>(this, { type: "maintenance_supporter/problem_sensors/discover" }, {
+        onError: (m) => { this._error = m; },
+      }),
+      // Best-effort: adoption works fine without the user list.
+      this._userService.getUsers().catch(() => [] as HAUser[]),
+      // Best-effort too: the existing objects feed the name suggestions.
+      this.hass.connection
+        .sendMessagePromise<{ objects: Array<{ entry_id: string; object: { name: string; archived_at?: string | null } }> }>({
+          type: "maintenance_supporter/objects",
+        })
+        .catch(() => ({ objects: [] })),
+    ]);
+    this._loading = false;
+    if (resp === undefined) return;
+    this._objects = (objs?.objects || [])
+      .filter((o) => !o.object.archived_at)
+      .map((o) => ({ entry_id: o.entry_id, name: o.object.name }));
+    this._sensors = resp?.sensors || [];
+    this._selected = new Set(this._sensors.map((s) => s.entity_id));
+    this._users = users;
   }
 
   /** The object name a row will be adopted into (typed, else the suggestion). */
@@ -147,38 +144,33 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
 
   private _adopt = async (): Promise<void> => {
     if (this._selected.size === 0 || this._adopting) return;
-    this._adopting = true;
     this._error = "";
-    try {
-      const selections = this._sensors
-        .filter((s) => this._selected.has(s.entity_id))
-        .map((s) => ({
-          entity_id: s.entity_id,
-          name: s.name,
-          entry_id: this._existingEntryFor(s) ?? undefined,
-          object_name: this._effectiveName(s),
-          device_id: s.device_id ?? undefined,
-          part_id: s.suggested_part_id ?? undefined,
-          responsible_user_id: this._responsible || undefined,
-          for_minutes: parseInt(this._forMinutes, 10) > 0 ? parseInt(this._forMinutes, 10) : undefined,
-        }));
-      const result = await this.hass.connection.sendMessagePromise<AdoptResponse>({
-        type: "maintenance_supporter/problem_sensors/adopt",
-        selections,
-      });
-      this.dispatchEvent(
-        new CustomEvent("problem-sensors-adopted", {
-          bubbles: true,
-          composed: true,
-          detail: result,
-        }),
-      );
-      this._open = false;
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._adopting = false;
-    }
+    const selections = this._sensors
+      .filter((s) => this._selected.has(s.entity_id))
+      .map((s) => ({
+        entity_id: s.entity_id,
+        name: s.name,
+        entry_id: this._existingEntryFor(s) ?? undefined,
+        object_name: this._effectiveName(s),
+        device_id: s.device_id ?? undefined,
+        part_id: s.suggested_part_id ?? undefined,
+        responsible_user_id: this._responsible || undefined,
+        for_minutes: parseInt(this._forMinutes, 10) > 0 ? parseInt(this._forMinutes, 10) : undefined,
+      }));
+    const result = await runWs<AdoptResponse>(
+      this,
+      { type: "maintenance_supporter/problem_sensors/adopt", selections },
+      { busy: (b) => { this._adopting = b; }, onError: (m) => { this._error = m; } },
+    );
+    if (result === undefined) return;
+    this.dispatchEvent(
+      new CustomEvent("problem-sensors-adopted", {
+        bubbles: true,
+        composed: true,
+        detail: result,
+      }),
+    );
+    this._open = false;
   };
 
   render() {
@@ -274,8 +266,8 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
                   <input
                     class="for-input"
                     type="number"
-                    min="0"
-                    max="1440"
+                    min=${TRIGGER_FOR_MINUTES_RANGE[0]}
+                    max=${TRIGGER_FOR_MINUTES_RANGE[1]}
                     .value=${this._forMinutes}
                     @input=${(e: Event) => (this._forMinutes = (e.target as HTMLInputElement).value)}
                   />

@@ -8,7 +8,8 @@ import { property, state } from "lit/decorators.js";
 
 import { t, ensureLocale, langOf, formatDate, syncLocaleFromHass } from "../styles";
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
+import { isoDateLocal } from "../helpers/calendar-bucket";
 import { px } from "../renderers/chart-utils";
 import type { HomeAssistant } from "../types";
 
@@ -132,17 +133,27 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   }
 
   private async _load(): Promise<void> {
-    this._loading = true;
     this._error = "";
-    try {
-      this._ov = await this.hass.connection.sendMessagePromise<Overview>({
-        type: "maintenance_supporter/battery_fleet/overview",
-      });
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._loading = false;
-    }
+    const ov = await runWs<Overview>(this, { type: "maintenance_supporter/battery_fleet/overview" }, {
+      busy: (b) => { this._loading = b; },
+      onError: (m) => { this._error = m; },
+    });
+    if (ov !== undefined) this._ov = ov;
+  }
+
+  /** One fleet action — helpers/ws-run runWs behind the `_marking` guard,
+   *  with the error line and the overview reload (`onDone` runs first). */
+  private async _act(payload: Record<string, unknown>, onDone?: () => void): Promise<void> {
+    if (this._marking) return;
+    this._error = "";
+    await runWs(this, payload, {
+      busy: (b) => { this._marking = b; },
+      reload: async () => {
+        onDone?.();
+        await this._load();
+      },
+      onError: (m) => { this._error = m; },
+    });
   }
 
   private _markAll = async (): Promise<void> => {
@@ -152,58 +163,21 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   // Re-runs the idempotent setup, which restores the fleet task's trigger
   // when a user edit wiped it (issue #106) or recreates a deleted task.
   private _repair = async (): Promise<void> => {
-    if (this._marking) return;
-    this._marking = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/battery_fleet/setup",
-        language: this._lang,
-      });
-      await this._load();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._marking = false;
-    }
+    await this._act({ type: "maintenance_supporter/battery_fleet/setup", language: this._lang });
   };
 
   private async _mark(entityIds: string[] | undefined): Promise<void> {
-    if (this._marking) return;
-    this._marking = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/battery_fleet/mark_replaced",
-        ...(entityIds ? { entity_ids: entityIds } : {}),
-      });
-      await this._load();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._marking = false;
-    }
+    await this._act({
+      type: "maintenance_supporter/battery_fleet/mark_replaced",
+      ...(entityIds ? { entity_ids: entityIds } : {}),
+    });
   }
 
   // Manual exclude/include (#107): a rechargeable device the heuristics
   // missed (or any battery the user never wants tracked) leaves the fleet;
   // the restore list below the section brings it back.
   private async _setExcluded(entityId: string, excluded: boolean): Promise<void> {
-    if (this._marking) return;
-    this._marking = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/battery_fleet/set_excluded",
-        entity_id: entityId,
-        excluded,
-      });
-      await this._load();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._marking = false;
-    }
+    await this._act({ type: "maintenance_supporter/battery_fleet/set_excluded", entity_id: entityId, excluded });
   }
 
   // #135: manually ADD a battery the discovery heuristics missed. The
@@ -211,21 +185,8 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   // server-side; picking an entity acts immediately (no extra button).
   private async _addBattery(e: CustomEvent<{ value?: string }>): Promise<void> {
     const entityId = e.detail?.value;
-    if (!entityId || this._marking) return;
-    this._marking = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/battery_fleet/set_included",
-        entity_id: entityId,
-        included: true,
-      });
-      await this._load();
-    } catch (e2) {
-      this._error = describeWsError(e2, this._lang);
-    } finally {
-      this._marking = false;
-    }
+    if (!entityId) return;
+    await this._act({ type: "maintenance_supporter/battery_fleet/set_included", entity_id: entityId, included: true });
   }
 
   // #135 follow-up: fleet-wide opt-in that keeps self-charging devices
@@ -241,20 +202,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   }
 
   private async _setFleetOption(command: "set_track_self_charging" | "set_due_without_sensor", enabled: boolean): Promise<void> {
-    if (this._marking) return;
-    this._marking = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: `maintenance_supporter/battery_fleet/${command}`,
-        enabled,
-      });
-      await this._load();
-    } catch (e2) {
-      this._error = describeWsError(e2, this._lang);
-    } finally {
-      this._marking = false;
-    }
+    await this._act({ type: `maintenance_supporter/battery_fleet/${command}`, enabled });
   }
 
   /** Lazy: the recorder-backed history is fetched once, when the roster is
@@ -380,9 +328,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
    *  a direct Intl.DateTimeFormat call here ignored the profile and showed
    *  9/2/2026 to a DD/MM/YYYY user). */
   private _fmtDate(epochMs: number): string {
-    const d = new Date(epochMs);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return formatDate(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`, this._lang);
+    return formatDate(isoDateLocal(new Date(epochMs)), this._lang);
   }
 
   /** The grouped shopping quantities as CLICKABLE chips: a type filters the
@@ -414,22 +360,14 @@ export class MaintenanceBatteryFleetSection extends LitElement {
    *  backend (#181) so the swap also consumes the type-part cells from
    *  stock, exactly like the Replaced action. */
   private async _recordJump(entityId: string, jump: { at: number; device_id: string }): Promise<void> {
-    if (this._marking) return;
-    this._marking = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
+    await this._act(
+      {
         type: "maintenance_supporter/battery_fleet/record_replacement",
         entity_id: entityId,
         replaced_at: new Date(jump.at * 1000).toISOString(),
-      });
-      this._recorded = [...this._recorded, entityId];
-      await this._load();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._marking = false;
-    }
+      },
+      () => { this._recorded = [...this._recorded, entityId]; },
+    );
   }
 
   /** Purely visual level bar next to the number — scannable at a glance.

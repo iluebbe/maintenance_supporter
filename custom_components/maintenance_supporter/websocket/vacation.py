@@ -26,7 +26,7 @@ from ..helpers.aggregate import object_name
 from ..helpers.dates import parse_iso_date
 from ..helpers.pause import is_task_inert
 from ..helpers.vacation import compute_preview, get_vacation_state
-from . import _get_merged_tasks, _get_object_entries, _load_global_options, _parse_iso_date, _save_global_options
+from . import ID_FIELD, _get_merged_tasks, _get_object_entries, _load_global_options, _parse_iso_date, _save_global_options
 
 
 def _state_payload(hass: HomeAssistant) -> dict[str, Any]:
@@ -53,7 +53,7 @@ async def ws_vacation_state(
         vol.Optional("end"): vol.Any(vol.All(str, vol.Length(max=10)), None),
         vol.Optional("buffer_days"): vol.All(int, vol.Range(min=0, max=14)),
         vol.Optional("exempt_task_ids"): vol.All(
-            [vol.All(str, vol.Length(max=MAX_ID_LENGTH))],
+            [ID_FIELD],
             vol.Length(max=MAX_VACATION_EXEMPT_TASKS),
         ),
     }

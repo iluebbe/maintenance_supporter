@@ -10,18 +10,18 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from ..const import (
+    ADAPTIVE_EWA_ALPHA_RANGE,
     ADAPTIVE_MIN_INTERVAL_CAP_DAYS,
     CONF_TASKS,
     DOMAIN,
     MAX_ENTITY_ID_LENGTH,
-    MAX_ID_LENGTH,
     MAX_META_LENGTH,
 )
 from ..helpers.aggregate import get_runtime_data
 from ..helpers.interval_analyzer import hemisphere
 from ..helpers.permissions import require_write
 from ..helpers.task_fields import INTERVAL_DAYS_RANGE
-from . import _load_object_task, async_commit_store
+from . import ID_FIELD, _load_object_task, async_commit_store
 
 
 async def _persist_adaptive_config(
@@ -55,8 +55,8 @@ async def _persist_adaptive_config(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/task/analyze_interval",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
     }
 )
 @websocket_api.async_response
@@ -111,8 +111,8 @@ async def ws_analyze_interval(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/task/apply_suggestion",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
         vol.Required("interval"): vol.All(int, vol.Range(min=INTERVAL_DAYS_RANGE[0], max=INTERVAL_DAYS_RANGE[1])),
     }
 )
@@ -141,8 +141,8 @@ async def ws_apply_suggestion(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/task/seasonal_overrides",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
         # At most 12 month keys survive validation anyway — cap the input so a
         # giant dict isn't iterated/coerced first (parity with every other list).
         vol.Required("overrides"): vol.All(dict, vol.Length(max=12)),
@@ -200,8 +200,8 @@ async def ws_seasonal_overrides(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/task/set_environmental_entity",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
         vol.Optional("environmental_entity"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_ID_LENGTH)), None),
         vol.Optional("environmental_attribute"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
     }
@@ -256,10 +256,12 @@ async def ws_set_environmental_entity(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/task/set_adaptive",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
         vol.Required("enabled"): bool,
-        vol.Optional("ewa_alpha"): vol.All(vol.Coerce(float), vol.Range(min=0.1, max=0.9)),
+        vol.Optional("ewa_alpha"): vol.All(
+            vol.Coerce(float), vol.Range(min=ADAPTIVE_EWA_ALPHA_RANGE[0], max=ADAPTIVE_EWA_ALPHA_RANGE[1])
+        ),
         vol.Optional("min_interval_days"): vol.All(int, vol.Range(min=1, max=ADAPTIVE_MIN_INTERVAL_CAP_DAYS)),
         vol.Optional("max_interval_days"): vol.All(int, vol.Range(min=1, max=INTERVAL_DAYS_RANGE[1])),
         vol.Optional("seasonal_enabled"): bool,

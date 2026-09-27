@@ -15,7 +15,8 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { sharedStyles, t, formatDate, formatInterval, formatRecurrence, formatCost, formatDuration, currencySymbolOf, langOf, syncCurrencyDecimals} from "../styles";
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
+import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
 import { isoDateLocal } from "../helpers/calendar-bucket";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args";
 import { phaseLabel } from "../helpers/phases";
@@ -146,36 +147,32 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     const taskId = this._taskId;
     if (!entryId || !taskId) return;
     const seq = ++this._loadSeq;
-    try {
-      const r = await this.hass.connection.sendMessagePromise<MaintenanceObjectFull>({
-        type: "maintenance_supporter/object",
-        entry_id: entryId,
-      });
-      if (seq !== this._loadSeq) return;
-      this._objectName = r.object?.name || "";
-      const found = (r.tasks || []).find((t) => t.id === taskId);
-      this._task = found ?? null;
-      this._taskRef = taskRef(r.object, found);
-      // A task deleted meanwhile: say so instead of "Loading" forever.
-      if (!found) this._error = t("ws_err_not_found", this._lang);
-    } catch (e) {
-      if (seq !== this._loadSeq) return;
-      this._error = describeWsError(e, this._lang);
+    let failure = "";
+    const r = await runWs<MaintenanceObjectFull>(
+      this,
+      { type: "maintenance_supporter/object", entry_id: entryId },
+      { onError: (m) => { failure = m; } },
+    );
+    if (seq !== this._loadSeq) return;
+    if (r === undefined) {
+      this._error = failure;
+      return;
     }
+    this._objectName = r?.object?.name || "";
+    const found = (r?.tasks || []).find((t) => t.id === taskId);
+    this._task = found ?? null;
+    this._taskRef = taskRef(r?.object, found);
+    // A task deleted meanwhile: say so instead of "Loading" forever.
+    if (!found) this._error = t("ws_err_not_found", this._lang);
   }
 
-  private async _runWs(payload: Record<string, unknown>): Promise<boolean> {
-    this._busy = true;
+  /** helpers/ws-run runWs bound to this dialog's busy flag and error line. */
+  private _runWs<T = unknown>(payload: Record<string, unknown>): Promise<T | undefined> {
     this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise(payload);
-      this._busy = false;
-      return true;
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-      this._busy = false;
-      return false;
-    }
+    return runWs<T>(this, payload, {
+      busy: (b) => { this._busy = b; },
+      onError: (m) => { this._error = m; },
+    });
   }
 
   private _notifyChanged(action: string): void {
@@ -241,7 +238,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       task_id: this._taskId,
       reason: this._skipReason.trim() || null,
     });
-    if (ok) {
+    if (ok !== undefined) {
       this._notifyChanged("skip");
       this.close();
     }
@@ -255,7 +252,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       task_id: this._taskId,
       date: this._resetDate || undefined,
     });
-    if (ok) {
+    if (ok !== undefined) {
       this._notifyChanged("reset");
       this.close();
     }
@@ -296,7 +293,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       entry_id: this._entryId,
       task_id: this._taskId,
     });
-    if (ok) {
+    if (ok !== undefined) {
       this._notifyChanged("delete");
       this.close();
     }
@@ -309,7 +306,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       entry_id: this._entryId,
       task_id: this._taskId,
     });
-    if (ok) {
+    if (ok !== undefined) {
       this._notifyChanged("archive");
       this.close();
     }
@@ -322,7 +319,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       entry_id: this._entryId,
       task_id: this._taskId,
     });
-    if (ok) {
+    if (ok !== undefined) {
       this._notifyChanged("unarchive");
       this.close();
     }
@@ -345,7 +342,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       task_id: this._taskId,
       interval: this._task.suggested_interval,
     });
-    if (ok) {
+    if (ok !== undefined) {
       this._showToast(t("suggestion_applied", this._lang));
       this._notifyChanged("apply_suggestion");
       // Refresh local task so the recommendation card hides
@@ -355,29 +352,22 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
 
   private async _reanalyzeInterval(): Promise<void> {
     if (!this._entryId || !this._taskId) return;
-    this._busy = true;
-    this._error = "";
-    try {
-      const r = await this.hass.connection.sendMessagePromise<{
-        recommended_interval: number | null;
-        confidence: string;
-        data_points: number;
-      }>({
-        type: "maintenance_supporter/task/analyze_interval",
-        entry_id: this._entryId,
-        task_id: this._taskId,
-      });
-      this._showToast(r.recommended_interval
-        // The analyzer always works in DAYS (helpers/interval_analyzer.py), so
-        // the unit is pinned here rather than taken from the task's own unit.
-        ? `${t("reanalyze_result", this._lang)}: ${formatInterval(r.recommended_interval, "days", this._lang)} (${r.data_points} pts)`
-        : t("reanalyze_insufficient_data", this._lang));
-      await this._loadTask();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+    const r = await this._runWs<{
+      recommended_interval: number | null;
+      confidence: string;
+      data_points: number;
+    }>({
+      type: "maintenance_supporter/task/analyze_interval",
+      entry_id: this._entryId,
+      task_id: this._taskId,
+    });
+    if (r === undefined) return;
+    this._showToast(r?.recommended_interval
+      // The analyzer always works in DAYS (helpers/interval_analyzer.py), so
+      // the unit is pinned here rather than taken from the task's own unit.
+      ? `${t("reanalyze_result", this._lang)}: ${formatInterval(r.recommended_interval, "days", this._lang)} (${r.data_points} pts)`
+      : t("reanalyze_insufficient_data", this._lang));
+    await this._loadTask();
   }
 
   private _onEditHistoryEntry(entry: HistoryEntry): void {
@@ -528,9 +518,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     const task = this._task;
     const writer = canWrite(this.hass?.user, this._access);
 
-    return html`
-      <div class="backdrop" @click=${this.close}></div>
-      <div class="dialog" role="dialog" aria-modal="true">
+    return renderModalShell(() => this.close(), html`
         ${task
           ? html`
               <div class="header">
@@ -682,29 +670,15 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
           : this._error
             ? html`<div class="error">${this._error}</div>`
             : html`<div class="loading">${t("loading", L)}</div>`}
-      </div>
-    `;
+    `);
   }
 
-  static styles = [sharedStyles, css`
-    :host { display: contents; }
-    .backdrop {
-      position: fixed; inset: 0; z-index: 100;
-      background: rgba(0,0,0,0.5);
-    }
-    .dialog {
-      position: fixed; left: 50%; top: 50%;
-      transform: translate(-50%, -50%);
-      width: 95vw; max-width: 460px;
-      max-height: 92vh; overflow: auto;
-      background: var(--card-background-color, var(--ha-card-background, #1c1c1c));
-      color: var(--primary-text-color);
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      padding: 20px;
-      display: flex; flex-direction: column; gap: 14px;
-      z-index: 101;
-    }
+  protected updated(changed: Map<string, unknown>): void {
+    if (changed.has("_open") && this._open) focusModalShell(this.shadowRoot);
+  }
+
+  static styles = [sharedStyles, modalShellStyles, css`
+    :host { display: contents; --ms-modal-max-width: 460px; }
     .header { display: flex; flex-direction: column; gap: 6px; }
     .title { display: flex; align-items: center; gap: 10px; }
     .status-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }

@@ -23,14 +23,13 @@ from .const import (
     CONF_PARTS,
     CONF_TASK_CONSUMES_PARTS,
     CONF_TASKS,
-    DEFAULT_CURRENCY_DECIMALS,
     DOMAIN,
     EVENT_PART_RESTOCKED,
     EVENT_PART_STOCK_LOW,
     EVENT_PART_STOCK_OUT,
 )
 from .helpers.aggregate import object_name as _object_name
-from .helpers.global_options import get_global_options
+from .helpers.global_options import global_option
 from .helpers.i18n import normalize_language
 from .helpers.parts import (
     PART_REF_FIELD,
@@ -424,10 +423,10 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
         tasks,
         object_id=entry.data.get(CONF_OBJECT, {}).get("id", ""),
         lang=normalize_language(hass),
-        search_template=get_global_options(hass).get(CONF_PART_SEARCH_URL_TEMPLATE),
+        search_template=global_option(hass, CONF_PART_SEARCH_URL_TEMPLATE),
         country=hass.config.country,
         today=dt_util.now().date(),
-        decimals=int(get_global_options(hass).get(CONF_CURRENCY_DECIMALS, DEFAULT_CURRENCY_DECIMALS)),
+        decimals=int(global_option(hass, CONF_CURRENCY_DECIMALS)),
         is_task_done=lambda td: store.get_last_performed(td["id"]) is not None,
     )
     if not changed:

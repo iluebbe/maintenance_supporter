@@ -29,11 +29,11 @@ from .const import (
     GLOBAL_UNIQUE_ID,
     SIGNAL_TASK_RESET,
     MaintenanceStatus,
-    slugify_object_name,
     task_unique_id,
 )
 from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
+from .helpers.aggregate import object_slug as aggregate_object_slug
 from .helpers.status import compute_status_from_task_dict
 
 if TYPE_CHECKING:
@@ -94,7 +94,7 @@ class MaintenanceBinarySensor(MaintenanceEntity, BinarySensorEntity):
         obj_data = coordinator.entry.data.get(CONF_OBJECT, {})
         task_data = coordinator.entry.data.get(CONF_TASKS, {}).get(task_id, {})
 
-        object_slug = slugify_object_name(obj_data.get("name", "unknown"))
+        object_slug = aggregate_object_slug(obj_data)
         self._attr_unique_id = task_unique_id(object_slug, task_id, "overdue")
 
         entity_slug = task_data.get("entity_slug")

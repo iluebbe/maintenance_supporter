@@ -50,9 +50,14 @@ class TriggerStepsMixin(TriggerConfigMixin):
         return await self.async_step_opt_sensor_select()
 
     @staticmethod
-    def _condition_summary(cond: dict[str, Any]) -> str:
-        """Build a short summary string for a single trigger condition."""
-        ctype = cond.get("type", "?")
+    def _condition_parts(cond: dict[str, Any]) -> list[str]:
+        """The type-specific detail parts of one trigger or compound condition.
+
+        The ONE formatter behind the condition summary and the summary/remove
+        steps' detail list (DRY audit 2026-09-26 B: both carried a verbatim
+        copy). Empty for compound and unknown types.
+        """
+        ctype = cond.get("type")
         parts: list[str] = []
         if ctype == TriggerType.THRESHOLD:
             if cond.get("trigger_above") is not None:
@@ -80,61 +85,46 @@ class TriggerStepsMixin(TriggerConfigMixin):
         elif ctype == TriggerType.RUNTIME:
             if cond.get("trigger_runtime_hours") is not None:
                 parts.append(f"hours: {cond['trigger_runtime_hours']}")
+        return parts
+
+    @staticmethod
+    def _condition_summary(cond: dict[str, Any]) -> str:
+        """Build a short summary string for a single trigger condition."""
+        parts = TriggerStepsMixin._condition_parts(cond)
         return ", ".join(parts) if parts else "—"
+
+    @staticmethod
+    def _stored_trigger_entities(tc: dict[str, Any]) -> list[str]:
+        """The trigger's (or a condition's) entities: ``entity_ids``, else the
+        legacy single ``entity_id`` (a string, or a list in old configs).
+
+        The one resolver for the summary line, its state preview, the remove
+        step and the sensor-select pre-fill (DRY audit 2026-09-26 B: four
+        inline copies, two of which mishandled the legacy shapes).
+        """
+        entity_ids = tc.get("entity_ids") or []
+        if not entity_ids:
+            eid = tc.get("entity_id", "")
+            entity_ids = [eid] if isinstance(eid, str) and eid else (eid if isinstance(eid, list) else [])
+        return list(entity_ids)
 
     @staticmethod
     def _get_entity_ids_str(tc: dict[str, Any]) -> str:
         """Get display string for entity IDs from trigger config."""
-        entity_ids = tc.get("entity_ids", [])
-        if not entity_ids:
-            eid = tc.get("entity_id", "")
-            entity_ids = [eid] if isinstance(eid, str) and eid else (eid if isinstance(eid, list) else [])
+        entity_ids = TriggerStepsMixin._stored_trigger_entities(tc)
         return ", ".join(entity_ids) if entity_ids else "—"
 
     @staticmethod
     def _build_trigger_config_parts(tc: dict[str, Any]) -> list[str]:
         """Build config detail parts for a trigger config (shared by summary & remove)."""
-        trigger_type = tc.get("type", "unknown")
-        config_parts: list[str] = []
-        if trigger_type == TriggerType.THRESHOLD:
-            if tc.get("trigger_above") is not None:
-                config_parts.append(f"above: {tc['trigger_above']}")
-            if tc.get("trigger_below") is not None:
-                config_parts.append(f"below: {tc['trigger_below']}")
-            if tc.get("trigger_equals") is not None:
-                config_parts.append(f"= {tc['trigger_equals']}")
-            if tc.get("trigger_not_equals") is not None:
-                config_parts.append(f"≠ {tc['trigger_not_equals']}")
-            if tc.get("trigger_for_minutes"):
-                config_parts.append(f"for: {tc['trigger_for_minutes']}min")
-        elif trigger_type == TriggerType.COUNTER:
-            if tc.get("trigger_target_value") is not None:
-                config_parts.append(f"target: {tc['trigger_target_value']}")
-            if tc.get("trigger_delta_mode"):
-                config_parts.append("delta mode")
-        elif trigger_type == TriggerType.STATE_CHANGE:
-            if tc.get("trigger_target_changes") is not None:
-                config_parts.append(f"changes: {tc['trigger_target_changes']}")
-            if tc.get("trigger_from_state"):
-                config_parts.append(f"from: {tc['trigger_from_state']}")
-            if tc.get("trigger_to_state"):
-                config_parts.append(f"to: {tc['trigger_to_state']}")
-        elif trigger_type == TriggerType.RUNTIME:
-            if tc.get("trigger_runtime_hours") is not None:
-                config_parts.append(f"hours: {tc['trigger_runtime_hours']}")
-        elif trigger_type == TriggerType.COMPOUND:
-            conditions = tc.get("conditions", [])
-            logic = tc.get("compound_logic", "AND")
-            config_parts.append(f"logic: {logic}")
-            for i, cond in enumerate(conditions, 1):
-                ctype = cond.get("type", "?")
-                c_eids = cond.get("entity_ids", [])
-                if not c_eids:
-                    c_eid = cond.get("entity_id", "?")
-                    c_eids = [c_eid] if isinstance(c_eid, str) else c_eid
-                c_entities = ", ".join(c_eids[:2])
-                c_detail = TriggerStepsMixin._condition_summary(cond)
-                config_parts.append(f"#{i} {ctype}: {c_entities} ({c_detail})")
+        if tc.get("type") != TriggerType.COMPOUND:
+            return TriggerStepsMixin._condition_parts(tc)
+        config_parts = [f"logic: {tc.get('compound_logic', 'AND')}"]
+        for i, cond in enumerate(tc.get("conditions", []), 1):
+            ctype = cond.get("type", "?")
+            c_entities = ", ".join((TriggerStepsMixin._stored_trigger_entities(cond) or ["?"])[:2])
+            c_detail = TriggerStepsMixin._condition_summary(cond)
+            config_parts.append(f"#{i} {ctype}: {c_entities} ({c_detail})")
         return config_parts
 
     async def async_step_trigger_summary(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
@@ -147,10 +137,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
 
         # Current state values
         state_parts: list[str] = []
-        eid_list = tc.get("entity_ids", tc.get("entity_id", []))
-        if isinstance(eid_list, str):
-            eid_list = [eid_list]
-        for eid in eid_list[:3]:
+        for eid in self._stored_trigger_entities(tc)[:3]:
             state = self.hass.states.get(eid)
             if state:
                 state_parts.append(f"{eid}: {state.state}")
@@ -261,11 +248,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
         task = tasks_data.get(self._selected_task_id or "", {})
         tc = task.get("trigger_config", {})
 
-        # Resolve entity list
-        entity_ids = tc.get("entity_ids", [])
-        if not entity_ids:
-            eid = tc.get("entity_id", "")
-            entity_ids = [eid] if isinstance(eid, str) and eid else (eid if isinstance(eid, list) else [])
+        entity_ids = self._stored_trigger_entities(tc)
         has_multiple = len(entity_ids) > 1
 
         if user_input is not None:
@@ -338,13 +321,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
         if self._selected_task_id:
             tasks = self.config_entry.data.get(CONF_TASKS, {})
             task = tasks.get(self._selected_task_id, {})
-            tc = task.get("trigger_config", {})
-            eids = tc.get("entity_ids", [])
-            if not eids:
-                eid = tc.get("entity_id", "")
-                eids = [eid] if eid else []
-            if eids:
-                existing = eids
+            existing = self._stored_trigger_entities(task.get("trigger_config") or {}) or None
 
         return await self._trigger_sensor_select(
             user_input,

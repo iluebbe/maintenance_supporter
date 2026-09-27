@@ -12,6 +12,13 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
+from ._shared import (
+    FILTER_LIFE_PERCENT,
+    HOOD_GREASE_FILTER_USAGE,
+    SIDE_BRUSH_LIFE_PERCENT,
+    VACUUM_FILTER_CLEANING_RUNTIME,
+    VACUUM_MAIN_BRUSH_RUNTIME,
+)
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "roborock": IntegrationSignature(
@@ -132,22 +139,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "the ENGINE accumulates cleaning time on the vacuum entity."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Filter Cleaning",
-                "runtime_hours",
-                delta_units=15,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
-            ConsumableSignature(
-                (),
-                "Clean Main Brush",
-                "runtime_hours",
-                delta_units=30,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
+            VACUUM_FILTER_CLEANING_RUNTIME,
+            VACUUM_MAIN_BRUSH_RUNTIME,
         ),
     ),
     "roomba": IntegrationSignature(
@@ -159,22 +152,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "ENGINE accumulates cleaning time."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Filter Cleaning",
-                "runtime_hours",
-                delta_units=15,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
-            ConsumableSignature(
-                (),
-                "Clean Main Brush",
-                "runtime_hours",
-                delta_units=30,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
+            VACUUM_FILTER_CLEANING_RUNTIME,
+            VACUUM_MAIN_BRUSH_RUNTIME,
             ConsumableSignature(
                 ("bin_full",),
                 "Empty Dustbin",
@@ -195,22 +174,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "ENGINE accumulates cleaning time."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Filter Cleaning",
-                "runtime_hours",
-                delta_units=15,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
-            ConsumableSignature(
-                (),
-                "Clean Main Brush",
-                "runtime_hours",
-                delta_units=30,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
+            VACUUM_FILTER_CLEANING_RUNTIME,
+            VACUUM_MAIN_BRUSH_RUNTIME,
         ),
     ),
     "romy": IntegrationSignature(
@@ -222,22 +187,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "ENGINE accumulates cleaning time."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Filter Cleaning",
-                "runtime_hours",
-                delta_units=15,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
-            ConsumableSignature(
-                (),
-                "Clean Main Brush",
-                "runtime_hours",
-                delta_units=30,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
+            VACUUM_FILTER_CLEANING_RUNTIME,
+            VACUUM_MAIN_BRUSH_RUNTIME,
         ),
     ),
     "tuya": IntegrationSignature(
@@ -264,25 +215,11 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(("rolling_brush_life",), "Replace Main Brush", "percent_left"),
-            ConsumableSignature(("side_brush_life",), "Replace Side Brush", "percent_left"),
-            ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),
+            SIDE_BRUSH_LIFE_PERCENT,
+            FILTER_LIFE_PERCENT,
             ConsumableSignature(("duster_cloth_life",), "Replace Mop Pads", "percent_left"),
-            ConsumableSignature(
-                (),
-                "Filter Cleaning",
-                "runtime_hours",
-                delta_units=15,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
-            ConsumableSignature(
-                (),
-                "Clean Main Brush",
-                "runtime_hours",
-                delta_units=30,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
+            VACUUM_FILTER_CLEANING_RUNTIME,
+            VACUUM_MAIN_BRUSH_RUNTIME,
         ),
     ),
     "switchbot_cloud": IntegrationSignature(
@@ -294,22 +231,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "ENGINE accumulates cleaning time, entity_domain-gated so the bridge's other device types are untouched."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Filter Cleaning",
-                "runtime_hours",
-                delta_units=15,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
-            ConsumableSignature(
-                (),
-                "Clean Main Brush",
-                "runtime_hours",
-                delta_units=30,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
+            VACUUM_FILTER_CLEANING_RUNTIME,
+            VACUUM_MAIN_BRUSH_RUNTIME,
         ),
     ),
     "smartthings": IntegrationSignature(
@@ -325,26 +248,12 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(SAMSUNG_CE_HOOD_FILTER, PERCENTAGE) — same up-counting shape."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Filter Cleaning",
-                "runtime_hours",
-                delta_units=15,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
-            ConsumableSignature(
-                (),
-                "Clean Main Brush",
-                "runtime_hours",
-                delta_units=30,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
+            VACUUM_FILTER_CLEANING_RUNTIME,
+            VACUUM_MAIN_BRUSH_RUNTIME,
             # Samsung fridge water filter / hood grease filter: usage counts
             # UP in percent; replacing/cleaning resets to 0 (auto-resolve).
             ConsumableSignature(("water_filter_usage",), "Replace Water Filter", "alert_above", delta_units=90),
-            ConsumableSignature(("hood_filter_usage",), "Clean Grease Filter", "alert_above", delta_units=90),
+            HOOD_GREASE_FILTER_USAGE,
         ),
     ),
     "sharkiq": IntegrationSignature(
@@ -356,22 +265,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "ENGINE accumulates cleaning time."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Filter Cleaning",
-                "runtime_hours",
-                delta_units=15,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
-            ConsumableSignature(
-                (),
-                "Clean Main Brush",
-                "runtime_hours",
-                delta_units=30,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
+            VACUUM_FILTER_CLEANING_RUNTIME,
+            VACUUM_MAIN_BRUSH_RUNTIME,
         ),
     ),
     "tplink": IntegrationSignature(
@@ -383,22 +278,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "ENGINE accumulates cleaning time, entity_domain-gated so the bridge's other device types are untouched."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Filter Cleaning",
-                "runtime_hours",
-                delta_units=15,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
-            ConsumableSignature(
-                (),
-                "Clean Main Brush",
-                "runtime_hours",
-                delta_units=30,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
+            VACUUM_FILTER_CLEANING_RUNTIME,
+            VACUUM_MAIN_BRUSH_RUNTIME,
         ),
     ),
     "mydolphin_plus": IntegrationSignature(
@@ -461,22 +342,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(no lifetime reference)."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Filter Cleaning",
-                "runtime_hours",
-                delta_units=15,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
-            ConsumableSignature(
-                (),
-                "Clean Main Brush",
-                "runtime_hours",
-                delta_units=30,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
+            VACUUM_FILTER_CLEANING_RUNTIME,
+            VACUUM_MAIN_BRUSH_RUNTIME,
             ConsumableSignature(("filter",), "Replace Filter", "usage_above", above_hours=360),
             ConsumableSignature(("rolling_brush",), "Replace Main Brush", "usage_above", above_hours=360),
             ConsumableSignature(("side_brush",), "Replace Side Brush", "usage_above", above_hours=180),
@@ -514,8 +381,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(("main_brush_life",), "Replace Main Brush", "percent_left"),
-            ConsumableSignature(("side_brush_life",), "Replace Side Brush", "percent_left"),
-            ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),
+            SIDE_BRUSH_LIFE_PERCENT,
+            FILTER_LIFE_PERCENT,
             ConsumableSignature(("mop_life",), "Replace Mop Pads", "percent_left"),
         ),
     ),

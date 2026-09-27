@@ -23,7 +23,6 @@ from .config_flow_helpers import (
     select_default,
 )
 from .const import (
-    CONF_ADVANCED_SCHEDULE_TIME,
     CONF_RESPONSIBLE_USER_ID,
     CONF_TASK_ASSIGNEE_POOL,
     CONF_TASK_DOCUMENTATION_URL,
@@ -54,7 +53,7 @@ from .const import (
     ScheduleType,
 )
 from .helpers.dates import normalize_hhmm
-from .helpers.global_options import get_default_warning_days
+from .helpers.global_options import get_default_warning_days, is_schedule_time_enabled
 from .helpers.pause import write_anchor
 from .helpers.reading_slots import parse_reading_slots_text, reading_slots_text
 from .helpers.schedule import (
@@ -485,7 +484,7 @@ class TaskCrudMixin:
                                 default=task.get("schedule_time", ""),
                             ): _OptionalTimeSelector(),
                         }
-                        if self._get_global_options().get(CONF_ADVANCED_SCHEDULE_TIME, False)
+                        if is_schedule_time_enabled(self.hass)
                         and sched["schedule_type"] in SCHEDULE_TIME_KINDS
                         else dict[Any, Any]()
                     ),

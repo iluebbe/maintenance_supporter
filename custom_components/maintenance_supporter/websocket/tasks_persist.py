@@ -329,21 +329,19 @@ async def async_move_task(
 
     # Group memberships: snapshot, let the delete sweep them, re-add under the target.
     from ..const import CONF_GROUPS
-    from ..helpers.global_options import get_global_entry
+    from ..helpers.global_options import get_global_entry, get_global_options
+    from . import _merge_global_options
 
     member_groups: list[str] = []
     global_entry = get_global_entry(hass)
-    if global_entry is not None:
-        for gid, group in (dict(global_entry.options or global_entry.data).get(CONF_GROUPS) or {}).items():
-            if any(isinstance(r, dict) and r.get("task_id") == task_id for r in group.get("task_refs", [])):
-                member_groups.append(gid)
+    for gid, group in (get_global_options(hass).get(CONF_GROUPS) or {}).items():
+        if any(isinstance(r, dict) and r.get("task_id") == task_id for r in group.get("task_refs", [])):
+            member_groups.append(gid)
 
     # Vacation exemption + document links: the delete leg strips both
     # (task-id keyed, otherwise never pruned) — snapshot, restore after.
-    vacation_exempt = False
-    if global_entry is not None:
-        exempt = global_entry.options.get(CONF_VACATION_EXEMPT_TASK_IDS) or []
-        vacation_exempt = isinstance(exempt, list) and task_id in exempt
+    exempt = get_global_options(hass).get(CONF_VACATION_EXEMPT_TASK_IDS) or []
+    vacation_exempt = isinstance(exempt, list) and task_id in exempt
     doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     doc_links = doc_store.task_links(task_id) if doc_store is not None else {}
     # Photos linked to this task alone are re-homed with it — a doc shared
@@ -383,20 +381,18 @@ async def async_move_task(
     if doc_store is not None and doc_links:
         await doc_store.async_relink_task(task_id, doc_links, rehome_doc_ids=rehome_ids, object_id=task_data["object_id"])
 
+    # Both write-backs read the settings the delete leg just rewrote
+    # (DRY audit 2026-09-26 B: one read rule, one merge).
     if vacation_exempt and global_entry is not None:
-        options = dict(global_entry.options)
-        current = options.get(CONF_VACATION_EXEMPT_TASK_IDS) or []
+        current = get_global_options(hass).get(CONF_VACATION_EXEMPT_TASK_IDS) or []
         if task_id not in current:
-            options[CONF_VACATION_EXEMPT_TASK_IDS] = [*current, task_id]
-            hass.config_entries.async_update_entry(global_entry, options=options)
+            _merge_global_options(hass, global_entry, {CONF_VACATION_EXEMPT_TASK_IDS: [*current, task_id]})
 
     if member_groups and global_entry is not None:
-        options = dict(global_entry.options or global_entry.data)
-        groups = dict(options.get(CONF_GROUPS) or {})
+        groups = dict(get_global_options(hass).get(CONF_GROUPS) or {})
         for gid in member_groups:
             group = groups.get(gid)
             if group is None:
                 continue
             groups[gid] = {**group, "task_refs": [*group.get("task_refs", []), {"entry_id": target.entry_id, "task_id": task_id}]}
-        options[CONF_GROUPS] = groups
-        hass.config_entries.async_update_entry(global_entry, options=options)
+        _merge_global_options(hass, global_entry, {CONF_GROUPS: groups})

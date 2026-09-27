@@ -20,6 +20,34 @@ export const STATUS_COLORS: Record<string, string> = {
   paused: "var(--info-color, #2196f3)",
 };
 
+/** The live task statuses by urgency, most urgent first — the order every
+ *  list sorts by and every status picker offers (the card editor's filter,
+ *  the panel's status filter, the calendar pills). Four hand-kept copies of
+ *  the rank map and the list had drifted: the panel's filter offered
+ *  overdue → due soon → triggered while every sort ranked triggered above
+ *  due soon (DRY audit 2026-09-26). archived / paused are deliberately not
+ *  here — they are states of the object, not a place in the queue. */
+export const STATUS_ORDER = ["overdue", "triggered", "due_soon", "ok"] as const;
+
+/** The statuses that want attention — the card's default filter and the
+ *  strategy's "actionable" view. Python twin: helpers/todo_mirror
+ *  MIRRORED_STATUSES / intent._ACTIONABLE (tests/test_frontend_const_parity.py). */
+export const ACTIONABLE_STATUSES = ["overdue", "triggered", "due_soon"] as const;
+
+const _STATUS_RANK: Record<string, number> = Object.fromEntries(STATUS_ORDER.map((s, i) => [s, i]));
+
+/** Sort rank of a status (lower = more urgent); anything outside
+ *  STATUS_ORDER sorts after "ok". */
+export function statusRank(status: string | null | undefined): number {
+  return _STATUS_RANK[status ?? ""] ?? STATUS_ORDER.length;
+}
+
+export type ActionableStatus = (typeof ACTIONABLE_STATUSES)[number];
+
+export function isActionableStatus(status: string | null | undefined): status is ActionableStatus {
+  return (ACTIONABLE_STATUSES as readonly string[]).includes(status ?? "");
+}
+
 export const STATUS_ICONS: Record<string, string> = {
   ok: "mdi:check-circle",
   due_soon: "mdi:alert-circle",

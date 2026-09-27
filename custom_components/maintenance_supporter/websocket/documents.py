@@ -23,7 +23,6 @@ from homeassistant.core import HomeAssistant
 from ..const import (
     CONF_OBJECT,
     DOMAIN,
-    MAX_ID_LENGTH,
     MAX_NAME_LENGTH,
     MAX_TEXT_LENGTH,
     MAX_URL_LENGTH,
@@ -31,7 +30,7 @@ from ..const import (
 from ..helpers.aggregate import object_name
 from ..helpers.permissions import require_write
 from ..helpers.search_match import query_tokens, score_fields, snippet
-from . import _get_object_entries, _load_object_entry, object_id_for_entry
+from . import ID_FIELD, _get_object_entries, _load_object_entry, object_id_for_entry
 from .tasks import _is_safe_url
 
 if TYPE_CHECKING:
@@ -47,7 +46,7 @@ _TAGS_SCHEMA = vol.All(
     vol.Length(max=_MAX_TAGS),
 )
 _TASK_IDS_SCHEMA = vol.All(
-    [vol.All(str, vol.Length(max=MAX_ID_LENGTH))],
+    [ID_FIELD],
     vol.Length(max=_MAX_TASK_IDS),
 )
 # {task_id: page} jump-to-page hints; page 0 clears, >=1 sets (PDFs, #page=N).
@@ -67,7 +66,7 @@ def _get_store(hass: HomeAssistant) -> DocumentStore:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/documents/list",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
     }
 )
 @websocket_api.async_response
@@ -109,7 +108,7 @@ async def ws_documents_storage(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/documents/add_link",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
         vol.Required("url"): vol.All(str, vol.Length(min=1, max=MAX_URL_LENGTH)),
         vol.Optional("title"): vol.Any(vol.All(str, vol.Length(max=MAX_NAME_LENGTH)), None),
         vol.Optional("tags"): _TAGS_SCHEMA,
@@ -150,7 +149,7 @@ async def ws_documents_add_link(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/documents/update",
-        vol.Required("doc_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("doc_id"): ID_FIELD,
         vol.Optional("title"): vol.All(str, vol.Length(max=MAX_NAME_LENGTH)),
         vol.Optional("tags"): _TAGS_SCHEMA,
         vol.Optional("task_ids"): _TASK_IDS_SCHEMA,
@@ -192,7 +191,7 @@ async def ws_documents_update(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/documents/delete",
-        vol.Required("doc_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("doc_id"): ID_FIELD,
     }
 )
 @require_write
@@ -219,8 +218,8 @@ async def ws_documents_delete(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/documents/discard_upload",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("doc_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("doc_id"): ID_FIELD,
     }
 )
 @websocket_api.async_response

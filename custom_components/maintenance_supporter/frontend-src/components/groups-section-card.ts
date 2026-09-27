@@ -10,7 +10,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf } from "../styles";
 import { registerCustomCard } from "../helpers/register-card";
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
 import { fetchSettingsOnce } from "../helpers/settings-cache";
 import { canWrite, NO_DELEGATION, type WriteAccess } from "../helpers/permissions";
@@ -75,35 +75,33 @@ export class MaintenanceGroupsSectionCard extends LitElement {
   }
 
   private async _load(): Promise<void> {
-    try {
-      const r = await this.hass.connection.sendMessagePromise<GroupsResp>({
-        type: "maintenance_supporter/groups",
-      });
-      this._groups = r.groups || {};
-      this._loaded = true;
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    }
+    const r = await runWs<GroupsResp>(this, { type: "maintenance_supporter/groups" }, {
+      onError: (m) => { this._error = m; },
+    });
+    if (r === undefined) return;
+    this._groups = r?.groups || {};
+    this._loaded = true;
+  }
+
+  /** One group mutation — helpers/ws-run runWs with the busy flag, the
+   *  error line and the list reload (`onDone` runs first). */
+  private async _act(payload: Record<string, unknown>, onDone?: () => void): Promise<void> {
+    this._error = "";
+    await runWs(this, payload, {
+      busy: (b) => { this._busy = b; },
+      reload: async () => {
+        onDone?.();
+        await this._load();
+      },
+      onError: (m) => { this._error = m; },
+    });
   }
 
   private async _addGroup(): Promise<void> {
     if (!this._canWrite) return;
     const name = this._newName.trim();
     if (!name) return;
-    this._busy = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/group/create",
-        name,
-      });
-      this._newName = "";
-      await this._load();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+    await this._act({ type: "maintenance_supporter/group/create", name }, () => { this._newName = ""; });
   }
 
   private _startEdit(id: string): void {
@@ -115,22 +113,10 @@ export class MaintenanceGroupsSectionCard extends LitElement {
     if (!this._canWrite || !this._editingId) return;
     const name = this._editingName.trim();
     if (!name) return;
-    this._busy = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/group/update",
-        group_id: this._editingId,
-        name,
-      });
+    await this._act({ type: "maintenance_supporter/group/update", group_id: this._editingId, name }, () => {
       this._editingId = null;
       this._editingName = "";
-      await this._load();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+    });
   }
 
   private async _deleteGroup(id: string, name: string): Promise<void> {
@@ -142,18 +128,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
       danger: true,
     });
     if (!ok) return;
-    this._busy = true;
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/group/delete",
-        group_id: id,
-      });
-      await this._load();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+    await this._act({ type: "maintenance_supporter/group/delete", group_id: id });
   }
 
   private _onDeepLink(): void {

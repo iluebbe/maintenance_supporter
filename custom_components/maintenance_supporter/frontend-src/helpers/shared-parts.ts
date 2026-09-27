@@ -14,7 +14,7 @@
  */
 
 import type { MaintenanceObjectResponse, MaintenancePart, TaskPartLink } from "../types";
-import { t } from "../styles";
+import { formatNumber, formatQty, t } from "../styles";
 
 /** The subset of an object response this module needs — the panel and the card
  *  both hold full `MaintenanceObjectResponse`s, tests can pass less. */
@@ -88,10 +88,10 @@ export function describePartLink(
   const { part, label } = resolvePartLink(link, ownEntryId, objects, lang);
   const stock =
     part && part.stock !== null && part.stock !== undefined
-      ? ` (${part.stock}${part.unit ? " " + part.unit : ""})`
+      ? ` (${formatQty(part.stock, part.unit, lang)})`
       : "";
   const loc = part?.storage_location ? ` — ${part.storage_location}` : "";
-  return `${link.quantity}× ${label}${stock}${loc}`;
+  return `${formatNumber(link.quantity, lang)}× ${label}${stock}${loc}`;
 }
 
 /**

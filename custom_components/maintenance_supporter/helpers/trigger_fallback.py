@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.util import dt as dt_util
 
 from ..const import UNAVAILABLE_STATES
+from .dates import parse_persisted_utc
 
 if TYPE_CHECKING:
     from homeassistant.core import State
@@ -308,15 +309,11 @@ def evaluate_runtime(
         total = float(seconds)
         on_since = es.get("on_since")
         if on_since:
-            on_dt = dt_util.parse_datetime(on_since)
+            # The live runtime trigger's own parser (naive payloads read as
+            # UTC so the subtraction below can't raise) — this fallback
+            # re-implemented it (DRY audit 2026-09-26 B).
+            on_dt = parse_persisted_utc(on_since)
             if on_dt is not None:
-                # Older payloads may be naive — assume UTC (live writes are
-                # TZ-aware) so the subtraction below can't raise. Mirrors
-                # threshold.py's exceeded_since handling.
-                if on_dt.tzinfo is None:
-                    from datetime import UTC
-
-                    on_dt = on_dt.replace(tzinfo=UTC)
                 ongoing = max(0.0, (dt_util.utcnow() - on_dt).total_seconds())  # pragma: no mutate (a 1s floor shift vanishes in the 2-decimal rounding)
                 # #149: per-session cap — the open window contributes at most
                 # what the session may still book (mirrors the live tracker).

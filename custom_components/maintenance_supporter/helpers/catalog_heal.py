@@ -26,17 +26,26 @@ from homeassistant.helpers import entity_registry as er
 
 from ..const import CONF_TASKS, CONF_TRIGGER_CONFIG
 
-# platform → (old catalog on_states, new catalog on_states)
-_CLIMATE_RUNTIME_HEALS: dict[str, tuple[frozenset[str], tuple[str, ...]]] = {
-    "gree": (
-        frozenset({"cooling", "heating", "fan", "drying"}),
-        ("auto", "cool", "dry", "fan_only", "heat"),
-    ),
-    "daikin": (
-        frozenset({"cooling", "heating", "fan", "drying"}),
-        ("cool", "dry", "fan_only", "heat", "heat_cool"),
-    ),
+# platform → the on_states the OLD catalog wrote (the broken shape a heal
+# recognises — history, so spelled out). The healed states are read from the
+# catalog itself (``_catalog_on_states``): the heal used to carry its own
+# copy of air.py's states, which a later catalog fix would have left behind
+# (DRY audit 2026-09-26 B).
+_CLIMATE_RUNTIME_HEALS: dict[str, frozenset[str]] = {
+    "gree": frozenset({"cooling", "heating", "fan", "drying"}),
+    "daikin": frozenset({"cooling", "heating", "fan", "drying"}),
 }
+
+
+def _catalog_on_states(platform: str) -> tuple[str, ...]:
+    """The states the catalog's climate-runtime duty of ``platform`` counts —
+    exactly what a fresh adoption would wire."""
+    from .signatures import SIGNATURES
+
+    for sig in SIGNATURES[platform].tasks:
+        if sig.direction == "runtime_hours" and sig.entity_domain == "climate":
+            return sig.on_states
+    raise LookupError(f"no climate runtime signature for {platform!r}")
 
 
 def _healed_trigger(hass: HomeAssistant, tc: Mapping[str, Any]) -> dict[str, Any] | None:
@@ -46,15 +55,14 @@ def _healed_trigger(hass: HomeAssistant, tc: Mapping[str, Any]) -> dict[str, Any
     if not isinstance(entity_id, str) or not entity_id.startswith("climate."):
         return None
     reg = er.async_get(hass).async_get(entity_id)
-    heal = _CLIMATE_RUNTIME_HEALS.get(reg.platform) if reg is not None else None
-    if heal is None:
+    old_states = _CLIMATE_RUNTIME_HEALS.get(reg.platform) if reg is not None else None
+    if old_states is None or reg is None:
         return None
-    old_states, new_states = heal
     current = {str(s).lower() for s in (tc.get("trigger_on_states") or [])}
     if current != old_states:
         return None  # the user changed the states — theirs to keep
     healed = {k: v for k, v in tc.items() if k != "attribute"}
-    healed["trigger_on_states"] = list(new_states)
+    healed["trigger_on_states"] = list(_catalog_on_states(reg.platform))
     return healed
 
 

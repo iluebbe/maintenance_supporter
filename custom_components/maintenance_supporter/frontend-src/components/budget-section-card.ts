@@ -10,7 +10,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t, syncLocaleFromHass, currencySymbolOf, langOf, formatCost, syncCurrencyDecimals} from "../styles";
 import { registerCustomCard } from "../helpers/register-card";
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
 import type { BudgetStatus, HomeAssistant } from "../types";
 
@@ -59,43 +59,33 @@ export class MaintenanceBudgetSectionCard extends LitElement {
   }
 
   private async _load(): Promise<void> {
-    try {
-      const r = await this.hass.connection.sendMessagePromise<BudgetStatus>({
-        type: "maintenance_supporter/budget_status",
-      });
-      this._status = r;
-      syncCurrencyDecimals(r);
-      this._localMonthly = r.monthly_budget ? String(r.monthly_budget) : "";
-      this._localYearly = r.yearly_budget ? String(r.yearly_budget) : "";
-      this._dirty = false;
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    }
+    const r = await runWs<BudgetStatus>(this, { type: "maintenance_supporter/budget_status" }, {
+      onError: (m) => { this._error = m; },
+    });
+    if (!r) return;
+    this._status = r;
+    syncCurrencyDecimals(r);
+    this._localMonthly = r.monthly_budget ? String(r.monthly_budget) : "";
+    this._localYearly = r.yearly_budget ? String(r.yearly_budget) : "";
+    this._dirty = false;
   }
 
   private async _save(): Promise<void> {
     if (!this._isAdmin) return;
-    this._busy = true;
     this._error = "";
-    try {
-      // An emptied field means "remove this budget" and must SEND 0 (the
-      // backend's off-state) — omitting the key kept the old value, so a
-      // budget could never be cleared from this card (bug audit 2026-08-22).
-      const m = this._localMonthly.trim() === "" ? 0 : parseFloat(this._localMonthly);
-      const y = this._localYearly.trim() === "" ? 0 : parseFloat(this._localYearly);
-      const settings: Record<string, number> = {};
-      if (!isNaN(m) && m >= 0) settings.budget_monthly = m;
-      if (!isNaN(y) && y >= 0) settings.budget_yearly = y;
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/global/update",
-        settings,
-      });
-      await this._load();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+    // An emptied field means "remove this budget" and must SEND 0 (the
+    // backend's off-state) — omitting the key kept the old value, so a
+    // budget could never be cleared from this card (bug audit 2026-08-22).
+    const m = this._localMonthly.trim() === "" ? 0 : parseFloat(this._localMonthly);
+    const y = this._localYearly.trim() === "" ? 0 : parseFloat(this._localYearly);
+    const settings: Record<string, number> = {};
+    if (!isNaN(m) && m >= 0) settings.budget_monthly = m;
+    if (!isNaN(y) && y >= 0) settings.budget_yearly = y;
+    await runWs(this, { type: "maintenance_supporter/global/update", settings }, {
+      busy: (b) => { this._busy = b; },
+      reload: () => this._load(),
+      onError: (msg) => { this._error = msg; },
+    });
   }
 
   private _onDeepLink(): void {

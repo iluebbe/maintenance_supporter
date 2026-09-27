@@ -25,14 +25,13 @@ from ._registry import SIGNATURES
 
 def _entity_watchers(hass: HomeAssistant) -> dict[str, set[str]]:
     """entity_id → lowercased names of the tasks watching it via a trigger."""
-    from ...const import CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+    from ...const import CONF_TASKS
     from ...entity.triggers import normalize_entity_ids
+    from ..aggregate import get_object_entries
 
     out: dict[str, set[str]] = {}
     known = _catalog_name_variants()
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if entry.unique_id == GLOBAL_UNIQUE_ID:
-            continue
+    for entry in get_object_entries(hass):
         for task in entry.data.get(CONF_TASKS, {}).values():
             tc = task.get("trigger_config")
             if isinstance(tc, dict):

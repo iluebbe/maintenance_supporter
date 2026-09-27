@@ -15,14 +15,15 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
-from ..const import CONF_OBJECT, DOMAIN, MAX_ENTITY_ID_LENGTH, MAX_ID_LENGTH, MAX_NAME_LENGTH
-from ..helpers.aggregate import is_object_entry
+from ..const import CONF_OBJECT, DOMAIN, MAX_ENTITY_ID_LENGTH, MAX_NAME_LENGTH, TRIGGER_FIELD_RANGES
 from ..helpers.permissions import require_write
 from ..helpers.problem_sensors import (
     build_problem_task,
     discover_problem_sensors,
     pop_stashed_config,
 )
+from . import ID_FIELD
+from .adopt_batch import AdoptBatch
 
 
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/problem_sensors/discover"})
@@ -36,24 +37,27 @@ async def ws_discover_problem_sensors(
     connection.send_result(msg["id"], {"sensors": discover_problem_sensors(hass)})
 
 
+# The trigger hold-time bounds the flows and the WS validator use too.
+_FOR_MINUTES = TRIGGER_FIELD_RANGES["trigger_for_minutes"]
+
 _SELECTION_SCHEMA = vol.Schema(
     {
         vol.Required("entity_id"): vol.All(str, vol.Length(max=MAX_ENTITY_ID_LENGTH)),
         vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         # Existing target object; omit to create a fresh object for this device.
-        vol.Optional("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Optional("entry_id"): ID_FIELD,
         vol.Optional("object_name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
-        vol.Optional("device_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
+        vol.Optional("device_id"): vol.Any(ID_FIELD, None),
         # Spare part to link as consumes_parts on the adopted task (discovery's
         # suggested_part_id) — completing the task then consumes/restocks it.
-        vol.Optional("part_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
+        vol.Optional("part_id"): vol.Any(ID_FIELD, None),
         # Responsible HA user for the created task (the adopt dialog offers one
         # picker applied to every selection). Wins over a stashed value.
-        vol.Optional("responsible_user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
+        vol.Optional("responsible_user_id"): vol.Any(ID_FIELD, None),
         # #136: minutes the problem state must HOLD before the task triggers
         # (one dialog field applied to every selection). 0/omitted = trigger
         # on the first flicker, the pre-#136 behaviour.
-        vol.Optional("for_minutes"): vol.Any(vol.All(int, vol.Range(min=0, max=1440)), None),
+        vol.Optional("for_minutes"): vol.Any(vol.All(int, vol.Range(min=_FOR_MINUTES[0], max=_FOR_MINUTES[1])), None),
     }
 )
 
@@ -81,13 +85,7 @@ async def ws_adopt_problem_sensors(
     sensors are one thing"); the dialog resolves an existing object's name to
     its ``entry_id`` before sending, so the name match stays within the batch.
     """
-    from ..export import object_entries
-    from ..websocket.objects import async_create_object
-    from ..websocket.tasks_persist import async_persist_task
-
-    selections = msg["selections"]
-    tasks_created = 0
-    objects_created = 0
+    batch = AdoptBatch(hass)
     # Created tasks, in order — the dialog links "configure now" to the first.
     created: list[dict[str, str]] = []
     # Reuse an object created earlier in THIS batch for the same device, so two
@@ -96,40 +94,31 @@ async def ws_adopt_problem_sensors(
     # #188: ...and for the same object NAME (case-insensitive) — the way the
     # dialog lets the user say which sensors belong together.
     name_to_entry: dict[str, str] = {}
-    errors: list[dict[str, str]] = []
 
-    for sel in selections:
+    for sel in msg["selections"]:
         entity_id = sel["entity_id"]
         entry_id = sel.get("entry_id")
         device_id = sel.get("device_id")
-        created_entry_id: str | None = None  # object created in THIS iteration
         group_name = str(sel.get("object_name") or "").strip().casefold()
+        batch.begin()
         try:
             if not entry_id and device_id and device_id in device_to_entry:
                 entry_id = device_to_entry[device_id]
             if not entry_id and group_name and group_name in name_to_entry:
                 entry_id = name_to_entry[group_name]
             if not entry_id:
-                entry_id = await async_create_object(
-                    hass,
+                entry_id = await batch.create_object(
                     name=sel.get("object_name") or sel["name"],
                     ha_device_id=device_id or None,
                 )
-                created_entry_id = entry_id
-                objects_created += 1
                 if device_id:
                     device_to_entry[device_id] = entry_id
                 if group_name:
                     name_to_entry[group_name] = entry_id
 
-            entry = hass.config_entries.async_get_entry(entry_id)
-            # Same guard as websocket._load_object_entry: the global settings
-            # entry is NOT a valid adoption target — async_persist_task writes
-            # CONF_TASKS + CONF_OBJECT["task_ids"] into whatever entry it is
-            # handed, so a client-supplied global entry_id would corrupt it.
-            # (is_object_entry() rejects None too; the explicit test narrows the type.)
-            if entry is None or not is_object_entry(entry):
-                errors.append({"entity_id": entity_id, "reason": "target object not found"})
+            entry = batch.target_entry(entry_id)
+            if entry is None:
+                batch.errors.append({"entity_id": entity_id, "reason": "target object not found"})
                 continue
 
             task = build_problem_task(entity_id, sel["name"], for_minutes=sel.get("for_minutes") or 0)
@@ -175,29 +164,16 @@ async def ws_adopt_problem_sensors(
                 )
                 if links:
                     task_data["consumes_parts"] = links
-            await async_persist_task(hass, entry, task_data)
-            tasks_created += 1
+            await batch.persist_task(entry, task_data)
             created.append({"entry_id": entry_id, "task_id": task_data["id"], "name": task_data["name"]})
         except (ValueError, KeyError) as err:
-            errors.append({"entity_id": entity_id, "reason": str(err)})
             # Roll back an object created in THIS iteration whose task failed —
             # never leave an empty, task-less orphan object behind (and undo the
-            # count + device-reuse pointer so a later selection re-creates it).
-            if created_entry_id is not None:
-                objects_created -= 1
+            # device/name reuse pointers so a later selection re-creates it).
+            if await batch.fail({"entity_id": entity_id, "reason": str(err)}):
                 if device_id:
                     device_to_entry.pop(device_id, None)
                 if group_name:
                     name_to_entry.pop(group_name, None)
-                if hass.config_entries.async_get_entry(created_entry_id) is not None:
-                    await hass.config_entries.async_remove(created_entry_id)
 
-    result: dict[str, Any] = {
-        "tasks_created": tasks_created,
-        "objects_created": objects_created,
-        "created": created,
-        "total": len(object_entries(hass)),
-    }
-    if errors:
-        result["errors"] = errors
-    connection.send_result(msg["id"], result)
+    connection.send_result(msg["id"], batch.result(created=created))

@@ -34,16 +34,26 @@ from ..const import (
     CONF_TASKS,
     DEFAULT_BUDGET_CURRENCY,
     DEFAULT_CURRENCY_DECIMALS,
-    DEFAULT_TASK_PRIORITY,
     DOMAIN,
     NOTIFIABLE_STATUSES,
     NOTIFICATION_TITLE_STYLES,
     MaintenanceStatus,
-    TaskPriority,
 )
-from .global_options import get_global_options
+from .aggregate import priority_rank
+from .global_options import get_global_options, global_option
 from .i18n import format_text, normalize_language
 from .notification_gates import STATUS_ENABLED_KEYS, status_reminder_enabled, task_may_notify
+from .notification_ids import (
+    DIGEST_TAG,
+    PANEL_PATH,
+    QUIET_END_TAG,
+    WARRANTY_TAG,
+    action_id,
+    budget_tag,
+    bundle_tag,
+    panel_url,
+    task_tag,
+)
 from .notify_hooks import (
     KIND_BUDGET,
     KIND_BUNDLE,
@@ -981,7 +991,19 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
 }
 
 
-PRIORITY_RANK: dict[str, int] = {TaskPriority.HIGH: 0, TaskPriority.NORMAL: 1, TaskPriority.LOW: 2}
+# The line of one task inside a bundled / held-reminder summary, per status
+# (unknown statuses read as due soon). The bundle and the quiet-hours summary
+# each spelled this map (DRY audit 2026-09-26 B).
+_BUNDLED_LINE_KEYS: dict[str, str] = {
+    MaintenanceStatus.OVERDUE: "bundled_overdue",
+    MaintenanceStatus.DUE_SOON: "bundled_due_soon",
+    MaintenanceStatus.TRIGGERED: "bundled_triggered",
+}
+
+
+def _bundled_line(status: Any, lang: str, task_name: str) -> str:
+    """One task's line in a bundle / quiet-hours summary."""
+    return _notif_t(_BUNDLED_LINE_KEYS.get(str(status or ""), "bundled_due_soon"), lang, task=task_name)
 
 
 def task_key_of(entry_id: str, task_id: str) -> str:
@@ -989,7 +1011,7 @@ def task_key_of(entry_id: str, task_id: str) -> str:
     return f"{entry_id}_{task_id}"
 
 
-def _service_payload(title: str, message: str, *, tag: str, url: str = "/maintenance-supporter") -> dict[str, Any]:
+def _service_payload(title: str, message: str, *, tag: str, url: str = PANEL_PATH) -> dict[str, Any]:
     """Notify payload with the deep link doubled into ``url`` (iOS) and
     ``clickAction`` (Android) — five hand-built copies each repeated the
     link string twice."""
@@ -1024,7 +1046,7 @@ def build_action_buttons(
     is_test = entry_id is None or task_id is None
 
     def _id(verb: str) -> str:
-        return f"MS_TEST_{verb}" if is_test else f"MS_{verb}_{entry_id}_{task_id}"
+        return action_id(verb, None, None) if is_test else action_id(verb, entry_id, task_id)
 
     actions: list[dict[str, str]] = []
     if options.get(CONF_ACTION_COMPLETE_ENABLED, setting_default(CONF_ACTION_COMPLETE_ENABLED)):
@@ -1331,7 +1353,7 @@ class NotificationManager:
 
     def _opt(self, key: str) -> Any:
         """A global setting, or its registry default when unset."""
-        return self._global_options.get(key, setting_default(key))
+        return global_option(self.hass, key)
 
     @property
     def enabled(self) -> bool:
@@ -1585,18 +1607,13 @@ class NotificationManager:
             return False
         held = list(self._quiet_held.values())
         lang = self._lang
-        status_key_map: dict[str, str] = {
-            MaintenanceStatus.OVERDUE: "bundled_overdue",
-            MaintenanceStatus.DUE_SOON: "bundled_due_soon",
-            MaintenanceStatus.TRIGGERED: "bundled_triggered",
-        }
         parts: list[str] = []
         for f in held:
-            line = _notif_t(status_key_map.get(str(f.get("status") or ""), "bundled_due_soon"), lang, task=str(f.get("task_name") or ""))
+            line = _bundled_line(f.get("status"), lang, str(f.get("task_name") or ""))
             parts.append(f"{f.get('object_name') or ''}: {line}" if f.get("object_name") else line)
         title = _notif_t("quiet_end_title", lang, count=str(len(held)))
         message = "; ".join(parts)
-        service_data = _service_payload(title, message, tag="maintenance_quiet_end", url="/maintenance-supporter?tab=today")
+        service_data = _service_payload(title, message, tag=QUIET_END_TAG, url=panel_url(tab="today"))
         context = notification_context(
             self.hass,
             KIND_QUIET_END,
@@ -1633,7 +1650,7 @@ class NotificationManager:
     @staticmethod
     def _priority_rank(task_data: Mapping[str, Any] | None) -> int:
         """0 = high, 1 = normal, 2 = low (unknown reads as normal)."""
-        return PRIORITY_RANK.get(str((task_data or {}).get(CONF_TASK_PRIORITY) or DEFAULT_TASK_PRIORITY), 1)
+        return priority_rank((task_data or {}).get(CONF_TASK_PRIORITY))
 
     def _admit(self, keys: list[str], rank: int) -> bool:
         """The daily-limit decision for a task (or a bundle's member tasks).
@@ -1889,7 +1906,7 @@ class NotificationManager:
         # Same payload shape as every other kind: the per-task tag (the
         # completion replaces the task's still-standing reminder on the phone)
         # and the deep link the context already carries.
-        service_data = _service_payload(title, message, tag=f"maintenance_{task_id}", url=str(context["url"]))
+        service_data = _service_payload(title, message, tag=task_tag(task_id), url=str(context["url"]))
         sent = await async_emit_and_dispatch(self.hass, self.notify_service, service_data, context)
         if sent:
             self._daily_count += 1
@@ -1984,8 +2001,8 @@ class NotificationManager:
         service_data = _service_payload(
             title,
             message,
-            tag=f"maintenance_{task_id}",
-            url=f"/maintenance-supporter?entry_id={entry_id}&task_id={task_id}",
+            tag=task_tag(task_id),
+            url=panel_url(entry_id=entry_id, task_id=task_id),
         )
         if actions:
             service_data["data"]["actions"] = actions
@@ -2054,16 +2071,7 @@ class NotificationManager:
             return
 
         lang = self._lang
-        status_key_map = {
-            MaintenanceStatus.OVERDUE: "bundled_overdue",
-            MaintenanceStatus.DUE_SOON: "bundled_due_soon",
-            MaintenanceStatus.TRIGGERED: "bundled_triggered",
-        }
-
-        task_parts: list[str] = []
-        for t in tasks:
-            key = status_key_map.get(t["status"], "bundled_due_soon")
-            task_parts.append(_notif_t(key, lang, task=t["task_name"]))
+        task_parts = [_bundled_line(t["status"], lang, t["task_name"]) for t in tasks]
 
         title = _notif_t("bundled_title", lang, count=str(len(tasks)))
         message = _notif_t("bundled_message", lang, object=object_name, task_list=", ".join(task_parts))
@@ -2077,8 +2085,8 @@ class NotificationManager:
         service_data = _service_payload(
             title,
             message,
-            tag=f"maintenance_bundled_{entry_id}",
-            url=f"/maintenance-supporter?entry_id={entry_id}",
+            tag=bundle_tag(entry_id),
+            url=panel_url(entry_id=entry_id),
         )
 
         context = notification_context(
@@ -2118,7 +2126,7 @@ class NotificationManager:
         service_data = _service_payload(
             _notif_t("digest_title", lang),
             _notif_t("digest_message", lang, overdue=str(overdue), due_soon=str(due_soon)),
-            tag="maintenance_weekly_digest",
+            tag=DIGEST_TAG,
         )
         context = notification_context(self.hass, KIND_DIGEST, overdue=overdue, due_soon=due_soon)
         try:
@@ -2145,7 +2153,7 @@ class NotificationManager:
                 days=str(days),
                 names=", ".join(names),
             ),
-            tag="maintenance_warranty_reminder",
+            tag=WARRANTY_TAG,
         )
         context = notification_context(self.hass, KIND_WARRANTY, names=list(names), days=days)
         try:
@@ -2270,7 +2278,7 @@ class NotificationManager:
             budget=f"{budget:.{decimals}f}{currency_symbol}",
         )
 
-        service_data = _service_payload(title, message, tag=f"maintenance_budget_{period}")
+        service_data = _service_payload(title, message, tag=budget_tag(period))
 
         context = notification_context(self.hass, KIND_BUDGET, period=period, spent=spent, budget=budget, percent=pct)
         try:
@@ -2364,7 +2372,7 @@ class NotificationManager:
                 services.extend(await get_user_notify_services(self.hass, responsible_user_id))
             except Exception:  # noqa: BLE001 - a lookup failure must not keep the action from finishing
                 _LOGGER.debug("User notify services unavailable for %s", responsible_user_id, exc_info=True)
-        tag = f"maintenance_{task_id}"
+        tag = task_tag(task_id)
         for service in dict.fromkeys(s for s in services if s):
             domain, _, name = service.partition(".")
             if not (name and self.hass.services.has_service(domain, name)):

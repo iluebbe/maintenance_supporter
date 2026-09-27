@@ -15,6 +15,7 @@ from .const import (
     CONF_TASK_ENDS_UNTIL,
     CONF_TASK_INTERVAL_UNIT,
     CONF_TASK_SEASON_MONTHS,
+    SCHEDULE_OFFSET_MAX_DAYS,
 )
 from .helpers.dates import INTERVAL_UNITS
 from .helpers.entity_analyzer import EntityAnalyzer
@@ -124,7 +125,9 @@ def calendar_schema(kind: str, current: dict[str, Any] | None = None) -> vol.Sch
     # (#83) ±N-day shift of the computed occurrence, on every calendar kind
     # ("two days before the last working day" = last_day + business + offset -2).
     fields[vol.Optional("offset", default=cur.get("offset", 0))] = selector.NumberSelector(
-        selector.NumberSelectorConfig(min=-15, max=15, step=1, mode=selector.NumberSelectorMode.BOX)
+        selector.NumberSelectorConfig(
+            min=-SCHEDULE_OFFSET_MAX_DAYS, max=SCHEDULE_OFFSET_MAX_DAYS, step=1, mode=selector.NumberSelectorMode.BOX
+        )
     )
     return vol.Schema(fields)
 

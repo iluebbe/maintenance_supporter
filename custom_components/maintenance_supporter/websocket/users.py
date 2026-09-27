@@ -11,13 +11,13 @@ from homeassistant.core import HomeAssistant
 from ..const import (
     CONF_TASKS,
     DOMAIN,
-    MAX_ID_LENGTH,
     MAX_META_LENGTH,
 )
 from ..helpers.aggregate import get_coordinator_data, get_runtime_data, object_name
 from ..helpers.entry_tasks import write_task
 from ..helpers.permissions import require_write, user_may_write
 from . import (
+    ID_FIELD,
     _build_task_summary,
     _get_merged_tasks,
     _get_object_entries,
@@ -66,8 +66,8 @@ async def ws_list_users(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/task/assign_user",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
         vol.Optional("user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),  # None = unassign
     }
 )

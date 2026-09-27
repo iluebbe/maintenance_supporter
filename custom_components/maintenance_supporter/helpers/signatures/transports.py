@@ -7,7 +7,14 @@ integration's source; drift-probed weekly)."""
 
 from __future__ import annotations
 
-from ._model import ConsumableSignature, IntegrationSignature
+from ._model import IntegrationSignature
+from ._shared import (
+    LOCK_CYLINDER_CYCLES,
+    MOWER_BLADES_RUNTIME,
+    MOWER_UNDERCARRIAGE_RUNTIME,
+    VACUUM_FILTER_CLEANING_RUNTIME,
+    VACUUM_MAIN_BRUSH_RUNTIME,
+)
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "matter": IntegrationSignature(
@@ -20,14 +27,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "to locks; every transition to 'locked' is one mechanical cycle."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "zwave_js": IntegrationSignature(
@@ -39,14 +39,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "the ENGINE counts locking cycles; entity_domain-gated to locks, so the bridge's other device types are untouched."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "zha": IntegrationSignature(
@@ -58,14 +51,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "the ENGINE counts locking cycles; entity_domain-gated to locks, so the bridge's other device types are untouched."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "mqtt": IntegrationSignature(
@@ -77,46 +63,11 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "the ENGINE counts locking cycles; entity_domain-gated to locks, so the bridge's other device types are untouched."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
-            ConsumableSignature(
-                (),
-                "Filter Cleaning",
-                "runtime_hours",
-                delta_units=15,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
-            ConsumableSignature(
-                (),
-                "Clean Main Brush",
-                "runtime_hours",
-                delta_units=30,
-                entity_domain="vacuum",
-                on_states=("cleaning",),
-            ),
-            ConsumableSignature(
-                (),
-                "Replace Blades",
-                "runtime_hours",
-                delta_units=100,
-                entity_domain="lawn_mower",
-                on_states=("mowing",),
-            ),
-            ConsumableSignature(
-                (),
-                "Clean Undercarriage",
-                "runtime_hours",
-                delta_units=25,
-                entity_domain="lawn_mower",
-                on_states=("mowing",),
-            ),
+            LOCK_CYLINDER_CYCLES,
+            VACUUM_FILTER_CLEANING_RUNTIME,
+            VACUUM_MAIN_BRUSH_RUNTIME,
+            MOWER_BLADES_RUNTIME,
+            MOWER_UNDERCARRIAGE_RUNTIME,
         ),
     ),
     # MQTT vacuums (Valetudo!) and mowers (OpenMower) expose only
@@ -130,14 +81,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "the ENGINE counts locking cycles; entity_domain-gated to locks, so the bridge's other device types are untouched."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "deconz": IntegrationSignature(
@@ -148,14 +92,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(lock platform verified present) — engine-counted locking cycles, entity_domain-gated so the bridge's other device types are untouched."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
 }

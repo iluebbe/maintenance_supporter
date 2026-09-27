@@ -28,6 +28,7 @@ import {
 } from "../helpers/service-record";
 import { openHtmlInNewTab, preopenTab, signDocumentPath } from "../helpers/document-url";
 import { objectRef, taskRef } from "../helpers/reference";
+import { docDisplayName } from "../helpers/document-categories";
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import "./ms-date-field";
 import type { HistoryEntry, HomeAssistant, MaintenanceObject, MaintenanceTask } from "../types";
@@ -186,7 +187,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
   private async _bookletData(filtered: ReadonlyArray<ObjectHistoryEntry>): Promise<{ tasks: ServiceRecordTask[]; photos: Record<string, ServiceRecordPhoto> }> {
     const inc = this._printInclude;
     const L = this._lang;
-    let docs: Array<{ id: string; title?: string | null; filename?: string | null; tags?: string[] | null; task_ids?: string[] | null; task_pages?: Record<string, number> | null }> = [];
+    let docs: Array<{ id: string; title?: string | null; filename?: string | null; url?: string | null; tags?: string[] | null; task_ids?: string[] | null; task_pages?: Record<string, number> | null }> = [];
     if (inc.documents || inc.photos) {
       try {
         const res = (await this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/documents/list", entry_id: this.entryId })) as { documents?: typeof docs };
@@ -211,7 +212,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
       // under the entry, not as "linked documents" of the task.
       documents: docs
         .filter((d) => (d.task_ids || []).includes(task.id) && !(d.tags || []).includes("photo"))
-        .map((d) => ({ title: d.title || d.filename || "", page: d.task_pages?.[task.id] ?? null, description: (d as { description?: string }).description || null })),
+        .map((d) => ({ title: docDisplayName(d), page: d.task_pages?.[task.id] ?? null, description: (d as { description?: string }).description || null })),
       qrDataUri: qr.get(task.id) ?? null,
     }));
     const photos: Record<string, ServiceRecordPhoto> = {};
@@ -220,7 +221,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
       const byId = new Map(docs.map((d) => [d.id, d]));
       await Promise.all(ids.map(async (id) => {
         const d = byId.get(id);
-        const name = d?.title || d?.filename || id.slice(0, 8);
+        const name = (d && docDisplayName(d)) || id.slice(0, 8);
         try {
           photos[id] = { name, url: new URL(await signDocumentPath(this.hass, id), window.location.origin).href };
         } catch {

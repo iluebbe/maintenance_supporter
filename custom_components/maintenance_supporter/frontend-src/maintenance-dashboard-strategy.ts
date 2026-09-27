@@ -30,7 +30,7 @@
  * On older HA versions the registration is a silent no-op.
  */
 
-import { STATUS_ICONS } from "./status-constants";
+import { ACTIONABLE_STATUSES, STATUS_ICONS } from "./status-constants";
 import { loadHistoryEntryDraft } from "./helpers/history-draft";
 
 interface MaintenanceObjectResp {
@@ -328,7 +328,7 @@ function overviewView(summaryIds: SummaryEntityIds = {}, counts: SummaryCounts =
       makeCardSection({
         type: "custom:maintenance-supporter-card",
         show_header: false,
-        filter_status: ["overdue", "triggered", "due_soon"],
+        filter_status: [...ACTIONABLE_STATUSES],
       }),
     ],
   };

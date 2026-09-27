@@ -8,6 +8,7 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
+from ._shared import CHARGER_CABLE_ETO, CHARGER_CABLE_LIFETIME_ENERGY, CHARGER_CABLE_TOTAL_ENERGY
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "easee": IntegrationSignature(
@@ -20,12 +21,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "Core `wallbox` verified NEGATIVE: its added_energy is per-session."
         ),
         tasks=(
-            ConsumableSignature(
-                ("lifetime_energy",),
-                "Inspect Cable and Plug",
-                "usage_delta",
-                delta_units=5000,
-            ),
+            CHARGER_CABLE_LIFETIME_ENERGY,
         ),
     ),
     "keba": IntegrationSignature(
@@ -36,7 +32,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "('E total' description, name 'Total Energy' → entity_id suffix "
             "_total_energy, kWh, TOTAL_INCREASING lifetime)."
         ),
-        tasks=(ConsumableSignature(("total_energy",), "Inspect Cable and Plug", "usage_delta", delta_units=5000),),
+        tasks=(CHARGER_CABLE_TOTAL_ENERGY,),
     ),
     "goecharger_api2": IntegrationSignature(
         name="go-e Charger",
@@ -47,7 +43,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "lifetime energy) — the unit map converts the 5,000 kWh target "
             "into the live display unit."
         ),
-        tasks=(ConsumableSignature(("eto",), "Inspect Cable and Plug", "usage_delta", delta_units=5000),),
+        tasks=(CHARGER_CABLE_ETO,),
     ),
     "openevse": IntegrationSignature(
         name="OpenEVSE",
@@ -80,7 +76,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(status.lifetime_energy_kwh, KILO_WATT_HOUR, TOTAL_INCREASING); "
             "the sibling 'energy' (state_class TOTAL) is the session value."
         ),
-        tasks=(ConsumableSignature(("lifetime_energy",), "Inspect Cable and Plug", "usage_delta", delta_units=5000),),
+        tasks=(CHARGER_CABLE_LIFETIME_ENERGY,),
     ),
     "silla_prism": IntegrationSignature(
         name="Silla Prism",
@@ -91,7 +87,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "energy delivered, in watt-hours', WATT_HOUR, TOTAL_INCREASING); "
             "'session_energy' ('wh' topic) is per session."
         ),
-        tasks=(ConsumableSignature(("total_energy",), "Inspect Cable and Plug", "usage_delta", delta_units=5000),),
+        tasks=(CHARGER_CABLE_TOTAL_ENERGY,),
     ),
     "besen": IntegrationSignature(
         name="Besen EV charger",
@@ -102,7 +98,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "TOTAL_INCREASING — the besen library README: 'Total energy for "
             "cumulative consumption'); 'session_energy' resets per session."
         ),
-        tasks=(ConsumableSignature(("total_energy",), "Inspect Cable and Plug", "usage_delta", delta_units=5000),),
+        tasks=(CHARGER_CABLE_TOTAL_ENERGY,),
     ),
     "peblar": IntegrationSignature(
         name="Peblar",
@@ -135,6 +131,6 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "translation_key = key.lower() (attribute '') and entity_id "
             "'<topic>_eto'. The disabled 'etop' (persisted) is not used."
         ),
-        tasks=(ConsumableSignature(("eto",), "Inspect Cable and Plug", "usage_delta", delta_units=5000),),
+        tasks=(CHARGER_CABLE_ETO,),
     ),
 }

@@ -53,11 +53,22 @@ def get_global_options(hass: HomeAssistant) -> Mapping[str, Any]:
     return (entry.options or entry.data) if entry is not None else {}
 
 
+def entry_option(entry: ConfigEntry, key: str) -> Any:
+    """One setting of the GLOBAL entry at hand, falling back to the registry
+    default when unset — for the code that already holds that entry (its
+    setup, its update listener, the daily reminder ticks). Same read rule as
+    :func:`get_global_options` (``options``, else the creation ``data``).
+    The defaults used to be hand-typed next to each key (DRY audit
+    2026-09-26 B)."""
+    return (entry.options or entry.data).get(key, setting_default(key))
+
+
 def global_option(hass: HomeAssistant, key: str) -> Any:
     """One global setting, falling back to the registry default when unset —
     the runtime readers' accessor (coordinator, notification manager), so the
     fallback is never hand-typed next to the key."""
-    return get_global_options(hass).get(key, setting_default(key))
+    entry = get_global_entry(hass)
+    return entry_option(entry, key) if entry is not None else setting_default(key)
 
 
 def is_schedule_time_enabled(hass: HomeAssistant) -> bool:
@@ -67,7 +78,7 @@ def is_schedule_time_enabled(hass: HomeAssistant) -> bool:
     Settings takes effect on the next refresh without a restart. Was copied
     inline by the coordinator, calendar, and sensor before living here.
     """
-    return bool(get_global_options(hass).get(CONF_ADVANCED_SCHEDULE_TIME, False))
+    return bool(global_option(hass, CONF_ADVANCED_SCHEDULE_TIME))
 
 
 def get_default_warning_days(hass: HomeAssistant) -> int:
@@ -77,7 +88,7 @@ def get_default_warning_days(hass: HomeAssistant) -> int:
     back to the constant `DEFAULT_WARNING_DAYS` when the global entry does not
     exist yet (during initial setup) or when no user value has been stored.
     """
-    raw = get_global_options(hass).get(CONF_DEFAULT_WARNING_DAYS, DEFAULT_WARNING_DAYS)
+    raw = global_option(hass, CONF_DEFAULT_WARNING_DAYS)
     try:
         value = int(raw)
     except (TypeError, ValueError):
@@ -106,7 +117,7 @@ def get_panel_title(hass: HomeAssistant) -> str:
 
 def _percent_option(hass: HomeAssistant, key: str, default: int) -> int:
     """A percent option within THRESHOLD_PERCENT_RANGE, else its default."""
-    raw = get_global_options(hass).get(key, default)
+    raw = global_option(hass, key)
     try:
         value = int(raw)
     except (TypeError, ValueError):

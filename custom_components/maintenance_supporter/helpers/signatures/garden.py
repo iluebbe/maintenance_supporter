@@ -8,6 +8,13 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
+from ._shared import (
+    LANDROID_BLADE_RUNTIME,
+    LANDROID_UNDERCARRIAGE_RUNTIME,
+    MOWER_BLADES_RUNTIME,
+    MOWER_UNDERCARRIAGE_RUNTIME,
+    POOL_SALT_LOW,
+)
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "husqvarna_automower": IntegrationSignature(
@@ -39,8 +46,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(translation_key 'blade_runtime_current' — since last reset, DURATION min→h)"
         ),
         tasks=(
-            ConsumableSignature(("blade_runtime_current",), "Replace Blades", "usage_above"),
-            ConsumableSignature(("mower_runtime_total",), "Clean Undercarriage", "usage_delta", delta_units=25),
+            LANDROID_BLADE_RUNTIME,
+            LANDROID_UNDERCARRIAGE_RUNTIME,
         ),
     ),
     "gardena_smart_system": IntegrationSignature(
@@ -72,22 +79,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "runtime trigger on the lawn_mower entity."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Replace Blades",
-                "runtime_hours",
-                delta_units=100,
-                entity_domain="lawn_mower",
-                on_states=("mowing",),
-            ),
-            ConsumableSignature(
-                (),
-                "Clean Undercarriage",
-                "runtime_hours",
-                delta_units=25,
-                entity_domain="lawn_mower",
-                on_states=("mowing",),
-            ),
+            MOWER_BLADES_RUNTIME,
+            MOWER_UNDERCARRIAGE_RUNTIME,
         ),
     ),
     "sunseeker": IntegrationSignature(
@@ -138,22 +131,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "counter) — the ENGINE accumulates mowing time."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Replace Blades",
-                "runtime_hours",
-                delta_units=100,
-                entity_domain="lawn_mower",
-                on_states=("mowing",),
-            ),
-            ConsumableSignature(
-                (),
-                "Clean Undercarriage",
-                "runtime_hours",
-                delta_units=25,
-                entity_domain="lawn_mower",
-                on_states=("mowing",),
-            ),
+            MOWER_BLADES_RUNTIME,
+            MOWER_UNDERCARRIAGE_RUNTIME,
         ),
     ),
     "rainbird": IntegrationSignature(
@@ -194,7 +173,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         name="Ondilo ICO",
         verified="2026-07-20 @ home-assistant/core dev",
         source=("core ondilo_ico: tk 'salt' (mg/L ≡ ppm numerically) — pool salt concentration."),
-        tasks=(ConsumableSignature(("salt",), "Refill Pool Salt", "value_below", delta_units=2700),),
+        tasks=(POOL_SALT_LOW,),
     ),
     # --- Round 14 (2026-09-25) --------------------------------------------
     "mammotion": IntegrationSignature(
@@ -237,8 +216,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "TOTAL_INCREASING lifetime)."
         ),
         tasks=(
-            ConsumableSignature(("blade_runtime_current",), "Replace Blades", "usage_above"),
-            ConsumableSignature(("mower_runtime_total",), "Clean Undercarriage", "usage_delta", delta_units=25),
+            LANDROID_BLADE_RUNTIME,
+            LANDROID_UNDERCARRIAGE_RUNTIME,
         ),
     ),
     "intellicenter": IntegrationSignature(
@@ -250,7 +229,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(Salt)', CONCENTRATION_PPM (no translation_key → suffix _salt). "
             "Same IntelliChlor band as ScreenLogic."
         ),
-        tasks=(ConsumableSignature(("salt",), "Refill Pool Salt", "value_below", delta_units=2700),),
+        tasks=(POOL_SALT_LOW,),
     ),
     "hotspring": IntegrationSignature(
         name="Hot Spring spas",

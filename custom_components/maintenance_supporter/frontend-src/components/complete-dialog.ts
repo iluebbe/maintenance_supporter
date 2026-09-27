@@ -4,8 +4,10 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant, ReadingSlot, TaskPartLink } from "../types";
 import { lastReadingBefore, type ReadingHistoryEntry } from "../helpers/reading-slots";
-import { t, nativeFieldStyles, formatCost, formatNumber } from "../styles";
-import { describeWsError } from "../ws-errors";
+import { t, nativeFieldStyles, formatCost, formatNumber, formatQty } from "../styles";
+import { runWs } from "../helpers/ws-run";
+import { isoMinuteLocal } from "../helpers/calendar-bucket";
+import { PART_QTY_RANGE, RESTOCK_QTY_RANGE } from "../helpers/setting-ranges";
 import { partLinkKey, type LinkedPart } from "../helpers/shared-parts";
 import { REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import { PhotoUploadController } from "../helpers/photo-upload-controller";
@@ -15,9 +17,9 @@ import "./ms-photo-picker";
 import { photoPickerStyles } from "./ms-photo-picker";
 
 /** The server's bounds (websocket USED_PARTS_FIELD quantity / task/complete
- *  restock_quantity) — validated on save with a message, never dropped. */
-const USED_QTY_RANGE: [number, number] = [0.01, 999];
-const RESTOCK_QTY_RANGE: [number, number] = [0.01, 9999];
+ *  restock_quantity) — validated on save with a message, never dropped.
+ *  One TS source (helpers/setting-ranges), pinned to Python. */
+const USED_QTY_RANGE = PART_QTY_RANGE;
 
 export class MaintenanceCompleteDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -159,110 +161,106 @@ export class MaintenanceCompleteDialog extends LitElement {
     // an orphan (bug audit 2026-09-26 #2) — the button is disabled meanwhile;
     // this guards Enter / a programmatic click as well.
     if (this._loading || this._photos.uploading) return;
-    this._loading = true;
     this._error = "";
     this._photos.clearError();
-    try {
-      const data: Record<string, unknown> = {
-        type: "maintenance_supporter/task/complete",
-        entry_id: this.entryId,
-        task_id: this.taskId,
-      };
-      if (this._notes) data.notes = this._notes;
-      if (this._cost) {
-        const cost = parseFloat(this._cost);
-        if (!isNaN(cost) && cost >= 0) data.cost = cost;
-      }
-      // Whole minutes — the server coerces to int (helpers/duration).
-      const dur = parseDurationMinutes(this._duration);
-      if (dur !== null) data.duration = dur;
-      if (this.checklist.length > 0) {
-        data.checklist_state = this._checklistState;
-      }
-      if (this.adaptiveEnabled) {
-        data.feedback = this._feedback;
-      }
-      if (this._photos.photos.length > 0) {
-        data.photo_doc_ids = this._photos.ids;
-      }
-      // Scan fallback: the backend accepts via_tag_scan on task/complete so a
-      // require_tag_scan task can still be finished from the dialog the scan
-      // opened. Only ever sent when a scan actually happened.
-      if (this.viaTagScan) {
-        data.via_tag_scan = true;
-      }
-      if (this._completedAt) {
-        // Client-side guard mirrors the backend rule — a picked future moment
-        // fails fast with a localized message instead of a WS roundtrip.
-        if (new Date(this._completedAt).getTime() > Date.now()) {
-          this._error = t("completed_at_future_error", this.lang);
-          this._loading = false;
-          return;
-        }
-        // Re-add seconds if the datetime-local input drops them (same
-        // normalisation as the history-edit dialog).
-        data.completed_at = this._completedAt.length === 16 ? `${this._completedAt}:00` : this._completedAt;
-      }
-      if (this.readings.length > 0) {
-        // #161 phase 2: only the meters actually read go out; the backend
-        // snapshots name + unit per slot id.
-        const values: Record<string, number> = {};
-        for (const slot of this.readings) {
-          const raw = (this._readingValues[slot.id] ?? "").trim();
-          if (raw === "") continue;
-          const num = parseFloat(raw.replace(",", "."));
-          if (!isNaN(num)) values[slot.id] = num;
-        }
-        if (Object.keys(values).length > 0) data.reading_values = values;
-      } else if (this._readingValue !== "") {
-        const rv = parseFloat(this._readingValue);
-        if (!isNaN(rv)) data.reading_value = rv;
-      }
-      if (this.restockDefault !== null && this._restockQty.trim() !== "") {
-        // Fractions are real purchases (0.5 kg, 2.5 l) — the old `>= 1` guard
-        // dropped them silently and the part's default quantity was stocked
-        // instead. Out of the server's range: say so, send nothing.
-        const rq = parseFloat(this._restockQty.replace(",", "."));
-        if (!Number.isFinite(rq) || rq < RESTOCK_QTY_RANGE[0] || rq > RESTOCK_QTY_RANGE[1]) {
-          this._error = this._rangeError(...RESTOCK_QTY_RANGE);
-          this._loading = false;
-          return;
-        }
-        data.restock_quantity = rq;
-      }
-      // #99: with a parts section shown, send the explicit selection — it
-      // replaces the automatic consumes_parts deduction (empty = none used).
-      // entry_id travels only when the pool is somebody else's (#111), so an
-      // own-part payload is byte-identical to what shipped before.
-      if (this.parts.length > 0) {
-        // The typed quantities, parsed now (see _usedQtyText).
-        const used: TaskPartLink[] = [];
-        for (const [key, link] of Object.entries(this._usedParts)) {
-          const raw = this._usedQtyText[key];
-          const qty = raw === undefined ? link.quantity : parseFloat(raw.replace(",", "."));
-          if (!Number.isFinite(qty) || qty < USED_QTY_RANGE[0] || qty > USED_QTY_RANGE[1]) {
-            this._error = this._rangeError(...USED_QTY_RANGE);
-            this._loading = false;
-            return;
-          }
-          used.push({ ...link, quantity: qty });
-        }
-        data.used_parts = used
-          .map((l) =>
-            l.entry_id
-              ? { part_id: l.part_id, quantity: l.quantity, entry_id: l.entry_id }
-              : { part_id: l.part_id, quantity: l.quantity },
-          );
-      }
-      await this.hass.connection.sendMessagePromise(data);
-      this._photos.markAttached(); // attached now — Cancel cleanup must not touch them
-      this._open = false;
-      this.dispatchEvent(new CustomEvent("task-completed"));
-    } catch (e) {
-      this._error = describeWsError(e, this.lang, t("save_error", this.lang));
-    } finally {
-      this._loading = false;
+    const data: Record<string, unknown> = {
+      type: "maintenance_supporter/task/complete",
+      entry_id: this.entryId,
+      task_id: this.taskId,
+    };
+    if (this._notes) data.notes = this._notes;
+    if (this._cost) {
+      const cost = parseFloat(this._cost);
+      if (!isNaN(cost) && cost >= 0) data.cost = cost;
     }
+    // Whole minutes — the server coerces to int (helpers/duration).
+    const dur = parseDurationMinutes(this._duration);
+    if (dur !== null) data.duration = dur;
+    if (this.checklist.length > 0) {
+      data.checklist_state = this._checklistState;
+    }
+    if (this.adaptiveEnabled) {
+      data.feedback = this._feedback;
+    }
+    if (this._photos.photos.length > 0) {
+      data.photo_doc_ids = this._photos.ids;
+    }
+    // Scan fallback: the backend accepts via_tag_scan on task/complete so a
+    // require_tag_scan task can still be finished from the dialog the scan
+    // opened. Only ever sent when a scan actually happened.
+    if (this.viaTagScan) {
+      data.via_tag_scan = true;
+    }
+    if (this._completedAt) {
+      // Client-side guard mirrors the backend rule — a picked future moment
+      // fails fast with a localized message instead of a WS roundtrip.
+      if (new Date(this._completedAt).getTime() > Date.now()) {
+        this._error = t("completed_at_future_error", this.lang);
+        return;
+      }
+      // Re-add seconds if the datetime-local input drops them (same
+      // normalisation as the history-edit dialog).
+      data.completed_at = this._completedAt.length === 16 ? `${this._completedAt}:00` : this._completedAt;
+    }
+    if (this.readings.length > 0) {
+      // #161 phase 2: only the meters actually read go out; the backend
+      // snapshots name + unit per slot id.
+      const values: Record<string, number> = {};
+      for (const slot of this.readings) {
+        const raw = (this._readingValues[slot.id] ?? "").trim();
+        if (raw === "") continue;
+        const num = parseFloat(raw.replace(",", "."));
+        if (!isNaN(num)) values[slot.id] = num;
+      }
+      if (Object.keys(values).length > 0) data.reading_values = values;
+    } else if (this._readingValue !== "") {
+      const rv = parseFloat(this._readingValue);
+      if (!isNaN(rv)) data.reading_value = rv;
+    }
+    if (this.restockDefault !== null && this._restockQty.trim() !== "") {
+      // Fractions are real purchases (0.5 kg, 2.5 l) — the old `>= 1` guard
+      // dropped them silently and the part's default quantity was stocked
+      // instead. Out of the server's range: say so, send nothing.
+      const rq = parseFloat(this._restockQty.replace(",", "."));
+      if (!Number.isFinite(rq) || rq < RESTOCK_QTY_RANGE[0] || rq > RESTOCK_QTY_RANGE[1]) {
+        this._error = this._rangeError(...RESTOCK_QTY_RANGE);
+        return;
+      }
+      data.restock_quantity = rq;
+    }
+    // #99: with a parts section shown, send the explicit selection — it
+    // replaces the automatic consumes_parts deduction (empty = none used).
+    // entry_id travels only when the pool is somebody else's (#111), so an
+    // own-part payload is byte-identical to what shipped before.
+    if (this.parts.length > 0) {
+      // The typed quantities, parsed now (see _usedQtyText).
+      const used: TaskPartLink[] = [];
+      for (const [key, link] of Object.entries(this._usedParts)) {
+        const raw = this._usedQtyText[key];
+        const qty = raw === undefined ? link.quantity : parseFloat(raw.replace(",", "."));
+        if (!Number.isFinite(qty) || qty < USED_QTY_RANGE[0] || qty > USED_QTY_RANGE[1]) {
+          this._error = this._rangeError(...USED_QTY_RANGE);
+          return;
+        }
+        used.push({ ...link, quantity: qty });
+      }
+      data.used_parts = used
+        .map((l) =>
+          l.entry_id
+            ? { part_id: l.part_id, quantity: l.quantity, entry_id: l.entry_id }
+            : { part_id: l.part_id, quantity: l.quantity },
+        );
+    }
+    const res = await runWs(this, data, {
+      busy: (b) => { this._loading = b; },
+      lang: this.lang,
+      fallbackKey: "save_error",
+      onError: (m) => { this._error = m; },
+    });
+    if (res === undefined) return;
+    this._photos.markAttached(); // attached now — Cancel cleanup must not touch them
+    this._open = false;
+    this.dispatchEvent(new CustomEvent("task-completed"));
   }
 
   /** #161 phase 2: one field per slot with the previous value as a hint;
@@ -359,9 +357,7 @@ export class MaintenanceCompleteDialog extends LitElement {
 
   /** Seed the backdate field with the current minute (local, seconds zeroed). */
   private _pickCompletedAt(): void {
-    const d = new Date();
-    const pad = (n: number) => String(n).padStart(2, "0");
-    this._completedAt = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
+    this._completedAt = isoMinuteLocal(new Date());
   }
 
   render() {
@@ -427,7 +423,7 @@ export class MaintenanceCompleteDialog extends LitElement {
                       <span
                         >${pt.name}${pt.owner_name
                           ? html`<span class="used-part-owner"> (${pt.owner_name})</span>`
-                          : nothing}${pt.stock !== null && pt.stock !== undefined ? ` (${pt.stock}${pt.unit ? " " + pt.unit : ""})` : ""}</span
+                          : nothing}${pt.stock !== null && pt.stock !== undefined ? ` (${formatQty(pt.stock, pt.unit, L)})` : ""}</span
                       >
                     </label>
                     ${checked

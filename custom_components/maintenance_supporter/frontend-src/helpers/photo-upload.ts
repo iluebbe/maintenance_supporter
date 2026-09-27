@@ -40,6 +40,29 @@ export async function authFetch(hass: HomeAssistant, url: string, init: RequestI
   });
 }
 
+/** Import ceiling of the documents archive — the TS twin of
+ *  helpers/doc_archive.py MAX_ARCHIVE_BYTES (tests/test_frontend_const_parity.py);
+ *  it names the limit in the "too large" message. */
+export const DOCS_ARCHIVE_MAX_BYTES = 500 * 1024 * 1024;
+
+/** THE multipart POST to one of our upload views (document upload, the
+ *  documents-archive import): a fresh token via authFetch, a 413 mapped to
+ *  `Error(tooLargeKey)` and any other refusal to `Error("doc_upload_failed")`
+ *  — locale keys the caller renders; a network failure propagates as-is.
+ *  The archive import had its own copy that turned a 413 into the generic
+ *  "Action failed" (DRY audit 2026-09-26). */
+export async function postMultipart<T>(
+  hass: HomeAssistant,
+  url: string,
+  form: FormData,
+  tooLargeKey = "doc_too_large",
+): Promise<T> {
+  const resp = await authFetch(hass, url, { method: "POST", body: form });
+  if (resp.status === 413) throw new Error(tooLargeKey);
+  if (!resp.ok) throw new Error("doc_upload_failed");
+  return (await resp.json()) as T;
+}
+
 /** Upload one file as a document of `entryId`, tagged with `tags`. Throws
  *  `Error("doc_too_large")` on a 413 and `Error("doc_upload_failed")` on
  *  any other refusal (a network failure propagates as-is). */
@@ -53,10 +76,7 @@ export async function uploadDocument(
   form.append("entry_id", entryId);
   for (const tag of tags) form.append("tags", tag);
   form.append("file", file, file.name);
-  const resp = await authFetch(hass, "/api/maintenance_supporter/document/upload", { method: "POST", body: form });
-  if (resp.status === 413) throw new Error("doc_too_large");
-  if (!resp.ok) throw new Error("doc_upload_failed");
-  const doc = (await resp.json()) as Partial<UploadedDocument>;
+  const doc = await postMultipart<Partial<UploadedDocument>>(hass, "/api/maintenance_supporter/document/upload", form);
   if (!doc.id) throw new Error("doc_upload_failed");
   return { id: doc.id, deduped: !!doc.deduped, duplicate_in_object: doc.duplicate_in_object ?? null };
 }

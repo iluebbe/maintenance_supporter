@@ -15,7 +15,6 @@ from homeassistant.util import dt as dt_util
 if TYPE_CHECKING:
     from .calendar import MaintenanceCalendar
     from .todo import MaintenanceTodoList
-from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -51,9 +50,8 @@ from .const import (
     MaintenanceStatus,
     ScheduleType,
     TriggerEntityState,
-    slugify_object_name,
-    task_unique_id,
 )
+from .helpers.aggregate import task_sensor_entity_id as aggregate_task_sensor_entity_id
 from .helpers.budget import compute_spend
 from .helpers.calendar_source import next_event_titles
 from .helpers.entry_tasks import write_task
@@ -65,7 +63,7 @@ from .helpers.notification_gates import task_may_notify
 from .helpers.notify_hooks import KIND_STATUS
 from .helpers.pause import is_task_inert
 from .helpers.phases import task_label
-from .helpers.schedule import KIND_INTERVAL, KIND_MANUAL, Schedule, normalize_task_storage, read_legacy_fields
+from .helpers.schedule import KIND_INTERVAL, KIND_MANUAL, Schedule, read_legacy_fields
 from .models.maintenance_object import MaintenanceObject
 from .models.maintenance_task import MaintenanceTask
 from .storage import MaintenanceStore
@@ -1960,9 +1958,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         }
 
     def task_sensor_entity_id(self, task_id: str) -> str | None:
-        """The registered entity_id of a task's status sensor, if any."""
-        unique_id = task_unique_id(slugify_object_name(self.maintenance_object.name), task_id)
-        return er.async_get(self.hass).async_get_entity_id("sensor", DOMAIN, unique_id)
+        """The registered entity_id of a task's status sensor, if any — the
+        shared lookup (DRY audit 2026-09-26 B: this copy slugged the model's
+        name, which reads "" for an object stored without one, while the
+        sensor registered under "unknown")."""
+        return aggregate_task_sensor_entity_id(self.hass, self.entry.data.get(CONF_OBJECT) or {}, task_id)
 
     async def async_apply_suggested_interval(self, task_id: str, interval: int) -> None:
         """Apply a suggested interval to a task (static config → ConfigEntry)."""
@@ -1992,10 +1992,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         task_dict["interval_days"] = interval
         task_dict["interval_unit"] = "days"
         task_dict["interval_anchor"] = fields["interval_anchor"]
-        task_dict = normalize_task_storage(task_dict)
-        tasks_data[task_id] = task_dict
-
-        await self._async_persist_tasks(tasks_data)
+        # The one task-write chokepoint (normalizes to the nested schedule).
+        write_task(self.hass, self.entry, task_id, task_dict)
+        await self.async_refresh_now()
 
         _LOGGER.info(
             "Adaptive: interval %s→%s for task %s",
@@ -2003,13 +2002,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             interval,
             task_id,
         )
-
-    async def _async_persist_tasks(self, tasks_data: dict[str, Any]) -> None:
-        """Persist updated task data to the config entry and refresh."""
-        new_data = dict(self.entry.data)
-        new_data[CONF_TASKS] = tasks_data
-        self.hass.config_entries.async_update_entry(self.entry, data=new_data)
-        await self.async_refresh_now()
 
     async def async_persist_trigger_runtime(
         self,

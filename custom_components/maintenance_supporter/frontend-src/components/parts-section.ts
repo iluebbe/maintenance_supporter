@@ -15,8 +15,8 @@
 import { LitElement, html, css, nothing } from "lit";
 import { isSafeHttpUrl } from "../helpers/url";
 import { property, state } from "lit/decorators.js";
-import { t, ensureLocale, langOf, formatCost } from "../styles";
-import { describeWsError } from "../ws-errors";
+import { t, ensureLocale, langOf, formatCost, formatNumber, formatQty } from "../styles";
+import { runWs } from "../helpers/ws-run";
 import type { HomeAssistant, MaintenancePart } from "../types";
 // Per-part document links (v2.26) — the task-documents component in part mode.
 import "./task-documents";
@@ -83,17 +83,14 @@ export class MaintenancePartsSection extends LitElement {
     this.dispatchEvent(new CustomEvent("parts-changed", { bubbles: true, composed: true }));
   }
 
-  private async _send<T>(msg: Record<string, unknown>): Promise<T | null> {
-    this._busy = true;
+  /** helpers/ws-run runWs bound to the busy flag and the error line;
+   *  undefined = refused (the reason is on the error line). */
+  private _send<T>(msg: Record<string, unknown>): Promise<T | null | undefined> {
     this._error = "";
-    try {
-      return await this.hass.connection.sendMessagePromise<T>(msg);
-    } catch (err) {
-      this._error = describeWsError(err, this._lang);
-      return null;
-    } finally {
-      this._busy = false;
-    }
+    return runWs<T>(this, msg, {
+      busy: (b) => { this._busy = b; },
+      onError: (m) => { this._error = m; },
+    });
   }
 
   private _openAdd(): void {
@@ -145,7 +142,7 @@ export class MaintenancePartsSection extends LitElement {
     const payload = this._formValue(f);
     const type = f.id ? "maintenance_supporter/part/update" : "maintenance_supporter/part/create";
     const result = await this._send<{ part_id?: string }>(f.id ? { type, part_id: f.id, ...payload } : { type, ...payload });
-    if (result !== null) {
+    if (result !== undefined) {
       this._editing = null;
       this._notifyChanged();
     }
@@ -160,7 +157,7 @@ export class MaintenancePartsSection extends LitElement {
       entry_id: this.entryId,
       part_id: part.id,
     });
-    if (result !== null) this._notifyChanged();
+    if (result !== undefined) this._notifyChanged();
   }
 
   private async _restock(part: MaintenancePart): Promise<void> {
@@ -183,9 +180,9 @@ export class MaintenancePartsSection extends LitElement {
       delta: qty,
     });
     this._restockFor = null;
-    if (result !== null) {
+    if (result !== undefined) {
       // Instant local feedback; the panel refresh follows via parts-changed.
-      part.stock = result.stock;
+      part.stock = result?.stock;
       this.requestUpdate();
       this._notifyChanged();
     }
@@ -212,8 +209,8 @@ export class MaintenancePartsSection extends LitElement {
               : part.name}
             ${tracked
               ? html`<span class="stock-badge ${part.is_low ? "low" : ""}"
-                  >${part.stock}${part.unit ? ` ${part.unit}` : ""}${part.reorder_threshold != null
-                    ? html`<span class="threshold">/${part.reorder_threshold}</span>`
+                  >${formatQty(part.stock!, part.unit, L)}${part.reorder_threshold != null
+                    ? html`<span class="threshold">/${formatNumber(part.reorder_threshold, L)}</span>`
                     : nothing}</span
                 >`
               : nothing}

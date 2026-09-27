@@ -8,6 +8,7 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
+from ._shared import HEATING_WATER_PRESSURE_LOW, SOFTENER_SALT_LEVEL
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "vicare": IntegrationSignature(
@@ -63,7 +64,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         name="Plugwise (Anna/Adam)",
         verified="2026-07-19 @ core/dev plugwise/sensor.py",
         source="core plugwise: tk 'water_pressure', BAR, MEASUREMENT (boiler loop).",
-        tasks=(ConsumableSignature(("water_pressure",), "Refill Heating Water", "value_below", delta_units=1),),
+        tasks=(HEATING_WATER_PRESSURE_LOW,),
     ),
     "incomfort": IntegrationSignature(
         name="Intergas InComfort",
@@ -171,7 +172,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "suffix _salt_level). 'Out of salt estimated day' is a DATE "
             "sensor - parked for the date direction."
         ),
-        tasks=(ConsumableSignature(("salt_level",), "Refill Softener Salt", "percent_left"),),
+        tasks=(SOFTENER_SALT_LEVEL,),
     ),
     "fumis": IntegrationSignature(
         name="Fumis (pellet stoves)",
@@ -220,7 +221,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "core de_dietrich (new on dev = 2026.10, Diematic Modbus): tk "
             "'water_pressure', UnitOfPressure.BAR, MEASUREMENT (boiler loop)."
         ),
-        tasks=(ConsumableSignature(("water_pressure",), "Refill Heating Water", "value_below", delta_units=1),),
+        tasks=(HEATING_WATER_PRESSURE_LOW,),
     ),
     "remeha_home": IntegrationSignature(
         name="Remeha Home",
@@ -231,7 +232,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "has_entity_name without translation_key → suffix "
             "_water_pressure)."
         ),
-        tasks=(ConsumableSignature(("water_pressure",), "Refill Heating Water", "value_below", delta_units=1),),
+        tasks=(HEATING_WATER_PRESSURE_LOW,),
     ),
     "syr_connect": IntegrationSignature(
         name="SYR Connect (softeners)",
@@ -256,7 +257,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "'salt_level', '%' = (empty − distance) / (empty − full) × 100 — "
             "the salt REMAINING in the brine tank (ultrasonic level sensor)."
         ),
-        tasks=(ConsumableSignature(("salt_level",), "Refill Softener Salt", "percent_left"),),
+        tasks=(SOFTENER_SALT_LEVEL,),
     ),
     "unique_waterontharder": IntegrationSignature(
         name="Unique Waterontharder",
@@ -266,7 +267,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "PERCENTAGE, MEASUREMENT — the cloud API's 'zout_niveau' (salt "
             "level)."
         ),
-        tasks=(ConsumableSignature(("salt_level",), "Refill Softener Salt", "percent_left"),),
+        tasks=(SOFTENER_SALT_LEVEL,),
     ),
     "bwt_aqa_perla_ble": IntegrationSignature(
         name="BWT AQA Perla (BLE)",

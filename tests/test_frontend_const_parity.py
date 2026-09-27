@@ -193,6 +193,57 @@ def test_status_palettes_cover_every_maintenance_status() -> None:
         missing = statuses - keys
         assert not missing, f"{name} lacks entries for MaintenanceStatus values: {sorted(missing)}"
 
+    # The deliberate subsets. STATUS_ORDER = the live statuses (archived /
+    # paused are states of the object, not a place in the queue); the card
+    # editor's filter and the calendar's pills are exactly that set.
+    order = _ts_string_tuple(src, "STATUS_ORDER")
+    assert set(order) <= statuses, f"STATUS_ORDER names unknown statuses: {sorted(set(order) - statuses)}"
+    assert set(order) == statuses - {MaintenanceStatus.ARCHIVED, MaintenanceStatus.PAUSED}, (
+        f"STATUS_ORDER {order} must be every live MaintenanceStatus (all but archived/paused)"
+    )
+    editor = (_FRONTEND / "maintenance-card-editor.ts").read_text(encoding="utf-8")
+    assert "STATUS_ORDER.map(" in editor, "the card editor's status filter must render status-constants STATUS_ORDER"
+    pills = set(re.findall(r"\.cal-status-(\w+)\s*\{", (_FRONTEND / "calendar-styles.ts").read_text(encoding="utf-8"))) - {"pill"}
+    assert pills == set(order), f"calendar status pills {sorted(pills)} != STATUS_ORDER {order}"
+    bucket = (_FRONTEND / "helpers" / "calendar-bucket.ts").read_text(encoding="utf-8")
+    start = bucket.index("HISTORY_TYPE_TO_STATUS")
+    mapped = set(re.findall(r':\s*"(\w+)"', bucket[start : bucket.index("};", start)]))
+    assert mapped <= set(order), f"HISTORY_TYPE_TO_STATUS maps to statuses without a calendar pill: {sorted(mapped - set(order))}"
+
+
+def _ts_string_tuple(src: str, name: str) -> list[str]:
+    """The quoted members of ``export const NAME = [ ... ] as const``."""
+    m = re.search(rf"export const {name} = \[([^\]]*)\]", src)
+    assert m, f"could not parse {name}"
+    return _quoted_strings(m.group(1))
+
+
+def test_actionable_statuses_match_backend() -> None:
+    """status-constants ACTIONABLE_STATUSES (the card's default filter, the
+    strategy's overview) is the backend's notifiable/actionable set — the
+    same three statuses the to-do mirror and Assist's "what is due" use —
+    and ranks in STATUS_ORDER's urgency order (DRY audit 2026-09-26: four
+    hand-kept copies, one in a different order)."""
+    from custom_components.maintenance_supporter.const import NOTIFIABLE_STATUSES
+
+    src = (_FRONTEND / "status-constants.ts").read_text(encoding="utf-8")
+    actionable = _ts_string_tuple(src, "ACTIONABLE_STATUSES")
+    order = _ts_string_tuple(src, "STATUS_ORDER")
+    assert set(actionable) == set(NOTIFIABLE_STATUSES), (
+        f"ACTIONABLE_STATUSES {actionable} drifted from const.NOTIFIABLE_STATUSES {sorted(NOTIFIABLE_STATUSES)}"
+    )
+    assert actionable == [s for s in order if s in actionable], "ACTIONABLE_STATUSES must follow STATUS_ORDER"
+    # No surface keeps its own rank map or status list any more.
+    offenders = [
+        p.name
+        for p in _FRONTEND.rglob("*.ts")
+        if "__tests__" not in p.parts
+        and "node_modules" not in p.parts
+        and p.name != "status-constants.ts"
+        and re.search(r"overdue:\s*0,\s*triggered:\s*1|\[\s*\"overdue\",\s*\"(?:triggered|due_soon)\"", p.read_text(encoding="utf-8"))
+    ]
+    assert not offenders, f"hand-kept status rank/list in {offenders} — use status-constants STATUS_ORDER / statusRank / ACTIONABLE_STATUSES"
+
 
 def test_history_type_map_covers_every_history_entry_type() -> None:
     """The calendar's past-mode map and the history filter chips must know
@@ -532,3 +583,97 @@ def test_ts_reference_regex_matches_python() -> None:
     m = re.search(r"export function parseRef[\s\S]*?const m = /(.+?)/\.exec\(", src)
     assert m, "could not find the parseRef regex literal in reference.ts"
     assert m.group(1) == REF_PATTERN.pattern, "reference.ts parseRef regex drifted from reference_numbers.REF_PATTERN"
+
+
+# ─── DRY round 4 (2026-09-26): field bounds + the archive ceiling ─────────
+
+
+def _ts_range(src: str, name: str) -> tuple[float, float]:
+    """``export const NAME: readonly [number, number] = [lo, hi];`` → (lo, hi)."""
+    m = re.search(rf"export const {name}\b[^=]*=\s*\[(-?[\d.]+),\s*(-?[\d.]+)\]", src)
+    assert m, f"{name} not found in setting-ranges.ts"
+    return float(m.group(1)), float(m.group(2))
+
+
+def _schema_ranges(validator: object) -> list[tuple[float, float]]:
+    """Every vol.Range inside a (nested) voluptuous validator, as (min, max)."""
+    import voluptuous as vol
+
+    out: list[tuple[float, float]] = []
+    if isinstance(validator, vol.Range):
+        out.append((float(validator.min), float(validator.max)))
+    elif isinstance(validator, vol.Schema):
+        out.extend(_schema_ranges(validator.schema))
+    elif isinstance(validator, dict):
+        for v in validator.values():
+            out.extend(_schema_ranges(v))
+    elif isinstance(validator, (list, tuple)):
+        for v in validator:
+            out.extend(_schema_ranges(v))
+    elif hasattr(validator, "validators"):
+        for v in validator.validators:
+            out.extend(_schema_ranges(v))
+    return out
+
+
+def test_ts_field_ranges_match_backend() -> None:
+    """helpers/setting-ranges.ts holds the TS twins of the backend's field
+    bounds — the adopt dialog's for_minutes max, the task dialog's offset
+    clamp / EWA check / warning days, the part quantity ranges of the task,
+    complete and history-edit dialogs, the seasonal override factor. Each
+    surface had its own literal (DRY audit 2026-09-26); this pins every
+    tuple to the Python source it mirrors."""
+    from custom_components.maintenance_supporter.const import (
+        ADAPTIVE_EWA_ALPHA_RANGE,
+        SCHEDULE_OFFSET_MAX_DAYS,
+        TRIGGER_FIELD_RANGES,
+    )
+    from custom_components.maintenance_supporter.helpers.parts import MAX_CONSUME_QUANTITY, MAX_PART_STOCK
+    from custom_components.maintenance_supporter.helpers.task_fields import WARNING_DAYS_RANGE
+    from custom_components.maintenance_supporter.websocket import USED_PARTS_FIELD
+    from custom_components.maintenance_supporter.websocket.tasks_actions import ws_complete_task
+
+    src = _SETTING_RANGES_TS.read_text(encoding="utf-8")
+    assert _ts_range(src, "TRIGGER_FOR_MINUTES_RANGE") == TRIGGER_FIELD_RANGES["trigger_for_minutes"]
+    assert _ts_range(src, "TRIGGER_TARGET_CHANGES_RANGE") == TRIGGER_FIELD_RANGES["trigger_target_changes"]
+    m = re.search(r"export const SCHEDULE_OFFSET_MAX_DAYS = (\d+);", src)
+    assert m and int(m.group(1)) == SCHEDULE_OFFSET_MAX_DAYS, "SCHEDULE_OFFSET_MAX_DAYS drifted from const.py"
+    assert _ts_range(src, "EWA_ALPHA_RANGE") == ADAPTIVE_EWA_ALPHA_RANGE
+    assert _ts_range(src, "WARNING_DAYS_RANGE") == WARNING_DAYS_RANGE
+
+    # Quantities: the completion / history-edit schemas are the authority
+    # (their vol.Range), the parts helper's caps must agree with them.
+    part_qty = _ts_range(src, "PART_QTY_RANGE")
+    assert part_qty in _schema_ranges(USED_PARTS_FIELD), f"PART_QTY_RANGE {part_qty} != the used_parts quantity schema"
+    assert part_qty[1] == MAX_CONSUME_QUANTITY, "PART_QTY_RANGE max != parts.MAX_CONSUME_QUANTITY"
+    schema = ws_complete_task._ws_schema  # type: ignore[attr-defined]
+    validators = schema.schema if hasattr(schema, "schema") else schema
+    restock_field = next(v for k, v in validators.items() if str(k) == "restock_quantity")
+    restock = _ts_range(src, "RESTOCK_QTY_RANGE")
+    assert restock in _schema_ranges(restock_field), f"RESTOCK_QTY_RANGE {restock} != task/complete restock_quantity"
+    assert restock[1] == MAX_PART_STOCK, "RESTOCK_QTY_RANGE max != parts.MAX_PART_STOCK"
+
+    # Seasonal override factor: checked inline in the WS handler — a literal
+    # or a module-level name, both resolve against the module's namespace.
+    from custom_components.maintenance_supporter.websocket import analysis as analysis_mod
+
+    analysis = (_FRONTEND.parent / "websocket" / "analysis.py").read_text(encoding="utf-8")
+    m = re.search(r"factor < ([\w.\[\]]+) or factor > ([\w.\[\]]+)", analysis)
+    assert m, "seasonal override factor bound not found in websocket/analysis.py"
+    namespace = vars(analysis_mod)
+    bound = (float(eval(m.group(1), namespace)), float(eval(m.group(2), namespace)))  # repo source, trusted
+    assert _ts_range(src, "SEASONAL_FACTOR_RANGE") == bound
+
+
+def test_ts_docs_archive_ceiling_matches_backend() -> None:
+    """photo-upload.ts DOCS_ARCHIVE_MAX_BYTES names the limit in the
+    archive import's "too large" message — it must be the import's real cap."""
+    from custom_components.maintenance_supporter.helpers.doc_archive import MAX_ARCHIVE_BYTES
+
+    src = (_FRONTEND / "helpers" / "photo-upload.ts").read_text(encoding="utf-8")
+    m = re.search(r"export const DOCS_ARCHIVE_MAX_BYTES = ([\d\s*]+);", src)
+    assert m, "DOCS_ARCHIVE_MAX_BYTES not found in photo-upload.ts"
+    value = 1
+    for factor in m.group(1).split("*"):
+        value *= int(factor.strip())
+    assert value == MAX_ARCHIVE_BYTES, "photo-upload.ts DOCS_ARCHIVE_MAX_BYTES drifted from doc_archive.MAX_ARCHIVE_BYTES"

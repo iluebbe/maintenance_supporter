@@ -5,19 +5,19 @@ import { property, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { live } from "lit/directives/live.js";
 import type { HomeAssistant, AdvancedFeatures, BudgetStatus, HAUser } from "../types";
-import { t, langOf, personStyles, syncCurrencyDecimals} from "../styles";
+import { t, langOf, personStyles, syncCurrencyDecimals, formatNumber } from "../styles";
 import { signApiPath } from "../helpers/document-url";
 import { downloadUrl } from "../helpers/download";
 import { UserService } from "../user-service";
 import { AVATAR_PALETTE, personOf, renderPersonAvatar } from "../helpers/person";
 import { OBJECT_COLUMNS, sanitizeColumns } from "../helpers/object-columns";
 import { downloadTextFile } from "../helpers/download";
-import { invalidateSettingsCache } from "../helpers/settings-cache";
+import { invalidateSettingsCache, ROW_ACTION_STYLES } from "../helpers/settings-cache";
 import { SETTING_INT_RANGES, VACATION_BUFFER_DAYS_RANGE, settingIntRange } from "../helpers/setting-ranges";
 import { ToastTimer } from "../helpers/toast";
 import { isoDateLocal } from "../helpers/calendar-bucket";
 import { runWs } from "../helpers/ws-run";
-import { authFetch } from "../helpers/photo-upload";
+import { DOCS_ARCHIVE_MAX_BYTES, postMultipart } from "../helpers/photo-upload";
 import { countryName, detectionReasons, dwellingLabel, type HomeProfile } from "../helpers/home-profile";
 import "./ms-date-field";
 
@@ -991,7 +991,7 @@ export class MaintenanceSettingsView extends LitElement {
           <span class="setting-label">${t("settings_row_actions", L)}</span>
           <select .value=${live(g.row_action_style || "buttons_compact")}
             @change=${(e: Event) => this._updateSetting("row_action_style", (e.target as HTMLSelectElement).value)}>
-            ${(["buttons_compact", "buttons", "icons"] as const).map((v) => html`
+            ${ROW_ACTION_STYLES.map((v) => html`
               <option value=${v} ?selected=${(g.row_action_style || "buttons_compact") === v}>${t(`row_actions_${v}`, L)}</option>`)}
           </select>
         </label>
@@ -2088,20 +2088,23 @@ export class MaintenanceSettingsView extends LitElement {
     try {
       const form = new FormData();
       form.append("file", file, file.name);
-      const resp = await authFetch(this.hass, "/api/maintenance_supporter/documents/archive", { method: "POST", body: form });
-      if (!resp.ok) {
-        this._showToast(t("action_error", this._lang));
-      } else {
-        const result = (await resp.json()) as { blobs_written: number; documents_created: number };
-        this._showToast(
-          t("settings_docs_import_success", this._lang)
-            .replace("{blobs}", String(result.blobs_written ?? 0))
-            .replace("{docs}", String(result.documents_created ?? 0))
-        );
-        this.dispatchEvent(new CustomEvent("settings-changed"));
-      }
-    } catch {
-      this._showToast(t("action_error", this._lang));
+      const result = await postMultipart<{ blobs_written: number; documents_created: number }>(
+        this.hass, "/api/maintenance_supporter/documents/archive", form, "docs_archive_too_large",
+      );
+      this._showToast(
+        t("settings_docs_import_success", this._lang)
+          .replace("{blobs}", String(result.blobs_written ?? 0))
+          .replace("{docs}", String(result.documents_created ?? 0))
+      );
+      this.dispatchEvent(new CustomEvent("settings-changed"));
+    } catch (e) {
+      // A 413 names the limit; anything else stays the generic message.
+      this._showToast(
+        e instanceof Error && e.message === "docs_archive_too_large"
+          ? t("docs_archive_too_large", this._lang)
+            .replace("{max}", `${formatNumber(DOCS_ARCHIVE_MAX_BYTES / (1024 * 1024), this._lang)} MB`)
+          : t("action_error", this._lang),
+      );
     }
     input.value = "";
     this._docArchiveLoading = false;

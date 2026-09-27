@@ -16,6 +16,7 @@
 
 import type { MaintenanceObjectResponse } from "../types";
 import { intervalSpanDays } from "./interval";
+import { statusRank } from "../status-constants";
 
 export const MAX_OCCURRENCES_PER_TASK = 5;
 
@@ -71,6 +72,14 @@ export function isoDateLocal(d: Date): string {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+}
+
+/** The local wall-clock minute as "YYYY-MM-DDTHH:MM:00" (seconds zeroed) —
+ *  the value shape of a datetime field; the date half is isoDateLocal. */
+export function isoMinuteLocal(d: Date): string {
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${isoDateLocal(d)}T${hh}:${mm}:00`;
 }
 
 /** Build the list of N consecutive ISO dates starting today (local). */
@@ -198,14 +207,6 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
   return out;
 }
 
-/** Status sort priority: lower = shown first. */
-const STATUS_RANK: Record<string, number> = {
-  overdue: 0,
-  triggered: 1,
-  due_soon: 2,
-  ok: 3,
-};
-
 /**
  * Main entry point: build the day-bucketed event list for the Calendar tab.
  *
@@ -252,8 +253,8 @@ export function buildCalendarBuckets(
   // Sort within day: status priority first, then projected last, then by name
   for (const [, evs] of byDate) {
     evs.sort((a, b) => {
-      const rA = STATUS_RANK[a.status] ?? 99;
-      const rB = STATUS_RANK[b.status] ?? 99;
+      const rA = statusRank(a.status);
+      const rB = statusRank(b.status);
       if (rA !== rB) return rA - rB;
       if (a.projected !== b.projected) return a.projected ? 1 : -1;
       const cmp = a.object_name.localeCompare(b.object_name);

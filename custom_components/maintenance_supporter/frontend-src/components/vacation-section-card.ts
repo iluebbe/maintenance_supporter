@@ -15,7 +15,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf, syncLocaleFromHass } from "../styles";
 import { registerCustomCard } from "../helpers/register-card";
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
 import { VACATION_BUFFER_DAYS_RANGE } from "../helpers/setting-ranges";
 import { confirmAction } from "../helpers/confirm";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
@@ -79,34 +79,30 @@ export class MaintenanceVacationSectionCard extends LitElement {
   }
 
   private async _load(): Promise<void> {
-    try {
-      const r = await this.hass.connection.sendMessagePromise<VacationState>({
-        type: "maintenance_supporter/vacation/state",
-      });
-      this._state = r;
-      this._localStart = r.start || "";
-      this._localEnd = r.end || "";
-      this._localBuffer = String(r.buffer_days ?? 3);
-      this._dirty = false;
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    }
+    const r = await runWs<VacationState>(this, { type: "maintenance_supporter/vacation/state" }, {
+      onError: (m) => { this._error = m; },
+    });
+    if (!r) return;
+    this._state = r;
+    this._localStart = r.start || "";
+    this._localEnd = r.end || "";
+    this._localBuffer = String(r.buffer_days ?? 3);
+    this._dirty = false;
+  }
+
+  /** One vacation write — helpers/ws-run runWs with the busy flag and the
+   *  error line; resolves the new state (undefined when refused). */
+  private _act(payload: Record<string, unknown>): Promise<VacationState | null | undefined> {
+    this._error = "";
+    return runWs<VacationState>(this, payload, {
+      busy: (b) => { this._busy = b; },
+      onError: (m) => { this._error = m; },
+    });
   }
 
   private async _toggleEnabled(on: boolean): Promise<void> {
-    this._busy = true;
-    this._error = "";
-    try {
-      const r = await this.hass.connection.sendMessagePromise<VacationState>({
-        type: "maintenance_supporter/vacation/update",
-        enabled: on,
-      });
-      this._state = r;
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+    const r = await this._act({ type: "maintenance_supporter/vacation/update", enabled: on });
+    if (r) this._state = r;
   }
 
   private async _save(): Promise<void> {
@@ -120,22 +116,15 @@ export class MaintenanceVacationSectionCard extends LitElement {
       this._error = t("settings_value_out_of_range", this._lang).replace("{min}", String(min)).replace("{max}", String(max));
       return;
     }
-    this._busy = true;
-    this._error = "";
-    try {
-      const r = await this.hass.connection.sendMessagePromise<VacationState>({
-        type: "maintenance_supporter/vacation/update",
-        start: this._localStart || null,
-        end: this._localEnd || null,
-        buffer_days: buffer,
-      });
-      this._state = r;
-      this._dirty = false;
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+    const r = await this._act({
+      type: "maintenance_supporter/vacation/update",
+      start: this._localStart || null,
+      end: this._localEnd || null,
+      buffer_days: buffer,
+    });
+    if (!r) return;
+    this._state = r;
+    this._dirty = false;
   }
 
   private async _endNow(): Promise<void> {
@@ -147,19 +136,11 @@ export class MaintenanceVacationSectionCard extends LitElement {
       confirmText: t("vacation_end_now", this._lang),
     });
     if (!confirmed) return;
-    this._busy = true;
-    try {
-      const r = await this.hass.connection.sendMessagePromise<VacationState>({
-        type: "maintenance_supporter/vacation/end_now",
-      });
-      this._state = r;
-      this._localStart = r.start || "";
-      this._localEnd = r.end || "";
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+    const r = await this._act({ type: "maintenance_supporter/vacation/end_now" });
+    if (!r) return;
+    this._state = r;
+    this._localStart = r.start || "";
+    this._localEnd = r.end || "";
   }
 
   private _onDeepLink(): void {

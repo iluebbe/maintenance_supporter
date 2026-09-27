@@ -13,11 +13,12 @@ import { isSafeHttpUrl } from "../helpers/url";
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { property, state } from "lit/decorators.js";
 import { t, langOf } from "../styles";
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
 import { statusColor, statusKey, statusLabel } from "../renderers/status";
 import { fetchSettingsOnce } from "../helpers/settings-cache";
 import { canWrite, NO_DELEGATION, type WriteAccess } from "../helpers/permissions";
 import { confirmAction } from "../helpers/confirm";
+import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
 import type { HomeAssistant, MaintenanceObject, MaintenanceTask } from "../types";
 
 interface ObjectFull {
@@ -60,15 +61,21 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
 
   private async _load(): Promise<void> {
     if (!this._entryId) return;
-    try {
-      const r = await this.hass.connection.sendMessagePromise<ObjectFull>({
-        type: "maintenance_supporter/object",
-        entry_id: this._entryId,
-      });
-      this._data = r;
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    }
+    const r = await runWs<ObjectFull>(
+      this,
+      { type: "maintenance_supporter/object", entry_id: this._entryId },
+      { onError: (m) => { this._error = m; } },
+    );
+    if (r !== undefined) this._data = r;
+  }
+
+  /** helpers/ws-run runWs bound to this dialog's busy flag and error line. */
+  private _runWs(payload: Record<string, unknown>): Promise<unknown> {
+    this._error = "";
+    return runWs(this, payload, {
+      busy: (b) => { this._busy = b; },
+      onError: (m) => { this._error = m; },
+    });
   }
 
   private _onEditObject(): void {
@@ -96,25 +103,15 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
       danger: true,
     });
     if (!ok) return;
-    this._busy = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/object/delete",
-        entry_id: this._entryId,
-      });
-      this.dispatchEvent(
-        new CustomEvent("object-deleted", {
-          detail: { entry_id: this._entryId },
-          bubbles: true, composed: true,
-        }),
-      );
-      this.close();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+    const entryId = this._entryId;
+    if ((await this._runWs({ type: "maintenance_supporter/object/delete", entry_id: entryId })) === undefined) return;
+    this.dispatchEvent(
+      new CustomEvent("object-deleted", {
+        detail: { entry_id: entryId },
+        bubbles: true, composed: true,
+      }),
+    );
+    this.close();
   }
 
   private async _onArchiveObject(): Promise<void> {
@@ -128,27 +125,21 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
       });
       if (!ok) return;
     }
-    this._busy = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: archived
-          ? "maintenance_supporter/object/unarchive"
-          : "maintenance_supporter/object/archive",
-        entry_id: this._entryId,
-      });
-      this.dispatchEvent(
-        new CustomEvent("object-changed", {
-          detail: { entry_id: this._entryId },
-          bubbles: true, composed: true,
-        }),
-      );
-      this.close();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+    const entryId = this._entryId;
+    const res = await this._runWs({
+      type: archived
+        ? "maintenance_supporter/object/unarchive"
+        : "maintenance_supporter/object/archive",
+      entry_id: entryId,
+    });
+    if (res === undefined) return;
+    this.dispatchEvent(
+      new CustomEvent("object-changed", {
+        detail: { entry_id: entryId },
+        bubbles: true, composed: true,
+      }),
+    );
+    this.close();
   }
 
   private _onTaskClick(taskId: string): void {
@@ -168,9 +159,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     const tasks = data?.tasks || [];
     const writer = canWrite(this.hass?.user, this._access);
 
-    return html`
-      <div class="backdrop" @click=${this.close}></div>
-      <div class="dialog" role="dialog" aria-modal="true">
+    return renderModalShell(() => this.close(), html`
         ${data && obj
           ? html`
               <div class="header">
@@ -233,8 +222,11 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
                 : nothing}
             `
           : html`<div class="loading">${t("loading", L)}</div>`}
-      </div>
-    `;
+    `);
+  }
+
+  protected updated(changed: Map<string, unknown>): void {
+    if (changed.has("_open") && this._open) focusModalShell(this.shadowRoot);
   }
 
   private _renderMetaRow(obj: MaintenanceObject) {
@@ -269,23 +261,8 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [modalShellStyles, css`
     :host { display: contents; }
-    .backdrop {
-      position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.5);
-    }
-    .dialog {
-      position: fixed; left: 50%; top: 50%;
-      transform: translate(-50%, -50%);
-      width: 95vw; max-width: 480px;
-      max-height: 92vh; overflow: auto;
-      background: var(--card-background-color, var(--ha-card-background, #1c1c1c));
-      color: var(--primary-text-color);
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      padding: 20px; z-index: 101;
-      display: flex; flex-direction: column; gap: 14px;
-    }
     .header { display: flex; flex-direction: column; gap: 6px; }
     .title { font-size: 20px; font-weight: 600; }
     .meta { display: flex; flex-direction: column; gap: 4px; padding-top: 4px; border-top: 1px solid var(--divider-color); }
@@ -329,7 +306,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     .btn ha-icon { --mdc-icon-size: 16px; }
     .loading { padding: 24px; text-align: center; color: var(--secondary-text-color); }
     .error { padding: 8px; border-radius: 6px; background: rgba(211,47,47,0.1); color: var(--error-color); font-size: 13px; }
-  `;
+  `];
 }
 
 if (!customElements.get("maintenance-object-quick-actions-dialog")) {

@@ -60,7 +60,6 @@ from .const import (
     CONF_TASKS,
     CONF_VACATION_EXEMPT_TASK_IDS,
     CONF_WEEKLY_DIGEST_ENABLED,
-    DEFAULT_PANEL_ENABLED,
     DOCUMENT_TEXT_INDEX_KEY,
     DOMAIN,
     EVENT_UNSUBS_KEY,
@@ -86,8 +85,6 @@ from .const import (
     SIGNAL_OBJECT_ENTRY_REMOVED,
     STORES_CACHE_KEY,
     TriggerType,
-    slugify_object_name,
-    task_unique_id,
 )
 from .const import (
     DOCUMENT_STORE_KEY as _DS_KEY,
@@ -98,12 +95,15 @@ from .const import (
 from .coordinator import MaintenanceCoordinator
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .frontend import async_register_card
+from .helpers.aggregate import iter_live_tasks
 from .helpers.aggregate import object_name as aggregate_object_name
+from .helpers.aggregate import task_sensor_entity_id as aggregate_task_sensor_entity_id
 from .helpers.assist_sentences import async_sync as async_sync_assist_sentences
 from .helpers.dates import INTERVAL_UNITS, local_date_from_iso
 from .helpers.documents import DocumentStore
-from .helpers.global_options import get_default_warning_days, get_global_entry
+from .helpers.global_options import entry_option, get_default_warning_days, get_global_entry
 from .helpers.notification_gates import task_may_notify
+from .helpers.notification_ids import parse_action_id
 from .helpers.notification_manager import NotificationManager
 from .helpers.notify_hooks import KIND_LEAD_TIME
 from .helpers.pause import is_task_inert
@@ -289,8 +289,7 @@ async def async_maybe_send_weekly_digest(hass: HomeAssistant, *, force: bool = F
     global_entry = get_global_entry(hass)
     if global_entry is None:
         return
-    options = global_entry.options or global_entry.data
-    if not options.get(CONF_WEEKLY_DIGEST_ENABLED, False):
+    if not entry_option(global_entry, CONF_WEEKLY_DIGEST_ENABLED):
         return
     from .helpers.aggregate import compute_status_counts
 
@@ -315,19 +314,14 @@ async def async_maybe_send_warranty_reminders(hass: HomeAssistant, *, force: boo
 
     from homeassistant.util import dt as dt_util
 
-    from .const import (
-        CONF_WARRANTY_REMINDER_DAYS,
-        CONF_WARRANTY_REMINDER_ENABLED,
-        DEFAULT_WARRANTY_REMINDER_DAYS,
-    )
+    from .const import CONF_WARRANTY_REMINDER_DAYS, CONF_WARRANTY_REMINDER_ENABLED
 
     global_entry = get_global_entry(hass)
     if global_entry is None:
         return
-    options = global_entry.options or global_entry.data
-    if not options.get(CONF_WARRANTY_REMINDER_ENABLED, False):
+    if not entry_option(global_entry, CONF_WARRANTY_REMINDER_ENABLED):
         return
-    days = int(options.get(CONF_WARRANTY_REMINDER_DAYS, DEFAULT_WARRANTY_REMINDER_DAYS))
+    days = int(entry_option(global_entry, CONF_WARRANTY_REMINDER_DAYS))
     today = dt_util.now().date()
     names: list[str] = []
     for entry in hass.config_entries.async_entries(DOMAIN):
@@ -373,8 +367,7 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
     global_entry = get_global_entry(hass)
     if global_entry is None:
         return
-    options = global_entry.options or global_entry.data
-    leads_raw = options.get(CONF_REMINDER_LEAD_DAYS) or []
+    leads_raw = entry_option(global_entry, CONF_REMINDER_LEAD_DAYS) or []
     leads = {v for v in leads_raw if isinstance(v, int) and not isinstance(v, bool)}
     if not leads:
         return
@@ -439,9 +432,13 @@ def _trigger_target_and_unit(hass: HomeAssistant, tc: dict[str, Any]) -> tuple[f
         return tc.get("trigger_target_changes"), None
     if ttype == TriggerType.COMPOUND:
         return None, None
+    from .entity.triggers import primary_entity_id
+
     unit: str | None = None
-    if tc.get("entity_id"):
-        st = hass.states.get(tc["entity_id"])
+    # The first watched entity — a trigger stored with only the plural
+    # ``entity_ids`` had no unit here (DRY audit 2026-09-26 B).
+    if source := primary_entity_id(tc):
+        st = hass.states.get(source)
         if st:
             unit = st.attributes.get("unit_of_measurement")
     if ttype == TriggerType.COUNTER:
@@ -860,62 +857,49 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         wanted_entry = call.data.get("entry_id")
         wanted_status = call.data.get("status")
         tasks: list[dict[str, Any]] = []
-        ent_reg = er.async_get(hass)
-        for ce in hass.config_entries.async_entries(DOMAIN):
-            if ce.unique_id == GLOBAL_UNIQUE_ID:
+        # The shared cross-object walk (loaded objects, archived tasks left
+        # out) — the Assist snapshot uses the same one (DRY audit 2026-09-26 B).
+        for ce, task_id, task in iter_live_tasks(hass, wanted_entry or None):
+            status = str(task.get("_status", ""))
+            if wanted_status and status != wanted_status:
                 continue
-            if wanted_entry and ce.entry_id != wanted_entry:
-                continue
-            rd = getattr(ce, "runtime_data", None)
-            coordinator = getattr(rd, "coordinator", None) if rd else None
-            if coordinator is None or not coordinator.data:
-                continue
-            object_name = aggregate_object_name(ce)
-            # #151 follow-up: the task sensor's REGISTERED entity_id (users
-            # rename them), so a row can be fed straight into complete/skip.
-            object_slug = slugify_object_name((ce.data.get(CONF_OBJECT) or {}).get("name", "unknown"))
-            for task_id, task in coordinator.data.get(CONF_TASKS, {}).items():
-                status = str(task.get("_status", ""))
-                if status == "archived":
-                    continue
-                if wanted_status and status != wanted_status:
-                    continue
-                # #151: last completion + live trigger reading, so
-                # notification automations don't need extra lookups.
-                lp = task.get("last_performed")
-                days_since: int | None = None
-                if lp:
-                    try:
-                        days_since = (dt_util.now().date() - date_cls.fromisoformat(str(lp)[:10])).days
-                    except ValueError:
-                        days_since = None
-                tc = task.get("trigger_config") or {}
-                trigger_target, trigger_unit = _trigger_target_and_unit(hass, tc)
-                tasks.append(
-                    {
-                        "entry_id": ce.entry_id,
-                        "task_id": task_id,
-                        "entity_id": ent_reg.async_get_entity_id(
-                            "sensor", DOMAIN, task_unique_id(object_slug, task_id)
-                        ),
-                        "object_name": object_name,
-                        "name": task.get("name"),
-                        "status": status,
-                        "next_due": task.get("_next_due"),
-                        "days_until_due": task.get("_days_until_due"),
-                        "type": task.get("type"),
-                        "priority": task.get("priority", "normal"),
-                        "last_performed": lp,
-                        "days_since_last_completed": days_since,
-                        "trigger_type": tc.get("type"),
-                        "trigger_current_value": task.get("_trigger_current_value"),
-                        # Delta-mode counters: progress since the last service
-                        # (what the panel bar shows); None for every other trigger.
-                        "trigger_current_delta": task.get("_trigger_current_delta"),
-                        "trigger_target": trigger_target,
-                        "trigger_unit": trigger_unit,
-                    }
-                )
+            # #151: last completion + live trigger reading, so
+            # notification automations don't need extra lookups.
+            lp = task.get("last_performed")
+            days_since: int | None = None
+            if lp:
+                try:
+                    days_since = (dt_util.now().date() - date_cls.fromisoformat(str(lp)[:10])).days
+                except ValueError:
+                    days_since = None
+            tc = task.get("trigger_config") or {}
+            trigger_target, trigger_unit = _trigger_target_and_unit(hass, tc)
+            tasks.append(
+                {
+                    "entry_id": ce.entry_id,
+                    "task_id": task_id,
+                    # #151 follow-up: the task sensor's REGISTERED entity_id
+                    # (users rename them), so a row can be fed straight into
+                    # complete/skip.
+                    "entity_id": aggregate_task_sensor_entity_id(hass, ce.data.get(CONF_OBJECT) or {}, task_id),
+                    "object_name": aggregate_object_name(ce),
+                    "name": task.get("name"),
+                    "status": status,
+                    "next_due": task.get("_next_due"),
+                    "days_until_due": task.get("_days_until_due"),
+                    "type": task.get("type"),
+                    "priority": task.get("priority", "normal"),
+                    "last_performed": lp,
+                    "days_since_last_completed": days_since,
+                    "trigger_type": tc.get("type"),
+                    "trigger_current_value": task.get("_trigger_current_value"),
+                    # Delta-mode counters: progress since the last service
+                    # (what the panel bar shows); None for every other trigger.
+                    "trigger_current_delta": task.get("_trigger_current_delta"),
+                    "trigger_target": trigger_target,
+                    "trigger_unit": trigger_unit,
+                }
+            )
         return {"tasks": tasks, "count": len(tasks)}
 
     hass.services.async_register(
@@ -945,32 +929,16 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     async def _handle_notification_action(event: Event) -> None:
         """Handle mobile_app_notification_action events from Companion App."""
         action = event.data.get("action", "")
-        if not action.startswith("MS_"):
-            return
-
-        # Parse action: MS_COMPLETE_{entry_id}_{task_id}
-        #                MS_SKIP_{entry_id}_{task_id}
-        #                MS_SNOOZE_{entry_id}_{task_id}
-        # entry_id is a 32-char hex UUID, task_id is a 32-char hex UUID
-        if action.startswith("MS_COMPLETE_"):
-            action_type = "complete"
-            remainder = action[len("MS_COMPLETE_") :]
-        elif action.startswith("MS_SKIP_"):
-            action_type = "skip"
-            remainder = action[len("MS_SKIP_") :]
-        elif action.startswith("MS_SNOOZE_"):
-            action_type = "snooze"
-            remainder = action[len("MS_SNOOZE_") :]
-        else:
-            return
-
-        # Split on underscore — entry_id and task_id contain no underscores
-        parts = remainder.split("_", 1)
-        if len(parts) != 2 or not parts[0] or not parts[1]:
+        # MS_<COMPLETE|SKIP|SNOOZE>_<entry_id>_<task_id> — the one parser of
+        # the ids build_action_buttons sends (helpers/notification_ids).
+        try:
+            parsed = parse_action_id(action)
+        except ValueError:
             _LOGGER.warning("Invalid notification action format: %s", action)
             return
-
-        entry_id, task_id = parts
+        if parsed is None:
+            return  # not a task button of ours (or a test-send button)
+        action_type, entry_id, task_id = parsed
 
         config_entry = hass.config_entries.async_get_entry(entry_id)
         runtime_data = getattr(config_entry, "runtime_data", None) if config_entry else None
@@ -1175,10 +1143,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         from .helpers.entity_rename import rewrite_object, rewrite_store, rewrite_tasks
 
         # v2.67: the global shopping-list target is an entity reference too.
-        gentry = next(
-            (e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id == GLOBAL_UNIQUE_ID),
-            None,
-        )
+        gentry = get_global_entry(hass)
         if gentry is not None and gentry.options.get(CONF_SHOPPING_LIST_ENTITY) == old_eid:
             hass.config_entries.async_update_entry(
                 gentry, options={**gentry.options, CONF_SHOPPING_LIST_ENTITY: new_eid}
@@ -1253,10 +1218,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     # admin-panel allowlist kept the stale id (bug audit 2026-08-29).
     async def _on_user_removed(_event: Event) -> None:
         await _check_task_responsible_user_orphans(hass)
-        gentry = next(
-            (e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id == GLOBAL_UNIQUE_ID),
-            None,
-        )
+        gentry = get_global_entry(hass)
         if gentry is not None:
             await _check_admin_panel_user_orphans(hass, gentry)
 
@@ -1536,7 +1498,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
             _LOGGER.info("Migrated advanced feature flags: %s", flags)
 
         # Register panel if enabled in options (on by default — see const).
-        if entry.options.get(CONF_PANEL_ENABLED, DEFAULT_PANEL_ENABLED):
+        if entry_option(entry, CONF_PANEL_ENABLED):
             await async_register_panel(hass)
 
         # Listen for options changes (panel toggle)
@@ -1545,9 +1507,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # Keep <config>/custom_sentences/ in step with the opt-in setting. Runs
         # on every setup, not just on change, so an upgrade that ships new
         # sentences reaches an install that already opted in.
-        await async_sync_assist_sentences(
-            hass, entry.options.get(CONF_INSTALL_ASSIST_SENTENCES, False)
-        )
+        await async_sync_assist_sentences(hass, entry_option(entry, CONF_INSTALL_ASSIST_SENTENCES))
 
         # Initial orphan check for admin_panel_user_ids (HA users deleted
         # while the integration was offline land here as repair issues).
@@ -1966,7 +1926,7 @@ def _sync_missing_global_entry_issue(hass: HomeAssistant) -> None:
 
 async def _async_global_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """React to global options changes (panel toggle / sidebar title)."""
-    panel_enabled = entry.options.get(CONF_PANEL_ENABLED, DEFAULT_PANEL_ENABLED)
+    panel_enabled = entry_option(entry, CONF_PANEL_ENABLED)
     if panel_enabled:
         # force=True so a changed sidebar title (CONF_PANEL_TITLE) re-registers
         # the panel; it's a no-op refresh when the title is unchanged.
@@ -1977,9 +1937,7 @@ async def _async_global_options_updated(hass: HomeAssistant, entry: ConfigEntry)
     # The notify service may have just been (re)configured — re-check it.
     _verify_notify_service(hass)
     # Install or remove the Assist sentence files to match the setting.
-    await async_sync_assist_sentences(
-        hass, entry.options.get(CONF_INSTALL_ASSIST_SENTENCES, False)
-    )
+    await async_sync_assist_sentences(hass, entry_option(entry, CONF_INSTALL_ASSIST_SENTENCES))
     # v2.67: the shopping-list target may have changed (set / cleared / swapped).
     # This listener does NOT reload the entry, so the sync must be nudged
     # explicitly - it re-reads the option, re-arms its state listener and
@@ -2079,7 +2037,7 @@ async def _check_admin_panel_user_orphans(hass: HomeAssistant, entry: ConfigEntr
     """
     from homeassistant.helpers import issue_registry as ir
 
-    user_ids_raw = entry.options.get(CONF_ADMIN_PANEL_USER_IDS, []) or []
+    user_ids_raw = entry_option(entry, CONF_ADMIN_PANEL_USER_IDS) or []
     if not isinstance(user_ids_raw, list):
         user_ids_raw = []
     user_ids: set[str] = {u for u in user_ids_raw if isinstance(u, str)}

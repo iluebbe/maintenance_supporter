@@ -54,6 +54,21 @@ def normalize_entity_ids(trigger_config: dict[str, Any]) -> list[str]:
     return []
 
 
+def primary_entity_id(trigger_config: Any) -> str | None:
+    """The entity a single-source trigger watches — the first of
+    :func:`normalize_entity_ids` — or None for a compound trigger (no single
+    source), a trigger without an entity, or no trigger at all.
+
+    Readers that only looked at the legacy singular ``entity_id`` (the
+    ``list_tasks`` unit, the notification context's ``trigger_entity_id``,
+    the legacy-runtime split in the Store) missed triggers stored with only
+    the plural ``entity_ids`` list (DRY audit 2026-09-26 B).
+    """
+    if not isinstance(trigger_config, dict) or trigger_config.get("type") == TriggerType.COMPOUND:
+        return None
+    return next((eid for eid in normalize_entity_ids(trigger_config) if isinstance(eid, str) and eid), None)
+
+
 def _migrate_flat_to_per_entity(config: dict[str, Any], first_entity_id: str) -> dict[str, dict[str, Any]]:
     """Create ``_trigger_state`` from legacy flat keys on first load.
 
@@ -197,4 +212,5 @@ __all__ = [
     "create_trigger",
     "create_triggers",
     "normalize_entity_ids",
+    "primary_entity_id",
 ]

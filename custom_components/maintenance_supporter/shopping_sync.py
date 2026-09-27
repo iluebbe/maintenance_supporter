@@ -51,11 +51,11 @@ from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.storage import Store
 
 from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_SHOPPING_LIST_ENTITY, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
-from .helpers.global_options import get_global_options
+from .helpers.global_options import global_option
 from .helpers.managed_timer import ManagedTimer
 from .helpers.parts import PART_REF_FIELD
 from .helpers.pause import is_task_inert
-from .helpers.todo_mirror import mirror_summary
+from .helpers.todo_mirror import async_todo_add_item, async_todo_get_items, async_todo_remove_item, mirror_summary
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -144,7 +144,7 @@ class ShoppingListSync:
         self._debounce.track_task(self.async_resync(), name=f"{DOMAIN}_shopping_sync")
 
     def configured_entity(self) -> str:
-        return str(get_global_options(self._hass).get(CONF_SHOPPING_LIST_ENTITY) or "")
+        return str(global_option(self._hass, CONF_SHOPPING_LIST_ENTITY) or "")
 
     # ── the reconcile ─────────────────────────────────────────────────────
 
@@ -339,42 +339,18 @@ class ShoppingListSync:
 
     # ── todo service wrappers (best effort) ───────────────────────────────
 
+    # The shared wrappers (helpers/todo_mirror — the mirror carried a
+    # byte-identical copy; DRY audit 2026-09-26 B). Kept as methods: the
+    # pass calls them through ``self`` so a test can stand in for the list.
+
     async def _get_items(self, entity: str) -> list[dict[str, Any]] | None:
-        try:
-            resp = await self._hass.services.async_call(
-                "todo",
-                "get_items",
-                {"entity_id": entity, "status": ["needs_action", "completed"]},
-                blocking=True,
-                return_response=True,
-            )
-        except Exception:  # noqa: BLE001 — provider errors are retried on the next trigger
-            _LOGGER.warning("todo.get_items on %s failed", entity, exc_info=True)
-            return None
-        payload = (resp or {}).get(entity)
-        items = payload.get("items") if isinstance(payload, dict) else None
-        return [i for i in items if isinstance(i, dict)] if isinstance(items, list) else []
+        return await async_todo_get_items(self._hass, entity)
 
     async def _add_item(self, entity: str, summary: str) -> bool:
-        try:
-            await self._hass.services.async_call(
-                "todo", "add_item", {"entity_id": entity, "item": summary}, blocking=True
-            )
-        except Exception:  # noqa: BLE001 — provider errors are retried on the next trigger
-            _LOGGER.warning("todo.add_item %r on %s failed", summary, entity, exc_info=True)
-            return False
-        return True
+        return await async_todo_add_item(self._hass, entity, summary)
 
     async def _remove_item(self, entity: str, rec: dict[str, Any]) -> None:
-        ref = rec.get("uid") or rec.get("summary")
-        if not ref:
-            return
-        try:
-            await self._hass.services.async_call(
-                "todo", "remove_item", {"entity_id": entity, "item": ref}, blocking=True
-            )
-        except Exception:  # noqa: BLE001 — provider errors are retried on the next trigger
-            _LOGGER.warning("todo.remove_item %r on %s failed", ref, entity, exc_info=True)
+        await async_todo_remove_item(self._hass, entity, rec)
 
     async def _remove_all_from(self, entity: str) -> None:
         if self._hass.states.get(entity) is None:

@@ -12,13 +12,13 @@ from homeassistant.util import dt as dt_util
 from ..const import (
     ARCHIVE_REASON_MANUAL,
     CONF_TASKS,
-    MAX_ID_LENGTH,
 )
 from ..helpers.aggregate import get_coordinator_data, get_store, object_name
 from ..helpers.entry_tasks import write_task
 from ..helpers.pause import clear_cycle_modifiers, reanchor_recurring_task
 from ..helpers.permissions import require_write
 from . import (
+    ID_FIELD,
     _build_task_summary,
     _get_merged_tasks,
     _get_object_entries,
@@ -42,8 +42,8 @@ def _is_recurring_schedule(task: dict[str, Any]) -> bool:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/archive",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
     }
 )
 @require_write
@@ -83,8 +83,8 @@ async def ws_archive_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/unarchive",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
     }
 )
 @require_write
@@ -158,7 +158,7 @@ async def ws_unarchive_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/list",
-        vol.Optional("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Optional("entry_id"): ID_FIELD,
     }
 )
 @callback
@@ -191,8 +191,8 @@ def ws_list_tasks(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/history",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
     }
 )
 @callback

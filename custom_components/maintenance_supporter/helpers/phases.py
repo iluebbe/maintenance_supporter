@@ -128,6 +128,16 @@ def current_phase(task: dict[str, Any] | None) -> dict[str, Any] | None:
     return {"id": phase_id, "index": cursor, "count": len(seq), **definition}
 
 
+def current_phase_summary(task: dict[str, Any] | None) -> dict[str, Any] | None:
+    """``{id, name, index, count}`` of the phase currently due, or None (#139)
+    — the compact shape the task sensor's attributes and the WS task summary
+    expose. Each built its own copy (DRY audit 2026-09-26 B)."""
+    phase = current_phase(task)
+    if phase is None:
+        return None
+    return {"id": phase["id"], "name": phase["name"], "index": phase["index"], "count": phase["count"]}
+
+
 _UNSET: Any = object()
 
 

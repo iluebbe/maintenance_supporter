@@ -186,6 +186,62 @@ def test_settings_view_ws_errors_go_through_run_ws() -> None:
     assert raw_calls <= 5, f"{raw_calls} raw sendMessagePromise calls in settings-view.ts — route new ones through this._ws()"
 
 
+# A method header of a TS class member: `private async _save(`, `_adopt = async (`.
+_TS_METHOD_HEADER = re.compile(
+    r"^\s{2}(?:private |public |protected )?(?:static )?(?:async )?(?:get )?(\w+)\s*(?:=\s*async\s*)?\(",
+    re.MULTILINE,
+)
+# A catch that puts a message in front of the user (error line or toast).
+_CATCH_SHOWING_ERROR = re.compile(
+    r"catch\s*(?:\(\s*\w+(?:\s*:\s*\w+)?\s*\))?\s*\{[^{}]*?(?:this\._error\s*=|_showToast\(|this\._toast\s*=)",
+    re.S,
+)
+# Hand-written WS error blocks that stay on purpose: the QR dialog maps the
+# no_url code to its own sentence, and the test-notification button reports
+# "Test notification failed" by design (the self-test, not a server reason).
+_RAW_WS_ERROR_ALLOWLIST = {("qr-dialog.ts", "_generate"), ("settings-view.ts", "_sendTestNotification")}
+
+
+def _ts_methods(src: str) -> list[tuple[str, str]]:
+    """(name, body) of every class member — crude but stable for our style."""
+    heads = list(_TS_METHOD_HEADER.finditer(src))
+    return [(m.group(1), src[m.start() : (heads[i + 1].start() if i + 1 < len(heads) else len(src))]) for i, m in enumerate(heads)]
+
+
+def test_ws_errors_go_through_run_ws_everywhere() -> None:
+    """DRY audit 2026-09-26 (round 4): ~55 hand-written
+    `busy = true; try { sendMessagePromise } catch (e) { describeWsError }`
+    blocks in 20 components, plus four private wrappers (the panel's
+    _runAction, the settings view's _ws, the quick-actions _runWs, the parts
+    section's _send), became helpers/ws-run runWs — busy flag, the server's
+    reason, optional reload + success toast in one place. Generalises the
+    settings-view check above to every surface:
+
+    1. describeWsError is called only by ws-run.ts (and defined in ws-errors.ts);
+    2. no class member pairs a raw sendMessagePromise with a catch that puts
+       an error line or a toast in front of the user (silent best-effort
+       loaders — `catch {}` with a fallback value — stay allowed)."""
+    callers = sorted(
+        p.name
+        for p in _frontend_sources()
+        if "__tests__" not in p.parts
+        and p.name not in {"ws-run.ts", "ws-errors.ts"}
+        and "describeWsError(" in p.read_text(encoding="utf-8")
+    )
+    assert not callers, f"describeWsError called outside helpers/ws-run: {callers} — use runWs (onError gets the sentence)"
+
+    offenders = [
+        f"{p.name}:{name}"
+        for p in _frontend_sources()
+        if "__tests__" not in p.parts and p.name != "ws-run.ts"
+        for name, body in _ts_methods(p.read_text(encoding="utf-8"))
+        if "sendMessagePromise" in body
+        and _CATCH_SHOWING_ERROR.search(body)
+        and (p.name, name) not in _RAW_WS_ERROR_ALLOWLIST
+    ]
+    assert not offenders, f"hand-written WS error blocks: {offenders} — route them through helpers/ws-run runWs"
+
+
 def test_fresh_task_copy_strip_list_single_source() -> None:
     """The fresh-copy strip list lives ONLY in sanitize.strip_task_runtime_state,
     and all three copy surfaces (task duplicate, object duplicate, object

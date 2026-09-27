@@ -8,6 +8,7 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
+from ._shared import NAS_VOLUME_USAGE_HIGH, UNRAID_ARRAY_USAGE_HIGH
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "synology_dsm": IntegrationSignature(
@@ -19,7 +20,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "PERCENTAGE). Disk-health thresholds ship as device_class: safety "
             "binaries → covered by problem-sensor adoption (widened to safety)."
         ),
-        tasks=(ConsumableSignature(("volume_percentage_used",), "Storage Cleanup", "alert_above", delta_units=85),),
+        tasks=(NAS_VOLUME_USAGE_HIGH,),
     ),
     "qnap": IntegrationSignature(
         name="QNAP NAS",
@@ -29,7 +30,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(translation_key 'volume_percentage_used', PERCENTAGE — same key "
             "shape as synology_dsm)."
         ),
-        tasks=(ConsumableSignature(("volume_percentage_used",), "Storage Cleanup", "alert_above", delta_units=85),),
+        tasks=(NAS_VOLUME_USAGE_HIGH,),
     ),
     # Unraid / UniFi UNAS / MOS below mirror the Synology/QNAP duty: storage
     # usage fires ABOVE 85 % and a cleanup that lowers it auto-resolves.
@@ -40,7 +41,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "HACS unraid sensor.py ArrayUsageSensor: _attr_translation_key "
             "'array_usage', unit '%' (capacity.usage_percent of the array)."
         ),
-        tasks=(ConsumableSignature(("array_usage",), "Storage Cleanup", "alert_above", delta_units=85),),
+        tasks=(UNRAID_ARRAY_USAGE_HIGH,),
     ),
     "unraid_api": IntegrationSignature(
         name="Unraid API",
@@ -50,7 +51,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(PERCENTAGE, calc_array_usage_percentage = used / total * 100); "
             "entity.py sets translation_key = description.key."
         ),
-        tasks=(ConsumableSignature(("array_usage",), "Storage Cleanup", "alert_above", delta_units=85),),
+        tasks=(UNRAID_ARRAY_USAGE_HIGH,),
     ),
     "unraid_management_agent": IntegrationSignature(
         name="Unraid Management Agent",
@@ -60,7 +61,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "translation_key 'array_usage' (PERCENTAGE, "
             "array.computed_used_percent)."
         ),
-        tasks=(ConsumableSignature(("array_usage",), "Storage Cleanup", "alert_above", delta_units=85),),
+        tasks=(UNRAID_ARRAY_USAGE_HIGH,),
     ),
     "unifi_unas_rest": IntegrationSignature(
         name="UniFi UNAS (REST)",

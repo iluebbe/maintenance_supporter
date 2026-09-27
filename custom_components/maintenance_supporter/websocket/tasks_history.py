@@ -13,7 +13,6 @@ from ..const import (
     LIFECYCLE_HISTORY_TYPES,
     MAX_COST,
     MAX_DURATION_MINUTES,
-    MAX_ID_LENGTH,
     MAX_META_LENGTH,
     MAX_TEXT_LENGTH,
     MAX_TIMESTAMP_LENGTH,
@@ -26,6 +25,7 @@ from ..helpers.completion_photos import (
 from ..helpers.permissions import require_write
 from ..storage import reanchor_from_history
 from . import (
+    ID_FIELD,
     READING_VALUES_FIELD,
     USED_PARTS_FIELD,
     _load_object_task,
@@ -53,8 +53,8 @@ from . import (
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/history/update",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
         # ISO datetime string identifying the entry being edited.
         vol.Required("original_timestamp"): vol.All(str, vol.Length(max=MAX_TIMESTAMP_LENGTH)),
         # Patch fields — all optional; absent fields stay unchanged.
@@ -79,7 +79,7 @@ from . import (
         # themselves are never deleted here — they stay in the object's
         # documents, the entry merely stops pointing at them.
         vol.Optional("photo_doc_ids"): vol.Any(
-            vol.All([vol.All(str, vol.Length(max=MAX_ID_LENGTH))], vol.Length(max=MAX_COMPLETION_PHOTOS)),
+            vol.All([ID_FIELD], vol.Length(max=MAX_COMPLETION_PHOTOS)),
             None,
         ),
     }
@@ -286,8 +286,8 @@ async def ws_update_history_entry(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/history/delete",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
         vol.Required("timestamp"): vol.All(str, vol.Length(max=MAX_TIMESTAMP_LENGTH)),
     }
 )

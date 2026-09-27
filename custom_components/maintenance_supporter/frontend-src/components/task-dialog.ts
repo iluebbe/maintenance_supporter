@@ -13,8 +13,15 @@ import {
   TRIGGER_PICKER_DOMAINS,
 } from "../helpers/trigger-domains";
 
-import { describeWsError } from "../ws-errors";
 import { runWs } from "../helpers/ws-run";
+import {
+  EWA_ALPHA_RANGE,
+  PART_QTY_RANGE,
+  SCHEDULE_OFFSET_MAX_DAYS,
+  TRIGGER_FOR_MINUTES_RANGE,
+  TRIGGER_TARGET_CHANGES_RANGE,
+  WARNING_DAYS_RANGE,
+} from "../helpers/setting-ranges";
 import { parseDurationMinutes } from "../helpers/duration";
 import type { TriggerType } from "../types";
 import { REQUIRED_COMPLETION_KEYS, REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
@@ -40,8 +47,8 @@ const TRIGGER_TYPE_KEYS_WITH_COMPOUND = [...TRIGGER_TYPE_KEYS, "compound"];
 const ADAPTIVE_DEFAULTS = { alpha: "0.3", min: "7", max: "365" } as const;
 // Bounds of a consumes_parts quantity (the field's min/max, the same range
 // the completion's used_parts accept) — validated on save with a message,
-// never silently replaced.
-const CONSUMES_QTY_RANGE: [number, number] = [0.01, 999];
+// never silently replaced. One TS source, pinned to Python.
+const CONSUMES_QTY_RANGE = PART_QTY_RANGE;
 
 /** One condition of a compound trigger — a flat trigger the user edits inline.
  *  String-typed like the top-level fields (form inputs); coerced on save. */
@@ -85,11 +92,17 @@ const MANAGED_CONDITION_KEYS = new Set([
   "trigger_runtime_hours", "trigger_on_states",
 ]);
 
-/** Map a persisted compound condition (storage shape) to an editable draft. */
-function conditionToDraft(c: TriggerConfig): CompoundConditionDraft {
-  const ids = c.entity_ids || (c.entity_id ? [c.entity_id] : []);
+/** The per-type trigger fields BOTH editors own — the flat trigger form and
+ *  every compound condition. The flat form used to hydrate and serialize
+ *  them with its own copy of the rules below, and the copies had drifted:
+ *  a compound state_change condition dropped its #136 hold time
+ *  (`trigger_for_minutes`, a managed key, so not carried either) on every
+ *  save (DRY audit 2026-09-26). */
+export type TriggerTypeFields = Omit<CompoundConditionDraft, "entityIds" | "carry">;
+
+/** Storage → form for the shared per-type fields. */
+export function typeFieldsFromConfig(c: TriggerConfig): TriggerTypeFields {
   return {
-    entityIds: ids.join(", "),
     type: c.type || "threshold",
     attribute: c.attribute || "",
     above: c.trigger_above?.toString() ?? "",
@@ -104,6 +117,42 @@ function conditionToDraft(c: TriggerConfig): CompoundConditionDraft {
     targetChanges: c.trigger_target_changes?.toString() ?? "",
     runtimeHours: c.trigger_runtime_hours?.toString() ?? "",
     onStates: (c.trigger_on_states || []).join(", "),
+  };
+}
+
+/** Form → storage: writes the shared per-type fields onto `c` (only the
+ *  ones the type uses; unparsable numbers are left out). */
+export function applyTypeFields(c: TriggerConfig, d: TriggerTypeFields): void {
+  if (d.attribute) c.attribute = d.attribute;
+  const forMinutes = parseInt(d.forMinutes, 10);
+  if (d.type === "threshold") {
+    const a = parseFloat(d.above); if (!isNaN(a)) c.trigger_above = a;
+    const b = parseFloat(d.below); if (!isNaN(b)) c.trigger_below = b;
+    const eq = parseFloat(d.equals); if (!isNaN(eq)) c.trigger_equals = eq;
+    const ne = parseFloat(d.notEquals); if (!isNaN(ne)) c.trigger_not_equals = ne;
+    if (!isNaN(forMinutes)) c.trigger_for_minutes = forMinutes;
+  } else if (d.type === "counter") {
+    const v = parseFloat(d.targetValue); if (!isNaN(v)) c.trigger_target_value = v;
+    c.trigger_delta_mode = d.deltaMode;
+  } else if (d.type === "state_change") {
+    if (d.fromState) c.trigger_from_state = d.fromState;
+    if (d.toState) c.trigger_to_state = d.toState;
+    const n = parseInt(d.targetChanges, 10); if (!isNaN(n)) c.trigger_target_changes = n;
+    // #136: the new state must hold this long before a change counts.
+    if (!isNaN(forMinutes)) c.trigger_for_minutes = forMinutes;
+  } else if (d.type === "runtime") {
+    const h = parseFloat(d.runtimeHours); if (!isNaN(h)) c.trigger_runtime_hours = h;
+    const on = (d.onStates || "").split(",").map((s) => s.trim()).filter(Boolean);
+    if (on.length > 0) c.trigger_on_states = on;
+  }
+}
+
+/** Map a persisted compound condition (storage shape) to an editable draft. */
+function conditionToDraft(c: TriggerConfig): CompoundConditionDraft {
+  const ids = c.entity_ids || (c.entity_id ? [c.entity_id] : []);
+  return {
+    entityIds: ids.join(", "),
+    ...typeFieldsFromConfig(c),
     carry: Object.fromEntries(
       Object.entries(c).filter(([k]) => !MANAGED_CONDITION_KEYS.has(k) && !k.startsWith("_")),
     ) as Partial<TriggerConfig>,
@@ -116,25 +165,7 @@ function draftToCondition(d: CompoundConditionDraft): TriggerConfig | null {
   const ids = d.entityIds.split(",").map((s) => s.trim()).filter(Boolean);
   if (ids.length === 0) return null;
   const c: TriggerConfig = { ...(d.carry || {}), entity_id: ids[0], entity_ids: ids, type: d.type };
-  if (d.attribute) c.attribute = d.attribute;
-  if (d.type === "threshold") {
-    const a = parseFloat(d.above); if (!isNaN(a)) c.trigger_above = a;
-    const b = parseFloat(d.below); if (!isNaN(b)) c.trigger_below = b;
-    const eq = parseFloat(d.equals); if (!isNaN(eq)) c.trigger_equals = eq;
-    const ne = parseFloat(d.notEquals); if (!isNaN(ne)) c.trigger_not_equals = ne;
-    const f = parseInt(d.forMinutes, 10); if (!isNaN(f)) c.trigger_for_minutes = f;
-  } else if (d.type === "counter") {
-    const v = parseFloat(d.targetValue); if (!isNaN(v)) c.trigger_target_value = v;
-    c.trigger_delta_mode = d.deltaMode;
-  } else if (d.type === "state_change") {
-    if (d.fromState) c.trigger_from_state = d.fromState;
-    if (d.toState) c.trigger_to_state = d.toState;
-    const n = parseInt(d.targetChanges, 10); if (!isNaN(n)) c.trigger_target_changes = n;
-  } else if (d.type === "runtime") {
-    const h = parseFloat(d.runtimeHours); if (!isNaN(h)) c.trigger_runtime_hours = h;
-    const on = (d.onStates || "").split(",").map((s) => s.trim()).filter(Boolean);
-    if (on.length > 0) c.trigger_on_states = on;
-  }
+  applyTypeFields(c, d);
   return c;
 }
 
@@ -543,25 +574,13 @@ export class MaintenanceTaskDialog extends LitElement {
       this._triggerEntityId = tc.entity_id || (tc.entity_ids && tc.entity_ids[0]) || "";
       this._triggerEntityIds = tc.entity_ids || (tc.entity_id ? [tc.entity_id] : []);
       this._triggerEntityLogic = tc.entity_logic || "any";
-      this._triggerAttribute = tc.attribute || "";
-      this._triggerType = tc.type || "threshold";
-      this._triggerAbove = tc.trigger_above?.toString() || "";
-      this._triggerBelow = tc.trigger_below?.toString() || "";
-      this._triggerEquals = tc.trigger_equals?.toString() || "";
-      this._triggerNotEquals = tc.trigger_not_equals?.toString() || "";
-      this._triggerForMinutes = tc.trigger_for_minutes?.toString() || "0";
+      this._setTypeFields(typeFieldsFromConfig(tc));
       this._triggerCombinator = tc.trigger_combinator === "all" ? "all" : "any";
-      this._triggerTargetValue = tc.trigger_target_value?.toString() || "";
-      this._triggerDeltaMode = tc.trigger_delta_mode || false;
+      // Flat-form-only fields (a compound condition carries them via `carry`).
       this._triggerBaselineValue = tc.trigger_baseline_value?.toString() || "";
       this._liveBaselineValue = task.trigger_baseline_value ?? null;
       this._autoCompleteOnRecovery = tc.auto_complete_on_recovery || false;
-      this._triggerFromState = tc.trigger_from_state || "";
-      this._triggerToState = tc.trigger_to_state || "";
-      this._triggerTargetChanges = tc.trigger_target_changes?.toString() || "";
-      this._triggerRuntimeHours = tc.trigger_runtime_hours?.toString() || "";
       this._triggerRuntimeMaxSession = tc.trigger_runtime_max_session_seconds?.toString() || "";
-      this._triggerOnStates = (tc.trigger_on_states || []).join(", ");
       if (tc.type === "compound") {
         this._compoundLogic = tc.compound_logic === "OR" ? "OR" : "AND";
         this._compoundConditions = (tc.conditions || []).map(conditionToDraft);
@@ -653,32 +672,58 @@ export class MaintenanceTaskDialog extends LitElement {
     this._resetTriggerFields();
   }
 
+  /** The flat trigger form's shared per-type fields as one struct — the
+   *  same shape a compound condition draft edits (typeFieldsFromConfig /
+   *  applyTypeFields are the one rule set for both). */
+  private _typeFields(): TriggerTypeFields {
+    return {
+      type: this._triggerType,
+      attribute: this._triggerAttribute,
+      above: this._triggerAbove,
+      below: this._triggerBelow,
+      equals: this._triggerEquals,
+      notEquals: this._triggerNotEquals,
+      forMinutes: this._triggerForMinutes,
+      targetValue: this._triggerTargetValue,
+      deltaMode: this._triggerDeltaMode,
+      fromState: this._triggerFromState,
+      toState: this._triggerToState,
+      targetChanges: this._triggerTargetChanges,
+      runtimeHours: this._triggerRuntimeHours,
+      onStates: this._triggerOnStates,
+    };
+  }
+
+  private _setTypeFields(f: TriggerTypeFields): void {
+    this._triggerType = f.type;
+    this._triggerAttribute = f.attribute;
+    this._triggerAbove = f.above;
+    this._triggerBelow = f.below;
+    this._triggerEquals = f.equals;
+    this._triggerNotEquals = f.notEquals;
+    this._triggerForMinutes = f.forMinutes;
+    this._triggerTargetValue = f.targetValue;
+    this._triggerDeltaMode = f.deltaMode;
+    this._triggerFromState = f.fromState;
+    this._triggerToState = f.toState;
+    this._triggerTargetChanges = f.targetChanges;
+    this._triggerRuntimeHours = f.runtimeHours;
+    this._triggerOnStates = f.onStates;
+  }
+
   private _resetTriggerFields(): void {
     this._triggerEntityId = "";
     this._triggerEntityIds = [];
     this._triggerEntityLogic = "any";
-    this._triggerAttribute = "";
     this._suggestedAttributes = [];
     this._availableAttributes = [];
     this._entityDomain = "";
-    this._triggerType = "threshold";
-    this._triggerAbove = "";
-    this._triggerBelow = "";
-    this._triggerEquals = "";
-    this._triggerNotEquals = "";
-    this._triggerForMinutes = "0";
+    this._setTypeFields(emptyCondition());
     this._triggerCombinator = "any";
-    this._triggerTargetValue = "";
-    this._triggerDeltaMode = false;
     this._triggerBaselineValue = "";
     this._liveBaselineValue = null;
     this._autoCompleteOnRecovery = false;
-    this._triggerFromState = "";
-    this._triggerToState = "";
-    this._triggerTargetChanges = "";
-    this._triggerRuntimeHours = "";
     this._triggerRuntimeMaxSession = "";
-    this._triggerOnStates = "";
     this._compoundLogic = "AND";
     this._compoundConditions = [];
   }
@@ -1241,7 +1286,7 @@ export class MaintenanceTaskDialog extends LitElement {
                 <!-- The typed text as-is: a "|| '1'" here rewrote a cleared
                      field to 1 and the next digit gave "13" (bug audit
                      2026-09-26 #2); an empty field saves as 1. -->
-                <input class="phase-qty" type="number" min="0.01" step="0.01" placeholder="1" .value=${d.partQty}
+                <input class="phase-qty" type="number" min=${PART_QTY_RANGE[0]} step="0.01" placeholder="1" .value=${d.partQty}
                   @input=${(e: Event) => this._patchPhaseDef(d.id, { partQty: (e.target as HTMLInputElement).value })} />
               ` : nothing}
             ` : nothing}
@@ -1342,254 +1387,14 @@ export class MaintenanceTaskDialog extends LitElement {
     this._loading = true;
     this._error = "";
     try {
-      const data: Record<string, unknown> = {
-        type: this._taskId
-          ? "maintenance_supporter/task/update"
-          : "maintenance_supporter/task/create",
-        entry_id: this._entryId,
-        name: this._name,
-        task_type: this._type,
-        schedule_type: this._scheduleType,
-        // `0` is a legal, meaningful value — "no due-soon window, go straight
-        // from ok to overdue" (backend range is 0–365). The old
-        // `parseInt(...) || 7` treated it as falsy and silently rewrote a
-        // stored 0 to 7 on EVERY save, even when the user never touched the
-        // field. Same class as bug #42, but worse: it needed no user action.
-        // Only a genuinely unparseable field falls back, and to the
-        // configured default rather than a hardcoded 7.
-        warning_days: Number.isNaN(parseInt(this._warningDays, 10))
-          ? this.defaultWarningDays
-          : Math.max(0, parseInt(this._warningDays, 10)),
-      };
-      const ecd = this._earliestCompletionDays.trim();
-      data.earliest_completion_days = ecd === "" ? null : Math.max(0, parseInt(ecd, 10) || 0);
-
-      if (this._taskId) data.task_id = this._taskId;
-
-      if (this._scheduleType === "one_time") {
-        data.due_date = this._dueDate || null;
-        data.interval_days = null;
-      } else if (CALENDAR_KINDS.includes(this._scheduleType)) {
-        // Calendar kinds are sent as the nested schedule; the backend prefers
-        // it over the flat fields and clears any stale interval/due_date.
-        data.schedule = { ...this._buildSchedule(), ...this._recurrenceExtras() };
-        data.interval_days = null;
-        if (this._taskId) data.due_date = null;
-      } else {
-        // Switching away from one-time clears the stale due_date on edit.
-        if (this._taskId) data.due_date = null;
-        if (this._scheduleType !== "manual" && this._intervalDays) {
-          data.interval_days = parseInt(this._intervalDays, 10);
-          data.interval_unit = this._intervalUnit;
-          data.interval_anchor = this._intervalAnchor;
-          // Season / finite-series ride a minimal nested schedule alongside the
-          // flat interval fields; the backend carries them onto the interval it
-          // derives from the flat fields (they can't be expressed flatly).
-          // Always send an authoritative nested schedule for interval tasks so
-          // an edit that clears season/ends actually clears them.
-          if (this._scheduleType === "time_based") {
-            data.schedule = { kind: "interval", ...this._recurrenceExtras() };
-          }
-        } else if (this._taskId) {
-          data.interval_days = null;
-          data.interval_anchor = "completion";
-        }
-      }
-
-      data.notes = this._notes || null;
-      data.documentation_url = this._documentationUrl || null;
-      data.custom_icon = this._customIcon || null;
-      // #185: null clears the override (the update path pops the key).
-      data.notify_icon = this._notifyIcon.trim() || null;
-      data.priority = this._priority;
-      data.labels = this._labels
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
-      // D#183: always sent — [] clears the mirror targets.
-      data.mirror_todo_entities = this._mirrorTodoEntities.filter(Boolean);
-      data.enabled = this._enabled;
-      if (!this._taskId || this._lastPerformed !== this._loadedLastPerformed) {
-        data.last_performed = this._lastPerformed || null;
-      }
-      data.nfc_tag_id = this._nfcTagId || null;
-      data.require_tag_scan = this._requireTagScan;
-      data.allow_skip = this._allowSkip;
-      data.notify_enabled = this._notifyEnabled;
-      data.reading_unit = this._readingUnit.trim() || null;
-      // #161 phase 2: always sent — [] clears the slots (single-value task).
-      // Sent as hydrated even when the editor is hidden (type != reading), so
-      // a no-op edit never wipes stored slots (the #42/#50 wipe class).
-      data.readings = cleanReadingSlots(this._readings);
-      // Task phases (#139): always sent — null clears a removed cycle.
-      {
-        const defs: Record<string, unknown> = {};
-        for (const d of this._phaseDefs) {
-          if (!d.name.trim()) continue;
-          const def: Record<string, unknown> = { ...d.carry, name: d.name.trim() };
-          const items = d.checklistText.split("\n").map((s) => s.trim()).filter(Boolean);
-          if (items.length) def.checklist = items;
-          const links: TaskPartLink[] = [];
-          if (d.partId) {
-            const qty = parseFloat(d.partQty);
-            links.push({ part_id: d.partId, quantity: Number.isFinite(qty) && qty > 0 ? qty : 1 });
-          }
-          // entry_id travels only when present (a shared pool, #111) — an
-          // own-part link stays byte-identical to what shipped before.
-          for (const l of d.extraParts) {
-            links.push(
-              l.entry_id
-                ? { part_id: l.part_id, quantity: l.quantity, entry_id: l.entry_id }
-                : { part_id: l.part_id, quantity: l.quantity },
-            );
-          }
-          if (links.length) def.consumes_parts = links;
-          // Override on → send the list, EMPTY included ("demands nothing");
-          // off → omit the key so the task-level list falls through.
-          if (d.reqOverride) def.required_completion_fields = [...d.reqFields];
-          defs[d.id] = def;
-        }
-        const seq = this._phaseSeq.filter((id) => id in defs);
-        data.phases = Object.keys(defs).length && seq.length ? defs : null;
-        data.phase_sequence = data.phases ? seq : null;
-      }
-      // Only send when a picker was actually rendered. A failed parts load
-      // leaves both lists empty, and sending [] then would silently wipe links
-      // the user never saw. entry_id is written ONLY for a foreign pick, so an
-      // own-parts task saves byte-identically to before (#111).
-      if (this.parts.length || this._foreignOwners.length) {
-        data.consumes_parts = Object.values(this._consumesParts).map((l) =>
-          l.entry_id
-            ? { part_id: l.part_id, quantity: l.quantity, entry_id: l.entry_id }
-            : { part_id: l.part_id, quantity: l.quantity },
-        );
-      }
-      if (!this._taskId || this._responsibleUserId !== this._loadedResponsibleUserId) {
-        data.responsible_user_id = this._responsibleUserId;
-      }
-      data.assignee_pool = this._assigneePool;
-      data.required_completion_fields = this._requiredCompletion;
-      data.rotation_strategy =
-        this._assigneePool.length >= 2 && this._rotationStrategy
-          ? this._rotationStrategy
-          : null;
-
-      if (this._scheduleType === "sensor_based" && this._triggerType === "compound") {
-        // Compound: a group of conditions joined by AND/OR. Each condition
-        // carries its own entity + type + params; the top-level entity picker
-        // does not apply here.
-        const conditions = this._compoundConditions
-          .map(draftToCondition)
-          .filter((c): c is TriggerConfig => c !== null);
-        if (conditions.length > 0) {
-          const triggerConfig: TriggerConfig = {
-            type: "compound",
-            compound_logic: this._compoundLogic,
-            conditions,
-          };
-          if (this._autoCompleteOnRecovery) triggerConfig.auto_complete_on_recovery = true;
-          if (this._triggerCombinator === "all") triggerConfig.trigger_combinator = "all";
-          data.trigger_config = triggerConfig;
-        } else if (this._taskId) {
-          data.trigger_config = null;
-        }
-      } else if (this._scheduleType === "sensor_based" && this._triggerEntityId) {
-        const entityIds = this._triggerEntityIds.length > 0
-          ? this._triggerEntityIds
-          : [this._triggerEntityId];
-        const triggerConfig: TriggerConfig = {
-          entity_id: entityIds[0],
-          entity_ids: entityIds,
-          type: this._triggerType,
-        };
-        if (this._triggerAttribute) triggerConfig.attribute = this._triggerAttribute;
-        if (this._autoCompleteOnRecovery) triggerConfig.auto_complete_on_recovery = true;
-        if (this._triggerCombinator === "all") triggerConfig.trigger_combinator = "all";
-
-        // Multi-entity: store entity_logic for all trigger types
-        if (entityIds.length > 1) {
-          triggerConfig.entity_logic = this._triggerEntityLogic;
-        }
-
-        if (this._triggerType === "threshold") {
-          if (this._triggerAbove) { const v = parseFloat(this._triggerAbove); if (!isNaN(v)) triggerConfig.trigger_above = v; }
-          if (this._triggerBelow) { const v = parseFloat(this._triggerBelow); if (!isNaN(v)) triggerConfig.trigger_below = v; }
-          if (this._triggerEquals) { const v = parseFloat(this._triggerEquals); if (!isNaN(v)) triggerConfig.trigger_equals = v; }
-          if (this._triggerNotEquals) { const v = parseFloat(this._triggerNotEquals); if (!isNaN(v)) triggerConfig.trigger_not_equals = v; }
-          if (this._triggerForMinutes) { const v = parseInt(this._triggerForMinutes, 10); if (!isNaN(v)) triggerConfig.trigger_for_minutes = v; }
-        } else if (this._triggerType === "counter") {
-          if (this._triggerTargetValue) { const v = parseFloat(this._triggerTargetValue); if (!isNaN(v)) triggerConfig.trigger_target_value = v; }
-          triggerConfig.trigger_delta_mode = this._triggerDeltaMode;
-          // #102: optional counting start value ("last service was at X").
-          // Empty = count from the reading at creation / keep the live
-          // baseline; the backend clears stale Store state when it changes.
-          if (this._triggerDeltaMode && this._triggerBaselineValue) {
-            const b = parseFloat(this._triggerBaselineValue);
-            if (!isNaN(b) && b >= 0) triggerConfig.trigger_baseline_value = b;
-          }
-        } else if (this._triggerType === "state_change") {
-          if (this._triggerFromState) triggerConfig.trigger_from_state = this._triggerFromState;
-          if (this._triggerToState) triggerConfig.trigger_to_state = this._triggerToState;
-          if (this._triggerTargetChanges) { const v = parseInt(this._triggerTargetChanges, 10); if (!isNaN(v)) triggerConfig.trigger_target_changes = v; }
-          // #136: the new state must hold this long before a change counts.
-          if (this._triggerForMinutes) { const v = parseInt(this._triggerForMinutes, 10); if (!isNaN(v)) triggerConfig.trigger_for_minutes = v; }
-        } else if (this._triggerType === "runtime") {
-          if (this._triggerRuntimeHours) { const v = parseFloat(this._triggerRuntimeHours); if (!isNaN(v)) triggerConfig.trigger_runtime_hours = v; }
-          // #149: per-session cap (seconds) against sensors stuck ON.
-          if (this._triggerRuntimeMaxSession) { const v = parseInt(this._triggerRuntimeMaxSession, 10); if (!isNaN(v) && v > 0) triggerConfig.trigger_runtime_max_session_seconds = v; }
-          const onStates = this._triggerOnStates.split(",").map((s) => s.trim()).filter(Boolean);
-          if (onStates.length > 0) triggerConfig.trigger_on_states = onStates;
-        }
-
-        data.trigger_config = triggerConfig;
-      } else if (this._taskId) {
-        data.trigger_config = null;
-      }
-
-      // Schedule time only sent when feature is enabled — null clears.
-      // Every date-driven kind takes one (#168), not only the interval; an
-      // unticked checkbox (or a ticked one with an empty picker) clears it.
-      if (this.scheduleTimeEnabled && SCHEDULE_TIME_KINDS.includes(this._scheduleType)) {
-        const t = this._scheduleTimeOn ? this._scheduleTime.trim() : "";
-        data.schedule_time = /^([01]\d|2[0-3]):[0-5]\d$/.test(t) ? t : null;
-      }
-
-      if (this.checklistsEnabled) {
-        const items = this._checklistText
-          .split("\n")
-          .map((l) => l.trim())
-          .filter(Boolean)
-          .slice(0, 100);
-        data.checklist = items.length ? items : null;
-      }
-
-      // v1.3.0: on_complete_action + quick_complete_defaults (gated)
-      if (this.completionActionsEnabled) {
-        const svc = this._actionService.trim();
-        if (svc && /^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(svc)) {
-          const action: Record<string, unknown> = { service: svc };
-          const tgt = this._actionTargetEntity.trim();
-          if (tgt) action.target = { entity_id: tgt };
-          const dataDict = this._buildActionData();
-          if (Object.keys(dataDict).length > 0) {
-            action.data = dataDict;
-          }
-          data.on_complete_action = action;
-        } else {
-          data.on_complete_action = null;
-        }
-
-        const qcd: Record<string, unknown> = {};
-        if (this._qcNotes.trim()) qcd.notes = this._qcNotes.trim();
-        const cost = parseFloat(this._qcCost);
-        if (!isNaN(cost) && cost >= 0) qcd.cost = cost;
-        const dur = parseDurationMinutes(this._qcDuration);
-        if (dur !== null) qcd.duration = dur;
-        if (this._qcFeedback) qcd.feedback = this._qcFeedback;
-        data.quick_complete_defaults = Object.keys(qcd).length ? qcd : null;
-      }
-
-      const result = await this.hass.connection.sendMessagePromise(data) as { task_id?: string };
+      // helpers/ws-run runWs: a refusal (or a payload that failed to build)
+      // lands on the error line as the server's reason / "Save failed".
+      const result = await runWs<{ task_id?: string }>(
+        this,
+        () => this.hass.connection.sendMessagePromise<{ task_id?: string }>(this._savePayload()),
+        { fallbackKey: "save_error", onError: (m) => { this._error = m; } },
+      );
+      if (result === undefined) return;
       const savedTaskId = this._taskId || result?.task_id;
 
       // Environmental entity lives in adaptive_config (Store-managed),
@@ -1634,7 +1439,7 @@ export class MaintenanceTaskDialog extends LitElement {
           entry_id: this._entryId,
           task_id: savedTaskId,
           enabled: this._adaptiveEnabled,
-          ...(alpha >= 0.1 && alpha <= 0.9 ? { ewa_alpha: alpha } : {}),
+          ...(alpha >= EWA_ALPHA_RANGE[0] && alpha <= EWA_ALPHA_RANGE[1] ? { ewa_alpha: alpha } : {}),
           ...(!isNaN(minIv) && minIv >= 1 ? { min_interval_days: minIv } : {}),
           ...(!isNaN(maxIv) && maxIv >= 1 ? { max_interval_days: maxIv } : {}),
           seasonal_enabled: this._adaptiveSeasonal,
@@ -1651,11 +1456,245 @@ export class MaintenanceTaskDialog extends LitElement {
         this._open = false;
       }
       this.dispatchEvent(new CustomEvent("task-saved"));
-    } catch (e) {
-      this._error = describeWsError(e, this._lang, t("save_error", this._lang));
     } finally {
       this._loading = false;
     }
+  }
+
+  /** The task/create | task/update message from the form (validated above). */
+  private _savePayload(): Record<string, unknown> {
+    const data: Record<string, unknown> = {
+      type: this._taskId
+        ? "maintenance_supporter/task/update"
+        : "maintenance_supporter/task/create",
+      entry_id: this._entryId,
+      name: this._name,
+      task_type: this._type,
+      schedule_type: this._scheduleType,
+      // `0` is a legal, meaningful value — "no due-soon window, go straight
+      // from ok to overdue" (backend range is 0–365). The old
+      // `parseInt(...) || 7` treated it as falsy and silently rewrote a
+      // stored 0 to 7 on EVERY save, even when the user never touched the
+      // field. Same class as bug #42, but worse: it needed no user action.
+      // Only a genuinely unparseable field falls back, and to the
+      // configured default rather than a hardcoded 7.
+      warning_days: Number.isNaN(parseInt(this._warningDays, 10))
+        ? this.defaultWarningDays
+        : Math.max(0, parseInt(this._warningDays, 10)),
+    };
+    const ecd = this._earliestCompletionDays.trim();
+    data.earliest_completion_days = ecd === "" ? null : Math.max(0, parseInt(ecd, 10) || 0);
+
+    if (this._taskId) data.task_id = this._taskId;
+
+    if (this._scheduleType === "one_time") {
+      data.due_date = this._dueDate || null;
+      data.interval_days = null;
+    } else if (CALENDAR_KINDS.includes(this._scheduleType)) {
+      // Calendar kinds are sent as the nested schedule; the backend prefers
+      // it over the flat fields and clears any stale interval/due_date.
+      data.schedule = { ...this._buildSchedule(), ...this._recurrenceExtras() };
+      data.interval_days = null;
+      if (this._taskId) data.due_date = null;
+    } else {
+      // Switching away from one-time clears the stale due_date on edit.
+      if (this._taskId) data.due_date = null;
+      if (this._scheduleType !== "manual" && this._intervalDays) {
+        data.interval_days = parseInt(this._intervalDays, 10);
+        data.interval_unit = this._intervalUnit;
+        data.interval_anchor = this._intervalAnchor;
+        // Season / finite-series ride a minimal nested schedule alongside the
+        // flat interval fields; the backend carries them onto the interval it
+        // derives from the flat fields (they can't be expressed flatly).
+        // Always send an authoritative nested schedule for interval tasks so
+        // an edit that clears season/ends actually clears them.
+        if (this._scheduleType === "time_based") {
+          data.schedule = { kind: "interval", ...this._recurrenceExtras() };
+        }
+      } else if (this._taskId) {
+        data.interval_days = null;
+        data.interval_anchor = "completion";
+      }
+    }
+
+    data.notes = this._notes || null;
+    data.documentation_url = this._documentationUrl || null;
+    data.custom_icon = this._customIcon || null;
+    // #185: null clears the override (the update path pops the key).
+    data.notify_icon = this._notifyIcon.trim() || null;
+    data.priority = this._priority;
+    data.labels = this._labels
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    // D#183: always sent — [] clears the mirror targets.
+    data.mirror_todo_entities = this._mirrorTodoEntities.filter(Boolean);
+    data.enabled = this._enabled;
+    if (!this._taskId || this._lastPerformed !== this._loadedLastPerformed) {
+      data.last_performed = this._lastPerformed || null;
+    }
+    data.nfc_tag_id = this._nfcTagId || null;
+    data.require_tag_scan = this._requireTagScan;
+    data.allow_skip = this._allowSkip;
+    data.notify_enabled = this._notifyEnabled;
+    data.reading_unit = this._readingUnit.trim() || null;
+    // #161 phase 2: always sent — [] clears the slots (single-value task).
+    // Sent as hydrated even when the editor is hidden (type != reading), so
+    // a no-op edit never wipes stored slots (the #42/#50 wipe class).
+    data.readings = cleanReadingSlots(this._readings);
+    // Task phases (#139): always sent — null clears a removed cycle.
+    {
+      const defs: Record<string, unknown> = {};
+      for (const d of this._phaseDefs) {
+        if (!d.name.trim()) continue;
+        const def: Record<string, unknown> = { ...d.carry, name: d.name.trim() };
+        const items = d.checklistText.split("\n").map((s) => s.trim()).filter(Boolean);
+        if (items.length) def.checklist = items;
+        const links: TaskPartLink[] = [];
+        if (d.partId) {
+          const qty = parseFloat(d.partQty);
+          links.push({ part_id: d.partId, quantity: Number.isFinite(qty) && qty > 0 ? qty : 1 });
+        }
+        // entry_id travels only when present (a shared pool, #111) — an
+        // own-part link stays byte-identical to what shipped before.
+        for (const l of d.extraParts) {
+          links.push(
+            l.entry_id
+              ? { part_id: l.part_id, quantity: l.quantity, entry_id: l.entry_id }
+              : { part_id: l.part_id, quantity: l.quantity },
+          );
+        }
+        if (links.length) def.consumes_parts = links;
+        // Override on → send the list, EMPTY included ("demands nothing");
+        // off → omit the key so the task-level list falls through.
+        if (d.reqOverride) def.required_completion_fields = [...d.reqFields];
+        defs[d.id] = def;
+      }
+      const seq = this._phaseSeq.filter((id) => id in defs);
+      data.phases = Object.keys(defs).length && seq.length ? defs : null;
+      data.phase_sequence = data.phases ? seq : null;
+    }
+    // Only send when a picker was actually rendered. A failed parts load
+    // leaves both lists empty, and sending [] then would silently wipe links
+    // the user never saw. entry_id is written ONLY for a foreign pick, so an
+    // own-parts task saves byte-identically to before (#111).
+    if (this.parts.length || this._foreignOwners.length) {
+      data.consumes_parts = Object.values(this._consumesParts).map((l) =>
+        l.entry_id
+          ? { part_id: l.part_id, quantity: l.quantity, entry_id: l.entry_id }
+          : { part_id: l.part_id, quantity: l.quantity },
+      );
+    }
+    if (!this._taskId || this._responsibleUserId !== this._loadedResponsibleUserId) {
+      data.responsible_user_id = this._responsibleUserId;
+    }
+    data.assignee_pool = this._assigneePool;
+    data.required_completion_fields = this._requiredCompletion;
+    data.rotation_strategy =
+      this._assigneePool.length >= 2 && this._rotationStrategy
+        ? this._rotationStrategy
+        : null;
+
+    if (this._scheduleType === "sensor_based" && this._triggerType === "compound") {
+      // Compound: a group of conditions joined by AND/OR. Each condition
+      // carries its own entity + type + params; the top-level entity picker
+      // does not apply here.
+      const conditions = this._compoundConditions
+        .map(draftToCondition)
+        .filter((c): c is TriggerConfig => c !== null);
+      if (conditions.length > 0) {
+        const triggerConfig: TriggerConfig = {
+          type: "compound",
+          compound_logic: this._compoundLogic,
+          conditions,
+        };
+        if (this._autoCompleteOnRecovery) triggerConfig.auto_complete_on_recovery = true;
+        if (this._triggerCombinator === "all") triggerConfig.trigger_combinator = "all";
+        data.trigger_config = triggerConfig;
+      } else if (this._taskId) {
+        data.trigger_config = null;
+      }
+    } else if (this._scheduleType === "sensor_based" && this._triggerEntityId) {
+      const entityIds = this._triggerEntityIds.length > 0
+        ? this._triggerEntityIds
+        : [this._triggerEntityId];
+      const triggerConfig: TriggerConfig = {
+        entity_id: entityIds[0],
+        entity_ids: entityIds,
+        type: this._triggerType,
+      };
+      // The per-type fields: the same rules a compound condition uses.
+      applyTypeFields(triggerConfig, this._typeFields());
+      if (this._autoCompleteOnRecovery) triggerConfig.auto_complete_on_recovery = true;
+      if (this._triggerCombinator === "all") triggerConfig.trigger_combinator = "all";
+
+      // Multi-entity: store entity_logic for all trigger types
+      if (entityIds.length > 1) {
+        triggerConfig.entity_logic = this._triggerEntityLogic;
+      }
+
+      // Flat-form-only fields.
+      if (this._triggerType === "counter" && this._triggerDeltaMode && this._triggerBaselineValue) {
+        // #102: optional counting start value ("last service was at X").
+        // Empty = count from the reading at creation / keep the live
+        // baseline; the backend clears stale Store state when it changes.
+        const b = parseFloat(this._triggerBaselineValue);
+        if (!isNaN(b) && b >= 0) triggerConfig.trigger_baseline_value = b;
+      } else if (this._triggerType === "runtime" && this._triggerRuntimeMaxSession) {
+        // #149: per-session cap (seconds) against sensors stuck ON.
+        const v = parseInt(this._triggerRuntimeMaxSession, 10);
+        if (!isNaN(v) && v > 0) triggerConfig.trigger_runtime_max_session_seconds = v;
+      }
+
+      data.trigger_config = triggerConfig;
+    } else if (this._taskId) {
+      data.trigger_config = null;
+    }
+
+    // Schedule time only sent when feature is enabled — null clears.
+    // Every date-driven kind takes one (#168), not only the interval; an
+    // unticked checkbox (or a ticked one with an empty picker) clears it.
+    if (this.scheduleTimeEnabled && SCHEDULE_TIME_KINDS.includes(this._scheduleType)) {
+      const t = this._scheduleTimeOn ? this._scheduleTime.trim() : "";
+      data.schedule_time = /^([01]\d|2[0-3]):[0-5]\d$/.test(t) ? t : null;
+    }
+
+    if (this.checklistsEnabled) {
+      const items = this._checklistText
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .slice(0, 100);
+      data.checklist = items.length ? items : null;
+    }
+
+    // v1.3.0: on_complete_action + quick_complete_defaults (gated)
+    if (this.completionActionsEnabled) {
+      const svc = this._actionService.trim();
+      if (svc && /^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(svc)) {
+        const action: Record<string, unknown> = { service: svc };
+        const tgt = this._actionTargetEntity.trim();
+        if (tgt) action.target = { entity_id: tgt };
+        const dataDict = this._buildActionData();
+        if (Object.keys(dataDict).length > 0) {
+          action.data = dataDict;
+        }
+        data.on_complete_action = action;
+      } else {
+        data.on_complete_action = null;
+      }
+
+      const qcd: Record<string, unknown> = {};
+      if (this._qcNotes.trim()) qcd.notes = this._qcNotes.trim();
+      const cost = parseFloat(this._qcCost);
+      if (!isNaN(cost) && cost >= 0) qcd.cost = cost;
+      const dur = parseDurationMinutes(this._qcDuration);
+      if (dur !== null) qcd.duration = dur;
+      if (this._qcFeedback) qcd.feedback = this._qcFeedback;
+      data.quick_complete_defaults = Object.keys(qcd).length ? qcd : null;
+    }
+
+    return data;
   }
 
   private _close(): void {
@@ -1960,8 +1999,8 @@ export class MaintenanceTaskDialog extends LitElement {
           <ms-textfield
             label="${t("adaptive_ewa_alpha", L)}"
             type="number"
-            min="0.1"
-            max="0.9"
+            min=${EWA_ALPHA_RANGE[0]}
+            max=${EWA_ALPHA_RANGE[1]}
             step="0.1"
             .value=${this._adaptiveAlpha}
             @input=${(e: Event) => (this._adaptiveAlpha = (e.target as HTMLInputElement).value)}
@@ -2102,6 +2141,8 @@ export class MaintenanceTaskDialog extends LitElement {
         })}
         <ms-textfield label="${t("target_changes", L)}" type="number" .value=${c.targetChanges}
           @input=${(e: Event) => this._patchCondition(i, { targetChanges: (e.target as HTMLInputElement).value })}></ms-textfield>
+        <ms-textfield label="${t("for_minutes", L)}" type="number" .value=${c.forMinutes}
+          @input=${(e: Event) => this._patchCondition(i, { forMinutes: (e.target as HTMLInputElement).value })}></ms-textfield>
       `;
     }
     if (c.type === "runtime") {
@@ -2298,7 +2339,7 @@ export class MaintenanceTaskDialog extends LitElement {
   private _buildSchedule(): Record<string, unknown> {
     const withOffset = (schedule: Record<string, unknown>) => {
       const off = parseInt(this._calOffset, 10) || 0;
-      if (off) schedule.offset = Math.max(-15, Math.min(off, 15));
+      if (off) schedule.offset = Math.max(-SCHEDULE_OFFSET_MAX_DAYS, Math.min(off, SCHEDULE_OFFSET_MAX_DAYS));
       return schedule;
     };
     if (this._scheduleType === "weekdays") {
@@ -2490,8 +2531,8 @@ export class MaintenanceTaskDialog extends LitElement {
         label="${t("recurrence_offset", L)}"
         helper="${t("recurrence_offset_help", L)}"
         type="number"
-        min="-15"
-        max="15"
+        min=${-SCHEDULE_OFFSET_MAX_DAYS}
+        max=${SCHEDULE_OFFSET_MAX_DAYS}
         .value=${this._calOffset}
         @input=${(e: Event) => (this._calOffset = (e.target as HTMLInputElement).value)}
       ></ms-textfield>`;
@@ -2684,7 +2725,7 @@ export class MaintenanceTaskDialog extends LitElement {
         <ms-textfield
           label="${t("target_changes", L)}"
           type="number"
-          min="1"
+          min=${TRIGGER_TARGET_CHANGES_RANGE[0]}
           .value=${this._triggerTargetChanges}
           @input=${(e: Event) => (this._triggerTargetChanges = (e.target as HTMLInputElement).value)}
         ></ms-textfield>
@@ -2695,7 +2736,7 @@ export class MaintenanceTaskDialog extends LitElement {
         <ms-textfield
           label="${t("for_at_least_minutes", L)}"
           type="number"
-          min="0"
+          min=${TRIGGER_FOR_MINUTES_RANGE[0]}
           .value=${this._triggerForMinutes}
           @input=${(e: Event) => (this._triggerForMinutes = (e.target as HTMLInputElement).value)}
         ></ms-textfield>
@@ -2934,8 +2975,8 @@ export class MaintenanceTaskDialog extends LitElement {
           <ms-textfield
             label="${t("warning_days", L)}"
             type="number"
-            min="0"
-            max="365"
+            min=${WARNING_DAYS_RANGE[0]}
+            max=${WARNING_DAYS_RANGE[1]}
             .value=${this._warningDays}
             @input=${(e: Event) => (this._warningDays = (e.target as HTMLInputElement).value)}
           ></ms-textfield>

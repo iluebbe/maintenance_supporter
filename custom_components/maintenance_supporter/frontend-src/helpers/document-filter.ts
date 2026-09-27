@@ -6,6 +6,7 @@
  */
 
 import { queryTokens, scoreFields } from "./search-match";
+import { CATEGORIES, docCategory, docDisplayName } from "./document-categories";
 
 /** Below this many documents a filter box is noise, not help. */
 export const DOC_FILTER_MIN = 8;
@@ -27,8 +28,6 @@ export function asDocSortMode(raw: string | null | undefined): DocSortMode {
   return (DOC_SORT_MODES as readonly string[]).includes(raw ?? "") ? (raw as DocSortMode) : "newest";
 }
 
-const DOC_CATEGORIES = ["manual", "warranty", "invoice", "spare_parts", "photo", "other"];
-
 /** Sort a document list (#164). "title" is a natural order — "Construct 2"
  *  before "Construct 10", "#1, #2, #3" — via a numeric collator, so a user
  *  who numbers their documents gets the folder-like sequence they typed.
@@ -37,13 +36,11 @@ const DOC_CATEGORIES = ["manual", "warranty", "invoice", "spare_parts", "photo",
  *  match instead, so the sort applies to the unfiltered list only. */
 export function sortDocuments<T extends FilterableDoc>(docs: T[], mode: DocSortMode): T[] {
   const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
-  const name = (d: T) => (d.title || d.filename || d.url || "").trim();
+  const name = (d: T) => docDisplayName(d).trim();
   const byTitle = (a: T, b: T) => collator.compare(name(a), name(b));
-  const category = (d: T) => {
-    if (d.kind === "weblink") return DOC_CATEGORIES.length + 1;
-    const tag = (d.tags || []).find((x) => DOC_CATEGORIES.includes(x)) || "other";
-    return DOC_CATEGORIES.indexOf(tag);
-  };
+  // The Python-pinned category order (document-categories.ts CATEGORIES,
+  // tests/test_frontend_const_parity.py) — this module kept its own copy.
+  const category = (d: T) => (d.kind === "weblink" ? CATEGORIES.length + 1 : CATEGORIES.indexOf(docCategory(d)));
   const out = [...docs];
   switch (mode) {
     case "oldest":

@@ -38,7 +38,7 @@ import {
   type HistoryEntryShape,
 } from "./helpers/calendar-bucket";
 import { calendarStyles } from "./calendar-styles";
-import { syncLocaleFromHass, sharedStyles, currencySymbolOf, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatWeekday, formatMonth, langOf, formatCost, syncCurrencyDecimals} from "./styles";
+import { syncLocaleFromHass, sharedStyles, currencySymbolOf, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatInterval, formatWeekday, formatMonth, langOf, formatCost, syncCurrencyDecimals} from "./styles";
 import { registerCustomCard } from "./helpers/register-card";
 import { loadHistoryEntryDraft } from "./helpers/history-draft";
 import { canWrite } from "./helpers/permissions";
@@ -386,10 +386,12 @@ export class MaintenanceCalendarCard extends LitElement {
       const overdueLabel = ev.status === "overdue" && ev.days_until_due != null
         ? ` (${formatDueDays(ev.days_until_due, L)})`
         : "";
+      // Days read "every N days" (the calendar's own wording, singular for
+      // 1); other units go through the shared interval formatter.
       const recurEvery = ev.projected && ev.interval_days
         ? html`<span class="cal-event-recur">${
             ev.interval_unit && ev.interval_unit !== "days"
-              ? `${ev.interval_days} ${t("unit_" + ev.interval_unit, L)}`
+              ? formatInterval(ev.interval_days, ev.interval_unit, L)
               : ev.interval_days === 1
                 ? t("cal_every_day", L)
                 : t("cal_every_n_days", L).replace("{n}", String(ev.interval_days))

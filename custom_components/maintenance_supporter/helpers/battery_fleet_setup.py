@@ -42,6 +42,7 @@ from .battery_fleet import (
     read_batteries,
     release_low_latch,
 )
+from .entry_tasks import write_task, write_tasks
 from .global_options import get_default_warning_days
 from .trigger_fallback import threshold_limits_overlap
 
@@ -605,12 +606,13 @@ def fleet_task_trigger_ok(entry: ConfigEntry) -> bool:
     stored with only the plural ``entity_ids``); without it the task never
     fires or auto-completes. This is the health signal behind the repair path.
     """
+    from ..entity.triggers import normalize_entity_ids
+
     found = find_fleet_task(entry)
     if found is None:
         return False
     tc = found[1].get("trigger_config") or {}
-    eids = tc.get("entity_ids") or ([tc["entity_id"]] if tc.get("entity_id") else [])
-    return tc.get("type") == "threshold" and LOW_COUNT_ENTITY_ID in eids
+    return tc.get("type") == "threshold" and LOW_COUNT_ENTITY_ID in normalize_entity_ids(tc)
 
 
 async def _reconcile_fleet_task(hass: HomeAssistant, entry: ConfigEntry, lang: str) -> bool:
@@ -630,11 +632,7 @@ async def _reconcile_fleet_task(hass: HomeAssistant, entry: ConfigEntry, lang: s
         task_id, task_data = found
         new_task = dict(task_data)
         new_task["trigger_config"] = _fleet_trigger_config()
-        new_data = dict(entry.data)
-        new_tasks = dict(new_data.get(CONF_TASKS, {}))
-        new_tasks[task_id] = new_task
-        new_data[CONF_TASKS] = new_tasks
-        hass.config_entries.async_update_entry(entry, data=new_data)
+        write_task(hass, entry, task_id, new_task)
         await hass.config_entries.async_reload(entry.entry_id)
         return True
 
@@ -652,23 +650,20 @@ def _heal_fleet_trigger_recovery_flag(hass: HomeAssistant, entry: ConfigEntry) -
     entity list stays untouched. Runs at every start, so restored backups
     from old exports heal too.
     """
+    from ..entity.triggers import normalize_entity_ids
+
     found = find_fleet_task(entry)
     if found is None:
         return False
     task_id, task_data = found
     tc = task_data.get("trigger_config") or {}
-    eids = tc.get("entity_ids") or ([tc["entity_id"]] if tc.get("entity_id") else [])
-    if tc.get("type") != "threshold" or LOW_COUNT_ENTITY_ID not in eids:
+    if tc.get("type") != "threshold" or LOW_COUNT_ENTITY_ID not in normalize_entity_ids(tc):
         return False
     if tc.get("auto_complete_on_recovery"):
         return False
     new_task = dict(task_data)
     new_task["trigger_config"] = {**tc, "auto_complete_on_recovery": True}
-    new_data = dict(entry.data)
-    new_tasks = dict(new_data.get(CONF_TASKS, {}))
-    new_tasks[task_id] = new_task
-    new_data[CONF_TASKS] = new_tasks
-    hass.config_entries.async_update_entry(entry, data=new_data)
+    write_task(hass, entry, task_id, new_task)
     return True
 
 
@@ -1010,7 +1005,7 @@ async def migrate_fleet_part_ids(hass: HomeAssistant, entry: ConfigEntry) -> dic
             continue
         repointed, changed = _repoint_tasks(other_tasks, moves, owner_id=entry.entry_id, foreign=True)
         if changed:
-            hass.config_entries.async_update_entry(other, data={**other.data, CONF_TASKS: repointed})
+            write_tasks(hass, other, repointed)
         other_store = getattr(getattr(other, "runtime_data", None), "store", None) or stores.get(other.entry_id)
         if other_store is not None and _repoint_store_history(other_store, list(other_tasks), moves, owner_id=entry.entry_id, foreign=True):
             await other_store.async_save()

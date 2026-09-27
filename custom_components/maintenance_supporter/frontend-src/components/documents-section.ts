@@ -11,11 +11,11 @@ import { LitElement, html, css, nothing } from "lit";
 import { isSafeHttpUrl } from "../helpers/url";
 import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf } from "../styles";
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
 import { downloadUrl } from "../helpers/download";
 import { downloadSignedDocument, openSignedDocument, signDocumentPath } from "../helpers/document-url";
 import { formatBytes } from "../helpers/format-bytes";
-import { docDisplayName, CATEGORIES, CATEGORY_ICONS } from "../helpers/document-categories";
+import { docCategory, docDisplayName, CATEGORIES, CATEGORY_ICONS } from "../helpers/document-categories";
 import { DOC_FILTER_MIN, DOC_SORT_MODES, asDocSortMode, filterDocuments, sortDocuments, type DocSortMode } from "../helpers/document-filter";
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import type { HomeAssistant } from "../types";
@@ -122,22 +122,42 @@ export class MaintenanceDocumentsSection extends LitElement {
     const entryId = this.entryId;
     const seq = ++this._loadSeq;
     const stale = () => seq !== this._loadSeq || entryId !== this.entryId;
-    try {
-      const r = await this.hass.connection.sendMessagePromise<{ documents: MaintenanceDocument[] }>({
-        type: "maintenance_supporter/documents/list",
-        entry_id: entryId,
-      });
-      if (stale()) return;
-      this._docs = r.documents || [];
-      this._loaded = true;
-      this._error = "";
-      this._thumbs = {};
-      void this._loadThumbs(stale);
-    } catch (e) {
-      if (stale()) return;
-      this._error = describeWsError(e, this._lang);
-      this._loaded = true;
+    let failure = "";
+    const r = await runWs<{ documents: MaintenanceDocument[] }>(
+      this,
+      { type: "maintenance_supporter/documents/list", entry_id: entryId },
+      { onError: (m) => { failure = m; } },
+    );
+    if (stale()) return;
+    this._loaded = true;
+    if (r === undefined) {
+      this._error = failure;
+      return;
     }
+    this._docs = r?.documents || [];
+    this._error = "";
+    this._thumbs = {};
+    void this._loadThumbs(stale);
+  }
+
+  /** A document write — helpers/ws-run runWs with the busy flag, the error
+   *  line and the list reload (`onDone` runs first). */
+  private async _write(payload: Record<string, unknown>, onDone?: () => void, fallbackKey?: string): Promise<void> {
+    this._error = "";
+    await runWs(this, payload, {
+      busy: (b) => { this._busy = b; },
+      fallbackKey,
+      reload: async () => {
+        onDone?.();
+        await this._load();
+      },
+      onError: (m) => { this._error = m; },
+    });
+  }
+
+  /** The signed open / download helpers, their failure on the error line. */
+  private async _signed(call: () => Promise<unknown>): Promise<void> {
+    await runWs(this, call, { onError: (m) => { this._error = m; } });
   }
 
   /** Pre-sign a serve URL for each image doc so it can render as a thumbnail. */
@@ -156,8 +176,7 @@ export class MaintenanceDocumentsSection extends LitElement {
   }
 
   private _category_of(doc: MaintenanceDocument): string {
-    const tag = (doc.tags || []).find((x) => (CATEGORIES as readonly string[]).includes(x));
-    return tag || "other";
+    return docCategory(doc);
   }
 
   /** Keyboard support for the file-picker <label>s (Enter/Space → open). */
@@ -239,11 +258,7 @@ export class MaintenanceDocumentsSection extends LitElement {
   }
 
   private async _download(doc: MaintenanceDocument): Promise<void> {
-    try {
-      await downloadSignedDocument(this.hass, doc.id, doc.filename || doc.title || "document");
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    }
+    await this._signed(() => downloadSignedDocument(this.hass, doc.id, doc.filename || doc.title || "document"));
   }
 
   /** Open a document for viewing: images in an in-app lightbox, everything else
@@ -253,11 +268,7 @@ export class MaintenanceDocumentsSection extends LitElement {
       this._lightboxUrl = this._thumbs[doc.id] || (await this._sign(doc));
       return;
     }
-    try {
-      await openSignedDocument(this.hass, doc.id);
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    }
+    await this._signed(() => openSignedDocument(this.hass, doc.id));
   }
 
   /** Open a document from a title/row click (not just the small icons): preview
@@ -293,67 +304,44 @@ export class MaintenanceDocumentsSection extends LitElement {
       (x) => !(CATEGORIES as readonly string[]).includes(x),
     );
     const tags = doc.kind === "file" ? [this._editCategory, ...freeTags] : (doc.tags ?? []);
-    this._busy = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
+    await this._write(
+      {
         type: "maintenance_supporter/documents/update",
         doc_id: doc.id,
         title: this._editTitle.trim() || doc.filename || doc.url || "",
         tags,
         description: this._editDescription.trim(),
-      });
-      this._editingId = "";
-      await this._load();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+      },
+      () => { this._editingId = ""; },
+    );
   }
 
   private async _delete(doc: MaintenanceDocument): Promise<void> {
     const name = docDisplayName(doc);
     if (!window.confirm(t("doc_delete_confirm", this._lang).replace("{name}", name))) return;
-    this._busy = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/documents/delete",
-        doc_id: doc.id,
-      });
-      await this._load();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+    await this._write({ type: "maintenance_supporter/documents/delete", doc_id: doc.id });
   }
 
   private async _addLink(): Promise<void> {
     const url = this._linkUrl.trim();
     if (!url) return;
     const entryId = this.entryId;
-    this._busy = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
+    await this._write(
+      {
         type: "maintenance_supporter/documents/add_link",
         entry_id: entryId,
         url,
         title: this._linkTitle.trim() || null,
         description: this._linkDescription.trim() || null,
-      });
-      this._linkUrl = "";
-      this._linkTitle = "";
-      this._linkDescription = "";
-      this._addingLink = false;
-      await this._load();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang, t("doc_link_invalid", this._lang));
-    } finally {
-      this._busy = false;
-    }
+      },
+      () => {
+        this._linkUrl = "";
+        this._linkTitle = "";
+        this._linkDescription = "";
+        this._addingLink = false;
+      },
+      "doc_link_invalid",
+    );
   }
 
   render() {

@@ -12,6 +12,7 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
+from ._shared import LOCK_CYLINDER_CYCLES
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "nuki": IntegrationSignature(
@@ -23,14 +24,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "the ENGINE counts locking cycles on the lock entity."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "tedee": IntegrationSignature(
@@ -42,14 +36,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "the ENGINE counts locking cycles; entity_domain-gated to locks."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "august": IntegrationSignature(
@@ -61,14 +48,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "the ENGINE counts locking cycles; entity_domain-gated to locks."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "yale": IntegrationSignature(
@@ -80,14 +60,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "the ENGINE counts locking cycles; entity_domain-gated to locks."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "switchbot": IntegrationSignature(
@@ -99,14 +72,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "the ENGINE counts locking cycles; entity_domain-gated to locks."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "loqed": IntegrationSignature(
@@ -118,14 +84,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "the ENGINE counts locking cycles; entity_domain-gated to locks."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "homematicip_cloud": IntegrationSignature(
@@ -137,14 +96,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "the ENGINE counts locking cycles; entity_domain-gated to locks."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "schlage": IntegrationSignature(
@@ -155,14 +107,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(lock platform verified present) — engine-counted locking cycles."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "sesame": IntegrationSignature(
@@ -173,14 +118,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(lock platform verified present) — engine-counted locking cycles."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "yalexs_ble": IntegrationSignature(
@@ -191,14 +129,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(lock platform verified present) — engine-counted locking cycles."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "dormakaba_dkey": IntegrationSignature(
@@ -209,14 +140,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(lock platform verified present) — engine-counted locking cycles."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "homematic": IntegrationSignature(
@@ -227,14 +151,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(lock platform verified present) — engine-counted locking cycles, entity_domain-gated so the hub's other device types are untouched."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     # --- Round 14 (2026-09-25) --------------------------------------------
@@ -248,14 +165,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "are untouched."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "ttlock": IntegrationSignature(
@@ -266,14 +176,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "is_locked from the lock state) — engine-counted locking cycles."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "kwikset": IntegrationSignature(
@@ -285,14 +188,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "engine-counted locking cycles."
         ),
         tasks=(
-            ConsumableSignature(
-                (),
-                "Lubricate Cylinder",
-                "cycle_count",
-                delta_units=2000,
-                entity_domain="lock",
-                on_states=("locked",),
-            ),
+            LOCK_CYLINDER_CYCLES,
         ),
     ),
     "nuki_web": IntegrationSignature(

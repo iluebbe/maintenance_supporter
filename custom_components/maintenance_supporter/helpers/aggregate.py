@@ -7,12 +7,24 @@ sensors compute their counts here, so the numbers can never diverge.
 
 from __future__ import annotations
 
+from collections.abc import Iterator, Mapping
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 
-from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID, MaintenanceStatus
+from ..const import (
+    CONF_OBJECT,
+    CONF_TASKS,
+    DEFAULT_TASK_PRIORITY,
+    DOMAIN,
+    GLOBAL_UNIQUE_ID,
+    MaintenanceStatus,
+    TaskPriority,
+    slugify_object_name,
+    task_unique_id,
+)
 
 if TYPE_CHECKING:
     from .. import MaintenanceSupporterData
@@ -26,6 +38,17 @@ _COUNTED_STATUSES = (
     MaintenanceStatus.TRIGGERED,
     MaintenanceStatus.OK,
 )
+
+# Sort rank of a task priority — high-priority work first (#134). ONE table
+# for the notification manager's daily-limit fairness and the Assist
+# "what is due?" ordering, which kept its own inline copy (DRY audit
+# 2026-09-26 B). An unknown value ranks like "normal".
+PRIORITY_RANK: dict[str, int] = {TaskPriority.HIGH: 0, TaskPriority.NORMAL: 1, TaskPriority.LOW: 2}
+
+
+def priority_rank(priority: Any) -> int:
+    """The :data:`PRIORITY_RANK` of a stored priority value (unset = normal)."""
+    return PRIORITY_RANK.get(str(priority or DEFAULT_TASK_PRIORITY), PRIORITY_RANK[TaskPriority.NORMAL])
 
 
 def is_object_entry(entry: ConfigEntry | None) -> bool:
@@ -46,6 +69,33 @@ def object_name(entry: ConfigEntry) -> str:
     — half used ``.get("name", title)``, which kept an EMPTY name instead of
     falling through to the title."""
     return str((entry.data.get(CONF_OBJECT) or {}).get("name") or entry.title)
+
+
+def object_slug(obj_data: Mapping[str, Any]) -> str:
+    """The object slug every per-task entity's unique_id is built from.
+
+    THE registration rule of the sensor / binary_sensor / button platforms
+    (``name`` as stored, ``"unknown"`` only when the key is missing). The
+    registry LOOKUPS of the task sensor (coordinator, list_tasks, the
+    notification context, the logbook) each derived it on their own and two
+    had drifted — an object with an empty name resolved to no sensor there
+    (DRY audit 2026-09-26 B). A non-string name (never registered) reads
+    like a missing one instead of raising.
+    """
+    name = obj_data.get("name", "unknown")
+    return slugify_object_name(name if isinstance(name, str) else "unknown")
+
+
+def task_entity_id(hass: HomeAssistant, slug: str, task_id: str, *, platform: str = "sensor", suffix: str = "") -> str | None:
+    """The REGISTERED entity_id of a per-task entity (users rename them), or
+    None when the registry does not know it. ``slug`` = :func:`object_slug`."""
+    return er.async_get(hass).async_get_entity_id(platform, DOMAIN, task_unique_id(slug, task_id, suffix))
+
+
+def task_sensor_entity_id(hass: HomeAssistant, obj_data: Mapping[str, Any], task_id: str) -> str | None:
+    """The registered entity_id of a task's status sensor, from the object's
+    stored data — the one lookup behind every "which sensor is this task?"."""
+    return task_entity_id(hass, object_slug(obj_data), task_id)
 
 
 def merged_tasks(entry: ConfigEntry) -> dict[str, Any]:
@@ -104,6 +154,30 @@ def get_coordinator_data(hass: HomeAssistant, entry_id: str) -> dict[str, Any] |
     rd = get_runtime_data(hass, entry_id)
     coordinator = getattr(rd, "coordinator", None) if rd else None
     return coordinator.data if coordinator is not None else None
+
+
+def iter_live_tasks(hass: HomeAssistant, entry_id: str | None = None) -> Iterator[tuple[ConfigEntry, str, dict[str, Any]]]:
+    """``(entry, task_id, computed task)`` for every non-archived task of
+    every LOADED object (optionally one object only).
+
+    The coordinator's computed payload, so ``_status`` / ``_next_due`` reflect
+    the Store rather than stale entry data. An object that is not loaded
+    (disabled, setup retry, mid-reload) has no coordinator data and
+    contributes nothing. THE cross-object walk behind the ``list_tasks``
+    service and the Assist task snapshot, which each carried a copy of it
+    (DRY audit 2026-09-26 B).
+    """
+    for entry in get_object_entries(hass):
+        if entry_id is not None and entry.entry_id != entry_id:
+            continue
+        rd = getattr(entry, "runtime_data", None)
+        coordinator = getattr(rd, "coordinator", None) if rd else None
+        if coordinator is None or not coordinator.data:
+            continue
+        for task_id, task in coordinator.data.get(CONF_TASKS, {}).items():
+            if str(task.get("_status", "")) == MaintenanceStatus.ARCHIVED:
+                continue
+            yield entry, task_id, task
 
 
 def compute_status_counts(hass: HomeAssistant) -> dict[str, Any]:

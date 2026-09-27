@@ -19,7 +19,6 @@ from homeassistant.components.logbook.const import (
     LOGBOOK_ENTRY_NAME,
 )
 from homeassistant.core import Event, HomeAssistant, callback
-from homeassistant.helpers import entity_registry as er
 
 from .const import (
     DOMAIN,
@@ -28,9 +27,8 @@ from .const import (
     EVENT_TASK_SKIPPED,
     EVENT_TRIGGER_ACTIVATED,
     EVENT_TRIGGER_DEACTIVATED,
-    slugify_object_name,
-    task_unique_id,
 )
+from .helpers.aggregate import task_sensor_entity_id
 from .helpers.i18n import format_text, normalize_language
 
 if TYPE_CHECKING:
@@ -223,8 +221,9 @@ def _task_entity_id(hass: HomeAssistant, data: Mapping[str, Any]) -> str | None:
     task_id = data.get("task_id")
     if not obj or not task_id:
         return None
-    unique_id = task_unique_id(slugify_object_name(obj), task_id)
-    return er.async_get(hass).async_get_entity_id("sensor", DOMAIN, unique_id)
+    # The event carries the object's name, not its stored data — the same
+    # slug rule applies (the shared lookup, DRY audit 2026-09-26 B).
+    return task_sensor_entity_id(hass, {"name": obj}, str(task_id))
 
 
 def _detail_suffix(data: Mapping[str, Any]) -> str:

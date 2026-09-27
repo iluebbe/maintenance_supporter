@@ -300,6 +300,15 @@ export function formatCost(amount: number, symbol?: string, lang?: string, digit
   return symbol ? `${num} ${symbol}` : num;
 }
 
+/** A quantity with its optional unit ("6 pcs", "1,5 l" under a decimal-comma
+ *  profile) — spare-part stock and quantities everywhere. Four surfaces had
+ *  interpolated the raw number (`${stock} ${unit}`), bypassing the profile
+ *  number format (DRY audit 2026-09-26; tripwired in dry-round4.test.ts). */
+export function formatQty(n: number, unit?: string | null, lang?: string): string {
+  const num = formatNumber(n, lang);
+  return unit ? `${num} ${unit}` : num;
+}
+
 /** BCP-47 locale for the "language" default: the UI language regionalized
  *  by the server country when Intl knows the combination (#140). Explicit
  *  profile formats (DMY/MDY/YMD/system) never reach this path. */

@@ -8,6 +8,7 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
+from ._shared import FILTER_LIFE_PERCENT, HOOD_GREASE_FILTER_USAGE, VENTILATION_FILTER_OPERATING_TIME, VENTILATION_FILTER_REMAIN
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "hass_dyson": IntegrationSignature(
@@ -18,7 +19,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(translation_key 'filter_life' for BOTH hepa and carbon "
             "instances, PERCENTAGE) — one any-low task covers both filters."
         ),
-        tasks=(ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),),
+        tasks=(FILTER_LIFE_PERCENT,),
     ),
     "dreo": IntegrationSignature(
         name="Dreo",
@@ -26,13 +27,13 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         source=(
             "JeffSteinbok/hass-dreo sensor.py (translation_key 'filter_life', unit '%', humidifiers with FILTERTIME support)."
         ),
-        tasks=(ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),),
+        tasks=(FILTER_LIFE_PERCENT,),
     ),
     "vesync": IntegrationSignature(
         name="VeSync (Levoit)",
         verified="2026-07-19 @ core/dev vesync/sensor.py",
         source="core vesync: tk 'filter_life', PERCENTAGE, MEASUREMENT (Levoit purifiers).",
-        tasks=(ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),),
+        tasks=(FILTER_LIFE_PERCENT,),
     ),
     "daikin": IntegrationSignature(
         name="Daikin AC",
@@ -156,7 +157,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "A filter_expired problem binary also exists (adoption path)."
         ),
         tasks=(
-            ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),
+            FILTER_LIFE_PERCENT,
             ConsumableSignature(("wick_life",), "Replace Wick", "percent_left"),
             ConsumableSignature(("water_refresher_life",), "Replace Water Refresher", "percent_left"),
         ),
@@ -183,7 +184,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "from filter hours vs the model's max filter life "
             "(wrapper.filter_max_life; was filter_alarm_duration before 2026-09)."
         ),
-        tasks=(ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),),
+        tasks=(FILTER_LIFE_PERCENT,),
     ),
     "duco": IntegrationSignature(
         name="Duco ventilation",
@@ -202,12 +203,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(adoption path)."
         ),
         tasks=(
-            ConsumableSignature(
-                ("air_filter_operating_time",),
-                "Replace Ventilation Filter",
-                "usage_above",
-                above_hours=4380,
-            ),
+            VENTILATION_FILTER_OPERATING_TIME,
         ),
     ),
     "tradfri": IntegrationSignature(
@@ -301,7 +297,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(fresco_hydrateultra_petfountain v1 vs v2). 'entity: lock' in "
             "these configs is the CHILD lock — no lock signature."
         ),
-        tasks=(ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),),
+        tasks=(FILTER_LIFE_PERCENT,),
     ),
     "govee": IntegrationSignature(
         name="Govee (purifiers)",
@@ -325,7 +321,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "translations name it 'HEPA Filter remaining lifespan' "
             "(REMAINING; fixtures/devices.json reports filter: 80)."
         ),
-        tasks=(ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),),
+        tasks=(FILTER_LIFE_PERCENT,),
     ),
     "komfovent": IntegrationSignature(
         name="Komfovent ventilation",
@@ -350,7 +346,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "remain; the translated state 0 reads 'Replace the filter now'). "
             "Absent on Servo_flow units (not_component_class)."
         ),
-        tasks=(ConsumableSignature(("filter_remain",), "Replace Ventilation Filter", "duration_left", below_hours=168),),
+        tasks=(VENTILATION_FILTER_REMAIN,),
     ),
     "dantherm": IntegrationSignature(
         name="Dantherm ventilation",
@@ -360,7 +356,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "key 'filter_remain', DURATION, unit 'd', Modbus register 554 = "
             "filter days REMAINING; translation_key = key)."
         ),
-        tasks=(ConsumableSignature(("filter_remain",), "Replace Ventilation Filter", "duration_left", below_hours=168),),
+        tasks=(VENTILATION_FILTER_REMAIN,),
     ),
     "ha_carrier": IntegrationSignature(
         name="Carrier Infinity",
@@ -403,7 +399,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 require_sibling_keys=("air_filter_usage_hours",),
             ),
             ConsumableSignature(("hepa_filter_usage", "filter_progress"), "Replace Filter", "alert_above", delta_units=90),
-            ConsumableSignature(("hood_filter_usage",), "Clean Grease Filter", "alert_above", delta_units=90),
+            HOOD_GREASE_FILTER_USAGE,
         ),
     ),
     "flexit": IntegrationSignature(
@@ -419,12 +415,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "'filter_alarm' problem binary also exists (adoption path)."
         ),
         tasks=(
-            ConsumableSignature(
-                ("air_filter_operating_time",),
-                "Replace Ventilation Filter",
-                "usage_above",
-                above_hours=4380,
-            ),
+            VENTILATION_FILTER_OPERATING_TIME,
         ),
     ),
 }

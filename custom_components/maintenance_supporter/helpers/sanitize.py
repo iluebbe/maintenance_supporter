@@ -122,6 +122,11 @@ _FRESH_COPY_STRIP_KEYS = (
     "archived_reason",
     # #170: a copy is a new task — it gets its own reference number.
     "ref_no",
+    # Dynamic state like the history (storage._DYNAMIC_TASK_FIELDS, pinned by
+    # tests/test_dry_round4_runtime.py): a copy starts its phase cycle and its
+    # checklist from the beginning (DRY audit 2026-09-26 B).
+    "phase_cursor",
+    "checklist_progress",
 )
 
 

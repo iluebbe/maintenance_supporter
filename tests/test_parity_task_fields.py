@@ -115,10 +115,11 @@ def _resolve_conf(name: str) -> str | None:
 
 def _panel_fields() -> set[str]:
     src = DIALOG_TS.read_text(encoding="utf-8")
-    # Isolate the _save method body (up to the WS send) so unrelated `data.`
-    # uses elsewhere don't leak in.
-    start = src.index("private async _save(")
-    end = src.index("sendMessagePromise(data)", start)
+    # Isolate the save payload builder (_save sends what _savePayload
+    # returns — DRY round 4 split it out) so unrelated `data.` uses
+    # elsewhere don't leak in.
+    start = src.index("private _savePayload(")
+    end = src.index("return data;", start)
     body = src[start:end]
 
     fields: set[str] = set()
@@ -187,6 +188,6 @@ def test_panel_and_config_flow_task_fields_are_at_parity() -> None:
     )
     assert not unexpected_config_flow_only, (
         "Task field(s) editable in the config-flow but NOT in the panel "
-        f"(add to task-dialog.ts _save, or allowlist as CONFIG_FLOW_ONLY with a "
+        f"(add to task-dialog.ts _savePayload, or allowlist as CONFIG_FLOW_ONLY with a "
         f"reason): {sorted(unexpected_config_flow_only)}"
     )

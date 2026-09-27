@@ -24,6 +24,7 @@ import { renderEventTitles } from "./helpers/event-titles";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
 import { fetchSettingsOnce, FALLBACK_SETTINGS, type SettingsCache } from "./helpers/settings-cache";
 import { canWrite } from "./helpers/permissions";
+import { ACTIONABLE_STATUSES, isActionableStatus, statusRank } from "./status-constants";
 import "./maintenance-card-editor";
 import "./components/complete-dialog";
 import type { MaintenanceCompleteDialog } from "./components/complete-dialog";
@@ -93,7 +94,7 @@ export class MaintenanceSupporterCard extends LitElement {
       type: "custom:maintenance-supporter-card",
       show_header: true,
       show_actions: true,
-      filter_status: ["overdue", "triggered", "due_soon"],
+      filter_status: [...ACTIONABLE_STATUSES],
       max_items: 10,
     };
   }
@@ -399,9 +400,8 @@ export class MaintenanceSupporterCard extends LitElement {
       }
     }
 
-    const order: Record<string, number> = { overdue: 0, triggered: 1, due_soon: 2, ok: 3 };
     tasks.sort((a, b) => {
-      const byStatus = (order[a.task.status] ?? 9) - (order[b.task.status] ?? 9);
+      const byStatus = statusRank(a.task.status) - statusRank(b.task.status);
       if (byStatus !== 0) return byStatus;
       // Within a status, soonest-due first; tasks without a due date go last.
       return (a.task.days_until_due ?? Infinity) - (b.task.days_until_due ?? Infinity);
@@ -446,7 +446,7 @@ export class MaintenanceSupporterCard extends LitElement {
     const counts = { overdue: 0, due_soon: 0, triggered: 0 };
     for (const obj of this._objects) {
       for (const task of obj.tasks) {
-        if (task.status === "overdue" || task.status === "due_soon" || task.status === "triggered") {
+        if (isActionableStatus(task.status)) {
           counts[task.status] += 1;
         }
       }

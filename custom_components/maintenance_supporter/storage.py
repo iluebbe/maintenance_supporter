@@ -72,8 +72,11 @@ def legacy_runtime_to_trigger_state(trigger_config: Mapping[str, Any], legacy: M
     if legacy and all(isinstance(v, Mapping) for v in legacy.values()):
         # Already per-entity (defensive: nothing writes this shape today).
         return dict(legacy)
-    entity_ids = trigger_config.get("entity_ids") or [trigger_config.get("entity_id")]
-    first = next((eid for eid in entity_ids if eid), None)
+    from .entity.triggers import primary_entity_id
+
+    # The shared "which entity does this trigger watch" rule (DRY audit
+    # 2026-09-26 B) — a compound trigger has none and gets nothing.
+    first = primary_entity_id(dict(trigger_config))
     per_entity = {
         _LEGACY_TO_PER_ENTITY_KEY[k]: v for k, v in legacy.items() if k in _LEGACY_TO_PER_ENTITY_KEY and v is not None
     }

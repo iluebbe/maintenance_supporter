@@ -28,12 +28,10 @@ from .const import (
     ScheduleType,
 )
 from .helpers.aggregate import object_name
+from .helpers.entry_tasks import write_task
+from .helpers.global_options import entry_option
 from .helpers.issues import DEVICE_LINK_LOST_PREFIX, STALE_ACTION_PREFIX
-from .helpers.schedule import (
-    FLAT_RECURRENCE_KEYS,
-    normalize_task_storage,
-    read_legacy_fields,
-)
+from .helpers.schedule import FLAT_RECURRENCE_KEYS, read_legacy_fields
 from .models.maintenance_task import MaintenanceTask
 
 _LOGGER = logging.getLogger(__name__)
@@ -130,6 +128,34 @@ def _strip_entity_from_condition(cond: dict[str, Any], target: str) -> tuple[dic
         nested_stripped, nested_has = _strip_entity_from_dict(nested, target)
         cond["trigger_config"] = nested_stripped
     return cond, top_has or nested_has
+
+
+def _persist_trigger_repair(
+    hass: HomeAssistant, entry: Any, task_id: str, task_dict: dict[str, Any], entry_type: str, notes: str
+) -> None:
+    """Write a repaired task and record the repair in its history.
+
+    The static task goes through the one task-write chokepoint
+    (``write_task`` — normalized to the nested ``schedule``; the replace path
+    wrote it raw). The history entry and the trigger-runtime reset go to the
+    Store; an entry without one (legacy) keeps its history inline. The shared
+    epilogue of the replace and remove paths, which each carried a copy
+    (DRY audit 2026-09-26 B).
+    """
+    write_task(hass, entry, task_id, task_dict)
+    rd = getattr(entry, "runtime_data", None)
+    store = getattr(rd, "store", None) if rd else None
+    if store is not None:
+        task = MaintenanceTask.from_dict(store.merge_task_data(task_id, task_dict))
+        task.add_history_entry(entry_type=entry_type, notes=notes)
+        store.set_history(task_id, task.to_dict().get("history", []))
+        store.clear_trigger_runtime(task_id)
+        store.async_delay_save()
+    else:
+        # Legacy: history via a full task round trip in ConfigEntry.
+        task = MaintenanceTask.from_dict(task_dict)
+        task.add_history_entry(entry_type=entry_type, notes=notes)
+        write_task(hass, entry, task_id, task.to_dict())
 
 
 class MissingTriggerEntityRepairFlow(RepairsFlow):
@@ -268,37 +294,15 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         trigger_config.pop("trigger_baseline_value", None)
         trigger_config.pop("trigger_change_count", None)
         task_dict["trigger_config"] = trigger_config
-        tasks_data[task_id] = task_dict
 
-        # Write static changes to ConfigEntry
-        new_data = dict(entry.data)
-        new_data[CONF_TASKS] = tasks_data
-        self.hass.config_entries.async_update_entry(entry, data=new_data)
-
-        # Add history entry via Store (dynamic state)
-        rd = getattr(entry, "runtime_data", None)
-        store = getattr(rd, "store", None) if rd else None
-        if store is not None:
-            merged = store.merge_task_data(task_id, task_dict)
-            task = MaintenanceTask.from_dict(merged)
-            task.add_history_entry(
-                entry_type=HistoryEntryType.TRIGGER_REPLACED,
-                notes=f"Trigger entity replaced: {old_entity_id} → {new_entity_id}",
-            )
-            td = task.to_dict()
-            store.set_history(task_id, td.get("history", []))
-            store.clear_trigger_runtime(task_id)
-            store.async_delay_save()
-        else:
-            # Legacy: full task roundtrip via ConfigEntry
-            task = MaintenanceTask.from_dict(task_dict)
-            task.add_history_entry(
-                entry_type=HistoryEntryType.TRIGGER_REPLACED,
-                notes=f"Trigger entity replaced: {old_entity_id} → {new_entity_id}",
-            )
-            tasks_data[task_id] = task.to_dict()
-            new_data[CONF_TASKS] = tasks_data
-            self.hass.config_entries.async_update_entry(entry, data=new_data)
+        _persist_trigger_repair(
+            self.hass,
+            entry,
+            str(task_id),
+            task_dict,
+            HistoryEntryType.TRIGGER_REPLACED,
+            f"Trigger entity replaced: {old_entity_id} → {new_entity_id}",
+        )
 
         # Reload entry so the trigger re-initialises with the new entity
         await self.hass.config_entries.async_reload(entry_id)
@@ -342,36 +346,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         else:
             history_notes = self._remove_from_flat(task_dict, trigger_config, missing_entity_id)
 
-        # Write static changes to ConfigEntry (recurrence normalized to nested)
-        tasks_data[task_id] = normalize_task_storage(task_dict)
-        new_data = dict(entry.data)
-        new_data[CONF_TASKS] = tasks_data
-        self.hass.config_entries.async_update_entry(entry, data=new_data)
-
-        # Add history entry via Store (dynamic state)
-        rd = getattr(entry, "runtime_data", None)
-        store = getattr(rd, "store", None) if rd else None
-        if store is not None:
-            merged = store.merge_task_data(task_id, task_dict)
-            task = MaintenanceTask.from_dict(merged)
-            task.add_history_entry(
-                entry_type=HistoryEntryType.TRIGGER_REMOVED,
-                notes=history_notes,
-            )
-            td = task.to_dict()
-            store.set_history(task_id, td.get("history", []))
-            store.clear_trigger_runtime(task_id)
-            store.async_delay_save()
-        else:
-            # Legacy: history via full task roundtrip in ConfigEntry
-            task = MaintenanceTask.from_dict(task_dict)
-            task.add_history_entry(
-                entry_type=HistoryEntryType.TRIGGER_REMOVED,
-                notes=history_notes,
-            )
-            tasks_data[task_id] = task.to_dict()
-            new_data[CONF_TASKS] = tasks_data
-            self.hass.config_entries.async_update_entry(entry, data=new_data)
+        _persist_trigger_repair(self.hass, entry, str(task_id), task_dict, HistoryEntryType.TRIGGER_REMOVED, history_notes)
 
         await self.hass.config_entries.async_reload(entry_id)
 
@@ -509,7 +484,7 @@ class OrphanAdminPanelUserRepairFlow(RepairsFlow):
         if entry is None:
             return self.async_abort(reason="entry_gone")
         target_uid = str(issue_data.get("user_id", ""))
-        ids = list(entry.options.get(CONF_ADMIN_PANEL_USER_IDS, []) or [])
+        ids = list(entry_option(entry, CONF_ADMIN_PANEL_USER_IDS) or [])
         if target_uid in ids:
             ids.remove(target_uid)
             self.hass.config_entries.async_update_entry(
@@ -590,8 +565,6 @@ class StaleActionEntityRepairFlow(RepairsFlow):
         return _entry_for_issue(self.hass, self.data)
 
     def _patch_action_entity(self, entry: Any, new_entity_id: str) -> None:
-        from .helpers.entry_tasks import write_task
-
         task_id = str((self.data or {}).get("task_id", ""))
         task = dict(entry.data.get(CONF_TASKS, {}).get(task_id) or {})
         action = dict(task.get("on_complete_action") or {})
@@ -602,8 +575,6 @@ class StaleActionEntityRepairFlow(RepairsFlow):
         write_task(self.hass, entry, task_id, task)
 
     def _clear_action(self, entry: Any) -> None:
-        from .helpers.entry_tasks import write_task
-
         task_id = str((self.data or {}).get("task_id", ""))
         task = dict(entry.data.get(CONF_TASKS, {}).get(task_id) or {})
         task.pop("on_complete_action", None)

@@ -156,6 +156,13 @@ All notable changes to Maintenance Supporter are documented in this file.
   preparation; quiet-hours summaries skip tasks that no longer need attention; deleting an object removes its to-do
   mirror rows and notification state; the battery fleet object and buy tasks cannot be duplicated; postponing is
   limited to one maximum interval.
+- **Consistency fixes found while consolidating duplicated code:** a compound trigger's *state change* condition
+  kept its hold time; bulk actions name failures and undo only what went through; the settings the cards and
+  dialogs read are range-checked like in the panel; stock figures follow the profile number format; a weblink
+  without a title prints its address in the service booklet; Escape closes the task and object quick actions and
+  the history editor; a copied task starts its phase cycle and checklist from the beginning; Assist, the task
+  list service, notifications and diagnostics find a task's sensor and trigger entity in every storage shape;
+  the suggested-setups adoption no longer over-counts after a rollback.
 - **Panel and cards:** status chips for triggered, paused and archived tasks; quick actions show the full statistics
   (not just the last 20 entries) and follow operator permissions and the feature switches; the complete dialog keeps
   a cleared quantity empty and accepts fractional restocks; restocking and checklist ticks cannot double-submit; the

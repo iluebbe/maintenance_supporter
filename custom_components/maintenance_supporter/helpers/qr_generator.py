@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
+from .notification_ids import PANEL_PATH
 from .qrcodegen import QrCode
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,7 +70,8 @@ def build_qr_url(
         params["action"] = action
 
     query = urllib.parse.urlencode(params)
-    return f"{base}/maintenance-supporter?{query}"
+    # The panel route every notification deep link uses too (notification_ids).
+    return f"{base}{PANEL_PATH}?{query}"
 
 
 def _icon_elements(icon: str, cx: float, cy: float, r: float, fill: str) -> str:

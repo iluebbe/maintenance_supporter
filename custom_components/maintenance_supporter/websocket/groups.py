@@ -12,12 +12,11 @@ from homeassistant.core import HomeAssistant
 from ..const import (
     DOMAIN,
     MAX_GROUP_TASK_REFS,
-    MAX_ID_LENGTH,
     MAX_NAME_LENGTH,
     MAX_TEXT_LENGTH,
 )
 from ..helpers.permissions import require_write
-from . import _get_global_entry, _load_global_options, _save_global_options
+from . import ID_FIELD, _get_global_entry, _load_global_options, _save_global_options
 
 
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/groups"})
@@ -35,8 +34,7 @@ async def ws_get_groups(
         connection.send_result(msg["id"], {"groups": {}})
         return
 
-    options = global_entry.options or global_entry.data
-    groups = options.get(CONF_GROUPS, {})
+    groups = (global_entry.options or global_entry.data).get(CONF_GROUPS, {})
     connection.send_result(msg["id"], {"groups": groups})
 
 
@@ -48,8 +46,8 @@ async def ws_get_groups(
         vol.Optional("task_refs", default=[]): vol.All(
             [
                 {
-                    vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-                    vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+                    vol.Required("entry_id"): ID_FIELD,
+                    vol.Required("task_id"): ID_FIELD,
                 }
             ],
             vol.Length(max=MAX_GROUP_TASK_REFS),
@@ -92,14 +90,14 @@ async def ws_create_group(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/group/update",
-        vol.Required("group_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("group_id"): ID_FIELD,
         vol.Optional("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         vol.Optional("description"): vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)),
         vol.Optional("task_refs"): vol.All(
             [
                 {
-                    vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-                    vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+                    vol.Required("entry_id"): ID_FIELD,
+                    vol.Required("task_id"): ID_FIELD,
                 }
             ],
             vol.Length(max=MAX_GROUP_TASK_REFS),
@@ -152,7 +150,7 @@ async def ws_update_group(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/group/delete",
-        vol.Required("group_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("group_id"): ID_FIELD,
     }
 )
 @require_write

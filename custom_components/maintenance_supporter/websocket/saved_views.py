@@ -17,7 +17,7 @@ from homeassistant.core import HomeAssistant
 from ..const import CONF_SAVED_FILTER_VIEWS, DOMAIN, MAX_ID_LENGTH, MAX_VIEW_NAME_LENGTH
 from ..helpers.permissions import require_write
 from ..helpers.saved_views import list_saved_views, remove_view, sanitize_view, upsert_view
-from . import _get_global_entry
+from . import ID_FIELD, _get_global_entry, _merge_global_options
 
 
 def _persist(hass: HomeAssistant, views: list[dict[str, Any]]) -> None:
@@ -25,9 +25,7 @@ def _persist(hass: HomeAssistant, views: list[dict[str, Any]]) -> None:
     global_entry = _get_global_entry(hass)
     if global_entry is None:
         raise LookupError("global_entry_missing")
-    options = dict(global_entry.options or global_entry.data)
-    options[CONF_SAVED_FILTER_VIEWS] = views
-    hass.config_entries.async_update_entry(global_entry, options=options)
+    _merge_global_options(hass, global_entry, {CONF_SAVED_FILTER_VIEWS: views})
 
 
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/views/list"})
@@ -46,7 +44,7 @@ async def ws_list_saved_views(
         vol.Required("type"): f"{DOMAIN}/views/save",
         # Omit view_id to create; include it to update in place. (Not "id" — that
         # key is the WebSocket message id the framework owns.)
-        vol.Optional("view_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Optional("view_id"): ID_FIELD,
         vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_VIEW_NAME_LENGTH)),
         vol.Optional("filters"): dict,
     }

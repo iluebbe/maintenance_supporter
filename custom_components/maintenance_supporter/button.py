@@ -21,11 +21,11 @@ from .const import (
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
-    slugify_object_name,
     task_unique_id,
 )
 from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
+from .helpers.aggregate import object_slug as aggregate_object_slug
 from .helpers.pause import is_task_inert
 
 if TYPE_CHECKING:
@@ -90,7 +90,7 @@ class MaintenanceActionButton(MaintenanceEntity, ButtonEntity):
 
         obj_data = coordinator.entry.data.get(CONF_OBJECT, {})
         task_data = coordinator.entry.data.get(CONF_TASKS, {}).get(task_id, {})
-        object_slug = slugify_object_name(obj_data.get("name", "unknown"))
+        object_slug = aggregate_object_slug(obj_data)
 
         self._attr_unique_id = task_unique_id(object_slug, task_id, action)
         self._attr_translation_key = f"button_{action}"

@@ -4,7 +4,7 @@ import { css, html, LitElement, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 
 import { t, langOf } from "../styles";
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
 import "./ms-textfield";
 import type {
   GroupTaskRef,
@@ -76,33 +76,29 @@ export class MaintenanceGroupDialog extends LitElement {
       this._error = t("group_name_required", this._lang);
       return;
     }
-    this._loading = true;
     this._error = "";
-    try {
-      const task_refs = this._buildTaskRefs();
-      if (this._groupId) {
-        await this.hass.connection.sendMessagePromise({
-          type: "maintenance_supporter/group/update",
-          group_id: this._groupId,
-          name,
-          description: this._description,
-          task_refs,
-        });
-      } else {
-        await this.hass.connection.sendMessagePromise({
-          type: "maintenance_supporter/group/create",
-          name,
-          description: this._description,
-          task_refs,
-        });
-      }
-      this._open = false;
-      this.dispatchEvent(new CustomEvent("group-saved"));
-    } catch (e) {
-      this._error = describeWsError(e, this._lang, t("save_error", this._lang));
-    } finally {
-      this._loading = false;
-    }
+    const task_refs = this._buildTaskRefs();
+    const res = await runWs(
+      this,
+      this._groupId
+        ? {
+            type: "maintenance_supporter/group/update",
+            group_id: this._groupId,
+            name,
+            description: this._description,
+            task_refs,
+          }
+        : {
+            type: "maintenance_supporter/group/create",
+            name,
+            description: this._description,
+            task_refs,
+          },
+      { busy: (b) => { this._loading = b; }, fallbackKey: "save_error", onError: (m) => { this._error = m; } },
+    );
+    if (res === undefined) return;
+    this._open = false;
+    this.dispatchEvent(new CustomEvent("group-saved"));
   };
 
   render() {

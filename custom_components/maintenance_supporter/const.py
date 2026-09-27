@@ -888,3 +888,24 @@ BATTERY_RECOVERED_PERCENT_RANGE: tuple[int, int] = (20, 100)
 CONF_BATTERY_AUTO_RECORD_RECOVERY = "battery_auto_record_recovery"
 # D#182: the shopping-search template is user-settable (max URL length).
 MAX_PART_SEARCH_URL_TEMPLATE_LENGTH = 500
+
+# --- Trigger / schedule field ranges (DRY audit 2026-09-26 B) ---
+# ONE source for the numeric bounds the options-flow selectors, the WS trigger
+# validator and the adopt endpoints spelled as literals (for_minutes 1440 x5,
+# target changes 10 000 x3, runtime hours 100 000 x3, calendar offset +-15 x3,
+# EWA alpha 0.1-0.9 x3). Inclusive (min, max). Keyed by the trigger_config
+# storage key. The Python consumers (and helpers/schedule.py's offset clamp)
+# are pinned by tests/test_dry_round4_interfaces.py; the TypeScript twins
+# (frontend-src/helpers/setting-ranges.ts) by
+# tests/test_frontend_const_parity.py::test_ts_field_ranges_match_backend.
+TRIGGER_FIELD_RANGES: dict[str, tuple[int, int]] = {
+    "trigger_for_minutes": (0, 1440),  # #136 hold time, one day at most
+    "trigger_target_changes": (1, 10_000),
+}
+# Runtime target hours: > 0 (the WS validator) / >= 1 (the flow selector).
+TRIGGER_RUNTIME_HOURS_MAX = 100_000
+# (#83) +-N-day shift of a calendar-kind occurrence ("2 days before the last
+# working day") — bounded so a bogus payload cannot move a schedule by years.
+SCHEDULE_OFFSET_MAX_DAYS = 15
+# Adaptive scheduling smoothing factor (exponentially weighted average).
+ADAPTIVE_EWA_ALPHA_RANGE: tuple[float, float] = (0.1, 0.9)

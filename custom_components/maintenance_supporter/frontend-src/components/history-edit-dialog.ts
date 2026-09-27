@@ -11,7 +11,9 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t, langOf, formatNumber } from "../styles";
 import type { HomeAssistant, ReadingSlot, ReadingValue } from "../types";
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
+import { PART_QTY_RANGE } from "../helpers/setting-ranges";
+import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
 import { PhotoUploadController } from "../helpers/photo-upload-controller";
 import { parseDurationMinutes } from "../helpers/duration";
 import { confirmAction } from "../helpers/confirm";
@@ -255,28 +257,31 @@ export class MaintenanceHistoryEditDialog extends LitElement {
       danger: true,
     });
     if (!confirmed || !this._draft || !this._originalSnapshot) return;
-    this._saving = true;
+    const draft = this._draft;
     this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/task/history/delete",
-        entry_id: this._draft.entry_id,
-        task_id: this._draft.task_id,
-        timestamp: this._originalSnapshot.original_timestamp,
-      });
-      this.dispatchEvent(
-        new CustomEvent("history-entry-saved", {
-          detail: { entry_id: this._draft.entry_id, task_id: this._draft.task_id, deleted: true },
-          bubbles: true,
-          composed: true,
-        }),
-      );
-      this.close();
-    } catch (e) {
-      this._error = describeWsError(e, L);
-    } finally {
-      this._saving = false;
-    }
+    const ok = await this._runWs({
+      type: "maintenance_supporter/task/history/delete",
+      entry_id: draft.entry_id,
+      task_id: draft.task_id,
+      timestamp: this._originalSnapshot.original_timestamp,
+    });
+    if (ok === undefined) return;
+    this.dispatchEvent(
+      new CustomEvent("history-entry-saved", {
+        detail: { entry_id: draft.entry_id, task_id: draft.task_id, deleted: true },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+    this.close();
+  }
+
+  /** helpers/ws-run runWs bound to the Save/Delete busy flag and the error line. */
+  private _runWs(payload: Record<string, unknown>): Promise<unknown> {
+    return runWs(this, payload, {
+      busy: (b) => { this._saving = b; },
+      onError: (m) => { this._error = m; },
+    });
   }
 
   private async _save(): Promise<void> {
@@ -284,88 +289,83 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     // Save waits for a photo still uploading — it would miss the patch and
     // stay behind as an orphan (bug audit 2026-09-26 #2).
     if (this._saving || this._photos.uploading) return;
-    this._saving = true;
     this._error = "";
     this._photos.clearError();
-    try {
-      const patch: Record<string, unknown> = {
-        type: "maintenance_supporter/task/history/update",
-        entry_id: this._draft.entry_id,
-        task_id: this._draft.task_id,
-        original_timestamp: this._originalSnapshot.original_timestamp,
-      };
-      // Only send fields that actually changed — keeps the patch minimal
-      // and the WS schema happy (it treats missing as "no change").
-      if (this._draft.timestamp !== this._originalSnapshot.timestamp) {
-        patch.timestamp = this._draft.timestamp;
-      }
-      if (this._draft.notes !== this._originalSnapshot.notes) {
-        patch.notes = this._draft.notes;
-      }
-      if (this._draft.cost !== this._originalSnapshot.cost) {
-        patch.cost = this._draft.cost;
-      }
-      if (this._draft.duration !== this._originalSnapshot.duration) {
-        patch.duration = this._draft.duration;
-      }
-      if (this._draft.completed_by !== this._originalSnapshot.completed_by) {
-        patch.completed_by = this._draft.completed_by;
-      }
-      // #130: send the parts selection only when it actually changed — the
-      // backend reconciles stock by the delta, so a no-op must stay silent.
-      if (this._partOptions !== null && this._partSelectionKey() !== this._partQtyOriginal) {
-        patch.used_parts = (this._partOptions || [])
-          .filter((o) => (this._partQty[`${o.entry_id}:${o.part_id}`] || 0) > 0)
-          .map((o) => ({
-            part_id: o.part_id,
-            quantity: this._partQty[`${o.entry_id}:${o.part_id}`],
-            ...(o.foreign ? { entry_id: o.entry_id } : {}),
-          }));
-      }
-      // #161 phase 2: readings. The scalar rides the changed-field check
-      // like notes; the slot map is sent whole when any value differs —
-      // the backend replaces the snapshot, a missing id means "unread".
-      if (this._draft.reading_value !== this._originalSnapshot.reading_value) {
-        patch.reading_value = this._draft.reading_value ?? null;
-      }
-      if (this._readingRows.length > 0 && JSON.stringify(this._readingNumbers()) !== this._readingsOriginal) {
-        const numbers = this._readingNumbers();
-        const map: Record<string, number | null> = {};
-        for (const row of this._readingRows) map[row.id] = numbers[row.id] ?? null;
-        patch.reading_values = map;
-      }
-      // #161: the photo list, only when it differs from what we opened with.
-      if (JSON.stringify(this._photos.ids) !== this._photosOriginal) {
-        patch.photo_doc_ids = this._photos.ids;
-      }
-      // Nothing changed → close without WS call
-      const changedKeys = Object.keys(patch).filter(
-        (k) => !["type", "entry_id", "task_id", "original_timestamp"].includes(k),
-      );
-      if (changedKeys.length === 0) {
-        this.close();
-        return;
-      }
-      await this.hass.connection.sendMessagePromise(patch);
-      this._photos.markAttached(); // saved — they belong to the entry now
-      // Notify upstream so they can refresh
-      this.dispatchEvent(
-        new CustomEvent("history-entry-saved", {
-          detail: {
-            entry_id: this._draft.entry_id,
-            task_id: this._draft.task_id,
-            new_timestamp: this._draft.timestamp,
-          },
-          bubbles: true,
-          composed: true,
-        }),
-      );
-      this.close();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._saving = false;
+    const draft = this._draft;
+    const original = this._originalSnapshot;
+    const patch: Record<string, unknown> = {
+      type: "maintenance_supporter/task/history/update",
+      entry_id: draft.entry_id,
+      task_id: draft.task_id,
+      original_timestamp: original.original_timestamp,
+    };
+    // Only send fields that actually changed — keeps the patch minimal
+    // and the WS schema happy (it treats missing as "no change").
+    if (draft.timestamp !== original.timestamp) {
+      patch.timestamp = draft.timestamp;
     }
+    if (draft.notes !== original.notes) {
+      patch.notes = draft.notes;
+    }
+    if (draft.cost !== original.cost) {
+      patch.cost = draft.cost;
+    }
+    if (draft.duration !== original.duration) {
+      patch.duration = draft.duration;
+    }
+    if (draft.completed_by !== original.completed_by) {
+      patch.completed_by = draft.completed_by;
+    }
+    // #130: send the parts selection only when it actually changed — the
+    // backend reconciles stock by the delta, so a no-op must stay silent.
+    if (this._partOptions !== null && this._partSelectionKey() !== this._partQtyOriginal) {
+      patch.used_parts = (this._partOptions || [])
+        .filter((o) => (this._partQty[`${o.entry_id}:${o.part_id}`] || 0) > 0)
+        .map((o) => ({
+          part_id: o.part_id,
+          quantity: this._partQty[`${o.entry_id}:${o.part_id}`],
+          ...(o.foreign ? { entry_id: o.entry_id } : {}),
+        }));
+    }
+    // #161 phase 2: readings. The scalar rides the changed-field check
+    // like notes; the slot map is sent whole when any value differs —
+    // the backend replaces the snapshot, a missing id means "unread".
+    if (draft.reading_value !== original.reading_value) {
+      patch.reading_value = draft.reading_value ?? null;
+    }
+    if (this._readingRows.length > 0 && JSON.stringify(this._readingNumbers()) !== this._readingsOriginal) {
+      const numbers = this._readingNumbers();
+      const map: Record<string, number | null> = {};
+      for (const row of this._readingRows) map[row.id] = numbers[row.id] ?? null;
+      patch.reading_values = map;
+    }
+    // #161: the photo list, only when it differs from what we opened with.
+    if (JSON.stringify(this._photos.ids) !== this._photosOriginal) {
+      patch.photo_doc_ids = this._photos.ids;
+    }
+    // Nothing changed → close without WS call
+    const changedKeys = Object.keys(patch).filter(
+      (k) => !["type", "entry_id", "task_id", "original_timestamp"].includes(k),
+    );
+    if (changedKeys.length === 0) {
+      this.close();
+      return;
+    }
+    if ((await this._runWs(patch)) === undefined) return;
+    this._photos.markAttached(); // saved — they belong to the entry now
+    // Notify upstream so they can refresh
+    this.dispatchEvent(
+      new CustomEvent("history-entry-saved", {
+        detail: {
+          entry_id: draft.entry_id,
+          task_id: draft.task_id,
+          new_timestamp: draft.timestamp,
+        },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+    this.close();
   }
 
   render() {
@@ -373,9 +373,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     const L = this._lang;
     const d = this._draft;
     const error = this._error || this._photos.errorText(L);
-    return html`
-      <div class="backdrop" @click=${this.close}></div>
-      <div class="dialog" role="dialog" aria-modal="true">
+    return renderModalShell(() => this.close(), html`
         <h2>${t("history_edit_title", L)}</h2>
         <div class="entry-type">
           <ha-icon icon="mdi:tag-outline"></ha-icon>
@@ -441,7 +439,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
                     }} />
                   <span class="part-label">${o.name}${o.foreign && o.object_name ? ` (${o.object_name})` : ""}</span>
                   ${qty > 0 ? html`
-                    <input class="part-qty" type="number" min="0.01" max="999" step="0.01"
+                    <input class="part-qty" type="number" min=${PART_QTY_RANGE[0]} max=${PART_QTY_RANGE[1]} step="0.01"
                       .value=${String(qty)}
                       @input=${(e: Event) => {
                         const v = parseFloat((e.target as HTMLInputElement).value);
@@ -484,8 +482,11 @@ export class MaintenanceHistoryEditDialog extends LitElement {
             ${this._saving ? t("saving", L) : t("save", L)}
           </button>
         </div>
-      </div>
-    `;
+    `);
+  }
+
+  protected updated(changed: Map<string, unknown>): void {
+    if (changed.has("_open") && this._open) focusModalShell(this.shadowRoot);
   }
 
   /** #161 phase 2: per-slot rows for a slot task (entry snapshot ∪ current
@@ -521,26 +522,8 @@ export class MaintenanceHistoryEditDialog extends LitElement {
       </label>`;
   }
 
-  static styles = [photoPickerStyles, css`
-    :host { display: contents; }
-    .backdrop {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 100;
-    }
-    .dialog {
-      position: fixed; left: 50%; top: 50%;
-      transform: translate(-50%, -50%);
-      width: 95vw; max-width: 480px;
-      background: var(--card-background-color, var(--ha-card-background, #1c1c1c));
-      color: var(--primary-text-color);
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      padding: 20px;
-      display: flex; flex-direction: column; gap: 12px;
-      z-index: 101;
-      max-height: 90vh; overflow: auto;
-    }
+  static styles = [photoPickerStyles, modalShellStyles, css`
+    :host { display: contents; --ms-modal-max-height: 90vh; --ms-modal-gap: 12px; }
     h2 { margin: 0; font-size: 18px; }
     .entry-type {
       display: flex; align-items: center; gap: 6px;

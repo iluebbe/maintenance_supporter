@@ -27,10 +27,9 @@ from ..const import (
     CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MAX_ADOPTED_NOTES,
 )
-from .aggregate import object_name
+from .aggregate import get_object_entries, object_name
 
 PROBLEM_DEVICE_CLASS = "problem"
 # safety (NAS disk-health / lifespan thresholds) and tamper alarms behave like
@@ -77,9 +76,7 @@ def _adopted_entity_ids(hass: HomeAssistant) -> set[str]:
     from ..entity.triggers import normalize_entity_ids
 
     watched: set[str] = set()
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if entry.unique_id == GLOBAL_UNIQUE_ID:
-            continue
+    for entry in get_object_entries(hass):
         for task in entry.data.get(CONF_TASKS, {}).values():
             tc = task.get("trigger_config")
             if isinstance(tc, dict):
@@ -90,9 +87,7 @@ def _adopted_entity_ids(hass: HomeAssistant) -> set[str]:
 def _object_by_device(hass: HomeAssistant) -> dict[str, dict[str, str]]:
     """{ha_device_id: {entry_id, name}} for objects already attached to a device."""
     out: dict[str, dict[str, str]] = {}
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if entry.unique_id == GLOBAL_UNIQUE_ID:
-            continue
+    for entry in get_object_entries(hass):
         obj = entry.data.get(CONF_OBJECT, {})
         dev = obj.get("ha_device_id")
         if dev:

@@ -39,7 +39,8 @@ from ..const import (
     EVENT_NOTIFICATION,
     GLOBAL_UNIQUE_ID,
 )
-from .global_options import get_global_options
+from .global_options import global_option
+from .notification_ids import PANEL_PATH, panel_url
 from .notify_icons import notify_icon_for
 from .reference_numbers import format_task_ref
 
@@ -129,11 +130,7 @@ def notification_context(
     object_ref = str(oref) if isinstance(oref, int) and oref > 0 else None
     area_id = str(obj.get("area_id")) if obj.get("area_id") else None
     task = _task_block(hass, entry, obj, task_id) if entry is not None and task_id else {}
-    url = "/maintenance-supporter"
-    if entry_id and task_id:
-        url = f"/maintenance-supporter?entry_id={entry_id}&task_id={task_id}"
-    elif entry_id:
-        url = f"/maintenance-supporter?entry_id={entry_id}"
+    url = panel_url(entry_id=entry_id, task_id=task_id)
     # A bundle's tasks carry the same per-task facts as a single reminder
     # (#178): labels, notes, priority, refs - the caller's own fields win.
     task_items = [
@@ -213,7 +210,7 @@ def sample_notification_context(hass: HomeAssistant) -> dict[str, Any]:
         last_performed=(today - timedelta(days=87)).isoformat(),
         sensor_entity_id="sensor.sample_object_sample_task",
         trigger_entity_id="sensor.sample_trigger",
-        url="/maintenance-supporter",
+        url=PANEL_PATH,
     )
 
 
@@ -243,9 +240,8 @@ def _task_block(hass: HomeAssistant, entry: Any, obj: Mapping[str, Any], task_id
     config (labels, notes, type, priority, refs, links) plus the two runtime
     facts worth having - the last completion (Store) and the entity ids of
     its status sensor and trigger entity."""
-    from homeassistant.helpers import entity_registry as er
-
-    from ..const import DOMAIN, slugify_object_name, task_unique_id
+    from ..entity.triggers import primary_entity_id
+    from .aggregate import task_sensor_entity_id
 
     td = (entry.data.get(CONF_TASKS) or {}).get(task_id) or {}
     if not td:
@@ -281,8 +277,12 @@ def _task_block(hass: HomeAssistant, entry: Any, obj: Mapping[str, Any], task_id
         "documentation_url": td.get("documentation_url") or None,
         "interval_days": interval_days,
         "last_performed": last_performed,
-        "sensor_entity_id": er.async_get(hass).async_get_entity_id("sensor", DOMAIN, task_unique_id(slugify_object_name(str(obj.get("name") or "unknown")), task_id)),
-        "trigger_entity_id": (trigger.get("entity_id") or None) if isinstance(trigger, dict) else None,
+        # The shared registry lookups (DRY audit 2026-09-26 B): the sensor by
+        # the platforms' own slug rule (an empty object name resolved to no
+        # sensor here), the trigger's first watched entity (a trigger stored
+        # with only the plural entity_ids read null).
+        "sensor_entity_id": task_sensor_entity_id(hass, obj, task_id),
+        "trigger_entity_id": primary_entity_id(trigger),
     }
 
 
@@ -330,7 +330,6 @@ async def async_emit_and_dispatch(
     the user routes everything themselves (``notify_event_only``)."""
     from .notification_manager import async_dispatch_notify
 
-    options = get_global_options(hass)
     payload = dict(service_data)
     data = dict(payload.get("data") or {})
     # #185: every notification carries an icon (Companion app on Android
@@ -342,7 +341,7 @@ async def async_emit_and_dispatch(
             _task_config(hass, context.get("entry_id"), context.get("task_id")),
             str(context.get("kind") or "") or None,
         )
-    template_text = options.get(CONF_NOTIFY_EXTRA_DATA)
+    template_text = global_option(hass, CONF_NOTIFY_EXTRA_DATA)
     if isinstance(template_text, str) and template_text.strip():
         variables = {**context, "target": target or None, "title": payload.get("title"), "message": payload.get("message")}
         extra = render_extra_data(hass, template_text, variables)
@@ -355,7 +354,7 @@ async def async_emit_and_dispatch(
         EVENT_NOTIFICATION,
         {**context, "category": spec.category if spec else None, "target": target or None, "title": payload.get("title"), "message": payload.get("message"), "data": data},
     )
-    if options.get(CONF_NOTIFY_EVENT_ONLY, False):
+    if global_option(hass, CONF_NOTIFY_EVENT_ONLY):
         _LOGGER.debug("notify_event_only: event fired, nothing sent to %s", target or "(no service)")
         return True
     if not target:

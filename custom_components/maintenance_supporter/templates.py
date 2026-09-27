@@ -10,9 +10,12 @@ template stays available everywhere.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from .const import DEFAULT_WARNING_DAYS
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
 
 HOUSE = "house"
 APARTMENT = "apartment"
@@ -2543,6 +2546,36 @@ def build_template_task(
     return task
 
 
+async def async_build_template_tasks(
+    hass: HomeAssistant, template: ObjectTemplate, lang: str, object_id: str
+) -> dict[str, dict[str, Any]]:
+    """Every task ``template`` creates in THIS home, keyed by a fresh task id.
+
+    The one builder behind the config flow's template step and the panel's
+    ``object/from_template`` (DRY audit 2026-09-26 B: both resolved the
+    climate and the country themselves). Seasons follow the home's
+    hemisphere and climate (helpers/climate.py; no climate data = northern
+    hemisphere with winter), legal intervals and notes its country.
+    """
+    from uuid import uuid4
+
+    from .helpers.home_profile import async_climate
+
+    climate = await async_climate(hass)
+    hemisphere = climate.hemisphere if climate else "north"
+    has_winter = climate.has_winter if climate else True
+    country = str(hass.config.country).upper() if hass.config.country else None
+    tasks: dict[str, dict[str, Any]] = {}
+    for tt in template_tasks(template, has_winter=has_winter):
+        task_id = uuid4().hex
+        tasks[task_id] = {
+            "id": task_id,
+            "object_id": object_id,
+            **build_template_task(tt, lang, hemisphere=hemisphere, has_winter=has_winter, country=country),
+        }
+    return tasks
+
+
 class HomeLike(Protocol):
     """What the recommendation needs from ``helpers.home_profile.HomeProfile``
     (read-only — the profile is a frozen dataclass)."""
@@ -2609,10 +2642,8 @@ def get_disabled_template_ids(hass) -> set[str]:  # type: ignore[no-untyped-def]
     Read from the global entry's options; unknown ids are ignored so a stale
     list (e.g. after a template rename) can't hide anything by accident.
     """
-    from .const import CONF_DISABLED_TEMPLATE_IDS, DOMAIN, GLOBAL_UNIQUE_ID
+    from .const import CONF_DISABLED_TEMPLATE_IDS
+    from .helpers.global_options import get_global_options
 
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if entry.unique_id == GLOBAL_UNIQUE_ID:
-            raw = (entry.options or entry.data).get(CONF_DISABLED_TEMPLATE_IDS) or []
-            return {t for t in raw if isinstance(t, str) and t in KNOWN_TEMPLATE_IDS}
-    return set()
+    raw = get_global_options(hass).get(CONF_DISABLED_TEMPLATE_IDS) or []
+    return {t for t in raw if isinstance(t, str) and t in KNOWN_TEMPLATE_IDS}

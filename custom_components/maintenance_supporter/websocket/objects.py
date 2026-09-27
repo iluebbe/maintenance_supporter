@@ -26,7 +26,6 @@ from ..const import (
     DOMAIN,
     MAX_DATE_LENGTH,
     MAX_ENTITY_ID_LENGTH,
-    MAX_ID_LENGTH,
     MAX_META_LENGTH,
     MAX_NAME_LENGTH,
     MAX_TEXT_LENGTH,
@@ -37,6 +36,7 @@ from ..helpers.pause import reanchor_recurring_task
 from ..helpers.permissions import require_write
 from ..helpers.sanitize import cap_object_fields, strip_object_reference, strip_task_runtime_state
 from . import (
+    ID_FIELD,
     _build_object_response,
     _get_object_entries,
     _load_object_entry,
@@ -65,8 +65,8 @@ _OBJECT_STR_FIELD_SCHEMA: dict[Any, Any] = {
     vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
     # 2.19: attach the object to an EXISTING HA device (entities land on its
     # device page) / nest under another maintenance object (via_device).
-    vol.Optional("ha_device_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
-    vol.Optional("parent_entry_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
+    vol.Optional("ha_device_id"): vol.Any(ID_FIELD, None),
+    vol.Optional("parent_entry_id"): vol.Any(ID_FIELD, None),
 }
 
 
@@ -215,7 +215,7 @@ async def ws_get_objects(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/object",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
     }
 )
 @websocket_api.async_response
@@ -365,7 +365,7 @@ async def ws_create_object(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/object/update",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
         vol.Optional("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         **_OBJECT_STR_FIELD_SCHEMA,
     }
@@ -480,7 +480,7 @@ async def ws_update_object(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/object/delete",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
     }
 )
 @require_write
@@ -503,7 +503,7 @@ async def ws_delete_object(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/object/duplicate",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
     }
 )
 @require_write
@@ -583,7 +583,7 @@ async def ws_duplicate_object(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/object/from_template",
-        vol.Required("template_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("template_id"): ID_FIELD,
         vol.Optional("name"): vol.Any(vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)), None),
         # v2.21.1: the caller's UI language — created object/task names are
         # localized (falls back to the server language).
@@ -605,9 +605,8 @@ async def ws_create_from_template(
     """
     from uuid import uuid4
 
-    from ..helpers.home_profile import async_climate
     from ..helpers.i18n import normalize_language, normalize_language_code
-    from ..templates import build_template_task, get_template_by_id, localize_template_text, template_tasks
+    from ..templates import async_build_template_tasks, get_template_by_id, localize_template_text
 
     template = get_template_by_id(msg["template_id"])
     if template is None:
@@ -637,19 +636,8 @@ async def ws_create_from_template(
         "task_ids": [],
     }
     # Seasons follow the home's hemisphere and climate (helpers/climate.py).
-    climate = await async_climate(hass)
-    hemisphere = climate.hemisphere if climate else "north"
-    has_winter = climate.has_winter if climate else True
-    country = str(hass.config.country).upper() if hass.config.country else None
-    new_tasks: dict[str, Any] = {}
-    for tt in template_tasks(template, has_winter=has_winter):
-        task_id = uuid4().hex
-        new_tasks[task_id] = {
-            "id": task_id,
-            "object_id": object_id,
-            **build_template_task(tt, lang, hemisphere=hemisphere, has_winter=has_winter, country=country),
-        }
-        new_obj["task_ids"].append(task_id)
+    new_tasks = await async_build_template_tasks(hass, template, lang, object_id)
+    new_obj["task_ids"] = list(new_tasks)
 
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
@@ -665,7 +653,7 @@ async def ws_create_from_template(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/object/archive",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
     }
 )
 @require_write
@@ -752,7 +740,7 @@ def _archived_entry_data(entry_data: Any, now_iso: str, *, keep_task_ids: set[st
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/object/unarchive",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
     }
 )
 @require_write
@@ -809,7 +797,7 @@ async def ws_unarchive_object(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/object/pause",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
         vol.Optional("until"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
     }
 )
@@ -868,7 +856,7 @@ async def ws_pause_object(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/object/resume",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
     }
 )
 @require_write
@@ -908,7 +896,7 @@ async def ws_resume_object(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/object/replace",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
         vol.Optional("name"): vol.Any(vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)), None),
     }
 )

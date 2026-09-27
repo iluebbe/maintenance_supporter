@@ -12,12 +12,12 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf } from "../styles";
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
 import { downloadUrl } from "../helpers/download";
 import { downloadSignedDocument, openSignedDocument } from "../helpers/document-url";
 import { isSafeHttpUrl } from "../helpers/url";
 import { formatBytes } from "../helpers/format-bytes";
-import { docDisplayName, CATEGORIES, CATEGORY_ICONS } from "../helpers/document-categories";
+import { docCategory, docDisplayName, CATEGORY_ICONS } from "../helpers/document-categories";
 import { DOC_FILTER_MIN, filterDocuments } from "../helpers/document-filter";
 import type { HomeAssistant } from "../types";
 
@@ -82,18 +82,31 @@ export class MaintenanceTaskDocuments extends LitElement {
   }
 
   private async _load(): Promise<void> {
-    try {
-      const r = await this.hass.connection.sendMessagePromise<{ documents: Doc[] }>({
-        type: "maintenance_supporter/documents/list",
-        entry_id: this.entryId,
-      });
-      this._docs = r.documents || [];
-      this._loaded = true;
-      this._error = "";
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-      this._loaded = true;
-    }
+    const r = await runWs<{ documents: Doc[] }>(
+      this,
+      { type: "maintenance_supporter/documents/list", entry_id: this.entryId },
+      { onError: (m) => { this._error = m; } },
+    );
+    this._loaded = true;
+    if (r === undefined) return;
+    this._docs = r?.documents || [];
+    this._error = "";
+  }
+
+  /** A document write — helpers/ws-run runWs with the busy flag, the error
+   *  line and the list reload. */
+  private async _update(payload: Record<string, unknown>): Promise<void> {
+    this._error = "";
+    await runWs(this, { type: "maintenance_supporter/documents/update", ...payload }, {
+      busy: (b) => { this._busy = b; },
+      reload: () => this._load(),
+      onError: (m) => { this._error = m; },
+    });
+  }
+
+  /** The signed open / download helpers, their failure on the error line. */
+  private async _signed(call: () => Promise<unknown>): Promise<void> {
+    await runWs(this, call, { onError: (m) => { this._error = m; } });
   }
 
   private _links(doc: Doc): string[] {
@@ -109,20 +122,7 @@ export class MaintenanceTaskDocuments extends LitElement {
   }
 
   private async _setLinks(doc: Doc, ids: string[]): Promise<void> {
-    this._busy = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/documents/update",
-        doc_id: doc.id,
-        [this._linkField]: ids,
-      });
-      await this._load();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+    await this._update({ doc_id: doc.id, [this._linkField]: ids });
   }
 
   private _link(): void {
@@ -158,38 +158,17 @@ export class MaintenanceTaskDocuments extends LitElement {
     // A per-task page hint jumps straight to the relevant page via the PDF
     // viewer's #page=N fragment (client-side, so it never breaks the signature).
     const page = this._pageFor(doc);
-    try {
-      await openSignedDocument(this.hass, doc.id, page ? `#page=${page}` : "");
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    }
+    await this._signed(() => openSignedDocument(this.hass, doc.id, page ? `#page=${page}` : ""));
   }
 
   /** Set (page >= 1) or clear (0) the jump-to page for this doc's task link. */
   private async _setPage(doc: Doc, page: number): Promise<void> {
     if (!this.taskId) return;
-    this._busy = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/documents/update",
-        doc_id: doc.id,
-        task_pages: { [this.taskId]: page },
-      });
-      await this._load();
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._busy = false;
-    }
+    await this._update({ doc_id: doc.id, task_pages: { [this.taskId]: page } });
   }
 
   private async _download(doc: Doc): Promise<void> {
-    try {
-      await downloadSignedDocument(this.hass, doc.id, doc.filename || doc.title || "document");
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    }
+    await this._signed(() => downloadSignedDocument(this.hass, doc.id, doc.filename || doc.title || "document"));
   }
 
   render() {
@@ -242,7 +221,7 @@ export class MaintenanceTaskDocuments extends LitElement {
     const isFile = doc.kind === "file";
     const isPdf = this._isPdf(doc);
     const page = this._pageFor(doc);
-    const cat = (doc.tags || []).find((x) => (CATEGORIES as readonly string[]).includes(x)) || "other";
+    const cat = docCategory(doc);
     const meta = isFile ? formatBytes(doc.size, L) : t("doc_link_badge", L);
     return html`
       <div class="tdoc-row">

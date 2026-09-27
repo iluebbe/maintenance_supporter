@@ -41,3 +41,30 @@ export function settingIntRange(key: string): [number, number] {
  *  settings view and the Lovelace vacation card both validate against it
  *  (the view dropped an out-of-range value silently, the card sent it). */
 export const VACATION_BUFFER_DAYS_RANGE: readonly [number, number] = [0, 14];
+
+// ─── Task / trigger / completion field bounds ──────────────────────────────
+// The TS twins of the backend's schema ranges. Each surface had spelled its
+// own literal (the adopt dialog's for_minutes max, the task dialog's offset
+// clamp and EWA check, the part quantity ranges of three dialogs); the
+// backend now keeps them as named constants and
+// tests/test_frontend_const_parity.py pins every tuple here to its Python
+// source (DRY audit 2026-09-26). Inclusive [min, max].
+
+/** Trigger hold time in minutes (#136) — const.TRIGGER_FIELD_RANGES. */
+export const TRIGGER_FOR_MINUTES_RANGE: readonly [number, number] = [0, 1440];
+/** State-change trigger target count — const.TRIGGER_FIELD_RANGES. */
+export const TRIGGER_TARGET_CHANGES_RANGE: readonly [number, number] = [1, 10000];
+/** ±N-day shift of a calendar-kind occurrence (#83) — const.SCHEDULE_OFFSET_MAX_DAYS. */
+export const SCHEDULE_OFFSET_MAX_DAYS = 15;
+/** Adaptive smoothing factor — const.ADAPTIVE_EWA_ALPHA_RANGE. */
+export const EWA_ALPHA_RANGE: readonly [number, number] = [0.1, 0.9];
+/** A task's due-soon window in days — helpers/task_fields.WARNING_DAYS_RANGE. */
+export const WARNING_DAYS_RANGE: readonly [number, number] = [0, 365];
+/** A consumed / used part quantity — helpers/parts.MAX_CONSUME_QUANTITY and
+ *  the completion's used_parts schema. */
+export const PART_QTY_RANGE: readonly [number, number] = [0.01, 999];
+/** A buy task's restock quantity — helpers/parts.MAX_PART_STOCK and the
+ *  completion's restock_quantity schema. */
+export const RESTOCK_QTY_RANGE: readonly [number, number] = [0.01, 9999];
+/** A seasonal override factor — websocket/analysis.py seasonal_overrides. */
+export const SEASONAL_FACTOR_RANGE: readonly [number, number] = [0.1, 5.0];

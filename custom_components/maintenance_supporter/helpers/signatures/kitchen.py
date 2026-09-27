@@ -8,6 +8,7 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
+from ._shared import FILTER_LIFE_PERCENT
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "lg_thinq": IntegrationSignature(
@@ -349,7 +350,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "tub-clean cadence reuses LG's manufacturer value of 30 cycles."
         ),
         tasks=(
-            ConsumableSignature(("filter_life",), "Replace Filter", "percent_left"),
+            FILTER_LIFE_PERCENT,
             ConsumableSignature(("filter_cleaning",), "Filter Cleaning", "percent_left"),
             ConsumableSignature(("cycles_total",), "Clean Tub", "usage_delta", delta_units=30),
         ),

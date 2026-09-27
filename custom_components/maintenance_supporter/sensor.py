@@ -39,9 +39,11 @@ from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .entity.triggers import BaseTrigger, create_triggers, normalize_entity_ids
+from .helpers.aggregate import object_slug as aggregate_object_slug
 from .helpers.dates import parse_hhmm
 from .helpers.global_options import is_schedule_time_enabled
 from .helpers.pause import is_task_inert
+from .helpers.phases import current_phase_summary
 from .helpers.schedule import read_legacy_fields
 from .helpers.status import compute_status_from_task_dict
 
@@ -61,16 +63,6 @@ if TYPE_CHECKING:
     from .helpers.documents import DocumentStore
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def _current_phase_summary_for_sensor(task: dict[str, Any]) -> dict[str, Any] | None:
-    """Resolved current phase for entity attributes (#139)."""
-    from .helpers.phases import current_phase
-
-    phase = current_phase(task)
-    if phase is None:
-        return None
-    return {"id": phase["id"], "name": phase["name"], "index": phase["index"], "count": phase["count"]}
 
 
 PARALLEL_UPDATES = 0
@@ -158,7 +150,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         obj_data = coordinator.entry.data.get(CONF_OBJECT, {})
         task_data = coordinator.entry.data.get(CONF_TASKS, {}).get(task_id, {})
 
-        object_slug = slugify_object_name(obj_data.get("name", "unknown"))
+        object_slug = aggregate_object_slug(obj_data)
         self._attr_unique_id = task_unique_id(object_slug, task_id)
 
         # Use custom entity_slug as the friendly name if provided
@@ -265,7 +257,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         # Task phases (#139): which cycle step is due — stable (changes once
         # per completion), so it belongs on the entity for automations
         # ("announce 'replace blades' only when THAT phase comes up").
-        phase = _current_phase_summary_for_sensor(task)
+        phase = current_phase_summary(task)
         if phase is not None:
             attrs["current_phase"] = phase["name"]
             attrs["current_phase_id"] = phase["id"]
@@ -557,7 +549,7 @@ class MaintenanceNextDueSensor(MaintenanceEntity, SensorEntity):
         super().__init__(coordinator, task_id)
         obj_data = coordinator.entry.data.get(CONF_OBJECT, {})
         task_data = coordinator.entry.data.get(CONF_TASKS, {}).get(task_id, {})
-        object_slug = slugify_object_name(obj_data.get("name", "unknown"))
+        object_slug = aggregate_object_slug(obj_data)
         self._attr_unique_id = task_unique_id(object_slug, task_id, "next_due")
         self._attr_translation_placeholders = {"task_name": task_data.get("name", "")}
 
@@ -622,7 +614,7 @@ class MaintenanceDaysUntilDueSensor(MaintenanceEntity, SensorEntity):
         super().__init__(coordinator, task_id)
         obj_data = coordinator.entry.data.get(CONF_OBJECT, {})
         task_data = coordinator.entry.data.get(CONF_TASKS, {}).get(task_id, {})
-        object_slug = slugify_object_name(obj_data.get("name", "unknown"))
+        object_slug = aggregate_object_slug(obj_data)
         self._attr_unique_id = task_unique_id(object_slug, task_id, "days_until_due")
         self._attr_translation_placeholders = {"task_name": task_data.get("name", "")}
         # Pin the documented, language-independent entity_id. Only NEW entities
@@ -711,7 +703,7 @@ class PartStockSensor(MaintenanceEntity, SensorEntity):
         super().__init__(coordinator, part_id)
         self._part_id = part_id
         obj_data = coordinator.entry.data.get(CONF_OBJECT, {})
-        object_slug = slugify_object_name(obj_data.get("name", "unknown"))
+        object_slug = aggregate_object_slug(obj_data)
         self._attr_unique_id = f"maintenance_supporter_{object_slug}_part_{part_id}"
         part = self._part
         self._attr_name = f"{part.get('name', 'Part')} stock"

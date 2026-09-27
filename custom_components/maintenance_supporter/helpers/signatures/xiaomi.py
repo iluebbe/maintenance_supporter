@@ -7,7 +7,8 @@ integration's source; drift-probed weekly)."""
 
 from __future__ import annotations
 
-from ._model import ConsumableSignature, IntegrationSignature
+from ._model import IntegrationSignature
+from ._shared import MIOT_BRUSH_LIFE_LEVEL, MIOT_FILTER_LIFE_LEVEL
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "xiaomi_miot": IntegrationSignature(
@@ -26,8 +27,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             # Matched via the entity_id suffix (translation_key is the noisier
             # 'filter-filter_life_level' form). One % task per filter; the side
             # brush collides to a '_2' suffix and is intentionally not matched.
-            ConsumableSignature(("filter_life_level",), "Replace Filter", "percent_left"),
-            ConsumableSignature(("brush_life_level",), "Replace Main Brush", "percent_left"),
+            MIOT_FILTER_LIFE_LEVEL,
+            MIOT_BRUSH_LIFE_LEVEL,
         ),
     ),
     "xiaomi_home": IntegrationSignature(
@@ -40,8 +41,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "'_<key>_p_' infix. Same MIoT spec properties as hass-xiaomi-miot."
         ),
         tasks=(
-            ConsumableSignature(("filter_life_level",), "Replace Filter", "percent_left"),
-            ConsumableSignature(("brush_life_level",), "Replace Main Brush", "percent_left"),
+            MIOT_FILTER_LIFE_LEVEL,
+            MIOT_BRUSH_LIFE_LEVEL,
         ),
     ),
 }

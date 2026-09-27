@@ -13,6 +13,8 @@ from homeassistant.core import HomeAssistant
 
 from ..const import (
     CONF_TASKS,
+    TRIGGER_FIELD_RANGES,
+    TRIGGER_RUNTIME_HOURS_MAX,
     UNAVAILABLE_STATES,
     TriggerType,
 )
@@ -259,12 +261,10 @@ _NUMBER_FIELDS: tuple[str, ...] = (
     "trigger_target_value",
     "trigger_baseline_value",
 )
-# Whole-number fields with an inclusive range.
-_INT_FIELDS: dict[str, tuple[int, int]] = {
-    "trigger_for_minutes": (0, 1440),
-    "trigger_target_changes": (1, 10_000),
-}
-TRIGGER_RUNTIME_HOURS_MAX = 100_000
+# Whole-number fields with an inclusive range — the bounds the options-flow
+# selectors use too (const.TRIGGER_FIELD_RANGES, DRY audit 2026-09-26 B).
+# TRIGGER_RUNTIME_HOURS_MAX is imported from const and re-exported here.
+_INT_FIELDS: dict[str, tuple[int, int]] = TRIGGER_FIELD_RANGES
 # Optional fields where an explicit null means "unset" — dropped rather than
 # refused, so a client clearing a field never trips the validator.
 _OPTIONAL_VALUE_FIELDS: tuple[str, ...] = (

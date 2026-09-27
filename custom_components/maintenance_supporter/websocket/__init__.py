@@ -24,9 +24,10 @@ from ..const import (
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     MAX_ID_LENGTH,
-    task_unique_id,
 )
-from ..helpers.aggregate import get_object_entries, get_runtime_data, get_store, is_object_entry, object_name
+from ..helpers.aggregate import get_object_entries, get_runtime_data, get_store, is_object_entry, object_name, task_entity_id
+from ..helpers.aggregate import object_slug as aggregate_object_slug
+from ..helpers.phases import current_phase_summary
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -107,16 +108,6 @@ def _get_merged_tasks(entry: ConfigEntry) -> dict[str, Any]:
 _HISTORY_WINDOW = int(os.environ.get("MS_HISTORY_WINDOW", "20"))
 
 
-def _current_phase_summary(task_data: dict[str, Any]) -> dict[str, Any] | None:
-    """{id, name, index, count} of the phase currently due, or None (#139)."""
-    from ..helpers.phases import current_phase
-
-    phase = current_phase(task_data)
-    if phase is None:
-        return None
-    return {"id": phase["id"], "name": phase["name"], "index": phase["index"], "count": phase["count"]}
-
-
 def _build_task_summary(
     hass: HomeAssistant,
     task_id: str,
@@ -131,8 +122,6 @@ def _build_task_summary(
     use HA's native entity_ids: filter pattern without re-implementing the
     slugify logic.
     """
-    from homeassistant.helpers import entity_registry as er
-
     from ..entity.triggers import normalize_entity_ids
     from ..helpers.schedule import KIND_CALENDAR, Schedule, read_legacy_fields
 
@@ -232,7 +221,7 @@ def _build_task_summary(
         "phases": task_data.get("phases"),
         "phase_sequence": task_data.get("phase_sequence"),
         "phase_cursor": task_data.get("phase_cursor", 0),
-        "current_phase": _current_phase_summary(task_data),
+        "current_phase": current_phase_summary(task_data),
         "priority": task_data.get("priority") or DEFAULT_TASK_PRIORITY,
         # v2.10.0 archive: archived_at is the persisted timestamp (None = active);
         # `archived` is the convenience bool the frontend filters on; reason is
@@ -250,23 +239,9 @@ def _build_task_summary(
         # Lookup via entity registry by unique_id so we get the actual
         # registered entity_id (which can differ from the unique_id when the
         # user has renamed it). None when registry lookup fails (rare).
-        "sensor_entity_id": (
-            er.async_get(hass).async_get_entity_id(
-                "sensor",
-                "maintenance_supporter",
-                task_unique_id(object_slug, task_id),
-            )
-            if object_slug
-            else None
-        ),
+        "sensor_entity_id": task_entity_id(hass, object_slug, task_id) if object_slug else None,
         "binary_sensor_entity_id": (
-            er.async_get(hass).async_get_entity_id(
-                "binary_sensor",
-                "maintenance_supporter",
-                task_unique_id(object_slug, task_id, "overdue"),
-            )
-            if object_slug
-            else None
+            task_entity_id(hass, object_slug, task_id, platform="binary_sensor", suffix="overdue") if object_slug else None
         ),
         "trigger_config": trigger_config,
         # Battery Fleet: marks the single aggregate task so the detail view
@@ -370,12 +345,10 @@ def _build_object_response(
     compact: bool = False,
 ) -> dict[str, Any]:
     """Build a full object response dict (compact: empty keys stripped)."""
-    from ..const import slugify_object_name
-
     obj_data = entry.data.get(CONF_OBJECT, {})
     tasks_data = _get_merged_tasks(entry)
     ct_tasks = (coordinator_data or {}).get(CONF_TASKS, {})
-    object_slug = slugify_object_name(obj_data.get("name", "unknown"))
+    object_slug = aggregate_object_slug(obj_data)
 
     tasks = [_build_task_summary(hass, tid, tdata, ct_tasks.get(tid), object_slug) for tid, tdata in tasks_data.items()]
 
@@ -515,6 +488,20 @@ def _load_global_options(
 def _save_global_options(hass: HomeAssistant, entry: ConfigEntry, options: dict[str, Any]) -> None:
     """Write back a mutated global-options dict."""
     hass.config_entries.async_update_entry(entry, options=options)
+
+
+def _merge_global_options(hass: HomeAssistant, entry: ConfigEntry, changes: dict[str, Any]) -> None:
+    """Merge ``changes`` into the global entry's settings and save them.
+
+    The one read-modify-write for code that already holds the global entry
+    (DRY audit 2026-09-26 B — saved views, group cleanup, the vacation
+    exempt list on task delete/move, the settings import). The base is
+    ``options``, else the creation ``data`` — the read rule of
+    helpers.global_options.get_global_options; a copy that started from
+    ``entry.options`` alone would, on a never-saved entry, write an options
+    dict holding ONLY the change and hide every setting kept in ``data``.
+    """
+    _save_global_options(hass, entry, {**(entry.options or entry.data), **changes})
 
 
 def _load_object_entry(
@@ -669,8 +656,7 @@ def cleanup_group_refs(
     if global_entry is None:
         return
 
-    options = dict(global_entry.options or global_entry.data)
-    groups = options.get(CONF_GROUPS)
+    groups = (global_entry.options or global_entry.data).get(CONF_GROUPS)
     if not groups:
         return
 
@@ -691,8 +677,7 @@ def cleanup_group_refs(
             changed = True
 
     if changed:
-        options[CONF_GROUPS] = groups
-        hass.config_entries.async_update_entry(global_entry, options=options)
+        _merge_global_options(hass, global_entry, {CONF_GROUPS: groups})
 
 
 # ---------------------------------------------------------------------------

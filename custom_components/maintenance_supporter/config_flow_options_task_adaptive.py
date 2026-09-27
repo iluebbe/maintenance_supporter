@@ -9,6 +9,7 @@ from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.helpers import selector
 
 from .const import (
+    ADAPTIVE_EWA_ALPHA_RANGE,
     CONF_ADAPTIVE_CONFIG,
     CONF_ADAPTIVE_ENABLED,
     CONF_ADAPTIVE_EWA_ALPHA,
@@ -138,8 +139,8 @@ class AdaptiveMixin:
                     default=current_adaptive.get(CONF_ADAPTIVE_EWA_ALPHA, DEFAULT_ADAPTIVE_EWA_ALPHA),
                 ): selector.NumberSelector(
                     selector.NumberSelectorConfig(
-                        min=0.1,
-                        max=0.9,
+                        min=ADAPTIVE_EWA_ALPHA_RANGE[0],
+                        max=ADAPTIVE_EWA_ALPHA_RANGE[1],
                         step=0.1,
                         mode=selector.NumberSelectorMode.SLIDER,
                     )

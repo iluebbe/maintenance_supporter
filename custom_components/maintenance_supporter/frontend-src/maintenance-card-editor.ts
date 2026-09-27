@@ -4,8 +4,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t, langOf } from "./styles";
 import type { HomeAssistant, CardConfig, MaintenanceObjectResponse, SavedView } from "./types";
-
-const STATUS_KEYS = ["overdue", "triggered", "due_soon", "ok"] as const;
+import { STATUS_ORDER } from "./status-constants";
 
 export class MaintenanceSupporterCardEditor extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -159,7 +158,7 @@ export class MaintenanceSupporterCardEditor extends LitElement {
         <div class="field">
           <div class="field-label">${t("card_filter_status", L)}</div>
           <div class="chip-row">
-            ${STATUS_KEYS.map((s) => html`
+            ${STATUS_ORDER.map((s) => html`
               <label class="chip ${selectedStatuses.has(s) ? "active" : ""}">
                 <input type="checkbox"
                   .checked=${selectedStatuses.has(s)}

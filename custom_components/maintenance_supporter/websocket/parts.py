@@ -9,7 +9,7 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import VolDictType
 
-from ..const import BATTERY_FLEET_OBJECT_FLAG, BATTERY_FLEET_REMOVED_PARTS, CONF_OBJECT, CONF_PARTS, MAX_ID_LENGTH
+from ..const import BATTERY_FLEET_OBJECT_FLAG, BATTERY_FLEET_REMOVED_PARTS, CONF_OBJECT, CONF_PARTS
 from ..helpers.aggregate import get_store, object_name
 from ..helpers.parts import (
     MAX_PART_STOCK,
@@ -18,7 +18,7 @@ from ..helpers.parts import (
     normalize_part,
 )
 from ..helpers.permissions import require_write
-from . import _get_runtime_data, _load_object_entry
+from . import ID_FIELD, _get_runtime_data, _load_object_entry
 
 
 def _parts_of(entry: Any) -> dict[str, dict[str, Any]]:
@@ -45,7 +45,7 @@ _PART_FIELDS_SCHEMA: VolDictType = {
     vol.Optional("reorder_threshold"): vol.Any(int, None),
     vol.Optional("restock_quantity"): vol.Any(int, float, None),
     vol.Optional("auto_buy_task"): bool,
-    vol.Optional("doc_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
+    vol.Optional("doc_id"): vol.Any(ID_FIELD, None),
     # Initial / edited stock travels WITH the definition for dialog simplicity,
     # but is stored in the per-entry Store (dynamic), not entry.data.
     vol.Optional("stock"): vol.Any(int, float, None),
@@ -55,7 +55,7 @@ _PART_FIELDS_SCHEMA: VolDictType = {
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/part/create",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
         **_PART_FIELDS_SCHEMA,
     }
 )
@@ -97,8 +97,8 @@ async def ws_create_part(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/part/update",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("part_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("part_id"): ID_FIELD,
         **_PART_FIELDS_SCHEMA,
     }
 )
@@ -153,8 +153,8 @@ _PART_FIELD_KEYS = {str(k) for k in _PART_FIELDS_SCHEMA if str(k) != "stock"}
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/part/delete",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("part_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("part_id"): ID_FIELD,
     }
 )
 @require_write
@@ -230,8 +230,8 @@ async def ws_delete_part(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/part/restock",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("part_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("part_id"): ID_FIELD,
         # Either a relative delta (may be negative for corrections) or an
         # absolute count — exactly one.
         vol.Optional("delta"): vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=-MAX_PART_STOCK, max=MAX_PART_STOCK)),

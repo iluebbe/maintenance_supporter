@@ -26,7 +26,6 @@ from ..const import (
     MAX_DATE_LENGTH,
     MAX_ENTITY_SLUG_LENGTH,
     MAX_ICON_LENGTH,
-    MAX_ID_LENGTH,
     MAX_LABEL_LENGTH,
     MAX_LABELS,
     MAX_META_LENGTH,
@@ -67,6 +66,7 @@ from . import (
     ID_FIELD,
     _load_object_entry,
     _load_object_task,
+    _merge_global_options,
     _parse_iso_date,
     cleanup_group_refs,
 )
@@ -270,91 +270,114 @@ def _apply_phase_fields(
         task_data.pop("phase_sequence", None)
 
 
+# DRY audit 2026-09-26 B: the ONE validator per task field. task/create and
+# task/update carried ~37 verbatim copies of these; both schemas are built
+# from this map now — update wraps every field in a default-less
+# vol.Optional (omitted = unchanged), create requires _TASK_CREATE_REQUIRED
+# and fills _TASK_CREATE_DEFAULTS. Wire-keyed (``task_type`` = the task's
+# type; TASK_UPDATE_FIELD_MAP translates to storage keys).
+_TASK_FIELDS: dict[str, Any] = {
+    "name": vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
+    "task_type": vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
+    "enabled": bool,
+    "schedule_type": vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
+    "interval_days": vol.Any(vol.All(int, vol.Range(min=INTERVAL_DAYS_RANGE[0], max=INTERVAL_DAYS_RANGE[1])), None),
+    "interval_unit": vol.In(INTERVAL_UNITS),
+    "due_date": vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
+    "interval_anchor": vol.In(INTERVAL_ANCHORS),
+    # Nested recurrence (calendar kinds: weekdays / nth_weekday / day_of_month).
+    # Validated/canonicalized in the handler via Schedule.from_dict.
+    "schedule": vol.Any(dict, None),
+    # No create default: an omitted value takes the integration-wide
+    # setting (get_default_warning_days), not the constant 7 (BR-A4).
+    "warning_days": vol.All(int, vol.Range(min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1])),
+    "earliest_completion_days": vol.Any(
+        vol.All(int, vol.Range(min=EARLIEST_COMPLETION_RANGE[0], max=EARLIEST_COMPLETION_RANGE[1])), None
+    ),
+    "last_performed": vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
+    "trigger_config": vol.Any(dict, None),
+    "notes": vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
+    "documentation_url": vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
+    "responsible_user_id": vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+    "assignee_pool": vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_META_LENGTH))], vol.Length(max=MAX_ASSIGNEE_POOL)), None),
+    "required_completion_fields": vol.Any([vol.In(REQUIRABLE_COMPLETION_FIELDS)], None),
+    "rotation_strategy": vol.Any(vol.In(ROTATION_STRATEGY_VALUES), None),
+    "entity_slug": vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
+    "custom_icon": vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
+    "nfc_tag_id": vol.Any(vol.All(str, vol.Length(max=MAX_NFC_TAG_LENGTH)), None),
+    # Proof of presence (#139 family): completion only via NFC/QR scan.
+    "require_tag_scan": vol.Any(bool, None),
+    # #150: per-task skip lock — false hides Skip in the UIs and the
+    # coordinator refuses (WS + voice), so automations cannot skip either.
+    "allow_skip": vol.Any(bool, None),
+    # #173: per-task notification mute — false = no reminders for this
+    # task (status changes, repeats, lead-time, bundles); the dashboard
+    # and entities still show it.
+    "notify_enabled": vol.Any(bool, None),
+    # #185: per-task push-notification icon ("mdi:…"); null/"" = the
+    # maintenance type's default. Shape-checked by _validate_notify_icon.
+    "notify_icon": vol.Any(vol.All(str, vol.Length(max=MAX_NOTIFY_ICON_LENGTH)), None),
+    # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
+    "reading_unit": vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
+    # #161 phase 2: reading slots [{id?, name, unit?}] — shape-validated
+    # by helpers/reading_slots.sanitize_reading_slots at both write paths.
+    "readings": vol.Any(list, None),
+    # Spare parts consumed on completion: [{part_id, quantity}].
+    "consumes_parts": vol.Any(list, None),
+    # Task phases (#139): cyclic content rotation on one cadence.
+    # Shape-validated in helpers/phases.py at both write paths.
+    "phases": vol.Any(dict, None),
+    "phase_sequence": vol.Any(list, None),
+    "priority": vol.In(TASK_PRIORITIES),
+    "checklist": vol.Any(
+        vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None
+    ),
+    "labels": vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_LABEL_LENGTH))], vol.Length(max=MAX_LABELS)), None),
+    # D#183: todo.* entity ids the due task is mirrored into ([] / None = off).
+    "mirror_todo_entities": vol.Any(
+        vol.All([vol.All(str, vol.Match(MIRROR_TODO_ENTITY_PATTERN))], vol.Length(max=MAX_MIRROR_TODO_LISTS)), None
+    ),
+    # HH:MM strict (00–23 : 00–59). None clears the time → midnight semantic.
+    "schedule_time": vol.Any(vol.All(str, vol.Match(r"^([01]\d|2[0-3]):[0-5]\d$")), None),
+    # v1.3.0: per-task on_complete_action + quick_complete_defaults.
+    # Both kept loose at the schema level (vol.Any(dict, None)); strict
+    # field-by-field validation lives in helpers/sanitize.py so the
+    # config-flow path (which doesn't go through this schema) gets
+    # identical validation behaviour.
+    "on_complete_action": vol.Any(dict, None),
+    "quick_complete_defaults": vol.Any(dict, None),
+}
+
+#: The only field task/create requires.
+_TASK_CREATE_REQUIRED: frozenset[str] = frozenset({"name"})
+#: task/create's values for omitted fields (task/update has none — an omitted
+#: field there means "leave unchanged").
+_TASK_CREATE_DEFAULTS: dict[str, Any] = {
+    "task_type": "custom",
+    "schedule_type": "time_based",
+    "interval_unit": "days",
+    "interval_anchor": "completion",
+    "enabled": True,
+}
+
+
+def _create_marker(key: str) -> vol.Marker:
+    """The task/create schema marker for one ``_TASK_FIELDS`` key."""
+    if key in _TASK_CREATE_REQUIRED:
+        return vol.Required(key)
+    if key in _TASK_CREATE_DEFAULTS:
+        return vol.Optional(key, default=_TASK_CREATE_DEFAULTS[key])
+    return vol.Optional(key)
+
+
 # Hoisted as a module constant so the schema/field-map parity tripwire
 # (tests/test_task_schema_parity.py, drift audit 2026-08) can introspect it.
-_TASK_CREATE_SCHEMA: dict[Any, Any] =     {
-        vol.Required("type"): "maintenance_supporter/task/create",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
-        vol.Optional("task_type", default="custom"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
-        vol.Optional("schedule_type", default="time_based"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
-        vol.Optional("interval_days"): vol.Any(
-            vol.All(int, vol.Range(min=INTERVAL_DAYS_RANGE[0], max=INTERVAL_DAYS_RANGE[1])), None
-        ),
-        vol.Optional("interval_unit", default="days"): vol.In(INTERVAL_UNITS),
-        vol.Optional("due_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
-        vol.Optional("interval_anchor", default="completion"): vol.In(INTERVAL_ANCHORS),
-        # Nested recurrence (calendar kinds: weekdays / nth_weekday / day_of_month).
-        # Validated/canonicalized in the handler via Schedule.from_dict.
-        vol.Optional("schedule"): vol.Any(dict, None),
-        # No schema default: an omitted value takes the integration-wide
-        # setting (get_default_warning_days), not the constant 7 (BR-A4).
-        vol.Optional("warning_days"): vol.All(int, vol.Range(min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1])),
-        vol.Optional("earliest_completion_days"): vol.Any(
-            vol.All(int, vol.Range(min=EARLIEST_COMPLETION_RANGE[0], max=EARLIEST_COMPLETION_RANGE[1])), None
-        ),
-        vol.Optional("last_performed"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
-        vol.Optional("trigger_config"): vol.Any(dict, None),
-        vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
-        vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
-        vol.Optional("responsible_user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("assignee_pool"): vol.Any(
-            vol.All([vol.All(str, vol.Length(max=MAX_META_LENGTH))], vol.Length(max=MAX_ASSIGNEE_POOL)), None
-        ),
-        vol.Optional("required_completion_fields"): vol.Any([vol.In(REQUIRABLE_COMPLETION_FIELDS)], None),
-        vol.Optional("rotation_strategy"): vol.Any(vol.In(ROTATION_STRATEGY_VALUES), None),
-        vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
-        vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
-        vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=MAX_NFC_TAG_LENGTH)), None),
-        # Proof of presence (#139 family): completion only via NFC/QR scan.
-        vol.Optional("require_tag_scan"): vol.Any(bool, None),
-        # #150: per-task skip lock — false hides Skip in the UIs and the
-        # coordinator refuses (WS + voice), so automations cannot skip either.
-        vol.Optional("allow_skip"): vol.Any(bool, None),
-        # #173: per-task notification mute — false = no reminders for this
-        # task (status changes, repeats, lead-time, bundles); the dashboard
-        # and entities still show it.
-        vol.Optional("notify_enabled"): vol.Any(bool, None),
-        # #185: per-task push-notification icon ("mdi:…"); null/"" = the
-        # maintenance type's default. Shape-checked by _validate_notify_icon.
-        vol.Optional("notify_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_NOTIFY_ICON_LENGTH)), None),
-        # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
-        vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
-        # #161 phase 2: reading slots [{id?, name, unit?}] — shape-validated
-        # by helpers/reading_slots.sanitize_reading_slots at both write paths.
-        vol.Optional("readings"): vol.Any(list, None),
-        # Spare parts consumed on completion: [{part_id, quantity}].
-        vol.Optional("consumes_parts"): vol.Any(list, None),
-        # Task phases (#139): cyclic content rotation on one cadence.
-        # Shape-validated in helpers/phases.py at both write paths.
-        vol.Optional("phases"): vol.Any(dict, None),
-        vol.Optional("phase_sequence"): vol.Any(list, None),
-        vol.Optional("priority"): vol.In(TASK_PRIORITIES),
-        vol.Optional("checklist"): vol.Any(
-            vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None
-        ),
-        vol.Optional("labels"): vol.Any(
-            vol.All([vol.All(str, vol.Length(max=MAX_LABEL_LENGTH))], vol.Length(max=MAX_LABELS)), None
-        ),
-        # D#183: todo.* entity ids the due task is mirrored into ([] / None = off).
-        vol.Optional("mirror_todo_entities"): vol.Any(
-            vol.All([vol.All(str, vol.Match(MIRROR_TODO_ENTITY_PATTERN))], vol.Length(max=MAX_MIRROR_TODO_LISTS)), None
-        ),
-        # HH:MM strict (00–23 : 00–59). None clears the time → midnight semantic.
-        vol.Optional("schedule_time"): vol.Any(
-            vol.All(str, vol.Match(r"^([01]\d|2[0-3]):[0-5]\d$")),
-            None,
-        ),
-        # v1.3.0: per-task on_complete_action + quick_complete_defaults.
-        # Both kept loose at the schema level (vol.Any(dict, None)); strict
-        # field-by-field validation lives in helpers/sanitize.py so the
-        # config-flow path (which doesn't go through this schema) gets
-        # identical validation behaviour.
-        vol.Optional("on_complete_action"): vol.Any(dict, None),
-        vol.Optional("quick_complete_defaults"): vol.Any(dict, None),
-        vol.Optional("enabled", default=True): bool,
-        vol.Optional("dry_run", default=False): bool,
-    }
+_TASK_CREATE_SCHEMA: dict[Any, Any] = {
+    vol.Required("type"): "maintenance_supporter/task/create",
+    vol.Required("entry_id"): ID_FIELD,
+    **{_create_marker(key): validator for key, validator in _TASK_FIELDS.items()},
+    vol.Optional("dry_run", default=False): bool,
+}
 
 
 @websocket_api.websocket_command(_TASK_CREATE_SCHEMA)
@@ -592,81 +615,13 @@ async def ws_create_task(
 
 # Hoisted as a module constant so the schema/field-map parity tripwire
 # (tests/test_task_schema_parity.py, drift audit 2026-08) can introspect it.
-_TASK_UPDATE_SCHEMA: dict[Any, Any] =     {
-        vol.Required("type"): "maintenance_supporter/task/update",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Optional("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
-        vol.Optional("task_type"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
-        vol.Optional("enabled"): bool,
-        vol.Optional("schedule_type"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
-        vol.Optional("interval_days"): vol.Any(
-            vol.All(int, vol.Range(min=INTERVAL_DAYS_RANGE[0], max=INTERVAL_DAYS_RANGE[1])), None
-        ),
-        vol.Optional("interval_unit"): vol.In(INTERVAL_UNITS),
-        vol.Optional("due_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
-        vol.Optional("interval_anchor"): vol.In(INTERVAL_ANCHORS),
-        # Nested recurrence (calendar kinds); see create schema.
-        vol.Optional("schedule"): vol.Any(dict, None),
-        vol.Optional("warning_days"): vol.All(int, vol.Range(min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1])),
-        vol.Optional("earliest_completion_days"): vol.Any(
-            vol.All(int, vol.Range(min=EARLIEST_COMPLETION_RANGE[0], max=EARLIEST_COMPLETION_RANGE[1])), None
-        ),
-        vol.Optional("last_performed"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
-        vol.Optional("trigger_config"): vol.Any(dict, None),
-        vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
-        vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
-        vol.Optional("responsible_user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("assignee_pool"): vol.Any(
-            vol.All([vol.All(str, vol.Length(max=MAX_META_LENGTH))], vol.Length(max=MAX_ASSIGNEE_POOL)), None
-        ),
-        vol.Optional("required_completion_fields"): vol.Any([vol.In(REQUIRABLE_COMPLETION_FIELDS)], None),
-        vol.Optional("rotation_strategy"): vol.Any(vol.In(ROTATION_STRATEGY_VALUES), None),
-        vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
-        vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
-        vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=MAX_NFC_TAG_LENGTH)), None),
-        # Proof of presence (#139 family): completion only via NFC/QR scan.
-        vol.Optional("require_tag_scan"): vol.Any(bool, None),
-        # #150: per-task skip lock — false hides Skip in the UIs and the
-        # coordinator refuses (WS + voice), so automations cannot skip either.
-        vol.Optional("allow_skip"): vol.Any(bool, None),
-        # #173: per-task notification mute — false = no reminders for this
-        # task (status changes, repeats, lead-time, bundles); the dashboard
-        # and entities still show it.
-        vol.Optional("notify_enabled"): vol.Any(bool, None),
-        # #185: per-task push-notification icon ("mdi:…"); null/"" = the
-        # maintenance type's default. Shape-checked by _validate_notify_icon.
-        vol.Optional("notify_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_NOTIFY_ICON_LENGTH)), None),
-        # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
-        vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
-        # #161 phase 2: reading slots [{id?, name, unit?}] — shape-validated
-        # by helpers/reading_slots.sanitize_reading_slots at both write paths.
-        vol.Optional("readings"): vol.Any(list, None),
-        # Spare parts consumed on completion: [{part_id, quantity}].
-        vol.Optional("consumes_parts"): vol.Any(list, None),
-        # Task phases (#139): cyclic content rotation on one cadence.
-        # Shape-validated in helpers/phases.py at both write paths.
-        vol.Optional("phases"): vol.Any(dict, None),
-        vol.Optional("phase_sequence"): vol.Any(list, None),
-        vol.Optional("priority"): vol.In(TASK_PRIORITIES),
-        vol.Optional("checklist"): vol.Any(
-            vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None
-        ),
-        vol.Optional("labels"): vol.Any(
-            vol.All([vol.All(str, vol.Length(max=MAX_LABEL_LENGTH))], vol.Length(max=MAX_LABELS)), None
-        ),
-        # D#183: see create schema.
-        vol.Optional("mirror_todo_entities"): vol.Any(
-            vol.All([vol.All(str, vol.Match(MIRROR_TODO_ENTITY_PATTERN))], vol.Length(max=MAX_MIRROR_TODO_LISTS)), None
-        ),
-        vol.Optional("schedule_time"): vol.Any(
-            vol.All(str, vol.Match(r"^([01]\d|2[0-3]):[0-5]\d$")),
-            None,
-        ),
-        # v1.3.0: same loose schema as create. Sanitize layer enforces shape.
-        vol.Optional("on_complete_action"): vol.Any(dict, None),
-        vol.Optional("quick_complete_defaults"): vol.Any(dict, None),
-    }
+# Every _TASK_FIELDS key optional without a default (DRY audit 2026-09-26 B).
+_TASK_UPDATE_SCHEMA: dict[Any, Any] = {
+    vol.Required("type"): "maintenance_supporter/task/update",
+    vol.Required("entry_id"): ID_FIELD,
+    vol.Required("task_id"): ID_FIELD,
+    **{vol.Optional(key): validator for key, validator in _TASK_FIELDS.items()},
+}
 
 
 @websocket_api.websocket_command(_TASK_UPDATE_SCHEMA)
@@ -954,8 +909,8 @@ async def ws_update_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/delete",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
     }
 )
 @require_write
@@ -1060,19 +1015,13 @@ async def async_delete_task(
     # persistent and task-id keyed — without this, deleted ids accumulate
     # there forever and confuse the vacation preview UI.
     from ..const import CONF_VACATION_EXEMPT_TASK_IDS
-    from ..helpers.global_options import get_global_entry
+    from ..helpers.global_options import get_global_entry, get_global_options
 
     ge = get_global_entry(hass)
     if ge is not None:
-        exempt = ge.options.get(CONF_VACATION_EXEMPT_TASK_IDS) or []
+        exempt = get_global_options(hass).get(CONF_VACATION_EXEMPT_TASK_IDS) or []
         if isinstance(exempt, list) and task_id in exempt:
-            hass.config_entries.async_update_entry(
-                ge,
-                options={
-                    **dict(ge.options),
-                    CONF_VACATION_EXEMPT_TASK_IDS: [t for t in exempt if t != task_id],
-                },
-            )
+            _merge_global_options(hass, ge, {CONF_VACATION_EXEMPT_TASK_IDS: [t for t in exempt if t != task_id]})
 
     # Every repair issue about this task — not only its missing-trigger
     # ones: a stale completion-action target outlived the task in Settings →
@@ -1087,8 +1036,8 @@ async def async_delete_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/duplicate",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
     }
 )
 @require_write

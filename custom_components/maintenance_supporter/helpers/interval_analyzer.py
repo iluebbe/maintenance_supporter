@@ -35,6 +35,7 @@ from ..const import (
     MaintenanceFeedback,
 )
 from .history import completed_entries
+from .least_squares import linear_fit
 from .schedule import read_legacy_fields
 
 
@@ -457,18 +458,13 @@ class IntervalAnalyzer:
 
         # Least-squares regression: y = beta * x - beta * ln(eta)
         # => y = m * x + b, where m = beta, b = -beta * ln(eta)
-        n_pts = len(x_vals)
-        sum_x = sum(x_vals)
-        sum_y = sum(y_vals)
-        sum_xy = sum(x * y for x, y in zip(x_vals, y_vals, strict=True))
-        sum_x2 = sum(x * x for x in x_vals)
-
-        denom = n_pts * sum_x2 - sum_x * sum_x
-        if abs(denom) < 1e-10:
+        # (the shared fit — the sensor predictor carried a second copy).
+        fit = linear_fit(x_vals, y_vals, min_denom=1e-10)
+        if fit is None:
             return None
-
-        beta = (n_pts * sum_xy - sum_x * sum_y) / denom
-        b = (sum_y - beta * sum_x) / n_pts
+        beta, b = fit
+        n_pts = len(x_vals)
+        sum_y = sum(y_vals)
 
         if beta <= 0:
             return None

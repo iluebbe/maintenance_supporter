@@ -12,7 +12,7 @@ import { css, html, LitElement, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 
 import { t, ensureLocale, langOf } from "../styles";
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
 import type { HomeAssistant } from "../types";
 
 interface SetupTask {
@@ -77,11 +77,13 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
     this._error = "";
     this._setups = [];
     this._selected = new Set();
-    try {
-      const resp = await this.hass.connection.sendMessagePromise<{ setups: SuggestedSetup[] }>({
-        type: "maintenance_supporter/integration_setups/discover",
-      });
-      this._setups = resp.setups || [];
+    const resp = await runWs<{ setups: SuggestedSetup[] }>(
+      this,
+      { type: "maintenance_supporter/integration_setups/discover" },
+      { onError: (m) => { this._error = m; } },
+    );
+    if (resp !== undefined) {
+      this._setups = resp?.setups || [];
       this._selected = new Set(this._setups.map((s) => s.device_id));
       this._baselines = new Map();
       this._targets = new Map();
@@ -95,11 +97,8 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
       } catch {
         this._objects = []; // picker degrades to the default target only
       }
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._loading = false;
     }
+    this._loading = false;
   }
 
   private _close(): void {
@@ -115,39 +114,35 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
 
   private _adopt = async (): Promise<void> => {
     if (this._selected.size === 0 || this._adopting) return;
-    this._adopting = true;
     this._error = "";
-    try {
-      const result = await this.hass.connection.sendMessagePromise<AdoptResponse>({
-        type: "maintenance_supporter/integration_setups/adopt",
-        selections: [...this._selected].map((device_id) => {
-          const sel: { device_id: string; entry_id?: string; baselines?: Record<string, number> } = {
-            device_id,
-          };
-          const target = this._targets.get(device_id);
-          if (target) sel.entry_id = target;
-          const setup = this._setups.find((s) => s.device_id === device_id);
-          for (const task of setup?.tasks ?? []) {
-            const raw = this._baselines.get(`${device_id} ${task.task_name}`);
-            const b = raw ? parseFloat(raw) : NaN;
-            if (!isNaN(b) && b >= 0) (sel.baselines ??= {})[task.task_name] = b;
-          }
-          return sel;
-        }),
-      });
-      this.dispatchEvent(
-        new CustomEvent("integration-setups-adopted", {
-          bubbles: true,
-          composed: true,
-          detail: result,
-        }),
-      );
-      this._open = false;
-    } catch (e) {
-      this._error = describeWsError(e, this._lang);
-    } finally {
-      this._adopting = false;
-    }
+    const selections = [...this._selected].map((device_id) => {
+      const sel: { device_id: string; entry_id?: string; baselines?: Record<string, number> } = {
+        device_id,
+      };
+      const target = this._targets.get(device_id);
+      if (target) sel.entry_id = target;
+      const setup = this._setups.find((s) => s.device_id === device_id);
+      for (const task of setup?.tasks ?? []) {
+        const raw = this._baselines.get(`${device_id} ${task.task_name}`);
+        const b = raw ? parseFloat(raw) : NaN;
+        if (!isNaN(b) && b >= 0) (sel.baselines ??= {})[task.task_name] = b;
+      }
+      return sel;
+    });
+    const result = await runWs<AdoptResponse>(
+      this,
+      { type: "maintenance_supporter/integration_setups/adopt", selections },
+      { busy: (b) => { this._adopting = b; }, onError: (m) => { this._error = m; } },
+    );
+    if (result === undefined) return;
+    this.dispatchEvent(
+      new CustomEvent("integration-setups-adopted", {
+        bubbles: true,
+        composed: true,
+        detail: result,
+      }),
+    );
+    this._open = false;
   };
 
   render() {

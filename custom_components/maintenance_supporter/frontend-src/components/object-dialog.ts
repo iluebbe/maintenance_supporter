@@ -5,7 +5,7 @@ import { property, state } from "lit/decorators.js";
 import type { HomeAssistant, MaintenanceObject, MaintenanceObjectResponse } from "../types";
 import { t, langOf } from "../styles";
 
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
 import "./ms-textfield";
 import "./ms-date-field";
 
@@ -74,48 +74,31 @@ export class MaintenanceObjectDialog extends LitElement {
   private async _save(): Promise<void> {
     if (this._loading) return;  // synchronous re-entry guard (double-click)
     if (!this._name.trim()) return;
-    this._loading = true;
     this._error = "";
-    try {
-      if (this._entryId) {
-        await this.hass.connection.sendMessagePromise({
-          type: "maintenance_supporter/object/update",
-          entry_id: this._entryId,
-          name: this._name,
-          manufacturer: this._manufacturer || null,
-          model: this._model || null,
-          serial_number: this._serialNumber || null,
-          area_id: this._areaId || null,
-          installation_date: this._installationDate || null,
-          warranty_expiry: this._warrantyExpiry || null,
-          documentation_url: this._documentationUrl.trim() || null,
-          notes: this._notes.trim() || null,
-          ha_device_id: this._haDeviceId || null,
-          parent_entry_id: this._parentEntryId || null,
-        });
-      } else {
-        await this.hass.connection.sendMessagePromise({
-          type: "maintenance_supporter/object/create",
-          name: this._name,
-          manufacturer: this._manufacturer || null,
-          model: this._model || null,
-          serial_number: this._serialNumber || null,
-          area_id: this._areaId || null,
-          installation_date: this._installationDate || null,
-          warranty_expiry: this._warrantyExpiry || null,
-          documentation_url: this._documentationUrl.trim() || null,
-          notes: this._notes.trim() || null,
-          ha_device_id: this._haDeviceId || null,
-          parent_entry_id: this._parentEntryId || null,
-        });
-      }
-      this._open = false;
-      this.dispatchEvent(new CustomEvent("object-saved"));
-    } catch (e) {
-      this._error = describeWsError(e, this._lang, t("save_error", this._lang));
-    } finally {
-      this._loading = false;
-    }
+    // One field set for create and update (the two payloads were copies).
+    const fields = {
+      name: this._name,
+      manufacturer: this._manufacturer || null,
+      model: this._model || null,
+      serial_number: this._serialNumber || null,
+      area_id: this._areaId || null,
+      installation_date: this._installationDate || null,
+      warranty_expiry: this._warrantyExpiry || null,
+      documentation_url: this._documentationUrl.trim() || null,
+      notes: this._notes.trim() || null,
+      ha_device_id: this._haDeviceId || null,
+      parent_entry_id: this._parentEntryId || null,
+    };
+    const res = await runWs(
+      this,
+      this._entryId
+        ? { type: "maintenance_supporter/object/update", entry_id: this._entryId, ...fields }
+        : { type: "maintenance_supporter/object/create", ...fields },
+      { busy: (b) => { this._loading = b; }, fallbackKey: "save_error", onError: (m) => { this._error = m; } },
+    );
+    if (res === undefined) return;
+    this._open = false;
+    this.dispatchEvent(new CustomEvent("object-saved"));
   }
 
   private _parentChoices(): MaintenanceObjectResponse[] {

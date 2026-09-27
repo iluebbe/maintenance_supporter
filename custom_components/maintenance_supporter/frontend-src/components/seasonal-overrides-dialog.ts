@@ -4,7 +4,8 @@ import { css, html, LitElement, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 
 import { t, langOf } from "../styles";
-import { describeWsError } from "../ws-errors";
+import { runWs } from "../helpers/ws-run";
+import { SEASONAL_FACTOR_RANGE } from "../helpers/setting-ranges";
 import type { HomeAssistant } from "../types";
 
 const MONTH_KEYS = [
@@ -56,7 +57,7 @@ export class SeasonalOverridesDialog extends LitElement {
         this._error = `${t("month_" + ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"][i], this._lang)}: ${t("seasonal_override_invalid", this._lang)}`;
         return null;
       }
-      if (num < 0.1 || num > 5.0) {
+      if (num < SEASONAL_FACTOR_RANGE[0] || num > SEASONAL_FACTOR_RANGE[1]) {
         this._error = t("seasonal_override_range", this._lang);
         return null;
       }
@@ -68,42 +69,32 @@ export class SeasonalOverridesDialog extends LitElement {
   private _save = async (): Promise<void> => {
     const overrides = this._buildOverrides();
     if (overrides === null) return;
-    this._loading = true;
-    this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/task/seasonal_overrides",
-        entry_id: this._entryId,
-        task_id: this._taskId,
-        overrides,
-      });
-      this._open = false;
-      this.dispatchEvent(new CustomEvent("overrides-saved"));
-    } catch (e) {
-      this._error = describeWsError(e, this._lang, t("save_error", this._lang));
-    } finally {
-      this._loading = false;
-    }
+    if ((await this._send(overrides)) === undefined) return;
+    this._open = false;
+    this.dispatchEvent(new CustomEvent("overrides-saved"));
   };
 
-  private _clearAll = async (): Promise<void> => {
-    this._loading = true;
+  /** helpers/ws-run runWs: the overrides write with the loading flag and
+   *  the error line ("Save failed" for a non-WS error). */
+  private _send(overrides: Record<number, number>): Promise<unknown> {
     this._error = "";
-    try {
-      await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/task/seasonal_overrides",
-        entry_id: this._entryId,
-        task_id: this._taskId,
-        overrides: {},
-      });
-      this._values = new Array(12).fill("");
-      this._open = false;
-      this.dispatchEvent(new CustomEvent("overrides-saved"));
-    } catch (e) {
-      this._error = describeWsError(e, this._lang, t("save_error", this._lang));
-    } finally {
-      this._loading = false;
-    }
+    return runWs(this, {
+      type: "maintenance_supporter/task/seasonal_overrides",
+      entry_id: this._entryId,
+      task_id: this._taskId,
+      overrides,
+    }, {
+      busy: (b) => { this._loading = b; },
+      fallbackKey: "save_error",
+      onError: (m) => { this._error = m; },
+    });
+  }
+
+  private _clearAll = async (): Promise<void> => {
+    if ((await this._send({})) === undefined) return;
+    this._values = new Array(12).fill("");
+    this._open = false;
+    this.dispatchEvent(new CustomEvent("overrides-saved"));
   };
 
   render() {
@@ -118,7 +109,7 @@ export class SeasonalOverridesDialog extends LitElement {
             ${MONTH_KEYS.map((key, i) => html`
               <label class="month">
                 <span class="mn">${t(key, L)}</span>
-                <input type="number" step="0.1" min="0.1" max="5.0"
+                <input type="number" step="0.1" min=${SEASONAL_FACTOR_RANGE[0]} max=${SEASONAL_FACTOR_RANGE[1]}
                   placeholder="1.0"
                   .value=${this._values[i]}
                   @input=${(e: Event) => {

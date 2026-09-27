@@ -677,8 +677,7 @@ async def ws_get_budget_status(
     """Return current budget status (monthly/yearly spent vs budget)."""
     from ..helpers.budget import compute_spend
 
-    global_entry = _get_global_entry(hass)
-    global_options: Mapping[str, Any] = (global_entry.options or global_entry.data) if global_entry else {}
+    global_options = get_global_options(hass)
 
     monthly_budget = float(global_options.get(CONF_BUDGET_MONTHLY, 0))
     yearly_budget = float(global_options.get(CONF_BUDGET_YEARLY, 0))

@@ -17,13 +17,13 @@ from ..const import (
     MAX_COST,
     MAX_DATE_LENGTH,
     MAX_DURATION_MINUTES,
-    MAX_ID_LENGTH,
     MAX_TEXT_LENGTH,
     MAX_TIMESTAMP_LENGTH,
 )
 from ..helpers.completion_photos import MAX_COMPLETION_PHOTOS, normalize_photo_doc_ids
 from ..models.maintenance_task import MaintenanceTask
 from . import (
+    ID_FIELD,
     READING_VALUES_FIELD,
     USED_PARTS_FIELD,
     _load_object_task,
@@ -66,8 +66,8 @@ def _refuse_too_early(connection: websocket_api.ActiveConnection, msg: dict[str,
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/complete",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
         vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=0, max=MAX_COST)), None),
         vol.Optional("duration"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=0, max=MAX_DURATION_MINUTES)), None),
@@ -93,10 +93,10 @@ def _refuse_too_early(connection: websocket_api.ActiveConnection, msg: dict[str,
         # images (via the document upload endpoint, tagged "photo"). The
         # scalar form is what pre-2.75 clients send — merged into the list.
         vol.Optional("photo_doc_ids"): vol.Any(
-            vol.All([vol.All(str, vol.Length(max=MAX_ID_LENGTH))], vol.Length(max=MAX_COMPLETION_PHOTOS)),
+            vol.All([ID_FIELD], vol.Length(max=MAX_COMPLETION_PHOTOS)),
             None,
         ),
-        vol.Optional("photo_doc_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
+        vol.Optional("photo_doc_id"): vol.Any(ID_FIELD, None),
         # Meter readings (v2.20, #83): the recorded value for `reading` tasks.
         # Wide numeric bounds — meters count high, temperatures go negative.
         vol.Optional("reading_value"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)), None),
@@ -230,8 +230,8 @@ async def ws_complete_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/quick_complete",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
     }
 )
 @websocket_api.async_response
@@ -284,8 +284,8 @@ async def ws_quick_complete_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/skip",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
         vol.Optional("reason"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
         # Record the skipped cycle as MISSED (was due, never done) rather than a
         # deliberate skip — clearer history + compliance views.
@@ -321,8 +321,8 @@ async def ws_skip_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/reset",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
         vol.Optional("date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
     }
 )
@@ -362,8 +362,8 @@ async def ws_reset_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/set_phase",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
         # Index into phase_sequence — which cycle step is due NEXT.
         vol.Required("cursor"): vol.All(int, vol.Range(min=0, max=100)),
     }
@@ -401,8 +401,8 @@ async def ws_set_task_phase(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/postpone",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
         vol.Required("until"): vol.All(str, vol.Length(max=MAX_DATE_LENGTH)),
     }
 )
@@ -442,8 +442,8 @@ async def ws_postpone_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/snooze",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
     }
 )
 @websocket_api.async_response
@@ -474,8 +474,8 @@ async def ws_snooze_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/checklist_progress",
-        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
         # Same shape/caps as task/complete's checklist_state.
         vol.Required("checklist_state"): vol.All(
             {vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH)): bool},

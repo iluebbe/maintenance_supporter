@@ -35,6 +35,7 @@ from ..const import (
     DEGRADATION_MIN_CYCLE_HOURS,
 )
 from .history import completed_entries
+from .least_squares import linear_fit
 from .schedule import read_legacy_fields
 from .trigger_fallback import counter_baseline
 
@@ -821,28 +822,15 @@ class SensorPredictor:
         Returns (slope, intercept, r_squared) or None if insufficient data.
         Uses least squares method.
         """
+        # The shared fit (helpers/least_squares — it shifts x by the first
+        # timestamp, so Unix-epoch x values don't cancel catastrophically).
+        fit = linear_fit([p[0] for p in points], [p[1] for p in points], min_denom=1e-15)
+        if fit is None:
+            return None
+        slope, intercept = fit
         n = len(points)
-        if n < 2:
-            return None
-
-        # Normalize X-values to avoid catastrophic cancellation.
-        # Raw Unix timestamps (~1.7e9) squared exceed Float64 precision,
-        # causing the denominator (n*Σx²−(Σx)²) to lose significant digits.
-        # Translation does not change the slope; intercept is adjusted below.
-        x0 = points[0][0]
-
-        sum_x = sum(p[0] - x0 for p in points)
         sum_y = sum(p[1] for p in points)
-        sum_xy = sum((p[0] - x0) * p[1] for p in points)
-        sum_x2 = sum((p[0] - x0) ** 2 for p in points)
         sum_y2 = sum(p[1] ** 2 for p in points)
-
-        denom = n * sum_x2 - sum_x**2
-        if abs(denom) < 1e-15:
-            return None
-
-        slope = (n * sum_xy - sum_x * sum_y) / denom
-        intercept = (sum_y - slope * sum_x) / n - slope * x0
 
         # R-squared (coefficient of determination)
         ss_tot = sum_y2 - (sum_y**2) / n

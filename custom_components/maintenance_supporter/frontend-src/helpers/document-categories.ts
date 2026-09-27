@@ -8,6 +8,7 @@
  */
 
 export const CATEGORIES = ["manual", "warranty", "invoice", "spare_parts", "photo", "other"] as const;
+export type DocCategory = (typeof CATEGORIES)[number];
 
 export const CATEGORY_ICONS: Record<string, string> = {
   manual: "mdi:book-open-variant",
@@ -24,4 +25,11 @@ export const CATEGORY_ICONS: Record<string, string> = {
  * (see documents-section/task-documents download paths). */
 export function docDisplayName(doc: { title?: string | null; filename?: string | null; url?: string | null }): string {
   return doc.title || doc.filename || doc.url || "";
+}
+
+/** A document's category: the first of its tags that is one, else "other".
+ *  The documents section, the task-documents card and the category sort
+ *  each looked it up with their own copy (DRY audit 2026-09-26). */
+export function docCategory(doc: { tags?: readonly string[] | null }): DocCategory {
+  return ((doc.tags || []).find((x) => (CATEGORIES as readonly string[]).includes(x)) as DocCategory | undefined) ?? "other";
 }

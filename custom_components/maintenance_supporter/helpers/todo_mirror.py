@@ -43,7 +43,7 @@ from homeassistant.core import CALLBACK_TYPE, Event, EventStateChangedData, Home
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
 
-from ..const import COMPLETION_PROVENANCE_NOTES, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID, UNAVAILABLE_STATES, MaintenanceStatus
+from ..const import COMPLETION_PROVENANCE_NOTES, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID, NOTIFIABLE_STATUSES, UNAVAILABLE_STATES
 from .managed_timer import ManagedTimer
 from .phases import task_label
 
@@ -59,8 +59,58 @@ MIRROR_FIELD = "mirror_todo_entities"
 MIRROR_STATE_KEY = "todo_mirror"
 _DEBOUNCE_SECONDS = 2.0
 # Statuses that put a row on the lists; everything else (ok, archived,
-# paused — and a disabled task reads ok) takes it off.
-MIRRORED_STATUSES = frozenset({MaintenanceStatus.DUE_SOON, MaintenanceStatus.OVERDUE, MaintenanceStatus.TRIGGERED})
+# paused — and a disabled task reads ok) takes it off. The reminder statuses
+# themselves — this module kept its own copy of the set (DRY audit
+# 2026-09-26 B).
+MIRRORED_STATUSES = NOTIFIABLE_STATUSES
+
+
+# ── todo service wrappers (best effort) ─────────────────────────────────────
+# THE calls into a foreign ``todo.*`` entity — shared by the mirror and the
+# shopping-list sync, which each carried a byte-identical copy (DRY audit
+# 2026-09-26 B). Provider errors are logged, never raised: both callers retry
+# on their next trigger.
+
+
+async def async_todo_get_items(hass: HomeAssistant, entity: str) -> list[dict[str, Any]] | None:
+    """Every row (open AND checked) of a list; ``None`` when the call failed."""
+    try:
+        resp = await hass.services.async_call(
+            "todo",
+            "get_items",
+            {"entity_id": entity, "status": ["needs_action", "completed"]},
+            blocking=True,
+            return_response=True,
+        )
+    except Exception:  # noqa: BLE001 — provider errors are retried on the next trigger
+        _LOGGER.warning("todo.get_items on %s failed", entity, exc_info=True)
+        return None
+    payload = (resp or {}).get(entity)
+    items = payload.get("items") if isinstance(payload, dict) else None
+    return [i for i in items if isinstance(i, dict)] if isinstance(items, list) else []
+
+
+async def async_todo_add_item(hass: HomeAssistant, entity: str, summary: str) -> bool:
+    """Add a row; False when the call failed (``add_item`` returns no uid —
+    the callers re-list to claim it)."""
+    try:
+        await hass.services.async_call("todo", "add_item", {"entity_id": entity, "item": summary}, blocking=True)
+    except Exception:  # noqa: BLE001 — provider errors are retried on the next trigger
+        _LOGGER.warning("todo.add_item %r on %s failed", summary, entity, exc_info=True)
+        return False
+    return True
+
+
+async def async_todo_remove_item(hass: HomeAssistant, entity: str, rec: Mapping[str, Any]) -> None:
+    """Remove one of OUR rows, by uid (summary as a fallback); a record
+    carrying neither is a no-op."""
+    ref = rec.get("uid") or rec.get("summary")
+    if not ref:
+        return
+    try:
+        await hass.services.async_call("todo", "remove_item", {"entity_id": entity, "item": ref}, blocking=True)
+    except Exception:  # noqa: BLE001 — a row already gone is not an error worth more than a log line
+        _LOGGER.warning("todo.remove_item %r on %s failed", ref, entity, exc_info=True)
 
 
 def mirror_lists(task: dict[str, Any]) -> list[str]:
@@ -354,29 +404,13 @@ class TodoMirror:
         return True
 
     async def _get_items(self, entity: str) -> list[dict[str, Any]] | None:
-        try:
-            resp = await self._hass.services.async_call(
-                "todo",
-                "get_items",
-                {"entity_id": entity, "status": ["needs_action", "completed"]},
-                blocking=True,
-                return_response=True,
-            )
-        except Exception:  # noqa: BLE001 — provider errors are retried on the next trigger
-            _LOGGER.warning("todo.get_items on %s failed", entity, exc_info=True)
-            return None
-        payload = (resp or {}).get(entity)
-        items = payload.get("items") if isinstance(payload, dict) else None
-        return [i for i in items if isinstance(i, dict)] if isinstance(items, list) else []
+        return await async_todo_get_items(self._hass, entity)
 
     async def _add_item(self, entity: str, summary: str) -> str | None | bool:
         """Add a row; returns its uid, None when the provider hid it, False on failure."""
         before = await self._get_items(entity)
         known = {i.get("uid") for i in before or [] if i.get("uid")}
-        try:
-            await self._hass.services.async_call("todo", "add_item", {"entity_id": entity, "item": summary}, blocking=True)
-        except Exception:  # noqa: BLE001 — provider errors are retried on the next trigger
-            _LOGGER.warning("todo.add_item %r on %s failed", summary, entity, exc_info=True)
+        if not await async_todo_add_item(self._hass, entity, summary):
             return False
         # add_item returns nothing — re-list and claim the new uid: by summary
         # first, then the single unclaimed leftover (a provider that
@@ -392,10 +426,6 @@ class TodoMirror:
         return str(twin["uid"])
 
     async def _remove_item(self, entity: str, rec: dict[str, Any]) -> None:
-        ref = rec.get("uid") or rec.get("summary")
-        if not ref or self._hass.states.get(entity) is None:
-            return  # nothing to remove, or the list is gone entirely
-        try:
-            await self._hass.services.async_call("todo", "remove_item", {"entity_id": entity, "item": ref}, blocking=True)
-        except Exception:  # noqa: BLE001 — a row already gone is not an error worth more than a log line
-            _LOGGER.warning("todo.remove_item %r on %s failed", ref, entity, exc_info=True)
+        if self._hass.states.get(entity) is None:
+            return  # the list is gone entirely
+        await async_todo_remove_item(self._hass, entity, rec)
