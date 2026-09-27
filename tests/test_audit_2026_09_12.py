@@ -236,10 +236,13 @@ async def test_text_index_is_cancelled_when_the_last_object_entry_unloads(hass: 
     index.cancel = Mock(wraps=index.cancel)  # type: ignore[method-assign]
     await hass.config_entries.async_remove(g.entry_id)
     await hass.async_block_till_done()
-    assert index.cancel.call_count == 1
+    # The hub going away is not the end of the shared runtime: the index
+    # keeps serving the object's documents (a hub RELOAD used to close it
+    # for the rest of the run — bug audit 2026-09-27).
+    assert index.cancel.call_count == 0
     await hass.config_entries.async_remove(entry.entry_id)
     await hass.async_block_till_done()
-    assert index.cancel.call_count == 2, "the object entry was the last one → cancel again"
+    assert index.cancel.call_count == 1, "the object entry was the last one → cancel"
     assert DOMAIN not in hass.data
 
 

@@ -155,6 +155,10 @@ export class MaintenanceCompleteDialog extends LitElement {
   }
 
   private async _complete(): Promise<void> {
+    // A photo still uploading would miss the completion and stay behind as
+    // an orphan (bug audit 2026-09-26 #2) — the button is disabled meanwhile;
+    // this guards Enter / a programmatic click as well.
+    if (this._loading || this._photos.uploading) return;
     this._loading = true;
     this._error = "";
     this._photos.clearError();
@@ -542,8 +546,10 @@ export class MaintenanceCompleteDialog extends LitElement {
           </ha-button>
           <ha-button
             @click=${this._complete}
-            .disabled=${this._loading || this._missingRequired.length > 0}
-            title=${this._missingRequired.length
+            .disabled=${this._loading || this._photos.uploading || this._missingRequired.length > 0}
+            title=${this._photos.uploading
+              ? t("uploading", L)
+              : this._missingRequired.length
               ? this._missingRequired.map((f) => t("err_required", L).replace("{field}", t(REQUIRED_COMPLETION_LABELS[f] ?? f, L))).join(" · ")
               : ""}
           >

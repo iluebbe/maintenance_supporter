@@ -109,7 +109,7 @@ describe("history-edit dialog: shared photo picker (#161 follow-up)", () => {
       removes[0].click();
       removes[2].click();
       await el.updateComplete;
-      const deletes = sent.filter((m) => m.type === "maintenance_supporter/documents/delete").map((m) => m.doc_id);
+      const deletes = sent.filter((m) => m.type === "maintenance_supporter/documents/discard_upload").map((m) => m.doc_id);
       expect(deletes).to.deep.equal(["n2"]);
       await (el as unknown as { _save: () => Promise<void> })._save();
       const update = sent.find((m) => m.type === "maintenance_supporter/task/history/update")!;

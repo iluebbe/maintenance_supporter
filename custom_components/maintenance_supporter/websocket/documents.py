@@ -216,6 +216,51 @@ async def ws_documents_delete(
     connection.send_result(msg["id"], {"success": True, "bytes_freed": freed})
 
 
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/documents/discard_upload",
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("doc_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+    }
+)
+@websocket_api.async_response
+async def ws_documents_discard_upload(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Delete a completion photo that never became part of a record (read tier).
+
+    Every signed-in user may upload a completion photo, but only writers may
+    delete documents — so a photo a household member removed from the
+    dialog again, or whose completion was cancelled, stayed behind as an
+    orphan counting against the object's document cap (bug audit
+    2026-09-27, R SEC-3). This deletes a document only when it belongs to
+    ``entry_id``'s object, is tagged exactly ``photo`` and nothing points at
+    it (no history entry of any task, no part, no task link) — anything else
+    answers ``not_found``, whether it exists or not, so the command reveals
+    nothing and can remove nothing that is part of the record.
+    """
+    from ..helpers.completion_requirements import is_unattached_photo, photo_references
+
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+    store = _get_store(hass)
+    doc = store.documents.get(msg["doc_id"])
+    references = photo_references(hass, strict=False)
+    if (
+        doc is None
+        or references is None
+        or doc.get("object_id") != object_id_for_entry(entry)
+        or not is_unattached_photo(doc, msg["doc_id"], references)
+    ):
+        connection.send_error(msg["id"], "not_found", "Document not found")
+        return
+    await store.async_remove(msg["doc_id"])
+    connection.send_result(msg["id"], {"success": True})
+
+
 _SEARCH_MAX_RESULTS = 50
 #: Field weights for the tolerant matcher — the title is what people remember,
 #: the file name and tags come next, a URL or MIME rarely.

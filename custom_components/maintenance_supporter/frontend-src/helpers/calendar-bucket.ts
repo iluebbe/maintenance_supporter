@@ -306,7 +306,9 @@ export function pastHistoryKey(entryId: string, taskId: string): string {
  *  (`history_count`) and the oldest listed one is still inside the window.
  *  A daily task showed only its last 20 days in the 30/90-day past view
  *  (DRY audit 2026-09-26). `sig` changes when the task gains / loses
- *  entries, so the card refetches only then. */
+ *  entries OR a listed entry changes (an edit keeps the count — the card
+ *  kept painting the pre-edit notes / cost / day, bug audit 2026-09-26 #2),
+ *  so the card refetches only then. */
 export function pastHistoryGaps(
   objects: MaintenanceObjectResponse[],
   today: Date,
@@ -323,10 +325,21 @@ export function pastHistoryGaps(
       const oldest = stamps.length ? stamps.reduce((a, b) => (a < b ? a : b)).slice(0, 10) : "";
       if (oldest && oldest < windowStart) continue; // the window is fully listed
       const key = pastHistoryKey(obj.entry_id, task.id);
-      out.push({ entryId: obj.entry_id, taskId: task.id, key, sig: `${key}:${count}:${stamps[stamps.length - 1] ?? ""}` });
+      out.push({ entryId: obj.entry_id, taskId: task.id, key, sig: `${key}:${count}:${contentHash(JSON.stringify(listed))}` });
     }
   }
   return out;
+}
+
+/** FNV-1a (32 bit) of a string, base 36 — a cheap change detector for the
+ *  signature above, not a security primitive. */
+function contentHash(text: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(36);
 }
 
 /** Build a list of N consecutive ISO dates ending today (local). */

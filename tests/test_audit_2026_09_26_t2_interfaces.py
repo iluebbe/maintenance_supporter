@@ -659,9 +659,17 @@ async def test_a_history_edit_keeps_a_completion_that_landed_meanwhile(hass: Hom
     await rd.coordinator.complete_maintenance(TASK, notes="first")
     first_ts = rd.store.get_history(TASK)[-1]["timestamp"]
 
-    async def _parts_edit_with_a_concurrent_completion(*_args: Any) -> list[Any]:
+    # Since bug audit 2026-09-27 the entry is written BEFORE the first await
+    # (the parts delta and the existence check come from that same read), so
+    # the concurrent completion is injected at the remaining await — the
+    # commit — and must survive next to the edit.
+    from custom_components.maintenance_supporter.websocket import tasks_history
+
+    real_commit = tasks_history.async_commit_store
+
+    async def _commit_with_a_concurrent_completion(*args: Any, **kwargs: Any) -> None:
         rd.store.set_history(TASK, [*rd.store.get_history(TASK), dict(_MEANWHILE)])
-        return []
+        await real_commit(*args, **kwargs)
 
     msg = {
         "type": f"{DOMAIN}/task/history/update",
@@ -671,7 +679,7 @@ async def test_a_history_edit_keeps_a_completion_that_landed_meanwhile(hass: Hom
         "notes": "edited",
         "used_parts": [],
     }
-    with patch("custom_components.maintenance_supporter.parts_runtime.async_apply_history_parts_edit", _parts_edit_with_a_concurrent_completion):
+    with patch.object(tasks_history, "async_commit_store", _commit_with_a_concurrent_completion):
         assert_ws_success(await _ws(hass, ws_update_history_entry, msg))
     notes = [h.get("notes") for h in rd.store.get_history(TASK)]
     assert "meanwhile" in notes

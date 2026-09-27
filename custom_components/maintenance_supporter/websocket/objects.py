@@ -70,6 +70,54 @@ _OBJECT_STR_FIELD_SCHEMA: dict[Any, Any] = {
 }
 
 
+def _carry_parts_shelf(src_parts: Any, *, keep_doc_links: bool) -> tuple[dict[str, str], dict[str, Any]]:
+    """Copy an object's spare-part definitions with FRESH ids.
+
+    Returns ``(old→new id map, new parts)``. Shared by object/replace and
+    object/duplicate so a copy never shares part ids with its source.
+    ``keep_doc_links=False`` drops a part's ``doc_id``: a duplicate does not
+    copy the documents, and a manual of ANOTHER object would dangle once that
+    object is gone.
+    """
+    part_id_map: dict[str, str] = {}
+    new_parts: dict[str, Any] = {}
+    for src_part in (src_parts or {}).values():
+        if not isinstance(src_part, dict):
+            continue
+        carried = dict(src_part)
+        new_pid = uuid4().hex
+        part_id_map[str(carried.get("id"))] = new_pid
+        carried["id"] = new_pid
+        if not keep_doc_links:
+            carried.pop("doc_id", None)
+        new_parts[new_pid] = carried
+    return part_id_map, new_parts
+
+
+def _remap_own_part_links(task: dict[str, Any], part_id_map: dict[str, str], own_entry_id: str) -> dict[str, Any]:
+    """Point a copied task's links to its OWN object's parts at the fresh ids.
+
+    Task-level AND phase-level links (helpers.parts.map_part_links — replace
+    walked the task level only, and a phase kept consuming the retired
+    predecessor's part; bug audit 2026-09-27). A link into ANOTHER object's
+    pool (#111) is carried verbatim; an own link to a part the shelf does not
+    carry is dropped rather than left pointing at nothing.
+    """
+    from ..helpers.parts import map_part_links
+
+    def _rewrite(link: dict[str, Any]) -> dict[str, Any] | None:
+        owner = str(link.get("entry_id") or "")
+        if owner and owner != own_entry_id:
+            return link
+        part_id = str(link.get("part_id") or "")
+        if part_id not in part_id_map:
+            return None
+        return {"part_id": part_id_map[part_id], "quantity": link.get("quantity", 1)}
+
+    remapped, _changed = map_part_links(task, _rewrite)
+    return remapped
+
+
 def _validate_object_dates(connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> bool:
     """False (after sending ``invalid_date``) when a present installation_date
     / warranty_expiry (#67) is not ``YYYY-MM-DD`` — shared by create and update."""
@@ -206,7 +254,19 @@ async def async_create_object(
     ``add_object`` service (DRY). Inputs are normalized here; callers do their
     own validation/error reporting (the WS layer keeps its specific error
     codes). Raises ValueError if the config flow does not create an entry.
+
+    The two dates are checked here too: the WS layer refuses a malformed one
+    up front, but the ``add_object`` service stored any string — "next
+    spring" as an installation date broke every age / warranty computation
+    that parses it (bug audit 2026-09-27). Raises ValueError.
     """
+    from ..helpers.dates import parse_iso_date
+
+    for field, value in (("installation_date", installation_date), ("warranty_expiry", warranty_expiry)):
+        if value and (not isinstance(value, str) or parse_iso_date(value) is None):
+            raise ValueError(f"{field} must be a valid date (YYYY-MM-DD), got {value!r}")
+    installation_date = installation_date or None
+    warranty_expiry = warranty_expiry or None
     data: dict[str, Any] = {
         CONF_OBJECT: {
             "id": uuid4().hex,
@@ -327,6 +387,17 @@ async def ws_update_object(
         msg["name"] = msg["name"].strip()
         if not msg["name"]:
             connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
+            return
+        # The same name rule as every create path (helpers.object_names): a
+        # rename onto another object's name went through, and the next
+        # create of that name — or a replace under it — failed confusingly
+        # (bug audit 2026-09-27). Only a CHANGED name is checked: the dialog
+        # re-sends the name on every save, and the successor of a replace
+        # legitimately shares its archived predecessor's name.
+        from ..helpers.object_names import name_changed_onto_taken
+
+        if name_changed_onto_taken(hass, entry, msg["name"]):
+            connection.send_error(msg["id"], "invalid_input", "Another object already has this name")
             return
 
     # Strip manufacturer/model/serial_number
@@ -457,6 +528,14 @@ async def ws_duplicate_object(
         return
 
     src_obj = entry.data.get(CONF_OBJECT, {})
+    # There is ONE battery fleet: a copy carried the fleet flags on the object
+    # and its task and ran a second fleet — double triggers and notifications
+    # (bug audit 2026-09-27; task/duplicate refuses the fleet task alike).
+    from ..const import BATTERY_FLEET_OBJECT_FLAG
+
+    if src_obj.get(BATTERY_FLEET_OBJECT_FLAG):
+        connection.send_error(msg["id"], "invalid_input", "The battery fleet object cannot be duplicated")
+        return
     new_obj = deepcopy(dict(src_obj))
     new_obj["id"] = uuid4().hex
     base_name = str(src_obj.get(CONF_OBJECT_NAME, "")).strip() or "Object"
@@ -467,20 +546,33 @@ async def ws_duplicate_object(
     new_obj.pop("archived_at", None)
     strip_object_reference(new_obj)
 
+    # The parts shelf travels with fresh ids (like replace) and the task
+    # links follow them. The copy used to carry the tasks' part links but no
+    # parts: every completion of the copy raised a broken-part-link repair
+    # (bug audit 2026-09-27). Stock does not travel — the copy is another
+    # unit with its own shelf, untracked until counted.
+    part_id_map, new_parts = _carry_parts_shelf(entry.data.get("parts"), keep_doc_links=False)
+
+    from ..helpers.parts import PART_REF_FIELD
+
     new_tasks: dict[str, Any] = {}
     for src_task in entry.data.get(CONF_TASKS, {}).values():
+        # Auto "buy" reminders belong to the reconciler of the SOURCE's parts.
+        if src_task.get(PART_REF_FIELD):
+            continue
         task = deepcopy(dict(src_task))
         task_id = uuid4().hex
         task["id"] = task_id
         task["object_id"] = new_obj["id"]
         strip_task_runtime_state(task)
+        task = _remap_own_part_links(task, part_id_map, entry.entry_id)
         new_tasks[task_id] = task
         new_obj["task_ids"].append(task_id)
 
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
         context={"source": "websocket"},
-        data={CONF_OBJECT: new_obj, CONF_TASKS: new_tasks},
+        data={CONF_OBJECT: new_obj, CONF_TASKS: new_tasks, "parts": new_parts},
     )
     if result["type"] != "create_entry":
         connection.send_error(msg["id"], "duplicate_failed", result.get("reason", "unknown"))
@@ -599,7 +691,7 @@ async def ws_archive_object(
         return
 
     now_iso = dt_util.now().isoformat()
-    new_data = _archived_entry_data(entry.data, now_iso)
+    new_data = _archived_entry_data(entry.data, now_iso, keep_task_ids=_live_pool_buy_tasks(hass, entry))
     hass.config_entries.async_update_entry(entry, data=new_data)
 
     # Reload so the object's tasks' triggers tear down and entities go inert.
@@ -608,11 +700,34 @@ async def ws_archive_object(
     connection.send_result(msg["id"], {"success": True, "archived_at": now_iso})
 
 
-def _archived_entry_data(entry_data: Any, now_iso: str) -> dict[str, Any]:
+def _live_pool_buy_tasks(hass: HomeAssistant, entry: Any) -> set[str]:
+    """The object's buy reminders for parts OTHER live objects still borrow.
+
+    Archiving the owner of a shared pool (#111) retires the owner, not the
+    shelf — the borrowers keep consuming it, so its "Buy …" reminder must
+    stay live (bug audit 2026-09-27; the buy-task reconcile keeps these
+    parts, parts_runtime).
+    """
+    from ..helpers.parts import PART_REF_FIELD
+    from ..helpers.shared_parts import borrowed_part_ids
+
+    in_use = borrowed_part_ids(hass, entry.entry_id, active_only=True)
+    if not in_use:
+        return set()
+    keep: set[str] = set()
+    for tid, td in (entry.data.get(CONF_TASKS) or {}).items():
+        ref = td.get(PART_REF_FIELD)
+        if isinstance(ref, dict) and str(ref.get("part_id") or "") in in_use:
+            keep.add(tid)
+    return keep
+
+
+def _archived_entry_data(entry_data: Any, now_iso: str, *, keep_task_ids: set[str] | None = None) -> dict[str, Any]:
     """New entry data with the object archived and active tasks cascaded.
 
     Shared by ``object/archive`` and the replace flow (which retires the
-    predecessor with exactly the same semantics).
+    predecessor with exactly the same semantics). ``keep_task_ids`` stay
+    active (a shared pool's buy reminders, :func:`_live_pool_buy_tasks`).
     """
     obj = dict(entry_data.get(CONF_OBJECT, {}))
     obj["archived_at"] = now_iso
@@ -623,7 +738,7 @@ def _archived_entry_data(entry_data: Any, now_iso: str) -> dict[str, Any]:
     new_tasks: dict[str, Any] = {}
     for tid, td in dict(entry_data.get(CONF_TASKS, {})).items():
         td = dict(td)
-        if td.get("archived_at") is None:  # cascade only to active tasks
+        if td.get("archived_at") is None and tid not in (keep_task_ids or ()):  # cascade only to active tasks
             td["archived_at"] = now_iso
             td["archived_reason"] = ARCHIVE_REASON_OBJECT
         new_tasks[tid] = td
@@ -843,14 +958,8 @@ async def ws_replace_object(
     # Carry the parts shelf — the spares don't change when the machine dies.
     # Fresh ids (like tasks); consumption links are remapped below and the
     # tracked stock is copied into the successor's store after creation.
-    part_id_map: dict[str, str] = {}
-    new_parts: dict[str, Any] = {}
-    for src_part in (entry.data.get("parts") or {}).values():
-        carried = dict(src_part)
-        new_pid = uuid4().hex
-        part_id_map[str(carried.get("id"))] = new_pid
-        carried["id"] = new_pid
-        new_parts[new_pid] = carried
+    # Part manuals travel with the documents (part_id_map below).
+    part_id_map, new_parts = _carry_parts_shelf(entry.data.get("parts"), keep_doc_links=True)
 
     new_tasks: dict[str, Any] = {}
     for src_task in entry.data.get(CONF_TASKS, {}).values():
@@ -863,25 +972,11 @@ async def ws_replace_object(
         task["id"] = task_id
         task["object_id"] = new_obj["id"]
         strip_task_runtime_state(task)
-        links = task.get("consumes_parts")
-        if isinstance(links, list):
-            remapped = []
-            for link in links:
-                if not isinstance(link, dict):
-                    continue
-                if link.get("entry_id"):
-                    # A pool owned by ANOTHER object (#111) is untouched by
-                    # replacing this one — carry the link across verbatim, ids
-                    # and all, or the successor silently stops consuming it.
-                    remapped.append(dict(link))
-                elif link.get("part_id") in part_id_map:
-                    remapped.append(
-                        {"part_id": part_id_map[link["part_id"]], "quantity": link.get("quantity", 1)}
-                    )
-            if remapped:
-                task["consumes_parts"] = remapped
-            else:
-                task.pop("consumes_parts", None)
+        # Own-shelf links (task level AND per phase) follow the fresh part
+        # ids; a pool owned by ANOTHER object (#111) is untouched by
+        # replacing this one — carried verbatim, or the successor silently
+        # stops consuming it.
+        task = _remap_own_part_links(task, part_id_map, entry.entry_id)
         new_tasks[task_id] = task
         new_obj["task_ids"].append(task_id)
 
@@ -921,6 +1016,13 @@ async def ws_replace_object(
                 if stock is not None:
                     new_store.set_part_stock(new_pid, stock)
             await new_store.async_save()
+        # Objects BORROWING the predecessor's pool (#111) now draw on the
+        # successor's shelf. They kept linking to the archived predecessor —
+        # whose buy tasks the archive suppresses — so the pool silently split
+        # in two (bug audit 2026-09-27).
+        from ..helpers.shared_parts import relink_borrowers
+
+        relink_borrowers(hass, entry.entry_id, new_entry_id, part_id_map)
         if new_entry is not None:
             from ..parts_runtime import schedule_buy_task_reconcile
 

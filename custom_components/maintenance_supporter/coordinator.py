@@ -119,6 +119,24 @@ def _inert_task_result(task: MaintenanceTask, status: str, **extra: Any) -> dict
     return task_result
 
 
+def _degraded_task_result(task: MaintenanceTask) -> dict[str, Any]:
+    """Payload for an active task whose status computation raised (bug audit
+    2026-09-27): no due date, the trigger latch as far as it is known, and
+    the status that follows from those. Every field read here is plain data,
+    so this cannot fail the way the computation did."""
+    try:
+        task_result = task.to_dict()
+    except Exception:  # noqa: BLE001 — last resort: the identity only
+        task_result = {"id": task.id, "name": task.name, "enabled": task.enabled}
+    task_result["_days_until_due"] = None
+    task_result["_next_due"] = None
+    task_result["_is_done"] = False
+    task_result["_trigger_active"] = task._trigger_active
+    task_result["_trigger_current_value"] = task._trigger_current_value
+    task_result["_status"] = MaintenanceStatus.TRIGGERED if task._trigger_active else MaintenanceStatus.OK
+    return task_result
+
+
 class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Coordinator for a single maintenance object and its tasks."""
 
@@ -170,6 +188,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # the first one is a warning, repeats on later refreshes stay debug.
         self._analysis_failures_logged: set[tuple[str, str]] = set()
         self._trigger_entity_states: dict[str, str] = {}  # task_id -> TriggerEntityState
+        # Live trigger latch as the sensor entities last reported it:
+        # task_id -> (sequence, active, current value). See
+        # note_live_trigger_state / _overlay_live_trigger_flips.
+        self._trigger_seq = 0
+        self._live_trigger_flips: dict[str, tuple[int, bool, float | None]] = {}
+        # The post-completion cooldown is re-derived from the history once
+        # per instance (_seed_cooldown_from_history).
+        self._cooldown_seeded = False
 
     def _log_analysis_failure(self, task_id: str, stage: str, message: str) -> None:
         """Log a swallowed analysis error — loudly once, then quietly.
@@ -282,6 +308,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Preserve live trigger state from previous data to avoid resetting
         # trigger state that was set by event-driven triggers between refreshes
         prev_tasks = (self.data or {}).get(CONF_TASKS, {})
+        # Per task: the live-trigger sequence number seen right before its
+        # latch is restored from prev_tasks (below) — flips after that are
+        # overlaid at the end (_overlay_live_trigger_flips).
+        trigger_seq_seen: dict[str, int] = {}
+
+        # The post-completion cooldown lived only on this instance: a reload
+        # (every task edit) or restart within the window re-triggered a task
+        # that was completed moments ago (bug audit 2026-09-27). Seeded once
+        # from the history.
+        if not self._cooldown_seeded:
+            self._cooldown_seeded = True
+            self._seed_cooldown_from_history(tasks)
 
         # Clean up expired cooldown entries
         now_mono = time.monotonic()
@@ -333,177 +371,19 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 result[CONF_TASKS][task_id] = _inert_task_result(task, MaintenanceStatus.PAUSED, _paused=True)
                 continue
 
-            # Restore live trigger state from previous coordinator data
-            # but NOT for recently completed/skipped/reset tasks
-            prev_task = prev_tasks.get(task_id, {})
-            if task_id not in self._recently_completed:
-                if prev_task.get("_trigger_active", False):
-                    task._trigger_active = True
-                if prev_task.get("_trigger_current_value") is not None:
-                    task._trigger_current_value = prev_task["_trigger_current_value"]
-
-            # Check sensor-based triggers (fallback for threshold/counter)
-            if task.schedule_type == ScheduleType.SENSOR_BASED and task.trigger_config:
-                await self._evaluate_trigger_fallback(task, task_id)
-
-            # Feature-flag gate: zero out schedule_time so the model's
-            # _is_past_schedule_time() short-circuits to False. Mutate the
-            # in-memory model directly (next refresh re-instantiates fresh
-            # tasks anyway, so disk state is unaffected).
-            if not schedule_time_enabled:
-                task.schedule_time = None
-
-            # Compute status
-            status = task.status
-
-            # Build task result
-            task_result = task.to_dict()
-            task_result["_status"] = status
-            task_result["_days_until_due"] = task.days_until_due
-            # The span-capped warning window (#58) for the dict status twin
-            # the entities recompute from after a live trigger update.
-            task_result["_warning_days_effective"] = task.effective_warning_days
-            task_result["_next_due"] = task.next_due.isoformat() if task.next_due else None
-            # #189: which calendar events that date stands for.
-            task_result["_next_event_titles"] = next_event_titles(self.hass, task._schedule(), task.next_due)
-            task_result["_is_done"] = task.is_done
-            task_result["_trigger_active"] = task._trigger_active
-            task_result["_trigger_current_value"] = task._trigger_current_value
-            task_result["_trigger_entity_state"] = self._trigger_entity_states.get(task_id, TriggerEntityState.AVAILABLE)
-
-            # Expose counter delta data for frontend visualization
-            tc = task.trigger_config
-            if tc and tc.get("type") == "counter" and tc.get("trigger_delta_mode"):
-                # ONE entity's reading and ITS baseline (helpers.trigger_fallback
-                # — the shared lookup): the first entity's baseline was
-                # subtracted from the last entity's reading on a multi-entity
-                # counter (bug audit 2026-09-26, DRY BR-A10).
-                from .entity.triggers import normalize_entity_ids
-                from .helpers.trigger_fallback import counter_progress
-
-                reading, baseline = counter_progress(self.hass.states.get, tc, normalize_entity_ids(tc))
-                if baseline is not None:
-                    # Expose the baseline independently of the live value. After a
-                    # completion the trigger is in its post-reset cooldown, so
-                    # _trigger_current_value is None — but the baseline HAS moved
-                    # to the current reading (reset_baseline persisted it). The
-                    # chart measures "progress since service" as reading − baseline,
-                    # so it needs the fresh baseline to return to 0; gating it on
-                    # current_value left the graph stuck at the old delta (#runtime-graph).
-                    task_result["_trigger_baseline_value"] = baseline
-                    if task._trigger_current_value is not None:
-                        current = reading if reading is not None else task._trigger_current_value
-                        task_result["_trigger_current_value"] = current
-                        task_result["_trigger_current_delta"] = current - baseline
-            task_result["_times_performed"] = task.times_performed
-            task_result["_total_cost"] = task.total_cost
-            task_result["_average_duration"] = task.average_duration
-            task_result["_last_entry"] = task.last_entry
-
-            # Adaptive scheduling analysis — day-based tasks only. The analyzer
-            # reasons entirely in days and applying a suggestion overwrites
-            # interval_days; on a weeks/months/years task that would corrupt the
-            # schedule (e.g. interval_days=90 left with unit=months → +90 months).
-            if task.adaptive_config and task.adaptive_config.get("enabled") and _takes_day_suggestion(task._schedule()):
-                # Guarded like the sensor-prediction block below: a malformed
-                # history / analysis error must not abort the whole refresh and
-                # stall every task in this object.
-                try:
-                    from .helpers.interval_analyzer import IntervalAnalyzer
-
-                    analyzer = IntervalAnalyzer()
-                    # Inject hemisphere and current month for seasonal awareness.
-                    # latitude is None on an un-onboarded HA → default to north.
-                    analysis_config = dict(task.adaptive_config)
-                    analysis_config["hemisphere"] = hemisphere(self.hass)
-                    analysis_config["_current_month"] = dt_util.now().month
-                    analysis = analyzer.analyze(task_result, analysis_config)
-                    task_result["_suggested_interval"] = analysis.recommended_interval
-                    task_result["_interval_confidence"] = analysis.confidence
-                    task_result["_interval_analysis"] = {
-                        "average_actual": analysis.average_actual_interval,
-                        "ewa_prediction": analysis.ewa_prediction,
-                        "weibull_beta": analysis.weibull_beta,
-                        "weibull_eta": analysis.weibull_eta,
-                        "weibull_r_squared": analysis.weibull_r_squared,
-                        "confidence_interval_low": analysis.confidence_interval_low,
-                        "confidence_interval_high": analysis.confidence_interval_high,
-                        "data_points": analysis.data_points,
-                        "reason": analysis.recommendation_reason,
-                        "seasonal_factor": analysis.seasonal_factor,
-                        "seasonal_factors": analysis.seasonal_factors,
-                        "seasonal_reason": analysis.seasonal_adjustment_reason,
-                    }
-                except Exception:  # noqa: BLE001 — never let analysis break refresh
-                    self._log_analysis_failure(task_id, "adaptive", "Adaptive interval analysis failed for task %s")
-
-            # Sensor-driven predictions (Phase 3)
-            # Only for sensor_based tasks with threshold/counter triggers
-            adaptive_cfg = task.adaptive_config or {}
-            if (
-                task.schedule_type == ScheduleType.SENSOR_BASED
-                and task.trigger_config
-                and task.trigger_config.get("type") in ("threshold", "counter")
-                and adaptive_cfg.get("sensor_prediction_enabled", True)
-            ):
-                try:
-                    from .helpers.sensor_predictor import SensorPredictor
-
-                    predictor = SensorPredictor(self.hass)
-                    prediction = await predictor.async_analyze(task_result, adaptive_cfg)
-                    if prediction:
-                        # Degradation data
-                        if prediction.degradation:
-                            deg = prediction.degradation
-                            task_result["_degradation_rate"] = deg.slope_per_day
-                            task_result["_degradation_trend"] = deg.trend
-                            task_result["_degradation_r_squared"] = deg.r_squared
-                            task_result["_degradation_data_points"] = deg.data_points
-                            task_result["_prediction_cycles"] = deg.cycles_learned
-
-                        # Threshold prediction
-                        if prediction.threshold_prediction:
-                            tp = prediction.threshold_prediction
-                            task_result["_days_until_threshold"] = tp.days_until_threshold
-                            task_result["_threshold_prediction_date"] = tp.predicted_date
-                            task_result["_threshold_prediction_confidence"] = tp.confidence
-
-                            # Urgency check: threshold will be reached sooner
-                            # than the current maintenance interval — in real
-                            # days (a 6-month task is ~183 days, not 6).
-                            current_interval = task._schedule().span_days() or DEFAULT_INTERVAL_DAYS
-                            suggested = task_result.get("_suggested_interval")
-                            effective_interval = suggested or current_interval
-                            if (
-                                tp.days_until_threshold is not None
-                                and tp.days_until_threshold > 0
-                                and tp.days_until_threshold < effective_interval * 0.9
-                            ):
-                                task_result["_sensor_prediction_urgency"] = True
-                                # Override suggested interval with 90% safety —
-                                # only where a day count can be applied; the
-                                # urgency flag alone tells the others.
-                                if _takes_day_suggestion(task._schedule()):
-                                    task_result["_suggested_interval"] = max(1, int(tp.days_until_threshold * 0.9))
-
-                        # Environmental factor
-                        if prediction.environmental:
-                            env = prediction.environmental
-                            task_result["_environmental_factor"] = env.adjustment_factor
-                            task_result["_environmental_entity"] = env.entity_id
-                            task_result["_environmental_correlation"] = env.correlation
-
-                            # Apply environmental factor to suggested interval
-                            si = task_result.get("_suggested_interval")
-                            if si is not None and env.adjustment_factor != 1.0 and env.has_sufficient_data:
-                                task_result["_suggested_interval"] = max(
-                                    1,
-                                    int(si * env.adjustment_factor),
-                                )
-                except Exception:  # noqa: BLE001 - one task's prediction failure must not break the whole coordinator update
-                    self._log_analysis_failure(task_id, "prediction", "Sensor prediction failed for task %s")
-
-            result[CONF_TASKS][task_id] = task_result
+            # ONE task's bad data (a date past year 9999, a corrupt field) must
+            # never take the object's other tasks down with it: the refresh
+            # raised, every entity of the object went unavailable and the
+            # entry stayed in setup-retry across restarts (bug audit
+            # 2026-09-27). That task reads as having no due date instead.
+            trigger_seq_seen[task_id] = self._trigger_seq
+            try:
+                result[CONF_TASKS][task_id] = await self._async_task_result(
+                    task_id, task, prev_tasks.get(task_id, {}), schedule_time_enabled
+                )
+            except Exception:  # noqa: BLE001 — see above
+                self._log_analysis_failure(task_id, "status", "Computing the status of task %s failed — shown without a due date")
+                result[CONF_TASKS][task_id] = _degraded_task_result(task)
 
         # Check for issues (repairs)
         await self._async_check_for_issues(tasks)
@@ -547,7 +427,195 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # no-op unless a task names one).
         await self._async_sync_todo_mirror(result[CONF_TASKS])
 
+        # After the LAST await: trigger flips that landed while this refresh
+        # was running (the recorder query of a later task, the notification
+        # send) were written into the OLD data and would be overwritten by
+        # this result — a for_minutes threshold or a compound never re-asserts
+        # them (bug audit 2026-09-27).
+        self._overlay_live_trigger_flips(result[CONF_TASKS], trigger_seq_seen)
+
         return result
+
+    async def _async_task_result(
+        self,
+        task_id: str,
+        task: MaintenanceTask,
+        prev_task: dict[str, Any],
+        schedule_time_enabled: bool,
+    ) -> dict[str, Any]:
+        """The coordinator payload of one ACTIVE task (enabled, not archived,
+        object not paused) — the loop body of :meth:`_async_update_data`,
+        split out so a failure is contained to its task."""
+        # Restore live trigger state from previous coordinator data
+        # but NOT for recently completed/skipped/reset tasks
+        if task_id not in self._recently_completed:
+            if prev_task.get("_trigger_active", False):
+                task._trigger_active = True
+            if prev_task.get("_trigger_current_value") is not None:
+                task._trigger_current_value = prev_task["_trigger_current_value"]
+
+        # Check sensor-based triggers (fallback for threshold/counter)
+        if task.schedule_type == ScheduleType.SENSOR_BASED and task.trigger_config:
+            await self._evaluate_trigger_fallback(task, task_id)
+
+        # Feature-flag gate: zero out schedule_time so the model's
+        # _is_past_schedule_time() short-circuits to False. Mutate the
+        # in-memory model directly (next refresh re-instantiates fresh
+        # tasks anyway, so disk state is unaffected).
+        if not schedule_time_enabled:
+            task.schedule_time = None
+
+        # Compute status
+        status = task.status
+
+        # Build task result
+        task_result = task.to_dict()
+        task_result["_status"] = status
+        task_result["_days_until_due"] = task.days_until_due
+        # The span-capped warning window (#58) for the dict status twin
+        # the entities recompute from after a live trigger update.
+        task_result["_warning_days_effective"] = task.effective_warning_days
+        task_result["_next_due"] = task.next_due.isoformat() if task.next_due else None
+        # #189: which calendar events that date stands for.
+        task_result["_next_event_titles"] = next_event_titles(self.hass, task._schedule(), task.next_due)
+        task_result["_is_done"] = task.is_done
+        task_result["_trigger_active"] = task._trigger_active
+        task_result["_trigger_current_value"] = task._trigger_current_value
+        task_result["_trigger_entity_state"] = self._trigger_entity_states.get(task_id, TriggerEntityState.AVAILABLE)
+
+        # Expose counter delta data for frontend visualization
+        tc = task.trigger_config
+        if tc and tc.get("type") == "counter" and tc.get("trigger_delta_mode"):
+            # ONE entity's reading and ITS baseline (helpers.trigger_fallback
+            # — the shared lookup): the first entity's baseline was
+            # subtracted from the last entity's reading on a multi-entity
+            # counter (bug audit 2026-09-26, DRY BR-A10).
+            from .entity.triggers import normalize_entity_ids
+            from .helpers.trigger_fallback import counter_progress
+
+            reading, baseline = counter_progress(self.hass.states.get, tc, normalize_entity_ids(tc))
+            if baseline is not None:
+                # Expose the baseline independently of the live value. After a
+                # completion the trigger is in its post-reset cooldown, so
+                # _trigger_current_value is None — but the baseline HAS moved
+                # to the current reading (reset_baseline persisted it). The
+                # chart measures "progress since service" as reading − baseline,
+                # so it needs the fresh baseline to return to 0; gating it on
+                # current_value left the graph stuck at the old delta (#runtime-graph).
+                task_result["_trigger_baseline_value"] = baseline
+                if task._trigger_current_value is not None:
+                    current = reading if reading is not None else task._trigger_current_value
+                    task_result["_trigger_current_value"] = current
+                    task_result["_trigger_current_delta"] = current - baseline
+        task_result["_times_performed"] = task.times_performed
+        task_result["_total_cost"] = task.total_cost
+        task_result["_average_duration"] = task.average_duration
+        task_result["_last_entry"] = task.last_entry
+
+        # Adaptive scheduling analysis — day-based tasks only. The analyzer
+        # reasons entirely in days and applying a suggestion overwrites
+        # interval_days; on a weeks/months/years task that would corrupt the
+        # schedule (e.g. interval_days=90 left with unit=months → +90 months).
+        if task.adaptive_config and task.adaptive_config.get("enabled") and _takes_day_suggestion(task._schedule()):
+            # Guarded like the sensor-prediction block below: a malformed
+            # history / analysis error must not abort the whole refresh and
+            # stall every task in this object.
+            try:
+                from .helpers.interval_analyzer import IntervalAnalyzer
+
+                analyzer = IntervalAnalyzer()
+                # Inject hemisphere and current month for seasonal awareness.
+                # latitude is None on an un-onboarded HA → default to north.
+                analysis_config = dict(task.adaptive_config)
+                analysis_config["hemisphere"] = hemisphere(self.hass)
+                analysis_config["_current_month"] = dt_util.now().month
+                analysis = analyzer.analyze(task_result, analysis_config)
+                task_result["_suggested_interval"] = analysis.recommended_interval
+                task_result["_interval_confidence"] = analysis.confidence
+                task_result["_interval_analysis"] = {
+                    "average_actual": analysis.average_actual_interval,
+                    "ewa_prediction": analysis.ewa_prediction,
+                    "weibull_beta": analysis.weibull_beta,
+                    "weibull_eta": analysis.weibull_eta,
+                    "weibull_r_squared": analysis.weibull_r_squared,
+                    "confidence_interval_low": analysis.confidence_interval_low,
+                    "confidence_interval_high": analysis.confidence_interval_high,
+                    "data_points": analysis.data_points,
+                    "reason": analysis.recommendation_reason,
+                    "seasonal_factor": analysis.seasonal_factor,
+                    "seasonal_factors": analysis.seasonal_factors,
+                    "seasonal_reason": analysis.seasonal_adjustment_reason,
+                }
+            except Exception:  # noqa: BLE001 — never let analysis break refresh
+                self._log_analysis_failure(task_id, "adaptive", "Adaptive interval analysis failed for task %s")
+
+        # Sensor-driven predictions (Phase 3)
+        # Only for sensor_based tasks with threshold/counter triggers
+        adaptive_cfg = task.adaptive_config or {}
+        if (
+            task.schedule_type == ScheduleType.SENSOR_BASED
+            and task.trigger_config
+            and task.trigger_config.get("type") in ("threshold", "counter")
+            and adaptive_cfg.get("sensor_prediction_enabled", True)
+        ):
+            try:
+                from .helpers.sensor_predictor import SensorPredictor
+
+                predictor = SensorPredictor(self.hass)
+                prediction = await predictor.async_analyze(task_result, adaptive_cfg)
+                if prediction:
+                    # Degradation data
+                    if prediction.degradation:
+                        deg = prediction.degradation
+                        task_result["_degradation_rate"] = deg.slope_per_day
+                        task_result["_degradation_trend"] = deg.trend
+                        task_result["_degradation_r_squared"] = deg.r_squared
+                        task_result["_degradation_data_points"] = deg.data_points
+                        task_result["_prediction_cycles"] = deg.cycles_learned
+
+                    # Threshold prediction
+                    if prediction.threshold_prediction:
+                        tp = prediction.threshold_prediction
+                        task_result["_days_until_threshold"] = tp.days_until_threshold
+                        task_result["_threshold_prediction_date"] = tp.predicted_date
+                        task_result["_threshold_prediction_confidence"] = tp.confidence
+
+                        # Urgency check: threshold will be reached sooner
+                        # than the current maintenance interval — in real
+                        # days (a 6-month task is ~183 days, not 6).
+                        current_interval = task._schedule().span_days() or DEFAULT_INTERVAL_DAYS
+                        suggested = task_result.get("_suggested_interval")
+                        effective_interval = suggested or current_interval
+                        if (
+                            tp.days_until_threshold is not None
+                            and tp.days_until_threshold > 0
+                            and tp.days_until_threshold < effective_interval * 0.9
+                        ):
+                            task_result["_sensor_prediction_urgency"] = True
+                            # Override suggested interval with 90% safety —
+                            # only where a day count can be applied; the
+                            # urgency flag alone tells the others.
+                            if _takes_day_suggestion(task._schedule()):
+                                task_result["_suggested_interval"] = max(1, int(tp.days_until_threshold * 0.9))
+
+                    # Environmental factor
+                    if prediction.environmental:
+                        env = prediction.environmental
+                        task_result["_environmental_factor"] = env.adjustment_factor
+                        task_result["_environmental_entity"] = env.entity_id
+                        task_result["_environmental_correlation"] = env.correlation
+
+                        # Apply environmental factor to suggested interval
+                        si = task_result.get("_suggested_interval")
+                        if si is not None and env.adjustment_factor != 1.0 and env.has_sufficient_data:
+                            task_result["_suggested_interval"] = max(
+                                1,
+                                int(si * env.adjustment_factor),
+                            )
+            except Exception:  # noqa: BLE001 - one task's prediction failure must not break the whole coordinator update
+                self._log_analysis_failure(task_id, "prediction", "Sensor prediction failed for task %s")
+
+        return task_result
 
     async def _async_sync_todo_mirror(self, task_results: dict[str, Any]) -> None:
         """Hand this refresh's results to the to-do mirror (helpers/todo_mirror)."""
@@ -613,6 +681,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if result.current_value is not None:
             task._trigger_current_value = result.current_value
         if result.active is not None:
+            if task._trigger_active and not result.active:
+                # A recovery only this sweep saw still ends the episode.
+                self.note_trigger_cleared(task_id)
             task._trigger_active = result.active
 
     async def _async_check_for_issues(self, tasks: dict[str, MaintenanceTask]) -> None:
@@ -1326,12 +1397,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if is_latest:
             self._store.clear_checklist_progress(task_id)
 
-        # Link the completion photos to this task so they also surface under
-        # the object's documents and are deref'd correctly on cleanup.
-        # Best-effort: a bad/removed doc_id must never block the completion.
-        for photo_doc_id in photo_doc_ids or ():
-            await self._link_completion_photo(photo_doc_id, task_id)
-
         # Update adaptive scheduling if enabled. Gated on is_latest: a pure
         # backfill is not a fresh service interval (its negative
         # actual_interval would be rejected below anyway — the gate makes the
@@ -1369,6 +1434,17 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             elif completed_at is not None:
                 self._recent_backfills.pop((task_id, completed_at.isoformat()), None)
             raise
+
+        # Link the completion photos to this task so they also surface under
+        # the object's documents and are deref'd correctly on cleanup.
+        # Best-effort: a bad/removed doc_id must never block the completion.
+        # AFTER the task is persisted: the model above is a snapshot of the
+        # merged task, and this await used to sit between snapshot and write —
+        # a trigger activation or a history edit landing during the document
+        # store write was overwritten by the stale snapshot (bug audit
+        # 2026-09-27).
+        for photo_doc_id in photo_doc_ids or ():
+            await self._link_completion_photo(photo_doc_id, task_id)
 
         # Shared-task rotation: advance_rotation() (inside task.complete)
         # mutates responsible_user_id, which is a STATIC config field — the
@@ -1517,6 +1593,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Same gate as complete/skip: a retired / disabled / paused task gets
         # no new cycle from a stale notification button or an old NFC sticker.
         self._require_active(task_id, merged[task_id], translation_key="task_inactive_reset")
+        # A reset says when the task was last done — a day that has not come
+        # yet is no answer. The service (any user, read tier) accepted
+        # 9999-12-20: the next due date overflowed the calendar inside the
+        # refresh and the object stayed dead across restarts (bug audit
+        # 2026-09-27). Refused here, the choke point of the service, the WS
+        # command and voice; same message as a future completion date.
+        if date is not None and date > dt_util.now().date():
+            raise ServiceValidationError(
+                "The reset date cannot be in the future",
+                translation_domain=DOMAIN,
+                translation_key="completed_at_in_future",
+            )
 
         # A reset starts a new cycle — a following completion is a NEW
         # real-world action, never a double-tap of the previous one.
@@ -1678,6 +1766,92 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._recently_completed.pop(task_id, None)
         self._completion_cooldown.discard(task_id)
 
+    def in_completion_cooldown(self, task_id: str) -> bool:
+        """True while the task is inside its post-COMPLETION cooldown (not a
+        skip/reset one) — a fresh trigger instance asks, so that its first
+        activation is no edge either (BaseTrigger._evaluate_and_update)."""
+        stamp = self._recently_completed.get(task_id)
+        return (
+            task_id in self._completion_cooldown
+            and stamp is not None
+            and time.monotonic() - stamp < TRIGGER_COMPLETION_COOLDOWN_SECONDS
+        )
+
+    def _seed_cooldown_from_history(self, tasks: dict[str, MaintenanceTask]) -> None:
+        """Re-create the post-completion cooldown from the history after a
+        reload or restart: a task whose latest lifecycle entry is a
+        completion younger than the cooldown window — and whose trigger has
+        not been seen back on the normal side since (``trigger_cleared_at``,
+        note_trigger_recovered) — gets the cooldown and its completion mark,
+        exactly as ``complete_maintenance`` left it live. A skip / reset
+        cooldown is not re-created: any activation lifts that one anyway,
+        and a recovered trigger's next activation is a genuine edge."""
+        from .helpers.dates import parse_persisted_utc
+
+        now = dt_util.utcnow()
+        now_mono = time.monotonic()
+        for task_id, task in tasks.items():
+            latest_ts = ""
+            latest_type: str | None = None
+            for entry in task.history:
+                if not isinstance(entry, dict) or entry.get("type") not in LIFECYCLE_HISTORY_TYPES:
+                    continue
+                ts = entry.get("timestamp")
+                if isinstance(ts, str) and ts >= latest_ts:
+                    latest_ts, latest_type = ts, entry.get("type")
+            stamp = parse_persisted_utc(latest_ts)
+            if latest_type != HistoryEntryType.COMPLETED or stamp is None:
+                continue
+            elapsed = (now - stamp).total_seconds()
+            if not 0 <= elapsed < TRIGGER_COMPLETION_COOLDOWN_SECONDS:
+                continue
+            recovered = parse_persisted_utc(self._store.get_task_state(task_id).get("trigger_cleared_at"))
+            if recovered is not None and recovered >= stamp:
+                continue
+            self._recently_completed.setdefault(task_id, now_mono - elapsed)
+            self._completion_cooldown.add(task_id)
+
+    def note_trigger_recovered(self, task_id: str) -> None:
+        """After a completion / skip / reset the task's trigger saw its
+        sensor on the normal side: a re-activation from now on is a real
+        edge. Recorded like the end of an episode (persisted), so the
+        cooldown seeded after a reload honours it too."""
+        self._completion_cooldown.discard(task_id)
+        self.note_trigger_cleared(task_id)
+
+    def note_live_trigger_state(self, task_id: str, active: bool, current_value: float | None) -> None:
+        """The task sensor's live trigger latch changed (a trigger flip, or a
+        reset after complete/skip/reset). Numbered, so a refresh can tell
+        which flips happened after it restored the latch."""
+        self._trigger_seq += 1
+        self._live_trigger_flips[task_id] = (self._trigger_seq, active, current_value)
+
+    def _overlay_live_trigger_flips(self, task_results: dict[str, Any], seen: dict[str, int]) -> None:
+        """Apply the flips that landed after the refresh restored each task's
+        latch, and recompute that task's status from the result (the dict
+        twin). An activation inside the post-completion cooldown is not
+        applied — the same rule as the restore at the top of the refresh."""
+        from .helpers.status import compute_status_from_task_dict
+
+        for task_id, (seq, active, value) in self._live_trigger_flips.items():
+            task_result = task_results.get(task_id)
+            if task_result is None or task_id not in seen or seq <= seen[task_id]:
+                continue
+            if active and task_id in self._recently_completed:
+                continue
+            task_result["_trigger_active"] = active
+            task_result["_trigger_current_value"] = value
+            task_result["_status"] = compute_status_from_task_dict(task_result)
+
+    def note_trigger_cleared(self, task_id: str) -> None:
+        """The task's trigger episode ended (every entity back in range).
+        Persisted, so :meth:`trigger_already_announced` sees the episode
+        closed after a restart: a NEW episode that began while Home Assistant
+        was down used to read as the old one and was only repainted — no
+        history entry, no event (bug audit 2026-09-27, R SCH-10)."""
+        self._store.update_task_state(task_id, trigger_cleared_at=dt_util.utcnow().isoformat())
+        self._store.async_delay_save()
+
     def trigger_already_announced(self, task_id: str) -> bool:
         """True when the task's latest trigger/lifecycle history entry is a
         TRIGGERED one: its activation is on record and nothing (completion,
@@ -1695,7 +1869,16 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ts = str(entry.get("timestamp") or "")
             if ts >= latest_ts:
                 latest_type, latest_ts = entry.get("type"), ts
-        return latest_type == HistoryEntryType.TRIGGERED
+        if latest_type != HistoryEntryType.TRIGGERED:
+            return False
+        # A recovery recorded after that activation closed the episode
+        # (note_trigger_cleared) — compared as instants, the two stamps come
+        # from different clocks' ISO forms.
+        from .helpers.dates import parse_persisted_utc
+
+        cleared = parse_persisted_utc(self._store.get_task_state(task_id).get("trigger_cleared_at"))
+        triggered = parse_persisted_utc(latest_ts)
+        return cleared is None or triggered is None or cleared < triggered
 
     async def async_refresh_now(self) -> None:
         """Recompute immediately — for changes a person just made.

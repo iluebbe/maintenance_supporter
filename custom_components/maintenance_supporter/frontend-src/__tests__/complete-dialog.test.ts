@@ -234,7 +234,7 @@ describe("complete-dialog", () => {
       expect(msg.photo_doc_ids).to.deep.equal(["doc-photo-1", "doc-photo-2", "doc-photo-3"]);
       expect("photo_doc_id" in msg).to.be.false;
       // Completing keeps the uploads — no delete goes out.
-      expect(sent.some((m) => m.type === "maintenance_supporter/documents/delete")).to.be.false;
+      expect(sent.some((m) => ["maintenance_supporter/documents/delete", "maintenance_supporter/documents/discard_upload"].includes(m.type))).to.be.false;
     } finally {
       restore();
     }
@@ -271,14 +271,14 @@ describe("complete-dialog", () => {
       removeButtons[0].click();
       await el.updateComplete;
       expect(el.shadowRoot!.querySelectorAll(".photo-preview img").length).to.equal(1);
-      let deletes = sent.filter((m) => m.type === "maintenance_supporter/documents/delete");
+      let deletes = sent.filter((m) => m.type === "maintenance_supporter/documents/discard_upload");
       expect(deletes.map((m) => m.doc_id)).to.deep.equal(["doc-photo-1"]);
 
       // Cancel: the remaining upload is an orphan nobody references.
       const cancel = el.shadowRoot!.querySelector<HTMLElement>(".dialog-actions ha-button")!;
       cancel.click();
       await el.updateComplete;
-      deletes = sent.filter((m) => m.type === "maintenance_supporter/documents/delete");
+      deletes = sent.filter((m) => m.type === "maintenance_supporter/documents/discard_upload");
       expect(deletes.map((m) => m.doc_id)).to.deep.equal(["doc-photo-1", "doc-photo-2"]);
       expect(sent.some((m) => m.type === "maintenance_supporter/task/complete")).to.be.false;
     } finally {

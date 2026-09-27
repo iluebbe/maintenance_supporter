@@ -32,7 +32,9 @@ from datetime import date, timedelta
 from itertools import pairwise
 from typing import Any
 
+from ..const import MAX_INTERVAL_DAYS
 from .dates import (
+    INTERVAL_UNITS,
     add_interval,
     interval_span_days,
     next_day_of_month,
@@ -134,10 +136,32 @@ def _coerce_int(raw: object) -> int | None:
     return None
 
 
-def _sanitize_every(raw: object) -> int | None:
-    """Interval count >= 1, or None."""
+# Longest interval per unit: MAX_INTERVAL_DAYS (10 years) in that unit. The
+# flat interval_days was capped on write, the nested ``schedule.every`` was
+# not — "every 8000 years" reached the refresh and died on year 10026, every
+# refresh, every restart (bug audit 2026-09-27). Clamped on READ, so stored
+# garbage from any write path or an old backup is harmless too.
+_MAX_EVERY_BY_UNIT = {
+    "days": MAX_INTERVAL_DAYS,
+    "weeks": MAX_INTERVAL_DAYS // 7,
+    "months": (MAX_INTERVAL_DAYS // 365) * 12,
+    "years": MAX_INTERVAL_DAYS // 365,
+}
+
+
+def _sanitize_unit(raw: object) -> str:
+    """One of ``INTERVAL_UNITS``; anything else (a list, "fortnights", None)
+    reads as days — the historical fallback of ``add_interval`` — instead of
+    being carried into storage and every consumer (bug audit 2026-09-27)."""
+    return raw if isinstance(raw, str) and raw in INTERVAL_UNITS else "days"
+
+
+def _sanitize_every(raw: object, unit: str = "days") -> int | None:
+    """Interval count >= 1 (clamped to the unit's maximum), or None."""
     val = _coerce_int(raw)
-    return val if val is not None and val >= 1 else None
+    if val is None or val < 1:
+        return None
+    return min(val, _MAX_EVERY_BY_UNIT.get(unit, MAX_INTERVAL_DAYS))
 
 
 def _sanitize_nth(raw: object) -> int | None:
@@ -264,13 +288,14 @@ class Schedule:
             return cls(kind=KIND_ONE_TIME, due_date=parse_iso_date(due_date))
         # Coerce — an imported flat payload can carry interval_days as a
         # string, and `"30" <= 0` raises TypeError on every refresh.
-        every = _sanitize_every(interval_days)
+        unit = _sanitize_unit(interval_unit)
+        every = _sanitize_every(interval_days, unit)
         if every is None:
             return cls(kind=KIND_MANUAL)
         return cls(
             kind=KIND_INTERVAL,
             every=every,
-            unit=interval_unit or "days",
+            unit=unit,
             anchor=interval_anchor or "completion",
         )
 
@@ -301,7 +326,36 @@ class Schedule:
         - ``season_months`` rolls an off-season date to the next active month;
         - the finite-series end (``ends_count`` / ``ends_until``) stops re-arming.
         A one_time task keeps its fixed date and ignores season/finite.
+
+        Never raises: a date past the calendar's end (year 9999 — a
+        far-future reset date, an absurd interval, a season roll in 9999)
+        reads as "no due date". It used to raise OverflowError / ValueError
+        from inside the coordinator refresh, which took the whole object
+        down on every refresh and every restart (bug audit 2026-09-27).
         """
+        try:
+            return self._next_due(
+                last_performed=last_performed,
+                created_at=created_at,
+                last_planned_due=last_planned_due,
+                today=today,
+                times_performed=times_performed,
+                due_override=due_override,
+            )
+        except (OverflowError, ValueError):
+            return None
+
+    def _next_due(
+        self,
+        *,
+        last_performed: date | None,
+        created_at: date | None,
+        last_planned_due: date | None,
+        today: date,
+        times_performed: int,
+        due_override: date | None,
+    ) -> date | None:
+        """:meth:`next_due` without the end-of-calendar guard."""
         # Finite series exhausted by completion count → terminally done. Checked
         # BEFORE the override so postponing a finished series can't resurrect it
         # (there is no current cycle left to postpone).
@@ -329,18 +383,25 @@ class Schedule:
         # occurrence — complete()/skip() remember it in ``last_planned_due``.
         # The next occurrence strictly after the completion day was the very
         # date just done, so a Monday task completed on Saturday was due again
-        # two days later and overdue on Tuesday (bug audit 2026-09-26). Only
-        # an exact match counts: a stale value (e.g. from a former interval
-        # schedule) never swallows an occurrence.
+        # two days later and overdue on Tuesday (bug audit 2026-09-26).
+        # EVERY occurrence up to that covered one is consumed, not just an
+        # exact match: a second early completion/skip (Saturday: done for
+        # Monday; Sunday: skip the next Monday too) re-anchored on the
+        # following occurrence while the next one after the new completion
+        # day was still the Monday already covered — the due date jumped
+        # back a week (bug audit 2026-09-27, R SCH-1). Only a
+        # last_planned_due that IS an occurrence of the current schedule
+        # counts: a stale value (e.g. from a former interval schedule, or a
+        # changed weekday set) never swallows an occurrence.
         if (
             self.kind in _CALENDAR_KINDS
             and result is not None
             and last_performed is not None
             and last_planned_due is not None
-            and result == last_planned_due
-            and result > last_performed
+            and last_performed < result <= last_planned_due
+            and self._calendar_occurrence(last_planned_due, inclusive=True) == last_planned_due
         ):
-            result = self._roll_to_season(self._calendar_occurrence(result, inclusive=False))
+            result = self._roll_to_season(self._calendar_occurrence(last_planned_due, inclusive=False))
 
         # Finite series ends once the next occurrence would fall past until.
         if self.ends_until is not None and result is not None and result > self.ends_until:
@@ -570,10 +631,11 @@ class Schedule:
         season = _sanitize_months(d.get("season_months"))
         ends_count, ends_until = _parse_ends(d.get("ends"))
         if kind == KIND_INTERVAL:
+            unit = _sanitize_unit(d.get("unit"))
             return cls(
                 kind=KIND_INTERVAL,
-                every=_sanitize_every(d.get("every")),
-                unit=d.get("unit") or "days",
+                every=_sanitize_every(d.get("every"), unit),
+                unit=unit,
                 anchor=d.get("anchor") or "completion",
                 season_months=season,
                 ends_count=ends_count,

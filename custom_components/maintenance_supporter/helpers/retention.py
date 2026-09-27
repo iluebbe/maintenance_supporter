@@ -123,6 +123,45 @@ def _merged_tasks(entry: Any) -> dict[str, Any]:
     return merged_tasks(entry)
 
 
+async def async_sweep_unattached_photos(hass: HomeAssistant) -> int:
+    """Remove completion photos that never became part of a record.
+
+    A document tagged exactly ``photo``, pointed at by nothing (no history
+    entry of any task, no part, no task link) and uploaded more than
+    ``UNATTACHED_PHOTO_MAX_AGE_HOURS`` ago: the dialog it was taken in was
+    cancelled, the photo removed again, or the upload finished after the
+    save. Those orphans used to stay forever and count against the object's
+    document cap (bug audit 2026-09-27, R SEC-3). Skipped entirely while an
+    object's Store is not loaded — its history could reference a photo.
+    Returns the number removed.
+    """
+    from datetime import timedelta
+
+    from ..const import DOCUMENT_STORE_KEY, DOMAIN
+    from .completion_requirements import UNATTACHED_PHOTO_MAX_AGE_HOURS, unattached_photo_ids
+    from .dates import parse_persisted_utc
+
+    store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    if store is None:
+        return 0
+    candidates = unattached_photo_ids(hass)
+    if not candidates:
+        return 0
+    cutoff = dt_util.utcnow() - timedelta(hours=UNATTACHED_PHOTO_MAX_AGE_HOURS)
+    removed = 0
+    for doc_id in candidates:
+        doc = store.documents.get(doc_id)
+        added = parse_persisted_utc(doc.get("added_at")) if doc is not None else None
+        # No readable upload time = no age: kept (the hygiene scan's business).
+        if added is None or added > cutoff:
+            continue
+        await store.async_remove(doc_id)
+        removed += 1
+    if removed:
+        _LOGGER.info("Removed %d completion photo(s) that never became part of a record", removed)
+    return removed
+
+
 async def async_run_retention_sweep(hass: HomeAssistant) -> None:
     """Auto-archive overdue-done one-offs and auto-delete aged auto-archives.
 
@@ -140,6 +179,10 @@ async def async_run_retention_sweep(hass: HomeAssistant) -> None:
         DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
     )
     from .aggregate import get_object_entries
+
+    # Independent of the archive / delete thresholds: a completion photo that
+    # never became part of a record is not a retention choice but an orphan.
+    await async_sweep_unattached_photos(hass)
 
     opts = _global_options(hass)
     archive_days = _coerce_int(

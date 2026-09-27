@@ -26,7 +26,7 @@ import {
   type ServiceRecordPhoto,
   type ServiceRecordTask,
 } from "../helpers/service-record";
-import { openHtmlInNewTab, signDocumentPath } from "../helpers/document-url";
+import { openHtmlInNewTab, preopenTab, signDocumentPath } from "../helpers/document-url";
 import { objectRef, taskRef } from "../helpers/reference";
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import "./ms-date-field";
@@ -235,10 +235,17 @@ export class MaintenanceObjectHistorySection extends LitElement {
     const L = this._lang;
     const o = this.object;
     if (!o || this._printing) return;
+    // The tab opens NOW, in the click's synchronous part — after the
+    // documents / QR / photo-signing awaits a window.open is no gesture any
+    // more and popup blockers swallowed the booklet (bug audit 2026-09-26 #2).
+    const tab = preopenTab();
     this._printing = true;
     let data: { tasks: ServiceRecordTask[]; photos: Record<string, ServiceRecordPhoto> };
     try {
       data = await this._bookletData(filtered);
+    } catch (e) {
+      tab?.close();
+      throw e;
     } finally {
       this._printing = false;
     }
@@ -287,7 +294,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
         data: { objectRef: objectRef(o), tasks: data.tasks, photos: data.photos, fmtNumber: (n) => formatNumber(n, L) },
       },
     );
-    openHtmlInNewTab(htmlDoc);
+    openHtmlInNewTab(htmlDoc, tab);
   }
 
   /** The print options panel (#170): layout + one switch per block. */

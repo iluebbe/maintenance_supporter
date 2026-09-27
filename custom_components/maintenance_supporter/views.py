@@ -116,6 +116,21 @@ class DocumentUploadView(HomeAssistantView):
         from .websocket import object_id_for_entry
         from .websocket.documents import _MAX_TAG_LEN, _MAX_TAGS
 
+        if not may_write:
+            # A non-writer's photos are meant for a completion; a runaway
+            # (or hostile) client could otherwise fill any object's document
+            # slots with orphans nobody but a writer could remove (bug audit
+            # 2026-09-27, R SEC-3). Unattached ones are capped per object —
+            # documents/discard_upload and the retention sweep clear them.
+            from .helpers.completion_requirements import MAX_UNATTACHED_PHOTOS_PER_OBJECT, unattached_photo_ids
+
+            pending = unattached_photo_ids(self.hass, object_id_for_entry(entry), strict=False) or []
+            if len(pending) >= MAX_UNATTACHED_PHOTOS_PER_OBJECT:
+                return self.json_message(
+                    f"At most {MAX_UNATTACHED_PHOTOS_PER_OBJECT} photos per object may wait for a completion",
+                    HTTPStatus.CONFLICT,
+                )
+
         content = await self.hass.async_add_executor_job(file_field.file.read)
         # Multipart fields bypass the voluptuous caps of the WS document
         # paths, so cap them here to the SAME limits (title = MAX_NAME_LENGTH,

@@ -66,7 +66,13 @@ interface ObjectWithHistory {
 
 /** Fetch object → task → the entry stamped `timestamp` and build its draft;
  *  null when the task or entry is gone. Throws on a WS failure so the
- *  caller can fall back (deep link / ll-custom event). */
+ *  caller can fall back (deep link / ll-custom event).
+ *
+ *  The object payload carries only the most recent history window (payload
+ *  diet, 20 entries) while the calendar's past view shows the FULL history
+ *  — an older event found nothing there and its click did nothing (bug
+ *  audit 2026-09-26 #2). Such an entry is looked up in the task's complete
+ *  record (`task/history`). */
 export async function loadHistoryEntryDraft(
   hass: DraftConnection,
   entryId: string,
@@ -78,7 +84,16 @@ export async function loadHistoryEntryDraft(
     entry_id: entryId,
   });
   const task = r.tasks?.find((tk) => tk.id === taskId);
-  const entry = task?.history?.find((h) => h.timestamp === timestamp);
-  if (!task || !entry) return null;
+  if (!task) return null;
+  let entry = task.history?.find((h) => h.timestamp === timestamp);
+  if (!entry) {
+    const full = await hass.connection.sendMessagePromise<{ history?: Array<Record<string, unknown>> }>({
+      type: "maintenance_supporter/task/history",
+      entry_id: entryId,
+      task_id: taskId,
+    });
+    entry = full.history?.find((h) => h.timestamp === timestamp);
+  }
+  if (!entry) return null;
   return buildHistoryEntryDraft(entryId, taskId, entry, task);
 }

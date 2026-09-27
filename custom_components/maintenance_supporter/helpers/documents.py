@@ -211,6 +211,12 @@ class DocumentStore:
         # pointing at nothing (bug audit 2026-09-26, SEC-6).
         self._blob_lock = asyncio.Lock()
 
+    @property
+    def blob_lock(self) -> asyncio.Lock:
+        """The blob-registry lock, for a caller that writes blobs AND
+        registers them itself (the documents-archive restore)."""
+        return self._blob_lock
+
     # ------------------------------------------------------------------
     # Paths
     # ------------------------------------------------------------------
@@ -888,26 +894,57 @@ class DocumentStore:
         """
         issues = await self.async_find_issues()
         freed = 0
+        orphans = zero = dangling = 0
+        # Every deletion re-checks its finding UNDER the blob lock: the scan
+        # above ran without it, and an upload of the same content (file
+        # written, registry entry pending) looked like an orphan — the
+        # cleanup deleted the file under the fresh document (bug audit
+        # 2026-09-27; uploads and deletes already serialised on the lock).
         for digest in issues["orphan_blobs"]:
-            freed += await self.hass.async_add_executor_job(self._reclaim_blob_sync, digest)
+            async with self._blob_lock:
+                if digest in self.blobs:
+                    continue  # registered meanwhile — not an orphan any more
+                freed += await self.hass.async_add_executor_job(self._reclaim_blob_sync, digest)
+                orphans += 1
         for digest in issues["zero_refcount"]:
-            blob = self.blobs.pop(digest, None)
-            freed += int(blob.get("size", 0)) if blob else 0
-            await self.hass.async_add_executor_job(self._delete_blob_sync, digest)
+            async with self._blob_lock:
+                blob = self.blobs.get(digest)
+                if blob is None or int(blob.get("refcount", 0)) > 0:
+                    continue  # adopted by an upload meanwhile
+                self.blobs.pop(digest, None)
+                freed += int(blob.get("size", 0))
+                await self.hass.async_add_executor_job(self._delete_blob_sync, digest)
+                zero += 1
         for did in issues["dangling_docs"]:
-            doc = self.documents.pop(did, None)
-            if doc is not None:
-                # Reconcile the now over-counted blob refcount so no phantom
-                # registry entry lingers; the file is already gone (0 real bytes).
-                await self._deref_blob(doc)
+            doc = self.documents.get(did)
+            if doc is None:
+                continue
+            async with self._blob_lock:
+                doc_hash = doc.get("hash")
+                if isinstance(doc_hash, str) and doc_hash in self.blobs:
+                    if await self.hass.async_add_executor_job(self._blob_file_exists, doc_hash):
+                        continue  # its content arrived meanwhile (upload / restore)
+                self.documents.pop(did, None)
+            # Reconcile the now over-counted blob refcount so no phantom
+            # registry entry lingers; the file is already gone (0 real bytes).
+            # Outside the lock: _deref_blob takes it itself.
+            await self._deref_blob(doc)
+            dangling += 1
         if any(issues.values()):
             await self._async_save()
         return {
-            "orphans_deleted": len(issues["orphan_blobs"]),
-            "zero_refcount_cleared": len(issues["zero_refcount"]),
-            "dangling_removed": len(issues["dangling_docs"]),
+            "orphans_deleted": orphans,
+            "zero_refcount_cleared": zero,
+            "dangling_removed": dangling,
             "bytes_freed": freed,
         }
+
+    def _blob_file_exists(self, digest: str) -> bool:
+        """Whether the blob file is on disk (executor; invalid digest = no)."""
+        try:
+            return self.blob_path(digest).is_file()
+        except ValueError:
+            return False
 
     def _reclaim_blob_sync(self, digest: str) -> int:
         """Delete an orphan blob file, returning its size (0 if already gone)."""

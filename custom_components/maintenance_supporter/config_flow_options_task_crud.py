@@ -10,12 +10,14 @@ from homeassistant.helpers import selector
 
 from .config_flow_helpers import (
     CALENDAR_KIND_VALUES,
+    ERROR_LAST_PERFORMED_FUTURE,
     SCHEDULE_TIME_KINDS,
     apply_season_ends,
     calendar_current,
     calendar_schema,
     interval_anchor_selector,
     interval_unit_selector,
+    is_future_date,
     schedule_from_calendar_input,
     season_ends_schema,
     select_default,
@@ -146,6 +148,15 @@ class TaskCrudMixin:
         """Edit an existing task."""
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
         task = tasks_data.get(self._selected_task_id or "", {})
+        # last_performed is DYNAMIC state: the Store is its system of record.
+        # The form used to pre-fill it from the static entry.data copy, which
+        # a completion never updates — any later save (a rename) submitted
+        # that stale date back and rolled the completion anchor (and its
+        # postpone) back (bug audit 2026-09-27). Pre-fill from the merged
+        # view and write only a CHANGED date.
+        from .helpers.aggregate import merged_tasks
+
+        current_lp = (merged_tasks(self.config_entry).get(self._selected_task_id or "") or {}).get(CONF_TASK_LAST_PERFORMED)
 
         errors: dict[str, str] = {}
 
@@ -174,6 +185,11 @@ class TaskCrudMixin:
 
                 if not is_valid_icon(notify_icon_val):
                     errors[CONF_TASK_NOTIFY_ICON] = "invalid_notify_icon"
+
+            # A last-performed date is a day the work WAS done (bug audit
+            # 2026-09-27: a future one overflowed the schedule math).
+            if is_future_date(user_input.get(CONF_TASK_LAST_PERFORMED)):
+                errors[CONF_TASK_LAST_PERFORMED] = ERROR_LAST_PERFORMED_FUTURE
 
             if not errors:
                 new_data = dict(self.config_entry.data)
@@ -244,8 +260,10 @@ class TaskCrudMixin:
                     updated_task[CONF_TASK_DOCUMENTATION_URL] = user_input[CONF_TASK_DOCUMENTATION_URL]
                 else:
                     updated_task.pop(CONF_TASK_DOCUMENTATION_URL, None)
-                if user_input.get(CONF_TASK_LAST_PERFORMED):
-                    write_anchor(updated_task, str(user_input[CONF_TASK_LAST_PERFORMED]))
+                submitted_lp = str(user_input[CONF_TASK_LAST_PERFORMED]) if user_input.get(CONF_TASK_LAST_PERFORMED) else None
+                lp_changed = submitted_lp is not None and submitted_lp != current_lp
+                if lp_changed and submitted_lp is not None:
+                    write_anchor(updated_task, submitted_lp)
                 pool = user_input.get(CONF_TASK_ASSIGNEE_POOL, [])
                 if pool:
                     updated_task["assignee_pool"] = pool
@@ -306,7 +324,10 @@ class TaskCrudMixin:
 
                 from .helpers.sanitize import cap_task_fields
 
-                cap_task_fields(updated_task)
+                # The form has no completion-action fields: the stored action
+                # keeps the user it runs as (bug audit 2026-09-27 — stripping
+                # it let the action run with system rights after any edit).
+                cap_task_fields(updated_task, keep_action_owner=True)
                 new_tasks[self._selected_task_id or ""] = updated_task
                 new_data[CONF_TASKS] = new_tasks
                 self._update_config_entry(new_data)
@@ -314,15 +335,18 @@ class TaskCrudMixin:
                 # last_performed is DYNAMIC state: the Store's value overlays
                 # the static copy in the merge, so the edit above was masked
                 # for every task that had ever been completed. Write the
-                # Store too — a MOVED anchor drops the old cycle's postpone,
-                # an unchanged one (the form re-submits it) keeps it.
-                if user_input.get(CONF_TASK_LAST_PERFORMED) and self._selected_task_id:
+                # Store too — but only a date the user actually CHANGED: the
+                # form re-submits the pre-filled one on every save, and
+                # writing it (with clear_modifiers) rolled completions and
+                # postpones back (bug audit 2026-09-27).
+                if lp_changed and submitted_lp is not None and self._selected_task_id:
                     lp_rd = getattr(self.config_entry, "runtime_data", None)
                     lp_store = getattr(lp_rd, "store", None)
                     if lp_store is not None:
-                        new_lp = str(user_input[CONF_TASK_LAST_PERFORMED])
                         lp_store.set_anchor(
-                            self._selected_task_id, new_lp, clear_modifiers=new_lp != lp_store.get_last_performed(self._selected_task_id)
+                            self._selected_task_id,
+                            submitted_lp,
+                            clear_modifiers=submitted_lp != lp_store.get_last_performed(self._selected_task_id),
                         )
                         lp_store.async_delay_save()
 
@@ -332,8 +356,8 @@ class TaskCrudMixin:
 
         # Build optional keys with defaults only when the task has a value
         last_performed_key = (
-            vol.Optional(CONF_TASK_LAST_PERFORMED, default=task.get(CONF_TASK_LAST_PERFORMED))
-            if task.get(CONF_TASK_LAST_PERFORMED)
+            vol.Optional(CONF_TASK_LAST_PERFORMED, default=current_lp)
+            if current_lp
             else vol.Optional(CONF_TASK_LAST_PERFORMED)
         )
         # Clearable text fields carry the stored value as a SUGGESTED value:

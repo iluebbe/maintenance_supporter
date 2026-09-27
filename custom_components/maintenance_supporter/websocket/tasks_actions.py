@@ -340,7 +340,10 @@ async def ws_reset_task(
 
     reset_date = None
     if msg.get("date"):
-        reset_date = _parse_iso_date(connection, msg["id"], msg["date"], field="date")
+        # A reset marks a day the work WAS done — a future one (read tier:
+        # any household member) overflowed the schedule math and took the
+        # object down (bug audit 2026-09-27).
+        reset_date = _parse_iso_date(connection, msg["id"], msg["date"], field="date", not_future=True)
         if reset_date is None:
             return
 
@@ -417,6 +420,15 @@ async def ws_postpone_task(
 
     until = _parse_iso_date(connection, msg["id"], msg["until"], field="until")
     if until is None:
+        return
+    # Bug audit 2026-09-27: an override in year 9999 overflowed the calendar
+    # entity's "next day" — a postpone reaches at most one maximum interval out.
+    from datetime import timedelta
+
+    from ..const import MAX_INTERVAL_DAYS
+
+    if until > dt_util.now().date() + timedelta(days=MAX_INTERVAL_DAYS):
+        connection.send_error(msg["id"], "invalid_date", f"until must be within {MAX_INTERVAL_DAYS} days")
         return
 
     try:

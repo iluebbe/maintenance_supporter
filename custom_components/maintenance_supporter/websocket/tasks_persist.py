@@ -223,7 +223,11 @@ async def async_update_task_simple(
         # 2026-09-26).
         task.pop("schedule", None)
 
-    cap_task_fields(task)
+    # The service cannot change the completion action, so the stored one keeps
+    # the user it runs as — dropping ``configured_by`` here made an operator's
+    # action run with system rights after any service edit (bug audit
+    # 2026-09-27).
+    cap_task_fields(task, keep_action_owner=True)
     new_tasks[task_id] = normalize_task_storage(task)
     new_data[CONF_TASKS] = new_tasks
     hass.config_entries.async_update_entry(entry, data=new_data)

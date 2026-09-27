@@ -29,6 +29,27 @@ from .helpers.threshold_calculator import ThresholdCalculator, ThresholdSuggesti
 
 _LOGGER = logging.getLogger(__name__)
 
+# Flow error key for a last-performed date after today (strings.json config +
+# options ``error``).
+ERROR_LAST_PERFORMED_FUTURE = "last_performed_future"
+
+
+def is_future_date(value: Any) -> bool:
+    """True when ``value`` is an ISO date AFTER today (HA's time zone).
+
+    A last-performed date is a day the work WAS done: one in the future (the
+    date picker reaches year 9999) overflowed the schedule math inside every
+    refresh and kept the object in setup-retry (bug audit 2026-09-27). A
+    malformed value is not "future" — the selectors already refuse it.
+    """
+    from homeassistant.util import dt as dt_util
+
+    from .helpers.dates import parse_iso_date
+
+    parsed = parse_iso_date(str(value)) if value else None
+    return parsed is not None and parsed > dt_util.now().date()
+
+
 # Calendar recurrence kinds offered in the config + options flows (Phase 4;
 # the calendar-entity kind since #187). Hardcoded English labels for the
 # weekday/occurrence sub-options keep the config-flow i18n surface small; the

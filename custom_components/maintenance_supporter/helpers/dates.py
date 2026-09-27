@@ -116,6 +116,22 @@ def add_interval(anchor: date, n: int, unit: str = "days") -> date:
     return anchor + timedelta(days=n)
 
 
+def try_add_interval(anchor: date, n: int, unit: str = "days") -> date | None:
+    """:func:`add_interval`, or ``None`` when the result would lie past the
+    calendar's end (year 9999).
+
+    ``add_interval`` raises OverflowError (day/week steps) or ValueError
+    (month/year steps) there. A far-future reset date or an absurd interval
+    reached it from inside the coordinator refresh and took the whole object
+    down on every refresh and every restart (bug audit 2026-09-27) — the
+    schedule reads such a date as "no due date" instead.
+    """
+    try:
+        return add_interval(anchor, n, unit)
+    except (OverflowError, ValueError):
+        return None
+
+
 def nth_weekday_of_month(year: int, month: int, nth: int, weekday: int) -> date | None:
     """The ``nth`` ``weekday`` of ``(year, month)``; ``None`` if it doesn't exist.
 
@@ -239,4 +255,8 @@ def interval_span_days(n: int | None, unit: str = "days") -> int:
     if not n or n <= 0:
         return 0
     ref = date(2001, 1, 1)  # common (non-leap) year; representative span
-    return (add_interval(ref, n, unit) - ref).days
+    end = try_add_interval(ref, n, unit)
+    # An interval reaching past year 9999 (read-path garbage — the schedule
+    # clamps what it stores) spans "everything left", never a crash in the
+    # warning-window math of every refresh (bug audit 2026-09-27).
+    return ((end or date.max) - ref).days

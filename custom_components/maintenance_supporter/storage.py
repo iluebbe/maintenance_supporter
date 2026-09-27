@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping
+from datetime import UTC, datetime
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -158,6 +159,14 @@ class MaintenanceStore:
                 if len(kept) != len(history):
                     _LOGGER.warning("Dropping %d malformed history entries for task %s", len(history) - len(kept), tid)
                     state["history"] = kept
+                # A non-string timestamp (an epoch number from an imported
+                # backup) broke every "latest entry" comparison — completing
+                # the task raised TypeError (bug audit 2026-09-27). Epoch
+                # numbers become ISO stamps, anything else is dropped.
+                fixed = [_coerce_history_timestamp(h) for h in state["history"]]
+                if any(a is not b for a, b in zip(fixed, state["history"], strict=True)):
+                    _LOGGER.warning("Repaired malformed history timestamps for task %s", tid)
+                    state["history"] = fixed
             if "trigger_runtime" in state:
                 runtime = state["trigger_runtime"]
                 kept_rt = {eid: rt for eid, rt in runtime.items() if isinstance(rt, dict)}
@@ -493,6 +502,23 @@ class MaintenanceStore:
     # ------------------------------------------------------------------
 
 
+def _coerce_history_timestamp(entry: dict[str, Any]) -> dict[str, Any]:
+    """``entry`` unchanged when its timestamp is a string (or absent); a copy
+    with an epoch number turned into a UTC ISO stamp, or without the key when
+    the value is anything else."""
+    ts = entry.get("timestamp")
+    if ts is None or isinstance(ts, str):
+        return entry
+    fixed = dict(entry)
+    fixed.pop("timestamp")
+    if isinstance(ts, (int, float)) and not isinstance(ts, bool):
+        try:
+            fixed["timestamp"] = datetime.fromtimestamp(ts, tz=UTC).isoformat()
+        except (OverflowError, OSError, ValueError):
+            pass
+    return fixed
+
+
 def reanchor_from_history(store: MaintenanceStore, task_id: str, history: list[dict[str, Any]]) -> str | None:
     """Re-derive a task's ``last_performed`` from its history and write it.
 
@@ -504,7 +530,16 @@ def reanchor_from_history(store: MaintenanceStore, task_id: str, history: list[d
     editing a note on the last completion keeps a postponed occurrence,
     deleting that completion abandons it. Returns the new anchor.
     """
-    latest = max((h.get("timestamp") or "" for h in history if h.get("type") in LIFECYCLE_HISTORY_TYPES), default="")
+    # String stamps only: an imported epoch number made max() compare int
+    # with str and the history edit / delete raised (bug audit 2026-09-27).
+    latest = max(
+        (
+            stamp
+            for h in history
+            if isinstance(h, dict) and h.get("type") in LIFECYCLE_HISTORY_TYPES and isinstance(stamp := h.get("timestamp"), str)
+        ),
+        default="",
+    )
     anchor = local_date_from_iso(latest) if latest else None  # the stamp's local calendar day
     store.set_anchor(task_id, anchor, clear_modifiers=anchor != store.get_last_performed(task_id))
     return anchor

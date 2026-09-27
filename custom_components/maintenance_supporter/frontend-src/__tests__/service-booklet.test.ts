@@ -183,17 +183,25 @@ describe("object-history section print panel (#170)", () => {
     localStorage.setItem("msp-print-options", JSON.stringify({ layout: "by_task", include: { ...DEFAULT_INCLUDE, qr: true } }));
     const { el, sent } = await mount();
     const opened: string[] = [];
+    // The tab opens synchronously in the click (popup blockers, bug audit
+    // 2026-09-26 #2); the sheet is navigated into it once the data is in.
+    const tab = { closed: false, location: { href: "" }, close() { this.closed = true; } };
     const orig = window.open;
-    (window as unknown as { open: unknown }).open = (url?: string) => { opened.push(url || ""); return null; };
+    (window as unknown as { open: unknown }).open = (url?: string) => { opened.push(url || ""); return tab; };
+    let openedInClick: string[] = [];
     try {
       el.shadowRoot!.querySelector<HTMLElement>(".print-btn")!.click();
       await el.updateComplete;
       el.shadowRoot!.querySelector<HTMLElement>(".po-print")!.click();
-      await waitUntil(() => opened.length === 1, "sheet opened");
+      openedInClick = [...opened];
+      // Wait inside the stub's lifetime (never a real popup).
+      await waitUntil(() => tab.location.href !== "" || opened.some((u) => u.startsWith("blob:")), "sheet opened");
     } finally {
       (window as unknown as { open: unknown }).open = orig;
     }
-    expect(opened[0]).to.match(/^blob:/);
+    expect(openedInClick, "blank tab opened inside the click").to.deep.equal(["about:blank"]);
+    expect(opened).to.deep.equal(["about:blank"]);
+    expect(tab.location.href).to.match(/^blob:/);
     expect(sent.some((m) => m.type === "maintenance_supporter/documents/list")).to.equal(true);
     expect(sent.filter((m) => m.type === "maintenance_supporter/qr/generate").length).to.equal(2);
     const signs = sent.filter((m) => m.type === "auth/sign_path").map((m) => m.path as string);

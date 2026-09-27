@@ -88,6 +88,10 @@ _CYCLONE_BOXES: tuple[tuple[float, float, float, float], ...] = (
     (-24.0, -20.0, 146.5, 155.0),  # Mackay, Whitsundays
     (-29.0, -24.0, 150.5, 155.0),  # Bundaberg to the NSW Northern Rivers
     (-25.0, -10.0, 160.0, 180.0),  # south-west Pacific islands
+    # ...and their other half east of the antimeridian: boxes do not wrap,
+    # so Tonga, Samoa, Niue and the Cook Islands (lon -180…-150) had no
+    # cyclone trait (bug audit 2026-09-27).
+    (-25.0, -10.0, -180.0, -150.0),
 )
 
 _DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "climate"
@@ -110,9 +114,15 @@ class ClimateInfo:
         """Whether there is a cold season to plan seasonal windows around.
 
         Unknown temperatures count as a winter — the conservative choice for
-        templates written with a northern winter in mind.
+        templates written with a northern winter in mind — unless the Köppen
+        class is tropical (group A): its coldest month is at least 18 °C by
+        definition. Small islands (Maldives, Seychelles, Tahiti) have no cell
+        in the 1° temperature grid and were planned around a winter (bug
+        audit 2026-09-27).
         """
-        return self.coldest_c is None or self.coldest_c <= WINTER_MAX_COLDEST
+        if self.coldest_c is None:
+            return not (self.koppen or "").startswith("A")
+        return self.coldest_c <= WINTER_MAX_COLDEST
 
     def as_dict(self) -> dict[str, Any]:
         return {

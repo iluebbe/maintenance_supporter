@@ -87,7 +87,37 @@ def rewrite_task(task_data: dict[str, Any], old_id: str, new_id: str) -> tuple[d
         new_task["adaptive_config"] = {**ac, "environmental_entity": new_id}
         changed = True
 
+    # A calendar-kind schedule (#187) names its HA calendar entity, and the
+    # to-do mirror (D#183) its target lists: a renamed calendar left the task
+    # without occurrences (never due again) and a renamed list orphaned the
+    # mirrored rows (bug audit 2026-09-27).
+    sched = new_task.get("schedule")
+    if isinstance(sched, dict) and sched.get("kind") == "calendar" and sched.get("entity_id") == old_id:
+        new_task["schedule"] = {**sched, "entity_id": new_id}
+        changed = True
+
+    mirrors = new_task.get("mirror_todo_entities")
+    if isinstance(mirrors, list) and old_id in mirrors:
+        new_task["mirror_todo_entities"] = [new_id if e == old_id else e for e in mirrors]
+        changed = True
+
     return new_task, changed
+
+
+def rewrite_object(obj: dict[str, Any], old_id: str, new_id: str) -> tuple[dict[str, Any], bool]:
+    """Rewrite the battery fleet's manual include / exclude lists (#135) —
+    a renamed battery sensor fell out of the fleet (include) or came back
+    into it (exclude) after an entity rename (bug audit 2026-09-27)."""
+    from ..const import BATTERY_FLEET_EXCLUDED, BATTERY_FLEET_INCLUDED
+
+    new_obj = dict(obj)
+    changed = False
+    for key in (BATTERY_FLEET_INCLUDED, BATTERY_FLEET_EXCLUDED):
+        ids = new_obj.get(key)
+        if isinstance(ids, list) and old_id in ids:
+            new_obj[key] = sorted({new_id if e == old_id else e for e in ids})
+            changed = True
+    return new_obj, changed
 
 
 def rewrite_tasks(tasks: dict[str, dict[str, Any]], old_id: str, new_id: str) -> tuple[dict[str, dict[str, Any]], bool]:
@@ -123,6 +153,14 @@ def rewrite_store(store: Any, old_id: str, new_id: str) -> bool:
         ac = state.get("adaptive_config")
         if isinstance(ac, dict) and ac.get("environmental_entity") == old_id:
             state["adaptive_config"] = {**ac, "environmental_entity": new_id}
+            changed = True
+        # The to-do mirror's record of the rows it owns is keyed by list
+        # entity: the rows live on the renamed list under the same uid, so
+        # the record follows the rename instead of being re-added as
+        # duplicates (bug audit 2026-09-27).
+        mirror = state.get("todo_mirror")
+        if isinstance(mirror, dict) and old_id in mirror:
+            state["todo_mirror"] = {(new_id if k == old_id else k): v for k, v in mirror.items()}
             changed = True
         runtime = state.get("trigger_runtime")
         if not isinstance(runtime, dict):

@@ -129,6 +129,33 @@ All notable changes to Maintenance Supporter are documented in this file.
   two identical uploads at once no longer fail; deleting an object leaves no dangling document links; a completion
   event sent from outside no longer runs the completion action; the CSV export neutralises formulas; the documents
   archive is streamed and refused above the import limit; diagnostics redact object names and personal data.
+- **An object could stop updating for good:** a vacation ending in year 9999, a reset or last-performed date far
+  in the future, or an absurd interval (every 8000 years) made its refresh fail — also after a restart. Such dates
+  and intervals are refused or capped, and one broken task no longer takes the rest of its object down.
+- **Completion actions** keep running with the rights of the person who configured them when the task is edited
+  through the options dialog or the `update_task` service, or when the object is duplicated or replaced; an imported
+  action runs as the importing admin.
+- **Restoring a backup after replacing an object** brought back only the retired object; the replacement pair, shared
+  part pools and parent links now survive a JSON restore, and the CSV keeps two objects of the same name apart, the
+  archived state and the full schedule (calendar kinds, seasons and series ends no longer come back as manual).
+- **Calendar schedules:** completing or skipping ahead twice no longer brings back the earlier occurrence.
+- **Names in any script** — "Кухня 2" and "Ванная 2" are no longer the same name; renaming onto a taken name is
+  refused.
+- **A sensor change during a refresh** is no longer lost; renaming an entity keeps calendar schedules, to-do mirror
+  lists and battery-fleet lists; the post-completion grace survives a restart; compound triggers and triggers that
+  are still active are not announced again after a restart, while a new episode that began during a restart is.
+- **The options dialog** no longer rolls a completion back when a task is edited there.
+- **Spare parts:** replacing, archiving or duplicating an object keeps shared pools and part links intact (phase
+  links included), and a borrowed part keeps its buy reminder.
+- **Completion photos:** a household member can discard their own unattached photo again, unattached photos are
+  cleaned up after a day and limited per object, and Complete waits for a running upload.
+- **Panel and cards (round 2):** past calendar entries older than the last 20 open and refresh after edits; the parts
+  section of the history editor no longer disappears; the edit pencil, *Apply suggestion* and the history editor
+  follow write access; worksheets open despite popup blockers; the camera turns off when its dialog closes early.
+- **Smaller fixes:** tropical islands no longer get winter tasks and the islands east of the date line get cyclone
+  preparation; quiet-hours summaries skip tasks that no longer need attention; deleting an object removes its to-do
+  mirror rows and notification state; the battery fleet object and buy tasks cannot be duplicated; postponing is
+  limited to one maximum interval.
 - **Panel and cards:** status chips for triggered, paused and archived tasks; quick actions show the full statistics
   (not just the last 20 entries) and follow operator permissions and the feature switches; the complete dialog keeps
   a cleared quantity empty and accepts fractional restocks; restocking and checklist ticks cannot double-submit; the

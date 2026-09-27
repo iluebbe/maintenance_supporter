@@ -89,6 +89,9 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
   /** Open the dialog. Loads fresh data from /object via WS so dialog stays in
    *  sync even if the underlying card has stale data. */
   public async openFor(entryId: string, taskId: string): Promise<void> {
+    // Reopened for ANOTHER task while open: never show the previous one
+    // under the new ids until the fresh load lands.
+    if (entryId !== this._entryId || taskId !== this._taskId) this._task = null;
     this._entryId = entryId;
     this._taskId = taskId;
     this._error = "";
@@ -119,6 +122,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
   }
 
   public close(): void {
+    this._loadSeq++; // a load still in flight belongs to the closed dialog
     this._open = false;
     this._task = null;
     this._error = "";
@@ -131,18 +135,31 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     this._toastTimer.schedule(() => { this._toast = ""; }, ms);
   }
 
+  /** Only the newest `_loadTask` may land: the answer for a task the dialog
+   *  was opened for BEFORE (or after it closed) looked up the CURRENT task
+   *  id in the wrong object, found nothing, and left the dialog stuck on
+   *  "Loading" (bug audit 2026-09-26 #2). */
+  private _loadSeq = 0;
+
   private async _loadTask(): Promise<void> {
-    if (!this._entryId || !this._taskId) return;
+    const entryId = this._entryId;
+    const taskId = this._taskId;
+    if (!entryId || !taskId) return;
+    const seq = ++this._loadSeq;
     try {
       const r = await this.hass.connection.sendMessagePromise<MaintenanceObjectFull>({
         type: "maintenance_supporter/object",
-        entry_id: this._entryId,
+        entry_id: entryId,
       });
+      if (seq !== this._loadSeq) return;
       this._objectName = r.object?.name || "";
-      const found = (r.tasks || []).find((t) => t.id === this._taskId);
+      const found = (r.tasks || []).find((t) => t.id === taskId);
       this._task = found ?? null;
       this._taskRef = taskRef(r.object, found);
+      // A task deleted meanwhile: say so instead of "Loading" forever.
+      if (!found) this._error = t("ws_err_not_found", this._lang);
     } catch (e) {
+      if (seq !== this._loadSeq) return;
       this._error = describeWsError(e, this._lang);
     }
   }
@@ -389,11 +406,13 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
           task.interval_confidence || "medium", L,
         )}
         <div class="recommendation-actions">
-          <button class="btn primary"
-            @click=${this._applySuggestion} ?disabled=${this._busy}>
-            <ha-icon icon="mdi:check"></ha-icon>
-            ${t("apply_suggestion", L)}
-          </button>
+          ${canWrite(this.hass?.user, this._access)
+            ? html`<button class="btn primary qa-apply-suggestion"
+                @click=${this._applySuggestion} ?disabled=${this._busy}>
+                <ha-icon icon="mdi:check"></ha-icon>
+                ${t("apply_suggestion", L)}
+              </button>`
+            : nothing /* task/apply_suggestion is write tier */}
           <button class="btn"
             @click=${this._reanalyzeInterval} ?disabled=${this._busy}>
             <ha-icon icon="mdi:refresh"></ha-icon>
@@ -488,7 +507,8 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                   lang: L,
                   hass: this.hass,
                   currencySymbol: this._currencySymbol,
-                  openEdit: (e) => this._onEditHistoryEntry(e),
+                  // task/history/update is write tier: no pencil otherwise.
+                  openEdit: canWrite(this.hass?.user, this._access) ? (e) => this._onEditHistoryEntry(e) : undefined,
                   readingUnit: task.reading_unit,
                   readingSlotDelta: (e, slotId) => readingSlotDelta(history, e, slotId),
                   taskRef: this._taskRef,
@@ -659,7 +679,9 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                     </div>
                   `}
             `
-          : html`<div class="loading">${t("loading", L)}</div>`}
+          : this._error
+            ? html`<div class="error">${this._error}</div>`
+            : html`<div class="loading">${t("loading", L)}</div>`}
       </div>
     `;
   }

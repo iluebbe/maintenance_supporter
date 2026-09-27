@@ -40,7 +40,17 @@ class ObjectSettingsMixin:
 
     async def async_step_object_settings(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Edit object settings."""
-        if user_input is not None:
+        errors: dict[str, str] = {}
+        if user_input is not None and not user_input.get("go_back"):
+            # The name rule of every create path (helpers.object_names): a
+            # rename onto another object's name was saved without a check
+            # (bug audit 2026-09-27). An unchanged name always passes.
+            from .helpers.object_names import name_changed_onto_taken
+
+            new_name = user_input.get(CONF_OBJECT_NAME)
+            if isinstance(new_name, str) and name_changed_onto_taken(self.hass, self.config_entry, new_name):
+                errors[CONF_OBJECT_NAME] = "name_exists"
+        if user_input is not None and not errors:
             if user_input.get("go_back"):
                 return self._show_init_menu()
             from .helpers.sanitize import cap_object_fields
@@ -144,4 +154,5 @@ class ObjectSettingsMixin:
                 ),
                 suggested,
             ),
+            errors=errors,
         )

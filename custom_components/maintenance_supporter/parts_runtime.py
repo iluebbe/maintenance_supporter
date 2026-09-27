@@ -245,18 +245,54 @@ async def async_apply_history_parts_edit(
 ) -> list[dict[str, Any]]:
     """Reconcile stock for an edited history entry's parts (#130).
 
+    :func:`apply_history_parts_edit` + :func:`async_commit_parts_edit` in
+    one call; returns the enriched list to store on the entry.
+    """
+    enriched, touched = apply_history_parts_edit(hass, entry, task_data, old_used, new_used)
+    await async_commit_parts_edit(hass, touched)
+    return enriched
+
+
+async def async_commit_parts_edit(hass: HomeAssistant, touched: list[tuple[ConfigEntry, Any]]) -> None:
+    """Save the Stores :func:`apply_history_parts_edit` changed, signal the
+    parts sensors and reconcile the buy tasks."""
+    for owner, store in touched:
+        await store.async_save()
+        _signal_parts_updated(hass, owner)
+        schedule_buy_task_reconcile(hass, owner)
+
+
+def apply_history_parts_edit(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    task_data: dict[str, Any],
+    old_used: list[dict[str, Any]],
+    new_used: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[tuple[ConfigEntry, Any]]]:
+    """The synchronous half of a history entry's parts edit (#130).
+
     Applies the per-part difference between the entry's previous and new
     ``used_parts`` to the owning stocks (consuming more decrements, reducing
     a quantity returns the difference) and returns the enriched list to store
     on the entry (``{part_id, name, quantity}`` + ``entry_id`` for pooled
-    parts). Owner resolution per part: an explicit ``entry_id`` on the link,
-    else the task's ``consumes_parts`` link for that part (#111 pools), else
-    the object's own catalog. Best-effort like the completion path — a
-    vanished part skips its stock math but stays recorded by name.
+    parts) plus the touched ``(entry, store)`` pairs for
+    :func:`async_commit_parts_edit`. Owner resolution per part: an explicit
+    ``entry_id`` on the link, else the task's ``consumes_parts`` link for
+    that part (#111 pools), else the object's own catalog. Best-effort like
+    the completion path — a vanished part skips its stock math but stays
+    recorded by name.
+
+    Synchronous on purpose: the history edit applies the delta and writes
+    the entry in one go, so the delta is computed from the entry as it is
+    stored at that moment and a vanished entry is refused BEFORE any stock
+    moved (bug audit 2026-09-27).
     """
+    from .helpers.parts import iter_part_links
+
+    # Phase links name pools too (a phase may consume another object's part).
     link_owners: dict[str, str] = {}
-    for link in task_data.get(CONF_TASK_CONSUMES_PARTS) or []:
-        if isinstance(link, dict) and link.get("part_id") and link.get("entry_id"):
+    for link in iter_part_links(task_data):
+        if link.get("part_id") and link.get("entry_id"):
             link_owners[str(link["part_id"])] = str(link["entry_id"])
 
     def resolve(link: dict[str, Any]) -> tuple[ConfigEntry, dict[str, Any], Any] | None:
@@ -296,11 +332,6 @@ async def async_apply_history_parts_edit(
         _fire_transition(hass, owner, part, new_stock, stock_transition(part, old_stock, new_stock))
         touched[owner.entry_id] = (owner, store)
 
-    for owner, store in touched.values():
-        await store.async_save()
-        _signal_parts_updated(hass, owner)
-        schedule_buy_task_reconcile(hass, owner)
-
     enriched: list[dict[str, Any]] = []
     for link in new_used:
         if not isinstance(link, dict) or not link.get("part_id"):
@@ -315,7 +346,7 @@ async def async_apply_history_parts_edit(
         if resolved and resolved[0].entry_id != entry.entry_id:
             item["entry_id"] = resolved[0].entry_id
         enriched.append(item)
-    return enriched
+    return enriched, list(touched.values())
 
 
 def schedule_buy_task_reconcile(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -374,7 +405,14 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
     # resume/unarchive setup catch-up recreates them if the part is still low.
     obj = entry.data.get(CONF_OBJECT, {})
     if obj.get("archived_at") is not None or obj.get("paused_at") is not None:
-        parts = {}
+        # ...except for a pool OTHER live objects still draw on (#111): the
+        # shelf is in use, only its owner retired. Suppressing those too
+        # meant the borrowers ran the pool empty without a single reminder
+        # (bug audit 2026-09-27).
+        from .helpers.shared_parts import borrowed_part_ids
+
+        in_use = borrowed_part_ids(hass, entry.entry_id, active_only=True)
+        parts = {pid: part for pid, part in parts.items() if pid in in_use}
     store = _get_store(hass, entry)
     if store is None:
         return False

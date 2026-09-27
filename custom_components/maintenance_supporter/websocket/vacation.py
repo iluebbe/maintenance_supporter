@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 from typing import Any
 
 import voluptuous as vol
@@ -18,6 +19,7 @@ from ..const import (
     CONF_VACATION_START,
     DOMAIN,
     MAX_ID_LENGTH,
+    MAX_INTERVAL_DAYS,
     MAX_VACATION_EXEMPT_TASKS,
 )
 from ..helpers.aggregate import object_name
@@ -72,11 +74,24 @@ async def ws_vacation_update(
     if "enabled" in msg:
         options[CONF_VACATION_ENABLED] = bool(msg["enabled"])
 
+    # A vacation is a stretch of days, not a lifetime: a date more than
+    # MAX_INTERVAL_DAYS (10 years) out is refused. 9999-12-31 plus the
+    # return buffer overflowed the calendar inside every object's refresh
+    # and took the objects down for the whole "vacation" (bug audit
+    # 2026-09-27; helpers.vacation now also clamps what is already stored).
+    latest = dt_util.now().date() + timedelta(days=MAX_INTERVAL_DAYS)
     for field, key in (("start", CONF_VACATION_START), ("end", CONF_VACATION_END)):
         if field not in msg:
             continue
-        if msg[field] is not None and _parse_iso_date(connection, msg["id"], msg[field], field=field) is None:
-            return
+        if msg[field] is not None:
+            parsed = _parse_iso_date(connection, msg["id"], msg[field], field=field)
+            if parsed is None:
+                return
+            if parsed > latest:
+                connection.send_error(
+                    msg["id"], "invalid_range", f"{field} must be within {MAX_INTERVAL_DAYS} days from today"
+                )
+                return
         options[key] = msg[field]
 
     # End-vs-start sanity (only when both are present after the patch; a

@@ -58,6 +58,7 @@ from .const import (
     CONF_PANEL_ENABLED,
     CONF_SHOPPING_LIST_ENTITY,
     CONF_TASKS,
+    CONF_VACATION_EXEMPT_TASK_IDS,
     CONF_WEEKLY_DIGEST_ENABLED,
     DEFAULT_PANEL_ENABLED,
     DOCUMENT_TEXT_INDEX_KEY,
@@ -162,10 +163,20 @@ SERVICE_COMPLETE_SCHEMA = vol.Schema(
     }
 )
 
+def _not_in_future(value: date_cls) -> date_cls:
+    """A reset date is a day the work WAS done: a future one (9999-12-20 via
+    the service, any household member) overflowed the schedule math inside
+    every refresh and kept the object in setup-retry across restarts (bug
+    audit 2026-09-27). Evaluated at call time, in HA's time zone."""
+    if value > dt_util.now().date():
+        raise vol.Invalid("date must not be in the future")
+    return value
+
+
 SERVICE_RESET_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): vol.All(cv.entity_ids, vol.Length(min=1)),
-        vol.Optional("date"): cv.date,
+        vol.Optional("date"): vol.All(cv.date, _not_in_future),
     }
 )
 
@@ -1161,7 +1172,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         if not isinstance(old_eid, str) or old_eid == new_eid:
             return
 
-        from .helpers.entity_rename import rewrite_store, rewrite_tasks
+        from .helpers.entity_rename import rewrite_object, rewrite_store, rewrite_tasks
 
         # v2.67: the global shopping-list target is an entity reference too.
         gentry = next(
@@ -1182,14 +1193,25 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             if ce.unique_id == GLOBAL_UNIQUE_ID:
                 continue
 
-            # 1. trigger_config refs live in entry.data
+            # 1. trigger_config refs (+ calendar-kind schedules, to-do mirror
+            #    targets) live in entry.data, the battery fleet's manual
+            #    include / exclude lists on the object (bug audit 2026-09-27).
             entry_changed = False
+            new_data = dict(ce.data)
             tasks = ce.data.get(CONF_TASKS, {})
             if tasks:
-                new_tasks, entry_changed = rewrite_tasks(tasks, old_eid, new_eid)
-                if entry_changed:
-                    new_data = {**ce.data, CONF_TASKS: new_tasks}
-                    hass.config_entries.async_update_entry(ce, data=new_data)
+                new_tasks, tasks_changed = rewrite_tasks(tasks, old_eid, new_eid)
+                if tasks_changed:
+                    new_data[CONF_TASKS] = new_tasks
+                    entry_changed = True
+            obj = ce.data.get(CONF_OBJECT)
+            if isinstance(obj, dict):
+                new_obj, obj_changed = rewrite_object(obj, old_eid, new_eid)
+                if obj_changed:
+                    new_data[CONF_OBJECT] = new_obj
+                    entry_changed = True
+            if entry_changed:
+                hass.config_entries.async_update_entry(ce, data=new_data)
 
             # 2. adaptive_config.environmental_entity + trigger_runtime keys
             #    live in Store (post-migration; see _DYNAMIC_TASK_FIELDS).
@@ -1209,8 +1231,12 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
 
             # The trigger listeners on `BaseTrigger` subscribed to the OLD
             # entity_id and won't follow the rename — schedule a reload so
-            # they re-instantiate against the new id.
+            # they re-instantiate against the new id. The to-do mirror's list
+            # listeners are shared (global entry): re-armed on the new ids.
             hass.config_entries.async_schedule_reload(ce.entry_id)
+            from .helpers.todo_mirror import schedule_rearm as _rearm_todo_mirror
+
+            _rearm_todo_mirror(hass)
             _LOGGER.info(
                 "Rewrote entity references %s → %s for entry %s (entry_data=%s, store=%s) and scheduled reload",
                 old_eid,
@@ -2101,9 +2127,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: MaintenanceSupporterCon
         todo_mirror = hass.data.get(DOMAIN, {}).pop(TODO_MIRROR_KEY, None)
         if todo_mirror is not None:
             todo_mirror.async_teardown()
-        text_index = hass.data.get(DOMAIN, {}).get(DOCUMENT_TEXT_INDEX_KEY)
-        if text_index is not None:
-            text_index.cancel()
+        # NOT the full-text index: it is shared runtime (built once per boot
+        # by _async_setup_shared, which a hub reload does not re-run) — a
+        # reload of the global entry (any settings save) closed it for the
+        # rest of the run and new uploads were never indexed again (bug audit
+        # 2026-09-27). The last entry to unload cancels it below.
 
     # Flush a pending debounced store save BEFORE tearing down — belt and
     # suspenders next to the store cache: disk is current the moment the entry
@@ -2134,6 +2162,38 @@ async def async_unload_entry(hass: HomeAssistant, entry: MaintenanceSupporterCon
         hass.data.pop(DOMAIN, None)
 
     return unload_ok
+
+
+async def _async_forget_removed_object_tasks(hass: HomeAssistant, entry: ConfigEntry, store: MaintenanceStore) -> None:
+    """What a task delete cleans up per task, for every task of a deleted
+    object: its rows on the family's to-do lists (D#183 — the Store record
+    naming them goes with the object), its ids on the persistent vacation
+    exempt list, and the notification manager's bookkeeping. All three
+    outlived the object (bug audit 2026-09-27)."""
+    task_ids = [str(tid) for tid in (entry.data.get(CONF_TASKS) or {})]
+
+    from .helpers.todo_mirror import TODO_MIRROR_KEY
+
+    mirror = hass.data.get(DOMAIN, {}).get(TODO_MIRROR_KEY)
+    if mirror is not None:
+        for task_id in task_ids:
+            try:
+                await mirror.async_forget_task(store, task_id)
+            except Exception:  # noqa: BLE001 — a list provider error must not block the delete
+                _LOGGER.warning("Could not take the to-do rows of task %s off their lists", task_id, exc_info=True)
+
+    ge = get_global_entry(hass)
+    exempt = (ge.options.get(CONF_VACATION_EXEMPT_TASK_IDS) if ge is not None else None) or []
+    if ge is not None and isinstance(exempt, list) and any(t in exempt for t in task_ids):
+        gone = set(task_ids)
+        hass.config_entries.async_update_entry(
+            ge,
+            options={**dict(ge.options), CONF_VACATION_EXEMPT_TASK_IDS: [t for t in exempt if t not in gone]},
+        )
+
+    nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+    if isinstance(nm, NotificationManager):
+        nm.purge_entry(entry.entry_id)
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -2167,6 +2227,8 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     store = hass.data.get(STORES_CACHE_KEY, {}).pop(entry.entry_id, None)
     if store is None:
         store = MaintenanceStore(hass, entry.entry_id)
+        await store.async_load()
+    await _async_forget_removed_object_tasks(hass, entry, store)
     await store.async_remove()
     # Drop the per-entry reconcile lock — the module dict would otherwise grow
     # by one lock per object ever created in this HA run.

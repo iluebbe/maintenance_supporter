@@ -22,10 +22,12 @@ from homeassistant.helpers import selector
 
 from .config_flow_helpers import (
     CALENDAR_KIND_VALUES,
+    ERROR_LAST_PERFORMED_FUTURE,
     apply_interval_unit,
     calendar_schema,
     interval_anchor_selector,
     interval_unit_selector,
+    is_future_date,
     schedule_from_calendar_input,
 )
 from .const import (
@@ -214,6 +216,9 @@ class ScheduleStepsMixin:
             interval = user_input.get(CONF_TASK_INTERVAL_DAYS)
             if not interval or interval <= 0:
                 errors[CONF_TASK_INTERVAL_DAYS] = "invalid_interval"
+            elif is_future_date(user_input.get("last_performed")):
+                # bug audit 2026-09-27: see config_flow_helpers.is_future_date.
+                errors["last_performed"] = ERROR_LAST_PERFORMED_FUTURE
             else:
                 self._current_task[CONF_TASK_INTERVAL_DAYS] = interval
                 apply_interval_unit(self._current_task, user_input)
@@ -264,6 +269,8 @@ class ScheduleStepsMixin:
             schedule = schedule_from_calendar_input(kind, user_input)
             if schedule is None:
                 errors["base"] = "invalid_schedule"
+            elif is_future_date(user_input.get("last_performed")):
+                errors["last_performed"] = ERROR_LAST_PERFORMED_FUTURE
             else:
                 self._current_task["schedule"] = schedule
                 self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(

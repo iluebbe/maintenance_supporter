@@ -250,6 +250,10 @@ async def test_json_full_field_roundtrip(hass: HomeAssistant, global_entry: Mock
             # the cursor migrates into the Store on first setup.
             "phases", "phase_cursor"}
     for key, want in FULL_TASK.items():
+        if key == "on_complete_action":
+            # Bug audit 2026-09-27 (SEC-2): the import stamps the importing
+            # admin as the user the action runs as.
+            want = {**want, "configured_by": conn.user.id}
         if key not in skip and dst_task.get(key) != want:
             diffs.append(f"task.{key}: {dst_task.get(key)!r}")
     from custom_components.maintenance_supporter.helpers.schedule import read_legacy_fields
@@ -467,7 +471,8 @@ async def test_full_task_probe_covers_every_exported_field(
 # A new exported field must be placed in the CSV columns or in this list.
 _CSV_TASK_EXCLUDED = {
     "id", "created_at", "archived_at", "archived_reason",  # lifecycle/ids
-    "schedule", "last_planned_due", "due_override",  # nested/derived schedule
+    # (the nested "schedule" IS a column since bug audit 2026-09-27)
+    "last_planned_due", "due_override",  # per-occurrence schedule state
     "adaptive_config", "checklist_progress", "history",  # structured state
     "on_complete_action", "quick_complete_defaults",  # nested service configs
     "assignee_pool", "rotation_strategy",  # multi-user config (JSON backup)
@@ -487,11 +492,13 @@ _CSV_TASK_EXCLUDED = {
     "days_until_due", "next_due", "average_duration",  # computed display
 }
 _CSV_OBJECT_EXCLUDED = {
-    # Instance-specific ids/lineage — meaningless in a spreadsheet migration:
+    # Instance-specific ids — meaningless in a spreadsheet migration. The
+    # replace lineage (predecessor + archive marker) IS carried since bug
+    # audit 2026-09-27 (a replaced pair collapsed into one object); the
+    # successor pointer is re-derived from it on import.
     "ha_device_id", "parent_entry_id",
-    "predecessor_entry_id", "replaced_by_entry_id",
+    "replaced_by_entry_id",
     "paused_at", "paused_until",  # seasonal pause state (JSON backup carries it)
-    "archived_at",  # object archive marker (JSON backup carries it)
     "ref_no", "next_task_ref",  # #170 reference number + counter (JSON backup carries them; a sheet must not renumber)
     # Battery-fleet identity — emitted only for the fleet object; the JSON
     # backup round-trips it (test_json_roundtrip_keeps_battery_fleet_identity).

@@ -1082,6 +1082,8 @@ def test_clear_task_state() -> None:
     """Test that clear_task_state removes notification tracking."""
     nm = NotificationManager.__new__(NotificationManager)
     nm._quiet_held = {"e1_t1_overdue": {"entry_id": "e1", "task_id": "t1"}}
+    nm._deferred_today = {"e1_t1", "e2_t2"}
+    nm._starved = {"e1_t1"}
     nm._store = MagicMock()  # the bookkeeping is persisted on every change
     nm._last_notified = {
         "e1_t1_due_soon": dt_util.now(),
@@ -1100,6 +1102,9 @@ def test_clear_task_state() -> None:
     assert "e1_t1_overdue" not in nm._last_notified
     assert "e1_t1_triggered" not in nm._last_notified
     assert "e1_t1_due_soon" not in nm._snoozed_until
+    # ...and it waits for no daily-limit slot any more (bug audit 2026-09-27)
+    assert nm._deferred_today == {"e2_t2"}
+    assert nm._starved == set()
 
     # Other task keys should remain
     assert "e2_t2_due_soon" in nm._last_notified

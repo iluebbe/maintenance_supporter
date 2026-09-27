@@ -188,30 +188,12 @@ async def ws_update_history_entry(
         else:
             patched.pop("reading_values", None)
 
-    # #130: part consumption on the entry. The stock is adjusted by the
-    # per-part delta between the stored and the submitted selection, so
-    # corrections and backfills keep the shelf honest. Best-effort like the
-    # live completion path — a vanished part skips its stock math.
-    if "used_parts" in msg:
-        from ..parts_runtime import async_apply_history_parts_edit
-
-        old_used = patched.get("used_parts") or []
-        # Deliberately NOT sanitize_consumes_parts here: an edited entry may
-        # reference a part that has since been deleted, and that link must
-        # stay RECORDED (stock math skips it) — dropping unknown ids would
-        # rewrite history. Field validation (ids, quantity range, list cap)
-        # is the schema's job above.
-        new_used = msg["used_parts"] or []
-        enriched = await async_apply_history_parts_edit(hass, entry, slot_task, old_used, new_used)
-        if enriched:
-            patched["used_parts"] = enriched
-        else:
-            patched.pop("used_parts", None)
-
     # #161: completion photos on the entry. A new id is linked to the task
-    # like a live completion does (best-effort); a removed id keeps its
-    # document and its links — only the entry forgets it. The legacy
-    # scalar is folded into the list the moment the entry is edited.
+    # like a live completion does (best-effort, after the write below); a
+    # removed id keeps its document and its links — only the entry forgets
+    # it. The legacy scalar is folded into the list the moment the entry is
+    # edited.
+    photos_to_link: list[str] = []
     if "photo_doc_ids" in msg:
         from ..helpers.completion_requirements import own_photo_doc_ids
         from . import object_id_for_entry
@@ -228,15 +210,16 @@ async def ws_update_history_entry(
             patched["photo_doc_ids"] = new_photos
         else:
             patched.pop("photo_doc_ids", None)
-        if rd.coordinator:
-            for doc_id in new_photos:
-                if doc_id not in old_photos:
-                    await rd.coordinator._link_completion_photo(doc_id, task_id)
+        photos_to_link = [d for d in new_photos if d not in old_photos]
 
-    # The parts / photo steps above await: a completion (or another edit)
-    # that landed meanwhile would be wiped by writing back the snapshot read
-    # at the top. Patch the entry into the CURRENT history, found again by
-    # its timestamp (bug audit 2026-09-26).
+    # Nothing above awaited, so the entry is looked up again, its CURRENT
+    # used_parts give the parts delta, and the patched entry is written back
+    # — all in one synchronous step, before any side effect. The delta used
+    # to be computed from the top snapshot and applied (stock moved) across
+    # awaits, and only then was the entry looked up again: an entry deleted
+    # meanwhile answered not_found AFTER the stock had moved, and a
+    # concurrent edit's parts were counted from a stale selection (bug audit
+    # 2026-09-27).
     history = list(store.get_history(task_id))
     target_index = next(
         (i for i, h in enumerate(history) if h.get("timestamp") == msg["original_timestamp"]),
@@ -245,6 +228,28 @@ async def ws_update_history_entry(
     if target_index is None:
         connection.send_error(msg["id"], "not_found", f"No history entry with timestamp {msg['original_timestamp']!r}")
         return
+
+    # #130: part consumption on the entry. The stock is adjusted by the
+    # per-part delta between the stored and the submitted selection, so
+    # corrections and backfills keep the shelf honest. Best-effort like the
+    # live completion path — a vanished part skips its stock math.
+    parts_touched: list[Any] = []
+    if "used_parts" in msg:
+        from ..parts_runtime import apply_history_parts_edit
+
+        old_used = history[target_index].get("used_parts") or []
+        # Deliberately NOT sanitize_consumes_parts here: an edited entry may
+        # reference a part that has since been deleted, and that link must
+        # stay RECORDED (stock math skips it) — dropping unknown ids would
+        # rewrite history. Field validation (ids, quantity range, list cap)
+        # is the schema's job above.
+        new_used = msg["used_parts"] or []
+        enriched, parts_touched = apply_history_parts_edit(hass, entry, slot_task, old_used, new_used)
+        if enriched:
+            patched["used_parts"] = enriched
+        else:
+            patched.pop("used_parts", None)
+
     history[target_index] = patched
     store.set_history(task_id, history)
 
@@ -255,6 +260,15 @@ async def ws_update_history_entry(
     # lifecycle entry is the seed keeps its anchor.
     if any(h.get("type") in LIFECYCLE_HISTORY_TYPES for h in history):
         reanchor_from_history(store, task_id, history)
+
+    # The awaiting side effects run only now, for an entry that is written.
+    if parts_touched:
+        from ..parts_runtime import async_commit_parts_edit
+
+        await async_commit_parts_edit(hass, parts_touched)
+    if rd.coordinator:
+        for doc_id in photos_to_link:
+            await rd.coordinator._link_completion_photo(doc_id, task_id)
 
     # Save + budget cache + immediate refresh so the UI reflects the change.
     await async_commit_store(rd, budget=True)
@@ -307,6 +321,29 @@ async def ws_delete_history_entry(
     # until its next completion (the static config's own last_performed, if
     # any, shows through the merge). A moved anchor drops a stale postpone.
     reanchor_from_history(store, task_id, remaining)
+    _rewind_phase_cursor(store, task_id, _task, history, msg["timestamp"])
     await async_commit_store(rd, budget=True)
     connection.send_result(msg["id"], {"success": True, "remaining": len(remaining)})
 
+
+def _rewind_phase_cursor(store: Any, task_id: str, task: dict[str, Any], history: list[dict[str, Any]], timestamp: str) -> None:
+    """Deleting the LATEST completion of a phased task (#139) hands its phase
+    back: that completion had advanced the cursor and the anchor now rewinds
+    (reanchor_from_history), but the cursor stayed — the step the user just
+    un-did was skipped for good (bug audit 2026-09-27). Older completions and
+    pure backfills never moved the cursor, so they leave it alone."""
+    from ..helpers.phases import clamp_phase_cursor
+
+    seq = [p for p in task.get("phase_sequence") or [] if isinstance(p, str)]
+    lifecycle = [h for h in history if h.get("type") in LIFECYCLE_HISTORY_TYPES]
+    if not seq or not lifecycle:
+        return
+    latest = max(lifecycle, key=lambda h: str(h.get("timestamp") or ""))
+    phase_id = latest.get("phase_id")
+    if latest.get("timestamp") != timestamp or latest.get("type") != "completed" or phase_id not in seq:
+        return
+    # The completion advanced the cursor from ITS phase to the next one; the
+    # previous slot is that phase unless the sequence was edited since.
+    cursor = clamp_phase_cursor(store.get_task_state(task_id).get("phase_cursor", 0), len(seq))
+    previous = (cursor - 1) % len(seq)
+    store.set_phase_cursor(task_id, previous if seq[previous] == phase_id else seq.index(phase_id))

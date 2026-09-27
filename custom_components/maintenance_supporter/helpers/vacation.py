@@ -31,7 +31,7 @@ from ..const import (
     GLOBAL_UNIQUE_ID,
     ScheduleType,
 )
-from .dates import add_interval, parse_iso_date
+from .dates import parse_iso_date, try_add_interval
 from .pause import is_task_inert
 from .status import effective_warning_days
 
@@ -60,7 +60,14 @@ class VacationState:
         """Last day on which suppression still applies (inclusive)."""
         if self.end is None:
             return None
-        return self.end + timedelta(days=max(0, self.buffer_days))
+        try:
+            return self.end + timedelta(days=max(0, self.buffer_days))
+        except OverflowError:
+            # An end date of 9999-12-31 plus the buffer overflowed, and
+            # is_silent_for runs inside every object's refresh — the object
+            # went unavailable for the whole vacation (bug audit 2026-09-27).
+            # The window simply never ends.
+            return date.max
 
     def is_active(self, at: datetime | None = None) -> bool:
         """True if today falls within [start, end + buffer] and the toggle is on."""
@@ -218,8 +225,11 @@ def _project_time_based(
         return []
     anchor = last_performed or created_at or today
     # Unit-aware (weeks/months/years), not raw days — else a 6-month task would
-    # preview as due in 6 days during vacation planning.
-    next_due = add_interval(anchor, interval_days, interval_unit or "days")
+    # preview as due in 6 days during vacation planning. A due date past the
+    # calendar's end is no event (bug audit 2026-09-27).
+    next_due = try_add_interval(anchor, interval_days, interval_unit or "days")
+    if next_due is None:
+        return []
     return _events_from_next_due(next_due, warning_days, today, window_start, window_end)
 
 

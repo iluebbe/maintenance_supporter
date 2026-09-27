@@ -110,6 +110,9 @@ _EXPECTED_TIERS: dict[str, str] = {
     "maintenance_supporter/budget_status": "read",
     "maintenance_supporter/schedule/preview": "read",
     "maintenance_supporter/documents/list": "read",
+    # Bug audit 2026-09-27 (R SEC-3): a non-writer removes an unattached
+    # completion photo they uploaded — nothing that is part of a record.
+    "maintenance_supporter/documents/discard_upload": "read",
     "maintenance_supporter/documents/search": "read",
     "maintenance_supporter/search": "read",
     "maintenance_supporter/documents/storage": "read",

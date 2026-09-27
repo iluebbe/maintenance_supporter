@@ -71,6 +71,17 @@ export class MsCameraCapture extends LitElement {
     }
   }
 
+  /** The host dialog closed (the element left the DOM) while a camera call
+   *  was pending: disconnectedCallback already ran and found no stream, so
+   *  one that arrives now would keep the camera and its LED on with no
+   *  viewfinder to close (bug audit 2026-09-26 #2). Stops it; true = give up. */
+  private _abandoned(): boolean {
+    if (this.isConnected) return false;
+    this._stopStream();
+    this._open = false;
+    return true;
+  }
+
   private async _acquireAndShow(): Promise<void> {
     const md = typeof navigator !== "undefined" ? navigator.mediaDevices : undefined;
     if (!md || typeof md.getUserMedia !== "function") {
@@ -89,6 +100,7 @@ export class MsCameraCapture extends LitElement {
       } catch {
         // the remembered camera is gone (another phone, a revoked id) — fall through
       }
+      if (this._abandoned()) return;
     }
     if (!acquired) {
       try {
@@ -97,19 +109,25 @@ export class MsCameraCapture extends LitElement {
           audio: false,
         });
       } catch (e) {
+        if (this._abandoned()) return;
         this._unavailable(e instanceof Error ? e.name || e.message : String(e));
         return;
       }
+      if (this._abandoned()) return;
       await this._preferMainBackCamera(md);
+      if (this._abandoned()) return;
       if (!this._stream) return; // not even the first camera came back — capture-unavailable fired
     }
     await this._applyZoomOne();
+    if (this._abandoned()) return;
     await this._listDevices(md);
+    if (this._abandoned()) return;
     this._deviceIndex = this._indexOfCurrent(remembered && acquired ? remembered : null);
     this._switchFailed = false;
     this._facing = (this._stream?.getVideoTracks()[0]?.getSettings().facingMode as "user" | "environment" | undefined) ?? "environment";
     this._open = true;
     await this.updateComplete;
+    if (this._abandoned()) return;
     const video = this._video;
     if (video && this._stream) {
       video.srcObject = this._stream;
@@ -277,6 +295,7 @@ export class MsCameraCapture extends LitElement {
     this._busy = true;
     try {
       const got = await this._swapCamera(md, candidates, restore);
+      if (this._abandoned()) return;
       if (got === null) {
         this._unavailable("camera_lost");
         return;

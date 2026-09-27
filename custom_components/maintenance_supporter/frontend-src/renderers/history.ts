@@ -52,7 +52,10 @@ export interface HistoryEntryContext {
   hass: HomeAssistant;
   /** Currency symbol for cost display (defaults to €). */
   currencySymbol: string;
-  openEdit: (entry: HistoryEntry) => void;
+  /** Opens the history-edit dialog. Absent = the viewer may not edit
+   *  (task/history/update is WRITE tier): no pencil at all instead of one
+   *  whose Save the server refuses (bug audit 2026-09-26 #2). */
+  openEdit?: (entry: HistoryEntry) => void;
   /** v2.20 (#83): unit + delta-vs-previous for reading-task entries. */
   readingUnit?: string | null;
   readingDelta?: (entry: HistoryEntry) => number | null;
@@ -186,7 +189,8 @@ function renderHistoryReadings(entry: HistoryEntry, ctx: HistoryEntryContext) {
 export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext, opts: HistoryEntryOptions = {}) {
   const L = ctx.lang;
   const { compact = false, showRef = true, showBadges = true, showEdit = true } = opts;
-  const editable = showEdit && EDITABLE_HISTORY_TYPES.includes(entry.type);
+  const openEdit = ctx.openEdit;
+  const editable = showEdit && !!openEdit && EDITABLE_HISTORY_TYPES.includes(entry.type);
   return html`
     <div class="history-entry${compact ? " compact" : ""}">
       ${compact
@@ -203,7 +207,7 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext
           ${editable
             ? html`<button class="history-edit-btn"
                      title=${t("history_edit_button", L)}
-                     @click=${() => ctx.openEdit(entry)}>
+                     @click=${() => openEdit!(entry)}>
                 <ha-icon icon="mdi:pencil"></ha-icon>
               </button>`
             : nothing}

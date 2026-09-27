@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 import logging
 import re
 from typing import Any
@@ -20,16 +21,25 @@ from ..const import (
     MAX_CHECKLIST_ITEMS,
 )
 from .aggregate import merged_tasks
-from .dates import INTERVAL_UNITS, normalize_hhmm
+from .dates import INTERVAL_UNITS, normalize_hhmm, parse_iso_date
 from .global_options import get_default_warning_days
 from .pause import write_anchor
 from .reading_slots import parse_reading_slots_text, reading_slots_text
-from .schedule import read_legacy_fields
+from .schedule import Schedule, read_legacy_fields
 
 _LOGGER = logging.getLogger(__name__)
 
 # CSV column order
 _COLUMNS = [
+    # Bug audit 2026-09-27: the source object's entry id keys the rows of ONE
+    # object — grouping by name merged a replaced pair (same name) into one
+    # object, the archived predecessor's tasks coming back active. With the
+    # archive marker and the predecessor it also carries the replace lineage
+    # (remapped to the new ids on import). Old CSVs without these columns
+    # still group by name.
+    "object_entry_id",
+    "object_archived_at",
+    "object_predecessor_entry_id",
     "object_name",
     "object_manufacturer",
     "object_model",
@@ -50,6 +60,11 @@ _COLUMNS = [
     "interval_unit",
     "due_date",
     "interval_anchor",
+    # Bug audit 2026-09-27: the nested recurrence as JSON — the flat columns
+    # above cannot express a calendar kind (a day-of-month task came back as
+    # "manual", never due), a seasonal window or a series end. The flat
+    # cells stay (and win for an interval edited in a spreadsheet).
+    "schedule",
     "schedule_time",
     "reading_unit",
     # #161 phase 2: reading slots, one "Name | Unit" per line (ids are
@@ -110,6 +125,9 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
             sched = read_legacy_fields(tdata)
             writer.writerow(
                 {
+                    "object_entry_id": entry.entry_id,
+                    "object_archived_at": _csv_safe(str(obj_data.get("archived_at") or "")),
+                    "object_predecessor_entry_id": _csv_safe(str(obj_data.get("predecessor_entry_id") or "")),
                     "object_name": _csv_safe(obj_data.get("name", "")),
                     "object_manufacturer": _csv_safe(obj_data.get("manufacturer", "")),
                     "object_model": _csv_safe(obj_data.get("model", "")),
@@ -130,6 +148,7 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
                     "interval_unit": sched["interval_unit"],
                     "due_date": _csv_safe(str(sched["due_date"] or "")),
                     "interval_anchor": sched["interval_anchor"],
+                    "schedule": json.dumps(Schedule.parse(tdata).to_dict(), separators=(",", ":")),
                     "schedule_time": tdata.get("schedule_time", ""),
                     "reading_unit": _csv_safe(tdata.get("reading_unit", "")),
                     "readings": "\n".join(_csv_safe(line) for line in reading_slots_text(tdata.get("readings")).splitlines()),
@@ -222,21 +241,37 @@ def import_objects_csv(
     bare constant ``7`` is used.
 
     Returns a list of objects, each with 'object' and 'tasks' dicts
-    matching the format expected by the config flow.
+    matching the format expected by the config flow. A row set with the
+    ``object_entry_id`` column also carries the source ``entry_id``, the
+    archive marker and the (source) ``predecessor_entry_id`` — the importer
+    remaps those to the new entry ids — and per-object ``warnings`` for
+    values that were dropped.
     """
+    from homeassistant.util import dt as dt_util
+
+    from ..const import ARCHIVE_REASON_OBJECT
+
     default_warning_days = get_default_warning_days(hass) if hass is not None else 7
+    today = dt_util.now().date()
     reader = csv.DictReader(io.StringIO(csv_content))
 
-    # Group rows by object name
+    # Group rows by the source object (its entry id), or — for a CSV written
+    # before that column existed — by object name.
     objects_map: dict[str, dict[str, Any]] = {}
 
     for row in reader:
         obj_name = (row.get("object_name") or "").strip()
         if not obj_name:
             continue
+        source_id = (row.get("object_entry_id") or "").strip()
+        group = f"id:{source_id}" if source_id else f"name:{obj_name}"
 
-        if obj_name not in objects_map:
-            objects_map[obj_name] = {
+        if group not in objects_map:
+            archived_at = (row.get("object_archived_at") or "").strip().lstrip("\t")
+            predecessor = (row.get("object_predecessor_entry_id") or "").strip()
+            objects_map[group] = {
+                "entry_id": source_id or None,
+                "warnings": [],
                 "object": {
                     "id": uuid4().hex,
                     "name": obj_name,
@@ -250,10 +285,13 @@ def import_objects_csv(
                     # import until now (round-trip gap, audit 2026-07-11).
                     "documentation_url": (row.get("object_documentation_url") or "").strip() or None,
                     "notes": (row.get("object_notes") or "").strip() or None,
+                    "archived_at": archived_at if _is_iso_moment(archived_at) else None,
+                    "predecessor_entry_id": predecessor or None,
                     "task_ids": [],
                 },
                 "tasks": {},
             }
+        current = objects_map[group]
 
         task_name = (row.get("task_name") or "").strip()
         if not task_name:
@@ -262,7 +300,7 @@ def import_objects_csv(
         task_id = uuid4().hex
         task_data: dict[str, Any] = {
             "id": task_id,
-            "object_id": objects_map[obj_name]["object"]["id"],
+            "object_id": current["object"]["id"],
             "name": task_name,
             "type": (row.get("task_type") or "custom").strip(),
             "enabled": True,
@@ -287,6 +325,19 @@ def import_objects_csv(
         if anchor in ("planned", "completion"):
             task_data["interval_anchor"] = anchor
 
+        # The nested recurrence (calendar kinds, season, series end). The
+        # flat cells above stay alongside: normalize_task_storage keeps a
+        # calendar kind authoritative and lets edited flat interval cells win
+        # over an interval schedule while keeping its extras.
+        schedule_raw = (row.get("schedule") or "").strip()
+        if schedule_raw:
+            try:
+                parsed_schedule = json.loads(schedule_raw)
+                if isinstance(parsed_schedule, dict):
+                    task_data["schedule"] = Schedule.from_dict(parsed_schedule).to_dict()
+            except (ValueError, TypeError, KeyError, AttributeError):
+                current["warnings"].append(f"{task_name}: unreadable schedule cell — the flat columns were used")
+
         # schedule_time round-trip, canonical HH:MM ("HH:MM:SS" from the
         # options flow folds); malformed values are dropped silently
         # (consistent with other CSV import fields).
@@ -305,7 +356,14 @@ def import_objects_csv(
 
         last_performed = (row.get("last_performed") or "").strip()
         if last_performed:
-            write_anchor(task_data, last_performed)
+            lp_date = parse_iso_date(last_performed)
+            if lp_date is not None and lp_date > today:
+                # A day the work WAS done cannot lie ahead — a far-future one
+                # overflowed the schedule math and kept the object in
+                # setup-retry (bug audit 2026-09-27).
+                current["warnings"].append(f"{task_name}: last performed date {last_performed} is in the future — dropped")
+            else:
+                write_anchor(task_data, last_performed)
 
         notes = (row.get("notes") or "").strip()
         if notes:
@@ -353,10 +411,30 @@ def import_objects_csv(
             if items:
                 task_data["checklist"] = items
 
-        objects_map[obj_name]["tasks"][task_id] = task_data
-        objects_map[obj_name]["object"]["task_ids"].append(task_id)
+        # An archived object's tasks are archived WITH it (reason object, so
+        # an unarchive restores them): the CSV carries no per-task archive
+        # state, and an archived object with live tasks kept notifying.
+        if current["object"].get("archived_at"):
+            task_data["archived_at"] = current["object"]["archived_at"]
+            task_data["archived_reason"] = ARCHIVE_REASON_OBJECT
+
+        current["tasks"][task_id] = task_data
+        current["object"]["task_ids"].append(task_id)
 
     return list(objects_map.values())
+
+
+def _is_iso_moment(value: str) -> bool:
+    """An ISO date / datetime string (the archive marker's shape)."""
+    from datetime import datetime
+
+    if not value:
+        return False
+    try:
+        datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    return True
 
 
 def _safe_int(value: str | None, default: int | None) -> int | None:

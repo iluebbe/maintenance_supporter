@@ -1229,6 +1229,12 @@ class NotificationManager:
             if self._last_notified.get(key) == _SENT_ONCE:
                 self._last_notified[key] = dt_util.now()
                 changed = True
+            # A reminder held for the quiet-hours summary is stale once the
+            # task left that status (postponed, completed from elsewhere,
+            # the sensor recovered): the morning summary announced "overdue"
+            # for a task that no longer was (bug audit 2026-09-27).
+            if self._quiet_held.pop(key, None) is not None:
+                changed = True
         if changed:
             self._dirty()
 
@@ -2312,6 +2318,35 @@ class NotificationManager:
             self._last_notified.pop(key, None)
             self._snoozed_until.pop(key, None)
             self._quiet_held.pop(key, None)
+        # The daily-limit waiting lists too: a completed (or deleted) task is
+        # not waiting for a slot any more — left in, it kept reserving the
+        # "starved first" budget for a reminder that would never be sent
+        # (bug audit 2026-09-27).
+        tkey = task_key_of(entry_id, task_id)
+        self._deferred_today.discard(tkey)
+        self._starved.discard(tkey)
+        self._dirty()
+
+    def purge_entry(self, entry_id: str) -> None:
+        """Forget every piece of bookkeeping about a deleted object's tasks —
+        the stamps, snoozes, held quiet-hours reminders, daily-limit lists and
+        lead-reminder dedup were persisted forever and a held reminder of a
+        deleted object still went out in the next summary (bug audit
+        2026-09-27). Keys all start with ``<entry_id>_``."""
+        prefix = f"{entry_id}_"
+        mappings: tuple[dict[str, Any], ...] = (
+            self._last_notified,
+            self._snoozed_until,
+            self._quiet_held,
+            self._delivered_at,
+            self._lead_sent,
+        )
+        for mapping in mappings:
+            for key in [k for k in mapping if k.startswith(prefix)]:
+                del mapping[key]
+        for keys in (self._served_today, self._deferred_today, self._starved):
+            keys.difference_update({k for k in keys if k.startswith(prefix)})
+        self._seeded_entries.discard(entry_id)
         self._dirty()
 
     async def async_dismiss_task_notification(self, task_id: str, responsible_user_id: str | None = None) -> None:

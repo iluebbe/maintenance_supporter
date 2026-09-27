@@ -10,7 +10,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, syncCurrencyDecimals} from "./styles";
 import { OVERVIEW_TABS, type OverviewTab } from "./helpers/overview-tabs";
 import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
-import { openHtmlInNewTab, openSignedDocument, signApiPath } from "./helpers/document-url";
+import { openHtmlInNewTab, openSignedDocument, preopenTab, signApiPath } from "./helpers/document-url";
 import { readObjectsCache, writeObjectsCache } from "./helpers/objects-cache";
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { daysProgress } from "./helpers/interval";
@@ -2658,6 +2658,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     const obj = this._getObject(entryId);
     const task = obj?.tasks.find((tk) => tk.id === taskId);
     if (!obj || !task) return;
+    // The tab opens NOW, in the click's synchronous part — after the QR /
+    // documents awaits below a window.open is no gesture any more and
+    // popup blockers swallowed the sheet (bug audit 2026-09-26 #2).
+    const tab = preopenTab();
+    let shown = false;
     this._actionLoading = true;
     try {
       const qrBase: Record<string, unknown> = {
@@ -2740,8 +2745,10 @@ export class MaintenanceSupporterPanel extends LitElement {
         partsLines,
         taskRef(obj.object, task),
       );
-      openHtmlInNewTab(html);
+      openHtmlInNewTab(html, tab);
+      shown = true;
     } finally {
+      if (!shown) tab?.close();
       this._actionLoading = false;
     }
   }
@@ -4709,7 +4716,8 @@ export class MaintenanceSupporterPanel extends LitElement {
       currencySymbol: this._currencySymbol,
       setFilter: (f) => { this._historyFilter = f; },
       setSearch: (s) => { this._historySearch = s; },
-      openEdit: (entry) => this._openHistoryEdit(entry),
+      // Write tier (task/history/update): no pencil for a read-only member.
+      openEdit: this._isOperator ? undefined : (entry) => this._openHistoryEdit(entry),
       readingUnit: task?.reading_unit ?? null,
       taskRef: taskRef(this._selectedEntryId ? this._getObject(this._selectedEntryId)?.object : null, task),
       // #139: name the phase badge on entries stamped with a phase_id.

@@ -67,13 +67,21 @@ export async function uploadCompletionPhoto(hass: HomeAssistant, entryId: string
 }
 
 /** Best-effort removal of photos uploaded in a dialog session that was
- * abandoned (✕ on a tile, Cancel) — nothing references them, so they
- * would otherwise linger as orphans in the object's documents. */
-export async function discardUploadedPhotos(hass: HomeAssistant, docIds: string[]): Promise<void> {
+ * abandoned (✕ on a tile, Cancel, an upload landing after the dialog
+ * closed) — nothing references them, so they would otherwise linger as
+ * orphans in the object's documents and count towards its document cap.
+ *
+ * Through the READ-tier `documents/discard_upload`, not the write-gated
+ * `documents/delete`: every household member may attach completion photos,
+ * but only writers could delete — a non-writer's cleanup was refused and
+ * the refusal swallowed (bug audit 2026-09-26 #2). The server deletes only
+ * an UNATTACHED photo-tagged document of that object, so the call can never
+ * remove anything a history entry or a task still references. */
+export async function discardUploadedPhotos(hass: HomeAssistant, entryId: string, docIds: string[]): Promise<void> {
   await Promise.all(
     docIds.map((docId) =>
       hass.connection
-        .sendMessagePromise({ type: "maintenance_supporter/documents/delete", doc_id: docId })
+        .sendMessagePromise({ type: "maintenance_supporter/documents/discard_upload", entry_id: entryId, doc_id: docId })
         .catch(() => undefined),
     ),
   );

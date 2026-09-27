@@ -29,7 +29,6 @@ from homeassistant.core import HomeAssistant
 from ..const import (
     CONF_OBJECT,
     CONF_PARTS,
-    CONF_TASK_CONSUMES_PARTS,
     CONF_TASKS,
     DOCUMENT_STORE_KEY,
     DOMAIN,
@@ -37,6 +36,8 @@ from ..const import (
 )
 from .aggregate import get_object_entries, object_name
 from .issues import SHARED_PARTS_MOVED_PREFIX, shared_parts_moved_issue_id
+from .parts import iter_part_links, map_part_links
+from .pause import is_task_inert
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,78 +49,102 @@ TRANSFER_ISSUE_PREFIX = SHARED_PARTS_MOVED_PREFIX
 object_entries = get_object_entries
 
 
+def _links_to(task: dict[str, Any], owner_id: str) -> list[dict[str, Any]]:
+    """The task's links (task level AND per phase) into ``owner_id``'s pool."""
+    return [link for link in iter_part_links(task) if str(link.get("entry_id") or "") == owner_id]
+
+
+def _is_inert_borrower(entry: ConfigEntry, task: dict[str, Any]) -> bool:
+    """An archived / disabled task, or an archived / paused borrower object."""
+    obj = entry.data.get(CONF_OBJECT) or {}
+    return obj.get("archived_at") is not None or is_task_inert(task, obj)
+
+
 def borrowers_of(hass: HomeAssistant, owner_id: str) -> list[ConfigEntry]:
     """Objects whose tasks consume a part owned by ``owner_id``.
 
     Oldest first, so which object inherits a pool is deterministic rather than
-    a function of dict ordering.
+    a function of dict ordering. Phase-level links count (bug audit
+    2026-09-27): a borrower whose only link sat in a phase was missed, and
+    the owner's delete handed the pool to nobody.
     """
     found: list[ConfigEntry] = []
     for entry in object_entries(hass):
         if entry.entry_id == owner_id:
             continue
-        for task in (entry.data.get(CONF_TASKS) or {}).values():
-            links = task.get(CONF_TASK_CONSUMES_PARTS) or []
-            if any(
-                isinstance(link, dict) and str(link.get("entry_id") or "") == owner_id
-                for link in links
-            ):
-                found.append(entry)
-                break
+        if any(_links_to(task, owner_id) for task in (entry.data.get(CONF_TASKS) or {}).values()):
+            found.append(entry)
     # created_at is per object; fall back to entry_id for a stable order.
     found.sort(key=lambda e: (str((e.data.get(CONF_OBJECT) or {}).get("created_at") or ""), e.entry_id))
     return found
 
 
-def borrowed_part_ids(hass: HomeAssistant, owner_id: str) -> set[str]:
-    """Which of the owner's parts other objects actually link to."""
+def borrowed_part_ids(hass: HomeAssistant, owner_id: str, *, active_only: bool = False) -> set[str]:
+    """Which of the owner's parts other objects actually link to (task level
+    and per phase). ``active_only``: count only links of live tasks on live
+    objects — the buy-task reconcile of a retired owner asks this."""
     wanted: set[str] = set()
     for entry in object_entries(hass):
         if entry.entry_id == owner_id:
             continue
         for task in (entry.data.get(CONF_TASKS) or {}).values():
-            for link in task.get(CONF_TASK_CONSUMES_PARTS) or []:
-                if isinstance(link, dict) and str(link.get("entry_id") or "") == owner_id:
-                    part_id = str(link.get("part_id") or "").strip()
-                    if part_id:
-                        wanted.add(part_id)
+            if active_only and _is_inert_borrower(entry, task):
+                continue
+            for link in _links_to(task, owner_id):
+                part_id = str(link.get("part_id") or "").strip()
+                if part_id:
+                    wanted.add(part_id)
     return wanted
 
 
-def _relink(
+def relink_tasks(
     tasks: dict[str, Any], old_owner: str, new_owner: str, moved: dict[str, str]
 ) -> tuple[dict[str, Any], int]:
-    """Point links at the pool's new home; ``moved`` maps old→new part id."""
+    """Point links at the pool's new home; ``moved`` maps old→new part id.
+
+    ``new_owner == ""`` means the pool now lives on the tasks' own object
+    (the link loses its ``entry_id``). Task-level AND phase-level links move
+    (bug audit 2026-09-27). Returns the tasks and how many changed.
+    """
+
+    def _rewrite(link: dict[str, Any]) -> dict[str, Any]:
+        if str(link.get("entry_id") or "") != old_owner or str(link.get("part_id") or "") not in moved:
+            return link
+        link["part_id"] = moved[str(link["part_id"])]
+        if new_owner == "":
+            link.pop("entry_id", None)  # the pool is now ours
+        else:
+            link["entry_id"] = new_owner
+        return link
+
     out: dict[str, Any] = {}
     count = 0
     for task_id, task in tasks.items():
-        links = task.get(CONF_TASK_CONSUMES_PARTS)
-        if not isinstance(links, list) or not links:
-            out[task_id] = task
-            continue
-        new_links = []
-        touched = False
-        for link in links:
-            if (
-                isinstance(link, dict)
-                and str(link.get("entry_id") or "") == old_owner
-                and str(link.get("part_id") or "") in moved
-            ):
-                new_link = dict(link)
-                new_link["part_id"] = moved[str(link["part_id"])]
-                if new_owner == "":
-                    new_link.pop("entry_id", None)  # the pool is now ours
-                else:
-                    new_link["entry_id"] = new_owner
-                new_links.append(new_link)
-                touched = True
-            else:
-                new_links.append(link)
-        if touched:
-            task = {**task, CONF_TASK_CONSUMES_PARTS: new_links}
+        new_task, changed = map_part_links(task, _rewrite)
+        if changed:
             count += 1
-        out[task_id] = task
+            out[task_id] = new_task
+        else:
+            out[task_id] = task
     return out, count
+
+
+def relink_borrowers(hass: HomeAssistant, old_owner: str, new_owner: str, moved: dict[str, str]) -> int:
+    """Re-point every OTHER object's links from ``old_owner``'s pool to
+    ``new_owner``'s (``moved``: old→new part id). Used by object/replace:
+    the spares moved to the successor with fresh ids, and borrowers kept
+    drawing on the archived predecessor — whose buy tasks are suppressed —
+    so the pool silently split in two (bug audit 2026-09-27). Returns the
+    number of objects rewritten."""
+    touched = 0
+    for entry in object_entries(hass):
+        if entry.entry_id in (old_owner, new_owner):
+            continue
+        tasks, changed = relink_tasks(dict(entry.data.get(CONF_TASKS) or {}), old_owner, new_owner, moved)
+        if changed:
+            hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_TASKS: tasks})
+            touched += 1
+    return touched
 
 
 async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -176,7 +201,7 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
         heir_parts[target_id] = {**part, "id": target_id}
         moved[pid] = target_id
 
-    heir_tasks, _ = _relink(dict(heir.data.get(CONF_TASKS) or {}), owner_id, "", moved)
+    heir_tasks, _ = relink_tasks(dict(heir.data.get(CONF_TASKS) or {}), owner_id, "", moved)
     hass.config_entries.async_update_entry(
         heir, data={**heir.data, CONF_PARTS: heir_parts, CONF_TASKS: heir_tasks}
     )
@@ -204,7 +229,7 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
 
     # Everybody else now points at the heir.
     for other in heirs[1:]:
-        tasks, changed = _relink(dict(other.data.get(CONF_TASKS) or {}), owner_id, heir.entry_id, moved)
+        tasks, changed = relink_tasks(dict(other.data.get(CONF_TASKS) or {}), owner_id, heir.entry_id, moved)
         if changed:
             hass.config_entries.async_update_entry(other, data={**other.data, CONF_TASKS: tasks})
 

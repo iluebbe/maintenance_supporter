@@ -237,7 +237,20 @@ class BaseTrigger(ABC):
         self._triggered = is_triggered
         initial = not self._evaluated_once
         self._evaluated_once = True
+        if initial and self._in_completion_cooldown():
+            # A fresh instance (reload / restart) inside the post-completion
+            # cooldown behaves like the live one after its reset(): still on
+            # the triggering side is not a new edge, so the activation keeps
+            # the cooldown instead of lifting it. Only the live instance knew
+            # that, and a task edit right after "Complete" re-triggered the
+            # task and pushed a reminder (bug audit 2026-09-27).
+            self._recovered_since_reset = False
         if not is_triggered:
+            if not self._recovered_since_reset:
+                # Seen back on the normal side after the completion — told to
+                # the coordinator (persisted), so a reload's fresh instance
+                # does not mistake the next activation for the old one.
+                self._note_recovered()
             self._recovered_since_reset = True
 
         if is_triggered and not was_triggered:
@@ -255,6 +268,20 @@ class BaseTrigger(ABC):
         delegates per instance, have none and keep announcing as before."""
         check = getattr(type(self._coordinator), "trigger_already_announced", None)
         return callable(check) and check(self._coordinator, self._task_id) is True
+
+    def _in_completion_cooldown(self) -> bool:
+        """Whether the task was completed moments ago (the coordinator's
+        post-completion cooldown, which survives reloads). Class lookup for
+        the same reason as :meth:`_already_announced`."""
+        check = getattr(type(self._coordinator), "in_completion_cooldown", None)
+        return callable(check) and check(self._coordinator, self._task_id) is True
+
+    def _note_recovered(self) -> None:
+        """Report "recovered since the reset" (class lookup, see above — a
+        compound condition's proxy has none: the compound owns the task)."""
+        note = getattr(type(self._coordinator), "note_trigger_recovered", None)
+        if callable(note):
+            note(self._coordinator, self._task_id)
 
     def _restore_activation(self, value: float) -> None:
         """Re-latch an activation that was announced before this instance

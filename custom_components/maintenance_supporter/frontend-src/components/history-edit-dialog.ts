@@ -78,6 +78,12 @@ export class MaintenanceHistoryEditDialog extends LitElement {
   @state() private _partOptions: PartOption[] | null = null;
   @state() private _partQty: Record<string, number> = {};
   private _partQtyOriginal = "";
+  /** Bumped by every openEdit() and close(): an async answer started under
+   *  an older value belongs to a dialog session that is gone. The draft's
+   *  identity could not tell — every keystroke replaces `_draft` (`_set`),
+   *  so typing before parts/overview answered dropped the parts section
+   *  and the save skipped used_parts (bug audit 2026-09-26 #2). */
+  private _openGen = 0;
 
   // #161: the edited photo list (seeded with the entry's photos; the docs
   // THIS session uploaded are dropped again by an abandoned edit, a removed
@@ -99,6 +105,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
    *  pass `original_timestamp` (the entry's current timestamp before edit)
    *  so the backend can find the entry. */
   public openEdit(draft: HistoryEntryDraft): void {
+    this._openGen++;
     this._draft = { ...draft };
     this._originalSnapshot = { ...draft };
     this._error = "";
@@ -149,8 +156,11 @@ export class MaintenanceHistoryEditDialog extends LitElement {
   /** The object's own parts + pooled parts this task draws on — from the
    *  instance-wide overview so pooled owners resolve without extra calls. */
   private async _loadPartOptions(): Promise<void> {
+    // The entry as opened: entry_id / task_id / used_parts never change
+    // while the dialog is open (only the edited fields do).
     const draft = this._draft;
     if (!draft) return;
+    const gen = this._openGen;
     try {
       const result = await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/parts/overview",
@@ -162,8 +172,9 @@ export class MaintenanceHistoryEditDialog extends LitElement {
       };
       // The dialog was closed or reopened for ANOTHER entry while this was in
       // flight: its options (and quantities) belong to that other entry now
-      // (bug audit 2026-09-26 — out-of-order answers).
-      if (this._draft !== draft) return;
+      // (bug audit 2026-09-26 — out-of-order answers). Edits typed in the
+      // meantime do NOT count as another session.
+      if (gen !== this._openGen) return;
       const options: PartOption[] = [];
       for (const row of result.parts || []) {
         const own = row.entry_id === draft.entry_id;
@@ -199,7 +210,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
       this._partQty = qty;
       this._partQtyOriginal = this._partSelectionKey();
     } catch {
-      if (this._draft !== draft) return;
+      if (gen !== this._openGen) return;
       this._partOptions = [];  // parts UI unavailable — the rest still edits
     }
   }
@@ -213,6 +224,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
   }
 
   public close(): void {
+    this._openGen++;
     this._open = false;
     this._error = "";
     this._draft = null;
@@ -269,6 +281,9 @@ export class MaintenanceHistoryEditDialog extends LitElement {
 
   private async _save(): Promise<void> {
     if (!this._draft || !this._originalSnapshot) return;
+    // Save waits for a photo still uploading — it would miss the patch and
+    // stay behind as an orphan (bug audit 2026-09-26 #2).
+    if (this._saving || this._photos.uploading) return;
     this._saving = true;
     this._error = "";
     this._photos.clearError();
@@ -464,7 +479,8 @@ export class MaintenanceHistoryEditDialog extends LitElement {
           <button class="cancel" @click=${this.close} ?disabled=${this._saving}>
             ${t("cancel", L)}
           </button>
-          <button class="save" @click=${this._save} ?disabled=${this._saving}>
+          <button class="save" @click=${this._save} ?disabled=${this._saving || this._photos.uploading}
+            title=${this._photos.uploading ? t("uploading", L) : ""}>
             ${this._saving ? t("saving", L) : t("save", L)}
           </button>
         </div>

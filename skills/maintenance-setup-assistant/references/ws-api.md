@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All **91** registered commands are covered here. Their authorization tiers are
+All **98** registered commands are covered here. Their authorization tiers are
 frozen in `tests/test_ws_permission_matrix.py` — that test is the inventory of
 record; this file is its prose companion.
 
@@ -45,7 +45,7 @@ are trimmed/dropped by the sanitize layer even if the schema would accept them.
   `operator_write_enabled` or edit `admin_panel_user_ids`.
 - No gate (any authenticated user): all read commands + `task/complete`,
   `task/quick_complete`, `task/skip`, `task/reset`, `task/postpone`,
-  `task/snooze`, `task/checklist_progress`.
+  `task/snooze`, `task/checklist_progress`, `documents/discard_upload`.
 
 Operator writes require: admin set `operator_write_enabled: true` **and** added
 the user to `admin_panel_user_ids`. Otherwise non-admins are denied.
@@ -751,6 +751,15 @@ page" work per task (PDF `#page=N`). Unknown id → `not_found`.
 ### `documents/delete` — `@require_write`
 `{doc_id}` → `{"success": true, "bytes_freed": N}`. Bytes come back only when
 the **last** reference to a blob goes.
+
+### `documents/discard_upload` — read
+`{entry_id (req), doc_id (req)}` → `{"success": true}`. Deletes a completion
+photo that never became part of a record — the counterpart of the photo
+upload every signed-in user may make. Only a document of that object, tagged
+exactly `photo`, that no history entry (of any task), spare part or task link
+points at; anything else answers `not_found` (whether it exists or not).
+Unattached photos older than 24 h are also removed by the daily retention
+sweep, and a non-writer can have at most 20 of them per object waiting.
 
 ## Suggested setups — the shipped signature catalog
 

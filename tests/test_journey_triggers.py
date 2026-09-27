@@ -21,7 +21,12 @@ import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.maintenance_supporter.const import DOMAIN, GLOBAL_UNIQUE_ID, ScheduleType
+from custom_components.maintenance_supporter.const import (
+    DOMAIN,
+    GLOBAL_UNIQUE_ID,
+    TRIGGER_COMPLETION_COOLDOWN_SECONDS,
+    ScheduleType,
+)
 from custom_components.maintenance_supporter.websocket.objects import ws_get_objects
 from custom_components.maintenance_supporter.websocket.tasks import ws_complete_task
 
@@ -115,14 +120,23 @@ async def test_trigger_fires_completes_and_rearms_across_restart(
     after = await _read(hass, obj.entry_id)
     assert after["times_performed"] >= 1, "completion not recorded"
 
-    # Restart while the sensor is STILL above the threshold. Pin the observed
-    # re-arm behaviour: a level (not edge) threshold that is still exceeded
-    # re-triggers after the reload — the task shouldn't get stuck "ok" while the
-    # pressure is genuinely still high.
+    # Restart while the sensor is STILL above the threshold. The completion
+    # moments ago opened the post-completion cooldown (the user tapped
+    # Complete before fixing the pressure); it survives the restart (bug
+    # audit 2026-09-27 — it used to re-trigger and push right away). A level
+    # (not edge) threshold that is still exceeded re-arms once the cooldown
+    # is over — the task must not get stuck "ok" while the pressure is
+    # genuinely still high.
     await simulate_restart(hass, obj)
     obj = hass.config_entries.async_get_entry(obj.entry_id)
     assert hass.states.get(_SENSOR).state == "35", "sensor should still be high after restart"
     await hass.async_block_till_done()
+    in_cooldown = await _read(hass, obj.entry_id)
+    assert in_cooldown["status"] != "triggered", "the post-completion cooldown must survive the restart"
+    coordinator = obj.runtime_data.coordinator
+    for tid in list(coordinator._recently_completed):
+        coordinator._recently_completed[tid] -= TRIGGER_COMPLETION_COOLDOWN_SECONDS + 1
+    await coordinator.async_refresh()
     rearmed = await _read(hass, obj.entry_id)
     assert rearmed["trigger_active"] is True, (
         "a still-exceeded threshold must re-arm after restart, not stay silently ok"

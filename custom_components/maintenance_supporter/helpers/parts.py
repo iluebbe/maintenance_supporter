@@ -22,7 +22,7 @@ is passed in here as a plain ``{part_id: stock}`` map.
 from __future__ import annotations
 
 import re
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from datetime import date
 from typing import Any
 from urllib.parse import quote_plus
@@ -306,6 +306,73 @@ def sanitize_consumes_parts(
             link["entry_id"] = entry_id
         out[(entry_id, part_id)] = link
     return list(out.values())
+
+
+# ── Link traversal (task level AND per phase) ────────────────────────────────
+
+
+def iter_part_links(task: Mapping[str, Any]) -> Iterator[dict[str, Any]]:
+    """Every part link of a task: its ``consumes_parts`` AND each phase's (#139).
+
+    A phase may override which parts a completion consumes, so its links are
+    as real as the task's. Replace, the shared-pool owner hand-over and the
+    JSON import each walked the task level only — a phase link kept pointing
+    at the retired / deleted / pre-import part (bug audit 2026-09-27). Every
+    walker goes through this one.
+    """
+    links = task.get("consumes_parts")
+    if isinstance(links, list):
+        yield from (link for link in links if isinstance(link, dict))
+    phases = task.get("phases")
+    if isinstance(phases, Mapping):
+        for pdef in phases.values():
+            plinks = pdef.get("consumes_parts") if isinstance(pdef, Mapping) else None
+            if isinstance(plinks, list):
+                yield from (link for link in plinks if isinstance(link, dict))
+
+
+def map_part_links(
+    task: Mapping[str, Any], rewrite: Callable[[dict[str, Any]], dict[str, Any] | None]
+) -> tuple[dict[str, Any], bool]:
+    """A copy of ``task`` with every part link (task level and per phase, see
+    :func:`iter_part_links`) passed through ``rewrite``; ``None`` drops the
+    link, and a list left empty is removed. Returns ``(task, changed)`` —
+    the input is never mutated."""
+    changed = False
+
+    def _rewrite_list(links: list[Any]) -> list[dict[str, Any]]:
+        nonlocal changed
+        out: list[dict[str, Any]] = []
+        for link in links:
+            new = rewrite(dict(link)) if isinstance(link, dict) else None
+            if new != link:
+                changed = True
+            if new is not None:
+                out.append(new)
+        return out
+
+    new_task = dict(task)
+    links = task.get("consumes_parts")
+    if isinstance(links, list):
+        kept = _rewrite_list(links)
+        if kept:
+            new_task["consumes_parts"] = kept
+        else:
+            new_task.pop("consumes_parts", None)
+    phases = task.get("phases")
+    if isinstance(phases, Mapping):
+        new_phases: dict[str, Any] = {}
+        for pid, pdef in phases.items():
+            if isinstance(pdef, Mapping) and isinstance(pdef.get("consumes_parts"), list):
+                pdef = dict(pdef)
+                kept = _rewrite_list(pdef["consumes_parts"])
+                if kept:
+                    pdef["consumes_parts"] = kept
+                else:
+                    pdef.pop("consumes_parts", None)
+            new_phases[pid] = pdef
+        new_task["phases"] = new_phases
+    return new_task, changed
 
 
 # ── Stock rules ──────────────────────────────────────────────────────────────

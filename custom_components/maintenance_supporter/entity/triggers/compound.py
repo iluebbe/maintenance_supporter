@@ -16,6 +16,7 @@ from ...const import (
     CONF_COMPOUND_LOGIC,
     EVENT_TRIGGER_ACTIVATED,
     EVENT_TRIGGER_DEACTIVATED,
+    UNAVAILABLE_STATES,
 )
 from .base_trigger import BaseTrigger
 
@@ -123,6 +124,19 @@ class _CompoundCoordinatorProxy:
         else:
             store.async_delay_save()
 
+    # A condition's sub-trigger is not the task's trigger: only the compound
+    # decides when the TASK activates. Delegated to the real coordinator,
+    # every sub-trigger activation wrote its own TRIGGERED history entry and
+    # lifted the post-completion cooldown — and, since this proxy has no
+    # trigger_already_announced, it did so again on every reload and restart
+    # (bug audit 2026-09-27, R SCH-10). The compound records the activation.
+
+    async def async_add_trigger_history_entry(self, task_id: str, trigger_value: float | None = None) -> None:
+        """No-op for a condition — see the class comment above."""
+
+    def note_trigger_edge(self, task_id: str, *, recovered: bool = True) -> None:
+        """No-op for a condition — the compound reports its own edge."""
+
 
 class CompoundTrigger(BaseTrigger):
     """Compound trigger that combines multiple conditions with AND/OR logic.
@@ -131,6 +145,11 @@ class CompoundTrigger(BaseTrigger):
     1. Within each condition: multi-entity ``entity_logic`` (any/all)
     2. Across conditions: ``compound_logic`` (AND/OR)
     """
+
+    # Class-level defaults for instances built without __init__ (tests), like
+    # BaseTrigger's flags; __init__ sets the real starting values.
+    _setting_up: bool = False
+    _settled: bool = True
 
     def __init__(
         self,
@@ -151,6 +170,15 @@ class CompoundTrigger(BaseTrigger):
         self._condition_states: list[bool] = [False] * len(self._conditions)
         self._sub_triggers: list[list[BaseTrigger]] = []
         self._sub_entities: list[CompoundSubEntity] = []
+        # The compound's counterpart of BaseTrigger._evaluated_once (bug
+        # audit 2026-09-27, R SCH-10): an activation is a RESTORE of the
+        # episode on record — repaint only — while the sub-triggers run their
+        # initial evaluations (async_setup), and until this instance has seen
+        # the compound inactive with every condition entity reporting (late
+        # entities after a restart evaluate on their first state event). An
+        # activation after that is a new edge and is announced.
+        self._setting_up = False
+        self._settled = False
 
     @property
     def condition_states(self) -> list[bool]:
@@ -159,10 +187,27 @@ class CompoundTrigger(BaseTrigger):
 
     async def async_setup(self) -> None:
         """Set up all sub-triggers for each condition."""
-        from . import create_triggers
-
         trigger_state = self.config.get("_trigger_state", {})
         conditions_state = trigger_state.get("conditions", [])
+
+        self._setting_up = True
+        try:
+            await self._async_setup_conditions(conditions_state)
+        finally:
+            self._setting_up = False
+        self._maybe_settle()
+
+        _LOGGER.debug(
+            "Compound trigger setup: %d conditions with %s logic for %s",
+            len(self._conditions),
+            self._compound_logic,
+            self.entity.entity_id,
+        )
+
+    async def _async_setup_conditions(self, conditions_state: list[Any]) -> None:
+        """Build and set up every condition's sub-triggers (their initial
+        evaluations run here and may already activate the compound)."""
+        from . import create_triggers
 
         for idx, condition in enumerate(self._conditions):
             sub_entity = CompoundSubEntity(self, idx, condition)
@@ -185,12 +230,20 @@ class CompoundTrigger(BaseTrigger):
             for trigger in sub_triggers:
                 await trigger.async_setup()
 
-        _LOGGER.debug(
-            "Compound trigger setup: %d conditions with %s logic for %s",
-            len(self._conditions),
-            self._compound_logic,
-            self.entity.entity_id,
-        )
+    def _all_conditions_reporting(self) -> bool:
+        """Every condition entity has a usable state (its sub-trigger has
+        had the chance to evaluate)."""
+        for trigger_list in self._sub_triggers:
+            for trigger in trigger_list:
+                state = self.hass.states.get(trigger.entity_id)
+                if state is None or state.state in UNAVAILABLE_STATES:
+                    return False
+        return True
+
+    def _maybe_settle(self) -> None:
+        """Seen inactive with full information: later activations are edges."""
+        if not self._settled and not self._setting_up and not self._triggered and self._all_conditions_reporting():
+            self._settled = True
 
     async def async_teardown(self) -> None:
         """Tear down all sub-triggers."""
@@ -230,9 +283,28 @@ class CompoundTrigger(BaseTrigger):
         self._triggered = now_triggered
 
         if now_triggered and not was_triggered:
-            self._on_trigger_activated(0.0)
+            initial = self._setting_up or not self._settled
+            if initial and self._in_completion_cooldown():
+                self._recovered_since_reset = False  # see BaseTrigger._evaluate_and_update
+            if initial and self._already_announced():
+                self._restore_activation(0.0)
+            else:
+                self._on_trigger_activated(0.0)
         elif not now_triggered and was_triggered:
             self._on_trigger_deactivated(0.0)
+        self._maybe_settle()
+
+    def _restore_activation(self, value: float) -> None:
+        """Repaint an activation already on record (see ``_settled``) — no
+        second history entry, no second event. Like the compound's own
+        activation it carries no per-entity id or value."""
+        _LOGGER.debug("Compound trigger restored as active (already announced): %s", self.entity.entity_id)
+        self.entity.async_update_trigger_state(
+            is_triggered=True,
+            current_value=None,
+            trigger_entity_id=None,
+        )
+        self._request_coordinator_refresh()
 
     def _on_trigger_activated(self, value: float) -> None:
         """Handle compound trigger activation."""

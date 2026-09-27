@@ -38,6 +38,7 @@ from ..helpers.aggregate import get_store, object_name
 from ..helpers.dates import normalize_hhmm, parse_iso_date
 from ..helpers.global_options import get_default_warning_days
 from ..helpers.history import finite_amount
+from ..helpers.parts import map_part_links
 from ..helpers.phases import clamp_phase_cursor, sanitize_phase_defs, sanitize_phase_sequence
 from ..helpers.qr_generator import (
     _ACTION_ICON_MAP,
@@ -90,10 +91,24 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
     if not isinstance(history, list):
         return []
     out: list[dict[str, Any]] = []
+    dropped = 0
     for entry in history:
         if not isinstance(entry, dict):
             continue
         clean = dict(entry)
+        # The timestamp is what every reader sorts, compares and parses as an
+        # ISO string: a number (epoch) or junk from a hand-edited backup made
+        # the next completion raise TypeError (bug audit 2026-09-27). A
+        # numeric epoch is converted; an entry whose moment cannot be read at
+        # all is dropped — junk text would also sort above every real date
+        # and erase the anchor. An ABSENT timestamp stays as it was (readers
+        # treat it as the empty string).
+        if clean.get("timestamp") is not None:
+            stamp = _history_timestamp(clean["timestamp"])
+            if stamp is None:
+                dropped += 1
+                continue
+            clean["timestamp"] = stamp
         cost = clean.get("cost")
         if isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost) or cost < 0:
             clean.pop("cost", None)
@@ -121,7 +136,235 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
             else:
                 clean.pop("reading_values", None)
         out.append(clean)
+    if dropped:
+        _LOGGER.warning("Import: dropped %d history entr(y/ies) without a readable timestamp", dropped)
     return out
+
+
+def _history_timestamp(value: Any) -> str | None:
+    """An imported history ``timestamp`` as an ISO string, or None.
+
+    ISO datetime / date strings are kept verbatim (live history mixes aware
+    and naive values, and readers compare them as strings); an int / float
+    is taken as a Unix epoch (seconds, or milliseconds when that large) and
+    converted to UTC ISO; anything else is unreadable.
+    """
+    from datetime import UTC, datetime
+
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return None
+        try:
+            datetime.fromisoformat(text.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        return text
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    seconds = float(value)
+    if seconds > 1e11:  # milliseconds
+        seconds /= 1000
+    try:
+        return datetime.fromtimestamp(seconds, tz=UTC).isoformat()
+    except (OverflowError, OSError, ValueError):
+        return None
+
+
+# ── Replace lineage + shared pools across an import (bug audit 2026-09-27) ──
+#
+# An import mints NEW entry ids, but objects refer to each other by entry id:
+# a replacement's ``predecessor_entry_id`` (which also exempts it from the
+# name rule — the successor usually keeps the old name), the retired object's
+# ``replaced_by_entry_id``, a ``parent_entry_id`` and a task's part link into
+# another object's pool (#111). Copied verbatim, every one of them pointed at
+# the SOURCE instance's objects: a replaced pair restored onto a clean
+# instance failed with "already_configured" for the active successor, and
+# every shared-pool link was dropped. Objects are therefore created in
+# dependency order and these ids remapped through an old→new map.
+
+_LINEAGE_KEYS = ("predecessor_entry_id", "replaced_by_entry_id", "parent_entry_id")
+
+
+def _object_dependencies(obj_entry: Any) -> set[str]:
+    """Old entry ids an import payload object needs created BEFORE it: the
+    object it replaced and the owners of the pools its tasks draw on."""
+    from ..helpers.parts import iter_part_links
+
+    deps: set[str] = set()
+    if not isinstance(obj_entry, dict):
+        return deps
+    obj_data = obj_entry.get("object")
+    pred = obj_data.get("predecessor_entry_id") if isinstance(obj_data, dict) else None
+    if isinstance(pred, str) and pred:
+        deps.add(pred)
+    tasks = obj_entry.get("tasks")
+    for task in tasks if isinstance(tasks, list) else []:
+        if isinstance(task, dict):
+            deps.update(str(link["entry_id"]) for link in iter_part_links(task) if link.get("entry_id"))
+    deps.discard(str(obj_entry.get("entry_id") or ""))
+    return deps
+
+
+def _import_order(objects: list[Any]) -> list[int]:
+    """Indexes of ``objects``, each after the payload objects it depends on
+    (:func:`_object_dependencies`); otherwise the payload order. A cycle is
+    broken where it closes (those references then fall back per key)."""
+    by_old: dict[str, int] = {}
+    for idx, obj_entry in enumerate(objects):
+        old = obj_entry.get("entry_id") if isinstance(obj_entry, dict) else None
+        if isinstance(old, str) and old:
+            by_old.setdefault(old, idx)
+    deps = [sorted(by_old[d] for d in _object_dependencies(o) if d in by_old) for o in objects]
+    order: list[int] = []
+    done: set[int] = set()
+    for root in range(len(objects)):
+        if root in done:
+            continue
+        on_stack = {root}
+        stack = [(root, iter(deps[root]))]
+        while stack:
+            node, pending = stack[-1]
+            nxt = next(pending, None)
+            if nxt is None:
+                stack.pop()
+                on_stack.discard(node)
+                done.add(node)
+                order.append(node)
+            elif nxt not in done and nxt not in on_stack:
+                on_stack.add(nxt)
+                stack.append((nxt, iter(deps[nxt])))
+    return order
+
+
+class _ImportLineage:
+    """Old→new entry ids (and part ids) of one import run."""
+
+    def __init__(self, hass: HomeAssistant, objects: list[Any]) -> None:
+        self._hass = hass
+        self.payload_ids = {
+            str(o["entry_id"]) for o in objects if isinstance(o, dict) and isinstance(o.get("entry_id"), str) and o["entry_id"]
+        }
+        self.entry_ids: dict[str, str] = {}
+        self.part_ids: dict[str, dict[str, str]] = {}
+        self._pending: list[tuple[str, dict[str, str]]] = []
+
+    def _live(self, entry_id: str) -> bool:
+        return self._hass.config_entries.async_get_entry(entry_id) is not None
+
+    def apply(self, import_obj: dict[str, Any], obj_data: dict[str, Any]) -> dict[str, str]:
+        """Set the lineage ids on a new object dict; returns the references to
+        a payload object that is not created yet (resolved by :meth:`finish`).
+
+        An id outside the payload is kept verbatim (a same-instance partial
+        restore keeps it valid; a stale one degrades gracefully at read
+        time). A payload id maps to the object's new entry id; until that
+        exists it falls back to a live object with the old id, else None.
+        """
+        pending: dict[str, str] = {}
+        for key in _LINEAGE_KEYS:
+            old = obj_data.get(key)
+            if not isinstance(old, str) or not old:
+                import_obj[key] = None
+                continue
+            if old not in self.payload_ids:
+                import_obj[key] = old
+                continue
+            new = self.entry_ids.get(old)
+            if new is None:
+                pending[key] = old
+                new = old if self._live(old) else None
+            import_obj[key] = new
+        return pending
+
+    def created(self, old_entry_id: Any, new_entry_id: str, part_id_map: dict[str, str], pending: dict[str, str]) -> None:
+        if isinstance(old_entry_id, str) and old_entry_id:
+            self.entry_ids[old_entry_id] = new_entry_id
+            self.part_ids[old_entry_id] = dict(part_id_map)
+        if pending:
+            self._pending.append((new_entry_id, pending))
+
+    def link_rewriter(self, own_old_entry_id: str, part_id_map: dict[str, str]) -> Any:
+        """The rewrite for one object's part links (helpers.parts.map_part_links):
+        own links follow the fresh part ids, a pool link to a payload object
+        follows that object's new ids, a link to a live object (a
+        same-instance import) stays, the rest is dropped rather than left
+        pointing nowhere."""
+
+        def _rewrite(link: dict[str, Any]) -> dict[str, Any] | None:
+            owner = str(link.get("entry_id") or "").strip()
+            part_id = str(link.get("part_id") or "")
+            if not owner or owner == own_old_entry_id:
+                if part_id not in part_id_map:
+                    return None
+                return {"part_id": part_id_map[part_id], "quantity": link.get("quantity", 1)}
+            new_owner = self.entry_ids.get(owner)
+            owner_parts = self.part_ids.get(owner) or {}
+            if new_owner is not None and part_id in owner_parts:
+                return {**link, "entry_id": new_owner, "part_id": owner_parts[part_id]}
+            return link if self._live(owner) else None
+
+        return _rewrite
+
+    def finish(self) -> None:
+        """Point the references to objects created LATER at their new ids."""
+        for new_entry_id, refs in self._pending:
+            entry = self._hass.config_entries.async_get_entry(new_entry_id)
+            if entry is None:
+                continue
+            obj = dict(entry.data.get(CONF_OBJECT) or {})
+            changed = {key: self.entry_ids[old] for key, old in refs.items() if old in self.entry_ids}
+            if not changed:
+                continue
+            obj.update(changed)
+            self._hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_OBJECT: obj})
+            if "parent_entry_id" in changed:
+                # The via_device hierarchy is built when entities are added.
+                self._hass.config_entries.async_schedule_reload(new_entry_id)
+        # A retired object imported without its successor pointer (the CSV
+        # carries only the predecessor) gets it back from the successor.
+        created = set(self.entry_ids.values())
+        for new_entry_id in created:
+            successor = self._hass.config_entries.async_get_entry(new_entry_id)
+            pred_id = (successor.data.get(CONF_OBJECT) or {}).get("predecessor_entry_id") if successor else None
+            if pred_id not in created:
+                continue
+            pred = self._hass.config_entries.async_get_entry(pred_id)
+            pred_obj = dict((pred.data.get(CONF_OBJECT) or {}) if pred else {})
+            if pred is not None and not pred_obj.get("replaced_by_entry_id"):
+                pred_obj["replaced_by_entry_id"] = new_entry_id
+                self._hass.config_entries.async_update_entry(pred, data={**pred.data, CONF_OBJECT: pred_obj})
+
+
+def _stamp_imported_action_owner(task_data: dict[str, Any], user_id: str | None) -> None:
+    """A completion action restored from a file runs as the IMPORTING admin.
+
+    The file's ``configured_by`` is never trusted — it could name any user,
+    an admin included (json/import is admin-only, but the file may come from
+    anywhere). Stamping the admin who imported it keeps the SEC-2 model
+    ("every action runs as a real user") instead of silently falling back to
+    system rights, and records who authorised it (bug audit 2026-09-27;
+    docs/CONFIGURATION.md "Who the action runs as").
+    """
+    from ..helpers.sanitize import ACTION_OWNER_KEY
+
+    action = task_data.get("on_complete_action")
+    if not isinstance(action, dict):
+        return
+    action = {k: v for k, v in action.items() if k != ACTION_OWNER_KEY}
+    if user_id:
+        action[ACTION_OWNER_KEY] = user_id
+    task_data["on_complete_action"] = action
+
+
+def _future_last_performed(value: Any) -> bool:
+    """A last-performed date after today — dropped on import with a warning
+    (bug audit 2026-09-27: a year-9999 anchor overflowed the schedule math
+    inside every refresh and kept the object in setup-retry)."""
+    from homeassistant.util import dt as dt_util
+
+    parsed = parse_iso_date(value) if isinstance(value, str) else None
+    return parsed is not None and parsed > dt_util.now().date()
 
 
 def _remap_document_refs(
@@ -421,9 +664,15 @@ async def ws_import_csv(
 
     created = []
     errors: list[dict[str, str]] = []
-    for idx, obj_data in enumerate(objects):
+    # Rows are grouped by the source object (object_entry_id column), so a
+    # replaced pair of the same name stays two objects; the pair's lineage
+    # is remapped like the JSON import's (bug audit 2026-09-27).
+    lineage = _ImportLineage(hass, objects)
+    for idx in _import_order(objects):
+        obj_data = objects[idx]
+        pending = lineage.apply(obj_data["object"], obj_data["object"])
         # Check for NFC tag duplicates in CSV-imported tasks
-        nfc_warnings: list[str] = []
+        nfc_warnings: list[str] = list(obj_data.get("warnings") or [])
         for t_data in obj_data.get("tasks", {}).values():
             nfc_val = t_data.get("nfc_tag_id")
             if nfc_val:
@@ -446,6 +695,7 @@ async def ws_import_csv(
             errors.append({"name": obj_name, "reason": "unexpected error"})
             continue
         if result["type"] == "create_entry":
+            lineage.created(obj_data.get("entry_id"), result["result"].entry_id, {}, pending)
             entry_info: dict[str, Any] = {
                 "entry_id": result["result"].entry_id,
                 "name": obj_data["object"].get("name", ""),
@@ -457,6 +707,7 @@ async def ws_import_csv(
         else:
             obj_name = obj_data.get("object", {}).get("name", f"row {idx + 1}")
             errors.append({"name": obj_name, "reason": result.get("reason", "unknown")})
+    lineage.finish()
 
     resp: dict[str, Any] = {
         "imported": created,
@@ -602,10 +853,25 @@ def _apply_settings_import(hass: HomeAssistant, raw: dict[str, Any]) -> list[str
 
     if isinstance(raw.get(CONF_VACATION_ENABLED), bool):
         filtered[CONF_VACATION_ENABLED] = raw[CONF_VACATION_ENABLED]
+    # Same bound as vacation/update: a date more than MAX_INTERVAL_DAYS out
+    # is no vacation — 9999-12-31 overflowed the calendar inside every
+    # object's refresh (bug audit 2026-09-27). Dropped with a warning.
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+
+    from ..const import MAX_INTERVAL_DAYS
+
+    latest_vacation_day = dt_util.now().date() + timedelta(days=MAX_INTERVAL_DAYS)
     for key in (CONF_VACATION_START, CONF_VACATION_END):
         val = raw.get(key)
-        if isinstance(val, str) and parse_iso_date(val) is not None:
-            filtered[key] = val
+        parsed_day = parse_iso_date(val) if isinstance(val, str) else None
+        if parsed_day is None:
+            continue
+        if parsed_day > latest_vacation_day:
+            _LOGGER.warning("Settings import: %s %s is more than %d days away — dropped", key, val, MAX_INTERVAL_DAYS)
+            continue
+        filtered[key] = val
     if isinstance(raw.get(CONF_VACATION_BUFFER_DAYS), int) and not isinstance(raw.get(CONF_VACATION_BUFFER_DAYS), bool):
         filtered[CONF_VACATION_BUFFER_DAYS] = raw[CONF_VACATION_BUFFER_DAYS]
     exempt = raw.get(CONF_VACATION_EXEMPT_TASK_IDS)
@@ -673,7 +939,10 @@ async def ws_import_json(
 
     created = []
     errors: list[dict[str, str]] = []
-    for idx, obj_entry in enumerate(objects):
+    importing_user = connection.user.id if connection.user else None
+    lineage = _ImportLineage(hass, objects)
+    for idx in _import_order(objects):
+        obj_entry = objects[idx]
         # Guard against malformed-but-schema-valid input (the schema only checks
         # json_content is a str): a non-dict entry / non-dict object would raise
         # AttributeError and escape the per-object try/except below.
@@ -703,17 +972,14 @@ async def ws_import_json(
             # cap_object_fields and the frontend only renders http(s) doc URLs.
             "documentation_url": obj_data.get("documentation_url"),
             "notes": obj_data.get("notes"),
-            # 2.19: device link / parent hierarchy — same-instance restores
-            # keep them valid; stale ids degrade gracefully at read time.
+            # 2.19: device link. Same-instance restores keep it valid; a
+            # stale id degrades gracefully at read time. The parent and the
+            # replace lineage are remapped just below (_ImportLineage).
             "ha_device_id": obj_data.get("ha_device_id"),
-            "parent_entry_id": obj_data.get("parent_entry_id"),
             # 2.20: seasonal pause round-trips (a paused pool restored in
-            # winter stays paused); replace-flow lineage ids are the same
-            # instance-specific story as parent_entry_id above.
+            # winter stays paused).
             "paused_at": _iso_marker(obj_data.get("paused_at")),
             "paused_until": _iso_marker(obj_data.get("paused_until")),
-            "predecessor_entry_id": obj_data.get("predecessor_entry_id"),
-            "replaced_by_entry_id": obj_data.get("replaced_by_entry_id"),
             # Object-level archive marker — same presence-means-archived
             # semantics as paused_at, so it gets the same ISO validation. Its
             # tasks carry their own archived_* pair (mirrored below).
@@ -724,6 +990,9 @@ async def ws_import_json(
             "next_task_ref": _ref_or_none(obj_data.get("next_task_ref")),
             "task_ids": [],
         }
+        # parent / predecessor / replaced_by → the NEW entry ids.
+        lineage_pending = lineage.apply(import_obj, obj_data)
+        own_old_entry_id = str(obj_entry.get("entry_id") or "")
 
         # Battery fleet identity (object flag + exclude/include lists + the
         # self-charging opt-in). The fleet is ONE object by invariant
@@ -892,73 +1161,38 @@ async def ws_import_json(
                     ):
                         link["part_id"] = part_id_map[link["part_id"]]
 
-            # Remap part links to the regenerated part ids; drop dangling ones.
-            links = task_data.get("consumes_parts")
-            if isinstance(links, list):
-                remapped = []
-                for link in links:
-                    if not isinstance(link, dict):
-                        continue
-                    foreign = str(link.get("entry_id") or "").strip()
-                    if foreign:
-                        # A link to another object's pool (#111). Import mints
-                        # new entry ids, so the reference only means anything
-                        # if that object is present in THIS instance — keep it
-                        # then, drop it otherwise rather than restore a link
-                        # that points nowhere.
-                        if hass.config_entries.async_get_entry(foreign) is not None:
-                            remapped.append(dict(link))
-                    elif link.get("part_id") in part_id_map:
-                        remapped.append(
-                            {"part_id": part_id_map[link["part_id"]], "quantity": link.get("quantity", 1)}
-                        )
-                if remapped:
-                    task_data["consumes_parts"] = remapped
-                else:
-                    task_data.pop("consumes_parts", None)
-            elif links is not None:
+            # Task phases (#139): sanitize like the live WS write and clamp the
+            # cursor to the imported sequence. The cursor rides entry.data
+            # until the fresh entry's first setup migrates it into the Store
+            # (dynamic field), so a restore resumes mid-cycle.
+            raw_defs = task_entry.get("phases")
+            raw_seq = task_entry.get("phase_sequence")
+            if isinstance(raw_defs, dict) and isinstance(raw_seq, list):
+                defs = sanitize_phase_defs(raw_defs)
+                seq = sanitize_phase_sequence(raw_seq, defs)
+                if defs and seq:
+                    task_data["phases"] = defs
+                    task_data["phase_sequence"] = seq
+                    task_data["phase_cursor"] = clamp_phase_cursor(task_entry.get("phase_cursor"), len(seq))
+
+            # Part links — task level AND per phase (helpers.parts.
+            # map_part_links, one rule for both): own links follow the
+            # regenerated part ids; a pool of another object (#111) follows
+            # that object's new ids when it is part of this import, stays
+            # when the object lives in THIS instance, and is dropped rather
+            # than restored pointing nowhere.
+            if task_data.get("consumes_parts") is not None and not isinstance(task_data["consumes_parts"], list):
                 task_data.pop("consumes_parts", None)
+            task_data, _links_changed = map_part_links(task_data, lineage.link_rewriter(own_old_entry_id, part_id_map))
             ref = task_data.get("part_ref")
             if isinstance(ref, dict) and ref.get("part_id") in part_id_map:
                 task_data["part_ref"] = {"part_id": part_id_map[ref["part_id"]]}
             elif ref is not None:
                 task_data.pop("part_ref", None)
 
-            # Task phases (#139): sanitize like the live WS write, remap each
-            # phase's part links to the regenerated ids (same rules as the
-            # task-level links above), and clamp the cursor to the imported
-            # sequence. The cursor rides entry.data until the fresh entry's
-            # first setup migrates it into the Store (dynamic field), so a
-            # restore resumes mid-cycle.
-            raw_defs = task_entry.get("phases")
-            raw_seq = task_entry.get("phase_sequence")
-            if isinstance(raw_defs, dict) and isinstance(raw_seq, list):
-                defs = sanitize_phase_defs(raw_defs)
-                for pdef in defs.values():
-                    plinks = pdef.get("consumes_parts")
-                    if not isinstance(plinks, list):
-                        continue
-                    kept = []
-                    for link in plinks:
-                        if not isinstance(link, dict):
-                            continue
-                        foreign = str(link.get("entry_id") or "").strip()
-                        if foreign:
-                            if hass.config_entries.async_get_entry(foreign) is not None:
-                                kept.append(dict(link))
-                        elif link.get("part_id") in part_id_map:
-                            kept.append(
-                                {"part_id": part_id_map[link["part_id"]], "quantity": link.get("quantity", 1)}
-                            )
-                    if kept:
-                        pdef["consumes_parts"] = kept
-                    else:
-                        pdef.pop("consumes_parts", None)
-                seq = sanitize_phase_sequence(raw_seq, defs)
-                if defs and seq:
-                    task_data["phases"] = defs
-                    task_data["phase_sequence"] = seq
-                    task_data["phase_cursor"] = clamp_phase_cursor(task_entry.get("phase_cursor"), len(seq))
+            # A completion action runs as the importing admin — never as the
+            # user a file names (bug audit 2026-09-27, SEC-2).
+            _stamp_imported_action_owner(task_data, importing_user)
 
             # Sanitize critical fields from import data
             iv = task_data.get("interval_days")
@@ -967,6 +1201,9 @@ async def ws_import_json(
             lp = task_data.get("last_performed")
             if lp is not None and parse_iso_date(lp) is None:
                 task_data.pop("last_performed", None)
+            elif _future_last_performed(lp):
+                task_data.pop("last_performed", None)
+                task_warnings.append(f"{task_name}: last performed date {lp} is in the future — dropped")
             wd = task_data.get("warning_days")
             if not isinstance(wd, int) or wd < 0 or wd > 365:
                 task_data["warning_days"] = get_default_warning_days(hass)
@@ -1137,6 +1374,7 @@ async def ws_import_json(
             await _drop_imported_documents(doc_store, obj_id)
             continue
         if result["type"] == "create_entry":
+            lineage.created(obj_entry.get("entry_id"), result["result"].entry_id, part_id_map, lineage_pending)
             entry_info: dict[str, Any] = {
                 "entry_id": result["result"].entry_id,
                 "name": obj_name,
@@ -1167,6 +1405,7 @@ async def ws_import_json(
         else:
             errors.append({"name": obj_name, "reason": result.get("reason", "unknown")})
             await _drop_imported_documents(doc_store, obj_id)
+    lineage.finish()
 
     resp: dict[str, Any] = {
         "imported": created,

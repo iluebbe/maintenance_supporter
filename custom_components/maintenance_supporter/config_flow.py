@@ -340,10 +340,12 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
 
         if user_input is not None:
             name = user_input[CONF_OBJECT_NAME]
-            # Validate unique name (skip self)
-            from .helpers.object_names import name_taken
+            # Validate unique name — only a CHANGED name: the successor of a
+            # replace shares its archived predecessor's name and must stay
+            # editable (bug audit 2026-09-27, helpers.object_names).
+            from .helpers.object_names import name_changed_onto_taken
 
-            if name_taken(self.hass, name, exclude_entry_id=entry.entry_id):
+            if name_changed_onto_taken(self.hass, entry, name):
                 errors["base"] = "name_exists"
 
             if not errors:
@@ -458,7 +460,13 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
             new_td = dict(td)
             if "created_at" not in new_td:
                 new_td["created_at"] = today_iso
-            cap_task_fields(new_td)
+            # The completion action's owner survives: this step only receives
+            # server-built task dicts — object duplicate / replace copy stored
+            # tasks, and the JSON import stamps the importing admin itself
+            # (a file-supplied owner is never kept). Stripping it here made a
+            # copied operator action run with system rights (bug audit
+            # 2026-09-27).
+            cap_task_fields(new_td, keep_action_owner=True)
             # Store recurrence in the canonical nested `schedule` shape — this is
             # the CSV/JSON import chokepoint (schedule-model v2).
             tasks[task_id] = normalize_task_storage(new_td)

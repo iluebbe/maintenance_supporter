@@ -87,6 +87,17 @@ def schedule_check(hass: HomeAssistant) -> None:
         mirror.schedule_check()
 
 
+@callback
+def schedule_rearm(hass: HomeAssistant) -> None:
+    """Re-subscribe the list listeners to the CONFIGURED lists and re-check
+    soon — after an entity rename rewrote the targets, the listener on the
+    old id heard nothing any more (bug audit 2026-09-27)."""
+    mirror = hass.data.get(DOMAIN, {}).get(TODO_MIRROR_KEY)
+    if mirror is not None:
+        mirror.rearm()
+        mirror.schedule_check()
+
+
 class TodoMirror:
     """Owns the rows Maintenance Supporter keeps on external to-do lists."""
 
@@ -134,6 +145,11 @@ class TodoMirror:
             self._listening.pop(eid)()
         for eid in wanted - set(self._listening):
             self._listening[eid] = async_track_state_change_event(self._hass, [eid], self._on_list_changed)
+
+    @callback
+    def rearm(self) -> None:
+        """Listen to exactly the lists the tasks name right now."""
+        self._arm_listeners(self._configured_lists())
 
     @property
     def listening_to(self) -> set[str]:

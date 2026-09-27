@@ -596,6 +596,7 @@ def _parse_iso_date(
     *,
     field: str,
     code: str = "invalid_date",
+    not_future: bool = False,
 ) -> date | None:
     """``YYYY-MM-DD`` -> ``date``, or send ``code`` and return None.
 
@@ -603,12 +604,24 @@ def _parse_iso_date(
     ten spellings of the same message; the error CODE is the caller's (the
     task create/update pair answers ``invalid_format``, the rest
     ``invalid_date`` — the frontend keys on it).
+
+    ``not_future``: a date after today is refused with ``invalid_date``. A
+    reset / last-performed date is a day something WAS done — one in the
+    year 9999 overflowed the schedule math inside every refresh and kept the
+    object in setup-retry across restarts (bug audit 2026-09-27).
     """
     try:
-        return date.fromisoformat(value)
+        parsed = date.fromisoformat(value)
     except (TypeError, ValueError):
         connection.send_error(msg_id, code, f"{field} must be a valid date (YYYY-MM-DD)")
         return None
+    if not_future:
+        from homeassistant.util import dt as dt_util
+
+        if parsed > dt_util.now().date():
+            connection.send_error(msg_id, "invalid_date", f"{field} must not be in the future")
+            return None
+    return parsed
 
 
 async def async_commit_store(rd: Any, *, budget: bool = False) -> None:
@@ -731,6 +744,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     from .documents import (
         ws_documents_add_link,
         ws_documents_delete,
+        ws_documents_discard_upload,
         ws_documents_list,
         ws_documents_search,
         ws_documents_storage,
@@ -915,6 +929,9 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_documents_add_link)
     websocket_api.async_register_command(hass, ws_documents_update)
     websocket_api.async_register_command(hass, ws_documents_delete)
+    # Bug audit 2026-09-27 (R SEC-3): read tier — a non-writer removes the
+    # completion photo they uploaded that never became part of a record.
+    websocket_api.async_register_command(hass, ws_documents_discard_upload)
     websocket_api.async_register_command(hass, ws_documents_search)
     websocket_api.async_register_command(hass, ws_search)
     websocket_api.async_register_command(hass, ws_compact_reference_numbers)

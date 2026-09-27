@@ -425,6 +425,10 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         self._seed_trigger_states()
         self._trigger_values = {}
 
+        # Tell the coordinator too: a refresh already under way restored the
+        # old latch before this reset and would publish it (bug audit
+        # 2026-09-27, see MaintenanceCoordinator.note_live_trigger_state).
+        self.coordinator.note_live_trigger_state(self._task_id, False, None)
         if self.coordinator.data is not None:
             tasks = self.coordinator.data.get(CONF_TASKS, {})
             task = tasks.get(self._task_id, {})
@@ -463,29 +467,42 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         task = tasks.get(self._task_id, {})
         prev_active = task.get("_trigger_active", False)
 
-        # Track per-entity state
-        if trigger_entity_id is not None:
-            self._trigger_states[trigger_entity_id] = is_triggered
-            if current_value is not None:
-                self._trigger_values[trigger_entity_id] = current_value
-
         # Aggregate trigger states
         if len(self._triggers) > 1:
             trigger_config = self.coordinator.entry.data.get(CONF_TASKS, {}).get(self._task_id, {}).get("trigger_config", {})
             entity_logic = trigger_config.get("entity_logic", DEFAULT_ENTITY_LOGIC)
-
-            if entity_logic == "all":
-                aggregated = bool(self._trigger_states) and all(self._trigger_states.values())
-            else:  # "any"
-                aggregated = any(self._trigger_states.values())
-
+            was_aggregated = self._aggregate(entity_logic)
+            # Track per-entity state
+            if trigger_entity_id is not None:
+                self._trigger_states[trigger_entity_id] = is_triggered
+                if current_value is not None:
+                    self._trigger_values[trigger_entity_id] = current_value
+            aggregated = self._aggregate(entity_logic)
             task["_trigger_active"] = aggregated
+            episode_closed = was_aggregated and not aggregated
         else:
-            # Single trigger: direct assignment
+            # Single trigger: direct assignment. It only reports False when
+            # it was latched (a deactivation, or a persisted latch the live
+            # state no longer supports).
+            if trigger_entity_id is not None:
+                self._trigger_states[trigger_entity_id] = is_triggered
+                if current_value is not None:
+                    self._trigger_values[trigger_entity_id] = current_value
             task["_trigger_active"] = is_triggered
+            episode_closed = not is_triggered
 
         if current_value is not None:
             task["_trigger_current_value"] = current_value
+
+        # The coordinator keeps the live latch (a refresh under way must not
+        # publish the state it restored before this flip — bug audit
+        # 2026-09-27) and the end of the trigger episode: without a record of
+        # the recovery, a NEW episode that began while Home Assistant was
+        # down read as the old one and was only repainted on the next start
+        # (R SCH-10).
+        self.coordinator.note_live_trigger_state(self._task_id, bool(task["_trigger_active"]), task.get("_trigger_current_value"))
+        if episode_closed:
+            self.coordinator.note_trigger_cleared(self._task_id)
 
         # Recompute _status immediately so native_value reflects the change
         old_status = task.get("_status")
@@ -500,6 +517,12 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         if new_status != old_status or task.get("_trigger_active", False) != prev_active:
             self.async_write_ha_state()
         return bool(prev_active) and not task.get("_trigger_active", False)
+
+    def _aggregate(self, entity_logic: str) -> bool:
+        """The task-level latch of a multi-entity trigger ("all" / "any")."""
+        if entity_logic == "all":
+            return bool(self._trigger_states) and all(self._trigger_states.values())
+        return any(self._trigger_states.values())
 
     @staticmethod
     def _compute_live_status(task: dict[str, Any]) -> str:

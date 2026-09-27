@@ -119,7 +119,7 @@ describe("history-edit dialog photos (#161)", () => {
   const internals = (el: MaintenanceHistoryEditDialog) => el as unknown as Internals;
 
   const deletes = (sent: SentMessage[]) =>
-    sent.filter((m) => m.type === "maintenance_supporter/documents/delete").map((m) => m.doc_id);
+    sent.filter((m) => ["maintenance_supporter/documents/delete", "maintenance_supporter/documents/discard_upload"].includes(m.type)).map((m) => m.doc_id);
   const update = (sent: SentMessage[]) =>
     sent.find((m) => m.type === "maintenance_supporter/task/history/update") as Record<string, unknown> | undefined;
 

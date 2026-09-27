@@ -218,6 +218,15 @@ async def async_build_documents_archive_file(hass: HomeAssistant, entry_ids: set
     return await hass.async_add_executor_job(_write)
 
 
+def _doc_key(doc: dict[str, Any]) -> tuple[str | None, str | None]:
+    """A document's identity for the idempotent re-import: kind + content
+    hash (file) or URL (link). Only strings count — a list-valued URL in a
+    crafted manifest was unhashable and crashed the set lookup."""
+    kind = doc.get("kind")
+    ref = doc.get("hash") or doc.get("url")
+    return (kind if isinstance(kind, str) else None, ref if isinstance(ref, str) else None)
+
+
 async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str, Any]:
     """Restore a documents ZIP: write blobs back, re-attach metadata.
 
@@ -261,67 +270,78 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
     except (zipfile.BadZipFile, ValueError, json.JSONDecodeError, KeyError) as err:
         return {"error": f"invalid archive: {err}"}
 
+    # The manifest is untrusted JSON: a list at the top, an "objects" that is
+    # no list or a "documents" that is a number raised AttributeError /
+    # TypeError past the handler above — a bare 500 instead of the clean
+    # error (bug audit 2026-09-27). Wrong shapes are refused or skipped.
+    if not isinstance(manifest, dict):
+        return {"error": "invalid archive: the manifest is not an object"}
+    raw_objects = manifest.get("objects")
+    manifest_objects: list[tuple[dict[str, Any], list[Any]]] = [
+        (obj, docs)
+        for obj in (raw_objects if isinstance(raw_objects, list) else [])
+        if isinstance(obj, dict) and isinstance(docs := obj.get("documents", []), list)
+    ]
+
     # 1) Write back only blobs a manifest document actually references — an
     # archive carrying extra blobs must not litter /config with orphans that
     # ride every HA backup and are never refcounted (disk-fill hardening).
     referenced: set[str] = set()
-    for obj in manifest.get("objects", []):
-        if not isinstance(obj, dict):
-            continue
-        for m in obj.get("documents", []):
+    for _obj, docs in manifest_objects:
+        for m in docs:
             if isinstance(m, dict) and isinstance(m.get("hash"), str):
                 referenced.add(m["hash"])
 
     import hashlib
 
     written = 0
-    for digest, content in blobs.items():
-        if digest not in referenced:
-            _LOGGER.info("Documents archive: blob %s referenced by no document, skipped", digest[:12])
-            continue
-        if hashlib.sha256(content).hexdigest() != digest:
-            _LOGGER.warning("Documents archive: blob %s failed hash check, skipped", digest[:12])
-            continue
-        _, wrote_new = await hass.async_add_executor_job(store._store_blob_sync, content)
-        if wrote_new:
-            written += 1
-        store.notify_blob_added(digest)
-
-    # 2) Re-attach metadata to the matching object (id, then name).
-    ids, by_name = _object_name_map(hass)
     docs_created = 0
     objects_matched = 0
     # old → new document ids across every restored object, so history photos
     # and part doc links that pointed at the archived ids follow (the JSON
     # importer does the same for its own restore).
     doc_id_map: dict[str, str] = {}
-    for obj in manifest.get("objects", []):
-        if not isinstance(obj, dict):
-            continue
-        target = ids.get(str(obj.get("object_id") or "")) or by_name.get(str(obj.get("object_name") or ""))
-        if target is None:
-            _LOGGER.info("Documents archive: no object matches %r, its docs skipped", obj.get("object_name"))
-            continue
-        objects_matched += 1
-        # Skip docs already present on the target (idempotent re-import).
-        existing = store.for_object(target)
-        existing_keys = {(d.get("kind"), d.get("hash") or d.get("url")) for d in existing}
-        fresh = [
-            m
-            for m in obj.get("documents", [])
-            if isinstance(m, dict) and (m.get("kind"), m.get("hash") or m.get("url")) not in existing_keys
-        ]
-        if fresh:
-            # Keep task links that still resolve on the target (a same-instance
-            # restore) via an identity map over the object's current task ids;
-            # a cross-instance restore has fresh task ids, so those links drop
-            # here and are re-established by the JSON import's remap instead.
-            valid_task_ids = _object_task_ids(hass, target)
-            identity = {tid: tid for tid in valid_task_ids}
-            part_identity = {pid: pid for pid in _object_part_ids(hass, target)}
-            docs_created += await store.async_import_documents(
-                target, fresh, task_id_map=identity, part_id_map=part_identity, id_map=doc_id_map
-            )
+    # Under the store's blob lock from the first blob write to the last
+    # refcount bump: a document delete running meanwhile could remove a blob
+    # file the restore had just written (or found) before the restored
+    # document registered it — a document pointing at nothing (bug audit
+    # 2026-09-27; the upload and delete paths took the lock, this one not).
+    async with store.blob_lock:
+        for digest, content in blobs.items():
+            if digest not in referenced:
+                _LOGGER.info("Documents archive: blob %s referenced by no document, skipped", digest[:12])
+                continue
+            if hashlib.sha256(content).hexdigest() != digest:
+                _LOGGER.warning("Documents archive: blob %s failed hash check, skipped", digest[:12])
+                continue
+            _, wrote_new = await hass.async_add_executor_job(store._store_blob_sync, content)
+            if wrote_new:
+                written += 1
+            store.notify_blob_added(digest)
+
+        # 2) Re-attach metadata to the matching object (id, then name).
+        ids, by_name = _object_name_map(hass)
+        for obj, docs in manifest_objects:
+            target = ids.get(str(obj.get("object_id") or "")) or by_name.get(str(obj.get("object_name") or ""))
+            if target is None:
+                _LOGGER.info("Documents archive: no object matches %r, its docs skipped", obj.get("object_name"))
+                continue
+            objects_matched += 1
+            # Skip docs already present on the target (idempotent re-import).
+            existing = store.for_object(target)
+            existing_keys = {_doc_key(d) for d in existing}
+            fresh = [m for m in docs if isinstance(m, dict) and _doc_key(m) not in existing_keys]
+            if fresh:
+                # Keep task links that still resolve on the target (a same-instance
+                # restore) via an identity map over the object's current task ids;
+                # a cross-instance restore has fresh task ids, so those links drop
+                # here and are re-established by the JSON import's remap instead.
+                valid_task_ids = _object_task_ids(hass, target)
+                identity = {tid: tid for tid in valid_task_ids}
+                part_identity = {pid: pid for pid in _object_part_ids(hass, target)}
+                docs_created += await store.async_import_documents(
+                    target, fresh, task_id_map=identity, part_id_map=part_identity, id_map=doc_id_map
+                )
     if doc_id_map:
         await async_rewrite_doc_refs(hass, lambda old: doc_id_map.get(old, old))
 

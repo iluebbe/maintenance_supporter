@@ -82,6 +82,83 @@ def missing_completion_fields(
     return [field for field in required if not supplied[field]]
 
 
+# ── Unattached completion photos (bug audit 2026-09-27, R SEC-3) ─────────────
+#
+# Every signed-in user may upload a completion photo (the document is tagged
+# exactly "photo"); it becomes part of the record once a completion or a
+# history edit references it. One that never gets there — the dialog was
+# cancelled, the photo removed again, the upload finished after the save —
+# is an orphan that counted against the object's document cap and that a
+# non-writer could not delete (documents/delete is write-gated).
+
+PHOTO_TAG = "photo"
+#: At most this many unattached photos per object from non-writer uploads.
+MAX_UNATTACHED_PHOTOS_PER_OBJECT = 20
+#: The retention sweep removes unattached photos older than this.
+UNATTACHED_PHOTO_MAX_AGE_HOURS = 24
+
+
+def photo_references(hass: HomeAssistant, *, strict: bool = True) -> set[str] | None:
+    """Every document id a history entry (``photo_doc_ids`` or the legacy
+    scalar) or a spare part (``doc_id``) points at, across all objects.
+
+    ``strict``: ``None`` when an object's Store is not loaded (disabled,
+    setup retry, mid-reload) — its history cannot be read, so the automatic
+    sweep must not judge anything unreferenced. Non-strict (a user discarding
+    the photo they just uploaded) reads what is loaded; a photo in a
+    completion record is also linked to its task, which
+    :func:`is_unattached_photo` checks on its own.
+    """
+    from .aggregate import get_object_entries, merged_tasks
+    from .completion_photos import history_photo_ids
+
+    refs: set[str] = set()
+    for entry in get_object_entries(hass):
+        rd = getattr(entry, "runtime_data", None)
+        if strict and getattr(rd, "store", None) is None:
+            return None
+        for task in merged_tasks(entry).values():
+            for hist in task.get("history") or []:
+                if isinstance(hist, dict):
+                    refs.update(history_photo_ids(hist))
+        for part in (entry.data.get("parts") or {}).values():
+            if isinstance(part, dict) and isinstance(part.get("doc_id"), str):
+                refs.add(part["doc_id"])
+    return refs
+
+
+def is_unattached_photo(doc: dict[str, Any], doc_id: str, references: set[str]) -> bool:
+    """A file tagged exactly ``photo`` that nothing points at: no history
+    entry, no spare part, no task / part link."""
+    from .documents import KIND_FILE
+
+    return (
+        doc.get("kind") == KIND_FILE
+        and list(doc.get("tags") or []) == [PHOTO_TAG]
+        and not doc.get("task_ids")
+        and not doc.get("part_ids")
+        and doc_id not in references
+    )
+
+
+def unattached_photo_ids(hass: HomeAssistant, object_id: str | None = None, *, strict: bool = True) -> list[str] | None:
+    """The unattached photos (of one object, or all); ``None`` when that
+    cannot be decided (see :func:`photo_references`)."""
+    from ..const import DOCUMENT_STORE_KEY, DOMAIN
+
+    store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    if store is None:
+        return []
+    references = photo_references(hass, strict=strict)
+    if references is None:
+        return None
+    return [
+        doc_id
+        for doc_id, doc in store.documents.items()
+        if (object_id is None or doc.get("object_id") == object_id) and is_unattached_photo(doc, doc_id, references)
+    ]
+
+
 def own_photo_doc_ids(hass: HomeAssistant, object_id: str, photo_doc_ids: list[str] | None) -> list[str]:
     """Keep only the ids that name an uploaded FILE document of this object.
 

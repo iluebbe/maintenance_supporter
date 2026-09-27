@@ -33,6 +33,7 @@ import {
   buildPastBuckets,
   isoDateLocal,
   pastHistoryGaps,
+  pastHistoryKey,
   type CalendarEvent,
   type HistoryEntryShape,
 } from "./helpers/calendar-bucket";
@@ -40,6 +41,8 @@ import { calendarStyles } from "./calendar-styles";
 import { syncLocaleFromHass, sharedStyles, currencySymbolOf, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatWeekday, formatMonth, langOf, formatCost, syncCurrencyDecimals} from "./styles";
 import { registerCustomCard } from "./helpers/register-card";
 import { loadHistoryEntryDraft } from "./helpers/history-draft";
+import { canWrite } from "./helpers/permissions";
+import { fetchSettingsOnce } from "./helpers/settings-cache";
 import { openHistoryEditDialog, openTaskQuickActions } from "./dialog-mount";
 import type {
   HomeAssistant,
@@ -135,8 +138,26 @@ export class MaintenanceCalendarCard extends LitElement {
     return langOf(this.hass);
   }
 
+  /** An entry edited or deleted anywhere on the page (the history-edit
+   *  dialog's composed event reaches window). An edit of an entry OLDER than
+   *  the listed window leaves the list payload — and so the refetch
+   *  signature — untouched, so a fetched full history of that task is
+   *  reloaded here (bug audit 2026-09-26 #2). */
+  private readonly _onHistorySaved = (ev: Event): void => {
+    const d = (ev as CustomEvent<{ entry_id?: string; task_id?: string }>).detail;
+    if (!d?.entry_id || !d.task_id || !(pastHistoryKey(d.entry_id, d.task_id) in this._pastHistory)) return;
+    this._pastHistorySig = "";
+    void this._loadPastHistories();
+  };
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    window.addEventListener("history-entry-saved", this._onHistorySaved);
+  }
+
   disconnectedCallback(): void {
     super.disconnectedCallback();
+    window.removeEventListener("history-entry-saved", this._onHistorySaved);
     if (this._unsub) {
       try { this._unsub(); } catch { /* ignore */ }
       this._unsub = null;
@@ -246,6 +267,10 @@ export class MaintenanceCalendarCard extends LitElement {
       void this._openHistoryEntry(ev);
       return;
     }
+    this._openTask(ev);
+  }
+
+  private _openTask(ev: CalendarEvent): void {
     if (openTaskQuickActions(ev.entry_id, ev.task_id)) return;
     this.dispatchEvent(
       new CustomEvent("ll-custom", {
@@ -263,6 +288,18 @@ export class MaintenanceCalendarCard extends LitElement {
   /** Fetch the recorded entry and open the history-edit dialog directly
    *  (mirrors the strategy shim's ll-custom "edit-history" path). */
   private async _openHistoryEntry(ev: CalendarEvent): Promise<void> {
+    // Editing a history entry is write tier: a household member without
+    // write access gets the task's quick actions (read view) instead of an
+    // editor whose Save the server refuses (bug audit 2026-09-27).
+    try {
+      const settings = await fetchSettingsOnce(this.hass);
+      if (!canWrite(this.hass?.user, settings.access)) {
+        this._openTask(ev);
+        return;
+      }
+    } catch {
+      /* settings unavailable — keep the editor; the server still decides */
+    }
     try {
       const draft = await loadHistoryEntryDraft(this.hass, ev.entry_id, ev.task_id, ev.history_timestamp!);
       if (!draft) return;

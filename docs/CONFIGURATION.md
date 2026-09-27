@@ -342,6 +342,8 @@ rejection is **silent**: the whole `on_complete_action` is dropped on save
 rather than reported as an error, so re-open the task and check the section if
 your action didn't stick.
 
+**Who the action runs as** — the action runs with the rights of the user who configured it (`configured_by`, stamped by the server when the action is saved), so a delegated operator cannot schedule an admin-only service. An unchanged action keeps its owner through every later edit (panel dialog, `update_task` service, options flow, object duplicate / replace). A JSON import never trusts an owner named in the file: every imported action runs as the admin who imported it. Actions saved before the owner existed run as before (system context); an action whose user was deleted is skipped with a log warning — save the task again to re-own it.
+
 **Test button** — fires the configured action immediately so you can verify the wiring. Doesn't persist anything; result indicator (✓ / ✗) auto-clears after 3 s.
 
 **Stale-entity repair** — coordinator scans `on_complete_action.target.entity_id` on every refresh. If the entity disappears, a repair issue surfaces with two options: **Replace** (pick a new entity via HA's entity picker) or **Remove** (drop the action entirely). Same lifecycle as the existing trigger-entity repair flow.

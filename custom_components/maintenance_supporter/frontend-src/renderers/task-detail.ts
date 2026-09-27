@@ -403,10 +403,12 @@ function renderRecommendationCard(task: MaintenanceTask, ctx: TaskDetailContext)
         task.interval_confidence || "medium", L,
       )}
       <div class="recommendation-actions">
-        <ha-button appearance="filled"
-          @click=${() => ctx.applySuggestion(suggested)}>
-          ${t("apply_suggestion", L)}
-        </ha-button>
+        ${ctx.isOperator
+          ? nothing /* task/apply_suggestion is write tier — the server refuses a read-only member */
+          : html`<ha-button appearance="filled" class="apply-suggestion"
+              @click=${() => ctx.applySuggestion(suggested)}>
+              ${t("apply_suggestion", L)}
+            </ha-button>`}
         <ha-button appearance="plain"
           @click=${() => ctx.reanalyze()}>
           ${t("reanalyze", L)}

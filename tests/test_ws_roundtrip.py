@@ -1338,21 +1338,21 @@ async def test_vacation_update_round_trips_full_state(hass: HomeAssistant, globa
         ws_vacation_update,
         {
             "enabled": True,
-            "start": "2099-06-10",
-            "end": "2099-06-20",
+            "start": "2030-06-10",
+            "end": "2030-06-20",
             "buffer_days": 5,
             "exempt_task_ids": ["abc123", "  def456  ", "abc123"],  # whitespace + dup
         },
     )
     assert result["enabled"] is True
-    assert result["start"] == "2099-06-10"
-    assert result["end"] == "2099-06-20"
+    assert result["start"] == "2030-06-10"
+    assert result["end"] == "2030-06-20"
     assert result["buffer_days"] == 5
     # Whitespace stripped, duplicate removed, sorted.
     assert result["exempt_task_ids"] == ["abc123", "def456"]
     # Future dates → not active today.
     assert result["is_active"] is False
-    assert result["window_end"] == "2099-06-25"
+    assert result["window_end"] == "2030-06-25"
 
 
 async def test_vacation_update_rejects_end_before_start(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
@@ -1366,8 +1366,8 @@ async def test_vacation_update_rejects_end_before_start(hass: HomeAssistant, glo
         {
             "id": 1,
             "type": "maintenance_supporter/vacation/update",
-            "start": "2099-06-20",
-            "end": "2099-06-10",
+            "start": "2030-06-20",
+            "end": "2030-06-10",
         },
     )
     assert conn.send_error.call_count == 1
@@ -1382,16 +1382,16 @@ async def test_vacation_partial_update_preserves_unrelated_fields(hass: HomeAssi
         ws_vacation_update,
         {
             "enabled": True,
-            "start": "2099-06-10",
-            "end": "2099-06-20",
+            "start": "2030-06-10",
+            "end": "2030-06-20",
             "buffer_days": 3,
             "exempt_task_ids": ["x"],
         },
     )
     result = await _vac_call(hass, ws_vacation_update, {"buffer_days": 7})
     assert result["buffer_days"] == 7
-    assert result["start"] == "2099-06-10"
-    assert result["end"] == "2099-06-20"
+    assert result["start"] == "2030-06-10"
+    assert result["end"] == "2030-06-20"
     assert result["exempt_task_ids"] == ["x"]
 
 

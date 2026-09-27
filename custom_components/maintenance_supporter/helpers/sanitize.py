@@ -145,7 +145,7 @@ def strip_task_runtime_state(task: dict[str, Any]) -> dict[str, Any]:
     return task
 
 
-def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
+def cap_task_fields(task_data: dict[str, Any], *, keep_action_owner: bool = False) -> dict[str, Any]:
     """Truncate user-controllable strings + numerics on a task dict in-place.
 
     Returns the same dict for fluent use. Mirrors the WS schema caps:
@@ -153,6 +153,16 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
     - `interval_days` → 1..MAX_INTERVAL_DAYS (negative/zero coerced to 1)
     - `warning_days` → 0..365
     - `checklist` → list of strings, each ≤ 500 chars, list ≤ 100 items
+
+    ``keep_action_owner``: the completion action's ``configured_by`` (the
+    user it runs as) survives. Only for RE-WRITES of a stored task whose
+    action the caller cannot change (the ``update_task`` service, the
+    options-flow task edit) and for the config flow's websocket step, whose
+    callers are server-side copies (object duplicate / replace) or an import
+    that stamped the owner itself. Stripping it there made an operator's
+    action run with system rights again after any unrelated edit (bug audit
+    2026-09-27, the SEC-2 regression). A client-supplied owner is never
+    trusted: every client write path stamps the connection user instead.
     """
     _cap_strings(task_data, _TASK_STR_LIMITS)
     _drop_unsafe_url(task_data)
@@ -245,7 +255,7 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
     # Strict shape: {service: "domain.name", target?: dict, data?: dict}.
     # Drops the field entirely on any structural problem; the action layer
     # treats absence as "no action configured" (not an error).
-    cap_action_field(task_data)
+    cap_action_field(task_data, keep_owner=keep_action_owner)
 
     # v1.3.0: per-task quick_complete_defaults — pre-fill values used when
     # the user scans the "quick complete" QR code. Schema mirrors the
@@ -446,6 +456,25 @@ def stamp_action_owner(task_data: dict[str, Any], user_id: str | None) -> None:
     action = task_data.get("on_complete_action")
     if isinstance(action, dict) and user_id:
         action[ACTION_OWNER_KEY] = user_id
+
+
+def settle_action_owner(task_data: dict[str, Any], stored_action: Any, user_id: str | None) -> None:
+    """Owner of an EDITED task's completion action, after :func:`cap_action_field`.
+
+    An unchanged action (the panel dialog sends it back on every save) keeps
+    the owner it was stored with — an operator editing the notes must not
+    re-author an admin's action, nor may an edit drop the owner (the action
+    would then run with system rights). A changed action belongs to
+    ``user_id``, the saving user (bug audit 2026-09-26 / 2026-09-27).
+    """
+    stored_owner = stored_action.get(ACTION_OWNER_KEY) if isinstance(stored_action, dict) else None
+    new_action = task_data.get("on_complete_action")
+    unchanged = isinstance(stored_action, dict) and new_action == {
+        k: v for k, v in stored_action.items() if k != ACTION_OWNER_KEY
+    }
+    if isinstance(new_action, dict):
+        new_action.pop(ACTION_OWNER_KEY, None)
+    stamp_action_owner(task_data, stored_owner if unchanged else user_id)
 
 
 def cap_quick_complete_defaults_field(task_data: dict[str, Any]) -> None:

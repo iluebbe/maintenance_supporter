@@ -38,6 +38,10 @@ const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime"];
 const TRIGGER_TYPE_KEYS_WITH_COMPOUND = [...TRIGGER_TYPE_KEYS, "compound"];
 // Backend defaults for the adaptive tuning fields (ewa_alpha / min / max days).
 const ADAPTIVE_DEFAULTS = { alpha: "0.3", min: "7", max: "365" } as const;
+// Bounds of a consumes_parts quantity (the field's min/max, the same range
+// the completion's used_parts accept) — validated on save with a message,
+// never silently replaced.
+const CONSUMES_QTY_RANGE: [number, number] = [0.01, 999];
 
 /** One condition of a compound trigger — a flat trigger the user edits inline.
  *  String-typed like the top-level fields (form inputs); coerced on save. */
@@ -278,6 +282,11 @@ export class MaintenanceTaskDialog extends LitElement {
   /** The picked links, keyed by `partLinkKey` — the (entry_id, part_id) pair,
    *  since the same part id can exist on two objects (battery fleet). */
   @state() private _consumesParts: Record<string, TaskPartLink> = {};
+  /** The TYPED quantity per picked part (same key), parsed on save. The
+   *  field wrote back a parsed number on every keystroke — clearing "2" to
+   *  type "3" snapped to "1" first, giving "13" (bug audit 2026-09-26 #2;
+   *  the complete dialog's `_usedQtyText` got the same fix). */
+  @state() private _consumesQtyText: Record<string, string> = {};
   @state() private _partsLoadFailed = false;
   @state() private _availableTags: Array<{id: string; name: string}> = [];
 
@@ -454,6 +463,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._consumesParts = Object.fromEntries(
       (task.consumes_parts || []).map((l) => [partLinkKey(l), { ...l }]),
     );
+    this._consumesQtyText = {};
     this._responsibleUserId = task.responsible_user_id || null;
     this._loadedResponsibleUserId = this._responsibleUserId;
     this._assigneePool = [...(task.assignee_pool || [])];
@@ -608,6 +618,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._readingUnit = "";
     this._readings = [];
     this._consumesParts = {};
+    this._consumesQtyText = {};
     this._responsibleUserId = null;
     this._assigneePool = [];
     this._rotationStrategy = "";
@@ -1069,7 +1080,12 @@ export class MaintenanceTaskDialog extends LitElement {
             @change=${(e: Event) => {
               const next = { ...this._consumesParts };
               if ((e.target as HTMLInputElement).checked) next[key] = next[key] || base;
-              else delete next[key];
+              else {
+                delete next[key];
+                const text = { ...this._consumesQtyText };
+                delete text[key];
+                this._consumesQtyText = text;
+              }
               this._consumesParts = next;
             }}
           />
@@ -1079,21 +1095,46 @@ export class MaintenanceTaskDialog extends LitElement {
           ? html`<input
               class="consumes-qty"
               type="number"
-              min="0.01"
-              max="999"
+              min=${CONSUMES_QTY_RANGE[0]}
+              max=${CONSUMES_QTY_RANGE[1]}
               step="0.01"
-              .value=${String(link.quantity)}
+              .value=${this._consumesQtyText[key] ?? String(link.quantity)}
               @input=${(e: Event) => {
-                const v = parseFloat((e.target as HTMLInputElement).value);
-                this._consumesParts = {
-                  ...this._consumesParts,
-                  [key]: { ...base, quantity: Number.isFinite(v) && v >= 0.01 ? v : 1 },
-                };
+                // Keep the text as typed; a valid number also updates the
+                // link, an empty / partial one is judged on save.
+                const raw = (e.target as HTMLInputElement).value;
+                this._consumesQtyText = { ...this._consumesQtyText, [key]: raw };
+                const v = parseFloat(raw.replace(",", "."));
+                if (Number.isFinite(v) && v >= CONSUMES_QTY_RANGE[0]) {
+                  this._consumesParts = { ...this._consumesParts, [key]: { ...base, quantity: v } };
+                }
               }}
             />`
           : nothing}
       </div>
     `;
+  }
+
+  /** Parse the typed part quantities (see _consumesQtyText) into the links
+   *  before a save. Out of range = a message and false (nothing is sent),
+   *  never a silent 1. */
+  private _applyConsumesQtyText(): boolean {
+    const next = { ...this._consumesParts };
+    for (const key of Object.keys(next)) {
+      const raw = this._consumesQtyText[key];
+      if (raw === undefined) continue;
+      const qty = parseFloat(raw.replace(",", "."));
+      if (!Number.isFinite(qty) || qty < CONSUMES_QTY_RANGE[0] || qty > CONSUMES_QTY_RANGE[1]) {
+        const fmt = (n: number) => formatNumber(n, this._lang, { maximumFractionDigits: 2 });
+        this._error = t("settings_value_out_of_range", this._lang)
+          .replace("{min}", fmt(CONSUMES_QTY_RANGE[0]))
+          .replace("{max}", fmt(CONSUMES_QTY_RANGE[1]));
+        return false;
+      }
+      next[key] = { ...next[key], quantity: qty };
+    }
+    this._consumesParts = next;
+    return true;
   }
 
   private _toggleRequired(field: string, on: boolean): void {
@@ -1188,13 +1229,19 @@ export class MaintenanceTaskDialog extends LitElement {
               <select
                 class="phase-part"
                 .value=${d.partId}
-                @change=${(e: Event) => this._patchPhaseDef(d.id, { partId: (e.target as HTMLSelectElement).value })}
+                @change=${(e: Event) => {
+                  const partId = (e.target as HTMLSelectElement).value;
+                  this._patchPhaseDef(d.id, d.partQty ? { partId } : { partId, partQty: "1" });
+                }}
               >
                 <option value="">—</option>
                 ${this.parts.map((p) => html`<option value=${p.id} ?selected=${p.id === d.partId}>${p.name}</option>`)}
               </select>
               ${d.partId ? html`
-                <input class="phase-qty" type="number" min="0.01" step="0.01" .value=${d.partQty || "1"}
+                <!-- The typed text as-is: a "|| '1'" here rewrote a cleared
+                     field to 1 and the next digit gave "13" (bug audit
+                     2026-09-26 #2); an empty field saves as 1. -->
+                <input class="phase-qty" type="number" min="0.01" step="0.01" placeholder="1" .value=${d.partQty}
                   @input=${(e: Event) => this._patchPhaseDef(d.id, { partQty: (e.target as HTMLInputElement).value })} />
               ` : nothing}
             ` : nothing}
@@ -1291,6 +1338,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._error = t("calendar_entity_required", this._lang);
       return;
     }
+    if (!this._applyConsumesQtyText()) return;
     this._loading = true;
     this._error = "";
     try {
@@ -2700,6 +2748,7 @@ export class MaintenanceTaskDialog extends LitElement {
                 @change=${(e: Event) => {
                   this._entryId = (e.target as HTMLSelectElement).value;
                   this._consumesParts = {};
+                  this._consumesQtyText = {};
                   this._loadParts();
                   // The new owner drops out of the shared-pool list and the old
                   // one joins it, so this has to be recomputed too (#111).

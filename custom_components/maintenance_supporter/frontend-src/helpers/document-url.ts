@@ -53,9 +53,23 @@ export async function downloadSignedDocument(hass: HomeAssistant, docId: string,
 /** Open a generated HTML page (report / worksheet) in a new tab via a blob
  * URL. One home for the open + deferred-revoke recipe the panel carried
  * twice (drift audit 2026-08); the 60 s revoke delay gives slow tabs time
- * to load before the blob disappears. */
-export function openHtmlInNewTab(html: string): void {
+ * to load before the blob disappears.
+ *
+ * A page that needs WS round trips first (worksheet, service booklet) passes
+ * the tab `preopenTab()` opened inside the click's synchronous part — a
+ * window.open after an await is no longer a user gesture and popup
+ * blockers (Safari, Firefox strict) swallowed it (bug audit 2026-09-26 #2).
+ * Without a usable tab it opens one itself, as before. */
+export function openHtmlInNewTab(html: string, tab: Window | null = null): void {
   const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-  window.open(url, "_blank");
+  if (tab && !tab.closed) tab.location.href = url;
+  else window.open(url, "_blank");
   setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+/** Open the blank tab a later `openHtmlInNewTab(html, tab)` fills — call it
+ *  BEFORE the first await of a click handler; close it (`tab?.close()`)
+ *  when nothing is shown after all. Null when the browser refused. */
+export function preopenTab(): Window | null {
+  return window.open("about:blank", "_blank");
 }

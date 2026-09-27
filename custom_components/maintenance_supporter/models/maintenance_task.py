@@ -332,7 +332,14 @@ class MaintenanceTask:
         a backfill must not drag that anchor backwards either. A full
         timestamp on the same day sorts after the bare date, so a same-day
         completion still counts as latest."""
-        anchors = [h.get("timestamp") or "" for h in self.history if h.get("type") in LIFECYCLE_HISTORY_TYPES]
+        # Only string stamps: an imported history carrying an epoch number
+        # made max() compare int with str and every completion of the task
+        # raised TypeError (bug audit 2026-09-27).
+        anchors = [
+            stamp
+            for h in self.history
+            if isinstance(h, dict) and h.get("type") in LIFECYCLE_HISTORY_TYPES and isinstance(stamp := h.get("timestamp"), str)
+        ]
         if self.last_performed:
             anchors.append(self.last_performed)
         return ts.isoformat() >= max(anchors, default="")

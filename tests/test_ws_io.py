@@ -497,6 +497,9 @@ async def test_json_roundtrip_preserves_every_persisted_task_field(
 
     copy = next(e for e in hass.config_entries.async_entries(DOMAIN) if e.title == "Full Asset Copy")
     imported_task = next(iter(copy.data[CONF_TASKS].values()))
+    # Bug audit 2026-09-27 (SEC-2): an imported completion action runs as the
+    # IMPORTING admin — the owner is stamped by the import, never copied.
+    expected["on_complete_action"] = {**expected["on_complete_action"], "configured_by": conn.user.id}
     for key, want in expected.items():
         assert imported_task.get(key) == want, (
             f"import dropped/changed task field {key!r}: {imported_task.get(key)!r} != {want!r}"

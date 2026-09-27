@@ -427,7 +427,9 @@ async def ws_create_task(
         if msg.get("interval_anchor", "completion") != "completion":
             task_data["interval_anchor"] = msg["interval_anchor"]
     if msg.get("last_performed") is not None:
-        lp_date = _parse_iso_date(connection, msg["id"], msg["last_performed"], field="last_performed", code="invalid_format")
+        lp_date = _parse_iso_date(
+            connection, msg["id"], msg["last_performed"], field="last_performed", code="invalid_format", not_future=True
+        )
         if lp_date is None:
             return
         initial_last_performed = msg["last_performed"]
@@ -735,7 +737,9 @@ async def ws_update_task(
     # Validate last_performed date format if provided
     if (
         msg.get("last_performed") is not None
-        and _parse_iso_date(connection, msg["id"], msg["last_performed"], field="last_performed", code="invalid_format")
+        and _parse_iso_date(
+            connection, msg["id"], msg["last_performed"], field="last_performed", code="invalid_format", not_future=True
+        )
         is None
     ):
         return
@@ -897,20 +901,14 @@ async def ws_update_task(
         sanitize_assignee_pool,
         sanitize_labels,
         seed_rotation_assignee,
-        stamp_action_owner,
+        settle_action_owner,
     )
 
     # A changed action is re-stamped with the saving user; an unchanged one
     # (the panel dialog sends it back on every save) keeps the owner it was
     # stored with — an operator editing the notes must not re-author it.
-    stored_action = stored_task.get("on_complete_action")
-    stored_owner = stored_action.get("configured_by") if isinstance(stored_action, dict) else None
     cap_action_field(task)
-    new_action = task.get("on_complete_action")
-    unchanged = isinstance(stored_action, dict) and new_action == {
-        k: v for k, v in stored_action.items() if k != "configured_by"
-    }
-    stamp_action_owner(task, stored_owner if unchanged else (connection.user.id if connection.user else None))
+    settle_action_owner(task, stored_task.get("on_complete_action"), connection.user.id if connection.user else None)
     cap_quick_complete_defaults_field(task)
     if "labels" in task:
         task["labels"] = sanitize_labels(task["labels"])
@@ -1114,6 +1112,15 @@ async def ws_duplicate_task(
         return
     entry, _rd, source = ctx
     if _refuse_archived_object(connection, msg, entry):
+        return
+    # Like task/move: a buy reminder belongs to its part's reconciler (a copy
+    # carrying part_ref was a second reminder for the same low episode) and
+    # the fleet task IS the battery fleet — a copy carrying the flag was a
+    # second fleet task (bug audit 2026-09-27).
+    from ..helpers.parts import PART_REF_FIELD
+
+    if source.get(PART_REF_FIELD) or source.get(BATTERY_FLEET_TASK_FLAG):
+        connection.send_error(msg["id"], "invalid_input", "A spare-part buy task or the battery fleet task cannot be duplicated")
         return
 
     new_task = deepcopy(dict(source))

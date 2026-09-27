@@ -89,6 +89,12 @@ export interface BuildCompleteDialogArgsOptions {
   viaTagScan?: boolean;
 }
 
+/** `value` when it is a quantity the dialog accepts (≥ 0.01, the server's
+ *  lower bound for restock_quantity), else `fallback`. */
+function positiveOr(value: number | null | undefined, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0.01 ? value : fallback;
+}
+
 /** Derive the complete argument bag for one task (see module doc). */
 export function buildCompleteDialogArgs(o: BuildCompleteDialogArgsOptions): CompleteDialogArgs {
   const task = o.task ?? null;
@@ -126,7 +132,10 @@ export function buildCompleteDialogArgs(o: BuildCompleteDialogArgsOptions): Comp
     consumes_parts: isBuy ? [] : links,
     phase_label: phase ? phaseLabel(task) : "",
     require_tag_scan: !!task?.require_tag_scan,
-    restock_default: isBuy ? (refPart?.restock_quantity ?? 1) : null,
+    // A part stored with restock_quantity 0 (or junk) prefilled "0", which
+    // the dialog then refused as out of range on Complete (bug audit
+    // 2026-09-26 #2) — only a positive default is offered, else 1.
+    restock_default: isBuy ? positiveOr(refPart?.restock_quantity, 1) : null,
     // #104 follow-up: restock qty × unit cost powers the cost suggestion.
     restock_unit_cost: isBuy ? (refPart?.cost ?? null) : null,
     currency_symbol: currencySymbolOf({ currency_symbol: o.currencySymbol }),
