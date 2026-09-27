@@ -8,18 +8,48 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
-from ._shared import FILTER_LIFE_PERCENT, VENTILATION_FILTER_OPERATING_TIME, VENTILATION_FILTER_REMAIN
+from ._shared import (
+    FILTER_LIFE_PERCENT,
+    PRE_FILTER_CLEANING_PERCENT,
+    VENTILATION_FILTER_OPERATING_TIME,
+    VENTILATION_FILTER_REMAIN,
+)
+
+# One object for the AC-only integrations whose climate entity runs through
+# these HVAC modes (gree, midea_ac) — shared here, next to its users, so the
+# verbatim-duplicate tripwire holds without a _shared.py entry.
+_AC_FILTER_CLEANING_RUNTIME = ConsumableSignature(
+    (),
+    "Filter Cleaning",
+    "runtime_hours",
+    delta_units=100,
+    entity_domain="climate",
+    on_states=("auto", "cool", "dry", "fan_only", "heat"),
+)
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "hass_dyson": IntegrationSignature(
         name="Dyson",
-        verified="2026-07-18 @ cmgrayb/hass-dyson main",
+        verified="2026-07-18 / 2026-09-27 (live keys, deep clean) @ cmgrayb/hass-dyson main",
         source=(
-            "cmgrayb/hass-dyson sensor.py DysonFilterLifeSensor "
-            "(translation_key 'filter_life' for BOTH hepa and carbon "
-            "instances, PERCENTAGE) — one any-low task covers both filters."
+            "cmgrayb/hass-dyson sensor.py (verified @ 3dde06e): the live "
+            "filter sensors are DysonHEPAFilterLifeSensor tk "
+            "'hepa_filter_life' and DysonCarbonFilterLifeSensor tk "
+            "'carbon_filter_life' (PERCENTAGE; the carbon one only when the "
+            "device reports a separate carbon filter) — one any-low task "
+            "covers both filters. The older DysonFilterLifeSensor (tk "
+            "'filter_life') is never instantiated; the catalog matched the "
+            "live sensors only through the _filter_life suffix until "
+            "2026-09-27. Humidifiers: DysonNextCleaningCycleSensor tk "
+            "'next_cleaning_cycle' (cltr, HOURS until the deep-clean cycle, "
+            "i.e. the citric-acid descale; unknown at 0) → Descale Appliance "
+            "24 h ahead. The filter reset is only the service "
+            "hass_dyson.reset_filter (no button)."
         ),
-        tasks=(FILTER_LIFE_PERCENT,),
+        tasks=(
+            ConsumableSignature(("hepa_filter_life", "carbon_filter_life"), "Replace Filter", "percent_left"),
+            ConsumableSignature(("next_cleaning_cycle",), "Descale Appliance", "duration_left"),
+        ),
     ),
     "dreo": IntegrationSignature(
         name="Dreo",
@@ -78,16 +108,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "guidance (clean filters every 2 weeks; ≈100 runtime-hours at "
             "typical in-season use)."
         ),
-        tasks=(
-            ConsumableSignature(
-                (),
-                "Filter Cleaning",
-                "runtime_hours",
-                delta_units=100,
-                entity_domain="climate",
-                on_states=("auto", "cool", "dry", "fan_only", "heat"),
-            ),
-        ),
+        tasks=(_AC_FILTER_CLEANING_RUNTIME,),
     ),
     "comfoconnect": IntegrationSignature(
         name="Zehnder ComfoAirQ",
@@ -116,7 +137,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "evaporation wick)."
         ),
         tasks=(
-            ConsumableSignature(("pre_filter",), "Filter Cleaning", "percent_left"),
+            PRE_FILTER_CLEANING_PERCENT,
             ConsumableSignature(("pre_filter",), "Filter Cleaning", "duration_left", below_hours=72),
             ConsumableSignature(
                 ("hepa_filter", "active_carbon_filter", "nanoprotect_filter"),
@@ -178,7 +199,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "winix": IntegrationSignature(
         name="Winix",
-        verified="2026-09-02 @ iprak/winix master sensor.py (HACS default)",
+        verified="2026-09-02 @ iprak/winix main sensor.py (HACS default)",
         source=(
             "HACS winix: tk 'filter_life' (PERCENTAGE) — % remaining derived "
             "from filter hours vs the model's max filter life "
@@ -226,7 +247,14 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "'Combined Filter Life' (PERCENTAGE, value/4300 h budget). The "
             "percent suffixes end in _filter_life too — the unit-aware "
             "matcher routes each entity to the right direction (the "
-            "lg_thinq dual-unit pattern)."
+            "lg_thinq dual-unit pattern). button.py (verified @ 41c3338): "
+            "'Reset Filter Life' (no translation_key → suffix "
+            "_reset_filter_life, CONFIG) exists only on Pure Cool Link units "
+            "(hasattr filter_life) and resets the 'filf' hours behind both "
+            "'Filter Life' (h) and 'Filter Life Percentage'; the Pure Cool "
+            "carbon/HEPA/combined % sensors have no reset. Humidify+Cool: "
+            "'Next Deep Clean' (HOURS until the citric-acid deep-clean cycle, "
+            "libdyson cltr) → Descale Appliance."
         ),
         tasks=(
             # The Pure Cool "combined" sensor is NAMED plain 'Filter Life'
@@ -242,8 +270,16 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 ),
                 "Replace Filter",
                 "percent_left",
+                resets=(("filter_life_percentage", "reset_filter_life"),),
             ),
-            ConsumableSignature(("filter_life",), "Replace Filter", "duration_left", below_hours=72),
+            ConsumableSignature(
+                ("filter_life",),
+                "Replace Filter",
+                "duration_left",
+                below_hours=72,
+                resets=(("filter_life", "reset_filter_life"),),
+            ),
+            ConsumableSignature(("next_deep_clean",), "Descale Appliance", "duration_left"),
         ),
     ),
     "venstar": IntegrationSignature(
@@ -295,9 +331,21 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "The duration-unit filter_life variants (d/h/min/s) are NOT "
             "signed: some count UP without the 'invert' mapping "
             "(fresco_hydrateultra_petfountain v1 vs v2). 'entity: lock' in "
-            "these configs is the CHILD lock — no lock signature."
+            "these configs is the CHILD lock — no lock signature. Resets "
+            "(verified @ 986d71e): 37 of the '%' configs carry a button with "
+            "translation_key 'filter_reset' (e.g. ap402_airpurifier.yaml), two "
+            "robot vacuums a name-only 'Reset filter' button (suffix "
+            "_reset_filter); the press writes the yaml's reset DP. A device "
+            "with several matching buttons gets none wired."
         ),
-        tasks=(FILTER_LIFE_PERCENT,),
+        tasks=(
+            ConsumableSignature(
+                ("filter_life",),
+                "Replace Filter",
+                "percent_left",
+                resets=(("filter_life", "filter_reset"), ("filter_life", "reset_filter")),
+            ),
+        ),
     ),
     "govee": IntegrationSignature(
         name="Govee (purifiers)",
@@ -331,9 +379,20 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "917, PERCENTAGE, MEASUREMENT; KomfoventSensor sets "
             "translation_key = key). Clogging climbs to 100 % (warning 0x81 "
             "'Change Air Filter'); the 'Clean Filters Calibration' button "
-            "resets it after a change → alert_above 90 % with auto-resolve."
+            "resets it after a change → alert_above 90 % with auto-resolve. "
+            "button.py (verified @ e5be948): tk 'clean_filters' (name 'Clean "
+            "Filters Calibration', CONFIG) writes register 1051 = 1, the "
+            "'Reset filters counter'."
         ),
-        tasks=(ConsumableSignature(("filter_clogging",), "Replace Ventilation Filter", "alert_above", delta_units=90),),
+        tasks=(
+            ConsumableSignature(
+                ("filter_clogging",),
+                "Replace Ventilation Filter",
+                "alert_above",
+                delta_units=90,
+                resets=(("filter_clogging", "clean_filters"),),
+            ),
+        ),
     ),
     "pluggit": IntegrationSignature(
         name="Pluggit ventilation",
@@ -344,7 +403,10 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "property returns the key) — Modbus register 554 = filter days "
             "REMAINING (device.py derives the replace level from lifetime − "
             "remain; the translated state 0 reads 'Replace the filter now'). "
-            "Absent on Servo_flow units (not_component_class)."
+            "Absent on Servo_flow units (not_component_class). Button key "
+            "'filter_reset' (ATTR_FILTER_RESET, translation_key = key) → "
+            "set_filter_reset writes register 558 = 1, restoring the "
+            "remaining days (verified @ ee0e13d)."
         ),
         tasks=(VENTILATION_FILTER_REMAIN,),
     ),
@@ -354,7 +416,8 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         source=(
             "HACS dantherm — the same code base as pluggit (device_map.py "
             "key 'filter_remain', DURATION, unit 'd', Modbus register 554 = "
-            "filter days REMAINING; translation_key = key)."
+            "filter days REMAINING; translation_key = key) and the same "
+            "'filter_reset' button → register 558 (verified @ da9dfaa)."
         ),
         tasks=(VENTILATION_FILTER_REMAIN,),
     ),
@@ -388,7 +451,12 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "Clean Grease Filter (mirrors the core smartthings entry). "
             "Skipped: the shared water-filter key 'filter_usage' (fridge, "
             "dishwasher, water purifier AND the AMF microfiber lint unit on "
-            "the washer registry — one key, different duties)."
+            "the washer registry — one key, different duties). Reset "
+            "(verified @ 2e942fc): 'air_filter_reset' (common."
+            "filter_reset_button, filterReset 'On' to the same "
+            "/filter/airdustfilter resource; measured on a RAC board, #449). "
+            "The hepa/hood resets are only extrapolated upstream and stay "
+            "unwired."
         ),
         tasks=(
             ConsumableSignature(
@@ -397,6 +465,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 "alert_above",
                 delta_units=90,
                 require_sibling_keys=("air_filter_usage_hours",),
+                resets=(("air_filter_usage", "air_filter_reset"),),
             ),
             ConsumableSignature(("hepa_filter_usage", "filter_progress"), "Replace Filter", "alert_above", delta_units=90),
             ConsumableSignature(("hood_filter_usage",), "Clean Grease Filter", "alert_above", delta_units=90),
@@ -416,6 +485,139 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             VENTILATION_FILTER_OPERATING_TIME,
+        ),
+    ),
+    # ─── Round 15 part 2 (2026-09-27): HACS HRVs, ACs, thermostats, ──────
+    # ─── fragrance diffusers ─────────────────────────────────────────────
+    "genvex_connect": IntegrationSignature(
+        name="Genvex Connect / Nilan gateway",
+        verified="2026-09-27 @ superrob/genvexconnect main (70a1c55) + superrob/genvexnabto 1.5.4",
+        source=(
+            "HACS genvex_connect entity.py: translation_key = the genvexnabto "
+            "value key (plain str constants, every entity). sensor.py: "
+            "'filter_days_left' (unit 'd', 'Days left until filter change'; "
+            "Nilan CTS400/CTS602/CTS602light) → duration_left 7 days; "
+            "'filter_days' (unit 'd', 'Days since filter change'; Genvex "
+            "Optima 270/314, counts up until the reset) → usage_above 4,380 h "
+            "like the other HRV filter timers. The two never exist on one "
+            "model. button.py 'filter_reset' (CONFIG, created when the model "
+            "provides FILTER_RESET — every model above) writes the setpoint 1. "
+            "The DHW 'sacrificial_anode' enum ('service' state) is left out: "
+            "its meaning is only inferred from the option names."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(
+                ("filter_days_left",),
+                "Replace Ventilation Filter",
+                "duration_left",
+                below_hours=168,
+                resets=(("filter_days_left", "filter_reset"),),
+            ),
+            ConsumableSignature(
+                ("filter_days",),
+                "Replace Ventilation Filter",
+                "usage_above",
+                above_hours=4380,
+                resets=(("filter_days", "filter_reset"),),
+            ),
+        ),
+    ),
+    "nilan": IntegrationSignature(
+        name="Nilan (CTS602 Modbus)",
+        verified="2026-09-27 @ veista/nilan master (6cdbbfe)",
+        source=(
+            "HACS nilan sensor.py: translation_key = the map name on every "
+            "sensor; 'days_to_air_filter_change' (UnitOfTime.DAYS, input "
+            "register air_flow_to_filt_day, bus version >= 9) → duration_left "
+            "7 days. 'days_since_air_filter_change' is the same duty from the "
+            "other side and is not signed twice; the DHW 'anode_state' raw "
+            "register (2 = Service) is left out (meaning unconfirmed). No "
+            "filter-reset button (button.py has only sync_time)."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(ConsumableSignature(("days_to_air_filter_change",), "Replace Ventilation Filter", "duration_left", below_hours=168),),
+    ),
+    "ha_comfoconnectpro": IntegrationSignature(
+        name="Zehnder ComfoConnect Pro (Modbus)",
+        verified="2026-09-27 @ hstrohmaier/ha_comfoconnectpro main (e03e4b6)",
+        source=(
+            "HACS ha_comfoconnectpro const.py: 'filter_days_remaining' (input "
+            "register 25, unit 'd' → DURATION; translation_key = key for every "
+            "generated entity) — days until the filter change, the ComfoAir "
+            "Q's own countdown → duration_left 7 days like the core "
+            "comfoconnect entry. The 'filter_dirty' binary is the same duty "
+            "(not signed twice). No reset entity."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(ConsumableSignature(("filter_days_remaining",), "Replace Ventilation Filter", "duration_left", below_hours=168),),
+    ),
+    "heru": IntegrationSignature(
+        name="Östberg HERU",
+        verified="2026-09-27 @ toringer/home-assistant-heru master (ec1294f)",
+        source=(
+            "HACS heru const.py (name-based entities under has_entity_name, no "
+            "translation_key): 'Filter days left' (input register 3x00020, "
+            "unit spelled out as 'days') → suffix _filter_days_left, "
+            "duration_left 7 days; button 'Reset filter timer' (coil "
+            "0x00006) → suffix _reset_filter_timer resets it."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("filter_days_left",),
+                "Replace Ventilation Filter",
+                "duration_left",
+                below_hours=168,
+                resets=(("filter_days_left", "reset_filter_timer"),),
+            ),
+        ),
+    ),
+    "midea_ac": IntegrationSignature(
+        name="Midea Smart AC (msmart-ng)",
+        verified="2026-09-27 @ mill1000/midea-ac-py main (d433bbb)",
+        source=(
+            "HACS midea_ac climate.py (AC and commercial AC devices only): "
+            "_OPERATIONAL_MODE_TO_HVAC_MODE maps auto/cool/dry/heat/fan to "
+            "auto/cool/dry/heat/fan_only, off otherwise — every mode except "
+            "off moves air through the filter → the same engine-runtime duty "
+            "as gree, with its cadence (Daikin's guidance: clean filters every "
+            "2 weeks ≈ 100 runtime hours at in-season use). The unit's own "
+            "'filter_alert' binary (supports_filter_reminder only) is "
+            "device_class problem → problem-sensor adoption."
+        ),
+        tasks=(_AC_FILTER_CLEANING_RUNTIME,),
+    ),
+    "nest_legacy": IntegrationSignature(
+        name="Nest (legacy API)",
+        verified="2026-09-27 @ tronikos/nest_legacy main (018eb74)",
+        source=(
+            "HACS nest_legacy sensor.py: tk 'filter_runtime' (thermostats with "
+            "an air filter; SECONDS, DURATION, TOTAL_INCREASING) = the "
+            "FilterReminder trait's filterRuntime, the HVAC runtime on the "
+            "current filter → usage_above 300 h, the furnace-filter cadence of "
+            "the venstar duty. Nest's own reminder is the problem-class "
+            "'filter_replacement_needed' binary (adoption path); Protect "
+            "'replace_by' is a DATE sensor (no direction)."
+        ),
+        tasks=(ConsumableSignature(("filter_runtime",), "Replace Filter", "usage_above", above_hours=300),),
+    ),
+    "pura": IntegrationSignature(
+        name="Pura fragrance diffusers",
+        verified="2026-09-27 @ natekspencer/ha-pura main (6166f16)",
+        source=(
+            "HACS pura sensor.py: tk 'fragrance_remaining' (car/mini) and "
+            "'bay_fragrance_remaining' (wall/plus, one per bay with the "
+            "placeholder {bay}), PERCENTAGE — pypura's bay.remaining.percent, "
+            "else (expectedLifeHours − runtime) / expectedLife → % REMAINING. "
+            "Two-bay diffusers get one task per vial."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("fragrance_remaining", "bay_fragrance_remaining"),
+                "Replace Air Freshener",
+                "percent_left",
+                per_entity=True,
+            ),
         ),
     ),
 }

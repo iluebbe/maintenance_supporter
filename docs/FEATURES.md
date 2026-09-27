@@ -354,7 +354,7 @@ devices they sit on), type an existing object's name and they join it.
 
 **Suggested setups** (in the dashboard's *Add ▾* menu) discovers devices of supported integrations
 whose consumable sensors can drive maintenance tasks and sets them up in one
-click. The catalog currently covers **197 integrations with 388 verified
+click. The catalog currently covers **225 integrations with 484 verified
 signatures** — vacuums, mowers, kitchen appliances, printers, cars (including
 Škoda/Audi service countdowns straight from the vehicle), air purifiers,
 heating and water treatment, locks, pet tech and more; the complete,
@@ -401,13 +401,15 @@ keeps the single task.
 **Counter resets (2.95+):** vacuums, mowers, litter boxes and air handlers
 often count their consumables themselves — and until that counter is reset in
 the integration, it keeps saying the brush is worn out. Where the integration
-offers a reset button (Roborock, Ecovacs, Tuya, Xiaomi Miio, Husqvarna
-Automower, Litter-Robot, SmartThings, Renson — marked *completing presses …*
-in [INTEGRATIONS.md](INTEGRATIONS.md)), the suggested task says so and
+offers a reset button (107 duties so far — Roborock, Ecovacs, Dreame, Tapo,
+Eufy, Automower, Landroid, PetKit, Pluggit … — marked *completing presses …* in
+[INTEGRATIONS.md](INTEGRATIONS.md)), the suggested task says so and
 adopting wires that button as the task's completion action: completing the
 task here also resets the counter. A button the integration shipped
 **disabled** (Roborock, Ecovacs, Tuya) is switched on for this — never one you
-disabled yourself. When the task completed itself because someone reset the
+disabled yourself. Where one reset key serves two parts on the same device (a
+Matter purifier's HEPA and carbon filter) nothing is wired rather than guessing
+the part. When the task completed itself because someone reset the
 counter in the vendor app, the button is not pressed again. Tasks adopted
 before 2.95 are offered in the same dialog with a before/after line per task
 (*Now: completing it leaves the counter running* → *Then: it also presses

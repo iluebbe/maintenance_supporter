@@ -308,7 +308,7 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
     # kilometres; the entity may display s/min/d resp. miles.
     # Every duration unit HA lets a user pick as display unit is listed —
     # a missing one silently fell back to 1.0 (a "24 h" floor became "24 w").
-    factor = {
+    factors = {
         "μs": 3_600_000_000.0,
         "ms": 3_600_000.0,
         "s": 3600.0,
@@ -316,13 +316,28 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
         "h": 1.0,
         "d": 1 / 24,
         "w": 1 / 168,
+        # 2.95: custom integrations that spell the unit out (HERU, CatLink:
+        # "days") — the 1.0 fallback turned a 7-day floor into 168 days.
+        "sec": 3600.0,
+        "seconds": 3600.0,
+        "mins": 60.0,
+        "minutes": 60.0,
+        "hr": 1.0,
+        "hrs": 1.0,
+        "hours": 1.0,
+        "day": 1 / 24,
+        "days": 1 / 24,
+        "week": 1 / 168,
+        "weeks": 1 / 168,
         "km": 1.0,
         "mi": 0.62137,
+        "miles": 0.62137,
         # energy counters are canonical in kWh (wallbox cable inspection)
         "Wh": 1000.0,
         "kWh": 1.0,
         "MWh": 0.001,
-    }.get(unit, 1.0)
+    }
+    factor = factors.get(unit) or factors.get(str(unit).strip().lower(), 1.0)
     hours = {
         "usage_above": sig.above_hours,
         "usage_delta": sig.delta_units,

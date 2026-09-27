@@ -878,7 +878,7 @@ async def test_softener_salt_and_philips_wick(
     )
     eco = await _seed_sensor(
         hass, "ecowater_softener", "ew1", "EcoWater ERR3500",
-        [("salt_level_percentage", None, "%"), ("out_of_salt_days", None, "d")],
+        [("salt_level_percentage", None, "%"), ("days_until_out_of_salt", None, "d")],
     )
     humidifier = await _seed_sensor(
         hass, "philips_airpurifier_coap", "hu5710", "Philips HU5710",

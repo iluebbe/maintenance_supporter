@@ -21,6 +21,17 @@ from ._shared import (
     TIRE_ROTATION_TESLA_ODOMETER,
 )
 
+# Duties two integrations of this module name identically (same key, same
+# countdown) — one object each, so the verbatim-duplicate tripwire holds.
+# 'Service inspection distance': Audi Connect and Volkswagen (WeConnect).
+_ANNUAL_SERVICE_INSPECTION_DISTANCE = ConsumableSignature(
+    ("service_inspection_distance",), "Annual Service", "value_below", delta_units=1000
+)
+# 'Days to service': the unofficial Polestar API and Smart #1/#3.
+_ANNUAL_SERVICE_DAYS_TO_SERVICE = ConsumableSignature(
+    ("days_to_service",), "Annual Service", "duration_left", below_hours=336
+)
+
 SIGNATURES: dict[str, IntegrationSignature] = {
     "kia_uvo": IntegrationSignature(
         name="Hyundai / Kia Connect",
@@ -185,7 +196,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         tasks=(
             TIRE_ROTATION_MILEAGE,
             ConsumableSignature(("service_inspection_time",), "Annual Service", "duration_left", below_hours=336),
-            ConsumableSignature(("service_inspection_distance",), "Annual Service", "value_below", delta_units=1000),
+            _ANNUAL_SERVICE_INSPECTION_DISTANCE,
             ConsumableSignature(("oil_change_time",), "Oil Service", "duration_left", below_hours=336),
             ConsumableSignature(("oil_change_distance",), "Oil Service", "value_below", delta_units=1000),
         ),
@@ -422,7 +433,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             TIRE_ROTATION_ODOMETER,
-            ConsumableSignature(("days_to_service",), "Annual Service", "duration_left", below_hours=336),
+            _ANNUAL_SERVICE_DAYS_TO_SERVICE,
             ANNUAL_SERVICE_DISTANCE_TO_SERVICE,
         ),
     ),
@@ -467,6 +478,67 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("service_due_in_days",), "Bike Service", "duration_left", below_hours=336),
             ConsumableSignature(("service_due_in_km",), "Bike Service", "value_below", delta_units=100),
             BIKE_CHAIN_ODOMETER,
+        ),
+    ),
+    # ─── Round 15 part 2 (2026-09-27): HACS car integrations ─────────────
+    "volkswagencarnet": IntegrationSignature(
+        name="Volkswagen (WeConnect)",
+        verified="2026-09-27 @ robinostlund/homeassistant-volkswagencarnet master (8b6524c) + volkswagencarnet v5.5.1",
+        source=(
+            "HACS volkswagencarnet sensor.py: has_entity_name, entity name = "
+            "the library instrument name, no translation_key → entity-id "
+            "suffixes. volkswagencarnet vw_dashboard.py instruments "
+            "'Service inspection days' (unit 'd', DURATION; "
+            "vw_vehicle.service_inspection = 'time left for service "
+            "inspection') / 'Service inspection distance' (km left) and 'Oil "
+            "inspection days' / 'Oil inspection distance' (combustion engines "
+            "only) — the car's own countdowns, as for Audi and Škoda; "
+            "'Odometer' (km, TOTAL_INCREASING) drives the tire rotation."
+        ),
+        tasks=(
+            TIRE_ROTATION_ODOMETER,
+            ConsumableSignature(("service_inspection_days",), "Annual Service", "duration_left", below_hours=336),
+            _ANNUAL_SERVICE_INSPECTION_DISTANCE,
+            ConsumableSignature(("oil_inspection_days",), "Oil Service", "duration_left", below_hours=336),
+            ConsumableSignature(("oil_inspection_distance",), "Oil Service", "value_below", delta_units=1000),
+        ),
+    ),
+    "smarthashtag": IntegrationSignature(
+        name="Smart #1 / #3 (Hello Smart)",
+        verified="2026-09-27 @ DasBasti/SmartHashtag main (cf8cd46)",
+        source=(
+            "HACS smarthashtag sensor_groups/maintenance.py (translation_key "
+            "on every description): 'odometer' (km, TOTAL_INCREASING), "
+            "'days_to_service' (DURATION, 'd') and 'distance_to_service' "
+            "(km) — pysmarthashtag maintenance.daysToService / "
+            "distanceToService, remaining. The service sensors are DISABLED "
+            "by default and share the display name 'Service due in' (entity "
+            "ids get _2/_3 suffixes) → matched by translation_key only "
+            "(translation_keys_authoritative)."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            TIRE_ROTATION_ODOMETER,
+            _ANNUAL_SERVICE_DAYS_TO_SERVICE,
+            ANNUAL_SERVICE_DISTANCE_TO_SERVICE,
+        ),
+    ),
+    "fordconnect_query": IntegrationSignature(
+        name="FordConnect Query",
+        verified="2026-09-27 @ marq24/ha-fordconnect-query main (27ef561)",
+        source=(
+            "HACS fordconnect_query: translation_key = the tag key (entity.py) "
+            "and entity_id sensor.fcq_<vin>_<tag>; const_tags.py 'oil' = "
+            "metrics.oilLifeRemaining (PERCENTAGE, only created when the "
+            "vehicle reports it — combustion engines) → Oil Service at the "
+            "household floor; 'odometer' (km, TOTAL_INCREASING) → the "
+            "FordPass pair (annual service + tire rotation)."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ANNUAL_SERVICE_ODOMETER,
+            TIRE_ROTATION_ODOMETER,
+            ConsumableSignature(("oil",), "Oil Service", "percent_left"),
         ),
     ),
 }

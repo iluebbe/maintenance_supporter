@@ -208,6 +208,10 @@ async def ws_adopt_integration_setups(
                 if task.get("reset"):
                     apply_reset_action(hass, task_data, task["reset"]["entity_id"], connection.user.id if connection.user else None)
                 await batch.persist_task(entry, task_data)
+                # One duty through two sensors (a softener's salt in % and in
+                # days) is one task — the second proposal of the name is
+                # skipped instead of creating a twin.
+                existing_names.add(str(task_data["name"]).lower())
         except (ValueError, KeyError) as err:
             # Removes an object created for this device together with the
             # tasks already persisted into it — and un-counts both (the

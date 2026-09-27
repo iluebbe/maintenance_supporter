@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from ._model import ConsumableSignature
 
-# 2 integrations (cars.py).
+# 3 integrations (cars.py).
 ANNUAL_SERVICE_DISTANCE_TO_SERVICE = ConsumableSignature(
     ("distance_to_service",),
     "Annual Service",
@@ -30,7 +30,7 @@ ANNUAL_SERVICE_MILEAGE = ConsumableSignature(
     delta_units=15000,
 )
 
-# 10 integrations (cars.py).
+# 11 integrations (cars.py).
 ANNUAL_SERVICE_ODOMETER = ConsumableSignature(
     ("odometer",),
     "Annual Service",
@@ -94,26 +94,19 @@ CHARGER_CABLE_TOTAL_ENERGY = ConsumableSignature(
     delta_units=5000,
 )
 
-# 9 integrations (air.py, kitchen.py, vacuums.py).
+# 7 integrations (air.py, vacuums.py).
 FILTER_LIFE_PERCENT = ConsumableSignature(
     ("filter_life",),
     "Replace Filter",
     "percent_left",
 )
 
-# 3 integrations (heating.py).
+# 4 integrations (heating.py).
 HEATING_WATER_PRESSURE_LOW = ConsumableSignature(
     ("water_pressure",),
     "Refill Heating Water",
     "value_below",
     delta_units=1,
-)
-
-# 2 integrations (garden.py).
-LANDROID_BLADE_RUNTIME = ConsumableSignature(
-    ("blade_runtime_current",),
-    "Replace Blades",
-    "usage_above",
 )
 
 # 2 integrations (garden.py).
@@ -132,20 +125,6 @@ LOCK_CYLINDER_CYCLES = ConsumableSignature(
     delta_units=2000,
     entity_domain="lock",
     on_states=("locked",),
-)
-
-# 2 integrations (xiaomi.py).
-MIOT_BRUSH_LIFE_LEVEL = ConsumableSignature(
-    ("brush_life_level",),
-    "Replace Main Brush",
-    "percent_left",
-)
-
-# 2 integrations (xiaomi.py).
-MIOT_FILTER_LIFE_LEVEL = ConsumableSignature(
-    ("filter_life_level",),
-    "Replace Filter",
-    "percent_left",
 )
 
 # 3 integrations (garden.py, transports.py).
@@ -184,6 +163,13 @@ POOL_SALT_LOW = ConsumableSignature(
     delta_units=2700,
 )
 
+# 2 integrations (air.py, kitchen.py).
+PRE_FILTER_CLEANING_PERCENT = ConsumableSignature(
+    ("pre_filter",),
+    "Filter Cleaning",
+    "percent_left",
+)
+
 # 3 integrations (heating.py).
 SOFTENER_SALT_LEVEL = ConsumableSignature(
     ("salt_level",),
@@ -199,7 +185,7 @@ TIRE_ROTATION_MILEAGE = ConsumableSignature(
     delta_units=10000,
 )
 
-# 12 integrations (cars.py).
+# 15 integrations (cars.py).
 TIRE_ROTATION_ODOMETER = ConsumableSignature(
     ("odometer",),
     "Tire Rotation",
@@ -223,7 +209,7 @@ UNRAID_ARRAY_USAGE_HIGH = ConsumableSignature(
     delta_units=85,
 )
 
-# 11 integrations (transports.py, vacuums.py).
+# 12 integrations (transports.py, vacuums.py).
 VACUUM_FILTER_CLEANING_RUNTIME = ConsumableSignature(
     (),
     "Filter Cleaning",
@@ -233,7 +219,7 @@ VACUUM_FILTER_CLEANING_RUNTIME = ConsumableSignature(
     on_states=("cleaning",),
 )
 
-# 11 integrations (transports.py, vacuums.py).
+# 12 integrations (transports.py, vacuums.py).
 VACUUM_MAIN_BRUSH_RUNTIME = ConsumableSignature(
     (),
     "Clean Main Brush",
@@ -257,4 +243,5 @@ VENTILATION_FILTER_REMAIN = ConsumableSignature(
     "Replace Ventilation Filter",
     "duration_left",
     below_hours=168,
+    resets=(("filter_remain", "filter_reset"),),
 )

@@ -101,15 +101,20 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "ecowater_softener": IntegrationSignature(
         name="EcoWater softener",
-        verified="2026-07-19 @ barleybobs/homeassistant-ecowater-softener master (HACS default)",
+        verified="2026-07-19 / 2026-09-27 (days key fixed) @ barleybobs/homeassistant-ecowater-softener master (HACS default)",
         source=(
-            "HACS ecowater_softener (barleybobs): key 'salt_level_percentage' "
-            "(PERCENTAGE) and key 'out_of_salt_days' (days) — name-style "
-            "entities, suffix-matched."
+            "HACS ecowater_softener (barleybobs) sensor.py: EcowaterSensor "
+            "has_entity_name, no translation_key, so the entity id comes from "
+            "the NAME: 'Salt Level Percentage' (PERCENTAGE) → suffix "
+            "_salt_level_percentage and 'Days Until Out of Salt' "
+            "(UnitOfTime.DAYS) → suffix _days_until_out_of_salt. (Until "
+            "2026-09-27 the catalog used the description key "
+            "'out_of_salt_days', which no entity id carries — the days duty "
+            "never matched; verified @ 6403e5c.)"
         ),
         tasks=(
             ConsumableSignature(("salt_level_percentage",), "Refill Softener Salt", "percent_left"),
-            ConsumableSignature(("out_of_salt_days",), "Refill Softener Salt", "duration_left", below_hours=168),
+            ConsumableSignature(("days_until_out_of_salt",), "Refill Softener Salt", "duration_left", below_hours=168),
         ),
     ),
     "wolflink": IntegrationSignature(
@@ -150,18 +155,32 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "grohe_smarthome": IntegrationSignature(
         name="Grohe Blue",
-        verified="2026-07-19 @ flo-schilli/ha-grohe_smarthome main (HACS default)",
+        verified="2026-07-19 / 2026-09-27 (resets) @ Flo-Schilli/ha-grohe_smarthome main (HACS default)",
         source=(
-            "HACS grohe_smarthome, yaml-driven name-derived entities "
-            "(config/config.yaml, GroheBlueHome/GroheBlueProf): 'Remaining "
-            "Filter' (%) and 'Remaining CO2' (%) — reset by the device's own "
-            "filter/CO2 reset commands. The sibling 'Remaining Filter (App)' "
-            "slugs to _remaining_filter_app and cannot clash with the exact "
-            "_remaining_filter suffix."
+            "HACS grohe_smarthome (owner now 'Flo-Schilli'), yaml-driven "
+            "name-derived entities (config/config.yaml, "
+            "GroheBlueHome/GroheBlueProf): 'Remaining Filter' (%) and "
+            "'Remaining CO2' (%). The sibling 'Remaining Filter (App)' slugs "
+            "to _remaining_filter_app and cannot clash with the exact "
+            "_remaining_filter suffix. The same yaml declares the buttons "
+            "'Reset Filter' (command.filter_status_reset) and 'Reset CO2' "
+            "(command.co2_status_reset) — has_entity_name, no "
+            "translation_key → suffixes _reset_filter / _reset_co2 (verified "
+            "@ 806abcd)."
         ),
         tasks=(
-            ConsumableSignature(("remaining_filter",), "Replace Water Filter", "percent_left"),
-            ConsumableSignature(("remaining_co2",), "Replace CO2 Bottle", "percent_left"),
+            ConsumableSignature(
+                ("remaining_filter",),
+                "Replace Water Filter",
+                "percent_left",
+                resets=(("remaining_filter", "reset_filter"),),
+            ),
+            ConsumableSignature(
+                ("remaining_co2",),
+                "Replace CO2 Bottle",
+                "percent_left",
+                resets=(("remaining_co2", "reset_co2"),),
+            ),
         ),
     ),
     "iqua_softener": IntegrationSignature(
@@ -202,13 +221,24 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         source=(
             "core aquacell: tk 'salt_left_side_percentage' and "
             "'salt_right_side_percentage' (PERCENTAGE) — dual salt tanks, "
-            "matched any-low."
+            "matched any-low. 2026-09-27 @ core 2026.9: also tk "
+            "'salt_left_side_time_remaining' / 'salt_right_side_time_remaining' "
+            "(DURATION, DAYS) — the softener's own days-of-salt forecast, a "
+            "week's lead like the BWT/EcoWater days duties (adopting takes one "
+            "'Refill Softener Salt' task per object, whichever is ticked "
+            "first)."
         ),
         tasks=(
             ConsumableSignature(
                 ("salt_left_side_percentage", "salt_right_side_percentage"),
                 "Refill Softener Salt",
                 "percent_left",
+            ),
+            ConsumableSignature(
+                ("salt_left_side_time_remaining", "salt_right_side_time_remaining"),
+                "Refill Softener Salt",
+                "duration_left",
+                below_hours=168,
             ),
         ),
     ),
@@ -317,5 +347,94 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "usage_delta every 250 h (typical diesel-genset oil interval)."
         ),
         tasks=(ConsumableSignature(("engine_hours",), "Oil Service", "usage_delta", delta_units=250),),
+    ),
+    # ─── Round 15 (2026-09-27): water-treatment cartridges and salt, ────
+    # ─── generator service countdown ─────────────────────────────────────
+    "drop_connect": IntegrationSignature(
+        name="DROP (water treatment)",
+        verified="2026-09-27 @ home-assistant/core 2026.9 + dev",
+        source=(
+            "core drop_connect (one config entry per DROP device, "
+            "DEVICE_SENSORS / DEVICE_BINARY_SENSORS by device type). RO filter "
+            "('ro'): sensor.py tk 'cart1'/'cart2'/'cart3' ('Cartridge N life "
+            "remaining', PERCENTAGE, MEASUREMENT, DIAGNOSTIC) — three "
+            "cartridges replaced one at a time → per-entity 'Replace Water "
+            "Filter'. Salt sensor ('salt'): binary_sensor.py tk 'salt' ('Salt "
+            "low', NO device class, so problem-sensor adoption does not see "
+            "it) → state latch on 'on', cleared by the refill. Skipped: the "
+            "softener's 'capacity_remaining' (GALLONS of softening capacity "
+            "until the next regeneration) / 'reserve_in_use' — the "
+            "regeneration cycle, operational, not salt."
+        ),
+        tasks=(
+            ConsumableSignature(("cart1", "cart2", "cart3"), "Replace Water Filter", "percent_left", per_entity=True),
+            ConsumableSignature(
+                ("salt",),
+                "Refill Softener Salt",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+            ),
+        ),
+    ),
+    "victron_gx": IntegrationSignature(
+        name="Victron GX (generator)",
+        verified="2026-09-27 @ home-assistant/core 2026.9 + dev, victron-mqtt 2026.8.4 + main",
+        source=(
+            "core victron_gx entity.py sets translation_key = the metric's "
+            "generic_short_id; victron_mqtt _victron_topics.py "
+            "'generator_service_counter' (N/…/generator/<id>/ServiceCounter, "
+            "'Service counter', DURATION, h; core strings.json 'Service "
+            "counter'). Venus OS dbus_generator startstop.py computes it as "
+            "(lastservicereset + serviceinterval) − accumulated runtime, i.e. "
+            "run-hours LEFT until the service the user configured (None while "
+            "no interval is set; negative when overdue) → duration_left, "
+            "task at 24 run-hours left. The counter reset "
+            "(ServiceCounterReset) is a library SERVICE topic, not an HA "
+            "button — nothing to wire."
+        ),
+        tasks=(ConsumableSignature(("generator_service_counter",), "Oil Service", "duration_left"),),
+    ),
+    # ─── Round 15 part 2 (2026-09-27): HACS heat pumps and stoves ────────
+    "stiebel_eltron_isg": IntegrationSignature(
+        name="Stiebel Eltron ISG (LWZ)",
+        verified="2026-09-27 @ pail23/stiebel_eltron_isg_component main (f47bcf8)",
+        source=(
+            "HACS stiebel_eltron_isg binary_sensor.py LWZ_BINARY_SENSOR_TYPES "
+            "(LWZ ventilation heat pumps only — WPM controllers get other "
+            "lists): tk 'filter' (operating_status bit 8), "
+            "'filter_extract_air' (bit 12) and 'filter_ventilation_air' (bit "
+            "13) — the controller's filter-change requests; plain binaries "
+            "with NO device class, so problem-sensor adoption does not see "
+            "them → one latch on 'on' over the three (one filter change "
+            "clears them together). The 'service' bit (6) has no documented "
+            "meaning and is left out. Every entity description sets a "
+            "translation_key."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(
+                ("filter", "filter_extract_air", "filter_ventilation_air"),
+                "Replace Ventilation Filter",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+            ),
+        ),
+    ),
+    "aguaiot": IntegrationSignature(
+        name="Micronova Agua IOT (hydro stoves)",
+        verified="2026-09-27 @ vincentwolsink/home_assistant_micronova_agua_iot master (4d1883f)",
+        source=(
+            "HACS aguaiot const.py SENSORS (has_entity_name, name from the "
+            "description, no translation_key; created only when the stove "
+            "exposes the register): 'Water Pressure' (pres_h2o_get, BAR, "
+            "hydro stoves) → suffix _water_pressure. 'Service Hours' "
+            "(ore_service_get, h, TOTAL_INCREASING, hours since the last "
+            "service) is NOT signed: its limit sibling 'Threshold Service "
+            "Hours' also ends in _service_hours, and the suffix match cannot "
+            "exclude it (no translation_key to tell them apart)."
+        ),
+        tasks=(HEATING_WATER_PRESSURE_LOW,),
     ),
 }

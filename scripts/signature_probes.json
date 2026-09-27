@@ -36,7 +36,12 @@
    "reset_vacuum_main_brush",
    "reset_vacuum_side_brush",
    "reset_vacuum_filter",
-   "reset_vacuum_sensor_dirty"
+   "reset_vacuum_sensor_dirty",
+   "\"filter_life_remaining\"",
+   "\"dust_filter_life_remaining\"",
+   "\"upper_filter_life_remaining\"",
+   "\"reset_dust_filter\"",
+   "\"reset_upper_filter\""
   ]
  },
  "dreame_vacuum": {
@@ -51,16 +56,26 @@
    "mop_pad_left",
    "detergent_left",
    "secondary_filter_left",
-   "silver_ion_left"
+   "silver_ion_left",
+   "[\"reset_main_brush\", \"Reset Main Brush\"]",
+   "[\"reset_side_brush\", \"Reset Side Brush\"]",
+   "[\"reset_filter\", \"Reset Filter\"]",
+   "[\"reset_sensor\", \"Reset Sensor\"]",
+   "[\"reset_mop_pad\", \"Reset Mop Pad\"]",
+   "[\"reset_silver_ion\", \"Reset Silver-ion\"]",
+   "[\"reset_detergent\", \"Reset Detergent\"]"
   ]
  },
  "xiaomi_miot": {
   "urls": [
-   "https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/custom_components/xiaomi_miot/core/miot_spec.py"
+   "https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/custom_components/xiaomi_miot/core/miot_spec.py",
+   "https://raw.githubusercontent.com/al-one/hass-xiaomi-miot/master/custom_components/xiaomi_miot/core/device_customizes.py"
   ],
   "strings": [
    "filter_life_level",
-   "format_name"
+   "format_name",
+   "reset_filter_life",
+   "reset_brush_life"
   ]
  },
  "xiaomi_home": {
@@ -74,7 +89,7 @@
  },
  "midea_ac_lan": {
   "urls": [
-   "https://raw.githubusercontent.com/wuwentao/midea_ac_lan/master/custom_components/midea_ac_lan/midea_devices.py"
+   "https://raw.githubusercontent.com/wuwentao/midea_ac_lan/main/custom_components/midea_ac_lan/midea_devices.py"
   ],
   "strings": [
    "filter1_life",
@@ -123,11 +138,13 @@
  },
  "landroid_cloud": {
   "urls": [
-   "https://raw.githubusercontent.com/MTrab/landroid_cloud/master/custom_components/landroid_cloud/sensor.py"
+   "https://raw.githubusercontent.com/MTrab/landroid_cloud/master/custom_components/landroid_cloud/sensor.py",
+   "https://raw.githubusercontent.com/MTrab/landroid_cloud/master/custom_components/landroid_cloud/button.py"
   ],
   "strings": [
    "blade_runtime_current",
-   "mower_runtime_total"
+   "mower_runtime_total",
+   "translation_key=\"reset_blade_time\""
   ]
  },
  "gardena_smart_system": {
@@ -149,12 +166,18 @@
  },
  "lg_thinq": {
   "urls": [
-   "https://raw.githubusercontent.com/thinq-connect/pythinqconnect/main/thinqconnect/devices/const.py"
+   "https://raw.githubusercontent.com/thinq-connect/pythinqconnect/main/thinqconnect/devices/const.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/lg_thinq/binary_sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/lg_thinq/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/lg_thinq/strings.json"
   ],
   "strings": [
    "FILTER_LIFETIME",
    "TOP_FILTER_REMAIN_PERCENT",
-   "WATER_FILTER_1_REMAIN_PERCENT"
+   "WATER_FILTER_1_REMAIN_PERCENT",
+   "ThinQProperty.RINSE_REFILL",
+   "translation_key=ThinQProperty.FRESH_AIR_FILTER",
+   "\"replace\": \"Replace filter\""
   ]
  },
  "smartthinq_sensors": {
@@ -290,7 +313,9 @@
   ],
   "strings": [
    "filter_life",
-   "DysonFilterLifeSensor"
+   "self._attr_translation_key = \"hepa_filter_life\"",
+   "self._attr_translation_key = \"carbon_filter_life\"",
+   "self._attr_translation_key = \"next_cleaning_cycle\""
   ]
  },
  "dreo": {
@@ -312,10 +337,17 @@
  },
  "electrolux_status": {
   "urls": [
-   "https://raw.githubusercontent.com/albaintor/homeassistant_electrolux_status/master/custom_components/electrolux_status/catalog_purifier.py"
+   "https://raw.githubusercontent.com/albaintor/homeassistant_electrolux_status/master/custom_components/electrolux_status/catalog_purifier.py",
+   "https://raw.githubusercontent.com/albaintor/homeassistant_electrolux_status/master/custom_components/electrolux_status/catalog_core.py",
+   "https://raw.githubusercontent.com/albaintor/homeassistant_electrolux_status/master/custom_components/electrolux_status/sensor.py"
   ],
   "strings": [
-   "FilterLife"
+   "FilterLife",
+   "\"waterFilterState\": ElectroluxDevice(",
+   "\"waterFilterStateReset\": ElectroluxDevice(",
+   "\"airFilterState\": ElectroluxDevice(",
+   "\"airFilterStateReset\": ElectroluxDevice(",
+   "value = value.title()"
   ]
  },
  "mbapi2020": {
@@ -385,10 +417,17 @@
  },
  "matter": {
   "urls": [
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/matter/lock.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/matter/lock.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/matter/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/matter/button.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/matter/vacuum.py"
   ],
   "strings": [
-   "MatterLock"
+   "MatterLock",
+   "translation_key=\"hepa_filter_condition\"",
+   "translation_key=\"activated_carbon_filter_condition\"",
+   "translation_key=\"reset_filter_condition\"",
+   "VacuumActivity.CLEANING"
   ]
  },
  "zwave_js": {
@@ -401,10 +440,15 @@
  },
  "zha": {
   "urls": [
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/zha/lock.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/zha/lock.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/zha/strings.json",
+   "https://raw.githubusercontent.com/zigpy/zha/dev/zha/application/platforms/sensor/__init__.py"
   ],
   "strings": [
-   "LockEntity"
+   "LockEntity",
+   "\"filter_run_time\": {",
+   "class IkeaFilterRunTime",
+   "_attr_translation_key: str = \"filter_run_time\""
   ]
  },
  "mqtt": {
@@ -419,10 +463,13 @@
  },
  "homekit_controller": {
   "urls": [
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/homekit_controller/lock.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/homekit_controller/lock.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/homekit_controller/sensor.py"
   ],
   "strings": [
-   "LockEntity"
+   "LockEntity",
+   "CharacteristicsTypes.FILTER_LIFE_LEVEL: HomeKitSensorEntityDescription",
+   "name=\"Filter lifetime\""
   ]
  },
  "tedee": {
@@ -640,14 +687,16 @@
   "urls": [
    "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartthings/vacuum.py",
    "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartthings/sensor.py",
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartthings/button.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartthings/button.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartthings/binary_sensor.py"
   ],
   "strings": [
    "Vacuum",
    "water_filter_usage",
    "hood_filter_usage",
    "reset_water_filter",
-   "reset_hood_filter"
+   "reset_hood_filter",
+   "\"robot_cleaner_dust_bag\""
   ]
  },
  "octoprint": {
@@ -676,10 +725,22 @@
  },
  "tplink": {
   "urls": [
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tplink/vacuum.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tplink/vacuum.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tplink/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tplink/button.py"
   ],
   "strings": [
-   "Vacuum"
+   "Vacuum",
+   "main_brush_remaining",
+   "side_brush_remaining",
+   "\"filter_remaining\"",
+   "\"sensor_remaining\"",
+   "charging_contacts_remaining",
+   "main_brush_reset",
+   "side_brush_reset",
+   "\"filter_reset\"",
+   "\"sensor_reset\"",
+   "charging_contacts_reset"
   ]
  },
  "daikin": {
@@ -770,11 +831,18 @@
  },
  "petkit": {
   "urls": [
-   "https://raw.githubusercontent.com/Jezza34000/homeassistant_petkit/main/custom_components/petkit/sensor.py"
+   "https://raw.githubusercontent.com/Jezza34000/homeassistant_petkit/main/custom_components/petkit/sensor.py",
+   "https://raw.githubusercontent.com/Jezza34000/homeassistant_petkit/main/custom_components/petkit/button.py"
   ],
   "strings": [
    "desiccant_left_days",
-   "filter_percent"
+   "filter_percent",
+   "odor_eliminator_n50_left_days",
+   "odor_eliminator_n60_left_days",
+   "translation_key=\"reset_desiccant\"",
+   "translation_key=\"reset_filter\"",
+   "translation_key=\"reset_n50_odor_eliminator\"",
+   "translation_key=\"reset_n60_odor_eliminator\""
   ]
  },
  "moonraker": {
@@ -832,18 +900,23 @@
   ],
   "strings": [
    "SALT_LEVEL_PERCENTAGE",
-   "OUT_OF_SALT"
+   "OUT_OF_SALT",
+   "name=\"Days Until Out of Salt\""
   ]
  },
  "hon": {
   "urls": [
-   "https://raw.githubusercontent.com/Andre0512/hon/main/custom_components/hon/sensor.py"
+   "https://raw.githubusercontent.com/Andre0512/hon/main/custom_components/hon/sensor.py",
+   "https://raw.githubusercontent.com/gvigroux/hon/master/custom_components/hon/sensor.py"
   ],
   "strings": [
    "mainFilterStatus",
    "filter_cleaning",
    "totalWashCycle",
-   "cycles_total"
+   "cycles_total",
+   "\"mainFilterStatus\", \"Main filter\"",
+   "\"preFilterStatus\", \"Pre filter\"",
+   "\"totalWashCycle\", \"Total wash cycle\""
   ]
  },
  "polestar_api": {
@@ -911,7 +984,9 @@
   ],
   "strings": [
    "washer_state",
-   "running_maincycle"
+   "running_maincycle",
+   "\"whirlpool_tank\"",
+   "1: \"empty\""
   ]
  },
  "myskoda": {
@@ -953,13 +1028,17 @@
  },
  "grohe_smarthome": {
   "urls": [
-   "https://raw.githubusercontent.com/flo-schilli/ha-grohe_smarthome/main/custom_components/grohe_smarthome/config/config.yaml"
+   "https://raw.githubusercontent.com/Flo-Schilli/ha-grohe_smarthome/main/custom_components/grohe_smarthome/config/config.yaml"
   ],
   "strings": [
    "Remaining Filter",
    "Remaining CO2",
    "remaining_filter",
-   "remaining_co2"
+   "remaining_co2",
+   "name: 'Reset Filter'",
+   "name: 'Reset CO2'",
+   "command.filter_status_reset",
+   "command.co2_status_reset"
   ]
  },
  "coway": {
@@ -975,7 +1054,7 @@
  },
  "winix": {
   "urls": [
-   "https://raw.githubusercontent.com/iprak/winix/master/custom_components/winix/sensor.py"
+   "https://raw.githubusercontent.com/iprak/winix/main/custom_components/winix/sensor.py"
   ],
   "strings": [
    "SENSOR_FILTER_LIFE",
@@ -990,7 +1069,8 @@
   ],
   "strings": [
    "Cook Cycle",
-   "cook_cycles"
+   "cook_cycles",
+   "\"Cook Cycles\", \"cook_cycles\""
   ]
  },
  "rainbird": {
@@ -1108,7 +1188,9 @@
   ],
   "strings": [
    "salt_left_side_percentage",
-   "salt_right_side_percentage"
+   "salt_right_side_percentage",
+   "salt_left_side_time_remaining",
+   "salt_right_side_time_remaining"
   ]
  },
  "screenlogic": {
@@ -1130,14 +1212,17 @@
  },
  "dyson_local": {
   "urls": [
-   "https://raw.githubusercontent.com/libdyson-wg/ha-dyson/main/custom_components/dyson_local/sensor.py"
+   "https://raw.githubusercontent.com/libdyson-wg/ha-dyson/main/custom_components/dyson_local/sensor.py",
+   "https://raw.githubusercontent.com/libdyson-wg/ha-dyson/main/custom_components/dyson_local/button.py"
   ],
   "strings": [
    "Filter Life Percentage",
    "Carbon Filter Life",
    "HEPA Filter Life",
    "_SENSOR_TYPE = \"combined_filter_life\"",
-   "_SENSOR_TYPE = \"filter_life\""
+   "_SENSOR_TYPE = \"filter_life\"",
+   "\"Reset Filter Life\"",
+   "_SENSOR_TYPE = \"next_deep_clean\""
   ]
  },
  "ha_washdata": {
@@ -1180,17 +1265,27 @@
  },
  "sunseeker": {
   "urls": [
-   "https://raw.githubusercontent.com/Sdahl1234/Sunseeker-lawn-mower/main/custom_components/sunseeker/sensor.py"
+   "https://raw.githubusercontent.com/Sdahl1234/Sunseeker-lawn-mower/main/custom_components/sunseeker/sensor.py",
+   "https://raw.githubusercontent.com/Sdahl1234/Sunseeker-lawn-mower/main/custom_components/sunseeker/button.py"
   ],
   "strings": [
    "blade_time_left",
    "blade_health",
-   "sunseeker_blade_time_left"
+   "sunseeker_blade_time_left",
+   "\"sunseeker_reset_blade\"",
+   "\"sunseeker_reset_bladeplade\"",
+   "\"sunseeker_reset_small_blade\"",
+   "\"sunseeker_reset_small_bladeplade\"",
+   "\"sunseeker_blade_health\"",
+   "\"sunseeker_cutterplade_health\"",
+   "\"sunseeker_small_blade_health\"",
+   "\"sunseeker_small_cutterplade_health\""
   ]
  },
  "robovac_mqtt": {
   "urls": [
-   "https://raw.githubusercontent.com/jeppesens/eufy-clean/main/custom_components/robovac_mqtt/sensor.py"
+   "https://raw.githubusercontent.com/jeppesens/eufy-clean/main/custom_components/robovac_mqtt/sensor.py",
+   "https://raw.githubusercontent.com/jeppesens/eufy-clean/main/custom_components/robovac_mqtt/button.py"
   ],
   "strings": [
    "Filter Remaining",
@@ -1198,7 +1293,13 @@
    "Side Brush Remaining",
    "Sensor Remaining",
    "Cleaning Tray Remaining",
-   "Mopping Cloth Remaining"
+   "Mopping Cloth Remaining",
+   "\"Reset Filter\"",
+   "\"Reset Rolling Brush\"",
+   "\"Reset Side Brush\"",
+   "\"Reset Sensors\"",
+   "\"Reset Cleaning Tray\"",
+   "\"Reset Mopping Cloth\""
   ]
  },
  "robovac": {
@@ -1242,13 +1343,17 @@
  },
  "ilife": {
   "urls": [
-   "https://raw.githubusercontent.com/maximedeprince/ha-ilife/main/custom_components/ilife/sensor.py"
+   "https://raw.githubusercontent.com/maximedeprince/ha-ilife/main/custom_components/ilife/sensor.py",
+   "https://raw.githubusercontent.com/maximedeprince/ha-ilife/main/custom_components/ilife/button.py"
   ],
   "strings": [
    "(\"main_brush\"",
    "(\"side_brush\"",
    "(\"filter\"",
-   "_attr_translation_key = \"history\""
+   "_attr_translation_key = \"history\"",
+   "(\"reset_main_brush\"",
+   "(\"reset_side_brush\"",
+   "(\"reset_filter\""
   ]
  },
  "hpprinter": {
@@ -1296,22 +1401,29 @@
  },
  "anycubic_cloud": {
   "urls": [
-   "https://raw.githubusercontent.com/Nino6689/hass-anycubic/main/custom_components/anycubic_cloud/sensor.py"
+   "https://raw.githubusercontent.com/Nino6689/hass-anycubic/main/custom_components/anycubic_cloud/sensor.py",
+   "https://raw.githubusercontent.com/Nino6689/hass-anycubic/main/custom_components/anycubic_cloud/button.py"
   ],
   "strings": [
    "translation_key=\"print_time_total_hrs\"",
-   "translation_key=\"curr_nozzle_temp\""
+   "translation_key=\"curr_nozzle_temp\"",
+   "translation_key=\"nozzle_wear_percent\"",
+   "translation_key=\"reset_nozzle_wear\""
   ]
  },
  "petlibro": {
   "urls": [
-   "https://raw.githubusercontent.com/jjjonesjr33/petlibro/dev/custom_components/petlibro/sensor.py"
+   "https://raw.githubusercontent.com/jjjonesjr33/petlibro/dev/custom_components/petlibro/sensor.py",
+   "https://raw.githubusercontent.com/jjjonesjr33/petlibro/dev/custom_components/petlibro/button.py"
   ],
   "strings": [
    "translation_key=\"remaining_desiccant\"",
    "translation_key=\"remaining_filter_days\"",
    "translation_key=\"remaining_cleaning_days\"",
-   "translation_key=\"remaining_replacement_days\""
+   "translation_key=\"remaining_replacement_days\"",
+   "translation_key=\"desiccant_reset\"",
+   "translation_key=\"filter_reset\"",
+   "translation_key=\"cleaning_reset\""
   ]
  },
  "oralb_live": {
@@ -1325,11 +1437,15 @@
  },
  "philips_shaver": {
   "urls": [
-   "https://raw.githubusercontent.com/mtheli/philips_shaver/main/custom_components/philips_shaver/sensor.py"
+   "https://raw.githubusercontent.com/mtheli/philips_shaver/main/custom_components/philips_shaver/sensor.py",
+   "https://raw.githubusercontent.com/mtheli/philips_shaver/main/custom_components/philips_shaver/button.py"
   ],
   "strings": [
    "_attr_translation_key = \"head_remaining\"",
-   "PERCENTAGE"
+   "PERCENTAGE",
+   "_attr_translation_key = \"blade_replacement\"",
+   "_attr_translation_key = \"cartridge_reset\"",
+   "_attr_translation_key = \"cleaning_cycles_remaining\""
   ]
  },
  "homeconnect_ws": {
@@ -1337,7 +1453,8 @@
    "https://raw.githubusercontent.com/chris-mc1/homeconnect_local_hass/main/custom_components/homeconnect_ws/entity_descriptions/dishcare.py",
    "https://raw.githubusercontent.com/chris-mc1/homeconnect_local_hass/main/custom_components/homeconnect_ws/entity_descriptions/cooking.py",
    "https://raw.githubusercontent.com/chris-mc1/homeconnect_local_hass/main/custom_components/homeconnect_ws/entity_descriptions/consumer_products.py",
-   "https://raw.githubusercontent.com/chris-mc1/homeconnect_local_hass/main/custom_components/homeconnect_ws/sensor.py"
+   "https://raw.githubusercontent.com/chris-mc1/homeconnect_local_hass/main/custom_components/homeconnect_ws/sensor.py",
+   "https://raw.githubusercontent.com/chris-mc1/homeconnect_local_hass/main/custom_components/homeconnect_ws/entity_descriptions/refrigeration.py"
   ],
   "strings": [
    "key=\"sensor_salt\"",
@@ -1348,7 +1465,10 @@
    "sensor_countdown_descaling",
    "sensor_countdown_cleaning",
    "sensor_countdown_water_filter",
-   "return self.entity_description.options[-1]"
+   "return self.entity_description.options[-1]",
+   "button_hood_grease_filter_reset",
+   "sensor_water_filter_saturation",
+   "button_water_filter_reset"
   ]
  },
  "midea": {
@@ -1369,12 +1489,22 @@
  },
  "electrolux": {
   "urls": [
-   "https://raw.githubusercontent.com/TTLucian/ha-electrolux/main/custom_components/electrolux/catalogs/catalog_ap.py"
+   "https://raw.githubusercontent.com/TTLucian/ha-electrolux/main/custom_components/electrolux/catalogs/catalog_ap.py",
+   "https://raw.githubusercontent.com/TTLucian/ha-electrolux/main/custom_components/electrolux/catalogs/catalog_cr.py",
+   "https://raw.githubusercontent.com/TTLucian/ha-electrolux/main/custom_components/electrolux/catalogs/catalog_ac.py",
+   "https://raw.githubusercontent.com/TTLucian/ha-electrolux/main/custom_components/electrolux/sensor.py"
   ],
   "strings": [
    "\"FilterLife\": ElectroluxDevice(",
    "\"FilterLife_1\": ElectroluxDevice(",
-   "\"FilterLife_2\": ElectroluxDevice("
+   "\"FilterLife_2\": ElectroluxDevice(",
+   "\"waterFilterState\": ElectroluxDevice(",
+   "\"waterFilterStateReset\": ElectroluxDevice(",
+   "\"airFilterState\": ElectroluxDevice(",
+   "\"airFilterStateReset\": ElectroluxDevice(",
+   "\"hepaFilterState\": ElectroluxDevice(",
+   "\"hepaFilterReset\": ElectroluxDevice(",
+   "value = value.title()"
   ]
  },
  "ge_home": {
@@ -1390,12 +1520,15 @@
  },
  "candy": {
   "urls": [
-   "https://raw.githubusercontent.com/bigmoby/home-assistant-candy/main/custom_components/candy/sensor.py"
+   "https://raw.githubusercontent.com/bigmoby/home-assistant-candy/main/custom_components/candy/sensor.py",
+   "https://raw.githubusercontent.com/bigmoby/home-assistant-candy/main/custom_components/candy/button.py"
   ],
   "strings": [
    "_attr_translation_key = \"wash_total_cycles\"",
    "_attr_translation_key = \"wash_maint_limescale\"",
-   "_attr_translation_key = \"wash_maint_filter\""
+   "_attr_translation_key = \"wash_maint_filter\"",
+   "\"wash_maint_limescale_reset\"",
+   "\"wash_maint_filter_reset\""
   ]
  },
  "unraid": {
@@ -1463,11 +1596,13 @@
  "tuya_local": {
   "urls": [
    "https://raw.githubusercontent.com/make-all/tuya-local/main/custom_components/tuya_local/entity.py",
-   "https://raw.githubusercontent.com/make-all/tuya-local/main/custom_components/tuya_local/devices/duux_bright_purifier.yaml"
+   "https://raw.githubusercontent.com/make-all/tuya-local/main/custom_components/tuya_local/devices/duux_bright_purifier.yaml",
+   "https://raw.githubusercontent.com/make-all/tuya-local/main/custom_components/tuya_local/devices/ap402_airpurifier.yaml"
   ],
   "strings": [
    "config.translation_key or config.translation_only_key",
-   "translation_key: filter_life"
+   "translation_key: filter_life",
+   "translation_key: filter_reset"
   ]
  },
  "govee": {
@@ -1490,12 +1625,14 @@
  },
  "komfovent": {
   "urls": [
-   "https://raw.githubusercontent.com/lnagel/hass-komfovent/main/custom_components/komfovent/sensor.py"
+   "https://raw.githubusercontent.com/lnagel/hass-komfovent/main/custom_components/komfovent/sensor.py",
+   "https://raw.githubusercontent.com/lnagel/hass-komfovent/main/custom_components/komfovent/button.py"
   ],
   "strings": [
    "key=\"filter_clogging\"",
    "registers.REG_FILTER_CLOGGING",
-   "self._attr_translation_key = entity_description.key"
+   "self._attr_translation_key = entity_description.key",
+   "key=\"clean_filters\""
   ]
  },
  "pluggit": {
@@ -1504,7 +1641,9 @@
   ],
   "strings": [
    "ATTR_FILTER_REMAIN: Final = \"filter_remain\"",
-   "key=ATTR_FILTER_REMAIN"
+   "key=ATTR_FILTER_REMAIN",
+   "key=ATTR_FILTER_RESET",
+   "ATTR_FILTER_RESET: Final = \"filter_reset\""
   ]
  },
  "dantherm": {
@@ -1513,7 +1652,9 @@
   ],
   "strings": [
    "ATTR_FILTER_REMAIN: Final = \"filter_remain\"",
-   "key=ATTR_FILTER_REMAIN"
+   "key=ATTR_FILTER_REMAIN",
+   "key=ATTR_FILTER_RESET",
+   "ATTR_FILTER_RESET: Final = \"filter_reset\""
   ]
  },
  "ha_carrier": {
@@ -1536,7 +1677,8 @@
    "key=\"air_filter_usage_hours\"",
    "key=\"hepa_filter_usage\"",
    "key=\"filter_progress\"",
-   "key=\"hood_filter_usage\""
+   "key=\"hood_filter_usage\"",
+   "filter_reset_button(\"air_filter_reset\""
   ]
  },
  "flexit": {
@@ -1856,21 +1998,27 @@
  "dreame_mower": {
   "urls": [
    "https://raw.githubusercontent.com/bhuebschen/dreame-mower/main/custom_components/dreame_mower/dreame/const.py",
-   "https://raw.githubusercontent.com/bhuebschen/dreame-mower/main/custom_components/dreame_mower/sensor.py"
+   "https://raw.githubusercontent.com/bhuebschen/dreame-mower/main/custom_components/dreame_mower/sensor.py",
+   "https://raw.githubusercontent.com/bhuebschen/dreame-mower/main/custom_components/dreame_mower/button.py"
   ],
   "strings": [
    "[\"blades_left\", \"Main Brush Left\"]",
-   "property_key=DreameMowerProperty.BLADES_LEFT"
+   "property_key=DreameMowerProperty.BLADES_LEFT",
+   "action_key=DreameMowerAction.RESET_BLADES",
+   "DreameMowerAction.RESET_BLADES: [\"reset_blades\""
   ]
  },
  "worx_vision_cloud": {
   "urls": [
    "https://raw.githubusercontent.com/SmartServicePL/worx_vision_cloud_plus_github/main/custom_components/worx_vision_cloud/sensor.py",
-   "https://raw.githubusercontent.com/ADNPolymerase/ha-landroid-vision/main/custom_components/worx_vision_cloud/sensor.py"
+   "https://raw.githubusercontent.com/ADNPolymerase/ha-landroid-vision/main/custom_components/worx_vision_cloud/sensor.py",
+   "https://raw.githubusercontent.com/SmartServicePL/worx_vision_cloud_plus_github/main/custom_components/worx_vision_cloud/button.py",
+   "https://raw.githubusercontent.com/ADNPolymerase/ha-landroid-vision/main/custom_components/worx_vision_cloud/button.py"
   ],
   "strings": [
    "translation_key=\"blade_runtime_current\"",
-   "translation_key=\"mower_runtime_total\""
+   "translation_key=\"mower_runtime_total\"",
+   "translation_key=\"reset_blade_counter\""
   ]
  },
  "intellicenter": {
@@ -1887,7 +2035,8 @@
    "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/hotspring/sensor.py"
   ],
   "strings": [
-   "translation_key=\"water_care_120_day_timer\""
+   "translation_key=\"water_care_120_day_timer\"",
+   "translation_key=\"water_care_10_day_timer\""
   ]
  },
  "neopool": {
@@ -1905,6 +2054,337 @@
   "strings": [
    "key=\"pool_filter_change_required\"",
    "class PoolFilterChangeRequiredSensor("
+  ]
+ },
+ "syncthru": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/syncthru/sensor.py"
+  ],
+  "strings": [
+   "toner_{color}",
+   "drum_{color}",
+   "native_unit_of_measurement=PERCENTAGE"
+  ]
+ },
+ "dremel_3d_printer": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/dremel_3d_printer/sensor.py"
+  ],
+  "strings": [
+   "\"hours_used\"",
+   "UnitOfTime.HOURS"
+  ]
+ },
+ "drop_connect": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/drop_connect/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/drop_connect/binary_sensor.py"
+  ],
+  "strings": [
+   "CARTRIDGE_1_LIFE = \"cart1\"",
+   "CARTRIDGE_2_LIFE = \"cart2\"",
+   "CARTRIDGE_3_LIFE = \"cart3\"",
+   "SALT_LOW = \"salt\"",
+   "translation_key=SALT_LOW"
+  ]
+ },
+ "victron_gx": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/victron_gx/strings.json",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/victron_gx/entity.py",
+   "https://raw.githubusercontent.com/tomer-w/victron_mqtt/main/victron_mqtt/_victron_topics.py"
+  ],
+  "strings": [
+   "\"generator_service_counter\": {",
+   "self._attr_translation_key = metric.generic_short_id",
+   "short_id=\"generator_service_counter\""
+  ]
+ },
+ "homewhiz": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant-HomeWhiz/home-assistant-HomeWhiz/main/custom_components/homewhiz/appliance_controls.py",
+   "https://raw.githubusercontent.com/home-assistant-HomeWhiz/home-assistant-HomeWhiz/main/custom_components/homewhiz/entity.py",
+   "https://raw.githubusercontent.com/home-assistant-HomeWhiz/home-assistant-HomeWhiz/main/custom_components/homewhiz/translations/en.json",
+   "https://raw.githubusercontent.com/home-assistant-HomeWhiz/home-assistant-HomeWhiz/main/custom_components/homewhiz/tests/fixtures/7127441700-washer.json"
+  ],
+  "strings": [
+   "key=to_friendly_name(warn.strKey)",
+   "return self.entity_key.lower()",
+   "\"dishwasher_warning_no_salt\"",
+   "\"dishwasher_warning_no_rinse_aid\"",
+   "\"dishwasher_warning_check_the_filter\"",
+   "\"dishwasher_liquid_detergent_low\"",
+   "\"dryer_warning_check_the_filter\"",
+   "\"dryer_warning_check_the_condenser_filter\"",
+   "WASHER_WARNING_NO_LIQUID_DETERGENT",
+   "WASHER_WARNING_NO_POWDER_DETERGENT",
+   "WASHER_WARNING_NO_SOFTENER"
+  ]
+ },
+ "connectlife": {
+  "urls": [
+   "https://raw.githubusercontent.com/oyvindwe/connectlife-ha/main/custom_components/connectlife/data_dictionaries/012.yaml",
+   "https://raw.githubusercontent.com/oyvindwe/connectlife-ha/main/custom_components/connectlife/data_dictionaries/010.yaml",
+   "https://raw.githubusercontent.com/oyvindwe/connectlife-ha/main/custom_components/connectlife/data_dictionaries/015.yaml",
+   "https://raw.githubusercontent.com/oyvindwe/connectlife-ha/main/custom_components/connectlife/entity.py"
+  ],
+  "strings": [
+   "property: GreaseFilterUsedHours",
+   "property: RecirculationFilter1UsedHours",
+   "property: RecirculationFilter2UsedHours",
+   "property: Grease_filter_used_hours",
+   "property: Recirculation_filter_1_used_hours",
+   "property: Alarm_run_selfcleaning",
+   "def to_translation_key"
+  ]
+ },
+ "wellbeing": {
+  "urls": [
+   "https://raw.githubusercontent.com/JohNan/homeassistant-wellbeing/main/custom_components/wellbeing/api.py",
+   "https://raw.githubusercontent.com/JohNan/homeassistant-wellbeing/main/custom_components/wellbeing/entity.py"
+  ],
+  "strings": [
+   "attr=\"main_brush_sqm\"",
+   "attr=\"side_brush_sqm\"",
+   "attr=\"filter_sqm\"",
+   "attr=\"FilterLife\"",
+   "attr=\"FilterLife_1\"",
+   "attr=\"FilterLife_2\"",
+   "{DEFAULT_NAME}_{self.get_appliance.name}_{self.entity_attr}"
+  ]
+ },
+ "roomba_rest980": {
+  "urls": [
+   "https://raw.githubusercontent.com/ia74/roomba_rest980/main/custom_components/roomba_rest980/sensor.py"
+  ],
+  "strings": [
+   "(\"Total Time\", \"total_time\")",
+   "(\"Bin\", \"bin\")",
+   "UnitOfTime.MINUTES",
+   "[\"Not Full\", \"Full\"]"
+  ]
+ },
+ "roomba_plus": {
+  "urls": [
+   "https://raw.githubusercontent.com/johnnyh1975/ha_roomba_plus/main/custom_components/roomba_plus/sensor_core.py",
+   "https://raw.githubusercontent.com/johnnyh1975/ha_roomba_plus/main/custom_components/roomba_plus/button.py"
+  ],
+  "strings": [
+   "translation_key=\"filter_remaining_hours\"",
+   "translation_key=\"brush_remaining_hours\"",
+   "translation_key=\"part_edge_brush\"",
+   "translation_key=\"part_dirt_bag\"",
+   "_attr_translation_key = \"reset_filter\"",
+   "_attr_translation_key = \"reset_brush\"",
+   "_attr_translation_key = \"reset_side_brush\"",
+   "_attr_translation_key = \"reset_clean_base_bag\""
+  ]
+ },
+ "viomise": {
+  "urls": [
+   "https://raw.githubusercontent.com/marotoweb/home-assistant-vacuum-viomise/master/custom_components/viomise/sensor.py"
+  ],
+  "strings": [
+   "name=\"Main Brush Life\"",
+   "name=\"Side Brush Life\"",
+   "name=\"Filter Life\"",
+   "name=\"Mop Life\""
+  ]
+ },
+ "petsafe": {
+  "urls": [
+   "https://raw.githubusercontent.com/dcmeglio/homeassistant-petsafe/master/custom_components/petsafe/sensor.py",
+   "https://raw.githubusercontent.com/dcmeglio/homeassistant-petsafe/master/custom_components/petsafe/button.py",
+   "https://raw.githubusercontent.com/dcmeglio/homeassistant-petsafe/master/custom_components/petsafe/SensorEntities.py"
+  ],
+  "strings": [
+   "name=\"Rake Counter\"",
+   "name=\"Reset\"",
+   "\"rakeCount\""
+  ]
+ },
+ "philips_sonicare_ble": {
+  "urls": [
+   "https://raw.githubusercontent.com/mtheli/philips_sonicare_ble/master/custom_components/philips_sonicare_ble/sensor.py"
+  ],
+  "strings": [
+   "_attr_translation_key = \"brushhead_wear\"",
+   "PERCENTAGE"
+  ]
+ },
+ "volkswagencarnet": {
+  "urls": [
+   "https://raw.githubusercontent.com/robinostlund/volkswagencarnet/master/volkswagencarnet/vw_dashboard.py",
+   "https://raw.githubusercontent.com/robinostlund/homeassistant-volkswagencarnet/master/custom_components/volkswagencarnet/sensor.py"
+  ],
+  "strings": [
+   "\"name\": \"Service inspection days\"",
+   "\"name\": \"Service inspection distance\"",
+   "\"name\": \"Oil inspection days\"",
+   "\"name\": \"Oil inspection distance\"",
+   "\"name\": \"Odometer\"",
+   "_attr_has_entity_name = True"
+  ]
+ },
+ "smarthashtag": {
+  "urls": [
+   "https://raw.githubusercontent.com/DasBasti/SmartHashtag/main/custom_components/smarthashtag/sensor_groups/maintenance.py"
+  ],
+  "strings": [
+   "translation_key=\"days_to_service\"",
+   "translation_key=\"distance_to_service\"",
+   "translation_key=\"odometer\""
+  ]
+ },
+ "fordconnect_query": {
+  "urls": [
+   "https://raw.githubusercontent.com/marq24/ha-fordconnect-query/main/custom_components/fordconnect_query/const_tags.py",
+   "https://raw.githubusercontent.com/marq24/ha-fordconnect-query/main/custom_components/fordconnect_query/__init__.py"
+  ],
+  "strings": [
+   "ApiKey(key=\"oil\"",
+   "ApiKey(key=\"odometer\"",
+   "oilLifeRemaining",
+   "self._attr_translation_key = a_tag.key.lower()"
+  ]
+ },
+ "stiebel_eltron_isg": {
+  "urls": [
+   "https://raw.githubusercontent.com/pail23/stiebel_eltron_isg_component/main/custom_components/stiebel_eltron_isg/const.py",
+   "https://raw.githubusercontent.com/pail23/stiebel_eltron_isg_component/main/custom_components/stiebel_eltron_isg/binary_sensor.py"
+  ],
+  "strings": [
+   "FILTER = \"filter\"",
+   "FILTER_EXTRACT_AIR = \"filter_extract_air\"",
+   "FILTER_VENTILATION_AIR = \"filter_ventilation_air\"",
+   "translation_key=FILTER_EXTRACT_AIR",
+   "translation_key=FILTER_VENTILATION_AIR"
+  ]
+ },
+ "aguaiot": {
+  "urls": [
+   "https://raw.githubusercontent.com/vincentwolsink/home_assistant_micronova_agua_iot/master/custom_components/aguaiot/const.py"
+  ],
+  "strings": [
+   "key=\"pres_h2o_get\"",
+   "name=\"Water Pressure\""
+  ]
+ },
+ "robonect": {
+  "urls": [
+   "https://raw.githubusercontent.com/geertmeersman/robonect/main/custom_components/robonect/definitions.py",
+   "https://raw.githubusercontent.com/geertmeersman/robonect/main/custom_components/robonect/button.py"
+  ],
+  "strings": [
+   "key=\"mower/blades/hours\"",
+   "key=\"mower/statistic/hours\"",
+   "key=\"blades_reset\""
+  ]
+ },
+ "indego": {
+  "urls": [
+   "https://raw.githubusercontent.com/sander1988/Indego/develop/custom_components/indego/__init__.py"
+  ],
+  "strings": [
+   "CONF_TRANSLATION_KEY: \"runtime_total\""
+  ]
+ },
+ "dreame_lawn_mower": {
+  "urls": [
+   "https://raw.githubusercontent.com/EvotecIT/homeassistant-dreamelawnmower/main/custom_components/dreame_lawn_mower/sensor_operations.py",
+   "https://raw.githubusercontent.com/EvotecIT/homeassistant-dreamelawnmower/main/custom_components/dreame_lawn_mower/button.py",
+   "https://raw.githubusercontent.com/EvotecIT/homeassistant-dreamelawnmower/main/custom_components/dreame_lawn_mower/dreame_lawn_mower_client/maintenance.py"
+  ],
+  "strings": [
+   "self._attr_name = f\"{item.name} Remaining\"",
+   "self._attr_name = f\"Reset {item.name} Maintenance\"",
+   "name=\"Blade\"",
+   "name=\"Cleaning Brush\"",
+   "name=\"Robot Maintenance\""
+  ]
+ },
+ "bayrol": {
+  "urls": [
+   "https://raw.githubusercontent.com/0xQuantumHome/bayrol-home-hassistant/main/custom_components/bayrol/const.py",
+   "https://raw.githubusercontent.com/0xQuantumHome/bayrol-home-hassistant/main/custom_components/bayrol/sensor.py"
+  ],
+  "strings": [
+   "\"name\": \"pH Minus Canister Status\"",
+   "\"name\": \"pH Canister Level\"",
+   "\"name\": \"Cl Canister Status\"",
+   "\"name\": \"Cl Canister Level\"",
+   "\"name\": \"Redox Canister Level\"",
+   "\"name\": \"Salt To Add\"",
+   "sensor._attr_native_value = \"Empty\"",
+   "self.entity_id = f\"sensor.bayrol_{device_id}_{name}\""
+  ]
+ },
+ "genvex_connect": {
+  "urls": [
+   "https://raw.githubusercontent.com/superrob/genvexconnect/main/custom_components/genvex_connect/sensor.py",
+   "https://raw.githubusercontent.com/superrob/genvexconnect/main/custom_components/genvex_connect/button.py",
+   "https://raw.githubusercontent.com/superrob/genvexnabto/main/src/genvexnabto/models/basemodel.py"
+  ],
+  "strings": [
+   "GenvexNabtoDatapointKey.FILTER_DAYS_LEFT",
+   "GenvexNabtoSetpointKey.FILTER_DAYS",
+   "GenvexNabtoSetpointKey.FILTER_RESET",
+   "FILTER_DAYS_LEFT = \"filter_days_left\"",
+   "FILTER_DAYS = \"filter_days\"",
+   "FILTER_RESET = \"filter_reset\""
+  ]
+ },
+ "nilan": {
+  "urls": [
+   "https://raw.githubusercontent.com/veista/nilan/master/custom_components/nilan/sensor.py"
+  ],
+  "strings": [
+   "\"days_to_air_filter_change\"",
+   "self._attr_translation_key = self._name"
+  ]
+ },
+ "ha_comfoconnectpro": {
+  "urls": [
+   "https://raw.githubusercontent.com/hstrohmaier/ha_comfoconnectpro/main/custom_components/ha_comfoconnectpro/const.py"
+  ],
+  "strings": [
+   "C_FILTER_DAYS_REMAINING = \"filter_days_remaining\"",
+   "translation_key=entity_key"
+  ]
+ },
+ "heru": {
+  "urls": [
+   "https://raw.githubusercontent.com/toringer/home-assistant-heru/master/custom_components/heru/const.py"
+  ],
+  "strings": [
+   "\"name\": \"Filter days left\"",
+   "\"name\": \"Reset filter timer\""
+  ]
+ },
+ "midea_ac": {
+  "urls": [
+   "https://raw.githubusercontent.com/mill1000/midea-ac-py/main/custom_components/midea_ac/climate.py"
+  ],
+  "strings": [
+   "AC.OperationalMode.FAN_ONLY: HVACMode.FAN_ONLY",
+   "AC.OperationalMode.DRY: HVACMode.DRY"
+  ]
+ },
+ "nest_legacy": {
+  "urls": [
+   "https://raw.githubusercontent.com/tronikos/nest_legacy/main/custom_components/nest_legacy/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"filter_runtime\""
+  ]
+ },
+ "pura": {
+  "urls": [
+   "https://raw.githubusercontent.com/natekspencer/ha-pura/main/custom_components/pura/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"fragrance_remaining\"",
+   "translation_key=\"bay_fragrance_remaining\""
   ]
  }
 }

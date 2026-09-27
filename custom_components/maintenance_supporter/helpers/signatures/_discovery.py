@@ -102,13 +102,17 @@ def reset_button_for(
         for sensor_key, button_key in sig.resets:
             if not _matches_catalog_key(entry, sensor_key, catalog_keys, tk_authoritative=tk_authoritative):
                 continue
-            for button in buttons:
-                if _entity_matches(button, button_key, tk_authoritative=tk_authoritative):
-                    return {
-                        "entity_id": button.entity_id,
-                        "name": button.name or button.original_name or button.entity_id,
-                        "disabled": button.disabled_by is not None,
-                    }
+            hits = [b for b in buttons if _entity_matches(b, button_key, tk_authoritative=tk_authoritative)]
+            # Several buttons under one key (a Matter purifier's HEPA and
+            # carbon filter both reset via 'reset_filter_condition') cannot be
+            # told apart — wiring a guess could reset the wrong filter.
+            if len(hits) == 1:
+                button = hits[0]
+                return {
+                    "entity_id": button.entity_id,
+                    "name": button.name or button.original_name or button.entity_id,
+                    "disabled": button.disabled_by is not None,
+                }
     return None
 
 

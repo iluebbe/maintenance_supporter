@@ -8,18 +8,53 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
-from ._shared import FILTER_LIFE_PERCENT
+from ._shared import PRE_FILTER_CLEANING_PERCENT
+
+# LG dishwasher "rinse refill needed": a plain binary (no problem class, so
+# problem-sensor adoption does not cover it) in both LG integrations — one
+# object, the DRY tripwire's verbatim-duplicate rule (both users live here).
+LG_RINSE_REFILL_LATCH = ConsumableSignature(
+    ("rinse_refill",),
+    "Refill Rinse Aid",
+    "event_present",
+    entity_domain="binary_sensor",
+    on_states=("on",),
+)
+
+# Electrolux fridge water filter: both Electrolux integrations expose the
+# appliance's own 'waterFilterState' verdict (title-cased 'Change' when due)
+# and its 'waterFilterStateReset' write capability as a button.
+ELECTROLUX_WATER_FILTER_STATE = ConsumableSignature(
+    ("waterfilterstate",),
+    "Replace Water Filter",
+    "event_present",
+    on_states=("Change",),
+    resets=(("waterfilterstate", "waterfilterstatereset"),),
+)
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "lg_thinq": IntegrationSignature(
         name="LG ThinQ",
-        verified="2026-07-17 @ home-assistant/core dev + thinq-connect/pythinqconnect main",
+        verified="2026-07-17 @ home-assistant/core dev + thinq-connect/pythinqconnect main; dishwasher/fridge latches 2026-09-27 @ home-assistant/core 2026.9",
         source=(
             "home-assistant/core homeassistant/components/lg_thinq/sensor.py "
             "(ThinQProperty StrEnum translation_key; FILTER_LIFETIME is shared by "
             "an HOURS description and a PERCENTAGE one — the unit-aware matcher "
             "routes each entity to the right direction) + "
-            "thinq-connect/pythinqconnect devices/const.py Property members"
+            "thinq-connect/pythinqconnect devices/const.py Property members. "
+            "2026-09 round: binary_sensor.py RINSE_REFILL (dishwasher, "
+            "pythinqconnect dish_washer.py dishWashingStatus.rinseRefill, no device_class, "
+            "no on_key → is_on = the boolean) → latch on 'on'. sensor.py FRESH_AIR_FILTER "
+            "(refrigerator / kimchi refrigerator, ENUM, created only when the property is "
+            "READ_ONLY — a writable one is a select and is not matched; strings.json state "
+            "'replace': 'Replace filter') → latch on 'replace'; its PERCENTAGE twin "
+            "FRESH_AIR_FILTER_REMAIN_PERCENT shares the translation_key and is kept out by "
+            "the unit gate (a percent duty on that key would also claim the unit-less ENUM). "
+            "Skipped: preference settings mCReminder / cleanLReminder / signalLevel "
+            "(binaries machine_clean_reminder / clean_light_reminder / signal_level) and "
+            "rinse_level (dispenser SETTING 0-4); used_time (MONTHS, the same water filter as "
+            "water_filter_*_remain_percent — no gate can keep both off one fridge) and "
+            "water_filter_state (values undocumented)."
         ),
         tasks=(
             # AC filter reports hours-remaining; air-purifier/RAC filters report
@@ -36,6 +71,10 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 "Replace Water Filter",
                 "percent_left",
             ),
+            # Fridge Pure-N-Fresh filter: the ENUM shows 'replace' when due and
+            # leaves it after the swap + reset on the appliance (auto-resolve).
+            ConsumableSignature(("fresh_air_filter",), "Replace Filter", "event_present", on_states=("replace",)),
+            LG_RINSE_REFILL_LATCH,
         ),
     ),
     "smartthinq_sensors": IntegrationSignature(
@@ -73,13 +112,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             # Dishwasher refill alerts: plain binaries (no problem class) →
             # state latch; the appliance clearing them after a refill resolves
             # the task. Enable the entities first (disabled-by-default).
-            ConsumableSignature(
-                ("rinse_refill",),
-                "Refill Rinse Aid",
-                "event_present",
-                entity_domain="binary_sensor",
-                on_states=("on",),
-            ),
+            LG_RINSE_REFILL_LATCH,
             ConsumableSignature(
                 ("salt_refill",),
                 "Refill Salt",
@@ -184,7 +217,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "homeconnect_ws": IntegrationSignature(
         name="Home Connect Local",
-        verified="2026-09-25 @ chris-mc1/homeconnect_local_hass main (HACS default)",
+        verified="2026-09-25 @ chris-mc1/homeconnect_local_hass main (HACS default); resets + fridge filter 2026-09-27 @ c20ce8f",
         source=(
             "HACS homeconnect_ws: entity.py sets translation_key = description "
             "key. entity_descriptions/dishcare.py 'sensor_salt' / "
@@ -203,16 +236,40 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "relation to the separate descale countdown is undocumented), "
             "'sensor_machinecare_remaining_runs' and the dishwasher/washer/"
             "dryer reminder binaries (device_class problem → problem-sensor "
-            "adoption)."
+            "adoption). 2026-09-27: cooking.py button 'button_hood_grease_filter_reset' "
+            "(Cooking.Common.Command.Hood.GreaseFilterReset, CONFIG; press = "
+            "Command.set_value(True)) resets the grease saturation; refrigeration.py "
+            "'sensor_water_filter_saturation' (Refrigeration.Common.Status.Dispenser."
+            "WaterFilterSaturation, %, counts UP) with its reset 'button_water_filter_reset' "
+            "(Dispenser.WaterFilterReset) → alert_above 90 like the hood filters. The carbon "
+            "filter reset stays unwired: regenerative-filter hoods also carry "
+            "'button_hood_regenerative_carbon_filter_reset' / '_lifetime_reset', so which "
+            "button resets 'sensor_carbon_filter_saturation' is not established."
         ),
         tasks=(
             ConsumableSignature(("sensor_salt",), "Refill Salt", "event_present", ok_state="full"),
             ConsumableSignature(("sensor_rinse_aid",), "Refill Rinse Aid", "event_present", ok_state="full"),
-            ConsumableSignature(("sensor_grease_filter_saturation",), "Clean Grease Filter", "alert_above", delta_units=90),
+            ConsumableSignature(
+                ("sensor_grease_filter_saturation",),
+                "Clean Grease Filter",
+                "alert_above",
+                delta_units=90,
+                resets=(("sensor_grease_filter_saturation", "button_hood_grease_filter_reset"),),
+            ),
             ConsumableSignature(("sensor_carbon_filter_saturation",), "Replace Filter", "alert_above", delta_units=90),
             ConsumableSignature(("sensor_countdown_descaling",), "Descale Appliance", "value_below", delta_units=10),
             ConsumableSignature(("sensor_countdown_cleaning",), "Clean Appliance", "value_below", delta_units=10),
             ConsumableSignature(("sensor_countdown_water_filter",), "Replace Water Filter", "value_below", delta_units=10),
+            # Fridge water dispenser filter: saturation counts UP, the fridge's
+            # own reset brings it back to 0 (coffee machines use the countdown
+            # above — different appliances, different direction).
+            ConsumableSignature(
+                ("sensor_water_filter_saturation",),
+                "Replace Water Filter",
+                "alert_above",
+                delta_units=90,
+                resets=(("sensor_water_filter_saturation", "button_water_filter_reset"),),
+            ),
         ),
     ),
     "miele": IntegrationSignature(
@@ -248,18 +305,36 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "electrolux_status": IntegrationSignature(
         name="Electrolux / AEG",
-        verified="2026-07-18 @ albaintor/homeassistant_electrolux_status master",
+        verified="2026-07-18 @ albaintor/homeassistant_electrolux_status master; fridge filters 2026-09-27 @ bd55519",
         source=(
             "albaintor/homeassistant_electrolux_status catalog_purifier.py "
             "'FilterLife' (PERCENTAGE) + entity.py entity_id = "
             "f'..._{entity_attr}' — HA slugifies the raw 'FilterLife' tail, so "
-            "both slug forms are matched."
+            "both slug forms are matched. 2026-09-27: catalog_core.py fridge "
+            "'waterFilterState' / 'airFilterState' (read, values BUY / CHANGE / CLEAN / "
+            "GOOD; sensor.py title-cases string states → 'Change') with their write "
+            "capabilities 'waterFilterStateReset' / 'airFilterStateReset' (values "
+            "{'RESET'} → ONE button each, api.py: write access = BUTTON) — entity ids "
+            "end in _waterfilterstate / _waterfilterstatereset (entity.py lowercases the "
+            "raw id). Latch on 'Change' (BUY is the order-a-spare pre-warning). The "
+            "'*LifeTime' seconds counters are skipped (used vs left undocumented; the "
+            "state is the fridge's own verdict against its thresholds)."
         ),
-        tasks=(ConsumableSignature(("filterlife", "filter_life"), "Replace Filter", "percent_left"),),
+        tasks=(
+            ConsumableSignature(("filterlife", "filter_life"), "Replace Filter", "percent_left"),
+            ELECTROLUX_WATER_FILTER_STATE,
+            ConsumableSignature(
+                ("airfilterstate",),
+                "Replace Filter",
+                "event_present",
+                on_states=("Change",),
+                resets=(("airfilterstate", "airfilterstatereset"),),
+            ),
+        ),
     ),
     "midea_ac_lan": IntegrationSignature(
         name="Midea (LAN)",
-        verified="2026-07-18 / re-audited 2026-09-25 @ wuwentao/midea_ac_lan master",
+        verified="2026-07-18 / re-audited 2026-09-25; keys re-checked 2026-09-27 @ wuwentao/midea_ac_lan main (the default branch)",
         source=(
             "wuwentao/midea_ac_lan midea_devices.py + midea_entity.py "
             "(_attr_translation_key from the per-attribute config; entity_id = "
@@ -342,28 +417,43 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "hon": IntegrationSignature(
         name="Haier hOn (Haier/Candy/Hoover)",
-        verified="2026-07-19 @ Andre0512/hon main sensor.py (1.5k stars; open #101 ask)",
+        verified="2026-09-27 @ gvigroux/hon master (cbc0376, the HACS-default fork) + Andre0512/hon main (70eb6c0, idle since 2024-08)",
         source=(
-            "HACS hon: purifiers (type AP) expose tk 'filter_life' (main "
-            "filter, %) and tk 'filter_cleaning' (pre-filter, %); washers "
-            "(WM/WD) expose tk 'cycles_total' (lifetime wash-cycle counter) — "
-            "tub-clean cadence reuses LG's manufacturer value of 30 cycles."
+            "Two forks share the domain. gvigroux/hon (the store's 'hon' today) "
+            "sensor.py: no translation_key, _attr_name = f'{nickName} {sensor_name}' → "
+            "entity-id suffixes; purifiers (AP) HonBaseMainFilter 'Main filter' / "
+            "HonBasePreFilter 'Pre filter' = 100 − mainFilterStatus / preFilterStatus "
+            "(PERCENTAGE, life LEFT); washers HonBaseTotalWashCycle 'Total wash cycle' "
+            "(totalWashCycle − 1, TOTAL_INCREASING). Andre0512/hon (older installs) "
+            "reports the RAW mainFilterStatus / preFilterStatus under tk 'filter_life' / "
+            "'filter_cleaning' and tk 'cycles_total'. The raw status counts UP (used): "
+            "Andre0512/hon#244 — after a filter reset the hOn app shows 100 % life while "
+            "the raw sensor reads 0 %, which is also why gvigroux inverts it. So the "
+            "Andre0512 keys are wear gauges (alert_above 90; the former percent_left "
+            "reading was inverted) and the gvigroux keys are life gauges (percent_left). "
+            "Tub-clean cadence reuses LG's manufacturer value of 30 cycles."
         ),
         tasks=(
-            FILTER_LIFE_PERCENT,
-            ConsumableSignature(("filter_cleaning",), "Filter Cleaning", "percent_left"),
-            ConsumableSignature(("cycles_total",), "Clean Tub", "usage_delta", delta_units=30),
+            ConsumableSignature(("main_filter",), "Replace Filter", "percent_left"),
+            ConsumableSignature(("filter_life",), "Replace Filter", "alert_above", delta_units=90),
+            PRE_FILTER_CLEANING_PERCENT,
+            ConsumableSignature(("filter_cleaning",), "Filter Cleaning", "alert_above", delta_units=90),
+            ConsumableSignature(("cycles_total", "total_wash_cycle"), "Clean Tub", "usage_delta", delta_units=30),
         ),
     ),
     "whirlpool": IntegrationSignature(
         name="Whirlpool",
-        verified="2026-07-19 @ core/dev whirlpool/sensor.py",
+        verified="2026-07-19 @ core/dev whirlpool/sensor.py; detergent tank 2026-09-27 @ home-assistant/core 2026.9",
         source=(
             "core whirlpool: tk 'washer_state' ENUM incl. 'running_maincycle' "
             "— no cycle counter exists, so the ENGINE accumulates wash time "
             "(the Miele Clean-Tub pattern; 60 h of washing ~= LG's 30-cycle "
             "cadence at a typical 2-h cycle). The dryer's distinct "
-            "'dryer_state' tk cannot match."
+            "'dryer_state' tk cannot match. 2026-09 round: washer key 'DispenseLevel', "
+            "tk 'whirlpool_tank' ('Detergent level', ENUM from WASHER_TANK_FILL: "
+            "empty / 25 / 50 / 100 / active; the bulk-dispenser tank, "
+            "entity_registry_enabled_default=False) → latch on 'empty'; refilling moves "
+            "it back to a level (auto-resolve)."
         ),
         tasks=(
             ConsumableSignature(
@@ -373,6 +463,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 delta_units=60,
                 on_states=("running_maincycle",),
             ),
+            ConsumableSignature(("whirlpool_tank",), "Refill Detergent", "event_present", on_states=("empty",)),
         ),
     ),
     "ha_washdata": IntegrationSignature(
@@ -424,7 +515,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "traeger": IntegrationSignature(
         name="Traeger grill",
-        verified="2026-07-20 @ njobrien1006/hass_traeger master + johnvoipguy/Traeger-WiFire main (HACS default, shared sensor map)",
+        verified="2026-07-20 @ njobrien1006/hass_traeger master + johnvoipguy/Traeger-WiFire main (HACS default); jv drift fix 2026-09-27 @ 8971c5b",
         source=(
             "HACS traeger (both default-store forks share the domain and "
             "sensor map): 'Cook Cycle' sensor (usage;cook_cycles — lifetime "
@@ -433,16 +524,22 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "Traeger's official maintenance guidance: grease management every "
             "few cooks, deep clean ~every 20 cooks / twice a grilling season. "
             "'Pellet Level' (%) is hopper inventory, not wear — skipped (same "
-            "rationale as Palazzetti's pellet_level)."
+            "rationale as Palazzetti's pellet_level). 2026-09-27: the johnvoipguy "
+            "fork renamed it TraegerSensor 'Cook Cycles' (key 'cook_cycles', explicit "
+            "entity_id f'sensor.{slugify(grill_id)}_{slugify(name)}' → suffix "
+            "_cook_cycles) — both suffixes are matched. Its MaintenanceAlert sensors "
+            "'Grill Clean Alert' / 'Grease Trap Clean Alert' (True/False from "
+            "usage.*_countdown <= 3600 / <= 5 — the integration's own cut-offs, countdown "
+            "units undocumented) are skipped."
         ),
         tasks=(
-            ConsumableSignature(("cook_cycle",), "Clean Grease Trap", "usage_delta", delta_units=5),
-            ConsumableSignature(("cook_cycle",), "Clean Appliance", "usage_delta", delta_units=20),
+            ConsumableSignature(("cook_cycle", "cook_cycles"), "Clean Grease Trap", "usage_delta", delta_units=5),
+            ConsumableSignature(("cook_cycle", "cook_cycles"), "Clean Appliance", "usage_delta", delta_units=20),
         ),
     ),
     "electrolux": IntegrationSignature(
         name="Electrolux (OCP API)",
-        verified="2026-09-25 @ TTLucian/ha-electrolux main (HACS default; not the electrolux_status domain)",
+        verified="2026-09-25 @ TTLucian/ha-electrolux main (HACS default; not the electrolux_status domain); filter states 2026-09-27 @ 60b28fa",
         source=(
             "HACS electrolux: entity.py sets translation_key = the lowercased "
             "capability name (fppn prefix stripped) → 'filterlife', "
@@ -452,8 +549,17 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "their own FilterType_1/_2) → one duty per filter (per_entity). "
             "Skipped: AC/fridge/hood filter lifetimes and timers (seconds or "
             "minutes with the maintainer's own 'unit is an educated guess' "
-            "caveat — remaining vs used unclear) and the filterState ENUMs "
-            "(rendered state strings not verified)."
+            "caveat — remaining vs used unclear). 2026-09-27: the filter STATE "
+            "strings are verified — sensor.py native_value title-cases string "
+            "values ('CHANGE' → 'Change'). catalogs/catalog_cr.py fridge "
+            "'waterFilterState' / 'airFilterState' (GOOD / CLEAN / CHANGE / BUY) with "
+            "write buttons 'waterFilterStateReset' / 'airFilterStateReset' (tk "
+            "'waterfilterstatereset' / 'airfilterstatereset' in strings.json); "
+            "catalog_ac.py 'hepaFilterState' (GOOD / BUY / CHANGE, disabled by default) "
+            "with 'hepaFilterReset' → latch on 'Change' (BUY = order a spare). The AC's "
+            "main 'filterState' is skipped: it also reports CLEAN for its washable "
+            "filter and which of CLEAN / CHANGE the 'filterReset' button clears is "
+            "not established."
         ),
         tasks=(
             ConsumableSignature(
@@ -461,6 +567,15 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 "Replace Filter",
                 "percent_left",
                 per_entity=True,
+            ),
+            ELECTROLUX_WATER_FILTER_STATE,
+            # Fridge air filter / AC HEPA filter — one appliance never has both.
+            ConsumableSignature(
+                ("airfilterstate", "hepafilterstate"),
+                "Replace Filter",
+                "event_present",
+                on_states=("Change",),
+                resets=(("airfilterstate", "airfilterstatereset"), ("hepafilterstate", "hepafilterreset")),
             ),
         ),
     ),
@@ -505,13 +620,157 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "due or overdue, back to the full interval after the "
             "integration's reset button) → value_below 1 fires exactly when "
             "Candy itself reports due. Skipped: 'wash_maint_full_checkup' "
-            "(what the Simply-Fi 'Full Check-up' asks the user to do is "
-            "undocumented)."
+            "(button.py WashFullCheckUpButton sends CheckUpState=1 — the machine's "
+            "self-diagnosis run, not a maintenance action; the integration schedules "
+            "it itself via checkup_schedule). Resets verified 2026-09-27 @ 5e2999f: "
+            "button.py tk 'wash_maint_limescale_reset' / 'wash_maint_filter_reset' "
+            "(DIAGNOSTIC; press stores last_* = total cycles, the counter restarts)."
         ),
         tasks=(
             ConsumableSignature(("wash_total_cycles",), "Clean Tub", "usage_delta", delta_units=30),
-            ConsumableSignature(("wash_maint_limescale",), "Descaling", "value_below", delta_units=1),
-            ConsumableSignature(("wash_maint_filter",), "Filter Cleaning", "value_below", delta_units=1),
+            # 2.95: full-control mode adds the reset buttons (button.py
+            # WashMaintResetButton, tk '<counter>_reset'); read-only setups have
+            # none and the duty simply keeps no completion action.
+            ConsumableSignature(
+                ("wash_maint_limescale",),
+                "Descaling",
+                "value_below",
+                delta_units=1,
+                resets=(("wash_maint_limescale", "wash_maint_limescale_reset"),),
+            ),
+            ConsumableSignature(
+                ("wash_maint_filter",),
+                "Filter Cleaning",
+                "value_below",
+                delta_units=1,
+                resets=(("wash_maint_filter", "wash_maint_filter_reset"),),
+            ),
         ),
+    ),
+    "homewhiz": IntegrationSignature(
+        name="HomeWhiz (Beko / Grundig / Arçelik)",
+        verified="2026-09-27 @ home-assistant-HomeWhiz/home-assistant-HomeWhiz main (0b7f8d8, HACS default)",
+        source=(
+            "home-assistant-HomeWhiz custom_components/homewhiz/appliance_controls.py "
+            "build_controls_from_warnings: every entry of the appliance's cloud config "
+            "deviceWarnings becomes a BooleanBitmaskControl with key "
+            "to_friendly_name(strKey) (lower-cased strKey); binary_sensor.py turns them "
+            "into binary sensors and entity.py translation_key returns entity_key.lower() "
+            "for EVERY entity. device_class is the custom string 'homewhiz__<key>' — NOT "
+            "problem, so problem-sensor adoption does not reach them; the appliance clears "
+            "the bit after the refill / cleaning (auto-resolve). strKeys verified in the "
+            "repo's test fixtures: DISHWASHER_WARNING_NO_SALT / _NO_RINSE_AID / "
+            "_CHECK_THE_FILTER / DISHWASHER_LIQUID_DETERGENT_LOW, WASHER_WARNING_NO_LIQUID_"
+            "DETERGENT / _NO_POWDER_DETERGENT / _LOW_DETERGENT / _NO_SOFTENER / _LOW_SOFTENER "
+            "(auto-dosing tanks), DRYER_WARNING_CHECK_THE_FILTER / _CHECK_THE_CONDENSER_FILTER. "
+            "Skipped: *_NO_WATER / *_DOOR_IS_OPEN / *_CALL_SERVICE (status or faults), "
+            "DRYER_WARNING_TANKFULL (emptying the condensate tank is per-load operation), "
+            "OVEN_WARNING_PYRO_CLEANING (a cleaning cycle in progress)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("dishwasher_warning_no_salt",),
+                "Refill Salt",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+            ),
+            ConsumableSignature(
+                ("dishwasher_warning_no_rinse_aid",),
+                "Refill Rinse Aid",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+            ),
+            ConsumableSignature(
+                ("dishwasher_warning_check_the_filter",),
+                "Filter Cleaning",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+            ),
+            # Auto-dosing tanks: the liquid and the powder tank are refilled
+            # separately → one task per warning entity.
+            ConsumableSignature(
+                (
+                    "dishwasher_liquid_detergent_low",
+                    "washer_warning_low_detergent",
+                    "washer_warning_no_liquid_detergent",
+                    "washer_warning_no_powder_detergent",
+                ),
+                "Refill Detergent",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+                per_entity=True,
+            ),
+            ConsumableSignature(
+                ("washer_warning_no_softener", "washer_warning_low_softener"),
+                "Refill Fabric Softener",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+            ),
+            ConsumableSignature(
+                ("dryer_warning_check_the_filter",),
+                "Lint Filter Cleaning",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+            ),
+            ConsumableSignature(
+                ("dryer_warning_check_the_condenser_filter",),
+                "Condenser Cleaning",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+            ),
+        ),
+        translation_keys_authoritative=True,
+    ),
+    "connectlife": IntegrationSignature(
+        name="ConnectLife (Hisense / Gorenje / ASKO)",
+        verified="2026-09-27 @ oyvindwe/connectlife-ha main (fa830d2, HACS default)",
+        source=(
+            "oyvindwe/connectlife-ha: entities come from data_dictionaries/<type>.yaml; "
+            "entity.py to_translation_key = property lower-cased (spaces → '_'), set on "
+            "every sensor/binary description; 'optional: true' → disabled by default. "
+            "012.yaml (hood) 'GreaseFilterUsedHours' and 010.yaml (hob with extractor) "
+            "'Grease_filter_used_hours' (DURATION h, total_increasing — hours since the "
+            "filter counter was reset; 012's reset is the select 'GreaseFilterResetCounter', "
+            "not a button) → usage_above, 30 h (editorial; the hood's own interval is "
+            "exposed as 'GreaseFilterCleaningIntervalInHours'). 012 "
+            "'RecirculationFilter1UsedHours' / '…2UsedHours' and 010 "
+            "'Recirculation_filter_1_used_hours' (carbon filters, h) → usage_above 120 h "
+            "(editorial), one task per filter. 015.yaml (dishwasher) "
+            "'Alarm_run_selfcleaning' (binary, NO device_class, options 2 = on) → latch. "
+            "Skipped: every other alarm (Alarm_salt_refill, rinse aid, clean filters, "
+            "condenser, grease, descale, detergent/softener states, AC 'f-filter') is "
+            "device_class problem → problem-sensor adoption; fridge filter_state (% "
+            "direction unclear)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("greasefilterusedhours", "grease_filter_used_hours"),
+                "Clean Grease Filter",
+                "usage_above",
+                above_hours=30,
+            ),
+            ConsumableSignature(
+                ("recirculationfilter1usedhours", "recirculationfilter2usedhours", "recirculation_filter_1_used_hours"),
+                "Replace Filter",
+                "usage_above",
+                above_hours=120,
+                per_entity=True,
+            ),
+            ConsumableSignature(
+                ("alarm_run_selfcleaning",),
+                "Clean Appliance",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+            ),
+        ),
+        translation_keys_authoritative=True,
     ),
 }

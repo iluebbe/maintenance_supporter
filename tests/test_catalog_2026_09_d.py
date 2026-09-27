@@ -563,7 +563,9 @@ async def test_round14_pool_and_spa(hass: HomeAssistant, global_entry: MockConfi
     assert salt["task_name"] == "Refill Pool Salt" and salt["direction"] == "value_below"
     assert salt["entity_ids"] == ["sensor.intellicenter_intellichlor_salt"] and salt["threshold"] == 2700.0
 
-    (cart,) = setups[spa]["tasks"]
+    spa_tasks = {t["task_name"]: t for t in setups[spa]["tasks"]}
+    assert set(spa_tasks) == {"Replace Salt Cartridge", "Water Test"}  # round 15: the 10-day check countdown
+    cart = spa_tasks["Replace Salt Cartridge"]
     assert cart["task_name"] == "Replace Salt Cartridge" and cart["direction"] == "usage_above"
     assert cart["entity_ids"] == ["sensor.hot_spring_highlife_salt_cartridge_age"]
     assert cart["threshold"] == 120.0  # 2,880 h in days
@@ -587,7 +589,7 @@ async def test_round14_pool_and_spa(hass: HomeAssistant, global_entry: MockConfi
         ws_adopt_integration_setups,
         hass,
         conn,
-        {"id": 1, "type": "x", "selections": [{"device_id": spa}]},
+        {"id": 1, "type": "x", "selections": [{"device_id": spa, "task_names": ["Replace Salt Cartridge"]}]},
     )
     assert not conn.send_error.called, conn.send_error.call_args
     obj = next(

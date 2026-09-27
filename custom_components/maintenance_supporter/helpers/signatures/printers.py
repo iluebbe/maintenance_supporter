@@ -91,6 +91,28 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "dremel_3d_printer": IntegrationSignature(
+        name="Dremel 3D printer",
+        verified="2026-09-27 @ home-assistant/core 2026.9 + dremel3dpy 2.1.1",
+        source=(
+            "home-assistant/core homeassistant/components/dremel_3d_printer/sensor.py: "
+            "key/translation_key 'hours_used' (UnitOfTime.HOURS, DIAGNOSTIC, "
+            "entity_registry_enabled_default=False — the suggestion appears once the user "
+            "enables it), value = get_printer_info()['hours_used'] = dremel3dpy "
+            "USAGE_COUNTER ('UsageCounter', the printer's lifetime usage hours, no reset) → "
+            "usage_delta on the FDM lubrication cadence (Prusa's 200 print-hours, like the "
+            "other FDM printers). The 'running' binary (RUNNING, no tk) would only feed an "
+            "engine runtime — the device counter is the more direct signal."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("hours_used",),
+                "Lubricate Rails and Rods",
+                "usage_delta",
+                delta_units=200,
+            ),
+        ),
+    ),
     "prusalink": IntegrationSignature(
         name="PrusaLink",
         verified="2026-07-18 @ home-assistant/core dev",
@@ -167,14 +189,21 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "anycubic_cloud": IntegrationSignature(
         name="Anycubic Cloud",
-        verified="2026-09-25 @ Nino6689/hass-anycubic main",
+        verified="2026-09-25 @ Nino6689/hass-anycubic main; nozzle wear 2026-09-27 @ 7d18d53",
         source=(
             "Nino6689/hass-anycubic custom_components/anycubic_cloud/sensor.py: "
             "key/translation_key 'print_time_total_hrs' (UnitOfTime.HOURS, "
             "TOTAL_INCREASING, printer.total_print_time_hrs — lifetime print hours, "
             "no reset) → usage_delta. Resin (LCD) printers share the sensor, so the "
             "duty is gated on the FDM-only sibling tk 'curr_nozzle_temp' "
-            "(PrinterEntityType.FDM, helpers.check_descriptor_status_not_fdm)."
+            "(PrinterEntityType.FDM, helpers.check_descriptor_status_not_fdm). "
+            "2026-09-27: tk 'nozzle_wear_percent' (PERCENTAGE, DIAGNOSTIC) = coordinator "
+            "_totals_states min(100, abrasive grams since the nozzle reset / "
+            "const.NOZZLE_ABRASIVE_LIFE_G 1000 × 100) — wear counting UP, back to 0 via "
+            "button tk 'reset_nozzle_wear' (CONFIG, disabled by the integration → wiring "
+            "enables it; async_reset_nozzle zeroes the counters). Only abrasive fill (CF/GF) "
+            "counts, so plain PLA printing never trips it — the integration's own wear "
+            "model. Same FDM gate as the lubrication duty."
         ),
         tasks=(
             ConsumableSignature(
@@ -183,6 +212,14 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 "usage_delta",
                 delta_units=200,
                 require_sibling_keys=("curr_nozzle_temp",),
+            ),
+            ConsumableSignature(
+                ("nozzle_wear_percent",),
+                "Replace Nozzle",
+                "alert_above",
+                delta_units=90,
+                require_sibling_keys=("curr_nozzle_temp",),
+                resets=(("nozzle_wear_percent", "reset_nozzle_wear"),),
             ),
         ),
     ),
@@ -255,6 +292,35 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
             ConsumableSignature(("belt_unit_remaining_life",), "Replace Belt Unit", "percent_left"),
             ConsumableSignature(("fuser_remaining_life",), "Replace Fuser", "percent_left"),
+        ),
+    ),
+    "syncthru": IntegrationSignature(
+        name="Samsung SyncThru printer",
+        verified="2026-09-27 @ home-assistant/core 2026.9 + PySyncThru 0.8.0",
+        source=(
+            "home-assistant/core homeassistant/components/syncthru/sensor.py "
+            "get_toner_entity_description / get_drum_entity_description: key = "
+            "translation_key = f'toner_{color}' / f'drum_{color}' (black/cyan/magenta/"
+            "yellow, strings.json 'Black toner level' … 'Yellow drum level'), PERCENTAGE, "
+            "DIAGNOSTIC, value = the SyncThru status dict's 'remaining' → percent left; "
+            "created only for supported cartridges (pysyncthru toner_status/drum_status "
+            "filter_supported: opt != 0). No reset buttons (the printer resets its own "
+            "counters on a new cartridge). The 'active_alerts' count and the tray "
+            "sensors are status, skipped; the problem binary is problem-sensor adoption."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("toner_black", "toner_cyan", "toner_magenta", "toner_yellow"),
+                "Replace Toner",
+                "percent_left",
+                per_entity=True,  # colour lasers: one task per toner (#145)
+            ),
+            ConsumableSignature(
+                ("drum_black", "drum_cyan", "drum_magenta", "drum_yellow"),
+                "Replace Drum Unit",
+                "percent_left",
+                per_entity=True,  # per-colour imaging units on colour models
+            ),
         ),
     ),
     "hpprinter": IntegrationSignature(

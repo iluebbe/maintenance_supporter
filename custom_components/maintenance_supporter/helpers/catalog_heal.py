@@ -14,6 +14,13 @@ Only triggers still in the exact shape the catalog wrote are touched —
 ``runtime`` on a climate entity of that platform, ``attribute: hvac_action``
 and the old default state set — so a user's own configuration is never
 rewritten. Idempotent: a healed trigger no longer matches.
+
+2026-09-27: the Haier hOn (Andre0512 fork) purifier filters were read as life
+LEFT ("below 10 %"), but the sensors report the raw status, which counts UP
+(0 % right after a filter change, Andre0512/hon#244): the task fell due right
+after the filter was changed and resolved itself once it was worn out. Those
+filters are now wear gauges ("above 90 %"). A threshold trigger on those
+sensors with only a lower bound is the catalog's shape and is flipped.
 """
 
 from __future__ import annotations
@@ -66,6 +73,47 @@ def _healed_trigger(hass: HomeAssistant, tc: Mapping[str, Any]) -> dict[str, Any
     return healed
 
 
+# platform → the translation keys whose catalog reading flipped from "life
+# left" (trigger_below) to "wear" (trigger_above, read from the catalog).
+_WEAR_GAUGE_HEALS: dict[str, frozenset[str]] = {
+    "hon": frozenset({"filter_life", "filter_cleaning"}),
+}
+
+
+def _catalog_wear_limit(platform: str, key: str) -> float:
+    """The alert_above limit the catalog now wires for ``key``."""
+    from .signatures import SIGNATURES
+
+    for sig in SIGNATURES[platform].tasks:
+        if sig.direction == "alert_above" and key in sig.keys:
+            return float(sig.delta_units)
+    raise LookupError(f"no wear signature for {platform}/{key}")
+
+
+def _healed_wear_trigger(hass: HomeAssistant, tc: Mapping[str, Any]) -> dict[str, Any] | None:
+    if tc.get("type") != "threshold" or tc.get("trigger_below") is None or tc.get("trigger_above") is not None:
+        return None
+    from ..entity.triggers import normalize_entity_ids
+
+    entity_ids = normalize_entity_ids(dict(tc))
+    if not entity_ids:
+        return None
+    ent_reg = er.async_get(hass)
+    keys = set()
+    for entity_id in entity_ids:
+        reg = ent_reg.async_get(entity_id) if isinstance(entity_id, str) else None
+        heal_keys = _WEAR_GAUGE_HEALS.get(reg.platform) if reg is not None else None
+        if reg is None or heal_keys is None or reg.translation_key not in heal_keys:
+            return None  # not (only) an affected sensor — the user's own trigger
+        keys.add((reg.platform, reg.translation_key))
+    limits = {_catalog_wear_limit(platform, key) for platform, key in keys}
+    if len(limits) != 1:
+        return None
+    healed = {k: v for k, v in tc.items() if k != "trigger_below"}
+    healed["trigger_above"] = limits.pop()
+    return healed
+
+
 def heal_catalog_triggers(hass: HomeAssistant, data: Mapping[str, Any]) -> dict[str, Any] | None:
     """The entry data with healed triggers, or None when nothing changed."""
     tasks = data.get(CONF_TASKS)
@@ -76,7 +124,7 @@ def heal_catalog_triggers(hass: HomeAssistant, data: Mapping[str, Any]) -> dict[
         tc = td.get(CONF_TRIGGER_CONFIG) if isinstance(td, Mapping) else None
         if not isinstance(tc, Mapping):
             continue
-        healed = _healed_trigger(hass, tc)
+        healed = _healed_trigger(hass, tc) or _healed_wear_trigger(hass, tc)
         if healed is None:
             continue
         if new_tasks is None:

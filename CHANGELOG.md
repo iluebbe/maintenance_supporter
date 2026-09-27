@@ -20,8 +20,35 @@ All notable changes to Maintenance Supporter are documented in this file.
   counter. The action shows in the task dialog even with the completion-actions toggle off, so what runs on
   completion stays visible and removable. INTEGRATIONS.md marks every duty with a reset. New WebSocket commands
   `integration_setups/reset_offers` and `integration_setups/wire_resets` (102 commands).
+- **Suggested setups catalog round 15 — 225 integrations / 484 signatures** (was 197 / 388), every entry
+  verified against the integration's source and drift-probed weekly:
+  - **Resets on many more devices** (duties with a reset: 34 in 8 integrations → 107 in 39): TP-Link Tapo robot vacuums (new brush, filter,
+    sensor and charging-contact countdowns), Dreame and Eufy Clean robot vacuums (every consumable), ILIFE, Xiaomi
+    MIoT and Xiaomi Air Fresh filters, Matter purifiers and hoods with a single filter, Dreame, Worx Landroid (incl.
+    Vision), Sunseeker, Robonect and Dreame/MOVA mowers, PetKit, PETLIBRO and PetSafe pet devices, Dyson Pure Cool
+    Link, Tuya Local, Samsung Local Things, Komfovent, Pluggit, Dantherm, Genvex, HERU, Grohe Blue (filter and CO2),
+    Home Connect Local (hood grease filter, fridge water filter), Candy washers, Electrolux / AEG fridge filters,
+    Anycubic nozzle wear and the Philips shaver head and cleaning cartridge. Sunseeker's blade, cutting disc and
+    edge-trimmer blade and disc are now separate tasks, so completing one never resets another part's counter.
+  - **New devices:** Samsung SyncThru printers (toner and drum per colour), Dremel 3D printers, Matter purifiers and
+    robot vacuums, IKEA STARKVIND on ZHA, HomeKit purifiers, DROP water treatment, Victron GX generators, Hot Spring
+    water test, LG ThinQ rinse aid and fresh-air filter, Whirlpool bulk detergent, SmartThings Clean Station dust
+    bag, HomeWhiz (Beko / Grundig / Arçelik), ConnectLife (Hisense / Gorenje / ASKO), Electrolux Wellbeing,
+    Roomba (rest980) and Roomba+, Viomi SE, PetSafe ScoopFree, Philips Sonicare, Volkswagen, Smart #1/#3,
+    FordConnect, Stiebel Eltron LWZ, Bosch Indego, Bayrol pool systems, Nilan, Zehnder ComfoConnect Pro, Midea AC,
+    Nest (legacy), Pura diffusers, Micronova hydro stoves and Dyson humidifier descaling.
+  - Where one reset key serves two parts on the same device (a Matter purifier's HEPA and carbon filter), no reset
+    is wired rather than guessing which part it resets.
 
 ### 🐛 Fixed
+
+- **Suggested setups — catalog fixes:** Haier hOn purifier filters now match the fork the HACS store installs today;
+  on the older fork the filter wear was read the wrong way round (the task fell due right after a filter change) —
+  tasks adopted from it are repaired once at start-up, as long as their trigger is still the one the catalog wrote.
+  The EcoWater "days until out of salt" sensor never matched (wrong key); Dyson (hass_dyson) now matches the live
+  HEPA and carbon filter sensors; Traeger's renamed cook-cycle counter is matched too. Integrations that spell their
+  unit out ("days", "hours") got thresholds 24 times too large. A device that reports one duty through two sensors
+  (softener salt in % and in days) no longer gets two identically named tasks when adopted.
 
 - **English where your language was expected** (translation audit): the warranty reminder push was English in
   16 languages; the generated Maintenance dashboard (its views, the empty state, the KPI line and its editor) was

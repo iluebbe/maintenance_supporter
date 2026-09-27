@@ -120,3 +120,43 @@ async def test_heal_keeps_the_runtime_counted_so_far(
     ]
     assert len(triggers) == 1
     assert triggers[0]._accumulated_seconds == 36000.0
+
+
+def _hon_sensor(hass: HomeAssistant, uid: str, tkey: str) -> str:
+    src = MockConfigEntry(domain="hon", title="hOn")
+    src.add_to_hass(hass)
+    dev = dr.async_get(hass).async_get_or_create(config_entry_id=src.entry_id, identifiers={("hon", uid)}, name="Purifier")
+    return er.async_get(hass).async_get_or_create("sensor", "hon", f"{uid}_{tkey}", config_entry=src, device_id=dev.id, translation_key=tkey).entity_id
+
+
+def _threshold_task(entity_id: str, **bounds: float) -> dict:
+    td = build_task_data(name="Replace Filter")
+    td["trigger_config"] = {"type": "threshold", "entity_ids": [entity_id], "entity_logic": "any", "auto_complete_on_recovery": True, **bounds}
+    return td
+
+
+async def test_hon_filters_read_inverted_are_flipped_to_wear(hass: HomeAssistant) -> None:
+    """2026-09-27: Andre0512/hon reports the raw filter status, which counts UP
+    — the old "below 10 %" fell due right after a filter change."""
+    main = _hon_sensor(hass, "p1", "filter_life")
+    pre = _hon_sensor(hass, "p2", "filter_cleaning")
+    other = _hon_sensor(hass, "p3", "cycles_total")
+    data = build_object_entry_data(
+        object_data=build_object_data(name="Purifier"),
+        tasks={
+            "main": _threshold_task(main, trigger_below=10.0),
+            "pre": _threshold_task(pre, trigger_below=15.0),
+            "mine": _threshold_task(main, trigger_below=10.0, trigger_above=95.0),  # the user's own band
+            "other": _threshold_task(other, trigger_below=10.0),  # not a filter gauge
+        },
+    )
+    healed = heal_catalog_triggers(hass, data)
+    assert healed is not None
+    tasks = healed[CONF_TASKS]
+    for tid in ("main", "pre"):
+        tc = tasks[tid]["trigger_config"]
+        assert "trigger_below" not in tc and tc["trigger_above"] == 90.0
+        assert tc["auto_complete_on_recovery"] is True and tc["entity_ids"] == data[CONF_TASKS][tid]["trigger_config"]["entity_ids"]
+    assert tasks["mine"] == data[CONF_TASKS]["mine"]
+    assert tasks["other"] == data[CONF_TASKS]["other"]
+    assert heal_catalog_triggers(hass, healed) is None, "idempotent"

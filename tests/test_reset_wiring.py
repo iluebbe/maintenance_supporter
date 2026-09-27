@@ -242,3 +242,111 @@ async def test_offers_skip_what_cannot_or_should_not_be_wired(hass: HomeAssistan
     obj["archived_at"] = "2026-09-01T00:00:00+00:00"
     hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_OBJECT: obj})
     assert reset_offers(hass) == []
+
+
+async def test_two_buttons_under_one_key_are_never_guessed(hass: HomeAssistant) -> None:
+    """A second button with the same key on the device (a purifier whose two
+    filters share one reset key) makes the reset ambiguous — no wiring."""
+    await setup_integration(hass, make_global_entry(hass))
+    device_id = await _seed_roborock(hass)
+    source = hass.config_entries.async_entries("roborock")[0]
+    er.async_get(hass).async_get_or_create(
+        "button",
+        "roborock",
+        "s8_reset_main_brush_twin",
+        config_entry=source,
+        device_id=device_id,
+        translation_key="reset_main_brush_consumable",
+        suggested_object_id="s8_reset_main_brush_consumable_2",
+    )
+    (setup,) = discover_integration_setups(hass)
+    assert all(t["reset"] is None for t in setup["tasks"])
+
+
+@pytest.mark.parametrize(
+    ("unit", "hours"),
+    [("d", 7.0), ("days", 7.0), ("Days", 7.0), ("h", 168.0), ("hours", 168.0), ("minutes", 10080.0), ("weeks", 1.0)],
+)
+def test_spelled_out_units_convert(hass: HomeAssistant, unit: str, hours: float) -> None:
+    from custom_components.maintenance_supporter.helpers.signatures._model import ConsumableSignature, _threshold_for
+
+    sig = ConsumableSignature(("salt_days",), "Refill Softener Salt", "duration_left", below_hours=168)
+    hass.states.async_set("sensor.softener_salt_days", "30", {"unit_of_measurement": unit})
+    assert _threshold_for(sig, hass, "sensor.softener_salt_days") == hours
+
+
+async def test_one_duty_through_two_sensors_adopts_as_one_task(hass: HomeAssistant) -> None:
+    """BWT Perla reports the salt in % and in days — two proposals of the same
+    name must not become two identically named tasks."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import ws_adopt_integration_setups
+
+    await setup_integration(hass, make_global_entry(hass))
+    source = MockConfigEntry(domain="bwt_perla", title="BWT Perla")
+    source.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(config_entry_id=source.entry_id, identifiers={("bwt_perla", "p1")}, name="Softener")
+    ent_reg = er.async_get(hass)
+    for key, state, unit in (("regenerativ_level", "60", "%"), ("regenerativ_days", "30", "d")):
+        ent = ent_reg.async_get_or_create(
+            "sensor", "bwt_perla", f"p1_{key}", config_entry=source, device_id=device.id, translation_key=key, suggested_object_id=f"softener_{key}"
+        )
+        hass.states.async_set(ent.entity_id, state, {"unit_of_measurement": unit})
+    (setup,) = discover_integration_setups(hass)
+    assert [t["task_name"] for t in setup["tasks"]].count("Refill Softener Salt") == 2
+    conn = make_ws_connection()
+    await call_ws_handler(ws_adopt_integration_setups, hass, conn, {"id": 1, "type": "x", "selections": [{"device_id": device.id}]})
+    names = [t["name"] for t in _object(hass, "Softener").data[CONF_TASKS].values()]
+    assert names.count("Refill Softener Salt") == 1, names
+
+
+async def test_a_wear_counter_reset_after_completion_is_not_a_second_completion(hass: HomeAssistant, freezer: FrozenDateTimeFactory) -> None:
+    """Automower counts blade hours since its own reset (usage_above, counter
+    in delta mode from 0). Complete → the press zeroes the counter → no second
+    completion, and the task falls due again after another full blade life."""
+    from custom_components.maintenance_supporter.websocket.integration_setups import ws_adopt_integration_setups
+
+    await setup_integration(hass, make_global_entry(hass))
+    source = MockConfigEntry(domain="husqvarna_automower", title="Automower")
+    source.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(config_entry_id=source.entry_id, identifiers={("husqvarna_automower", "am1")}, name="Mower")
+    ent_reg = er.async_get(hass)
+    blades = ent_reg.async_get_or_create(
+        "sensor", "husqvarna_automower", "am1_blades", config_entry=source, device_id=device.id, translation_key="cutting_blade_usage_time", suggested_object_id="mower_blade_usage"
+    ).entity_id
+    ent_reg.async_get_or_create(
+        "button", "husqvarna_automower", "am1_reset_blades", config_entry=source, device_id=device.id, translation_key="reset_cutting_blade_usage_time", suggested_object_id="mower_reset_blades"
+    )
+    hass.states.async_set(blades, "10", {"unit_of_measurement": "h"})
+    (setup,) = discover_integration_setups(hass)
+    (proposal,) = [t for t in setup["tasks"] if t["task_name"] == "Replace Blades" and t.get("reset")]
+    limit = proposal["threshold"]
+    conn = make_ws_connection()
+    await call_ws_handler(ws_adopt_integration_setups, hass, conn, {"id": 1, "type": "x", "selections": [{"device_id": device.id}]})
+    entry = _object(hass, "Mower")
+    task_id = next(tid for tid, t in entry.data[CONF_TASKS].items() if t.get("on_complete_action"))
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    entry = _object(hass, "Mower")
+    coordinator = entry.runtime_data.coordinator
+    presses: list[ServiceCall] = []
+
+    async def _press(call: ServiceCall) -> None:
+        presses.append(call)
+        hass.states.async_set(blades, "0", {"unit_of_measurement": "h"})  # the mower zeroes its counter
+
+    hass.services.async_register("button", "press", _press)
+    hass.states.async_set(blades, str(limit + 5), {"unit_of_measurement": "h"})
+    await hass.async_block_till_done()
+    assert coordinator.data["tasks"][task_id]["_trigger_active"] is True
+    with patch.object(hass.auth, "async_get_user", return_value=object()):
+        await coordinator.complete_maintenance(task_id, notes="new blades")
+        await hass.async_block_till_done()
+    assert len(presses) == 1
+    freezer.tick(timedelta(minutes=5))
+    hass.states.async_set(blades, "1", {"unit_of_measurement": "h"})
+    await hass.async_block_till_done()
+    assert len(completed_entries(entry.runtime_data.store.get_history(task_id))) == 1
+    assert coordinator.data["tasks"][task_id]["_trigger_active"] is False
+    # a full blade life later the task is due again (the baseline followed the reset)
+    hass.states.async_set(blades, str(limit + 1), {"unit_of_measurement": "h"})
+    await hass.async_block_till_done()
+    assert coordinator.data["tasks"][task_id]["_trigger_active"] is True

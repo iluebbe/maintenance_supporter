@@ -1563,11 +1563,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # would drop any change still sitting in its debounce window.
 
         # Catalog triggers written by a signature that could never fire
-        # (gree/daikin hvac_action runtime, 2026-09-25) are repaired once.
+        # (gree/daikin hvac_action runtime, 2026-09-25; hOn filters read
+        # inverted, 2026-09-27) are repaired once.
         from .helpers.catalog_heal import heal_catalog_triggers
 
         if (healed_data := heal_catalog_triggers(hass, entry.data)) is not None:
-            _LOGGER.info("Repaired catalog trigger(s) of %s (AC filter runtime now counts on the HVAC mode)", entry.title)
+            _LOGGER.info("Repaired catalog trigger(s) of %s (see helpers/catalog_heal.py)", entry.title)
             hass.config_entries.async_update_entry(entry, data=healed_data)
 
         # Every write path validates spare parts, but ~27 readers assume a dict
