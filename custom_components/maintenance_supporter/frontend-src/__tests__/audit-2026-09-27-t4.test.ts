@@ -539,12 +539,14 @@ describe("bug audit 2026-09-26 #2, tranche 4 (frontend)", () => {
       canvas.getContext("2d")!.fillRect(0, 0, 4, 4);
       const stream = canvas.captureStream(5);
       const gate = deferred<MediaStream>();
+      const asked = deferred<void>();
       const md = navigator.mediaDevices;
       const real = md.getUserMedia;
-      md.getUserMedia = () => gate.promise;
+      md.getUserMedia = () => { asked.resolve(); return gate.promise; };
       try {
         const el = await fixture<MsCameraCapture>(html`<ms-camera-capture></ms-camera-capture>`);
         const opening = el.open();
+        await asked.promise; // the camera request is out (after the device list)
         el.remove(); // the host dialog closed while the permission prompt was up
         gate.resolve(stream);
         await opening;

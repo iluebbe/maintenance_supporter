@@ -24,8 +24,11 @@ const settle = (ms = 30) => new Promise((r) => setTimeout(r, ms));
 function refusedCamera(): () => void {
   const md = navigator.mediaDevices;
   const real = md.getUserMedia;
+  const realEnum = md.enumerateDevices;
+  // stubbed too: the real device list is slow in a fresh headless page
+  md.enumerateDevices = async () => [];
   md.getUserMedia = async () => { throw new DOMException("denied", "NotAllowedError"); };
-  return () => { md.getUserMedia = real; };
+  return () => { md.getUserMedia = real; md.enumerateDevices = realEnum; };
 }
 
 function fakeCamera(): { stream: MediaStream; restore: () => void } {
@@ -36,8 +39,10 @@ function fakeCamera(): { stream: MediaStream; restore: () => void } {
   const stream = canvas.captureStream(10);
   const md = navigator.mediaDevices;
   const real = md.getUserMedia;
+  const realEnum = md.enumerateDevices;
+  md.enumerateDevices = async () => [];
   md.getUserMedia = async () => stream;
-  return { stream, restore: () => { md.getUserMedia = real; } };
+  return { stream, restore: () => { md.getUserMedia = real; md.enumerateDevices = realEnum; } };
 }
 
 async function mount(attrs: Partial<MsPhotoPicker> = {}) {

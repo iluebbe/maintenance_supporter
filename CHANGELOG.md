@@ -73,6 +73,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **Switching the camera in the Android app, second round** (#161): on some phones (reported on a Galaxy S26 Ultra)
+  the viewfinder still opened on the 0.5× ultra-wide camera and the lens switch said no other camera answered. These
+  phones keep a camera registered for a moment after it is released; a different camera asked for in that moment is
+  refused, and 2.92 asked for every other camera back to back and then reopened the previous one — never giving the
+  phone that moment. The viewfinder now asks for one camera per tap and waits for it (retrying every half second for
+  up to five seconds, with a "Switching camera…" note); a camera that stays busy is skipped on the next tap. From the
+  second opening on it goes straight to the main camera (or the one you picked last), so the ultra-wide one is not
+  woken first. Your pick is remembered by the camera's name — the app gives cameras a new id on every page load, so the
+  remembered camera never matched before. When a camera does not answer, the note offers the details for a bug report
+  with a Copy button. The 1× zoom request is gone: the app never allowed it.
 - The template gallery said "1 tasks" for single-task templates.
 - **Completing early on a calendar schedule:** a weekly Monday task completed on Saturday was due again two days
   later and overdue on Tuesday; a "1st of the month" task skipped on the 29th was overdue on the 2nd. Completing or

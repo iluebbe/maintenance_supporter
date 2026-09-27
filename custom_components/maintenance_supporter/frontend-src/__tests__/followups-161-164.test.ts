@@ -1,8 +1,7 @@
 /**
  * #161 follow-up: the in-app viewfinder prefers the MAIN back camera over the
  * ultra-wide module (Android hands the wide one out for "environment" on some
- * phones — the viewfinder opened at 0.5×) and asks for 1× zoom when the track
- * exposes a zoom range starting below 1.
+ * phones — the viewfinder opened at 0.5×).
  *
  * #164 follow-up: a document's description shows under its title in the
  * task's document list and, behind the "Document descriptions" print switch,
@@ -17,19 +16,17 @@ import { buildServiceRecordHtml, DEFAULT_INCLUDE, type ServiceRecordData, type S
 import { mergeObjectHistory } from "../helpers/object-history.js";
 import { createMockHass } from "./_test-utils.js";
 
-function stream(deviceId: string, zoomMin?: number): MediaStream {
+function stream(deviceId: string): MediaStream {
   const canvas = document.createElement("canvas");
   canvas.width = 32;
   canvas.height = 24;
   canvas.getContext("2d")!.fillRect(0, 0, 32, 24);
   const s = canvas.captureStream(5);
-  const track = s.getVideoTracks()[0];
-  track.getSettings = () => ({ deviceId });
-  if (zoomMin !== undefined) {
-    (track as unknown as { getCapabilities: () => unknown }).getCapabilities = () => ({ zoom: { min: zoomMin, max: 8 } });
-  }
+  s.getVideoTracks()[0].getSettings = () => ({ deviceId });
   return s;
 }
+
+const cam = (deviceId: string, label: string) => ({ kind: "videoinput", deviceId, label, groupId: "", toJSON() { return {}; } }) as MediaDeviceInfo;
 
 describe("camera-capture prefers the main back camera (#161)", () => {
   const md = navigator.mediaDevices;
@@ -37,46 +34,56 @@ describe("camera-capture prefers the main back camera (#161)", () => {
   const realEnum = md.enumerateDevices;
   afterEach(() => { md.getUserMedia = realGum; md.enumerateDevices = realEnum; });
 
-  it("re-acquires the first back-facing device when the environment stream came from a wide module", async () => {
+  it("first open: replaces the wide module 'environment' handed out once the labels are readable", async () => {
     const calls: MediaStreamConstraints[] = [];
-    const wide = stream("wide", 0.5);
-    const main = stream("main", 1);
-    const applied: MediaTrackConstraints[] = [];
-    main.getVideoTracks()[0].applyConstraints = async (c?: MediaTrackConstraints) => { applied.push(c!); };
+    const wide = stream("wide");
+    const main = stream("main");
+    let granted = false;
     md.getUserMedia = async (c?: MediaStreamConstraints) => {
       calls.push(c!);
+      granted = true;
       const v = c!.video as MediaTrackConstraints;
       return v.deviceId ? main : wide;
     };
-    md.enumerateDevices = async () => [
-      { kind: "videoinput", deviceId: "wide", label: "camera2 2, facing back", groupId: "", toJSON() { return {}; } },
-      { kind: "videoinput", deviceId: "main", label: "camera2 0, facing back", groupId: "", toJSON() { return {}; } },
-      { kind: "videoinput", deviceId: "front", label: "camera2 1, facing front", groupId: "", toJSON() { return {}; } },
-    ] as MediaDeviceInfo[];
+    // before the first grant the WebView lists neither ids nor labels
+    md.enumerateDevices = async () =>
+      granted
+        ? [cam("wide", "camera2 2, facing back"), cam("main", "camera2 0, facing back"), cam("front", "camera2 1, facing front")]
+        : [cam("", "")];
     const el = await fixture<MsCameraCapture>(html`<ms-camera-capture></ms-camera-capture>`);
     await el.open();
     await el.updateComplete;
     expect(calls.length).to.equal(2);
+    expect((calls[0].video as MediaTrackConstraints).facingMode).to.deep.equal({ ideal: "environment" });
     expect((calls[1].video as MediaTrackConstraints).deviceId).to.deep.equal({ exact: "main" });
     expect(el.shadowRoot!.querySelector("video")!.srcObject).to.equal(main);
     expect(wide.getTracks().every((t) => t.readyState === "ended"), "wide stream released").to.equal(true);
-    expect(applied, "no zoom change needed on the main module (min 1)").to.deep.equal([]);
     el.close();
   });
 
-  it("keeps the stream when there is only one back camera, and asks for 1x when zoom starts below 1", async () => {
+  it("labels already readable: asks for the main module directly, once", async () => {
     const calls: MediaStreamConstraints[] = [];
-    const only = stream("only", 0.5);
+    md.getUserMedia = async (c?: MediaStreamConstraints) => { calls.push(c!); return stream("main"); };
+    md.enumerateDevices = async () => [cam("wide", "camera2 2, facing back"), cam("main", "camera2 0, facing back")];
+    const el = await fixture<MsCameraCapture>(html`<ms-camera-capture></ms-camera-capture>`);
+    await el.open();
+    expect(calls.map((c) => (c.video as MediaTrackConstraints).deviceId)).to.deep.equal([{ exact: "main" }]);
+    el.close();
+  });
+
+  it("keeps the stream when there is only one back camera and never touches zoom (the WebView denies it)", async () => {
+    const calls: MediaStreamConstraints[] = [];
+    const only = stream("only");
     const applied: MediaTrackConstraints[] = [];
     only.getVideoTracks()[0].applyConstraints = async (c?: MediaTrackConstraints) => { applied.push(c!); };
-    md.getUserMedia = async (c?: MediaStreamConstraints) => { calls.push(c!); return only; };
-    md.enumerateDevices = async () => [
-      { kind: "videoinput", deviceId: "only", label: "camera2 0, facing back", groupId: "", toJSON() { return {}; } },
-    ] as MediaDeviceInfo[];
+    let granted = false;
+    md.getUserMedia = async (c?: MediaStreamConstraints) => { calls.push(c!); granted = true; return only; };
+    md.enumerateDevices = async () => (granted ? [cam("only", "camera2 0, facing back")] : []);
     const el = await fixture<MsCameraCapture>(html`<ms-camera-capture></ms-camera-capture>`);
     await el.open();
     expect(calls.length).to.equal(1);
-    expect(applied[0], "1x asked for (required spelling first)").to.deep.equal({ zoom: 1 });
+    expect(JSON.stringify(calls[0].video)).to.not.contain("zoom");
+    expect(applied).to.deep.equal([]);
     el.close();
   });
 
