@@ -505,10 +505,13 @@ async def ws_get_templates(
     curation): the pickers hide disabled ones client-side, while the Settings
     section needs the full list to render the toggles. v2.93 adds the home
     ``profile`` (dwelling, climate, country — all derived locally) and per
-    template whether the gallery recommends it and why.
+    template whether the gallery recommends it and why; 2.94 ``set_up`` —
+    an active object already stands for it (helpers.template_usage), so it
+    is not recommended again.
     """
     from ..helpers.home_profile import async_home_profile
     from ..helpers.i18n import normalize_language, normalize_language_code
+    from ..helpers.template_usage import templates_in_use
     from ..templates import (
         TEMPLATE_CATEGORIES,
         TEMPLATES,
@@ -521,6 +524,7 @@ async def ws_get_templates(
 
     disabled = get_disabled_template_ids(hass)
     profile = await async_home_profile(hass)
+    in_use = templates_in_use(hass)
     lang = normalize_language_code(msg.get("language")) if msg.get("language") else normalize_language(hass)
 
     result = {
@@ -532,7 +536,7 @@ async def ws_get_templates(
                 "name": localize_template_text(t.name, lang),
                 "category": t.category,
                 "disabled": t.id in disabled,
-                **recommend_template(t, profile),
+                **recommend_template(t, profile, set_up=t.id in in_use),
                 "tasks": [
                     {
                         "name": localize_template_text(tt.name, lang),
@@ -898,6 +902,8 @@ async def ws_import_json(
     msg: dict[str, Any],
 ) -> None:
     """Import maintenance objects from JSON or YAML content (from /export)."""
+    from ..templates import KNOWN_TEMPLATE_IDS
+
     raw = msg["json_content"]
     if len(raw) > MAX_JSON_IMPORT_PAYLOAD_BYTES:
         connection.send_error(msg["id"], "too_large", "Content exceeds 10MB limit")
@@ -986,6 +992,9 @@ async def ws_import_json(
             "next_task_ref": _ref_or_none(obj_data.get("next_task_ref")),
             "task_ids": [],
         }
+        # 2.94: the source template, when the backup names one we know.
+        if obj_data.get("template_id") in KNOWN_TEMPLATE_IDS:
+            import_obj["template_id"] = obj_data["template_id"]
         # parent / predecessor / replaced_by → the NEW entry ids.
         lineage_pending = lineage.apply(import_obj, obj_data)
         own_old_entry_id = str(obj_entry.get("entry_id") or "")

@@ -12,6 +12,8 @@ Accessible via **Settings > Devices & Services > Maintenance Supporter > Configu
 
 ![Panel settings tab](images/settings-view.png)
 
+> **Both places edit every setting (2.94+).** Settings that used to exist only in the panel are in the Configure dialog too: *General settings* (consumable low threshold, task row actions, reference numbers in lists, objects-table columns, install Assist sentences), *Advanced features* (completion actions), *Home profile · Template gallery* (house / apartment, hidden templates), *Archive & retention*, *Member avatars*, *Typical battery lifetimes* and *Notification settings* (extra reminders, notify only for a view, weekly digest, warranty reminder). Both write through the same validation, and a test fails the build when a new setting reaches only one of them.
+
 ### General Settings
 
 | Parameter | Type | Default | Range | Description |

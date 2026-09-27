@@ -12,7 +12,7 @@
       },
       "create_from_template": {
         "title": "Selecteer sjablooncategorie",
-        "description": "Kies een categorie om voorgedefinieerde onderhoudssjablonen te bekijken.",
+        "description": "Kies een categorie om voorgedefinieerde onderhoudssjablonen te bekijken. ★ n = sjablonen in deze categorie die bij je woning passen (paneel: Instellingen → Woonprofiel).",
         "data": {
           "template_category": "Categorie",
           "go_back": "Terug"
@@ -23,7 +23,7 @@
       },
       "template_select": {
         "title": "Selecteer sjabloon",
-        "description": "Kies een onderhoudssjabloon als uitgangspunt.",
+        "description": "Kies een onderhoudssjabloon als uitgangspunt. ★ aanbevolen voor je woning · ✓ al ingesteld.",
         "data": {
           "template_id": "Sjabloon",
           "go_back": "Terug"
@@ -529,7 +529,11 @@
           "notification_settings": "Meldingsinstellingen",
           "notification_actions": "Interactieve acties",
           "test_notification": "Testmelding verzenden",
-          "done": "Gereed"
+          "done": "Gereed",
+          "home_profile": "Woningprofiel · Sjabloongalerij",
+          "archive_settings": "Archief & bewaring",
+          "member_avatars": "Avatars van leden",
+          "battery_lifetimes": "Gebruikelijke batterijlevensduur"
         }
       },
       "advanced_features": {
@@ -543,7 +547,8 @@
           "advanced_budget_visible": "Budgetbeheer",
           "advanced_groups_visible": "Groepen",
           "advanced_checklists_visible": "Checklists",
-          "advanced_schedule_time_visible": "Tijd-van-dag-planning"
+          "advanced_schedule_time_visible": "Tijd-van-dag-planning",
+          "advanced_completion_actions_visible": "Voltooiings-acties"
         },
         "data_description": {
           "advanced_adaptive_visible": "Toon EWA-, Weibull-analyse en intervalsuggesties voor taken.",
@@ -553,7 +558,8 @@
           "advanced_budget_visible": "Toon maandelijks/jaarlijks budgetbeheer en waarschuwingen.",
           "advanced_groups_visible": "Toon onderhoudsgroepbeheer.",
           "advanced_checklists_visible": "Toon taakchecklists voor stapsgewijze voltooiing.",
-          "advanced_schedule_time_visible": "Laat taken op een specifieke tijd vervallen in plaats van om middernacht."
+          "advanced_schedule_time_visible": "Laat taken op een specifieke tijd vervallen in plaats van om middernacht.",
+          "advanced_completion_actions_visible": "Per taak HA-actie bij voltooien + snel-voltooien-QR met vooraf ingestelde waarden."
         }
       },
       "panel_access": {
@@ -582,7 +588,12 @@
           "battery_auto_record_recovery": "Vervanging automatisch vastleggen wanneer een lege batterij herstelt",
           "panel_title": "Titel van zijbalkpaneel",
           "shopping_list_entity": "Boodschappenlijst om kooptaken mee te synchroniseren",
-          "part_search_url_template": "Zoeklink voor aankopen"
+          "part_search_url_template": "Zoeklink voor aankopen",
+          "default_consumable_threshold": "Drempel „verbruiksartikel laag“ (%)",
+          "row_action_style": "Acties in taakrijen",
+          "ref_numbers_in_lists": "Referentienummers in lijsten",
+          "objects_table_columns": "Kolommen objecttabel",
+          "install_assist_sentences": "Assist-zinnen installeren"
         },
         "data_description": {
           "default_warning_days": "Aantal dagen voor de vervaldatum van een onderhoudstaak om een waarschuwing te tonen.",
@@ -595,7 +606,11 @@
           "battery_auto_record_recovery": "Wanneer een batterij die laag was boven de hersteldrempel stijgt, wordt de vervangdatum in Battery Notes vastgelegd en worden de reservecellen van de voorraad afgeboekt — zonder tik",
           "panel_title": "Eigen naam voor het zijbalk-item. Laat leeg voor \"Maintenance\". Handig om verwarring met het ingebouwde Maintenance-dashboard van Home Assistant te voorkomen.",
           "shopping_list_entity": "Automatische koopherinneringen voor schaarse onderdelen verschijnen in deze takenlijst; afvinken voltooit de herinnering en vult de voorraad aan. Leeg laten om uit te schakelen.",
-          "part_search_url_template": "URL met {q} op de plaats van de zoektermen, voor onderdelen zonder productlink. Leeg laten voor de automatische winkel (per land, anders per taal)."
+          "part_search_url_template": "URL met {q} op de plaats van de zoektermen, voor onderdelen zonder productlink. Leeg laten voor de automatische winkel (per land, anders per taal).",
+          "default_consumable_threshold": "Standaardwaarden voor nieuwe Voorgestelde installaties (resterend percentage) en voor vlootbatterijen zonder eigen Battery Notes-drempel. Bestaande taken behouden hun waarde.",
+          "ref_numbers_in_lists": "Toont de chips #8 / #8.3 vóór object- en taaknamen in de lijst Vandaag, de takentabel, de objectkaarten en de objectentabel.",
+          "objects_table_columns": "Kies welke kolommen in de tabelweergave van objecten verschijnen.",
+          "install_assist_sentences": "Kopieert de spraakzinnen naar je configuratie zodat de klassieke Assist-agent ze herkent. Een bestand dat je zelf hebt bewerkt wordt nooit overschreven."
         }
       },
       "notification_settings": {
@@ -617,7 +632,12 @@
           "notification_title_style": "Stijl van meldingstitel",
           "notify_completed": "Voltooiingsmeldingen",
           "notify_event_only": "Alleen het event afvuren, zelf niets versturen",
-          "notify_extra_data": "Extra notificatiegegevens (sjabloon)"
+          "notify_extra_data": "Extra notificatiegegevens (sjabloon)",
+          "reminder_lead_days": "Extra herinneringen (dagen vóór vervaldatum)",
+          "notify_scope_view_id": "Alleen melden voor weergave",
+          "weekly_digest_enabled": "Wekelijks overzicht",
+          "warranty_reminder_enabled": "Herinnering garantieverloop",
+          "warranty_reminder_days": "Dagen vóór afloop"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Hoe vaak de herinnering voor bijna verlopen wordt herhaald. Stel in op 0 voor een enkele melding.",
@@ -630,7 +650,11 @@
           "notification_title_style": "Wat verschijnt als TITEL van de melding. Standaard behoudt de status-tekst (bijv. 'Onderhoud achterstallig!'). Objectnaam / taaknaam helpen wanneer de telefoon meldingen stapelt.",
           "notify_completed": "Huishoudnieuws wanneer een taak is voltooid, met de reden (paneel, QR-/NFC-scan, takenlijst, spraak, sensorherstel …). \"Alleen automatisch\" meldt alleen voltooiingen die niemand ter plekke deed — sensorherstel, afvinken op de boodschappenlijst, een service-aanroep van een automatisering.",
           "notify_event_only": "Elke notificatie vuurt het event maintenance_supporter_notification af. Met deze optie verzorgt jouw automatisering de volledige bezorging — herhaalintervallen, stille uren en de daglimiet bepalen nog steeds wanneer het event komt.",
-          "notify_extra_data": "JSON of YAML met Jinja, samengevoegd in de data van elke notify-aanroep (jouw sleutels winnen). Variabelen: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
+          "notify_extra_data": "JSON of YAML met Jinja, samengevoegd in de data van elke notify-aanroep (jouw sleutels winnen). Variabelen: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
+          "reminder_lead_days": "Kommagescheiden aanlooptijden, bijv. 14, 3, 0 — op elke overeenkomende dag wordt een extra herinnering verzonden. Leeg = uit.",
+          "notify_scope_view_id": "Alleen taken die overeenkomen met de label-/gebruikersfilters van de gekozen weergave sturen herinneringen. Status, sortering en groepering van de weergave worden hier genegeerd.",
+          "weekly_digest_enabled": "Eén samenvattingsmelding op maandagochtend als er taken zijn.",
+          "warranty_reminder_enabled": "Eén keer melden wanneer de garantie van een object over zoveel dagen afloopt."
         }
       },
       "notification_actions": {
@@ -1191,6 +1215,44 @@
           "phases_text": "Eén stap per regel, in cyclusvolgorde. \"Naam: punt; punt\" stelt de checklist van die fase in. Onderdelen en verplichte velden per fase beheer je in het paneel; ze blijven hier behouden.",
           "go_back": "Terug naar taakacties zonder opslaan."
         }
+      },
+      "home_profile": {
+        "title": "Woningprofiel",
+        "description": "Beveelt sjablonen aan en stelt seizoensvensters in voor je klimaat en halfrond. Alles wordt lokaal bepaald uit je verdiepingen, ruimtes en locatie.\n\n**Herkend:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "Woningtype",
+          "disabled_template_ids": "Verborgen sjablonen"
+        },
+        "data_description": {
+          "disabled_template_ids": "Hier gekozen sjablonen verschijnen niet meer in de keuze \"Van sjabloon\" (paneel en installatie-assistent). Verder verandert er niets."
+        }
+      },
+      "archive_settings": {
+        "title": "Archief & bewaring",
+        "description": "Voltooide eenmalige taken archiveren in plaats van verwijderen. Gearchiveerde items zijn verborgen en inactief, maar behouden geschiedenis en kosten.",
+        "data": {
+          "archive_oneoff_days": "Voltooide eenmalige taken automatisch archiveren na (dagen, 0 = uit)",
+          "delete_archived_oneoff_days": "Gearchiveerde eenmalige taken automatisch verwijderen na (dagen, 0 = nooit)"
+        }
+      },
+      "member_avatars": {
+        "title": "Avatars van leden",
+        "description": "Wordt naast toegewezen taken getoond — initialen in de kleur van het lid. Standaard uit de naam; kies eigen initialen of een kleur om leden uit elkaar te houden.",
+        "data": {
+          "member": "Gezinslid"
+        }
+      },
+      "member_avatar": {
+        "title": "Avatars van leden",
+        "description": "{member}: laat de initialen leeg en de kleur op Automatisch om de standaard te gebruiken ({initials}).",
+        "data": {
+          "initials": "Initialen",
+          "color": "Kleur"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "Gebruikelijke batterijlevensduur",
+        "description": "Alleen gebruikt voor batterijen zonder percentage: een Battery Notes-notitie met enkel een type en een vervangdatum, of een sensor die alleen „bijna leeg“ meldt. Hun vervaldatum is laatste vervanging + deze levensduur. Batterijen die een niveau melden krijgen hun voorspelling uit de gemeten ontlading. Zodra de vloot drie vervangingen van een type heeft gezien, vervangt het mediane interval de ingebouwde waarde — je eigen waarde wint altijd.\n\nIngebouwde waarden (maanden): {defaults}"
       }
     },
     "error": {
@@ -1211,7 +1273,8 @@
       "invalid_shopping_list_entity": "De boodschappenlijst moet een to-do-entiteit zijn (todo.…).",
       "invalid_search_template": "De zoeklink moet een http(s)-URL met {q} zijn.",
       "invalid_schedule": "De planning is onvolledig — kies minstens één weekdag (of een agenda voor een agendagestuurde taak).",
-      "invalid_delta_target": "Bij het tellen van opgebouwd gebruik (deltamodus) moet de doelwaarde groter zijn dan 0."
+      "invalid_delta_target": "Bij het tellen van opgebouwd gebruik (deltamodus) moet de doelwaarde groter zijn dan 0.",
+      "invalid_reminder_lead_days": "Voer hele dagen tussen 0 en 365 in, gescheiden door komma's (bijv. 14, 3, 0)."
     },
     "abort": {
       "entity_unavailable": "De gekozen entiteit is nu niet beschikbaar. Probeer het opnieuw zodra ze een status meldt."
@@ -1605,6 +1668,53 @@
         "default": "Standaard (titel per status)",
         "object_name": "Objectnaam als titel",
         "task_name": "Taaknaam als titel"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "Knoppen (op telefoons alleen pictogrammen)",
+        "buttons": "Knoppen met tekst",
+        "icons": "Pictogrammen (klassiek)"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "Naam",
+        "ref_no": "Referentienummer",
+        "manufacturer": "Fabrikant",
+        "model": "Model",
+        "serial_number": "S/N",
+        "installation_date": "Geïnstalleerd",
+        "warranty_expiry": "Garantie",
+        "area_id": "Gebied",
+        "documentation_url": "Handleiding",
+        "notes": "Notities",
+        "task_count": "Taken",
+        "actions": "Acties"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "Automatisch (herkend)",
+        "house": "Huis",
+        "apartment": "Appartement"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "Automatisch",
+        "red": "Rood",
+        "pink": "Roze",
+        "purple": "Paars",
+        "deep_purple": "Donkerpaars",
+        "indigo": "Indigo",
+        "blue": "Blauw",
+        "cyan": "Cyaan",
+        "green": "Groen",
+        "light_green": "Lichtgroen",
+        "orange": "Oranje",
+        "brown": "Bruin",
+        "blue_grey": "Blauwgrijs"
       }
     }
   },

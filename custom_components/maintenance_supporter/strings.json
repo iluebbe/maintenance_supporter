@@ -12,7 +12,7 @@
       },
       "create_from_template": {
         "title": "Select Template Category",
-        "description": "Choose a category to browse predefined maintenance templates.",
+        "description": "Choose a category to browse predefined maintenance templates. ★ n = templates in this category that fit your home (panel: Settings → Home profile).",
         "data": {
           "template_category": "Category",
           "go_back": "Go back"
@@ -23,7 +23,7 @@
       },
       "template_select": {
         "title": "Select Template",
-        "description": "Choose a maintenance template to use as a starting point.",
+        "description": "Choose a maintenance template to use as a starting point. ★ recommended for your home · ✓ already set up.",
         "data": {
           "template_id": "Template",
           "go_back": "Go back"
@@ -529,7 +529,11 @@
           "notification_settings": "Notification Settings",
           "notification_actions": "Interactive Actions",
           "test_notification": "Send Test Notification",
-          "done": "Done"
+          "done": "Done",
+          "home_profile": "Home profile · Template gallery",
+          "archive_settings": "Archive & Retention",
+          "member_avatars": "Member avatars",
+          "battery_lifetimes": "Typical battery lifetimes"
         }
       },
       "advanced_features": {
@@ -543,7 +547,8 @@
           "advanced_budget_visible": "Budget Tracking",
           "advanced_groups_visible": "Groups",
           "advanced_checklists_visible": "Checklists",
-          "advanced_schedule_time_visible": "Time-of-day scheduling"
+          "advanced_schedule_time_visible": "Time-of-day scheduling",
+          "advanced_completion_actions_visible": "Completion actions"
         },
         "data_description": {
           "advanced_adaptive_visible": "Show EWA, Weibull analysis, and interval suggestions for tasks.",
@@ -553,7 +558,8 @@
           "advanced_budget_visible": "Show monthly/yearly budget tracking and alerts.",
           "advanced_groups_visible": "Show maintenance group management.",
           "advanced_checklists_visible": "Show task checklists for step-by-step completion.",
-          "advanced_schedule_time_visible": "Allow tasks to become overdue at a specific time of day instead of midnight."
+          "advanced_schedule_time_visible": "Allow tasks to become overdue at a specific time of day instead of midnight.",
+          "advanced_completion_actions_visible": "Per-task HA action on complete + quick-complete QR with pre-set values."
         }
       },
       "panel_access": {
@@ -582,7 +588,12 @@
           "battery_auto_record_recovery": "Record a replacement automatically when a low battery recovers",
           "panel_title": "Sidebar panel title",
           "shopping_list_entity": "Shopping list to sync buy tasks into",
-          "part_search_url_template": "Shopping search link"
+          "part_search_url_template": "Shopping search link",
+          "default_consumable_threshold": "Consumable low threshold (%)",
+          "row_action_style": "Task row actions",
+          "ref_numbers_in_lists": "Reference numbers in lists",
+          "objects_table_columns": "Objects table columns",
+          "install_assist_sentences": "Install Assist sentences"
         },
         "data_description": {
           "default_warning_days": "Number of days before a maintenance task is due to show a warning.",
@@ -595,7 +606,11 @@
           "battery_auto_record_recovery": "When a battery that was low rises above the recovery threshold, the replacement date is recorded in Battery Notes and the spare cells are taken from stock — no tap needed",
           "panel_title": "Custom name for the sidebar entry. Leave blank to use \"Maintenance\". Useful to avoid clashing with Home Assistant's built-in Maintenance dashboard.",
           "shopping_list_entity": "Automatic “buy” reminders for low parts appear in this to-do list; checking one off completes the reminder and restocks the part. Leave empty to disable.",
-          "part_search_url_template": "URL with {q} in place of the search terms, used for parts without a product link. Leave empty for the automatic store (by country, then by language)."
+          "part_search_url_template": "URL with {q} in place of the search terms, used for parts without a product link. Leave empty for the automatic store (by country, then by language).",
+          "default_consumable_threshold": "Defaults for new Suggested setups (percent-remaining consumables) and for fleet batteries without their own Battery Notes threshold. Existing tasks keep their value.",
+          "ref_numbers_in_lists": "Show the #8 / #8.3 chips in front of object and task names in the Today list, the task table, the object cards and the objects table.",
+          "objects_table_columns": "Choose which columns appear in the objects table view.",
+          "install_assist_sentences": "Copies the voice sentences into your configuration so the classic Assist agent recognises them. A file you edited yourself is never overwritten."
         }
       },
       "notification_settings": {
@@ -617,7 +632,12 @@
           "notification_title_style": "Notification title style",
           "notify_completed": "Completion notifications",
           "notify_event_only": "Only fire the event, send nothing myself",
-          "notify_extra_data": "Extra notification data (template)"
+          "notify_extra_data": "Extra notification data (template)",
+          "reminder_lead_days": "Extra reminders (days before due)",
+          "notify_scope_view_id": "Notify only for view",
+          "weekly_digest_enabled": "Weekly digest",
+          "warranty_reminder_enabled": "Warranty expiry reminder",
+          "warranty_reminder_days": "Days before expiry"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "How often to repeat the due-soon reminder. Set to 0 for a single notification.",
@@ -630,7 +650,11 @@
           "notification_title_style": "What appears as the notification's TITLE. Default keeps the per-status text (e.g. 'Maintenance overdue!'). Object name / Task name help when phone notifications stack.",
           "notify_completed": "Household news when a task is completed, with the reason (panel, QR / NFC scan, to-do list, voice, sensor recovery …). \"Automatic only\" announces just the completions nobody made on the spot — sensor recovery, shopping-list check-off, an automation's service call.",
           "notify_event_only": "Every notification fires the event maintenance_supporter_notification. With this on, your automation is the whole delivery — repeat intervals, quiet hours and the daily cap still decide when the event fires.",
-          "notify_extra_data": "JSON or YAML with Jinja, merged into every notify call's data (your keys win). Variables: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
+          "notify_extra_data": "JSON or YAML with Jinja, merged into every notify call's data (your keys win). Variables: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
+          "reminder_lead_days": "Comma-separated lead times, e.g. 14, 3, 0 — one extra reminder fires on each matching day. Empty = off.",
+          "notify_scope_view_id": "Only tasks matching the selected saved view's label/user filters send reminders. Status, sorting and grouping of the view are ignored here.",
+          "weekly_digest_enabled": "A single summary notification on Monday morning when tasks are due.",
+          "warranty_reminder_enabled": "Notify once when an object's warranty is this many days from expiring."
         }
       },
       "budget_settings": {
@@ -1191,6 +1215,44 @@
           "phases_text": "One step per line, in cycle order (e.g. Flip blades / Flip blades / Replace blades). \"Name: item; item\" sets that phase's checklist. Per-phase parts and required fields are edited in the panel and are preserved here.",
           "go_back": "Return to task actions without saving."
         }
+      },
+      "home_profile": {
+        "title": "Home profile",
+        "description": "Recommends templates and sets seasonal windows for your climate and hemisphere. Everything is worked out locally from your floors, areas and home location.\n\n**Detected:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "Home type",
+          "disabled_template_ids": "Hidden templates"
+        },
+        "data_description": {
+          "disabled_template_ids": "Templates chosen here no longer appear in the \"From template\" pickers (panel and config flow). Nothing else changes."
+        }
+      },
+      "archive_settings": {
+        "title": "Archive & Retention",
+        "description": "Retire completed one-off tasks without deleting them. Archived items are hidden and inert but keep their history and cost.",
+        "data": {
+          "archive_oneoff_days": "Auto-archive completed one-off tasks after (days, 0 = off)",
+          "delete_archived_oneoff_days": "Auto-delete archived one-off tasks after (days, 0 = never)"
+        }
+      },
+      "member_avatars": {
+        "title": "Member avatars",
+        "description": "Shown next to assigned tasks — initials in the member's colour. Defaults come from the name; set your own initials or pick a colour to tell members apart.",
+        "data": {
+          "member": "Household member"
+        }
+      },
+      "member_avatar": {
+        "title": "Member avatars",
+        "description": "{member}: leave the initials empty and the colour on Automatic to use the default ({initials}).",
+        "data": {
+          "initials": "Initials",
+          "color": "Colour"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "Typical battery lifetimes",
+        "description": "Only used for batteries without a percentage: a Battery Notes note that has just a type and a last-replaced date, or a sensor that only reports \"low\". Their due date is last replaced + this lifetime. Batteries that report a level get their forecast from the measured discharge instead. Once the fleet has seen three replacements of a type, the median interval takes over from the built-in value — your own value always wins.\n\nBuilt-in values (months): {defaults}"
       }
     },
     "error": {
@@ -1211,7 +1273,8 @@
       "invalid_shopping_list_entity": "The shopping list must be a to-do entity (todo.…).",
       "invalid_search_template": "The search link must be an http(s) URL containing {q}.",
       "invalid_schedule": "The schedule is incomplete — pick at least one weekday (or a calendar for a calendar-driven task).",
-      "invalid_delta_target": "When counting accumulated use (delta mode), the target value must be greater than 0."
+      "invalid_delta_target": "When counting accumulated use (delta mode), the target value must be greater than 0.",
+      "invalid_reminder_lead_days": "Enter whole days between 0 and 365, separated by commas (e.g. 14, 3, 0)."
     },
     "abort": {
       "entity_unavailable": "The selected entity is not available right now. Try again once it reports a state."
@@ -1881,6 +1944,53 @@
         "default": "Default (per-status title)",
         "object_name": "Object name as title",
         "task_name": "Task name as title"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "Buttons (icons only on phones)",
+        "buttons": "Buttons with text",
+        "icons": "Icons (classic)"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "Name",
+        "ref_no": "Reference number",
+        "manufacturer": "Manufacturer",
+        "model": "Model",
+        "serial_number": "S/N",
+        "installation_date": "Installed",
+        "warranty_expiry": "Warranty",
+        "area_id": "Area",
+        "documentation_url": "Manual",
+        "notes": "Notes",
+        "task_count": "Tasks",
+        "actions": "Actions"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "Automatic (detected)",
+        "house": "House",
+        "apartment": "Apartment"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "Automatic",
+        "red": "Red",
+        "pink": "Pink",
+        "purple": "Purple",
+        "deep_purple": "Deep purple",
+        "indigo": "Indigo",
+        "blue": "Blue",
+        "cyan": "Cyan",
+        "green": "Green",
+        "light_green": "Light green",
+        "orange": "Orange",
+        "brown": "Brown",
+        "blue_grey": "Blue grey"
       }
     }
   },

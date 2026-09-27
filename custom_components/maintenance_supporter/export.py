@@ -207,6 +207,10 @@ def _build_export_object(
         "ref_no": obj_data.get("ref_no"),
         "next_task_ref": obj_data.get("next_task_ref"),
     }
+    # 2.94: the template the object was made from ("already set up" in the
+    # gallery) — only emitted when set, like the fleet flag below.
+    if obj_data.get("template_id"):
+        export_obj["template_id"] = obj_data["template_id"]
     # Battery fleet identity — only emitted for the fleet object so a plain
     # object's export stays byte-identical to earlier versions. The importer
     # mirrors these (and keeps the deterministic ``batt_<type>`` part ids).

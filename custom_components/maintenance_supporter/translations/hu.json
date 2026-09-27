@@ -12,7 +12,7 @@
       },
       "create_from_template": {
         "title": "Sablonkategória kiválasztása",
-        "description": "Válasszon kategóriát az előre elkészített karbantartási sablonok böngészéséhez.",
+        "description": "Válasszon kategóriát az előre elkészített karbantartási sablonok böngészéséhez. ★ n = a kategória otthonához illő sablonjai (panel: Beállítások → Otthonprofil).",
         "data": {
           "template_category": "Kategória",
           "go_back": "Vissza"
@@ -23,7 +23,7 @@
       },
       "template_select": {
         "title": "Sablon kiválasztása",
-        "description": "Válasszon karbantartási sablont kiindulási alapként.",
+        "description": "Válasszon karbantartási sablont kiindulási alapként. ★ ajánlott az otthonához · ✓ már beállítva.",
         "data": {
           "template_id": "Sablon",
           "go_back": "Vissza"
@@ -529,7 +529,11 @@
           "notification_settings": "Értesítési beállítások",
           "notification_actions": "Interaktív műveletek",
           "test_notification": "Tesztértesítés küldése",
-          "done": "Kész"
+          "done": "Kész",
+          "home_profile": "Otthon profilja · Sablongaléria",
+          "archive_settings": "Archiválás és megőrzés",
+          "member_avatars": "Tagok avatárjai",
+          "battery_lifetimes": "Jellemző elem-élettartamok"
         }
       },
       "advanced_features": {
@@ -543,7 +547,8 @@
           "advanced_budget_visible": "Költségkeret követése",
           "advanced_groups_visible": "Csoportok",
           "advanced_checklists_visible": "Ellenőrzőlisták",
-          "advanced_schedule_time_visible": "Napszakhoz kötött ütemezés"
+          "advanced_schedule_time_visible": "Napszakhoz kötött ütemezés",
+          "advanced_completion_actions_visible": "Elvégzési műveletek"
         },
         "data_description": {
           "advanced_adaptive_visible": "EWA, Weibull-elemzés és intervallumjavaslatok megjelenítése a feladatokhoz.",
@@ -553,7 +558,8 @@
           "advanced_budget_visible": "Havi/éves költségkeret-követés és riasztások megjelenítése.",
           "advanced_groups_visible": "Karbantartási csoportok kezelésének megjelenítése.",
           "advanced_checklists_visible": "Feladat-ellenőrzőlisták megjelenítése a lépésenkénti elvégzéshez.",
-          "advanced_schedule_time_visible": "A feladatok nem éjfélkor, hanem egy megadott napszakban válhassanak lejárttá."
+          "advanced_schedule_time_visible": "A feladatok nem éjfélkor, hanem egy megadott napszakban válhassanak lejárttá.",
+          "advanced_completion_actions_visible": "Feladatonkénti HA művelet elvégzéskor + gyorselvégző QR előre beállított értékekkel."
         }
       },
       "panel_access": {
@@ -582,7 +588,12 @@
           "battery_auto_record_recovery": "Csere automatikus rögzítése, amikor egy lemerült elem helyreáll",
           "panel_title": "Oldalsáv-panel címe",
           "shopping_list_entity": "Bevásárlólista a vásárlási feladatok szinkronizálásához",
-          "part_search_url_template": "Vásárlási keresőhivatkozás"
+          "part_search_url_template": "Vásárlási keresőhivatkozás",
+          "default_consumable_threshold": "„Fogyóeszköz alacsony” küszöb (%)",
+          "row_action_style": "Műveletek a feladatsorokban",
+          "ref_numbers_in_lists": "Hivatkozási számok a listákban",
+          "objects_table_columns": "Objektumtáblázat oszlopai",
+          "install_assist_sentences": "Assist mondatok telepítése"
         },
         "data_description": {
           "default_warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
@@ -595,7 +606,11 @@
           "battery_auto_record_recovery": "Ha egy korábban lemerült elem töltöttsége a helyreállási küszöb fölé emelkedik, a csere dátuma bekerül a Battery Notesba, és a tartalék cellák levonódnak a készletből — érintés nélkül",
           "panel_title": "Az oldalsáv-bejegyzés egyéni neve. Hagyja üresen a „Karbantartás” használatához. Hasznos, ha ütközne a Home Assistant beépített Karbantartás irányítópultjával.",
           "shopping_list_entity": "A fogyóban lévő alkatrészek automatikus vásárlási emlékeztetői ezen a teendőlistán jelennek meg; a kipipálás befejezi az emlékeztetőt és feltölti a készletet. Hagyja üresen a kikapcsoláshoz.",
-          "part_search_url_template": "URL {q}-val a keresőkifejezések helyén, a terméklink nélküli alkatrészekhez. Hagyja üresen az automatikus bolthoz (ország, különben nyelv szerint)."
+          "part_search_url_template": "URL {q}-val a keresőkifejezések helyén, a terméklink nélküli alkatrészekhez. Hagyja üresen az automatikus bolthoz (ország, különben nyelv szerint).",
+          "default_consumable_threshold": "Alapértékek az új Javasolt beállításokhoz (százalékos maradék) és a saját Battery Notes-küszöb nélküli flottaelemekhez. A meglévő feladatok megtartják az értéküket.",
+          "ref_numbers_in_lists": "Megjeleníti a #8 / #8.3 címkéket az objektum- és feladatnevek előtt a Ma listában, a feladattáblában, az objektumkártyákon és az objektumtáblában.",
+          "objects_table_columns": "Válassza ki, mely oszlopok jelenjenek meg az objektumok táblázatnézetében.",
+          "install_assist_sentences": "Átmásolja a hangmondatokat a konfigurációdba, hogy a klasszikus Assist ügynök felismerje őket. Az általad szerkesztett fájlt soha nem írja felül."
         }
       },
       "notification_settings": {
@@ -617,7 +632,12 @@
           "notification_title_style": "Értesítés címének stílusa",
           "notify_completed": "Elvégzési értesítések",
           "notify_event_only": "Csak az eseményt váltsa ki, ne küldjön semmit",
-          "notify_extra_data": "További értesítési adatok (sablon)"
+          "notify_extra_data": "További értesítési adatok (sablon)",
+          "reminder_lead_days": "Extra emlékeztetők (nappal az esedékesség előtt)",
+          "notify_scope_view_id": "Értesítés csak erre a nézetre",
+          "weekly_digest_enabled": "Heti összefoglaló",
+          "warranty_reminder_enabled": "Garancialejárati emlékeztető",
+          "warranty_reminder_days": "Nappal a lejárat előtt"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Milyen gyakran ismétlődjön a hamarosan esedékes emlékeztető. 0 = csak egyetlen értesítés.",
@@ -630,7 +650,11 @@
           "notification_title_style": "Mi jelenjen meg az értesítés CÍMEKÉNT. Az alapértelmezés az állapotonkénti szöveget tartja meg (pl. „Karbantartás lejárt!”). Az objektumnév / feladatnév akkor segít, ha a telefonon egymásra tornyosulnak az értesítések.",
           "notify_completed": "Üzenet a háztartásnak, ha egy feladat elkészült, az okkal együtt (panel, QR-/NFC-beolvasás, teendőlista, hang, érzékelő helyreállása…). A „Csak automatikus” csak azokat jelenti, amelyeket senki nem végzett el a helyszínen: érzékelő helyreállása, kipipálás a bevásárlólistán, automatizálás szolgáltatáshívása.",
           "notify_event_only": "Minden értesítés kiváltja a maintenance_supporter_notification eseményt. Bekapcsolva a teljes kézbesítést az automatizálásod végzi — az ismétlési időközök, a csendes órák és a napi korlát továbbra is meghatározzák, mikor jön az esemény.",
-          "notify_extra_data": "JSON vagy YAML Jinjával, minden notify hívás data mezőjébe beolvasztva (a te kulcsaid nyernek). Változók: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
+          "notify_extra_data": "JSON vagy YAML Jinjával, minden notify hívás data mezőjébe beolvasztva (a te kulcsaid nyernek). Változók: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
+          "reminder_lead_days": "Vesszővel elválasztott napok, pl. 14, 3, 0 — minden egyező napon egy extra emlékeztető megy ki. Üres = kikapcsolva.",
+          "notify_scope_view_id": "Csak a kiválasztott mentett nézet címke-/felhasználószűrőinek megfelelő feladatok küldenek emlékeztetőt. A nézet állapot-, rendezési és csoportosítási beállításait itt figyelmen kívül hagyjuk.",
+          "weekly_digest_enabled": "Egyetlen összefoglaló értesítés hétfő reggel, ha vannak esedékes feladatok.",
+          "warranty_reminder_enabled": "Egyszeri értesítés, amikor egy objektum garanciája ennyi napra van a lejárattól."
         }
       },
       "notification_actions": {
@@ -1191,6 +1215,44 @@
           "phases_text": "Soronként egy lépés, a ciklus sorrendjében. A \"Név: pont; pont\" a fázis ellenőrzőlistáját adja meg. A fázisonkénti alkatrészek és kötelező mezők a panelben szerkeszthetők, itt megmaradnak.",
           "go_back": "Visszatérés a feladatműveletekhez mentés nélkül."
         }
+      },
+      "home_profile": {
+        "title": "Otthon profilja",
+        "description": "Sablonokat javasol, és az éghajlathoz és a féltekéhez igazítja a szezonális időablakokat. Minden helyben, az Ön szintjeiből, területeiből és az otthon helyéből adódik.\n\n**Felismerve:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "Lakóhely típusa",
+          "disabled_template_ids": "Elrejtett sablonok"
+        },
+        "data_description": {
+          "disabled_template_ids": "Az itt kiválasztott sablonok nem jelennek meg többé a „Sablonból” választókban (panel és beállítási varázsló). Más nem változik."
+        }
+      },
+      "archive_settings": {
+        "title": "Archiválás és megőrzés",
+        "description": "Elvégzett egyszeri feladatok kivezetése törlés nélkül. Az archivált elemek rejtettek és inaktívak, de megtartják előzményeiket és költségeiket.",
+        "data": {
+          "archive_oneoff_days": "Elvégzett egyszeri feladatok automatikus archiválása ennyi nap után (0 = ki)",
+          "delete_archived_oneoff_days": "Archivált egyszeri feladatok automatikus törlése ennyi nap után (0 = soha)"
+        }
+      },
+      "member_avatars": {
+        "title": "Tagok avatárjai",
+        "description": "A kiosztott feladatok mellett jelenik meg — monogram a tag színében. Alapértelmezés a névből; adjon meg saját monogramot vagy válasszon színt a tagok megkülönböztetéséhez.",
+        "data": {
+          "member": "Háztartás tagja"
+        }
+      },
+      "member_avatar": {
+        "title": "Tagok avatárjai",
+        "description": "{member}: hagyja üresen a monogramot és a színt Automatikuson az alapértelmezéshez ({initials}).",
+        "data": {
+          "initials": "Monogram",
+          "color": "Szín"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "Jellemző elem-élettartamok",
+        "description": "Csak százalék nélküli elemeknél használjuk: olyan Battery Notes-bejegyzésnél, amelynek csak típusa és cseredátuma van, vagy csak „alacsony”-t jelentő érzékelőnél. Esedékesség = utolsó csere + ez az élettartam. A szintet jelentő elemek előrejelzése a mért kisülésből jön. Ha a flotta már három cserét látott egy típusból, a medián időköz veszi át a beépített értéket — a saját értéked mindig nyer.\n\nBeépített értékek (hónap): {defaults}"
       }
     },
     "error": {
@@ -1211,7 +1273,8 @@
       "invalid_shopping_list_entity": "A bevásárlólistának teendő-entitásnak kell lennie (todo.…).",
       "invalid_search_template": "A keresőhivatkozásnak {q}-t tartalmazó http(s) URL-nek kell lennie.",
       "invalid_schedule": "Az ütemezés hiányos — válassz legalább egy napot a héten (vagy egy naptárt a naptárvezérelt feladathoz).",
-      "invalid_delta_target": "A halmozott használat számlálásakor (delta mód) a célértéknek 0-nál nagyobbnak kell lennie."
+      "invalid_delta_target": "A halmozott használat számlálásakor (delta mód) a célértéknek 0-nál nagyobbnak kell lennie.",
+      "invalid_reminder_lead_days": "Adjon meg egész napokat 0 és 365 között, vesszővel elválasztva (pl. 14, 3, 0)."
     },
     "abort": {
       "entity_unavailable": "A kiválasztott entitás jelenleg nem érhető el. Próbáld újra, amint állapotot jelent."
@@ -1605,6 +1668,53 @@
         "default": "Alapértelmezett (állapotonkénti cím)",
         "object_name": "Objektum neve címként",
         "task_name": "Feladat neve címként"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "Gombok (telefonon csak ikonok)",
+        "buttons": "Gombok szöveggel",
+        "icons": "Ikonok (klasszikus)"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "Név",
+        "ref_no": "Hivatkozási szám",
+        "manufacturer": "Gyártó",
+        "model": "Modell",
+        "serial_number": "Sorozatszám",
+        "installation_date": "Telepítve",
+        "warranty_expiry": "Garancia",
+        "area_id": "Terület",
+        "documentation_url": "Kézikönyv",
+        "notes": "Megjegyzések",
+        "task_count": "Feladatok",
+        "actions": "Műveletek"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "Automatikus (felismert)",
+        "house": "Ház",
+        "apartment": "Lakás"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "Automatikus",
+        "red": "Piros",
+        "pink": "Rózsaszín",
+        "purple": "Lila",
+        "deep_purple": "Sötétlila",
+        "indigo": "Indigó",
+        "blue": "Kék",
+        "cyan": "Ciánkék",
+        "green": "Zöld",
+        "light_green": "Világoszöld",
+        "orange": "Narancs",
+        "brown": "Barna",
+        "blue_grey": "Kékesszürke"
       }
     }
   },

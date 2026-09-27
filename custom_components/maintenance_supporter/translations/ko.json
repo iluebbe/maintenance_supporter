@@ -12,7 +12,7 @@
       },
       "create_from_template": {
         "title": "템플릿 카테고리 선택",
-        "description": "미리 정의된 유지보수 템플릿을 살펴볼 카테고리를 선택하세요.",
+        "description": "미리 정의된 유지보수 템플릿을 살펴볼 카테고리를 선택하세요. ★ n = 이 카테고리에서 집에 맞는 템플릿 수 (패널: 설정 → 주거 프로필).",
         "data": {
           "template_category": "카테고리",
           "go_back": "뒤로 가기"
@@ -23,7 +23,7 @@
       },
       "template_select": {
         "title": "템플릿 선택",
-        "description": "시작점으로 사용할 유지보수 템플릿을 선택하세요.",
+        "description": "시작점으로 사용할 유지보수 템플릿을 선택하세요. ★ 집에 추천 · ✓ 이미 설정됨.",
         "data": {
           "template_id": "템플릿",
           "go_back": "뒤로 가기"
@@ -529,7 +529,11 @@
           "notification_settings": "알림 설정",
           "notification_actions": "대화형 동작",
           "test_notification": "테스트 알림 보내기",
-          "done": "완료"
+          "done": "완료",
+          "home_profile": "주거 프로필 · 템플릿 갤러리",
+          "archive_settings": "보관 및 보존",
+          "member_avatars": "구성원 아바타",
+          "battery_lifetimes": "배터리 일반 수명"
         }
       },
       "advanced_features": {
@@ -543,7 +547,8 @@
           "advanced_budget_visible": "예산 추적",
           "advanced_groups_visible": "그룹",
           "advanced_checklists_visible": "체크리스트",
-          "advanced_schedule_time_visible": "시간대 지정 일정"
+          "advanced_schedule_time_visible": "시간대 지정 일정",
+          "advanced_completion_actions_visible": "완료 동작"
         },
         "data_description": {
           "advanced_adaptive_visible": "작업에 대한 EWA, Weibull 분석 및 주기 제안을 표시합니다.",
@@ -553,7 +558,8 @@
           "advanced_budget_visible": "월별/연간 예산 추적과 경보를 표시합니다.",
           "advanced_groups_visible": "유지보수 그룹 관리를 표시합니다.",
           "advanced_checklists_visible": "단계별 완료를 위한 작업 체크리스트를 표시합니다.",
-          "advanced_schedule_time_visible": "작업이 자정이 아닌 특정 시각에 기한 초과가 되도록 허용합니다."
+          "advanced_schedule_time_visible": "작업이 자정이 아닌 특정 시각에 기한 초과가 되도록 허용합니다.",
+          "advanced_completion_actions_visible": "완료 시 작업별 HA 동작 실행 + 사전 설정값이 있는 빠른 완료 QR."
         }
       },
       "panel_access": {
@@ -582,7 +588,12 @@
           "battery_auto_record_recovery": "부족했던 배터리가 회복되면 교체를 자동으로 기록",
           "panel_title": "사이드바 패널 제목",
           "shopping_list_entity": "구매 작업을 동기화할 쇼핑 목록",
-          "part_search_url_template": "구매 검색 링크"
+          "part_search_url_template": "구매 검색 링크",
+          "default_consumable_threshold": "소모품 „부족“ 임계값 (%)",
+          "row_action_style": "작업 행 동작",
+          "ref_numbers_in_lists": "목록에 참조 번호 표시",
+          "objects_table_columns": "객체 표 열",
+          "install_assist_sentences": "Assist 문장 설치"
         },
         "data_description": {
           "default_warning_days": "유지보수 작업의 기한 전에 경고를 표시할 일수입니다.",
@@ -595,7 +606,11 @@
           "battery_auto_record_recovery": "부족했던 배터리의 잔량이 회복 임계값을 초과하면 교체 날짜가 Battery Notes에 기록되고 예비 배터리가 재고에서 차감됩니다 — 탭할 필요가 없습니다",
           "panel_title": "사이드바 항목의 사용자 지정 이름입니다. 비워 두면 \"유지보수\"를 사용합니다. Home Assistant 기본 유지보수 대시보드와 이름이 겹치지 않게 할 때 유용합니다.",
           "shopping_list_entity": "부족한 부품의 자동 구매 알림이 이 할 일 목록에 표시됩니다. 항목을 체크하면 알림이 완료되고 부품이 재입고됩니다. 비워두면 비활성화됩니다.",
-          "part_search_url_template": "검색어 자리에 {q}가 들어가는 URL로, 제품 링크가 없는 부품에 사용됩니다. 비워 두면 자동 선택(국가, 그다음 언어 기준)됩니다."
+          "part_search_url_template": "검색어 자리에 {q}가 들어가는 URL로, 제품 링크가 없는 부품에 사용됩니다. 비워 두면 자동 선택(국가, 그다음 언어 기준)됩니다.",
+          "default_consumable_threshold": "새 추천 설정(남은 비율)과 자체 Battery Notes 임계값이 없는 배터리 목록 배터리의 기본값입니다. 기존 작업은 값을 유지합니다.",
+          "ref_numbers_in_lists": "오늘 목록, 작업 표, 개체 카드, 개체 표에서 개체 및 작업 이름 앞에 #8 / #8.3 칩을 표시합니다.",
+          "objects_table_columns": "객체 표 보기에 표시할 열을 선택하세요.",
+          "install_assist_sentences": "음성 문장을 설정에 복사하여 기존 Assist 에이전트가 인식하도록 합니다. 직접 수정한 파일은 절대 덮어쓰지 않습니다."
         }
       },
       "notification_settings": {
@@ -617,7 +632,12 @@
           "notification_title_style": "알림 제목 스타일",
           "notify_completed": "완료 알림",
           "notify_event_only": "이벤트만 발생시키고 직접 보내지 않음",
-          "notify_extra_data": "추가 알림 데이터(템플릿)"
+          "notify_extra_data": "추가 알림 데이터(템플릿)",
+          "reminder_lead_days": "추가 알림 (기한 전 일수)",
+          "notify_scope_view_id": "특정 보기만 알림",
+          "weekly_digest_enabled": "주간 요약",
+          "warranty_reminder_enabled": "보증 만료 알림",
+          "warranty_reminder_days": "만료 전 일수"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "기한 임박 알림을 반복하는 간격입니다. 0으로 설정하면 한 번만 알립니다.",
@@ -630,7 +650,11 @@
           "notification_title_style": "알림의 제목으로 표시할 내용입니다. 기본값은 상태별 문구(예: '유지보수 기한 초과!')를 유지합니다. 휴대폰에 알림이 쌓일 때는 대상 이름/작업 이름이 도움이 됩니다.",
           "notify_completed": "작업이 완료되면 사유와 함께 가족에게 알립니다(패널, QR/NFC 스캔, 할 일 목록, 음성, 센서 복구 등). \"자동만\"은 현장에서 아무도 하지 않은 완료만 알립니다: 센서 복구, 쇼핑 목록 체크, 자동화의 서비스 호출.",
           "notify_event_only": "모든 알림은 maintenance_supporter_notification 이벤트를 발생시킵니다. 켜면 전달 전체를 자동화가 담당합니다. 반복 간격, 무음 시간, 일일 한도는 여전히 이벤트 발생 시점을 결정합니다.",
-          "notify_extra_data": "Jinja가 포함된 JSON 또는 YAML로, 모든 notify 호출의 data에 병합됩니다(사용자 키가 우선). 변수: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
+          "notify_extra_data": "Jinja가 포함된 JSON 또는 YAML로, 모든 notify 호출의 data에 병합됩니다(사용자 키가 우선). 변수: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
+          "reminder_lead_days": "쉼표로 구분한 사전 알림 시점입니다. 예: 14, 3, 0 — 해당하는 날마다 추가 알림이 한 번 발송됩니다. 비워두면 꺼짐.",
+          "notify_scope_view_id": "선택한 저장된 보기의 라벨/사용자 필터와 일치하는 작업만 알림을 보냅니다. 보기의 상태·정렬·그룹화는 여기서 무시됩니다.",
+          "weekly_digest_enabled": "예정된 작업이 있으면 월요일 아침에 요약 알림을 한 번 보냅니다.",
+          "warranty_reminder_enabled": "객체의 보증 만료가 설정한 일수만큼 남았을 때 한 번 알립니다."
         }
       },
       "notification_actions": {
@@ -1191,6 +1215,44 @@
           "phases_text": "주기 순서대로 한 줄에 한 스텝씩 입력하세요. \"이름: 항목; 항목\"은 해당 단계의 체크리스트를 설정합니다. 단계별 부품과 필수 항목은 패널에서 편집하며 여기서는 유지됩니다.",
           "go_back": "저장하지 않고 작업 동작으로 돌아갑니다."
         }
+      },
+      "home_profile": {
+        "title": "주거 프로필",
+        "description": "기후와 반구에 맞춰 템플릿을 추천하고 계절 기간을 설정합니다. 모든 정보는 층, 영역, 집 위치를 바탕으로 로컬에서 판단됩니다.\n\n**감지됨:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "주거 유형",
+          "disabled_template_ids": "숨긴 템플릿"
+        },
+        "data_description": {
+          "disabled_template_ids": "여기서 선택한 템플릿은 \"템플릿에서\" 선택 목록(패널 및 설정 마법사)에 더 이상 표시되지 않습니다. 다른 것은 바뀌지 않습니다."
+        }
+      },
+      "archive_settings": {
+        "title": "보관 및 보존",
+        "description": "완료된 일회성 작업을 삭제하지 않고 정리합니다. 보관된 항목은 숨겨지고 동작하지 않지만 기록과 비용은 유지됩니다.",
+        "data": {
+          "archive_oneoff_days": "완료된 일회성 작업 자동 보관 (일, 0 = 끔)",
+          "delete_archived_oneoff_days": "보관된 일회성 작업 자동 삭제 (일, 0 = 안 함)"
+        }
+      },
+      "member_avatars": {
+        "title": "구성원 아바타",
+        "description": "할당된 작업 옆에 표시됩니다 — 구성원 색상의 이니셜. 기본값은 이름에서 가져오며, 구성원을 구분하려면 이니셜을 직접 설정하거나 색상을 선택하세요.",
+        "data": {
+          "member": "가구 구성원"
+        }
+      },
+      "member_avatar": {
+        "title": "구성원 아바타",
+        "description": "{member}: 기본값({initials})을 쓰려면 이니셜을 비우고 색상을 자동으로 두세요.",
+        "data": {
+          "initials": "이니셜",
+          "color": "색상"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "배터리 일반 수명",
+        "description": "백분율이 없는 배터리에만 사용됩니다: 종류와 교체일만 있는 Battery Notes 메모나 \"낮음\"만 알리는 센서입니다. 만기 = 마지막 교체 + 이 수명. 잔량을 보고하는 배터리는 실측 방전으로 예측합니다. 같은 종류의 교체를 3회 기록하면 중앙값 간격이 내장값을 대체합니다. 직접 설정한 값이 항상 우선합니다.\n\n기본 제공 값(개월): {defaults}"
       }
     },
     "error": {
@@ -1211,7 +1273,8 @@
       "invalid_shopping_list_entity": "쇼핑 목록은 할 일 엔티티(todo.…)여야 합니다.",
       "invalid_search_template": "검색 링크는 {q}를 포함한 http(s) URL이어야 합니다.",
       "invalid_schedule": "일정이 완성되지 않았습니다 — 요일을 하나 이상 선택하세요(캘린더 기반 작업은 캘린더를 선택).",
-      "invalid_delta_target": "누적 사용량을 셀 때(델타 모드) 목표값은 0보다 커야 합니다."
+      "invalid_delta_target": "누적 사용량을 셀 때(델타 모드) 목표값은 0보다 커야 합니다.",
+      "invalid_reminder_lead_days": "0~365 사이의 정수 일수를 쉼표로 구분해 입력하세요(예: 14, 3, 0)."
     },
     "abort": {
       "entity_unavailable": "선택한 엔티티를 지금 사용할 수 없습니다. 상태를 보고하면 다시 시도하세요."
@@ -1605,6 +1668,53 @@
         "default": "기본(상태별 제목)",
         "object_name": "대상 이름을 제목으로",
         "task_name": "작업 이름을 제목으로"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "버튼 (휴대폰에서는 아이콘만)",
+        "buttons": "텍스트가 있는 버튼",
+        "icons": "아이콘 (기본)"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "이름",
+        "ref_no": "참조 번호",
+        "manufacturer": "제조사",
+        "model": "모델",
+        "serial_number": "일련번호",
+        "installation_date": "설치일",
+        "warranty_expiry": "보증",
+        "area_id": "구역",
+        "documentation_url": "설명서",
+        "notes": "메모",
+        "task_count": "작업",
+        "actions": "동작"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "자동 (감지됨)",
+        "house": "주택",
+        "apartment": "아파트"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "자동",
+        "red": "빨강",
+        "pink": "분홍",
+        "purple": "보라",
+        "deep_purple": "진보라",
+        "indigo": "남색",
+        "blue": "파랑",
+        "cyan": "청록",
+        "green": "초록",
+        "light_green": "연두",
+        "orange": "주황",
+        "brown": "갈색",
+        "blue_grey": "청회색"
       }
     }
   },

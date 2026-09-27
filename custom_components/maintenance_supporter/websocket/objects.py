@@ -606,6 +606,7 @@ async def ws_create_from_template(
     from uuid import uuid4
 
     from ..helpers.i18n import normalize_language, normalize_language_code
+    from ..helpers.template_usage import OBJECT_TEMPLATE_ID
     from ..templates import async_build_template_tasks, get_template_by_id, localize_template_text
 
     template = get_template_by_id(msg["template_id"])
@@ -634,6 +635,8 @@ async def ws_create_from_template(
         "id": object_id,
         CONF_OBJECT_NAME: name[:MAX_NAME_LENGTH],
         "task_ids": [],
+        # 2.94: the gallery marks templates in use as "already set up".
+        OBJECT_TEMPLATE_ID: template.id,
     }
     # Seasons follow the home's hemisphere and climate (helpers/climate.py).
     new_tasks = await async_build_template_tasks(hass, template, lang, object_id)

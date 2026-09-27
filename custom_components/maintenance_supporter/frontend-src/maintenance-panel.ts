@@ -2000,6 +2000,9 @@ export class MaintenanceSupporterPanel extends LitElement {
               ${tpl.reasons.map((r) => html`<span class="template-card-reason">${recommendationReason(r, L, country)}</span>`)}
             </span>`
           : nothing}
+        ${tpl.set_up
+          ? html`<span class="template-card-setup"><ha-icon icon="mdi:check-circle-outline"></ha-icon>${t("templates_set_up", L)}</span>`
+          : nothing}
       </button>
     `;
   }
@@ -2016,7 +2019,9 @@ export class MaintenanceSupporterPanel extends LitElement {
       byCat.get(tpl.category)!.push(tpl);
     }
     for (const tpls of byCat.values()) tpls.sort((a, b) => Number(!!a.dwelling_mismatch) - Number(!!b.dwelling_mismatch));
-    const recommended = this._templates.filter((tpl) => tpl.recommended);
+    // 2.94: a template the home already uses is not recommended again (the
+    // server says so too; kept here so an older server answer can't list it).
+    const recommended = this._templates.filter((tpl) => tpl.recommended && !tpl.set_up);
     return html`
       <div class="palette-backdrop" @click=${() => { this._templateGalleryOpen = false; }}>
         <div class="template-gallery" @click=${(e: Event) => e.stopPropagation()}>

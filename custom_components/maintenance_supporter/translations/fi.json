@@ -12,7 +12,7 @@
       },
       "create_from_template": {
         "title": "Valitse malliluokka",
-        "description": "Valitse luokka selataksesi valmiita huoltomalleja.",
+        "description": "Valitse luokka selataksesi valmiita huoltomalleja. ★ n = tämän luokan mallit, jotka sopivat kotiisi (paneeli: Asetukset → Kotiprofiili).",
         "data": {
           "template_category": "Luokka",
           "go_back": "Palaa takaisin"
@@ -23,7 +23,7 @@
       },
       "template_select": {
         "title": "Valitse malli",
-        "description": "Valitse huoltomalli lähtökohdaksi.",
+        "description": "Valitse huoltomalli lähtökohdaksi. ★ suositeltu kotiisi · ✓ jo käytössä.",
         "data": {
           "template_id": "Malli",
           "go_back": "Palaa takaisin"
@@ -529,7 +529,11 @@
           "notification_settings": "Ilmoitusasetukset",
           "notification_actions": "Interaktiiviset toiminnot",
           "test_notification": "Lähetä testi-ilmoitus",
-          "done": "Valmis"
+          "done": "Valmis",
+          "home_profile": "Kodin profiili · Mallipohjagalleria",
+          "archive_settings": "Arkistointi ja säilytys",
+          "member_avatars": "Jäsenten avatarit",
+          "battery_lifetimes": "Paristojen tyypilliset käyttöiät"
         }
       },
       "advanced_features": {
@@ -543,7 +547,8 @@
           "advanced_budget_visible": "Budjetin seuranta",
           "advanced_groups_visible": "Ryhmät",
           "advanced_checklists_visible": "Tarkistuslistat",
-          "advanced_schedule_time_visible": "Kellonaikaan perustuva aikataulutus"
+          "advanced_schedule_time_visible": "Kellonaikaan perustuva aikataulutus",
+          "advanced_completion_actions_visible": "Suoritustoiminnot"
         },
         "data_description": {
           "advanced_adaptive_visible": "Näytä EWA-, Weibull-analyysi ja aikaväliehdotukset tehtäville.",
@@ -553,7 +558,8 @@
           "advanced_budget_visible": "Näytä kuukausittainen/vuosittainen budjetin seuranta ja hälytykset.",
           "advanced_groups_visible": "Näytä huoltoryhmien hallinta.",
           "advanced_checklists_visible": "Näytä tehtävien tarkistuslistat vaiheittaista suorittamista varten.",
-          "advanced_schedule_time_visible": "Salli tehtävien erääntyminen tiettyyn kellonaikaan keskiyön sijaan."
+          "advanced_schedule_time_visible": "Salli tehtävien erääntyminen tiettyyn kellonaikaan keskiyön sijaan.",
+          "advanced_completion_actions_visible": "Tehtäväkohtainen HA-toiminto suorituksen yhteydessä + pikasuoritus-QR esiasetetuilla arvoilla."
         }
       },
       "panel_access": {
@@ -582,7 +588,12 @@
           "battery_auto_record_recovery": "Kirjaa vaihto automaattisesti, kun vähissä ollut paristo palautuu",
           "panel_title": "Sivupalkin paneelin otsikko",
           "shopping_list_entity": "Ostoslista, johon ostotehtävät synkronoidaan",
-          "part_search_url_template": "Ostohaun linkki"
+          "part_search_url_template": "Ostohaun linkki",
+          "default_consumable_threshold": "Kynnys „kulutustarvike vähissä“ (%)",
+          "row_action_style": "Tehtävärivien toiminnot",
+          "ref_numbers_in_lists": "Viitenumerot luetteloissa",
+          "objects_table_columns": "Kohdetaulukon sarakkeet",
+          "install_assist_sentences": "Asenna Assist-lauseet"
         },
         "data_description": {
           "default_warning_days": "Montako päivää ennen huoltotehtävän eräpäivää varoitus näytetään.",
@@ -595,7 +606,11 @@
           "battery_auto_record_recovery": "Kun vähissä ollut paristo nousee palautumiskynnyksen yli, vaihtopäivä kirjataan Battery Notesiin ja varaparistot vähennetään varastosta — ilman napautusta",
           "panel_title": "Mukautettu nimi sivupalkin kohteelle. Jätä tyhjäksi käyttääksesi nimeä \"Maintenance\". Hyödyllinen Home Assistantin sisäänrakennetun Maintenance-koontinäytön kanssa tapahtuvan päällekkäisyyden välttämiseksi.",
           "shopping_list_entity": "Automaattiset ostomuistutukset vähiin käyneistä osista ilmestyvät tähän tehtäväluetteloon; kuittaus suorittaa muistutuksen ja täydentää varaston. Jätä tyhjäksi poistaaksesi käytöstä.",
-          "part_search_url_template": "URL, jossa {q} korvaa hakusanat, osille ilman tuotelinkkiä. Jätä tyhjäksi, niin kauppa valitaan automaattisesti (maan, muuten kielen mukaan)."
+          "part_search_url_template": "URL, jossa {q} korvaa hakusanat, osille ilman tuotelinkkiä. Jätä tyhjäksi, niin kauppa valitaan automaattisesti (maan, muuten kielen mukaan).",
+          "default_consumable_threshold": "Oletukset uusille Ehdotetuille asetuksille (jäljellä oleva prosentti) ja paristokannan paristoille ilman omaa Battery Notes -kynnystä. Olemassa olevat tehtävät säilyttävät arvonsa.",
+          "ref_numbers_in_lists": "Näyttää tunnisteet #8 / #8.3 kohteiden ja tehtävien nimien edessä Tänään-luettelossa, tehtävätaulukossa, kohdekorteissa ja kohdetaulukossa.",
+          "objects_table_columns": "Valitse, mitkä sarakkeet näkyvät kohdetaulukkonäkymässä.",
+          "install_assist_sentences": "Kopioi äänikomennot asetuksiisi, jotta perinteinen Assist-agentti tunnistaa ne. Itse muokkaamaasi tiedostoa ei koskaan korvata."
         }
       },
       "notification_settings": {
@@ -617,7 +632,12 @@
           "notification_title_style": "Ilmoituksen otsikon tyyli",
           "notify_completed": "Ilmoitukset suorituksista",
           "notify_event_only": "Laukaise vain tapahtuma, älä lähetä mitään",
-          "notify_extra_data": "Lisätiedot ilmoitukseen (malli)"
+          "notify_extra_data": "Lisätiedot ilmoitukseen (malli)",
+          "reminder_lead_days": "Lisämuistutukset (päivää ennen eräpäivää)",
+          "notify_scope_view_id": "Ilmoita vain näkymälle",
+          "weekly_digest_enabled": "Viikkokooste",
+          "warranty_reminder_enabled": "Muistutus takuun päättymisestä",
+          "warranty_reminder_days": "Päivää ennen päättymistä"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Kuinka usein pian erääntyy -muistutus toistetaan. Aseta arvoon 0 yhtä ilmoitusta varten.",
@@ -630,7 +650,11 @@
           "notification_title_style": "Mikä näkyy ilmoituksen OTSIKKONA. Oletus säilyttää tilakohtaisen tekstin (esim. 'Huolto myöhässä!'). Kohteen nimi / Tehtävän nimi auttavat, kun puhelinilmoitukset pinoutuvat.",
           "notify_completed": "Tieto taloudelle, kun tehtävä on suoritettu, syyn kera (paneeli, QR-/NFC-skannaus, tehtävälista, puhe, anturin palautuminen …). ”Vain automaattiset” ilmoittaa vain suoritukset, joita kukaan ei tehnyt paikan päällä: anturin palautuminen, ostoslistan rastitus, automaation palvelukutsu.",
           "notify_event_only": "Jokainen ilmoitus laukaisee tapahtuman maintenance_supporter_notification. Tällä asetuksella automaatiosi hoitaa koko toimituksen — toistovälit, hiljaiset tunnit ja päiväraja määräävät yhä, milloin tapahtuma tulee.",
-          "notify_extra_data": "JSON tai YAML Jinjalla, yhdistetään jokaisen notify-kutsun data-kenttään (omat avaimesi voittavat). Muuttujat: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
+          "notify_extra_data": "JSON tai YAML Jinjalla, yhdistetään jokaisen notify-kutsun data-kenttään (omat avaimesi voittavat). Muuttujat: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
+          "reminder_lead_days": "Pilkuin erotellut ennakkoajat, esim. 14, 3, 0 — lisämuistutus lähetetään kunakin vastaavana päivänä. Tyhjä = pois.",
+          "notify_scope_view_id": "Vain valitun näkymän tunniste-/käyttäjäsuodattimiin osuvat tehtävät lähettävät muistutuksia. Näkymän tila, lajittelu ja ryhmittely ohitetaan tässä.",
+          "weekly_digest_enabled": "Yksi kooste-ilmoitus maanantaiaamuna, kun tehtäviä on.",
+          "warranty_reminder_enabled": "Ilmoita kerran, kun objektin takuun päättymiseen on näin monta päivää."
         }
       },
       "notification_actions": {
@@ -1191,6 +1215,44 @@
           "phases_text": "Yksi askel riviä kohden syklin järjestyksessä. \"Nimi: kohta; kohta\" asettaa vaiheen tarkistuslistan. Vaihekohtaiset osat ja pakolliset kentät muokataan paneelissa ja säilyvät täällä.",
           "go_back": "Palaa tehtävän toimintoihin tallentamatta."
         }
+      },
+      "home_profile": {
+        "title": "Kodin profiili",
+        "description": "Suosittelee mallipohjia ja asettaa kausi-ikkunat ilmastosi ja pallonpuoliskosi mukaan. Kaikki päätellään paikallisesti kerroksistasi, alueistasi ja kodin sijainnista.\n\n**Tunnistettu:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "Asumismuoto",
+          "disabled_template_ids": "Piilotetut mallit"
+        },
+        "data_description": {
+          "disabled_template_ids": "Tässä valitut mallit eivät enää näy \"Mallista\"-valinnoissa (paneeli ja asennusopas). Mikään muu ei muutu."
+        }
+      },
+      "archive_settings": {
+        "title": "Arkistointi ja säilytys",
+        "description": "Siirrä valmiit kertatehtävät arkistoon poistamatta niitä. Arkistoidut kohteet ovat piilossa ja passiivisia, mutta säilyttävät historian ja kustannukset.",
+        "data": {
+          "archive_oneoff_days": "Arkistoi valmiit kertatehtävät automaattisesti (päivää, 0 = pois)",
+          "delete_archived_oneoff_days": "Poista arkistoidut kertatehtävät automaattisesti (päivää, 0 = ei koskaan)"
+        }
+      },
+      "member_avatars": {
+        "title": "Jäsenten avatarit",
+        "description": "Näytetään osoitettujen tehtävien vieressä — nimikirjaimet jäsenen värissä. Oletus tulee nimestä; aseta omat nimikirjaimet tai valitse väri jäsenten erottamiseksi.",
+        "data": {
+          "member": "Talouden jäsen"
+        }
+      },
+      "member_avatar": {
+        "title": "Jäsenten avatarit",
+        "description": "{member}: jätä nimikirjaimet tyhjiksi ja väri Automaattiseksi, niin oletus on käytössä ({initials}).",
+        "data": {
+          "initials": "Nimikirjaimet",
+          "color": "Väri"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "Paristojen tyypilliset käyttöiät",
+        "description": "Käytetään vain paristoille ilman prosenttilukua: Battery Notes -merkintä, jolla on vain tyyppi ja vaihtopäivä, tai anturi, joka ilmoittaa vain ”vähissä”. Erääntyminen = viimeisin vaihto + tämä käyttöikä. Tasoa raportoivien paristojen ennuste tulee mitatusta purkautumisesta. Kun laivasto on nähnyt kolme saman tyypin vaihtoa, mediaaniväli korvaa sisäänrakennetun arvon — oma arvosi voittaa aina.\n\nSisäänrakennetut arvot (kuukautta): {defaults}"
       }
     },
     "error": {
@@ -1211,7 +1273,8 @@
       "invalid_shopping_list_entity": "Ostoslistan on oltava tehtäväentiteetti (todo.…).",
       "invalid_search_template": "Hakulinkin on oltava http(s)-URL, joka sisältää {q}.",
       "invalid_schedule": "Aikataulu on puutteellinen — valitse vähintään yksi viikonpäivä (tai kalenteri kalenteriohjatulle tehtävälle).",
-      "invalid_delta_target": "Kertyneen käytön laskennassa (delta-tila) tavoitearvon on oltava suurempi kuin 0."
+      "invalid_delta_target": "Kertyneen käytön laskennassa (delta-tila) tavoitearvon on oltava suurempi kuin 0.",
+      "invalid_reminder_lead_days": "Anna kokonaisia päiviä väliltä 0–365 pilkuin erotettuina (esim. 14, 3, 0)."
     },
     "abort": {
       "entity_unavailable": "Valittu entiteetti ei ole juuri nyt käytettävissä. Yritä uudelleen, kun se ilmoittaa tilan."
@@ -1605,6 +1668,53 @@
         "default": "Oletus (tilakohtainen otsikko)",
         "object_name": "Kohteen nimi otsikkona",
         "task_name": "Tehtävän nimi otsikkona"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "Painikkeet (puhelimessa vain kuvakkeet)",
+        "buttons": "Painikkeet tekstillä",
+        "icons": "Kuvakkeet (perinteinen)"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "Nimi",
+        "ref_no": "Viitenumero",
+        "manufacturer": "Valmistaja",
+        "model": "Malli",
+        "serial_number": "S/N",
+        "installation_date": "Asennettu",
+        "warranty_expiry": "Takuu",
+        "area_id": "Alue",
+        "documentation_url": "Käyttöohje",
+        "notes": "Muistiinpanot",
+        "task_count": "Tehtävät",
+        "actions": "Toiminnot"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "Automaattinen (tunnistettu)",
+        "house": "Talo",
+        "apartment": "Kerrostaloasunto"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "Automaattinen",
+        "red": "Punainen",
+        "pink": "Vaaleanpunainen",
+        "purple": "Violetti",
+        "deep_purple": "Tummanvioletti",
+        "indigo": "Indigo",
+        "blue": "Sininen",
+        "cyan": "Syaani",
+        "green": "Vihreä",
+        "light_green": "Vaaleanvihreä",
+        "orange": "Oranssi",
+        "brown": "Ruskea",
+        "blue_grey": "Siniharmaa"
       }
     }
   },

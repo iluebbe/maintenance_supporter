@@ -36,6 +36,22 @@ AVATAR_PALETTE: tuple[str, ...] = (
     "#6d4c41",  # brown
     "#546e7a",  # blue grey
 )
+# 2.94: the options flow offers the palette by name (translated select keys
+# can't be "#c62828"); same order as AVATAR_PALETTE.
+AVATAR_COLOR_NAMES: tuple[str, ...] = (
+    "red",
+    "pink",
+    "purple",
+    "deep_purple",
+    "indigo",
+    "blue",
+    "cyan",
+    "green",
+    "light_green",
+    "orange",
+    "brown",
+    "blue_grey",
+)
 MAX_INITIALS_LENGTH = 3
 MAX_MEMBER_DISPLAY_ENTRIES = 50
 

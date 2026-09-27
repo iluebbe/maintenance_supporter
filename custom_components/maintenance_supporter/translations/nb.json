@@ -12,7 +12,7 @@
       },
       "create_from_template": {
         "title": "Velg malkategori",
-        "description": "Velg en kategori for å bla gjennom forhåndsdefinerte vedlikeholdsmaler.",
+        "description": "Velg en kategori for å bla gjennom forhåndsdefinerte vedlikeholdsmaler. ★ n = maler i denne kategorien som passer til hjemmet ditt (panel: Innstillinger → Boligprofil).",
         "data": {
           "template_category": "Kategori",
           "go_back": "Gå tilbake"
@@ -23,7 +23,7 @@
       },
       "template_select": {
         "title": "Velg mal",
-        "description": "Velg en vedlikeholdsmal å bruke som utgangspunkt.",
+        "description": "Velg en vedlikeholdsmal å bruke som utgangspunkt. ★ anbefalt for hjemmet ditt · ✓ allerede satt opp.",
         "data": {
           "template_id": "Mal",
           "go_back": "Gå tilbake"
@@ -529,7 +529,11 @@
           "notification_settings": "Varslingsinnstillinger",
           "notification_actions": "Interaktive handlinger",
           "test_notification": "Send testvarsel",
-          "done": "Ferdig"
+          "done": "Ferdig",
+          "home_profile": "Boligprofil · Malgalleri",
+          "archive_settings": "Arkiv og oppbevaring",
+          "member_avatars": "Medlemmenes avatarer",
+          "battery_lifetimes": "Typiske batterilevetider"
         }
       },
       "advanced_features": {
@@ -543,7 +547,8 @@
           "advanced_budget_visible": "Budsjettsporing",
           "advanced_groups_visible": "Grupper",
           "advanced_checklists_visible": "Sjekklister",
-          "advanced_schedule_time_visible": "Planlegging på klokkeslett"
+          "advanced_schedule_time_visible": "Planlegging på klokkeslett",
+          "advanced_completion_actions_visible": "Fullføringshandlinger"
         },
         "data_description": {
           "advanced_adaptive_visible": "Vis EWA, Weibull-analyse og intervallforslag for oppgaver.",
@@ -553,7 +558,8 @@
           "advanced_budget_visible": "Vis månedlig/årlig budsjettsporing og varsler.",
           "advanced_groups_visible": "Vis administrasjon av vedlikeholdsgrupper.",
           "advanced_checklists_visible": "Vis sjekklister for oppgaver for trinnvis fullføring.",
-          "advanced_schedule_time_visible": "Tillat at oppgaver blir forfalt på et bestemt klokkeslett i stedet for ved midnatt."
+          "advanced_schedule_time_visible": "Tillat at oppgaver blir forfalt på et bestemt klokkeslett i stedet for ved midnatt.",
+          "advanced_completion_actions_visible": "HA-handling per oppgave ved fullføring + hurtigfullføring med QR og forhåndsinnstilte verdier."
         }
       },
       "panel_access": {
@@ -582,7 +588,12 @@
           "battery_auto_record_recovery": "Registrer et bytte automatisk når et lavt batteri kommer seg",
           "panel_title": "Tittel på sidefeltpanel",
           "shopping_list_entity": "Handleliste å synkronisere kjøpsoppgaver til",
-          "part_search_url_template": "Søkelenke for innkjøp"
+          "part_search_url_template": "Søkelenke for innkjøp",
+          "default_consumable_threshold": "Terskel „forbruksvare lav“ (%)",
+          "row_action_style": "Handlinger i oppgaverader",
+          "ref_numbers_in_lists": "Referansenumre i lister",
+          "objects_table_columns": "Kolonner i objekttabell",
+          "install_assist_sentences": "Installer Assist-setninger"
         },
         "data_description": {
           "default_warning_days": "Antall dager før en vedlikeholdsoppgave forfaller for å vise et varsel.",
@@ -595,7 +606,11 @@
           "battery_auto_record_recovery": "Når et batteri som var lavt stiger over gjenopprettingsterskelen, registreres byttedatoen i Battery Notes og reservecellene trekkes fra lageret — uten et trykk",
           "panel_title": "Egendefinert navn for sidefeltoppføringen. La feltet stå tomt for å bruke «Vedlikehold». Nyttig for å unngå konflikt med Home Assistants innebygde vedlikeholdsdashbord.",
           "shopping_list_entity": "Automatiske kjøpespåminnelser for deler med lav beholdning vises i denne gjøremålslisten; å krysse av en fullfører påminnelsen og fyller på beholdningen. La stå tomt for å deaktivere.",
-          "part_search_url_template": "URL med {q} i stedet for søkeordene, for deler uten produktlenke. La stå tomt for den automatiske butikken (etter land, ellers språk)."
+          "part_search_url_template": "URL med {q} i stedet for søkeordene, for deler uten produktlenke. La stå tomt for den automatiske butikken (etter land, ellers språk).",
+          "default_consumable_threshold": "Standardverdier for nye Foreslåtte oppsett (gjenværende prosent) og for flåtebatterier uten egen Battery Notes-terskel. Eksisterende oppgaver beholder verdien sin.",
+          "ref_numbers_in_lists": "Viser brikkene #8 / #8.3 foran objekt- og oppgavenavn i I dag-listen, oppgavetabellen, objektkortene og objekttabellen.",
+          "objects_table_columns": "Velg hvilke kolonner som vises i tabellvisningen for objekter.",
+          "install_assist_sentences": "Kopierer talesetningene til konfigurasjonen din slik at den klassiske Assist-agenten gjenkjenner dem. En fil du selv har endret, blir aldri overskrevet."
         }
       },
       "notification_settings": {
@@ -617,7 +632,12 @@
           "notification_title_style": "Tittelstil for varsel",
           "notify_completed": "Varsler om fullføring",
           "notify_event_only": "Utløs bare hendelsen, send ingenting selv",
-          "notify_extra_data": "Ekstra varslingsdata (mal)"
+          "notify_extra_data": "Ekstra varslingsdata (mal)",
+          "reminder_lead_days": "Ekstra påminnelser (dager før forfall)",
+          "notify_scope_view_id": "Varsle kun for visning",
+          "weekly_digest_enabled": "Ukentlig oversikt",
+          "warranty_reminder_enabled": "Påminnelse om garantiutløp",
+          "warranty_reminder_days": "Dager før utløp"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Hvor ofte påminnelsen om snart forfall skal gjentas. Sett til 0 for ett enkelt varsel.",
@@ -630,7 +650,11 @@
           "notification_title_style": "Det som vises som varselets TITTEL. Standard beholder teksten per status (f.eks. «Vedlikehold forfalt!»). Objektnavn / Oppgavenavn hjelper når telefonvarsler stables.",
           "notify_completed": "En beskjed til husstanden når en oppgave er fullført, med årsaken (panel, QR-/NFC-skanning, gjøremålsliste, stemme, sensorgjenoppretting …). «Bare automatiske» melder bare fullføringer ingen gjorde på stedet: sensorgjenoppretting, avkrysning i handlelisten, et tjenestekall fra en automasjon.",
           "notify_event_only": "Hvert varsel utløser hendelsen maintenance_supporter_notification. Med dette på står automasjonen din for hele leveringen — gjentakelsesintervaller, stille timer og dagsgrensen avgjør fortsatt når hendelsen kommer.",
-          "notify_extra_data": "JSON eller YAML med Jinja, flettes inn i data i hvert notify-kall (dine nøkler vinner). Variabler: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
+          "notify_extra_data": "JSON eller YAML med Jinja, flettes inn i data i hvert notify-kall (dine nøkler vinner). Variabler: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
+          "reminder_lead_days": "Kommaseparerte varsler, f.eks. 14, 3, 0 — en ekstra påminnelse sendes på hver matchende dag. Tomt = av.",
+          "notify_scope_view_id": "Bare oppgaver som matcher etikett-/brukerfiltrene til valgt visning sender påminnelser. Visningens status, sortering og gruppering ignoreres her.",
+          "weekly_digest_enabled": "Ett sammendragsvarsel mandag morgen når oppgaver forfaller.",
+          "warranty_reminder_enabled": "Varsle én gang når garantien til et objekt utløper om så mange dager."
         }
       },
       "notification_actions": {
@@ -1191,6 +1215,44 @@
           "phases_text": "Ett trinn per linje i syklusrekkefølge. \"Navn: punkt; punkt\" setter fasens sjekkliste. Deler og påkrevde felter per fase redigeres i panelet og bevares her.",
           "go_back": "Gå tilbake til oppgavehandlinger uten å lagre."
         }
+      },
+      "home_profile": {
+        "title": "Boligprofil",
+        "description": "Anbefaler maler og setter sesongvinduer etter ditt klima og din halvkule. Alt beregnes lokalt ut fra etasjene, områdene og boligens plassering.\n\n**Oppdaget:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "Boligtype",
+          "disabled_template_ids": "Skjulte maler"
+        },
+        "data_description": {
+          "disabled_template_ids": "Maler valgt her vises ikke lenger i «Fra mal»-valgene (panel og oppsettveiviser). Ingenting annet endres."
+        }
+      },
+      "archive_settings": {
+        "title": "Arkiv og oppbevaring",
+        "description": "Legg bort fullførte engangsoppgaver uten å slette dem. Arkiverte elementer er skjult og inaktive, men beholder historikk og kostnad.",
+        "data": {
+          "archive_oneoff_days": "Arkivér fullførte engangsoppgaver automatisk etter (dager, 0 = av)",
+          "delete_archived_oneoff_days": "Slett arkiverte engangsoppgaver automatisk etter (dager, 0 = aldri)"
+        }
+      },
+      "member_avatars": {
+        "title": "Medlemmenes avatarer",
+        "description": "Vises ved siden av tildelte oppgaver — initialer i medlemmets farge. Standard kommer fra navnet; angi egne initialer eller velg en farge for å skille medlemmer.",
+        "data": {
+          "member": "Husstandsmedlem"
+        }
+      },
+      "member_avatar": {
+        "title": "Medlemmenes avatarer",
+        "description": "{member}: la initialene stå tomme og fargen på Automatisk for å bruke standarden ({initials}).",
+        "data": {
+          "initials": "Initialer",
+          "color": "Farge"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "Typiske batterilevetider",
+        "description": "Brukes bare for batterier uten prosent: et Battery Notes-notat med bare type og byttedato, eller en sensor som bare melder «lavt». Forfall = siste bytte + denne levetiden. Batterier som melder nivå får prognosen fra målt utlading. Når flåten har sett tre bytter av en type, overtar medianintervallet fra den innebygde verdien — din egen verdi vinner alltid.\n\nInnebygde verdier (måneder): {defaults}"
       }
     },
     "error": {
@@ -1211,7 +1273,8 @@
       "invalid_shopping_list_entity": "Handlelisten må være en gjøremålsentitet (todo.…).",
       "invalid_search_template": "Søkelenken må være en http(s)-URL som inneholder {q}.",
       "invalid_schedule": "Tidsplanen er ufullstendig — velg minst én ukedag (eller en kalender for en kalenderstyrt oppgave).",
-      "invalid_delta_target": "Ved telling av akkumulert bruk (deltamodus) må målverdien være større enn 0."
+      "invalid_delta_target": "Ved telling av akkumulert bruk (deltamodus) må målverdien være større enn 0.",
+      "invalid_reminder_lead_days": "Skriv inn hele dager mellom 0 og 365, adskilt med komma (f.eks. 14, 3, 0)."
     },
     "abort": {
       "entity_unavailable": "Den valgte entiteten er ikke tilgjengelig akkurat nå. Prøv igjen når den rapporterer en tilstand."
@@ -1605,6 +1668,53 @@
         "default": "Standard (tittel per status)",
         "object_name": "Objektnavn som tittel",
         "task_name": "Oppgavenavn som tittel"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "Knapper (bare ikoner på mobil)",
+        "buttons": "Knapper med tekst",
+        "icons": "Ikoner (klassisk)"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "Navn",
+        "ref_no": "Referansenummer",
+        "manufacturer": "Produsent",
+        "model": "Modell",
+        "serial_number": "S/N",
+        "installation_date": "Installert",
+        "warranty_expiry": "Garanti",
+        "area_id": "Område",
+        "documentation_url": "Bruksanvisning",
+        "notes": "Notater",
+        "task_count": "Oppgaver",
+        "actions": "Handlinger"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "Automatisk (oppdaget)",
+        "house": "Hus",
+        "apartment": "Leilighet"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "Automatisk",
+        "red": "Rød",
+        "pink": "Rosa",
+        "purple": "Lilla",
+        "deep_purple": "Mørk lilla",
+        "indigo": "Indigo",
+        "blue": "Blå",
+        "cyan": "Cyan",
+        "green": "Grønn",
+        "light_green": "Lysegrønn",
+        "orange": "Oransje",
+        "brown": "Brun",
+        "blue_grey": "Blågrå"
       }
     }
   },

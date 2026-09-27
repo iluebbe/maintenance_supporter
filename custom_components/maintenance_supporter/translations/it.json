@@ -12,7 +12,7 @@
       },
       "create_from_template": {
         "title": "Seleziona categoria modello",
-        "description": "Scegli una categoria per sfogliare i modelli di manutenzione predefiniti.",
+        "description": "Scegli una categoria per sfogliare i modelli di manutenzione predefiniti. ★ n = modelli di questa categoria adatti alla tua casa (pannello: Impostazioni → Profilo della casa).",
         "data": {
           "template_category": "Categoria",
           "go_back": "Indietro"
@@ -23,7 +23,7 @@
       },
       "template_select": {
         "title": "Seleziona modello",
-        "description": "Scegli un modello di manutenzione come punto di partenza.",
+        "description": "Scegli un modello di manutenzione come punto di partenza. ★ consigliato per la tua casa · ✓ già configurato.",
         "data": {
           "template_id": "Modello",
           "go_back": "Indietro"
@@ -529,7 +529,11 @@
           "notification_settings": "Impostazioni notifiche",
           "notification_actions": "Azioni interattive",
           "test_notification": "Invia notifica di test",
-          "done": "Fatto"
+          "done": "Fatto",
+          "home_profile": "Profilo dell'abitazione · Galleria modelli",
+          "archive_settings": "Archiviazione e conservazione",
+          "member_avatars": "Avatar dei membri",
+          "battery_lifetimes": "Durate tipiche delle batterie"
         }
       },
       "advanced_features": {
@@ -543,7 +547,8 @@
           "advanced_budget_visible": "Monitoraggio budget",
           "advanced_groups_visible": "Gruppi",
           "advanced_checklists_visible": "Liste di controllo",
-          "advanced_schedule_time_visible": "Pianificazione oraria"
+          "advanced_schedule_time_visible": "Pianificazione oraria",
+          "advanced_completion_actions_visible": "Azioni di completamento"
         },
         "data_description": {
           "advanced_adaptive_visible": "Mostra analisi EWA, Weibull e suggerimenti di intervallo per le attività.",
@@ -553,7 +558,8 @@
           "advanced_budget_visible": "Mostra monitoraggio budget mensile/annuale e avvisi.",
           "advanced_groups_visible": "Mostra la gestione dei gruppi di manutenzione.",
           "advanced_checklists_visible": "Mostra liste di controllo per il completamento passo per passo delle attività.",
-          "advanced_schedule_time_visible": "Consente alle attività di scadere a un'ora specifica anziché a mezzanotte."
+          "advanced_schedule_time_visible": "Consente alle attività di scadere a un'ora specifica anziché a mezzanotte.",
+          "advanced_completion_actions_visible": "Azione HA per attività al completamento + QR completamento rapido con valori predefiniti."
         }
       },
       "panel_access": {
@@ -582,7 +588,12 @@
           "battery_auto_record_recovery": "Registra automaticamente una sostituzione quando una batteria scarica si riprende",
           "panel_title": "Titolo del pannello laterale",
           "shopping_list_entity": "Lista della spesa per sincronizzare le attività di acquisto",
-          "part_search_url_template": "Link di ricerca per l'acquisto"
+          "part_search_url_template": "Link di ricerca per l'acquisto",
+          "default_consumable_threshold": "Soglia „consumabile basso“ (%)",
+          "row_action_style": "Azioni nelle righe delle attività",
+          "ref_numbers_in_lists": "Numeri di riferimento negli elenchi",
+          "objects_table_columns": "Colonne tabella oggetti",
+          "install_assist_sentences": "Installa le frasi di Assist"
         },
         "data_description": {
           "default_warning_days": "Numero di giorni prima della scadenza di un'attività di manutenzione per mostrare un avviso.",
@@ -595,7 +606,11 @@
           "battery_auto_record_recovery": "Quando una batteria che era scarica supera la soglia di ripristino, la data di sostituzione viene registrata in Battery Notes e le celle di ricambio vengono scalate dalla scorta — senza alcun tocco",
           "panel_title": "Nome personalizzato per la voce nella barra laterale. Lascia vuoto per usare \"Maintenance\". Utile per evitare conflitti con la dashboard Manutenzione integrata di Home Assistant.",
           "shopping_list_entity": "I promemoria di acquisto automatici per i ricambi scarsi appaiono in questo elenco; spuntarne uno completa il promemoria e rifornisce il ricambio. Lasciare vuoto per disattivare.",
-          "part_search_url_template": "URL con {q} al posto dei termini di ricerca, usato per i ricambi senza link al prodotto. Lasciare vuoto per il negozio automatico (per paese, altrimenti per lingua)."
+          "part_search_url_template": "URL con {q} al posto dei termini di ricerca, usato per i ricambi senza link al prodotto. Lasciare vuoto per il negozio automatico (per paese, altrimenti per lingua).",
+          "default_consumable_threshold": "Valori predefiniti per le nuove Configurazioni suggerite (percentuale residua) e per le batterie della flotta senza soglia Battery Notes propria. Le attività esistenti mantengono il loro valore.",
+          "ref_numbers_in_lists": "Mostra le etichette #8 / #8.3 davanti ai nomi di oggetti e attività nell'elenco Oggi, nella tabella delle attività, nelle schede degli oggetti e nella tabella degli oggetti.",
+          "objects_table_columns": "Scegli quali colonne mostrare nella vista tabella degli oggetti.",
+          "install_assist_sentences": "Copia le frasi vocali nella tua configurazione affinché l'agente Assist classico le riconosca. Un file modificato da te non viene mai sovrascritto."
         }
       },
       "notification_settings": {
@@ -617,7 +632,12 @@
           "notification_title_style": "Stile del titolo di notifica",
           "notify_completed": "Notifiche di completamento",
           "notify_event_only": "Attiva solo l'evento, non inviare nulla",
-          "notify_extra_data": "Dati di notifica aggiuntivi (template)"
+          "notify_extra_data": "Dati di notifica aggiuntivi (template)",
+          "reminder_lead_days": "Promemoria aggiuntivi (giorni prima della scadenza)",
+          "notify_scope_view_id": "Notifica solo per la vista",
+          "weekly_digest_enabled": "Riepilogo settimanale",
+          "warranty_reminder_enabled": "Promemoria scadenza garanzia",
+          "warranty_reminder_days": "Giorni prima della scadenza"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Frequenza di ripetizione del promemoria in scadenza. Impostare a 0 per una singola notifica.",
@@ -630,7 +650,11 @@
           "notification_title_style": "Cosa appare come TITOLO della notifica. Predefinito mantiene il testo per stato (es. «Manutenzione in ritardo!»). Nome oggetto / attività aiuta quando il telefono accumula le notifiche.",
           "notify_completed": "Una nota per la famiglia quando un'attività viene completata, con il motivo (pannello, scansione QR/NFC, lista to-do, voce, ripristino del sensore…). \"Solo automatici\" annuncia solo i completamenti che nessuno ha fatto sul posto: ripristino del sensore, spunta nella lista della spesa, chiamata di servizio di un'automazione.",
           "notify_event_only": "Ogni notifica genera l'evento maintenance_supporter_notification. Con questa opzione la tua automazione gestisce l'intera consegna — intervalli di ripetizione, ore silenziose e limite giornaliero decidono ancora quando scatta l'evento.",
-          "notify_extra_data": "JSON o YAML con Jinja, unito ai data di ogni chiamata notify (le tue chiavi vincono). Variabili: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
+          "notify_extra_data": "JSON o YAML con Jinja, unito ai data di ogni chiamata notify (le tue chiavi vincono). Variabili: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
+          "reminder_lead_days": "Anticipi separati da virgole, ad es. 14, 3, 0 — un promemoria aggiuntivo viene inviato in ogni giorno corrispondente. Vuoto = disattivato.",
+          "notify_scope_view_id": "Solo le attività che corrispondono ai filtri etichetta/utente della vista scelta inviano promemoria. Stato, ordinamento e raggruppamento della vista qui vengono ignorati.",
+          "weekly_digest_enabled": "Una notifica di riepilogo il lunedì mattina quando ci sono attività.",
+          "warranty_reminder_enabled": "Notifica una volta quando alla garanzia di un oggetto mancano questi giorni alla scadenza."
         }
       },
       "notification_actions": {
@@ -1191,6 +1215,44 @@
           "phases_text": "Un passo per riga, nell'ordine del ciclo. \"Nome: voce; voce\" imposta la checklist della fase. Ricambi e campi obbligatori per fase si gestiscono nel pannello e qui restano invariati.",
           "go_back": "Torna alle azioni attività senza salvare."
         }
+      },
+      "home_profile": {
+        "title": "Profilo dell'abitazione",
+        "description": "Consiglia modelli e imposta le finestre stagionali in base al tuo clima e al tuo emisfero. Tutto viene ricavato localmente da piani, aree e posizione di casa.\n\n**Rilevato:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "Tipo di abitazione",
+          "disabled_template_ids": "Modelli nascosti"
+        },
+        "data_description": {
+          "disabled_template_ids": "I modelli scelti qui non compaiono più nelle selezioni «Da modello» (pannello e procedura di configurazione). Nient'altro cambia."
+        }
+      },
+      "archive_settings": {
+        "title": "Archiviazione e conservazione",
+        "description": "Metti da parte le attività una tantum completate senza eliminarle. Gli elementi archiviati sono nascosti e inattivi, ma conservano cronologia e costi.",
+        "data": {
+          "archive_oneoff_days": "Archivia automaticamente le attività una tantum completate dopo (giorni, 0 = off)",
+          "delete_archived_oneoff_days": "Elimina automaticamente le attività una tantum archiviate dopo (giorni, 0 = mai)"
+        }
+      },
+      "member_avatars": {
+        "title": "Avatar dei membri",
+        "description": "Mostrato accanto alle attività assegnate — iniziali nel colore del membro. Predefinito dal nome; imposta iniziali proprie o scegli un colore per distinguere i membri.",
+        "data": {
+          "member": "Membro della famiglia"
+        }
+      },
+      "member_avatar": {
+        "title": "Avatar dei membri",
+        "description": "{member}: lascia vuote le iniziali e il colore su Automatico per usare il valore predefinito ({initials}).",
+        "data": {
+          "initials": "Iniziali",
+          "color": "Colore"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "Durate tipiche delle batterie",
+        "description": "Usato solo per batterie senza percentuale: una nota Battery Notes con solo tipo e data di sostituzione, o un sensore che segnala solo « scarica ». La scadenza è ultima sostituzione + questa durata. Le batterie che riportano un livello ricavano la previsione dalla scarica misurata. Dopo tre sostituzioni dello stesso tipo, l'intervallo mediano sostituisce il valore integrato — il tuo valore vince sempre.\n\nValori predefiniti (mesi): {defaults}"
       }
     },
     "error": {
@@ -1211,7 +1273,8 @@
       "invalid_shopping_list_entity": "La lista della spesa deve essere un'entità to-do (todo.…).",
       "invalid_search_template": "Il link di ricerca deve essere un URL http(s) contenente {q}.",
       "invalid_schedule": "La pianificazione è incompleta: scegli almeno un giorno della settimana (o un calendario per un'attività guidata dal calendario).",
-      "invalid_delta_target": "Nel conteggio dell'uso accumulato (modalità delta) il valore obiettivo deve essere maggiore di 0."
+      "invalid_delta_target": "Nel conteggio dell'uso accumulato (modalità delta) il valore obiettivo deve essere maggiore di 0.",
+      "invalid_reminder_lead_days": "Inserisci giorni interi tra 0 e 365, separati da virgole (es. 14, 3, 0)."
     },
     "abort": {
       "entity_unavailable": "L'entità selezionata non è disponibile al momento. Riprova quando segnala uno stato."
@@ -1605,6 +1668,53 @@
         "default": "Predefinito (titolo per stato)",
         "object_name": "Nome dell'oggetto come titolo",
         "task_name": "Nome dell'attività come titolo"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "Pulsanti (solo icone sul telefono)",
+        "buttons": "Pulsanti con testo",
+        "icons": "Icone (classico)"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "Nome",
+        "ref_no": "Numero di riferimento",
+        "manufacturer": "Produttore",
+        "model": "Modello",
+        "serial_number": "N/S",
+        "installation_date": "Installato",
+        "warranty_expiry": "Garanzia",
+        "area_id": "Area",
+        "documentation_url": "Manuale",
+        "notes": "Note",
+        "task_count": "Attività",
+        "actions": "Azioni"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "Automatico (rilevato)",
+        "house": "Casa indipendente",
+        "apartment": "Appartamento"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "Automatico",
+        "red": "Rosso",
+        "pink": "Rosa",
+        "purple": "Viola",
+        "deep_purple": "Viola scuro",
+        "indigo": "Indaco",
+        "blue": "Blu",
+        "cyan": "Ciano",
+        "green": "Verde",
+        "light_green": "Verde chiaro",
+        "orange": "Arancione",
+        "brown": "Marrone",
+        "blue_grey": "Grigio blu"
       }
     }
   },

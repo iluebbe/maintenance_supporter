@@ -12,7 +12,7 @@
       },
       "create_from_template": {
         "title": "Şablon Kategorisi Seç",
-        "description": "Önceden tanımlanmış bakım şablonlarına göz atmak için bir kategori seçin.",
+        "description": "Önceden tanımlanmış bakım şablonlarına göz atmak için bir kategori seçin. ★ n = bu kategoride evinize uyan şablonlar (panel: Ayarlar → Ev profili).",
         "data": {
           "template_category": "Kategori",
           "go_back": "Geri dön"
@@ -23,7 +23,7 @@
       },
       "template_select": {
         "title": "Şablon Seç",
-        "description": "Başlangıç noktası olarak kullanılacak bir bakım şablonu seçin.",
+        "description": "Başlangıç noktası olarak kullanılacak bir bakım şablonu seçin. ★ eviniz için önerilir · ✓ zaten kurulu.",
         "data": {
           "template_id": "Şablon",
           "go_back": "Geri dön"
@@ -529,7 +529,11 @@
           "notification_settings": "Bildirim Ayarları",
           "notification_actions": "Etkileşimli Eylemler",
           "test_notification": "Test Bildirimi Gönder",
-          "done": "Bitti"
+          "done": "Bitti",
+          "home_profile": "Konut profili · Şablon galerisi",
+          "archive_settings": "Arşiv ve Saklama",
+          "member_avatars": "Üye avatarları",
+          "battery_lifetimes": "Tipik pil ömürleri"
         }
       },
       "advanced_features": {
@@ -543,7 +547,8 @@
           "advanced_budget_visible": "Bütçe Takibi",
           "advanced_groups_visible": "Gruplar",
           "advanced_checklists_visible": "Kontrol Listeleri",
-          "advanced_schedule_time_visible": "Günün saatine göre zamanlama"
+          "advanced_schedule_time_visible": "Günün saatine göre zamanlama",
+          "advanced_completion_actions_visible": "Tamamlama eylemleri"
         },
         "data_description": {
           "advanced_adaptive_visible": "Görevler için EWA, Weibull analizi ve aralık önerilerini göster.",
@@ -553,7 +558,8 @@
           "advanced_budget_visible": "Aylık/yıllık bütçe takibini ve uyarıları göster.",
           "advanced_groups_visible": "Bakım grubu yönetimini göster.",
           "advanced_checklists_visible": "Adım adım tamamlama için görev kontrol listelerini göster.",
-          "advanced_schedule_time_visible": "Görevlerin gece yarısı yerine günün belirli bir saatinde gecikmiş duruma geçmesine izin ver."
+          "advanced_schedule_time_visible": "Görevlerin gece yarısı yerine günün belirli bir saatinde gecikmiş duruma geçmesine izin ver.",
+          "advanced_completion_actions_visible": "Görev başına tamamlamada HA eylemi + önceden ayarlı değerlerle hızlı tamamlama QR'ı."
         }
       },
       "panel_access": {
@@ -582,7 +588,12 @@
           "battery_auto_record_recovery": "Zayıf bir pil toparlandığında değişimi otomatik kaydet",
           "panel_title": "Kenar çubuğu paneli başlığı",
           "shopping_list_entity": "Satın alma görevlerinin eşitleneceği alışveriş listesi",
-          "part_search_url_template": "Alışveriş arama bağlantısı"
+          "part_search_url_template": "Alışveriş arama bağlantısı",
+          "default_consumable_threshold": "„Sarf malzemesi düşük“ eşiği (%)",
+          "row_action_style": "Görev satırı eylemleri",
+          "ref_numbers_in_lists": "Listelerde referans numaraları",
+          "objects_table_columns": "Nesne tablosu sütunları",
+          "install_assist_sentences": "Assist cümlelerini yükle"
         },
         "data_description": {
           "default_warning_days": "Bir bakım görevinin vadesinden kaç gün önce uyarı gösterileceği.",
@@ -595,7 +606,11 @@
           "battery_auto_record_recovery": "Zayıf olan bir pilin seviyesi toparlanma eşiğinin üzerine çıktığında değişim tarihi Battery Notes'a kaydedilir ve yedek piller stoktan düşülür — dokunmaya gerek yok",
           "panel_title": "Kenar çubuğu girdisi için özel ad. \"Bakım\" kullanmak için boş bırakın. Home Assistant'ın yerleşik Bakım panosuyla çakışmayı önlemek için kullanışlıdır.",
           "shopping_list_entity": "Azalan parçalar için otomatik satın alma hatırlatıcıları bu yapılacaklar listesinde görünür; birini işaretlemek hatırlatıcıyı tamamlar ve parçayı yeniden stoklar. Devre dışı bırakmak için boş bırakın.",
-          "part_search_url_template": "Arama terimleri yerine {q} içeren URL; ürün bağlantısı olmayan parçalar için kullanılır. Otomatik mağaza için boş bırakın (ülkeye, yoksa dile göre)."
+          "part_search_url_template": "Arama terimleri yerine {q} içeren URL; ürün bağlantısı olmayan parçalar için kullanılır. Otomatik mağaza için boş bırakın (ülkeye, yoksa dile göre).",
+          "default_consumable_threshold": "Yeni Önerilen kurulumlar (kalan yüzde) ve kendi Battery Notes eşiği olmayan filo pilleri için varsayılanlar. Mevcut görevler değerlerini korur.",
+          "ref_numbers_in_lists": "Bugün listesinde, görev tablosunda, nesne kartlarında ve nesne tablosunda nesne ve görev adlarının önünde #8 / #8.3 etiketlerini gösterir.",
+          "objects_table_columns": "Nesne tablosu görünümünde hangi sütunların görüneceğini seçin.",
+          "install_assist_sentences": "Sesli komut cümlelerini yapılandırmanıza kopyalar, böylece klasik Assist aracısı bunları tanır. Kendi düzenlediğiniz bir dosyanın üzerine asla yazılmaz."
         }
       },
       "notification_settings": {
@@ -617,7 +632,12 @@
           "notification_title_style": "Bildirim başlığı stili",
           "notify_completed": "Tamamlama bildirimleri",
           "notify_event_only": "Yalnızca olayı tetikle, kendim hiçbir şey gönderme",
-          "notify_extra_data": "Ek bildirim verisi (şablon)"
+          "notify_extra_data": "Ek bildirim verisi (şablon)",
+          "reminder_lead_days": "Ek hatırlatmalar (vadeden gün önce)",
+          "notify_scope_view_id": "Yalnızca şu görünüm için bildir",
+          "weekly_digest_enabled": "Haftalık özet",
+          "warranty_reminder_enabled": "Garanti bitiş hatırlatması",
+          "warranty_reminder_days": "Bitişten gün önce"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Vadesi yaklaşan hatırlatmasının ne sıklıkta tekrarlanacağı. Tek bildirim için 0 yapın.",
@@ -630,7 +650,11 @@
           "notification_title_style": "Bildirimin BAŞLIĞI olarak ne görüneceği. Varsayılan, duruma özgü metni korur (örn. 'Bakım gecikti!'). Nesne adı / Görev adı, telefon bildirimleri üst üste yığıldığında yardımcı olur.",
           "notify_completed": "Bir görev tamamlandığında ev halkına nedeniyle birlikte haber verir (panel, QR/NFC tarama, yapılacaklar listesi, ses, sensör toparlanması…). \"Yalnızca otomatik\" sadece kimsenin yerinde yapmadığı tamamlamaları bildirir: sensör toparlanması, alışveriş listesinde işaretleme, bir otomasyonun servis çağrısı.",
           "notify_event_only": "Her bildirim maintenance_supporter_notification olayını tetikler. Bu açıkken teslimatın tamamını otomasyonun üstlenir — tekrar aralıkları, sessiz saatler ve günlük sınır olayın ne zaman geleceğine karar vermeye devam eder.",
-          "notify_extra_data": "Jinja içeren JSON veya YAML, her notify çağrısının data alanına birleştirilir (senin anahtarların kazanır). Değişkenler: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
+          "notify_extra_data": "Jinja içeren JSON veya YAML, her notify çağrısının data alanına birleştirilir (senin anahtarların kazanır). Değişkenler: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
+          "reminder_lead_days": "Virgülle ayrılmış süreler, örn. 14, 3, 0 — eşleşen her günde bir ek hatırlatma gönderilir. Boş = kapalı.",
+          "notify_scope_view_id": "Yalnızca seçili kayıtlı görünümün etiket/kullanıcı filtreleriyle eşleşen görevler hatırlatma gönderir. Görünümün durum, sıralama ve gruplaması burada dikkate alınmaz.",
+          "weekly_digest_enabled": "Vadesi gelen görevler olduğunda pazartesi sabahı tek bir özet bildirimi.",
+          "warranty_reminder_enabled": "Bir nesnenin garantisinin bitmesine bu kadar gün kaldığında bir kez bildir."
         }
       },
       "notification_actions": {
@@ -1191,6 +1215,44 @@
           "phases_text": "Döngü sırasına göre her satıra bir adım. \"Ad: madde; madde\" o aşamanın kontrol listesini ayarlar. Aşama başına parçalar ve zorunlu alanlar panelde düzenlenir ve burada korunur.",
           "go_back": "Kaydetmeden görev eylemlerine dönün."
         }
+      },
+      "home_profile": {
+        "title": "Konut profili",
+        "description": "İklim ve yarımküreye göre şablon önerir ve mevsimsel pencereleri ayarlar. Her şey katlarınız, alanlarınız ve ev konumunuzdan yerel olarak belirlenir.\n\n**Algılanan:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "Konut türü",
+          "disabled_template_ids": "Gizli şablonlar"
+        },
+        "data_description": {
+          "disabled_template_ids": "Burada seçilen şablonlar artık \"Şablondan\" seçimlerinde (panel ve kurulum sihirbazı) görünmez. Başka hiçbir şey değişmez."
+        }
+      },
+      "archive_settings": {
+        "title": "Arşiv ve Saklama",
+        "description": "Tamamlanmış tek seferlik görevleri silmeden emekliye ayırın. Arşivlenen öğeler gizlenir ve pasiftir ancak geçmişlerini ve maliyetlerini korurlar.",
+        "data": {
+          "archive_oneoff_days": "Tamamlanan tek seferlik görevleri şu kadar gün sonra otomatik arşivle (0 = kapalı)",
+          "delete_archived_oneoff_days": "Arşivlenen tek seferlik görevleri şu kadar gün sonra otomatik sil (0 = asla)"
+        }
+      },
+      "member_avatars": {
+        "title": "Üye avatarları",
+        "description": "Atanmış görevlerin yanında gösterilir — üyenin renginde baş harfler. Varsayılan addan gelir; üyeleri ayırt etmek için kendi baş harflerinizi belirleyin veya bir renk seçin.",
+        "data": {
+          "member": "Hane üyesi"
+        }
+      },
+      "member_avatar": {
+        "title": "Üye avatarları",
+        "description": "{member}: varsayılanı ({initials}) kullanmak için baş harfleri boş, rengi Otomatik bırakın.",
+        "data": {
+          "initials": "Baş harfler",
+          "color": "Renk"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "Tipik pil ömürleri",
+        "description": "Yalnızca yüzdesi olmayan piller için kullanılır: sadece tür ve değişim tarihi olan bir Battery Notes notu ya da yalnızca \"düşük\" bildiren bir sensör. Vade = son değişim + bu ömür. Seviye bildiren pillerin tahmini ölçülen deşarjdan gelir. Filo bir türden üç değişim gördüğünde ortanca aralık yerleşik değerin yerini alır — kendi değerin her zaman kazanır.\n\nYerleşik değerler (ay): {defaults}"
       }
     },
     "error": {
@@ -1211,7 +1273,8 @@
       "invalid_shopping_list_entity": "Alışveriş listesi bir yapılacaklar varlığı olmalıdır (todo.…).",
       "invalid_search_template": "Arama bağlantısı {q} içeren bir http(s) URL olmalıdır.",
       "invalid_schedule": "Zamanlama eksik — en az bir haftanın gününü seçin (veya takvime bağlı bir görev için bir takvim).",
-      "invalid_delta_target": "Birikmiş kullanım sayılırken (delta modu) hedef değer 0'dan büyük olmalıdır."
+      "invalid_delta_target": "Birikmiş kullanım sayılırken (delta modu) hedef değer 0'dan büyük olmalıdır.",
+      "invalid_reminder_lead_days": "0 ile 365 arasında tam günleri virgülle ayırarak girin (ör. 14, 3, 0)."
     },
     "abort": {
       "entity_unavailable": "Seçilen varlık şu anda kullanılamıyor. Bir durum bildirdiğinde tekrar deneyin."
@@ -1605,6 +1668,53 @@
         "default": "Varsayılan (duruma özgü başlık)",
         "object_name": "Başlık olarak nesne adı",
         "task_name": "Başlık olarak görev adı"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "Düğmeler (telefonda yalnızca simgeler)",
+        "buttons": "Metinli düğmeler",
+        "icons": "Simgeler (klasik)"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "Ad",
+        "ref_no": "Referans numarası",
+        "manufacturer": "Üretici",
+        "model": "Model",
+        "serial_number": "S/N",
+        "installation_date": "Kurulum",
+        "warranty_expiry": "Garanti",
+        "area_id": "Alan",
+        "documentation_url": "Kılavuz",
+        "notes": "Notlar",
+        "task_count": "Görevler",
+        "actions": "Eylemler"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "Otomatik (algılanan)",
+        "house": "Müstakil ev",
+        "apartment": "Daire"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "Otomatik",
+        "red": "Kırmızı",
+        "pink": "Pembe",
+        "purple": "Mor",
+        "deep_purple": "Koyu mor",
+        "indigo": "Çivit",
+        "blue": "Mavi",
+        "cyan": "Camgöbeği",
+        "green": "Yeşil",
+        "light_green": "Açık yeşil",
+        "orange": "Turuncu",
+        "brown": "Kahverengi",
+        "blue_grey": "Mavi gri"
       }
     }
   },

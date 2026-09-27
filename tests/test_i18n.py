@@ -382,22 +382,28 @@ def test_frontend_locale_value_completeness(path: Path) -> None:
 # is legitimately identical to English in the given languages; "*" = all.
 _BACKEND_VALUE_OK: dict[str, frozenset[str] | str] = {
     "Action": frozenset({"fr"}),
+    "Actions": frozenset({"fr"}),
     "Area": frozenset({"it"}),
     "Checklists": frozenset({"nl", "pt-BR"}),
     "Condition #{condition_num} — Type": frozenset({"fr"}),
+    # 2.94 avatar colours (options flow)
+    "Cyan": frozenset({"da", "de", "fr", "nb", "sv"}),
     "Date": frozenset({"fr"}),
     "Description": frozenset({"fr"}),
     "Format": frozenset({"da", "de", "fr", "nb", "pl", "sv"}),
+    "Indigo": frozenset({"da", "de", "fi", "fr", "nb", "nl", "sv"}),
     "Inspection": frozenset({"fr"}),
     "Interval": frozenset({"cs", "da", "nl"}),
     "Labels": frozenset({"de", "nl"}),
     "Maintenance": frozenset({"fr"}),
     "Maintenance Supporter": "*",  # brand
-    "Manual": frozenset({"es", "pt", "pt-BR"}),
+    "Manual": frozenset({"da", "es", "pt", "pt-BR", "sv"}),
     "Model": frozenset({"cs", "da", "nl", "pl", "tr"}),
     "Name": frozenset({"de"}),
     "Notes": frozenset({"fr"}),
     "Object": frozenset({"nl"}),
+    "Orange": frozenset({"da", "de", "fr", "sv"}),
+    "Pink": frozenset({"da", "de"}),
     "Service": frozenset({"da", "de", "fr", "nb", "nl", "sv"}),
     "Stable": frozenset({"fr"}),
     "Status": frozenset({"da", "de", "nb", "nl", "pl", "pt-BR", "sv"}),
@@ -567,6 +573,7 @@ _PY_TABLE_LANGUAGES = frozenset(
 
 def _py_language_tables() -> dict[str, dict[str, dict[str, str]]]:
     from custom_components.maintenance_supporter import calendar as cal_mod
+    from custom_components.maintenance_supporter import config_flow as cf
     from custom_components.maintenance_supporter import config_flow_options_global as ofg
     from custom_components.maintenance_supporter import logbook as logbook_mod
     from custom_components.maintenance_supporter.helpers import notification_manager as nm
@@ -576,6 +583,8 @@ def _py_language_tables() -> dict[str, dict[str, dict[str, str]]]:
         "logbook._STRINGS": logbook_mod._STRINGS,
         "calendar._CAL_STRINGS": cal_mod._CAL_STRINGS,
         "config_flow_options_global._TEST_NOTIFICATION_RESULTS": ofg._TEST_NOTIFICATION_RESULTS,
+        "config_flow_options_global._SETTINGS_STRINGS": ofg._SETTINGS_STRINGS,
+        "config_flow._TEMPLATE_STRINGS": cf._TEMPLATE_STRINGS,
     }
 
 

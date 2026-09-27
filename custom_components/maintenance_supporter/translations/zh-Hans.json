@@ -12,7 +12,7 @@
       },
       "create_from_template": {
         "title": "选择模板分类",
-        "description": "选择一个分类以浏览预定义的维护模板。",
+        "description": "选择一个分类以浏览预定义的维护模板。 ★ n = 此类别中适合您住宅的模板数（面板：设置 → 住宅档案）。",
         "data": {
           "template_category": "分类",
           "go_back": "返回"
@@ -23,7 +23,7 @@
       },
       "template_select": {
         "title": "选择模板",
-        "description": "选择一个维护模板作为起点。",
+        "description": "选择一个维护模板作为起点。 ★ 为您的住宅推荐 · ✓ 已设置。",
         "data": {
           "template_id": "模板",
           "go_back": "返回"
@@ -529,7 +529,11 @@
           "notification_settings": "通知设置",
           "notification_actions": "交互式动作",
           "test_notification": "发送测试通知",
-          "done": "完成"
+          "done": "完成",
+          "home_profile": "住宅概况 · 模板库",
+          "archive_settings": "归档与保留",
+          "member_avatars": "成员头像",
+          "battery_lifetimes": "电池典型寿命"
         }
       },
       "advanced_features": {
@@ -543,7 +547,8 @@
           "advanced_budget_visible": "预算追踪",
           "advanced_groups_visible": "分组",
           "advanced_checklists_visible": "检查清单",
-          "advanced_schedule_time_visible": "具体时间调度"
+          "advanced_schedule_time_visible": "具体时间调度",
+          "advanced_completion_actions_visible": "完成动作"
         },
         "data_description": {
           "advanced_adaptive_visible": "显示 EWA、韦伯分析以及针对任务的间隔建议。",
@@ -553,7 +558,8 @@
           "advanced_budget_visible": "显示月度/年度预算追踪和警报。",
           "advanced_groups_visible": "显示维护分组管理。",
           "advanced_checklists_visible": "显示任务检查清单以进行逐步操作。",
-          "advanced_schedule_time_visible": "允许任务在一天中的特定时间变为超期，而非午夜。"
+          "advanced_schedule_time_visible": "允许任务在一天中的特定时间变为超期，而非午夜。",
+          "advanced_completion_actions_visible": "为每个任务配置完成时的 HA 动作 + 预设值的快速完成二维码。"
         }
       },
       "panel_access": {
@@ -582,7 +588,12 @@
           "battery_auto_record_recovery": "低电量电池恢复时自动记录更换",
           "panel_title": "侧边栏面板标题",
           "shopping_list_entity": "同步购买任务的购物清单",
-          "part_search_url_template": "购物搜索链接"
+          "part_search_url_template": "购物搜索链接",
+          "default_consumable_threshold": "耗材“不足”阈值（%）",
+          "row_action_style": "任务行操作",
+          "ref_numbers_in_lists": "在列表中显示编号",
+          "objects_table_columns": "对象表格列",
+          "install_assist_sentences": "安装 Assist 语句"
         },
         "data_description": {
           "default_warning_days": "维护任务到期前多少天显示预警。",
@@ -595,7 +606,11 @@
           "battery_auto_record_recovery": "当曾经电量低的电池升至恢复阈值以上时，更换日期会记录到 Battery Notes 中，备用电池会从库存中扣除——无需点击",
           "panel_title": "侧边栏条目的自定义名称。留空使用 “Maintenance”。有助于避免与 Home Assistant 内置的维护面板冲突。",
           "shopping_list_entity": "库存不足部件的自动购买提醒会显示在此待办清单中；勾选一项即完成提醒并补充库存。留空则禁用。",
-          "part_search_url_template": "以 {q} 代替搜索词的网址，用于没有产品链接的配件。留空则自动选择商店（先按国家，再按语言）。"
+          "part_search_url_template": "以 {q} 代替搜索词的网址，用于没有产品链接的配件。留空则自动选择商店（先按国家，再按语言）。",
+          "default_consumable_threshold": "用于新的“建议设置”（剩余百分比）以及没有自身 Battery Notes 阈值的电池组电池。现有任务保留其值。",
+          "ref_numbers_in_lists": "在“今天”列表、任务表、对象卡片和对象表中的对象与任务名称前显示 #8 / #8.3 编号标签。",
+          "objects_table_columns": "选择对象表格视图中显示的列。",
+          "install_assist_sentences": "将语音语句复制到你的配置中，让传统 Assist 代理能够识别它们。你自己修改过的文件永远不会被覆盖。"
         }
       },
       "notification_settings": {
@@ -617,7 +632,12 @@
           "notification_title_style": "通知标题样式",
           "notify_completed": "完成通知",
           "notify_event_only": "仅触发事件，自己不发送",
-          "notify_extra_data": "额外通知数据（模板）"
+          "notify_extra_data": "额外通知数据（模板）",
+          "reminder_lead_days": "额外提醒（到期前天数）",
+          "notify_scope_view_id": "仅为该视图发送通知",
+          "weekly_digest_enabled": "每周摘要",
+          "warranty_reminder_enabled": "保修到期提醒",
+          "warranty_reminder_days": "到期前天数"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "即将到期提醒的重复频率。设置为 0 则仅通知一次。",
@@ -630,7 +650,11 @@
           "notification_title_style": "通知的标题显示内容。默认保持状态文本（如：‘维护已超期！’）。当手机通知堆叠时，‘维护项名称 / 任务名称’ 更有帮助。",
           "notify_completed": "任务完成时通知家庭成员，并附上原因（面板、二维码/NFC 扫描、待办清单、语音、传感器恢复等）。“仅自动”只通报无人现场操作的完成：传感器恢复、购物清单勾选、自动化的服务调用。",
           "notify_event_only": "每条通知都会触发事件 maintenance_supporter_notification。开启后由你的自动化负责全部投递——重复间隔、静默时段和每日上限仍决定事件何时触发。",
-          "notify_extra_data": "含 Jinja 的 JSON 或 YAML，合并到每次 notify 调用的 data 中（你的键优先）。变量：kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message。"
+          "notify_extra_data": "含 Jinja 的 JSON 或 YAML，合并到每次 notify 调用的 data 中（你的键优先）。变量：kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message。",
+          "reminder_lead_days": "逗号分隔的提前时间，例如 14, 3, 0 — 在每个匹配的日期发送一次额外提醒。留空 = 关闭。",
+          "notify_scope_view_id": "只有匹配所选视图的标签/用户筛选的任务才会发送提醒。视图的状态、排序和分组在此处被忽略。",
+          "weekly_digest_enabled": "当有待办任务时，周一早上发送一条汇总通知。",
+          "warranty_reminder_enabled": "当物品保修距到期还有这么多天时通知一次。"
         }
       },
       "notification_actions": {
@@ -1191,6 +1215,44 @@
           "phases_text": "按循环顺序每行输入一个步骤。“名称: 项目; 项目”设置该阶段的清单。每个阶段的备件和必填项在面板中编辑，此处会保留。",
           "go_back": "返回任务动作且不保存。"
         }
+      },
+      "home_profile": {
+        "title": "住宅概况",
+        "description": "根据您的气候和所在半球推荐模板并设置季节窗口。所有信息均根据您的楼层、区域和住宅位置在本地得出。\n\n**识别结果:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "住宅类型",
+          "disabled_template_ids": "隐藏的模板"
+        },
+        "data_description": {
+          "disabled_template_ids": "在此选择的模板将不再出现在“从模板”选择中（面板和设置向导）。其他不变。"
+        }
+      },
+      "archive_settings": {
+        "title": "归档与保留",
+        "description": "将已完成的一次性任务归档而不删除。已归档项目会被隐藏且不再活动，但保留其历史记录和费用。",
+        "data": {
+          "archive_oneoff_days": "已完成的一次性任务在多少天后自动归档（0 = 关闭）",
+          "delete_archived_oneoff_days": "已归档的一次性任务在多少天后自动删除（0 = 永不）"
+        }
+      },
+      "member_avatars": {
+        "title": "成员头像",
+        "description": "显示在已分配任务旁——以成员颜色显示首字母。默认取自姓名；可自定义首字母或选择颜色以区分成员。",
+        "data": {
+          "member": "家庭成员"
+        }
+      },
+      "member_avatar": {
+        "title": "成员头像",
+        "description": "{member}：将缩写留空并把颜色设为自动，即使用默认值（{initials}）。",
+        "data": {
+          "initials": "首字母",
+          "color": "颜色"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "电池典型寿命",
+        "description": "仅用于没有百分比的电池：只有类型和更换日期的 Battery Notes 记录，或只报告“低电量”的传感器。其到期日 = 上次更换 + 此寿命。报告电量的电池改用实测放电来预测。同一类型出现三次更换后，中位间隔将取代内置值——你自己的值始终优先。\n\n内置值（月）: {defaults}"
       }
     },
     "error": {
@@ -1211,7 +1273,8 @@
       "invalid_shopping_list_entity": "购物清单必须是待办实体（todo.…）。",
       "invalid_search_template": "搜索链接必须是包含 {q} 的 http(s) 网址。",
       "invalid_schedule": "计划不完整 — 请至少选择一个星期几（日历驱动的任务请选择一个日历）。",
-      "invalid_delta_target": "统计累计用量时（增量模式），目标值必须大于 0。"
+      "invalid_delta_target": "统计累计用量时（增量模式），目标值必须大于 0。",
+      "invalid_reminder_lead_days": "请输入 0 到 365 之间的整数天数，用逗号分隔（例如 14, 3, 0）。"
     },
     "abort": {
       "entity_unavailable": "所选实体当前不可用。请在其报告状态后重试。"
@@ -1605,6 +1668,53 @@
         "default": "默认 (显示状态标题)",
         "object_name": "使用维护项名称作为标题",
         "task_name": "使用任务名称作为标题"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "按钮（手机上仅显示图标）",
+        "buttons": "带文字的按钮",
+        "icons": "图标（经典）"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "名称",
+        "ref_no": "参考编号",
+        "manufacturer": "制造商",
+        "model": "型号",
+        "serial_number": "序列号",
+        "installation_date": "已安装",
+        "warranty_expiry": "保修",
+        "area_id": "区域",
+        "documentation_url": "手册",
+        "notes": "备注",
+        "task_count": "任务",
+        "actions": "操作"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "自动（识别）",
+        "house": "独栋住宅",
+        "apartment": "公寓"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "自动",
+        "red": "红色",
+        "pink": "粉色",
+        "purple": "紫色",
+        "deep_purple": "深紫色",
+        "indigo": "靛蓝",
+        "blue": "蓝色",
+        "cyan": "青色",
+        "green": "绿色",
+        "light_green": "浅绿色",
+        "orange": "橙色",
+        "brown": "棕色",
+        "blue_grey": "蓝灰色"
       }
     }
   },

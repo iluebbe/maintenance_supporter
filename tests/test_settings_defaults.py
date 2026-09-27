@@ -36,6 +36,9 @@ _OPTIONS_FLOW_STEPS = (
     "notification_settings",
     "notification_actions",
     "budget_settings",
+    # 2.94: the steps that brought the panel-only settings into the flow
+    "home_profile",
+    "archive_settings",
 )
 
 
@@ -156,4 +159,15 @@ async def test_options_flow_form_defaults_equal_the_registry(hass: HomeAssistant
     assert not drifted, "options-flow defaults drifted from the registry:\n  " + "\n  ".join(drifted)
     # Sanity: the sweep really covered the flow (a renamed step would
     # otherwise pass vacuously).
-    assert {"default_warning_days", "notify_due_soon_interval_hours", "quiet_hours_start", "notify_completed", "budget_alert_threshold", "operator_write_enabled"} <= seen
+    assert {
+        "default_warning_days",
+        "notify_due_soon_interval_hours",
+        "quiet_hours_start",
+        "notify_completed",
+        "budget_alert_threshold",
+        "operator_write_enabled",
+        "home_type",
+        "archive_oneoff_days",
+        "warranty_reminder_days",
+        "objects_table_columns",
+    } <= seen

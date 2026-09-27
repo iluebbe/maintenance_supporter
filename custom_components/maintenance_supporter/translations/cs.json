@@ -12,7 +12,7 @@
       },
       "create_from_template": {
         "title": "Vyberte kategorii šablony",
-        "description": "Vyberte kategorii pro procházení předdefinovaných šablon údržby.",
+        "description": "Vyberte kategorii pro procházení předdefinovaných šablon údržby. ★ n = šablony v této kategorii, které se hodí k vaší domácnosti (panel: Nastavení → Profil domova).",
         "data": {
           "template_category": "Kategorie",
           "go_back": "Zpět"
@@ -23,7 +23,7 @@
       },
       "template_select": {
         "title": "Vyberte šablonu",
-        "description": "Vyberte šablonu údržby jako výchozí bod.",
+        "description": "Vyberte šablonu údržby jako výchozí bod. ★ doporučeno pro váš domov · ✓ již nastaveno.",
         "data": {
           "template_id": "Šablona",
           "go_back": "Zpět"
@@ -529,7 +529,11 @@
           "notification_settings": "Nastavení oznámení",
           "notification_actions": "Interaktivní akce",
           "test_notification": "Odeslat testovací oznámení",
-          "done": "Hotovo"
+          "done": "Hotovo",
+          "home_profile": "Profil bydlení · Galerie šablon",
+          "archive_settings": "Archiv a uchovávání",
+          "member_avatars": "Avatary členů",
+          "battery_lifetimes": "Typická životnost baterií"
         }
       },
       "advanced_features": {
@@ -543,7 +547,8 @@
           "advanced_budget_visible": "Sledování rozpočtu",
           "advanced_groups_visible": "Skupiny",
           "advanced_checklists_visible": "Kontrolní seznamy",
-          "advanced_schedule_time_visible": "Harmonogram s denní dobou"
+          "advanced_schedule_time_visible": "Harmonogram s denní dobou",
+          "advanced_completion_actions_visible": "Akce při dokončení"
         },
         "data_description": {
           "advanced_adaptive_visible": "Zobrazit EWA, analýzu Weibulla a návrhy intervalů pro úkoly.",
@@ -553,7 +558,8 @@
           "advanced_budget_visible": "Zobrazit sledování měsíčního/ročního rozpočtu a upozornění.",
           "advanced_groups_visible": "Zobrazit správu skupin údržby.",
           "advanced_checklists_visible": "Zobrazit kontrolní seznamy úkolů pro postupné dokončení.",
-          "advanced_schedule_time_visible": "Povolit, aby úkoly byly po termínu v určitou denní dobu místo o půlnoci."
+          "advanced_schedule_time_visible": "Povolit, aby úkoly byly po termínu v určitou denní dobu místo o půlnoci.",
+          "advanced_completion_actions_visible": "Akce HA na úlohu při dokončení + QR rychlého dokončení s předvolenými hodnotami."
         }
       },
       "panel_access": {
@@ -582,7 +588,12 @@
           "battery_auto_record_recovery": "Automaticky zaznamenat výměnu, když se slabá baterie zotaví",
           "panel_title": "Název panelu v postranním panelu",
           "shopping_list_entity": "Nákupní seznam pro synchronizaci nákupních úkolů",
-          "part_search_url_template": "Odkaz pro vyhledávání nákupu"
+          "part_search_url_template": "Odkaz pro vyhledávání nákupu",
+          "default_consumable_threshold": "Práh „spotřební materiál nízký“ (%)",
+          "row_action_style": "Akce v řádcích úkolů",
+          "ref_numbers_in_lists": "Referenční čísla v seznamech",
+          "objects_table_columns": "Sloupce tabulky objektů",
+          "install_assist_sentences": "Nainstalovat věty pro Assist"
         },
         "data_description": {
           "default_warning_days": "Počet dní před termínem úkolu údržby pro zobrazení upozornění.",
@@ -595,7 +606,11 @@
           "battery_auto_record_recovery": "Když stav dříve slabé baterie vystoupí nad práh zotavení, datum výměny se zaznamená v Battery Notes a náhradní články se odečtou ze zásoby — bez klepnutí",
           "panel_title": "Vlastní název pro položku v postranním panelu. Ponechte prázdné pro \"Maintenance\". Užitečné pro odlišení od vestavěného přehledu Maintenance v Home Assistantu.",
           "shopping_list_entity": "Automatická upozornění na nákup docházejících dílů se objeví v tomto seznamu úkolů; odškrtnutí dokončí upozornění a doplní zásobu. Ponechte prázdné pro vypnutí.",
-          "part_search_url_template": "URL s {q} místo hledaných výrazů, pro díly bez odkazu na produkt. Ponechte prázdné pro automatický obchod (podle země, jinak podle jazyka)."
+          "part_search_url_template": "URL s {q} místo hledaných výrazů, pro díly bez odkazu na produkt. Ponechte prázdné pro automatický obchod (podle země, jinak podle jazyka).",
+          "default_consumable_threshold": "Výchozí hodnoty pro nová Navrhovaná nastavení (zbývající procenta) a pro baterie flotily bez vlastního prahu Battery Notes. Stávající úkoly si ponechají svou hodnotu.",
+          "ref_numbers_in_lists": "Zobrazí štítky #8 / #8.3 před názvy objektů a úkolů v seznamu Dnes, tabulce úkolů, kartách objektů a tabulce objektů.",
+          "objects_table_columns": "Vyberte, které sloupce se zobrazí v tabulkovém zobrazení objektů.",
+          "install_assist_sentences": "Zkopíruje hlasové věty do vaší konfigurace, aby je klasický agent Assist rozpoznal. Soubor, který jste upravili, nebude nikdy přepsán."
         }
       },
       "notification_settings": {
@@ -617,7 +632,12 @@
           "notification_title_style": "Styl titulku oznámení",
           "notify_completed": "Oznámení o dokončení",
           "notify_event_only": "Pouze vyvolat událost, nic neodesílat",
-          "notify_extra_data": "Další data oznámení (šablona)"
+          "notify_extra_data": "Další data oznámení (šablona)",
+          "reminder_lead_days": "Další připomenutí (dny před termínem)",
+          "notify_scope_view_id": "Upozorňovat jen pro zobrazení",
+          "weekly_digest_enabled": "Týdenní přehled",
+          "warranty_reminder_enabled": "Připomenutí konce záruky",
+          "warranty_reminder_days": "Dny před vypršením"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Jak často opakovat připomenutí „brzy splatné“. Nastavte 0 pro jednorázové oznámení.",
@@ -630,7 +650,11 @@
           "notification_title_style": "Co se zobrazuje jako TITULEK oznámení. Výchozí zachovává text podle stavu (např. „Údržba po termínu!“). Název objektu / úkolu pomáhá, když telefon stohuje oznámení.",
           "notify_completed": "Zpráva pro domácnost, když je úkol dokončen, s důvodem (panel, sken QR/NFC, seznam úkolů, hlas, zotavení senzoru…). „Jen automatická“ hlásí pouze dokončení, která nikdo neudělal na místě: zotavení senzoru, odškrtnutí v nákupním seznamu, volání služby automatizací.",
           "notify_event_only": "Každé oznámení vyvolá událost maintenance_supporter_notification. S touto volbou celé doručení zajišťuje vaše automatizace — intervaly opakování, tiché hodiny a denní limit stále rozhodují, kdy událost přijde.",
-          "notify_extra_data": "JSON nebo YAML s Jinja, sloučí se do data každého volání notify (vaše klíče mají přednost). Proměnné: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
+          "notify_extra_data": "JSON nebo YAML s Jinja, sloučí se do data každého volání notify (vaše klíče mají přednost). Proměnné: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
+          "reminder_lead_days": "Předstihy oddělené čárkami, např. 14, 3, 0 — v každý odpovídající den se odešle další připomenutí. Prázdné = vypnuto.",
+          "notify_scope_view_id": "Připomenutí posílají jen úkoly odpovídající filtrům štítku/uživatele zvoleného zobrazení. Stav, řazení a seskupení zobrazení se zde ignorují.",
+          "weekly_digest_enabled": "Jedno souhrnné oznámení v pondělí ráno, když jsou úkoly.",
+          "warranty_reminder_enabled": "Upozornit jednou, když do vypršení záruky objektu zbývá tolik dní."
         }
       },
       "notification_actions": {
@@ -1191,6 +1215,44 @@
           "phases_text": "Jeden krok na řádek, v pořadí cyklu. \"Název: bod; bod\" nastaví checklist fáze. Díly a povinná pole fáze se upravují v panelu a zde zůstávají zachovány.",
           "go_back": "Návrat k akcím úkolu bez uložení."
         }
+      },
+      "home_profile": {
+        "title": "Profil bydlení",
+        "description": "Doporučuje šablony a nastavuje sezónní okna podle vašeho klimatu a polokoule. Vše se určuje lokálně z vašich podlaží, oblastí a polohy domova.\n\n**Rozpoznáno:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "Typ bydlení",
+          "disabled_template_ids": "Skryté šablony"
+        },
+        "data_description": {
+          "disabled_template_ids": "Zde vybrané šablony se už nezobrazí ve výběru „Ze šablony“ (panel i průvodce nastavením). Nic jiného se nemění."
+        }
+      },
+      "archive_settings": {
+        "title": "Archiv a uchovávání",
+        "description": "Odkládejte dokončené jednorázové úkoly bez mazání. Archivované položky jsou skryté a neaktivní, ale zachovávají historii a náklady.",
+        "data": {
+          "archive_oneoff_days": "Automaticky archivovat dokončené jednorázové úkoly po (dny, 0 = vypnuto)",
+          "delete_archived_oneoff_days": "Automaticky mazat archivované jednorázové úkoly po (dny, 0 = nikdy)"
+        }
+      },
+      "member_avatars": {
+        "title": "Avatary členů",
+        "description": "Zobrazuje se u přiřazených úkolů — iniciály v barvě člena. Výchozí hodnota vychází ze jména; nastavte vlastní iniciály nebo vyberte barvu pro rozlišení členů.",
+        "data": {
+          "member": "Člen domácnosti"
+        }
+      },
+      "member_avatar": {
+        "title": "Avatary členů",
+        "description": "{member}: ponechte iniciály prázdné a barvu na Automaticky, aby platilo výchozí nastavení ({initials}).",
+        "data": {
+          "initials": "Iniciály",
+          "color": "Barva"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "Typická životnost baterií",
+        "description": "Použije se jen u baterií bez procent: poznámka Battery Notes jen s typem a datem výměny nebo senzor hlásící pouze „slabá“. Splatnost = poslední výměna + tato životnost. Baterie hlásící úroveň mají prognózu z naměřeného vybíjení. Po třech výměnách daného typu nahradí medián intervalů vestavěnou hodnotu — vaše hodnota má vždy přednost.\n\nVestavěné hodnoty (měsíce): {defaults}"
       }
     },
     "error": {
@@ -1211,7 +1273,8 @@
       "invalid_shopping_list_entity": "Nákupní seznam musí být entita seznamu úkolů (todo.…).",
       "invalid_search_template": "Odkaz pro vyhledávání musí být URL http(s) obsahující {q}.",
       "invalid_schedule": "Rozvrh je neúplný — vyberte alespoň jeden den v týdnu (nebo kalendář u úkolu řízeného kalendářem).",
-      "invalid_delta_target": "Při počítání přírůstku (režim delta) musí být cílová hodnota větší než 0."
+      "invalid_delta_target": "Při počítání přírůstku (režim delta) musí být cílová hodnota větší než 0.",
+      "invalid_reminder_lead_days": "Zadejte celé dny od 0 do 365 oddělené čárkami (např. 14, 3, 0)."
     },
     "abort": {
       "entity_unavailable": "Vybraná entita teď není dostupná. Zkuste to znovu, až bude hlásit stav."
@@ -1605,6 +1668,53 @@
         "default": "Výchozí (titulek podle stavu)",
         "object_name": "Název objektu jako titulek",
         "task_name": "Název úkolu jako titulek"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "Tlačítka (na telefonu jen ikony)",
+        "buttons": "Tlačítka s textem",
+        "icons": "Ikony (klasické)"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "Název",
+        "ref_no": "Referenční číslo",
+        "manufacturer": "Výrobce",
+        "model": "Model",
+        "serial_number": "S/N",
+        "installation_date": "Nainstalováno",
+        "warranty_expiry": "Záruka",
+        "area_id": "Oblast",
+        "documentation_url": "Návod",
+        "notes": "Poznámky",
+        "task_count": "Úkoly",
+        "actions": "Akce"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "Automaticky (rozpoznáno)",
+        "house": "Dům",
+        "apartment": "Byt"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "Automaticky",
+        "red": "Červená",
+        "pink": "Růžová",
+        "purple": "Fialová",
+        "deep_purple": "Tmavě fialová",
+        "indigo": "Indigová",
+        "blue": "Modrá",
+        "cyan": "Azurová",
+        "green": "Zelená",
+        "light_green": "Světle zelená",
+        "orange": "Oranžová",
+        "brown": "Hnědá",
+        "blue_grey": "Modrošedá"
       }
     }
   },

@@ -12,7 +12,7 @@
       },
       "create_from_template": {
         "title": "Selecionar Categoria de Modelo",
-        "description": "Escolha uma categoria para navegar nos modelos de manutenção predefinidos.",
+        "description": "Escolha uma categoria para navegar nos modelos de manutenção predefinidos. ★ n = modelos desta categoria adequados à sua casa (painel: Definições → Perfil da habitação).",
         "data": {
           "template_category": "Categoria",
           "go_back": "Voltar"
@@ -23,7 +23,7 @@
       },
       "template_select": {
         "title": "Selecionar Modelo",
-        "description": "Escolha um modelo de manutenção para usar como ponto de partida.",
+        "description": "Escolha um modelo de manutenção para usar como ponto de partida. ★ recomendado para a sua casa · ✓ já configurado.",
         "data": {
           "template_id": "Modelo",
           "go_back": "Voltar"
@@ -529,7 +529,11 @@
           "notification_settings": "Definições de Notificação",
           "notification_actions": "Ações Interativas",
           "test_notification": "Enviar Notificação de Teste",
-          "done": "Concluído"
+          "done": "Concluído",
+          "home_profile": "Perfil da habitação · Galeria de modelos",
+          "archive_settings": "Arquivo e retenção",
+          "member_avatars": "Avatares dos membros",
+          "battery_lifetimes": "Durações típicas das pilhas"
         }
       },
       "advanced_features": {
@@ -543,7 +547,8 @@
           "advanced_budget_visible": "Acompanhamento de Orçamento",
           "advanced_groups_visible": "Grupos",
           "advanced_checklists_visible": "Listas de Verificação",
-          "advanced_schedule_time_visible": "Agendamento por hora"
+          "advanced_schedule_time_visible": "Agendamento por hora",
+          "advanced_completion_actions_visible": "Ações de conclusão"
         },
         "data_description": {
           "advanced_adaptive_visible": "Mostrar análise EWA, Weibull e sugestões de intervalo para tarefas.",
@@ -553,7 +558,8 @@
           "advanced_budget_visible": "Mostrar acompanhamento de orçamento mensal/anual e alertas.",
           "advanced_groups_visible": "Mostrar gestão de grupos de manutenção.",
           "advanced_checklists_visible": "Mostrar listas de verificação de tarefas para conclusão passo a passo.",
-          "advanced_schedule_time_visible": "Permite que tarefas vençam num horário específico em vez de meia-noite."
+          "advanced_schedule_time_visible": "Permite que tarefas vençam num horário específico em vez de meia-noite.",
+          "advanced_completion_actions_visible": "Ação HA por tarefa ao concluir + QR de conclusão rápida com valores predefinidos."
         }
       },
       "panel_access": {
@@ -582,7 +588,12 @@
           "battery_auto_record_recovery": "Registar automaticamente uma substituição quando uma pilha fraca recupera",
           "panel_title": "Título do painel lateral",
           "shopping_list_entity": "Lista de compras para sincronizar as tarefas de compra",
-          "part_search_url_template": "Ligação de pesquisa de compra"
+          "part_search_url_template": "Ligação de pesquisa de compra",
+          "default_consumable_threshold": "Limiar „consumível baixo“ (%)",
+          "row_action_style": "Ações nas linhas de tarefas",
+          "ref_numbers_in_lists": "Números de referência nas listas",
+          "objects_table_columns": "Colunas da tabela de objetos",
+          "install_assist_sentences": "Instalar frases do Assist"
         },
         "data_description": {
           "default_warning_days": "Número de dias antes do vencimento de uma tarefa de manutenção para mostrar um aviso.",
@@ -595,7 +606,11 @@
           "battery_auto_record_recovery": "Quando uma pilha que estava fraca sobe acima do limiar de recuperação, a data de substituição é registada no Battery Notes e as pilhas sobressalentes são retiradas do stock — sem qualquer toque",
           "panel_title": "Nome personalizado para a entrada da barra lateral. Deixe em branco para usar \"Maintenance\". Útil para evitar conflitos com o painel de Manutenção integrado do Home Assistant.",
           "shopping_list_entity": "Os lembretes automáticos de compra de peças em falta aparecem nesta lista de tarefas; marcar um conclui o lembrete e repõe a peça. Deixar vazio para desativar.",
-          "part_search_url_template": "URL com {q} no lugar dos termos de pesquisa, usada para peças sem ligação de produto. Deixar vazio para a loja automática (por país, senão por idioma)."
+          "part_search_url_template": "URL com {q} no lugar dos termos de pesquisa, usada para peças sem ligação de produto. Deixar vazio para a loja automática (por país, senão por idioma).",
+          "default_consumable_threshold": "Predefinições para novas Configurações sugeridas (percentagem restante) e para pilhas da frota sem limiar Battery Notes próprio. As tarefas existentes mantêm o seu valor.",
+          "ref_numbers_in_lists": "Mostra as etiquetas #8 / #8.3 antes dos nomes de objetos e tarefas na lista Hoje, na tabela de tarefas, nos cartões de objetos e na tabela de objetos.",
+          "objects_table_columns": "Escolha que colunas aparecem na vista de tabela de objetos.",
+          "install_assist_sentences": "Copia as frases de voz para a sua configuração para que o agente Assist clássico as reconheça. Um ficheiro que editou nunca é substituído."
         }
       },
       "notification_settings": {
@@ -617,7 +632,12 @@
           "notification_title_style": "Estilo do título da notificação",
           "notify_completed": "Notificações de conclusão",
           "notify_event_only": "Disparar apenas o evento, não enviar nada",
-          "notify_extra_data": "Dados de notificação adicionais (modelo)"
+          "notify_extra_data": "Dados de notificação adicionais (modelo)",
+          "reminder_lead_days": "Lembretes adicionais (dias antes do vencimento)",
+          "notify_scope_view_id": "Notificar apenas para a vista",
+          "weekly_digest_enabled": "Resumo semanal",
+          "warranty_reminder_enabled": "Lembrete de fim da garantia",
+          "warranty_reminder_days": "Dias antes do fim"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Com que frequência repetir o lembrete de próximo do vencimento. Defina como 0 para uma única notificação.",
@@ -630,7 +650,11 @@
           "notification_title_style": "O que aparece como TÍTULO da notificação. Padrão mantém o texto por status (ex. 'Manutenção atrasada!'). Nome do objeto / tarefa ajuda quando o telefone empilha notificações.",
           "notify_completed": "Aviso para a casa quando uma tarefa é concluída, com o motivo (painel, leitura QR/NFC, lista de tarefas, voz, recuperação do sensor…). \"Só automáticas\" anuncia apenas as conclusões que ninguém fez no local: recuperação do sensor, item marcado na lista de compras, chamada de serviço de uma automação.",
           "notify_event_only": "Cada notificação dispara o evento maintenance_supporter_notification. Com esta opção a sua automação trata de toda a entrega — intervalos de repetição, horas de silêncio e limite diário continuam a decidir quando o evento dispara.",
-          "notify_extra_data": "JSON ou YAML com Jinja, fundido nos data de cada chamada notify (as suas chaves prevalecem). Variáveis: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
+          "notify_extra_data": "JSON ou YAML com Jinja, fundido nos data de cada chamada notify (as suas chaves prevalecem). Variáveis: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
+          "reminder_lead_days": "Antecedências separadas por vírgulas, p. ex. 14, 3, 0 — um lembrete adicional é enviado em cada dia correspondente. Vazio = desativado.",
+          "notify_scope_view_id": "Apenas as tarefas que correspondem aos filtros de etiqueta/utilizador da vista escolhida enviam lembretes. O estado, a ordenação e o agrupamento da vista são ignorados aqui.",
+          "weekly_digest_enabled": "Uma notificação de resumo na segunda de manhã quando há tarefas.",
+          "warranty_reminder_enabled": "Notificar uma vez quando faltarem estes dias para a garantia de um objeto expirar."
         }
       },
       "notification_actions": {
@@ -1191,6 +1215,44 @@
           "phases_text": "Um passo por linha, na ordem do ciclo. \"Nome: item; item\" define a lista dessa fase. Peças e campos obrigatórios por fase são geridos no painel e mantêm-se aqui.",
           "go_back": "Regressar às ações da tarefa sem guardar."
         }
+      },
+      "home_profile": {
+        "title": "Perfil da habitação",
+        "description": "Recomenda modelos e define janelas sazonais de acordo com o seu clima e hemisfério. Tudo é determinado localmente a partir dos seus pisos, áreas e localização da casa.\n\n**Detetado:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "Tipo de habitação",
+          "disabled_template_ids": "Modelos ocultos"
+        },
+        "data_description": {
+          "disabled_template_ids": "Os modelos escolhidos aqui deixam de aparecer na seleção «A partir de modelo» (painel e assistente de configuração). Nada mais muda."
+        }
+      },
+      "archive_settings": {
+        "title": "Arquivo e retenção",
+        "description": "Retire tarefas únicas concluídas sem as eliminar. Os itens arquivados ficam ocultos e inativos, mas mantêm histórico e custos.",
+        "data": {
+          "archive_oneoff_days": "Arquivar automaticamente tarefas únicas concluídas após (dias, 0 = desligado)",
+          "delete_archived_oneoff_days": "Eliminar automaticamente tarefas únicas arquivadas após (dias, 0 = nunca)"
+        }
+      },
+      "member_avatars": {
+        "title": "Avatares dos membros",
+        "description": "Mostrado junto às tarefas atribuídas — iniciais na cor do membro. Por defeito vêm do nome; defina iniciais próprias ou escolha uma cor para distinguir os membros.",
+        "data": {
+          "member": "Membro do agregado"
+        }
+      },
+      "member_avatar": {
+        "title": "Avatares dos membros",
+        "description": "{member}: deixe as iniciais vazias e a cor em Automático para usar a predefinição ({initials}).",
+        "data": {
+          "initials": "Iniciais",
+          "color": "Cor"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "Durações típicas das pilhas",
+        "description": "Usado apenas para pilhas sem percentagem: uma nota do Battery Notes só com tipo e data de substituição, ou um sensor que apenas reporta « fraca ». O vencimento é última substituição + esta duração. Pilhas que reportam nível obtêm a previsão da descarga medida. Após três substituições de um tipo, o intervalo mediano substitui o valor integrado — o seu valor ganha sempre.\n\nValores integrados (meses): {defaults}"
       }
     },
     "error": {
@@ -1211,7 +1273,8 @@
       "invalid_shopping_list_entity": "A lista de compras tem de ser uma entidade de tarefas (todo.…).",
       "invalid_search_template": "A ligação de pesquisa tem de ser um URL http(s) com {q}.",
       "invalid_schedule": "O agendamento está incompleto — escolha pelo menos um dia da semana (ou um calendário para uma tarefa orientada por calendário).",
-      "invalid_delta_target": "Ao contar a utilização acumulada (modo delta), o valor alvo tem de ser maior que 0."
+      "invalid_delta_target": "Ao contar a utilização acumulada (modo delta), o valor alvo tem de ser maior que 0.",
+      "invalid_reminder_lead_days": "Introduza dias inteiros entre 0 e 365, separados por vírgulas (p. ex. 14, 3, 0)."
     },
     "abort": {
       "entity_unavailable": "A entidade selecionada não está disponível neste momento. Tente novamente quando comunicar um estado."
@@ -1605,6 +1668,53 @@
         "default": "Padrão (título por status)",
         "object_name": "Nome do objeto como título",
         "task_name": "Nome da tarefa como título"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "Botões (só ícones no telemóvel)",
+        "buttons": "Botões com texto",
+        "icons": "Ícones (clássico)"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "Nome",
+        "ref_no": "Número de referência",
+        "manufacturer": "Fabricante",
+        "model": "Modelo",
+        "serial_number": "N/S",
+        "installation_date": "Instalado",
+        "warranty_expiry": "Garantia",
+        "area_id": "Área",
+        "documentation_url": "Manual",
+        "notes": "Notas",
+        "task_count": "Tarefas",
+        "actions": "Ações"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "Automático (detetado)",
+        "house": "Moradia",
+        "apartment": "Apartamento"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "Automático",
+        "red": "Vermelho",
+        "pink": "Rosa",
+        "purple": "Roxo",
+        "deep_purple": "Roxo escuro",
+        "indigo": "Índigo",
+        "blue": "Azul",
+        "cyan": "Ciano",
+        "green": "Verde",
+        "light_green": "Verde-claro",
+        "orange": "Laranja",
+        "brown": "Castanho",
+        "blue_grey": "Cinzento-azulado"
       }
     }
   },

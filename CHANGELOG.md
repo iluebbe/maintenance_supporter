@@ -2,6 +2,38 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Every setting in the Configure dialog too:** eighteen settings could only be changed in the panel. Home
+  Assistant's own settings dialog (Devices & services → Maintenance Supporter → Configure) now has them all:
+  *General settings* gains the consumable low threshold, the task row actions, reference numbers in lists, the
+  objects-table columns and *Install Assist sentences*; *Advanced features* gains completion actions; new pages
+  *Home profile · Template gallery* (house or apartment with what was detected, hidden templates), *Archive &
+  retention*, *Member avatars* and *Typical battery lifetimes*; *Notification settings* gains the extra reminders,
+  *Notify only for view*, the weekly digest and the warranty reminder. Both places save through the same checks,
+  and a test now fails the build when a setting reaches only one of them.
+- **"Already set up" in the template gallery:** a template your home already uses is marked and no longer
+  recommended. New objects remember the template they came from; older ones are recognised by their name or by
+  their tasks in any language.
+
+### ✨ Changed
+
+- **The template step of the setup dialog knows your home:** ★ marks the templates recommended for it and lists
+  them first (with the number per category), ✓ marks those already set up, templates your home type rarely has
+  come last — the gallery's judgement. The summary before creating an object names the template and its tasks in
+  your language and lists the tasks this home actually gets (no winter-only tasks without a winter).
+
+### 🐛 Fixed
+
+- **Phone width:** the collapsed *Document storage* header let its size slide under the refresh button, the
+  budget card's two amount fields were wider than a phone screen, the overview tabs ran past the edge of a
+  360 px screen, and in Settings the *Task row actions* choice pushed its row off the screen in German, Ukrainian
+  and Hungarian (a dropdown is as wide as its longest option). Section cards and every panel tab are now measured
+  at phone width in the tests, and the live overflow check also covers 360 px and content that overlaps inside a
+  card.
+
 ## [2.93.0] - 2026-09-27
 
 ### ✨ Added

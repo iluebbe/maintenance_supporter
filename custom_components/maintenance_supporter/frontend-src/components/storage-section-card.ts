@@ -319,16 +319,21 @@ export class MaintenanceStorageSectionCard extends LitElement {
     .result-open { color: var(--secondary-text-color, #888); --mdc-icon-size: 18px; flex: none; }
     .search-empty { color: var(--secondary-text-color, #888); font-size: 13px; padding: 8px 2px; }
     .header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    /* Phone width (2026-09-27): the size moves to a line of its own before
+       it could slide under the refresh button; only the title shortens. */
     .toggle {
-      display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; flex: 1; min-width: 0;
       background: none; border: none; padding: 4px 0; margin: 0; cursor: pointer;
       font: inherit; color: var(--primary-text-color); text-align: left;
     }
     .toggle:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; border-radius: 6px; }
     .chevron { --mdc-icon-size: 22px; color: var(--secondary-text-color, #888); flex: none; }
-    .title-text { font-size: 16px; font-weight: 500; }
+    .title-text {
+      font-size: 16px; font-weight: 500; min-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
     .header-summary {
-      margin-left: auto; display: flex; align-items: center; gap: 8px;
+      margin-left: auto; display: flex; align-items: center; gap: 8px; flex: none;
       font-size: 14px; font-weight: 600; white-space: nowrap;
     }
     .header-summary .saved { color: var(--success-color, #4caf50); font-weight: 500; }

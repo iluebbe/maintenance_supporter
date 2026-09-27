@@ -26,12 +26,15 @@ from .const import (
     CONF_ADVANCED_ADAPTIVE,
     CONF_ADVANCED_BUDGET,
     CONF_ADVANCED_CHECKLISTS,
+    CONF_ADVANCED_COMPLETION_ACTIONS,
     CONF_ADVANCED_ENVIRONMENTAL,
     CONF_ADVANCED_GROUPS,
     CONF_ADVANCED_PREDICTIONS,
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
+    CONF_ARCHIVE_ONEOFF_DAYS,
     CONF_BATTERY_AUTO_RECORD_RECOVERY,
+    CONF_BATTERY_LIFETIME_MONTHS,
     CONF_BATTERY_LOW_PERCENT,
     CONF_BATTERY_RECOVERED_PERCENT,
     CONF_BUDGET_ALERT_THRESHOLD,
@@ -40,8 +43,14 @@ from .const import (
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
     CONF_CURRENCY_DECIMALS,
+    CONF_DEFAULT_CONSUMABLE_THRESHOLD,
     CONF_DEFAULT_WARNING_DAYS,
+    CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
+    CONF_DISABLED_TEMPLATE_IDS,
+    CONF_HOME_TYPE,
+    CONF_INSTALL_ASSIST_SENTENCES,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
+    CONF_MEMBER_DISPLAY,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
     CONF_NOTIFICATION_TITLE_STYLE,
@@ -53,9 +62,11 @@ from .const import (
     CONF_NOTIFY_EXTRA_DATA,
     CONF_NOTIFY_OVERDUE_ENABLED,
     CONF_NOTIFY_OVERDUE_INTERVAL,
+    CONF_NOTIFY_SCOPE_VIEW_ID,
     CONF_NOTIFY_SERVICE,
     CONF_NOTIFY_TRIGGERED_ENABLED,
     CONF_NOTIFY_TRIGGERED_INTERVAL,
+    CONF_OBJECTS_TABLE_COLUMNS,
     CONF_OPERATOR_WRITE_ENABLED,
     CONF_PANEL_ENABLED,
     CONF_PANEL_TITLE,
@@ -63,12 +74,22 @@ from .const import (
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
+    CONF_REF_NUMBERS_IN_LISTS,
+    CONF_REMINDER_LEAD_DAYS,
+    CONF_ROW_ACTION_STYLE,
     CONF_SHOPPING_LIST_ENTITY,
     CONF_SNOOZE_DURATION_HOURS,
+    CONF_WARRANTY_REMINDER_DAYS,
+    CONF_WARRANTY_REMINDER_ENABLED,
+    CONF_WEEKLY_DIGEST_ENABLED,
     DEFAULT_BUDGET_CURRENCY,
+    HOME_TYPES,
+    KNOWN_OBJECT_TABLE_COLUMNS,
     MAX_NOTIFY_EXTRA_DATA_LENGTH,
     MAX_PANEL_TITLE_LENGTH,
+    MAX_REMINDER_LEADS,
     NOTIFY_COMPLETED_MODES,
+    ROW_ACTION_STYLES,
     TIME_HHMMSS_PATTERN,
 )
 from .helpers.dates import normalize_hhmm
@@ -98,6 +119,8 @@ _BUDGET_MONTHLY_MIN, _BUDGET_MONTHLY_MAX = float_range(CONF_BUDGET_MONTHLY)
 _BUDGET_YEARLY_MIN, _BUDGET_YEARLY_MAX = float_range(CONF_BUDGET_YEARLY)
 
 _VALID_SERVICE_PART = re.compile(r"^[a-z0-9_]+$")
+# The notification scope's "every task" choice (a select option can't be "").
+_SCOPE_ALL = "__all__"
 # v1.4.6: HH:MM or HH:MM:SS, 0–23 hours, 0–59 minutes/seconds. Shared with the
 # WS handler via const.TIME_HHMMSS_PATTERN so the two can't diverge.
 _VALID_TIME_PATTERN = TIME_HHMMSS_PATTERN
@@ -320,6 +343,153 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
 }
 
 
+# 2.94: labels the options flow builds at runtime (the detected dwelling in the
+# home-profile step, the "all tasks" choice of the notification scope) — the
+# static texts live in strings.json like every other step.
+_SETTINGS_STRINGS: dict[str, dict[str, str]] = {
+    "en": {
+        "dwelling_house": "house",
+        "dwelling_apartment": "apartment",
+        "dwelling_unknown": "not sure yet",
+        "scope_all": "All tasks",
+    },
+    "de": {
+        "dwelling_house": "Haus",
+        "dwelling_apartment": "Wohnung",
+        "dwelling_unknown": "noch unklar",
+        "scope_all": "Alle Aufgaben",
+    },
+    "cs": {
+        "dwelling_house": "dům",
+        "dwelling_apartment": "byt",
+        "dwelling_unknown": "zatím nejasné",
+        "scope_all": "Všechny úkoly",
+    },
+    "da": {
+        "dwelling_house": "hus",
+        "dwelling_apartment": "lejlighed",
+        "dwelling_unknown": "endnu uklart",
+        "scope_all": "Alle opgaver",
+    },
+    "es": {
+        "dwelling_house": "casa",
+        "dwelling_apartment": "piso",
+        "dwelling_unknown": "aún sin determinar",
+        "scope_all": "Todas las tareas",
+    },
+    "fi": {
+        "dwelling_house": "talo",
+        "dwelling_apartment": "kerrostaloasunto",
+        "dwelling_unknown": "vielä epäselvä",
+        "scope_all": "Kaikki tehtävät",
+    },
+    "fr": {
+        "dwelling_house": "maison",
+        "dwelling_apartment": "appartement",
+        "dwelling_unknown": "pas encore déterminé",
+        "scope_all": "Toutes les tâches",
+    },
+    "hi": {"dwelling_house": "मकान", "dwelling_apartment": "फ़्लैट", "dwelling_unknown": "अभी तय नहीं", "scope_all": "सभी कार्य"},
+    "hu": {
+        "dwelling_house": "ház",
+        "dwelling_apartment": "lakás",
+        "dwelling_unknown": "még nem egyértelmű",
+        "scope_all": "Minden feladat",
+    },
+    "it": {
+        "dwelling_house": "casa",
+        "dwelling_apartment": "appartamento",
+        "dwelling_unknown": "non ancora chiaro",
+        "scope_all": "Tutte le attività",
+    },
+    "ja": {
+        "dwelling_house": "一戸建て",
+        "dwelling_apartment": "集合住宅",
+        "dwelling_unknown": "まだ不明",
+        "scope_all": "すべてのタスク",
+    },
+    "ko": {
+        "dwelling_house": "단독주택",
+        "dwelling_apartment": "아파트",
+        "dwelling_unknown": "아직 불확실",
+        "scope_all": "모든 작업",
+    },
+    "nb": {
+        "dwelling_house": "hus",
+        "dwelling_apartment": "leilighet",
+        "dwelling_unknown": "ennå uklart",
+        "scope_all": "Alle oppgaver",
+    },
+    "nl": {
+        "dwelling_house": "huis",
+        "dwelling_apartment": "appartement",
+        "dwelling_unknown": "nog onduidelijk",
+        "scope_all": "Alle taken",
+    },
+    "pl": {
+        "dwelling_house": "dom",
+        "dwelling_apartment": "mieszkanie",
+        "dwelling_unknown": "jeszcze niejasne",
+        "scope_all": "Wszystkie zadania",
+    },
+    "pt": {
+        "dwelling_house": "moradia",
+        "dwelling_apartment": "apartamento",
+        "dwelling_unknown": "ainda por determinar",
+        "scope_all": "Todas as tarefas",
+    },
+    "pt-br": {
+        "dwelling_house": "casa",
+        "dwelling_apartment": "apartamento",
+        "dwelling_unknown": "ainda indefinido",
+        "scope_all": "Todas as tarefas",
+    },
+    "ru": {
+        "dwelling_house": "дом",
+        "dwelling_apartment": "квартира",
+        "dwelling_unknown": "пока неясно",
+        "scope_all": "Все задачи",
+    },
+    "sv": {
+        "dwelling_house": "hus",
+        "dwelling_apartment": "lägenhet",
+        "dwelling_unknown": "ännu oklart",
+        "scope_all": "Alla uppgifter",
+    },
+    "tr": {
+        "dwelling_house": "müstakil ev",
+        "dwelling_apartment": "daire",
+        "dwelling_unknown": "henüz belirsiz",
+        "scope_all": "Tüm görevler",
+    },
+    "uk": {
+        "dwelling_house": "будинок",
+        "dwelling_apartment": "квартира",
+        "dwelling_unknown": "поки неясно",
+        "scope_all": "Усі завдання",
+    },
+    "zh": {"dwelling_house": "独栋住宅", "dwelling_apartment": "公寓", "dwelling_unknown": "尚不确定", "scope_all": "所有任务"},
+}
+
+
+def _settings_text(hass: HomeAssistant, key: str) -> str:
+    return _SETTINGS_STRINGS.get(normalize_language(hass), _SETTINGS_STRINGS["en"])[key]
+
+
+def parse_lead_days(raw: Any) -> list[int] | None:
+    """``"14, 3, 0"`` → ``[14, 3, 0]`` (days before due, 0–365); None when a
+    piece is not such a number. Blank = no extra reminders."""
+    leads: list[int] = []
+    for piece in str(raw or "").replace(";", ",").split(","):
+        piece = piece.strip()
+        if not piece:
+            continue
+        if not piece.isdigit() or int(piece) > 365:
+            return None
+        leads.append(int(piece))
+    return leads[: MAX_REMINDER_LEADS * 2]
+
+
 def _get_test_result_text(hass: HomeAssistant, key: str) -> str:
     """Get localized test notification result text."""
     lang = normalize_language(hass)
@@ -447,6 +617,16 @@ class GlobalOptionsFlow(OptionsFlow):
                     user_input.pop(key)
                 else:
                     user_input[key] = normalized
+        # 2.94: the one sanitiser the panel's writes go through (lists, maps,
+        # enums, ranges) — the flow now edits every setting the panel does,
+        # and the two write paths must not drift. The steps validated the
+        # notify service / shopping list / search template themselves; a
+        # value the sanitiser drops is not saved.
+        from .websocket.dashboard import sanitize_settings_input
+
+        registered = {k: v for k, v in user_input.items() if k in ALLOWED_SETTING_KEYS}
+        cleaned, _error = sanitize_settings_input(registered)
+        user_input = {**{k: v for k, v in user_input.items() if k not in ALLOWED_SETTING_KEYS}, **cleaned}
         merged.update(user_input)
         self.hass.config_entries.async_update_entry(self.config_entry, options=merged)
         return self.async_show_menu(
@@ -457,7 +637,17 @@ class GlobalOptionsFlow(OptionsFlow):
     def _menu_options(self) -> list[str]:
         """Build dynamic menu options."""
         current = self._current
-        options = ["general_settings", "advanced_features", "panel_access"]
+        # 2.94: every setting the panel edits has a home here too
+        # (tests/test_global_settings_parity.py).
+        options = [
+            "general_settings",
+            "advanced_features",
+            "panel_access",
+            "home_profile",
+            "archive_settings",
+            "member_avatars",
+            "battery_lifetimes",
+        ]
         if current.get(CONF_ADVANCED_BUDGET, False):
             options.append("budget_settings")
         if current.get(CONF_ADVANCED_GROUPS, False):
@@ -537,6 +727,10 @@ class GlobalOptionsFlow(OptionsFlow):
                     vol.Optional(
                         CONF_ADVANCED_SCHEDULE_TIME,
                         default=self._opt(CONF_ADVANCED_SCHEDULE_TIME),
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_ADVANCED_COMPLETION_ACTIONS,
+                        default=self._opt(CONF_ADVANCED_COMPLETION_ACTIONS),
                     ): selector.BooleanSelector(),
                 }
             ),
@@ -639,6 +833,15 @@ class GlobalOptionsFlow(OptionsFlow):
                 errors[CONF_PART_SEARCH_URL_TEMPLATE] = "invalid_search_template"
             user_input[CONF_PART_SEARCH_URL_TEMPLATE] = raw_tpl
 
+            # The panel reorders columns; a checkbox list cannot. Keep the
+            # saved order for the columns still ticked, append new ones.
+            if CONF_OBJECTS_TABLE_COLUMNS in user_input:
+                picked = list(user_input[CONF_OBJECTS_TABLE_COLUMNS] or [])
+                kept = [c for c in self._opt(CONF_OBJECTS_TABLE_COLUMNS) if c in picked]
+                columns = kept + [c for c in picked if c not in kept]
+                # The name column is not optional (the panel greys it out).
+                user_input[CONF_OBJECTS_TABLE_COLUMNS] = columns if "name" in columns else ["name", *columns]
+
             if not errors:
                 return self._save_and_return(user_input)
 
@@ -716,6 +919,50 @@ class GlobalOptionsFlow(OptionsFlow):
                         CONF_BATTERY_AUTO_RECORD_RECOVERY,
                         default=self._opt(CONF_BATTERY_AUTO_RECORD_RECOVERY),
                     ): selector.BooleanSelector(),
+                    # #146: the household "low" floor for consumables.
+                    vol.Optional(
+                        CONF_DEFAULT_CONSUMABLE_THRESHOLD,
+                        default=self._opt(CONF_DEFAULT_CONSUMABLE_THRESHOLD),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=int_range(CONF_DEFAULT_CONSUMABLE_THRESHOLD)[0],
+                            max=int_range(CONF_DEFAULT_CONSUMABLE_THRESHOLD)[1],
+                            step=1,
+                            mode=selector.NumberSelectorMode.BOX,
+                            unit_of_measurement="%",
+                        )
+                    ),
+                    # #145 / #170: how task rows look.
+                    vol.Optional(
+                        CONF_ROW_ACTION_STYLE,
+                        default=self._opt(CONF_ROW_ACTION_STYLE),
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=list(ROW_ACTION_STYLES),
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            translation_key="row_action_style",
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_REF_NUMBERS_IN_LISTS,
+                        default=self._opt(CONF_REF_NUMBERS_IN_LISTS),
+                    ): selector.BooleanSelector(),
+                    # #67: the objects table's columns (the panel also orders them).
+                    vol.Optional(
+                        CONF_OBJECTS_TABLE_COLUMNS,
+                        default=select_default(self._opt(CONF_OBJECTS_TABLE_COLUMNS), KNOWN_OBJECT_TABLE_COLUMNS),
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=list(KNOWN_OBJECT_TABLE_COLUMNS),
+                            multiple=True,
+                            mode=selector.SelectSelectorMode.LIST,
+                            translation_key="objects_table_columns",
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_INSTALL_ASSIST_SENTENCES,
+                        default=self._opt(CONF_INSTALL_ASSIST_SENTENCES),
+                    ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_NOTIFICATIONS_ENABLED,
                         default=self._opt(CONF_NOTIFICATIONS_ENABLED),
@@ -762,6 +1009,7 @@ class GlobalOptionsFlow(OptionsFlow):
 
     async def async_step_notification_settings(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Per-status notification toggles, intervals, quiet hours, daily limit."""
+        errors: dict[str, str] = {}
         if user_input is not None:
             # Same cap as the WS settings path (settings registry max_len).
             # The frontend leaves an emptied field OUT of the submission, so
@@ -769,9 +1017,30 @@ class GlobalOptionsFlow(OptionsFlow):
             # otherwise keep the old template (bug audit 2026-09-26).
             extra = user_input.get(CONF_NOTIFY_EXTRA_DATA)
             user_input[CONF_NOTIFY_EXTRA_DATA] = (extra if isinstance(extra, str) else "")[:MAX_NOTIFY_EXTRA_DATA_LENGTH]
-            return self._save_and_return(user_input)
+            # 2.94: extra reminders "14, 3, 0" days before due (absent = none).
+            leads = parse_lead_days(user_input.get(CONF_REMINDER_LEAD_DAYS))
+            if leads is None:
+                errors[CONF_REMINDER_LEAD_DAYS] = "invalid_reminder_lead_days"
+            else:
+                user_input[CONF_REMINDER_LEAD_DAYS] = leads
+            # "" = every task; a saved view narrows the reminders to its tasks.
+            if user_input.get(CONF_NOTIFY_SCOPE_VIEW_ID) == _SCOPE_ALL:
+                user_input[CONF_NOTIFY_SCOPE_VIEW_ID] = ""
+            if not errors:
+                return self._save_and_return(user_input)
 
         current = self._current
+        from .helpers.saved_views import list_saved_views
+
+        scope_options = [selector.SelectOptionDict(value=_SCOPE_ALL, label=_settings_text(self.hass, "scope_all"))]
+        scope_options += [
+            selector.SelectOptionDict(value=str(v["id"]), label=str(v.get("name") or v["id"]))
+            for v in list_saved_views(self.hass)
+            if v.get("id")
+        ]
+        scope = self._opt(CONF_NOTIFY_SCOPE_VIEW_ID) or _SCOPE_ALL
+        if scope not in {o["value"] for o in scope_options}:
+            scope = _SCOPE_ALL  # the view was deleted — the setting falls back to all tasks
 
         return self.async_show_form(
             step_id="notification_settings",
@@ -893,11 +1162,42 @@ class GlobalOptionsFlow(OptionsFlow):
                     vol.Optional(
                         CONF_NOTIFY_EXTRA_DATA,
                         description={"suggested_value": self._opt(CONF_NOTIFY_EXTRA_DATA)},
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiline=True)
+                    ): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiline=True)),
+                    # --- 2.94: the rest of the panel's notification rows ---
+                    vol.Optional(
+                        CONF_REMINDER_LEAD_DAYS,
+                        description={"suggested_value": ", ".join(str(d) for d in self._opt(CONF_REMINDER_LEAD_DAYS))},
+                    ): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
+                    # suggested_value: the "every task" choice is a sentinel,
+                    # not the registry default "" (tests/test_settings_defaults.py).
+                    vol.Optional(
+                        CONF_NOTIFY_SCOPE_VIEW_ID,
+                        description={"suggested_value": scope},
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(options=scope_options, mode=selector.SelectSelectorMode.DROPDOWN)
+                    ),
+                    vol.Optional(
+                        CONF_WEEKLY_DIGEST_ENABLED,
+                        default=self._opt(CONF_WEEKLY_DIGEST_ENABLED),
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_WARRANTY_REMINDER_ENABLED,
+                        default=self._opt(CONF_WARRANTY_REMINDER_ENABLED),
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_WARRANTY_REMINDER_DAYS,
+                        default=self._opt(CONF_WARRANTY_REMINDER_DAYS),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=int_range(CONF_WARRANTY_REMINDER_DAYS)[0],
+                            max=int_range(CONF_WARRANTY_REMINDER_DAYS)[1],
+                            step=1,
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
                     ),
                 }
             ),
+            errors=errors,
         )
 
     # --- Notification Actions ---
@@ -955,6 +1255,203 @@ class GlobalOptionsFlow(OptionsFlow):
             step_id="test_notification",
             data_schema=vol.Schema({}),
             description_placeholders={"result": result_text},
+        )
+
+    # --- Home profile & templates (2.94) ---
+
+    async def async_step_home_profile(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """House or apartment (the recommendations follow it) and the
+        templates hidden from the pickers — the panel's Home profile and
+        Templates sections."""
+        if user_input is not None:
+            user_input.setdefault(CONF_DISABLED_TEMPLATE_IDS, [])
+            return self._save_and_return(user_input)
+
+        from .helpers.home_profile import async_home_profile
+        from .templates import TEMPLATE_CATEGORIES, TEMPLATES, localize_template_text
+
+        lang = normalize_language(self.hass)
+        profile = await async_home_profile(self.hass)
+        detected = profile.dwelling_detected if profile.dwelling_detected in ("house", "apartment") else "unknown"
+        climate = profile.climate
+        order = {cat_id: i for i, cat_id in enumerate(TEMPLATE_CATEGORIES)}
+        templates = sorted(TEMPLATES, key=lambda t: order.get(t.category, len(order)))
+        template_options = [
+            selector.SelectOptionDict(
+                value=t.id,
+                label=(
+                    f"{TEMPLATE_CATEGORIES.get(t.category, {}).get(f'name_{lang}', TEMPLATE_CATEGORIES.get(t.category, {}).get('name_en', t.category))}"
+                    f" › {localize_template_text(t.name, lang) or t.name}"
+                ),
+            )
+            for t in templates
+        ]
+        return self.async_show_form(
+            step_id="home_profile",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_HOME_TYPE,
+                        default=self._opt(CONF_HOME_TYPE) if self._opt(CONF_HOME_TYPE) in HOME_TYPES else "auto",
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=list(HOME_TYPES),
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            translation_key="home_type",
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_DISABLED_TEMPLATE_IDS,
+                        default=select_default(self._opt(CONF_DISABLED_TEMPLATE_IDS), template_options),
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=template_options,
+                            multiple=True,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                        )
+                    ),
+                }
+            ),
+            description_placeholders={
+                "detected": _settings_text(self.hass, f"dwelling_{detected}"),
+                "country": profile.country or "–",
+                "climate": (climate.koppen if climate and climate.koppen else "–"),
+            },
+        )
+
+    # --- Archive automation (2.94) ---
+
+    async def async_step_archive_settings(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Archive done one-time tasks after N days, delete archived ones after M."""
+        if user_input is not None:
+            return self._save_and_return(user_input)
+
+        return self.async_show_form(
+            step_id="archive_settings",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(key, default=self._opt(key)): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=int_range(key)[0], max=int_range(key)[1], step=1, mode=selector.NumberSelectorMode.BOX
+                        )
+                    )
+                    for key in (CONF_ARCHIVE_ONEOFF_DAYS, CONF_DELETE_ARCHIVED_ONEOFF_DAYS)
+                }
+            ),
+        )
+
+    # --- Member avatars (2.94) ---
+
+    async def _members(self) -> list[Any]:
+        """Household members as the panel lists them: active, non-system users."""
+        users = await self.hass.auth.async_get_users()
+        return [u for u in users if not u.system_generated and u.is_active]
+
+    async def async_step_member_avatars(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Pick the household member whose avatar (initials, colour) to change."""
+        from .helpers.member_display import member_display
+
+        members = await self._members()
+        if user_input is not None and user_input.get("member") in {u.id for u in members}:
+            self._avatar_user_id = str(user_input["member"])
+            return await self.async_step_member_avatar()
+
+        options = []
+        for u in members:
+            shown = member_display(self._current, u.id, u.name)
+            options.append(selector.SelectOptionDict(value=u.id, label=f"{u.name or u.id[:8]} ({shown.get('initials', '')})"))
+        return self.async_show_form(
+            step_id="member_avatars",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("member"): selector.SelectSelector(
+                        selector.SelectSelectorConfig(options=options, mode=selector.SelectSelectorMode.LIST)
+                    ),
+                }
+            ),
+        )
+
+    async def async_step_member_avatar(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Initials + palette colour for one member (blank / automatic = the default)."""
+        from .helpers.member_display import AVATAR_COLOR_NAMES, AVATAR_PALETTE, member_display
+
+        user_id = getattr(self, "_avatar_user_id", "")
+        overrides = dict(self._opt(CONF_MEMBER_DISPLAY) or {})
+        if user_input is not None:
+            entry: dict[str, str] = {}
+            initials = str(user_input.get("initials") or "").strip()
+            if initials:
+                entry["initials"] = initials
+            color = user_input.get("color")
+            if color in AVATAR_COLOR_NAMES:
+                entry["color"] = AVATAR_PALETTE[AVATAR_COLOR_NAMES.index(color)]
+            if entry:
+                overrides[user_id] = entry
+            else:
+                overrides.pop(user_id, None)
+            return self._save_and_return({CONF_MEMBER_DISPLAY: overrides})
+
+        members = {u.id: u for u in await self._members()}
+        user = members.get(user_id)
+        if user is None:
+            return await self.async_step_member_avatars()
+        current = overrides.get(user_id, {})
+        color_name = (
+            AVATAR_COLOR_NAMES[AVATAR_PALETTE.index(current["color"])] if current.get("color") in AVATAR_PALETTE else "auto"
+        )
+        default = member_display({}, user_id, user.name)
+        return self.async_show_form(
+            step_id="member_avatar",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional("initials", description={"suggested_value": current.get("initials", "")}): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+                    ),
+                    vol.Optional("color", default=color_name): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=["auto", *AVATAR_COLOR_NAMES],
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            translation_key="avatar_color",
+                        )
+                    ),
+                }
+            ),
+            description_placeholders={"member": user.name or user_id[:8], "initials": default.get("initials", "")},
+        )
+
+    # --- Battery lifetimes (2.94) ---
+
+    async def async_step_battery_lifetimes(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Typical lifetime in months per battery type — the forecast for
+        batteries without a level sensor. One field per type (the type is the
+        label); blank = the built-in value."""
+        from .websocket.dashboard import _battery_lifetime_catalog
+
+        rows = _battery_lifetime_catalog(self.hass)
+        types = [str(r["type"]) for r in rows]
+        if user_input is not None:
+            overrides = {t: user_input[t] for t in types if isinstance(user_input.get(t), (int, float))}
+            return self._save_and_return({CONF_BATTERY_LIFETIME_MONTHS: overrides})
+
+        from .helpers.battery_lifetime import MAX_LIFETIME_MONTHS, MIN_LIFETIME_MONTHS
+
+        return self.async_show_form(
+            step_id="battery_lifetimes",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        str(r["type"]), description={"suggested_value": r.get("override_months")}
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=MIN_LIFETIME_MONTHS, max=MAX_LIFETIME_MONTHS, step=1, mode=selector.NumberSelectorMode.BOX
+                        )
+                    )
+                    for r in rows
+                }
+            ),
+            description_placeholders={
+                "defaults": " · ".join(f"{r['type']} {r['default_months']}" for r in rows),
+            },
         )
 
     # --- Budget Settings ---

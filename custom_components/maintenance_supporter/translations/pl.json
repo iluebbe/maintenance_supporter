@@ -12,7 +12,7 @@
       },
       "create_from_template": {
         "title": "Wybierz kategorię szablonu",
-        "description": "Wybierz kategorię, aby przeglądać predefiniowane szablony konserwacji.",
+        "description": "Wybierz kategorię, aby przeglądać predefiniowane szablony konserwacji. ★ n = szablony z tej kategorii pasujące do twojego domu (panel: Ustawienia → Profil domu).",
         "data": {
           "template_category": "Kategoria",
           "go_back": "Wróć"
@@ -23,7 +23,7 @@
       },
       "template_select": {
         "title": "Wybierz szablon",
-        "description": "Wybierz szablon konserwacji jako punkt wyjścia.",
+        "description": "Wybierz szablon konserwacji jako punkt wyjścia. ★ polecane dla twojego domu · ✓ już skonfigurowane.",
         "data": {
           "template_id": "Szablon",
           "go_back": "Wróć"
@@ -529,7 +529,11 @@
           "notification_settings": "Ustawienia powiadomień",
           "notification_actions": "Akcje interaktywne",
           "test_notification": "Wyślij testowe powiadomienie",
-          "done": "Gotowe"
+          "done": "Gotowe",
+          "home_profile": "Profil domu · Galeria szablonów",
+          "archive_settings": "Archiwum i przechowywanie",
+          "member_avatars": "Awatary domowników",
+          "battery_lifetimes": "Typowa żywotność baterii"
         }
       },
       "advanced_features": {
@@ -543,7 +547,8 @@
           "advanced_budget_visible": "Śledzenie budżetu",
           "advanced_groups_visible": "Grupy",
           "advanced_checklists_visible": "Listy kontrolne",
-          "advanced_schedule_time_visible": "Harmonogram z porą dnia"
+          "advanced_schedule_time_visible": "Harmonogram z porą dnia",
+          "advanced_completion_actions_visible": "Akcje po zakończeniu"
         },
         "data_description": {
           "advanced_adaptive_visible": "Pokaż EWA, analizę Weibulla i sugestie interwałów dla zadań.",
@@ -553,7 +558,8 @@
           "advanced_budget_visible": "Pokaż śledzenie budżetu miesięcznego/rocznego i alerty.",
           "advanced_groups_visible": "Pokaż zarządzanie grupami konserwacji.",
           "advanced_checklists_visible": "Pokaż listy kontrolne zadań do realizacji krok po kroku.",
-          "advanced_schedule_time_visible": "Zezwalaj zadaniom stać się przeterminowanymi o określonej porze dnia zamiast o północy."
+          "advanced_schedule_time_visible": "Zezwalaj zadaniom stać się przeterminowanymi o określonej porze dnia zamiast o północy.",
+          "advanced_completion_actions_visible": "Akcja HA per zadanie po zakończeniu + QR szybkiego zakończenia z predefiniowanymi wartościami."
         }
       },
       "panel_access": {
@@ -582,7 +588,12 @@
           "battery_auto_record_recovery": "Automatycznie zapisuj wymianę, gdy słaba bateria się regeneruje",
           "panel_title": "Tytuł panelu na pasku bocznym",
           "shopping_list_entity": "Lista zakupów do synchronizacji zadań zakupowych",
-          "part_search_url_template": "Link wyszukiwania zakupów"
+          "part_search_url_template": "Link wyszukiwania zakupów",
+          "default_consumable_threshold": "Próg „materiał eksploatacyjny niski” (%)",
+          "row_action_style": "Akcje w wierszach zadań",
+          "ref_numbers_in_lists": "Numery referencyjne na listach",
+          "objects_table_columns": "Kolumny tabeli obiektów",
+          "install_assist_sentences": "Zainstaluj zdania Assist"
         },
         "data_description": {
           "default_warning_days": "Liczba dni przed terminem zadania konserwacji, w której wyświetlane jest ostrzeżenie.",
@@ -595,7 +606,11 @@
           "battery_auto_record_recovery": "Gdy poziom baterii, która była słaba, wzrośnie powyżej progu regeneracji, data wymiany zostaje zapisana w Battery Notes, a zapasowe ogniwa są odejmowane ze stanu — bez żadnego kliknięcia",
           "panel_title": "Własna nazwa wpisu na pasku bocznym. Pozostaw puste, aby użyć „Maintenance”. Przydatne, aby uniknąć kolizji z wbudowanym pulpitem Maintenance w Home Assistant.",
           "shopping_list_entity": "Automatyczne przypomnienia o zakupie brakujących części pojawiają się na tej liście zadań; odhaczenie kończy przypomnienie i uzupełnia zapas. Pozostaw puste, aby wyłączyć.",
-          "part_search_url_template": "Adres URL z {q} w miejscu wyszukiwanych słów, dla części bez linku do produktu. Pozostaw puste dla automatycznego sklepu (według kraju, w przeciwnym razie języka)."
+          "part_search_url_template": "Adres URL z {q} w miejscu wyszukiwanych słów, dla części bez linku do produktu. Pozostaw puste dla automatycznego sklepu (według kraju, w przeciwnym razie języka).",
+          "default_consumable_threshold": "Wartości domyślne dla nowych Sugerowanych konfiguracji (procent pozostały) i dla baterii floty bez własnego progu Battery Notes. Istniejące zadania zachowują swoją wartość.",
+          "ref_numbers_in_lists": "Pokazuje etykiety #8 / #8.3 przed nazwami obiektów i zadań na liście Dzisiaj, w tabeli zadań, na kartach obiektów i w tabeli obiektów.",
+          "objects_table_columns": "Wybierz, które kolumny mają być widoczne w widoku tabeli obiektów.",
+          "install_assist_sentences": "Kopiuje zdania głosowe do Twojej konfiguracji, aby klasyczny agent Assist je rozpoznawał. Plik zmieniony przez Ciebie nigdy nie zostanie nadpisany."
         }
       },
       "notification_settings": {
@@ -617,7 +632,12 @@
           "notification_title_style": "Styl tytułu powiadomienia",
           "notify_completed": "Powiadomienia o wykonaniu",
           "notify_event_only": "Tylko wyzwalaj zdarzenie, nic nie wysyłaj",
-          "notify_extra_data": "Dodatkowe dane powiadomienia (szablon)"
+          "notify_extra_data": "Dodatkowe dane powiadomienia (szablon)",
+          "reminder_lead_days": "Dodatkowe przypomnienia (dni przed terminem)",
+          "notify_scope_view_id": "Powiadamiaj tylko dla widoku",
+          "weekly_digest_enabled": "Cotygodniowe podsumowanie",
+          "warranty_reminder_enabled": "Przypomnienie o końcu gwarancji",
+          "warranty_reminder_days": "Dni przed wygaśnięciem"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Jak często powtarzać przypomnienie „wkrótce wymagane”. Ustaw 0 dla pojedynczego powiadomienia.",
@@ -630,7 +650,11 @@
           "notification_title_style": "Co pojawia się jako TYTUŁ powiadomienia. Domyślnie zachowywany jest tekst dla statusu (np. „Konserwacja przeterminowana!”). Nazwa obiektu / zadania pomaga, gdy telefon układa powiadomienia w stos.",
           "notify_completed": "Wiadomość dla domowników, gdy zadanie zostanie wykonane, z powodem (panel, skan QR/NFC, lista zadań, głos, powrót czujnika do normy…). „Tylko automatyczne” zgłasza wyłącznie wykonania, których nikt nie zrobił na miejscu: powrót czujnika, odhaczenie na liście zakupów, wywołanie usługi przez automatyzację.",
           "notify_event_only": "Każde powiadomienie wyzwala zdarzenie maintenance_supporter_notification. Z tą opcją całą dostawę przejmuje Twoja automatyzacja — interwały powtórzeń, ciche godziny i dzienny limit nadal decydują, kiedy zdarzenie się pojawi.",
-          "notify_extra_data": "JSON lub YAML z Jinja, scalane z data każdego wywołania notify (Twoje klucze mają pierwszeństwo). Zmienne: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
+          "notify_extra_data": "JSON lub YAML z Jinja, scalane z data każdego wywołania notify (Twoje klucze mają pierwszeństwo). Zmienne: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
+          "reminder_lead_days": "Wyprzedzenia rozdzielone przecinkami, np. 14, 3, 0 — w każdym wskazanym dniu wysyłane jest dodatkowe przypomnienie. Puste = wyłączone.",
+          "notify_scope_view_id": "Przypomnienia wysyłają tylko zadania pasujące do filtrów etykiety/użytkownika wybranego widoku. Status, sortowanie i grupowanie widoku są tu ignorowane.",
+          "weekly_digest_enabled": "Jedno powiadomienie podsumowujące w poniedziałek rano, gdy są zadania.",
+          "warranty_reminder_enabled": "Powiadom raz, gdy do wygaśnięcia gwarancji obiektu pozostanie tyle dni."
         }
       },
       "notification_actions": {
@@ -1191,6 +1215,44 @@
           "phases_text": "Jeden krok w linii, w kolejności cyklu. \"Nazwa: punkt; punkt\" ustawia listę kontrolną fazy. Części i wymagane pola fazy edytuje się w panelu; tutaj zostają zachowane.",
           "go_back": "Wróć do akcji zadania bez zapisywania."
         }
+      },
+      "home_profile": {
+        "title": "Profil domu",
+        "description": "Poleca szablony i ustawia okna sezonowe zgodnie z Twoim klimatem i półkulą. Wszystko jest ustalane lokalnie na podstawie pięter, obszarów i lokalizacji domu.\n\n**Wykryto:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "Rodzaj domu",
+          "disabled_template_ids": "Ukryte szablony"
+        },
+        "data_description": {
+          "disabled_template_ids": "Wybrane tu szablony nie pojawiają się już w wyborze „Z szablonu” (panel i kreator konfiguracji). Nic więcej się nie zmienia."
+        }
+      },
+      "archive_settings": {
+        "title": "Archiwum i przechowywanie",
+        "description": "Odkładaj ukończone zadania jednorazowe bez usuwania. Zarchiwizowane elementy są ukryte i nieaktywne, ale zachowują historię i koszty.",
+        "data": {
+          "archive_oneoff_days": "Automatycznie archiwizuj ukończone zadania jednorazowe po (dni, 0 = wył.)",
+          "delete_archived_oneoff_days": "Automatycznie usuwaj zarchiwizowane zadania jednorazowe po (dni, 0 = nigdy)"
+        }
+      },
+      "member_avatars": {
+        "title": "Awatary domowników",
+        "description": "Wyświetlane obok przypisanych zadań — inicjały w kolorze domownika. Domyślnie z imienia; ustaw własne inicjały lub wybierz kolor, aby odróżnić domowników.",
+        "data": {
+          "member": "Domownik"
+        }
+      },
+      "member_avatar": {
+        "title": "Awatary domowników",
+        "description": "{member}: zostaw inicjały puste i kolor na Automatycznie, aby użyć domyślnych ({initials}).",
+        "data": {
+          "initials": "Inicjały",
+          "color": "Kolor"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "Typowa żywotność baterii",
+        "description": "Używane tylko dla baterii bez procentu: notatka Battery Notes z samym typem i datą wymiany albo czujnik zgłaszający tylko „niski”. Termin = ostatnia wymiana + ta żywotność. Baterie raportujące poziom dostają prognozę z mierzonego rozładowania. Po trzech wymianach danego typu mediana odstępów zastępuje wbudowaną wartość — Twoja wartość zawsze wygrywa.\n\nWartości wbudowane (miesiące): {defaults}"
       }
     },
     "error": {
@@ -1211,7 +1273,8 @@
       "invalid_shopping_list_entity": "Lista zakupów musi być encją listy zadań (todo.…).",
       "invalid_search_template": "Link wyszukiwania musi być adresem URL http(s) zawierającym {q}.",
       "invalid_schedule": "Harmonogram jest niekompletny — wybierz co najmniej jeden dzień tygodnia (lub kalendarz dla zadania sterowanego kalendarzem).",
-      "invalid_delta_target": "Przy zliczaniu skumulowanego użycia (tryb delta) wartość docelowa musi być większa od 0."
+      "invalid_delta_target": "Przy zliczaniu skumulowanego użycia (tryb delta) wartość docelowa musi być większa od 0.",
+      "invalid_reminder_lead_days": "Podaj pełne dni od 0 do 365, oddzielone przecinkami (np. 14, 3, 0)."
     },
     "abort": {
       "entity_unavailable": "Wybrana encja jest teraz niedostępna. Spróbuj ponownie, gdy zgłosi stan."
@@ -1605,6 +1668,53 @@
         "default": "Domyślny (tytuł według statusu)",
         "object_name": "Nazwa obiektu jako tytuł",
         "task_name": "Nazwa zadania jako tytuł"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "Przyciski (na telefonie tylko ikony)",
+        "buttons": "Przyciski z tekstem",
+        "icons": "Ikony (klasyczne)"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "Nazwa",
+        "ref_no": "Numer referencyjny",
+        "manufacturer": "Producent",
+        "model": "Model",
+        "serial_number": "S/N",
+        "installation_date": "Zainstalowane",
+        "warranty_expiry": "Gwarancja",
+        "area_id": "Obszar",
+        "documentation_url": "Instrukcja",
+        "notes": "Notatki",
+        "task_count": "Zadania",
+        "actions": "Akcje"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "Automatycznie (wykryte)",
+        "house": "Dom",
+        "apartment": "Mieszkanie"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "Automatycznie",
+        "red": "Czerwony",
+        "pink": "Różowy",
+        "purple": "Fioletowy",
+        "deep_purple": "Ciemnofioletowy",
+        "indigo": "Indygo",
+        "blue": "Niebieski",
+        "cyan": "Cyjan",
+        "green": "Zielony",
+        "light_green": "Jasnozielony",
+        "orange": "Pomarańczowy",
+        "brown": "Brązowy",
+        "blue_grey": "Niebieskoszary"
       }
     }
   },

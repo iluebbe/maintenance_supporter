@@ -2265,7 +2265,12 @@ export class MaintenanceSettingsView extends LitElement {
       background: var(--card-background-color, #fff);
       color: var(--primary-text-color);
       font-size: 14px;
-      flex-shrink: 0;
+      /* May shrink: a select is as wide as its longest option, and German
+         "Buttons (auf dem Handy nur Symbole)" pushed the row 75 px past a
+         360 px screen (overflow sweep 2026-09-27). */
+      flex: 0 1 auto;
+      min-width: 0;
+      max-width: 60%;
     }
 
     .settings-actions {

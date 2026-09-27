@@ -269,14 +269,14 @@ def test_recommendation_reasons_and_dwelling_mismatch() -> None:
     hvac = get_template_by_id("home_hvac")
     assert pool and kitchen and heating and hvac
     flat = _profile(DWELLING_APARTMENT)
-    assert recommend_template(pool, flat) == {"recommended": False, "reasons": [], "dwelling_mismatch": True}
+    assert recommend_template(pool, flat) == {"recommended": False, "reasons": [], "dwelling_mismatch": True, "set_up": False}
     assert recommend_template(kitchen, flat)["reasons"] == ["starter"]
     assert recommend_template(heating, _profile(DWELLING_HOUSE, {"freeze"}))["reasons"] == ["freeze"]
     assert recommend_template(hvac, _profile(DWELLING_UNKNOWN, country="US"))["reasons"] == ["country"]
     assert recommend_template(pool, None)["recommended"] is False
     # Unknown dwelling: no starter set, no mismatch.
     unknown = recommend_template(pool, _profile(DWELLING_UNKNOWN))
-    assert unknown == {"recommended": False, "reasons": [], "dwelling_mismatch": False}
+    assert unknown == {"recommended": False, "reasons": [], "dwelling_mismatch": False, "set_up": False}
 
 
 def test_equipment_waits_for_what_the_home_has() -> None:

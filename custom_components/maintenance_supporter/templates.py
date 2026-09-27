@@ -2546,6 +2546,15 @@ def build_template_task(
     return task
 
 
+async def async_home_template_tasks(hass: HomeAssistant, template: ObjectTemplate) -> list[TaskTemplate]:
+    """The tasks ``template`` creates in THIS home — winter-only ones need a
+    cold season (the list the config flow shows before creating, 2.94)."""
+    from .helpers.home_profile import async_climate
+
+    climate = await async_climate(hass)
+    return template_tasks(template, has_winter=climate.has_winter if climate else True)
+
+
 async def async_build_template_tasks(
     hass: HomeAssistant, template: ObjectTemplate, lang: str, object_id: str
 ) -> dict[str, dict[str, Any]]:
@@ -2593,7 +2602,7 @@ class HomeLike(Protocol):
     def features(self) -> frozenset[str]: ...
 
 
-def recommend_template(template: ObjectTemplate, profile: HomeLike | None) -> dict[str, Any]:
+def recommend_template(template: ObjectTemplate, profile: HomeLike | None, *, set_up: bool = False) -> dict[str, Any]:
     """Whether the gallery recommends ``template`` for this home, and why.
 
     ``reasons`` are codes the panel translates: ``starter`` (part of the basic
@@ -2604,7 +2613,18 @@ def recommend_template(template: ObjectTemplate, profile: HomeLike | None) -> di
     found, not to every house in a country. A template the dwelling does not
     usually have (a pool in an apartment) is never recommended and is flagged
     ``dwelling_mismatch`` — it stays available, just further down.
+
+    ``set_up`` (2.94): the home already has an object for it
+    (helpers.template_usage) — echoed, and never recommended again; the
+    reasons stay, so the card can still say why it fits.
     """
+    result = _recommendation(template, profile)
+    if set_up:
+        result = {**result, "recommended": False}
+    return {**result, "set_up": set_up}
+
+
+def _recommendation(template: ObjectTemplate, profile: HomeLike | None) -> dict[str, Any]:
     none = {"recommended": False, "reasons": [], "dwelling_mismatch": False}
     if profile is None:
         return none

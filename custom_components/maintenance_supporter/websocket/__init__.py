@@ -422,6 +422,8 @@ def _build_object_response(
             "paused": obj_data.get("paused_at") is not None,
             "paused_at": obj_data.get("paused_at"),
             "paused_until": obj_data.get("paused_until"),
+            # 2.94: the template the object was made from (None = unknown).
+            "template_id": obj_data.get("template_id"),
             # v2.20 (N1) replace-flow lineage, both directions.
             "predecessor_entry_id": obj_data.get("predecessor_entry_id"),
             "replaced_by_entry_id": obj_data.get("replaced_by_entry_id"),

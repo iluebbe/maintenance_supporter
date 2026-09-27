@@ -42,6 +42,7 @@ from .helpers.global_options import get_global_entry
 from .helpers.i18n import normalize_language
 from .helpers.schedule import normalize_task_storage
 from .helpers.task_fields import WARNING_DAYS_RANGE
+from .helpers.template_usage import OBJECT_TEMPLATE_ID
 from .templates import (
     TEMPLATE_CATEGORIES,
     ObjectTemplate,
@@ -59,6 +60,35 @@ def _localized_template_default_name(template: ObjectTemplate, hass: HomeAssista
     return localize_template_text(template.name, normalize_language(hass)) or template.name
 
 
+# 2.94: the template list marks templates the home already has an object for
+# (the gallery's "Already set up" badge). Recommended ones carry a ★, which
+# the step descriptions explain — a symbol needs no translation.
+_TEMPLATE_STRINGS: dict[str, dict[str, str]] = {
+    "en": {"set_up": "already set up"},
+    "de": {"set_up": "bereits eingerichtet"},
+    "cs": {"set_up": "již nastaveno"},
+    "da": {"set_up": "allerede oprettet"},
+    "es": {"set_up": "ya configurado"},
+    "fi": {"set_up": "jo käytössä"},
+    "fr": {"set_up": "déjà configuré"},
+    "hi": {"set_up": "पहले से सेट है"},
+    "hu": {"set_up": "már beállítva"},
+    "it": {"set_up": "già configurato"},
+    "ja": {"set_up": "設定済み"},
+    "ko": {"set_up": "이미 설정됨"},
+    "nb": {"set_up": "allerede satt opp"},
+    "nl": {"set_up": "al ingesteld"},
+    "pl": {"set_up": "już skonfigurowano"},
+    "pt": {"set_up": "já configurado"},
+    "pt-br": {"set_up": "já configurado"},
+    "ru": {"set_up": "уже настроено"},
+    "sv": {"set_up": "redan konfigurerad"},
+    "tr": {"set_up": "zaten kurulu"},
+    "uk": {"set_up": "уже налаштовано"},
+    "zh": {"set_up": "已设置"},
+}
+
+
 class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Maintenance Supporter."""
 
@@ -74,6 +104,21 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
         self._trigger_entity_state: State | None = None
         self._template_category: str = ""
         self._selected_template: ObjectTemplate | None = None
+        self._template_marks: dict[str, dict[str, Any]] | None = None
+
+    async def _marks(self) -> dict[str, dict[str, Any]]:
+        """Per template: recommended for this home / already set up / untypical
+        for the dwelling — the gallery's judgement (templates.recommend_template,
+        helpers.template_usage), worked out once per flow."""
+        if self._template_marks is None:
+            from .helpers.home_profile import async_home_profile
+            from .helpers.template_usage import templates_in_use
+            from .templates import TEMPLATES, recommend_template
+
+            profile = await async_home_profile(self.hass)
+            in_use = templates_in_use(self.hass)
+            self._template_marks = {t.id: recommend_template(t, profile, set_up=t.id in in_use) for t in TEMPLATES}
+        return self._template_marks
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle the initial step."""
@@ -173,14 +218,18 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
             self._template_category = user_input["template_category"]
             return await self.async_step_template_select()
 
+        from .templates import get_disabled_template_ids
+
         lang = normalize_language(self.hass)
-        options = [
-            selector.SelectOptionDict(
-                value=cat_id,
-                label=cat.get(f"name_{lang}", cat["name_en"]),
-            )
-            for cat_id, cat in TEMPLATE_CATEGORIES.items()
-        ]
+        marks = await self._marks()
+        disabled = get_disabled_template_ids(self.hass)
+        options = []
+        for cat_id, cat in TEMPLATE_CATEGORIES.items():
+            label = cat.get(f"name_{lang}", cat["name_en"])
+            # 2.94: how many templates of the category fit this home (★ = the
+            # gallery's "Recommended for your home").
+            recommended = sum(1 for t in get_templates_by_category(cat_id) if t.id not in disabled and marks[t.id]["recommended"])
+            options.append(selector.SelectOptionDict(value=cat_id, label=f"{label} ★ {recommended}" if recommended else label))
 
         return self.async_show_form(
             step_id="create_from_template",
@@ -213,14 +262,20 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
 
         lang = normalize_language(self.hass)
         disabled = get_disabled_template_ids(self.hass)
+        marks = await self._marks()
         templates = [t for t in get_templates_by_category(self._template_category) if t.id not in disabled]
-        options = [
-            selector.SelectOptionDict(
-                value=t.id,
-                label=localize_template_text(t.name, lang) or t.name,
-            )
-            for t in templates
-        ]
+        # The gallery's order: what fits this home first, what the dwelling
+        # rarely has (a pool in an apartment) last; stable otherwise.
+        templates.sort(key=lambda t: 0 if marks[t.id]["recommended"] else 2 if marks[t.id]["dwelling_mismatch"] else 1)
+        set_up = _TEMPLATE_STRINGS.get(lang, _TEMPLATE_STRINGS["en"])["set_up"]
+
+        def label(t: ObjectTemplate) -> str:
+            name = localize_template_text(t.name, lang) or t.name
+            if marks[t.id]["set_up"]:
+                return f"{name} · ✓ {set_up}"
+            return f"★ {name}" if marks[t.id]["recommended"] else name
+
+        options = [selector.SelectOptionDict(value=t.id, label=label(t)) for t in templates]
 
         return self.async_show_form(
             step_id="template_select",
@@ -264,6 +319,8 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
                     CONF_OBJECT_MANUFACTURER: user_input.get(CONF_OBJECT_MANUFACTURER),
                     CONF_OBJECT_MODEL: user_input.get(CONF_OBJECT_MODEL),
                     CONF_OBJECT_SERIAL_NUMBER: user_input.get(CONF_OBJECT_SERIAL_NUMBER),
+                    # 2.94: templates in use are marked "already set up".
+                    OBJECT_TEMPLATE_ID: template.id,
                 }
 
                 # Build tasks from template
@@ -310,12 +367,22 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
                 }
             ),
             errors=errors,
-            description_placeholders={
-                "template_name": template.name,
-                "task_count": str(len(template.tasks)),
-                "task_list": ", ".join(t.name for t in template.tasks),
-            },
+            # 2.94: in the user's language, and the tasks THIS home gets
+            # (winter-only ones are left out without a cold season — the
+            # same list the builder below creates).
+            description_placeholders=await self._template_summary(template),
         )
+
+    async def _template_summary(self, template: ObjectTemplate) -> dict[str, str]:
+        from .templates import async_home_template_tasks, localize_template_text
+
+        lang = normalize_language(self.hass)
+        tasks = await async_home_template_tasks(self.hass, template)
+        return {
+            "template_name": localize_template_text(template.name, lang) or template.name,
+            "task_count": str(len(tasks)),
+            "task_list": ", ".join(localize_template_text(t.name, lang) or t.name for t in tasks),
+        }
 
     async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Allow user to reconfigure object settings."""

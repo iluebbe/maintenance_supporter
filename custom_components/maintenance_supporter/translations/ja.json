@@ -12,7 +12,7 @@
       },
       "create_from_template": {
         "title": "テンプレートのカテゴリを選択",
-        "description": "定義済みのメンテナンステンプレートを参照するカテゴリを選択してください。",
+        "description": "定義済みのメンテナンステンプレートを参照するカテゴリを選択してください。 ★ n = このカテゴリーでお住まいに合うテンプレートの数（パネル：設定 → 住まいのプロフィール）。",
         "data": {
           "template_category": "カテゴリ",
           "go_back": "戻る"
@@ -23,7 +23,7 @@
       },
       "template_select": {
         "title": "テンプレートを選択",
-        "description": "出発点として使用するメンテナンステンプレートを選択してください。",
+        "description": "出発点として使用するメンテナンステンプレートを選択してください。 ★ お住まいにおすすめ · ✓ 設定済み。",
         "data": {
           "template_id": "テンプレート",
           "go_back": "戻る"
@@ -529,7 +529,11 @@
           "notification_settings": "通知設定",
           "notification_actions": "インタラクティブなアクション",
           "test_notification": "テスト通知を送信",
-          "done": "完了"
+          "done": "完了",
+          "home_profile": "住まいのプロフィール · テンプレートギャラリー",
+          "archive_settings": "アーカイブと保持",
+          "member_avatars": "メンバーのアバター",
+          "battery_lifetimes": "電池の標準寿命"
         }
       },
       "advanced_features": {
@@ -543,7 +547,8 @@
           "advanced_budget_visible": "予算追跡",
           "advanced_groups_visible": "グループ",
           "advanced_checklists_visible": "チェックリスト",
-          "advanced_schedule_time_visible": "時刻指定スケジューリング"
+          "advanced_schedule_time_visible": "時刻指定スケジューリング",
+          "advanced_completion_actions_visible": "完了時アクション"
         },
         "data_description": {
           "advanced_adaptive_visible": "タスクの EWA、ワイブル分析、間隔の提案を表示します。",
@@ -553,7 +558,8 @@
           "advanced_budget_visible": "月次/年次の予算追跡とアラートを表示します。",
           "advanced_groups_visible": "メンテナンスグループの管理を表示します。",
           "advanced_checklists_visible": "ステップごとの完了用のタスクチェックリストを表示します。",
-          "advanced_schedule_time_visible": "タスクが深夜ではなく特定の時刻に期限切れになるようにします。"
+          "advanced_schedule_time_visible": "タスクが深夜ではなく特定の時刻に期限切れになるようにします。",
+          "advanced_completion_actions_visible": "タスクごとの完了時HAアクション＋事前設定値付きのクイック完了QR。"
         }
       },
       "panel_access": {
@@ -582,7 +588,12 @@
           "battery_auto_record_recovery": "残量が少ない電池が回復したら交換を自動で記録",
           "panel_title": "サイドバーパネルのタイトル",
           "shopping_list_entity": "購入タスクを同期する買い物リスト",
-          "part_search_url_template": "購入検索リンク"
+          "part_search_url_template": "購入検索リンク",
+          "default_consumable_threshold": "消耗品「残量少」しきい値（%）",
+          "row_action_style": "タスク行の操作",
+          "ref_numbers_in_lists": "一覧に参照番号を表示",
+          "objects_table_columns": "対象テーブルの列",
+          "install_assist_sentences": "Assist の文を導入する"
         },
         "data_description": {
           "default_warning_days": "メンテナンスタスクの期限の何日前から警告を表示するかの日数です。",
@@ -595,7 +606,11 @@
           "battery_auto_record_recovery": "残量が少なかった電池が回復しきい値を超えると、交換日が Battery Notes に記録され、予備の電池が在庫から差し引かれます — タップは不要です",
           "panel_title": "サイドバー項目のカスタム名です。空欄にすると「メンテナンス」が使用されます。Home Assistant 標準のメンテナンスダッシュボードとの競合を避けるのに便利です。",
           "shopping_list_entity": "在庫が少ない部品の自動購入リマインダーがこのToDoリストに表示されます。チェックするとリマインダーが完了し、部品が補充されます。無効にするには空のままにします。",
-          "part_search_url_template": "検索語の代わりに {q} を含む URL。製品リンクのない部品に使われます。空欄なら自動選択（国、次に言語で判定）。"
+          "part_search_url_template": "検索語の代わりに {q} を含む URL。製品リンクのない部品に使われます。空欄なら自動選択（国、次に言語で判定）。",
+          "default_consumable_threshold": "新しい「推奨セットアップ」（残量パーセント）と、独自の Battery Notes しきい値を持たないバッテリー一覧の電池に適用される既定値です。既存のタスクは値を保持します。",
+          "ref_numbers_in_lists": "「今日」の一覧、タスク表、オブジェクトカード、オブジェクト表で、オブジェクト名とタスク名の前に #8 / #8.3 のチップを表示します。",
+          "objects_table_columns": "対象のテーブル表示に表示する列を選択します。",
+          "install_assist_sentences": "音声フレーズを設定に複製し、従来の Assist エージェントが認識できるようにします。自分で編集したファイルが上書きされることはありません。"
         }
       },
       "notification_settings": {
@@ -617,7 +632,12 @@
           "notification_title_style": "通知タイトルのスタイル",
           "notify_completed": "完了通知",
           "notify_event_only": "イベントのみ発火し、自分では送信しない",
-          "notify_extra_data": "追加の通知データ（テンプレート）"
+          "notify_extra_data": "追加の通知データ（テンプレート）",
+          "reminder_lead_days": "追加リマインダー（期日前の日数）",
+          "notify_scope_view_id": "このビューのみ通知",
+          "weekly_digest_enabled": "週間まとめ",
+          "warranty_reminder_enabled": "保証期限リマインダー",
+          "warranty_reminder_days": "期限切れ前の日数"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "期限間近のリマインダーを繰り返す頻度です。1 回のみの通知にするには 0 に設定します。",
@@ -630,7 +650,11 @@
           "notification_title_style": "通知のタイトルとして表示される内容です。既定ではステータスごとのテキスト (例: 「メンテナンスが期限切れです!」) を維持します。対象名 / タスク名は、スマートフォンの通知が積み重なるときに役立ちます。",
           "notify_completed": "タスクが完了したときに理由付きで家族に知らせます（パネル、QR/NFC スキャン、To-do リスト、音声、センサーの回復など）。「自動のみ」は、その場で誰も操作していない完了だけを通知します：センサーの回復、買い物リストのチェック、オートメーションのサービス呼び出し。",
           "notify_event_only": "すべての通知はイベント maintenance_supporter_notification を発火します。有効にすると配信はすべてあなたのオートメーションが担当します。繰り返し間隔・静音時間・1日の上限は引き続きイベントの発火タイミングを決めます。",
-          "notify_extra_data": "Jinja 付きの JSON または YAML。各 notify 呼び出しの data にマージされます（あなたのキーが優先）。変数: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message。"
+          "notify_extra_data": "Jinja 付きの JSON または YAML。各 notify 呼び出しの data にマージされます（あなたのキーが優先）。変数: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message。",
+          "reminder_lead_days": "カンマ区切りのリードタイム。例：14, 3, 0 — 該当する各日に追加リマインダーが送信されます。空欄 = 無効。",
+          "notify_scope_view_id": "選択した保存済みビューのラベル／ユーザーフィルターに一致するタスクのみがリマインダーを送信します。ビューのステータス・並び順・グループ化はここでは無視されます。",
+          "weekly_digest_enabled": "タスクがある月曜の朝に1件のまとめ通知。",
+          "warranty_reminder_enabled": "オブジェクトの保証期限までこの日数になったら一度通知します。"
         }
       },
       "notification_actions": {
@@ -1191,6 +1215,44 @@
           "phases_text": "1行に1ステップをサイクル順で入力します。「名前: 項目; 項目」でそのフェーズのチェックリストを設定します。フェーズごとの部品と必須項目はパネルで編集し、ここでは保持されます。",
           "go_back": "保存せずにタスクのアクションに戻ります。"
         }
+      },
+      "home_profile": {
+        "title": "住まいのプロフィール",
+        "description": "気候と半球に合わせてテンプレートをおすすめし、季節の期間を設定します。すべてフロア・エリア・自宅の位置からローカルで判定されます。\n\n**検出:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "住まいの種類",
+          "disabled_template_ids": "非表示のテンプレート"
+        },
+        "data_description": {
+          "disabled_template_ids": "ここで選んだテンプレートは「テンプレートから」の選択肢（パネルとセットアップウィザード）に表示されなくなります。それ以外は変わりません。"
+        }
+      },
+      "archive_settings": {
+        "title": "アーカイブと保持",
+        "description": "完了した単発タスクを削除せずに片付けます。アーカイブされた項目は非表示で動作しませんが、履歴とコストは保持されます。",
+        "data": {
+          "archive_oneoff_days": "完了した単発タスクを自動アーカイブする日数（0 = 無効）",
+          "delete_archived_oneoff_days": "アーカイブ済み単発タスクを自動削除する日数（0 = しない）"
+        }
+      },
+      "member_avatars": {
+        "title": "メンバーのアバター",
+        "description": "割り当てられたタスクの横に表示されます — メンバーの色で頭文字を表示。既定は名前から生成。頭文字や色を設定してメンバーを区別できます。",
+        "data": {
+          "member": "世帯メンバー"
+        }
+      },
+      "member_avatar": {
+        "title": "メンバーのアバター",
+        "description": "{member}：既定（{initials}）を使うには、イニシャルを空欄にし、色を自動にしてください。",
+        "data": {
+          "initials": "頭文字",
+          "color": "色"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "電池の標準寿命",
+        "description": "パーセント表示のない電池にのみ使います：種類と交換日だけの Battery Notes メモや「残量低下」しか報告しないセンサーです。期日は最終交換日＋この寿命。残量を報告する電池は実測の放電から予測します。同じ種類の交換を3回記録すると、中央値の間隔が内蔵値に代わります。自分で設定した値が常に優先されます。\n\n組み込み値（か月）: {defaults}"
       }
     },
     "error": {
@@ -1211,7 +1273,8 @@
       "invalid_shopping_list_entity": "買い物リストはToDoエンティティ（todo.…）である必要があります。",
       "invalid_search_template": "検索リンクは {q} を含む http(s) URL である必要があります。",
       "invalid_schedule": "スケジュールが不完全です — 少なくとも 1 つの曜日を選択してください（カレンダー連動のタスクではカレンダーを選択）。",
-      "invalid_delta_target": "累積使用量をカウントする場合（デルタモード）、目標値は 0 より大きくする必要があります。"
+      "invalid_delta_target": "累積使用量をカウントする場合（デルタモード）、目標値は 0 より大きくする必要があります。",
+      "invalid_reminder_lead_days": "0〜365 の整数の日数をカンマ区切りで入力してください（例：14, 3, 0）。"
     },
     "abort": {
       "entity_unavailable": "選択したエンティティは現在利用できません。状態が報告されたら再試行してください。"
@@ -1605,6 +1668,53 @@
         "default": "既定 (ステータスごとのタイトル)",
         "object_name": "対象名をタイトルにする",
         "task_name": "タスク名をタイトルにする"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "ボタン（スマートフォンではアイコンのみ）",
+        "buttons": "テキスト付きボタン",
+        "icons": "アイコン（従来）"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "名前",
+        "ref_no": "参照番号",
+        "manufacturer": "メーカー",
+        "model": "型番",
+        "serial_number": "S/N",
+        "installation_date": "設置済み",
+        "warranty_expiry": "保証",
+        "area_id": "エリア",
+        "documentation_url": "取扱説明書",
+        "notes": "メモ",
+        "task_count": "タスク",
+        "actions": "操作"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "自動（検出）",
+        "house": "一戸建て",
+        "apartment": "マンション・アパート"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "自動",
+        "red": "赤",
+        "pink": "ピンク",
+        "purple": "紫",
+        "deep_purple": "濃い紫",
+        "indigo": "藍",
+        "blue": "青",
+        "cyan": "シアン",
+        "green": "緑",
+        "light_green": "黄緑",
+        "orange": "オレンジ",
+        "brown": "茶",
+        "blue_grey": "ブルーグレー"
       }
     }
   },

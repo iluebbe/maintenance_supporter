@@ -247,8 +247,10 @@ export class MaintenanceBudgetSectionCard extends LitElement {
     .bar-fill.ok { background: var(--primary-color); }
     .bar-fill.warning { background: #ff9800; }
     .bar-fill.danger { background: var(--error-color, #f44336); }
+    /* minmax(0, …): a bare 1fr never shrinks below the number inputs'
+       natural width — the row was 420 px wide on a phone (2026-09-27). */
     .inputs-row {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;
       padding-top: 4px; border-top: 1px solid var(--divider-color);
     }
     .input-field { display: flex; flex-direction: column; gap: 4px; }
@@ -258,7 +260,7 @@ export class MaintenanceBudgetSectionCard extends LitElement {
     }
     .input-wrap { position: relative; display: flex; align-items: center; }
     .input-wrap input {
-      flex: 1; padding: 6px 32px 6px 8px; font-size: 13px;
+      flex: 1; min-width: 0; width: 100%; box-sizing: border-box; padding: 6px 32px 6px 8px; font-size: 13px;
       background: var(--secondary-background-color, #2c2c2c);
       color: var(--primary-text-color);
       border: 1px solid var(--divider-color); border-radius: 6px;

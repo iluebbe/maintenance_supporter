@@ -35,6 +35,8 @@ export interface TemplateRecommendation {
   recommended?: boolean;
   reasons?: string[];
   dwelling_mismatch?: boolean;
+  /** 2.94: an active object already stands for this template. */
+  set_up?: boolean;
 }
 
 export function dwellingLabel(kind: string, lang: string): string {

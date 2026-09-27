@@ -507,6 +507,11 @@ export const panelStyles = css`
     background: color-mix(in srgb, var(--primary-color) 12%, transparent); color: var(--primary-text-color);
   }
   .template-card.not-typical { opacity: .6; }
+  /* 2.94: the home already has an object for this template. */
+  .template-card-setup {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 12px;
+    color: var(--success-color, #43a047); --mdc-icon-size: 14px;
+  }
   .template-legal {
     display: flex; gap: 6px; align-items: flex-start; margin-top: 8px;
     font-size: 12px; color: var(--secondary-text-color);
@@ -1643,9 +1648,15 @@ export const panelStyles = css`
 
   :host([narrow]) .tab {
     /* Tight enough that the four tabs fit 412px in the longest languages —
-       Ukrainian ("Налаштування") overflowed at 12px 16px (overflow sweep). */
-    padding: 12px 8px;
+       Ukrainian ("Налаштування") overflowed at 12px 16px (overflow sweep).
+       Below that (360px phones, 2026-09-27) a label shortens with an
+       ellipsis instead of pushing the bar past the screen edge. */
+    padding: 12px 6px;
     font-size: 13px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   :host([narrow]) .task-header {
@@ -1970,7 +1981,7 @@ export const panelStyles = css`
     .kpi-value { font-size: 14px; }
     .kpi-value-large { font-size: 18px; }
     .two-column-layout { grid-template-columns: 1fr; }
-    .tab { padding: 12px 8px; font-size: 13px; }
+    .tab { padding: 12px 6px; font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .task-header { flex-direction: column; align-items: flex-start; }
     .task-header-actions { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
     .filter-bar { flex-wrap: wrap; }

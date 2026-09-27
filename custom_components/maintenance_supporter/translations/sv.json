@@ -12,7 +12,7 @@
       },
       "create_from_template": {
         "title": "Välj mallkategori",
-        "description": "Välj en kategori för att bläddra bland fördefinierade underhållsmallar.",
+        "description": "Välj en kategori för att bläddra bland fördefinierade underhållsmallar. ★ n = mallar i den här kategorin som passar ditt hem (panel: Inställningar → Bostadsprofil).",
         "data": {
           "template_category": "Kategori",
           "go_back": "Tillbaka"
@@ -23,7 +23,7 @@
       },
       "template_select": {
         "title": "Välj mall",
-        "description": "Välj en underhållsmall som utgångspunkt.",
+        "description": "Välj en underhållsmall som utgångspunkt. ★ rekommenderad för ditt hem · ✓ redan konfigurerad.",
         "data": {
           "template_id": "Mall",
           "go_back": "Tillbaka"
@@ -529,7 +529,11 @@
           "notification_settings": "Aviseringsinställningar",
           "notification_actions": "Interaktiva åtgärder",
           "test_notification": "Skicka testavisering",
-          "done": "Klar"
+          "done": "Klar",
+          "home_profile": "Bostadsprofil · Mallgalleri",
+          "archive_settings": "Arkiv och lagring",
+          "member_avatars": "Medlemmarnas avatarer",
+          "battery_lifetimes": "Typiska batterilivslängder"
         }
       },
       "advanced_features": {
@@ -543,7 +547,8 @@
           "advanced_budget_visible": "Budgetspårning",
           "advanced_groups_visible": "Grupper",
           "advanced_checklists_visible": "Checklistor",
-          "advanced_schedule_time_visible": "Schema med tid på dagen"
+          "advanced_schedule_time_visible": "Schema med tid på dagen",
+          "advanced_completion_actions_visible": "Slutförande-åtgärder"
         },
         "data_description": {
           "advanced_adaptive_visible": "Visa EWA, Weibull-analys och intervallförslag för uppgifter.",
@@ -553,7 +558,8 @@
           "advanced_budget_visible": "Visa månatlig/årlig budgetspårning och varningar.",
           "advanced_groups_visible": "Visa hantering av underhållsgrupper.",
           "advanced_checklists_visible": "Visa uppgiftschecklistor för stegvis slutförande.",
-          "advanced_schedule_time_visible": "Tillåt uppgifter att bli försenade vid en specifik tid på dagen istället för vid midnatt."
+          "advanced_schedule_time_visible": "Tillåt uppgifter att bli försenade vid en specifik tid på dagen istället för vid midnatt.",
+          "advanced_completion_actions_visible": "HA-åtgärd per uppgift vid slutförande + snabb-slutför-QR med förinställda värden."
         }
       },
       "panel_access": {
@@ -582,7 +588,12 @@
           "battery_auto_record_recovery": "Registrera ett byte automatiskt när ett lågt batteri återhämtar sig",
           "panel_title": "Titel för sidofältspanel",
           "shopping_list_entity": "Inköpslista att synka köpuppgifter till",
-          "part_search_url_template": "Söklänk för inköp"
+          "part_search_url_template": "Söklänk för inköp",
+          "default_consumable_threshold": "Tröskel „förbrukningsartikel låg“ (%)",
+          "row_action_style": "Åtgärder i uppgiftsrader",
+          "ref_numbers_in_lists": "Referensnummer i listor",
+          "objects_table_columns": "Kolumner i objekttabell",
+          "install_assist_sentences": "Installera Assist-meningar"
         },
         "data_description": {
           "default_warning_days": "Antal dagar före underhållsuppgiftens förfall då en varning visas.",
@@ -595,7 +606,11 @@
           "battery_auto_record_recovery": "När ett batteri som var lågt stiger över återhämtningströskeln registreras bytesdatumet i Battery Notes och reservcellerna dras från lagret — utan ett tryck",
           "panel_title": "Eget namn för sidofältsposten. Lämna tomt för att använda \"Maintenance\". Användbart för att undvika krock med Home Assistants inbyggda Maintenance-panel.",
           "shopping_list_entity": "Automatiska köppåminnelser för delar som håller på att ta slut visas i denna att-göra-lista; att bocka av en slutför påminnelsen och fyller på lagret. Lämna tomt för att inaktivera.",
-          "part_search_url_template": "URL med {q} i stället för söktermerna, för delar utan produktlänk. Lämna tomt för den automatiska butiken (efter land, annars språk)."
+          "part_search_url_template": "URL med {q} i stället för söktermerna, för delar utan produktlänk. Lämna tomt för den automatiska butiken (efter land, annars språk).",
+          "default_consumable_threshold": "Standardvärden för nya Föreslagna inställningar (återstående procent) och för flottans batterier utan egen Battery Notes-tröskel. Befintliga uppgifter behåller sitt värde.",
+          "ref_numbers_in_lists": "Visar brickorna #8 / #8.3 före objekt- och uppgiftsnamn i Idag-listan, uppgiftstabellen, objektkorten och objekttabellen.",
+          "objects_table_columns": "Välj vilka kolumner som visas i objekttabellvyn.",
+          "install_assist_sentences": "Kopierar rösmeningarna till din konfiguration så att den klassiska Assist-agenten känner igen dem. En fil du själv har ändrat skrivs aldrig över."
         }
       },
       "notification_settings": {
@@ -617,7 +632,12 @@
           "notification_title_style": "Stil för aviseringstitel",
           "notify_completed": "Aviseringar om slutförande",
           "notify_event_only": "Utlös bara händelsen, skicka inget själv",
-          "notify_extra_data": "Extra aviseringsdata (mall)"
+          "notify_extra_data": "Extra aviseringsdata (mall)",
+          "reminder_lead_days": "Extra påminnelser (dagar före förfallodag)",
+          "notify_scope_view_id": "Avisera endast för vy",
+          "weekly_digest_enabled": "Veckosammanfattning",
+          "warranty_reminder_enabled": "Påminnelse om garantiutgång",
+          "warranty_reminder_days": "Dagar före utgång"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Hur ofta ”snart förfaller”-påminnelsen ska upprepas. Ange 0 för en enskild avisering.",
@@ -630,7 +650,11 @@
           "notification_title_style": "Vad som visas som aviseringens TITEL. Standard behåller texten per status (t.ex. ”Underhåll försenat!”). Objektnamn / uppgiftsnamn hjälper när telefonen staplar aviseringar.",
           "notify_completed": "Ett meddelande till hushållet när en uppgift slutförts, med orsaken (panel, QR-/NFC-skanning, att-göra-lista, röst, sensoråterhämtning …). \"Endast automatiska\" meddelar bara slutföranden som ingen gjorde på plats: sensoråterhämtning, avbockning i inköpslistan, ett tjänsteanrop från en automation.",
           "notify_event_only": "Varje avisering utlöser händelsen maintenance_supporter_notification. Med detta på sköter din automation hela leveransen — upprepningsintervall, tysta timmar och dagsgränsen avgör fortfarande när händelsen kommer.",
-          "notify_extra_data": "JSON eller YAML med Jinja, slås ihop med data i varje notify-anrop (dina nycklar vinner). Variabler: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
+          "notify_extra_data": "JSON eller YAML med Jinja, slås ihop med data i varje notify-anrop (dina nycklar vinner). Variabler: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
+          "reminder_lead_days": "Kommaseparerade ledtider, t.ex. 14, 3, 0 — en extra påminnelse skickas på varje matchande dag. Tomt = av.",
+          "notify_scope_view_id": "Endast uppgifter som matchar den valda vyns etikett-/användarfilter skickar påminnelser. Vyns status, sortering och gruppering ignoreras här.",
+          "weekly_digest_enabled": "En sammanfattningsavisering måndag morgon när uppgifter förfaller.",
+          "warranty_reminder_enabled": "Meddela en gång när ett objekts garanti har så här många dagar kvar."
         }
       },
       "notification_actions": {
@@ -1191,6 +1215,44 @@
           "phases_text": "Ett steg per rad i cykelordning. \"Namn: punkt; punkt\" anger fasens checklista. Delar och obligatoriska fält per fas redigeras i panelen och bevaras här.",
           "go_back": "Återgå till uppgiftsåtgärder utan att spara."
         }
+      },
+      "home_profile": {
+        "title": "Bostadsprofil",
+        "description": "Rekommenderar mallar och ställer in säsongsfönster efter ditt klimat och halvklot. Allt räknas ut lokalt från dina våningar, områden och hemmets plats.\n\n**Identifierat:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "Bostadstyp",
+          "disabled_template_ids": "Dolda mallar"
+        },
+        "data_description": {
+          "disabled_template_ids": "Mallar som väljs här visas inte längre i valet ”Från mall” (panel och installationsguide). Inget annat ändras."
+        }
+      },
+      "archive_settings": {
+        "title": "Arkiv och lagring",
+        "description": "Lägg undan slutförda engångsuppgifter utan att radera dem. Arkiverade objekt döljs och är inaktiva men behåller historik och kostnad.",
+        "data": {
+          "archive_oneoff_days": "Arkivera slutförda engångsuppgifter automatiskt efter (dagar, 0 = av)",
+          "delete_archived_oneoff_days": "Radera arkiverade engångsuppgifter automatiskt efter (dagar, 0 = aldrig)"
+        }
+      },
+      "member_avatars": {
+        "title": "Medlemmarnas avatarer",
+        "description": "Visas bredvid tilldelade uppgifter — initialer i medlemmens färg. Standard hämtas från namnet; ange egna initialer eller välj en färg för att skilja medlemmar åt.",
+        "data": {
+          "member": "Hushållsmedlem"
+        }
+      },
+      "member_avatar": {
+        "title": "Medlemmarnas avatarer",
+        "description": "{member}: lämna initialerna tomma och färgen på Automatiskt för att använda standardvärdet ({initials}).",
+        "data": {
+          "initials": "Initialer",
+          "color": "Färg"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "Typiska batterilivslängder",
+        "description": "Används bara för batterier utan procent: en Battery Notes-anteckning med bara typ och bytesdatum, eller en sensor som bara rapporterar ”lågt”. Deras förfallodatum är senaste byte + denna livslängd. Batterier som rapporterar nivå får sin prognos från den uppmätta urladdningen. När flottan sett tre byten av en typ tar medianintervallet över från det inbyggda värdet — ditt eget värde vinner alltid.\n\nInbyggda värden (månader): {defaults}"
       }
     },
     "error": {
@@ -1211,7 +1273,8 @@
       "invalid_shopping_list_entity": "Inköpslistan måste vara en att-göra-entitet (todo.…).",
       "invalid_search_template": "Söklänken måste vara en http(s)-URL som innehåller {q}.",
       "invalid_schedule": "Schemat är ofullständigt — välj minst en veckodag (eller en kalender för en kalenderstyrd uppgift).",
-      "invalid_delta_target": "Vid räkning av ackumulerad användning (deltaläge) måste målvärdet vara större än 0."
+      "invalid_delta_target": "Vid räkning av ackumulerad användning (deltaläge) måste målvärdet vara större än 0.",
+      "invalid_reminder_lead_days": "Ange hela dagar mellan 0 och 365, åtskilda med kommatecken (t.ex. 14, 3, 0)."
     },
     "abort": {
       "entity_unavailable": "Den valda entiteten är inte tillgänglig just nu. Försök igen när den rapporterar ett tillstånd."
@@ -1605,6 +1668,53 @@
         "default": "Standard (titel per status)",
         "object_name": "Objektnamn som titel",
         "task_name": "Uppgiftsnamn som titel"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "Knappar (endast ikoner på mobilen)",
+        "buttons": "Knappar med text",
+        "icons": "Ikoner (klassiskt)"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "Namn",
+        "ref_no": "Referensnummer",
+        "manufacturer": "Tillverkare",
+        "model": "Modell",
+        "serial_number": "S/N",
+        "installation_date": "Installerad",
+        "warranty_expiry": "Garanti",
+        "area_id": "Område",
+        "documentation_url": "Manual",
+        "notes": "Anteckningar",
+        "task_count": "Uppgifter",
+        "actions": "Åtgärder"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "Automatiskt (identifierat)",
+        "house": "Hus",
+        "apartment": "Lägenhet"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "Automatiskt",
+        "red": "Röd",
+        "pink": "Rosa",
+        "purple": "Lila",
+        "deep_purple": "Mörklila",
+        "indigo": "Indigo",
+        "blue": "Blå",
+        "cyan": "Cyan",
+        "green": "Grön",
+        "light_green": "Ljusgrön",
+        "orange": "Orange",
+        "brown": "Brun",
+        "blue_grey": "Blågrå"
       }
     }
   },

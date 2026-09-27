@@ -12,7 +12,7 @@
       },
       "create_from_template": {
         "title": "Vælg skabelonkategori",
-        "description": "Vælg en kategori for at gennemse foruddefinerede vedligeholdelsesskabeloner.",
+        "description": "Vælg en kategori for at gennemse foruddefinerede vedligeholdelsesskabeloner. ★ n = skabeloner i denne kategori, der passer til dit hjem (panel: Indstillinger → Boligprofil).",
         "data": {
           "template_category": "Kategori",
           "go_back": "Gå tilbage"
@@ -23,7 +23,7 @@
       },
       "template_select": {
         "title": "Vælg skabelon",
-        "description": "Vælg en vedligeholdelsesskabelon som udgangspunkt.",
+        "description": "Vælg en vedligeholdelsesskabelon som udgangspunkt. ★ anbefalet til dit hjem · ✓ allerede oprettet.",
         "data": {
           "template_id": "Skabelon",
           "go_back": "Gå tilbage"
@@ -529,7 +529,11 @@
           "notification_settings": "Notifikationsindstillinger",
           "notification_actions": "Interaktive handlinger",
           "test_notification": "Send testnotifikation",
-          "done": "Færdig"
+          "done": "Færdig",
+          "home_profile": "Boligprofil · Skabelongalleri",
+          "archive_settings": "Arkiv og opbevaring",
+          "member_avatars": "Medlemmernes avatarer",
+          "battery_lifetimes": "Typiske batterilevetider"
         }
       },
       "advanced_features": {
@@ -543,7 +547,8 @@
           "advanced_budget_visible": "Budgetsporing",
           "advanced_groups_visible": "Grupper",
           "advanced_checklists_visible": "Tjeklister",
-          "advanced_schedule_time_visible": "Planlægning efter tidspunkt på dagen"
+          "advanced_schedule_time_visible": "Planlægning efter tidspunkt på dagen",
+          "advanced_completion_actions_visible": "Fuldførelseshandlinger"
         },
         "data_description": {
           "advanced_adaptive_visible": "Vis EWA, Weibull-analyse og intervalforslag for opgaver.",
@@ -553,7 +558,8 @@
           "advanced_budget_visible": "Vis månedlig/årlig budgetsporing og advarsler.",
           "advanced_groups_visible": "Vis administration af vedligeholdelsesgrupper.",
           "advanced_checklists_visible": "Vis opgavetjeklister for trinvis fuldførelse.",
-          "advanced_schedule_time_visible": "Tillad opgaver at blive overskredet på et bestemt tidspunkt på dagen i stedet for ved midnat."
+          "advanced_schedule_time_visible": "Tillad opgaver at blive overskredet på et bestemt tidspunkt på dagen i stedet for ved midnat.",
+          "advanced_completion_actions_visible": "HA-handling pr. opgave ved fuldførelse + hurtig-fuldfør-QR med forudindstillede værdier."
         }
       },
       "panel_access": {
@@ -582,7 +588,12 @@
           "battery_auto_record_recovery": "Registrér automatisk et skift, når et lavt batteri kommer sig",
           "panel_title": "Titel på sidebjælkepanel",
           "shopping_list_entity": "Indkøbsliste til synkronisering af købsopgaver",
-          "part_search_url_template": "Søgelink til indkøb"
+          "part_search_url_template": "Søgelink til indkøb",
+          "default_consumable_threshold": "Tærskel „forbrugsvare lav“ (%)",
+          "row_action_style": "Handlinger i opgaverækker",
+          "ref_numbers_in_lists": "Referencenumre i lister",
+          "objects_table_columns": "Kolonner i objekttabel",
+          "install_assist_sentences": "Installer Assist-sætninger"
         },
         "data_description": {
           "default_warning_days": "Antal dage før en vedligeholdelsesopgave forfalder, hvor der vises en advarsel.",
@@ -595,7 +606,11 @@
           "battery_auto_record_recovery": "Når et batteri, der var lavt, stiger over gendannelsestærsklen, registreres skiftedatoen i Battery Notes, og reservecellerne trækkes fra lageret — uden et tryk",
           "panel_title": "Brugerdefineret navn til sidebjælkeposten. Lad feltet stå tomt for at bruge \"Vedligeholdelse\". Nyttigt for at undgå sammenfald med Home Assistants indbyggede vedligeholdelses-dashboard.",
           "shopping_list_entity": "Automatiske købspåmindelser for dele med lav beholdning vises på denne opgaveliste; afkrydsning fuldfører påmindelsen og genopfylder delen. Lad feltet være tomt for at deaktivere.",
-          "part_search_url_template": "URL med {q} i stedet for søgeordene, til dele uden produktlink. Lad stå tomt for den automatiske butik (efter land, ellers sprog)."
+          "part_search_url_template": "URL med {q} i stedet for søgeordene, til dele uden produktlink. Lad stå tomt for den automatiske butik (efter land, ellers sprog).",
+          "default_consumable_threshold": "Standardværdier for nye Foreslåede opsætninger (resterende procent) og for flådebatterier uden egen Battery Notes-tærskel. Eksisterende opgaver beholder deres værdi.",
+          "ref_numbers_in_lists": "Viser brikkerne #8 / #8.3 foran objekt- og opgavenavne i I dag-listen, opgavetabellen, objektkortene og objekttabellen.",
+          "objects_table_columns": "Vælg, hvilke kolonner der vises i objekttabelvisningen.",
+          "install_assist_sentences": "Kopierer stemmesætningerne til din konfiguration, så den klassiske Assist-agent genkender dem. En fil, du selv har redigeret, overskrives aldrig."
         }
       },
       "notification_settings": {
@@ -617,7 +632,12 @@
           "notification_title_style": "Stil for notifikationstitel",
           "notify_completed": "Notifikationer om udførelse",
           "notify_event_only": "Udløs kun hændelsen, send intet selv",
-          "notify_extra_data": "Ekstra notifikationsdata (skabelon)"
+          "notify_extra_data": "Ekstra notifikationsdata (skabelon)",
+          "reminder_lead_days": "Ekstra påmindelser (dage før forfald)",
+          "notify_scope_view_id": "Underret kun for visning",
+          "weekly_digest_enabled": "Ugentlig oversigt",
+          "warranty_reminder_enabled": "Påmindelse om garantiudløb",
+          "warranty_reminder_days": "Dage før udløb"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Hvor ofte påmindelsen om forestående forfald skal gentages. Sæt til 0 for en enkelt notifikation.",
@@ -630,7 +650,11 @@
           "notification_title_style": "Hvad der vises som notifikationens TITEL. Standard bevarer teksten pr. status (f.eks. 'Vedligeholdelse overskredet!'). Objektnavn / Opgavenavn hjælper, når telefonnotifikationer stables.",
           "notify_completed": "En besked til husstanden, når en opgave er udført, med årsagen (panel, QR-/NFC-scanning, to-do-liste, stemme, sensorgendannelse …). \"Kun automatiske\" melder kun udførelser, som ingen lavede på stedet: sensorgendannelse, afkrydsning på indkøbslisten, et servicekald fra en automatisering.",
           "notify_event_only": "Hver notifikation udløser hændelsen maintenance_supporter_notification. Med dette slået til står din automatisering for hele leveringen — gentagelsesintervaller, stille timer og dagsgrænsen afgør stadig, hvornår hændelsen kommer.",
-          "notify_extra_data": "JSON eller YAML med Jinja, flettes ind i data i hvert notify-kald (dine nøgler vinder). Variabler: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message."
+          "notify_extra_data": "JSON eller YAML med Jinja, flettes ind i data i hvert notify-kald (dine nøgler vinder). Variabler: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
+          "reminder_lead_days": "Kommaseparerede varsler, f.eks. 14, 3, 0 — der sendes en ekstra påmindelse på hver matchende dag. Tomt = fra.",
+          "notify_scope_view_id": "Kun opgaver, der matcher den valgte visnings etiket-/brugerfiltre, sender påmindelser. Visningens status, sortering og gruppering ignoreres her.",
+          "weekly_digest_enabled": "Én samlet notifikation mandag morgen, når opgaver forfalder.",
+          "warranty_reminder_enabled": "Giv besked én gang, når et objekts garanti udløber om så mange dage."
         }
       },
       "notification_actions": {
@@ -1191,6 +1215,44 @@
           "phases_text": "Ét trin pr. linje i cyklusrækkefølge. \"Navn: punkt; punkt\" sætter fasens tjekliste. Reservedele og påkrævede felter pr. fase redigeres i panelet og bevares her.",
           "go_back": "Vend tilbage til opgavehandlinger uden at gemme."
         }
+      },
+      "home_profile": {
+        "title": "Boligprofil",
+        "description": "Anbefaler skabeloner og indstiller sæsonvinduer efter dit klima og din halvkugle. Alt udregnes lokalt ud fra dine etager, områder og boligens placering.\n\n**Registreret:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "Boligtype",
+          "disabled_template_ids": "Skjulte skabeloner"
+        },
+        "data_description": {
+          "disabled_template_ids": "Skabeloner valgt her vises ikke længere i \"Fra skabelon\"-valget (panel og opsætningsguide). Intet andet ændres."
+        }
+      },
+      "archive_settings": {
+        "title": "Arkiv og opbevaring",
+        "description": "Læg færdige engangsopgaver væk uden at slette dem. Arkiverede elementer er skjult og inaktive, men bevarer historik og omkostninger.",
+        "data": {
+          "archive_oneoff_days": "Arkivér automatisk færdige engangsopgaver efter (dage, 0 = fra)",
+          "delete_archived_oneoff_days": "Slet automatisk arkiverede engangsopgaver efter (dage, 0 = aldrig)"
+        }
+      },
+      "member_avatars": {
+        "title": "Medlemmernes avatarer",
+        "description": "Vises ved siden af tildelte opgaver — initialer i medlemmets farve. Standard kommer fra navnet; angiv egne initialer eller vælg en farve for at skelne medlemmer.",
+        "data": {
+          "member": "Husstandsmedlem"
+        }
+      },
+      "member_avatar": {
+        "title": "Medlemmernes avatarer",
+        "description": "{member}: lad initialerne være tomme og farven stå på Automatisk for at bruge standarden ({initials}).",
+        "data": {
+          "initials": "Initialer",
+          "color": "Farve"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "Typiske batterilevetider",
+        "description": "Bruges kun til batterier uden procent: en Battery Notes-note med kun type og udskiftningsdato, eller en sensor der kun melder \"lavt\". Forfaldsdato = seneste udskiftning + denne levetid. Batterier der melder niveau får prognosen fra den målte afladning. Når flåden har set tre udskiftninger af en type, overtager medianintervallet fra den indbyggede værdi — din egen værdi vinder altid.\n\nIndbyggede værdier (måneder): {defaults}"
       }
     },
     "error": {
@@ -1211,7 +1273,8 @@
       "invalid_shopping_list_entity": "Indkøbslisten skal være en opgaveentitet (todo.…).",
       "invalid_search_template": "Søgelinket skal være en http(s)-URL, der indeholder {q}.",
       "invalid_schedule": "Tidsplanen er ufuldstændig — vælg mindst én ugedag (eller en kalender for en kalenderstyret opgave).",
-      "invalid_delta_target": "Ved optælling af forbrug (deltatilstand) skal målværdien være større end 0."
+      "invalid_delta_target": "Ved optælling af forbrug (deltatilstand) skal målværdien være større end 0.",
+      "invalid_reminder_lead_days": "Angiv hele dage mellem 0 og 365, adskilt af kommaer (f.eks. 14, 3, 0)."
     },
     "abort": {
       "entity_unavailable": "Den valgte entitet er ikke tilgængelig lige nu. Prøv igen, når den melder en tilstand."
@@ -1605,6 +1668,53 @@
         "default": "Standard (titel pr. status)",
         "object_name": "Objektnavn som titel",
         "task_name": "Opgavenavn som titel"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "Knapper (kun ikoner på telefonen)",
+        "buttons": "Knapper med tekst",
+        "icons": "Ikoner (klassisk)"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "Navn",
+        "ref_no": "Referencenummer",
+        "manufacturer": "Producent",
+        "model": "Model",
+        "serial_number": "S/N",
+        "installation_date": "Installeret",
+        "warranty_expiry": "Garanti",
+        "area_id": "Område",
+        "documentation_url": "Manual",
+        "notes": "Noter",
+        "task_count": "Opgaver",
+        "actions": "Handlinger"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "Automatisk (registreret)",
+        "house": "Hus",
+        "apartment": "Lejlighed"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "Automatisk",
+        "red": "Rød",
+        "pink": "Pink",
+        "purple": "Lilla",
+        "deep_purple": "Mørkelilla",
+        "indigo": "Indigo",
+        "blue": "Blå",
+        "cyan": "Cyan",
+        "green": "Grøn",
+        "light_green": "Lysegrøn",
+        "orange": "Orange",
+        "brown": "Brun",
+        "blue_grey": "Blågrå"
       }
     }
   },

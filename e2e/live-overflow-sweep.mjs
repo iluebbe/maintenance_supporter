@@ -7,8 +7,11 @@
  * languages and fails when anything pokes past the viewport.
  *
  * Per (language × viewport × surface): PASS = no element's right edge
- * exceeds the viewport (1px tolerance) and the panel does not scroll
- * horizontally.
+ * exceeds the viewport (1px tolerance), the panel does not scroll
+ * horizontally, and no element's content spills out of its own box
+ * unclipped (2026-09-27: the Document storage header slid its size under
+ * the refresh button — inside the card, so the viewport check never saw it;
+ * sections cards included, shadow roots walked).
  *
  * Run against the dev instance before releases (validate-in-Docker rule):
  *   docker restart playwright-server   # wedge prevention
@@ -29,6 +32,8 @@ const PW_WS = "ws://127.0.0.1:3000/";
 // Override the set ad hoc: MS_LANGS="pt-BR,hu,ko,tr" node e2e/live-overflow-sweep.mjs
 const LANGS = process.env.MS_LANGS ? process.env.MS_LANGS.split(",") : ["de", "uk", "hi", "hu", "en"];
 const VIEWPORTS = [
+  // 360 = the common Android width (the 2026-09-27 report); 412 = Pixel.
+  { name: "phone-360", width: 360, height: 800 },
   { name: "phone", width: 412, height: 915 },
   { name: "tablet", width: 768, height: 1024 },
 ];
@@ -61,8 +66,19 @@ async function measure(p, width) {
         worstEl = `${el.tagName.toLowerCase()}.${[...(el.classList || [])].slice(0, 2).join(".")}`;
       }
     }
+    // Content wider than its own unclipped box draws over its neighbours.
+    const spilled = [];
+    const walk = (root) => {
+      for (const el of root.querySelectorAll("*")) {
+        if (el.shadowRoot) walk(el.shadowRoot);
+        const cs = getComputedStyle(el);
+        if (cs.display === "none" || cs.display === "contents" || cs.overflowX !== "visible" || !el.clientWidth) continue;
+        if (el.scrollWidth > el.clientWidth + 1) spilled.push(`${el.tagName.toLowerCase()}.${[...(el.classList || [])].slice(0, 2).join(".")} ${el.scrollWidth}>${el.clientWidth}`);
+      }
+    };
+    walk(panel.shadowRoot);
     const host = panel.shadowRoot.host;
-    return { worst, worstEl, scrollW: host.scrollWidth, clientW: host.clientWidth, width };
+    return { worst, worstEl, scrollW: host.scrollWidth, clientW: host.clientWidth, width, spilled };
   }, { fnStr: panelOf.toString(), width });
 }
 
@@ -119,8 +135,9 @@ try {
         await nav();
         await p.waitForTimeout(1800);
         const m = await measure(p, vp.width);
-        const pass = !m.err && m.worst <= vp.width + 1 && m.scrollW <= m.clientW + 1;
-        results.push({ pass, line: `${vp.name}/${lg}/${name}: ${pass ? "PASS" : "FAIL"} worst=${m.worst ?? "?"} (${m.worstEl ?? m.err}) scroll=${m.scrollW}/${m.clientW}` });
+        const pass = !m.err && m.worst <= vp.width + 1 && m.scrollW <= m.clientW + 1 && !(m.spilled || []).length;
+        const spill = (m.spilled || []).length ? ` spilled=[${m.spilled.slice(0, 4).join(" | ")}]` : "";
+        results.push({ pass, line: `${vp.name}/${lg}/${name}: ${pass ? "PASS" : "FAIL"} worst=${m.worst ?? "?"} (${m.worstEl ?? m.err}) scroll=${m.scrollW}/${m.clientW}${spill}` });
         log("  " + results[results.length - 1].line);
       }
     }
