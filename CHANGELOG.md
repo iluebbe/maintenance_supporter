@@ -37,6 +37,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **Template notes corrected against the current law texts:** Austria's new vehicle-test cycle is law (from 19 May
+  2027, also for motorcycles and trailers up to 3.5 t); Switzerland's heating check is a federal rule (oil every 2
+  years, gas and wood up to 70 kW every 4) and the MFK is due at the latest after 6 years; France sweeps at least once
+  a year since October 2023 and services stoves and inserts yearly; the SPANC inspects *at most* every 10 years;
+  the heat-pump leak check counts CO₂-equivalent (5 t), not 2 kg; Spain's gas inspection covers piped gas too;
+  Dutch LPG/CNG and Polish LPG/CNG cars, UK oil boilers and landlord checks in all four nations, Italy's stricter
+  regions and Germany's smoke-alarm and sweeping wording are now right. The radon test follows the US EPA (retest
+  every two years with a mitigation system, not every year). Two notes that only apply in Germany — the oil-tank
+  inspection and "October to Easter" for winter tires — were shown in every country and now appear only there.
+  Private wells in Canada are tested twice a year (Health Canada).
 - **WashData suggested descaling for dryers:** its duties now follow WashData's own appliance type — no descaling
   for dryers, air fryers, bread makers and pumps, no tub cleaning where there is no tub.
 - **Phone width:** the collapsed *Document storage* header let its size slide under the refresh button, the
