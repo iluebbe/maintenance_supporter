@@ -138,6 +138,9 @@ def _build_export_object(
             # Store-merged by merged_tasks, so a restore resumes mid-cycle
             # instead of silently restarting at step one.
             "phases": tdata.get("phases"),
+            # 2.95: where the task came from (catalog duty / template task) —
+            # a restore keeps recognising a renamed task.
+            "origin": tdata.get("origin"),
             "phase_sequence": tdata.get("phase_sequence"),
             "phase_cursor": tdata.get("phase_cursor"),
             # Spare parts: consumption links + the auto-buy-task marker.

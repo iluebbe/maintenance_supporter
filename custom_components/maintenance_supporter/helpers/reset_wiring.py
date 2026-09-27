@@ -17,6 +17,7 @@ would be pointless.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -65,36 +66,73 @@ def apply_reset_action(hass: HomeAssistant, task_data: dict[str, Any], entity_id
     enable_reset_button(hass, entity_id)
 
 
-def _counter_duty(hass: HomeAssistant, entity: er.RegistryEntry, task_name: str) -> tuple[Any, Any] | None:
-    """(catalog, duty) when ``entity`` is a catalogued counter with a reset
-    and the task is named as that duty (any language) — a custom task that
-    merely watches the counter (cleaning the brush, not replacing it) must
-    not reset it."""
+def _catalog_shaped(hass: HomeAssistant, task: Mapping[str, Any], sig: Any, entity: er.RegistryEntry) -> bool:
+    """Whether the task still looks exactly like an adoption of ``sig`` on
+    ``entity``: a replacement task whose trigger has the shape the catalog
+    writes (type, bounds, auto-complete, delta mode) — how a task adopted
+    before the fingerprint and renamed since is recognised (never certain)."""
+    from .signatures._model import build_setup_trigger
+
+    tc = task.get("trigger_config")
+    if task.get("type") != "replacement" or not isinstance(tc, dict):
+        return False
+    expected = build_setup_trigger(sig, hass, [entity.entity_id])
+    if tc.get("type") != expected.get("type"):
+        return False
+    if any(bool(tc.get(key)) != bool(expected.get(key)) for key in ("auto_complete_on_recovery", "trigger_delta_mode")):
+        return False
+
+    def bounds(trigger: Mapping[str, Any]) -> set[str]:
+        return {k for k in ("trigger_below", "trigger_above", "trigger_target_value") if trigger.get(k) is not None}
+
+    return bounds(tc) == bounds(expected)
+
+
+def _counter_duty(hass: HomeAssistant, entity: er.RegistryEntry, task: Mapping[str, Any]) -> tuple[Any, Any, bool] | None:
+    """(catalog, duty, renamed) when ``entity`` is a catalogued counter with a
+    reset and the task is that duty — by its fingerprint or its name (any
+    language). A custom task that merely watches the counter (cleaning the
+    brush, not replacing it) must not reset it. ``renamed``: no fingerprint,
+    another name, but exactly the catalog's trigger shape — offered, never
+    pre-selected."""
     from .signatures import SIGNATURES
     from .signatures._discovery import _matches_catalog_key
     from .signatures._model import catalog_base_name, task_name_variants
+    from .task_origin import origin_is_duty, task_origin
 
     catalog = SIGNATURES.get(entity.platform)
     if catalog is None:
         return None
     keys = {k for s in catalog.tasks for k in s.keys}
-    base = catalog_base_name(task_name.lower())
+    base = catalog_base_name(str(task.get("name", "")).lower())
+    has_origin = task_origin(task) is not None
+    probable = None
     for sig in catalog.tasks:
-        if not sig.resets or base not in task_name_variants(sig.task_name):
+        if not sig.resets:
             continue
-        if any(_matches_catalog_key(entity, k, keys, tk_authoritative=catalog.translation_keys_authoritative) for k in sig.keys):
-            return catalog, sig
-    return None
+        if not any(_matches_catalog_key(entity, k, keys, tk_authoritative=catalog.translation_keys_authoritative) for k in sig.keys):
+            continue
+        if origin_is_duty(task, entity.platform, sig.task_name, sig.direction):
+            return catalog, sig, False
+        if has_origin:
+            continue  # adopted as another duty (or from a template) — not this one
+        if base in task_name_variants(sig.task_name):
+            return catalog, sig, False
+        if probable is None and _catalog_shaped(hass, task, sig, entity):
+            probable = (catalog, sig, True)
+    return probable
 
 
-def reset_offers(hass: HomeAssistant) -> list[dict[str, Any]]:
+def _reset_candidates(hass: HomeAssistant) -> list[dict[str, Any]]:
     """Existing tasks that watch a catalogued counter whose integration can
     reset it, but whose completion does not press that reset yet — adopted
-    before 2.95, or wired by hand without an action."""
+    before 2.95, or wired by hand without an action. Internal keys (``_*``)
+    carry what wiring needs to record the task's fingerprint."""
     from ..const import CONF_OBJECT, CONF_TASKS
     from ..entity.triggers import normalize_entity_ids
     from .aggregate import get_object_entries
     from .signatures._discovery import reset_button_for
+    from .signatures._model import PER_ENTITY_SEPARATOR
 
     ent_reg = er.async_get(hass)
     out: list[dict[str, Any]] = []
@@ -113,10 +151,10 @@ def reset_offers(hass: HomeAssistant) -> list[dict[str, Any]]:
                 reg = ent_reg.async_get(entity_id)
                 if reg is None or not reg.device_id:
                     continue
-                found = _counter_duty(hass, reg, name)
+                found = _counter_duty(hass, reg, task)
                 if found is None:
                     continue
-                catalog, sig = found
+                catalog, sig, renamed = found
                 keys = {k for s in catalog.tasks for k in s.keys}
                 button = reset_button_for(
                     hass, sig, [reg], reg.device_id, reg.platform, keys, tk_authoritative=catalog.translation_keys_authoritative
@@ -133,6 +171,11 @@ def reset_offers(hass: HomeAssistant) -> list[dict[str, Any]]:
                         "button_entity_id": button["entity_id"],
                         "button_name": button["name"],
                         "button_disabled": button["disabled"],
+                        "renamed": renamed,
+                        "_platform": reg.platform,
+                        "_sig": sig,
+                        "_device_id": reg.device_id,
+                        "_label": name.split(PER_ENTITY_SEPARATOR, 1)[1] if sig.per_entity and PER_ENTITY_SEPARATOR in name else None,
                     }
                 )
                 break
@@ -140,15 +183,22 @@ def reset_offers(hass: HomeAssistant) -> list[dict[str, Any]]:
     return out
 
 
+def reset_offers(hass: HomeAssistant) -> list[dict[str, Any]]:
+    """The reset offers as the dialog gets them (see ``_reset_candidates``);
+    ``renamed`` ones are shown unticked with a "check this" hint."""
+    return [{k: v for k, v in c.items() if not k.startswith("_")} for c in _reset_candidates(hass)]
+
+
 def wire_resets(hass: HomeAssistant, items: list[dict[str, str]], user_id: str | None) -> int:
     """Wire the offered resets for the chosen (entry_id, task_id) pairs —
     recomputed here, never taken from the client. Returns how many."""
     from ..const import CONF_TASKS
     from .entry_tasks import write_tasks
+    from .task_origin import ORIGIN_KEY, integration_origin
 
     wanted = {(i["entry_id"], i["task_id"]) for i in items}
     by_entry: dict[str, dict[str, dict[str, Any]]] = {}
-    for offer in reset_offers(hass):
+    for offer in _reset_candidates(hass):
         if (offer["entry_id"], offer["task_id"]) not in wanted:
             continue
         entry = hass.config_entries.async_get_entry(offer["entry_id"])
@@ -158,6 +208,11 @@ def wire_resets(hass: HomeAssistant, items: list[dict[str, str]], user_id: str |
         if not task:
             continue
         apply_reset_action(hass, task, offer["button_entity_id"], user_id)
+        # Confirmed as this duty — record the fingerprint (a renamed task
+        # stays recognised from now on).
+        if ORIGIN_KEY not in task:
+            sig = offer["_sig"]
+            task[ORIGIN_KEY] = integration_origin(offer["_platform"], sig.task_name, sig.direction, offer["_device_id"], offer["_label"])
         by_entry.setdefault(entry.entry_id, {})[offer["task_id"]] = task
     count = 0
     for entry_id, tasks in by_entry.items():

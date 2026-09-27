@@ -1099,6 +1099,7 @@
   "reset_offers_hint": "Nämä tehtävät seuraavat laskuria, jota integraatio ylläpitää itse. Yhdistettynä tehtävän suorittaminen täällä painaa myös integraation nollauspainiketta — muuten laskuri jatkaa kulkuaan ja tehtävä erääntyy heti uudelleen.",
   "reset_offers_before": "Nyt: suorituksen jälkeen {integration}-integraation laskuri jatkaa kulkuaan",
   "reset_offers_after": "Sitten: painaa myös painiketta ”{button}”",
+  "reset_offers_renamed": "Nimetty uudelleen määrityksen jälkeen — tarkista, että tehtävä koskee tätä osaa",
   "reset_offers_apply": "Yhdistä nollaukset",
   "reset_offers_done": "{count} tehtävää nollaa nyt laskurinsa suorituksen yhteydessä",
   "setups_before_after": "Kohteen tehtävät: {before} → {after}",

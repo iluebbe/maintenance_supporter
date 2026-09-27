@@ -157,7 +157,13 @@ async def test_existing_tasks_are_offered_and_wired(hass: HomeAssistant) -> None
     brush_id = next(tid for tid, t in tasks.items() if "Brush" in t["name"])
     tasks[brush_id] = {k: v for k, v in tasks[brush_id].items() if k != "on_complete_action"}
     # a custom task that merely watches the same counter is never offered
-    tasks["custom"] = {**tasks[brush_id], "id": "custom", "name": "Clean the brush hairs"}
+    # (its own trigger — the catalog shape would make it a "renamed?" offer)
+    custom_tc = {**tasks[brush_id]["trigger_config"], "auto_complete_on_recovery": False}
+    tasks["custom"] = {k: v for k, v in tasks[brush_id].items() if k != "origin"} | {
+        "id": "custom",
+        "name": "Clean the brush hairs",
+        "trigger_config": custom_tc,
+    }
     hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_TASKS: tasks})
 
     offers = reset_offers(hass)

@@ -48,6 +48,8 @@ interface ResetOffer {
   button_entity_id: string;
   button_name: string;
   button_disabled: boolean;
+  /** Adopted before the fingerprint and renamed since — offered unticked. */
+  renamed?: boolean;
 }
 
 const offerKey = (o: ResetOffer): string => `${o.entry_id}/${o.task_id}`;
@@ -161,7 +163,7 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
         type: "maintenance_supporter/integration_setups/reset_offers",
       });
       this._offers = r.offers || [];
-      this._offerTicks = new Set(this._offers.map(offerKey));
+      this._offerTicks = new Set(this._offers.filter((o) => !o.renamed).map(offerKey));
     } catch {
       this._offers = []; // an older backend has no offers
     }
@@ -203,6 +205,7 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
               <input type="checkbox" class="offer-check" .checked=${this._offerTicks.has(offerKey(o))} @change=${() => this._toggleOffer(o)} />
               <span class="task-text">
                 <span>${o.task_name} · ${o.object_name}</span>
+                ${o.renamed ? html`<span class="offer-renamed">${t("reset_offers_renamed", L)}</span>` : nothing}
                 <span class="offer-before">${t("reset_offers_before", L).replace("{integration}", o.integration_name)}</span>
                 <span class="offer-after">
                   ${t("reset_offers_after", L).replace("{button}", o.button_name)}${o.button_disabled ? ` ${t("setups_reset_enable", L)}` : ""}
@@ -500,6 +503,7 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
     .offer { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; cursor: pointer; }
     .offer-before { font-size: 11px; color: var(--secondary-text-color); }
     .offer-after { font-size: 11px; color: var(--primary-color); }
+    .offer-renamed { font-size: 11px; color: var(--warning-color, #ff9800); }
     .offers-actions { display: flex; justify-content: flex-end; }
     .before-after {
       font-size: 12px; font-weight: 500; color: var(--primary-color);

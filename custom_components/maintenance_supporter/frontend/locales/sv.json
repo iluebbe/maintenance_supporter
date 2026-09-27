@@ -1099,6 +1099,7 @@
   "reset_offers_hint": "Dessa uppgifter bevakar en räknare som integrationen själv håller. När de är kopplade trycker ett slutförande här också på integrationens återställningsknapp — annars fortsätter räknaren att gå och uppgiften förfaller direkt igen.",
   "reset_offers_before": "Nu: att slutföra den låter räknaren i {integration} fortsätta",
   "reset_offers_after": "Sedan: trycker också på ”{button}”",
+  "reset_offers_renamed": "Omdöpt sedan konfigurationen — kontrollera att uppgiften gäller den här delen",
   "reset_offers_apply": "Koppla återställningar",
   "reset_offers_done": "{count} uppgifter återställer nu sin räknare vid slutförande",
   "setups_before_after": "Uppgifter på objektet: {before} → {after}",

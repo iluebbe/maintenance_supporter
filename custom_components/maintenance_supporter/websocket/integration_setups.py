@@ -28,6 +28,7 @@ from ..helpers.integration_signatures import (
 )
 from ..helpers.permissions import require_write
 from ..helpers.reset_wiring import apply_reset_action
+from ..helpers.task_origin import ORIGIN_KEY, integration_origin
 from . import ID_FIELD
 from .adopt_batch import AdoptBatch
 
@@ -202,6 +203,8 @@ async def ws_adopt_integration_setups(
                     "enabled": True,
                     "schedule": {"kind": "manual"},
                     "trigger_config": trigger,
+                    # 2.95: the fingerprint — recognised as this duty after a rename.
+                    ORIGIN_KEY: integration_origin(setup["integration"], sig.task_name, sig.direction, device_id, task.get("entity_label")),
                 }
                 # 2.95: completing the task also resets the integration's
                 # own counter (its reset button, enabled if it shipped off).

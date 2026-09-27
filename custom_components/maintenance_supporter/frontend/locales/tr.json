@@ -1099,6 +1099,7 @@
   "reset_offers_hint": "Bu görevler, entegrasyonun kendi tuttuğu bir sayacı izler. Bağlandığında, görevi burada tamamlamak entegrasyonun sıfırlama düğmesine de basar — aksi halde sayaç işlemeye devam eder ve görevin vadesi hemen yeniden gelir.",
   "reset_offers_before": "Şimdi: tamamlamak {integration} içindeki sayacı çalışır halde bırakır",
   "reset_offers_after": "Sonra: “{button}” düğmesine de basar",
+  "reset_offers_renamed": "Kurulumdan sonra yeniden adlandırıldı — bu görevin bu parçaya ait olduğunu kontrol edin",
   "reset_offers_apply": "Sıfırlamaları bağla",
   "reset_offers_done": "{count} görev artık tamamlandığında sayacını sıfırlıyor",
   "setups_before_after": "Nesnenin görevleri: {before} → {after}",

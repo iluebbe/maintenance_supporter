@@ -2794,6 +2794,7 @@ async def async_build_template_tasks(
     from uuid import uuid4
 
     from .helpers.home_profile import async_climate, async_home_place
+    from .helpers.task_origin import ORIGIN_KEY, template_origin
 
     climate = await async_climate(hass)
     hemisphere = climate.hemisphere if climate else "north"
@@ -2806,6 +2807,9 @@ async def async_build_template_tasks(
             "id": task_id,
             "object_id": object_id,
             **build_template_task(tt, lang, hemisphere=hemisphere, has_winter=has_winter, country=country, region=region),
+            # 2.95: the fingerprint — which template task this is, whatever
+            # the user renames it to (helpers/task_origin.py).
+            ORIGIN_KEY: template_origin(template.id, tt.name),
         }
     return tasks
 

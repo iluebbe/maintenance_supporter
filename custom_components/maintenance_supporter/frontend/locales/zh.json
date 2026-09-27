@@ -1099,6 +1099,7 @@
   "reset_offers_hint": "这些任务监视由集成自行维护的计数器。关联后，在此完成任务时也会按下集成的重置按钮 — 否则计数器会继续累计，任务会立即再次到期。",
   "reset_offers_before": "现在：完成后 {integration} 中的计数器继续累计",
   "reset_offers_after": "之后：还会按下“{button}”",
+  "reset_offers_renamed": "设置后已重命名 — 请确认此任务对应该部件",
   "reset_offers_apply": "关联重置",
   "reset_offers_done": "{count} 个任务现在会在完成时重置计数器",
   "setups_before_after": "对象的任务：{before} → {after}",

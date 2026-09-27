@@ -414,8 +414,13 @@ counter in the vendor app, the button is not pressed again. Tasks adopted
 before 2.95 are offered in the same dialog with a before/after line per task
 (*Now: completing it leaves the counter running* → *Then: it also presses
 "Reset main brush consumable"*), and a getting-started hint counts them. Only
-tasks named as the catalog duty are offered — a custom *Clean the brush* task
-that watches the same counter never resets it. The action is visible and
+tasks that are the catalog duty are offered — a custom *Clean the brush* task
+that watches the same counter never resets it. Every adopted or template task
+remembers where it came from (a fingerprint, 2.95+), so a renamed task is still
+recognised: it is offered its reset, listed as *already there* and never
+proposed twice; tasks from before 2.95 get the fingerprint once where it is
+certain, and one renamed before that is offered unticked with *Renamed since it
+was set up — check*. The action is visible and
 editable in the task dialog even with the completion-actions toggle off.
 
 Catalog fixes also reach tasks you adopted **before** the fix when the old

@@ -827,9 +827,12 @@ an already-elapsed interval comes due immediately.
 
 ### `integration_setups/reset_offers` — read (2.95)
 `{}` → `{offers:[{entry_id, object_name, task_id, task_name, integration_name,
-button_entity_id, button_name, button_disabled}]}` — existing tasks named as a
-catalog duty whose watched counter the integration can reset, with no
-completion action yet.
+button_entity_id, button_name, button_disabled, renamed}]}` — existing tasks
+that are a catalog duty (by their `origin` fingerprint or their name, any
+language) whose watched counter the integration can reset, with no completion
+action yet. `renamed: true` — no fingerprint and another name, but exactly the
+catalog's trigger shape: offer it unticked and let the user confirm. Wiring
+records the task's `origin`.
 
 ### `integration_setups/wire_resets` — `@require_write` (2.95)
 `{items:[{entry_id, task_id}]}` (1..200) → `{wired}`. Recomputes the offers

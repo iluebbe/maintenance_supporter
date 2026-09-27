@@ -1099,6 +1099,7 @@
   "reset_offers_hint": "Queste attività osservano un contatore gestito dall'integrazione stessa. Una volta collegate, completare l'attività qui preme anche il pulsante di azzeramento dell'integrazione — altrimenti il contatore continua a correre e l'attività torna subito in scadenza.",
   "reset_offers_before": "Ora: completarla lascia correre il contatore in {integration}",
   "reset_offers_after": "Poi: preme anche «{button}»",
+  "reset_offers_renamed": "Rinominata dopo la configurazione — verifica che questa attività riguardi questo componente",
   "reset_offers_apply": "Collega gli azzeramenti",
   "reset_offers_done": "{count} attività ora azzerano il contatore al completamento",
   "setups_before_after": "Attività dell'oggetto: {before} → {after}",

@@ -39,6 +39,14 @@ All notable changes to Maintenance Supporter are documented in this file.
     Nest (legacy), Pura diffusers, Micronova hydro stoves and Dyson humidifier descaling.
   - Where one reset key serves two parts on the same device (a Matter purifier's HEPA and carbon filter), no reset
     is wired rather than guessing which part it resets.
+- **Tasks remember where they came from:** a task adopted from Suggested setups or a problem sensor, or created
+  from an object template, now carries a fingerprint (the catalog duty, the sensor, the template task) that
+  renaming does not touch. A renamed task is still recognised: Suggested setups lists it as already there under
+  its new name instead of proposing the duty again, and it is offered its counter reset. Tasks created before
+  this release get the fingerprint once at start-up where it is certain (named as the duty in any language and
+  watching its sensor, or named as a task of the object's template); one that was renamed before is offered the
+  reset unticked, marked *Renamed since it was set up — check*, and confirming it records the fingerprint.
+  Duplicating a task makes it your own (no fingerprint); editing, moving and backup/restore keep it.
 
 ### 🐛 Fixed
 

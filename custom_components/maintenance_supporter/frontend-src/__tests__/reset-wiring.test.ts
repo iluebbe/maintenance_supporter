@@ -203,3 +203,28 @@ describe("task dialog: a wired reset stays visible without the completion-action
     expect((el as any)._actionSkipAuto).to.equal(false);
   });
 });
+
+describe("reset offers: a task renamed since it was set up (2.95 fingerprint)", () => {
+  it("is offered unticked with a hint", async () => {
+    const renamed = { ...OFFERS[0], task_id: "t_old", task_name: "Saugi: Bürste tauschen", renamed: true };
+    const { hass } = createMockHass({
+      handlers: {
+        "maintenance_supporter/integration_setups/discover": () => ({ setups: [] }),
+        "maintenance_supporter/objects": () => ({ objects: [] }),
+        "maintenance_supporter/integration_setups/reset_offers": () => ({ offers: [OFFERS[1], renamed] }),
+      },
+    });
+    const el = await fixture<MaintenanceSuggestedSetupsDialog>(html`
+      <maintenance-suggested-setups-dialog .hass=${hass}></maintenance-suggested-setups-dialog>
+    `);
+    await el.open();
+    await new Promise((r) => setTimeout(r, 0));
+    await el.updateComplete;
+    const sr = el.shadowRoot!;
+    const offers = [...sr.querySelectorAll(".offer")];
+    const checks = [...sr.querySelectorAll<HTMLInputElement>(".offer-check")].map((c) => c.checked);
+    expect(checks).to.deep.equal([true, false]);
+    expect(offers[0].querySelector(".offer-renamed")).to.equal(null);
+    expect(text(offers[1].querySelector(".offer-renamed"))).to.contain("Renamed");
+  });
+});

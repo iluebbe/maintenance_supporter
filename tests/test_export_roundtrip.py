@@ -104,6 +104,8 @@ FULL_TASK = {
     },
     "phase_sequence": ["flip", "flip", "replace"],
     "phase_cursor": 1,
+    # 2.95: the task's fingerprint round-trips (sanitised on import).
+    "origin": {"kind": "template", "template": "car", "task": "Oil Change"},
     "history": [
         {
             "timestamp": "2026-05-01T10:00:00",
@@ -483,6 +485,7 @@ _CSV_TASK_EXCLUDED = {
     "notify_enabled",  # per-task mute (#173) - JSON backup carries it
     "notify_icon",  # per-task notification icon (#185) - JSON backup carries it
     "entity_slug",  # instance-specific entity naming
+    "origin",  # 2.95 fingerprint (catalog duty / template task) - JSON backup carries it
     "mirror_todo_entities",  # D#183 to-do entity ids (instance-specific; JSON backup carries them)
     "consumes_parts", "part_ref",  # part links (ids are instance-specific)
     # #139: nested defs + cycle + Store cursor — structured state that doesn't

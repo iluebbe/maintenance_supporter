@@ -378,6 +378,8 @@ custom_components/maintenance_supporter/
 │   ├── region.py                  (150 lines)  Offline state / province / region of the home location (ISO 3166-2): two-level grid from Natural Earth admin-1, nearest region on the coast
 │   ├── reading_slots.py           (229 lines)  #161 phase 2: reading slots — sanitize [{id,name,unit}], textarea form, resolve {id: value} / {name: value} into the entry snapshot, sensor attrs
 │   ├── global_options.py (80), pause.py (79), status.py (50), completion_photos.py (47: photo_doc_ids ∪ legacy scalar, cap 10), task_fields.py (44), notify_targets.py (39)
+│   ├── reset_wiring.py (2.95: completion presses the integration's counter reset; offers + wiring for existing tasks)
+│   ├── task_origin.py (2.95: task fingerprint `origin` — catalog duty / problem sensor / template task; setup backfill)
 │   └── signatures/              (5,914 lines)  Suggested-setups catalog: 225 integrations / 484 signatures
 │       ├── _model.py              (415 lines)  IntegrationSignature / ConsumableSignature + matcher mechanics
 │       ├── _discovery.py          (252 lines)  Entity-registry scan → per-duty setup proposals

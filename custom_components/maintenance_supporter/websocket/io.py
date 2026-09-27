@@ -1137,6 +1137,13 @@ async def ws_import_json(
                 task_data[BATTERY_FLEET_TASK_FLAG] = True
                 fleet_task_seen = True
 
+            # 2.95: the task's fingerprint (catalog duty / template task) —
+            # shape-checked, it is untrusted input like everything imported.
+            from ..helpers.task_origin import ORIGIN_KEY, sanitize_origin
+
+            if (origin := sanitize_origin(task_entry.get(ORIGIN_KEY))) is not None:
+                task_data[ORIGIN_KEY] = origin
+
             # In-cycle checklist ticks: keyed by item TEXT so they survive the
             # id regeneration; keys are filtered against the imported checklist
             # exactly like the live checklist_progress WS write. Rides

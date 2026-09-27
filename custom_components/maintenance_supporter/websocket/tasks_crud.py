@@ -1081,6 +1081,11 @@ async def ws_duplicate_task(
     new_task["created_at"] = dt_util.now().date().isoformat()
     # Never carry over per-task-unique keys or any stray dynamic state.
     strip_task_runtime_state(new_task)
+    # The copy is the user's own task, not the duty / template task the
+    # original was created as (2.95 fingerprint).
+    from ..helpers.task_origin import ORIGIN_KEY
+
+    new_task.pop(ORIGIN_KEY, None)
 
     await async_persist_task(hass, entry, new_task)
 

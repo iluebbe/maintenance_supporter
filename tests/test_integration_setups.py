@@ -2186,8 +2186,10 @@ async def test_multi_duty_per_duty_entity_claims(
     """One source entity backs several duties (Kia odometer: Annual Service +
     Tire Rotation). Adopting ONE duty must keep the OTHER proposable on
     re-discovery — the entity claim is per duty, not per entity. A watcher
-    renamed to something outside the catalog conservatively claims the whole
-    entity (discovery never re-proposes against a rename)."""
+    renamed to something outside the catalog claims only its duty when it
+    carries its fingerprint (2.95 ``origin``); a pre-2.95 one without it
+    conservatively claims the whole entity (never re-proposed against a
+    rename)."""
     import copy
 
     from custom_components.maintenance_supporter.templates import localize_template_text
@@ -2214,7 +2216,7 @@ async def test_multi_duty_per_duty_entity_claims(
     (setup,) = discover_integration_setups(hass)
     assert [t["task_name"] for t in setup["tasks"]] == ["Tire Rotation"]
 
-    def rename_watcher(new_name: str) -> None:
+    def rename_watcher(new_name: str, *, drop_origin: bool = False) -> None:
         obj = next(
             e for e in hass.config_entries.async_entries(DOMAIN)
             if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("name") == "Kia EV6"
@@ -2222,6 +2224,8 @@ async def test_multi_duty_per_duty_entity_claims(
         data = copy.deepcopy(dict(obj.data))
         (task,) = data[CONF_TASKS].values()
         task["name"] = new_name
+        if drop_origin:
+            task.pop("origin", None)
         hass.config_entries.async_update_entry(obj, data=data)
 
     # A watcher named in ANOTHER catalog language claims the same duty:
@@ -2230,8 +2234,14 @@ async def test_multi_duty_per_duty_entity_claims(
     (setup,) = discover_integration_setups(hass)
     assert [t["task_name"] for t in setup["tasks"]] == ["Tire Rotation"]
 
-    # A custom rename is unrecognizable — it claims the WHOLE entity.
+    # A custom rename keeps its fingerprint — still only Annual Service.
     rename_watcher("Roberts große Inspektion")
+    (setup,) = discover_integration_setups(hass)
+    assert [t["task_name"] for t in setup["tasks"]] == ["Tire Rotation"]
+
+    # Without one (adopted before 2.95) the rename is unrecognizable — it
+    # claims the WHOLE entity.
+    rename_watcher("Roberts große Inspektion", drop_origin=True)
     assert discover_integration_setups(hass) == []
 
 

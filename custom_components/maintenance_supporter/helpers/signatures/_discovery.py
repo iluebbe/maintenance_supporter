@@ -9,6 +9,7 @@ from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
+from ..task_origin import origin_is_duty, task_origin
 from ._model import (
     _entity_matches,
     _entity_unit,
@@ -42,6 +43,11 @@ def _entity_watchers(hass: HomeAssistant) -> dict[str, set[str]]:
                 base = catalog_base_name(name)
                 if base != name and base in known:
                     name = base
+                # 2.95: a task adopted from a duty claims as that duty,
+                # whatever it is called now (its fingerprint).
+                origin = task_origin(task)
+                if origin is not None and origin.get("kind") == "integration" and origin.get("duty"):
+                    name = origin["duty"].lower()
                 for eid in normalize_entity_ids(tc):
                     out.setdefault(eid, set()).add(name)
     return out
@@ -129,15 +135,32 @@ def _appliance_type(hass: HomeAssistant, device: Any, integration: str, key: str
     return None
 
 
+def _adopted_as(tasks: dict[str, Any], integration: str | None, proposal: dict[str, Any]) -> str | None:
+    """The name of the target's task adopted from this very duty (and entity
+    label, for per-entity duties) — found by its fingerprint, not its name."""
+    if not integration:
+        return None
+    for task in tasks.values():
+        origin = task_origin(task)
+        if (
+            origin_is_duty(task, integration, proposal["catalog_task_name"], proposal["direction"])
+            and origin is not None
+            and (origin.get("entity_label") or None) == (proposal.get("entity_label") or None)
+        ):
+            return str(task.get("name", ""))
+    return None
+
+
 def annotate_for_target(
-    hass: HomeAssistant, proposals: list[dict[str, Any]], entry: Any, *, device_name: str = ""
+    hass: HomeAssistant, proposals: list[dict[str, Any]], entry: Any, *, device_name: str = "", integration: str | None = None
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     """Split proposals against the target object's tasks (2.94).
 
     A duty the target already has BY NAME (any language) goes to ``already``
     with the existing task's name — shown, never adopted. The rest keeps
     ``covered_by`` (helpers.adopt_match.covering_task): a likely duplicate
-    under another name, which the dialog shows unticked.
+    under another name, which the dialog shows unticked. A task adopted from
+    the same duty counts as present under any name (2.95 fingerprint).
     """
     from ...const import CONF_TASKS
     from ..adopt_match import covering_task
@@ -149,8 +172,9 @@ def annotate_for_target(
     already: list[dict[str, str]] = []
     for proposal in proposals:
         hit = set(by_lower) & proposal_name_variants(proposal["catalog_task_name"], proposal["entity_label"])
-        if hit:
-            already.append({"task_name": proposal["task_name"], "task_name_localized": proposal["task_name_localized"], "existing_name": by_lower[sorted(hit)[0]]})
+        existing = by_lower[sorted(hit)[0]] if hit else _adopted_as(tasks, integration, proposal)
+        if existing is not None:
+            already.append({"task_name": proposal["task_name"], "task_name_localized": proposal["task_name_localized"], "existing_name": existing})
             continue
         covered = (
             covering_task(hass, (proposal["task_name_localized"], proposal["task_name"]), proposal["entity_ids"], tasks, ignore=ignore)
@@ -336,7 +360,7 @@ def discover_integration_setups(hass: HomeAssistant, *, targets: dict[str, str] 
         # proposed — covers manually created calendar tasks whose trigger
         # watches no entity (the entity-watched exclusion misses them); since
         # 2.94 they are listed as ``already`` so the dialog can say so.
-        tasks, already = annotate_for_target(hass, raw, target, device_name=device_name)
+        tasks, already = annotate_for_target(hass, raw, target, device_name=device_name, integration=integration)
         if not tasks and targets is None:
             continue
         tasks.sort(key=lambda t: (t["task_name"], t["direction"]))

@@ -1099,6 +1099,7 @@
   "reset_offers_hint": "これらのタスクは、インテグレーション自体が管理するカウンターを監視しています。連携すると、ここでタスクを完了したときにインテグレーションのリセットボタンも押します — そうしないとカウンターが進み続け、タスクがすぐにまた期限になります。",
   "reset_offers_before": "現在: 完了しても {integration} のカウンターは進み続けます",
   "reset_offers_after": "変更後: 「{button}」も押します",
+  "reset_offers_renamed": "設定後に名前が変更されています — このタスクがこの部品用か確認してください",
   "reset_offers_apply": "リセットを連携",
   "reset_offers_done": "{count}件のタスクが完了時にカウンターをリセットするようになりました",
   "setups_before_after": "オブジェクトのタスク: {before} → {after}",

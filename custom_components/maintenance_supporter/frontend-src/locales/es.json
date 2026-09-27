@@ -1099,6 +1099,7 @@
   "reset_offers_hint": "Estas tareas vigilan un contador que lleva la propia integración. Una vez conectadas, completar la tarea aquí también pulsa el botón de reinicio de la integración — si no, el contador sigue corriendo y la tarea vuelve a vencer enseguida.",
   "reset_offers_before": "Ahora: completarla deja en marcha el contador de {integration}",
   "reset_offers_after": "Después: también pulsa «{button}»",
+  "reset_offers_renamed": "Renombrada desde su configuración — comprueba que esta tarea corresponde a esta pieza",
   "reset_offers_apply": "Conectar reinicios",
   "reset_offers_done": "{count} tareas reinician ahora su contador al completarse",
   "setups_before_after": "Tareas del objeto: {before} → {after}",

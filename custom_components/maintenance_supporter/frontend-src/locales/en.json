@@ -1099,6 +1099,7 @@
   "reset_offers_hint": "These tasks watch a counter the integration keeps itself. Connected, completing the task here also presses the integration's reset button — otherwise the counter keeps running and the task falls due again right away.",
   "reset_offers_before": "Now: completing it leaves the counter in {integration} running",
   "reset_offers_after": "Then: it also presses “{button}”",
+  "reset_offers_renamed": "Renamed since it was set up — check that this task is for this part",
   "reset_offers_apply": "Connect resets",
   "reset_offers_done": "{count} tasks now reset their counter on completion",
   "setups_before_after": "Tasks on the object: {before} → {after}",

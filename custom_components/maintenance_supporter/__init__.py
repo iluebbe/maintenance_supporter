@@ -1571,6 +1571,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
             _LOGGER.info("Repaired catalog trigger(s) of %s (see helpers/catalog_heal.py)", entry.title)
             hass.config_entries.async_update_entry(entry, data=healed_data)
 
+        # 2.95: tasks created before the fingerprint get their origin once,
+        # where it is certain (catalog duty by name + entity, template task
+        # by name) — a later rename no longer hides them.
+        from .helpers.task_origin import backfill_origins
+
+        if (origin_data := backfill_origins(hass, entry.data)) is not None:
+            hass.config_entries.async_update_entry(entry, data=origin_data)
+
         # Every write path validates spare parts, but ~27 readers assume a dict
         # with an "id" — a hand-edited / damaged record crashed the sensor
         # platform and the buy-task sync at setup (found 2026-09-26). Drop

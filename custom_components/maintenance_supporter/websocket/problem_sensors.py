@@ -223,6 +223,10 @@ async def ws_adopt_problem_sensors(
                 )
                 if links:
                     task_data["consumes_parts"] = links
+            # 2.95: the fingerprint — the sensor this task was adopted from.
+            from ..helpers.task_origin import ORIGIN_KEY, problem_sensor_origin
+
+            task_data[ORIGIN_KEY] = problem_sensor_origin(entity_id)
             await batch.persist_task(entry, task_data)
             created.append({"entry_id": entry_id, "task_id": task_data["id"], "name": task_data["name"]})
         except (ValueError, KeyError) as err:

@@ -1099,6 +1099,7 @@
   "reset_offers_hint": "Diese Aufgaben beobachten einen Zähler, den die Integration selbst führt. Verbunden drückt das Erledigen hier auch den Reset-Button der Integration — sonst läuft der Zähler weiter und die Aufgabe ist sofort wieder fällig.",
   "reset_offers_before": "Jetzt: Erledigen lässt den Zähler in {integration} weiterlaufen",
   "reset_offers_after": "Dann: Erledigen drückt auch „{button}“",
+  "reset_offers_renamed": "Seit der Einrichtung umbenannt — prüfe, ob diese Aufgabe zu diesem Teil gehört",
   "reset_offers_apply": "Reset-Buttons verbinden",
   "reset_offers_done": "{count} Aufgaben setzen ihren Zähler jetzt beim Erledigen zurück",
   "setups_before_after": "Aufgaben am Objekt: {before} → {after}",
