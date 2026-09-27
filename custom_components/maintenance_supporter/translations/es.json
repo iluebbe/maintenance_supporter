@@ -1221,9 +1221,11 @@
         "description": "Recomienda plantillas y ajusta las ventanas estacionales a tu clima y hemisferio. Todo se calcula localmente a partir de tus plantas, áreas y la ubicación de tu casa.\n\n**Detectado:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "Tipo de vivienda",
+          "home_region": "Estado, provincia o región",
           "disabled_template_ids": "Plantillas ocultas"
         },
         "data_description": {
+          "home_region": "Algunas normas varían dentro de un país: inspección anual del vehículo en un estado, ninguna en el siguiente. Se determina a partir de la ubicación de tu casa; elige otra si no es correcta.",
           "disabled_template_ids": "Las plantillas elegidas aquí ya no aparecen en los selectores «Desde plantilla» (panel y asistente de configuración). Nada más cambia."
         }
       },

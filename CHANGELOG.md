@@ -24,6 +24,23 @@ All notable changes to Maintenance Supporter are documented in this file.
   recomputes all of that. *Adopt problem sensors* works the same way: a sensor goes by default to the object its
   device most likely is, one that object probably already watches starts unticked, and a summary shows each
   object's task count before and after.
+- **Country rules for Europe and North America in the templates:** the vehicle inspection now knows its cycle in 21
+  more European countries (31 in all) and in the US and Canada; caravans and motorhomes get their own inspection task
+  with the rules of 24 countries; new notes cover smoke and CO alarms (Scotland, Norway, Finland, Latvia,
+  Luxembourg, Belgium, Austria, Sweden, the US, Canada), heating and chimney sweeping, gas installations (Spain,
+  Portugal, Poland, Romania, Austria), septic tanks, electrical checks (Poland every 5 years), heat pumps and air
+  conditioners, oil tanks, radon, wells, water meters and fire extinguishers — each in your language. New tasks: a
+  yearly stove service (required in France since 2023) and a backwater-valve check for Canadian basements; a new
+  *Solar Water Heater* template is recommended in Cyprus, Greece, Spain, Israel and Turkey. The gas cooker template
+  is now also recommended in Spain, Portugal, Poland and Romania, winter tires in the Baltics, Romania, Bulgaria,
+  Croatia and Iceland, the water heater in southern Europe, the UK and Ireland.
+- **State, province or region:** some rules differ below the country — New York inspects cars every year, Florida
+  not at all; Flanders tests them every two years, Wallonia every year; England empties septic tanks yearly,
+  Scotland does not. For the US, Canada, Australia, Austria, Belgium, Italy and the UK the home's region is now
+  looked up offline from the home location (a 51 KB map built from Natural Earth, public domain) and shown in
+  *Settings → Home profile*, where it can be changed (also in the Configure dialog). Templates use the region's
+  cycle and leave out a check that does not exist there — no vehicle-inspection task in Florida, Ontario or
+  Queensland, none for electric cars where only exhaust is tested.
 - **"Already set up" in the template gallery:** a template your home already uses is marked and no longer
   recommended. New objects remember the template they came from; older ones are recognised by their name or by
   their tasks in any language.
@@ -34,6 +51,10 @@ All notable changes to Maintenance Supporter are documented in this file.
   them first (with the number per category), ✓ marks those already set up, templates your home type rarely has
   come last — the gallery's judgement. The summary before creating an object names the template and its tasks in
   your language and lists the tasks this home actually gets (no winter-only tasks without a winter).
+- **Storms, earthquakes and freezes where they happen:** storm and hurricane preparation is now also suggested from
+  Delaware to Maine, in Atlantic Canada and on Hawaii; earthquake preparedness in south-west British Columbia, on
+  Hawaii and along Utah's Wasatch Front; frost protection on the Gulf coast and in north Florida, where hard freezes
+  come about once a year although the average winter is mild.
 
 ### 🐛 Fixed
 
@@ -46,7 +67,9 @@ All notable changes to Maintenance Supporter are documented in this file.
   regions and Germany's smoke-alarm and sweeping wording are now right. The radon test follows the US EPA (retest
   every two years with a mitigation system, not every year). Two notes that only apply in Germany — the oil-tank
   inspection and "October to Easter" for winter tires — were shown in every country and now appear only there.
-  Private wells in Canada are tested twice a year (Health Canada).
+  Private wells in Canada are tested twice a year (Health Canada). German water-meter calibration is 5 years for
+  hot-water and heat meters, not 6, and Germany's rules for small treatment plants and water meters were shown as
+  the rule for every country — they are German notes now.
 - **WashData suggested descaling for dryers:** its duties now follow WashData's own appliance type — no descaling
   for dryers, air fryers, bread makers and pumps, no tub cleaning where there is no tub.
 - **Phone width:** the collapsed *Document storage* header let its size slide under the refresh button, the

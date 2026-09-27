@@ -42,6 +42,7 @@ interface SettingsResponse {
   disabled_template_ids?: string[];
   /** v2.93: home profile dwelling type — auto | house | apartment. */
   home_type?: string;
+  home_region?: string;
   general: {
     default_warning_days: number;
     notifications_enabled: boolean;
@@ -785,6 +786,7 @@ export class MaintenanceSettingsView extends LitElement {
           <span class="setting-label">${t("home_climate_label", L)}</span>
           <span class="home-climate-value">${country ? `${country} · ` : ""}${climate}</span>
         </div>
+        ${p?.regions?.length ? this._renderHomeRegion(p, L) : nothing}
         ${p?.hemisphere === "south" ? html`<div class="setting-hint">${t("home_hemisphere_south", L)}</div>` : nothing}
         ${p && p.traits.length
           ? html`<div class="home-traits">
@@ -793,6 +795,34 @@ export class MaintenanceSettingsView extends LitElement {
           : nothing}
       </div>
     `;
+  }
+
+  /** 2.94: the state / province whose rules the templates follow — shown
+   *  only where the country has such rules (data/regions). */
+  private _renderHomeRegion(p: HomeProfile, L: string) {
+    const regions = p.regions || [];
+    const setting = this._settings!.home_region || "auto";
+    const value = regions.some((r) => r.code === setting) ? setting : "auto";
+    const detected = p.region_detected_name || t("home_region_none", L);
+    return html`
+      <label class="setting-row">
+        <span class="setting-label">${t("home_region_label", L)}</span>
+        <select class="home-region" .value=${live(value)}
+          @change=${(e: Event) => void this._setHomeRegion((e.target as HTMLSelectElement).value)}>
+          <option value="auto" ?selected=${value === "auto"}>${t("home_type_auto", L).replace("{detected}", detected)}</option>
+          ${regions.map((r) => html`<option value=${r.code} ?selected=${value === r.code}>${r.name}</option>`)}
+        </select>
+      </label>
+      <div class="setting-hint">${t("home_region_hint", L)}</div>
+    `;
+  }
+
+  private async _setHomeRegion(value: string): Promise<void> {
+    if (await this._updateSetting("home_region", value)) {
+      // The region changes intervals and which checks exist — refetch.
+      this._templatesRequested = false;
+      await this._loadTemplates();
+    }
   }
 
   private async _setHomeType(value: string): Promise<void> {

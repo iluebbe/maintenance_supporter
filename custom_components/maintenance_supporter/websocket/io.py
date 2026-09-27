@@ -542,12 +542,12 @@ async def ws_get_templates(
                         "name": localize_template_text(tt.name, lang),
                         "type": tt.type,
                         "schedule_type": tt.schedule_type,
-                        "interval_days": task_interval(tt, profile.country),
+                        "interval_days": task_interval(tt, profile.country, profile.region),
                         "warning_days": tt.warning_days,
                     }
                     # What creating it here makes: winter-only tasks left
                     # out without a cold season, the country's cycle.
-                    for tt in template_tasks(t, has_winter=profile.has_winter)
+                    for tt in template_tasks(t, has_winter=profile.has_winter, country=profile.country, region=profile.region)
                 ],
             }
             for t in TEMPLATES

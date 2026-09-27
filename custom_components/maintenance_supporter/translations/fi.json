@@ -1221,9 +1221,11 @@
         "description": "Suosittelee mallipohjia ja asettaa kausi-ikkunat ilmastosi ja pallonpuoliskosi mukaan. Kaikki päätellään paikallisesti kerroksistasi, alueistasi ja kodin sijainnista.\n\n**Tunnistettu:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "Asumismuoto",
+          "home_region": "Osavaltio, provinssi tai alue",
           "disabled_template_ids": "Piilotetut mallit"
         },
         "data_description": {
+          "home_region": "Jotkin säännöt vaihtelevat maan sisällä – yhdessä osavaltiossa ajoneuvon vuosikatsastus, naapurissa ei mitään. Päätelty kodin sijainnista; valitse toinen, jos se on väärä.",
           "disabled_template_ids": "Tässä valitut mallit eivät enää näy \"Mallista\"-valinnoissa (paneeli ja asennusopas). Mikään muu ei muutu."
         }
       },

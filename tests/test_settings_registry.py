@@ -53,6 +53,7 @@ _EXPECTED_STR_MAX_LENGTHS = {
     "row_action_style": 32,
     "part_search_url_template": 500,  # D#182 user-settable shopping search
     "home_type": 16,  # v2.93 home profile: auto | house | apartment
+    "home_region": 8,  # 2.94: auto | ISO 3166-2 code (US-NY, BE-VLG)
 }
 
 
@@ -69,16 +70,16 @@ def test_str_max_lengths_frozen() -> None:
 
 
 def test_allowed_keys_count_and_types() -> None:
-    # 64 writable settings, each mapped to a concrete Python type
+    # 65 writable settings, each mapped to a concrete Python type
     # (#169 follow-up added the dict-typed member_display; #165 the two
     # notification-hook settings; #180 battery_recovered_percent; D#182
     # part_search_url_template; #181 follow-up battery_auto_record_recovery;
-    # v2.93 home_type).
-    assert len(ALLOWED_SETTING_KEYS) == 64
+    # v2.93 home_type; 2.94 home_region).
+    assert len(ALLOWED_SETTING_KEYS) == 65
     assert all(isinstance(t, type) for t in ALLOWED_SETTING_KEYS.values())
     # No duplicate keys crept into the spec tuple.
     keys = [s.key for s in SETTING_SPECS]
-    assert len(keys) == len(set(keys)) == 64
+    assert len(keys) == len(set(keys)) == 65
 
 
 def test_every_ranged_key_is_declared_with_matching_type() -> None:

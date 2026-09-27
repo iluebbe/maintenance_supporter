@@ -23,6 +23,7 @@ from custom_components.maintenance_supporter.const import (
     CONF_DEFAULT_CONSUMABLE_THRESHOLD,
     CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
     CONF_DISABLED_TEMPLATE_IDS,
+    CONF_HOME_REGION,
     CONF_HOME_TYPE,
     CONF_INSTALL_ASSIST_SENTENCES,
     CONF_MEMBER_DISPLAY,
@@ -84,6 +85,8 @@ async def _open_step(hass: HomeAssistant, entry_id: str, step: str) -> dict[str,
 async def test_every_global_setting_is_editable_in_the_options_flow(hass: HomeAssistant) -> None:
     """A setting the panel can change must be changeable in HA's own settings
     UI too — adding one to the registry without a flow field fails here."""
+    # A country with states: the region field only shows where there are some.
+    hass.config.country = "US"
     g = make_global_entry(hass)
     await setup_integration(hass, g)
     # unlock every menu entry (setup rewrites the advanced flags, so after it)
@@ -127,6 +130,27 @@ async def test_home_profile_step_saves_the_home_type_and_hidden_templates(hass: 
     result = await _open_step(hass, g.entry_id, "home_profile")
     await hass.config_entries.options.async_configure(result["flow_id"], {CONF_HOME_TYPE: "auto", CONF_DISABLED_TEMPLATE_IDS: []})
     assert g.options[CONF_DISABLED_TEMPLATE_IDS] == []
+    # Germany has no regions in data/regions — no region field
+    assert CONF_HOME_REGION not in {str(getattr(m, "schema", m)) for m in result["data_schema"].schema}
+
+
+async def test_home_profile_step_picks_the_region(hass: HomeAssistant) -> None:
+    """2.94: the state whose rules the templates follow — the located one by
+    default, any of the country's regions to override it."""
+    hass.config.latitude, hass.config.longitude, hass.config.country = 40.71, -74.01, "US"  # lower Manhattan
+    g = make_global_entry(hass)
+    await setup_integration(hass, g)
+    result = await _open_step(hass, g.entry_id, "home_profile")
+    marker = next(m for m in result["data_schema"].schema if str(getattr(m, "schema", m)) == CONF_HOME_REGION)
+    assert marker.default() == "auto"
+    options = result["data_schema"].schema[marker].config["options"]
+    assert options[0]["value"] == "auto" and "New York" in options[0]["label"]
+    assert {"value": "US-NJ", "label": "New Jersey"} in options and len(options) == 52  # auto + 50 states + DC
+    await hass.config_entries.options.async_configure(result["flow_id"], {CONF_HOME_TYPE: "auto", CONF_HOME_REGION: "US-NJ", CONF_DISABLED_TEMPLATE_IDS: []})
+    assert g.options[CONF_HOME_REGION] == "US-NJ"
+    result = await _open_step(hass, g.entry_id, "home_profile")
+    marker = next(m for m in result["data_schema"].schema if str(getattr(m, "schema", m)) == CONF_HOME_REGION)
+    assert marker.default() == "US-NJ"
 
 
 async def test_general_step_carries_the_panel_rows(hass: HomeAssistant) -> None:

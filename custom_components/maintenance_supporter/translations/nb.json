@@ -1221,9 +1221,11 @@
         "description": "Anbefaler maler og setter sesongvinduer etter ditt klima og din halvkule. Alt beregnes lokalt ut fra etasjene, områdene og boligens plassering.\n\n**Oppdaget:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "Boligtype",
+          "home_region": "Delstat, provins eller region",
           "disabled_template_ids": "Skjulte maler"
         },
         "data_description": {
+          "home_region": "Noen regler varierer innenfor et land – årlig kjøretøykontroll i én delstat, ingen i den neste. Funnet ut fra hjemmets plassering; velg en annen hvis den er feil.",
           "disabled_template_ids": "Maler valgt her vises ikke lenger i «Fra mal»-valgene (panel og oppsettveiviser). Ingenting annet endres."
         }
       },

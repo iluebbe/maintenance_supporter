@@ -28,6 +28,15 @@ export interface HomeProfile {
   traits: string[];
   /** Equipment the detection saw: garage, basement, garden, ups. */
   features?: string[];
+  /** 2.94: state / province / region (ISO 3166-2) whose rules the
+   *  templates follow — the setting or the one the location lies in. */
+  region?: string | null;
+  region_name?: string | null;
+  region_detected?: string | null;
+  region_detected_name?: string | null;
+  region_source?: "auto" | "setting";
+  /** The country's regions for the override picker (empty: none covered). */
+  regions?: Array<{ code: string; name: string }>;
 }
 
 /** Per-template recommendation fields of the templates read. */

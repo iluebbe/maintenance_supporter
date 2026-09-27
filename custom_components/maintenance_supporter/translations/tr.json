@@ -1221,9 +1221,11 @@
         "description": "İklim ve yarımküreye göre şablon önerir ve mevsimsel pencereleri ayarlar. Her şey katlarınız, alanlarınız ve ev konumunuzdan yerel olarak belirlenir.\n\n**Algılanan:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "Konut türü",
+          "home_region": "Eyalet, il veya bölge",
           "disabled_template_ids": "Gizli şablonlar"
         },
         "data_description": {
+          "home_region": "Bazı kurallar ülke içinde değişir: bir eyalette yıllık araç muayenesi vardır, komşusunda yoktur. Evinizin konumundan belirlendi; yanlışsa başka birini seçin.",
           "disabled_template_ids": "Burada seçilen şablonlar artık \"Şablondan\" seçimlerinde (panel ve kurulum sihirbazı) görünmez. Başka hiçbir şey değişmez."
         }
       },

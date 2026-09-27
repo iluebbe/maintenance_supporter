@@ -12,14 +12,15 @@ from __future__ import annotations
 
 import unicodedata
 import zlib
-from collections.abc import Iterable
-from dataclasses import dataclass
+from collections.abc import Iterable, Mapping
+from dataclasses import dataclass, field
 from typing import Any
 
 from homeassistant.core import HomeAssistant
 
-from ..const import CONF_HOME_TYPE, DOMAIN, HOME_TYPES
-from .climate import TRAIT_TERMITES, TRAIT_WILDFIRE, ClimateInfo, describe, load_grids
+from ..const import CONF_HOME_REGION, CONF_HOME_TYPE, DOMAIN, HOME_REGION_AUTO, HOME_TYPES
+from .climate import TRAIT_FREEZE, TRAIT_TERMITES, TRAIT_WILDFIRE, ClimateInfo, describe, load_grids
+from .region import RegionGrid, load_region_grid, load_region_names, regions_of
 
 DWELLING_HOUSE = "house"
 DWELLING_APARTMENT = "apartment"
@@ -33,14 +34,28 @@ RADON_COUNTRIES = frozenset({"AT", "CA", "CH", "CZ", "DE", "FI", "FR", "GB", "IE
 
 TRAIT_EARTHQUAKE = "earthquake"
 # High seismic hazard across most of the country; the US only on the West
-# Coast and in Alaska (checked by location below).
+# Coast, in Alaska, Hawaii (USGS 2023 model) and along Utah's Wasatch Front,
+# Canada in south-west British Columbia (Cascadia; NRCan) — checked by
+# location below.
 EARTHQUAKE_COUNTRIES = frozenset(
     {
         "AL", "CL", "CO", "CR", "EC", "GR", "GT", "ID", "IR", "IS", "IT", "JP",
         "MX", "NI", "NP", "NZ", "PE", "PH", "SV", "TR", "TW",
     }
 )  # fmt: skip
-_US_EARTHQUAKE_BOXES = ((32.0, 49.5, -125.0, -114.0), (51.0, 72.0, -180.0, -130.0))
+_EARTHQUAKE_BOXES: dict[str, tuple[tuple[float, float, float, float], ...]] = {
+    "US": (
+        (32.0, 49.5, -125.0, -114.0),
+        (51.0, 72.0, -180.0, -130.0),
+        (18.5, 22.5, -161.0, -154.5),
+        (39.0, 42.0, -112.5, -111.3),
+    ),
+    "CA": ((48.2, 50.8, -129.0, -121.5),),
+}
+
+# Hard freezes reach the Gulf coast and north Florida about once a year (FDEM;
+# Uri 2021) although their coldest month is too mild for the climate rule.
+_US_FREEZE_BOXES = ((28.0, 33.5, -106.5, -80.0),)
 
 # Australia is bushfire country in every state — the climate classes alone
 # would only flag the south-west — and termites are a building-code risk on
@@ -53,6 +68,7 @@ def _in_boxes(location: tuple[float, float] | None, boxes: Iterable[tuple[float,
     return location is not None and any(a <= location[0] <= b and c <= location[1] <= d for a, b, c, d in boxes)
 
 _GRIDS_KEY = "_climate_grids"
+_REGIONS_KEY = "_region_grids"
 
 # Detection reasons that prove a feature of the home (template ``requires``).
 _FEATURE_REASONS: dict[str, frozenset[str]] = {
@@ -207,9 +223,8 @@ def detect_dwelling(hass: HomeAssistant) -> DwellingGuess:
 
 async def async_climate(hass: HomeAssistant) -> ClimateInfo | None:
     """The configured location's climate (grids cached after the first read)."""
-    lat, lon = hass.config.latitude, hass.config.longitude
-    # 0°/0° is "Null Island" in the Gulf of Guinea — HA's unset location.
-    if lat is None or lon is None or (lat == 0 and lon == 0):
+    location = _home_location(hass)
+    if location is None:
         return None
     store = hass.data.setdefault(DOMAIN, {})
     grids = store.get(_GRIDS_KEY)
@@ -219,7 +234,7 @@ async def async_climate(hass: HomeAssistant) -> ClimateInfo | None:
         except (OSError, ValueError, zlib.error):
             return None
         store[_GRIDS_KEY] = grids
-    return describe(float(lat), float(lon), grids)
+    return describe(*location, grids)
 
 
 @dataclass(frozen=True)
@@ -232,14 +247,22 @@ class HomeProfile:
     climate: ClimateInfo | None
     location: tuple[float, float] | None = None
     equipment: frozenset[str] = frozenset()
+    # 2.94: state / province / region (ISO 3166-2) — the setting or the
+    # located one; ``region_names`` names every covered region.
+    region: str | None = None
+    region_detected: str | None = None
+    region_source: str = "auto"  # "setting" | "auto"
+    region_names: Mapping[str, str] = field(default_factory=dict)
 
     @property
     def traits(self) -> frozenset[str]:
         traits = set(self.climate.traits) if self.climate else set()
         if self.country in RADON_COUNTRIES:
             traits.add(TRAIT_RADON)
-        if self.country in EARTHQUAKE_COUNTRIES or (self.country == "US" and _in_boxes(self.location, _US_EARTHQUAKE_BOXES)):
+        if self.country in EARTHQUAKE_COUNTRIES or _in_boxes(self.location, _EARTHQUAKE_BOXES.get(self.country or "", ())):
             traits.add(TRAIT_EARTHQUAKE)
+        if self.country == "US" and _in_boxes(self.location, _US_FREEZE_BOXES):
+            traits.add(TRAIT_FREEZE)
         if self.country == "AU":
             traits.add(TRAIT_WILDFIRE)
             if not _in_boxes(self.location, _TASMANIA_BOXES):
@@ -273,7 +296,69 @@ class HomeProfile:
             "climate": self.climate.as_dict() if self.climate else None,
             "traits": sorted(self.traits),
             "features": sorted(self.features),
+            "region": self.region,
+            "region_name": self.region_names.get(self.region or ""),
+            "region_detected": self.region_detected,
+            "region_detected_name": self.region_names.get(self.region_detected or ""),
+            "region_source": self.region_source,
+            "regions": regions_of(self.country, dict(self.region_names)),
         }
+
+
+def _home_location(hass: HomeAssistant) -> tuple[float, float] | None:
+    lat, lon = hass.config.latitude, hass.config.longitude
+    # 0°/0° is "Null Island" in the Gulf of Guinea — HA's unset location.
+    if lat is None or lon is None or (lat == 0 and lon == 0):
+        return None
+    return float(lat), float(lon)
+
+
+def home_country(hass: HomeAssistant) -> str | None:
+    return str(hass.config.country).upper() if hass.config.country else None
+
+
+@dataclass(frozen=True)
+class HomeRegion:
+    """Where below the country the home is — see :func:`async_home_region`."""
+
+    region: str | None
+    detected: str | None
+    source: str  # "setting" | "auto"
+    names: Mapping[str, str]
+
+
+async def async_home_region(hass: HomeAssistant, country: str | None) -> HomeRegion:
+    """The home's state / province / region: the ``home_region`` setting when
+    it names a region of ``country``, else the one the home location lies in
+    (grid and names cached after the first read; only the home's country is
+    unpacked)."""
+    from .global_options import global_option
+
+    cache: dict[str, Any] = hass.data.setdefault(DOMAIN, {}).setdefault(_REGIONS_KEY, {})
+    if "names" not in cache:
+        try:
+            cache["names"] = await hass.async_add_executor_job(load_region_names)
+        except (OSError, ValueError, KeyError, zlib.error):
+            cache["names"] = {}
+    names: dict[str, str] = cache["names"]
+    if country and country not in cache:
+        try:
+            cache[country] = await hass.async_add_executor_job(load_region_grid, country)
+        except (OSError, ValueError, KeyError, zlib.error):
+            cache[country] = None
+    grid: RegionGrid | None = cache.get(country) if country else None
+    location = _home_location(hass)
+    detected = grid.at(*location) if grid and location else None
+    setting = str(global_option(hass, CONF_HOME_REGION) or HOME_REGION_AUTO)
+    if setting in names and country and setting.startswith(f"{country}-"):
+        return HomeRegion(setting, detected, "setting", names)
+    return HomeRegion(detected, detected, "auto", names)
+
+
+async def async_home_place(hass: HomeAssistant) -> tuple[str | None, str | None]:
+    """(country, region) whose rules the template tasks follow."""
+    country = home_country(hass)
+    return country, (await async_home_region(hass, country)).region
 
 
 async def async_home_profile(hass: HomeAssistant) -> HomeProfile:
@@ -282,7 +367,8 @@ async def async_home_profile(hass: HomeAssistant) -> HomeProfile:
     guess = detect_dwelling(hass)
     setting = str(global_option(hass, CONF_HOME_TYPE) or HOME_TYPE_AUTO)
     dwelling = setting if setting in (DWELLING_HOUSE, DWELLING_APARTMENT) else guess.kind
-    country = str(hass.config.country).upper() if hass.config.country else None
+    country = home_country(hass)
+    region = await async_home_region(hass, country)
     return HomeProfile(
         dwelling=dwelling,
         dwelling_detected=guess.kind,
@@ -294,4 +380,8 @@ async def async_home_profile(hass: HomeAssistant) -> HomeProfile:
         if hass.config.latitude is not None and hass.config.longitude is not None
         else None,
         equipment=detect_equipment(hass),
+        region=region.region,
+        region_detected=region.detected,
+        region_source=region.source,
+        region_names=region.names,
     )

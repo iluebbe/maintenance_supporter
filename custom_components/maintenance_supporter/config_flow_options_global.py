@@ -47,6 +47,7 @@ from .const import (
     CONF_DEFAULT_WARNING_DAYS,
     CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
     CONF_DISABLED_TEMPLATE_IDS,
+    CONF_HOME_REGION,
     CONF_HOME_TYPE,
     CONF_INSTALL_ASSIST_SENTENCES,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
@@ -83,6 +84,7 @@ from .const import (
     CONF_WARRANTY_REMINDER_ENABLED,
     CONF_WEEKLY_DIGEST_ENABLED,
     DEFAULT_BUDGET_CURRENCY,
+    HOME_REGION_AUTO,
     HOME_TYPES,
     KNOWN_OBJECT_TABLE_COLUMNS,
     MAX_NOTIFY_EXTRA_DATA_LENGTH,
@@ -352,123 +354,163 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "apartment",
         "dwelling_unknown": "not sure yet",
         "scope_all": "All tasks",
+        "region_auto": "Automatic ({region})",
+        "region_none": "not found",
     },
     "de": {
         "dwelling_house": "Haus",
         "dwelling_apartment": "Wohnung",
         "dwelling_unknown": "noch unklar",
         "scope_all": "Alle Aufgaben",
+        "region_auto": "Automatisch ({region})",
+        "region_none": "nicht gefunden",
     },
     "cs": {
         "dwelling_house": "dům",
         "dwelling_apartment": "byt",
         "dwelling_unknown": "zatím nejasné",
         "scope_all": "Všechny úkoly",
+        "region_auto": "Automaticky ({region})",
+        "region_none": "nenalezeno",
     },
     "da": {
         "dwelling_house": "hus",
         "dwelling_apartment": "lejlighed",
         "dwelling_unknown": "endnu uklart",
         "scope_all": "Alle opgaver",
+        "region_auto": "Automatisk ({region})",
+        "region_none": "ikke fundet",
     },
     "es": {
         "dwelling_house": "casa",
         "dwelling_apartment": "piso",
         "dwelling_unknown": "aún sin determinar",
         "scope_all": "Todas las tareas",
+        "region_auto": "Automático ({region})",
+        "region_none": "no encontrada",
     },
     "fi": {
         "dwelling_house": "talo",
         "dwelling_apartment": "kerrostaloasunto",
         "dwelling_unknown": "vielä epäselvä",
         "scope_all": "Kaikki tehtävät",
+        "region_auto": "Automaattinen ({region})",
+        "region_none": "ei löytynyt",
     },
     "fr": {
         "dwelling_house": "maison",
         "dwelling_apartment": "appartement",
         "dwelling_unknown": "pas encore déterminé",
         "scope_all": "Toutes les tâches",
+        "region_auto": "Automatique ({region})",
+        "region_none": "introuvable",
     },
-    "hi": {"dwelling_house": "मकान", "dwelling_apartment": "फ़्लैट", "dwelling_unknown": "अभी तय नहीं", "scope_all": "सभी कार्य"},
+    "hi": {"dwelling_house": "मकान", "dwelling_apartment": "फ़्लैट", "dwelling_unknown": "अभी तय नहीं", "scope_all": "सभी कार्य", "region_auto": "स्वचालित ({region})", "region_none": "नहीं मिला"},
     "hu": {
         "dwelling_house": "ház",
         "dwelling_apartment": "lakás",
         "dwelling_unknown": "még nem egyértelmű",
         "scope_all": "Minden feladat",
+        "region_auto": "Automatikus ({region})",
+        "region_none": "nem található",
     },
     "it": {
         "dwelling_house": "casa",
         "dwelling_apartment": "appartamento",
         "dwelling_unknown": "non ancora chiaro",
         "scope_all": "Tutte le attività",
+        "region_auto": "Automatico ({region})",
+        "region_none": "non trovata",
     },
     "ja": {
         "dwelling_house": "一戸建て",
         "dwelling_apartment": "集合住宅",
         "dwelling_unknown": "まだ不明",
         "scope_all": "すべてのタスク",
+        "region_auto": "自動（{region}）",
+        "region_none": "見つかりません",
     },
     "ko": {
         "dwelling_house": "단독주택",
         "dwelling_apartment": "아파트",
         "dwelling_unknown": "아직 불확실",
         "scope_all": "모든 작업",
+        "region_auto": "자동({region})",
+        "region_none": "찾을 수 없음",
     },
     "nb": {
         "dwelling_house": "hus",
         "dwelling_apartment": "leilighet",
         "dwelling_unknown": "ennå uklart",
         "scope_all": "Alle oppgaver",
+        "region_auto": "Automatisk ({region})",
+        "region_none": "ikke funnet",
     },
     "nl": {
         "dwelling_house": "huis",
         "dwelling_apartment": "appartement",
         "dwelling_unknown": "nog onduidelijk",
         "scope_all": "Alle taken",
+        "region_auto": "Automatisch ({region})",
+        "region_none": "niet gevonden",
     },
     "pl": {
         "dwelling_house": "dom",
         "dwelling_apartment": "mieszkanie",
         "dwelling_unknown": "jeszcze niejasne",
         "scope_all": "Wszystkie zadania",
+        "region_auto": "Automatycznie ({region})",
+        "region_none": "nie znaleziono",
     },
     "pt": {
         "dwelling_house": "moradia",
         "dwelling_apartment": "apartamento",
         "dwelling_unknown": "ainda por determinar",
         "scope_all": "Todas as tarefas",
+        "region_auto": "Automático ({region})",
+        "region_none": "não encontrada",
     },
     "pt-br": {
         "dwelling_house": "casa",
         "dwelling_apartment": "apartamento",
         "dwelling_unknown": "ainda indefinido",
         "scope_all": "Todas as tarefas",
+        "region_auto": "Automático ({region})",
+        "region_none": "não encontrada",
     },
     "ru": {
         "dwelling_house": "дом",
         "dwelling_apartment": "квартира",
         "dwelling_unknown": "пока неясно",
         "scope_all": "Все задачи",
+        "region_auto": "Автоматически ({region})",
+        "region_none": "не найден",
     },
     "sv": {
         "dwelling_house": "hus",
         "dwelling_apartment": "lägenhet",
         "dwelling_unknown": "ännu oklart",
         "scope_all": "Alla uppgifter",
+        "region_auto": "Automatiskt ({region})",
+        "region_none": "hittades inte",
     },
     "tr": {
         "dwelling_house": "müstakil ev",
         "dwelling_apartment": "daire",
         "dwelling_unknown": "henüz belirsiz",
         "scope_all": "Tüm görevler",
+        "region_auto": "Otomatik ({region})",
+        "region_none": "bulunamadı",
     },
     "uk": {
         "dwelling_house": "будинок",
         "dwelling_apartment": "квартира",
         "dwelling_unknown": "поки неясно",
         "scope_all": "Усі завдання",
+        "region_auto": "Автоматично ({region})",
+        "region_none": "не знайдено",
     },
-    "zh": {"dwelling_house": "独栋住宅", "dwelling_apartment": "公寓", "dwelling_unknown": "尚不确定", "scope_all": "所有任务"},
+    "zh": {"dwelling_house": "独栋住宅", "dwelling_apartment": "公寓", "dwelling_unknown": "尚不确定", "scope_all": "所有任务", "region_auto": "自动（{region}）", "region_none": "未找到"},
 }
 
 
@@ -1260,14 +1302,16 @@ class GlobalOptionsFlow(OptionsFlow):
     # --- Home profile & templates (2.94) ---
 
     async def async_step_home_profile(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """House or apartment (the recommendations follow it) and the
-        templates hidden from the pickers — the panel's Home profile and
-        Templates sections."""
+        """House or apartment (the recommendations follow it), the state or
+        province whose rules the templates follow (where the country has
+        such rules), and the templates hidden from the pickers — the panel's
+        Home profile and Templates sections."""
         if user_input is not None:
             user_input.setdefault(CONF_DISABLED_TEMPLATE_IDS, [])
             return self._save_and_return(user_input)
 
         from .helpers.home_profile import async_home_profile
+        from .helpers.region import regions_of
         from .templates import TEMPLATE_CATEGORIES, TEMPLATES, localize_template_text
 
         lang = normalize_language(self.hass)
@@ -1286,20 +1330,43 @@ class GlobalOptionsFlow(OptionsFlow):
             )
             for t in templates
         ]
+        fields: dict[Any, Any] = {
+            vol.Optional(
+                CONF_HOME_TYPE,
+                default=self._opt(CONF_HOME_TYPE) if self._opt(CONF_HOME_TYPE) in HOME_TYPES else "auto",
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=list(HOME_TYPES),
+                    mode=selector.SelectSelectorMode.DROPDOWN,
+                    translation_key="home_type",
+                )
+            ),
+        }
+        regions = regions_of(profile.country, dict(profile.region_names))
+        if regions:
+            codes = {r["code"] for r in regions}
+            detected_name = profile.region_names.get(profile.region_detected or "") or _settings_text(self.hass, "region_none")
+            fields[
+                vol.Optional(
+                    CONF_HOME_REGION,
+                    default=self._opt(CONF_HOME_REGION) if self._opt(CONF_HOME_REGION) in codes else HOME_REGION_AUTO,
+                )
+            ] = selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=[
+                        selector.SelectOptionDict(
+                            value=HOME_REGION_AUTO, label=_settings_text(self.hass, "region_auto").replace("{region}", detected_name)
+                        ),
+                        *(selector.SelectOptionDict(value=r["code"], label=r["name"]) for r in regions),
+                    ],
+                    mode=selector.SelectSelectorMode.DROPDOWN,
+                )
+            )
         return self.async_show_form(
             step_id="home_profile",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(
-                        CONF_HOME_TYPE,
-                        default=self._opt(CONF_HOME_TYPE) if self._opt(CONF_HOME_TYPE) in HOME_TYPES else "auto",
-                    ): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=list(HOME_TYPES),
-                            mode=selector.SelectSelectorMode.DROPDOWN,
-                            translation_key="home_type",
-                        )
-                    ),
+                    **fields,
                     vol.Optional(
                         CONF_DISABLED_TEMPLATE_IDS,
                         default=select_default(self._opt(CONF_DISABLED_TEMPLATE_IDS), template_options),

@@ -1221,9 +1221,11 @@
         "description": "Consiglia modelli e imposta le finestre stagionali in base al tuo clima e al tuo emisfero. Tutto viene ricavato localmente da piani, aree e posizione di casa.\n\n**Rilevato:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "Tipo di abitazione",
+          "home_region": "Stato, provincia o regione",
           "disabled_template_ids": "Modelli nascosti"
         },
         "data_description": {
+          "home_region": "Alcune regole cambiano all'interno di un paese: revisione annuale del veicolo in uno stato, nessuna in quello accanto. Ricavato dalla posizione della casa; scegline un altro se è sbagliato.",
           "disabled_template_ids": "I modelli scelti qui non compaiono più nelle selezioni «Da modello» (pannello e procedura di configurazione). Nient'altro cambia."
         }
       },

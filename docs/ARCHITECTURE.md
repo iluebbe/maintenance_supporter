@@ -127,7 +127,7 @@ Trigger sensors update immediately via HA state_change events, but the coordinat
 - Entity selector pre-populates existing entity_ids when editing a trigger
 - All 8 compound trigger steps have proper translations in both config and options flows
 - Go-back navigation on all forms for non-linear editing
-- 94 object templates in 10 categories (vehicle, home, building, household, appliance, garden, pool, tech, pets, health) with pre-configured tasks and triggers; their display strings live in `templates_i18n.py`. Seasons are written for the northern hemisphere and resolved at creation by `build_template_task` (mirrored south of the equator, dropped where there is no winter); `country_notes` add a legal hint for one country at creation (French boiler duty, Polish chimney inspection …) and `country_intervals` its cycle (the UK's yearly MOT); `winter_only` tasks are left out where there is no winter (`template_tasks`, shared by the config flow, the panel and the gallery read); `recommend_template` matches each template's `dwellings` / `starter` / `traits` / `countries` / `requires` / `only_countries` against the home profile (`helpers/home_profile.py`, climate from `helpers/climate.py` + `data/climate/`)
+- 95 object templates in 10 categories (vehicle, home, building, household, appliance, garden, pool, tech, pets, health) with pre-configured tasks and triggers; their display strings live in `templates_i18n.py`. Seasons are written for the northern hemisphere and resolved at creation by `build_template_task` (mirrored south of the equator, dropped where there is no winter); `country_notes` add a legal hint for one country at creation (French boiler duty, Polish chimney inspection …) and `country_intervals` its cycle (the UK's yearly MOT) — keys may also be regions (ISO 3166-2, `US-NY`; the region's entry wins over its country's), and an interval of `NOT_DUE` (0) leaves the task out where no such duty exists (no vehicle inspection in Florida); `winter_only` tasks are left out where there is no winter (`template_tasks`, shared by the config flow, the panel and the gallery read); `recommend_template` matches each template's `dwellings` / `starter` / `traits` / `countries` / `requires` / `only_countries` against the home profile (`helpers/home_profile.py`, climate from `helpers/climate.py` + `data/climate/`, state / province / region from `helpers/region.py` + `data/regions/` or the `home_region` setting)
 
 ### Pure Python Helpers
 `interval_analyzer` has zero HA dependencies, enabling isolated unit testing and reuse outside HA. `sensor_predictor` and `entity_analyzer` depend on the HA recorder and state machine for data access, but their core algorithms (linear regression, Pearson correlation, Weibull analysis) are pure Python.
@@ -373,8 +373,9 @@ custom_components/maintenance_supporter/
 │   ├── i18n.py                     (35 lines)  normalize_language_code (pt-br is its own table key)
 │   ├── integration_signatures.py   (26 lines)  Compatibility shim → signatures/
 │   ├── catalog_heal.py             (79 lines)  Repairs catalog-adopted triggers a later signature fix invalidated (gree/daikin AC runtime)
-│   ├── climate.py                 (221 lines)  Offline climate of the home location: Köppen class + coldest/warmest month → traits (freeze, snow, hot_humid, termites, cyclone …), hemisphere flip
-│   ├── home_profile.py            (297 lines)  House vs apartment from floors/areas/entities, `home_type` override, country, radon countries, Australia-wide bushfire/termites, equipment from integrations (UPS: NUT/apcupsd)
+│   ├── climate.py                 (236 lines)  Offline climate of the home location: Köppen class + coldest/warmest month → traits (freeze, snow, hot_humid, termites, cyclone …), hemisphere flip
+│   ├── home_profile.py            (387 lines)  House vs apartment from floors/areas/entities, `home_type` override, country, region (`home_region` override), radon countries, earthquake / Gulf-coast freeze boxes, Australia-wide bushfire/termites, equipment from integrations (UPS: NUT/apcupsd)
+│   ├── region.py                  (150 lines)  Offline state / province / region of the home location (ISO 3166-2): two-level grid from Natural Earth admin-1, nearest region on the coast
 │   ├── reading_slots.py           (229 lines)  #161 phase 2: reading slots — sanitize [{id,name,unit}], textarea form, resolve {id: value} / {name: value} into the entry snapshot, sensor attrs
 │   ├── global_options.py (80), pause.py (79), status.py (50), completion_photos.py (47: photo_doc_ids ∪ legacy scalar, cap 10), task_fields.py (44), notify_targets.py (39)
 │   └── signatures/              (4,508 lines)  Suggested-setups catalog: 197 integrations / 388 signatures
@@ -391,7 +392,7 @@ custom_components/maintenance_supporter/
 │   │                                           installation_date, warranty_expiry (#67), documentation_url, notes
 │   └── maintenance_type.py         (86 lines)  Predefined maintenance categories
 │
-├── templates.py                 (2,618 lines)  94 object templates in 10 categories (vehicle, home, building, household,
+├── templates.py                 (2,898 lines)  95 object templates in 10 categories (vehicle, home, building, household,
 │                                               appliance, garden, pool, tech, pets, health)
 ├── templates_i18n.py            (14,431 lines)  Translations for the template catalog (largest module)
 ├── repairs.py                     (672 lines)  Repair flows: missing trigger entity, orphan admin-panel-user,

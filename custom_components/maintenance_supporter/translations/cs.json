@@ -1221,9 +1221,11 @@
         "description": "Doporučuje šablony a nastavuje sezónní okna podle vašeho klimatu a polokoule. Vše se určuje lokálně z vašich podlaží, oblastí a polohy domova.\n\n**Rozpoznáno:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "Typ bydlení",
+          "home_region": "Stát, provincie nebo region",
           "disabled_template_ids": "Skryté šablony"
         },
         "data_description": {
+          "home_region": "Některá pravidla se v rámci země liší – v jednom státě každoroční technická kontrola vozidel, v sousedním žádná. Určeno z polohy domova; pokud nesedí, vyberte jiný.",
           "disabled_template_ids": "Zde vybrané šablony se už nezobrazí ve výběru „Ze šablony“ (panel i průvodce nastavením). Nic jiného se nemění."
         }
       },

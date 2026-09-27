@@ -1221,9 +1221,11 @@
         "description": "Beveelt sjablonen aan en stelt seizoensvensters in voor je klimaat en halfrond. Alles wordt lokaal bepaald uit je verdiepingen, ruimtes en locatie.\n\n**Herkend:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "Woningtype",
+          "home_region": "Staat, provincie of regio",
           "disabled_template_ids": "Verborgen sjablonen"
         },
         "data_description": {
+          "home_region": "Sommige regels verschillen binnen een land: een jaarlijkse voertuigkeuring in de ene staat, geen in de volgende. Bepaald op basis van de locatie van je woning; kies een andere als die niet klopt.",
           "disabled_template_ids": "Hier gekozen sjablonen verschijnen niet meer in de keuze \"Van sjabloon\" (paneel en installatie-assistent). Verder verandert er niets."
         }
       },

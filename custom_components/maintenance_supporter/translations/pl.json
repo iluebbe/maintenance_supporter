@@ -1221,9 +1221,11 @@
         "description": "Poleca szablony i ustawia okna sezonowe zgodnie z Twoim klimatem i półkulą. Wszystko jest ustalane lokalnie na podstawie pięter, obszarów i lokalizacji domu.\n\n**Wykryto:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "Rodzaj domu",
+          "home_region": "Stan, prowincja lub region",
           "disabled_template_ids": "Ukryte szablony"
         },
         "data_description": {
+          "home_region": "Niektóre przepisy różnią się w obrębie kraju – w jednym stanie coroczny przegląd pojazdu, w sąsiednim żaden. Ustalono na podstawie lokalizacji domu; wybierz inny, jeśli się nie zgadza.",
           "disabled_template_ids": "Wybrane tu szablony nie pojawiają się już w wyborze „Z szablonu” (panel i kreator konfiguracji). Nic więcej się nie zmienia."
         }
       },

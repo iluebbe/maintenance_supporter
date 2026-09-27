@@ -76,6 +76,11 @@ _WILDFIRE_CLASSES = frozenset({"Csa", "Csb", "BSh", "BSk"})
 # recommendation hint — inland cells inside a box are fine (remnant storms).
 _CYCLONE_BOXES: tuple[tuple[float, float, float, float], ...] = (
     (10.0, 37.0, -100.0, -60.0),  # Gulf of Mexico, Caribbean, US south-east coast
+    # The Atlantic storms go on up the coast (NHC climatology): Delaware and
+    # Maryland to Maine, then the Maritimes and Newfoundland.
+    (37.0, 45.0, -77.5, -66.5),
+    (43.0, 52.0, -67.0, -52.0),
+    (18.5, 22.5, -161.0, -154.5),  # Hawaii
     (12.0, 27.0, -118.0, -95.0),  # Mexican Pacific coast
     (8.0, 42.0, 105.0, 150.0),  # Philippines, Taiwan, south/east China, Korea, Japan
     (5.0, 26.0, 65.0, 95.0),  # Arabian Sea, Bay of Bengal

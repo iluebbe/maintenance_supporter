@@ -1221,9 +1221,11 @@
         "description": "Sablonokat javasol, és az éghajlathoz és a féltekéhez igazítja a szezonális időablakokat. Minden helyben, az Ön szintjeiből, területeiből és az otthon helyéből adódik.\n\n**Felismerve:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "Lakóhely típusa",
+          "home_region": "Állam, tartomány vagy régió",
           "disabled_template_ids": "Elrejtett sablonok"
         },
         "data_description": {
+          "home_region": "Egyes szabályok országon belül is eltérnek – az egyik államban évente kötelező a járművizsga, a szomszédosban egyáltalán nem. Az otthon helyéből megállapítva; ha téves, válasszon másikat.",
           "disabled_template_ids": "Az itt kiválasztott sablonok nem jelennek meg többé a „Sablonból” választókban (panel és beállítási varázsló). Más nem változik."
         }
       },

@@ -81,6 +81,14 @@ def test_known_places_are_classified(place: str, lat: float, lon: float, koppen:
         (-27.47, 153.03, "cyclone", True),  # Brisbane
         (-23.70, 133.88, "cyclone", False),  # Alice Springs
         (-31.95, 115.86, "cyclone", False),  # Perth
+        # The Atlantic storms go on up the coast north of 37°N, and Hawaii.
+        (40.71, -74.01, "cyclone", True),  # New York
+        (42.36, -71.06, "cyclone", True),  # Boston
+        (44.65, -63.57, "cyclone", True),  # Halifax
+        (47.56, -52.71, "cyclone", True),  # St. John's
+        (21.31, -157.86, "cyclone", True),  # Honolulu
+        (45.50, -73.57, "cyclone", False),  # Montreal
+        (41.88, -87.63, "cyclone", False),  # Chicago
     ],
 )
 def test_regional_climate_traits(lat: float, lon: float, trait: str, present: bool) -> None:
@@ -94,12 +102,32 @@ def test_regional_climate_traits(lat: float, lon: float, trait: str, present: bo
         ("US", (37.77, -122.42), True),  # San Francisco
         ("US", (61.22, -149.90), True),  # Anchorage
         ("US", (29.76, -95.37), False),  # Houston
+        ("US", (21.31, -157.86), True),  # Honolulu
+        ("US", (40.76, -111.89), True),  # Salt Lake City
+        ("CA", (49.28, -123.12), True),  # Vancouver
+        ("CA", (43.65, -79.38), False),  # Toronto
         ("DE", (48.14, 11.58), False),
     ],
 )
 def test_earthquake_regions(country: str, location: tuple[float, float], expected: bool) -> None:
     profile = HomeProfile(DWELLING_HOUSE, DWELLING_HOUSE, (), "auto", country, None, location)
     assert ("earthquake" in profile.traits) is expected
+
+
+@pytest.mark.parametrize(
+    ("place", "location", "freeze"),
+    [
+        ("Houston", (29.76, -95.37), True),
+        ("New Orleans", (29.95, -90.07), True),
+        ("Jacksonville", (30.33, -81.66), True),
+        ("Miami", (25.76, -80.19), False),
+    ],
+)
+def test_gulf_coast_freezes_although_its_coldest_month_is_mild(place: str, location: tuple[float, float], freeze: bool) -> None:
+    climate = describe(*location, GRIDS)
+    assert "freeze" not in climate.traits, place
+    profile = HomeProfile(DWELLING_HOUSE, DWELLING_HOUSE, (), "auto", "US", climate, location)
+    assert ("freeze" in profile.traits) is freeze, place
 
 
 @pytest.mark.parametrize(
@@ -128,7 +156,7 @@ def test_country_notes_are_added_for_that_country_only() -> None:
     # Appended below a template's own note, and localized.
     sweep = next(tt for t in TEMPLATES if t.id == "home_fireplace" for tt in t.tasks if tt.name == "Chimney Sweep Appointment")
     notes = build_template_task(sweep, "en", country="PL")["notes"]
-    assert notes.startswith("Legally regulated") and notes.endswith("at least once a year.") and "\n\n" in notes
+    assert notes.startswith("Legally regulated") and notes.endswith("inspection every year.") and "\n\n" in notes
     assert "DIN 14676" in build_template_task(_tt("Test Detectors"), "de", country="DE")["notes"]
 
 
@@ -353,6 +381,12 @@ async def test_null_island_is_no_location(hass: HomeAssistant) -> None:
     assert await async_climate(hass) is None
 
 
+def _place_code(code: str) -> bool:
+    import re
+
+    return bool(re.fullmatch(r"[A-Z]{2}(-[A-Z0-9]{1,3})?", code))
+
+
 def test_every_template_metadata_is_well_formed() -> None:
     from custom_components.maintenance_supporter.helpers.climate import CLIMATE_TRAITS
     from custom_components.maintenance_supporter.helpers.home_profile import TRAIT_RADON
@@ -364,12 +398,15 @@ def test_every_template_metadata_is_well_formed() -> None:
         assert t.dwellings and t.dwellings <= {DWELLING_HOUSE, DWELLING_APARTMENT}, t.id
         assert t.starter <= t.dwellings, t.id
         assert t.traits <= allowed_traits, (t.id, t.traits)
-        assert all(len(c) == 2 and c.isupper() for c in t.countries | t.only_countries), t.id
+        # a country (ISO 3166-1) or, 2.94, a region of one (ISO 3166-2 — the
+        # codes are checked against the region grid in test_region.py)
+        assert all(_place_code(c) for c in t.countries | t.only_countries), t.id
         for tt in t.tasks:
-            assert all(len(c) == 2 and c.isupper() for c in (tt.country_notes or {})), (t.id, tt.name)
+            assert all(_place_code(c) for c in (tt.country_notes or {})), (t.id, tt.name)
         assert t.requires <= {"garage", "basement", "garden", "ups"}, (t.id, t.requires)
         for tt in t.tasks:
-            assert all(len(c) == 2 and c.isupper() and days > 0 for c, days in (tt.country_intervals or {}).items()), (t.id, tt.name)
+            # 0 = NOT_DUE: no such duty there (the task is left out)
+            assert all(_place_code(c) and days >= 0 for c, days in (tt.country_intervals or {}).items()), (t.id, tt.name)
             # Only a dated or seasonal task can be winter-only.
             assert not tt.winter_only or tt.schedule or tt.season_months, (t.id, tt.name)
             assert all(1 <= m <= 12 for m in tt.season_months), (t.id, tt.name)

@@ -774,6 +774,7 @@ _SETTING_SAMPLES: dict[str, Any] = {
     # v2.21: sample must survive the known-id sanitiser → real template ids.
     "disabled_template_ids": ["vehicle_bicycle", "pool_pump"],
     "home_type": "apartment",
+    "home_region": "US-NY",
     # #169 follow-up: member avatar overrides (palette colour only).
     "member_display": {"user-1": {"initials": "MS", "color": "#1565c0"}},
     # D#162 follow-up: per-type lifetime overrides (canonical keys, months).
@@ -870,6 +871,7 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "battery_lifetime_months": settings["general"]["battery_lifetime_months"],
         "disabled_template_ids": settings["disabled_template_ids"],
         "home_type": settings["home_type"],
+        "home_region": settings["home_region"],
         "archive_oneoff_days": settings["archive"]["oneoff_days"],
         "delete_archived_oneoff_days": settings["archive"]["delete_archived_oneoff_days"],
     }

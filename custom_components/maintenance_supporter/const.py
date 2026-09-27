@@ -193,6 +193,11 @@ CONF_DISABLED_TEMPLATE_IDS = "disabled_template_ids"
 # recommendations only; see helpers/home_profile.py.
 CONF_HOME_TYPE = "home_type"
 HOME_TYPES = ("auto", "house", "apartment")
+# 2.94: the state / province / region (ISO 3166-2, e.g. "US-NY") whose rules
+# the templates follow — "auto" = looked up from the home location in
+# data/regions (helpers/region.py). A code of another country is ignored.
+CONF_HOME_REGION = "home_region"
+HOME_REGION_AUTO = "auto"
 
 # v2.24: saved filter views — named, shared combinations of the panel list's
 # filters (status / user / archived) + sort + group-by that any user can apply

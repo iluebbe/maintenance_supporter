@@ -1221,9 +1221,11 @@
         "description": "Recommends templates and sets seasonal windows for your climate and hemisphere. Everything is worked out locally from your floors, areas and home location.\n\n**Detected:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "Home type",
+          "home_region": "State, province or region",
           "disabled_template_ids": "Hidden templates"
         },
         "data_description": {
+          "home_region": "Some rules differ within a country — a yearly vehicle inspection in one state, none in the next. Found from your home location; pick another one if it is wrong.",
           "disabled_template_ids": "Templates chosen here no longer appear in the \"From template\" pickers (panel and config flow). Nothing else changes."
         }
       },

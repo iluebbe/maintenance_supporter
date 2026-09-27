@@ -1221,9 +1221,11 @@
         "description": "Rekommenderar mallar och ställer in säsongsfönster efter ditt klimat och halvklot. Allt räknas ut lokalt från dina våningar, områden och hemmets plats.\n\n**Identifierat:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "Bostadstyp",
+          "home_region": "Delstat, provins eller region",
           "disabled_template_ids": "Dolda mallar"
         },
         "data_description": {
+          "home_region": "Vissa regler skiljer sig inom ett land – årlig fordonsbesiktning i en delstat, ingen i nästa. Hämtat från hemmets plats; välj en annan om den är fel.",
           "disabled_template_ids": "Mallar som väljs här visas inte längre i valet ”Från mall” (panel och installationsguide). Inget annat ändras."
         }
       },

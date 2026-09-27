@@ -1221,9 +1221,11 @@
         "description": "Recomenda modelos e define janelas sazonais de acordo com o seu clima e hemisfério. Tudo é determinado localmente a partir dos seus pisos, áreas e localização da casa.\n\n**Detetado:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "Tipo de habitação",
+          "home_region": "Estado, província ou região",
           "disabled_template_ids": "Modelos ocultos"
         },
         "data_description": {
+          "home_region": "Algumas regras variam dentro de um país: inspeção anual do veículo num estado, nenhuma no seguinte. Determinado a partir da localização da casa; escolha outro se estiver errado.",
           "disabled_template_ids": "Os modelos escolhidos aqui deixam de aparecer na seleção «A partir de modelo» (painel e assistente de configuração). Nada mais muda."
         }
       },

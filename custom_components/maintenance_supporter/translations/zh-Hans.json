@@ -1221,9 +1221,11 @@
         "description": "根据您的气候和所在半球推荐模板并设置季节窗口。所有信息均根据您的楼层、区域和住宅位置在本地得出。\n\n**识别结果:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "住宅类型",
+          "home_region": "州、省或地区",
           "disabled_template_ids": "隐藏的模板"
         },
         "data_description": {
+          "home_region": "有些规定在同一国家内也不同——某个州每年检验车辆，相邻的州则不需要。根据住址位置判断；如有误请另选。",
           "disabled_template_ids": "在此选择的模板将不再出现在“从模板”选择中（面板和设置向导）。其他不变。"
         }
       },

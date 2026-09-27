@@ -95,6 +95,57 @@ describe("settings: home profile section", () => {
     expect(update.settings).to.deep.equal({ home_type: "apartment" });
     expect(sent.filter((m) => m.type === "maintenance_supporter/templates").length).to.be.greaterThan(before);
   });
+
+  it("has no region picker where the country has no regions", async () => {
+    const { el } = await mount();
+    expect(el.shadowRoot!.querySelector("select.home-region")).to.equal(null);
+  });
+});
+
+describe("settings: home region (2.94)", () => {
+  const US_PROFILE: HomeProfile = {
+    ...PROFILE,
+    country: "US",
+    region: "US-NY",
+    region_name: "New York",
+    region_detected: "US-NY",
+    region_detected_name: "New York",
+    region_source: "auto",
+    regions: [
+      { code: "US-NJ", name: "New Jersey" },
+      { code: "US-NY", name: "New York" },
+    ],
+  };
+
+  it("offers the located state and the country's others, and writes home_region", async () => {
+    let settings = { ...DEFAULT_SETTINGS_RESPONSE, home_region: "auto" };
+    const { hass, sent } = createMockHass({
+      handlers: {
+        "maintenance_supporter/settings": () => settings,
+        "maintenance_supporter/templates": () => ({ ...TEMPLATES, profile: US_PROFILE }),
+        "maintenance_supporter/global/update": (msg: any) => {
+          settings = { ...settings, ...msg.settings };
+          return settings;
+        },
+      },
+    });
+    const el = await fixture<MaintenanceSettingsView>(html`
+      <maintenance-settings-view .hass=${hass} .features=${DEFAULT_FEATURES}></maintenance-settings-view>
+    `);
+    await new Promise((r) => setTimeout(r, 60));
+    await el.updateComplete;
+    const select = el.shadowRoot!.querySelector<HTMLSelectElement>("select.home-region")!;
+    expect(select, "region picker").to.exist;
+    const labels = [...select.options].map((o) => o.textContent!.trim());
+    expect(labels).to.deep.equal(["Automatic (New York)", "New Jersey", "New York"]);
+    const before = (sent as SentMessage[]).filter((m) => m.type === "maintenance_supporter/templates").length;
+    select.value = "US-NJ";
+    select.dispatchEvent(new Event("change"));
+    await new Promise((r) => setTimeout(r, 60));
+    const update = (sent as SentMessage[]).find((m) => m.type === "maintenance_supporter/global/update") as any;
+    expect(update.settings).to.deep.equal({ home_region: "US-NJ" });
+    expect((sent as SentMessage[]).filter((m) => m.type === "maintenance_supporter/templates").length).to.be.greaterThan(before);
+  });
 });
 
 describe("panel gallery: recommendations", () => {

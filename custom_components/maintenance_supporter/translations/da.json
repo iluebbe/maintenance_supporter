@@ -1221,9 +1221,11 @@
         "description": "Anbefaler skabeloner og indstiller sæsonvinduer efter dit klima og din halvkugle. Alt udregnes lokalt ud fra dine etager, områder og boligens placering.\n\n**Registreret:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "Boligtype",
+          "home_region": "Delstat, provins eller region",
           "disabled_template_ids": "Skjulte skabeloner"
         },
         "data_description": {
+          "home_region": "Nogle regler varierer inden for et land – årligt køretøjssyn i én delstat, intet i den næste. Fundet ud fra hjemmets placering; vælg en anden, hvis den er forkert.",
           "disabled_template_ids": "Skabeloner valgt her vises ikke længere i \"Fra skabelon\"-valget (panel og opsætningsguide). Intet andet ændres."
         }
       },

@@ -1221,9 +1221,11 @@
         "description": "Recommande des modèles et règle les périodes saisonnières selon votre climat et votre hémisphère. Tout est déterminé localement à partir de vos étages, pièces et de l'emplacement du domicile.\n\n**Détecté:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "Type de logement",
+          "home_region": "État, province ou région",
           "disabled_template_ids": "Modèles masqués"
         },
         "data_description": {
+          "home_region": "Certaines règles varient au sein d'un pays : contrôle annuel des véhicules dans un État, aucun dans le suivant. Déterminé à partir de l'emplacement de votre domicile ; choisissez-en un autre s'il est erroné.",
           "disabled_template_ids": "Les modèles choisis ici n'apparaissent plus dans les sélecteurs « Depuis un modèle » (panneau et assistant de configuration). Rien d'autre ne change."
         }
       },

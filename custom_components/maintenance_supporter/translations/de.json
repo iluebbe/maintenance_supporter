@@ -1221,9 +1221,11 @@
         "description": "Empfiehlt Vorlagen und setzt Saisonfenster passend zu Klima und Hemisphäre. Alles wird lokal aus deinen Etagen, Bereichen und dem Standort ermittelt.\n\n**Erkannt:** {detected} · {country} · {climate}",
         "data": {
           "home_type": "Wohnform",
+          "home_region": "Bundesland, Provinz oder Region",
           "disabled_template_ids": "Ausgeblendete Vorlagen"
         },
         "data_description": {
+          "home_region": "Manche Regeln unterscheiden sich innerhalb eines Landes – jährliche Fahrzeugprüfung im einen Bundesstaat, keine im nächsten. Aus dem Standort deines Zuhauses ermittelt; wähle eine andere, falls sie nicht stimmt.",
           "disabled_template_ids": "Hier gewählte Vorlagen erscheinen nicht mehr in der Auswahl „Aus Vorlage“ (Panel und Einrichtungsassistent). Sonst ändert sich nichts."
         }
       },

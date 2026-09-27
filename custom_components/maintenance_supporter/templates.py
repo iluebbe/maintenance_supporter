@@ -42,10 +42,14 @@ class TaskTemplate:
     # above stays the cycle length shown in the gallery.
     schedule: dict[str, Any] | None = None
     # Extra note for homes in one country (ISO code → English note), appended
-    # to ``notes`` at creation — the French boiler duty only for France.
+    # to ``notes`` at creation — the French boiler duty only for France. A key
+    # can also be a region (ISO 3166-2, "US-NY"; helpers/region.py): the
+    # region's entry wins over its country's.
     country_notes: dict[str, str] | None = None
-    # A different cycle in one country (ISO code → days) — the MOT is yearly
-    # in the UK where most of Europe tests every two years.
+    # A different cycle in one country or region (code → days) — the MOT is
+    # yearly in the UK where most of Europe tests every two years. NOT_DUE
+    # (0): no such duty there, the task is left out (no vehicle inspection in
+    # Florida).
     country_intervals: dict[str, int] | None = None
     # Only where there is a cold season: winterizing a pool or an irrigation
     # system is left out in Miami or Brisbane.
@@ -66,7 +70,8 @@ class ObjectTemplate:
     # them; ``countries``: recommended in these ISO countries (only for things
     # nearly every home there has); ``requires``: home features that must have
     # been detected (garage, basement, garden) — they are a reason themselves;
-    # ``only_countries``: never recommended outside these countries.
+    # ``only_countries``: never recommended outside these countries. Both
+    # country sets may name regions too ("CA-BC").
     dwellings: frozenset[str] = ANY_DWELLING
     starter: frozenset[str] = frozenset()
     traits: frozenset[str] = frozenset()
@@ -348,6 +353,29 @@ _CAR_TEST_NOTES: dict[str, str] = {
     "SE": "Sweden: besiktning after 3 years, after 5 years, then every 14 months.",
     "AU": "Australia: only NSW has a regular check — a yearly safety inspection (pink slip) for most light vehicles older than 5 years; the other states and territories inspect on sale, transfer or re-registration.",
     "NZ": "New Zealand: Warrant of Fitness 3 years after first registration, then every year (cars from before 2000: every 6 months) — planned from 1 November 2026: after 4 years, then every 2 years until the car is 14, then every year.",
+    "BE": "Belgium: first test after 4 years, then every year in Wallonia and Brussels; Flanders tests every 2 years from 1 September 2026.",
+    "LU": "Luxembourg: contrôle technique (SNCT) after 4 years, after 6 years, then every year — also for motorcycles and trailers of 0.75–3.5 t.",
+    "IE": "Ireland: NCT after 4 years, then every 2 years, every year from 10 years; cars aged 30–39 years every 2 years, from 40 exempt.",
+    "PT": "Portugal: inspeção (IPO) after 4 years, every 2 years until the car is 8, then every year.",
+    "GR": "Greece: KTEO test after 4 years, then every 2 years.",
+    "MT": "Malta: VRT after 4 years, then every 2 years — every year once the car has done over 160,000 km.",
+    "NO": "Norway: EU-kontroll after 4 years, then every 2 years; cars aged 30–50 years every 5 years.",
+    "DK": "Denmark: syn after 4 years, then every 2 years.",
+    "FI": "Finland: katsastus after 4 years, then every 2 years, every year once the car is older than 10 years.",
+    "IS": "Iceland: vehicle test after 4 years, after 2 and 2 more years, then every year.",
+    "EE": "Estonia: technical inspection after 4 years, every 2 years until the vehicle is 10, then every year.",
+    "LV": "Latvia: new cars within 3 years, then three times every 2 years, then every year.",
+    "LT": "Lithuania: technical inspection after 3 years, then every 2 years.",
+    "CZ": "Czechia: STK after 4 years, then every 2 years.",
+    "SK": "Slovakia: technical inspection after 4 years, then every 2 years.",
+    "HU": "Hungary: roadworthiness test after 4 years, then every 2 years.",
+    "SI": "Slovenia: technical inspection after 4 years, every 2 years until the vehicle is 8, then every year.",
+    "HR": "Croatia: new vehicles are first tested after 2 years, then every year.",
+    "RO": "Romania: ITP after 3 years, then every 2 years, every year from 12 years.",
+    "BG": "Bulgaria: technical inspection at the end of the 3rd and the 5th year, then every year.",
+    "LI": "Liechtenstein: vehicle inspection after 4 years, then every 2 years.",
+    "US": "US: depends on the state — a yearly safety inspection in e.g. New York, Pennsylvania, Massachusetts, Virginia, North Carolina, Maine, Vermont, Hawaii and Delaware, every 2 years in West Virginia, Missouri and Rhode Island, only emissions tests in California, New Jersey, Connecticut, DC and some counties; about 20 states have no periodic test.",
+    "CA": "Canada: Prince Edward Island inspects every year, Nova Scotia and New Brunswick every 2 years (new vehicles first after 3 years); the other provinces inspect only on sale or import.",
 }
 _MOTORCYCLE_TEST_NOTES: dict[str, str] = {
     "AT": _CAR_TEST_NOTES["AT"],
@@ -360,8 +388,55 @@ _MOTORCYCLE_TEST_NOTES: dict[str, str] = {
     "NL": "Netherlands: motorcycles have no APK.",
     "PL": "Poland: przegląd techniczny after 3 years, after 5 years, then every year.",
     "SE": "Sweden: besiktning within 4 years, then every 2 years.",
+    "LU": _CAR_TEST_NOTES["LU"],
+    "GR": _CAR_TEST_NOTES["GR"],
+    "HU": _CAR_TEST_NOTES["HU"],
+    "SI": _CAR_TEST_NOTES["SI"],
+    "HR": _CAR_TEST_NOTES["HR"],
+    "EE": _CAR_TEST_NOTES["EE"],
+    "LT": _CAR_TEST_NOTES["LT"],
+    "IS": _CAR_TEST_NOTES["IS"],
+    "LI": _CAR_TEST_NOTES["LI"],
+    "US": _CAR_TEST_NOTES["US"],
+    "CA": _CAR_TEST_NOTES["CA"],
     "AU": _CAR_TEST_NOTES["AU"],
     "NZ": "New Zealand: Warrant of Fitness every year (motorcycles from before 2000: every 6 months until 31 October 2026).",
+    "BE": "Belgium: motorcycles have no periodic test — only on resale (over 125 cc) or after an accident.",
+    "NO": "Norway: motorcycles have no periodic test.",
+    "DK": "Denmark: private motorcycles have no periodic test.",
+    "FI": "Finland: motorcycles have no periodic test.",
+    "PT": "Portugal: the periodic test for motorcycles over 250 cc is not in force yet.",
+    "MT": "Malta: the periodic test for motorcycles over 125 cc is not in force yet.",
+    "CZ": "Czechia: STK for motorcycles after 6 years, then every 4 years.",
+    "SK": "Slovakia: technical inspection for motorcycles after 4 years, then every 4 years.",
+    "BG": "Bulgaria: motorcycles are tested every 2 years.",
+    "LV": "Latvia: motorcycles, trailers and caravans after 2 years, then every 2 years.",
+}
+_CARAVAN_TEST_NOTES: dict[str, str] = {
+    "AT": _CAR_TEST_NOTES["AT"],
+    "LU": _CAR_TEST_NOTES["LU"],
+    "HU": _CAR_TEST_NOTES["HU"],
+    "LT": _CAR_TEST_NOTES["LT"],
+    "LV": _MOTORCYCLE_TEST_NOTES["LV"],
+    "DE": "Germany: HU for caravans and trailers up to 3.5 t every 2 years (up to 750 kg: first after 3 years); motorhomes up to 3.5 t after 3 years, then every 2 years.",
+    "CH": "Switzerland: motorhomes after 4 years, 3 years later, then every 2 years; trailers over 750 kg after 5, then 3, then every 2 years; lighter trailers have no test.",
+    "LI": "Liechtenstein: motorhomes after 4 years, then every 2 years; trailers over 750 kg after 5 years, then every 3 years.",
+    "FR": "France: motorhomes up to 3.5 t follow the car rules (after 4 years, then every 2 years); caravans up to 3.5 t have no test.",
+    "ES": "Spain: caravans over 750 kg have their first ITV after 6 years, then every 2 years; lighter trailers have none.",
+    "SE": "Sweden: caravans and light trailers within 4 years, then every 2 years.",
+    "BE": "Belgium: camping trailers every 2 years; other trailers over 750 kg and motorhomes every year.",
+    "NO": "Norway: caravans are exempt unless approved for 100 km/h (Tempo 100); motorhomes follow the car rules.",
+    "DK": "Denmark: caravans are only tested when approved for 100 km/h (Tempo 100).",
+    "FI": "Finland: caravans are tested every 2 years.",
+    "IS": "Iceland: travel trailers are tested every 2 years.",
+    "EE": "Estonia: caravans (class O2) are tested every year.",
+    "SK": "Slovakia: trailers over 750 kg after 4 years, then every 4 years.",
+    "RO": "Romania: caravans are tested every 3 years.",
+    "BG": "Bulgaria: caravans are tested every year.",
+    "GR": "Greece: light trailers have no periodic test.",
+    "NL": "Netherlands: caravans have no periodic test.",
+    "MT": "Malta: trailers after 2 years, then every 2 years.",
+    "GB": "UK: towed caravans have no MOT; motorhomes follow the car rules.",
 }
 _TEST_NOTE = "The first test and the cycle depend on the country and the vehicle's age — the due date is on the registration papers or the inspection sticker."
 
@@ -388,7 +463,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 60,
                 _TEST_NOTE,
                 country_notes=_CAR_TEST_NOTES,
-                country_intervals={"AT": 365, "AU": 365, "ES": 365, "GB": 365, "NL": 365, "NZ": 365, "PL": 365, "SE": 426},
+                country_intervals={"AT": 365, "AU": 365, "ES": 365, "GB": 365, "NL": 365, "NZ": 365, "PL": 365, "SE": 426, "BE": 365, "BG": 365, "EE": 365, "FI": 365, "HR": 365, "IE": 365, "IS": 365, "LU": 365, "LV": 365, "PT": 365, "RO": 365, "SI": 365, "US-DE": 365, "US-HI": 365, "US-MA": 365, "US-ME": 365, "US-NC": 365, "US-NY": 365, "US-PA": 365, "US-TX": 365, "US-VA": 365, "US-VT": 365, "US-AK": 0, "US-AL": 0, "US-AR": 0, "US-FL": 0, "US-IA": 0, "US-ID": 0, "US-KS": 0, "US-KY": 0, "US-MI": 0, "US-MN": 0, "US-MS": 0, "US-MT": 0, "US-ND": 0, "US-NE": 0, "US-OK": 0, "US-SC": 0, "US-SD": 0, "US-TN": 0, "US-WA": 0, "US-WY": 0, "CA-PE": 365, "CA-AB": 0, "CA-BC": 0, "CA-MB": 0, "CA-NL": 0, "CA-ON": 0, "CA-QC": 0, "CA-SK": 0, "AU-QLD": 0, "AU-SA": 0, "AU-TAS": 0, "AU-VIC": 0, "AU-WA": 0, "BE-VLG": 730},
             ),
         ],
     ),
@@ -417,7 +492,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 60,
                 _TEST_NOTE,
                 country_notes=_CAR_TEST_NOTES,
-                country_intervals={"GB": 365},
+                country_intervals={"GB": 365, "BE": 365, "HR": 365, "US-DE": 365, "US-HI": 365, "US-MA": 365, "US-ME": 365, "US-NC": 365, "US-NY": 365, "US-PA": 365, "US-VA": 365, "US-VT": 365, "US-AK": 0, "US-AL": 0, "US-AR": 0, "US-FL": 0, "US-IA": 0, "US-ID": 0, "US-KS": 0, "US-KY": 0, "US-MI": 0, "US-MN": 0, "US-MS": 0, "US-MT": 0, "US-ND": 0, "US-NE": 0, "US-OK": 0, "US-SC": 0, "US-SD": 0, "US-TN": 0, "US-WA": 0, "US-WY": 0, "US-CA": 0, "US-CT": 0, "US-DC": 0, "US-NJ": 0, "US-TX": 0, "CA-PE": 365, "CA-AB": 0, "CA-BC": 0, "CA-MB": 0, "CA-NL": 0, "CA-ON": 0, "CA-QC": 0, "CA-SK": 0, "AU-QLD": 0, "AU-SA": 0, "AU-TAS": 0, "AU-VIC": 0, "AU-WA": 0, "BE-VLG": 730},
             ),
         ],
     ),
@@ -449,7 +524,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 60,
                 _TEST_NOTE,
                 country_notes=_MOTORCYCLE_TEST_NOTES,
-                country_intervals={"AT": 365, "AU": 365, "FR": 1095, "GB": 365, "NZ": 365, "PL": 365},
+                country_intervals={"AT": 365, "AU": 365, "FR": 1095, "GB": 365, "NZ": 365, "PL": 365, "CZ": 1461, "SK": 1461, "HR": 365, "LU": 365, "US-HI": 365, "US-MA": 365, "US-ME": 365, "US-NY": 365, "US-PA": 365, "US-VA": 365, "US-VT": 365, "US-AK": 0, "US-AL": 0, "US-AR": 0, "US-FL": 0, "US-IA": 0, "US-ID": 0, "US-KS": 0, "US-KY": 0, "US-MI": 0, "US-MN": 0, "US-MS": 0, "US-MT": 0, "US-ND": 0, "US-NE": 0, "US-OK": 0, "US-SC": 0, "US-SD": 0, "US-TN": 0, "US-WA": 0, "US-WY": 0, "US-CA": 0, "US-CT": 0, "US-NJ": 0, "US-TX": 0, "CA-PE": 365, "CA-AB": 0, "CA-BC": 0, "CA-MB": 0, "CA-NL": 0, "CA-ON": 0, "CA-QC": 0, "CA-SK": 0, "AU-QLD": 0, "AU-SA": 0, "AU-TAS": 0, "AU-VIC": 0, "AU-WA": 0},
             ),
         ],
     ),
@@ -497,7 +572,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="home_water_heater",
         name="Water Heater",
         category="home",
-        countries=frozenset({"US", "CA", "AU", "NZ", "IN", "ZA", "FR", "CH"}),
+        countries=frozenset({"AU", "CA", "CH", "CY", "ES", "FR", "GB", "GR", "IE", "IN", "IT", "MT", "NZ", "PT", "US", "ZA"}),
         tasks=[
             TaskTemplate("Anode Rod Inspection", "inspection", "time_based", 365, 30),
             TaskTemplate("Flush Tank", "cleaning", "time_based", 365, 30),
@@ -511,8 +586,46 @@ TEMPLATES: list[ObjectTemplate] = [
                     "FR": "France: installers recommend operating the safety group (groupe de sécurité) once a month so scale cannot block it.",
                     "AU": "Australia and New Zealand: manufacturers call for easing the relief-valve lever every 6 months and replacing the valve at least every 5 years.",
                     "NZ": "Australia and New Zealand: manufacturers call for easing the relief-valve lever every 6 months and replacing the valve at least every 5 years.",
+                    "GB": "UK: have an unvented cylinder serviced every year by a G3-qualified installer, including its safety valves.",
                 },
                 country_intervals={"FR": 30, "AU": 182, "NZ": 182},
+            ),
+        ],
+    ),
+    ObjectTemplate(
+        id="home_solar_water_heater",
+        name="Solar Water Heater",
+        category="home",
+        # Solar water heating is near-universal in Cyprus and Greece (IEA SHC,
+        # Solar Heat Worldwide 2025) and standard in Israel and Turkey; Spain's
+        # RITE requires a yearly service of small solar thermal systems.
+        countries=frozenset({"CY", "ES", "GR", "IL", "TR"}),
+        tasks=[
+            TaskTemplate(
+                "Clean Collector Glass",
+                "cleaning",
+                "time_based",
+                182,
+                14,
+                "Dust and limescale cut the yield — rinse the glass in the early morning or evening, never when it is hot.",
+            ),
+            TaskTemplate(
+                "Check Collectors, Pipes and Insulation",
+                "inspection",
+                "time_based",
+                365,
+                30,
+                "Look for leaks, cracked glass and pipe insulation damaged by the sun.",
+            ),
+            TaskTemplate("Anode Rod Inspection", "inspection", "time_based", 365, 30),
+            TaskTemplate(
+                "Annual Service",
+                "service",
+                "time_based",
+                365,
+                30,
+                "Heat-transfer fluid, pressure, valves and the backup heater — before winter where it freezes.",
+                country_notes={"ES": "Spain: solar thermal systems up to 14 kW must be serviced by an authorised company every year (RITE)."},
             ),
         ],
     ),
@@ -532,7 +645,7 @@ TEMPLATES: list[ObjectTemplate] = [
         category="home",
         traits=frozenset({"freeze"}),
         tasks=[
-            TaskTemplate("Annual Inspection", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}, country_notes={"FR": "France: annual boiler maintenance is mandatory for 4–400 kW; keep the certificate for at least two years.", "GB": "UK: have it serviced by a Gas Safe registered engineer (oil boilers: an OFTEC technician); landlords need a gas safety check every year.", "IT": "Italy: flue-gas check every 4 years for gas boilers of 10–100 kW, every 2 years for oil, wood or pellet boilers; some regions are stricter (e.g. Lombardy and Emilia-Romagna: gas every 2 years).", "DE": "Germany: the chimney sweep's measuring and inspection dates are set in your Feuerstättenbescheid; every heating appliance is also inspected twice in seven years (Feuerstättenschau).", "AT": "Austria: the inspection intervals for heating systems are set by each state (Bundesland).", "CH": "Switzerland: the Clean Air Ordinance (LRV) requires an emissions check every 2 years for oil and every 4 years for gas and for wood boilers up to 70 kW; the canton or municipality carries it out.", "BE": "Belgium (Flanders): boilers from 20 kW — oil and solid fuel every year, gas every 2 years; Wallonia and Brussels have their own rules.", "ES": "Spain: gas boilers up to 70 kW must be serviced by an authorised company every 2 years (RITE); the gas installation is inspected every 5 years.", "CZ": "Czechia: solid-fuel boilers of 10–300 kW need an inspection by a certified technician every 3 years.", "PL": "Poland: the gas installation and the chimneys must be checked every year, single-family homes included (Building Law, Art. 62).", "RU": "Russia: in-house gas equipment must be serviced under a maintenance contract at least once a year.", "AU": "Australia: Energy Safe Victoria recommends servicing gas heaters at least every 2 years, including a carbon-monoxide test."}),
+            TaskTemplate("Annual Inspection", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}, country_notes={"FR": "France: annual boiler maintenance is mandatory for 4–400 kW; keep the certificate for at least two years.", "GB": "UK: have it serviced by a Gas Safe registered engineer (oil boilers: an OFTEC technician); landlords need a gas safety check every year.", "IT": "Italy: flue-gas check every 4 years for gas boilers of 10–100 kW, every 2 years for oil, wood or pellet boilers; some regions are stricter (e.g. Lombardy and Emilia-Romagna: gas every 2 years).", "DE": "Germany: the chimney sweep's measuring and inspection dates are set in your Feuerstättenbescheid — oil and gas boilers are measured every 3rd year, every 2nd once they are older than 12 years; every heating appliance is also inspected twice in seven years (Feuerstättenschau).", "AT": "Austria: each state sets the inspection intervals — oil and solid-fuel heating every 2 years almost everywhere, small gas units under 26 kW every 3–4 years (Lower Austria: 6–50 kW every 3 years for all fuels; Vorarlberg: every 2 years).", "CH": "Switzerland: the Clean Air Ordinance (LRV) requires an emissions check every 2 years for oil and every 4 years for gas and for wood boilers up to 70 kW; the canton or municipality carries it out.", "BE": "Belgium: oil and solid-fuel boilers every year; gas boilers every 2 years in Flanders and Brussels (there gas water heaters too), every 3 years in Wallonia (up to 100 kW).", "ES": "Spain: gas boilers up to 70 kW must be serviced by an authorised company every 2 years (RITE); the gas installation is inspected every 5 years.", "CZ": "Czechia: solid-fuel central-heating boilers of 10–300 kW need an inspection by a certified technician every 3 years.", "PL": "Poland: the gas installation and the chimneys must be checked every year, single-family homes included (Building Law, Art. 62).", "RU": "Russia: in-house gas equipment must be serviced under a maintenance contract at least once a year.", "AU": "Australia: Energy Safe Victoria recommends servicing gas heaters at least every 2 years, including a carbon-monoxide test.", "LI": "Liechtenstein: oil and gas heating needs a yearly firing control; gas appliances also need a service contract.", "RO": "Romania: boilers up to 400 kW need an ISCIR technical check every 2 years; the gas installation is verified every 2 years and revised every 10 years.", "IE": "Ireland: have gas boilers serviced every year by a Registered Gas Installer (RGI) and fit a CO alarm in every room with a fuel-burning appliance.", "NL": "Netherlands: servicing is not mandatory for owners, but since April 2023 only CO-certified companies may install or maintain gas appliances; the fire service advises a yearly check.", "LV": "Latvia: gas appliances must be serviced every year.", "SI": "Slovenia: a licensed chimney sweep of your choice measures the emissions of oil and open-flue gas heating every year."}),
             TaskTemplate("Bleed Radiators", "service", "time_based", 365, 14, schedule={"kind": "day_of_month", "day": 1, "months": [10]}),
             TaskTemplate("Filter Replacement", "replacement", "time_based", 180, 14),
         ],
@@ -540,7 +653,7 @@ TEMPLATES: list[ObjectTemplate] = [
     # v2.55: heat-recovery ventilation + fireplace. Intervals: filters checked
     # quarterly / replaced <=6 months and full service every 24 months per
     # manufacturer guidance (Zehnder service plan); chimney sweep cadence is
-    # regulated (DE KÜO: 1-3x/year by usage; US NFPA 211: annual inspection).
+    # regulated (DE KÜO: 1-4x/year by fuel and usage; US NFPA 211: annual inspection).
     ObjectTemplate(
         id="home_ventilation",
         name="Ventilation System",
@@ -582,17 +695,37 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Legally regulated in many countries — follow your chimney sweep's schedule or the local rules.",
                 country_notes={
                     "FR": "France: sweep the flue at least once a year (many départements still require twice, once in the heating season); since October 2023 stoves, inserts and closed fireplaces also need a yearly service; keep the certificates.",
-                    "PL": "Poland: a chimney sweep's inspection at least once a year.",
+                    "PL": "Poland: solid-fuel flues must be cleaned every 3 months (gas and oil every 6, ventilation ducts every year) — you may do it yourself in your own house; plus a chimney sweep's inspection every year.",
                     "SE": "Sweden: the municipality's sweep does fire-safety inspections every 3 years for solid fuel and every 6 years for other fireplaces.",
                     "DE": "Germany: the sweeping dates are set in your Feuerstättenbescheid (usually 1–4 times a year depending on fuel and use); the chimney sweep also inspects every fireplace twice in seven years (Feuerstättenschau).",
                     "AT": "Austria: the sweeping intervals are set by state law.",
                     "FI": "Finland: sweeping every year, for holiday homes every 3 years (Rescue Act).",
-                    "DK": "Denmark: the chimney sweep comes at least once a year.",
+                    "DK": "Denmark: the chimney sweep comes at least once a year; wood stoves made before 2003 must be removed when the house is sold.",
                     "CZ": "Czechia: solid fuels up to 50 kW — clean the flue 3 times a year (twice with seasonal use) and have it inspected once a year.",
                     "IT": "Italy: have the flue and a pellet or wood stove cleaned by a qualified technician every year (UNI 10683 standard; required by law in Lombardy).",
                     "US": "US: NFPA 211 calls for a chimney inspection at least once a year.",
                     "AU": "Australia: fire services advise cleaning the flue once a year (e.g. ACT Fire & Rescue).",
+                    "NO": "Norway: the municipality sweeps and inspects based on risk; the owner checks the fireplace and gives the sweep access.",
+                    "EE": "Estonia: clean the stove and flue every year (you may do it yourself) and have a certified chimney sweep check them every 5 years.",
+                    "LV": "Latvia: solid-fuel flues must be cleaned before 1 November each year.",
+                    "HU": "Hungary: the free state chimney service checks solid- and liquid-fuel flues every year, gas and room-sealed ones every 2 years, holiday homes every 4 years.",
+                    "SI": "Slovenia: a licensed chimney sweep of your choice inspects every year; solid-fuel flues are cleaned 4 times per heating season (3 on the coast).",
+                    "SK": "Slovakia (up to 50 kW): solid and liquid fuels every 4 months, gas every 6 months (lined flues every 12); fireplaces used only occasionally every 2 years.",
+                    "LI": "Liechtenstein: sweeping twice a year for solid fuel, once for oil.",
+                    "NL": "Netherlands: the fire service advises sweeping the chimney at least once a year.",
+                    "GB": "UK: HETAS advises sweeping at least twice a year for wood or house coal, once for smokeless fuel.",
+                    "CA": "Canada (Ontario): the Fire Code requires chimneys, flues and flue pipes to be inspected at least every 12 months and after a chimney fire; insurers often ask for a WETT inspection of wood stoves.",
                 },
+                country_intervals={"PL": 91, "GB": 182},
+            ),
+            TaskTemplate(
+                "Stove Service",
+                "service",
+                "time_based",
+                365,
+                30,
+                "Have a qualified technician service the stove or insert — seals, baffle plates, flue connection and combustion air.",
+                country_notes={"FR": "France: since October 2023 stoves, inserts and closed fireplaces must be serviced by a professional every year (décret 2023-641); keep the certificate."},
             ),
             TaskTemplate("Inspect Door Gasket", "inspection", "time_based", 365, 21),
             TaskTemplate(
@@ -666,9 +799,18 @@ TEMPLATES: list[ObjectTemplate] = [
                     "DE": "Germany: smoke alarms are required in homes in all 16 states; the yearly check follows DIN 14676.",
                     "FR": "France: every home needs at least one smoke alarm (DAAF) since March 2015; the occupant keeps it working.",
                     "NL": "Netherlands: a smoke alarm on every floor with a living space or escape route is mandatory since 1 July 2022.",
-                    "BE": "Belgium (Flanders): a smoke alarm on every floor is mandatory since 1 January 2020; Wallonia and Brussels have their own rules.",
+                    "BE": "Belgium: a smoke alarm on every floor is mandatory in Flanders and Wallonia; Brussels requires sealed 10-year or mains-powered alarms since 2025, interconnected by 2028 where four or more are needed.",
                     "JP": "Japan: residential fire alarms are mandatory in all homes; the fire agency recommends replacing them after 10 years.",
                     "AU": "Australia: the rules differ by state — e.g. in Queensland every home needs interconnected photoelectric alarms in each bedroom, hallway and storey from 1 January 2027.",
+                    "GB": "UK: in Scotland every home needs interlinked smoke alarms in the living room and every hall or landing, a heat alarm in the kitchen and a CO alarm by fuel-burning appliances; elsewhere in the UK the duty falls on landlords.",
+                    "NO": "Norway: every home and holiday home needs a smoke alarm on each floor plus a fire hose or an extinguisher (6 kg powder or 9 l foam); the owner tests them.",
+                    "FI": "Finland: since 1 January 2026 the building owner (the housing company for flats) must fit smoke alarms — at least one per started 60 m² on every floor.",
+                    "SE": "Sweden: smoke alarms are only required in new homes; test them every month.",
+                    "LV": "Latvia: every home needs a smoke alarm on each floor (since 2020), every house also a fire extinguisher.",
+                    "LU": "Luxembourg: every home needs smoke alarms in the bedrooms and along the escape route (since 2023); the owner fits them, the occupant maintains them.",
+                    "AT": "Austria: only Carinthia requires smoke alarms in existing homes (since 2013); the other states require them in new buildings.",
+                    "US": "US (NFPA): test smoke alarms every month and replace them after 10 years; California, New York, Maryland and Illinois require sealed 10-year batteries in battery-only alarms.",
+                    "CA": "Canada: Ontario's Fire Code requires a smoke alarm on every storey and outside sleeping areas, owner-occupied homes included; Saskatchewan and Yukon require smoke and CO alarms too, Quebec leaves it to the municipalities.",
                 },
             ),
             TaskTemplate("Replace Detector Batteries", "replacement", "time_based", 365, 30),
@@ -687,6 +829,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 2555,
                 90,
                 "CO sensors age faster than smoke sensors — depending on the model after 5–10 years; the end-of-life date is printed on the unit.",
+                country_notes={"US": "US: California, New York, Illinois, Minnesota, Wisconsin, Massachusetts, Alaska and DC require CO alarms in existing homes with a fuel-burning appliance or an attached garage.", "CA": "Canada (Ontario): with a fuel-burning appliance, a fireplace or an attached garage, CO alarms are required next to every sleeping area."},
             ),
         ],
     ),
@@ -1260,6 +1403,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 180,
                 14,
                 "Check the pressure gauge, seal and pin; make sure it is accessible and undamaged.",
+                country_notes={"NO": "Norway: every home must have a fire hose or an extinguisher; check it yourself every 6 months."},
             ),
             TaskTemplate(
                 "Fire Extinguisher Service",
@@ -1268,6 +1412,8 @@ TEMPLATES: list[ObjectTemplate] = [
                 730,
                 60,
                 "Professional inspection per the label — commonly every 2 years; replace the unit after 10-15 years.",
+                country_intervals={"NO": 1826, "LV": 1826},
+                country_notes={"NO": "Norway: an expert check every 5 years is advised.", "LV": "Latvia: every house must have an extinguisher — check it yourself every year and have it serviced every 5 years."},
             ),
             TaskTemplate(
                 "Check First-Aid Kit",
@@ -1323,7 +1469,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Leaves, snow and plants must not block the outdoor unit — the air has to flow freely.",
                 season_months=(10, 11, 12, 1, 2, 3),
             ),
-            TaskTemplate("Annual Service", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}, country_notes={"FR": "France: heat pumps of 4–70 kW must be serviced every 2 years; the EU F-gas rules add a yearly leak check from 5 t CO₂-equivalent of refrigerant (every 2 years with leak detection)."}),
+            TaskTemplate("Annual Service", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}, country_notes={"FR": "France: heat pumps of 4–70 kW must be serviced every 2 years; the EU F-gas rules add a yearly leak check from 5 t CO₂-equivalent of refrigerant (every 2 years with leak detection).", "IT": "Italy: heat pumps and air conditioners over 12 kW need an efficiency check every 4 years and a system logbook (libretto di impianto).", "ES": "Spain: heat pumps and air conditioners up to 12 kW must be serviced by an authorised company every 4 years (RITE).", "AT": "Austria: Vienna and Burgenland require a check of heat pumps and air conditioners from 12 kW every 3 years.", "CH": "Switzerland: units with more than 3 kg of refrigerant need a leak check at every service and a logbook."}),
             TaskTemplate(
                 "Refrigerant Leak Check",
                 "inspection",
@@ -1466,9 +1612,9 @@ TEMPLATES: list[ObjectTemplate] = [
                 1095,
                 60,
                 "Every 1–3 years; systems with pumps or float switches every year (US EPA).",
-                country_notes={"FR": "France: the SPANC inspects non-collective sanitation at most every 10 years (often every 4–8)."},
+                country_notes={"FR": "France: the SPANC inspects non-collective sanitation at most every 10 years (often every 4–8).", "US": "US: Washington requires an inspection every 3 years for gravity systems and every year for all others, Wisconsin a visual inspection at least every 3 years; Massachusetts (Title 5) and Delaware inspect when the house is sold."},
             ),
-            TaskTemplate("Pump Out Tank", "service", "time_based", 1095, 60, "Typically every 3–5 years, depending on tank size and household."),
+            TaskTemplate("Pump Out Tank", "service", "time_based", 1095, 60, "Typically every 3–5 years, depending on tank size and household.", country_intervals={"GB": 365, "CA": 730, "GB-SCT": 1095, "GB-WLS": 1095, "GB-NIR": 1095}, country_notes={"GB": "UK: in England the tank must be emptied at least once a year, or as the manufacturer says, by a registered waste carrier (General Binding Rules); in Scotland it must be registered with SEPA.", "IE": "Ireland: septic tanks must be registered and emptied by an authorised collector — keep the receipts for 5 years; how often depends on tank size and household (e.g. 3.5 m³ with 3 people: every 4 years).", "PL": "Poland: you need a contract with an emptying company and must keep the receipts; the municipality sets how often.", "CZ": "Czechia: keep the receipts of the emptying for 2 years.", "FR": "France: empty the tank when the sludge reaches half of its useful volume.", "CA": "Canada (Quebec): pump out at least every 2 years for a home lived in all year, every 4 years for a seasonal one."}),
             TaskTemplate("Check Drain Field", "inspection", "time_based", 365, 30),
         ],
     ),
@@ -1492,12 +1638,15 @@ TEMPLATES: list[ObjectTemplate] = [
                 "time_based",
                 182,
                 21,
-                "Germany: technical plants twice a year (three times for classes +P/+H), nature-based plants once a year.",
+                "As the plant's approval or your service contract requires — technical plants usually twice a year, nature-based plants once a year.",
                 country_notes={
+                    "DE": "Germany: technical plants twice a year (three times for classes +P/+H), nature-based plants once a year.",
+                    "DK": "Denmark: mini treatment plants need a service agreement.",
                     "FR": "France: the SPANC inspects non-collective sanitation at most every 10 years (often every 4–8).",
                     "AU": "Australia: aerated wastewater treatment systems are serviced as the council approval requires — every 3 months in NSW, usually every 3 months in Queensland too; the servicer reports to the owner and the council.",
+                    "US": "US: aerobic treatment units need a maintenance contract — Texas: a service report every 4 months (6 with remote monitoring), Florida: an inspection twice a year; Maryland: nitrogen-removal units every year.",
                 },
-                country_intervals={"AU": 91},
+                country_intervals={"AU": 91, "US-TX": 122, "US-MD": 365},
             ),
         ],
     ),
@@ -1515,6 +1664,8 @@ TEMPLATES: list[ObjectTemplate] = [
                 730,
                 30,
                 "Retest after renovations or when you start using a lower floor; with a mitigation system, every two years (US EPA).",
+                country_notes={"DE": "Germany: the reference level is 300 Bq/m³; there is no duty to measure in existing homes.", "CH": "Switzerland: above 300 Bq/m³ the owner must remediate at their own cost.", "FI": "Finland: measure for at least 2 months between September and May; the reference level is 300 Bq/m³.", "FR": "France: in radon zone 3 buyers and tenants must be informed; measure for at least 2 months between mid-September and April; the reference level is 300 Bq/m³.", "IE": "Ireland: testing is recommended in High Radon Areas; retest after remediation.", "GB": "UK: in radon-affected areas a 3-month test is advised; retest after remediation.", "NO": "Norway: rented homes must stay below 200 Bq/m³.", "BE": "Belgium: radon is mainly found in the province of Luxembourg; test for 3 months between October and April.", "CA": "Canada (Health Canada): test for at least 3 months in the heating season on the lowest lived-in floor; reduce the level if it is above 200 Bq/m³; with a mitigation system retest every 5 years."},
+                country_intervals={"CA": 1826},
             ),
             TaskTemplate("Check Mitigation Fan and Manometer", "inspection", "time_based", 90, 7),
         ],
@@ -1537,6 +1688,15 @@ TEMPLATES: list[ObjectTemplate] = [
             ),
             TaskTemplate("Clean Pit and Inlet Screen", "cleaning", "time_based", 365, 30),
             TaskTemplate("Test Backup Battery", "inspection", "time_based", 180, 14),
+            TaskTemplate(
+                "Check Backwater Valve",
+                "inspection",
+                "time_based",
+                365,
+                30,
+                "Open the clean-out cover, clear any debris and make sure the flap moves freely — a stuck valve lets sewage back into the basement.",
+                country_notes={"CA": "Canada: Montréal requires backwater valves in new buildings and advises checking them twice a year; Winnipeg requires them in homes built after 1979, and Toronto subsidises them."},
+            ),
             TaskTemplate(
                 "Check Discharge Line Before Winter",
                 "inspection",
@@ -1708,6 +1868,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 30,
                 "Before the storm season starts — 1 June for the Atlantic, November in the southern hemisphere.",
                 schedule={"kind": "day_of_month", "day": 1, "months": [5]},
+                country_notes={"US": "Florida: a wind-mitigation inspection (valid for up to 5 years) can lower the home-insurance premium."},
             ),
             TaskTemplate(
                 "Trim Trees and Secure Outdoor Items",
@@ -1782,7 +1943,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Hot and humid climates: monthly, with a cup of white vinegar, so algae cannot clog the line.",
             ),
             TaskTemplate("Clean Outdoor Unit Coil", "cleaning", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [4]}),
-            TaskTemplate("Annual Service", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [5]}),
+            TaskTemplate("Annual Service", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [5]}, country_notes={"IT": "Italy: heat pumps and air conditioners over 12 kW need an efficiency check every 4 years and a system logbook (libretto di impianto).", "ES": "Spain: heat pumps and air conditioners up to 12 kW must be serviced by an authorised company every 4 years (RITE).", "AT": "Austria: Vienna and Burgenland require a check of heat pumps and air conditioners from 12 kW every 3 years.", "CH": "Switzerland: units with more than 3 kg of refrigerant need a leak check at every service and a logbook."}),
         ],
     ),
     ObjectTemplate(
@@ -1848,7 +2009,7 @@ TEMPLATES: list[ObjectTemplate] = [
         name="Seasonal Tires",
         category="vehicle",
         traits=frozenset({"snow"}),
-        countries=frozenset({"DE", "AT", "CH", "CZ", "SK", "SE", "NO", "FI"}),
+        countries=frozenset({"AT", "BG", "CA-BC", "CA-QC", "CH", "CZ", "DE", "EE", "FI", "HR", "IS", "LT", "LV", "NO", "RO", "SE", "SK"}),
         tasks=[
             TaskTemplate(
                 "Fit Winter Tires",
@@ -1857,7 +2018,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 365,
                 21,
                 "Fit them before the first snow or frost; several countries require winter tires by law — see the note for your country.",
-                country_notes={"DE": "German rule of thumb: from October to Easter — winter tires are required on wintry roads."},
+                country_notes={"DE": "German rule of thumb: from October to Easter — winter tires are required on wintry roads.", "AT": "Austria: winter tires are required from 1 November to 15 April when the roads are wintry.", "CZ": "Czechia: winter tires are required from 1 November to 31 March when the roads are wintry.", "SE": "Sweden: winter tires are required from 1 December to 31 March when there are winter road conditions.", "FI": "Finland: winter tires are mandatory from December to February; studded tires may be used from November to March.", "NO": "Norway: there is no fixed winter-tire date — the tires must suit the road conditions.", "BG": "Bulgaria: winter tires are mandatory from 15 November to 1 March.", "CA": "Canada: Quebec requires winter tires from 1 December to 15 March; British Columbia requires winter tires (M+S or mountain snowflake, at least 3.5 mm tread) on signed routes from 1 October to 30 April."},
                 schedule={"kind": "day_of_month", "day": 15, "months": [10]},
             ),
             TaskTemplate("Fit Summer Tires", "service", "time_based", 365, 21, schedule={"kind": "day_of_month", "day": 15, "months": [4]}),
@@ -1879,7 +2040,8 @@ TEMPLATES: list[ObjectTemplate] = [
                 1826,
                 60,
                 "Inspection duties depend on the country, the tank size and the location (water protection or flood areas) — see the note for your country.",
-                country_notes={"DE": "Germany (AwSV): every 5 years for underground tanks and above-ground tanks over 10,000 l — in water protection and flood areas from 1,000 l. A typical cellar tank below that is exempt."},
+                country_notes={"DE": "Germany (AwSV): every 5 years for underground tanks and above-ground tanks over 10,000 l — in water protection and flood areas from 1,000 l. A typical cellar tank below that is exempt.", "AT": "Austria: the rules differ by state — e.g. Tyrol: tanks over 1,000 l need their overfill device and leak detector checked at least every 6 years (every 3 with a liquid leak detector).", "BE": "Belgium: in Flanders buried tanks under 5,000 kg are checked every 5 years, above-ground ones not at all; in Wallonia buried single-wall tanks of 3,000–25,000 l are checked every 10, 5 or 3 years depending on their age.", "CH": "Switzerland: tanks that need a permit (over 2,000 l in endangered areas, over 450 l in groundwater zones) must be checked at least every 10 years.", "DK": "Denmark: tanks have a legal lifetime — above-ground steel tanks under 6,000 l 30 years (40 if type-approved), plastic ones 25 (40), buried tanks 40–50 years; a tank of unknown age must be taken out of use.", "NO": "Norway: heating with fossil oil is banned since 2020; buried steel tanks over 3,200 l are checked from 15 years of age, then every 5 years.", "FI": "Finland: tanks in groundwater areas are first inspected at 10 years, then every 2–10 years depending on their condition.", "SE": "Sweden: tanks over 1 m³ — in water-protection areas from 150 l — fall under the Environmental Protection Agency's rules (NFS 2021:10).", "GB": "UK: tanks over 3,500 l (Scotland: 2,500 l) need a bund; OFTEC advises a yearly service of the boiler and the tank.", "FR": "France: there is no periodic re-test, but an overfill device is required and a disused tank must be decommissioned by a professional.", "CA": "Canada: Newfoundland and Labrador limit the life of single-wall steel tanks to 10–25 years, Prince Edward Island stops deliveries after the expiry year on the tank tag, and in Ontario the fuel distributor inspects the tank at least every 10 years."},
+                country_intervals={"AT-7": 2191, "CA-ON": 3652},
             ),
         ],
     ),
@@ -1895,7 +2057,15 @@ TEMPLATES: list[ObjectTemplate] = [
                 "time_based",
                 2191,
                 90,
-                "Calibration validity: 6 years in Germany for water and heat meters; in Russia 6 years cold, 4 years hot — check the date on the meter.",
+                "The calibration validity depends on the country and the meter type — check the date on the meter.",
+                country_notes={
+                    "DE": "Germany: calibration is valid for 6 years for cold-water meters and 5 years for hot-water and heat meters.",
+                    "RU": "Russia: the verification interval is usually 6 years for cold-water and 4 years for hot-water meters.",
+                    "PL": "Poland: water meters must be replaced or re-verified every 5 years.",
+                    "CZ": "Czechia: mechanical water meters every 5 years, static ones every 8.",
+                    "HU": "Hungary: water meters every 8 years.",
+                },
+                country_intervals={"CZ": 1826, "HU": 2922, "PL": 1826},
             ),
         ],
     ),
@@ -2055,6 +2225,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 30,
                 "Cut back dry vegetation; keep the first 1.5 m (5 ft) around the house free of anything that burns (CAL FIRE Zone 0).",
                 schedule={"kind": "day_of_month", "day": 1, "months": [5]},
+                country_notes={"US": "California (PRC 4291): keep 100 ft (30 m) of defensible space around the house all year in the state responsibility area; selling a home in a high or very high fire hazard zone needs proof of it.", "CA": "Canada (FireSmart): keep the first 1.5 m around the house free of anything that burns, plant fire-resistant within 10 m and thin the trees out to 30 m."},
             ),
             TaskTemplate(
                 "Clear Leaves from Roof and Gutters",
@@ -2189,7 +2360,7 @@ TEMPLATES: list[ObjectTemplate] = [
         category="building",
         traits=frozenset({"earthquake"}),
         tasks=[
-            TaskTemplate("Check Water Heater Straps and Furniture Anchors", "inspection", "time_based", 365, 30),
+            TaskTemplate("Check Water Heater Straps and Furniture Anchors", "inspection", "time_based", 365, 30, country_notes={"US": "US: California requires every water heater to be strapped (Health and Safety Code 19211) and the seller to certify it; Washington requires straps on new or replaced water heaters."}),
             TaskTemplate(
                 "Check Gas Shut-Off Tool and Location",
                 "inspection",
@@ -2213,8 +2384,8 @@ TEMPLATES: list[ObjectTemplate] = [
                 365,
                 30,
                 "US EPA: test for bacteria and nitrates every year, a full chemical panel every 3–5 years.",
-                country_notes={"CA": "Canada (Health Canada): test for bacteria at least twice a year — in spring and autumn — and after a flood."},
-                country_intervals={"CA": 182},
+                country_notes={"CA": "Canada (Health Canada): test for bacteria at least twice a year — in spring and autumn — and after a flood.", "IE": "Ireland (EPA): test for bacteria every year and a chemical panel every 3 years.", "SE": "Sweden (Livsmedelsverket): test every 3 years — every year if children under 5 drink the water.", "DE": "Germany: tell the health office when you build, use, change or shut down a well; there is no routine test duty, a yearly test is advised.", "FR": "France: declare the well to the town hall and have the water analysed if you drink it."},
+                country_intervals={"CA": 182, "SE": 1095, "CA-ON": 122, "CA-NS": 365, "CA-SK": 365},
             ),
             TaskTemplate("Check Pump and Pressure Tank", "inspection", "time_based", 365, 30),
             TaskTemplate("Inspect Wellhead and Cap", "inspection", "time_based", 365, 30),
@@ -2260,8 +2431,11 @@ TEMPLATES: list[ObjectTemplate] = [
                 country_notes={
                     "DE": "Germany: the electrical trade recommends an E-Check of the fixed installation every 4 years (voluntary for private homes).",
                     "GB": "UK: Electrical Safety First recommends an EICR at least every 10 years for an owner-occupied home; landlords in all four nations need one every 5 years.",
+                    "PL": "Poland: the electrical and lightning-protection installation must be checked every 5 years, single-family homes included (Building Law, Art. 62).",
+                    "BE": "Belgium: the electrical installation is inspected when the home is sold (the buyer then has 18 months to fix defects) and every 25 years.",
+                    "LV": "Latvia: the electrical installation must be checked every 10 years.",
                 },
-                country_intervals={"DE": 1461},
+                country_intervals={"DE": 1461, "PL": 1826},
             ),
         ],
     ),
@@ -2402,6 +2576,16 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Caravan tires age before they wear out — replace them after about 6 years whatever the tread.",
                 country_notes={"DE": "Germany: the 100 km/h approval for trailers requires tires younger than 6 years."},
             ),
+            TaskTemplate(
+                "Roadworthiness Test",
+                "inspection",
+                "time_based",
+                730,
+                60,
+                _TEST_NOTE,
+                country_notes=_CARAVAN_TEST_NOTES,
+                country_intervals={"AT": 365, "BG": 365, "EE": 365, "LU": 365, "RO": 1095, "SK": 1461},
+            ),
         ],
     ),
     ObjectTemplate(
@@ -2426,7 +2610,7 @@ TEMPLATES: list[ObjectTemplate] = [
         id="household_gas_cooker",
         name="Gas Cooker & LPG Cylinder",
         category="household",
-        countries=frozenset({"IN", "BR", "MX"}),
+        countries=frozenset({"BR", "ES", "IN", "MX", "PL", "PT", "RO"}),
         tasks=[
             TaskTemplate(
                 "Check Gas Hose for Leaks",
@@ -2471,7 +2655,12 @@ TEMPLATES: list[ObjectTemplate] = [
                 country_notes={
                     "ES": "Spain: piped-gas installations are inspected by the distributor every 5 years; bottled-gas installations need a revisión by an authorised installer every 5 years.",
                     "IN": "India: your LPG distributor's mandatory inspection is due every 5 years.",
+                    "PT": "Portugal: gas installations are inspected every 5 years (older installations for the first time by August 2028); if the inspection is missed, the supply is cut.",
+                    "RO": "Romania: every household gas installation needs a verification every 2 years and a revision every 10 years.",
+                    "PL": "Poland: the gas installation must be checked every year, single-family homes included (Building Law, Art. 62).",
+                    "AT": "Austria: gas installation checks are set by state law — e.g. Tyrol every 2 years, Vorarlberg every 6; Upper Austria every 15 years for natural gas and every 6 for LPG.",
                 },
+                country_intervals={"RO": 730, "PL": 365, "AT-2": 1826, "AT-4": 2191, "AT-5": 1826, "AT-7": 730, "AT-8": 2191},
             ),
         ],
     ),
@@ -2491,15 +2680,43 @@ def get_template_by_id(template_id: str) -> ObjectTemplate | None:
     return None
 
 
-def template_tasks(template: ObjectTemplate, *, has_winter: bool = True) -> list[TaskTemplate]:
-    """The tasks ``template`` creates in this climate — winter-only ones are
-    left out where there is no cold season."""
-    return [tt for tt in template.tasks if has_winter or not tt.winter_only]
+# A ``country_intervals`` value: the duty does not exist there.
+NOT_DUE = 0
 
 
-def task_interval(tt: TaskTemplate, country: str | None) -> int | None:
-    """The cycle in days for the home's country (the MOT is yearly in the UK)."""
-    return (tt.country_intervals or {}).get(country or "", tt.interval_days)
+def _for_place(values: dict[str, Any] | None, country: str | None, region: str | None) -> Any:
+    """The region's entry, else the country's, else None."""
+    if not values:
+        return None
+    if region and region in values:
+        return values[region]
+    return values.get(country or "")
+
+
+def template_tasks(
+    template: ObjectTemplate, *, has_winter: bool = True, country: str | None = None, region: str | None = None
+) -> list[TaskTemplate]:
+    """The tasks ``template`` creates in this home — winter-only ones are left
+    out where there is no cold season, a legal check where no such duty
+    exists (``NOT_DUE``: no car inspection in Florida)."""
+    return [
+        tt
+        for tt in template.tasks
+        if (has_winter or not tt.winter_only) and task_interval(tt, country, region) != NOT_DUE
+    ]
+
+
+def task_interval(tt: TaskTemplate, country: str | None, region: str | None = None) -> int | None:
+    """The cycle in days for the home's region or country (the MOT is yearly
+    in the UK, New York inspects every year)."""
+    value = _for_place(tt.country_intervals, country, region)
+    return tt.interval_days if value is None else int(value)
+
+
+def task_country_note(tt: TaskTemplate, country: str | None, region: str | None = None) -> str | None:
+    """The English legal note for the home's region or country."""
+    note = _for_place(tt.country_notes, country, region)
+    return str(note) if note else None
 
 
 def build_template_task(
@@ -2509,12 +2726,14 @@ def build_template_task(
     hemisphere: str = "north",
     has_winter: bool = True,
     country: str | None = None,
+    region: str | None = None,
 ) -> dict[str, Any]:
     """The task a template task creates (without ids) — shared by the config
     flow and the panel gallery.
 
-    Name and notes are localized; a note for the home's ``country`` is
-    appended and its interval used (legal duties differ per country). The
+    Name and notes are localized; a note for the home's ``region`` or
+    ``country`` is appended and its interval used (legal duties differ per
+    country, some per state or province). The
     recurrence is a nested ``schedule`` when the template carries a fixed
     calendar or a seasonal window (months mirrored south of the equator; the
     window is dropped where there is no cold season, so a Miami lawn is
@@ -2528,10 +2747,10 @@ def build_template_task(
         "enabled": True,
         "warning_days": tt.warning_days,
     }
-    notes = [localize_template_text(n, lang) or n for n in (tt.notes, (tt.country_notes or {}).get(country or "")) if n]
+    notes = [localize_template_text(n, lang) or n for n in (tt.notes, task_country_note(tt, country, region)) if n]
     if notes:
         task["notes"] = "\n\n".join(notes)
-    interval = task_interval(tt, country)
+    interval = task_interval(tt, country, region)
     if tt.schedule is not None:
         schedule = dict(tt.schedule)
         if schedule.get("months"):
@@ -2552,11 +2771,13 @@ def build_template_task(
 
 async def async_home_template_tasks(hass: HomeAssistant, template: ObjectTemplate) -> list[TaskTemplate]:
     """The tasks ``template`` creates in THIS home — winter-only ones need a
-    cold season (the list the config flow shows before creating, 2.94)."""
-    from .helpers.home_profile import async_climate
+    cold season, legal checks a duty in its region (the list the config flow
+    shows before creating, 2.94)."""
+    from .helpers.home_profile import async_climate, async_home_place
 
     climate = await async_climate(hass)
-    return template_tasks(template, has_winter=climate.has_winter if climate else True)
+    country, region = await async_home_place(hass)
+    return template_tasks(template, has_winter=climate.has_winter if climate else True, country=country, region=region)
 
 
 async def async_build_template_tasks(
@@ -2572,19 +2793,19 @@ async def async_build_template_tasks(
     """
     from uuid import uuid4
 
-    from .helpers.home_profile import async_climate
+    from .helpers.home_profile import async_climate, async_home_place
 
     climate = await async_climate(hass)
     hemisphere = climate.hemisphere if climate else "north"
     has_winter = climate.has_winter if climate else True
-    country = str(hass.config.country).upper() if hass.config.country else None
+    country, region = await async_home_place(hass)
     tasks: dict[str, dict[str, Any]] = {}
-    for tt in template_tasks(template, has_winter=has_winter):
+    for tt in template_tasks(template, has_winter=has_winter, country=country, region=region):
         task_id = uuid4().hex
         tasks[task_id] = {
             "id": task_id,
             "object_id": object_id,
-            **build_template_task(tt, lang, hemisphere=hemisphere, has_winter=has_winter, country=country),
+            **build_template_task(tt, lang, hemisphere=hemisphere, has_winter=has_winter, country=country, region=region),
         }
     return tasks
 
@@ -2598,6 +2819,9 @@ class HomeLike(Protocol):
 
     @property
     def country(self) -> str | None: ...
+
+    @property
+    def region(self) -> str | None: ...
 
     @property
     def traits(self) -> frozenset[str]: ...
@@ -2635,7 +2859,8 @@ def _recommendation(template: ObjectTemplate, profile: HomeLike | None) -> dict[
     known = profile.dwelling in (HOUSE, APARTMENT)
     if known and profile.dwelling not in template.dwellings:
         return {**none, "dwelling_mismatch": True}
-    if template.only_countries and profile.country not in template.only_countries:
+    places = {p for p in (profile.country, profile.region) if p}
+    if template.only_countries and not places & template.only_countries:
         return none
     if not template.requires <= profile.features:
         return none
@@ -2644,7 +2869,7 @@ def _recommendation(template: ObjectTemplate, profile: HomeLike | None) -> dict[
         reasons.append("starter")
     reasons.extend(f"feature_{f}" for f in sorted(template.requires))
     reasons.extend(sorted(template.traits & profile.traits))
-    if profile.country and profile.country in template.countries:
+    if places & template.countries:
         reasons.append("country")
     return {"recommended": bool(reasons), "reasons": reasons, "dwelling_mismatch": False}
 

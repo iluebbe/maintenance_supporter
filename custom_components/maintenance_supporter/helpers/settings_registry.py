@@ -58,6 +58,7 @@ from ..const import (
     CONF_DEFAULT_WARNING_DAYS,
     CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
     CONF_DISABLED_TEMPLATE_IDS,
+    CONF_HOME_REGION,
     CONF_HOME_TYPE,
     CONF_INSTALL_ASSIST_SENTENCES,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
@@ -181,6 +182,8 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_DISABLED_TEMPLATE_IDS, list, []),
     # v2.93: home profile dwelling type (enum-checked in dashboard.py).
     SettingSpec(CONF_HOME_TYPE, str, "auto", max_len=16),
+    # 2.94: state / province / region override (format-checked in dashboard.py).
+    SettingSpec(CONF_HOME_REGION, str, "auto", max_len=8),
     # Archive automation
     SettingSpec(CONF_ARCHIVE_ONEOFF_DAYS, int, DEFAULT_ARCHIVE_ONEOFF_DAYS, int_range=(0, 3650)),
     SettingSpec(CONF_DELETE_ARCHIVED_ONEOFF_DAYS, int, DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS, int_range=(0, 3650)),
