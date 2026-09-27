@@ -31,7 +31,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
                          |                   |    +-------------------+
 +-------------------+    | - history         |    +-------------------+
 |   WebSocket API   |--->|                   +--->|  Button Entities  |
-| (98 commands)     |    +--------+----------+    | (complete / skip /|
+| (99 commands)     |    +--------+----------+    | (complete / skip /|
 | - CRUD objects    |             |          |    |  reset, per task) |
 | - statistics      |             |          |    +-------------------+
 | - subscribe       |             |          |    +-------------------+
@@ -232,7 +232,7 @@ custom_components/maintenance_supporter/
 │       ├── runtime.py             (338 lines)  Accumulated operating hours trigger
 │       └── compound.py            (282 lines)  AND/OR compound trigger
 │
-├── websocket/                   (7,135 lines)  98 WS commands, split by domain
+├── websocket/                   (7,135 lines)  99 WS commands, split by domain
 │   ├── __init__.py                (627 lines)  Shared helpers + registration
 │   ├── objects.py                 (998 lines)  Object CRUD + archive/pause/replace + entity introspection (13)
 │   ├── tasks.py                    (74 lines)  Backward-compat re-export shim (no handlers of its own)
@@ -253,7 +253,7 @@ custom_components/maintenance_supporter/
 │   ├── problem_sensors.py         (174 lines)  Discover + adopt HA `device_class: problem` sensors (2)
 │   ├── saved_views.py             (101 lines)  Saved panel-filter views (3)
 │   ├── battery_fleet.py           (120 lines)  overview / setup / mark_replaced / set_excluded (4)
-│   ├── integration_setups.py      (192 lines)  Signature-catalog discovery + adoption (2)
+│   ├── integration_setups.py      (192 lines)  Signature-catalog discovery + preview + adoption (3)
 │   └── tags.py                     (52 lines)  NFC tag listing (1)
 │
 ├── views.py                       (314 lines)  Four authenticated HTTP views: DocumentUploadView,
@@ -597,7 +597,7 @@ Popular integrations already expose the wear signals a maintenance task wants �
 
 Matching keys off the entity registry's `translation_key` (stable across renames) with an entity_id-suffix fallback for custom integrations that don't set one, and thresholds are **unit-aware** — the stored default is converted into whatever unit the entity actually displays. Claims are made **per duty, not per entity**: a watcher task named as *this* duty (in any language) blocks it, watchers named as *other* catalog duties leave the remaining duties adoptable, and a custom/renamed watcher claims the whole entity — so one source entity can back several duties (a mower's hours counter drives blades *and* undercarriage) and a deselected duty stays proposable after its sibling was adopted. Verdicts follow the direct → derived → engine-derived ladder in `docs/design/signature-evaluation-scheme.md`; a "no usable signal" verdict is only recorded after every rung has been checked.
 
-Surface: `integration_setups/discover` + `integration_setups/adopt` (WS), rendered by `components/suggested-setups-dialog.ts`.
+Surface: `integration_setups/discover` + `integration_setups/preview` + `integration_setups/adopt` (WS), rendered by `components/suggested-setups-dialog.ts`.
 
 ## Battery Fleet
 
@@ -813,7 +813,7 @@ Every `maintenance_supporter_notification` event — and the `notify_extra_data`
 
 ## WebSocket API
 
-98 commands organized by function. The authoritative inventory (command → permission tier) is `tests/test_ws_permission_matrix.py`, which fails if a handler is added without a tier.
+99 commands organized by function. The authoritative inventory (command → permission tier) is `tests/test_ws_permission_matrix.py`, which fails if a handler is added without a tier.
 
 **History payload diet (perf):** task summaries in `objects`/`task/list` carry only the most recent `_HISTORY_WINDOW` (20) history entries plus `history_count` — full histories made the list payload scale with history depth (906 KB at 40 entries/task, store cap 500). The detail view fetches the complete record lazily via `task/history` when a task is opened; a data refresh while a task is open refetches. Benchmarked by the committed harness `e2e/perf-seed.mjs` (prod-scale seed via `json/import`, real history entries) + `e2e/perf-panel.mjs` (cold-load timeline, per-WS payload bytes, long tasks; one subprocess per run and a single in-page evaluate per page — the remote playwright run-server wedges on more, see the script headers).
 
@@ -836,7 +836,7 @@ Every `maintenance_supporter_notification` event — and the `notify_extra_data`
 | **NFC Tags** | `tags/list` |
 | **Problem sensors** (2.24) | `problem_sensors/discover`, `problem_sensors/adopt` *(write)* — discover + adopt HA `device_class: problem` sensors as triggered tasks |
 | **Saved views** (2.24) | `views/list`, `views/save` *(write)*, `views/delete` *(write)* — shared named panel-list filter/sort/group combinations |
-| **Suggested setups** | `integration_setups/discover`, `integration_setups/adopt` *(write)* — signature-catalog discovery → objects with triggers pre-wired |
+| **Suggested setups** | `integration_setups/discover`, `integration_setups/preview`, `integration_setups/adopt` *(write)* — signature-catalog discovery → objects with triggers pre-wired |
 | **Battery fleet** | `battery_fleet/overview`, `battery_fleet/setup` *(write)*, `battery_fleet/mark_replaced` *(write)*, `battery_fleet/set_excluded` *(write)* |
 | **Documents** (2.11.0) | `documents/list`, `documents/storage`, `documents/add_link`, `documents/update`, `documents/delete`, `documents/search`, `documents/discard_upload` (read tier: removes an unattached completion photo — tagged exactly `photo`, referenced by no history entry, part or task link; the daily retention sweep removes such photos after 24 h and a non-writer may keep at most 20 per object waiting) — file binaries never travel over WS; they go through four authenticated HTTP views in `views.py` |
 | **Search** (2.78, #171) | `search` — the server half of the panel's global search: document metadata + content hits (page, snippet) from the full-text index, history-note hits; objects / tasks / parts are matched in the panel |
@@ -854,7 +854,7 @@ All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-The backend exposes 98 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
+The backend exposes 99 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
 
 | Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|

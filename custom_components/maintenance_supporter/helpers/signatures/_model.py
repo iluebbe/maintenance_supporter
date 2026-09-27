@@ -132,6 +132,11 @@ class ConsumableSignature:
     # the entity's own registry name; a device matching a single entity keeps
     # the plain catalog name (a mono printer has no colours to tell apart).
     per_entity: bool = False
+    # 2.94: appliance types (the integration's own setting, see
+    # IntegrationSignature.appliance_type_key) this duty does not apply to —
+    # WashData offers "descale" for every appliance, a heat-pump dryer has
+    # no water circuit to descale.
+    exclude_appliance_types: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -153,6 +158,10 @@ class IntegrationSignature:
     # translation_key and are matched by suffix on purpose — xiaomi_miot's
     # 'filter-filter_life_level' for our 'filter_life_level'.
     translation_keys_authoritative: bool = False
+    # 2.94: the option of the integration's OWN config entry that names the
+    # appliance type (WashData: "device_type" = washing_machine / dryer / …),
+    # read from options first, then data. None = the integration has none.
+    appliance_type_key: str | None = None
 
 
 def task_name_variants(task_name: str) -> set[str]:

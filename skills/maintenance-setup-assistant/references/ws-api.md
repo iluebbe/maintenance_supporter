@@ -781,6 +781,17 @@ entity_ids, threshold, direction}]}]}`.
 `suggested_entry_id` is the maintenance object already bound to that device
 (adopt extends it instead of creating a duplicate); it is `null` when the device
 is new to us, and `suggested_object_name` then falls back to the device name.
+
+2.94 adds, per device: `candidate` — `{entry_id, name, reasons}` for an
+UNBOUND device, the existing object it most likely is (`reasons` ⊆ `model`,
+`name`, `area`, `sibling`; `null` when none or two equally good ones);
+`target_entry_id` / `target_task_count` — the object the proposals were judged
+against (bound, else candidate, else `null` = new object); `already` —
+`[{task_name, task_name_localized, existing_name}]`, duties the target has by
+name (never proposed); and per task `covered_by` — `{task_id, name, reason}`
+(`similar_name` / `same_action` / `same_quantity`) when the target probably
+has it under another name. Adopt into the candidate with its `entry_id` and
+the wanted `task_names` — it links the device to that object.
 `direction` says which shape the duty is (`percent_left`, `duration_left`,
 `usage_above`, `usage_delta`, `runtime_hours`, `event_present`, `alert_above`,
 `value_below`, `cycle_count`) and `threshold` is the adoption-time default in the
@@ -790,6 +801,12 @@ Per-entity duties (colour printer cartridges) come back as one task per
 entity: `task_name` then carries a ` — <entity label>` suffix and is still the
 selection key, `catalog_task_name` is the bare catalog key and `entity_label`
 the suffix (`null` for ordinary duties).
+
+### `integration_setups/preview` — read (2.94)
+`{device_id, entry_id?: id|null}` → the same device object as in `discover`,
+judged against `entry_id` (`null`/omitted = a new object): `covered_by`,
+`already` and `target_task_count` follow the chosen target. `not_found` when
+`entry_id` is no maintenance object or the device has no suggestion.
 
 ### `integration_setups/adopt` — `@require_write`
 `{selections:[{device_id (req), entry_id?, object_name?, task_names?,

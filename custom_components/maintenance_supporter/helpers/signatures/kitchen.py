@@ -398,10 +398,29 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "itself (washer, dryer, dishwasher, air fryer, …)."
         ),
         tasks=(
-            ConsumableSignature(("cycle_count",), "Descaling", "usage_delta", delta_units=30),
-            ConsumableSignature(("cycle_count",), "Filter Cleaning", "usage_delta", delta_units=50),
-            ConsumableSignature(("cycle_count",), "Clean Tub", "usage_delta", delta_units=100),
+            # 2.94: by WashData's own device_type (const.py DEVICE_TYPE_*,
+            # stored in the entry's options): no descaling for appliances
+            # without a water circuit (a heat-pump dryer — reported), no tub
+            # cleaning where there is no tub. Unknown/generic/other keep all.
+            ConsumableSignature(
+                ("cycle_count",),
+                "Descaling",
+                "usage_delta",
+                delta_units=30,
+                exclude_appliance_types=("dryer", "air_fryer", "bread_maker", "pump"),
+            ),
+            ConsumableSignature(
+                ("cycle_count",), "Filter Cleaning", "usage_delta", delta_units=50, exclude_appliance_types=("bread_maker",)
+            ),
+            ConsumableSignature(
+                ("cycle_count",),
+                "Clean Tub",
+                "usage_delta",
+                delta_units=100,
+                exclude_appliance_types=("air_fryer", "bread_maker", "pump"),
+            ),
         ),
+        appliance_type_key="device_type",
     ),
     "traeger": IntegrationSignature(
         name="Traeger grill",

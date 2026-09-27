@@ -14,6 +14,14 @@ All notable changes to Maintenance Supporter are documented in this file.
   retention*, *Member avatars* and *Typical battery lifetimes*; *Notification settings* gains the extra reminders,
   *Notify only for view*, the weekly digest and the warranty reminder. Both places save through the same checks,
   and a test now fails the build when a setting reaches only one of them.
+- **Suggested setups without duplicates:** adopting suggestions created the washer and the dryer a second time
+  when the user's own objects were not linked to the devices, a second object for the second of two wallboxes, and
+  lubrication tasks next to existing ones under other names. The dialog now looks for the object that already stands
+  for a device (its model number or name in the device's name, the same area, or an object for another device of the
+  same model) and adds to it, linking it to the device. Every suggested task has its own tick box; a task the object
+  probably has under another name starts unticked and names that task, tasks it has by name are listed as already
+  there, and a line shows how many tasks the object has before and after. Choosing another object or a new one
+  recomputes all of that.
 - **"Already set up" in the template gallery:** a template your home already uses is marked and no longer
   recommended. New objects remember the template they came from; older ones are recognised by their name or by
   their tasks in any language.
@@ -27,6 +35,8 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **WashData suggested descaling for dryers:** its duties now follow WashData's own appliance type — no descaling
+  for dryers, air fryers, bread makers and pumps, no tub cleaning where there is no tub.
 - **Phone width:** the collapsed *Document storage* header let its size slide under the refresh button, the
   budget card's two amount fields were wider than a phone screen, the overview tabs ran past the edge of a
   360 px screen, and in Settings the *Task row actions* choice pushed its row off the screen in German, Ukrainian

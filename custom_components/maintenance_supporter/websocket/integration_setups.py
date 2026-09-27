@@ -3,9 +3,12 @@
 ``integration_setups/discover`` lists devices of catalogued integrations
 (helpers/integration_signatures — every signature verified against the
 integration's source) whose consumable entities can back maintenance tasks;
-``integration_setups/adopt`` creates the object (or extends the existing one on
-that device) with the tasks and their sensor triggers PRE-WIRED. Discovery is
-read; adoption is write, mirroring problem-sensor adoption.
+``integration_setups/preview`` (2.94) recomputes one device's proposals against
+another target object — the dialog's before/after when the user picks a
+different object; ``integration_setups/adopt`` creates the object (or extends
+the existing one on that device) with the tasks and their sensor triggers
+PRE-WIRED. Discovery and preview are read; adoption is write, mirroring
+problem-sensor adoption.
 """
 
 from __future__ import annotations
@@ -37,6 +40,40 @@ async def ws_discover_integration_setups(
 ) -> None:
     """List suggested maintenance setups for catalogued integrations."""
     connection.send_result(msg["id"], {"setups": discover_integration_setups(hass)})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/integration_setups/preview",
+        vol.Required("device_id"): ID_FIELD,
+        # An existing object as the target; omitted / null = a new object.
+        vol.Optional("entry_id"): vol.Any(ID_FIELD, None),
+    }
+)
+@websocket_api.async_response
+async def ws_preview_integration_setup(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """One device's proposals judged against the chosen target (2.94): what
+    the target already has (``already``), what it likely has under another
+    name (``covered_by``) and how many tasks it holds now — the dialog's
+    before/after. Read-only; adopt re-runs discovery itself."""
+    from ..helpers.aggregate import is_object_entry
+
+    entry_id = msg.get("entry_id") or ""
+    if entry_id and not is_object_entry(hass.config_entries.async_get_entry(entry_id)):
+        connection.send_error(msg["id"], "not_found", "Target object not found")
+        return
+    setup = next(
+        (s for s in discover_integration_setups(hass, targets={msg["device_id"]: entry_id}) if s["device_id"] == msg["device_id"]),
+        None,
+    )
+    if setup is None:
+        connection.send_error(msg["id"], "not_found", "No suggestion for this device")
+        return
+    connection.send_result(msg["id"], setup)
 
 
 _SELECTION_SCHEMA = vol.Schema(

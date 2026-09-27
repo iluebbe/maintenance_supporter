@@ -80,7 +80,49 @@ def _matches_catalog_key(entry: er.RegistryEntry, key: str, catalog_keys: set[st
     )
 
 
-def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
+def _appliance_type(hass: HomeAssistant, device: Any, integration: str, key: str | None) -> str | None:
+    """The appliance type the integration's own config entry names for this
+    device (WashData: ``device_type``) — options first, then data."""
+    if not key or device is None:
+        return None
+    for entry_id in getattr(device, "config_entries", ()) or ():
+        entry = hass.config_entries.async_get_entry(entry_id)
+        if entry is not None and entry.domain == integration:
+            value = entry.options.get(key, entry.data.get(key))
+            return str(value) if value else None
+    return None
+
+
+def annotate_for_target(
+    hass: HomeAssistant, proposals: list[dict[str, Any]], entry: Any
+) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+    """Split proposals against the target object's tasks (2.94).
+
+    A duty the target already has BY NAME (any language) goes to ``already``
+    with the existing task's name — shown, never adopted. The rest keeps
+    ``covered_by`` (helpers.adopt_match.covering_task): a likely duplicate
+    under another name, which the dialog shows unticked.
+    """
+    from ...const import CONF_TASKS
+    from ..adopt_match import covering_task
+
+    tasks = dict(entry.data.get(CONF_TASKS, {})) if entry is not None else {}
+    by_lower = {str(t.get("name", "")).lower(): str(t.get("name", "")) for t in tasks.values()}
+    keep: list[dict[str, Any]] = []
+    already: list[dict[str, str]] = []
+    for proposal in proposals:
+        hit = set(by_lower) & proposal_name_variants(proposal["catalog_task_name"], proposal["entity_label"])
+        if hit:
+            already.append({"task_name": proposal["task_name"], "task_name_localized": proposal["task_name_localized"], "existing_name": by_lower[sorted(hit)[0]]})
+            continue
+        covered = (
+            covering_task(hass, (proposal["task_name_localized"], proposal["task_name"]), proposal["entity_ids"], tasks) if tasks else None
+        )
+        keep.append({**proposal, "covered_by": covered})
+    return keep, already
+
+
+def discover_integration_setups(hass: HomeAssistant, *, targets: dict[str, str] | None = None) -> list[dict[str, Any]]:
     """Devices of catalogued integrations with their matchable task wiring.
 
     Groups matched entities per device; carries the maintenance object already
@@ -91,8 +133,15 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
     "Clean Undercarriage" after "Replace Mower Blades" was adopted. A watcher
     with a custom/renamed name conservatively claims the whole entity —
     re-running discovery never re-proposes against a rename.
+
+    2.94: a device no object is linked to gets a ``candidate`` — the existing
+    object it most likely is (helpers.adopt_match.candidate_object) — which
+    becomes the default target, and every proposal is annotated against the
+    target (:func:`annotate_for_target`). ``targets`` overrides the target
+    per device for the dialog's preview (``""`` = a new object).
     """
     from ...templates import localize_template_text
+    from ..adopt_match import candidate_object
     from ..i18n import normalize_language
     from ..problem_sensors import _object_by_device
 
@@ -131,7 +180,10 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
         ).lower()
         catalog_keys = {key for s in catalog.tasks for key in s.keys}
         tk_auth = catalog.translation_keys_authoritative
+        appliance = _appliance_type(hass, device, integration, catalog.appliance_type_key)
         for sig in catalog.tasks:
+            if appliance and appliance in sig.exclude_appliance_types:
+                continue
             # Device-type gates: registry model substring and/or a
             # type-identifying sibling entity (watched siblings still count —
             # only the match TARGET must be unwatched).
@@ -189,15 +241,15 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
         integration = next(iter(sig_map))[0]
         catalog = SIGNATURES[integration]
         suggested = by_device.get(device_id)
-        # Duties already present on the bound object BY NAME (any language) are
-        # not re-proposed — covers manually created calendar tasks whose
-        # trigger watches no entity (the entity-watched exclusion misses them).
-        existing_names: set[str] = set()
-        if suggested and (target := hass.config_entries.async_get_entry(suggested["entry_id"])):
-            from ...const import CONF_TASKS
-
-            existing_names = {str(t.get("name", "")).lower() for t in target.data.get(CONF_TASKS, {}).values()}
-        tasks = []
+        candidate = None if suggested else candidate_object(hass, device_id)
+        # The object the proposals are judged against: the linked one, else
+        # the candidate, else none (a new object) — or the dialog's choice.
+        if targets is not None and device_id in targets:
+            target_id = targets[device_id] or None
+        else:
+            target_id = suggested["entry_id"] if suggested else (candidate["entry_id"] if candidate else None)
+        target = hass.config_entries.async_get_entry(target_id) if target_id else None
+        raw: list[dict[str, Any]] = []
         for (_integ, task_name, direction), group in sig_map.items():
             entity_ids = sorted(group["entity_ids"])
             if not entity_ids:
@@ -215,9 +267,7 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
             else:
                 proposals = [(entity_ids, None)]
             for ids, label in proposals:
-                if existing_names and existing_names & proposal_name_variants(task_name, label):
-                    continue
-                tasks.append(
+                raw.append(
                     {
                         # task_name stays the EN catalog key (adopt selections
                         # match on it) — suffixed with the entity label for
@@ -232,9 +282,16 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
                         "direction": direction,
                     }
                 )
-        if not tasks:
+        # Duties already present on the target BY NAME (any language) are not
+        # proposed — covers manually created calendar tasks whose trigger
+        # watches no entity (the entity-watched exclusion misses them); since
+        # 2.94 they are listed as ``already`` so the dialog can say so.
+        tasks, already = annotate_for_target(hass, raw, target)
+        if not tasks and targets is None:
             continue
         tasks.sort(key=lambda t: (t["task_name"], t["direction"]))
+        from ...const import CONF_TASKS
+
         out.append(
             {
                 "device_id": device_id,
@@ -244,7 +301,11 @@ def discover_integration_setups(hass: HomeAssistant) -> list[dict[str, Any]]:
                 "integration_name": catalog.name,
                 "suggested_entry_id": suggested["entry_id"] if suggested else None,
                 "suggested_object_name": suggested["name"] if suggested else device_name,
+                "candidate": candidate,
+                "target_entry_id": target.entry_id if target is not None else None,
+                "target_task_count": len(target.data.get(CONF_TASKS, {})) if target is not None else 0,
                 "tasks": tasks,
+                "already": already,
             }
         )
     out.sort(key=lambda s: (s["integration_name"], s["device_name"]))
