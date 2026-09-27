@@ -18,6 +18,13 @@ a [start value](https://github.com/iluebbe/maintenance_supporter/issues/102)),
 *measurement* (plain threshold, auto-resolving), *event latch*
 (appliance-reported maintenance event), *cycle count*.
 
+**Counter resets (2.95+):** where the integration keeps the counter
+itself and offers a reset button (*completing presses …* below),
+adopting wires that button as the task's completion action —
+completing the task also resets the counter in the integration,
+switching on a button the integration shipped disabled. Tasks
+adopted earlier are offered the same in the Suggested setups dialog.
+
 ## Beyond this list: problem-sensor adoption
 
 The tables below cover the *signature catalog* — integration-specific
@@ -137,18 +144,18 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 | Integration | Domain | Task | Default | Notes |
 |---|---|---|---|---|
-| Roborock | `roborock` | Replace Main Brush | below 24 h remaining |  |
-|  |  | Replace Side Brush | below 24 h remaining |  |
-|  |  | Replace Filter | below 24 h remaining |  |
-|  |  | Clean Sensors | below 24 h remaining |  |
+| Roborock | `roborock` | Replace Main Brush | below 24 h remaining | completing presses `reset_main_brush_consumable` |
+|  |  | Replace Side Brush | below 24 h remaining | completing presses `reset_side_brush_consumable` |
+|  |  | Replace Filter | below 24 h remaining | completing presses `reset_air_filter_consumable` |
+|  |  | Clean Sensors | below 24 h remaining | completing presses `reset_sensor_consumable` |
 |  |  | Replace Mop Pads | below 24 h remaining |  |
-|  |  | Replace Dock Strainer | below 24 h remaining |  |
-|  |  | Replace Maintenance Brush | below 24 h remaining |  |
+|  |  | Replace Dock Strainer | below 24 h remaining | completing presses `reset_dock_strainer_consumable` |
+|  |  | Replace Maintenance Brush | below 24 h remaining | completing presses `reset_dock_cleaning_brush_consumable` |
 |  |  | Clean Tub | at 30 h counted by the device |  |
-| Xiaomi Miio | `xiaomi_miio` | Replace Main Brush | below 24 h remaining |  |
-|  |  | Replace Side Brush | below 24 h remaining |  |
-|  |  | Replace Filter | below 24 h remaining |  |
-|  |  | Clean Sensors | below 24 h remaining |  |
+| Xiaomi Miio | `xiaomi_miio` | Replace Main Brush | below 24 h remaining | completing presses `reset_vacuum_main_brush` |
+|  |  | Replace Side Brush | below 24 h remaining | completing presses `reset_vacuum_side_brush` |
+|  |  | Replace Filter | below 24 h remaining | completing presses `reset_vacuum_filter` |
+|  |  | Clean Sensors | below 24 h remaining | completing presses `reset_vacuum_sensor_dirty` |
 | Dreame Vacuum | `dreame_vacuum` | Replace Main Brush | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Side Brush | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Filter | below the household consumable floor (default 10 %) |  |
@@ -157,21 +164,21 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Refill Detergent | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Secondary Filter | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Silver-ion Module | below the household consumable floor (default 10 %) |  |
-| Ecovacs | `ecovacs` | Replace Main Brush | below the household consumable floor (default 10 %) |  |
-|  |  | Replace Side Brush | below the household consumable floor (default 10 %) |  |
-|  |  | Replace Filter | below the household consumable floor (default 10 %) | one task per entity |
-|  |  | Replace Secondary Filter | below the household consumable floor (default 10 %) |  |
-|  |  | Replace Dust Bag | below the household consumable floor (default 10 %) |  |
-|  |  | Replace Mop Pads | below the household consumable floor (default 10 %) |  |
-|  |  | Refill Detergent | below the household consumable floor (default 10 %) |  |
-|  |  | Empty Dirty Water Tank | below the household consumable floor (default 10 %) |  |
-|  |  | Clean Mop Tray | below the household consumable floor (default 10 %) |  |
-|  |  | Replace Air Freshener | below the household consumable floor (default 10 %) |  |
-|  |  | Replace UV Lamp | below the household consumable floor (default 10 %) |  |
-|  |  | Replace Blades | below the household consumable floor (default 10 %) |  |
-|  |  | Replace Lens Brush | below the household consumable floor (default 10 %) |  |
-|  |  | Replace Trimmer Brush | below the household consumable floor (default 10 %) |  |
-|  |  | Replace Trimmer Line | below the household consumable floor (default 10 %) |  |
+| Ecovacs | `ecovacs` | Replace Main Brush | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_brush` |
+|  |  | Replace Side Brush | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_side_brush` |
+|  |  | Replace Filter | below the household consumable floor (default 10 %) | one task per entity; completing presses `reset_lifespan_filter`/`reset_lifespan_hand_filter` |
+|  |  | Replace Secondary Filter | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_station_filter` |
+|  |  | Replace Dust Bag | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_dust_bag` |
+|  |  | Replace Mop Pads | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_round_mop` |
+|  |  | Refill Detergent | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_cleaning_solution` |
+|  |  | Empty Dirty Water Tank | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_sewage_box` |
+|  |  | Clean Mop Tray | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_water_sink` |
+|  |  | Replace Air Freshener | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_air_freshener` |
+|  |  | Replace UV Lamp | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_uv_sanitizer` |
+|  |  | Replace Blades | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_blade` |
+|  |  | Replace Lens Brush | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_lens_brush` |
+|  |  | Replace Trimmer Brush | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_trimmer_brush` |
+|  |  | Replace Trimmer Line | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_weed_rope` |
 |  |  | Clean Undercarriage | every 25 units (counter delta) |  |
 | WeBack Vacuum | `weback_vacuum` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
@@ -182,18 +189,18 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
 | ROMY Vacuum | `romy` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
-| Tuya vacuum | `tuya` | Replace Main Brush | below the household consumable floor (default 10 %) |  |
-|  |  | Replace Side Brush | below the household consumable floor (default 10 %) |  |
-|  |  | Replace Filter | below the household consumable floor (default 10 %) |  |
-|  |  | Replace Mop Pads | below the household consumable floor (default 10 %) |  |
+| Tuya vacuum | `tuya` | Replace Main Brush | below the household consumable floor (default 10 %) | completing presses `reset_roll_brush` |
+|  |  | Replace Side Brush | below the household consumable floor (default 10 %) | completing presses `reset_edge_brush` |
+|  |  | Replace Filter | below the household consumable floor (default 10 %) | completing presses `reset_filter` |
+|  |  | Replace Mop Pads | below the household consumable floor (default 10 %) | completing presses `reset_duster_cloth` |
 |  |  | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
 | SwitchBot vacuum | `switchbot_cloud` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
 | SmartThings | `smartthings` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
-|  |  | Replace Water Filter | above 90 |  |
-|  |  | Clean Grease Filter | above 90 |  |
+|  |  | Replace Water Filter | above 90 | completing presses `reset_water_filter` |
+|  |  | Clean Grease Filter | above 90 | completing presses `reset_hood_filter` |
 | Shark IQ | `sharkiq` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
 |  |  | Clean Main Brush | every 30 h counted by the engine | vacuum entity; active: cleaning |
 | TP-Link Tapo vacuum | `tplink` | Filter Cleaning | every 15 h counted by the engine | vacuum entity; active: cleaning |
@@ -226,7 +233,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 | Integration | Domain | Task | Default | Notes |
 |---|---|---|---|---|
-| Husqvarna Automower | `husqvarna_automower` | Replace Blades | at 100 h counted by the device |  |
+| Husqvarna Automower | `husqvarna_automower` | Replace Blades | at 100 h counted by the device | completing presses `reset_cutting_blade_usage_time` |
 |  |  | Clean Undercarriage | every 25 units (counter delta) |  |
 |  |  | Clean Charging Contacts | every 100 units (counter delta) |  |
 | Worx Landroid | `landroid_cloud` | Replace Blades | at 100 h counted by the device |  |
@@ -396,7 +403,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Daikin AC | `daikin` | Filter Cleaning | every 100 h counted by the engine | climate entity; active: cool/dry/fan_only/heat/heat_cool |
 | Gree AC | `gree` | Filter Cleaning | every 100 h counted by the engine | climate entity; active: auto/cool/dry/fan_only/heat |
 | Zehnder ComfoAirQ | `comfoconnect` | Replace Ventilation Filter | below 7 days remaining |  |
-| Renson Endura Delta | `renson` | Replace Ventilation Filter | below 7 days remaining |  |
+| Renson Endura Delta | `renson` | Replace Ventilation Filter | below 7 days remaining | completing presses `reset_filter` |
 | Philips AirPurifier (CoAP) | `philips_airpurifier_coap` | Filter Cleaning | below the household consumable floor (default 10 %) |  |
 |  |  | Filter Cleaning | below 3 days remaining |  |
 |  |  | Replace Filter | below the household consumable floor (default 10 %) |  |
@@ -565,7 +572,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 |---|---|---|---|---|
 | PetKit | `petkit` | Replace Desiccant | below 2 days remaining |  |
 |  |  | Replace Water Filter | below the household consumable floor (default 10 %) |  |
-| Litter-Robot | `litterrobot` | Empty Waste Drawer | above 90 |  |
+| Litter-Robot | `litterrobot` | Empty Waste Drawer | above 90 | completing presses `reset_waste_drawer` |
 |  |  | Refill Litter | below the household consumable floor (default 10 %) |  |
 |  |  | Wash Litter Box | every 150 units (counter delta) |  |
 | PETLIBRO | `petlibro` | Replace Desiccant | below 2 days remaining |  |

@@ -80,6 +80,38 @@ def _matches_catalog_key(entry: er.RegistryEntry, key: str, catalog_keys: set[st
     )
 
 
+def reset_button_for(
+    hass: HomeAssistant,
+    sig: Any,
+    matched: list[er.RegistryEntry],
+    device_id: str,
+    integration: str,
+    catalog_keys: set[str],
+    *,
+    tk_authoritative: bool = False,
+) -> dict[str, Any] | None:
+    """The integration's own reset button for this duty's counter on the same
+    device (2.95, helpers/reset_wiring.py) — ``{entity_id, name, disabled}``,
+    or None when the duty has none or the button is missing / user-disabled."""
+    if not sig.resets or not matched:
+        return None
+    from ..reset_wiring import pressable_reset_buttons
+
+    buttons = pressable_reset_buttons(hass, device_id, integration)
+    for entry in matched:
+        for sensor_key, button_key in sig.resets:
+            if not _matches_catalog_key(entry, sensor_key, catalog_keys, tk_authoritative=tk_authoritative):
+                continue
+            for button in buttons:
+                if _entity_matches(button, button_key, tk_authoritative=tk_authoritative):
+                    return {
+                        "entity_id": button.entity_id,
+                        "name": button.name or button.original_name or button.entity_id,
+                        "disabled": button.disabled_by is not None,
+                    }
+    return None
+
+
 def _appliance_type(hass: HomeAssistant, device: Any, integration: str, key: str | None) -> str | None:
     """The appliance type the integration's own config entry names for this
     device (WashData: ``device_type``) — options first, then data."""
@@ -252,6 +284,7 @@ def discover_integration_setups(hass: HomeAssistant, *, targets: dict[str, str] 
         else:
             target_id = suggested["entry_id"] if suggested else (candidate["entry_id"] if candidate else None)
         target = hass.config_entries.async_get_entry(target_id) if target_id else None
+        device_catalog_keys = {key for s in catalog.tasks for key in s.keys}
         raw: list[dict[str, Any]] = []
         for (_integ, task_name, direction), group in sig_map.items():
             entity_ids = sorted(group["entity_ids"])
@@ -283,6 +316,16 @@ def discover_integration_setups(hass: HomeAssistant, *, targets: dict[str, str] 
                         "entity_ids": ids,
                         "threshold": _threshold_for(sig, hass, ids[0]),
                         "direction": direction,
+                        # 2.95: completing it also presses this reset button
+                        "reset": reset_button_for(
+                            hass,
+                            sig,
+                            [group["entries"][eid] for eid in ids],
+                            device_id,
+                            integration,
+                            device_catalog_keys,
+                            tk_authoritative=catalog.translation_keys_authoritative,
+                        ),
                     }
                 )
         # Duties already present on the target BY NAME (any language) are not

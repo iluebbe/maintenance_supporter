@@ -11,11 +11,11 @@ integration's source; drift-probed weekly)."""
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from ._model import ConsumableSignature, IntegrationSignature
 from ._shared import (
     FILTER_LIFE_PERCENT,
-    HOOD_GREASE_FILTER_USAGE,
-    SIDE_BRUSH_LIFE_PERCENT,
     VACUUM_FILTER_CLEANING_RUNTIME,
     VACUUM_MAIN_BRUSH_RUNTIME,
 )
@@ -42,15 +42,15 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         tasks=(
             # Dyad wet-dry vacuums report their roller brush as 'brush_remaining'
             # — same duty, same direction → one signature (per-device dedupe).
-            ConsumableSignature(("main_brush_time_left", "brush_remaining"), "Replace Main Brush", "duration_left"),
-            ConsumableSignature(("side_brush_time_left",), "Replace Side Brush", "duration_left"),
-            ConsumableSignature(("filter_time_left",), "Replace Filter", "duration_left"),
-            ConsumableSignature(("sensor_time_left",), "Clean Sensors", "duration_left"),
+            ConsumableSignature(("main_brush_time_left", "brush_remaining"), "Replace Main Brush", "duration_left", resets=(("main_brush_time_left", "reset_main_brush_consumable"),)),
+            ConsumableSignature(("side_brush_time_left",), "Replace Side Brush", "duration_left", resets=(("side_brush_time_left", "reset_side_brush_consumable"),)),
+            ConsumableSignature(("filter_time_left",), "Replace Filter", "duration_left", resets=(("filter_time_left", "reset_air_filter_consumable"),)),
+            ConsumableSignature(("sensor_time_left",), "Clean Sensors", "duration_left", resets=(("sensor_time_left", "reset_sensor_consumable"),)),
             ConsumableSignature(("mop_life_time_left",), "Replace Mop Pads", "duration_left"),
             # Dock consumables: the 'hours' are the dock's wash-count budget
             # (150 / 300); 24 left ≈ the last 8-16 % of the part's life.
-            ConsumableSignature(("strainer_time_left",), "Replace Dock Strainer", "duration_left"),
-            ConsumableSignature(("cleaning_brush_time_left",), "Replace Maintenance Brush", "duration_left"),
+            ConsumableSignature(("strainer_time_left",), "Replace Dock Strainer", "duration_left", resets=(("strainer_time_left", "reset_dock_strainer_consumable"),)),
+            ConsumableSignature(("cleaning_brush_time_left",), "Replace Maintenance Brush", "duration_left", resets=(("cleaning_brush_time_left", "reset_dock_cleaning_brush_consumable"),)),
             # Zeo washer: washes since the last drum-clean program (unitless;
             # above_hours is the wash count, ~monthly like LG's tub counter).
             ConsumableSignature(("times_after_clean",), "Clean Tub", "usage_above", above_hours=30),
@@ -61,10 +61,10 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         verified="2026-07-16 @ home-assistant/core dev",
         source="home-assistant/core homeassistant/components/xiaomi_miio/sensor.py (consumable_* descriptions, duration s)",
         tasks=(
-            ConsumableSignature(("main_brush_left",), "Replace Main Brush", "duration_left"),
-            ConsumableSignature(("side_brush_left",), "Replace Side Brush", "duration_left"),
-            ConsumableSignature(("filter_left",), "Replace Filter", "duration_left"),
-            ConsumableSignature(("sensor_dirty_left",), "Clean Sensors", "duration_left"),
+            ConsumableSignature(("main_brush_left",), "Replace Main Brush", "duration_left", resets=(("main_brush_left", "reset_vacuum_main_brush"),)),
+            ConsumableSignature(("side_brush_left",), "Replace Side Brush", "duration_left", resets=(("side_brush_left", "reset_vacuum_side_brush"),)),
+            ConsumableSignature(("filter_left",), "Replace Filter", "duration_left", resets=(("filter_left", "reset_vacuum_filter"),)),
+            ConsumableSignature(("sensor_dirty_left",), "Clean Sensors", "duration_left", resets=(("sensor_dirty_left", "reset_vacuum_sensor_dirty"),)),
         ),
     ),
     "dreame_vacuum": IntegrationSignature(
@@ -107,24 +107,24 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "SKIPPED (which parts it covers is not established from source)."
         ),
         tasks=(
-            ConsumableSignature(("lifespan_brush", "lifespan_main_brush"), "Replace Main Brush", "percent_left"),
-            ConsumableSignature(("lifespan_side_brush",), "Replace Side Brush", "percent_left"),
+            ConsumableSignature(("lifespan_brush", "lifespan_main_brush"), "Replace Main Brush", "percent_left", resets=(("lifespan_brush", "reset_lifespan_brush"),)),
+            ConsumableSignature(("lifespan_side_brush",), "Replace Side Brush", "percent_left", resets=(("lifespan_side_brush", "reset_lifespan_side_brush"),)),
             # The robot's filter and the handheld unit's filter (combo models)
             # are separate parts — one task per entity when a device has both.
-            ConsumableSignature(("lifespan_filter", "lifespan_hand_filter"), "Replace Filter", "percent_left", per_entity=True),
-            ConsumableSignature(("lifespan_station_filter",), "Replace Secondary Filter", "percent_left"),
-            ConsumableSignature(("lifespan_dust_bag",), "Replace Dust Bag", "percent_left"),
-            ConsumableSignature(("lifespan_round_mop",), "Replace Mop Pads", "percent_left"),
-            ConsumableSignature(("lifespan_cleaning_solution",), "Refill Detergent", "percent_left"),
-            ConsumableSignature(("lifespan_sewage_box",), "Empty Dirty Water Tank", "percent_left"),
-            ConsumableSignature(("lifespan_water_sink",), "Clean Mop Tray", "percent_left"),
-            ConsumableSignature(("lifespan_air_freshener",), "Replace Air Freshener", "percent_left"),
-            ConsumableSignature(("lifespan_uv_sanitizer",), "Replace UV Lamp", "percent_left"),
+            ConsumableSignature(("lifespan_filter", "lifespan_hand_filter"), "Replace Filter", "percent_left", per_entity=True, resets=(("lifespan_filter", "reset_lifespan_filter"), ("lifespan_hand_filter", "reset_lifespan_hand_filter"))),
+            ConsumableSignature(("lifespan_station_filter",), "Replace Secondary Filter", "percent_left", resets=(("lifespan_station_filter", "reset_lifespan_station_filter"),)),
+            ConsumableSignature(("lifespan_dust_bag",), "Replace Dust Bag", "percent_left", resets=(("lifespan_dust_bag", "reset_lifespan_dust_bag"),)),
+            ConsumableSignature(("lifespan_round_mop",), "Replace Mop Pads", "percent_left", resets=(("lifespan_round_mop", "reset_lifespan_round_mop"),)),
+            ConsumableSignature(("lifespan_cleaning_solution",), "Refill Detergent", "percent_left", resets=(("lifespan_cleaning_solution", "reset_lifespan_cleaning_solution"),)),
+            ConsumableSignature(("lifespan_sewage_box",), "Empty Dirty Water Tank", "percent_left", resets=(("lifespan_sewage_box", "reset_lifespan_sewage_box"),)),
+            ConsumableSignature(("lifespan_water_sink",), "Clean Mop Tray", "percent_left", resets=(("lifespan_water_sink", "reset_lifespan_water_sink"),)),
+            ConsumableSignature(("lifespan_air_freshener",), "Replace Air Freshener", "percent_left", resets=(("lifespan_air_freshener", "reset_lifespan_air_freshener"),)),
+            ConsumableSignature(("lifespan_uv_sanitizer",), "Replace UV Lamp", "percent_left", resets=(("lifespan_uv_sanitizer", "reset_lifespan_uv_sanitizer"),)),
             # GOAT robotic mowers report their wear parts through the same platform.
-            ConsumableSignature(("lifespan_blade",), "Replace Blades", "percent_left"),
-            ConsumableSignature(("lifespan_lens_brush",), "Replace Lens Brush", "percent_left"),
-            ConsumableSignature(("lifespan_trimmer_brush",), "Replace Trimmer Brush", "percent_left"),
-            ConsumableSignature(("lifespan_weed_rope",), "Replace Trimmer Line", "percent_left"),
+            ConsumableSignature(("lifespan_blade",), "Replace Blades", "percent_left", resets=(("lifespan_blade", "reset_lifespan_blade"),)),
+            ConsumableSignature(("lifespan_lens_brush",), "Replace Lens Brush", "percent_left", resets=(("lifespan_lens_brush", "reset_lifespan_lens_brush"),)),
+            ConsumableSignature(("lifespan_trimmer_brush",), "Replace Trimmer Brush", "percent_left", resets=(("lifespan_trimmer_brush", "reset_lifespan_trimmer_brush"),)),
+            ConsumableSignature(("lifespan_weed_rope",), "Replace Trimmer Line", "percent_left", resets=(("lifespan_weed_rope", "reset_lifespan_weed_rope"),)),
             # Lifetime mowing time — undercarriage wash every 25 h like the
             # automower/landroid signatures.
             ConsumableSignature(("total_stats_time_mower",), "Clean Undercarriage", "usage_delta", delta_units=25),
@@ -214,10 +214,11 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "replacing the part at end of life."
         ),
         tasks=(
-            ConsumableSignature(("rolling_brush_life",), "Replace Main Brush", "percent_left"),
-            SIDE_BRUSH_LIFE_PERCENT,
-            FILTER_LIFE_PERCENT,
-            ConsumableSignature(("duster_cloth_life",), "Replace Mop Pads", "percent_left"),
+            # 2.95: each counter has its reset_* button (button.py category SD).
+            ConsumableSignature(("rolling_brush_life",), "Replace Main Brush", "percent_left", resets=(("rolling_brush_life", "reset_roll_brush"),)),
+            ConsumableSignature(("side_brush_life",), "Replace Side Brush", "percent_left", resets=(("side_brush_life", "reset_edge_brush"),)),
+            replace(FILTER_LIFE_PERCENT, resets=(("filter_life", "reset_filter"),)),
+            ConsumableSignature(("duster_cloth_life",), "Replace Mop Pads", "percent_left", resets=(("duster_cloth_life", "reset_duster_cloth"),)),
             VACUUM_FILTER_CLEANING_RUNTIME,
             VACUUM_MAIN_BRUSH_RUNTIME,
         ),
@@ -252,8 +253,9 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             VACUUM_MAIN_BRUSH_RUNTIME,
             # Samsung fridge water filter / hood grease filter: usage counts
             # UP in percent; replacing/cleaning resets to 0 (auto-resolve).
-            ConsumableSignature(("water_filter_usage",), "Replace Water Filter", "alert_above", delta_units=90),
-            HOOD_GREASE_FILTER_USAGE,
+            ConsumableSignature(("water_filter_usage",), "Replace Water Filter", "alert_above", delta_units=90, resets=(("water_filter_usage", "reset_water_filter"),)),
+            # 2.95: SmartThings resets both counters itself (button.py).
+            ConsumableSignature(("hood_filter_usage",), "Clean Grease Filter", "alert_above", delta_units=90, resets=(("hood_filter_usage", "reset_hood_filter"),)),
         ),
     ),
     "sharkiq": IntegrationSignature(
@@ -381,7 +383,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(("main_brush_life",), "Replace Main Brush", "percent_left"),
-            SIDE_BRUSH_LIFE_PERCENT,
+            ConsumableSignature(("side_brush_life",), "Replace Side Brush", "percent_left"),
             FILTER_LIFE_PERCENT,
             ConsumableSignature(("mop_life",), "Replace Mop Pads", "percent_left"),
         ),

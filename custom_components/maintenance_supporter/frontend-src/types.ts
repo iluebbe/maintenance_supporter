@@ -265,6 +265,8 @@ export interface MaintenanceTask {
     service: string;                          // "domain.service"
     target?: { entity_id?: string | string[]; device_id?: string | string[]; area_id?: string | string[] };
     data?: Record<string, unknown>;
+    /** 2.95: not when the task completes itself (a counter reset). */
+    skip_auto?: boolean;
   } | null;
   quick_complete_defaults?: {
     notes?: string;

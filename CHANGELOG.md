@@ -4,6 +4,23 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **Completing a task also resets the counter in the integration:** robot vacuums, mowers, litter boxes and
+  ventilation units count their consumables themselves — and until that counter was reset in the vendor app, it
+  kept saying the brush was worn out, so the task fell due again right after you completed it. Where the
+  integration offers a reset button (34 duties in Roborock, Ecovacs, Tuya, Xiaomi Miio, Husqvarna Automower,
+  Litter-Robot, SmartThings and Renson), Suggested setups now names it on the task ("Completing it also resets the
+  counter in the integration ('Reset main brush consumable')") and adopting wires it as the task's completion
+  action. A button the integration shipped disabled (Roborock, Ecovacs, Tuya) is switched on for this — never one
+  you disabled yourself. When the task completed itself because the counter was reset in the vendor app, the
+  button is not pressed again (new per-action option *Not when the task completes itself*). Tasks adopted earlier
+  are offered in the same dialog with a before/after line per task, and a getting-started hint counts them; only
+  tasks named as the catalog duty are offered, so a custom "clean the brush" task never resets the replacement
+  counter. The action shows in the task dialog even with the completion-actions toggle off, so what runs on
+  completion stays visible and removable. INTEGRATIONS.md marks every duty with a reset. New WebSocket commands
+  `integration_setups/reset_offers` and `integration_setups/wire_resets` (102 commands).
+
 ### 🐛 Fixed
 
 - **English where your language was expected** (translation audit): the warranty reminder push was English in

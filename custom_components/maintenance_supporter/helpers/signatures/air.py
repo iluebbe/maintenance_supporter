@@ -8,7 +8,7 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
-from ._shared import FILTER_LIFE_PERCENT, HOOD_GREASE_FILTER_USAGE, VENTILATION_FILTER_OPERATING_TIME, VENTILATION_FILTER_REMAIN
+from ._shared import FILTER_LIFE_PERCENT, VENTILATION_FILTER_OPERATING_TIME, VENTILATION_FILTER_REMAIN
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "hass_dyson": IntegrationSignature(
@@ -102,7 +102,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         name="Renson Endura Delta",
         verified="2026-07-19 @ core/dev renson/sensor.py",
         source="core renson: tk 'filter_change', DURATION, DAYS, MEASUREMENT.",
-        tasks=(ConsumableSignature(("filter_change",), "Replace Ventilation Filter", "duration_left", below_hours=168),),
+        tasks=(ConsumableSignature(("filter_change",), "Replace Ventilation Filter", "duration_left", below_hours=168, resets=(("filter_change", "reset_filter"),)),),
     ),
     "philips_airpurifier_coap": IntegrationSignature(
         name="Philips AirPurifier (CoAP)",
@@ -399,7 +399,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 require_sibling_keys=("air_filter_usage_hours",),
             ),
             ConsumableSignature(("hepa_filter_usage", "filter_progress"), "Replace Filter", "alert_above", delta_units=90),
-            HOOD_GREASE_FILTER_USAGE,
+            ConsumableSignature(("hood_filter_usage",), "Clean Grease Filter", "alert_above", delta_units=90),
         ),
     ),
     "flexit": IntegrationSignature(

@@ -2,7 +2,8 @@
  "_comment": "Upstream drift probes for the suggested-setups signature catalog. Per integration: raw source URLs (the files the signatures were verified against) and literal strings that must still appear there. Checked weekly by .github/workflows/signature-drift.yml; a tripwire test keeps this file in sync with SIGNATURES. Strings are chosen per entry to survive code style (e.g. LG probes the UPPERCASE enum members because the lowercase values are StrEnum auto()).",
  "roborock": {
   "urls": [
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/roborock/sensor.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/roborock/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/roborock/button.py"
   ],
   "strings": [
    "main_brush_time_left",
@@ -13,18 +14,29 @@
    "cleaning_brush_time_left",
    "mop_life_time_left",
    "brush_remaining",
-   "times_after_clean"
+   "times_after_clean",
+   "reset_main_brush_consumable",
+   "reset_side_brush_consumable",
+   "reset_air_filter_consumable",
+   "reset_sensor_consumable",
+   "reset_dock_strainer_consumable",
+   "reset_dock_cleaning_brush_consumable"
   ]
  },
  "xiaomi_miio": {
   "urls": [
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/xiaomi_miio/sensor.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/xiaomi_miio/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/xiaomi_miio/button.py"
   ],
   "strings": [
    "main_brush_left",
    "side_brush_left",
    "filter_left",
-   "sensor_dirty_left"
+   "sensor_dirty_left",
+   "reset_vacuum_main_brush",
+   "reset_vacuum_side_brush",
+   "reset_vacuum_filter",
+   "reset_vacuum_sensor_dirty"
   ]
  },
  "dreame_vacuum": {
@@ -77,7 +89,8 @@
  "ecovacs": {
   "urls": [
    "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/ecovacs/sensor.py",
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/ecovacs/const.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/ecovacs/const.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/ecovacs/button.py"
   ],
   "strings": [
    "lifespan_",
@@ -92,17 +105,20 @@
    "LifeSpan.TRIMMER_BRUSH",
    "LifeSpan.WEED_ROPE",
    "\"main_brush\"",
-   "total_stats_time_mower"
+   "total_stats_time_mower",
+   "reset_lifespan_"
   ]
  },
  "husqvarna_automower": {
   "urls": [
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/husqvarna_automower/sensor.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/husqvarna_automower/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/husqvarna_automower/button.py"
   ],
   "strings": [
    "cutting_blade_usage_time",
    "total_cutting_time",
-   "number_of_charging_cycles"
+   "number_of_charging_cycles",
+   "reset_cutting_blade_usage_time"
   ]
  },
  "landroid_cloud": {
@@ -477,12 +493,14 @@
  },
  "litterrobot": {
   "urls": [
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/litterrobot/sensor.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/litterrobot/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/litterrobot/button.py"
   ],
   "strings": [
    "waste_drawer",
    "litter_level",
-   "total_cycles"
+   "total_cycles",
+   "reset_waste_drawer"
   ]
  },
  "husqvarna_automower_ble": {
@@ -594,7 +612,8 @@
  "tuya": {
   "urls": [
    "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tuya/vacuum.py",
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tuya/sensor.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tuya/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tuya/button.py"
   ],
   "strings": [
    "Vacuum",
@@ -602,7 +621,11 @@
    "side_brush_life",
    "rolling_brush_life",
    "DPCode.FILTER_LIFE",
-   "translation_key=\"filter_life\""
+   "translation_key=\"filter_life\"",
+   "reset_roll_brush",
+   "reset_edge_brush",
+   "reset_duster_cloth",
+   "reset_filter"
   ]
  },
  "switchbot_cloud": {
@@ -616,12 +639,15 @@
  "smartthings": {
   "urls": [
    "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartthings/vacuum.py",
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartthings/sensor.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartthings/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartthings/button.py"
   ],
   "strings": [
    "Vacuum",
    "water_filter_usage",
-   "hood_filter_usage"
+   "hood_filter_usage",
+   "reset_water_filter",
+   "reset_hood_filter"
   ]
  },
  "octoprint": {
@@ -725,11 +751,13 @@
  },
  "renson": {
   "urls": [
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/renson/sensor.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/renson/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/renson/button.py"
   ],
   "strings": [
    "filter_change",
-   "FILTER_REMAIN_FIELD"
+   "FILTER_REMAIN_FIELD",
+   "reset_filter"
   ]
  },
  "lamarzocco": {

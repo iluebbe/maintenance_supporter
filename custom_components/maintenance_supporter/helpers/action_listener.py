@@ -135,6 +135,10 @@ def register_action_listener(hass: HomeAssistant) -> Callable[[], None]:
         action = _resolve_task_action(hass, entry_id, task_id)
         if action is None:
             return
+        # 2.95: a counter reset is pointless when the task completed itself
+        # because that counter recovered (reset in the vendor app).
+        if action.get("skip_auto") and event.data.get("source") == "auto_recovery":
+            return
         await _dispatch_action(hass, action)
 
     return hass.bus.async_listen(EVENT_TASK_COMPLETED, _on_task_completed)

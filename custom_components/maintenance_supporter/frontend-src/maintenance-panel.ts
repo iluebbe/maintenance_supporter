@@ -284,6 +284,10 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _gsSetupsCount = 0;
   @state() private _gsAdoptCount = 0;
   private _gsLoaded = false;
+  // 2.95: tasks whose completion could also reset the integration's counter
+  // — offered to every install (the fix for tasks adopted before), once.
+  private _resetOffersLoaded = false;
+  @state() private _resetOffersCount = 0;
   // Battery Fleet: offer one-click setup only when Battery Notes is present
   // and the fleet isn't set up yet.
   @state() private _batteryFleetSetupAvailable = false;
@@ -1933,6 +1937,15 @@ export class MaintenanceSupporterPanel extends LitElement {
       .then((d) => d?.open());
   }
 
+  private _onResetsWired(e: CustomEvent): void {
+    const count = e.detail?.wired ?? 0;
+    this._showToast(t("reset_offers_done", this._lang).replace("{count}", String(count)));
+    this._resetOffersLoaded = false;
+    this._resetOffersCount = 0;
+    this._maybeLoadResetOffers();
+    this._loadData();
+  }
+
   private _onSetupsAdopted(e: CustomEvent): void {
     const tasks = e.detail?.tasks_created ?? 0;
     this._showToast(t("setups_done", this._lang).replace("{tasks}", String(tasks)));
@@ -2955,6 +2968,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       <maintenance-suggested-setups-dialog
         .hass=${this.hass}
         @integration-setups-adopted=${(e: CustomEvent) => this._onSetupsAdopted(e)}
+        @reset-counters-wired=${(e: CustomEvent) => this._onResetsWired(e)}
       ></maintenance-suggested-setups-dialog>
       <maintenance-saved-views-dialog
         .hass=${this.hass}
@@ -4598,7 +4612,17 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   /** Discovery counts for the chips — fetched ONCE per panel life and ONLY
    *  while the install is young, so mature installs pay nothing. */
+  private _maybeLoadResetOffers(): void {
+    if (this._resetOffersLoaded) return;
+    this._resetOffersLoaded = true;
+    this.hass.connection
+      .sendMessagePromise<{ offers: unknown[] }>({ type: "maintenance_supporter/integration_setups/reset_offers" })
+      .then((r) => { this._resetOffersCount = (r.offers || []).length; })
+      .catch(() => { this._resetOffersCount = 0; });
+  }
+
   private _maybeLoadGettingStarted(): void {
+    this._maybeLoadResetOffers();
     if (this._gsLoaded || !this._isYoungInstall()) return;
     this._gsLoaded = true;
     this.hass.connection
@@ -4627,6 +4651,13 @@ export class MaintenanceSupporterPanel extends LitElement {
         id: "adopt", icon: "mdi:alert-circle-check-outline",
         text: t("gs_adopt_chip", L).replace("{n}", String(this._gsAdoptCount)),
         run: () => this._openAdoptProblemSensors(),
+      });
+    }
+    if (this._resetOffersCount > 0 && !dismissed.has("resets")) {
+      chips.push({
+        id: "resets", icon: "mdi:counter",
+        text: t("gs_reset_chip", L).replace("{n}", String(this._resetOffersCount)),
+        run: () => this._openSuggestedSetups(),
       });
     }
     if (this._batteryFleetSetupAvailable && !dismissed.has("fleet")) {

@@ -25,7 +25,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(translation_key 'cutting_blade_usage_time', DURATION s→h; matching reset button exists)"
         ),
         tasks=(
-            ConsumableSignature(("cutting_blade_usage_time",), "Replace Blades", "usage_above"),
+            ConsumableSignature(("cutting_blade_usage_time",), "Replace Blades", "usage_above", resets=(("cutting_blade_usage_time", "reset_cutting_blade_usage_time"),)),
             # Lifetime statistics sensors (SECONDS, suggested h) carry two more
             # duties: undercarriage washing by mowing time, contact cleaning by
             # docking cycles (unitless counter -> delta target is the count).

@@ -14,6 +14,11 @@
  * under another name starts unticked with that name, tasks it has by name are
  * listed as already there, and a before/after line says what adopting does.
  * Picking another target asks the server again (integration_setups/preview).
+ *
+ * 2.95: a duty whose integration counts the consumable itself names the
+ * reset button completing it will press; tasks adopted before (or wired by
+ * hand) are offered the same in their own section, with a before/after line
+ * (integration_setups/reset_offers + wire_resets).
  */
 
 import { css, html, LitElement, nothing } from "lit";
@@ -30,7 +35,22 @@ interface SetupTask {
   threshold: number;
   direction: string;
   covered_by?: { task_id: string; name: string; reason: string } | null;
+  /** 2.95: the integration's reset button completing this task presses. */
+  reset?: { entity_id: string; name: string; disabled: boolean } | null;
 }
+
+interface ResetOffer {
+  entry_id: string;
+  object_name: string;
+  task_id: string;
+  task_name: string;
+  integration_name: string;
+  button_entity_id: string;
+  button_name: string;
+  button_disabled: boolean;
+}
+
+const offerKey = (o: ResetOffer): string => `${o.entry_id}/${o.task_id}`;
 
 interface SuggestedSetup {
   device_id: string;
@@ -74,6 +94,10 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
   // Ticked tasks per device (task_name keys).
   @state() private _tasks: Map<string, Set<string>> = new Map();
   @state() private _objects: Array<{ entry_id: string; name: string }> = [];
+  // 2.95: existing tasks that could also reset the integration's counter.
+  @state() private _offers: ResetOffer[] = [];
+  @state() private _offerTicks: Set<string> = new Set();
+  @state() private _wiring = false;
 
   private _localeReady = false;
 
@@ -99,6 +123,8 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
     this._error = "";
     this._setups = [];
     this._selected = new Set();
+    this._offers = [];
+    void this._loadOffers();
     const resp = await runWs<{ setups: SuggestedSetup[] }>(
       this,
       { type: "maintenance_supporter/integration_setups/discover" },
@@ -127,6 +153,69 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
 
   private _close(): void {
     this._open = false;
+  }
+
+  private async _loadOffers(): Promise<void> {
+    try {
+      const r = await this.hass.connection.sendMessagePromise<{ offers: ResetOffer[] }>({
+        type: "maintenance_supporter/integration_setups/reset_offers",
+      });
+      this._offers = r.offers || [];
+      this._offerTicks = new Set(this._offers.map(offerKey));
+    } catch {
+      this._offers = []; // an older backend has no offers
+    }
+  }
+
+  private _toggleOffer(o: ResetOffer): void {
+    const next = new Set(this._offerTicks);
+    const key = offerKey(o);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    this._offerTicks = next;
+  }
+
+  private _wire = async (): Promise<void> => {
+    if (this._wiring) return;
+    const items = this._offers.filter((o) => this._offerTicks.has(offerKey(o))).map((o) => ({ entry_id: o.entry_id, task_id: o.task_id }));
+    if (items.length === 0) return;
+    this._error = "";
+    const result = await runWs<{ wired: number }>(
+      this,
+      { type: "maintenance_supporter/integration_setups/wire_resets", items },
+      { busy: (b) => { this._wiring = b; }, onError: (m) => { this._error = m; } },
+    );
+    if (result === undefined) return;
+    this.dispatchEvent(new CustomEvent("reset-counters-wired", { bubbles: true, composed: true, detail: result }));
+    await this._loadOffers();
+  };
+
+  private _renderOffers(L: string) {
+    if (this._offers.length === 0) return nothing;
+    const ticked = this._offers.filter((o) => this._offerTicks.has(offerKey(o))).length;
+    return html`
+      <div class="offers">
+        <div class="offers-title">${t("reset_offers_title", L)}</div>
+        <div class="hint">${t("reset_offers_hint", L)}</div>
+        ${this._offers.map(
+          (o) => html`
+            <label class="offer" data-task=${o.task_id}>
+              <input type="checkbox" class="offer-check" .checked=${this._offerTicks.has(offerKey(o))} @change=${() => this._toggleOffer(o)} />
+              <span class="task-text">
+                <span>${o.task_name} · ${o.object_name}</span>
+                <span class="offer-before">${t("reset_offers_before", L).replace("{integration}", o.integration_name)}</span>
+                <span class="offer-after">
+                  ${t("reset_offers_after", L).replace("{button}", o.button_name)}${o.button_disabled ? ` ${t("setups_reset_enable", L)}` : ""}
+                </span>
+              </span>
+            </label>
+          `,
+        )}
+        <div class="offers-actions">
+          <ha-button @click=${this._wire} .disabled=${ticked === 0 || this._wiring}>${t("reset_offers_apply", L)}</ha-button>
+        </div>
+      </div>
+    `;
   }
 
   private _toggle = (deviceId: string): void => {
@@ -251,10 +340,11 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
           <div class="hint">${t("setups_hint", L)}</div>
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
 
+          ${this._renderOffers(L)}
           ${this._loading
             ? html`<div class="loading">…</div>`
             : this._setups.length === 0
-              ? html`<div class="empty">${t("setups_none", L)}</div>`
+              ? this._offers.length === 0 ? html`<div class="empty">${t("setups_none", L)}</div>` : nothing
               : html`
                   <div class="list">
                     ${this._setups.map((s) => {
@@ -291,6 +381,9 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
                                             <span>${task.task_name_localized || task.task_name}</span>
                                             ${task.covered_by
                                               ? html`<span class="maybe">${t("setups_maybe_covered", L).replace("{name}", task.covered_by.name)}</span>`
+                                              : nothing}
+                                            ${task.reset
+                                              ? html`<span class="reset">↻ ${t("setups_reset_line", L).replace("{button}", task.reset.name)}${task.reset.disabled ? ` ${t("setups_reset_enable", L)}` : ""}</span>`
                                               : nothing}
                                           </span>
                                         </label>
@@ -397,6 +490,17 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
     .task-text { display: flex; flex-direction: column; min-width: 0; }
     .maybe { font-size: 11px; color: var(--warning-color, #ff9800); }
     .already { font-size: 11px; color: var(--secondary-text-color); margin-top: 2px; }
+    .reset { font-size: 11px; color: var(--secondary-text-color); }
+    .offers {
+      display: flex; flex-direction: column; gap: 6px; padding: 8px;
+      border: 1px solid var(--primary-color); border-radius: 6px;
+      overflow-y: auto; max-height: 40vh; flex-shrink: 0;
+    }
+    .offers-title { font-weight: 500; font-size: 14px; }
+    .offer { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; cursor: pointer; }
+    .offer-before { font-size: 11px; color: var(--secondary-text-color); }
+    .offer-after { font-size: 11px; color: var(--primary-color); }
+    .offers-actions { display: flex; justify-content: flex-end; }
     .before-after {
       font-size: 12px; font-weight: 500; color: var(--primary-color);
       border-top: 1px dashed var(--divider-color); padding-top: 4px; margin-top: 2px;

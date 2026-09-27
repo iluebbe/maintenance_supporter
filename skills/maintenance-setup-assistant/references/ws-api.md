@@ -801,6 +801,10 @@ Per-entity duties (colour printer cartridges) come back as one task per
 entity: `task_name` then carries a ` — <entity label>` suffix and is still the
 selection key, `catalog_task_name` is the bare catalog key and `entity_label`
 the suffix (`null` for ordinary duties).
+Per task `reset` (2.95) — `{entity_id, name, disabled}` or `null`: the
+integration's own reset button for that counter on the same device; adopting
+makes it the task's completion action (`button.press`, not run when the task
+completes itself), and enables it when the integration shipped it disabled.
 
 ### `integration_setups/preview` — read (2.94)
 `{device_id, entry_id?: id|null}` → the same device object as in `discover`,
@@ -820,6 +824,17 @@ existing object picked by `entry_id` gets bound too, so future discovery
 recognises it). `baselines` is the "#102 last service was at reading X" input —
 only meaningful for `usage_delta` duties, where the delta then counts from X, so
 an already-elapsed interval comes due immediately.
+
+### `integration_setups/reset_offers` — read (2.95)
+`{}` → `{offers:[{entry_id, object_name, task_id, task_name, integration_name,
+button_entity_id, button_name, button_disabled}]}` — existing tasks named as a
+catalog duty whose watched counter the integration can reset, with no
+completion action yet.
+
+### `integration_setups/wire_resets` — `@require_write` (2.95)
+`{items:[{entry_id, task_id}]}` (1..200) → `{wired}`. Recomputes the offers
+server-side and wires only those: the reset button becomes the task's
+completion action, run as the calling user.
 
 ## Problem sensors — adopt HA `device_class: problem` binary sensors
 

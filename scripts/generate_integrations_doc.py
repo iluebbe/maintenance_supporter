@@ -69,6 +69,8 @@ def _notes(sig) -> str:
         notes.append("device-type gated")
     if sig.per_entity:
         notes.append("one task per entity")
+    if sig.resets:
+        notes.append("completing presses " + "/".join(f"`{button}`" for _, button in sig.resets))
     return "; ".join(notes)
 
 
@@ -96,6 +98,13 @@ def generate() -> str:
         "*engine runtime* (this integration accumulates active time itself),",
         "*measurement* (plain threshold, auto-resolving), *event latch*",
         "(appliance-reported maintenance event), *cycle count*.",
+        "",
+        "**Counter resets (2.95+):** where the integration keeps the counter",
+        "itself and offers a reset button (*completing presses …* below),",
+        "adopting wires that button as the task's completion action —",
+        "completing the task also resets the counter in the integration,",
+        "switching on a button the integration shipped disabled. Tasks",
+        "adopted earlier are offered the same in the Suggested setups dialog.",
         "",
         "## Beyond this list: problem-sensor adoption",
         "",

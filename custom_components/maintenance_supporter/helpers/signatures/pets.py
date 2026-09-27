@@ -34,7 +34,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "percent_left; total_cycles lifetime counter -> usage_delta)."
         ),
         tasks=(
-            ConsumableSignature(("waste_drawer",), "Empty Waste Drawer", "alert_above", delta_units=90),
+            ConsumableSignature(("waste_drawer",), "Empty Waste Drawer", "alert_above", delta_units=90, resets=(("waste_drawer", "reset_waste_drawer"),)),
             ConsumableSignature(("litter_level",), "Refill Litter", "percent_left"),
             ConsumableSignature(("total_cycles",), "Wash Litter Box", "usage_delta", delta_units=150),
         ),

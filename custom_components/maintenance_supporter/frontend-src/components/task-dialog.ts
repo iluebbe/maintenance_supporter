@@ -366,6 +366,12 @@ export class MaintenanceTaskDialog extends LitElement {
   // so ha-form can drive the data fields when the service schema is known.
   @state() private _actionService = "";
   @state() private _actionTargetEntity = "";
+  /** 2.95: not when the task completes itself (a reset wired by discovery). */
+  @state() private _actionSkipAuto = false;
+  /** 2.95: the task already has an action (suggested setups wire counter
+   *  resets without the feature toggle) — its section shows regardless, so
+   *  what runs on completion stays visible and removable. */
+  @state() private _actionPresent = false;
   @state() private _actionData: Record<string, unknown> = {};
   @state() private _actionDataJsonFallback = "";
   @state() private _actionTesting = false;
@@ -540,11 +546,15 @@ export class MaintenanceTaskDialog extends LitElement {
       this._actionTargetEntity = Array.isArray(tgt) ? (tgt[0] || "") : (tgt || "");
       this._actionData = (oca.data && typeof oca.data === "object") ? { ...oca.data } : {};
       this._actionDataJsonFallback = "";
+      this._actionSkipAuto = oca.skip_auto === true;
+      this._actionPresent = true;
     } else {
       this._actionService = "";
       this._actionTargetEntity = "";
       this._actionData = {};
       this._actionDataJsonFallback = "";
+      this._actionSkipAuto = false;
+      this._actionPresent = false;
     }
     const qcd = task.quick_complete_defaults;
     this._qcNotes = qcd?.notes || "";
@@ -663,6 +673,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._actionTargetEntity = "";
     this._actionData = {};
     this._actionDataJsonFallback = "";
+    this._actionSkipAuto = false;
+    this._actionPresent = false;
     this._actionTesting = false;
     this._actionTestResult = "";
     this._qcNotes = "";
@@ -857,7 +869,7 @@ export class MaintenanceTaskDialog extends LitElement {
   }
 
   private _renderCompletionActionsSection(L: string) {
-    if (!this.completionActionsEnabled) return nothing;
+    if (!this.completionActionsEnabled && !this._actionPresent) return nothing;
     const schema = this._serviceSchema();
     return html`
       <details class="ca-section">
@@ -894,6 +906,11 @@ export class MaintenanceTaskDialog extends LitElement {
         <p class="field-help ca-domain-hint">
           ${t("on_complete_action_target_hint", L)}
         </p>
+        <label class="ca-skip-auto">
+          <input type="checkbox" .checked=${this._actionSkipAuto}
+            @change=${(e: Event) => { this._actionSkipAuto = (e.target as HTMLInputElement).checked; }} />
+          <span>${t("on_complete_action_skip_auto", L)}</span>
+        </label>
         ${schema
           ? html`
               <ha-form
@@ -933,7 +950,7 @@ export class MaintenanceTaskDialog extends LitElement {
         </div>
       </details>
 
-      <details class="ca-section">
+      ${this.completionActionsEnabled ? html`<details class="ca-section">
         <summary>${t("quick_complete_defaults_title", L)}</summary>
         <p class="field-help">${t("quick_complete_defaults_desc", L)}</p>
         <ms-textfield
@@ -960,7 +977,7 @@ export class MaintenanceTaskDialog extends LitElement {
           <option value="needed">${t("quick_complete_defaults_feedback_needed", L)}</option>
           <option value="not_needed">${t("quick_complete_defaults_feedback_not_needed", L)}</option>
         </select>
-      </details>
+      </details>` : nothing}
     `;
   }
 
@@ -1668,8 +1685,9 @@ export class MaintenanceTaskDialog extends LitElement {
       data.checklist = items.length ? items : null;
     }
 
-    // v1.3.0: on_complete_action + quick_complete_defaults (gated)
-    if (this.completionActionsEnabled) {
+    // v1.3.0: on_complete_action + quick_complete_defaults (gated; the
+    // action also when the task already had one — 2.95)
+    if (this.completionActionsEnabled || this._actionPresent) {
       const svc = this._actionService.trim();
       if (svc && /^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(svc)) {
         const action: Record<string, unknown> = { service: svc };
@@ -1679,11 +1697,13 @@ export class MaintenanceTaskDialog extends LitElement {
         if (Object.keys(dataDict).length > 0) {
           action.data = dataDict;
         }
+        if (this._actionSkipAuto) action.skip_auto = true;
         data.on_complete_action = action;
       } else {
         data.on_complete_action = null;
       }
-
+    }
+    if (this.completionActionsEnabled) {
       const qcd: Record<string, unknown> = {};
       if (this._qcNotes.trim()) qcd.notes = this._qcNotes.trim();
       const cost = parseFloat(this._qcCost);

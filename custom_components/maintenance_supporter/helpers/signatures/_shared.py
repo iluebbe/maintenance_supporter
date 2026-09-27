@@ -94,7 +94,7 @@ CHARGER_CABLE_TOTAL_ENERGY = ConsumableSignature(
     delta_units=5000,
 )
 
-# 10 integrations (air.py, kitchen.py, vacuums.py).
+# 9 integrations (air.py, kitchen.py, vacuums.py).
 FILTER_LIFE_PERCENT = ConsumableSignature(
     ("filter_life",),
     "Replace Filter",
@@ -107,14 +107,6 @@ HEATING_WATER_PRESSURE_LOW = ConsumableSignature(
     "Refill Heating Water",
     "value_below",
     delta_units=1,
-)
-
-# 2 integrations (air.py, vacuums.py).
-HOOD_GREASE_FILTER_USAGE = ConsumableSignature(
-    ("hood_filter_usage",),
-    "Clean Grease Filter",
-    "alert_above",
-    delta_units=90,
 )
 
 # 2 integrations (garden.py).
@@ -190,13 +182,6 @@ POOL_SALT_LOW = ConsumableSignature(
     "Refill Pool Salt",
     "value_below",
     delta_units=2700,
-)
-
-# 2 integrations (vacuums.py).
-SIDE_BRUSH_LIFE_PERCENT = ConsumableSignature(
-    ("side_brush_life",),
-    "Replace Side Brush",
-    "percent_left",
 )
 
 # 3 integrations (heating.py).

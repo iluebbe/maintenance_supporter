@@ -398,6 +398,24 @@ ink/toner/drum duties (IPP, Brother) split into *Replace Toner — Cyan*,
 sensor, so completing one colour never touches the others; a mono printer
 keeps the single task.
 
+**Counter resets (2.95+):** vacuums, mowers, litter boxes and air handlers
+often count their consumables themselves — and until that counter is reset in
+the integration, it keeps saying the brush is worn out. Where the integration
+offers a reset button (Roborock, Ecovacs, Tuya, Xiaomi Miio, Husqvarna
+Automower, Litter-Robot, SmartThings, Renson — marked *completing presses …*
+in [INTEGRATIONS.md](INTEGRATIONS.md)), the suggested task says so and
+adopting wires that button as the task's completion action: completing the
+task here also resets the counter. A button the integration shipped
+**disabled** (Roborock, Ecovacs, Tuya) is switched on for this — never one you
+disabled yourself. When the task completed itself because someone reset the
+counter in the vendor app, the button is not pressed again. Tasks adopted
+before 2.95 are offered in the same dialog with a before/after line per task
+(*Now: completing it leaves the counter running* → *Then: it also presses
+"Reset main brush consumable"*), and a getting-started hint counts them. Only
+tasks named as the catalog duty are offered — a custom *Clean the brush* task
+that watches the same counter never resets it. The action is visible and
+editable in the task dialog even with the completion-actions toggle off.
+
 Catalog fixes also reach tasks you adopted **before** the fix when the old
 signature could never have fired: 2.91 found that the *Filter Cleaning* duty
 for Gree and Daikin air conditioners counted runtime on an attribute Gree
@@ -805,10 +823,11 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 ### Completion Actions (1.3.0+, advanced)
 - Per-task **on-complete action** — configure any HA service-call (service + target + data) to run when a task is completed. Failures are logged + swallowed so the completion is always recorded
 - **Test button** in the task dialog fires the configured action immediately so you can verify the wiring before saving
+- **Not when the task completes itself** (2.95+) — an action can skip automatic completions (the sensor recovered on its own); counter resets wired by Suggested setups use it
 - **Quick-complete QR codes** — pre-configure `notes / cost / duration / feedback` per task; the lightning-bolt QR records a completion in one tap, no dialog. Falls back to the regular complete dialog when the task has no defaults
 - **Stale-entity repair flow** — if an action's target entity is renamed or removed, a repair issue offers Replace (pick a new entity) or Remove (drop the action)
 - The same lifecycle events (`task_completed / _skipped / _reset`) fire on every completion path, so user-written automations can hook in without having to set `on_complete_action` (see Events below)
-- All gated behind a feature toggle (Settings → Features → Completion Actions). Default OFF
+- All gated behind a feature toggle (Settings → Features → Completion Actions). Default OFF — a task that already has an action (a counter reset wired by Suggested setups) shows it regardless
 
 ### Notifications
 - Configurable notification service (any `notify.*` service)
@@ -904,7 +923,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 100 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
+- 102 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -1001,7 +1020,7 @@ and, for a reading task with several named readings, `reading_values`
 keyed by reading name (2.75+; see [Examples](EXAMPLES.md)). Completion
 photos need an upload and are therefore a panel/card affair, not a service
 parameter.
-For the full WebSocket API (100 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (102 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

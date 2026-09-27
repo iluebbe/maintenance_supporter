@@ -27,6 +27,7 @@ from ..helpers.integration_signatures import (
     discover_integration_setups,
 )
 from ..helpers.permissions import require_write
+from ..helpers.reset_wiring import apply_reset_action
 from . import ID_FIELD
 from .adopt_batch import AdoptBatch
 
@@ -191,20 +192,22 @@ async def ws_adopt_integration_setups(
                 baseline = baselines.get(task["task_name"])
                 if baseline is not None and sig.direction == "usage_delta":
                     trigger["trigger_baseline_value"] = float(baseline)
-                await batch.persist_task(
-                    entry,
-                    {
-                        "id": uuid4().hex,
-                        "object_id": entry.data.get(CONF_OBJECT, {}).get("id", ""),
-                        "name": task.get("task_name_localized")
-                        or localize_template_text(task["task_name"], lang)
-                        or task["task_name"],
-                        "type": "replacement",
-                        "enabled": True,
-                        "schedule": {"kind": "manual"},
-                        "trigger_config": trigger,
-                    },
-                )
+                task_data: dict[str, Any] = {
+                    "id": uuid4().hex,
+                    "object_id": entry.data.get(CONF_OBJECT, {}).get("id", ""),
+                    "name": task.get("task_name_localized")
+                    or localize_template_text(task["task_name"], lang)
+                    or task["task_name"],
+                    "type": "replacement",
+                    "enabled": True,
+                    "schedule": {"kind": "manual"},
+                    "trigger_config": trigger,
+                }
+                # 2.95: completing the task also resets the integration's
+                # own counter (its reset button, enabled if it shipped off).
+                if task.get("reset"):
+                    apply_reset_action(hass, task_data, task["reset"]["entity_id"], connection.user.id if connection.user else None)
+                await batch.persist_task(entry, task_data)
         except (ValueError, KeyError) as err:
             # Removes an object created for this device together with the
             # tasks already persisted into it — and un-counts both (the
@@ -212,3 +215,41 @@ async def ws_adopt_integration_setups(
             await batch.fail({"device_id": device_id, "reason": str(err)})
 
     connection.send_result(msg["id"], batch.result())
+
+
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/integration_setups/reset_offers"})
+@websocket_api.async_response
+async def ws_reset_offers(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """2.95: existing tasks whose completion could also reset the
+    integration's own counter (helpers/reset_wiring.reset_offers)."""
+    from ..helpers.reset_wiring import reset_offers
+
+    connection.send_result(msg["id"], {"offers": reset_offers(hass)})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/integration_setups/wire_resets",
+        vol.Required("items"): vol.All(
+            [{vol.Required("entry_id"): ID_FIELD, vol.Required("task_id"): ID_FIELD}],
+            vol.Length(min=1, max=200),
+        ),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_wire_resets(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """2.95: wire the chosen offers — the reset button becomes the task's
+    completion action (enabled when the integration shipped it off)."""
+    from ..helpers.reset_wiring import wire_resets
+
+    count = wire_resets(hass, msg["items"], connection.user.id if connection.user else None)
+    connection.send_result(msg["id"], {"wired": count})

@@ -447,6 +447,11 @@ def cap_action_field(task_data: dict[str, Any], *, keep_owner: bool = False) -> 
     if keep_owner and isinstance(owner, str) and 0 < len(owner) <= 64:
         cleaned[ACTION_OWNER_KEY] = owner
 
+    # 2.95: not when the task completed itself (its counter recovered) —
+    # helpers/reset_wiring.py wires resets with it.
+    if action.get("skip_auto") is True:
+        cleaned["skip_auto"] = True
+
     task_data["on_complete_action"] = cleaned
 
 

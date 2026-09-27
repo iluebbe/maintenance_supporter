@@ -749,6 +749,8 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_adopt_integration_setups,
         ws_discover_integration_setups,
         ws_preview_integration_setup,
+        ws_reset_offers,
+        ws_wire_resets,
     )
     from .io import (
         ws_batch_generate_qr,
@@ -888,6 +890,8 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_battery_fleet_set_due_without_sensor)
     websocket_api.async_register_command(hass, ws_discover_integration_setups)
     websocket_api.async_register_command(hass, ws_preview_integration_setup)
+    websocket_api.async_register_command(hass, ws_reset_offers)
+    websocket_api.async_register_command(hass, ws_wire_resets)
     websocket_api.async_register_command(hass, ws_adopt_integration_setups)
     websocket_api.async_register_command(hass, ws_list_saved_views)
     websocket_api.async_register_command(hass, ws_save_saved_view)

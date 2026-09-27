@@ -137,6 +137,13 @@ class ConsumableSignature:
     # WashData offers "descale" for every appliance, a heat-pump dryer has
     # no water circuit to descale.
     exclude_appliance_types: tuple[str, ...] = ()
+    # 2.95: the integration's own reset for this counter — (sensor key,
+    # button key) pairs. Adopting the duty wires the matched sensor's sibling
+    # button on the SAME device as the task's completion action, so completing
+    # the task here also resets the counter in the integration (Roborock's
+    # "Reset main brush consumable"); without it the counter kept running and
+    # the task fell due again. Verified against the integration's button.py.
+    resets: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
