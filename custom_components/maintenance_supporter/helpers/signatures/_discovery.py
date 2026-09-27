@@ -94,7 +94,7 @@ def _appliance_type(hass: HomeAssistant, device: Any, integration: str, key: str
 
 
 def annotate_for_target(
-    hass: HomeAssistant, proposals: list[dict[str, Any]], entry: Any
+    hass: HomeAssistant, proposals: list[dict[str, Any]], entry: Any, *, device_name: str = ""
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     """Split proposals against the target object's tasks (2.94).
 
@@ -107,6 +107,7 @@ def annotate_for_target(
     from ..adopt_match import covering_task
 
     tasks = dict(entry.data.get(CONF_TASKS, {})) if entry is not None else {}
+    ignore = (device_name, entry.title if entry is not None else "")
     by_lower = {str(t.get("name", "")).lower(): str(t.get("name", "")) for t in tasks.values()}
     keep: list[dict[str, Any]] = []
     already: list[dict[str, str]] = []
@@ -116,7 +117,9 @@ def annotate_for_target(
             already.append({"task_name": proposal["task_name"], "task_name_localized": proposal["task_name_localized"], "existing_name": by_lower[sorted(hit)[0]]})
             continue
         covered = (
-            covering_task(hass, (proposal["task_name_localized"], proposal["task_name"]), proposal["entity_ids"], tasks) if tasks else None
+            covering_task(hass, (proposal["task_name_localized"], proposal["task_name"]), proposal["entity_ids"], tasks, ignore=ignore)
+            if tasks
+            else None
         )
         keep.append({**proposal, "covered_by": covered})
     return keep, already
@@ -286,7 +289,7 @@ def discover_integration_setups(hass: HomeAssistant, *, targets: dict[str, str] 
         # proposed — covers manually created calendar tasks whose trigger
         # watches no entity (the entity-watched exclusion misses them); since
         # 2.94 they are listed as ``already`` so the dialog can say so.
-        tasks, already = annotate_for_target(hass, raw, target)
+        tasks, already = annotate_for_target(hass, raw, target, device_name=device_name)
         if not tasks and targets is None:
             continue
         tasks.sort(key=lambda t: (t["task_name"], t["direction"]))

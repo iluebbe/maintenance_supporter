@@ -829,7 +829,17 @@ suggested_entry_id,suggested_object_name,suggested_part_id,suggested_part_name}]
 Lists adoptable problem sensors NOT already watched by a task (`state:"on"` =
 problem active now). When the suggested existing object owns a spare part whose
 name matches the sensor's (toner-low ↔ "Toner cartridge"), `suggested_part_*`
-carry it so adoption can pre-link it.
+carry it so adoption can pre-link it. 2.94 adds `candidate` (`{entry_id, name,
+reasons}` — the existing object an unbound device most likely is),
+`target_entry_id` (bound, else candidate, else `null`) and `covered_by`
+(`{task_id, name, reason}` — the target probably watches this already under
+another name). Adopting with the candidate's `entry_id` and the sensor's
+`device_id` links that object to the device.
+
+### `problem_sensors/preview` — read (2.94)
+`{selections:[{entity_id, name, entry_id?}]}` (≤100) → `{covered:{entity_id:
+{task_id,name,reason}|null}}` — each sensor judged against the object it would
+now go to (`null` entry = a new object, nothing to cover).
 
 ### `problem_sensors/adopt` — @require_write
 `{selections:[{entity_id,name,entry_id?,object_name?,device_id?,part_id?,for_minutes?}]}` →

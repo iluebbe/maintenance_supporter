@@ -29,6 +29,7 @@ from ..const import (
     DOMAIN,
     MAX_ADOPTED_NOTES,
 )
+from .adopt_match import candidate_object, covering_task
 from .aggregate import get_object_entries, object_name
 
 PROBLEM_DEVICE_CLASS = "problem"
@@ -95,6 +96,14 @@ def _object_by_device(hass: HomeAssistant) -> dict[str, dict[str, str]]:
     return out
 
 
+def sensor_covered_by(hass: HomeAssistant, entity_id: str, name: str, entry: Any, device_name: str = "") -> dict[str, str] | None:
+    """The target's task that probably already watches this problem under
+    another name (helpers.adopt_match.covering_task), or None."""
+    if entry is None:
+        return None
+    return covering_task(hass, [name], [entity_id], entry.data.get(CONF_TASKS, {}), ignore=(device_name, entry.title))
+
+
 def discover_problem_sensors(hass: HomeAssistant) -> list[dict[str, Any]]:
     """Propose adoptable problem sensors (not already watched by a task).
 
@@ -134,6 +143,12 @@ def discover_problem_sensors(hass: HomeAssistant) -> list[dict[str, Any]]:
                 area_name = area.name
         # Suggested target: existing object on this device, else a fresh one.
         suggested = by_device.get(device_id) if device_id else None
+        # 2.94: no object linked to the device — the existing object it most
+        # likely is (model number / name in the device name, same area …)
+        # becomes the default, like in the suggested setups.
+        candidate = candidate_object(hass, device_id) if device_id and suggested is None else None
+        target_id = suggested["entry_id"] if suggested else (candidate["entry_id"] if candidate else None)
+        target = hass.config_entries.async_get_entry(target_id) if target_id else None
         # Suggested spare part: when the target object already exists and has a
         # part whose name matches the sensor's (toner-low ↔ "Toner cartridge"),
         # adoption can pre-link it so completing the task consumes/restocks it.
@@ -156,6 +171,9 @@ def discover_problem_sensors(hass: HomeAssistant) -> list[dict[str, Any]]:
                 "suggested_object_name": suggested["name"] if suggested else (device_name or name),
                 "suggested_part_id": suggested_part[0] if suggested_part else None,
                 "suggested_part_name": suggested_part[1] if suggested_part else None,
+                "candidate": candidate,
+                "target_entry_id": target.entry_id if target is not None else None,
+                "covered_by": sensor_covered_by(hass, state.entity_id, name, target, device_name),
             }
         )
     out.sort(key=lambda c: (c["device_name"] or "", c["name"]))

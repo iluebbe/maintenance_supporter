@@ -230,3 +230,106 @@ async def test_two_equally_good_objects_are_not_guessed(hass: HomeAssistant) -> 
     await setup_integration(hass, g, a, b)
     dryer = await _washdata(hass, "d1", "Trockner Miele T 8861 WP", "dryer")
     assert candidate_object(hass, dryer) is None
+
+
+# ─── problem sensors (2.94) ──────────────────────────────────────────────
+
+
+async def _problem_sensor(hass: HomeAssistant, uid: str, device_name: str, sensor_name: str, *, model: str | None = None) -> tuple[str, str]:
+    source = MockConfigEntry(domain="acme_appliance", title=device_name)
+    source.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=source.entry_id, identifiers={("acme_appliance", uid)}, name=device_name, model=model
+    )
+    ent = er.async_get(hass).async_get_or_create(
+        "binary_sensor", "acme_appliance", f"{uid}_problem", config_entry=source, device_id=device.id, suggested_object_id=f"{uid}_problem"
+    )
+    hass.states.async_set(ent.entity_id, "off", {"device_class": "problem", "friendly_name": sensor_name})
+    return device.id, ent.entity_id
+
+
+async def test_problem_sensor_defaults_to_the_found_object_and_flags_a_duplicate(hass: HomeAssistant) -> None:
+    from custom_components.maintenance_supporter.helpers.problem_sensors import discover_problem_sensors
+
+    g = make_global_entry(hass)
+    dryer_obj = _object(hass, "tr", "Trockner", "T 8861 WP", ("Filter verstopft prüfen",))
+    await setup_integration(hass, g, dryer_obj)
+    _, entity_id = await _problem_sensor(hass, "d1", "Trockner Miele T 8861 WP", "Trockner Miele T 8861 WP Filter verstopft")
+    (sensor,) = [s for s in discover_problem_sensors(hass) if s["entity_id"] == entity_id]
+    assert sensor["suggested_entry_id"] is None
+    assert sensor["candidate"]["entry_id"] == dryer_obj.entry_id
+    assert sensor["target_entry_id"] == dryer_obj.entry_id
+    assert sensor["covered_by"]["name"] == "Filter verstopft prüfen"
+
+
+async def test_device_name_words_do_not_make_a_duplicate(hass: HomeAssistant) -> None:
+    """A sensor named after its device ("Nuki Smart Lock … Batterie
+    kritisch") must not match "Akku laden (Smart Lock Pro)" on the device
+    words alone."""
+    from custom_components.maintenance_supporter.helpers.problem_sensors import discover_problem_sensors
+
+    g = make_global_entry(hass)
+    await setup_integration(hass, g)
+    device_id, entity_id = await _problem_sensor(hass, "n1", "Nuki Smart Lock Haustür", "Nuki Smart Lock Haustür Batterie kritisch")
+    lock = make_object_entry(
+        hass, name="Nuki Smart Lock Pro", uid="nk",
+        tasks={"a": {"id": "a", "name": "Akku laden (Smart Lock Pro)", "type": "service", "enabled": True, "schedule_type": "manual"}},
+        object_data={**build_object_data(name="Nuki Smart Lock Pro", object_id="o_nk"), "ha_device_id": device_id},
+    )
+    await hass.config_entries.async_setup(lock.entry_id)
+    await hass.async_block_till_done()
+    (sensor,) = [s for s in discover_problem_sensors(hass) if s["entity_id"] == entity_id]
+    assert sensor["suggested_entry_id"] == lock.entry_id
+    assert sensor["covered_by"] is None
+
+
+async def test_problem_preview_and_adopt_links_only_the_found_object(hass: HomeAssistant) -> None:
+    from custom_components.maintenance_supporter.websocket.problem_sensors import (
+        ws_adopt_problem_sensors,
+        ws_preview_problem_sensors,
+    )
+
+    g = make_global_entry(hass)
+    dryer_obj = _object(hass, "tr", "Trockner", "T 8861 WP", ("Filter verstopft prüfen",))
+    other = _object(hass, "ot", "Keller", None, ())
+    await setup_integration(hass, g, dryer_obj, other)
+    device_id, entity_id = await _problem_sensor(hass, "d1", "Trockner Miele T 8861 WP", "Trockner Miele T 8861 WP Filter verstopft")
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_preview_problem_sensors, hass, conn, {"id": 1, "type": "maintenance_supporter/problem_sensors/preview", "selections": [
+        {"entity_id": entity_id, "name": "Trockner Miele T 8861 WP Filter verstopft", "entry_id": dryer_obj.entry_id},
+    ]})
+    assert assert_ws_success(conn)["covered"][entity_id]["name"] == "Filter verstopft prüfen"
+    conn = make_ws_connection()
+    await call_ws_handler(ws_preview_problem_sensors, hass, conn, {"id": 2, "type": "maintenance_supporter/problem_sensors/preview", "selections": [
+        {"entity_id": entity_id, "name": "Trockner Miele T 8861 WP Filter verstopft", "entry_id": g.entry_id},
+        {"entity_id": "binary_sensor.other", "name": "Other", "entry_id": None},
+    ]})
+    assert assert_ws_success(conn)["covered"] == {entity_id: None, "binary_sensor.other": None}
+
+    # adopting into ANOTHER existing object leaves it unlinked …
+    conn = make_ws_connection()
+    await call_ws_handler(ws_adopt_problem_sensors, hass, conn, {"id": 3, "type": "maintenance_supporter/problem_sensors/adopt", "selections": [
+        {"entity_id": entity_id, "name": "Filter verstopft", "entry_id": other.entry_id, "device_id": device_id},
+    ]})
+    assert_ws_success(conn)
+    await hass.async_block_till_done()
+    keller = hass.config_entries.async_get_entry(other.entry_id)
+    assert keller is not None and not keller.data[CONF_OBJECT].get("ha_device_id")
+
+
+async def test_problem_adopt_into_the_found_object_links_its_device(hass: HomeAssistant) -> None:
+    from custom_components.maintenance_supporter.websocket.problem_sensors import ws_adopt_problem_sensors
+
+    g = make_global_entry(hass)
+    dryer_obj = _object(hass, "tr", "Trockner", "T 8861 WP", ())
+    await setup_integration(hass, g, dryer_obj)
+    device_id, entity_id = await _problem_sensor(hass, "d1", "Trockner Miele T 8861 WP", "Trockner Miele T 8861 WP Tür offen")
+    conn = make_ws_connection()
+    await call_ws_handler(ws_adopt_problem_sensors, hass, conn, {"id": 1, "type": "maintenance_supporter/problem_sensors/adopt", "selections": [
+        {"entity_id": entity_id, "name": "Tür offen", "entry_id": dryer_obj.entry_id, "device_id": device_id},
+    ]})
+    assert assert_ws_success(conn)["objects_created"] == 0
+    await hass.async_block_till_done()
+    entry = hass.config_entries.async_get_entry(dryer_obj.entry_id)
+    assert entry is not None and entry.data[CONF_OBJECT]["ha_device_id"] == device_id

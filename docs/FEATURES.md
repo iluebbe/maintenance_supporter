@@ -321,6 +321,13 @@ sensor controls is only *when it becomes due*:
   user, cost, parts, photo) and takes precedence — a recovery arriving within
   two minutes of it is not recorded twice.
 
+**No duplicates (2.94+):** a sensor whose device no object is linked to goes
+by default to the object that device most likely is (its model number or
+name in the device's name, the same area) — and that object gets linked; a
+sensor the object probably already watches under another name starts
+unticked and names that task; a summary lists per object the task count
+before and after adopting, and typing another object recomputes the hints.
+
 **Configuration survives un-adopting**: deleting an adopted task stashes its
 notes, responsible user, priority, labels and part link per sensor, and the
 next adoption of the same sensor restores them (part links are re-validated
@@ -897,7 +904,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 99 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
+- 100 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -994,7 +1001,7 @@ and, for a reading task with several named readings, `reading_values`
 keyed by reading name (2.75+; see [Examples](EXAMPLES.md)). Completion
 photos need an upload and are therefore a panel/card affair, not a service
 parameter.
-For the full WebSocket API (99 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (100 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

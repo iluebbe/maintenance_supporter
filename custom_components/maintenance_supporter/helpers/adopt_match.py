@@ -175,6 +175,8 @@ def covering_task(
     names: Iterable[str],
     entity_ids: Iterable[str],
     tasks: Mapping[str, Mapping[str, Any]],
+    *,
+    ignore: Iterable[str | None] = (),
 ) -> dict[str, str] | None:
     """The target's task that most likely already covers a suggested duty.
 
@@ -182,18 +184,22 @@ def covering_task(
     what its trigger would watch, ``tasks`` the target's tasks. Returns
     ``{"task_id", "name", "reason"}`` with reason ``similar_name``,
     ``same_action`` or ``same_quantity`` — or None. Exact names are the
-    caller's business (they are not proposed at all).
+    caller's business (they are not proposed at all). ``ignore`` are texts
+    whose words say nothing about the job — the device's and the object's
+    names ("Nuki Smart Lock … Batterie kritisch" must not match "Akku laden
+    (Smart Lock Pro)" on "smart" + "lock").
     """
     from ..entity.triggers import normalize_entity_ids
 
-    duty_stems = set().union(*(_stems(n) for n in names if n)) if names else set()
+    noise = set().union(*(_stems(t) for t in ignore if t)) if ignore else set()
+    duty_stems = (set().union(*(_stems(n) for n in names if n)) if names else set()) - noise
     duty_action = _rare_action(duty_stems)
     duty_quantities = {q for eid in entity_ids if (q := _quantity(hass, eid)) is not None}
     for task_id, task in tasks.items():
         if task.get("archived_at"):
             continue
         name = str(task.get("name") or "")
-        stems = _stems(name)
+        stems = _stems(name) - noise
         if _shared(duty_stems, stems) >= 2:
             return {"task_id": task_id, "name": name, "reason": "similar_name"}
         if duty_action and _rare_action(stems) == duty_action:

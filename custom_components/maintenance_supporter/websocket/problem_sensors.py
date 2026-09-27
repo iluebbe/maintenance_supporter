@@ -21,6 +21,7 @@ from ..helpers.problem_sensors import (
     build_problem_task,
     discover_problem_sensors,
     pop_stashed_config,
+    sensor_covered_by,
 )
 from . import ID_FIELD
 from .adopt_batch import AdoptBatch
@@ -35,6 +36,51 @@ async def ws_discover_problem_sensors(
 ) -> None:
     """List adoptable problem sensors (not already watched by a task)."""
     connection.send_result(msg["id"], {"sensors": discover_problem_sensors(hass)})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/problem_sensors/preview",
+        vol.Required("selections"): vol.All(
+            [
+                vol.Schema(
+                    {
+                        vol.Required("entity_id"): vol.All(str, vol.Length(max=MAX_ENTITY_ID_LENGTH)),
+                        vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
+                        vol.Optional("entry_id"): vol.Any(ID_FIELD, None),
+                    }
+                )
+            ],
+            vol.Length(max=100),
+        ),
+    }
+)
+@websocket_api.async_response
+async def ws_preview_problem_sensors(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Judge each sensor against the object the dialog now sends it to
+    (2.94): ``{covered: {entity_id: {task_id, name, reason} | null}}`` — the
+    task that probably already watches this problem under another name.
+    Read-only; a new object (no ``entry_id``) has nothing to cover."""
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+
+    from ..helpers.aggregate import is_object_entry
+
+    ent_reg, dev_reg = er.async_get(hass), dr.async_get(hass)
+    covered: dict[str, Any] = {}
+    for sel in msg["selections"]:
+        entry = hass.config_entries.async_get_entry(sel["entry_id"]) if sel.get("entry_id") else None
+        if entry is not None and not is_object_entry(entry):
+            entry = None
+        ent = ent_reg.async_get(sel["entity_id"])
+        device = dev_reg.async_get(ent.device_id) if ent and ent.device_id else None
+        device_name = (device.name_by_user or device.name or "") if device else ""
+        covered[sel["entity_id"]] = sensor_covered_by(hass, sel["entity_id"], sel["name"], entry, device_name)
+    connection.send_result(msg["id"], {"covered": covered})
 
 
 # The trigger hold-time bounds the flows and the WS validator use too.
@@ -120,6 +166,19 @@ async def ws_adopt_problem_sensors(
             if entry is None:
                 batch.errors.append({"entity_id": entity_id, "reason": "target object not found"})
                 continue
+            # 2.94: the sensor goes to THE object its device most likely is
+            # (the dialog's default) and that object has no device yet —
+            # link it, so the next discovery finds it by device, as the
+            # suggested setups do. Any other pick stays unlinked.
+            if device_id and not (entry.data.get(CONF_OBJECT) or {}).get("ha_device_id"):
+                from ..helpers.adopt_match import candidate_object
+
+                match = candidate_object(hass, device_id)
+                if match is not None and match["entry_id"] == entry.entry_id:
+                    new_data = dict(entry.data)
+                    new_data[CONF_OBJECT] = {**new_data.get(CONF_OBJECT, {}), "ha_device_id": device_id}
+                    hass.config_entries.async_update_entry(entry, data=new_data)
+                    entry = hass.config_entries.async_get_entry(entry.entry_id) or entry
 
             task = build_problem_task(entity_id, sel["name"], for_minutes=sel.get("for_minutes") or 0)
             task_data = {

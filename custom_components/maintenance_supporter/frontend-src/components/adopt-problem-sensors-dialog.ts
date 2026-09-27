@@ -4,6 +4,13 @@
  * and turns each into a maintenance task that triggers while the problem is
  * active and clears when it resolves. A selection either attaches to a suggested
  * existing object or spins up a fresh object bound to the sensor's device.
+ *
+ * 2.94 (duplicates from adopting in a real home): a sensor whose device no
+ * object is linked to goes by default to the existing object that device most
+ * likely is (and links it); a sensor that object probably already watches
+ * under another name starts unticked with that task's name; a summary says
+ * per object how many tasks it has before and after. Typing another object
+ * asks the server again (problem_sensors/preview).
  */
 
 import { css, html, LitElement, nothing } from "lit";
@@ -26,7 +33,12 @@ interface ProblemSensor {
   suggested_object_name: string;
   suggested_part_id: string | null;
   suggested_part_name: string | null;
+  candidate?: { entry_id: string; name: string; reasons: string[] } | null;
+  target_entry_id?: string | null;
+  covered_by?: Covered;
 }
+
+type Covered = { task_id: string; name: string; reason: string } | null;
 
 interface DiscoverResponse {
   sensors: ProblemSensor[];
@@ -53,7 +65,10 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
    *  name on several rows makes them ONE object, an existing object's name
    *  adds them to it. */
   @state() private _objectNames: Record<string, string> = {};
-  @state() private _objects: Array<{ entry_id: string; name: string }> = [];
+  @state() private _objects: Array<{ entry_id: string; name: string; tasks: number }> = [];
+  /** 2.94: the task each sensor's target probably already has for it. */
+  @state() private _covered: Record<string, Covered> = {};
+  private _previewTimer: ReturnType<typeof setTimeout> | undefined;
   @state() private _users: HAUser[] = [];
   @state() private _responsible = "";
   // #136: minutes the problem must persist before the created task triggers
@@ -93,7 +108,9 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
       this._userService.getUsers().catch(() => [] as HAUser[]),
       // Best-effort too: the existing objects feed the name suggestions.
       this.hass.connection
-        .sendMessagePromise<{ objects: Array<{ entry_id: string; object: { name: string; archived_at?: string | null } }> }>({
+        .sendMessagePromise<{
+          objects: Array<{ entry_id: string; object: { name: string; archived_at?: string | null }; tasks?: unknown[] }>;
+        }>({
           type: "maintenance_supporter/objects",
         })
         .catch(() => ({ objects: [] })),
@@ -102,28 +119,92 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
     if (resp === undefined) return;
     this._objects = (objs?.objects || [])
       .filter((o) => !o.object.archived_at)
-      .map((o) => ({ entry_id: o.entry_id, name: o.object.name }));
+      .map((o) => ({ entry_id: o.entry_id, name: o.object.name, tasks: (o.tasks || []).length }));
     this._sensors = resp?.sensors || [];
-    this._selected = new Set(this._sensors.map((s) => s.entity_id));
+    this._covered = Object.fromEntries(this._sensors.map((s) => [s.entity_id, s.covered_by ?? null]));
+    // What the target probably already watches starts unticked.
+    this._selected = new Set(this._sensors.filter((s) => !s.covered_by).map((s) => s.entity_id));
     this._users = users;
   }
 
-  /** The object name a row will be adopted into (typed, else the suggestion). */
-  private _effectiveName(s: ProblemSensor): string {
-    const typed = (this._objectNames[s.entity_id] ?? "").trim();
-    return typed || s.suggested_object_name;
+  /** The default object: the one linked to the device, else the one the
+   *  device most likely is (2.94), else a new one named after the device. */
+  private _defaultName(s: ProblemSensor): string {
+    return s.suggested_entry_id ? s.suggested_object_name : (s.candidate?.name ?? s.suggested_object_name);
   }
 
-  /** An existing object the row lands in: the suggestion's entry when the
-   *  name is untouched, else an existing object with exactly that name. */
+  /** The object name a row will be adopted into (typed, else the default). */
+  private _effectiveName(s: ProblemSensor): string {
+    const typed = (this._objectNames[s.entity_id] ?? "").trim();
+    return typed || this._defaultName(s);
+  }
+
+  /** An existing object the row lands in: the default's entry when the name
+   *  is untouched, else an existing object with exactly that name. */
   private _existingEntryFor(s: ProblemSensor): string | null {
     const name = this._effectiveName(s);
-    if (name === s.suggested_object_name && s.suggested_entry_id) return s.suggested_entry_id;
+    const defaultEntry = s.suggested_entry_id || s.target_entry_id || null;
+    if (name === this._defaultName(s) && defaultEntry) return defaultEntry;
     const hit = this._objects.find((o) => o.name.trim().toLowerCase() === name.toLowerCase());
     return hit ? hit.entry_id : null;
   }
 
+  /** Another object typed: the server judges the hints again (debounced). */
+  private _schedulePreview(): void {
+    clearTimeout(this._previewTimer);
+    this._previewTimer = setTimeout(() => void this._preview(), 350);
+  }
+
+  private async _preview(): Promise<void> {
+    const selections = this._sensors.map((s) => ({
+      entity_id: s.entity_id,
+      name: s.name,
+      entry_id: this._existingEntryFor(s),
+    }));
+    const resp = await runWs<{ covered: Record<string, Covered> }>(
+      this,
+      { type: "maintenance_supporter/problem_sensors/preview", selections },
+      { onError: () => {} },
+    );
+    if (resp?.covered) this._covered = { ...this._covered, ...resp.covered };
+  }
+
+  /** Per target object: tasks before → after (only ticked rows count). */
+  private _summary(L: string) {
+    const groups = new Map<string, { name: string; entry: string | null; adding: number }>();
+    for (const s of this._sensors) {
+      if (!this._selected.has(s.entity_id)) continue;
+      const entry = this._existingEntryFor(s);
+      const name = this._effectiveName(s);
+      const key = entry ?? `new:${name.toLowerCase()}`;
+      const g = groups.get(key) ?? { name, entry, adding: 0 };
+      g.adding += 1;
+      groups.set(key, g);
+    }
+    if (groups.size === 0) return nothing;
+    return html`
+      <div class="summary">
+        <div class="summary-title">${t("adopt_summary_title", L)}</div>
+        ${[...groups.values()].map((g) => {
+          if (!g.entry) {
+            return html`<div class="summary-line new">
+              ${t("setups_new_object_count", L).replace("{name}", g.name).replace("{count}", String(g.adding))}
+            </div>`;
+          }
+          const before = this._objects.find((o) => o.entry_id === g.entry)?.tasks ?? 0;
+          return html`<div class="summary-line">
+            ${t("adopt_summary_existing", L)
+              .replace("{name}", g.name)
+              .replace("{before}", String(before))
+              .replace("{after}", String(before + g.adding))}
+          </div>`;
+        })}
+      </div>
+    `;
+  }
+
   private _close(): void {
+    clearTimeout(this._previewTimer);
     this._open = false;
   }
 
@@ -172,6 +253,15 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
     );
     this._open = false;
   };
+
+  /** The target line: the found object with why it was chosen, else the name. */
+  private _targetLabel(s: ProblemSensor, L: string): string {
+    if (s.candidate && this._existingEntryFor(s) === s.candidate.entry_id) {
+      const reasons = s.candidate.reasons.map((r) => t(`setups_reason_${r}`, L)).join(", ");
+      return t("setups_target_match", L).replace("{name}", s.candidate.name).replace("{reasons}", reasons);
+    }
+    return this._effectiveName(s);
+  }
 
   render() {
     if (!this._open) return html``;
@@ -233,19 +323,25 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
                                     class="adopt-object"
                                     list="adopt-object-names"
                                     aria-label=${t("object", L)}
-                                    placeholder=${s.suggested_object_name}
-                                    .value=${this._objectNames[s.entity_id] ?? s.suggested_object_name}
+                                    placeholder=${this._defaultName(s)}
+                                    .value=${this._objectNames[s.entity_id] ?? this._defaultName(s)}
                                     @input=${(e: Event) => {
                                       this._objectNames = { ...this._objectNames, [s.entity_id]: (e.target as HTMLInputElement).value };
+                                      this._schedulePreview();
                                     }}
                                   />
                                 </div>`
                               : nothing}
                             <div class="row-target">
-                              → ${this._effectiveName(s)}${this._existingEntryFor(s)
+                              → ${this._targetLabel(s, L)}${this._existingEntryFor(s)
                                 ? nothing
                                 : html` <span class="new-tag">${t("adopt_problem_new_object", L)}</span>`}
                             </div>
+                            ${this._covered[s.entity_id]
+                              ? html`<div class="maybe">
+                                  ${t("setups_maybe_covered", L).replace("{name}", this._covered[s.entity_id]!.name)}
+                                </div>`
+                              : nothing}
                             ${s.suggested_part_name
                               ? html`<div class="row-part">
                                   <ha-icon icon="mdi:package-variant-closed"></ha-icon>
@@ -258,6 +354,8 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
                     })}
                   </div>
                 `}
+
+          ${!this._loading && this._sensors.length > 0 ? this._summary(L) : nothing}
 
           ${!this._loading && this._sensors.length > 0
             ? html`
@@ -428,6 +526,22 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
     }
     .new-tag {
       font-style: italic;
+    }
+    .maybe {
+      font-size: 11px;
+      color: var(--warning-color, #ff9800);
+    }
+    .summary {
+      font-size: 12px;
+      border-top: 1px dashed var(--divider-color);
+      padding-top: 6px;
+    }
+    .summary-title {
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    .summary-line {
+      color: var(--primary-color);
     }
     .chip {
       font-size: 11px;

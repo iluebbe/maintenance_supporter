@@ -786,6 +786,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     from .problem_sensors import (
         ws_adopt_problem_sensors,
         ws_discover_problem_sensors,
+        ws_preview_problem_sensors,
     )
     from .reference_numbers import ws_compact_reference_numbers
     from .saved_views import (
@@ -872,6 +873,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_import_csv)
     websocket_api.async_register_command(hass, ws_import_json)
     websocket_api.async_register_command(hass, ws_discover_problem_sensors)
+    websocket_api.async_register_command(hass, ws_preview_problem_sensors)
     websocket_api.async_register_command(hass, ws_adopt_problem_sensors)
     websocket_api.async_register_command(hass, ws_battery_fleet_overview)
     websocket_api.async_register_command(hass, ws_battery_fleet_history)

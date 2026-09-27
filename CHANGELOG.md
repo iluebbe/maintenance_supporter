@@ -21,7 +21,9 @@ All notable changes to Maintenance Supporter are documented in this file.
   same model) and adds to it, linking it to the device. Every suggested task has its own tick box; a task the object
   probably has under another name starts unticked and names that task, tasks it has by name are listed as already
   there, and a line shows how many tasks the object has before and after. Choosing another object or a new one
-  recomputes all of that.
+  recomputes all of that. *Adopt problem sensors* works the same way: a sensor goes by default to the object its
+  device most likely is, one that object probably already watches starts unticked, and a summary shows each
+  object's task count before and after.
 - **"Already set up" in the template gallery:** a template your home already uses is marked and no longer
   recommended. New objects remember the template they came from; older ones are recognised by their name or by
   their tasks in any language.
