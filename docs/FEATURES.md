@@ -63,11 +63,24 @@ date; the shopping list groups what to buy by type:
 
 ![Battery fleet roster](images/gifs/battery-fleet.gif)
 
-**Scan the printed QR code, task done** — the deep link fires a
-quick-complete with the task's stored defaults (cost, duration, notes); the
-only UI is the confirmation toast:
+**Scan the printed QR code, task done** — a task with quick-complete defaults
+gets a third, lightning-bolt code in its QR dialog (2.95+); scanning it fires a
+quick-complete with the stored defaults (cost, duration, notes), and the only
+UI is the confirmation toast:
 
 ![QR quick-complete](images/gifs/qr-quick-complete.gif)
+
+**Completing a task resets the device's own counter (2.95)** — the robot
+counts its brush itself; with the reset connected, *Complete* here presses the
+robot's reset button and its counter starts again at full life:
+
+![Completing resets the robot's counter](images/gifs/counter-reset.gif)
+
+**History and costs per area (2.95)** — *All areas* next to *All parts*: every
+area with its costs, and one area's merged history, cost per month and cost
+per object:
+
+![Areas](images/gifs/areas.gif)
 
 **A task only a scan may complete (2.67)** — the dialog warns, the server refuses
 
@@ -422,6 +435,8 @@ proposed twice; tasks from before 2.95 get the fingerprint once where it is
 certain, and one renamed before that is offered unticked with *Renamed since it
 was set up — check*. The action is visible and
 editable in the task dialog even with the completion-actions toggle off.
+
+![Reset counters on completion — offered for tasks adopted before, named on every new suggestion](images/suggested-setups-resets.png)
 
 Catalog fixes also reach tasks you adopted **before** the fix when the old
 signature could never have fired: 2.91 found that the *Filter Cleaning* duty
@@ -886,6 +901,12 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **One area across all its objects** — a row opens the area (so does the area line on an object page, or `?area=<area_id>` as a dashboard link): key figures for the chosen period (completions, total cost, average cost per completion, total time), cost per month (per year when the range spans more than three years), cost per object with its share, and the merged history of every object in the area — a row opens its task, the object name its object. Filter by date range (default: the last 12 months; one chip per calendar year for the annual overview, one for all time), by object and by task name
 - **Printable area report** — *Area report (PDF)* prints the filtered period: key figures, cost per object, cost per month and every completion in date order with object, task, cost, duration, notes and who did it — print it or save it as PDF, e.g. as the yearly maintenance overview of a flat or a building
 - The list carries only each task's recent history; the area pages fetch the full history of the tasks that have more (the 500-entries-per-task limit applies and is flagged like on the object page)
+
+![All areas](images/areas.png)
+
+![One area: key figures, cost per month and per object, merged history](images/area-detail.png)
+
+![The printable area report](images/area-report.png)
 
 ### Data Management
 - **Move several tasks at once** (2.90+, #188) — in the task list's selection mode the bar's ⋯ menu offers *Move to another object…*: one target prompt, then every selected task moves with its history, readings and trigger state (tasks already in the target are skipped)

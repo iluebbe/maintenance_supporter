@@ -13,6 +13,13 @@
  * pump_runtime, smoke_detector_*_battery, water_meter) and
  * input_boolean.pool_pump_power. Temporary tool — rerun any time the docs
  * imagery needs refreshing.
+ *
+ * Since 2.95 the ha-shots container also mounts docker/demo_roborock_fixture
+ * as custom_components/roborock (two demo robots keyed like core Roborock) —
+ * the Suggested setups / counter-reset shots and GIF need a catalogued
+ * integration. Recreate ha-shots with the extra
+ *   -v <repo>/docker/demo_roborock_fixture:/config/custom_components/roborock:ro
+ * (the empty custom_components/roborock mount point is gitignored).
  */
 import { chromium } from "@playwright/test";
 import fs from "fs";
@@ -560,6 +567,74 @@ log("SEED OK", JSON.stringify(seed));
   } catch (e) { log("v2.78 manual seed skipped:", String(e && e.message || e)); }
 }
 
+// (2.95) Idempotent extras — the area pages (#191) need objects in Home
+// Assistant areas, and the counter resets need a catalogued integration:
+// docker/demo_roborock_fixture is mounted as custom_components/roborock (two
+// robots keyed like core Roborock, reset buttons shipped disabled). The Q7's
+// tasks are imported the way a pre-2.95 adoption left them — no reset, no
+// fingerprint, one renamed — so the Suggested setups dialog shows its
+// "reset counters on completion" offers; the S8 stays un-adopted.
+{
+  const send = api.send;
+  const authJson = { Authorization: "Bearer " + token, "Content-Type": "application/json" };
+  // A fresh instance raises "country not configured" — a Settings badge in
+  // every shot. The demo has no country on purpose (no country notes).
+  await send({ type: "repairs/ignore_issue", domain: "homeassistant", issue_id: "country_not_configured", ignore: true }).catch(() => null);
+  try {
+    const entries = await fetch(REST + "/api/config/config_entries/entry", { headers: authJson }).then(j);
+    if (!entries.some((e) => e.domain === "roborock")) {
+      await fetch(REST + "/api/config/config_entries/flow", { method: "POST", headers: authJson, body: JSON.stringify({ handler: "roborock" }) }).then(j);
+      await new Promise((r) => setTimeout(r, 4000));
+      log("v2.95 seed: demo Roborock integration");
+    }
+    const objs = (await send({ type: "maintenance_supporter/objects" })).objects || [];
+    if (!objs.some((o) => o.object.name === "Roborock Q7")) {
+      const reg = await send({ type: "config/entity_registry/list" });
+      const q7 = (key) => (reg.find((e) => e.platform === "roborock" && e.unique_id === `q7_${key}`) || {}).entity_id;
+      const task = (name, key) => ({
+        name, type: "replacement", schedule_type: "sensor_based", warning_days: 7,
+        trigger_config: { type: "threshold", entity_id: q7(key), entity_ids: [q7(key)], trigger_below: 24, entity_logic: "any", auto_complete_on_recovery: true },
+      });
+      await send({ type: "maintenance_supporter/json/import", json_content: JSON.stringify({ version: 1, objects: [{
+        object: { name: "Roborock Q7", manufacturer: "Roborock", model: "Q7" },
+        tasks: [
+          task("Replace Main Brush", "main_brush_time_left"),
+          task("Replace Side Brush", "side_brush_time_left"),
+          task("Clean Sensors", "sensor_time_left"),
+          task("Q7: new filter", "filter_time_left"),
+        ],
+      }] }) });
+      log("v2.95 seed: Roborock Q7 with pre-2.95 tasks");
+    }
+  } catch (e) { log("v2.95 robot seed skipped:", String(e && e.message || e)); }
+  try {
+    const areas = await send({ type: "config/area_registry/list" });
+    const areaId = async (name) => {
+      let area = areas.find((a) => a.name.toLowerCase() === name.toLowerCase());
+      if (!area) {
+        area = await send({ type: "config/area_registry/create", name });
+        areas.push(area); // the next object of this area must find it
+      }
+      return area.area_id;
+    };
+    const plan = {
+      "Family Car": "Garage", "HVAC System": "Utility room", "Washing Machine": "Utility room",
+      "Utility Meters": "Utility room", "Espresso Machine": "Kitchen", "Smoke Detectors": "Hallway",
+      "Pool Pump": "Garden", "Roborock Q7": "Living Room",
+    };
+    const objs = (await send({ type: "maintenance_supporter/objects" })).objects || [];
+    let placed = 0;
+    for (const [name, area] of Object.entries(plan)) {
+      const o = objs.find((x) => x.object.name === name);
+      if (o && !o.object.area_id) {
+        await send({ type: "maintenance_supporter/object/update", entry_id: o.entry_id, area_id: await areaId(area) });
+        placed++;
+      }
+    }
+    if (placed) log(`v2.95 seed: ${placed} objects placed in areas`);
+  } catch (e) { log("v2.95 area seed skipped:", String(e && e.message || e)); }
+}
+
 // Documents: upload a PDF manual to the Family Car + add a web link, and
 // link the manual to the Oil Change task (page 12).
 if (seed) {
@@ -1076,13 +1151,68 @@ await step("qr-dialog.png", async () => {
   await p.evaluate(({ finder }) => {
     eval(finder);
     const panel = window.__panel;
-    const o = panel._objects.find((x) => x.object.name === "Family Car");
-    const t2 = o.tasks.find((x) => x.name === "Oil Change");
-    panel._openQrForTask(o.entry_id, t2.id, "Family Car", t2.name);
+    // 2.95 (#192): a task with quick-complete defaults — the dialog adds
+    // the lightning-bolt code next to Info and Complete.
+    const o = panel._objects.find((x) => x.object.name === "HVAC System");
+    const t2 = o.tasks.find((x) => x.name === "Filter Replacement");
+    panel._openQrForTask(o.entry_id, t2.id, "HVAC System", t2.name);
   }, { finder: deepFindPanel });
-  await p.waitForTimeout(2000);
+  await p.waitForTimeout(2500);
   await shot("qr-dialog.png");
   await closeDialogs();
+});
+
+// 15b. (2.95) Suggested setups: the Q7's tasks from before 2.95 offered their
+// counter reset (the renamed one unticked), the S8's duties name the reset.
+await step("suggested-setups-resets.png", async () => {
+  await openPanel("dashboard");
+  await p.evaluate(({ finder }) => { eval(finder); window.__panel._openSuggestedSetups(); }, { finder: deepFindPanel });
+  await p.waitForTimeout(3500);
+  await shot("suggested-setups-resets.png");
+  // Escape does not reach this dialog's ha-dialog — close it directly, or it
+  // lies over the next shots.
+  await p.evaluate(() => {
+    const st = [document.documentElement]; let n = 0;
+    while (st.length && n < 60000) {
+      const el = st.pop(); n++; if (!el) continue;
+      if (el.tagName === "MAINTENANCE-SUGGESTED-SETUPS-DIALOG") el._close ? el._close() : (el._open = false);
+      if (el.shadowRoot) st.push(el.shadowRoot);
+      for (const k of (el.children || [])) st.push(k);
+    }
+  });
+  await p.waitForTimeout(800);
+});
+
+// 15c. (2.95, #191) All areas, one area's page and its printable report.
+await step("areas.png", async () => {
+  await p.evaluate(({ finder }) => { eval(finder); window.__panel._showAllAreas(); }, { finder: deepFindPanel });
+  await p.waitForTimeout(2500);
+  await shot("areas.png");
+});
+await step("area-detail.png", async () => {
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const panel = window.__panel;
+    const car = panel._objects.find((x) => x.object.name === "Family Car");
+    panel._showArea(car.object.area_id);
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(5000); // full histories load lazily
+  await shot("area-detail.png");
+});
+await step("area-report.png", async () => {
+  const popupPromise = ctx.waitForEvent("page", { timeout: 30000 });
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const view = window.__panel.shadowRoot.querySelector("maintenance-area-view");
+    view._print();
+  }, { finder: deepFindPanel });
+  const report = await popupPromise;
+  await report.waitForLoadState("load");
+  await report.setViewportSize({ width: 1000, height: 1300 });
+  await report.waitForTimeout(1500);
+  await report.screenshot({ path: OUT + "area-report.png" });
+  log("SHOT area-report.png");
+  await report.close();
 });
 
 // 16. Entity attributes — Developer tools -> States with a task sensor

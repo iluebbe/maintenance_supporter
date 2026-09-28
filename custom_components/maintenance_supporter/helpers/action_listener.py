@@ -22,7 +22,7 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
-from homeassistant.core import Context, Event, EventOrigin, HomeAssistant, callback
+from homeassistant.core import Context, Event, EventOrigin, EventStateChangedData, HomeAssistant, callback
 
 from ..const import (
     CONF_TASKS,
@@ -60,6 +60,59 @@ def _split_service(spec: str) -> tuple[str, str] | None:
     return domain, name
 
 
+# How long a completion action waits for a target entity that is enabled but
+# not loaded yet (see _await_loaded_targets).
+_LOAD_WAIT_S = 60
+
+
+async def _await_loaded_targets(hass: HomeAssistant, target: dict[str, Any] | None) -> None:
+    """Wait for target entities that are enabled but not loaded yet.
+
+    Wiring a counter reset switches on a button the integration shipped
+    disabled; Home Assistant only reloads that integration 30 s later, and
+    until then the button has no state — pressing it was a silent no-op
+    (HA logs "referenced entities are missing"). The typical first
+    completion comes right after adopting (the brush IS worn out), so it
+    lost its reset (found building the docs GIF, 2.95). Entities that are
+    unknown or disabled are not waited for — that is a broken action, which
+    the stale-action repair reports.
+    """
+    raw = (target or {}).get("entity_id")
+    entity_ids = [raw] if isinstance(raw, str) else [e for e in (raw or []) if isinstance(e, str)]
+    if not entity_ids:
+        return
+    from homeassistant.helpers import entity_registry as er
+    from homeassistant.helpers.event import async_track_state_change_event
+
+    ent_reg = er.async_get(hass)
+
+    def _pending() -> list[str]:
+        out = []
+        for entity_id in entity_ids:
+            entry = ent_reg.async_get(entity_id)
+            if hass.states.get(entity_id) is None and entry is not None and entry.disabled_by is None:
+                out.append(entity_id)
+        return out
+
+    waiting = _pending()
+    if not waiting:
+        return
+    loaded = asyncio.Event()
+
+    @callback
+    def _on_change(_event: Event[EventStateChangedData]) -> None:
+        if not _pending():
+            loaded.set()
+
+    unsub = async_track_state_change_event(hass, waiting, _on_change)
+    try:
+        await asyncio.wait_for(loaded.wait(), _LOAD_WAIT_S)
+    except TimeoutError:
+        _LOGGER.warning("on_complete_action: %s did not load within %s s — running it anyway", ", ".join(_pending()), _LOAD_WAIT_S)
+    finally:
+        unsub()
+
+
 async def _dispatch_action(hass: HomeAssistant, action: dict[str, Any]) -> bool:
     """Run the configured service-call with HA's standard call signature.
     True when the call was issued."""
@@ -95,6 +148,7 @@ async def _dispatch_action(hass: HomeAssistant, action: dict[str, Any]) -> bool:
             )
             return False
         context = Context(user_id=owner)
+    await _await_loaded_targets(hass, target)
     try:
         await hass.services.async_call(domain, name, service_data=data, target=target, blocking=False, context=context)
     except Exception:

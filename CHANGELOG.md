@@ -6,6 +6,10 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ✨ Added
 
+- **Getting started guide** (`docs/GETTING_STARTED.md`): the features in seven levels of increasing complexity — the
+  first task, reminders, sensor triggers and suggested setups, sharing chores, parts / documents / costs, schedule
+  fine-tuning, automations — each with the screenshot or clip that shows it; linked from the README. New docs
+  screenshots and clips for the counter reset, the areas pages and the area report.
 - **Areas: history and costs per Home Assistant area** (#191) — a new *All areas* page (chip next to *All parts*) lists every area that holds objects, plus *No area*, with task counts, overdue / due soon, this year's and all-time cost and the last completion; filter by name, sort by any column.
   An area's page merges the history of all its objects with key figures, cost per month and cost per object for a chosen period (last 12 months, a calendar year, all time or any range), filterable by object and task, and prints an *Area report (PDF)* — the annual overview of a flat or a building.
   Reachable from the area line on an object page and as `?area=<area_id>` for dashboard buttons; no backend change.
@@ -73,6 +77,10 @@ All notable changes to Maintenance Supporter are documented in this file.
   the task again right away, also stopped reading the sensor. The value is read again (without re-triggering), and
   after a completion action (such as a counter reset) the task refreshes a few seconds later, so the reset counter
   shows instead of the reading from just before it.
+- **A counter reset right after adopting did nothing:** a reset button the integration shipped disabled is switched on
+  when the reset is connected, but Home Assistant loads it only about 30 seconds later — a task completed in that
+  window pressed a button that did not exist yet. The completion action now waits for its button to load (up to a
+  minute) and presses it then.
 - **Suggested setups — catalog fixes:** Haier hOn purifier filters now match the fork the HACS store installs today;
   on the older fork the filter wear was read the wrong way round (the task fell due right after a filter change) —
   tasks adopted from it are repaired once at start-up, as long as their trigger is still the one the catalog wrote.

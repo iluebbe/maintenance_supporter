@@ -9,6 +9,7 @@ completed ITSELF (its counter recovered) does not press it again.
 
 from __future__ import annotations
 
+import asyncio
 import json
 from datetime import timedelta
 from pathlib import Path
@@ -43,7 +44,7 @@ async def _seed_roborock(hass: HomeAssistant, *, button_disabled_by: er.Registry
         )
         hass.states.async_set(sensor.entity_id, "120", {"unit_of_measurement": "h"})
     # Only the main brush has its reset button on this device.
-    ent_reg.async_get_or_create(
+    button = ent_reg.async_get_or_create(
         "button",
         "roborock",
         "s8_reset_main_brush",
@@ -54,6 +55,8 @@ async def _seed_roborock(hass: HomeAssistant, *, button_disabled_by: er.Registry
         original_name="Reset main brush consumable",
         disabled_by=button_disabled_by,
     )
+    if button_disabled_by is None:
+        hass.states.async_set(button.entity_id, "unknown")  # a loaded button has a state
     return device.id
 
 
@@ -318,9 +321,10 @@ async def test_a_wear_counter_reset_after_completion_is_not_a_second_completion(
     blades = ent_reg.async_get_or_create(
         "sensor", "husqvarna_automower", "am1_blades", config_entry=source, device_id=device.id, translation_key="cutting_blade_usage_time", suggested_object_id="mower_blade_usage"
     ).entity_id
-    ent_reg.async_get_or_create(
+    reset_button = ent_reg.async_get_or_create(
         "button", "husqvarna_automower", "am1_reset_blades", config_entry=source, device_id=device.id, translation_key="reset_cutting_blade_usage_time", suggested_object_id="mower_reset_blades"
     )
+    hass.states.async_set(reset_button.entity_id, "unknown")
     hass.states.async_set(blades, "10", {"unit_of_measurement": "h"})
     (setup,) = discover_integration_setups(hass)
     (proposal,) = [t for t in setup["tasks"] if t["task_name"] == "Replace Blades" and t.get("reset")]
@@ -449,3 +453,51 @@ async def test_a_selection_that_blows_up_still_reloads_what_was_stored(hass: Hom
     entry = _object(hass)
     assert len(entry.data[CONF_TASKS]) == 1
     assert reloads == [entry.entry_id], "the stored task's object is reloaded despite the crash"
+
+
+
+async def test_a_just_enabled_button_is_pressed_once_it_has_loaded(hass: HomeAssistant) -> None:
+    """Wiring switches on a button the integration shipped disabled; Home
+    Assistant loads it only ~30 s later. A completion in between used to
+    press nothing (a silent "entity missing"). It now waits for the button."""
+    from custom_components.maintenance_supporter.helpers import action_listener
+    from custom_components.maintenance_supporter.websocket.integration_setups import ws_adopt_integration_setups
+
+    await setup_integration(hass, make_global_entry(hass))
+    device_id = await _seed_roborock(hass)  # button disabled by the integration → enabled by wiring, no state yet
+    conn = make_ws_connection()
+    await call_ws_handler(ws_adopt_integration_setups, hass, conn, {"id": 1, "type": "x", "selections": [{"device_id": device_id}]})
+    entry = _object(hass)
+    task_id = next(tid for tid, t in entry.data[CONF_TASKS].items() if t.get("on_complete_action"))
+    button = "button.s8_reset_main_brush_consumable"
+    assert hass.states.get(button) is None
+    presses: list[ServiceCall] = []
+
+    async def _press(call: ServiceCall) -> None:
+        presses.append(call)
+
+    hass.services.async_register("button", "press", _press)
+    with patch.object(hass.auth, "async_get_user", return_value=object()):
+        await entry.runtime_data.coordinator.complete_maintenance(task_id, notes="new brush")
+        await asyncio.sleep(0.05)
+        assert presses == [], "not pressed while the button has not loaded"
+        hass.states.async_set(button, "unknown")  # the integration's reload brought it up
+        await hass.async_block_till_done()
+    assert len(presses) == 1
+
+
+async def test_a_target_that_never_loads_is_run_after_the_wait(hass: HomeAssistant) -> None:
+    from custom_components.maintenance_supporter.helpers import action_listener
+
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create("button", "demo", "never", suggested_object_id="never_loads")
+    calls: list[ServiceCall] = []
+
+    async def _press(call: ServiceCall) -> None:
+        calls.append(call)
+
+    hass.services.async_register("button", "press", _press)
+    with patch.object(action_listener, "_LOAD_WAIT_S", 0.05):
+        assert await action_listener._dispatch_action(hass, {"service": "button.press", "target": {"entity_id": "button.never_loads"}})
+        await hass.async_block_till_done()
+    assert len(calls) == 1

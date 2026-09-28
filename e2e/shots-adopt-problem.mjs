@@ -49,7 +49,8 @@ await p.keyboard.press("Enter");
 await p.waitForTimeout(6000);
 await p.goto(HA + "/maintenance-supporter", { waitUntil: "domcontentloaded" });
 for (let i = 0; i < 25; i++) {
-  const ok = await p.evaluate(() => !!document.querySelector("home-assistant")?.shadowRoot?.querySelector("home-assistant-main")?.shadowRoot?.querySelector("maintenance-supporter-panel")?.shadowRoot?.querySelector("maintenance-adopt-problem-sensors-dialog")).catch(() => false);
+  // dialogs are mounted lazily (panel._ui) — wait for the panel, not the dialog
+  const ok = await p.evaluate(() => typeof document.querySelector("home-assistant")?.shadowRoot?.querySelector("home-assistant-main")?.shadowRoot?.querySelector("maintenance-supporter-panel")?._ui === "function").catch(() => false);
   if (ok) break;
   await p.waitForTimeout(1000);
 }
@@ -57,20 +58,21 @@ for (let i = 0; i < 25; i++) {
 // Open the dialog programmatically (robust against header layout).
 const opened = await p.evaluate(async () => {
   const panel = document.querySelector("home-assistant").shadowRoot.querySelector("home-assistant-main").shadowRoot.querySelector("maintenance-supporter-panel");
-  const dlg = panel.shadowRoot.querySelector("maintenance-adopt-problem-sensors-dialog");
+  const dlg = await panel._ui("maintenance-adopt-problem-sensors-dialog");
   if (!dlg || typeof dlg.open !== "function") return "no dialog";
   await dlg.open();
   return "ok";
 });
 log("open:", opened);
+if (opened !== "ok") throw new Error("dialog did not open — keeping the committed screenshot");
 await p.waitForTimeout(2500);
 await p.screenshot({ path: OUT + "adopt-problem-sensors.png" });
 log("shot adopt-problem-sensors.png");
 
 // Sanity: the dialog listed our sensors.
-const listed = await p.evaluate(() => {
+const listed = await p.evaluate(async () => {
   const panel = document.querySelector("home-assistant").shadowRoot.querySelector("home-assistant-main").shadowRoot.querySelector("maintenance-supporter-panel");
-  const dlg = panel.shadowRoot.querySelector("maintenance-adopt-problem-sensors-dialog");
+  const dlg = await panel._ui("maintenance-adopt-problem-sensors-dialog");
   return (dlg._sensors || []).map((x) => x.entity_id);
 });
 log("dialog listed:", JSON.stringify(listed));

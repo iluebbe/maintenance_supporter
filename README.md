@@ -35,7 +35,7 @@ clips (completing a task, filtering the calendar) in
 ## What can it do for you?
 
 **"The HVAC filter is due every 3 months."**
-Create the object once (or pick it from 94 ready-made templates), give it a
+Create the object once (or pick it from 95 ready-made templates), give it a
 task with an interval — days, weeks, months, or specific patterns like *first
 Saturday* or *last business day of the month*. You get a reminder before it's
 due, and completing it takes one tap — optionally with notes, cost, duration,
@@ -50,7 +50,9 @@ percent remaining, countdowns, wear counters, usage intervals (service every
 15,000 km / blades every 100 mowing-hours), appliance events (dishwasher
 "salt nearly empty"), and even engine-counted runtime for devices that expose
 no counters at all. Every signature is verified against the integration's
-source code.
+source code. Where the device counts a consumable itself (robot vacuums,
+mowers, litter boxes, air handlers), completing the task also presses the
+device's own reset button, so its counter starts again at full life.
 
 **"Service the pump after 200 hours of runtime — not by the calendar."**
 Bind a task to a real sensor: accumulated runtime, a counter (e.g. odometer
@@ -77,7 +79,9 @@ land in the task's history.
 
 **"What did the car cost me this year?"**
 Every completion records cost and duration. Budgets with alerts, per-object
-cost history, a printable PDF report, and CSV/JSON export for your spreadsheet.
+cost history, history and costs per Home Assistant area (the whole garage, the
+whole flat) with a printable area report, a printable PDF report per object,
+and CSV/JSON export for your spreadsheet.
 Warranty dates get a colour-coded chip — and an optional reminder before they
 expire.
 
@@ -112,6 +116,11 @@ needed.
    To-do list, and as sensors you can automate on. When something is due,
    you'll hear about it.
 
+New here? The **[Getting started guide](docs/GETTING_STARTED.md)** takes you
+from the first task to the full toolbox in seven levels — reminders, sensor
+triggers, sharing chores, parts and costs, automations — each one building on
+the last.
+
 Prefer talking to an assistant? A portable
 [LLM setup skill](skills/maintenance-setup-assistant/) lets Claude Code /
 Assist / any MCP-style agent discover your devices and create objects + tasks
@@ -121,14 +130,14 @@ for you — always previewing before it writes.
 
 | Area | What you get | Details |
 |---|---|---|
-| **Suggested setups** | 225 integrations / 484 verified signatures with pre-wired sensor triggers — boilers, vacuums, cars, locks, printers, purifiers and more | [Supported integrations](docs/INTEGRATIONS.md) |
+| **Suggested setups** | 225 integrations / 484 verified signatures with pre-wired sensor triggers — boilers, vacuums, cars, locks, printers, purifiers and more; completing a task presses the device's own counter reset where it has one (2.95) | [Supported integrations](docs/INTEGRATIONS.md) |
 | **Battery fleet** | One task for all 30–70+ batteries — grouped shopping list, discharge-trend forecast with per-battery sparklines, mark-all-replaced, spare-part stock; rechargeables are tracked for charging, never shopped. Best with [Battery Notes](https://github.com/andrew-codechimp/HA-Battery-Notes); native `device_class: battery` devices work too (degraded) | [Features → Battery Fleet](docs/FEATURES.md#battery-fleet-battery-notes-or-native) |
 | **Scheduling** | Intervals (days→years), calendar patterns (weekdays, nth weekday, day of month, last/business day ±offset), the events of a Home Assistant calendar entity (once per event — waste collection), one-time, manual; seasonal month windows, finite series (ends after N times / on a date), postpone a single occurrence; drift-free planned anchoring; time-of-day precision; live "next three dates" preview while editing | [Features → Task Management](docs/FEATURES.md#task-management) |
 | **Sensor triggers** | Threshold, counter, runtime, state-change, compound (AND/OR), multi-entity; auto-complete on sensor recovery; adopt HA `device_class: problem` sensors as tasks | [Features → Triggers](docs/FEATURES.md#sensor-based-triggers) |
 | **Adaptive scheduling** | Learns real intervals (EWA + Weibull), seasonal factors, degradation prediction, feedback loop | [Features → Adaptive](docs/FEATURES.md#adaptive-scheduling) |
 | **Notifications** | Any `notify.*` target, per-user routing, actionable mobile buttons, icons per maintenance type (overridable per task), quiet hours, bundling, lead-time reminders, weekly digest, warranty reminders, vacation mode | [Features → Notifications](docs/FEATURES.md#notifications) |
 | **Household** | Priorities, labels, checklists, user assignment + rotation (whose turn it is shows on the card), operator (read-only) mode, native To-do entity, Markdown notes on tasks and objects | [Features → Task Management](docs/FEATURES.md#task-management) |
-| **History & money** | Full history with cost/duration/photos, Missed-vs-skipped, budgets + alerts, PDF report, CSV/JSON import & export | [Features → Data Management](docs/FEATURES.md#data-management) |
+| **History & money** | Full history with cost/duration/photos, Missed-vs-skipped, budgets + alerts, PDF report per object, history + costs per area with an area report (2.95), CSV/JSON import & export | [Features → Areas](docs/FEATURES.md#areas-295-191) |
 | **Documents** | Attach manuals/invoices/photos per object — backup-safe, deduplicated, searchable, linkable to tasks (PDF page jump) | [Features → Documents](docs/FEATURES.md#documents--manuals-2110) |
 | **Spare parts** | Parts inventory: identifiers (MPN, GTIN/EAN), storage location, stock + reorder threshold, auto “buy” tasks with shopping links, restock on completion, stock sensors, buy reminders mirrored into your HA shopping list (check one off at the store, the part is restocked). Several objects can share one stock, so identical appliances draw on one real pile | [Features → Task Management](docs/FEATURES.md#task-management) |
 | **Quick actions** | QR codes (view / complete / one-tap quick-complete), NFC tags — optionally as **proof of presence** (a task only a scan at the thing itself may complete), on-complete service calls back to the device | [Features → Completion Actions](docs/FEATURES.md#completion-actions-130-advanced) |
@@ -168,6 +177,7 @@ with copy-paste automations: [EXAMPLES.md](docs/EXAMPLES.md).
 
 | Document | Contents |
 |---|---|
+| [GETTING_STARTED.md](docs/GETTING_STARTED.md) | Onboarding: the features in seven levels of increasing complexity, from the first task to automations |
 | [FEATURES.md](docs/FEATURES.md) | The complete feature catalogue + screenshots + platform/entity reference |
 | [CONFIGURATION.md](docs/CONFIGURATION.md) | Every configurable parameter (global, per-object, per-task, triggers) |
 | [EXAMPLES.md](docs/EXAMPLES.md) | Use-case recipes, automation YAML, cards & dashboard strategies |

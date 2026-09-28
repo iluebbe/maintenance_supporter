@@ -32,6 +32,7 @@ _LIVE_DOCS = (
     "docs/ARCHITECTURE.md",
     "docs/CONFIGURATION.md",
     "docs/EXAMPLES.md",
+    "docs/GETTING_STARTED.md",
     "CONTRIBUTING.md",
 )
 

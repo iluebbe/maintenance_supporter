@@ -1,0 +1,39 @@
+{
+ "config": {
+  "step": {
+   "user": {
+    "title": "Roborock (Demo)"
+   }
+  }
+ },
+ "entity": {
+  "sensor": {
+   "main_brush_time_left": {
+    "name": "Verbleibende Zeit der Hauptbürste"
+   },
+   "side_brush_time_left": {
+    "name": "Verbleibende Zeit der Seitenbürste"
+   },
+   "filter_time_left": {
+    "name": "Verbleibende Filterzeit"
+   },
+   "sensor_time_left": {
+    "name": "Verbleibende Sensorzeit"
+   }
+  },
+  "button": {
+   "reset_main_brush_consumable": {
+    "name": "Hauptbürsten-Verbrauchsmaterial zurücksetzen"
+   },
+   "reset_side_brush_consumable": {
+    "name": "Seitenbürsten-Verbrauchsmaterial zurücksetzen"
+   },
+   "reset_air_filter_consumable": {
+    "name": "Luftfilter-Verbrauchsmaterial zurücksetzen"
+   },
+   "reset_sensor_consumable": {
+    "name": "Sensor-Verbrauchsmaterial zurücksetzen"
+   }
+  }
+ }
+}

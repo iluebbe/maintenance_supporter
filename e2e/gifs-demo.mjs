@@ -20,10 +20,10 @@
  *   notification-event.gif     your own notification rule: the event and its payload in Developer tools
  *   calendar-schedule.gif      a task that follows the waste-collection calendar (#187)
  *   objects-bulk-select.gif    Select mode in All objects: tick two, Delete, confirm (#188)
- *
- * Still open: suggested-setups needs a signature-matching integration on the
- * demo instance (the shots seed is template-sensor-only, so discovery finds
- * nothing) — a dev_battery_fixtures-style fixture would unlock it.
+ *   counter-reset.gif          complete a robot's brush task → the robot's own counter resets (2.95)
+ *   areas.gif                  All objects → All areas → an area's history and costs (#191)
+ * The demo robots come from docker/demo_roborock_fixture (mounted as
+ * custom_components/roborock in ha-shots; see shots-demo.mjs).
  *
  * A clip earns its place by showing a CAUSAL CHAIN or a hiding place — not by
  * filming a form being filled in, which a screenshot says better.
@@ -61,7 +61,7 @@ const REPO_ROOT = join(new URL(".", import.meta.url).pathname.replace(/^\/([A-Za
 const VIDEO_DIR = join(REPO_ROOT, "docs", "images", "gifs", ".video-tmp");
 const GIF_DIR = join(REPO_ROOT, "docs", "images", "gifs");
 const log = (...a) => console.log(...a);
-watchdog(12 * 60e3, "gifs-demo");
+watchdog(25 * 60e3, "gifs-demo"); // 19 clips, one waits ~40 s for re-enabled buttons
 
 // ── ffmpeg discovery ────────────────────────────────────────────────────────
 // Playwright's bundled ffmpeg is a minimal build WITHOUT the gif muxer —
@@ -630,6 +630,16 @@ const flowQrQuickComplete = async (p, mark) => {
   }, panelOf.toString()).catch(() => null);
   if (!target) { log("  no quick-complete task"); return; }
   mark();
+  // 2.95 (#192): the task's QR dialog offers the lightning-bolt code itself.
+  await p.evaluate(({ fnStr, target }) => {
+    const panel = eval(`(${fnStr})`)();
+    const ob = panel._objects.find((o) => o.entry_id === target.entry);
+    const tk = ob.tasks.find((t) => t.id === target.task);
+    panel._openQrForTask(target.entry, target.task, ob.object.name, tk.name);
+  }, { fnStr: panelOf.toString(), target });
+  await p.waitForTimeout(4500);
+  await p.keyboard.press("Escape");
+  await p.waitForTimeout(600);
   await p.goto(
     `${HA}/maintenance-supporter?entry_id=${target.entry}&task_id=${target.task}&action=quick_complete`,
     { waitUntil: "domcontentloaded", timeout: 30000 },
@@ -902,6 +912,66 @@ const flowObjectsBulkSelect = (token) => async (p, mark) => {
   await p.waitForTimeout(3500);
 };
 
+/** (2.95) The robot counts its brush itself — completing the task here now
+ *  presses the robot's reset button, so the counter starts again at full
+ *  life. Causal chain: Complete → the integration's counter jumps back. The
+ *  resets are connected beforehand (the Suggested setups offer, shown in the
+ *  screenshot) and the just-enabled buttons get their reload time. */
+const flowCounterReset = (token) => async (p, mark) => {
+  const offers = (await wsSend(token, { type: "maintenance_supporter/integration_setups/reset_offers" }))?.offers || [];
+  const wire = offers.filter((o) => !o.renamed).map((o) => ({ entry_id: o.entry_id, task_id: o.task_id }));
+  if (wire.length) {
+    await wsSend(token, { type: "maintenance_supporter/integration_setups/wire_resets", items: wire });
+    log(`  wired ${wire.length} resets — waiting for the buttons to load`);
+    await p.waitForTimeout(36000);
+  }
+  await openPanel(p);
+  const opened = await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const ob = panel._objects.find((o) => o.object.name === "Roborock Q7");
+    const tk = ob?.tasks.find((t) => t.name === "Replace Main Brush");
+    if (!tk) return "no task";
+    panel._showTask(ob.entry_id, tk.id);
+    return "opened";
+  }, panelOf.toString());
+  log("  " + opened);
+  await p.waitForTimeout(2500);
+  mark();
+  await p.waitForTimeout(2500);          // 3 h left, triggered
+  await clickInPanel(p, "^complete");
+  await p.waitForTimeout(2200);
+  await submitComplete(p);
+  await p.waitForTimeout(7000);          // reset pressed → 300 h, OK
+};
+
+/** (#191) Areas are one chip away from All objects: the area list, then one
+ *  area's merged history with cost per month and per object. */
+const flowAreas = async (p, mark) => {
+  await openPanel(p);
+  mark();
+  await p.evaluate((fnStr) => { eval(`(${fnStr})`)()._showAllObjects(); }, panelOf.toString());
+  await p.waitForTimeout(2200);
+  await clickInPanel(p, "all areas");
+  await p.waitForTimeout(2800);
+  const r = await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const list = panel.shadowRoot.querySelector("maintenance-areas-view");
+    // both area views render into light DOM (createRenderRoot = this)
+    const row = [...((list?.shadowRoot || list)?.querySelectorAll("tr.objects-table-row") || [])].find((tr) => /garage/i.test(tr.textContent || ""));
+    if (!row) return "no garage row";
+    row.click();
+    return "opened garage";
+  }, panelOf.toString());
+  log("  " + r);
+  await p.waitForTimeout(5000);          // histories load, bars + tables
+  await p.evaluate((fnStr) => {
+    const view = eval(`(${fnStr})`)().shadowRoot.querySelector("maintenance-area-view");
+    const all = [...((view?.shadowRoot || view)?.querySelectorAll(".area-range-chips .filter-chip") || [])].pop();
+    all?.click();
+  }, panelOf.toString());
+  await p.waitForTimeout(3500);
+};
+
 const FLOWS = {
   "create-from-template": flowTemplate,
   "complete-task": flowComplete,
@@ -924,6 +994,9 @@ const FLOWS = {
   "notification-event": flowNotificationEvent(token),
   "calendar-schedule": flowCalendarSchedule,
   "objects-bulk-select": flowObjectsBulkSelect(token),
+  "areas": flowAreas,
+  // Completes the Q7 brush task — mutating, so it records last.
+  "counter-reset": flowCounterReset(token),
 };
 const only = process.argv[2];
 for (const [name, flow] of Object.entries(FLOWS)) {
