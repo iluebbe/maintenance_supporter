@@ -1255,6 +1255,34 @@ async def test_batch_qr_multiple_actions_multiply_rows(
         assert "<circle" not in qr["svg"]
 
 
+async def test_batch_qr_quick_complete_only_for_tasks_with_defaults(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """#192: the lightning-bolt quick-complete code — only for tasks that have
+    quick-complete defaults (for the others it would just open the dialog)."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    quick_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {"name": "Quick", "schedule_type": "time_based", "interval_days": 30, "quick_complete_defaults": {"notes": "done"}},
+    )
+    await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {"name": "Plain", "schedule_type": "time_based", "interval_days": 30},
+    )
+
+    result = _result_payload(await _batch_generate(hass, {"actions": ["quick_complete"]}))
+    assert [(qr["task_id"], qr["action"]) for qr in result["qrs"]] == [(quick_id, "quick_complete")]
+    assert "<circle" in result["qrs"][0]["svg"], "the lightning-bolt icon is embedded"
+
+    result = _result_payload(await _batch_generate(hass, {"actions": ["view", "quick_complete"]}))
+    assert result["total"] == 3
+
+
 async def test_batch_qr_over_limit_errors(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,

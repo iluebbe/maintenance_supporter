@@ -1534,17 +1534,21 @@ async def ws_batch_generate_qr(
     # Build the flat (entry_id, object_name, task_id, task_name) target list,
     # honouring the optional task_ids filter.
     task_filter = set(msg["task_ids"]) if msg.get("task_ids") else None
-    targets: list[tuple[str, str, str, str]] = []
+    targets: list[tuple[str, str, str, str, bool]] = []
     for entry in entries:
         obj_name = object_name(entry)
         tasks_data = entry.data.get(CONF_TASKS, {})
         for task_id, task_data in tasks_data.items():
             if task_filter is not None and task_id not in task_filter:
                 continue
-            targets.append((entry.entry_id, obj_name, task_id, task_data.get("name", "")))
+            has_quick = bool(task_data.get("quick_complete_defaults"))
+            targets.append((entry.entry_id, obj_name, task_id, task_data.get("name", ""), has_quick))
 
     actions: list[str] = msg["actions"]
-    total = len(targets) * len(actions)
+    # A quick-complete code only for tasks with quick-complete defaults — for
+    # the others it would just open the complete dialog (#192).
+    pairs = [(target, action) for target in targets for action in actions if action != "quick_complete" or target[4]]
+    total = len(pairs)
     if total == 0:
         connection.send_result(msg["id"], {"qrs": [], "total": 0})
         return
@@ -1564,33 +1568,32 @@ async def ws_batch_generate_qr(
     # since it's CPU-bound (~30-40 ms/QR). Each SVG passes through the LRU
     # cache so re-runs after a filter change are near-instant.
     results: list[dict[str, Any]] = []
-    for entry_id, obj_name, task_id, task_name in targets:
-        for action in actions:
-            try:
-                url = build_qr_url(
-                    hass,
-                    entry_id,
-                    task_id=task_id,
-                    action=action,
-                    base_url_override=base_url,
-                    url_mode=url_mode,
-                )
-            except ValueError:
-                # No HA URL configured — skip this row rather than fail the
-                # whole batch. "server" mode is the only path that raises;
-                # "companion" and "local" always resolve.
-                continue
-            icon = _ACTION_ICON_MAP.get(action)  # None for "skip" (no icon)
-            svg = await hass.async_add_executor_job(_cached_qr_svg, url, icon)
-            results.append(
-                {
-                    "entry_id": entry_id,
-                    "task_id": task_id,
-                    "object_name": obj_name,
-                    "task_name": task_name,
-                    "action": action,
-                    "svg": svg,
-                }
+    for (entry_id, obj_name, task_id, task_name, _has_quick), action in pairs:
+        try:
+            url = build_qr_url(
+                hass,
+                entry_id,
+                task_id=task_id,
+                action=action,
+                base_url_override=base_url,
+                url_mode=url_mode,
             )
+        except ValueError:
+            # No HA URL configured — skip this row rather than fail the
+            # whole batch. "server" mode is the only path that raises;
+            # "companion" and "local" always resolve.
+            continue
+        icon = _ACTION_ICON_MAP.get(action)  # None for "skip" (no icon)
+        svg = await hass.async_add_executor_job(_cached_qr_svg, url, icon)
+        results.append(
+            {
+                "entry_id": entry_id,
+                "task_id": task_id,
+                "object_name": obj_name,
+                "task_name": task_name,
+                "action": action,
+                "svg": svg,
+            }
+        )
 
     connection.send_result(msg["id"], {"qrs": results, "total": len(results)})

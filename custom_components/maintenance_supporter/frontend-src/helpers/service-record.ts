@@ -16,6 +16,7 @@
 import type { MaintenanceObject } from "../types";
 import type { ObjectHistoryEntry } from "./object-history";
 import { objectHistoryTotals } from "./object-history";
+import { escapeHtml as esc } from "./html-escape";
 
 export interface ServiceRecordLabels {
   title: string;
@@ -113,12 +114,6 @@ export interface ServiceRecordData {
   photos: Record<string, ServiceRecordPhoto>;
   /** Number formatting for readings (locale). */
   fmtNumber: (n: number) => string;
-}
-
-function esc(v: unknown): string {
-  return String(v ?? "").replace(/[&<>"']/g, (c) => (
-    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string
-  ));
 }
 
 const MAX_PHOTOS_PER_ENTRY = 6;

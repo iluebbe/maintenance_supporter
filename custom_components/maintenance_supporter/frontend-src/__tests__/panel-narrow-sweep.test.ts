@@ -75,3 +75,39 @@ describe("panel at phone width", () => {
     });
   }
 });
+
+describe("area pages at phone width (#191)", () => {
+  for (const view of ["all_areas", "area"]) {
+    it(`${view}: nothing spills out of its box at 360px`, async () => {
+      const objs = objects();
+      // A long area name and a year of costs, so the chart and the tables render.
+      (objs[0].object as Record<string, unknown>).area_id = "keller";
+      const now = new Date();
+      (objs[0].tasks[0] as Record<string, unknown>).history = [1, 4, 9].map((m) => ({
+        timestamp: new Date(now.getFullYear(), now.getMonth() - m, 12, 12).toISOString(),
+        type: "completed", cost: 120 * m, duration: 45, notes: "Filter getauscht, Dichtung geprüft und Kondensat abgelassen",
+      }));
+      (objs[0].tasks[0] as Record<string, unknown>).history_count = 3;
+      const { el } = await mountPanel(objs);
+      const panel = el as unknown as {
+        narrow: boolean; hass: { areas: Record<string, unknown> }; updateComplete: Promise<unknown>;
+        _showAllAreas(): void; _showArea(id: string): void;
+      };
+      panel.hass.areas = { keller: { area_id: "keller", name: LONG, icon: null } };
+      panel.narrow = true;
+      el.style.width = "360px";
+      if (view === "area") panel._showArea("keller");
+      else panel._showAllAreas();
+      await customElements.whenDefined(view === "area" ? "maintenance-area-view" : "maintenance-areas-view");
+      for (let i = 0; i < 3; i++) {
+        await new Promise((r) => setTimeout(r, 60));
+        await panel.updateComplete;
+      }
+      const host = el.shadowRoot!.querySelector(view === "area" ? "maintenance-area-view" : "maintenance-areas-view");
+      expect(host, "view rendered").to.exist;
+      if (view === "area") expect(host!.querySelectorAll(".area-bar").length, "chart drawn").to.equal(12);
+      const found = spilled(el.shadowRoot!);
+      expect(found, found.join("\n")).to.deep.equal([]);
+    });
+  }
+});

@@ -6,6 +6,9 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ✨ Added
 
+- **Areas: history and costs per Home Assistant area** (#191) — a new *All areas* page (chip next to *All parts*) lists every area that holds objects, plus *No area*, with task counts, overdue / due soon, this year's and all-time cost and the last completion; filter by name, sort by any column.
+  An area's page merges the history of all its objects with key figures, cost per month and cost per object for a chosen period (last 12 months, a calendar year, all time or any range), filterable by object and task, and prints an *Area report (PDF)* — the annual overview of a flat or a building.
+  Reachable from the area line on an object page and as `?area=<area_id>` for dashboard buttons; no backend change.
 - **Completing a task also resets the counter in the integration:** robot vacuums, mowers, litter boxes and
   ventilation units count their consumables themselves — and until that counter was reset in the vendor app, it
   kept saying the brush was worn out, so the task fell due again right after you completed it. Where the
@@ -50,6 +53,10 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **The quick-complete QR code could not be created** (#192): the lightning-bolt code that records a completion
+  with the task's quick-complete defaults — no dialog — existed since 1.3.0, but no dialog ever offered it. A
+  task's QR dialog now shows it as a third code when the task has quick-complete defaults, and Settings → Print QR
+  codes offers it (only for the tasks that have defaults) when completion actions are on.
 - **Adopting suggested setups took well over 30 seconds on a larger install** (reported from a production system
   with ~4,400 entities): the object was reloaded after every single adopted task while the dialog waited. The tasks
   are now stored first and every object is reloaded once — adopting a device with eight tasks does one reload

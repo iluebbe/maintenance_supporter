@@ -1,7 +1,9 @@
 /** Dialog for generating, printing, and downloading QR codes.
  *
  * For tasks: shows two QR codes side-by-side — "Info" (ℹ) and "Complete" (✓)
- * with embedded icons. For objects: shows a single "Info" QR.
+ * with embedded icons, plus the lightning-bolt "Quick-complete" code when the
+ * task has quick-complete defaults (#192: the code existed since 1.3.0 but no
+ * dialog ever offered it). For objects: shows a single "Info" QR.
  */
 
 import { LitElement, html, css, nothing } from "lit";
@@ -48,6 +50,7 @@ export class MaintenanceQrDialog extends LitElement {
   @state() private _error = "";
   @state() private _viewResult: QrResult | null = null;
   @state() private _completeResult: QrResult | null = null;
+  @state() private _quickResult: QrResult | null = null;
   @state() private _urlMode: "companion" | "local" | "server" = "companion";
 
   private _entryId = "";
@@ -65,6 +68,7 @@ export class MaintenanceQrDialog extends LitElement {
     this._error = "";
     this._viewResult = null;
     this._completeResult = null;
+    this._quickResult = null;
     this._open = true;
     this._generate();
   }
@@ -83,6 +87,7 @@ export class MaintenanceQrDialog extends LitElement {
     this._error = "";
     this._viewResult = null;
     this._completeResult = null;
+    this._quickResult = null;
     this._open = true;
     this._generate();
   }
@@ -93,6 +98,7 @@ export class MaintenanceQrDialog extends LitElement {
     this._error = "";
     this._viewResult = null;
     this._completeResult = null;
+    this._quickResult = null;
     try {
       const base: Record<string, unknown> = {
         type: "maintenance_supporter/qr/generate",
@@ -109,6 +115,13 @@ export class MaintenanceQrDialog extends LitElement {
         promises.push(
           this.hass.connection.sendMessagePromise({ ...base, action: "complete" }),
         );
+        // The one-tap code only when the task has defaults to record — for
+        // any other task it would just open the complete dialog.
+        if (await this._hasQuickCompleteDefaults()) {
+          promises.push(
+            this.hass.connection.sendMessagePromise({ ...base, action: "quick_complete" }),
+          );
+        }
       }
 
       const results = await Promise.all(promises);
@@ -117,6 +130,9 @@ export class MaintenanceQrDialog extends LitElement {
       this._viewResult = results[0] as QrResult;
       if (results.length > 1) {
         this._completeResult = results[1] as QrResult;
+      }
+      if (results.length > 2) {
+        this._quickResult = results[2] as QrResult;
       }
     } catch (err: unknown) {
       if (seq !== this._generateSeq) return;
@@ -127,6 +143,18 @@ export class MaintenanceQrDialog extends LitElement {
         : t("qr_error", this.lang);
     } finally {
       if (seq === this._generateSeq) this._loading = false;
+    }
+  }
+
+  private async _hasQuickCompleteDefaults(): Promise<boolean> {
+    try {
+      const obj = await this.hass.connection.sendMessagePromise<{
+        tasks?: Array<{ id: string; quick_complete_defaults?: Record<string, unknown> | null }>;
+      }>({ type: "maintenance_supporter/object", entry_id: this._entryId });
+      const task = (obj.tasks || []).find((tk) => tk.id === this._taskId);
+      return !!task?.quick_complete_defaults && Object.keys(task.quick_complete_defaults).length > 0;
+    } catch {
+      return false;
     }
   }
 
@@ -152,8 +180,10 @@ export class MaintenanceQrDialog extends LitElement {
     const safeSub = escapeHtml(subtitle);
 
     const hasComplete = !!this._completeResult;
+    const hasQuick = !!this._quickResult;
     const viewLabel = escapeHtml(t("qr_action_view", L));
     const completeLabel = escapeHtml(t("qr_action_complete", L));
+    const quickLabel = escapeHtml(t("qr_action_quick_complete", L));
 
     w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
 <meta name="color-scheme" content="light">
@@ -169,7 +199,7 @@ export class MaintenanceQrDialog extends LitElement {
   .sub{color:#666;font-size:14px;margin-bottom:16px}
   .qr-row{display:flex;justify-content:center;gap:24px;margin:12px 0}
   .qr-col{display:flex;flex-direction:column;align-items:center;gap:6px}
-  .qr-col img{width:${hasComplete ? "200px" : "280px"}}
+  .qr-col img{width:${hasQuick ? "170px" : hasComplete ? "200px" : "280px"}}
   .qr-label{font-size:13px;font-weight:500;color:#333}
   .url{font-size:10px;color:#999;word-break:break-all;margin-top:8px;max-width:480px}
 </style></head><body>
@@ -183,6 +213,10 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
   ${hasComplete ? `<div class="qr-col">
     <img src="${sanitizeDataUri(this._completeResult!.svg_data_uri)}" alt="QR Complete" />
     <div class="qr-label">${completeLabel}</div>
+  </div>` : ""}
+  ${hasQuick ? `<div class="qr-col">
+    <img src="${sanitizeDataUri(this._quickResult!.svg_data_uri)}" alt="QR Quick-complete" />
+    <div class="qr-label">${quickLabel}</div>
   </div>` : ""}
 </div>
 <div class="url">${escapeHtml(this._viewResult.url)}</div>
@@ -208,6 +242,7 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
     this._open = false;
     this._viewResult = null;
     this._completeResult = null;
+    this._quickResult = null;
     this._error = "";
     this._loading = false;
   }
@@ -254,6 +289,23 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
                               <div class="qr-item-label">${t("qr_action_complete", L)}</div>
                               <button class="dl-btn"
                                 @click=${() => this._downloadSvg(this._completeResult!, "complete")}>
+                                <ha-icon icon="mdi:download"></ha-icon>
+                                ${t("qr_download", L)}
+                              </button>
+                            </div>
+                          `
+                        : nothing}
+                      ${this._quickResult
+                        ? html`
+                            <div class="qr-item quick">
+                              <img
+                                class="qr-image small"
+                                src="${this._quickResult.svg_data_uri}"
+                                alt="QR Quick-complete"
+                              />
+                              <div class="qr-item-label">${t("qr_action_quick_complete", L)}</div>
+                              <button class="dl-btn"
+                                @click=${() => this._downloadSvg(this._quickResult!, "quick-complete")}>
                                 <ha-icon icon="mdi:download"></ha-icon>
                                 ${t("qr_download", L)}
                               </button>
@@ -312,6 +364,7 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
     }
     .qr-pair {
       display: flex;
+      flex-wrap: wrap; /* three codes (quick-complete, #192) wrap on a phone */
       gap: 20px;
       justify-content: center;
       width: 100%;
@@ -332,6 +385,7 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
       height: 180px;
     }
     .qr-item-label {
+      max-width: 180px;
       font-size: 12px;
       font-weight: 500;
       color: var(--secondary-text-color);

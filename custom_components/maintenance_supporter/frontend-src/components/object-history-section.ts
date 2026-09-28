@@ -13,6 +13,7 @@ import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf, formatDate, formatDateTime, formatCost, formatDuration, formatNumber, formatRecurrence } from "../styles";
 import {
   filterObjectHistory,
+  HISTORY_RETENTION_CAP,
   mergeObjectHistory,
   objectHistoryTotals,
   type ObjectHistoryEntry,
@@ -34,9 +35,6 @@ import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import "./ms-date-field";
 import type { HistoryEntry, HomeAssistant, MaintenanceObject, MaintenanceTask } from "../types";
 
-/** Mirrors the backend's per-task history retention cap — a full history of
- * exactly this length has probably been trimmed, which the record must say. */
-const HISTORY_RETENTION_CAP = 500;
 /** Photos signed for one booklet — one WS call each; beyond this, names only. */
 const MAX_BOOKLET_PHOTOS = 60;
 

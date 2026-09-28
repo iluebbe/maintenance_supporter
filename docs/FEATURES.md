@@ -616,8 +616,11 @@ filters apply on top of the card's own config.
 
 ### QR Codes
 Per-task QR pair: *view* opens the task, *complete* records the completion.
-Download as PNG/SVG or print; URL modes for LAN, external URL, or the
-Companion app.
+A task with quick-complete defaults gets a third, lightning-bolt code
+(2.95+, #192): scanning it records the completion with those defaults — no
+dialog. Download as PNG/SVG or print; URL modes for LAN, external URL, or the
+Companion app. Settings → *Print QR codes* offers the quick-complete code too
+(for the tasks that have defaults) when completion actions are on.
 
 ![QR Code](images/qr-dialog.png)
 
@@ -831,7 +834,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Per-task **on-complete action** — configure any HA service-call (service + target + data) to run when a task is completed. Failures are logged + swallowed so the completion is always recorded
 - **Test button** in the task dialog fires the configured action immediately so you can verify the wiring before saving
 - **Not when the task completes itself** (2.95+) — an action can skip automatic completions (the sensor recovered on its own); counter resets wired by Suggested setups use it
-- **Quick-complete QR codes** — pre-configure `notes / cost / duration / feedback` per task; the lightning-bolt QR records a completion in one tap, no dialog. Falls back to the regular complete dialog when the task has no defaults
+- **Quick-complete QR codes** — pre-configure `notes / cost / duration / feedback` per task; the lightning-bolt QR (in the task's QR dialog and in Settings → Print QR codes, 2.95+) records a completion in one tap, no dialog. Falls back to the regular complete dialog when the task has no defaults
 - **Stale-entity repair flow** — if an action's target entity is renamed or removed, a repair issue offers Replace (pick a new entity) or Remove (drop the action)
 - The same lifecycle events (`task_completed / _skipped / _reset`) fire on every completion path, so user-written automations can hook in without having to set `on_complete_action` (see Events below)
 - All gated behind a feature toggle (Settings → Features → Completion Actions). Default OFF — a task that already has an action (a counter reset wired by Suggested setups) shows it regardless
@@ -875,6 +878,13 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 ![Service booklet by task: schedule, linked documents, QR code, completions with readings, parts and photos](images/service-record.png)
 - **Reference numbers** (2.79+, #170) — every object, task and completion carries a short, stable number: object `#8`, its task `#8.3`, that task's second completion `#8.3-2`. Numbers are handed out once in creation order and **never reused or shifted** (delete task 8.2 and the next one is still 8.4), so a printed booklet, a photo caption or a note can name a job unambiguously. Numbers follow the order of entry, not the calendar: a completion backfilled for an earlier date gets the next number, and a deleted history entry leaves its number as a gap. Archived objects and tasks still answer to their number in the search (marked *Archived*, 2.86+), so a booklet line stays findable after the thing was retired. Deleted numbers stay retired — but when you *want* a tidy sequence again (test objects gone, gaps everywhere), *Settings → General → Compact reference numbers* (2.88+, admin) renumbers every object, task and completion in creation order, 1, 2, 3 …, behind a confirm that reminds you printed booklets keep the old numbers. They show as muted chips on the object page, the task page, the history entries and the objects table (optional column), print on the booklet and the work sheet, and the global search jumps to them: type `8` for the object and its tasks, `8.3` for the task, `8.3-2` for the completion. A JSON backup carries them; a copied object or task starts with a fresh number
 - Honest about limits: history keeps up to **500 entries per task**; when any task hits that cap, both the section and the printed record say so, so "complete" is never silently overstated
+
+### Areas (2.95+, #191)
+
+- **Areas page** — a chip next to *All parts* in the *All objects* breadcrumb opens a table of every Home Assistant area that holds objects: objects, tasks, overdue / due soon, this year's cost, all-time cost and the last completion, plus a *No area* row for objects without one. Filter by name and sort by any column (remembered per browser); archived objects follow the *Show archived* toggle like the objects view
+- **One area across all its objects** — a row opens the area (so does the area line on an object page, or `?area=<area_id>` as a dashboard link): key figures for the chosen period (completions, total cost, average cost per completion, total time), cost per month (per year when the range spans more than three years), cost per object with its share, and the merged history of every object in the area — a row opens its task, the object name its object. Filter by date range (default: the last 12 months; one chip per calendar year for the annual overview, one for all time), by object and by task name
+- **Printable area report** — *Area report (PDF)* prints the filtered period: key figures, cost per object, cost per month and every completion in date order with object, task, cost, duration, notes and who did it — print it or save it as PDF, e.g. as the yearly maintenance overview of a flat or a building
+- The list carries only each task's recent history; the area pages fetch the full history of the tasks that have more (the 500-entries-per-task limit applies and is flagged like on the object page)
 
 ### Data Management
 - **Move several tasks at once** (2.90+, #188) — in the task list's selection mode the bar's ⋯ menu offers *Move to another object…*: one target prompt, then every selected task moves with its history, readings and trigger state (tasks already in the target are skipped)

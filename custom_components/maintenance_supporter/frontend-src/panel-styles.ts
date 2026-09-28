@@ -951,6 +951,72 @@ export const panelStyles = css`
   .objects-table .oc-task_count,
   .objects-table .oc-actions { text-align: center; }
 
+  /* #191: the areas page + the area detail — light-DOM components, so they
+     reuse the objects table, filter bar and KPI cards above and add only
+     what is theirs: sortable headers, count pills, the cost chart. */
+  .objects-table th.num,
+  .objects-table td.num { text-align: right; }
+  .area-sort {
+    display: inline-flex; align-items: center; gap: 2px;
+    padding: 0; border: none; background: none; cursor: pointer;
+    font: inherit; font-weight: 600; color: inherit;
+  }
+  .area-sort.active { color: var(--primary-text-color); }
+  .area-sort ha-icon { --mdc-icon-size: 14px; }
+  .area-row-icon { --mdc-icon-size: 18px; color: var(--secondary-text-color); margin-right: 8px; vertical-align: middle; }
+  .area-count {
+    display: inline-block; min-width: 20px; padding: 0 7px; border-radius: 10px;
+    text-align: center; font-size: 12px; font-weight: 600;
+    background: var(--secondary-background-color); color: var(--secondary-text-color);
+  }
+  .area-count.overdue { background: color-mix(in srgb, var(--error-color, #f44336) 15%, transparent); color: var(--error-color, #f44336); }
+  .area-count.due-soon { background: color-mix(in srgb, var(--warning-color, #ff9800) 18%, transparent); color: var(--warning-color, #ff9800); }
+  .area-filter-bar, .area-filters { justify-content: flex-start; }
+  .area-filter-bar { align-items: center; }
+  .area-loading { font-size: 12px; color: var(--secondary-text-color); }
+  .area-title { display: flex; align-items: center; gap: 8px; }
+  .area-title ha-icon { --mdc-icon-size: 24px; color: var(--secondary-text-color); }
+  .area-range-chips { margin: 8px 0 4px; }
+  .area-range-chips .filter-chip { font-family: inherit; }
+  .area-filters ms-date-field { min-width: 150px; }
+  .kpi-bar.area-kpis { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin: 12px 0 8px; }
+  .area-empty { color: var(--secondary-text-color); font-style: italic; font-size: 13px; }
+  .area-chart { margin: 4px 0 8px; }
+  .area-chart-max { font-size: 11px; color: var(--secondary-text-color); padding-bottom: 2px; }
+  /* Hairline gridline at the maximum (labelled above) and the baseline;
+     bars <= 24px with a 2px gap and a rounded data end (dataviz specs). */
+  .area-chart-bars {
+    display: flex; align-items: flex-end; gap: 2px; height: 140px;
+    border-top: 1px solid var(--divider-color); border-bottom: 1px solid var(--divider-color);
+  }
+  .area-bar { flex: 1 1 0; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+  .area-bar-fill { width: 100%; max-width: 24px; min-height: 1px; background: var(--primary-color); border-radius: 4px 4px 0 0; }
+  .area-bar:hover .area-bar-fill { opacity: 0.75; }
+  .area-chart-axis { display: flex; gap: 2px; margin-top: 4px; }
+  .area-bar-label {
+    flex: 1 1 0; min-width: 0; text-align: center;
+    font-size: 10.5px; line-height: 1.25; color: var(--secondary-text-color); white-space: nowrap;
+  }
+  .area-chart-axis.grouped .area-bar-label { text-align: left; }
+  .area-share {
+    display: inline-block; width: 48px; height: 6px; margin-right: 6px; border-radius: 3px;
+    background: var(--secondary-background-color); vertical-align: middle; overflow: hidden;
+  }
+  .area-share-fill { display: block; height: 100%; background: var(--primary-color); }
+  .area-entry-type { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; }
+  .area-entry-type ha-icon { --mdc-icon-size: 16px; }
+  .area-object-link, .area-task-link {
+    padding: 0; border: none; background: none; cursor: pointer;
+    font: inherit; color: inherit; text-align: left;
+  }
+  .area-object-link:hover, .area-task-link:hover { color: var(--primary-color); text-decoration: underline; }
+  .area-task-link { font-weight: 500; }
+  .area-more { margin-top: 6px; }
+  .area-cap-note { margin: 8px 0 0; font-size: 11px; color: var(--secondary-text-color); }
+  /* A date field carries its keyboard toggle and clear button: on a phone
+     each gets its own line, or the date itself is cut off. */
+  :host([narrow]) .area-filters ms-date-field { flex: 1 1 100%; }
+
   .user-badge {
     display: inline-flex;
     align-items: center;

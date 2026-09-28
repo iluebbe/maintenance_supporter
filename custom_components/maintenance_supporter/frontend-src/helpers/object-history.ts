@@ -38,6 +38,11 @@ export interface ObjectHistoryEntry {
   checklist: { done: number; total: number } | null;
 }
 
+/** Mirrors the backend's per-task history retention cap — a full history of
+ * exactly this length has probably been trimmed, which a record must say.
+ * Shared by the object booklet and the area report (#191). */
+export const HISTORY_RETENTION_CAP = 500;
+
 /** Entry types that belong in a lifecycle record — mirrors the task detail's
  * editable set plus "missed" (a skipped-by-neglect cycle is part of the
  * object's story). Trigger noise (triggered / trigger_replaced) is not. */
@@ -116,10 +121,12 @@ export interface ObjectHistoryFilter {
   to?: string | null;
 }
 
-export function filterObjectHistory(
-  entries: ReadonlyArray<ObjectHistoryEntry>,
+/** Generic over the entry shape: the area history (#191) filters its
+ *  object-tagged rows through the same date rule. */
+export function filterObjectHistory<T extends ObjectHistoryEntry>(
+  entries: ReadonlyArray<T>,
   f: ObjectHistoryFilter,
-): ObjectHistoryEntry[] {
+): T[] {
   const fromTs = f.from ? new Date(`${f.from}T00:00:00`).getTime() : null;
   // `to` is inclusive: compare against the START of the following day.
   const toTs = f.to ? new Date(`${f.to}T00:00:00`).getTime() + 86400000 : null;

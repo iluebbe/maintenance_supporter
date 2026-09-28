@@ -32,6 +32,8 @@ export const LS_KEYS = {
   objectsCache: "msp-objects-cache",
   gettingStartedDismissed: "msp-gs-dismissed",
   batteryRosterSort: "ms_bf_roster_sort",
+  /** #191: the areas table's sort column + direction ("cost_year:desc"). */
+  areaSort: "msp-area-sort",
 } as const;
 
 /**

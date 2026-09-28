@@ -1686,6 +1686,15 @@ export class MaintenanceSettingsView extends LitElement {
 
   // --- Section: Print QR codes (v1.1.0) ---
 
+  /** #192: the one-tap quick-complete code joins when completion actions
+   *  are on (only then can a task carry quick-complete defaults; the server
+   *  prints it only for tasks that have them). */
+  private _qrPrintActions(): string[] {
+    const actions = ["view", "complete", "skip"];
+    if (this.features?.completion_actions) actions.push("quick_complete");
+    return actions;
+  }
+
   private _renderPrintQr(L: string) {
     const selectedCount = this._qrSelectedEntries.size || this._qrObjects.length;
     const actionCount = this._qrActions.size;
@@ -1723,7 +1732,7 @@ export class MaintenanceSettingsView extends LitElement {
               <div class="qr-filter-group">
                 <div class="qr-filter-label">${t("qr_print_actions", L)}</div>
                 <div class="qr-action-chips">
-                  ${["view", "complete", "skip"].map((a) => html`
+                  ${this._qrPrintActions().map((a) => html`
                     <label class="qr-action-chip ${this._qrActions.has(a) ? "active" : ""}">
                       <input type="checkbox"
                         .checked=${this._qrActions.has(a)}

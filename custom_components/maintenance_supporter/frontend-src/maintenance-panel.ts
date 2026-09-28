@@ -26,6 +26,7 @@ import { effectivePhase } from "./helpers/phases";
 import { renderEventTitles } from "./helpers/event-titles";
 import { recommendationReason, type HomeProfile, type TemplateRecommendation } from "./helpers/home-profile";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
+import { areaDisplayName, areaKeyOf } from "./helpers/area-history";
 import { panelStyles } from "./panel-styles";
 
 // Global search (#171): what the panel needs to know about a hit — enough
@@ -130,7 +131,8 @@ import { readingSlotDelta } from "./helpers/reading-slots";
 import { bulkResultMessage, runWs, runWsEach } from "./helpers/ws-run";
 import { STATUS_ORDER, statusRank } from "./status-constants";
 
-type View = "overview" | "object" | "task" | "all_objects" | "all_parts";
+// #191: all_areas = the areas page, area = one area's history and costs.
+type View = "overview" | "object" | "task" | "all_objects" | "all_parts" | "all_areas" | "area";
 
 /** One row of the instance-wide parts overview (#130) — the WS response of
  *  `parts/overview`: the stored part fields plus owner, live stock and the
@@ -221,6 +223,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _allParts: PartsOverviewRow[] | null = null;
   @state() private _selectedEntryId: string | null = null;
   @state() private _selectedTaskId: string | null = null;
+  /** #191: the area on the `area` view (HA area id or area-history NO_AREA). */
+  @state() private _selectedAreaId: string | null = null;
   @state() private _filterStatus = "";
   @state() private _filterUser: string | null = null;
   @state() private _filterLabel: string | null = null;
@@ -844,7 +848,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     // state-less entry would restore nothing and leave the task page up.
     const state = history.state as { msp_view?: View } | null;
     if (!state?.msp_view) {
-      history.replaceState({ msp_view: this._view, msp_entry: this._selectedEntryId, msp_task: this._selectedTaskId }, "");
+      history.replaceState({ msp_view: this._view, msp_entry: this._selectedEntryId, msp_task: this._selectedTaskId, msp_area: this._selectedAreaId }, "");
     }
   }
 
@@ -969,6 +973,17 @@ export class MaintenanceSupporterPanel extends LitElement {
         if (this._overviewTab !== "dashboard") this._setOverviewTab("dashboard");
         this._filterByStatus(status as string);
       }
+    }
+
+    // #191: `?area=<area_id>` opens that area's page (a dashboard button per
+    // room); an area no object sits in lands on the areas list instead.
+    const areaParam = params.get("area");
+    if (areaParam && !params.get("entry_id")) {
+      this._deepLinkHandled = true;
+      cleanMsActionUrl();
+      if (this._objects.some((o) => areaKeyOf(o.object) === areaParam)) this._showArea(areaParam);
+      else this._showAllAreas();
+      return;
     }
 
     const entryId = params.get("entry_id");
@@ -1300,15 +1315,15 @@ export class MaintenanceSupporterPanel extends LitElement {
   /** Push a browser history entry so the back button navigates within the
    *  panel. An in-app deep link arrives on the entry HA's navigate() just
    *  pushed — that one is taken over instead (see _onLocationChanged). */
-  private _pushPanelState(view: View, entryId?: string | null, taskId?: string | null): void {
-    const state = { msp_view: view, msp_entry: entryId || null, msp_task: taskId || null };
+  private _pushPanelState(view: View, entryId?: string | null, taskId?: string | null, areaId?: string | null): void {
+    const state = { msp_view: view, msp_entry: entryId || null, msp_task: taskId || null, msp_area: areaId || null };
     if (this._deepLinkInPlace) history.replaceState(state, "");
     else history.pushState(state, "");
   }
 
   /** Handle browser back/forward button. */
   private _onPopState(e: PopStateEvent): void {
-    const s = e.state as { msp_view?: View; msp_entry?: string; msp_task?: string } | null;
+    const s = e.state as { msp_view?: View; msp_entry?: string; msp_task?: string; msp_area?: string } | null;
     if (!s?.msp_view) {
       // No panel state → we're leaving the panel, let HA handle it
       return;
@@ -1317,6 +1332,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._view = s.msp_view;
     this._selectedEntryId = s.msp_entry || null;
     this._selectedTaskId = s.msp_task || null;
+    this._selectedAreaId = s.msp_area || null;
     this._moreMenuOpen = false;
     this._objectSectionOverride = null;
     if (s.msp_view === "all_parts") void this._loadAllParts();
@@ -1367,6 +1383,35 @@ export class MaintenanceSupporterPanel extends LitElement {
     } catch {
       this._allParts = [];
     }
+  }
+
+  // #191: the areas page (sibling of All objects / All parts) and one area.
+  private _showAllAreas(): void {
+    this._pushPanelState("all_areas");
+    this._view = "all_areas";
+    this._selectedEntryId = null;
+    this._selectedTaskId = null;
+    this._scrollContentToTop();
+  }
+
+  private _showArea(areaId: string): void {
+    this._pushPanelState("area", null, null, areaId);
+    this._view = "area";
+    this._selectedAreaId = areaId;
+    this._selectedEntryId = null;
+    this._selectedTaskId = null;
+    this._scrollContentToTop();
+  }
+
+  /** The two area components are a code-split chunk, fetched the first time
+   *  either view renders (every route in — chip, Back, `?area=` — renders).
+   *  Until then the element is an unknown tag; Lit keeps the properties it
+   *  was given and the upgrade picks them up. */
+  private _areaUi: Promise<unknown> | null = null;
+  private _ensureAreaUi(): void {
+    // A failed chunk fetch (connection blip) is retried on the next render.
+    this._areaUi ??= Promise.all([import("./components/areas-view"), import("./components/area-view")])
+      .catch(() => { this._areaUi = null; });
   }
 
   /** v2.1.0 (Discussion #49 — @byoung79): tap a KPI value to auto-filter
@@ -2932,6 +2977,10 @@ export class MaintenanceSupporterPanel extends LitElement {
             ? this._renderAllObjects()
             : this._view === "all_parts"
             ? this._renderAllParts()
+            : this._view === "all_areas"
+            ? this._renderAllAreas()
+            : this._view === "area"
+            ? this._renderArea()
             : this._view === "object"
             ? this._renderObjectDetail()
             : this._renderTaskDetail()}
@@ -3027,6 +3076,10 @@ export class MaintenanceSupporterPanel extends LitElement {
       const task = this._getTask(this._selectedEntryId, this._selectedTaskId);
       crumbs.push({ label: task?.name || "Task" });
     }
+    if (this._view === "area" && this._selectedAreaId) {
+      crumbs.push({ label: t("all_areas", this._lang), action: () => this._showAllAreas() });
+      crumbs.push({ label: areaDisplayName(this._selectedAreaId, this.hass?.areas, t("no_area", this._lang)) });
+    }
 
     return html`
       <div class="header">
@@ -3036,6 +3089,7 @@ export class MaintenanceSupporterPanel extends LitElement {
               .path=${"M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"}
               @click=${() => {
                 if (this._view === "task") this._showObject(this._selectedEntryId!);
+                else if (this._view === "area") this._showAllAreas();
                 else this._showOverview();
               }}
             ></ha-icon-button>`
@@ -3753,6 +3807,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         <button class="sibling-view-chip" @click=${() => this._showAllParts()}>
           <ha-icon icon="mdi:package-variant-closed"></ha-icon> ${t("all_parts", L)}
         </button>
+        <button class="sibling-view-chip" data-view="all_areas" @click=${() => this._showAllAreas()}>
+          <ha-icon icon="mdi:floor-plan"></ha-icon> ${t("all_areas", L)}
+        </button>
       </div>
       <div class="filter-bar">
         <label class="filter-field">
@@ -3864,6 +3921,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         <button class="sibling-view-chip" @click=${() => this._showAllObjects()}>
           <ha-icon icon="mdi:devices"></ha-icon> ${t("all_objects", L)}
         </button>
+        <button class="sibling-view-chip" data-view="all_areas" @click=${() => this._showAllAreas()}>
+          <ha-icon icon="mdi:floor-plan"></ha-icon> ${t("all_areas", L)}
+        </button>
       </div>
       <div class="filter-bar">
         <ha-button appearance="plain" @click=${() => this._exportPartsCsv()}>
@@ -3919,6 +3979,59 @@ export class MaintenanceSupporterPanel extends LitElement {
             </table>
           </div>
         `}
+    `;
+  }
+
+  // ── #191: areas ──────────────────────────────────────────────────────────
+
+  private _renderAllAreas() {
+    const L = this._lang;
+    this._ensureAreaUi();
+    return html`
+      <div class="breadcrumb">
+        <ha-icon-button @click=${() => this._showAllObjects()}>
+          <ha-icon icon="mdi:arrow-left"></ha-icon>
+        </ha-icon-button>
+        <span>${t("all_areas", L)}</span>
+        <button class="sibling-view-chip" @click=${() => this._showAllObjects()}>
+          <ha-icon icon="mdi:devices"></ha-icon> ${t("all_objects", L)}
+        </button>
+        <button class="sibling-view-chip" @click=${() => this._showAllParts()}>
+          <ha-icon icon="mdi:package-variant-closed"></ha-icon> ${t("all_parts", L)}
+        </button>
+      </div>
+      <maintenance-areas-view
+        .hass=${this.hass}
+        .objects=${this._objects}
+        .showArchived=${this._showArchived}
+        .currencySymbol=${this._currencySymbol}
+        @open-area=${(e: CustomEvent<{ areaKey: string }>) => this._showArea(e.detail.areaKey)}
+        @archived-toggle=${() => { this._showArchived = !this._showArchived; }}
+      ></maintenance-areas-view>
+    `;
+  }
+
+  private _renderArea() {
+    if (!this._selectedAreaId) return nothing;
+    const L = this._lang;
+    this._ensureAreaUi();
+    return html`
+      <div class="breadcrumb">
+        <ha-icon-button @click=${() => this._showAllAreas()}>
+          <ha-icon icon="mdi:arrow-left"></ha-icon>
+        </ha-icon-button>
+        <span>${t("all_areas", L)}</span>
+      </div>
+      <maintenance-area-view
+        .hass=${this.hass}
+        .areaKey=${this._selectedAreaId}
+        .objects=${this._objects}
+        .showArchived=${this._showArchived}
+        .currencySymbol=${this._currencySymbol}
+        .userName=${(id: string) => this._userService?.getUserName(id) ?? null}
+        @open-object=${(e: CustomEvent<{ entryId: string }>) => this._showObject(e.detail.entryId)}
+        @open-task=${(e: CustomEvent<{ entryId: string; taskId: string }>) => this._showTask(e.detail.entryId, e.detail.taskId)}
+      ></maintenance-area-view>
     `;
   }
 
@@ -4389,6 +4502,11 @@ export class MaintenanceSupporterPanel extends LitElement {
           ? html`<p class="meta">${[o.manufacturer, o.model].filter(Boolean).join(" ")}</p>`
           : nothing}
         ${o.serial_number ? html`<p class="meta">${t("serial_number_label", L)}: ${o.serial_number}</p>` : nothing}
+        ${o.area_id
+          ? html`<p class="meta">${t("area", L)}:
+              <a href="#" class="object-area-link" @click=${(e: Event) => { e.preventDefault(); this._showArea(o.area_id!); }}
+                >${areaDisplayName(o.area_id, this.hass?.areas, t("no_area", L))}</a></p>`
+          : nothing}
         ${isSafeHttpUrl(o.documentation_url)
           ? html`<p class="meta">${t("documentation_url_label", L)}:
               <a href=${o.documentation_url} target="_blank" rel="noopener noreferrer">${o.documentation_url}</a>

@@ -6,6 +6,7 @@
  */
 
 import type { MaintenanceObject, MaintenanceTask } from "../types";
+import { escapeHtml as esc } from "./html-escape";
 
 export interface ReportLabels {
   title: string;
@@ -33,11 +34,6 @@ export interface ReportLabels {
   statusLabel: (s: string) => string;
   typeLabel: (t: string) => string;
   none: string;
-}
-
-function esc(v: unknown): string {
-  return String(v ?? "").replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string));
 }
 
 export function buildObjectReportHtml(

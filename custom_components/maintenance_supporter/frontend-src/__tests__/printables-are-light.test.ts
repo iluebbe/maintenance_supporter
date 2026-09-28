@@ -16,6 +16,7 @@
 import { expect } from "@open-wc/testing";
 import { buildObjectReportHtml, type ReportLabels } from "../helpers/report.js";
 import { buildTaskWorksheetHtml } from "../helpers/worksheet.js";
+import { buildAreaRecordHtml } from "../helpers/area-record.js";
 
 const labels = new Proxy({} as ReportLabels, {
   // Every label is a string; the wording is irrelevant to colour handling.
@@ -79,6 +80,20 @@ describe("printable documents state their own colour scheme", () => {
       "2026-07-29T12:00:00Z",
     );
     assertPaintsItsOwnColours(html, "work sheet");
+  });
+
+  it("the area report does (#191)", () => {
+    const html = buildAreaRecordHtml(
+      {
+        areaName: "Kitchen", from: "2026-01-01", to: "2026-12-31",
+        totals: { completions: 0, totalCost: 0, avgCost: null, totalDuration: 0 },
+        byObject: [], buckets: { unit: "month", buckets: [] }, entries: [], capped: false,
+      },
+      labels as never,
+      { date: (iso: string) => iso, cost: (n: number) => String(n), duration: (m: number) => String(m), bucket: (b: { key: string }) => b.key, share: (f: number) => String(f), number: (n: number) => String(n) },
+      "2026-07-29T12:00:00Z",
+    );
+    assertPaintsItsOwnColours(html, "area report");
   });
 
   it("the report never leaves the background to the viewer", () => {
