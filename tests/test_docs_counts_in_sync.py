@@ -151,3 +151,57 @@ def test_documented_version_matches_manifest() -> None:
     assert match.group(1) == manifest["version"], (
         f"ARCHITECTURE.md says {match.group(1)}, manifest.json says {manifest['version']}"
     )
+
+
+# ── Test-suite figures ─────────────────────────────────────────────────────
+
+
+def _count_matches(pattern: str, files: list[Path]) -> int:
+    rx = re.compile(pattern, re.MULTILINE)
+    return sum(len(rx.findall(f.read_text(encoding="utf-8"))) for f in files)
+
+
+def test_documented_test_suite_figures() -> None:
+    """The README badge and ARCHITECTURE's test figures went stale twice
+    ("3,600+ passed", "3,674 tests across 213 test files" while the suite ran
+    4,789 across 293). Counted statically: `def test_` functions and `it(`
+    blocks are a floor for the cases a run reports (parametrisation only adds
+    to them), files are counted exactly. A figure may lag the suite by up to
+    10 % — not every new test file needs a docs edit — but not more, and a
+    case count may not claim more than 30 % above the static floor."""
+    readme, arch = _ROOT / "README.md", _ROOT / "docs" / "ARCHITECTURE.md"
+    if not (readme.exists() and arch.exists()):
+        pytest.skip("docs/ not mounted in this environment (enforced in CI)")
+
+    py_files = sorted((_ROOT / "tests").glob("test_*.py"))
+    fe_files = sorted((_COMPONENT / "frontend-src" / "__tests__").glob("*.test.ts"))
+    py_cases = _count_matches(r"^\s*(?:async\s+)?def test_", py_files)
+    fe_cases = _count_matches(r"^\s*it\(", fe_files)
+    journeys = len(list((_ROOT / "tests").glob("test_journey_*.py")))
+
+    def num(s: str) -> int:
+        return int(s.replace(",", ""))
+
+    checks: list[tuple[str, str, list[tuple[str, int, bool]]]] = [
+        # (doc, pattern, [(label, counted, is_case_count) per group])
+        ("docs/ARCHITECTURE.md", r"\*\*([\d,]+) tests\*\* across \*\*([\d,]+) test files\*\*",
+         [("backend tests", py_cases, True), ("backend test files", len(py_files), False)]),
+        ("docs/ARCHITECTURE.md", r"\(([\d,]+) backend tests \+ ([\d,]+) frontend tests\)",
+         [("backend tests", py_cases, True), ("frontend tests", fe_cases, True)]),
+        ("docs/ARCHITECTURE.md", r"([\d,]+)-test frontend suite in real Chromium across ([\d,]+) spec files",
+         [("frontend tests", fe_cases, True), ("frontend spec files", len(fe_files), False)]),
+        ("docs/ARCHITECTURE.md", r"([\d,]+)-scenario journey suite", [("journey scenarios", journeys, False)]),
+        ("README.md", r"badge/tests-([\d]+)%2B_passed", [("tests (badge)", py_cases + fe_cases, True)]),
+    ]
+    wrong: list[str] = []
+    for rel, pattern, groups in checks:
+        match = re.search(pattern, (_ROOT / rel).read_text(encoding="utf-8"))
+        if not match:
+            wrong.append(f"{rel}: phrase {pattern!r} is gone — update this tripwire with the new wording")
+            continue
+        for i, (label, counted, is_cases) in enumerate(groups, start=1):
+            found = num(match.group(i))
+            high = counted * 1.3 if is_cases else counted
+            if not counted * 0.9 <= found <= high:
+                wrong.append(f"{rel} says {found} {label}; the suite has {counted}{' (static floor)' if is_cases else ''}")
+    assert not wrong, "stale test-suite figures:\n  " + "\n  ".join(wrong)
