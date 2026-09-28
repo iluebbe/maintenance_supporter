@@ -239,8 +239,14 @@ const flowComplete = async (p, mark) => {
   const r = await p.evaluate((fnStr) => {
     const panel = eval(`(${fnStr})`)();
     const rows = [...panel.shadowRoot.querySelectorAll(".task-row")];
-    const row = rows.find((el) => /overdue/i.test(el.textContent || ""));
-    if (!row) return "no overdue row";
+    // Not the smoke-detector test (only a tag scan may complete it — the clip
+    // showed the refusal), the impeller cleaning the parts clip needs, a
+    // shopping reminder or a meter reading; overdue first, else due soon
+    // (a re-record after the other clips has no overdue one left).
+    const pick = (re) => rows.find((el) => re.test(el.textContent || "")
+      && !/test buttons|impeller|^buy |reading/i.test(el.querySelector(".task-name")?.textContent || ""));
+    const row = pick(/overdue/i) || pick(/due soon/i);
+    if (!row) return "no overdue or due-soon row";
     row.scrollIntoView({ block: "center" });
     const name = row.querySelector(".task-name") || row;
     name.click();
