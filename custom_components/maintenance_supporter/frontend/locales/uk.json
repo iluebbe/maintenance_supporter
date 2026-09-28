@@ -232,6 +232,8 @@
   "model_optional": "Модель (необов'язково)",
   "serial_number_optional": "Серійний номер (необов'язково)",
   "serial_number_label": "С/Н",
+  "object_replaces": "Попередник",
+  "object_replaced_by": "Наступник",
   "documentation_url_label": "Посібник",
   "object_notes_label": "Примітки",
   "last_performed_optional": "Останнé виконання (необов'язково)",

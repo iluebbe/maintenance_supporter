@@ -235,6 +235,8 @@
   "model_optional": "모델 (선택)",
   "serial_number_optional": "일련번호 (선택)",
   "serial_number_label": "일련번호",
+  "object_replaces": "이전 기기",
+  "object_replaced_by": "후속 기기",
   "documentation_url_label": "설명서",
   "object_notes_label": "메모",
   "sort_due_date": "예정일",

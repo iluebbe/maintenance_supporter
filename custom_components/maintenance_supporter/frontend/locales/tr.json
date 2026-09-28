@@ -235,6 +235,8 @@
   "model_optional": "Model (isteğe bağlı)",
   "serial_number_optional": "Seri numarası (isteğe bağlı)",
   "serial_number_label": "S/N",
+  "object_replaces": "Yerine geçtiği",
+  "object_replaced_by": "Yerine geçen",
   "documentation_url_label": "Kılavuz",
   "object_notes_label": "Notlar",
   "sort_due_date": "Vade tarihi",

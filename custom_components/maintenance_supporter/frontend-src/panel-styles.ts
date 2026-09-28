@@ -651,6 +651,9 @@ export const panelStyles = css`
     .obj-section-toggle { width: 24px; }
   }
   .meta { color: var(--secondary-text-color); margin: 4px 0; }
+  /* In-panel links on the object page (area, replacement lineage): href="#"
+     counts as visited, so the browser painted them purple. */
+  .meta a.object-area-link, .meta a.object-lineage-link { color: var(--primary-color); }
   /* v1.4.10 (#46): per-object free-form notes block */
   .object-notes {
     margin: 12px 0 4px;

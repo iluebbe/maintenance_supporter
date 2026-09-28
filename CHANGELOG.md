@@ -35,6 +35,14 @@ All notable changes to Maintenance Supporter are documented in this file.
   reset, postpone and snooze; *Print QR codes* pointed to the quick-complete defaults without naming the *Completion
   actions* switch they need (the #192 trap). Both corrected in every language.
 
+- **A part's notes could not be entered:** documented and even searched, but the parts form had no field and the part
+  row never showed them — only an import or the API could set them. The form now has a notes field and the row shows
+  the note.
+- **A replaced object did not link its successor:** *Replace…* records which unit retired and which took over, but
+  neither page said so. The new unit now shows *Replaces: …* and the retired one *Replaced by: …*, each a link.
+- **"Not sure" was missing from the quick-complete defaults:** the complete dialog offers it as feedback, the defaults
+  only *needed* / *not needed*; a stored "not sure" showed as empty.
+
 ### 📝 Documentation
 
 - Corrected against the code (reachability audit): the completion action's *Validate configuration* checks the wiring
@@ -42,7 +50,9 @@ All notable changes to Maintenance Supporter are documented in this file.
   takes effect with *Allow selected users to create, edit & delete* on; quick-complete defaults, checklists and task
   groups each name the Advanced Features switch they need; *Settings → Advanced Features* instead of *Settings →
   Features*; the tag-scan toggle's real label; SVG download only; the panel opens on the tab used last, not on Today;
-  8 Assist intents in 6 languages.
+  8 Assist intents in 6 languages. Two fields stay API/import-only and say so: a task's `entity_slug` (it changes the
+  names of the task's entities, which automations refer to) and a part's legacy `doc_id` (the paperclip on a part row attaches any
+  number of files). Skip QR codes come from *Print QR codes*, not from a task's QR dialog.
 
 ## [2.95.0] - 2026-09-28
 

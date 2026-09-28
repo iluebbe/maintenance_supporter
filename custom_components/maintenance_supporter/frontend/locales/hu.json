@@ -235,6 +235,8 @@
   "model_optional": "Modell (opcionális)",
   "serial_number_optional": "Sorozatszám (opcionális)",
   "serial_number_label": "Sorozatszám",
+  "object_replaces": "Elődje",
+  "object_replaced_by": "Utódja",
   "documentation_url_label": "Kézikönyv",
   "object_notes_label": "Megjegyzések",
   "sort_due_date": "Határidő",

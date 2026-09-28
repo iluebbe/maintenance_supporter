@@ -275,7 +275,7 @@ export interface MaintenanceTask {
     notes?: string;
     cost?: number;
     duration?: number;
-    feedback?: "needed" | "not_needed";
+    feedback?: "needed" | "not_needed" | "not_sure";
   } | null;
   trigger_config?: TriggerConfig | null;
   trigger_entity_info?: TriggerEntityInfo | null;

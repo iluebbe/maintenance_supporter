@@ -233,6 +233,8 @@
   "model_optional": "Modell (valfritt)",
   "serial_number_optional": "Serienummer (valfritt)",
   "serial_number_label": "S/N",
+  "object_replaces": "Ersätter",
+  "object_replaced_by": "Ersatt av",
   "documentation_url_label": "Manual",
   "object_notes_label": "Anteckningar",
   "sort_due_date": "Förfallodatum",

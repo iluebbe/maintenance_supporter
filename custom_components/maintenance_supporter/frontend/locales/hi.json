@@ -235,6 +235,8 @@
   "model_optional": "मॉडल (वैकल्पिक)",
   "serial_number_optional": "सीरियल नंबर (वैकल्पिक)",
   "serial_number_label": "S/N",
+  "object_replaces": "पूर्ववर्ती",
+  "object_replaced_by": "उत्तराधिकारी",
   "documentation_url_label": "मैनुअल",
   "object_notes_label": "टिप्पणियाँ",
   "sort_due_date": "देय तिथि",

@@ -233,6 +233,8 @@
   "model_optional": "Model (volitelné)",
   "serial_number_optional": "Sériové číslo (volitelné)",
   "serial_number_label": "S/N",
+  "object_replaces": "Předchůdce",
+  "object_replaced_by": "Nástupce",
   "documentation_url_label": "Návod",
   "object_notes_label": "Poznámky",
   "sort_due_date": "Termín",

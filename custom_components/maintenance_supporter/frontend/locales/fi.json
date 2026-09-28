@@ -235,6 +235,8 @@
   "model_optional": "Malli (valinnainen)",
   "serial_number_optional": "Sarjanumero (valinnainen)",
   "serial_number_label": "S/N",
+  "object_replaces": "Edeltäjä",
+  "object_replaced_by": "Seuraaja",
   "documentation_url_label": "Käyttöohje",
   "object_notes_label": "Muistiinpanot",
   "sort_due_date": "Eräpäivä",

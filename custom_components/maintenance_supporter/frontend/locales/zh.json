@@ -235,6 +235,8 @@
   "model_optional": "型号 (可选)",
   "serial_number_optional": "序列号 (可选)",
   "serial_number_label": "序列号",
+  "object_replaces": "替换前",
+  "object_replaced_by": "替换后",
   "documentation_url_label": "手册",
   "object_notes_label": "备注",
   "sort_due_date": "到期时间",

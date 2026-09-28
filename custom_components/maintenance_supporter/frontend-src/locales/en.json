@@ -235,6 +235,8 @@
   "model_optional": "Model (optional)",
   "serial_number_optional": "Serial number (optional)",
   "serial_number_label": "S/N",
+  "object_replaces": "Replaces",
+  "object_replaced_by": "Replaced by",
   "documentation_url_label": "Manual",
   "object_notes_label": "Notes",
   "sort_due_date": "Due date",

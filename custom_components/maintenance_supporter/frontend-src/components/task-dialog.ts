@@ -396,7 +396,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _qcNotes = "";
   @state() private _qcCost = "";
   @state() private _qcDuration = "";
-  @state() private _qcFeedback: "" | "needed" | "not_needed" = "";
+  @state() private _qcFeedback: "" | "needed" | "not_needed" | "not_sure" = "";
 
   // Environmental entity (adaptive_config)
   @state() private _environmentalEntity = "";
@@ -583,7 +583,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._qcNotes = qcd?.notes || "";
     this._qcCost = qcd?.cost != null ? String(qcd.cost) : "";
     this._qcDuration = qcd?.duration != null ? String(qcd.duration) : "";
-    this._qcFeedback = (qcd?.feedback as "needed" | "not_needed" | undefined) || "";
+    this._qcFeedback = (qcd?.feedback as "needed" | "not_needed" | "not_sure" | undefined) || "";
 
     const ac: Partial<AdaptiveConfig> = task.adaptive_config || {};
     this._environmentalEntity = ac.environmental_entity || "";
@@ -1030,10 +1030,11 @@ export class MaintenanceTaskDialog extends LitElement {
         ></ms-textfield>
         <select class="qc-feedback"
           .value=${this._qcFeedback}
-          @change=${(e: Event) => { this._qcFeedback = (e.target as HTMLSelectElement).value as "" | "needed" | "not_needed"; }}>
+          @change=${(e: Event) => { this._qcFeedback = (e.target as HTMLSelectElement).value as "" | "needed" | "not_needed" | "not_sure"; }}>
           <option value="">${t("quick_complete_defaults_feedback_none", L)}</option>
           <option value="needed">${t("quick_complete_defaults_feedback_needed", L)}</option>
           <option value="not_needed">${t("quick_complete_defaults_feedback_not_needed", L)}</option>
+          <option value="not_sure">${t("feedback_not_sure", L)}</option>
         </select>
       </details>` : nothing}
     `;

@@ -235,6 +235,8 @@
   "model_optional": "Modell (valgfritt)",
   "serial_number_optional": "Serienummer (valgfritt)",
   "serial_number_label": "S/N",
+  "object_replaces": "Erstatter",
+  "object_replaced_by": "Erstattet av",
   "documentation_url_label": "Bruksanvisning",
   "object_notes_label": "Notater",
   "sort_due_date": "Forfallsdato",

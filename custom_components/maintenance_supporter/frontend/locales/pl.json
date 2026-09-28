@@ -233,6 +233,8 @@
   "model_optional": "Model (opcjonalne)",
   "serial_number_optional": "Numer seryjny (opcjonalne)",
   "serial_number_label": "S/N",
+  "object_replaces": "Poprzednik",
+  "object_replaced_by": "Następca",
   "documentation_url_label": "Instrukcja",
   "object_notes_label": "Notatki",
   "sort_due_date": "Termin",

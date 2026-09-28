@@ -232,6 +232,8 @@
   "model_optional": "Модель (опционально)",
   "serial_number_optional": "Серийный номер (опционально)",
   "serial_number_label": "С/Н",
+  "object_replaces": "Предшественник",
+  "object_replaced_by": "Преемник",
   "documentation_url_label": "Руководство",
   "object_notes_label": "Заметки",
   "sort_due_date": "Срок",

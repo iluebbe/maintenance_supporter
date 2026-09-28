@@ -235,6 +235,8 @@
   "model_optional": "型番（任意）",
   "serial_number_optional": "シリアル番号（任意）",
   "serial_number_label": "S/N",
+  "object_replaces": "置き換え前",
+  "object_replaced_by": "置き換え後",
   "documentation_url_label": "取扱説明書",
   "object_notes_label": "メモ",
   "sort_due_date": "期限日",

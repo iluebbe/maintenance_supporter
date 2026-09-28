@@ -235,6 +235,8 @@
   "model_optional": "Model (valgfrit)",
   "serial_number_optional": "Serienummer (valgfrit)",
   "serial_number_label": "S/N",
+  "object_replaces": "Erstatter",
+  "object_replaced_by": "Erstattet af",
   "documentation_url_label": "Manual",
   "object_notes_label": "Noter",
   "sort_due_date": "Forfaldsdato",

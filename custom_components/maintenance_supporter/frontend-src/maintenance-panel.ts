@@ -1520,6 +1520,18 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   /** #179: `section` opens one collapsed section for this visit (a search
    *  hit, a `?section=` link) and scrolls to it; the saved set is untouched. */
+  /** Replacement lineage (object ⋮ → Replace): the retired unit and its
+   *  successor point at each other — stored since the feature shipped, but
+   *  neither page linked the other (audit 2026-09-28). An object that is no
+   *  longer loaded (deleted) shows nothing. */
+  private _renderLineageLink(entryId: string | null | undefined, label: string) {
+    const other = entryId ? this._objects.find((x) => x.entry_id === entryId) : undefined;
+    if (!other) return nothing;
+    return html`<p class="meta">${label}:
+      <a href="#" class="object-lineage-link" @click=${(e: Event) => { e.preventDefault(); this._showObject(other.entry_id); }}
+        >${other.object.name}</a></p>`;
+  }
+
   private _showObject(entryId: string, section: ObjectSection | null = null): void {
     this._pushPanelState("object", entryId);
     this._view = "object";
@@ -4506,6 +4518,8 @@ export class MaintenanceSupporterPanel extends LitElement {
           ? html`<p class="meta">${[o.manufacturer, o.model].filter(Boolean).join(" ")}</p>`
           : nothing}
         ${o.serial_number ? html`<p class="meta">${t("serial_number_label", L)}: ${o.serial_number}</p>` : nothing}
+        ${this._renderLineageLink(o.predecessor_entry_id, t("object_replaces", L))}
+        ${this._renderLineageLink(o.replaced_by_entry_id, t("object_replaced_by", L))}
         ${o.area_id
           ? html`<p class="meta">${t("area", L)}:
               <a href="#" class="object-area-link" @click=${(e: Event) => { e.preventDefault(); this._showArea(o.area_id!); }}

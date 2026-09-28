@@ -221,6 +221,7 @@ export class MaintenancePartsSection extends LitElement {
               ? html`<span class="loc"><ha-icon icon="mdi:map-marker-outline"></ha-icon>${part.storage_location}</span>`
               : nothing}
           </div>
+          ${part.notes ? html`<div class="part-notes">${part.notes}</div>` : nothing}
         </div>
         <ha-icon-button
           title=${t("documents", L)}
@@ -325,6 +326,20 @@ export class MaintenancePartsSection extends LitElement {
               }}
             />
             <span>${t("part_auto_buy", L)}</span>
+          </label>
+          <!-- Documented and searched since the parts feature, but the form
+               never had a field — only the API and imports could set it
+               (audit 2026-09-28). -->
+          <label class="form-field notes">
+            <span>${t("notes_label", L)}</span>
+            <textarea
+              rows="2"
+              maxlength="500"
+              .value=${f.notes}
+              @input=${(e: Event) => {
+                this._editing = { ...this._editing!, notes: (e.target as HTMLTextAreaElement).value };
+              }}
+            ></textarea>
           </label>
         </div>
         <div class="form-actions">
@@ -489,6 +504,25 @@ export class MaintenancePartsSection extends LitElement {
       border-radius: 4px;
       background: var(--card-background-color);
       color: var(--primary-text-color);
+    }
+    .form-field.notes {
+      grid-column: 1 / -1;
+    }
+    .form-field textarea {
+      padding: 6px;
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
+      font: inherit;
+      resize: vertical;
+    }
+    .part-notes {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      white-space: pre-line;
+      overflow-wrap: anywhere;
+      margin-top: 2px;
     }
     .form-field.checkbox {
       flex-direction: row;

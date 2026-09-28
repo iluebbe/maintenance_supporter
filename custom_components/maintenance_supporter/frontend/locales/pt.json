@@ -233,6 +233,8 @@
   "model_optional": "Modelo (opcional)",
   "serial_number_optional": "Número de série (opcional)",
   "serial_number_label": "N/S",
+  "object_replaces": "Substitui",
+  "object_replaced_by": "Substituído por",
   "documentation_url_label": "Manual",
   "object_notes_label": "Notas",
   "sort_due_date": "Vencimento",

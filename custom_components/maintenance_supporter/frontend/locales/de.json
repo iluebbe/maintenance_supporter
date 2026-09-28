@@ -235,6 +235,8 @@
   "model_optional": "Modell (optional)",
   "serial_number_optional": "Seriennummer (optional)",
   "serial_number_label": "S/N",
+  "object_replaces": "Ersetzt",
+  "object_replaced_by": "Ersetzt durch",
   "documentation_url_label": "Handbuch",
   "object_notes_label": "Notizen",
   "sort_due_date": "Fälligkeit",

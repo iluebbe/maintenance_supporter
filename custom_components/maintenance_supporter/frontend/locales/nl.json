@@ -233,6 +233,8 @@
   "model_optional": "Model (optioneel)",
   "serial_number_optional": "Serienummer (optioneel)",
   "serial_number_label": "S/N",
+  "object_replaces": "Vervangt",
+  "object_replaced_by": "Vervangen door",
   "documentation_url_label": "Handleiding",
   "object_notes_label": "Notities",
   "sort_due_date": "Vervaldatum",
