@@ -1138,6 +1138,7 @@
   "history_auto": "자동",
   "battery_fleet_title": "배터리 플릿",
   "battery_fleet_none_low": "모든 배터리 정상 — 교체할 것이 없습니다.",
+  "battery_fleet_progress": "교체 대상: {n}",
   "battery_fleet_buy_now": "지금 구매",
   "battery_fleet_soon": "곧 필요",
   "battery_fleet_soon_hint": "마지막 교체일로부터 예측한 값입니다 — 미리 주문해 두세요.",

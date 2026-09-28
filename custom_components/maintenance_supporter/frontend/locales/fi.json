@@ -1138,6 +1138,7 @@
   "history_auto": "Automaattinen",
   "battery_fleet_title": "Paristokanta",
   "battery_fleet_none_low": "Kaikki paristot OK — ei vaihdettavaa.",
+  "battery_fleet_progress": "Vaihdettavia: {n}",
   "battery_fleet_buy_now": "Osta nyt",
   "battery_fleet_soon": "Pian tarpeen",
   "battery_fleet_soon_hint": "Arvioitu viime vaihdosta — tilaa etukäteen.",

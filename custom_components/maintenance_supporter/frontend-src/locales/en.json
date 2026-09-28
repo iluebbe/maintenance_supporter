@@ -1138,6 +1138,7 @@
   "history_auto": "Automatic",
   "battery_fleet_title": "Battery fleet",
   "battery_fleet_none_low": "All batteries OK — nothing to replace.",
+  "battery_fleet_progress": "{n} to replace",
   "battery_fleet_buy_now": "Buy now",
   "battery_fleet_soon": "Needed soon",
   "battery_fleet_soon_hint": "Predicted from the last replacement date — order ahead.",

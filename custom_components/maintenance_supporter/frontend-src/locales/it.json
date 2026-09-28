@@ -1138,6 +1138,7 @@
   "history_auto": "Automatico",
   "battery_fleet_title": "Parco batterie",
   "battery_fleet_none_low": "Tutte le batterie OK — niente da sostituire.",
+  "battery_fleet_progress": "{n} da sostituire",
   "battery_fleet_buy_now": "Da comprare",
   "battery_fleet_soon": "Presto necessario",
   "battery_fleet_soon_hint": "Stimato dall'ultima sostituzione — ordina in anticipo.",

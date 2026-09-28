@@ -1138,6 +1138,7 @@
   "history_auto": "स्वचालित",
   "battery_fleet_title": "बैटरी फ्लीट",
   "battery_fleet_none_low": "सभी बैटरियाँ ठीक — बदलने को कुछ नहीं।",
+  "battery_fleet_progress": "बदलने हेतु: {n}",
   "battery_fleet_buy_now": "अभी खरीदें",
   "battery_fleet_soon": "जल्द आवश्यक",
   "battery_fleet_soon_hint": "पिछले प्रतिस्थापन से अनुमानित — पहले ऑर्डर करें।",

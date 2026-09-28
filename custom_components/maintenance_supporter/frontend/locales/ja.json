@@ -1138,6 +1138,7 @@
   "history_auto": "自動",
   "battery_fleet_title": "電池フリート",
   "battery_fleet_none_low": "すべての電池は正常 — 交換不要。",
+  "battery_fleet_progress": "交換対象：{n}",
   "battery_fleet_buy_now": "今すぐ購入",
   "battery_fleet_soon": "まもなく必要",
   "battery_fleet_soon_hint": "前回交換日からの予測 — 早めに注文を。",

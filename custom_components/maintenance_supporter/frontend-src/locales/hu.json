@@ -1138,6 +1138,7 @@
   "history_auto": "Automatikus",
   "battery_fleet_title": "Elemflotta",
   "battery_fleet_none_low": "Minden elem rendben — nincs mit cserélni.",
+  "battery_fleet_progress": "Cserélendő: {n}",
   "battery_fleet_buy_now": "Vásárlás most",
   "battery_fleet_soon": "Hamarosan szükséges",
   "battery_fleet_soon_hint": "Az utolsó cseredátumból előrejelezve — rendeljen előre.",

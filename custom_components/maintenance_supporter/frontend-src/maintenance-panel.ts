@@ -1234,6 +1234,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           trigger_current_delta: task.trigger_current_delta ?? null,
           trigger_config: task.trigger_config ?? null,
           trigger_entity_info: task.trigger_entity_info ?? null,
+          battery_fleet_task: task.battery_fleet_task === true,
           times_performed: task.times_performed,
           total_cost: task.total_cost,
           interval_days: task.interval_days ?? null,

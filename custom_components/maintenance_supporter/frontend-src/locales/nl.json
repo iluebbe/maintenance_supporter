@@ -1138,6 +1138,7 @@
   "history_auto": "Automatisch",
   "battery_fleet_title": "Batterijvloot",
   "battery_fleet_none_low": "Alle batterijen OK — niets te vervangen.",
+  "battery_fleet_progress": "{n} te vervangen",
   "battery_fleet_buy_now": "Nu kopen",
   "battery_fleet_soon": "Binnenkort nodig",
   "battery_fleet_soon_hint": "Geschat op basis van de laatste vervanging — bestel vooruit.",

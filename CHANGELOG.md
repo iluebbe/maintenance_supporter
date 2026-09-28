@@ -81,6 +81,9 @@ All notable changes to Maintenance Supporter are documented in this file.
   when the reset is connected, but Home Assistant loads it only about 30 seconds later — a task completed in that
   window pressed a button that did not exist yet. The completion action now waits for its button to load (up to a
   minute) and presses it then.
+- **The battery fleet's row read "4.0 / 0 batteries":** the count of batteries to replace was shown with a decimal
+  over the task's zero limit, like a broken ratio, and a fleet with nothing to replace showed a full red bar. The row
+  now reads "4 to replace" in your language, and the bar stays empty until a battery needs replacing.
 - **Suggested setups — catalog fixes:** Haier hOn purifier filters now match the fork the HACS store installs today;
   on the older fork the filter wear was read the wrong way round (the task fell due right after a filter change) —
   tasks adopted from it are repaired once at start-up, as long as their trigger is still the one the catalog wrote.

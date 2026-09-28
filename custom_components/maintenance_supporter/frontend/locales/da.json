@@ -1138,6 +1138,7 @@
   "history_auto": "Automatisk",
   "battery_fleet_title": "Batteriflåde",
   "battery_fleet_none_low": "Alle batterier OK — intet at skifte.",
+  "battery_fleet_progress": "{n} skal skiftes",
   "battery_fleet_buy_now": "Køb nu",
   "battery_fleet_soon": "Nødvendigt snart",
   "battery_fleet_soon_hint": "Estimeret ud fra sidste skift — bestil på forhånd.",

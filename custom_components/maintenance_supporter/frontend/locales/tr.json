@@ -1138,6 +1138,7 @@
   "history_auto": "Otomatik",
   "battery_fleet_title": "Pil filosu",
   "battery_fleet_none_low": "Tüm piller iyi durumda — değiştirilecek bir şey yok.",
+  "battery_fleet_progress": "Değiştirilecek: {n}",
   "battery_fleet_buy_now": "Şimdi satın al",
   "battery_fleet_soon": "Yakında gerekli",
   "battery_fleet_soon_hint": "Son değişim tarihinden tahmin edildi — önceden sipariş verin.",

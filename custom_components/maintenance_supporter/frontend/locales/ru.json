@@ -1138,6 +1138,7 @@
   "history_auto": "Автоматически",
   "battery_fleet_title": "Парк батарей",
   "battery_fleet_none_low": "Все батареи в порядке — менять нечего.",
+  "battery_fleet_progress": "К замене: {n}",
   "battery_fleet_buy_now": "Купить сейчас",
   "battery_fleet_soon": "Скоро понадобится",
   "battery_fleet_soon_hint": "Оценка по дате последней замены — закажите заранее.",

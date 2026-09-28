@@ -185,6 +185,18 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
     return nothing;
   }
 
+  // The battery-fleet task's sensor counts the batteries to replace against
+  // an "above 0" limit — the generic label read "4.0 / 0 batteries", like a
+  // broken ratio, and the zero limit's 100-wide scale painted an empty fleet
+  // as a full red bar. Say what the number means and fill toward the count
+  // that triggers.
+  if (row.battery_fleet_task && triggerType === "threshold" && row.trigger_current_value != null) {
+    const count = Math.round(row.trigger_current_value);
+    const limit = tc.trigger_above ?? 0;
+    pct = count > limit ? 100 : limit > 0 ? Math.max(0, (count / (limit + 1)) * 100) : 0;
+    label = t("battery_fleet_progress", opts?.lang ?? "en").replace("{n}", formatNumber(count, opts?.lang, 0));
+  }
+
   const triggerOverflow = pct >= 100;
   const barColor = pct > 90 ? "var(--error-color, #f44336)"
                  : pct > 70 ? "var(--warning-color, #ff9800)"

@@ -1138,6 +1138,7 @@
   "history_auto": "Automática",
   "battery_fleet_title": "Frota de baterias",
   "battery_fleet_none_low": "Todas as baterias OK — nada a substituir.",
+  "battery_fleet_progress": "{n} para trocar",
   "battery_fleet_buy_now": "Comprar agora",
   "battery_fleet_soon": "Necessárias em breve",
   "battery_fleet_soon_hint": "Previsto a partir da data da última troca — compre com antecedência.",

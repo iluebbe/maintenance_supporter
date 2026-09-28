@@ -1138,6 +1138,7 @@
   "history_auto": "Automaticky",
   "battery_fleet_title": "Flotila baterií",
   "battery_fleet_none_low": "Všechny baterie OK — není co měnit.",
+  "battery_fleet_progress": "K výměně: {n}",
   "battery_fleet_buy_now": "Koupit nyní",
   "battery_fleet_soon": "Brzy potřeba",
   "battery_fleet_soon_hint": "Odhad podle poslední výměny — objednejte předem.",

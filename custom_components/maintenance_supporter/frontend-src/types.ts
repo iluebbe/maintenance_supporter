@@ -597,6 +597,8 @@ export interface TaskRow {
   group_names: string[];
   /** #189: titles of the calendar events behind next_due (calendar kind). */
   next_event_titles: string[];
+  /** The battery-fleet task (its progress label counts batteries to replace). */
+  battery_fleet_task?: boolean;
 }
 
 // HomeAssistant type (minimal for our needs)

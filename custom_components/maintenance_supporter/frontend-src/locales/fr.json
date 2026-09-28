@@ -1138,6 +1138,7 @@
   "history_auto": "Automatique",
   "battery_fleet_title": "Parc de piles",
   "battery_fleet_none_low": "Toutes les piles OK — rien à remplacer.",
+  "battery_fleet_progress": "{n} à remplacer",
   "battery_fleet_buy_now": "Acheter",
   "battery_fleet_soon": "Bientôt nécessaire",
   "battery_fleet_soon_hint": "Estimé d'après le dernier remplacement — commandez à l'avance.",
