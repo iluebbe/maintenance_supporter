@@ -420,6 +420,7 @@
   "qr_action_view": "Ver info de mantenimiento",
   "qr_action_complete": "Marcar mantenimiento como completado",
   "qr_action_quick_complete": "Finalización rápida — sin diálogo",
+  "qr_print_quick_none": "Los códigos de finalización rápida necesitan valores predeterminados de finalización rápida en una tarea (diálogo de la tarea → Valores predeterminados de finalización rápida); ninguna tarea de los objetos elegidos los tiene todavía.",
   "qr_url_mode": "Tipo de enlace",
   "qr_mode_companion": "Companion App",
   "qr_mode_local": "Local (mDNS)",

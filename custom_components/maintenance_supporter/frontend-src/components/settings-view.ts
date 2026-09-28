@@ -209,7 +209,7 @@ export class MaintenanceSettingsView extends LitElement {
   @state() private _vacSaving = false;
 
   // Print QR codes section state
-  @state() private _qrObjects: Array<{ entry_id: string; name: string; task_count: number }> = [];
+  @state() private _qrObjects: Array<{ entry_id: string; name: string; task_count: number; quick_count: number }> = [];
   @state() private _qrSelectedEntries = new Set<string>();
   @state() private _qrActions = new Set<string>(["view"]);
   @state() private _qrUrlMode: "server" | "local" | "companion" = "companion";
@@ -222,7 +222,7 @@ export class MaintenanceSettingsView extends LitElement {
   @state() private _qrObjectsLoaded = false;
 
   // Export/Import selective-object picker state
-  @state() private _exportObjects: Array<{ entry_id: string; name: string; task_count: number }> = [];
+  @state() private _exportObjects: Array<{ entry_id: string; name: string; task_count: number; quick_count: number }> = [];
   @state() private _exportSelectedEntries = new Set<string>();
   @state() private _exportObjectsLoaded = false;
   @state() private _docArchiveLoading = false;
@@ -1686,19 +1686,22 @@ export class MaintenanceSettingsView extends LitElement {
 
   // --- Section: Print QR codes (v1.1.0) ---
 
-  /** #192: the one-tap quick-complete code joins when completion actions
-   *  are on (only then can a task carry quick-complete defaults; the server
-   *  prints it only for tasks that have them). */
-  private _qrPrintActions(): string[] {
-    const actions = ["view", "complete", "skip"];
-    if (this.features?.completion_actions) actions.push("quick_complete");
-    return actions;
+  /** The objects the batch prints for: the ticked ones, or all when none is. */
+  private _qrSelectedRows(): Array<{ entry_id: string; task_count: number; quick_count: number }> {
+    return this._qrSelectedEntries.size === 0 ? this._qrObjects : this._qrObjects.filter((o) => this._qrSelectedEntries.has(o.entry_id));
   }
 
   private _renderPrintQr(L: string) {
-    const selectedCount = this._qrSelectedEntries.size || this._qrObjects.length;
+    const rows = this._qrSelectedRows();
+    const taskCount = rows.reduce((n, o) => n + o.task_count, 0);
+    // #192: the quick-complete code only exists for tasks with defaults —
+    // offered when the chosen objects have any (not tied to the completion-
+    // actions switch: defaults set before it was turned off still work).
+    const quickCount = rows.reduce((n, o) => n + o.quick_count, 0);
+    // One code per TASK and action (the estimate multiplied OBJECTS, so the
+    // 200 warning came too late and the server refused the batch).
+    const estimatedQrs = [...this._qrActions].reduce((n, a) => n + (a === "quick_complete" ? quickCount : taskCount), 0);
     const actionCount = this._qrActions.size;
-    const estimatedQrs = selectedCount * actionCount;
     const overLimit = estimatedQrs > 200;
 
     return html`
@@ -1732,15 +1735,21 @@ export class MaintenanceSettingsView extends LitElement {
               <div class="qr-filter-group">
                 <div class="qr-filter-label">${t("qr_print_actions", L)}</div>
                 <div class="qr-action-chips">
-                  ${this._qrPrintActions().map((a) => html`
-                    <label class="qr-action-chip ${this._qrActions.has(a) ? "active" : ""}">
+                  ${["view", "complete", "skip", "quick_complete"].map((a) => {
+                    const quickNone = a === "quick_complete" && quickCount === 0;
+                    return html`
+                    <label class="qr-action-chip ${this._qrActions.has(a) && !quickNone ? "active" : ""} ${quickNone ? "disabled" : ""}"
+                      title=${quickNone ? t("qr_print_quick_none", L) : nothing}>
                       <input type="checkbox"
-                        .checked=${this._qrActions.has(a)}
+                        .checked=${this._qrActions.has(a) && !quickNone}
+                        .disabled=${quickNone}
                         @change=${(e: Event) => this._toggleQrAction(a, (e.target as HTMLInputElement).checked)} />
-                      ${t("qr_action_" + a, L)}
+                      ${t("qr_action_" + a, L)}${a === "quick_complete" && quickCount > 0 ? ` (${quickCount})` : ""}
                     </label>
-                  `)}
+                  `;
+                  })}
                 </div>
+                ${quickCount === 0 ? html`<div class="hint qr-quick-hint">${t("qr_print_quick_none", L)}</div>` : nothing}
               </div>
 
               <div class="qr-filter-group">
@@ -1798,10 +1807,14 @@ export class MaintenanceSettingsView extends LitElement {
     this._qrObjectsLoaded = true;
   }
 
-  /** {entry_id, name, task_count} of every object, name-sorted — the QR
-   *  batch and the export section both pick objects from this list. */
-  private async _loadObjectRows(): Promise<Array<{ entry_id: string; name: string; task_count: number }> | undefined> {
-    const result = await this._ws<{ objects: Array<{ entry_id: string; object: { name: string }; tasks: unknown[] }> }>({
+  /** {entry_id, name, task_count, quick_count} of every object, name-sorted —
+   *  the QR batch and the export section both pick objects from this list.
+   *  ``quick_count``: tasks with quick-complete defaults (#192), the only
+   *  ones a quick-complete code is printed for. */
+  private async _loadObjectRows(): Promise<Array<{ entry_id: string; name: string; task_count: number; quick_count: number }> | undefined> {
+    const result = await this._ws<{
+      objects: Array<{ entry_id: string; object: { name: string }; tasks: Array<{ quick_complete_defaults?: Record<string, unknown> | null }> }>;
+    }>({
       type: "maintenance_supporter/objects",
     });
     if (!result) return undefined;
@@ -1809,6 +1822,7 @@ export class MaintenanceSettingsView extends LitElement {
       entry_id: o.entry_id,
       name: o.object.name,
       task_count: (o.tasks || []).length,
+      quick_count: (o.tasks || []).filter((tk) => tk.quick_complete_defaults && Object.keys(tk.quick_complete_defaults).length > 0).length,
     })).sort((a, b) => a.name.localeCompare(b.name));
   }
 
@@ -2606,6 +2620,10 @@ export class MaintenanceSettingsView extends LitElement {
       border: 1px solid var(--divider-color);
       cursor: pointer;
       user-select: none;
+    }
+    .qr-action-chip.disabled {
+      opacity: 0.5;
+      cursor: default;
     }
     .qr-action-chip.active {
       background: var(--primary-color, #03a9f4);

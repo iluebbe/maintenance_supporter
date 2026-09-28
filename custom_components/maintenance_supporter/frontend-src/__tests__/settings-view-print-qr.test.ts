@@ -94,7 +94,10 @@ describe("settings-view print QR section", () => {
     await el.updateComplete;
 
     const chips = qrSection(el)!.querySelectorAll<HTMLElement>(".qr-action-chip");
-    expect(chips.length, "three action chips rendered").to.equal(3);
+    // view / complete / skip + quick-complete (#192), disabled here: no
+    // task of the mock objects has quick-complete defaults
+    expect(chips.length, "four action chips rendered").to.equal(4);
+    expect(chips[3].classList.contains("disabled"), "quick-complete chip disabled without defaults").to.be.true;
     // Default: only "view" active
     const viewChip = [...chips].find(c => /view|anzeigen/i.test(c.textContent || ""))!;
     expect(viewChip.classList.contains("active"), "view chip active by default").to.be.true;

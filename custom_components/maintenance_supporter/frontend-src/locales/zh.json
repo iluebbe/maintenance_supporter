@@ -422,6 +422,7 @@
   "qr_action_view": "查看维护信息",
   "qr_action_complete": "标记维护为已完成",
   "qr_action_quick_complete": "快速完成 — 无对话框",
+  "qr_print_quick_none": "快速完成二维码需要任务设置快速完成默认值（任务对话框 → 快速完成默认值）— 所选对象的任务尚未设置。",
   "qr_url_mode": "链接类型",
   "qr_mode_companion": "Companion App",
   "qr_mode_local": "本地 (mDNS)",

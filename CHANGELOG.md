@@ -56,7 +56,9 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **The quick-complete QR code could not be created** (#192): the lightning-bolt code that records a completion
   with the task's quick-complete defaults — no dialog — existed since 1.3.0, but no dialog ever offered it. A
   task's QR dialog now shows it as a third code when the task has quick-complete defaults, and Settings → Print QR
-  codes offers it (only for the tasks that have defaults) when completion actions are on.
+  codes has a *Quick-complete* choice with the number of tasks that have defaults (shown greyed out with a hint when
+  none has). The print estimate there now counts one code per task and choice — it multiplied objects, so the
+  200-code warning came too late and the batch was refused.
 - **Adopting suggested setups took well over 30 seconds on a larger install** (reported from a production system
   with ~4,400 entities): the object was reloaded after every single adopted task while the dialog waited. The tasks
   are now stored first and every object is reloaded once — adopting a device with eight tasks does one reload

@@ -59,28 +59,54 @@ describe("QR dialog: quick-complete code (#192)", () => {
 });
 
 describe("Settings → QR print: quick-complete choice (#192)", () => {
-  async function chips(completionActions: boolean): Promise<string[]> {
+  async function mountSettings(tasksPerObject: Array<Array<Record<string, unknown> | null>>) {
     const { DEFAULT_FEATURES } = await import("./_test-utils.js");
     await import("../components/settings-view.js");
-    const { hass } = createMockHass({
+    const { hass, sent } = createMockHass({
       handlers: {
-        "maintenance_supporter/objects": () => ({ objects: [{ entry_id: "e1", object: { name: "Pump" }, tasks: [{ id: "t1", name: "Filter" }] }] }),
+        "maintenance_supporter/objects": () => ({
+          objects: tasksPerObject.map((defaults, i) => ({
+            entry_id: `e${i}`,
+            object: { name: `Object ${i}` },
+            tasks: defaults.map((d, j) => ({ id: `e${i}_t${j}`, name: `Task ${j}`, quick_complete_defaults: d })),
+          })),
+        }),
+        "maintenance_supporter/qr/batch_generate": () => ({ qrs: [], total: 0 }),
       },
     });
-    const features = { ...DEFAULT_FEATURES, completion_actions: completionActions };
-    const el = await fixture<HTMLElement>(html`<maintenance-settings-view .hass=${hass} .features=${features}></maintenance-settings-view>`);
+    // completion actions OFF: the choice follows the data, not the switch
+    const el = await fixture<HTMLElement>(html`<maintenance-settings-view .hass=${hass} .features=${{ ...DEFAULT_FEATURES }}></maintenance-settings-view>`);
     await new Promise((r) => setTimeout(r, 50));
-    const section = el.shadowRoot!.querySelector(".qr-print-section")!;
-    [...section.querySelectorAll("button")].find((b) => /load/i.test(b.textContent || ""))!.click();
+    const section = () => el.shadowRoot!.querySelector(".qr-print-section")!;
+    [...section().querySelectorAll("button")].find((b) => /load/i.test(b.textContent || ""))!.click();
     await new Promise((r) => setTimeout(r, 30));
     await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
-    return [...section.querySelectorAll(".qr-action-chip")].map((c) => (c.textContent || "").trim());
+    return { el, sent: sent as SentMessage[], section };
   }
 
-  it("offers quick-complete only with completion actions on", async () => {
-    expect(await chips(false)).to.have.length(3);
-    const on = await chips(true);
-    expect(on).to.have.length(4);
-    expect(on[3]).to.match(/quick-complete/i);
+  it("is offered with the number of tasks that have defaults — also with completion actions off", async () => {
+    const { section } = await mountSettings([[{ notes: "x" }, null], [{ cost: 3 }]]);
+    const quick = [...section().querySelectorAll<HTMLElement>(".qr-action-chip")][3];
+    expect(quick.classList.contains("disabled")).to.be.false;
+    expect(quick.textContent).to.match(/quick-complete.*\(2\)/i);
+    expect(section().querySelector(".qr-quick-hint")).to.equal(null);
+  });
+
+  it("is shown disabled with a hint when no task has defaults", async () => {
+    const { section } = await mountSettings([[null, {}]]);
+    const quick = [...section().querySelectorAll<HTMLElement>(".qr-action-chip")][3];
+    expect(quick.classList.contains("disabled")).to.be.true;
+    expect(quick.querySelector("input")!.disabled).to.be.true;
+    expect(section().querySelector(".qr-quick-hint")!.textContent).to.match(/quick-complete defaults/i);
+  });
+
+  it("estimates one code per task and action, quick-complete only for tasks with defaults", async () => {
+    const { el, section } = await mountSettings([[{ notes: "x" }, null, null], [null, null]]);
+    const inputs = [...section().querySelectorAll<HTMLInputElement>(".qr-action-chip input")];
+    inputs[3].checked = true;
+    inputs[3].dispatchEvent(new Event("change"));
+    await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    // view (5 tasks) + quick-complete (1 task) — not objects × actions (2 × 2)
+    expect(section().querySelector(".qr-estimate strong")!.textContent).to.equal("6");
   });
 });

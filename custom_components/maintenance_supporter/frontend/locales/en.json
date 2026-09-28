@@ -422,6 +422,7 @@
   "qr_action_view": "View maintenance info",
   "qr_action_complete": "Mark maintenance as complete",
   "qr_action_quick_complete": "Quick-complete — no dialog",
+  "qr_print_quick_none": "Quick-complete codes need quick-complete defaults on a task (task dialog → Quick-complete defaults) — none of the chosen objects' tasks has them yet.",
   "qr_url_mode": "Link type",
   "qr_mode_companion": "Companion App",
   "qr_mode_local": "Local (mDNS)",

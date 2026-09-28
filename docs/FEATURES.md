@@ -619,8 +619,9 @@ Per-task QR pair: *view* opens the task, *complete* records the completion.
 A task with quick-complete defaults gets a third, lightning-bolt code
 (2.95+, #192): scanning it records the completion with those defaults — no
 dialog. Download as PNG/SVG or print; URL modes for LAN, external URL, or the
-Companion app. Settings → *Print QR codes* offers the quick-complete code too
-(for the tasks that have defaults) when completion actions are on.
+Companion app. Settings → *Print QR codes* offers the quick-complete code too,
+with the number of tasks that have defaults (greyed out with a hint when none
+has); only those tasks get one.
 
 ![QR Code](images/qr-dialog.png)
 

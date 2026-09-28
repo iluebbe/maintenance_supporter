@@ -422,6 +422,7 @@
   "qr_action_view": "Vis vedligeholdelsesoplysninger",
   "qr_action_complete": "Marker vedligeholdelse som fuldført",
   "qr_action_quick_complete": "Hurtig-fuldfør — uden dialog",
+  "qr_print_quick_none": "Hurtig-fuldfør-koder kræver standardværdier for hurtig-fuldfør på en opgave (opgavedialogen → Standardværdier for hurtig-fuldfør) — ingen opgave i de valgte objekter har nogen endnu.",
   "qr_url_mode": "Linktype",
   "qr_mode_companion": "Companion-app",
   "qr_mode_local": "Lokal (mDNS)",

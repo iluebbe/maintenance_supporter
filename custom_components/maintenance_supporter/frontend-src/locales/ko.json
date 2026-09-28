@@ -422,6 +422,7 @@
   "qr_action_view": "유지보수 정보 보기",
   "qr_action_complete": "유지보수 완료로 표시",
   "qr_action_quick_complete": "빠른 완료 — 대화 상자 없이",
+  "qr_print_quick_none": "빠른 완료 코드에는 작업의 빠른 완료 기본값이 필요합니다(작업 대화 상자 → 빠른 완료 기본값). 선택한 개체의 작업에는 아직 없습니다.",
   "qr_url_mode": "링크 유형",
   "qr_mode_companion": "Companion 앱",
   "qr_mode_local": "로컬 (mDNS)",

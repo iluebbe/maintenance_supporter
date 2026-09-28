@@ -422,6 +422,7 @@
   "qr_action_view": "Karbantartási adatok megtekintése",
   "qr_action_complete": "Karbantartás elvégzettként jelölése",
   "qr_action_quick_complete": "Gyorselvégzés — párbeszédablak nélkül",
+  "qr_print_quick_none": "A gyorselvégzés-kódokhoz a feladaton gyorselvégzés-alapértékek kellenek (feladat párbeszédablaka → Gyorselvégzés alapértékei) — a kiválasztott objektumok egyik feladatán sincsenek még.",
   "qr_url_mode": "Hivatkozás típusa",
   "qr_mode_companion": "Companion alkalmazás",
   "qr_mode_local": "Helyi (mDNS)",

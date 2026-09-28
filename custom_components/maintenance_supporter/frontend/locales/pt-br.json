@@ -422,6 +422,7 @@
   "qr_action_view": "Ver informações de manutenção",
   "qr_action_complete": "Marcar a manutenção como concluída",
   "qr_action_quick_complete": "Conclusão rápida — sem janela",
+  "qr_print_quick_none": "Os códigos de conclusão rápida precisam de padrões de conclusão rápida em uma tarefa (janela da tarefa → Padrões de conclusão rápida) — nenhuma tarefa dos objetos escolhidos os tem ainda.",
   "qr_url_mode": "Tipo de link",
   "qr_mode_companion": "Companion App",
   "qr_mode_local": "Local (mDNS)",

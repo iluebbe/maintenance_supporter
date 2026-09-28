@@ -420,6 +420,7 @@
   "qr_action_view": "Zobrazit informace o údržbě",
   "qr_action_complete": "Označit údržbu jako dokončenou",
   "qr_action_quick_complete": "Rychlé dokončení — bez dialogu",
+  "qr_print_quick_none": "Kódy rychlého dokončení vyžadují u úkolu výchozí hodnoty rychlého dokončení (dialog úkolu → Výchozí hodnoty rychlého dokončení) — žádný úkol vybraných objektů je zatím nemá.",
   "qr_url_mode": "Typ odkazu",
   "qr_mode_companion": "Companion App",
   "qr_mode_local": "Lokální (mDNS)",

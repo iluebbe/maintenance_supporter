@@ -422,6 +422,7 @@
   "qr_action_view": "Wartungsinfo anzeigen",
   "qr_action_complete": "Wartung als erledigt markieren",
   "qr_action_quick_complete": "Schnell-Abschluss — ohne Dialog",
+  "qr_print_quick_none": "Schnell-Abschluss-Codes brauchen Schnell-Abschluss-Standardwerte an einer Aufgabe (Aufgabendialog → Schnell-Abschluss-Standardwerte) — noch keine Aufgabe der gewählten Objekte hat welche.",
   "qr_url_mode": "Link-Typ",
   "qr_mode_companion": "Companion App",
   "qr_mode_local": "Lokal (mDNS)",

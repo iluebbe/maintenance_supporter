@@ -420,6 +420,7 @@
   "qr_action_view": "Onderhoudsinfo bekijken",
   "qr_action_complete": "Onderhoud als voltooid markeren",
   "qr_action_quick_complete": "Snel voltooien — zonder dialoogvenster",
+  "qr_print_quick_none": "Snel-voltooien-codes hebben snel-voltooien-standaardwaarden bij een taak nodig (taakdialoog → Snel-voltooien-standaardwaarden) — nog geen taak van de gekozen objecten heeft ze.",
   "qr_url_mode": "Linktype",
   "qr_mode_companion": "Companion App",
   "qr_mode_local": "Lokaal (mDNS)",

@@ -420,6 +420,7 @@
   "qr_action_view": "Visualizza info manutenzione",
   "qr_action_complete": "Segna manutenzione come completata",
   "qr_action_quick_complete": "Completamento rapido — senza finestra",
+  "qr_print_quick_none": "I codici di completamento rapido richiedono valori predefiniti di completamento rapido su un'attività (finestra dell'attività → Valori predefiniti completamento rapido) — nessuna attività degli oggetti scelti li ha ancora.",
   "qr_url_mode": "Tipo di link",
   "qr_mode_companion": "Companion App",
   "qr_mode_local": "Locale (mDNS)",

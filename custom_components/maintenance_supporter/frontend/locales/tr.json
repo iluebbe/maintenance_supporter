@@ -422,6 +422,7 @@
   "qr_action_view": "Bakım bilgisini görüntüle",
   "qr_action_complete": "Bakımı tamamlandı olarak işaretle",
   "qr_action_quick_complete": "Hızlı tamamlama — iletişim kutusu olmadan",
+  "qr_print_quick_none": "Hızlı tamamlama kodları için bir görevde hızlı tamamlama varsayılanları gerekir (görev penceresi → Hızlı tamamlama varsayılanları) — seçilen nesnelerin hiçbir görevinde henüz yok.",
   "qr_url_mode": "Bağlantı türü",
   "qr_mode_companion": "Companion uygulaması",
   "qr_mode_local": "Yerel (mDNS)",

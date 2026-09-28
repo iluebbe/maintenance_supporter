@@ -420,6 +420,7 @@
   "qr_action_view": "Wyświetl informacje o konserwacji",
   "qr_action_complete": "Oznacz konserwację jako wykonaną",
   "qr_action_quick_complete": "Szybkie zakończenie — bez okna dialogowego",
+  "qr_print_quick_none": "Kody szybkiego zakończenia wymagają wartości domyślnych szybkiego zakończenia w zadaniu (okno zadania → Wartości domyślne szybkiego zakończenia) — żadne zadanie wybranych obiektów ich jeszcze nie ma.",
   "qr_url_mode": "Typ linku",
   "qr_mode_companion": "Companion App",
   "qr_mode_local": "Lokalny (mDNS)",

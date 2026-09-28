@@ -422,6 +422,7 @@
   "qr_action_view": "Näytä huoltotiedot",
   "qr_action_complete": "Merkitse huolto valmiiksi",
   "qr_action_quick_complete": "Pikasuoritus — ilman valintaikkunaa",
+  "qr_print_quick_none": "Pikasuorituskoodit vaativat tehtävälle pikasuorituksen oletukset (tehtävän valintaikkuna → Pikasuorituksen oletukset) — minkään valitun kohteen tehtävällä ei ole niitä vielä.",
   "qr_url_mode": "Linkin tyyppi",
   "qr_mode_companion": "Companion-sovellus",
   "qr_mode_local": "Paikallinen (mDNS)",
