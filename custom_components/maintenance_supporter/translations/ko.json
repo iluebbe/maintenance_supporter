@@ -527,7 +527,7 @@
           "budget_settings": "예산 설정",
           "manage_groups": "그룹 관리",
           "notification_settings": "알림 설정",
-          "notification_actions": "대화형 동작",
+          "notification_actions": "모바일 동작 버튼",
           "test_notification": "테스트 알림 보내기",
           "done": "완료",
           "home_profile": "주거 프로필 · 템플릿 갤러리",
@@ -541,7 +541,6 @@
         "description": "UI에 표시할 고급 기능을 선택하세요. 기능을 끄면 인터페이스에서 숨겨질 뿐 데이터가 삭제되지는 않습니다.",
         "data": {
           "advanced_adaptive_visible": "적응형 일정",
-          "advanced_predictions_visible": "센서 예측",
           "advanced_seasonal_visible": "계절 조정",
           "advanced_environmental_visible": "환경 상관관계",
           "advanced_budget_visible": "예산 추적",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "작업에 대한 EWA, Weibull 분석 및 주기 제안을 표시합니다.",
-          "advanced_predictions_visible": "센서 열화 분석과 임계값 예측 차트를 표시합니다.",
           "advanced_seasonal_visible": "계절 계수 차트와 월별 조정 데이터를 표시합니다.",
           "advanced_environmental_visible": "환경(온도, 습도) 상관관계 조정을 표시합니다.",
           "advanced_budget_visible": "월별/연간 예산 추적과 경보를 표시합니다.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "대화형 동작",
+        "title": "모바일 동작 버튼",
         "description": "모바일 알림에 표시되는 동작 버튼을 구성합니다(Companion 앱 필요).",
         "data": {
           "action_complete_enabled": "'완료' 버튼 표시",

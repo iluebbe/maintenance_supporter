@@ -527,7 +527,7 @@
           "budget_settings": "Ustawienia budżetu",
           "manage_groups": "Zarządzaj grupami",
           "notification_settings": "Ustawienia powiadomień",
-          "notification_actions": "Akcje interaktywne",
+          "notification_actions": "Mobilne przyciski akcji",
           "test_notification": "Wyślij testowe powiadomienie",
           "done": "Gotowe",
           "home_profile": "Profil domu · Galeria szablonów",
@@ -541,7 +541,6 @@
         "description": "Wybierz, które zaawansowane funkcje mają być widoczne w interfejsie. Wyłączenie funkcji ukrywa ją z interfejsu, ale nie usuwa żadnych danych.",
         "data": {
           "advanced_adaptive_visible": "Adaptacyjne planowanie",
-          "advanced_predictions_visible": "Predykcje czujników",
           "advanced_seasonal_visible": "Korekty sezonowe",
           "advanced_environmental_visible": "Korelacja środowiskowa",
           "advanced_budget_visible": "Śledzenie budżetu",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "Pokaż EWA, analizę Weibulla i sugestie interwałów dla zadań.",
-          "advanced_predictions_visible": "Pokaż analizę degradacji czujników i wykresy predykcji progów.",
           "advanced_seasonal_visible": "Pokaż wykresy współczynników sezonowych i miesięczne dane korekcyjne.",
           "advanced_environmental_visible": "Pokaż korekty oparte na korelacji środowiskowej (temperatura, wilgotność).",
           "advanced_budget_visible": "Pokaż śledzenie budżetu miesięcznego/rocznego i alerty.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Akcje interaktywne",
+        "title": "Mobilne przyciski akcji",
         "description": "Skonfiguruj przyciski akcji wyświetlane w powiadomieniach mobilnych (wymaga aplikacji Companion).",
         "data": {
           "action_complete_enabled": "Pokaż przycisk „Zakończ”",

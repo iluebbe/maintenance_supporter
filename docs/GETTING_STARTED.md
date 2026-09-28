@@ -69,8 +69,9 @@ Each task keeps its **history**: who did what, when, at what cost.
 **Notifications.** Panel → **Settings** → *Notifications*: pick where
 reminders go — the Companion app on your phone, any `notify.*` service or
 notify entity. You get a reminder when a task is due soon, when it is overdue
-and when a sensor triggers it (level 3). On the phone the notification has
-buttons: **Complete**, **Skip**, **Snooze** — without opening the app.
+and when a sensor triggers it (level 3). Switch on *Mobile Action Buttons*
+on the same page and the phone notification gets **Complete**, **Skip** and
+**Snooze** buttons — done without opening the app (Companion app only).
 
 Useful extras there: quiet hours, a weekly digest, bundling several
 reminders into one, vacation mode (pauses reminders while you're away) and

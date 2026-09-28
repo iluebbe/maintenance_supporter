@@ -527,7 +527,7 @@
           "budget_settings": "Configurações de orçamento",
           "manage_groups": "Gerenciar grupos",
           "notification_settings": "Configurações de notificação",
-          "notification_actions": "Ações interativas",
+          "notification_actions": "Botões de ação no celular",
           "test_notification": "Enviar notificação de teste",
           "done": "Concluído",
           "home_profile": "Perfil da residência · Galeria de modelos",
@@ -541,7 +541,6 @@
         "description": "Escolha quais recursos avançados mostrar na interface. Desativar um recurso o oculta da interface, mas não exclui nenhum dado.",
         "data": {
           "advanced_adaptive_visible": "Agendamento adaptativo",
-          "advanced_predictions_visible": "Previsões de sensor",
           "advanced_seasonal_visible": "Ajustes sazonais",
           "advanced_environmental_visible": "Correlação ambiental",
           "advanced_budget_visible": "Controle de orçamento",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "Mostra EWA, análise de Weibull e sugestões de intervalo para as tarefas.",
-          "advanced_predictions_visible": "Mostra análise de degradação do sensor e gráficos de previsão de limite.",
           "advanced_seasonal_visible": "Mostra gráficos de fatores sazonais e dados de ajuste mensal.",
           "advanced_environmental_visible": "Mostra ajustes por correlação ambiental (temperatura, umidade).",
           "advanced_budget_visible": "Mostra o controle de orçamento mensal/anual e alertas.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Ações interativas",
+        "title": "Botões de ação no celular",
         "description": "Configure os botões de ação mostrados nas notificações móveis (requer o Companion App).",
         "data": {
           "action_complete_enabled": "Mostrar botão 'Concluir'",

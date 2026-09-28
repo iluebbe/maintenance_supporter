@@ -527,7 +527,7 @@
           "budget_settings": "Budgetinstellingen",
           "manage_groups": "Groepen beheren",
           "notification_settings": "Meldingsinstellingen",
-          "notification_actions": "Interactieve acties",
+          "notification_actions": "Mobiele actieknoppen",
           "test_notification": "Testmelding verzenden",
           "done": "Gereed",
           "home_profile": "Woningprofiel · Sjabloongalerij",
@@ -541,7 +541,6 @@
         "description": "Kies welke geavanceerde functies in de interface worden getoond. Het uitschakelen van een functie verbergt deze, maar verwijdert geen gegevens.",
         "data": {
           "advanced_adaptive_visible": "Adaptieve planning",
-          "advanced_predictions_visible": "Sensorvoorspellingen",
           "advanced_seasonal_visible": "Seizoensaanpassingen",
           "advanced_environmental_visible": "Omgevingscorrelatie",
           "advanced_budget_visible": "Budgetbeheer",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "Toon EWA-, Weibull-analyse en intervalsuggesties voor taken.",
-          "advanced_predictions_visible": "Toon sensordegradatie-analyse en drempelvoorspellingsgrafieken.",
           "advanced_seasonal_visible": "Toon seizoensfactorgrafieken en maandelijkse aanpassingsgegevens.",
           "advanced_environmental_visible": "Toon omgevingscorrelatie (temperatuur, vochtigheid) aanpassingen.",
           "advanced_budget_visible": "Toon maandelijks/jaarlijks budgetbeheer en waarschuwingen.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Interactieve acties",
+        "title": "Mobiele actieknoppen",
         "description": "Configureer actieknoppen op mobiele meldingen (vereist Companion App).",
         "data": {
           "action_complete_enabled": "Knop 'Voltooien' tonen",

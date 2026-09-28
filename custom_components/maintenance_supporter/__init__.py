@@ -47,7 +47,6 @@ from .const import (
     CONF_ADVANCED_CHECKLISTS,
     CONF_ADVANCED_ENVIRONMENTAL,
     CONF_ADVANCED_GROUPS,
-    CONF_ADVANCED_PREDICTIONS,
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
     CONF_BUDGET_MONTHLY,
@@ -1281,7 +1280,6 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
 def _detect_advanced_feature_usage(hass: HomeAssistant, global_options: dict[str, Any]) -> dict[str, bool]:
     """Scan existing entries to detect which advanced features are in use."""
     adaptive = False
-    predictions = False
     seasonal = False
     environmental = False
     checklists = False
@@ -1295,8 +1293,6 @@ def _detect_advanced_feature_usage(hass: HomeAssistant, global_options: dict[str
             ac = task_data.get("adaptive_config") or {}
             if ac.get("enabled"):
                 adaptive = True
-            if ac.get("sensor_prediction_enabled"):
-                predictions = True
             if ac.get("seasonal_enabled"):
                 seasonal = True
             if ac.get("environmental_entity"):
@@ -1311,7 +1307,6 @@ def _detect_advanced_feature_usage(hass: HomeAssistant, global_options: dict[str
 
     return {
         CONF_ADVANCED_ADAPTIVE: adaptive,
-        CONF_ADVANCED_PREDICTIONS: predictions,
         CONF_ADVANCED_SEASONAL: seasonal,
         CONF_ADVANCED_ENVIRONMENTAL: environmental,
         CONF_ADVANCED_BUDGET: budget,

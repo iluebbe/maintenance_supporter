@@ -263,7 +263,10 @@ export interface MaintenanceTask {
   // v1.3.0: completion-action + quick-complete (gated by completion_actions feature)
   on_complete_action?: {
     service: string;                          // "domain.service"
-    target?: { entity_id?: string | string[]; device_id?: string | string[]; area_id?: string | string[] };
+    target?: {
+      entity_id?: string | string[]; device_id?: string | string[]; area_id?: string | string[];
+      label_id?: string | string[]; floor_id?: string | string[];
+    };
     data?: Record<string, unknown>;
     /** 2.95: not when the task completes itself (a counter reset). */
     skip_auto?: boolean;
@@ -519,7 +522,6 @@ export interface BudgetStatus {
 
 export interface AdvancedFeatures {
   adaptive: boolean;
-  predictions: boolean;
   seasonal: boolean;
   environmental: boolean;
   budget: boolean;

@@ -527,7 +527,7 @@
           "budget_settings": "बजट सेटिंग्स",
           "manage_groups": "समूह प्रबंधित करें",
           "notification_settings": "सूचना सेटिंग्स",
-          "notification_actions": "इंटरैक्टिव क्रियाएँ",
+          "notification_actions": "मोबाइल क्रिया बटन",
           "test_notification": "परीक्षण सूचना भेजें",
           "done": "हो गया",
           "home_profile": "घर की प्रोफ़ाइल · टेम्पलेट गैलरी",
@@ -541,7 +541,6 @@
         "description": "चुनें कि UI में कौन-सी उन्नत सुविधाएँ दिखानी हैं। किसी सुविधा को अक्षम करने पर वह इंटरफ़ेस से छिप जाती है लेकिन कोई डेटा हटता नहीं है।",
         "data": {
           "advanced_adaptive_visible": "अनुकूली अनुसूचन",
-          "advanced_predictions_visible": "सेंसर पूर्वानुमान",
           "advanced_seasonal_visible": "मौसमी समायोजन",
           "advanced_environmental_visible": "पर्यावरणीय सहसंबंध",
           "advanced_budget_visible": "बजट ट्रैकिंग",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "कार्यों के लिए EWA, वाइबुल विश्लेषण और अंतराल सुझाव दिखाएँ।",
-          "advanced_predictions_visible": "सेंसर अवक्रमण विश्लेषण और थ्रेशोल्ड पूर्वानुमान चार्ट दिखाएँ।",
           "advanced_seasonal_visible": "मौसमी कारक चार्ट और मासिक समायोजन डेटा दिखाएँ।",
           "advanced_environmental_visible": "पर्यावरणीय सहसंबंध (तापमान, आर्द्रता) समायोजन दिखाएँ।",
           "advanced_budget_visible": "मासिक/वार्षिक बजट ट्रैकिंग और अलर्ट दिखाएँ।",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "इंटरैक्टिव क्रियाएँ",
+        "title": "मोबाइल क्रिया बटन",
         "description": "मोबाइल सूचनाओं पर दिखाए गए क्रिया बटन कॉन्फ़िगर करें (Companion App आवश्यक है)।",
         "data": {
           "action_complete_enabled": "'पूर्ण' बटन दिखाएँ",

@@ -527,7 +527,7 @@
           "budget_settings": "Налаштування бюджету",
           "manage_groups": "Керування групами",
           "notification_settings": "Налаштування сповіщень",
-          "notification_actions": "Інтерактивні дії",
+          "notification_actions": "Кнопки дій у мобільних сповіщеннях",
           "test_notification": "Надіслати тестове сповіщення",
           "done": "Готово",
           "home_profile": "Профіль житла · Галерея шаблонів",
@@ -541,7 +541,6 @@
         "description": "Оберіть, які розширені функції відображати в інтерфейсі. Вимкнення функції приховує її з інтерфейсу, але не видаляє дані.",
         "data": {
           "advanced_adaptive_visible": "Адаптивне планування",
-          "advanced_predictions_visible": "Прогнози за сенсорами",
           "advanced_seasonal_visible": "Сезонні корекції",
           "advanced_environmental_visible": "Кореляція з довкіллям",
           "advanced_budget_visible": "Відстеження бюджету",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "Показувати EWA, аналіз Вейбулла та рекомендації щодо інтервалів для завдань.",
-          "advanced_predictions_visible": "Показувати аналіз деградації сенсора та графіки прогнозу порогів.",
           "advanced_seasonal_visible": "Показувати графіки сезонних факторів та дані щомісячних корекцій.",
           "advanced_environmental_visible": "Показувати корекції кореляції з довкіллям (температура, вологість).",
           "advanced_budget_visible": "Показувати щомісячне/щорічне відстеження бюджету та сповіщення.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Інтерактивні дії",
+        "title": "Кнопки дій у мобільних сповіщеннях",
         "description": "Налаштуйте кнопки дій у мобільних сповіщеннях (потрібен Companion App).",
         "data": {
           "action_complete_enabled": "Показувати кнопку «Виконано»",

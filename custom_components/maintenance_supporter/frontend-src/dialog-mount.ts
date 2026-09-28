@@ -46,7 +46,7 @@ import type { MaintenanceObjectQuickActionsDialog } from "./components/object-qu
 import type { HomeAssistant, MaintenanceObject } from "./types";
 import { ensureLocale, isLocaleLoaded, langOf, setProfilePrefs } from "./styles";
 import { fillAndOpenCompleteDialog, type CompleteDialogArgs } from "./helpers/complete-dialog-args";
-import { fetchSettingsOnce, invalidateSettingsCache } from "./helpers/settings-cache";
+import { fetchSettingsOnce, invalidateSettingsCache, type SettingsCache } from "./helpers/settings-cache";
 
 const OBJECT_DIALOG_TAG = "maintenance-object-dialog";
 const TASK_DIALOG_TAG = "maintenance-task-dialog";
@@ -152,19 +152,12 @@ export function openCreateTaskDialog(
   void (async () => {
     const settings = await fetchSettingsOnce(hass);
     const dlgFull = dlg as MaintenanceTaskDialog & {
-      checklistsEnabled: boolean;
-      scheduleTimeEnabled: boolean;
-      completionActionsEnabled: boolean;
-      defaultWarningDays: number;
       openCreate: (
         entryId: string,
         objects?: Array<{ entry_id: string; object: { name: string } }>,
       ) => void;
     };
-    dlgFull.checklistsEnabled = settings.features.checklists;
-    dlgFull.scheduleTimeEnabled = settings.features.schedule_time;
-    dlgFull.completionActionsEnabled = settings.features.completion_actions;
-    dlgFull.defaultWarningDays = settings.defaultWarningDays;
+    applyTaskDialogSettings(dlgFull, settings);
     // openCreate NEEDS a target: a bare call left _entryId undefined and
     // _objectChoices empty — no object picker, and save failed on the
     // backend's required entry_id (bug audit 2026-08-22). Callers pass the
@@ -172,6 +165,18 @@ export function openCreateTaskDialog(
     dlgFull.openCreate(entryId, objects);
   })();
   return true;
+}
+
+/** The settings the task dialog renders by — the same on both open paths
+ *  (and the panel's, which binds them from its own copy). */
+function applyTaskDialogSettings(dlg: MaintenanceTaskDialog, settings: SettingsCache): void {
+  dlg.checklistsEnabled = settings.features.checklists;
+  dlg.scheduleTimeEnabled = settings.features.schedule_time;
+  dlg.completionActionsEnabled = settings.features.completion_actions;
+  dlg.adaptiveFeature = settings.features.adaptive;
+  dlg.seasonalFeature = settings.features.seasonal;
+  dlg.environmentalFeature = settings.features.environmental;
+  dlg.defaultWarningDays = settings.defaultWarningDays;
 }
 
 export function openEditTaskDialog(
@@ -218,16 +223,9 @@ export function openEditTaskDialog(
         return;
       }
       const dlgFull = dlg as MaintenanceTaskDialog & {
-        checklistsEnabled: boolean;
-        scheduleTimeEnabled: boolean;
-        completionActionsEnabled: boolean;
-        defaultWarningDays: number;
         openEdit: (entryId: string, task: unknown) => Promise<void>;
       };
-      dlgFull.checklistsEnabled = settings.features.checklists;
-      dlgFull.scheduleTimeEnabled = settings.features.schedule_time;
-      dlgFull.completionActionsEnabled = settings.features.completion_actions;
-      dlgFull.defaultWarningDays = settings.defaultWarningDays;
+      applyTaskDialogSettings(dlgFull, settings);
       await dlgFull.openEdit(entryId, fullTask);
     } catch (e) {
       // eslint-disable-next-line no-console

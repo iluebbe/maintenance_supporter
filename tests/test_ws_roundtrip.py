@@ -724,7 +724,6 @@ _SETTING_SAMPLES: dict[str, Any] = {
     "row_action_notice_pending": True,
     "operator_write_enabled": True,
     "advanced_adaptive_visible": True,
-    "advanced_predictions_visible": True,
     "advanced_seasonal_visible": True,
     "advanced_environmental_visible": True,
     "advanced_budget_visible": True,
@@ -829,7 +828,7 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         **{
             f"advanced_{k}_visible": v
             for k, v in settings["features"].items()
-            if k in {"adaptive", "predictions", "seasonal", "environmental", "budget", "groups", "checklists"}
+            if k in {"adaptive", "seasonal", "environmental", "budget", "groups", "checklists"}
         },
         "advanced_schedule_time_visible": settings["features"]["schedule_time"],
         "advanced_completion_actions_visible": settings["features"]["completion_actions"],

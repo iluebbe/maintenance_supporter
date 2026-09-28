@@ -62,7 +62,7 @@ function ctx(overrides: Partial<TaskDetailContext> = {}): TaskDetailContext {
     moreMenuOpen: false,
     activeTab: "overview",
     features: {
-      adaptive: false, predictions: false, seasonal: false,
+      adaptive: false, seasonal: false,
       environmental: false, budget: false, groups: false,
       checklists: false, schedule_time: false, completion_actions: false,
     },

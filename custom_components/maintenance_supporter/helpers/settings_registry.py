@@ -40,7 +40,6 @@ from ..const import (
     CONF_ADVANCED_COMPLETION_ACTIONS,
     CONF_ADVANCED_ENVIRONMENTAL,
     CONF_ADVANCED_GROUPS,
-    CONF_ADVANCED_PREDICTIONS,
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
     CONF_ARCHIVE_ONEOFF_DAYS,
@@ -164,7 +163,6 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_PANEL_TITLE, str, ""),
     # Advanced-feature toggles
     SettingSpec(CONF_ADVANCED_ADAPTIVE, bool, False),
-    SettingSpec(CONF_ADVANCED_PREDICTIONS, bool, False),
     SettingSpec(CONF_ADVANCED_SEASONAL, bool, False),
     SettingSpec(CONF_ADVANCED_ENVIRONMENTAL, bool, False),
     SettingSpec(CONF_ADVANCED_BUDGET, bool, False),

@@ -527,7 +527,7 @@
           "budget_settings": "预算设置",
           "manage_groups": "管理分组",
           "notification_settings": "通知设置",
-          "notification_actions": "交互式动作",
+          "notification_actions": "移动端操作按钮",
           "test_notification": "发送测试通知",
           "done": "完成",
           "home_profile": "住宅概况 · 模板库",
@@ -541,7 +541,6 @@
         "description": "选择要在界面中显示的进阶功能。禁用某项功能仅会从界面隐藏，不会删除任何数据。",
         "data": {
           "advanced_adaptive_visible": "自适应调度计划",
-          "advanced_predictions_visible": "传感器预测",
           "advanced_seasonal_visible": "季节性调整",
           "advanced_environmental_visible": "环境关联",
           "advanced_budget_visible": "预算追踪",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "显示 EWA、韦伯分析以及针对任务的间隔建议。",
-          "advanced_predictions_visible": "显示传感器损耗分析和阈值预测图表。",
           "advanced_seasonal_visible": "显示季节因子图表和每月调整数据。",
           "advanced_environmental_visible": "显示环境关联（温度、湿度）调整。",
           "advanced_budget_visible": "显示月度/年度预算追踪和警报。",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "交互式动作",
+        "title": "移动端操作按钮",
         "description": "配置移动端通知上显示的动作按钮（需要官方 APP）。",
         "data": {
           "action_complete_enabled": "显示“完成”按钮",

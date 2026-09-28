@@ -109,6 +109,24 @@ async def test_every_global_setting_is_editable_in_the_options_flow(hass: HomeAs
     assert {"member_avatars", "battery_lifetimes"} <= steps_with_forms
 
 
+def test_every_global_setting_is_editable_in_the_panel() -> None:
+    """The other direction: `notification_title_style` could only be set in
+    the Configure dialog while EXAMPLES.md sent users to the panel (audit
+    2026-09-28) — the test above only looked one way. Every registry key has
+    to appear in the panel's frontend source (the key string its control
+    writes)."""
+    from pathlib import Path
+
+    src_root = Path(__file__).resolve().parent.parent / "custom_components" / "maintenance_supporter" / "frontend-src"
+    source = "\n".join(
+        p.read_text(encoding="utf-8")
+        for p in src_root.rglob("*.ts")
+        if "__tests__" not in p.parts and "node_modules" not in p.parts
+    )
+    missing = {key for key in ALLOWED_SETTING_KEYS if f'"{key}"' not in source} - _NOT_A_SETTING
+    assert not missing, f"Configure-dialog-only settings — add a panel control: {sorted(missing)}"
+
+
 # ─── the new fields save through the panel's sanitiser ───────────────────
 
 

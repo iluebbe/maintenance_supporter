@@ -527,7 +527,7 @@
           "budget_settings": "Budgeteinstellungen",
           "manage_groups": "Gruppen verwalten",
           "notification_settings": "Benachrichtigungseinstellungen",
-          "notification_actions": "Interaktive Aktionen",
+          "notification_actions": "Mobile Aktionsbuttons",
           "test_notification": "Testbenachrichtigung senden",
           "done": "Fertig",
           "home_profile": "Wohnprofil · Vorlagen-Galerie",
@@ -541,7 +541,6 @@
         "description": "Wählen Sie, welche erweiterten Funktionen in der Oberfläche angezeigt werden. Das Deaktivieren blendet die Funktion aus, löscht aber keine Daten.",
         "data": {
           "advanced_adaptive_visible": "Adaptive Planung",
-          "advanced_predictions_visible": "Sensorvorhersagen",
           "advanced_seasonal_visible": "Saisonale Anpassungen",
           "advanced_environmental_visible": "Umweltkorrelation",
           "advanced_budget_visible": "Budgetverfolgung",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "EWA-, Weibull-Analyse und Intervallvorschläge für Aufgaben anzeigen.",
-          "advanced_predictions_visible": "Sensordegradationsanalyse und Schwellenwertvorhersagen anzeigen.",
           "advanced_seasonal_visible": "Saisonale Faktoren und monatliche Anpassungsdaten anzeigen.",
           "advanced_environmental_visible": "Umweltkorrelation (Temperatur, Feuchtigkeit) anzeigen.",
           "advanced_budget_visible": "Monatliche/jährliche Budgetverfolgung und Warnungen anzeigen.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Interaktive Aktionen",
+        "title": "Mobile Aktionsbuttons",
         "description": "Aktionsbuttons auf mobilen Benachrichtigungen konfigurieren (erfordert Companion App).",
         "data": {
           "action_complete_enabled": "'Erledigt'-Button anzeigen",

@@ -527,7 +527,7 @@
           "budget_settings": "Költségkeret-beállítások",
           "manage_groups": "Csoportok kezelése",
           "notification_settings": "Értesítési beállítások",
-          "notification_actions": "Interaktív műveletek",
+          "notification_actions": "Mobil műveletgombok",
           "test_notification": "Tesztértesítés küldése",
           "done": "Kész",
           "home_profile": "Otthon profilja · Sablongaléria",
@@ -541,7 +541,6 @@
         "description": "Válassza ki, mely speciális funkciók jelenjenek meg a felületen. A kikapcsolás elrejti a funkciót a felületről, de nem töröl adatot.",
         "data": {
           "advanced_adaptive_visible": "Adaptív ütemezés",
-          "advanced_predictions_visible": "Érzékelő-előrejelzések",
           "advanced_seasonal_visible": "Szezonális igazítások",
           "advanced_environmental_visible": "Környezeti korreláció",
           "advanced_budget_visible": "Költségkeret követése",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "EWA, Weibull-elemzés és intervallumjavaslatok megjelenítése a feladatokhoz.",
-          "advanced_predictions_visible": "Érzékelőromlás-elemzés és küszöbérték-előrejelzési diagramok megjelenítése.",
           "advanced_seasonal_visible": "Szezonálistényező-diagramok és havi igazítási adatok megjelenítése.",
           "advanced_environmental_visible": "Környezeti korrelációs (hőmérséklet, páratartalom) igazítások megjelenítése.",
           "advanced_budget_visible": "Havi/éves költségkeret-követés és riasztások megjelenítése.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Interaktív műveletek",
+        "title": "Mobil műveletgombok",
         "description": "A mobilértesítéseken megjelenő műveletgombok beállítása (Companion alkalmazás szükséges).",
         "data": {
           "action_complete_enabled": "„Elvégzés” gomb megjelenítése",

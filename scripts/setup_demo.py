@@ -326,7 +326,6 @@ def configure_global_options() -> None:
     print(f"  Menu -> {sid(r)}")
     r = post_options_step(flow_id, {
         "advanced_adaptive_visible": True,
-        "advanced_predictions_visible": True,
         "advanced_seasonal_visible": True,
         "advanced_environmental_visible": True,
         "advanced_budget_visible": True,

@@ -527,7 +527,7 @@
           "budget_settings": "Paramètres de budget",
           "manage_groups": "Gérer les groupes",
           "notification_settings": "Paramètres de notification",
-          "notification_actions": "Actions interactives",
+          "notification_actions": "Boutons d'action mobiles",
           "test_notification": "Envoyer une notification de test",
           "done": "Terminé",
           "home_profile": "Profil du logement · Galerie de modèles",
@@ -541,7 +541,6 @@
         "description": "Choisissez les fonctionnalités avancées à afficher dans l'interface. Désactiver une fonctionnalité la masque de l'interface mais ne supprime aucune donnée.",
         "data": {
           "advanced_adaptive_visible": "Planification adaptative",
-          "advanced_predictions_visible": "Prédictions capteur",
           "advanced_seasonal_visible": "Ajustements saisonniers",
           "advanced_environmental_visible": "Corrélation environnementale",
           "advanced_budget_visible": "Suivi du budget",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "Afficher l'analyse EWA, Weibull et les suggestions d'intervalle pour les tâches.",
-          "advanced_predictions_visible": "Afficher l'analyse de dégradation capteur et les graphiques de prédiction de seuil.",
           "advanced_seasonal_visible": "Afficher les graphiques de facteurs saisonniers et les données d'ajustement mensuel.",
           "advanced_environmental_visible": "Afficher les ajustements de corrélation environnementale (température, humidité).",
           "advanced_budget_visible": "Afficher le suivi de budget mensuel/annuel et les alertes.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Actions interactives",
+        "title": "Boutons d'action mobiles",
         "description": "Configurez les boutons d'action affichés sur les notifications mobiles (nécessite l'application Companion).",
         "data": {
           "action_complete_enabled": "Afficher le bouton 'Terminer'",

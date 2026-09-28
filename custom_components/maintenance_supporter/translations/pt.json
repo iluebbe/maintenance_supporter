@@ -527,7 +527,7 @@
           "budget_settings": "Definições de Orçamento",
           "manage_groups": "Gerir Grupos",
           "notification_settings": "Definições de Notificação",
-          "notification_actions": "Ações Interativas",
+          "notification_actions": "Botões de ação móveis",
           "test_notification": "Enviar Notificação de Teste",
           "done": "Concluído",
           "home_profile": "Perfil da habitação · Galeria de modelos",
@@ -541,7 +541,6 @@
         "description": "Escolha quais funcionalidades avançadas mostrar na interface. Desativar uma funcionalidade oculta-a da interface mas não elimina quaisquer dados.",
         "data": {
           "advanced_adaptive_visible": "Agendamento Adaptativo",
-          "advanced_predictions_visible": "Previsões de Sensores",
           "advanced_seasonal_visible": "Ajustes Sazonais",
           "advanced_environmental_visible": "Correlação Ambiental",
           "advanced_budget_visible": "Acompanhamento de Orçamento",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "Mostrar análise EWA, Weibull e sugestões de intervalo para tarefas.",
-          "advanced_predictions_visible": "Mostrar análise de degradação de sensores e gráficos de previsão de limiares.",
           "advanced_seasonal_visible": "Mostrar gráficos de fatores sazonais e dados de ajuste mensal.",
           "advanced_environmental_visible": "Mostrar ajustes de correlação ambiental (temperatura, humidade).",
           "advanced_budget_visible": "Mostrar acompanhamento de orçamento mensal/anual e alertas.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Ações Interativas",
+        "title": "Botões de ação móveis",
         "description": "Configure os botões de ação mostrados nas notificações móveis (requer Companion App).",
         "data": {
           "action_complete_enabled": "Mostrar botão 'Concluir'",

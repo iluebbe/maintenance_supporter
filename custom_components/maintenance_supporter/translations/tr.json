@@ -527,7 +527,7 @@
           "budget_settings": "Bütçe Ayarları",
           "manage_groups": "Grupları Yönet",
           "notification_settings": "Bildirim Ayarları",
-          "notification_actions": "Etkileşimli Eylemler",
+          "notification_actions": "Mobil Eylem Düğmeleri",
           "test_notification": "Test Bildirimi Gönder",
           "done": "Bitti",
           "home_profile": "Konut profili · Şablon galerisi",
@@ -541,7 +541,6 @@
         "description": "Arayüzde hangi gelişmiş özelliklerin gösterileceğini seçin. Bir özelliği devre dışı bırakmak onu arayüzden gizler ancak hiçbir veriyi silmez.",
         "data": {
           "advanced_adaptive_visible": "Uyarlanabilir Zamanlama",
-          "advanced_predictions_visible": "Sensör Tahminleri",
           "advanced_seasonal_visible": "Mevsimsel Ayarlamalar",
           "advanced_environmental_visible": "Çevresel Korelasyon",
           "advanced_budget_visible": "Bütçe Takibi",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "Görevler için EWA, Weibull analizi ve aralık önerilerini göster.",
-          "advanced_predictions_visible": "Sensör bozulma analizini ve eşik tahmin grafiklerini göster.",
           "advanced_seasonal_visible": "Mevsimsel faktör grafiklerini ve aylık ayarlama verilerini göster.",
           "advanced_environmental_visible": "Çevresel korelasyon (sıcaklık, nem) ayarlamalarını göster.",
           "advanced_budget_visible": "Aylık/yıllık bütçe takibini ve uyarıları göster.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Etkileşimli Eylemler",
+        "title": "Mobil Eylem Düğmeleri",
         "description": "Mobil bildirimlerde gösterilen eylem düğmelerini yapılandırın (Companion App gerektirir).",
         "data": {
           "action_complete_enabled": "'Tamamla' düğmesini göster",

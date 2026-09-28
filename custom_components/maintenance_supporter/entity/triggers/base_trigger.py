@@ -84,6 +84,14 @@ class BaseTrigger(ABC):
         """Get the task ID from the entity."""
         return self.entity._task_id
 
+    def _event_ids(self) -> dict[str, Any]:
+        """The task's ids for the trigger events — EXAMPLES.md tells
+        automations to deep-link with them (`?entry_id=…&task_id=…`), but
+        only the completed / skipped / reset events carried them (audit
+        2026-09-28)."""
+        entry = getattr(self._coordinator, "entry", None)
+        return {"entry_id": getattr(entry, "entry_id", None), "task_id": self._task_id}
+
     async def async_setup(self) -> None:
         """Set up the trigger: validate entity and register listener.
 
@@ -343,6 +351,7 @@ class BaseTrigger(ABC):
             EVENT_TRIGGER_ACTIVATED,
             {
                 "entity_id": self.entity.entity_id,
+                **self._event_ids(),
                 "trigger_entity": self.entity_id,
                 "trigger_attribute": self.attribute,
                 "trigger_value": value,
@@ -375,6 +384,7 @@ class BaseTrigger(ABC):
             EVENT_TRIGGER_DEACTIVATED,
             {
                 "entity_id": self.entity.entity_id,
+                **self._event_ids(),
                 "trigger_entity": self.entity_id,
                 "trigger_attribute": self.attribute,
                 "trigger_value": value,

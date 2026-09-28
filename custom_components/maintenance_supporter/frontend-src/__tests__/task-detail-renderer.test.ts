@@ -65,7 +65,7 @@ function ctx(overrides: Partial<TaskDetailContext> = {}): TaskDetailContext {
     moreMenuOpen: false,
     activeTab: "overview",
     features: {
-      adaptive: false, predictions: false, seasonal: false,
+      adaptive: false, seasonal: false,
       environmental: false, budget: false, groups: false,
       checklists: false, schedule_time: false, completion_actions: false,
     },
@@ -277,7 +277,7 @@ describe("task-detail renderer", () => {
       task({ checklist: ["Drain", "Clean", "Refill"], checklist_progress: { Clean: true } }),
       ctx({
         features: {
-          adaptive: false, predictions: false, seasonal: false,
+          adaptive: false, seasonal: false,
           environmental: false, budget: false, groups: false,
           checklists: true, schedule_time: false, completion_actions: false,
         },

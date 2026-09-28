@@ -527,7 +527,7 @@
           "budget_settings": "Impostazioni budget",
           "manage_groups": "Gestisci gruppi",
           "notification_settings": "Impostazioni notifiche",
-          "notification_actions": "Azioni interattive",
+          "notification_actions": "Pulsanti azione mobili",
           "test_notification": "Invia notifica di test",
           "done": "Fatto",
           "home_profile": "Profilo dell'abitazione · Galleria modelli",
@@ -541,7 +541,6 @@
         "description": "Scegli quali funzionalità avanzate mostrare nell'interfaccia. Disabilitare una funzionalità la nasconde dall'interfaccia ma non elimina alcun dato.",
         "data": {
           "advanced_adaptive_visible": "Pianificazione adattiva",
-          "advanced_predictions_visible": "Previsioni sensore",
           "advanced_seasonal_visible": "Regolazioni stagionali",
           "advanced_environmental_visible": "Correlazione ambientale",
           "advanced_budget_visible": "Monitoraggio budget",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "Mostra analisi EWA, Weibull e suggerimenti di intervallo per le attività.",
-          "advanced_predictions_visible": "Mostra analisi di degradazione sensore e grafici di previsione soglia.",
           "advanced_seasonal_visible": "Mostra grafici dei fattori stagionali e dati di regolazione mensile.",
           "advanced_environmental_visible": "Mostra regolazioni di correlazione ambientale (temperatura, umidità).",
           "advanced_budget_visible": "Mostra monitoraggio budget mensile/annuale e avvisi.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Azioni interattive",
+        "title": "Pulsanti azione mobili",
         "description": "Configura i pulsanti di azione mostrati sulle notifiche mobili (richiede l'app Companion).",
         "data": {
           "action_complete_enabled": "Mostra pulsante 'Completa'",

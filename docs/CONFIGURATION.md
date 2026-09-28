@@ -52,19 +52,18 @@ Accessible via **Settings > Devices & Services > Maintenance Supporter > Configu
 
 ### Advanced Feature Visibility
 
-These toggles control which advanced feature sections appear in the UI. Disabling a feature hides its configuration but does not delete existing data.
+These toggles control which advanced features the panel offers and shows — the options in the task dialog and the results in the task views alike. Disabling a feature hides it but does not delete existing data, and a task that already uses one keeps showing its configuration (an adaptive setup, an environmental sensor, a completion action) so what runs stays visible. Sensor predictions have no toggle (2.96+; the former `advanced_predictions_visible` never gated anything): they run for every sensor task with a threshold or counter trigger and are switched off per task in its adaptive settings.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `advanced_adaptive_visible` | bool | `false` | Show adaptive scheduling options per task |
-| `advanced_predictions_visible` | bool | `false` | Show sensor degradation prediction options |
-| `advanced_seasonal_visible` | bool | `false` | Show seasonal scheduling adjustment options |
-| `advanced_environmental_visible` | bool | `false` | Show environmental correlation options |
+| `advanced_adaptive_visible` | bool | `false` | Adaptive scheduling: the per-task section in the task dialog, the *was it needed?* question when completing, recommendations and the interval analysis |
+| `advanced_seasonal_visible` | bool | `false` | Seasonal adjustment: its option in the adaptive section and the seasonal cards |
+| `advanced_environmental_visible` | bool | `false` | Environmental correlation: the environmental sensor field of sensor tasks and the environmental factor |
 | `advanced_budget_visible` | bool | `false` | Show budget tracking settings and dashboard |
 | `advanced_groups_visible` | bool | `false` | Show task grouping management section in the panel with create / edit / delete controls |
 | `advanced_checklists_visible` | bool | `false` | Show checklist editing per task |
 | `advanced_schedule_time_visible` | bool | `false` | Expose the `schedule_time` (HH:MM) field on every date-driven task (interval, calendar kinds, one-time). When off, the coordinator strips stored times before computing status so tasks revert to midnight semantics (but retain the stored value for re-enable) |
-| `advanced_completion_actions_visible` | bool | `false` | (1.3.0+) Expose the `on_complete_action` (HA service-call) and `quick_complete_defaults` sections in the task dialog, plus the new `quick_complete` QR action. When off, existing values stay persisted but the UI hides them — beginners aren't confronted with service-call YAML |
+| `advanced_completion_actions_visible` | bool | `false` | (1.3.0+) Expose the `on_complete_action` (HA service-call) and `quick_complete_defaults` sections in the task dialog, plus the new `quick_complete` QR action. When off, the dialog hides both sections for new tasks — beginners aren't confronted with service-call YAML — but a task that already has an action (a counter reset wired by Suggested setups, 2.95+) still shows it; stored quick-complete defaults stay persisted |
 
 > **Operator mode (read-only end-user view, 1.0.44+)** is not a global flag — it's derived from the HA user role plus an explicit per-user override list:
 >

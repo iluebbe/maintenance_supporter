@@ -25,7 +25,6 @@ from ..const import (
     CONF_ADVANCED_COMPLETION_ACTIONS,
     CONF_ADVANCED_ENVIRONMENTAL,
     CONF_ADVANCED_GROUPS,
-    CONF_ADVANCED_PREDICTIONS,
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
     CONF_ARCHIVE_ONEOFF_DAYS,
@@ -208,7 +207,6 @@ def _build_full_settings(
     return {
         "features": {
             "adaptive": _opt(options, CONF_ADVANCED_ADAPTIVE),
-            "predictions": _opt(options, CONF_ADVANCED_PREDICTIONS),
             "seasonal": _opt(options, CONF_ADVANCED_SEASONAL),
             "environmental": _opt(options, CONF_ADVANCED_ENVIRONMENTAL),
             "budget": _opt(options, CONF_ADVANCED_BUDGET),

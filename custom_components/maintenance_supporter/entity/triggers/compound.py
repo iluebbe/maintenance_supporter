@@ -326,6 +326,7 @@ class CompoundTrigger(BaseTrigger):
             EVENT_TRIGGER_ACTIVATED,
             {
                 "entity_id": self.entity.entity_id,
+                **self._event_ids(),
                 "trigger_type": "compound",
                 "compound_logic": self._compound_logic,
                 "condition_states": list(self._condition_states),
@@ -350,6 +351,7 @@ class CompoundTrigger(BaseTrigger):
             EVENT_TRIGGER_DEACTIVATED,
             {
                 "entity_id": self.entity.entity_id,
+                **self._event_ids(),
                 "trigger_type": "compound",
                 "compound_logic": self._compound_logic,
                 "condition_states": list(self._condition_states),

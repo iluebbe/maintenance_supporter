@@ -527,7 +527,7 @@
           "budget_settings": "Budget Settings",
           "manage_groups": "Manage Groups",
           "notification_settings": "Notification Settings",
-          "notification_actions": "Interactive Actions",
+          "notification_actions": "Mobile Action Buttons",
           "test_notification": "Send Test Notification",
           "done": "Done",
           "home_profile": "Home profile · Template gallery",
@@ -541,7 +541,6 @@
         "description": "Choose which advanced features to show in the UI. Disabling a feature hides it from the interface but does not delete any data.",
         "data": {
           "advanced_adaptive_visible": "Adaptive Scheduling",
-          "advanced_predictions_visible": "Sensor Predictions",
           "advanced_seasonal_visible": "Seasonal Adjustments",
           "advanced_environmental_visible": "Environmental Correlation",
           "advanced_budget_visible": "Budget Tracking",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "Show EWA, Weibull analysis, and interval suggestions for tasks.",
-          "advanced_predictions_visible": "Show sensor degradation analysis and threshold prediction charts.",
           "advanced_seasonal_visible": "Show seasonal factor charts and monthly adjustment data.",
           "advanced_environmental_visible": "Show environmental correlation (temperature, humidity) adjustments.",
           "advanced_budget_visible": "Show monthly/yearly budget tracking and alerts.",
@@ -676,7 +674,7 @@
         }
       },
       "notification_actions": {
-        "title": "Interactive Actions",
+        "title": "Mobile Action Buttons",
         "description": "Configure action buttons shown on mobile notifications (requires Companion App).",
         "data": {
           "action_complete_enabled": "Show 'Complete' button",

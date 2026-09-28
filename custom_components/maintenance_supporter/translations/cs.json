@@ -527,7 +527,7 @@
           "budget_settings": "Nastavení rozpočtu",
           "manage_groups": "Spravovat skupiny",
           "notification_settings": "Nastavení oznámení",
-          "notification_actions": "Interaktivní akce",
+          "notification_actions": "Mobilní akční tlačítka",
           "test_notification": "Odeslat testovací oznámení",
           "done": "Hotovo",
           "home_profile": "Profil bydlení · Galerie šablon",
@@ -541,7 +541,6 @@
         "description": "Vyberte, které pokročilé funkce mají být zobrazeny v rozhraní. Zakázáním funkce ji skryjete z rozhraní, ale neodstraní žádná data.",
         "data": {
           "advanced_adaptive_visible": "Adaptivní plánování",
-          "advanced_predictions_visible": "Predikce senzorů",
           "advanced_seasonal_visible": "Sezónní úpravy",
           "advanced_environmental_visible": "Environmentální korelace",
           "advanced_budget_visible": "Sledování rozpočtu",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "Zobrazit EWA, analýzu Weibulla a návrhy intervalů pro úkoly.",
-          "advanced_predictions_visible": "Zobrazit analýzu degradace senzorů a grafy predikce prahů.",
           "advanced_seasonal_visible": "Zobrazit grafy sezónních faktorů a měsíční korekční data.",
           "advanced_environmental_visible": "Zobrazit korekce na základě environmentální korelace (teplota, vlhkost).",
           "advanced_budget_visible": "Zobrazit sledování měsíčního/ročního rozpočtu a upozornění.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Interaktivní akce",
+        "title": "Mobilní akční tlačítka",
         "description": "Nakonfigurujte tlačítka akcí zobrazená v mobilních oznámeních (vyžaduje aplikaci Companion).",
         "data": {
           "action_complete_enabled": "Zobrazit tlačítko „Dokončit“",

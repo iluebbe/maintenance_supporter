@@ -256,7 +256,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _groups: Record<string, MaintenanceGroup> = {};
   @state() private _detailStatsData: Map<string, StatisticsPoint[]> = new Map();
   @state() private _miniStatsData: Map<string, StatisticsPoint[]> = new Map();
-  @state() private _features: AdvancedFeatures = { adaptive: false, predictions: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false, schedule_time: false, completion_actions: false };
+  @state() private _features: AdvancedFeatures = { adaptive: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false, schedule_time: false, completion_actions: false };
   // HA user IDs (UUIDs) granted full panel access despite not being HA admins.
   @state() private _adminPanelUserIds: string[] = [];
   // v2.8.4: master switch — the allowlist only grants the full panel when this
@@ -2997,6 +2997,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         .checklistsEnabled=${this._features.checklists}
         .scheduleTimeEnabled=${this._features.schedule_time}
         .completionActionsEnabled=${this._features.completion_actions}
+        .adaptiveFeature=${this._features.adaptive}
+        .seasonalFeature=${this._features.seasonal}
+        .environmentalFeature=${this._features.environmental}
         .defaultWarningDays=${this._defaultWarningDays}
         @task-saved=${this._onDialogEvent}
       ></maintenance-task-dialog>

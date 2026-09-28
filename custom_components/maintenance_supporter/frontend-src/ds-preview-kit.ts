@@ -118,7 +118,7 @@ const BATTERY_ROSTER = [
 
 const SETTINGS = {
   features: {
-    adaptive: true, predictions: true, seasonal: true, environmental: false,
+    adaptive: true, seasonal: true, environmental: false,
     budget: true, groups: true, checklists: true, schedule_time: true,
     completion_actions: true,
   },

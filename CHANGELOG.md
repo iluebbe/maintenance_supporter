@@ -2,6 +2,32 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Saving a task dropped most of its completion action's target:** the task dialog edits one target entity, but an
+  action set up through the API, an import or YAML can target several entities, devices, areas, labels or floors. The
+  dialog rebuilt the target from its one field on every save — renaming the task was enough to lose the rest. An
+  untouched field now sends the stored target back unchanged, and the dialog names everything it keeps; picking
+  another entity replaces the target, as the hint says.
+- **Trigger events without the task's ids:** `maintenance_supporter_trigger_activated` / `_deactivated` carried only
+  the maintenance sensor, although the automation recipes build a deep link from `entry_id` and `task_id` — the link
+  came out empty. Both events (and the compound trigger's) now carry both ids.
+- **Adaptive options without their results:** with *Adaptive Scheduling* off in Advanced Features, the task dialog
+  still let you switch adaptive scheduling on for a task — while the *was it needed?* question and every
+  recommendation stayed hidden. The dialog now offers adaptive scheduling, the seasonal option and the environmental
+  sensor only with their feature on; a task that already uses one keeps showing it.
+- **"Sensor Predictions" did nothing:** the Advanced Features switch was never read — predictions run for every
+  sensor task with a threshold or counter trigger either way (and are switched off per task in its adaptive
+  settings). The switch is gone from the panel and the Configure dialog; a stored value is ignored.
+- **The notification title style could only be set in the Configure dialog:** it is now in the panel's notification
+  settings too, and a test fails when a setting reaches only one of the two places (before, only the panel → Configure
+  direction was checked).
+- **"Interactive Actions" and "Mobile Action Buttons" were the same page:** the Configure dialog now uses the panel's
+  name. The getting-started guide, the examples and troubleshooting say that the buttons are off until you switch
+  them on.
+
 ## [2.95.0] - 2026-09-28
 
 ### ✨ Added

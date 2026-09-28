@@ -527,7 +527,7 @@
           "budget_settings": "予算設定",
           "manage_groups": "グループを管理",
           "notification_settings": "通知設定",
-          "notification_actions": "インタラクティブなアクション",
+          "notification_actions": "モバイル操作ボタン",
           "test_notification": "テスト通知を送信",
           "done": "完了",
           "home_profile": "住まいのプロフィール · テンプレートギャラリー",
@@ -541,7 +541,6 @@
         "description": "UI に表示する高度な機能を選択してください。機能を無効にするとインターフェースから非表示になりますが、データは削除されません。",
         "data": {
           "advanced_adaptive_visible": "適応スケジューリング",
-          "advanced_predictions_visible": "センサー予測",
           "advanced_seasonal_visible": "季節調整",
           "advanced_environmental_visible": "環境相関",
           "advanced_budget_visible": "予算追跡",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "タスクの EWA、ワイブル分析、間隔の提案を表示します。",
-          "advanced_predictions_visible": "センサーの劣化分析としきい値予測チャートを表示します。",
           "advanced_seasonal_visible": "季節要因チャートと月次調整データを表示します。",
           "advanced_environmental_visible": "環境相関 (温度、湿度) の調整を表示します。",
           "advanced_budget_visible": "月次/年次の予算追跡とアラートを表示します。",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "インタラクティブなアクション",
+        "title": "モバイル操作ボタン",
         "description": "モバイル通知に表示されるアクションボタンを構成します (コンパニオンアプリが必要)。",
         "data": {
           "action_complete_enabled": "「完了」ボタンを表示",

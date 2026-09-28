@@ -11,7 +11,7 @@ import "../components/task-dialog.js";
 import type { MaintenanceTaskDialog } from "../components/task-dialog";
 import { type SentMessage, createMockHass } from "./_test-utils.js";
 
-async function mountDialog(): Promise<{ el: MaintenanceTaskDialog; sent: SentMessage[] }> {
+async function mountDialog(adaptiveFeature = true): Promise<{ el: MaintenanceTaskDialog; sent: SentMessage[] }> {
   const { hass, sent } = createMockHass({
     handlers: {
       "maintenance_supporter/task/create": () => ({ task_id: "new1" }),
@@ -28,10 +28,15 @@ async function mountDialog(): Promise<{ el: MaintenanceTaskDialog; sent: SentMes
     },
   });
   const el = await fixture<MaintenanceTaskDialog>(html`
-    <maintenance-task-dialog .hass=${hass}></maintenance-task-dialog>
+    <maintenance-task-dialog .hass=${hass} ?adaptive-feature=${adaptiveFeature}></maintenance-task-dialog>
   `);
   await el.updateComplete;
   return { el, sent };
+}
+
+function adaptiveSectionShown(el: MaintenanceTaskDialog): boolean {
+  return [...el.shadowRoot!.querySelectorAll("details.adaptive-section summary")]
+    .some((s) => /adaptive/i.test(s.textContent || ""));
 }
 
 describe("task-dialog adaptive section (flow parity)", () => {
@@ -48,6 +53,25 @@ describe("task-dialog adaptive section (flow parity)", () => {
     const labels = [...el.shadowRoot!.querySelectorAll("ms-textfield")].map((n) => n.getAttribute("label") || "");
     expect(labels.some((l) => /minimum interval/i.test(l)), "min field").to.be.true;
     expect(labels.some((l) => /learning rate/i.test(l)), "alpha field").to.be.true;
+  });
+
+  it("is not offered while the Adaptive feature is off (its results would stay hidden)", async () => {
+    const { el } = await mountDialog(false);
+    await el.openCreate("e");
+    (el as any)._scheduleType = "time_based";
+    await el.updateComplete;
+    expect(adaptiveSectionShown(el)).to.be.false;
+  });
+
+  it("stays reachable for a task that already adapts, feature off or not", async () => {
+    const { el } = await mountDialog(false);
+    await el.openEdit("e", {
+      id: "t1", name: "Descale", type: "cleaning", schedule_type: "time_based",
+      interval_days: 30, warning_days: 7, enabled: true,
+      adaptive_config: { enabled: true, ewa_alpha: 0.3, min_interval_days: 7, max_interval_days: 90 },
+    } as any);
+    await el.updateComplete;
+    expect(adaptiveSectionShown(el)).to.be.true;
   });
 
   it("is hidden for one-time and manual tasks (nothing to adapt)", async () => {

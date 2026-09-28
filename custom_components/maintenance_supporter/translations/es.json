@@ -527,7 +527,7 @@
           "budget_settings": "Configuración de presupuesto",
           "manage_groups": "Gestionar grupos",
           "notification_settings": "Configuración de notificaciones",
-          "notification_actions": "Acciones interactivas",
+          "notification_actions": "Botones de acción móviles",
           "test_notification": "Enviar notificación de prueba",
           "done": "Listo",
           "home_profile": "Perfil de la vivienda · Galería de plantillas",
@@ -541,7 +541,6 @@
         "description": "Elija qué funciones avanzadas mostrar en la interfaz. Desactivar una función la oculta de la interfaz pero no elimina ningún dato.",
         "data": {
           "advanced_adaptive_visible": "Programación adaptativa",
-          "advanced_predictions_visible": "Predicciones de sensor",
           "advanced_seasonal_visible": "Ajustes estacionales",
           "advanced_environmental_visible": "Correlación ambiental",
           "advanced_budget_visible": "Seguimiento de presupuesto",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "Mostrar análisis EWA, Weibull y sugerencias de intervalo para las tareas.",
-          "advanced_predictions_visible": "Mostrar análisis de degradación de sensor y gráficos de predicción de umbral.",
           "advanced_seasonal_visible": "Mostrar gráficos de factores estacionales y datos de ajuste mensual.",
           "advanced_environmental_visible": "Mostrar ajustes de correlación ambiental (temperatura, humedad).",
           "advanced_budget_visible": "Mostrar seguimiento de presupuesto mensual/anual y alertas.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Acciones interactivas",
+        "title": "Botones de acción móviles",
         "description": "Configure los botones de acción mostrados en las notificaciones móviles (requiere la aplicación Companion).",
         "data": {
           "action_complete_enabled": "Mostrar botón 'Completar'",

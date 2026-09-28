@@ -33,7 +33,7 @@ Fix: **hard-reload the browser** (`Ctrl+Shift+F5` or `Cmd+Shift+R` on macOS). Th
 
 ### Mobile Action Buttons Missing
 
-1. Enable action buttons in **Notification Actions** settings (`action_complete_enabled`, etc.)
+1. Switch the buttons on — they are off by default: panel *Settings → Notifications → Mobile Action Buttons*, or the Configure dialog's page of the same name (`action_complete_enabled`, etc.)
 2. Verify you are using the HA Companion App (action buttons require the mobile app notification platform)
 
 ### Repair Notice: Device Link Lost / Linked to Its Own Device

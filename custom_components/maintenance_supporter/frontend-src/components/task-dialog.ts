@@ -184,6 +184,13 @@ export class MaintenanceTaskDialog extends LitElement {
   @property({ type: Boolean, attribute: "checklists-enabled" }) public checklistsEnabled = false;
   @property({ type: Boolean, attribute: "schedule-time-enabled" }) public scheduleTimeEnabled = false;
   @property({ type: Boolean, attribute: "completion-actions-enabled" }) public completionActionsEnabled = false;
+  /** Advanced features (Settings → Advanced Features): the dialog offers what
+   *  the panel then shows — with Adaptive off it let you switch adaptive
+   *  scheduling on while the feedback question and every result stayed
+   *  hidden (audit 2026-09-28). What a task already has stays visible. */
+  @property({ type: Boolean, attribute: "adaptive-feature" }) public adaptiveFeature = false;
+  @property({ type: Boolean, attribute: "seasonal-feature" }) public seasonalFeature = false;
+  @property({ type: Boolean, attribute: "environmental-feature" }) public environmentalFeature = false;
   @property({ type: Number, attribute: "default-warning-days" }) public defaultWarningDays = 7;
   /** The object's spare parts — offered as "consumes parts" checkboxes. */
   @state() private parts: Array<{ id: string; name: string; unit?: string }> = [];
@@ -366,6 +373,13 @@ export class MaintenanceTaskDialog extends LitElement {
   // so ha-form can drive the data fields when the service schema is known.
   @state() private _actionService = "";
   @state() private _actionTargetEntity = "";
+  /** The stored target as it came, and the entity the field started with.
+   *  The field edits one entity, but the API and imports accept several
+   *  entities, devices, areas, labels and floors — rebuilding the target
+   *  from the field dropped them on every save, a rename included (audit
+   *  2026-09-28). An untouched field sends the stored target back verbatim. */
+  private _actionTargetStored: Record<string, unknown> | null = null;
+  private _actionTargetInitial = "";
   /** 2.95: not when the task completes itself (a reset wired by discovery). */
   @state() private _actionSkipAuto = false;
   /** 2.95: the task already has an action (suggested setups wire counter
@@ -398,6 +412,9 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _adaptiveSeasonal = true;
   @state() private _adaptivePrediction = true;
   private _adaptiveInitial = "";
+  /** The task had adaptive scheduling on when the dialog opened — its
+   *  section stays reachable even with the Adaptive feature off. */
+  private _adaptiveWasEnabled = false;
 
   private _adaptiveSnapshot(): string {
     return JSON.stringify([
@@ -544,6 +561,10 @@ export class MaintenanceTaskDialog extends LitElement {
       this._actionService = oca.service;
       const tgt = oca.target?.entity_id;
       this._actionTargetEntity = Array.isArray(tgt) ? (tgt[0] || "") : (tgt || "");
+      this._actionTargetStored = oca.target && typeof oca.target === "object"
+        ? JSON.parse(JSON.stringify(oca.target)) as Record<string, unknown>
+        : null;
+      this._actionTargetInitial = this._actionTargetEntity;
       this._actionData = (oca.data && typeof oca.data === "object") ? { ...oca.data } : {};
       this._actionDataJsonFallback = "";
       this._actionSkipAuto = oca.skip_auto === true;
@@ -551,6 +572,8 @@ export class MaintenanceTaskDialog extends LitElement {
     } else {
       this._actionService = "";
       this._actionTargetEntity = "";
+      this._actionTargetStored = null;
+      this._actionTargetInitial = "";
       this._actionData = {};
       this._actionDataJsonFallback = "";
       this._actionSkipAuto = false;
@@ -574,6 +597,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._adaptiveSeasonal = ac.seasonal_enabled !== false;
     this._adaptivePrediction = ac.sensor_prediction_enabled !== false;
     this._adaptiveInitial = this._adaptiveSnapshot();
+    this._adaptiveWasEnabled = this._adaptiveEnabled;
 
     if (task.trigger_config) {
       const tc = task.trigger_config;
@@ -668,9 +692,12 @@ export class MaintenanceTaskDialog extends LitElement {
     this._adaptiveSeasonal = true;
     this._adaptivePrediction = true;
     this._adaptiveInitial = this._adaptiveSnapshot();
+    this._adaptiveWasEnabled = false;
     // v1.3.0
     this._actionService = "";
     this._actionTargetEntity = "";
+    this._actionTargetStored = null;
+    this._actionTargetInitial = "";
     this._actionData = {};
     this._actionDataJsonFallback = "";
     this._actionSkipAuto = false;
@@ -868,6 +895,34 @@ export class MaintenanceTaskDialog extends LitElement {
     }));
   }
 
+  /** The stored target reaches beyond the one entity the field shows. */
+  private _actionTargetExtended(): boolean {
+    const st = this._actionTargetStored;
+    if (!st) return false;
+    return Object.entries(st).some(([key, v]) =>
+      key === "entity_id" ? Array.isArray(v) && v.length > 1 : Array.isArray(v) ? v.length > 0 : !!v);
+  }
+
+  /** Names of everything the stored target points at, for the hint. */
+  private _actionTargetSummary(): string {
+    const st = this._actionTargetStored || {};
+    const ids = (v: unknown): string[] =>
+      (Array.isArray(v) ? v : [v]).filter((s): s is string => typeof s === "string" && !!s);
+    const h = this.hass as unknown as {
+      states?: Record<string, { attributes?: { friendly_name?: string } }>;
+      devices?: Record<string, { name_by_user?: string | null; name?: string | null }>;
+      areas?: Record<string, { name?: string }>;
+      floors?: Record<string, { name?: string }>;
+    };
+    return [
+      ...ids(st.entity_id).map((id) => h.states?.[id]?.attributes?.friendly_name || id),
+      ...ids(st.device_id).map((id) => h.devices?.[id]?.name_by_user || h.devices?.[id]?.name || id),
+      ...ids(st.area_id).map((id) => h.areas?.[id]?.name || id),
+      ...ids(st.floor_id).map((id) => h.floors?.[id]?.name || id),
+      ...ids(st.label_id),
+    ].join(", ");
+  }
+
   private _renderCompletionActionsSection(L: string) {
     if (!this.completionActionsEnabled && !this._actionPresent) return nothing;
     const schema = this._serviceSchema();
@@ -903,6 +958,9 @@ export class MaintenanceTaskDialog extends LitElement {
             this._actionTargetEntity = v.target_entity || "";
           }}
         ></ha-form>
+        ${this._actionTargetExtended() && this._actionTargetEntity.trim() === this._actionTargetInitial
+          ? html`<p class="field-help ca-target-more">${t("on_complete_action_target_more", L).replace("{targets}", this._actionTargetSummary())}</p>`
+          : nothing}
         <p class="field-help ca-domain-hint">
           ${t("on_complete_action_target_hint", L)}
         </p>
@@ -1692,7 +1750,11 @@ export class MaintenanceTaskDialog extends LitElement {
       if (svc && /^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(svc)) {
         const action: Record<string, unknown> = { service: svc };
         const tgt = this._actionTargetEntity.trim();
-        if (tgt) action.target = { entity_id: tgt };
+        if (this._actionTargetStored && tgt === this._actionTargetInitial) {
+          action.target = JSON.parse(JSON.stringify(this._actionTargetStored));
+        } else if (tgt) {
+          action.target = { entity_id: tgt };
+        }
         const dataDict = this._buildActionData();
         if (Object.keys(dataDict).length > 0) {
           action.data = dataDict;
@@ -1990,6 +2052,7 @@ export class MaintenanceTaskDialog extends LitElement {
    *  adapt. Collapsed unless adaptive is already enabled. */
   private _renderAdaptiveSection(L: string) {
     if (this._scheduleType === "one_time" || this._scheduleType === "manual") return nothing;
+    if (!this.adaptiveFeature && !this._adaptiveWasEnabled) return nothing;
     return html`
       <details class="adaptive-section" ?open=${this._adaptiveEnabled}>
         <summary>${t("adaptive_section_title", L)}</summary>
@@ -2025,14 +2088,14 @@ export class MaintenanceTaskDialog extends LitElement {
             .value=${this._adaptiveAlpha}
             @input=${(e: Event) => (this._adaptiveAlpha = (e.target as HTMLInputElement).value)}
           ></ms-textfield>
-          <label>
+          ${this.seasonalFeature ? html`<label>
             <input
               type="checkbox"
               .checked=${this._adaptiveSeasonal}
               @change=${(e: Event) => (this._adaptiveSeasonal = (e.target as HTMLInputElement).checked)}
             />
             ${t("adaptive_seasonal_enabled", L)}
-          </label>
+          </label>` : nothing}
           <label>
             <input
               type="checkbox"
@@ -3086,7 +3149,7 @@ export class MaintenanceTaskDialog extends LitElement {
               </div>` : nothing}
           ` : nothing}
           ${this._renderTriggerFields()}
-          ${this._scheduleType === "sensor_based" ? html`
+          ${this._scheduleType === "sensor_based" && (this.environmentalFeature || this._environmentalInitial) ? html`
             ${this._entityPickerFallback ? html`
               <ms-textfield
                 label="${t("environmental_entity_optional", L)}"

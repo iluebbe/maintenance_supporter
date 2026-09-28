@@ -97,6 +97,8 @@ describe("task-dialog entity pickers (#129)", () => {
 
   it("environmental field is a single picker mirroring the adaptive options filter", async () => {
     const el = await mountSensorBased();
+    el.environmentalFeature = true;
+    await el.updateComplete;
     const form = formByField(el, "environmental_entity")!;
     expect(form, "environmental picker rendered").to.exist;
     const sel = form.schema[0].selector as { entity: { domain: string[]; device_class: string[] } };

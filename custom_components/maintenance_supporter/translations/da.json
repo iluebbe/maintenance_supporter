@@ -527,7 +527,7 @@
           "budget_settings": "Budgetindstillinger",
           "manage_groups": "Administrer grupper",
           "notification_settings": "Notifikationsindstillinger",
-          "notification_actions": "Interaktive handlinger",
+          "notification_actions": "Mobile handlingsknapper",
           "test_notification": "Send testnotifikation",
           "done": "Færdig",
           "home_profile": "Boligprofil · Skabelongalleri",
@@ -541,7 +541,6 @@
         "description": "Vælg hvilke avancerede funktioner der skal vises i brugerfladen. Deaktivering af en funktion skjuler den fra grænsefladen, men sletter ingen data.",
         "data": {
           "advanced_adaptive_visible": "Adaptiv planlægning",
-          "advanced_predictions_visible": "Sensorforudsigelser",
           "advanced_seasonal_visible": "Sæsonbestemte justeringer",
           "advanced_environmental_visible": "Miljømæssig korrelation",
           "advanced_budget_visible": "Budgetsporing",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "Vis EWA, Weibull-analyse og intervalforslag for opgaver.",
-          "advanced_predictions_visible": "Vis analyse af sensornedbrydning og diagrammer for tærskelforudsigelse.",
           "advanced_seasonal_visible": "Vis diagrammer for sæsonfaktorer og data for månedlige justeringer.",
           "advanced_environmental_visible": "Vis miljømæssige korrelationsjusteringer (temperatur, luftfugtighed).",
           "advanced_budget_visible": "Vis månedlig/årlig budgetsporing og advarsler.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Interaktive handlinger",
+        "title": "Mobile handlingsknapper",
         "description": "Konfigurer handlingsknapper, der vises på mobilnotifikationer (kræver Companion-appen).",
         "data": {
           "action_complete_enabled": "Vis 'Fuldfør'-knap",

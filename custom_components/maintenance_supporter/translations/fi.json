@@ -527,7 +527,7 @@
           "budget_settings": "Budjettiasetukset",
           "manage_groups": "Hallitse ryhmiä",
           "notification_settings": "Ilmoitusasetukset",
-          "notification_actions": "Interaktiiviset toiminnot",
+          "notification_actions": "Mobiilitoimintopainikkeet",
           "test_notification": "Lähetä testi-ilmoitus",
           "done": "Valmis",
           "home_profile": "Kodin profiili · Mallipohjagalleria",
@@ -541,7 +541,6 @@
         "description": "Valitse, mitkä lisäominaisuudet näytetään käyttöliittymässä. Ominaisuuden poistaminen käytöstä piilottaa sen käyttöliittymästä, mutta ei poista mitään tietoja.",
         "data": {
           "advanced_adaptive_visible": "Mukautuva aikataulutus",
-          "advanced_predictions_visible": "Anturiennusteet",
           "advanced_seasonal_visible": "Kausittaiset säädöt",
           "advanced_environmental_visible": "Ympäristökorrelaatio",
           "advanced_budget_visible": "Budjetin seuranta",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "Näytä EWA-, Weibull-analyysi ja aikaväliehdotukset tehtäville.",
-          "advanced_predictions_visible": "Näytä anturin heikkenemisanalyysi ja kynnysarvon ennustekaaviot.",
           "advanced_seasonal_visible": "Näytä kausikerroinkaaviot ja kuukausittaiset säätötiedot.",
           "advanced_environmental_visible": "Näytä ympäristökorrelaation (lämpötila, kosteus) säädöt.",
           "advanced_budget_visible": "Näytä kuukausittainen/vuosittainen budjetin seuranta ja hälytykset.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Interaktiiviset toiminnot",
+        "title": "Mobiilitoimintopainikkeet",
         "description": "Määritä mobiili-ilmoituksissa näytettävät toimintopainikkeet (vaatii Companion-sovelluksen).",
         "data": {
           "action_complete_enabled": "Näytä 'Valmis'-painike",

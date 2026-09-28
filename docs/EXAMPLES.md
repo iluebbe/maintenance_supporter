@@ -92,9 +92,9 @@ Condition-based tasks (threshold / runtime / count) fire
 crosses its limit, and `maintenance_supporter_trigger_deactivated` when it
 recovers — independent of the notification settings:
 
-The payload carries the maintenance sensor (`entity_id`), the watched entity
-(`trigger_entity`), the crossing value (`trigger_value`) and the
-`trigger_type`:
+The payload carries the maintenance sensor (`entity_id`), the task's
+`entry_id` and `task_id` (2.96+), the watched entity (`trigger_entity`), the
+crossing value (`trigger_value`) and the `trigger_type`:
 
 ```yaml
 automation:
@@ -493,7 +493,7 @@ automation:
           message: "Maintenance action processed: {{ trigger.event.data.action }}"
 ```
 
-> **Note:** Mobile notification actions (Complete, Skip, Snooze) are handled automatically by the integration when enabled in Notification Actions settings. The automation above is only needed for custom follow-up actions.
+> **Note:** Mobile notification actions (Complete, Skip, Snooze) are handled automatically by the integration once switched on in *Settings → Notifications → Mobile Action Buttons* (off by default; the Configure dialog has the same page). The automation above is only needed for custom follow-up actions.
 
 ### Lovelace Card
 

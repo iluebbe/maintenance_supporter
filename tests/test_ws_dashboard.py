@@ -20,7 +20,6 @@ from custom_components.maintenance_supporter.const import (
     CONF_ADVANCED_CHECKLISTS,
     CONF_ADVANCED_ENVIRONMENTAL,
     CONF_ADVANCED_GROUPS,
-    CONF_ADVANCED_PREDICTIONS,
     CONF_ADVANCED_SEASONAL,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_MONTHLY,
@@ -95,7 +94,6 @@ def global_entry_with_features(hass: HomeAssistant) -> MockConfigEntry:
         options={
             **data,
             CONF_ADVANCED_ADAPTIVE: True,
-            CONF_ADVANCED_PREDICTIONS: True,
             CONF_ADVANCED_SEASONAL: True,
             CONF_ADVANCED_ENVIRONMENTAL: False,
             CONF_ADVANCED_BUDGET: True,
@@ -213,7 +211,8 @@ async def test_get_settings_default(
     result = conn.send_result.call_args[0][1]
     features = result["features"]
     assert features["adaptive"] is False
-    assert features["predictions"] is False
+    # 2.96: the no-op predictions switch is gone (audit 2026-09-28).
+    assert "predictions" not in features
     assert features["budget"] is False
     assert features["groups"] is False
 
@@ -239,7 +238,6 @@ async def test_get_settings_with_features(
     result = conn.send_result.call_args[0][1]
     features = result["features"]
     assert features["adaptive"] is True
-    assert features["predictions"] is True
     assert features["seasonal"] is True
     assert features["environmental"] is False
     assert features["budget"] is True
@@ -348,7 +346,6 @@ async def test_get_settings_no_global_entry(
     # No global entry → _build_full_settings({}) returns all defaults (all False)
     assert result["features"] == {
         "adaptive": False,
-        "predictions": False,
         "seasonal": False,
         "environmental": False,
         "budget": False,

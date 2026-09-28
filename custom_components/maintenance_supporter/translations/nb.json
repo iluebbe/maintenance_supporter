@@ -527,7 +527,7 @@
           "budget_settings": "Budsjettinnstillinger",
           "manage_groups": "Administrer grupper",
           "notification_settings": "Varslingsinnstillinger",
-          "notification_actions": "Interaktive handlinger",
+          "notification_actions": "Handlingsknapper på mobil",
           "test_notification": "Send testvarsel",
           "done": "Ferdig",
           "home_profile": "Boligprofil · Malgalleri",
@@ -541,7 +541,6 @@
         "description": "Velg hvilke avanserte funksjoner som skal vises i grensesnittet. Å deaktivere en funksjon skjuler den fra grensesnittet, men sletter ingen data.",
         "data": {
           "advanced_adaptive_visible": "Adaptiv planlegging",
-          "advanced_predictions_visible": "Sensorprognoser",
           "advanced_seasonal_visible": "Sesongjusteringer",
           "advanced_environmental_visible": "Miljøkorrelasjon",
           "advanced_budget_visible": "Budsjettsporing",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "Vis EWA, Weibull-analyse og intervallforslag for oppgaver.",
-          "advanced_predictions_visible": "Vis analyse av sensordegradering og diagrammer for terskelprognose.",
           "advanced_seasonal_visible": "Vis diagrammer over sesongfaktorer og månedlige justeringsdata.",
           "advanced_environmental_visible": "Vis miljøkorrelasjonsjusteringer (temperatur, luftfuktighet).",
           "advanced_budget_visible": "Vis månedlig/årlig budsjettsporing og varsler.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Interaktive handlinger",
+        "title": "Handlingsknapper på mobil",
         "description": "Konfigurer handlingsknapper som vises på mobilvarsler (krever Companion-appen).",
         "data": {
           "action_complete_enabled": "Vis «Fullfør»-knapp",

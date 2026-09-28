@@ -48,8 +48,10 @@ async function fireAndWait(detail: unknown): Promise<HTMLElement | null> {
   document.dispatchEvent(
     new CustomEvent("ll-custom", { detail, bubbles: true, composed: true }),
   );
-  // handler imports dialog-mount.ts dynamically, then mounts the dialog
-  for (let i = 0; i < 40; i++) {
+  // handler imports dialog-mount.ts dynamically, then mounts the dialog — the
+  // first import compiles the whole dialog tree, which took over the old 1 s
+  // budget on a cold transform cache (failed three runs in a row, 2026-09-28)
+  for (let i = 0; i < 200; i++) {
     const dlg = document.body.querySelector<HTMLElement>(OBJECT_DIALOG_TAG);
     if (dlg) return dlg;
     await tick(25);

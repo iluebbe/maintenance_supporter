@@ -148,7 +148,9 @@ THRESHOLD_PERCENT_RANGE: tuple[int, int] = (1, 90)
 
 # --- Config Keys: Advanced Feature Visibility ---
 CONF_ADVANCED_ADAPTIVE = "advanced_adaptive_visible"
-CONF_ADVANCED_PREDICTIONS = "advanced_predictions_visible"
+# advanced_predictions_visible was removed in 2.96 (audit 2026-09-28): it never
+# gated anything — sensor predictions are on for every sensor task and switched
+# off per task (adaptive_config.sensor_prediction_enabled). Stored values are ignored.
 CONF_ADVANCED_SEASONAL = "advanced_seasonal_visible"
 CONF_ADVANCED_ENVIRONMENTAL = "advanced_environmental_visible"
 CONF_ADVANCED_BUDGET = "advanced_budget_visible"

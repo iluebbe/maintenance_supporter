@@ -527,7 +527,7 @@
           "budget_settings": "Budgetinställningar",
           "manage_groups": "Hantera grupper",
           "notification_settings": "Aviseringsinställningar",
-          "notification_actions": "Interaktiva åtgärder",
+          "notification_actions": "Mobila åtgärdsknappar",
           "test_notification": "Skicka testavisering",
           "done": "Klar",
           "home_profile": "Bostadsprofil · Mallgalleri",
@@ -541,7 +541,6 @@
         "description": "Välj vilka avancerade funktioner som ska visas i gränssnittet. Att inaktivera en funktion döljer den från gränssnittet men tar inte bort några data.",
         "data": {
           "advanced_adaptive_visible": "Adaptiv schemaläggning",
-          "advanced_predictions_visible": "Sensorprediktioner",
           "advanced_seasonal_visible": "Säsongsjusteringar",
           "advanced_environmental_visible": "Miljökorrelation",
           "advanced_budget_visible": "Budgetspårning",
@@ -552,7 +551,6 @@
         },
         "data_description": {
           "advanced_adaptive_visible": "Visa EWA, Weibull-analys och intervallförslag för uppgifter.",
-          "advanced_predictions_visible": "Visa analys av sensordegradering och tröskelpredictionsdiagram.",
           "advanced_seasonal_visible": "Visa diagram för säsongsfaktorer och månatliga justeringsdata.",
           "advanced_environmental_visible": "Visa justeringar baserade på miljökorrelation (temperatur, luftfuktighet).",
           "advanced_budget_visible": "Visa månatlig/årlig budgetspårning och varningar.",
@@ -658,7 +656,7 @@
         }
       },
       "notification_actions": {
-        "title": "Interaktiva åtgärder",
+        "title": "Mobila åtgärdsknappar",
         "description": "Konfigurera åtgärdsknappar som visas på mobila aviseringar (kräver Companion-appen).",
         "data": {
           "action_complete_enabled": "Visa knappen ”Slutför”",

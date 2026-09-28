@@ -29,7 +29,6 @@ from .const import (
     CONF_ADVANCED_COMPLETION_ACTIONS,
     CONF_ADVANCED_ENVIRONMENTAL,
     CONF_ADVANCED_GROUPS,
-    CONF_ADVANCED_PREDICTIONS,
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
     CONF_ARCHIVE_ONEOFF_DAYS,
@@ -741,10 +740,6 @@ class GlobalOptionsFlow(OptionsFlow):
                     vol.Optional(
                         CONF_ADVANCED_ADAPTIVE,
                         default=self._opt(CONF_ADVANCED_ADAPTIVE),
-                    ): selector.BooleanSelector(),
-                    vol.Optional(
-                        CONF_ADVANCED_PREDICTIONS,
-                        default=self._opt(CONF_ADVANCED_PREDICTIONS),
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_ADVANCED_SEASONAL,

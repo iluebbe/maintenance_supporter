@@ -113,6 +113,8 @@ interface SettingsResponse {
     /** #173 follow-up: completion notifications — off | automatic | all. */
     completed?: string;
     extra_data?: string;
+    /** #44: default | object_name | task_name — was only in the Configure dialog. */
+    title_style?: string;
   };
   actions: {
     complete_enabled: boolean;
@@ -689,7 +691,6 @@ export class MaintenanceSettingsView extends LitElement {
     // "groups" target also lands here as the closest match.
     const items: { key: keyof AdvancedFeatures; settingKey: string; label: string; desc: string }[] = [
       { key: "adaptive", settingKey: "advanced_adaptive_visible", label: t("feat_adaptive", L), desc: t("feat_adaptive_desc", L) },
-      { key: "predictions", settingKey: "advanced_predictions_visible", label: t("feat_predictions", L), desc: t("feat_predictions_desc", L) },
       { key: "seasonal", settingKey: "advanced_seasonal_visible", label: t("feat_seasonal", L), desc: t("feat_seasonal_desc", L) },
       { key: "environmental", settingKey: "advanced_environmental_visible", label: t("feat_environmental", L), desc: t("feat_environmental_desc", L) },
       { key: "budget", settingKey: "advanced_budget_visible", label: t("feat_budget", L), desc: t("feat_budget_desc", L) },
@@ -1273,6 +1274,16 @@ export class MaintenanceSettingsView extends LitElement {
           </select>
         </label>
         <div class="setting-hint">${t("settings_notify_completed_hint", L)}</div>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_title_style", L)}</span>
+          <select class="notify-title-style" .value=${live(n.title_style || "default")}
+            @change=${(e: Event) => this._updateSetting("notification_title_style", (e.target as HTMLSelectElement).value)}>
+            <option value="default">${t("title_style_default", L)}</option>
+            <option value="object_name">${t("title_style_object_name", L)}</option>
+            <option value="task_name">${t("title_style_task_name", L)}</option>
+          </select>
+        </label>
+        <div class="setting-hint">${t("settings_title_style_hint", L)}</div>
 
         <div class="notify-rule">
         <h4 style="margin: 16px 0 8px; font-size: 14px;">${t("settings_notify_rule", L)}</h4>

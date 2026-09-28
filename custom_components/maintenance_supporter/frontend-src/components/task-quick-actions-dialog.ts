@@ -70,7 +70,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
   @state() private _skipReason = "";
   @state() private _resetDate = "";
   @state() private _features: AdvancedFeatures = {
-    adaptive: false, predictions: false, seasonal: false, environmental: false,
+    adaptive: false, seasonal: false, environmental: false,
     budget: false, groups: false, checklists: false, schedule_time: false,
     completion_actions: false,
   };

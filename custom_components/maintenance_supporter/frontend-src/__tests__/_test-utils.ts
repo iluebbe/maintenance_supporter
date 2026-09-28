@@ -35,7 +35,6 @@ export interface ServiceCall {
 /** Same shape as `frontend-src/types.ts::AdvancedFeatures`. */
 export interface MockFeatures {
   adaptive: boolean;
-  predictions: boolean;
   seasonal: boolean;
   environmental: boolean;
   budget: boolean;
@@ -46,7 +45,7 @@ export interface MockFeatures {
 }
 
 export const DEFAULT_FEATURES: MockFeatures = {
-  adaptive: false, predictions: false, seasonal: false,
+  adaptive: false, seasonal: false,
   environmental: false, budget: false, groups: false,
   checklists: false, schedule_time: false, completion_actions: false,
 };
