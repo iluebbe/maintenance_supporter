@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.95.0] - 2026-09-28
 
 ### ✨ Added
 
@@ -91,7 +91,6 @@ All notable changes to Maintenance Supporter are documented in this file.
   HEPA and carbon filter sensors; Traeger's renamed cook-cycle counter is matched too. Integrations that spell their
   unit out ("days", "hours") got thresholds 24 times too large. A device that reports one duty through two sensors
   (softener salt in % and in days) no longer gets two identically named tasks when adopted.
-
 - **English where your language was expected** (translation audit): the warranty reminder push was English in
   16 languages; the generated Maintenance dashboard (its views, the empty state, the KPI line and its editor) was
   English for everyone; notes the integration writes into a task's history ("Completed from dashboard button",
