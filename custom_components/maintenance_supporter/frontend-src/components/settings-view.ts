@@ -1094,7 +1094,7 @@ export class MaintenanceSettingsView extends LitElement {
           <div class="setting-row">
             <span class="setting-label">${t("test_notification", L)}</span>
             <button class="ha-button secondary"
-              ?disabled=${!g.notify_service || this._testingNotification}
+              ?disabled=${(!g.notify_service && !this._settings?.notifications?.event_only) || this._testingNotification}
               @click=${() => this._sendTestNotification()}>
               ${this._testingNotification ? t("testing", L) : t("send_test", L)}
             </button>

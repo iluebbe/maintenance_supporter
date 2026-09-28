@@ -116,7 +116,7 @@ automation:
 
 When you complete a maintenance task in HA, your *device* often still thinks it's overdue: the Roborock app keeps nagging that the filter needs replacing, the HVAC controller still has the "filter dirty" flag set, the printer's hour counter keeps climbing. With an **on-complete action** the integration can call the device-side reset for you the moment you mark the task done.
 
-Enable the feature under **Settings → Features → Completion actions** (default OFF). Each task then exposes a *Service* picker (autocomplete over your full HA service registry) and a data form that renders from the service schema — no YAML, no copy-pasting from automations.
+Enable the feature under **Settings → Advanced Features → Completion actions** (default OFF). Each task then exposes a *Service* picker (autocomplete over your full HA service registry) and a data form that renders from the service schema — no YAML, no copy-pasting from automations.
 
 #### Roborock vacuum — reset filter consumable counter
 
@@ -129,7 +129,7 @@ The Roborock integration exposes `vacuum.send_command` for sending raw RoboROCK 
 | **Command** | `reset_consumable` |
 | **Params** | `["filter_work_time"]` |
 
-The mobile-app reset and the HA-side completion now stay in sync. Click *Test* in the dialog before saving to confirm the device responds.
+The mobile-app reset and the HA-side completion now stay in sync. *Validate configuration* in the dialog checks the service, the target and their domains before you save — it does not press the button (that would reset the counter as if the maintenance was done); the first real completion does.
 
 > **Same pattern works for** `["main_brush_work_time"]`, `["side_brush_work_time"]`, `["sensor_dirty_time"]` — one task per consumable, each with its own reset. Or use an HA `script:` that resets all four if you want a single task for "full deep clean".
 
@@ -221,7 +221,7 @@ The event approach is more flexible (template conditions, multiple actions, dela
 
 ### Quick-Complete QR (1.3.0+) — record completion in one tap
 
-For tasks where the *act* of doing the maintenance is the input (no notes to type, no cost to enter), pre-fill the values once on the task and print a **lightning-bolt QR code** instead of the regular check-mark one.
+For tasks where the *act* of doing the maintenance is the input (no notes to type, no cost to enter), pre-fill the values once on the task (task dialog → *Quick-complete defaults*, shown with **Settings → Advanced Features → Completion actions** on) and print a **lightning-bolt QR code** instead of the regular check-mark one.
 
 Example for a **filter swap on the Roborock vacuum**: stick the lightning-bolt QR inside the dust-bin lid. Each filter replacement is just *swap → close lid → scan QR with phone* and the completion is recorded with your pre-set notes / cost / duration / *needed* feedback. No dialog, no typing. Great for high-frequency manual chores (litter-box scoop log, plant-watering log, espresso-machine-descale, HVAC quick-vacuum).
 
@@ -297,7 +297,7 @@ Each object can carry a link to its PDF manual / vendor page / setup guide. Set 
 - **the object detail page** (between the serial number and installation date)
 - **every task detail page** belonging to that object (1.4.1+, distinguished by the book icon and the object name in parentheses, e.g. *Manual (Roborock S7)*)
 
-Real-world fit: you're staring at the *Filter replacement* task on your phone, ready to do the work — one click and the actual PDF (or Roborock support article) opens in your browser. No more "where did I save that link" search. Combine with **Per-object NFC tag scan** for full hands-free flow: scan tag → task page opens → tap manual.
+Real-world fit: you're staring at the *Filter replacement* task on your phone, ready to do the work — one click and the actual PDF (or Roborock support article) opens in your browser. No more "where did I save that link" search. Combine with the task's **QR info code** for a hands-free flow: scan the code → the task page opens → tap the manual. (An NFC tag linked to a task *completes* it when scanned — use it for the moment the work is done, not to look something up.)
 
 URL safety: only `http://` and `https://` URLs are accepted; `javascript:`, `data:`, and protocol-relative URLs are silently rejected.
 
@@ -311,7 +311,7 @@ The **All Objects** view has a cards/table toggle. The table lists every object 
 
 When your phone stacks multiple HA notifications, only the title is visible without expanding the stack. The default per-status title (*"Maintenance overdue!"*) makes a stack of overdue alerts collapse to one indistinguishable line — you can't tell which device needs attention without tapping.
 
-**Settings → Notification settings → Notification title style** offers three options:
+**Settings → Notifications → Notification title style** (panel, 2.96+; also Configure → Notification Settings) offers three options:
 
 | Choice | Title shown on the phone | Best for |
 |---|---|---|
@@ -410,7 +410,7 @@ can show them without touching the history:
 
 ### Complete a tag-gated task from an automation (2.67)
 
-A task with **Require tag scan** refuses every remote completion — that is
+A task with **Only complete by scanning the tag** refuses every remote completion — that is
 the point. An automation that reacts to a *physical* presence signal (a wall
 button next to the machine, a Bluetooth beacon, a second NFC reader) asserts
 it with `via_tag_scan`:

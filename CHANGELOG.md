@@ -27,6 +27,22 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **"Interactive Actions" and "Mobile Action Buttons" were the same page:** the Configure dialog now uses the panel's
   name. The getting-started guide, the examples and troubleshooting say that the buttons are off until you switch
   them on.
+- **"Send test" was greyed out in event-only mode:** your own notification rule needs no notify service — the test
+  fires the event — but the button stayed disabled until a service was entered. It now works with either.
+- **Re-analyze could not start the first analysis:** the button sat in the recommendation card, which only appears
+  once a differing suggestion exists. It is now also in the ⋮ menu of every adaptive task.
+- **Hints that sent you the wrong way:** *Panel access* said everyone else "sees only Complete and Skip" — they also
+  reset, postpone and snooze; *Print QR codes* pointed to the quick-complete defaults without naming the *Completion
+  actions* switch they need (the #192 trap). Both corrected in every language.
+
+### 📝 Documentation
+
+- Corrected against the code (reachability audit): the completion action's *Validate configuration* checks the wiring
+  and does not run the action; an NFC tag completes its task (the QR info code opens it); the Panel-access list only
+  takes effect with *Allow selected users to create, edit & delete* on; quick-complete defaults, checklists and task
+  groups each name the Advanced Features switch they need; *Settings → Advanced Features* instead of *Settings →
+  Features*; the tag-scan toggle's real label; SVG download only; the panel opens on the tab used last, not on Today;
+  8 Assist intents in 6 languages.
 
 ## [2.95.0] - 2026-09-28
 

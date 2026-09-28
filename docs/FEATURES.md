@@ -64,7 +64,8 @@ date; the shopping list groups what to buy by type:
 ![Battery fleet roster](images/gifs/battery-fleet.gif)
 
 **Scan the printed QR code, task done** — a task with quick-complete defaults
-gets a third, lightning-bolt code in its QR dialog (2.95+); scanning it fires a
+(set in the task dialog with *Settings → Advanced Features → Completion
+actions* on) gets a third, lightning-bolt code in its QR dialog (2.95+); scanning it fires a
 quick-complete with the stored defaults (cost, duration, notes), and the only
 UI is the confirmation toast:
 
@@ -127,7 +128,7 @@ for the visit and scrolls to it.
 ![Object Detail](images/object-detail.png)
 
 ### Today View
-The panel's default landing tab — what needs attention now, bucketed into
+One tab over from the Dashboard (the panel opens on the tab you used last) — what needs attention now, bucketed into
 *Overdue / Due today / This week* with one-tap complete; each row shows
 the responsible person's avatar — initials in their colour — plus the name
 on wide screens (2.76+, #169). Deep-linkable
@@ -164,7 +165,7 @@ backfilling work that was done earlier (empty = now; see
 [Events](#events) for how backdated entries behave), and completion
 photos — take one with the camera or pick several from the gallery, up
 to ten per completion; checklist steps tick off right in the
-dialog. Inside the Android Companion app *Take photo* opens the panel's
+dialog (with *Checklists* on in Advanced Features). Inside the Android Companion app *Take photo* opens the panel's
 own viewfinder (2.84+, #161) because the app's file chooser ignores the
 camera hint — the main back camera, not the ultra-wide module (2.85+), and a **lens switch** in the viewfinder that cycles the phone's cameras and remembers your pick (2.86+; since 2.93 by the camera's name, and it waits a moment for phones that release a camera slowly — when a camera does not answer, the note offers copyable details for a bug report); if the camera cannot be opened (no permission, or Home Assistant
 reached over plain `http://` — browsers allow camera access only on secure
@@ -184,7 +185,7 @@ each with the previous value as a hint:
 ![Complete dialog with reading slots](images/complete-dialog-readings.png)
 
 ### Proof of presence (2.67+)
-Tick **Require tag scan to complete** next to the task's NFC tag and the
+Tick **Only complete by scanning the tag** next to the task's NFC tag and the
 task can only be marked done at the thing itself — by scanning that tag or
 the printed QR code. The complete dialog announces it; the panel, card,
 to-do list, voice and notification buttons are refused server-side.
@@ -631,9 +632,10 @@ filters apply on top of the card's own config.
 
 ### QR Codes
 Per-task QR pair: *view* opens the task, *complete* records the completion.
-A task with quick-complete defaults gets a third, lightning-bolt code
-(2.95+, #192): scanning it records the completion with those defaults — no
-dialog. Download as PNG/SVG or print; URL modes for LAN, external URL, or the
+A task with quick-complete defaults (task dialog, with *Completion actions*
+on in Advanced Features) gets a third, lightning-bolt code (2.95+, #192):
+scanning it records the completion with those defaults — no dialog. Download
+as SVG or print; URL modes for LAN, external URL, or the
 Companion app. Settings → *Print QR codes* offers the quick-complete code too,
 with the number of tasks that have defaults (greyed out with a hint when none
 has); only those tasks get one.
@@ -753,7 +755,8 @@ saving.
 ![On-Complete Action](images/task-dialog-action.png)
 
 ### Quick-Complete Defaults (1.3.0+)
-Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
+Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
+*Settings → Advanced Features → Completion actions* is on. Scanning the lightning-bolt
 **quick-complete QR** records the completion in one tap, no dialog.
 
 ![Quick-Complete Defaults](images/task-dialog-quick-complete.png)
@@ -804,11 +807,11 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - Assign tasks to responsible Home Assistant users with per-user notification routing — and since 2.44 a **per-person self-test** under Settings → Notifications: each household member is listed with the notify services they actually resolve to, plus a button that sends a test to exactly those. Members without a Companion device are named as such instead of quietly falling back, so "will this person get their reminders?" can be answered before a task comes due
 - Custom task icons (any `mdi:*` icon via the HA icon picker)
 - NFC tag linking — scan an NFC tag to complete a task
-- **Proof of presence** (2.67+): a per-task *"Require tag scan to complete"* toggle turns the linked NFC tag (or the printed QR code) into the **only** way to mark the task done. Every remote surface — panel, dashboard card, to-do list, voice, notification buttons — is refused with a clear message ("walk over and scan the tag on the thing itself"); the complete dialog announces the restriction up front. Automatic trigger-recovery completions stay exempt, and automations can assert a physical scan via the `via_tag_scan` field on the `complete` service. Ideal when the point of the task is *being there* — checking the actual filter, standing at the actual machine
+- **Proof of presence** (2.67+): a per-task *"Only complete by scanning the tag"* toggle turns the linked NFC tag (or the printed QR code) into the **only** way to mark the task done. Every remote surface — panel, dashboard card, to-do list, voice, notification buttons — is refused with a clear message ("walk over and scan the tag on the thing itself"); the complete dialog announces the restriction up front. Automatic trigger-recovery completions stay exempt, and automations can assert a physical scan via the `via_tag_scan` field on the `complete` service. Ideal when the point of the task is *being there* — checking the actual filter, standing at the actual machine
 - **Per-task skip lock** (#150, 2.71+): a *"Don't allow skipping"* toggle in the task dialog removes the Skip action from every surface — dashboard rows, object task table, task detail, quick-actions dialog — and the server refuses `task/skip` and the voice SkipTask intent with a clear message, so automations cannot skip past it either. For tasks that must never be waved off: safety checks, compliance inspections
 - **Cycle phases** (2.65+, discussion #139): one task, one cadence, **different work each time** — e.g. a mower-blade task that runs *flip, flip, replace* on the same 30-day rhythm. Define up to 10 named phases in the task dialog, arrange them in a cycle of up to 12 steps (repeats welcome), and every completion performs the step currently due and advances to the next, wrapping around. A phase can override the task's **checklist**, **consumed parts**, and **required completion fields** for its step (set = override, unset = the task-level value applies), so "replace" can demand the new blades and a cost entry while "flip" stays lightweight. Every surface names the step that's due — task detail shows the full cycle strip with each phase's last completion, the complete dialog, dashboard card, calendar, notifications and task sensor all carry the current phase — and history entries record which phase they completed. Skips and resets leave the cycle position untouched (the same work stays due, only the clock restarts), and operators can re-point the cursor from the task detail (or via `task/set_phase`) after a mis-click or when adopting a machine mid-cycle. Phases are edited in the panel task dialog, and the Integration Options flow carries a minimal editor too (one line per cycle step, `Name: item; item` for a phase checklist) — per-phase parts and required-fields overrides stay panel-side
-- Checklists for multi-step procedures — editable in the panel task dialog (and in the Integration Options). **Steps can be ticked off as you go** (2.49+, discussion #73): the ticks persist server-side without completing the task — stop halfway, come back days later, the progress is still there and prefills the completion dialog. Completing or skipping the cycle resets the list for the next round; the ticked state at completion time lands in the history entry as before
-- Task grouping for logical organization — **full CRUD UI** (create, edit, delete) with multi-checkbox task selector grouped by object
+- Checklists for multi-step procedures (*Checklists* in Advanced Features, off by default) — editable in the panel task dialog (and in the Integration Options). **Steps can be ticked off as you go** (2.49+, discussion #73): the ticks persist server-side without completing the task — stop halfway, come back days later, the progress is still there and prefills the completion dialog. Completing or skipping the cycle resets the list for the next round; the ticked state at completion time lands in the history entry as before
+- Task grouping for logical organization (*Task Groups* in Advanced Features, off by default) — **full CRUD UI** (create, edit, delete) with multi-checkbox task selector grouped by object
 - **Sort & group-by** in the Tasks/Objects views — sort by due date, object name, task type, task name, area, assigned user, or group; group into collapsible sections by area, group, user, or object/device (1.0.44+; object 2.71+)
 
 ![Dashboard grouped by object](images/group-by-object.png)
@@ -840,7 +843,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 ### Adaptive Scheduling
 - Learns from your maintenance history using Exponential Weighted Averaging (EWA)
 - Weibull reliability analysis for failure prediction (after 5+ completions)
-- On-demand **Re-analyze** button (task detail) — shows recommended interval, confidence and data-point count as a toast without having to wait for the next coordinator refresh
+- On-demand **Re-analyze** (task ⋮ menu of an adaptive task, and the recommendation card, 2.96+) — shows recommended interval, confidence and data-point count as a toast without having to wait for the next coordinator refresh
 - Seasonal awareness with hemisphere detection and per-month multipliers; manual 12-month **seasonal factor override editor** available below the seasonal chart (0.1–5.0 per month, empty = learned)
 - Environmental correlation with external sensors (temperature, humidity, etc.) — bound via an entity picker in the task dialog for sensor-based tasks
 - Sensor degradation rate analysis and threshold prediction — **cycle-aware** (2.66+): consumption/accumulation sensors are sawtooths (ink drifts down, a refill jumps it back up), so the analysis splits the series into service cycles at those jumps, regresses the *current* cycle, and **learns the typical rate from up to 180 days of prior cycles** (median, blended in while the current cycle is still thin). Right after a refill the forecast is carried by the learned rate instead of going silent, the prediction panel shows how many cycles it learned from, consistent cycles raise the confidence, and the chart never draws a projection pointing *away* from the configured threshold (the "ink level rising forever" artifact)
@@ -848,12 +851,12 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 
 ### Completion Actions (1.3.0+, advanced)
 - Per-task **on-complete action** — configure any HA service-call (service + target + data) to run when a task is completed. Failures are logged + swallowed so the completion is always recorded
-- **Test button** in the task dialog fires the configured action immediately so you can verify the wiring before saving
+- **Validate configuration** button in the task dialog checks the wiring before saving — service format and registration, domain match, target entity — without running the action (a test run would already reset the device's counter as if the maintenance was done)
 - **Not when the task completes itself** (2.95+) — an action can skip automatic completions (the sensor recovered on its own); counter resets wired by Suggested setups use it
 - **Quick-complete QR codes** — pre-configure `notes / cost / duration / feedback` per task; the lightning-bolt QR (in the task's QR dialog and in Settings → Print QR codes, 2.95+) records a completion in one tap, no dialog. Falls back to the regular complete dialog when the task has no defaults
 - **Stale-entity repair flow** — if an action's target entity is renamed or removed, a repair issue offers Replace (pick a new entity) or Remove (drop the action)
 - The same lifecycle events (`task_completed / _skipped / _reset`) fire on every completion path, so user-written automations can hook in without having to set `on_complete_action` (see Events below)
-- All gated behind a feature toggle (Settings → Features → Completion Actions). Default OFF — a task that already has an action (a counter reset wired by Suggested setups) shows it regardless
+- All gated behind a feature toggle (Settings → Advanced Features → Completion actions). Default OFF — a task that already has an action (a counter reset wired by Suggested setups) shows it regardless
 
 ### Notifications
 - Configurable notification service (any `notify.*` service)
@@ -1063,7 +1066,7 @@ For the full WebSocket API (102 commands), see [Architecture — WebSocket API](
 
 ### Voice & Assist (2.26+)
 
-Six Assist intents let you **query, complete and manage tasks by voice**:
+8 Assist intents let you **query, complete and manage tasks by voice**:
 
 - **`MaintenanceSupporterListTasks`** — *"What maintenance is due?"* Speaks the
   actionable tasks (overdue / due soon / triggered), most urgent first, e.g.
@@ -1110,7 +1113,7 @@ intents up **automatically as tools** in any language — nothing to configure.
 The **classic sentence-matching agent** reads sentences from one place only:
 `config/custom_sentences/<lang>/`. Turn on **Settings → General → *Install
 Assist sentences*** and the integration copies its shipped files
-(`custom_components/maintenance_supporter/assist_sentences/{en,de}/`) there and
+(`custom_components/maintenance_supporter/assist_sentences/{en,de,fr,es,it,nl}/`) there and
 reloads the conversation agent — no restart, no manual copying. Turning the
 setting off removes them again.
 

@@ -69,17 +69,15 @@ These toggles control which advanced features the panel offers and shows — the
 >
 > - **Admins** (and the HA owner) always see the full panel.
 > - **Non-admin** users see Operator mode by default — the household actions (`Complete`, `Skip`, `Reset`, `Postpone`, `Snooze`) on each task; Settings tab + every create/edit/delete control hidden.
-> - Admins can grant non-admin users full panel access by adding their HA user IDs to the `admin_panel_user_ids` list. This is editable through:
->   - the panel's **Settings → Panel Access** section (multi-checkbox with all non-admin users), or
->   - HA Settings → Devices & services → Maintenance Supporter → Configure → **Panel Access**.
-> - **Write delegation (2.8.4+):** by default a listed user gets the full panel *view* but stays **read-only** (no create / edit / delete). To also let them create, edit and delete content, an admin turns on **`operator_write_enabled`** (Settings → Panel Access → *"Allow selected users to create, edit & delete"*). Admin-only commands (global settings, import, vacation, and the allowlist itself) stay admin-only regardless — so a delegated operator can never self-promote.
+> - Admins can give chosen non-admin users full panel access — create, edit and delete included: switch on **`operator_write_enabled`** (Settings → Panel Access → *"Allow selected users to create, edit & delete"*) and tick the users in the list that then appears (`admin_panel_user_ids`). The same two settings are in HA Settings → Devices & services → Maintenance Supporter → Configure → **Panel Access**.
+> - **Write delegation (2.8.4+):** the list only takes effect while the switch is on. With it off, a listed user is an operator like every other non-admin (the household actions above) — the list is kept for when the switch comes back on. Admin-only commands (global settings, import, vacation, and the allowlist itself) stay admin-only regardless — so a delegated operator can never self-promote.
 >
 > If a listed user is later deleted in HA, an "orphaned panel-access user" repair issue appears with a one-click `Remove from list` action. The issue clears automatically when the id is removed or the user is recreated.
 
 | Setting key | Type | Default | Description |
 |---|---|---|---|
-| `admin_panel_user_ids` | list[string] | `[]` | HA user UUIDs (max 50, each ≤64 chars) granted full panel access despite not being HA admins. Empty list = only admins see full panel. Read-only unless `operator_write_enabled` is also on. |
-| `operator_write_enabled` | bool | `false` | (2.8.4+) Master switch for operator write delegation. **Off** (default): the allowlist above is view-only — only HA admins can create / edit / delete. **On**: allowlisted non-admins additionally gain full content CRUD (`@require_write`). Admin-gated commands (global settings, import, vacation, allowlist) stay admin-only either way. Admin-only toggle. |
+| `admin_panel_user_ids` | list[string] | `[]` | HA user UUIDs (max 50, each ≤64 chars) granted full panel access despite not being HA admins — only while `operator_write_enabled` is on; otherwise they are operators like any other non-admin. Empty list = only admins see the full panel. |
+| `operator_write_enabled` | bool | `false` | (2.8.4+) Master switch for operator write delegation. **Off** (default): the allowlist above has no effect — only HA admins can create / edit / delete, everyone else gets the household actions. **On**: allowlisted non-admins additionally gain full content CRUD (`@require_write`). Admin-gated commands (global settings, import, vacation, allowlist) stay admin-only either way. Admin-only toggle. |
 
 ### Notification Settings
 
@@ -231,7 +229,7 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | `reading_unit` (2.20+, #83) | string | `""` | ≤32 chars | Display unit for `reading`-type tasks (e.g. `kWh`, `m³`, `l`). Shown next to the reading input on complete and as the delta unit in the history timeline; each completion's `reading_value` is recorded in history. Round-trips through JSON/CSV export-import |
 | `readings` (2.75+, #161) | list[{id, name, unit}] | `[]` | ≤20 slots, name ≤50, unit ≤32 | Named **reading slots** of a `reading`-type task — one per meter. With slots, each completion records `reading_values: [{id, name, unit, value}]` (a snapshot, so a later rename keeps old entries intact) instead of the single `reading_value`; deltas match by slot `id`. Edited as rows in the task dialog, as `Name \| Unit` lines in the options flow, and round-trip through JSON (ids kept) and CSV (ids regenerated). Names must be unique per task (case-insensitive; a duplicate is dropped); a slot without a unit inherits `reading_unit`. The options flow matches lines to existing slots **by name** — renaming a slot there starts a new delta chain (the task dialog keeps the id) |
 | `custom_icon` | string (mdi) | `""` | — | Custom `mdi:` icon for the task's entities, overriding the type-based default. Max 100 chars. Picked via the icon selector in the task dialog |
-| `nfc_tag_id` | string | `""` | — | NFC tag identifier linked to the task (scanning the tag opens / completes it). Max 256 chars; checked for uniqueness — re-using a tag already linked to another task is rejected on save |
+| `nfc_tag_id` | string | `""` | — | NFC tag identifier linked to the task (scanning the tag completes it; the QR *info* code is the one that opens it). Max 256 chars; checked for uniqueness — re-using a tag already linked to another task is rejected on save |
 | `allow_skip` (#150, 2.71+) | bool | `true` | — | **Skip lock** when set to false: the Skip action disappears from the panel rows, card and quick actions, and the server refuses `task/skip` and the voice SkipTask intent (`skip_disabled`) — automations cannot skip either |
 | `mirror_todo_entities` (D#183, 2.87+) | list of `todo.*` ids | `[]` | ≤5, not `todo.maintenance` | **Mirror into to-do lists**: while the task is due, one item *Object: Task* appears on every listed to-do entity; checking it off in any of them completes the task (reason *from a mirrored to-do list*) and clears the rest. Panel task dialog only (entity picker); carried by the JSON backup, not by CSV |
 | `notify_enabled` (#173, 2.81+) | bool | `true` | — | **No notifications for this task** when set to false: no status notifications or repeats, no lead-time reminders, no seat in a bundle (nor a count toward its threshold). Dashboard, entities and the weekly digest still include the task. Stored only when false |
@@ -345,7 +343,7 @@ your action didn't stick.
 
 **Who the action runs as** — the action runs with the rights of the user who configured it (`configured_by`, stamped by the server when the action is saved), so a delegated operator cannot schedule an admin-only service. An unchanged action keeps its owner through every later edit (panel dialog, `update_task` service, options flow, object duplicate / replace). A JSON import never trusts an owner named in the file: every imported action runs as the admin who imported it. Actions saved before the owner existed run as before (system context); an action whose user was deleted is skipped with a log warning — save the task again to re-own it.
 
-**Test button** — fires the configured action immediately so you can verify the wiring. Doesn't persist anything; result indicator (✓ / ✗) auto-clears after 3 s.
+**Validate configuration** — checks the action without running it: the `domain.service` format, that the service is registered, the domain whitelist, that the target's domain matches the service, and that the target entity exists. Running it for real would already do the maintenance's effect (reset a counter, press a button). Doesn't persist anything; the result indicator (✓ / ✗) auto-clears.
 
 **Stale-entity repair** — coordinator scans `on_complete_action.target.entity_id` on every refresh. If the entity disappears, a repair issue surfaces with two options: **Replace** (pick a new entity via HA's entity picker) or **Remove** (drop the action entirely). Same lifecycle as the existing trigger-entity repair flow.
 
@@ -420,7 +418,7 @@ Available when `advanced_adaptive_visible` is enabled globally. Configured per t
 | `environmental_attribute` | string | `""` | — | Attribute name if monitoring an attribute instead of the entity state |
 | `seasonal_overrides` | dict | `{}` | month 1–12 → 0.1–5.0 | Manual per-month factor overrides. Editable via the "Edit seasonal factors" dialog opened below the seasonal chart; persisted via `maintenance_supporter/task/seasonal_overrides`. Empty = learned from history. |
 
-**On-demand analysis:** The recommendation card has a **Re-analyze** button (v1.0.35+) that calls `maintenance_supporter/task/analyze_interval` and returns the current Weibull/EWA/seasonal result — useful to refresh the view without waiting for the next coordinator cycle.
+**On-demand analysis:** **Re-analyze** (v1.0.35+; in the task's ⋮ menu for every adaptive task since 2.96, before only on the recommendation card, which appears once a suggestion exists) calls `maintenance_supporter/task/analyze_interval` and returns the current Weibull/EWA/seasonal result — useful to refresh the view without waiting for the next coordinator cycle.
 
 **Adaptive thresholds** (not directly configurable — determined by history depth):
 

@@ -161,6 +161,12 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
               ` : nothing}
               <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.openQr(task.name); }}>${t("qr_code", L)}</div>
               <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.printWorksheet(); }}>${t("worksheet", L)}</div>
+              ${ctx.features.adaptive && task.adaptive_config?.enabled ? html`
+                <!-- The recommendation card carries Re-analyze too, but only
+                     once a differing suggestion exists — the analysis it is
+                     meant to trigger was unreachable before (audit 2026-09-28). -->
+                <div class="popup-menu-item reanalyze" @click=${() => { ctx.closeMoreMenu(); ctx.reanalyze(); }}>${t("reanalyze", L)}</div>
+              ` : nothing}
               ${!isOperator ? html`
                 <div class="popup-menu-item" @click=${() => ctx.duplicateTask()}>${t("duplicate", L)}</div>
                 <div class="popup-menu-item" @click=${() => ctx.moveTask()}>${t("move_task", L)}</div>
