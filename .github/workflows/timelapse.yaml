@@ -30,6 +30,12 @@ jobs:
           MIGRATE: "1"
           KEEP: "0"
         run: node e2e/timelapse/run.mjs
+      - name: Container logs
+        if: failure()
+        run: |
+          for c in $(docker ps -a --format '{{.Names}}'); do
+            echo "=== $c"; docker logs --tail 120 "$c" 2>&1 || true
+          done
       - name: Summary and snapshots
         if: always()
         uses: actions/upload-artifact@v7

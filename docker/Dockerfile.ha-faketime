@@ -13,4 +13,6 @@ COPY --from=faketime-builder \
   /usr/local/lib/faketime/libfaketime.so.1
 
 # Replace the HA run script with our version that adds faketime to LD_PRELOAD
-COPY ha-run-faketime.sh /etc/services.d/home-assistant/run
+# --chmod: a Linux checkout keeps the file's 0644, and s6 cannot spawn a run
+# script that is not executable (a Windows build context hides this).
+COPY --chmod=755 ha-run-faketime.sh /etc/services.d/home-assistant/run
