@@ -14,9 +14,13 @@ Never shipped: HACS packages custom_components/maintenance_supporter only.
 
 from __future__ import annotations
 
+import os
+from datetime import datetime
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 DOMAIN = "roborock"
 PLATFORMS = [Platform.SENSOR, Platform.BUTTON]
@@ -30,6 +34,25 @@ ROBOTS = {
 # survives entry reloads (enabling a button reloads the entry); a restart of
 # Home Assistant starts from the values above again
 VALUES: dict[tuple[str, str], float] = {(r, c): left for r, (_, cons) in ROBOTS.items() for c, (_, left) in cons.items()}
+
+# ROBOROCK_DEMO_WEAR=1 (the faketime timelapse, e2e/timelapse/run.mjs): the
+# countdowns run with the clock like a robot that cleans an hour a day —
+# hours left drop by one per day since the last reset. Off (the docs shots),
+# the values stay put.
+WEAR = os.environ.get("ROBOROCK_DEMO_WEAR") == "1"
+RESET_AT: dict[tuple[str, str], datetime] = {}
+
+
+def hours_left(key: tuple[str, str]) -> float:
+    if not WEAR:
+        return VALUES[key]
+    anchor = RESET_AT.setdefault(key, dt_util.utcnow())
+    return max(0.0, round(VALUES[key] - (dt_util.utcnow() - anchor).total_seconds() / 86400, 1))
+
+
+def reset(key: tuple[str, str], full: float) -> None:
+    VALUES[key] = full
+    RESET_AT[key] = dt_util.utcnow()
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

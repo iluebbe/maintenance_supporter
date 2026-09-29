@@ -1353,6 +1353,16 @@ async def ws_import_json(
 
             remap_task_users(task_data, user_map)
             remap_task_device(task_data, dev_map)
+            # An archived object's tasks are archived with it (object/archive
+            # cascades). A file that archives only the object — hand-written,
+            # or from before the cascade — left them active: an "overdue"
+            # task of a retired machine on the dashboard (seen on the demo,
+            # 2026-09-29).
+            if import_obj.get("archived_at") and not task_data.get("archived_at"):
+                from ..const import ARCHIVE_REASON_OBJECT
+
+                task_data["archived_at"] = import_obj["archived_at"]
+                task_data["archived_reason"] = ARCHIVE_REASON_OBJECT
             import_tasks[task_id] = task_data
             import_obj["task_ids"].append(task_id)
 

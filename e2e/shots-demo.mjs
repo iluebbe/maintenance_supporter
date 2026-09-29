@@ -635,6 +635,83 @@ log("SEED OK", JSON.stringify(seed));
   } catch (e) { log("v2.95 area seed skipped:", String(e && e.message || e)); }
 }
 
+// (2.96) Idempotent extras — the features the docs had no picture of: a
+// lawn mower whose blades run a flip/flip/replace cycle (phases) and whose
+// deck cleaning learns a longer interval (an adaptive recommendation), a
+// task group, a saved view on Anna, a vacation six weeks out, and a retired
+// dehumidifier replaced by its successor (lineage links). The new tasks are
+// not due soon, so the dashboard and the GIF flows keep their rows.
+{
+  const send = api.send;
+  try {
+    await send({ type: "maintenance_supporter/global/update", settings: {
+      advanced_adaptive_visible: true, advanced_groups_visible: true, advanced_seasonal_visible: true,
+    } });
+    const objs = (await send({ type: "maintenance_supporter/objects" })).objects || [];
+    if (!objs.some((o) => o.object.name === "Lawn Mower")) {
+      const phaseRuns = ["flip", "flip", "replace", "flip", "flip"];
+      await send({ type: "maintenance_supporter/json/import", json_content: JSON.stringify({ version: 1, objects: [
+        { object: { name: "Lawn Mower", manufacturer: "Husqvarna", model: "Automower 430X" },
+          tasks: [
+            { id: "blades", name: "Mower blades", type: "service", schedule_type: "time_based", interval_days: 30,
+              warning_days: 5, last_performed: iso(-12),
+              phases: { flip: { name: "Flip the blades", checklist: ["Lift the mower", "Turn each blade"] },
+                replace: { name: "Replace the blades", required_completion_fields: ["cost"] } },
+              phase_sequence: ["flip", "flip", "replace"], phase_cursor: 2,
+              history: phaseRuns.map((phase, i) => ({ timestamp: ts(-12 - (phaseRuns.length - 1 - i) * 30), type: "completed",
+                phase_id: phase, cost: phase === "replace" ? 24.9 : 0, duration: phase === "replace" ? 25 : 10 })) },
+            { id: "deck", name: "Clean the deck", type: "cleaning", schedule_type: "time_based", interval_days: 14,
+              warning_days: 3, last_performed: iso(-6),
+              // Five "not needed" answers given at completion — the analysis
+              // recommends only once feedback came in (DEFAULT_ADAPTIVE_MIN_COMPLETIONS).
+              adaptive_config: { enabled: true, ewa_alpha: 0.4, min_interval_days: 7, max_interval_days: 60, feedback_count: 5 },
+              history: [6, 27, 48, 70, 91, 112].map((d) => ({ timestamp: ts(-d), type: "completed", duration: 15, feedback: "not_needed" })).reverse() },
+          ] },
+        { entry_id: "old-dehumidifier", object: { name: "Dehumidifier (2019)", manufacturer: "Trotec", model: "TTK 70",
+            archived_at: ts(-40), replaced_by_entry_id: "new-dehumidifier" },
+          tasks: [{ name: "Empty the tank", type: "cleaning", schedule_type: "time_based", interval_days: 7, warning_days: 1, last_performed: iso(-45) }] },
+        { entry_id: "new-dehumidifier", object: { name: "Dehumidifier", manufacturer: "Trotec", model: "TTK 72 E",
+            installation_date: iso(-40), predecessor_entry_id: "old-dehumidifier" },
+          tasks: [{ name: "Clean the air filter", type: "cleaning", schedule_type: "time_based", interval_days: 30, warning_days: 3, last_performed: iso(-9) }] },
+      ] }) });
+      log("v2.96 seed: lawn mower (phases + adaptive) and the dehumidifier lineage");
+    }
+    const all = (await send({ type: "maintenance_supporter/objects" })).objects || [];
+    const ref = (on, tn) => {
+      const o = all.find((x) => x.object.name === on);
+      const t = o && o.tasks.find((x) => x.name === tn);
+      return o && t ? { entry_id: o.entry_id, task_id: t.id } : null;
+    };
+    const groups = (await send({ type: "maintenance_supporter/groups" })).groups || {};
+    if (!Object.values(groups).some((g) => g.name === "Weekly chores")) {
+      const refs = [ref("Washing Machine", "Door Seal Wipe"), ref("Espresso Machine", "Backflush"), ref("Pool Pump", "Pressure Check")].filter(Boolean);
+      await send({ type: "maintenance_supporter/group/create", name: "Weekly chores", description: "The quick ones", task_refs: refs });
+      log("v2.96 seed: group Weekly chores");
+    }
+    const views = (await send({ type: "maintenance_supporter/views/list" })).views || [];
+    if (!views.some((v) => v.name === "Anna's tasks")) {
+      const users = (await send({ type: "maintenance_supporter/users/list" })).users || [];
+      const anna = users.find((u) => u.name === "Anna");
+      if (anna) {
+        await send({ type: "maintenance_supporter/views/save", name: "Anna's tasks", filters: { user_id: anna.id, sort_mode: "due_date", group_by: "none" } });
+        log("v2.96 seed: saved view Anna's tasks");
+      }
+    }
+    const vac = await send({ type: "maintenance_supporter/vacation/state" }).catch(() => null);
+    if (!vac || !vac.enabled) {
+      await send({ type: "maintenance_supporter/vacation/update", enabled: true, start: iso(42), end: iso(56), buffer_days: 2 });
+      log("v2.96 seed: vacation in six weeks");
+    }
+    const areas = await send({ type: "config/area_registry/list" });
+    let garden = areas.find((a) => a.name === "Garden");
+    if (!garden) garden = await send({ type: "config/area_registry/create", name: "Garden" });
+    const mower = all.find((x) => x.object.name === "Lawn Mower");
+    if (mower && !mower.object.area_id) {
+      await send({ type: "maintenance_supporter/object/update", entry_id: mower.entry_id, area_id: garden.area_id });
+    }
+  } catch (e) { log("v2.96 seed skipped:", String(e && e.message || e)); }
+}
+
 // Documents: upload a PDF manual to the Family Car + add a web link, and
 // link the manual to the Oil Change task (page 12).
 if (seed) {

@@ -2470,7 +2470,9 @@ export class MaintenanceSettingsView extends LitElement {
     }
     .vac-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      /* The date fields carry a typing toggle and a clear button (2 × 36px)
+         next to the picker — 160px left the date itself cut to "11/1". */
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
       gap: 12px;
       margin-bottom: 12px;
     }

@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "users": { "u-anna": "Anna", "u-ben": "Ben" },
+  "global_settings": {
+    "notifications_enabled": true,
+    "notify_event_only": true,
+    "advanced_adaptive_visible": true,
+    "advanced_seasonal_visible": true,
+    "advanced_environmental_visible": true,
+    "advanced_budget_visible": true,
+    "advanced_groups_visible": true,
+    "advanced_checklists_visible": true,
+    "advanced_schedule_time_visible": true,
+    "advanced_completion_actions_visible": true,
+    "budget_monthly": 80.0,
+    "budget_yearly": 900.0,
+    "budget_alerts_enabled": true,
+    "budget_currency": "EUR",
+    "weekly_digest_enabled": true,
+    "warranty_reminder_enabled": true,
+    "home_type": "house",
+    "home_region": "DE",
+    "groups": {
+      "grp_weekly": {
+        "name": "Weekly chores",
+        "description": "",
+        "task_refs": [
+          { "entry_id": "s-house", "task_id": "bins" },
+          { "entry_id": "s-dish", "task_id": "dish_filter" }
+        ]
+      }
+    },
+    "saved_filter_views": [
+      {
+        "id": "view_anna",
+        "name": "Anna's tasks",
+        "filters": { "status": "", "user_id": "u-anna", "label": null, "priority": "", "archived": false, "sort_mode": "due_date", "group_by": "none" }
+      }
+    ]
+  },
+  "objects": [
+    {
+      "entry_id": "s-car",
+      "object": { "name": "Family car", "manufacturer": "Volkswagen", "model": "Golf VIII", "warranty_expiry": "2027-03-01", "notes": "**Plate** HH-TL 2026" },
+      "parts": [{ "id": "oil_filter", "name": "Oil filter", "mpn": "OC 1071", "unit": "pcs", "cost": 12.9, "reorder_threshold": 0, "restock_quantity": 2, "auto_buy_task": true, "stock": 1 }],
+      "tasks": [
+        { "id": "oil", "name": "Oil change", "type": "service", "enabled": true, "schedule_type": "time_based",
+          "schedule": { "kind": "interval", "every": 6, "unit": "months", "anchor": "completion" }, "warning_days": 21,
+          "required_completion_fields": ["cost"], "consumes_parts": [{ "part_id": "oil_filter", "quantity": 1 }],
+          "priority": "high", "labels": ["car"], "responsible_user_id": "u-ben" },
+        { "id": "tires", "name": "Tyre change", "type": "service", "enabled": true, "schedule_type": "time_based",
+          "schedule": { "kind": "interval", "every": 6, "unit": "months", "anchor": "planned" }, "warning_days": 14, "labels": ["car"] }
+      ]
+    },
+    {
+      "entry_id": "s-boiler",
+      "object": { "name": "Gas boiler", "manufacturer": "Vaillant", "model": "ecoTEC plus" },
+      "tasks": [
+        { "id": "boiler_service", "name": "Annual service", "type": "service", "enabled": true, "schedule_type": "time_based",
+          "schedule": { "kind": "interval", "every": 1, "unit": "years", "anchor": "completion" }, "warning_days": 30,
+          "checklist": ["Check the pressure", "Clean the burner", "Flue gas test"], "required_completion_fields": ["cost", "duration"] },
+        { "id": "pressure", "name": "Top up the pressure", "type": "inspection", "enabled": true, "schedule_type": "sensor_based",
+          "schedule": { "kind": "manual" }, "warning_days": 3,
+          "trigger_config": { "type": "threshold", "entity_id": "sensor.boiler_pressure", "entity_ids": ["sensor.boiler_pressure"], "trigger_below": 1.0, "entity_logic": "any" } }
+      ]
+    },
+    {
+      "entry_id": "s-dish",
+      "object": { "name": "Dishwasher", "manufacturer": "Bosch", "model": "SMV6" },
+      "parts": [{ "id": "salt", "name": "Dishwasher salt", "unit": "kg", "cost": 1.2, "reorder_threshold": 1, "restock_quantity": 4, "auto_buy_task": true, "stock": 3 }],
+      "tasks": [
+        { "id": "salt_refill", "name": "Refill salt", "type": "replacement", "enabled": true, "schedule_type": "sensor_based",
+          "schedule": { "kind": "manual" }, "warning_days": 3, "consumes_parts": [{ "part_id": "salt", "quantity": 1 }],
+          "trigger_config": { "type": "counter", "entity_id": "sensor.dishwasher_cycles", "entity_ids": ["sensor.dishwasher_cycles"], "trigger_delta_mode": true, "trigger_target_value": 30 } },
+        { "id": "dish_filter", "name": "Clean the filter", "type": "cleaning", "enabled": true, "schedule_type": "time_based",
+          "schedule": { "kind": "interval", "every": 14, "unit": "days", "anchor": "completion" }, "warning_days": 3,
+          "adaptive_config": { "enabled": true, "ewa_alpha": 0.3, "min_interval_days": 7, "max_interval_days": 60 } }
+      ]
+    },
+    {
+      "entry_id": "s-meters",
+      "object": { "name": "Utility meters" },
+      "tasks": [
+        { "id": "meters", "name": "Monthly readings", "type": "reading", "enabled": true, "schedule_type": "day_of_month",
+          "schedule": { "kind": "day_of_month", "day": -1 }, "warning_days": 3,
+          "readings": [{ "id": "cold", "name": "Cold water", "unit": "m³" }, { "id": "power", "name": "Electricity", "unit": "kWh" }] }
+      ]
+    },
+    {
+      "entry_id": "s-smoke",
+      "object": { "name": "Smoke detectors" },
+      "tasks": [
+        { "id": "smoke_test", "name": "Test the buttons", "type": "inspection", "enabled": true, "schedule_type": "nth_weekday",
+          "schedule": { "kind": "nth_weekday", "nth": 1, "weekday": 5 }, "warning_days": 2, "allow_skip": false, "priority": "high" }
+      ]
+    },
+    {
+      "entry_id": "s-garden",
+      "object": { "name": "Garden" },
+      "tasks": [
+        { "id": "mower", "name": "Mower blades", "type": "service", "enabled": true, "schedule_type": "time_based",
+          "schedule": { "kind": "interval", "every": 30, "unit": "days", "anchor": "completion", "season_months": [4, 5, 6, 7, 8, 9, 10] },
+          "warning_days": 5,
+          "phases": { "flip": { "name": "Flip the blades" }, "replace": { "name": "Replace the blades", "required_completion_fields": ["cost"] } },
+          "phase_sequence": ["flip", "flip", "replace"], "phase_cursor": 0 },
+        { "id": "hedge", "name": "Trim the hedge", "type": "custom", "enabled": true, "schedule_type": "time_based",
+          "schedule": { "kind": "interval", "every": 8, "unit": "weeks", "anchor": "completion", "season_months": [5, 6, 7, 8, 9] }, "warning_days": 7 }
+      ]
+    },
+    {
+      "entry_id": "s-pool",
+      "object": { "name": "Pool pump", "manufacturer": "Speck", "model": "BADU 90" },
+      "tasks": [
+        { "id": "pool_clean", "name": "Clean the pre-filter", "type": "cleaning", "enabled": true, "schedule_type": "time_based",
+          "schedule": { "kind": "interval", "every": 7, "unit": "days", "anchor": "completion" }, "warning_days": 2 }
+      ]
+    },
+    {
+      "entry_id": "s-house",
+      "object": { "name": "Household" },
+      "tasks": [
+        { "id": "bins", "name": "Put the bins out", "type": "custom", "enabled": true, "schedule_type": "weekdays",
+          "schedule": { "kind": "weekdays", "weekdays": [1] }, "warning_days": 1,
+          "responsible_user_id": "u-anna", "assignee_pool": ["u-anna", "u-ben"], "rotation_strategy": "round_robin" },
+        { "id": "fridge", "name": "Clean the fridge", "type": "cleaning", "enabled": true, "schedule_type": "time_based",
+          "schedule": { "kind": "interval", "every": 30, "unit": "days", "anchor": "completion" }, "warning_days": 5,
+          "required_completion_fields": ["duration"], "checklist": ["Empty it", "Wipe the shelves", "Check dates"] }
+      ]
+    }
+  ]
+}

@@ -216,8 +216,9 @@ async function main() {
   // The containers write as root: on a Linux host some .storage files are
   // root-only (0600) and nothing is deletable by the runner. Open the folders
   // this run created through the image itself (no sudo) — for reading now
-  // and for the next run's cleanup. An existing source is left as it is.
-  for (const config of EXTERNAL ? [dst.config] : [src.config, dst.config]) {
+  // and for the next run's cleanup. An existing source is left as it is,
+  // unless its owner asks (SOURCE_CHMOD=1 — the timelapse's own folder).
+  for (const config of EXTERNAL && process.env.SOURCE_CHMOD !== "1" ? [dst.config] : [src.config, dst.config]) {
     docker("run", "--rm", "--entrypoint", "chmod", "-v", `${config}:/c`, IMAGE, "-R", "a+rwX", "/c");
   }
   const before = snapshot(src.config, EXPECT, exportedAt);

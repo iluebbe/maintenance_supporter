@@ -95,10 +95,15 @@ async function showTask(page, withTrigger) {
   await page.evaluate(({ f, wt }) => {
     eval(f);
     const objs = [...window.__panel._objects].sort((a, b) => a.object.name.localeCompare(b.object.name));
-    for (const o of objs) {
-      if (o.tasks.some((t) => t.battery_fleet_task)) continue;
-      const task = [...o.tasks].sort((a, b) => a.name.localeCompare(b.name)).find((t) => wt === !!t.trigger_config);
-      if (task) { window.__panel._showTask(o.entry_id, task.id); return; }
+    // A task with some history first — a bare new object added to the seed
+    // (alphabetically earlier) must not swap the surface for an empty page.
+    for (const minHistory of [3, 0]) {
+      for (const o of objs) {
+        if (o.tasks.some((t) => t.battery_fleet_task)) continue;
+        const task = [...o.tasks].sort((a, b) => a.name.localeCompare(b.name))
+          .find((t) => wt === !!t.trigger_config && !t.archived && (t.history || []).length >= minHistory);
+        if (task) { window.__panel._showTask(o.entry_id, task.id); return; }
+      }
     }
     throw new Error("no matching task in the seed");
   }, { f: FINDER, wt: withTrigger });

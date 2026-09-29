@@ -81,7 +81,9 @@ than falling back to English), the `shots-*.mjs` screenshot tooling and
 languages to exercise. `e2e/migration/run.mjs` moves a seeded Home Assistant
 to a fresh one through the real export/import paths and compares every
 stored value (CI job `migration-roundtrip`; its in-process twin is
-`tests/test_migration_roundtrip.py`). See `e2e/README.md`.
+`tests/test_migration_roundtrip.py`), and `e2e/timelapse/run.mjs` lives a
+year of a household under libfaketime through the public API (weekly
+`Timelapse` workflow). See `e2e/README.md`.
 
 ## Code quality
 

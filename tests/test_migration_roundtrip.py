@@ -105,7 +105,7 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
     task["assignee_pool"] = [alice.id, bob.id]
     task["rotation_strategy"] = "round_robin"
     task["history"] = [
-        {**FULL_TASK["history"][0], "completed_by": alice.id, "feedback": "needed", "phase": "flip"},
+        {**FULL_TASK["history"][0], "completed_by": alice.id, "feedback": "needed", "phase_id": "flip"},
         {"timestamp": "2026-04-01T09:00:00+00:00", "type": "skipped", "notes": "away"},
         {"timestamp": "2026-03-01T09:00:00+00:00", "type": "missed"},
         {"timestamp": "2026-02-01T09:00:00+00:00", "type": "reset"},
@@ -284,8 +284,11 @@ async def _seed_the_rest(
 
     # Hierarchy, lineage, archive: a garage door under the rig, an old boiler
     # retired in favour of a new one.
-    def obj_entry(uid: str, name: str, obj_id: str, tid: str, task_name: str, created: str, **extra: Any) -> MockConfigEntry:
-        task = {**build_task_data(task_id=tid, name=task_name), "object_id": obj_id, "created_at": created}
+    def obj_entry(
+        uid: str, name: str, obj_id: str, tid: str, task_name: str, created: str,
+        task_extra: dict[str, Any] | None = None, **extra: Any,
+    ) -> MockConfigEntry:
+        task = {**build_task_data(task_id=tid, name=task_name), "object_id": obj_id, "created_at": created, **(task_extra or {})}
         data = build_object_entry_data(tasks={tid: task})
         data = {**data, "object": {**data["object"], "id": obj_id, "name": name, **extra}}
         entry = MockConfigEntry(domain=DOMAIN, title=name, data=data, unique_id=f"maintenance_supporter_migration_{uid}")
@@ -293,7 +296,12 @@ async def _seed_the_rest(
         return entry
 
     garage = obj_entry("garage", "Garage door", "garage_obj", "garage_task", "Lubricate rails", "2026-02-10")
-    old = obj_entry("old_boiler", "Old boiler", "old_obj", "old_task", "Service old", "2020-01-01", archived_at="2026-05-01T00:00:00+00:00")
+    # Archived the way object/archive does it: the object and, cascaded, its task.
+    retired = "2026-05-01T00:00:00+00:00"
+    old = obj_entry(
+        "old_boiler", "Old boiler", "old_obj", "old_task", "Service old", "2020-01-01",
+        task_extra={"archived_at": retired, "archived_reason": "object"}, archived_at=retired,
+    )
     new = obj_entry("new_boiler", "New boiler", "new_obj", "new_task", "Service new", "2026-05-01")
     for entry in (garage, old, new):
         await hass.config_entries.async_setup(entry.entry_id)
@@ -826,3 +834,21 @@ async def test_the_seed_sets_every_portable_setting(hass: HomeAssistant, global_
     await _seed(hass, global_entry)
     missing = sorted(set(ALLOWED_SETTING_KEYS) - NON_PORTABLE_OPTIONS - set(get_global_options(hass)))
     assert not missing, f"the migration seed leaves these settings unset: {missing}"
+
+
+async def test_an_archived_object_imports_with_its_tasks_archived(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """object/archive cascades to the tasks; a file that archived only the
+    object left its tasks active — an overdue task of a retired machine on
+    the dashboard (the demo's retired dehumidifier, 2026-09-29)."""
+    await setup_integration(hass, global_entry)
+    payload = {"objects": [{
+        "object": {"name": "Old dryer", "archived_at": "2026-05-01T00:00:00+00:00"},
+        "tasks": [{"name": "Clean the lint filter", "type": "cleaning", "schedule_type": "time_based", "interval_days": 7, "last_performed": "2026-01-01"}],
+    }]}
+    result = await _import_json(hass, json.dumps(payload))
+    entry = hass.config_entries.async_get_entry(result["imported"][0]["entry_id"])
+    (task,) = entry.data[CONF_TASKS].values()
+    assert task["archived_at"] == "2026-05-01T00:00:00+00:00"
+    assert task["archived_reason"] == "object"
+    (computed,) = entry.runtime_data.coordinator.data[CONF_TASKS].values()
+    assert computed["_status"] == "archived"

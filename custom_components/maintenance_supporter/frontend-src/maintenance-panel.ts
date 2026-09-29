@@ -591,7 +591,8 @@ export class MaintenanceSupporterPanel extends LitElement {
 
       if (!this._userService) {
         this._userService = new UserService(this.hass);
-        this._userService.getUsers();
+        // Names feed the person filter and the row chips — render once known.
+        void this._userService.getUsers().then(() => this.requestUpdate());
       } else {
         this._userService.updateHass(this.hass);
       }
@@ -3328,6 +3329,18 @@ export class MaintenanceSupporterPanel extends LitElement {
     const archivedCount = this._objects.reduce(
       (n, o) => n + o.tasks.filter((tk) => tk.archived).length, 0,
     );
+    // The people someone can filter by: everyone responsible for a task, plus
+    // the person a saved view narrows to — otherwise that view leaves the
+    // select blank while it filters.
+    const filterPeople = new Set<string>();
+    for (const o of this._objects) {
+      for (const tk of o.tasks) if (tk.responsible_user_id) filterPeople.add(tk.responsible_user_id);
+    }
+    if (this._filterUser && this._filterUser !== "current_user") filterPeople.add(this._filterUser);
+    const personOptions = [...filterPeople]
+      .map((id) => ({ id, name: this._userService?.getUserName(id) ?? null }))
+      .filter((p) => p.name !== null || p.id === this._filterUser)
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
 
     // Filters actively narrowing the list — shown on the collapsed toggle so
     // "why is my list short?" has a visible answer even with filters hidden.
@@ -3396,7 +3409,8 @@ export class MaintenanceSupporterPanel extends LitElement {
             }}
           >
             <option value="">${t("all_users", L)}</option>
-            <option value="current_user">${t("my_tasks", L)}</option>
+            <option value="current_user" ?selected=${this._filterUser === "current_user"}>${t("my_tasks", L)}</option>
+            ${personOptions.map((p) => html`<option value=${p.id} ?selected=${this._filterUser === p.id}>${p.name ?? p.id}</option>`)}
           </select>
         </label>
         ${this._allLabels.length > 0 ? html`

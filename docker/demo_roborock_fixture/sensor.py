@@ -10,7 +10,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import DOMAIN, ROBOTS, SIGNAL, VALUES
+from . import DOMAIN, ROBOTS, SIGNAL, hours_left
 
 SENSOR_KEYS = {
     "main_brush": "main_brush_time_left",
@@ -40,7 +40,7 @@ class ConsumableSensor(SensorEntity):
 
     @property
     def native_value(self) -> float:
-        return VALUES[self._key]
+        return hours_left(self._key)
 
     async def async_added_to_hass(self) -> None:
         @callback

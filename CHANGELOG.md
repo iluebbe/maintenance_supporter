@@ -19,6 +19,14 @@ All notable changes to Maintenance Supporter are documented in this file.
   type and every portable setting a value (tripwires fail until a new one is seeded), and it now carries hierarchy,
   replacement lineage, an archived object, a device link, an object adopted from the catalog, every recurrence kind and a
   part linked to its manual. The Docker twin adopts a (demo) robot through the real API on the source.
+- **A year in ten minutes:** `e2e/timelapse/run.mjs` runs Home Assistant under libfaketime a year back and lives it
+  week by week through the public API — a household that completes (with feedback, photos, readings, parts), skips,
+  misses, postpones, snoozes, swaps batteries, pauses the pool for the winter and goes on vacation, demo robots that
+  wear down and get their counters reset by the adopted duties. History, notifications, rotations, phases, fleet
+  learning and buy reminders come out of the product's own code paths; the run fails when a feature leaves no trace,
+  and a weekly workflow then moves the year to a fresh instance and compares it value by value.
+- **Pictures for features the docs described without one:** the phase strip, an adaptive recommendation, the dashboard
+  grouped by task group, a saved view, the vacation settings and the replacement links (the demo instance seeds them).
 - **The documents ZIP can be browsed:** one folder per object, completion photos in their task's folder named by the
   day the task was done, every other file in a folder for its category, the web links in `Links.txt`, and a
   `README.txt`. Version 1 kept the files as `blobs/<hash>` without names or extensions — useless outside a restore.
@@ -26,6 +34,11 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **A saved view for one person left the person filter blank:** the filter only offered *All users* and *My tasks*, so
+  a view narrowed to someone else (saved through the WebSocket API) filtered correctly but showed an
+  empty select. The filter now lists everyone responsible for a task, by name.
+- **The vacation dates were cut off:** the date fields sat in columns too narrow for the date next to their typing and
+  clear buttons, so "11/10/2026" read "11/1". The columns are wider now.
 - **Our dashboard cards sometimes showed "Configuration error":** Home Assistant swaps in a new custom-element
   registry while it starts, and a card bundle that loaded before the swap had defined its cards on the registry that
   was then thrown away — about one dashboard load in three right after the panel was open, until the next reload.
@@ -86,6 +99,9 @@ All notable changes to Maintenance Supporter are documented in this file.
   accept is named in the result instead of vanishing. Device links and the fingerprints of adopted tasks follow the
   appliance too: they pointed at device ids of the old instance, so the moved object lost its device and discovery
   offered the same appliance again — the export now names the devices by their integration identifiers.
+- **An imported archived object kept its tasks active:** archiving an object archives its tasks with it, but an import
+  that marked only the object (a hand-written file, or one from before the cascade) left them running — an "overdue"
+  task of a retired machine on the dashboard. The import now archives them with the object.
 - **Adopted tasks had no creation day and ignored the household's warning days:** both suggested setups and problem
   sensors now stamp them like every other create path. A threshold trigger built from the catalog also carries the
   single `entity_id` next to `entity_ids`, like the others do (#106: a client reading only that field would drop it).

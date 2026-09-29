@@ -181,6 +181,44 @@ describe("panel shell", () => {
     expect(sr(el).querySelector(".today-person")).to.equal(null);
   });
 
+  it("the person filter lists the responsible people and shows a saved view's person", async () => {
+    const { el } = await mountPanel(
+      [
+        obj("e1", [
+          task({ name: "Hers", responsible_user_id: "u-anna" }),
+          task({ name: "His", responsible_user_id: "u-ben" }),
+          task({ name: "Nobody's" }),
+        ]),
+      ],
+      {
+        "maintenance_supporter/users/list": () => ({ users: [{ id: "u-anna", name: "Anna" }, { id: "u-ben", name: "Ben" }, { id: "u-idle", name: "Idle" }] }),
+        "maintenance_supporter/views/list": () => ({ views: [{ id: "v-anna", name: "Anna's tasks", filters: { user_id: "u-anna" } }] }),
+      },
+    );
+    await new Promise((r) => setTimeout(r, 30));
+    await el.updateComplete;
+    const userSelect = () =>
+      [...sr(el).querySelectorAll<HTMLSelectElement>("select")].find((s) => s.querySelector('option[value="current_user"]'))!;
+    // Everyone responsible for a task, by name — not people without tasks.
+    expect([...userSelect().options].map((o) => o.textContent!.trim()).slice(2)).to.deep.equal(["Anna", "Ben"]);
+
+    // A saved view that narrows to one person shows that person — the select
+    // used to stay blank because only "All" and "My tasks" existed.
+    (el as unknown as { _applyView(id: string): void })._applyView("v-anna");
+    await el.updateComplete;
+    expect(userSelect().selectedOptions[0].textContent!.trim()).to.equal("Anna");
+    const rows = [...sr(el).querySelectorAll(".task-name")].map((n) => n.textContent!.trim());
+    expect(rows.some((r) => r.includes("Hers"))).to.equal(true);
+    expect(rows.some((r) => r.includes("His") || r.includes("Nobody"))).to.equal(false);
+
+    // Picking a person by hand filters the same way.
+    const sel = userSelect();
+    sel.value = "u-ben";
+    sel.dispatchEvent(new Event("change"));
+    await el.updateComplete;
+    expect((el as unknown as { _filterUser: string | null })._filterUser).to.equal("u-ben");
+  });
+
   it("Today person chip stays readable on a phone next to a long object name (#169)", async () => {
     localStorage.setItem("msp-overview-tab", "today");
     await setViewport({ width: 360, height: 800 });

@@ -12,7 +12,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import DOMAIN, ROBOTS, SIGNAL, VALUES
+from . import DOMAIN, ROBOTS, SIGNAL, reset
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,5 +44,5 @@ class ResetButton(ButtonEntity):
 
     async def async_press(self) -> None:
         _LOGGER.warning("DEMO reset pressed: %s -> %s h", self._key, self._full)
-        VALUES[self._key] = self._full
+        reset(self._key, self._full)
         async_dispatcher_send(self.hass, SIGNAL, self._key)

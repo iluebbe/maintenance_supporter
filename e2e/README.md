@@ -89,6 +89,36 @@ shared with the in-process twin `tests/test_migration_roundtrip.py`. The
 
 Snapshots of both sides land in `e2e/migration/.run/`.
 
+## A year in ten minutes (`timelapse/`)
+
+`node e2e/timelapse/run.mjs` runs one Home Assistant under libfaketime
+(`docker/Dockerfile.ha-faketime`) with its clock a year back, sets up a
+household (`timelapse/seed.json`), adopts the demo robots
+(`docker/demo_roborock_fixture`, wearing down with the clock via
+`ROBOROCK_DEMO_WEAR=1`) and a battery fleet, then lives the year week by
+week: the clock moves, sensors drift, the coordinators refresh through the
+real path, and a seeded "household" completes, skips, misses, postpones,
+snoozes, swaps batteries, pauses the pool for the winter and goes on
+vacation. It fails when the year leaves no trace of a feature (history types,
+phases, buy reminders, catalog resets, notifications, fleet swap log) and
+keeps the instance (`ms-timelapse`, port 8163) for probing; `MIGRATE=1`
+moves it to a fresh instance with `migration/run.mjs` afterwards. The weekly
+`Timelapse` workflow does both.
+
+| Var | Meaning | Default |
+|-----|---------|---------|
+| `TIMELAPSE_IMAGE` | an image with libfaketime | `docker-homeassistant-dev:latest` |
+| `WEEKS` | how long the year is | `52` |
+| `SEED` | the household's dice | `1` |
+| `MIGRATE=1` | move the year to a fresh instance and compare | off |
+| `KEEP=0` | remove the instance at the end | kept |
+
+Faketime notes: the clock file lives inside the container (a bind-mounted
+file is briefly missing while it is replaced on a Windows host, and
+libfaketime aborts Home Assistant on a failed read); interval timers run on
+the real monotonic clock, so each week waits out the 10 s refresh cooldown;
+daily jobs (retention sweep, the 08:00 digest) do not fire on a jump.
+
 ## Scripted checks against the dev instance
 
 Beside the two specs, `e2e/` holds ~50 single-purpose `.mjs` scripts that drive
