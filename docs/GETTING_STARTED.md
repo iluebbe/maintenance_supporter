@@ -24,8 +24,8 @@ The complete reference is [FEATURES.md](FEATURES.md); every setting is in
 **Install.** Maintenance Supporter is in the HACS default store: HACS →
 search *Maintenance Supporter* → install → restart Home Assistant. Then
 *Settings → Devices & services → Add integration → Maintenance Supporter*.
-The short wizard asks for a notification service — you can leave it empty
-for now and come back in level 2.
+The short wizard asks whether to send notifications and where — you can
+leave that off for now and come back in level 2.
 
 ![The setup wizard](images/config-flow.png)
 
@@ -66,14 +66,16 @@ Each task keeps its **history**: who did what, when, at what cost.
 
 ## Level 2 — Never miss a date
 
-**Notifications.** Panel → **Settings** → *Notifications*: pick where
-reminders go — the Companion app on your phone, any `notify.*` service or
-notify entity. You get a reminder when a task is due soon, when it is overdue
-and when a sensor triggers it (level 3). Switch on *Mobile Action Buttons*
-on the same page and the phone notification gets **Complete**, **Skip** and
+**Notifications.** They are off until you switch them on: panel →
+**Settings** → *General* → tick **Notifications** and pick where reminders
+go — the Companion app on your phone, any `notify.*` service or notify
+entity. You get a reminder when a task is due soon, when it is overdue
+and when a sensor triggers it (level 3). The *Notifications* section
+that now appears has *Mobile Action Buttons*: switch them on and the phone
+notification gets **Complete**, **Skip** and
 **Snooze** buttons — done without opening the app (Companion app only).
 
-Useful extras there: quiet hours, a weekly digest, bundling several
+Useful extras in that section: quiet hours, a weekly digest, bundling several
 reminders into one, vacation mode (pauses reminders while you're away) and
 per-user routing (level 4).
 
@@ -181,8 +183,9 @@ detector itself.
 **Spare parts.** Give an object its parts — filters, brushes, descaler — with
 part number, storage place and stock. A task can consume them on completion;
 when the stock drops to the reorder threshold, a *"Buy …"* reminder appears
-on its own and lands on your Home Assistant shopping list. Check it off at
-the store and the part is restocked.
+on its own. Pick a list in *Settings → General → Shopping list (buy tasks)*
+and the reminder also lands on that Home Assistant shopping list — check it
+off at the store and the part is restocked.
 
 ![Parts that reorder themselves](images/gifs/parts-auto-buy.gif)
 
@@ -235,14 +238,15 @@ flip, replace* for the mower blades — with *cycle phases*.
 several meters in one task, each with its delta in the history.
 
 **Required details.** A task can demand details before it counts as done —
-a cost, a note, a photo, a reading.
+a note, a cost, the duration, a photo or who did it.
 
 ![Required completion details](images/gifs/required-details.gif)
 
 **Adaptive intervals.** Switch on *Settings → Advanced Features →
 Adaptive Scheduling*: the integration learns how often a task really needs doing from
-your completions (and the sensor data), suggests a better interval and, with
-seasonal factors, adjusts it through the year. You always confirm.
+your completions (and the sensor data) and suggests a better interval; with
+*Seasonal Adjustments* switched on as well it adjusts it through the year.
+You always confirm.
 
 ---
 

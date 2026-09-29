@@ -5,9 +5,9 @@
 ### Trigger Not Activating
 
 1. Verify the `trigger_entity` is correct — check **Developer Tools > States** for the entity ID, and confirm the source entity has a usable state there
-2. Check per-entity availability (`available`, `unavailable`, `missing`, `startup`) — this is the `trigger_entity_state` live value shown on the task in the panel (it comes from the WebSocket `subscribe` feed, not from a sensor attribute). `startup` is the 5-minute grace period after a Home Assistant restart: the source integration may not have published its states yet, so nothing is flagged as missing until the grace period is over — wait it out before troubleshooting further
+2. Check per-entity availability — the integration's diagnostics download (*Settings → Devices & services → Maintenance Supporter → ⋮ → Download diagnostics*) lists every trigger entity of every task, compound conditions included, as `available`, `unavailable` or `missing`. Right after a Home Assistant restart there is a 5-minute grace period (`startup`) after a Home Assistant restart: the source integration may not have published its states yet, so nothing is flagged as missing until the grace period is over — wait it out before troubleshooting further
 3. For threshold triggers with `trigger_for_minutes` > 0, the condition must hold continuously for that duration
-4. For compound triggers, check each sub-condition's status individually on the task in the panel
+4. For compound triggers, check each condition's entity the same way (Developer Tools > States shows the value each condition compares against); the task's trigger section in the panel lists the conditions and whether the whole trigger is active
 
 ### Notifications Not Arriving
 
@@ -128,7 +128,7 @@ logger:
 3. Remove the `custom_components/maintenance_supporter/` directory from your HA config folder
 4. Restart Home Assistant
 
-> **Note:** Recorder history (entity state history in the HA database) is not automatically removed. To purge it, use the `recorder.purge_entities` service targeting this integration's entities (in the UI you can pick the Maintenance Supporter device or select the entities directly — they follow the `sensor.<object>_<task>` naming described under [Entity naming](#entity-naming)).
+> **Note:** Recorder history (entity state history in the HA database) is not automatically removed. To purge it, use the `recorder.purge_entities` service targeting this integration's entities (in the UI you can pick the Maintenance Supporter device or select the entities directly — they follow the `sensor.<object>_<task>` naming described under [Entity naming](EXAMPLES.md#entity-naming)).
 
 **Reinstalling later** is a documented fresh start: re-adding the integration
 (even in the same Home Assistant run, without a restart) gives a clean install

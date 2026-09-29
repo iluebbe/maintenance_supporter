@@ -53,6 +53,18 @@ All notable changes to Maintenance Supporter are documented in this file.
   8 Assist intents in 6 languages. Two fields stay API/import-only and say so: a task's `entity_slug` (it changes the
   names of the task's entities, which automations refer to) and a part's legacy `doc_id` (the paperclip on a part row attaches any
   number of files). Skip QR codes come from *Print QR codes*, not from a task's QR dialog.
+- Second pass (README, getting-started guide, troubleshooting, the setup-assistant skill, events): notifications are
+  off until *Notifications* is ticked (Settings → General — the wizard has the same box), and the notification
+  section with its mobile buttons appears only then; buy reminders reach a shopping list only once one is picked;
+  a task can require a note, cost, duration, photo or who did it — not a reading; the README names the Advanced
+  Features switch behind adaptive scheduling, budgets, checklists, time-of-day and quick-complete; troubleshooting
+  points to the diagnostics download for trigger-entity health instead of a panel field that does not exist. The
+  event reference gains `source` on completions, the `completed` / `quiet_end` notification kinds, `category`, the
+  compound trigger's payload and `maintenance_supporter_export_completed`; the architecture notes no longer claim
+  that adaptive tuning and compound triggers are Configure-only or that priorities include `critical`. The skill's
+  API reference matches the code again (102 commands, 95 templates, required `name` on `part/update` and
+  `original_timestamp` on `task/history/update`, `language` on `object/from_template`, over-long values are refused,
+  and a task dry-run needs an existing object).
 
 ## [2.95.0] - 2026-09-28
 

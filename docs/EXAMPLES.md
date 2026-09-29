@@ -94,7 +94,8 @@ recovers — independent of the notification settings:
 
 The payload carries the maintenance sensor (`entity_id`), the task's
 `entry_id` and `task_id` (2.96+), the watched entity (`trigger_entity`), the
-crossing value (`trigger_value`) and the `trigger_type`:
+crossing value (`trigger_value`) and the `trigger_type` — a compound trigger
+sends `compound_logic` and `condition_states` instead of the entity and value:
 
 ```yaml
 automation:

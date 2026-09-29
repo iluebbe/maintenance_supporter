@@ -239,12 +239,26 @@ const flowComplete = async (p, mark) => {
   const r = await p.evaluate((fnStr) => {
     const panel = eval(`(${fnStr})`)();
     const rows = [...panel.shadowRoot.querySelectorAll(".task-row")];
-    // Not the smoke-detector test (only a tag scan may complete it — the clip
-    // showed the refusal), the impeller cleaning the parts clip needs, a
-    // shopping reminder or a meter reading; overdue first, else due soon
-    // (a re-record after the other clips has no overdue one left).
-    const pick = (re) => rows.find((el) => re.test(el.textContent || "")
-      && !/test buttons|impeller|^buy |reading/i.test(el.querySelector(".task-name")?.textContent || ""));
+    // A task this clip can finish in one click, decided from the task data:
+    // not one only a tag scan may complete (the clip showed the refusal),
+    // none that demands details (the button stays disabled), no meter
+    // reading, no shopping reminder, not the impeller cleaning the parts
+    // clip needs. Overdue first, else due soon (a re-record after the other
+    // clips has no overdue one left).
+    const plain = [];
+    for (const o of panel._objects || []) {
+      for (const t of o.tasks || []) {
+        if (t.require_tag_scan || (t.required_completion_fields || []).length || t.type === "reading" || t.part_ref) continue;
+        if (/impeller/i.test(t.name)) continue;
+        plain.push([o.object.name, t.name]);
+      }
+    }
+    // Names repeat across objects (two "Descaling" tasks) — match both.
+    const isPlain = (el) => {
+      const task = (el.querySelector(".task-name")?.textContent || "").split("·")[0].trim();
+      return plain.some(([obj, name]) => name === task && (el.textContent || "").includes(obj));
+    };
+    const pick = (re) => rows.find((el) => re.test(el.textContent || "") && isPlain(el));
     const row = pick(/overdue/i) || pick(/due soon/i);
     if (!row) return "no overdue or due-soon row";
     row.scrollIntoView({ block: "center" });

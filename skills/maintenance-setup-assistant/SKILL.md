@@ -118,7 +118,7 @@ candidates by area/device and rank by confidence.
 have maintenance that never appears in any registry — range-hood filters,
 descaling, smoke-detector batteries, HVAC filters, gutter cleaning. Call
 `maintenance_supporter/templates` (pass the user's `language`): the integration
-ships **45 curated object templates**, each with its tasks, types and interval
+ships **95 curated object templates**, each with its tasks, types and interval
 defaults already chosen and localized, and `object/from_template` creates the
 object plus all of its tasks in one call. Match a candidate to a template
 whenever one fits and propose the template; skip templates flagged
@@ -161,7 +161,11 @@ Documents feature. Do not fabricate model numbers or intervals.
      both (sensor trigger + a safety calendar interval).
    - `task_type` is the wire key (stored as `type`); `schedule_type` is separate.
 2. Send the whole batch with `"dry_run": true`. Collect every `valid`/error and
-   `warnings`. Show the user the dry-run result verbatim.
+   `warnings`. Show the user the dry-run result verbatim. A task dry-run needs
+   an object that already exists (`task/create` looks up its `entry_id` first,
+   and a dry-run `object/create` returns `entry_id: null`): for tasks of a NEW
+   object, show your planned task list instead, create the object on
+   confirmation, then dry-run and create its tasks.
 3. On explicit confirmation, replay the batch with `dry_run` removed/false.
    Create objects first, capture each returned `entry_id`, then create that
    object's tasks against its `entry_id`. Stop and report if any create fails

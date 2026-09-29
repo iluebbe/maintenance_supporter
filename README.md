@@ -58,8 +58,8 @@ device's own reset button, so its counter starts again at full life.
 Bind a task to a real sensor: accumulated runtime, a counter (e.g. odometer
 kilometers), a threshold (filter airflow below 60 %), state-change cycles, or
 a combination with AND/OR logic. The task triggers when the *device* says
-it's time. With adaptive scheduling it even learns your real intervals from
-history and suggests better ones.
+it's time. With adaptive scheduling (Settings → Advanced Features) it even
+learns your real intervals from history and suggests better ones.
 
 **"Whose turn is it to mow the lawn?"**
 Assign tasks to household members with per-user notifications — or share a
@@ -78,7 +78,7 @@ in the history. Attach photos of the meter displays when completing — they
 land in the task's history.
 
 **"What did the car cost me this year?"**
-Every completion records cost and duration. Budgets with alerts, per-object
+Every completion records cost and duration. Budgets with alerts (Advanced Features), per-object
 cost history, history and costs per Home Assistant area (the whole garage, the
 whole flat) with a printable area report, a printable PDF report per object,
 and CSV/JSON export for your spreadsheet.
@@ -87,7 +87,8 @@ expire.
 
 **"I'm standing at the machine — I don't want to open an app."**
 Print a QR code and stick it on the device: scanning opens the task, or with
-*quick-complete* records the completion in one tap. NFC tags work too. Manuals
+*quick-complete* (defaults set on the task, with *Completion actions* on in
+Advanced Features) records the completion in one tap. NFC tags work too. Manuals
 and invoices can be attached to any object (backup-safe, deduplicated) so the
 PDF is one click away from the task you're doing.
 
@@ -102,8 +103,9 @@ needed.
    restart Home Assistant. (Manual install: copy
    `custom_components/maintenance_supporter/` into your `config/custom_components/`.)
 2. **Set up:** *Settings → Devices & Services → Add Integration →
-   "Maintenance Supporter"*. The short wizard asks for your notification
-   service — everything else has sensible defaults.
+   "Maintenance Supporter"*. The short wizard asks whether to send
+   notifications (off until you tick it) and where — everything else has
+   sensible defaults.
 3. **Create your first object:** open the new **Maintenance** entry in the
    sidebar and pick **Add ▾ → From template** — choose *Car*, *HVAC*,
    *Washing machine*, *Pool*, … and get an object with typical tasks
@@ -113,8 +115,8 @@ needed.
    and change; local regulations and the manufacturer's instructions take
    precedence.
 4. **Done.** Tasks show up on the panel dashboard, in the calendar, in the
-   To-do list, and as sensors you can automate on. When something is due,
-   you'll hear about it.
+   To-do list, and as sensors you can automate on. With notifications
+   switched on, you'll hear about it when something is due.
 
 New here? The **[Getting started guide](docs/GETTING_STARTED.md)** takes you
 from the first task to the full toolbox in seven levels — reminders, sensor
@@ -132,15 +134,15 @@ for you — always previewing before it writes.
 |---|---|---|
 | **Suggested setups** | 225 integrations / 484 verified signatures with pre-wired sensor triggers — boilers, vacuums, cars, locks, printers, purifiers and more; completing a task presses the device's own counter reset where it has one (2.95) | [Supported integrations](docs/INTEGRATIONS.md) |
 | **Battery fleet** | One task for all 30–70+ batteries — grouped shopping list, discharge-trend forecast with per-battery sparklines, mark-all-replaced, spare-part stock; rechargeables are tracked for charging, never shopped. Best with [Battery Notes](https://github.com/andrew-codechimp/HA-Battery-Notes); native `device_class: battery` devices work too (degraded) | [Features → Battery Fleet](docs/FEATURES.md#battery-fleet-battery-notes-or-native) |
-| **Scheduling** | Intervals (days→years), calendar patterns (weekdays, nth weekday, day of month, last/business day ±offset), the events of a Home Assistant calendar entity (once per event — waste collection), one-time, manual; seasonal month windows, finite series (ends after N times / on a date), postpone a single occurrence; drift-free planned anchoring; time-of-day precision; live "next three dates" preview while editing | [Features → Task Management](docs/FEATURES.md#task-management) |
+| **Scheduling** | Intervals (days→years), calendar patterns (weekdays, nth weekday, day of month, last/business day ±offset), the events of a Home Assistant calendar entity (once per event — waste collection), one-time, manual; seasonal month windows, finite series (ends after N times / on a date), postpone a single occurrence; drift-free planned anchoring; time-of-day precision (Advanced Features); live "next three dates" preview while editing | [Features → Task Management](docs/FEATURES.md#task-management) |
 | **Sensor triggers** | Threshold, counter, runtime, state-change, compound (AND/OR), multi-entity; auto-complete on sensor recovery; adopt HA `device_class: problem` sensors as tasks | [Features → Triggers](docs/FEATURES.md#sensor-based-triggers) |
-| **Adaptive scheduling** | Learns real intervals (EWA + Weibull), seasonal factors, degradation prediction, feedback loop | [Features → Adaptive](docs/FEATURES.md#adaptive-scheduling) |
+| **Adaptive scheduling** | Learns real intervals (EWA + Weibull), seasonal factors, feedback loop — switched on in Settings → Advanced Features; sensor degradation predictions run for every sensor task | [Features → Adaptive](docs/FEATURES.md#adaptive-scheduling) |
 | **Notifications** | Any `notify.*` target, per-user routing, actionable mobile buttons, icons per maintenance type (overridable per task), quiet hours, bundling, lead-time reminders, weekly digest, warranty reminders, vacation mode | [Features → Notifications](docs/FEATURES.md#notifications) |
-| **Household** | Priorities, labels, checklists, user assignment + rotation (whose turn it is shows on the card), operator (read-only) mode, native To-do entity, Markdown notes on tasks and objects | [Features → Task Management](docs/FEATURES.md#task-management) |
-| **History & money** | Full history with cost/duration/photos, Missed-vs-skipped, budgets + alerts, PDF report per object, history + costs per area with an area report (2.95), CSV/JSON import & export | [Features → Areas](docs/FEATURES.md#areas-295-191) |
+| **Household** | Priorities, labels, checklists (Advanced Features), user assignment + rotation (whose turn it is shows on the card), operator (read-only) mode, native To-do entity, Markdown notes on tasks and objects | [Features → Task Management](docs/FEATURES.md#task-management) |
+| **History & money** | Full history with cost/duration/photos, Missed-vs-skipped, budgets + alerts (Advanced Features), PDF report per object, history + costs per area with an area report (2.95), CSV/JSON import & export | [Features → Areas](docs/FEATURES.md#areas-295-191) |
 | **Documents** | Attach manuals/invoices/photos per object — backup-safe, deduplicated, searchable, linkable to tasks (PDF page jump) | [Features → Documents](docs/FEATURES.md#documents--manuals-2110) |
-| **Spare parts** | Parts inventory: identifiers (MPN, GTIN/EAN), storage location, stock + reorder threshold, auto “buy” tasks with shopping links, restock on completion, stock sensors, buy reminders mirrored into your HA shopping list (check one off at the store, the part is restocked). Several objects can share one stock, so identical appliances draw on one real pile | [Features → Task Management](docs/FEATURES.md#task-management) |
-| **Quick actions** | QR codes (view / complete / one-tap quick-complete), NFC tags — optionally as **proof of presence** (a task only a scan at the thing itself may complete), on-complete service calls back to the device | [Features → Completion Actions](docs/FEATURES.md#completion-actions-130-advanced) |
+| **Spare parts** | Parts inventory: identifiers (MPN, GTIN/EAN), storage location, stock + reorder threshold, auto “buy” tasks with shopping links, restock on completion, stock sensors, buy reminders mirrored into the HA shopping list you pick in Settings (check one off at the store, the part is restocked). Several objects can share one stock, so identical appliances draw on one real pile | [Features → Task Management](docs/FEATURES.md#task-management) |
+| **Quick actions** | QR codes (view / complete / one-tap quick-complete), NFC tags — optionally as **proof of presence** (a task only a scan at the thing itself may complete), on-complete service calls back to the device (quick-complete defaults and your own service calls need *Completion actions* in Advanced Features) | [Features → Completion Actions](docs/FEATURES.md#completion-actions-130-advanced) |
 | **Dashboards** | Sidebar panel (Today view, global search across objects, tasks, parts, document contents and notes, bulk actions, saved filter views), Lovelace card, calendar card, battery-fleet card, the whole panel as a card for a dashboard subview (2.84+), auto-generated dashboard strategies | [Examples → Dashboards](docs/EXAMPLES.md#lovelace-card) |
 | **Localization** | Full UI in 22 languages across panel, config flow, and notifications; dates, times and numbers follow your HA profile formats | [Features → Frontend](docs/FEATURES.md#frontend) |
 
@@ -158,8 +160,8 @@ entity mirrors open work. Lifecycle **events** (`…_task_completed`,
 `…_trigger_activated`, …) fire on every path, and nine **services** —
 `complete` / `skip` / `reset` / `export_data` plus full task CRUD
 (`add_object`, `add_task`, `update_task`, `delete_task`, `list_tasks`) —
-cover scripting. Six **Assist intents** answer *"what maintenance is due?"*,
-complete or snooze tasks, read out instructions and check spare-part stock
+cover scripting. 8 **Assist intents** answer *"what maintenance is due?"*,
+complete, skip, postpone or snooze tasks, read out instructions and check spare-part stock
 by voice — LLM-based Assist picks them up automatically; classic Assist uses
 the shipped sentence files
 ([Features → Voice & Assist](docs/FEATURES.md#voice--assist-226)).

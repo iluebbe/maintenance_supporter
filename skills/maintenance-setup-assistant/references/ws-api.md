@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All **98** registered commands are covered here. Their authorization tiers are
+All **102** registered commands are covered here. Their authorization tiers are
 frozen in `tests/test_ws_permission_matrix.py` — that test is the inventory of
 record; this file is its prose companion.
 
@@ -23,8 +23,10 @@ record; this file is its prose companion.
 icon `≤100`, meta strings (`area_id`, `manufacturer`, `model`, `serial_number`,
 `responsible_user_id`) `≤200`, `type`/`schedule_type` `≤50`, id `≤64`, date
 `≤20`, `entity_slug ≤64` (regex `[a-z0-9_]+`), `entity_id ≤255`,
-`interval_days` `1..3650`, checklist ≤100 items each `≤500`. Over-length values
-are trimmed/dropped by the sanitize layer even if the schema would accept them.
+`interval_days` `1..3650`, checklist ≤100 items each `≤500`. Most of these are
+checked by the command schema — an over-long value is REFUSED with an error,
+not shortened; the sanitize layer then trims or drops what a schema lets
+through (e.g. free-form maps).
 
 ---
 
@@ -133,7 +135,9 @@ entry; last_performed is re-derived from the remaining lifecycle entries (none
 left → the task reads as never performed), photos stay in the documents, parts
 are not restocked.
 
-`task/history/update` patches `reading_value` (scalar, `null` clears) and
+`task/history/update` `{entry_id, task_id, original_timestamp (req — the
+entry's timestamp exactly as stored; it identifies the entry), ...patch}`
+patches `reading_value` (scalar, `null` clears) and
 `reading_values` (the same map — REPLACES the snapshot; ids may also be
 slots the task no longer has, taken from the entry's own snapshot). The
 `complete` **service** takes `reading_values` keyed by slot NAME
@@ -173,8 +177,9 @@ from it: task configs with fresh ids/counters, documents carried over
 GS1 check-digit validated), storage_location?, product_url?, unit?, cost?,
 stock? (int — omit for a catalog-only part), reorder_threshold?,
 restock_quantity?, auto_buy_task?, notes?}` → `{part_id}`.
-`part/update` `{entry_id, part_id, ...same fields}` (omitted fields keep their
-stored values; `stock: null` untracks). `part/delete` `{entry_id, part_id}`
+`part/update` `{entry_id, part_id, name (req), ...same fields}` (`name` is
+required on every update; other omitted fields keep their stored values;
+`stock: null` untracks). `part/delete` `{entry_id, part_id}`
 (also prunes task links + any open buy reminder). `part/restock`
 `{entry_id, part_id, delta | absolute}` → `{stock}`.
 `parts/overview` (#130, read tier, no args) → `{parts: [...], count}` — the
@@ -213,7 +218,7 @@ borrower and repoints the other links. Parts ride the `objects` payload
                                "schedule_type":"time_based",
                                "interval_days":90,"warning_days":7} ] } ] }
 ```
-**Call this before hand-building anything.** The integration ships **94**
+**Call this before hand-building anything.** The integration ships **95**
 curated object templates (heating, heat pump, frost protection, garden,
 vehicle, health, …), each with its tasks, types and interval defaults already
 chosen and localized. It is the only way to enumerate the `template_id` values
@@ -243,8 +248,9 @@ guidance researched in September 2026, never as legal advice: rules vary by
 region and change, and local regulations take precedence.
 
 ### `object/from_template` — `@require_write`
-`{template_id (req), name?}` → `{entry_id}`. Creates the object **and all of the
-template's tasks** in one call. `object/duplicate` `{entry_id}` → `{entry_id}`.
+`{template_id (req), name?, language?}` → `{entry_id}`. Creates the object **and
+all of the template's tasks** in one call; `language` (the user's UI language)
+localizes the created object and task names, else the server language. `object/duplicate` `{entry_id}` → `{entry_id}`.
 
 ---
 
@@ -334,7 +340,7 @@ links stay with the source object. Errors: `not_found`, `invalid_target`
   `checklist_progress`.
 - `task/skip` `{entry_id, task_id, reason?}` — refused with `skip_disabled` when the task sets `allow_skip: false`
 - `task/reset` `{entry_id, task_id, date?}` (ISO)
-- `task/set_phase` `{entry_id, task_id, cursor (req, int ≥0)}` → `{"success": true, "phase_cursor": n}` —
+- `task/set_phase` `{entry_id, task_id, cursor (req, int ≥0)}` → `{"success": true}` (read the new cursor from the task) —
   re-points a phased task's cycle cursor (#139: mis-click repair, mid-cycle
   adoption). Cursor indexes `phase_sequence`; out of range → `invalid_cursor`,
   task without phases → `no_phases`. Completions advance the cursor themselves —
@@ -1019,7 +1025,7 @@ One global window with a buffer and an exemption list; exempt tasks keep
 notifying (the cat's medication doesn't care that you're away).
 
 ### `vacation/state` — read
-`{}` → the current config + `active` flag.
+`{}` → `{enabled, start, end, buffer_days, exempt_task_ids, is_active, window_end}`.
 
 ### `vacation/preview` — read
 `{}` → `{rows:[…], window_end}` — the projected impact of the **currently
