@@ -18,6 +18,30 @@ const isEmpty = (v) =>
 
 /** ``cutoff``: history written after the export (a trigger firing on either
  *  running instance) is runtime, not moved data — left out on both sides. */
+/** Task id → its name; tasks sharing a name in one object (a finished buy
+ *  reminder kept beside the next one) are told apart as "#1", "#2" in the
+ *  order they were created — both of which a move keeps. Keyed by the bare
+ *  name, one would silently overwrite the other on each side. */
+export function taskLabels(tasks) {
+  const byName = {};
+  for (const [tid, t] of Object.entries(tasks)) (byName[t.name] ||= []).push(tid);
+  const labels = {};
+  for (const [name, tids] of Object.entries(byName)) {
+    if (tids.length === 1) {
+      labels[tids[0]] = name;
+      continue;
+    }
+    const key = (tid) => [String(tasks[tid].created_at || ""), Number(tasks[tid].ref_no || 0)];
+    tids.sort((a, b) => {
+      const [ca, ra] = key(a);
+      const [cb, rb] = key(b);
+      return ca < cb ? -1 : ca > cb ? 1 : ra - rb;
+    });
+    tids.forEach((tid, i) => { labels[tid] = `${name} #${i + 1}`; });
+  }
+  return labels;
+}
+
 export function snapshot(configDir, expect, cutoff = null) {
   const storage = join(configDir, ".storage");
   const entries = readJson(join(storage, "core.config_entries")).data.entries.filter((e) => e.domain === DOMAIN);
@@ -33,10 +57,12 @@ export function snapshot(configDir, expect, cutoff = null) {
   );
   const entryName = Object.fromEntries(objects.map((e) => [e.entry_id, e.data.object.name]));
   const objectName = Object.fromEntries(objects.map((e) => [e.data.object.id, e.data.object.name]));
+  const taskLabel = {};
   const taskName = {};
   const partName = {};
   for (const e of objects) {
-    for (const [tid, t] of Object.entries(e.data.tasks || {})) taskName[tid] = `${e.data.object.name}/${t.name}`;
+    Object.assign(taskLabel, taskLabels(e.data.tasks || {}));
+    for (const tid of Object.keys(e.data.tasks || {})) taskName[tid] = `${e.data.object.name}/${taskLabel[tid]}`;
     for (const [pid, p] of Object.entries(e.data.parts || {})) partName[pid] = `${e.data.object.name}/${p.name}`;
   }
   const docsPath = join(storage, `${DOMAIN}.documents`);
@@ -86,7 +112,7 @@ export function snapshot(configDir, expect, cutoff = null) {
       const { id: _tid, ...task } = t;
       const state = Object.fromEntries(Object.entries((store.tasks || {})[tid] || {}).filter(([k]) => !runtimeOnly.has(k)));
       if (cutoff && Array.isArray(state.history)) state.history = state.history.filter((h) => !(h.timestamp > cutoff));
-      rec.tasks[t.name] = tr({ ...task, _state: state });
+      rec.tasks[taskLabel[tid]] = tr({ ...task, _state: state });
     }
     for (const [pid, p] of Object.entries(e.data.parts || {})) {
       const { id: _pid, ...part } = p;

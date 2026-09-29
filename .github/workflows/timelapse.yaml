@@ -51,4 +51,6 @@ jobs:
           path: |
             e2e/timelapse/.run/summary.json
             e2e/migration/.run/*.json
+          # .run is a hidden folder: without this the globs upload nothing.
+          include-hidden-files: true
           retention-days: 14

@@ -333,6 +333,20 @@ async def _seed_the_rest(
     await async_reconcile_buy_tasks(hass, hass.config_entries.async_get_entry(kitchen.entry_id))
     await hass.async_block_till_done()
 
+    # A second low episode, the way a year produces it (the timelapse found
+    # it): the first reminder, bought and restocked, stays as a finished
+    # one-off with its cost; the next low stock opens a new reminder of the
+    # SAME name. A move has to keep both.
+    current = hass.config_entries.async_get_entry(kitchen.entry_id)
+    first_buy = next(tid for tid, t in current.data[CONF_TASKS].items() if t.get("part_ref"))
+    await current.runtime_data.coordinator.complete_maintenance(first_buy, cost=3.49)
+    await hass.async_block_till_done()
+    hass.data[STORES_CACHE_KEY][kitchen.entry_id].set_part_stock("salt", 1)
+    await async_reconcile_buy_tasks(hass, hass.config_entries.async_get_entry(kitchen.entry_id))
+    await hass.async_block_till_done()
+    buy_tasks = [t for t in hass.config_entries.async_get_entry(kitchen.entry_id).data[CONF_TASKS].values() if t["name"] == current.data[CONF_TASKS][first_buy]["name"]]
+    assert len(buy_tasks) == 2 and sum(bool(t.get("part_ref")) for t in buy_tasks) == 1, buy_tasks
+
     # An object adopted from the integration catalog: a robot's duty with its
     # fingerprint and the reset button as completion action.
     sig = next(s for s in SIGNATURES["roborock"].tasks if s.resets)
@@ -349,6 +363,27 @@ async def _seed_the_rest(
 _ENTRY_KEYS = {"entry_id", "parent_entry_id", "predecessor_entry_id", "replaced_by_entry_id"}
 _TASK_LIST_KEYS = {"task_ids", CONF_VACATION_EXEMPT_TASK_IDS}
 _USER_KEYS = {"responsible_user_id", "completed_by", "user_id"}
+
+
+def _task_labels(tasks: dict[str, dict[str, Any]]) -> dict[str, str]:
+    """Task id -> its name; same-named tasks of one object (a finished buy
+    reminder kept beside the next one) become "#1", "#2" in creation order.
+
+    Keyed by the bare name, one would silently overwrite the other on each
+    side of the move (e2e/migration/compare.mjs does the same).
+    """
+    by_name: dict[str, list[str]] = {}
+    for tid, task in tasks.items():
+        by_name.setdefault(str(task.get("name")), []).append(tid)
+    labels: dict[str, str] = {}
+    for name, tids in by_name.items():
+        if len(tids) == 1:
+            labels[tids[0]] = name
+            continue
+        tids.sort(key=lambda tid: (str(tasks[tid].get("created_at") or ""), int(tasks[tid].get("ref_no") or 0)))
+        for i, tid in enumerate(tids, 1):
+            labels[tid] = f"{name} #{i}"
+    return labels
 
 
 async def _snapshot(hass: HomeAssistant) -> tuple[dict[str, Any], set[str]]:
@@ -369,7 +404,8 @@ async def _snapshot(hass: HomeAssistant) -> tuple[dict[str, Any], set[str]]:
     entries = [e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id != GLOBAL_UNIQUE_ID]
     entry_name = {e.entry_id: e.data["object"]["name"] for e in entries}
     object_name = {e.data["object"].get("id"): e.data["object"]["name"] for e in entries}
-    task_name = {tid: f"{e.data['object']['name']}/{t.get('name')}" for e in entries for tid, t in e.data.get(CONF_TASKS, {}).items()}
+    task_label = {tid: label for e in entries for tid, label in _task_labels(e.data.get(CONF_TASKS, {})).items()}
+    task_name = {tid: f"{e.data['object']['name']}/{task_label[tid]}" for e in entries for tid in e.data.get(CONF_TASKS, {})}
     part_name = {pid: f"{e.data['object']['name']}/{p.get('name')}" for e in entries for pid, p in (e.data.get("parts") or {}).items()}
     doc_store = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
     doc_name = {did: f"{object_name.get(d.get('object_id'))}/{d.get('kind')}:{d.get('title')}" for did, d in doc_store.documents.items()}
@@ -434,7 +470,7 @@ async def _snapshot(hass: HomeAssistant) -> tuple[dict[str, Any], set[str]]:
             if legacy and not state.get("trigger_runtime") and t.get("trigger_config"):
                 state["trigger_runtime"] = legacy_runtime_to_trigger_state(t["trigger_config"], legacy)
             portable = {k: v for k, v in state.items() if k not in RUNTIME_ONLY}
-            rec["tasks"][t["name"]] = tr({**{k: v for k, v in t.items() if k != "id"}, "_state": portable})
+            rec["tasks"][task_label[tid]] = tr({**{k: v for k, v in t.items() if k != "id"}, "_state": portable})
         for pid, p in (e.data.get("parts") or {}).items():
             rec["parts"][p["name"]] = tr({**{k: v for k, v in p.items() if k != "id"}, "_stock": store.get_part_stock(pid)})
         objects[e.data["object"]["name"]] = rec
