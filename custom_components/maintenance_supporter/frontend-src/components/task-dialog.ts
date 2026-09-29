@@ -1292,9 +1292,9 @@ export class MaintenanceTaskDialog extends LitElement {
               .value=${s.unit || ""}
               @input=${(e: Event) => this._patchReading(s.id, { unit: (e.target as HTMLInputElement).value })}
             ></ms-textfield>
-            <mwc-icon-button class="phase-remove reading-remove" @click=${() => (this._readings = this._readings.filter((x) => x.id !== s.id))}>
+            <ha-icon-button class="phase-remove reading-remove" @click=${() => (this._readings = this._readings.filter((x) => x.id !== s.id))}>
               <ha-icon icon="mdi:delete-outline"></ha-icon>
-            </mwc-icon-button>
+            </ha-icon-button>
           </div>
         `)}
         ${this._readings.length < MAX_READING_SLOTS ? html`
@@ -1366,9 +1366,9 @@ export class MaintenanceTaskDialog extends LitElement {
                   @input=${(e: Event) => this._patchPhaseDef(d.id, { partQty: (e.target as HTMLInputElement).value })} />
               ` : nothing}
             ` : nothing}
-            <mwc-icon-button class="phase-remove" @click=${() => this._removePhaseDef(d.id)}>
+            <ha-icon-button class="phase-remove" @click=${() => this._removePhaseDef(d.id)}>
               <ha-icon icon="mdi:delete-outline"></ha-icon>
-            </mwc-icon-button>
+            </ha-icon-button>
           </div>
           ${this.checklistsEnabled ? html`
             <textarea
@@ -3453,6 +3453,8 @@ export class MaintenanceTaskDialog extends LitElement {
       font-size: 13px;
     }
     .phase-remove {
+      display: inline-flex;
+      --ha-icon-button-size: 36px;
       --mdc-icon-button-size: 36px;
       color: var(--secondary-text-color);
     }

@@ -1030,6 +1030,7 @@ def build_action_buttons(
     entry_id: str | None,
     task_id: str | None,
     skip_allowed: bool,
+    complete_allowed: bool = True,
 ) -> list[dict[str, str]]:
     """The Companion-app action buttons a reminder carries, per the three
     action toggles — translated labels, at most three (Android's cap).
@@ -1049,7 +1050,7 @@ def build_action_buttons(
         return action_id(verb, None, None) if is_test else action_id(verb, entry_id, task_id)
 
     actions: list[dict[str, str]] = []
-    if options.get(CONF_ACTION_COMPLETE_ENABLED, setting_default(CONF_ACTION_COMPLETE_ENABLED)):
+    if options.get(CONF_ACTION_COMPLETE_ENABLED, setting_default(CONF_ACTION_COMPLETE_ENABLED)) and complete_allowed:
         actions.append({"action": _id("COMPLETE"), "title": f"✅ {_notif_t('action_complete', lang)}"})
     if options.get(CONF_ACTION_SKIP_ENABLED, setting_default(CONF_ACTION_SKIP_ENABLED)) and skip_allowed:
         actions.append({"action": _id("SKIP"), "title": f"⏭️ {_notif_t('action_skip', lang)}"})
@@ -1340,6 +1341,31 @@ class NotificationManager:
         could only fail in the action handler (bug review 2026-09-04).
         Unknown entries/tasks keep the button (nothing to check against)."""
         return self._task_config(entry_id, task_id).get("allow_skip") is not False
+
+    def _complete_allowed(self, entry_id: str, task_id: str) -> bool:
+        """A "Complete" button the action handler would refuse is not offered
+        (audit 2026-09-29): the tap only logged the refusal. Same rules as
+        ``coordinator.complete_maintenance`` for an unattended surface — a
+        task only a tag scan may complete, one that demands details (nobody
+        is asked on a notification tap; phase-aware), and one whose completion
+        window has not opened yet (a lead-time reminder). Unknown entries or
+        tasks keep the button (nothing to check against)."""
+        from ..models.maintenance_task import MaintenanceTask
+        from .completion_requirements import required_completion_fields
+
+        entry = self.hass.config_entries.async_get_entry(entry_id)
+        coordinator = getattr(getattr(entry, "runtime_data", None), "coordinator", None)
+        if coordinator is None:
+            return True
+        task = coordinator._get_merged_tasks_data().get(task_id)
+        if not task:
+            return True
+        if task.get("require_tag_scan") or required_completion_fields(task):
+            return False
+        try:
+            return bool(MaintenanceTask.from_dict(task).can_complete_now)
+        except (KeyError, TypeError, ValueError):
+            return True
 
     def _task_config(self, entry_id: str, task_id: str) -> Mapping[str, Any]:
         """The task's static config dict (``entry.data``) — carries the flags
@@ -1996,6 +2022,7 @@ class NotificationManager:
             entry_id=entry_id,
             task_id=task_id,
             skip_allowed=self._skip_allowed(entry_id, task_id),
+            complete_allowed=self._complete_allowed(entry_id, task_id),
         )
 
         service_data = _service_payload(

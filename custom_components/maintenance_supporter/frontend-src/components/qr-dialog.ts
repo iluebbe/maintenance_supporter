@@ -9,7 +9,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
-import { t } from "../styles";
+import { langOf, t } from "../styles";
 import { downloadTextFile } from "../helpers/download";
 
 interface QrResult {
@@ -43,7 +43,14 @@ function sanitizeFilename(s: string): string {
 
 export class MaintenanceQrDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
-  @property() public lang = "en";
+  /** Set by the panel; the dashboard path (dialog-mount) leaves it empty, and
+   *  the old "en" default then beat the user's language there (audit
+   *  2026-09-29) — _dialogLang falls back to hass.language instead. */
+  @property() public lang = "";
+
+  private get _dialogLang(): string {
+    return this.lang || langOf(this.hass);
+  }
 
   @state() private _open = false;
   @state() private _loading = false;
@@ -139,8 +146,8 @@ export class MaintenanceQrDialog extends LitElement {
       const code = (err as Record<string, unknown>)?.code;
       const msg = (err as Record<string, unknown>)?.message;
       this._error = code === "no_url" || (typeof msg === "string" && msg.includes("No Home Assistant URL"))
-        ? t("qr_error_no_url", this.lang)
-        : t("qr_error", this.lang);
+        ? t("qr_error_no_url", this._dialogLang)
+        : t("qr_error", this._dialogLang);
     } finally {
       if (seq === this._generateSeq) this._loading = false;
     }
@@ -175,7 +182,7 @@ export class MaintenanceQrDialog extends LitElement {
       .join(" ");
     const w = window.open("", "_blank", "width=600,height=500");
     if (!w) return;
-    const L = this.lang || "en";
+    const L = this._dialogLang;
     const safeTitle = escapeHtml(title);
     const safeSub = escapeHtml(subtitle);
 
@@ -249,7 +256,7 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
 
   render() {
     if (!this._open) return html``;
-    const L = this.lang || this.hass?.language || "en";
+    const L = this._dialogLang;
     const heading = this._taskName
       ? `${t("qr_code", L)}: ${this._objectName} — ${this._taskName}`
       : `${t("qr_code", L)}: ${this._objectName}`;

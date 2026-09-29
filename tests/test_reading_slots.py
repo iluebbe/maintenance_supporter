@@ -501,7 +501,8 @@ async def test_options_flow_edit_task_readings_text(hass: HomeAssistant) -> None
     result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "edit_task"})
     assert result["step_id"] == "edit_task"
     readings_key = next(k for k in result["data_schema"].schema if str(k) == "readings_text")
-    assert readings_key.default() == "Water cold | m³\nWater warm | m³\nElectricity | kWh"
+    # suggested, not a default: an emptied field must be able to clear (2.96)
+    assert readings_key.description["suggested_value"] == "Water cold | m³\nWater warm | m³\nElectricity | kWh"
 
     base = {"name": "Meter round", "type": "reading", "interval_days": 30, "warning_days": 7}
     result = await hass.config_entries.options.async_configure(

@@ -200,6 +200,40 @@ async def test_unlocked_task_keeps_all_three_action_buttons(hass: HomeAssistant)
     assert [a.split("_")[1] for a in actions] == ["COMPLETE", "SKIP", "SNOOZE"]
 
 
+@pytest.mark.parametrize(
+    ("over", "why"),
+    [
+        ({"require_tag_scan": True, "nfc_tag_id": "tag-1"}, "only a tag scan may complete it"),
+        ({"required_completion_fields": ["cost"]}, "it demands details a tap cannot give"),
+    ],
+)
+async def test_complete_button_only_where_the_tap_would_be_accepted(hass: HomeAssistant, over: dict, why: str) -> None:
+    """The "Complete" button was offered on every reminder; for these tasks
+    the tap was refused with only a log line (audit 2026-09-29)."""
+    g = _global(hass, **_ACTION_OPTIONS)
+    entry = _object(hass, _overdue_task(**over))
+    await setup_integration(hass, g, entry)
+
+    actions = await _overdue_push_actions(hass, entry)
+    assert "COMPLETE" not in [a.split("_")[1] for a in actions], why
+
+
+async def test_complete_button_waits_for_the_completion_window(hass: HomeAssistant) -> None:
+    """A lead-time reminder before the window opens: the tap would be "too
+    early", so the button is not offered yet."""
+    last = (dt_util.now().date() - timedelta(days=20)).isoformat()
+    task = build_task_data(task_id=TASK_ID_1, name="Review task", last_performed=last, interval_days=30)
+    task["earliest_completion_days"] = 2  # due in 10 days, window opens 2 days before
+    g = _global(hass, **_ACTION_OPTIONS)
+    entry = _object(hass, task)
+    await setup_integration(hass, g, entry)
+
+    nm = hass.data[DOMAIN]["_notification_manager"]
+    assert nm._complete_allowed(entry.entry_id, TASK_ID_1) is False
+    task_open = entry.runtime_data.coordinator._get_merged_tasks_data()[TASK_ID_1]
+    assert task_open["earliest_completion_days"] == 2
+
+
 async def test_persistent_notification_link_follows_regional_language(hass: HomeAssistant) -> None:
     """The appended "Open task" link used the RAW HA language code — a
     pt-BR / zh-Hans profile fell through to English while every other

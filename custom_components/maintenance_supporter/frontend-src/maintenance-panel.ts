@@ -4172,9 +4172,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         return html`<td class="oc-ref_no">${objectRef(o) ? `#${objectRef(o)}` : "—"}</td>`;
       case "actions":
         return html`<td class="oc-actions">
-          <mwc-icon-button title="${t("qr_code", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openQrForObject(obj.entry_id, o.name); }}>
+          <ha-icon-button class="obj-table-qr" title="${t("qr_code", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openQrForObject(obj.entry_id, o.name); }}>
             <ha-icon icon="mdi:qrcode"></ha-icon>
-          </mwc-icon-button>
+          </ha-icon-button>
         </td>`;
       default:
         return html`<td></td>`;
@@ -4219,12 +4219,12 @@ export class MaintenanceSupporterPanel extends LitElement {
                     <div class="group-card-head">
                       <div class="group-card-name">${group.name}</div>
                       <div class="group-card-actions">
-                        <mwc-icon-button title="${t("edit", L)}" @click=${() => this._openGroupEdit(gid)}>
+                        <ha-icon-button title="${t("edit", L)}" @click=${() => this._openGroupEdit(gid)}>
                           <ha-svg-icon path="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"></ha-svg-icon>
-                        </mwc-icon-button>
-                        <mwc-icon-button title="${t("delete", L)}" @click=${() => this._deleteGroup(gid, group.name)}>
+                        </ha-icon-button>
+                        <ha-icon-button title="${t("delete", L)}" @click=${() => this._deleteGroup(gid, group.name)}>
                           <ha-svg-icon path="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12z"></ha-svg-icon>
-                        </mwc-icon-button>
+                        </ha-icon-button>
                       </div>
                     </div>
                     ${group.description ? html`<div class="group-card-desc">${group.description}</div>` : nothing}
@@ -4431,13 +4431,13 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
     return html`
       <span class="row-actions">
-        <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
+        <ha-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
           <ha-icon icon="mdi:check"></ha-icon>
-        </mwc-icon-button>
+        </ha-icon-button>
         ${allowSkip ? html`
-          <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip?.(); }}>
+          <ha-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip?.(); }}>
             <ha-icon icon="mdi:skip-next"></ha-icon>
-          </mwc-icon-button>` : nothing}
+          </ha-icon-button>` : nothing}
       </span>`;
   }
 

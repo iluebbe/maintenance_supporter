@@ -8,6 +8,8 @@ import { expect, fixture, html } from "@open-wc/testing";
 import "../components/qr-dialog.js";
 import type { MaintenanceQrDialog } from "../components/qr-dialog";
 import { type SentMessage, createMockHass } from "./_test-utils.js";
+import { setLocale } from "../styles";
+import de from "../locales/de.json";
 
 function mount(defaults: Record<string, unknown> | null) {
   const { hass, sent } = createMockHass({
@@ -108,5 +110,25 @@ describe("Settings → QR print: quick-complete choice (#192)", () => {
     await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
     // view (5 tasks) + quick-complete (1 task) — not objects × actions (2 × 2)
     expect(section().querySelector(".qr-estimate strong")!.textContent).to.equal("6");
+  });
+});
+
+describe("QR dialog: language on dashboards", () => {
+  it("speaks the user's language when nothing sets `lang` (the dashboard path)", async () => {
+    setLocale("de", de as Record<string, string>);
+    const { hass } = createMockHass({
+      language: "de",
+      handlers: {
+        "maintenance_supporter/object": () => ({ tasks: [{ id: "t1", name: "Filter", quick_complete_defaults: null }] }),
+        "maintenance_supporter/qr/generate": () => ({ svg_data_uri: "data:image/svg+xml,<svg/>", url: "https://ha.test/x", label: {} }),
+      },
+    });
+    const el = await fixture<MaintenanceQrDialog>(html`<maintenance-qr-dialog .hass=${hass}></maintenance-qr-dialog>`);
+    el.openForTask("e1", "t1", "Pump", "Filter");
+    await new Promise((r) => setTimeout(r, 20));
+    await el.updateComplete;
+    const label = el.shadowRoot!.querySelector(".qr-item-label")!.textContent!.trim();
+    expect(label).to.equal((de as Record<string, string>).qr_action_view);
+    expect(label).to.not.equal("View maintenance info");
   });
 });

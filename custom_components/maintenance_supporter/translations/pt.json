@@ -1803,7 +1803,7 @@
     },
     "export_data": {
       "name": "Exportar Dados",
-      "description": "Exportar todos os dados de manutenção como JSON ou YAML.",
+      "description": "Exporta todos os dados de manutenção como JSON ou YAML para maintenance_export.json / maintenance_export.yaml na pasta de configuração do Home Assistant e depois dispara maintenance_supporter_export_completed com o caminho do ficheiro. Apenas administradores.",
       "fields": {
         "format": {
           "name": "Formato",
@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Tipo de agendamento",
-          "description": "time_based (intervalo) ou sensor_based. Predefinição: time_based."
+          "description": "time_based (intervalo), one_time (requer due_date) ou manual. Predefinição: time_based. Tarefas acionadas por sensor precisam de um acionador e são criadas no painel."
         },
         "interval_days": {
           "name": "Intervalo",
@@ -1895,7 +1895,7 @@
         },
         "warning_days": {
           "name": "Aviso (dias)",
-          "description": "Dias antes do vencimento para entrar na janela de «vence em breve»."
+          "description": "Dias antes do vencimento para entrar na janela de «vence em breve». Predefinição: a definição global da integração."
         },
         "enabled": {
           "name": "Ativado",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Tipo de agendamento",
-          "description": "time_based (intervalo), sensor_based, one_time ou manual."
+          "description": "time_based (intervalo), one_time (requer due_date) ou manual. Mudar para manual ou one_time remove o intervalo anterior."
         },
         "interval_days": {
           "name": "Intervalo",

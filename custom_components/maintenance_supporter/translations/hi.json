@@ -1803,7 +1803,7 @@
     },
     "export_data": {
       "name": "डेटा निर्यात करें",
-      "description": "सभी रखरखाव डेटा को JSON या YAML के रूप में निर्यात करें।",
+      "description": "सभी रखरखाव डेटा को JSON या YAML के रूप में Home Assistant कॉन्फ़िगरेशन फ़ोल्डर में maintenance_export.json / maintenance_export.yaml पर निर्यात करें, फिर फ़ाइल पथ के साथ maintenance_supporter_export_completed ट्रिगर करें। केवल व्यवस्थापकों के लिए।",
       "fields": {
         "format": {
           "name": "प्रारूप",
@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "शेड्यूल प्रकार",
-          "description": "time_based (अंतराल) या sensor_based। डिफ़ॉल्ट: time_based।"
+          "description": "time_based (अंतराल), one_time (due_date आवश्यक) या manual। डिफ़ॉल्ट: time_based। सेंसर से ट्रिगर होने वाले कार्यों को ट्रिगर चाहिए, उन्हें पैनल में बनाया जाता है।"
         },
         "interval_days": {
           "name": "अंतराल",
@@ -1895,7 +1895,7 @@
         },
         "warning_days": {
           "name": "चेतावनी (दिन)",
-          "description": "नियत तिथि से पहले के दिन जब कार्य due-soon विंडो में आता है।"
+          "description": "नियत तिथि से पहले के दिन जब कार्य due-soon विंडो में आता है। डिफ़ॉल्ट: पूरे इंटीग्रेशन की सेटिंग।"
         },
         "enabled": {
           "name": "सक्षम",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "शेड्यूल प्रकार",
-          "description": "time_based (अंतराल), sensor_based, one_time या manual।"
+          "description": "time_based (अंतराल), one_time (due_date आवश्यक) या manual। manual या one_time पर बदलने से पुराना अंतराल हट जाता है।"
         },
         "interval_days": {
           "name": "अंतराल",

@@ -1803,7 +1803,7 @@
     },
     "export_data": {
       "name": "Adatok exportálása",
-      "description": "Az összes karbantartási adat exportálása JSON vagy YAML formátumban.",
+      "description": "Az összes karbantartási adat exportálása JSON vagy YAML formátumban a Home Assistant konfigurációs mappájában lévő maintenance_export.json / maintenance_export.yaml fájlba, majd maintenance_supporter_export_completed kiváltása a fájl elérési útjával. Csak rendszergazdáknak.",
       "fields": {
         "format": {
           "name": "Formátum",
@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Ütemezés típusa",
-          "description": "time_based (intervallum) vagy sensor_based. Alapértelmezés: time_based."
+          "description": "time_based (intervallum), one_time (due_date szükséges) vagy manual. Alapértelmezés: time_based. Az érzékelő által indított feladatokhoz eseményindító kell, ezeket a panelen lehet létrehozni."
         },
         "interval_days": {
           "name": "Intervallum",
@@ -1895,7 +1895,7 @@
         },
         "warning_days": {
           "name": "Figyelmeztetés (nap)",
-          "description": "Hány nappal az esedékesség előtt kezdődjön a hamarosan esedékes időszak."
+          "description": "Hány nappal az esedékesség előtt kezdődjön a hamarosan esedékes időszak. Alapértelmezés: az integráció egészére érvényes beállítás."
         },
         "enabled": {
           "name": "Engedélyezve",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Ütemezés típusa",
-          "description": "time_based (intervallum), sensor_based, one_time vagy manual."
+          "description": "time_based (intervallum), one_time (due_date szükséges) vagy manual. A manual vagy one_time típusra váltáskor a korábbi intervallum törlődik."
         },
         "interval_days": {
           "name": "Intervallum",

@@ -40,7 +40,10 @@ function overview(extra: Record<string, unknown> = {}) {
   };
 }
 
-async function mount(ov: unknown = overview(), history: Record<string, unknown> = {}) {
+/** The fleet's actions are write tier — the section shows them to writers only. */
+const ADMIN = { id: "u_admin", name: "Admin", is_admin: true };
+
+async function mount(ov: unknown = overview(), history: Record<string, unknown> = {}, user: unknown = ADMIN) {
   const calls: Array<Record<string, unknown>> = [];
   const { hass, serviceCalls } = createMockHass({
     handlers: {
@@ -72,6 +75,7 @@ async function mount(ov: unknown = overview(), history: Record<string, unknown> 
       },
     },
   });
+  (hass as unknown as { user: unknown }).user = user;
   const el = await fixture<MaintenanceBatteryFleetSection>(
     html`<maintenance-battery-fleet-section .hass=${hass}></maintenance-battery-fleet-section>`,
   );
@@ -586,3 +590,23 @@ describe("battery fleet sensorless notes (discussion #162)", () => {
     expect(call!.enabled).to.equal(false);
   });
 });
+
+describe("battery fleet: a household member without write access (audit 2026-09-29)", () => {
+  it("sees the fleet but none of the write-tier actions", async () => {
+    const member = { id: "u_member", name: "Anna", is_admin: false };
+    const ov = overview({
+      task_ok: false,
+      excluded: [{ entity_id: "sensor.old_remote_battery", device_name: "Old remote" }],
+    });
+    const { el } = await mount(ov, {}, member);
+    const sr = el.shadowRoot!;
+    expect(sr.textContent, "the fleet itself is visible").to.contain("Front Lock");
+    expect(sr.querySelectorAll("button.bf-mark"), "no mark / exclude / include / record").to.have.length(0);
+    expect(sr.querySelector(".bf-actions"), "no mark all").to.equal(null);
+    expect(sr.querySelector(".bf-repair ha-button"), "no repair").to.equal(null);
+    expect(sr.querySelector(".bf-add"), "no add battery").to.equal(null);
+    expect(sr.querySelector(".bf-track-self"), "no fleet options").to.equal(null);
+    expect(sr.textContent, "excluded devices stay listed").to.contain("Old remote");
+  });
+});
+

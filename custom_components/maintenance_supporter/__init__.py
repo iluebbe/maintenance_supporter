@@ -62,6 +62,7 @@ from .const import (
     DOCUMENT_TEXT_INDEX_KEY,
     DOMAIN,
     EVENT_UNSUBS_KEY,
+    FLAT_SCHEDULE_TYPES,
     GLOBAL_UNIQUE_ID,
     MAX_COST,
     MAX_DURATION_MINUTES,
@@ -213,12 +214,17 @@ SERVICE_ADD_OBJECT_SCHEMA = vol.Schema(
 # just a third UI onto the same storage, so a value the WS API rejects must not
 # be reachable from an automation. `vol.Coerce` stays (unlike the WS schemas)
 # because YAML/templated service data arrives as strings.
+# Only the recurrences the flat service fields can express. "sensor_based"
+# was offered but a service cannot set the trigger, so it silently became an
+# interval or manual task (audit 2026-09-29); calendar kinds go via `schedule`.
+_SERVICE_SCHEDULE_TYPE = vol.In(sorted(str(kind) for kind in FLAT_SCHEDULE_TYPES))
+
 SERVICE_ADD_TASK_SCHEMA = vol.Schema(
     {
         vol.Required("entry_id"): cv.string,
         vol.Required("name"): vol.All(cv.string, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         vol.Optional("task_type"): vol.All(cv.string, vol.Length(max=MAX_TYPE_LENGTH)),
-        vol.Optional("schedule_type"): vol.All(cv.string, vol.Length(max=MAX_TYPE_LENGTH)),
+        vol.Optional("schedule_type"): _SERVICE_SCHEDULE_TYPE,
         vol.Optional("interval_days"): vol.All(
             vol.Coerce(int), vol.Range(min=INTERVAL_DAYS_RANGE[0], max=INTERVAL_DAYS_RANGE[1])
         ),
@@ -239,7 +245,7 @@ SERVICE_UPDATE_TASK_SCHEMA = vol.Schema(
         vol.Required("task_id"): cv.string,
         vol.Optional("name"): vol.All(cv.string, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         vol.Optional("task_type"): vol.All(cv.string, vol.Length(max=MAX_TYPE_LENGTH)),
-        vol.Optional("schedule_type"): vol.All(cv.string, vol.Length(max=MAX_TYPE_LENGTH)),
+        vol.Optional("schedule_type"): _SERVICE_SCHEDULE_TYPE,
         vol.Optional("interval_days"): vol.All(
             vol.Coerce(int), vol.Range(min=INTERVAL_DAYS_RANGE[0], max=INTERVAL_DAYS_RANGE[1])
         ),
@@ -268,7 +274,7 @@ SERVICE_DELETE_TASK_SCHEMA = vol.Schema(
 SERVICE_LIST_TASKS_SCHEMA = vol.Schema(
     {
         vol.Optional("entry_id"): cv.string,
-        vol.Optional("status"): vol.In(["ok", "due_soon", "overdue", "triggered"]),
+        vol.Optional("status"): vol.In(["ok", "due_soon", "overdue", "triggered", "paused"]),
     }
 )
 

@@ -260,13 +260,17 @@ def season_ends_schema(current_schedule: dict[str, Any] | None) -> dict[Any, Any
     count = ends.get("count")
     until = ends.get("until")
 
+    # Suggested, not default: an emptied field is left out of the submission
+    # and a default re-inserted the stored end, so a series could never be
+    # made endless again here (audit 2026-09-29). apply_season_ends reads
+    # absence as "no end".
     count_key = (
-        vol.Optional(CONF_TASK_ENDS_COUNT, default=int(count))
+        vol.Optional(CONF_TASK_ENDS_COUNT, description={"suggested_value": int(count)})
         if isinstance(count, int) and count >= 1
         else vol.Optional(CONF_TASK_ENDS_COUNT)
     )
     until_key = (
-        vol.Optional(CONF_TASK_ENDS_UNTIL, default=str(until))
+        vol.Optional(CONF_TASK_ENDS_UNTIL, description={"suggested_value": str(until)})
         if isinstance(until, str) and until
         else vol.Optional(CONF_TASK_ENDS_UNTIL)
     )

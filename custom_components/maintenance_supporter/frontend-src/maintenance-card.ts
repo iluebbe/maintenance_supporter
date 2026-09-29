@@ -8,6 +8,7 @@ import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, t, ensureLocale, isLoc
 import { openSignedDocument } from "./helpers/document-url";
 import { isSafeHttpUrl } from "./helpers/url";
 import { registerCustomCard } from "./helpers/register-card";
+import { healCardRegistry } from "./helpers/registry-heal";
 import { localizePickerWhenReady } from "./helpers/picker-i18n";
 import type {
   HomeAssistant,
@@ -328,7 +329,9 @@ export class MaintenanceSupporterCard extends LitElement {
     }
   }
 
-  private get _flatTasks(): FlatTask[] {
+  /** Every task the card's filters (and saved view) select, sorted — the
+   *  rows before the `max_items` cap, and what the header badges count. */
+  private get _selectedTasks(): FlatTask[] {
     const tasks: FlatTask[] = [];
     const {
       filter_status,
@@ -339,7 +342,6 @@ export class MaintenanceSupporterCard extends LitElement {
       filter_labels,
       filter_priority,
       filter_areas,
-      max_items,
     } = this._config;
     const entityFilter = entity_ids?.length ? new Set(entity_ids) : null;
     const hasDueRange =
@@ -407,10 +409,6 @@ export class MaintenanceSupporterCard extends LitElement {
       // Within a status, soonest-due first; tasks without a due date go last.
       return (a.task.days_until_due ?? Infinity) - (b.task.days_until_due ?? Infinity);
     });
-
-    if (max_items && max_items > 0) {
-      return tasks.slice(0, max_items);
-    }
     return tasks;
   }
 
@@ -441,15 +439,14 @@ export class MaintenanceSupporterCard extends LitElement {
 
   /** Header badges from the LIVE object list — the statistics call ran once
    *  per load, so the subscription updated the rows while the badges kept
-   *  the old counts (bug audit 2026-09-26). Same rule as the server's
-   *  compute_status_counts: a task counts in the bucket of its status. */
-  private get _headerCounts(): { overdue: number; due_soon: number; triggered: number } {
+   *  the old counts (bug audit 2026-09-26). A task counts in the bucket of
+   *  its status, over the tasks the card selects: a card filtered to one
+   *  room showed the whole home's counts (audit 2026-09-29). */
+  private _headerCounts(tasks: FlatTask[]): { overdue: number; due_soon: number; triggered: number } {
     const counts = { overdue: 0, due_soon: 0, triggered: 0 };
-    for (const obj of this._objects) {
-      for (const task of obj.tasks) {
-        if (isActionableStatus(task.status)) {
-          counts[task.status] += 1;
-        }
+    for (const { task } of tasks) {
+      if (isActionableStatus(task.status)) {
+        counts[task.status] += 1;
       }
     }
     return counts;
@@ -474,8 +471,10 @@ export class MaintenanceSupporterCard extends LitElement {
     // Creating objects/tasks is write tier — the panel's canWrite rule.
     const showCreate = showActions && canWrite(this.hass?.user, this._settings.access);
     const compact = this._config.compact || false;
-    const tasks = this._flatTasks;
-    const s = this._objects.length || this._stats ? this._headerCounts : null;
+    const selected = this._selectedTasks;
+    const { max_items } = this._config;
+    const tasks = max_items && max_items > 0 ? selected.slice(0, max_items) : selected;
+    const s = this._objects.length || this._stats ? this._headerCounts(selected) : null;
 
     return html`
       <ha-card>
@@ -493,20 +492,20 @@ export class MaintenanceSupporterCard extends LitElement {
               : nothing}
             ${showCreate
               ? html`
-                  <mwc-icon-button
+                  <ha-icon-button
                     class="hdr-add"
                     title="${t("new_object", L)}"
                     @click=${() => openCreateObjectDialog()}
                   >
                     <ha-icon icon="mdi:plus-box"></ha-icon>
-                  </mwc-icon-button>
-                  <mwc-icon-button
+                  </ha-icon-button>
+                  <ha-icon-button
                     class="hdr-add"
                     title="${t("add_task", L)}"
                     @click=${() => openCreateTaskDialog("", this._objects)}
                   >
                     <ha-icon icon="mdi:playlist-plus"></ha-icon>
-                  </mwc-icon-button>
+                  </ha-icon-button>
                 `
               : nothing}
           </div>
@@ -599,7 +598,7 @@ export class MaintenanceSupporterCard extends LitElement {
                           `
                         : showActions
                         ? html`
-                            <mwc-icon-button
+                            <ha-icon-button
                               class="complete-btn"
                               title="${t("complete", L)}"
                               @click=${(e: Event) => {
@@ -609,7 +608,7 @@ export class MaintenanceSupporterCard extends LitElement {
                               }}
                             >
                               <ha-icon icon="mdi:check"></ha-icon>
-                            </mwc-icon-button>
+                            </ha-icon-button>
                           `
                         : nothing}
                     </div>
@@ -641,6 +640,8 @@ export class MaintenanceSupporterCard extends LitElement {
       .header-right { display: flex; align-items: center; gap: 6px; }
       .header-stats { display: flex; gap: 6px; }
       .hdr-add {
+        display: inline-flex;
+        --ha-icon-button-size: 32px;
         --mdc-icon-button-size: 32px;
         --mdc-icon-size: 20px;
         color: var(--primary-color);
@@ -762,6 +763,8 @@ export class MaintenanceSupporterCard extends LitElement {
       .overdue-text { color: var(--error-color); font-weight: 500; }
 
       .complete-btn {
+        display: inline-flex;
+        --ha-icon-button-size: 32px;
         --mdc-icon-button-size: 32px;
         --mdc-icon-size: 18px;
         color: var(--primary-color);
@@ -794,3 +797,8 @@ registerCustomCard({
 });
 // The picker entries of every bundle, in the user's language once HA is up.
 localizePickerWhenReady();
+// HA's boot-time registry swap can strand these definitions (audit 2026-09-29).
+healCardRegistry(
+  ["maintenance-supporter-card", "maintenance-battery-fleet-card", "maintenance-supporter-panel-card"],
+  import.meta.url,
+);

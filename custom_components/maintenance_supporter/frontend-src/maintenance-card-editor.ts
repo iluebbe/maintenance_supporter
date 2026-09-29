@@ -58,8 +58,10 @@ export class MaintenanceSupporterCardEditor extends LitElement {
 
   private _valueChanged(key: string, value: unknown): void {
     const newConfig = { ...this._config, [key]: value };
-    // Drop empty arrays / empty strings so the saved YAML stays clean
-    if ((Array.isArray(value) && value.length === 0) || value === "") {
+    // Drop empty arrays / empty strings / cleared values so the saved YAML
+    // stays clean — "Follow the household setting" wrote `action_style:
+    // undefined` into the stored config (audit 2026-09-29).
+    if ((Array.isArray(value) && value.length === 0) || value === "" || value === undefined || value === null) {
       delete (newConfig as Record<string, unknown>)[key];
     }
     this._config = newConfig;

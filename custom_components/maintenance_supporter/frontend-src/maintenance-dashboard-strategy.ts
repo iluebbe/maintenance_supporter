@@ -849,7 +849,7 @@ interface MaintenanceSectionStrategyConfig {
 class MaintenanceSectionStrategy extends HTMLElement {
   static async generate(
     config: MaintenanceSectionStrategyConfig | undefined,
-    hass: HassLike,
+    _hass: HassLike,
   ): Promise<SectionConfig> {
     const card: CardConfig = {
       type: "custom:maintenance-supporter-card",
@@ -866,23 +866,14 @@ class MaintenanceSectionStrategy extends HTMLElement {
       card.filter_due_max_days = config.filter_due_max_days;
     }
 
-    // Resolve area_id → object names via WS (the card filters by name).
-    // Falls back gracefully if the WS call fails — empty filter means
-    // "show everything", which still renders something useful.
-    let names: string[] | undefined = config?.filter_objects;
-    if (config?.area_id && !names) {
-      try {
-        const r = await hass.connection.sendMessagePromise<{
-          objects: MaintenanceObjectResp[];
-        }>({ type: "maintenance_supporter/objects" });
-        names = (r.objects || [])
-          .filter((o) => o.object.area_id === config.area_id)
-          .map((o) => o.object.name);
-      } catch {
-        // ignore — card will show all
-      }
-    }
-    if (names && names.length > 0) card.filter_objects = names;
+    // An area section hands the card its own area filter. It used to look
+    // the area's object NAMES up and pass those — an area with no objects
+    // (or a failed lookup) left the filter empty and the "Kitchen" section
+    // listed every task in the house; a renamed object dropped out until the
+    // dashboard was regenerated (audit 2026-09-29). filter_areas is live and
+    // exact: an empty area shows the card's empty state.
+    if (config?.filter_objects?.length) card.filter_objects = config.filter_objects;
+    else if (config?.area_id) card.filter_areas = [config.area_id];
 
     const cards: CardConfig[] = [];
     if (config?.title) {
@@ -1236,7 +1227,7 @@ registerStrategy({
   description:
     "Auto-generated dashboard. Group views by area, status, floor, or due date — picked from the strategy editor or YAML.",
   documentationURL:
-    "https://github.com/iluebbe/maintenance_supporter#dashboard-strategy",
+    "https://github.com/iluebbe/maintenance_supporter/blob/master/docs/EXAMPLES.md#dashboard-strategy",
 });
 
 registerStrategy({
@@ -1246,7 +1237,7 @@ registerStrategy({
   description:
     "Embed maintenance tasks (filterable by area, status, due date) as a section in any dashboard view.",
   documentationURL:
-    "https://github.com/iluebbe/maintenance_supporter#section-strategy",
+    "https://github.com/iluebbe/maintenance_supporter/blob/master/docs/EXAMPLES.md#section-strategy",
 });
 
 // Phase 5 status sections

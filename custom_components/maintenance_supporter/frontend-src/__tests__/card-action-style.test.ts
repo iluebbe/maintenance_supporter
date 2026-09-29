@@ -43,7 +43,7 @@ async function mount(config: Record<string, unknown>, rowActionStyle: string) {
 }
 
 const haButtons = (el: MaintenanceSupporterCard) => el.shadowRoot!.querySelectorAll("ha-button.complete-btn-text").length;
-const iconButtons = (el: MaintenanceSupporterCard) => el.shadowRoot!.querySelectorAll("mwc-icon-button.complete-btn").length;
+const iconButtons = (el: MaintenanceSupporterCard) => el.shadowRoot!.querySelectorAll("ha-icon-button.complete-btn").length;
 
 describe("card action_style (#145)", () => {
   beforeEach(() => __resetSettingsCacheForTests());

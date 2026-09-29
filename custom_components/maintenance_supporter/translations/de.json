@@ -1803,7 +1803,7 @@
     },
     "export_data": {
       "name": "Daten exportieren",
-      "description": "Alle Wartungsdaten als JSON oder YAML exportieren.",
+      "description": "Alle Wartungsdaten als JSON oder YAML nach maintenance_export.json / maintenance_export.yaml im Home-Assistant-Konfigurationsordner exportieren und danach maintenance_supporter_export_completed mit dem Dateipfad auslösen. Nur für Admins.",
       "fields": {
         "format": {
           "name": "Format",
@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Zeitplantyp",
-          "description": "time_based (Intervall) oder sensor_based. Standard: time_based."
+          "description": "time_based (Intervall), one_time (braucht due_date) oder manual. Standard: time_based. Sensorgesteuerte Aufgaben brauchen einen Auslöser und werden im Panel angelegt."
         },
         "interval_days": {
           "name": "Intervall",
@@ -1895,7 +1895,7 @@
         },
         "warning_days": {
           "name": "Vorwarnung (Tage)",
-          "description": "Tage vor Fälligkeit, ab denen die Aufgabe ins Bald-fällig-Fenster eintritt."
+          "description": "Tage vor Fälligkeit, ab denen die Aufgabe ins Bald-fällig-Fenster eintritt. Standard: die integrationsweite Einstellung."
         },
         "enabled": {
           "name": "Aktiviert",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Zeitplantyp",
-          "description": "time_based (Intervall), sensor_based, one_time oder manual."
+          "description": "time_based (Intervall), one_time (braucht due_date) oder manual. Beim Wechsel zu manual oder one_time entfällt das bisherige Intervall."
         },
         "interval_days": {
           "name": "Intervall",

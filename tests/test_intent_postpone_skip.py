@@ -259,3 +259,41 @@ async def test_the_object_name_disambiguates_as_everywhere_else(hass: HomeAssist
 
     assert response.error_code is None, _speech(response)
     assert _stored(hass, entry).get("due_override")
+
+
+async def test_skipping_a_disabled_task_says_why(hass: HomeAssistant) -> None:
+    """Every refusal was announced as the skip lock ("Skipping is turned off
+    for …") — a disabled or paused task got the wrong reason (audit
+    2026-09-29). The skip lock keeps its own answer; anything else speaks the
+    real one, like Complete and Postpone."""
+    today = dt_util.now().date()
+    entry = await _setup(hass, last_performed=(today - timedelta(days=40)).isoformat())
+    ce = hass.config_entries.async_get_entry(entry.entry_id)
+    tasks = dict(ce.data[CONF_TASKS])
+    tasks[TASK_ID] = {**tasks[TASK_ID], "enabled": False}
+    hass.config_entries.async_update_entry(ce, data={**ce.data, CONF_TASKS: tasks})
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+
+    response = await _ask(hass, INTENT_SKIP_TASK, {"name": "oil change"})
+
+    assert response.error_code == intent.IntentResponseErrorCode.FAILED_TO_HANDLE
+    speech = _speech(response).lower()
+    assert "turned off" not in speech
+    assert "cannot be skipped" in speech and "disabled" in speech, speech
+
+
+async def test_the_skip_lock_keeps_its_own_answer(hass: HomeAssistant) -> None:
+    today = dt_util.now().date()
+    entry = await _setup(hass, last_performed=(today - timedelta(days=40)).isoformat())
+    ce = hass.config_entries.async_get_entry(entry.entry_id)
+    tasks = dict(ce.data[CONF_TASKS])
+    tasks[TASK_ID] = {**tasks[TASK_ID], "allow_skip": False}
+    hass.config_entries.async_update_entry(ce, data={**ce.data, CONF_TASKS: tasks})
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+
+    response = await _ask(hass, INTENT_SKIP_TASK, {"name": "oil change"})
+
+    assert response.error_code is None
+    assert "turned off" in _speech(response).lower()

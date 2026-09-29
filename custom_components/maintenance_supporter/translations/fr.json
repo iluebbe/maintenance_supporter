@@ -1803,7 +1803,7 @@
     },
     "export_data": {
       "name": "Exporter les données",
-      "description": "Exporter toutes les données de maintenance en JSON ou YAML.",
+      "description": "Exporter toutes les données de maintenance en JSON ou YAML vers maintenance_export.json / maintenance_export.yaml dans le dossier de configuration de Home Assistant, puis déclencher maintenance_supporter_export_completed avec le chemin du fichier. Réservé aux administrateurs.",
       "fields": {
         "format": {
           "name": "Format",
@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Type de planification",
-          "description": "time_based (intervalle) ou sensor_based. Par défaut : time_based."
+          "description": "time_based (intervalle), one_time (nécessite due_date) ou manual. Par défaut : time_based. Les tâches déclenchées par capteur nécessitent un déclencheur et se créent dans le panneau."
         },
         "interval_days": {
           "name": "Intervalle",
@@ -1895,7 +1895,7 @@
         },
         "warning_days": {
           "name": "Préavis (jours)",
-          "description": "Jours avant l'échéance pour entrer dans la fenêtre « bientôt dû »."
+          "description": "Jours avant l'échéance pour entrer dans la fenêtre « bientôt dû ». Par défaut : le réglage global de l'intégration."
         },
         "enabled": {
           "name": "Activé",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Type de planification",
-          "description": "time_based (intervalle), sensor_based, one_time ou manual."
+          "description": "time_based (intervalle), one_time (nécessite due_date) ou manual. Passer à manual ou one_time supprime l'ancien intervalle."
         },
         "interval_days": {
           "name": "Intervalle",

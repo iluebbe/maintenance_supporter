@@ -189,6 +189,11 @@ Tick **Only complete by scanning the tag** next to the task's NFC tag and the
 task can only be marked done at the thing itself — by scanning that tag or
 the printed QR code. The complete dialog announces it; the panel, card,
 to-do list, voice and notification buttons are refused server-side.
+The printed *Complete* / *Quick complete* QR counts as the scan because it
+opens a link (`…?entry_id=…&task_id=…&action=complete`) — so anyone who has
+that link, for example from a photo of the sticker, can complete the task
+without being there. When the proof matters, stick only the NFC tag on the
+object and don't print a Complete QR for it.
 
 ![The "Only complete by scanning the tag" toggle in the task dialog](images/task-dialog-tag-scan.png)
 
@@ -1011,7 +1016,7 @@ activity timeline (logbook) — *"Oil Change (Family Car) was completed —
 - `maintenance_supporter_trigger_deactivated` — fired when a sensor trigger condition clears
 - `maintenance_supporter_task_completed` — fired on every completion path (panel, complete-QR, quick-complete, mobile action). Payload: `entry_id`, `task_id`, `task_name`, `object_name`, `entity_id` (the task's status sensor, 2.75+ — also what makes the entry show up under that sensor in the HA logbook), `completed_at` (ISO timestamp of the history entry — for a backdated completion this is the chosen past moment, not the moment the event fired; #133), `backfill` (bool — `true` when the completion was recorded for a moment OLDER than the task's latest completion; such pure backfills do not run `on_complete_action`), `source` (the surface that completed it: `panel`, `qr`, `nfc`, `button`, `todo`, `todo_mirror`, `voice`, `notification_action`, `shopping_list`, `service`, `auto_recovery`), plus optional `notes`, `cost`, `duration`, `feedback`, `completed_by`, `reading_value` / `reading_values` (the recorded meter value(s), 2.75+)
 - `maintenance_supporter_task_skipped` — fired when a task is skipped. Payload includes the optional `reason`
-- `maintenance_supporter_task_reset` — fired when a task's `last_performed` is reset to a specific date. Payload includes that `date`
+- `maintenance_supporter_task_reset` — fired when a task's `last_performed` is reset to a specific date. Payload includes that `date` (2.96+; also as `reset_date`, which older versions sent alone)
 - All three carry the same identification envelope (`entry_id`, `task_id`, `task_name`, `object_name`, `entity_id`)
 - `maintenance_supporter_export_completed` — fired when the `export_data` service has written its file. Payload: `format`, `file_path`
 - `maintenance_supporter_part_stock_low` / `_part_stock_out` / `_part_restocked` (2.23+) — spare-part stock **crossings**. Edge-triggered: one event per transition (a further decrease while already low never re-fires), so automations can reorder / notify without debouncing. Payload: `entry_id`, `object_id`, `object_name`, `part_id`, `part_name`, `stock`, `reorder_threshold`
@@ -1056,6 +1061,13 @@ automations are not affected. Household attribution (#128): `complete` takes an 
 `completed_by` **person entity** (defaulting to the calling user), and
 `update_task` can assign or clear the responsible user — see
 [Examples](EXAMPLES.md#attribute-and-assign-chores-from-automations-128).
+The services take `schedule_type` `time_based`, `one_time` (with a
+`due_date`) or `manual`, and the calendar kinds through the nested
+`schedule`; switching a task to `manual` or `one_time` drops its interval.
+A sensor-triggered task needs a trigger, which the services cannot set —
+create those in the panel (2.96+ refuses `sensor_based` instead of quietly
+building a plain task). `list_tasks` filters by `ok`, `due_soon`, `overdue`,
+`triggered` or `paused`.
 `complete` also accepts `via_tag_scan: true` (2.67+) so an automation that
 reacts to a physical scan can complete a tag-gated task — see
 [Examples](EXAMPLES.md#complete-a-tag-gated-task-from-an-automation-267) —

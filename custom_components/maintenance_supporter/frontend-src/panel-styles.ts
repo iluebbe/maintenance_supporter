@@ -594,7 +594,14 @@ export const panelStyles = css`
     justify-content: flex-end;
     gap: 2px;
   }
-  .row-actions mwc-icon-button {
+  /* Objects-table QR: a compact icon button, so the row keeps its height. */
+  .obj-table-qr {
+    display: inline-flex;
+    --ha-icon-button-size: 32px;
+    --mdc-icon-size: 20px;
+  }
+  .row-actions ha-icon-button {
+    --ha-icon-button-size: 44px;
     --mdc-icon-button-size: 44px;
     --mdc-icon-size: 26px;
   }

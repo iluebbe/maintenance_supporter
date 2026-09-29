@@ -23,6 +23,8 @@ from ..helpers.entry_tasks import insert_new_task
 from ..helpers.global_options import get_default_warning_days
 from ..helpers.sanitize import cap_task_fields
 from ..helpers.schedule import (
+    KIND_MANUAL,
+    KIND_ONE_TIME,
     Schedule,
     normalize_task_storage,
 )
@@ -112,6 +114,8 @@ async def async_create_task_simple(
     name = (name or "").strip()
     if not name:
         raise ValueError("Name must not be empty")
+    if schedule_type == KIND_ONE_TIME and not due_date and not schedule:
+        raise ValueError("A one-time task needs a due_date")
     task_id = uuid4().hex
     task_data: dict[str, Any] = {
         "id": task_id,
@@ -222,6 +226,21 @@ async def async_update_task_simple(
         # task/update — the flat fields rebuild the schedule (bug audit
         # 2026-09-26).
         task.pop("schedule", None)
+    new_kind = updates.get("schedule_type")
+    if (
+        new_kind in (KIND_MANUAL, KIND_ONE_TIME)
+        and not updates.get("schedule")
+        and new_kind != Schedule.parse(new_tasks[task_id]).kind
+    ):
+        # A switch to manual / one-time: the stored interval rode along into
+        # the flat overlay and rebuilt an interval, so the switch silently did
+        # nothing (audit 2026-09-29). The old recurrence goes; a one-time task
+        # needs its date.
+        if new_kind == KIND_ONE_TIME and not task.get("due_date"):
+            raise ValueError("A one-time task needs a due_date")
+        task.pop("schedule", None)
+        for key in ("interval_days", "interval_unit", "interval_anchor"):
+            task.pop(key, None)
 
     # The service cannot change the completion action, so the stored one keeps
     # the user it runs as — dropping ``configured_by`` here made an operator's

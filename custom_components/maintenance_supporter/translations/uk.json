@@ -1803,7 +1803,7 @@
     },
     "export_data": {
       "name": "Експортувати дані",
-      "description": "Експортувати всі дані обслуговування у форматі JSON або YAML.",
+      "description": "Експортує всі дані обслуговування у JSON або YAML до файлу maintenance_export.json / maintenance_export.yaml у папці конфігурації Home Assistant, потім викликає maintenance_supporter_export_completed зі шляхом до файлу. Лише для адміністраторів.",
       "fields": {
         "format": {
           "name": "Формат",
@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Тип розкладу",
-          "description": "time_based (інтервал) або sensor_based. Типово: time_based."
+          "description": "time_based (інтервал), one_time (потрібен due_date) або manual. Типово: time_based. Завданням, які запускає датчик, потрібен тригер — їх створюють у панелі."
         },
         "interval_days": {
           "name": "Інтервал",
@@ -1895,7 +1895,7 @@
         },
         "warning_days": {
           "name": "Попередження (дні)",
-          "description": "За скільки днів до терміну завдання потрапляє у вікно «незабаром термін»."
+          "description": "За скільки днів до терміну завдання потрапляє у вікно «незабаром термін». Типово: загальне налаштування інтеграції."
         },
         "enabled": {
           "name": "Увімкнено",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Тип розкладу",
-          "description": "time_based (інтервал), sensor_based, one_time або manual."
+          "description": "time_based (інтервал), one_time (потрібен due_date) або manual. Під час переходу на manual або one_time попередній інтервал видаляється."
         },
         "interval_days": {
           "name": "Інтервал",

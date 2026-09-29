@@ -126,7 +126,11 @@ class AdaptiveMixin:
         """Build the adaptive scheduling form schema."""
         env_entity = current_adaptive.get("environmental_entity")
         env_key = (
-            vol.Optional(CONF_ENVIRONMENTAL_ENTITY, default=env_entity) if env_entity else vol.Optional(CONF_ENVIRONMENTAL_ENTITY)
+            # suggested, not default — a cleared picker is left out of the
+            # submission and the handler reads absence as "no sensor"
+            vol.Optional(CONF_ENVIRONMENTAL_ENTITY, description={"suggested_value": env_entity})
+            if env_entity
+            else vol.Optional(CONF_ENVIRONMENTAL_ENTITY)
         )
         return vol.Schema(
             {

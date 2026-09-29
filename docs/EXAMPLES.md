@@ -660,6 +660,7 @@ Standalone Lovelace card with the same rolling-window calendar the panel ships i
 type: custom:maintenance-supporter-calendar-card
 title: Maintenance calendar          # optional
 window_days: 30                       # 7 | 14 | 30 | 365 — default 30
+# past_days: 30                       # 30 | 90 — start in the history view instead (wins over window_days)
 show_window_chips: true               # default true; hide for embedded use
 show_user_filter: true                # default true
 user_filter: ""                       # "" | "current_user" | "<uuid>"
@@ -670,7 +671,7 @@ object_filter: ""                     # "" | "<entry_id>" | "<object name>" — 
                                       #   object_filter: ["Pool Pump", "Family Car"]
 ```
 
-Source icons (clock for time-based, trending-up for sensor-based, with adaptive sparkle), per-event prediction-confidence pills, projected recurrences at 55 % opacity, today-pill highlight, empty-day collapsing in the year view. Clicking an event opens the task **quick-actions dialog** in place — on any dashboard, with or without the strategy bundle; in `past_days` mode a click opens the history entry for editing. The card's visual editor is fully localized.
+Source icons (clock for time-based, trending-up for sensor-based, with adaptive sparkle), per-event prediction-confidence pills, projected recurrences at 55 % opacity, today-pill highlight, empty-day collapsing in the year view. Clicking an event opens the task **quick-actions dialog** in place — on any dashboard, with or without the strategy bundle; in `past_days` mode a click opens the history entry for editing. The card's visual editor is fully localized; its *Default window* dropdown carries the two past windows too (2.96+) and writes `window_days` or `past_days`, never both.
 
 The dashboard strategy's `group_by: calendar` mode wraps four instances of this card (week / fortnight / month / year) as separate views, with the chips hidden because the tab bar already serves as the window selector.
 

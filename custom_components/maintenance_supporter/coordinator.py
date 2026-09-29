@@ -1625,6 +1625,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._lifecycle_event_payload(
                 task,
                 task_id,
+                # `date` is what the logbook and the docs read — the event
+                # only carried `reset_date`, so every reset showed as "reset
+                # to ?" since 2.19 (audit 2026-09-29). `reset_date` stays for
+                # automations written against the old payload.
+                date=task.last_performed,
                 reset_date=task.last_performed,
             ),
         )

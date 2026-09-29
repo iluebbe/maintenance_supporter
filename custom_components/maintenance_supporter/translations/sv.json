@@ -1803,7 +1803,7 @@
     },
     "export_data": {
       "name": "Exportera data",
-      "description": "Exportera all underhållsdata som JSON eller YAML.",
+      "description": "Exportera all underhållsdata som JSON eller YAML till maintenance_export.json / maintenance_export.yaml i Home Assistants konfigurationsmapp och utlös sedan maintenance_supporter_export_completed med filsökvägen. Endast administratörer.",
       "fields": {
         "format": {
           "name": "Format",
@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Schematyp",
-          "description": "time_based (intervall) eller sensor_based. Standard: time_based."
+          "description": "time_based (intervall), one_time (kräver due_date) eller manual. Standard: time_based. Sensorutlösta uppgifter behöver en utlösare och skapas i panelen."
         },
         "interval_days": {
           "name": "Intervall",
@@ -1895,7 +1895,7 @@
         },
         "warning_days": {
           "name": "Varning (dagar)",
-          "description": "Dagar före förfall då uppgiften går in i snart-förfaller-fönstret."
+          "description": "Dagar före förfall då uppgiften går in i snart-förfaller-fönstret. Standard: den integrationsövergripande inställningen."
         },
         "enabled": {
           "name": "Aktiverad",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Schematyp",
-          "description": "time_based (intervall), sensor_based, one_time eller manual."
+          "description": "time_based (intervall), one_time (kräver due_date) eller manual. Byte till manual eller one_time tar bort det gamla intervallet."
         },
         "interval_days": {
           "name": "Intervall",

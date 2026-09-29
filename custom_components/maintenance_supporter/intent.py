@@ -852,10 +852,16 @@ class SkipTaskIntent(intent.IntentHandler):
 
         try:
             await coordinator.skip_maintenance(target["task_id"])
-        except ServiceValidationError:
-            # #150: the task carries a skip lock — say so instead of failing.
+        except ServiceValidationError as exc:
             response = intent_obj.create_response()
-            response.async_set_speech(_sp("skip_disabled", lang, task=target["name"]))
+            if getattr(exc, "translation_key", None) == "skip_disabled":
+                # #150: the task carries a skip lock — say so instead of failing.
+                response.async_set_speech(_sp("skip_disabled", lang, task=target["name"]))
+            else:
+                # An archived / disabled / paused task: its own reason, like
+                # Complete and Postpone — every refusal used to be announced
+                # as the skip lock (audit 2026-09-29).
+                response.async_set_error(intent.IntentResponseErrorCode.FAILED_TO_HANDLE, str(exc))
             return response
 
         # Read the new due date back so the answer says what actually happened

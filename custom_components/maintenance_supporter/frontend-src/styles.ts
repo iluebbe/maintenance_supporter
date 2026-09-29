@@ -975,7 +975,12 @@ export const sharedStyles = css`
     margin-left: auto;
   }
 
-  .row-actions mwc-icon-button {
+  /* ha-icon-button: the mwc-icon-button these rules styled is not defined on
+     HA 2026.x — it rendered as a bare 18 px icon, no button, no focus (audit
+     2026-09-29). --ha-icon-button-size is the variable 2026.x reads. */
+  .row-actions ha-icon-button {
+    display: inline-flex;
+    --ha-icon-button-size: 32px;
     --mdc-icon-button-size: 32px;
     --mdc-icon-size: 18px;
   }
@@ -1213,7 +1218,9 @@ export const sharedStyles = css`
     display: flex;
     gap: 0;
   }
-  .group-card-actions mwc-icon-button {
+  .group-card-actions ha-icon-button {
+    display: inline-flex;
+    --ha-icon-button-size: 28px;
     --mdc-icon-button-size: 28px;
     --mdc-icon-size: 16px;
     color: var(--secondary-text-color);
@@ -1623,7 +1630,8 @@ export const sharedStyles = css`
 
   /* ── Shared responsive styles (panel + card) ── */
   @media (max-width: 600px) {
-    .row-actions mwc-icon-button {
+    .row-actions ha-icon-button {
+      --ha-icon-button-size: 44px;
       --mdc-icon-button-size: 44px;
       --mdc-icon-size: 22px;
     }

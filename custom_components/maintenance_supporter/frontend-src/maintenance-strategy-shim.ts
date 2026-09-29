@@ -175,7 +175,7 @@ const PICKER_ENTRIES: NonNullable<typeof w.customStrategies> = [
     description:
       "Auto-generated dashboard. Group views by area, status, floor, or due date — picked from the strategy editor or YAML.",
     documentationURL:
-      "https://github.com/iluebbe/maintenance_supporter#dashboard-strategy",
+      "https://github.com/iluebbe/maintenance_supporter/blob/master/docs/EXAMPLES.md#dashboard-strategy",
   },
   // The section entries used to be pushed by the heavy bundle only, so the
   // "Add section" picker on a foreign dashboard listed none of them until the
@@ -187,7 +187,7 @@ const PICKER_ENTRIES: NonNullable<typeof w.customStrategies> = [
     description:
       "Embed maintenance tasks (filterable by area, status, due date) as a section in any dashboard view.",
     documentationURL:
-      "https://github.com/iluebbe/maintenance_supporter#section-strategy",
+      "https://github.com/iluebbe/maintenance_supporter/blob/master/docs/EXAMPLES.md#section-strategy",
   },
   {
     type: "maintenance-supporter-vacation",

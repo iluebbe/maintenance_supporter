@@ -1803,7 +1803,7 @@
     },
     "export_data": {
       "name": "Eksportér data",
-      "description": "Eksportér alle vedligeholdelsesdata som JSON eller YAML.",
+      "description": "Eksportér alle vedligeholdelsesdata som JSON eller YAML til maintenance_export.json / maintenance_export.yaml i Home Assistants konfigurationsmappe, og udløs derefter maintenance_supporter_export_completed med filstien. Kun administratorer.",
       "fields": {
         "format": {
           "name": "Format",
@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Planlægningstype",
-          "description": "time_based (interval) eller sensor_based. Standard: time_based."
+          "description": "time_based (interval), one_time (kræver due_date) eller manual. Standard: time_based. Sensorudløste opgaver kræver en udløser og oprettes i panelet."
         },
         "interval_days": {
           "name": "Interval",
@@ -1895,7 +1895,7 @@
         },
         "warning_days": {
           "name": "Varsel (dage)",
-          "description": "Dage før forfald, hvor opgaven går ind i due-soon-vinduet."
+          "description": "Dage før forfald, hvor opgaven går ind i due-soon-vinduet. Standard: den integrationsdækkende indstilling."
         },
         "enabled": {
           "name": "Aktiveret",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Planlægningstype",
-          "description": "time_based (interval), sensor_based, one_time eller manual."
+          "description": "time_based (interval), one_time (kræver due_date) eller manual. Skift til manual eller one_time fjerner det gamle interval."
         },
         "interval_days": {
           "name": "Interval",

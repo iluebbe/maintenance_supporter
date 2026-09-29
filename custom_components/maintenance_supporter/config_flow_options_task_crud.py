@@ -231,7 +231,17 @@ class TaskCrudMixin:
                         updated_task["schedule"] = {"kind": "interval", **extras}
                     else:
                         updated_task.pop("schedule", None)
-                # schedule_time only present when global advanced flag is on; clear by submitting "".
+                # schedule_time only present when global advanced flag is on. The
+                # form carries the stored time as a SUGGESTED value, and the
+                # frontend leaves a cleared time field out of the submission —
+                # absence of an offered field therefore clears (audit 2026-09-29:
+                # with default=<stored> the time could never be removed here).
+                time_offered = (
+                    is_schedule_time_enabled(self.hass)
+                    and read_legacy_fields(task)["schedule_type"] in SCHEDULE_TIME_KINDS
+                )
+                if CONF_TASK_SCHEDULE_TIME not in user_input and time_offered:
+                    updated_task.pop("schedule_time", None)
                 if CONF_TASK_SCHEDULE_TIME in user_input:
                     # HA's TimeSelector serialises "HH:MM:SS"; stored form is
                     # the canonical "HH:MM" (helpers.dates.normalize_hhmm).
@@ -314,12 +324,12 @@ class TaskCrudMixin:
                     updated_task.pop(CONF_TASK_READING_UNIT, None)
                 # #161 phase 2: reading slots, one "Name | Unit" per line. Ids
                 # are kept for lines whose name already exists (delta chain).
-                if "readings_text" in user_input:
-                    slots = parse_reading_slots_text(user_input.get("readings_text") or "", task.get("readings"))
-                    if slots:
-                        updated_task["readings"] = slots
-                    else:
-                        updated_task.pop("readings", None)
+                # Absent = the textarea was emptied (suggested value, see the form).
+                slots = parse_reading_slots_text(user_input.get("readings_text") or "", task.get("readings"))
+                if slots:
+                    updated_task["readings"] = slots
+                else:
+                    updated_task.pop("readings", None)
 
                 from .helpers.sanitize import cap_task_fields
 
@@ -409,7 +419,10 @@ class TaskCrudMixin:
         ecd_key = (
             vol.Optional("earliest_completion_days")
             if ecd_stored is None
-            else vol.Optional("earliest_completion_days", default=ecd_stored)
+            # suggested, not default: an emptied number field is left out of
+            # the submission and a default re-inserted the stored window
+            # (audit 2026-09-29) — the handler reads absence as "no window".
+            else vol.Optional("earliest_completion_days", description={"suggested_value": ecd_stored})
         )
 
         # Prefill the recurrence from whichever storage shape this task uses
@@ -479,9 +492,10 @@ class TaskCrudMixin:
                     # while the global advanced flag is on; clear by submitting "".
                     **(
                         {
-                            vol.Optional(
-                                CONF_TASK_SCHEDULE_TIME,
-                                default=task.get("schedule_time", ""),
+                            (
+                                vol.Optional(CONF_TASK_SCHEDULE_TIME, description={"suggested_value": task["schedule_time"]})
+                                if task.get("schedule_time")
+                                else vol.Optional(CONF_TASK_SCHEDULE_TIME)
                             ): _OptionalTimeSelector(),
                         }
                         if is_schedule_time_enabled(self.hass)
@@ -552,7 +566,7 @@ class TaskCrudMixin:
                     nfc_tag_key: selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
                     vol.Optional("require_tag_scan", default=bool(task.get("require_tag_scan"))): selector.BooleanSelector(),
                     reading_unit_key: selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
-                    vol.Optional("readings_text", default=reading_slots_text(task.get("readings"))): selector.TextSelector(
+                    _suggested("readings_text", reading_slots_text(task.get("readings"))): selector.TextSelector(
                         selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiline=True)
                     ),
                     vol.Optional("go_back", default=False): selector.BooleanSelector(),
@@ -596,7 +610,11 @@ class TaskCrudMixin:
             step_id="edit_checklist",
             data_schema=vol.Schema(
                 {
-                    vol.Optional("checklist_text", default=default_text): selector.TextSelector(
+                    (
+                        vol.Optional("checklist_text", description={"suggested_value": default_text})
+                        if default_text
+                        else vol.Optional("checklist_text")
+                    ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.TEXT,
                             multiline=True,
@@ -663,7 +681,11 @@ class TaskCrudMixin:
             step_id="edit_phases",
             data_schema=vol.Schema(
                 {
-                    vol.Optional("phases_text", default=default_text): selector.TextSelector(
+                    (
+                        vol.Optional("phases_text", description={"suggested_value": default_text})
+                        if default_text
+                        else vol.Optional("phases_text")
+                    ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.TEXT,
                             multiline=True,

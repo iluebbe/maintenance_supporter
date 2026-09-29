@@ -1803,7 +1803,7 @@
     },
     "export_data": {
       "name": "Exportovat data",
-      "description": "Exportovat všechna data údržby jako JSON nebo YAML.",
+      "description": "Exportuje všechna data údržby jako JSON nebo YAML do maintenance_export.json / maintenance_export.yaml v konfigurační složce Home Assistantu a poté vyvolá maintenance_supporter_export_completed s cestou k souboru. Pouze pro správce.",
       "fields": {
         "format": {
           "name": "Formát",
@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Typ plánu",
-          "description": "time_based (interval) nebo sensor_based. Výchozí: time_based."
+          "description": "time_based (interval), one_time (vyžaduje due_date) nebo manual. Výchozí: time_based. Úlohy spouštěné senzorem potřebují spouštěč a vytvářejí se v panelu."
         },
         "interval_days": {
           "name": "Interval",
@@ -1895,7 +1895,7 @@
         },
         "warning_days": {
           "name": "Upozornění (dny)",
-          "description": "Počet dní před termínem pro vstup do okna „brzy k termínu“."
+          "description": "Počet dní před termínem pro vstup do okna „brzy k termínu“. Výchozí: nastavení celé integrace."
         },
         "enabled": {
           "name": "Povoleno",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Typ plánu",
-          "description": "time_based (interval), sensor_based, one_time nebo manual."
+          "description": "time_based (interval), one_time (vyžaduje due_date) nebo manual. Přepnutím na manual nebo one_time se původní interval odstraní."
         },
         "interval_days": {
           "name": "Interval",

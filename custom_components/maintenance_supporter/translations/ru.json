@@ -1803,7 +1803,7 @@
     },
     "export_data": {
       "name": "Экспорт данных",
-      "description": "Экспортировать все данные обслуживания в формате JSON или YAML.",
+      "description": "Экспортирует все данные обслуживания в JSON или YAML в файл maintenance_export.json / maintenance_export.yaml в папке конфигурации Home Assistant, затем вызывает maintenance_supporter_export_completed с путём к файлу. Только для администраторов.",
       "fields": {
         "format": {
           "name": "Формат",
@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Тип расписания",
-          "description": "time_based (интервал) или sensor_based. По умолчанию: time_based."
+          "description": "time_based (интервал), one_time (нужен due_date) или manual. По умолчанию: time_based. Задачам, запускаемым датчиком, нужен триггер — их создают в панели."
         },
         "interval_days": {
           "name": "Интервал",
@@ -1895,7 +1895,7 @@
         },
         "warning_days": {
           "name": "Предупреждение (дни)",
-          "description": "За сколько дней до срока задача попадает в окно «скоро срок»."
+          "description": "За сколько дней до срока задача попадает в окно «скоро срок». По умолчанию: общая настройка интеграции."
         },
         "enabled": {
           "name": "Включено",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Тип расписания",
-          "description": "time_based (интервал), sensor_based, one_time или manual."
+          "description": "time_based (интервал), one_time (нужен due_date) или manual. При переключении на manual или one_time прежний интервал удаляется."
         },
         "interval_days": {
           "name": "Интервал",

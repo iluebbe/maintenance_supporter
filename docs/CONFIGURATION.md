@@ -567,7 +567,7 @@ One of the four tabs in the Maintenance panel (*Today · Dashboard · Calendar �
 | Control | Values | Description |
 |---|---|---|
 | **Window chips** | `7 days` / `14 days` / `30 days` / `1 year` *(1.5.2+)* | How far forward to look. Default `30 days`. The 1-year view collapses empty days so 365 rows don't drown the few real events. Config key on the calendar card: `window_days: 7 \| 14 \| 30 \| 365`. |
-| **Past-window chips** | `30 days` / `90 days` back | Switch the list from "what's coming" to "what happened": the rows come from the completion/skip history instead of `next_due`, labelled by event type, and clicking one opens the history entry for editing. Mutually exclusive with the forward window. Config key: `past_days: 30 \| 90` (set it and the card starts in past mode; empty days are always collapsed here). |
+| **Past-window chips** | `30 days` / `90 days` back | Switch the list from "what's coming" to "what happened": the rows come from the completion/skip history instead of `next_due`, labelled by event type, and clicking one opens the history entry for editing. Mutually exclusive with the forward window. Config key: `past_days: 30 \| 90` (set it and the card starts in past mode — it wins over `window_days`; empty days are always collapsed here). The card editor's *Default window* dropdown offers both past windows (2.96+). |
 | **User filter** | `All Users` / `My Tasks` | Same dropdown as the Dashboard's *User* filter; resolves *current_user* against `hass.user.id`. |
 | **Source icon** *(1.5.1+)* | `mdi:clock-outline` (time-based), `mdi:clock-time-four-outline` (time-based with adaptive interval), `mdi:trending-up` (sensor-based, HA primary color) | Tells you at a glance whether the date is a hard schedule or a sensor regression estimate. |
 | **Prediction confidence pill** *(1.5.1+)* | `predicted · high confidence` (green border), `medium` (amber), `low` (red) | Sourced from `threshold_prediction_confidence`; only renders for sensor-based events that aren't already `triggered`. |
@@ -590,14 +590,14 @@ The card is WS-driven (subscribes to `maintenance_supporter/subscribe`) so it al
 | Key | Type | Default | Description |
 |---|---|---|---|
 | `title` | string | `"Maintenance"` (i18n) | Card header |
-| `show_header` | bool | `true` | Show the count badges (Overdue / Due Soon / Triggered) |
-| `show_actions` | bool | `true` | Show the "Complete" button on each task row |
+| `show_header` | bool | `true` | Show the count badges (Overdue / Due Soon / Triggered). They count the tasks the card's filters and saved view select, before `max_items` (2.96+; earlier versions counted the whole home on a filtered card) |
+| `show_actions` | bool | `true` | Show the "Complete" button on each task row. `false` also hides the header's *New object* / *New task* buttons, which only users with write access see anyway |
 | `action_style` | `buttons` / `icons` | — | How that button looks (2.69+): a labelled HA button or the classic check icon. Omit to follow the household's *Task row actions* setting |
 | `show_assignee` | bool | `true` | Show the responsible user on each task row — with a rotation this is whose turn it is. Rows without an assignee show nothing; the name is resolved via `users/list` (a read-tier command, so non-admin household members see it too) |
 | `filter_labels` | list | — | Limit the card to tasks carrying at least one of these labels (OR semantics, like `filter_objects`) |
 | `filter_priority` (#134) | list | — | Limit the card to these priority levels (`low` / `normal` / `high`, OR semantics). Tasks without an explicit priority count as `normal` |
 | `show_documents` | bool | `true` | Show the task's linked documents and its documentation link as chips on the row; a web link opens directly, a stored file through a signed URL. Rows without documents render nothing |
-| `compact` | bool | `false` | Hide task metadata (interval, last performed) |
+| `compact` | bool | `false` | Tighter rows without the *object · type · phase* line; the assignee stays |
 | `max_items` | int | `0` (unlimited) | Cap on the number of tasks shown |
 | `filter_status` | string[] | `[]` | Show only tasks whose `status` is in the list. Values: `overdue`, `triggered`, `due_soon`, `ok` |
 | `filter_objects` | string[] | `[]` | Show only tasks whose parent object name is in the list |

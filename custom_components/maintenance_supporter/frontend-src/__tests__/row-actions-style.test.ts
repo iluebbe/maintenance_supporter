@@ -2,7 +2,7 @@
  * Panel: task-row actions follow the global "Task row actions" setting (#145).
  *
  *   - default (buttons_compact) renders HA buttons in .row-actions.as-buttons
- *   - "icons" renders the classic mwc-icon-button pair
+ *   - "icons" renders the classic icon-button pair
  *   - the one-time notice shows a banner for admins; "Back to icons" sends
  *     style=icons + notice=false in ONE global/update and the rows flip.
  */
@@ -39,14 +39,14 @@ describe("row actions style (#145)", () => {
     const { el } = await mount({ row_action_style: "buttons_compact", row_action_notice_pending: false });
     const sr = el.shadowRoot!;
     await waitUntil(() => sr.querySelectorAll(".row-actions.as-buttons ha-button").length > 0, "buttons rendered");
-    expect(sr.querySelectorAll(".row-actions mwc-icon-button.btn-complete").length).to.equal(0);
+    expect(sr.querySelectorAll(".row-actions ha-icon-button.btn-complete").length).to.equal(0);
     expect(sr.querySelector(".row-actions-banner")).to.not.exist;
   });
 
   it("renders the classic icon pair when the household chose icons", async () => {
     const { el } = await mount({ row_action_style: "icons" });
     const sr = el.shadowRoot!;
-    await waitUntil(() => sr.querySelectorAll(".row-actions mwc-icon-button.btn-complete").length > 0, "icons rendered");
+    await waitUntil(() => sr.querySelectorAll(".row-actions ha-icon-button.btn-complete").length > 0, "icons rendered");
     expect(sr.querySelectorAll(".row-actions.as-buttons").length).to.equal(0);
   });
 
@@ -69,7 +69,7 @@ describe("row actions style (#145)", () => {
     await waitUntil(() => updates.length === 1, "one global/update sent");
     expect(updates[0]).to.deep.equal({ row_action_notice_pending: false, row_action_style: "icons" });
     await waitUntil(() => !sr.querySelector(".row-actions-banner"), "banner dismissed");
-    await waitUntil(() => sr.querySelectorAll(".row-actions mwc-icon-button.btn-complete").length > 0, "rows flipped to icons");
+    await waitUntil(() => sr.querySelectorAll(".row-actions ha-icon-button.btn-complete").length > 0, "rows flipped to icons");
   });
 
   it("banner: 'Keep buttons' only clears the notice", async () => {

@@ -1803,7 +1803,7 @@
     },
     "export_data": {
       "name": "データをエクスポート",
-      "description": "すべてのメンテナンスデータを JSON または YAML としてエクスポートします。",
+      "description": "すべてのメンテナンスデータを JSON または YAML として Home Assistant の設定フォルダー内の maintenance_export.json / maintenance_export.yaml にエクスポートし、その後ファイルパス付きで maintenance_supporter_export_completed を発行します。管理者のみ。",
       "fields": {
         "format": {
           "name": "形式",
@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "スケジュールの種類",
-          "description": "time_based（間隔）または sensor_based。既定値: time_based。"
+          "description": "time_based（間隔）、one_time（due_date が必要）、manual のいずれか。既定値: time_based。センサーで起動するタスクにはトリガーが必要なため、パネルで作成します。"
         },
         "interval_days": {
           "name": "間隔",
@@ -1895,7 +1895,7 @@
         },
         "warning_days": {
           "name": "警告（日数）",
-          "description": "期日前に「まもなく期限」ウィンドウに入るまでの日数。"
+          "description": "期日前に「まもなく期限」ウィンドウに入るまでの日数。既定値: 統合全体の設定。"
         },
         "enabled": {
           "name": "有効",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "スケジュールの種類",
-          "description": "time_based（間隔）、sensor_based、one_time、manual。"
+          "description": "time_based（間隔）、one_time（due_date が必要）、manual のいずれか。manual または one_time に切り替えると以前の間隔は削除されます。"
         },
         "interval_days": {
           "name": "間隔",

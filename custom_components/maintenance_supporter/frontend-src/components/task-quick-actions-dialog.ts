@@ -6,7 +6,8 @@
  *
  *    • Quick info  — name + status + next due + last performed + interval
  *    • Primary actions — Complete (existing dialog), Skip (inline), Reset (inline)
- *    • Secondary (admin) — Edit settings (existing dialog), QR Code, Delete
+ *    • Secondary — QR Code, Postpone (inline), Snooze for everyone; Edit
+ *      settings (existing dialog), Archive, Delete for writers
  *    • Footer — "Open in Maintenance Panel" deep-link for History/Statistics
  *
  *  Mounted via dialog-mount.openTaskQuickActions(entryId, taskId).
@@ -20,6 +21,7 @@ import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/
 import { isoDateLocal } from "../helpers/calendar-bucket";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args";
 import { phaseLabel } from "../helpers/phases";
+import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { buildHistoryEntryDraft } from "../helpers/history-draft";
 import { readingSlotDelta } from "../helpers/reading-slots";
 import { taskRef } from "../helpers/reference";
@@ -65,10 +67,12 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
   @state() private _error = "";
   @state() private _showSkip = false;
   @state() private _showReset = false;
+  @state() private _showPostpone = false;
   @state() private _showDetails = false;
   @state() private _showAdaptive = false;
   @state() private _skipReason = "";
   @state() private _resetDate = "";
+  @state() private _postponeDate = "";
   @state() private _features: AdvancedFeatures = {
     adaptive: false, seasonal: false, environmental: false,
     budget: false, groups: false, checklists: false, schedule_time: false,
@@ -98,8 +102,10 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     this._error = "";
     this._showSkip = false;
     this._showReset = false;
+    this._showPostpone = false;
     this._showAdaptive = false;
     this._skipReason = "";
+    this._postponeDate = "";
     // Local calendar date — toISOString() is UTC and prefills YESTERDAY for
     // users east of UTC before their morning (bug audit 2026-08-22).
     this._resetDate = isoDateLocal(new Date());
@@ -254,6 +260,36 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     });
     if (ok !== undefined) {
       this._notifyChanged("reset");
+      this.close();
+    }
+  }
+
+  /** Postpone and Snooze are household actions like Skip and Reset
+   *  (helpers/permissions HOUSEHOLD_ACTIONS) — the panel's ⋮ menu offered
+   *  them, the dashboard's dialog did not (audit 2026-09-29). */
+  private async _onPostponeConfirm(): Promise<void> {
+    if (!this._entryId || !this._taskId || !this._postponeDate) return;
+    const ok = await this._runWs({
+      type: "maintenance_supporter/task/postpone",
+      entry_id: this._entryId,
+      task_id: this._taskId,
+      until: this._postponeDate,
+    });
+    if (ok !== undefined) {
+      this._notifyChanged("postpone");
+      this.close();
+    }
+  }
+
+  private async _onSnooze(): Promise<void> {
+    if (!this._entryId || !this._taskId) return;
+    const ok = await this._runWs({
+      type: "maintenance_supporter/task/snooze",
+      entry_id: this._entryId,
+      task_id: this._taskId,
+    });
+    if (ok !== undefined) {
+      this._notifyChanged("snooze");
       this.close();
     }
   }
@@ -517,6 +553,9 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     const L = this._lang;
     const task = this._task;
     const writer = canWrite(this.hass?.user, this._access);
+    // The server refuses to postpone an archived, disabled or paused task,
+    // and such a task sends no reminders to snooze.
+    const inert = !!task && (!!task.archived || task.enabled === false || task.status === "paused");
 
     return renderModalShell(() => this.close(), html`
         ${task
@@ -550,6 +589,9 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                     ? html`<span><strong>${t("phase_current", L)}:</strong> ${phaseLabel(task)}</span>`
                     : nothing}
                 </div>
+                ${task.notes
+                  ? html`<div class="notes-body">${renderNotesMarkdown(task.notes)}</div>`
+                  : nothing}
               </div>
 
               ${this._error
@@ -593,6 +635,28 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                       </div>
                     </div>
                   `
+                : this._showPostpone
+                ? html`
+                    <div class="inline-form">
+                      <label>${t("postpone_date_prompt", L)}</label>
+                      <ms-date-field
+                        kind="date"
+                        .hass=${this.hass}
+                        .lang=${L}
+                        .value=${this._postponeDate}
+                        @value-changed=${(e: CustomEvent) => { this._postponeDate = e.detail.value as string; }}
+                      ></ms-date-field>
+                      <div class="inline-actions">
+                        <button class="btn cancel" @click=${() => { this._showPostpone = false; }} ?disabled=${this._busy}>
+                          ${t("cancel", L)}
+                        </button>
+                        <button class="btn primary qa-postpone-confirm" @click=${this._onPostponeConfirm}
+                          ?disabled=${this._busy || !this._postponeDate}>
+                          ${t("postpone", L)}
+                        </button>
+                      </div>
+                    </div>
+                  `
                 : html`
                     <div class="actions primary-row">
                       <ha-button appearance="accent" variant="success" @click=${this._onComplete} .disabled=${this._busy}>
@@ -626,6 +690,17 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                         <ha-icon slot="start" icon="mdi:qrcode"></ha-icon>
                         ${t("qr_code", L)}
                       </ha-button>
+                      ${inert
+                        ? nothing
+                        : html`<ha-button size="small" appearance="outlined" variant="neutral" class="qa-postpone"
+                            @click=${() => { this._showPostpone = true; }} .disabled=${this._busy}>
+                            <ha-icon slot="start" icon="mdi:calendar-arrow-right"></ha-icon>
+                            ${t("postpone", L)}…
+                          </ha-button>
+                          <ha-button size="small" appearance="outlined" variant="neutral" class="qa-snooze" @click=${this._onSnooze} .disabled=${this._busy}>
+                            <ha-icon slot="start" icon="mdi:bell-sleep-outline"></ha-icon>
+                            ${t("snooze", L)}
+                          </ha-button>`}
                       ${writer
                         ? html`<ha-button size="small" appearance="outlined" variant="neutral" class="qa-archive"
                             @click=${task.archived ? this._onUnarchive : this._onArchive}
@@ -706,6 +781,11 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     .actions.secondary-row {
       padding-top: 8px; border-top: 1px solid var(--divider-color);
       justify-content: flex-start;
+      /* 360 px: Edit + QR + Archive + Delete were 388 px in a 342 px row —
+         Delete sat past the dialog edge (audit 2026-09-29). Wrap instead;
+         Delete keeps its margin-left:auto on the second line. */
+      flex-wrap: wrap;
+      row-gap: 6px;
     }
     .actions.secondary-row .btn.danger,
     .actions.secondary-row ha-button.danger {
@@ -734,6 +814,12 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     .btn.danger { color: var(--error-color); }
     .btn ha-icon { --mdc-icon-size: 18px; }
     .inline-form { display: flex; flex-direction: column; gap: 8px; }
+    .notes-body {
+      margin-top: 8px; padding: 8px; border-radius: 6px;
+      background: var(--secondary-background-color);
+      font-size: 13px; white-space: pre-wrap; word-break: break-word;
+    }
+    .notes-body ha-markdown { white-space: normal; }
     .inline-form label { font-size: 13px; color: var(--secondary-text-color); }
     .inline-form input {
       padding: 8px; font-size: 14px;

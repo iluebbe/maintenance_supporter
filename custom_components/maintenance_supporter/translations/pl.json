@@ -1803,7 +1803,7 @@
     },
     "export_data": {
       "name": "Eksportuj dane",
-      "description": "Eksportuj wszystkie dane konserwacji jako JSON lub YAML.",
+      "description": "Eksportuje wszystkie dane konserwacji jako JSON lub YAML do maintenance_export.json / maintenance_export.yaml w folderze konfiguracji Home Assistant, a następnie wywołuje maintenance_supporter_export_completed ze ścieżką pliku. Tylko dla administratorów.",
       "fields": {
         "format": {
           "name": "Format",
@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Typ harmonogramu",
-          "description": "time_based (interwał) lub sensor_based. Domyślnie: time_based."
+          "description": "time_based (interwał), one_time (wymaga due_date) lub manual. Domyślnie: time_based. Zadania wyzwalane czujnikiem wymagają wyzwalacza i tworzy się je w panelu."
         },
         "interval_days": {
           "name": "Interwał",
@@ -1895,7 +1895,7 @@
         },
         "warning_days": {
           "name": "Ostrzeżenie (dni)",
-          "description": "Liczba dni przed terminem, od których zadanie wchodzi w okno „wkrótce”."
+          "description": "Liczba dni przed terminem, od których zadanie wchodzi w okno „wkrótce”. Domyślnie: ustawienie całej integracji."
         },
         "enabled": {
           "name": "Włączone",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Typ harmonogramu",
-          "description": "time_based (interwał), sensor_based, one_time lub manual."
+          "description": "time_based (interwał), one_time (wymaga due_date) lub manual. Przełączenie na manual lub one_time usuwa dotychczasowy interwał."
         },
         "interval_days": {
           "name": "Interwał",

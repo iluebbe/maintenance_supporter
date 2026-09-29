@@ -1803,7 +1803,7 @@
     },
     "export_data": {
       "name": "Gegevens exporteren",
-      "description": "Exporteer alle onderhoudsgegevens als JSON of YAML.",
+      "description": "Exporteer alle onderhoudsgegevens als JSON of YAML naar maintenance_export.json / maintenance_export.yaml in de Home Assistant-configuratiemap en vuur daarna maintenance_supporter_export_completed af met het bestandspad. Alleen voor beheerders.",
       "fields": {
         "format": {
           "name": "Formaat",
@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Planningstype",
-          "description": "time_based (interval) of sensor_based. Standaard: time_based."
+          "description": "time_based (interval), one_time (vereist due_date) of manual. Standaard: time_based. Sensorgestuurde taken hebben een trigger nodig en worden in het paneel aangemaakt."
         },
         "interval_days": {
           "name": "Interval",
@@ -1895,7 +1895,7 @@
         },
         "warning_days": {
           "name": "Waarschuwing (dagen)",
-          "description": "Dagen vóór de vervaldatum waarop de taak in het binnenkort-venster komt."
+          "description": "Dagen vóór de vervaldatum waarop de taak in het binnenkort-venster komt. Standaard: de integratiebrede instelling."
         },
         "enabled": {
           "name": "Ingeschakeld",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Planningstype",
-          "description": "time_based (interval), sensor_based, one_time of manual."
+          "description": "time_based (interval), one_time (vereist due_date) of manual. Overschakelen naar manual of one_time verwijdert het oude interval."
         },
         "interval_days": {
           "name": "Interval",

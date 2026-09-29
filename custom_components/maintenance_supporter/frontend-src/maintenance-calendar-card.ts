@@ -40,6 +40,7 @@ import {
 import { calendarStyles } from "./calendar-styles";
 import { syncLocaleFromHass, sharedStyles, currencySymbolOf, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatInterval, formatWeekday, formatMonth, langOf, formatCost, syncCurrencyDecimals} from "./styles";
 import { registerCustomCard } from "./helpers/register-card";
+import { healCardRegistry } from "./helpers/registry-heal";
 import { loadHistoryEntryDraft } from "./helpers/history-draft";
 import { canWrite } from "./helpers/permissions";
 import { fetchSettingsOnce } from "./helpers/settings-cache";
@@ -107,12 +108,13 @@ export class MaintenanceCalendarCard extends LitElement {
 
   setConfig(config: CalendarCardConfig): void {
     this._config = { ...config };
-    if (config.past_days && [30, 90].includes(config.past_days)) {
-      this._pastDays = config.past_days as PastDays;
-    } else if (config.window_days && [7, 14, 30, 365].includes(config.window_days)) {
-      this._windowDays = config.window_days as WindowDays;
-      this._pastDays = 0;
-    }
+    // The config decides the window every time it changes: removing
+    // past_days in the editor left the card in its past view (audit
+    // 2026-09-29).
+    this._windowDays = config.window_days && [7, 14, 30, 365].includes(config.window_days)
+      ? (config.window_days as WindowDays)
+      : 30;
+    this._pastDays = config.past_days && [30, 90].includes(config.past_days) ? (config.past_days as PastDays) : 0;
     if (typeof config.user_filter === "string") {
       this._userFilter = config.user_filter;
     }
@@ -466,7 +468,7 @@ export class MaintenanceCalendarCard extends LitElement {
 
     return html`
       <ha-card .header=${title}>
-        ${showChips || showUserFilter
+        ${showChips || showUserFilter || showObjectFilter
           ? html`
               <div class="cal-controls">
                 ${showChips
@@ -557,6 +559,12 @@ const WINDOW_DAY_KEYS: Array<{ value: WindowDays; key: string }> = [
   { value: 30, key: "cal_editor_window_month" },
   { value: 365, key: "cal_editor_window_year" },
 ];
+/** past_days had no editor control and silently beat the window picked
+ *  here (audit 2026-09-29) — the past windows share the one dropdown. */
+const PAST_DAY_KEYS: Array<{ value: PastDays; key: string }> = [
+  { value: 30, key: "cal_editor_window_past_30" },
+  { value: 90, key: "cal_editor_window_past_90" },
+];
 
 class MaintenanceCalendarCardEditor extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -597,6 +605,24 @@ class MaintenanceCalendarCardEditor extends LitElement {
     if (key === "user_filter" && value === "") {
       delete (newConfig as unknown as Record<string, unknown>).user_filter;
     }
+    this._emit(newConfig);
+  }
+
+  /** One dropdown, two keys: "past-N" writes past_days, a number writes
+   *  window_days — each drops the other, since past_days wins in the card. */
+  private _windowChanged(value: string): void {
+    const next = { ...this._config } as unknown as Record<string, unknown>;
+    if (value.startsWith("past-")) {
+      next.past_days = Number(value.slice(5));
+      delete next.window_days;
+    } else {
+      next.window_days = Number(value);
+      delete next.past_days;
+    }
+    this._emit(next as unknown as CalendarCardConfig);
+  }
+
+  private _emit(newConfig: CalendarCardConfig): void {
     this._config = newConfig;
     this.dispatchEvent(
       new CustomEvent("config-changed", {
@@ -609,7 +635,7 @@ class MaintenanceCalendarCardEditor extends LitElement {
 
   render() {
     const L = this._lang;
-    const currentWindow = this._config.window_days ?? 30;
+    const currentWindow = this._config.past_days ? `past-${this._config.past_days}` : `${this._config.window_days ?? 30}`;
     const showChips = this._config.show_window_chips !== false;
     const showUserFilter = this._config.show_user_filter !== false;
     const userFilter = this._config.user_filter ?? "";
@@ -630,15 +656,15 @@ class MaintenanceCalendarCardEditor extends LitElement {
           <label for="window">${t("cal_editor_window", L)}</label>
           <select
             id="window"
-            @change=${(e: Event) =>
-              this._valueChanged(
-                "window_days",
-                Number((e.target as HTMLSelectElement).value) as WindowDays,
-              )}
+            @change=${(e: Event) => this._windowChanged((e.target as HTMLSelectElement).value)}
           >
             ${WINDOW_DAY_KEYS.map(
               (o) =>
-                html`<option value="${o.value}" ?selected=${o.value === currentWindow}>${t(o.key, L)}</option>`,
+                html`<option value="${o.value}" ?selected=${`${o.value}` === currentWindow}>${t(o.key, L)}</option>`,
+            )}
+            ${PAST_DAY_KEYS.map(
+              (o) =>
+                html`<option value="past-${o.value}" ?selected=${`past-${o.value}` === currentWindow}>${t(o.key, L)}</option>`,
             )}
           </select>
         </div>
@@ -747,6 +773,9 @@ if (!customElements.get("maintenance-supporter-calendar-card-editor")) {
 // The type MUST match the registered element tag exactly (custom:X → tag X),
 // or the picker entry resolves to a non-existent element and the strategy's
 // calendar mode throws a config error.
+// HA's boot-time registry swap can strand these definitions (audit 2026-09-29).
+healCardRegistry(["maintenance-supporter-calendar-card"], import.meta.url);
+
 registerCustomCard({
   type: "maintenance-supporter-calendar-card",
   name: "Maintenance Supporter — Calendar",

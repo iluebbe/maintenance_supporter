@@ -9,6 +9,8 @@ import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf, formatDate, syncLocaleFromHass } from "../styles";
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import { runWs } from "../helpers/ws-run";
+import { canWrite, NO_DELEGATION, type WriteAccess } from "../helpers/permissions";
+import { fetchSettingsOnce } from "../helpers/settings-cache";
 import { isoDateLocal } from "../helpers/calendar-bucket";
 import { px } from "../renderers/chart-utils";
 import type { HomeAssistant } from "../types";
@@ -107,11 +109,21 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   @state() private _rosterSort: "name" | "urgency" = MaintenanceBatteryFleetSection._storedSort();
   @state() private _typeFilter: string | null = null;
   @state() private _recorded: string[] = [];
+  /** Every fleet action (mark replaced, record, exclude/include, add, the two
+   *  options, repair) is WRITE tier on the server; the section offered them
+   *  to every household member, who then got "not permitted" and a checkbox
+   *  left flipped (audit 2026-09-29). Same rule as the panel and the other
+   *  cards: helpers/permissions.canWrite. */
+  @state() private _access: WriteAccess = NO_DELEGATION;
   private _historyRequested = false;
   private _localeReady = false;
 
   private get _lang(): string {
     return langOf(this.hass);
+  }
+
+  private get _canWrite(): boolean {
+    return canWrite(this.hass?.user, this._access);
   }
 
   connectedCallback(): void {
@@ -128,6 +140,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     if (changed.has("hass") && this.hass && !this._localeReady) {
       this._localeReady = true;
       ensureLocale(this._lang).then(() => this.requestUpdate());
+      void fetchSettingsOnce(this.hass).then((s) => { this._access = s.access; });
       if (this._ov === null && !this._loading) this._load();
     }
   }
@@ -432,7 +445,8 @@ export class MaintenanceBatteryFleetSection extends LitElement {
           ? html`<span class="bf-offline bf-nosensor">${t("battery_fleet_no_sensor", L)}</span>`
           : nothing;
     const type = html`<span class="bf-type">${b.quantity}× ${b.battery_type}</span>`;
-    const showMark = o.mark === "always" || b.no_sensor || b.can_mark_replaced;
+    const writer = this._canWrite;
+    const showMark = writer && (o.mark === "always" || b.no_sensor || b.can_mark_replaced);
     return html`
       <div class="bf-row">
         <span class="bf-dev">${b.device_name}</span>
@@ -461,7 +475,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
               <ha-icon icon="mdi:battery-sync"></ha-icon>
             </button>`
           : nothing}
-        ${o.jump ? this._jumpButton(b, L) : nothing}
+        ${o.jump && writer ? this._jumpButton(b, L) : nothing}
         ${o.predicted && b.days_until != null
           ? html`<span
               class="bf-predicted ${b.predicted_source === "trend" ? "bf-trend" : ""} ${b.forecast_overdue ? "bf-overdue" : ""}"
@@ -469,7 +483,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
               >${b.forecast_overdue ? html`<ha-icon icon="mdi:calendar-alert"></ha-icon>` : nothing}~${this._predictedDate(b.days_until)}</span
             >`
           : nothing}
-        ${o.exclude
+        ${o.exclude && writer
           ? html`<button
               class="bf-mark bf-exclude"
               title=${t("battery_fleet_exclude", L)}
@@ -504,9 +518,11 @@ export class MaintenanceBatteryFleetSection extends LitElement {
           ? html`
               <div class="bf-repair">
                 <span>${t("battery_fleet_trigger_lost", L)}</span>
-                <ha-button .disabled=${this._marking} @click=${this._repair}>
-                  ${t("battery_fleet_repair", L)}
-                </ha-button>
+                ${this._canWrite
+                  ? html`<ha-button .disabled=${this._marking} @click=${this._repair}>
+                      ${t("battery_fleet_repair", L)}
+                    </ha-button>`
+                  : nothing}
               </div>
             `
           : nothing}
@@ -521,11 +537,13 @@ export class MaintenanceBatteryFleetSection extends LitElement {
               <div class="bf-rows">
                 ${ov.low.map((b) => this._renderRow(b, L, { recharge: true, mark: "always", exclude: true }))}
               </div>
-              <div class="bf-actions">
-                <ha-button .disabled=${this._marking} @click=${this._markAll}>
-                  <ha-icon icon="mdi:battery-sync"></ha-icon> ${t("battery_fleet_mark_all", L)}
-                </ha-button>
-              </div>
+              ${this._canWrite
+                ? html`<div class="bf-actions">
+                    <ha-button .disabled=${this._marking} @click=${this._markAll}>
+                      <ha-icon icon="mdi:battery-sync"></ha-icon> ${t("battery_fleet_mark_all", L)}
+                    </ha-button>
+                  </div>`
+                : nothing}
             `}
 
         ${ov.soon.length
@@ -564,6 +582,19 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                   )}
                 </div>
                 <div class="bf-roster-hint">${t("battery_fleet_all_hint", L)}</div>
+                ${this._canWrite ? this._renderRosterSettings(ov, L) : nothing}
+              </details>
+            `
+          : nothing}
+        ${this._renderExcluded(ov, L)}
+        <div class="bf-total">${t("battery_fleet_total", L).replace("{n}", String(ov.total))}</div>
+      </div>
+    `;
+  }
+
+  /** Add a battery + the two fleet options — write tier, so writers only. */
+  private _renderRosterSettings(ov: Overview, L: string) {
+    return html`
                 <div class="bf-add">
                   <span class="bf-label">${t("battery_fleet_add", L)}</span>
                   <ha-selector
@@ -594,9 +625,12 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                   ${t("battery_fleet_due_without_sensor", L)}
                 </label>
                 <div class="bf-roster-hint">${t("battery_fleet_due_without_sensor_hint", L)}</div>
-              </details>
-            `
-          : nothing}
+    `;
+  }
+
+  /** Excluded devices stay listed for everyone; bringing one back is write tier. */
+  private _renderExcluded(ov: Overview, L: string) {
+    return html`
         ${ov.excluded?.length
           ? html`
               <div class="bf-excluded">
@@ -605,22 +639,22 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                   (x) => html`
                     <span class="bf-excluded-chip">
                       ${x.device_name}
-                      <button
-                        class="bf-mark"
-                        title=${t("battery_fleet_include", L)}
-                        .disabled=${this._marking}
-                        @click=${() => this._setExcluded(x.entity_id, false)}
-                      >
-                        <ha-icon icon="mdi:eye-outline"></ha-icon>
-                      </button>
+                      ${this._canWrite
+                        ? html`<button
+                            class="bf-mark"
+                            title=${t("battery_fleet_include", L)}
+                            .disabled=${this._marking}
+                            @click=${() => this._setExcluded(x.entity_id, false)}
+                          >
+                            <ha-icon icon="mdi:eye-outline"></ha-icon>
+                          </button>`
+                        : nothing}
                     </span>
                   `,
                 )}
               </div>
             `
           : nothing}
-        <div class="bf-total">${t("battery_fleet_total", L).replace("{n}", String(ov.total))}</div>
-      </div>
     `;
   }
 

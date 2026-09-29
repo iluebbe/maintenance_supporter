@@ -146,7 +146,9 @@ async def test_edit_phases_form_hydrates_current_cycle(
     result = await _open_edit_phases(hass, object_entry)
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "edit_phases"
-    default = result["data_schema"]({})["phases_text"]
+    # suggested, not a default: an emptied field must be able to clear (2.96)
+    marker = next(k for k in result["data_schema"].schema if str(k) == "phases_text")
+    default = marker.description["suggested_value"]
     assert default.splitlines() == [
         "Flip blades: Loosen; Flip",
         "Flip blades",

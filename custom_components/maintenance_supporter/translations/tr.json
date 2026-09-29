@@ -1803,7 +1803,7 @@
     },
     "export_data": {
       "name": "Verileri Dışa Aktar",
-      "description": "Tüm bakım verilerini JSON veya YAML olarak dışa aktar.",
+      "description": "Tüm bakım verilerini JSON veya YAML olarak Home Assistant yapılandırma klasöründeki maintenance_export.json / maintenance_export.yaml dosyasına aktarır, ardından dosya yoluyla maintenance_supporter_export_completed olayını tetikler. Yalnızca yöneticiler.",
       "fields": {
         "format": {
           "name": "Biçim",
@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Zamanlama türü",
-          "description": "time_based (aralık) veya sensor_based. Varsayılan: time_based."
+          "description": "time_based (aralık), one_time (due_date gerekir) veya manual. Varsayılan: time_based. Sensörle tetiklenen görevler bir tetikleyici gerektirir ve panelde oluşturulur."
         },
         "interval_days": {
           "name": "Aralık",
@@ -1895,7 +1895,7 @@
         },
         "warning_days": {
           "name": "Uyarı (gün)",
-          "description": "Vadesi yaklaşan penceresine girmeden önceki gün sayısı."
+          "description": "Vadesi yaklaşan penceresine girmeden önceki gün sayısı. Varsayılan: entegrasyon genelindeki ayar."
         },
         "enabled": {
           "name": "Etkin",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Zamanlama türü",
-          "description": "time_based (aralık), sensor_based, one_time veya manual."
+          "description": "time_based (aralık), one_time (due_date gerekir) veya manual. manual veya one_time türüne geçmek eski aralığı kaldırır."
         },
         "interval_days": {
           "name": "Aralık",

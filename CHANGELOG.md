@@ -6,6 +6,54 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **Our dashboard cards sometimes showed "Configuration error":** Home Assistant swaps in a new custom-element
+  registry while it starts, and a card bundle that loaded before the swap had defined its cards on the registry that
+  was then thrown away — about one dashboard load in three right after the panel was open, until the next reload.
+  The card bundles now notice that their cards are missing and load themselves once more, which defines them where
+  Home Assistant looks (the dashboard strategy already heals itself this way).
+- **The logbook said "was reset to ?":** the reset event carried the date as `reset_date`, while the logbook and the
+  docs read `date` — since 2.19. It now carries both.
+- **Seven fields could not be emptied in the Configure dialog:** the completion window, the time of day, the reading
+  slots, the checklist, the cycle phases, the series end and the environmental sensor. Home Assistant leaves an emptied
+  field out of what it sends, and the form put the stored value back in (the same trap was closed for notes, the link
+  and the icons in September; these were missed). Emptying them now clears them.
+- **The battery fleet offered its actions to everyone:** marking replaced, recording a replacement, excluding,
+  including, adding a battery, the two options and the repair are write actions — household members saw them and got
+  "not permitted", a checkbox stayed flipped. They now see the fleet without those controls, like the other cards.
+- **QR codes opened from a dashboard were always English:** the dialog's built-in "en" beat your language when a card
+  opened it; it now follows your Home Assistant language like everywhere else.
+- **Icon buttons that were no buttons:** the card's *add object* / *add task* icons, its icon-style *Complete*, the
+  panel's icon-style row actions, the objects table's QR icon, the group edit / delete icons and the dialog's remove
+  icons used an element Home Assistant 2026 no longer ships — they rendered as bare 18 px icons, too small to hit on a
+  phone and unreachable with the keyboard. They are Home Assistant icon buttons again, at their intended sizes.
+- **Delete fell off the quick-actions dialog on a phone:** at 360 px the second row of actions was wider than the
+  dialog and Delete sat past its edge; the row now wraps.
+- **An area section of the dashboard strategy listed every task** when the area had no objects (or the lookup failed),
+  and dropped an object that was renamed after the dashboard was generated. It now hands the card its area filter,
+  which the card applies live.
+- **"Skip" by voice named the wrong reason:** a disabled task or one on a paused object was announced as "skipping is
+  turned off". The skip lock keeps that answer; anything else now speaks its real reason, like Complete and Postpone.
+- **Notification buttons that could only fail:** the *Complete* button was offered on reminders for tasks only a tag
+  scan may complete, tasks that demand details and tasks whose completion window had not opened — the tap was refused
+  with a log line. Like *Skip* on a skip-locked task, it is now left off those reminders.
+- **The task services quietly built something else:** `update_task` with `schedule_type: manual` or `one_time` changed
+  nothing on an interval task — the stored interval won; `sensor_based` was offered although a service cannot set the
+  trigger, so it made a plain interval or manual task; and a one-time task without a date never came due. Switching to
+  manual or one-time now drops the old interval, a one-time task needs its `due_date`, and `sensor_based` is refused —
+  sensor tasks are created in the panel. `list_tasks` filters by `paused` too, and the action descriptions say where
+  `export_data` writes its file and that the warning days default to your setting.
+- **The dashboard's task dialog had no Postpone, no Snooze and no notes:** the panel's ⋮ menu offers both actions to
+  every household member, the dialog a card opens did not — and the task notes the docs promised there were missing.
+  All three are there now (Postpone and Snooze not for archived, disabled or paused tasks, which the server refuses).
+- **A filtered card counted the whole home:** the header badges of a card limited to a room, objects, labels or a saved
+  view showed the counts of every task. They now count what the card selects.
+- **Calendar card:** the object dropdown disappeared when the window chips and the user filter were both off;
+  `past_days` had no editor control and silently beat the window picked in the editor, and removing it left the card in
+  its past view. The editor's window dropdown now carries the two past windows and writes one key or the other.
+- **Small card-editor slips:** *Follow the household setting* stored `action_style: undefined`; the saved-view hint left
+  out the priority filter the card applies; the dashboard picker's documentation links pointed at README sections
+  that do not exist.
+
 - **Saving a task dropped most of its completion action's target:** the task dialog edits one target entity, but an
   action set up through the API, an import or YAML can target several entities, devices, areas, labels or floors. The
   dialog rebuilt the target from its one field on every save — renaming the task was enough to lose the rest. An
@@ -45,6 +93,10 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 📝 Documentation
 
+- Card options as they behave: the header badges count the card's selection, `show_actions: false` also hides the
+  header's create buttons, `compact` drops the object · type · phase line (not an interval it never showed). *Proof of
+  presence* now says that the printed Complete QR is a link — whoever has it completes without being there — so a task
+  whose proof matters gets the NFC tag only.
 - Corrected against the code (reachability audit): the completion action's *Validate configuration* checks the wiring
   and does not run the action; an NFC tag completes its task (the QR info code opens it); the Panel-access list only
   takes effect with *Allow selected users to create, edit & delete* on; quick-complete defaults, checklists and task

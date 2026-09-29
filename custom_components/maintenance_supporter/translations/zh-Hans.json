@@ -1803,7 +1803,7 @@
     },
     "export_data": {
       "name": "导出数据",
-      "description": "将所有维护数据导出为 JSON 或 YAML。",
+      "description": "将所有维护数据以 JSON 或 YAML 导出到 Home Assistant 配置文件夹中的 maintenance_export.json / maintenance_export.yaml，然后携带文件路径触发 maintenance_supporter_export_completed。仅限管理员。",
       "fields": {
         "format": {
           "name": "格式",
@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "计划类型",
-          "description": "time_based（间隔）或 sensor_based。默认：time_based。"
+          "description": "time_based（间隔）、one_time（需要 due_date）或 manual。默认：time_based。由传感器触发的任务需要触发器，请在面板中创建。"
         },
         "interval_days": {
           "name": "间隔",
@@ -1895,7 +1895,7 @@
         },
         "warning_days": {
           "name": "警告（天）",
-          "description": "进入“即将到期”窗口的提前天数。"
+          "description": "进入“即将到期”窗口的提前天数。默认：整个集成的设置。"
         },
         "enabled": {
           "name": "已启用",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "计划类型",
-          "description": "time_based（间隔）、sensor_based、one_time 或 manual。"
+          "description": "time_based（间隔）、one_time（需要 due_date）或 manual。切换为 manual 或 one_time 会删除原有间隔。"
         },
         "interval_days": {
           "name": "间隔",
