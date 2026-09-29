@@ -10,6 +10,7 @@ const GLOBAL_UNIQUE_ID = "maintenance_supporter_global";
 const ENTRY_KEYS = new Set(["entry_id", "parent_entry_id", "predecessor_entry_id", "replaced_by_entry_id"]);
 const TASK_LIST_KEYS = new Set(["task_ids", "vacation_exempt_task_ids"]);
 const USER_KEYS = new Set(["responsible_user_id", "completed_by", "user_id"]);
+const DEVICE_KEYS = new Set(["ha_device_id", "device_id"]);
 
 const readJson = (p) => JSON.parse(readFileSync(p, "utf8"));
 const isEmpty = (v) =>
@@ -23,6 +24,13 @@ export function snapshot(configDir, expect, cutoff = null) {
   const global = entries.find((e) => e.unique_id === GLOBAL_UNIQUE_ID);
   const objects = entries.filter((e) => e.unique_id !== GLOBAL_UNIQUE_ID && e.data.object);
   const users = Object.fromEntries((readJson(join(storage, "auth")).data.users || []).map((u) => [u.id, u.name]));
+  // Device ids are minted per instance: compare the integration identifiers.
+  const devices = Object.fromEntries(
+    (readJson(join(storage, "core.device_registry")).data.devices || []).map((d) => [
+      d.id,
+      (d.identifiers || []).map(([dom, id]) => `${dom}:${id}`).sort().join("|"),
+    ]),
+  );
   const entryName = Object.fromEntries(objects.map((e) => [e.entry_id, e.data.object.name]));
   const objectName = Object.fromEntries(objects.map((e) => [e.data.object.id, e.data.object.name]));
   const taskName = {};
@@ -62,6 +70,7 @@ export function snapshot(configDir, expect, cutoff = null) {
     if (key === "part_id") return miss(partName, value);
     if (key === "doc_id") return miss(docName, value);
     if (USER_KEYS.has(key)) return miss(users, value);
+    if (DEVICE_KEYS.has(key)) return miss(devices, value);
     return value;
   };
 

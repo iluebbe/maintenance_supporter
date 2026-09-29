@@ -7,12 +7,16 @@ lost its target on a move (round-trip audit 2026-09-29):
 * task assignments, rotation pools and "completed by" — HA user ids; the
   orphan sweep then cleared the assignments at the next start, silently;
 * task groups and the vacation exemptions — kept in the SETTINGS export with
-  the old entry/task ids, so the groups came back empty.
+  the old entry/task ids, so the groups came back empty;
+* an object's device link and an adopted task's fingerprint — HA device ids,
+  minted per instance, so the moved object lost its device and discovery
+  offered the same appliance again as a new object.
 
 The exports therefore name what they point at — ``users`` ({user id: name})
-next to the objects and the settings, ``task_names`` ({task id: {object,
-task}}) next to the settings — and the import maps by those names where the
-id does not resolve. A reference that still resolves is never touched, so a
+next to the objects and the settings, ``devices`` ({device id: the device's
+integration identifiers}) next to the objects, ``task_names`` ({task id:
+{object, task}}) next to the settings — and the import maps by those where
+the id does not resolve. A reference that still resolves is never touched, so a
 restore next to the originals keeps pointing at the originals.
 """
 
@@ -33,6 +37,7 @@ from ..const import (
 from .aggregate import get_object_entries
 
 USERS_KEY = "users"
+DEVICES_KEY = "devices"
 TASK_NAMES_KEY = "task_names"
 CURRENT_USER = "current_user"
 
@@ -63,9 +68,11 @@ def _view_user_ids(settings: dict[str, Any]) -> Iterable[str]:
             yield uid
 
 
-async def async_attach_user_names(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
-    """Add ``users`` — the display name of every HA user the export points at
-    (tasks of ``objects``, saved views of ``global_settings``)."""
+async def async_attach_move_hints(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
+    """Name what the export points at by instance-bound id: ``users`` (the
+    display name of every HA user — tasks of ``objects``, saved views of
+    ``global_settings``) and ``devices`` (see :func:`attach_device_hints`)."""
+    attach_device_hints(hass, data)
     ids: set[str] = set()
     for obj in data.get("objects") or []:
         tasks = obj.get("tasks") if isinstance(obj, dict) else None
@@ -139,6 +146,64 @@ def remap_view_users(views: list[dict[str, Any]], mapping: dict[str, str]) -> No
         filters = view.get("filters")
         if isinstance(filters, dict) and filters.get("user_id") in mapping:
             filters["user_id"] = mapping[filters["user_id"]]
+
+
+# --- devices ---------------------------------------------------------------
+
+
+def attach_device_hints(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
+    """Add ``devices`` — the integration identifiers (stable across
+    installations, e.g. ``["roborock", "q7_1234"]``) of every device an
+    exported object is linked to or an adopted task was fingerprinted on."""
+    from homeassistant.helpers import device_registry as dr
+
+    ids: set[str] = set()
+    for obj in data.get("objects") or []:
+        if not isinstance(obj, dict):
+            continue
+        if isinstance(device_id := (obj.get("object") or {}).get("ha_device_id"), str):
+            ids.add(device_id)
+        for task in obj.get("tasks") or []:
+            origin = task.get("origin") if isinstance(task, dict) else None
+            if isinstance(origin, dict) and isinstance(origin.get("device_id"), str):
+                ids.add(origin["device_id"])
+    dev_reg = dr.async_get(hass)
+    hints: dict[str, Any] = {}
+    for device_id in sorted(ids):
+        device = dev_reg.async_get(device_id)
+        if device is not None and device.identifiers:
+            hints[device_id] = {"identifiers": sorted([list(i) for i in device.identifiers]), "name": device.name_by_user or device.name}
+    if hints:
+        data[DEVICES_KEY] = hints
+    return data
+
+
+def device_map(hass: HomeAssistant, hints: Any) -> dict[str, str]:
+    """old device id → the device on this instance with the same integration
+    identifiers. An id that exists here stays; one that matches nothing stays
+    too (the integration may not be set up yet — linking later works)."""
+    from homeassistant.helpers import device_registry as dr
+
+    mapping: dict[str, str] = {}
+    if not isinstance(hints, dict):
+        return mapping
+    dev_reg = dr.async_get(hass)
+    for old_id, hint in hints.items():
+        if not isinstance(old_id, str) or dev_reg.async_get(old_id) is not None or not isinstance(hint, dict):
+            continue
+        identifiers = {
+            (str(i[0]), str(i[1])) for i in hint.get("identifiers") or [] if isinstance(i, (list, tuple)) and len(i) == 2
+        }
+        if identifiers and (device := dev_reg.async_get_device(identifiers=identifiers)) is not None:
+            mapping[old_id] = device.id
+    return mapping
+
+
+def remap_task_device(task: dict[str, Any], mapping: dict[str, str]) -> None:
+    """An adopted task's fingerprint follows its device (in place)."""
+    origin = task.get("origin")
+    if mapping and isinstance(origin, dict) and origin.get("device_id") in mapping:
+        task["origin"] = {**origin, "device_id": mapping[origin["device_id"]]}
 
 
 # --- task references in the settings ----------------------------------------

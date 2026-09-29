@@ -444,6 +444,7 @@ def build_setup_trigger(sig: ConsumableSignature, hass: HomeAssistant, entity_id
     )  # value_below + consumables use trigger_below
     return {
         "type": "threshold",
+        "entity_id": entity_ids[0],  # legacy mirror (#106); entity_ids is authoritative
         "entity_ids": list(entity_ids),
         threshold_key: _threshold_for(sig, hass, entity_ids[0]),
         "entity_logic": "any",

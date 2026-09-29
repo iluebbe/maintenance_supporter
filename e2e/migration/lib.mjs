@@ -64,9 +64,9 @@ export async function login(base, username, password) {
   return exchangeCode(base, clientId, res.result);
 }
 
-/** Add the integration through its config flow (every step accepts {}). */
-export async function addIntegration(base, token) {
-  let flow = await postJson(base, "/api/config/config_entries/flow", { handler: "maintenance_supporter", show_advanced_options: false }, token);
+/** Add an integration through its config flow (every step accepts {}). */
+export async function addIntegration(base, token, handler = "maintenance_supporter") {
+  let flow = await postJson(base, "/api/config/config_entries/flow", { handler, show_advanced_options: false }, token);
   for (let i = 0; i < 6 && flow.type === "form"; i++) {
     flow = await postJson(base, "/api/config/config_entries/flow/" + flow.flow_id, {}, token);
   }
@@ -81,6 +81,18 @@ export async function connect(base, token) {
   const sock = new WebSocket(base.replace(/^http/, "ws") + "/api/websocket");
   const pending = new Map();
   let id = 0;
+  const client = {
+    call(msg) {
+      return new Promise((res, rej) => {
+        const mid = ++id;
+        pending.set(mid, { res, rej });
+        sock.send(JSON.stringify({ ...msg, id: mid }));
+      });
+    },
+    close: () => sock.close(),
+    // Set by a caller that subscribed to events.
+    onEvent: null,
+  };
   await new Promise((resolve, reject) => {
     sock.onmessage = (ev) => {
       const m = JSON.parse(ev.data);
@@ -92,20 +104,11 @@ export async function connect(base, token) {
         pending.delete(m.id);
         if (m.success) res(m.result);
         else rej(new Error(JSON.stringify(m.error)));
-      }
+      } else if (m.type === "event" && client.onEvent) client.onEvent(m.event);
     };
     sock.onerror = () => reject(new Error("websocket error"));
   });
-  return {
-    call(msg) {
-      return new Promise((res, rej) => {
-        const mid = ++id;
-        pending.set(mid, { res, rej });
-        sock.send(JSON.stringify({ ...msg, id: mid }));
-      });
-    },
-    close: () => sock.close(),
-  };
+  return client;
 }
 
 export async function upload(base, token, entryId, filename, mime, bytes, tags) {

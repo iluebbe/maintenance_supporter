@@ -100,15 +100,39 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
     task = dict(build_task_data(task_id="rig_task"), **FULL_TASK, trigger_config=_full_trigger_config())
     task["object_id"] = "rig_obj"
     task["created_at"] = "2026-01-15"
+    task["last_planned_due"] = "2026-05-28"
     task["responsible_user_id"] = alice.id
     task["assignee_pool"] = [alice.id, bob.id]
     task["rotation_strategy"] = "round_robin"
-    task["history"] = [{**FULL_TASK["history"][0], "completed_by": alice.id}]
+    task["history"] = [
+        {**FULL_TASK["history"][0], "completed_by": alice.id, "feedback": "needed", "phase": "flip"},
+        {"timestamp": "2026-04-01T09:00:00+00:00", "type": "skipped", "notes": "away"},
+        {"timestamp": "2026-03-01T09:00:00+00:00", "type": "missed"},
+        {"timestamp": "2026-02-01T09:00:00+00:00", "type": "reset"},
+        {"timestamp": "2026-01-20T09:00:00+00:00", "type": "triggered", "trigger_value": 81.5},
+        {"timestamp": "2026-01-21T09:00:00+00:00", "type": "trigger_replaced"},
+        {"timestamp": "2026-01-22T09:00:00+00:00", "type": "trigger_removed"},
+    ]
+    # Adaptive, seasonal and environmental settings live in adaptive_config.
+    task["adaptive_config"] = {
+        **FULL_TASK["adaptive_config"],
+        "base_interval": 90, "smoothed_interval": 84.5, "feedback_count": 4, "reliability_target": 0.9,
+        "weibull_beta": 1.7, "weibull_eta": 95.0, "seasonal_enabled": True, "hemisphere": "north",
+        "seasonal_overrides": {"7": 0.8, "1": 1.2}, "environmental_entity": "sensor.workshop_humidity",
+        "environmental_attribute": "humidity",
+    }
     rig_data = build_object_entry_data(tasks={task["id"]: task})
     rig_data = {
         **rig_data,
         "object": {**rig_data["object"], **FULL_OBJECT, "id": "rig_obj"},
-        "parts": {"part_a": normalize_part({**FULL_PART, "auto_buy_task": True})},
+        "parts": {
+            "part_a": normalize_part(
+                {
+                    **FULL_PART, "auto_buy_task": True, "gtin": "4006381333931", "notes": "blue ones",
+                    "product_url": "https://example.org/filter",
+                }
+            )
+        },
     }
     rig = MockConfigEntry(domain=DOMAIN, title=FULL_OBJECT["name"], data=rig_data, unique_id="maintenance_supporter_migration_rig")
     rig.add_to_hass(hass)
@@ -119,7 +143,8 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
     for flat in ("schedule_type", "interval_days", "interval_unit", "interval_anchor"):
         calendar.pop(flat, None)
     one_time.pop("interval_days", None)
-    kitchen_data = build_object_entry_data(tasks={"kitchen_task": kitchen_task, "once_task": one_time, "bins_task": calendar})
+    extras = _kitchen_extras()
+    kitchen_data = build_object_entry_data(tasks={"kitchen_task": kitchen_task, "once_task": one_time, "bins_task": calendar, **extras})
     kitchen_data = {**kitchen_data, "object": {**kitchen_data["object"], "id": "kitchen_obj", "name": "Küche: Spülmaschine"}}
     kitchen = MockConfigEntry(domain=DOMAIN, title="Küche", data=kitchen_data, unique_id="maintenance_supporter_migration_kitchen")
     kitchen.add_to_hass(hass)
@@ -195,7 +220,120 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
     )
     hass.config_entries.async_update_entry(global_entry, options=options)
     await hass.async_block_till_done()
+    await _seed_the_rest(hass, global_entry, rig, kitchen, manual, docs)
     return {"alice": alice, "bob": bob, "task_id": task["id"]}
+
+
+def _kitchen_extras() -> dict[str, dict[str, Any]]:
+    """Every other recurrence kind, an archived and a disabled task."""
+
+    def task(tid: str, name: str, **fields: Any) -> dict[str, Any]:
+        base = {**build_task_data(task_id=tid, name=name), "object_id": "kitchen_obj", "created_at": "2026-03-05", **fields}
+        if "schedule" in fields:
+            for flat in ("schedule_type", "interval_days", "interval_unit", "interval_anchor"):
+                base.pop(flat, None)
+        return base
+
+    return {
+        "wd_task": task("wd_task", "Water the herbs", schedule={"kind": "weekdays", "weekdays": [0, 3]}),
+        "dom_task": task("dom_task", "Clean the filter", schedule={"kind": "day_of_month", "day": -1, "business": True}),
+        "cal_task": task("cal_task", "Bins out", schedule={"kind": "calendar", "entity_id": "calendar.waste", "offset": -1}),
+        "manual_task": task("manual_task", "Deep clean", schedule={"kind": "manual"}),
+        "archived_task": task("archived_task", "Old routine", archived_at="2026-06-01T00:00:00+00:00", archived_reason="done"),
+        "disabled_task": task("disabled_task", "Paused routine", enabled=False),
+    }
+
+
+async def _seed_the_rest(
+    hass: HomeAssistant, global_entry: MockConfigEntry, rig: MockConfigEntry, kitchen: MockConfigEntry, manual: dict[str, Any], docs: Any
+) -> None:
+    """What the curated fixtures lack: every portable setting, the vacation,
+    hierarchy + replacement lineage, a device link, an object adopted from
+    the integration catalog (fingerprint + reset button), every recurrence
+    kind, archived and disabled tasks, a part linked to a document."""
+    from homeassistant.helpers import device_registry as dr
+
+    from custom_components.maintenance_supporter.helpers.signatures import SIGNATURES
+    from custom_components.maintenance_supporter.websocket.integration_setups import ws_adopt_integration_setups
+
+    from .catalog_devices import seed_device, source_entry
+    from .test_ws_roundtrip import _SETTING_SAMPLES
+
+    # Every portable setting at a non-default value (the settings round-trip
+    # samples, so a new setting joins the move the day it gets one).
+    hass.services.async_register("notify", "persistent_notification", lambda call: None)
+    options = dict(global_entry.options)
+    options.update({k: v for k, v in _SETTING_SAMPLES.items() if k not in NON_PORTABLE_OPTIONS})
+    options.update(
+        {
+            "notify_scope_view_id": VIEW_ID,
+            "vacation_enabled": True,
+            "vacation_start": "2026-12-20",
+            "vacation_end": "2027-01-06",
+            "vacation_buffer_days": 2,
+        }
+    )
+    hass.config_entries.async_update_entry(global_entry, options=options)
+
+    # A device of another integration the rig is linked to.
+    other = MockConfigEntry(domain="test_devices", title="devices")
+    other.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=other.entry_id, identifiers={("test_devices", "rig")}, name="Rig controller"
+    )
+
+    # Hierarchy, lineage, archive: a garage door under the rig, an old boiler
+    # retired in favour of a new one.
+    def obj_entry(uid: str, name: str, obj_id: str, tid: str, task_name: str, created: str, **extra: Any) -> MockConfigEntry:
+        task = {**build_task_data(task_id=tid, name=task_name), "object_id": obj_id, "created_at": created}
+        data = build_object_entry_data(tasks={tid: task})
+        data = {**data, "object": {**data["object"], "id": obj_id, "name": name, **extra}}
+        entry = MockConfigEntry(domain=DOMAIN, title=name, data=data, unique_id=f"maintenance_supporter_migration_{uid}")
+        entry.add_to_hass(hass)
+        return entry
+
+    garage = obj_entry("garage", "Garage door", "garage_obj", "garage_task", "Lubricate rails", "2026-02-10")
+    old = obj_entry("old_boiler", "Old boiler", "old_obj", "old_task", "Service old", "2020-01-01", archived_at="2026-05-01T00:00:00+00:00")
+    new = obj_entry("new_boiler", "New boiler", "new_obj", "new_task", "Service new", "2026-05-01")
+    for entry in (garage, old, new):
+        await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    for entry, extra in (
+        (garage, {"parent_entry_id": rig.entry_id}),
+        (old, {"replaced_by_entry_id": new.entry_id}),
+        (new, {"predecessor_entry_id": old.entry_id}),
+        (rig, {"ha_device_id": device.id}),
+    ):
+        current = hass.config_entries.async_get_entry(entry.entry_id)
+        hass.config_entries.async_update_entry(current, data={**current.data, "object": {**current.data["object"], **extra}})
+
+    # The rig's part points at its manual; the manual carries a description.
+    await docs.async_update(manual["id"], description="Chapter 4: filter")
+    current = hass.config_entries.async_get_entry(rig.entry_id)
+    parts = {pid: {**p, "doc_id": manual["id"]} for pid, p in current.data["parts"].items()}
+    hass.config_entries.async_update_entry(current, data={**current.data, "parts": parts})
+
+    # A low part with an automatic buy task — on the kitchen, since a paused
+    # object (the rig) gets no buy reminders.
+    from custom_components.maintenance_supporter.helpers.parts import normalize_part
+    from custom_components.maintenance_supporter.parts_runtime import async_reconcile_buy_tasks
+
+    current = hass.config_entries.async_get_entry(kitchen.entry_id)
+    salt = normalize_part({"id": "salt", "name": "Dishwasher salt", "unit": "kg", "reorder_threshold": 2, "restock_quantity": 4, "auto_buy_task": True})
+    hass.config_entries.async_update_entry(current, data={**current.data, "parts": {"salt": salt}})
+    hass.data[STORES_CACHE_KEY][kitchen.entry_id].set_part_stock("salt", 1)
+    await async_reconcile_buy_tasks(hass, hass.config_entries.async_get_entry(kitchen.entry_id))
+    await hass.async_block_till_done()
+
+    # An object adopted from the integration catalog: a robot's duty with its
+    # fingerprint and the reset button as completion action.
+    sig = next(s for s in SIGNATURES["roborock"].tasks if s.resets)
+    robot = seed_device(hass, source_entry(hass, "roborock"), "roborock", sig, 0)
+    await hass.async_block_till_done()
+    conn = make_ws_connection()
+    await call_ws_handler(ws_adopt_integration_setups, hass, conn, {"id": 9, "type": "x", "selections": [{"device_id": robot.device_id}]})
+    assert not conn.send_error.called, conn.send_error.call_args
+    await hass.async_block_till_done()
 
 
 # ─── snapshot: the whole storage, ids translated to names ───────────────────
@@ -209,7 +347,12 @@ async def _snapshot(hass: HomeAssistant) -> tuple[dict[str, Any], set[str]]:
     """(the storage with ids translated to names, Store task-state keys seen)."""
     from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
 
+    from homeassistant.helpers import device_registry as dr
+
     users = {u.id: u.name for u in await hass.auth.async_get_users()}
+    devices = {
+        d.id: "|".join(sorted(f"{dom}:{ident}" for dom, ident in d.identifiers)) for d in dr.async_get(hass).devices.values()
+    }
     entries = [e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id != GLOBAL_UNIQUE_ID]
     entry_name = {e.entry_id: e.data["object"]["name"] for e in entries}
     object_name = {e.data["object"].get("id"): e.data["object"]["name"] for e in entries}
@@ -253,6 +396,8 @@ async def _snapshot(hass: HomeAssistant) -> tuple[dict[str, Any], set[str]]:
             return doc_name.get(value, f"?{value}")
         if key in _USER_KEYS:
             return users.get(value, f"?{value}")
+        if key in ("ha_device_id", "device_id"):
+            return devices.get(value, f"?{value}")
         return value
 
     seen_state: set[str] = set()
@@ -329,12 +474,25 @@ async def _export_all(hass: HomeAssistant) -> tuple[str, str, bytes]:
 
 
 async def _wipe_to_a_new_instance(hass: HomeAssistant, global_entry: MockConfigEntry, people: dict[str, Any]) -> None:
-    """No objects, no documents, default settings; Alice and Bob exist again
-    under new user ids, as they would on another Home Assistant."""
+    """No objects, no documents, default settings; Alice and Bob and the
+    appliances exist again under new user and device ids, as they would on
+    another Home Assistant."""
     for e in [e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id != GLOBAL_UNIQUE_ID]:
         await hass.config_entries.async_remove(e.entry_id)
     await hass.async_block_till_done()
     hass.config_entries.async_update_entry(global_entry, options={})
+    # The appliances exist on the new instance too — under new device ids.
+    from homeassistant.helpers import device_registry as dr
+
+    dev_reg = dr.async_get(hass)
+    for device in [d for d in dev_reg.devices.values() if any(dom in ("test_devices", "roborock") for dom, _ in d.identifiers)]:
+        entry_ids = list(device.config_entries)
+        identifiers, name, model = set(device.identifiers), device.name, device.model
+        dev_reg.async_remove_device(device.id)
+        # A new instance has no memory of the device: the registry would
+        # hand the old id back to a device re-created with its identifiers.
+        del dev_reg.deleted_devices[device.id]
+        dev_reg.async_get_or_create(config_entry_id=entry_ids[0], identifiers=identifiers, name=name, model=model)
     for key in ("alice", "bob"):
         await hass.auth.async_remove_user(people[key])
         await hass.auth.async_create_user(people[key].name)
@@ -614,3 +772,46 @@ def test_a_document_keeps_when_it_was_added() -> None:
     assert imported_added_at({"added_at": "2026-03-01T10:00:00+00:00"}) == "2026-03-01T10:00:00+00:00"
     for bad in ({"added_at": "2999-01-01T00:00:00+00:00"}, {"added_at": "last week"}, {"added_at": "2026-03-01T10:00:00"}, {}):
         assert imported_added_at(bad) != bad.get("added_at")
+
+
+# ─── the seed covers what the export writes ────────────────────────────────
+
+
+async def test_the_seed_gives_every_exported_field_a_value(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """Driven by the exporter itself: every key it writes for an object, a
+    task, a part, a document or a history entry has a value somewhere in the
+    seed — a field added to the export is compared by the move above only
+    once the seed carries it, so this fails until it does."""
+    from custom_components.maintenance_supporter.const import HistoryEntryType
+    from custom_components.maintenance_supporter.export import build_export_data
+
+    await _seed(hass, global_entry)
+    export = build_export_data(hass, include_history=True)
+
+    def uncovered(records: list[dict[str, Any]]) -> list[str]:
+        keys = {k for r in records for k in r}
+        return sorted(k for k in keys if all(r.get(k) in (None, "", [], {}) for r in records))
+
+    objects = [o["object"] for o in export["objects"]]
+    tasks = [t for o in export["objects"] for t in o["tasks"]]
+    parts = [p for o in export["objects"] for p in o.get("parts") or []]
+    documents = [d for o in export["objects"] for d in o.get("documents") or []]
+    history = [h for t in tasks for h in t.get("history") or []]
+    gaps = {
+        "object": uncovered(objects),
+        "task": uncovered(tasks),
+        "part": uncovered(parts),
+        "document": uncovered(documents),
+        "history entry": uncovered(history),
+        "history type": sorted({t.value for t in HistoryEntryType} - {h.get("type") for h in history}),
+    }
+    gaps = {k: v for k, v in gaps.items() if v}
+    assert not gaps, f"give these a value in the migration seed so a move compares them: {gaps}"
+
+
+async def test_the_seed_sets_every_portable_setting(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    from custom_components.maintenance_supporter.helpers.settings_registry import ALLOWED_SETTING_KEYS
+
+    await _seed(hass, global_entry)
+    missing = sorted(set(ALLOWED_SETTING_KEYS) - NON_PORTABLE_OPTIONS - set(get_global_options(hass)))
+    assert not missing, f"the migration seed leaves these settings unset: {missing}"

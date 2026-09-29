@@ -44,7 +44,18 @@
     ],
     "vacation_exempt_task_ids": [
       "descale_task"
-    ]
+    ],
+    "vacation_enabled": true,
+    "vacation_start": "2026-12-20",
+    "vacation_end": "2027-01-06",
+    "vacation_buffer_days": 2,
+    "warranty_reminder_enabled": true,
+    "warranty_reminder_days": 45,
+    "home_type": "house",
+    "home_region": "DE",
+    "archive_oneoff_days": 30,
+    "row_action_style": "icons",
+    "ref_numbers_in_lists": true
   },
   "task_names": {
     "rig_task": {
@@ -103,7 +114,7 @@
           "due_override": "2026-12-24",
           "notes": "Check the **seal**",
           "documentation_url": "https://example.org/rig/service",
-          "custom_icon": "mdi:wrench",
+          "custom_icon": "mdi:wrench-cog",
           "nfc_tag_id": "migration-tag-1",
           "require_tag_scan": false,
           "allow_skip": false,
@@ -209,10 +220,38 @@
                   "name": "Filter",
                   "quantity": 1
                 }
-              ]
+              ],
+              "feedback": "needed"
+            },
+            {
+              "timestamp": "2026-04-01T09:00:00+00:00",
+              "type": "skipped",
+              "notes": "away"
+            },
+            {
+              "timestamp": "2026-03-01T09:00:00+00:00",
+              "type": "missed"
+            },
+            {
+              "timestamp": "2026-02-01T09:00:00+00:00",
+              "type": "reset"
+            },
+            {
+              "timestamp": "2026-01-20T09:00:00+00:00",
+              "type": "triggered",
+              "trigger_value": 81.5
+            },
+            {
+              "timestamp": "2026-01-21T09:00:00+00:00",
+              "type": "trigger_replaced"
+            },
+            {
+              "timestamp": "2026-01-22T09:00:00+00:00",
+              "type": "trigger_removed"
             }
           ],
-          "schedule_type": "time_based"
+          "schedule_type": "time_based",
+          "schedule_time": "07:30"
         },
         {
           "id": "meter_task",
@@ -316,6 +355,65 @@
           },
           "warning_days": 1,
           "schedule_type": "nth_weekday"
+        },
+        {
+          "id": "herbs_task",
+          "name": "Water the herbs",
+          "type": "custom",
+          "enabled": true,
+          "created_at": "2026-03-05",
+          "schedule_type": "weekdays",
+          "schedule": {
+            "kind": "weekdays",
+            "weekdays": [
+              0,
+              3
+            ]
+          },
+          "warning_days": 1
+        },
+        {
+          "id": "filter_task",
+          "name": "Clean the filter",
+          "type": "cleaning",
+          "enabled": true,
+          "created_at": "2026-03-05",
+          "schedule_type": "day_of_month",
+          "schedule": {
+            "kind": "day_of_month",
+            "day": -1,
+            "business": true
+          },
+          "warning_days": 3
+        },
+        {
+          "id": "old_routine",
+          "name": "Old routine",
+          "type": "custom",
+          "enabled": true,
+          "created_at": "2026-01-05",
+          "schedule_type": "time_based",
+          "schedule": {
+            "kind": "interval",
+            "every": 30,
+            "unit": "days",
+            "anchor": "completion"
+          },
+          "warning_days": 3,
+          "archived_at": "2026-06-01T00:00:00+00:00",
+          "archived_reason": "done"
+        },
+        {
+          "id": "paused_routine",
+          "name": "Paused routine",
+          "type": "custom",
+          "enabled": false,
+          "created_at": "2026-01-05",
+          "schedule_type": "manual",
+          "schedule": {
+            "kind": "manual"
+          },
+          "warning_days": 3
         }
       ]
     },
@@ -382,6 +480,79 @@
             }
           },
           "schedule_type": "sensor_based"
+        }
+      ]
+    },
+    {
+      "entry_id": "src-garage",
+      "object": {
+        "name": "Garage door",
+        "parent_entry_id": "src-rig"
+      },
+      "tasks": [
+        {
+          "id": "rails_task",
+          "name": "Lubricate rails",
+          "type": "service",
+          "enabled": true,
+          "created_at": "2026-02-10",
+          "schedule_type": "time_based",
+          "schedule": {
+            "kind": "interval",
+            "every": 6,
+            "unit": "months",
+            "anchor": "completion"
+          },
+          "warning_days": 14
+        }
+      ]
+    },
+    {
+      "entry_id": "src-old-boiler",
+      "object": {
+        "name": "Old boiler",
+        "archived_at": "2026-05-01T00:00:00+00:00",
+        "replaced_by_entry_id": "src-new-boiler"
+      },
+      "tasks": [
+        {
+          "id": "old_boiler_task",
+          "name": "Service",
+          "type": "service",
+          "enabled": true,
+          "created_at": "2020-01-01",
+          "schedule_type": "time_based",
+          "schedule": {
+            "kind": "interval",
+            "every": 1,
+            "unit": "years",
+            "anchor": "completion"
+          },
+          "warning_days": 30
+        }
+      ]
+    },
+    {
+      "entry_id": "src-new-boiler",
+      "object": {
+        "name": "New boiler",
+        "predecessor_entry_id": "src-old-boiler"
+      },
+      "tasks": [
+        {
+          "id": "new_boiler_task",
+          "name": "Service",
+          "type": "service",
+          "enabled": true,
+          "created_at": "2026-05-01",
+          "schedule_type": "time_based",
+          "schedule": {
+            "kind": "interval",
+            "every": 1,
+            "unit": "years",
+            "anchor": "completion"
+          },
+          "warning_days": 30
         }
       ]
     }

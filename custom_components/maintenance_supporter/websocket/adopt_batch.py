@@ -77,8 +77,18 @@ class AdoptBatch:
     async def persist_task(self, entry: ConfigEntry, task_data: dict[str, Any]) -> None:
         """Persist one adopted task and count it (the object reloads once, in
         :meth:`finish`)."""
-        from ..helpers.entry_tasks import insert_new_task
+        from homeassistant.util import dt as dt_util
 
+        from ..helpers.entry_tasks import insert_new_task
+        from ..helpers.global_options import get_default_warning_days
+
+        # Like every other create path: the creation day (the next-due
+        # anchor, and what a backup restores) and the household's warning
+        # days — adoption left both out, so an export filled in the constant
+        # 7 and the restore stamped the import day (round-trip audit
+        # 2026-09-29).
+        task_data.setdefault("created_at", dt_util.now().date().isoformat())
+        task_data.setdefault("warning_days", get_default_warning_days(self.hass))
         store = insert_new_task(self.hass, entry, task_data)
         if store is not None:
             await store.async_save()

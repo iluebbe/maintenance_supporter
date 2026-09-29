@@ -55,7 +55,10 @@ function startContainer(name, port) {
   docker(
     "run", "-d", "--name", name, "-p", `${port}:8123`, "-e", "TZ=UTC",
     "-v", `${config}:/config`,
-    "-v", `${join(REPO, "custom_components")}:/config/custom_components:ro`,
+    "-v", `${join(REPO, "custom_components", "maintenance_supporter")}:/config/custom_components/maintenance_supporter:ro`,
+    // Two demo robots keyed like core Roborock, with reset buttons: the
+    // devices a catalog adoption binds to (both instances have them).
+    "-v", `${join(REPO, "docker", "demo_roborock_fixture")}:/config/custom_components/roborock:ro`,
     IMAGE,
   );
   return config;
@@ -67,6 +70,7 @@ async function freshInstance(name, port, people) {
   await waitForHttp(base + "/manifest.json");
   const token = await onboard(base);
   await addIntegration(base, token);
+  await addIntegration(base, token, "roborock");
   const ws = await connect(base, token);
   // The owner from onboarding is one of them already; the others are new.
   const existing = new Set((await ws.call({ type: "config/auth/list" })).map((u) => u.name));
@@ -109,7 +113,7 @@ async function copyStates(src, dst, exportJson) {
 async function seed(src) {
   const seedJson = readFileSync(join(HERE, "seed.json"), "utf8");
   const imported = await src.ws.call({ type: "maintenance_supporter/json/import", json_content: seedJson });
-  if (imported.created !== 3) throw new Error("seed import: " + JSON.stringify(imported));
+  if (imported.created !== 6) throw new Error("seed import: " + JSON.stringify(imported));
   await new Promise((r) => setTimeout(r, 8000));
   const { objects } = await src.ws.call({ type: "maintenance_supporter/objects" });
   const obj = (name) => objects.find((o) => o.object.name === name);
@@ -128,7 +132,18 @@ async function seed(src) {
     notes: "with photo",
     photo_doc_ids: [photo.id],
   });
-  log("source seeded");
+  // The rig's filter part points at the manual.
+  const rigFull = await src.ws.call({ type: "maintenance_supporter/object", entry_id: rig.entry_id });
+  const filter = (rigFull.parts || []).find((p) => p.name === "Filter");
+  await src.ws.call({ type: "maintenance_supporter/part/update", entry_id: rig.entry_id, part_id: filter.id, name: filter.name, doc_id: manual.id });
+  // A catalog adoption through the real path: one demo robot's duties, with
+  // their fingerprints and the reset buttons as completion actions.
+  const setups = await src.ws.call({ type: "maintenance_supporter/integration_setups/discover" });
+  const robot = (setups.setups || setups).find((s) => s.integration === "roborock" && (s.tasks || []).length);
+  if (!robot) throw new Error("no roborock suggestion to adopt");
+  const adopted = await src.ws.call({ type: "maintenance_supporter/integration_setups/adopt", selections: [{ device_id: robot.device_id }] });
+  if (!adopted.tasks_created) throw new Error("adoption created nothing: " + JSON.stringify(adopted));
+  log(`source seeded (adopted ${adopted.tasks_created} robot duties)`);
 }
 
 async function exportAll(src) {

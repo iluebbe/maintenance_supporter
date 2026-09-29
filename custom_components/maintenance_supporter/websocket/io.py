@@ -582,9 +582,9 @@ async def ws_export_data(
 
     # Phase 1: gather data on the event loop (accesses HA APIs); name the HA
     # users it points at so another instance can map them by name.
-    from ..helpers.import_mapping import async_attach_user_names
+    from ..helpers.import_mapping import async_attach_move_hints
 
-    data = await async_attach_user_names(hass, build_export_data(hass, include_history=include_history, entry_ids=entry_ids))
+    data = await async_attach_move_hints(hass, build_export_data(hass, include_history=include_history, entry_ids=entry_ids))
 
     # Phase 2: serialize in executor (CPU-bound, no HA API calls)
     result = await hass.async_add_executor_job(serialize_export, data, fmt)
@@ -769,9 +769,9 @@ async def ws_export_settings(
     which recognizes the ``global_settings`` section.
     """
     from ..export import build_settings_export
-    from ..helpers.import_mapping import async_attach_user_names
+    from ..helpers.import_mapping import async_attach_move_hints
 
-    data = await async_attach_user_names(hass, build_settings_export(hass))
+    data = await async_attach_move_hints(hass, build_settings_export(hass))
     connection.send_result(msg["id"], {"format": "json", "data": json_mod.dumps(data, indent=2)})
 
 
@@ -941,9 +941,12 @@ async def ws_import_json(
     # alongside an objects payload — apply it first either way.
     # HA user ids exist only on the instance that made them: the export names
     # them (``users``), and a move maps them onto this instance's people.
-    from ..helpers.import_mapping import TASK_NAMES_KEY, USERS_KEY, async_user_map
+    from ..helpers.import_mapping import DEVICES_KEY, TASK_NAMES_KEY, USERS_KEY, async_user_map, device_map
 
     user_map, unmatched_users = await async_user_map(hass, data.get(USERS_KEY))
+    # Device ids are minted per instance too: the same appliance, found by its
+    # integration identifiers.
+    dev_map = device_map(hass, data.get(DEVICES_KEY))
 
     settings_applied: list[str] = []
     if has_settings:
@@ -1005,7 +1008,7 @@ async def ws_import_json(
             # 2.19: device link. Same-instance restores keep it valid; a
             # stale id degrades gracefully at read time. The parent and the
             # replace lineage are remapped just below (_ImportLineage).
-            "ha_device_id": obj_data.get("ha_device_id"),
+            "ha_device_id": dev_map.get(obj_data.get("ha_device_id") or "", obj_data.get("ha_device_id")),
             # 2.20: seasonal pause round-trips (a paused pool restored in
             # winter stays paused).
             "paused_at": _iso_marker(obj_data.get("paused_at")),
@@ -1346,9 +1349,10 @@ async def ws_import_json(
                 task_data.pop("trigger_config", None)
                 task_warnings.append(f"{task_name}: trigger dropped — not a mapping")
 
-            from ..helpers.import_mapping import remap_task_users
+            from ..helpers.import_mapping import remap_task_device, remap_task_users
 
             remap_task_users(task_data, user_map)
+            remap_task_device(task_data, dev_map)
             import_tasks[task_id] = task_data
             import_obj["task_ids"].append(task_id)
 

@@ -11,6 +11,14 @@ All notable changes to Maintenance Supporter are documented in this file.
   (`e2e/migration/run.mjs`), and its in-process twin compares the whole storage with no curated field list, so a field
   added later is checked without anyone remembering to. A new value in a task's stored state has to be declared as
   travelling or staying behind before the tests pass.
+- **Every suggested setup of the catalog is tested end to end:** for each of the 484 signatures a device is built from
+  the signature itself, discovered, adopted, driven into the state that fires its trigger (runtime hours with a moved
+  clock, cycle counters with real transitions) and completed — which presses the integration's reset button where the
+  duty has one. A signature whose keys, unit, gates or reset do not fit together fails the day it is added.
+- **The move test covers what the export writes:** its seed gives every field the export writes, every history entry
+  type and every portable setting a value (tripwires fail until a new one is seeded), and it now carries hierarchy,
+  replacement lineage, an archived object, a device link, an object adopted from the catalog, every recurrence kind and a
+  part linked to its manual. The Docker twin adopts a (demo) robot through the real API on the source.
 - **The documents ZIP can be browsed:** one folder per object, completion photos in their task's folder named by the
   day the task was done, every other file in a folder for its category, the web links in `Links.txt`, and a
   `README.txt`. Version 1 kept the files as `blobs/<hash>` without names or extensions — useless outside a restore.
@@ -75,7 +83,12 @@ All notable changes to Maintenance Supporter are documented in this file.
   name the people and the tasks they point at, the import maps people onto users with the same name — anyone it cannot
   match is listed after the import — and re-points groups and exemptions by name in either import order, without
   touching references that still resolve (a backup imported next to its originals). A spare part the import cannot
-  accept is named in the result instead of vanishing.
+  accept is named in the result instead of vanishing. Device links and the fingerprints of adopted tasks follow the
+  appliance too: they pointed at device ids of the old instance, so the moved object lost its device and discovery
+  offered the same appliance again — the export now names the devices by their integration identifiers.
+- **Adopted tasks had no creation day and ignored the household's warning days:** both suggested setups and problem
+  sensors now stamp them like every other create path. A threshold trigger built from the catalog also carries the
+  single `entity_id` next to `entity_ids`, like the others do (#106: a client reading only that field would drop it).
 - **Saving a task dropped most of its completion action's target:** the task dialog edits one target entity, but an
   action set up through the API, an import or YAML can target several entities, devices, areas, labels or floors. The
   dialog rebuilt the target from its one field on every save — renaming the task was enough to lose the rest. An
