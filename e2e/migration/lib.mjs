@@ -81,15 +81,31 @@ export async function connect(base, token) {
   const sock = new WebSocket(base.replace(/^http/, "ws") + "/api/websocket");
   const pending = new Map();
   let id = 0;
+  let closing = false;
   const client = {
-    call(msg) {
+    // A call Home Assistant never answers fails after `timeoutMs`, naming the
+    // command — instead of the run hanging until the CI job's time limit.
+    call(msg, timeoutMs = 180e3) {
       return new Promise((res, rej) => {
         const mid = ++id;
-        pending.set(mid, { res, rej });
+        const timer = setTimeout(() => {
+          pending.delete(mid);
+          rej(new Error(`${msg.type} got no answer within ${timeoutMs / 1000}s`));
+        }, timeoutMs);
+        pending.set(mid, {
+          timer,
+          res: (v) => { clearTimeout(timer); res(v); },
+          rej: (e) => { clearTimeout(timer); rej(e); },
+        });
         sock.send(JSON.stringify({ ...msg, id: mid }));
       });
     },
-    close: () => sock.close(),
+    close: () => {
+      closing = true;
+      for (const { timer } of pending.values()) clearTimeout(timer);
+      pending.clear();
+      sock.close();
+    },
     // Set by a caller that subscribed to events.
     onEvent: null,
   };
@@ -108,6 +124,13 @@ export async function connect(base, token) {
     };
     sock.onerror = () => reject(new Error("websocket error"));
   });
+  // Only an unexpected close fails what is still waiting; a deliberate
+  // close() must not turn a stray unawaited call into an unhandled rejection.
+  sock.onclose = () => {
+    if (closing) return;
+    for (const { rej } of pending.values()) rej(new Error("websocket closed"));
+    pending.clear();
+  };
   return client;
 }
 

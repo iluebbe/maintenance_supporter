@@ -1,11 +1,13 @@
 FROM alpine:3.21 AS faketime-builder
 RUN apk add --no-cache build-base git
-# Pinned: master moves under us, and musl >= 1.2.4 only declares the *64
-# stat structs with _LARGEFILE64_SOURCE (without it the -Werror build fails);
-# v0.9.13 adds a time64 build that fails on musl either way.
-ARG LIBFAKETIME_REF=v0.9.12
-RUN git clone --depth 1 --branch "$LIBFAKETIME_REF" https://github.com/wolfcw/libfaketime.git /libfaketime \
-    && cd /libfaketime/src && make FAKETIME_COMPILE_CFLAGS="-D_LARGEFILE64_SOURCE"
+# Pinned to the master commit the dev image was built from (2026-05-03),
+# proven over many simulated years. Master moved on: its time64 build (added
+# 2026-08-31) fails with -Werror on musl. The release v0.9.12 (2025-06) builds
+# but deadlocks Home Assistant now and then (0 % CPU, never answers HTTP).
+ARG LIBFAKETIME_REF=2ba77bd61bd8101ab499c6a2202192d970d963bf
+RUN git clone https://github.com/wolfcw/libfaketime.git /libfaketime \
+    && cd /libfaketime && git checkout -q "$LIBFAKETIME_REF" \
+    && cd src && make
 
 FROM ghcr.io/home-assistant/home-assistant:2026.7.2
 COPY --from=faketime-builder \
