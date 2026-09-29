@@ -3046,18 +3046,18 @@ class TestCompoundProxyImmediate:
         )
 
         real_coordinator = MagicMock()
-        store = MagicMock()
-        store.async_save = AsyncMock()
-        real_coordinator._store = store
+        real_coordinator.async_persist_trigger_runtime = AsyncMock()
 
         proxy = _CompoundCoordinatorProxy(real_coordinator, 0)
 
-        # Should NOT raise TypeError
+        # Should NOT raise TypeError; the condition's key reaches the object's
+        # coordinator, which stores and saves it (immediately here).
         asyncio.get_event_loop().run_until_complete(
             proxy.async_persist_trigger_runtime("task1", {"baseline_value": 42}, entity_id="sensor.x", immediate=True)
         )
-        store.set_trigger_runtime.assert_called_once()
-        store.async_save.assert_awaited_once()
+        real_coordinator.async_persist_trigger_runtime.assert_awaited_once_with(
+            "task1", {"baseline_value": 42}, "_compound_0_sensor.x", immediate=True
+        )
 
     def test_proxy_deferred_save_without_immediate(self) -> None:
         """Without immediate, proxy uses async_delay_save."""
@@ -3068,16 +3068,16 @@ class TestCompoundProxyImmediate:
         )
 
         real_coordinator = MagicMock()
-        store = MagicMock()
-        real_coordinator._store = store
+        real_coordinator.async_persist_trigger_runtime = AsyncMock()
 
         proxy = _CompoundCoordinatorProxy(real_coordinator, 1)
 
         asyncio.get_event_loop().run_until_complete(
             proxy.async_persist_trigger_runtime("task1", {"val": 1}, entity_id="sensor.y")
         )
-        store.async_delay_save.assert_called_once()
-        store.async_save.assert_not_called()
+        real_coordinator.async_persist_trigger_runtime.assert_awaited_once_with(
+            "task1", {"val": 1}, "_compound_1_sensor.y", immediate=False
+        )
 
 
 class TestStateChangeLastStateFallback:

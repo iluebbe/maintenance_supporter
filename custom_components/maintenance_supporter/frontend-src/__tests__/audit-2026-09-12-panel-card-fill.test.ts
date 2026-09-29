@@ -21,7 +21,7 @@ function mockHass(): HomeAssistant {
   (hass as Record<string, unknown>).user = { id: "admin-1", is_admin: true };
   (hass as Record<string, unknown>).areas = {};
   (hass as Record<string, unknown>).panels = { "maintenance-supporter": { url_path: "maintenance-supporter", config: { _panel_custom: { module_url: "/x" } } } };
-  return hass;
+  return hass as unknown as HomeAssistant;
 }
 
 describe("panel card fill height is scroll-independent (bug audit 2026-09-12)", () => {

@@ -100,7 +100,7 @@ describe("generated dashboard", () => {
             : {},
       },
     };
-    const dash = (await MaintenanceDashboardStrategy.generate({ type: "custom:maintenance-supporter", group_by: "due_date" }, hass)) as {
+    const dash = (await MaintenanceDashboardStrategy.generate({ type: "custom:maintenance-supporter", group_by: "due_date" }, hass as never)) as {
       title: string;
       views: Array<{ title: string }>;
     };

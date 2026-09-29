@@ -54,7 +54,11 @@ const DATA: ServiceRecordData = {
   fmtNumber: (n) => String(n),
 };
 
-function booklet(options: Partial<ServiceRecordOptions> = {}, data: ServiceRecordData = DATA): string {
+// include is merged over DEFAULT_INCLUDE below, so a test names only the switches it flips.
+function booklet(
+  options: { layout?: ServiceRecordOptions["layout"]; include?: Partial<ServiceRecordOptions["include"]> } = {},
+  data: ServiceRecordData = DATA,
+): string {
   return buildServiceRecordHtml(
     { name: "House", manufacturer: null, model: null, serial_number: null, installation_date: null } as never,
     mergeObjectHistory(TASKS as never),

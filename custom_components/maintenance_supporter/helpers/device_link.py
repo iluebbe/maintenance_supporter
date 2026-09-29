@@ -294,8 +294,8 @@ def shed_owned_devices(hass: HomeAssistant, *, own_entry_id: str, source_device_
     if modern is not None:
         modern(hass, helper_config_entry_id=own_entry_id, source_device_id=source_device_id)
         return
-    # 2025.8 - 2026.7. Probed too: it does not exist on 2025.7.x, the declared
-    # minimum core, and an unguarded call there failed the 4->5 migration of
+    # 2025.8 - 2026.7 (the minimum core since 2.96). Probed: it did not exist
+    # on 2025.7.x, and an unguarded call there failed the 4->5 migration of
     # every linked object on each boot (bug audit 2026-08-29, #144 class).
     legacy = getattr(helper_integration, "async_remove_helper_config_entry_from_source_device", None)
     if legacy is not None:

@@ -12,6 +12,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ..const import CONF_OBJECT, DOMAIN
 from ..coordinator import MaintenanceCoordinator
 from ..helpers import device_link
+from ..helpers.coordinator_data import has_coordinator_data
 
 
 class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
@@ -119,7 +120,7 @@ class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
     @property
     def _task_data(self) -> dict[str, Any]:
         """Return the current task data from coordinator."""
-        if self.coordinator.data is None:
+        if not has_coordinator_data(self.coordinator):
             return {}
         tasks: dict[str, Any] = self.coordinator.data.get("tasks", {})
         result: dict[str, Any] = tasks.get(self._task_id, {})

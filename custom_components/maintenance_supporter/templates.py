@@ -2889,7 +2889,7 @@ from .templates_i18n import localize_template_text as localize_template_text
 KNOWN_TEMPLATE_IDS: frozenset[str] = frozenset(t.id for t in TEMPLATES)
 
 
-def get_disabled_template_ids(hass) -> set[str]:  # type: ignore[no-untyped-def]
+def get_disabled_template_ids(hass: HomeAssistant) -> set[str]:
     """Ids the admin hid from the template pickers (v2.21).
 
     Read from the global entry's options; unknown ids are ignored so a stale

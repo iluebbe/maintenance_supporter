@@ -12,7 +12,7 @@ DomainSpec matches ENUM sensors within the chosen target (our task sensors
 are the only ENUM entities this integration provides — the summary and
 document-storage sensors carry different device classes).
 
-Compatibility: cores as old as our 2025.7 minimum DO import this module at
+Compatibility: older cores DO import this module at
 component load (trigger platforms are processed eagerly), but the intent
 framework's building blocks (``helpers.automation.DomainSpec``, the trigger
 factories) only exist on recent cores — hence the import guard, which turns

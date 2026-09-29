@@ -193,6 +193,9 @@ async def async_handle_completion_parts(
     # in ``async_mark_replaced`` / ``async_record_replacement``); a task-level
     # link on it would be charged again on every fleet completion, so the
     # automatic links are ignored there. An explicit selection still applies.
+    # Any: the links come from storage or a completion request — each one is
+    # shape-checked below.
+    links: list[Any]
     if used_parts is not None:
         links = used_parts
     elif task_data.get(BATTERY_FLEET_TASK_FLAG):

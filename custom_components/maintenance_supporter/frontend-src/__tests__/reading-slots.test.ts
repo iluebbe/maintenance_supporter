@@ -283,7 +283,7 @@ describe("history timeline readings (#161 phase 2)", () => {
   it("lists name, value, unit and the per-slot delta", () => {
     const { hass } = createMockHass();
     const ctx: HistoryContext = {
-      lang: "en", hass, filter: null, search: "", currencySymbol: "€",
+      lang: "en", hass: hass as never, filter: null, search: "", currencySymbol: "€",
       setFilter: () => undefined, setSearch: () => undefined, openEdit: () => undefined,
       readingSlotDelta: (e, id) => readingSlotDelta(HISTORY, e, id),
     };

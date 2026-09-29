@@ -105,7 +105,7 @@ describe("task-dialog calendar kinds (Phase 4)", () => {
     (el as any)._calOffset = "-2";
     await (el as any)._save();
     const msg = sent.find((m: any) => m.type === "maintenance_supporter/task/create");
-    expect(msg.schedule).to.deep.equal({
+    expect(msg!.schedule).to.deep.equal({
       kind: "day_of_month", day: -1, business: true, offset: -2,
     });
   });

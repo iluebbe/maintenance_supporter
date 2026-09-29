@@ -190,7 +190,7 @@ with copy-paste automations: [EXAMPLES.md](docs/EXAMPLES.md).
 
 ## Requirements
 
-- Home Assistant **2025.7.0** or newer
+- Home Assistant **2026.7.0** or newer
 - One Python dependency, installed automatically by Home Assistant: `pypdf`
   (used to cut a single page out of a linked manual for the work sheet)
 

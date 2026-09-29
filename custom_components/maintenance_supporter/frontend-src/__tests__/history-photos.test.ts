@@ -42,7 +42,7 @@ describe("history timeline photos (#161)", () => {
       handlers: { "auth/sign_path": () => ({ path: "/api/maintenance_supporter/document/x?authSig=y" }) },
     });
     return {
-      lang: "en", hass, filter: null, search: "", currencySymbol: "€",
+      lang: "en", hass: hass as never, filter: null, search: "", currencySymbol: "€",
       setFilter: () => undefined, setSearch: () => undefined, openEdit: () => undefined,
     };
   }

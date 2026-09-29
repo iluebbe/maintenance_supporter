@@ -97,8 +97,12 @@ Or individually, mirroring what CI runs:
 docker exec ha-maint sh -c 'cd /config && ruff check custom_components/maintenance_supporter/ tests/'
 docker exec ha-maint sh -c 'cd /config && ruff format --check custom_components/maintenance_supporter/ tests/'
 docker exec ha-maint sh -c 'cd /config && mypy --config-file mypy.ini custom_components/maintenance_supporter'
-cd custom_components/maintenance_supporter/frontend-src && npx tsc --noEmit   # blocking, baseline 0
+cd custom_components/maintenance_supporter/frontend-src && npm run typecheck   # sources + tests, blocking, baseline 0
 ```
+
+`mypy.ini` runs the strict profile Home Assistant core uses for its own strict
+integrations (`warn_unreachable`, `truthy-iterable`, `ignore-without-code`,
+`deprecated`) against both the minimum supported core and the newest one.
 
 All must be clean before commit. CI pins `ruff==0.15.22` — a newer ruff can
 flag different rules, so match the pin when in doubt.

@@ -13,6 +13,10 @@ concurrency:
 env:
   # pytest-homeassistant-custom-component 0.13.366 == homeassistant 2026.9.3
   HA_STABLE_PHT: "0.13.366"
+  # pytest-homeassistant-custom-component 0.13.344 == homeassistant 2026.7.0,
+  # the minimum hacs.json declares (tests/test_min_ha_version_tested.py keeps
+  # the two in step).
+  HA_MIN_PHT: "0.13.344"
 
 jobs:
   syntax-check:
@@ -58,6 +62,12 @@ jobs:
       - name: Typecheck frontend
         working-directory: custom_components/maintenance_supporter/frontend-src
         run: npx tsc --noEmit
+      # The tests too: web-test-runner strips their types unchecked, which
+      # let `handler:` stand for `handlers:` in three tests — the mock answers
+      # they meant were never installed.
+      - name: Typecheck frontend tests
+        working-directory: custom_components/maintenance_supporter/frontend-src
+        run: npx tsc -p tsconfig.test.json
       - name: Build frontend
         working-directory: custom_components/maintenance_supporter/frontend-src
         run: node esbuild.mjs
@@ -116,7 +126,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ha: ["latest", "stable"]
+        ha: ["latest", "stable", "minimum"]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -146,8 +156,9 @@ jobs:
         # core nobody ran. Bump HA_STABLE_PHT when HA publishes a new stable
         # (the pht-cc release notes name the pinned core; its wheel METADATA
         # carries `Requires-Dist: homeassistant==<version>`). The pin lives in
-        # the workflow-level env; the typecheck job uses the same two legs.
-        ha: ["latest", "stable"]
+        # the workflow-level env; the typecheck job uses the same legs.
+        # `minimum` is the oldest core hacs.json declares.
+        ha: ["latest", "stable", "minimum"]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7

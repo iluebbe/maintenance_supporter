@@ -55,7 +55,7 @@ describe("task-dialog runtime on-states (#103)", () => {
     await el.openEdit("entry_x", MOWER_TASK as any);
     await el.updateComplete;
     await (el as any)._save();
-    const update = sent.find((m) => m.type === "maintenance_supporter/task/update")! as {
+    const update = sent.find((m) => m.type === "maintenance_supporter/task/update")! as unknown as {
       trigger_config: { trigger_on_states?: string[] };
     };
     expect(update.trigger_config.trigger_on_states).to.deep.equal(["mowing"]);
@@ -68,7 +68,7 @@ describe("task-dialog runtime on-states (#103)", () => {
     (el as any)._triggerOnStates = "";
     await el.updateComplete;
     await (el as any)._save();
-    const update = sent.find((m) => m.type === "maintenance_supporter/task/update")! as {
+    const update = sent.find((m) => m.type === "maintenance_supporter/task/update")! as unknown as {
       trigger_config: { trigger_on_states?: string[] };
     };
     expect(update.trigger_config.trigger_on_states).to.equal(undefined);

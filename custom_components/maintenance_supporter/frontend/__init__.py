@@ -5,9 +5,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-# Valid at runtime on HA 2026.7 and 2026.8; see the note in ../panel.py for why
-# the re-export is silenced instead of importing from a different path.
-from homeassistant.components.http import StaticPathConfig  # type: ignore[attr-defined]
+# Valid at runtime on HA 2026.7 and later; see the note in ../panel.py.
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.core import HomeAssistant
 
 from ..const import (

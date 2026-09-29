@@ -8,20 +8,24 @@
 #           settling on an older core (pip's python_requires filtering once
 #           type-checked against stale stubs that way).
 #   stable  HA_STABLE_PHT, the pht-cc release matching the current stable core.
+#   minimum HA_MIN_PHT, the pht-cc release of the oldest core hacs.json
+#           declares — a declared minimum nothing tests is a guess.
 #
 # holidays: the Workday integration's own dependency, so the real-`holidays`
 # loop-safety tests (#87) run instead of skipping. voluptuous_serialize: HA
 # 2026.9 stopped pulling it into the test env, but core still lazy-imports it
 # for flow-schema serialization, which the options-flow test exercises.
 set -euo pipefail
-leg="${1:?usage: install-ha-test-deps.sh latest|stable}"
+leg="${1:?usage: install-ha-test-deps.sh latest|stable|minimum}"
 if [ "$leg" = "stable" ]; then
   pht="${HA_STABLE_PHT:?HA_STABLE_PHT is not set}"
+elif [ "$leg" = "minimum" ]; then
+  pht="${HA_MIN_PHT:?HA_MIN_PHT is not set}"
 else
   pht=$(curl -sf --retry 3 https://pypi.org/pypi/pytest-homeassistant-custom-component/json \
     | python -c 'import json, sys; print(json.load(sys.stdin)["info"]["version"])')
 fi
 python -m pip install --quiet uv
 uv pip install --system pytest pytest-cov pytest-xdist "pytest-homeassistant-custom-component==$pht" \
-  mypy babel pypdf holidays voluptuous_serialize
+  mypy types-PyYAML babel pypdf holidays voluptuous_serialize
 python -c 'import homeassistant.const as c; print("Home Assistant", c.__version__, "via pht-cc", "'"$pht"'")'

@@ -32,6 +32,21 @@ All notable changes to Maintenance Supporter are documented in this file.
   `README.txt`. Version 1 kept the files as `blobs/<hash>` without names or extensions — useless outside a restore.
   Those archives still restore.
 
+### ⚠️ Changed
+
+- **Home Assistant 2026.7.0 or newer is required** (was 2025.7.0). The old minimum was declared but never tested —
+  every test and type check ran on 2026.9. CI now runs the whole test suite and the type check on 2026.7.0 as well,
+  and a tripwire keeps `hacs.json` and that run in step.
+
+### ♻️ Internal
+
+- **Strict typing without gaps:** the type check now also runs the extra checks Home Assistant core uses for its own
+  strict integrations (code that cannot run, iterables tested for truth, ignores without an error code, deprecated
+  APIs), on the minimum and the newest core. The vendored QR code library is checked too (annotations only), an
+  untyped parameter hidden behind an ignore is typed, the triggers take a protocol instead of the concrete sensor, and
+  every `type: ignore` for a re-export or a missing stub is gone. The frontend tests are type-checked in CI as well —
+  which found three tests whose mock answers were never installed (`handler:` for `handlers:`).
+
 ### 🐛 Fixed
 
 - **A damaged backup could stop the integration from starting:** an import file with a list where a user id belongs

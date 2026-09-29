@@ -167,7 +167,10 @@ rules:
   strict-typing:
     status: done
     comment: >
-      mypy --strict over the whole component is a blocking CI gate — the
-      websocket package included (its blanket ignore_errors exemption was
-      removed; only homeassistant.components.websocket_api gets
-      implicit_reexport, because HA re-exports its decorators without __all__).
+      mypy --strict over the whole component, vendored QR library included,
+      plus the extra checks HA core runs on its own strict integrations
+      (warn_unreachable, truthy-iterable, ignore-without-code, deprecated) —
+      a blocking CI gate on the minimum core (hacs.json) and the newest one.
+      Only homeassistant.components.websocket_api and .http get
+      implicit_reexport, because HA re-exports those names without __all__.
+      The frontend (sources and tests) type-checks under TypeScript strict.

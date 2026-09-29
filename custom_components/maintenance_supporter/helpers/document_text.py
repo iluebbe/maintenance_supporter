@@ -216,12 +216,17 @@ class DocumentTextIndex:
         tmp.write_text(text, encoding="utf-8")
         os.replace(tmp, path)
 
+    def _is_loaded(self) -> bool:
+        return self._loaded
+
     async def async_ensure_loaded(self) -> None:
         """Read every extracted sidecar into the index — once, on demand."""
         if self._loaded:
             return
         async with self._load_lock:
-            if self._loaded:
+            # Another caller may have finished while this one waited (read
+            # through a call: mypy keeps the check above narrowed across await).
+            if self._is_loaded():
                 return
             digests = [d for d, m in self._meta.items() if m.get("status") == STATUS_TEXT and d in self.store.blobs]
 

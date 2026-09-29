@@ -458,7 +458,7 @@ class DocumentStore:
     async def async_import_documents(
         self,
         object_id: str,
-        docs: list[dict[str, Any]],
+        docs: list[Any],  # untrusted import records, shape-checked below
         task_id_map: dict[str, str] | None = None,
         part_id_map: dict[str, str] | None = None,
         id_map: dict[str, str] | None = None,

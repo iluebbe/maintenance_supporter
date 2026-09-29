@@ -59,7 +59,7 @@ describe("task detail: Re-analyze in the ⋮ menu", () => {
   } as unknown as MaintenanceTask;
 
   function menu(adaptiveFeature: boolean, task: MaintenanceTask, reanalyze: () => void): HTMLElement {
-    const { hass } = createMockHass({ handler: () => ({ documents: [] }) });
+    const { hass } = createMockHass({ fallback: () => ({ documents: [] }) });
     const ctx = new Proxy({
       lang: "en", hass, entryId: "e1", taskId: "t1", objectName: "Espresso Machine",
       objectDocUrl: null, objectManualDocs: [], isOperator: false, actionLoading: false,

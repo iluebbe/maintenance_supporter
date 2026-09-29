@@ -78,7 +78,7 @@ describe("dialog tripwire: no lazy-loaded HA elements", () => {
       installation_date: "2025-01-01", documentation_url: "https://x.test/",
       notes: "test notes",
     });
-    await (el as HTMLElement & { updateComplete: Promise<void> }).updateComplete;
+    await (el as unknown as HTMLElement & { updateComplete: Promise<void> }).updateComplete;
     const banned = findBannedTags(el.shadowRoot!);
     expect(banned, `object-dialog has banned lazy-load elements: ${banned.join(", ")}`)
       .to.have.lengthOf(0);
@@ -106,10 +106,10 @@ describe("dialog tripwire: no lazy-loaded HA elements", () => {
       schedule_time: "09:00",
       on_complete_action: { service: "button.press", target: { entity_id: "button.x" } },
     });
-    await (el as HTMLElement & { updateComplete: Promise<void> }).updateComplete;
+    await (el as unknown as HTMLElement & { updateComplete: Promise<void> }).updateComplete;
     // Expand <details> sections so action UI is in the DOM
     el.shadowRoot!.querySelectorAll<HTMLDetailsElement>("details").forEach((d) => { d.open = true; });
-    await (el as HTMLElement & { updateComplete: Promise<void> }).updateComplete;
+    await (el as unknown as HTMLElement & { updateComplete: Promise<void> }).updateComplete;
     const banned = findBannedTags(el.shadowRoot!);
     expect(banned, `task-dialog has banned lazy-load elements: ${banned.join(", ")}`)
       .to.have.lengthOf(0);
@@ -123,7 +123,7 @@ describe("dialog tripwire: no lazy-loaded HA elements", () => {
       html`<maintenance-group-dialog .hass=${hass}></maintenance-group-dialog>`,
     );
     el.openCreate();
-    await (el as HTMLElement & { updateComplete: Promise<void> }).updateComplete;
+    await (el as unknown as HTMLElement & { updateComplete: Promise<void> }).updateComplete;
     const banned = findBannedTags(el.shadowRoot!);
     expect(banned, `group-dialog has banned lazy-load elements: ${banned.join(", ")}`)
       .to.have.lengthOf(0);
@@ -138,7 +138,7 @@ describe("dialog tripwire: no lazy-loaded HA elements", () => {
     );
     el.entryId = "entry_x"; el.taskId = "t1"; el.taskName = "Test";
     el.open();
-    await (el as HTMLElement & { updateComplete: Promise<void> }).updateComplete;
+    await (el as unknown as HTMLElement & { updateComplete: Promise<void> }).updateComplete;
     const banned = findBannedTags(el.shadowRoot!);
     expect(banned, `complete-dialog has banned lazy-load elements: ${banned.join(", ")}`)
       .to.have.lengthOf(0);
@@ -156,7 +156,7 @@ describe("dialog tripwire: no lazy-loaded HA elements", () => {
       type: "completed", timestamp: "2025-01-01T00:00:00",
       notes: null, cost: null, duration: null, completed_by: null,
     });
-    await (el as HTMLElement & { updateComplete: Promise<void> }).updateComplete;
+    await (el as unknown as HTMLElement & { updateComplete: Promise<void> }).updateComplete;
     const banned = findBannedTags(el.shadowRoot!);
     expect(banned, `history-edit-dialog has banned lazy-load elements: ${banned.join(", ")}`)
       .to.have.lengthOf(0);

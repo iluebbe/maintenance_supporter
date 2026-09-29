@@ -22,6 +22,8 @@
 #
 # Vendored from: https://github.com/nayuki/QR-Code-generator/blob/master/python/qrcodegen.py
 # Used by maintenance_supporter for QR code generation (helpers/qr_generator.py).
+# Local change: the byte helpers are annotated bytearray (what they build and
+# return) — mypy --strict no longer treats bytearray as bytes. Code unchanged.
 
 from __future__ import annotations
 import collections, itertools, re
@@ -165,7 +167,7 @@ class QrCode:
 		self._isfunction = [[False] * self._size for _ in range(self._size)]
 
 		self._draw_function_patterns()
-		allcodewords: bytes = self._add_ecc_and_interleave(bytearray(datacodewords))
+		allcodewords: bytearray = self._add_ecc_and_interleave(bytearray(datacodewords))
 		self._draw_codewords(allcodewords)
 
 		if msk == -1:
@@ -300,7 +302,7 @@ class QrCode:
 
 	# ---- Private helper methods for constructor: Codewords and masking ----
 
-	def _add_ecc_and_interleave(self, data: bytearray) -> bytes:
+	def _add_ecc_and_interleave(self, data: bytearray) -> bytearray:
 		version: int = self._version
 		assert len(data) == QrCode._get_num_data_codewords(version, self._errcorlvl)
 		numblocks: int = QrCode._NUM_ERROR_CORRECTION_BLOCKS[self._errcorlvl.ordinal][version]
@@ -308,13 +310,13 @@ class QrCode:
 		rawcodewords: int = QrCode._get_num_raw_data_modules(version) // 8
 		numshortblocks: int = numblocks - rawcodewords % numblocks
 		shortblocklen: int = rawcodewords // numblocks
-		blocks: list[bytes] = []
-		rsdiv: bytes = QrCode._reed_solomon_compute_divisor(blockecclen)
+		blocks: list[bytearray] = []
+		rsdiv: bytearray = QrCode._reed_solomon_compute_divisor(blockecclen)
 		k: int = 0
 		for i in range(numblocks):
 			dat: bytearray = data[k : k + shortblocklen - blockecclen + (0 if i < numshortblocks else 1)]
 			k += len(dat)
-			ecc: bytes = QrCode._reed_solomon_compute_remainder(dat, rsdiv)
+			ecc: bytearray = QrCode._reed_solomon_compute_remainder(dat, rsdiv)
 			if i < numshortblocks:
 				dat.append(0)
 			blocks.append(dat + ecc)
@@ -327,7 +329,7 @@ class QrCode:
 		assert len(result) == rawcodewords
 		return result
 
-	def _draw_codewords(self, data: bytes) -> None:
+	def _draw_codewords(self, data: bytearray) -> None:
 		assert len(data) == QrCode._get_num_raw_data_modules(self._version) // 8
 		i: int = 0
 		for right in range(self._size - 1, 0, -2):
@@ -435,7 +437,7 @@ class QrCode:
 			* QrCode._NUM_ERROR_CORRECTION_BLOCKS[ecl.ordinal][ver]
 
 	@staticmethod
-	def _reed_solomon_compute_divisor(degree: int) -> bytes:
+	def _reed_solomon_compute_divisor(degree: int) -> bytearray:
 		if not (1 <= degree <= 255):
 			raise ValueError("Degree out of range")
 		result = bytearray([0] * (degree - 1) + [1])
@@ -449,7 +451,7 @@ class QrCode:
 		return result
 
 	@staticmethod
-	def _reed_solomon_compute_remainder(data: bytes, divisor: bytes) -> bytes:
+	def _reed_solomon_compute_remainder(data: bytearray, divisor: bytearray) -> bytearray:
 		result = bytearray([0] * len(divisor))
 		for b in data:
 			factor: int = b ^ result.pop(0)

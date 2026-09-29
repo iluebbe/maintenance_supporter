@@ -40,6 +40,7 @@ from .entity.entity_base import MaintenanceEntity
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .entity.triggers import BaseTrigger, create_triggers, normalize_entity_ids
 from .helpers.aggregate import object_slug as aggregate_object_slug
+from .helpers.coordinator_data import has_coordinator_data
 from .helpers.dates import parse_hhmm
 from .helpers.global_options import is_schedule_time_enabled
 from .helpers.pause import is_task_inert
@@ -334,11 +335,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         # Use merged data (static config + Store runtime) so that persisted
         # trigger state (_trigger_state) survives HA restarts.
         static_task = self.coordinator.entry.data.get(CONF_TASKS, {}).get(self._task_id, {})
-        store = self.coordinator._store
-        if store is not None:
-            task_data = store.merge_task_data(self._task_id, static_task)
-        else:
-            task_data = static_task
+        task_data = self.coordinator._store.merge_task_data(self._task_id, static_task)
         trigger_config = task_data.get("trigger_config")
 
         # Listen for task reset signals (completion/skip/reset) —
@@ -450,7 +447,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         "any" a sibling still holds the task, with "all" the task may never
         have been triggered (bug audit 2026-09-26, SCH-5).
         """
-        if self.coordinator.data is None:
+        if not has_coordinator_data(self.coordinator):
             # No read model yet: nothing to aggregate against — a deactivation
             # keeps the historical per-entity meaning.
             return not is_triggered

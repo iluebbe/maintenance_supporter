@@ -545,8 +545,6 @@ class SensorPredictor:
             else:
                 return None
 
-        if threshold_value is None:
-            return None
 
         # Calculate days until threshold
         delta = threshold_value - current
@@ -783,7 +781,9 @@ class SensorPredictor:
         for row in rows:
             # HA Python API (statistics_during_period) returns start as
             # epoch seconds (float), not milliseconds or datetime objects.
-            start = row.get("start")
+            # Any: the recorder's rows are typed with float starts, but a
+            # datetime start is handled too (older recorders / other callers).
+            start: Any = row.get("start")
             if start is None:
                 continue
 

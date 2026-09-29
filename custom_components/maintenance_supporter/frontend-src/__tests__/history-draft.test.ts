@@ -85,7 +85,7 @@ describe("loadHistoryEntryDraft", () => {
 
   it("fetches the object and builds the draft of the entry stamped with the timestamp", async () => {
     const { hass, sent } = createMockHass({ handlers: { "maintenance_supporter/object": () => object } });
-    const draft = await loadHistoryEntryDraft(hass, "e1", "t1", "2026-02-01T10:00:00");
+    const draft = await loadHistoryEntryDraft(hass as never, "e1", "t1", "2026-02-01T10:00:00");
     expect(sent.map((m) => m.type)).to.deep.equal(["maintenance_supporter/object"]);
     expect(sent[0].entry_id).to.equal("e1");
     expect(draft?.notes).to.equal("second");
@@ -97,12 +97,12 @@ describe("loadHistoryEntryDraft", () => {
 
   it("resolves null when the task or the entry is gone, and rejects on a WS failure", async () => {
     const { hass } = createMockHass({ handlers: { "maintenance_supporter/object": () => object } });
-    expect(await loadHistoryEntryDraft(hass, "e1", "t1", "2030-01-01T00:00:00")).to.equal(null);
-    expect(await loadHistoryEntryDraft(hass, "e1", "nope", "2026-02-01T10:00:00")).to.equal(null);
+    expect(await loadHistoryEntryDraft(hass as never, "e1", "t1", "2030-01-01T00:00:00")).to.equal(null);
+    expect(await loadHistoryEntryDraft(hass as never, "e1", "nope", "2026-02-01T10:00:00")).to.equal(null);
     const failing = createMockHass({ handlers: { "maintenance_supporter/object": () => { throw { code: "not_found", message: "Object not found" }; } } });
     let rejected = false;
     try {
-      await loadHistoryEntryDraft(failing.hass, "e1", "t1", "2026-02-01T10:00:00");
+      await loadHistoryEntryDraft(failing.hass as never, "e1", "t1", "2026-02-01T10:00:00");
     } catch {
       rejected = true;
     }

@@ -7,17 +7,13 @@ import math
 from abc import ABC, abstractmethod
 from collections.abc import Coroutine
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any, Protocol
 
 from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, State, callback
 from homeassistant.helpers.event import (
     EventStateChangedData,
     async_track_state_change_event,
 )
-
-if TYPE_CHECKING:
-    from ...coordinator import MaintenanceCoordinator
-    from ...sensor import MaintenanceSensor
 
 from ...const import (
     EVENT_TRIGGER_ACTIVATED,
@@ -27,6 +23,49 @@ from ...const import (
 from ...helpers.managed_timer import ManagedTimer
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class TriggerCoordinator(Protocol):
+    """What a trigger needs from its coordinator: the object's, or a compound
+    condition's proxy that routes these per condition."""
+
+    async def async_add_trigger_history_entry(self, task_id: str, trigger_value: float | None = None) -> None: ...
+
+    async def async_auto_complete_on_recovery(self, task_id: str, trigger_value: float) -> None: ...
+
+    async def async_persist_trigger_runtime(
+        self,
+        task_id: str,
+        runtime_data: dict[str, Any],
+        entity_id: str | None = None,
+        *,
+        immediate: bool = False,
+    ) -> None: ...
+
+    async def async_request_refresh(self) -> None: ...
+
+    def note_trigger_edge(self, task_id: str, *, recovered: bool = True) -> None: ...
+
+
+class TriggerHost(Protocol):
+    """What a trigger needs from the entity it drives: the task's sensor, or
+    a compound condition's proxy entity."""
+
+    @property
+    def entity_id(self) -> str: ...
+
+    @property
+    def _task_id(self) -> str: ...
+
+    @property
+    def coordinator(self) -> TriggerCoordinator: ...
+
+    def async_update_trigger_state(
+        self,
+        is_triggered: bool,
+        current_value: float | None = None,
+        trigger_entity_id: str | None = None,
+    ) -> bool | None: ...
 
 # The initial-evaluation retry: an entity that is unknown/unavailable at
 # setup is re-checked this often, this many times, before the state-change
@@ -45,7 +84,7 @@ class BaseTrigger(ABC):
     def __init__(
         self,
         hass: HomeAssistant,
-        entity: MaintenanceSensor,
+        entity: TriggerHost,
         trigger_config: dict[str, Any],
     ) -> None:
         """Initialize the trigger."""
@@ -75,7 +114,7 @@ class BaseTrigger(ABC):
         self._logged_unavailable = False  # Log-once pattern for unavailable
 
     @property
-    def _coordinator(self) -> MaintenanceCoordinator:
+    def _coordinator(self) -> TriggerCoordinator:
         """Get the coordinator from the entity."""
         return self.entity.coordinator
 

@@ -135,6 +135,8 @@ export interface CreateMockHassOptions {
   settingsResponse?: typeof DEFAULT_SETTINGS_RESPONSE;
   /** Per-WS-type handlers — return a value or Promise. Wins over built-in defaults. */
   handlers?: Record<string, WsHandler>;
+  /** Answers every WS type no handler and no built-in default covers. */
+  fallback?: WsHandler;
   /** Optional `hass.services` registry (for ha-service-picker / schema-driven forms). */
   services?: Record<string, Record<string, unknown>>;
   /** Optional `hass.states` (entity_id → state) — e.g. for notify-entity pickers. */
@@ -168,6 +170,7 @@ export function createMockHass(opts: CreateMockHassOptions = {}): CreateMockHass
     if (msg.type === "maintenance_supporter/users/list") return { users: [] };
     if (msg.type === "maintenance_supporter/objects") return { objects: [] };
     if (msg.type === "maintenance_supporter/tags/list") return { tags: [] };
+    if (opts.fallback) return await opts.fallback(msg);
     return {};
   };
 

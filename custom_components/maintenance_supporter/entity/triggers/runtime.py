@@ -27,7 +27,7 @@ from ...const import UNAVAILABLE_STATES
 from ...helpers.managed_timer import ManagedTimer
 
 if TYPE_CHECKING:
-    from ...sensor import MaintenanceSensor
+    from .base_trigger import TriggerHost
 from homeassistant.util import dt as dt_util
 
 from .base_trigger import BaseTrigger
@@ -50,7 +50,7 @@ class RuntimeTrigger(BaseTrigger):
     def __init__(
         self,
         hass: HomeAssistant,
-        entity: MaintenanceSensor,
+        entity: TriggerHost,
         trigger_config: dict[str, Any],
     ) -> None:
         """Initialize runtime trigger."""

@@ -83,7 +83,7 @@ describe("suggested-setups dialog: counting start value (#102)", () => {
     await el.updateComplete;
     await new Promise((r) => setTimeout(r, 0));
 
-    const adopt = sent.find((m) => m.type === "maintenance_supporter/integration_setups/adopt")! as {
+    const adopt = sent.find((m) => m.type === "maintenance_supporter/integration_setups/adopt")! as unknown as {
       selections: Array<{ device_id: string; entry_id?: string }>;
     };
     const byId = Object.fromEntries(adopt.selections.map((s) => [s.device_id, s]));
@@ -102,7 +102,7 @@ describe("suggested-setups dialog: counting start value (#102)", () => {
     await el.updateComplete;
     await new Promise((r) => setTimeout(r, 0));
 
-    const adopt = sent.find((m) => m.type === "maintenance_supporter/integration_setups/adopt")! as {
+    const adopt = sent.find((m) => m.type === "maintenance_supporter/integration_setups/adopt")! as unknown as {
       selections: Array<{ device_id: string; baselines?: Record<string, number> }>;
     };
     const byId = Object.fromEntries(adopt.selections.map((s) => [s.device_id, s]));

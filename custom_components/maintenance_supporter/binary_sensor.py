@@ -34,6 +34,7 @@ from .const import (
 from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
 from .helpers.aggregate import object_slug as aggregate_object_slug
+from .helpers.coordinator_data import has_coordinator_data
 from .helpers.status import compute_status_from_task_dict
 
 if TYPE_CHECKING:
@@ -148,7 +149,7 @@ class MaintenanceBinarySensor(MaintenanceEntity, BinarySensorEntity):
         Even if coordinator data is not yet refreshed, clearing _trigger_active
         and recomputing status here ensures correctness regardless of ordering.
         """
-        if self.coordinator.data is None:
+        if not has_coordinator_data(self.coordinator):
             return
 
         tasks = self.coordinator.data.get(CONF_TASKS, {})

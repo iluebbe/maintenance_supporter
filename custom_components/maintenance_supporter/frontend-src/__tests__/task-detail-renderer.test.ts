@@ -48,7 +48,7 @@ function task(overrides: Record<string, unknown> = {}): MaintenanceTask {
 
 function ctx(overrides: Partial<TaskDetailContext> = {}): TaskDetailContext {
   const { hass } = createMockHass({
-    handler: () => ({ documents: [] }),
+    fallback: () => ({ documents: [] }),
   });
   return {
     lang: "en",
@@ -59,6 +59,8 @@ function ctx(overrides: Partial<TaskDetailContext> = {}): TaskDetailContext {
     objectDocUrl: null,
     objectManualDocs: [],
     openManualDoc: () => {},
+    setPhaseCursor: () => {},
+    moveTask: () => {},
     setChecklistItem: () => {},
     isOperator: false,
     actionLoading: false,

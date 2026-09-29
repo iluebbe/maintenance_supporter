@@ -838,11 +838,6 @@ or low-impact:
 - **Backfill required-fields semantics**: a backdated completion is still
   validated against the phase *currently* due (its required fields), not the
   phase it belongs to — the phase of a past completion is unknowable.
-- **Declared minimum core 2025.7 has no CI leg**: the `stable`/`latest`
-  legs cover 2026.8/2026.9; 2025.7 needs Python 3.13 (HA's own
-  `python_requires`), so a third leg means a second interpreter matrix.
-  Product call: bump `hacs.json` to 2025.8 (the helper-device APIs the
-  device link relies on first appear there) or add the leg.
 - **Notifications**: dismiss goes to the global service, not the per-user
   target the reminder was delivered to; snooze state is in-memory (a restart
   re-arms the interval); a per-user send that fails on every device does not

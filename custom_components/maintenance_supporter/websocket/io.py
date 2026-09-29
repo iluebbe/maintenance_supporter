@@ -759,7 +759,7 @@ def _parse_structured(raw: str) -> Any:
         return json_mod.loads(raw)
     except (json_mod.JSONDecodeError, ValueError):
         pass
-    import yaml  # type: ignore[import-untyped]
+    import yaml
 
     try:
         loaded = yaml.safe_load(raw)

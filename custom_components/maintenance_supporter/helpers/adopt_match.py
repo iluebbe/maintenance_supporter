@@ -22,7 +22,7 @@ Two questions, answered from what is already in Home Assistant:
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable, Mapping
+from collections.abc import Collection, Iterable, Mapping
 from typing import TYPE_CHECKING, Any
 
 from ..const import CONF_OBJECT, CONF_TASKS
@@ -172,11 +172,11 @@ def _quantity(hass: HomeAssistant, entity_id: str) -> tuple[str, str] | None:
 
 def covering_task(
     hass: HomeAssistant,
-    names: Iterable[str],
+    names: Collection[str],
     entity_ids: Iterable[str],
     tasks: Mapping[str, Mapping[str, Any]],
     *,
-    ignore: Iterable[str | None] = (),
+    ignore: Collection[str | None] = (),
 ) -> dict[str, str] | None:
     """The target's task that most likely already covers a suggested duty.
 

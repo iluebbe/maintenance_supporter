@@ -15,7 +15,7 @@ import re
 from typing import Any
 
 
-def rewrite_trigger_config(config: dict[str, Any], old_id: str, new_id: str) -> tuple[dict[str, Any], bool]:
+def rewrite_trigger_config(config: Any, old_id: str, new_id: str) -> tuple[Any, bool]:
     """Return (new_config, changed) with all entity_id references rewritten.
 
     Handles:

@@ -290,7 +290,7 @@ def serialize_export(data: dict[str, Any], fmt: str = "json") -> str:
     """
     if fmt == "yaml":
         try:
-            import yaml  # type: ignore[import-untyped]
+            import yaml
 
             # Normalize through JSON first: yaml.safe_dump rejects types the
             # JSON path coerces (e.g. tuples → lists), so YAML export would

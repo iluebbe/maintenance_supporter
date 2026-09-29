@@ -30,7 +30,7 @@ function mockHass(panels: unknown = PANELS): HomeAssistant {
   (hass as Record<string, unknown>).user = { id: "admin-1", is_admin: true };
   (hass as Record<string, unknown>).areas = {};
   (hass as Record<string, unknown>).panels = panels;
-  return hass;
+  return hass as unknown as HomeAssistant;
 }
 
 async function mountCard(config: Record<string, unknown> = {}, width = 1200): Promise<{ card: CardEl; panel: PanelEl }> {

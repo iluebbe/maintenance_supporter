@@ -8,8 +8,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.core import HomeAssistant, callback
 
 if TYPE_CHECKING:
-    from ...coordinator import MaintenanceCoordinator
-    from ...sensor import MaintenanceSensor
+    from .base_trigger import TriggerCoordinator, TriggerHost
 
 from ...const import (
     CONF_COMPOUND_CONDITIONS,
@@ -57,9 +56,10 @@ class CompoundSubEntity:
         self._per_entity_values: dict[str, float | None] = {}
         self._entity_logic = condition_config.get("entity_logic", "any")
         # Mirror attributes the real entity exposes for trigger access
-        self.entity_id = parent.entity.entity_id
-        self._task_id = parent.entity._task_id
-        self.coordinator = parent.entity.coordinator
+        self.entity_id: str = parent.entity.entity_id
+        self._task_id: str = parent.entity._task_id
+        # Replaced by the condition's _CompoundCoordinatorProxy right after.
+        self.coordinator: TriggerCoordinator = parent.entity.coordinator
 
     @callback
     def async_update_trigger_state(
@@ -96,7 +96,7 @@ class _CompoundCoordinatorProxy:
     stores data under ``_trigger_state.conditions[idx][entity_id]``.
     """
 
-    def __init__(self, real_coordinator: MaintenanceCoordinator, condition_idx: int) -> None:
+    def __init__(self, real_coordinator: TriggerCoordinator, condition_idx: int) -> None:
         """Initialize the proxy."""
         self._real = real_coordinator
         self._condition_idx = condition_idx
@@ -115,19 +115,14 @@ class _CompoundCoordinatorProxy:
     ) -> None:
         """Persist under trigger_runtime as a per-condition compound key.
 
-        The real coordinator always has a Store; merge_task_data reshapes these
-        ``_compound_<idx>[_<entity_id>]`` keys back into
-        ``_trigger_state["conditions"][idx]`` on read.
+        The coordinator stores under whatever key it is given;
+        merge_task_data reshapes these ``_compound_<idx>[_<entity_id>]`` keys
+        back into ``_trigger_state["conditions"][idx]`` on read.
         """
-        store = self._real._store
         compound_key = f"_compound_{self._condition_idx}"
         if entity_id is not None:
             compound_key = f"_compound_{self._condition_idx}_{entity_id}"
-        store.set_trigger_runtime(task_id, compound_key, runtime_data)
-        if immediate:
-            await store.async_save()
-        else:
-            store.async_delay_save()
+        await self._real.async_persist_trigger_runtime(task_id, runtime_data, compound_key, immediate=immediate)
 
     # A condition's sub-trigger is not the task's trigger: only the compound
     # decides when the TASK activates. Delegated to the real coordinator,
@@ -141,6 +136,14 @@ class _CompoundCoordinatorProxy:
 
     def note_trigger_edge(self, task_id: str, *, recovered: bool = True) -> None:
         """No-op for a condition — the compound reports its own edge."""
+
+    async def async_request_refresh(self) -> None:
+        """Delegate to the object's coordinator."""
+        await self._real.async_request_refresh()
+
+    async def async_auto_complete_on_recovery(self, task_id: str, trigger_value: float) -> None:
+        """Delegate to the object's coordinator."""
+        await self._real.async_auto_complete_on_recovery(task_id, trigger_value)
 
 
 class CompoundTrigger(BaseTrigger):
@@ -159,7 +162,7 @@ class CompoundTrigger(BaseTrigger):
     def __init__(
         self,
         hass: HomeAssistant,
-        entity: MaintenanceSensor,
+        entity: TriggerHost,
         trigger_config: dict[str, Any],
     ) -> None:
         """Initialize the compound trigger."""
@@ -227,9 +230,9 @@ class CompoundTrigger(BaseTrigger):
 
             # Wrap the real coordinator with a proxy for persistence
             proxy_coordinator = _CompoundCoordinatorProxy(self._coordinator, idx)
-            sub_entity.coordinator = proxy_coordinator  # type: ignore[assignment]
+            sub_entity.coordinator = proxy_coordinator
 
-            sub_triggers = create_triggers(self.hass, sub_entity, cond_config)  # type: ignore[arg-type]
+            sub_triggers = create_triggers(self.hass, sub_entity, cond_config)
             self._sub_triggers.append(sub_triggers)
 
             for trigger in sub_triggers:

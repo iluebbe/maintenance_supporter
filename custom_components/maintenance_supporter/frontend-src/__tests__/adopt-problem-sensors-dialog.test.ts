@@ -54,7 +54,7 @@ describe("adopt-problem-sensors dialog: suggested part", () => {
     el.shadowRoot!.querySelectorAll<HTMLElement>("ha-button")[1].click(); // Adopt selected
     await el.updateComplete;
     await new Promise((r) => setTimeout(r, 0));
-    const adopt = sent.find((m) => m.type === "maintenance_supporter/problem_sensors/adopt")! as {
+    const adopt = sent.find((m) => m.type === "maintenance_supporter/problem_sensors/adopt")! as unknown as {
       selections: Array<{ entity_id: string; part_id?: string }>;
     };
     const byId = Object.fromEntries(adopt.selections.map((s) => [s.entity_id, s]));
@@ -72,7 +72,7 @@ describe("adopt-problem-sensors dialog: flicker filter (#136)", () => {
     el.shadowRoot!.querySelectorAll<HTMLElement>("ha-button")[1].click();
     await el.updateComplete;
     await new Promise((r) => setTimeout(r, 0));
-    const adopt = sent.find((m) => m.type === "maintenance_supporter/problem_sensors/adopt")! as {
+    const adopt = sent.find((m) => m.type === "maintenance_supporter/problem_sensors/adopt")! as unknown as {
       selections: Array<{ for_minutes?: number }>;
     };
     expect(adopt.selections.every((s) => s.for_minutes === undefined)).to.equal(true);
@@ -87,7 +87,7 @@ describe("adopt-problem-sensors dialog: flicker filter (#136)", () => {
     el.shadowRoot!.querySelectorAll<HTMLElement>("ha-button")[1].click();
     await el.updateComplete;
     await new Promise((r) => setTimeout(r, 0));
-    const adopt = sent.find((m) => m.type === "maintenance_supporter/problem_sensors/adopt")! as {
+    const adopt = sent.find((m) => m.type === "maintenance_supporter/problem_sensors/adopt")! as unknown as {
       selections: Array<{ for_minutes?: number }>;
     };
     expect(adopt.selections.length).to.be.greaterThan(0);

@@ -99,7 +99,7 @@ describe("group-dialog task list (#40 alphabetical sort)", () => {
     await el.updateComplete;
 
     // Force a re-render with the same objects (ordering invariant).
-    el.objects = [...mockObjects()];
+    el.objects = [...mockObjects()] as never;
     await el.updateComplete;
 
     const cbAgain = el.shadowRoot!.querySelectorAll(".object-block")[0]
