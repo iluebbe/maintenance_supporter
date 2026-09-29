@@ -591,9 +591,30 @@ class MaintenanceCalendar(CalendarEntity):
         self._cached_next_event: CalendarEvent | None = None
         self._cache_time: datetime | None = None
 
+    _removed = False
+
     def invalidate_cache(self) -> None:
         """Invalidate the cached next event (called by coordinators on update)."""
         self._cache_time = None
+
+    @property
+    def is_live(self) -> bool:
+        """Added to Home Assistant and not removed since."""
+        return self.hass is not None and not self._removed
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Stop the coordinators repainting a removed calendar.
+
+        Home Assistant's calendar arms an alarm for the end of the current
+        event on every state write and cancels them here. A coordinator
+        refresh between a reload's unload and set-up still wrote the old
+        entity — arming an alarm nobody cancelled any more (a timer left
+        behind by every reload of the global entry; bug audit 2026-09-29).
+        """
+        self._removed = True
+        await super().async_will_remove_from_hass()
+        if self._hass.data.get(DOMAIN, {}).get("_calendar_entity") is self:
+            self._hass.data[DOMAIN].pop("_calendar_entity", None)
 
     @property
     def event(self) -> CalendarEvent | None:

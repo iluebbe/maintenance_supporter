@@ -413,7 +413,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await self._async_check_budget(result[CONF_TASKS])
 
         # Notify calendar entity if registered and added to hass
-        if self._calendar_entity is not None and self._calendar_entity.hass is not None:
+        if self._calendar_entity is not None and self._calendar_entity.is_live:
             self._calendar_entity.invalidate_cache()
             self._calendar_entity.async_write_ha_state()
 

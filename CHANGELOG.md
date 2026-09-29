@@ -57,6 +57,9 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Devices of ESPHome, HomeKit and sub-devices were not linked again after a move** (Home Assistant 2026.8+): the
   export named devices by identifiers only and looked them up in the integration their first part names. It now
   carries connections too and searches every integration.
+- **Every reload of the main entry left a timer behind:** a refresh between its unload and set-up repainted the
+  removed maintenance calendar, and Home Assistant armed an alarm for the end of today's event that nothing
+  cancelled. The objects now repaint the calendar only while it exists.
 - **Smaller:** the card self-heal could load its bundle three times in parallel on a slow phone; the calendar card kept
   a user or object filter removed in the editor; the completion action's validation messages and the re-analyze toast
   were English only.
