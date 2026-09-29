@@ -97,6 +97,20 @@ describe("calendar card configuration", () => {
     expect(active()).to.equal("+30d");
   });
 
+  it("drops the user and object filter when they are removed from the config (bug audit 2026-09-29)", async () => {
+    const el = await calendar({ user_filter: "current_user", object_filter: ["o1", "o2"] });
+    const state = el as unknown as { _userFilter: string; _objectFilter: string; _configuredObjects: string[] };
+    expect(state._userFilter).to.equal("current_user");
+    expect(state._configuredObjects).to.deep.equal(["o1", "o2"]);
+    // The editor deletes user_filter for "All users"; the same element gets
+    // the new config (Home Assistant reuses it) and must not keep the old one.
+    el.setConfig({ type: "custom:maintenance-supporter-calendar-card" });
+    await el.updateComplete;
+    expect(state._userFilter).to.equal("");
+    expect(state._objectFilter).to.equal("");
+    expect(state._configuredObjects).to.deep.equal([]);
+  });
+
   it("offers the past windows in the editor and writes one key at a time", async () => {
     const editor = await fixture<CalEl>(html`
       <maintenance-supporter-calendar-card-editor .hass=${{ language: "en" }}></maintenance-supporter-calendar-card-editor>

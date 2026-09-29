@@ -42,6 +42,29 @@ export function taskLabels(tasks) {
   return labels;
 }
 
+/** Entry id → its object's name; same-named objects (a replaced object
+ *  keeps its name for the successor by default) become "#1", "#2" by their
+ *  reference number, which a move keeps. */
+export function objectLabels(entries) {
+  const byName = {};
+  for (const e of entries) (byName[e.data.object.name] ||= []).push(e);
+  const labels = {};
+  for (const [name, group] of Object.entries(byName)) {
+    if (group.length === 1) {
+      labels[group[0].entry_id] = name;
+      continue;
+    }
+    const key = (e) => [Number(e.data.object.ref_no || 0), e.data.object.archived_at ? 1 : 0];
+    group.sort((a, b) => {
+      const [ra, xa] = key(a);
+      const [rb, xb] = key(b);
+      return ra - rb || xa - xb;
+    });
+    group.forEach((e, i) => { labels[e.entry_id] = `${name} #${i + 1}`; });
+  }
+  return labels;
+}
+
 export function snapshot(configDir, expect, cutoff = null) {
   const storage = join(configDir, ".storage");
   const entries = readJson(join(storage, "core.config_entries")).data.entries.filter((e) => e.domain === DOMAIN);
@@ -55,15 +78,15 @@ export function snapshot(configDir, expect, cutoff = null) {
       (d.identifiers || []).map(([dom, id]) => `${dom}:${id}`).sort().join("|"),
     ]),
   );
-  const entryName = Object.fromEntries(objects.map((e) => [e.entry_id, e.data.object.name]));
-  const objectName = Object.fromEntries(objects.map((e) => [e.data.object.id, e.data.object.name]));
+  const entryName = objectLabels(objects);
+  const objectName = Object.fromEntries(objects.map((e) => [e.data.object.id, entryName[e.entry_id]]));
   const taskLabel = {};
   const taskName = {};
   const partName = {};
   for (const e of objects) {
     Object.assign(taskLabel, taskLabels(e.data.tasks || {}));
-    for (const tid of Object.keys(e.data.tasks || {})) taskName[tid] = `${e.data.object.name}/${taskLabel[tid]}`;
-    for (const [pid, p] of Object.entries(e.data.parts || {})) partName[pid] = `${e.data.object.name}/${p.name}`;
+    for (const tid of Object.keys(e.data.tasks || {})) taskName[tid] = `${entryName[e.entry_id]}/${taskLabel[tid]}`;
+    for (const [pid, p] of Object.entries(e.data.parts || {})) partName[pid] = `${entryName[e.entry_id]}/${p.name}`;
   }
   const docsPath = join(storage, `${DOMAIN}.documents`);
   const docStore = existsSync(docsPath) ? readJson(docsPath).data : { documents: {} };
@@ -118,7 +141,7 @@ export function snapshot(configDir, expect, cutoff = null) {
       const { id: _pid, ...part } = p;
       rec.parts[p.name] = tr({ ...part, _stock: ((store.parts || {})[pid] || {}).stock ?? null });
     }
-    snap.objects[e.data.object.name] = rec;
+    snap.objects[entryName[e.entry_id]] = rec;
   }
   const blobsDir = join(configDir, DOMAIN, "docs", "blobs");
   const blobs = existsSync(blobsDir) ? new Set(readdirSync(blobsDir)) : new Set();

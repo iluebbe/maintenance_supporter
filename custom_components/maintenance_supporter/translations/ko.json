@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "일정 유형",
-          "description": "time_based(간격), one_time(due_date 필요) 또는 manual. 기본값: time_based. 센서로 트리거되는 작업은 트리거가 필요하므로 패널에서 만듭니다."
+          "description": "time_based(interval_days 필요), one_time(due_date 필요) 또는 manual. 생략하면 다른 필드로 정해집니다. 간격이 있으면 time_based, 기한이 있으면 one_time, 둘 다 없으면 manual입니다. 센서로 트리거되는 작업은 트리거가 필요하므로 패널에서 만듭니다."
         },
         "interval_days": {
           "name": "주기",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "일정 유형",
-          "description": "time_based(간격), one_time(due_date 필요) 또는 manual. manual 또는 one_time으로 바꾸면 이전 간격이 삭제됩니다."
+          "description": "time_based(작업에 아직 간격이 없으면 interval_days 필요), one_time(due_date 필요) 또는 manual. manual 또는 one_time으로 바꾸면 이전 간격이 삭제됩니다."
         },
         "interval_days": {
           "name": "주기",
@@ -2171,6 +2171,17 @@
         },
         "abort": {
           "entry_gone": "이 객체는 더 이상 존재하지 않습니다. 복구할 것이 없습니다."
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "실수로 만들어진 빈 영역: {areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "빈 영역 제거",
+            "description": "버전 2.96 이전의 Maintenance Supporter는 영역 ID와 같은 이름의 두 번째 영역(예: \"Living Room\" 옆의 \"living_room\")을 만들고 개체의 기기를 그 안에 넣었습니다. 기기는 원래 영역으로 돌아갔으며 다음 영역은 이제 비어 있습니다:\n\n{areas}\n\n**제출**을 클릭하면 제거됩니다. 그사이 기기나 엔티티가 추가된 영역은 그대로 둡니다. 유지하려면 Home Assistant의 **무시** 버튼을 사용하세요."
+          }
         }
       }
     }

@@ -603,6 +603,30 @@ class DocumentStorageRepairFlow(RepairsFlow):
         return self.async_show_form(step_id="init", data_schema=vol.Schema({}))
 
 
+class LeftoverAreasRepairFlow(RepairsFlow):
+    """Remove the empty areas an object's device created by mistake before
+    2.96 (helpers/area_leftovers). Only areas still empty when the user
+    submits are removed; to keep them, use HA's **Ignore** button."""
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+        """Name the areas, remove them on submit."""
+        from homeassistant.helpers import area_registry as ar
+
+        from .helpers.area_leftovers import async_leftover_areas
+
+        leftovers = async_leftover_areas(self.hass)
+        if user_input is not None:
+            area_reg = ar.async_get(self.hass)
+            for area in leftovers:
+                area_reg.async_delete(area.id)
+            return self.async_create_entry(data={})
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema({}),
+            description_placeholders={"areas": ", ".join(area.name for area in leftovers) or "—"},
+        )
+
+
 class MissingGlobalEntryRepairFlow(RepairsFlow):
     """Recreate the global "Maintenance Supporter" entry after it was deleted.
 
@@ -794,4 +818,6 @@ async def async_create_fix_flow(
         return DocumentStorageRepairFlow()
     if issue_id == "missing_global_entry":
         return MissingGlobalEntryRepairFlow()
+    if issue_id == "leftover_areas":
+        return LeftoverAreasRepairFlow()
     return MissingTriggerEntityRepairFlow()

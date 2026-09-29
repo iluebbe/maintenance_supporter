@@ -401,7 +401,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     this._showToast(r?.recommended_interval
       // The analyzer always works in DAYS (helpers/interval_analyzer.py), so
       // the unit is pinned here rather than taken from the task's own unit.
-      ? `${t("reanalyze_result", this._lang)}: ${formatInterval(r.recommended_interval, "days", this._lang)} (${r.data_points} pts)`
+      ? `${t("reanalyze_result", this._lang)}: ${formatInterval(r.recommended_interval, "days", this._lang)} (${r.data_points} ${t("data_points", this._lang)})`
       : t("reanalyze_insufficient_data", this._lang));
     await this._loadTask();
   }

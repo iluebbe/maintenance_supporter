@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Planleggingstype",
-          "description": "time_based (intervall), one_time (krever due_date) eller manual. Standard: time_based. Sensorutløste oppgaver trenger en utløser og opprettes i panelet."
+          "description": "time_based (krever interval_days), one_time (krever due_date) eller manual. Utelatt avgjør de andre feltene: et intervall gir time_based, en forfallsdato one_time, ingen av delene manual. Sensorutløste oppgaver trenger en utløser og opprettes i panelet."
         },
         "interval_days": {
           "name": "Intervall",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Planleggingstype",
-          "description": "time_based (intervall), one_time (krever due_date) eller manual. Bytte til manual eller one_time fjerner det gamle intervallet."
+          "description": "time_based (krever interval_days med mindre oppgaven allerede har et intervall), one_time (krever due_date) eller manual. Bytte til manual eller one_time fjerner det gamle intervallet."
         },
         "interval_days": {
           "name": "Intervall",
@@ -2171,6 +2171,17 @@
         },
         "abort": {
           "entry_gone": "Objektet finnes ikke lenger — ingenting å reparere."
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "Tomme områder opprettet ved en feil: {areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Fjern de tomme områdene",
+            "description": "Før versjon 2.96 opprettet Maintenance Supporter et ekstra område med navn etter et områdes ID (for eksempel «living_room» ved siden av «Living Room») og la objektets enhet i det. Enhetene er tilbake i sine riktige områder, og disse områdene er nå tomme:\n\n{areas}\n\nKlikk **Send** for å fjerne dem. Et område som i mellomtiden har fått en enhet eller entitet, blir ikke rørt. Bruk Home Assistants **Ignorer**-knapp for å beholde dem."
+          }
         }
       }
     }

@@ -337,7 +337,8 @@ def seed_rotation_assignee(task_data: dict[str, Any]) -> None:
     pool member when the assignee is missing — or no longer in the pool
     (the pool was edited out from under the current assignee).
     """
-    pool = [u for u in task_data.get("assignee_pool") or [] if u]
+    raw_pool = task_data.get("assignee_pool")
+    pool = [u for u in raw_pool if isinstance(u, str) and u] if isinstance(raw_pool, list) else []
     if not pool or not task_data.get("rotation_strategy"):
         return
     current = task_data.get("responsible_user_id")

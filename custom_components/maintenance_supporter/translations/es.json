@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Tipo de programación",
-          "description": "time_based (intervalo), one_time (requiere due_date) o manual. Predeterminado: time_based. Las tareas activadas por sensor necesitan un disparador y se crean en el panel."
+          "description": "time_based (requiere interval_days), one_time (requiere due_date) o manual. Si se omite, deciden los demás campos: un intervalo lo hace time_based, una fecha de vencimiento one_time y ninguno de los dos manual. Las tareas activadas por sensor necesitan un disparador y se crean en el panel."
         },
         "interval_days": {
           "name": "Intervalo",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Tipo de programación",
-          "description": "time_based (intervalo), one_time (requiere due_date) o manual. Al cambiar a manual o one_time se elimina el intervalo anterior."
+          "description": "time_based (requiere interval_days salvo que la tarea ya tenga un intervalo), one_time (requiere due_date) o manual. Al cambiar a manual o one_time se elimina el intervalo anterior."
         },
         "interval_days": {
           "name": "Intervalo",
@@ -2171,6 +2171,17 @@
         },
         "abort": {
           "entry_gone": "Este objeto ya no existe: no hay nada que reparar."
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "Áreas vacías creadas por error: {areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Eliminar las áreas vacías",
+            "description": "Antes de la versión 2.96, Maintenance Supporter creaba una segunda área con el nombre del ID de un área (por ejemplo, «living_room» junto a «Living Room») y colocaba en ella el dispositivo del objeto. Los dispositivos han vuelto a sus áreas reales y estas áreas están ahora vacías:\n\n{areas}\n\nPulsa **Enviar** para eliminarlas. Un área que mientras tanto haya recibido un dispositivo o una entidad no se toca. Para conservarlas, usa el botón **Ignorar** de Home Assistant."
+          }
         }
       }
     }

@@ -115,9 +115,10 @@ export class MaintenanceCalendarCard extends LitElement {
       ? (config.window_days as WindowDays)
       : 30;
     this._pastDays = config.past_days && [30, 90].includes(config.past_days) ? (config.past_days as PastDays) : 0;
-    if (typeof config.user_filter === "string") {
-      this._userFilter = config.user_filter;
-    }
+    // Like the window above: the config decides the filters every time — the
+    // editor DELETES user_filter when it goes back to "All users", and a
+    // card kept its old filter (bug audit 2026-09-29).
+    this._userFilter = typeof config.user_filter === "string" ? config.user_filter : "";
     if (typeof config.object_filter === "string") {
       this._objectFilter = config.object_filter;
       this._configuredObjects = [];
@@ -129,6 +130,9 @@ export class MaintenanceCalendarCard extends LitElement {
       // card's filter_objects that #83 asked for.
       this._objectFilter = values.length === 1 ? values[0] : "";
       this._configuredObjects = values.length > 1 ? values : [];
+    } else {
+      this._objectFilter = "";
+      this._configuredObjects = [];
     }
   }
 

@@ -32,6 +32,11 @@ class CompoundSubEntity:
     ``CompoundTrigger`` of the condition-level result.
     """
 
+    # A condition's sub-trigger only reports to this proxy: the task-level
+    # side effects (the trigger events, the cooldown edge, the refresh) belong
+    # to the compound — BaseTrigger checks this flag.
+    is_compound_condition = True
+
     def __init__(
         self,
         parent: CompoundTrigger,

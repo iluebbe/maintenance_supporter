@@ -758,7 +758,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                 entry_id=call.data["entry_id"],
                 name=call.data["name"],
                 task_type=call.data.get("task_type", "custom"),
-                schedule_type=call.data.get("schedule_type", "time_based"),
+                schedule_type=call.data.get("schedule_type"),
                 interval_days=call.data.get("interval_days"),
                 interval_unit=call.data.get("interval_unit", "days"),
                 due_date=call.data.get("due_date"),
@@ -1530,6 +1530,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # HA-started so the store has finished loading.
         entry.async_on_unload(async_at_started(hass, _check_document_storage_issues))
 
+        # Devices an object created in a mistaken area before 2.96 move back,
+        # and the empty leftover areas are offered for removal (repair issue).
+        from .helpers.area_leftovers import async_check_leftover_areas
+
+        entry.async_on_unload(async_at_started(hass, async_check_leftover_areas))
+
         # Backfill the document search index (#171) a couple of minutes after
         # start — pypdf is CPU work, and boot is the wrong moment for it.
         entry.async_on_unload(async_at_started(hass, _schedule_document_text_backfill))
@@ -1999,9 +2005,14 @@ async def _check_task_responsible_user_orphans(
         changed = False
         for tid, td in tasks.items():
             ruid = td.get("responsible_user_id")
-            pool = [u for u in (td.get("assignee_pool") or []) if isinstance(u, str)]
+            raw_pool = td.get("assignee_pool")
+            pool = [u for u in raw_pool if isinstance(u, str)] if isinstance(raw_pool, list) else []
             pruned_pool = [u for u in pool if u in valid_ids]
-            resp_orphaned = bool(ruid) and ruid not in valid_ids
+            # A value that is no user id at all (a list from a malformed
+            # backup) is as orphaned as a deleted user's — `in valid_ids`
+            # raised on it and failed the global entry's setup on every start
+            # (bug audit 2026-09-29).
+            resp_orphaned = bool(ruid) and (not isinstance(ruid, str) or ruid not in valid_ids)
             if not resp_orphaned and pruned_pool == pool:
                 new_tasks[tid] = td
                 continue

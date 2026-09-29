@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Typ plánu",
-          "description": "time_based (interval), one_time (vyžaduje due_date) nebo manual. Výchozí: time_based. Úlohy spouštěné senzorem potřebují spouštěč a vytvářejí se v panelu."
+          "description": "time_based (vyžaduje interval_days), one_time (vyžaduje due_date) nebo manual. Když chybí, rozhodnou ostatní pole: interval znamená time_based, datum splatnosti one_time, žádné z nich manual. Úlohy spouštěné senzorem potřebují spouštěč a vytvářejí se v panelu."
         },
         "interval_days": {
           "name": "Interval",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Typ plánu",
-          "description": "time_based (interval), one_time (vyžaduje due_date) nebo manual. Přepnutím na manual nebo one_time se původní interval odstraní."
+          "description": "time_based (vyžaduje interval_days, pokud úloha interval ještě nemá), one_time (vyžaduje due_date) nebo manual. Přepnutím na manual nebo one_time se původní interval odstraní."
         },
         "interval_days": {
           "name": "Interval",
@@ -2171,6 +2171,17 @@
         },
         "abort": {
           "entry_gone": "Tento objekt už neexistuje — není co opravovat."
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "Omylem vytvořené prázdné oblasti: {areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Odebrat prázdné oblasti",
+            "description": "Před verzí 2.96 vytvářel Maintenance Supporter druhou oblast pojmenovanou podle ID oblasti (například „living_room“ vedle „Living Room“) a umístil do ní zařízení objektu. Zařízení jsou zpět ve svých skutečných oblastech a tyto oblasti jsou nyní prázdné:\n\n{areas}\n\nKliknutím na **Odeslat** je odeberete. Oblast, do které mezitím přibylo zařízení nebo entita, zůstane beze změny. Chcete-li je ponechat, použijte tlačítko **Ignorovat** v Home Assistantu."
+          }
         }
       }
     }

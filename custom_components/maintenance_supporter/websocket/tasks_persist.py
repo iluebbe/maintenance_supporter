@@ -23,11 +23,16 @@ from ..helpers.entry_tasks import insert_new_task
 from ..helpers.global_options import get_default_warning_days
 from ..helpers.sanitize import cap_task_fields
 from ..helpers.schedule import (
+    KIND_INTERVAL,
     KIND_MANUAL,
     KIND_ONE_TIME,
     Schedule,
     normalize_task_storage,
 )
+
+_TIME_BASED = "time_based"
+# The flat service schedule_type → the Schedule kind it means.
+_FLAT_TO_KIND = {_TIME_BASED: KIND_INTERVAL, KIND_ONE_TIME: KIND_ONE_TIME, KIND_MANUAL: KIND_MANUAL}
 
 # ---------------------------------------------------------------------------
 # Task CRUD
@@ -46,6 +51,53 @@ def _checked_due_date(value: Any) -> str:
     if parsed is None:
         raise ValueError(f"due_date must be a valid date (YYYY-MM-DD), got {value!r}")
     return parsed.isoformat()
+
+
+def _check_schedule_request(
+    schedule_type: str | None,
+    *,
+    interval_days: Any,
+    schedule: dict[str, Any] | None,
+    stored_kind: str | None = None,
+) -> None:
+    """Refuse a recurrence request that contradicts itself.
+
+    The storage model resolves a contradiction by picking one side, so the
+    services used to report success for a task that was quietly something
+    else (bug audit 2026-09-29): ``time_based`` without an interval made a
+    manual task (a weekday or one-time task lost its schedule), ``manual``
+    with ``interval_days`` an interval task, ``one_time`` with an interval
+    ``schedule`` a one-time task without a date. ``stored_kind`` is the
+    task's current kind on an edit — an interval task switched to
+    ``time_based`` keeps its interval. Raises ValueError (the services report
+    it as invalid input).
+    """
+    if schedule_type is None:
+        return
+    if schedule:
+        parsed = Schedule.from_dict(schedule)
+        kind = parsed.kind
+        if parsed.is_calendar_kind:
+            if schedule_type != _TIME_BASED:
+                raise ValueError(f"schedule_type {schedule_type!r} contradicts the {kind!r} schedule (use time_based)")
+        elif _FLAT_TO_KIND.get(schedule_type) != kind:
+            raise ValueError(f"schedule_type {schedule_type!r} contradicts the schedule's kind {kind!r}")
+        return
+    if schedule_type == KIND_MANUAL and interval_days is not None:
+        raise ValueError("A manual task has no interval — leave interval_days out")
+    if schedule_type == _TIME_BASED and interval_days is None and stored_kind != KIND_INTERVAL:
+        raise ValueError("A time-based task needs interval_days")
+
+
+def _implied_schedule_type(*, interval_days: Any, due_date: Any, schedule: dict[str, Any] | None) -> str:
+    """What an ``add_task`` call without ``schedule_type`` asks for: the kind
+    its other fields describe (a bare name stays a manual task, as before)."""
+    if schedule:
+        kind = Schedule.from_dict(schedule).kind
+        return kind if kind in (KIND_ONE_TIME, KIND_MANUAL) else _TIME_BASED
+    if due_date:
+        return KIND_ONE_TIME
+    return _TIME_BASED if interval_days is not None else KIND_MANUAL
 
 
 async def async_persist_task(
@@ -79,7 +131,7 @@ async def async_create_task_simple(
     entry_id: str,
     name: str,
     task_type: str = "custom",
-    schedule_type: str = "time_based",
+    schedule_type: str | None = None,
     interval_days: int | None = None,
     interval_unit: str = "days",
     due_date: str | None = None,
@@ -96,7 +148,9 @@ async def async_create_task_simple(
     the panel / card dialogs or the ``task/create`` WS command.
 
     Raises ValueError if the entry_id is not a maintenance object, the name
-    is empty or the due date is not a date.
+    is empty, the due date is not a date or the recurrence contradicts itself
+    (:func:`_check_schedule_request`). Without ``schedule_type`` the kind the
+    other fields describe is created — a bare name stays a manual task.
 
     ``warning_days`` defaults to the integration-wide setting like every
     other create path — it was the bare constant 7 here (bug audit
@@ -114,7 +168,11 @@ async def async_create_task_simple(
     name = (name or "").strip()
     if not name:
         raise ValueError("Name must not be empty")
-    if schedule_type == KIND_ONE_TIME and not due_date and not schedule:
+    if schedule_type is None:
+        schedule_type = _implied_schedule_type(interval_days=interval_days, due_date=due_date, schedule=schedule)
+    else:
+        _check_schedule_request(schedule_type, interval_days=interval_days, schedule=schedule)
+    if schedule_type == KIND_ONE_TIME and not due_date and not (schedule and Schedule.from_dict(schedule).due_date):
         raise ValueError("A one-time task needs a due_date")
     task_id = uuid4().hex
     task_data: dict[str, Any] = {
@@ -195,6 +253,13 @@ async def async_update_task_simple(
         raise ValueError(f"No task {task_id!r} in {entry.title!r}")
 
     task = dict(new_tasks[task_id])
+    stored_kind = Schedule.parse(new_tasks[task_id]).kind
+    _check_schedule_request(
+        updates.get("schedule_type"),
+        interval_days=updates.get("interval_days"),
+        schedule=updates.get("schedule"),
+        stored_kind=stored_kind,
+    )
     if updates.get("due_date") is not None:
         updates = {**updates, "due_date": _checked_due_date(updates["due_date"])}
     for key in _UPDATABLE_FLAT_FIELDS:
@@ -230,7 +295,7 @@ async def async_update_task_simple(
     if (
         new_kind in (KIND_MANUAL, KIND_ONE_TIME)
         and not updates.get("schedule")
-        and new_kind != Schedule.parse(new_tasks[task_id]).kind
+        and (new_kind != stored_kind or new_kind == KIND_MANUAL)
     ):
         # A switch to manual / one-time: the stored interval rode along into
         # the flat overlay and rebuilt an interval, so the switch silently did

@@ -123,7 +123,7 @@ def remap_task_users(task: dict[str, Any], mapping: dict[str, str]) -> None:
     References without a match stay — the orphan sweep clears them."""
     if not mapping:
         return
-    if (uid := task.get("responsible_user_id")) in mapping:
+    if isinstance(uid := task.get("responsible_user_id"), str) and uid in mapping:
         task["responsible_user_id"] = mapping[uid]
     pool = task.get("assignee_pool")
     if isinstance(pool, list):
@@ -134,7 +134,7 @@ def remap_task_users(task: dict[str, Any], mapping: dict[str, str]) -> None:
                 seen.append(new)
         task["assignee_pool"] = seen
     for entry in task.get("history") or []:
-        if isinstance(entry, dict) and entry.get("completed_by") in mapping:
+        if isinstance(entry, dict) and isinstance(entry.get("completed_by"), str) and entry["completed_by"] in mapping:
             entry["completed_by"] = mapping[entry["completed_by"]]
 
 
@@ -144,7 +144,7 @@ def remap_view_users(views: list[dict[str, Any]], mapping: dict[str, str]) -> No
     silently turning into an unfiltered view."""
     for view in views:
         filters = view.get("filters")
-        if isinstance(filters, dict) and filters.get("user_id") in mapping:
+        if isinstance(filters, dict) and isinstance(filters.get("user_id"), str) and filters["user_id"] in mapping:
             filters["user_id"] = mapping[filters["user_id"]]
 
 
@@ -171,8 +171,16 @@ def attach_device_hints(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, 
     hints: dict[str, Any] = {}
     for device_id in sorted(ids):
         device = dev_reg.async_get(device_id)
-        if device is not None and device.identifiers:
-            hints[device_id] = {"identifiers": sorted([list(i) for i in device.identifiers]), "name": device.name_by_user or device.name}
+        # A child device (HA 2026.9) has identifiers only.
+        connections = getattr(device, "connections", None) or set()
+        if device is None or not (device.identifiers or connections):
+            continue
+        # Connections too: an ESPHome device carries only its MAC address.
+        hints[device_id] = {
+            "identifiers": sorted([list(i) for i in device.identifiers]),
+            "connections": sorted([list(c) for c in connections]),
+            "name": device.name_by_user or device.name,
+        }
     if hints:
         data[DEVICES_KEY] = hints
     return data
@@ -191,27 +199,51 @@ def device_map(hass: HomeAssistant, hints: Any) -> dict[str, str]:
     for old_id, hint in hints.items():
         if not isinstance(old_id, str) or dev_reg.async_get(old_id) is not None or not isinstance(hint, dict):
             continue
-        identifiers = {
-            (str(i[0]), str(i[1])) for i in hint.get("identifiers") or [] if isinstance(i, (list, tuple)) and len(i) == 2
-        }
-        if identifiers and (device := _device_by_identifiers(hass, dev_reg, identifiers)) is not None:
+        identifiers = _pairs(hint.get("identifiers"))
+        connections = _pairs(hint.get("connections"))
+        if (identifiers or connections) and (device := _find_device(hass, dev_reg, identifiers, connections)) is not None:
             mapping[old_id] = device.id
     return mapping
 
 
-def _device_by_identifiers(hass: HomeAssistant, dev_reg: Any, identifiers: set[tuple[str, str]]) -> Any:
-    """The device carrying one of these identifiers. Since the 2026.8 device
-    split identifiers are unique per config entry only and async_get_device
-    is deprecated (removed HA 2027.8): the per-entry lookup over the
-    identifier's integration where the core has it, the legacy call on the
-    older cores we support (same shim as helpers/device_link.py)."""
-    modern = getattr(dev_reg, "async_get_device_by_identifier", None)
-    if modern is None:
-        return dev_reg.async_get_device(identifiers=identifiers)
-    for domain, ident in sorted(identifiers):
-        for entry in hass.config_entries.async_entries(domain):
-            if (device := modern((domain, ident), entry.entry_id)) is not None:
+def _pairs(raw: Any) -> set[tuple[str, str]]:
+    """``[[a, b], …]`` from an export as a set of string pairs (junk skipped)."""
+    if not isinstance(raw, list):
+        return set()
+    return {(str(p[0]), str(p[1])) for p in raw if isinstance(p, (list, tuple)) and len(p) == 2}
+
+
+def _find_device(
+    hass: HomeAssistant, dev_reg: Any, identifiers: set[tuple[str, str]], connections: set[tuple[str, str]]
+) -> Any:
+    """The device carrying one of these identifiers or connections.
+
+    Before the 2026.8 device split the legacy ``async_get_device`` answers
+    directly. Since then identifiers are unique per config entry only and that
+    call is deprecated (removed HA 2027.8): ``async_get_devices`` searches every
+    config entry — the first element of an identifier is not always the
+    integration (HomeKit uses ``homekit_controller:accessory-id``), and an
+    ESPHome device has only its MAC connection — preferring the identifier's
+    own integration when a split left several. A child device (2026.9+) is
+    found per config entry. Looking only at the entries of the identifier's
+    domain left all of those unlinked (bug audit 2026-09-29)."""
+    get_devices = getattr(dev_reg, "async_get_devices", None)
+    if get_devices is None:
+        return dev_reg.async_get_device(identifiers=identifiers or None, connections=connections or None)
+    matches = get_devices(identifiers=identifiers or None, connections=connections or None)
+    if matches:
+        domains = {domain for domain, _ in identifiers}
+        for device in matches:
+            entry = hass.config_entries.async_get_entry(getattr(device, "config_entry_id", "") or "")
+            if entry is not None and entry.domain in domains:
                 return device
+        return matches[0]
+    get_child = getattr(dev_reg, "async_get_child_device_by_identifier", None)
+    if get_child is not None and identifiers:
+        for entry in hass.config_entries.async_entries():
+            for identifier in sorted(identifiers):
+                if (child := get_child(identifier, entry.entry_id)) is not None:
+                    return child
     return None
 
 
@@ -225,19 +257,28 @@ def remap_task_device(task: dict[str, Any], mapping: dict[str, str]) -> None:
 # --- task references in the settings ----------------------------------------
 
 
-def _live_tasks(hass: HomeAssistant) -> tuple[set[tuple[str, str]], dict[tuple[str, str], list[tuple[str, str]]]]:
-    """(live (entry_id, task_id) pairs, (object name, task name) → pairs)."""
+def _task_archived(entry: Any, task: dict[str, Any]) -> bool:
+    return bool(task.get("archived_at") or (entry.data.get(CONF_OBJECT) or {}).get("archived_at"))
+
+
+def _live_tasks(
+    hass: HomeAssistant,
+) -> tuple[set[tuple[str, str]], dict[tuple[str, str], list[tuple[str, str, bool]]]]:
+    """(live (entry_id, task_id) pairs, (object name, task name) →
+    [(entry_id, task_id, archived)])."""
     live: set[tuple[str, str]] = set()
-    by_name: dict[tuple[str, str], list[tuple[str, str]]] = {}
+    by_name: dict[tuple[str, str], list[tuple[str, str, bool]]] = {}
     for entry in get_object_entries(hass):
         obj_name = _norm((entry.data.get(CONF_OBJECT) or {}).get("name"))
         for task_id, task in (entry.data.get(CONF_TASKS) or {}).items():
             live.add((entry.entry_id, task_id))
-            by_name.setdefault((obj_name, _norm(task.get("name"))), []).append((entry.entry_id, task_id))
+            by_name.setdefault((obj_name, _norm(task.get("name"))), []).append(
+                (entry.entry_id, task_id, _task_archived(entry, task))
+            )
     return live, by_name
 
 
-def settings_task_names(hass: HomeAssistant, settings: dict[str, Any]) -> dict[str, dict[str, str]]:
+def settings_task_names(hass: HomeAssistant, settings: dict[str, Any]) -> dict[str, dict[str, Any]]:
     """``task_names`` for the settings export: object + task name of every
     task a group or the vacation exemptions point at."""
     wanted: set[str] = set()
@@ -247,12 +288,14 @@ def settings_task_names(hass: HomeAssistant, settings: dict[str, Any]) -> dict[s
             if isinstance(ref, dict) and isinstance(ref.get("task_id"), str):
                 wanted.add(ref["task_id"])
     wanted.update(t for t in settings.get(CONF_VACATION_EXEMPT_TASK_IDS) or [] if isinstance(t, str))
-    out: dict[str, dict[str, str]] = {}
+    out: dict[str, dict[str, Any]] = {}
     for entry in get_object_entries(hass):
         obj_name = str((entry.data.get(CONF_OBJECT) or {}).get("name") or "")
         for task_id, task in (entry.data.get(CONF_TASKS) or {}).items():
             if task_id in wanted:
-                out[task_id] = {"object": obj_name, "task": str(task.get("name") or "")}
+                # archived: a replaced object keeps its name for its successor
+                # by default, so the name alone can fit two tasks.
+                out[task_id] = {"object": obj_name, "task": str(task.get("name") or ""), "archived": _task_archived(entry, task)}
     return out
 
 
@@ -270,11 +313,20 @@ def resolve_task_refs_by_name(hass: HomeAssistant, settings: dict[str, Any], hin
         if not isinstance(hint, dict):
             return None
         found = by_name.get((_norm(hint.get("object")), _norm(hint.get("task"))), [])
-        return found[0] if len(found) == 1 else None
+        if len(found) > 1:
+            # A retired object and its same-named successor: the task with
+            # the archive state the export recorded (a hint from before that
+            # field means the active one). Giving up here left the successor's
+            # group members pointing nowhere (bug audit 2026-09-29).
+            want = hint["archived"] if isinstance(hint.get("archived"), bool) else False
+            found = [f for f in found if f[2] == want]
+        return (found[0][0], found[0][1]) if len(found) == 1 else None
 
     for group in (settings.get(CONF_GROUPS) or {}).values():
         refs = []
         for ref in group.get("task_refs") or []:
+            if not (isinstance(ref, dict) and isinstance(ref.get("entry_id"), str) and isinstance(ref.get("task_id"), str)):
+                continue
             if (ref["entry_id"], ref["task_id"]) not in live and (hit := _by_name(ref["task_id"])) is not None:
                 ref = {"entry_id": hit[0], "task_id": hit[1]}
             if ref not in refs:
@@ -284,6 +336,8 @@ def resolve_task_refs_by_name(hass: HomeAssistant, settings: dict[str, Any], hin
     if isinstance(exempt, list):
         out: list[str] = []
         for task_id in exempt:
+            if not isinstance(task_id, str):
+                continue
             if task_id not in live_tasks and (hit := _by_name(task_id)) is not None:
                 task_id = hit[1]
             if task_id not in out:
@@ -314,8 +368,10 @@ def repair_task_refs(options: dict[str, Any], hass: HomeAssistant, task_map: dic
             for ref in group.get("task_refs") or []:
                 if (
                     isinstance(ref, dict)
-                    and (ref.get("entry_id"), ref.get("task_id")) not in live
-                    and ref.get("task_id") in task_map
+                    and isinstance(ref.get("entry_id"), str)
+                    and isinstance(ref.get("task_id"), str)
+                    and (ref["entry_id"], ref["task_id"]) not in live
+                    and ref["task_id"] in task_map
                 ):
                     new_entry, new_task = task_map[ref["task_id"]]
                     ref = {"entry_id": new_entry, "task_id": new_task}
@@ -331,7 +387,7 @@ def repair_task_refs(options: dict[str, Any], hass: HomeAssistant, task_map: dic
         out: list[str] = []
         moved = False
         for task_id in exempt:
-            if task_id not in live_tasks and task_id in task_map:
+            if isinstance(task_id, str) and task_id not in live_tasks and task_id in task_map:
                 task_id = task_map[task_id][1]
                 moved = True
             if task_id not in out:

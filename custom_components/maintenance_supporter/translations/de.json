@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Zeitplantyp",
-          "description": "time_based (Intervall), one_time (braucht due_date) oder manual. Standard: time_based. Sensorgesteuerte Aufgaben brauchen einen Auslöser und werden im Panel angelegt."
+          "description": "time_based (braucht interval_days), one_time (braucht due_date) oder manual. Ohne Angabe entscheiden die übrigen Felder: ein Intervall ergibt time_based, ein Fälligkeitsdatum one_time, keins von beiden manual. Sensorgesteuerte Aufgaben brauchen einen Auslöser und werden im Panel angelegt."
         },
         "interval_days": {
           "name": "Intervall",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Zeitplantyp",
-          "description": "time_based (Intervall), one_time (braucht due_date) oder manual. Beim Wechsel zu manual oder one_time entfällt das bisherige Intervall."
+          "description": "time_based (braucht interval_days, außer die Aufgabe hat schon ein Intervall), one_time (braucht due_date) oder manual. Beim Wechsel zu manual oder one_time entfällt das bisherige Intervall."
         },
         "interval_days": {
           "name": "Intervall",
@@ -2171,6 +2171,17 @@
         },
         "abort": {
           "entry_gone": "Dieses Objekt existiert nicht mehr — nichts zu reparieren."
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "Versehentlich angelegte leere Bereiche: {areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Leere Bereiche entfernen",
+            "description": "Vor Version 2.96 hat Maintenance Supporter einen zweiten Bereich angelegt, der wie die ID eines Bereichs heißt (zum Beispiel „living_room“ neben „Living Room“), und das Gerät des Objekts dort abgelegt. Die Geräte sind wieder in ihren richtigen Bereichen, und diese Bereiche sind jetzt leer:\n\n{areas}\n\nMit **Senden** werden sie entfernt. Ein Bereich, der inzwischen ein Gerät oder eine Entität bekommen hat, bleibt unangetastet. Um sie zu behalten, nutze in Home Assistant **Ignorieren**."
+          }
         }
       }
     }

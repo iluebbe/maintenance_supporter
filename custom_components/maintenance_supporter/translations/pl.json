@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Typ harmonogramu",
-          "description": "time_based (interwał), one_time (wymaga due_date) lub manual. Domyślnie: time_based. Zadania wyzwalane czujnikiem wymagają wyzwalacza i tworzy się je w panelu."
+          "description": "time_based (wymaga interval_days), one_time (wymaga due_date) lub manual. Gdy pominięte, decydują pozostałe pola: interwał daje time_based, termin one_time, brak obu manual. Zadania wyzwalane czujnikiem wymagają wyzwalacza i tworzy się je w panelu."
         },
         "interval_days": {
           "name": "Interwał",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Typ harmonogramu",
-          "description": "time_based (interwał), one_time (wymaga due_date) lub manual. Przełączenie na manual lub one_time usuwa dotychczasowy interwał."
+          "description": "time_based (wymaga interval_days, chyba że zadanie ma już interwał), one_time (wymaga due_date) lub manual. Przełączenie na manual lub one_time usuwa dotychczasowy interwał."
         },
         "interval_days": {
           "name": "Interwał",
@@ -2171,6 +2171,17 @@
         },
         "abort": {
           "entry_gone": "Ten obiekt już nie istnieje — nie ma czego naprawiać."
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "Puste obszary utworzone przez pomyłkę: {areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Usuń puste obszary",
+            "description": "Przed wersją 2.96 Maintenance Supporter tworzył drugi obszar nazwany jak identyfikator obszaru (na przykład „living_room” obok „Living Room”) i umieszczał w nim urządzenie obiektu. Urządzenia wróciły do swoich właściwych obszarów, a te obszary są teraz puste:\n\n{areas}\n\nKliknij **Wyślij**, aby je usunąć. Obszar, do którego w międzyczasie trafiło urządzenie lub encja, pozostaje nietknięty. Aby je zachować, użyj przycisku **Ignoruj** w Home Assistant."
+          }
         }
       }
     }

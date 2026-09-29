@@ -22,23 +22,45 @@
 
 const MAX_REIMPORTS = 3;
 
-export function healCardRegistry(tags: readonly string[], moduleUrl: string): void {
+export function healCardRegistry(
+  tags: readonly string[],
+  moduleUrl: string,
+  // Injectable for tests; the bundles pass nothing.
+  importer: (url: string) => Promise<unknown> = (url) => import(/* @vite-ignore */ url),
+): void {
   const w = window as unknown as Record<string, unknown>;
-  const flag = `__msCardHeal:${tags[0]}`;
+  // Per bundle file (the query dropped, so the healed copy finds it set): the
+  // panel bundle carries the calendar card too, and a flag per TAG let
+  // whichever bundle ran first silence the other's watch.
+  let file: string;
+  try {
+    const parsed = new URL(moduleUrl);
+    file = parsed.origin + parsed.pathname;
+  } catch {
+    return;
+  }
+  const flag = `__msCardHeal:${tags[0]}:${file}`;
   if (w[flag]) return;
   w[flag] = true;
 
   let checks = 0;
   let reimports = 0;
+  // One re-import at a time: a slow phone used to start the next one on every
+  // check while the first was still loading — three parallel fetches and
+  // evaluations of a ~450 KB bundle during boot (bug audit 2026-09-29).
+  let loading = false;
   const check = (): void => {
     checks += 1;
     const missing = tags.some((tag) => !customElements.get(tag));
-    if (missing && reimports < MAX_REIMPORTS) {
+    if (missing && reimports < MAX_REIMPORTS && !loading) {
       reimports += 1;
+      loading = true;
       try {
         const url = new URL(moduleUrl);
         url.searchParams.set("heal", `${Date.now()}`);
-        void import(/* @vite-ignore */ url.href).catch(() => undefined);
+        void importer(url.href)
+          .catch(() => undefined)
+          .finally(() => { loading = false; });
       } catch {
         return;
       }

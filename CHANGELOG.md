@@ -34,6 +34,32 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **A damaged backup could stop the integration from starting:** an import file with a list where a user id belongs
+  created the object, aborted halfway and from then on failed the main entry on every start — panel and summary gone.
+  A value of the wrong type is now dropped with a warning, an object that still cannot be read is reported and
+  skipped while the rest imports, and the start-up check that tripped over it clears such a value instead. A new test
+  imports the full export once per field with a list, a mapping, a number and junk text in that field.
+- **Objects in a two-word area created a second area:** Home Assistant looks a device's suggested area up by name,
+  and it was given the area's id — an object in "Living Room" made an area called "living_room" and put its device
+  there (since the first release). The device now goes to the real area. On start, devices of existing objects move
+  back, and a repair offers to remove the areas left empty (only after you confirm).
+- **The task services quietly built something else:** `update_task` switching a weekday or one-time task to
+  `time_based` without an interval made it manual (the weekdays or the date gone), `manual` with `interval_days` made
+  an interval task, and `add_task` with `one_time` and an interval schedule a one-time task without a date. Such a
+  contradiction is now refused with a message; `add_task` without a schedule type builds what the other fields
+  describe (a bare name stays a manual task).
+- **A compound trigger announced each of its conditions:** every condition fired
+  `maintenance_supporter_trigger_activated` with the task's ids — one half of an AND looked like the task triggering
+  to an automation, and a real activation arrived three times. Only the compound announces the task now.
+- **A move with a replaced object mixed up the two:** replacing keeps the name for the successor, so the restored
+  documents ZIP attached the successor's files to the retired object again, and — with the settings imported after
+  the objects — the successor's group members and vacation exemptions pointed nowhere. Both now tell them apart.
+- **Devices of ESPHome, HomeKit and sub-devices were not linked again after a move** (Home Assistant 2026.8+): the
+  export named devices by identifiers only and looked them up in the integration their first part names. It now
+  carries connections too and searches every integration.
+- **Smaller:** the card self-heal could load its bundle three times in parallel on a slow phone; the calendar card kept
+  a user or object filter removed in the editor; the completion action's validation messages and the re-analyze toast
+  were English only.
 - **A saved view for one person left the person filter blank:** the filter only offered *All users* and *My tasks*, so
   a view narrowed to someone else (saved through the WebSocket API) filtered correctly but showed an
   empty select. The filter now lists everyone responsible for a task, by name.

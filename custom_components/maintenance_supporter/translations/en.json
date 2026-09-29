@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Schedule type",
-          "description": "time_based (interval), one_time (needs due_date) or manual. Default: time_based. Sensor-triggered tasks need a trigger and are created in the panel."
+          "description": "time_based (needs interval_days), one_time (needs due_date) or manual. Left out, the other fields decide: an interval makes it time_based, a due date one_time, neither manual. Sensor-triggered tasks need a trigger and are created in the panel."
         },
         "interval_days": {
           "name": "Interval",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Schedule type",
-          "description": "time_based (interval), one_time (needs due_date) or manual. Switching to manual or one_time drops the old interval."
+          "description": "time_based (needs interval_days unless the task already has an interval), one_time (needs due_date) or manual. Switching to manual or one_time drops the old interval."
         },
         "interval_days": {
           "name": "Interval",
@@ -2171,6 +2171,17 @@
         },
         "abort": {
           "entry_gone": "This object no longer exists — nothing to repair."
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "Empty areas created by mistake: {areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Remove the empty areas",
+            "description": "Before version 2.96, Maintenance Supporter created a second area named like an area's ID (for example \"living_room\" next to \"Living Room\") and put the object's device in it. The devices are back in their real areas, and these areas are empty now:\n\n{areas}\n\nClick **Submit** to remove them. An area that has received a device or entity in the meantime is left alone. To keep them, use Home Assistant's **Ignore** button."
+          }
         }
       }
     }

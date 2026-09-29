@@ -81,14 +81,15 @@ def _get_store(hass: HomeAssistant) -> Any:
     return hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
 
 
-def _object_name_map(hass: HomeAssistant) -> tuple[dict[str, str], dict[str, str]]:
+def _object_name_map(hass: HomeAssistant) -> tuple[dict[str, str], dict[str, list[tuple[str, bool]]]]:
     """(object_id → entry_id-object_id) is identity; return the maps the import
-    needs: existing object_ids (set) and name → object_id for cross-instance
-    matching."""
+    needs: existing object_ids (set) and name → [(object_id, archived)] for
+    cross-instance matching — a list, since a replaced object and its
+    successor share the name by default."""
     from ..const import CONF_OBJECT
 
     ids: dict[str, str] = {}
-    by_name: dict[str, str] = {}
+    by_name: dict[str, list[tuple[str, bool]]] = {}
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.unique_id == GLOBAL_UNIQUE_ID:
             continue
@@ -99,8 +100,27 @@ def _object_name_map(hass: HomeAssistant) -> tuple[dict[str, str], dict[str, str
         ids[oid] = oid
         name = obj.get("name")
         if name:
-            by_name.setdefault(name, oid)
+            by_name.setdefault(name, []).append((oid, bool(obj.get("archived_at"))))
     return ids, by_name
+
+
+def _match_object(
+    obj: dict[str, Any],
+    ids: dict[str, str],
+    by_name: dict[str, list[tuple[str, bool]]],
+    claimed: set[str],
+) -> str | None:
+    """The object an archive's manifest entry belongs to: the same id (a
+    restore on the same instance), else a same-named object no other manifest
+    entry took yet, the one with the same archive state first. Matching by
+    the first name alone attached a successor's documents to the retired
+    object it replaced (bug audit 2026-09-29)."""
+    if (target := ids.get(str(obj.get("object_id") or ""))) is not None:
+        return target
+    free = [(oid, archived) for oid, archived in by_name.get(str(obj.get("object_name") or ""), []) if oid not in claimed]
+    if isinstance(obj.get("archived"), bool):
+        free = [c for c in free if c[1] == obj["archived"]] or free
+    return free[0][0] if free else None
 
 
 def _object_task_ids(hass: HomeAssistant, object_id: str) -> set[str]:
@@ -264,7 +284,15 @@ def _gather_archive(hass: HomeAssistant, entry_ids: set[str] | None) -> tuple[An
         if links:
             paths.claim(folder, LINKS_NAME)
         manifest_objects.append(
-            {"object_id": object_id, "object_name": obj.get("name", ""), "folder": folder, "documents": docs}
+            {
+                "object_id": object_id,
+                "object_name": obj.get("name", ""),
+                # Tells a retired object from its same-named successor on a
+                # restore into another instance (new object ids there).
+                "archived": bool(obj.get("archived_at")),
+                "folder": folder,
+                "documents": docs,
+            }
         )
 
     return store, {"version": ARCHIVE_VERSION, "objects": manifest_objects}, sorted(blob_hashes)
@@ -473,11 +501,13 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
 
         # 2) Re-attach metadata to the matching object (id, then name).
         ids, by_name = _object_name_map(hass)
+        claimed: set[str] = set()
         for obj, docs in manifest_objects:
-            target = ids.get(str(obj.get("object_id") or "")) or by_name.get(str(obj.get("object_name") or ""))
+            target = _match_object(obj, ids, by_name, claimed)
             if target is None:
                 _LOGGER.info("Documents archive: no object matches %r, its docs skipped", obj.get("object_name"))
                 continue
+            claimed.add(target)
             objects_matched += 1
             # Skip docs already present on the target (idempotent re-import).
             existing = store.for_object(target)

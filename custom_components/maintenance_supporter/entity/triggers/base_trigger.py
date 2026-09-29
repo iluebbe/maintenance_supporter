@@ -315,6 +315,12 @@ class BaseTrigger(ABC):
         """
 
 
+    @property
+    def _is_compound_condition(self) -> bool:
+        """This trigger watches one condition of a compound (its entity is
+        the condition's proxy), not the task itself."""
+        return getattr(self.entity, "is_compound_condition", False) is True
+
     def _request_coordinator_refresh(self) -> None:
         """#175: a trigger flip must reach the coordinator now, not on the
         next 5-minute tick. Notifications (and the ``maintenance_supporter_
@@ -340,6 +346,12 @@ class BaseTrigger(ABC):
             current_value=value,
             trigger_entity_id=self.entity_id,
         )
+        if self._is_compound_condition:
+            # One condition of a compound: the compound decides whether the
+            # TASK activated and announces it. Firing here sent
+            # maintenance_supporter_trigger_activated with the task's ids when
+            # one half of an AND flipped (bug audit 2026-09-29).
+            return
 
         # Add history entry for the trigger activation
         self._track(self._coordinator.async_add_trigger_history_entry(self._task_id, trigger_value=value))
@@ -376,6 +388,8 @@ class BaseTrigger(ABC):
             current_value=value,
             trigger_entity_id=self.entity_id,
         )
+        if self._is_compound_condition:
+            return  # the compound announces the task's recovery (see activation)
 
         self._request_coordinator_refresh()
 

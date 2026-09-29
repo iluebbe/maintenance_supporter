@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -106,8 +107,12 @@ class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
             device_info["model"] = obj["model"]
         if obj.get("serial_number"):
             device_info["serial_number"] = obj["serial_number"]
-        if obj.get("area_id"):
-            device_info["suggested_area"] = obj["area_id"]
+        # suggested_area is looked up by NAME: the area id passed here made
+        # Home Assistant create a second area called e.g. "living_room" next
+        # to "Living Room" and put the device in it (bug audit 2026-09-29).
+        # An id no area has any more suggests nothing.
+        if isinstance(obj.get("area_id"), str) and (area := ar.async_get(self.hass).async_get_area(obj["area_id"])):
+            device_info["suggested_area"] = area.name
 
         return device_info
 

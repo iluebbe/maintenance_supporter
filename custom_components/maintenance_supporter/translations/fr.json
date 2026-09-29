@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Type de planification",
-          "description": "time_based (intervalle), one_time (nécessite due_date) ou manual. Par défaut : time_based. Les tâches déclenchées par capteur nécessitent un déclencheur et se créent dans le panneau."
+          "description": "time_based (nécessite interval_days), one_time (nécessite due_date) ou manual. S'il est omis, les autres champs décident : un intervalle donne time_based, une échéance one_time, ni l'un ni l'autre manual. Les tâches déclenchées par capteur nécessitent un déclencheur et se créent dans le panneau."
         },
         "interval_days": {
           "name": "Intervalle",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Type de planification",
-          "description": "time_based (intervalle), one_time (nécessite due_date) ou manual. Passer à manual ou one_time supprime l'ancien intervalle."
+          "description": "time_based (nécessite interval_days sauf si la tâche a déjà un intervalle), one_time (nécessite due_date) ou manual. Passer à manual ou one_time supprime l'ancien intervalle."
         },
         "interval_days": {
           "name": "Intervalle",
@@ -2171,6 +2171,17 @@
         },
         "abort": {
           "entry_gone": "Cet objet n'existe plus — rien à réparer."
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "Zones vides créées par erreur : {areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Supprimer les zones vides",
+            "description": "Avant la version 2.96, Maintenance Supporter créait une seconde zone portant l'ID d'une zone (par exemple « living_room » à côté de « Living Room ») et y plaçait l'appareil de l'objet. Les appareils sont revenus dans leurs vraies zones, et ces zones sont désormais vides :\n\n{areas}\n\nCliquez sur **Valider** pour les supprimer. Une zone qui a reçu entre-temps un appareil ou une entité n'est pas touchée. Pour les conserver, utilisez le bouton **Ignorer** de Home Assistant."
+          }
         }
       }
     }

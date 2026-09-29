@@ -813,7 +813,7 @@ export class MaintenanceTaskDialog extends LitElement {
     const svc = this._actionService.trim();
     if (!svc || !/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(svc)) {
       this._actionTestResult = "error";
-      this._actionTestError = "Invalid service format (expected 'domain.service')";
+      this._actionTestError = t("action_test_bad_format", this._lang);
       setTimeout(() => { this._actionTestResult = ""; this._actionTestError = ""; }, 5000);
       return;
     }
@@ -822,7 +822,7 @@ export class MaintenanceTaskDialog extends LitElement {
     // 2. Service exists?
     if (!this.hass?.services?.[domain]?.[name]) {
       this._actionTestResult = "error";
-      this._actionTestError = `Service "${svc}" is not registered in Home Assistant. Check spelling and that the integration providing it is loaded.`;
+      this._actionTestError = t("action_test_unknown_service", this._lang).replace("{service}", svc);
       setTimeout(() => { this._actionTestResult = ""; this._actionTestError = ""; }, 8000);
       return;
     }
@@ -840,14 +840,19 @@ export class MaintenanceTaskDialog extends LitElement {
       ]);
       if (entityDomain !== domain && !crossDomainServices.has(domain)) {
         this._actionTestResult = "error";
-        this._actionTestError = `Service "${svc}" only works on ${domain}.* entities; entity "${tgt}" is in ${entityDomain}.* — pick a service that matches the entity domain (e.g. ${entityDomain}.${name})`;
+        this._actionTestError = t("action_test_domain_mismatch", this._lang)
+          .replace("{service}", svc)
+          .replace("{domain}", domain)
+          .replace("{entity}", tgt)
+          .replace("{entity_domain}", entityDomain)
+          .replace("{suggestion}", `${entityDomain}.${name}`);
         setTimeout(() => { this._actionTestResult = ""; this._actionTestError = ""; }, 8000);
         return;
       }
       // 5. Entity exists?
       if (!this.hass.states?.[tgt]) {
         this._actionTestResult = "error";
-        this._actionTestError = `Target entity "${tgt}" not found in Home Assistant — the entity may have been renamed or its integration removed.`;
+        this._actionTestError = t("action_test_entity_missing", this._lang).replace("{entity}", tgt);
         setTimeout(() => { this._actionTestResult = ""; this._actionTestError = ""; }, 8000);
         return;
       }

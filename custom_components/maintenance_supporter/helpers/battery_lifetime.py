@@ -283,7 +283,8 @@ def sanitize_replacement_log(raw: Any) -> dict[str, dict[str, Any]]:
         if not isinstance(key, str) or not valid_entity_id(key) or not isinstance(entry, dict):
             continue
         dates: set[str] = set()
-        for value in entry.get("dates") or []:
+        raw_dates = entry.get("dates")
+        for value in raw_dates if isinstance(raw_dates, list) else []:
             try:
                 dates.add(date.fromisoformat(str(value)[:10]).isoformat())
             except ValueError:

@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Aikataulun tyyppi",
-          "description": "time_based (väli), one_time (vaatii due_date-arvon) tai manual. Oletus: time_based. Anturin laukaisemat tehtävät tarvitsevat laukaisimen, ja ne luodaan paneelissa."
+          "description": "time_based (vaatii interval_days-arvon), one_time (vaatii due_date-arvon) tai manual. Jos tämä puuttuu, muut kentät ratkaisevat: väli tekee siitä time_based-tyyppisen, eräpäivä one_time-tyyppisen ja kumpikaan puuttuessa manual-tyyppisen. Anturin laukaisemat tehtävät tarvitsevat laukaisimen, ja ne luodaan paneelissa."
         },
         "interval_days": {
           "name": "Väli",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Aikataulun tyyppi",
-          "description": "time_based (väli), one_time (vaatii due_date-arvon) tai manual. Vaihto tilaan manual tai one_time poistaa vanhan välin."
+          "description": "time_based (vaatii interval_days-arvon, ellei tehtävällä jo ole väliä), one_time (vaatii due_date-arvon) tai manual. Vaihto tilaan manual tai one_time poistaa vanhan välin."
         },
         "interval_days": {
           "name": "Väli",
@@ -2171,6 +2171,17 @@
         },
         "abort": {
           "entry_gone": "Tätä kohdetta ei enää ole — ei korjattavaa."
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "Vahingossa luodut tyhjät alueet: {areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Poista tyhjät alueet",
+            "description": "Ennen versiota 2.96 Maintenance Supporter loi toisen alueen, jonka nimi oli alueen tunnus (esimerkiksi \"living_room\" alueen \"Living Room\" rinnalle), ja sijoitti kohteen laitteen siihen. Laitteet ovat taas oikeilla alueillaan, ja nämä alueet ovat nyt tyhjiä:\n\n{areas}\n\nPoista ne valitsemalla **Lähetä**. Aluetta, johon on sillä välin lisätty laite tai entiteetti, ei muuteta. Jos haluat säilyttää ne, käytä Home Assistantin **Ohita**-painiketta."
+          }
         }
       }
     }

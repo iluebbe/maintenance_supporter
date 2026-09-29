@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "计划类型",
-          "description": "time_based（间隔）、one_time（需要 due_date）或 manual。默认：time_based。由传感器触发的任务需要触发器，请在面板中创建。"
+          "description": "time_based（需要 interval_days）、one_time（需要 due_date）或 manual。省略时由其他字段决定：有间隔即为 time_based，有到期日即为 one_time，两者都没有则为 manual。由传感器触发的任务需要触发器，请在面板中创建。"
         },
         "interval_days": {
           "name": "间隔",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "计划类型",
-          "description": "time_based（间隔）、one_time（需要 due_date）或 manual。切换为 manual 或 one_time 会删除原有间隔。"
+          "description": "time_based（任务尚无间隔时需要 interval_days）、one_time（需要 due_date）或 manual。切换为 manual 或 one_time 会删除原有间隔。"
         },
         "interval_days": {
           "name": "间隔",
@@ -2171,6 +2171,17 @@
         },
         "abort": {
           "entry_gone": "该对象已不存在——无需修复。"
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "误建的空区域：{areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "移除空区域",
+            "description": "在 2.96 版本之前，Maintenance Supporter 会以区域 ID 为名称创建第二个区域（例如在“Living Room”旁边创建“living_room”），并把对象的设备放进去。这些设备已回到原本的区域，以下区域现在为空：\n\n{areas}\n\n点击 **提交** 即可移除它们。在此期间已加入设备或实体的区域不会被改动。若要保留它们，请使用 Home Assistant 的 **忽略** 按钮。"
+          }
         }
       }
     }

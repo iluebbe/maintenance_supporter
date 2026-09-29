@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Planningstype",
-          "description": "time_based (interval), one_time (vereist due_date) of manual. Standaard: time_based. Sensorgestuurde taken hebben een trigger nodig en worden in het paneel aangemaakt."
+          "description": "time_based (vereist interval_days), one_time (vereist due_date) of manual. Weggelaten beslissen de andere velden: een interval maakt het time_based, een vervaldatum one_time, geen van beide manual. Sensorgestuurde taken hebben een trigger nodig en worden in het paneel aangemaakt."
         },
         "interval_days": {
           "name": "Interval",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Planningstype",
-          "description": "time_based (interval), one_time (vereist due_date) of manual. Overschakelen naar manual of one_time verwijdert het oude interval."
+          "description": "time_based (vereist interval_days, tenzij de taak al een interval heeft), one_time (vereist due_date) of manual. Overschakelen naar manual of one_time verwijdert het oude interval."
         },
         "interval_days": {
           "name": "Interval",
@@ -2171,6 +2171,17 @@
         },
         "abort": {
           "entry_gone": "Dit object bestaat niet meer — niets te repareren."
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "Per ongeluk aangemaakte lege ruimtes: {areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Lege ruimtes verwijderen",
+            "description": "Vóór versie 2.96 maakte Maintenance Supporter een tweede ruimte aan met de ID van een ruimte als naam (bijvoorbeeld \"living_room\" naast \"Living Room\") en plaatste het apparaat van het object daarin. De apparaten staan weer in hun echte ruimtes, en deze ruimtes zijn nu leeg:\n\n{areas}\n\nKlik op **Verzenden** om ze te verwijderen. Een ruimte die intussen een apparaat of entiteit heeft gekregen, blijft ongemoeid. Gebruik de knop **Negeren** van Home Assistant om ze te houden."
+          }
         }
       }
     }

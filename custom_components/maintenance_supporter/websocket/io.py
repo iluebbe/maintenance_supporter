@@ -76,6 +76,21 @@ def _iso_marker(value: Any) -> str | None:
         return s if parse_iso_date(s) is not None else None
 
 
+# The type each of these imported task fields must have (see the import loop).
+_TASK_FIELD_TYPES: dict[str, type | tuple[type, ...]] = {
+    "responsible_user_id": str,
+    "assignee_pool": list,
+    "adaptive_config": dict,
+    "schedule": dict,
+    "on_complete_action": dict,
+    "quick_complete_defaults": dict,
+    "checklist": list,
+    "labels": list,
+    "required_completion_fields": list,
+    "mirror_todo_entities": list,
+}
+
+
 def _sanitize_history(history: Any) -> list[dict[str, Any]]:
     """Scrub imported history entries: drop a non-finite/negative ``cost``.
 
@@ -108,6 +123,14 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
                 dropped += 1
                 continue
             clean["timestamp"] = stamp
+        # The type decides how every reader treats the entry; one that is no
+        # text at all stopped the object's coordinator (bug audit
+        # 2026-09-29). completed_by is looked up as a user id.
+        if "type" in clean and not isinstance(clean["type"], str):
+            dropped += 1
+            continue
+        if "completed_by" in clean and not isinstance(clean["completed_by"], str):
+            clean.pop("completed_by")
         cost = clean.get("cost")
         if isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost) or cost < 0:
             clean.pop("cost", None)
@@ -136,7 +159,7 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
                 clean.pop("reading_values", None)
         out.append(clean)
     if dropped:
-        _LOGGER.warning("Import: dropped %d history entr(y/ies) without a readable timestamp", dropped)
+        _LOGGER.warning("Import: dropped %d history entr(y/ies) without a readable timestamp or type", dropped)
     return out
 
 
@@ -992,420 +1015,447 @@ async def ws_import_json(
             continue
 
         obj_id = uuid4().hex
-        import_obj: dict[str, Any] = {
-            "id": obj_id,
-            "name": obj_name,
-            "manufacturer": obj_data.get("manufacturer"),
-            "model": obj_data.get("model"),
-            "serial_number": obj_data.get("serial_number"),
-            "area_id": obj_data.get("area_id"),
-            "installation_date": obj_data.get("installation_date"),
-            "warranty_expiry": obj_data.get("warranty_expiry"),
-            # Imported counterparts of the export fields above; length-capped by
-            # cap_object_fields and the frontend only renders http(s) doc URLs.
-            "documentation_url": obj_data.get("documentation_url"),
-            "notes": obj_data.get("notes"),
-            # 2.19: device link. Same-instance restores keep it valid; a
-            # stale id degrades gracefully at read time. The parent and the
-            # replace lineage are remapped just below (_ImportLineage).
-            "ha_device_id": dev_map.get(obj_data.get("ha_device_id") or "", obj_data.get("ha_device_id")),
-            # 2.20: seasonal pause round-trips (a paused pool restored in
-            # winter stays paused).
-            "paused_at": _iso_marker(obj_data.get("paused_at")),
-            "paused_until": _iso_marker(obj_data.get("paused_until")),
-            # Object-level archive marker — same presence-means-archived
-            # semantics as paused_at, so it gets the same ISO validation. Its
-            # tasks carry their own archived_* pair (mirrored below).
-            "archived_at": _iso_marker(obj_data.get("archived_at")),
-            # #170: keep the numbers a backup carries (collisions are
-            # renumbered by the setup pass); bool/negative junk is dropped.
-            "ref_no": _ref_or_none(obj_data.get("ref_no")),
-            "next_task_ref": _ref_or_none(obj_data.get("next_task_ref")),
-            "task_ids": [],
-        }
-        # 2.94: the source template, when the backup names one we know.
-        if obj_data.get("template_id") in KNOWN_TEMPLATE_IDS:
-            import_obj["template_id"] = obj_data["template_id"]
-        # parent / predecessor / replaced_by → the NEW entry ids.
-        lineage_pending = lineage.apply(import_obj, obj_data)
-        own_old_entry_id = str(obj_entry.get("entry_id") or "")
-
-        # Battery fleet identity (object flag + exclude/include lists + the
-        # self-charging opt-in). The fleet is ONE object by invariant
-        # (find_fleet_entry returns the first flagged entry), so the flag is
-        # only restored when this instance has no fleet yet — otherwise the
-        # payload imports as a plain object (fresh part ids, no task flag).
-        is_fleet = _import_fleet_identity(hass, obj_data, import_obj, obj_name)
-
-        # Spare parts: regenerate ids (like tasks) and remember the mapping so
-        # task-side links (consumes_parts / part_ref) can be rewritten below.
-        # Stock is dynamic Store state — collected here, written after setup.
-        # Fleet type-parts keep their deterministic ``batt_<type>`` ids: the
-        # fleet reconcile / mark-replaced paths key on them, so a re-minted
-        # uuid would orphan the whole battery-type ↔ part mapping.
-        from uuid import uuid4 as _uuid4
-
-        part_id_map: dict[str, str] = {}
-        import_parts: dict[str, dict[str, Any]] = {}
-        # Losses while importing parts, reported with the task warnings.
-        part_warnings: list[str] = []
-        parts_list = obj_entry.get("parts", [])
-        if isinstance(parts_list, list):
-            for part_entry in parts_list:
-                if not isinstance(part_entry, dict) or not (part_entry.get("name") or "").strip():
-                    continue
-                old_id = str(part_entry.get("id") or "")
-                new_id = old_id if _keep_fleet_part_id(is_fleet, old_id) else _uuid4().hex
-                raw_part = dict(part_entry)
-                # Drop a non-http(s) product_url rather than the whole part —
-                # a crafted backup could carry a javascript: link.
-                _purl = raw_part.get("product_url")
-                if not (isinstance(_purl, str) and _purl.strip().lower().startswith(("http://", "https://"))):
-                    raw_part.pop("product_url", None)
-                # The same validation as the part/create write path. The flow
-                # step validates parts too, but it drops a bad one without a
-                # word; checked here, the import names it in its result
-                # (round-trip audit 2026-09-29).
-                try:
-                    pdata = normalize_part({**raw_part, "id": new_id})
-                except PartValidationError as err:
-                    part_warnings.append(f"part {raw_part.get('name')!r} dropped — {err}")
-                    continue
-                # The stock rides the part into entry.data and the fresh
-                # entry's first setup moves it into the Store — BEFORE the
-                # buy-task reconcile, which otherwise saw no stock, removed the
-                # imported buy task and made a new one (storage.
-                # async_migrate_to_store).
-                stock = part_entry.get("stock")
-                if isinstance(stock, (int, float)) and not isinstance(stock, bool) and stock >= 0:
-                    pdata["stock"] = stock
-                import_parts[new_id] = pdata
-                if old_id:
-                    part_id_map[old_id] = new_id
-
-        import_tasks: dict[str, dict[str, Any]] = {}
-        # old task id → new id, so document task-links (task_ids) can be
-        # remapped onto the freshly generated tasks (mirrors part_id_map).
-        task_id_map: dict[str, str] = {}
-        fleet_task_seen = False
-        # Per-task import losses (an invalid trigger is dropped, not fatal) —
-        # reported next to the NFC warnings instead of vanishing silently.
-        task_warnings: list[str] = []
-        tasks_list = obj_entry.get("tasks", [])
-        if not isinstance(tasks_list, list):
-            tasks_list = []
-        for task_entry in tasks_list:
-            if not isinstance(task_entry, dict):
-                continue
-            task_name = (task_entry.get("name") or "").strip()
-            if not task_name:
-                continue
-            task_id = uuid4().hex
-            old_task_id = str(task_entry.get("id") or "")
-            if old_task_id:
-                task_id_map[old_task_id] = task_id
-            task_data: dict[str, Any] = {
-                "id": task_id,
-                "object_id": obj_id,
-                "name": task_name,
-                "type": task_entry.get("type", "custom"),
-                "enabled": task_entry.get("enabled", True),
-                "schedule_type": task_entry.get("schedule_type", "time_based"),
-                "warning_days": task_entry.get("warning_days", get_default_warning_days(hass)),
-                "history": _sanitize_history(task_entry.get("history", [])),
-            }
-            for key in (
-                # Provenance + lifecycle — mirror the export builder so an
-                # archived task stays archived and created_at (the next_due
-                # fallback anchor) survives the round trip.
-                "created_at",
-                "archived_at",
-                "archived_reason",
-                "interval_days",
-                "interval_unit",
-                "due_date",
-                "interval_anchor",
-                "last_planned_due",
-                # per-occurrence postpone (round-trips like last_planned_due)
-                "due_override",
-                # nested recurrence (calendar kinds) — config-flow normalize
-                # treats it as authoritative when present.
-                "schedule",
-                "last_performed",
-                "notes",
-                "documentation_url",
-                "custom_icon",
-                "nfc_tag_id",
-                "require_tag_scan",
-                "allow_skip",
-                "notify_enabled",
-                # #185: notification icon override (shape-checked below).
-                "notify_icon",
-                "responsible_user_id",
-                "entity_slug",
-                "trigger_config",
-                "adaptive_config",
-                "checklist",
-                "schedule_time",
-                # v2.17+ / #83 fields — mirror the export builder so a JSON
-                # backup round-trips them (validated/clamped just below).
-                "priority",
-                "labels",
-                # D#183: mirror targets (shape-sanitized below).
-                "mirror_todo_entities",
-                "earliest_completion_days",
-                "ref_no",
-                "on_complete_action",
-                "quick_complete_defaults",
-                "assignee_pool",
-                "required_completion_fields",
-                "rotation_strategy",
-                "reading_unit",
-                "readings",
-                # spare parts (ids remapped below)
-                "consumes_parts",
-                "part_ref",
-            ):
-                val = task_entry.get(key)
-                if val is not None:
-                    task_data[key] = val
-
-            # The fleet's single aggregate task keeps its marker (detail view
-            # renders the battery section; the fleet reconcile repairs its
-            # trigger). Only ONE task may carry it, and only on the fleet.
-            if is_fleet and task_entry.get(BATTERY_FLEET_TASK_FLAG) is True and not fleet_task_seen:
-                task_data[BATTERY_FLEET_TASK_FLAG] = True
-                fleet_task_seen = True
-                # The replacement log (past swaps, the learned lifetimes and
-                # predicted dates build on it) and the low latch are the
-                # fleet task's Store state; they ride entry.data into the
-                # fresh entry's Store on its first setup (storage.
-                # _SPLIT_ONLY_TASK_FIELDS). A backup used to leave them behind.
-                from ..helpers.battery_fleet import LOW_LATCH_KEY, sanitize_low_latch
-                from ..helpers.battery_lifetime import REPLACEMENT_LOG_KEY, sanitize_replacement_log
-
-                if log := sanitize_replacement_log(task_entry.get(REPLACEMENT_LOG_KEY)):
-                    task_data[REPLACEMENT_LOG_KEY] = log
-                if latch := sanitize_low_latch(task_entry.get(LOW_LATCH_KEY)):
-                    task_data[LOW_LATCH_KEY] = latch
-
-            # 2.95: the task's fingerprint (catalog duty / template task) —
-            # shape-checked, it is untrusted input like everything imported.
-            from ..helpers.task_origin import ORIGIN_KEY, sanitize_origin
-
-            if (origin := sanitize_origin(task_entry.get(ORIGIN_KEY))) is not None:
-                task_data[ORIGIN_KEY] = origin
-
-            # In-cycle checklist ticks: keyed by item TEXT so they survive the
-            # id regeneration; keys are filtered against the imported checklist
-            # exactly like the live checklist_progress WS write. Rides
-            # entry.data until the fresh entry's first setup migrates it into
-            # the Store (split-only field — storage._SPLIT_ONLY_TASK_FIELDS).
-            raw_progress = task_entry.get("checklist_progress")
-            if isinstance(raw_progress, dict):
-                items = set(task_data.get("checklist") or [])
-                progress = {k: bool(v) for k, v in raw_progress.items() if isinstance(k, str) and k in items}
-                if progress:
-                    task_data["checklist_progress"] = progress
-
-            # #130: history entries carry used_parts, and since they are
-            # editable (stock reconciled by delta), the part ids must follow
-            # the regenerated ones. Own-part ids remap via part_id_map; links
-            # into another object's pool (entry_id set) are kept verbatim —
-            # if that entry doesn't exist in this instance they degrade to
-            # the safe recorded-only path, name preserved.
-            for hist_entry in task_data.get("history") or []:
-                used = hist_entry.get("used_parts")
-                if not isinstance(used, list):
-                    continue
-                for link in used:
-                    if (
-                        isinstance(link, dict)
-                        and not link.get("entry_id")
-                        and link.get("part_id") in part_id_map
-                    ):
-                        link["part_id"] = part_id_map[link["part_id"]]
-
-            # Task phases (#139): sanitize like the live WS write and clamp the
-            # cursor to the imported sequence. The cursor rides entry.data
-            # until the fresh entry's first setup migrates it into the Store
-            # (dynamic field), so a restore resumes mid-cycle.
-            raw_defs = task_entry.get("phases")
-            raw_seq = task_entry.get("phase_sequence")
-            if isinstance(raw_defs, dict) and isinstance(raw_seq, list):
-                defs = sanitize_phase_defs(raw_defs)
-                seq = sanitize_phase_sequence(raw_seq, defs)
-                if defs and seq:
-                    task_data["phases"] = defs
-                    task_data["phase_sequence"] = seq
-                    task_data["phase_cursor"] = clamp_phase_cursor(task_entry.get("phase_cursor"), len(seq))
-
-            # Part links — task level AND per phase (helpers.parts.
-            # map_part_links, one rule for both): own links follow the
-            # regenerated part ids; a pool of another object (#111) follows
-            # that object's new ids when it is part of this import, stays
-            # when the object lives in THIS instance, and is dropped rather
-            # than restored pointing nowhere.
-            if task_data.get("consumes_parts") is not None and not isinstance(task_data["consumes_parts"], list):
-                task_data.pop("consumes_parts", None)
-            task_data, _links_changed = map_part_links(task_data, lineage.link_rewriter(own_old_entry_id, part_id_map))
-            ref = task_data.get("part_ref")
-            if isinstance(ref, dict) and ref.get("part_id") in part_id_map:
-                task_data["part_ref"] = {"part_id": part_id_map[ref["part_id"]]}
-            elif ref is not None:
-                task_data.pop("part_ref", None)
-
-            # A completion action runs as the importing admin — never as the
-            # user a file names (bug audit 2026-09-27, SEC-2).
-            _stamp_imported_action_owner(task_data, importing_user)
-
-            # Sanitize critical fields from import data
-            iv = task_data.get("interval_days")
-            if iv is not None and (not isinstance(iv, int) or iv < 1):
-                task_data.pop("interval_days", None)
-            lp = task_data.get("last_performed")
-            if lp is not None and parse_iso_date(lp) is None:
-                task_data.pop("last_performed", None)
-            elif _future_last_performed(lp):
-                task_data.pop("last_performed", None)
-                task_warnings.append(f"{task_name}: last performed date {lp} is in the future — dropped")
-            wd = task_data.get("warning_days")
-            if not isinstance(wd, int) or wd < 0 or wd > 365:
-                task_data["warning_days"] = get_default_warning_days(hass)
-            # A rotation task must carry its effective assignee (imports from
-            # pre-seeding exports may lack one) — same rule as create/update.
-            from ..helpers.sanitize import seed_rotation_assignee
-
-            seed_rotation_assignee(task_data)
-            # checklist (strip + truncate + cap), reading slots and to-do
-            # mirror targets are NOT re-sanitized here: the config flow's
-            # websocket step runs cap_task_fields on every imported task —
-            # the same code, and nothing in between reads them (DRY audit
-            # 2026-09-26 B). The rotation seed above stays: it looks at the
-            # raw strategy, which cap_task_fields would drop first.
-
-            # #185: notify_icon — same shape rule as the WS write paths; a
-            # malformed or empty value drops the override (type default).
-            if "notify_icon" in task_data:
-                from ..helpers.notify_icons import normalize_icon
-
-                icon = normalize_icon(task_data["notify_icon"])
-                if icon:
-                    task_data["notify_icon"] = icon
-                else:
-                    task_data.pop("notify_icon", None)
-
-            # schedule_time: canonical HH:MM. The options flow's TimeSelector
-            # stores "HH:MM:SS" and the export writes it verbatim — that used
-            # to be DROPPED here (strict HH:MM), so a backup lost the time.
-            st = task_data.get("schedule_time")
-            if st is not None:
-                normalized = normalize_hhmm(st)
-                if normalized is None:
-                    task_data.pop("schedule_time", None)
-                else:
-                    task_data["schedule_time"] = normalized
-
-            # entity_slug: the WS create/update paths reject anything but
-            # [a-z0-9_]+ (it becomes part of the entity_id); import copied the
-            # value verbatim. Normalise to that alphabet (HA's slugify would
-            # turn all-junk into "unknown"), drop it when nothing valid
-            # remains, and say so — a changed slug changes the entity ids
-            # (bug audit 2026-09-12).
-            raw_slug = task_data.get("entity_slug")
-            if raw_slug is not None:
-                slug = (
-                    re.sub(r"[^a-z0-9_]+", "_", raw_slug.strip().lower()).strip("_")[:MAX_ENTITY_SLUG_LENGTH]
-                    if isinstance(raw_slug, str)
-                    else ""
-                )
-                if not slug:
-                    task_data.pop("entity_slug", None)
-                    task_warnings.append(f"{task_name}: entity_slug dropped — not [a-z0-9_]+")
-                elif slug != raw_slug:
-                    task_data["entity_slug"] = slug
-                    task_warnings.append(f"{task_name}: entity_slug normalised to {slug!r}")
-
-            # Validate an imported trigger_config the same way the WS create/update
-            # path does — strip unknown keys, normalize entity_ids, and drop it
-            # entirely if invalid — so import isn't a hole around trigger validation.
-            tc = task_data.get("trigger_config")
-            if isinstance(tc, dict):
-                # The export carries the live per-entity trigger state
-                # (accumulated runtime hours, counter baseline, change count)
-                # merged in as ``_trigger_state``. The validator strips it as
-                # an unknown key, so a restore silently started every
-                # sensor trigger from zero (bug review 2026-09-04). Keep it
-                # aside and re-attach it: the fresh entry's first setup
-                # migrates it into the Store like any other dynamic field.
-                trigger_state = tc.pop("_trigger_state", None)
-                tc_errors, _warnings = _validate_trigger_config(hass, tc)
-                if tc_errors:
-                    task_data.pop("trigger_config", None)
-                    task_warnings.append(f"{task_name}: trigger dropped — {tc_errors[0]}")
-                elif isinstance(trigger_state, dict) and trigger_state:
-                    tc["_trigger_state"] = trigger_state
-            elif tc is not None:
-                task_data.pop("trigger_config", None)
-                task_warnings.append(f"{task_name}: trigger dropped — not a mapping")
-
-            from ..helpers.import_mapping import remap_task_device, remap_task_users
-
-            remap_task_users(task_data, user_map)
-            remap_task_device(task_data, dev_map)
-            # An archived object's tasks are archived with it (object/archive
-            # cascades). A file that archives only the object — hand-written,
-            # or from before the cascade — left them active: an "overdue"
-            # task of a retired machine on the dashboard (seen on the demo,
-            # 2026-09-29).
-            if import_obj.get("archived_at") and not task_data.get("archived_at"):
-                from ..const import ARCHIVE_REASON_OBJECT
-
-                task_data["archived_at"] = import_obj["archived_at"]
-                task_data["archived_reason"] = ARCHIVE_REASON_OBJECT
-            import_tasks[task_id] = task_data
-            import_obj["task_ids"].append(task_id)
-
-        # Check for NFC tag duplicates across imported tasks
-        nfc_warnings: list[str] = []
-        for t_data in import_tasks.values():
-            nfc_val = t_data.get("nfc_tag_id")
-            if nfc_val:
-                nfc_warn = _check_nfc_tag_duplicate(hass, nfc_val)
-                if nfc_warn:
-                    nfc_warnings.append(nfc_warn)
-
-        # (roadmap P6) recreate document metadata + web-links for the object
-        # (blobs travel via the /config backup; a JSON-only import leaves
-        # file docs dangling, which the storage-hygiene repair issue catches).
-        # Done BEFORE the entry is created: the docs get fresh ids, and the
-        # history entries (completion photos, #161) and spare parts (doc_id)
-        # that point at them by id must be re-pointed before they are
-        # persisted — the export carries the old ids for exactly this.
         doc_store = None
-        import_docs = obj_entry.get("documents")
-        if isinstance(import_docs, list) and import_docs:
-            from .. import DOCUMENT_STORE_KEY
+        # Everything read from the file for this object is shaped below; a
+        # value of a type nothing expects (a list where an id belongs, a date
+        # that does not exist) used to escape this loop and abort the whole
+        # import after the first objects were created (bug audit 2026-09-29).
+        # Such an object is reported and skipped; the others still import.
+        try:
+            import_obj: dict[str, Any] = {
+                "id": obj_id,
+                "name": obj_name,
+                "manufacturer": obj_data.get("manufacturer"),
+                "model": obj_data.get("model"),
+                "serial_number": obj_data.get("serial_number"),
+                # An id is looked up (device area, area filters): a list here made
+                # every entity of the object fail to be added (bug audit 2026-09-29).
+                "area_id": obj_data.get("area_id") if isinstance(obj_data.get("area_id"), str) else None,
+                "installation_date": obj_data.get("installation_date"),
+                "warranty_expiry": obj_data.get("warranty_expiry"),
+                # Imported counterparts of the export fields above; length-capped by
+                # cap_object_fields and the frontend only renders http(s) doc URLs.
+                "documentation_url": obj_data.get("documentation_url"),
+                "notes": obj_data.get("notes"),
+                # 2.19: device link. Same-instance restores keep it valid; a
+                # stale id degrades gracefully at read time. The parent and the
+                # replace lineage are remapped just below (_ImportLineage).
+                "ha_device_id": (
+                    dev_map.get(raw_dev, raw_dev) if isinstance(raw_dev := obj_data.get("ha_device_id"), str) and raw_dev else None
+                ),
+                # 2.20: seasonal pause round-trips (a paused pool restored in
+                # winter stays paused).
+                "paused_at": _iso_marker(obj_data.get("paused_at")),
+                "paused_until": _iso_marker(obj_data.get("paused_until")),
+                # Object-level archive marker — same presence-means-archived
+                # semantics as paused_at, so it gets the same ISO validation. Its
+                # tasks carry their own archived_* pair (mirrored below).
+                "archived_at": _iso_marker(obj_data.get("archived_at")),
+                # #170: keep the numbers a backup carries (collisions are
+                # renumbered by the setup pass); bool/negative junk is dropped.
+                "ref_no": _ref_or_none(obj_data.get("ref_no")),
+                "next_task_ref": _ref_or_none(obj_data.get("next_task_ref")),
+                "task_ids": [],
+            }
+            # 2.94: the source template, when the backup names one we know.
+            if obj_data.get("template_id") in KNOWN_TEMPLATE_IDS:
+                import_obj["template_id"] = obj_data["template_id"]
+            # parent / predecessor / replaced_by → the NEW entry ids.
+            lineage_pending = lineage.apply(import_obj, obj_data)
+            own_old_entry_id = str(obj_entry.get("entry_id") or "")
 
-            doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
-            if doc_store is not None:
-                doc_id_map: dict[str, str] = {}
-                # Outside the per-object try below on purpose (the docs must
-                # exist before the entry is created) — so a crash here used to
-                # abort the WHOLE import without a reply. The store skips
-                # malformed records itself; this backstop turns anything it
-                # still raises into a per-object warning (bug audit 2026-09-12).
-                try:
-                    await doc_store.async_import_documents(
-                        obj_id, import_docs, task_id_map=task_id_map, part_id_map=part_id_map, id_map=doc_id_map
+            # Battery fleet identity (object flag + exclude/include lists + the
+            # self-charging opt-in). The fleet is ONE object by invariant
+            # (find_fleet_entry returns the first flagged entry), so the flag is
+            # only restored when this instance has no fleet yet — otherwise the
+            # payload imports as a plain object (fresh part ids, no task flag).
+            is_fleet = _import_fleet_identity(hass, obj_data, import_obj, obj_name)
+
+            # Spare parts: regenerate ids (like tasks) and remember the mapping so
+            # task-side links (consumes_parts / part_ref) can be rewritten below.
+            # Stock is dynamic Store state — collected here, written after setup.
+            # Fleet type-parts keep their deterministic ``batt_<type>`` ids: the
+            # fleet reconcile / mark-replaced paths key on them, so a re-minted
+            # uuid would orphan the whole battery-type ↔ part mapping.
+            from uuid import uuid4 as _uuid4
+
+            part_id_map: dict[str, str] = {}
+            import_parts: dict[str, dict[str, Any]] = {}
+            # Losses while importing parts, reported with the task warnings.
+            part_warnings: list[str] = []
+            parts_list = obj_entry.get("parts", [])
+            if isinstance(parts_list, list):
+                for part_entry in parts_list:
+                    if not isinstance(part_entry, dict) or not (part_entry.get("name") or "").strip():
+                        continue
+                    old_id = str(part_entry.get("id") or "")
+                    new_id = old_id if _keep_fleet_part_id(is_fleet, old_id) else _uuid4().hex
+                    raw_part = dict(part_entry)
+                    # Drop a non-http(s) product_url rather than the whole part —
+                    # a crafted backup could carry a javascript: link.
+                    _purl = raw_part.get("product_url")
+                    if not (isinstance(_purl, str) and _purl.strip().lower().startswith(("http://", "https://"))):
+                        raw_part.pop("product_url", None)
+                    # The same validation as the part/create write path. The flow
+                    # step validates parts too, but it drops a bad one without a
+                    # word; checked here, the import names it in its result
+                    # (round-trip audit 2026-09-29).
+                    try:
+                        pdata = normalize_part({**raw_part, "id": new_id})
+                    except PartValidationError as err:
+                        part_warnings.append(f"part {raw_part.get('name')!r} dropped — {err}")
+                        continue
+                    # The stock rides the part into entry.data and the fresh
+                    # entry's first setup moves it into the Store — BEFORE the
+                    # buy-task reconcile, which otherwise saw no stock, removed the
+                    # imported buy task and made a new one (storage.
+                    # async_migrate_to_store).
+                    stock = part_entry.get("stock")
+                    if isinstance(stock, (int, float)) and not isinstance(stock, bool) and stock >= 0:
+                        pdata["stock"] = stock
+                    import_parts[new_id] = pdata
+                    if old_id:
+                        part_id_map[old_id] = new_id
+
+            import_tasks: dict[str, dict[str, Any]] = {}
+            # old task id → new id, so document task-links (task_ids) can be
+            # remapped onto the freshly generated tasks (mirrors part_id_map).
+            task_id_map: dict[str, str] = {}
+            fleet_task_seen = False
+            # Per-task import losses (an invalid trigger is dropped, not fatal) —
+            # reported next to the NFC warnings instead of vanishing silently.
+            task_warnings: list[str] = []
+            tasks_list = obj_entry.get("tasks", [])
+            if not isinstance(tasks_list, list):
+                tasks_list = []
+            for task_entry in tasks_list:
+                if not isinstance(task_entry, dict):
+                    continue
+                task_name = (task_entry.get("name") or "").strip()
+                if not task_name:
+                    continue
+                task_id = uuid4().hex
+                old_task_id = str(task_entry.get("id") or "")
+                if old_task_id:
+                    task_id_map[old_task_id] = task_id
+                task_data: dict[str, Any] = {
+                    "id": task_id,
+                    "object_id": obj_id,
+                    "name": task_name,
+                    "type": task_entry.get("type", "custom"),
+                    "enabled": task_entry.get("enabled", True),
+                    "schedule_type": task_entry.get("schedule_type", "time_based"),
+                    "warning_days": task_entry.get("warning_days", get_default_warning_days(hass)),
+                    "history": _sanitize_history(task_entry.get("history", [])),
+                }
+                for key in (
+                    # Provenance + lifecycle — mirror the export builder so an
+                    # archived task stays archived and created_at (the next_due
+                    # fallback anchor) survives the round trip.
+                    "created_at",
+                    "archived_at",
+                    "archived_reason",
+                    "interval_days",
+                    "interval_unit",
+                    "due_date",
+                    "interval_anchor",
+                    "last_planned_due",
+                    # per-occurrence postpone (round-trips like last_planned_due)
+                    "due_override",
+                    # nested recurrence (calendar kinds) — config-flow normalize
+                    # treats it as authoritative when present.
+                    "schedule",
+                    "last_performed",
+                    "notes",
+                    "documentation_url",
+                    "custom_icon",
+                    "nfc_tag_id",
+                    "require_tag_scan",
+                    "allow_skip",
+                    "notify_enabled",
+                    # #185: notification icon override (shape-checked below).
+                    "notify_icon",
+                    "responsible_user_id",
+                    "entity_slug",
+                    "trigger_config",
+                    "adaptive_config",
+                    "checklist",
+                    "schedule_time",
+                    # v2.17+ / #83 fields — mirror the export builder so a JSON
+                    # backup round-trips them (validated/clamped just below).
+                    "priority",
+                    "labels",
+                    # D#183: mirror targets (shape-sanitized below).
+                    "mirror_todo_entities",
+                    "earliest_completion_days",
+                    "ref_no",
+                    "on_complete_action",
+                    "quick_complete_defaults",
+                    "assignee_pool",
+                    "required_completion_fields",
+                    "rotation_strategy",
+                    "reading_unit",
+                    "readings",
+                    # spare parts (ids remapped below)
+                    "consumes_parts",
+                    "part_ref",
+                ):
+                    val = task_entry.get(key)
+                    if val is not None:
+                        task_data[key] = val
+
+                # Fields that later code looks up or iterates as they are: a value
+                # of another type (a list where a user id belongs, a number for the
+                # rotation pool) is dropped and named, instead of skipping the
+                # object or breaking it after the import (bug audit 2026-09-29;
+                # tests/test_import_fuzz.py feeds every field every type).
+                for key, expected in _TASK_FIELD_TYPES.items():
+                    if key in task_data and not isinstance(task_data[key], expected):
+                        task_data.pop(key)
+                        task_warnings.append(f"{task_name}: {key} dropped — wrong type")
+
+                # The fleet's single aggregate task keeps its marker (detail view
+                # renders the battery section; the fleet reconcile repairs its
+                # trigger). Only ONE task may carry it, and only on the fleet.
+                if is_fleet and task_entry.get(BATTERY_FLEET_TASK_FLAG) is True and not fleet_task_seen:
+                    task_data[BATTERY_FLEET_TASK_FLAG] = True
+                    fleet_task_seen = True
+                    # The replacement log (past swaps, the learned lifetimes and
+                    # predicted dates build on it) and the low latch are the
+                    # fleet task's Store state; they ride entry.data into the
+                    # fresh entry's Store on its first setup (storage.
+                    # _SPLIT_ONLY_TASK_FIELDS). A backup used to leave them behind.
+                    from ..helpers.battery_fleet import LOW_LATCH_KEY, sanitize_low_latch
+                    from ..helpers.battery_lifetime import REPLACEMENT_LOG_KEY, sanitize_replacement_log
+
+                    if log := sanitize_replacement_log(task_entry.get(REPLACEMENT_LOG_KEY)):
+                        task_data[REPLACEMENT_LOG_KEY] = log
+                    if latch := sanitize_low_latch(task_entry.get(LOW_LATCH_KEY)):
+                        task_data[LOW_LATCH_KEY] = latch
+
+                # 2.95: the task's fingerprint (catalog duty / template task) —
+                # shape-checked, it is untrusted input like everything imported.
+                from ..helpers.task_origin import ORIGIN_KEY, sanitize_origin
+
+                if (origin := sanitize_origin(task_entry.get(ORIGIN_KEY))) is not None:
+                    task_data[ORIGIN_KEY] = origin
+
+                # In-cycle checklist ticks: keyed by item TEXT so they survive the
+                # id regeneration; keys are filtered against the imported checklist
+                # exactly like the live checklist_progress WS write. Rides
+                # entry.data until the fresh entry's first setup migrates it into
+                # the Store (split-only field — storage._SPLIT_ONLY_TASK_FIELDS).
+                raw_progress = task_entry.get("checklist_progress")
+                if isinstance(raw_progress, dict):
+                    items = set(task_data.get("checklist") or [])
+                    progress = {k: bool(v) for k, v in raw_progress.items() if isinstance(k, str) and k in items}
+                    if progress:
+                        task_data["checklist_progress"] = progress
+
+                # #130: history entries carry used_parts, and since they are
+                # editable (stock reconciled by delta), the part ids must follow
+                # the regenerated ones. Own-part ids remap via part_id_map; links
+                # into another object's pool (entry_id set) are kept verbatim —
+                # if that entry doesn't exist in this instance they degrade to
+                # the safe recorded-only path, name preserved.
+                for hist_entry in task_data.get("history") or []:
+                    used = hist_entry.get("used_parts")
+                    if not isinstance(used, list):
+                        continue
+                    for link in used:
+                        if (
+                            isinstance(link, dict)
+                            and not link.get("entry_id")
+                            and link.get("part_id") in part_id_map
+                        ):
+                            link["part_id"] = part_id_map[link["part_id"]]
+
+                # Task phases (#139): sanitize like the live WS write and clamp the
+                # cursor to the imported sequence. The cursor rides entry.data
+                # until the fresh entry's first setup migrates it into the Store
+                # (dynamic field), so a restore resumes mid-cycle.
+                raw_defs = task_entry.get("phases")
+                raw_seq = task_entry.get("phase_sequence")
+                if isinstance(raw_defs, dict) and isinstance(raw_seq, list):
+                    defs = sanitize_phase_defs(raw_defs)
+                    seq = sanitize_phase_sequence(raw_seq, defs)
+                    if defs and seq:
+                        task_data["phases"] = defs
+                        task_data["phase_sequence"] = seq
+                        task_data["phase_cursor"] = clamp_phase_cursor(task_entry.get("phase_cursor"), len(seq))
+
+                # Part links — task level AND per phase (helpers.parts.
+                # map_part_links, one rule for both): own links follow the
+                # regenerated part ids; a pool of another object (#111) follows
+                # that object's new ids when it is part of this import, stays
+                # when the object lives in THIS instance, and is dropped rather
+                # than restored pointing nowhere.
+                if task_data.get("consumes_parts") is not None and not isinstance(task_data["consumes_parts"], list):
+                    task_data.pop("consumes_parts", None)
+                task_data, _links_changed = map_part_links(task_data, lineage.link_rewriter(own_old_entry_id, part_id_map))
+                ref = task_data.get("part_ref")
+                if isinstance(ref, dict) and ref.get("part_id") in part_id_map:
+                    task_data["part_ref"] = {"part_id": part_id_map[ref["part_id"]]}
+                elif ref is not None:
+                    task_data.pop("part_ref", None)
+
+                # A completion action runs as the importing admin — never as the
+                # user a file names (bug audit 2026-09-27, SEC-2).
+                _stamp_imported_action_owner(task_data, importing_user)
+
+                # Sanitize critical fields from import data
+                iv = task_data.get("interval_days")
+                if iv is not None and (not isinstance(iv, int) or iv < 1):
+                    task_data.pop("interval_days", None)
+                lp = task_data.get("last_performed")
+                if lp is not None and parse_iso_date(lp) is None:
+                    task_data.pop("last_performed", None)
+                elif _future_last_performed(lp):
+                    task_data.pop("last_performed", None)
+                    task_warnings.append(f"{task_name}: last performed date {lp} is in the future — dropped")
+                wd = task_data.get("warning_days")
+                if not isinstance(wd, int) or wd < 0 or wd > 365:
+                    task_data["warning_days"] = get_default_warning_days(hass)
+                # A rotation task must carry its effective assignee (imports from
+                # pre-seeding exports may lack one) — same rule as create/update.
+                from ..helpers.sanitize import seed_rotation_assignee
+
+                seed_rotation_assignee(task_data)
+                # checklist (strip + truncate + cap), reading slots and to-do
+                # mirror targets are NOT re-sanitized here: the config flow's
+                # websocket step runs cap_task_fields on every imported task —
+                # the same code, and nothing in between reads them (DRY audit
+                # 2026-09-26 B). The rotation seed above stays: it looks at the
+                # raw strategy, which cap_task_fields would drop first.
+
+                # #185: notify_icon — same shape rule as the WS write paths; a
+                # malformed or empty value drops the override (type default).
+                if "notify_icon" in task_data:
+                    from ..helpers.notify_icons import normalize_icon
+
+                    icon = normalize_icon(task_data["notify_icon"])
+                    if icon:
+                        task_data["notify_icon"] = icon
+                    else:
+                        task_data.pop("notify_icon", None)
+
+                # schedule_time: canonical HH:MM. The options flow's TimeSelector
+                # stores "HH:MM:SS" and the export writes it verbatim — that used
+                # to be DROPPED here (strict HH:MM), so a backup lost the time.
+                st = task_data.get("schedule_time")
+                if st is not None:
+                    normalized = normalize_hhmm(st)
+                    if normalized is None:
+                        task_data.pop("schedule_time", None)
+                    else:
+                        task_data["schedule_time"] = normalized
+
+                # entity_slug: the WS create/update paths reject anything but
+                # [a-z0-9_]+ (it becomes part of the entity_id); import copied the
+                # value verbatim. Normalise to that alphabet (HA's slugify would
+                # turn all-junk into "unknown"), drop it when nothing valid
+                # remains, and say so — a changed slug changes the entity ids
+                # (bug audit 2026-09-12).
+                raw_slug = task_data.get("entity_slug")
+                if raw_slug is not None:
+                    slug = (
+                        re.sub(r"[^a-z0-9_]+", "_", raw_slug.strip().lower()).strip("_")[:MAX_ENTITY_SLUG_LENGTH]
+                        if isinstance(raw_slug, str)
+                        else ""
                     )
-                except Exception:  # one object's documents must not sink the import
-                    _LOGGER.exception("JSON import of %s: documents skipped", obj_name)
-                    task_warnings.append("documents: skipped — malformed document records")
-                    await _drop_imported_documents(doc_store, obj_id)
-                    doc_id_map = {}
-                if doc_id_map:
-                    _remap_document_refs(import_tasks, import_parts, doc_id_map)
+                    if not slug:
+                        task_data.pop("entity_slug", None)
+                        task_warnings.append(f"{task_name}: entity_slug dropped — not [a-z0-9_]+")
+                    elif slug != raw_slug:
+                        task_data["entity_slug"] = slug
+                        task_warnings.append(f"{task_name}: entity_slug normalised to {slug!r}")
+
+                # Validate an imported trigger_config the same way the WS create/update
+                # path does — strip unknown keys, normalize entity_ids, and drop it
+                # entirely if invalid — so import isn't a hole around trigger validation.
+                tc = task_data.get("trigger_config")
+                if isinstance(tc, dict):
+                    # The export carries the live per-entity trigger state
+                    # (accumulated runtime hours, counter baseline, change count)
+                    # merged in as ``_trigger_state``. The validator strips it as
+                    # an unknown key, so a restore silently started every
+                    # sensor trigger from zero (bug review 2026-09-04). Keep it
+                    # aside and re-attach it: the fresh entry's first setup
+                    # migrates it into the Store like any other dynamic field.
+                    trigger_state = tc.pop("_trigger_state", None)
+                    tc_errors, _warnings = _validate_trigger_config(hass, tc)
+                    if tc_errors:
+                        task_data.pop("trigger_config", None)
+                        task_warnings.append(f"{task_name}: trigger dropped — {tc_errors[0]}")
+                    elif isinstance(trigger_state, dict) and trigger_state:
+                        tc["_trigger_state"] = trigger_state
+                elif tc is not None:
+                    task_data.pop("trigger_config", None)
+                    task_warnings.append(f"{task_name}: trigger dropped — not a mapping")
+
+                from ..helpers.import_mapping import remap_task_device, remap_task_users
+
+                remap_task_users(task_data, user_map)
+                remap_task_device(task_data, dev_map)
+                # An archived object's tasks are archived with it (object/archive
+                # cascades). A file that archives only the object — hand-written,
+                # or from before the cascade — left them active: an "overdue"
+                # task of a retired machine on the dashboard (seen on the demo,
+                # 2026-09-29).
+                if import_obj.get("archived_at") and not task_data.get("archived_at"):
+                    from ..const import ARCHIVE_REASON_OBJECT
+
+                    task_data["archived_at"] = import_obj["archived_at"]
+                    task_data["archived_reason"] = ARCHIVE_REASON_OBJECT
+                import_tasks[task_id] = task_data
+                import_obj["task_ids"].append(task_id)
+
+            # Check for NFC tag duplicates across imported tasks
+            nfc_warnings: list[str] = []
+            for t_data in import_tasks.values():
+                nfc_val = t_data.get("nfc_tag_id")
+                if nfc_val:
+                    nfc_warn = _check_nfc_tag_duplicate(hass, nfc_val)
+                    if nfc_warn:
+                        nfc_warnings.append(nfc_warn)
+
+            # (roadmap P6) recreate document metadata + web-links for the object
+            # (blobs travel via the /config backup; a JSON-only import leaves
+            # file docs dangling, which the storage-hygiene repair issue catches).
+            # Done BEFORE the entry is created: the docs get fresh ids, and the
+            # history entries (completion photos, #161) and spare parts (doc_id)
+            # that point at them by id must be re-pointed before they are
+            # persisted — the export carries the old ids for exactly this.
+            doc_store = None
+            import_docs = obj_entry.get("documents")
+            if isinstance(import_docs, list) and import_docs:
+                from .. import DOCUMENT_STORE_KEY
+
+                doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+                if doc_store is not None:
+                    doc_id_map: dict[str, str] = {}
+                    # Outside the per-object try below on purpose (the docs must
+                    # exist before the entry is created) — so a crash here used to
+                    # abort the WHOLE import without a reply. The store skips
+                    # malformed records itself; this backstop turns anything it
+                    # still raises into a per-object warning (bug audit 2026-09-12).
+                    try:
+                        await doc_store.async_import_documents(
+                            obj_id, import_docs, task_id_map=task_id_map, part_id_map=part_id_map, id_map=doc_id_map
+                        )
+                    except Exception:  # one object's documents must not sink the import
+                        _LOGGER.exception("JSON import of %s: documents skipped", obj_name)
+                        task_warnings.append("documents: skipped — malformed document records")
+                        await _drop_imported_documents(doc_store, obj_id)
+                        doc_id_map = {}
+                    if doc_id_map:
+                        _remap_document_refs(import_tasks, import_parts, doc_id_map)
+
+        except Exception:  # one malformed object must not sink the import
+            _LOGGER.exception("JSON import of %s: object skipped — malformed data", obj_name)
+            errors.append({"name": obj_name, "reason": "malformed data"})
+            await _drop_imported_documents(doc_store, obj_id)
+            continue
 
         try:
             result = await hass.config_entries.flow.async_init(

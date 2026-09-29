@@ -545,7 +545,14 @@ def sanitize_low_latch(raw: Any) -> dict[str, dict[str, Any]]:
         if not isinstance(key, str) or not valid_entity_id(key) or not isinstance(entry, dict):
             continue
         at = entry.get("at")
-        if not isinstance(at, str) or dt_util.parse_datetime(at.strip()) is None:
+        if not isinstance(at, str):
+            continue
+        try:
+            # parse_datetime raises (not None) for a well-formed but
+            # impossible date such as February 30.
+            if dt_util.parse_datetime(at.strip()) is None:
+                continue
+        except ValueError:
             continue
         last = entry.get("last_replaced")
         out[key] = {"at": at.strip()[:40], "last_replaced": last[:40] if isinstance(last, str) else None}

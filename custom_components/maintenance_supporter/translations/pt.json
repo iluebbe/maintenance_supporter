@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Tipo de agendamento",
-          "description": "time_based (intervalo), one_time (requer due_date) ou manual. Predefinição: time_based. Tarefas acionadas por sensor precisam de um acionador e são criadas no painel."
+          "description": "time_based (requer interval_days), one_time (requer due_date) ou manual. Se omitido, decidem os outros campos: um intervalo torna a tarefa time_based, uma data de vencimento one_time e nenhum dos dois manual. Tarefas acionadas por sensor precisam de um acionador e são criadas no painel."
         },
         "interval_days": {
           "name": "Intervalo",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Tipo de agendamento",
-          "description": "time_based (intervalo), one_time (requer due_date) ou manual. Mudar para manual ou one_time remove o intervalo anterior."
+          "description": "time_based (requer interval_days, a não ser que a tarefa já tenha um intervalo), one_time (requer due_date) ou manual. Mudar para manual ou one_time remove o intervalo anterior."
         },
         "interval_days": {
           "name": "Intervalo",
@@ -2171,6 +2171,17 @@
         },
         "abort": {
           "entry_gone": "Este objeto já não existe — nada a reparar."
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "Áreas vazias criadas por engano: {areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Remover as áreas vazias",
+            "description": "Antes da versão 2.96, o Maintenance Supporter criava uma segunda área com o nome do ID de uma área (por exemplo, \"living_room\" ao lado de \"Living Room\") e colocava nela o dispositivo do objeto. Os dispositivos voltaram às suas áreas reais e estas áreas estão agora vazias:\n\n{areas}\n\nClique em **Submeter** para as remover. Uma área que entretanto recebeu um dispositivo ou entidade não é alterada. Para as manter, utilize o botão **Ignorar** do Home Assistant."
+          }
         }
       }
     }

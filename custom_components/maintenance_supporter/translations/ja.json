@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "スケジュールの種類",
-          "description": "time_based（間隔）、one_time（due_date が必要）、manual のいずれか。既定値: time_based。センサーで起動するタスクにはトリガーが必要なため、パネルで作成します。"
+          "description": "time_based（interval_days が必要）、one_time（due_date が必要）、manual のいずれか。省略した場合はほかのフィールドで決まります。間隔があれば time_based、期日があれば one_time、どちらもなければ manual です。センサーで起動するタスクにはトリガーが必要なため、パネルで作成します。"
         },
         "interval_days": {
           "name": "間隔",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "スケジュールの種類",
-          "description": "time_based（間隔）、one_time（due_date が必要）、manual のいずれか。manual または one_time に切り替えると以前の間隔は削除されます。"
+          "description": "time_based（タスクにまだ間隔がない場合は interval_days が必要）、one_time（due_date が必要）、manual のいずれか。manual または one_time に切り替えると以前の間隔は削除されます。"
         },
         "interval_days": {
           "name": "間隔",
@@ -2171,6 +2171,17 @@
         },
         "abort": {
           "entry_gone": "このオブジェクトはもう存在しません。修復するものはありません。"
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "誤って作成された空のエリア: {areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "空のエリアを削除",
+            "description": "バージョン 2.96 より前の Maintenance Supporter は、エリアの ID と同じ名前の 2 つ目のエリア（例:「Living Room」の隣に「living_room」）を作成し、オブジェクトのデバイスをそこに置いていました。デバイスは本来のエリアに戻り、次のエリアは現在空です:\n\n{areas}\n\n**送信** をクリックすると削除します。その間にデバイスやエンティティが追加されたエリアはそのまま残ります。残しておく場合は、Home Assistant の **無視** ボタンを使用してください。"
+          }
         }
       }
     }

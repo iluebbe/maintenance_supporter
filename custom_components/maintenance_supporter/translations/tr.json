@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Zamanlama türü",
-          "description": "time_based (aralık), one_time (due_date gerekir) veya manual. Varsayılan: time_based. Sensörle tetiklenen görevler bir tetikleyici gerektirir ve panelde oluşturulur."
+          "description": "time_based (interval_days gerekir), one_time (due_date gerekir) veya manual. Belirtilmezse diğer alanlar karar verir: aralık varsa time_based, son tarih varsa one_time, ikisi de yoksa manual olur. Sensörle tetiklenen görevler bir tetikleyici gerektirir ve panelde oluşturulur."
         },
         "interval_days": {
           "name": "Aralık",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Zamanlama türü",
-          "description": "time_based (aralık), one_time (due_date gerekir) veya manual. manual veya one_time türüne geçmek eski aralığı kaldırır."
+          "description": "time_based (görevin zaten bir aralığı yoksa interval_days gerekir), one_time (due_date gerekir) veya manual. manual veya one_time türüne geçmek eski aralığı kaldırır."
         },
         "interval_days": {
           "name": "Aralık",
@@ -2171,6 +2171,17 @@
         },
         "abort": {
           "entry_gone": "Bu nesne artık yok — onarılacak bir şey kalmadı."
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "Yanlışlıkla oluşturulan boş alanlar: {areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Boş alanları kaldır",
+            "description": "Sürüm 2.96'dan önce Maintenance Supporter, bir alanın kimliğiyle aynı adı taşıyan ikinci bir alan oluşturuyor (örneğin \"Living Room\" yanında \"living_room\") ve nesnenin cihazını oraya koyuyordu. Cihazlar gerçek alanlarına geri döndü ve şu alanlar artık boş:\n\n{areas}\n\nKaldırmak için **Gönder**'e tıklayın. Bu arada bir cihaz veya varlık eklenmiş olan alana dokunulmaz. Saklamak için Home Assistant'ın **Yoksay** düğmesini kullanın."
+          }
         }
       }
     }

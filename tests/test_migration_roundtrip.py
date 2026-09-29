@@ -298,11 +298,14 @@ async def _seed_the_rest(
     garage = obj_entry("garage", "Garage door", "garage_obj", "garage_task", "Lubricate rails", "2026-02-10")
     # Archived the way object/archive does it: the object and, cascaded, its task.
     retired = "2026-05-01T00:00:00+00:00"
+    # Replaced the way object/replace does it by default: the successor keeps
+    # the name and the tasks' names — so every name-based step of a move meets
+    # two candidates (bug audit 2026-09-29).
     old = obj_entry(
-        "old_boiler", "Old boiler", "old_obj", "old_task", "Service old", "2020-01-01",
+        "old_boiler", "Boiler", "old_obj", "old_task", "Service", "2020-01-01",
         task_extra={"archived_at": retired, "archived_reason": "object"}, archived_at=retired,
     )
-    new = obj_entry("new_boiler", "New boiler", "new_obj", "new_task", "Service new", "2026-05-01")
+    new = obj_entry("new_boiler", "Boiler", "new_obj", "new_task", "Service", "2026-05-01")
     for entry in (garage, old, new):
         await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -314,6 +317,15 @@ async def _seed_the_rest(
     ):
         current = hass.config_entries.async_get_entry(entry.entry_id)
         hass.config_entries.async_update_entry(current, data={**current.data, "object": {**current.data["object"], **extra}})
+
+    # The successor's own paperwork, and the household's weekly round and the
+    # vacation exemptions pointing at ITS task, not the retired one's.
+    await docs.async_add_file("new_obj", content=b"%PDF-1.4 invoice", filename="Invoice.pdf", mime="application/pdf", tags=["invoice"])
+    options = dict(global_entry.options)
+    group = options[CONF_GROUPS][GROUP_ID]
+    options[CONF_GROUPS] = {GROUP_ID: {**group, "task_refs": [*group["task_refs"], {"entry_id": new.entry_id, "task_id": "new_task"}]}}
+    options[CONF_VACATION_EXEMPT_TASK_IDS] = [*options[CONF_VACATION_EXEMPT_TASK_IDS], "new_task"]
+    hass.config_entries.async_update_entry(global_entry, options=options)
 
     # The rig's part points at its manual; the manual carries a description.
     await docs.async_update(manual["id"], description="Chapter 4: filter")
@@ -386,6 +398,24 @@ def _task_labels(tasks: dict[str, dict[str, Any]]) -> dict[str, str]:
     return labels
 
 
+def _object_labels(entries: list[Any]) -> dict[str, str]:
+    """Entry id -> its object's name; same-named objects (a replaced object
+    keeps its name for the successor by default) become "#1", "#2" by their
+    reference number, which a move keeps (e2e/migration/compare.mjs too)."""
+    by_name: dict[str, list[Any]] = {}
+    for entry in entries:
+        by_name.setdefault(str(entry.data["object"].get("name")), []).append(entry)
+    labels: dict[str, str] = {}
+    for name, group in by_name.items():
+        if len(group) == 1:
+            labels[group[0].entry_id] = name
+            continue
+        group.sort(key=lambda e: (int(e.data["object"].get("ref_no") or 0), bool(e.data["object"].get("archived_at"))))
+        for i, entry in enumerate(group, 1):
+            labels[entry.entry_id] = f"{name} #{i}"
+    return labels
+
+
 async def _snapshot(hass: HomeAssistant) -> tuple[dict[str, Any], set[str]]:
     """(the storage with ids translated to names, Store task-state keys seen)."""
     from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
@@ -402,11 +432,11 @@ async def _snapshot(hass: HomeAssistant) -> tuple[dict[str, Any], set[str]]:
         return "|".join(sorted(f"{dom}:{ident}" for dom, ident in device.identifiers)) if device else f"?{device_id}"
 
     entries = [e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id != GLOBAL_UNIQUE_ID]
-    entry_name = {e.entry_id: e.data["object"]["name"] for e in entries}
-    object_name = {e.data["object"].get("id"): e.data["object"]["name"] for e in entries}
+    entry_name = _object_labels(entries)
+    object_name = {e.data["object"].get("id"): entry_name[e.entry_id] for e in entries}
     task_label = {tid: label for e in entries for tid, label in _task_labels(e.data.get(CONF_TASKS, {})).items()}
-    task_name = {tid: f"{e.data['object']['name']}/{task_label[tid]}" for e in entries for tid in e.data.get(CONF_TASKS, {})}
-    part_name = {pid: f"{e.data['object']['name']}/{p.get('name')}" for e in entries for pid, p in (e.data.get("parts") or {}).items()}
+    task_name = {tid: f"{entry_name[e.entry_id]}/{task_label[tid]}" for e in entries for tid in e.data.get(CONF_TASKS, {})}
+    part_name = {pid: f"{entry_name[e.entry_id]}/{p.get('name')}" for e in entries for pid, p in (e.data.get("parts") or {}).items()}
     doc_store = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
     doc_name = {did: f"{object_name.get(d.get('object_id'))}/{d.get('kind')}:{d.get('title')}" for did, d in doc_store.documents.items()}
 
@@ -473,7 +503,7 @@ async def _snapshot(hass: HomeAssistant) -> tuple[dict[str, Any], set[str]]:
             rec["tasks"][task_label[tid]] = tr({**{k: v for k, v in t.items() if k != "id"}, "_state": portable})
         for pid, p in (e.data.get("parts") or {}).items():
             rec["parts"][p["name"]] = tr({**{k: v for k, v in p.items() if k != "id"}, "_stock": store.get_part_stock(pid)})
-        objects[e.data["object"]["name"]] = rec
+        objects[entry_name[e.entry_id]] = rec
 
     documents: dict[str, Any] = {}
     for did, d in doc_store.documents.items():

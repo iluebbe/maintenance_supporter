@@ -1875,7 +1875,7 @@
         },
         "schedule_type": {
           "name": "Ütemezés típusa",
-          "description": "time_based (intervallum), one_time (due_date szükséges) vagy manual. Alapértelmezés: time_based. Az érzékelő által indított feladatokhoz eseményindító kell, ezeket a panelen lehet létrehozni."
+          "description": "time_based (interval_days szükséges), one_time (due_date szükséges) vagy manual. Ha hiányzik, a többi mező dönt: intervallummal time_based, esedékességi dátummal one_time, egyik nélkül sem manual lesz. Az érzékelő által indított feladatokhoz eseményindító kell, ezeket a panelen lehet létrehozni."
         },
         "interval_days": {
           "name": "Intervallum",
@@ -1929,7 +1929,7 @@
         },
         "schedule_type": {
           "name": "Ütemezés típusa",
-          "description": "time_based (intervallum), one_time (due_date szükséges) vagy manual. A manual vagy one_time típusra váltáskor a korábbi intervallum törlődik."
+          "description": "time_based (interval_days szükséges, hacsak a feladatnak már nincs intervalluma), one_time (due_date szükséges) vagy manual. A manual vagy one_time típusra váltáskor a korábbi intervallum törlődik."
         },
         "interval_days": {
           "name": "Intervallum",
@@ -2171,6 +2171,17 @@
         },
         "abort": {
           "entry_gone": "Ez az objektum már nem létezik — nincs mit javítani."
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "Tévedésből létrehozott üres területek: {areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Üres területek eltávolítása",
+            "description": "A 2.96-os verzió előtt a Maintenance Supporter egy második területet hozott létre egy terület azonosítójával megegyező névvel (például „living_room” a „Living Room” mellett), és oda tette az objektum eszközét. Az eszközök visszakerültek a valódi területükre, ezek a területek pedig most üresek:\n\n{areas}\n\nA **Küldés** gombbal eltávolíthatod őket. Egy terület, amely időközben eszközt vagy entitást kapott, érintetlen marad. Ha meg szeretnéd tartani őket, használd a Home Assistant **Figyelmen kívül hagyás** gombját."
+          }
         }
       }
     }
