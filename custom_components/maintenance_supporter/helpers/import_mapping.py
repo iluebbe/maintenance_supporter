@@ -194,9 +194,25 @@ def device_map(hass: HomeAssistant, hints: Any) -> dict[str, str]:
         identifiers = {
             (str(i[0]), str(i[1])) for i in hint.get("identifiers") or [] if isinstance(i, (list, tuple)) and len(i) == 2
         }
-        if identifiers and (device := dev_reg.async_get_device(identifiers=identifiers)) is not None:
+        if identifiers and (device := _device_by_identifiers(hass, dev_reg, identifiers)) is not None:
             mapping[old_id] = device.id
     return mapping
+
+
+def _device_by_identifiers(hass: HomeAssistant, dev_reg: Any, identifiers: set[tuple[str, str]]) -> Any:
+    """The device carrying one of these identifiers. Since the 2026.8 device
+    split identifiers are unique per config entry only and async_get_device
+    is deprecated (removed HA 2027.8): the per-entry lookup over the
+    identifier's integration where the core has it, the legacy call on the
+    older cores we support (same shim as helpers/device_link.py)."""
+    modern = getattr(dev_reg, "async_get_device_by_identifier", None)
+    if modern is None:
+        return dev_reg.async_get_device(identifiers=identifiers)
+    for domain, ident in sorted(identifiers):
+        for entry in hass.config_entries.async_entries(domain):
+            if (device := modern((domain, ident), entry.entry_id)) is not None:
+                return device
+    return None
 
 
 def remap_task_device(task: dict[str, Any], mapping: dict[str, str]) -> None:

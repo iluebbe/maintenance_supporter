@@ -350,9 +350,14 @@ async def _snapshot(hass: HomeAssistant) -> tuple[dict[str, Any], set[str]]:
     from homeassistant.helpers import device_registry as dr
 
     users = {u.id: u.name for u in await hass.auth.async_get_users()}
-    devices = {
-        d.id: "|".join(sorted(f"{dom}:{ident}" for dom, ident in d.identifiers)) for d in dr.async_get(hass).devices.values()
-    }
+    dev_reg = dr.async_get(hass)
+
+    def device_identity(device_id: str) -> str:
+        # By id through async_get: the registry's mapping view is deprecated
+        # (HA 2026.9), the per-id lookup is not.
+        device = dev_reg.async_get(device_id)
+        return "|".join(sorted(f"{dom}:{ident}" for dom, ident in device.identifiers)) if device else f"?{device_id}"
+
     entries = [e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id != GLOBAL_UNIQUE_ID]
     entry_name = {e.entry_id: e.data["object"]["name"] for e in entries}
     object_name = {e.data["object"].get("id"): e.data["object"]["name"] for e in entries}
@@ -397,7 +402,7 @@ async def _snapshot(hass: HomeAssistant) -> tuple[dict[str, Any], set[str]]:
         if key in _USER_KEYS:
             return users.get(value, f"?{value}")
         if key in ("ha_device_id", "device_id"):
-            return devices.get(value, f"?{value}")
+            return device_identity(value)
         return value
 
     seen_state: set[str] = set()
@@ -485,14 +490,20 @@ async def _wipe_to_a_new_instance(hass: HomeAssistant, global_entry: MockConfigE
     from homeassistant.helpers import device_registry as dr
 
     dev_reg = dr.async_get(hass)
-    for device in [d for d in dev_reg.devices.values() if any(dom in ("test_devices", "roborock") for dom, _ in d.identifiers)]:
-        entry_ids = list(device.config_entries)
-        identifiers, name, model = set(device.identifiers), device.name, device.model
-        dev_reg.async_remove_device(device.id)
-        # A new instance has no memory of the device: the registry would
-        # hand the old id back to a device re-created with its identifiers.
-        del dev_reg.deleted_devices[device.id]
-        dev_reg.async_get_or_create(config_entry_id=entry_ids[0], identifiers=identifiers, name=name, model=model)
+    # A new instance has no memory of the devices: the registry would hand the
+    # old id back to a device re-created with its identifiers. The container
+    # is private since HA 2026.9 (the public property is deprecated).
+    deleted = getattr(dev_reg, "_deleted_devices", None)
+    if deleted is None:
+        deleted = dev_reg.deleted_devices
+    for domain in ("test_devices", "roborock"):
+        for source in hass.config_entries.async_entries(domain):
+            for device in dr.async_entries_for_config_entry(dev_reg, source.entry_id):
+                identifiers, name, model = set(device.identifiers), device.name, device.model
+                dev_reg.async_remove_device(device.id)
+                if device.id in deleted:
+                    del deleted[device.id]
+                dev_reg.async_get_or_create(config_entry_id=source.entry_id, identifiers=identifiers, name=name, model=model)
     for key in ("alice", "bob"):
         await hass.auth.async_remove_user(people[key])
         await hass.auth.async_create_user(people[key].name)
