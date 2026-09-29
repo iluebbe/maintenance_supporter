@@ -162,9 +162,18 @@ async function importAll(dst, files) {
   await new Promise((r) => setTimeout(r, 5000));
 }
 
-async function main() {
-  rmSync(RUN, { recursive: true, force: true });
+function clearRunFolder() {
+  try {
+    rmSync(RUN, { recursive: true, force: true });
+  } catch {
+    // Left root-owned by an aborted run on a Linux host: delete through docker.
+    docker("run", "--rm", "--entrypoint", "rm", "-v", `${HERE}:/m`, IMAGE, "-rf", "/m/.run");
+  }
   mkdirSync(RUN, { recursive: true });
+}
+
+async function main() {
+  clearRunFolder();
   let src;
   if (EXTERNAL) {
     const base = process.env.SOURCE_URL;
@@ -189,11 +198,12 @@ async function main() {
   // Home Assistant writes its stores on stop — compare what is on disk.
   docker("stop", "-t", "60", src.name, dst.name);
   if (EXTERNAL) docker("start", src.name);
-  // Some .storage files are root-only (0600) on a Linux host; open them for
-  // the comparison through the image itself (no sudo on the runner). Only
-  // the folders this run created — an existing source is left as it is.
+  // The containers write as root: on a Linux host some .storage files are
+  // root-only (0600) and nothing is deletable by the runner. Open the folders
+  // this run created through the image itself (no sudo) — for reading now
+  // and for the next run's cleanup. An existing source is left as it is.
   for (const config of EXTERNAL ? [dst.config] : [src.config, dst.config]) {
-    docker("run", "--rm", "--entrypoint", "chmod", "-v", `${config}:/c`, IMAGE, "-R", "a+rX", "/c");
+    docker("run", "--rm", "--entrypoint", "chmod", "-v", `${config}:/c`, IMAGE, "-R", "a+rwX", "/c");
   }
   const before = snapshot(src.config, EXPECT, exportedAt);
   const after = snapshot(dst.config, EXPECT, exportedAt);
