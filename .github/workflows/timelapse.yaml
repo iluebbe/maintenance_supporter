@@ -29,6 +29,7 @@ jobs:
           TIMELAPSE_IMAGE: ha-faketime
           MIGRATE: "1"
           KEEP: "0"
+          TIMELAPSE_LOG_LEVEL: info
         run: node e2e/timelapse/run.mjs
       - name: Container logs
         if: failure()
@@ -36,6 +37,12 @@ jobs:
           for c in $(docker ps -a --format '{{.Names}}'); do
             echo "=== $c"; docker logs --tail 120 "$c" 2>&1 || true
           done
+          if docker ps -q -f name=ms-timelapse | grep -q .; then
+            echo "=== inside ms-timelapse"
+            docker exec ms-timelapse sh -c 'date; cat /faketime.txt; top -b -n 1 | head -15; netstat -tln 2>/dev/null || ss -tln; wget -qO- -T 5 http://127.0.0.1:8123/manifest.json | head -c 200; echo' || true
+            echo "=== home-assistant.log"
+            docker exec ms-timelapse tail -n 150 /config/home-assistant.log || true
+          fi
       - name: Summary and snapshots
         if: always()
         uses: actions/upload-artifact@v7

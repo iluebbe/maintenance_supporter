@@ -87,7 +87,8 @@ function start() {
     docker("run", "--rm", "--entrypoint", "rm", "-v", `${HERE}:/m`, IMAGE, "-rf", "/m/.run");
   }
   mkdirSync(CONFIG, { recursive: true });
-  writeFileSync(join(CONFIG, "configuration.yaml"), "default_config:\nlogger:\n  default: warning\n");
+  const level = process.env.TIMELAPSE_LOG_LEVEL || "warning";
+  writeFileSync(join(CONFIG, "configuration.yaml"), `default_config:\nlogger:\n  default: ${level}\n`);
   docker("rm", "-f", NAME);
   // Created, the clock file copied in, THEN started: Home Assistant's first
   // call already reads the faked date.
