@@ -4,6 +4,16 @@ on:
   push:
   pull_request:
 
+# A newer push to the same branch supersedes the run still going — only the
+# head has to be green (a release is tagged on a green head).
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # pytest-homeassistant-custom-component 0.13.366 == homeassistant 2026.9.3
+  HA_STABLE_PHT: "0.13.366"
+
 jobs:
   syntax-check:
     runs-on: ubuntu-latest
@@ -39,6 +49,8 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "22"
+          cache: npm
+          cache-dependency-path: custom_components/maintenance_supporter/frontend-src/package-lock.json
       - name: Install frontend dependencies
         working-directory: custom_components/maintenance_supporter/frontend-src
         run: npm ci
@@ -76,17 +88,48 @@ jobs:
       # catches contract bugs like #69 — the ll-custom payload tripwire fires
       # HA's real nested fire-dom-event shape and fails if the handler regresses.
       # Without this step the ~118 web-test-runner tests never gated a PR.
+      # The browser is cached per Playwright version (the lock file); the
+      # system libraries it needs still come from apt on every run.
+      - name: Cache Playwright Chromium
+        id: pw-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('custom_components/maintenance_supporter/frontend-src/package-lock.json') }}
       - name: Install Playwright Chromium
         working-directory: custom_components/maintenance_supporter/frontend-src
-        run: npx playwright install --with-deps chromium
+        run: |
+          if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
+            npx playwright install-deps chromium
+          else
+            npx playwright install --with-deps chromium
+          fi
       - name: Frontend unit tests
         working-directory: custom_components/maintenance_supporter/frontend-src
         run: npm test
 
+  # mypy against both cores, in its own job so it runs beside the tests
+  # instead of in front of them.
+  typecheck:
+    name: mypy (HA ${{ matrix.ha }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ha: ["latest", "stable"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Install dependencies
+        run: bash .github/scripts/install-ha-test-deps.sh ${{ matrix.ha }}
+      - name: Type check
+        run: mypy custom_components/maintenance_supporter/ --config-file mypy.ini
+
   pytest:
     name: pytest (${{ matrix.python-version }}, HA ${{ matrix.ha }})
     runs-on: ubuntu-latest
-    needs: [syntax-check, lint]
     strategy:
       fail-fast: false
       matrix:
@@ -102,33 +145,19 @@ jobs:
         # and 2026.9b (this job) and broke every install on 2026.8 — the one
         # core nobody ran. Bump HA_STABLE_PHT when HA publishes a new stable
         # (the pht-cc release notes name the pinned core; its wheel METADATA
-        # carries `Requires-Dist: homeassistant==<version>`).
+        # carries `Requires-Dist: homeassistant==<version>`). The pin lives in
+        # the workflow-level env; the typecheck job uses the same two legs.
         ha: ["latest", "stable"]
-    env:
-      # pytest-homeassistant-custom-component 0.13.366 == homeassistant 2026.9.3
-      HA_STABLE_PHT: "0.13.366"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        # `holidays` is the Workday integration's own dependency; we install it
-        # so the real-`holidays` loop-safety tests (#87) run here instead of
-        # skipping (they assert the country calendar is built off the event loop).
-        # Unpinned on purpose: this pulls the newest Home Assistant, including
-        # betas, which is how the 2026.8 device-registry change surfaced here
-        # before it reached a single user. The pin that briefly stood here came
-        # off once object↔device linking was adapted to it.
-        # voluptuous_serialize: HA 2026.9 stopped pulling it into the test
-        # env, but core still lazy-imports it for flow-schema serialization
-        # and our options-flow test exercises exactly that path.
-        run: |
-          if [ "${{ matrix.ha }}" = "stable" ]; then PHT="pytest-homeassistant-custom-component==$HA_STABLE_PHT"; else PHT="pytest-homeassistant-custom-component"; fi
-          pip install pytest pytest-cov pytest-xdist "$PHT" mypy babel pypdf holidays voluptuous_serialize
-          python -c 'import homeassistant.const as c; print("Home Assistant", c.__version__)'
-      - name: Type check
-        run: mypy custom_components/maintenance_supporter/ --config-file mypy.ini
+        # `latest` pulls the newest Home Assistant, betas included — that is how
+        # the 2026.8 device-registry change surfaced here before it reached a
+        # single user. uv instead of pip: ~15 s instead of ~60 s.
+        run: bash .github/scripts/install-ha-test-deps.sh ${{ matrix.ha }}
       # Parallel via pytest-xdist. The old blocker — the documents feature's
       # content-addressed blob dir resolving under pht-cc's *shared* config dir,
       # which let document-writing tests race across workers — is fixed by the
@@ -138,10 +167,12 @@ jobs:
       - name: Run tests
         run: pytest tests/ -n auto --dist loadfile --cov=custom_components/maintenance_supporter --cov-report=term-missing --cov-fail-under=98
 
+  # The container jobs below run beside pytest, not after it: none of them
+  # needs its result, and waiting added ~2.5 minutes to every run.
   docker-smoke:
     name: Docker smoke (HA starts with integration)
     runs-on: ubuntu-latest
-    needs: [frontend-build, pytest]
+    needs: [frontend-build]
     timeout-minutes: 8
     env:
       HA_IMAGE: ghcr.io/home-assistant/home-assistant:2026.7.2
@@ -150,6 +181,8 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "22"
+          cache: npm
+          cache-dependency-path: custom_components/maintenance_supporter/frontend-src/package-lock.json
 
       # The release zip ships the pre-built frontend bundle, so the smoke
       # test must also build it before mounting into the container.
@@ -285,7 +318,6 @@ jobs:
   migration-roundtrip:
     name: Migration round trip (two real HA instances)
     runs-on: ubuntu-latest
-    needs: [pytest]
     continue-on-error: true
     timeout-minutes: 15
     env:
@@ -314,7 +346,7 @@ jobs:
   e2e-lifecycle:
     name: E2E lifecycle (real HA panel + browser)
     runs-on: ubuntu-latest
-    needs: [frontend-build, pytest]
+    needs: [frontend-build]
     continue-on-error: true
     timeout-minutes: 14
     steps:
@@ -322,6 +354,10 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            custom_components/maintenance_supporter/frontend-src/package-lock.json
+            e2e/package-lock.json
 
       - name: Build frontend bundle
         working-directory: custom_components/maintenance_supporter/frontend-src
@@ -351,11 +387,21 @@ jobs:
           done
           echo "::error::HA did not start"; docker logs ha-e2e --tail 150; exit 1
 
+      - name: Cache Playwright Chromium
+        id: pw-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-e2e-${{ hashFiles('e2e/package-lock.json') }}
       - name: Install E2E deps + Chromium
         working-directory: e2e
         run: |
           npm ci
-          npx playwright install --with-deps chromium
+          if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
+            npx playwright install-deps chromium
+          else
+            npx playwright install --with-deps chromium
+          fi
 
       # Headed Chromium under xvfb, NOT headless: the HA frontend never
       # finishes rendering the custom panel in headless-shell on the runner
