@@ -169,7 +169,8 @@ _README = """Maintenance Supporter - documents archive
 One folder per maintenance object. Completion photos sit in the folder of
 their task, named by the day the task was done; every other file sits in a
 folder for its category (Manuals, Invoices, Photos, ...). Links.txt lists an
-object's web links.
+object's web links. A file several objects share (a replaced appliance and
+its successor) is stored once, in the folder of the first.
 
 To restore: Maintenance panel > Settings > Import / Export > Restore
 documents ZIP. manifest.json describes every file for the restore - keep
@@ -248,6 +249,11 @@ def _gather_archive(hass: HomeAssistant, entry_ids: set[str] | None) -> tuple[An
     manifest_objects: list[dict[str, Any]] = []
     blob_hashes: set[str] = set()
     paths = _Paths()
+    # One file per content: a replaced object shares its predecessor's
+    # documents, and writing each at every path doubled the archive towards
+    # the import ceiling (bug audit 2026-09-29). Later documents point at the
+    # first copy's path.
+    first_path: dict[str, str] = {}
     for entry in entries:
         obj = entry.data.get(CONF_OBJECT, {})
         object_id = obj.get("id", "")
@@ -269,7 +275,9 @@ def _gather_archive(hass: HomeAssistant, entry_ids: set[str] | None) -> tuple[An
             h = d.get("hash")
             if d.get("kind") != KIND_WEBLINK and isinstance(h, str):
                 blob_hashes.add(h)
-                if (ref := photo_refs.get(str(d.get("id")))) is not None:
+                if h in first_path:
+                    record["path"] = first_path[h]
+                elif (ref := photo_refs.get(str(d.get("id")))) is not None:
                     task_name, day = ref
                     name = _file_name(d)
                     record["path"] = paths.claim(
@@ -279,6 +287,7 @@ def _gather_archive(hass: HomeAssistant, entry_ids: set[str] | None) -> tuple[An
                     tags = [t for t in d.get("tags") or [] if t in _CATEGORY_FOLDERS]
                     category = _CATEGORY_FOLDERS[tags[0]] if tags else "Documents"
                     record["path"] = paths.claim(f"{folder}/{category}", _file_name(d))
+                first_path.setdefault(h, record["path"])
             docs.append(record)
         links = [r for r in docs if r.get("kind") == KIND_WEBLINK]
         if links:
@@ -303,19 +312,20 @@ def _write_archive(store: Any, manifest: dict[str, Any], blob_hashes: list[str],
 
     Each file is streamed from disk into the archive (``ZipFile.write``) at
     its readable path, so memory stays flat however large the documents
-    are. A file two documents share is written at both paths — the archive
-    is meant to be browsed. Refuses up front a selection whose files exceed
+    are. A file several documents share is written once, at the path the
+    manifest gives all of them. Refuses up front a selection whose files exceed
     MAX_ARCHIVE_BYTES: the import refuses such an archive anyway, and the
     export used to assemble the whole ZIP in memory with no ceiling (bug
     audit 2026-09-26). ``blob_hashes`` is the set the manifest references.
     """
     wanted = set(blob_hashes)
     files: list[tuple[str, Any]] = []
+    written: set[str] = set()
     total = 0
     for obj in manifest.get("objects") or []:
         for doc in obj.get("documents") or []:
             h, arcname = doc.get("hash"), doc.get("path")
-            if store is None or h not in wanted or not isinstance(arcname, str):
+            if store is None or h not in wanted or not isinstance(arcname, str) or arcname in written:
                 continue
             try:
                 path = store.blob_path(h)
@@ -332,6 +342,7 @@ def _write_archive(store: Any, manifest: dict[str, Any], blob_hashes: list[str],
                     "more than an archive import accepts — export fewer objects at a time."
                 )
             files.append((arcname, path))
+            written.add(arcname)
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr(README_NAME, _README)
         zf.writestr(MANIFEST_NAME, json.dumps(manifest, ensure_ascii=False, indent=2))
@@ -381,6 +392,14 @@ async def async_build_documents_archive_file(hass: HomeAssistant, entry_ids: set
     return await hass.async_add_executor_job(_write)
 
 
+def _blob_on_disk(store: Any, digest: str) -> bool:
+    """Whether the store holds this content (blocking — a file check)."""
+    try:
+        return bool(store.blob_path(digest).is_file())
+    except ValueError:
+        return False
+
+
 def _doc_key(doc: dict[str, Any]) -> tuple[str | None, str | None]:
     """A document's identity for the idempotent re-import: kind + content
     hash (file) or URL (link). Only strings count — a list-valued URL in a
@@ -404,53 +423,82 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
     if store is None:
         return {"error": "documents store unavailable"}
 
-    def _read() -> tuple[dict[str, Any], dict[str, bytes]]:
+    def _read() -> tuple[Any, dict[str, bytes]]:
+        """(manifest — None when the archive has none, verified blobs by
+        content hash). Everything here runs in the executor, the hashing
+        included: it covers up to 500 MB (it ran on the event loop)."""
+        import unicodedata
+
+        def nfc(text: str) -> str:
+            return unicodedata.normalize("NFC", text)
+
         blobs: dict[str, bytes] = {}
-        manifest: dict[str, Any] = {}
+        manifest: Any = None
         total = 0
         with zipfile.ZipFile(io.BytesIO(data)) as zf:
             names = zf.namelist()
             if len(names) > MAX_ARCHIVE_MEMBERS:
                 raise ValueError("archive_too_many_members")
-            if MANIFEST_NAME in names:
+            # An archive browsed and zipped again: macOS stores names
+            # decomposed ("u" + combining diaeresis), and zipping the unpacked
+            # folder wraps everything in one more folder. Match NFC names
+            # below that folder (bug audit 2026-09-29: such an archive
+            # imported nothing, silently).
+            prefix = ""
+            if not any(nfc(n) == MANIFEST_NAME for n in names):
+                nested = {nfc(n)[: -len(MANIFEST_NAME)] for n in names if nfc(n).endswith("/" + MANIFEST_NAME) and nfc(n).count("/") == 1}
+                if len(nested) == 1:
+                    prefix = nested.pop()
+            members = {nfc(n)[len(prefix) :]: n for n in names if nfc(n).startswith(prefix)}
+            if MANIFEST_NAME in members:
                 # Bound the metadata member too (was read uncapped).
-                manifest = json.loads(_read_member_bounded(zf, MANIFEST_NAME, MAX_MANIFEST_BYTES).decode("utf-8"))
+                manifest = json.loads(_read_member_bounded(zf, members[MANIFEST_NAME], MAX_MANIFEST_BYTES).decode("utf-8"))
             # Version 2: the files sit at the readable paths the manifest
-            # names; their content hash is computed here and checked against
-            # the documents' hash below like a version-1 blob name.
+            # names; keyed by their content hash, which the documents' hash
+            # then has to match like a version-1 blob name.
             listed: set[str] = set()
             raw_objects = manifest.get("objects") if isinstance(manifest, dict) else None
             for obj in raw_objects if isinstance(raw_objects, list) else []:
                 docs_in = obj.get("documents") if isinstance(obj, dict) else None
                 for doc in docs_in if isinstance(docs_in, list) else []:
                     if isinstance(doc, dict) and isinstance(doc.get("path"), str):
-                        listed.add(doc["path"])
-            for name in names:
+                        listed.add(nfc(doc["path"]))
+            for name, member in members.items():
+                digest = None
                 if name in listed:
-                    remaining = MAX_ARCHIVE_BYTES - total
-                    if remaining <= 0:
-                        raise ValueError("archive_too_large")
-                    content = _read_member_bounded(zf, name, remaining)
-                    total += len(content)
-                    blobs.setdefault(hashlib.sha256(content).hexdigest(), content)
+                    pass
                 elif name.startswith(BLOB_DIR) and not name.endswith("/"):
                     digest = name[len(BLOB_DIR) :]
-                    if len(digest) == 64 and all(c in "0123456789abcdef" for c in digest):
-                        remaining = MAX_ARCHIVE_BYTES - total
-                        if remaining <= 0:
-                            raise ValueError("archive_too_large")
-                        # Read bounded by the remaining budget so a bomb can't
-                        # inflate past the whole-archive ceiling (checked DURING
-                        # the read, not after materialising the full member).
-                        content = _read_member_bounded(zf, name, remaining)
-                        total += len(content)
-                        blobs[digest] = content
+                    if not (len(digest) == 64 and all(c in "0123456789abcdef" for c in digest)):
+                        continue
+                else:
+                    continue
+                remaining = MAX_ARCHIVE_BYTES - total
+                if remaining <= 0:
+                    raise ValueError("archive_too_large")
+                # Read bounded by the remaining budget so a bomb can't
+                # inflate past the whole-archive ceiling (checked DURING the
+                # read, not after materialising the full member).
+                content = _read_member_bounded(zf, member, remaining)
+                total += len(content)
+                actual = hashlib.sha256(content).hexdigest()
+                if digest is not None and actual != digest:
+                    _LOGGER.warning("Documents archive: blob %s failed hash check, skipped", digest[:12])
+                    continue
+                blobs.setdefault(actual, content)
         return manifest, blobs
 
     try:
         manifest, blobs = await hass.async_add_executor_job(_read)
     except (zipfile.BadZipFile, ValueError, json.JSONDecodeError, KeyError) as err:
         return {"error": f"invalid archive: {err}"}
+    if manifest is None:
+        # Zipped without it (only the folders): nothing says which document a
+        # file belongs to — said, instead of "0 restored".
+        return {
+            "error": f"invalid archive: no {MANIFEST_NAME} — keep it next to the folders when zipping again",
+            "code": "docs_archive_no_manifest",
+        }
 
     # The manifest is untrusted JSON: a list at the top, an "objects" that is
     # no list or a "documents" that is a number raised AttributeError /
@@ -491,13 +539,22 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
             if digest not in referenced:
                 _LOGGER.info("Documents archive: blob %s referenced by no document, skipped", digest[:12])
                 continue
-            if hashlib.sha256(content).hexdigest() != digest:
-                _LOGGER.warning("Documents archive: blob %s failed hash check, skipped", digest[:12])
-                continue
             _, wrote_new = await hass.async_add_executor_job(store._store_blob_sync, content)
             if wrote_new:
                 written += 1
             store.notify_blob_added(digest)
+
+        # A file document whose file neither came with the archive nor is on
+        # disk would point at nothing — an archive zipped again without some
+        # of its files created such documents without a word.
+        file_hashes = {
+            m["hash"]
+            for _obj, docs in manifest_objects
+            for m in docs
+            if isinstance(m, dict) and m.get("kind") != KIND_WEBLINK and isinstance(m.get("hash"), str)
+        }
+        on_disk = await hass.async_add_executor_job(lambda: {h for h in file_hashes if _blob_on_disk(store, h)})
+        files_missing = 0
 
         # 2) Re-attach metadata to the matching object (id, then name).
         ids, by_name = _object_name_map(hass)
@@ -513,6 +570,9 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
             existing = store.for_object(target)
             existing_keys = {_doc_key(d) for d in existing}
             fresh = [m for m in docs if isinstance(m, dict) and _doc_key(m) not in existing_keys]
+            restorable = [m for m in fresh if m.get("kind") == KIND_WEBLINK or m.get("hash") in on_disk]
+            files_missing += len(fresh) - len(restorable)
+            fresh = restorable
             if fresh:
                 # Keep task links that still resolve on the target (a same-instance
                 # restore) via an identity map over the object's current task ids;
@@ -527,8 +587,11 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
     if doc_id_map:
         await async_rewrite_doc_refs(hass, lambda old: doc_id_map.get(old, old))
 
-    return {
+    result: dict[str, Any] = {
         "blobs_written": written,
         "documents_created": docs_created,
         "objects_matched": objects_matched,
     }
+    if files_missing:
+        result["files_missing"] = files_missing
+    return result

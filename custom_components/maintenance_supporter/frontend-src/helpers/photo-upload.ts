@@ -56,10 +56,17 @@ export async function postMultipart<T>(
   url: string,
   form: FormData,
   tooLargeKey = "doc_too_large",
+  // Refusal codes the caller explains itself (the view's `code`); anything
+  // else stays the generic failure.
+  knownCodes: readonly string[] = [],
 ): Promise<T> {
   const resp = await authFetch(hass, url, { method: "POST", body: form });
   if (resp.status === 413) throw new Error(tooLargeKey);
-  if (!resp.ok) throw new Error("doc_upload_failed");
+  if (!resp.ok) {
+    const body = (await resp.json().catch(() => null)) as { code?: unknown } | null;
+    if (typeof body?.code === "string" && knownCodes.includes(body.code)) throw new Error(body.code);
+    throw new Error("doc_upload_failed");
+  }
   return (await resp.json()) as T;
 }
 

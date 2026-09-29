@@ -2164,13 +2164,18 @@ export class MaintenanceSettingsView extends LitElement {
     try {
       const form = new FormData();
       form.append("file", file, file.name);
-      const result = await postMultipart<{ blobs_written: number; documents_created: number }>(
-        this.hass, "/api/maintenance_supporter/documents/archive", form, "docs_archive_too_large",
+      const result = await postMultipart<{ blobs_written: number; documents_created: number; files_missing?: number }>(
+        this.hass, "/api/maintenance_supporter/documents/archive", form, "docs_archive_too_large", ["docs_archive_no_manifest"],
       );
+      const restored = t("settings_docs_import_success", this._lang)
+        .replace("{blobs}", String(result.blobs_written ?? 0))
+        .replace("{docs}", String(result.documents_created ?? 0));
+      // Documents whose file the archive did not carry are not created —
+      // said, so a file left out when zipping again is noticed.
       this._showToast(
-        t("settings_docs_import_success", this._lang)
-          .replace("{blobs}", String(result.blobs_written ?? 0))
-          .replace("{docs}", String(result.documents_created ?? 0))
+        result.files_missing
+          ? `${restored} · ${t("settings_docs_import_missing", this._lang).replace("{n}", String(result.files_missing))}`
+          : restored,
       );
       this.dispatchEvent(new CustomEvent("settings-changed"));
     } catch (e) {
@@ -2179,7 +2184,9 @@ export class MaintenanceSettingsView extends LitElement {
         e instanceof Error && e.message === "docs_archive_too_large"
           ? t("docs_archive_too_large", this._lang)
             .replace("{max}", `${formatNumber(DOCS_ARCHIVE_MAX_BYTES / (1024 * 1024), this._lang)} MB`)
-          : t("action_error", this._lang),
+          : e instanceof Error && e.message === "docs_archive_no_manifest"
+            ? t("docs_archive_no_manifest", this._lang)
+            : t("action_error", this._lang),
       );
     }
     input.value = "";

@@ -363,7 +363,7 @@ class DocumentsArchiveView(HomeAssistantView):
         content = await self.hass.async_add_executor_job(file_field.file.read)
         result = await import_documents_archive(self.hass, content)
         if "error" in result:
-            return self.json_message(result["error"], HTTPStatus.BAD_REQUEST)
+            return self.json_message(result["error"], HTTPStatus.BAD_REQUEST, message_code=result.get("code"))
         return self.json(result)
 
 

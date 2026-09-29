@@ -60,6 +60,14 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Every reload of the main entry left a timer behind:** a refresh between its unload and set-up repainted the
   removed maintenance calendar, and Home Assistant armed an alarm for the end of today's event that nothing
   cancelled. The objects now repaint the calendar only while it exists.
+- **The documents ZIP, as people handle it:** an archive unpacked, browsed and zipped again restored nothing — macOS
+  writes decomposed file names, and zipping the folder adds one more level; both are found now. Zipped without its
+  `manifest.json` it says so, a document whose file is not in the archive is no longer created pointing at nothing
+  (the restore counts them), a file several objects share (a replaced appliance) is stored once instead of at every
+  path, and checking the files' hashes and reading a large YAML import no longer hold up Home Assistant.
+- **A move folded two people with the same name into one:** a former and a current member called "Anna" both became
+  the one Anna on the new instance, and completions by a system user (Supervisor) were reported as a missing person.
+  Shared names are reported now, and system users map to the system user of the same name.
 - **Smaller:** the card self-heal could load its bundle three times in parallel on a slow phone; the calendar card kept
   a user or object filter removed in the editor; the completion action's validation messages and the re-analyze toast
   were English only.

@@ -95,23 +95,33 @@ async def async_user_map(hass: HomeAssistant, hints: Any) -> tuple[dict[str, str
 
     An id that exists here stays as it is (a restore on the same instance).
     Otherwise the name from the export's ``users`` picks the one active
-    person with that name here; none or several → unmatched, reported.
+    person with that name here; none or several → unmatched, reported. Two
+    people who shared a name at the source (a former and a current member,
+    say) are not both folded into the one person here — they are reported
+    too. A system user (Supervisor and the like, which appear as "completed
+    by" of automated completions) maps to the system user of the same name
+    here instead of being reported as a missing person (bug audit
+    2026-09-29).
     """
     users = await hass.auth.async_get_users()
     known = {u.id for u in users}
-    by_name: dict[str, list[str]] = {}
+    people: dict[str, list[str]] = {}
+    system: dict[str, list[str]] = {}
     for u in users:
-        if u.is_active and not u.system_generated and u.name:
-            by_name.setdefault(_norm(u.name), []).append(u.id)
+        if u.is_active and u.name:
+            (system if u.system_generated else people).setdefault(_norm(u.name), []).append(u.id)
     mapping: dict[str, str] = {}
     unmatched: set[str] = set()
     if not isinstance(hints, dict):
         return mapping, []
-    for old_id, name in hints.items():
-        if not isinstance(old_id, str) or not isinstance(name, str) or old_id in known:
-            continue
-        candidates = by_name.get(_norm(name), [])
-        if len(candidates) == 1:
+    wanted = {old_id: name for old_id, name in hints.items() if isinstance(old_id, str) and isinstance(name, str) and old_id not in known}
+    shared: dict[str, int] = {}
+    for name in wanted.values():
+        shared[_norm(name)] = shared.get(_norm(name), 0) + 1
+    for old_id, name in wanted.items():
+        key = _norm(name)
+        candidates = people.get(key) or system.get(key) or []
+        if len(candidates) == 1 and shared[key] == 1:
             mapping[old_id] = candidates[0]
         else:
             unmatched.add(name.strip()[:100])

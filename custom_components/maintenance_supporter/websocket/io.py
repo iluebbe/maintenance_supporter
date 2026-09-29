@@ -950,7 +950,9 @@ async def ws_import_json(
         return
 
     try:
-        data = _parse_structured(raw)
+        # Off the event loop: up to 10 MB, and YAML parses in pure Python
+        # (seconds on a Raspberry Pi; bug audit 2026-09-29).
+        data = await hass.async_add_executor_job(_parse_structured, raw)
     except ValueError:
         send_translated_error(connection, msg["id"], "invalid_format", "Content is not valid JSON or YAML", translation_key="import_not_json_yaml")
         return
