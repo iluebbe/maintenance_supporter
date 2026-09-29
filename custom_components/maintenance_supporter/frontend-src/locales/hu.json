@@ -689,7 +689,7 @@
   "settings_include_history": "Előzményekkel együtt",
   "settings_export_selection": "Csak a kiválasztott objektumok (opcionális)",
   "settings_docs_archive": "Dokumentumarchívum (fájlokkal)",
-  "settings_docs_archive_hint": "A JSON/YAML/CSV export csak a beállításokat tartalmazza. Ez a ZIP a feltöltött fájlok tartalmát is magában foglalja, így a visszaállítás teljes.",
+  "settings_docs_archive_hint": "A JSON- és YAML-export felsorolja a dokumentumokat, de a fájljaikat nem tartalmazza; a CSV kihagyja a dokumentumokat. Ez a ZIP a feltöltött fájlokat tartalmazza – a JSON importálása után állítsd vissza, és semmi sem hiányzik.",
   "settings_docs_export_btn": "Dokumentum-ZIP letöltése",
   "settings_docs_import_btn": "Dokumentum-ZIP visszaállítása",
   "settings_docs_import_success": "Visszaállítva: {blobs} fájl, {docs} dokumentum",

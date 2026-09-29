@@ -1024,7 +1024,7 @@
   "parts_load_failed": "Nie udało się wczytać części tego obiektu — opcje zużycia części są teraz niedostępne.",
   "settings_export_selection": "Ogranicz do wybranych obiektów (opcjonalnie)",
   "settings_docs_archive": "Archiwum dokumentów (z plikami)",
-  "settings_docs_archive_hint": "Eksporty JSON/YAML/CSV zawierają tylko ustawienia. To ZIP zawiera treść przesłanych plików, aby przywracanie było kompletne.",
+  "settings_docs_archive_hint": "Eksporty JSON i YAML wymieniają Twoje dokumenty, ale nie zawierają ich plików; CSV pomija dokumenty. Ten ZIP zawiera przesłane pliki — przywróć go po zaimportowaniu JSON, a niczego nie zabraknie.",
   "settings_docs_export_btn": "Pobierz ZIP dokumentów",
   "settings_docs_import_btn": "Przywróć ZIP dokumentów",
   "settings_docs_import_success": "Przywrócono: {blobs} plików, {docs} dokumentów",

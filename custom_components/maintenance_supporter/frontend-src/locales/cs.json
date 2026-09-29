@@ -1024,7 +1024,7 @@
   "parts_load_failed": "Nepodařilo se načíst díly tohoto objektu — možnosti spotřeby dílů nyní nejsou k dispozici.",
   "settings_export_selection": "Omezit na vybrané objekty (volitelné)",
   "settings_docs_archive": "Archiv dokumentů (se soubory)",
-  "settings_docs_archive_hint": "Exporty JSON/YAML/CSV obsahují jen nastavení. Tento ZIP obsahuje obsah nahraných souborů, aby obnovení bylo úplné.",
+  "settings_docs_archive_hint": "Exporty JSON a YAML uvádějí vaše dokumenty, ale neobsahují jejich soubory; CSV dokumenty vynechává. Tento ZIP obsahuje nahrané soubory — obnovte jej po importu JSON a nic nebude chybět.",
   "settings_docs_export_btn": "Stáhnout ZIP dokumentů",
   "settings_docs_import_btn": "Obnovit ZIP dokumentů",
   "settings_docs_import_success": "Obnoveno: {blobs} souborů, {docs} dokumentů",

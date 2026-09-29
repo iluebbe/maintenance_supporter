@@ -689,7 +689,7 @@
   "settings_include_history": "Incluir histórico",
   "settings_export_selection": "Limitar aos objetos selecionados (opcional)",
   "settings_docs_archive": "Arquivo de documentos (com arquivos)",
-  "settings_docs_archive_hint": "As exportações JSON/YAML/CSV levam apenas as configurações. Este ZIP inclui o conteúdo dos arquivos enviados para que a restauração seja completa.",
+  "settings_docs_archive_hint": "As exportações JSON e YAML listam seus documentos, mas não os arquivos deles; o CSV deixa os documentos de fora. Este ZIP contém os arquivos enviados — restaure-o depois de importar o JSON e nada ficará faltando.",
   "settings_docs_export_btn": "Baixar ZIP de documentos",
   "settings_docs_import_btn": "Restaurar ZIP de documentos",
   "settings_docs_import_success": "Restaurados: {blobs} arquivos, {docs} documentos",

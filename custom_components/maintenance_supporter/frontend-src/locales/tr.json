@@ -689,7 +689,7 @@
   "settings_include_history": "Geçmişi dahil et",
   "settings_export_selection": "Seçili nesnelerle sınırla (isteğe bağlı)",
   "settings_docs_archive": "Belge arşivi (dosyalarla birlikte)",
-  "settings_docs_archive_hint": "JSON/YAML/CSV dışa aktarmaları yalnızca ayarları içerir. Bu ZIP, geri yüklemenin eksiksiz olması için yüklenen dosya içeriklerini de kapsar.",
+  "settings_docs_archive_hint": "JSON ve YAML dışa aktarmaları belgelerinizi listeler ancak dosyalarını içermez; CSV belgeleri dışarıda bırakır. Bu ZIP yüklenen dosyaları içerir — JSON'u içe aktardıktan sonra geri yükleyin, hiçbir şey eksik kalmaz.",
   "settings_docs_export_btn": "Belge ZIP'ini indir",
   "settings_docs_import_btn": "Belge ZIP'ini geri yükle",
   "settings_docs_import_success": "Geri yüklendi: {blobs} dosya, {docs} belge",

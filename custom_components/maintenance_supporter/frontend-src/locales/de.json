@@ -1024,7 +1024,7 @@
   "parts_load_failed": "Die Teile dieses Objekts konnten nicht geladen werden — die Teileverbrauch-Optionen sind gerade nicht verfügbar.",
   "settings_export_selection": "Auf ausgewählte Objekte beschränken (optional)",
   "settings_docs_archive": "Dokumentenarchiv (mit Dateien)",
-  "settings_docs_archive_hint": "Die JSON/YAML/CSV-Exporte enthalten nur Einstellungen. Dieses ZIP enthält die hochgeladenen Dateiinhalte, sodass eine Wiederherstellung vollständig ist.",
+  "settings_docs_archive_hint": "Die JSON- und YAML-Exporte führen deine Dokumente auf, aber nicht ihre Dateien; CSV lässt Dokumente weg. Dieses ZIP enthält die hochgeladenen Dateien – stelle es nach dem JSON-Import wieder her, dann fehlt nichts.",
   "settings_docs_export_btn": "Dokumente-ZIP herunterladen",
   "settings_docs_import_btn": "Dokumente-ZIP wiederherstellen",
   "settings_docs_import_success": "Wiederhergestellt: {blobs} Dateien, {docs} Dokumente",

@@ -37,6 +37,9 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **A saved view for one person left the person filter blank:** the filter only offered *All users* and *My tasks*, so
   a view narrowed to someone else (saved through the WebSocket API) filtered correctly but showed an
   empty select. The filter now lists everyone responsible for a task, by name.
+- **The documents archive hint said the exports carry "settings only":** they carry objects, tasks, history and the
+  document records — only the uploaded files are missing, and CSV has no documents at all. The hint now says so (in
+  all 22 languages) and sits under its heading instead of squeezed between the heading and the buttons.
 - **The vacation dates were cut off:** the date fields sat in columns too narrow for the date next to their typing and
   clear buttons, so "11/10/2026" read "11/1". The columns are wider now.
 - **Our dashboard cards sometimes showed "Configuration error":** Home Assistant swaps in a new custom-element

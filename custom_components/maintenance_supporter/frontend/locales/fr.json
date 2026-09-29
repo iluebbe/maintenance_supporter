@@ -1024,7 +1024,7 @@
   "parts_load_failed": "Impossible de charger les pièces de cet objet — les options de consommation de pièces sont indisponibles pour le moment.",
   "settings_export_selection": "Limiter aux objets sélectionnés (facultatif)",
   "settings_docs_archive": "Archive de documents (avec fichiers)",
-  "settings_docs_archive_hint": "Les exports JSON/YAML/CSV ne contiennent que les réglages. Ce ZIP inclut le contenu des fichiers téléversés pour une restauration complète.",
+  "settings_docs_archive_hint": "Les exports JSON et YAML listent vos documents, mais pas leurs fichiers ; le CSV omet les documents. Ce ZIP contient les fichiers téléversés — restaurez-le après l'import du JSON et rien ne manque.",
   "settings_docs_export_btn": "Télécharger le ZIP des documents",
   "settings_docs_import_btn": "Restaurer le ZIP des documents",
   "settings_docs_import_success": "Restauré : {blobs} fichiers, {docs} documents",

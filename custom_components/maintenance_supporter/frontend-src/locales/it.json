@@ -1024,7 +1024,7 @@
   "parts_load_failed": "Impossibile caricare i ricambi di questo oggetto — le opzioni di consumo ricambi non sono al momento disponibili.",
   "settings_export_selection": "Limita agli oggetti selezionati (facoltativo)",
   "settings_docs_archive": "Archivio documenti (con file)",
-  "settings_docs_archive_hint": "Gli export JSON/YAML/CSV contengono solo le impostazioni. Questo ZIP include il contenuto dei file caricati per un ripristino completo.",
+  "settings_docs_archive_hint": "Gli export JSON e YAML elencano i tuoi documenti, ma non i loro file; il CSV esclude i documenti. Questo ZIP contiene i file caricati: ripristinalo dopo aver importato il JSON e non mancherà nulla.",
   "settings_docs_export_btn": "Scarica ZIP dei documenti",
   "settings_docs_import_btn": "Ripristina ZIP dei documenti",
   "settings_docs_import_success": "Ripristinati: {blobs} file, {docs} documenti",

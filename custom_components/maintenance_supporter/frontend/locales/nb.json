@@ -1024,7 +1024,7 @@
   "parts_load_failed": "Kunne ikke laste objektets deler — forbruksvalgene er ikke tilgjengelige nå.",
   "settings_export_selection": "Begrens til valgte objekter (valgfritt)",
   "settings_docs_archive": "Dokumentarkiv (med filer)",
-  "settings_docs_archive_hint": "JSON/YAML/CSV-eksportene inneholder bare innstillinger. Denne ZIP-en inkluderer innholdet i de opplastede filene, slik at gjenoppretting blir fullstendig.",
+  "settings_docs_archive_hint": "JSON- og YAML-eksportene lister opp dokumentene dine, men ikke filene deres; CSV utelater dokumenter. Denne ZIP-en inneholder de opplastede filene – gjenopprett den etter at JSON er importert, så mangler ingenting.",
   "settings_docs_export_btn": "Last ned dokument-ZIP",
   "settings_docs_import_btn": "Gjenopprett dokument-ZIP",
   "settings_docs_import_success": "Gjenopprettet: {blobs} filer, {docs} dokumenter",

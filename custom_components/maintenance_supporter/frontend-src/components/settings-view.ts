@@ -2358,6 +2358,13 @@ export class MaintenanceSettingsView extends LitElement {
     .settings-actions {
       display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;
     }
+    /* Heading, hint and buttons stacked — as a row the hint landed between
+       the heading and the buttons, reading like a caption for neither. */
+    .docs-archive-block {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .docs-archive-block h4, .docs-archive-block .section-desc { margin: 0; }
     .settings-actions button {
       padding: 8px 16px;
       border-radius: 8px;

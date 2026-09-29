@@ -689,7 +689,7 @@
   "settings_include_history": "기록 포함",
   "settings_export_selection": "선택한 객체로 제한 (선택)",
   "settings_docs_archive": "문서 아카이브 (파일 포함)",
-  "settings_docs_archive_hint": "JSON/YAML/CSV 내보내기에는 설정만 포함됩니다. 이 ZIP에는 업로드한 파일 내용까지 포함되어 완전한 복원이 가능합니다.",
+  "settings_docs_archive_hint": "JSON 및 YAML 내보내기에는 문서 목록이 포함되지만 파일 자체는 포함되지 않으며, CSV에는 문서가 포함되지 않습니다. 이 ZIP에는 업로드한 파일이 들어 있으므로 JSON을 가져온 뒤 복원하면 빠짐없이 옮겨집니다.",
   "settings_docs_export_btn": "문서 ZIP 다운로드",
   "settings_docs_import_btn": "문서 ZIP 복원",
   "settings_docs_import_success": "복원됨: 파일 {blobs}개, 문서 {docs}개",
