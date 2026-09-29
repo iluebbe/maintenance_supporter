@@ -4,7 +4,7 @@ name: Timelapse
 # — history, notifications, rotations, phases, fleet learning, buy reminders
 # and catalog resets produced by the product's own code paths week by week —
 # then moved to a fresh instance and compared value by value
-# (e2e/migration/run.mjs). ~25 minutes, so weekly and on demand rather than
+# (e2e/migration/run.mjs). ~12 minutes, so weekly and on demand rather than
 # per push; the per-push twins are tests/test_migration_roundtrip.py and the
 # migration-roundtrip job.
 on:
@@ -16,7 +16,7 @@ jobs:
   timelapse:
     name: A year in ten minutes, then moved
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -29,7 +29,6 @@ jobs:
           TIMELAPSE_IMAGE: ha-faketime
           MIGRATE: "1"
           KEEP: "0"
-          TIMELAPSE_LOG_LEVEL: info
         run: node e2e/timelapse/run.mjs
       - name: Container logs
         if: failure()
