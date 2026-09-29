@@ -681,6 +681,7 @@
   "settings_import_placeholder": "Incolla il contenuto JSON o CSV qui…",
   "settings_import_btn": "Importa",
   "settings_import_success": "{count} oggetti importati con successo.",
+  "settings_import_unmatched_users": "Non trovati su questa istanza: {names}. Le loro assegnazioni delle attività sono state rimosse — crea persone con gli stessi nomi in Home Assistant e importa di nuovo per mantenerle.",
   "settings_export_success": "Export scaricato.",
   "settings_saved": "Impostazione salvata.",
   "settings_include_history": "Includi cronologia",

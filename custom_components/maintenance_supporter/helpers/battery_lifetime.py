@@ -262,6 +262,43 @@ def replacement_log(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
     return {k: dict(v) for k, v in raw.items() if isinstance(v, dict)} if isinstance(raw, dict) else {}
 
 
+# Ceiling on the batteries an imported log may carry — far above any real
+# fleet, low enough that a crafted backup cannot bloat the Store.
+_LOG_ENTRIES_CAP = 2000
+
+
+def sanitize_replacement_log(raw: Any) -> dict[str, dict[str, Any]]:
+    """An imported replacement log in the shape :func:`observe_replacements`
+    writes — valid entity ids, a canonical type, ISO dates (sorted, capped),
+    the anchor flag. The log is the fleet's only record of past swaps; a
+    backup used to leave it behind (round-trip audit 2026-09-29)."""
+    from homeassistant.core import valid_entity_id
+
+    out: dict[str, dict[str, Any]] = {}
+    if not isinstance(raw, dict):
+        return out
+    for key, entry in raw.items():
+        if len(out) >= _LOG_ENTRIES_CAP:
+            break
+        if not isinstance(key, str) or not valid_entity_id(key) or not isinstance(entry, dict):
+            continue
+        dates: set[str] = set()
+        for value in entry.get("dates") or []:
+            try:
+                dates.add(date.fromisoformat(str(value)[:10]).isoformat())
+            except ValueError:
+                continue
+        if not dates:
+            continue
+        out[key] = {
+            "type": canonical_type(entry.get("type")),
+            "model": str(entry.get("model") or "")[:200],
+            "dates": sorted(dates)[-_LOG_DATES_CAP:],
+            "anchored": entry.get("anchored") is True,
+        }
+    return out
+
+
 def observe_replacements(hass: HomeAssistant, batteries: list[Any]) -> int:
     """Log every battery's current last-replaced date the first time it is
     seen and every time it changes. Called from the overview computation, so

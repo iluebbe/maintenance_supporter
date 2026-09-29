@@ -163,6 +163,16 @@ def _build_export_object(
         # restored fleet task is a plain inspection task.
         if tdata.get(BATTERY_FLEET_TASK_FLAG):
             task[BATTERY_FLEET_TASK_FLAG] = True
+            # The fleet's replacement log and low latch live in the task's
+            # Store state, which merged_tasks does not overlay — a backup
+            # lost every recorded battery swap (round-trip audit 2026-09-29).
+            from .helpers.battery_fleet import LOW_LATCH_KEY
+            from .helpers.battery_lifetime import REPLACEMENT_LOG_KEY
+
+            state = store.get_task_state(tid) if store is not None else {}
+            for key in (REPLACEMENT_LOG_KEY, LOW_LATCH_KEY):
+                if state.get(key):
+                    task[key] = state[key]
 
         if include_history:
             task["history"] = tdata.get("history") or []
@@ -368,4 +378,11 @@ def build_settings_export(hass: HomeAssistant) -> dict[str, Any]:
     ):
         if key in opts:
             settings[key] = opts[key]
-    return {"version": 1, "global_settings": settings}
+    out: dict[str, Any] = {"version": 1, "global_settings": settings}
+    # Group members and vacation exemptions point at tasks by id; a move to
+    # another instance mints new ids, so name them (helpers.import_mapping).
+    from .helpers.import_mapping import TASK_NAMES_KEY, settings_task_names
+
+    if task_names := settings_task_names(hass, settings):
+        out[TASK_NAMES_KEY] = task_names
+    return out

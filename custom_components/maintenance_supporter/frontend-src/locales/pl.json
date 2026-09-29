@@ -681,6 +681,7 @@
   "settings_import_placeholder": "Wklej tutaj zawartość JSON lub CSV…",
   "settings_import_btn": "Importuj",
   "settings_import_success": "{count} obiektów zaimportowanych pomyślnie.",
+  "settings_import_unmatched_users": "Nie znaleziono w tej instancji: {names}. Ich przypisania zadań zostały usunięte — utwórz w Home Assistant osoby o tych samych nazwach i zaimportuj ponownie, aby je zachować.",
   "settings_export_success": "Eksport pobrany.",
   "settings_saved": "Ustawienie zapisane.",
   "settings_include_history": "Dołącz historię",

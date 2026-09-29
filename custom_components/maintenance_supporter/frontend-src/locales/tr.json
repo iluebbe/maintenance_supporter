@@ -683,6 +683,7 @@
   "settings_import_placeholder": "JSON veya CSV içeriğini buraya yapıştırın…",
   "settings_import_btn": "İçe aktar",
   "settings_import_success": "{count} nesne başarıyla içe aktarıldı.",
+  "settings_import_unmatched_users": "Bu kurulumda bulunamadı: {names}. Görev atamaları kaldırıldı — korumak için Home Assistant'ta aynı adlara sahip kişiler oluşturup yeniden içe aktarın.",
   "settings_export_success": "Dışa aktarma indirildi.",
   "settings_saved": "Ayar kaydedildi.",
   "settings_include_history": "Geçmişi dahil et",

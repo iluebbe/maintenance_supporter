@@ -9,6 +9,7 @@ under the unit gate.
 
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import zipfile
@@ -100,8 +101,11 @@ async def test_archive_get_then_reimport_roundtrip(
     assert mobj["object_id"] == OBJECT_ID_1
     kinds = {d["kind"] for d in mobj["documents"]}
     assert kinds == {"file", "weblink"}
+    archived_file = next(d for d in mobj["documents"] if d["kind"] == "file")
     with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
-        assert f"{doc_archive.BLOB_DIR}{file_doc['hash']}" in zf.namelist()
+        # Version 2: the file sits at a readable path the manifest names.
+        assert archived_file["path"] in zf.namelist()
+        assert hashlib.sha256(zf.read(archived_file["path"])).hexdigest() == file_doc["hash"]
 
     # Wipe every doc (and its blob) for the object, then restore from the ZIP.
     assert await store.async_remove_object(OBJECT_ID_1) == len(_PDF)  # bytes freed

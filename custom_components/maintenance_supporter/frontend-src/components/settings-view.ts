@@ -185,6 +185,9 @@ export class MaintenanceSettingsView extends LitElement {
   @state() private _settings: SettingsResponse | null = null;
   @state() private _loading = true;
   @state() private _importCsv = "";
+  /** People an import's tasks pointed at that match nobody on this instance
+   *  (by name) — their assignments were cleared; shown until the next import. */
+  @state() private _importUnmatched: string[] = [];
   @state() private _importLoading = false;
   @state() private _includeHistory = true;
   @state() private _toast = "";
@@ -2026,6 +2029,11 @@ export class MaintenanceSettingsView extends LitElement {
               ${this._importLoading ? "…" : t("settings_import_btn", L)}
             </button>
           </div>
+          ${this._importUnmatched.length
+            ? html`<div class="import-notice">
+                ${t("settings_import_unmatched_users", L).replace("{names}", this._importUnmatched.join(", "))}
+              </div>`
+            : nothing}
         </div>
       </div>
     `;
@@ -2112,7 +2120,8 @@ export class MaintenanceSettingsView extends LitElement {
     // (JSON `{`/`[` or YAML `version:`) goes to the structured importer,
     // which parses JSON and YAML alike.
     const isCsv = content.startsWith("object_name");
-    const result = await this._ws<{ created: number }>(
+    this._importUnmatched = [];
+    const result = await this._ws<{ created: number; unmatched_users?: string[] }>(
       isCsv
         ? { type: "maintenance_supporter/csv/import", csv_content: content }
         : { type: "maintenance_supporter/json/import", json_content: content },
@@ -2122,6 +2131,7 @@ export class MaintenanceSettingsView extends LitElement {
     if (!result) return;
     const count = result.created ?? 0;
     this._showToast(t("settings_import_success", this._lang).replace("{count}", String(count)));
+    this._importUnmatched = Array.isArray(result.unmatched_users) ? result.unmatched_users : [];
     this._importCsv = "";
     this.dispatchEvent(new CustomEvent("settings-changed"));
   }
@@ -2179,6 +2189,12 @@ export class MaintenanceSettingsView extends LitElement {
   // --- Styles ---
 
   static styles = [personStyles, css`
+    .import-notice {
+      margin-top: 8px; padding: 8px 12px; border-radius: 8px;
+      background: rgba(255, 152, 0, 0.1);
+      border: 1px solid rgba(255, 152, 0, 0.35);
+      font-size: 13.5px; line-height: 1.45;
+    }
     .bn-note {
       display: flex; align-items: flex-start; gap: 10px;
       margin: 6px 0 10px; padding: 10px 12px; border-radius: 8px;

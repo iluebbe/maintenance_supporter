@@ -944,11 +944,30 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 - **Description and order** (2.84+, #164) — every document takes a free-text **description** (shown under its title, searched by the document search), and the list can be ordered **newest / oldest / by title / by category**, remembered per browser. *By title* sorts naturally — "Construct 2" before "Construct 10", "#1, #2, #3" — so numbering your documents gives the sequence you typed. The description also shows under the title in the task's document list and prints next to the task's linked documents in the service booklet, behind the *Document descriptions* print switch (2.85+)
 - **Documents at the task** — link an object's documents to a specific task so the right manual sits on the task-detail page where the work happens; each task row shows a **paperclip badge** with its document count, and the link **survives a backup/restore** (task ids are remapped like the spare-part links). For a PDF you can set a **jump-to page** so opening it lands on the relevant section (`#page=N`)
 - **Lifecycle & hygiene** — deleting a document frees its bytes only when the *last* reference goes; archiving an object keeps its documents (inert); a boot-time **storage-hygiene repair issue** flags orphaned or dangling blobs after a crash or partial restore and cleans them up in one click
-- **Complete, portable backup** — the JSON/YAML/CSV export carries settings + document metadata; a dedicated **documents archive** (a ZIP of the file contents) downloads/restores the blobs on top, matching objects by id then by name for a cross-instance move. Exports can be **limited to selected objects** to migrate a single asset
+- **Portable backup** — three exports that together carry everything: the **objects** (JSON or YAML, with history and document metadata), the **settings** (a second file: groups, saved views, vacation, notification and budget settings, feature switches) and the **documents archive** (a ZIP with the files themselves). CSV carries objects and tasks only. Exports can be **limited to selected objects** to migrate a single asset — see [Moving to another Home Assistant](#moving-to-another-home-assistant-296)
 
 ![Documents & parts below the task list, with a per-task paperclip badge](images/task-documents.png)
 
 ![Import / Export: object selection, JSON/YAML/CSV and the documents archive](images/export-options.png)
+
+### Moving to another Home Assistant (2.96+)
+Export all three files on the old instance (*Settings → Import / Export*): **Export JSON** (with history), **Export settings (JSON)** and **Download documents ZIP**. On the new instance, import the two JSON files (either order) and then **Restore documents ZIP**.
+
+- **Everything travels** — objects, tasks with every setting, history (costs, notes, readings, used parts, completion photos), spare parts with their stock, the documents with their task and part links, reference numbers, the battery fleet with its replacement history, and the settings. A test moves a seeded instance to a fresh one on every change and compares every stored value.
+- **People are matched by name** — Home Assistant user ids exist only on the instance that created them, so the exports name the people they point at, and the import maps assignments, rotations, "completed by" and a saved view's person onto the users of the new instance **with the same name**. Create those users before importing. Anyone the import cannot match (no user, or two with that name) is listed after the import; their task assignments are removed, as for a deleted user.
+- **Groups and vacation exemptions follow their tasks** — they point at tasks by id and the import creates new ids; they are re-pointed by object and task name, whichever file comes first. Importing a backup *next to* the objects it came from leaves them pointing at the originals.
+- **What stays behind** — the panel's operator list and the per-member avatar colours (keyed by this instance's user ids), the shopping list entity, the to-do mirror's item links (re-linked on the next sync). A completion action runs as the admin who imported it.
+
+**The documents archive is readable** — one folder per object; completion photos sit in their task's folder named by the day the task was done, every other file in a folder for its category (*Manuals*, *Invoices*, *Photos* …), and `Links.txt` lists the web links:
+
+```
+Family Car/Manuals/owners-manual.pdf
+Family Car/Links.txt
+Utility Meters/Water meter reading/2026-09-12 hot-water.jpg
+manifest.json   ← what the restore reads; keep it next to the folders
+```
+
+Archives from before 2.96 (files stored as `blobs/<hash>`) still restore.
 
 ### Frontend
 - **Sidebar panel** with dashboard overview, object details, task history, analytics, and in-panel **settings editor**

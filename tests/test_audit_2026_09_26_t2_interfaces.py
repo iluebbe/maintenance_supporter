@@ -779,7 +779,7 @@ async def test_the_documents_archive_is_refused_above_the_import_ceiling(
     resp = await client.get(DOCS_ARCHIVE_URL)
     assert resp.status == 200
     with zipfile.ZipFile(io.BytesIO(await resp.read())) as zf:
-        assert any(n.startswith(doc_archive.BLOB_DIR) for n in zf.namelist())
+        assert any(n.endswith(".jpg") or n.endswith(".png") for n in zf.namelist()), zf.namelist()
     assert created, "the archive went through a temporary file"
     assert await _all_removed(), "the temporary archive was not removed"
 

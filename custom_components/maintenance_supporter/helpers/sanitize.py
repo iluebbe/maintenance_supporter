@@ -127,6 +127,10 @@ _FRESH_COPY_STRIP_KEYS = (
     # checklist from the beginning (DRY audit 2026-09-26 B).
     "phase_cursor",
     "checklist_progress",
+    # The fleet's replacement log / low latch ride entry.data only on an
+    # import (storage._SPLIT_ONLY_TASK_FIELDS); a copy never carries them.
+    "battery_replacements",
+    "battery_low_latch",
 )
 
 

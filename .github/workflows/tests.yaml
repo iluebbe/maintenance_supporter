@@ -275,6 +275,42 @@ jobs:
   # no lovelace-strategy whenDefined race). Validated green in Docker before
   # wiring here. NON-BLOCKING for the first runs (continue-on-error) so CI Linux
   # confirms stability before it becomes a hard gate; uploads traces on failure.
+  # A move between two REAL Home Assistant instances (e2e/migration/run.mjs):
+  # seed one through the API, export objects + settings + documents, import
+  # into a fresh one with the people re-created under new user ids, stop both
+  # and compare the stored data key by key. The in-process twin
+  # (tests/test_migration_roundtrip.py) gates in the pytest job; this one
+  # proves the real HTTP/WS paths, flows and restarts. Non-blocking until it
+  # has a record on the runner.
+  migration-roundtrip:
+    name: Migration round trip (two real HA instances)
+    runs-on: ubuntu-latest
+    needs: [pytest]
+    continue-on-error: true
+    timeout-minutes: 15
+    env:
+      MIGRATION_IMAGE: ghcr.io/home-assistant/home-assistant:2026.7.2
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Pull Home Assistant
+        run: docker pull "$MIGRATION_IMAGE"
+      - name: Move a seeded instance to a fresh one and compare
+        run: node e2e/migration/run.mjs
+      - name: Objects imported first
+        run: ORDER=objects-first node e2e/migration/run.mjs
+      - name: Snapshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: migration-roundtrip
+          path: |
+            e2e/migration/.run/*.json
+            e2e/migration/.run/*.zip
+          retention-days: 7
+
   e2e-lifecycle:
     name: E2E lifecycle (real HA panel + browser)
     runs-on: ubuntu-latest

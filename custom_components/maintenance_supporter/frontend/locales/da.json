@@ -683,6 +683,7 @@
   "settings_import_placeholder": "Indsæt JSON- eller CSV-indhold her…",
   "settings_import_btn": "Importer",
   "settings_import_success": "{count} objekter importeret.",
+  "settings_import_unmatched_users": "Ikke fundet på denne instans: {names}. Deres opgavetildelinger blev fjernet — opret personer med de samme navne i Home Assistant, og importér igen for at beholde dem.",
   "settings_export_success": "Eksport downloadet.",
   "settings_saved": "Indstilling gemt.",
   "settings_include_history": "Inkluder historik",

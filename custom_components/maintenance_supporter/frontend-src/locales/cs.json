@@ -681,6 +681,7 @@
   "settings_import_placeholder": "Vložte sem obsah JSON nebo CSV…",
   "settings_import_btn": "Importovat",
   "settings_import_success": "{count} objektů úspěšně importováno.",
+  "settings_import_unmatched_users": "V této instanci nenalezeno: {names}. Jejich přiřazení úloh bylo odebráno — vytvořte v Home Assistantu osoby se stejnými jmény a importujte znovu, abyste je zachovali.",
   "settings_export_success": "Export stažen.",
   "settings_saved": "Nastavení uloženo.",
   "settings_include_history": "Zahrnout historii",

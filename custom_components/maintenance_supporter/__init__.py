@@ -705,7 +705,9 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         include_history = call.data.get("include_history", True)
 
         # Phase 1: gather data on the event loop (accesses HA APIs)
-        data = build_export_data(hass, include_history=include_history)
+        from .helpers.import_mapping import async_attach_user_names
+
+        data = await async_attach_user_names(hass, build_export_data(hass, include_history=include_history))
 
         # Phase 2: serialize in executor (CPU-bound, no HA API calls)
         file_path = hass.config.path(f"maintenance_export.{fmt}")

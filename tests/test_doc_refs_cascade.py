@@ -58,7 +58,7 @@ async def _link_photo_and_part(hass: HomeAssistant, obj: MockConfigEntry, doc_id
 def test_doc_wire_dict_is_the_shared_record() -> None:
     file_doc = {"id": "d1", "object_id": "o", "kind": "file", "hash": "ab" * 32, "title": "Manual", "filename": "m.pdf", "mime": "application/pdf", "size": 3, "tags": ["manual"], "description": "x", "task_ids": ["t1"], "part_ids": ["p1"], "task_pages": {"t1": 4}, "added_at": "2026-01-01"}
     wire = doc_wire_dict(file_doc, include_id=True)
-    assert wire == {"id": "d1", "kind": "file", "hash": "ab" * 32, "title": "Manual", "filename": "m.pdf", "mime": "application/pdf", "size": 3, "tags": ["manual"], "description": "x", "task_ids": ["t1"], "part_ids": ["p1"], "task_pages": {"t1": 4}}
+    assert wire == {"id": "d1", "kind": "file", "hash": "ab" * 32, "title": "Manual", "filename": "m.pdf", "mime": "application/pdf", "size": 3, "tags": ["manual"], "description": "x", "task_ids": ["t1"], "part_ids": ["p1"], "task_pages": {"t1": 4}, "added_at": "2026-01-01"}
     assert "id" not in doc_wire_dict(file_doc, include_id=False)
     link = doc_wire_dict({"id": "d2", "kind": "weblink", "url": "https://x", "title": "X"}, include_id=True)
     assert link == {"id": "d2", "kind": "weblink", "url": "https://x", "title": "X", "tags": [], "description": "", "task_ids": [], "part_ids": []}
@@ -72,6 +72,8 @@ async def test_archive_manifest_matches_the_json_export_record(hass: HomeAssista
     manifest = json.loads(zipfile.ZipFile(io.BytesIO(doc_archive.build_documents_archive(hass, {obj.entry_id}))).read(doc_archive.MANIFEST_NAME))
     (archived,) = manifest["objects"][0]["documents"]
     (exported,) = _export_documents(store, OBJECT_ID_1)
+    # The archive adds where the file sits in the ZIP (version 2).
+    assert archived.pop("path") == "Pump/Documents/m.pdf"
     assert archived == exported
     assert archived["id"] == doc["id"] and archived["task_pages"] == {TASK_ID_1: 7}
 

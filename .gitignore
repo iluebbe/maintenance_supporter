@@ -88,3 +88,6 @@ ds-bundle/
 .design-sync/learnings/
 .design-sync/node_modules
 custom_components/maintenance_supporter/frontend-src/dist-ds/
+
+# two-instance migration round trip (e2e/migration/run.mjs): containers config + snapshots
+e2e/migration/.run/

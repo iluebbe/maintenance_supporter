@@ -3,16 +3,27 @@
 The JSON/YAML backup deliberately keeps document metadata only; the binary
 blobs ride the HA backup. That leaves a portable JSON export with dangling
 file docs on a fresh instance. This module adds a dedicated, self-contained
-documents archive:
+documents archive, laid out so a person can browse it too (version 2):
 
-    manifest.json   {"version":1, "objects":[{object_id, object_name,
-                     documents:[<metadata>]}]}
-    blobs/<sha256>  the raw file contents (content-addressed, dedup'd)
+    README.txt
+    manifest.json                    {"version":2, "objects":[{object_id,
+                                      object_name, documents:[<metadata>
+                                      + "path">]}]}
+    Family Car/Manuals/owners-manual.pdf
+    Family Car/Links.txt             the object's web links
+    Utility Meters/Meter reading/2026-09-12 hot-water.jpg
+                                     completion photos: task + day done
 
-Export gathers the selected objects' documents + their unique blobs. Import
-writes every blob back, then re-attaches metadata to the matching object
-(by id first, then by name for a cross-instance restore), skipping documents
-that already exist so a repeated import is idempotent. Weblinks travel too
+One folder per object; completion photos sit in their task's folder named
+by the day of the completion, every other file in a folder for its category.
+Version 1 stored the files as ``blobs/<sha256>`` — no names, no extensions,
+useless outside a restore (round-trip audit 2026-09-29); its archives still
+import.
+
+Import reads every file the manifest names (checked against its hash),
+writes it back, then re-attaches metadata to the matching object (by id
+first, then by name for a cross-instance restore), skipping documents that
+already exist so a repeated import is idempotent. Weblinks travel too
 (0 bytes) so the archive is a complete documents backup on its own.
 """
 
@@ -21,19 +32,26 @@ from __future__ import annotations
 import io
 import json
 import logging
+import mimetypes
+import re
 import zipfile
+from pathlib import PurePosixPath
 from typing import Any
 
 from homeassistant.core import HomeAssistant
 
 from ..const import DOMAIN, GLOBAL_UNIQUE_ID
+from .completion_photos import history_photo_ids
 from .documents import KIND_WEBLINK, async_rewrite_doc_refs, doc_wire_dict
 
 _LOGGER = logging.getLogger(__name__)
 
 MANIFEST_NAME = "manifest.json"
+README_NAME = "README.txt"
+LINKS_NAME = "Links.txt"
+# Version 1's content-addressed layout — still read on import.
 BLOB_DIR = "blobs/"
-ARCHIVE_VERSION = 1
+ARCHIVE_VERSION = 2
 # Cap a single archive import so a crafted ZIP can't exhaust memory/disk. A
 # real documents backup is dominated by the blobs, already capped at 25 MB
 # each × 100 docs/object — this is a coarse whole-archive ceiling on top.
@@ -115,6 +133,87 @@ class ArchiveTooLarge(ValueError):
     """The selection's files exceed what an import accepts (MAX_ARCHIVE_BYTES)."""
 
 
+# Document category (its first known tag) → folder inside the object's folder.
+_CATEGORY_FOLDERS = {
+    "manual": "Manuals",
+    "warranty": "Warranty",
+    "invoice": "Invoices",
+    "spare_parts": "Spare parts",
+    "photo": "Photos",
+    "other": "Other",
+}
+_UNSAFE_CHARS = re.compile(r'[\\/:*?"<>|\x00-\x1f]+')
+_WINDOWS_RESERVED = re.compile(r"^(con|prn|aux|nul|com\d|lpt\d)$", re.IGNORECASE)
+_README = """Maintenance Supporter - documents archive
+
+One folder per maintenance object. Completion photos sit in the folder of
+their task, named by the day the task was done; every other file sits in a
+folder for its category (Manuals, Invoices, Photos, ...). Links.txt lists an
+object's web links.
+
+To restore: Maintenance panel > Settings > Import / Export > Restore
+documents ZIP. manifest.json describes every file for the restore - keep
+it next to the folders.
+"""
+
+
+def _safe_part(name: Any, fallback: str) -> str:
+    """One path segment that every OS unpacks: no separators or reserved
+    characters, no trailing dots, bounded length."""
+    text = _UNSAFE_CHARS.sub(" ", str(name or ""))
+    text = re.sub(r"\s+", " ", text).strip().strip(".").strip()[:80].strip()
+    if not text:
+        return fallback
+    return f"{text}_" if _WINDOWS_RESERVED.match(PurePosixPath(text).stem) else text
+
+
+def _file_name(doc: dict[str, Any]) -> str:
+    """A document's file name with an extension (from its MIME type when the
+    stored name has none)."""
+    raw = str(doc.get("filename") or doc.get("title") or "document").replace(chr(92), "/")
+    name = PurePosixPath(raw).name or "document"
+    suffix = re.sub(r"[^A-Za-z0-9]", "", PurePosixPath(name).suffix)
+    if suffix and len(suffix) <= 10:
+        stem = PurePosixPath(name).stem
+    else:
+        stem = name
+        suffix = (mimetypes.guess_extension(str(doc.get("mime") or "")) or "").lstrip(".")
+    return _safe_part(stem, "document") + (f".{suffix.lower()}" if suffix else "")
+
+
+class _Paths:
+    """Hands out unique archive paths (case-insensitive, like the file
+    systems the archive is unpacked on)."""
+
+    def __init__(self) -> None:
+        # The archive's own root entries are not available as folder names.
+        self._taken: set[str] = {f"/{MANIFEST_NAME}".casefold(), f"/{README_NAME}".casefold(), "/blobs"}
+
+    def claim(self, folder: str, name: str) -> str:
+        stem, suffix = PurePosixPath(name).stem, PurePosixPath(name).suffix
+        candidate, n = f"{folder}/{name}", 2
+        while candidate.casefold() in self._taken:
+            candidate, n = f"{folder}/{stem} ({n}){suffix}", n + 1
+        self._taken.add(candidate.casefold())
+        return candidate
+
+
+def _completion_photo_refs(entry: Any) -> dict[str, tuple[str, str]]:
+    """{document id: (task name, day done)} — the first completion each photo
+    belongs to."""
+    from .aggregate import merged_tasks
+
+    refs: dict[str, tuple[str, str]] = {}
+    for task in merged_tasks(entry).values():
+        for item in task.get("history") or []:
+            if not isinstance(item, dict):
+                continue
+            day = str(item.get("timestamp") or "")[:10]
+            for doc_id in history_photo_ids(item):
+                refs.setdefault(doc_id, (str(task.get("name") or ""), day))
+    return refs
+
+
 def _gather_archive(hass: HomeAssistant, entry_ids: set[str] | None) -> tuple[Any, dict[str, Any], list[str]]:
     """The manifest and the blob digests of the selected objects (None = all).
 
@@ -128,21 +227,45 @@ def _gather_archive(hass: HomeAssistant, entry_ids: set[str] | None) -> tuple[An
 
     manifest_objects: list[dict[str, Any]] = []
     blob_hashes: set[str] = set()
+    paths = _Paths()
     for entry in entries:
         obj = entry.data.get(CONF_OBJECT, {})
         object_id = obj.get("id", "")
         if not object_id or store is None:
             continue
+        stored = store.for_object(object_id)
+        if not stored:
+            continue
+        # A readable place for every file (version 2): the object's folder
+        # (made unique, two objects may share a name), then the task + day
+        # for a completion photo, else the category.
+        folder = PurePosixPath(paths.claim("", _safe_part(obj.get("name"), "Object"))).name
+        photo_refs = _completion_photo_refs(entry)
         docs = []
-        for d in store.for_object(object_id):
+        for d in stored:
             # The same record the JSON export writes (id included, so a
             # restore can re-point completion photos / part doc links).
-            docs.append(doc_wire_dict(d, include_id=True))
+            record = doc_wire_dict(d, include_id=True)
             h = d.get("hash")
             if d.get("kind") != KIND_WEBLINK and isinstance(h, str):
                 blob_hashes.add(h)
-        if docs:
-            manifest_objects.append({"object_id": object_id, "object_name": obj.get("name", ""), "documents": docs})
+                if (ref := photo_refs.get(str(d.get("id")))) is not None:
+                    task_name, day = ref
+                    name = _file_name(d)
+                    record["path"] = paths.claim(
+                        f"{folder}/{_safe_part(task_name, 'Task')}", f"{day} {name}" if day else name
+                    )
+                else:
+                    tags = [t for t in d.get("tags") or [] if t in _CATEGORY_FOLDERS]
+                    category = _CATEGORY_FOLDERS[tags[0]] if tags else "Documents"
+                    record["path"] = paths.claim(f"{folder}/{category}", _file_name(d))
+            docs.append(record)
+        links = [r for r in docs if r.get("kind") == KIND_WEBLINK]
+        if links:
+            paths.claim(folder, LINKS_NAME)
+        manifest_objects.append(
+            {"object_id": object_id, "object_name": obj.get("name", ""), "folder": folder, "documents": docs}
+        )
 
     return store, {"version": ARCHIVE_VERSION, "objects": manifest_objects}, sorted(blob_hashes)
 
@@ -150,35 +273,47 @@ def _gather_archive(hass: HomeAssistant, entry_ids: set[str] | None) -> tuple[An
 def _write_archive(store: Any, manifest: dict[str, Any], blob_hashes: list[str], target: Any) -> None:
     """Write the ZIP to ``target`` (a path or binary file object) — blocking.
 
-    Each blob is streamed from disk into the archive (``ZipFile.write``), so
-    memory stays flat however large the documents are. Refuses up front a
-    selection whose files exceed MAX_ARCHIVE_BYTES: the import refuses such
-    an archive anyway, and the export used to assemble the whole ZIP in
-    memory with no ceiling (bug audit 2026-09-26).
+    Each file is streamed from disk into the archive (``ZipFile.write``) at
+    its readable path, so memory stays flat however large the documents
+    are. A file two documents share is written at both paths — the archive
+    is meant to be browsed. Refuses up front a selection whose files exceed
+    MAX_ARCHIVE_BYTES: the import refuses such an archive anyway, and the
+    export used to assemble the whole ZIP in memory with no ceiling (bug
+    audit 2026-09-26). ``blob_hashes`` is the set the manifest references.
     """
-    blobs: list[tuple[str, Any]] = []
+    wanted = set(blob_hashes)
+    files: list[tuple[str, Any]] = []
     total = 0
-    for h in blob_hashes:
-        if store is None:
-            break
-        try:
-            path = store.blob_path(h)
-        except ValueError:
-            continue
-        if not path.is_file():
-            _LOGGER.warning("Documents archive: blob %s missing on disk, skipped", h[:12])
-            continue
-        total += path.stat().st_size
-        if total > MAX_ARCHIVE_BYTES:
-            raise ArchiveTooLarge(
-                f"The selected documents exceed {MAX_ARCHIVE_BYTES // (1024 * 1024)} MB, "
-                "more than an archive import accepts — export fewer objects at a time."
-            )
-        blobs.append((h, path))
+    for obj in manifest.get("objects") or []:
+        for doc in obj.get("documents") or []:
+            h, arcname = doc.get("hash"), doc.get("path")
+            if store is None or h not in wanted or not isinstance(arcname, str):
+                continue
+            try:
+                path = store.blob_path(h)
+            except ValueError:
+                continue
+            if not path.is_file():
+                _LOGGER.warning("Documents archive: blob %s missing on disk, skipped", h[:12])
+                doc.pop("path", None)
+                continue
+            total += path.stat().st_size
+            if total > MAX_ARCHIVE_BYTES:
+                raise ArchiveTooLarge(
+                    f"The selected documents exceed {MAX_ARCHIVE_BYTES // (1024 * 1024)} MB, "
+                    "more than an archive import accepts — export fewer objects at a time."
+                )
+            files.append((arcname, path))
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr(README_NAME, _README)
         zf.writestr(MANIFEST_NAME, json.dumps(manifest, ensure_ascii=False, indent=2))
-        for h, path in blobs:
-            zf.write(path, arcname=f"{BLOB_DIR}{h}")
+        for obj in manifest.get("objects") or []:
+            links = [d for d in obj.get("documents") or [] if d.get("kind") == KIND_WEBLINK]
+            if links and obj.get("folder"):
+                text = "".join(f"{d.get('title') or d.get('url')}\n{d.get('url')}\n\n" for d in links)
+                zf.writestr(f"{obj['folder']}/{LINKS_NAME}", text)
+        for arcname, path in files:
+            zf.write(path, arcname=arcname)
 
 
 def build_documents_archive(hass: HomeAssistant, entry_ids: set[str] | None = None) -> bytes:
@@ -235,6 +370,8 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
     already present on the target object are skipped so a repeat import is
     idempotent. Returns counts.
     """
+    import hashlib
+
     store = _get_store(hass)
     if store is None:
         return {"error": "documents store unavailable"}
@@ -247,10 +384,27 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
             names = zf.namelist()
             if len(names) > MAX_ARCHIVE_MEMBERS:
                 raise ValueError("archive_too_many_members")
+            if MANIFEST_NAME in names:
+                # Bound the metadata member too (was read uncapped).
+                manifest = json.loads(_read_member_bounded(zf, MANIFEST_NAME, MAX_MANIFEST_BYTES).decode("utf-8"))
+            # Version 2: the files sit at the readable paths the manifest
+            # names; their content hash is computed here and checked against
+            # the documents' hash below like a version-1 blob name.
+            listed: set[str] = set()
+            raw_objects = manifest.get("objects") if isinstance(manifest, dict) else None
+            for obj in raw_objects if isinstance(raw_objects, list) else []:
+                docs_in = obj.get("documents") if isinstance(obj, dict) else None
+                for doc in docs_in if isinstance(docs_in, list) else []:
+                    if isinstance(doc, dict) and isinstance(doc.get("path"), str):
+                        listed.add(doc["path"])
             for name in names:
-                if name == MANIFEST_NAME:
-                    # Bound the metadata member too (was read uncapped).
-                    manifest = json.loads(_read_member_bounded(zf, name, MAX_MANIFEST_BYTES).decode("utf-8"))
+                if name in listed:
+                    remaining = MAX_ARCHIVE_BYTES - total
+                    if remaining <= 0:
+                        raise ValueError("archive_too_large")
+                    content = _read_member_bounded(zf, name, remaining)
+                    total += len(content)
+                    blobs.setdefault(hashlib.sha256(content).hexdigest(), content)
                 elif name.startswith(BLOB_DIR) and not name.endswith("/"):
                     digest = name[len(BLOB_DIR) :]
                     if len(digest) == 64 and all(c in "0123456789abcdef" for c in digest):
@@ -291,8 +445,6 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
         for m in docs:
             if isinstance(m, dict) and isinstance(m.get("hash"), str):
                 referenced.add(m["hash"])
-
-    import hashlib
 
     written = 0
     docs_created = 0

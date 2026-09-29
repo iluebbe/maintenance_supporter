@@ -683,6 +683,7 @@
   "settings_import_placeholder": "JSON या CSV सामग्री यहाँ चिपकाएँ…",
   "settings_import_btn": "आयात करें",
   "settings_import_success": "{count} वस्तुएँ सफलतापूर्वक आयात की गईं।",
+  "settings_import_unmatched_users": "इस इंस्टेंस पर नहीं मिले: {names}। उनके कार्य असाइनमेंट हटा दिए गए — उन्हें बनाए रखने के लिए Home Assistant में इन्हीं नामों वाले लोग बनाएँ और फिर से इंपोर्ट करें।",
   "settings_export_success": "निर्यात डाउनलोड किया गया।",
   "settings_saved": "सेटिंग सहेजी गई।",
   "settings_include_history": "इतिहास शामिल करें",

@@ -683,6 +683,7 @@
   "settings_import_placeholder": "JSON- oder CSV-Inhalt hier einfügen…",
   "settings_import_btn": "Importieren",
   "settings_import_success": "{count} Objekte erfolgreich importiert.",
+  "settings_import_unmatched_users": "Auf dieser Instanz nicht gefunden: {names}. Ihre Aufgabenzuweisungen wurden entfernt — lege Personen mit denselben Namen in Home Assistant an und importiere erneut, um sie zu behalten.",
   "settings_export_success": "Export heruntergeladen.",
   "settings_saved": "Einstellung gespeichert.",
   "settings_include_history": "Verlauf einbeziehen",

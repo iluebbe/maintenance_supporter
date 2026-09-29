@@ -535,6 +535,11 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
                     part = normalize_part({**praw, "id": pid})
                 except (PartValidationError, TypeError):
                     continue
+                # A backup's stock rides along; the entry's first setup moves
+                # it into the Store (storage.async_migrate_to_store).
+                stock = praw.get("stock") if isinstance(praw, dict) else None
+                if isinstance(stock, (int, float)) and not isinstance(stock, bool) and stock >= 0:
+                    part["stock"] = stock
                 parts[part["id"]] = part
 
         data: dict[str, Any] = {

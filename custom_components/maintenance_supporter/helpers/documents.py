@@ -91,7 +91,22 @@ def doc_wire_dict(doc: dict[str, Any], *, include_id: bool) -> dict[str, Any]:
     pages = doc.get("task_pages")
     if isinstance(pages, dict) and pages:
         out["task_pages"] = dict(pages)
+    # When it was added — a restore used to stamp every document with the
+    # import time (round-trip audit 2026-09-29).
+    if isinstance(doc.get("added_at"), str):
+        out["added_at"] = doc["added_at"]
     return out
+
+
+def imported_added_at(meta: dict[str, Any]) -> str:
+    """The ``added_at`` of an imported record: the exported moment when it
+    parses and is not in the future, else now."""
+    now = dt_util.utcnow()
+    raw = meta.get("added_at")
+    parsed = dt_util.parse_datetime(raw) if isinstance(raw, str) else None
+    if parsed is not None and parsed.tzinfo is not None and parsed <= now:
+        return dt_util.as_utc(parsed).isoformat()
+    return now.isoformat()
 
 
 async def async_rewrite_doc_refs(hass: HomeAssistant, rewrite: Callable[[str], str | None]) -> int:
@@ -533,7 +548,7 @@ class DocumentStore:
                 "task_ids": remap(meta),
                 "part_ids": remap_parts(meta),
                 **({"task_pages": pages} if pages else {}),
-                "added_at": dt_util.utcnow().isoformat(),
+                "added_at": imported_added_at(meta),
             }
             return 1
         if meta.get("kind") == KIND_FILE:
@@ -562,7 +577,7 @@ class DocumentStore:
                 "task_ids": remap(meta),
                 "part_ids": remap_parts(meta),
                 **({"task_pages": pages} if pages else {}),
-                "added_at": dt_util.utcnow().isoformat(),
+                "added_at": imported_added_at(meta),
             }
             return 1
         return 0

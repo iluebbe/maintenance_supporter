@@ -1,0 +1,389 @@
+{
+  "version": 1,
+  "users": {
+    "src-alice": "Alice",
+    "src-bob": "Bob"
+  },
+  "global_settings": {
+    "default_warning_days": 9,
+    "budget_monthly": 42.0,
+    "budget_currency": "EUR",
+    "advanced_checklists_visible": true,
+    "advanced_completion_actions_visible": true,
+    "advanced_adaptive_visible": true,
+    "groups": {
+      "grp_weekly": {
+        "name": "Weekly round",
+        "description": "Both machines",
+        "task_refs": [
+          {
+            "entry_id": "src-rig",
+            "task_id": "rig_task"
+          },
+          {
+            "entry_id": "src-kitchen",
+            "task_id": "descale_task"
+          }
+        ]
+      }
+    },
+    "saved_filter_views": [
+      {
+        "id": "view_alice",
+        "name": "Alice's tasks",
+        "filters": {
+          "status": "",
+          "user_id": "src-alice",
+          "label": null,
+          "priority": "",
+          "archived": false,
+          "sort_mode": "due_date",
+          "group_by": "none"
+        }
+      }
+    ],
+    "vacation_exempt_task_ids": [
+      "descale_task"
+    ]
+  },
+  "task_names": {
+    "rig_task": {
+      "object": "Roundtrip Rig",
+      "task": "Full service"
+    },
+    "descale_task": {
+      "object": "Küche: Spülmaschine",
+      "task": "Descale"
+    }
+  },
+  "objects": [
+    {
+      "entry_id": "src-rig",
+      "object": {
+        "name": "Roundtrip Rig",
+        "manufacturer": "Acme",
+        "model": "X1",
+        "serial_number": "SN-0001",
+        "installation_date": "2024-01-15",
+        "warranty_expiry": "2027-01-15",
+        "documentation_url": "https://example.org/rig",
+        "notes": "**Shelf 2**, left"
+      },
+      "parts": [
+        {
+          "id": "part_filter",
+          "name": "Filter",
+          "mpn": "F-1",
+          "vendor": "Acme",
+          "storage_location": "Shelf 2",
+          "unit": "pcs",
+          "cost": 3.5,
+          "reorder_threshold": 2,
+          "restock_quantity": 5,
+          "auto_buy_task": true,
+          "notes": "Buy the blue ones",
+          "stock": 1
+        }
+      ],
+      "tasks": [
+        {
+          "id": "rig_task",
+          "name": "Full service",
+          "type": "inspection",
+          "enabled": true,
+          "created_at": "2026-01-15",
+          "schedule": {
+            "kind": "interval",
+            "every": 3,
+            "unit": "months",
+            "anchor": "planned"
+          },
+          "warning_days": 9,
+          "last_performed": "2026-06-01",
+          "due_override": "2026-12-24",
+          "notes": "Check the **seal**",
+          "documentation_url": "https://example.org/rig/service",
+          "custom_icon": "mdi:wrench",
+          "nfc_tag_id": "migration-tag-1",
+          "require_tag_scan": false,
+          "allow_skip": false,
+          "notify_enabled": false,
+          "notify_icon": "mdi:air-filter",
+          "required_completion_fields": [
+            "cost"
+          ],
+          "earliest_completion_days": 3,
+          "priority": "high",
+          "labels": [
+            "garage",
+            "yearly"
+          ],
+          "checklist": [
+            "loosen",
+            "clean",
+            "refit"
+          ],
+          "checklist_progress": {
+            "loosen": true
+          },
+          "adaptive_config": {
+            "enabled": true,
+            "ewa_alpha": 0.3,
+            "min_interval_days": 7,
+            "max_interval_days": 120
+          },
+          "on_complete_action": {
+            "service": "light.turn_off",
+            "target": {
+              "entity_id": "light.workshop"
+            }
+          },
+          "quick_complete_defaults": {
+            "notes": "routine",
+            "cost": 5
+          },
+          "consumes_parts": [
+            {
+              "part_id": "part_filter",
+              "quantity": 1
+            }
+          ],
+          "phases": {
+            "flip": {
+              "name": "Flip",
+              "checklist": [
+                "loosen",
+                "flip"
+              ]
+            },
+            "replace": {
+              "name": "Replace",
+              "consumes_parts": [
+                {
+                  "part_id": "part_filter",
+                  "quantity": 2
+                }
+              ],
+              "required_completion_fields": [
+                "cost"
+              ]
+            }
+          },
+          "phase_sequence": [
+            "flip",
+            "flip",
+            "replace"
+          ],
+          "phase_cursor": 1,
+          "origin": {
+            "kind": "template",
+            "template": "car",
+            "task": "Oil Change"
+          },
+          "responsible_user_id": "src-alice",
+          "assignee_pool": [
+            "src-alice",
+            "src-bob"
+          ],
+          "rotation_strategy": "round_robin",
+          "trigger_config": {
+            "type": "threshold",
+            "entity_id": "sensor.rig_pressure",
+            "entity_ids": [
+              "sensor.rig_pressure"
+            ],
+            "trigger_above": 80,
+            "entity_logic": "any"
+          },
+          "history": [
+            {
+              "timestamp": "2026-06-01T10:00:00+00:00",
+              "type": "completed",
+              "notes": "first service",
+              "cost": 12.5,
+              "duration": 30,
+              "completed_by": "src-alice",
+              "used_parts": [
+                {
+                  "part_id": "part_filter",
+                  "name": "Filter",
+                  "quantity": 1
+                }
+              ]
+            }
+          ],
+          "schedule_type": "time_based"
+        },
+        {
+          "id": "meter_task",
+          "name": "Meter reading",
+          "type": "reading",
+          "enabled": true,
+          "created_at": "2026-02-01",
+          "schedule": {
+            "kind": "interval",
+            "every": 1,
+            "unit": "months",
+            "anchor": "completion"
+          },
+          "warning_days": 3,
+          "reading_unit": "kWh",
+          "readings": [
+            {
+              "id": "cold",
+              "name": "Water cold",
+              "unit": "m³"
+            },
+            {
+              "id": "power",
+              "name": "Electricity",
+              "unit": "kWh"
+            }
+          ],
+          "history": [
+            {
+              "timestamp": "2026-08-31T18:00:00+00:00",
+              "type": "completed",
+              "completed_by": "src-bob",
+              "reading_values": {
+                "cold": 123.4,
+                "power": 4567.0
+              }
+            }
+          ],
+          "schedule_type": "time_based"
+        }
+      ]
+    },
+    {
+      "entry_id": "src-kitchen",
+      "object": {
+        "name": "Küche: Spülmaschine",
+        "manufacturer": "Bosch"
+      },
+      "tasks": [
+        {
+          "id": "descale_task",
+          "name": "Descale",
+          "type": "cleaning",
+          "enabled": true,
+          "created_at": "2026-02-01",
+          "schedule": {
+            "kind": "interval",
+            "every": 60,
+            "unit": "days",
+            "anchor": "completion"
+          },
+          "warning_days": 7,
+          "last_performed": "2026-07-01",
+          "schedule_type": "time_based"
+        },
+        {
+          "id": "chimney_task",
+          "name": "Chimney sweep",
+          "type": "inspection",
+          "enabled": true,
+          "created_at": "2026-03-01",
+          "schedule": {
+            "kind": "one_time",
+            "due_date": "2026-11-20"
+          },
+          "warning_days": 14,
+          "schedule_type": "one_time",
+          "due_date": "2026-11-20"
+        },
+        {
+          "id": "bins_task",
+          "name": "Put the bins out",
+          "type": "cleaning",
+          "enabled": true,
+          "created_at": "2026-03-02",
+          "schedule": {
+            "kind": "nth_weekday",
+            "nth": 1,
+            "weekday": 5,
+            "season_months": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "ends": {
+              "count": 24
+            }
+          },
+          "warning_days": 1,
+          "schedule_type": "nth_weekday"
+        }
+      ]
+    },
+    {
+      "entry_id": "src-fleet",
+      "object": {
+        "name": "Battery Fleet",
+        "battery_fleet": true,
+        "battery_fleet_excluded": [
+          "sensor.lock_battery"
+        ],
+        "battery_fleet_track_self_charging": true
+      },
+      "parts": [
+        {
+          "id": "batt_9v",
+          "name": "9V battery",
+          "unit": "pcs",
+          "reorder_threshold": 2,
+          "restock_quantity": 4,
+          "stock": 3
+        }
+      ],
+      "tasks": [
+        {
+          "id": "fleet_task",
+          "name": "Replace low batteries",
+          "type": "replacement",
+          "enabled": true,
+          "created_at": "2026-04-01",
+          "warning_days": 7,
+          "battery_fleet_task": true,
+          "consumes_parts": [
+            {
+              "part_id": "batt_9v",
+              "quantity": 1
+            }
+          ],
+          "trigger_config": {
+            "type": "threshold",
+            "entity_id": "sensor.maintenance_supporter_batteries_to_replace",
+            "entity_ids": [
+              "sensor.maintenance_supporter_batteries_to_replace"
+            ],
+            "trigger_above": 0,
+            "entity_logic": "any",
+            "auto_complete_on_recovery": true
+          },
+          "battery_replacements": {
+            "sensor.hall_smoke_battery": {
+              "type": "9V",
+              "model": "Acme|S1",
+              "dates": [
+                "2024-11-10",
+                "2025-10-02"
+              ],
+              "anchored": true
+            }
+          },
+          "battery_low_latch": {
+            "sensor.garage_remote_battery": {
+              "at": "2026-09-20T08:00:00+00:00",
+              "last_replaced": null
+            }
+          },
+          "schedule_type": "sensor_based"
+        }
+      ]
+    }
+  ]
+}

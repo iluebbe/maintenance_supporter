@@ -78,7 +78,10 @@ instance: `live-overflow-sweep.mjs` (layout overflow per language and
 viewport), `live-lang-check.mjs` (panel renders in a given language rather
 than falling back to English), the `shots-*.mjs` screenshot tooling and
 `gifs-demo.mjs`. Several accept `MS_LANGS="pt-BR,hu,ko,tr"` to pick the
-languages to exercise. See `e2e/README.md`.
+languages to exercise. `e2e/migration/run.mjs` moves a seeded Home Assistant
+to a fresh one through the real export/import paths and compares every
+stored value (CI job `migration-roundtrip`; its in-process twin is
+`tests/test_migration_roundtrip.py`). See `e2e/README.md`.
 
 ## Code quality
 

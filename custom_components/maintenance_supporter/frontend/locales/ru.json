@@ -681,6 +681,7 @@
   "settings_import_placeholder": "Вставьте содержимое JSON или CSV здесь…",
   "settings_import_btn": "Импортировать",
   "settings_import_success": "Импортировано объектов: {count}.",
+  "settings_import_unmatched_users": "Не найдены в этом экземпляре: {names}. Их назначения задач удалены — создайте в Home Assistant людей с такими же именами и импортируйте снова, чтобы сохранить их.",
   "settings_export_success": "Экспорт загружен.",
   "settings_saved": "Настройка сохранена.",
   "settings_include_history": "Включать историю",

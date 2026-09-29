@@ -103,11 +103,11 @@ async def test_documents_archive_roundtrips_blobs_to_a_fresh_instance(
     assert store.blob_path(digest).is_file()
 
     archive = await hass.async_add_executor_job(build_documents_archive, hass, None)
-    # Manifest + one blob present.
+    # Manifest + the file at its readable path (version 2).
     with zipfile.ZipFile(io.BytesIO(archive)) as zf:
         names = zf.namelist()
         assert "manifest.json" in names
-        assert f"blobs/{digest}" in names
+        assert "Alpha/Documents/manual.pdf" in names
 
     # Simulate a fresh instance: the doc metadata is present (as after a JSON
     # import) but the blob binary is gone.

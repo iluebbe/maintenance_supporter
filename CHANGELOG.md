@@ -4,6 +4,18 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **Moving to another Home Assistant, tested end to end:** a move between two real instances — seed one, export the
+  objects, the settings and the documents ZIP, import them into a fresh one, compare every stored value — runs in CI
+  (`e2e/migration/run.mjs`), and its in-process twin compares the whole storage with no curated field list, so a field
+  added later is checked without anyone remembering to. A new value in a task's stored state has to be declared as
+  travelling or staying behind before the tests pass.
+- **The documents ZIP can be browsed:** one folder per object, completion photos in their task's folder named by the
+  day the task was done, every other file in a folder for its category, the web links in `Links.txt`, and a
+  `README.txt`. Version 1 kept the files as `blobs/<hash>` without names or extensions — useless outside a restore.
+  Those archives still restore.
+
 ### 🐛 Fixed
 
 - **Our dashboard cards sometimes showed "Configuration error":** Home Assistant swaps in a new custom-element
@@ -54,6 +66,16 @@ All notable changes to Maintenance Supporter are documented in this file.
   out the priority filter the card applies; the dashboard picker's documentation links pointed at README sections
   that do not exist.
 
+- **A backup did not bring everything to another Home Assistant** (found by moving the demo instance to a fresh one):
+  the battery fleet's replacement history and its low latch stayed behind, so the learned lifetimes and predicted dates
+  started from zero; assignments, rotations and "completed by" pointed at user ids that exist only on the old instance
+  and were cleared at the next restart; task groups and vacation exemptions pointed at the old task ids and came back
+  empty; the automatic buy task of a low part was deleted and made anew (new reference number, its notes gone) because
+  the stock arrived after the first reconcile; and every document was stamped with the import time. The exports now
+  name the people and the tasks they point at, the import maps people onto users with the same name — anyone it cannot
+  match is listed after the import — and re-points groups and exemptions by name in either import order, without
+  touching references that still resolve (a backup imported next to its originals). A spare part the import cannot
+  accept is named in the result instead of vanishing.
 - **Saving a task dropped most of its completion action's target:** the task dialog edits one target entity, but an
   action set up through the API, an import or YAML can target several entities, devices, areas, labels or floors. The
   dialog rebuilt the target from its one field on every save — renaming the task was enough to lose the rest. An
@@ -93,6 +115,9 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 📝 Documentation
 
+- *Moving to another Home Assistant* (FEATURES): which three files to export, the order to import them, how people are
+  matched, what stays behind; the "complete, portable backup" line claimed that the objects export carried the
+  settings — they are a second file. Contributors: the migration round trip in CONTRIBUTING and `e2e/README.md`.
 - Card options as they behave: the header badges count the card's selection, `show_actions: false` also hides the
   header's create buttons, `compact` drops the object · type · phase line (not an interval it never showed). *Proof of
   presence* now says that the printed Complete QR is a link — whoever has it completes without being there — so a task

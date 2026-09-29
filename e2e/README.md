@@ -68,6 +68,27 @@ traces on failure. The hard gate stays the unit suite (`npm test`).
 | `HA_TOKEN` | long-lived token for the scripted checks below (also in `docker/.env`) | _(required)_ |
 | `MS_LANGS` | comma-separated languages for the language-aware checks | see below |
 
+## Moving to another Home Assistant (`migration/`)
+
+`node e2e/migration/run.mjs` starts two Home Assistant containers, seeds the
+first through the public API (`migration/seed.json`, document uploads, a
+completion with a photo), exports the objects, the settings and the
+documents ZIP, imports them into the second one — the people re-created
+under new user ids — stops both so Home Assistant flushes its stores, and
+compares every stored value with ids translated to names. What deliberately
+stays behind is listed in `tests/fixtures/migration_expectations.json`,
+shared with the in-process twin `tests/test_migration_roundtrip.py`. The
+`migration-roundtrip` CI job runs it in both import orders.
+
+| Var | Meaning | Default |
+|-----|---------|---------|
+| `MIGRATION_IMAGE` | Home Assistant image for both containers | `ghcr.io/home-assistant/home-assistant:2026.7.2` |
+| `ORDER` | `objects-first` imports the objects before the settings | settings first |
+| `SOURCE_CONTAINER`, `SOURCE_URL`, `SOURCE_USER`, `SOURCE_PASS` | move an existing instance (e.g. the demo) instead of a seeded one; it is stopped briefly for the flush | _(seeded)_ |
+| `KEEP=1` | leave the containers for inspection | removed |
+
+Snapshots of both sides land in `e2e/migration/.run/`.
+
 ## Scripted checks against the dev instance
 
 Beside the two specs, `e2e/` holds ~50 single-purpose `.mjs` scripts that drive

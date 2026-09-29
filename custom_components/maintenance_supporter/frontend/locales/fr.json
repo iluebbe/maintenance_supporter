@@ -681,6 +681,7 @@
   "settings_import_placeholder": "Collez le contenu JSON ou CSV ici…",
   "settings_import_btn": "Importer",
   "settings_import_success": "{count} objets importés avec succès.",
+  "settings_import_unmatched_users": "Introuvable sur cette instance : {names}. Leurs attributions de tâches ont été supprimées — créez des personnes portant les mêmes noms dans Home Assistant et importez à nouveau pour les conserver.",
   "settings_export_success": "Export téléchargé.",
   "settings_saved": "Paramètre enregistré.",
   "settings_include_history": "Inclure l'historique",

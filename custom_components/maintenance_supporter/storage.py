@@ -18,7 +18,7 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
-from .const import CONF_TASKS, DEFAULT_MAX_HISTORY_ENTRIES, DOMAIN, LIFECYCLE_HISTORY_TYPES
+from .const import CONF_PARTS, CONF_TASKS, DEFAULT_MAX_HISTORY_ENTRIES, DOMAIN, LIFECYCLE_HISTORY_TYPES
 from .helpers.dates import local_date_from_iso
 from .helpers.parts import round_qty
 from .helpers.pause import write_anchor
@@ -37,8 +37,12 @@ _DYNAMIC_TASK_FIELDS = ("last_performed", "last_planned_due", "due_override", "h
 # MaintenanceTask.from_dict all over the coordinator and the model never needs
 # these — helpers.aggregate.merged_tasks overlays them explicitly for the read
 # surfaces instead. Split-listing them lets a backup import (which lands them in
-# entry.data) carry them into the fresh entry's Store on first setup.
-_SPLIT_ONLY_TASK_FIELDS = ("checklist_progress",)
+# entry.data) carry them into the fresh entry's Store on first setup. The
+# battery fleet's replacement log and low latch ride the same way (fleet task
+# only; helpers.battery_lifetime.REPLACEMENT_LOG_KEY / battery_fleet.
+# LOW_LATCH_KEY — literals here to keep storage free of helper imports,
+# pinned equal by a test).
+_SPLIT_ONLY_TASK_FIELDS = ("checklist_progress", "battery_replacements", "battery_low_latch")
 
 # Flat trigger_config keys that should move to Store trigger_runtime
 _LEGACY_TRIGGER_RUNTIME_KEYS = (
@@ -618,12 +622,31 @@ async def async_migrate_to_store(
         state = store._ensure_task(task_id)
         state.update(dynamic)
 
+    # A backup import lands each part's stock on the part in entry.data: it
+    # must be in the Store before the first buy-task reconcile, which saw no
+    # stock, removed the imported open buy task and made a new one once the
+    # importer wrote the stock afterwards — new id, new reference number
+    # (round-trip audit 2026-09-29).
+    parts_data = entry_data.get(CONF_PARTS)
+    static_parts: dict[str, Any] | None = None
+    if isinstance(parts_data, dict):
+        static_parts = {}
+        for part_id, part in parts_data.items():
+            if isinstance(part, dict) and "stock" in part:
+                part = dict(part)
+                stock = part.pop("stock")
+                if isinstance(stock, (int, float)) and not isinstance(stock, bool) and stock >= 0:
+                    store.set_part_stock(part_id, stock)
+            static_parts[part_id] = part
+
     # Save store immediately (must succeed before we strip ConfigEntry)
     await store.async_save()
 
     # Build cleaned entry data
     new_data = dict(entry_data)
     new_data[CONF_TASKS] = static_tasks
+    if static_parts is not None:
+        new_data[CONF_PARTS] = static_parts
 
     _LOGGER.info(
         "Migrated %d tasks from ConfigEntry to Store for entry %s",

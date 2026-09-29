@@ -1,0 +1,31 @@
+{
+  "_comment": "What a move to another Home Assistant deliberately does not carry. Read by tests/test_migration_roundtrip.py AND e2e/migration/run.mjs, so the in-process test and the two-instance run judge by the same rules.",
+  "portable_state": [
+    "last_performed",
+    "last_planned_due",
+    "due_override",
+    "history",
+    "adaptive_config",
+    "phase_cursor",
+    "checklist_progress",
+    "trigger_runtime",
+    "trigger_runtime_legacy",
+    "battery_replacements",
+    "battery_low_latch"
+  ],
+  "runtime_only_state": {
+    "next_history_ref": "re-derived from the highest history number at the next completion",
+    "trigger_cleared_at": "seeds a post-completion cooldown of minutes after a restart",
+    "battery_recorded_replacements": "same-day double-click guard of record-replacement",
+    "todo_mirror": "item ids in this instance's to-do lists; the mirror re-links on sync"
+  },
+  "expected_diffs": {
+    "on_complete_action.configured_by": "the action runs as the importing admin (SEC-2, bug audit 2026-09-27)"
+  },
+  "non_portable_options": {
+    "admin_panel_user_ids": "HA user ids of this instance",
+    "adopted_task_notes": "this instance's adoption bookkeeping",
+    "shopping_list_entity": "a to-do entity of this instance",
+    "member_display": "avatar overrides keyed by this instance's user ids"
+  }
+}

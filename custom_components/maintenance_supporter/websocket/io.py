@@ -32,11 +32,11 @@ from ..const import (
     MAX_JSON_IMPORT_PAYLOAD_BYTES,
     MAX_VACATION_EXEMPT_TASKS,
 )
-from ..helpers.aggregate import get_store, object_name
+from ..helpers.aggregate import object_name
 from ..helpers.dates import normalize_hhmm, parse_iso_date
 from ..helpers.global_options import get_default_warning_days
 from ..helpers.history import finite_amount
-from ..helpers.parts import map_part_links
+from ..helpers.parts import PartValidationError, map_part_links, normalize_part
 from ..helpers.phases import clamp_phase_cursor, sanitize_phase_defs, sanitize_phase_sequence
 from ..helpers.qr_generator import (
     _ACTION_ICON_MAP,
@@ -580,8 +580,11 @@ async def ws_export_data(
     include_history = msg.get("include_history", True)
     entry_ids = set(msg["entry_ids"]) if msg.get("entry_ids") else None
 
-    # Phase 1: gather data on the event loop (accesses HA APIs)
-    data = build_export_data(hass, include_history=include_history, entry_ids=entry_ids)
+    # Phase 1: gather data on the event loop (accesses HA APIs); name the HA
+    # users it points at so another instance can map them by name.
+    from ..helpers.import_mapping import async_attach_user_names
+
+    data = await async_attach_user_names(hass, build_export_data(hass, include_history=include_history, entry_ids=entry_ids))
 
     # Phase 2: serialize in executor (CPU-bound, no HA API calls)
     result = await hass.async_add_executor_job(serialize_export, data, fmt)
@@ -766,14 +769,19 @@ async def ws_export_settings(
     which recognizes the ``global_settings`` section.
     """
     from ..export import build_settings_export
+    from ..helpers.import_mapping import async_attach_user_names
 
-    connection.send_result(
-        msg["id"],
-        {"format": "json", "data": json_mod.dumps(build_settings_export(hass), indent=2)},
-    )
+    data = await async_attach_user_names(hass, build_settings_export(hass))
+    connection.send_result(msg["id"], {"format": "json", "data": json_mod.dumps(data, indent=2)})
 
 
-def _apply_settings_import(hass: HomeAssistant, raw: dict[str, Any]) -> list[str]:
+def _apply_settings_import(
+    hass: HomeAssistant,
+    raw: dict[str, Any],
+    *,
+    user_map: dict[str, str] | None = None,
+    task_names: Any = None,
+) -> list[str]:
     """Apply an imported ``global_settings`` payload; returns the applied keys.
 
     Scalar settings run through the SAME validation as the ``global/update``
@@ -782,8 +790,10 @@ def _apply_settings_import(hass: HomeAssistant, raw: dict[str, Any]) -> list[str
     their own sanitizers: saved views via ``sanitize_view``, groups shape-
     checked here, vacation dates validated like ``vacation/update``. Group
     task_refs and vacation exempt ids may point at objects of the SOURCE
-    instance — they are kept verbatim (same-instance restores keep them
-    valid; elsewhere they degrade gracefully like every stale reference).
+    instance: those that resolve nowhere are re-pointed by object + task
+    name (``task_names``, the export's hints) when the objects are already
+    here, and by the objects import's id map when they come later
+    (helpers.import_mapping). A saved view's person follows ``user_map``.
     """
     from ..const import (
         CONF_GROUPS,
@@ -852,6 +862,9 @@ def _apply_settings_import(hass: HomeAssistant, raw: dict[str, Any]) -> list[str
             if clean is not None:
                 views.append(clean)
         if views:
+            from ..helpers.import_mapping import remap_view_users
+
+            remap_view_users(views, user_map or {})
             filtered[CONF_SAVED_FILTER_VIEWS] = views
 
     if isinstance(raw.get(CONF_VACATION_ENABLED), bool):
@@ -884,6 +897,9 @@ def _apply_settings_import(hass: HomeAssistant, raw: dict[str, Any]) -> list[str
 
     if not filtered:
         return []
+    from ..helpers.import_mapping import resolve_task_refs_by_name
+
+    resolve_task_refs_by_name(hass, filtered, task_names)
     _merge_global_options(hass, entry, filtered)
     _LOGGER.info("Settings import applied %d key(s)", len(filtered))
     return sorted(filtered)
@@ -923,9 +939,17 @@ async def ws_import_json(
 
     # A settings export (see export.build_settings_export) may travel alone or
     # alongside an objects payload — apply it first either way.
+    # HA user ids exist only on the instance that made them: the export names
+    # them (``users``), and a move maps them onto this instance's people.
+    from ..helpers.import_mapping import TASK_NAMES_KEY, USERS_KEY, async_user_map
+
+    user_map, unmatched_users = await async_user_map(hass, data.get(USERS_KEY))
+
     settings_applied: list[str] = []
     if has_settings:
-        settings_applied = _apply_settings_import(hass, data["global_settings"])
+        settings_applied = _apply_settings_import(
+            hass, data["global_settings"], user_map=user_map, task_names=data.get(TASK_NAMES_KEY)
+        )
 
     objects = data.get("objects", [])
     if not isinstance(objects, list):
@@ -944,6 +968,9 @@ async def ws_import_json(
     errors: list[dict[str, str]] = []
     importing_user = connection.user.id if connection.user else None
     lineage = _ImportLineage(hass, objects)
+    # old task id → (new entry id, new task id), for the group members and
+    # vacation exemptions that pointed at the exported tasks.
+    moved_tasks: dict[str, tuple[str, str]] = {}
     for idx in _import_order(objects):
         obj_entry = objects[idx]
         # Guard against malformed-but-schema-valid input (the schema only checks
@@ -1017,7 +1044,8 @@ async def ws_import_json(
 
         part_id_map: dict[str, str] = {}
         import_parts: dict[str, dict[str, Any]] = {}
-        part_stocks: dict[str, float] = {}
+        # Losses while importing parts, reported with the task warnings.
+        part_warnings: list[str] = []
         parts_list = obj_entry.get("parts", [])
         if isinstance(parts_list, list):
             for part_entry in parts_list:
@@ -1025,23 +1053,32 @@ async def ws_import_json(
                     continue
                 old_id = str(part_entry.get("id") or "")
                 new_id = old_id if _keep_fleet_part_id(is_fleet, old_id) else _uuid4().hex
-                pdata = {k: v for k, v in part_entry.items() if k != "stock"}
-                pdata["id"] = new_id
-                # Drop a non-http(s) product_url — the WS write path validates it
-                # via _clean_url, but import copied it verbatim, so a crafted
-                # backup could persist a javascript: link (the panel now also
-                # guards the href, but keep bad data out of storage).
-                _purl = pdata.get("product_url")
-                if isinstance(_purl, str) and _purl.strip().lower().startswith(("http://", "https://")):
-                    pdata["product_url"] = _purl.strip()  # store trimmed so the render guard matches
-                else:
-                    pdata.pop("product_url", None)
+                raw_part = dict(part_entry)
+                # Drop a non-http(s) product_url rather than the whole part —
+                # a crafted backup could carry a javascript: link.
+                _purl = raw_part.get("product_url")
+                if not (isinstance(_purl, str) and _purl.strip().lower().startswith(("http://", "https://"))):
+                    raw_part.pop("product_url", None)
+                # The same validation as the part/create write path. The flow
+                # step validates parts too, but it drops a bad one without a
+                # word; checked here, the import names it in its result
+                # (round-trip audit 2026-09-29).
+                try:
+                    pdata = normalize_part({**raw_part, "id": new_id})
+                except PartValidationError as err:
+                    part_warnings.append(f"part {raw_part.get('name')!r} dropped — {err}")
+                    continue
+                # The stock rides the part into entry.data and the fresh
+                # entry's first setup moves it into the Store — BEFORE the
+                # buy-task reconcile, which otherwise saw no stock, removed the
+                # imported buy task and made a new one (storage.
+                # async_migrate_to_store).
+                stock = part_entry.get("stock")
+                if isinstance(stock, (int, float)) and not isinstance(stock, bool) and stock >= 0:
+                    pdata["stock"] = stock
                 import_parts[new_id] = pdata
                 if old_id:
                     part_id_map[old_id] = new_id
-                stock = part_entry.get("stock")
-                if isinstance(stock, (int, float)) and not isinstance(stock, bool) and stock >= 0:
-                    part_stocks[new_id] = stock
 
         import_tasks: dict[str, dict[str, Any]] = {}
         # old task id → new id, so document task-links (task_ids) can be
@@ -1136,6 +1173,18 @@ async def ws_import_json(
             if is_fleet and task_entry.get(BATTERY_FLEET_TASK_FLAG) is True and not fleet_task_seen:
                 task_data[BATTERY_FLEET_TASK_FLAG] = True
                 fleet_task_seen = True
+                # The replacement log (past swaps, the learned lifetimes and
+                # predicted dates build on it) and the low latch are the
+                # fleet task's Store state; they ride entry.data into the
+                # fresh entry's Store on its first setup (storage.
+                # _SPLIT_ONLY_TASK_FIELDS). A backup used to leave them behind.
+                from ..helpers.battery_fleet import LOW_LATCH_KEY, sanitize_low_latch
+                from ..helpers.battery_lifetime import REPLACEMENT_LOG_KEY, sanitize_replacement_log
+
+                if log := sanitize_replacement_log(task_entry.get(REPLACEMENT_LOG_KEY)):
+                    task_data[REPLACEMENT_LOG_KEY] = log
+                if latch := sanitize_low_latch(task_entry.get(LOW_LATCH_KEY)):
+                    task_data[LOW_LATCH_KEY] = latch
 
             # 2.95: the task's fingerprint (catalog duty / template task) —
             # shape-checked, it is untrusted input like everything imported.
@@ -1297,6 +1346,9 @@ async def ws_import_json(
                 task_data.pop("trigger_config", None)
                 task_warnings.append(f"{task_name}: trigger dropped — not a mapping")
 
+            from ..helpers.import_mapping import remap_task_users
+
+            remap_task_users(task_data, user_map)
             import_tasks[task_id] = task_data
             import_obj["task_ids"].append(task_id)
 
@@ -1358,37 +1410,41 @@ async def ws_import_json(
             continue
         if result["type"] == "create_entry":
             lineage.created(obj_entry.get("entry_id"), result["result"].entry_id, part_id_map, lineage_pending)
+            for old_task_id, new_task_id in task_id_map.items():
+                moved_tasks[old_task_id] = (result["result"].entry_id, new_task_id)
             entry_info: dict[str, Any] = {
                 "entry_id": result["result"].entry_id,
                 "name": obj_name,
                 "task_count": len(import_tasks),
             }
+            task_warnings = part_warnings + task_warnings
             if nfc_warnings or task_warnings:
                 entry_info["warnings"] = nfc_warnings + task_warnings
             for warning in task_warnings:
                 _LOGGER.warning("JSON import of %s: %s", obj_name, warning)
             created.append(entry_info)
-
-            # Restore tracked part stocks into the new entry's Store.
-            if part_stocks:
-                new_entry = hass.config_entries.async_get_entry(result["result"].entry_id)
-                store_new = get_store(hass, result["result"].entry_id)
-                if store_new is not None:
-                    for pid, stock_val in part_stocks.items():
-                        store_new.set_part_stock(pid, stock_val)
-                    await store_new.async_save()
-                    # Restored stocks can sit below min_stock — reconcile buy
-                    # tasks like every other stock mutation does, or the
-                    # shopping list stays silent until the next unrelated
-                    # stock change (bug audit 2026-08-22).
-                    from ..parts_runtime import schedule_buy_task_reconcile
-
-                    if new_entry is not None:
-                        schedule_buy_task_reconcile(hass, new_entry)
+            # Restored stocks (in the Store from the first setup, see above)
+            # can sit below the reorder threshold: the entry's setup runs the
+            # buy-task catch-up for every object with parts.
         else:
             errors.append({"name": obj_name, "reason": result.get("reason", "unknown")})
             await _drop_imported_documents(doc_store, obj_id)
     lineage.finish()
+    if moved_tasks:
+        from ..helpers.global_options import get_global_entry, get_global_options
+        from ..helpers.import_mapping import repair_task_refs
+
+        gentry = get_global_entry(hass)
+        if gentry is not None and (changed := repair_task_refs(dict(get_global_options(hass)), hass, moved_tasks)):
+            _merge_global_options(hass, gentry, changed)
+    if created:
+        # References to people that match nobody here are cleared now, with
+        # the rules the boot-time sweep applies (a rotation below two members
+        # dissolves) — and named in the result instead of vanishing at the
+        # next restart.
+        from .. import _check_task_responsible_user_orphans
+
+        await _check_task_responsible_user_orphans(hass)
 
     resp: dict[str, Any] = {
         "imported": created,
@@ -1399,6 +1455,8 @@ async def ws_import_json(
         resp["settings_applied"] = settings_applied
     if errors:
         resp["errors"] = errors
+    if unmatched_users:
+        resp["unmatched_users"] = unmatched_users
     connection.send_result(msg["id"], resp)
 
 

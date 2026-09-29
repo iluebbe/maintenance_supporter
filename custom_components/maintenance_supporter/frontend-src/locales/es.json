@@ -681,6 +681,7 @@
   "settings_import_placeholder": "Pegue el contenido JSON o CSV aquí…",
   "settings_import_btn": "Importar",
   "settings_import_success": "{count} objetos importados correctamente.",
+  "settings_import_unmatched_users": "No encontrados en esta instancia: {names}. Se quitaron sus asignaciones de tareas — crea personas con los mismos nombres en Home Assistant e importa de nuevo para conservarlas.",
   "settings_export_success": "Exportación descargada.",
   "settings_saved": "Ajuste guardado.",
   "settings_include_history": "Incluir historial",

@@ -683,6 +683,7 @@
   "settings_import_placeholder": "JSONまたはCSVの内容をここに貼り付け…",
   "settings_import_btn": "インポート",
   "settings_import_success": "{count}件の対象を正常にインポートしました。",
+  "settings_import_unmatched_users": "このインスタンスに見つかりません: {names}。タスクの割り当ては削除されました — 割り当てを残すには、Home Assistant で同じ名前の人物を作成してから再度インポートしてください。",
   "settings_export_success": "エクスポートをダウンロードしました。",
   "settings_saved": "設定を保存しました。",
   "settings_include_history": "履歴を含める",

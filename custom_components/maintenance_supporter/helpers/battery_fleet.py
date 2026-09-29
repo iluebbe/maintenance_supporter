@@ -529,6 +529,29 @@ LOW_LATCH_KEY = "battery_low_latch"
 _LATCH_MEMORY_KEY = "battery_fleet_low_latch_memory"
 
 
+def sanitize_low_latch(raw: Any) -> dict[str, dict[str, Any]]:
+    """An imported latch map ({entity_id: {at, last_replaced}}) reduced to
+    valid entries, so a restore keeps an open low episode open instead of
+    dropping a battery that sits between the low and the recovered level
+    (round-trip audit 2026-09-29)."""
+    from homeassistant.core import valid_entity_id
+
+    out: dict[str, dict[str, Any]] = {}
+    if not isinstance(raw, dict):
+        return out
+    for key, entry in raw.items():
+        if len(out) >= 2000:
+            break
+        if not isinstance(key, str) or not valid_entity_id(key) or not isinstance(entry, dict):
+            continue
+        at = entry.get("at")
+        if not isinstance(at, str) or dt_util.parse_datetime(at.strip()) is None:
+            continue
+        last = entry.get("last_replaced")
+        out[key] = {"at": at.strip()[:40], "last_replaced": last[:40] if isinstance(last, str) else None}
+    return out
+
+
 def _replaced_since(last_replaced: str | None, entry: dict[str, Any]) -> bool:
     """Whether the battery's current last-replaced date is NEWER than the one
     seen when it latched (a recorded replacement)."""

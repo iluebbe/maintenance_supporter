@@ -683,6 +683,7 @@
   "settings_import_placeholder": "Liitä JSON- tai CSV-sisältö tähän…",
   "settings_import_btn": "Tuo",
   "settings_import_success": "{count} kohdetta tuotu onnistuneesti.",
+  "settings_import_unmatched_users": "Ei löytynyt tästä instanssista: {names}. Heidän tehtävämäärityksensä poistettiin — luo Home Assistantiin samannimiset henkilöt ja tuo uudelleen säilyttääksesi ne.",
   "settings_export_success": "Vienti ladattu.",
   "settings_saved": "Asetus tallennettu.",
   "settings_include_history": "Sisällytä historia",
