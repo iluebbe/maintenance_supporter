@@ -742,6 +742,7 @@ async def test_the_documents_archive_is_refused_above_the_import_ceiling(
     """The export built the whole ZIP in memory without any ceiling, while
     the import refuses more than 500 MB — now it streams from a temporary
     file (removed afterwards) and refuses such a selection with a 413."""
+    import asyncio
     import io
     import tempfile
     import zipfile
@@ -753,21 +754,40 @@ async def test_the_documents_archive_is_refused_above_the_import_ceiling(
     await _add_photo(hass, "boiler")
     client = await hass_client()
 
-    def _leftovers() -> set[str]:
-        return {p.name for p in Path(tempfile.gettempdir()).glob("maintenance-documents-*.zip")}
+    # Track THIS test's archives: the temp folder is shared with the other
+    # xdist workers, whose exports come and go meanwhile.
+    created: list[str] = []
+    real_mkstemp = tempfile.mkstemp
 
-    before = _leftovers()
+    def _recording_mkstemp(*args: Any, **kwargs: Any) -> tuple[int, str]:
+        fd, path = real_mkstemp(*args, **kwargs)
+        created.append(path)
+        return fd, path
+
+    monkeypatch.setattr(tempfile, "mkstemp", _recording_mkstemp)
+
+    async def _all_removed() -> bool:
+        # The view unlinks after write_eof, in an executor job — the client
+        # can hold the whole body a moment before that lands (flaked on the
+        # HA-latest CI leg, 2026-09-29).
+        for _ in range(100):
+            if not any(Path(p).exists() for p in created):
+                return True
+            await asyncio.sleep(0.01)
+        return False
+
     resp = await client.get(DOCS_ARCHIVE_URL)
     assert resp.status == 200
     with zipfile.ZipFile(io.BytesIO(await resp.read())) as zf:
         assert any(n.startswith(doc_archive.BLOB_DIR) for n in zf.namelist())
-    assert _leftovers() == before, "the temporary archive was not removed"
+    assert created, "the archive went through a temporary file"
+    assert await _all_removed(), "the temporary archive was not removed"
 
     monkeypatch.setattr(doc_archive, "MAX_ARCHIVE_BYTES", 4)
     resp = await client.get(DOCS_ARCHIVE_URL)
     assert resp.status == 413
     assert "MB" in (await resp.json())["message"]
-    assert _leftovers() == before
+    assert await _all_removed()
 
 
 # ─── SEC-11: the global search survives a document deleted mid-search ────
