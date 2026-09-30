@@ -327,6 +327,27 @@
           "go_back": "保存せずにトリガーの種類の選択に戻ります。"
         }
       },
+      "trigger_due_date": {
+        "title": "期日",
+        "description": "{entity_id} が報告する日付を監視します（現在: {current_state}）。その日付の指定日数前にタスクが期日になります。",
+        "data": {
+          "trigger_days_before": "日付の何日前",
+          "interval_days": "安全間隔",
+          "interval_unit": "間隔の単位",
+          "trigger_combinator": "トリガーと間隔の組み合わせ",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る",
+          "auto_complete_on_recovery": "センサー回復時に自動完了"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = その日当日。デバイスが日付を先送りすると（通常はデバイス自身の「完了」ボタン）、トリガーは解除されます。",
+          "interval_days": "センサートリガーに加えて使用する任意の時間ベースの安全間隔です。",
+          "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
+          "trigger_combinator": "先に満たした方（既定）：トリガーまたは経過した間隔でタスクが期限になります。両方必須：トリガーが発動し、かつ間隔が経過して初めて期限になります。",
+          "warning_days": "期限の何日前から警告を表示するかの日数です。",
+          "go_back": "保存せずにトリガーの種類の選択に戻ります。"
+        }
+      },
       "compound_logic": {
         "title": "複合トリガー",
         "description": "複数の条件をどのように組み合わせるかを選択してください。",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "累積稼働時間がこの時間数に達したらトリガーします。",
           "trigger_on_states": "「アクティブ」とみなすセンサーの状態です。既定の場合は空欄にします。",
+          "go_back": "保存せずに条件の種類の選択に戻ります。"
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "条件 — 期日",
+        "data": {
+          "trigger_days_before": "日付の何日前",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_days_before": "報告された日付のこの日数前から条件を満たします。",
           "go_back": "保存せずに条件の種類の選択に戻ります。"
         }
       },
@@ -886,6 +918,16 @@
           "trigger_on_states": "「アクティブ」とみなすセンサーの状態です。既定の場合は空欄にします。"
         }
       },
+      "compound_condition_due_date": {
+        "title": "条件 — 期日",
+        "data": {
+          "trigger_days_before": "日付の何日前",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_days_before": "報告された日付のこの日数前から条件を満たします。"
+        }
+      },
       "compound_review": {
         "title": "複合トリガーの確認",
         "description": "{compound_logic} 論理で {condition_count} 件の条件が構成されています。",
@@ -1171,6 +1213,26 @@
           "trigger_runtime_hours": "累積稼働時間がこの時間数に達したらメンテナンスをトリガーします。",
           "trigger_on_states": "「アクティブ」とみなすセンサーの状態です。既定 (on、1、true) の場合は空欄にします。例: in_use, running",
           "interval_days": "稼働時間トリガーに加えて使用する任意の時間ベースの安全間隔です。",
+          "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
+          "trigger_combinator": "先に満たした方（既定）：トリガーまたは経過した間隔でタスクが期限になります。両方必須：トリガーが発動し、かつ間隔が経過して初めて期限になります。",
+          "warning_days": "期限の何日前から警告を表示するかの日数です。"
+        }
+      },
+      "opt_trigger_due_date": {
+        "title": "期日",
+        "description": "{entity_id} が報告する日付を監視します（現在: {current_state}）。その日付の指定日数前にタスクが期日になります。",
+        "data": {
+          "trigger_days_before": "日付の何日前",
+          "interval_days": "安全間隔",
+          "interval_unit": "間隔の単位",
+          "trigger_combinator": "トリガーと間隔の組み合わせ",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る",
+          "auto_complete_on_recovery": "センサー回復時に自動完了"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = その日当日。デバイスが日付を先送りすると（通常はデバイス自身の「完了」ボタン）、トリガーは解除されます。",
+          "interval_days": "センサートリガーに加えて使用する任意の時間ベースの安全間隔です。",
           "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
           "trigger_combinator": "先に満たした方（既定）：トリガーまたは経過した間隔でタスクが期限になります。両方必須：トリガーが発動し、かつ間隔が経過して初めて期限になります。",
           "warning_days": "期限の何日前から警告を表示するかの日数です。"
@@ -1637,6 +1699,7 @@
         "counter": "カウンター",
         "state_change": "状態変化",
         "runtime": "稼働時間",
+        "due_date": "期日（センサーが報告）",
         "compound": "複合 (複数条件)"
       }
     },

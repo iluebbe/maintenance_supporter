@@ -327,6 +327,27 @@
           "go_back": "Return to trigger type selection without saving."
         }
       },
+      "trigger_due_date": {
+        "title": "Due Date Configuration",
+        "description": "Watch the date {entity_id} reports (now: {current_state}). The task becomes due the chosen number of days before that date.",
+        "data": {
+          "trigger_days_before": "Days before the date",
+          "interval_days": "Safety interval",
+          "interval_unit": "Interval unit",
+          "trigger_combinator": "Combine trigger and interval",
+          "warning_days": "Warning days before due",
+          "go_back": "Go back",
+          "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = on the date itself. When the device moves its date forward (usually its own 'done' button), the trigger clears.",
+          "interval_days": "Optional time-based safety interval in addition to the sensor trigger.",
+          "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
+          "trigger_combinator": "Whichever first (default): trigger or elapsed interval makes the task due. Both required: the task only becomes due once the trigger fired and the interval elapsed.",
+          "warning_days": "Number of days before due date to show a warning.",
+          "go_back": "Return to trigger type selection without saving."
+        }
+      },
       "compound_logic": {
         "title": "Compound Trigger",
         "description": "Choose how multiple conditions should be combined.",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "Trigger after this many hours of accumulated runtime.",
           "trigger_on_states": "Sensor states counted as 'active'. Leave empty for default.",
+          "go_back": "Return to condition type selection without saving."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Condition — Due date",
+        "data": {
+          "trigger_days_before": "Days before the date",
+          "go_back": "Go back"
+        },
+        "data_description": {
+          "trigger_days_before": "The condition is met from this many days before the date the entity reports.",
           "go_back": "Return to condition type selection without saving."
         }
       },
@@ -1054,6 +1086,26 @@
           "warning_days": "Number of days before due date to show a warning."
         }
       },
+      "opt_trigger_due_date": {
+        "title": "Due Date Configuration",
+        "description": "Watch the date {entity_id} reports (now: {current_state}). The task becomes due the chosen number of days before that date.",
+        "data": {
+          "trigger_days_before": "Days before the date",
+          "interval_days": "Safety interval",
+          "interval_unit": "Interval unit",
+          "trigger_combinator": "Combine trigger and interval",
+          "warning_days": "Warning days before due",
+          "go_back": "Go back",
+          "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = on the date itself. When the device moves its date forward (usually its own 'done' button), the trigger clears.",
+          "interval_days": "Optional time-based safety interval in addition to the sensor trigger.",
+          "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
+          "trigger_combinator": "Whichever first (default): trigger or elapsed interval makes the task due. Both required: the task only becomes due once the trigger fired and the interval elapsed.",
+          "warning_days": "Number of days before due date to show a warning."
+        }
+      },
       "compound_logic": {
         "title": "Compound Trigger",
         "description": "Choose how multiple conditions should be combined.",
@@ -1142,6 +1194,16 @@
         "data_description": {
           "trigger_runtime_hours": "Trigger after this many hours of accumulated runtime.",
           "trigger_on_states": "Sensor states counted as 'active'. Leave empty for default."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Condition — Due date",
+        "data": {
+          "trigger_days_before": "Days before the date",
+          "go_back": "Go back"
+        },
+        "data_description": {
+          "trigger_days_before": "The condition is met from this many days before the date the entity reports."
         }
       },
       "compound_review": {
@@ -1913,6 +1975,7 @@
         "counter": "Counter",
         "state_change": "State Change",
         "runtime": "Runtime",
+        "due_date": "Due date (reported by a sensor)",
         "compound": "Compound (Multiple Conditions)"
       }
     },

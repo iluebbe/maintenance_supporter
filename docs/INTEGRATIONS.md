@@ -430,7 +430,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Rehlko / Kohler generators | `rehlko` | Oil Service | at 100 h counted by the device |  |
 | AquaCell softener | `aquacell` | Refill Softener Salt | below the household consumable floor (default 10 %) |  |
 |  |  | Refill Softener Salt | below 7 days remaining |  |
-| De Dietrich (Diematic) | `de_dietrich` | Refill Heating Water | below 1 |  |
 | Remeha Home | `remeha_home` | Refill Heating Water | below 1 |  |
 | SYR Connect (softeners) | `syr_connect` | Refill Softener Salt | below 2 |  |
 | Salt Sentry | `salt_sentry` | Refill Softener Salt | below the household consumable floor (default 10 %) |  |
@@ -571,6 +570,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 | ConnectLife (Hisense / Gorenje / ASKO) | `connectlife` | Clean Grease Filter | at 30 h counted by the device |  |
 |  |  | Replace Filter | at 120 h counted by the device | one task per entity |
 |  |  | Clean Appliance | while the appliance reports 'on' | binary_sensor entity |
+| Vitesy (Shelfy) | `vitesy` | Replace Filter | 7 days before the date the device reports | completing presses `filter_changed` |
+|  |  | Clean Refrigerator | on the date the device reports | completing presses `fridge_cleaned` |
 
 ## 2D and 3D printers incl. Klipper via Moonraker
 
@@ -696,6 +697,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**225 integrations / 484 verified signatures.**
+**225 integrations / 485 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).

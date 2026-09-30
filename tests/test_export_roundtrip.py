@@ -181,6 +181,7 @@ def _full_trigger_config() -> dict:
         "trigger_from_state": "running",
         "trigger_to_state": "clean",
         "trigger_target_changes": 30,
+        "trigger_days_before": 7,
         "compound_logic": "AND",
         "conditions": [{"type": "threshold", "entity_id": "sensor.sub", "trigger_above": 1}],
         "auto_complete_on_recovery": True,

@@ -89,6 +89,12 @@ export function computeTrend(
   return Math.sign(delta) === toward ? "approaching" : "easing";
 }
 
+/** Whole days for a due-date reading (days left, fractional): a date later
+ *  today reads as today, one 30 hours away as 2 days. */
+export function dueDaysOf(daysLeft: number): number {
+  return daysLeft > 0 ? Math.ceil(daysLeft) : Math.trunc(daysLeft) || 0;
+}
+
 export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { trend?: TrendState | null; lang?: string }) {
   const tc = row.trigger_config ?? null;
   if (!tc) return nothing;
@@ -176,6 +182,14 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
     if (val == null) return nothing;
     pct = Math.min(100, Math.max(0, (val / target) * 100));
     label = `${formatNumber(val, opts?.lang, 1)}h / ${formatNumber(target, opts?.lang)}h`;
+  } else if (triggerType === "due_date") {
+    // The reading is the days left until the date the device reports: the
+    // bar fills over the last month before the lead time runs out.
+    const val = row.trigger_current_value ?? null;
+    if (val == null) return nothing;
+    const lead = tc.trigger_days_before ?? 0;
+    pct = val <= lead ? 100 : Math.max(0, 100 - ((val - lead) / 30) * 100);
+    label = formatDueDays(dueDaysOf(val), opts?.lang);
   } else if (triggerType === "compound") {
     const logic = tc.compound_logic || (tc as any).operator || "AND";
     const condCount = tc.conditions?.length || 0;

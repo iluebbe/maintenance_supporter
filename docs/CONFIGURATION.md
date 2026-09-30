@@ -547,6 +547,16 @@ Activates after accumulated operating hours reach a target.
 
 Runtime hours are persisted every 5 minutes and survive restarts. Up to 5 minutes of runtime may be lost on an unclean shutdown. With a max-session cap, a run that exceeds it books exactly the cap — across those persist windows and across restarts.
 
+### Due Date Trigger (2.96+)
+
+For a sensor (or an attribute) that reports **when** the maintenance is due — a `timestamp` (ISO datetime; a naive one is local time) or a `date` (due at local midnight). Its reading is the days left until that date, negative once it has passed.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `trigger_days_before` | int | `0` | 0–365: the task becomes due this many days before the reported date (0 = on the date itself) |
+
+The trigger arms a timer for the moment the date comes within `trigger_days_before`, so it fires on time without the sensor changing. It clears when the device reports a later date — typically after its own "done" button, which the task can press as its completion action; with `auto_complete_on_recovery` that recovery records the completion. An unreadable state (`unknown`, not a date) keeps the trigger as it was.
+
 ### Compound Trigger
 
 Combines multiple trigger conditions with AND/OR logic.

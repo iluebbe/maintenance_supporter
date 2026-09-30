@@ -5,7 +5,7 @@ and tasks. All discovery is **read-only**. You propose; the user decides.
 
 > **Run the shipped discovery first.**
 > `maintenance_supporter/integration_setups/discover` (225 integrations /
-> 484 signatures, each verified against the integration's source, triggers
+> 485 signatures, each verified against the integration's source, triggers
 > pre-wired) and
 > `maintenance_supporter/problem_sensors/discover` already answer "which device
 > needs what" for everything they cover — server-side, with better wiring than

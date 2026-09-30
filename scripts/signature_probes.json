@@ -387,7 +387,8 @@
    "https://raw.githubusercontent.com/bosch-thermostat/home-assistant-bosch-custom-component/master/custom_components/bosch/sensor/base.py"
   ],
   "strings": [
-   "self._name"
+   "self._attr_name = (",
+   "if domain_name != \"Sensors\" and domain_name"
   ]
  },
  "keba": {
@@ -1382,7 +1383,8 @@
  },
  "ha_creality_ws": {
   "urls": [
-   "https://raw.githubusercontent.com/3dg1luk43/ha_creality_ws/main/custom_components/ha_creality_ws/sensor.py"
+   "https://raw.githubusercontent.com/3dg1luk43/ha_creality_ws/main/custom_components/ha_creality_ws/sensor.py",
+   "https://raw.githubusercontent.com/3dg1luk43/ha_creality_ws/main/custom_components/ha_creality_ws/utils.py"
   ],
   "strings": [
    "_attr_translation_key = \"print_status\"",
@@ -1688,15 +1690,6 @@
   "strings": [
    "translation_key=\"air_filter_operating_time\"",
    "filter_running_hours"
-  ]
- },
- "de_dietrich": {
-  "urls": [
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/de_dietrich/sensor.py"
-  ],
-  "strings": [
-   "translation_key=\"water_pressure\"",
-   "UnitOfPressure.BAR"
   ]
  },
  "remeha_home": {
@@ -2385,6 +2378,19 @@
   "strings": [
    "translation_key=\"fragrance_remaining\"",
    "translation_key=\"bay_fragrance_remaining\""
+  ]
+ },
+ "vitesy": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/vitesy/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/vitesy/button.py"
+  ],
+  "strings": [
+   "translation_key=\"filter_change_due\"",
+   "translation_key=\"fridge_cleaning_due\"",
+   "SensorDeviceClass.TIMESTAMP",
+   "translation_key=\"filter_changed\"",
+   "translation_key=\"fridge_cleaned\""
   ]
  }
 }

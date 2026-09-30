@@ -93,6 +93,7 @@ _TRIGGER_REQUIRED_FIELDS: dict[str, list[str]] = {
     "counter": ["trigger_target_value"],
     "state_change": [],
     "runtime": ["trigger_runtime_hours"],
+    "due_date": [],  # trigger_days_before defaults to 0 = on the date itself
     "compound": [],  # conditions validated separately
 }
 
@@ -120,6 +121,8 @@ _TRIGGER_ALLOWED_KEYS: set[str] = {
     "trigger_from_state",
     "trigger_to_state",
     "trigger_target_changes",
+    # due_date
+    "trigger_days_before",
     # compound
     "compound_logic",
     "conditions",
@@ -273,6 +276,7 @@ _OPTIONAL_VALUE_FIELDS: tuple[str, ...] = (
     "trigger_baseline_value",
     "trigger_delta_mode",
     "trigger_runtime_hours",
+    "trigger_days_before",
 )
 
 

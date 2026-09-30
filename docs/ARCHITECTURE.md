@@ -59,7 +59,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
 |    strategy       |    | - interval_analyzer (EWA + Weibull)
 +-------------------+    | - sensor_predictor (degradation + env)
                          | - entity_analyzer (stats + discovery)
-                         | - signatures/ (225 integrations, 484 signals)
+                         | - signatures/ (225 integrations, 485 signals)
                          | - battery_fleet, documents, parts, saved_views
                          | - notification_manager, csv_handler, qr_generator
                          +-------------------+
@@ -380,7 +380,7 @@ custom_components/maintenance_supporter/
 │   ├── global_options.py (80), pause.py (79), status.py (50), completion_photos.py (47: photo_doc_ids ∪ legacy scalar, cap 10), task_fields.py (44), notify_targets.py (39)
 │   ├── reset_wiring.py (2.95: completion presses the integration's counter reset; offers + wiring for existing tasks)
 │   ├── task_origin.py (2.95: task fingerprint `origin` — catalog duty / problem sensor / template task; setup backfill)
-│   └── signatures/              (5,914 lines)  Suggested-setups catalog: 225 integrations / 484 signatures
+│   └── signatures/              (5,914 lines)  Suggested-setups catalog: 225 integrations / 485 signatures
 │       ├── _model.py              (415 lines)  IntegrationSignature / ConsumableSignature + matcher mechanics
 │       ├── _discovery.py          (252 lines)  Entity-registry scan → per-duty setup proposals
 │       ├── _registry.py            (30 lines)  Merge + duplicate-domain guard
@@ -507,7 +507,7 @@ Service call or WebSocket command
 
 ## Trigger System
 
-Abstract factory pattern with five implementations:
+Abstract factory pattern with six implementations:
 
 | Type | Trigger Condition | Config |
 |------|-------------------|--------|
@@ -515,6 +515,7 @@ Abstract factory pattern with five implementations:
 | **Counter** | Accumulated delta reaches target | `trigger_target_value`, `trigger_delta_mode` |
 | **State Change** | N transitions between from→to states | `trigger_from_state`, `trigger_to_state`, `trigger_target_changes` |
 | **Runtime** | Accumulated ON-time reaches target hours | `trigger_runtime_hours`, `on_states` |
+| **Due date** | The date the entity reports comes within N days (a point-in-time timer, no state change needed) | `trigger_days_before` |
 | **Compound** | Multiple conditions combined with AND/OR | `compound_logic`, `conditions[]` |
 
 All triggers share:
@@ -585,7 +586,7 @@ All predictions are pure-Python with no external ML dependencies. The predictor 
 
 ## Signature Catalog & Suggested Setups
 
-Popular integrations already expose the wear signals a maintenance task wants — a Roborock reports *filter time left*, a Brother printer its *drum remaining life*. `helpers/signatures/` turns that into a curated catalog so discovery can propose an object **with its trigger pre-wired** instead of a bare calendar interval. It currently holds **225 integrations / 484 verified signatures** across 14 category data modules (air, cars, garden, heating, home_it, kitchen, locks, personal, pets, printers, transports, vacuums, wallboxes, xiaomi); `_registry.py` merges them and raises on a duplicate domain, `_model.py` holds the dataclasses and matcher mechanics, `_discovery.py` does the entity-registry scan. The generated human-readable table is `docs/INTEGRATIONS.md`.
+Popular integrations already expose the wear signals a maintenance task wants — a Roborock reports *filter time left*, a Brother printer its *drum remaining life*. `helpers/signatures/` turns that into a curated catalog so discovery can propose an object **with its trigger pre-wired** instead of a bare calendar interval. It currently holds **225 integrations / 485 verified signatures** across 14 category data modules (air, cars, garden, heating, home_it, kitchen, locks, personal, pets, printers, transports, vacuums, wallboxes, xiaomi); `_registry.py` merges them and raises on a duplicate domain, `_model.py` holds the dataclasses and matcher mechanics, `_discovery.py` does the entity-registry scan. The generated human-readable table is `docs/INTEGRATIONS.md`.
 
 **Per-duty, not per-device.** A signature describes one *duty* (`ConsumableSignature`) — replace filter, replace main brush, descale — and each duty carries its own direction semantics, which decide the trigger the adoption builds:
 
@@ -597,6 +598,7 @@ Popular integrations already expose the wear signals a maintenance task wants �
 | `usage_delta` | lifetime counter that never resets (odometer, burner hours) | counter trigger in delta mode; completing re-baselines |
 | `event_present` | ENUM event sensor (`present` vs `off`/`confirmed`) | state_change latch; the task auto-completes when the event clears |
 | `runtime_hours` | no counter at all, only a state entity | the engine's own runtime trigger accumulates the time spent in the given states |
+| `due_date` | the device reports the due DATE itself (timestamp/date sensor) | due_date trigger N days before that date; the device's own "done" button moves the date and auto-completes the task |
 
 Matching keys off the entity registry's `translation_key` (stable across renames) with an entity_id-suffix fallback for custom integrations that don't set one, and thresholds are **unit-aware** — the stored default is converted into whatever unit the entity actually displays. Claims are made **per duty, not per entity**: a watcher task named as *this* duty (in any language) blocks it, watchers named as *other* catalog duties leave the remaining duties adoptable, and a custom/renamed watcher claims the whole entity — so one source entity can back several duties (a mower's hours counter drives blades *and* undercarriage) and a deselected duty stays proposable after its sibling was adopted. Verdicts follow the direct → derived → engine-derived ladder in `docs/design/signature-evaluation-scheme.md`; a "no usable signal" verdict is only recorded after every rung has been checked.
 
@@ -1055,7 +1057,7 @@ pytest tests/ -v
 
 ### Demo Data Setup
 
-**`scripts/setup_demo.py`** — Creates 9 maintenance objects (18 tasks) via HA's REST Config Flow API, covering all 5 trigger types and 3 schedule types. Also configures global options (panel, advanced features, budget).
+**`scripts/setup_demo.py`** — Creates 9 maintenance objects (18 tasks) via HA's REST Config Flow API, covering five trigger types (all but the due date) and 3 schedule types. Also configures global options (panel, advanced features, budget).
 
 | # | Object | Manufacturer / Model | Tasks | Trigger Types | Key Entities |
 |---|--------|---------------------|-------|---------------|--------------|

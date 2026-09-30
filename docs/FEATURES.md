@@ -400,7 +400,7 @@ devices they sit on), type an existing object's name and they join it.
 
 **Suggested setups** (in the dashboard's *Add ▾* menu) discovers devices of supported integrations
 whose consumable sensors can drive maintenance tasks and sets them up in one
-click. The catalog currently covers **225 integrations with 484 verified
+click. The catalog currently covers **225 integrations with 485 verified
 signatures** — vacuums, mowers, kitchen appliances, printers, cars (including
 Škoda/Audi service countdowns straight from the vehicle), air purifiers,
 heating and water treatment, locks, pet tech and more; the complete,
@@ -874,6 +874,7 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 - **Counter**: trigger when accumulated value reaches a target (absolute or delta mode)
 - **State change**: trigger after a number of state transitions (e.g., on/off cycles). An optional *for (minutes)* hold (#136) makes a transition count only once the new state has held that long — flappy problem sensors stop firing on second-long night-time flickers, and a flicker never counts as an appliance cycle. 0 (default) counts every change immediately, so sensors that pulse only briefly keep working. The hold window survives restarts and is also offered when adopting problem sensors.
 - **Runtime**: trigger after accumulated operating hours (e.g., 500h of compressor runtime) — with an optional per-session cap so a sensor stuck ON (lost connection, restart) cannot book a whole night as runtime (2.71+)
+- **Due date** (2.96+): for a sensor that reports *when* the maintenance is due — a timestamp or date such as a purifier's *Filter change due*. The task becomes due N days before that date (0 = on the date itself) and fires on time even though the sensor keeps reporting the same date until then. When the device moves its date forward — usually its own *filter changed* button, which can be the task's completion action — the trigger clears and, with *auto-complete on recovery*, the task records the completion
 - **Compound**: combine multiple conditions with AND/OR logic (e.g., threshold AND runtime)
 - Multi-entity support for all trigger types (any/all entity logic)
 - **Trigger ∧ interval combinator**: a trigger task can also carry a safety interval — by default whichever is met first makes the task due; with the `all` combinator the task only becomes due once the trigger fired *and* the interval elapsed (the interval acts as a minimum age, e.g. "when the sensor says so, but never more often than every 3 months")

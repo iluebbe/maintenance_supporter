@@ -327,6 +327,27 @@
           "go_back": "Terug naar triggertypeselectie zonder op te slaan."
         }
       },
+      "trigger_due_date": {
+        "title": "Vervaldatum",
+        "description": "Volgt de datum die {entity_id} meldt (nu: {current_state}). De taak wordt het gekozen aantal dagen vóór die datum verwacht.",
+        "data": {
+          "trigger_days_before": "Dagen vóór de datum",
+          "interval_days": "Veiligheidsinterval",
+          "interval_unit": "Intervaleenheid",
+          "trigger_combinator": "Trigger en interval combineren",
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug",
+          "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = op de datum zelf. Zodra het apparaat zijn datum opschuift (meestal met zijn eigen 'klaar'-knop), vervalt de trigger.",
+          "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de sensortrigger.",
+          "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
+          "trigger_combinator": "Eerst vervuld (standaard): trigger of verstreken interval maakt de taak verschuldigd. Beide vereist: de taak wordt pas verschuldigd als de trigger is afgegaan en het interval is verstreken.",
+          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
+          "go_back": "Terug naar triggertypeselectie zonder op te slaan."
+        }
+      },
       "compound_logic": {
         "title": "Samengestelde trigger",
         "description": "Kies hoe meerdere voorwaarden gecombineerd moeten worden.",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "Activeren na dit aantal uren opgebouwde looptijd.",
           "trigger_on_states": "Sensorstatussen die als 'actief' worden geteld. Laat leeg voor standaard.",
+          "go_back": "Terug naar conditietypeselectie zonder op te slaan."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Voorwaarde — Vervaldatum",
+        "data": {
+          "trigger_days_before": "Dagen vóór de datum",
+          "go_back": "Terug"
+        },
+        "data_description": {
+          "trigger_days_before": "Aan de voorwaarde is voldaan vanaf zoveel dagen vóór de gemelde datum.",
           "go_back": "Terug naar conditietypeselectie zonder op te slaan."
         }
       },
@@ -886,6 +918,16 @@
           "trigger_on_states": "Sensorstatussen die als 'actief' worden geteld. Laat leeg voor standaard."
         }
       },
+      "compound_condition_due_date": {
+        "title": "Voorwaarde — Vervaldatum",
+        "data": {
+          "trigger_days_before": "Dagen vóór de datum",
+          "go_back": "Terug"
+        },
+        "data_description": {
+          "trigger_days_before": "Aan de voorwaarde is voldaan vanaf zoveel dagen vóór de gemelde datum."
+        }
+      },
       "compound_review": {
         "title": "Samengestelde trigger — Overzicht",
         "description": "{condition_count} voorwaarde(n) geconfigureerd met {compound_logic}-logica.",
@@ -1171,6 +1213,26 @@
           "trigger_runtime_hours": "Onderhoud activeren na dit aantal uren gecumuleerde looptijd.",
           "trigger_on_states": "Welke sensorstatussen tellen als 'actief'. Laat leeg voor standaard: on, 1, true. Voorbeeld: in_use, running",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de looptijdtrigger.",
+          "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
+          "trigger_combinator": "Eerst vervuld (standaard): trigger of verstreken interval maakt de taak verschuldigd. Beide vereist: de taak wordt pas verschuldigd als de trigger is afgegaan en het interval is verstreken.",
+          "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
+        }
+      },
+      "opt_trigger_due_date": {
+        "title": "Vervaldatum",
+        "description": "Volgt de datum die {entity_id} meldt (nu: {current_state}). De taak wordt het gekozen aantal dagen vóór die datum verwacht.",
+        "data": {
+          "trigger_days_before": "Dagen vóór de datum",
+          "interval_days": "Veiligheidsinterval",
+          "interval_unit": "Intervaleenheid",
+          "trigger_combinator": "Trigger en interval combineren",
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug",
+          "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = op de datum zelf. Zodra het apparaat zijn datum opschuift (meestal met zijn eigen 'klaar'-knop), vervalt de trigger.",
+          "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de sensortrigger.",
           "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
           "trigger_combinator": "Eerst vervuld (standaard): trigger of verstreken interval maakt de taak verschuldigd. Beide vereist: de taak wordt pas verschuldigd als de trigger is afgegaan en het interval is verstreken.",
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
@@ -1637,6 +1699,7 @@
         "counter": "Teller",
         "state_change": "Statuswijziging",
         "runtime": "Looptijd",
+        "due_date": "Vervaldatum (gemeld door een sensor)",
         "compound": "Samengesteld (Meerdere Voorwaarden)"
       }
     },

@@ -327,6 +327,27 @@
           "go_back": "Palaa laukaisutyypin valintaan tallentamatta."
         }
       },
+      "trigger_due_date": {
+        "title": "Eräpäivä",
+        "description": "Seuraa päivämäärää, jonka {entity_id} ilmoittaa (nyt: {current_state}). Tehtävä erääntyy valitun määrän päiviä ennen tätä päivää.",
+        "data": {
+          "trigger_days_before": "Päiviä ennen päivämäärää",
+          "interval_days": "Turva-aikaväli",
+          "interval_unit": "Aikavälin yksikkö",
+          "trigger_combinator": "Yhdistä laukaisin ja väli",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin",
+          "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = itse päivänä. Kun laite siirtää päivämääräänsä eteenpäin (yleensä omalla \"valmis\"-painikkeellaan), laukaisin poistuu.",
+          "interval_days": "Valinnainen aikaperusteinen turva-aikaväli anturilaukaisun lisäksi.",
+          "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "trigger_combinator": "Ensin täyttyvä (oletus): laukaisin tai kulunut väli erääntyy tehtävän. Molemmat vaaditaan: tehtävä erääntyy vasta, kun laukaisin on lauennut ja väli kulunut.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "go_back": "Palaa laukaisutyypin valintaan tallentamatta."
+        }
+      },
       "compound_logic": {
         "title": "Yhdistelmälaukaisin",
         "description": "Valitse, miten useat ehdot yhdistetään.",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "Laukaise tämän kertyneen käyntiaikatuntimäärän jälkeen.",
           "trigger_on_states": "Anturin tilat, jotka lasketaan 'aktiivisiksi'. Jätä tyhjäksi oletukselle.",
+          "go_back": "Palaa ehtotyypin valintaan tallentamatta."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Ehto — Eräpäivä",
+        "data": {
+          "trigger_days_before": "Päiviä ennen päivämäärää",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_days_before": "Ehto täyttyy näin monta päivää ennen ilmoitettua päivämäärää.",
           "go_back": "Palaa ehtotyypin valintaan tallentamatta."
         }
       },
@@ -886,6 +918,16 @@
           "trigger_on_states": "Anturin tilat, jotka lasketaan 'aktiivisiksi'. Jätä tyhjäksi oletukselle."
         }
       },
+      "compound_condition_due_date": {
+        "title": "Ehto — Eräpäivä",
+        "data": {
+          "trigger_days_before": "Päiviä ennen päivämäärää",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_days_before": "Ehto täyttyy näin monta päivää ennen ilmoitettua päivämäärää."
+        }
+      },
       "compound_review": {
         "title": "Yhdistelmälaukaisimen yhteenveto",
         "description": "{condition_count} ehtoa määritetty logiikalla {compound_logic}.",
@@ -1171,6 +1213,26 @@
           "trigger_runtime_hours": "Laukaise huolto tämän kertyneen käyntiaikatuntimäärän jälkeen.",
           "trigger_on_states": "Mitkä anturin tilat lasketaan 'aktiivisiksi'. Jätä tyhjäksi oletukselle: on, 1, true. Esimerkki: in_use, running",
           "interval_days": "Valinnainen aikaperusteinen turva-aikaväli käyntiaikalaukaisun lisäksi.",
+          "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "trigger_combinator": "Ensin täyttyvä (oletus): laukaisin tai kulunut väli erääntyy tehtävän. Molemmat vaaditaan: tehtävä erääntyy vasta, kun laukaisin on lauennut ja väli kulunut.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään."
+        }
+      },
+      "opt_trigger_due_date": {
+        "title": "Eräpäivä",
+        "description": "Seuraa päivämäärää, jonka {entity_id} ilmoittaa (nyt: {current_state}). Tehtävä erääntyy valitun määrän päiviä ennen tätä päivää.",
+        "data": {
+          "trigger_days_before": "Päiviä ennen päivämäärää",
+          "interval_days": "Turva-aikaväli",
+          "interval_unit": "Aikavälin yksikkö",
+          "trigger_combinator": "Yhdistä laukaisin ja väli",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin",
+          "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = itse päivänä. Kun laite siirtää päivämääräänsä eteenpäin (yleensä omalla \"valmis\"-painikkeellaan), laukaisin poistuu.",
+          "interval_days": "Valinnainen aikaperusteinen turva-aikaväli anturilaukaisun lisäksi.",
           "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
           "trigger_combinator": "Ensin täyttyvä (oletus): laukaisin tai kulunut väli erääntyy tehtävän. Molemmat vaaditaan: tehtävä erääntyy vasta, kun laukaisin on lauennut ja väli kulunut.",
           "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään."
@@ -1637,6 +1699,7 @@
         "counter": "Laskuri",
         "state_change": "Tilanmuutos",
         "runtime": "Käyntiaika",
+        "due_date": "Eräpäivä (anturin ilmoittama)",
         "compound": "Yhdistelmä (useita ehtoja)"
       }
     },

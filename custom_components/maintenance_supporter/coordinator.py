@@ -661,6 +661,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
         from .helpers.trigger_fallback import (
             evaluate_counter,
+            evaluate_due_date,
             evaluate_runtime,
             evaluate_state_change,
             evaluate_threshold,
@@ -676,6 +677,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             result = evaluate_state_change(task.trigger_config, entity_ids)
         elif trigger_type == "runtime":
             result = evaluate_runtime(task.trigger_config, entity_ids)
+        elif trigger_type == "due_date":
+            result = evaluate_due_date(self.hass.states.get, task.trigger_config, entity_ids)
         else:
             return
 

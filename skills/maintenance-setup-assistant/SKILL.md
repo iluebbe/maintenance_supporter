@@ -92,7 +92,7 @@ they do it better because their wiring is verified against each integration's
 source:
 
 1. `maintenance_supporter/integration_setups/discover` → `{setups:[…]}`. A
-   catalog of **225 integrations / 484 signatures** matched against the entity
+   catalog of **225 integrations / 485 signatures** matched against the entity
    registry: each hit is a device with concrete duties, the exact `entity_ids`,
    a `direction` and a default `threshold` — i.e. **triggers already chosen**.
    Adopt with `integration_setups/adopt` (it re-runs discovery server-side and
@@ -218,6 +218,7 @@ Documents feature. Do not fabricate model numbers or intervals.
 | Consumable / filter cycles | cycle-count sensor | `counter` | `trigger_target_value` (absolute) |
 | Pump/HVAC/compressor wear | on/off entity | `runtime` | `trigger_runtime_hours` (+ `trigger_on_states`) |
 | "Cleaning cycle finished" event | state that flips | `state_change` | `trigger_from_state`/`trigger_to_state`, `trigger_target_changes` |
+| Device reports when it is due | timestamp/date sensor ("Filter change due") | `due_date` | `trigger_days_before` (+ the device's "done" button as completion action) |
 | Any two of the above together | multiple sensors | `compound` | `compound_logic` + `conditions[]` (≥2, no nesting) |
 | Consumable level low (ink, toner, filter %) | `%` sensor | `threshold` | `trigger_below` |
 | **Household batteries** | Battery Notes devices | *(none — use the Battery Fleet)* | `battery_fleet/setup`, not a task per battery |

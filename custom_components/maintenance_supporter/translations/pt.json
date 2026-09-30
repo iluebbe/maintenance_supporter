@@ -327,6 +327,27 @@
           "go_back": "Regressar à seleção do tipo de acionamento sem guardar."
         }
       },
+      "trigger_due_date": {
+        "title": "Data de vencimento",
+        "description": "Acompanha a data que {entity_id} indica (agora: {current_state}). A tarefa fica pendente o número de dias escolhido antes dessa data.",
+        "data": {
+          "trigger_days_before": "Dias antes da data",
+          "interval_days": "Intervalo de segurança",
+          "interval_unit": "Unidade de intervalo",
+          "trigger_combinator": "Combinar acionador e intervalo",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor recuperar"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = no próprio dia. Quando o dispositivo adia a sua data (normalmente com o seu próprio botão de «feito»), o acionador desativa-se.",
+          "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por sensor.",
+          "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (predefinição): o acionador ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o acionador disparou e o intervalo decorreu.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "go_back": "Regressar à seleção do tipo de acionamento sem guardar."
+        }
+      },
       "compound_logic": {
         "title": "Acionamento Composto",
         "description": "Escolha como múltiplas condições devem ser combinadas.",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "Acionar após estas horas de tempo de execução acumulado.",
           "trigger_on_states": "Estados do sensor contados como 'ativo'. Deixe vazio para o predefinido.",
+          "go_back": "Regressar à seleção do tipo de condição sem guardar."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Condição — Data de vencimento",
+        "data": {
+          "trigger_days_before": "Dias antes da data",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_days_before": "A condição cumpre-se a partir deste número de dias antes da data indicada.",
           "go_back": "Regressar à seleção do tipo de condição sem guardar."
         }
       },
@@ -886,6 +918,16 @@
           "trigger_on_states": "Estados do sensor contados como 'ativo'. Deixe vazio para o predefinido."
         }
       },
+      "compound_condition_due_date": {
+        "title": "Condição — Data de vencimento",
+        "data": {
+          "trigger_days_before": "Dias antes da data",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_days_before": "A condição cumpre-se a partir deste número de dias antes da data indicada."
+        }
+      },
       "compound_review": {
         "title": "Revisão do Acionamento Composto",
         "description": "{condition_count} condição(ões) configurada(s) com lógica {compound_logic}.",
@@ -1171,6 +1213,26 @@
           "trigger_runtime_hours": "Acionar manutenção após estas horas de tempo de execução acumulado.",
           "trigger_on_states": "Quais estados do sensor contam como 'ativo'. Deixe vazio para o predefinido: on, 1, true. Exemplo: in_use, running",
           "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por tempo de execução.",
+          "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (predefinição): o acionador ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o acionador disparou e o intervalo decorreu.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
+        }
+      },
+      "opt_trigger_due_date": {
+        "title": "Data de vencimento",
+        "description": "Acompanha a data que {entity_id} indica (agora: {current_state}). A tarefa fica pendente o número de dias escolhido antes dessa data.",
+        "data": {
+          "trigger_days_before": "Dias antes da data",
+          "interval_days": "Intervalo de segurança",
+          "interval_unit": "Unidade de intervalo",
+          "trigger_combinator": "Combinar acionador e intervalo",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor recuperar"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = no próprio dia. Quando o dispositivo adia a sua data (normalmente com o seu próprio botão de «feito»), o acionador desativa-se.",
+          "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por sensor.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
           "trigger_combinator": "O primeiro (predefinição): o acionador ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o acionador disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
@@ -1637,6 +1699,7 @@
         "counter": "Contador",
         "state_change": "Mudança de Estado",
         "runtime": "Tempo de Execução",
+        "due_date": "Data de vencimento (indicada por um sensor)",
         "compound": "Composto (Múltiplas Condições)"
       }
     },

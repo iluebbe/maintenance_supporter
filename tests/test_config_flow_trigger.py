@@ -20,6 +20,7 @@ from custom_components.maintenance_supporter.const import (
     CONF_TRIGGER_ABOVE,
     CONF_TRIGGER_ATTRIBUTE,
     CONF_TRIGGER_BELOW,
+    CONF_TRIGGER_DAYS_BEFORE,
     CONF_TRIGGER_ENTITY,
     CONF_TRIGGER_ENTITY_LOGIC,
     CONF_TRIGGER_ON_STATES,
@@ -188,6 +189,74 @@ async def test_sensor_safety_interval_honors_unit(
     task = list(result["data"][CONF_TASKS].values())[0]
     assert read_legacy_fields(task)["interval_days"] == 3
     assert read_legacy_fields(task)["interval_unit"] == "months"
+
+
+async def test_due_date_trigger_full_flow(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """A sensor that reports its own due date: sensor → state → due_date step."""
+    hass.states.async_set("sensor.shelfy_filter_change_due", "2026-11-15T00:00:00+00:00", {"device_class": "timestamp"})
+
+    result = await _navigate_to_add_task(hass, global_config_entry)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Replace Filter",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.REPLACEMENT,
+            CONF_TASK_SCHEDULE_TYPE: ScheduleType.SENSOR_BASED,
+        },
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={CONF_TRIGGER_ENTITY: ["sensor.shelfy_filter_change_due"]}
+    )
+    assert result["step_id"] == "sensor_attribute"
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={CONF_TRIGGER_ATTRIBUTE: "_state"})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={CONF_TRIGGER_TYPE: TriggerType.DUE_DATE})
+    assert result["step_id"] == "trigger_due_date"
+    assert result["description_placeholders"]["current_state"] == "2026-11-15T00:00:00+00:00"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={CONF_TRIGGER_DAYS_BEFORE: 7, CONF_TASK_WARNING_DAYS: 7}
+    )
+    assert result["type"] == FlowResultType.MENU
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "finish"})
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    tc = list(result["data"][CONF_TASKS].values())[0]["trigger_config"]
+    assert tc["type"] == TriggerType.DUE_DATE and tc[CONF_TRIGGER_DAYS_BEFORE] == 7
+
+
+async def test_due_date_compound_condition(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """A due date can be one condition of a compound trigger."""
+    hass.states.async_set("sensor.shelfy_filter_change_due", "2026-11-15T00:00:00+00:00")
+    hass.states.async_set("sensor.air_quality", "40")
+
+    result = await _navigate_to_add_task(hass, global_config_entry)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Filter",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.REPLACEMENT,
+            CONF_TASK_SCHEDULE_TYPE: ScheduleType.SENSOR_BASED,
+        },
+    )
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={CONF_TRIGGER_ENTITY: ["sensor.air_quality"]})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={CONF_TRIGGER_ATTRIBUTE: "_state"})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={CONF_TRIGGER_TYPE: TriggerType.COMPOUND})
+    assert result["step_id"] == "compound_logic"
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={"compound_logic": "or"})
+    assert result["step_id"] == "compound_condition_entity"
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={CONF_TRIGGER_ENTITY: ["sensor.shelfy_filter_change_due"]}
+    )
+    assert result["step_id"] == "compound_condition_type"
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={CONF_TRIGGER_TYPE: TriggerType.DUE_DATE})
+    assert result["step_id"] == "compound_condition_due_date"
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={CONF_TRIGGER_DAYS_BEFORE: 3})
+    assert result["step_id"] == "compound_review"
 
 
 async def test_runtime_trigger_custom_on_states(

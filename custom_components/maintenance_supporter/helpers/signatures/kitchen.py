@@ -773,4 +773,35 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         translation_keys_authoritative=True,
     ),
+    # ─── 2026-09-30: dates the appliance reports itself (due_date engine) ─
+    "vitesy": IntegrationSignature(
+        name="Vitesy (Shelfy)",
+        verified="2026-09-30 @ home-assistant/core dev (new in 2026.10)",
+        source=(
+            "core vitesy sensor.py: tk 'filter_change_due' / 'fridge_cleaning_due' "
+            "(device_class TIMESTAMP, EntityCategory.DIAGNOSTIC; the value is the "
+            "device's maintenance[component].due_date, created only when the device "
+            "reports one) + button.py: tk 'filter_changed' / 'fridge_cleaned' ('Mark "
+            "filter as changed' / 'Mark fridge as cleaned', api.reset_maintenance → "
+            "the next maintenance period, i.e. a later due date). Every entity "
+            "description sets a translation_key."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            # A week's lead time to order the cartridge.
+            ConsumableSignature(
+                ("filter_change_due",),
+                "Replace Filter",
+                "due_date",
+                days_before=7,
+                resets=(("filter_change_due", "filter_changed"),),
+            ),
+            ConsumableSignature(
+                ("fridge_cleaning_due",),
+                "Clean Refrigerator",
+                "due_date",
+                resets=(("fridge_cleaning_due", "fridge_cleaned"),),
+            ),
+        ),
+    ),
 }

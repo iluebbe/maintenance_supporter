@@ -3,7 +3,7 @@
 Pins the Gree fix (runtime on the climate STATE — core's Gree entity never
 sets hvac_action) and the round-14 additions: purifier/HRV filters (Meross,
 Tuya Local, Govee, Duux, Carrier, Komfovent, Pluggit/Dantherm, Samsung Local
-Things, core Flexit Modbus), boiler pressure (De Dietrich, Remeha Home),
+Things, core Flexit Modbus), boiler pressure (Remeha Home),
 softener salt (SYR Connect, Salt Sentry, Unique Waterontharder, BWT AQA Perla
 BLE) and generator engine hours (Generac, EnergyTrak, Himoinsa C4LAN).
 
@@ -325,18 +325,11 @@ async def test_round14_localthings_samsung_filter_duties(hass: HomeAssistant, gl
 
 
 async def test_round14_boiler_pressure_and_softener_salt(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
-    """De Dietrich (tk) / Remeha Home (suffix) loop pressure below 1 bar;
+    """Remeha Home (suffix) loop pressure below 1 bar;
     SYR salt supply in WEEKS as value_below 2 in the entity's own unit (the
     duration conversion has no weeks factor); Salt Sentry / Unique /
     BWT BLE salt % → Refill Softener Salt."""
     await setup_integration(hass, global_entry)
-    dietrich = await _seed(
-        hass,
-        "de_dietrich",
-        "diematic",
-        "Diematic",
-        [("diematic_water_pressure", "water_pressure", "bar", "1.6")],
-    )
     remeha = await _seed(
         hass,
         "remeha_home",
@@ -378,10 +371,11 @@ async def test_round14_boiler_pressure_and_softener_salt(hass: HomeAssistant, gl
 
     setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
 
-    for dev_id in (dietrich, remeha):
-        (bp,) = setups[dev_id]["tasks"]
-        assert bp["task_name"] == "Refill Heating Water"
-        assert bp["direction"] == "value_below" and bp["threshold"] == 1.0
+    (bp,) = setups[remeha]["tasks"]
+    assert bp["task_name"] == "Refill Heating Water"
+    assert bp["direction"] == "value_below" and bp["threshold"] == 1.0
+    # Withdrawn from core before any release (#183545).
+    assert "de_dietrich" not in SIGNATURES
 
     (sy,) = setups[syr]["tasks"]
     assert sy["task_name"] == "Refill Softener Salt"
@@ -458,7 +452,6 @@ def test_round14_signatures_are_catalogued_with_source_and_ref() -> None:
         "ha_carrier",
         "localthings",
         "flexit",
-        "de_dietrich",
         "remeha_home",
         "syr_connect",
         "salt_sentry",

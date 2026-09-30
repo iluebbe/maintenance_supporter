@@ -327,6 +327,27 @@
           "go_back": "Återgå till val av utlösartyp utan att spara."
         }
       },
+      "trigger_due_date": {
+        "title": "Förfallodatum",
+        "description": "Följer datumet som {entity_id} rapporterar (nu: {current_state}). Uppgiften förfaller det valda antalet dagar före det datumet.",
+        "data": {
+          "trigger_days_before": "Dagar före datumet",
+          "interval_days": "Säkerhetsintervall",
+          "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombinera utlösare och intervall",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka",
+          "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = på själva datumet. När enheten flyttar fram sitt datum (oftast med sin egen ”klar”-knapp) släpper utlösaren.",
+          "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver sensorutlösaren.",
+          "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
+          "trigger_combinator": "Först uppfylld (standard): utlösaren eller förflutet intervall gör uppgiften förfallen. Båda krävs: uppgiften förfaller först när utlösaren har utlösts och intervallet har förflutit.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "go_back": "Återgå till val av utlösartyp utan att spara."
+        }
+      },
       "compound_logic": {
         "title": "Sammansatt utlösare",
         "description": "Välj hur flera villkor ska kombineras.",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "Utlös efter så här många timmar ackumulerad körtid.",
           "trigger_on_states": "Sensortillstånd som räknas som ”aktiva”. Lämna tomt för standard.",
+          "go_back": "Återgå till val av villkorstyp utan att spara."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Villkor — Förfallodatum",
+        "data": {
+          "trigger_days_before": "Dagar före datumet",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_days_before": "Villkoret är uppfyllt från så många dagar före det rapporterade datumet.",
           "go_back": "Återgå till val av villkorstyp utan att spara."
         }
       },
@@ -886,6 +918,16 @@
           "trigger_on_states": "Sensortillstånd som räknas som ”aktiva”. Lämna tomt för standard."
         }
       },
+      "compound_condition_due_date": {
+        "title": "Villkor — Förfallodatum",
+        "data": {
+          "trigger_days_before": "Dagar före datumet",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_days_before": "Villkoret är uppfyllt från så många dagar före det rapporterade datumet."
+        }
+      },
       "compound_review": {
         "title": "Översikt sammansatt utlösare",
         "description": "{condition_count} villkor konfigurerade med {compound_logic}-logik.",
@@ -1171,6 +1213,26 @@
           "trigger_runtime_hours": "Utlös underhåll efter så här många timmar ackumulerad körtid.",
           "trigger_on_states": "Vilka sensortillstånd som räknas som ”aktiva”. Lämna tomt för standard: on, 1, true. Exempel: in_use, running",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver körtidsutlösaren.",
+          "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
+          "trigger_combinator": "Först uppfylld (standard): utlösaren eller förflutet intervall gör uppgiften förfallen. Båda krävs: uppgiften förfaller först när utlösaren har utlösts och intervallet har förflutit.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas."
+        }
+      },
+      "opt_trigger_due_date": {
+        "title": "Förfallodatum",
+        "description": "Följer datumet som {entity_id} rapporterar (nu: {current_state}). Uppgiften förfaller det valda antalet dagar före det datumet.",
+        "data": {
+          "trigger_days_before": "Dagar före datumet",
+          "interval_days": "Säkerhetsintervall",
+          "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombinera utlösare och intervall",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka",
+          "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = på själva datumet. När enheten flyttar fram sitt datum (oftast med sin egen ”klar”-knapp) släpper utlösaren.",
+          "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver sensorutlösaren.",
           "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
           "trigger_combinator": "Först uppfylld (standard): utlösaren eller förflutet intervall gör uppgiften förfallen. Båda krävs: uppgiften förfaller först när utlösaren har utlösts och intervallet har förflutit.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas."
@@ -1637,6 +1699,7 @@
         "counter": "Räknare",
         "state_change": "Tillståndsändring",
         "runtime": "Körtid",
+        "due_date": "Förfallodatum (rapporteras av en sensor)",
         "compound": "Sammansatt (flera villkor)"
       }
     },

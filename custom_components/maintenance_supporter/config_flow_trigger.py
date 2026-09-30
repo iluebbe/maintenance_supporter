@@ -45,6 +45,7 @@ from .const import (
     CONF_TRIGGER_ATTRIBUTE,
     CONF_TRIGGER_BELOW,
     CONF_TRIGGER_COMBINATOR,
+    CONF_TRIGGER_DAYS_BEFORE,
     CONF_TRIGGER_DELTA_MODE,
     CONF_TRIGGER_ENTITY,
     CONF_TRIGGER_ENTITY_LOGIC,
@@ -291,6 +292,18 @@ def _runtime_hours_field() -> dict[Any, Any]:
                 min=1,
                 max=TRIGGER_RUNTIME_HOURS_MAX,
                 unit_of_measurement="h",
+            )
+        )
+    }
+
+
+def _days_before_field() -> dict[Any, Any]:
+    """due_date: how many days before the reported date the task fires."""
+    low, high = TRIGGER_FIELD_RANGES[CONF_TRIGGER_DAYS_BEFORE]
+    return {
+        vol.Optional(CONF_TRIGGER_DAYS_BEFORE, default=0): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=low, max=high, step=1, mode=selector.NumberSelectorMode.BOX, unit_of_measurement="d"
             )
         )
     }
@@ -575,6 +588,7 @@ class TriggerConfigMixin:
         counter_step: Callable[[], Awaitable[ConfigFlowResult]],
         state_change_step: Callable[[], Awaitable[ConfigFlowResult]],
         runtime_step: Callable[[], Awaitable[ConfigFlowResult]],
+        due_date_step: Callable[[], Awaitable[ConfigFlowResult]],
         compound_step: Callable[[], Awaitable[ConfigFlowResult]] | None = None,
     ) -> ConfigFlowResult:
         """Core logic for trigger type selection."""
@@ -592,6 +606,8 @@ class TriggerConfigMixin:
                 return await counter_step()
             if trigger_type == TriggerType.RUNTIME:
                 return await runtime_step()
+            if trigger_type == TriggerType.DUE_DATE:
+                return await due_date_step()
             if trigger_type == TriggerType.COMPOUND and compound_step:
                 return await compound_step()
             return await state_change_step()
@@ -837,6 +853,34 @@ class TriggerConfigMixin:
             },
         )
 
+    async def _trigger_due_date_config(
+        self,
+        user_input: dict[str, Any] | None,
+        *,
+        step_id: str,
+        on_complete: Callable[[], ConfigFlowResult],
+    ) -> ConfigFlowResult:
+        """Core logic for due-date trigger configuration."""
+        if user_input is not None:
+            cancel = await self._mixin_check_go_back(user_input)
+            if cancel is not None:
+                return cancel
+
+            tc = self._current_task["trigger_config"]
+            tc[CONF_TRIGGER_DAYS_BEFORE] = int(user_input.get(CONF_TRIGGER_DAYS_BEFORE) or 0)
+            self._apply_type_step_tail(tc, user_input)
+            return on_complete()
+
+        state = self._trigger_entity_state
+        return self.async_show_form(
+            step_id=step_id,
+            data_schema=vol.Schema(self._mixin_add_go_back({**_days_before_field(), **self._type_step_tail_fields()})),
+            description_placeholders={
+                "entity_id": self._trigger_entity_id or "",
+                "current_state": state.state if state is not None else "",
+            },
+        )
+
     # ------------------------------------------------------------------
     # Compound trigger configuration steps
     # ------------------------------------------------------------------
@@ -944,6 +988,7 @@ class TriggerConfigMixin:
         counter_step: Callable[[], Awaitable[ConfigFlowResult]],
         state_change_step: Callable[[], Awaitable[ConfigFlowResult]],
         runtime_step: Callable[[], Awaitable[ConfigFlowResult]],
+        due_date_step: Callable[[], Awaitable[ConfigFlowResult]],
     ) -> ConfigFlowResult:
         """Select trigger type for a compound condition."""
         if user_input is not None:
@@ -960,6 +1005,8 @@ class TriggerConfigMixin:
                 return await counter_step()
             if trigger_type == TriggerType.RUNTIME:
                 return await runtime_step()
+            if trigger_type == TriggerType.DUE_DATE:
+                return await due_date_step()
             return await state_change_step()
 
         trigger_options = [t.value for t in TriggerType if t != TriggerType.COMPOUND]
@@ -1041,6 +1088,8 @@ class TriggerConfigMixin:
                 states = _parse_states(user_input.get(CONF_TRIGGER_ON_STATES))
                 if states:
                     cond["trigger_on_states"] = states
+            elif condition_type == TriggerType.DUE_DATE:
+                cond["trigger_days_before"] = int(user_input.get(CONF_TRIGGER_DAYS_BEFORE) or 0)
 
             entity_ids = cond.get("entity_ids", [])
             if len(entity_ids) > 1 and user_input.get(CONF_TRIGGER_ENTITY_LOGIC):
@@ -1076,6 +1125,8 @@ class TriggerConfigMixin:
                     default=[] if cond.get("entity_id") else "",
                 ): _state_selector(cond.get("entity_id"), multiple=True),
             }
+        elif condition_type == TriggerType.DUE_DATE:
+            schema_fields = _days_before_field()
 
         schema_fields.update(_entity_logic_field(cond.get("entity_ids", [])))
 

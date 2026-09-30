@@ -327,6 +327,27 @@
           "go_back": "Visszatérés a kiváltótípus-választáshoz mentés nélkül."
         }
       },
+      "trigger_due_date": {
+        "title": "Esedékesség dátuma",
+        "description": "Figyeli a(z) {entity_id} által jelzett dátumot (most: {current_state}). A feladat a választott számú nappal a dátum előtt válik esedékessé.",
+        "data": {
+          "trigger_days_before": "Nappal a dátum előtt",
+          "interval_days": "Biztonsági intervallum",
+          "interval_unit": "Intervallum egysége",
+          "trigger_combinator": "Trigger és időköz kombinálása",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza",
+          "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = magán a napon. Amikor az eszköz előrébb teszi a dátumát (általában a saját „kész” gombjával), a trigger megszűnik.",
+          "interval_days": "Opcionális időalapú biztonsági intervallum az érzékelős kiváltó mellett.",
+          "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "trigger_combinator": "Amelyik előbb (alapértelmezett): a trigger vagy a letelt időköz esedékessé teszi a feladatot. Mindkettő szükséges: a feladat csak akkor esedékes, ha a trigger kioldott és az időköz letelt.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "go_back": "Visszatérés a kiváltótípus-választáshoz mentés nélkül."
+        }
+      },
       "compound_logic": {
         "title": "Összetett kiváltó",
         "description": "Válassza ki, hogyan legyenek a feltételek kombinálva.",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "Kiváltás ennyi óra összesített üzemidő után.",
           "trigger_on_states": "Az „aktívnak” számító érzékelőállapotok. Hagyja üresen az alapértelmezéshez.",
+          "go_back": "Visszatérés a feltételtípus-választáshoz mentés nélkül."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Feltétel — Esedékesség dátuma",
+        "data": {
+          "trigger_days_before": "Nappal a dátum előtt",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_days_before": "A feltétel ennyi nappal a jelzett dátum előtt teljesül.",
           "go_back": "Visszatérés a feltételtípus-választáshoz mentés nélkül."
         }
       },
@@ -886,6 +918,16 @@
           "trigger_on_states": "Az „aktívnak” számító érzékelőállapotok. Hagyja üresen az alapértelmezéshez."
         }
       },
+      "compound_condition_due_date": {
+        "title": "Feltétel — Esedékesség dátuma",
+        "data": {
+          "trigger_days_before": "Nappal a dátum előtt",
+          "go_back": "Vissza"
+        },
+        "data_description": {
+          "trigger_days_before": "A feltétel ennyi nappal a jelzett dátum előtt teljesül."
+        }
+      },
       "compound_review": {
         "title": "Összetett kiváltó áttekintése",
         "description": "{condition_count} feltétel beállítva {compound_logic} logikával.",
@@ -1171,6 +1213,26 @@
           "trigger_runtime_hours": "A karbantartás kiváltása ennyi óra összesített üzemidő után.",
           "trigger_on_states": "Mely érzékelőállapotok számítanak „aktívnak”. Hagyja üresen az alapértelmezéshez: on, 1, true. Példa: in_use, running",
           "interval_days": "Opcionális időalapú biztonsági intervallum az üzemidő-kiváltó mellett.",
+          "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "trigger_combinator": "Amelyik előbb (alapértelmezett): a trigger vagy a letelt időköz esedékessé teszi a feladatot. Mindkettő szükséges: a feladat csak akkor esedékes, ha a trigger kioldott és az időköz letelt.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés."
+        }
+      },
+      "opt_trigger_due_date": {
+        "title": "Esedékesség dátuma",
+        "description": "Figyeli a(z) {entity_id} által jelzett dátumot (most: {current_state}). A feladat a választott számú nappal a dátum előtt válik esedékessé.",
+        "data": {
+          "trigger_days_before": "Nappal a dátum előtt",
+          "interval_days": "Biztonsági intervallum",
+          "interval_unit": "Intervallum egysége",
+          "trigger_combinator": "Trigger és időköz kombinálása",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza",
+          "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = magán a napon. Amikor az eszköz előrébb teszi a dátumát (általában a saját „kész” gombjával), a trigger megszűnik.",
+          "interval_days": "Opcionális időalapú biztonsági intervallum az érzékelős kiváltó mellett.",
           "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
           "trigger_combinator": "Amelyik előbb (alapértelmezett): a trigger vagy a letelt időköz esedékessé teszi a feladatot. Mindkettő szükséges: a feladat csak akkor esedékes, ha a trigger kioldott és az időköz letelt.",
           "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés."
@@ -1637,6 +1699,7 @@
         "counter": "Számláló",
         "state_change": "Állapotváltozás",
         "runtime": "Üzemidő",
+        "due_date": "Esedékesség dátuma (érzékelő jelzi)",
         "compound": "Összetett (több feltétel)"
       }
     },

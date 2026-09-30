@@ -327,6 +327,27 @@
           "go_back": "저장하지 않고 트리거 유형 선택으로 돌아갑니다."
         }
       },
+      "trigger_due_date": {
+        "title": "만기일",
+        "description": "{entity_id}이(가) 보고하는 날짜를 지켜봅니다(현재: {current_state}). 작업은 그 날짜보다 선택한 일수만큼 앞서 기한이 됩니다.",
+        "data": {
+          "trigger_days_before": "날짜 며칠 전",
+          "interval_days": "안전 주기",
+          "interval_unit": "주기 단위",
+          "trigger_combinator": "트리거와 간격 결합",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기",
+          "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = 당일. 기기가 날짜를 뒤로 미루면(보통 기기 자체의 '완료' 버튼) 트리거가 해제됩니다.",
+          "interval_days": "센서 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
+          "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "trigger_combinator": "먼저 충족(기본값): 트리거 또는 경과한 간격이 작업을 기한 도래로 만듭니다. 둘 다 필요: 트리거가 발동하고 간격이 경과해야 기한이 됩니다.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "go_back": "저장하지 않고 트리거 유형 선택으로 돌아갑니다."
+        }
+      },
       "compound_logic": {
         "title": "복합 트리거",
         "description": "여러 조건을 결합하는 방식을 선택하세요.",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "누적 가동 시간이 이 시간에 도달하면 트리거됩니다.",
           "trigger_on_states": "'활성'으로 간주할 센서 상태입니다. 비워 두면 기본값을 사용합니다.",
+          "go_back": "저장하지 않고 조건 유형 선택으로 돌아갑니다."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "조건 — 만기일",
+        "data": {
+          "trigger_days_before": "날짜 며칠 전",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_days_before": "보고된 날짜보다 이 일수만큼 앞서부터 조건이 충족됩니다.",
           "go_back": "저장하지 않고 조건 유형 선택으로 돌아갑니다."
         }
       },
@@ -886,6 +918,16 @@
           "trigger_on_states": "'활성'으로 간주할 센서 상태입니다. 비워 두면 기본값을 사용합니다."
         }
       },
+      "compound_condition_due_date": {
+        "title": "조건 — 만기일",
+        "data": {
+          "trigger_days_before": "날짜 며칠 전",
+          "go_back": "뒤로 가기"
+        },
+        "data_description": {
+          "trigger_days_before": "보고된 날짜보다 이 일수만큼 앞서부터 조건이 충족됩니다."
+        }
+      },
       "compound_review": {
         "title": "복합 트리거 검토",
         "description": "{compound_logic} 논리로 {condition_count}개의 조건이 구성되었습니다.",
@@ -1171,6 +1213,26 @@
           "trigger_runtime_hours": "누적 가동 시간이 이 시간에 도달하면 유지보수를 트리거합니다.",
           "trigger_on_states": "'활성'으로 간주할 센서 상태입니다. 비워 두면 기본값(on, 1, true)을 사용합니다. 예: in_use, running",
           "interval_days": "가동 시간 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
+          "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "trigger_combinator": "먼저 충족(기본값): 트리거 또는 경과한 간격이 작업을 기한 도래로 만듭니다. 둘 다 필요: 트리거가 발동하고 간격이 경과해야 기한이 됩니다.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다."
+        }
+      },
+      "opt_trigger_due_date": {
+        "title": "만기일",
+        "description": "{entity_id}이(가) 보고하는 날짜를 지켜봅니다(현재: {current_state}). 작업은 그 날짜보다 선택한 일수만큼 앞서 기한이 됩니다.",
+        "data": {
+          "trigger_days_before": "날짜 며칠 전",
+          "interval_days": "안전 주기",
+          "interval_unit": "주기 단위",
+          "trigger_combinator": "트리거와 간격 결합",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기",
+          "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = 당일. 기기가 날짜를 뒤로 미루면(보통 기기 자체의 '완료' 버튼) 트리거가 해제됩니다.",
+          "interval_days": "센서 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
           "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
           "trigger_combinator": "먼저 충족(기본값): 트리거 또는 경과한 간격이 작업을 기한 도래로 만듭니다. 둘 다 필요: 트리거가 발동하고 간격이 경과해야 기한이 됩니다.",
           "warning_days": "기한 전에 경고를 표시할 일수입니다."
@@ -1637,6 +1699,7 @@
         "counter": "카운터",
         "state_change": "상태 변경",
         "runtime": "가동 시간",
+        "due_date": "만기일(센서가 보고)",
         "compound": "복합(여러 조건)"
       }
     },

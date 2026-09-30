@@ -65,6 +65,7 @@ def test_every_signature_task_name_is_fully_translated() -> None:
                 "alert_above",
                 "value_below",
                 "cycle_count",
+                "due_date",
             )
             # Empty keys = "the device's single entity of that domain" — only
             # safe for non-sensor domains (a sensor catalog entry without keys

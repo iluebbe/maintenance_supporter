@@ -327,6 +327,27 @@
           "go_back": "Kaydetmeden tetikleyici türü seçimine dönün."
         }
       },
+      "trigger_due_date": {
+        "title": "Son tarih",
+        "description": "{entity_id} tarafından bildirilen tarihi izler (şu an: {current_state}). Görev bu tarihten seçilen gün sayısı kadar önce vadesi gelir.",
+        "data": {
+          "trigger_days_before": "Tarihten önceki gün",
+          "interval_days": "Güvenlik aralığı",
+          "interval_unit": "Aralık birimi",
+          "trigger_combinator": "Tetikleyici ve aralığı birleştir",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön",
+          "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = tam o gün. Cihaz tarihini ileri aldığında (genellikle kendi \"tamamlandı\" düğmesiyle) tetikleyici kalkar.",
+          "interval_days": "Sensör tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
+          "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "trigger_combinator": "İlk gerçekleşen (varsayılan): tetikleyici veya dolan aralık görevi vadesi gelmiş yapar. Her ikisi gerekli: görev ancak tetikleyici ateşlendiğinde ve aralık dolduğunda vadesi gelir.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "go_back": "Kaydetmeden tetikleyici türü seçimine dönün."
+        }
+      },
       "compound_logic": {
         "title": "Bileşik Tetikleyici",
         "description": "Birden çok koşulun nasıl birleştirileceğini seçin.",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "Bu kadar saat birikmiş çalışma süresinden sonra tetikle.",
           "trigger_on_states": "'Etkin' sayılan sensör durumları. Varsayılan için boş bırakın.",
+          "go_back": "Kaydetmeden koşul türü seçimine dönün."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Koşul — Son tarih",
+        "data": {
+          "trigger_days_before": "Tarihten önceki gün",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_days_before": "Koşul, bildirilen tarihten bu kadar gün önce sağlanır.",
           "go_back": "Kaydetmeden koşul türü seçimine dönün."
         }
       },
@@ -886,6 +918,16 @@
           "trigger_on_states": "'Etkin' sayılan sensör durumları. Varsayılan için boş bırakın."
         }
       },
+      "compound_condition_due_date": {
+        "title": "Koşul — Son tarih",
+        "data": {
+          "trigger_days_before": "Tarihten önceki gün",
+          "go_back": "Geri dön"
+        },
+        "data_description": {
+          "trigger_days_before": "Koşul, bildirilen tarihten bu kadar gün önce sağlanır."
+        }
+      },
       "compound_review": {
         "title": "Bileşik Tetikleyici İncelemesi",
         "description": "{condition_count} koşul {compound_logic} mantığıyla yapılandırıldı.",
@@ -1171,6 +1213,26 @@
           "trigger_runtime_hours": "Bu kadar saat birikmiş çalışma süresinden sonra bakımı tetikle.",
           "trigger_on_states": "Hangi sensör durumlarının 'etkin' sayılacağı. Varsayılan için boş bırakın: on, 1, true. Örnek: in_use, running",
           "interval_days": "Çalışma süresi tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
+          "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "trigger_combinator": "İlk gerçekleşen (varsayılan): tetikleyici veya dolan aralık görevi vadesi gelmiş yapar. Her ikisi gerekli: görev ancak tetikleyici ateşlendiğinde ve aralık dolduğunda vadesi gelir.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği."
+        }
+      },
+      "opt_trigger_due_date": {
+        "title": "Son tarih",
+        "description": "{entity_id} tarafından bildirilen tarihi izler (şu an: {current_state}). Görev bu tarihten seçilen gün sayısı kadar önce vadesi gelir.",
+        "data": {
+          "trigger_days_before": "Tarihten önceki gün",
+          "interval_days": "Güvenlik aralığı",
+          "interval_unit": "Aralık birimi",
+          "trigger_combinator": "Tetikleyici ve aralığı birleştir",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön",
+          "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = tam o gün. Cihaz tarihini ileri aldığında (genellikle kendi \"tamamlandı\" düğmesiyle) tetikleyici kalkar.",
+          "interval_days": "Sensör tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
           "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
           "trigger_combinator": "İlk gerçekleşen (varsayılan): tetikleyici veya dolan aralık görevi vadesi gelmiş yapar. Her ikisi gerekli: görev ancak tetikleyici ateşlendiğinde ve aralık dolduğunda vadesi gelir.",
           "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği."
@@ -1637,6 +1699,7 @@
         "counter": "Sayaç",
         "state_change": "Durum Değişikliği",
         "runtime": "Çalışma Süresi",
+        "due_date": "Son tarih (bir sensör bildirir)",
         "compound": "Bileşik (Birden Çok Koşul)"
       }
     },

@@ -50,6 +50,14 @@ All notable changes to Maintenance Supporter are documented in this file.
   count cans. Buying two cans adds 800 ml; a 30 ml job is worth 30/400 of a can. The buy dialog's quantity and the buy
   reminder's notes name the package, voice purchases (*"I bought two cans"*) add packages, and a stock can hold up to 100,000 units, a task use
   up to 10,000.
+- **A trigger for dates a device reports itself** (*Due date*): some appliances keep their own schedule and publish
+  when the next filter change is due. The new trigger type fires N days before that date — on time, although the
+  sensor reports the same date until then — and clears when the device moves the date forward (its own "done"
+  button, pressed as the task's completion action), recording the completion. Available in the task dialog, the
+  Configure dialog (also as a compound condition) and the API.
+- **Vitesy Shelfy in *Suggested setups*** (new in Home Assistant 2026.10): *Replace Filter* a week before the filter
+  change date the purifier reports, *Clean Refrigerator* on its cleaning date — completing either presses the
+  device's own "Mark … as changed/cleaned" button, which starts the next period.
 - **When spare parts count as spending** (discussion #104): *Settings → General → Spare parts count as spending*.
   *When bought* (default, as before) counts the buy reminder's cost and shows the value of the parts a completion used
   as information. *When used* books that value on every completion — from any surface — and turns a purchase into
@@ -59,6 +67,8 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ⚠️ Changed
 
+- **De Dietrich left *Suggested setups*:** Home Assistant withdrew the integration before it was ever released (it
+  returns as a joint Remeha / De Dietrich Modbus integration); the catalog entry could never match.
 - **The complete dialog no longer suggests the value of used parts as the cost** (2.53): a household that books its
   purchases counted the same filter twice. The value is now a line under the cost field that says whether it counts;
   a buy reminder still offers its price.

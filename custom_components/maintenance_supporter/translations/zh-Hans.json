@@ -327,6 +327,27 @@
           "go_back": "返回触发类型选择且不保存。"
         }
       },
+      "trigger_due_date": {
+        "title": "到期日期",
+        "description": "跟踪 {entity_id} 报告的日期（当前：{current_state}）。任务会在该日期前所选天数到期。",
+        "data": {
+          "trigger_days_before": "日期前天数",
+          "interval_days": "安全间隔数值",
+          "interval_unit": "安全间隔单位",
+          "trigger_combinator": "组合触发器与间隔",
+          "warning_days": "提前预警天数",
+          "go_back": "返回",
+          "auto_complete_on_recovery": "传感器恢复时自动完成"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = 当天。当设备把日期后移（通常通过它自己的“已完成”按钮）时，触发器解除。",
+          "interval_days": "除了传感器触发外，可选的基于时间的维护安全间隔。",
+          "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "trigger_combinator": "先到者（默认）：触发器或已过间隔使任务到期。两者皆需：仅当触发器已触发且间隔已过时任务才到期。",
+          "warning_days": "到期日期前多少天显示预警。",
+          "go_back": "返回触发类型选择且不保存。"
+        }
+      },
       "compound_logic": {
         "title": "组合触发器",
         "description": "选择如何组合多个条件。",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "累计运行达到此小时数后触发条件。",
           "trigger_on_states": "被视为‘激活’的传感器状态。留空使用默认值。",
+          "go_back": "返回条件类型选择且不保存。"
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "条件 — 到期日期",
+        "data": {
+          "trigger_days_before": "日期前天数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_days_before": "从报告日期前这么多天起满足条件。",
           "go_back": "返回条件类型选择且不保存。"
         }
       },
@@ -886,6 +918,16 @@
           "trigger_on_states": "被视为‘激活’的传感器状态。留空使用默认值。"
         }
       },
+      "compound_condition_due_date": {
+        "title": "条件 — 到期日期",
+        "data": {
+          "trigger_days_before": "日期前天数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_days_before": "从报告日期前这么多天起满足条件。"
+        }
+      },
       "compound_review": {
         "title": "组合触发器复核",
         "description": "已配置 {condition_count} 个条件，使用 {compound_logic} 逻辑。",
@@ -1171,6 +1213,26 @@
           "trigger_runtime_hours": "累计运行达到此小时数后触发维护。",
           "trigger_on_states": "哪些传感器状态被视为‘激活’。留空使用默认值：on, 1, true。示例：in_use, running",
           "interval_days": "除了运行时间触发外，可选的基于时间的维护安全间隔。",
+          "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "trigger_combinator": "先到者（默认）：触发器或已过间隔使任务到期。两者皆需：仅当触发器已触发且间隔已过时任务才到期。",
+          "warning_days": "到期日期前多少天显示预警。"
+        }
+      },
+      "opt_trigger_due_date": {
+        "title": "到期日期",
+        "description": "跟踪 {entity_id} 报告的日期（当前：{current_state}）。任务会在该日期前所选天数到期。",
+        "data": {
+          "trigger_days_before": "日期前天数",
+          "interval_days": "安全间隔数值",
+          "interval_unit": "安全间隔单位",
+          "trigger_combinator": "组合触发器与间隔",
+          "warning_days": "提前预警天数",
+          "go_back": "返回",
+          "auto_complete_on_recovery": "传感器恢复时自动完成"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = 当天。当设备把日期后移（通常通过它自己的“已完成”按钮）时，触发器解除。",
+          "interval_days": "除了传感器触发外，可选的基于时间的维护安全间隔。",
           "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
           "trigger_combinator": "先到者（默认）：触发器或已过间隔使任务到期。两者皆需：仅当触发器已触发且间隔已过时任务才到期。",
           "warning_days": "到期日期前多少天显示预警。"
@@ -1637,6 +1699,7 @@
         "counter": "计数器",
         "state_change": "状态变化",
         "runtime": "运行时间",
+        "due_date": "到期日期（由传感器报告）",
         "compound": "组合触发器 (多条件)"
       }
     },

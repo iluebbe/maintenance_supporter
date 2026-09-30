@@ -327,6 +327,27 @@
           "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
         }
       },
+      "trigger_due_date": {
+        "title": "Fälligkeitsdatum",
+        "description": "Beobachtet das Datum, das {entity_id} meldet (aktuell: {current_state}). Die Aufgabe wird die gewählte Zahl von Tagen vor diesem Datum fällig.",
+        "data": {
+          "trigger_days_before": "Tage vor dem Datum",
+          "interval_days": "Sicherheitsintervall",
+          "interval_unit": "Intervalleinheit",
+          "trigger_combinator": "Trigger und Intervall kombinieren",
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück",
+          "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = am Datum selbst. Sobald das Gerät sein Datum weiterschiebt (meist über seinen eigenen „Erledigt“-Knopf), löst sich der Trigger.",
+          "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Sensor-Trigger.",
+          "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
+          "trigger_combinator": "Zuerst erfüllt (Standard): Trigger oder abgelaufenes Intervall macht die Aufgabe fällig. Beides erforderlich: Die Aufgabe wird erst fällig, wenn der Trigger ausgelöst hat und das Intervall abgelaufen ist.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
+          "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
+        }
+      },
       "compound_logic": {
         "title": "Kombinierter Trigger",
         "description": "Wählen Sie, wie mehrere Bedingungen kombiniert werden sollen.",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "Auslösen nach dieser Anzahl akkumulierter Betriebsstunden.",
           "trigger_on_states": "Sensorzustände, die als 'aktiv' gezählt werden. Leer lassen für Standard.",
+          "go_back": "Zurück zur Bedingungstyp-Auswahl ohne zu speichern."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Bedingung — Fälligkeitsdatum",
+        "data": {
+          "trigger_days_before": "Tage vor dem Datum",
+          "go_back": "Zurück"
+        },
+        "data_description": {
+          "trigger_days_before": "Die Bedingung ist ab so vielen Tagen vor dem gemeldeten Datum erfüllt.",
           "go_back": "Zurück zur Bedingungstyp-Auswahl ohne zu speichern."
         }
       },
@@ -1078,6 +1110,26 @@
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },
+      "opt_trigger_due_date": {
+        "title": "Fälligkeitsdatum",
+        "description": "Beobachtet das Datum, das {entity_id} meldet (aktuell: {current_state}). Die Aufgabe wird die gewählte Zahl von Tagen vor diesem Datum fällig.",
+        "data": {
+          "trigger_days_before": "Tage vor dem Datum",
+          "interval_days": "Sicherheitsintervall",
+          "interval_unit": "Intervalleinheit",
+          "trigger_combinator": "Trigger und Intervall kombinieren",
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück",
+          "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = am Datum selbst. Sobald das Gerät sein Datum weiterschiebt (meist über seinen eigenen „Erledigt“-Knopf), löst sich der Trigger.",
+          "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Sensor-Auslöser.",
+          "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
+          "trigger_combinator": "Zuerst erfüllt (Standard): Trigger oder abgelaufenes Intervall macht die Aufgabe fällig. Beides erforderlich: Die Aufgabe wird erst fällig, wenn der Trigger ausgelöst hat und das Intervall abgelaufen ist.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
+        }
+      },
       "compound_logic": {
         "title": "Kombinierter Trigger",
         "description": "Wählen Sie, wie mehrere Bedingungen kombiniert werden sollen.",
@@ -1166,6 +1218,16 @@
         "data_description": {
           "trigger_runtime_hours": "Auslösen nach dieser Anzahl akkumulierter Betriebsstunden.",
           "trigger_on_states": "Sensorzustände, die als 'aktiv' gezählt werden. Leer lassen für Standard."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Bedingung — Fälligkeitsdatum",
+        "data": {
+          "trigger_days_before": "Tage vor dem Datum",
+          "go_back": "Zurück"
+        },
+        "data_description": {
+          "trigger_days_before": "Die Bedingung ist ab so vielen Tagen vor dem gemeldeten Datum erfüllt."
         }
       },
       "compound_review": {
@@ -1637,6 +1699,7 @@
         "counter": "Zähler",
         "state_change": "Zustandswechsel",
         "runtime": "Laufzeit",
+        "due_date": "Fälligkeitsdatum (von einem Sensor gemeldet)",
         "compound": "Kombiniert (Mehrere Bedingungen)"
       }
     },

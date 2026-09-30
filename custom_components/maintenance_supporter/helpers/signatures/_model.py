@@ -64,6 +64,11 @@ Direction semantics:
   no wear sensor, but every transition to ``locked`` is one mechanical cycle.
   state_change trigger with ``trigger_target_changes = N``; completing the
   task resets the counter. No auto-complete (cycles don't recover).
+* ``due_date``       — the device REPORTS when the maintenance is due (a
+  ``timestamp``/``date`` sensor: Vitesy's "Filter change due"). Trigger: the
+  due_date type, active from ``days_before`` days before that date; the
+  device's own "done" button moves the date forward, which clears the
+  trigger and auto-completes the task.
 """
 
 from __future__ import annotations
@@ -95,11 +100,14 @@ class ConsumableSignature:
 
     keys: tuple[str, ...]  # translation_key values (also matched as _<key> entity-id suffix)
     task_name: str  # EN task name; localized through templates_i18n
-    direction: str  # duration_left | percent_left | usage_above | event_present | usage_delta | runtime_hours
+    direction: str  # duration_left | percent_left | usage_above | event_present | usage_delta | runtime_hours | due_date
     below_hours: int = _DEFAULT_BELOW_HOURS
     below_percent: int | None = _DEFAULT_BELOW_PERCENT
     above_hours: int = _DEFAULT_ABOVE_HOURS
     delta_units: int = _DEFAULT_DELTA_UNITS
+    # due_date only: how many days before the reported date the task fires
+    # (time to order a filter); 0 = on the date itself.
+    days_before: int = 0
     # runtime_hours signatures target a non-sensor STATE entity; empty keys
     # then mean "the device's single entity of this domain".
     entity_domain: str = "sensor"
@@ -271,8 +279,8 @@ def _unit_compatible(direction: str, unit: str | None) -> bool:
     key match, so existing single-shape signatures are unaffected. The one
     strict case is ``event_present``: ENUM event sensors carry no unit, so a
     unit-bearing entity that happens to share the key is NOT an event."""
-    if direction in ("event_present", "runtime_hours", "cycle_count"):
-        return unit is None  # ENUM events and state entities carry no unit
+    if direction in ("event_present", "runtime_hours", "cycle_count", "due_date"):
+        return unit is None  # ENUM events, state entities and dates carry no unit
     if direction in ("alert_above", "value_below"):
         return True  # measurement alert in the entity's own unit (any unit)
     if unit is None:
@@ -290,6 +298,8 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
     """
     if sig.direction == "event_present":
         return 0.0  # ENUM event latch — no numeric threshold
+    if sig.direction == "due_date":
+        return float(sig.days_before)  # days before the reported date
     if sig.direction in ("runtime_hours", "alert_above", "value_below", "cycle_count"):
         # Engine-accumulated hours resp. a raw measurement threshold in the
         # entity's own unit — no conversion in either case.
@@ -392,6 +402,21 @@ def build_setup_trigger(sig: ConsumableSignature, hass: HomeAssistant, entity_id
             # their own alert state (Dolphin filter bag: "full").
             latch["trigger_to_state"] = sig.on_states[0] if sig.on_states else "present"
         return latch
+    if sig.direction == "due_date":
+        # The device keeps the date itself; its own "done" button (wired as
+        # the completion action) moves it forward, which clears the trigger.
+        due: dict[str, Any] = {
+            "type": "due_date",
+            "entity_id": entity_ids[0],
+            "entity_ids": list(entity_ids),
+            "trigger_days_before": sig.days_before,
+            "auto_complete_on_recovery": True,
+        }
+        if len(entity_ids) > 1:
+            due["entity_logic"] = "any"
+        if sig.attribute:
+            due["attribute"] = sig.attribute
+        return due
     if sig.direction == "cycle_count":
         # Engine-counted mechanical cycles: every transition into on_states[0]
         # increments; the task fires at N and completing it resets the count.

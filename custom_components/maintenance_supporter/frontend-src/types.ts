@@ -18,7 +18,7 @@ export type ScheduleType = "time_based" | "sensor_based" | "one_time" | "manual"
 /** TaskSchedule.kind — the flat kinds plus the calendar kinds. */
 export type ScheduleKind = "interval" | "one_time" | "manual" | CalendarKind;
 /** const.TriggerType */
-export type TriggerType = "threshold" | "counter" | "state_change" | "runtime" | "compound";
+export type TriggerType = "threshold" | "counter" | "state_change" | "runtime" | "due_date" | "compound";
 export type IntervalUnit = "days" | "weeks" | "months" | "years";
 export type DocumentKind = "file" | "weblink";
 export type Confidence = "low" | "medium" | "high";
@@ -95,6 +95,8 @@ export interface TriggerConfig {
   trigger_to_state?: string | null;
   trigger_target_changes?: number;
   trigger_runtime_hours?: number;
+  /** due_date: fire this many days before the date the entity reports. */
+  trigger_days_before?: number;
   /** #149: a single session books at most this many seconds. */
   trigger_runtime_max_session_seconds?: number;
   /** States (or attribute values) that count as "running" — default ["on"]. */

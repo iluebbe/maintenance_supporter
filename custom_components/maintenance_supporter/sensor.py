@@ -289,6 +289,8 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
                 attrs["trigger_target_changes"] = trigger_config.get("trigger_target_changes")
             elif ttype == "runtime":
                 attrs["trigger_runtime_hours"] = trigger_config.get("trigger_runtime_hours")
+            elif ttype == "due_date":
+                attrs["trigger_days_before"] = trigger_config.get("trigger_days_before", 0)
             elif ttype == "compound":
                 attrs["compound_logic"] = trigger_config.get("compound_logic", "AND")
                 conditions = trigger_config.get("conditions", [])

@@ -8,6 +8,7 @@ from ...const import TriggerType
 from .base_trigger import BaseTrigger
 from .compound import CompoundTrigger
 from .counter import CounterTrigger
+from .due_date import DueDateTrigger
 from .runtime import RuntimeTrigger
 from .state_change import StateChangeTrigger
 from .threshold import ThresholdTrigger
@@ -151,6 +152,8 @@ def create_trigger(
         return StateChangeTrigger(hass, entity, trigger_config)
     if trigger_type == TriggerType.RUNTIME:
         return RuntimeTrigger(hass, entity, trigger_config)
+    if trigger_type == TriggerType.DUE_DATE:
+        return DueDateTrigger(hass, entity, trigger_config)
     if trigger_type == TriggerType.COMPOUND:
         return CompoundTrigger(hass, entity, trigger_config)
 
@@ -206,6 +209,7 @@ __all__ = [
     "BaseTrigger",
     "CompoundTrigger",
     "CounterTrigger",
+    "DueDateTrigger",
     "RuntimeTrigger",
     "StateChangeTrigger",
     "ThresholdTrigger",

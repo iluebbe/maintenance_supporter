@@ -327,6 +327,27 @@
           "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
         }
       },
+      "trigger_due_date": {
+        "title": "Termin",
+        "description": "Śledzi datę podawaną przez {entity_id} (teraz: {current_state}). Zadanie staje się wymagalne wybraną liczbę dni przed tą datą.",
+        "data": {
+          "trigger_days_before": "Dni przed datą",
+          "interval_days": "Interwał bezpieczeństwa",
+          "interval_unit": "Jednostka interwału",
+          "trigger_combinator": "Połącz wyzwalacz i interwał",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć",
+          "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = w sam dzień. Gdy urządzenie przesunie swoją datę (zwykle własnym przyciskiem „zrobione”), wyzwalacz się wyłącza.",
+          "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czujnika.",
+          "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
+          "trigger_combinator": "Co pierwsze (domyślnie): wyzwalacz lub upłynięty interwał czyni zadanie wymagalnym. Oba wymagane: zadanie staje się wymagalne dopiero, gdy wyzwalacz zadziałał i interwał upłynął.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
+        }
+      },
       "compound_logic": {
         "title": "Wyzwalacz złożony",
         "description": "Wybierz, w jaki sposób wiele warunków ma być łączonych.",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "Wyzwalaj po tylu godzinach skumulowanego czasu pracy.",
           "trigger_on_states": "Stany czujnika liczone jako „aktywne”. Pozostaw puste dla domyślnych.",
+          "go_back": "Wróć do wyboru typu warunku bez zapisywania."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Warunek — Termin",
+        "data": {
+          "trigger_days_before": "Dni przed datą",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_days_before": "Warunek jest spełniony od tylu dni przed podaną datą.",
           "go_back": "Wróć do wyboru typu warunku bez zapisywania."
         }
       },
@@ -886,6 +918,16 @@
           "trigger_on_states": "Stany czujnika liczone jako „aktywne”. Pozostaw puste dla domyślnych."
         }
       },
+      "compound_condition_due_date": {
+        "title": "Warunek — Termin",
+        "data": {
+          "trigger_days_before": "Dni przed datą",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_days_before": "Warunek jest spełniony od tylu dni przed podaną datą."
+        }
+      },
       "compound_review": {
         "title": "Przegląd wyzwalacza złożonego",
         "description": "Skonfigurowano {condition_count} warunek(ów) z logiką {compound_logic}.",
@@ -1171,6 +1213,26 @@
           "trigger_runtime_hours": "Wyzwalaj konserwację po tylu godzinach skumulowanego czasu pracy.",
           "trigger_on_states": "Które stany czujnika liczą się jako „aktywne”. Pozostaw puste dla domyślnych: on, 1, true. Przykład: in_use, running",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czasu pracy.",
+          "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
+          "trigger_combinator": "Co pierwsze (domyślnie): wyzwalacz lub upłynięty interwał czyni zadanie wymagalnym. Oba wymagane: zadanie staje się wymagalne dopiero, gdy wyzwalacz zadziałał i interwał upłynął.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
+        }
+      },
+      "opt_trigger_due_date": {
+        "title": "Termin",
+        "description": "Śledzi datę podawaną przez {entity_id} (teraz: {current_state}). Zadanie staje się wymagalne wybraną liczbę dni przed tą datą.",
+        "data": {
+          "trigger_days_before": "Dni przed datą",
+          "interval_days": "Interwał bezpieczeństwa",
+          "interval_unit": "Jednostka interwału",
+          "trigger_combinator": "Połącz wyzwalacz i interwał",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć",
+          "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = w sam dzień. Gdy urządzenie przesunie swoją datę (zwykle własnym przyciskiem „zrobione”), wyzwalacz się wyłącza.",
+          "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czujnika.",
           "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
           "trigger_combinator": "Co pierwsze (domyślnie): wyzwalacz lub upłynięty interwał czyni zadanie wymagalnym. Oba wymagane: zadanie staje się wymagalne dopiero, gdy wyzwalacz zadziałał i interwał upłynął.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
@@ -1637,6 +1699,7 @@
         "counter": "Licznik",
         "state_change": "Zmiana stanu",
         "runtime": "Czas pracy",
+        "due_date": "Termin (podawany przez czujnik)",
         "compound": "Złożony (wiele warunków)"
       }
     },

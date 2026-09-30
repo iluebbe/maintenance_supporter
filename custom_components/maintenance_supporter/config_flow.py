@@ -709,6 +709,7 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
             counter_step=self.async_step_trigger_counter,
             state_change_step=self.async_step_trigger_state_change,
             runtime_step=self.async_step_trigger_runtime,
+            due_date_step=self.async_step_trigger_due_date,
             compound_step=self.async_step_compound_logic,
         )
 
@@ -748,6 +749,15 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
             on_complete=self._save_task_and_return,
         )
 
+    async def async_step_trigger_due_date(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Configure due-date trigger."""
+        self._on_cancel = lambda: self.async_step_trigger_type()
+        return await self._trigger_due_date_config(
+            user_input,
+            step_id="trigger_due_date",
+            on_complete=self._save_task_and_return,
+        )
+
     # --- Compound Trigger Steps ---
 
     async def async_step_compound_logic(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
@@ -781,6 +791,7 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
             counter_step=self.async_step_compound_condition_counter,
             state_change_step=self.async_step_compound_condition_state_change,
             runtime_step=self.async_step_compound_condition_runtime,
+            due_date_step=self.async_step_compound_condition_due_date,
         )
 
     async def async_step_compound_condition_threshold(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
@@ -820,6 +831,16 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
             user_input,
             "runtime",
             step_id="compound_condition_runtime",
+            on_complete=self.async_step_compound_review,
+        )
+
+    async def async_step_compound_condition_due_date(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Configure due_date for compound condition."""
+        self._on_cancel = lambda: self.async_step_compound_condition_type()
+        return await self._trigger_compound_condition_config(
+            user_input,
+            "due_date",
+            step_id="compound_condition_due_date",
             on_complete=self.async_step_compound_review,
         )
 

@@ -327,6 +327,27 @@
           "go_back": "Vend tilbage til valg af udløsertype uden at gemme."
         }
       },
+      "trigger_due_date": {
+        "title": "Forfaldsdato",
+        "description": "Følger den dato, {entity_id} rapporterer (nu: {current_state}). Opgaven forfalder det valgte antal dage før den dato.",
+        "data": {
+          "trigger_days_before": "Dage før datoen",
+          "interval_days": "Sikkerhedsinterval",
+          "interval_unit": "Intervalenhed",
+          "trigger_combinator": "Kombinér trigger og interval",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage",
+          "auto_complete_on_recovery": "Fuldfør automatisk når sensoren retter sig"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = på selve datoen. Når enheden flytter sin dato frem (som regel med sin egen \"færdig\"-knap), ophører udløseren.",
+          "interval_days": "Valgfrit tidsbaseret sikkerhedsinterval ud over sensorudløseren.",
+          "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
+          "trigger_combinator": "Først opfyldt (standard): trigger eller udløbet interval gør opgaven forfalden. Begge kræves: opgaven forfalder først, når triggeren er udløst og intervallet er udløbet.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
+          "go_back": "Vend tilbage til valg af udløsertype uden at gemme."
+        }
+      },
       "compound_logic": {
         "title": "Sammensat udløser",
         "description": "Vælg hvordan flere betingelser skal kombineres.",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "Udløs efter så mange timers akkumuleret driftstid.",
           "trigger_on_states": "Sensortilstande, der tæller som 'aktive'. Lad feltet stå tomt for standard.",
+          "go_back": "Vend tilbage til valg af betingelsestype uden at gemme."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Betingelse — Forfaldsdato",
+        "data": {
+          "trigger_days_before": "Dage før datoen",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_days_before": "Betingelsen er opfyldt fra så mange dage før den rapporterede dato.",
           "go_back": "Vend tilbage til valg af betingelsestype uden at gemme."
         }
       },
@@ -886,6 +918,16 @@
           "trigger_on_states": "Sensortilstande, der tæller som 'aktive'. Lad feltet stå tomt for standard."
         }
       },
+      "compound_condition_due_date": {
+        "title": "Betingelse — Forfaldsdato",
+        "data": {
+          "trigger_days_before": "Dage før datoen",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_days_before": "Betingelsen er opfyldt fra så mange dage før den rapporterede dato."
+        }
+      },
       "compound_review": {
         "title": "Gennemgang af sammensat udløser",
         "description": "{condition_count} betingelse(r) konfigureret med {compound_logic}-logik.",
@@ -1171,6 +1213,26 @@
           "trigger_runtime_hours": "Udløs vedligeholdelse efter så mange timers akkumuleret driftstid.",
           "trigger_on_states": "Hvilke sensortilstande der tæller som 'aktive'. Lad feltet stå tomt for standard: on, 1, true. Eksempel: in_use, running",
           "interval_days": "Valgfrit tidsbaseret sikkerhedsinterval ud over driftstidsudløseren.",
+          "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
+          "trigger_combinator": "Først opfyldt (standard): trigger eller udløbet interval gør opgaven forfalden. Begge kræves: opgaven forfalder først, når triggeren er udløst og intervallet er udløbet.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel."
+        }
+      },
+      "opt_trigger_due_date": {
+        "title": "Forfaldsdato",
+        "description": "Følger den dato, {entity_id} rapporterer (nu: {current_state}). Opgaven forfalder det valgte antal dage før den dato.",
+        "data": {
+          "trigger_days_before": "Dage før datoen",
+          "interval_days": "Sikkerhedsinterval",
+          "interval_unit": "Intervalenhed",
+          "trigger_combinator": "Kombinér trigger og interval",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage",
+          "auto_complete_on_recovery": "Fuldfør automatisk når sensoren retter sig"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = på selve datoen. Når enheden flytter sin dato frem (som regel med sin egen \"færdig\"-knap), ophører udløseren.",
+          "interval_days": "Valgfrit tidsbaseret sikkerhedsinterval ud over sensorudløseren.",
           "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
           "trigger_combinator": "Først opfyldt (standard): trigger eller udløbet interval gør opgaven forfalden. Begge kræves: opgaven forfalder først, når triggeren er udløst og intervallet er udløbet.",
           "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel."
@@ -1637,6 +1699,7 @@
         "counter": "Tæller",
         "state_change": "Tilstandsændring",
         "runtime": "Driftstid",
+        "due_date": "Forfaldsdato (rapporteret af en sensor)",
         "compound": "Sammensat (flere betingelser)"
       }
     },

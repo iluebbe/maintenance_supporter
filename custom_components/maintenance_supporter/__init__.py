@@ -435,6 +435,8 @@ def _trigger_target_and_unit(hass: HomeAssistant, tc: dict[str, Any]) -> tuple[f
         return tc.get("trigger_runtime_hours"), "h"
     if ttype == TriggerType.STATE_CHANGE:
         return tc.get("trigger_target_changes"), None
+    if ttype == TriggerType.DUE_DATE:
+        return tc.get("trigger_days_before") or 0, "d"
     if ttype == TriggerType.COMPOUND:
         return None, None
     from .entity.triggers import primary_entity_id

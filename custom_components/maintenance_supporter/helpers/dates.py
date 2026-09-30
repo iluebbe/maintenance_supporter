@@ -92,6 +92,38 @@ def parse_persisted_utc(value: str | None) -> datetime | None:
     return parsed
 
 
+def due_instant(raw: Any) -> datetime | None:
+    """The instant a sensor's REPORTED due date stands for, or None.
+
+    Not a persisted value (``parse_persisted_utc`` reads our own stamps, naive
+    = UTC): a ``timestamp`` sensor reports an ISO datetime (aware, or naive =
+    local time), a ``date`` sensor an ISO date, which falls due at local
+    midnight that day, and an attribute may carry the Python objects
+    themselves (the due_date trigger).
+    """
+    if isinstance(raw, datetime):
+        parsed: datetime | None = raw
+    elif isinstance(raw, date):
+        return dt_util.start_of_local_day(raw)
+    elif isinstance(raw, str) and raw.strip():
+        text = raw.strip()
+        if len(text) == 10 and (day := dt_util.parse_date(text)) is not None:
+            return dt_util.start_of_local_day(day)
+        parsed = dt_util.parse_datetime(text)
+    else:
+        return None
+    if parsed is None:
+        return None
+    return parsed if parsed.tzinfo is not None else parsed.replace(tzinfo=dt_util.get_default_time_zone())
+
+
+def days_until(due: datetime, now: datetime) -> float:
+    """Days from ``now`` to ``due`` — negative once it has passed. Rounded to
+    three decimals (about a minute and a half) so a timer that fires a hair
+    early still reads the due instant as reached."""
+    return round((due - now).total_seconds() / 86400, 3)
+
+
 def _add_months(anchor: date, months: int) -> date:
     """Advance ``anchor`` by ``months`` calendar months, clamping the day."""
     total = anchor.month - 1 + months

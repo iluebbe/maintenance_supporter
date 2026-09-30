@@ -327,6 +327,27 @@
           "go_back": "Návrat k výběru typu spouště bez uložení."
         }
       },
+      "trigger_due_date": {
+        "title": "Datum splatnosti",
+        "description": "Sleduje datum, které hlásí {entity_id} (nyní: {current_state}). Úkol se stane splatným zvolený počet dní před tímto datem.",
+        "data": {
+          "trigger_days_before": "Dní před datem",
+          "interval_days": "Bezpečnostní interval",
+          "interval_unit": "Jednotka intervalu",
+          "trigger_combinator": "Kombinovat spouštěč a interval",
+          "warning_days": "Dny upozornění před termínem",
+          "go_back": "Zpět",
+          "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = přímo v ten den. Když zařízení posune své datum (obvykle vlastním tlačítkem „hotovo“), spouštěč se zruší.",
+          "interval_days": "Volitelný bezpečnostní interval založený na čase, navíc ke spouštěči senzoru.",
+          "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
+          "trigger_combinator": "Co nastane dřív (výchozí): spouštěč nebo uplynulý interval učiní úkol splatným. Obojí vyžadováno: úkol je splatný, až když spouštěč vystřelil a interval uplynul.",
+          "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
+          "go_back": "Návrat k výběru typu spouště bez uložení."
+        }
+      },
       "compound_logic": {
         "title": "Složená spoušť",
         "description": "Vyberte, jak mají být kombinovány více podmínek.",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "Spustit po tolika hodinách kumulované doby běhu.",
           "trigger_on_states": "Stavy senzoru počítané jako „aktivní“. Nechte prázdné pro výchozí.",
+          "go_back": "Návrat k výběru typu podmínky bez uložení."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Podmínka — Datum splatnosti",
+        "data": {
+          "trigger_days_before": "Dní před datem",
+          "go_back": "Zpět"
+        },
+        "data_description": {
+          "trigger_days_before": "Podmínka je splněna od tohoto počtu dní před hlášeným datem.",
           "go_back": "Návrat k výběru typu podmínky bez uložení."
         }
       },
@@ -886,6 +918,16 @@
           "trigger_on_states": "Stavy senzoru počítané jako „aktivní“. Nechte prázdné pro výchozí."
         }
       },
+      "compound_condition_due_date": {
+        "title": "Podmínka — Datum splatnosti",
+        "data": {
+          "trigger_days_before": "Dní před datem",
+          "go_back": "Zpět"
+        },
+        "data_description": {
+          "trigger_days_before": "Podmínka je splněna od tohoto počtu dní před hlášeným datem."
+        }
+      },
       "compound_review": {
         "title": "Přehled složené spouště",
         "description": "Nakonfigurováno {condition_count} podmínek s logikou {compound_logic}.",
@@ -1171,6 +1213,26 @@
           "trigger_runtime_hours": "Spustit údržbu po tolika hodinách kumulované doby běhu.",
           "trigger_on_states": "Které stavy senzoru se počítají jako „aktivní“. Nechte prázdné pro výchozí: on, 1, true. Příklad: in_use, running",
           "interval_days": "Volitelný bezpečnostní interval založený na čase, navíc ke spouštěči doby běhu.",
+          "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
+          "trigger_combinator": "Co nastane dřív (výchozí): spouštěč nebo uplynulý interval učiní úkol splatným. Obojí vyžadováno: úkol je splatný, až když spouštěč vystřelil a interval uplynul.",
+          "warning_days": "Počet dní před termínem pro zobrazení upozornění."
+        }
+      },
+      "opt_trigger_due_date": {
+        "title": "Datum splatnosti",
+        "description": "Sleduje datum, které hlásí {entity_id} (nyní: {current_state}). Úkol se stane splatným zvolený počet dní před tímto datem.",
+        "data": {
+          "trigger_days_before": "Dní před datem",
+          "interval_days": "Bezpečnostní interval",
+          "interval_unit": "Jednotka intervalu",
+          "trigger_combinator": "Kombinovat spouštěč a interval",
+          "warning_days": "Dny upozornění před termínem",
+          "go_back": "Zpět",
+          "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = přímo v ten den. Když zařízení posune své datum (obvykle vlastním tlačítkem „hotovo“), spouštěč se zruší.",
+          "interval_days": "Volitelný bezpečnostní interval založený na čase, navíc ke spouštěči senzoru.",
           "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
           "trigger_combinator": "Co nastane dřív (výchozí): spouštěč nebo uplynulý interval učiní úkol splatným. Obojí vyžadováno: úkol je splatný, až když spouštěč vystřelil a interval uplynul.",
           "warning_days": "Počet dní před termínem pro zobrazení upozornění."
@@ -1637,6 +1699,7 @@
         "counter": "Čítač",
         "state_change": "Změna stavu",
         "runtime": "Doba běhu",
+        "due_date": "Datum splatnosti (hlásí senzor)",
         "compound": "Složený (více podmínek)"
       }
     },

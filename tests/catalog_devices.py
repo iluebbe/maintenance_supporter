@@ -13,6 +13,7 @@ names, and the reset button it wires.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -70,6 +71,13 @@ def _healthy_and_firing(sig: Any) -> tuple[str, list[tuple[str, Any]]]:
         if sig.ok_state:
             return sig.ok_state, [("state", "alert_for_test")]
         return "off", [("state", sig.on_states[0] if sig.on_states else "present")]
+    if d == "due_date":
+        # A timestamp sensor: a date well ahead, then one that has passed.
+        from homeassistant.util import dt as dt_util
+
+        now = dt_util.utcnow()
+        later = (now + timedelta(days=sig.days_before + 60)).isoformat()
+        return later, [("state", (now - timedelta(days=1)).isoformat())]
     if d == "cycle_count":
         on = sig.on_states[0]
         return "idle_for_test", [step for _ in range(SWEEP_CYCLES) for step in (("state", on), ("state", "idle_for_test"))]

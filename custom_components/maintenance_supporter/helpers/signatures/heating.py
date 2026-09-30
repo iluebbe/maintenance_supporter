@@ -36,7 +36,10 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "bosch": IntegrationSignature(
         name="Bosch/Buderus heating",
-        verified="2026-07-18 @ bosch-thermostat/home-assistant-bosch-custom-component master + live RC300 registry",
+        verified=(
+            "2026-07-18 @ bosch-thermostat/home-assistant-bosch-custom-component master + live RC300 registry; "
+            "re-verified 2026-09-30 after the coordinator refactor (21d1924): names unchanged"
+        ),
         source=(
             "bosch-thermostat custom component: sensors are DYNAMIC (named "
             "from the device's XMPP data, sensor/base.py builds names without "
@@ -244,15 +247,9 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     # ─── Round 14 (2026-09-25): boiler pressure, softener salt, ─────────
     # ─── generator engine hours ──────────────────────────────────────────
-    "de_dietrich": IntegrationSignature(
-        name="De Dietrich (Diematic)",
-        verified="2026-09-25 @ home-assistant/core dev",
-        source=(
-            "core de_dietrich (new on dev = 2026.10, Diematic Modbus): tk "
-            "'water_pressure', UnitOfPressure.BAR, MEASUREMENT (boiler loop)."
-        ),
-        tasks=(HEATING_WATER_PRESSURE_LOW,),
-    ),
+    # (De Dietrich left again on 2026-09-30: core removed the integration
+    # from dev before any release, #183545 — it returns as a joint Remeha /
+    # De Dietrich Modbus integration.)
     "remeha_home": IntegrationSignature(
         name="Remeha Home",
         verified="2026-09-25 @ msvisser/remeha_home main",

@@ -638,6 +638,7 @@ def test_ts_field_ranges_match_backend() -> None:
     src = _SETTING_RANGES_TS.read_text(encoding="utf-8")
     assert _ts_range(src, "TRIGGER_FOR_MINUTES_RANGE") == TRIGGER_FIELD_RANGES["trigger_for_minutes"]
     assert _ts_range(src, "TRIGGER_TARGET_CHANGES_RANGE") == TRIGGER_FIELD_RANGES["trigger_target_changes"]
+    assert _ts_range(src, "TRIGGER_DAYS_BEFORE_RANGE") == TRIGGER_FIELD_RANGES["trigger_days_before"]
     m = re.search(r"export const SCHEDULE_OFFSET_MAX_DAYS = (\d+);", src)
     assert m and int(m.group(1)) == SCHEDULE_OFFSET_MAX_DAYS, "SCHEDULE_OFFSET_MAX_DAYS drifted from const.py"
     assert _ts_range(src, "EWA_ALPHA_RANGE") == ADAPTIVE_EWA_ALPHA_RANGE

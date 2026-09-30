@@ -50,6 +50,10 @@ def _threshold_text(sig) -> str:
         return f"while the appliance reports '{latch}'"
     if d == "cycle_count":
         return f"every {sig.delta_units:g} cycles"
+    if d == "due_date":
+        if sig.days_before:
+            return f"{sig.days_before:g} days before the date the device reports"
+        return "on the date the device reports"
     return "—"
 
 

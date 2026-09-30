@@ -327,6 +327,27 @@
           "go_back": "Tornare alla selezione del tipo di trigger senza salvare."
         }
       },
+      "trigger_due_date": {
+        "title": "Data di scadenza",
+        "description": "Segue la data indicata da {entity_id} (ora: {current_state}). L'attività diventa dovuta il numero di giorni scelto prima di quella data.",
+        "data": {
+          "trigger_days_before": "Giorni prima della data",
+          "interval_days": "Intervallo di sicurezza",
+          "interval_unit": "Unità di intervallo",
+          "trigger_combinator": "Combina trigger e intervallo",
+          "warning_days": "Giorni di avviso prima della scadenza",
+          "go_back": "Indietro",
+          "auto_complete_on_recovery": "Completa automaticamente quando il sensore si ripristina"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = il giorno stesso. Quando il dispositivo sposta in avanti la sua data (di solito con il proprio pulsante «fatto»), il trigger si annulla.",
+          "interval_days": "Intervallo di sicurezza temporale opzionale in aggiunta al trigger sensore.",
+          "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
+          "trigger_combinator": "Il primo (predefinito): il trigger o l'intervallo trascorso rende l'attività in scadenza. Entrambi richiesti: l'attività scade solo quando il trigger è scattato e l'intervallo è trascorso.",
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
+          "go_back": "Tornare alla selezione del tipo di trigger senza salvare."
+        }
+      },
       "compound_logic": {
         "title": "Trigger composto",
         "description": "Scegli come combinare più condizioni.",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "Attiva dopo queste ore di tempo di esecuzione accumulato.",
           "trigger_on_states": "Stati del sensore contati come 'attivi'. Lascia vuoto per predefinito.",
+          "go_back": "Tornare alla selezione del tipo di condizione senza salvare."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Condizione — Data di scadenza",
+        "data": {
+          "trigger_days_before": "Giorni prima della data",
+          "go_back": "Indietro"
+        },
+        "data_description": {
+          "trigger_days_before": "La condizione è soddisfatta da questo numero di giorni prima della data indicata.",
           "go_back": "Tornare alla selezione del tipo di condizione senza salvare."
         }
       },
@@ -886,6 +918,16 @@
           "trigger_on_states": "Stati del sensore contati come 'attivi'. Lascia vuoto per predefinito."
         }
       },
+      "compound_condition_due_date": {
+        "title": "Condizione — Data di scadenza",
+        "data": {
+          "trigger_days_before": "Giorni prima della data",
+          "go_back": "Indietro"
+        },
+        "data_description": {
+          "trigger_days_before": "La condizione è soddisfatta da questo numero di giorni prima della data indicata."
+        }
+      },
       "compound_review": {
         "title": "Revisione trigger composto",
         "description": "{condition_count} condizione/i configurata/e con logica {compound_logic}.",
@@ -1171,6 +1213,26 @@
           "trigger_runtime_hours": "Attivare la manutenzione dopo questo numero di ore di tempo di esecuzione accumulato.",
           "trigger_on_states": "Quali stati del sensore contano come 'attivo'. Lasciare vuoto per predefinito: on, 1, true. Esempio: in_use, running",
           "interval_days": "Intervallo di sicurezza basato sul tempo opzionale in aggiunta al trigger del tempo di esecuzione.",
+          "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
+          "trigger_combinator": "Il primo (predefinito): il trigger o l'intervallo trascorso rende l'attività in scadenza. Entrambi richiesti: l'attività scade solo quando il trigger è scattato e l'intervallo è trascorso.",
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
+        }
+      },
+      "opt_trigger_due_date": {
+        "title": "Data di scadenza",
+        "description": "Segue la data indicata da {entity_id} (ora: {current_state}). L'attività diventa dovuta il numero di giorni scelto prima di quella data.",
+        "data": {
+          "trigger_days_before": "Giorni prima della data",
+          "interval_days": "Intervallo di sicurezza",
+          "interval_unit": "Unità di intervallo",
+          "trigger_combinator": "Combina trigger e intervallo",
+          "warning_days": "Giorni di avviso prima della scadenza",
+          "go_back": "Indietro",
+          "auto_complete_on_recovery": "Completa automaticamente quando il sensore si ripristina"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = il giorno stesso. Quando il dispositivo sposta in avanti la sua data (di solito con il proprio pulsante «fatto»), il trigger si annulla.",
+          "interval_days": "Intervallo di sicurezza basato sul tempo opzionale in aggiunta al trigger del sensore.",
           "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
           "trigger_combinator": "Il primo (predefinito): il trigger o l'intervallo trascorso rende l'attività in scadenza. Entrambi richiesti: l'attività scade solo quando il trigger è scattato e l'intervallo è trascorso.",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
@@ -1637,6 +1699,7 @@
         "counter": "Contatore",
         "state_change": "Cambio stato",
         "runtime": "Tempo di funzionamento",
+        "due_date": "Data di scadenza (indicata da un sensore)",
         "compound": "Composto (Condizioni Multiple)"
       }
     },

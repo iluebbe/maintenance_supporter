@@ -18,6 +18,7 @@ import {
   EWA_ALPHA_RANGE,
   PART_QTY_RANGE,
   SCHEDULE_OFFSET_MAX_DAYS,
+  TRIGGER_DAYS_BEFORE_RANGE,
   TRIGGER_FOR_MINUTES_RANGE,
   TRIGGER_TARGET_CHANGES_RANGE,
   WARNING_DAYS_RANGE,
@@ -39,7 +40,10 @@ const CALENDAR_KINDS = ["weekdays", "nth_weekday", "day_of_month", "calendar"];
 // #168: kinds that produce a due DATE and therefore take a time of day
 // (mirrors SCHEDULE_TIME_KINDS in config_flow_helpers.py).
 const SCHEDULE_TIME_KINDS = ["time_based", "one_time", ...CALENDAR_KINDS];
-const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime"];
+const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime", "due_date"];
+// "due_date" alone is the one-time task's date field — the trigger type
+// carries its own label.
+const triggerTypeLabel = (key: string, L: string): string => t(key === "due_date" ? "trigger_type_due_date" : key, L);
 // The type selector additionally offers "compound" (a group of conditions
 // joined by AND/OR); its per-condition sub-type is limited to the flat kinds.
 const TRIGGER_TYPE_KEYS_WITH_COMPOUND = [...TRIGGER_TYPE_KEYS, "compound"];
@@ -68,6 +72,7 @@ interface CompoundConditionDraft {
   targetChanges: string;
   runtimeHours: string;
   onStates: string;
+  daysBefore: string;
   /** Original keys this editor has no fields for (attribute, baseline, ...).
    *  Spread back on save so a compound roundtrip never drops them (#103 class). */
   carry: Partial<TriggerConfig>;
@@ -78,7 +83,7 @@ function emptyCondition(): CompoundConditionDraft {
     entityIds: "", type: "threshold", attribute: "", above: "", below: "",
     equals: "", notEquals: "", forMinutes: "0",
     targetValue: "", deltaMode: false, fromState: "", toState: "",
-    targetChanges: "", runtimeHours: "", onStates: "", carry: {},
+    targetChanges: "", runtimeHours: "", onStates: "", daysBefore: "0", carry: {},
   };
 }
 
@@ -90,6 +95,7 @@ const MANAGED_CONDITION_KEYS = new Set([
   "trigger_target_value", "trigger_delta_mode",
   "trigger_from_state", "trigger_to_state", "trigger_target_changes",
   "trigger_runtime_hours", "trigger_on_states",
+  "trigger_days_before",
 ]);
 
 /** The per-type trigger fields BOTH editors own — the flat trigger form and
@@ -117,6 +123,7 @@ export function typeFieldsFromConfig(c: TriggerConfig): TriggerTypeFields {
     targetChanges: c.trigger_target_changes?.toString() ?? "",
     runtimeHours: c.trigger_runtime_hours?.toString() ?? "",
     onStates: (c.trigger_on_states || []).join(", "),
+    daysBefore: c.trigger_days_before?.toString() ?? "0",
   };
 }
 
@@ -144,6 +151,9 @@ export function applyTypeFields(c: TriggerConfig, d: TriggerTypeFields): void {
     const h = parseFloat(d.runtimeHours); if (!isNaN(h)) c.trigger_runtime_hours = h;
     const on = (d.onStates || "").split(",").map((s) => s.trim()).filter(Boolean);
     if (on.length > 0) c.trigger_on_states = on;
+  } else if (d.type === "due_date") {
+    const days = parseInt(d.daysBefore, 10);
+    c.trigger_days_before = isNaN(days) ? 0 : days;
   }
 }
 
@@ -292,6 +302,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _triggerToState = "";
   @state() private _triggerTargetChanges = "";
   @state() private _triggerRuntimeHours = "";
+  @state() private _triggerDaysBefore = "0";
   @state() private _triggerRuntimeMaxSession = "";
   // Comma-separated "running" states for the runtime trigger (#103) —
   // empty = the backend default ["on"]. Must roundtrip on edit: adopted
@@ -730,6 +741,7 @@ export class MaintenanceTaskDialog extends LitElement {
       targetChanges: this._triggerTargetChanges,
       runtimeHours: this._triggerRuntimeHours,
       onStates: this._triggerOnStates,
+      daysBefore: this._triggerDaysBefore,
     };
   }
 
@@ -748,6 +760,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._triggerTargetChanges = f.targetChanges;
     this._triggerRuntimeHours = f.runtimeHours;
     this._triggerOnStates = f.onStates;
+    this._triggerDaysBefore = f.daysBefore;
   }
 
   private _resetTriggerFields(): void {
@@ -1809,7 +1822,7 @@ export class MaintenanceTaskDialog extends LitElement {
           @change=${(e: Event) => (this._triggerType = (e.target as HTMLSelectElement).value as TriggerType)}
         >
           ${TRIGGER_TYPE_KEYS_WITH_COMPOUND.map(
-            (key) => html`<option value=${key} ?selected=${key === this._triggerType}>${t(key, L)}</option>`
+            (key) => html`<option value=${key} ?selected=${key === this._triggerType}>${triggerTypeLabel(key, L)}</option>`
           )}
         </select>
       </div>
@@ -1985,7 +1998,7 @@ export class MaintenanceTaskDialog extends LitElement {
             @change=${(e: Event) => this._patchCondition(i, { type: (e.target as HTMLSelectElement).value as TriggerType })}
           >
             ${TRIGGER_TYPE_KEYS.map(
-              (key) => html`<option value=${key} ?selected=${key === c.type}>${t(key, L)}</option>`
+              (key) => html`<option value=${key} ?selected=${key === c.type}>${triggerTypeLabel(key, L)}</option>`
             )}
           </select>
         </div>
@@ -2244,6 +2257,13 @@ export class MaintenanceTaskDialog extends LitElement {
           entityId: condEntity,
           onInput: (v) => this._patchCondition(i, { onStates: v }),
         })}
+      `;
+    }
+    if (c.type === "due_date") {
+      return html`
+        <ms-textfield label="${t("days_before", L)}" type="number" step="1"
+          min=${TRIGGER_DAYS_BEFORE_RANGE[0]} max=${TRIGGER_DAYS_BEFORE_RANGE[1]} .value=${c.daysBefore}
+          @input=${(e: Event) => this._patchCondition(i, { daysBefore: (e.target as HTMLInputElement).value })}></ms-textfield>
       `;
     }
     return nothing;
@@ -2710,6 +2730,17 @@ export class MaintenanceTaskDialog extends LitElement {
         ).replace("{count}", String(n)),
       );
       parts.push(t("trigger_hint_state_now", L).replace("{value}", String(st.state)));
+    } else if (this._triggerType === "due_date") {
+      const days = parseInt(this._triggerDaysBefore, 10) || 0;
+      parts.push(
+        days === 0 ? t("trigger_hint_due_date_same_day", L)
+        : days === 1 ? t("trigger_hint_due_date_one", L)
+        : t("trigger_hint_due_date", L).replace("{days}", String(days)),
+      );
+      const reported = raw == null ? "" : String(raw);
+      if (reported && !isNaN(Date.parse(reported))) {
+        parts.push(t("trigger_hint_due_date_now", L).replace("{date}", formatDate(reported, L)));
+      }
     }
     if (!parts.length) return overlap;
     return html`<div class="trigger-live-hint">${parts.join(" ")}</div>${overlap}`;
@@ -2855,6 +2886,20 @@ export class MaintenanceTaskDialog extends LitElement {
           onInput: (v) => (this._triggerOnStates = v),
         })}
         <div class="field-help">${t("runtime_on_states_help", L)}</div>
+      `;
+    }
+    if (this._triggerType === "due_date") {
+      return html`
+        <ms-textfield
+          label="${t("days_before", L)}"
+          type="number"
+          step="1"
+          min=${TRIGGER_DAYS_BEFORE_RANGE[0]}
+          max=${TRIGGER_DAYS_BEFORE_RANGE[1]}
+          .value=${this._triggerDaysBefore}
+          @input=${(e: Event) => (this._triggerDaysBefore = (e.target as HTMLInputElement).value)}
+        ></ms-textfield>
+        <div class="field-help">${t("days_before_help", L)}</div>
       `;
     }
     return nothing;

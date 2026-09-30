@@ -545,6 +545,7 @@ CONF_TRIGGER_TO_STATE = "trigger_to_state"
 CONF_TRIGGER_TARGET_CHANGES = "trigger_target_changes"
 CONF_TRIGGER_RUNTIME_HOURS = "trigger_runtime_hours"
 CONF_TRIGGER_ON_STATES = "trigger_on_states"
+CONF_TRIGGER_DAYS_BEFORE = "trigger_days_before"
 
 # --- Config Keys: Adaptive Scheduling ---
 CONF_ADAPTIVE_CONFIG = "adaptive_config"
@@ -764,6 +765,9 @@ class TriggerType(StrEnum):
     COUNTER = "counter"
     STATE_CHANGE = "state_change"
     RUNTIME = "runtime"
+    # A sensor that REPORTS the date the maintenance is due (a purifier's
+    # "filter change due" timestamp): fires N days before that date.
+    DUE_DATE = "due_date"
     COMPOUND = "compound"
 
 
@@ -920,6 +924,8 @@ MAX_PART_SEARCH_URL_TEMPLATE_LENGTH = 500
 TRIGGER_FIELD_RANGES: dict[str, tuple[int, int]] = {
     "trigger_for_minutes": (0, 1440),  # #136 hold time, one day at most
     "trigger_target_changes": (1, 10_000),
+    # due_date: fire this many days before the date the sensor reports.
+    "trigger_days_before": (0, 365),
 }
 # Runtime target hours: > 0 (the WS validator) / >= 1 (the flow selector).
 TRIGGER_RUNTIME_HOURS_MAX = 100_000

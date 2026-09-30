@@ -341,7 +341,8 @@ Result: `{"task_id": "<uuid>"}` (+ `"warnings"` maybe). Dry-run:
 `invalid_trigger_config` also covers the VALUES (2.68.1+): thresholds,
 `trigger_target_value` and `trigger_baseline_value` must be finite numbers,
 `trigger_for_minutes` a whole number 0–1440, `trigger_target_changes` 1–10000,
-`trigger_runtime_hours` > 0 and ≤ 100000, `trigger_delta_mode` a real boolean
+`trigger_runtime_hours` > 0 and ≤ 100000, `trigger_days_before` a whole number 0–365,
+`trigger_delta_mode` a real boolean
 (and a delta counter needs a positive step). Numeric strings are accepted and
 stored as numbers; an explicit `null` on an optional field means "unset". The
 error message names the field and the offending value; in a compound trigger
@@ -498,10 +499,18 @@ Optional `trigger_runtime_max_session_seconds` (whole, 1..86400): a single ON-se
 `trigger_runtime_hours` **required**. Accumulates "on" time; default on-states
 `{"on","1","true"}`. `trigger_on_states`, if given, must be a non-empty list.
 
+### `due_date` (2.96)
+`{"type":"due_date","entity_ids":["sensor.shelfy_filter_change_due"],"trigger_days_before":7,"auto_complete_on_recovery":true}`
+For an entity that REPORTS the due date (timestamp or date state, or an
+`attribute` holding one). `trigger_days_before` whole 0..365, default 0 = on
+the date. Fires by timer when the date comes within the lead time; clears when
+the device reports a later date (its own "done" button — make that the
+`on_complete_action`).
+
 ### `compound`
 `{"type":"compound","compound_logic":"OR","conditions":[ {…}, {…} ]}`
 `compound_logic`: `"AND"`|`"OR"` (default AND). `conditions`: ≥2 non-compound
-trigger dicts (threshold/counter/state_change/runtime), each validated
+trigger dicts (threshold/counter/state_change/runtime/due_date), each validated
 recursively and may carry its own `entity_ids`+`entity_logic`. **No nested
 compound.** Two-level aggregation: within a condition (`entity_logic`), across
 conditions (`compound_logic`). UI caps at 5 conditions.
@@ -851,7 +860,7 @@ sweep, and a non-writer can have at most 20 of them per object waiting.
 ## Suggested setups — the shipped signature catalog
 
 **Use this before hand-rolling discovery.** The integration ships a catalog of
-**225 integrations / 484 verified signatures** (`helpers/signatures/`, every
+**225 integrations / 485 verified signatures** (`helpers/signatures/`, every
 entry read against the integration's own source) that maps consumable and wear
 entities onto maintenance duties. Discovery runs **server-side**: it walks the
 entity registry, applies the model/sibling/unit gates, hides duties already

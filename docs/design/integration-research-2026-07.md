@@ -1256,7 +1256,9 @@ HACS (tarballs of the default branch, 2026-09-25):
 - **flexit** (core, Modbus, sensor platform on dev): tk `air_filter_operating_time` (h, TOTAL_INCREASING, `filter_running_hours`) → usage_above 4380 h *Replace Ventilation Filter* (mirrors flexit_bacnet).
 
 **Added — heating.py**
-- **de_dietrich** (core, dev): tk `water_pressure` (bar) → value_below 1 *Refill Heating Water*.
+- ~~**de_dietrich** (core, dev): tk `water_pressure` (bar) → value_below 1 *Refill Heating Water*.~~ Removed
+  2026-09-30: core withdrew the integration from dev before any release (home-assistant/core#183545); it returns as a joint
+  Remeha / De Dietrich Modbus integration.
 - **remeha_home** (msvisser): suffix `_water_pressure` (bar) → value_below 1 *Refill Heating Water*.
 - **syr_connect** (alexhass): tk `getss1` (salt supply, WEEKS) → value_below 2 (in weeks) *Refill Softener Salt* — value_below instead of duration_left because the duration conversion has no weeks factor.
 - **salt_sentry** (Lemcke-solutions): tk `salt_level` (%, from the tank distance) → percent_left *Refill Softener Salt*.

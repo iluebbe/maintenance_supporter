@@ -17,12 +17,13 @@ from __future__ import annotations
 import math
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.util import dt as dt_util
 
 from ..const import UNAVAILABLE_STATES
-from .dates import parse_persisted_utc
+from .dates import days_until, due_instant, parse_persisted_utc
 
 if TYPE_CHECKING:
     from homeassistant.core import State
@@ -283,6 +284,36 @@ def evaluate_state_change(
     # contributions above only matter once at least one real count exists.
     active = _aggregate(per_entity, entity_logic) if per_entity and best_count is not None else None
     return FallbackResult(current_value=best_count, active=active)
+
+
+def evaluate_due_date(
+    get_state: StateGetter,
+    trigger_config: dict[str, Any],
+    entity_ids: list[str],
+    now: datetime | None = None,
+) -> FallbackResult:
+    """Due date: active from ``trigger_days_before`` days before the date the
+    entity reports; the reading is the days left (the soonest one)."""
+    attribute = trigger_config.get("attribute")
+    entity_logic = trigger_config.get("entity_logic", "any")
+    days_before = float(trigger_config.get("trigger_days_before") or 0)
+    now = now or dt_util.utcnow()
+    per_entity: list[bool] = []
+    soonest: float | None = None
+    for eid in entity_ids:
+        state = get_state(eid)
+        if state is None or state.state in UNAVAILABLE_STATES:
+            continue
+        due = due_instant(state.attributes.get(attribute) if attribute else state.state)
+        if due is None:
+            continue
+        left = days_until(due, now)
+        soonest = left if soonest is None else min(soonest, left)
+        per_entity.append(left <= days_before)
+    if not per_entity:
+        # No readable date — keep the event-driven latch as it is.
+        return FallbackResult(current_value=None, active=None)
+    return FallbackResult(current_value=soonest, active=_aggregate(per_entity, entity_logic))
 
 
 def evaluate_runtime(

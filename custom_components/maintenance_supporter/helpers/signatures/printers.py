@@ -144,10 +144,11 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "ha_creality_ws": IntegrationSignature(
         name="Creality (WebSocket)",
-        verified="2026-09-25 @ 3dg1luk43/ha_creality_ws main",
+        verified="2026-09-25 @ 3dg1luk43/ha_creality_ws main; re-verified 2026-09-30 (states now from utils.derive_print_state)",
         source=(
             "3dg1luk43/ha_creality_ws custom_components/ha_creality_ws/sensor.py "
             "PrintStatusSensor: _attr_translation_key 'print_status', no unit, states "
+            "(utils.derive_print_state since 2026-09-26) "
             "off/unknown/error/self-testing/completed/paused/stopped/printing/"
             "processing/idle ('printing' = st == 1 with a file loaded). No lifetime "
             "print-hours counter exists — the ENGINE accumulates print time. K1/K2/"

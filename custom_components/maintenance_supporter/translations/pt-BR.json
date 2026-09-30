@@ -327,6 +327,27 @@
           "go_back": "Retornar à seleção do tipo de gatilho sem salvar."
         }
       },
+      "trigger_due_date": {
+        "title": "Data de vencimento",
+        "description": "Acompanha a data que {entity_id} informa (agora: {current_state}). A tarefa vence o número de dias escolhido antes dessa data.",
+        "data": {
+          "trigger_days_before": "Dias antes da data",
+          "interval_days": "Intervalo de segurança",
+          "interval_unit": "Unidade do intervalo",
+          "trigger_combinator": "Combinar gatilho e intervalo",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = no próprio dia. Quando o dispositivo adia a data (geralmente pelo próprio botão de \"feito\"), o gatilho é desativado.",
+          "interval_days": "Intervalo de segurança opcional baseado em tempo, além do gatilho do sensor.",
+          "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (padrão): o gatilho ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o gatilho disparou e o intervalo decorreu.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "go_back": "Retornar à seleção do tipo de gatilho sem salvar."
+        }
+      },
       "compound_logic": {
         "title": "Gatilho composto",
         "description": "Escolha como as múltiplas condições devem ser combinadas.",
@@ -421,6 +442,17 @@
         "data_description": {
           "trigger_runtime_hours": "Aciona após este número de horas de operação acumulada.",
           "trigger_on_states": "Estados do sensor contados como 'ativo'. Deixe vazio para o padrão.",
+          "go_back": "Retornar à seleção do tipo de condição sem salvar."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Condição — Data de vencimento",
+        "data": {
+          "trigger_days_before": "Dias antes da data",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_days_before": "A condição é atendida a partir deste número de dias antes da data informada.",
           "go_back": "Retornar à seleção do tipo de condição sem salvar."
         }
       },
@@ -886,6 +918,16 @@
           "trigger_on_states": "Estados do sensor contados como 'ativo'. Deixe vazio para o padrão."
         }
       },
+      "compound_condition_due_date": {
+        "title": "Condição — Data de vencimento",
+        "data": {
+          "trigger_days_before": "Dias antes da data",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_days_before": "A condição é atendida a partir deste número de dias antes da data informada."
+        }
+      },
       "compound_review": {
         "title": "Revisão do gatilho composto",
         "description": "{condition_count} condição(ões) configurada(s) com lógica {compound_logic}.",
@@ -1171,6 +1213,26 @@
           "trigger_runtime_hours": "Aciona a manutenção após este número de horas de operação acumulada.",
           "trigger_on_states": "Quais estados do sensor contam como 'ativo'. Deixe vazio para o padrão: on, 1, true. Exemplo: in_use, running",
           "interval_days": "Intervalo de segurança opcional baseado em tempo, além do gatilho de tempo de operação.",
+          "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (padrão): o gatilho ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o gatilho disparou e o intervalo decorreu.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
+        }
+      },
+      "opt_trigger_due_date": {
+        "title": "Data de vencimento",
+        "description": "Acompanha a data que {entity_id} informa (agora: {current_state}). A tarefa vence o número de dias escolhido antes dessa data.",
+        "data": {
+          "trigger_days_before": "Dias antes da data",
+          "interval_days": "Intervalo de segurança",
+          "interval_unit": "Unidade do intervalo",
+          "trigger_combinator": "Combinar gatilho e intervalo",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor se recuperar"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = no próprio dia. Quando o dispositivo adia a data (geralmente pelo próprio botão de \"feito\"), o gatilho é desativado.",
+          "interval_days": "Intervalo de segurança opcional baseado em tempo, além do gatilho do sensor.",
           "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
           "trigger_combinator": "O primeiro (padrão): o gatilho ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o gatilho disparou e o intervalo decorreu.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
@@ -1637,6 +1699,7 @@
         "counter": "Contador",
         "state_change": "Mudança de estado",
         "runtime": "Tempo de operação",
+        "due_date": "Data de vencimento (informada por um sensor)",
         "compound": "Composto (várias condições)"
       }
     },

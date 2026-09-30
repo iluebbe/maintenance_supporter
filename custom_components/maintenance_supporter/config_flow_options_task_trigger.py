@@ -85,6 +85,8 @@ class TriggerStepsMixin(TriggerConfigMixin):
         elif ctype == TriggerType.RUNTIME:
             if cond.get("trigger_runtime_hours") is not None:
                 parts.append(f"hours: {cond['trigger_runtime_hours']}")
+        elif ctype == TriggerType.DUE_DATE:
+            parts.append(f"days before: {cond.get('trigger_days_before', 0)}")
         return parts
 
     @staticmethod
@@ -348,6 +350,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
             counter_step=self.async_step_opt_trigger_counter,
             state_change_step=self.async_step_opt_trigger_state_change,
             runtime_step=self.async_step_opt_trigger_runtime,
+            due_date_step=self.async_step_opt_trigger_due_date,
             compound_step=self.async_step_opt_compound_logic,
         )
 
@@ -383,6 +386,14 @@ class TriggerStepsMixin(TriggerConfigMixin):
             on_complete=self._trigger_on_complete,
         )
 
+    async def async_step_opt_trigger_due_date(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Configure due-date trigger."""
+        return await self._trigger_due_date_config(
+            user_input,
+            step_id="opt_trigger_due_date",
+            on_complete=self._trigger_on_complete,
+        )
+
     async def async_step_opt_compound_logic(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Select compound trigger logic."""
         return await self._trigger_compound_logic(
@@ -408,6 +419,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
             counter_step=self.async_step_opt_compound_condition_counter,
             state_change_step=self.async_step_opt_compound_condition_state_change,
             runtime_step=self.async_step_opt_compound_condition_runtime,
+            due_date_step=self.async_step_opt_compound_condition_due_date,
         )
 
     async def async_step_opt_compound_condition_threshold(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
@@ -446,6 +458,15 @@ class TriggerStepsMixin(TriggerConfigMixin):
             on_complete=self.async_step_opt_compound_review,
         )
 
+    async def async_step_opt_compound_condition_due_date(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Configure due_date for compound condition."""
+        return await self._trigger_compound_condition_config(
+            user_input,
+            "due_date",
+            step_id="compound_condition_due_date",
+            on_complete=self.async_step_opt_compound_review,
+        )
+
     async def async_step_opt_compound_review(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Review compound trigger conditions."""
         return await self._trigger_compound_review(
@@ -470,5 +491,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
     async_step_compound_condition_state_change = async_step_opt_compound_condition_state_change
 
     async_step_compound_condition_runtime = async_step_opt_compound_condition_runtime
+
+    async_step_compound_condition_due_date = async_step_opt_compound_condition_due_date
 
     async_step_compound_review = async_step_opt_compound_review

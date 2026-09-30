@@ -1373,6 +1373,11 @@ def test_condition_summary_runtime() -> None:
     assert "hours: 200" in result
 
 
+def test_condition_summary_due_date() -> None:
+    cond = {"type": TriggerType.DUE_DATE, "trigger_days_before": 7}
+    assert MaintenanceOptionsFlow._condition_summary(cond) == "days before: 7"
+
+
 def test_condition_summary_empty() -> None:
     """Test condition_summary with no data."""
     result = MaintenanceOptionsFlow._condition_summary({"type": "unknown"})

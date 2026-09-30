@@ -270,6 +270,7 @@ describe("DRY round 4 (frontend)", () => {
       { type: "counter", trigger_target_value: 500, trigger_delta_mode: true },
       { type: "state_change", trigger_from_state: "off", trigger_to_state: "on", trigger_target_changes: 4, trigger_for_minutes: 10 },
       { type: "runtime", trigger_runtime_hours: 250, trigger_on_states: ["cooling", "heating"] },
+      { type: "due_date", trigger_days_before: 7 },
     ];
     for (const cfg of configs) {
       it(`${cfg.type}: storage → form → storage is the identity`, () => {

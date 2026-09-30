@@ -12,8 +12,9 @@
  */
 
 import { html, nothing } from "lit";
-import { t, fireMoreInfo } from "../styles";
+import { t, fireMoreInfo, formatDueDays } from "../styles";
 import { fmtNum, fmtVal } from "./chart-utils";
+import { dueDaysOf } from "./progress";
 import "../components/trigger-chart";
 import type { ChartPoint, ChartEvent } from "../components/trigger-chart";
 import type { MaintenanceTask, TriggerConfig, StatisticsPoint } from "../types";
@@ -187,7 +188,7 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
         : currentVal !== null && currentVal !== undefined
           ? html`
               <div class="trigger-value-row">
-                <span class="trigger-current ${task.trigger_active ? "active" : ""}">${typeof currentVal === "number" ? fmtVal(currentVal, "", L) : currentVal}</span>
+                <span class="trigger-current ${task.trigger_active ? "active" : ""}">${triggerType === "due_date" && typeof currentVal === "number" ? formatDueDays(dueDaysOf(currentVal), L) : typeof currentVal === "number" ? fmtVal(currentVal, "", L) : currentVal}</span>
                 ${unit ? html`<span class="trigger-unit">${unit}</span>` : nothing}
               </div>
             `
@@ -207,10 +208,13 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
         ${triggerType === "runtime" ? html`
           ${tc.trigger_runtime_hours != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("runtime_hours", L)}: ${tc.trigger_runtime_hours}h</span>` : nothing}
         ` : nothing}
+        ${triggerType === "due_date" ? html`
+          <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("days_before", L)}: ${tc.trigger_days_before ?? 0}</span>
+        ` : nothing}
         ${triggerType === "compound" ? html`
           <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("compound_logic", L)}: ${tc.compound_logic || (tc as any).operator || "AND"}</span>
           ${(tc.conditions || []).map((cond: any, i: number) => html`
-            <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${i + 1}. ${t(cond.type || "unknown", L)}: ${cond.entity_id ? html`<span class="entity-link" @click=${(ev: Event) => fireMoreInfo(ev, cond.entity_id)}>${cond.entity_id}</span>` : ""}</span>
+            <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${i + 1}. ${t(cond.type === "due_date" ? "trigger_type_due_date" : cond.type || "unknown", L)}: ${cond.entity_id ? html`<span class="entity-link" @click=${(ev: Event) => fireMoreInfo(ev, cond.entity_id)}>${cond.entity_id}</span>` : ""}</span>
           `)}
         ` : nothing}
       </div>
@@ -368,6 +372,8 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
   if (!tc) return nothing;
   const triggerType = tc.type || "threshold";
   const entityId = tc.entity_id || "";
+  // A due date only counts down — no curve to tell.
+  if (triggerType === "due_date") return nothing;
 
   let points = rawStatsPoints(task, ctx);
   // #141 round 2: a state_change trigger on recorder history draws the
