@@ -107,6 +107,21 @@ integrations (`warn_unreachable`, `truthy-iterable`, `ignore-without-code`,
 All must be clean before commit. CI pins `ruff==0.15.22` — a newer ruff can
 flag different rules, so match the pin when in doubt.
 
+### The architecture doc keeps itself current
+
+The file tree in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#file-structure) — line
+and file counts, each WebSocket module's command list, the intent lists, the list of
+modules itself — is written by `scripts/sync_architecture_doc.py`. A pre-commit hook
+runs it on every commit; enable it once per clone (`scripts/init-dev.sh` does it too):
+
+```bash
+git config core.hooksPath .githooks
+```
+
+A new module appears with its own docstring as the description — worth a glance
+before you push. Without the hook, run `py -X utf8 scripts/sync_architecture_doc.py`
+yourself: CI fails when the tree misses a module or its figures drifted.
+
 ## Translations
 
 Panel strings live in `custom_components/maintenance_supporter/frontend-src/locales/<lang>.json` (22 languages; runtime-loaded, only `en.json` is bundled). Config-flow strings live in `custom_components/maintenance_supporter/translations/<lang>.json`.

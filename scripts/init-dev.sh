@@ -13,6 +13,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# The pre-commit hook keeps docs/ARCHITECTURE.md's file tree in step with the
+# code (scripts/sync_architecture_doc.py).
+git config core.hooksPath .githooks 2>/dev/null || true
+
 # Detect Python command (python3 on Linux/Mac, py on Windows/git-bash)
 if command -v python3 &>/dev/null; then
     PYTHON=python3

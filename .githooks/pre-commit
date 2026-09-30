@@ -1,0 +1,34 @@
+#!/bin/sh
+# Refreshes docs/ARCHITECTURE.md from the code on every commit: the file
+# tree's line and file counts, the WebSocket command and intent lists, new
+# and removed modules (scripts/sync_architecture_doc.py). Enable once per
+# clone:
+#
+#   git config core.hooksPath .githooks
+#
+# It never blocks a commit. Without Python, or while the doc has unstaged
+# edits of its own (staging them would slip them into this commit), it says
+# so and lets the commit through; tests/test_docs_counts_in_sync.py still
+# fails CI on a doc that fell behind.
+
+doc=docs/ARCHITECTURE.md
+if ! git diff --quiet -- "$doc"; then
+    echo "pre-commit: $doc has unstaged edits - not refreshed (py -X utf8 scripts/sync_architecture_doc.py)" >&2
+    exit 0
+fi
+if command -v py >/dev/null 2>&1; then
+    set -- py -3 -X utf8
+elif command -v python3 >/dev/null 2>&1; then
+    set -- python3 -X utf8
+elif command -v python >/dev/null 2>&1; then
+    set -- python -X utf8
+else
+    echo "pre-commit: no Python found - $doc not refreshed" >&2
+    exit 0
+fi
+if "$@" scripts/sync_architecture_doc.py --quiet; then
+    git add -- "$doc"
+else
+    echo "pre-commit: scripts/sync_architecture_doc.py failed - $doc not refreshed" >&2
+fi
+exit 0

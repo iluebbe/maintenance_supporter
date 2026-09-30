@@ -288,6 +288,13 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 📝 Documentation
 
+- **The architecture doc keeps itself current:** the file tree in `docs/ARCHITECTURE.md` still gave line counts "as of
+  v2.42.1", missed 95 modules and listed three of a module's six commands. `scripts/sync_architecture_doc.py` now
+  writes every figure from the code — lines, files per directory, each WebSocket module's command list, the intent
+  lists, the source-file totals in the header — adds a new module with its own docstring as the description and drops
+  one that is gone. A pre-commit hook runs it on every commit (`git config core.hooksPath .githooks`, which
+  `scripts/init-dev.sh` sets), and CI fails when the tree misses a module or its figures drifted. The count checks
+  for the other docs now also read numbers written as words ("Six Assist/voice intents" had stood beside 15).
 - **The LLM setup skill against the code** (`skills/maintenance-setup-assistant/`): the API reference claimed a snooze
   is forgotten at a restart (it is stored) and never mentioned that `task/complete` takes `via_tag_scan` — an
   assistant must never assert a tag scan; task fields for rotation, the completion window, priority, labels,

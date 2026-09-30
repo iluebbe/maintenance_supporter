@@ -7,3 +7,6 @@ custom_components/maintenance_supporter/frontend/** linguist-generated=true
 # Offline climate grids (zlib-compressed rasters, helpers/climate.py): never
 # touch line endings — core.autocrlf would corrupt them.
 *.bin binary
+
+# Git hooks run under sh, which a CRLF checkout (core.autocrlf) breaks.
+.githooks/* text eol=lf
