@@ -82,6 +82,7 @@ from ..const import (
     CONF_PANEL_ENABLED,
     CONF_PANEL_TITLE,
     CONF_PART_SEARCH_URL_TEMPLATE,
+    CONF_PARTS_COST_MODE,
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
@@ -227,6 +228,8 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_BUDGET_ALERT_THRESHOLD, int, 80, int_range=(10, 100)),
     SettingSpec(CONF_BUDGET_CURRENCY, str, DEFAULT_BUDGET_CURRENCY, max_len=5),
     SettingSpec(CONF_CURRENCY_DECIMALS, int, DEFAULT_CURRENCY_DECIMALS, int_range=(0, 3)),
+    # #104: spare parts count when bought or when used (enum-checked in dashboard.py).
+    SettingSpec(CONF_PARTS_COST_MODE, str, "purchase", max_len=16),
 )
 
 _SPEC_BY_KEY: dict[str, SettingSpec] = {s.key: s for s in SETTING_SPECS}

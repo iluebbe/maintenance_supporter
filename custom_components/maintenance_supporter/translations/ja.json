@@ -581,6 +581,7 @@
           "notify_service": "通知サービス",
           "panel_enabled": "サイドバーパネルを表示",
           "currency_decimals": "金額の小数点以下の桁数",
+          "parts_cost_mode": "交換部品を支出に計上するタイミング",
           "battery_low_percent": "電池「残量少」しきい値（%）",
           "battery_recovered_percent": "この値を超えたら交換済みとみなす（%）",
           "battery_auto_record_recovery": "残量が少ない電池が回復したら交換を自動で記録",
@@ -599,6 +600,7 @@
           "notify_service": "使用する通知サービスです (例: notify.mobile_app_phone)。",
           "panel_enabled": "サイドバーに Maintenance Supporter パネルを表示します。",
           "currency_decimals": "各金額に表示する小数点以下の桁数 — KPI、予算、リストやレポートの費用、予算アラート。0 = 整数。",
+          "parts_cost_mode": "購入時：購入リマインダーの費用を計上し、使った部品は参考表示のみ。使用時：完了のたびに使った部品を計上し、購入は部品の価格を更新するだけです。今後の完了から適用されます。",
           "battery_low_percent": "全体の下限：この値以下の電池は「残量少」とみなされます（Battery Notes のしきい値がより高い場合を除く）。",
           "battery_recovered_percent": "残量が少ない電池は、残量がこの値を超えるか交換が記録されるまで「残量少」として数えられます。しきい値付近で変動する残量が一括タスクを何度も完了させることを防ぎます。",
           "battery_auto_record_recovery": "残量が少なかった電池が回復しきい値を超えると、交換日が Battery Notes に記録され、予備の電池が在庫から差し引かれます — タップは不要です",
@@ -1727,6 +1729,12 @@
       "options": {
         "finish": "完了",
         "add": "条件を追加"
+      }
+    },
+    "parts_cost_mode": {
+      "options": {
+        "purchase": "購入時",
+        "use": "使用時"
       }
     }
   },

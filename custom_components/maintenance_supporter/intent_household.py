@@ -30,6 +30,7 @@ from homeassistant.helpers import intent
 from homeassistant.util import dt as dt_util
 
 from .const import COMPLETION_PROVENANCE_NOTES, CONF_TASKS, MAX_TEXT_LENGTH
+from .helpers.parts import MAX_PART_STOCK
 from .intent import (
     INTENT_ADD_NOTE,
     INTENT_BOUGHT_PART,
@@ -371,11 +372,13 @@ class BoughtPartIntent(intent.IntentHandler):
         "Records that spare parts / consumables were bought, matched by the "
         "part's name: adds quantity to the tracked stock (the part's usual "
         "restock amount when no quantity is given) and closes its open buy "
-        "reminder. Use for 'I bought four water filters'."
+        "reminder. quantity counts what was bought — packages when the part "
+        "has a package size (two 500 ml cans = 2). Use for 'I bought four "
+        "water filters'."
     )
     slot_schema = {
         vol.Required("name"): cv.string,
-        vol.Optional("quantity"): vol.All(vol.Coerce(float), vol.Range(min=0.01, max=9999)),
+        vol.Optional("quantity"): vol.All(vol.Coerce(float), vol.Range(min=0.01, max=MAX_PART_STOCK)),
     }
 
     async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
@@ -390,6 +393,8 @@ class BoughtPartIntent(intent.IntentHandler):
             return err
         assert part is not None
         response = intent_obj.create_response()
+        # What was bought: packages when the part has a package size (#98
+        # follow-up — "I bought two cans"), else units.
         qty = slots.get("quantity", {}).get("value")
         quantity = float(qty) if qty else float(part.get("restock_quantity") or 1)
 
@@ -424,7 +429,9 @@ class BoughtPartIntent(intent.IntentHandler):
                 except ServiceValidationError:
                     completed = False
         if not completed:
-            await async_change_part_stock(hass, entry, part["part_id"], delta=quantity)
+            from .helpers.parts import restock_units
+
+            await async_change_part_stock(hass, entry, part["part_id"], delta=restock_units(part, quantity))
         voice_undo.remember(hass, intent_obj, "bought", before, part=part["name"], qty=say_number(quantity, lang))
         rd = getattr(entry, "runtime_data", None)
         store = getattr(rd, "store", None) if rd else None

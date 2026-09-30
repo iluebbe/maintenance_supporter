@@ -71,6 +71,7 @@ from .const import (
     CONF_PANEL_ENABLED,
     CONF_PANEL_TITLE,
     CONF_PART_SEARCH_URL_TEMPLATE,
+    CONF_PARTS_COST_MODE,
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
@@ -90,6 +91,7 @@ from .const import (
     MAX_PANEL_TITLE_LENGTH,
     MAX_REMINDER_LEADS,
     NOTIFY_COMPLETED_MODES,
+    PARTS_COST_MODES,
     ROW_ACTION_STYLES,
     TIME_HHMMSS_PATTERN,
 )
@@ -924,6 +926,18 @@ class GlobalOptionsFlow(OptionsFlow):
                             max=int_range(CONF_CURRENCY_DECIMALS)[1],
                             step=1,
                             mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
+                    # #104: spare parts count when bought or when used — every cost
+                    # total follows it, not just the budget.
+                    vol.Optional(
+                        CONF_PARTS_COST_MODE,
+                        default=self._opt(CONF_PARTS_COST_MODE),
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=list(PARTS_COST_MODES),
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            translation_key="parts_cost_mode",
                         )
                     ),
                     # #146 / #180: the battery fleet's low floor and the level a

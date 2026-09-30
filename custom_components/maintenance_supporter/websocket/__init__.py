@@ -27,6 +27,7 @@ from ..const import (
 )
 from ..helpers.aggregate import get_object_entries, get_runtime_data, get_store, is_object_entry, object_name, task_entity_id
 from ..helpers.aggregate import object_slug as aggregate_object_slug
+from ..helpers.parts import MAX_CONSUME_QUANTITY
 from ..helpers.phases import current_phase_summary
 from ..helpers.ws_errors import send_translated_error
 
@@ -66,7 +67,7 @@ USED_PARTS_FIELD: Final[vol.Any] = vol.Any(
                     vol.Required("part_id"): ID_FIELD,
                     vol.Optional("entry_id"): ID_FIELD,
                     vol.Optional("quantity", default=1): vol.All(
-                        vol.Any(int, float), vol.Coerce(float), vol.Range(min=0.01, max=999)
+                        vol.Any(int, float), vol.Coerce(float), vol.Range(min=0.01, max=MAX_CONSUME_QUANTITY)
                     ),
                 }
             )

@@ -176,7 +176,11 @@ async def async_handle_completion_parts(
     ref = task_data.get(PART_REF_FIELD)
     if isinstance(ref, dict) and ref.get("part_id") in parts:
         part = parts[ref["part_id"]]
-        qty = restock_quantity if restock_quantity and restock_quantity > 0 else float(part.get("restock_quantity") or 1)
+        # Packages bought × package size (#98 follow-up); without a package
+        # size one package is one unit.
+        from .helpers.parts import restock_units
+
+        qty = restock_units(part, restock_quantity)
         old = store.get_part_stock(part["id"])
         new = max(0, (old or 0) + qty)
         store.set_part_stock(part["id"], new)
@@ -334,6 +338,15 @@ def apply_history_parts_edit(
         _fire_transition(hass, owner, part, new_stock, stock_transition(part, old_stock, new_stock))
         touched[owner.entry_id] = (owner, store)
 
+    # #104: a part already on the entry keeps the price it was booked at; one
+    # added by the edit is valued at today's price.
+    from .helpers.parts import unit_price
+
+    booked = {
+        str(link["part_id"]): link["unit_cost"]
+        for link in old_used
+        if isinstance(link, dict) and link.get("part_id") and isinstance(link.get("unit_cost"), (int, float))
+    }
     enriched: list[dict[str, Any]] = []
     for link in new_used:
         if not isinstance(link, dict) or not link.get("part_id"):
@@ -347,6 +360,11 @@ def apply_history_parts_edit(
         }
         if resolved and resolved[0].entry_id != entry.entry_id:
             item["entry_id"] = resolved[0].entry_id
+        price = booked.get(item["part_id"])
+        if price is None and resolved:
+            price = unit_price(resolved[1])
+        if price is not None:
+            item["unit_cost"] = price
         enriched.append(item)
     return enriched, list(touched.values())
 

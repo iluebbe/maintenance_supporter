@@ -581,6 +581,7 @@
           "notify_service": "Benachrichtigungsdienst",
           "panel_enabled": "Sidebar-Panel anzeigen",
           "currency_decimals": "Nachkommastellen für Beträge",
+          "parts_cost_mode": "Ersatzteile zählen als Ausgabe",
           "battery_low_percent": "Schwelle „Batterie niedrig“ (%)",
           "battery_recovered_percent": "Batterie gilt als ersetzt ab (%)",
           "battery_auto_record_recovery": "Wechsel automatisch erfassen, wenn eine niedrige Batterie sich erholt",
@@ -599,6 +600,7 @@
           "notify_service": "Der zu verwendende Benachrichtigungsdienst (z.B. notify.mobile_app_phone).",
           "panel_enabled": "Ein Maintenance Supporter Panel in der Seitenleiste anzeigen.",
           "currency_decimals": "Wie viele Nachkommastellen jeder Betrag zeigt — KPIs, Budgets, Kosten in Listen und Berichten, Budget-Alarme. 0 = ganze Zahlen.",
+          "parts_cost_mode": "Beim Kauf: Die Kosten einer Kauf-Erinnerung zählen, verbrauchte Teile werden nur informativ angezeigt. Beim Verbrauch: Jede Erledigung bucht die verbrauchten Teile, ein Kauf setzt stattdessen den Preis des Teils. Gilt für Erledigungen ab jetzt.",
           "battery_low_percent": "Flottenweite Untergrenze: Eine Batterie auf oder unter diesem Stand gilt als niedrig, sofern ihre Battery-Notes-Schwelle nicht höher liegt.",
           "battery_recovered_percent": "Eine niedrige Batterie bleibt so lange als niedrig gezählt, bis ihr Stand über diesen Wert steigt oder ein Wechsel erfasst wird — ein Stand, der um die Schwelle pendelt, schließt die Flottenaufgabe so nicht immer wieder ab.",
           "battery_auto_record_recovery": "Steigt eine zuvor niedrige Batterie über die Erholungsschwelle, wird das Wechseldatum in Battery Notes erfasst und die Ersatzzellen werden vom Bestand abgezogen — ohne Antippen",
@@ -1727,6 +1729,12 @@
       "options": {
         "finish": "Fertigstellen",
         "add": "Bedingung hinzufügen"
+      }
+    },
+    "parts_cost_mode": {
+      "options": {
+        "purchase": "Beim Kauf",
+        "use": "Beim Verbrauch"
       }
     }
   },

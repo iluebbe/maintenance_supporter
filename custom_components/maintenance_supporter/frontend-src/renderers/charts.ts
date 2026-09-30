@@ -10,6 +10,7 @@ import { html, svg, nothing } from "lit";
 import { t, formatCost } from "../styles";
 import { niceTicks, fmtNum, fmtDateTick, timeTicks, needsYear, px } from "./chart-utils";
 import type { MaintenanceTask } from "../types";
+import { entrySpend } from "../helpers/parts-cost";
 
 const COST_CHART_H = 200;
 const PAD_T = 10;
@@ -22,10 +23,12 @@ export function renderCostDurationCard(
   setToggle: (val: "cost" | "duration" | "both") => void,
   currencySymbol: string,
 ) {
-  const completedEntries = task.history.filter((h) => h.type === "completed" && (h.cost != null || h.duration != null));
+  // Cost = what the entry counts (#104: parts booked when used, a purchase
+  // moved into stock) — the same number as the totals.
+  const completedEntries = task.history.filter((h) => h.type === "completed" && (entrySpend(h) != null || h.duration != null));
   if (completedEntries.length < 2) return nothing;
 
-  const anyCost = completedEntries.some((h) => (h.cost ?? 0) > 0);
+  const anyCost = completedEntries.some((h) => (entrySpend(h) ?? 0) > 0);
   const anyDuration = completedEntries.some((h) => (h.duration ?? 0) > 0);
   if (!anyCost && !anyDuration) return nothing;
 
@@ -58,8 +61,8 @@ export function renderCostDurationCard(
 
 function renderHistoryChart(task: MaintenanceTask, lang: string, toggle: "cost" | "duration" | "both", currencySymbol: string) {
   const entries = task.history
-    .filter((h) => h.type === "completed" && (h.cost != null || h.duration != null))
-    .map((h) => ({ ts: new Date(h.timestamp).getTime(), cost: h.cost ?? 0, duration: h.duration ?? 0 }))
+    .filter((h) => h.type === "completed" && (entrySpend(h) != null || h.duration != null))
+    .map((h) => ({ ts: new Date(h.timestamp).getTime(), cost: entrySpend(h) ?? 0, duration: h.duration ?? 0 }))
     .sort((a, b) => a.ts - b.ts);
 
   if (entries.length < 2) return nothing;

@@ -581,6 +581,7 @@
           "notify_service": "Notifikationstjeneste",
           "panel_enabled": "Vis sidebjælkepanel",
           "currency_decimals": "Decimaler for beløb",
+          "parts_cost_mode": "Reservedele tæller som udgift",
           "battery_low_percent": "Tærskel „batteri lavt“ (%)",
           "battery_recovered_percent": "Batteri regnes som udskiftet over (%)",
           "battery_auto_record_recovery": "Registrér automatisk et skift, når et lavt batteri kommer sig",
@@ -599,6 +600,7 @@
           "notify_service": "Den notifikationstjeneste, der skal bruges (f.eks. notify.mobile_app_phone).",
           "panel_enabled": "Vis et Maintenance Supporter-panel i sidebjælken.",
           "currency_decimals": "Hvor mange decimaler hvert beløb viser — nøgletal, budgetter, omkostninger i lister og rapporter, budgetadvarsler. 0 = hele tal.",
+          "parts_cost_mode": "Ved køb: prisen på en købspåmindelse tæller, brugte dele vises som information. Ved forbrug: hver afslutning bogfører de brugte dele, og et køb sætter i stedet delens pris. Gælder fra nu af.",
           "battery_low_percent": "Gulv for hele flåden: et batteri på eller under dette niveau tælles som lavt, medmindre dets Battery Notes-tærskel er højere.",
           "battery_recovered_percent": "Et lavt batteri tælles som lavt, indtil niveauet stiger over denne værdi, eller et skift registreres — så kan et niveau, der svinger omkring tærsklen, ikke fuldføre flådeopgaven igen og igen.",
           "battery_auto_record_recovery": "Når et batteri, der var lavt, stiger over gendannelsestærsklen, registreres skiftedatoen i Battery Notes, og reservecellerne trækkes fra lageret — uden et tryk",
@@ -1727,6 +1729,12 @@
       "options": {
         "finish": "Afslut",
         "add": "Tilføj betingelse"
+      }
+    },
+    "parts_cost_mode": {
+      "options": {
+        "purchase": "Ved køb",
+        "use": "Ved forbrug"
       }
     }
   },

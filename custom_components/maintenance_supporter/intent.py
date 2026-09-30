@@ -766,6 +766,7 @@ def _part_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
                     "storage_location": part.get("storage_location"),
                     "reorder_threshold": part.get("reorder_threshold"),
                     "restock_quantity": part.get("restock_quantity"),
+                    "package_size": part.get("package_size"),
                     "stock": store.get_part_stock(part_id) if store is not None else None,
                 }
             )

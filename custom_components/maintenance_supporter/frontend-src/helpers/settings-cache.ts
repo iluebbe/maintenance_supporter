@@ -19,6 +19,7 @@
 import type { HomeAssistant } from "../types";
 import { NO_DELEGATION, type WriteAccess } from "./permissions";
 import { SETTING_INT_RANGES } from "./setting-ranges";
+import { partsCostModeOf, type PartsCostMode } from "./parts-cost";
 
 export interface SettingsCache {
   features: {
@@ -44,6 +45,9 @@ export interface SettingsCache {
    *  object-columns sanitizeColumns (kept out of here: the cards' bundles
    *  have no use for the column catalog). */
   objectsTableColumns: string[] | undefined;
+  /** #104: spare parts count when bought ("purchase") or when used ("use") —
+   *  decides what the complete dialog says about a completion's parts. */
+  partsCostMode: PartsCostMode;
 }
 
 /** The row-action styles the settings view offers (#145). */
@@ -76,6 +80,7 @@ export function parseSettings(r: SettingsWire | null | undefined): SettingsCache
     rowActionNoticePending: r?.general?.row_action_notice_pending === true,
     refsInLists: r?.general?.ref_numbers_in_lists === true,
     objectsTableColumns: Array.isArray(r?.objects_table_columns) ? r!.objects_table_columns : undefined,
+    partsCostMode: partsCostModeOf(r?.budget?.parts_cost_mode),
   };
 }
 
@@ -89,7 +94,7 @@ export interface SettingsWire {
   };
   operator_write_enabled?: boolean;
   admin_panel_user_ids?: string[];
-  budget?: { currency_symbol?: string; currency_decimals?: number };
+  budget?: { currency_symbol?: string; currency_decimals?: number; parts_cost_mode?: string };
   objects_table_columns?: string[];
 }
 
@@ -106,6 +111,7 @@ export const FALLBACK_SETTINGS: SettingsCache = {
   rowActionNoticePending: false,
   refsInLists: false,
   objectsTableColumns: undefined,
+  partsCostMode: "purchase",
 };
 
 interface CacheSlot {

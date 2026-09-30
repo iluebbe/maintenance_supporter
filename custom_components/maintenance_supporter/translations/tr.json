@@ -581,6 +581,7 @@
           "notify_service": "Bildirim servisi",
           "panel_enabled": "Kenar çubuğu panelini göster",
           "currency_decimals": "Tutarlarda ondalık basamak",
+          "parts_cost_mode": "Yedek parçalar gider sayılır",
           "battery_low_percent": "„Pil zayıf“ eşiği (%)",
           "battery_recovered_percent": "Pil şu değerin üzerinde değiştirilmiş sayılır (%)",
           "battery_auto_record_recovery": "Zayıf bir pil toparlandığında değişimi otomatik kaydet",
@@ -599,6 +600,7 @@
           "notify_service": "Kullanılacak bildirim servisi (örn. notify.mobile_app_phone).",
           "panel_enabled": "Kenar çubuğunda bir Maintenance Supporter paneli göster.",
           "currency_decimals": "Her tutarın kaç ondalık basamak göstereceği — KPI'lar, bütçeler, liste ve raporlardaki maliyetler, bütçe uyarıları. 0 = tam sayılar.",
+          "parts_cost_mode": "Satın alındığında: satın alma hatırlatıcısının maliyeti sayılır, kullanılan parçalar bilgi olarak gösterilir. Kullanıldığında: her tamamlama kullanılan parçaları kaydeder, satın alma ise bunun yerine parçanın fiyatını belirler. Bundan sonra geçerlidir.",
           "battery_low_percent": "Filo genelinde alt sınır: bu seviyede veya altındaki bir pil, Battery Notes eşiği daha yüksek değilse zayıf sayılır.",
           "battery_recovered_percent": "Zayıf bir pil, seviyesi bu değerin üzerine çıkana veya bir değişim kaydedilene kadar zayıf sayılmaya devam eder — böylece eşik çevresinde salınan bir seviye filo görevini tekrar tekrar tamamlayamaz.",
           "battery_auto_record_recovery": "Zayıf olan bir pilin seviyesi toparlanma eşiğinin üzerine çıktığında değişim tarihi Battery Notes'a kaydedilir ve yedek piller stoktan düşülür — dokunmaya gerek yok",
@@ -1727,6 +1729,12 @@
       "options": {
         "finish": "Bitir",
         "add": "Koşul ekle"
+      }
+    },
+    "parts_cost_mode": {
+      "options": {
+        "purchase": "Satın alındığında",
+        "use": "Kullanıldığında"
       }
     }
   },

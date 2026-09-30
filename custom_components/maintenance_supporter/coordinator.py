@@ -1394,6 +1394,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             from .helpers.reference_numbers import next_history_ref
 
             task.history[-1]["ref_no"] = next_history_ref(self._store, task_id, task.history)
+            # #104: what the parts of this completion cost at this moment,
+            # whether it was a purchase, and how it is booked — decided now,
+            # so a later change of the setting never re-values it.
+            from .helpers.parts_cost import annotate_completion
+
+            annotate_completion(self.hass, self.entry, merged[task_id], task.history[-1])
         # #73: a completed cycle retires its in-cycle checklist ticks — the
         # snapshot that matters is in the history entry above. A pure backfill
         # closed no current cycle, so the live ticks stay.
@@ -1483,6 +1489,15 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except Exception:
             _LOGGER.exception("Part consumption failed for task %s", task_id)
 
+        # #104 "when used" bookkeeping: a purchase is stock, not spending —
+        # what was actually paid becomes the part's price, so the parts it
+        # bought are valued at that price when they are used.
+        if is_latest and cost is not None and cost > 0:
+            from .helpers.parts_cost import COST_BASIS_USE, parts_cost_mode
+
+            if parts_cost_mode(self.hass) == COST_BASIS_USE:
+                self._record_purchase_price(merged[task_id], float(cost), restock_quantity)
+
         # A status configured to notify ONCE (interval 0) stays silenced by the
         # _SENT_ONCE sentinel until something clears it; nothing did after a
         # completion, so a sensor task that re-triggered weeks later was never
@@ -1514,6 +1529,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # automation can forward a meter value without reading history.
                 reading_value=reading_value,
                 reading_values=reading_values,
+                # #104: the value of the parts this completion used (None
+                # when none carried a price) — the same figure the history
+                # entry records.
+                parts_cost=(task.history[-1].get("parts_cost") if task.history else None),
                 # #133: the history entry's own timestamp — identical to what
                 # the history records, so automations can attribute backdated
                 # completions to the right period instead of time_fired.
@@ -1778,6 +1797,24 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._lifecycle_event_payload(task, task_id, reason=reason),
         )
 
+
+    def _record_purchase_price(self, task_data: dict[str, Any], cost: float, packages: float | None) -> None:
+        """A buy reminder's paid cost becomes its part's price (per package
+        with a package size, else per unit) — "when used" mode only."""
+        from .const import CONF_PARTS
+        from .helpers.parts import MAX_PART_COST, PART_REF_FIELD
+        from .helpers.parts_cost import purchase_unit_price
+
+        ref = task_data.get(PART_REF_FIELD)
+        parts = dict(self.entry.data.get(CONF_PARTS) or {})
+        part = parts.get(ref.get("part_id")) if isinstance(ref, dict) else None
+        if not isinstance(part, dict):
+            return
+        price = purchase_unit_price(part, cost, packages)
+        if price is None or price > MAX_PART_COST or price == part.get("cost"):
+            return
+        parts[part["id"]] = {**part, "cost": price}
+        self.hass.config_entries.async_update_entry(self.entry, data={**self.entry.data, CONF_PARTS: parts})
 
     async def _async_notify_completed(self, task_id: str, label: str, source: str | None, completed_by: str | None, completed_at: str) -> None:
         from .helpers.notification_manager import NotificationManager

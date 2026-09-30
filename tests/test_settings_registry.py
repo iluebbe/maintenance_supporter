@@ -50,6 +50,7 @@ _EXPECTED_STR_MAX_LENGTHS = {
     "notify_scope_view_id": 64,
     "notify_extra_data": 2000,  # #165 extra-data template
     "notify_completed": 16,  # #173 follow-up: off | automatic | all
+    "parts_cost_mode": 16,  # #104: purchase | use
     "row_action_style": 32,
     "part_search_url_template": 500,  # D#182 user-settable shopping search
     "home_type": 16,  # v2.93 home profile: auto | house | apartment
@@ -76,11 +77,11 @@ def test_allowed_keys_count_and_types() -> None:
     # part_search_url_template; #181 follow-up battery_auto_record_recovery;
     # v2.93 home_type; 2.94 home_region; 2.96 dropped the no-op
     # advanced_predictions_visible).
-    assert len(ALLOWED_SETTING_KEYS) == 64
+    assert len(ALLOWED_SETTING_KEYS) == 65
     assert all(isinstance(t, type) for t in ALLOWED_SETTING_KEYS.values())
     # No duplicate keys crept into the spec tuple.
     keys = [s.key for s in SETTING_SPECS]
-    assert len(keys) == len(set(keys)) == 64
+    assert len(keys) == len(set(keys)) == 65
 
 
 def test_every_ranged_key_is_declared_with_matching_type() -> None:

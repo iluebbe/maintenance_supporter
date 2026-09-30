@@ -581,6 +581,7 @@
           "notify_service": "Servicio de notificación",
           "panel_enabled": "Mostrar panel en la barra lateral",
           "currency_decimals": "Decimales de los importes",
+          "parts_cost_mode": "Los repuestos cuentan como gasto",
           "battery_low_percent": "Umbral „pila baja“ (%)",
           "battery_recovered_percent": "Pila considerada sustituida por encima de (%)",
           "battery_auto_record_recovery": "Registrar una sustitución automáticamente cuando una pila baja se recupera",
@@ -599,6 +600,7 @@
           "notify_service": "El servicio de notificación a utilizar (ej.: notify.mobile_app_phone).",
           "panel_enabled": "Mostrar un panel de Maintenance Supporter en la barra lateral.",
           "currency_decimals": "Cuántos decimales muestra cada importe — KPI, presupuestos, costes en listas e informes, alertas de presupuesto. 0 = números enteros.",
+          "parts_cost_mode": "Al comprarlos: cuenta el coste de un recordatorio de compra y los repuestos usados son solo informativos. Al usarlos: cada tarea completada registra los repuestos usados y una compra fija en su lugar el precio del repuesto. Se aplica a partir de ahora.",
           "battery_low_percent": "Umbral mínimo de toda la flota: una pila en este nivel o por debajo cuenta como baja, salvo que su umbral de Battery Notes sea más alto.",
           "battery_recovered_percent": "Una pila baja sigue contando como baja hasta que su nivel supere este valor o se registre una sustitución — así un nivel que oscila alrededor del umbral no completa la tarea de la flota una y otra vez.",
           "battery_auto_record_recovery": "Cuando una pila que estaba baja supera el umbral de recuperación, la fecha de sustitución se registra en Battery Notes y las pilas de repuesto se descuentan del stock — sin ningún toque",
@@ -1727,6 +1729,12 @@
       "options": {
         "finish": "Finalizar",
         "add": "Añadir condición"
+      }
+    },
+    "parts_cost_mode": {
+      "options": {
+        "purchase": "Al comprarlos",
+        "use": "Al usarlos"
       }
     }
   },

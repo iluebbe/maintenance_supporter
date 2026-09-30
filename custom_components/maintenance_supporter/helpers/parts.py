@@ -40,9 +40,11 @@ MAX_PART_NOTES = 500
 MAX_PART_UNIT = 16
 MAX_PART_URL = 500
 MAX_PART_COST = 100_000.0
-MAX_PART_STOCK = 9_999
+# Stock counts the part's unit — with a package size (#98 follow-up) that is
+# millilitres or grams, where 25 kg of salt is 25 000.
+MAX_PART_STOCK = 100_000
 MAX_CONSUMES_PER_TASK = 10
-MAX_CONSUME_QUANTITY = 999
+MAX_CONSUME_QUANTITY = 10_000
 
 # Marker on auto-created buy tasks: {"part_id": "..."} — the reconciler
 # exclusively owns tasks carrying it. Detached (popped) from a COMPLETED buy
@@ -199,6 +201,43 @@ def round_qty(v: float) -> float | int:
     return int(r) if r.is_integer() else r
 
 
+def _clean_package_size(raw: Any) -> float | int | None:
+    """How many units one bought package holds (a 500 ml can), or None.
+
+    With a package size a part is BOUGHT in packages and USED in its unit:
+    stock, consumption and the reorder threshold count units (ml), while the
+    restock amount counts packages and the price is per package — the split
+    Discussion #98 asked for, so a 500 ml can at 4.99 prices a 30 ml job
+    without a per-millilitre price nobody can type.
+    """
+    size = _clean_stock(raw, "package_size")
+    if size is None or size == 0:
+        return None
+    return size
+
+
+def restock_units(part: Mapping[str, Any], packages: float | None = None) -> float:
+    """What a purchase adds to the stock, in the part's unit.
+
+    ``packages`` is what was actually bought (a completion's
+    ``restock_quantity``), else the part's own restock amount, else one.
+    Without a package size a "package" is one unit — the old behaviour.
+    """
+    count = float(packages) if packages and packages > 0 else float(part.get("restock_quantity") or 1)
+    size = part.get("package_size")
+    return round_qty(count * float(size)) if size else round_qty(count)
+
+
+def unit_price(part: Mapping[str, Any]) -> float | None:
+    """The price of ONE stock unit: the package price spread over its
+    contents, or the plain price without a package size."""
+    cost = part.get("cost")
+    if cost is None:
+        return None
+    size = part.get("package_size")
+    return float(cost) / float(size) if size else float(cost)
+
+
 def _clean_stock(raw: Any, field: str) -> float | int | None:
     """Stock-ish number or None. ``stock: None`` = inventory not tracked.
 
@@ -241,6 +280,8 @@ def normalize_part(raw: Mapping[str, Any]) -> dict[str, Any]:
         "cost": _clean_cost(raw.get("cost")),
         "reorder_threshold": _clean_stock(raw.get("reorder_threshold"), "reorder_threshold"),
         "restock_quantity": _clean_stock(raw.get("restock_quantity"), "restock_quantity"),
+        # #98 follow-up: bought in packages, used and stocked in the unit.
+        "package_size": _clean_package_size(raw.get("package_size")),
         "auto_buy_task": bool(raw.get("auto_buy_task")),
         # Receipt/datasheet via the refcounted DocumentStore (not inline files).
         "doc_id": _clean_str(raw.get("doc_id"), "doc_id", 64) or None,
@@ -470,7 +511,11 @@ def buy_task_notes(part: Mapping[str, Any], stock: float | None, decimals: int =
     lines: list[str] = []
     qty = part.get("restock_quantity") or 1
     unit = f" {part['unit']}" if part.get("unit") else ""
-    lines.append(f"{qty}×{unit} {part['name']}".replace("× ", "× ").strip())
+    if part.get("package_size"):
+        # Bought in packages: "2 × Glass cleaner (500 ml)".
+        lines.append(f"{qty} × {part['name']} ({part['package_size']}{unit})")
+    else:
+        lines.append(f"{qty}×{unit} {part['name']}".replace("× ", "× ").strip())
     idents = " · ".join(
         p
         for p in (
@@ -485,7 +530,7 @@ def buy_task_notes(part: Mapping[str, Any], stock: float | None, decimals: int =
     if part.get("cost") is not None:
         lines.append(f"≈ {part['cost']:.{decimals}f} × {qty}")
     if stock is not None:
-        lines.append(f"◎ {stock}")
+        lines.append(f"◎ {stock}{unit}")
     if part.get("storage_location"):
         lines.append(f"→ {part['storage_location']}")
     return "\n".join(lines)

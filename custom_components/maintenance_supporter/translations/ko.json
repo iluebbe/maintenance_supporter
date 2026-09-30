@@ -581,6 +581,7 @@
           "notify_service": "알림 서비스",
           "panel_enabled": "사이드바 패널 표시",
           "currency_decimals": "금액 소수 자릿수",
+          "parts_cost_mode": "예비 부품을 지출로 계산하는 시점",
           "battery_low_percent": "배터리 „부족“ 임계값 (%)",
           "battery_recovered_percent": "이 값 초과 시 배터리 교체됨으로 간주 (%)",
           "battery_auto_record_recovery": "부족했던 배터리가 회복되면 교체를 자동으로 기록",
@@ -599,6 +600,7 @@
           "notify_service": "사용할 알림 서비스입니다(예: notify.mobile_app_phone).",
           "panel_enabled": "사이드바에 Maintenance Supporter 패널을 표시합니다.",
           "currency_decimals": "모든 금액에 표시할 소수 자릿수 — KPI, 예산, 목록과 보고서의 비용, 예산 알림. 0 = 정수.",
+          "parts_cost_mode": "구매할 때: 구매 알림의 비용을 계산하고, 사용한 부품은 참고로만 표시합니다. 사용할 때: 완료할 때마다 사용한 부품을 기록하고, 구매는 대신 부품 가격을 정합니다. 지금부터 적용됩니다.",
           "battery_low_percent": "전체 배터리의 하한선: 이 수준 이하의 배터리는 부족으로 계산됩니다(Battery Notes 임계값이 더 높은 경우 제외).",
           "battery_recovered_percent": "부족한 배터리는 잔량이 이 값을 초과하거나 교체가 기록될 때까지 부족으로 계속 집계됩니다. 임계값 근처에서 오르내리는 잔량이 배터리 일괄 작업을 반복 완료하지 못하게 합니다.",
           "battery_auto_record_recovery": "부족했던 배터리의 잔량이 회복 임계값을 초과하면 교체 날짜가 Battery Notes에 기록되고 예비 배터리가 재고에서 차감됩니다 — 탭할 필요가 없습니다",
@@ -1727,6 +1729,12 @@
       "options": {
         "finish": "완료",
         "add": "조건 추가"
+      }
+    },
+    "parts_cost_mode": {
+      "options": {
+        "purchase": "구매할 때",
+        "use": "사용할 때"
       }
     }
   },

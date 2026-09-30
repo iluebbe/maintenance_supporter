@@ -625,13 +625,13 @@ describe("audit 2026-09-26 tranche 2", () => {
       clickComplete(el);
       await tick();
       expect(complete(sent)).to.equal(undefined);
-      expect(el.shadowRoot!.querySelector(".error")!.textContent).to.contain("999");
+      expect(el.shadowRoot!.querySelector(".error")!.textContent).to.match(/10[,.\u00a0\u202f]?000/);
     });
 
     it("a fractional restock quantity is sent, not dropped", async () => {
       const { el, sent } = await mountDialog({ restockDefault: 1 });
       const inputs = [...el.shadowRoot!.querySelectorAll<HTMLInputElement>(".field-input")];
-      const restock = inputs.find((i) => i.getAttribute("max") === "9999")!;
+      const restock = inputs.find((i) => i.getAttribute("max") === "100000")!;
       restock.value = "0.5";
       restock.dispatchEvent(new Event("input"));
       clickComplete(el);

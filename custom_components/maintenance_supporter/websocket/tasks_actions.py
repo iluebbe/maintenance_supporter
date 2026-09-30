@@ -21,6 +21,7 @@ from ..const import (
     MAX_TIMESTAMP_LENGTH,
 )
 from ..helpers.completion_photos import MAX_COMPLETION_PHOTOS, normalize_photo_doc_ids
+from ..helpers.parts import MAX_PART_STOCK
 from ..helpers.ws_errors import send_exception_error, send_translated_error
 from ..models.maintenance_task import MaintenanceTask
 from . import (
@@ -106,7 +107,7 @@ def _refuse_too_early(connection: websocket_api.ActiveConnection, msg: dict[str,
         vol.Optional("reading_values"): READING_VALUES_FIELD,
         # Spare parts: on an auto-created "buy" task, how many units were
         # actually bought (dialog override of the part's restock_quantity).
-        vol.Optional("restock_quantity"): vol.Any(vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=0.01, max=9999)), None),
+        vol.Optional("restock_quantity"): vol.Any(vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=0.01, max=MAX_PART_STOCK)), None),
         # #99: the parts actually used on THIS completion. An explicit list
         # (even an empty one) REPLACES the task's automatic consumes_parts
         # deduction; omitting the key keeps the automatic behaviour.

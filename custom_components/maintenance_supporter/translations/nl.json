@@ -581,6 +581,7 @@
           "notify_service": "Meldingsservice",
           "panel_enabled": "Zijbalkpaneel tonen",
           "currency_decimals": "Decimalen voor bedragen",
+          "parts_cost_mode": "Onderdelen tellen als uitgave",
           "battery_low_percent": "Drempel „batterij laag“ (%)",
           "battery_recovered_percent": "Batterij geldt als vervangen boven (%)",
           "battery_auto_record_recovery": "Vervanging automatisch vastleggen wanneer een lege batterij herstelt",
@@ -599,6 +600,7 @@
           "notify_service": "De te gebruiken meldingsservice (bijv. notify.mobile_app_phone).",
           "panel_enabled": "Een Onderhoud Supporter-paneel in de zijbalk tonen.",
           "currency_decimals": "Hoeveel decimalen elk bedrag toont — KPI's, budgetten, kosten in lijsten en rapporten, budgetmeldingen. 0 = hele getallen.",
+          "parts_cost_mode": "Bij aankoop: de kosten van een aankoopherinnering tellen, gebruikte onderdelen worden ter informatie getoond. Bij gebruik: elke afronding boekt de gebruikte onderdelen en een aankoop zet in plaats daarvan de prijs van het onderdeel. Geldt vanaf nu.",
           "battery_low_percent": "Vlootbrede ondergrens: een batterij op of onder dit niveau geldt als laag, tenzij de Battery Notes-drempel hoger is.",
           "battery_recovered_percent": "Een lege batterij blijft als laag geteld tot het niveau boven deze waarde stijgt of een vervanging wordt vastgelegd — zo kan een niveau dat rond de drempel schommelt de vloottaak niet steeds opnieuw afronden.",
           "battery_auto_record_recovery": "Wanneer een batterij die laag was boven de hersteldrempel stijgt, wordt de vervangdatum in Battery Notes vastgelegd en worden de reservecellen van de voorraad afgeboekt — zonder tik",
@@ -1727,6 +1729,12 @@
       "options": {
         "finish": "Voltooien",
         "add": "Voorwaarde toevoegen"
+      }
+    },
+    "parts_cost_mode": {
+      "options": {
+        "purchase": "Bij aankoop",
+        "use": "Bij gebruik"
       }
     }
   },

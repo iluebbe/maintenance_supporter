@@ -581,6 +581,7 @@
           "notify_service": "Serviço de notificação",
           "panel_enabled": "Mostrar painel na barra lateral",
           "currency_decimals": "Casas decimais dos valores",
+          "parts_cost_mode": "As peças contam como despesa",
           "battery_low_percent": "Limite „pilha fraca“ (%)",
           "battery_recovered_percent": "Pilha considerada trocada acima de (%)",
           "battery_auto_record_recovery": "Registrar automaticamente uma troca quando uma pilha fraca se recupera",
@@ -599,6 +600,7 @@
           "notify_service": "O serviço de notificação a usar (ex.: notify.mobile_app_phone).",
           "panel_enabled": "Mostra um painel do Maintenance Supporter na barra lateral.",
           "currency_decimals": "Quantas casas decimais cada valor mostra — KPIs, orçamentos, custos em listas e relatórios, alertas de orçamento. 0 = números inteiros.",
+          "parts_cost_mode": "Na compra: conta o custo de um lembrete de compra, e as peças usadas aparecem só como informação. No uso: cada conclusão registra as peças usadas, e uma compra define o preço da peça. Vale a partir de agora.",
           "battery_low_percent": "Limite mínimo de toda a frota: uma pilha neste nível ou abaixo conta como fraca, a menos que seu limite do Battery Notes seja maior.",
           "battery_recovered_percent": "Uma pilha fraca continua contando como fraca até o nível subir acima deste valor ou uma troca ser registrada — assim um nível oscilando em torno do limite não conclui a tarefa da frota repetidamente.",
           "battery_auto_record_recovery": "Quando uma pilha que estava fraca sobe acima do limite de recuperação, a data da troca é registrada no Battery Notes e as pilhas reserva são retiradas do estoque — sem nenhum toque",
@@ -1727,6 +1729,12 @@
       "options": {
         "finish": "Concluir",
         "add": "Adicionar condição"
+      }
+    },
+    "parts_cost_mode": {
+      "options": {
+        "purchase": "Na compra",
+        "use": "No uso"
       }
     }
   },

@@ -249,6 +249,10 @@ async def ws_update_history_entry(
             patched["used_parts"] = enriched
         else:
             patched.pop("used_parts", None)
+        # #104: the entry's parts value follows the corrected selection.
+        from ..helpers.parts_cost import refresh_parts_cost
+
+        refresh_parts_cost(patched)
 
     history[target_index] = patched
     store.set_history(task_id, history)

@@ -39,8 +39,29 @@ All notable changes to Maintenance Supporter are documented in this file.
   postponement, snooze, note or purchase — is taken back, unless the task changed in the meantime.
 - **"What is due" by room and time:** *"what is overdue?"*, *"what is due this week / today / this month?"* and *"what
   is due in the kitchen?"* (any area, by name or alias).
+- **Replacing an object asks for the new unit's device:** keep the current one (a controller that stays, or a new unit
+  not in Home Assistant yet), pick the new unit's device, or none. With a new device, sensor triggers (compound
+  conditions included), completion-action targets such as a counter reset, and catalog-adopted tasks move to the
+  matching entities of that device — matched by the integration's translation key, then the entity name, then the
+  entity id — and the toast names what could not be matched. Linking another device later in the object's settings
+  moves the wiring the same way. The API keeps the device when `object/replace` gets no `ha_device_id`.
+- **Spare parts bought in packages, used in their unit** (discussion #98): a part's *package size* (a 400 ml can)
+  makes the stock, what a task uses and the reorder threshold count millilitres while the restock amount and the price
+  count cans. Buying two cans adds 800 ml; a 30 ml job is worth 30/400 of a can. The buy dialog's quantity and the buy
+  reminder's notes name the package, voice purchases (*"I bought two cans"*) add packages, and a stock can hold up to 100,000 units, a task use
+  up to 10,000.
+- **When spare parts count as spending** (discussion #104): *Settings → General → Spare parts count as spending*.
+  *When bought* (default, as before) counts the buy reminder's cost and shows the value of the parts a completion used
+  as information. *When used* books that value on every completion — from any surface — and turns a purchase into
+  stock: its price becomes the part's price. Every history entry records the price of each part it used and how it was
+  booked, so switching never re-values the past and an entry booked by hand is never counted twice; the budget, task
+  and object costs, the area report and the service booklet follow. The completed event carries `parts_cost`.
 
 ### ⚠️ Changed
+
+- **The complete dialog no longer suggests the value of used parts as the cost** (2.53): a household that books its
+  purchases counted the same filter twice. The value is now a line under the cost field that says whether it counts;
+  a buy reminder still offers its price.
 
 - **Home Assistant 2026.7.0 or newer is required** (was 2025.7.0). The old minimum was declared but never tested —
   every test and type check ran on 2026.9. CI now runs the whole test suite and the type check on 2026.7.0 as well,
@@ -57,6 +78,13 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **A replaced object kept watching the retired machine:** *Replace object* copied the old unit's device link, so the
+  new unit's tasks read the old unit's sensors and pressed its reset button. See *Added*.
+- **Discovery could treat the retired object as the device's owner:** after a replacement that kept the device, the
+  archived predecessor and its successor both linked it, and which one integration discovery and problem sensors
+  reported depended on entry order. Archived objects no longer claim a device.
+- **Decimal reorder thresholds and absolute stock were refused over the API:** the WebSocket schemas accepted whole
+  numbers only, although decimal stock has been allowed since 2.52 (#98).
 - **Our voice sentences took Home Assistant's own commands:** custom sentences win over the built-in ones whenever both
   match, and ours paired common verbs with a free-text name — *"skip this song"*, *"Radio stummschalten"*, *"mets la
   télé en pause"*, *"silencia la radio"*, *"metti in pausa il timer"*, *"sla dit nummer over"* were answered with

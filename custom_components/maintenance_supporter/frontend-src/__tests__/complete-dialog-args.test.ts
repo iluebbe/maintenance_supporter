@@ -110,6 +110,23 @@ describe("buildCompleteDialogArgs", () => {
     expect(args.require_tag_scan).to.equal(false);
     expect(args.restock_default).to.equal(null);
     expect(args.via_tag_scan).to.equal(false);
+    expect(args.parts_cost_mode, "default: parts count when bought").to.equal("purchase");
+  });
+
+  it("buy task of a part bought in packages names the package (#98)", () => {
+    const objects = [{
+      entry_id: "e1", object: { name: "Garage" },
+      parts: [{ id: "spray", name: "Contact spray", unit: "ml", package_size: 400, restock_quantity: 2, cost: 12 }],
+    }] as never;
+    const args = build({ part_ref: { part_id: "spray" } }, { objects });
+    expect(args.restock_default, "packages").to.equal(2);
+    expect(args.restock_unit_cost, "per package").to.equal(12);
+    expect(args.restock_package).to.equal("400 ml");
+    expect(build({ part_ref: { part_id: "bag" } }).restock_package, "no package size").to.equal("");
+  });
+
+  it("forwards the household's parts cost mode (#104)", () => {
+    expect(build({}, { partsCostMode: "use" }).parts_cost_mode).to.equal("use");
   });
 });
 
@@ -119,8 +136,9 @@ describe("fillAndOpenCompleteDialog", () => {
     const dlg = {
       entryId: "", taskId: "", taskName: "", lang: "", checklist: [], adaptiveEnabled: false,
       requiredFields: [], taskType: "", readingUnit: "", parts: [], consumesParts: [],
-      phaseLabel: "", requireTagScan: false, restockDefault: null, restockUnitCost: null,
+      phaseLabel: "", requireTagScan: false, restockDefault: null, restockUnitCost: null, restockPackage: "",
       currencySymbol: "", consumesInfo: [], checklistPrefill: {}, viaTagScan: false,
+      partsCostMode: "purchase",
       open: (opts?: { viaTagScan?: boolean }) => { calls.push(opts); },
     } as unknown as CompleteDialogTarget;
     return { dlg, calls };
@@ -135,7 +153,9 @@ describe("fillAndOpenCompleteDialog", () => {
       consumes_parts: [{ part_id: "p", quantity: 1 }], phase_label: "1/2 · X",
       require_tag_scan: true, restock_default: 3, restock_unit_cost: 2, currency_symbol: "€",
       consumes_info: ["1× P"], checklist_prefill: { A: true }, via_tag_scan: true,
+      parts_cost_mode: "use",
     }, "de");
+    expect(dlg.partsCostMode).to.equal("use");
     expect(dlg.lang).to.equal("de");
     expect(dlg.requireTagScan).to.equal(true);
     expect(dlg.restockDefault).to.equal(3);
@@ -153,15 +173,18 @@ describe("fillAndOpenCompleteDialog", () => {
       entry_id: "e1", task_id: "t1", task_name: "Filter",
       require_tag_scan: true, restock_default: 3, restock_unit_cost: 2, currency_symbol: "€",
       consumes_info: ["1× P"], checklist_prefill: { A: true }, via_tag_scan: true,
+      parts_cost_mode: "use",
     }, "en");
     fillAndOpenCompleteDialog(dlg, { entry_id: "e2", task_id: "t2", task_name: "Plain" }, "en");
     expect(dlg.requireTagScan).to.equal(false);
     expect(dlg.restockDefault).to.equal(null);
     expect(dlg.restockUnitCost).to.equal(null);
+    expect(dlg.restockPackage).to.equal("");
     expect(dlg.currencySymbol, "reset to the default symbol").to.equal(DEFAULT_CURRENCY_SYMBOL);
     expect(dlg.consumesInfo).to.deep.equal([]);
     expect(dlg.checklistPrefill).to.deep.equal({});
     expect(dlg.viaTagScan).to.equal(false);
+    expect(dlg.partsCostMode).to.equal("purchase");
     expect(calls[1]).to.deep.equal({ viaTagScan: false });
   });
 });

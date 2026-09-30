@@ -397,7 +397,7 @@ describe("bug audit 2026-09-26 #2, tranche 4 (frontend)", () => {
         await save(el);
         await el.updateComplete;
         expect(sent.some((m) => m.type === "maintenance_supporter/task/update")).to.equal(false);
-        expect(el.shadowRoot!.querySelector(".error")!.textContent).to.contain("999");
+        expect(el.shadowRoot!.querySelector(".error")!.textContent).to.match(/10[,.\u00a0\u202f]?000/);
       });
 
       it("phase part: clearing 2 and typing 3 saves 3", async () => {

@@ -581,6 +581,7 @@
           "notify_service": "Varslingstjeneste",
           "panel_enabled": "Vis sidefeltpanel",
           "currency_decimals": "Desimaler for beløp",
+          "parts_cost_mode": "Reservedeler teller som utgift",
           "battery_low_percent": "Terskel „batteri lavt“ (%)",
           "battery_recovered_percent": "Batteri regnes som byttet over (%)",
           "battery_auto_record_recovery": "Registrer et bytte automatisk når et lavt batteri kommer seg",
@@ -599,6 +600,7 @@
           "notify_service": "Varslingstjenesten som skal brukes (f.eks. notify.mobile_app_phone).",
           "panel_enabled": "Vis et Maintenance Supporter-panel i sidefeltet.",
           "currency_decimals": "Hvor mange desimaler hvert beløp viser — nøkkeltall, budsjetter, kostnader i lister og rapporter, budsjettvarsler. 0 = hele tall.",
+          "parts_cost_mode": "Ved kjøp: kostnaden for en kjøpspåminnelse teller, brukte deler vises som informasjon. Ved bruk: hver fullføring bokfører delene som ble brukt, og et kjøp setter i stedet delens pris. Gjelder fra nå av.",
           "battery_low_percent": "Gulv for hele flåten: et batteri på eller under dette nivået telles som lavt, med mindre Battery Notes-terskelen er høyere.",
           "battery_recovered_percent": "Et lavt batteri telles som lavt til nivået stiger over denne verdien eller et bytte registreres — slik kan et nivå som svinger rundt terskelen ikke fullføre flåteoppgaven igjen og igjen.",
           "battery_auto_record_recovery": "Når et batteri som var lavt stiger over gjenopprettingsterskelen, registreres byttedatoen i Battery Notes og reservecellene trekkes fra lageret — uten et trykk",
@@ -1727,6 +1729,12 @@
       "options": {
         "finish": "Fullfør",
         "add": "Legg til betingelse"
+      }
+    },
+    "parts_cost_mode": {
+      "options": {
+        "purchase": "Ved kjøp",
+        "use": "Ved bruk"
       }
     }
   },

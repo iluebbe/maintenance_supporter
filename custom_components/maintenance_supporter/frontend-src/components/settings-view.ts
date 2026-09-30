@@ -134,6 +134,8 @@ interface SettingsResponse {
     currency_symbol: string;
     /** Decimal places for every displayed amount (0 = whole numbers). */
     currency_decimals?: number;
+    /** #104: spare parts count when bought ("purchase") or used ("use"). */
+    parts_cost_mode?: string;
   };
   // v2.10.0 archive automation (panel-managed). Optional for forward-compat
   // with a backend that predates the feature.
@@ -1060,6 +1062,15 @@ export class MaintenanceSettingsView extends LitElement {
           </select>
         </label>
         <div class="setting-hint">${t("settings_currency_decimals_hint", L)}</div>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_parts_cost_mode", L)}</span>
+          <select class="parts-cost-mode" .value=${live(b.parts_cost_mode === "use" ? "use" : "purchase")}
+            @change=${(e: Event) => this._updateSetting("parts_cost_mode", (e.target as HTMLSelectElement).value)}>
+            <option value="purchase" ?selected=${b.parts_cost_mode !== "use"}>${t("settings_parts_cost_purchase", L)}</option>
+            <option value="use" ?selected=${b.parts_cost_mode === "use"}>${t("settings_parts_cost_use", L)}</option>
+          </select>
+        </label>
+        <div class="setting-hint">${t("settings_parts_cost_mode_hint", L)}</div>
         <label class="setting-row">
           <span class="setting-label">${t("settings_panel_enabled", L)}</span>
           <input type="checkbox" .checked=${g.panel_enabled}

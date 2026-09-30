@@ -28,6 +28,7 @@ import { taskRef } from "../helpers/reference";
 import { newestFirst, renderHistoryEntry } from "../renderers/history";
 import { renderStatusBadge, statusColor } from "../renderers/status";
 import { fetchSettingsOnce } from "../helpers/settings-cache";
+import type { PartsCostMode } from "../helpers/parts-cost";
 import { canWrite, NO_DELEGATION, type WriteAccess } from "../helpers/permissions";
 import { confirmAction } from "../helpers/confirm";
 import { ToastTimer } from "../helpers/toast";
@@ -126,7 +127,11 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     this._access = settings.access;
     this._currencySymbol = currencySymbolOf(settings.budget ?? undefined);
     syncCurrencyDecimals(settings.budget ?? undefined);
+    this._partsCostMode = settings.partsCostMode;
   }
+
+  /** #104: when spare parts count (the complete dialog explains them). */
+  @state() private _partsCostMode: PartsCostMode = "purchase";
 
   public close(): void {
     this._loadSeq++; // a load still in flight belongs to the closed dialog
@@ -227,6 +232,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
           // feedback exactly like the panel (DRY audit 2026-09-26).
           features: this._features,
           currencySymbol: this._currencySymbol,
+          partsCostMode: this._partsCostMode,
         }),
       );
       if (ok) {

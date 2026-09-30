@@ -130,6 +130,8 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
                 {
                     **FULL_PART, "auto_buy_task": True, "gtin": "4006381333931", "notes": "blue ones",
                     "product_url": "https://example.org/filter",
+                    # #98 follow-up: bought in packs of ten.
+                    "package_size": 10,
                 }
             )
         },

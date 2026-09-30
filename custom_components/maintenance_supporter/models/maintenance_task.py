@@ -293,13 +293,12 @@ class MaintenanceTask:
 
     @property
     def total_cost(self) -> float:
-        """Sum of all costs in history."""
-        total = 0.0
-        for entry in self.history:
-            cost = finite_amount(entry.get("cost")) if isinstance(entry, dict) else None
-            if cost is not None:
-                total += cost
-        return total
+        """What this task's history counts as spending (#104: a completion
+        booked "when used" counts its parts, a purchase booked so counts
+        nothing — helpers.parts_cost.entry_spend decides for every total)."""
+        from ..helpers.parts_cost import entry_spend
+
+        return sum(entry_spend(entry, finite_amount) for entry in self.history if isinstance(entry, dict))
 
     @property
     def average_duration(self) -> float | None:

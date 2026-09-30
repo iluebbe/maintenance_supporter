@@ -134,6 +134,17 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
         cost = clean.get("cost")
         if isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost) or cost < 0:
             clean.pop("cost", None)
+        # #104 bookkeeping: the parts value is money too (same NaN hole), the
+        # two markers are exact values or nothing.
+        parts_cost = clean.get("parts_cost")
+        if "parts_cost" in clean and (
+            isinstance(parts_cost, bool) or not isinstance(parts_cost, (int, float)) or not math.isfinite(parts_cost) or parts_cost < 0
+        ):
+            clean.pop("parts_cost", None)
+        if "purchase" in clean and clean["purchase"] is not True:
+            clean.pop("purchase", None)
+        if "cost_basis" in clean and clean["cost_basis"] != "use":
+            clean.pop("cost_basis", None)
         # Readings (#83 / #161 phase 2): same NaN/Infinity hole — a poisoned
         # value would break every delta after it. Malformed slot snapshots
         # are dropped item-wise, the completion itself is kept.

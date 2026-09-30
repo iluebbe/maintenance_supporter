@@ -150,8 +150,16 @@ export interface HistoryEntry {
   reading_value?: number | null;
   /** #161 phase 2: per-slot snapshot of a task with reading slots. */
   reading_values?: ReadingValue[] | null;
-  /** #99/#130: the completion's part consumption (entry_id set for pooled). */
-  used_parts?: Array<{ part_id: string; name?: string; quantity: number; entry_id?: string }> | null;
+  /** #99/#130: the completion's part consumption (entry_id set for pooled);
+   *  #104: `unit_cost` is the part's price per unit when it was booked. */
+  used_parts?: Array<{ part_id: string; name?: string; quantity: number; entry_id?: string; unit_cost?: number }> | null;
+  /** #104: value of the parts this completion used (Σ quantity × unit_cost). */
+  parts_cost?: number | null;
+  /** #104: "use" = booked while spare parts counted when used — the parts
+   *  value counts, a purchase's own price does not. */
+  cost_basis?: "use" | null;
+  /** #104: this completion was a buy reminder (a purchase). */
+  purchase?: boolean;
   /** v2.37: completion recorded by the system itself (trigger recovered),
    *  not performed by a user in the UI. */
   auto?: boolean;
@@ -398,6 +406,9 @@ export interface MaintenancePart {
   cost?: number | null;
   reorder_threshold?: number | null;
   restock_quantity?: number | null;
+  /** #98 follow-up: units per bought package (500 for a 500 ml can) —
+   *  restock_quantity then counts packages and cost is per package. */
+  package_size?: number | null;
   auto_buy_task?: boolean;
   doc_id?: string | null;
   /** Tracked on-hand count; null = catalog-only (not tracked). */

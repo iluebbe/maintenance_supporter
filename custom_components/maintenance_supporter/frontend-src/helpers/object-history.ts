@@ -7,6 +7,7 @@
 
 import type { HistoryEntry, ReadingValue } from "../types";
 import { historyPhotoIds } from "./history-photos";
+import { entrySpend } from "./parts-cost";
 
 /** One merged lifecycle row: a task's history entry plus its task identity. */
 export interface ObjectHistoryEntry {
@@ -15,7 +16,14 @@ export interface ObjectHistoryEntry {
   taskId: string;
   taskName: string;
   type: string;
+  /** What the entry COUNTS as spending (#104: helpers/parts-cost entrySpend). */
   cost: number | null;
+  /** #104: value of the parts it used, and whether that value counts. */
+  partsCost: number | null;
+  partsCounted: boolean;
+  /** #104: a purchase booked while parts count when used — its price is
+   *  stock, shown but not counted. */
+  purchaseCost: number | null;
   duration: number | null;
   notes: string | null;
   completedBy: string | null;
@@ -94,7 +102,12 @@ export function mergeObjectHistory(
         taskId: task.id,
         taskName: task.name,
         type: h.type,
-        cost: typeof h.cost === "number" ? h.cost : null,
+        // #104: what the entry COUNTS (its parts when booked "when used", no
+        // purchase price then) — every total sums this field.
+        cost: entrySpend(h),
+        partsCost: typeof h.parts_cost === "number" ? h.parts_cost : null,
+        partsCounted: h.cost_basis === "use",
+        purchaseCost: h.cost_basis === "use" && h.purchase && typeof h.cost === "number" ? h.cost : null,
         duration: typeof h.duration === "number" ? h.duration : null,
         notes: h.notes ?? null,
         completedBy: h.completed_by ?? null,

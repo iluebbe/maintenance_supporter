@@ -43,8 +43,11 @@ _PART_FIELDS_SCHEMA: VolDictType = {
     vol.Optional("notes"): vol.Any(str, None),
     vol.Optional("unit"): vol.Any(str, None),
     vol.Optional("cost"): vol.Any(int, float, None),
-    vol.Optional("reorder_threshold"): vol.Any(int, None),
+    # Decimal thresholds (#98: "0.5 cans") — the schema said int and refused
+    # the 0.5 the panel sends, although normalize_part accepts it.
+    vol.Optional("reorder_threshold"): vol.Any(int, float, None),
     vol.Optional("restock_quantity"): vol.Any(int, float, None),
+    vol.Optional("package_size"): vol.Any(int, float, None),
     vol.Optional("auto_buy_task"): bool,
     vol.Optional("doc_id"): vol.Any(ID_FIELD, None),
     # Initial / edited stock travels WITH the definition for dialog simplicity,
@@ -236,7 +239,7 @@ async def ws_delete_part(
         # Either a relative delta (may be negative for corrections) or an
         # absolute count — exactly one.
         vol.Optional("delta"): vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=-MAX_PART_STOCK, max=MAX_PART_STOCK)),
-        vol.Optional("absolute"): vol.All(int, vol.Range(min=0, max=MAX_PART_STOCK)),
+        vol.Optional("absolute"): vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=0, max=MAX_PART_STOCK)),
     }
 )
 @require_write

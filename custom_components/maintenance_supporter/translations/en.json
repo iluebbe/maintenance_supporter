@@ -581,6 +581,7 @@
           "notify_service": "Notification service",
           "panel_enabled": "Show sidebar panel",
           "currency_decimals": "Decimal places for amounts",
+          "parts_cost_mode": "Spare parts count as spending",
           "battery_low_percent": "Battery low threshold (%)",
           "battery_recovered_percent": "Battery counts as replaced above (%)",
           "battery_auto_record_recovery": "Record a replacement automatically when a low battery recovers",
@@ -599,6 +600,7 @@
           "notify_service": "The notification service to use (e.g., notify.mobile_app_phone).",
           "panel_enabled": "Show a Maintenance Supporter panel in the sidebar.",
           "currency_decimals": "How many decimals every amount shows — KPIs, budgets, costs in lists and reports, budget alerts. 0 = whole numbers.",
+          "parts_cost_mode": "When bought: a buy reminder's cost counts, parts used on a job are shown as information. When used: every completion books the parts it used, and a purchase sets the part's price instead. Applies to completions from now on.",
           "battery_low_percent": "Fleet-wide floor: a battery at or below this level counts as low unless its Battery Notes threshold is higher.",
           "battery_recovered_percent": "A low battery stays counted as low until its level rises above this value or a replacement is recorded — so a level hovering around the low threshold cannot complete the fleet task again and again.",
           "battery_auto_record_recovery": "When a battery that was low rises above the recovery threshold, the replacement date is recorded in Battery Notes and the spare cells are taken from stock — no tap needed",
@@ -1727,6 +1729,12 @@
       "options": {
         "finish": "Finish",
         "add": "Add condition"
+      }
+    },
+    "parts_cost_mode": {
+      "options": {
+        "purchase": "When bought",
+        "use": "When used"
       }
     }
   },

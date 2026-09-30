@@ -1,8 +1,16 @@
-/** Dialog for creating/editing a maintenance object. */
+/** Dialog for creating, editing and replacing a maintenance object. */
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant, MaintenanceObject, MaintenanceObjectResponse } from "../types";
+
+/** What a device change did to the tasks' wiring (object/update + replace). */
+export interface DeviceSwap {
+  moved: number;
+  unmatched: string[];
+}
+
+type ReplaceDevice = "keep" | "other" | "none";
 import { t, langOf } from "../styles";
 
 import { runWs } from "../helpers/ws-run";
@@ -32,6 +40,11 @@ export class MaintenanceObjectDialog extends LitElement {
   @state() private _haDeviceId = "";
   @state() private _parentEntryId = "";
   @state() private _entryId: string | null = null; // null = create, string = update
+  // Replace (journey N1): the successor's device. The old unit's device is
+  // what the object links to now; a new unit usually is a new device.
+  @state() private _replacing = false;
+  @state() private _oldDeviceId = "";
+  @state() private _replaceDevice: ReplaceDevice = "keep";
 
   private get _lang(): string {
     return langOf(this.hass);
@@ -50,6 +63,22 @@ export class MaintenanceObjectDialog extends LitElement {
     this._notes = "";
     this._haDeviceId = "";
     this._parentEntryId = "";
+    this._replacing = false;
+    this._error = "";
+    this._open = true;
+  }
+
+  /** Replace a worn-out object: the old one is archived in place, a
+   *  successor carries its tasks and documents over. Asks for the name and
+   *  for the new unit's device — keeping the old link silently made the
+   *  successor watch the retired machine's sensors. */
+  public openReplace(entryId: string, obj: MaintenanceObject): void {
+    this._entryId = entryId;
+    this._replacing = true;
+    this._name = obj.name || "";
+    this._oldDeviceId = obj.ha_device_id || "";
+    this._haDeviceId = "";
+    this._replaceDevice = "keep";
     this._error = "";
     this._open = true;
   }
@@ -67,8 +96,102 @@ export class MaintenanceObjectDialog extends LitElement {
     this._notes = obj.notes || "";
     this._haDeviceId = obj.ha_device_id || "";
     this._parentEntryId = obj.parent_entry_id || "";
+    this._replacing = false;
     this._error = "";
     this._open = true;
+  }
+
+  private async _replace(): Promise<void> {
+    if (this._loading || !this._entryId) return;
+    const msg: Record<string, unknown> = {
+      type: "maintenance_supporter/object/replace",
+      entry_id: this._entryId,
+      name: this._name.trim() || null,
+    };
+    if (this._oldDeviceId) {
+      // "keep" sends nothing: the successor stays on the same device.
+      if (this._replaceDevice === "other") msg.ha_device_id = this._haDeviceId;
+      if (this._replaceDevice === "none") msg.ha_device_id = null;
+    } else if (this._haDeviceId) {
+      msg.ha_device_id = this._haDeviceId;
+    }
+    const res = await runWs<{ entry_id?: string; device_swap?: DeviceSwap }>(this, msg, {
+      busy: (b) => { this._loading = b; },
+      fallbackKey: "save_error",
+      onError: (m) => { this._error = m; },
+    });
+    if (res === undefined) return;
+    this._open = false;
+    this.dispatchEvent(new CustomEvent("object-replaced", {
+      detail: { entry_id: res?.entry_id, device_swap: res?.device_swap },
+    }));
+  }
+
+  private _deviceName(deviceId: string): string {
+    const devices = (this.hass as unknown as { devices?: Record<string, { name?: string | null; name_by_user?: string | null }> })?.devices;
+    const device = devices?.[deviceId];
+    return device?.name_by_user || device?.name || deviceId;
+  }
+
+  private _deviceSelector(label: string) {
+    return html`<ha-form
+      .hass=${this.hass}
+      .data=${{ device: this._haDeviceId || undefined }}
+      .schema=${[{ name: "device", selector: { device: {} } }]}
+      .computeLabel=${() => label}
+      @value-changed=${(e: CustomEvent) =>
+        (this._haDeviceId =
+          ((e.detail.value as { device?: string })?.device as string) || "")}
+    ></ha-form>`;
+  }
+
+  private _renderReplace() {
+    const L = this._lang;
+    const choice = (value: ReplaceDevice, label: string) => html`<label class="radio-row">
+      <input
+        type="radio"
+        name="replace-device"
+        .checked=${this._replaceDevice === value}
+        @change=${() => { this._replaceDevice = value; }}
+      />
+      <span>${label}</span>
+    </label>`;
+    const blocked = this._replaceDevice === "other" && !this._haDeviceId;
+    return html`
+      <ha-dialog open @closed=${this._close}>
+        <div class="dialog-title">${t("replace_object", L)}</div>
+        <div class="content">
+          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+          <div class="hint">${t("replace_object_prompt", L)}</div>
+          <ms-textfield
+            label="${t("replace_name_label", L)}"
+            .value=${this._name}
+            @input=${(e: Event) => (this._name = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>
+          ${this._oldDeviceId
+            ? html`<div class="radio-group" role="radiogroup" aria-label=${t("replace_device_heading", L)}>
+                <div class="textarea-label">${t("replace_device_heading", L)}</div>
+                ${choice("keep", t("replace_device_keep", L).replace("{device}", this._deviceName(this._oldDeviceId)))}
+                ${this._replaceDevice === "keep" ? html`<div class="hint">${t("replace_device_keep_hint", L)}</div>` : nothing}
+                ${choice("other", t("replace_device_other", L))}
+                ${this._replaceDevice === "other"
+                  ? html`${this._deviceSelector(t("replace_device_pick", L))}
+                      <div class="hint">${t("replace_device_other_hint", L)}</div>`
+                  : nothing}
+                ${choice("none", t("replace_device_none", L))}
+              </div>`
+            : this._deviceSelector(t("link_device_optional", L))}
+        </div>
+        <div class="dialog-actions">
+          <ha-button appearance="plain" @click=${this._close}>
+            ${t("cancel", L)}
+          </ha-button>
+          <ha-button @click=${this._replace} .disabled=${this._loading || blocked}>
+            ${this._loading ? t("saving", L) : t("replace_object", L)}
+          </ha-button>
+        </div>
+      </ha-dialog>
+    `;
   }
 
   private async _save(): Promise<void> {
@@ -89,7 +212,7 @@ export class MaintenanceObjectDialog extends LitElement {
       ha_device_id: this._haDeviceId || null,
       parent_entry_id: this._parentEntryId || null,
     };
-    const res = await runWs(
+    const res = await runWs<{ device_swap?: DeviceSwap }>(
       this,
       this._entryId
         ? { type: "maintenance_supporter/object/update", entry_id: this._entryId, ...fields }
@@ -98,7 +221,9 @@ export class MaintenanceObjectDialog extends LitElement {
     );
     if (res === undefined) return;
     this._open = false;
-    this.dispatchEvent(new CustomEvent("object-saved"));
+    // A changed device moved the tasks' sensor links along — the panel says
+    // how many, and which could not be placed.
+    this.dispatchEvent(new CustomEvent("object-saved", { detail: { device_swap: res?.device_swap } }));
   }
 
   private _parentChoices(): MaintenanceObjectResponse[] {
@@ -111,6 +236,7 @@ export class MaintenanceObjectDialog extends LitElement {
 
   render() {
     if (!this._open) return html``;
+    if (this._replacing) return this._renderReplace();
     const L = this._lang;
     const title = this._entryId ? t("edit_object", L) : t("new_object", L);
     return html`
@@ -274,6 +400,26 @@ export class MaintenanceObjectDialog extends LitElement {
     .error {
       color: var(--error-color, #f44336);
       font-size: 13px;
+    }
+    .hint {
+      font-size: 13px;
+      color: var(--secondary-text-color);
+      line-height: 1.4;
+    }
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .radio-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .radio-row input {
+      margin: 0;
     }
   `;
 }

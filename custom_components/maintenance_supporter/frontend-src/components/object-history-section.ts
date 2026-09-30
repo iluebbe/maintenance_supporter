@@ -404,6 +404,12 @@ export class MaintenanceObjectHistorySection extends LitElement {
                     <button class="task-link" @click=${() => this._openTask(e.taskId)}>${e.taskName}${e.phaseName ? ` · ${e.phaseName}` : ""}</button>
                     <span class="facts">
                       ${e.cost != null ? html`<span>${formatCost(e.cost, this.currencySymbol, L)}</span>` : nothing}
+                      ${e.partsCost != null
+                        ? html`<span class="parts-cost" title=${t(e.partsCounted ? "history_parts_counted_hint" : "history_parts_info_hint", L)}>${t(e.partsCounted ? "history_parts_counted" : "history_parts_info", L).replace("{amount}", formatCost(e.partsCost, this.currencySymbol, L))}</span>`
+                        : nothing}
+                      ${e.purchaseCost != null
+                        ? html`<span class="parts-cost">${t("history_purchase_stock", L).replace("{amount}", formatCost(e.purchaseCost, this.currencySymbol, L))}</span>`
+                        : nothing}
                       ${e.duration != null ? html`<span>${formatDuration(e.duration, L)}</span>` : nothing}
                     </span>
                     ${e.notes ? html`<span class="notes" title=${historyNoteText(e.notes, L)}>${historyNoteText(e.notes, L)}</span>` : nothing}

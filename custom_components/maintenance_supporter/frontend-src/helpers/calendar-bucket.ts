@@ -14,7 +14,8 @@
  * predict when a sensor will next fire.
  */
 
-import type { MaintenanceObjectResponse } from "../types";
+import type { HistoryEntry, MaintenanceObjectResponse } from "../types";
+import { entrySpend } from "./parts-cost";
 import { intervalSpanDays } from "./interval";
 import { statusRank } from "../status-constants";
 
@@ -106,9 +107,10 @@ function addDaysIso(iso: string, days: number): string {
  *  non-null `cost` values). Note this differs from the panel KPI, which divides
  *  total_cost by times_performed — completions without a recorded cost are
  *  counted differently. This mean is used only for the calendar tooltip. */
-function computeAvgCost(history: Array<{ cost?: number | null }> | undefined): number | null {
+function computeAvgCost(history: ReadonlyArray<HistoryEntry> | undefined): number | null {
   if (!history || history.length === 0) return null;
-  const costs = history.map((h) => h.cost).filter((c): c is number => typeof c === "number");
+  // What each entry counts (#104), not only the typed cost.
+  const costs = history.map((h) => entrySpend(h)).filter((c): c is number => c !== null);
   if (costs.length === 0) return null;
   return costs.reduce((a, b) => a + b, 0) / costs.length;
 }
@@ -404,12 +406,12 @@ export function buildPastBuckets(
           schedule_type: task.schedule_type,
           interval_days: task.interval_days ?? null,
           responsible_user_id: task.responsible_user_id ?? null,
-          avg_cost: typeof h.cost === "number" ? h.cost : null,
+          avg_cost: entrySpend(h),
           adaptive_enabled: !!task.adaptive_config?.enabled,
           prediction_confidence: null,
           history_timestamp: h.timestamp,
           history_type: evType,
-          history_cost: typeof h.cost === "number" ? h.cost : null,
+          history_cost: entrySpend(h),
           history_notes: typeof h.notes === "string" ? h.notes : null,
           history_duration: typeof h.duration === "number" ? h.duration : null,
         });

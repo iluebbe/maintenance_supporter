@@ -432,6 +432,7 @@ export class MaintenanceSupporterCard extends LitElement {
         lang: this._lang,
         features: this._settings.features,
         currencySymbol: currencySymbolOf(this._stats?.budget),
+        partsCostMode: this._settings.partsCostMode,
       }),
       this._lang,
     );

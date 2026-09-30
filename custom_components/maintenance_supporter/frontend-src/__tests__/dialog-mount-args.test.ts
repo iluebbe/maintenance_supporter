@@ -126,6 +126,7 @@ describe("dialog-mount argument forwarding", () => {
       checklist: ["A", "B"],
       checklist_prefill: { A: true },
       via_tag_scan: true,
+      parts_cost_mode: "use",
     });
     const dlg = ha.shadowRoot!.querySelector(COMPLETE_TAG) as MaintenanceCompleteDialog;
     expect(dlg.requireTagScan).to.equal(true);
@@ -135,6 +136,7 @@ describe("dialog-mount argument forwarding", () => {
     expect(dlg.consumesInfo).to.deep.equal(["1× HEPA (Shelf)"]);
     expect(dlg.checklistPrefill).to.deep.equal({ A: true });
     expect(dlg.viaTagScan).to.equal(true);
+    expect(dlg.partsCostMode).to.equal("use");
 
     // Singleton reset — the next task must not inherit any of it.
     (dlg as unknown as { _close: () => void })._close();
@@ -146,5 +148,6 @@ describe("dialog-mount argument forwarding", () => {
     expect(dlg.consumesInfo).to.deep.equal([]);
     expect(dlg.checklistPrefill).to.deep.equal({});
     expect(dlg.viaTagScan).to.equal(false);
+    expect(dlg.partsCostMode).to.equal("purchase");
   });
 });

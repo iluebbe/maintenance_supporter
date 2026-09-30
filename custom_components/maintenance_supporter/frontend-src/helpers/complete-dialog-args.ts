@@ -19,7 +19,8 @@ import { readingHistory, type ReadingHistoryEntry } from "./reading-slots";
 import type { MaintenanceCompleteDialog } from "../components/complete-dialog";
 import { describePartLink, partsForCompletion, type LinkedPart, type PartOwner } from "./shared-parts";
 import { effectivePhase, phaseLabel } from "./phases";
-import { currencySymbolOf } from "../styles";
+import { currencySymbolOf, formatQty } from "../styles";
+import type { PartsCostMode } from "./parts-cost";
 
 /** Wire-shaped (snake_case) argument bag — what `dialog-mount.openCompleteDialog`
  *  has always accepted, now complete. */
@@ -49,6 +50,9 @@ export interface CompleteDialogArgs {
   restock_default?: number | null;
   /** Buy task: the part's unit cost for the cost suggestion. */
   restock_unit_cost?: number | null;
+  /** Buy task of a part bought in packages (#98): one package ("400 ml"),
+   *  so the quantity field reads as packages, not millilitres. */
+  restock_package?: string;
   /** Currency symbol for the cost suggestion ("" = plain number). */
   currency_symbol?: string;
   /** "1× HEPA filter (Shelf B)" hint lines for consuming tasks. */
@@ -58,6 +62,8 @@ export interface CompleteDialogArgs {
   /** The dialog is the fallback of a QR/NFC scan (quick-complete refused):
    *  the completion carries `via_tag_scan` so the tag-scan gate is met. */
   via_tag_scan?: boolean;
+  /** #104: when spare parts count — the dialog explains the parts value. */
+  parts_cost_mode?: PartsCostMode;
 }
 
 export interface BuildCompleteDialogArgsOptions {
@@ -87,6 +93,8 @@ export interface BuildCompleteDialogArgsOptions {
   features?: Pick<AdvancedFeatures, "checklists" | "adaptive">;
   currencySymbol?: string;
   viaTagScan?: boolean;
+  /** #104: the household's parts_cost_mode (settings cache). */
+  partsCostMode?: PartsCostMode;
 }
 
 /** `value` when it is a quantity the dialog accepts (≥ 0.01, the server's
@@ -138,12 +146,14 @@ export function buildCompleteDialogArgs(o: BuildCompleteDialogArgsOptions): Comp
     restock_default: isBuy ? positiveOr(refPart?.restock_quantity, 1) : null,
     // #104 follow-up: restock qty × unit cost powers the cost suggestion.
     restock_unit_cost: isBuy ? (refPart?.cost ?? null) : null,
+    restock_package: isBuy && refPart?.package_size ? formatQty(refPart.package_size, refPart.unit, o.lang) : "",
     currency_symbol: currencySymbolOf({ currency_symbol: o.currencySymbol }),
     // #111: name the owning object; never drop a line that fails to resolve.
     consumes_info: links.map((link) => describePartLink(link, o.entryId, o.objects, o.lang)),
     // #73: ticks recorded during the cycle prefill the dialog's checklist.
     checklist_prefill: task?.checklist_progress || {},
     via_tag_scan: !!o.viaTagScan,
+    parts_cost_mode: o.partsCostMode ?? "purchase",
   };
 }
 
@@ -153,8 +163,8 @@ export type CompleteDialogTarget = Pick<
   MaintenanceCompleteDialog,
   | "entryId" | "taskId" | "taskName" | "lang" | "checklist" | "adaptiveEnabled"
   | "requiredFields" | "taskType" | "readingUnit" | "readings" | "readingHistory" | "parts" | "consumesParts"
-  | "phaseLabel" | "requireTagScan" | "restockDefault" | "restockUnitCost"
-  | "currencySymbol" | "consumesInfo" | "checklistPrefill" | "viaTagScan" | "open"
+  | "phaseLabel" | "requireTagScan" | "restockDefault" | "restockUnitCost" | "restockPackage"
+  | "currencySymbol" | "consumesInfo" | "checklistPrefill" | "viaTagScan" | "partsCostMode" | "open"
 >;
 
 /** Assign every field (always-assign — see module doc) and open the dialog. */
@@ -180,9 +190,11 @@ export function fillAndOpenCompleteDialog(
   dlg.requireTagScan = !!args.require_tag_scan;
   dlg.restockDefault = args.restock_default ?? null;
   dlg.restockUnitCost = args.restock_unit_cost ?? null;
+  dlg.restockPackage = args.restock_package ?? "";
   dlg.currencySymbol = currencySymbolOf(args);
   dlg.consumesInfo = args.consumes_info ?? [];
   dlg.checklistPrefill = args.checklist_prefill ?? {};
   dlg.viaTagScan = !!args.via_tag_scan;
+  dlg.partsCostMode = args.parts_cost_mode ?? "purchase";
   dlg.open({ viaTagScan: !!args.via_tag_scan });
 }

@@ -581,6 +581,7 @@
           "notify_service": "Aviseringstjänst",
           "panel_enabled": "Visa sidopanel",
           "currency_decimals": "Decimaler för belopp",
+          "parts_cost_mode": "Reservdelar räknas som utgift",
           "battery_low_percent": "Tröskel „batteri lågt“ (%)",
           "battery_recovered_percent": "Batteri räknas som bytt över (%)",
           "battery_auto_record_recovery": "Registrera ett byte automatiskt när ett lågt batteri återhämtar sig",
@@ -599,6 +600,7 @@
           "notify_service": "Aviseringstjänsten som ska användas (t.ex. notify.mobile_app_phone).",
           "panel_enabled": "Visa en Maintenance Supporter-panel i sidofältet.",
           "currency_decimals": "Hur många decimaler varje belopp visar — nyckeltal, budgetar, kostnader i listor och rapporter, budgetvarningar. 0 = hela tal.",
+          "parts_cost_mode": "Vid köp: kostnaden för en köppåminnelse räknas, använda delar visas som information. Vid användning: varje slutförande bokför de delar som användes, och ett köp sätter i stället delens pris. Gäller från och med nu.",
           "battery_low_percent": "Golv för hela flottan: ett batteri på eller under denna nivå räknas som lågt, om inte dess Battery Notes-tröskel är högre.",
           "battery_recovered_percent": "Ett lågt batteri räknas som lågt tills nivån stiger över detta värde eller ett byte registreras — så kan en nivå som pendlar kring tröskeln inte slutföra flottuppgiften om och om igen.",
           "battery_auto_record_recovery": "När ett batteri som var lågt stiger över återhämtningströskeln registreras bytesdatumet i Battery Notes och reservcellerna dras från lagret — utan ett tryck",
@@ -1727,6 +1729,12 @@
       "options": {
         "finish": "Slutför",
         "add": "Lägg till villkor"
+      }
+    },
+    "parts_cost_mode": {
+      "options": {
+        "purchase": "Vid köp",
+        "use": "Vid användning"
       }
     }
   },

@@ -198,6 +198,11 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext
   const { compact = false, showRef = true, showBadges = true, showEdit = true } = opts;
   const openEdit = ctx.openEdit;
   const editable = showEdit && !!openEdit && EDITABLE_HISTORY_TYPES.includes(entry.type);
+  // #104: the parts this completion used, and whether their value counts
+  // (booked "when used") or is information; a purchase booked so is stock.
+  const partsCost = typeof entry.parts_cost === "number" ? entry.parts_cost : null;
+  const partsCounted = entry.cost_basis === "use";
+  const stockPurchase = partsCounted && !!entry.purchase;
   return html`
     <div class="history-entry${compact ? " compact" : ""}">
       ${compact
@@ -223,9 +228,16 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext
         ${entry.notes ? html`<div>${historyNoteText(entry.notes, L)}</div>` : nothing}
         ${renderHistoryPhotos(ctx.hass, entry)}
         ${renderHistoryReadings(entry, ctx)}
-        ${entry.cost != null || entry.duration != null || entry.trigger_value != null
+        ${entry.cost != null || entry.duration != null || entry.trigger_value != null || partsCost != null
           ? html`<div class="history-details">
-              ${entry.cost != null ? html`<span>${t("cost", L)}: ${formatCost(entry.cost, ctx.currencySymbol, L)}</span>` : nothing}
+              ${entry.cost != null
+                ? stockPurchase
+                  ? html`<span>${t("history_purchase_stock", L).replace("{amount}", formatCost(entry.cost, ctx.currencySymbol, L))}</span>`
+                  : html`<span>${t("cost", L)}: ${formatCost(entry.cost, ctx.currencySymbol, L)}</span>`
+                : nothing}
+              ${partsCost != null
+                ? html`<span title=${t(partsCounted ? "history_parts_counted_hint" : "history_parts_info_hint", L)}>${t(partsCounted ? "history_parts_counted" : "history_parts_info", L).replace("{amount}", formatCost(partsCost, ctx.currencySymbol, L))}</span>`
+                : nothing}
               ${entry.duration != null ? html`<span>${t("duration", L)}: ${formatDuration(entry.duration, L)}</span>` : nothing}
               ${entry.trigger_value != null ? html`<span>${t("trigger_val", L)}: ${entry.trigger_value}</span>` : nothing}
             </div>`

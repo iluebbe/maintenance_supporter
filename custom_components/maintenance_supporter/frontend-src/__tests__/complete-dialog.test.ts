@@ -325,7 +325,7 @@ describe("complete-dialog", () => {
   });
 });
 
-describe("complete-dialog cost suggestion from parts (#104 follow-up)", () => {
+describe("complete-dialog parts cost (#104)", () => {
   async function mountWithParts(over: Partial<MaintenanceCompleteDialog> = {}) {
     const { hass } = createMockHass({});
     const el = await fixture<MaintenanceCompleteDialog>(html`
@@ -345,54 +345,85 @@ describe("complete-dialog cost suggestion from parts (#104 follow-up)", () => {
 
   const chip = (el: MaintenanceCompleteDialog) =>
     el.shadowRoot!.querySelector<HTMLButtonElement>(".cost-suggestion");
+  const note = (el: MaintenanceCompleteDialog) =>
+    el.shadowRoot!.querySelector<HTMLElement>(".cost-note");
 
-  it("sums selected consumed parts (qty x unit cost) and fills on click", async () => {
+  const USING = {
+    parts: [
+      { id: "p1", name: "Filter", cost: 12.5 },
+      { id: "p2", name: "O-Ring", cost: 2.25 },
+      { id: "p3", name: "Unpriced", cost: null },
+    ] as never,
+    consumesParts: [
+      { part_id: "p1", quantity: 1 },
+      { part_id: "p2", quantity: 2 },
+      { part_id: "p3", quantity: 1 },
+    ] as never,
+    currencySymbol: "€",
+  };
+
+  it("parts used: their value is a line, never a suggestion into the cost field", async () => {
+    // 2.53 offered the parts' value as a one-click cost. A household that
+    // already booked the purchase counted the same filter twice.
+    const el = await mountWithParts(USING);
+    expect(chip(el), "no cost suggestion on a job that uses parts").to.equal(null);
+    expect(note(el)!.textContent).to.include("17 €");
+    expect(note(el)!.textContent).to.include("when they were bought");
+  });
+
+  it("parts used, counted when used: the line says they are booked", async () => {
+    const el = await mountWithParts({ ...USING, partsCostMode: "use" });
+    expect(chip(el)).to.equal(null);
+    expect(note(el)!.textContent).to.include("17 €");
+    expect(note(el)!.textContent).to.include("booked automatically");
+  });
+
+  it("parts used: a package price is spread over its contents (#98)", async () => {
     const el = await mountWithParts({
-      parts: [
-        { id: "p1", name: "Filter", cost: 12.5 },
-        { id: "p2", name: "O-Ring", cost: 2.25 },
-        { id: "p3", name: "Unpriced", cost: null },
-      ] as never,
-      consumesParts: [
-        { part_id: "p1", quantity: 1 },
-        { part_id: "p2", quantity: 2 },
-        { part_id: "p3", quantity: 1 },
-      ] as never,
+      parts: [{ id: "p1", name: "Spray", cost: 12, package_size: 400, unit: "ml" }] as never,
+      consumesParts: [{ part_id: "p1", quantity: 100 }] as never,
       currencySymbol: "€",
     });
-    const c = chip(el)!;
-    expect(c, "suggestion chip rendered").to.exist;
-    expect(c.textContent).to.include("17 €");
-    expect(c.textContent).to.include("€");
-    c.click();
+    // 100 ml of a 400 ml can at 12 € = 3 €, not 100 × 12 €.
+    expect(note(el)!.textContent).to.include("3 €");
+  });
+
+  it("buy task: restock qty x price per package, follows the qty field, fills on click", async () => {
+    const el = await mountWithParts({ restockDefault: 2, restockUnitCost: 4.5 });
+    expect(chip(el)!.textContent).to.include("9");
+    setInput(el, 0, "4");
     await el.updateComplete;
-    const cost = [...el.shadowRoot!.querySelectorAll<HTMLInputElement>(".field-input")][1];
-    // Machine value for the <input type="number"> — never profile-formatted
-    // ("17,00" would be rejected by the input under a decimal_comma profile).
-    expect(cost.value).to.equal("17");
+    expect(chip(el)!.textContent).to.include("18");
+    chip(el)!.click();
+    await el.updateComplete;
+    // Buy task: restock qty, notes, cost.
+    const cost = [...el.shadowRoot!.querySelectorAll<HTMLInputElement>(".field-input")][2];
+    // Machine value for the <input type="number"> — never profile-formatted.
+    expect(cost.value).to.equal("18");
     expect(chip(el), "chip hides once cost is set").to.equal(null);
   });
 
-  it("buy task: restock qty x unit cost, follows the qty field", async () => {
-    const el = await mountWithParts({ restockDefault: 2, restockUnitCost: 4.5 });
-    expect(chip(el)!.textContent).to.include("9");
+  it("buy task, counted when used: the price becomes the part's price", async () => {
+    const el = await mountWithParts({ restockDefault: 2, restockUnitCost: 4.5, partsCostMode: "use" });
+    expect(chip(el)).to.exist;
+    expect(note(el)!.textContent).to.include("price");
+    const off = await mountWithParts({ restockDefault: 2, restockUnitCost: 4.5 });
+    expect(note(off), "no hint when purchases are the spending").to.equal(null);
   });
 
-  it("no chip when no involved part carries a price", async () => {
+  it("nothing when no involved part carries a price", async () => {
     const el = await mountWithParts({
       parts: [{ id: "p1", name: "Filter", cost: null }] as never,
       consumesParts: [{ part_id: "p1", quantity: 1 }] as never,
     });
     expect(chip(el)).to.equal(null);
+    expect(note(el)).to.equal(null);
   });
 
-  it("no chip once the user typed a cost themselves", async () => {
-    const el = await mountWithParts({
-      parts: [{ id: "p1", name: "Filter", cost: 5 }] as never,
-      consumesParts: [{ part_id: "p1", quantity: 1 }] as never,
-    });
+  it("buy task: no chip once the user typed a cost themselves", async () => {
+    const el = await mountWithParts({ restockDefault: 1, restockUnitCost: 5 });
     expect(chip(el)).to.exist;
-    setInput(el, 1, "3.10");
+    setInput(el, 2, "3.10");
     await el.updateComplete;
     expect(chip(el)).to.equal(null);
   });

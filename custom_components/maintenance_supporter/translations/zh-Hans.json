@@ -581,6 +581,7 @@
           "notify_service": "通知服务",
           "panel_enabled": "显示侧边栏面板",
           "currency_decimals": "金额小数位数",
+          "parts_cost_mode": "备件计入支出",
           "battery_low_percent": "电池“电量低”阈值（%）",
           "battery_recovered_percent": "电量高于此值视为已更换（%）",
           "battery_auto_record_recovery": "低电量电池恢复时自动记录更换",
@@ -599,6 +600,7 @@
           "notify_service": "要使用的通知服务（例如：notify.mobile_app_phone）。",
           "panel_enabled": "在侧边栏显示维护助手面板。",
           "currency_decimals": "每个金额显示几位小数——KPI、预算、列表和报告中的费用、预算提醒。0 = 整数。",
+          "parts_cost_mode": "购买时：计入购买提醒的费用，所用备件仅作参考。使用时：每次完成都会计入所用备件，购买则只更新备件价格。从现在起的完成记录生效。",
           "battery_low_percent": "全部电池的底线：电量等于或低于此值的电池计为低电量，除非其 Battery Notes 阈值更高。",
           "battery_recovered_percent": "电量低的电池会一直计为低电量，直到电量高于此值或记录了更换——这样在阈值附近波动的电量不会反复完成电池组任务。",
           "battery_auto_record_recovery": "当曾经电量低的电池升至恢复阈值以上时，更换日期会记录到 Battery Notes 中，备用电池会从库存中扣除——无需点击",
@@ -1727,6 +1729,12 @@
       "options": {
         "finish": "完成",
         "add": "添加条件"
+      }
+    },
+    "parts_cost_mode": {
+      "options": {
+        "purchase": "购买时",
+        "use": "使用时"
       }
     }
   },

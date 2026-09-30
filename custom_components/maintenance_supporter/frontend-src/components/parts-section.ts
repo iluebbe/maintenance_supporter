@@ -18,6 +18,7 @@ import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf, formatCost, formatNumber, formatQty } from "../styles";
 import { runWs } from "../helpers/ws-run";
 import type { HomeAssistant, MaintenancePart } from "../types";
+import { restockUnits, unitPrice } from "../helpers/parts-cost";
 // Per-part document links (v2.26) — the task-documents component in part mode.
 import "./task-documents";
 
@@ -34,6 +35,7 @@ interface PartForm {
   stock: string;
   reorder_threshold: string;
   restock_quantity: string;
+  package_size: string;
   auto_buy_task: boolean;
   notes: string;
 }
@@ -50,6 +52,7 @@ const EMPTY_FORM: PartForm = {
   stock: "",
   reorder_threshold: "",
   restock_quantity: "",
+  package_size: "",
   auto_buy_task: true,
   notes: "",
 };
@@ -111,6 +114,7 @@ export class MaintenancePartsSection extends LitElement {
       stock: part.stock != null ? String(part.stock) : "",
       reorder_threshold: part.reorder_threshold != null ? String(part.reorder_threshold) : "",
       restock_quantity: part.restock_quantity != null ? String(part.restock_quantity) : "",
+      package_size: part.package_size != null ? String(part.package_size) : "",
       auto_buy_task: !!part.auto_buy_task,
       notes: part.notes || "",
     };
@@ -131,6 +135,7 @@ export class MaintenancePartsSection extends LitElement {
       stock: num(f.stock),
       reorder_threshold: num(f.reorder_threshold),
       restock_quantity: num(f.restock_quantity),
+      package_size: num(f.package_size),
       auto_buy_task: f.auto_buy_task,
       notes: f.notes.trim() || null,
     };
@@ -255,7 +260,9 @@ export class MaintenancePartsSection extends LitElement {
                       @click=${() => {
                         this._restockFor = part.id;
                         this._restockInvalid = false;
-                        this._restockQty = String(part.restock_quantity || 1);
+                        // The stock counts units: one restock is its
+                        // packages × package size (#98 follow-up).
+                        this._restockQty = String(restockUnits(part));
                       }}
                       ><ha-icon icon="mdi:plus-minus-variant"></ha-icon
                     ></ha-icon-button>
@@ -316,7 +323,15 @@ export class MaintenancePartsSection extends LitElement {
           ${this._field(t("part_cost", L), "cost", { type: "number" })}
           ${this._field(t("part_stock", L), "stock", { type: "number" })}
           ${this._field(t("part_reorder_threshold", L), "reorder_threshold", { type: "number" })}
-          ${this._field(t("part_restock_quantity", L), "restock_quantity", { type: "number" })}
+          ${this._field(t("part_package_size", L), "package_size", { type: "number" })}
+          ${this._field(
+            f.package_size.trim() ? t("part_restock_packages", L) : t("part_restock_quantity", L),
+            "restock_quantity",
+            { type: "number" },
+          )}
+          ${f.package_size.trim()
+            ? html`<div class="form-hint">${t("part_package_hint", L)}</div>`
+            : nothing}
           <label class="form-field checkbox">
             <input
               type="checkbox"
@@ -358,7 +373,8 @@ export class MaintenancePartsSection extends LitElement {
   private _inventoryValue(): number | null {
     let sum = 0, any = false;
     for (const p of this.parts) {
-      const cost = typeof p.cost === "number" ? p.cost : null;
+      // Per unit: a package price spread over its contents (#98 follow-up).
+      const cost = unitPrice(p);
       const stock = typeof p.stock === "number" ? p.stock : null;
       if (cost !== null && stock !== null) { sum += cost * stock; any = true; }
     }
@@ -489,6 +505,12 @@ export class MaintenancePartsSection extends LitElement {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 8px 12px;
+    }
+    .form-hint {
+      grid-column: 1 / -1;
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      line-height: 1.4;
     }
     .form-field {
       display: flex;

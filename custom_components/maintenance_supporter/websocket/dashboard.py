@@ -67,6 +67,7 @@ from ..const import (
     CONF_PANEL_ENABLED,
     CONF_PANEL_TITLE,
     CONF_PART_SEARCH_URL_TEMPLATE,
+    CONF_PARTS_COST_MODE,
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
@@ -324,6 +325,8 @@ def _build_full_settings(
             "yearly": _opt(options, CONF_BUDGET_YEARLY),
             "alerts_enabled": _opt(options, CONF_BUDGET_ALERTS_ENABLED),
             "alert_threshold_pct": _opt(options, CONF_BUDGET_ALERT_THRESHOLD),
+            # #104: purchase | use — when spare parts count as spending.
+            "parts_cost_mode": _opt(options, CONF_PARTS_COST_MODE),
             **_currency_block(options),
         },
         # Vacation mode (v1.2.0). Mirror the active flag so the panel can
@@ -781,7 +784,10 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
     # v1.4.0 (#44): enum-validate notification_title_style. Anything outside
     # the known set is dropped silently so a bogus value can't get into the
     # ConfigEntry options.
-    from ..const import HOME_TYPES, NOTIFICATION_TITLE_STYLES, NOTIFY_COMPLETED_MODES
+    from ..const import HOME_TYPES, NOTIFICATION_TITLE_STYLES, NOTIFY_COMPLETED_MODES, PARTS_COST_MODES
+
+    if CONF_PARTS_COST_MODE in filtered and filtered[CONF_PARTS_COST_MODE] not in PARTS_COST_MODES:
+        del filtered[CONF_PARTS_COST_MODE]
 
     if CONF_HOME_TYPE in filtered and filtered[CONF_HOME_TYPE] not in HOME_TYPES:
         del filtered[CONF_HOME_TYPE]

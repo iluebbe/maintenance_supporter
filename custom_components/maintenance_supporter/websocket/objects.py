@@ -461,6 +461,19 @@ async def ws_update_object(
     # 2.19: entity->device attachment only changes on entity re-add, so a
     # changed link/parent needs an entry reload (scheduled below).
     device_link_changed = False
+    swap_report = None
+    new_device = msg.get("ha_device_id")
+    if new_device and new_device != obj.get("ha_device_id"):
+        # A new device for this object (the appliance was replaced, or
+        # re-paired and came back under a new id): its sensor triggers,
+        # completion actions and adopted-task fingerprints follow it.
+        from ..helpers.device_swap import move_tasks_to_device, old_device_ids
+
+        tasks = dict(new_data.get(CONF_TASKS) or {})
+        moved_tasks, swap_report = move_tasks_to_device(
+            hass, tasks, old_device_ids(obj, tasks.values(), new_device), new_device
+        )
+        new_data[CONF_TASKS] = moved_tasks
     for key in ("ha_device_id", "parent_entry_id"):
         if key in msg and msg[key] != obj.get(key):
             obj[key] = msg[key]
@@ -475,7 +488,10 @@ async def ws_update_object(
     if device_link_changed:
         hass.config_entries.async_schedule_reload(entry.entry_id)
 
-    connection.send_result(msg["id"], {"success": True})
+    result: dict[str, Any] = {"success": True}
+    if swap_report is not None:
+        result["device_swap"] = swap_report.as_dict()
+    connection.send_result(msg["id"], result)
 
 
 @websocket_api.websocket_command(
@@ -902,6 +918,10 @@ async def ws_resume_object(
         vol.Required("type"): "maintenance_supporter/object/replace",
         vol.Required("entry_id"): ID_FIELD,
         vol.Optional("name"): vol.Any(vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)), None),
+        # The new unit's device: omitted = the same device as the old unit
+        # (a controller or smart plug that stays), an id = the new unit's own
+        # device (the wiring follows it), null = none yet.
+        vol.Optional("ha_device_id"): vol.Any(ID_FIELD, None),
     }
 )
 @require_write
@@ -933,6 +953,8 @@ async def ws_replace_object(
         return
 
     name = (msg.get("name") or "").strip() or str(src_obj.get(CONF_OBJECT_NAME, "")).strip() or "Object"
+    if not _validate_device_link(hass, connection, msg, self_entry_id=None):
+        return
 
     new_obj = deepcopy(dict(src_obj))
     new_obj["id"] = uuid4().hex
@@ -971,6 +993,20 @@ async def ws_replace_object(
         task = _remap_own_part_links(task, part_id_map, entry.entry_id)
         new_tasks[task_id] = task
         new_obj["task_ids"].append(task_id)
+
+    # The new unit is usually a new device in Home Assistant, not the old
+    # one: carried over verbatim, the successor kept watching the retired
+    # machine's sensors and pressing its reset button.
+    swap_report = None
+    if "ha_device_id" in msg:
+        new_device = msg["ha_device_id"]
+        if new_device and new_device != src_obj.get("ha_device_id"):
+            from ..helpers.device_swap import move_tasks_to_device, old_device_ids
+
+            new_tasks, swap_report = move_tasks_to_device(
+                hass, new_tasks, old_device_ids(src_obj, new_tasks.values(), new_device), new_device
+            )
+        new_obj["ha_device_id"] = new_device
 
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
@@ -1029,7 +1065,10 @@ async def ws_replace_object(
     hass.config_entries.async_update_entry(entry, data=retired)
     await hass.config_entries.async_reload(entry.entry_id)
 
-    connection.send_result(msg["id"], {"entry_id": new_entry_id})
+    reply: dict[str, Any] = {"entry_id": new_entry_id}
+    if swap_report is not None:
+        reply["device_swap"] = swap_report.as_dict()
+    connection.send_result(msg["id"], reply)
 
 
 @websocket_api.websocket_command(

@@ -106,7 +106,11 @@ Read `maintenance_supporter/objects` first to avoid collisions.
 ### `object/update` — `@require_write`
 `{entry_id (req), + any create field}`. Partial: only present keys change.
 Result: `{"success": true}`. Same field errors as create, incl.
-`invalid_device` / `self_link_device` for `ha_device_id`.
+`invalid_device` / `self_link_device` for `ha_device_id`. Changing
+`ha_device_id` to another device (2.96) moves the tasks' wiring to it — trigger
+entities, completion-action targets and `origin.device_id` go to the matching
+entities of the new device — and the result adds `device_swap: {moved,
+unmatched: [entity ids left as they were]}`; check the unmatched tasks.
 
 ### `object/delete` — `@require_write`
 `{entry_id}`. Result `{"success": true}`.
@@ -169,17 +173,25 @@ recurring tasks re-anchor to a fresh cycle from today. Errors: `archived` /
 `already_paused` / `not_paused` / `invalid_date`.
 
 ### `object/replace` — `@require_write` (v2.20)
-`{entry_id, name?}` → `{entry_id: "<successor>"}`. Retires the old object
-(archive cascade + `replaced_by_entry_id`) and creates a successor pre-filled
-from it: task configs with fresh ids/counters, documents carried over
-(refcounted), `installation_date` = today, serial/warranty cleared,
-`predecessor_entry_id` set. Error: `archived` (already retired).
+`{entry_id, name?, ha_device_id?}` → `{entry_id: "<successor>", device_swap?}`.
+Retires the old object (archive cascade + `replaced_by_entry_id`) and creates a
+successor pre-filled from it: task configs with fresh ids/counters, documents
+carried over (refcounted), `installation_date` = today, serial/warranty
+cleared, `predecessor_entry_id` set. `ha_device_id` (2.96): omitted = the
+successor keeps the old device (a controller that stays); a device id = the new
+unit's device, and the wiring moves as in `object/update` (`device_swap` in the
+result); `null` = no device. Ask the user — a new machine is usually a new
+device. Errors: `archived` (already retired), `invalid_device`.
 
 ### Spare parts (2.23) — `part/*` — `@require_write`
 `part/create` `{entry_id, name (req), vendor?, mpn?, gtin?  (EAN/UPC digits,
 GS1 check-digit validated), storage_location?, product_url?, unit?, cost?,
-stock? (int — omit for a catalog-only part), reorder_threshold?,
-restock_quantity?, auto_buy_task?, notes?}` → `{part_id}`.
+stock? (number ≤100000, two decimals — omit for a catalog-only part),
+reorder_threshold?, restock_quantity?, package_size?, auto_buy_task?, notes?}`
+→ `{part_id}`. `package_size` (2.96, #98) = units per bought package (a 400 ml
+can: `400`, unit `ml`): `stock`, `reorder_threshold` and task quantities count
+units, `restock_quantity` and `cost` count packages; unset = one package is one
+unit.
 `part/update` `{entry_id, part_id, name (req), ...same fields}` (`name` is
 required on every update; other omitted fields keep their stored values;
 `stock: null` untracks). `part/delete` `{entry_id, part_id}`
@@ -201,7 +213,15 @@ borrower and repoints the other links. Parts ride the `objects` payload
 (each with merged `stock`, `is_low`, `shopping_url`). While a part with
 `auto_buy_task` is at/below its threshold, a one-off "Buy {part}" task exists
 (marker `part_ref`); completing it restocks (`task/complete` accepts
-`restock_quantity`).
+`restock_quantity`, in packages).
+
+**Parts cost (2.96, #104).** Every completion entry records `used_parts[].
+unit_cost` (the price of one unit at that moment), `parts_cost` (their value),
+`purchase: true` on a buy task, and `cost_basis: "use"` when the setting
+`parts_cost_mode` was `use`. An entry's spending is its `cost`, except with
+`cost_basis: "use"`: then a purchase counts 0 and `parts_cost` is added — the
+budget, `total_cost` and `statistics` follow that rule. With `use`, a buy task's
+`cost` sets the part's `cost` (per package) instead.
 
 ### `templates` — read — **the shipped object catalog**
 `{language?}` (BCP-47-ish, ≤10 chars; defaults to the server language) →
@@ -629,6 +649,9 @@ values dropped. Keys relevant to setup:
   amount (default 0 = whole numbers); echoed as `budget.currency_decimals`, and
   as `currency_decimals` in `budget_status` and in `statistics.budget`
   (`{currency, currency_symbol, currency_decimals}`, new in 2.84)
+- `parts_cost_mode` (`purchase` | `use`; 2.96, #104) — when spare parts count
+  as spending (see *Parts cost*); echoed as `budget.parts_cost_mode`. Don't
+  switch it for the user — it changes how every later completion is booked.
 - `operator_write_enabled` (bool), `admin_panel_user_ids` (list[str]) — governance
 - `advanced_{adaptive,seasonal,environmental,budget,groups,checklists,schedule_time,completion_actions}_visible`
   (bool, all default false) — the *Advanced Features* switches: they show the

@@ -601,6 +601,11 @@ CONF_BUDGET_CURRENCY = "budget_currency"
 # Decimal places for every displayed amount — KPIs, budgets, costs in lists and
 # reports, budget alerts, buy-task notes. 0 = whole numbers (the default).
 CONF_CURRENCY_DECIMALS = "currency_decimals"
+# #104: when the value of spare parts counts as spending — when they are
+# bought (the buy reminder's cost; default, the behaviour so far) or when
+# they are used (every completion books the parts it consumed).
+CONF_PARTS_COST_MODE = "parts_cost_mode"
+PARTS_COST_MODES = ("purchase", "use")
 DEFAULT_CURRENCY_DECIMALS = 0
 
 BUDGET_CURRENCIES: dict[str, str] = {

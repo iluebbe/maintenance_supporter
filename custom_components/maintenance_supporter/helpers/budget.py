@@ -25,6 +25,7 @@ from homeassistant.util import dt as dt_util
 
 from ..const import CONF_TASKS, HistoryEntryType
 from .aggregate import get_object_entries, get_runtime_data
+from .parts_cost import entry_spend
 
 
 def is_countable_cost(value: Any) -> bool:
@@ -86,8 +87,10 @@ def compute_spend(hass: HomeAssistant) -> tuple[float, float]:
             for h_entry in history:
                 if h_entry.get("type") != HistoryEntryType.COMPLETED:
                     continue
-                cost = h_entry.get("cost")
-                if not is_countable_cost(cost):
+                # #104: the entry's booked spending — its cost, and with "when
+                # used" bookkeeping its parts (a purchase then counts nothing).
+                spend = entry_spend(h_entry)
+                if not spend:
                     continue
                 try:
                     entry_dt = datetime.fromisoformat(h_entry.get("timestamp", ""))
@@ -97,8 +100,8 @@ def compute_spend(hass: HomeAssistant) -> tuple[float, float]:
                     entry_dt = entry_dt.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
                 entry_dt = dt_util.as_local(entry_dt)
                 if entry_dt.year == now.year:
-                    yearly += float(cost)
+                    yearly += spend
                     if entry_dt.month == now.month:
-                        monthly += float(cost)
+                        monthly += spend
 
     return monthly, yearly

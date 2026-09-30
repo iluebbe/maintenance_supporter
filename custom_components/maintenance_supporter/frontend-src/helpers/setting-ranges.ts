@@ -62,9 +62,9 @@ export const EWA_ALPHA_RANGE: readonly [number, number] = [0.1, 0.9];
 export const WARNING_DAYS_RANGE: readonly [number, number] = [0, 365];
 /** A consumed / used part quantity — helpers/parts.MAX_CONSUME_QUANTITY and
  *  the completion's used_parts schema. */
-export const PART_QTY_RANGE: readonly [number, number] = [0.01, 999];
+export const PART_QTY_RANGE: readonly [number, number] = [0.01, 10000];
 /** A buy task's restock quantity — helpers/parts.MAX_PART_STOCK and the
  *  completion's restock_quantity schema. */
-export const RESTOCK_QTY_RANGE: readonly [number, number] = [0.01, 9999];
+export const RESTOCK_QTY_RANGE: readonly [number, number] = [0.01, 100000];
 /** A seasonal override factor — websocket/analysis.py seasonal_overrides. */
 export const SEASONAL_FACTOR_RANGE: readonly [number, number] = [0.1, 5.0];

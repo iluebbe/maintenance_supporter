@@ -61,6 +61,7 @@ const SEARCH_GROUP_CAP = { objects: 6, tasks: 10, parts: 6, documents: 8, histor
 const MDI_MAGNIFY = "M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z";
 import type {
   HomeAssistant,
+  MaintenanceObject,
   MaintenanceObjectResponse,
   MaintenanceTask,
   MaintenanceGroup,
@@ -81,7 +82,7 @@ import { UserService } from "./user-service";
 // esbuild code-split chunks loaded by _ensureLazyUi() right after mount
 // (roadmap perf wave 2, item 5). Only their types are imported — esbuild
 // tree-shakes type-only imports, so they cost the entry bundle nothing.
-import type { MaintenanceObjectDialog } from "./components/object-dialog";
+import type { DeviceSwap, MaintenanceObjectDialog } from "./components/object-dialog";
 import "./components/documents-section";
 import "./components/parts-section";
 import "./components/object-history-section";
@@ -123,6 +124,7 @@ import "./components/task-detail-view";
 import { computeWindow, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
 import { INITIAL_STICKY, nextStickyState, stickyStateOnSelect, stickyTop, type StickyState } from "./helpers/sticky-pane";
 import { invalidateSettingsCache, parseSettings, type SettingsWire } from "./helpers/settings-cache";
+import type { PartsCostMode } from "./helpers/parts-cost";
 import { canWrite } from "./helpers/permissions";
 import { renderStatusBadge } from "./renderers/status";
 import { TOAST_MS, ACTION_TOAST_MS } from "./helpers/toast";
@@ -144,6 +146,8 @@ interface PartsOverviewRow {
   name: string;
   unit?: string | null;
   cost?: number | null;
+  /** #98 follow-up: cost is then per package of this many units. */
+  package_size?: number | null;
   storage_location?: string | null;
   vendor?: string | null;
   reorder_threshold?: number | null;
@@ -270,6 +274,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _rowActionStyle = "buttons_compact";
   /** #170: reference numbers in front of names in the lists (global setting). */
   @state() private _refsInLists = false;
+  /** #104: when spare parts count — what the complete dialog says about them. */
+  @state() private _partsCostMode: PartsCostMode = "purchase";
   /** #145: one-time "rows look different now" notice for existing installs. */
   @state() private _rowActionNotice = false;
   @state() private _actionLoading = false;
@@ -795,6 +801,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._rowActionNotice = s.rowActionNoticePending;
       this._refsInLists = s.refsInLists;
       this._objectsTableColumns = sanitizeColumns(s.objectsTableColumns);
+      this._partsCostMode = s.partsCostMode;
     }
 
     // Fetch mini-sparkline data for overview (non-blocking)
@@ -2555,27 +2562,34 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   // v2.20 (N1): replace a worn-out object with a successor — the old one is
   // archived in place (history/costs stay browsable), the new one starts as a
-  // pre-filled fresh unit with tasks and documents carried over.
-  private async _replaceObject(entryId: string, currentName: string): Promise<void> {
-    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
-    const result = await dlg?.prompt({
-      title: t("replace_object", this._lang),
-      message: t("replace_object_prompt", this._lang),
-      confirmText: t("replace_object", this._lang),
-      inputLabel: t("replace_name_label", this._lang),
-      inputType: "text",
-      inputValue: currentName,
-    });
-    if (!result?.confirmed) return;
-    const res = await this._runAction<{ entry_id?: string }>(
-      {
-        type: "maintenance_supporter/object/replace",
-        entry_id: entryId,
-        name: result.value || currentName,
-      },
-      { successToast: t("object_replaced", this._lang) },
-    );
-    if (res?.entry_id) this._showObject(res.entry_id);
+  // pre-filled fresh unit with tasks and documents carried over. The object
+  // dialog asks for the name AND the new unit's device (2.96).
+  private _replaceObject(entryId: string, obj: MaintenanceObject): void {
+    void this._ui<MaintenanceObjectDialog>("maintenance-object-dialog").then((d) => d?.openReplace(entryId, obj));
+  }
+
+  private _onObjectReplaced = async (e: CustomEvent<{ entry_id?: string; device_swap?: DeviceSwap }>): Promise<void> => {
+    // " · ": the replaced line carries no full stop in every language.
+    this._showToast([t("object_replaced", this._lang), this._deviceSwapText(e.detail.device_swap)].filter(Boolean).join(" · "), "info");
+    try { await this._loadData(); } catch { /* subscription will sync */ }
+    if (e.detail.entry_id) this._showObject(e.detail.entry_id);
+  };
+
+  private _onObjectSaved = async (e: CustomEvent<{ device_swap?: DeviceSwap }>): Promise<void> => {
+    const swap = this._deviceSwapText(e.detail?.device_swap);
+    if (swap) this._showToast(swap, "info");
+    await this._onDialogEvent();
+  };
+
+  /** "3 sensor links moved to the new device. 1 could not be matched." */
+  private _deviceSwapText(swap: DeviceSwap | undefined): string {
+    if (!swap || (!swap.moved && !swap.unmatched.length)) return "";
+    const parts: string[] = [];
+    if (swap.moved) parts.push(this._countText("device_swap_moved", "device_swap_moved_one", "count", swap.moved));
+    if (swap.unmatched.length) {
+      parts.push(this._countText("device_swap_unmatched", "device_swap_unmatched_one", "count", swap.unmatched.length));
+    }
+    return parts.join(" ");
   }
 
   private async _skipTask(entryId: string, taskId: string, reason?: string): Promise<void> {
@@ -2934,6 +2948,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         adaptiveEnabled,
         currencySymbol: this._currencySymbol,
         viaTagScan: opts?.viaTagScan,
+        partsCostMode: this._partsCostMode,
       }),
       this._lang,
     );
@@ -3003,7 +3018,8 @@ export class MaintenanceSupporterPanel extends LitElement {
       <maintenance-object-dialog
         .hass=${this.hass}
         .objects=${this._objects}
-        @object-saved=${this._onDialogEvent}
+        @object-saved=${this._onObjectSaved}
+        @object-replaced=${this._onObjectReplaced}
       ></maintenance-object-dialog>
       <maintenance-task-dialog
         .hass=${this.hass}
@@ -3991,7 +4007,11 @@ export class MaintenanceSupporterPanel extends LitElement {
                     <td>${row.object_name || "—"}</td>
                     <td>${row.stock !== null ? formatQty(row.stock, row.unit, L) : "—"}</td>
                     <td>${row.reorder_threshold ?? "—"}</td>
-                    <td>${row.cost != null ? formatCost(row.cost, currency, L) : "—"}</td>
+                    <td>${row.cost != null
+                      ? row.package_size
+                        ? `${formatCost(row.cost, currency, L)} / ${formatQty(row.package_size, row.unit ?? undefined, L)}`
+                        : formatCost(row.cost, currency, L)
+                      : "—"}</td>
                     <td>${row.storage_location || "—"}</td>
                     <td>
                       ${row.consumers.length === 0
@@ -4509,7 +4529,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                     <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._duplicateObject(obj.entry_id); }}>${t("duplicate", L)}</div>
                     ${!o.archived ? html`
                       <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._togglePauseObject(obj.entry_id, !!o.paused); }}>${o.paused ? t("resume_object", L) : t("pause_object", L)}</div>
-                      <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._replaceObject(obj.entry_id, o.name); }}>${t("replace_object", L)}</div>
+                      <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._replaceObject(obj.entry_id, o); }}>${t("replace_object", L)}</div>
                     ` : nothing}
                     <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._toggleArchiveObject(obj.entry_id, !!o.archived); }}>${o.archived ? t("unarchive_object", L) : t("archive_object", L)}</div>
                     <div class="popup-menu-divider"></div>

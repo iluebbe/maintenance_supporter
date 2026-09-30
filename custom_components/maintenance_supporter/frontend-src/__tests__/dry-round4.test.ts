@@ -484,9 +484,9 @@ describe("DRY round 4 (frontend)", () => {
     });
 
     it("backend range literals live only in helpers/setting-ranges", async () => {
-      expect(await offenders(/\b(?:min|max)="(?:1440|-15|15|0\.1|0\.9|0\.01|999|9999|5\.0|365)"/)).to.deep.equal([]);
+      expect(await offenders(/\b(?:min|max)="(?:1440|-15|15|0\.1|0\.9|0\.01|999|9999|10000|100000|5\.0|365)"/)).to.deep.equal([]);
       expect(await offenders(/Math\.max\(-15|alpha >= 0\.1|num < 0\.1/)).to.deep.equal([]);
-      expect(PART_QTY_RANGE[1]).to.equal(999);
+      expect(PART_QTY_RANGE[1]).to.equal(10000);
       expect(SCHEDULE_OFFSET_MAX_DAYS).to.equal(15);
     });
 

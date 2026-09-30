@@ -581,6 +581,7 @@
           "notify_service": "Služba oznámení",
           "panel_enabled": "Zobrazit boční panel",
           "currency_decimals": "Desetinná místa částek",
+          "parts_cost_mode": "Díly se počítají jako výdaj",
           "battery_low_percent": "Práh „baterie slabá“ (%)",
           "battery_recovered_percent": "Baterie se považuje za vyměněnou nad (%)",
           "battery_auto_record_recovery": "Automaticky zaznamenat výměnu, když se slabá baterie zotaví",
@@ -599,6 +600,7 @@
           "notify_service": "Služba oznámení, kterou použít (např. notify.mobile_app_phone).",
           "panel_enabled": "Zobrazit panel Maintenance Supporter v bočním panelu.",
           "currency_decimals": "Kolik desetinných míst zobrazuje každá částka — KPI, rozpočty, náklady v seznamech a sestavách, rozpočtová upozornění. 0 = celá čísla.",
+          "parts_cost_mode": "Při nákupu: počítá se cena připomínky nákupu, spotřebované díly se zobrazují informativně. Při spotřebě: každé dokončení zaúčtuje spotřebované díly a nákup místo toho nastaví cenu dílu. Platí od teď.",
           "battery_low_percent": "Spodní hranice pro celou flotilu: baterie na této úrovni nebo pod ní se počítá jako slabá, pokud není její práh v Battery Notes vyšší.",
           "battery_recovered_percent": "Slabá baterie se počítá jako slabá, dokud její stav nevystoupí nad tuto hodnotu nebo není zaznamenána výměna — stav kolísající kolem prahu tak nedokončuje úlohu flotily stále dokola.",
           "battery_auto_record_recovery": "Když stav dříve slabé baterie vystoupí nad práh zotavení, datum výměny se zaznamená v Battery Notes a náhradní články se odečtou ze zásoby — bez klepnutí",
@@ -1727,6 +1729,12 @@
       "options": {
         "finish": "Dokončit",
         "add": "Přidat podmínku"
+      }
+    },
+    "parts_cost_mode": {
+      "options": {
+        "purchase": "Při nákupu",
+        "use": "Při spotřebě"
       }
     }
   },

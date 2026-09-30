@@ -9,6 +9,7 @@ import { runWs } from "../helpers/ws-run";
 import { isoMinuteLocal } from "../helpers/calendar-bucket";
 import { PART_QTY_RANGE, RESTOCK_QTY_RANGE } from "../helpers/setting-ranges";
 import { partLinkKey, type LinkedPart } from "../helpers/shared-parts";
+import { unitPrice, type PartsCostMode } from "../helpers/parts-cost";
 import { REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import { PhotoUploadController } from "../helpers/photo-upload-controller";
 import { parseDurationMinutes } from "../helpers/duration";
@@ -45,8 +46,12 @@ export class MaintenanceCompleteDialog extends LitElement {
   /** #104 follow-up: the buy task's part unit cost — powers the cost
    *  suggestion (restock qty × unit cost). */
   @property({ attribute: false }) public restockUnitCost: number | null = null;
+  /** #98: one package of the part ("400 ml") — the quantity counts packages. */
+  @property({ attribute: false }) public restockPackage = "";
   /** Currency symbol for the cost suggestion ("" = plain number). */
   @property() public currencySymbol = "";
+  /** #104: when spare parts count ("purchase" | "use"). */
+  @property({ attribute: false }) public partsCostMode: PartsCostMode = "purchase";
   /** #99: the parts offered on completion — enables the editable "parts used"
    *  section. Built by `partsForCompletion`: the object's own inventory plus
    *  every shared pool this task links to (#111), each tagged with its owner. */
@@ -309,45 +314,60 @@ export class MaintenanceCompleteDialog extends LitElement {
     return this.requiredFields.includes(field) ? html`<span class="req-mark" aria-hidden="true">*</span>` : nothing;
   }
 
-  /** #104 follow-up: suggested cost derived from the parts this completion
-   *  touches — the SELECTED "parts used" (qty × each part's unit cost) on a
-   *  consuming task, or restock qty × unit cost on a buy task. Null when no
-   *  involved part carries a price. Follows the live selection, so ticking
-   *  a part off updates the suggestion. */
-  private _partsCostSuggestion(): number | null {
-    if (this.restockDefault !== null) {
-      const qty = parseFloat(this._restockQty);
-      if (this.restockUnitCost == null || !Number.isFinite(qty) || qty <= 0) return null;
-      return Math.round(this.restockUnitCost * qty * 100) / 100;
-    }
-    if (!this.parts.length) return null;
+  /** A buy task's price: restock qty (packages) × the part's price per
+   *  package. Null without a price. */
+  private _purchaseSuggestion(): number | null {
+    if (this.restockDefault === null) return null;
+    const qty = parseFloat(this._restockQty);
+    if (this.restockUnitCost == null || !Number.isFinite(qty) || qty <= 0) return null;
+    return Math.round(this.restockUnitCost * qty * 100) / 100;
+  }
+
+  /** #104: the value of the SELECTED parts used (qty × each part's price per
+   *  unit — a package price spread over its contents, #98). Follows the live
+   *  selection. Null when no selected part carries a price. */
+  private _partsValue(): number | null {
+    if (this.restockDefault !== null || !this.parts.length) return null;
     let sum = 0;
     let priced = false;
     for (const link of Object.values(this._usedParts)) {
       const def = this.parts.find(
         (pt) => partLinkKey({ part_id: pt.id, entry_id: pt.entry_id }) === partLinkKey(link),
       );
-      if (def?.cost != null) {
-        sum += def.cost * (link.quantity || 1);
+      const price = unitPrice(def);
+      if (price !== null) {
+        sum += price * (link.quantity || 1);
         priced = true;
       }
     }
     return priced ? Math.round(sum * 100) / 100 : null;
   }
 
-  /** The one-click "use ≈ X from parts" chip under the cost field. Hidden
-   *  once the user typed a cost themselves — a suggestion, never an
-   *  overwrite. */
+  /** Under the cost field. A buy task gets the one-click price suggestion
+   *  (and, when parts count when used, the note that the price becomes the
+   *  part's price). A completion that USES parts gets their value as a line
+   *  — booked automatically when parts count when used, or named as counted
+   *  at purchase. Suggesting it into the cost field (2.53) double-counted a
+   *  household that books its purchases (Discussion #104). */
   private _renderCostSuggestion(L: string) {
-    if (this._cost.trim() !== "") return nothing;
-    const suggestion = this._partsCostSuggestion();
-    if (suggestion == null || suggestion <= 0) return nothing;
-    const amount = formatCost(suggestion, this.currencySymbol, L);
-    return html`<button
-      type="button"
-      class="cost-suggestion"
-      @click=${() => (this._cost = String(Math.round(suggestion * 100) / 100))}
-    >${t("cost_from_parts", L).replace("{amount}", amount)}</button>`;
+    const purchase = this._purchaseSuggestion();
+    if (this.restockDefault !== null) {
+      const hint = this.partsCostMode === "use"
+        ? html`<div class="cost-note">${t("cost_purchase_use_hint", L)}</div>`
+        : nothing;
+      if (this._cost.trim() !== "" || purchase == null || purchase <= 0) return hint;
+      const amount = formatCost(purchase, this.currencySymbol, L);
+      return html`<button
+          type="button"
+          class="cost-suggestion"
+          @click=${() => (this._cost = String(Math.round(purchase * 100) / 100))}
+        >${t("cost_from_parts", L).replace("{amount}", amount)}</button>${hint}`;
+    }
+    const value = this._partsValue();
+    if (value == null || value <= 0) return nothing;
+    const amount = formatCost(value, this.currencySymbol, L);
+    const key = this.partsCostMode === "use" ? "cost_parts_booked" : "cost_parts_info";
+    return html`<div class="cost-note">${t(key, L).replace("{amount}", amount)}</div>`;
   }
 
   private _close(): void {
@@ -452,7 +472,7 @@ export class MaintenanceCompleteDialog extends LitElement {
           ${this.restockDefault !== null
             ? html`
               <label class="field">
-                <span class="field-label">${t("restock_quantity_label", L)}</span>
+                <span class="field-label">${t("restock_quantity_label", L)}${this.restockPackage ? ` (× ${this.restockPackage})` : ""}</span>
                 <input type="number" step="0.01" min=${RESTOCK_QTY_RANGE[0]} max=${RESTOCK_QTY_RANGE[1]} class="field-input"
                   .value=${this._restockQty}
                   @input=${(e: Event) => (this._restockQty = (e.target as HTMLInputElement).value)} />
@@ -563,6 +583,12 @@ export class MaintenanceCompleteDialog extends LitElement {
       font-weight: 600;
     }
     /* #104: one-click cost suggestion from parts — quiet link-style chip. */
+    .cost-note {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
     .cost-suggestion {
       align-self: flex-start;
       margin-top: 4px;

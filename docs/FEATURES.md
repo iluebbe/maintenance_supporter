@@ -170,9 +170,10 @@ own viewfinder (2.84+, #161) because the app's file chooser ignores the
 camera hint — the main back camera, not the ultra-wide module (2.85+), and a **lens switch** in the viewfinder that cycles the phone's cameras and remembers your pick (2.86+; since 2.93 by the camera's name, and it waits a moment for phones that release a camera slowly — when a camera does not answer, the note offers copyable details for a bug report); if the camera cannot be opened (no permission, or Home Assistant
 reached over plain `http://` — browsers allow camera access only on secure
 origins) the native picker takes over. When the task
-consumes spare parts that carry unit prices, their sum appears as a
-**one-click cost suggestion** under the cost field — following your live
-parts selection, and vanishing the moment you type a cost yourself. A task
+uses spare parts that carry a price, their value shows under the cost field,
+following your live parts selection; whether it counts is one setting (2.96+,
+see *When spare parts count as spending* below). A buy reminder offers its
+price — packages × price per package — as a one-click cost. A task
 that **requires a tag scan** (2.67+) says so up front: the dialog carries
 the notice, and the server refuses the button — see *Proof of presence*
 below.
@@ -252,6 +253,30 @@ datasheet or receipt right at the shelf; part links survive export/import and
 
 Completing the auto-created *Buy…* reminder asks for the **quantity bought**
 (prefilled with the part's restock quantity) and restocks the shelf.
+
+**Bought in packages, used in their unit** (2.96+, discussion #98): give a part
+a *package size* — a 400 ml can of contact spray, a 25 kg bag of salt — and it
+is bought per package but used per unit. The stock, what a task uses and the
+reorder threshold count millilitres or kilograms; the restock amount and the
+price count packages. Buying two cans adds 800 ml, and a job that uses 30 ml
+is worth 30/400 of a can's price.
+
+**When spare parts count as spending** (2.96+, discussion #104): a filter
+bought for €30 and used in one change is €30 spent, not €60.
+*Settings → General → Spare parts count as spending* decides where it counts:
+
+- **When bought** (the default, the behaviour so far): the buy reminder's cost
+  counts. A completion records the value of the parts it used and shows it as
+  information (*Parts ≈ €15*), never in a total.
+- **When used:** every completion — panel, card, NFC tag, voice, automation —
+  books the parts it used at their price (*Parts: €15*), so you enter only what
+  came on top. A purchase is stock, not spending: its price becomes the part's
+  price, and the next change is valued at what you actually paid.
+
+Each history entry keeps how it was booked, so switching changes what comes
+after and never re-values the past — an entry you booked by hand under the old
+rule is never counted twice. Budget, task and object costs, the area report
+and the service booklet all follow the entries.
 
 **Shopping-list sync** (2.67+): pick one of your HA to-do lists (any `todo.*`
 entity — the built-in Shopping list, a Local To-do, Bring!, …) under Settings
@@ -798,11 +823,11 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 - **Meter readings** (2.20+): the *Reading* task type records a value on every completion — set a per-task unit (kWh, m³, …), enter the reading in the complete dialog, and the history timeline shows each value with its delta vs the previous reading. Also available on the `complete` service for automations (`reading_value`)
 - **Several named readings per task** (2.75+, #161): a *Reading* task can declare **reading slots** — one row per meter ("Water cold | m³", "Electricity | kWh", up to 20) in the task dialog or the options flow. The complete dialog then shows one field per slot with the previous value as a hint (and a warning when the new value is lower), the history timeline lists every slot with its delta against the last completion that recorded *that* slot (a meter skipped once doesn't break the chain), and the history entry's edit dialog can correct or fill in values afterwards. Names and units are snapshotted on each entry, so renaming a slot later never rewrites old history. The task sensor exposes the newest values as `last_readings` (`{name: value}` — keyed by the slot name, so renaming a slot changes the template key; `last_reading` for single-value tasks) and the `complete` service takes `reading_values` keyed by reading name. Once a task has slots, the single `reading_value` is refused on every path (`reading_slots_required`) so an entry never carries both shapes
 - **Seasonal pause** (2.20+): pause a whole object (pool, lawn mower, AC) for the off-season — tasks read *Paused*, schedules freeze, nothing notifies, the calendar and To-do list skip them, but the object and its history stay fully visible. Optionally set an auto-resume date; resuming (manually or automatically) restarts every recurring task with a fresh cycle instead of months of fake overdue
-- **Replace an object** (2.20+): when a machine dies, *Replace…* retires it in place (archived, history and costs stay browsable) and creates the new unit pre-filled — same tasks (fresh counters), documents carried over, installation date set to today, serial number and warranty cleared for the new machine's own data. The two object pages link each other — *Replaces: …* on the new unit, *Replaced by: …* on the retired one (2.96+)
+- **Replace an object** (2.20+): when a machine dies, *Replace…* retires it in place (archived, history and costs stay browsable) and creates the new unit pre-filled — same tasks (fresh counters), documents carried over, installation date set to today, serial number and warranty cleared for the new machine's own data. The two object pages link each other — *Replaces: …* on the new unit, *Replaced by: …* on the retired one (2.96+). The dialog asks for the new unit's **Home Assistant device** (2.96+): keep the current one (a controller that stays, or a new unit not yet in Home Assistant), pick the new unit's device — sensor triggers, completion actions such as a counter reset, and catalog-adopted tasks move to the matching entities of that device, and a note names any that could not be matched — or none. Linking a different device later in the object's settings moves the wiring the same way
 
 ![The new unit links the one it replaced](images/object-lineage.png)
 
-- **Spare parts & consumables inventory** (2.23+): a per-object parts list closes the "is the filter on the shelf?" loop. Each part carries identifiers (**manufacturer, MPN, GTIN/EAN** — validated against the worldwide GS1 GTIN family), a **storage location** ("basement shelf B, box 3"), a product URL, unit, unit price, and an optional **tracked stock** with a reorder threshold. Completing a task that *consumes* parts (linked in the task dialog, with a quantity per part) decrements the stock; crossing the threshold fires an edge-triggered event and — when the part opts in — **auto-creates a one-off "Buy {part}" task** whose notes carry everything needed to order (identifiers, quantity, price, storage spot) and whose link opens the product page or a **configurable shopping search** (Amazon by default, template with `{q}` placeholder). Completing the buy task **restocks** (quantity editable in the dialog, cost prefilled) and the reminder retires itself; restocking any other way clears the open reminder automatically. On the consumption side (2.53+), the complete dialog offers the **sum of the selected parts' unit prices as a one-click cost suggestion** — following the live selection, never overwriting a cost you typed yourself. Per-part **stock sensors** on the object device + a global *Parts to reorder* counter; the printable work sheet lists required parts with tick boxes; everything round-trips through JSON export/import. **Since 2.44 (#111) several objects can share one stock**: a task may consume a part owned by a different object, so identical appliances draw on one real pile rather than three bookkeeping copies — one threshold, one buy reminder, and an automatic hand-over of the pool if the owning object is ever deleted. The parts section header shows the **inventory value** (2.49+, discussion #104): Σ unit price × tracked stock across the parts that have both — purely informational, it never enters any budget total
+- **Spare parts & consumables inventory** (2.23+): a per-object parts list closes the "is the filter on the shelf?" loop. Each part carries identifiers (**manufacturer, MPN, GTIN/EAN** — validated against the worldwide GS1 GTIN family), a **storage location** ("basement shelf B, box 3"), a product URL, unit, unit price, and an optional **tracked stock** with a reorder threshold. Completing a task that *consumes* parts (linked in the task dialog, with a quantity per part) decrements the stock; crossing the threshold fires an edge-triggered event and — when the part opts in — **auto-creates a one-off "Buy {part}" task** whose notes carry everything needed to order (identifiers, quantity, price, storage spot) and whose link opens the product page or a **configurable shopping search** (Amazon by default, template with `{q}` placeholder). Completing the buy task **restocks** (quantity editable in the dialog, cost prefilled) and the reminder retires itself; restocking any other way clears the open reminder automatically. On the consumption side the complete dialog shows the **value of the selected parts**; whether it counts as spending when a part is bought or when it is used is one setting (2.96+, discussion #104). A part can be bought in **packages** and used in its unit — a 400 ml can, 30 ml per job (2.96+, discussion #98). Per-part **stock sensors** on the object device + a global *Parts to reorder* counter; the printable work sheet lists required parts with tick boxes; everything round-trips through JSON export/import. **Since 2.44 (#111) several objects can share one stock**: a task may consume a part owned by a different object, so identical appliances draw on one real pile rather than three bookkeeping copies — one threshold, one buy reminder, and an automatic hand-over of the pool if the owning object is ever deleted. The parts section header shows the **inventory value** (2.49+, discussion #104): Σ unit price × tracked stock across the parts that have both — purely informational, it never enters any budget total
 - **Priorities** (2.17+): Low / Normal / High per task, shown as a badge (▲/▼) on task rows
 - **Labels / tags** (2.17+): lightweight comma-separated tags per task (e.g. `safety`, `seasonal`), shown as chips and searchable in the global search
 - **Completion photos** (2.17+): attach photos when completing a task — camera capture or several from the gallery at once, up to ten per completion (2.75+) — stored via the documents engine, shown as a thumbnail strip in the history timeline, and editable afterwards from the history entry (add more, detach one)

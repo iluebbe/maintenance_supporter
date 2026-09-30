@@ -28,6 +28,7 @@ Accessible via **Settings > Devices & Services > Maintenance Supporter > Configu
 | `row_action_style` | str | `buttons_compact` | `buttons_compact` / `buttons` / `icons` | How task rows show *Complete* / *Skip* (2.69+): HA buttons that collapse to icon-only on phones, labelled buttons everywhere, or the classic icon pair. Existing installs see a one-time banner with a *Back to icons* button |
 | `ref_numbers_in_lists` (2.84+) | bool | `false` | — | Show the reference numbers (`#8`, `#8.3`, #170) in front of object and task names in every list (Today, task table, object cards, objects table). Settings → General → *Reference numbers in lists* |
 | `currency_decimals` (2.84+) | int | `0` | 0–3 | Decimal places for **every** displayed amount — KPIs, budget tiles and bars, costs in task lists, history, reports and the service booklet, budget alerts, buy-task notes. `0` shows whole numbers (`930 €`), `2` the classic `929.60 €`. Settings → General → *Decimal places for amounts* (also in the Configure dialog → General Settings) |
+| `parts_cost_mode` (2.96+, D#104) | enum | `purchase` | `purchase` / `use` | **When spare parts count as spending.** `purchase`: a buy reminder's cost counts; a completion records the value of the parts it used (`parts_cost`) as information only. `use`: every completion books the parts it used at their price (the entry carries `cost_basis: "use"`), and a buy reminder's cost becomes the part's price instead of spending. Every entry keeps how it was booked, so switching never re-values history. Settings → General → *Spare parts count as spending* (also in the Configure dialog → General Settings) |
 | `budget_currency` (1.4.9+ in General; 1.4.8+ added 7 currencies; NZD in 2.25/#96) | enum | `EUR` | EUR, USD, GBP, JPY, CHF, CAD, AUD, NZD, CNY, INR, BRL, CZK, PLN, RUB, SEK, NOK, DKK, UAH | Display currency for **all** monetary values — `Avg cost` KPI, activity badges, history rows, and the `unit_of_measurement` of the cost number-inputs in the config flow. The corresponding symbol (e.g. `€`, `$`, `Kč`, `zł`) propagates everywhere. Storage key is still `budget_currency` for backwards-compat |
 | `notifications_enabled` | bool | `false` | — | Master toggle for the notification system |
 | `notify_service` | string | `""` | — | Notification service to use (e.g., `notify.mobile_app_phone`). Auto-prepends `notify.` if omitted |
@@ -265,15 +266,16 @@ is dynamic state (Store). Parts round-trip through JSON export/import
 | `notes` | string | `""` | ≤500 | Free-form notes about the part (compatible models, "order two, one always fails") |
 | `product_url` | string | `""` | http(s), ≤500 | Direct link to buy the part — wins over the shopping search |
 | `unit` | string | `""` | ≤16 | Display unit for the stock ("pcs", "kg", "L") |
-| `cost` | number | *(none)* | 0–100000 | Unit price; completing a buy task prefills cost = quantity × price |
-| `stock` | int | *(none)* | 0–9999 | Tracked on-hand count. **Unset = catalog-only part** (identifiers/links only, no tracking, sensor unavailable) |
-| `reorder_threshold` | int | *(none)* | 0–9999 | Stock at/below this is *low*: fires the edge-triggered low/out events and (with auto-buy) creates the reminder |
-| `restock_quantity` | int | 1 | 1–9999 | How many completing the buy task adds back — editable in the complete dialog |
+| `cost` | number | *(none)* | 0–100000 | Price — per **package** when `package_size` is set, else per unit; completing a buy task offers cost = packages × price |
+| `package_size` (2.96+, D#98) | number | *(none)* | >0–100000 | Units in one bought package (a 400 ml can: `400` with unit `ml`). Stock, consumption and the threshold count units; the restock amount and the price count packages. Unset = one package is one unit |
+| `stock` | number | *(none)* | 0–100000 | Tracked on-hand amount in the part's unit, two decimals (half a can is `0.5`). **Unset = catalog-only part** (identifiers/links only, no tracking, sensor unavailable) |
+| `reorder_threshold` | number | *(none)* | 0–100000 | Stock at/below this is *low*: fires the edge-triggered low/out events and (with auto-buy) creates the reminder |
+| `restock_quantity` | number | 1 | ≤100000 | How many **packages** completing the buy task adds (× `package_size` units) — editable in the complete dialog |
 | `auto_buy_task` | bool | `false` | — | Auto-create a one-off **"Buy {part}"** task while the part is low; it clears itself once restocked above the threshold. A *completed* reminder keeps its cost history and blocks duplicates while the part stays low |
 | `doc_id` | string | *(none)* | — | Legacy single-document link, kept for imports and the API. The panel attaches files to a part with the paperclip on its row (documents linked to the part), any number of them |
 
 **Task link:** `task.consumes_parts = [{"part_id", "quantity", "entry_id"?}]`
-(≤10 parts per task, quantity >0 up to 999; edited via the task dialog's
+(≤10 parts per task, quantity >0 up to 10,000 in the part's unit; edited via the task dialog's
 *Consumes parts* checkboxes) — completing the task decrements each linked
 part's tracked stock.
 

@@ -581,6 +581,7 @@
           "notify_service": "Ilmoituspalvelu",
           "panel_enabled": "Näytä sivupalkin paneeli",
           "currency_decimals": "Summien desimaalit",
+          "parts_cost_mode": "Varaosat lasketaan kuluksi",
           "battery_low_percent": "Kynnys „paristo vähissä“ (%)",
           "battery_recovered_percent": "Paristo lasketaan vaihdetuksi yli (%)",
           "battery_auto_record_recovery": "Kirjaa vaihto automaattisesti, kun vähissä ollut paristo palautuu",
@@ -599,6 +600,7 @@
           "notify_service": "Käytettävä ilmoituspalvelu (esim. notify.mobile_app_phone).",
           "panel_enabled": "Näytä Maintenance Supporter -paneeli sivupalkissa.",
           "currency_decimals": "Montako desimaalia jokainen summa näyttää — tunnusluvut, budjetit, kustannukset listoissa ja raporteissa, budjettihälytykset. 0 = kokonaisluvut.",
+          "parts_cost_mode": "Ostettaessa: ostomuistutuksen kulu lasketaan, käytetyt osat näytetään tiedoksi. Käytettäessä: jokainen valmistuminen kirjaa käytetyt osat, ja osto asettaa sen sijaan osan hinnan. Koskee valmistumisia tästä eteenpäin.",
           "battery_low_percent": "Koko laivaston alaraja: tällä tasolla tai sen alla oleva paristo lasketaan vähissä olevaksi, ellei sen Battery Notes -kynnys ole korkeampi.",
           "battery_recovered_percent": "Vähissä oleva paristo lasketaan vähissä olevaksi, kunnes sen taso nousee tämän arvon yli tai vaihto kirjataan — näin kynnyksen ympärillä heilahteleva taso ei suorita laivastotehtävää yhä uudelleen.",
           "battery_auto_record_recovery": "Kun vähissä ollut paristo nousee palautumiskynnyksen yli, vaihtopäivä kirjataan Battery Notesiin ja varaparistot vähennetään varastosta — ilman napautusta",
@@ -1727,6 +1729,12 @@
       "options": {
         "finish": "Valmis",
         "add": "Lisää ehto"
+      }
+    },
+    "parts_cost_mode": {
+      "options": {
+        "purchase": "Ostettaessa",
+        "use": "Käytettäessä"
       }
     }
   },

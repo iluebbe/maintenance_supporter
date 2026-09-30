@@ -86,12 +86,18 @@ def _adopted_entity_ids(hass: HomeAssistant) -> set[str]:
 
 
 def _object_by_device(hass: HomeAssistant) -> dict[str, dict[str, str]]:
-    """{ha_device_id: {entry_id, name}} for objects already attached to a device."""
+    """{ha_device_id: {entry_id, name}} for objects already attached to a device.
+
+    Archived objects are skipped: a replaced object stays archived on the old
+    unit's device next to its successor, and adopting into — or reporting as
+    "already linked" — a retired object is never what discovery means (it
+    depended on the entries' order which of the two won).
+    """
     out: dict[str, dict[str, str]] = {}
     for entry in get_object_entries(hass):
         obj = entry.data.get(CONF_OBJECT, {})
         dev = obj.get("ha_device_id")
-        if dev:
+        if dev and obj.get("archived_at") is None:
             out[dev] = {"entry_id": entry.entry_id, "name": object_name(entry)}
     return out
 
