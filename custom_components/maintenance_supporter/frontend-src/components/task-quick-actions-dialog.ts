@@ -17,6 +17,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { sharedStyles, t, formatDate, formatInterval, formatRecurrence, formatCost, formatDuration, currencySymbolOf, langOf, syncCurrencyDecimals} from "../styles";
 import { runWs } from "../helpers/ws-run";
+import { snoozedMessage, type SnoozeResult } from "../helpers/snooze";
 import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
 import { isoDateLocal } from "../helpers/calendar-bucket";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args";
@@ -289,13 +290,20 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
 
   private async _onSnooze(): Promise<void> {
     if (!this._entryId || !this._taskId) return;
-    const ok = await this._runWs({
+    const ok = await this._runWs<SnoozeResult>({
       type: "maintenance_supporter/task/snooze",
       entry_id: this._entryId,
       task_id: this._taskId,
     });
     if (ok !== undefined) {
       this._notifyChanged("snooze");
+      // #193: the dialog closes, so Home Assistant's own toast says for how
+      // long (a card has no toast of its own).
+      this.dispatchEvent(new CustomEvent("hass-notification", {
+        detail: { message: snoozedMessage(ok, this._lang) },
+        bubbles: true,
+        composed: true,
+      }));
       this.close();
     }
   }

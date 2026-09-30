@@ -1227,6 +1227,12 @@ async def ws_import_json(
                         task_data.pop(key)
                         task_warnings.append(f"{task_name}: {key} dropped — wrong type")
 
+                # #193: a task's pause — the object's markers, validated the
+                # same way (garbage would freeze the task forever).
+                for key in ("paused_at", "paused_until"):
+                    if (marker := _iso_marker(task_entry.get(key))) is not None:
+                        task_data[key] = marker
+
                 # The fleet's single aggregate task keeps its marker (detail view
                 # renders the battery section; the fleet reconcile repairs its
                 # trigger). Only ONE task may carry it, and only on the fleet.

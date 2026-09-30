@@ -246,6 +246,8 @@ def _kitchen_extras() -> dict[str, dict[str, Any]]:
         "manual_task": task("manual_task", "Deep clean", schedule={"kind": "manual"}),
         "archived_task": task("archived_task", "Old routine", archived_at="2026-06-01T00:00:00+00:00", archived_reason="done"),
         "disabled_task": task("disabled_task", "Paused routine", enabled=False),
+        # #193: a task paused on its own, with a resume date.
+        "held_task": task("held_task", "Filter on the shelf", paused_at="2026-09-01T08:00:00+00:00", paused_until="2027-03-01"),
     }
 
 

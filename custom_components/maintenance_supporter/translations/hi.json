@@ -1622,6 +1622,12 @@
       },
       "batteries_to_replace": {
         "name": "बदलने योग्य बैटरियाँ"
+      },
+      "area_cost": {
+        "name": "{area} रखरखाव लागत"
+      },
+      "area_cost_year": {
+        "name": "{area} इस साल की रखरखाव लागत"
       }
     },
     "calendar": {
@@ -2344,6 +2350,9 @@
     },
     "archived_cannot_pause": {
       "message": "संग्रहीत ऑब्जेक्ट को रोका नहीं जा सकता — पहले इसे पुनर्स्थापित करें।"
+    },
+    "archived_task_cannot_pause": {
+      "message": "संग्रहीत काम को रोका नहीं जा सकता — पहले उसे बहाल करें।"
     },
     "archived_cannot_replace": {
       "message": "संग्रहीत ऑब्जेक्ट को बदला नहीं जा सकता — पहले इसे पुनर्स्थापित करें।"

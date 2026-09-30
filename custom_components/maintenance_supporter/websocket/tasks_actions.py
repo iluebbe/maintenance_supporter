@@ -460,7 +460,8 @@ async def ws_snooze_task(
     due-soon/overdue/triggered reminders for ``snooze_duration_hours`` — it does
     not change the task's schedule or state.
     """
-    from ..const import DOMAIN, NOTIFICATION_MANAGER_KEY
+    from ..const import CONF_SNOOZE_DURATION_HOURS, DOMAIN, NOTIFICATION_MANAGER_KEY
+    from ..helpers.global_options import global_option
 
     if _load_object_task(hass, connection, msg) is None:
         return
@@ -469,8 +470,11 @@ async def ws_snooze_task(
     if nm is None:
         send_translated_error(connection, msg["id"], "unavailable", "Notifications not configured", translation_key="notify_not_configured")
         return
-    nm.snooze_task(msg["entry_id"], msg["task_id"])
-    connection.send_result(msg["id"], {"success": True})
+    until = nm.snooze_task(msg["entry_id"], msg["task_id"])
+    # #193: the panel names the duration — "Snoozed" alone left users
+    # wondering what happened and for how long.
+    hours = global_option(hass, CONF_SNOOZE_DURATION_HOURS)
+    connection.send_result(msg["id"], {"success": True, "hours": hours, "snoozed_until": until.isoformat()})
 
 
 @websocket_api.websocket_command(

@@ -434,6 +434,9 @@ _TASK_EXPORT_EXEMPT = {
     # anchor; archived_* keep retired tasks retired — both in the import
     # mirror, exercised by the archive/lifecycle test suites):
     "created_at", "archived_at", "archived_reason",
+    # #193: a task's pause — lifecycle markers like archived_*, in the import
+    # mirror (ISO-validated) and exercised by tests/test_task_pause.py:
+    "paused_at", "paused_until",
     "last_planned_due",  # planned-anchor bookkeeping, written by complete()
     "due_date",  # flat twin of the nested schedule, compared via read_legacy_fields
     "schedule",  # nested twin of the flat schedule fields compared above
@@ -474,6 +477,7 @@ async def test_full_task_probe_covers_every_exported_field(
 # A new exported field must be placed in the CSV columns or in this list.
 _CSV_TASK_EXCLUDED = {
     "id", "created_at", "archived_at", "archived_reason",  # lifecycle/ids
+    "paused_at", "paused_until",  # #193: a task's pause (JSON backup)
     # (the nested "schedule" IS a column since bug audit 2026-09-27)
     "last_planned_due", "due_override",  # per-occurrence schedule state
     "adaptive_config", "checklist_progress", "history",  # structured state

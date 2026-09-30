@@ -1622,6 +1622,12 @@
       },
       "batteries_to_replace": {
         "name": "Vaihdettavat paristot"
+      },
+      "area_cost": {
+        "name": "{area} huoltokulut"
+      },
+      "area_cost_year": {
+        "name": "{area} huoltokulut tänä vuonna"
       }
     },
     "calendar": {
@@ -2344,6 +2350,9 @@
     },
     "archived_cannot_pause": {
       "message": "Arkistoitua kohdetta ei voi keskeyttää — palauta se ensin."
+    },
+    "archived_task_cannot_pause": {
+      "message": "Arkistoitua tehtävää ei voi keskeyttää — palauta se ensin."
     },
     "archived_cannot_replace": {
       "message": "Arkistoitua kohdetta ei voi korvata — palauta se ensin."

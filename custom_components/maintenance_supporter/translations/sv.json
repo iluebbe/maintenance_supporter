@@ -1622,6 +1622,12 @@
       },
       "batteries_to_replace": {
         "name": "Batterier att byta"
+      },
+      "area_cost": {
+        "name": "{area} underhållskostnad"
+      },
+      "area_cost_year": {
+        "name": "{area} underhållskostnad i år"
       }
     },
     "calendar": {
@@ -2344,6 +2350,9 @@
     },
     "archived_cannot_pause": {
       "message": "Ett arkiverat objekt kan inte pausas — återställ det först."
+    },
+    "archived_task_cannot_pause": {
+      "message": "En arkiverad uppgift kan inte pausas — återställ den först."
     },
     "archived_cannot_replace": {
       "message": "Ett arkiverat objekt kan inte ersättas — återställ det först."

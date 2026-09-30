@@ -1622,6 +1622,12 @@
       },
       "batteries_to_replace": {
         "name": "Batteries to replace"
+      },
+      "area_cost": {
+        "name": "{area} maintenance cost"
+      },
+      "area_cost_year": {
+        "name": "{area} maintenance cost this year"
       }
     },
     "calendar": {
@@ -2344,6 +2350,9 @@
     },
     "archived_cannot_pause": {
       "message": "An archived object cannot be paused — restore it first."
+    },
+    "archived_task_cannot_pause": {
+      "message": "An archived task cannot be paused — restore it first."
     },
     "archived_cannot_replace": {
       "message": "An archived object cannot be replaced — restore it first."

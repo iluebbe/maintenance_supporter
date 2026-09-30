@@ -102,6 +102,10 @@ class MaintenanceTask:
     # (manual | auto | object) and drives the auto-delete + object-cascade rules.
     archived_at: str | None = None
     archived_reason: str | None = None
+    # #193: a pause for this one task (the object's pause, per task):
+    # paused_at set = paused; paused_until (ISO date) optionally ends it.
+    paused_at: str | None = None
+    paused_until: str | None = None
 
     # --- User Assignment ---
     responsible_user_id: str | None = None  # HA user UUID (current pointer)
@@ -670,6 +674,10 @@ class MaintenanceTask:
             data["archived_at"] = self.archived_at
         if self.archived_reason is not None:
             data["archived_reason"] = self.archived_reason
+        if self.paused_at is not None:
+            data["paused_at"] = self.paused_at
+        if self.paused_until is not None:
+            data["paused_until"] = self.paused_until
         if self.responsible_user_id is not None:
             data["responsible_user_id"] = self.responsible_user_id
         if self.assignee_pool:
@@ -734,6 +742,8 @@ class MaintenanceTask:
             mirror_todo_entities=list(data.get("mirror_todo_entities") or []),
             archived_at=data.get("archived_at"),
             archived_reason=data.get("archived_reason"),
+            paused_at=data.get("paused_at"),
+            paused_until=data.get("paused_until"),
             responsible_user_id=data.get("responsible_user_id"),
             assignee_pool=data.get("assignee_pool", []),
             rotation_strategy=data.get("rotation_strategy"),

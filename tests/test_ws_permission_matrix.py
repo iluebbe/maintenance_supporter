@@ -106,6 +106,9 @@ _EXPECTED_TIERS: dict[str, str] = {
     "maintenance_supporter/task/set_adaptive": "write",
     "maintenance_supporter/task/set_environmental_entity": "write",
     "maintenance_supporter/task/unarchive": "write",
+    # #193: pause / resume ONE task — structural like archive, write tier.
+    "maintenance_supporter/task/pause": "write",
+    "maintenance_supporter/task/resume": "write",
     "maintenance_supporter/task/update": "write",
     # ── read (any authenticated user; actions deliberately household-open) ──
     "maintenance_supporter/budget_status": "read",

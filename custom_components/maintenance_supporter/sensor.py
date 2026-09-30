@@ -93,6 +93,13 @@ async def async_setup_entry(
         # need replacing now — the aggregate that backs the single fleet task.
         entities.append(BatteryFleetLowSensor(hass))
         async_add_entities(entities)
+        # #191: maintenance cost per Home Assistant area (added as areas
+        # appear) — they follow the summary coordinator's refreshes.
+        if summary is not None:
+            from .entity.area_cost import AreaCostSensorManager
+
+            manager = AreaCostSensorManager(hass, entry.entry_id, async_add_entities)
+            entry.async_on_unload(manager.async_start(summary))
         return
 
     runtime_data = entry.runtime_data

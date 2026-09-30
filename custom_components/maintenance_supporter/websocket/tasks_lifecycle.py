@@ -12,17 +12,20 @@ from homeassistant.util import dt as dt_util
 from ..const import (
     ARCHIVE_REASON_MANUAL,
     CONF_TASKS,
+    MAX_DATE_LENGTH,
 )
 from ..helpers.aggregate import get_coordinator_data, get_store, object_name
 from ..helpers.entry_tasks import write_task
 from ..helpers.pause import clear_cycle_modifiers, reanchor_recurring_task
 from ..helpers.permissions import require_write
+from ..helpers.ws_errors import send_translated_error
 from . import (
     ID_FIELD,
     _build_task_summary,
     _get_merged_tasks,
     _get_object_entries,
     _load_object_task,
+    _parse_iso_date,
 )
 
 
@@ -78,6 +81,109 @@ async def ws_archive_task(
     await hass.config_entries.async_reload(entry.entry_id)
 
     connection.send_result(msg["id"], {"success": True, "archived_at": td["archived_at"]})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/task/pause",
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
+        vol.Optional("until"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_pause_task(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Pause ONE task (#193): frozen schedule, no reminders, until resumed.
+
+    The object pause, per task — for a filter that comes out of use for a
+    while (items used in rotation): resuming starts a fresh cycle, so the
+    interval counts from the day it goes back in. ``until`` (optional future
+    date) resumes it on that day.
+    """
+    ctx = _load_object_task(hass, connection, msg)
+    if ctx is None:
+        return
+    entry, _rd, task = ctx
+    task_id = msg["task_id"]
+    td = dict(task)
+    if td.get("archived_at") is not None:
+        send_translated_error(connection, msg["id"], "archived", "An archived task cannot be paused", translation_key="archived_task_cannot_pause")
+        return
+    if td.get("paused_at") is not None:
+        connection.send_error(msg["id"], "already_paused", "Task already paused")
+        return
+
+    until = msg.get("until")
+    if until:
+        until_date = _parse_iso_date(connection, msg["id"], until, field="until")
+        if until_date is None:
+            return
+        if until_date <= dt_util.now().date():
+            send_translated_error(connection, msg["id"], "invalid_date", "until must be a future date", translation_key="until_in_past")
+            return
+
+    td["paused_at"] = dt_util.now().isoformat()
+    td["paused_until"] = until or None
+    write_task(hass, entry, task_id, td)
+    # Reload: a sensor task's triggers tear down (paused = inert) and every
+    # per-task entity repaints as paused.
+    await hass.config_entries.async_reload(entry.entry_id)
+    connection.send_result(msg["id"], {"success": True, "paused_at": td["paused_at"], "paused_until": td["paused_until"]})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/task/resume",
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_resume_task(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """End a task's pause: a recurring task restarts a fresh cycle today."""
+    ctx = _load_object_task(hass, connection, msg)
+    if ctx is None:
+        return
+    entry, _rd, td = ctx
+    task_id = msg["task_id"]
+    if td.get("paused_at") is None:
+        connection.send_error(msg["id"], "not_paused", "Task is not paused")
+        return
+
+    # The unarchive order: the Store anchor first (its save is the only
+    # await), then the static dict from a FRESH read, so a writer landing
+    # during the disk write cannot be reverted by a stale copy.
+    store = get_store(hass, entry.entry_id)
+    recurring = td.get("archived_at") is None and _is_recurring_schedule(td)
+    today_iso = dt_util.now().date().isoformat()
+    if recurring and store is not None:
+        reanchor_recurring_task(task_id, store=store, today_iso=today_iso)
+        await store.async_save()
+    fresh = entry.data.get(CONF_TASKS, {}).get(task_id)
+    if fresh is None:
+        connection.send_error(msg["id"], "not_found", "Task not found")
+        return
+    td = dict(fresh)
+    td.pop("paused_at", None)
+    td.pop("paused_until", None)
+    if recurring and store is None:
+        reanchor_recurring_task(task_id, store=None, today_iso=today_iso, task_data=td)
+    elif recurring:
+        # The Store holds the fresh anchor; scrub the static shadow too.
+        clear_cycle_modifiers(td)
+    write_task(hass, entry, task_id, td)
+    await hass.config_entries.async_reload(entry.entry_id)
+    connection.send_result(msg["id"], {"success": True})
 
 
 @websocket_api.websocket_command(

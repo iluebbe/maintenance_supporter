@@ -79,6 +79,9 @@ def _build_export_object(
             "created_at": tdata.get("created_at"),
             "archived_at": tdata.get("archived_at"),
             "archived_reason": tdata.get("archived_reason"),
+            # #193: a paused task stays paused after a restore.
+            "paused_at": tdata.get("paused_at"),
+            "paused_until": tdata.get("paused_until"),
             "schedule_type": sched["schedule_type"],
             "interval_days": sched["interval_days"],
             "interval_unit": sched["interval_unit"],

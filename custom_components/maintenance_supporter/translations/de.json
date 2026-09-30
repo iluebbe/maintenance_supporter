@@ -1622,6 +1622,12 @@
       },
       "batteries_to_replace": {
         "name": "Zu wechselnde Batterien"
+      },
+      "area_cost": {
+        "name": "{area} Wartungskosten"
+      },
+      "area_cost_year": {
+        "name": "{area} Wartungskosten dieses Jahr"
       }
     },
     "calendar": {
@@ -2344,6 +2350,9 @@
     },
     "archived_cannot_pause": {
       "message": "Ein archiviertes Objekt kann nicht pausiert werden — bitte zuerst wiederherstellen."
+    },
+    "archived_task_cannot_pause": {
+      "message": "Eine archivierte Aufgabe kann nicht pausiert werden — stelle sie zuerst wieder her."
     },
     "archived_cannot_replace": {
       "message": "Ein archiviertes Objekt kann nicht ersetzt werden — bitte zuerst wiederherstellen."

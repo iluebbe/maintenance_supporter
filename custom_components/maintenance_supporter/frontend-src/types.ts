@@ -305,6 +305,10 @@ export interface MaintenanceTask {
   archived?: boolean;
   archived_at?: string | null;
   archived_reason?: string | null;
+  /** #193: this task's own pause (a paused object is on the object). */
+  paused?: boolean;
+  paused_at?: string | null;
+  paused_until?: string | null;
   days_until_due?: number | null;
   next_due?: string | null;
   /** #189: titles of the calendar events behind next_due (calendar kind). */

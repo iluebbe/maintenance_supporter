@@ -107,6 +107,7 @@ function ctx(overrides: Partial<TaskDetailContext> = {}): TaskDetailContext {
     openComplete: () => undefined,
     promptSkip: () => undefined,
     toggleArchive: () => undefined,
+    togglePause: () => undefined,
     openQr: () => undefined,
     duplicateTask: () => undefined,
     promptReset: () => undefined,
@@ -180,7 +181,7 @@ describe("task-detail renderer", () => {
     expect(items.join(" ")).to.not.match(/edit|archive|delete|duplicate|move/i);
   });
 
-  it("open more-menu lists edit/qr/worksheet/duplicate/reset/postpone/snooze/archive/delete and fires callbacks", () => {
+  it("open more-menu lists edit/qr/worksheet/duplicate/reset/postpone/snooze/pause/archive/delete and fires callbacks", () => {
     const calls: string[] = [];
     const host = mount(task(), ctx({
       moreMenuOpen: true,
@@ -189,19 +190,34 @@ describe("task-detail renderer", () => {
       promptPostpone: () => calls.push("postpone"),
       snoozeTask: () => calls.push("snooze"),
       printWorksheet: () => calls.push("worksheet"),
+      togglePause: (paused) => calls.push(paused ? "resume" : "pause"),
       toggleArchive: () => calls.push("archive"),
     }));
     const items = [...host.querySelectorAll(".popup-menu-item")];
-    // edit, qr, worksheet, duplicate, move (#23), reset, postpone, snooze, archive, delete
-    expect(items.length).to.equal(10);
+    // edit, qr, worksheet, duplicate, move (#23), reset, postpone, snooze, pause (#193), archive, delete
+    expect(items.length).to.equal(11);
     (items[6] as HTMLElement).click(); // postpone
     (items[7] as HTMLElement).click(); // snooze
     (items[2] as HTMLElement).click(); // work sheet (v2.21)
-    (items[8] as HTMLElement).click(); // archive (demoted from the header)
-    (items[9] as HTMLElement).click(); // delete (danger)
+    (items[8] as HTMLElement).click(); // pause this one task (#193)
+    (items[9] as HTMLElement).click(); // archive (demoted from the header)
+    (items[10] as HTMLElement).click(); // delete (danger)
     expect(calls).to.deep.equal([
-      "close", "postpone", "close", "snooze", "close", "worksheet", "close", "archive", "close", "delete",
+      "close", "postpone", "close", "snooze", "close", "worksheet", "close", "pause", "close", "archive", "close", "delete",
     ]);
+  });
+
+  it("a paused task offers Resume and names its resume date (#193)", () => {
+    const calls: string[] = [];
+    const host = mount(task({ paused: true, paused_until: "2027-03-01", status: "paused" } as never), ctx({
+      moreMenuOpen: true,
+      togglePause: (paused) => calls.push(paused ? "resume" : "pause"),
+    }));
+    const resume = [...host.querySelectorAll<HTMLElement>(".popup-menu-item")].find((i) => i.textContent?.trim() === "Resume");
+    expect(resume, "Resume offered").to.exist;
+    resume!.click();
+    expect(calls).to.deep.equal(["resume"]);
+    expect(host.querySelector(".paused-until")?.textContent).to.include("until");
   });
 
   it("shows a bell-off badge for a muted task (#173), and none otherwise", () => {

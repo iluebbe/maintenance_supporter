@@ -228,6 +228,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         obj_data = self.entry.data.get(CONF_OBJECT, {})
         today = dt_util.now().date()
         if not pause_due_for_auto_resume(obj_data, today):
+            await self._async_maybe_auto_resume_tasks(today)
             return
 
         new_data = build_resumed_entry_data(dict(self.entry.data), self._store, today.isoformat())
@@ -241,6 +242,23 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "Seasonal pause on '%s' ended (paused_until reached) — resumed",
             obj_data.get("name"),
         )
+
+    async def _async_maybe_auto_resume_tasks(self, today: date) -> None:
+        """#193: end single-task pauses whose ``paused_until`` day has come —
+        the object auto-resume's rule, per task (fresh cycle for recurring)."""
+        from .helpers.pause import pause_due_for_auto_resume, resume_task_data
+
+        tasks = dict(self.entry.data.get(CONF_TASKS) or {})
+        due = [tid for tid, td in tasks.items() if isinstance(td, dict) and pause_due_for_auto_resume(td, today)]
+        if not due:
+            return
+        for tid in due:
+            tasks[tid] = resume_task_data(tid, tasks[tid], self._store, today.isoformat())
+        self.hass.config_entries.async_update_entry(self.entry, data={**self.entry.data, CONF_TASKS: tasks})
+        await self._store.async_save()
+        # A paused sensor task set up no triggers — only a reload wires them.
+        self.hass.config_entries.async_schedule_reload(self.entry.entry_id)
+        _LOGGER.info("Pause of %d task(s) on '%s' ended (paused_until reached) — resumed", len(due), self.maintenance_object.name)
 
     async def _async_prefetch_calendar_occurrences(self) -> None:
         """#187: warm the shared calendar-entity event cache BEFORE statuses.
@@ -366,7 +384,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Same short-circuit surface as archived, but the object remains a
             # first-class citizen in every view. `_paused` mirrors the status
             # for the dict-twin recomputation in helpers.status.
-            if object_paused:
+            if object_paused or task.paused_at is not None:
                 result[CONF_TASKS][task_id] = _inert_task_result(task, MaintenanceStatus.PAUSED, _paused=True)
                 continue
 

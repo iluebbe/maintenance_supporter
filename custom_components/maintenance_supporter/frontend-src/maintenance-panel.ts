@@ -131,6 +131,7 @@ import { TOAST_MS, ACTION_TOAST_MS } from "./helpers/toast";
 import { buildHistoryEntryDraft } from "./helpers/history-draft";
 import { readingSlotDelta } from "./helpers/reading-slots";
 import { bulkResultMessage, runWs, runWsEach } from "./helpers/ws-run";
+import { snoozedMessage, type SnoozeResult } from "./helpers/snooze";
 import { STATUS_ORDER, statusRank } from "./status-constants";
 
 // #191: all_areas = the areas page, area = one area's history and costs.
@@ -2514,6 +2515,33 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
   }
 
+  // #193: pause ONE task (items used in rotation: the filter comes out of use
+  // for a while) — the object pause, per task. Pausing asks for an optional
+  // resume date; resuming starts a fresh cycle from that day.
+  private async _togglePauseTask(entryId: string, taskId: string, paused: boolean): Promise<void> {
+    if (!paused) {
+      const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+      const result = await dlg?.prompt({
+        title: t("pause_task", this._lang),
+        message: t("pause_task_prompt", this._lang),
+        confirmText: t("pause_task", this._lang),
+        inputLabel: t("pause_until_label", this._lang),
+        inputType: "date",
+      });
+      if (!result?.confirmed) return;
+      const msg: Record<string, unknown> = { type: "maintenance_supporter/task/pause", entry_id: entryId, task_id: taskId };
+      if (result.value) msg.until = result.value;
+      if (await this._runAction(msg)) {
+        this._showUndoToast(t("task_paused", this._lang), () => this._togglePauseTask(entryId, taskId, true));
+      }
+      return;
+    }
+    await this._runAction(
+      { type: "maintenance_supporter/task/resume", entry_id: entryId, task_id: taskId },
+      { successToast: t("task_resumed", this._lang) },
+    );
+  }
+
   // v2.10.0: archive / unarchive an object. Archiving cascades to its tasks but
   // is fully reversible, so instead of a blocking confirm we run it immediately
   // and offer an Undo toast (v2.14.0).
@@ -2704,10 +2732,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     // Now reloads like every sibling action — this was the one mutation that
     // skipped the refresh, leaving the snoozed due date stale until the next
     // poll.
-    await this._runAction(
+    // #193: say for how long — the task itself shows no change.
+    const res = await this._runAction<SnoozeResult>(
       { type: "maintenance_supporter/task/snooze", entry_id: entryId, task_id: taskId },
-      { successToast: t("snoozed", this._lang) },
     );
+    if (res) this._showToast(snoozedMessage(res, this._lang), "info");
   }
 
   private _dismissSuggestion(entryId?: string, taskId?: string): void {
@@ -5001,6 +5030,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       openComplete: (tk) => this._openCompleteDialog(entryId, taskId, tk.name, this._features.checklists ? tk.checklist : undefined, this._features.adaptive && !!tk.adaptive_config?.enabled),
       promptSkip: () => this._promptSkipTask(entryId, taskId),
       toggleArchive: (archived) => this._toggleArchiveTask(entryId, taskId, archived),
+      togglePause: (paused) => this._togglePauseTask(entryId, taskId, paused),
       openQr: (taskName) => this._openQrForTask(entryId, taskId, obj?.object.name || "", taskName),
       duplicateTask: () => this._duplicateTask(entryId, taskId),
       moveTask: () => this._moveTask(entryId, taskId),

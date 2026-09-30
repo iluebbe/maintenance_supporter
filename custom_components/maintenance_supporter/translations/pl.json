@@ -1622,6 +1622,12 @@
       },
       "batteries_to_replace": {
         "name": "Baterie do wymiany"
+      },
+      "area_cost": {
+        "name": "{area} koszty konserwacji"
+      },
+      "area_cost_year": {
+        "name": "{area} koszty konserwacji w tym roku"
       }
     },
     "calendar": {
@@ -2344,6 +2350,9 @@
     },
     "archived_cannot_pause": {
       "message": "Zarchiwizowanego obiektu nie można wstrzymać — najpierw go przywróć."
+    },
+    "archived_task_cannot_pause": {
+      "message": "Zarchiwizowanego zadania nie można wstrzymać — najpierw je przywróć."
     },
     "archived_cannot_replace": {
       "message": "Zarchiwizowanego obiektu nie można zastąpić — najpierw go przywróć."

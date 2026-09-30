@@ -1768,8 +1768,8 @@ class NotificationManager:
                 self._snoozed_until.pop(key, None)
         self._dirty()
 
-    def snooze_task(self, entry_id: str, task_id: str) -> None:
-        """Snooze all notifications for a task."""
+    def snooze_task(self, entry_id: str, task_id: str) -> datetime:
+        """Snooze all notifications for a task; returns when it ends."""
         hours = self._opt(CONF_SNOOZE_DURATION_HOURS)
         until = dt_util.now() + timedelta(hours=hours)
         # Snooze for all status types
@@ -1777,6 +1777,7 @@ class NotificationManager:
             self._snoozed_until[notification_key(entry_id, task_id, status)] = until
             self._dirty()
         _LOGGER.debug("Snoozed task %s for %s hours (until %s)", task_id, hours, until)
+        return until
 
     async def async_task_status_changed(
         self,

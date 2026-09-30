@@ -1622,6 +1622,12 @@
       },
       "batteries_to_replace": {
         "name": "Batterier som må byttes"
+      },
+      "area_cost": {
+        "name": "{area} vedlikeholdskostnad"
+      },
+      "area_cost_year": {
+        "name": "{area} vedlikeholdskostnad i år"
       }
     },
     "calendar": {
@@ -2344,6 +2350,9 @@
     },
     "archived_cannot_pause": {
       "message": "Et arkivert objekt kan ikke settes på pause — gjenopprett det først."
+    },
+    "archived_task_cannot_pause": {
+      "message": "En arkivert oppgave kan ikke settes på pause — gjenopprett den først."
     },
     "archived_cannot_replace": {
       "message": "Et arkivert objekt kan ikke erstattes — gjenopprett det først."

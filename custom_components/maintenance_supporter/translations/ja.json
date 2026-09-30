@@ -1622,6 +1622,12 @@
       },
       "batteries_to_replace": {
         "name": "交換が必要な電池"
+      },
+      "area_cost": {
+        "name": "{area} メンテナンス費用"
+      },
+      "area_cost_year": {
+        "name": "{area} 今年のメンテナンス費用"
       }
     },
     "calendar": {
@@ -2344,6 +2350,9 @@
     },
     "archived_cannot_pause": {
       "message": "アーカイブ済みのオブジェクトは一時停止できません — 先に復元してください。"
+    },
+    "archived_task_cannot_pause": {
+      "message": "アーカイブ済みのタスクは一時停止できません。先に復元してください。"
     },
     "archived_cannot_replace": {
       "message": "アーカイブ済みのオブジェクトは置き換えできません — 先に復元してください。"

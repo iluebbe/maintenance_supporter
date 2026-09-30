@@ -1622,6 +1622,12 @@
       },
       "batteries_to_replace": {
         "name": "Baterías a reemplazar"
+      },
+      "area_cost": {
+        "name": "{area} coste de mantenimiento"
+      },
+      "area_cost_year": {
+        "name": "{area} coste de mantenimiento este año"
       }
     },
     "calendar": {
@@ -2344,6 +2350,9 @@
     },
     "archived_cannot_pause": {
       "message": "Un objeto archivado no se puede pausar — restáuralo primero."
+    },
+    "archived_task_cannot_pause": {
+      "message": "Una tarea archivada no se puede pausar: restáurala primero."
     },
     "archived_cannot_replace": {
       "message": "Un objeto archivado no se puede sustituir — restáuralo primero."

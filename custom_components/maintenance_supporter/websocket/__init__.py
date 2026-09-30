@@ -231,6 +231,10 @@ def _build_task_summary(
         "archived": task_data.get("archived_at") is not None,
         "archived_at": task_data.get("archived_at"),
         "archived_reason": task_data.get("archived_reason"),
+        # #193: this task's own pause (a paused OBJECT is on the object).
+        "paused": task_data.get("paused_at") is not None,
+        "paused_at": task_data.get("paused_at"),
+        "paused_until": task_data.get("paused_until"),
         "responsible_user_id": task_data.get("responsible_user_id"),
         "assignee_pool": task_data.get("assignee_pool", []),
         "required_completion_fields": task_data.get("required_completion_fields", []),
@@ -809,9 +813,11 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_duplicate_task,
         ws_list_tasks,
         ws_move_task,
+        ws_pause_task,
         ws_postpone_task,
         ws_quick_complete_task,
         ws_reset_task,
+        ws_resume_task,
         ws_set_task_phase,
         ws_skip_task,
         ws_snooze_task,
@@ -849,6 +855,8 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_move_task)
     websocket_api.async_register_command(hass, ws_archive_task)
     websocket_api.async_register_command(hass, ws_unarchive_task)
+    websocket_api.async_register_command(hass, ws_pause_task)
+    websocket_api.async_register_command(hass, ws_resume_task)
     websocket_api.async_register_command(hass, ws_list_tasks)
     websocket_api.async_register_command(hass, ws_task_history)
     websocket_api.async_register_command(hass, ws_complete_task)

@@ -58,6 +58,18 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Vitesy Shelfy in *Suggested setups*** (new in Home Assistant 2026.10): *Replace Filter* a week before the filter
   change date the purifier reports, *Clean Refrigerator* on its cleaning date — completing either presses the
   device's own "Mark … as changed/cleaned" button, which starts the next period.
+- **Maintenance cost per area as sensors** (#191): every Home Assistant area that holds objects gets
+  `sensor.<area>_maintenance_cost` — everything booked so far as a monetary total in your currency, with long-term
+  statistics, so a statistics graph card with period *year* shows what a room cost per year — and
+  `sensor.<area>_maintenance_cost_this_year` (disabled by default), resetting on 1 January. They are placed in their
+  area when created, count archived objects like the budget does, and read unavailable while Home Assistant starts
+  instead of dropping to zero (which the statistics would record as a negative cost).
+- **Pause a single task** (discussion #193): *Pause…* in a task's ⋮ menu freezes that task alone — optionally until a
+  date — while the object's other tasks keep running; resuming starts a fresh cycle from that day. Made for items used
+  in rotation, whose filter comes out of use for a while. Also `task/pause` / `task/resume` in the API; a backup keeps
+  the pause, a copy does not.
+- **Snooze says for how long** (discussion #193): instead of a bare "Snoozed", the panel answers "Reminders muted for
+  4 hours — until 18:30", and the card's quick actions show the same through Home Assistant's toast.
 - **When spare parts count as spending** (discussion #104): *Settings → General → Spare parts count as spending*.
   *When bought* (default, as before) counts the buy reminder's cost and shows the value of the parts a completion used
   as information. *When used* books that value on every completion — from any surface — and turns a purchase into
@@ -85,6 +97,9 @@ All notable changes to Maintenance Supporter are documented in this file.
   untyped parameter hidden behind an ignore is typed, the triggers take a protocol instead of the concrete sensor, and
   every `type: ignore` for a re-export or a missing stub is gone. The frontend tests are type-checked in CI as well —
   which found three tests whose mock answers were never installed (`handler:` for `handlers:`).
+- **The battery fleet at phone width is checked** (#162): `e2e/live-battery-fleet-narrow-check.mjs` opens the fleet
+  task and the battery card at 360 and 390 px in English and German, with a low battery, and fails when anything
+  passes the screen edge or draws past its own box — the lists reported with icons outside the table pass today.
 - **Checked against the Home Assistant 2026.10 beta:** the whole test suite runs on 2026.10.0b0. Core replaces
   voluptuous with probatio there and aliases `import voluptuous` to it at runtime, so nothing changes for users; the
   type check now treats voluptuous as untyped, which keeps one code base checking against 2026.7 through 2026.10.

@@ -35,6 +35,12 @@ def is_object_paused(obj: dict[str, Any]) -> bool:
     return obj.get("paused_at") is not None
 
 
+def is_task_paused(task_data: dict[str, Any]) -> bool:
+    """True when the task itself is paused (#193) — the same marker as an
+    object's: ``paused_at`` set = paused, ``paused_until`` optionally ends it."""
+    return task_data.get("paused_at") is not None
+
+
 def is_task_inert(task_data: dict[str, Any], obj: dict[str, Any]) -> bool:
     """True when nothing may happen to the task: it is archived, disabled or
     its object is paused. The one predicate behind the coordinator's
@@ -42,7 +48,12 @@ def is_task_inert(task_data: dict[str, Any], obj: dict[str, Any]) -> bool:
     refusal — three hand-copied spellings before, and reset/postpone had
     none (a stale notification button or an old NFC sticker could restart
     a retired task's cycle)."""
-    return task_data.get("archived_at") is not None or task_data.get("enabled") is False or is_object_paused(obj)
+    return (
+        task_data.get("archived_at") is not None
+        or task_data.get("enabled") is False
+        or is_task_paused(task_data)
+        or is_object_paused(obj)
+    )
 
 
 def pause_due_for_auto_resume(obj: dict[str, Any], today: date) -> bool:
@@ -147,8 +158,29 @@ def build_resumed_entry_data(
     new_tasks: dict[str, Any] = {}
     for tid, td in dict(new_data.get(CONF_TASKS, {})).items():
         td = dict(td)
-        if td.get("archived_at") is None and is_recurring(td):
+        # A task paused on its own (#193) stays paused — resuming the object
+        # does not end a pause somebody set for that one task.
+        if td.get("archived_at") is None and not is_task_paused(td) and is_recurring(td):
             reanchor_recurring_task(tid, store=store, today_iso=today_iso, task_data=td)
         new_tasks[tid] = td
     new_data[CONF_TASKS] = new_tasks
     return new_data
+
+
+def resume_task_data(task_id: str, task_data: dict[str, Any], store: MaintenanceStore | None, today_iso: str) -> dict[str, Any]:
+    """A paused task's dict with the pause cleared (#193).
+
+    The object resume's rule for one task: an active recurring task restarts
+    a fresh cycle from today — the filter that went back into use counts its
+    three weeks from now, not from before the pause. One-time and manual
+    tasks keep their dates. Mutates the Store's anchor when there is one
+    (the caller saves).
+    """
+    from .schedule import is_recurring
+
+    td = dict(task_data)
+    td.pop("paused_at", None)
+    td.pop("paused_until", None)
+    if td.get("archived_at") is None and is_recurring(td):
+        reanchor_recurring_task(task_id, store=store, today_iso=today_iso, task_data=td)
+    return td

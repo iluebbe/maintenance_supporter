@@ -65,6 +65,9 @@ _TASK_STR_LIMITS: dict[str, int] = {
     # crafted backup can't smuggle oversized strings past the importer.
     "archived_at": MAX_META_LENGTH,
     "archived_reason": MAX_META_LENGTH,
+    # #193: a single task's pause (the object's markers).
+    "paused_at": MAX_META_LENGTH,
+    "paused_until": MAX_DATE_LENGTH,
     "schedule_time": MAX_SCHEDULE_TIME_LENGTH,
     "priority": MAX_TYPE_LENGTH,
     "reading_unit": MAX_READING_UNIT_LENGTH,
@@ -120,6 +123,9 @@ _FRESH_COPY_STRIP_KEYS = (
     "adaptive_config",
     "archived_at",
     "archived_reason",
+    # #193: a copy starts un-paused.
+    "paused_at",
+    "paused_until",
     # #170: a copy is a new task — it gets its own reference number.
     "ref_no",
     # Dynamic state like the history (storage._DYNAMIC_TASK_FIELDS, pinned by

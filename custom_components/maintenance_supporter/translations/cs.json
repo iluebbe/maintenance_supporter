@@ -1622,6 +1622,12 @@
       },
       "batteries_to_replace": {
         "name": "Baterie k výměně"
+      },
+      "area_cost": {
+        "name": "{area} náklady na údržbu"
+      },
+      "area_cost_year": {
+        "name": "{area} náklady na údržbu letos"
       }
     },
     "calendar": {
@@ -2344,6 +2350,9 @@
     },
     "archived_cannot_pause": {
       "message": "Archivovaný objekt nelze pozastavit — nejprve jej obnovte."
+    },
+    "archived_task_cannot_pause": {
+      "message": "Archivovaný úkol nelze pozastavit — nejprve jej obnov."
     },
     "archived_cannot_replace": {
       "message": "Archivovaný objekt nelze nahradit — nejprve jej obnovte."

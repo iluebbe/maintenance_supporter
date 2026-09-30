@@ -90,6 +90,10 @@ const READONLY = new Set([
   "archived",
   "archived_at",
   "archived_reason",
+  // #193: a task's own pause — set by task/pause / task/resume, not the dialog.
+  "paused",
+  "paused_at",
+  "paused_until",
   "history",
   "battery_fleet_task",
   "part_ref",

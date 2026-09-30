@@ -1622,6 +1622,12 @@
       },
       "batteries_to_replace": {
         "name": "Piles à remplacer"
+      },
+      "area_cost": {
+        "name": "{area} coût d'entretien"
+      },
+      "area_cost_year": {
+        "name": "{area} coût d'entretien cette année"
       }
     },
     "calendar": {
@@ -2344,6 +2350,9 @@
     },
     "archived_cannot_pause": {
       "message": "Un objet archivé ne peut pas être mis en pause — restaurez-le d'abord."
+    },
+    "archived_task_cannot_pause": {
+      "message": "Une tâche archivée ne peut pas être mise en pause — restaure-la d'abord."
     },
     "archived_cannot_replace": {
       "message": "Un objet archivé ne peut pas être remplacé — restaurez-le d'abord."

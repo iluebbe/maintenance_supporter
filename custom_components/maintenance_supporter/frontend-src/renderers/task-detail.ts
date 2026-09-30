@@ -78,6 +78,8 @@ export interface TaskDetailContext {
   openComplete: (task: MaintenanceTask) => void;
   promptSkip: () => void;
   toggleArchive: (archived: boolean) => void;
+  /** #193: pause (asks for an optional resume date) or resume this task. */
+  togglePause: (paused: boolean) => void;
   openQr: (taskName: string) => void;
   duplicateTask: () => void;
   /** Forum #23: move the task to another object. */
@@ -128,6 +130,9 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
         <span class="breadcrumb-separator">·</span>
         <span class="object-name-breadcrumb" @click=${() => ctx.showObject()}>${ctx.objectName}</span>
         ${renderStatusBadge(task, L, "chip")}
+        ${task.paused && task.paused_until ? html`<span class="postponed-badge paused-until" title="${t("task_paused", L)}">
+          <ha-icon icon="mdi:pause-circle-outline"></ha-icon>${t("paused_until_label", L)} ${formatDate(task.paused_until, L)}
+        </span>` : nothing}
         ${task.due_override ? html`<span class="postponed-badge" title="${t("postponed_to", L)}">
           <ha-icon icon="mdi:calendar-arrow-right"></ha-icon>${formatDate(task.due_override, L)}
         </span>` : nothing}
@@ -178,6 +183,7 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
               <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptPostpone(); }}>${t("postpone", L)}…</div>
               <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.snoozeTask(); }}>${t("snooze", L)}</div>
               ${!isOperator ? html`
+                ${!task.archived ? html`<div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.togglePause(!!task.paused); }}>${task.paused ? t("resume_task", L) : `${t("pause_task", L)}…`}</div>` : nothing}
                 <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.toggleArchive(!!task.archived); }}>${task.archived ? t("unarchive", L) : t("archive", L)}</div>
                 <div class="popup-menu-divider"></div>
                 <div class="popup-menu-item danger" @click=${() => { ctx.closeMoreMenu(); ctx.deleteTask(); }}>${t("delete", L)}</div>

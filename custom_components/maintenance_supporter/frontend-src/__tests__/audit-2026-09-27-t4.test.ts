@@ -462,7 +462,7 @@ describe("bug audit 2026-09-26 #2, tranche 4 (frontend)", () => {
           getUserName: () => null, setActiveTab: () => undefined, toggleSection: () => undefined,
           setCostDurationToggle: () => undefined, showTaskView: () => undefined, showObject: () => undefined,
           toggleMoreMenu: () => undefined, closeMoreMenu: () => undefined, openEdit: () => undefined,
-          openComplete: () => undefined, promptSkip: () => undefined, toggleArchive: () => undefined,
+          openComplete: () => undefined, promptSkip: () => undefined, toggleArchive: () => undefined, togglePause: () => undefined,
           openQr: () => undefined, duplicateTask: () => undefined, moveTask: () => undefined,
           promptReset: () => undefined, promptPostpone: () => undefined, snoozeTask: () => undefined,
           printWorksheet: () => undefined, deleteTask: () => undefined, applySuggestion: () => undefined,

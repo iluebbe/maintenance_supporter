@@ -718,6 +718,9 @@ class MaintenanceCalendar(CalendarEntity):
                 # Archived task → no calendar entries (inert).
                 if task.archived_at is not None:
                     continue
+                # #193: a paused task's schedule is frozen, like a paused object's.
+                if task.paused_at is not None:
+                    continue
 
                 # Inject live trigger state from coordinator
                 live = live_tasks.get(task_id, {})

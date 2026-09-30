@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All 102 WebSocket commands the integration registers are covered here. Their
+All 104 WebSocket commands the integration registers are covered here. Their
 authorization tiers are frozen in `tests/test_ws_permission_matrix.py` — that
 test is the inventory of record; this file is its prose companion (and
 `tests/test_docs_counts_in_sync.py` keeps the counts quoted here honest).
@@ -171,6 +171,16 @@ future; omit for an open-ended pause) → `{"success": true, "paused_at",
 coordinator auto-resumes on `until`. Resume: `{entry_id}` → `{"success": true}`;
 recurring tasks re-anchor to a fresh cycle from today. Errors: `archived` /
 `already_paused` / `not_paused` / `invalid_date`.
+
+### `task/pause` / `task/resume` — `@require_write` (2.96, #193)
+The object pause for ONE task. Pause: `{entry_id, task_id, until?}` → `{"success":
+true, "paused_at", "paused_until"}`; the task reads status `paused` (frozen,
+nothing fires), the object's other tasks keep running, the coordinator
+auto-resumes on `until`. Resume: `{entry_id, task_id}` → `{"success": true}`; a
+recurring task restarts a fresh cycle from today. An object resume leaves a
+task paused on its own paused. Task payloads carry `paused`, `paused_at`,
+`paused_until`. Errors: `archived` / `already_paused` / `not_paused` /
+`invalid_date`.
 
 ### `object/replace` — `@require_write` (v2.20)
 `{entry_id, name?, ha_device_id?}` → `{entry_id: "<successor>", device_swap?}`.
@@ -393,7 +403,7 @@ links stay with the source object. Errors: `not_found`, `invalid_target`
   Bad date, or one more than 3650 days out → `invalid_date` (the latter with
   translation key `postpone_too_far`; since 2.96 the limit holds on every
   surface, voice included).
-- `task/snooze` `{entry_id, task_id}` → `{"success": true}` — silences due-soon /
+- `task/snooze` `{entry_id, task_id}` → `{"success": true, "hours", "snoozed_until"}` (the duration and the ISO end, 2.96) — silences due-soon /
   overdue / triggered reminders for the configured `snooze_duration_hours`.
   Changes neither schedule nor status; the snooze is stored and survives a
   restart. Without a configured notifier → `unavailable`.

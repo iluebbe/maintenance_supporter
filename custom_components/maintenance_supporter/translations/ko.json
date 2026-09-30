@@ -1622,6 +1622,12 @@
       },
       "batteries_to_replace": {
         "name": "교체할 배터리"
+      },
+      "area_cost": {
+        "name": "{area} 유지보수 비용"
+      },
+      "area_cost_year": {
+        "name": "{area} 올해 유지보수 비용"
       }
     },
     "calendar": {
@@ -2344,6 +2350,9 @@
     },
     "archived_cannot_pause": {
       "message": "보관된 객체는 일시 중지할 수 없습니다 — 먼저 복원하세요."
+    },
+    "archived_task_cannot_pause": {
+      "message": "보관된 작업은 일시 중지할 수 없습니다. 먼저 복원하세요."
     },
     "archived_cannot_replace": {
       "message": "보관된 객체는 교체할 수 없습니다 — 먼저 복원하세요."

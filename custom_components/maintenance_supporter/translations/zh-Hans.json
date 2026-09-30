@@ -1622,6 +1622,12 @@
       },
       "batteries_to_replace": {
         "name": "需更换的电池"
+      },
+      "area_cost": {
+        "name": "{area} 维护费用"
+      },
+      "area_cost_year": {
+        "name": "{area} 今年维护费用"
       }
     },
     "calendar": {
@@ -2344,6 +2350,9 @@
     },
     "archived_cannot_pause": {
       "message": "已归档的对象无法暂停 — 请先恢复。"
+    },
+    "archived_task_cannot_pause": {
+      "message": "已归档的任务无法暂停——请先恢复它。"
     },
     "archived_cannot_replace": {
       "message": "已归档的对象无法更换 — 请先恢复。"

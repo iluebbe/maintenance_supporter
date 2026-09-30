@@ -79,6 +79,9 @@
     }
   },
   "part_ref": null,
+  "paused": false,
+  "paused_at": null,
+  "paused_until": null,
   "phase_cursor": 0,
   "phase_sequence": [
     "swap",

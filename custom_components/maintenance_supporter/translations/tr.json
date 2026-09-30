@@ -1622,6 +1622,12 @@
       },
       "batteries_to_replace": {
         "name": "Değiştirilecek piller"
+      },
+      "area_cost": {
+        "name": "{area} bakım maliyeti"
+      },
+      "area_cost_year": {
+        "name": "{area} bu yılki bakım maliyeti"
       }
     },
     "calendar": {
@@ -2344,6 +2350,9 @@
     },
     "archived_cannot_pause": {
       "message": "Arşivlenmiş bir nesne duraklatılamaz — önce geri yükleyin."
+    },
+    "archived_task_cannot_pause": {
+      "message": "Arşivlenmiş bir görev duraklatılamaz — önce geri yükleyin."
     },
     "archived_cannot_replace": {
       "message": "Arşivlenmiş bir nesne değiştirilemez — önce geri yükleyin."
