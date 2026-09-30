@@ -90,6 +90,9 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
     """Every kind of data a person builds up, through the storage the running
     integration reads (the curated round-trip fixtures + what they lack)."""
     from custom_components.maintenance_supporter.helpers.parts import normalize_part
+    # HA 2026.10 makes the first real user the owner, and an owner cannot be
+    # removed — the owner is someone else, so Alice and Bob can leave.
+    await hass.auth.async_create_user("Owner")
     alice = await hass.auth.async_create_user("Alice")
     bob = await hass.auth.async_create_user("Bob")
     # Two batteries the fleet sees; the garage remote at 35 % is above "low"

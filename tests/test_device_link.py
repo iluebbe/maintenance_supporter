@@ -22,6 +22,7 @@ from custom_components.maintenance_supporter.const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
+from custom_components.maintenance_supporter.helpers.device_link import device_owner_ids
 from custom_components.maintenance_supporter.websocket import _build_object_response
 from custom_components.maintenance_supporter.websocket.objects import (
     _validate_device_link,
@@ -230,7 +231,7 @@ async def test_linking_does_not_put_our_config_entry_on_the_foreign_device(
 
     after = dr.async_get(hass).async_get(device.id)
     assert after is not None, "the appliance's device disappeared"
-    assert obj_entry.entry_id not in after.config_entries, (
+    assert obj_entry.entry_id not in device_owner_ids(after), (
         "we are listed as an owner of another integration's device — the exact "
         "thing HA 2026.8 stops supporting"
     )
@@ -311,7 +312,7 @@ async def test_migrating_an_existing_install_drops_the_co_ownership(
         dr.async_get(hass).async_update_device(device.id, add_config_entry_id=obj_entry.entry_id)
     except RuntimeError:
         pytest.skip("this HA cannot stage the legacy co-owned state (2026.9+)")
-    if obj_entry.entry_id not in dr.async_get(hass).async_get(device.id).config_entries:
+    if obj_entry.entry_id not in device_owner_ids(dr.async_get(hass).async_get(device.id)):
         pytest.skip(
             "this Home Assistant refuses to co-own a device at all (2026.8+), so the "
             "legacy state this migration repairs cannot be constructed here — the "
@@ -321,7 +322,7 @@ async def test_migrating_an_existing_install_drops_the_co_ownership(
     await setup_integration(hass, global_entry, obj_entry)
 
     after = dr.async_get(hass).async_get(device.id)
-    assert obj_entry.entry_id not in after.config_entries, "the stale co-ownership survived the migration"
+    assert obj_entry.entry_id not in device_owner_ids(after), "the stale co-ownership survived the migration"
     assert hass.config_entries.async_get_entry(obj_entry.entry_id).minor_version >= 5
 
 
@@ -489,7 +490,7 @@ async def test_the_production_update_path_keeps_a_live_link(
         dr.async_get(hass).async_update_device(device.id, add_config_entry_id=obj_entry.entry_id)
     except RuntimeError:
         pytest.skip("this HA cannot stage the legacy co-owned state (2026.9+)")
-    if obj_entry.entry_id not in dr.async_get(hass).async_get(device.id).config_entries:
+    if obj_entry.entry_id not in device_owner_ids(dr.async_get(hass).async_get(device.id)):
         pytest.skip("this HA cannot stage the legacy co-owned state (2026.8+)")
 
     await setup_integration(hass, global_entry, obj_entry)
@@ -497,7 +498,7 @@ async def test_the_production_update_path_keeps_a_live_link(
     for round_no in (1, 2):
         after = dr.async_get(hass).async_get(device.id)
         assert after is not None, f"round {round_no}: the appliance's device was removed"
-        assert obj_entry.entry_id not in after.config_entries, f"round {round_no}: co-ownership survived"
+        assert obj_entry.entry_id not in device_owner_ids(after), f"round {round_no}: co-ownership survived"
         stored = hass.config_entries.async_get_entry(obj_entry.entry_id).data[CONF_OBJECT]
         assert stored.get("ha_device_id") == device.id, f"round {round_no}: the stored link changed"
         ours = [

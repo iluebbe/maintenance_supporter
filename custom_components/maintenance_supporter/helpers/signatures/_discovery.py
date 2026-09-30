@@ -127,7 +127,9 @@ def _appliance_type(hass: HomeAssistant, device: Any, integration: str, key: str
     device (WashData: ``device_type``) — options first, then data."""
     if not key or device is None:
         return None
-    for entry_id in getattr(device, "config_entries", ()) or ():
+    from ..device_link import device_owner_ids
+
+    for entry_id in device_owner_ids(device):
         entry = hass.config_entries.async_get_entry(entry_id)
         if entry is not None and entry.domain == integration:
             value = entry.options.get(key, entry.data.get(key))

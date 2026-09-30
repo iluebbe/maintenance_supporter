@@ -142,16 +142,32 @@ def resolve_linked_device_id(
     return None
 
 
-def _is_ours(device: dr.DeviceEntry, own_entry_id: str) -> bool:
-    """Whether this device belongs to our config entry.
+_NO_SINGULAR = object()
 
-    2026.8 introduces the singular `config_entry_id` while keeping the plural
-    `config_entries` for compatibility; check both rather than betting on which
-    one a given version exposes.
+
+def device_owner_ids(device: object) -> tuple[str, ...]:
+    """The config entries a registry device belongs to — the ONE reader.
+
+    Home Assistant 2026.8 gave a device exactly one config entry
+    (``config_entry_id``) and kept the plural ``config_entries`` as a compat
+    property: silent on 2026.8/2026.9, reported from 2026.10 (a log warning
+    that asks the user to file a bug with us; it stops working in 2027.10),
+    and the only spelling 2026.7 has. So the plural is read only where the
+    singular does not exist — never merely because it is None (a device
+    without any config entry).
+
+    Typed ``object``: HA 2026.9 registry lookups return ``DeviceEntry |
+    ChildDeviceEntry``, a union 2026.7 cannot import.
     """
-    if own_entry_id in (getattr(device, "config_entries", None) or ()):
-        return True
-    return bool(getattr(device, "config_entry_id", None) == own_entry_id)
+    single = getattr(device, "config_entry_id", _NO_SINGULAR)
+    if single is not _NO_SINGULAR:
+        return (single,) if isinstance(single, str) and single else ()
+    return tuple(getattr(device, "config_entries", None) or ())
+
+
+def _is_ours(device: dr.DeviceEntry, own_entry_id: str) -> bool:
+    """Whether this device belongs to our config entry."""
+    return own_entry_id in device_owner_ids(device)
 
 
 def _only_ours(device: object, own_entry_id: str) -> bool:
@@ -167,10 +183,7 @@ def _only_ours(device: object, own_entry_id: str) -> bool:
     import. The body is getattr-based anyway (the 2026.8 spelling split),
     so any registry entry shape works.
     """
-    owners = set(getattr(device, "config_entries", None) or ())
-    if single := getattr(device, "config_entry_id", None):
-        owners.add(single)
-    return owners == {own_entry_id}
+    return set(device_owner_ids(device)) == {own_entry_id}
 
 
 def is_maintenance_device(hass: HomeAssistant, device: object) -> bool:
@@ -180,9 +193,8 @@ def is_maintenance_device(hass: HomeAssistant, device: object) -> bool:
     registry lookups return ``DeviceEntry | ChildDeviceEntry``.
 
     Our own devices always carry a ``(DOMAIN, …)`` identifier; the owning-entry
-    check additionally catches forks that copied a foreign identity. Both the
-    plural ``config_entries`` (classic) and the singular ``config_entry_id``
-    (HA 2026.8) spellings are consulted. Used to keep such devices out of the
+    check additionally catches forks that copied a foreign identity
+    (:func:`device_owner_ids` reads either spelling). Used to keep such devices out of the
     device-link surfaces: linking an object to a maintenance device is never
     meaningful (object hierarchy has ``parent_entry_id``).
     """
@@ -190,12 +202,9 @@ def is_maintenance_device(hass: HomeAssistant, device: object) -> bool:
 
     if any(ident[0] == DOMAIN for ident in (getattr(device, "identifiers", None) or ())):
         return True
-    owner_ids = list(getattr(device, "config_entries", None) or ())
-    if single := getattr(device, "config_entry_id", None):
-        owner_ids.append(single)
     return any(
         (ce := hass.config_entries.async_get_entry(ce_id)) is not None and ce.domain == DOMAIN
-        for ce_id in owner_ids
+        for ce_id in device_owner_ids(device)
     )
 
 

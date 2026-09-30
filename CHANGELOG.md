@@ -85,9 +85,18 @@ All notable changes to Maintenance Supporter are documented in this file.
   untyped parameter hidden behind an ignore is typed, the triggers take a protocol instead of the concrete sensor, and
   every `type: ignore` for a re-export or a missing stub is gone. The frontend tests are type-checked in CI as well —
   which found three tests whose mock answers were never installed (`handler:` for `handlers:`).
+- **Checked against the Home Assistant 2026.10 beta:** the whole test suite runs on 2026.10.0b0. Core replaces
+  voluptuous with probatio there and aliases `import voluptuous` to it at runtime, so nothing changes for users; the
+  type check now treats voluptuous as untyped, which keeps one code base checking against 2026.7 through 2026.10.
+  Repair flows are typed with `RepairsFlowResult`, and the move test seeds an owner first (2026.10 makes the first
+  user the owner, who cannot be removed).
 
 ### 🐛 Fixed
 
+- **Home Assistant 2026.10 would log a warning asking you to report a bug:** the integration read a device's
+  `config_entries`, which 2026.10 deprecates because a device now belongs to exactly one config entry (it stops
+  working in 2027.10). Every read goes through one helper that uses `config_entry_id` where Home Assistant has it
+  (2026.8 and later) and the old field only on 2026.7.
 - **A replaced object kept watching the retired machine:** *Replace object* copied the old unit's device link, so the
   new unit's tasks read the old unit's sensors and pressed its reset button. See *Added*.
 - **Discovery could treat the retired object as the device's owner:** after a replacement that kept the device, the

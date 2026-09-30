@@ -1091,13 +1091,11 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         """
         found: list[ConfigEntry] = []
         seen: set[str] = set()
-        # 2026.8 gives a device exactly one config entry (`config_entry_id`);
-        # the plural `config_entries` is a silently-deprecated compat shim
-        # there — no report_usage, so the deprecation gate cannot see it — and
-        # the only spelling 2026.7 has. Prefer the singular where it exists.
-        single = getattr(device, "config_entry_id", None)
-        owner_ids = (single,) if single is not None else tuple(getattr(device, "config_entries", ()) or ())
-        for ce_id in owner_ids:
+        # One config entry per device since 2026.8 (the plural is reported
+        # from 2026.10) — helpers.device_link.device_owner_ids reads it.
+        from .helpers.device_link import device_owner_ids
+
+        for ce_id in device_owner_ids(device):
             ce = hass.config_entries.async_get_entry(ce_id)
             if ce is not None and ce.domain == DOMAIN and ce.unique_id != GLOBAL_UNIQUE_ID:
                 found.append(ce)

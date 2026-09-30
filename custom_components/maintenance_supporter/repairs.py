@@ -14,8 +14,7 @@ from collections.abc import Mapping
 from typing import Any, cast
 
 import voluptuous as vol
-from homeassistant import data_entry_flow
-from homeassistant.components.repairs import RepairsFlow
+from homeassistant.components.repairs import RepairsFlow, RepairsFlowResult
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import selector
 
@@ -173,7 +172,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         }
     """
 
-    async def async_step_init(self, user_input: dict[str, str] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_init(self, user_input: dict[str, str] | None = None) -> RepairsFlowResult:
         """Show a menu with repair options."""
         issue_data = self.data or {}
         return self.async_show_menu(
@@ -186,7 +185,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             },
         )
 
-    async def async_step_replace_entity(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_replace_entity(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         """Let the user pick a replacement entity."""
         issue_data = self.data or {}
 
@@ -218,7 +217,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             },
         )
 
-    async def async_step_remove_trigger(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_remove_trigger(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         """Confirm removal of the trigger (convert to time_based or manual)."""
         issue_data = self.data or {}
 
@@ -240,7 +239,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             },
         )
 
-    async def async_step_dismiss(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_dismiss(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         """Dismiss the issue (it will reappear if entity is still missing)."""
         return self.async_create_entry(data={})
 
@@ -464,7 +463,7 @@ class OrphanAdminPanelUserRepairFlow(RepairsFlow):
         }
     """
 
-    async def async_step_init(self, user_input: dict[str, str] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_init(self, user_input: dict[str, str] | None = None) -> RepairsFlowResult:
         """Show a confirmation form, then remove on submit."""
         issue_data = self.data or {}
         if user_input is not None:
@@ -477,7 +476,7 @@ class OrphanAdminPanelUserRepairFlow(RepairsFlow):
             },
         )
 
-    async def async_step_remove_user_id(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_remove_user_id(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         """Remove the orphaned id from admin_panel_user_ids and persist."""
         issue_data = self.data or {}
         entry = _entry_for_issue(self.hass, issue_data)
@@ -511,7 +510,7 @@ class StaleActionEntityRepairFlow(RepairsFlow):
         }
     """
 
-    async def async_step_init(self, user_input: dict[str, str] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_init(self, user_input: dict[str, str] | None = None) -> RepairsFlowResult:
         return self.async_show_menu(
             step_id="init",
             menu_options=["replace_entity", "remove_action"],
@@ -521,7 +520,7 @@ class StaleActionEntityRepairFlow(RepairsFlow):
             },
         )
 
-    async def async_step_replace_entity(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_replace_entity(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         if user_input is not None:
             entry = self._entry()
             if entry is None:
@@ -544,7 +543,7 @@ class StaleActionEntityRepairFlow(RepairsFlow):
             },
         )
 
-    async def async_step_remove_action(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_remove_action(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         if user_input is not None:
             entry = self._entry()
             if entry is None:
@@ -590,7 +589,7 @@ class DocumentStorageRepairFlow(RepairsFlow):
     reappears. To leave things alone, use HA's built-in **Ignore** button.
     """
 
-    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         """Confirm, then reclaim orphaned/dangling storage on submit."""
         if user_input is not None:
             from . import DOCUMENT_STORE_KEY
@@ -608,7 +607,7 @@ class LeftoverAreasRepairFlow(RepairsFlow):
     2.96 (helpers/area_leftovers). Only areas still empty when the user
     submits are removed; to keep them, use HA's **Ignore** button."""
 
-    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         """Name the areas, remove them on submit."""
         from homeassistant.helpers import area_registry as ar
 
@@ -638,7 +637,7 @@ class MissingGlobalEntryRepairFlow(RepairsFlow):
     built-in **Ignore** button.
     """
 
-    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         """Confirm, then recreate the global entry on submit."""
         if user_input is not None:
             from homeassistant.config_entries import SOURCE_IMPORT
@@ -670,7 +669,7 @@ class DeviceLinkRepairFlow(RepairsFlow):
     _match_cached = False
     _match: Any = None
 
-    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         entry = _entry_for_issue(self.hass, self.data)
         if entry is None:
             return self.async_abort(reason="entry_gone")
@@ -680,7 +679,7 @@ class DeviceLinkRepairFlow(RepairsFlow):
             description_placeholders=self._placeholders(entry),
         )
 
-    async def async_step_relink(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_relink(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         from homeassistant.helpers import device_registry as dr
 
         from .helpers.device_link import is_maintenance_device
@@ -710,7 +709,7 @@ class DeviceLinkRepairFlow(RepairsFlow):
             description_placeholders=self._placeholders(entry),
         )
 
-    async def async_step_unlink(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+    async def async_step_unlink(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         entry = _entry_for_issue(self.hass, self.data)
         if entry is None:
             return self.async_abort(reason="entry_gone")

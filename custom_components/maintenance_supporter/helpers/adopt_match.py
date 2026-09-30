@@ -89,9 +89,11 @@ def _attr(device: Any, name: str) -> str:
 
 
 def _integration_of(hass: HomeAssistant, device: Any) -> set[str]:
+    from .device_link import device_owner_ids
+
     return {
         e.domain
-        for eid in getattr(device, "config_entries", ()) or ()
+        for eid in device_owner_ids(device)
         if (e := hass.config_entries.async_get_entry(eid)) is not None
     }
 
