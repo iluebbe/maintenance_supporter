@@ -9,7 +9,7 @@ Confidence on every interval below is **rule-of-thumb** — present them that wa
 and invite the user to adjust for their household. Safety items first.
 
 > **Check the shipped templates first.** `maintenance_supporter/templates`
-> returns **95** curated object templates (smoke detectors, espresso machine,
+> returns 95 object templates, curated (smoke detectors, espresso machine,
 > aquarium, robot mower, security camera, CPAP …) with their tasks and interval
 > defaults already chosen and localized; `object/from_template` creates the
 > object and all its tasks in one call. Hand-build from the table below only
@@ -36,6 +36,7 @@ and invite the user to adjust for their household. Safety items first.
 | Vacuum cleaner | Empty/clean, wash filter | 1–3 months | Replace bags as needed |
 | Robot vacuum | Replace brushes/filter | 2–6 months | Often has cycle sensors → `counter` |
 | Gutters | Clean | 6 months | Spring + autumn (`nth_weekday`/seasonal) |
+| Waste bins | Put the bins out | per collection | `schedule: {"kind": "calendar", "entity_id": "calendar.…"}` on the waste-collection calendar — due once per pickup |
 | Boiler / heating | Annual service | 12 months | Often a legal/insurance requirement |
 | Chimney / flue | Sweep | 12 months | Per local regulation |
 | Windows/doors | Lubricate hinges, check seals | 12 months | |

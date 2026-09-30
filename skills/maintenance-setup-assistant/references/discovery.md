@@ -4,8 +4,9 @@ How to turn a Home Assistant instance into a ranked list of maintenance objects
 and tasks. All discovery is **read-only**. You propose; the user decides.
 
 > **Run the shipped discovery first.**
-> `maintenance_supporter/integration_setups/discover` (225 integrations / 484
-> source-verified signatures, triggers pre-wired) and
+> `maintenance_supporter/integration_setups/discover` (225 integrations /
+> 484 signatures, each verified against the integration's source, triggers
+> pre-wired) and
 > `maintenance_supporter/problem_sensors/discover` already answer "which device
 > needs what" for everything they cover — server-side, with better wiring than
 > any state heuristic. The heuristics below are for the **remainder**: devices

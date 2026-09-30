@@ -78,6 +78,11 @@ admin) — do not try to change the allowlist yourself.
 3. Read `maintenance_supporter/objects` once to learn what already exists (match
    by object name — names must be unique after slugification, so you'd get
    `create_failed` on a collision).
+4. **Moving from another Home Assistant?** Don't rebuild by hand: the user
+   exports there (objects, settings, documents ZIP) and imports here
+   (`json/import`, admin; the ZIP over HTTP). People are matched by name and
+   devices by their integration identifiers, so the users and integrations
+   should exist here first — see "Backup / migration" in the API reference.
 
 ### Phase 2 — Discover maintenance candidates
 
@@ -118,9 +123,10 @@ candidates by area/device and rank by confidence.
 have maintenance that never appears in any registry — range-hood filters,
 descaling, smoke-detector batteries, HVAC filters, gutter cleaning. Call
 `maintenance_supporter/templates` (pass the user's `language`): the integration
-ships **95 curated object templates**, each with its tasks, types and interval
-defaults already chosen and localized, and `object/from_template` creates the
-object plus all of its tasks in one call. Match a candidate to a template
+ships 95 object templates, curated, each with its tasks, types and interval
+defaults already chosen and localized (and `recommended` / `reasons` for
+this home — basics for the dwelling, climate, detected equipment), and
+`object/from_template` creates the object plus all of its tasks in one call. Match a candidate to a template
 whenever one fits and propose the template; skip templates flagged
 `disabled: true` (the admin hid those). Only for classes with **no** template do
 you hand-build from the curated catalog in
@@ -160,6 +166,17 @@ Documents feature. Do not fabricate model numbers or intervals.
      `interval_unit`. A **sensor trigger** is `trigger_config`. A task can carry
      both (sensor trigger + a safety calendar interval).
    - `task_type` is the wire key (stored as `type`); `schedule_type` is separate.
+   - Omit `warning_days` to use the household's default setting.
+   - Who does it: `responsible_user_id`, or `assignee_pool` +
+     `rotation_strategy` for a chore that rotates (ids from `users/list`).
+   - Name tasks the way people say them ("Water filter", not "WF-2000 swap"):
+     voice assistants find a task by its spoken name.
+   - Checklists, completion actions, adaptive scheduling and a time of day
+     (`schedule_time`) are behind *Advanced Features* switches
+     (`advanced_*_visible`). The first three work regardless but stay hidden
+     in the panel's dialog; `schedule_time` is ignored outright while its
+     switch is off. If you use them, propose switching the matching one on
+     (step 4).
 2. Send the whole batch with `"dry_run": true`. Collect every `valid`/error and
    `warnings`. Show the user the dry-run result verbatim. A task dry-run needs
    an object that already exists (`task/create` looks up its `entry_id` first,
@@ -170,7 +187,8 @@ Documents feature. Do not fabricate model numbers or intervals.
    Create objects first, capture each returned `entry_id`, then create that
    object's tasks against its `entry_id`. Stop and report if any create fails
    (e.g. `create_failed` = duplicate name).
-4. Global settings (notifications, weekly digest) go through `global/update`
+4. Global settings (notifications, weekly digest, the Advanced Features
+   switches, `install_assist_sentences` for voice) go through `global/update`
    (**admin-only**) — propose these separately and only after the user opts in.
 
 ### Phase 5 — Verify & hand off
@@ -182,6 +200,12 @@ Documents feature. Do not fabricate model numbers or intervals.
 3. Summarize what was configured, and **explicitly list what needs a human
    decision**: intervals you guessed, sensors you weren't sure about, devices you
    skipped, and any manufacturer lookups still pending.
+4. Mention **voice**: Assist can now answer "what maintenance is due?", "what is
+   due this week?", complete, skip or postpone a task, record a meter reading,
+   say whose turn it is, what to buy and which batteries are low — and "undo
+   that". LLM-based Assist gets this automatically; Home Assistant's classic
+   agent needs the `install_assist_sentences` setting (English, German, French,
+   Spanish, Italian, Dutch).
 
 ---
 
@@ -212,4 +236,6 @@ Everything with no usable sensor → a **time-based** task (`interval_days` +
 
 ## Guardrails recap
 Confirm before every write · never invent intervals silently · keep the token
-safe · prefer proposing over applying · dry-run first · cite sources.
+safe · prefer proposing over applying · dry-run first · cite sources · never
+complete, skip or reset tasks on your own, and never send `via_tag_scan` — it
+asserts that someone scanned the tag at the thing.

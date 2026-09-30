@@ -13,9 +13,10 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All **102** registered commands are covered here. Their authorization tiers are
-frozen in `tests/test_ws_permission_matrix.py` — that test is the inventory of
-record; this file is its prose companion.
+All 102 WebSocket commands the integration registers are covered here. Their
+authorization tiers are frozen in `tests/test_ws_permission_matrix.py` — that
+test is the inventory of record; this file is its prose companion (and
+`tests/test_docs_counts_in_sync.py` keeps the counts quoted here honest).
 
 ## Length caps (silently enforced server-side)
 
@@ -33,21 +34,23 @@ through (e.g. free-form maps).
 ## Authorization
 
 - `@require_write` (admin **or** allowlisted operator): all object/task
-  create/update/delete/duplicate/archive/unarchive, `object/from_template`,
+  create/update/delete/duplicate/archive/unarchive, `object/{pause,resume,replace}`,
+  `object/from_template`, `task/move`, `task/set_adaptive`,
   `task/assign_user`, `task/history/update`, `task/history/delete`, `task/apply_suggestion`,
   `task/seasonal_overrides`, `task/set_environmental_entity`, `part/*`,
   `documents/{add_link,update,delete}`, `group/{create,update,delete}`,
   `views/{save,delete}`, `problem_sensors/adopt`,
-  `integration_setups/adopt`, `battery_fleet/{setup,mark_replaced,set_excluded,set_included,set_track_self_charging,set_due_without_sensor,record_replacement}`.
+  `integration_setups/{adopt,wire_resets}`, `battery_fleet/{setup,mark_replaced,set_excluded,set_included,set_track_self_charging,set_due_without_sensor,record_replacement}`.
 - `@require_admin` (admin only): `reference_numbers/compact` (2.88), `global/update`, `global/test_notification`,
   `notify/user_targets`,
-  bulk import **and export** (`export`, `csv/export`, `json/import`,
-  `csv/import`), vacation writes (`vacation/update`, `vacation/end_now`).
+  bulk import **and export** (`export`, `csv/export`, `settings/export`,
+  `json/import`, `csv/import`), vacation writes (`vacation/update`, `vacation/end_now`).
   **The escalation boundary** — an operator can never enable
   `operator_write_enabled` or edit `admin_panel_user_ids`.
 - No gate (any authenticated user): all read commands + `task/complete`,
   `task/quick_complete`, `task/skip`, `task/reset`, `task/postpone`,
-  `task/snooze`, `task/checklist_progress`, `documents/discard_upload`.
+  `task/snooze`, `task/checklist_progress`, `task/set_phase`,
+  `documents/discard_upload` — the household actions every member may take.
 
 Operator writes require: admin set `operator_write_enabled: true` **and** added
 the user to `admin_panel_user_ids`. Otherwise non-admins are denied.
@@ -218,8 +221,8 @@ borrower and repoints the other links. Parts ride the `objects` payload
                                "schedule_type":"time_based",
                                "interval_days":90,"warning_days":7} ] } ] }
 ```
-**Call this before hand-building anything.** The integration ships **95**
-curated object templates (heating, heat pump, frost protection, garden,
+**Call this before hand-building anything.** The integration ships 95 object templates,
+curated (heating, heat pump, frost protection, garden,
 vehicle, health, …), each with its tasks, types and interval defaults already
 chosen and localized. It is the only way to enumerate the `template_id` values
 `object/from_template` consumes. `disabled: true` = the admin hid it from the
@@ -268,12 +271,19 @@ localizes the created object and task names, else the server language. `object/d
   "interval_unit": "days",             // days|weeks|months|years (default days)
   "interval_anchor": "completion",     // completion|planned
   "due_date": "2026-08-01",            // for one_time
-  "warning_days": 7,                   // 0..365, default 7 (lead time before due)
+  "schedule": { … },                   // nested recurrence instead of the flat keys — calendar kinds, see "Time / calendar recurrence"
+  "warning_days": 7,                   // 0..365; omitted = the default_warning_days setting (lead time before due)
+  "earliest_completion_days": 14,      // 0..3650 | null: completing is refused (too_early) until this many days before due
   "last_performed": "2026-05-01",      // YYYY-MM-DD | null; seeds a completed history entry
   "trigger_config": { … },             // sensor trigger, see below | null
   "notes": "…",                        // ≤2000
   "documentation_url": "https://…",    // http/https
   "responsible_user_id": "<ha_user_id>",
+  "assignee_pool": ["<user_id>", "…"], // ≤25 HA user ids; with rotation_strategy the duty rotates on each completion
+  "rotation_strategy": "round_robin",  // round_robin|least_completed|random | null (needs ≥2 in the pool)
+  "required_completion_fields": ["notes"], // subset of notes|cost|duration|photo|user — no-prompt surfaces (buttons, NFC, voice) then refuse
+  "priority": "normal",                // low|normal|high (named first within the same due day; filterable)
+  "labels": ["garden"],                // ≤25 × ≤40 chars, free tags (filters, notification scope)
   "entity_slug": "filter_replace",     // [a-z0-9_]+, ≤64, else invalid_entity_slug
   "custom_icon": "mdi:air-filter",     // per-task icon
   "nfc_tag_id": "…",                   // duplicate = warning, not error
@@ -282,16 +292,28 @@ localizes the created object and task names, else the server language. `object/d
   "notify_enabled": true,              // #173: false = no reminders for this task (status, repeats, lead-time, bundles); stored only when false
   "notify_icon": "mdi:air-filter",     // #185: push-notification icon override (mdi:…, ≤64); null/"" = the maintenance type's default; malformed = invalid_icon
   "checklist": ["Turn off power", "…"],// ≤100 items, each ≤500
+  "reading_unit": "kWh",               // reading tasks — see "Meter readings" (also `readings` slots)
+  "consumes_parts": [{"part_id": "p1", "quantity": 1}], // see "Spare parts"
+  "mirror_todo_entities": ["todo.household"], // ≤5 todo.* lists the task is mirrored into while due (D#183)
+  "on_complete_action": {"service": "counter.reset", "target": {"entity_id": "counter.x"}, "data": {}},
+                                       // HA service called after each (non-backfill) completion; a privileged domain drops the action on save
+  "quick_complete_defaults": {"notes": "…", "cost": 0}, // what task/quick_complete (and the quick-complete QR) records
   "phases": {                          // #139 cycle phases (≤10 defs) | null clears
     "flip":    { "name": "Flip blades" },            // per-phase overrides (optional):
     "replace": { "name": "Replace blades",           //   checklist, consumes_parts,
                  "consumes_parts": [{"part_id": "p1", "quantity": 9}] } //   required_completion_fields
   },
   "phase_sequence": ["flip","flip","replace"],  // ≤12 steps, ids from phases; repeats OK
-  "schedule_time": "08:00",            // strict HH:MM
+  "schedule_time": "08:00",            // strict HH:MM — IGNORED while the advanced_schedule_time_visible setting is off
   "enabled": true,
   "dry_run": true }
 ```
+`on_complete_action` / `quick_complete_defaults` shapes and the refused
+domains: docs/CONFIGURATION.md. Several of these fields are hidden in the
+panel's task dialog until the matching *Advanced Features* switch is on
+(`advanced_*_visible`, see Settings below) — they work regardless, except
+`schedule_time`, which the coordinator strips while its switch is off.
+
 Result: `{"task_id": "<uuid>"}` (+ `"warnings"` maybe). Dry-run:
 `{"valid": true, "task_id": null}`. Errors: `invalid_input`,
 `invalid_trigger_config`, `invalid_url`, `invalid_entity_slug`, `invalid_format`.
@@ -331,14 +353,14 @@ links stay with the source object. Errors: `not_found`, `invalid_target`
 (same object / archived target), `limit_reached`.
 
 ### Task actions (no write gate)
-- `task/complete` `{entry_id, task_id, notes?, cost? (0..1e6), duration? (min, 0..525600), checklist_state? {str:bool}, feedback? (needed|not_needed|not_sure), photo_doc_ids? [doc id, max 10]}` → `{"success": true}` — photos are documents uploaded beforehand via `POST /api/maintenance_supporter/document/upload` (multipart `entry_id`, `tags=photo`, `file`); the history entry stores them as `photo_doc_ids` (entries written before 2.75 carry a single `photo_doc_id`, still accepted on input) — refused with `tag_scan_required` when the task has `require_tag_scan` (only the NFC handler, `task/quick_complete` and the `complete` service with `via_tag_scan: true` pass)
+- `task/complete` `{entry_id, task_id, notes?, cost? (0..1e6), duration? (min, 0..525600), checklist_state? {str:bool}, feedback? (needed|not_needed|not_sure), photo_doc_ids? [doc id, max 10]}` → `{"success": true}` — photos are documents uploaded beforehand via `POST /api/maintenance_supporter/document/upload` (multipart `entry_id`, `tags=photo`, `file`); the history entry stores them as `photo_doc_ids` (entries written before 2.75 carry a single `photo_doc_id`, still accepted on input) — refused with `tag_scan_required` when the task has `require_tag_scan` (only the NFC handler, `task/quick_complete` and the `complete` service with `via_tag_scan: true` pass). Also takes `completed_at` (see *Backdated completions*), `reading_value` / `reading_values` (*Meter readings*), `used_parts` (*Spare parts*) and `restock_quantity` (a buy task). `via_tag_scan: true` exists here too — it is the panel's QR deep-link fallback and ASSERTS that someone scanned the tag at the thing: an assistant must never send it. Other refusals: `too_early` (completion window), `completion_details_required` (required fields), `task_inactive` (archived / disabled / paused)
 - `task/quick_complete` `{entry_id, task_id}` → `{"success": true, "via": "quick"}` (needs stored `quick_complete_defaults`, else `no_defaults`)
 - `task/checklist_progress` `{entry_id, task_id, checklist_state (req, {item text: bool})}` →
   `{"success": true, "checklist_state": {...}}` — persists in-cycle ticks WITHOUT
   completing (#73). The dict REPLACES the stored progress; unknown items are
   dropped; completing or skipping clears it. Echoed on every task as
   `checklist_progress`.
-- `task/skip` `{entry_id, task_id, reason?}` — refused with `skip_disabled` when the task sets `allow_skip: false`
+- `task/skip` `{entry_id, task_id, reason?, as_missed?}` — `as_missed: true` records the cycle as *missed* rather than skipped (an already overdue task is recorded as missed either way); refused with `skip_disabled` when the task sets `allow_skip: false`
 - `task/reset` `{entry_id, task_id, date?}` (ISO)
 - `task/set_phase` `{entry_id, task_id, cursor (req, int ≥0)}` → `{"success": true}` (read the new cursor from the task) —
   re-points a phased task's cycle cursor (#139: mis-click repair, mid-cycle
@@ -347,11 +369,13 @@ links stay with the source object. Errors: `not_found`, `invalid_target`
   this is only for corrections.
 - `task/postpone` `{entry_id, task_id, until (req, YYYY-MM-DD)}` → `{"success": true}` —
   defers **this occurrence only** to a chosen date; the recurrence itself is untouched.
-  Bad date → `invalid_date`.
+  Bad date, or one more than 3650 days out → `invalid_date` (the latter with
+  translation key `postpone_too_far`; since 2.96 the limit holds on every
+  surface, voice included).
 - `task/snooze` `{entry_id, task_id}` → `{"success": true}` — silences due-soon /
   overdue / triggered reminders for the configured `snooze_duration_hours`.
-  Changes neither schedule nor status, and is in-memory only (a full HA restart
-  forgets it). Without a configured notifier → `unavailable`.
+  Changes neither schedule nor status; the snooze is stored and survives a
+  restart. Without a configured notifier → `unavailable`.
 - `task/assign_user` `{entry_id, task_id, user_id|null}` — `@require_write`; `null` unassigns; unknown user → `invalid_user`
 
 ### `task/list` — read
@@ -497,13 +521,14 @@ For most setup work, `interval_days` + `interval_unit` is all you need.
 ## Read & settings
 
 ### `version`
-→ `{version:"2.42.1"}` — the installed integration (manifest) version. The
+→ `{version:"2.95.0"}` — the installed integration (manifest) version. The
 panel uses it for the stale-bundle handshake; useful for the assistant to
 report/verify what is running.
 
 ### `statistics`
-→ `{total_objects,total_tasks,overdue,due_soon,triggered,total_cost}`. Use to
-verify counts before/after.
+→ `{total_objects, total_tasks, overdue, due_soon, triggered, ok, total_cost,
+budget: {currency, currency_symbol, currency_decimals}, summary_entity_ids:
+{overdue, due_soon, triggered, ok}}`. Use to verify counts before/after.
 
 ### `subscribe` — read — live push
 `{deltas?, compact?}` → an immediate empty result, then a stream of `event`
@@ -605,6 +630,27 @@ values dropped. Keys relevant to setup:
   as `currency_decimals` in `budget_status` and in `statistics.budget`
   (`{currency, currency_symbol, currency_decimals}`, new in 2.84)
 - `operator_write_enabled` (bool), `admin_panel_user_ids` (list[str]) — governance
+- `advanced_{adaptive,seasonal,environmental,budget,groups,checklists,schedule_time,completion_actions}_visible`
+  (bool, all default false) — the *Advanced Features* switches: they show the
+  matching sections in the panel. If you create tasks that use checklists,
+  completion actions, adaptive scheduling or `schedule_time`, propose switching
+  the matching one on; `schedule_time` has no effect at all while its switch is off.
+- `install_assist_sentences` (bool; 2.44) — copies the shipped Assist sentences
+  (en, de, fr, es, it, nl) into `config/custom_sentences/` so Home Assistant's
+  classic voice agent understands the maintenance commands; LLM agents need
+  nothing (see *Voice* below)
+- `home_type` (`auto` | `house` | `apartment`) and `home_region` (`auto` or a
+  region code; 2.94) — what `templates` recommends; `disabled_template_ids`
+  (list) hides templates from the pickers
+- `snooze_duration_hours` (1..168), `reminder_lead_days` (≤10 days-before-due
+  values, e.g. `[14, 3, 0]`, one extra reminder each), `max_notifications_per_day` (0..1000),
+  `notification_bundling_enabled` + `notification_bundle_threshold` (2..20),
+  `action_{complete,skip,snooze}_enabled` (the mobile notification buttons,
+  default off), `warranty_reminder_enabled` + `warranty_reminder_days` (1..365)
+- `archive_oneoff_days` / `delete_archived_oneoff_days` (0..3650) — tidy-up of
+  finished one-time tasks
+
+The complete list with defaults (64 keys): docs/CONFIGURATION.md.
 
 Propose settings changes separately and only after the user opts in; they need
 an admin token.
@@ -658,8 +704,11 @@ anything printed — the panel asks for a confirm; the assistant must too.
 (serialized string). `entry_ids` (optional) narrows to a selection of object
 entries — a **selective** export to move one asset between installs; omit for
 all. Carries every persisted field incl. parts+stock, consumes_parts, nested
-schedule (season/ends/due_override), archived_at/created_at. Document file
-*contents* are NOT here (see the documents archive below) — only metadata.
+schedule (season/ends/due_override), archived_at/created_at. Since 2.96 it
+also names what ids cannot carry to another instance: `users` ({user id:
+name}) and `devices` ({device id: the device's integration identifiers /
+connections}). Document file *contents* are NOT here (see the documents
+archive below) — only metadata.
 
 ### `csv/export` — admin — flat CSV
 `{entry_ids?:[...]}` → `{csv}`. One row per task, object columns repeated
@@ -673,8 +722,14 @@ reduced view: no parts / history / nested-schedule extras (tabular by design
 admin-gated.
 
 ### `json/import` — admin — restore JSON **or YAML**
-`{json_content:str}` (accepts JSON and YAML) → `{created, errors, ...}`. New ids
-are generated; parts/consumes links are remapped. Selective because it restores
+`{json_content:str}` (accepts JSON and YAML) → `{imported: [{entry_id, name,
+task_count, warnings?}], total, created, errors?, settings_applied?,
+unmatched_users?}`. New ids are generated; parts/consumes links are remapped.
+People are matched **by name** to the users of this instance (assignments,
+rotations, "completed by" — create those users first; `unmatched_users` lists
+the ones that matched nobody, and their assignments are removed) and devices
+by their integration identifiers (set the integrations up first). A value of
+the wrong type is dropped with a warning instead of aborting the object (2.96). Selective because it restores
 exactly the objects present in the payload. A payload may also (or only)
 carry a `global_settings` section (from `settings/export`) — applied through
 the same validation as `global/update`; the response then adds
@@ -693,8 +748,11 @@ target) stay out. Re-import via
 
 ### Documents archive (ZIP with file contents) — HTTP, admin
 Not WebSocket — the blobs are binary. `GET /api/maintenance_supporter/documents/archive`
-(optional `?entry_ids=a,b`) streams a ZIP (`manifest.json` + `blobs/<sha256>`);
-fetch via a signed path (`auth/sign_path`). `POST` the same URL with multipart
+(optional `?entry_ids=a,b`) streams a ZIP a person can browse too (version 2,
+2.96): `README.txt`, `manifest.json`, one folder per object with its files
+under their category (`Family Car/Manuals/…pdf`), completion photos in their
+task's folder named by the day, web links in `Links.txt`. Version-1 archives
+(`blobs/<sha256>`) still import. Fetch via a signed path (`auth/sign_path`). `POST` the same URL with multipart
 `file=<zip>` restores blobs and re-attaches metadata (matches objects by id,
 then by name for a cross-instance restore; idempotent). This is the one export
 that carries uploaded file *contents* — pair it with a JSON export for a
@@ -994,6 +1052,19 @@ effect as `mark_replaced`. Native (non-Battery-Notes) rows and rechargeables
 are skipped (`recorded: false`). The fleet task itself carries no part links;
 a `consumes_parts` link left on it is ignored on fleet completions (2.88).
 Errors: `not_found`, `not_configured`.
+
+## Voice — Assist intents (not WebSocket)
+
+Nothing to call here, but worth telling the user at hand-off: the integration
+registers 15 Assist intents (what is due — overall, overdue, this week, in a
+room, mine, here —, complete, skip, postpone, snooze, instructions, due date,
+part stock, record a reading, add a note, whose turn, what to buy, bought
+parts, low batteries, undo the last voice action). LLM-based Assist pipelines
+get them as tools automatically, in any language. Home Assistant's classic
+agent needs the `install_assist_sentences` setting (admin) and understands
+English, German, French, Spanish, Italian and Dutch. Names matter here: a task
+is found by what people SAY, so "Water filter" on "Kitchen sink" beats
+"WF-2000 cartridge swap" — suggest spoken-friendly task names.
 
 ## Saved filter views — shared named panel-list filter combinations
 

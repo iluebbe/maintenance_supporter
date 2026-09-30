@@ -34,6 +34,13 @@ _LIVE_DOCS = (
     "docs/EXAMPLES.md",
     "docs/GETTING_STARTED.md",
     "CONTRIBUTING.md",
+    # The LLM setup skill quotes the same counts (templates, catalog,
+    # commands, intents) to an agent that trusts them; it was the one
+    # place nothing checked (skill audit 2026-09-30).
+    "skills/maintenance-setup-assistant/SKILL.md",
+    "skills/maintenance-setup-assistant/references/ws-api.md",
+    "skills/maintenance-setup-assistant/references/discovery.md",
+    "skills/maintenance-setup-assistant/references/non-smart-catalog.md",
 )
 
 

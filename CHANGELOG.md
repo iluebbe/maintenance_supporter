@@ -226,6 +226,14 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 📝 Documentation
 
+- **The LLM setup skill against the code** (`skills/maintenance-setup-assistant/`): the API reference claimed a snooze
+  is forgotten at a restart (it is stored) and never mentioned that `task/complete` takes `via_tag_scan` — an
+  assistant must never assert a tag scan; task fields for rotation, the completion window, priority, labels,
+  required details, to-do mirroring, completion actions and quick-complete defaults were missing from `task/create`,
+  as were `as_missed`, the postpone limit, the import result (people by name, devices by identifiers), the browsable
+  documents ZIP, the Advanced Features switches (`schedule_time` does nothing without its switch) and
+  `install_assist_sentences`. The authorization summary names every command again, and the skill hands off with the
+  voice commands. Its counts are now checked with the other docs.
 - *Moving to another Home Assistant* (FEATURES): which three files to export, the order to import them, how people are
   matched, what stays behind; the "complete, portable backup" line claimed that the objects export carried the
   settings — they are a second file. Contributors: the migration round trip in CONTRIBUTING and `e2e/README.md`.
