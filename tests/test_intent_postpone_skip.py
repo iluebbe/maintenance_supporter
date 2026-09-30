@@ -28,6 +28,7 @@ from custom_components.maintenance_supporter.const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
+from custom_components.maintenance_supporter.helpers.intent_speech import spoken_date
 from custom_components.maintenance_supporter.intent import (
     INTENT_POSTPONE_TASK,
     INTENT_SKIP_TASK,
@@ -102,7 +103,9 @@ async def test_postponing_by_days_moves_the_due_date(hass: HomeAssistant) -> Non
     assert response.error_code is None, _speech(response)
     expected = (date.fromisoformat(before) + timedelta(days=5)).isoformat()
     assert _stored(hass, entry).get("due_override") == expected
-    assert expected in _speech(response)
+    # Said as a date ("October 3"), never read out as ISO (voice audit 2026-09-30).
+    assert spoken_date(date.fromisoformat(expected), "en") in _speech(response)
+    assert expected not in _speech(response)
 
 
 async def test_postponing_an_overdue_task_counts_from_today(hass: HomeAssistant) -> None:
@@ -234,7 +237,8 @@ async def test_the_answer_names_the_new_due_date(hass: HomeAssistant) -> None:
 
     response = await _ask(hass, INTENT_SKIP_TASK, {"name": "oil change"})
 
-    assert _stored(hass, entry)["_next_due"][:10] in _speech(response)
+    next_due = date.fromisoformat(_stored(hass, entry)["_next_due"][:10])
+    assert spoken_date(next_due, "en") in _speech(response)
 
 
 async def test_skipping_an_unknown_task_changes_nothing(hass: HomeAssistant) -> None:

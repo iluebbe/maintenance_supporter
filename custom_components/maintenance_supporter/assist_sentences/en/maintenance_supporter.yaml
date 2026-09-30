@@ -10,15 +10,50 @@
 # Editing your own copy is fine and expected: once its content no longer
 # matches what we wrote, upgrades leave it alone (and so does turning the
 # setting back off).
+#
+# Custom sentences WIN over Home Assistant's built-in ones whenever both
+# match. A sentence that starts with a verb the built-ins also use (skip,
+# pause, mute, complete) followed by a free-text name would swallow "skip
+# this song" or "pause the radio" — so those carry a maintenance word
+# (maintenance, task, chore, reminder, "this time"). A test runs every
+# built-in sentence against this file to keep it that way.
 language: "en"
 intents:
   MaintenanceSupporterListTasks:
     data:
       - sentences:
-          - "what maintenance is (due|overdue)"
-          - "which maintenance [tasks] (are|is) (due|overdue|pending)"
+          - "what maintenance is (due|pending)"
+          - "which maintenance [tasks] (are|is) (due|pending)"
           - "is [there] any maintenance due"
           - "what needs (maintenance|servicing)"
+          - "what (chores|maintenance tasks) are (due|pending)"
+      - sentences:
+          - "what [maintenance] is overdue"
+          - "which [maintenance] (tasks|chores) are overdue"
+          - "is (anything|any maintenance) overdue"
+        slots:
+          status: "overdue"
+      - sentences:
+          - "what [maintenance] is due today"
+          - "what (chores|maintenance tasks) are due today"
+        slots:
+          within_days: 0
+      - sentences:
+          - "what [maintenance] is due tomorrow"
+        slots:
+          within_days: 1
+      - sentences:
+          - "what [maintenance] is due this week"
+          - "what (chores|maintenance tasks) are due this week"
+        slots:
+          within_days: 7
+      - sentences:
+          - "what [maintenance] is due this month"
+        slots:
+          within_days: 30
+      - sentences:
+          - "what [maintenance] is due in [the] {area}"
+          - "what needs (maintenance|servicing) in [the] {area}"
       # Scope: the person asking. HA tells the handler who spoke, so this
       # answers with that user's tasks (and their turn on a rotating chore).
       - sentences:
@@ -39,57 +74,121 @@ intents:
   MaintenanceSupporterCompleteTask:
     data:
       - sentences:
-          - "complete [the] [maintenance] [task] {task_name:name}"
-          - "mark [the] [maintenance] [task] {task_name:name} [as] (done|completed)"
-          - "I (did|finished) [the] {task_name:name}"
+          - "complete [the] (maintenance [task]|task|chore) [for] [the] {task_name:name}"
+          - "complete [the] {task_name:name} (maintenance|task|chore)"
+          - "mark [the] [maintenance] [task|chore] {task_name:name} [as] (done|completed|complete)"
+          - "I('ve| have) (done|finished|completed) [the] {task_name:name}"
+          - "I (did|finished|completed) [the] {task_name:name}"
+          - "[the] {task_name:name} is (done|finished|completed)"
   MaintenanceSupporterTaskInstructions:
     data:
       - sentences:
           - "how do I (do|perform) [the] {task_name:name}"
-          - "(instructions|guidance) for [the] {task_name:name}"
+          - "(instructions|guidance|steps) for [the] {task_name:name}"
           - "what do I need for [the] {task_name:name}"
   MaintenanceSupporterTaskDue:
     data:
       - sentences:
           - "when is [the] {task_name:name} due"
           - "when do I (need|have) to (do|perform) [the] {task_name:name}"
+          - "when is [the] next {task_name:name}"
   MaintenanceSupporterSnoozeTask:
     data:
       - sentences:
-          - "snooze [the] [maintenance] [task] {task_name:name}"
-          - "(mute|silence) [the] reminders for [the] {task_name:name}"
+          - "snooze [the] (reminder|reminders|notification|notifications) (for|about|on) [the] {task_name:name}"
+          - "snooze [the] {task_name:name} (reminder|reminders|notification|notifications|maintenance|task|chore)"
+          - "snooze [the] (maintenance [task]|task|chore) {task_name:name}"
+          - "(mute|silence|pause) [the] [maintenance] (reminder|reminders|notification|notifications) (for|about|on) [the] {task_name:name}"
   MaintenanceSupporterPartStock:
     data:
       - sentences:
-          - "how (many|much) {part_name:name} (do we have|are left|is left)"
+          - "how (many|much) {part_name:name} (do we have [left]|are left|is left|have we got)"
+          - "how many {part_name:name} are in stock"
           - "what is the stock of [the] {part_name:name}"
   MaintenanceSupporterPostponeTask:
     data:
       - sentences:
-          - "postpone [the] {part_name:name} by {days} day[s]"
-          - "push [the] {part_name:name} back [by] {days} day[s]"
-          - "delay [the] {part_name:name} [by] {days} day[s]"
+          - "postpone [the] {task_name:name} (by|for) {days} day[s]"
+          - "push [the] {task_name:name} back [by] {days} day[s]"
+          - "delay [the] {task_name:name} [by] {days} day[s]"
       - sentences:
-          - "postpone [the] {part_name:name} by a week"
-          - "push [the] {part_name:name} back [by] a week"
+          - "(postpone|delay) [the] {task_name:name} (by|for) a week"
+          - "push [the] {task_name:name} back [by] a week"
         slots:
           days: 7
   MaintenanceSupporterSkipTask:
     data:
       - sentences:
-          - "skip [the] {part_name:name} [this time]"
-          - "skip this (cycle|round) of [the] {part_name:name}"
+          - "skip [the] {task_name:name} this time"
+          - "skip this (cycle|round|time) of [the] {task_name:name}"
+          - "skip [the] (maintenance [task]|task|chore) {task_name:name} [this time]"
+          - "skip [the] {task_name:name} (maintenance|task|chore) [this time]"
+  MaintenanceSupporterRecordReading:
+    data:
+      - sentences:
+          - "record [a] reading [of] {reading_value:value} for [the] {task_name:name}"
+          - "(log|enter) [a] reading [of] {reading_value:value} for [the] {task_name:name}"
+          - "[the] {task_name:name} reading is {reading_value:value}"
+          - "[the] {task_name:name} reads {reading_value:value}"
+  MaintenanceSupporterAddNote:
+    data:
+      - sentences:
+          - "add [a] note (to|for|on) [the] {task_name:name} (saying|that says) {note_text:note}"
+          - "(make|take) a note (for|on) [the] {task_name:name} (saying|that) {note_text:note}"
+  MaintenanceSupporterWhoseTurn:
+    data:
+      - sentences:
+          - "whose turn is it (to do|for) [the] {task_name:name}"
+          - "who is (responsible|in charge) (for|of) [the] {task_name:name}"
+          - "who (has to|needs to|should) do [the] {task_name:name} [next]"
+  MaintenanceSupporterShoppingList:
+    data:
+      - sentences:
+          - "what (do|should) we (need to|have to) buy"
+          - "what do we need to (buy|restock|reorder)"
+          - "what (spare parts|parts|supplies|consumables) (do we need|are low|are running low|need restocking)"
+          - "what needs (restocking|reordering)"
+          - "what is running low"
+  MaintenanceSupporterBoughtPart:
+    data:
+      - sentences:
+          - "(I|we) (bought|purchased|restocked) {quantity} [new|more] {part_name:name}"
+          - "(I|we) (bought|purchased|restocked) [some] (new|more) {part_name:name}"
+          - "add {quantity} {part_name:name} to [the] (stock|inventory)"
+  MaintenanceSupporterLowBatteries:
+    data:
+      - sentences:
+          - "which batteries (are|is) (low|empty|running low|flat)"
+          - "(are|is) (there|any) batter(y|ies) (low|empty|running low|flat)"
+          - "are there any low batteries"
+          - "which batteries (do|should) (I|we) (replace|change)"
+  MaintenanceSupporterUndo:
+    data:
+      - sentences:
+          - "undo (that|this|it)"
+          - "undo the last [maintenance] (action|change|completion)"
+          - "that was a mistake"
+          - "revert (that|the last [maintenance] (action|change))"
 lists:
   # NOT called 'name': that is Home Assistant's built-in list of exposed
   # ENTITY names, and the default agent resolves it against the registry
   # before the handler runs — every sentence using it answered 'I am not
   # aware of any device called ...' instead of reaching us. The
   # {list:slot} alias keeps the value arriving in the 'name' slot.
+  # ({area} is Home Assistant's own list of area names.)
   task_name:
     wildcard: true
   part_name:
+    wildcard: true
+  reading_value:
+    wildcard: true
+  note_text:
     wildcard: true
   days:
     range:
       from: 1
       to: 365
+  quantity:
+    range:
+      from: 1
+      to: 100

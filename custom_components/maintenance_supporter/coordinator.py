@@ -39,6 +39,7 @@ from .const import (
     EVENT_TASK_SKIPPED,
     LIFECYCLE_HISTORY_TYPES,
     MANUAL_COMPLETION_DEDUP_SECONDS,
+    MAX_INTERVAL_DAYS,
     MISSING_ENTITY_THRESHOLD_REFRESHES,
     NOTIFIABLE_STATUSES,
     NOTIFICATION_MANAGER_KEY,
@@ -1643,12 +1644,56 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
             return
         self._require_active(task_id, merged[task_id], translation_key="task_inactive_postpone")
+        # At most one maximum interval out, like the panel — enforced HERE so
+        # voice ("postpone by 900 days" is one sentence away) cannot write the
+        # override the WS pre-check refuses (voice audit 2026-09-30). Beyond
+        # it the calendar's "next day" arithmetic overflowed (audit 2026-09-27).
+        if until > dt_util.now().date() + timedelta(days=MAX_INTERVAL_DAYS):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="postpone_too_far",
+                translation_placeholders={"days": str(MAX_INTERVAL_DAYS)},
+            )
         task = MaintenanceTask.from_dict(merged[task_id])
         task.due_override = until.isoformat()
         # Only the due date moves: the sensor triggers keep their progress
         # (runtime hours, counter baseline) — no reset signal, no cooldown.
         await self._persist_and_signal_task_change(task_id, task, occurrence_done=False)
         _LOGGER.debug("Occurrence postponed to %s: %s on %s", until, task.name, self.maintenance_object.name)
+
+    async def async_restore_task_fields(
+        self,
+        task_id: str,
+        dynamic: dict[str, Any],
+        static: dict[str, Any],
+    ) -> None:
+        """Put a task back the way it was before one voice action (undo).
+
+        ``dynamic`` maps Store fields to their earlier values (``None`` = the
+        field was absent); ``static`` does the same for the entry-level
+        fields a voice action writes (the rotation pointer, the notes).
+        Everything else is left as it is now — see ``helpers.voice_undo``
+        for which fields those are and why.
+        """
+        if task_id not in (self.entry.data.get(CONF_TASKS) or {}):
+            return
+        self._store.update_task_state(task_id, **dynamic)
+        current = dict(self.entry.data[CONF_TASKS][task_id])
+        if any(current.get(key) != value for key, value in static.items()):
+            for key, value in static.items():
+                if value is None:
+                    current.pop(key, None)
+                else:
+                    current[key] = value
+            write_task(self.hass, self.entry, task_id, current)
+        # The undone completion must not swallow the real one that follows it
+        # as a double tap, nor hold the triggers in their post-completion
+        # cooldown.
+        self._recent_manual_completions.pop(task_id, None)
+        self._recently_completed.pop(task_id, None)
+        self._completion_cooldown.discard(task_id)
+        await self._store.async_save()
+        await self.async_refresh_now()
 
     def _is_inert(self, task_data: dict[str, Any]) -> bool:
         """Archived / disabled task, or a paused object (helpers.pause.is_task_inert)."""

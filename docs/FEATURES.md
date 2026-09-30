@@ -1113,7 +1113,7 @@ For the full WebSocket API (102 commands), see [Architecture — WebSocket API](
 
 ### Voice & Assist (2.26+)
 
-8 Assist intents let you **query, complete and manage tasks by voice**:
+15 Assist intents let you **query, complete and manage tasks by voice**:
 
 - **`MaintenanceSupporterListTasks`** — *"What maintenance is due?"* Speaks the
   actionable tasks (overdue / due soon / triggered), most urgent first, e.g.
@@ -1124,10 +1124,15 @@ For the full WebSocket API (102 commands), see [Architecture — WebSocket API](
   rotation duty), and *"what needs doing in here?"* with the tasks of the
   room the voice satellite stands in. If the speaker or the room cannot be
   determined, Assist says so instead of reciting the whole house.
-- **`MaintenanceSupporterCompleteTask`** — *"Complete the oil change"* — matches
-  the spoken name (the object name counts too: *"oil change on the car"*),
-  records a **real completion** (history, rotation, part consumption,
-  on-complete actions), and honours the completion window.
+  Since 2.96 it also answers *"what is overdue?"*, *"what is due this
+  week?"* (today, tomorrow, this week, this month — a window lists every task
+  due within it, not only the ones already in their warning days) and
+  *"what is due in the kitchen?"* (any Home Assistant area, by name or alias).
+- **`MaintenanceSupporterCompleteTask`** — *"I did the oil change on the
+  car"*, *"the water filter is done"*, *"erledige den Ölwechsel"* — matches
+  the spoken name (the object name counts too), records a **real completion**
+  (history, rotation, part consumption, on-complete actions), and honours the
+  completion window.
 - **`MaintenanceSupporterTaskInstructions`** (2.28+) — *"How do I do the pump
   service?"* — answers **strictly from what is stored on the task**: notes,
   checklist steps, linked documents with their page hint (*"Pump manual, page
@@ -1154,6 +1159,55 @@ For the full WebSocket API (102 commands), see [Architecture — WebSocket API](
   time."* — moves to the next cycle **without** recording work, and the answer
   names the new due date rather than merely acknowledging the command.
 
+Since 2.96, for the rest of the household routine:
+
+- **`MaintenanceSupporterRecordReading`** — *"The water meter reads
+  1234.5"*, *"der Stromzähler steht auf 12345,6"* — completes a reading task
+  with that value, like the panel's reading dialog (decimal comma or point,
+  as the language writes it). A task with several named readings is left to
+  the panel, and says so.
+- **`MaintenanceSupporterAddNote`** — *"Add a note to the boiler saying the
+  pressure was low"* — appends a dated line to the task's notes; what is
+  already there is kept.
+- **`MaintenanceSupporterWhoseTurn`** — *"Whose turn is it to mow the
+  lawn?"* — names the person (by their Home Assistant person name) on duty,
+  following the rotation.
+- **`MaintenanceSupporterShoppingList`** — *"What do we need to buy?"* — the
+  spare parts at or below their reorder threshold, with what is left.
+- **`MaintenanceSupporterBoughtPart`** — *"I bought four water filters"* —
+  adds them to the stock (the part's usual restock amount when no number is
+  said) and closes the open buy reminder, which records the purchase.
+- **`MaintenanceSupporterLowBatteries`** — *"Which batteries are low?"* — the
+  devices the battery fleet reports low, and the battery types to buy.
+- **`MaintenanceSupporterUndo`** — *"Undo that"* — takes back **your own last
+  voice action** of the past ten minutes: a completion (history, cycle,
+  rotation and the parts it used), a reading, a skip, a postponement, a
+  snooze, a note or bought parts. Speech recognition mishears, and a voice
+  satellite has no history editor. It refuses when the task changed in the
+  meantime (somebody completed it in the panel), and it cannot take back what
+  already left the house: fired events, sent notifications, an on-complete
+  action; a sensor trigger's progress keeps counting from where it is.
+
+**How names are understood.** Say the task the way you would say it: with
+articles (*"den Wasserfilter"*, *"l'huile"*), with the object joined by *on /
+an / am / de / su / bij* (*"the oil change on the car"*), in the plural
+(*"the water filters"*), without the accents your speech engine drops. When
+several tasks fit, the answer lists them and names the phrase that picks one
+(*"… say which one, for example 'Water Filter on Garage'"*); a satellite
+assigned to an area prefers the task in its own room. Refusals (a task that
+needs a photo, a tag scan, an archived task) are spoken in your language,
+dates as dates (*"October 3"*, *"3. Oktober"*), and numbers with the right
+form (*"one hour"*, Russian *"3 дня"*).
+
+**Your media and timer commands stay Home Assistant's.** Custom sentences
+beat Home Assistant's own whenever both match, so a sentence of a common verb
+and a free-text name would take *"skip this song"* or *"Radio stummschalten"*
+for itself — before 2.96 ours did. Sentences whose verb Home Assistant also
+uses carry a maintenance word now (*task, maintenance, reminders, this
+time*): *"skip the lawn mowing this time"*, *"snooze the reminders for the
+water filter"*. A test runs every built-in sentence of the core against the
+shipped files.
+
 **LLM-based Assist pipelines** (OpenAI, Claude, Gemini, local LLMs) pick all
 intents up **automatically as tools** in any language — nothing to configure.
 
@@ -1162,7 +1216,10 @@ The **classic sentence-matching agent** reads sentences from one place only:
 Assist sentences*** and the integration copies its shipped files
 (`custom_components/maintenance_supporter/assist_sentences/{en,de,fr,es,it,nl}/`) there and
 reloads the conversation agent — no restart, no manual copying. Turning the
-setting off removes them again.
+setting off removes them again. A Swiss German pipeline reads its own
+directory (`de-CH/`); since 2.96 it gets a copy of the German file in Swiss
+spelling. Upgrades rewrite the installed files, so new sentences arrive
+without touching the setting.
 
 A file you have edited yourself is **never** overwritten or deleted: every file
 the integration writes carries a checksum of its own content, and one that no

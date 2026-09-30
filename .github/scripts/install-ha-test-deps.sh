@@ -28,4 +28,9 @@ fi
 python -m pip install --quiet uv
 uv pip install --system pytest pytest-cov pytest-xdist "pytest-homeassistant-custom-component==$pht" \
   mypy types-PyYAML babel pypdf holidays voluptuous_serialize
+# hassil + home-assistant-intents: the Assist collision tests run our
+# sentences next to Home Assistant's built-in ones, at exactly the versions
+# this core's conversation integration pins (voice audit 2026-09-30).
+conversation_reqs=$(python -c 'import json, pathlib, homeassistant.components as c; print(" ".join(json.loads((pathlib.Path(c.__path__[0]) / "conversation" / "manifest.json").read_text())["requirements"]))')
+uv pip install --system $conversation_reqs
 python -c 'import homeassistant.const as c; print("Home Assistant", c.__version__, "via pht-cc", "'"$pht"'")'

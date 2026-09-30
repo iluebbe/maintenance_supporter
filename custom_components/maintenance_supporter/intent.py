@@ -6,9 +6,9 @@ shopping_list):
 
 * ``MaintenanceSupporterListTasks`` — *"what maintenance is due?"* Speaks a
   snapshot of actionable tasks, optionally filtered by status.
-* ``MaintenanceSupporterCompleteTask`` — *"complete the oil change"* — fuzzy-
-  matches a task by its spoken name (the object name counts too, so "oil change
-  on the car" works) and records a REAL completion through the coordinator —
+* ``MaintenanceSupporterCompleteTask`` — *"I did the oil change"* — matches a
+  task by its spoken name (the object name counts too, so "oil change on the
+  car" works — see ``helpers/intent_match``) and records a REAL completion through the coordinator —
   history, rotation, part consumption and on-complete actions all fire.
 * ``MaintenanceSupporterTaskInstructions`` — *"how do I descale the coffee
   machine?"* — answers STRICTLY from what is stored on the task (notes,
@@ -19,21 +19,26 @@ shopping_list):
 * ``MaintenanceSupporterSnoozeTask`` — *"snooze the oil change"* — suppresses
   the task's reminders for the configured snooze duration.
 * ``MaintenanceSupporterPartStock`` — *"how many water filters do we have?"*
+* ``MaintenanceSupporterPostponeTask`` / ``MaintenanceSupporterSkipTask`` —
+  move or skip the current occurrence.
+
+The household intents (readings, notes, whose turn, shopping, batteries,
+undo) live in ``intent_household.py``.
 
 LLM-based Assist pipelines expose every registered intent handler as a tool
 automatically (``helpers/llm``), in any language — no setup needed. The classic
-sentence-matching agent additionally needs the copy-paste sentence files shipped
-under ``assist/custom_sentences/`` (see FEATURES → Voice & Assist).
+sentence-matching agent additionally needs the sentence files shipped under
+``assist_sentences/``, which the "Install Assist sentences" setting copies into
+``config/custom_sentences/`` (see FEATURES → Voice & Assist).
 """
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
 import voluptuous as vol
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import intent
 
@@ -49,6 +54,14 @@ INTENT_SNOOZE_TASK = "MaintenanceSupporterSnoozeTask"
 INTENT_PART_STOCK = "MaintenanceSupporterPartStock"
 INTENT_POSTPONE_TASK = "MaintenanceSupporterPostponeTask"
 INTENT_SKIP_TASK = "MaintenanceSupporterSkipTask"
+# Voice package C (2026-09-30) — handlers in intent_household.py.
+INTENT_RECORD_READING = "MaintenanceSupporterRecordReading"
+INTENT_ADD_NOTE = "MaintenanceSupporterAddNote"
+INTENT_WHOSE_TURN = "MaintenanceSupporterWhoseTurn"
+INTENT_SHOPPING_LIST = "MaintenanceSupporterShoppingList"
+INTENT_BOUGHT_PART = "MaintenanceSupporterBoughtPart"
+INTENT_LOW_BATTERIES = "MaintenanceSupporterLowBatteries"
+INTENT_UNDO = "MaintenanceSupporterUndo"
 
 # "What needs attention" = the statuses a reminder can be about (the shared
 # const set; this module spelled its own tuple — DRY audit 2026-09-26 B).
@@ -69,6 +82,14 @@ def _sp(key: str, language: str | None, **fmt: Any) -> str:
     from .helpers.intent_speech import speak
 
     return speak(key, language, **fmt)
+
+
+async def _refusal(hass: HomeAssistant, err: HomeAssistantError, language: str | None) -> str:
+    """A coordinator's refusal in the spoken language (``str(err)`` is
+    always English — see :func:`.helpers.intent_speech.async_refusal`)."""
+    from .helpers.intent_speech import async_refusal
+
+    return await async_refusal(hass, err, language)
 
 
 def _task_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
@@ -142,33 +163,60 @@ def _asking_area(intent_obj: intent.Intent) -> str | None:
     return None
 
 
+def _area_id_for_name(hass: HomeAssistant, name: str) -> str | None:
+    """The area a spoken name (or alias) refers to.
+
+    The classic agent fills ``{area}`` from Home Assistant's own area list,
+    so the value is a name or an alias; an LLM agent may pass either, or the
+    id itself.
+    """
+    from homeassistant.helpers import area_registry as ar
+
+    from .helpers.intent_match import fold
+
+    registry = ar.async_get(hass)
+    if registry.async_get_area(name) is not None:
+        return name
+    wanted = fold(name)
+    for area in registry.async_list_areas():
+        if fold(area.name) == wanted or any(fold(alias) == wanted for alias in area.aliases):
+            return area.id
+    return None
+
+
+def _is_classic_agent(intent_obj: intent.Intent) -> bool:
+    """Whether Home Assistant's own sentence-matching agent is asking — it
+    answers once and cannot follow up, unlike an LLM agent."""
+    return getattr(intent_obj, "conversation_agent_id", None) == "conversation.home_assistant"
+
+
 def _asking_user(intent_obj: intent.Intent) -> str | None:
     """The Home Assistant user who spoke, when the pipeline knows one."""
     context = getattr(intent_obj, "context", None)
     return getattr(context, "user_id", None) if context else None
 
 
-def _match_tasks(query: str, snapshot: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Fuzzy-match a spoken name against tasks (object name counts too).
+def _match_tasks(
+    query: str, snapshot: list[dict[str, Any]], language: str | None = None
+) -> list[dict[str, Any]]:
+    """Match a spoken name against tasks (object name counts too) — the rules
+    live in :mod:`.helpers.intent_match`."""
+    from .helpers.intent_match import match_rows
 
-    An exact task-name match wins outright; otherwise every ≥2-char query token
-    must appear in "task name + object name" (case-insensitive substring).
-    """
-    q = query.strip().lower()
-    if not q:
-        return []
-    exact = [t for t in snapshot if t["name"].lower() == q]
-    if len(exact) == 1:
-        return exact
-    tokens = [tok for tok in re.split(r"[^a-z0-9äöüß]+", q) if len(tok) >= 2]
-    if not tokens:
-        return exact
-    matches = []
-    for t in snapshot:
-        hay = f"{t['name']} {t['object_name']}".lower()
-        if all(tok in hay for tok in tokens):
-            matches.append(t)
-    return exact or matches
+    return match_rows(query, snapshot, language)
+
+
+def _sp_n(key: str, language: str | None, number: int, **fmt: Any) -> str:
+    """:func:`_sp` for a text carrying a number — picks the number form."""
+    from .helpers.intent_speech import speak_count
+
+    return speak_count(key, language, number, **fmt)
+
+
+# A task with no due day at all (manual schedule, a sensor task not yet
+# triggered) is described by its status — in words, not the raw status id
+# the first version spoke ("due_soon", "paused").
+_UNDATED_STATUS_KEYS = {"overdue": "st_overdue_plain", "due_soon": "st_due_soon_plain"}
 
 
 def _describe(task: dict[str, Any], language: str | None) -> str:
@@ -177,18 +225,15 @@ def _describe(task: dict[str, Any], language: str | None) -> str:
         desc = _sp("st_triggered", language)
     elif isinstance(days, int) and days < 0:
         # "1 days overdue" was shipped in English and German alike; a single
-        # string cannot inflect, so the singular is its own key. Several
-        # languages need it far more than English does — Czech, Russian and
-        # Ukrainian govern the noun's case by the numeral.
-        key = "st_overdue_one" if days == -1 else "st_overdue"
-        desc = _sp(key, language, days=-days)
+        # string cannot inflect, so the number form is chosen per language
+        # (Czech, Polish, Russian and Ukrainian have a form for 2-4 as well).
+        desc = _sp_n("st_overdue", language, -days, days=-days)
     elif days == 0:
         desc = _sp("st_due_today", language)
     elif isinstance(days, int):
-        key = "st_due_in_one" if days == 1 else "st_due_in"
-        desc = _sp(key, language, days=days)
+        desc = _sp_n("st_due_in", language, days, days=days)
     else:
-        desc = task["status"]
+        desc = _sp(_UNDATED_STATUS_KEYS.get(task["status"], "st_no_date"), language)
     if task.get("priority") == "high":
         desc = f"{desc}{_sp('st_priority', language)}"
     line = f"{_sp('item_on', language, task=task['name'], object=task['object_name'])} ({desc})"
@@ -207,7 +252,7 @@ def _resolve_single(
     """
     lang = intent_obj.language
     response = intent_obj.create_response()
-    matches = _match_tasks(name, snapshot)
+    matches = _match_tasks(name, snapshot, lang)
     if not matches:
         response.async_set_error(
             intent.IntentResponseErrorCode.NO_VALID_TARGETS,
@@ -224,15 +269,23 @@ def _resolve_single(
             local = [t for t in matches if t.get("area_id") == area]
             if len(local) == 1:
                 return local[0], None
-        candidates = ", ".join(
-            _sp("item_on", lang, task=t["name"], object=t["object_name"]) for t in matches[:4]
-        )
         response.async_set_error(
             intent.IntentResponseErrorCode.NO_VALID_TARGETS,
-            _sp("ambiguous", lang, candidates=candidates),
+            _ambiguity(matches, "ambiguous", lang),
         )
         return None, response
     return matches[0], None
+
+
+def _ambiguity(matches: list[dict[str, Any]], key: str, lang: str | None) -> str:
+    """"That matches several …" — with the phrasing that picks one.
+
+    The bare "please be more specific" left people guessing what more there
+    was to say (voice audit 2026-09-30). The example is the first candidate
+    said the way the matcher resolves it: task on object.
+    """
+    labels = [_sp("item_on", lang, task=t["name"], object=t["object_name"]) for t in matches[:4]]
+    return _sp(key, lang, candidates=", ".join(labels), example=labels[0])
 
 
 async def async_setup_intents(hass: HomeAssistant) -> None:
@@ -252,6 +305,10 @@ async def async_setup_intents(hass: HomeAssistant) -> None:
     intent.async_register(hass, PostponeTaskIntent())
     intent.async_register(hass, SkipTaskIntent())
 
+    from .intent_household import async_setup_household_intents
+
+    await async_setup_household_intents(hass)
+
 
 class ListTasksIntent(intent.IntentHandler):
     """Speak which maintenance tasks need attention (optionally by status)."""
@@ -263,11 +320,17 @@ class ListTasksIntent(intent.IntentHandler):
         "status. Use for questions like 'what maintenance is due?'. Set scope "
         "to 'mine' for the tasks assigned to the person asking (including "
         "whose turn it is on a rotating chore), or 'here' for the tasks "
-        "belonging to the room the request came from."
+        "belonging to the room the request came from. Set area to a Home "
+        "Assistant area name for 'what is due in the kitchen?', and "
+        "within_days for a time window ('what is due this week?' = 7, "
+        "'today' = 0): then every task due within that many days is listed, "
+        "including overdue ones."
     )
     slot_schema = {
         vol.Optional("status"): vol.In(["ok", "due_soon", "overdue", "triggered"]),
         vol.Optional("scope"): vol.In(["all", "mine", "here"]),
+        vol.Optional("area"): cv.string,
+        vol.Optional("within_days"): vol.All(vol.Coerce(int), vol.Range(min=0, max=366)),
     }
 
     async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
@@ -275,11 +338,35 @@ class ListTasksIntent(intent.IntentHandler):
         slots = self.async_validate_slots(intent_obj.slots)
         wanted = slots.get("status", {}).get("value")
         scope = slots.get("scope", {}).get("value") or "all"
+        area_name = slots.get("area", {}).get("value")
+        within = slots.get("within_days", {}).get("value")
         statuses = (wanted,) if wanted else _ACTIONABLE
-        tasks = [t for t in _task_snapshot(intent_obj.hass) if t["status"] in statuses]
+        snapshot = _task_snapshot(intent_obj.hass)
+        if within is not None and not wanted:
+            # A window asks "what comes up", not "what needs attention": a
+            # task due in five days is in "this week" whatever its status
+            # (due-soon starts at each task's own warning days).
+            tasks = [
+                t
+                for t in snapshot
+                if t["status"] in _ACTIONABLE
+                or (isinstance(t["days_until_due"], int) and t["days_until_due"] <= int(within))
+            ]
+        else:
+            tasks = [t for t in snapshot if t["status"] in statuses]
 
         response = intent_obj.create_response()
         lang = intent_obj.language
+
+        if area_name:
+            area_id = _area_id_for_name(intent_obj.hass, str(area_name))
+            if area_id is None:
+                response.async_set_error(
+                    intent.IntentResponseErrorCode.NO_VALID_TARGETS,
+                    _sp("unknown_area_name", lang, area=area_name),
+                )
+                return response
+            tasks = [t for t in tasks if t.get("area_id") == area_id]
 
         # A scope we cannot resolve is answered honestly rather than silently
         # widened: "everything in the house" is a plausible-sounding wrong
@@ -314,8 +401,13 @@ class ListTasksIntent(intent.IntentHandler):
         )
 
         if not tasks:
-            empty = {"mine": "none_due_mine", "here": "none_due_here"}.get(scope, "none_due")
-            response.async_set_speech(_sp(empty, lang))
+            if area_name:
+                response.async_set_speech(_sp("none_due_area", lang, area=area_name))
+            elif within is not None:
+                response.async_set_speech(_sp("none_due_window", lang))
+            else:
+                empty = {"mine": "none_due_mine", "here": "none_due_here"}.get(scope, "none_due")
+                response.async_set_speech(_sp(empty, lang))
             return response
         items = ", ".join(_describe(t, lang) for t in tasks[:8])
         key = "task_due_one" if len(tasks) == 1 else "tasks_due"
@@ -371,6 +463,9 @@ class CompleteTaskIntent(intent.IntentHandler):
         # the confirmation can say what was DONE and what comes next.
         done_phase = target.get("phase")
 
+        from .helpers import voice_undo
+
+        before = voice_undo.capture(hass, target["entry_id"], target["task_id"])
         try:
             await coordinator.complete_maintenance(
                 task_id=target["task_id"],
@@ -381,14 +476,17 @@ class CompleteTaskIntent(intent.IntentHandler):
                 unattended=True,
                 source="voice",
             )
-        except ServiceValidationError as err:
+        except ServiceValidationError as exc:
             # The task demands details voice cannot capture (a photo, a cost).
-            # Say so plainly instead of failing with a generic error.
+            # Say so plainly — in the language that was spoken.
             response.async_set_error(
                 intent.IntentResponseErrorCode.FAILED_TO_HANDLE,
-                str(err),
+                await _refusal(hass, exc, lang),
             )
             return response
+        voice_undo.remember(
+            hass, intent_obj, "completed", before, task=target["name"], object=target["object_name"]
+        )
 
         if done_phase:
             from .helpers.phases import current_phase
@@ -488,12 +586,11 @@ class TaskInstructionsIntent(intent.IntentHandler):
         ]
         if checklist:
             segments.append(
-                _sp("guide_checklist", lang, count=len(checklist), steps="; ".join(checklist[:8]))
+                _sp_n("guide_checklist", lang, len(checklist), count=len(checklist), steps="; ".join(checklist[:8]))
             )
 
         # Documents linked to THIS task, with the per-task page hint when set.
         from . import DOCUMENT_STORE_KEY
-        from .const import CONF_PARTS
 
         doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
         if doc_store is not None and entry is not None:
@@ -511,18 +608,25 @@ class TaskInstructionsIntent(intent.IntentHandler):
         if isinstance(task.get("documentation_url"), str) and task["documentation_url"].strip():
             segments.append(_sp("guide_url", lang))
 
-        # Required spare parts with storage location + live stock.
-        parts = (entry.data.get(CONF_PARTS) or {}) if entry is not None else {}
-        for link in effective_field(task, "consumes_parts") or []:
-            part = parts.get(link.get("part_id")) if isinstance(link, dict) else None
+        # Required spare parts with storage location + live stock. A link may
+        # name another object's pool (#111): resolved through the one shared
+        # resolver, which reads that pool's own parts and stock — the entry-
+        # local lookup this used to do left pooled parts out of the answer.
+        from .parts_runtime import resolve_part_link
+
+        links = effective_field(task, "consumes_parts") or []
+        for link in links if entry is not None else []:
+            if not isinstance(link, dict) or entry is None:
+                continue
+            _owner, part, part_store = resolve_part_link(hass, entry, link)
             if not isinstance(part, dict):
                 continue
             extras: list[str] = []
             if part.get("storage_location"):
                 extras.append(_sp("guide_part_loc", lang, loc=part["storage_location"]))
-            stock = store.get_part_stock(link["part_id"]) if store is not None else None
+            stock = part_store.get_part_stock(str(link.get("part_id"))) if part_store is not None else None
             if stock is not None:
-                extras.append(_sp("guide_part_stock", lang, stock=stock))
+                extras.append(_sp("guide_part_stock", lang, stock=_num(stock)))
             segments.append(
                 _sp(
                     "guide_part",
@@ -536,9 +640,10 @@ class TaskInstructionsIntent(intent.IntentHandler):
         if not segments:
             # Grounded contract: nothing stored → say so and ASK before any
             # general advice — the LLM relays the question instead of inventing.
-            response.async_set_speech(
-                _sp("guide_none", lang, task=target["name"], object=target["object_name"])
-            )
+            # The classic agent cannot hold a follow-up, so asking it "would
+            # you like that?" invited a "yes" nobody would answer.
+            key = "guide_none_plain" if _is_classic_agent(intent_obj) else "guide_none"
+            response.async_set_speech(_sp(key, lang, task=target["name"], object=target["object_name"]))
             return response
 
         response.async_set_speech(
@@ -576,10 +681,13 @@ class TaskDueIntent(intent.IntentHandler):
         assert target is not None
         response = intent_obj.create_response()
 
+        from .helpers.intent_speech import spoken_iso_date
+
         speech = _describe(target, lang) + "."
-        next_due = target.get("next_due")
-        if isinstance(next_due, str) and next_due:
-            speech += _sp("due_date_suffix", lang, date=next_due.split("T")[0])
+        # Said the way a date is said ("October 3"), not read out as ISO.
+        when = spoken_iso_date(target.get("next_due"), lang)
+        if when:
+            speech += _sp("due_date_suffix", lang, date=when)
         response.async_set_speech(speech)
         return response
 
@@ -620,12 +728,18 @@ class SnoozeTaskIntent(intent.IntentHandler):
             )
             return response
 
+        from .helpers import voice_undo
+
+        before = voice_undo.capture(hass, target["entry_id"], target["task_id"])
         nm.snooze_task(target["entry_id"], target["task_id"])
+        voice_undo.remember(hass, intent_obj, "snoozed", before, task=target["name"], object=target["object_name"])
         hours = global_option(hass, CONF_SNOOZE_DURATION_HOURS)
         if isinstance(hours, float) and hours.is_integer():
             hours = int(hours)  # "4 hours", not "4.0 hours"
+        # The number form only for a whole number; "1.5 hours" is plural.
+        count = hours if isinstance(hours, int) else 0
         response.async_set_speech(
-            _sp("snoozed", lang, task=target["name"], object=target["object_name"], hours=hours)
+            _sp_n("snoozed", lang, count, task=target["name"], object=target["object_name"], hours=hours)
         )
         return response
 
@@ -645,14 +759,47 @@ def _part_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
                 continue
             rows.append(
                 {
+                    "entry_id": ce.entry_id,
+                    "part_id": part_id,
                     "name": str(part.get("name") or ""),
                     "object_name": object_name,
                     "storage_location": part.get("storage_location"),
                     "reorder_threshold": part.get("reorder_threshold"),
+                    "restock_quantity": part.get("restock_quantity"),
                     "stock": store.get_part_stock(part_id) if store is not None else None,
                 }
             )
     return rows
+
+
+def _resolve_part(
+    intent_obj: intent.Intent, name: str
+) -> tuple[dict[str, Any] | None, intent.IntentResponse | None]:
+    """Match a spoken part name to exactly ONE spare part (the parts
+    counterpart of :func:`_resolve_single`)."""
+    lang = intent_obj.language
+    matches = _match_tasks(name, _part_snapshot(intent_obj.hass), lang)
+    if len(matches) == 1:
+        return matches[0], None
+    response = intent_obj.create_response()
+    if not matches:
+        response.async_set_error(
+            intent.IntentResponseErrorCode.NO_VALID_TARGETS,
+            _sp("part_not_found", lang, name=name),
+        )
+    else:
+        response.async_set_error(
+            intent.IntentResponseErrorCode.NO_VALID_TARGETS,
+            _ambiguity(matches, "part_ambiguous", lang),
+        )
+    return None, response
+
+
+def _num(value: Any) -> Any:
+    """A stock or reading as it is said: "4", not "4.0"."""
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    return value
 
 
 class PartStockIntent(intent.IntentHandler):
@@ -673,37 +820,23 @@ class PartStockIntent(intent.IntentHandler):
         lang = intent_obj.language
         response = intent_obj.create_response()
 
-        matches = _match_tasks(name, _part_snapshot(intent_obj.hass))
-        if not matches:
-            response.async_set_error(
-                intent.IntentResponseErrorCode.NO_VALID_TARGETS,
-                _sp("part_not_found", lang, name=name),
-            )
-            return response
-        if len(matches) > 1:
-            candidates = ", ".join(
-                _sp("item_on", lang, task=p["name"], object=p["object_name"]) for p in matches[:4]
-            )
-            response.async_set_error(
-                intent.IntentResponseErrorCode.NO_VALID_TARGETS,
-                _sp("ambiguous", lang, candidates=candidates),
-            )
-            return response
+        part, err = _resolve_part(intent_obj, name)
+        if err is not None:
+            return err
+        assert part is not None
 
-        part = matches[0]
         if part["stock"] is None:
             response.async_set_speech(_sp("stock_untracked", lang, part=part["name"]))
             return response
 
+        from .helpers.parts import part_is_low
+
         loc = _sp("stock_loc", lang, loc=part["storage_location"]) if part.get("storage_location") else ""
-        threshold = part.get("reorder_threshold")
-        low = (
-            _sp("stock_low", lang)
-            if isinstance(threshold, int) and part["stock"] <= threshold
-            else ""
-        )
+        # The shared stock rule: a decimal threshold ("0.5 bags") counts too —
+        # the int-only check here never warned for one.
+        low = _sp("stock_low", lang) if part_is_low(part, part["stock"]) else ""
         response.async_set_speech(
-            _sp("stock_line", lang, stock=part["stock"], part=part["name"], loc=loc, low=low)
+            _sp("stock_line", lang, stock=_num(part["stock"]), part=part["name"], loc=loc, low=low)
         )
         return response
 
@@ -784,7 +917,12 @@ class PostponeTaskIntent(intent.IntentHandler):
                     base = max(date_cls.fromisoformat(str(next_due)[:10]), today)
                 except ValueError:
                     base = today
-            until = base + timedelta(days=int(days))
+            # Capped just past the longest interval: the coordinator refuses
+            # that with its own reason, and a huge number from an LLM tool
+            # call cannot overflow the date arithmetic first.
+            from .const import MAX_INTERVAL_DAYS
+
+            until = base + timedelta(days=min(int(days), MAX_INTERVAL_DAYS + 1))
         else:
             response.async_set_error(
                 intent.IntentResponseErrorCode.FAILED_TO_HANDLE,
@@ -803,19 +941,25 @@ class PostponeTaskIntent(intent.IntentHandler):
         if err is not None:
             return err
 
+        from .helpers import voice_undo
+        from .helpers.intent_speech import spoken_date
+
+        before = voice_undo.capture(hass, target["entry_id"], target["task_id"])
         try:
             await coordinator.async_postpone_task(target["task_id"], until)
-        except ServiceValidationError as err:
-            # An archived / disabled / paused task: say so instead of failing.
-            response.async_set_error(intent.IntentResponseErrorCode.FAILED_TO_HANDLE, str(err))
+        except ServiceValidationError as exc:
+            # An archived / disabled / paused task, or a date beyond the
+            # longest interval: say so, in the language that was spoken.
+            response.async_set_error(intent.IntentResponseErrorCode.FAILED_TO_HANDLE, await _refusal(hass, exc, lang))
             return response
+        voice_undo.remember(hass, intent_obj, "postponed", before, task=target["name"], object=target["object_name"])
         response.async_set_speech(
             _sp(
                 "postponed",
                 lang,
                 task=target["name"],
                 object=target["object_name"],
-                date=until.isoformat(),
+                date=spoken_date(until, lang),
             )
         )
         return response
@@ -848,8 +992,9 @@ class SkipTaskIntent(intent.IntentHandler):
         if err is not None:
             return err
 
-        from homeassistant.exceptions import ServiceValidationError
+        from .helpers import voice_undo
 
+        before = voice_undo.capture(hass, target["entry_id"], target["task_id"])
         try:
             await coordinator.skip_maintenance(target["task_id"])
         except ServiceValidationError as exc:
@@ -861,8 +1006,11 @@ class SkipTaskIntent(intent.IntentHandler):
                 # An archived / disabled / paused task: its own reason, like
                 # Complete and Postpone — every refusal used to be announced
                 # as the skip lock (audit 2026-09-29).
-                response.async_set_error(intent.IntentResponseErrorCode.FAILED_TO_HANDLE, str(exc))
+                response.async_set_error(
+                    intent.IntentResponseErrorCode.FAILED_TO_HANDLE, await _refusal(hass, exc, lang)
+                )
             return response
+        voice_undo.remember(hass, intent_obj, "skipped", before, task=target["name"], object=target["object_name"])
 
         # Read the new due date back so the answer says what actually happened
         # rather than just acknowledging the command.
@@ -874,15 +1022,14 @@ class SkipTaskIntent(intent.IntentHandler):
             ),
             None,
         )
-        due = str((fresh or {}).get("next_due") or "")[:10]
+        from .helpers.intent_speech import spoken_iso_date
+
+        due = spoken_iso_date((fresh or {}).get("next_due"), lang)
         response = intent_obj.create_response()
-        response.async_set_speech(
-            _sp(
-                "skipped",
-                lang,
-                task=target["name"],
-                object=target["object_name"],
-                date=due or "?",
-            )
-        )
+        # A task with no next date (manual schedule) is not told "due ?".
+        if due:
+            speech = _sp("skipped", lang, task=target["name"], object=target["object_name"], date=due)
+        else:
+            speech = _sp("skipped_no_date", lang, task=target["name"], object=target["object_name"])
+        response.async_set_speech(speech)
         return response

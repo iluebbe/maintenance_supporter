@@ -2,25 +2,61 @@
 #
 # Handkopieren ist nicht nötig: Einstellungen -> Allgemein -> "Assist-Sätze
 # installieren" einschalten, dann schreibt die Integration diese Datei nach
-# config/custom_sentences/de/maintenance_supporter.yaml und lädt den
-# Konversations-Agenten neu. Nur aus diesem Verzeichnis liest der klassische
-# (Nicht-LLM-)Agent Sätze. LLM-basierte Assist-Pipelines brauchen davon
-# nichts — dort sind die Intents automatisch als Tools verfügbar.
+# config/custom_sentences/de/maintenance_supporter.yaml (und eine Kopie ohne ß
+# nach de-CH/) und lädt den Konversations-Agenten neu. Nur aus diesem
+# Verzeichnis liest der klassische (Nicht-LLM-)Agent Sätze. LLM-basierte
+# Assist-Pipelines brauchen davon nichts — dort sind die Intents automatisch
+# als Tools verfügbar.
 #
 # Eine eigene Bearbeitung ist ausdrücklich vorgesehen: sobald der Inhalt nicht
 # mehr dem entspricht, was wir geschrieben haben, fassen Aktualisierungen die
 # Datei nicht mehr an (und das Abschalten der Einstellung ebenso wenig).
+#
+# Eigene Sätze GEWINNEN gegen Home Assistants eingebaute, sobald beide passen.
+# Ein Satz aus einem Verb, das die eingebauten auch benutzen (überspringen,
+# stummschalten, pausieren), und einem freien Namen würde "überspringe dieses
+# Lied" oder "Radio stummschalten" schlucken — solche Sätze tragen deshalb ein
+# Wartungs-Wort (Wartung, Aufgabe, Erinnerung, "diesmal"). Ein Test lässt
+# jeden eingebauten Satz gegen diese Datei laufen.
 language: "de"
 intents:
   MaintenanceSupporterListTasks:
     data:
       - sentences:
-          - "welche Wartung[en] (ist|sind) [gerade] (fällig|überfällig)"
-          - "was ist [an Wartung] (fällig|überfällig)"
+          - "welche Wartung[en] (ist|sind) [gerade] fällig"
+          - "was ist [an Wartung] fällig"
           - "steht [eine] Wartung an"
           - "was muss gewartet werden"
-      # Bezug: die fragende Person. HA übergibt dem Handler, wer gesprochen
-      # hat — damit antwortet dies mit deren Aufgaben (inkl. Rotationsdienst).
+          - "welche Aufgaben sind (fällig|offen)"
+      - sentences:
+          - "was ist überfällig"
+          - "welche (Wartung[en]|Aufgaben) (ist|sind) überfällig"
+          - "(ist|gibt es) (etwas|was) Überfälliges"
+        slots:
+          status: "overdue"
+      - sentences:
+          - "was ist heute fällig"
+          - "welche (Wartung[en]|Aufgaben) (ist|sind) heute fällig"
+        slots:
+          within_days: 0
+      - sentences:
+          - "was ist morgen fällig"
+        slots:
+          within_days: 1
+      - sentences:
+          - "was ist diese Woche fällig"
+          - "welche (Wartung[en]|Aufgaben) (ist|sind) diese Woche fällig"
+          - "was steht diese Woche an"
+        slots:
+          within_days: 7
+      - sentences:
+          - "was ist diesen Monat fällig"
+        slots:
+          within_days: 30
+      - sentences:
+          - "was ist (im|in der|in) {area} fällig"
+          - "welche (Wartung[en]|Aufgaben) (ist|sind) (im|in der|in) {area} fällig"
+          - "was muss (im|in der|in) {area} gewartet werden"
       - sentences:
           - "was muss ich (machen|erledigen|tun)"
           - "was sind meine (Aufgaben|Pflichten|Wartungen)"
@@ -28,8 +64,6 @@ intents:
           - "bin ich [gerade] (dran|zuständig)"
         slots:
           scope: "mine"
-      # Bezug: der Raum, aus dem gefragt wurde — über den Bereich des
-      # Satelliten aufgelöst, damit ein Wandtablet für seinen Raum antwortet.
       - sentences:
           - "was ist hier [drin] (fällig|zu tun)"
           - "welche Wartung ist (hier|in diesem Raum) fällig"
@@ -39,57 +73,121 @@ intents:
   MaintenanceSupporterCompleteTask:
     data:
       - sentences:
-          - "[die] Wartung[saufgabe] {task_name:name} (erledigen|abschließen)"
-          - "markiere [die] [Wartung[saufgabe]] {task_name:name} als erledigt"
-          - "ich habe [die] {task_name:name} (erledigt|gemacht|abgeschlossen)"
+          - "[die] (Wartung[saufgabe]|Aufgabe) {task_name:name} (erledigen|abschließen)"
+          - "markiere <ms_art> [Wartung[saufgabe]|Aufgabe] {task_name:name} als erledigt"
+          - "ich habe <ms_art> {task_name:name} (erledigt|gemacht|abgeschlossen)"
+          - "erledige <ms_art> {task_name:name}"
+          - "<ms_art> {task_name:name} (ist|wurde) erledigt"
+          - "<ms_art> {task_name:name} erledigt"
   MaintenanceSupporterTaskInstructions:
     data:
       - sentences:
-          - "wie (mache|erledige) ich [die] {task_name:name}"
-          - "(Anleitung|Anweisungen) für [die] {task_name:name}"
-          - "was brauche ich für [die] {task_name:name}"
+          - "wie (mache|erledige) ich <ms_art> {task_name:name}"
+          - "(Anleitung|Anweisungen) (für|zu|zum|zur) <ms_art> {task_name:name}"
+          - "was brauche ich für <ms_art> {task_name:name}"
   MaintenanceSupporterTaskDue:
     data:
       - sentences:
-          - "wann ist [die] {task_name:name} fällig"
-          - "wann muss ich [die] {task_name:name} (machen|erledigen)"
+          - "wann ist <ms_art> {task_name:name} fällig"
+          - "wann muss ich <ms_art> {task_name:name} (machen|erledigen)"
+          - "wann steht <ms_art> {task_name:name} an"
   MaintenanceSupporterSnoozeTask:
     data:
       - sentences:
-          - "[die] {task_name:name} (snoozen|stummschalten)"
-          - "Erinnerungen für [die] {task_name:name} (stummschalten|pausieren)"
+          - "<ms_art> Erinnerung[en] (für|zu|zum|zur|an) <ms_art> {task_name:name} (stummschalten|pausieren|schlummern)"
+          - "(schalte|stell|stelle) <ms_art> Erinnerung[en] (für|zu|zum|zur|an) <ms_art> {task_name:name} stumm"
+          - "<ms_art> (Wartung[saufgabe]|Aufgabe) {task_name:name} (snoozen|stummschalten|pausieren)"
   MaintenanceSupporterPartStock:
     data:
       - sentences:
           - "wie viele {part_name:name} haben wir [noch]"
-          - "wie ist der Bestand (von|an) {part_name:name}"
+          - "wie viele {part_name:name} sind [noch] (da|auf Lager|vorrätig)"
+          - "wie (ist|hoch ist) der (Bestand|Vorrat|Lagerbestand) (von|an|bei) <ms_art> {part_name:name}"
   MaintenanceSupporterPostponeTask:
     data:
       - sentences:
-          - "verschiebe [die|das|den] {part_name:name} um {days} Tag[e]"
-          - "[die|das|den] {part_name:name} um {days} Tag[e] verschieben"
-          - "schiebe [die|das|den] {part_name:name} um {days} Tag[e] nach hinten"
+          - "verschiebe <ms_art> {task_name:name} um {days} Tag[e]"
+          - "<ms_art> {task_name:name} um {days} Tag[e] verschieben"
+          - "schiebe <ms_art> {task_name:name} um {days} Tag[e] (nach hinten|auf)"
       - sentences:
-          - "verschiebe [die|das|den] {part_name:name} um eine Woche"
-          - "[die|das|den] {part_name:name} um eine Woche verschieben"
+          - "verschiebe <ms_art> {task_name:name} um eine Woche"
+          - "<ms_art> {task_name:name} um eine Woche verschieben"
         slots:
           days: 7
   MaintenanceSupporterSkipTask:
     data:
       - sentences:
-          - "überspringe [die|das|den] {part_name:name} [diesmal]"
-          - "[die|das|den] {part_name:name} [diesmal] überspringen"
+          - "überspringe <ms_art> {task_name:name} (diesmal|dieses Mal)"
+          - "<ms_art> {task_name:name} (diesmal|dieses Mal) überspringen"
+          - "überspringe <ms_art> (Wartung[saufgabe]|Aufgabe) {task_name:name} [diesmal|dieses Mal]"
+          - "<ms_art> (Wartung[saufgabe]|Aufgabe) {task_name:name} [diesmal|dieses Mal] überspringen"
+          - "lass <ms_art> {task_name:name} (diesmal|dieses Mal) aus"
+  MaintenanceSupporterRecordReading:
+    data:
+      - sentences:
+          - "trage [den] (Zählerstand|Messwert|Wert|Stand) {reading_value:value} (für|bei|beim|zum|zur) <ms_art> {task_name:name} ein"
+          - "(erfasse|notiere) [den] (Zählerstand|Messwert|Wert|Stand) {reading_value:value} (für|bei|beim|zum|zur) <ms_art> {task_name:name}"
+          - "der (Zählerstand|Messwert|Stand) (von|vom|für|beim) <ms_art> {task_name:name} (ist|beträgt) {reading_value:value}"
+          - "<ms_art> {task_name:name} (steht auf|zeigt) {reading_value:value}"
+  MaintenanceSupporterAddNote:
+    data:
+      - sentences:
+          - "notiere (für|zu|zum|zur|bei|beim) <ms_art> {task_name:name} dass {note_text:note}"
+          - "(schreibe|mache) [mir] eine Notiz (für|zu|zum|zur|bei|beim) <ms_art> {task_name:name} dass {note_text:note}"
+          - "Notiz (für|zu|zum|zur|bei|beim) <ms_art> {task_name:name} mit dem Text {note_text:note}"
+  MaintenanceSupporterWhoseTurn:
+    data:
+      - sentences:
+          - "wer ist (mit|bei|beim|für) <ms_art> {task_name:name} dran"
+          - "wer ist für <ms_art> {task_name:name} zuständig"
+          - "wer muss <ms_art> {task_name:name} (machen|erledigen)"
+          - "wer ist (mit|bei|beim) <ms_art> {task_name:name} an der Reihe"
+  MaintenanceSupporterShoppingList:
+    data:
+      - sentences:
+          - "was (müssen|sollten) wir (kaufen|nachkaufen|besorgen)"
+          - "was muss (gekauft|nachgekauft|nachbestellt|besorgt) werden"
+          - "welche (Ersatzteile|Teile|Verbrauchsmaterialien|Vorräte) (sind knapp|gehen zur Neige|müssen nachgekauft werden|brauchen wir)"
+          - "was (ist|wird) [gerade] knapp"
+  MaintenanceSupporterBoughtPart:
+    data:
+      - sentences:
+          - "(ich habe|wir haben) {quantity} [neue] {part_name:name} gekauft"
+          - "(ich habe|wir haben) (neue|neuen|neues) {part_name:name} gekauft"
+          - "buche {quantity} {part_name:name} (ein|in den Bestand)"
+  MaintenanceSupporterLowBatteries:
+    data:
+      - sentences:
+          - "welche Batterien sind (leer|schwach|fast leer|bald leer)"
+          - "(sind|ist) (irgendwelche|irgendeine|eine) Batterie[n] (leer|schwach)"
+          - "welche Batterien (muss ich|müssen wir|sollte ich) (wechseln|tauschen)"
+  MaintenanceSupporterUndo:
+    data:
+      - sentences:
+          - "(mach|mache) das rückgängig"
+          - "(mach|mache) die letzte (Aktion|Änderung|Wartungsaktion) rückgängig"
+          - "das war (ein Fehler|falsch)"
 lists:
-  # NOT called 'name': that is Home Assistant's built-in list of exposed
-  # ENTITY names, and the default agent resolves it against the registry
-  # before the handler runs — every sentence using it answered 'I am not
-  # aware of any device called ...' instead of reaching us. The
-  # {list:slot} alias keeps the value arriving in the 'name' slot.
+  # Nicht 'name' — das ist Home Assistants eingebaute Liste der ENTITÄTS-
+  # namen (siehe die englische Datei). {area} ist Home Assistants eigene
+  # Bereichsliste.
   task_name:
     wildcard: true
   part_name:
+    wildcard: true
+  reading_value:
+    wildcard: true
+  note_text:
     wildcard: true
   days:
     range:
       from: 1
       to: 365
+  quantity:
+    range:
+      from: 1
+      to: 100
+expansion_rules:
+  # Eigener Präfix: diese Regeln werden mit Home Assistants eingebauten
+  # zusammengeführt, ein gleichnamiger Eintrag würde deren Regel ersetzen.
+  ms_art: "[der|die|das|den|dem]"

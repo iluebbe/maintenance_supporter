@@ -21,6 +21,8 @@ import pytest
 
 from custom_components.maintenance_supporter.helpers.intent_speech import (
     FALLBACK_LANGUAGE,
+    FEW_FORM_LANGUAGES,
+    ONE_N_FORM_LANGUAGES,
     _RESPONSE_DIR,
     available_languages,
     load_language,
@@ -73,6 +75,21 @@ def test_no_response_file_for_a_language_the_ui_does_not_have() -> None:
 # ─── the part that breaks at runtime ──────────────────────────────────────
 
 
+def _number_forms(language: str, english: dict[str, str]) -> dict[str, str]:
+    """The extra number-form keys *language* may carry, mapped to the English
+    text whose placeholders they must share: ``<key>_few`` (2-4) in Czech,
+    Polish, Russian and Ukrainian, ``<key>_one_n`` (21, 31, …) in Russian
+    and Ukrainian. No other language has a use for them, so there they stay
+    unknown keys."""
+    forms: dict[str, str] = {}
+    for key, text in english.items():
+        if language in FEW_FORM_LANGUAGES:
+            forms[f"{key}_few"] = text
+        if language in ONE_N_FORM_LANGUAGES:
+            forms[f"{key}_one_n"] = text
+    return forms
+
+
 @pytest.mark.parametrize("language", available_languages())
 def test_keys_and_placeholders_match_english(language: str) -> None:
     english = _english()
@@ -80,11 +97,13 @@ def test_keys_and_placeholders_match_english(language: str) -> None:
 
     missing = sorted(set(english) - set(texts))
     assert not missing, f"{language}: missing keys {missing}"
-    extra = sorted(set(texts) - set(english))
+    extra = sorted(set(texts) - set(english) - set(_number_forms(language, english)))
     assert not extra, f"{language}: unknown keys {extra}"
 
     wrong: list[str] = []
-    for key, source in english.items():
+    for key, source in {**english, **_number_forms(language, english)}.items():
+        if key not in texts:
+            continue
         expected = set(_PLACEHOLDER.findall(source))
         actual = set(_PLACEHOLDER.findall(texts[key]))
         if expected != actual:
@@ -102,7 +121,10 @@ def test_every_text_actually_formats(language: str) -> None:
     `str.format` raises on those, and the raise happens while answering a
     question — the one moment nobody is watching a log.
     """
-    values = {name: "X" for name in {"days", "count", "hours", "qty", "stock", "page", "index"}}
+    values = {
+        name: "X"
+        for name in {"days", "count", "hours", "qty", "stock", "page", "index", "minutes", "day", "month", "year"}
+    }
     values |= {
         name: "X"
         for name in {
@@ -110,6 +132,8 @@ def test_every_text_actually_formats(language: str) -> None:
             "notes", "steps", "title", "part", "extras", "loc", "low",
             # cycle phases (#139 voice pass)
             "phase", "next",
+            # voice packages B/C (2026-09-30)
+            "example", "area", "value", "unit", "user", "device", "type", "needs",
         }
     }
     for key, text in load_language(language).items():

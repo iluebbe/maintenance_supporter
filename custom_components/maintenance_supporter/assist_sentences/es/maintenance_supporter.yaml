@@ -10,6 +10,13 @@
 # Puedes editar tu copia: en cuanto su contenido deje de coincidir con lo que
 # escribimos, las actualizaciones ya no la tocan (y desactivar el ajuste
 # tampoco la borra).
+#
+# Las frases propias GANAN a las de Home Assistant cuando ambas encajan. Un
+# verbo que las integradas también usan (saltar, pausar, silenciar) seguido de
+# un nombre libre se tragaría «salta esta canción» o «silencia la radio»; por
+# eso esas frases llevan una palabra de mantenimiento (mantenimiento, tarea,
+# avisos, «esta vez»). Un test comprueba cada frase integrada contra este
+# archivo.
 language: "es"
 intents:
   MaintenanceSupporterListTasks:
@@ -19,8 +26,34 @@ intents:
           - "qué (tareas|mantenimientos) [de mantenimiento] (hay|están) pendientes"
           - "hay (algo|algún mantenimiento) pendiente"
           - "qué hay que (revisar|mantener)"
-      # Ámbito: quien pregunta. HA le indica al gestor quién ha hablado, así
-      # que esto responde con SUS tareas (incluido su turno en la rotación).
+      - sentences:
+          - "qué (mantenimiento|tarea) está (atrasado|atrasada|vencido|vencida)"
+          - "qué (mantenimientos|tareas) están (atrasados|atrasadas|vencidos|vencidas)"
+          - "qué está (atrasado|vencido)"
+          - "hay algo (atrasado|vencido)"
+        slots:
+          status: "overdue"
+      - sentences:
+          - "qué (toca|hay que hacer) hoy"
+          - "qué mantenimiento toca hoy"
+        slots:
+          within_days: 0
+      - sentences:
+          - "qué (toca|hay que hacer) mañana"
+        slots:
+          within_days: 1
+      - sentences:
+          - "qué (toca|hay que hacer) esta semana"
+          - "qué mantenimiento toca esta semana"
+        slots:
+          within_days: 7
+      - sentences:
+          - "qué (toca|hay que hacer) este mes"
+        slots:
+          within_days: 30
+      - sentences:
+          - "qué (toca|hay que hacer) en [el|la] {area}"
+          - "qué mantenimiento (toca|hay) en [el|la] {area}"
       - sentences:
           - "qué me toca [a mí] [hacer]"
           - "qué tengo que hacer [yo]"
@@ -28,8 +61,6 @@ intents:
           - "tengo algo pendiente"
         slots:
           scope: "mine"
-      # Ámbito: la habitación desde la que se pregunta, deducida de la zona del
-      # satélite — así una tableta de pared responde por su propia habitación.
       - sentences:
           - "qué hay que hacer aquí"
           - "qué mantenimiento (toca|hay) (aquí|en esta habitación)"
@@ -39,54 +70,106 @@ intents:
   MaintenanceSupporterCompleteTask:
     data:
       - sentences:
-          - "[ya] he (hecho|terminado|completado) [el|la|los|las] {task_name:name}"
-          - "marca [el|la|los|las] {task_name:name} como (hecho|hecha|terminado|terminada|completado|completada)"
+          - "[ya] he (hecho|terminado|completado) <ms_el> {task_name:name}"
+          - "marca <ms_el> (mantenimiento|tarea) [de|del|de la] {task_name:name} como (hecho|hecha|terminado|terminada|completado|completada)"
+          - "<ms_el> {task_name:name} (está|están) (hecho|hecha|hechos|hechas|terminado|terminada|listo|lista)"
   MaintenanceSupporterTaskInstructions:
     data:
       - sentences:
-          - "cómo (hago|se hace) [el|la|los|las] {task_name:name}"
-          - "(instrucciones|indicaciones) para [el|la|los|las] {task_name:name}"
-          - "qué necesito para [el|la|los|las] {task_name:name}"
+          - "cómo (hago|se hace) <ms_el> {task_name:name}"
+          - "(instrucciones|indicaciones) para <ms_el> {task_name:name}"
+          - "qué necesito para <ms_el> {task_name:name}"
   MaintenanceSupporterTaskDue:
     data:
       - sentences:
-          - "cuándo toca [el|la|los|las] {task_name:name}"
-          - "cuándo (hay que|tengo que) hacer [el|la|los|las] {task_name:name}"
+          - "cuándo toca <ms_el> {task_name:name}"
+          - "cuándo (hay que|tengo que) hacer <ms_el> {task_name:name}"
+          - "cuándo vence <ms_el> {task_name:name}"
   MaintenanceSupporterSnoozeTask:
     data:
       - sentences:
-          - "(silencia|pausa) [el|la|los|las] {task_name:name}"
-          - "(silencia|pausa) los avisos (de|del|de la) {task_name:name}"
+          - "(silencia|pausa|pospón) los (avisos|recordatorios) (de|del|de la|de los|de las) {task_name:name}"
+          - "(silencia|pausa) (el mantenimiento|la tarea) [de|del|de la] {task_name:name}"
   MaintenanceSupporterPartStock:
     data:
       - sentences:
-          - "cuántos {part_name:name} (nos quedan|tenemos|quedan)"
+          - "cuánt(os|as) {part_name:name} (nos quedan|tenemos)"
           - "cuánto stock (hay|tenemos) de {part_name:name}"
   MaintenanceSupporterPostponeTask:
     data:
       - sentences:
-          - "(aplaza|retrasa|pospón) [el|la|los|las] {task_name:name} {days} día[s]"
-          - "deja [el|la|los|las] {task_name:name} para dentro de {days} día[s]"
+          - "(aplaza|retrasa|pospón) <ms_el> {task_name:name} {days} día[s]"
+          - "deja <ms_el> {task_name:name} para dentro de {days} día[s]"
       - sentences:
-          - "(aplaza|retrasa|pospón) [el|la|los|las] {task_name:name} una semana"
+          - "(aplaza|retrasa|pospón) <ms_el> {task_name:name} una semana"
         slots:
           days: 7
   MaintenanceSupporterSkipTask:
     data:
       - sentences:
-          - "(salta|sáltate) [el|la|los|las] {task_name:name} [esta vez]"
+          - "(salta|sáltate) <ms_el> {task_name:name} esta vez"
+          - "(salta|sáltate) (el mantenimiento|la tarea) [de|del|de la] {task_name:name} [esta vez]"
           - "(salta|sáltate) esta (ronda|vuelta) (de|del|de la|de los|de las) {task_name:name}"
+  MaintenanceSupporterRecordReading:
+    data:
+      - sentences:
+          - "(registra|anota|apunta) [una] lectura de {reading_value:value} (para|en) <ms_el> {task_name:name}"
+          - "la lectura (de|del|de la) {task_name:name} es [de] {reading_value:value}"
+          - "<ms_el> {task_name:name} marca {reading_value:value}"
+  MaintenanceSupporterAddNote:
+    data:
+      - sentences:
+          - "(añade|agrega|pon) una nota (a|al|a la|para|en) {task_name:name} (que diga|diciendo) [que] {note_text:note}"
+          - "anota (para|en) <ms_el> {task_name:name} que {note_text:note}"
+  MaintenanceSupporterWhoseTurn:
+    data:
+      - sentences:
+          - "a quién le toca [hacer] <ms_el> {task_name:name}"
+          - "quién (es responsable|se encarga) (de|del|de la|de los|de las) {task_name:name}"
+          - "quién tiene que hacer <ms_el> {task_name:name}"
+  MaintenanceSupporterShoppingList:
+    data:
+      - sentences:
+          - "qué (tenemos que|hay que|necesitamos) comprar"
+          - "qué (repuestos|piezas|consumibles|suministros) (faltan|necesitamos|hay que reponer)"
+          - "qué (falta|se está acabando|hay que reponer)"
+  MaintenanceSupporterBoughtPart:
+    data:
+      - sentences:
+          - "(he comprado|compré|hemos comprado|compramos) {quantity} {part_name:name}"
+          - "(he comprado|compré|hemos comprado|compramos) más {part_name:name}"
+          - "añade {quantity} {part_name:name} al (stock|inventario)"
+  MaintenanceSupporterLowBatteries:
+    data:
+      - sentences:
+          - "qué (pilas|baterías) (están|tienen) (bajas|agotadas|poca carga|casi agotadas)"
+          - "hay (pilas|baterías) (bajas|agotadas)"
+          - "qué (pilas|baterías) (tengo|hay) que (cambiar|reemplazar)"
+  MaintenanceSupporterUndo:
+    data:
+      - sentences:
+          - "deshaz (eso|lo último|la última acción)"
+          - "deshacer (eso|la última acción)"
+          - "eso fue un error"
 lists:
-  # NO uses «name»: es la lista integrada de nombres de ENTIDADES de Home
-  # Assistant, que el agente por defecto resuelve antes de llamar al gestor —
-  # cualquier frase que la usara respondía «no conozco ningún dispositivo…» en
-  # vez de llegar hasta nosotros. El alias {lista:slot} mantiene el valor en el
-  # slot «name».
+  # No 'name': es la lista integrada de nombres de ENTIDADES de Home Assistant
+  # (ver el archivo inglés). {area} es la lista de áreas de Home Assistant.
   task_name:
     wildcard: true
   part_name:
+    wildcard: true
+  reading_value:
+    wildcard: true
+  note_text:
     wildcard: true
   days:
     range:
       from: 1
       to: 365
+  quantity:
+    range:
+      from: 1
+      to: 100
+expansion_rules:
+  # Prefijo propio: estas reglas se fusionan con las de Home Assistant.
+  ms_el: "[el|la|los|las]"

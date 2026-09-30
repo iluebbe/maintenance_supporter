@@ -1749,6 +1749,25 @@ class NotificationManager:
         per-task gate's view of the snooze state — notification_gates.)"""
         return self._is_snoozed(notification_key(entry_id, task_id, status))
 
+    def task_snooze_state(self, entry_id: str, task_id: str) -> dict[str, datetime]:
+        """The task's active snoozes, per status — what a voice undo restores."""
+        state: dict[str, datetime] = {}
+        for status in NOTIFIABLE_STATUSES:
+            until = self._snoozed_until.get(notification_key(entry_id, task_id, status))
+            if until is not None:
+                state[status] = until
+        return state
+
+    def restore_task_snooze_state(self, entry_id: str, task_id: str, state: dict[str, datetime]) -> None:
+        """Put a task's snoozes back to *state* (from :meth:`task_snooze_state`)."""
+        for status in NOTIFIABLE_STATUSES:
+            key = notification_key(entry_id, task_id, status)
+            if status in state:
+                self._snoozed_until[key] = state[status]
+            else:
+                self._snoozed_until.pop(key, None)
+        self._dirty()
+
     def snooze_task(self, entry_id: str, task_id: str) -> None:
         """Snooze all notifications for a task."""
         hours = self._opt(CONF_SNOOZE_DURATION_HOURS)

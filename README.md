@@ -160,8 +160,10 @@ entity mirrors open work. Lifecycle **events** (`…_task_completed`,
 `…_trigger_activated`, …) fire on every path, and nine **services** —
 `complete` / `skip` / `reset` / `export_data` plus full task CRUD
 (`add_object`, `add_task`, `update_task`, `delete_task`, `list_tasks`) —
-cover scripting. 8 **Assist intents** answer *"what maintenance is due?"*,
-complete, skip, postpone or snooze tasks, read out instructions and check spare-part stock
+cover scripting. 15 **Assist intents** answer *"what maintenance is due?"*
+(this week, in the kitchen), complete, skip, postpone or snooze tasks, record
+readings and notes, read out instructions, say whose turn it is, check stock,
+what to buy and which batteries are low, and undo a misheard command
 by voice — LLM-based Assist picks them up automatically; classic Assist uses
 the shipped sentence files
 ([Features → Voice & Assist](docs/FEATURES.md#voice--assist-226)).

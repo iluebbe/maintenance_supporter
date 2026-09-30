@@ -47,6 +47,14 @@ _FILENAME = "maintenance_supporter.yaml"
 _STAMP = "# maintenance_supporter:managed "
 
 
+#: Regional variants Home Assistant keeps apart. The default agent picks the
+#: variant it has built-in intents for and then reads custom sentences from
+#: ``custom_sentences/<that variant>/`` only — a Swiss German pipeline looks
+#: in ``de-CH/`` and never saw the ``de/`` file (voice audit 2026-09-30). Each
+#: variant gets its base language's file, adapted by :func:`_adapt`.
+_VARIANTS: dict[str, str] = {"de-CH": "de"}
+
+
 def available_languages() -> list[str]:
     """Languages we ship sentences for, in a stable order."""
     if not _PACKAGE_DIR.is_dir():
@@ -54,13 +62,33 @@ def available_languages() -> list[str]:
     return sorted(p.name for p in _PACKAGE_DIR.iterdir() if (p / _FILENAME).is_file())
 
 
+def installed_languages() -> list[str]:
+    """Every ``custom_sentences`` directory we write: the shipped languages
+    plus the regional variants of them."""
+    shipped = available_languages()
+    return sorted([*shipped, *(v for v, base in _VARIANTS.items() if base in shipped)])
+
+
+def _adapt(body: str, variant: str) -> str:
+    """A base language's file for one of its regional variants."""
+    base = _VARIANTS[variant]
+    body = body.replace(f'language: "{base}"', f'language: "{variant}"', 1)
+    if variant == "de-CH":
+        # Swiss spelling has no ß, and neither does what its speech-to-text
+        # writes ("abschliessen").
+        body = body.replace("ß", "ss")
+    return body
+
+
 def _body(language: str) -> str | None:
-    source = _PACKAGE_DIR / language / _FILENAME
+    base = _VARIANTS.get(language, language)
+    source = _PACKAGE_DIR / base / _FILENAME
     try:
-        return source.read_text(encoding="utf-8")
+        body = source.read_text(encoding="utf-8")
     except OSError:
         _LOGGER.debug("No shipped sentences for %s", language, exc_info=True)
         return None
+    return _adapt(body, language) if language in _VARIANTS else body
 
 
 def _stamped(body: str) -> str:
@@ -90,7 +118,7 @@ def _sync(hass: HomeAssistant, enabled: bool) -> tuple[list[str], list[str]]:
     written: list[str] = []
     skipped: list[str] = []
 
-    for language in available_languages():
+    for language in installed_languages():
         body = _body(language)
         if body is None:
             continue

@@ -24,8 +24,10 @@ from homeassistant.core import HomeAssistant
 from custom_components.maintenance_supporter import intent as intent_module
 from custom_components.maintenance_supporter.helpers.assist_sentences import (
     _PACKAGE_DIR,
+    _body,
     async_sync,
     available_languages,
+    installed_languages,
 )
 
 
@@ -119,7 +121,7 @@ def test_every_registered_intent_has_sentences_in_every_language() -> None:
 async def test_nothing_is_written_until_asked(hass: HomeAssistant) -> None:
     """Opt-in means opt-in: the default must not touch the config directory."""
     await async_sync(hass, False)
-    for language in available_languages():
+    for language in installed_languages():
         assert not _installed(hass, language).exists()
 
 
@@ -127,16 +129,36 @@ async def test_enabling_installs_every_shipped_language(hass: HomeAssistant) -> 
     written, skipped = await async_sync(hass, True)
 
     assert not skipped
-    assert set(written) == set(available_languages())
-    for language in available_languages():
+    assert set(written) == set(installed_languages())
+    assert set(available_languages()) <= set(written)
+    for language in installed_languages():
         target = _installed(hass, language)
         assert target.is_file(), f"{language} not installed"
         text = target.read_text(encoding="utf-8")
-        # The body must be the shipped file verbatim — a mangled copy would
-        # match no sentences at all.
-        source = (_PACKAGE_DIR / language / "maintenance_supporter.yaml").read_text(encoding="utf-8")
+        # The body must be the shipped file (for a regional variant: its
+        # base language's, adapted) — a mangled copy would match nothing.
+        source = _body(language)
+        assert source is not None
         assert text.endswith(source)
         assert yaml.safe_load(text)["language"] == language
+    for language in available_languages():
+        shipped = (_PACKAGE_DIR / language / "maintenance_supporter.yaml").read_text(encoding="utf-8")
+        assert _installed(hass, language).read_text(encoding="utf-8").endswith(shipped)
+
+
+async def test_a_swiss_german_pipeline_gets_the_sentences_too(hass: HomeAssistant) -> None:
+    """Home Assistant resolves a de-CH pipeline to its own built-in variant
+    and then reads ``custom_sentences/de-CH/`` ONLY — the ``de/`` file was
+    invisible to it (voice audit 2026-09-30). The copy speaks Swiss spelling:
+    no ß, since the speech-to-text writes "abschliessen"."""
+    await async_sync(hass, True)
+
+    swiss = _installed(hass, "de-CH").read_text(encoding="utf-8")
+    german = (_PACKAGE_DIR / "de" / "maintenance_supporter.yaml").read_text(encoding="utf-8")
+    assert yaml.safe_load(swiss)["language"] == "de-CH"
+    assert "ß" not in swiss
+    assert "ß" in german, "the German file lost its ß — this test no longer proves the adaptation"
+    assert yaml.safe_load(swiss)["intents"].keys() == yaml.safe_load(german)["intents"].keys()
 
 
 async def test_installing_twice_is_a_no_op(hass: HomeAssistant) -> None:
@@ -185,7 +207,7 @@ async def test_a_hand_written_file_is_never_overwritten(hass: HomeAssistant) -> 
 async def test_disabling_removes_what_we_installed(hass: HomeAssistant) -> None:
     await async_sync(hass, True)
     await async_sync(hass, False)
-    for language in available_languages():
+    for language in installed_languages():
         assert not _installed(hass, language).exists()
 
 
@@ -274,7 +296,9 @@ def test_sentences_never_use_home_assistants_reserved_name_list() -> None:
         parsed = yaml.safe_load(
             (_PACKAGE_DIR / language / "maintenance_supporter.yaml").read_text(encoding="utf-8")
         )
-        declared = set(parsed.get("lists", {}))
+        # {area} is Home Assistant's own list of area names, like {name} — but
+        # its values ARE what the handler wants (it resolves them to an area).
+        declared = set(parsed.get("lists", {})) | {"area"}
         assert "name" not in declared, (
             f"{language}: a list called 'name' cannot override Home Assistant's built-in one"
         )

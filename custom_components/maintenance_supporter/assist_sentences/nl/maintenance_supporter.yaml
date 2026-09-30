@@ -10,6 +10,13 @@
 # Je eigen kopie aanpassen mag: zodra de inhoud niet meer overeenkomt met wat
 # wij geschreven hebben, blijven updates ervan af (en de instelling weer
 # uitzetten verwijdert hem ook niet).
+#
+# Eigen zinnen WINNEN van de ingebouwde zinnen van Home Assistant zodra beide
+# passen. Een werkwoord dat de ingebouwde zinnen ook gebruiken (overslaan, op
+# stil zetten, markeren) met een vrije naam erachter zou "sla dit nummer over"
+# inslikken — zulke zinnen dragen daarom een onderhoudswoord (onderhoud, taak,
+# herinneringen, "deze keer"). Een test legt elke ingebouwde zin naast dit
+# bestand.
 language: "nl"
 intents:
   MaintenanceSupporterListTasks:
@@ -19,8 +26,33 @@ intents:
           - "wat moet er onderhouden worden"
           - "is er [nog] onderhoud te doen"
           - "welke (klusjes|klussen|taken) staan open"
-      # Bereik: degene die vraagt. HA geeft aan de handler door wie er sprak,
-      # dus dit antwoordt met DIENS taken (inclusief zijn beurt in de rotatie).
+      - sentences:
+          - "wat is (te laat|achterstallig|over tijd)"
+          - "welk onderhoud is (te laat|achterstallig)"
+          - "welke (taken|klusjes|klussen) zijn (te laat|achterstallig)"
+        slots:
+          status: "overdue"
+      - sentences:
+          - "wat moet er vandaag gebeuren"
+          - "welk onderhoud staat [er] vandaag (gepland|open)"
+        slots:
+          within_days: 0
+      - sentences:
+          - "wat moet er morgen gebeuren"
+        slots:
+          within_days: 1
+      - sentences:
+          - "wat moet er deze week gebeuren"
+          - "welk onderhoud staat [er] deze week (gepland|open)"
+        slots:
+          within_days: 7
+      - sentences:
+          - "wat moet er deze maand gebeuren"
+        slots:
+          within_days: 30
+      - sentences:
+          - "wat moet er in [de|het] {area} gebeuren"
+          - "welk onderhoud is in [de|het] {area} nodig"
       - sentences:
           - "wat moet ik [nog] doen"
           - "wat zijn mijn (taken|klusjes|klussen)"
@@ -28,8 +60,6 @@ intents:
           - "heb ik [nog] (iets|wat) te doen"
         slots:
           scope: "mine"
-      # Bereik: de kamer waaruit gevraagd wordt, afgeleid uit het gebied van de
-      # satelliet — zo antwoordt een wandtablet voor zijn eigen kamer.
       - sentences:
           - "wat moet er hier gebeuren"
           - "welk onderhoud is (hier|in deze kamer) nodig"
@@ -39,58 +69,111 @@ intents:
   MaintenanceSupporterCompleteTask:
     data:
       - sentences:
-          - "ik heb [de|het] {task_name:name} (gedaan|afgerond)"
-          - "markeer [de|het] {task_name:name} als (gedaan|klaar|afgerond)"
-          - "[de|het] {task_name:name} is (klaar|gedaan)"
+          - "ik heb <ms_de> {task_name:name} (gedaan|afgerond)"
+          - "markeer <ms_de> (taak|onderhoud|klus) {task_name:name} als (gedaan|klaar|afgerond)"
+          - "<ms_de> {task_name:name} is (klaar|gedaan|afgerond)"
   MaintenanceSupporterTaskInstructions:
     data:
       - sentences:
-          - "hoe doe ik [de|het] {task_name:name}"
-          - "(instructies|uitleg) voor [de|het] {task_name:name}"
-          - "wat heb ik nodig voor [de|het] {task_name:name}"
+          - "hoe doe ik <ms_de> {task_name:name}"
+          - "(instructies|uitleg) voor <ms_de> {task_name:name}"
+          - "wat heb ik nodig voor <ms_de> {task_name:name}"
   MaintenanceSupporterTaskDue:
     data:
       - sentences:
-          - "wanneer moet [de|het] {task_name:name} (gebeuren|gedaan worden)"
-          - "wanneer is [de|het] {task_name:name} aan de beurt"
+          - "wanneer moet <ms_de> {task_name:name} (gebeuren|gedaan worden)"
+          - "wanneer is <ms_de> {task_name:name} aan de beurt"
   MaintenanceSupporterSnoozeTask:
     data:
       - sentences:
-          - "zet [de|het] {task_name:name} op stil"
-          - "(pauzeer|stop) de herinneringen voor [de|het] {task_name:name}"
+          - "zet de herinneringen (voor|van) <ms_de> {task_name:name} op stil"
+          - "(pauzeer|stop) de herinneringen (voor|van) <ms_de> {task_name:name}"
+          - "zet <ms_de> (taak|onderhoud) {task_name:name} op stil"
   MaintenanceSupporterPartStock:
     data:
       - sentences:
           - "hoeveel {part_name:name} hebben we [nog]"
           - "hoeveel {part_name:name} (is|zijn) er nog"
-          - "wat is de voorraad [van] [de|het] {part_name:name}"
+          - "wat is de voorraad [van] <ms_de> {part_name:name}"
   MaintenanceSupporterPostponeTask:
     data:
       - sentences:
-          - "stel [de|het] {task_name:name} {days} dag[en] uit"
-          - "schuif [de|het] {task_name:name} {days} dag[en] op"
-          - "verplaats [de|het] {task_name:name} met {days} dag[en]"
+          - "stel <ms_de> {task_name:name} {days} dag[en] uit"
+          - "schuif <ms_de> {task_name:name} {days} dag[en] op"
+          - "verplaats <ms_de> {task_name:name} met {days} dag[en]"
       - sentences:
-          - "stel [de|het] {task_name:name} een week uit"
-          - "schuif [de|het] {task_name:name} een week op"
+          - "stel <ms_de> {task_name:name} een week uit"
+          - "schuif <ms_de> {task_name:name} een week op"
         slots:
           days: 7
   MaintenanceSupporterSkipTask:
     data:
       - sentences:
-          - "sla [de|het] {task_name:name} [deze keer] over"
-          - "sla deze (ronde|beurt) van [de|het] {task_name:name} over"
+          - "sla <ms_de> {task_name:name} deze keer over"
+          - "sla <ms_de> (taak|onderhoud|klus) {task_name:name} [deze keer] over"
+          - "sla deze (ronde|beurt) van <ms_de> {task_name:name} over"
+  MaintenanceSupporterRecordReading:
+    data:
+      - sentences:
+          - "(noteer|registreer) [een] (meterstand|stand|meting) van {reading_value:value} (voor|bij) <ms_de> {task_name:name}"
+          - "de (meterstand|stand) van <ms_de> {task_name:name} is {reading_value:value}"
+  MaintenanceSupporterAddNote:
+    data:
+      - sentences:
+          - "noteer (bij|voor) <ms_de> {task_name:name} dat {note_text:note}"
+          - "maak een notitie (bij|voor) <ms_de> {task_name:name} dat {note_text:note}"
+  MaintenanceSupporterWhoseTurn:
+    data:
+      - sentences:
+          - "wie is er aan de beurt (voor|met) <ms_de> {task_name:name}"
+          - "wie moet <ms_de> {task_name:name} doen"
+          - "wie is verantwoordelijk voor <ms_de> {task_name:name}"
+  MaintenanceSupporterShoppingList:
+    data:
+      - sentences:
+          - "wat moeten we (kopen|bijkopen|halen)"
+          - "wat moet er (gekocht|bijgekocht|besteld) worden"
+          - "welke (onderdelen|reserveonderdelen|voorraden|verbruiksartikelen) (zijn bijna op|raken op|moeten we kopen)"
+          - "wat raakt er op"
+  MaintenanceSupporterBoughtPart:
+    data:
+      - sentences:
+          - "(ik heb|we hebben) {quantity} [nieuwe] {part_name:name} gekocht"
+          - "(ik heb|we hebben) nieuwe {part_name:name} gekocht"
+          - "voeg {quantity} {part_name:name} toe aan de voorraad"
+  MaintenanceSupporterLowBatteries:
+    data:
+      - sentences:
+          - "welke batterijen zijn (bijna leeg|leeg|zwak)"
+          - "zijn er batterijen (bijna leeg|leeg|zwak)"
+          - "welke batterijen (moet ik|moeten we) (vervangen|wisselen)"
+  MaintenanceSupporterUndo:
+    data:
+      - sentences:
+          - "maak (dat|dit|de laatste actie) ongedaan"
+          - "draai (dat|dit|de laatste actie) terug"
+          - "dat was een fout"
 lists:
-  # NIET "name": dat is de ingebouwde lijst met ENTITEITSnamen van Home
-  # Assistant, die de standaardagent al oplost voordat onze handler draait —
-  # elke zin die hem gebruikte antwoordde "ik ken geen apparaat dat zo heet…"
-  # in plaats van ons te bereiken. Het alias {lijst:slot} laat de waarde
-  # alsnog in het slot "name" aankomen.
+  # Niet 'name': dat is de ingebouwde lijst met ENTITEITSnamen van Home
+  # Assistant (zie het Engelse bestand). {area} is de gebiedenlijst van Home
+  # Assistant.
   task_name:
     wildcard: true
   part_name:
+    wildcard: true
+  reading_value:
+    wildcard: true
+  note_text:
     wildcard: true
   days:
     range:
       from: 1
       to: 365
+  quantity:
+    range:
+      from: 1
+      to: 100
+expansion_rules:
+  # Eigen voorvoegsel: deze regels worden samengevoegd met die van Home
+  # Assistant.
+  ms_de: "[de|het]"

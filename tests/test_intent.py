@@ -288,7 +288,12 @@ async def test_task_due_speaks_status_and_date(
     resp = await _handle(hass, INTENT_TASK_DUE, {"name": {"value": "oil change"}})
     speech = resp.speech["plain"]["speech"]
     assert "Oil Change" in speech and "overdue" in speech
-    assert "next due date is 20" in speech.lower()  # ISO year on the date suffix
+    # The date as it is said ("August 30"), not ISO (voice audit 2026-09-30).
+    from custom_components.maintenance_supporter.helpers.intent_speech import spoken_date
+
+    due = dt_util.now().date() - timedelta(days=30)  # last done 60 days ago, every 30
+    assert f"next due date is {spoken_date(due, 'en')}" in speech
+    assert "-" not in speech.split("next due date is")[1]
 
 
 async def test_snooze_task_calls_the_notification_manager(

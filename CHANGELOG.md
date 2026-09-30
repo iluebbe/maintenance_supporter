@@ -31,6 +31,14 @@ All notable changes to Maintenance Supporter are documented in this file.
   day the task was done, every other file in a folder for its category, the web links in `Links.txt`, and a
   `README.txt`. Version 1 kept the files as `blobs/<hash>` without names or extensions — useless outside a restore.
   Those archives still restore.
+- **Seven new voice commands** (sentences in English, German, French, Spanish, Italian and Dutch; answers in all 22
+  languages; LLM agents get them as tools): record a reading (*"the water meter reads 1234.5"*), add a note (*"add a
+  note to the boiler saying the pressure was low"*), whose turn it is, what to buy (parts at their reorder threshold),
+  bought parts (*"I bought four water filters"* — into stock, closing the buy reminder), which batteries are low, and
+  **undo** (*"undo that"*): the speaker's own last voice action of the past ten minutes — completion, reading, skip,
+  postponement, snooze, note or purchase — is taken back, unless the task changed in the meantime.
+- **"What is due" by room and time:** *"what is overdue?"*, *"what is due this week / today / this month?"* and *"what
+  is due in the kitchen?"* (any area, by name or alias).
 
 ### ⚠️ Changed
 
@@ -49,6 +57,25 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **Our voice sentences took Home Assistant's own commands:** custom sentences win over the built-in ones whenever both
+  match, and ours paired common verbs with a free-text name — *"skip this song"*, *"Radio stummschalten"*, *"mets la
+  télé en pause"*, *"silencia la radio"*, *"metti in pausa il timer"*, *"sla dit nummer over"* were answered with
+  "I couldn't find a maintenance task", and a task whose name matched would have been skipped or snoozed. Those
+  sentences now carry a maintenance word (*task, reminders, this time*), and a test speaks every built-in sentence of
+  the core against ours in all six languages.
+- **Voice understood names only the way they are stored:** an article (*"den Wasserfilter"*), the object joined by *on*
+  (*"the oil change on the car"* — the documentation's own example), a plural, an elided article or a dropped accent
+  found nothing. When several tasks fit, the answer now also says which phrase picks one. German also understands
+  *"erledige X"* and *"X erledigt"*, and every German sentence takes *der/die/das/den/dem*.
+- **Voice answers in your language, all the way:** refusals (a task that needs a photo or a tag scan, an archived task)
+  were always English; dates were read out as *2026-10-03*; a task without a date said its status id (*due_soon*) and
+  a skip without a next date said *"due ?"*; *"1 hours"*, *"1 checklist steps"* and Russian/Ukrainian *"2 дней"* are
+  gone. The classic agent is no longer asked *"would you like general advice?"*, which it cannot follow up.
+- **Voice could postpone a task ten years and more:** the panel's limit is now enforced where every surface passes.
+- **Swiss German voice pipelines found no sentences:** Home Assistant reads `custom_sentences/de-CH/` for them; the
+  installer writes that too.
+- **Smaller voice fixes:** the stock answer warns at a decimal reorder threshold (*0.5 bags*), and the instructions
+  name spare parts kept in another object's stock.
 - **A damaged backup could stop the integration from starting:** an import file with a list where a user id belongs
   created the object, aborted halfway and from then on failed the main entry on every start — panel and summary gone.
   A value of the wrong type is now dropped with a warning, an object that still cannot be read is reported and

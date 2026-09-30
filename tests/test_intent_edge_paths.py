@@ -147,12 +147,17 @@ def test_single_letter_queries_do_not_fuzzy_match_everything() -> None:
 
 def test_describe_triggered_and_undated_tasks() -> None:
     """A sensor-triggered task is spoken as such; a task with no due day at all
-    falls back to its raw status instead of inventing a number."""
+    says so in words instead of inventing a number — the raw status id
+    ("ok", "due_soon") it used to read out is not speech (voice audit
+    2026-09-30)."""
     triggered = {"name": "Filter", "object_name": "Pool", "status": "triggered", "days_until_due": 12}
     assert _describe(triggered, "en") == "Filter on Pool (triggered)"
 
     undated = {"name": "Filter", "object_name": "Pool", "status": "ok", "days_until_due": None}
-    assert _describe(undated, "en") == "Filter on Pool (ok)"
+    assert _describe(undated, "en") == "Filter on Pool (no due date)"
+    assert _describe({**undated, "status": "due_soon"}, "en") == "Filter on Pool (due soon)"
+    assert _describe({**undated, "status": "overdue"}, "de") == "Filter an Pool (überfällig)"
+    assert _describe({**undated, "status": "paused"}, "en") == "Filter on Pool (no due date)"
 
 
 async def test_the_satellite_entitys_own_area_wins(hass: HomeAssistant) -> None:
@@ -252,9 +257,11 @@ async def test_postpone_by_days_survives_a_malformed_due_date(hass: HomeAssistan
         response = await _ask(hass, INTENT_POSTPONE_TASK, {"name": "oil change", "days": 4})
 
     assert response.error_code is None, _speech(response)
-    expected = (dt_util.now().date() + timedelta(days=4)).isoformat()
-    assert obj.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1].get("due_override") == expected
-    assert expected in _speech(response)
+    expected = dt_util.now().date() + timedelta(days=4)
+    assert obj.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1].get("due_override") == expected.isoformat()
+    from custom_components.maintenance_supporter.helpers.intent_speech import spoken_date
+
+    assert spoken_date(expected, "en") in _speech(response)
 
 
 # ─── inert tasks refuse lifecycle actions by voice ────────────────────────
