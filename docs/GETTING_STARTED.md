@@ -66,21 +66,24 @@ Each task keeps its **history**: who did what, when, at what cost.
 
 ## Level 2 — Never miss a date
 
-**Notifications.** They are off until you switch them on: panel →
-**Settings** → *General* → tick **Notifications** and pick where reminders
-go — the Companion app on your phone, any `notify.*` service or notify
-entity. You get a reminder when a task is due soon, when it is overdue
-and when a sensor triggers it (level 3). The *Notifications* section
-that now appears has *Mobile Action Buttons*: switch them on and the phone
-notification gets **Complete**, **Skip** and
-**Snooze** buttons — done without opening the app (Companion app only).
+**Notifications.** They are off until you switch them on: in the panel,
+*Settings → General → Notifications*, then pick where reminders go — the
+Companion app on your phone, any `notify.*` service or notify entity. *Send
+test* checks it, and *Per-person delivery* right below shows where each
+household member's reminders end up (level 4). You get a reminder when a
+task is due soon, when it is overdue and when a sensor triggers it
+(level 3). The *Notifications* section that now appears has *Mobile Action
+Buttons*: switch them on and the phone notification gets **Complete**,
+**Skip** and **Snooze** buttons — done without opening the app (Companion
+app only).
 
-Useful extras in that section: quiet hours, a weekly digest, bundling several
-reminders into one, vacation mode (pauses reminders while you're away) and
-per-user routing (level 4).
+Useful extras in that section: quiet hours, a weekly digest and bundling
+several reminders into one. Going away? *Settings → Vacation mode* pauses
+the reminders while you're gone.
 
-**Today view.** The *Today* tab shows only what needs you now — overdue,
-due today, triggered — ordered by urgency.
+**Today view.** The *Today* tab shows only what needs you soon, in three
+sections: *Overdue* (including what a sensor triggered), *Due today* and
+*This week* — the next seven days.
 
 ![Today view](images/today-view.png)
 
@@ -123,9 +126,10 @@ offered the same in the dialog.
 **Your own sensor trigger.** Any task can watch a sensor instead of (or in
 addition to) the calendar: *below / above a value* (filter airflow below
 60 %), *a counter* (every 15,000 km), *runtime* (every 200 pump hours), *a
-state change* (every 30 wash cycles), several sensors at once, or AND/OR
-combinations. The task detail shows why it is due, with the live reading
-and its history.
+state change* (every 30 wash cycles), *a due date the device reports
+itself* (a purifier's *Filter change due*: the task falls due that day, or
+a few days before), several sensors at once, or AND/OR combinations. The
+task detail shows why it is due, with the live reading and its history.
 
 ![Why is this task due?](images/gifs/sensor-trigger.gif)
 
@@ -155,24 +159,25 @@ whose turn it is shows on the card.
 ![Duty rotation](images/gifs/duty-rotation.gif)
 
 People who are not administrators see the panel read-only, but can still
-complete, skip and reset tasks. If some of them should also create and edit
-objects and tasks, allow it for exactly those people in *Settings → Panel
-access*.
+complete, skip, reset, postpone and snooze tasks. If some of them should
+also create and edit objects and tasks, allow it for exactly those people in
+*Settings → Panel access*.
 
 **At the device: QR codes.** Every task has a QR code (task → ⋮ → *QR code*;
-all at once in *Settings → Print QR codes*): **Info** opens the task,
-**Complete** opens the complete dialog. With *Settings → Advanced Features →
-Completion actions* switched on, a task can get *quick-complete defaults*
-(notes, cost, duration) — and with them a third, lightning-bolt code that
-records the completion in one scan, no dialog.
+all at once in *Settings → Print QR codes*): *View maintenance info* opens
+the task, *Mark maintenance as complete* opens the complete dialog. With
+*Settings → Advanced Features → Completion actions* switched on, a task can
+get *quick-complete defaults* (notes, cost, duration) — and with them a
+third, lightning-bolt code, *Quick-complete — no dialog*, that records the
+completion in one scan.
 
 ![QR codes of a task](images/qr-dialog.png)
 
 ![Scan, done](images/gifs/qr-quick-complete.gif)
 
-**Proof of presence.** Stick an NFC tag on the smoke detector and mark the
-task *only by scanning the tag*: it can then only be completed at the
-detector itself.
+**Proof of presence.** Stick an NFC tag on the smoke detector and switch on
+*Only complete by scanning the tag* in the task: it can then only be
+completed at the detector itself.
 
 ![A task only a scan may complete](images/gifs/tag-scan-required.gif)
 
@@ -181,11 +186,13 @@ detector itself.
 ## Level 5 — Parts, documents and money
 
 **Spare parts.** Give an object its parts — filters, brushes, descaler — with
-part number, storage place and stock. A task can consume them on completion;
-when the stock drops to the reorder threshold, a *"Buy …"* reminder appears
-on its own. Pick a list in *Settings → General → Shopping list (buy tasks)*
-and the reminder also lands on that Home Assistant shopping list — check it
-off at the store and the part is restocked.
+part number, storage place and stock; a part you buy in packages (a 25 kg
+bag of salt, a 400 ml can) keeps its stock in the unit a job uses. A task
+can consume them on completion; when the stock drops to the reorder
+threshold, a *"Buy …"* reminder appears on its own. Pick a list in
+*Settings → General → Shopping list (buy tasks)* and the reminder also lands
+on that Home Assistant shopping list — check it off at the store and the
+part is restocked.
 
 ![Parts that reorder themselves](images/gifs/parts-auto-buy.gif)
 
@@ -195,8 +202,11 @@ Home Assistant backup, and the search finds words **inside** the PDFs.
 
 ![Documents](images/documents-section.png)
 
-**Costs and budgets.** Every completion can record its cost. Switch on
-*Settings → Advanced Features → Budget Tracking* for monthly and yearly budgets with alerts.
+**Costs and budgets.** Every completion can record its cost, and spare parts
+count too — *Settings → General → Spare parts count as spending* decides
+whether a part counts when it is bought or when a job uses it. Switch on
+*Settings → Advanced Features → Budget Tracking* for monthly and yearly
+budgets with alerts.
 
 **Reports.** Every object has a printable **maintenance report** (object →
 ⋮) and a **service record** of everything done — print it or save it as PDF,
@@ -204,10 +214,18 @@ e.g. when you sell the car.
 
 ![Object report](images/gifs/object-report.gif)
 
+> **Good to know:** when a machine dies, object → ⋮ → *Replace…* retires it
+> with its history and costs and creates the new unit. If the new one is
+> another Home Assistant device, its sensor triggers, completion actions and
+> counter reset move to that device.
+
 **Areas.** *All objects → All areas* shows every Home Assistant area with its
 costs — this year and in total — and one area's merged history, cost per
 month and cost per object, with an **area report** for the yearly overview of
-the whole flat or house.
+the whole flat or house. Each area also gets a sensor,
+`sensor.<area>_maintenance_cost`, placed in that area: it shows up on the
+area's dashboard, and a *statistics graph* card with period *year* shows
+what a room cost per year.
 
 ![Areas](images/gifs/areas.gif)
 
@@ -229,7 +247,9 @@ The task dialog previews the next dates while you edit.
 
 **Postpone once, pause for the season.** A single occurrence can be moved
 without changing the rhythm; a whole object (pool, mower) can be paused over
-winter and resumes with a fresh cycle.
+winter, or just one of its tasks (task → ⋮ → *Pause…*, optionally until a
+date — the filter of a purifier you put away for the summer). Either
+resumes with a fresh cycle.
 
 **Alternating work.** One task, one rhythm, different work each time — *flip,
 flip, replace* for the mower blades — with *cycle phases*.
@@ -267,8 +287,11 @@ automation editor. Your own notification rule, as Developer tools sees it:
 
 Copy-paste recipes: [EXAMPLES.md](EXAMPLES.md).
 
-**Voice.** Turn on *Install Assist sentences* in the settings and ask Assist
-*"What maintenance is due?"* or say *"Mark the filter change done"*.
+**Voice.** Turn on *Settings → General → Install Assist sentences* and ask
+Assist *"What maintenance is due?"* or say *"Mark the filter change done"*.
+The household sentences add *"What do we need to buy?"*, *"Whose turn is it
+for the filter change?"* and *"Undo that"*, which takes back your own last
+action. All of them: [FEATURES → Voice & Assist](FEATURES.md#voice--assist-226).
 
 **Dashboards.** Put a maintenance card, the calendar card, the battery-fleet
 card — or the whole panel — on any dashboard, or let the dashboard strategy
@@ -282,6 +305,7 @@ generate a complete maintenance dashboard.
 
 - Everything in detail, with more screenshots: [FEATURES.md](FEATURES.md)
 - Every setting: [CONFIGURATION.md](CONFIGURATION.md)
+- Moving to a new Home Assistant: [FEATURES → Moving to another Home Assistant](FEATURES.md#moving-to-another-home-assistant-296)
 - Recipes and automations: [EXAMPLES.md](EXAMPLES.md)
 - Which devices Suggested setups knows: [INTEGRATIONS.md](INTEGRATIONS.md)
 - Something not working: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)

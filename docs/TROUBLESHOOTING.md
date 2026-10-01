@@ -133,6 +133,6 @@ logger:
 **Reinstalling later** is a documented fresh start: re-adding the integration
 (even in the same Home Assistant run, without a restart) gives a clean install
 — nothing from the previous life is restored. To carry your data across,
-export it (Settings → Export in the panel) before uninstalling and import the
+export it (the panel's *Settings → Import / Export*) before uninstalling and import the
 file after reinstalling; the export round-trips objects, tasks, history and
 document metadata completely.

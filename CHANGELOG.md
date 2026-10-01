@@ -295,6 +295,18 @@ All notable changes to Maintenance Supporter are documented in this file.
   one that is gone. A pre-commit hook runs it on every commit (`git config core.hooksPath .githooks`, which
   `scripts/init-dev.sh` sets), and CI fails when the tree misses a module or its figures drifted. The count checks
   for the other docs now also read numbers written as words ("Six Assist/voice intents" had stood beside 15).
+- **Getting started, checked against the panel:** the *Today* tab also has *This week*; vacation mode is a Settings
+  section of its own and the per-person delivery sits under *General*; people without admin rights may also postpone
+  and snooze; the QR codes and the NFC switch are named as the UI names them. New in the guide: pausing one task, the
+  due-date trigger, the area cost sensors, parts bought in packages and when parts count as spending, replacing a
+  machine with another device, the household voice sentences and where to read about moving to another Home
+  Assistant.
+- **Menu paths in the docs are checked:** `tests/test_docs_ui_paths.py` walks every *Settings → …*, *Add ▾ → …*,
+  *⋮ → …* and *Configure → …* in the docs against the panel's Settings sections and the panel's and the options
+  flow's labels. It found five more that led nowhere: *Settings → Options → General Settings*, *Settings →
+  Integrations → Add* (Home Assistant's page is *Devices & services*), *Settings → Export* (*Import / Export*), the
+  *Shopping search URL* (it reads *Shopping search link*) and *Typical battery lifetimes* one level too high (it sits
+  in *General*); FEATURES and CONFIGURATION also placed the per-person delivery under *Notifications*.
 - **The LLM setup skill against the code** (`skills/maintenance-setup-assistant/`): the API reference claimed a snooze
   is forgotten at a restart (it is stored) and never mentioned that `task/complete` takes `via_tag_scan` — an
   assistant must never assert a tag scan; task fields for rotation, the completion window, priority, labels,
