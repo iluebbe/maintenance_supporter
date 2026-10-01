@@ -15,6 +15,7 @@ Three pins:
 from __future__ import annotations
 
 import json
+from datetime import date, timedelta
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -119,6 +120,12 @@ FULL_TASK = {
     ],
 }
 
+# A pause end the round trip needs in the FUTURE whenever the suite runs: the
+# fixed "2026-10-01" was reached on that day, the object auto-resumed halfway
+# through the round trip and took its pause, the tasks' anchors and their
+# due_override with it (CI, 2026-10-01).
+IN_A_YEAR = (date.today() + timedelta(days=365)).isoformat()
+
 FULL_OBJECT = {
     "name": "Roundtrip Rig",
     "manufacturer": "Acme",
@@ -130,7 +137,7 @@ FULL_OBJECT = {
     "documentation_url": "https://example.org/obj",
     "notes": "object notes",
     "paused_at": "2026-08-01T00:00:00+00:00",
-    "paused_until": "2026-10-01",
+    "paused_until": IN_A_YEAR,
 }
 
 FULL_PART = {

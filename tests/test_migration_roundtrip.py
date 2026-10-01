@@ -53,7 +53,7 @@ from .conftest import (
     make_ws_connection,
     setup_integration,
 )
-from .test_export_roundtrip import FULL_OBJECT, FULL_PART, FULL_TASK, _full_trigger_config, _make_fleet_entry
+from .test_export_roundtrip import FULL_OBJECT, FULL_PART, FULL_TASK, IN_A_YEAR, _full_trigger_config, _make_fleet_entry
 
 ROOT = Path(__file__).resolve().parent.parent / "custom_components" / "maintenance_supporter"
 
@@ -247,7 +247,7 @@ def _kitchen_extras() -> dict[str, dict[str, Any]]:
         "archived_task": task("archived_task", "Old routine", archived_at="2026-06-01T00:00:00+00:00", archived_reason="done"),
         "disabled_task": task("disabled_task", "Paused routine", enabled=False),
         # #193: a task paused on its own, with a resume date.
-        "held_task": task("held_task", "Filter on the shelf", paused_at="2026-09-01T08:00:00+00:00", paused_until="2027-03-01"),
+        "held_task": task("held_task", "Filter on the shelf", paused_at="2026-09-01T08:00:00+00:00", paused_until=IN_A_YEAR),
     }
 
 
