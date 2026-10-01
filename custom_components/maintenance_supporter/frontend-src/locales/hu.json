@@ -672,6 +672,7 @@
   "settings_warranty_reminder_days": "Nappal a lejárat előtt",
   "settings_warranty_reminder_hint": "Egyszeri értesítés, amikor egy objektum garanciája ennyi napra van a lejárattól.",
   "settings_snooze_hours": "Szundi időtartama (óra)",
+  "settings_snooze_hours_hint": "Mennyi ideig némítja a Szundi egy feladat emlékeztetőit — a feladat menüjéből, egy kártyáról, hanggal vagy a telefon Szundi gombjával. A határidő nem változik.",
   "settings_budget": "Költségkeret",
   "settings_currency": "Pénznem",
   "settings_currency_decimals": "Összegek tizedesjegyei",

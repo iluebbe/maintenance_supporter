@@ -1240,6 +1240,14 @@ export class MaintenanceSettingsView extends LitElement {
           <span class="setting-label">${t("settings_max_per_day", L)}</span>
           ${this._intSetting("max_notifications_per_day", n.max_per_day)}
         </label>
+        <!-- Every Snooze uses it — the task menu, a card, voice, the phone's
+             button — so it is not tied to the Snooze action button (D#193:
+             it only showed while that button was on). -->
+        <label class="setting-row snooze-duration">
+          <span class="setting-label">${t("settings_snooze_hours", L)}</span>
+          ${this._intSetting("snooze_duration_hours", a.snooze_duration_hours)}
+        </label>
+        <div class="setting-hint">${t("settings_snooze_hours_hint", L)}</div>
 
         <label class="setting-row">
           <span class="setting-label">${t("settings_bundling", L)}</span>
@@ -1336,12 +1344,6 @@ export class MaintenanceSettingsView extends LitElement {
           <input type="checkbox" .checked=${a.snooze_enabled}
             @change=${(e: Event) => this._updateSetting("action_snooze_enabled", (e.target as HTMLInputElement).checked)} />
         </label>
-        ${a.snooze_enabled ? html`
-          <label class="setting-row sub-row">
-            <span class="setting-desc">${t("settings_snooze_hours", L)}</span>
-            ${this._intSetting("snooze_duration_hours", a.snooze_duration_hours)}
-          </label>
-        ` : nothing}
         <label class="setting-row">
           <span class="setting-label">${t("settings_weekly_digest", L)}</span>
           <input type="checkbox" .checked=${a.weekly_digest_enabled}

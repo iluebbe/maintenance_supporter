@@ -670,6 +670,7 @@
   "settings_warranty_reminder_days": "Dny před vypršením",
   "settings_warranty_reminder_hint": "Upozornit jednou, když do vypršení záruky objektu zbývá tolik dní.",
   "settings_snooze_hours": "Doba odložení (hodiny)",
+  "settings_snooze_hours_hint": "Jak dlouho „Odložit“ ztiší připomínky úkolu — z nabídky úkolu, z karty, hlasem nebo tlačítkem Odložit v telefonu. Termín zůstává beze změny.",
   "settings_budget": "Rozpočet",
   "settings_currency": "Měna",
   "settings_currency_decimals": "Desetinná místa částek",

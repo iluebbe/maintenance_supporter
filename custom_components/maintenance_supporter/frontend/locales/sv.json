@@ -670,6 +670,7 @@
   "settings_warranty_reminder_days": "Dagar före utgång",
   "settings_warranty_reminder_hint": "Meddela en gång när ett objekts garanti har så här många dagar kvar.",
   "settings_snooze_hours": "Snooza-tid (timmar)",
+  "settings_snooze_hours_hint": "Hur länge ”Snooza” tystar en uppgifts påminnelser — från uppgiftsmenyn, ett kort, rösten eller telefonens Snooza-knapp. Förfallodatumet ändras inte.",
   "settings_budget": "Budget",
   "settings_currency": "Valuta",
   "settings_currency_decimals": "Decimaler för belopp",

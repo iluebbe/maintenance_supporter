@@ -291,7 +291,7 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (42,735 lines)  126 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+├── frontend-src/               (42,737 lines)  126 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
 │   ├── maintenance-panel.ts     (5,103 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,263 lines)  Auto-generated dashboard strategy + 4 section strategies
@@ -393,9 +393,9 @@ custom_components/maintenance_supporter/
 │   │   ├── sparkline.ts           (513 lines)  Trigger section renderer (task detail)
 │   │   ├── status.ts               (62 lines)  A task's status as the user sees it — THE derivation for every surface
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
-│   ├── components/             (19,213 lines)  35 files — Lit elements: dialogs, sections, views, cards
+│   ├── components/             (19,215 lines)  35 files — Lit elements: dialogs, sections, views, cards
 │   │   ├── task-dialog.ts       (3,751 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
-│   │   ├── settings-view.ts     (2,776 lines)  In-panel global settings editor
+│   │   ├── settings-view.ts     (2,778 lines)  In-panel global settings editor
 │   │   ├── task-quick-actions-dialog.ts (935 lines)  Task ⋮ menu
 │   │   ├── documents-section.ts   (714 lines)  Object-detail documents/manuals section
 │   │   ├── parts-section.ts       (571 lines)  Object-detail spare-parts section
@@ -429,7 +429,7 @@ custom_components/maintenance_supporter/
 │   │   ├── ms-photo-picker.ts     (172 lines)  <ms-photo-picker> — the "Take photo" / "Choose photos" pair (#161)
 │   │   ├── object-history-section.ts (509 lines)  Object lifecycle history section (#138): the object's cross-task service booklet
 │   │   └── required-completion-labels.ts (27 lines)  Labels of the details a task can demand on completion (mirror of helpers/completion_requirements.py)
-│   └── __tests__/              (25,011 lines)  186 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (25,193 lines)  188 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
 ├── helpers/                    (30,358 lines)  99 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,448 lines)  Multi-channel notification system

@@ -672,6 +672,7 @@
   "settings_warranty_reminder_days": "Dager før utløp",
   "settings_warranty_reminder_hint": "Varsle én gang når garantien til et objekt utløper om så mange dager.",
   "settings_snooze_hours": "Slumrevarighet (timer)",
+  "settings_snooze_hours_hint": "Hvor lenge «Slumre» demper en oppgaves påminnelser — fra oppgavemenyen, et kort, stemmen eller telefonens Slumre-knapp. Forfallsdatoen forblir uendret.",
   "settings_budget": "Budsjett",
   "settings_currency": "Valuta",
   "settings_currency_decimals": "Desimaler for beløp",

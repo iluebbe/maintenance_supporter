@@ -670,6 +670,7 @@
   "settings_warranty_reminder_days": "Días antes del vencimiento",
   "settings_warranty_reminder_hint": "Notificar una vez cuando a la garantía de un objeto le queden estos días para vencer.",
   "settings_snooze_hours": "Duración de posposición (horas)",
+  "settings_snooze_hours_hint": "Cuánto tiempo «Posponer» silencia los recordatorios de una tarea: desde el menú de la tarea, una tarjeta, la voz o el botón Posponer del teléfono. La fecha de vencimiento no cambia.",
   "settings_budget": "Presupuesto",
   "settings_currency": "Moneda",
   "settings_currency_decimals": "Decimales de los importes",

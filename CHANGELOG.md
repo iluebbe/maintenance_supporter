@@ -2,6 +2,23 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **The snooze duration is always in Settings** (discussion #193): every Snooze — the task menu, a card, voice, the
+  phone's button — mutes reminders for *Snooze duration (hours)*, but the panel only showed that field while the
+  phone's Snooze button was switched on, indented under it, so somebody snoozing from the panel could not find where
+  the four hours came from. It now sits with the other reminder limits in *Settings → Notifications*, with a line
+  saying what it applies to.
+
+### ♻️ Internal
+
+- **The battery fleet at phone widths is a test** (#162): `battery-fleet-narrow.test.ts` renders the rows of the
+  reported iPhone screenshot — batteries without a level whose forecast has passed, the Replaced action, the status
+  badges, long names — at 360, 390, 402 and 430 px in every list of the section, in the panel and in the card, and
+  fails when anything draws past its list. A deliberately widened badge makes it fail at every width.
+
 ## [2.96.0] - 2026-10-01
 
 ### ✨ Added

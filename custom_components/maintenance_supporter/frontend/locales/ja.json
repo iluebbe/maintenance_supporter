@@ -672,6 +672,7 @@
   "settings_warranty_reminder_days": "期限切れ前の日数",
   "settings_warranty_reminder_hint": "オブジェクトの保証期限までこの日数になったら一度通知します。",
   "settings_snooze_hours": "スヌーズ時間（時間）",
+  "settings_snooze_hours_hint": "スヌーズでタスクのリマインダーを止める時間です。タスクのメニュー、カード、音声、スマートフォンのスヌーズボタンのどこから操作しても同じです。期日は変わりません。",
   "settings_budget": "予算",
   "settings_currency": "通貨",
   "settings_currency_decimals": "金額の小数点以下の桁数",

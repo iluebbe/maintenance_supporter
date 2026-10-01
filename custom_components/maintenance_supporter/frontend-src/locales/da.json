@@ -672,6 +672,7 @@
   "settings_warranty_reminder_days": "Dage før udløb",
   "settings_warranty_reminder_hint": "Giv besked én gang, når et objekts garanti udløber om så mange dage.",
   "settings_snooze_hours": "Udsættelsesvarighed (timer)",
+  "settings_snooze_hours_hint": "Hvor længe „Udsæt“ gør en opgaves påmindelser tavse — fra opgavemenuen, et kort, stemmen eller telefonens Udsæt-knap. Forfaldsdatoen forbliver uændret.",
   "settings_budget": "Budget",
   "settings_currency": "Valuta",
   "settings_currency_decimals": "Decimaler for beløb",

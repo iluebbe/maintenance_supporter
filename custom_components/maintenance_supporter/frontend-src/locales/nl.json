@@ -670,6 +670,7 @@
   "settings_warranty_reminder_days": "Dagen vóór afloop",
   "settings_warranty_reminder_hint": "Eén keer melden wanneer de garantie van een object over zoveel dagen afloopt.",
   "settings_snooze_hours": "Snoozeduur (uren)",
+  "settings_snooze_hours_hint": "Hoe lang ‘Sluimeren’ de herinneringen van een taak dempt — vanuit het taakmenu, een kaart, spraak of de sluimerknop op de telefoon. De vervaldatum blijft zoals hij is.",
   "settings_budget": "Budget",
   "settings_currency": "Valuta",
   "settings_currency_decimals": "Decimalen voor bedragen",

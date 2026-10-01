@@ -670,6 +670,7 @@
   "settings_warranty_reminder_days": "Dias antes do fim",
   "settings_warranty_reminder_hint": "Notificar uma vez quando faltarem estes dias para a garantia de um objeto expirar.",
   "settings_snooze_hours": "Duração do adiamento (horas)",
+  "settings_snooze_hours_hint": "Durante quanto tempo «Adiar» silencia os lembretes de uma tarefa — a partir do menu da tarefa, de um cartão, por voz ou do botão Adiar do telemóvel. A data limite mantém-se.",
   "settings_budget": "Orçamento",
   "settings_currency": "Moeda",
   "settings_currency_decimals": "Casas decimais dos montantes",

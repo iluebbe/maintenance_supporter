@@ -670,6 +670,7 @@
   "settings_warranty_reminder_days": "Jours avant l'expiration",
   "settings_warranty_reminder_hint": "Notifier une fois lorsque la garantie d'un objet expire dans ce nombre de jours.",
   "settings_snooze_hours": "Durée de report (heures)",
+  "settings_snooze_hours_hint": "Durée pendant laquelle « Mettre en attente » coupe les rappels d'une tâche — depuis le menu de la tâche, une carte, la voix ou le bouton du téléphone. La date d'échéance ne change pas.",
   "settings_budget": "Budget",
   "settings_currency": "Devise",
   "settings_currency_decimals": "Décimales des montants",

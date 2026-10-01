@@ -672,6 +672,7 @@
   "settings_warranty_reminder_days": "Päivää ennen päättymistä",
   "settings_warranty_reminder_hint": "Ilmoita kerran, kun objektin takuun päättymiseen on näin monta päivää.",
   "settings_snooze_hours": "Torkun kesto (tuntia)",
+  "settings_snooze_hours_hint": "Kuinka kauan Torkku mykistää tehtävän muistutukset — tehtävävalikosta, kortilta, äänellä tai puhelimen Torkku-painikkeella. Eräpäivä pysyy ennallaan.",
   "settings_budget": "Budjetti",
   "settings_currency": "Valuutta",
   "settings_currency_decimals": "Summien desimaalit",

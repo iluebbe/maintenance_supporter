@@ -672,6 +672,7 @@
   "settings_warranty_reminder_days": "समाप्ति से पहले के दिन",
   "settings_warranty_reminder_hint": "जब किसी वस्तु की वारंटी समाप्त होने में इतने दिन बचें तो एक बार सूचित करें।",
   "settings_snooze_hours": "स्नूज़ अवधि (घंटे)",
+  "settings_snooze_hours_hint": "स्नूज़ किसी कार्य के रिमाइंडर कितनी देर तक बंद रखता है — कार्य मेनू, कार्ड, आवाज़ या फ़ोन के स्नूज़ बटन से। नियत तिथि नहीं बदलती।",
   "settings_budget": "बजट",
   "settings_currency": "मुद्रा",
   "settings_currency_decimals": "राशियों के दशमलव स्थान",

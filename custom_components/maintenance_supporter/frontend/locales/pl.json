@@ -670,6 +670,7 @@
   "settings_warranty_reminder_days": "Dni przed wygaśnięciem",
   "settings_warranty_reminder_hint": "Powiadom raz, gdy do wygaśnięcia gwarancji obiektu pozostanie tyle dni.",
   "settings_snooze_hours": "Czas drzemki (godziny)",
+  "settings_snooze_hours_hint": "Jak długo „Drzemka” wycisza przypomnienia zadania — z menu zadania, z karty, głosem lub przyciskiem Drzemka w telefonie. Termin pozostaje bez zmian.",
   "settings_budget": "Budżet",
   "settings_currency": "Waluta",
   "settings_currency_decimals": "Miejsca po przecinku w kwotach",

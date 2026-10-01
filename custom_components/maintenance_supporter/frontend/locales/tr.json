@@ -672,6 +672,7 @@
   "settings_warranty_reminder_days": "Bitişten gün önce",
   "settings_warranty_reminder_hint": "Bir nesnenin garantisinin bitmesine bu kadar gün kaldığında bir kez bildir.",
   "settings_snooze_hours": "Erteleme süresi (saat)",
+  "settings_snooze_hours_hint": "Ertele'nin bir görevin hatırlatmalarını ne kadar süre sessize aldığı — görev menüsünden, bir karttan, sesle veya telefondaki Ertele düğmesiyle. Son tarih değişmez.",
   "settings_budget": "Bütçe",
   "settings_currency": "Para birimi",
   "settings_currency_decimals": "Tutarlarda ondalık basamak",

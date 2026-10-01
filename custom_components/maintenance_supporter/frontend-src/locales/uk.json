@@ -670,6 +670,7 @@
   "settings_warranty_reminder_days": "Днів до завершення",
   "settings_warranty_reminder_hint": "Сповістити один раз, коли до завершення гарантії об'єкта залишиться стільки днів.",
   "settings_snooze_hours": "Тривалість відкладення (години)",
+  "settings_snooze_hours_hint": "Як довго «Відкласти» вимикає нагадування завдання — з меню завдання, картки, голосом або кнопкою «Відкласти» на телефоні. Термін не змінюється.",
   "settings_budget": "Бюджет",
   "settings_currency": "Валюта",
   "settings_currency_decimals": "Знаків після коми в сумах",

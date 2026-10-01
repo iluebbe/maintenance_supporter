@@ -672,6 +672,7 @@
   "settings_warranty_reminder_days": "Dias antes do vencimento",
   "settings_warranty_reminder_hint": "Notifica uma vez quando faltar este número de dias para a garantia de um objeto expirar.",
   "settings_snooze_hours": "Duração da soneca (horas)",
+  "settings_snooze_hours_hint": "Por quanto tempo a Soneca silencia os lembretes de uma tarefa — pelo menu da tarefa, por um cartão, pela voz ou pelo botão Soneca do celular. A data de vencimento não muda.",
   "settings_budget": "Orçamento",
   "settings_currency": "Moeda",
   "settings_currency_decimals": "Casas decimais dos valores",

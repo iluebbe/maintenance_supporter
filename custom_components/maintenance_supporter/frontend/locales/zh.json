@@ -672,6 +672,7 @@
   "settings_warranty_reminder_days": "到期前天数",
   "settings_warranty_reminder_hint": "当物品保修距到期还有这么多天时通知一次。",
   "settings_snooze_hours": "稍后提醒间隔 (小时)",
+  "settings_snooze_hours_hint": "“稍后提醒”让任务提醒静音的时长——无论来自任务菜单、卡片、语音还是手机上的稍后提醒按钮。截止日期保持不变。",
   "settings_budget": "预算",
   "settings_currency": "货币单位",
   "settings_currency_decimals": "金额小数位数",

@@ -670,6 +670,7 @@
   "settings_warranty_reminder_days": "Giorni prima della scadenza",
   "settings_warranty_reminder_hint": "Notifica una volta quando alla garanzia di un oggetto mancano questi giorni alla scadenza.",
   "settings_snooze_hours": "Durata posticipo (ore)",
+  "settings_snooze_hours_hint": "Per quanto tempo «Posponi» silenzia i promemoria di un'attività — dal menu dell'attività, da una scheda, con la voce o con il pulsante del telefono. La scadenza resta invariata.",
   "settings_budget": "Budget",
   "settings_currency": "Valuta",
   "settings_currency_decimals": "Decimali degli importi",

@@ -672,6 +672,7 @@
   "settings_warranty_reminder_days": "Days before expiry",
   "settings_warranty_reminder_hint": "Notify once when an object's warranty is this many days from expiring.",
   "settings_snooze_hours": "Snooze duration (hours)",
+  "settings_snooze_hours_hint": "How long Snooze mutes a task's reminders — from the task menu, a card, voice or the phone's Snooze button. The due date stays as it is.",
   "settings_budget": "Budget",
   "settings_currency": "Currency",
   "settings_currency_decimals": "Decimal places for amounts",

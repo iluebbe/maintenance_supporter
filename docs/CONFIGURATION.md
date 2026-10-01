@@ -128,7 +128,7 @@ Mobile actionable notification buttons (requires HA Companion App).
 | `action_complete_enabled` | bool | `false` | — | Show "Complete" action button on notifications |
 | `action_skip_enabled` | bool | `false` | — | Show "Skip" action button on notifications |
 | `action_snooze_enabled` | bool | `false` | — | Show "Snooze" action button on notifications |
-| `snooze_duration_hours` | int | 4 | 1–168 | Hours to snooze a task when the Snooze action is used |
+| `snooze_duration_hours` | int | 4 | 1–168 | How long **every** Snooze mutes a task's reminders — the task menu, a card, voice and the phone's *Snooze* button alike; the due date stays. In the panel: *Settings → Notifications → Snooze duration (hours)* (shown whether or not the phone's button is on) |
 
 ### Vacation Mode (1.2.0+)
 
