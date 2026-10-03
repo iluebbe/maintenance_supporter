@@ -55,6 +55,7 @@
   "bulk_labels_add": "Aggiungi etichette",
   "bulk_labels_remove": "Rimuovi etichette",
   "bulk_edit_hint": "Cambiano solo le impostazioni spuntate; tutto il resto resta com'è.",
+  "bulk_no_notifications": "Nessuna notifica per queste attività",
   "bulk_updated": "{n} attività aggiornate",
   "bulk_paused": "{n} attività in pausa",
   "bulk_resumed": "{n} attività riprese",

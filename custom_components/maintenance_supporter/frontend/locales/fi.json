@@ -57,6 +57,7 @@
   "bulk_labels_add": "Lisää tunnisteita",
   "bulk_labels_remove": "Poista tunnisteita",
   "bulk_edit_hint": "Vain valitut asetukset muuttuvat; kaikki muu pysyy ennallaan.",
+  "bulk_no_notifications": "Ei ilmoituksia näistä tehtävistä",
   "bulk_updated": "{n} tehtävää päivitetty",
   "bulk_paused": "{n} tehtävää keskeytetty",
   "bulk_resumed": "{n} tehtävää jatkettu",

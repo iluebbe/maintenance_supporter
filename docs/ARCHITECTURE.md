@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.96.0 | 305 source files (177 Python + 128 TypeScript) | **98% test coverage** (5,289 backend tests + 1,157 frontend tests)
+**Version:** 2.97.0 | 305 source files (177 Python + 128 TypeScript) | **98% test coverage** (5,318 backend tests + 1,191 frontend tests)
 
 ---
 
@@ -292,7 +292,7 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (43,331 lines)  128 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+├── frontend-src/               (43,341 lines)  128 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
 │   ├── maintenance-panel.ts     (5,237 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,263 lines)  Auto-generated dashboard strategy + 4 section strategies
@@ -394,7 +394,7 @@ custom_components/maintenance_supporter/
 │   │   ├── sparkline.ts           (513 lines)  Trigger section renderer (task detail)
 │   │   ├── status.ts               (62 lines)  A task's status as the user sees it — THE derivation for every surface
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
-│   ├── components/             (19,608 lines)  37 files — Lit elements: dialogs, sections, views, cards
+│   ├── components/             (19,618 lines)  37 files — Lit elements: dialogs, sections, views, cards
 │   │   ├── task-dialog.ts       (3,753 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
 │   │   ├── settings-view.ts     (2,778 lines)  In-panel global settings editor
 │   │   ├── task-quick-actions-dialog.ts (935 lines)  Task ⋮ menu
@@ -415,8 +415,8 @@ custom_components/maintenance_supporter/
 │   │   ├── budget-section-card.ts (290 lines)  Interactive budget section card (dashboard strategy)
 │   │   ├── history-edit-dialog.ts (623 lines)  Timestamp / notes / cost / duration / parts / photos (#161)
 │   │   ├── saved-views-dialog.ts  (235 lines)  Named panel filter/sort/group views
-│   │   ├── group-dialog.ts        (240 lines)  Create / edit a maintenance group
-│   │   ├── seasonal-overrides-dialog.ts (190 lines)  Manual seasonal factors (12 months)
+│   │   ├── group-dialog.ts        (243 lines)  Create / edit a maintenance group
+│   │   ├── seasonal-overrides-dialog.ts (193 lines)  Manual seasonal factors (12 months)
 │   │   ├── confirm-dialog.ts      (173 lines)  Generic confirmation dialog
 │   │   ├── ms-date-field.ts       (254 lines)  Date/time/datetime input over <ha-selector> — follows the HA profile format (#163)
 │   │   ├── ms-textfield.ts        (145 lines)  Drop-in for <ha-textfield> that renders even where HA has not loaded it yet (#50)
@@ -430,9 +430,9 @@ custom_components/maintenance_supporter/
 │   │   ├── ms-photo-picker.ts     (172 lines)  <ms-photo-picker> — the "Take photo" / "Choose photos" pair (#161)
 │   │   ├── object-history-section.ts (509 lines)  Object lifecycle history section (#138): the object's cross-task service booklet
 │   │   ├── required-completion-labels.ts (27 lines)  Labels of the details a task can demand on completion (mirror of helpers/completion_requirements.py)
-│   │   ├── bulk-edit-dialog.ts    (262 lines)  Several tasks changed at once (discussion #199): who is assigned, their labels, and the few settings that make sense in bulk
+│   │   ├── bulk-edit-dialog.ts    (266 lines)  Several tasks changed at once (discussion #199): who is assigned, their labels, and the few settings that make sense in bulk
 │   │   └── ms-cost-input.ts       (109 lines)  A cost that may be a credit (#200): a Cost | Credit switch and the amount
-│   └── __tests__/              (25,811 lines)  191 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (25,871 lines)  192 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
 ├── helpers/                    (30,369 lines)  99 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,448 lines)  Multi-channel notification system

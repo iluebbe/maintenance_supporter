@@ -55,6 +55,7 @@
   "bulk_labels_add": "Lägg till etiketter",
   "bulk_labels_remove": "Ta bort etiketter",
   "bulk_edit_hint": "Bara de markerade inställningarna ändras; allt annat förblir som det är.",
+  "bulk_no_notifications": "Inga aviseringar för de här uppgifterna",
   "bulk_updated": "{n} uppgifter uppdaterade",
   "bulk_paused": "{n} uppgifter pausade",
   "bulk_resumed": "{n} uppgifter återupptagna",

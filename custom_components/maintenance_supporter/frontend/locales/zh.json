@@ -57,6 +57,7 @@
   "bulk_labels_add": "添加标签",
   "bulk_labels_remove": "移除标签",
   "bulk_edit_hint": "只有勾选的设置会改变，其余保持不变。",
+  "bulk_no_notifications": "这些任务不发送通知",
   "bulk_updated": "已更新 {n} 个任务",
   "bulk_paused": "已暂停 {n} 个任务",
   "bulk_resumed": "已继续 {n} 个任务",

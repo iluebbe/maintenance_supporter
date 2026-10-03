@@ -57,6 +57,7 @@
   "bulk_labels_add": "라벨 추가",
   "bulk_labels_remove": "라벨 제거",
   "bulk_edit_hint": "체크한 설정만 바뀌고 나머지는 그대로입니다.",
+  "bulk_no_notifications": "이 작업들은 알림 없음",
   "bulk_updated": "작업 {n}개 업데이트됨",
   "bulk_paused": "작업 {n}개 일시 중지됨",
   "bulk_resumed": "작업 {n}개 재개됨",

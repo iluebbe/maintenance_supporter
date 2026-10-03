@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.97.0] - 2026-10-03
 
 ### ✨ Added
 
@@ -30,6 +30,10 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **The group dialog and the seasonal factors have a title again:** Home Assistant's dialog no longer draws the
+  `heading` they handed it, so *New group*, *Edit group* and *Seasonal factors (override)* opened without one. They
+  draw their own title now, like every other dialog of the panel; a test fails on the next dialog that tries the
+  `heading` attribute.
 - **The task page fits a phone again:** a task with several badges — postponed, assigned, reminders off, no NFC tag
   yet — drew its header row 505 px wide on a 360 px screen, and the path at the top (*Maintenance / HVAC System /
   Filter Replacement*) could only break at its spaces, so it pushed the search button off screen; the page scrolled

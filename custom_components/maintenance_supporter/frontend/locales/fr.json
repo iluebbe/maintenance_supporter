@@ -55,6 +55,7 @@
   "bulk_labels_add": "Ajouter des étiquettes",
   "bulk_labels_remove": "Retirer des étiquettes",
   "bulk_edit_hint": "Seuls les réglages cochés changent ; tout le reste reste tel quel.",
+  "bulk_no_notifications": "Aucune notification pour ces tâches",
   "bulk_updated": "{n} tâches mises à jour",
   "bulk_paused": "{n} tâches mises en pause",
   "bulk_resumed": "{n} tâches reprises",

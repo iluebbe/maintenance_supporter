@@ -55,6 +55,7 @@
   "bulk_labels_add": "Añadir etiquetas",
   "bulk_labels_remove": "Quitar etiquetas",
   "bulk_edit_hint": "Solo cambian los ajustes marcados; todo lo demás se queda como está.",
+  "bulk_no_notifications": "Sin notificaciones para estas tareas",
   "bulk_updated": "{n} tareas actualizadas",
   "bulk_paused": "{n} tareas pausadas",
   "bulk_resumed": "{n} tareas reanudadas",

@@ -57,6 +57,7 @@
   "bulk_labels_add": "Add labels",
   "bulk_labels_remove": "Remove labels",
   "bulk_edit_hint": "Only the ticked settings change; everything else stays as it is.",
+  "bulk_no_notifications": "No notifications for these tasks",
   "bulk_updated": "{n} tasks updated",
   "bulk_paused": "{n} tasks paused",
   "bulk_resumed": "{n} tasks resumed",

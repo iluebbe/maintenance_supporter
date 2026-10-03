@@ -57,6 +57,7 @@
   "bulk_labels_add": "Labels hinzufügen",
   "bulk_labels_remove": "Labels entfernen",
   "bulk_edit_hint": "Nur die angehakten Einstellungen ändern sich, alles andere bleibt, wie es ist.",
+  "bulk_no_notifications": "Keine Benachrichtigungen für diese Aufgaben",
   "bulk_updated": "{n} Aufgaben aktualisiert",
   "bulk_paused": "{n} Aufgaben pausiert",
   "bulk_resumed": "{n} Aufgaben fortgesetzt",
