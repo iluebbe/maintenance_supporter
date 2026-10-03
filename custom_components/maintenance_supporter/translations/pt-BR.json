@@ -1822,7 +1822,7 @@
         },
         "cost": {
           "name": "Custo",
-          "description": "Custo da manutenção realizada."
+          "description": "Custo da manutenção realizada. Um valor negativo é um crédito — dinheiro de volta, como a venda do aparelho antigo."
         },
         "duration": {
           "name": "Duração",

@@ -128,8 +128,10 @@ describe("task-dialog completion-actions sections", () => {
       "ms-textfield",
     );
     expect(qcInputs[0]?.value, "qc notes").to.equal("Quick note");
-    expect(qcInputs[1]?.value, "qc cost").to.equal("4.5");
-    expect(qcInputs[2]?.value, "qc duration").to.equal("10");
+    // The cost has its own element (#200: Cost | Credit and the amount).
+    const qcCost = sections[1].querySelector<HTMLElement & { value: string }>("ms-cost-input");
+    expect(qcCost?.value, "qc cost").to.equal("4.5");
+    expect(qcInputs[1]?.value, "qc duration").to.equal("10");
 
     const qcSelect = sections[1].querySelector<HTMLSelectElement>("select.qc-feedback");
     expect(qcSelect?.value, "qc feedback").to.equal("needed");

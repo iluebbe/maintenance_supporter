@@ -1822,7 +1822,7 @@
         },
         "cost": {
           "name": "Costo",
-          "description": "Costo del mantenimiento realizado."
+          "description": "Costo del mantenimiento realizado. Un importe negativo es un abono: dinero que vuelve, como la venta del aparato viejo."
         },
         "duration": {
           "name": "Duración",

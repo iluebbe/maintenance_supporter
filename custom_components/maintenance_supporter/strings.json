@@ -1682,7 +1682,7 @@
         },
         "cost": {
           "name": "Cost",
-          "description": "Cost of the maintenance performed."
+          "description": "Cost of the maintenance performed. A negative amount is a credit — money back, such as the old unit sold."
         },
         "duration": {
           "name": "Duration",

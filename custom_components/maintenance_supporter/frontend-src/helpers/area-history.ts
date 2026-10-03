@@ -116,8 +116,9 @@ export function filterAreaHistory(entries: ReadonlyArray<AreaHistoryEntry>, f: A
 export interface AreaTotals {
   completions: number;
   totalCost: number;
-  /** Total cost over completions — the task detail's "Avg cost" rule;
-   *  null without completions. */
+  /** What a completion costs on average — the task detail's "Avg cost"
+   *  rule (the backend's average_cost): credits (#200) left out on both
+   *  sides, a sale is no job. Null without such a completion. */
   avgCost: number | null;
   /** Minutes, completed entries only. */
   totalDuration: number;
@@ -126,16 +127,26 @@ export interface AreaTotals {
 export function areaTotals(entries: ReadonlyArray<AreaHistoryEntry>): AreaTotals {
   const { completed, totalCost } = objectHistoryTotals(entries);
   let totalDuration = 0;
-  for (const e of entries) if (e.type === "completed" && e.duration != null) totalDuration += e.duration;
-  return { completions: completed, totalCost, avgCost: completed ? totalCost / completed : null, totalDuration };
+  let jobs = 0;
+  let jobsCost = 0;
+  for (const e of entries) {
+    if (e.type !== "completed") continue;
+    if (e.duration != null) totalDuration += e.duration;
+    if ((e.cost ?? 0) < 0) continue;
+    jobs++;
+    jobsCost += e.cost ?? 0;
+  }
+  return { completions: completed, totalCost, avgCost: jobs ? jobsCost / jobs : null, totalDuration };
 }
 
 export interface ObjectCostRow {
   entryId: string;
   objectName: string;
   completions: number;
+  /** Net of credits (#200) — below zero when more came back than went out. */
   cost: number;
-  /** Share of the listed total, 0..1 (0 when nothing was spent). */
+  /** Share of what the listed objects spent, 0..1 — 0 for an object that
+   *  spent nothing or got more back than it cost. */
   share: number;
 }
 
@@ -154,8 +165,10 @@ export function costByObject(
     row.completions++;
     if (e.cost != null) row.cost += e.cost;
   }
-  const total = [...rows.values()].reduce((n, r) => n + r.cost, 0);
-  const out = [...rows.values()].map((r) => ({ ...r, share: total > 0 ? r.cost / total : 0 }));
+  // Shares of the spending: an object in credit would drive a share below
+  // zero and push the others past 100 %.
+  const total = [...rows.values()].reduce((n, r) => n + Math.max(r.cost, 0), 0);
+  const out = [...rows.values()].map((r) => ({ ...r, share: total > 0 ? Math.max(r.cost, 0) / total : 0 }));
   out.sort((a, b) => b.cost - a.cost || b.completions - a.completions || a.objectName.localeCompare(b.objectName));
   return out;
 }

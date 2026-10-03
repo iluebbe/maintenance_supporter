@@ -1822,7 +1822,7 @@
         },
         "cost": {
           "name": "Kosten",
-          "description": "Kosten der durchgeführten Wartung."
+          "description": "Kosten der durchgeführten Wartung. Ein negativer Betrag ist eine Gutschrift – Geld zurück, etwa für das verkaufte Altgerät."
         },
         "duration": {
           "name": "Dauer",

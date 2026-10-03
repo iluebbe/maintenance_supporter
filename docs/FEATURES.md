@@ -929,6 +929,7 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 ### Budget Tracking
 - Monthly and yearly maintenance budgets
 - Cost tracking per task completion
+- **Credits** (2.97+, #200) — money that comes back, the old washing machine sold or a refund, is a cost below zero: every cost field (completing a task, editing a history entry, the quick-complete defaults) has a *Cost | Credit* switch, since a phone's number keypad has no minus key; the `complete` action and the API take a negative `cost`. Every total nets it — the task, the object, the area, the budget and its alerts, the area cost sensors — while the average cost per completion leaves it out, as a sale is no job. The history says *Credit: 150 €*, the cost charts draw it as a green bar below a zero line, and an area's cost shares count what was spent
 - Budget alerts at configurable thresholds
 
 ### Object lifecycle history & service record (2.64+)
@@ -959,6 +960,7 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 
 ### Data Management
 - **Move several tasks at once** (2.90+, #188) — in the task list's selection mode the bar's ⋯ menu offers *Move to another object…*: one target prompt, then every selected task moves with its history, readings and trigger state (tasks already in the target are skipped)
+- **Change several tasks at once** (2.97+, discussion #199) — the same ⋯ menu offers *Assign…* (one person, or several in turns), *Labels…* (add some, remove others; the rest stay), *Edit…* (warning days, priority, reminders — only the ticked settings change), *Pause…* (until a date or until resumed) and *Resume*. However many tasks of an object change, it is written and reloaded once, and *Undo* in the toast puts back exactly what was replaced. In *All objects*, *Area…* moves the selected objects to another Home Assistant area
 - **Select mode in *All objects*** (2.89+, #188) — a *Select* button on the objects view (cards and table alike) turns every object into a checkbox; *Select all*, then *Delete* removes the chosen objects with all their tasks behind one confirm that states the count, or *Archive* parks them in one go (undoable from the toast). Operators without write access do not see it. *Duplicate* in the object menu clones an object with every task as a fresh, un-started copy named "… (copy)"
 
 ![Select mode in All objects](images/gifs/objects-bulk-select.gif)
@@ -1031,7 +1033,7 @@ Archives from before 2.96 (files stored as `blobs/<hash>`) still restore.
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 104 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
+- 105 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -1137,7 +1139,7 @@ and, for a reading task with several named readings, `reading_values`
 keyed by reading name (2.75+; see [Examples](EXAMPLES.md)). Completion
 photos need an upload and are therefore a panel/card affair, not a service
 parameter.
-For the full WebSocket API (104 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (105 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

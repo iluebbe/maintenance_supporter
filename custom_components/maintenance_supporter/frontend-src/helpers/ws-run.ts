@@ -111,6 +111,13 @@ export async function runWsEach<K>(
   return { done, failed };
 }
 
+/** The items a batch command reports as not done in its answer, each with
+ *  an error `code` (tasks/update_many, D#199), in `runWsEach`'s shape — the
+ *  reason worded like any refused call. */
+export function codedFailures<K extends { code: string }>(failed: readonly K[], lang: string): Array<WsEachFailure<K>> {
+  return failed.map((item) => ({ item, message: describeWsError({ code: item.code }, lang) }));
+}
+
 /** The one toast of a bulk run: the success sentence, plus — when items
  *  failed — how many and the first server reason ("2 tasks completed ·
  *  1 failed: Not due yet …"). */

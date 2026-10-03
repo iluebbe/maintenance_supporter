@@ -112,6 +112,7 @@ def _inert_task_result(task: MaintenanceTask, status: str, **extra: Any) -> dict
     task_result["_trigger_active"] = False
     task_result["_times_performed"] = task.times_performed
     task_result["_total_cost"] = task.total_cost
+    task_result["_average_cost"] = task.average_cost
     task_result["_average_duration"] = task.average_duration
     task_result["_last_entry"] = task.last_entry
     task_result.update(extra)
@@ -526,6 +527,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     task_result["_trigger_current_delta"] = current - baseline
         task_result["_times_performed"] = task.times_performed
         task_result["_total_cost"] = task.total_cost
+        task_result["_average_cost"] = task.average_cost
         task_result["_average_duration"] = task.average_duration
         task_result["_last_entry"] = task.last_entry
 

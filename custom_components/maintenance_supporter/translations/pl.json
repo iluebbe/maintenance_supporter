@@ -1822,7 +1822,7 @@
         },
         "cost": {
           "name": "Koszt",
-          "description": "Koszt wykonanej konserwacji."
+          "description": "Koszt wykonanej konserwacji. Kwota ujemna to zwrot – odzyskane pieniądze, np. ze sprzedaży starego urządzenia."
         },
         "duration": {
           "name": "Czas trwania",

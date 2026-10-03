@@ -47,6 +47,21 @@ function setInput(el: MaintenanceCompleteDialog, index: number, value: string) {
   input.dispatchEvent(new Event("input"));
 }
 
+/** The cost has its own element (#200: Cost | Credit and the amount). */
+function costInput(el: MaintenanceCompleteDialog) {
+  return el.shadowRoot!.querySelector("ms-cost-input")! as HTMLElement & { value: string; updateComplete: Promise<unknown> };
+}
+
+function costAmount(el: MaintenanceCompleteDialog): HTMLInputElement {
+  return costInput(el).shadowRoot!.querySelector<HTMLInputElement>("input.amount")!;
+}
+
+function setCost(el: MaintenanceCompleteDialog, value: string) {
+  const input = costAmount(el);
+  input.value = value;
+  input.dispatchEvent(new Event("input"));
+}
+
 function clickComplete(el: MaintenanceCompleteDialog) {
   const buttons = [...el.shadowRoot!.querySelectorAll(".dialog-actions ha-button")];
   (buttons[buttons.length - 1] as HTMLElement).click();
@@ -60,8 +75,8 @@ describe("complete-dialog", () => {
     });
 
     setInput(el, 0, "oil changed");
-    setInput(el, 1, "12.5");
-    setInput(el, 2, "30");
+    setCost(el, "12.5");
+    setInput(el, 1, "30");
     // Tick the second checklist step (click the checkbox; the event bubbles
     // to the row's toggle handler exactly once).
     const boxes = [...el.shadowRoot!.querySelectorAll<HTMLInputElement>(".checklist-item input")];
@@ -103,6 +118,22 @@ describe("complete-dialog", () => {
     expect("photo_doc_ids" in msg).to.be.false;
     expect("photo_doc_id" in msg).to.be.false;
     expect("completed_at" in msg).to.be.false;
+  });
+
+  it("a credit goes out as a negative cost (#200)", async () => {
+    // The old unit sold for 150: Credit, then the amount — a phone keypad
+    // has no minus key, so the switch carries the sign.
+    const { el, sent } = await mount();
+    const cost = costInput(el);
+    await cost.updateComplete;
+    cost.shadowRoot!.querySelector<HTMLButtonElement>(".kind.credit")!.click();
+    await cost.updateComplete;
+    expect(cost.shadowRoot!.querySelector(".hint")!.textContent).to.include("Money back");
+    setCost(el, "150");
+    clickComplete(el);
+    await new Promise((r) => setTimeout(r, 10));
+    const msg = sent.find((m) => m.type === "maintenance_supporter/task/complete")!;
+    expect(msg.cost).to.equal(-150);
   });
 
   /** The optional backdate starts as a "Set date & time" button (#163): the
@@ -396,10 +427,9 @@ describe("complete-dialog parts cost (#104)", () => {
     expect(chip(el)!.textContent).to.include("18");
     chip(el)!.click();
     await el.updateComplete;
-    // Buy task: restock qty, notes, cost.
-    const cost = [...el.shadowRoot!.querySelectorAll<HTMLInputElement>(".field-input")][2];
+    await costInput(el).updateComplete;
     // Machine value for the <input type="number"> — never profile-formatted.
-    expect(cost.value).to.equal("18");
+    expect(costAmount(el).value).to.equal("18");
     expect(chip(el), "chip hides once cost is set").to.equal(null);
   });
 
@@ -423,7 +453,7 @@ describe("complete-dialog parts cost (#104)", () => {
   it("buy task: no chip once the user typed a cost themselves", async () => {
     const el = await mountWithParts({ restockDefault: 1, restockUnitCost: 5 });
     expect(chip(el)).to.exist;
-    setInput(el, 2, "3.10");
+    setCost(el, "3.10");
     await el.updateComplete;
     expect(chip(el)).to.equal(null);
   });

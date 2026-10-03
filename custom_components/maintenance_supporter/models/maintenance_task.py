@@ -19,7 +19,7 @@ from ..const import (
     ScheduleType,
 )
 from ..helpers.dates import parse_iso_date
-from ..helpers.history import completed_entries, finite_amount
+from ..helpers.history import completed_entries, finite_amount, signed_amount
 from ..helpers.phases import current_phase
 from ..helpers.schedule import Schedule, read_legacy_fields
 from ..helpers.status import compute_status, effective_warning_days, is_past_schedule_time
@@ -302,7 +302,17 @@ class MaintenanceTask:
         nothing — helpers.parts_cost.entry_spend decides for every total)."""
         from ..helpers.parts_cost import entry_spend
 
-        return sum(entry_spend(entry, finite_amount) for entry in self.history if isinstance(entry, dict))
+        return sum(entry_spend(entry, signed_amount) for entry in self.history if isinstance(entry, dict))
+
+    @property
+    def average_cost(self) -> float | None:
+        """What a completion costs on average — the credits (#200) left out
+        on both sides, a sale is no job. None without a completion."""
+        from ..helpers.parts_cost import entry_spend
+
+        spends = [entry_spend(entry, signed_amount) for entry in completed_entries(self.history)]
+        jobs = [spend for spend in spends if spend >= 0]
+        return sum(jobs) / len(jobs) if jobs else None
 
     @property
     def average_duration(self) -> float | None:

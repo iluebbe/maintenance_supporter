@@ -38,6 +38,7 @@ from ..const import (
     MAX_TEXT_LENGTH,
     MAX_TYPE_LENGTH,
     MAX_URL_LENGTH,
+    MIN_COST,
 )
 from .task_fields import EARLIEST_COMPLETION_RANGE
 from .url_safety import is_safe_url
@@ -517,7 +518,7 @@ def cap_quick_complete_defaults_field(task_data: dict[str, Any]) -> None:
         cleaned["notes"] = notes[:MAX_TEXT_LENGTH]
 
     cost = defaults.get("cost")
-    if isinstance(cost, (int, float)) and 0 <= cost <= MAX_COST:
+    if isinstance(cost, (int, float)) and not isinstance(cost, bool) and MIN_COST <= cost <= MAX_COST:
         cleaned["cost"] = float(cost)
 
     duration = defaults.get("duration")

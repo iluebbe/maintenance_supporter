@@ -76,19 +76,20 @@ def test_sanitize_history_scrubs_bad_cost() -> None:
     hist = [
         {"type": "completed", "cost": float("inf")},
         {"type": "completed", "cost": float("nan")},
-        {"type": "completed", "cost": -50},
+        {"type": "completed", "cost": -5_000_000},  # beyond the credit bound
         {"type": "completed", "cost": 12.5},
+        {"type": "completed", "cost": -50},  # a credit (#200) stays
         {"type": "completed", "cost": True},  # bool is not a cost
         {"type": "completed"},  # no cost
         "not-a-dict",
     ]
     out = _sanitize_history(hist)
-    assert len(out) == 6  # the non-dict is dropped
+    assert len(out) == 7  # the non-dict is dropped
     costs = [e.get("cost") for e in out]
-    # Only the finite non-negative float survives; the rest have cost removed.
-    assert costs[3] == 12.5
+    # Finite costs within ±MAX_COST survive — a credit too; the rest are removed.
+    assert costs[3] == 12.5 and costs[4] == -50
     assert "cost" not in out[0] and "cost" not in out[1] and "cost" not in out[2]
-    assert "cost" not in out[4] and "cost" not in out[5]
+    assert "cost" not in out[5] and "cost" not in out[6]
     assert all(c is None or math.isfinite(c) for c in costs)
     assert _sanitize_history("not-a-list") == []
 

@@ -1822,7 +1822,7 @@
         },
         "cost": {
           "name": "Költség",
-          "description": "Az elvégzett karbantartás költsége."
+          "description": "Az elvégzett karbantartás költsége. A negatív összeg jóváírás – visszakapott pénz, például a régi készülék eladásából."
         },
         "duration": {
           "name": "Időtartam",

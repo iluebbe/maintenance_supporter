@@ -352,7 +352,11 @@ function renderTaskMeta(task: MaintenanceTask, ctx: TaskDetailContext) {
 /** KPI bar with 7 cards. */
 function renderKPIBar(task: MaintenanceTask, ctx: TaskDetailContext) {
   const L = ctx.lang;
-  const avgCost = task.times_performed > 0 ? task.total_cost / task.times_performed : 0;
+  // Per completion with the credits left out (#200: a sale is no job); the
+  // old division where a payload predates the field.
+  const avgCost = task.average_cost !== undefined
+    ? task.average_cost ?? 0
+    : task.times_performed > 0 ? task.total_cost / task.times_performed : 0;
   const daysClass = task.days_until_due !== null && task.days_until_due !== undefined
     ? (task.days_until_due < 0 ? "overdue" : (task.days_until_due <= task.warning_days ? "warning" : ""))
     : "";

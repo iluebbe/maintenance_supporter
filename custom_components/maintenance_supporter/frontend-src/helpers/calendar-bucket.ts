@@ -106,11 +106,12 @@ function addDaysIso(iso: string, days: number): string {
 /** Average recorded cost across history rows that HAVE a cost (mean of
  *  non-null `cost` values). Note this differs from the panel KPI, which divides
  *  total_cost by times_performed — completions without a recorded cost are
- *  counted differently. This mean is used only for the calendar tooltip. */
+ *  counted differently. This mean is used only for the calendar tooltip — what
+ *  the next occurrence will likely cost, so a credit (#200) stays out. */
 function computeAvgCost(history: ReadonlyArray<HistoryEntry> | undefined): number | null {
   if (!history || history.length === 0) return null;
   // What each entry counts (#104), not only the typed cost.
-  const costs = history.map((h) => entrySpend(h)).filter((c): c is number => c !== null);
+  const costs = history.map((h) => entrySpend(h)).filter((c): c is number => c !== null && c >= 0);
   if (costs.length === 0) return null;
   return costs.reduce((a, b) => a + b, 0) / costs.length;
 }

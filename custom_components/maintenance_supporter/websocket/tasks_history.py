@@ -16,6 +16,7 @@ from ..const import (
     MAX_META_LENGTH,
     MAX_TEXT_LENGTH,
     MAX_TIMESTAMP_LENGTH,
+    MIN_COST,
 )
 from ..helpers.completion_photos import (
     MAX_COMPLETION_PHOTOS,
@@ -60,7 +61,7 @@ from . import (
         # Patch fields — all optional; absent fields stay unchanged.
         vol.Optional("timestamp"): vol.All(str, vol.Length(max=MAX_TIMESTAMP_LENGTH)),
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
-        vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=0, max=MAX_COST)), None),
+        vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=MIN_COST, max=MAX_COST)), None),
         vol.Optional("duration"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=0, max=MAX_DURATION_MINUTES)), None),
         vol.Optional("completed_by"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         # Recorded readings (#161 phase 2): a typo among nine meter values is

@@ -135,7 +135,7 @@ def test_cap_quick_complete_empty_cleaned_drops_key() -> None:
     data: dict[str, Any] = {
         "quick_complete_defaults": {
             "notes": "",  # empty string → rejected
-            "cost": -1,  # negative → rejected
+            "cost": -2_000_000,  # beyond the credit bound (#200) → rejected
             "duration": -1,  # negative → rejected
             "feedback": "wrong",  # invalid value → rejected
         }

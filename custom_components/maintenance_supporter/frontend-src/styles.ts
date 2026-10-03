@@ -181,9 +181,12 @@ export function formatNumber(n: number, lang?: string, digits?: number | Intl.Nu
 /** Amount + currency symbol ("13 €" / "12.50 €"; the symbol is optional) —
  *  every cost figure in the UI and the printables goes through here. The
  *  fraction digits come from the global `currency_decimals` setting (default
- *  0) unless a caller pins them. */
+ *  0) unless a caller pins them. A credit (#200) is a negative amount; one
+ *  that rounds away prints "0", never Intl's "-0". */
 export function formatCost(amount: number, symbol?: string, lang?: string, digits?: number): string {
-  const num = formatNumber(amount, lang, digits ?? currencyDecimals());
+  const d = digits ?? currencyDecimals();
+  const shown = Math.abs(amount) < 0.5 / Math.pow(10, d) ? 0 : amount;
+  const num = formatNumber(shown, lang, d);
   return symbol ? `${num} ${symbol}` : num;
 }
 
@@ -786,6 +789,7 @@ export const sharedStyles = css`
     color: var(--secondary-text-color);
     margin-top: 4px;
   }
+  .history-details .history-credit { color: var(--success-color, #43a047); }
 
   /* History filter chips */
   .history-filters {

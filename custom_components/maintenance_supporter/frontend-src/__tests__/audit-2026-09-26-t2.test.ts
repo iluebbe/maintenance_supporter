@@ -645,7 +645,8 @@ describe("audit 2026-09-26 tranche 2", () => {
       expect(parseDurationMinutes("")).to.equal(null);
       expect(parseDurationMinutes("-3")).to.equal(null);
       const { el, sent } = await mountDialog({});
-      const duration = [...el.shadowRoot!.querySelectorAll<HTMLInputElement>(".field-input")][2];
+      // Notes, then duration — the cost has its own element (#200).
+      const duration = [...el.shadowRoot!.querySelectorAll<HTMLInputElement>(".field-input")][1];
       expect(duration.step).to.equal("1");
       duration.value = "12.6";
       duration.dispatchEvent(new Event("input"));

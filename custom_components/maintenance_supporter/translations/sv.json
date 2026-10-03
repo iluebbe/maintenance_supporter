@@ -1822,7 +1822,7 @@
         },
         "cost": {
           "name": "Kostnad",
-          "description": "Kostnaden för utfört underhåll."
+          "description": "Kostnaden för utfört underhåll. Ett negativt belopp är en kreditering – pengar tillbaka, t.ex. för den sålda gamla apparaten."
         },
         "duration": {
           "name": "Varaktighet",

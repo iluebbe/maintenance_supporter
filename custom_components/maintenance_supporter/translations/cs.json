@@ -1822,7 +1822,7 @@
         },
         "cost": {
           "name": "Cena",
-          "description": "Cena provedené údržby."
+          "description": "Cena provedené údržby. Záporná částka je dobropis – vrácené peníze, např. za prodaný starý spotřebič."
         },
         "duration": {
           "name": "Doba trvání",

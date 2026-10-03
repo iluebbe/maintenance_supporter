@@ -1822,7 +1822,7 @@
         },
         "cost": {
           "name": "Omkostning",
-          "description": "Omkostning ved den udførte vedligeholdelse."
+          "description": "Omkostning ved den udførte vedligeholdelse. Et negativt beløb er en kreditering – penge tilbage, fx for det solgte gamle apparat."
         },
         "duration": {
           "name": "Varighed",

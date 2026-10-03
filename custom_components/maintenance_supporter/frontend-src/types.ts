@@ -321,7 +321,10 @@ export interface MaintenanceTask {
   trigger_baseline_value?: number | null;
   trigger_entity_state?: string;
   times_performed: number;
+  /** Net of credits (#200): a negative cost is money back. */
   total_cost: number;
+  /** Per completion with the credits left out; null without a completion. */
+  average_cost?: number | null;
   average_duration?: number | null;
   // Adaptive scheduling
   adaptive_config?: AdaptiveConfig | null;

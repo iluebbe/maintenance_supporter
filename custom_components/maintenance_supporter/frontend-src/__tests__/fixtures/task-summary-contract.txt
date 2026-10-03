@@ -8,6 +8,7 @@
     "user-uuid-1",
     "user-uuid-2"
   ],
+  "average_cost": null,
   "average_duration": null,
   "battery_fleet_task": false,
   "binary_sensor_entity_id": null,

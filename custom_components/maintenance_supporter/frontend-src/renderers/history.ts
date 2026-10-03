@@ -233,7 +233,9 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext
               ${entry.cost != null
                 ? stockPurchase
                   ? html`<span>${t("history_purchase_stock", L).replace("{amount}", formatCost(entry.cost, ctx.currencySymbol, L))}</span>`
-                  : html`<span>${t("cost", L)}: ${formatCost(entry.cost, ctx.currencySymbol, L)}</span>`
+                  : entry.cost < 0
+                    ? html`<span class="history-credit">${t("cost_kind_credit", L)}: ${formatCost(-entry.cost, ctx.currencySymbol, L)}</span>`
+                    : html`<span>${t("cost", L)}: ${formatCost(entry.cost, ctx.currencySymbol, L)}</span>`
                 : nothing}
               ${partsCost != null
                 ? html`<span title=${t(partsCounted ? "history_parts_counted_hint" : "history_parts_info_hint", L)}>${t(partsCounted ? "history_parts_counted" : "history_parts_info", L).replace("{amount}", formatCost(partsCost, ctx.currencySymbol, L))}</span>`

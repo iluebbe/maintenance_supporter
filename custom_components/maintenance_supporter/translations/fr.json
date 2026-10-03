@@ -1822,7 +1822,7 @@
         },
         "cost": {
           "name": "Coût",
-          "description": "Coût de la maintenance effectuée."
+          "description": "Coût de la maintenance effectuée. Un montant négatif est un crédit : de l'argent récupéré, par exemple la vente de l'ancien appareil."
         },
         "duration": {
           "name": "Durée",
