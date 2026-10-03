@@ -127,7 +127,7 @@ Trigger sensors update immediately via HA state_change events, but the coordinat
 - Entity selector pre-populates existing entity_ids when editing a trigger
 - All 8 compound trigger steps have proper translations in both config and options flows
 - Go-back navigation on all forms for non-linear editing
-- 95 object templates in 10 categories (vehicle, home, building, household, appliance, garden, pool, tech, pets, health) with pre-configured tasks and triggers; their display strings live in `templates_i18n.py`. Seasons are written for the northern hemisphere and resolved at creation by `build_template_task` (mirrored south of the equator, dropped where there is no winter); `country_notes` add a legal hint for one country at creation (French boiler duty, Polish chimney inspection …) and `country_intervals` its cycle (the UK's yearly MOT) — keys may also be regions (ISO 3166-2, `US-NY`; the region's entry wins over its country's), and an interval of `NOT_DUE` (0) leaves the task out where no such duty exists (no vehicle inspection in Florida); `winter_only` tasks are left out where there is no winter (`template_tasks`, shared by the config flow, the panel and the gallery read); `recommend_template` matches each template's `dwellings` / `starter` / `traits` / `countries` / `requires` / `only_countries` against the home profile (`helpers/home_profile.py`, climate from `helpers/climate.py` + `data/climate/`, state / province / region from `helpers/region.py` + `data/regions/` or the `home_region` setting)
+- 96 object templates in 10 categories (vehicle, home, building, household, appliance, garden, pool, tech, pets, health) with pre-configured tasks and triggers; their display strings live in `templates_i18n.py`. Seasons are written for the northern hemisphere and resolved at creation by `build_template_task` (mirrored south of the equator, dropped where there is no winter); `country_notes` add a legal hint for one country at creation (French boiler duty, Polish chimney inspection …) and `country_intervals` its cycle (the UK's yearly MOT) — keys may also be regions (ISO 3166-2, `US-NY`; the region's entry wins over its country's), and an interval of `NOT_DUE` (0) leaves the task out where no such duty exists (no vehicle inspection in Florida); `winter_only` tasks are left out where there is no winter (`template_tasks`, shared by the config flow, the panel and the gallery read); `recommend_template` matches each template's `dwellings` / `starter` / `traits` / `countries` / `requires` / `only_countries` against the home profile (`helpers/home_profile.py`, climate from `helpers/climate.py` + `data/climate/`, state / province / region from `helpers/region.py` + `data/regions/` or the `home_region` setting)
 
 ### Pure Python Helpers
 `interval_analyzer` has zero HA dependencies, enabling isolated unit testing and reuse outside HA. `sensor_predictor` and `entity_analyzer` depend on the HA recorder and state machine for data access, but their core algorithms (linear regression, Pearson correlation, Weibull analysis) are pure Python.
@@ -292,7 +292,7 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (43,341 lines)  128 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+├── frontend-src/               (43,347 lines)  128 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
 │   ├── maintenance-panel.ts     (5,237 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,263 lines)  Auto-generated dashboard strategy + 4 section strategies
@@ -394,13 +394,13 @@ custom_components/maintenance_supporter/
 │   │   ├── sparkline.ts           (513 lines)  Trigger section renderer (task detail)
 │   │   ├── status.ts               (62 lines)  A task's status as the user sees it — THE derivation for every surface
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
-│   ├── components/             (19,618 lines)  37 files — Lit elements: dialogs, sections, views, cards
+│   ├── components/             (19,624 lines)  37 files — Lit elements: dialogs, sections, views, cards
 │   │   ├── task-dialog.ts       (3,753 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
 │   │   ├── settings-view.ts     (2,778 lines)  In-panel global settings editor
 │   │   ├── task-quick-actions-dialog.ts (935 lines)  Task ⋮ menu
 │   │   ├── documents-section.ts   (714 lines)  Object-detail documents/manuals section
 │   │   ├── parts-section.ts       (571 lines)  Object-detail spare-parts section
-│   │   ├── complete-dialog.ts     (808 lines)  Mark task complete
+│   │   ├── complete-dialog.ts     (814 lines)  Mark task complete
 │   │   ├── qr-dialog.ts           (478 lines)  QR code generation
 │   │   ├── adopt-problem-sensors-dialog.ts (605 lines)  Adopt HA problem sensors
 │   │   ├── battery-fleet-section.ts (1,110 lines)  Task-detail battery-fleet section
@@ -432,7 +432,7 @@ custom_components/maintenance_supporter/
 │   │   ├── required-completion-labels.ts (27 lines)  Labels of the details a task can demand on completion (mirror of helpers/completion_requirements.py)
 │   │   ├── bulk-edit-dialog.ts    (266 lines)  Several tasks changed at once (discussion #199): who is assigned, their labels, and the few settings that make sense in bulk
 │   │   └── ms-cost-input.ts       (109 lines)  A cost that may be a credit (#200): a Cost | Credit switch and the amount
-│   └── __tests__/              (25,871 lines)  192 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (25,883 lines)  192 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
 ├── helpers/                    (30,369 lines)  99 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,448 lines)  Multi-channel notification system
@@ -543,9 +543,9 @@ custom_components/maintenance_supporter/
 │   │                                           installation_date, warranty_expiry (#67), documentation_url, notes
 │   └── maintenance_type.py         (86 lines)  Predefined maintenance categories
 │
-├── templates.py                 (2,920 lines)  95 object templates in 10 categories (vehicle, home, building, household,
+├── templates.py                 (2,954 lines)  96 object templates in 10 categories (vehicle, home, building, household,
 │                                               appliance, garden, pool, tech, pets, health)
-├── templates_i18n.py           (18,388 lines)  Translations for the template catalog (largest module)
+├── templates_i18n.py           (18,549 lines)  Translations for the template catalog (largest module)
 ├── repairs.py                     (822 lines)  Repair flows: missing trigger entity, orphan admin-panel-user,
 │                                               stale on_complete_action entity
 ├── diagnostics.py                 (251 lines)  Integration diagnostics with PII redaction

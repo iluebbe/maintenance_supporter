@@ -258,7 +258,7 @@ completion with the credits left out (`null` without one). With `use`, a buy tas
                                "schedule_type":"time_based",
                                "interval_days":90,"warning_days":7} ] } ] }
 ```
-**Call this before hand-building anything.** The integration ships 95 object templates,
+**Call this before hand-building anything.** The integration ships 96 object templates,
 curated (heating, heat pump, frost protection, garden,
 vehicle, health, …), each with its tasks, types and interval defaults already
 chosen and localized. It is the only way to enumerate the `template_id` values

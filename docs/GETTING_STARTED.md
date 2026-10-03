@@ -31,7 +31,7 @@ leave that off for now and come back in level 2.
 
 **Your first object.** Open **Maintenance** in the sidebar and choose
 **Add ▾ → From template**. Pick something you own — *Car*, *Heating*,
-*Washing machine*, *Smoke detectors* … (95 templates in 10 categories). The
+*Washing machine*, *Smoke detectors* … (96 templates in 10 categories). The
 gallery opens with *Recommended for your home*: what your home type, climate
 and region call for. The object arrives with its typical tasks and sensible
 intervals, all editable. (Where a template mentions legal duties or

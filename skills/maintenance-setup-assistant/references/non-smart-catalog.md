@@ -9,7 +9,7 @@ Confidence on every interval below is **rule-of-thumb** — present them that wa
 and invite the user to adjust for their household. Safety items first.
 
 > **Check the shipped templates first.** `maintenance_supporter/templates`
-> returns 95 object templates, curated (smoke detectors, espresso machine,
+> returns 96 object templates, curated (smoke detectors, espresso machine,
 > aquarium, robot mower, security camera, CPAP …) with their tasks and interval
 > defaults already chosen and localized; `object/from_template` creates the
 > object and all its tasks in one call. Hand-build from the table below only

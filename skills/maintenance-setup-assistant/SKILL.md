@@ -123,7 +123,7 @@ candidates by area/device and rank by confidence.
 have maintenance that never appears in any registry — range-hood filters,
 descaling, smoke-detector batteries, HVAC filters, gutter cleaning. Call
 `maintenance_supporter/templates` (pass the user's `language`): the integration
-ships 95 object templates, curated, each with its tasks, types and interval
+ships 96 object templates, curated, each with its tasks, types and interval
 defaults already chosen and localized (and `recommended` / `reasons` for
 this home — basics for the dwelling, climate, detected equipment), and
 `object/from_template` creates the object plus all of its tasks in one call. Match a candidate to a template

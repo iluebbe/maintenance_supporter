@@ -2,6 +2,15 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **A Cordless Vacuum template** (discussion #85, thanks @Halok0r): handheld and stick vacuums report nothing, so
+  nobody is reminded. The template brings six routines — clear the brush roll every two weeks (weekly with pets),
+  empty and wash the dust bin, clean the main filter (with a day to dry), the pre-filter, cyclone and mesh, check the
+  nozzles and the tube for blockages, and clean the charging contacts. The catalog has 96 templates.
+
 ## [2.97.0] - 2026-10-03
 
 ### ✨ Added
