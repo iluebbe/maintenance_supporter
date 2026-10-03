@@ -540,9 +540,9 @@ custom_components/maintenance_supporter/
 │   │                                           installation_date, warranty_expiry (#67), documentation_url, notes
 │   └── maintenance_type.py         (86 lines)  Predefined maintenance categories
 │
-├── templates.py                 (2,902 lines)  95 object templates in 10 categories (vehicle, home, building, household,
+├── templates.py                 (2,920 lines)  95 object templates in 10 categories (vehicle, home, building, household,
 │                                               appliance, garden, pool, tech, pets, health)
-├── templates_i18n.py           (18,342 lines)  Translations for the template catalog (largest module)
+├── templates_i18n.py           (18,388 lines)  Translations for the template catalog (largest module)
 ├── repairs.py                     (822 lines)  Repair flows: missing trigger entity, orphan admin-panel-user,
 │                                               stale on_complete_action entity
 ├── diagnostics.py                 (251 lines)  Integration diagnostics with PII redaction

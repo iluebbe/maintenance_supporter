@@ -4,6 +4,13 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **The THG quota in the Electric Car template** (discussion #85): in Germany an electric car's greenhouse-gas savings
+  can be certified and sold once per calendar year; the template now reminds of it every 15 January, with a note on
+  how. Templates can hold a duty that exists in one country only (`only_in`): it is part of the template there and
+  nowhere else, and not where the country is unknown.
+
 ### 🐛 Fixed
 
 - **The snooze duration is always in Settings** (discussion #193): every Snooze — the task menu, a card, voice, the

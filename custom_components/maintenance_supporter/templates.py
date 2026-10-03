@@ -54,6 +54,10 @@ class TaskTemplate:
     # Only where there is a cold season: winterizing a pool or an irrigation
     # system is left out in Miami or Brisbane.
     winter_only: bool = False
+    # Only in these countries or regions (ISO codes, regions as "US-NY"): a
+    # duty that exists in one place alone — the THG quota of an electric car
+    # is German. Empty: everywhere.
+    only_in: frozenset[str] = frozenset()
 
 
 @dataclass
@@ -493,6 +497,17 @@ TEMPLATES: list[ObjectTemplate] = [
                 _TEST_NOTE,
                 country_notes=_CAR_TEST_NOTES,
                 country_intervals={"GB": 365, "BE": 365, "HR": 365, "US-DE": 365, "US-HI": 365, "US-MA": 365, "US-ME": 365, "US-NC": 365, "US-NY": 365, "US-PA": 365, "US-VA": 365, "US-VT": 365, "US-AK": 0, "US-AL": 0, "US-AR": 0, "US-FL": 0, "US-IA": 0, "US-ID": 0, "US-KS": 0, "US-KY": 0, "US-MI": 0, "US-MN": 0, "US-MS": 0, "US-MT": 0, "US-ND": 0, "US-NE": 0, "US-OK": 0, "US-SC": 0, "US-SD": 0, "US-TN": 0, "US-WA": 0, "US-WY": 0, "US-CA": 0, "US-CT": 0, "US-DC": 0, "US-NJ": 0, "US-TX": 0, "CA-PE": 365, "CA-AB": 0, "CA-BC": 0, "CA-MB": 0, "CA-NL": 0, "CA-ON": 0, "CA-QC": 0, "CA-SK": 0, "AU-QLD": 0, "AU-SA": 0, "AU-TAS": 0, "AU-VIC": 0, "AU-WA": 0, "BE-VLG": 730},
+            ),
+            # D#85: the quota year is the calendar year — a reminder early in it.
+            TaskTemplate(
+                "GHG Quota (THG-Quote)",
+                "custom",
+                "time_based",
+                365,
+                30,
+                "Germany: the greenhouse-gas savings of a fully electric car (THG-Quote) can be certified and sold once per calendar year — usually through a quota service, with a copy of the registration certificate (Part I). Quota services set their own deadlines — check yours.",
+                schedule={"kind": "day_of_month", "day": 15, "months": [1]},
+                only_in=frozenset({"DE"}),
             ),
         ],
     ),
@@ -2698,11 +2713,14 @@ def template_tasks(
 ) -> list[TaskTemplate]:
     """The tasks ``template`` creates in this home — winter-only ones are left
     out where there is no cold season, a legal check where no such duty
-    exists (``NOT_DUE``: no car inspection in Florida)."""
+    exists (``NOT_DUE``: no car inspection in Florida), a duty of one country
+    everywhere else and where the country is unknown (``only_in``)."""
     return [
         tt
         for tt in template.tasks
-        if (has_winter or not tt.winter_only) and task_interval(tt, country, region) != NOT_DUE
+        if (has_winter or not tt.winter_only)
+        and task_interval(tt, country, region) != NOT_DUE
+        and (not tt.only_in or country in tt.only_in or region in tt.only_in)
     ]
 
 

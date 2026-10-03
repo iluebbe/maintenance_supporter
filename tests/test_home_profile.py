@@ -358,6 +358,23 @@ def test_country_interval_and_winter_only_tasks() -> None:
     assert "Water Test" in tropics and "Check Pool Safety Barrier or Alarm" in tropics
 
 
+def test_a_task_that_exists_in_one_country_only() -> None:
+    """The THG quota of an electric car is German (D#85): the task is part of
+    the template in Germany and nowhere else — not next door, not where the
+    country is unknown — and reminds every January in the user's language."""
+    ev = get_template_by_id("vehicle_ev")
+    assert ev
+    thg = "GHG Quota (THG-Quote)"
+    assert thg in {tt.name for tt in template_tasks(ev, country="DE")}
+    assert thg not in {tt.name for tt in template_tasks(ev, country="AT")}
+    assert thg not in {tt.name for tt in template_tasks(ev)}
+    task = next(tt for tt in ev.tasks if tt.name == thg)
+    built = build_template_task(task, "de", country="DE")
+    assert built["name"] == "THG-Quote beantragen"
+    assert "Zulassungsbescheinigung" in built["notes"]
+    assert built["schedule"]["months"] == [1]
+
+
 async def test_a_ups_integration_is_equipment_the_gallery_suggests_for(hass: HomeAssistant) -> None:
     from pytest_homeassistant_custom_component.common import MockConfigEntry
 
