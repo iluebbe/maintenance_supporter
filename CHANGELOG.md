@@ -21,6 +21,9 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ♻️ Internal
 
+- **Dev dependencies** (#194–#198): Playwright 1.63 — and with it the local `playwright-server` pin in
+  `docker/compose.yaml` (image and `run-server`; a client and a server of different minors refuse to talk, and CI
+  never sees that) — and React 19.3 for the design previews. The shipped bundle is unchanged.
 - **The battery fleet at phone widths is a test** (#162): `battery-fleet-narrow.test.ts` renders the rows of the
   reported iPhone screenshot — batteries without a level whose forecast has passed, the Replaced action, the status
   badges, long names — at 360, 390, 402 and 430 px in every list of the section, in the panel and in the card, and
