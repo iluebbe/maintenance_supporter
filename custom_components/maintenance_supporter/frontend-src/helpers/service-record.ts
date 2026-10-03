@@ -249,7 +249,7 @@ export function buildServiceRecordHtml(
       <h2>${esc(name)} ${refCell(ref)}</h2>
       ${tk?.schedule ? `<div class="schedule">${esc(tk.schedule)}</div>` : ""}
       ${docs}
-      <div class="task-count">${esc(labels.entriesLabel(mine.length))}${inc.costs && subtotal > 0 ? ` · ${esc(fmtCost(subtotal))}` : ""}</div>
+      <div class="task-count">${esc(labels.entriesLabel(mine.length))}${inc.costs && subtotal !== 0 ? ` · ${esc(fmtCost(subtotal))}` : ""}</div>
     </div>
     ${qr}
   </div>

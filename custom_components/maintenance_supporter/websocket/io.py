@@ -26,11 +26,13 @@ from ..const import (
     CONF_OBJECT_MODEL,
     CONF_TASKS,
     DOMAIN,
+    MAX_COST,
     MAX_ENTITY_SLUG_LENGTH,
     MAX_ID_LENGTH,
     MAX_IMPORT_PAYLOAD_BYTES,
     MAX_JSON_IMPORT_PAYLOAD_BYTES,
     MAX_VACATION_EXEMPT_TASKS,
+    MIN_COST,
 )
 from ..helpers.aggregate import object_name
 from ..helpers.dates import normalize_hhmm, parse_iso_date
@@ -92,7 +94,8 @@ _TASK_FIELD_TYPES: dict[str, type | tuple[type, ...]] = {
 
 
 def _sanitize_history(history: Any) -> list[dict[str, Any]]:
-    """Scrub imported history entries: drop a non-finite/negative ``cost``.
+    """Scrub imported history entries: drop a non-finite or out-of-range ``cost``
+    (a credit — #200 — is negative and stays).
 
     Every live write path range-guards cost, but import copied history verbatim
     and ``json.loads``/``yaml.safe_load`` both accept ``NaN``/``Infinity``. Such
@@ -132,7 +135,9 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
         if "completed_by" in clean and not isinstance(clean["completed_by"], str):
             clean.pop("completed_by")
         cost = clean.get("cost")
-        if isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost) or cost < 0:
+        if "cost" in clean and (
+            isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost) or not MIN_COST <= cost <= MAX_COST
+        ):
             clean.pop("cost", None)
         # #104 bookkeeping: the parts value is money too (same NaN hole), the
         # two markers are exact values or nothing.

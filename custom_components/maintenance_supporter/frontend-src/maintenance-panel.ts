@@ -104,6 +104,7 @@ import type {
 } from "./components/history-edit-dialog";
 import "./components/confirm-dialog";
 import type { MaintenanceConfirmDialog } from "./components/confirm-dialog";
+import type { BulkChanges, BulkMode, MaintenanceBulkEditDialog } from "./components/bulk-edit-dialog";
 import "./components/storage-section-card";
 import "./components/seasonal-overrides-dialog";
 import type { SeasonalOverridesDialog } from "./components/seasonal-overrides-dialog";
@@ -130,7 +131,7 @@ import { renderStatusBadge } from "./renderers/status";
 import { TOAST_MS, ACTION_TOAST_MS } from "./helpers/toast";
 import { buildHistoryEntryDraft } from "./helpers/history-draft";
 import { readingSlotDelta } from "./helpers/reading-slots";
-import { bulkResultMessage, runWs, runWsEach } from "./helpers/ws-run";
+import { bulkResultMessage, codedFailures, runWs, runWsEach } from "./helpers/ws-run";
 import { snoozedMessage, type SnoozeResult } from "./helpers/snooze";
 import { STATUS_ORDER, statusRank } from "./status-constants";
 
@@ -451,6 +452,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         import("./components/adopt-problem-sensors-dialog"),
         import("./components/suggested-setups-dialog"),
         import("./components/settings-view"),
+        import("./components/bulk-edit-dialog"),
       ]).then(() => this.updateComplete);
     }
     return this._lazyUi;
@@ -2269,10 +2271,15 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   /** One WS call per selected object, sequentially (config entries are
    *  removed one at a time on the backend). */
-  private _runObjBulk(type: string, doneMsg: (n: number) => string, undo?: (ids: string[]) => Promise<void>): Promise<void> {
+  private _runObjBulk(
+    type: string,
+    doneMsg: (n: number) => string,
+    undo?: (ids: string[]) => Promise<void>,
+    extra: Record<string, unknown> = {},
+  ): Promise<void> {
     return this._runBulkItems(
       [...this._objBulkSelected],
-      (id) => ({ type, entry_id: id }),
+      (id) => ({ type, entry_id: id, ...extra }),
       doneMsg,
       () => {
         this._objBulkSelected = new Set();
@@ -2294,6 +2301,40 @@ export class MaintenanceSupporterPanel extends LitElement {
     });
     if (!ok) return;
     await this._runObjBulk("maintenance_supporter/object/delete", (k) => t("bulk_objects_deleted", this._lang).replace("{n}", String(k)));
+  }
+
+  /** D#199: one Home Assistant area for every selected object (after a big
+   *  template import, the step that otherwise takes one dialog per object). */
+  private async _objBulkArea(): Promise<void> {
+    const ids = [...this._objBulkSelected];
+    if (ids.length === 0) return;
+    const areas = Object.values(this.hass?.areas || {}).sort((a, b) => a.name.localeCompare(b.name));
+    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+    const result = await dlg?.prompt({
+      title: t("area", this._lang),
+      message: t("bulk_n_selected", this._lang).replace("{n}", String(ids.length)),
+      confirmText: t("save", this._lang),
+      inputLabel: t("area", this._lang),
+      inputValue: "",
+      options: [{ value: "", label: t("no_area", this._lang) }, ...areas.map((a) => ({ value: a.area_id, label: a.name }))],
+    });
+    if (!result?.confirmed) return;
+    const before = new Map(ids.map((id) => [id, this._getObject(id)?.object.area_id ?? null]));
+    void this._runObjBulk(
+      "maintenance_supporter/object/update",
+      (n) => t("bulk_objects_area", this._lang).replace("{n}", String(n)),
+      async (done) => {
+        for (const id of done) {
+          try {
+            await this.hass.connection.sendMessagePromise({
+              type: "maintenance_supporter/object/update", entry_id: id, area_id: before.get(id) ?? null,
+            });
+          } catch { /* best effort */ }
+        }
+        await this._loadData();
+      },
+      { area_id: result.value || null },
+    );
   }
 
   private _objBulkArchive(): void {
@@ -2322,6 +2363,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         </label>
         <span class="bulk-count">${t("bulk_n_selected", L).replace("{n}", String(n))}</span>
         <span class="bulk-actions">
+          <ha-button appearance="plain" class="obj-bulk-area" .disabled=${n === 0 || this._actionLoading} @click=${() => void this._objBulkArea()}>
+            <ha-icon icon="mdi:floor-plan"></ha-icon> ${t("area", L)}…
+          </ha-button>
           <ha-button appearance="plain" class="obj-bulk-archive" .disabled=${n === 0 || this._actionLoading} @click=${() => this._objBulkArchive()}>
             <ha-icon icon="mdi:archive-outline"></ha-icon> ${t("archive", L)}
           </ha-button>
@@ -2357,6 +2401,90 @@ export class MaintenanceSupporterPanel extends LitElement {
         }
         await this._loadData();
       },
+    );
+  }
+
+  /** D#199: one change — assignment, labels or settings — to every selected
+   *  task. tasks/update_many writes and reloads each object once (looping
+   *  task/update reloaded an object once per task) and answers with the
+   *  replaced values, which become the undo. */
+  private async _bulkEdit(mode: BulkMode, rows: TaskRow[]): Promise<void> {
+    const selected = rows.filter((r) => this._bulkSelected.has(this._bulkKey(r)));
+    if (selected.length === 0) return;
+    const dlg = await this._ui<MaintenanceBulkEditDialog>("maintenance-bulk-edit-dialog");
+    const users = this._userService ? await this._userService.getUsers() : [];
+    const changes = await dlg?.open(mode, selected, users);
+    if (!changes) return;
+    await this._sendBulkUpdate(selected.map((r) => ({ entry_id: r.entry_id, task_id: r.task_id })), changes);
+  }
+
+  private async _sendBulkUpdate(
+    items: Array<{ entry_id: string; task_id: string; changes?: BulkChanges }>,
+    changes: BulkChanges | null,
+  ): Promise<void> {
+    const res = await runWs<{
+      updated: unknown[];
+      failed: Array<{ entry_id: string; task_id: string; code: string }>;
+      previous: Array<{ entry_id: string; task_id: string; changes: BulkChanges }>;
+    }>(this, { type: "maintenance_supporter/tasks/update_many", items, ...(changes ? { changes } : {}) }, {
+      busy: (b) => { this._actionLoading = b; },
+      onError: (m) => this._showToast(m, "error"),
+    });
+    if (!res) return;
+    const isUndo = changes === null;
+    if (!isUndo) {
+      this._bulkSelected = new Set();
+      this._bulkMode = false;
+    }
+    await this._loadData();
+    const failed = codedFailures(res.failed, this._lang);
+    const msg = bulkResultMessage(t("bulk_updated", this._lang).replace("{n}", String(res.updated.length)), failed, this._lang);
+    if (!isUndo && res.previous.length > 0) {
+      this._showUndoToast(msg, () => void this._sendBulkUpdate(res.previous, null));
+    } else {
+      this._showToast(msg, failed.length > 0 ? "error" : "info");
+    }
+  }
+
+  /** Pause every selected task that runs (one date for all, optional). */
+  private async _bulkPause(rows: TaskRow[]): Promise<void> {
+    const running = rows.filter((r) => this._bulkSelected.has(this._bulkKey(r)) && r.status !== "paused");
+    if (running.length === 0) return;
+    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+    const result = await dlg?.prompt({
+      title: t("pause_task", this._lang),
+      message: t("pause_task_prompt", this._lang),
+      confirmText: t("pause_task", this._lang),
+      inputLabel: t("pause_until_label", this._lang),
+      inputType: "date",
+    });
+    if (!result?.confirmed) return;
+    void this._runBulk(
+      running,
+      (row) => ({
+        type: "maintenance_supporter/task/pause", entry_id: row.entry_id, task_id: row.task_id,
+        ...(result.value ? { until: result.value } : {}),
+      }),
+      (n) => t("bulk_paused", this._lang).replace("{n}", String(n)),
+      async (done) => {
+        for (const k of done) {
+          try {
+            await this.hass.connection.sendMessagePromise({
+              type: "maintenance_supporter/task/resume", entry_id: k.entry_id, task_id: k.task_id,
+            });
+          } catch { /* best effort */ }
+        }
+        await this._loadData();
+      },
+    );
+  }
+
+  /** Resume every selected paused task — each starts a fresh cycle. */
+  private _bulkResume(rows: TaskRow[]): void {
+    void this._runBulk(
+      rows.filter((r) => r.status === "paused"),
+      (row) => ({ type: "maintenance_supporter/task/resume", entry_id: row.entry_id, task_id: row.task_id }),
+      (n) => t("bulk_resumed", this._lang).replace("{n}", String(n)),
     );
   }
 
@@ -3085,6 +3213,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         .objects=${this._objects}
         @group-saved=${this._onDialogEvent}
       ></maintenance-group-dialog>
+      <maintenance-bulk-edit-dialog .hass=${this.hass}></maintenance-bulk-edit-dialog>
       <maintenance-adopt-problem-sensors-dialog
         .hass=${this.hass}
         @problem-sensors-adopted=${(e: CustomEvent) => this._onProblemSensorsAdopted(e)}
@@ -3693,6 +3822,11 @@ export class MaintenanceSupporterPanel extends LitElement {
             ${this._bulkMenuOpen ? html`
               <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
                 <div class="popup-menu-item bulk-move" @click=${() => { this._bulkMenuOpen = false; void this._bulkMove(rows); }}>${t("move_task", L)}</div>
+                <div class="popup-menu-item bulk-assign" @click=${() => { this._bulkMenuOpen = false; void this._bulkEdit("assign", rows); }}>${t("bulk_assign", L)}…</div>
+                <div class="popup-menu-item bulk-labels" @click=${() => { this._bulkMenuOpen = false; void this._bulkEdit("labels", rows); }}>${t("labels", L)}…</div>
+                <div class="popup-menu-item bulk-edit" @click=${() => { this._bulkMenuOpen = false; void this._bulkEdit("edit", rows); }}>${t("edit", L)}…</div>
+                <div class="popup-menu-item bulk-pause" @click=${() => { this._bulkMenuOpen = false; void this._bulkPause(rows); }}>${t("pause_task", L)}…</div>
+                <div class="popup-menu-item bulk-resume" @click=${() => { this._bulkMenuOpen = false; this._bulkResume(rows); }}>${t("resume_task", L)}</div>
               </div>
             ` : nothing}
           </span>

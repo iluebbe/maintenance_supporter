@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All 104 WebSocket commands the integration registers are covered here. Their
+All 105 WebSocket commands the integration registers are covered here. Their
 authorization tiers are frozen in `tests/test_ws_permission_matrix.py` — that
 test is the inventory of record; this file is its prose companion (and
 `tests/test_docs_counts_in_sync.py` keeps the counts quoted here honest).
@@ -35,7 +35,7 @@ through (e.g. free-form maps).
 
 - `@require_write` (admin **or** allowlisted operator): all object/task
   create/update/delete/duplicate/archive/unarchive, `object/{pause,resume,replace}`,
-  `object/from_template`, `task/move`, `task/set_adaptive`,
+  `object/from_template`, `task/move`, `tasks/update_many`, `task/set_adaptive`,
   `task/assign_user`, `task/history/update`, `task/history/delete`, `task/apply_suggestion`,
   `task/seasonal_overrides`, `task/set_environmental_entity`, `part/*`,
   `documents/{add_link,update,delete}`, `group/{create,update,delete}`,
@@ -230,7 +230,14 @@ unit_cost` (the price of one unit at that moment), `parts_cost` (their value),
 `purchase: true` on a buy task, and `cost_basis: "use"` when the setting
 `parts_cost_mode` was `use`. An entry's spending is its `cost`, except with
 `cost_basis: "use"`: then a purchase counts 0 and `parts_cost` is added — the
-budget, `total_cost` and `statistics` follow that rule. With `use`, a buy task's
+budget, `total_cost` and `statistics` follow that rule.
+
+**Credits (#200).** A `cost` below zero is money that came back — the old
+unit sold, a refund. Every writer takes it down to -1e6 (`task/complete`,
+`task/history/update`, `quick_complete_defaults`, the `complete` service,
+imports); every total nets it (`total_cost`, the budget and its alerts,
+the area cost sensors). A task's `average_cost` is the mean cost per
+completion with the credits left out (`null` without one). With `use`, a buy task's
 `cost` sets the part's `cost` (per package) instead.
 
 ### `templates` — read — **the shipped object catalog**
@@ -383,8 +390,24 @@ its entities are recreated there (source and target entries reload). Document
 links stay with the source object. Errors: `not_found`, `invalid_target`
 (same object / archived target), `limit_reached`.
 
+### `tasks/update_many` — `@require_write` (D#199)
+Several tasks changed at once, across objects:
+`{items: [{entry_id, task_id, changes?}] (1..500), changes?}` →
+`{updated: [{entry_id, task_id}], failed: [{entry_id, task_id, code}], previous: [{entry_id, task_id, changes}]}`.
+`changes` (shared, or per item — an item's own map wins) takes
+`responsible_user_id`, `assignee_pool`, `rotation_strategy`, `labels`,
+`priority`, `warning_days`, `notify_enabled` with the same rules as
+`task/update` (`null` clears a field; rotation `off` / reminders on are
+stored as their absence), plus `labels_add` / `labels_remove` to edit
+labels without replacing them. One write and one reload per object. A
+task that cannot take the change is reported in `failed`
+(`not_found`, `invalid_user`, `invalid_input` = no change at all) while
+the others are saved.
+`previous` holds the values each change replaced — send it back as the
+items (without a shared `changes`) to undo.
+
 ### Task actions (no write gate)
-- `task/complete` `{entry_id, task_id, notes?, cost? (0..1e6), duration? (min, 0..525600), checklist_state? {str:bool}, feedback? (needed|not_needed|not_sure), photo_doc_ids? [doc id, max 10]}` → `{"success": true}` — photos are documents uploaded beforehand via `POST /api/maintenance_supporter/document/upload` (multipart `entry_id`, `tags=photo`, `file`); the history entry stores them as `photo_doc_ids` (entries written before 2.75 carry a single `photo_doc_id`, still accepted on input) — refused with `tag_scan_required` when the task has `require_tag_scan` (only the NFC handler, `task/quick_complete` and the `complete` service with `via_tag_scan: true` pass). Also takes `completed_at` (see *Backdated completions*), `reading_value` / `reading_values` (*Meter readings*), `used_parts` (*Spare parts*) and `restock_quantity` (a buy task). `via_tag_scan: true` exists here too — it is the panel's QR deep-link fallback and ASSERTS that someone scanned the tag at the thing: an assistant must never send it. Other refusals: `too_early` (completion window), `completion_details_required` (required fields), `task_inactive` (archived / disabled / paused)
+- `task/complete` `{entry_id, task_id, notes?, cost? (-1e6..1e6; below zero = a credit), duration? (min, 0..525600), checklist_state? {str:bool}, feedback? (needed|not_needed|not_sure), photo_doc_ids? [doc id, max 10]}` → `{"success": true}` — photos are documents uploaded beforehand via `POST /api/maintenance_supporter/document/upload` (multipart `entry_id`, `tags=photo`, `file`); the history entry stores them as `photo_doc_ids` (entries written before 2.75 carry a single `photo_doc_id`, still accepted on input) — refused with `tag_scan_required` when the task has `require_tag_scan` (only the NFC handler, `task/quick_complete` and the `complete` service with `via_tag_scan: true` pass). Also takes `completed_at` (see *Backdated completions*), `reading_value` / `reading_values` (*Meter readings*), `used_parts` (*Spare parts*) and `restock_quantity` (a buy task). `via_tag_scan: true` exists here too — it is the panel's QR deep-link fallback and ASSERTS that someone scanned the tag at the thing: an assistant must never send it. Other refusals: `too_early` (completion window), `completion_details_required` (required fields), `task_inactive` (archived / disabled / paused)
 - `task/quick_complete` `{entry_id, task_id}` → `{"success": true, "via": "quick"}` (needs stored `quick_complete_defaults`, else `no_defaults`)
 - `task/checklist_progress` `{entry_id, task_id, checklist_state (req, {item text: bool})}` →
   `{"success": true, "checklist_state": {...}}` — persists in-cycle ticks WITHOUT

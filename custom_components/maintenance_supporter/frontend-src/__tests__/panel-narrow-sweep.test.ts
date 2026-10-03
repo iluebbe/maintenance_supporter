@@ -111,3 +111,64 @@ describe("area pages at phone width (#191)", () => {
     });
   }
 });
+
+describe("task page at phone width", () => {
+  it("the header wraps its badges instead of widening the page", async () => {
+    // Found live (2026-10-03): a postponed, assigned, muted task without an
+    // NFC tag drew its header row 505 px wide on a 360 px phone.
+    const objs = objects();
+    const first = objs[0].tasks[0] as Record<string, unknown>;
+    Object.assign(first, {
+      due_override: "2026-12-24",
+      responsible_user_id: "u1",
+      notify_enabled: false,
+      mirror_todo_entities: ["todo.shopping"],
+      history: [
+        { timestamp: "2026-03-10T10:00:00", type: "completed", cost: 200, duration: 30 },
+        { timestamp: "2026-06-10T10:00:00", type: "completed", cost: -150, duration: 20, notes: "Altgerät verkauft" },
+      ],
+      history_count: 2,
+    });
+    const { el } = await mountPanel(objs, {
+      "maintenance_supporter/users/list": () => ({ users: [{ id: "u1", name: "Maximilian Mustermann" }] }),
+    });
+    const panel = el as unknown as { narrow: boolean; updateComplete: Promise<unknown>; _showTask(e: string, t: string): void };
+    panel.narrow = true;
+    el.style.width = "360px";
+    panel._showTask("e1", String(first.id));
+    await customElements.whenDefined("maintenance-task-detail-view");
+    for (let i = 0; i < 3; i++) {
+      await new Promise((r) => setTimeout(r, 60));
+      await panel.updateComplete;
+    }
+    const header = el.shadowRoot!.querySelector(".task-header");
+    expect(header, "task header rendered").to.exist;
+    expect(header!.querySelectorAll(".postponed-badge, .user-badge, .nfc-badge").length, "the badges under test").to.be.at.least(4);
+    expect(el.shadowRoot!.querySelector(".history-credit"), "the credit row (#200)").to.exist;
+    const found = spilled(el.shadowRoot!);
+    expect(found, found.join("\n")).to.deep.equal([]);
+  });
+
+  it("the header path shrinks instead of pushing the search button off screen", async () => {
+    // Found live (2026-10-03): "Maintenance / HVAC System / Filter
+    // Replacement" broke only at its spaces, so the words alone were wider
+    // than the header and the search button sat outside a 360 px screen.
+    resetTaskSeq();
+    const objs = [obj("e1", [task({ name: "Kältemitteldichtheitsprüfungsprotokoll" })], "Wärmepumpenaußeneinheitsgehäuse")];
+    const { el } = await mountPanel(objs);
+    const panel = el as unknown as { narrow: boolean; updateComplete: Promise<unknown>; _showTask(e: string, t: string): void };
+    panel.narrow = true;
+    el.style.width = "360px";
+    panel._showTask("e1", "t1");
+    for (let i = 0; i < 3; i++) {
+      await new Promise((r) => setTimeout(r, 60));
+      await panel.updateComplete;
+    }
+    const header = el.shadowRoot!.querySelector<HTMLElement>(".header")!;
+    expect(header.querySelector(".breadcrumbs .current")!.textContent).to.include("Kältemittel");
+    const search = header.querySelector<HTMLElement>(".header-search")!;
+    expect(search.getBoundingClientRect().right, "the search button stays on screen").to.be.at.most(header.getBoundingClientRect().right + 1);
+    const found = spilled(el.shadowRoot!);
+    expect(found, found.join("\n")).to.deep.equal([]);
+  });
+});

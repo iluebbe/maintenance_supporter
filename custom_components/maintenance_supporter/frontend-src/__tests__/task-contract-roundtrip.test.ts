@@ -116,6 +116,8 @@ const READONLY = new Set([
   "trigger_baseline_value",
   "times_performed",
   "total_cost",
+  // #200: per completion with the credits left out — computed from history.
+  "average_cost",
   "average_duration",
   "suggested_interval",
   "interval_confidence",

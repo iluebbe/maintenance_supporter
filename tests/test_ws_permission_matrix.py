@@ -109,6 +109,8 @@ _EXPECTED_TIERS: dict[str, str] = {
     # #193: pause / resume ONE task — structural like archive, write tier.
     "maintenance_supporter/task/pause": "write",
     "maintenance_supporter/task/resume": "write",
+    # D#199: several tasks in one call — write tier, like task/update.
+    "maintenance_supporter/tasks/update_many": "write",
     "maintenance_supporter/task/update": "write",
     # ── read (any authenticated user; actions deliberately household-open) ──
     "maintenance_supporter/budget_status": "read",

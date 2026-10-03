@@ -19,6 +19,7 @@ from ..const import (
     MAX_DURATION_MINUTES,
     MAX_TEXT_LENGTH,
     MAX_TIMESTAMP_LENGTH,
+    MIN_COST,
 )
 from ..helpers.completion_photos import MAX_COMPLETION_PHOTOS, normalize_photo_doc_ids
 from ..helpers.parts import MAX_PART_STOCK
@@ -71,7 +72,7 @@ def _refuse_too_early(connection: websocket_api.ActiveConnection, msg: dict[str,
         vol.Required("entry_id"): ID_FIELD,
         vol.Required("task_id"): ID_FIELD,
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
-        vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=0, max=MAX_COST)), None),
+        vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=MIN_COST, max=MAX_COST)), None),
         vol.Optional("duration"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=0, max=MAX_DURATION_MINUTES)), None),
         # Restrict checklist_state to {string-key (≤500): bool, ...} with
         # a hard cap on entries. Without this, attackers (or bad clients)

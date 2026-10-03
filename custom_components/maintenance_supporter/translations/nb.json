@@ -1822,7 +1822,7 @@
         },
         "cost": {
           "name": "Kostnad",
-          "description": "Kostnaden for vedlikeholdet som ble utført."
+          "description": "Kostnaden for vedlikeholdet som ble utført. Et negativt beløp er en kreditering – penger tilbake, f.eks. for det solgte gamle apparatet."
         },
         "duration": {
           "name": "Varighet",

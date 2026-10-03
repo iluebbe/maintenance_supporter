@@ -55,11 +55,16 @@ export const panelStyles = css`
     color: var(--app-header-text-color, white);
   }
 
-  .breadcrumbs { display: flex; align-items: center; gap: 4px; }
-  .breadcrumbs a { color: inherit; opacity: 0.8; cursor: pointer; text-decoration: none; }
+  /* One line, never wider than the header: the path broke only at its
+     spaces, so on a phone "Maintenance / HVAC System / Filter Replacement"
+     pushed the search button off screen. The way up shrinks first; the
+     current page keeps its name as long as it can. */
+  .breadcrumbs { display: flex; align-items: center; gap: 4px; min-width: 0; }
+  .breadcrumbs a, .breadcrumbs .current { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .breadcrumbs a { flex: 0 10 auto; color: inherit; opacity: 0.8; cursor: pointer; text-decoration: none; }
   .breadcrumbs a:hover { opacity: 1; text-decoration: underline; }
-  .breadcrumbs .sep { opacity: 0.5; margin: 0 4px; }
-  .breadcrumbs .current { font-weight: 500; }
+  .breadcrumbs .sep { flex: none; opacity: 0.5; margin: 0 4px; }
+  .breadcrumbs .current { flex: 0 1 auto; font-weight: 500; }
 
   .content { flex: 1; overflow-y: auto; padding: 0 16px 16px; }
 
@@ -742,11 +747,15 @@ export const panelStyles = css`
     flex-wrap: wrap;
   }
 
+  /* Name, object and up to six badges: on a phone they wrap — one row drew
+     a postponed, assigned, muted task 505 px wide on a 360 px screen. */
   .task-header-title {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
     flex: 1;
+    min-width: 0;
   }
 
   .task-name-breadcrumb,
@@ -754,6 +763,7 @@ export const panelStyles = css`
     cursor: pointer;
     color: var(--primary-text-color);
     text-decoration: none;
+    overflow-wrap: anywhere;
   }
 
   .task-name-breadcrumb:hover,
@@ -994,13 +1004,19 @@ export const panelStyles = css`
   .area-chart { margin: 4px 0 8px; }
   .area-chart-max { font-size: 11px; color: var(--secondary-text-color); padding-bottom: 2px; }
   /* Hairline gridline at the maximum (labelled above) and the baseline;
-     bars <= 24px with a 2px gap and a rounded data end (dataviz specs). */
+     bars <= 24px with a 2px gap and a rounded data end (dataviz specs).
+     With a credit month (#200) the baseline is the minimum (labelled
+     below) and a zero line runs between. */
   .area-chart-bars {
+    position: relative;
     display: flex; align-items: flex-end; gap: 2px; height: 140px;
     border-top: 1px solid var(--divider-color); border-bottom: 1px solid var(--divider-color);
   }
+  .area-chart-zero { position: absolute; left: 0; right: 0; border-top: 1px solid var(--secondary-text-color); opacity: 0.5; pointer-events: none; }
+  .area-chart-min { font-size: 11px; color: var(--secondary-text-color); padding-top: 2px; }
   .area-bar { flex: 1 1 0; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
-  .area-bar-fill { width: 100%; max-width: 24px; min-height: 1px; background: var(--primary-color); border-radius: 4px 4px 0 0; }
+  .area-bar-fill { position: relative; width: 100%; max-width: 24px; min-height: 1px; background: var(--primary-color); border-radius: 4px 4px 0 0; }
+  .area-bar-fill.credit { background: var(--success-color, #43a047); border-radius: 0 0 4px 4px; }
   .area-bar:hover .area-bar-fill { opacity: 0.75; }
   .area-chart-axis { display: flex; gap: 2px; margin-top: 4px; }
   .area-bar-label {

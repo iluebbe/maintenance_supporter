@@ -1822,7 +1822,7 @@
         },
         "cost": {
           "name": "Kustannus",
-          "description": "Suoritetun huollon kustannus."
+          "description": "Suoritetun huollon kustannus. Negatiivinen summa on hyvitys – takaisin saatua rahaa, esim. myydystä vanhasta laitteesta."
         },
         "duration": {
           "name": "Kesto",

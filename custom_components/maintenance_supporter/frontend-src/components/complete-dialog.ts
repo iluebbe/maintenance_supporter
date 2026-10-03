@@ -14,6 +14,7 @@ import { REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import { PhotoUploadController } from "../helpers/photo-upload-controller";
 import { parseDurationMinutes } from "../helpers/duration";
 import "./ms-date-field";
+import "./ms-cost-input";
 import "./ms-photo-picker";
 import { photoPickerStyles } from "./ms-photo-picker";
 
@@ -175,8 +176,9 @@ export class MaintenanceCompleteDialog extends LitElement {
     };
     if (this._notes) data.notes = this._notes;
     if (this._cost) {
+      // #200: a credit is negative; the server holds the bounds.
       const cost = parseFloat(this._cost);
-      if (!isNaN(cost) && cost >= 0) data.cost = cost;
+      if (!isNaN(cost)) data.cost = cost;
     }
     // Whole minutes — the server coerces to int (helpers/duration).
     const dur = parseDurationMinutes(this._duration);
@@ -490,13 +492,12 @@ export class MaintenanceCompleteDialog extends LitElement {
               .value=${this._notes}
               @input=${(e: Event) => (this._notes = (e.target as HTMLInputElement).value)} />
           </label>
-          <label class="field">
+          <div class="field">
             <span class="field-label">${t("cost_optional", L)}${this._req("cost")}</span>
-            <input type="number" step="0.01" min="0" class="field-input"
-              .value=${this._cost}
-              @input=${(e: Event) => (this._cost = (e.target as HTMLInputElement).value)} />
+            <ms-cost-input .lang=${L} .value=${this._cost}
+              @value-changed=${(e: CustomEvent<{ value: string }>) => (this._cost = e.detail.value)}></ms-cost-input>
             ${this._renderCostSuggestion(L)}
-          </label>
+          </div>
           <label class="field">
             <span class="field-label">${t("duration_minutes", L)}${this._req("duration")}</span>
             <input type="number" step="1" min="0" inputmode="numeric" class="field-input"

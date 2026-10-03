@@ -64,7 +64,8 @@ def entry_spend(entry: Mapping[str, Any], amount: Callable[[Any], float | None] 
     changed setting never re-values the past. ``amount`` reads a stored
     number: strict by default (the budget's rule — a real finite number,
     see ``helpers.budget.is_countable_cost``); a task's total passes the
-    lenient ``helpers.history.finite_amount``, as it always did.
+    lenient ``helpers.history.signed_amount``. Both keep a credit's sign
+    (#200): a negative cost lowers every total.
     """
     cost = amount(entry.get("cost")) or 0.0
     if entry.get("cost_basis") != COST_BASIS_USE:

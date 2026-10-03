@@ -29,6 +29,7 @@ import { REQUIRED_COMPLETION_KEYS, REQUIRED_COMPLETION_LABELS } from "./required
 import "./ms-textfield";
 import { defaultNotifyIcon } from "../helpers/notify-icons";
 import "./ms-date-field";
+import "./ms-cost-input";
 
 const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibration", "service", "reading", "custom"];
 const PRIORITY_KEYS = ["low", "normal", "high"];
@@ -1034,12 +1035,11 @@ export class MaintenanceTaskDialog extends LitElement {
           .value=${this._qcNotes}
           @input=${(e: Event) => { this._qcNotes = (e.target as HTMLInputElement).value; }}
         ></ms-textfield>
-        <ms-textfield
-          label="${t("quick_complete_defaults_cost", L)}"
-          type="number" min="0" step="0.01"
-          .value=${this._qcCost}
-          @input=${(e: Event) => { this._qcCost = (e.target as HTMLInputElement).value; }}
-        ></ms-textfield>
+        <div class="qc-cost">
+          <span class="qc-cost-label">${t("quick_complete_defaults_cost", L)}</span>
+          <ms-cost-input .lang=${L} .value=${this._qcCost}
+            @value-changed=${(e: CustomEvent<{ value: string }>) => { this._qcCost = e.detail.value; }}></ms-cost-input>
+        </div>
         <ms-textfield
           label="${t("quick_complete_defaults_duration", L)}"
           type="number" min="0" step="1"
@@ -1788,7 +1788,7 @@ export class MaintenanceTaskDialog extends LitElement {
       const qcd: Record<string, unknown> = {};
       if (this._qcNotes.trim()) qcd.notes = this._qcNotes.trim();
       const cost = parseFloat(this._qcCost);
-      if (!isNaN(cost) && cost >= 0) qcd.cost = cost;
+      if (!isNaN(cost)) qcd.cost = cost;
       const dur = parseDurationMinutes(this._qcDuration);
       if (dur !== null) qcd.duration = dur;
       if (this._qcFeedback) qcd.feedback = this._qcFeedback;
@@ -3588,6 +3588,8 @@ export class MaintenanceTaskDialog extends LitElement {
       font-weight: 500;
       color: var(--secondary-text-color);
     }
+    .qc-cost { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; }
+    .qc-cost-label { font-size: 12px; color: var(--secondary-text-color); }
     .field-help {
       font-size: 12px;
       color: var(--secondary-text-color);

@@ -1822,7 +1822,7 @@
         },
         "cost": {
           "name": "Maliyet",
-          "description": "Yapılan bakımın maliyeti."
+          "description": "Yapılan bakımın maliyeti. Negatif bir tutar iadedir — geri gelen para, örneğin eski cihazın satışı."
         },
         "duration": {
           "name": "Süre",

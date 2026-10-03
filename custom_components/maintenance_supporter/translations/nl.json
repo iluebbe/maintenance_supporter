@@ -1822,7 +1822,7 @@
         },
         "cost": {
           "name": "Kosten",
-          "description": "Kosten van het uitgevoerde onderhoud."
+          "description": "Kosten van het uitgevoerde onderhoud. Een negatief bedrag is een tegoed — geld terug, bijvoorbeeld voor het verkochte oude apparaat."
         },
         "duration": {
           "name": "Duur",

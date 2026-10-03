@@ -18,6 +18,7 @@ import { PhotoUploadController } from "../helpers/photo-upload-controller";
 import { parseDurationMinutes } from "../helpers/duration";
 import { confirmAction } from "../helpers/confirm";
 import "./ms-date-field";
+import "./ms-cost-input";
 import "./history-photo";
 import "./ms-photo-picker";
 import { photoPickerStyles } from "./ms-photo-picker";
@@ -404,15 +405,14 @@ export class MaintenanceHistoryEditDialog extends LitElement {
             .value=${d.notes ?? ""}></textarea>
         </label>
         <div class="row">
-          <label>
+          <div class="cost-field">
             <span>${t("cost", L)}</span>
-            <input type="number" min="0" step="0.01"
-              .value=${d.cost != null ? String(d.cost) : ""}
-              @input=${(e: Event) => {
-                const v = (e.target as HTMLInputElement).value;
+            <ms-cost-input .lang=${L} .value=${d.cost != null ? String(d.cost) : ""}
+              @value-changed=${(e: CustomEvent<{ value: string }>) => {
+                const v = e.detail.value;
                 this._set("cost", v ? Number(v) : null);
-              }} />
-          </label>
+              }}></ms-cost-input>
+          </div>
           <label>
             <span>${t("duration", L)}</span>
             <input type="number" min="0" step="1" inputmode="numeric"
@@ -531,6 +531,8 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     }
     label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
     label span { color: var(--secondary-text-color); }
+    .cost-field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; min-width: 0; }
+    .cost-field > span { color: var(--secondary-text-color); }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     input, textarea {
       padding: 8px; font-size: 14px;

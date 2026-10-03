@@ -438,7 +438,7 @@ export class MaintenanceCalendarCard extends LitElement {
             ${predictionSubtitle}
             ${recurEvery}
           </div>
-          ${ev.avg_cost != null && ev.avg_cost > 0
+          ${ev.avg_cost != null && ev.avg_cost !== 0
             ? html`<span class="cal-event-cost">${formatCost(ev.avg_cost, currencySymbol, L)}</span>`
             : nothing}
         </div>

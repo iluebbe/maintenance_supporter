@@ -298,6 +298,8 @@ def _build_task_summary(
         "trigger_baseline_value": ct.get("_trigger_baseline_value"),
         "times_performed": ct.get("_times_performed", 0),
         "total_cost": ct.get("_total_cost", 0.0),
+        # #200: per completion, credits left out (total_cost nets them).
+        "average_cost": ct.get("_average_cost"),
         "average_duration": ct.get("_average_duration"),
         # Adaptive scheduling
         "adaptive_config": task_data.get("adaptive_config"),
@@ -826,6 +828,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_update_history_entry,
         ws_update_task,
     )
+    from .tasks_bulk import ws_update_many_tasks
     from .users import ws_assign_user, ws_list_users, ws_tasks_by_user
     from .vacation import (
         ws_vacation_end_now,
@@ -857,6 +860,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_unarchive_task)
     websocket_api.async_register_command(hass, ws_pause_task)
     websocket_api.async_register_command(hass, ws_resume_task)
+    websocket_api.async_register_command(hass, ws_update_many_tasks)
     websocket_api.async_register_command(hass, ws_list_tasks)
     websocket_api.async_register_command(hass, ws_task_history)
     websocket_api.async_register_command(hass, ws_complete_task)

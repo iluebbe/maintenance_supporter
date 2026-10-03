@@ -18,10 +18,11 @@ complete:
         text:
     cost:
       name: Cost
-      description: Cost of the maintenance performed.
+      description: Cost of the maintenance performed. A negative amount is a credit — money back, such as the old unit sold.
       selector:
         number:
-          min: 0
+          min: -1000000
+          max: 1000000
           step: 0.01
           mode: box
     duration:

@@ -28,7 +28,8 @@ export function renderCostDurationCard(
   const completedEntries = task.history.filter((h) => h.type === "completed" && (entrySpend(h) != null || h.duration != null));
   if (completedEntries.length < 2) return nothing;
 
-  const anyCost = completedEntries.some((h) => (entrySpend(h) ?? 0) > 0);
+  // A credit (#200) is a cost too: a bar below the zero line.
+  const anyCost = completedEntries.some((h) => (entrySpend(h) ?? 0) !== 0);
   const anyDuration = completedEntries.some((h) => (h.duration ?? 0) > 0);
   if (!anyCost && !anyDuration) return nothing;
 
@@ -67,7 +68,8 @@ function renderHistoryChart(task: MaintenanceTask, lang: string, toggle: "cost" 
 
   if (entries.length < 2) return nothing;
 
-  const dataCost = entries.some((e) => e.cost > 0);
+  const dataCost = entries.some((e) => e.cost !== 0);
+  const anyCredit = entries.some((e) => e.cost < 0);
   const dataDuration = entries.some((e) => e.duration > 0);
   if (!dataCost && !dataDuration) return nothing;
 
@@ -93,9 +95,13 @@ function renderHistoryChart(task: MaintenanceTask, lang: string, toggle: "cost" 
   const withYear = needsYear(tsMin, tsMax);
   const toX = (ts: number) => PAD_L + ((ts - t0) / (t1 - t0)) * plotW;
 
-  const costAxis = niceTicks(0, Math.max(...entries.map((e) => e.cost)) || 1, 3);
+  // The cost axis reaches below zero only for a credit (#200).
+  const costMin = Math.min(0, ...entries.map((e) => e.cost));
+  const costMax = Math.max(0, ...entries.map((e) => e.cost));
+  const costAxis = niceTicks(costMin, costMax > costMin ? costMax : costMin + 1, 3);
   const durAxis = niceTicks(0, Math.max(...entries.map((e) => e.duration)) || 1, 3);
-  const costY = (v: number) => PAD_T + (1 - v / (costAxis.niceMax || 1)) * plotH;
+  const costSpan = costAxis.niceMax - costAxis.niceMin || 1;
+  const costY = (v: number) => PAD_T + (1 - (v - costAxis.niceMin) / costSpan) * plotH;
   const durY = (v: number) => PAD_T + (1 - v / (durAxis.niceMax || 1)) * plotH;
 
   // Bars keep a readable width even when completions crowd together.
@@ -122,12 +128,18 @@ function renderHistoryChart(task: MaintenanceTask, lang: string, toggle: "cost" 
           return svg`<text x="${W - PAD_R + 6}" y="${px(y + 3.5)}" text-anchor="start" fill="var(--accent-color, #ff9800)" font-size="10.5">${fmtNum(v, lang)}m</text>`;
         }) : nothing}
 
-        ${showCost ? entries.filter((e) => e.cost > 0).map((e) => svg`
-          <rect x="${px(toX(e.ts) - barW / 2)}" y="${px(costY(e.cost))}" width="${px(barW)}" height="${px(plotB - costY(e.cost))}"
-            fill="var(--primary-color)" opacity="0.6" rx="2">
-            <title>${fmtDateTick(e.ts, lang, true)}: ${formatCost(e.cost, currencySymbol, lang)}${e.duration ? ` · ${e.duration}m` : ""}</title>
-          </rect>
-        `) : nothing}
+        ${showCost && costAxis.niceMin < 0 ? svg`
+          <line class="cost-zero" x1="${PAD_L}" y1="${px(costY(0))}" x2="${W - PAD_R}" y2="${px(costY(0))}" stroke="var(--secondary-text-color)" stroke-width="1" opacity="0.7" />
+        ` : nothing}
+        ${showCost ? entries.filter((e) => e.cost !== 0).map((e) => {
+          const top = costY(Math.max(e.cost, 0));
+          const credit = e.cost < 0;
+          return svg`
+          <rect class="${credit ? "credit-bar" : "cost-bar"}" x="${px(toX(e.ts) - barW / 2)}" y="${px(top)}" width="${px(barW)}" height="${px(costY(Math.min(e.cost, 0)) - top)}"
+            fill="${credit ? "var(--success-color, #43a047)" : "var(--primary-color)"}" opacity="0.6" rx="2">
+            <title>${fmtDateTick(e.ts, lang, true)}: ${credit ? `${t("cost_kind_credit", lang)} ` : ""}${formatCost(Math.abs(e.cost), currencySymbol, lang)}${e.duration ? ` · ${e.duration}m` : ""}</title>
+          </rect>`;
+        }) : nothing}
         ${showDuration ? svg`
           <polyline points="${entries.map((e) => `${px(toX(e.ts))},${px(durY(e.duration))}`).join(" ")}"
             fill="none" stroke="var(--accent-color, #ff9800)" stroke-width="2" stroke-linejoin="round" />
@@ -147,6 +159,7 @@ function renderHistoryChart(task: MaintenanceTask, lang: string, toggle: "cost" 
     </div>
     <div class="chart-legend">
       ${showCost ? html`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color);opacity:0.6"></span>${t("cost", lang)}</span>` : nothing}
+      ${showCost && anyCredit ? html`<span class="legend-item"><span class="legend-swatch" style="background:var(--success-color, #43a047);opacity:0.6"></span>${t("cost_kind_credit", lang)}</span>` : nothing}
       ${showDuration ? html`<span class="legend-item"><span class="legend-swatch" style="background:var(--accent-color, #ff9800)"></span>${t("duration", lang)}</span>` : nothing}
     </div>
   `;

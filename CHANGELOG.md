@@ -6,6 +6,19 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ✨ Added
 
+- **Credits — money that comes back** (#200): the old washing machine sold for €150, a refund from the shop. A cost
+  can now be below zero: every cost field — completing a task, editing a history entry, the quick-complete defaults —
+  has a *Cost | Credit* switch (a phone's number keypad has no minus key), and the `complete` action, the WebSocket
+  API and imports take a negative `cost` down to −1,000,000. Every total nets a credit: the task, the object, the
+  area, the budget and its alerts, the area cost sensors. The average cost per completion leaves it out — a sale is
+  no job — and the task payload carries it as `average_cost`. The history says *Credit: 150 €*, the task's cost chart
+  and the area chart draw it as a green bar below a zero line, and an area's cost shares count what was spent.
+- **Change several tasks at once** (discussion #199): in the task list's selection mode the ⋯ menu now also offers
+  *Assign…* (one person, or several in turns), *Labels…* (add some, remove others, the rest stay), *Edit…* (warning
+  days, priority, reminders — only the ticked settings change), *Pause…* and *Resume*; in *All objects*, *Area…*
+  moves the selected objects to another area. A new command, `tasks/update_many`, writes and reloads each object once
+  however many of its tasks change (the bar used to send one command per task) and returns the replaced values, so
+  *Undo* puts back exactly what was there.
 - **The THG quota in the Electric Car template** (discussion #85): in Germany an electric car's greenhouse-gas savings
   can be certified and sold once per calendar year; the template now reminds of it every 15 January, with a note on
   how. Templates can hold a duty that exists in one country only (`only_in`): it is part of the template there and
@@ -13,6 +26,11 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **The task page fits a phone again:** a task with several badges — postponed, assigned, reminders off, no NFC tag
+  yet — drew its header row 505 px wide on a 360 px screen, and the path at the top (*Maintenance / HVAC System /
+  Filter Replacement*) could only break at its spaces, so it pushed the search button off screen; the page scrolled
+  sideways. The badges now wrap, and the path stays on one line, shortening the levels above the current page first.
+  The phone-width sweep covers the task page now.
 - **The snooze duration is always in Settings** (discussion #193): every Snooze — the task menu, a card, voice, the
   phone's button — mutes reminders for *Snooze duration (hours)*, but the panel only showed that field while the
   phone's Snooze button was switched on, indented under it, so somebody snoozing from the panel could not find where

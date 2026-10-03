@@ -161,15 +161,15 @@ def test_group_description_too_long_rejected() -> None:
 # ─── Numeric Range Rejection ─────────────────────────────────────────
 
 
-def test_cost_negative_rejected() -> None:
-    """Negative cost should be rejected by schema."""
-    schema = vol.Schema(
-        {
-            vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=0, max=1_000_000)), None),
-        }
-    )
+def test_cost_credit_accepted_beyond_the_bound_rejected() -> None:
+    """A credit is a negative cost (#200); the real task/complete schema takes
+    one down to -MAX_COST and refuses anything further."""
+    from custom_components.maintenance_supporter.websocket.tasks_actions import ws_complete_task
+
+    base = {"type": "maintenance_supporter/task/complete", "id": 1, "entry_id": "e", "task_id": "t"}
+    assert ws_complete_task._ws_schema({**base, "cost": -150.0})["cost"] == -150.0  # type: ignore[attr-defined]
     with pytest.raises(vol.Invalid):
-        schema({"cost": -1.0})
+        ws_complete_task._ws_schema({**base, "cost": -1_000_001.0})  # type: ignore[attr-defined]
 
 
 def test_cost_too_high_rejected() -> None:

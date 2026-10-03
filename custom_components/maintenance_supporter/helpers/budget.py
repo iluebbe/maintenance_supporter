@@ -36,10 +36,11 @@ def is_countable_cost(value: Any) -> bool:
     Strict on purpose — a real, finite number and nothing else:
 
     * Every write path already guarantees that. ``task/complete`` and
-      ``history/patch`` both run ``vol.Coerce(float)`` + ``Range(0, MAX_COST)``
-      before the entry is stored, and the JSON/YAML importer
-      (``websocket/io.py::_sanitize_history``) *drops* any cost that isn't a
-      plain finite non-negative number. A string cost is therefore not
+      ``history/patch`` both run ``vol.Coerce(float)`` +
+      ``Range(MIN_COST, MAX_COST)`` before the entry is stored (a credit,
+      #200, is a negative cost and lowers the spend), and the JSON/YAML
+      importer (``websocket/io.py::_sanitize_history``) *drops* any cost that
+      isn't a plain finite number within those bounds. A string cost is therefore not
       producible through any supported path; it can only come from a
       hand-edited ``.storage`` file or a corrupted backup.
     * The lenient ``float(cost)`` alternative re-opens the exact hole that

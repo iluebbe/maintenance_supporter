@@ -856,6 +856,9 @@ MAX_PANEL_TITLE_LENGTH = 50  # sidebar panel title override
 # config-flow-path sanitiser (they must agree, else a value the sanitiser
 # accepts can bypass the WS cap or vice-versa).
 MAX_COST = 1_000_000  # per completion / history entry
+# #200: a credit — the old unit sold, a refund — is a negative cost; every
+# total nets it (budget, task, object, area).
+MIN_COST = -MAX_COST
 MAX_DURATION_MINUTES = 525_600  # one year in minutes
 MAX_TYPE_LENGTH = 50  # task_type, schedule_type
 MAX_CHECKLIST_ITEMS = 100

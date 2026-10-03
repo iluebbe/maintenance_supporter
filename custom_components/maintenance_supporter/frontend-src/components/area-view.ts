@@ -272,7 +272,11 @@ export class MaintenanceAreaView extends LitElement {
     const L = this._lang;
     const cur = this.currencySymbol;
     const max = buckets.reduce((m, b) => Math.max(m, b.cost), 0);
-    if (max <= 0) return html`<p class="area-empty">${t("area_no_costs", L)}</p>`;
+    // A month whose credits (#200) outweigh its spending dips below a zero
+    // line; without one the zero line is the baseline, as it always was.
+    const min = buckets.reduce((m, b) => Math.min(m, b.cost), 0);
+    if (max <= 0 && min >= 0) return html`<p class="area-empty">${t("area_no_costs", L)}</p>`;
+    const pct = (v: number) => Math.round((v / (max - min)) * 1000) / 10;
     // At most ~12 axis labels, whatever the range — a phone has room for no
     // more; every bar keeps its own tooltip. A label spans the `every` bars
     // it stands for (flex-grow), so it never spills over its neighbours.
@@ -282,14 +286,20 @@ export class MaintenanceAreaView extends LitElement {
       <div class="area-chart">
         <div class="area-chart-max">${formatCost(max, cur, L)}</div>
         <div class="area-chart-bars">
+          ${min < 0 ? html`<div class="area-chart-zero" style="bottom: ${pct(-min)}%"></div>` : nothing}
           ${buckets.map((b) => {
             const tip = `${this._bucketLabel(b, "long")}: ${formatCost(b.cost, cur, L)} · ${t("area_kpi_completions", L)}: ${formatNumber(b.completions, L)}`;
             // An empty month is an empty slot, not a 1px stub on the baseline.
+            // A bar stands on the zero line; a credit hangs from it.
+            const lift = b.cost < 0 ? pct(b.cost - min) : pct(-min);
             return html`<div class="area-bar" title=${tip} aria-label=${tip}>
-              ${b.cost > 0 ? html`<div class="area-bar-fill" style="height: ${Math.round((b.cost / max) * 1000) / 10}%"></div>` : nothing}
+              ${b.cost !== 0
+                ? html`<div class="area-bar-fill ${b.cost < 0 ? "credit" : ""}" style="height: ${pct(Math.abs(b.cost))}%${lift ? `; bottom: ${lift}%` : ""}"></div>`
+                : nothing}
             </div>`;
           })}
         </div>
+        ${min < 0 ? html`<div class="area-chart-min">${formatCost(min, cur, L)}</div>` : nothing}
         <div class="area-chart-axis ${every > 1 ? "grouped" : ""}">
           ${labelled.map(({ b, i }) => html`<span class="area-bar-label" style="flex-grow: ${Math.min(every, buckets.length - i)}">${b.month == null
             ? String(b.year)

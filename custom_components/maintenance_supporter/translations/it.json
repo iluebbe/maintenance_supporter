@@ -1822,7 +1822,7 @@
         },
         "cost": {
           "name": "Costo",
-          "description": "Costo della manutenzione eseguita."
+          "description": "Costo della manutenzione eseguita. Un importo negativo è un accredito: denaro rientrato, ad esempio dalla vendita del vecchio apparecchio."
         },
         "duration": {
           "name": "Durata",
