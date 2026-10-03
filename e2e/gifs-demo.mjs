@@ -22,6 +22,7 @@
  *   objects-bulk-select.gif    Select mode in All objects: tick two, Delete, confirm (#188)
  *   counter-reset.gif          complete a robot's brush task → the robot's own counter resets (2.95)
  *   areas.gif                  All objects → All areas → an area's history and costs (#191)
+ *   bulk-edit.gif              three tasks, one person for all of them, the rows change together, Undo (D#199)
  * The demo robots come from docker/demo_roborock_fixture (mounted as
  * custom_components/roborock in ha-shots; see shots-demo.mjs).
  *
@@ -77,8 +78,30 @@ async function findFfmpeg() {
   return "ffmpeg";
 }
 
-async function toGif(videoPath, name, trimSeconds) {
+/** Seconds of video in the webm (ffmpeg prints "Duration: hh:mm:ss.xx"). */
+async function videoSeconds(videoPath) {
+  try {
+    execFileSync(await findFfmpeg(), ["-i", videoPath], { stdio: "pipe" });
+  } catch (e) {
+    // ffmpeg -i without an output exits non-zero; the header is on stderr.
+    const m = /Duration: (\d+):(\d+):(\d+(?:\.\d+)?)/.exec(String(e.stderr || ""));
+    if (m) return Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]);
+  }
+  return null;
+}
+
+async function toGif(videoPath, name, trimSeconds, tailSeconds = null) {
   const out = join(GIF_DIR, `${name}.gif`);
+  // The browser paints no frames while a flow waits idle, so a recording can
+  // be shorter than the wall clock and the measured trim lands past its end
+  // (counter-reset, 2.97: trim 46 s in a 28 s video → an empty GIF). What
+  // follows the mark plays in real time — count back from the end then.
+  const total = await videoSeconds(videoPath);
+  if (total !== null && trimSeconds > total - 2 && tailSeconds !== null) {
+    const backFromEnd = Math.max(0, total - tailSeconds - 0.7);
+    log(`  video ${total.toFixed(1)}s < trim ${trimSeconds.toFixed(1)}s — counting back from the end: ${backFromEnd.toFixed(1)}s`);
+    trimSeconds = backFromEnd;
+  }
   // Cut everything before the measured action start (login/loading), then
   // 8 fps and a 100-colour palette — the saving comes from frame rate and
   // palette, never from scaling the text down. 1120 wide (was 960,
@@ -184,13 +207,15 @@ async function record(token, name, flow) {
     await p.waitForTimeout(1800); // hold the end frame
   } finally {
     const video = p.video();
+    // Wall seconds from the mark to the end — real-time video, see toGif.
+    const tail = actionAt ? (Date.now() - actionAt) / 1000 : null;
     await ctx.close(); // flushes the webm
     if (video) {
       // saveAs streams through the live connection — close the browser AFTER.
       const local = join(VIDEO_DIR, `${name}.webm`);
       await video.saveAs(local);
       const trim = actionAt ? Math.max(0, (actionAt - t0) / 1000 - 0.7) : 2;
-      await toGif(local, name, trim);
+      await toGif(local, name, trim, tail);
     }
     await browser.close().catch(() => {});
   }
@@ -411,20 +436,23 @@ async function revealTriggerConfig(p) {
   return r.startsWith("revealed");
 }
 
-/** Type into the complete dialog's Nth native input (notes=0, cost=1). */
-async function fillCompleteField(p, index, value) {
-  const r = await p.evaluate(({ fnStr, index, value }) => {
+/** Type into a field of the complete dialog by name: "notes" (a text area
+ *  since #202) or "cost" (the amount inside the Cost | Credit field, #200). */
+async function fillCompleteField(p, field, value) {
+  const r = await p.evaluate(({ fnStr, field, value }) => {
     const panel = eval(`(${fnStr})`)();
     const dlg = panel.shadowRoot.querySelector("maintenance-complete-dialog");
-    const inputs = [...(dlg?.shadowRoot?.querySelectorAll("input.field-input") || [])];
-    const el = inputs[index];
-    if (!el) return "no input " + index;
+    const root = dlg?.shadowRoot;
+    const el = field === "notes"
+      ? root?.querySelector("textarea.field-input")
+      : root?.querySelector("ms-cost-input")?.shadowRoot?.querySelector("input.amount");
+    if (!el) return "no field " + field;
     el.scrollIntoView({ block: "center" });
     el.focus();
     el.value = value;
     el.dispatchEvent(new Event("input", { bubbles: true }));
-    return "filled " + index;
-  }, { fnStr: panelOf.toString(), index, value });
+    return "filled " + field;
+  }, { fnStr: panelOf.toString(), field, value });
   log("  " + r);
   return r.startsWith("filled");
 }
@@ -501,9 +529,9 @@ const flowRequiredDetails = async (p, mark) => {
   await onRow(p, "descaling", "complete");
   await p.waitForTimeout(2400);
   log("  complete disabled before filling: " + (await completeDisabled(p)));
-  await fillCompleteField(p, 0, "Ran two descaling cycles, rinsed twice");
+  await fillCompleteField(p, "notes", "Ran two descaling cycles, rinsed twice");
   await p.waitForTimeout(1200);
-  await fillCompleteField(p, 1, "8.90");
+  await fillCompleteField(p, "cost", "8.90");
   await p.waitForTimeout(1400);
   log("  complete disabled after filling: " + (await completeDisabled(p)));
   await submitComplete(p);
@@ -992,6 +1020,72 @@ const flowAreas = async (p, mark) => {
   await p.waitForTimeout(3500);
 };
 
+/** (2.97, D#199) Several tasks at once: three unassigned tasks ticked in
+ *  the task list, one person given to all of them in one step — the three
+ *  rows change together — and Undo puts back exactly what was there. Causal
+ *  chain: one change → every selected row → undone; nothing stays changed. */
+const flowBulkEdit = async (p, mark) => {
+  await openPanel(p);
+  await p.waitForTimeout(1500);
+  mark();
+  const toggled = await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const btn = panel.shadowRoot.querySelector(".bulk-toggle");
+    if (!btn) return "no bulk toggle";
+    btn.click();
+    return "select mode";
+  }, panelOf.toString());
+  log("  " + toggled);
+  await p.waitForTimeout(1200);
+  for (let i = 0; i < 3; i++) {
+    const r = await p.evaluate((fnStr) => {
+      const panel = eval(`(${fnStr})`)();
+      // Unassigned and not yet ticked: the new name is what the clip shows.
+      const row = [...panel.shadowRoot.querySelectorAll(".task-row")].find((el) =>
+        el.querySelector("label.cell.bulk-check input") && !el.classList.contains("bulk-selected") &&
+        !el.querySelector(".person-chip, .person-avatar, .user-chip"));
+      if (!row) return "no unassigned row";
+      row.scrollIntoView({ block: "center" });
+      row.querySelector("label.cell.bulk-check input").click();
+      return "ticked";
+    }, panelOf.toString());
+    log("  " + r);
+    await p.waitForTimeout(800);
+  }
+  await p.waitForTimeout(600);
+  await p.evaluate((fnStr) => { eval(`(${fnStr})`)().shadowRoot.querySelector(".bulk-more")?.click(); }, panelOf.toString());
+  await p.waitForTimeout(1200);
+  await clickInPanel(p, "^assign", ".popup-menu");
+  await p.waitForTimeout(1800);
+  const picked = await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const dlg = panel.shadowRoot.querySelector("maintenance-bulk-edit-dialog");
+    const sel = dlg?.shadowRoot?.querySelector("select.person");
+    if (!sel) return "no person select";
+    const ben = [...sel.options].find((o) => /ben/i.test(o.textContent || ""));
+    if (!ben) return "no Ben";
+    sel.value = ben.value;
+    sel.dispatchEvent(new Event("change"));
+    return "Ben";
+  }, panelOf.toString());
+  log("  picked " + picked);
+  await p.waitForTimeout(1400);
+  await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    panel.shadowRoot.querySelector("maintenance-bulk-edit-dialog")?.shadowRoot?.querySelector("ha-button.apply")?.click();
+  }, panelOf.toString());
+  await p.waitForTimeout(4500);           // one write + reload per object, the list refreshes
+  const undone = await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const btn = panel.shadowRoot.querySelector(".toast-undo");
+    if (!btn) return "no undo";
+    btn.click();
+    return "undo";
+  }, panelOf.toString());
+  log("  " + undone);
+  await p.waitForTimeout(3800);
+};
+
 const FLOWS = {
   "create-from-template": flowTemplate,
   "complete-task": flowComplete,
@@ -1014,6 +1108,7 @@ const FLOWS = {
   "notification-event": flowNotificationEvent(token),
   "calendar-schedule": flowCalendarSchedule,
   "objects-bulk-select": flowObjectsBulkSelect(token),
+  "bulk-edit": flowBulkEdit,
   "areas": flowAreas,
   // Completes the Q7 brush task — mutating, so it records last.
   "counter-reset": flowCounterReset(token),

@@ -712,6 +712,28 @@ log("SEED OK", JSON.stringify(seed));
   } catch (e) { log("v2.96 seed skipped:", String(e && e.message || e)); }
 }
 
+// (2.97) Idempotent extras — a credit (#200): the old winter tyres sold,
+// booked on the Family Car's tyre task as money back, with a note over two
+// lines (#202). Backdated between two rotations, so it is a pure backfill:
+// the schedule, the dashboard rows and the GIF flows stay as they were.
+{
+  const send = api.send;
+  try {
+    const all = (await send({ type: "maintenance_supporter/objects" })).objects || [];
+    const car = all.find((x) => x.object.name === "Family Car");
+    const tyres = car && car.tasks.find((x) => x.name === "Tire Rotation");
+    if (tyres) {
+      const { history } = await send({ type: "maintenance_supporter/task/history", entry_id: car.entry_id, task_id: tyres.id });
+      if (!history.some((h) => typeof h.cost === "number" && h.cost < 0)) {
+        await send({ type: "maintenance_supporter/task/complete", entry_id: car.entry_id, task_id: tyres.id,
+          completed_at: ts(-110), cost: -80, duration: 20,
+          notes: "Old winter set sold\n4 × 205/55 R16, 5 mm tread left" });
+        log("v2.97 seed: a credit on the tyres");
+      }
+    }
+  } catch (e) { log("v2.97 seed skipped:", String(e && e.message || e)); }
+}
+
 // Documents: upload a PDF manual to the Family Car + add a web link, and
 // link the manual to the Oil Change task (page 12).
 if (seed) {

@@ -95,6 +95,10 @@ per object:
 
 ![The notification event and its payload](images/gifs/notification-event.gif)
 
+**Several tasks at once (2.97)** — three tasks, one person for all of them, the rows change together, and Undo puts it back
+
+![Several tasks changed at once](images/gifs/bulk-edit.gif)
+
 ## Screenshots
 
 | Dashboard | Task Detail | Mobile |
@@ -186,6 +190,12 @@ each with the previous value as a hint:
 
 ![Complete dialog with reading slots](images/complete-dialog-readings.png)
 
+Money that comes back is a **credit** (2.97+): the *Cost | Credit* switch
+next to the amount books it as a negative cost. Notes run over as many lines
+as needed (2.97+):
+
+![Complete dialog: a note over two lines and a credit](images/complete-dialog-credit.png)
+
 ### Proof of presence (2.67+)
 Tick **Only complete by scanning the tag** next to the task's NFC tag and the
 task can only be marked done at the thing itself — by scanning that tag or
@@ -230,6 +240,12 @@ A meter round with reading slots: every slot with its delta against the
 last completion that recorded it, plus the completion photos (2.75+):
 
 ![Meter readings with photos in the history](images/task-history-readings.png)
+
+A credit (2.97+) — here the old winter tyres sold — hangs below the zero line
+of the cost chart and says *Credit* in the history; the totals net it, the
+average cost per completion leaves it out:
+
+![A credit in the cost chart and the history](images/task-history-credit.png)
 
 ### Settings Tab
 Feature toggles (advanced features are hidden until enabled), panel access
@@ -962,6 +978,9 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 ### Data Management
 - **Move several tasks at once** (2.90+, #188) — in the task list's selection mode the bar's ⋯ menu offers *Move to another object…*: one target prompt, then every selected task moves with its history, readings and trigger state (tasks already in the target are skipped)
 - **Change several tasks at once** (2.97+, discussion #199) — the same ⋯ menu offers *Assign…* (one person, or several in turns), *Labels…* (add some, remove others; the rest stay), *Edit…* (warning days, priority, reminders — only the ticked settings change), *Pause…* (until a date or until resumed) and *Resume*. However many tasks of an object change, it is written and reloaded once, and *Undo* in the toast puts back exactly what was replaced. In *All objects*, *Area…* moves the selected objects to another Home Assistant area
+
+![Three tasks selected and the bulk Edit… dialog: warning days and priority ticked](images/bulk-edit.png)
+
 - **Select mode in *All objects*** (2.89+, #188) — a *Select* button on the objects view (cards and table alike) turns every object into a checkbox; *Select all*, then *Delete* removes the chosen objects with all their tasks behind one confirm that states the count, or *Archive* parks them in one go (undoable from the toast). Operators without write access do not see it. *Duplicate* in the object menu clones an object with every task as a fresh, un-started copy named "… (copy)"
 
 ![Select mode in All objects](images/gifs/objects-bulk-select.gif)
