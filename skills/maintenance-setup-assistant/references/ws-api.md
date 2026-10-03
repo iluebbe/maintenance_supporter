@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All 105 WebSocket commands the integration registers are covered here. Their
+All 106 WebSocket commands the integration registers are covered here. Their
 authorization tiers are frozen in `tests/test_ws_permission_matrix.py` — that
 test is the inventory of record; this file is its prose companion (and
 `tests/test_docs_counts_in_sync.py` keeps the counts quoted here honest).
@@ -48,7 +48,8 @@ through (e.g. free-form maps).
   **The escalation boundary** — an operator can never enable
   `operator_write_enabled` or edit `admin_panel_user_ids`.
 - No gate (any authenticated user): all read commands + `task/complete`,
-  `task/quick_complete`, `task/skip`, `task/reset`, `task/postpone`,
+  `task/quick_complete`, `task/undo` (the caller's OWN last completion only),
+  `task/skip`, `task/reset`, `task/postpone`,
   `task/snooze`, `task/checklist_progress`, `task/set_phase`,
   `documents/discard_upload` — the household actions every member may take.
 
@@ -139,8 +140,16 @@ slot patch on a scalar-era entry drops the scalar. Slot names are unique
 per task (case-insensitive; duplicates are dropped by the sanitizer).
 `task/history/delete` `{entry_id, task_id, timestamp}` (2.84, #170) removes one
 entry; last_performed is re-derived from the remaining lifecycle entries (none
-left → the task reads as never performed), photos stay in the documents, parts
-are not restocked.
+left → the task reads as never performed), photos stay in the documents, and
+the entry's `used_parts` go back to stock (answer: `parts_returned`).
+
+`task/undo` `{entry_id, task_id}` (2026-10) takes back the caller's own last
+completion (`task/complete` / `task/quick_complete` answer `undo: true` when
+they remembered it): history, cycle anchor, phase, learning and parts stock are
+restored. One level per person, ten minutes; errors `nothing_to_undo` (another
+task, expired, nothing remembered) and `changed_since` (the task changed
+meanwhile). Answer `action_ran: true` when the task has a completion action —
+that one already ran and stays.
 
 `task/history/update` `{entry_id, task_id, original_timestamp (req — the
 entry's timestamp exactly as stored; it identifies the entry), ...patch}`

@@ -6,6 +6,7 @@ import { hydrateObjects } from "./helpers/hydrate-objects";
 import { property, state } from "lit/decorators.js";
 import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, langOf, currencySymbolOf, syncCurrencyDecimals} from "./styles";
 import { openSignedDocument } from "./helpers/document-url";
+import { isPhotoDocument } from "./helpers/document-categories";
 import { isSafeHttpUrl } from "./helpers/url";
 import { registerCustomCard } from "./helpers/register-card";
 import { healCardRegistry } from "./helpers/registry-heal";
@@ -29,7 +30,8 @@ import { canWrite } from "./helpers/permissions";
 import { ACTIONABLE_STATUSES, isActionableStatus, statusRank } from "./status-constants";
 import "./maintenance-card-editor";
 import "./components/complete-dialog";
-import type { MaintenanceCompleteDialog } from "./components/complete-dialog";
+import type { MaintenanceCompleteDialog, TaskCompletedDetail } from "./components/complete-dialog";
+import { offerUndoToast } from "./helpers/undo-completion";
 // The Battery Fleet card ships in this globally-loaded bundle so it is
 // available on every dashboard without another extra_module_url entry.
 import "./components/battery-fleet-card";
@@ -45,6 +47,9 @@ interface CardDoc {
   kind: string;
   url?: string | null;
 }
+
+/** Document chips on one task row before the rest is counted ("+N"). */
+const MAX_ROW_CHIPS = 2;
 
 interface FlatTask {
   entry_id: string;
@@ -243,9 +248,12 @@ export class MaintenanceSupporterCard extends LitElement {
       const res = (await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/documents/list",
         entry_id: entryId,
-      })) as { documents: Array<CardDoc & { task_ids?: string[] }> };
+      })) as { documents: Array<CardDoc & { task_ids?: string[]; tags?: string[] }> };
       const byTask: Record<string, CardDoc[]> = {};
       for (const doc of res.documents || []) {
+        // Completion photos are linked to their task too; a row of
+        // "photo-2026…" chips is no way to the manual.
+        if (isPhotoDocument(doc)) continue;
         for (const taskId of doc.task_ids || []) {
           (byTask[taskId] ||= []).push({ id: doc.id, title: doc.title, kind: doc.kind, url: doc.url });
         }
@@ -266,6 +274,31 @@ export class MaintenanceSupporterCard extends LitElement {
       out.push({ id: `url:${task.id}`, title: t("documentation_label", this._lang), kind: "weblink", url: task.documentation_url });
     }
     return out;
+  }
+
+  /** A row's document chips: at most two, the rest as "+N" — not a button:
+   *  a tap on it opens the task like the row does, where every document is
+   *  listed (its tooltip names them). */
+  private _renderDocChips(entryId: string, task: MaintenanceTask) {
+    const docs = this._docsFor(entryId, task);
+    if (!docs.length) return nothing;
+    const rest = docs.slice(MAX_ROW_CHIPS);
+    return html`<div class="doc-chips">
+      ${docs.slice(0, MAX_ROW_CHIPS).map((doc) => html`
+        <button
+          type="button"
+          class="doc-chip"
+          title="${doc.title}"
+          @click=${(e: Event) => { e.stopPropagation(); void this._openDoc(doc); }}
+        >
+          <ha-icon icon=${doc.kind === "weblink" ? "mdi:link-variant" : "mdi:file-document-outline"}></ha-icon>
+          <span>${doc.title}</span>
+        </button>
+      `)}
+      ${rest.length
+        ? html`<span class="doc-chip doc-more" title="${rest.map((d) => d.title).join("\n")}">+${rest.length}</span>`
+        : nothing}
+    </div>`;
   }
 
   /** Open a chip: a web link directly, a stored file through a signed path
@@ -412,8 +445,13 @@ export class MaintenanceSupporterCard extends LitElement {
     return tasks;
   }
 
-  private _onCompleted = async (): Promise<void> => {
+  /** After a completion: reload, and — when the server remembered it for
+   *  this person — Home Assistant's own toast offers Undo (the card has no
+   *  toast of its own). */
+  private _onCompleted = async (e: CustomEvent<TaskCompletedDetail>): Promise<void> => {
     await this._loadData();
+    const d = e.detail;
+    if (d?.undo) offerUndoToast(this, this.hass, d, this._lang, () => void this._loadData());
   };
 
   /** The row's Complete action — the SAME derivation the panel uses (phase
@@ -557,21 +595,7 @@ export class MaintenanceSupporterCard extends LitElement {
                               </div>`
                             : nothing}
                       </div>
-                      ${this._docsFor(entry_id, task).length
-                        ? html`<div class="doc-chips">
-                            ${this._docsFor(entry_id, task).map((doc) => html`
-                              <button
-                                type="button"
-                                class="doc-chip"
-                                title="${doc.title}"
-                                @click=${(e: Event) => { e.stopPropagation(); void this._openDoc(doc); }}
-                              >
-                                <ha-icon icon=${doc.kind === "weblink" ? "mdi:link-variant" : "mdi:file-document-outline"}></ha-icon>
-                                <span>${doc.title}</span>
-                              </button>
-                            `)}
-                          </div>`
-                        : nothing}
+                      ${this._renderDocChips(entry_id, task)}
                       <div class="task-due">
                         ${task.days_until_due !== null && task.days_until_due !== undefined
                           ? task.days_until_due < 0
@@ -686,7 +710,9 @@ export class MaintenanceSupporterCard extends LitElement {
       }
       .empty-link:hover { text-decoration: underline; }
       .all-caught-up { color: var(--success-color, #4caf50); font-weight: 500; }
-      .task-list { padding: 0 16px 16px; }
+      /* The list measures itself: a dashboard column on a wide screen needs
+         the narrow row layout as much as a phone does. */
+      .task-list { padding: 0 16px 16px; container: ms-tasks / inline-size; }
 
       .task-item {
         display: flex;
@@ -730,18 +756,24 @@ export class MaintenanceSupporterCard extends LitElement {
         text-overflow: ellipsis;
       }
 
+      /* One line of chips that shrinks before the name does; a chip's label
+         ends in an ellipsis (on the span — a flex button clips its text
+         without one). */
       .doc-chips {
         display: flex;
-        flex-wrap: wrap;
+        flex: 0 1 auto;
+        min-width: 0;
+        max-width: 40%;
         gap: 4px;
-        margin-right: 6px;
-        max-width: 45%;
+        overflow: hidden;
       }
       .doc-chip {
         display: inline-flex;
         align-items: center;
+        flex: 0 1 auto;
+        min-width: 0;
         gap: 3px;
-        max-width: 14ch;
+        max-width: 22ch;
         padding: 1px 6px;
         border: 1px solid var(--divider-color, #e0e0e0);
         border-radius: 10px;
@@ -750,12 +782,25 @@ export class MaintenanceSupporterCard extends LitElement {
         font: inherit;
         font-size: 11px;
         cursor: pointer;
-        overflow: hidden;
         white-space: nowrap;
-        text-overflow: ellipsis;
       }
+      .doc-chip span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
       .doc-chip:hover { color: var(--primary-color); border-color: var(--primary-color); }
-      .doc-chip ha-icon { --mdc-icon-size: 12px; width: 12px; height: 12px; }
+      .doc-chip ha-icon { --mdc-icon-size: 12px; width: 12px; height: 12px; flex: none; }
+      .doc-more { flex: none; }
+      /* Narrow (a phone, a dashboard column): the chips get a line of their
+         own under the task. Beside it, three of them left the task's name
+         one letter wide and broke its object and type over three lines. */
+      @container ms-tasks (max-width: 600px) {
+        .task-item { flex-wrap: wrap; row-gap: 2px; }
+        .doc-chips {
+          order: 1;
+          flex: 1 0 100%;
+          max-width: none;
+          box-sizing: border-box;
+          padding-inline-start: 20px;
+        }
+      }
       /* nowrap: the due label is localized via formatDueDays ("5 d overdue",
          "5 T überfällig") — without it a narrow phone card wraps that onto a
          second line and the row grows taller. The name column ellipsizes

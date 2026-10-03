@@ -2,6 +2,38 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Undo after Complete:** a Complete in the panel or on a dashboard card shows a toast with *Undo* for ten minutes (on
+  a card, Home Assistant's own toast). It takes back that completion: the history entry, the cycle anchor, the phase,
+  the learning and the parts it used. One level per person, only for the task the toast names, and never over a later
+  change. Notifications that went out and a completion action that already ran (a device's reset button) stay; the
+  message says so. Saying *undo that* reaches the same record.
+
+### 🐛 Fixed
+
+- **Dates follow Home Assistant's time zone, not the browser's:** a phone or computer in another time zone than Home
+  Assistant counted "today" on its own clock. A back-dated completion was refused as "in the future" east of Home
+  Assistant and stored hours early west of it (the next due date a day early once that crossed midnight); the reset
+  date, the calendar's window and Today marker, the battery forecast, the area cost months and years, warranty days and
+  the seasonal month were a day off around midnight. All of them run on Home Assistant's clock now, and the back-date
+  field names Home Assistant's zone when the times shown elsewhere are on another one. Times of day follow the
+  profile's *Time zone* setting (your device's or the server's), as in the rest of Home Assistant.
+- **Deleting a completion returns the parts it used:** the stock stayed deducted, so a completion logged by mistake
+  left the shelf too low. The parts go back now, and the confirm names them.
+- **Renamed entities that needed a hand:** a task's completion action (above all the reset button wired at adoption)
+  and a notify entity picked as the notification target now follow a renamed entity id, like triggers already did —
+  before, they waited behind a repair message. And *Suggested setups* recognises a renamed sensor of an integration
+  without translation keys by the integration's own name for it.
+- **The dashboard card's document chips fit a dashboard column:** in a column of a normal dashboard the chips sat
+  between the task and its due label — three of them left the task's name a single letter and broke its object and
+  type over three lines, and their labels were cut mid-word. In a narrow card the chips now get a line of their own
+  under the task, show two at most and count the rest (*+N*, the task lists them all), and a long name ends in an
+  ellipsis. Completion photos are no longer chips: they are the record of a job, not a document to work from — the
+  object history already leaves them out under its tasks. A wide card keeps the chips beside the task.
+
 ## [2.97.1] - 2026-10-03
 
 ### ✨ Added

@@ -1,10 +1,13 @@
-"""Undo the last thing somebody did by voice.
+"""Undo the last thing somebody did by voice — or a Complete in the panel.
 
 Speech recognition mishears, and a matched name can be the wrong task. The
 panel has a history editor for that; a voice satellite has nothing — the
 answer "Completed 'Descale' on Kettle" is the first moment anyone learns
 which task was hit. So every voice action that changes something remembers
-the state it changed, and "undo that" puts it back.
+the state it changed, and "undo that" puts it back. A one-tap Complete in
+the panel or on a dashboard card is the same kind of slip (the wrong row,
+a pocket tap), so the WebSocket completions remember theirs too, under the
+person's own key — their toast offers Undo, and so does their voice.
 
 What an undo covers, precisely:
 
@@ -133,6 +136,11 @@ def capture(hass: HomeAssistant, entry_id: str, task_id: str | None) -> Snapshot
     return snap
 
 
+def user_actor(user_id: str | None) -> str:
+    """The undo key of a signed-in person — the key their voice uses too."""
+    return f"user:{user_id}" if user_id else "anonymous"
+
+
 def remember(
     hass: HomeAssistant,
     intent_obj: intent.Intent,
@@ -141,15 +149,37 @@ def remember(
     **speech: Any,
 ) -> None:
     """Record a finished voice action so its speaker can undo it."""
+    remember_as(hass, actor(intent_obj), kind, before, **speech)
+
+
+def remember_as(hass: HomeAssistant, who: str, kind: str, before: Snapshot, **speech: Any) -> bool:
+    """Record a finished action under the undo key ``who`` — when it changed
+    anything. A double tap the completion guard swallowed changed nothing:
+    remembering it would let its Undo claim to take back a completion that is
+    somebody else's (or the person's own previous one stays undoable)."""
     after = capture(hass, before.entry_id, before.task_id)
-    hass.data.setdefault(_DATA_KEY, {})[actor(intent_obj)] = UndoRecord(
-        kind=kind, at=dt_util.utcnow(), before=before, after=after, speech=speech
-    )
+    if (after.task, after.static, after.snooze, after.stocks) == (before.task, before.static, before.snooze, before.stocks):
+        return False
+    hass.data.setdefault(_DATA_KEY, {})[who] = UndoRecord(kind=kind, at=dt_util.utcnow(), before=before, after=after, speech=speech)
+    return True
+
+
+def peek_as(hass: HomeAssistant, who: str) -> UndoRecord | None:
+    """``who``'s last action if it is still within the window (kept)."""
+    record: UndoRecord | None = hass.data.get(_DATA_KEY, {}).get(who)
+    if record is None or dt_util.utcnow() - record.at > UNDO_WINDOW:
+        return None
+    return record
 
 
 def pop(hass: HomeAssistant, intent_obj: intent.Intent) -> UndoRecord | None:
     """The speaker's last action if it is still within the window (and forget it)."""
-    record: UndoRecord | None = hass.data.get(_DATA_KEY, {}).pop(actor(intent_obj), None)
+    return pop_as(hass, actor(intent_obj))
+
+
+def pop_as(hass: HomeAssistant, who: str) -> UndoRecord | None:
+    """``who``'s last action if it is still within the window (and forget it)."""
+    record: UndoRecord | None = hass.data.get(_DATA_KEY, {}).pop(who, None)
     if record is None or dt_util.utcnow() - record.at > UNDO_WINDOW:
         return None
     return record

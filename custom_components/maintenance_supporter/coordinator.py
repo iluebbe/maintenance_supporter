@@ -1709,7 +1709,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         dynamic: dict[str, Any],
         static: dict[str, Any],
     ) -> None:
-        """Put a task back the way it was before one voice action (undo).
+        """Put a task back the way it was before one action (undo — by voice,
+        or the panel's and the card's Undo after Complete).
 
         ``dynamic`` maps Store fields to their earlier values (``None`` = the
         field was absent); ``static`` does the same for the entry-level
@@ -1730,8 +1731,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             write_task(self.hass, self.entry, task_id, current)
         # The undone completion must not swallow the real one that follows it
         # as a double tap, nor hold the triggers in their post-completion
-        # cooldown.
+        # cooldown. That holds for a back-dated one too: undone and sent again
+        # with the same moment (to add the forgotten note), it was dropped as
+        # a "double submit" for 30 s.
         self._recent_manual_completions.pop(task_id, None)
+        self._recent_backfills = {key: ts for key, ts in self._recent_backfills.items() if key[0] != task_id}
         self._recently_completed.pop(task_id, None)
         self._completion_cooldown.discard(task_id)
         await self._store.async_save()

@@ -12,6 +12,8 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.util import dt as dt_util
 
 from ..const import (
+    CONF_OBJECT,
+    CONF_TASKS,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
     MAX_COST,
@@ -191,6 +193,7 @@ async def ws_complete_task(
         hass, object_id_for_entry(_entry), normalize_photo_doc_ids(msg.get("photo_doc_ids"), msg.get("photo_doc_id"))
     )
 
+    before = _undo_capture(hass, msg)
     try:
         await rd.coordinator.complete_maintenance(
             source="panel",
@@ -223,7 +226,8 @@ async def ws_complete_task(
         # exception's own key rather than a traceback.
         send_exception_error(connection, msg["id"], err, "completion_details_required")
         return
-    connection.send_result(msg["id"], {"success": True})
+    undo = _remember_for_undo(hass, connection, _entry, slot_task, before)
+    connection.send_result(msg["id"], {"success": True, "undo": undo})
 
 
 # v1.3.0: One-tap completion using values pre-configured on the task.
@@ -263,6 +267,7 @@ async def ws_quick_complete_task(
         )
         return
 
+    before = _undo_capture(hass, msg)
     try:
         await rd.coordinator.complete_maintenance(
             source="qr",
@@ -281,7 +286,76 @@ async def ws_quick_complete_task(
         # Other refusals (too_early, task_inactive) keep their own key.
         send_exception_error(connection, msg["id"], err, "completion_details_required")
         return
-    connection.send_result(msg["id"], {"success": True, "via": "quick"})
+    undo = _remember_for_undo(hass, connection, _entry, task, before)
+    connection.send_result(msg["id"], {"success": True, "via": "quick", "undo": undo})
+
+
+def _undo_capture(hass: HomeAssistant, msg: dict[str, Any]) -> Any:
+    """What a completion is about to change — for the person's Undo."""
+    from ..helpers import voice_undo
+
+    return voice_undo.capture(hass, msg["entry_id"], msg["task_id"])
+
+
+def _remember_for_undo(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, entry: Any, task: dict[str, Any], before: Any
+) -> bool:
+    """Let whoever just completed take it back: the panel's and the card's
+    toast offer Undo for ten minutes — one level per person, the same record
+    their voice's "undo that" reaches (helpers/voice_undo). False when the
+    completion changed nothing (a double tap the guard swallowed): no Undo."""
+    from ..helpers import voice_undo
+
+    obj = entry.data.get(CONF_OBJECT) or {}
+    return voice_undo.remember_as(
+        hass,
+        voice_undo.user_actor(connection.user.id if connection.user else None),
+        "completed",
+        before,
+        task=str(task.get("name") or ""),
+        object=str(obj.get("name") or entry.title or ""),
+    )
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/task/undo",
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
+    }
+)
+@websocket_api.async_response
+async def ws_undo_completion(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Take back the caller's own last completion of this task (the panel's
+    and the card's Undo). Restores the record, the cycle anchor, the phase,
+    the learning and the parts stock; refuses when the person's last action
+    was another task, the ten minutes are over, or the task changed since.
+    What already happened outside stays: events, notifications, and a
+    completion action — the answer says when the task has one."""
+    from ..helpers import voice_undo
+
+    who = voice_undo.user_actor(connection.user.id if connection.user else None)
+    record = voice_undo.peek_as(hass, who)
+    if (
+        record is None
+        or record.kind != "completed"
+        or record.before.entry_id != msg["entry_id"]
+        or record.before.task_id != msg["task_id"]
+    ):
+        connection.send_error(msg["id"], "nothing_to_undo", "Nothing to undo for this task")
+        return
+    voice_undo.pop_as(hass, who)
+    if not voice_undo.unchanged_since(hass, record):
+        connection.send_error(msg["id"], "changed_since", "The task changed since the completion")
+        return
+    await voice_undo.async_restore(hass, record)
+    entry = hass.config_entries.async_get_entry(msg["entry_id"])
+    task = ((entry.data.get(CONF_TASKS) or {}).get(msg["task_id"]) or {}) if entry is not None else {}
+    connection.send_result(msg["id"], {"success": True, "action_ran": bool(task.get("on_complete_action"))})
 
 
 @websocket_api.websocket_command(

@@ -608,7 +608,7 @@ The card is WS-driven (subscribes to `maintenance_supporter/subscribe`) so it al
 | `show_assignee` | bool | `true` | Show the responsible user on each task row — with a rotation this is whose turn it is. Rows without an assignee show nothing; the name is resolved via `users/list` (a read-tier command, so non-admin household members see it too) |
 | `filter_labels` | list | — | Limit the card to tasks carrying at least one of these labels (OR semantics, like `filter_objects`) |
 | `filter_priority` (#134) | list | — | Limit the card to these priority levels (`low` / `normal` / `high`, OR semantics). Tasks without an explicit priority count as `normal` |
-| `show_documents` | bool | `true` | Show the task's linked documents and its documentation link as chips on the row; a web link opens directly, a stored file through a signed URL. Rows without documents render nothing |
+| `show_documents` | bool | `true` | Show the task's linked documents and its documentation link as chips on the row; a web link opens directly, a stored file through a signed URL. Two chips at most, the rest as *+N* (the task lists them all); completion photos are left out. In a narrow card (a phone, a dashboard column) the chips sit on a line of their own under the task. Rows without documents render nothing |
 | `compact` | bool | `false` | Tighter rows without the *object · type · phase* line; the assignee stays |
 | `max_items` | int | `0` (unlimited) | Cap on the number of tasks shown |
 | `filter_status` | string[] | `[]` | Show only tasks whose `status` is in the list. Values: `overdue`, `triggered`, `due_soon`, `ok` |

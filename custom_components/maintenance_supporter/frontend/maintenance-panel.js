@@ -1,16 +1,16 @@
 /*! maintenance_supporter frontend 2.97.1 */
-import{a as ei,b as ti,c as ii,g as hi}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-KH4WZJRU.js";import{a as k}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-R3GKJJ55.js";import{a as mi,b as vi,c as fi,d as pt,e as bi,f as Et}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-BEGYKXHI.js";import{A as mt,B as Pi,C as Li,D as Hi,E as Bi,F as Ni,M as qi,P as Fi,a as ae,b as we,c as ke,d as tt,e as Ae,f as ct,g as di,h as pi,i as dt,j as gi,k as _i,l as R,m as Qe,n as be,o as Ce,p as Pe,q as Ct,r as gt,s as _t,t as Oi,u as Ci,v as Mi,w as Di,x as Ai,y as zi,z as Ii}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-ZUQUKRCN.js";import{a as Si,b as Ie,d as Ei,e as ut,f as Ri}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-MW3LIRZD.js";import{a as ht}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-5ROMA2NQ.js";import{a as Zt,b as rt,c as $e,d as ot,e as Ke,f as nt}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-Z5US4BJZ.js";import{a as et,c as De}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-O7BSORZB.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-GG5NDVS4.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-KR7J3CDC.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-4CRDSGBT.js";import{a as $i,b as Ti}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-IEG2EHSV.js";import{c as ji}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-QEKEY7ZD.js";import{a as A,b as Z,c as W}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-EPK25IMX.js";import{a as lt,c as si,d as ai,e as Ge,f as je,h as ri,i as oi,j as ni,k as li}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-5SGCD2J3.js";import{b as ci,h as ui}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-2CZ4LD2Q.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-HVQDZ5QR.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-TSU2RKSC.js";import{a as St}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-KV46GCLQ.js";import{c as yi,d as Rt,e as xi}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-D4KM62SJ.js";import{l as Ye}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-GSRF4WCQ.js";import{a as P,b as wi,c as ki,d as Ot}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-GVLO7RZ4.js";import{B as Q,C as U,D as Ue,F as V,G as Yt,H as me,I as Qt,J as Ve,M as Jt,N as Xt,P as Oe,Q as We,T as at,a as g,b as B,c as o,d as Y,f as h,h as N,i as Tt,j as Vt,k as Wt,l as E,m,n as it,o as Kt,p as qe,s,t as Gt,u as oe,w as st,x as ze,y as G,z as Fe}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-YJXVPPWG.js";var vs=["assignee_pool","required_completion_fields","checklist","labels","mirror_todo_entities","next_event_titles","history","readings"],fs=["checklist_progress"],bs=["tasks","parts"],ys=["manual_docs","battery_fleet_excluded"];function Mt(c,d,e=[]){for(let t of d)c[t]===void 0&&(c[t]=[]);for(let t of e)c[t]===void 0&&(c[t]={})}function xs(c){let d=c;Mt(d,bs),d.object&&typeof d.object=="object"&&Mt(d.object,ys);for(let e of d.tasks)Mt(e,vs,fs);return c}function Je(c){for(let d of c)xs(d);return c}function ws(c,d){if(d.objects)return d.objects;let e=d.delta||[],t=d.removed||[];if(!e.length&&!t.length)return null;let i=new Map(c.map(a=>[a.entry_id,a]));for(let a of e)i.set(a.entry_id,a);for(let a of t)i.delete(a);return[...i.values()]}function Ui(c,d){return d.objects&&Je(d.objects),d.delta&&Je(d.delta),ws(c,d)}var Dt=["today","dashboard","calendar","settings"];var ks=168*3600*1e3;function Vi(){try{let c=Z(A.objectsCache);if(!c)return null;let d=JSON.parse(c);return d.v!==Tt||!Number.isFinite(d.at)||Date.now()-d.at>ks||!Array.isArray(d.objects)||d.objects.length===0?null:{objects:d.objects,stats:d.stats??null}}catch{return null}}function At(c,d){if(!(!Array.isArray(c)||c.length===0))try{let e={v:Tt,at:Date.now(),objects:c,stats:d};W(A.objectsCache,JSON.stringify(e))}catch{}}function Wi(c,d,e,t,i,a){let r=[[e.manufacturer,c.manufacturer],[e.model,c.model],[e.serial,c.serial_number],[e.installed,c.installation_date?t(c.installation_date):null],[e.warranty,c.warranty_expiry?t(c.warranty_expiry):null]].filter(([,u])=>!!u),l=d.map(u=>{let p=e.scheduleLabel(u);return`<tr>
-      <td>${k(u.name)}</td>
-      <td>${k(e.typeLabel(u.type))}</td>
-      <td>${k(e.statusLabel(u.status))}</td>
-      <td>${k(p)}</td>
-      <td>${k(u.last_performed?t(u.last_performed):e.none)}</td>
-      <td>${k(u.next_due?t(u.next_due):e.none)}</td>
+import{a as li,b as ci,c as di,g as gi}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-23WXK2R5.js";import{a as w}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-R3GKJJ55.js";import{a as yi,b as xi,c as ki,d as he,e as wi,f as Me}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-6K73JUSD.js";import{A as fe,B as Ni,C as qi,D as Fi,E as Ui,F as Vi,M as Wi,P as Ki,a as st,b as $t,c as jt,d as se,e as Lt,f as de,g as hi,h as ui,i as pe,j as mi,k as fi,l as R,m as Xt,n as xt,o as zt,p as Nt,q as ze,r as _e,s as me,t as Ai,u as zi,v as Ii,w as Pi,x as Li,y as Hi,z as Bi}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-BAV5BP2H.js";import{a as Ci,b as Bt,d as Mi,e as ge,f as Di}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-MZYTETHB.js";import{a as ue}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-LIF4COAB.js";import{a as ni,b as ne,c as Tt,d as le,e as Qt,f as ce}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-Z5US4BJZ.js";import{a as ie,c as Pt}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-O7BSORZB.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-62YD37KV.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-KDFTC32G.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-B72APHSB.js";import{a as Ei,b as Oi}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-XGVDEZ4Q.js";import{c as Ri}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-QEKEY7ZD.js";import{a as A,b as Z,c as V}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-EPK25IMX.js";import{c as vi,d as bi,e as Et}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-SQZSAJJG.js";import{b as pi,i as _i}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-JOWEQYBZ.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-Z3S4MPNH.js";import"/maintenance_supporter_panelfiles/panel-chunks/chunk-QR4RFHZH.js";import{a as Ce}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-KV46GCLQ.js";import{c as $i,d as De,e as ji}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-J3EJ43MI.js";import{l as Jt}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-GSRF4WCQ.js";import{a as P,b as Si,c as Ti,d as Ae}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-45RUQ4BJ.js";import{A as mt,B as Oe,D as St,E as ii,F as re,G as Ht,H as K,I as Wt,K as Y,L as F,M as Kt,O as U,P as si,R as ft,S as ai,T as Gt,W as ri,X as oi,Z as At,_ as Yt,a as _,b as B,ba as oe,c as o,d as G,f as h,h as N,i as Re,j as Qe,k as Je,l as E,m as f,n as ae,o as Xe,p as Ct,s,t as Ze,u as ot,w as ti,x as ei,y as yt}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-CMVELGDC.js";var Es=["assignee_pool","required_completion_fields","checklist","labels","mirror_todo_entities","next_event_titles","history","readings"],Rs=["checklist_progress"],Os=["tasks","parts"],Cs=["manual_docs","battery_fleet_excluded"];function Ie(l,p,t=[]){for(let e of p)l[e]===void 0&&(l[e]=[]);for(let e of t)l[e]===void 0&&(l[e]={})}function Ms(l){let p=l;Ie(p,Os),p.object&&typeof p.object=="object"&&Ie(p.object,Cs);for(let t of p.tasks)Ie(t,Es,Rs);return l}function Zt(l){for(let p of l)Ms(p);return l}function Ds(l,p){if(p.objects)return p.objects;let t=p.delta||[],e=p.removed||[];if(!t.length&&!e.length)return null;let i=new Map(l.map(a=>[a.entry_id,a]));for(let a of t)i.set(a.entry_id,a);for(let a of e)i.delete(a);return[...i.values()]}function Gi(l,p){return p.objects&&Zt(p.objects),p.delta&&Zt(p.delta),Ds(l,p)}var Pe=["today","dashboard","calendar","settings"];var As=168*3600*1e3;function Yi(){try{let l=Z(A.objectsCache);if(!l)return null;let p=JSON.parse(l);return p.v!==Re||!Number.isFinite(p.at)||Date.now()-p.at>As||!Array.isArray(p.objects)||p.objects.length===0?null:{objects:p.objects,stats:p.stats??null}}catch{return null}}function Le(l,p){if(!(!Array.isArray(l)||l.length===0))try{let t={v:Re,at:Date.now(),objects:l,stats:p};V(A.objectsCache,JSON.stringify(t))}catch{}}var zs={days:1,weeks:7,months:30.4368,years:365.25};function He(l,p){return!l||l<=0?0:l*(zs[p||"days"]??1)}function ve(l,p,t){let e=He(l,t);if(e<=0||p==null)return{pct:0,overflow:!1};let i=(e-p)/e*100;return{pct:Math.max(0,Math.min(100,i)),overflow:i>100}}function Qi(l,p,t,e,i,a){let r=[[t.manufacturer,l.manufacturer],[t.model,l.model],[t.serial,l.serial_number],[t.installed,l.installation_date?e(l.installation_date):null],[t.warranty,l.warranty_expiry?e(l.warranty_expiry):null]].filter(([,u])=>!!u),c=p.map(u=>{let d=t.scheduleLabel(u);return`<tr>
+      <td>${w(u.name)}</td>
+      <td>${w(t.typeLabel(u.type))}</td>
+      <td>${w(t.statusLabel(u.status))}</td>
+      <td>${w(d)}</td>
+      <td>${w(u.last_performed?e(u.last_performed):t.none)}</td>
+      <td>${w(u.next_due?e(u.next_due):t.none)}</td>
       <td class="num">${u.times_performed??0}</td>
-      <td class="num">${k(i(u.total_cost??0))}</td>
-    </tr>`}).join(""),n=d.reduce((u,p)=>u+(p.total_cost??0),0);return`<!DOCTYPE html><html><head><meta charset="utf-8">
+      <td class="num">${w(i(u.total_cost??0))}</td>
+    </tr>`}).join(""),n=p.reduce((u,d)=>u+(d.total_cost??0),0);return`<!DOCTYPE html><html><head><meta charset="utf-8">
 <meta name="color-scheme" content="light">
-<title>${k(e.title)} \u2014 ${k(c.name)}</title>
+<title>${w(t.title)} \u2014 ${w(l.name)}</title>
 <style>
   /* This is a PRINTABLE sheet, not part of the app's theme: it opens as a
      blob in whatever viewer the OS supplies. In the Companion app that is a
@@ -36,24 +36,24 @@ import{a as ei,b as ti,c as ii,g as hi}from"/maintenance_supporter_panelfiles/pa
   .notes { margin-top: 16px; white-space: pre-wrap; color: #333; }
   @media print { body { margin: 0; } @page { margin: 16mm; } }
 </style></head><body>
-  <h1>${k(c.name)}</h1>
-  <p class="sub">${k(e.title)} \xB7 ${k(e.generated)}: ${k(t(a))}</p>
-  ${r.length?`<div class="meta">${r.map(([u,p])=>`<div><div class="k">${k(u)}</div>${k(p)}</div>`).join("")}</div>`:""}
-  <h2>${k(e.tasksHeading)} (${d.length})</h2>
+  <h1>${w(l.name)}</h1>
+  <p class="sub">${w(t.title)} \xB7 ${w(t.generated)}: ${w(e(a))}</p>
+  ${r.length?`<div class="meta">${r.map(([u,d])=>`<div><div class="k">${w(u)}</div>${w(d)}</div>`).join("")}</div>`:""}
+  <h2>${w(t.tasksHeading)} (${p.length})</h2>
   <table>
     <thead><tr>
-      <th>${k(e.colTask)}</th><th>${k(e.colType)}</th><th>${k(e.colStatus)}</th>
-      <th>${k(e.colSchedule)}</th><th>${k(e.colLastDone)}</th><th>${k(e.colNextDue)}</th>
-      <th class="num">${k(e.colTimes)}</th><th class="num">${k(e.colCost)}</th>
+      <th>${w(t.colTask)}</th><th>${w(t.colType)}</th><th>${w(t.colStatus)}</th>
+      <th>${w(t.colSchedule)}</th><th>${w(t.colLastDone)}</th><th>${w(t.colNextDue)}</th>
+      <th class="num">${w(t.colTimes)}</th><th class="num">${w(t.colCost)}</th>
     </tr></thead>
-    <tbody>${l||`<tr><td colspan="8">${k(e.none)}</td></tr>`}</tbody>
-    <tfoot><tr><td colspan="7">${k(e.totalCost)}</td><td class="num">${k(i(n))}</td></tr></tfoot>
+    <tbody>${c||`<tr><td colspan="8">${w(t.none)}</td></tr>`}</tbody>
+    <tfoot><tr><td colspan="7">${w(t.totalCost)}</td><td class="num">${w(i(n))}</td></tr></tfoot>
   </table>
-  ${c.notes?`<div class="notes"><strong>${k(e.notes)}:</strong>
-${k(c.notes)}</div>`:""}
-</body></html>`}function zt(c,d=new Date){if(!c)return{kind:"none",days:null,date:null};let e=new Date(`${c}T00:00:00`);if(isNaN(e.getTime()))return{kind:"none",days:null,date:null};let t=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()),i=Date.UTC(e.getFullYear(),e.getMonth(),e.getDate()),a=Math.round((i-t)/864e5);return a<0?{kind:"expired",days:a,date:c}:a<=60?{kind:"expiring",days:a,date:c}:{kind:"valid",days:a,date:c}}function $s(c,d){let e=new Date(c);return Number.isNaN(e.getTime())?c.slice(0,10):d(je(e))}var H=c=>String(c??"").replace(/[&<>"']/g,d=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[d]);function Ki(c,d,e,t,i,a,r,l,n,u=[],p=null){let _=[[e.object,H(d)],[e.type,H(e.typeLabel(c.type))],[e.interval,H(i(c))],[e.nextDue,c.next_due?H(t(c.next_due)):"\u2014"],[e.lastDone,c.last_performed?H(t(c.last_performed)):H(e.never)]];c.priority&&c.priority!=="normal"&&_.push([e.priority,H(c.priority)]);let v=(c.checklist||[]).map(y=>`<li><span class="box"></span>${H(y)}</li>`).join(""),f=(y,M)=>y?`<figure class="qr"><img src="${y}" alt="" /><figcaption>${H(M)}</figcaption></figure>`:"";return`<!DOCTYPE html>
+  ${l.notes?`<div class="notes"><strong>${w(t.notes)}:</strong>
+${w(l.notes)}</div>`:""}
+</body></html>`}var Is=60;function Be(l,p=yt()){if(!l)return{kind:"none",days:null,date:null};let t=ii(p,l);return Number.isFinite(t)?t<0?{kind:"expired",days:t,date:l}:t<=Is?{kind:"expiring",days:t,date:l}:{kind:"valid",days:t,date:l}:{kind:"none",days:null,date:null}}function Ps(l,p){let t=Date.parse(l);return Number.isNaN(t)?l.slice(0,10):p(ei(t,ti()))}var L=l=>String(l??"").replace(/[&<>"']/g,p=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[p]);function Ji(l,p,t,e,i,a,r,c,n,u=[],d=null){let g=[[t.object,L(p)],[t.type,L(t.typeLabel(l.type))],[t.interval,L(i(l))],[t.nextDue,l.next_due?L(e(l.next_due)):"\u2014"],[t.lastDone,l.last_performed?L(e(l.last_performed)):L(t.never)]];l.priority&&l.priority!=="normal"&&g.push([t.priority,L(l.priority)]);let m=(l.checklist||[]).map(y=>`<li><span class="box"></span>${L(y)}</li>`).join(""),v=(y,C)=>y?`<figure class="qr"><img src="${y}" alt="" /><figcaption>${L(C)}</figcaption></figure>`:"";return`<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="color-scheme" content="light">
-<title>${H(c.name)} \u2014 ${H(e.title)}</title>
+<title>${L(l.name)} \u2014 ${L(t.title)}</title>
 <style>
   /* A work sheet is meant to be printed or read as a sheet, so it must not
      inherit the phone's dark theme: the Companion app opens it in a WebView
@@ -93,33 +93,33 @@ ${k(c.notes)}</div>`:""}
 <body>
   <header>
     <div>
-      <h1>${H(c.name)}${p?` <span class="ref">#${H(p)}</span>`:""}</h1>
-      <div class="obj">${H(d)}</div>
+      <h1>${L(l.name)}${d?` <span class="ref">#${L(d)}</span>`:""}</h1>
+      <div class="obj">${L(p)}</div>
     </div>
     <div class="qr-row">
-      ${f(a,e.scanView)}
-      ${f(r,e.scanComplete)}
+      ${v(a,t.scanView)}
+      ${v(r,t.scanComplete)}
     </div>
   </header>
   <table class="meta">
-    ${_.map(([y,M])=>`<tr><td>${H(y)}</td><td>${M}</td></tr>`).join("")}
+    ${g.map(([y,C])=>`<tr><td>${L(y)}</td><td>${C}</td></tr>`).join("")}
   </table>
-  ${v?`<h2>${H(e.checklist)}</h2><ul class="check">${v}</ul>`:""}
-  ${u.length?`<h2>${H(e.parts)}</h2><ul class="check">${u.map(y=>`<li><span class="box"></span>${H(y)}</li>`).join("")}</ul>`:""}
-  ${c.notes?`<h2>${H(e.notes)}</h2><div class="notes">${H(c.notes)}</div>`:""}
-  ${l?`<h2>${H(e.manualExcerpt)}</h2>
-    <div class="excerpt">${H(l.title)} \u2014 ${H(e.pages)} ${l.startPage}\u2013${l.endPage}:
-      <a href="${H(l.url)}" target="_blank" rel="noopener">PDF</a>
+  ${m?`<h2>${L(t.checklist)}</h2><ul class="check">${m}</ul>`:""}
+  ${u.length?`<h2>${L(t.parts)}</h2><ul class="check">${u.map(y=>`<li><span class="box"></span>${L(y)}</li>`).join("")}</ul>`:""}
+  ${l.notes?`<h2>${L(t.notes)}</h2><div class="notes">${L(l.notes)}</div>`:""}
+  ${c?`<h2>${L(t.manualExcerpt)}</h2>
+    <div class="excerpt">${L(c.title)} \u2014 ${L(t.pages)} ${c.startPage}\u2013${c.endPage}:
+      <a href="${L(c.url)}" target="_blank" rel="noopener">PDF</a>
     </div>
     <div id="excerpt-pages" class="excerpt-pages"></div>
-    ${l.vendorBase?`<script type="module">
+    ${c.vendorBase?`<script type="module">
       // Render the excerpt pages inline (downscaled, two per row) so the
       // whole work sheet prints as ONE document. The link above stays as
       // the fallback if pdf.js or the fetch fails.
       try {
-        const pdfjs = await import(${JSON.stringify(l.vendorBase+"/pdf.min.mjs")});
-        pdfjs.GlobalWorkerOptions.workerSrc = ${JSON.stringify(l.vendorBase+"/pdf.worker.min.mjs")};
-        const doc = await pdfjs.getDocument({ url: ${JSON.stringify(l.url)} }).promise;
+        const pdfjs = await import(${JSON.stringify(c.vendorBase+"/pdf.min.mjs")});
+        pdfjs.GlobalWorkerOptions.workerSrc = ${JSON.stringify(c.vendorBase+"/pdf.worker.min.mjs")};
+        const doc = await pdfjs.getDocument({ url: ${JSON.stringify(c.url)} }).promise;
         const host = document.getElementById("excerpt-pages");
         for (let n = 1; n <= doc.numPages; n++) {
           const page = await doc.getPage(n);
@@ -131,8 +131,8 @@ ${k(c.notes)}</div>`:""}
         }
       } catch (e) { console.warn("excerpt inline render failed", e); }
     <\/script>`:""}`:""}
-  <footer>${H(d)} \xB7 ${H(c.name)} \xB7 ${H(e.printedOn)} ${H($s(n,t))}</footer>
-</body></html>`}var Ee=["manual","warranty","invoice","spare_parts","photo","other"],vt={manual:"mdi:book-open-variant",warranty:"mdi:shield-check",invoice:"mdi:receipt-text-outline",spare_parts:"mdi:cog-outline",photo:"mdi:image-outline",other:"mdi:file-document-outline"};function ne(c){return c.title||c.filename||c.url||""}function Le(c){return(c.tags||[]).find(d=>Ee.includes(d))??"other"}function He(c){let d=(c??[]).filter(e=>!!e);return d.length?o`<span class="event-titles"> · ${d.join(", ")}</span>`:h}var Gi=B`
+  <footer>${L(p)} \xB7 ${L(l.name)} \xB7 ${L(t.printedOn)} ${L(Ps(n,e))}</footer>
+</body></html>`}var Mt=["manual","warranty","invoice","spare_parts","photo","other"],be={manual:"mdi:book-open-variant",warranty:"mdi:shield-check",invoice:"mdi:receipt-text-outline",spare_parts:"mdi:cog-outline",photo:"mdi:image-outline",other:"mdi:file-document-outline"};function nt(l){return l.title||l.filename||l.url||""}function qt(l){return(l.tags||[]).find(p=>Mt.includes(p))??"other"}function Xi(l){return(l.tags||[]).includes("photo")}function Ft(l){let p=(l??[]).filter(t=>!!t);return p.length?o`<span class="event-titles"> · ${p.join(", ")}</span>`:h}var Zi=B`
   /* #170: reference chips in front of list names. */
   .task-name .ref-chip, .today-task .ref-chip, .object-card-name .ref-chip, .objects-table-name .ref-chip { margin-right: 6px; }
 
@@ -2284,7 +2284,7 @@ ${k(c.notes)}</div>`:""}
     from { opacity: 0; transform: translateX(-50%) translateY(16px); }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }
   }
-`;var ft=class{constructor(d){this._cache=new Map;this._pending=new Map;this.historyFallbackIds=new Set;this._hass=d}updateHass(d){this._hass=d}async getDetailStats(d,e,t=30){return this._getStats(d,t<=35?"hour":"day",t,e)}async getMiniStats(d,e){return this._getStats(d,"day",14,e)}async getBatchMiniStats(d){let e=new Map,t=[];for(let n of d){let u=`${n.entityId}:day:14`,p=this._cache.get(u);p&&Date.now()-p.fetchedAt<3e5?e.set(n.entityId,p.points):t.push(n)}if(t.length===0)return e;let i=t.filter(n=>n.isCounter).map(n=>n.entityId),a=t.filter(n=>!n.isCounter).map(n=>n.entityId),r=new Date(Date.now()-336*60*60*1e3).toISOString(),l=[];return i.length>0&&l.push(this._fetchBatch(i,"day",r,["state","sum","change"],!0,e)),a.length>0&&l.push(this._fetchBatch(a,"day",r,["mean","min","max"],!1,e)),await Promise.all(l),e}clearCache(){this._cache.clear(),this._pending.clear()}async _getStats(d,e,t,i){let a=`${d}:${e}:${t}`,r=this._cache.get(a);if(r&&Date.now()-r.fetchedAt<3e5)return r.points;if(this._pending.has(a))return this._pending.get(a);let l=this._fetchAndNormalize(d,e,t,i,a);this._pending.set(a,l);try{return await l}finally{this._pending.delete(a)}}async _fetchAndNormalize(d,e,t,i,a){let r=new Date(Date.now()-t*24*60*60*1e3).toISOString(),l=i?["state","sum","change"]:["mean","min","max"];try{let u=(await this._hass.connection.sendMessagePromise({type:"recorder/statistics_during_period",start_time:r,statistic_ids:[d],period:e,types:l}))[d]||[],p=this._normalizeRows(u,i);if(p.length<2){let _=await this._fetchHistoryFallback(d,r);_.length>=2?(p=_,this.historyFallbackIds.add(d)):this.historyFallbackIds.delete(d)}else this.historyFallbackIds.delete(d);return this._cache.set(a,{entityId:d,fetchedAt:Date.now(),period:e,points:p}),p}catch(n){return console.warn(`[maintenance-supporter] Failed to fetch statistics for ${d}:`,n),[]}}async _fetchHistoryFallback(d,e){try{let i=(await this._hass.connection.sendMessagePromise({type:"history/history_during_period",start_time:e,end_time:new Date().toISOString(),entity_ids:[d],minimal_response:!0,no_attributes:!0}))?.[d]||[];if(i.length>1e3){let l=Math.ceil(i.length/500);i=i.filter((n,u)=>u%l===0||u===i.length-1)}let a=[],r=null;for(let l of i){let n=l.s??l.state;if(n==null||n==="unknown"||n==="unavailable")continue;let u;if(n==="on"||n==="open"||n==="true")u=1;else if(n==="off"||n==="closed"||n==="false")u=0;else if(u=parseFloat(n),!Number.isFinite(u))continue;let p=l.lu??l.last_updated??l.last_changed,_=typeof p=="number"?p*1e3:p!=null?Date.parse(p):NaN;Number.isFinite(_)&&(r!=null&&r!==u&&a.push({ts:_,val:r}),a.push({ts:_,val:u}),r=u)}return a.sort((l,n)=>l.ts-n.ts),a.length&&r!=null&&a.push({ts:Date.now(),val:r}),a}catch(t){return console.warn(`[maintenance-supporter] History fallback failed for ${d}:`,t),[]}}async _fetchBatch(d,e,t,i,a,r){try{let l=await this._hass.connection.sendMessagePromise({type:"recorder/statistics_during_period",start_time:t,statistic_ids:d,period:e,types:i});for(let n of d){let u=l[n]||[],p=this._normalizeRows(u,a);r.set(n,p),this._cache.set(`${n}:${e}:14`,{entityId:n,fetchedAt:Date.now(),period:e,points:p})}}catch(l){console.warn("[maintenance-supporter] Batch statistics fetch failed:",l)}}_normalizeRows(d,e){let t=[];for(let i of d){let a=null;if(e?a=i.state??null:a=i.mean??null,a===null)continue;let r={ts:i.start,val:a};e||(i.min!=null&&(r.min=i.min),i.max!=null&&(r.max=i.max)),t.push(r)}return t.sort((i,a)=>i.ts-a.ts),t}};function ye(c,d){let e=c??0;return e<1024?`${e} B`:e<1024*1024?`${Q(e/1024,d,1)} KB`:`${Q(e/(1024*1024),d,1)} MB`}var bt=8,It=["newest","oldest","title","category"];function Pt(c){return It.includes(c??"")?c:"newest"}function Yi(c,d){let e=new Intl.Collator(void 0,{numeric:!0,sensitivity:"base"}),t=l=>ne(l).trim(),i=(l,n)=>e.compare(t(l),t(n)),a=l=>l.kind==="weblink"?Ee.length+1:Ee.indexOf(Le(l)),r=[...c];switch(d){case"oldest":return r.sort((l,n)=>(l.added_at||"").localeCompare(n.added_at||""));case"title":return r.sort(i);case"category":return r.sort((l,n)=>a(l)-a(n)||i(l,n));default:return r.sort((l,n)=>(n.added_at||"").localeCompare(l.added_at||""))}}function yt(c,d){let e=et(d);if(!e.length)return c;let t=[];for(let i of c){let a=De(e,[{text:i.title,weight:3},{text:i.filename,weight:2},{text:(i.tags||[]).join(" "),weight:2},{text:i.description,weight:2},{text:i.url,weight:1}]);a>0&&t.push({doc:i,score:a})}return t.sort((i,a)=>a.score-i.score).map(i=>i.doc)}var q=class extends N{constructor(){super(...arguments);this.canWrite=!1;this._docs=[];this._filter="";this._loaded=!1;this._busy=!1;this._error="";this._hint="";this._addingLink=!1;this._linkUrl="";this._linkTitle="";this._category="manual";this._thumbs={};this._lightboxUrl="";this._editingId="";this._editTitle="";this._editCategory="manual";this._editDescription="";this._linkDescription="";this._sort=Pt(Z(A.docSort));this._dragOver=!1;this._loadedFor=null;this._loadSeq=0;this._localeReady=!1;this._singlePick=$i()}_isImage(e){return e.kind==="file"&&(e.mime||"").startsWith("image/")}async _sign(e){return rt(this.hass,e.id)}get _lang(){return G(this.hass)}updated(e){if(super.updated(e),this.hass&&!this._localeReady&&(this._localeReady=!0,oe(this._lang).then(()=>this.requestUpdate())),this.hass&&this.entryId&&this._loadedFor!==this.entryId){let t=this._loadedFor!==null;this._loadedFor=this.entryId,t&&this._resetForObject(),this._load()}}_resetForObject(){this._docs=[],this._loaded=!1,this._thumbs={},this._filter="",this._error="",this._hint="",this._addingLink=!1,this._linkUrl="",this._linkTitle="",this._linkDescription="",this._editingId="",this._lightboxUrl=""}async _load(){let e=this.entryId,t=++this._loadSeq,i=()=>t!==this._loadSeq||e!==this.entryId,a="",r=await P(this,{type:"maintenance_supporter/documents/list",entry_id:e},{onError:l=>{a=l}});if(!i()){if(this._loaded=!0,r===void 0){this._error=a;return}this._docs=r?.documents||[],this._error="",this._thumbs={},this._loadThumbs(i)}}async _write(e,t,i){this._error="",await P(this,e,{busy:a=>{this._busy=a},fallbackKey:i,reload:async()=>{t?.(),await this._load()},onError:a=>{this._error=a}})}async _signed(e){await P(this,e,{onError:t=>{this._error=t}})}async _loadThumbs(e=()=>!1){await Promise.all(this._docs.filter(t=>this._isImage(t)).map(async t=>{try{let i=await this._sign(t);if(e())return;this._thumbs={...this._thumbs,[t.id]:i}}catch{}}))}_category_of(e){return Le(e)}_labelKeydown(e){(e.key==="Enter"||e.key===" ")&&(e.preventDefault(),e.currentTarget.querySelector("input")?.click())}_onFileInput(e){let t=e.target,i=Array.from(t.files??[]);i.length&&this._uploadFiles(i),t.value=""}_onDrop(e){if(e.preventDefault(),this._dragOver=!1,!this.canWrite||this._busy)return;let t=Array.from(e.dataTransfer?.files??[]);t.length&&this._uploadFiles(t)}_onDragOver(e){this.canWrite&&(e.preventDefault(),this._dragOver=!0)}_onDragLeave(e){let t=e.relatedTarget;(!t||!e.currentTarget.contains(t))&&(this._dragOver=!1)}async _uploadFiles(e,t){let i=t??this._category,a=this.entryId;this._busy=!0,this._error="",this._hint="";let r=0,l=0;try{for(let n of e){let u;try{u=await ji(this.hass,a,n,[i])}catch(p){let _=p instanceof Error?p.message:"";if(_!=="doc_too_large"&&_!=="doc_upload_failed")throw p;this._error=s(_,this._lang);continue}u.duplicate_in_object?l++:u.deduped&&r++}if(a!==this.entryId)return;l?this._hint=s("doc_dup_in_object",this._lang):r&&(this._hint=s("doc_deduped",this._lang)),await this._load()}catch{this._error=s("doc_upload_failed",this._lang)}finally{this._busy=!1}}async _download(e){await this._signed(()=>ot(this.hass,e.id,e.filename||e.title||"document"))}async _preview(e){if(this._isImage(e)){this._lightboxUrl=this._thumbs[e.id]||await this._sign(e);return}await this._signed(()=>$e(this.hass,e.id))}_openDoc(e){e.kind==="file"?this._preview(e):ae(e.url)&&window.open(e.url,"_blank","noopener")}_startEdit(e){this._editingId=e.id,this._editTitle=e.title||"",this._editCategory=this._category_of(e),this._editDescription=e.description||"",this._addingLink=!1,this._error=""}_cancelEdit(){this._editingId=""}_setSort(e){this._sort=Pt(e),W(A.docSort,this._sort)}async _saveEdit(e){let t=(e.tags||[]).filter(a=>!Ee.includes(a)),i=e.kind==="file"?[this._editCategory,...t]:e.tags??[];await this._write({type:"maintenance_supporter/documents/update",doc_id:e.id,title:this._editTitle.trim()||e.filename||e.url||"",tags:i,description:this._editDescription.trim()},()=>{this._editingId=""})}async _delete(e){let t=ne(e);window.confirm(s("doc_delete_confirm",this._lang).replace("{name}",t))&&await this._write({type:"maintenance_supporter/documents/delete",doc_id:e.id})}async _addLink(){let e=this._linkUrl.trim();if(!e)return;let t=this.entryId;await this._write({type:"maintenance_supporter/documents/add_link",entry_id:t,url:e,title:this._linkTitle.trim()||null,description:this._linkDescription.trim()||null},()=>{this._linkUrl="",this._linkTitle="",this._linkDescription="",this._addingLink=!1},"doc_link_invalid")}render(){let e=this._lang;return o`
+`;var ye=class{constructor(p){this._cache=new Map;this._pending=new Map;this.historyFallbackIds=new Set;this._hass=p}updateHass(p){this._hass=p}async getDetailStats(p,t,e=30){return this._getStats(p,e<=35?"hour":"day",e,t)}async getMiniStats(p,t){return this._getStats(p,"day",14,t)}async getBatchMiniStats(p){let t=new Map,e=[];for(let n of p){let u=`${n.entityId}:day:14`,d=this._cache.get(u);d&&Date.now()-d.fetchedAt<3e5?t.set(n.entityId,d.points):e.push(n)}if(e.length===0)return t;let i=e.filter(n=>n.isCounter).map(n=>n.entityId),a=e.filter(n=>!n.isCounter).map(n=>n.entityId),r=new Date(Date.now()-336*60*60*1e3).toISOString(),c=[];return i.length>0&&c.push(this._fetchBatch(i,"day",r,["state","sum","change"],!0,t)),a.length>0&&c.push(this._fetchBatch(a,"day",r,["mean","min","max"],!1,t)),await Promise.all(c),t}clearCache(){this._cache.clear(),this._pending.clear()}async _getStats(p,t,e,i){let a=`${p}:${t}:${e}`,r=this._cache.get(a);if(r&&Date.now()-r.fetchedAt<3e5)return r.points;if(this._pending.has(a))return this._pending.get(a);let c=this._fetchAndNormalize(p,t,e,i,a);this._pending.set(a,c);try{return await c}finally{this._pending.delete(a)}}async _fetchAndNormalize(p,t,e,i,a){let r=new Date(Date.now()-e*24*60*60*1e3).toISOString(),c=i?["state","sum","change"]:["mean","min","max"];try{let u=(await this._hass.connection.sendMessagePromise({type:"recorder/statistics_during_period",start_time:r,statistic_ids:[p],period:t,types:c}))[p]||[],d=this._normalizeRows(u,i);if(d.length<2){let g=await this._fetchHistoryFallback(p,r);g.length>=2?(d=g,this.historyFallbackIds.add(p)):this.historyFallbackIds.delete(p)}else this.historyFallbackIds.delete(p);return this._cache.set(a,{entityId:p,fetchedAt:Date.now(),period:t,points:d}),d}catch(n){return console.warn(`[maintenance-supporter] Failed to fetch statistics for ${p}:`,n),[]}}async _fetchHistoryFallback(p,t){try{let i=(await this._hass.connection.sendMessagePromise({type:"history/history_during_period",start_time:t,end_time:new Date().toISOString(),entity_ids:[p],minimal_response:!0,no_attributes:!0}))?.[p]||[];if(i.length>1e3){let c=Math.ceil(i.length/500);i=i.filter((n,u)=>u%c===0||u===i.length-1)}let a=[],r=null;for(let c of i){let n=c.s??c.state;if(n==null||n==="unknown"||n==="unavailable")continue;let u;if(n==="on"||n==="open"||n==="true")u=1;else if(n==="off"||n==="closed"||n==="false")u=0;else if(u=parseFloat(n),!Number.isFinite(u))continue;let d=c.lu??c.last_updated??c.last_changed,g=typeof d=="number"?d*1e3:d!=null?Date.parse(d):NaN;Number.isFinite(g)&&(r!=null&&r!==u&&a.push({ts:g,val:r}),a.push({ts:g,val:u}),r=u)}return a.sort((c,n)=>c.ts-n.ts),a.length&&r!=null&&a.push({ts:Date.now(),val:r}),a}catch(e){return console.warn(`[maintenance-supporter] History fallback failed for ${p}:`,e),[]}}async _fetchBatch(p,t,e,i,a,r){try{let c=await this._hass.connection.sendMessagePromise({type:"recorder/statistics_during_period",start_time:e,statistic_ids:p,period:t,types:i});for(let n of p){let u=c[n]||[],d=this._normalizeRows(u,a);r.set(n,d),this._cache.set(`${n}:${t}:14`,{entityId:n,fetchedAt:Date.now(),period:t,points:d})}}catch(c){console.warn("[maintenance-supporter] Batch statistics fetch failed:",c)}}_normalizeRows(p,t){let e=[];for(let i of p){let a=null;if(t?a=i.state??null:a=i.mean??null,a===null)continue;let r={ts:i.start,val:a};t||(i.min!=null&&(r.min=i.min),i.max!=null&&(r.max=i.max)),e.push(r)}return e.sort((i,a)=>i.ts-a.ts),e}};function kt(l,p){let t=l??0;return t<1024?`${t} B`:t<1024*1024?`${Y(t/1024,p,1)} KB`:`${Y(t/(1024*1024),p,1)} MB`}var xe=8,Ne=["newest","oldest","title","category"];function qe(l){return Ne.includes(l??"")?l:"newest"}function ts(l,p){let t=new Intl.Collator(void 0,{numeric:!0,sensitivity:"base"}),e=c=>nt(c).trim(),i=(c,n)=>t.compare(e(c),e(n)),a=c=>c.kind==="weblink"?Mt.length+1:Mt.indexOf(qt(c)),r=[...l];switch(p){case"oldest":return r.sort((c,n)=>(c.added_at||"").localeCompare(n.added_at||""));case"title":return r.sort(i);case"category":return r.sort((c,n)=>a(c)-a(n)||i(c,n));default:return r.sort((c,n)=>(n.added_at||"").localeCompare(c.added_at||""))}}function ke(l,p){let t=ie(p);if(!t.length)return l;let e=[];for(let i of l){let a=Pt(t,[{text:i.title,weight:3},{text:i.filename,weight:2},{text:(i.tags||[]).join(" "),weight:2},{text:i.description,weight:2},{text:i.url,weight:1}]);a>0&&e.push({doc:i,score:a})}return e.sort((i,a)=>a.score-i.score).map(i=>i.doc)}var q=class extends N{constructor(){super(...arguments);this.canWrite=!1;this._docs=[];this._filter="";this._loaded=!1;this._busy=!1;this._error="";this._hint="";this._addingLink=!1;this._linkUrl="";this._linkTitle="";this._category="manual";this._thumbs={};this._lightboxUrl="";this._editingId="";this._editTitle="";this._editCategory="manual";this._editDescription="";this._linkDescription="";this._sort=qe(Z(A.docSort));this._dragOver=!1;this._loadedFor=null;this._loadSeq=0;this._localeReady=!1;this._singlePick=Ei()}_isImage(t){return t.kind==="file"&&(t.mime||"").startsWith("image/")}async _sign(t){return ne(this.hass,t.id)}get _lang(){return K(this.hass)}updated(t){if(super.updated(t),this.hass&&!this._localeReady&&(this._localeReady=!0,ot(this._lang).then(()=>this.requestUpdate())),this.hass&&this.entryId&&this._loadedFor!==this.entryId){let e=this._loadedFor!==null;this._loadedFor=this.entryId,e&&this._resetForObject(),this._load()}}_resetForObject(){this._docs=[],this._loaded=!1,this._thumbs={},this._filter="",this._error="",this._hint="",this._addingLink=!1,this._linkUrl="",this._linkTitle="",this._linkDescription="",this._editingId="",this._lightboxUrl=""}async _load(){let t=this.entryId,e=++this._loadSeq,i=()=>e!==this._loadSeq||t!==this.entryId,a="",r=await P(this,{type:"maintenance_supporter/documents/list",entry_id:t},{onError:c=>{a=c}});if(!i()){if(this._loaded=!0,r===void 0){this._error=a;return}this._docs=r?.documents||[],this._error="",this._thumbs={},this._loadThumbs(i)}}async _write(t,e,i){this._error="",await P(this,t,{busy:a=>{this._busy=a},fallbackKey:i,reload:async()=>{e?.(),await this._load()},onError:a=>{this._error=a}})}async _signed(t){await P(this,t,{onError:e=>{this._error=e}})}async _loadThumbs(t=()=>!1){await Promise.all(this._docs.filter(e=>this._isImage(e)).map(async e=>{try{let i=await this._sign(e);if(t())return;this._thumbs={...this._thumbs,[e.id]:i}}catch{}}))}_category_of(t){return qt(t)}_labelKeydown(t){(t.key==="Enter"||t.key===" ")&&(t.preventDefault(),t.currentTarget.querySelector("input")?.click())}_onFileInput(t){let e=t.target,i=Array.from(e.files??[]);i.length&&this._uploadFiles(i),e.value=""}_onDrop(t){if(t.preventDefault(),this._dragOver=!1,!this.canWrite||this._busy)return;let e=Array.from(t.dataTransfer?.files??[]);e.length&&this._uploadFiles(e)}_onDragOver(t){this.canWrite&&(t.preventDefault(),this._dragOver=!0)}_onDragLeave(t){let e=t.relatedTarget;(!e||!t.currentTarget.contains(e))&&(this._dragOver=!1)}async _uploadFiles(t,e){let i=e??this._category,a=this.entryId;this._busy=!0,this._error="",this._hint="";let r=0,c=0;try{for(let n of t){let u;try{u=await Ri(this.hass,a,n,[i])}catch(d){let g=d instanceof Error?d.message:"";if(g!=="doc_too_large"&&g!=="doc_upload_failed")throw d;this._error=s(g,this._lang);continue}u.duplicate_in_object?c++:u.deduped&&r++}if(a!==this.entryId)return;c?this._hint=s("doc_dup_in_object",this._lang):r&&(this._hint=s("doc_deduped",this._lang)),await this._load()}catch{this._error=s("doc_upload_failed",this._lang)}finally{this._busy=!1}}async _download(t){await this._signed(()=>le(this.hass,t.id,t.filename||t.title||"document"))}async _preview(t){if(this._isImage(t)){this._lightboxUrl=this._thumbs[t.id]||await this._sign(t);return}await this._signed(()=>Tt(this.hass,t.id))}_openDoc(t){t.kind==="file"?this._preview(t):st(t.url)&&window.open(t.url,"_blank","noopener")}_startEdit(t){this._editingId=t.id,this._editTitle=t.title||"",this._editCategory=this._category_of(t),this._editDescription=t.description||"",this._addingLink=!1,this._error=""}_cancelEdit(){this._editingId=""}_setSort(t){this._sort=qe(t),V(A.docSort,this._sort)}async _saveEdit(t){let e=(t.tags||[]).filter(a=>!Mt.includes(a)),i=t.kind==="file"?[this._editCategory,...e]:t.tags??[];await this._write({type:"maintenance_supporter/documents/update",doc_id:t.id,title:this._editTitle.trim()||t.filename||t.url||"",tags:i,description:this._editDescription.trim()},()=>{this._editingId=""})}async _delete(t){let e=nt(t);window.confirm(s("doc_delete_confirm",this._lang).replace("{name}",e))&&await this._write({type:"maintenance_supporter/documents/delete",doc_id:t.id})}async _addLink(){let t=this._linkUrl.trim();if(!t)return;let e=this.entryId;await this._write({type:"maintenance_supporter/documents/add_link",entry_id:e,url:t,title:this._linkTitle.trim()||null,description:this._linkDescription.trim()||null},()=>{this._linkUrl="",this._linkTitle="",this._linkDescription="",this._addingLink=!1},"doc_link_invalid")}render(){let t=this._lang;return o`
       <div
         class="doc-zone ${this._dragOver?"drag-over":""}"
         @dragover=${this._onDragOver}
@@ -2292,19 +2292,19 @@ ${k(c.notes)}</div>`:""}
         @drop=${this._onDrop}
       >
         ${this._dragOver&&this.canWrite?o`<div class="drop-overlay">
-              <ha-icon icon="mdi:tray-arrow-down"></ha-icon> ${s("doc_drop_hint",e)}
+              <ha-icon icon="mdi:tray-arrow-down"></ha-icon> ${s("doc_drop_hint",t)}
             </div>`:h}
       <div class="doc-header">
-        <h3>${s("documents",e)} (${this._docs.length})</h3>
+        <h3>${s("documents",t)} (${this._docs.length})</h3>
         ${this.canWrite?o`
               <div class="doc-actions">
                 <select
                   class="cat-select"
                   .value=${this._category}
                   ?disabled=${this._busy}
-                  @change=${t=>this._category=t.target.value}
+                  @change=${e=>this._category=e.target.value}
                 >
-                  ${Ee.map(t=>o`<option value=${t}>${s(`doc_cat_${t}`,e)}</option>`)}
+                  ${Mt.map(e=>o`<option value=${e}>${s(`doc_cat_${e}`,t)}</option>`)}
                 </select>
                 <label
                   class="btn primary ${this._busy?"disabled":""}"
@@ -2313,14 +2313,14 @@ ${k(c.notes)}</div>`:""}
                   @keydown=${this._labelKeydown}
                 >
                   <ha-icon icon="mdi:upload"></ha-icon>
-                  ${this._busy?s("doc_uploading",e):s("doc_upload",e)}
+                  ${this._busy?s("doc_uploading",t):s("doc_upload",t)}
                   <input type="file" ?multiple=${!this._singlePick} hidden ?disabled=${this._busy} @change=${this._onFileInput} />
                 </label>
-                <ms-photo-picker compact .showGallery=${!1} .lang=${e} .disabled=${this._busy}
-                  @files-picked=${t=>this._uploadFiles(t.detail.files,"photo")}
+                <ms-photo-picker compact .showGallery=${!1} .lang=${t} .disabled=${this._busy}
+                  @files-picked=${e=>this._uploadFiles(e.detail.files,"photo")}
                 ></ms-photo-picker>
                 <button class="btn" ?disabled=${this._busy} @click=${()=>this._addingLink=!this._addingLink}>
-                  <ha-icon icon="mdi:link-variant"></ha-icon> ${s("doc_add_link",e)}
+                  <ha-icon icon="mdi:link-variant"></ha-icon> ${s("doc_add_link",t)}
                 </button>
               </div>
             `:h}
@@ -2333,110 +2333,110 @@ ${k(c.notes)}</div>`:""}
             <div class="link-form">
               <input
                 type="url"
-                placeholder=${s("doc_link_url",e)}
+                placeholder=${s("doc_link_url",t)}
                 .value=${this._linkUrl}
                 ?disabled=${this._busy}
-                @input=${t=>this._linkUrl=t.target.value}
+                @input=${e=>this._linkUrl=e.target.value}
               />
               <input
                 type="text"
-                placeholder=${s("doc_link_title",e)}
+                placeholder=${s("doc_link_title",t)}
                 .value=${this._linkTitle}
                 ?disabled=${this._busy}
-                @input=${t=>this._linkTitle=t.target.value}
+                @input=${e=>this._linkTitle=e.target.value}
               />
               <input
                 type="text"
                 class="link-desc"
-                placeholder=${s("doc_description",e)}
+                placeholder=${s("doc_description",t)}
                 .value=${this._linkDescription}
                 ?disabled=${this._busy}
-                @input=${t=>this._linkDescription=t.target.value}
+                @input=${e=>this._linkDescription=e.target.value}
               />
               <button class="btn primary" ?disabled=${this._busy||!this._linkUrl.trim()} @click=${this._addLink}>
-                ${s("add",e)}
+                ${s("add",t)}
               </button>
               <button class="btn" ?disabled=${this._busy} @click=${()=>this._addingLink=!1}>
-                ${s("cancel",e)}
+                ${s("cancel",t)}
               </button>
             </div>
           `:h}
 
       ${this._loaded&&this._docs.length>=2?o`<div class="doc-tools">
             <ha-icon icon="mdi:sort"></ha-icon>
-            <select class="sort-select" aria-label=${s("doc_sort",e)} .value=${this._sort}
-              @change=${t=>this._setSort(t.target.value)}>
-              ${It.map(t=>o`<option value=${t} ?selected=${t===this._sort}>${s(`doc_sort_${t}`,e)}</option>`)}
+            <select class="sort-select" aria-label=${s("doc_sort",t)} .value=${this._sort}
+              @change=${e=>this._setSort(e.target.value)}>
+              ${Ne.map(e=>o`<option value=${e} ?selected=${e===this._sort}>${s(`doc_sort_${e}`,t)}</option>`)}
             </select>
           </div>`:h}
-      ${this._loaded&&this._docs.length>=bt?o`<div class="doc-filter">
+      ${this._loaded&&this._docs.length>=xe?o`<div class="doc-filter">
             <ha-icon icon="mdi:magnify"></ha-icon>
-            <input type="search" aria-label=${s("doc_search",e)} placeholder=${s("doc_search",e)}
-              .value=${this._filter} @input=${t=>this._filter=t.target.value} />
+            <input type="search" aria-label=${s("doc_search",t)} placeholder=${s("doc_search",t)}
+              .value=${this._filter} @input=${e=>this._filter=e.target.value} />
           </div>`:h}
-      ${this._loaded?this._docs.length===0?o`<div class="doc-empty">${s("documents_empty",e)}</div>`:(()=>{let t=this._filter.trim()?yt(this._docs,this._filter):Yi(this._docs,this._sort);return t.length===0?o`<div class="doc-empty">${s("doc_search_none",e)}</div>`:o`<div class="doc-list">${t.map(i=>this._renderDoc(i,e))}</div>`})():o`<div class="doc-empty">${s("loading",e)}</div>`}
+      ${this._loaded?this._docs.length===0?o`<div class="doc-empty">${s("documents_empty",t)}</div>`:(()=>{let e=this._filter.trim()?ke(this._docs,this._filter):ts(this._docs,this._sort);return e.length===0?o`<div class="doc-empty">${s("doc_search_none",t)}</div>`:o`<div class="doc-list">${e.map(i=>this._renderDoc(i,t))}</div>`})():o`<div class="doc-empty">${s("loading",t)}</div>`}
 
       ${this._lightboxUrl?o`<div class="lightbox" @click=${()=>this._lightboxUrl=""}>
-            <img class="lightbox-img" src=${this._lightboxUrl} @click=${t=>t.stopPropagation()} />
-            <button class="lightbox-close" title=${s("doc_close",e)} @click=${()=>this._lightboxUrl=""}>
+            <img class="lightbox-img" src=${this._lightboxUrl} @click=${e=>e.stopPropagation()} />
+            <button class="lightbox-close" title=${s("doc_close",t)} @click=${()=>this._lightboxUrl=""}>
               <ha-icon icon="mdi:close"></ha-icon>
             </button>
           </div>`:h}
       </div>
-    `}_renderDoc(e,t){if(this._editingId===e.id)return this._renderEdit(e,t);let i=e.kind==="file",a=this._category_of(e),r=i?`${s(`doc_cat_${a}`,t)} \xB7 ${ye(e.size,t)}`:s("doc_link_badge",t),l=this._thumbs[e.id];return o`
+    `}_renderDoc(t,e){if(this._editingId===t.id)return this._renderEdit(t,e);let i=t.kind==="file",a=this._category_of(t),r=i?`${s(`doc_cat_${a}`,e)} \xB7 ${kt(t.size,e)}`:s("doc_link_badge",e),c=this._thumbs[t.id];return o`
       <div class="doc-row">
-        ${i&&l?o`<img
+        ${i&&c?o`<img
               class="doc-thumb"
-              src=${l}
-              alt=${e.title||""}
-              title=${s("doc_open",t)}
-              @click=${()=>this._preview(e)}
+              src=${c}
+              alt=${t.title||""}
+              title=${s("doc_open",e)}
+              @click=${()=>this._preview(t)}
             />`:o`<ha-icon
               class="doc-icon ${i?"clickable":""}"
-              icon=${i?vt[a]:"mdi:link-variant"}
-              @click=${()=>i&&this._preview(e)}
+              icon=${i?be[a]:"mdi:link-variant"}
+              @click=${()=>i&&this._preview(t)}
             ></ha-icon>`}
         <div
           class="doc-info"
           role="button"
           tabindex="0"
-          title=${s("doc_open",t)}
-          @click=${()=>this._openDoc(e)}
-          @keydown=${n=>{(n.key==="Enter"||n.key===" ")&&(n.preventDefault(),this._openDoc(e))}}
+          title=${s("doc_open",e)}
+          @click=${()=>this._openDoc(t)}
+          @keydown=${n=>{(n.key==="Enter"||n.key===" ")&&(n.preventDefault(),this._openDoc(t))}}
         >
-          <div class="doc-title">${ne(e)}</div>
+          <div class="doc-title">${nt(t)}</div>
           <div class="doc-meta">${r}</div>
-          ${e.description?o`<div class="doc-desc">${e.description}</div>`:h}
+          ${t.description?o`<div class="doc-desc">${t.description}</div>`:h}
         </div>
         <div class="doc-row-actions">
           ${i?o`
-                <button class="icon-btn" title=${s("doc_open",t)} @click=${()=>this._preview(e)}>
+                <button class="icon-btn" title=${s("doc_open",e)} @click=${()=>this._preview(t)}>
                   <ha-icon icon="mdi:eye-outline"></ha-icon>
                 </button>
-                <button class="icon-btn" title=${s("doc_download",t)} @click=${()=>this._download(e)}>
+                <button class="icon-btn" title=${s("doc_download",e)} @click=${()=>this._download(t)}>
                   <ha-icon icon="mdi:download"></ha-icon>
                 </button>`:o`<a
                 class="icon-btn"
-                href=${ae(e.url)?e.url:"#"}
+                href=${st(t.url)?t.url:"#"}
                 target="_blank"
                 rel="noopener noreferrer"
-                title=${s("doc_open",t)}
+                title=${s("doc_open",e)}
               ><ha-icon icon="mdi:open-in-new"></ha-icon></a>`}
           ${this.canWrite?o`
-                <button class="icon-btn" title=${s("edit",t)} ?disabled=${this._busy} @click=${()=>this._startEdit(e)}>
+                <button class="icon-btn" title=${s("edit",e)} ?disabled=${this._busy} @click=${()=>this._startEdit(t)}>
                   <ha-icon icon="mdi:pencil"></ha-icon>
                 </button>
-                <button class="icon-btn danger" title=${s("delete",t)} ?disabled=${this._busy} @click=${()=>this._delete(e)}>
+                <button class="icon-btn danger" title=${s("delete",e)} ?disabled=${this._busy} @click=${()=>this._delete(t)}>
                   <ha-icon icon="mdi:delete"></ha-icon>
                 </button>`:h}
         </div>
       </div>
-    `}_renderEdit(e,t){let i=e.kind==="file";return o`
+    `}_renderEdit(t,e){let i=t.kind==="file";return o`
       <div class="doc-row editing">
         <input
           class="edit-title"
           type="text"
-          placeholder=${s("doc_link_title",t)}
+          placeholder=${s("doc_link_title",e)}
           .value=${this._editTitle}
           ?disabled=${this._busy}
           @input=${a=>this._editTitle=a.target.value}
@@ -2446,24 +2446,24 @@ ${k(c.notes)}</div>`:""}
               ?disabled=${this._busy}
               @change=${a=>this._editCategory=a.target.value}
             >
-              ${Ee.map(a=>o`<option value=${a} ?selected=${a===this._editCategory}>${s(`doc_cat_${a}`,t)}</option>`)}
+              ${Mt.map(a=>o`<option value=${a} ?selected=${a===this._editCategory}>${s(`doc_cat_${a}`,e)}</option>`)}
             </select>`:h}
         <input
           class="edit-desc"
           type="text"
-          placeholder=${s("doc_description",t)}
+          placeholder=${s("doc_description",e)}
           .value=${this._editDescription}
           ?disabled=${this._busy}
           @input=${a=>this._editDescription=a.target.value}
         />
-        <button class="icon-btn" title=${s("save",t)} ?disabled=${this._busy||!this._editTitle.trim()} @click=${()=>this._saveEdit(e)}>
+        <button class="icon-btn" title=${s("save",e)} ?disabled=${this._busy||!this._editTitle.trim()} @click=${()=>this._saveEdit(t)}>
           <ha-icon icon="mdi:check"></ha-icon>
         </button>
-        <button class="icon-btn" title=${s("cancel",t)} ?disabled=${this._busy} @click=${this._cancelEdit}>
+        <button class="icon-btn" title=${s("cancel",e)} ?disabled=${this._busy} @click=${this._cancelEdit}>
           <ha-icon icon="mdi:close"></ha-icon>
         </button>
       </div>
-    `}};q.styles=[Ti,B`
+    `}};q.styles=[Oi,B`
     :host { display: block; margin: 8px 0 4px; }
     .doc-zone { position: relative; }
     .doc-zone.drag-over {
@@ -2588,45 +2588,45 @@ ${k(c.notes)}</div>`:""}
     .icon-btn.danger { color: var(--error-color, #f44336); }
     .icon-btn[disabled] { opacity: 0.4; pointer-events: none; }
     .icon-btn ha-icon { --mdc-icon-size: 20px; }
-  `],g([E({attribute:!1})],q.prototype,"hass",2),g([E({attribute:!1})],q.prototype,"entryId",2),g([E({type:Boolean})],q.prototype,"canWrite",2),g([m()],q.prototype,"_docs",2),g([m()],q.prototype,"_filter",2),g([m()],q.prototype,"_loaded",2),g([m()],q.prototype,"_busy",2),g([m()],q.prototype,"_error",2),g([m()],q.prototype,"_hint",2),g([m()],q.prototype,"_addingLink",2),g([m()],q.prototype,"_linkUrl",2),g([m()],q.prototype,"_linkTitle",2),g([m()],q.prototype,"_category",2),g([m()],q.prototype,"_thumbs",2),g([m()],q.prototype,"_lightboxUrl",2),g([m()],q.prototype,"_editingId",2),g([m()],q.prototype,"_editTitle",2),g([m()],q.prototype,"_editCategory",2),g([m()],q.prototype,"_editDescription",2),g([m()],q.prototype,"_linkDescription",2),g([m()],q.prototype,"_sort",2),g([m()],q.prototype,"_dragOver",2);customElements.get("maintenance-documents-section")||customElements.define("maintenance-documents-section",q);var ce=class extends N{constructor(){super(...arguments);this.canWrite=!1;this._docs=[];this._loaded=!1;this._busy=!1;this._error="";this._attachId="";this._filter="";this._loadedKey="";this._localeReady=!1}get _lang(){return G(this.hass)}get _refId(){return this.partId||this.taskId||""}get _linkField(){return this.partId?"part_ids":"task_ids"}updated(e){super.updated(e),this.hass&&!this._localeReady&&(this._localeReady=!0,oe(this._lang).then(()=>this.requestUpdate()));let t=`${this.entryId}|${this._refId}`;this.hass&&this.entryId&&this._refId&&this._loadedKey!==t&&(this._loadedKey=t,this._load())}async _load(){let e=await P(this,{type:"maintenance_supporter/documents/list",entry_id:this.entryId},{onError:t=>{this._error=t}});this._loaded=!0,e!==void 0&&(this._docs=e?.documents||[],this._error="")}async _update(e){this._error="",await P(this,{type:"maintenance_supporter/documents/update",...e},{busy:t=>{this._busy=t},reload:()=>this._load(),onError:t=>{this._error=t}})}async _signed(e){await P(this,e,{onError:t=>{this._error=t}})}_links(e){return e[this._linkField]||[]}_linked(){return this._docs.filter(e=>this._links(e).includes(this._refId))}_available(){return this._docs.filter(e=>!this._links(e).includes(this._refId))}async _setLinks(e,t){await this._update({doc_id:e.id,[this._linkField]:t})}_link(){let e=this._docs.find(t=>t.id===this._attachId);e&&(this._attachId="",this._setLinks(e,[...this._links(e),this._refId]))}_unlink(e){this._setLinks(e,this._links(e).filter(t=>t!==this._refId))}_isPdf(e){return e.mime==="application/pdf"||(e.filename||"").toLowerCase().endsWith(".pdf")}_pageFor(e){return this._isPdf(e)&&this.taskId?e.task_pages?.[this.taskId]:void 0}async _open(e){if(e.kind==="weblink"){ae(e.url)&&window.open(e.url,"_blank","noopener");return}let t=this._pageFor(e);await this._signed(()=>$e(this.hass,e.id,t?`#page=${t}`:""))}async _setPage(e,t){this.taskId&&await this._update({doc_id:e.id,task_pages:{[this.taskId]:t}})}async _download(e){await this._signed(()=>ot(this.hass,e.id,e.filename||e.title||"document"))}render(){if(!this._loaded||this._docs.length===0)return h;let e=this._lang,t=this._linked(),i=this._available();return o`
+  `],_([E({attribute:!1})],q.prototype,"hass",2),_([E({attribute:!1})],q.prototype,"entryId",2),_([E({type:Boolean})],q.prototype,"canWrite",2),_([f()],q.prototype,"_docs",2),_([f()],q.prototype,"_filter",2),_([f()],q.prototype,"_loaded",2),_([f()],q.prototype,"_busy",2),_([f()],q.prototype,"_error",2),_([f()],q.prototype,"_hint",2),_([f()],q.prototype,"_addingLink",2),_([f()],q.prototype,"_linkUrl",2),_([f()],q.prototype,"_linkTitle",2),_([f()],q.prototype,"_category",2),_([f()],q.prototype,"_thumbs",2),_([f()],q.prototype,"_lightboxUrl",2),_([f()],q.prototype,"_editingId",2),_([f()],q.prototype,"_editTitle",2),_([f()],q.prototype,"_editCategory",2),_([f()],q.prototype,"_editDescription",2),_([f()],q.prototype,"_linkDescription",2),_([f()],q.prototype,"_sort",2),_([f()],q.prototype,"_dragOver",2);customElements.get("maintenance-documents-section")||customElements.define("maintenance-documents-section",q);var ct=class extends N{constructor(){super(...arguments);this.canWrite=!1;this._docs=[];this._loaded=!1;this._busy=!1;this._error="";this._attachId="";this._filter="";this._loadedKey="";this._localeReady=!1}get _lang(){return K(this.hass)}get _refId(){return this.partId||this.taskId||""}get _linkField(){return this.partId?"part_ids":"task_ids"}updated(t){super.updated(t),this.hass&&!this._localeReady&&(this._localeReady=!0,ot(this._lang).then(()=>this.requestUpdate()));let e=`${this.entryId}|${this._refId}`;this.hass&&this.entryId&&this._refId&&this._loadedKey!==e&&(this._loadedKey=e,this._load())}async _load(){let t=await P(this,{type:"maintenance_supporter/documents/list",entry_id:this.entryId},{onError:e=>{this._error=e}});this._loaded=!0,t!==void 0&&(this._docs=t?.documents||[],this._error="")}async _update(t){this._error="",await P(this,{type:"maintenance_supporter/documents/update",...t},{busy:e=>{this._busy=e},reload:()=>this._load(),onError:e=>{this._error=e}})}async _signed(t){await P(this,t,{onError:e=>{this._error=e}})}_links(t){return t[this._linkField]||[]}_linked(){return this._docs.filter(t=>this._links(t).includes(this._refId))}_available(){return this._docs.filter(t=>!this._links(t).includes(this._refId))}async _setLinks(t,e){await this._update({doc_id:t.id,[this._linkField]:e})}_link(){let t=this._docs.find(e=>e.id===this._attachId);t&&(this._attachId="",this._setLinks(t,[...this._links(t),this._refId]))}_unlink(t){this._setLinks(t,this._links(t).filter(e=>e!==this._refId))}_isPdf(t){return t.mime==="application/pdf"||(t.filename||"").toLowerCase().endsWith(".pdf")}_pageFor(t){return this._isPdf(t)&&this.taskId?t.task_pages?.[this.taskId]:void 0}async _open(t){if(t.kind==="weblink"){st(t.url)&&window.open(t.url,"_blank","noopener");return}let e=this._pageFor(t);await this._signed(()=>Tt(this.hass,t.id,e?`#page=${e}`:""))}async _setPage(t,e){this.taskId&&await this._update({doc_id:t.id,task_pages:{[this.taskId]:e}})}async _download(t){await this._signed(()=>le(this.hass,t.id,t.filename||t.title||"document"))}render(){if(!this._loaded||this._docs.length===0)return h;let t=this._lang,e=this._linked(),i=this._available();return o`
       <div class="task-docs">
-        <h3><ha-icon icon="mdi:paperclip"></ha-icon> ${s("documents",e)} (${t.length})</h3>
+        <h3><ha-icon icon="mdi:paperclip"></ha-icon> ${s("documents",t)} (${e.length})</h3>
         ${this._error?o`<div class="tdoc-error">${this._error}</div>`:h}
-        ${t.length>=bt?o`<div class="doc-filter">
+        ${e.length>=xe?o`<div class="doc-filter">
               <ha-icon icon="mdi:magnify"></ha-icon>
-              <input type="search" aria-label=${s("doc_search",e)} placeholder=${s("doc_search",e)}
+              <input type="search" aria-label=${s("doc_search",t)} placeholder=${s("doc_search",t)}
                 .value=${this._filter} @input=${a=>this._filter=a.target.value} />
             </div>`:h}
-        ${t.length===0?o`<div class="tdoc-empty">${s(this.partId?"doc_part_none":"doc_task_none",e)}</div>`:(()=>{let a=yt(t,this._filter);return a.length===0?o`<div class="tdoc-empty">${s("doc_search_none",e)}</div>`:o`<div class="tdoc-list">${a.map(r=>this._renderRow(r,e))}</div>`})()}
+        ${e.length===0?o`<div class="tdoc-empty">${s(this.partId?"doc_part_none":"doc_task_none",t)}</div>`:(()=>{let a=ke(e,this._filter);return a.length===0?o`<div class="tdoc-empty">${s("doc_search_none",t)}</div>`:o`<div class="tdoc-list">${a.map(r=>this._renderRow(r,t))}</div>`})()}
         ${this.canWrite&&i.length?o`<div class="tdoc-attach">
               <select
                 class="tdoc-select"
                 ?disabled=${this._busy}
                 @change=${a=>this._attachId=a.target.value}
               >
-                <option value="" ?selected=${!this._attachId}>${s("doc_link_existing",e)}</option>
-                ${i.map(a=>o`<option value=${a.id} ?selected=${a.id===this._attachId}>${ne(a)}</option>`)}
+                <option value="" ?selected=${!this._attachId}>${s("doc_link_existing",t)}</option>
+                ${i.map(a=>o`<option value=${a.id} ?selected=${a.id===this._attachId}>${nt(a)}</option>`)}
               </select>
               <button class="tdoc-btn" ?disabled=${this._busy||!this._attachId} @click=${this._link}>
-                <ha-icon icon="mdi:link-variant-plus"></ha-icon> ${s("doc_attach",e)}
+                <ha-icon icon="mdi:link-variant-plus"></ha-icon> ${s("doc_attach",t)}
               </button>
             </div>`:h}
       </div>
-    `}_renderRow(e,t){let i=e.kind==="file",a=this._isPdf(e),r=this._pageFor(e),l=Le(e),n=i?ye(e.size,t):s("doc_link_badge",t);return o`
+    `}_renderRow(t,e){let i=t.kind==="file",a=this._isPdf(t),r=this._pageFor(t),c=qt(t),n=i?kt(t.size,e):s("doc_link_badge",e);return o`
       <div class="tdoc-row">
-        <ha-icon class="tdoc-icon" icon=${i?vt[l]:"mdi:link-variant"}></ha-icon>
+        <ha-icon class="tdoc-icon" icon=${i?be[c]:"mdi:link-variant"}></ha-icon>
         <div
           class="tdoc-info"
           role="button"
           tabindex="0"
-          title=${r?`${s("doc_open",t)} \xB7 ${s("doc_page",t)} ${r}`:s("doc_open",t)}
-          @click=${()=>this._open(e)}
-          @keydown=${u=>{(u.key==="Enter"||u.key===" ")&&(u.preventDefault(),this._open(e))}}
+          title=${r?`${s("doc_open",e)} \xB7 ${s("doc_page",e)} ${r}`:s("doc_open",e)}
+          @click=${()=>this._open(t)}
+          @keydown=${u=>{(u.key==="Enter"||u.key===" ")&&(u.preventDefault(),this._open(t))}}
         >
-          <div class="tdoc-title">${ne(e)}</div>
-          ${e.description?o`<div class="tdoc-desc">${e.description}</div>`:h}
+          <div class="tdoc-title">${nt(t)}</div>
+          ${t.description?o`<div class="tdoc-desc">${t.description}</div>`:h}
           <div class="tdoc-meta">
-            ${n}${r?o` · <span class="tdoc-pagetag">${s("doc_page",t)} ${r}</span>`:h}
+            ${n}${r?o` · <span class="tdoc-pagetag">${s("doc_page",e)} ${r}</span>`:h}
           </div>
         </div>
         ${this.canWrite&&a&&this.taskId?o`<input
@@ -2634,24 +2634,24 @@ ${k(c.notes)}</div>`:""}
               type="number"
               min="1"
               inputmode="numeric"
-              aria-label=${s("doc_page",t)}
-              title=${s("doc_page",t)}
-              placeholder=${s("doc_page",t)}
+              aria-label=${s("doc_page",e)}
+              title=${s("doc_page",e)}
+              placeholder=${s("doc_page",e)}
               .value=${r?String(r):""}
               ?disabled=${this._busy}
-              @change=${u=>{let p=parseInt(u.target.value,10);this._setPage(e,Number.isFinite(p)&&p>=1?p:0)}}
+              @change=${u=>{let d=parseInt(u.target.value,10);this._setPage(t,Number.isFinite(d)&&d>=1?d:0)}}
             />`:h}
-        <button class="icon-btn" title=${s("doc_open",t)} @click=${()=>this._open(e)}>
+        <button class="icon-btn" title=${s("doc_open",e)} @click=${()=>this._open(t)}>
           <ha-icon icon=${i?"mdi:eye-outline":"mdi:open-in-new"}></ha-icon>
         </button>
-        ${i?o`<button class="icon-btn" title=${s("doc_download",t)} @click=${()=>this._download(e)}>
+        ${i?o`<button class="icon-btn" title=${s("doc_download",e)} @click=${()=>this._download(t)}>
               <ha-icon icon="mdi:download"></ha-icon>
             </button>`:h}
-        ${this.canWrite?o`<button class="icon-btn" title=${s("doc_unlink",t)} ?disabled=${this._busy} @click=${()=>this._unlink(e)}>
+        ${this.canWrite?o`<button class="icon-btn" title=${s("doc_unlink",e)} ?disabled=${this._busy} @click=${()=>this._unlink(t)}>
               <ha-icon icon="mdi:link-variant-off"></ha-icon>
             </button>`:h}
       </div>
-    `}};ce.styles=B`
+    `}};ct.styles=B`
     :host { display: block; }
     .task-docs { margin-top: 20px; }
     h3 {
@@ -2710,53 +2710,53 @@ ${k(c.notes)}</div>`:""}
     }
     .tdoc-btn ha-icon { --mdc-icon-size: 18px; }
     .tdoc-btn[disabled] { opacity: 0.5; pointer-events: none; }
-  `,g([E({attribute:!1})],ce.prototype,"hass",2),g([E({attribute:!1})],ce.prototype,"entryId",2),g([E({attribute:!1})],ce.prototype,"taskId",2),g([E({attribute:!1})],ce.prototype,"partId",2),g([E({type:Boolean})],ce.prototype,"canWrite",2),g([m()],ce.prototype,"_docs",2),g([m()],ce.prototype,"_loaded",2),g([m()],ce.prototype,"_busy",2),g([m()],ce.prototype,"_error",2),g([m()],ce.prototype,"_attachId",2),g([m()],ce.prototype,"_filter",2);customElements.get("maintenance-task-documents")||customElements.define("maintenance-task-documents",ce);var js={name:"",vendor:"",mpn:"",gtin:"",storage_location:"",product_url:"",unit:"",cost:"",stock:"",reorder_threshold:"",restock_quantity:"",package_size:"",auto_buy_task:!0,notes:""},le=class extends N{constructor(){super(...arguments);this.parts=[];this.canWrite=!1;this.currencySymbol="\u20AC";this._editing=null;this._busy=!1;this._error="";this._restockFor=null;this._restockQty="";this._restockInvalid=!1;this._docsFor=null}get _lang(){return G(this.hass)}connectedCallback(){super.connectedCallback(),oe(this._lang).then(()=>this.requestUpdate())}_notifyChanged(){this.dispatchEvent(new CustomEvent("parts-changed",{bubbles:!0,composed:!0}))}_send(e){return this._error="",P(this,e,{busy:t=>{this._busy=t},onError:t=>{this._error=t}})}_openAdd(){this._editing={...js}}_openEdit(e){this._editing={id:e.id,name:e.name,vendor:e.vendor||"",mpn:e.mpn||"",gtin:e.gtin||"",storage_location:e.storage_location||"",product_url:e.product_url||"",unit:e.unit||"",cost:e.cost!=null?String(e.cost):"",stock:e.stock!=null?String(e.stock):"",reorder_threshold:e.reorder_threshold!=null?String(e.reorder_threshold):"",restock_quantity:e.restock_quantity!=null?String(e.restock_quantity):"",package_size:e.package_size!=null?String(e.package_size):"",auto_buy_task:!!e.auto_buy_task,notes:e.notes||""}}_formValue(e){let t=i=>i.trim()===""?null:Number(i);return{entry_id:this.entryId,name:e.name.trim(),vendor:e.vendor.trim()||null,mpn:e.mpn.trim()||null,gtin:e.gtin.trim()||null,storage_location:e.storage_location.trim()||null,product_url:e.product_url.trim()||null,unit:e.unit.trim()||null,cost:t(e.cost),stock:t(e.stock),reorder_threshold:t(e.reorder_threshold),restock_quantity:t(e.restock_quantity),package_size:t(e.package_size),auto_buy_task:e.auto_buy_task,notes:e.notes.trim()||null}}async _save(){let e=this._editing;if(this._busy||!e||!e.name.trim())return;let t=this._formValue(e),i=e.id?"maintenance_supporter/part/update":"maintenance_supporter/part/create";await this._send(e.id?{type:i,part_id:e.id,...t}:{type:i,...t})!==void 0&&(this._editing=null,this._notifyChanged())}async _delete(e){if(!window.confirm(s("part_delete_confirm",this._lang).replace("{name}",e.name)))return;await this._send({type:"maintenance_supporter/part/delete",entry_id:this.entryId,part_id:e.id})!==void 0&&this._notifyChanged()}async _restock(e){if(this._busy)return;let t=parseFloat(this._restockQty);if(!Number.isFinite(t)||t===0){this._restockInvalid=!0;return}this._restockInvalid=!1;let i=await this._send({type:"maintenance_supporter/part/restock",entry_id:this.entryId,part_id:e.id,delta:t});this._restockFor=null,i!==void 0&&(e.stock=i?.stock,this.requestUpdate(),this._notifyChanged())}_identLine(e){return[e.vendor,e.mpn?`MPN: ${e.mpn}`:"",e.gtin?`GTIN: ${e.gtin}`:""].filter(Boolean).join(" \xB7 ")}_renderRow(e){let t=this._lang,i=e.stock!==null&&e.stock!==void 0,a=this._identLine(e),r=this._docsFor===e.id;return o`
-      <div class="part-row ${e.is_low?"low":""}">
-        <ha-icon class="part-icon" icon=${e.is_low?"mdi:cart-arrow-down":"mdi:package-variant-closed"}></ha-icon>
+  `,_([E({attribute:!1})],ct.prototype,"hass",2),_([E({attribute:!1})],ct.prototype,"entryId",2),_([E({attribute:!1})],ct.prototype,"taskId",2),_([E({attribute:!1})],ct.prototype,"partId",2),_([E({type:Boolean})],ct.prototype,"canWrite",2),_([f()],ct.prototype,"_docs",2),_([f()],ct.prototype,"_loaded",2),_([f()],ct.prototype,"_busy",2),_([f()],ct.prototype,"_error",2),_([f()],ct.prototype,"_attachId",2),_([f()],ct.prototype,"_filter",2);customElements.get("maintenance-task-documents")||customElements.define("maintenance-task-documents",ct);var Ls={name:"",vendor:"",mpn:"",gtin:"",storage_location:"",product_url:"",unit:"",cost:"",stock:"",reorder_threshold:"",restock_quantity:"",package_size:"",auto_buy_task:!0,notes:""},lt=class extends N{constructor(){super(...arguments);this.parts=[];this.canWrite=!1;this.currencySymbol="\u20AC";this._editing=null;this._busy=!1;this._error="";this._restockFor=null;this._restockQty="";this._restockInvalid=!1;this._docsFor=null}get _lang(){return K(this.hass)}connectedCallback(){super.connectedCallback(),ot(this._lang).then(()=>this.requestUpdate())}_notifyChanged(){this.dispatchEvent(new CustomEvent("parts-changed",{bubbles:!0,composed:!0}))}_send(t){return this._error="",P(this,t,{busy:e=>{this._busy=e},onError:e=>{this._error=e}})}_openAdd(){this._editing={...Ls}}_openEdit(t){this._editing={id:t.id,name:t.name,vendor:t.vendor||"",mpn:t.mpn||"",gtin:t.gtin||"",storage_location:t.storage_location||"",product_url:t.product_url||"",unit:t.unit||"",cost:t.cost!=null?String(t.cost):"",stock:t.stock!=null?String(t.stock):"",reorder_threshold:t.reorder_threshold!=null?String(t.reorder_threshold):"",restock_quantity:t.restock_quantity!=null?String(t.restock_quantity):"",package_size:t.package_size!=null?String(t.package_size):"",auto_buy_task:!!t.auto_buy_task,notes:t.notes||""}}_formValue(t){let e=i=>i.trim()===""?null:Number(i);return{entry_id:this.entryId,name:t.name.trim(),vendor:t.vendor.trim()||null,mpn:t.mpn.trim()||null,gtin:t.gtin.trim()||null,storage_location:t.storage_location.trim()||null,product_url:t.product_url.trim()||null,unit:t.unit.trim()||null,cost:e(t.cost),stock:e(t.stock),reorder_threshold:e(t.reorder_threshold),restock_quantity:e(t.restock_quantity),package_size:e(t.package_size),auto_buy_task:t.auto_buy_task,notes:t.notes.trim()||null}}async _save(){let t=this._editing;if(this._busy||!t||!t.name.trim())return;let e=this._formValue(t),i=t.id?"maintenance_supporter/part/update":"maintenance_supporter/part/create";await this._send(t.id?{type:i,part_id:t.id,...e}:{type:i,...e})!==void 0&&(this._editing=null,this._notifyChanged())}async _delete(t){if(!window.confirm(s("part_delete_confirm",this._lang).replace("{name}",t.name)))return;await this._send({type:"maintenance_supporter/part/delete",entry_id:this.entryId,part_id:t.id})!==void 0&&this._notifyChanged()}async _restock(t){if(this._busy)return;let e=parseFloat(this._restockQty);if(!Number.isFinite(e)||e===0){this._restockInvalid=!0;return}this._restockInvalid=!1;let i=await this._send({type:"maintenance_supporter/part/restock",entry_id:this.entryId,part_id:t.id,delta:e});this._restockFor=null,i!==void 0&&(t.stock=i?.stock,this.requestUpdate(),this._notifyChanged())}_identLine(t){return[t.vendor,t.mpn?`MPN: ${t.mpn}`:"",t.gtin?`GTIN: ${t.gtin}`:""].filter(Boolean).join(" \xB7 ")}_renderRow(t){let e=this._lang,i=t.stock!==null&&t.stock!==void 0,a=this._identLine(t),r=this._docsFor===t.id;return o`
+      <div class="part-row ${t.is_low?"low":""}">
+        <ha-icon class="part-icon" icon=${t.is_low?"mdi:cart-arrow-down":"mdi:package-variant-closed"}></ha-icon>
         <div class="part-main">
           <div class="part-name">
-            ${ae(e.shopping_url)?o`<a href=${e.shopping_url} target="_blank" rel="noopener noreferrer">${e.name}</a>`:e.name}
-            ${i?o`<span class="stock-badge ${e.is_low?"low":""}"
-                  >${Ue(e.stock,e.unit,t)}${e.reorder_threshold!=null?o`<span class="threshold">/${Q(e.reorder_threshold,t)}</span>`:h}</span
+            ${st(t.shopping_url)?o`<a href=${t.shopping_url} target="_blank" rel="noopener noreferrer">${t.name}</a>`:t.name}
+            ${i?o`<span class="stock-badge ${t.is_low?"low":""}"
+                  >${Kt(t.stock,t.unit,e)}${t.reorder_threshold!=null?o`<span class="threshold">/${Y(t.reorder_threshold,e)}</span>`:h}</span
                 >`:h}
           </div>
           <div class="part-meta">
             ${a?o`<span>${a}</span>`:h}
-            ${e.storage_location?o`<span class="loc"><ha-icon icon="mdi:map-marker-outline"></ha-icon>${e.storage_location}</span>`:h}
+            ${t.storage_location?o`<span class="loc"><ha-icon icon="mdi:map-marker-outline"></ha-icon>${t.storage_location}</span>`:h}
           </div>
-          ${e.notes?o`<div class="part-notes">${e.notes}</div>`:h}
+          ${t.notes?o`<div class="part-notes">${t.notes}</div>`:h}
         </div>
         <ha-icon-button
-          title=${s("documents",t)}
+          title=${s("documents",e)}
           class=${r?"docs-open":""}
-          @click=${()=>this._docsFor=r?null:e.id}
+          @click=${()=>this._docsFor=r?null:t.id}
           ><ha-icon icon="mdi:paperclip"></ha-icon
         ></ha-icon-button>
         ${this.canWrite?o`
-              ${this._restockFor===e.id?o`
+              ${this._restockFor===t.id?o`
                     <input
                       class="restock-input${this._restockInvalid?" invalid":""}"
                       type="number"
                       .value=${this._restockQty}
                       placeholder="+1"
-                      @input=${l=>this._restockQty=l.target.value}
-                      @keydown=${l=>{l.key==="Enter"&&this._restock(e),l.key==="Escape"&&(this._restockFor=null)}}
+                      @input=${c=>this._restockQty=c.target.value}
+                      @keydown=${c=>{c.key==="Enter"&&this._restock(t),c.key==="Escape"&&(this._restockFor=null)}}
                     />
-                    <ha-icon-button title=${s("save",t)} .disabled=${this._busy} @click=${()=>this._restock(e)}
+                    <ha-icon-button title=${s("save",e)} .disabled=${this._busy} @click=${()=>this._restock(t)}
                       ><ha-icon icon="mdi:check"></ha-icon
                     ></ha-icon-button>
                   `:o`
                     <ha-icon-button
-                      title=${s("part_restock",t)}
+                      title=${s("part_restock",e)}
                       .disabled=${this._busy}
-                      @click=${()=>{this._restockFor=e.id,this._restockInvalid=!1,this._restockQty=String(ai(e))}}
+                      @click=${()=>{this._restockFor=t.id,this._restockInvalid=!1,this._restockQty=String(bi(t))}}
                       ><ha-icon icon="mdi:plus-minus-variant"></ha-icon
                     ></ha-icon-button>
                   `}
-              <ha-icon-button title=${s("edit",t)} .disabled=${this._busy} @click=${()=>this._openEdit(e)}
+              <ha-icon-button title=${s("edit",e)} .disabled=${this._busy} @click=${()=>this._openEdit(t)}
                 ><ha-icon icon="mdi:pencil"></ha-icon
               ></ha-icon-button>
-              <ha-icon-button title=${s("delete",t)} .disabled=${this._busy} @click=${()=>this._delete(e)}
+              <ha-icon-button title=${s("delete",e)} .disabled=${this._busy} @click=${()=>this._delete(t)}
                 ><ha-icon icon="mdi:delete-outline"></ha-icon
               ></ha-icon-button>
             `:h}
@@ -2765,81 +2765,81 @@ ${k(c.notes)}</div>`:""}
             <maintenance-task-documents
               .hass=${this.hass}
               .entryId=${this.entryId}
-              .partId=${e.id}
+              .partId=${t.id}
               .canWrite=${this.canWrite}
             ></maintenance-task-documents>
           </div>`:h}
-    `}_field(e,t,i={}){let a=this._editing;return o`
+    `}_field(t,e,i={}){let a=this._editing;return o`
       <label class="form-field">
-        <span>${e}</span>
+        <span>${t}</span>
         <input
           type=${i.type||"text"}
-          .value=${String(a[t]??"")}
+          .value=${String(a[e]??"")}
           placeholder=${i.placeholder||""}
-          @input=${r=>{this._editing[t]=r.target.value,this.requestUpdate()}}
+          @input=${r=>{this._editing[e]=r.target.value,this.requestUpdate()}}
         />
       </label>
-    `}_renderForm(){let e=this._lang,t=this._editing;return o`
+    `}_renderForm(){let t=this._lang,e=this._editing;return o`
       <div class="part-form">
         <div class="form-grid">
-          ${this._field(s("part_name",e),"name")}
-          ${this._field(s("part_vendor",e),"vendor")}
+          ${this._field(s("part_name",t),"name")}
+          ${this._field(s("part_vendor",t),"vendor")}
           ${this._field("MPN","mpn")}
           ${this._field("GTIN / EAN","gtin",{placeholder:"4006381333931"})}
-          ${this._field(s("part_storage_location",e),"storage_location")}
-          ${this._field(s("part_product_url",e),"product_url",{placeholder:"https://\u2026"})}
-          ${this._field(s("part_unit",e),"unit")}
-          ${this._field(s("part_cost",e),"cost",{type:"number"})}
-          ${this._field(s("part_stock",e),"stock",{type:"number"})}
-          ${this._field(s("part_reorder_threshold",e),"reorder_threshold",{type:"number"})}
-          ${this._field(s("part_package_size",e),"package_size",{type:"number"})}
-          ${this._field(t.package_size.trim()?s("part_restock_packages",e):s("part_restock_quantity",e),"restock_quantity",{type:"number"})}
-          ${t.package_size.trim()?o`<div class="form-hint">${s("part_package_hint",e)}</div>`:h}
+          ${this._field(s("part_storage_location",t),"storage_location")}
+          ${this._field(s("part_product_url",t),"product_url",{placeholder:"https://\u2026"})}
+          ${this._field(s("part_unit",t),"unit")}
+          ${this._field(s("part_cost",t),"cost",{type:"number"})}
+          ${this._field(s("part_stock",t),"stock",{type:"number"})}
+          ${this._field(s("part_reorder_threshold",t),"reorder_threshold",{type:"number"})}
+          ${this._field(s("part_package_size",t),"package_size",{type:"number"})}
+          ${this._field(e.package_size.trim()?s("part_restock_packages",t):s("part_restock_quantity",t),"restock_quantity",{type:"number"})}
+          ${e.package_size.trim()?o`<div class="form-hint">${s("part_package_hint",t)}</div>`:h}
           <label class="form-field checkbox">
             <input
               type="checkbox"
-              .checked=${t.auto_buy_task}
-              @change=${i=>{this._editing={...t,auto_buy_task:i.target.checked}}}
+              .checked=${e.auto_buy_task}
+              @change=${i=>{this._editing={...e,auto_buy_task:i.target.checked}}}
             />
-            <span>${s("part_auto_buy",e)}</span>
+            <span>${s("part_auto_buy",t)}</span>
           </label>
           <!-- Documented and searched since the parts feature, but the form
                never had a field — only the API and imports could set it
                (audit 2026-09-28). -->
           <label class="form-field notes">
-            <span>${s("notes_label",e)}</span>
+            <span>${s("notes_label",t)}</span>
             <textarea
               rows="2"
               maxlength="500"
-              .value=${t.notes}
+              .value=${e.notes}
               @input=${i=>{this._editing={...this._editing,notes:i.target.value}}}
             ></textarea>
           </label>
         </div>
         <div class="form-actions">
-          <ha-button appearance="plain" @click=${()=>this._editing=null}>${s("cancel",e)}</ha-button>
-          <ha-button .disabled=${this._busy||!t.name.trim()} @click=${()=>this._save()}
-            >${s("save",e)}</ha-button
+          <ha-button appearance="plain" @click=${()=>this._editing=null}>${s("cancel",t)}</ha-button>
+          <ha-button .disabled=${this._busy||!e.name.trim()} @click=${()=>this._save()}
+            >${s("save",t)}</ha-button
           >
         </div>
       </div>
-    `}_inventoryValue(){let e=0,t=!1;for(let i of this.parts){let a=si(i),r=typeof i.stock=="number"?i.stock:null;a!==null&&r!==null&&(e+=a*r,t=!0)}return t?e:null}render(){let e=this._lang;return!this.parts.length&&!this.canWrite?h:o`
+    `}_inventoryValue(){let t=0,e=!1;for(let i of this.parts){let a=vi(i),r=typeof i.stock=="number"?i.stock:null;a!==null&&r!==null&&(t+=a*r,e=!0)}return e?t:null}render(){let t=this._lang;return!this.parts.length&&!this.canWrite?h:o`
       <div class="section-head">
         <h3>
           <ha-icon icon="mdi:package-variant"></ha-icon>
-          ${s("parts_section",e)} (${this.parts.length})
-          ${this._inventoryValue()!==null?o`<span class="inventory-value" title=${s("parts_inventory_value",e)}
-                >${s("parts_inventory_value",e)}:
-                ${U(this._inventoryValue(),this.currencySymbol,e)}</span>`:h}
+          ${s("parts_section",t)} (${this.parts.length})
+          ${this._inventoryValue()!==null?o`<span class="inventory-value" title=${s("parts_inventory_value",t)}
+                >${s("parts_inventory_value",t)}:
+                ${F(this._inventoryValue(),this.currencySymbol,t)}</span>`:h}
         </h3>
         ${this.canWrite&&!this._editing?o`<ha-button appearance="plain" @click=${()=>this._openAdd()}>
-              <ha-icon icon="mdi:plus"></ha-icon> ${s("part_add",e)}
+              <ha-icon icon="mdi:plus"></ha-icon> ${s("part_add",t)}
             </ha-button>`:h}
       </div>
       ${this._error?o`<div class="error">${this._error}</div>`:h}
       ${this._editing?this._renderForm():h}
-      ${this.parts.map(t=>this._renderRow(t))}
-    `}};le.styles=B`
+      ${this.parts.map(e=>this._renderRow(e))}
+    `}};lt.styles=B`
     :host {
       display: block;
       margin: 12px 0;
@@ -2995,31 +2995,31 @@ ${k(c.notes)}</div>`:""}
       font-size: 13px;
       margin: 4px 0;
     }
-  `,g([E({attribute:!1})],le.prototype,"hass",2),g([E({attribute:!1})],le.prototype,"entryId",2),g([E({attribute:!1})],le.prototype,"parts",2),g([E({type:Boolean})],le.prototype,"canWrite",2),g([E({attribute:!1})],le.prototype,"currencySymbol",2),g([m()],le.prototype,"_editing",2),g([m()],le.prototype,"_busy",2),g([m()],le.prototype,"_error",2),g([m()],le.prototype,"_restockFor",2),g([m()],le.prototype,"_restockQty",2),g([m()],le.prototype,"_restockInvalid",2),g([m()],le.prototype,"_docsFor",2);customElements.get("maintenance-parts-section")||customElements.define("maintenance-parts-section",le);var xt={readings:!0,parts:!0,photos:!0,documents:!0,checklist:!0,notes:!0,costs:!0,person:!0,refs:!0,qr:!1,bare:!0,docDescriptions:!0};function Ts(c){return!!(c.notes&&c.notes.trim()||c.cost!=null||c.duration!=null||c.readings.length||c.parts.length||c.photoIds.length||c.checklist)}var Ss=6;function Qi(c,d,e,t,i,a,r,l={}){let n=l.options??{layout:"chronological",include:xt},u=n.include,p=l.data??{objectRef:null,tasks:[],photos:{},fmtNumber:$=>String($)},_=d.filter($=>$.type==="completed"&&(u.bare!==!1||Ts($))),{totalCost:v}=pt(_),f=$=>u.refs&&p.objectRef&&$.taskRefNo!=null&&$.refNo!=null?`${p.objectRef}.${$.taskRefNo}-${$.refNo}`:null,y=$=>u.refs&&p.objectRef&&$.taskRefNo!=null?`${p.objectRef}.${$.taskRefNo}`:null,M=[[e.refNumber,u.refs&&p.objectRef?`#${p.objectRef}`:null],[e.manufacturer,c.manufacturer],[e.model,c.model],[e.serial,c.serial_number],[e.installed,c.installation_date?t(c.installation_date):null]].filter(([,$])=>$).map(([$,I])=>`<div class="meta-row"><span>${k($)}</span><strong>${k(I)}</strong></div>`).join(""),S=$=>{let I=[];if(u.readings&&$.readings.length){let L=$.readings.map(z=>{let F=`${p.fmtNumber(z.value)}${z.unit?` ${k(z.unit)}`:""}`,J=z.delta!=null?` <span class="delta">(${z.delta>=0?"+":"\u2212"}${p.fmtNumber(Math.abs(z.delta))})</span>`:"";return`${z.name?`${k(z.name)}: `:""}${F}${J}`});I.push(`<div class="fact"><span class="k">${k(e.readings)}</span>${L.join(" \xB7 ")}</div>`)}if(u.parts&&$.parts.length&&I.push(`<div class="fact"><span class="k">${k(e.parts)}</span>${$.parts.map(L=>`${k(L.name)} \xD7 ${p.fmtNumber(L.quantity)}`).join(", ")}</div>`),u.checklist&&$.checklist&&I.push(`<div class="fact"><span class="k">${k(e.checklist)}</span>${$.checklist.done}/${$.checklist.total}</div>`),u.photos&&$.photoIds.length){let L=$.photoIds.slice(0,Ss),z=L.map(J=>{let K=p.photos[J],j=K?.name||J.slice(0,8);return K?.url?`<figure class="photo"><img src="${k(K.url)}" alt="" /><figcaption>${k(j)}</figcaption></figure>`:`<figure class="photo"><figcaption>${k(j)}</figcaption></figure>`}),F=$.photoIds.length>L.length?`<span class="more">+${$.photoIds.length-L.length}</span>`:"";I.push(`<div class="fact"><span class="k">${k(e.photos)}</span><div class="photos">${z.join("")}${F}</div></div>`)}return I.length?`<div class="details">${I.join("")}</div>`:""},T=$=>[u.notes?$.notes:null,u.person&&$.completedBy?`${e.completedBy}: ${$.completedBy}`:null].filter(Boolean).join(" \xB7 "),x=$=>u.costs?`<td class="num">${$.cost!=null?k(a($.cost)):k(e.none)}</td>
-        <td class="num">${$.duration!=null?k(i($.duration)):k(e.none)}</td>`:"",D=$=>$?`<span class="ref">#${k($)}</span>`:"",C=u.costs?5:3,b=$=>`<thead><tr>
-    <th>${k(e.colDate)}</th>
-    ${$?`<th>${k(e.colTask)}</th>`:"<th></th>"}
-    ${u.costs?`<th class="num">${k(e.colCost)}</th><th class="num">${k(e.colDuration)}</th>`:""}
-    <th>${k(e.colNotes)}</th>
-  </tr></thead>`,ie=($,I)=>{let L=T($),z=S($),F=I?k($.phaseName?`${$.taskName} \xB7 ${$.phaseName}`:$.taskName):k($.phaseName||"");return`<tr class="entry">
-        <td class="nowrap">${k(t($.timestamp))}${D(f($))}</td>
-        <td>${I?`${F} ${D(y($))}`:F}</td>
-        ${x($)}
-        <td class="notes">${k(L)||(z?"":k(e.none))}</td>
-      </tr>${z?`<tr class="entry-details"><td colspan="${C}" class="details-cell">${z}</td></tr>`:""}`},_e;if(n.layout==="by_task"){let $=new Map(p.tasks.map(z=>[z.id,z])),I=[...p.tasks.map(z=>z.id)];for(let z of _)I.includes(z.taskId)||I.push(z.taskId);_e=`${I.map(z=>{let F=_.filter(pe=>pe.taskId===z);if(!F.length)return"";let J=$.get(z),K=J?.name||F[0].taskName,j=u.refs?J?.ref??y(F[0]):null,X=u.documents&&J?.documents.length?`<div class="fact"><span class="k">${k(e.documents)}</span>${J.documents.map(pe=>`${k(pe.title)}${pe.page?` (${k(e.page(pe.page))})`:""}${u.docDescriptions!==!1&&pe.description?` \u2014 <span class="doc-desc">${k(pe.description)}</span>`:""}`).join(", ")}</div>`:"",re=u.qr&&J?.qrDataUri?`<figure class="qr"><img src="${k(J.qrDataUri)}" alt="" /><figcaption>${k(e.scanHint)}</figcaption></figure>`:"",Re=F.reduce((pe,O)=>pe+(O.cost??0),0);return`<section class="task">
+  `,_([E({attribute:!1})],lt.prototype,"hass",2),_([E({attribute:!1})],lt.prototype,"entryId",2),_([E({attribute:!1})],lt.prototype,"parts",2),_([E({type:Boolean})],lt.prototype,"canWrite",2),_([E({attribute:!1})],lt.prototype,"currencySymbol",2),_([f()],lt.prototype,"_editing",2),_([f()],lt.prototype,"_busy",2),_([f()],lt.prototype,"_error",2),_([f()],lt.prototype,"_restockFor",2),_([f()],lt.prototype,"_restockQty",2),_([f()],lt.prototype,"_restockInvalid",2),_([f()],lt.prototype,"_docsFor",2);customElements.get("maintenance-parts-section")||customElements.define("maintenance-parts-section",lt);var we={readings:!0,parts:!0,photos:!0,documents:!0,checklist:!0,notes:!0,costs:!0,person:!0,refs:!0,qr:!1,bare:!0,docDescriptions:!0};function Hs(l){return!!(l.notes&&l.notes.trim()||l.cost!=null||l.duration!=null||l.readings.length||l.parts.length||l.photoIds.length||l.checklist)}var Bs=6;function es(l,p,t,e,i,a,r,c={}){let n=c.options??{layout:"chronological",include:we},u=n.include,d=c.data??{objectRef:null,tasks:[],photos:{},fmtNumber:T=>String(T)},g=p.filter(T=>T.type==="completed"&&(u.bare!==!1||Hs(T))),{totalCost:m}=he(g),v=T=>u.refs&&d.objectRef&&T.taskRefNo!=null&&T.refNo!=null?`${d.objectRef}.${T.taskRefNo}-${T.refNo}`:null,y=T=>u.refs&&d.objectRef&&T.taskRefNo!=null?`${d.objectRef}.${T.taskRefNo}`:null,C=[[t.refNumber,u.refs&&d.objectRef?`#${d.objectRef}`:null],[t.manufacturer,l.manufacturer],[t.model,l.model],[t.serial,l.serial_number],[t.installed,l.installation_date?e(l.installation_date):null]].filter(([,T])=>T).map(([T,I])=>`<div class="meta-row"><span>${w(T)}</span><strong>${w(I)}</strong></div>`).join(""),$=T=>{let I=[];if(u.readings&&T.readings.length){let H=T.readings.map(z=>{let W=`${d.fmtNumber(z.value)}${z.unit?` ${w(z.unit)}`:""}`,Q=z.delta!=null?` <span class="delta">(${z.delta>=0?"+":"\u2212"}${d.fmtNumber(Math.abs(z.delta))})</span>`:"";return`${z.name?`${w(z.name)}: `:""}${W}${Q}`});I.push(`<div class="fact"><span class="k">${w(t.readings)}</span>${H.join(" \xB7 ")}</div>`)}if(u.parts&&T.parts.length&&I.push(`<div class="fact"><span class="k">${w(t.parts)}</span>${T.parts.map(H=>`${w(H.name)} \xD7 ${d.fmtNumber(H.quantity)}`).join(", ")}</div>`),u.checklist&&T.checklist&&I.push(`<div class="fact"><span class="k">${w(t.checklist)}</span>${T.checklist.done}/${T.checklist.total}</div>`),u.photos&&T.photoIds.length){let H=T.photoIds.slice(0,Bs),z=H.map(Q=>{let J=d.photos[Q],S=J?.name||Q.slice(0,8);return J?.url?`<figure class="photo"><img src="${w(J.url)}" alt="" /><figcaption>${w(S)}</figcaption></figure>`:`<figure class="photo"><figcaption>${w(S)}</figcaption></figure>`}),W=T.photoIds.length>H.length?`<span class="more">+${T.photoIds.length-H.length}</span>`:"";I.push(`<div class="fact"><span class="k">${w(t.photos)}</span><div class="photos">${z.join("")}${W}</div></div>`)}return I.length?`<div class="details">${I.join("")}</div>`:""},j=T=>[u.notes?T.notes:null,u.person&&T.completedBy?`${t.completedBy}: ${T.completedBy}`:null].filter(Boolean).join(" \xB7 "),x=T=>u.costs?`<td class="num">${T.cost!=null?w(a(T.cost)):w(t.none)}</td>
+        <td class="num">${T.duration!=null?w(i(T.duration)):w(t.none)}</td>`:"",M=T=>T?`<span class="ref">#${w(T)}</span>`:"",b=u.costs?5:3,D=T=>`<thead><tr>
+    <th>${w(t.colDate)}</th>
+    ${T?`<th>${w(t.colTask)}</th>`:"<th></th>"}
+    ${u.costs?`<th class="num">${w(t.colCost)}</th><th class="num">${w(t.colDuration)}</th>`:""}
+    <th>${w(t.colNotes)}</th>
+  </tr></thead>`,at=(T,I)=>{let H=j(T),z=$(T),W=I?w(T.phaseName?`${T.taskName} \xB7 ${T.phaseName}`:T.taskName):w(T.phaseName||"");return`<tr class="entry">
+        <td class="nowrap">${w(e(T.timestamp))}${M(v(T))}</td>
+        <td>${I?`${W} ${M(y(T))}`:W}</td>
+        ${x(T)}
+        <td class="notes">${w(H)||(z?"":w(t.none))}</td>
+      </tr>${z?`<tr class="entry-details"><td colspan="${b}" class="details-cell">${z}</td></tr>`:""}`},pt;if(n.layout==="by_task"){let T=new Map(d.tasks.map(z=>[z.id,z])),I=[...d.tasks.map(z=>z.id)];for(let z of g)I.includes(z.taskId)||I.push(z.taskId);pt=`${I.map(z=>{let W=g.filter(ht=>ht.taskId===z);if(!W.length)return"";let Q=T.get(z),J=Q?.name||W[0].taskName,S=u.refs?Q?.ref??y(W[0]):null,X=u.documents&&Q?.documents.length?`<div class="fact"><span class="k">${w(t.documents)}</span>${Q.documents.map(ht=>`${w(ht.title)}${ht.page?` (${w(t.page(ht.page))})`:""}${u.docDescriptions!==!1&&ht.description?` \u2014 <span class="doc-desc">${w(ht.description)}</span>`:""}`).join(", ")}</div>`:"",rt=u.qr&&Q?.qrDataUri?`<figure class="qr"><img src="${w(Q.qrDataUri)}" alt="" /><figcaption>${w(t.scanHint)}</figcaption></figure>`:"",Dt=W.reduce((ht,O)=>ht+(O.cost??0),0);return`<section class="task">
   <div class="task-head">
     <div class="task-title">
-      <h2>${k(K)} ${D(j)}</h2>
-      ${J?.schedule?`<div class="schedule">${k(J.schedule)}</div>`:""}
+      <h2>${w(J)} ${M(S)}</h2>
+      ${Q?.schedule?`<div class="schedule">${w(Q.schedule)}</div>`:""}
       ${X}
-      <div class="task-count">${k(e.entriesLabel(F.length))}${u.costs&&Re!==0?` \xB7 ${k(a(Re))}`:""}</div>
+      <div class="task-count">${w(t.entriesLabel(W.length))}${u.costs&&Dt!==0?` \xB7 ${w(a(Dt))}`:""}</div>
     </div>
-    ${re}
+    ${rt}
   </div>
   <table>
-    ${b(!1)}
+    ${D(!1)}
     <tbody>
-${F.map(pe=>ie(pe,!1)).join(`
+${W.map(ht=>at(ht,!1)).join(`
 `)}
     </tbody>
   </table>
@@ -3027,25 +3027,25 @@ ${F.map(pe=>ie(pe,!1)).join(`
 `)}
 <table class="total">
   <tfoot><tr>
-    <td>${k(e.totalLabel)}</td>
-    <td class="num">${u.costs?k(a(v)):""}</td>
+    <td>${w(t.totalLabel)}</td>
+    <td class="num">${u.costs?w(a(m)):""}</td>
   </tr></tfoot>
-</table>`}else _e=`<table>
-  ${b(!0)}
+</table>`}else pt=`<table>
+  ${D(!0)}
   <tbody>
-${_.map($=>ie($,!0)).join(`
+${g.map(T=>at(T,!0)).join(`
 `)}
   </tbody>
   <tfoot><tr>
-    <td colspan="2">${k(e.totalLabel)}</td>
-    ${u.costs?`<td class="num">${k(a(v))}</td><td colspan="2"></td>`:"<td></td>"}
+    <td colspan="2">${w(t.totalLabel)}</td>
+    ${u.costs?`<td class="num">${w(a(m))}</td><td colspan="2"></td>`:"<td></td>"}
   </tr></tfoot>
 </table>`;return`<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <meta name="color-scheme" content="light">
-<title>${k(e.title)} \u2014 ${k(c.name)}</title>
+<title>${w(t.title)} \u2014 ${w(l.name)}</title>
 <style>
   /* Printable sheet: it opens as a blob in whatever viewer the OS supplies
      (Companion = WebView, dark phones paint a dark default canvas), so the
@@ -3093,29 +3093,29 @@ ${_.map($=>ie($,!0)).join(`
 </style>
 </head>
 <body>
-<h1>${k(e.title)} \u2014 ${k(c.name)}</h1>
-<p class="sub">${k(e.generated)} ${k(t(r))} \xB7 ${k(e.entriesLabel(_.length))}</p>
-${M?`<div class="meta">${M}</div>`:""}
-${_e}
-${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
+<h1>${w(t.title)} \u2014 ${w(l.name)}</h1>
+<p class="sub">${w(t.generated)} ${w(e(r))} \xB7 ${w(t.entriesLabel(g.length))}</p>
+${C?`<div class="meta">${C}</div>`:""}
+${pt}
+${c.capped?`<p class="cap-note">${w(t.capNote)}</p>`:""}
 </body>
-</html>`}var Es=60,ee=class extends N{constructor(){super(...arguments);this.entryId="";this.object=null;this.tasks=[];this.currencySymbol="\u20AC";this.userName=()=>null;this._full={};this._loading=!1;this._filterTask="";this._from="";this._to="";this._expanded=!1;this._printOpen=!1;this._printLayout="chronological";this._printInclude={...xt};this._printing=!1;this._loadedFor=null;this._loadedSignature="";this._loadSeq=0;this._localeReady=!1}connectedCallback(){super.connectedCallback();try{let e=JSON.parse(Z(A.printOptions)||"null");(e?.layout==="by_task"||e?.layout==="chronological")&&(this._printLayout=e.layout),e?.include&&typeof e.include=="object"&&(this._printInclude={...xt,...e.include})}catch{}}_savePrintOptions(){W(A.printOptions,JSON.stringify({layout:this._printLayout,include:this._printInclude}))}_toggleInclude(e,t){this._printInclude={...this._printInclude,[e]:t},this._savePrintOptions()}get _lang(){return G(this.hass)}updated(e){if(super.updated(e),!this._localeReady&&this.hass&&(this._localeReady=!0,oe(this._lang).then(()=>this.requestUpdate())),this.entryId&&this._loadedFor!==this.entryId)this._loadedFor=this.entryId,this._full={},this._filterTask="",this._from="",this._to="",this._loadedSignature=this._historySignature(),this._loadFullHistories();else if(this.entryId&&e.has("tasks")){let t=this._historySignature();t!==this._loadedSignature&&(this._loadedSignature=t,this._loadFullHistories())}}_historySignature(){return JSON.stringify(this.tasks.map(e=>[e.id,e.history_count??null,e.history??[]]))}async _loadFullHistories(){let e=this.entryId,t=this.tasks,i=++this._loadSeq;if(!t.length){this._full={},this._loading=!1;return}this._loading=!0;let a=await Promise.all(t.map(async r=>{try{let l=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/history",entry_id:e,task_id:r.id});return[r.id,l.history??[]]}catch{return[r.id,r.history??[]]}}));this.entryId!==e||i!==this._loadSeq||(this._full=Object.fromEntries(a),this._loading=!1)}get _entries(){return vi(this.tasks.map(e=>({id:e.id,name:e.name,history:this._full[e.id]??e.history??[],ref_no:e.ref_no,reading_unit:e.reading_unit})))}get _capped(){return Object.values(this._full).some(e=>e.length>=mi)}_openTask(e){this.dispatchEvent(new CustomEvent("open-task",{detail:{taskId:e},bubbles:!0,composed:!0}))}async _bookletData(e){let t=this._printInclude,i=this._lang,a=[];if(t.documents||t.photos)try{a=(await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/list",entry_id:this.entryId})).documents||[]}catch{a=[]}let r=new Map;t.qr&&this._printLayout==="by_task"&&await Promise.all(this.tasks.map(async u=>{try{let p=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/qr/generate",entry_id:this.entryId,task_id:u.id,url_mode:"server",action:"view"});p.svg_data_uri&&r.set(u.id,p.svg_data_uri)}catch{}}));let l=this.tasks.map(u=>({id:u.id,name:u.name,ref:ke(this.object,u),schedule:Oe(u,i)||null,documents:a.filter(p=>(p.task_ids||[]).includes(u.id)&&!(p.tags||[]).includes("photo")).map(p=>({title:ne(p),page:p.task_pages?.[u.id]??null,description:p.description||null})),qrDataUri:r.get(u.id)??null})),n={};if(t.photos){let u=[...new Set(e.filter(_=>_.type==="completed").flatMap(_=>_.photoIds))].slice(0,Es),p=new Map(a.map(_=>[_.id,_]));await Promise.all(u.map(async _=>{let v=p.get(_),f=v&&ne(v)||_.slice(0,8);try{n[_]={name:f,url:new URL(await rt(this.hass,_),window.location.origin).href}}catch{n[_]={name:f,url:null}}}))}return{tasks:l,photos:n}}async _print(e){let t=this._lang,i=this.object;if(!i||this._printing)return;let a=nt();this._printing=!0;let r;try{r=await this._bookletData(e)}catch(p){throw a?.close(),p}finally{this._printing=!1}this._printOpen=!1;let l={title:s("service_record_title",t),generated:s("report_generated",t),manufacturer:s("manufacturer",t),model:s("model",t),serial:s("serial_number_label",t),installed:s("installed",t),colDate:s("date",t),colTask:s("task_name",t),colCost:s("cost",t),colDuration:s("duration",t),colNotes:s("notes_label",t),completedBy:s("completed_by",t),totalLabel:s("report_total_cost",t),entriesLabel:p=>`${p} ${s("service_record_entries",t)}`,capNote:s("object_history_cap_note",t),none:"\u2014",readings:s("print_inc_readings",t),parts:s("print_inc_parts",t),photos:s("print_inc_photos",t),documents:s("print_inc_documents",t),checklist:s("print_inc_checklist",t),refNumber:s("ref_number",t),scanHint:s("report_scan_hint",t),page:p=>s("search_page",t).replace("{page}",String(p))},n=e.map(p=>({...p,completedBy:p.completedBy?this.userName(p.completedBy):null,notes:p.notes?ht(p.notes,t):null})),u=Qi(i,n,l,p=>p?V(p,t):"",p=>Ve(p,t),p=>U(p,this.currencySymbol,t),new Date().toISOString(),{capped:this._capped,options:{layout:this._printLayout,include:this._printInclude},data:{objectRef:we(i),tasks:r.tasks,photos:r.photos,fmtNumber:p=>Q(p,t)}});Ke(u,a)}_renderPrintOptions(e){let t=this._lang,i=this._printInclude,a=(l,n,u=!1)=>o`
+</html>`}var Ns=60,tt=class extends N{constructor(){super(...arguments);this.entryId="";this.object=null;this.tasks=[];this.currencySymbol="\u20AC";this.userName=()=>null;this._full={};this._loading=!1;this._filterTask="";this._from="";this._to="";this._expanded=!1;this._printOpen=!1;this._printLayout="chronological";this._printInclude={...we};this._printing=!1;this._loadedFor=null;this._loadedSignature="";this._loadSeq=0;this._localeReady=!1}connectedCallback(){super.connectedCallback();try{let t=JSON.parse(Z(A.printOptions)||"null");(t?.layout==="by_task"||t?.layout==="chronological")&&(this._printLayout=t.layout),t?.include&&typeof t.include=="object"&&(this._printInclude={...we,...t.include})}catch{}}_savePrintOptions(){V(A.printOptions,JSON.stringify({layout:this._printLayout,include:this._printInclude}))}_toggleInclude(t,e){this._printInclude={...this._printInclude,[t]:e},this._savePrintOptions()}get _lang(){return K(this.hass)}updated(t){if(super.updated(t),!this._localeReady&&this.hass&&(this._localeReady=!0,ot(this._lang).then(()=>this.requestUpdate())),this.entryId&&this._loadedFor!==this.entryId)this._loadedFor=this.entryId,this._full={},this._filterTask="",this._from="",this._to="",this._loadedSignature=this._historySignature(),this._loadFullHistories();else if(this.entryId&&t.has("tasks")){let e=this._historySignature();e!==this._loadedSignature&&(this._loadedSignature=e,this._loadFullHistories())}}_historySignature(){return JSON.stringify(this.tasks.map(t=>[t.id,t.history_count??null,t.history??[]]))}async _loadFullHistories(){let t=this.entryId,e=this.tasks,i=++this._loadSeq;if(!e.length){this._full={},this._loading=!1;return}this._loading=!0;let a=await Promise.all(e.map(async r=>{try{let c=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/history",entry_id:t,task_id:r.id});return[r.id,c.history??[]]}catch{return[r.id,r.history??[]]}}));this.entryId!==t||i!==this._loadSeq||(this._full=Object.fromEntries(a),this._loading=!1)}get _entries(){return xi(this.tasks.map(t=>({id:t.id,name:t.name,history:this._full[t.id]??t.history??[],ref_no:t.ref_no,reading_unit:t.reading_unit})))}get _capped(){return Object.values(this._full).some(t=>t.length>=yi)}_openTask(t){this.dispatchEvent(new CustomEvent("open-task",{detail:{taskId:t},bubbles:!0,composed:!0}))}async _bookletData(t){let e=this._printInclude,i=this._lang,a=[];if(e.documents||e.photos)try{a=(await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/list",entry_id:this.entryId})).documents||[]}catch{a=[]}let r=new Map;e.qr&&this._printLayout==="by_task"&&await Promise.all(this.tasks.map(async u=>{try{let d=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/qr/generate",entry_id:this.entryId,task_id:u.id,url_mode:"server",action:"view"});d.svg_data_uri&&r.set(u.id,d.svg_data_uri)}catch{}}));let c=this.tasks.map(u=>({id:u.id,name:u.name,ref:jt(this.object,u),schedule:At(u,i)||null,documents:a.filter(d=>(d.task_ids||[]).includes(u.id)&&!Xi(d)).map(d=>({title:nt(d),page:d.task_pages?.[u.id]??null,description:d.description||null})),qrDataUri:r.get(u.id)??null})),n={};if(e.photos){let u=[...new Set(t.filter(g=>g.type==="completed").flatMap(g=>g.photoIds))].slice(0,Ns),d=new Map(a.map(g=>[g.id,g]));await Promise.all(u.map(async g=>{let m=d.get(g),v=m&&nt(m)||g.slice(0,8);try{n[g]={name:v,url:new URL(await ne(this.hass,g),window.location.origin).href}}catch{n[g]={name:v,url:null}}}))}return{tasks:c,photos:n}}async _print(t){let e=this._lang,i=this.object;if(!i||this._printing)return;let a=ce();this._printing=!0;let r;try{r=await this._bookletData(t)}catch(d){throw a?.close(),d}finally{this._printing=!1}this._printOpen=!1;let c={title:s("service_record_title",e),generated:s("report_generated",e),manufacturer:s("manufacturer",e),model:s("model",e),serial:s("serial_number_label",e),installed:s("installed",e),colDate:s("date",e),colTask:s("task_name",e),colCost:s("cost",e),colDuration:s("duration",e),colNotes:s("notes_label",e),completedBy:s("completed_by",e),totalLabel:s("report_total_cost",e),entriesLabel:d=>`${d} ${s("service_record_entries",e)}`,capNote:s("object_history_cap_note",e),none:"\u2014",readings:s("print_inc_readings",e),parts:s("print_inc_parts",e),photos:s("print_inc_photos",e),documents:s("print_inc_documents",e),checklist:s("print_inc_checklist",e),refNumber:s("ref_number",e),scanHint:s("report_scan_hint",e),page:d=>s("search_page",e).replace("{page}",String(d))},n=t.map(d=>({...d,completedBy:d.completedBy?this.userName(d.completedBy):null,notes:d.notes?ue(d.notes,e):null})),u=es(i,n,c,d=>d?U(d,e):"",d=>Gt(d,e),d=>F(d,this.currencySymbol,e),new Date().toISOString(),{capped:this._capped,options:{layout:this._printLayout,include:this._printInclude},data:{objectRef:$t(i),tasks:r.tasks,photos:r.photos,fmtNumber:d=>Y(d,e)}});Qt(u,a)}_renderPrintOptions(t){let e=this._lang,i=this._printInclude,a=(c,n,u=!1)=>o`
       <label class="opt ${u?"disabled":""}">
-        <input type="checkbox" .checked=${i[l]} ?disabled=${u}
-          @change=${p=>this._toggleInclude(l,p.target.checked)} />
-        <span>${s(n,t)}</span>
+        <input type="checkbox" .checked=${i[c]} ?disabled=${u}
+          @change=${d=>this._toggleInclude(c,d.target.checked)} />
+        <span>${s(n,e)}</span>
       </label>`,r=this._printLayout==="by_task";return o`
-      <div class="print-options" role="dialog" aria-label=${s("print_options_title",t)}>
-        <div class="po-title">${s("print_options_title",t)}</div>
+      <div class="print-options" role="dialog" aria-label=${s("print_options_title",e)}>
+        <div class="po-title">${s("print_options_title",e)}</div>
         <div class="po-group">
-          <span class="po-label">${s("print_layout",t)}</span>
+          <span class="po-label">${s("print_layout",e)}</span>
           <label class="opt"><input type="radio" name="layout" value="chronological" .checked=${!r}
-            @change=${()=>{this._printLayout="chronological",this._savePrintOptions()}} /><span>${s("print_layout_chronological",t)}</span></label>
+            @change=${()=>{this._printLayout="chronological",this._savePrintOptions()}} /><span>${s("print_layout_chronological",e)}</span></label>
           <label class="opt"><input type="radio" name="layout" value="by_task" .checked=${r}
-            @change=${()=>{this._printLayout="by_task",this._savePrintOptions()}} /><span>${s("print_layout_by_task",t)}</span></label>
+            @change=${()=>{this._printLayout="by_task",this._savePrintOptions()}} /><span>${s("print_layout_by_task",e)}</span></label>
         </div>
         <div class="po-group">
-          <span class="po-label">${s("print_include",t)}</span>
+          <span class="po-label">${s("print_include",e)}</span>
           ${a("readings","print_inc_readings")}
           ${a("parts","print_inc_parts")}
           ${a("photos","print_inc_photos")}
@@ -3130,35 +3130,35 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
           ${a("qr","print_inc_qr",!r)}
         </div>
         <div class="po-actions">
-          <ha-button appearance="plain" @click=${()=>{this._printOpen=!1}}>${s("cancel",t)}</ha-button>
-          <ha-button appearance="filled" class="po-print" .disabled=${this._printing} @click=${()=>this._print(e)}>
-            ${this._printing?s("loading",t):s("print_button",t)}
+          <ha-button appearance="plain" @click=${()=>{this._printOpen=!1}}>${s("cancel",e)}</ha-button>
+          <ha-button appearance="filled" class="po-print" .disabled=${this._printing} @click=${()=>this._print(t)}>
+            ${this._printing?s("loading",e):s("print_button",e)}
           </ha-button>
         </div>
-      </div>`}render(){let e=this._lang,t=this._entries;if(!t.length&&!this._loading)return h;let i=fi(t,{taskId:this._filterTask||null,from:this._from||null,to:this._to||null}),{completed:a,totalCost:r}=pt(i),l=this._expanded?i:i.slice(0,15);return o`
+      </div>`}render(){let t=this._lang,e=this._entries;if(!e.length&&!this._loading)return h;let i=ki(e,{taskId:this._filterTask||null,from:this._from||null,to:this._to||null}),{completed:a,totalCost:r}=he(i),c=this._expanded?i:i.slice(0,15);return o`
       <div class="section">
         <h3>
-          ${s("object_history_section",e)}
+          ${s("object_history_section",t)}
           <span class="count">${i.length}</span>
-          ${this._loading?o`<span class="loading-hint">${s("loading",e)}</span>`:h}
+          ${this._loading?o`<span class="loading-hint">${s("loading",t)}</span>`:h}
           <ha-button appearance="plain" class="print-btn" @click=${()=>{this._printOpen=!this._printOpen}}>
             <ha-icon icon="mdi:printer-outline"></ha-icon>
-            ${s("service_record_print",e)}
+            ${s("service_record_print",t)}
           </ha-button>
         </h3>
         ${this._printOpen?this._renderPrintOptions(i):h}
 
         <div class="filters">
           <select .value=${this._filterTask} @change=${n=>{this._filterTask=n.target.value}}>
-            <option value="">${s("object_history_all_tasks",e)}</option>
+            <option value="">${s("object_history_all_tasks",t)}</option>
             ${this.tasks.map(n=>o`<option value=${n.id} ?selected=${n.id===this._filterTask}>${n.name}</option>`)}
           </select>
           <ms-date-field
             kind="date"
             clearable
             .hass=${this.hass}
-            .lang=${e}
-            .label=${s("date_from",e)}
+            .lang=${t}
+            .label=${s("date_from",t)}
             .value=${this._from}
             @value-changed=${n=>{this._from=n.detail.value}}
           ></ms-date-field>
@@ -3166,41 +3166,41 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
             kind="date"
             clearable
             .hass=${this.hass}
-            .lang=${e}
-            .label=${s("date_to",e)}
+            .lang=${t}
+            .label=${s("date_to",t)}
             .value=${this._to}
             @value-changed=${n=>{this._to=n.detail.value}}
           ></ms-date-field>
         </div>
 
-        ${i.length===0?o`<p class="empty">${s("object_history_empty",e)}</p>`:o`
+        ${i.length===0?o`<p class="empty">${s("object_history_empty",t)}</p>`:o`
               <div class="rows">
-                ${l.map(n=>o`
+                ${c.map(n=>o`
                   <div class="row">
-                    <span class="date" title=${Yt(n.timestamp,e)}>${V(n.timestamp,e)}</span>
-                    <span class="type type-${n.type}">${s(n.type,e)}</span>
+                    <span class="date" title=${si(n.timestamp,t)}>${U(n.timestamp,t)}</span>
+                    <span class="type type-${n.type}">${s(n.type,t)}</span>
                     <button class="task-link" @click=${()=>this._openTask(n.taskId)}>${n.taskName}${n.phaseName?` \xB7 ${n.phaseName}`:""}</button>
                     <span class="facts">
-                      ${n.cost!=null?o`<span>${U(n.cost,this.currencySymbol,e)}</span>`:h}
-                      ${n.partsCost!=null?o`<span class="parts-cost" title=${s(n.partsCounted?"history_parts_counted_hint":"history_parts_info_hint",e)}>${s(n.partsCounted?"history_parts_counted":"history_parts_info",e).replace("{amount}",U(n.partsCost,this.currencySymbol,e))}</span>`:h}
-                      ${n.purchaseCost!=null?o`<span class="parts-cost">${s("history_purchase_stock",e).replace("{amount}",U(n.purchaseCost,this.currencySymbol,e))}</span>`:h}
-                      ${n.duration!=null?o`<span>${Ve(n.duration,e)}</span>`:h}
+                      ${n.cost!=null?o`<span>${F(n.cost,this.currencySymbol,t)}</span>`:h}
+                      ${n.partsCost!=null?o`<span class="parts-cost" title=${s(n.partsCounted?"history_parts_counted_hint":"history_parts_info_hint",t)}>${s(n.partsCounted?"history_parts_counted":"history_parts_info",t).replace("{amount}",F(n.partsCost,this.currencySymbol,t))}</span>`:h}
+                      ${n.purchaseCost!=null?o`<span class="parts-cost">${s("history_purchase_stock",t).replace("{amount}",F(n.purchaseCost,this.currencySymbol,t))}</span>`:h}
+                      ${n.duration!=null?o`<span>${Gt(n.duration,t)}</span>`:h}
                     </span>
-                    ${n.notes?o`<span class="notes" title=${ht(n.notes,e)}>${ht(n.notes,e)}</span>`:h}
+                    ${n.notes?o`<span class="notes" title=${ue(n.notes,t)}>${ue(n.notes,t)}</span>`:h}
                   </div>
                 `)}
               </div>
-              ${i.length>l.length?o`<ha-button appearance="plain" class="more" @click=${()=>{this._expanded=!0}}>
-                    ${s("show_all",e)} (${i.length})
+              ${i.length>c.length?o`<ha-button appearance="plain" class="more" @click=${()=>{this._expanded=!0}}>
+                    ${s("show_all",t)} (${i.length})
                   </ha-button>`:h}
               <div class="totals">
-                ${a} ${s("service_record_entries",e)} · ${s("report_total_cost",e)}:
-                <strong>${U(r,this.currencySymbol,e)}</strong>
+                ${a} ${s("service_record_entries",t)} · ${s("report_total_cost",t)}:
+                <strong>${F(r,this.currencySymbol,t)}</strong>
               </div>
-              ${this._capped?o`<p class="cap-note">${s("object_history_cap_note",e)}</p>`:h}
+              ${this._capped?o`<p class="cap-note">${s("object_history_cap_note",t)}</p>`:h}
             `}
       </div>
-    `}};ee.styles=B`
+    `}};tt.styles=B`
     .section { margin-top: 28px; }
     h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; }
     .count {
@@ -3268,183 +3268,183 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
     @media (max-width: 640px) {
       .notes { padding-left: 0; }
     }
-  `,g([E({attribute:!1})],ee.prototype,"hass",2),g([E()],ee.prototype,"entryId",2),g([E({attribute:!1})],ee.prototype,"object",2),g([E({attribute:!1})],ee.prototype,"tasks",2),g([E()],ee.prototype,"currencySymbol",2),g([E({attribute:!1})],ee.prototype,"userName",2),g([m()],ee.prototype,"_full",2),g([m()],ee.prototype,"_loading",2),g([m()],ee.prototype,"_filterTask",2),g([m()],ee.prototype,"_from",2),g([m()],ee.prototype,"_to",2),g([m()],ee.prototype,"_expanded",2),g([m()],ee.prototype,"_printOpen",2),g([m()],ee.prototype,"_printLayout",2),g([m()],ee.prototype,"_printInclude",2),g([m()],ee.prototype,"_printing",2);customElements.get("maintenance-object-history-section")||customElements.define("maintenance-object-history-section",ee);var de=class de extends N{constructor(){super(...arguments);this.flat=!1;this._ov=null;this._loading=!1;this._marking=!1;this._error="";this._history=null;this._rosterSort=de._storedSort();this._typeFilter=null;this._recorded=[];this._access=Si;this._historyRequested=!1;this._localeReady=!1;this._markAll=async()=>{await this._mark(void 0)};this._repair=async()=>{await this._act({type:"maintenance_supporter/battery_fleet/setup",language:this._lang})};this._loadHistory=async e=>{let t=e.target.open;if(W(A.batteryRosterOpen,t?"1":"0"),!(!t||this._historyRequested)){this._historyRequested=!0;try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/battery_fleet/overview_history"});this._history=i.series}catch{this._history=null}}}}get _lang(){return G(this.hass)}get _canWrite(){return Ie(this.hass?.user,this._access)}connectedCallback(){super.connectedCallback(),this.hass&&this._load()}updated(e){ze(this,e),e.has("hass")&&this.hass&&!this._localeReady&&(this._localeReady=!0,oe(this._lang).then(()=>this.requestUpdate()),ut(this.hass).then(t=>{this._access=t.access}),this._ov===null&&!this._loading&&this._load())}async _load(){this._error="";let e=await P(this,{type:"maintenance_supporter/battery_fleet/overview"},{busy:t=>{this._loading=t},onError:t=>{this._error=t}});e!==void 0&&(this._ov=e)}async _act(e,t){this._marking||(this._error="",await P(this,e,{busy:i=>{this._marking=i},reload:async()=>{t?.(),await this._load()},onError:i=>{this._error=i}}))}async _mark(e){await this._act({type:"maintenance_supporter/battery_fleet/mark_replaced",...e?{entity_ids:e}:{}})}async _setExcluded(e,t){await this._act({type:"maintenance_supporter/battery_fleet/set_excluded",entity_id:e,excluded:t})}async _addBattery(e){let t=e.detail?.value;t&&await this._act({type:"maintenance_supporter/battery_fleet/set_included",entity_id:t,included:!0})}async _setTrackSelf(e){await this._setFleetOption("set_track_self_charging",e.target.checked)}async _setDueWithoutSensor(e){await this._setFleetOption("set_due_without_sensor",e.target.checked)}async _setFleetOption(e,t){await this._act({type:`maintenance_supporter/battery_fleet/${e}`,enabled:t})}_rosterOpen(){return Z(A.batteryRosterOpen)!=="0"}_predictedTitle(e,t){if(e.forecast_overdue)return s("battery_fleet_forecast_overdue",t);let i=this._predictedDate(e.days_until??0);if(e.predicted_source==="trend")return s("battery_fleet_predicted_trend",t).replace("{date}",i).replace("{confidence}",s("cal_confidence_"+(e.prediction_confidence||"medium"),t));if(e.lifetime_months!=null&&e.lifetime_source){let a=s("lifetime_source_"+e.lifetime_source,t).replace("{n}",String(e.lifetime_samples??0));return s("battery_fleet_predicted_typical",t).replace("{date}",i).replace("{months}",String(e.lifetime_months)).replace("{type}",e.battery_type).replace("{source}",a)}return s("battery_fleet_predicted_on",t).replace("{date}",i)}_sparkline(e){let t=this._history?.[e.entity_id];if(!t||t.points.length<2)return h;let i=110,a=24,r=2,l=t.points[0][0],n=t.points[t.points.length-1][0],u=Date.now()/1e3,p=e.status!=="low"&&e.predicted_source==="trend"&&e.days_until!=null?u+e.days_until*86400:null,_=Math.max(n,p??n),v=T=>_===l?r:r+(T-l)/(_-l)*(i-2*r),f=T=>r+(1-Math.min(100,Math.max(0,T))/100)*(a-2*r),y=t.points.map(([T,x])=>`${R(v(T))},${R(f(x))}`).join(" "),M=t.points[t.points.length-1][1],S=R(f(t.threshold));return o`<svg
+  `,_([E({attribute:!1})],tt.prototype,"hass",2),_([E()],tt.prototype,"entryId",2),_([E({attribute:!1})],tt.prototype,"object",2),_([E({attribute:!1})],tt.prototype,"tasks",2),_([E()],tt.prototype,"currencySymbol",2),_([E({attribute:!1})],tt.prototype,"userName",2),_([f()],tt.prototype,"_full",2),_([f()],tt.prototype,"_loading",2),_([f()],tt.prototype,"_filterTask",2),_([f()],tt.prototype,"_from",2),_([f()],tt.prototype,"_to",2),_([f()],tt.prototype,"_expanded",2),_([f()],tt.prototype,"_printOpen",2),_([f()],tt.prototype,"_printLayout",2),_([f()],tt.prototype,"_printInclude",2),_([f()],tt.prototype,"_printing",2);customElements.get("maintenance-object-history-section")||customElements.define("maintenance-object-history-section",tt);async function is(l,p,t,e){try{let i=await l.connection.sendMessagePromise({type:"maintenance_supporter/task/undo",entry_id:p,task_id:t});return{ok:!0,message:s(i?.action_ran?"undo_done_action_ran":"undo_done",e)}}catch(i){let a=i?.code;return a==="changed_since"?{ok:!1,message:s("undo_changed",e)}:a==="nothing_to_undo"?{ok:!1,message:s("undo_nothing",e)}:{ok:!1,message:s("action_error",e)}}}var dt=class dt extends N{constructor(){super(...arguments);this.flat=!1;this._ov=null;this._loading=!1;this._marking=!1;this._error="";this._history=null;this._rosterSort=dt._storedSort();this._typeFilter=null;this._recorded=[];this._access=Ci;this._historyRequested=!1;this._localeReady=!1;this._markAll=async()=>{await this._mark(void 0)};this._repair=async()=>{await this._act({type:"maintenance_supporter/battery_fleet/setup",language:this._lang})};this._loadHistory=async t=>{let e=t.target.open;if(V(A.batteryRosterOpen,e?"1":"0"),!(!e||this._historyRequested)){this._historyRequested=!0;try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/battery_fleet/overview_history"});this._history=i.series}catch{this._history=null}}}}get _lang(){return K(this.hass)}get _canWrite(){return Bt(this.hass?.user,this._access)}connectedCallback(){super.connectedCallback(),this.hass&&this._load()}updated(t){Ht(this,t),t.has("hass")&&this.hass&&!this._localeReady&&(this._localeReady=!0,ot(this._lang).then(()=>this.requestUpdate()),ge(this.hass).then(e=>{this._access=e.access}),this._ov===null&&!this._loading&&this._load())}async _load(){this._error="";let t=await P(this,{type:"maintenance_supporter/battery_fleet/overview"},{busy:e=>{this._loading=e},onError:e=>{this._error=e}});t!==void 0&&(this._ov=t)}async _act(t,e){this._marking||(this._error="",await P(this,t,{busy:i=>{this._marking=i},reload:async()=>{e?.(),await this._load()},onError:i=>{this._error=i}}))}async _mark(t){await this._act({type:"maintenance_supporter/battery_fleet/mark_replaced",...t?{entity_ids:t}:{}})}async _setExcluded(t,e){await this._act({type:"maintenance_supporter/battery_fleet/set_excluded",entity_id:t,excluded:e})}async _addBattery(t){let e=t.detail?.value;e&&await this._act({type:"maintenance_supporter/battery_fleet/set_included",entity_id:e,included:!0})}async _setTrackSelf(t){await this._setFleetOption("set_track_self_charging",t.target.checked)}async _setDueWithoutSensor(t){await this._setFleetOption("set_due_without_sensor",t.target.checked)}async _setFleetOption(t,e){await this._act({type:`maintenance_supporter/battery_fleet/${t}`,enabled:e})}_rosterOpen(){return Z(A.batteryRosterOpen)!=="0"}_predictedTitle(t,e){if(t.forecast_overdue)return s("battery_fleet_forecast_overdue",e);let i=this._predictedDate(t.days_until??0);if(t.predicted_source==="trend")return s("battery_fleet_predicted_trend",e).replace("{date}",i).replace("{confidence}",s("cal_confidence_"+(t.prediction_confidence||"medium"),e));if(t.lifetime_months!=null&&t.lifetime_source){let a=s("lifetime_source_"+t.lifetime_source,e).replace("{n}",String(t.lifetime_samples??0));return s("battery_fleet_predicted_typical",e).replace("{date}",i).replace("{months}",String(t.lifetime_months)).replace("{type}",t.battery_type).replace("{source}",a)}return s("battery_fleet_predicted_on",e).replace("{date}",i)}_sparkline(t){let e=this._history?.[t.entity_id];if(!e||e.points.length<2)return h;let i=110,a=24,r=2,c=e.points[0][0],n=e.points[e.points.length-1][0],u=Date.now()/1e3,d=t.status!=="low"&&t.predicted_source==="trend"&&t.days_until!=null?u+t.days_until*86400:null,g=Math.max(n,d??n),m=j=>g===c?r:r+(j-c)/(g-c)*(i-2*r),v=j=>r+(1-Math.min(100,Math.max(0,j))/100)*(a-2*r),y=e.points.map(([j,x])=>`${R(m(j))},${R(v(x))}`).join(" "),C=e.points[e.points.length-1][1],$=R(v(e.threshold));return o`<svg
       class="bf-spark"
       viewBox="0 0 ${i} ${a}"
       role="img"
       aria-label=${s("battery_fleet_sparkline_hint",this._lang)}
     >
       <title>${s("battery_fleet_sparkline_hint",this._lang)}</title>
-      <line class="bf-spark-th" x1="0" y1=${S} x2=${i} y2=${S}></line>
+      <line class="bf-spark-th" x1="0" y1=${$} x2=${i} y2=${$}></line>
       <polyline class="bf-spark-line" points=${y}></polyline>
-      ${p!==null?o`<line
+      ${d!==null?o`<line
             class="bf-spark-proj"
-            x1=${R(v(n))}
-            y1=${R(f(M))}
-            x2=${R(v(p))}
-            y2=${S}
+            x1=${R(m(n))}
+            y1=${R(v(C))}
+            x2=${R(m(d))}
+            y2=${$}
           ></line>`:h}
-    </svg>`}static _storedSort(){return Z(A.batteryRosterSort)==="name"?"name":"urgency"}_setSort(e){this._rosterSort=e,W(A.batteryRosterSort,e)}_sortedRoster(e){let t=this._typeFilter===null?e:e.filter(a=>a.battery_type===this._typeFilter);if(this._rosterSort==="name")return t;let i=a=>a.status==="low"?-1e3+(a.level??101)/101:a.days_until??1/0;return[...t].sort((a,r)=>i(a)-i(r)||a.device_name.localeCompare(r.device_name))}_predictedDate(e){return this._fmtDate(Date.now()+e*864e5)}_fmtDate(e){return V(je(new Date(e)),this._lang)}_shoppingLine(e){return Object.entries(e).map(([t,i])=>o`<button
-        class="bf-type-chip ${this._typeFilter===t?"bf-type-chip-active":""}"
+    </svg>`}static _storedSort(){return Z(A.batteryRosterSort)==="name"?"name":"urgency"}_setSort(t){this._rosterSort=t,V(A.batteryRosterSort,t)}_sortedRoster(t){let e=this._typeFilter===null?t:t.filter(a=>a.battery_type===this._typeFilter);if(this._rosterSort==="name")return e;let i=a=>a.status==="low"?-1e3+(a.level??101)/101:a.days_until??1/0;return[...e].sort((a,r)=>i(a)-i(r)||a.device_name.localeCompare(r.device_name))}_predictedDate(t){return U(St(yt(),t),this._lang)}_fmtDate(t){return Number.isFinite(t)?U(new Date(t).toISOString(),this._lang):"\u2014"}_shoppingLine(t){return Object.entries(t).map(([e,i])=>o`<button
+        class="bf-type-chip ${this._typeFilter===e?"bf-type-chip-active":""}"
         title=${s("battery_fleet_filter_type",this._lang)}
-        @click=${()=>this._toggleTypeFilter(t)}
+        @click=${()=>this._toggleTypeFilter(e)}
       >
-        ${i}× ${t}
-      </button>`)}_toggleTypeFilter(e){if(this._typeFilter=this._typeFilter===e?null:e,this._typeFilter!==null){let t=this.shadowRoot?.querySelector("details.bf-roster");t&&!t.open&&(t.open=!0)}}async _recordJump(e,t){await this._act({type:"maintenance_supporter/battery_fleet/record_replacement",entity_id:e,replaced_at:new Date(t.at*1e3).toISOString()},()=>{this._recorded=[...this._recorded,e]})}_levelBar(e){let t=e.level;if(t==null)return h;let i=e.low_threshold??20,a=t<=i?"bad":t<=i+20?"warn":"good";return o`<span class="bf-bar" aria-hidden="true"
-      ><span class="bf-bar-fill bf-bar-${a}" style="width: ${Math.min(100,Math.max(0,t))}%"></span
-    ></span>`}_jumpButton(e,t){let i=this._history?.[e.entity_id]?.jump;return!i||this._recorded.includes(e.entity_id)?h:o`<button
+        ${i}× ${e}
+      </button>`)}_toggleTypeFilter(t){if(this._typeFilter=this._typeFilter===t?null:t,this._typeFilter!==null){let e=this.shadowRoot?.querySelector("details.bf-roster");e&&!e.open&&(e.open=!0)}}async _recordJump(t,e){await this._act({type:"maintenance_supporter/battery_fleet/record_replacement",entity_id:t,replaced_at:new Date(e.at*1e3).toISOString()},()=>{this._recorded=[...this._recorded,t]})}_levelBar(t){let e=t.level;if(e==null)return h;let i=t.low_threshold??20,a=e<=i?"bad":e<=i+20?"warn":"good";return o`<span class="bf-bar" aria-hidden="true"
+      ><span class="bf-bar-fill bf-bar-${a}" style="width: ${Math.min(100,Math.max(0,e))}%"></span
+    ></span>`}_jumpButton(t,e){let i=this._history?.[t.entity_id]?.jump;return!i||this._recorded.includes(t.entity_id)?h:o`<button
       class="bf-mark bf-jump"
-      title=${s("battery_fleet_record_replacement",t).replace("{date}",this._fmtDate(i.at*1e3))}
+      title=${s("battery_fleet_record_replacement",e).replace("{date}",this._fmtDate(i.at*1e3))}
       .disabled=${this._marking}
-      @click=${()=>this._recordJump(e.entity_id,i)}
+      @click=${()=>this._recordJump(t.entity_id,i)}
     >
       <ha-icon icon="mdi:calendar-sync"></ha-icon>
-    </button>`}_renderRow(e,t,i){let a=e.available===!1?o`<span class="bf-offline">${s("battery_fleet_offline",t)}</span>`:e.no_sensor?o`<span class="bf-offline bf-nosensor">${s("battery_fleet_no_sensor",t)}</span>`:h,r=`${e.quantity}\xD7 ${e.battery_type}`,l=o`<span class="bf-type" title=${r}>${r}</span>`,n=this._canWrite,u=n&&(i.mark==="always"||e.no_sensor||e.can_mark_replaced);return o`
+    </button>`}_renderRow(t,e,i){let a=t.available===!1?o`<span class="bf-offline">${s("battery_fleet_offline",e)}</span>`:t.no_sensor?o`<span class="bf-offline bf-nosensor">${s("battery_fleet_no_sensor",e)}</span>`:h,r=`${t.quantity}\xD7 ${t.battery_type}`,c=o`<span class="bf-type" title=${r}>${r}</span>`,n=this._canWrite,u=n&&(i.mark==="always"||t.no_sensor||t.can_mark_replaced);return o`
       <div class="bf-row">
-        <span class="bf-dev">${e.device_name}</span>
-        ${i.status?o`<span class="bf-status bf-${e.status}"
-                >${e.no_sensor&&e.status==="low"?s("battery_fleet_status_due",t):s("battery_fleet_status_"+e.status,t)}</span
-              >${l}${a}`:o`${a}${l}`}
-        ${i.recharge&&e.rechargeable?o`<span class="bf-recharge" title=${s("battery_fleet_rechargeable",t)}
+        <span class="bf-dev">${t.device_name}</span>
+        ${i.status?o`<span class="bf-status bf-${t.status}"
+                >${t.no_sensor&&t.status==="low"?s("battery_fleet_status_due",e):s("battery_fleet_status_"+t.status,e)}</span
+              >${c}${a}`:o`${a}${c}`}
+        ${i.recharge&&t.rechargeable?o`<span class="bf-recharge" title=${s("battery_fleet_rechargeable",e)}
               ><ha-icon icon="mdi:battery-charging-outline"></ha-icon
             ></span>`:h}
-        ${i.sparkline?this._sparkline(e):h}
-        ${this._levelBar(e)}
-        ${e.level!=null?o`<span class="bf-level">${e.level}%</span>`:h}
+        ${i.sparkline?this._sparkline(t):h}
+        ${this._levelBar(t)}
+        ${t.level!=null?o`<span class="bf-level">${t.level}%</span>`:h}
         ${u?o`<button
               class="bf-mark${i.mark==="replaced"?" bf-replaced":""}"
-              title=${e.rechargeable?s("battery_fleet_mark_recharged",t):s("battery_fleet_mark_one",t)}
+              title=${t.rechargeable?s("battery_fleet_mark_recharged",e):s("battery_fleet_mark_one",e)}
               .disabled=${this._marking}
-              @click=${()=>this._mark([e.entity_id])}
+              @click=${()=>this._mark([t.entity_id])}
             >
               <ha-icon icon="mdi:battery-sync"></ha-icon>
             </button>`:h}
-        ${i.jump&&n?this._jumpButton(e,t):h}
-        ${i.predicted&&e.days_until!=null?o`<span
-              class="bf-predicted ${e.predicted_source==="trend"?"bf-trend":""} ${e.forecast_overdue?"bf-overdue":""}"
-              title=${this._predictedTitle(e,t)}
-              >${e.forecast_overdue?o`<ha-icon icon="mdi:calendar-alert"></ha-icon>`:h}~${this._predictedDate(e.days_until)}</span
+        ${i.jump&&n?this._jumpButton(t,e):h}
+        ${i.predicted&&t.days_until!=null?o`<span
+              class="bf-predicted ${t.predicted_source==="trend"?"bf-trend":""} ${t.forecast_overdue?"bf-overdue":""}"
+              title=${this._predictedTitle(t,e)}
+              >${t.forecast_overdue?o`<ha-icon icon="mdi:calendar-alert"></ha-icon>`:h}~${this._predictedDate(t.days_until)}</span
             >`:h}
         ${i.exclude&&n?o`<button
               class="bf-mark bf-exclude"
-              title=${s("battery_fleet_exclude",t)}
+              title=${s("battery_fleet_exclude",e)}
               .disabled=${this._marking}
-              @click=${()=>this._setExcluded(e.entity_id,!0)}
+              @click=${()=>this._setExcluded(t.entity_id,!0)}
             >
               <ha-icon icon="mdi:eye-off-outline"></ha-icon>
             </button>`:h}
       </div>
-    `}render(){let e=this._lang;if(this._loading&&this._ov===null)return o`<div class="bf-card"><div class="bf-loading">…</div></div>`;let t=this._ov;if(!t)return this._error?o`<div class="bf-card"><div class="bf-error">${this._error}</div></div>`:h;let i=t.low.length;return o`
+    `}render(){let t=this._lang;if(this._loading&&this._ov===null)return o`<div class="bf-card"><div class="bf-loading">…</div></div>`;let e=this._ov;if(!e)return this._error?o`<div class="bf-card"><div class="bf-error">${this._error}</div></div>`:h;let i=e.low.length;return o`
       <div class="bf-card">
         <div class="bf-head">
           <ha-icon icon="mdi:battery-alert"></ha-icon>
-          <span class="bf-title">${s("battery_fleet_title",e)}</span>
+          <span class="bf-title">${s("battery_fleet_title",t)}</span>
           <span class="bf-count ${i?"bad":"ok"}">${i}</span>
         </div>
         ${this._error?o`<div class="bf-error">${this._error}</div>`:h}
 
-        ${t.configured&&t.task_ok===!1?o`
+        ${e.configured&&e.task_ok===!1?o`
               <div class="bf-repair">
-                <span>${s("battery_fleet_trigger_lost",e)}</span>
+                <span>${s("battery_fleet_trigger_lost",t)}</span>
                 ${this._canWrite?o`<ha-button .disabled=${this._marking} @click=${this._repair}>
-                      ${s("battery_fleet_repair",e)}
+                      ${s("battery_fleet_repair",t)}
                     </ha-button>`:h}
               </div>
             `:h}
 
-        ${i===0?o`<div class="bf-empty">${s("battery_fleet_none_low",e)}</div>`:o`
+        ${i===0?o`<div class="bf-empty">${s("battery_fleet_none_low",t)}</div>`:o`
               <div class="bf-shopping">
-                <span class="bf-label">${s("battery_fleet_buy_now",e)}</span>
-                <span class="bf-list">${this._shoppingLine(t.needs_now)}</span>
+                <span class="bf-label">${s("battery_fleet_buy_now",t)}</span>
+                <span class="bf-list">${this._shoppingLine(e.needs_now)}</span>
               </div>
               <div class="bf-rows">
-                ${t.low.map(a=>this._renderRow(a,e,{recharge:!0,mark:"always",exclude:!0}))}
+                ${e.low.map(a=>this._renderRow(a,t,{recharge:!0,mark:"always",exclude:!0}))}
               </div>
               ${this._canWrite?o`<div class="bf-actions">
                     <ha-button .disabled=${this._marking} @click=${this._markAll}>
-                      <ha-icon icon="mdi:battery-sync"></ha-icon> ${s("battery_fleet_mark_all",e)}
+                      <ha-icon icon="mdi:battery-sync"></ha-icon> ${s("battery_fleet_mark_all",t)}
                     </ha-button>
                   </div>`:h}
             `}
 
-        ${t.soon.length?o`
+        ${e.soon.length?o`
               <div class="bf-soon">
-                <span class="bf-label">${s("battery_fleet_soon",e)}</span>
-                <span class="bf-list">${this._shoppingLine(t.needs_soon)}</span>
-                <div class="bf-soon-hint">${s("battery_fleet_soon_hint",e)}</div>
+                <span class="bf-label">${s("battery_fleet_soon",t)}</span>
+                <span class="bf-list">${this._shoppingLine(e.needs_soon)}</span>
+                <div class="bf-soon-hint">${s("battery_fleet_soon_hint",t)}</div>
               </div>
               <div class="bf-rows bf-soon-rows">
-                ${t.soon.map(a=>this._renderRow(a,e,{mark:"replaced",predicted:!0}))}
+                ${e.soon.map(a=>this._renderRow(a,t,{mark:"replaced",predicted:!0}))}
               </div>
             `:h}
-        ${t.all?.length?o`
+        ${e.all?.length?o`
               <details class="bf-roster" ?open=${this._rosterOpen()} @toggle=${this._loadHistory}>
-                <summary>${s("battery_fleet_all",e)} (${t.all.length})</summary>
+                <summary>${s("battery_fleet_all",t)} (${e.all.length})</summary>
                 <div class="bf-roster-tools">
                   <button
                     class="bf-sort ${this._rosterSort==="urgency"?"bf-sort-active":""}"
                     @click=${()=>this._setSort("urgency")}
                   >
-                    ${s("battery_fleet_sort_urgency",e)}
+                    ${s("battery_fleet_sort_urgency",t)}
                   </button>
                   <button
                     class="bf-sort ${this._rosterSort==="name"?"bf-sort-active":""}"
                     @click=${()=>this._setSort("name")}
                   >
-                    ${s("battery_fleet_sort_name",e)}
+                    ${s("battery_fleet_sort_name",t)}
                   </button>
                 </div>
                 <div class="bf-rows">
-                  ${this._sortedRoster(t.all).map(a=>this._renderRow(a,e,{status:!0,recharge:!0,sparkline:!0,mark:"replaced",jump:!0,predicted:!0,exclude:!0}))}
+                  ${this._sortedRoster(e.all).map(a=>this._renderRow(a,t,{status:!0,recharge:!0,sparkline:!0,mark:"replaced",jump:!0,predicted:!0,exclude:!0}))}
                 </div>
-                <div class="bf-roster-hint">${s("battery_fleet_all_hint",e)}</div>
-                ${this._canWrite?this._renderRosterSettings(t,e):h}
+                <div class="bf-roster-hint">${s("battery_fleet_all_hint",t)}</div>
+                ${this._canWrite?this._renderRosterSettings(e,t):h}
               </details>
             `:h}
-        ${this._renderExcluded(t,e)}
-        <div class="bf-total">${s("battery_fleet_total",e).replace("{n}",String(t.total))}</div>
+        ${this._renderExcluded(e,t)}
+        <div class="bf-total">${s("battery_fleet_total",t).replace("{n}",String(e.total))}</div>
       </div>
-    `}_renderRosterSettings(e,t){return o`
+    `}_renderRosterSettings(t,e){return o`
                 <div class="bf-add">
-                  <span class="bf-label">${s("battery_fleet_add",t)}</span>
+                  <span class="bf-label">${s("battery_fleet_add",e)}</span>
                   <ha-selector
                     .hass=${this.hass}
                     .selector=${{entity:{domain:["sensor","binary_sensor"]}}}
                     .value=${""}
                     @value-changed=${this._addBattery}
                   ></ha-selector>
-                  <div class="bf-roster-hint">${s("battery_fleet_add_hint",t)}</div>
+                  <div class="bf-roster-hint">${s("battery_fleet_add_hint",e)}</div>
                 </div>
                 <label class="bf-track-self">
                   <input
                     type="checkbox"
-                    .checked=${!!e.track_self_charging}
+                    .checked=${!!t.track_self_charging}
                     .disabled=${this._marking}
                     @change=${this._setTrackSelf}
                   />
-                  ${s("battery_fleet_track_self",t)}
+                  ${s("battery_fleet_track_self",e)}
                 </label>
-                <div class="bf-roster-hint">${s("battery_fleet_track_self_hint",t)}</div>
+                <div class="bf-roster-hint">${s("battery_fleet_track_self_hint",e)}</div>
                 <label class="bf-track-self bf-due-nosensor">
                   <input
                     type="checkbox"
-                    .checked=${e.due_without_sensor!==!1}
+                    .checked=${t.due_without_sensor!==!1}
                     .disabled=${this._marking}
                     @change=${this._setDueWithoutSensor}
                   />
-                  ${s("battery_fleet_due_without_sensor",t)}
+                  ${s("battery_fleet_due_without_sensor",e)}
                 </label>
-                <div class="bf-roster-hint">${s("battery_fleet_due_without_sensor_hint",t)}</div>
-    `}_renderExcluded(e,t){return o`
-        ${e.excluded?.length?o`
+                <div class="bf-roster-hint">${s("battery_fleet_due_without_sensor_hint",e)}</div>
+    `}_renderExcluded(t,e){return o`
+        ${t.excluded?.length?o`
               <div class="bf-excluded">
-                <span class="bf-label">${s("battery_fleet_excluded",t)}</span>
-                ${e.excluded.map(i=>o`
+                <span class="bf-label">${s("battery_fleet_excluded",e)}</span>
+                ${t.excluded.map(i=>o`
                     <span class="bf-excluded-chip">
                       ${i.device_name}
                       ${this._canWrite?o`<button
                             class="bf-mark"
-                            title=${s("battery_fleet_include",t)}
+                            title=${s("battery_fleet_include",e)}
                             .disabled=${this._marking}
                             @click=${()=>this._setExcluded(i.entity_id,!1)}
                           >
@@ -3454,7 +3454,7 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
                   `)}
               </div>
             `:h}
-    `}};de.styles=B`
+    `}};dt.styles=B`
     /* The query container of the row layout (see "In a narrow list" below):
      * the list's own width, not the screen's. */
     .bf-card {
@@ -3925,7 +3925,7 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
       accent-color: var(--primary-color);
       margin: 0;
     }
-  `,g([E({attribute:!1})],de.prototype,"hass",2),g([E({type:Boolean})],de.prototype,"flat",2),g([m()],de.prototype,"_ov",2),g([m()],de.prototype,"_loading",2),g([m()],de.prototype,"_marking",2),g([m()],de.prototype,"_error",2),g([m()],de.prototype,"_history",2),g([m()],de.prototype,"_rosterSort",2),g([m()],de.prototype,"_typeFilter",2),g([m()],de.prototype,"_recorded",2),g([m()],de.prototype,"_access",2);var Lt=de;customElements.get("maintenance-battery-fleet-section")||customElements.define("maintenance-battery-fleet-section",Lt);var Ji=B`
+  `,_([E({attribute:!1})],dt.prototype,"hass",2),_([E({type:Boolean})],dt.prototype,"flat",2),_([f()],dt.prototype,"_ov",2),_([f()],dt.prototype,"_loading",2),_([f()],dt.prototype,"_marking",2),_([f()],dt.prototype,"_error",2),_([f()],dt.prototype,"_history",2),_([f()],dt.prototype,"_rosterSort",2),_([f()],dt.prototype,"_typeFilter",2),_([f()],dt.prototype,"_recorded",2),_([f()],dt.prototype,"_access",2);var Fe=dt;customElements.get("maintenance-battery-fleet-section")||customElements.define("maintenance-battery-fleet-section",Fe);var ss=5;function qs(l,p){let t=[];for(let e=0;e<p;e++)t.push(St(l,e));return t}function Fs(l){if(!l||l.length===0)return null;let p=l.map(t=>Et(t)).filter(t=>t!==null&&t>=0);return p.length===0?null:p.reduce((t,e)=>t+e,0)/p.length}function Us(l){let{windowStart:p,windowEnd:t,task:e,entryId:i,objectName:a}=l,r=[],c=(g,m)=>({date:g,entry_id:i,task_id:e.id,task_name:e.name,object_name:a,status:m&&(e.status==="overdue"||e.status==="triggered")?"ok":e.status,days_until_due:m?null:e.days_until_due??null,projected:m,schedule_type:e.schedule_type,interval_days:e.interval_days??null,interval_unit:e.interval_unit??null,responsible_user_id:e.responsible_user_id??null,avg_cost:Fs(e.history),adaptive_enabled:!!e.adaptive_config?.enabled,prediction_confidence:e.threshold_prediction_confidence??null}),n=Math.max(1,Math.round(He(e.interval_days,e.interval_unit)));if(e.status==="overdue"||e.status==="triggered"){if(r.push(c(p,!1)),e.schedule_type==="time_based"&&e.interval_days&&e.interval_days>0){let g=St(p,n),m=1;for(;g<=t&&m<ss;)r.push(c(g,!0)),m++,g=St(g,n)}return r}let u=e.next_due;if(typeof u!="string"||!u)return r;let d=u.slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(d))return r;if(d>=p&&d<=t)r.push(c(d,!1));else if(d>t)return r;if(e.schedule_type==="time_based"&&e.interval_days&&e.interval_days>0){let g=St(d,n),m=r.length;for(;g<=t&&m<ss;)g>=p&&(r.push(c(g,!0)),m++),g=St(g,n)}return r}function as(l,p,t,e=null){let i=qs(p,t),a=i[0],r=i[i.length-1],c=[];for(let u of l){let d=u.object?.name||"",g=u.entry_id,m=u.tasks||[];for(let v of m){if(e&&v.responsible_user_id!==e||v.enabled===!1)continue;let y=Us({windowStart:a,windowEnd:r,task:v,entryId:g,objectName:d});c.push(...y)}}let n=new Map;for(let u of i)n.set(u,[]);for(let u of c){let d=n.get(u.date);d&&d.push(u)}for(let[,u]of n)u.sort((d,g)=>{let m=Ct(d.status),v=Ct(g.status);if(m!==v)return m-v;if(d.projected!==g.projected)return d.projected?1:-1;let y=d.object_name.localeCompare(g.object_name);return y!==0?y:d.task_name.localeCompare(g.task_name)});return i.map(u=>({date:u,events:n.get(u)??[]}))}var Vs={completed:"ok",reset:"ok",skipped:"due_soon",missed:"overdue",triggered:"triggered",trigger_replaced:"triggered",trigger_removed:"ok"};function $e(l,p){return`${l}/${p}`}function rs(l,p,t){let e=os(p,t)[0],i=[];for(let a of l)for(let r of a.tasks||[]){let c=r.history||[],n=r.history_count??c.length;if(n<=c.length)continue;let u=c.map(m=>Oe(m?.timestamp)).filter(m=>!!m),d=u.length?u.reduce((m,v)=>m<v?m:v):"";if(d&&d<e)continue;let g=$e(a.entry_id,r.id);i.push({entryId:a.entry_id,taskId:r.id,key:g,sig:`${g}:${n}:${Ws(JSON.stringify(c))}`})}return i}function Ws(l){let p=2166136261;for(let t=0;t<l.length;t++)p^=l.charCodeAt(t),p=Math.imul(p,16777619);return(p>>>0).toString(36)}function os(l,p){let t=[];for(let e=p-1;e>=0;e--)t.push(St(l,-e));return t}function ns(l,p,t,e=null,i={}){let a=os(p,t),r=a[0],c=a[a.length-1],n=new Map;for(let d of a)n.set(d,[]);for(let d of l){let g=d.object?.name||"",m=d.entry_id,v=d.tasks||[];for(let y of v){if(e&&y.responsible_user_id!==e)continue;let C=i[$e(m,y.id)]??(y.history||[]);for(let $ of C){if(typeof $?.timestamp!="string")continue;let j=Oe($.timestamp);if(!j||j<r||j>c)continue;let x=n.get(j);if(!x)continue;let M=$.type??"completed";x.push({date:j,entry_id:m,task_id:y.id,task_name:y.name,object_name:g,status:Vs[M]??"ok",days_until_due:null,projected:!1,schedule_type:y.schedule_type,interval_days:y.interval_days??null,responsible_user_id:y.responsible_user_id??null,avg_cost:Et($),adaptive_enabled:!!y.adaptive_config?.enabled,prediction_confidence:null,history_timestamp:$.timestamp,history_type:M,history_cost:Et($),history_notes:typeof $.notes=="string"?$.notes:null,history_duration:typeof $.duration=="number"?$.duration:null})}}}let u={completed:0,reset:1,skipped:2,triggered:3,trigger_replaced:4};for(let[,d]of n)d.sort((g,m)=>{let v=u[g.history_type??""]??99,y=u[m.history_type??""]??99;if(v!==y)return v-y;let C=g.object_name.localeCompare(m.object_name);return C!==0?C:g.task_name.localeCompare(m.task_name)});return a.map(d=>({date:d,events:n.get(d)??[]}))}var ls=B`
   .cal-controls {
     display: flex;
     gap: 12px;
@@ -4122,43 +4122,43 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
     .cal-pill-day { font-size: 17px; }
     .cal-user-filter { margin-left: 0; width: 100%; }
   }
-`;function Xi(c){let d=window;d.customCards=d.customCards||[],d.customCards.some(e=>e.type===c.type)||d.customCards.push(c)}function Zi(c,d,e=t=>import(t)){let t=window,i;try{let p=new URL(d);i=p.origin+p.pathname}catch{return}let a=`__msCardHeal:${c[0]}:${i}`;if(t[a])return;t[a]=!0;let r=0,l=0,n=!1,u=()=>{if(r+=1,c.some(_=>!customElements.get(_))&&l<3&&!n){l+=1,n=!0;try{let _=new URL(d);_.searchParams.set("heal",`${Date.now()}`),e(_.href).catch(()=>{}).finally(()=>{n=!1})}catch{return}}r<20&&window.setTimeout(u,r<8?500:2e3)};window.setTimeout(u,250)}var he=class extends N{constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-calendar-card"};this._objects=[];this._stats=null;this._windowDays=30;this._pastDays=0;this._userFilter="";this._objectFilter="";this._configuredObjects=[];this._unsub=null;this._pastHistory={};this._pastHistorySig="";this._pastSeq=0;this._dataLoaded=!1;this._lastConnection=null;this._onHistorySaved=e=>{let t=e.detail;!t?.entry_id||!t.task_id||!(oi(t.entry_id,t.task_id)in this._pastHistory)||(this._pastHistorySig="",this._loadPastHistories())}}static getConfigElement(){return document.createElement("maintenance-supporter-calendar-card-editor")}static getStubConfig(){return{type:"custom:maintenance-supporter-calendar-card",window_days:30,show_window_chips:!0,show_user_filter:!0}}setConfig(e){if(this._config={...e},this._windowDays=e.window_days&&[7,14,30,365].includes(e.window_days)?e.window_days:30,this._pastDays=e.past_days&&[30,90].includes(e.past_days)?e.past_days:0,this._userFilter=typeof e.user_filter=="string"?e.user_filter:"",typeof e.object_filter=="string")this._objectFilter=e.object_filter,this._configuredObjects=[];else if(Array.isArray(e.object_filter)){let t=e.object_filter.filter(i=>typeof i=="string"&&i!=="");this._objectFilter=t.length===1?t[0]:"",this._configuredObjects=t.length>1?t:[]}else this._objectFilter="",this._configuredObjects=[]}getCardSize(){return 6}get _lang(){return G(this.hass)}connectedCallback(){super.connectedCallback(),window.addEventListener("history-entry-saved",this._onHistorySaved)}disconnectedCallback(){if(super.disconnectedCallback(),window.removeEventListener("history-entry-saved",this._onHistorySaved),this._unsub){try{this._unsub()}catch{}this._unsub=null}this._dataLoaded=!1,this._lastConnection=null}updated(e){if(super.updated(e),ze(this,e),this.hass&&this._pastDays>0&&(e.has("_objects")||e.has("_pastDays"))&&this._loadPastHistories(),e.has("hass")&&this.hass){if(!this._dataLoaded)this._dataLoaded=!0,this._lastConnection=this.hass.connection,this._loadData(),this._subscribe();else if(this.hass.connection!==this._lastConnection){if(this._lastConnection=this.hass.connection,this._unsub){try{this._unsub()}catch{}this._unsub=null}this._subscribe(),this._loadData()}}}async _loadData(){try{let[e,t]=await Promise.all([this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"}),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/statistics"})]);this._objects=e.objects,this._stats=t,Fe(this._stats.budget)}catch{}}async _loadPastHistories(){let e=new Date;e.setHours(0,0,0,0);let t=ni(this._objects,e,this._pastDays||30),i=t.map(l=>l.sig).join("|");if(i===this._pastHistorySig)return;this._pastHistorySig=i;let a=++this._pastSeq,r=await Promise.all(t.map(async l=>{try{let n=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/history",entry_id:l.entryId,task_id:l.taskId});return[l.key,n.history??[]]}catch{return null}}));a===this._pastSeq&&(this._pastHistory=Object.fromEntries(r.filter(l=>l!==null)))}async _subscribe(){try{let e=await this.hass.connection.subscribeMessage(t=>{let i=t;this._objects=i.objects},{type:"maintenance_supporter/subscribe"});if(!this.isConnected){e();return}this._unsub=e}catch{}}_onEventClick(e){if(e.history_timestamp){this._openHistoryEntry(e);return}this._openTask(e)}_openTask(e){Fi(e.entry_id,e.task_id)||this.dispatchEvent(new CustomEvent("ll-custom",{detail:{type:"maintenance-supporter:open-task",entry_id:e.entry_id,task_id:e.task_id},bubbles:!0,composed:!0}))}async _openHistoryEntry(e){try{let t=await ut(this.hass);if(!Ie(this.hass?.user,t.access)){this._openTask(e);return}}catch{}try{let t=await Ci(this.hass,e.entry_id,e.task_id,e.history_timestamp);if(!t||qi(t))return}catch{}this.dispatchEvent(new CustomEvent("ll-custom",{detail:{type:"maintenance-supporter:edit-history",entry_id:e.entry_id,task_id:e.task_id,original_timestamp:e.history_timestamp},bubbles:!0,composed:!0}))}render(){if(!this.hass)return h;let e=this._lang,t=this._config.show_window_chips!==!1,i=this._config.show_user_filter!==!1,a=this._config.title,r=null;this._userFilter&&(r=this._userFilter==="current_user"?this.hass?.user?.id??null:this._userFilter);let l=b=>{let ie=b.toLowerCase();return this._objects.find($=>$.entry_id===b||$.object.name.toLowerCase()===ie)?.entry_id??null},n=new Set(this._configuredObjects.map(l).filter(b=>b!==null)),u=n.size?this._objects.filter(b=>n.has(b.entry_id)):this._objects,p=this._config.show_object_filter!==!1&&u.length>1,_=this._objectFilter?l(this._objectFilter):null,v=_&&u.some(b=>b.entry_id===_)?u.filter(b=>b.entry_id===_):u,f=new Date;f.setHours(0,0,0,0);let y=this._pastDays>0,M=y?li(v,f,this._pastDays,r,this._pastHistory):ri(v,f,this._windowDays,r),S=je(f),T=this._windowDays===365||y,x=T?M.filter(b=>b.events.length>0):M,D=b=>{let ie=`cal-status-${b.status}`,_e=b.projected?"cal-event-projected":"",$=b.status==="overdue"&&b.days_until_due!=null?` (${me(b.days_until_due,e)})`:"",I=b.projected&&b.interval_days?o`<span class="cal-event-recur">${b.interval_unit&&b.interval_unit!=="days"?Qt(b.interval_days,b.interval_unit,e):b.interval_days===1?s("cal_every_day",e):s("cal_every_n_days",e).replace("{n}",String(b.interval_days))}</span>`:h,L=b.schedule_type==="sensor_based",z=L?o`<ha-icon class="cal-event-icon cal-source-sensor"
-                title="${s("cal_source_sensor",e)}" icon="mdi:trending-up"></ha-icon>`:o`<ha-icon class="cal-event-icon cal-source-time"
-                title="${b.adaptive_enabled?s("cal_source_time_adaptive",e):s("cal_source_time",e)}"
-                icon="${b.adaptive_enabled?"mdi:clock-time-four-outline":"mdi:clock-outline"}"></ha-icon>`,F=L&&b.prediction_confidence&&b.status!=="triggered"&&!b.projected?o`<span class="cal-event-prediction cal-conf-${b.prediction_confidence}">
-            ${s("cal_predicted",e)} · ${s(`cal_confidence_${b.prediction_confidence}`,e)}
-          </span>`:h,J=st(this._stats?.budget),K=b.history_type?s(b.history_type,e):s(b.status,e);return o`
-        <div class="cal-event ${_e}"
+`;function cs(l){let p=window;p.customCards=p.customCards||[],p.customCards.some(t=>t.type===l.type)||p.customCards.push(l)}function ds(l,p,t=e=>import(e)){let e=window,i;try{let d=new URL(p);i=d.origin+d.pathname}catch{return}let a=`__msCardHeal:${l[0]}:${i}`;if(e[a])return;e[a]=!0;let r=0,c=0,n=!1,u=()=>{if(r+=1,l.some(g=>!customElements.get(g))&&c<3&&!n){c+=1,n=!0;try{let g=new URL(p);g.searchParams.set("heal",`${Date.now()}`),t(g.href).catch(()=>{}).finally(()=>{n=!1})}catch{return}}r<20&&window.setTimeout(u,r<8?500:2e3)};window.setTimeout(u,250)}var ut=class extends N{constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-calendar-card"};this._objects=[];this._stats=null;this._windowDays=30;this._pastDays=0;this._userFilter="";this._objectFilter="";this._configuredObjects=[];this._unsub=null;this._pastHistory={};this._pastHistorySig="";this._pastSeq=0;this._dataLoaded=!1;this._lastConnection=null;this._onHistorySaved=t=>{let e=t.detail;!e?.entry_id||!e.task_id||!($e(e.entry_id,e.task_id)in this._pastHistory)||(this._pastHistorySig="",this._loadPastHistories())}}static getConfigElement(){return document.createElement("maintenance-supporter-calendar-card-editor")}static getStubConfig(){return{type:"custom:maintenance-supporter-calendar-card",window_days:30,show_window_chips:!0,show_user_filter:!0}}setConfig(t){if(this._config={...t},this._windowDays=t.window_days&&[7,14,30,365].includes(t.window_days)?t.window_days:30,this._pastDays=t.past_days&&[30,90].includes(t.past_days)?t.past_days:0,this._userFilter=typeof t.user_filter=="string"?t.user_filter:"",typeof t.object_filter=="string")this._objectFilter=t.object_filter,this._configuredObjects=[];else if(Array.isArray(t.object_filter)){let e=t.object_filter.filter(i=>typeof i=="string"&&i!=="");this._objectFilter=e.length===1?e[0]:"",this._configuredObjects=e.length>1?e:[]}else this._objectFilter="",this._configuredObjects=[]}getCardSize(){return 6}get _lang(){return K(this.hass)}connectedCallback(){super.connectedCallback(),window.addEventListener("history-entry-saved",this._onHistorySaved)}disconnectedCallback(){if(super.disconnectedCallback(),window.removeEventListener("history-entry-saved",this._onHistorySaved),this._unsub){try{this._unsub()}catch{}this._unsub=null}this._dataLoaded=!1,this._lastConnection=null}updated(t){if(super.updated(t),Ht(this,t),this.hass&&this._pastDays>0&&(t.has("_objects")||t.has("_pastDays"))&&this._loadPastHistories(),t.has("hass")&&this.hass){if(!this._dataLoaded)this._dataLoaded=!0,this._lastConnection=this.hass.connection,this._loadData(),this._subscribe();else if(this.hass.connection!==this._lastConnection){if(this._lastConnection=this.hass.connection,this._unsub){try{this._unsub()}catch{}this._unsub=null}this._subscribe(),this._loadData()}}}async _loadData(){try{let[t,e]=await Promise.all([this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"}),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/statistics"})]);this._objects=t.objects,this._stats=e,Wt(this._stats.budget)}catch{}}async _loadPastHistories(){let t=rs(this._objects,yt(),this._pastDays||30),e=t.map(r=>r.sig).join("|");if(e===this._pastHistorySig)return;this._pastHistorySig=e;let i=++this._pastSeq,a=await Promise.all(t.map(async r=>{try{let c=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/history",entry_id:r.entryId,task_id:r.taskId});return[r.key,c.history??[]]}catch{return null}}));i===this._pastSeq&&(this._pastHistory=Object.fromEntries(a.filter(r=>r!==null)))}async _subscribe(){try{let t=await this.hass.connection.subscribeMessage(e=>{let i=e;this._objects=i.objects},{type:"maintenance_supporter/subscribe"});if(!this.isConnected){t();return}this._unsub=t}catch{}}_onEventClick(t){if(t.history_timestamp){this._openHistoryEntry(t);return}this._openTask(t)}_openTask(t){Ki(t.entry_id,t.task_id)||this.dispatchEvent(new CustomEvent("ll-custom",{detail:{type:"maintenance-supporter:open-task",entry_id:t.entry_id,task_id:t.task_id},bubbles:!0,composed:!0}))}async _openHistoryEntry(t){try{let e=await ge(this.hass);if(!Bt(this.hass?.user,e.access)){this._openTask(t);return}}catch{}try{let e=await zi(this.hass,t.entry_id,t.task_id,t.history_timestamp);if(!e||Wi(e))return}catch{}this.dispatchEvent(new CustomEvent("ll-custom",{detail:{type:"maintenance-supporter:edit-history",entry_id:t.entry_id,task_id:t.task_id,original_timestamp:t.history_timestamp},bubbles:!0,composed:!0}))}render(){if(!this.hass)return h;let t=this._lang,e=this._config.show_window_chips!==!1,i=this._config.show_user_filter!==!1,a=this._config.title,r=null;this._userFilter&&(r=this._userFilter==="current_user"?this.hass?.user?.id??null:this._userFilter);let c=b=>{let D=b.toLowerCase();return this._objects.find(pt=>pt.entry_id===b||pt.object.name.toLowerCase()===D)?.entry_id??null},n=new Set(this._configuredObjects.map(c).filter(b=>b!==null)),u=n.size?this._objects.filter(b=>n.has(b.entry_id)):this._objects,d=this._config.show_object_filter!==!1&&u.length>1,g=this._objectFilter?c(this._objectFilter):null,m=g&&u.some(b=>b.entry_id===g)?u.filter(b=>b.entry_id===g):u,v=yt(),y=this._pastDays>0,C=y?ns(m,v,this._pastDays,r,this._pastHistory):as(m,v,this._windowDays,r),$=this._windowDays===365||y,j=$?C.filter(b=>b.events.length>0):C,x=b=>{let D=`cal-status-${b.status}`,at=b.projected?"cal-event-projected":"",pt=b.status==="overdue"&&b.days_until_due!=null?` (${ft(b.days_until_due,t)})`:"",T=b.projected&&b.interval_days?o`<span class="cal-event-recur">${b.interval_unit&&b.interval_unit!=="days"?ai(b.interval_days,b.interval_unit,t):b.interval_days===1?s("cal_every_day",t):s("cal_every_n_days",t).replace("{n}",String(b.interval_days))}</span>`:h,I=b.schedule_type==="sensor_based",H=I?o`<ha-icon class="cal-event-icon cal-source-sensor"
+                title="${s("cal_source_sensor",t)}" icon="mdi:trending-up"></ha-icon>`:o`<ha-icon class="cal-event-icon cal-source-time"
+                title="${b.adaptive_enabled?s("cal_source_time_adaptive",t):s("cal_source_time",t)}"
+                icon="${b.adaptive_enabled?"mdi:clock-time-four-outline":"mdi:clock-outline"}"></ha-icon>`,z=I&&b.prediction_confidence&&b.status!=="triggered"&&!b.projected?o`<span class="cal-event-prediction cal-conf-${b.prediction_confidence}">
+            ${s("cal_predicted",t)} · ${s(`cal_confidence_${b.prediction_confidence}`,t)}
+          </span>`:h,W=re(this._stats?.budget),Q=b.history_type?s(b.history_type,t):s(b.status,t);return o`
+        <div class="cal-event ${at}"
           @click=${()=>this._onEventClick(b)}>
-          ${z}
-          <span class="cal-status-pill ${ie}">${K}</span>
+          ${H}
+          <span class="cal-status-pill ${D}">${Q}</span>
           <div class="cal-event-body">
-            <div class="cal-event-title">${b.object_name} · ${b.task_name}${$}</div>
-            ${F}
-            ${I}
+            <div class="cal-event-title">${b.object_name} · ${b.task_name}${pt}</div>
+            ${z}
+            ${T}
           </div>
-          ${b.avg_cost!=null&&b.avg_cost!==0?o`<span class="cal-event-cost">${U(b.avg_cost,J,e)}</span>`:h}
+          ${b.avg_cost!=null&&b.avg_cost!==0?o`<span class="cal-event-cost">${F(b.avg_cost,W,t)}</span>`:h}
         </div>
-      `},C=b=>{let[ie,_e,$]=b.date.split("-").map(Number),I=new Date(ie,_e-1,$),L=b.date===S,z=Jt(I,e,"short"),F=Xt(I,e,"long");return o`
+      `},M=b=>{let[D,at,pt]=b.date.split("-").map(Number),T=new Date(D,at-1,pt),I=b.date===v,H=ri(T,t,"short"),z=oi(T,t,"long");return o`
         <div class="cal-day-row">
-          <div class="cal-day-pill ${L?"cal-today":""}">
-            <span class="cal-pill-weekday">${z}</span>
-            <span class="cal-pill-day">${I.getDate()}</span>
+          <div class="cal-day-pill ${I?"cal-today":""}">
+            <span class="cal-pill-weekday">${H}</span>
+            <span class="cal-pill-day">${T.getDate()}</span>
           </div>
           <div class="cal-day-content">
             <div class="cal-day-header">
-              <span class="cal-day-month">${F}</span>
-              ${L?o`<span class="cal-day-today-badge">${s("today",e)}</span>`:h}
+              <span class="cal-day-month">${z}</span>
+              ${I?o`<span class="cal-day-today-badge">${s("today",t)}</span>`:h}
             </div>
-            ${b.events.length===0?o`<div class="cal-empty">${s("cal_no_events",e)}</div>`:b.events.map(D)}
+            ${b.events.length===0?o`<div class="cal-empty">${s("cal_no_events",t)}</div>`:b.events.map(x)}
           </div>
         </div>
       `};return o`
       <ha-card .header=${a}>
-        ${t||i||p?o`
+        ${e||i||d?o`
               <div class="cal-controls">
-                ${t?o`
-                      <div class="cal-window-chips cal-past-chips" title="${s("cal_past_windows",e)}">
+                ${e?o`
+                      <div class="cal-window-chips cal-past-chips" title="${s("cal_past_windows",t)}">
                         ${[30,90].map(b=>o`
                           <button class="cal-window-chip cal-past-chip ${this._pastDays===b?"active":""}"
                             @click=${()=>{this._pastDays=b}}>
@@ -4167,7 +4167,7 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
                         `)}
                       </div>
                       <span class="cal-chip-separator" aria-hidden="true">●</span>
-                      <div class="cal-window-chips" title="${s("cal_forward_windows",e)}">
+                      <div class="cal-window-chips" title="${s("cal_forward_windows",t)}">
                         ${[7,14,30,365].map(b=>o`
                           <button class="cal-window-chip ${this._pastDays===0&&this._windowDays===b?"active":""}"
                             @click=${()=>{this._windowDays=b,this._pastDays=0}}>
@@ -4180,50 +4180,50 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
                       <select class="cal-user-filter"
                         .value=${this._userFilter}
                         @change=${b=>{this._userFilter=b.target.value}}>
-                        <option value="">${s("all_users",e)}</option>
-                        <option value="current_user">${s("my_tasks",e)}</option>
+                        <option value="">${s("all_users",t)}</option>
+                        <option value="current_user">${s("my_tasks",t)}</option>
                       </select>
                     `:h}
-                ${p?o`
+                ${d?o`
                       <select class="cal-user-filter"
-                        .value=${_??""}
+                        .value=${g??""}
                         @change=${b=>{this._objectFilter=b.target.value}}>
-                        <option value="">${s("all_objects",e)}</option>
-                        ${[...u].sort((b,ie)=>b.object.name.localeCompare(ie.object.name)).map(b=>o`<option value=${b.entry_id} ?selected=${b.entry_id===_}>${b.object.name}</option>`)}
+                        <option value="">${s("all_objects",t)}</option>
+                        ${[...u].sort((b,D)=>b.object.name.localeCompare(D.object.name)).map(b=>o`<option value=${b.entry_id} ?selected=${b.entry_id===g}>${b.object.name}</option>`)}
                       </select>
                     `:h}
               </div>
             `:h}
         <div class="cal-rolling">
-          ${x.length===0&&T?o`<div class="cal-empty">${s("cal_no_events",e)}</div>`:x.map(C)}
+          ${j.length===0&&$?o`<div class="cal-empty">${s("cal_no_events",t)}</div>`:j.map(M)}
         </div>
       </ha-card>
-    `}};he.styles=[at,Ji,B`
+    `}};ut.styles=[oe,ls,B`
       :host { display: block; }
       ha-card { padding: 0; overflow: hidden; }
-    `],g([E({attribute:!1})],he.prototype,"hass",2),g([m()],he.prototype,"_config",2),g([m()],he.prototype,"_objects",2),g([m()],he.prototype,"_stats",2),g([m()],he.prototype,"_windowDays",2),g([m()],he.prototype,"_pastDays",2),g([m()],he.prototype,"_userFilter",2),g([m()],he.prototype,"_objectFilter",2),g([m()],he.prototype,"_unsub",2),g([m()],he.prototype,"_pastHistory",2);var Rs=[{value:7,key:"cal_editor_window_week"},{value:14,key:"cal_editor_window_fortnight"},{value:30,key:"cal_editor_window_month"},{value:365,key:"cal_editor_window_year"}],Os=[{value:30,key:"cal_editor_window_past_30"},{value:90,key:"cal_editor_window_past_90"}],Be=class extends N{constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-calendar-card"}}get _lang(){return G(this.hass)}setConfig(e){this._config={...e}}updated(){let e=this._lang;e&&!Gt(e)&&oe(e).then(()=>this.requestUpdate())}_valueChanged(e,t){let i={...this._config,[e]:t};e==="show_window_chips"&&t===!0&&delete i.show_window_chips,e==="show_user_filter"&&t===!0&&delete i.show_user_filter,e==="show_object_filter"&&t===!0&&delete i.show_object_filter,e==="title"&&(!t||typeof t=="string"&&t.trim()==="")&&delete i.title,e==="user_filter"&&t===""&&delete i.user_filter,this._emit(i)}_windowChanged(e){let t={...this._config};e.startsWith("past-")?(t.past_days=Number(e.slice(5)),delete t.window_days):(t.window_days=Number(e),delete t.past_days),this._emit(t)}_emit(e){this._config=e,this.dispatchEvent(new CustomEvent("config-changed",{detail:{config:e},bubbles:!0,composed:!0}))}render(){let e=this._lang,t=this._config.past_days?`past-${this._config.past_days}`:`${this._config.window_days??30}`,i=this._config.show_window_chips!==!1,a=this._config.show_user_filter!==!1,r=this._config.user_filter??"",l=this._config.title??"";return o`
+    `],_([E({attribute:!1})],ut.prototype,"hass",2),_([f()],ut.prototype,"_config",2),_([f()],ut.prototype,"_objects",2),_([f()],ut.prototype,"_stats",2),_([f()],ut.prototype,"_windowDays",2),_([f()],ut.prototype,"_pastDays",2),_([f()],ut.prototype,"_userFilter",2),_([f()],ut.prototype,"_objectFilter",2),_([f()],ut.prototype,"_unsub",2),_([f()],ut.prototype,"_pastHistory",2);var Ks=[{value:7,key:"cal_editor_window_week"},{value:14,key:"cal_editor_window_fortnight"},{value:30,key:"cal_editor_window_month"},{value:365,key:"cal_editor_window_year"}],Gs=[{value:30,key:"cal_editor_window_past_30"},{value:90,key:"cal_editor_window_past_90"}],Ut=class extends N{constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-calendar-card"}}get _lang(){return K(this.hass)}setConfig(t){this._config={...t}}updated(){let t=this._lang;t&&!Ze(t)&&ot(t).then(()=>this.requestUpdate())}_valueChanged(t,e){let i={...this._config,[t]:e};t==="show_window_chips"&&e===!0&&delete i.show_window_chips,t==="show_user_filter"&&e===!0&&delete i.show_user_filter,t==="show_object_filter"&&e===!0&&delete i.show_object_filter,t==="title"&&(!e||typeof e=="string"&&e.trim()==="")&&delete i.title,t==="user_filter"&&e===""&&delete i.user_filter,this._emit(i)}_windowChanged(t){let e={...this._config};t.startsWith("past-")?(e.past_days=Number(t.slice(5)),delete e.window_days):(e.window_days=Number(t),delete e.past_days),this._emit(e)}_emit(t){this._config=t,this.dispatchEvent(new CustomEvent("config-changed",{detail:{config:t},bubbles:!0,composed:!0}))}render(){let t=this._lang,e=this._config.past_days?`past-${this._config.past_days}`:`${this._config.window_days??30}`,i=this._config.show_window_chips!==!1,a=this._config.show_user_filter!==!1,r=this._config.user_filter??"",c=this._config.title??"";return o`
       <div class="editor">
         <div class="row">
-          <label for="title">${s("card_title",e)}</label>
+          <label for="title">${s("card_title",t)}</label>
           <input
             id="title"
             type="text"
-            .value=${l}
+            .value=${c}
             @input=${n=>this._valueChanged("title",n.target.value)}
           />
         </div>
         <div class="row">
-          <label for="window">${s("cal_editor_window",e)}</label>
+          <label for="window">${s("cal_editor_window",t)}</label>
           <select
             id="window"
             @change=${n=>this._windowChanged(n.target.value)}
           >
-            ${Rs.map(n=>o`<option value="${n.value}" ?selected=${`${n.value}`===t}>${s(n.key,e)}</option>`)}
-            ${Os.map(n=>o`<option value="past-${n.value}" ?selected=${`past-${n.value}`===t}>${s(n.key,e)}</option>`)}
+            ${Ks.map(n=>o`<option value="${n.value}" ?selected=${`${n.value}`===e}>${s(n.key,t)}</option>`)}
+            ${Gs.map(n=>o`<option value="past-${n.value}" ?selected=${`past-${n.value}`===e}>${s(n.key,t)}</option>`)}
           </select>
         </div>
         <div class="row toggle">
-          <label for="chips">${s("cal_editor_show_chips",e)}</label>
+          <label for="chips">${s("cal_editor_show_chips",t)}</label>
           <input
             id="chips"
             type="checkbox"
@@ -4231,9 +4231,9 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
             @change=${n=>this._valueChanged("show_window_chips",n.target.checked)}
           />
         </div>
-        <div class="hint">${s("cal_editor_chips_hint",e)}</div>
+        <div class="hint">${s("cal_editor_chips_hint",t)}</div>
         <div class="row toggle">
-          <label for="userf">${s("cal_editor_show_user_filter",e)}</label>
+          <label for="userf">${s("cal_editor_show_user_filter",t)}</label>
           <input
             id="userf"
             type="checkbox"
@@ -4242,19 +4242,19 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
           />
         </div>
         <div class="row">
-          <label for="userv">${s("cal_editor_default_user",e)}</label>
+          <label for="userv">${s("cal_editor_default_user",t)}</label>
           <select
             id="userv"
             @change=${n=>this._valueChanged("user_filter",n.target.value)}
           >
-            <option value="" ?selected=${r===""}>${s("all_users",e)}</option>
+            <option value="" ?selected=${r===""}>${s("all_users",t)}</option>
             <option value="current_user" ?selected=${r==="current_user"}>
-              ${s("cal_editor_my_tasks",e)}
+              ${s("cal_editor_my_tasks",t)}
             </option>
           </select>
         </div>
         <div class="row toggle">
-          <label for="objf">${s("cal_editor_show_object_filter",e)}</label>
+          <label for="objf">${s("cal_editor_show_object_filter",t)}</label>
           <input
             id="objf"
             type="checkbox"
@@ -4262,9 +4262,9 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
             @change=${n=>this._valueChanged("show_object_filter",n.target.checked)}
           />
         </div>
-        <div class="hint">${s("cal_editor_object_hint",e)}</div>
+        <div class="hint">${s("cal_editor_object_hint",t)}</div>
       </div>
-    `}};Be.styles=B`
+    `}};Ut.styles=B`
     :host { display: block; padding: 8px 0; }
     .editor { display: flex; flex-direction: column; gap: 12px; }
     .row { display: flex; flex-direction: column; gap: 4px; }
@@ -4288,16 +4288,16 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
       font-size: 12px;
       color: var(--secondary-text-color, #666);
     }
-  `,g([E({attribute:!1})],Be.prototype,"hass",2),g([m()],Be.prototype,"_config",2);customElements.get("maintenance-supporter-calendar-card")||customElements.define("maintenance-supporter-calendar-card",he);customElements.get("maintenance-supporter-calendar-card-editor")||customElements.define("maintenance-supporter-calendar-card-editor",Be);Zi(["maintenance-supporter-calendar-card"],import.meta.url);Xi({type:"maintenance-supporter-calendar-card",name:"Maintenance Supporter \u2014 Calendar",description:"Rolling calendar of maintenance tasks with 7/14/30/365 day windows, source icons, and prediction-confidence pills.",preview:!0});var ue=class extends N{constructor(){super(...arguments);this.objects=[];this._summary=null;this._loaded=!1;this._busy=!1;this._error="";this._query="";this._results=[];this._expanded=!1;this._initiallyLoaded=!1;this._searchTimer=0;this._searchSeq=0}get _lang(){return G(this.hass)}updated(e){super.updated(e),e.has("hass")&&this.hass&&!this._initiallyLoaded&&(this._initiallyLoaded=!0,this._load(),oe(this._lang).then(()=>this.requestUpdate()))}async _load(){let e=await P(this,{type:"maintenance_supporter/documents/storage"},{busy:t=>{this._busy=t},onError:t=>{this._error=t}});this._loaded=!0,e!==void 0&&(this._summary=e,this._error="")}_nameFor(e){return this.objects.find(i=>i.object?.id===e)?.object?.name||e.slice(0,8)}_entryFor(e){return this.objects.find(t=>t.object?.id===e)?.entry_id}_toggle(){this._expanded=!this._expanded}_openObject(e){this.dispatchEvent(new CustomEvent("open-object",{detail:{entry_id:e},bubbles:!0,composed:!0}))}_onSearch(e){this._query=e.target.value,clearTimeout(this._searchTimer),this._searchTimer=window.setTimeout(()=>{this._doSearch()},250)}async _doSearch(){let e=this._query.trim(),t=++this._searchSeq;if(!e){this._results=[];return}let i="",a=await P(this,{type:"maintenance_supporter/documents/search",query:e},{onError:r=>{i=r}});if(t===this._searchSeq){if(a===void 0){this._error=i,this._results=[];return}this._results=a?.results||[]}}async _openResult(e){if(e.kind==="weblink"){ae(e.url)&&window.open(e.url,"_blank","noopener");return}await P(this,()=>$e(this.hass,e.id),{onError:t=>{this._error=t}})}_renderResult(e,t){return o`
-      <div class="obj-row result-row" title=${s("doc_open",t)} @click=${()=>this._openResult(e)}>
-        <ha-icon icon=${e.kind==="weblink"?"mdi:link-variant":"mdi:file-document-outline"}></ha-icon>
+  `,_([E({attribute:!1})],Ut.prototype,"hass",2),_([f()],Ut.prototype,"_config",2);customElements.get("maintenance-supporter-calendar-card")||customElements.define("maintenance-supporter-calendar-card",ut);customElements.get("maintenance-supporter-calendar-card-editor")||customElements.define("maintenance-supporter-calendar-card-editor",Ut);ds(["maintenance-supporter-calendar-card"],import.meta.url);cs({type:"maintenance-supporter-calendar-card",name:"Maintenance Supporter \u2014 Calendar",description:"Rolling calendar of maintenance tasks with 7/14/30/365 day windows, source icons, and prediction-confidence pills.",preview:!0});var gt=class extends N{constructor(){super(...arguments);this.objects=[];this._summary=null;this._loaded=!1;this._busy=!1;this._error="";this._query="";this._results=[];this._expanded=!1;this._initiallyLoaded=!1;this._searchTimer=0;this._searchSeq=0}get _lang(){return K(this.hass)}updated(t){super.updated(t),t.has("hass")&&this.hass&&!this._initiallyLoaded&&(this._initiallyLoaded=!0,this._load(),ot(this._lang).then(()=>this.requestUpdate()))}async _load(){let t=await P(this,{type:"maintenance_supporter/documents/storage"},{busy:e=>{this._busy=e},onError:e=>{this._error=e}});this._loaded=!0,t!==void 0&&(this._summary=t,this._error="")}_nameFor(t){return this.objects.find(i=>i.object?.id===t)?.object?.name||t.slice(0,8)}_entryFor(t){return this.objects.find(e=>e.object?.id===t)?.entry_id}_toggle(){this._expanded=!this._expanded}_openObject(t){this.dispatchEvent(new CustomEvent("open-object",{detail:{entry_id:t},bubbles:!0,composed:!0}))}_onSearch(t){this._query=t.target.value,clearTimeout(this._searchTimer),this._searchTimer=window.setTimeout(()=>{this._doSearch()},250)}async _doSearch(){let t=this._query.trim(),e=++this._searchSeq;if(!t){this._results=[];return}let i="",a=await P(this,{type:"maintenance_supporter/documents/search",query:t},{onError:r=>{i=r}});if(e===this._searchSeq){if(a===void 0){this._error=i,this._results=[];return}this._results=a?.results||[]}}async _openResult(t){if(t.kind==="weblink"){st(t.url)&&window.open(t.url,"_blank","noopener");return}await P(this,()=>Tt(this.hass,t.id),{onError:e=>{this._error=e}})}_renderResult(t,e){return o`
+      <div class="obj-row result-row" title=${s("doc_open",e)} @click=${()=>this._openResult(t)}>
+        <ha-icon icon=${t.kind==="weblink"?"mdi:link-variant":"mdi:file-document-outline"}></ha-icon>
         <div class="result-info">
-          <div class="result-title">${ne(e)}</div>
-          <div class="result-obj">${e.object_name}</div>
+          <div class="result-title">${nt(t)}</div>
+          <div class="result-obj">${t.object_name}</div>
         </div>
-        <ha-icon class="result-open" icon=${e.kind==="weblink"?"mdi:open-in-new":"mdi:eye-outline"}></ha-icon>
+        <ha-icon class="result-open" icon=${t.kind==="weblink"?"mdi:open-in-new":"mdi:eye-outline"}></ha-icon>
       </div>
-    `}render(){if(!this._loaded||!this._summary)return h;let e=this._summary;if(!e.document_count)return h;let t=this._lang,i=Object.entries(e.by_object??{}).filter(([,a])=>a.files>0||a.links>0).map(([a,r])=>({id:a,name:this._nameFor(a),entry:this._entryFor(a),...r})).sort((a,r)=>r.bytes-a.bytes);return o`
+    `}render(){if(!this._loaded||!this._summary)return h;let t=this._summary;if(!t.document_count)return h;let e=this._lang,i=Object.entries(t.by_object??{}).filter(([,a])=>a.files>0||a.links>0).map(([a,r])=>({id:a,name:this._nameFor(a),entry:this._entryFor(a),...r})).sort((a,r)=>r.bytes-a.bytes);return o`
       <ha-card>
         <div class="card-content">
           <div class="header">
@@ -4305,19 +4305,19 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
               class="toggle"
               @click=${this._toggle}
               aria-expanded=${this._expanded?"true":"false"}
-              aria-label=${s("doc_storage_title",t)}
+              aria-label=${s("doc_storage_title",e)}
             >
               <ha-icon class="chevron" icon=${this._expanded?"mdi:chevron-down":"mdi:chevron-right"}></ha-icon>
               <span class="emoji">🗄️</span>
-              <span class="title-text">${s("doc_storage_title",t)}</span>
+              <span class="title-text">${s("doc_storage_title",e)}</span>
               <span class="header-summary">
-                ${ye(e.total_bytes,t)}
-                ${e.dedup_savings_bytes>0?o`<span class="saved">−${ye(e.dedup_savings_bytes,t)}</span>`:h}
+                ${kt(t.total_bytes,e)}
+                ${t.dedup_savings_bytes>0?o`<span class="saved">−${kt(t.dedup_savings_bytes,e)}</span>`:h}
               </span>
             </button>
             <button
               class="icon-btn"
-              title=${s("doc_storage_refresh",t)}
+              title=${s("doc_storage_refresh",e)}
               ?disabled=${this._busy}
               @click=${this._load}
             >
@@ -4329,28 +4329,28 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
                 <div class="body">
                   <div class="totals">
                     <div class="stat">
-                      <div class="stat-value">${ye(e.total_bytes,t)}</div>
+                      <div class="stat-value">${kt(t.total_bytes,e)}</div>
                       <div class="stat-label">
-                        <ha-icon icon="mdi:file-document-outline"></ha-icon> ${e.file_count}
-                        <ha-icon icon="mdi:link-variant"></ha-icon> ${e.link_count}
+                        <ha-icon icon="mdi:file-document-outline"></ha-icon> ${t.file_count}
+                        <ha-icon icon="mdi:link-variant"></ha-icon> ${t.link_count}
                       </div>
                     </div>
-                    ${e.dedup_savings_bytes>0?o`<div class="stat">
-                          <div class="stat-value saved">−${ye(e.dedup_savings_bytes,t)}</div>
-                          <div class="stat-label">${s("doc_storage_saved",t)}</div>
+                    ${t.dedup_savings_bytes>0?o`<div class="stat">
+                          <div class="stat-value saved">−${kt(t.dedup_savings_bytes,e)}</div>
+                          <div class="stat-label">${s("doc_storage_saved",e)}</div>
                         </div>`:h}
                   </div>
 
-                  ${e.search_index&&e.search_index.total>0?o`<div class="index-status">
+                  ${t.search_index&&t.search_index.total>0?o`<div class="index-status">
                         <ha-icon icon="mdi:text-search"></ha-icon>
-                        ${s("search_index_status",t).replace("{indexed}",String(e.search_index.indexed)).replace("{total}",String(e.search_index.total)).replace("{no_text}",String(e.search_index.no_text+e.search_index.unsupported)).replace("{pending}",String(e.search_index.pending))}
+                        ${s("search_index_status",e).replace("{indexed}",String(t.search_index.indexed)).replace("{total}",String(t.search_index.total)).replace("{no_text}",String(t.search_index.no_text+t.search_index.unsupported)).replace("{pending}",String(t.search_index.pending))}
                       </div>`:h}
                   <div class="doc-search">
                     <ha-icon icon="mdi:magnify"></ha-icon>
                     <input
                       type="search"
-                      aria-label=${s("doc_search",t)}
-                      placeholder=${s("doc_search",t)}
+                      aria-label=${s("doc_search",e)}
+                      placeholder=${s("doc_search",e)}
                       .value=${this._query}
                       @input=${this._onSearch}
                     />
@@ -4358,29 +4358,29 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
 
                   ${this._error?o`<div class="error">${this._error}</div>`:h}
 
-                  ${this._query.trim()?this._results.length?o`<div class="obj-list">${this._results.map(a=>this._renderResult(a,t))}</div>`:o`<div class="search-empty">${s("doc_search_none",t)}</div>`:i.length?o`<div class="obj-list">${i.map(a=>this._renderObjRow(a,t))}</div>`:h}
+                  ${this._query.trim()?this._results.length?o`<div class="obj-list">${this._results.map(a=>this._renderResult(a,e))}</div>`:o`<div class="search-empty">${s("doc_search_none",e)}</div>`:i.length?o`<div class="obj-list">${i.map(a=>this._renderObjRow(a,e))}</div>`:h}
                 </div>
               `:h}
         </div>
       </ha-card>
-    `}_renderObjRow(e,t){let i=e.entry;return o`
+    `}_renderObjRow(t,e){let i=t.entry;return o`
       <div
         class="obj-row ${i?"clickable":""}"
         role=${i?"button":h}
         tabindex=${i?"0":h}
-        aria-label=${i?e.name:h}
+        aria-label=${i?t.name:h}
         @click=${i?()=>this._openObject(i):void 0}
         @keydown=${i?a=>{(a.key==="Enter"||a.key===" ")&&(a.preventDefault(),this._openObject(i))}:void 0}
       >
-        <span class="obj-name">${e.name}</span>
+        <span class="obj-name">${t.name}</span>
         <span class="obj-meta">
-          ${e.files>0?o`<ha-icon icon="mdi:file-document-outline"></ha-icon>${e.files}`:h}
-          ${e.links>0?o`<ha-icon icon="mdi:link-variant"></ha-icon>${e.links}`:h}
+          ${t.files>0?o`<ha-icon icon="mdi:file-document-outline"></ha-icon>${t.files}`:h}
+          ${t.links>0?o`<ha-icon icon="mdi:link-variant"></ha-icon>${t.links}`:h}
         </span>
-        <span class="obj-size">${ye(e.bytes,t)}</span>
+        <span class="obj-size">${kt(t.bytes,e)}</span>
         ${i?o`<ha-icon class="obj-go" icon="mdi:chevron-right"></ha-icon>`:h}
       </div>
-    `}};ue.styles=B`
+    `}};gt.styles=B`
     ha-card { margin-top: 16px; }
     .card-content { padding: 16px; }
     .index-status {
@@ -4460,17 +4460,17 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
     .icon-btn:hover { background: var(--secondary-background-color, rgba(0,0,0,0.06)); }
     .icon-btn[disabled] { opacity: 0.4; pointer-events: none; }
     .error { color: var(--error-color, #f44336); font-size: 13px; margin-top: 6px; }
-  `,g([E({attribute:!1})],ue.prototype,"hass",2),g([E({attribute:!1})],ue.prototype,"objects",2),g([m()],ue.prototype,"_summary",2),g([m()],ue.prototype,"_loaded",2),g([m()],ue.prototype,"_busy",2),g([m()],ue.prototype,"_error",2),g([m()],ue.prototype,"_query",2),g([m()],ue.prototype,"_results",2),g([m()],ue.prototype,"_expanded",2);customElements.get("maintenance-storage-section-card")||customElements.define("maintenance-storage-section-card",ue);var Cs=["month_jan","month_feb","month_mar","month_apr","month_may","month_jun","month_jul","month_aug","month_sep","month_oct","month_nov","month_dec"],ve=class extends N{constructor(){super(...arguments);this._open=!1;this._loading=!1;this._error="";this._entryId="";this._taskId="";this._values=new Array(12).fill("");this._save=async()=>{let e=this._buildOverrides();e!==null&&await this._send(e)!==void 0&&(this._open=!1,this.dispatchEvent(new CustomEvent("overrides-saved")))};this._clearAll=async()=>{await this._send({})!==void 0&&(this._values=new Array(12).fill(""),this._open=!1,this.dispatchEvent(new CustomEvent("overrides-saved")))}}get _lang(){return G(this.hass)}open(e,t,i){if(this._entryId=e,this._taskId=t,this._values=new Array(12).fill(""),i)for(let[a,r]of Object.entries(i)){let l=parseInt(a,10);l>=1&&l<=12&&typeof r=="number"&&(this._values[l-1]=r.toString())}this._error="",this._open=!0}_close(){this._open=!1}_buildOverrides(){let e={};for(let t=0;t<12;t++){let i=this._values[t].trim();if(!i)continue;let a=parseFloat(i);if(Number.isNaN(a))return this._error=`${s("month_"+["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"][t],this._lang)}: ${s("seasonal_override_invalid",this._lang)}`,null;if(a<Ye[0]||a>Ye[1])return this._error=s("seasonal_override_range",this._lang),null;e[t+1]=a}return e}_send(e){return this._error="",P(this,{type:"maintenance_supporter/task/seasonal_overrides",entry_id:this._entryId,task_id:this._taskId,overrides:e},{busy:t=>{this._loading=t},fallbackKey:"save_error",onError:t=>{this._error=t}})}render(){if(!this._open)return o``;let e=this._lang;return o`
+  `,_([E({attribute:!1})],gt.prototype,"hass",2),_([E({attribute:!1})],gt.prototype,"objects",2),_([f()],gt.prototype,"_summary",2),_([f()],gt.prototype,"_loaded",2),_([f()],gt.prototype,"_busy",2),_([f()],gt.prototype,"_error",2),_([f()],gt.prototype,"_query",2),_([f()],gt.prototype,"_results",2),_([f()],gt.prototype,"_expanded",2);customElements.get("maintenance-storage-section-card")||customElements.define("maintenance-storage-section-card",gt);var Ys=["month_jan","month_feb","month_mar","month_apr","month_may","month_jun","month_jul","month_aug","month_sep","month_oct","month_nov","month_dec"],vt=class extends N{constructor(){super(...arguments);this._open=!1;this._loading=!1;this._error="";this._entryId="";this._taskId="";this._values=new Array(12).fill("");this._save=async()=>{let t=this._buildOverrides();t!==null&&await this._send(t)!==void 0&&(this._open=!1,this.dispatchEvent(new CustomEvent("overrides-saved")))};this._clearAll=async()=>{await this._send({})!==void 0&&(this._values=new Array(12).fill(""),this._open=!1,this.dispatchEvent(new CustomEvent("overrides-saved")))}}get _lang(){return K(this.hass)}open(t,e,i){if(this._entryId=t,this._taskId=e,this._values=new Array(12).fill(""),i)for(let[a,r]of Object.entries(i)){let c=parseInt(a,10);c>=1&&c<=12&&typeof r=="number"&&(this._values[c-1]=r.toString())}this._error="",this._open=!0}_close(){this._open=!1}_buildOverrides(){let t={};for(let e=0;e<12;e++){let i=this._values[e].trim();if(!i)continue;let a=parseFloat(i);if(Number.isNaN(a))return this._error=`${s("month_"+["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"][e],this._lang)}: ${s("seasonal_override_invalid",this._lang)}`,null;if(a<Jt[0]||a>Jt[1])return this._error=s("seasonal_override_range",this._lang),null;t[e+1]=a}return t}_send(t){return this._error="",P(this,{type:"maintenance_supporter/task/seasonal_overrides",entry_id:this._entryId,task_id:this._taskId,overrides:t},{busy:e=>{this._loading=e},fallbackKey:"save_error",onError:e=>{this._error=e}})}render(){if(!this._open)return o``;let t=this._lang;return o`
       <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${s("seasonal_overrides_title",e)}</div>
+        <div class="dialog-title">${s("seasonal_overrides_title",t)}</div>
         <div class="content">
-          <p class="hint">${s("seasonal_overrides_hint",e)}</p>
+          <p class="hint">${s("seasonal_overrides_hint",t)}</p>
           ${this._error?o`<div class="error">${this._error}</div>`:h}
           <div class="months">
-            ${Cs.map((t,i)=>o`
+            ${Ys.map((e,i)=>o`
               <label class="month">
-                <span class="mn">${s(t,e)}</span>
-                <input type="number" step="0.1" min=${Ye[0]} max=${Ye[1]}
+                <span class="mn">${s(e,t)}</span>
+                <input type="number" step="0.1" min=${Jt[0]} max=${Jt[1]}
                   placeholder="1.0"
                   .value=${this._values[i]}
                   @input=${a=>{let r=[...this._values];r[i]=a.target.value,this._values=r}} />
@@ -4480,18 +4480,18 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._clearAll} .disabled=${this._loading}>
-            ${s("clear_all",e)}
+            ${s("clear_all",t)}
           </ha-button>
           <div class="spacer"></div>
           <ha-button appearance="plain" @click=${this._close}>
-            ${s("cancel",e)}
+            ${s("cancel",t)}
           </ha-button>
           <ha-button @click=${this._save} .disabled=${this._loading}>
-            ${this._loading?s("saving",e):s("save",e)}
+            ${this._loading?s("saving",t):s("save",t)}
           </ha-button>
         </div>
       </ha-dialog>
-    `}};ve.styles=B`
+    `}};vt.styles=B`
     .dialog-title { font-size: 18px; font-weight: 500; padding-bottom: 12px; }
     .content {
       min-width: 320px;
@@ -4537,33 +4537,33 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
       padding-top: 16px;
     }
     .spacer { flex: 1; }
-  `,g([E({attribute:!1})],ve.prototype,"hass",2),g([m()],ve.prototype,"_open",2),g([m()],ve.prototype,"_loading",2),g([m()],ve.prototype,"_error",2),g([m()],ve.prototype,"_entryId",2),g([m()],ve.prototype,"_taskId",2),g([m()],ve.prototype,"_values",2);customElements.get("maintenance-seasonal-overrides-dialog")||customElements.define("maintenance-seasonal-overrides-dialog",ve);var ge=class extends N{constructor(){super(...arguments);this.objects=[];this._open=!1;this._loading=!1;this._error="";this._groupId=null;this._name="";this._description="";this._selected=new Set;this._toggleTask=(e,t)=>{let i=`${e}:${t}`,a=new Set(this._selected);a.has(i)?a.delete(i):a.add(i),this._selected=a};this._save=async()=>{let e=this._name.trim();if(!e){this._error=s("group_name_required",this._lang);return}this._error="";let t=this._buildTaskRefs();await P(this,this._groupId?{type:"maintenance_supporter/group/update",group_id:this._groupId,name:e,description:this._description,task_refs:t}:{type:"maintenance_supporter/group/create",name:e,description:this._description,task_refs:t},{busy:a=>{this._loading=a},fallbackKey:"save_error",onError:a=>{this._error=a}})!==void 0&&(this._open=!1,this.dispatchEvent(new CustomEvent("group-saved")))}}get _lang(){return G(this.hass)}openCreate(){this._reset(),this._open=!0}openEdit(e,t){this._reset(),this._groupId=e,this._name=t.name,this._description=t.description||"",this._selected=new Set(t.task_refs.map(i=>`${i.entry_id}:${i.task_id}`)),this._open=!0}_reset(){this._groupId=null,this._name="",this._description="",this._selected=new Set,this._error=""}_close(){this._open=!1}_buildTaskRefs(){return[...this._selected].map(e=>{let[t,i]=e.split(":",2);return{entry_id:t,task_id:i}})}render(){if(!this._open)return o``;let e=this._lang,t=this._groupId?s("edit_group",e):s("new_group",e);return o`
+  `,_([E({attribute:!1})],vt.prototype,"hass",2),_([f()],vt.prototype,"_open",2),_([f()],vt.prototype,"_loading",2),_([f()],vt.prototype,"_error",2),_([f()],vt.prototype,"_entryId",2),_([f()],vt.prototype,"_taskId",2),_([f()],vt.prototype,"_values",2);customElements.get("maintenance-seasonal-overrides-dialog")||customElements.define("maintenance-seasonal-overrides-dialog",vt);var _t=class extends N{constructor(){super(...arguments);this.objects=[];this._open=!1;this._loading=!1;this._error="";this._groupId=null;this._name="";this._description="";this._selected=new Set;this._toggleTask=(t,e)=>{let i=`${t}:${e}`,a=new Set(this._selected);a.has(i)?a.delete(i):a.add(i),this._selected=a};this._save=async()=>{let t=this._name.trim();if(!t){this._error=s("group_name_required",this._lang);return}this._error="";let e=this._buildTaskRefs();await P(this,this._groupId?{type:"maintenance_supporter/group/update",group_id:this._groupId,name:t,description:this._description,task_refs:e}:{type:"maintenance_supporter/group/create",name:t,description:this._description,task_refs:e},{busy:a=>{this._loading=a},fallbackKey:"save_error",onError:a=>{this._error=a}})!==void 0&&(this._open=!1,this.dispatchEvent(new CustomEvent("group-saved")))}}get _lang(){return K(this.hass)}openCreate(){this._reset(),this._open=!0}openEdit(t,e){this._reset(),this._groupId=t,this._name=e.name,this._description=e.description||"",this._selected=new Set(e.task_refs.map(i=>`${i.entry_id}:${i.task_id}`)),this._open=!0}_reset(){this._groupId=null,this._name="",this._description="",this._selected=new Set,this._error=""}_close(){this._open=!1}_buildTaskRefs(){return[...this._selected].map(t=>{let[e,i]=t.split(":",2);return{entry_id:e,task_id:i}})}render(){if(!this._open)return o``;let t=this._lang,e=this._groupId?s("edit_group",t):s("new_group",t);return o`
       <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${t}</div>
+        <div class="dialog-title">${e}</div>
         <div class="content">
           ${this._error?o`<div class="error">${this._error}</div>`:h}
           <ms-textfield
-            label="${s("name",e)}"
+            label="${s("name",t)}"
             required
             .value=${this._name}
             @input=${i=>this._name=i.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${s("description_optional",e)}"
+            label="${s("description_optional",t)}"
             .value=${this._description}
             @input=${i=>this._description=i.target.value}
           ></ms-textfield>
 
-          <div class="section-title">${s("group_select_tasks",e)}</div>
-          ${this.objects.length===0?o`<div class="hint">${s("no_objects",e)}</div>`:o`
+          <div class="section-title">${s("group_select_tasks",t)}</div>
+          ${this.objects.length===0?o`<div class="hint">${s("no_objects",t)}</div>`:o`
               <div class="objects">
                 ${[...this.objects].sort((i,a)=>i.object.name.localeCompare(a.object.name)).map(i=>o`
                   <div class="object-block">
                     <div class="object-name">${i.object.name}</div>
-                    ${i.tasks.length===0?o`<div class="hint small">${s("no_tasks_short",e)}</div>`:[...i.tasks].sort((a,r)=>a.name.localeCompare(r.name)).map(a=>{let r=`${i.entry_id}:${a.id}`,l=this._selected.has(r);return o`
+                    ${i.tasks.length===0?o`<div class="hint small">${s("no_tasks_short",t)}</div>`:[...i.tasks].sort((a,r)=>a.name.localeCompare(r.name)).map(a=>{let r=`${i.entry_id}:${a.id}`,c=this._selected.has(r);return o`
                           <label class="task-row">
                             <input type="checkbox"
-                              .checked=${l}
+                              .checked=${c}
                               @change=${()=>this._toggleTask(i.entry_id,a.id)} />
                             <span>${a.name}</span>
                           </label>
@@ -4573,19 +4573,19 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
               </div>
             `}
           <div class="selected-count">
-            ${s("selected",e)}: ${this._selected.size}
+            ${s("selected",t)}: ${this._selected.size}
           </div>
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._close}>
-            ${s("cancel",e)}
+            ${s("cancel",t)}
           </ha-button>
           <ha-button @click=${this._save} .disabled=${this._loading||!this._name.trim()}>
-            ${this._loading?s("saving",e):s("save",e)}
+            ${this._loading?s("saving",t):s("save",t)}
           </ha-button>
         </div>
       </ha-dialog>
-    `}};ge.styles=B`
+    `}};_t.styles=B`
     .dialog-title { font-size: 18px; font-weight: 500; padding-bottom: 12px; }
     .content {
       display: flex;
@@ -4650,11 +4650,11 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
       gap: 8px;
       padding-top: 16px;
     }
-  `,g([E({attribute:!1})],ge.prototype,"hass",2),g([E({attribute:!1})],ge.prototype,"objects",2),g([m()],ge.prototype,"_open",2),g([m()],ge.prototype,"_loading",2),g([m()],ge.prototype,"_error",2),g([m()],ge.prototype,"_groupId",2),g([m()],ge.prototype,"_name",2),g([m()],ge.prototype,"_description",2),g([m()],ge.prototype,"_selected",2);customElements.get("maintenance-group-dialog")||customElements.define("maintenance-group-dialog",ge);var xe=class extends N{constructor(){super(...arguments);this._open=!1;this._busy=!1;this._error="";this._name="";this._views=[];this._filters=null;this._localeReady=!1;this._save=async()=>{let e=this._name.trim();if(!e||this._busy||!this._filters)return;let t=await this._runWs({type:"maintenance_supporter/views/save",name:e,filters:this._filters});t!==void 0&&(this._name="",this._emitChanged(t?.views||[]))};this._delete=async e=>{if(this._busy)return;let t=await this._runWs({type:"maintenance_supporter/views/delete",view_id:e});t!==void 0&&this._emitChanged(t?.views||[])}}get _lang(){return G(this.hass)}updated(e){e.has("hass")&&this.hass&&!this._localeReady&&(this._localeReady=!0,oe(this._lang).then(()=>this.requestUpdate()))}async open(e,t){this._open=!0,this._error="",this._name="",this._filters=e,this._views=t}_close(){this._open=!1}_emitChanged(e){this._views=e,this.dispatchEvent(new CustomEvent("saved-views-changed",{bubbles:!0,composed:!0,detail:{views:e}}))}_runWs(e){return this._error="",P(this,e,{busy:t=>{this._busy=t},onError:t=>{this._error=t}})}render(){if(!this._open)return o``;let e=this._lang;return o`
+  `,_([E({attribute:!1})],_t.prototype,"hass",2),_([E({attribute:!1})],_t.prototype,"objects",2),_([f()],_t.prototype,"_open",2),_([f()],_t.prototype,"_loading",2),_([f()],_t.prototype,"_error",2),_([f()],_t.prototype,"_groupId",2),_([f()],_t.prototype,"_name",2),_([f()],_t.prototype,"_description",2),_([f()],_t.prototype,"_selected",2);customElements.get("maintenance-group-dialog")||customElements.define("maintenance-group-dialog",_t);var wt=class extends N{constructor(){super(...arguments);this._open=!1;this._busy=!1;this._error="";this._name="";this._views=[];this._filters=null;this._localeReady=!1;this._save=async()=>{let t=this._name.trim();if(!t||this._busy||!this._filters)return;let e=await this._runWs({type:"maintenance_supporter/views/save",name:t,filters:this._filters});e!==void 0&&(this._name="",this._emitChanged(e?.views||[]))};this._delete=async t=>{if(this._busy)return;let e=await this._runWs({type:"maintenance_supporter/views/delete",view_id:t});e!==void 0&&this._emitChanged(e?.views||[])}}get _lang(){return K(this.hass)}updated(t){t.has("hass")&&this.hass&&!this._localeReady&&(this._localeReady=!0,ot(this._lang).then(()=>this.requestUpdate()))}async open(t,e){this._open=!0,this._error="",this._name="",this._filters=t,this._views=e}_close(){this._open=!1}_emitChanged(t){this._views=t,this.dispatchEvent(new CustomEvent("saved-views-changed",{bubbles:!0,composed:!0,detail:{views:t}}))}_runWs(t){return this._error="",P(this,t,{busy:e=>{this._busy=e},onError:e=>{this._error=e}})}render(){if(!this._open)return o``;let t=this._lang;return o`
       <div class="overlay" @click=${this._close}>
-        <div class="card" @click=${t=>t.stopPropagation()}>
-          <div class="title">${s("views_dialog_title",e)}</div>
-          <div class="hint">${s("views_dialog_hint",e)}</div>
+        <div class="card" @click=${e=>e.stopPropagation()}>
+          <div class="title">${s("views_dialog_title",t)}</div>
+          <div class="hint">${s("views_dialog_hint",t)}</div>
           ${this._error?o`<div class="error">${this._error}</div>`:h}
 
           <div class="save-row">
@@ -4662,25 +4662,25 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
               class="name-input"
               type="text"
               .value=${this._name}
-              placeholder=${s("views_name_placeholder",e)}
+              placeholder=${s("views_name_placeholder",t)}
               maxlength="60"
-              @input=${t=>this._name=t.target.value}
-              @keydown=${t=>{t.key==="Enter"&&this._save()}}
+              @input=${e=>this._name=e.target.value}
+              @keydown=${e=>{e.key==="Enter"&&this._save()}}
             />
             <ha-button @click=${this._save} .disabled=${!this._name.trim()||this._busy}>
-              ${s("views_save_current",e)}
+              ${s("views_save_current",t)}
             </ha-button>
           </div>
 
-          ${this._views.length===0?o`<div class="empty">${s("views_none_yet",e)}</div>`:o`
+          ${this._views.length===0?o`<div class="empty">${s("views_none_yet",t)}</div>`:o`
                 <div class="list">
-                  ${this._views.map(t=>o`
+                  ${this._views.map(e=>o`
                       <div class="row">
-                        <span class="row-name">${t.name}</span>
+                        <span class="row-name">${e.name}</span>
                         <ha-icon-button
                           .path=${"M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"}
-                          .label=${s("delete",e)}
-                          @click=${()=>this._delete(t.id)}
+                          .label=${s("delete",t)}
+                          @click=${()=>this._delete(e.id)}
                         ></ha-icon-button>
                       </div>
                     `)}
@@ -4688,11 +4688,11 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
               `}
 
           <div class="actions">
-            <ha-button appearance="plain" @click=${this._close}>${s("close",e)}</ha-button>
+            <ha-button appearance="plain" @click=${this._close}>${s("close",t)}</ha-button>
           </div>
         </div>
       </div>
-    `}};xe.styles=B`
+    `}};wt.styles=B`
     .overlay {
       position: fixed;
       inset: 0;
@@ -4778,29 +4778,29 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
       gap: 8px;
       padding-top: 8px;
     }
-  `,g([E({attribute:!1})],xe.prototype,"hass",2),g([m()],xe.prototype,"_open",2),g([m()],xe.prototype,"_busy",2),g([m()],xe.prototype,"_error",2),g([m()],xe.prototype,"_name",2),g([m()],xe.prototype,"_views",2);customElements.get("maintenance-saved-views-dialog")||customElements.define("maintenance-saved-views-dialog",xe);var Ms=60,Ds=20,es=30,As={approaching:"\u2197",stable:"\u2192",easing:"\u2198"};function Ht(c,d){let e=c.trigger_config;if(!e?.entity_id)return null;let t,i=e.type||"threshold";if(i==="threshold")if(e.trigger_above!=null)t=1;else if(e.trigger_below!=null)t=-1;else return null;else if(i==="counter"||i==="runtime"||i==="state_change")t=1;else return null;let a=d.get(e.entity_id)||[],r=i==="runtime"||i==="state_change",l=a.length>=2?a.map(y=>({ts:y.ts,val:y.val})):r?[]:(c.history||[]).filter(y=>y.trigger_value!=null).map(y=>({ts:new Date(y.timestamp).getTime(),val:y.trigger_value}));if(c.trigger_current_value!=null&&(l=[...l,{ts:Date.now(),val:c.trigger_current_value}]),l.length<2)return null;l.sort((y,M)=>y.ts-M.ts);let n=l.map(y=>y.val),u=Math.max(...n)-Math.min(...n),p=n[n.length-1]-n[0],_=e.trigger_delta_mode&&c.trigger_baseline_value!=null&&e.trigger_target_value!=null?c.trigger_baseline_value+e.trigger_target_value:e.trigger_target_value,v=i==="threshold"?e.trigger_above??e.trigger_below:i==="counter"?_:i==="runtime"?e.trigger_runtime_hours:e.trigger_target_changes,f=typeof v=="number"?Math.max(Math.abs(v-n[0]),u):u;return f===0||Math.abs(p)<f*(typeof v=="number"?.05:.15)?"stable":Math.sign(p)===t?"approaching":"easing"}function Bt(c){return c>0?Math.ceil(c):Math.trunc(c)||0}function Nt(c,d){let e=c.trigger_config??null;if(!e)return h;let t=e.type||"threshold",i=c.trigger_entity_info?.unit_of_measurement??"",a=0,r="";if(t==="threshold"){let u=c.trigger_current_value??null;if(u==null)return h;let p=e.trigger_above,_=e.trigger_below;if(p!=null&&_!=null){let v=(p+_)/2,f=Math.abs(p-_)/2||1;a=Math.min(100,Math.max(0,Math.abs(u-v)/f*100));let y=Math.abs(u-p)<=Math.abs(u-_)?p:_;r=`${Q(u,d?.lang,1)} / ${Q(y,d?.lang)} ${i}`}else if(p!=null){let v=c.trigger_entity_info?.min,f=p>0?0:v!=null&&v<p?v:p<0?2*p:-100,y=p-f||1;a=Math.min(100,Math.max(0,(u-f)/y*100)),r=`${Q(u,d?.lang,1)} / ${Q(p,d?.lang)} ${i}`}else if(_!=null){let v=c.trigger_entity_info?.max,f=v!=null&&v>_?v:_>0?_*2:_<0?0:100,y=f-_||1;a=Math.min(100,Math.max(0,(f-u)/y*100)),r=`${Q(u,d?.lang,1)} / ${Q(_,d?.lang)} ${i}`}else if(e.trigger_equals!=null||e.trigger_not_equals!=null){let v=e.trigger_equals!=null?`= ${e.trigger_equals}`:`\u2260 ${e.trigger_not_equals}`;r=`${Q(u,d?.lang,1)} (${v}${i?` ${i}`:""})`,a=c.trigger_active?100:0}else return h}else if(t==="counter"){let u=e.trigger_target_value||1,p;if(e.trigger_delta_mode?(p=c.trigger_current_delta??null,p==null&&c.trigger_baseline_value!=null&&c.trigger_current_value!=null&&(p=c.trigger_current_value-c.trigger_baseline_value)):p=c.trigger_current_value??null,p==null)return h;a=Math.min(100,Math.max(0,p/u*100)),r=`${Q(p,d?.lang,1)} / ${Q(u,d?.lang)} ${i}`}else if(t==="state_change"){let u=e.trigger_target_changes||1,p=c.trigger_current_value??null;if(p==null)return h;a=Math.min(100,Math.max(0,p/u*100)),r=`${Q(p,d?.lang,0)} / ${Q(u,d?.lang,0)}`}else if(t==="runtime"){let u=e.trigger_runtime_hours||100,p=c.trigger_current_value??null;if(p==null)return h;a=Math.min(100,Math.max(0,p/u*100)),r=`${Q(p,d?.lang,1)}h / ${Q(u,d?.lang)}h`}else if(t==="due_date"){let u=c.trigger_current_value??null;if(u==null)return h;let p=e.trigger_days_before??0;a=u<=p?100:Math.max(0,100-(u-p)/30*100),r=me(Bt(u),d?.lang)}else if(t==="compound"){let u=e.compound_logic||e.operator||"AND",p=e.conditions?.length||0;r=`${u} (${p})`,a=c.trigger_active?100:0}else return h;if(c.battery_fleet_task&&t==="threshold"&&c.trigger_current_value!=null){let u=Math.round(c.trigger_current_value),p=e.trigger_above??0;a=u>p?100:p>0?Math.max(0,u/(p+1)*100):0,r=s("battery_fleet_progress",d?.lang??"en").replace("{n}",Q(u,d?.lang,0))}let l=a>=100,n=a>90?"var(--error-color, #f44336)":a>70?"var(--warning-color, #ff9800)":"var(--primary-color)";return o`
+  `,_([E({attribute:!1})],wt.prototype,"hass",2),_([f()],wt.prototype,"_open",2),_([f()],wt.prototype,"_busy",2),_([f()],wt.prototype,"_error",2),_([f()],wt.prototype,"_name",2),_([f()],wt.prototype,"_views",2);customElements.get("maintenance-saved-views-dialog")||customElements.define("maintenance-saved-views-dialog",wt);var Qs=60,Js=20,ps=30,Xs={approaching:"\u2197",stable:"\u2192",easing:"\u2198"};function Ue(l,p){let t=l.trigger_config;if(!t?.entity_id)return null;let e,i=t.type||"threshold";if(i==="threshold")if(t.trigger_above!=null)e=1;else if(t.trigger_below!=null)e=-1;else return null;else if(i==="counter"||i==="runtime"||i==="state_change")e=1;else return null;let a=p.get(t.entity_id)||[],r=i==="runtime"||i==="state_change",c=a.length>=2?a.map(y=>({ts:y.ts,val:y.val})):r?[]:(l.history||[]).filter(y=>y.trigger_value!=null).map(y=>({ts:mt(y.timestamp),val:y.trigger_value}));if(l.trigger_current_value!=null&&(c=[...c,{ts:Date.now(),val:l.trigger_current_value}]),c.length<2)return null;c.sort((y,C)=>y.ts-C.ts);let n=c.map(y=>y.val),u=Math.max(...n)-Math.min(...n),d=n[n.length-1]-n[0],g=t.trigger_delta_mode&&l.trigger_baseline_value!=null&&t.trigger_target_value!=null?l.trigger_baseline_value+t.trigger_target_value:t.trigger_target_value,m=i==="threshold"?t.trigger_above??t.trigger_below:i==="counter"?g:i==="runtime"?t.trigger_runtime_hours:t.trigger_target_changes,v=typeof m=="number"?Math.max(Math.abs(m-n[0]),u):u;return v===0||Math.abs(d)<v*(typeof m=="number"?.05:.15)?"stable":Math.sign(d)===e?"approaching":"easing"}function Ve(l){return l>0?Math.ceil(l):Math.trunc(l)||0}function We(l,p){let t=l.trigger_config??null;if(!t)return h;let e=t.type||"threshold",i=l.trigger_entity_info?.unit_of_measurement??"",a=0,r="";if(e==="threshold"){let u=l.trigger_current_value??null;if(u==null)return h;let d=t.trigger_above,g=t.trigger_below;if(d!=null&&g!=null){let m=(d+g)/2,v=Math.abs(d-g)/2||1;a=Math.min(100,Math.max(0,Math.abs(u-m)/v*100));let y=Math.abs(u-d)<=Math.abs(u-g)?d:g;r=`${Y(u,p?.lang,1)} / ${Y(y,p?.lang)} ${i}`}else if(d!=null){let m=l.trigger_entity_info?.min,v=d>0?0:m!=null&&m<d?m:d<0?2*d:-100,y=d-v||1;a=Math.min(100,Math.max(0,(u-v)/y*100)),r=`${Y(u,p?.lang,1)} / ${Y(d,p?.lang)} ${i}`}else if(g!=null){let m=l.trigger_entity_info?.max,v=m!=null&&m>g?m:g>0?g*2:g<0?0:100,y=v-g||1;a=Math.min(100,Math.max(0,(v-u)/y*100)),r=`${Y(u,p?.lang,1)} / ${Y(g,p?.lang)} ${i}`}else if(t.trigger_equals!=null||t.trigger_not_equals!=null){let m=t.trigger_equals!=null?`= ${t.trigger_equals}`:`\u2260 ${t.trigger_not_equals}`;r=`${Y(u,p?.lang,1)} (${m}${i?` ${i}`:""})`,a=l.trigger_active?100:0}else return h}else if(e==="counter"){let u=t.trigger_target_value||1,d;if(t.trigger_delta_mode?(d=l.trigger_current_delta??null,d==null&&l.trigger_baseline_value!=null&&l.trigger_current_value!=null&&(d=l.trigger_current_value-l.trigger_baseline_value)):d=l.trigger_current_value??null,d==null)return h;a=Math.min(100,Math.max(0,d/u*100)),r=`${Y(d,p?.lang,1)} / ${Y(u,p?.lang)} ${i}`}else if(e==="state_change"){let u=t.trigger_target_changes||1,d=l.trigger_current_value??null;if(d==null)return h;a=Math.min(100,Math.max(0,d/u*100)),r=`${Y(d,p?.lang,0)} / ${Y(u,p?.lang,0)}`}else if(e==="runtime"){let u=t.trigger_runtime_hours||100,d=l.trigger_current_value??null;if(d==null)return h;a=Math.min(100,Math.max(0,d/u*100)),r=`${Y(d,p?.lang,1)}h / ${Y(u,p?.lang)}h`}else if(e==="due_date"){let u=l.trigger_current_value??null;if(u==null)return h;let d=t.trigger_days_before??0;a=u<=d?100:Math.max(0,100-(u-d)/30*100),r=ft(Ve(u),p?.lang)}else if(e==="compound"){let u=t.compound_logic||t.operator||"AND",d=t.conditions?.length||0;r=`${u} (${d})`,a=l.trigger_active?100:0}else return h;if(l.battery_fleet_task&&e==="threshold"&&l.trigger_current_value!=null){let u=Math.round(l.trigger_current_value),d=t.trigger_above??0;a=u>d?100:d>0?Math.max(0,u/(d+1)*100):0,r=s("battery_fleet_progress",p?.lang??"en").replace("{n}",Y(u,p?.lang,0))}let c=a>=100,n=a>90?"var(--error-color, #f44336)":a>70?"var(--warning-color, #ff9800)":"var(--primary-color)";return o`
     <div class="trigger-progress">
       <div class="trigger-progress-bar">
-        <div class="trigger-progress-fill${l?" overflow":""}" style="width:${a}%;background:${n}"></div>
+        <div class="trigger-progress-fill${c?" overflow":""}" style="width:${a}%;background:${n}"></div>
       </div>
-      <span class="trigger-progress-label">${r}${d?.trend?o` <i class="trend-arrow trend-${d.trend}" title="${s(`trend_${d.trend}`,d.lang??"en")}" aria-label="${s(`trend_${d.trend}`,d.lang??"en")}">${As[d.trend]}</i>`:h}</span>
+      <span class="trigger-progress-label">${r}${p?.trend?o` <i class="trend-arrow trend-${p.trend}" title="${s(`trend_${p.trend}`,p.lang??"en")}" aria-label="${s(`trend_${p.trend}`,p.lang??"en")}">${Xs[p.trend]}</i>`:h}</span>
     </div>
-  `}function qt(c,d,e){if(!c.trigger_config?.entity_id)return h;let t=c.trigger_config.entity_id,i=d.get(t)||[],a=[];if(i.length>=2)a=i.map(C=>({ts:C.ts,val:C.val}));else{if(!c.history)return h;for(let C of c.history)C.trigger_value!=null&&a.push({ts:new Date(C.timestamp).getTime(),val:C.trigger_value})}if(c.trigger_current_value!=null&&a.push({ts:Date.now(),val:c.trigger_current_value}),a.length<2)return h;a.sort((C,b)=>C.ts-b.ts);let r=Ms,l=Ds,n=a.map(C=>C.val),u=Math.min(...n),p=Math.max(...n),_=p-u||1;u-=_*.1,p+=_*.1;let v=a[0].ts,y=a[a.length-1].ts-v||1,M=C=>(C-v)/y*r,S=C=>2+(1-(C-u)/(p-u))*(l-4),T=a;if(T.length>es){let C=Math.ceil(T.length/es);T=T.filter((b,ie)=>ie%C===0||ie===T.length-1)}let x=T.map(C=>`${R(M(C.ts))},${R(S(C.val))}`).join(" "),D=c.trigger_active?"var(--error-color, #f44336)":"var(--primary-color)";return o`
-    <svg class="mini-sparkline" viewBox="0 0 ${r} ${l}" preserveAspectRatio="none" role="img" aria-label="${s("chart_mini_sparkline",e)}">
-      <polyline points="${x}" fill="none" stroke="${D}" stroke-width="1.5" stroke-linejoin="round" />
+  `}function Ke(l,p,t){if(!l.trigger_config?.entity_id)return h;let e=l.trigger_config.entity_id,i=p.get(e)||[],a=[];if(i.length>=2)a=i.map(b=>({ts:b.ts,val:b.val}));else{if(!l.history)return h;for(let b of l.history)b.trigger_value!=null&&a.push({ts:mt(b.timestamp),val:b.trigger_value})}if(l.trigger_current_value!=null&&a.push({ts:Date.now(),val:l.trigger_current_value}),a.length<2)return h;a.sort((b,D)=>b.ts-D.ts);let r=Qs,c=Js,n=a.map(b=>b.val),u=Math.min(...n),d=Math.max(...n),g=d-u||1;u-=g*.1,d+=g*.1;let m=a[0].ts,y=a[a.length-1].ts-m||1,C=b=>(b-m)/y*r,$=b=>2+(1-(b-u)/(d-u))*(c-4),j=a;if(j.length>ps){let b=Math.ceil(j.length/ps);j=j.filter((D,at)=>at%b===0||at===j.length-1)}let x=j.map(b=>`${R(C(b.ts))},${R($(b.val))}`).join(" "),M=l.trigger_active?"var(--error-color, #f44336)":"var(--primary-color)";return o`
+    <svg class="mini-sparkline" viewBox="0 0 ${r} ${c}" preserveAspectRatio="none" role="img" aria-label="${s("chart_mini_sparkline",t)}">
+      <polyline points="${x}" fill="none" stroke="${M}" stroke-width="1.5" stroke-linejoin="round" />
     </svg>
-  `}function ts(c,d){let e=d;if(c.days_until_due==null||!c.interval_days||c.interval_days<=0)return h;let{pct:t,overflow:i}=lt(c.interval_days,c.days_until_due,c.interval_unit),a="var(--success-color, #4caf50)";return c.status==="overdue"?a="var(--error-color, #f44336)":c.status==="due_soon"&&(a="var(--warning-color, #ff9800)"),o`
+  `}function hs(l,p){let t=p;if(l.days_until_due==null||!l.interval_days||l.interval_days<=0)return h;let{pct:e,overflow:i}=ve(l.interval_days,l.days_until_due,l.interval_unit),a="var(--success-color, #4caf50)";return l.status==="overdue"?a="var(--error-color, #f44336)":l.status==="due_soon"&&(a="var(--warning-color, #ff9800)"),o`
     <div class="days-progress">
       <div class="days-progress-labels">
-        <span>${c.last_performed?`${s("last_performed",e)}: ${V(c.last_performed,e)}`:""}</span>
-        <span>${c.next_due?`${s("next_due",e)}: ${V(c.next_due,e)}`:""}</span>
+        <span>${l.last_performed?`${s("last_performed",t)}: ${U(l.last_performed,t)}`:""}</span>
+        <span>${l.next_due?`${s("next_due",t)}: ${U(l.next_due,t)}`:""}</span>
       </div>
-      <div class="days-progress-bar" role="progressbar" aria-valuenow="${Math.round(t)}" aria-valuemin="0" aria-valuemax="100" aria-label="${s("days_progress",e)}">
-        <div class="days-progress-fill${i?" overflow":""}" style="width:${t}%;background:${a}"></div>
+      <div class="days-progress-bar" role="progressbar" aria-valuenow="${Math.round(e)}" aria-valuemin="0" aria-valuemax="100" aria-label="${s("days_progress",t)}">
+        <div class="days-progress-fill${i?" overflow":""}" style="width:${e}%;background:${a}"></div>
       </div>
-      <div class="days-progress-text">${me(c.days_until_due,e)}</div>
+      <div class="days-progress-text">${ft(l.days_until_due,t)}</div>
     </div>
-  `}var wt=210,fe=46,Te=14,Se=12,is=14,zs=20+is,Is=[{days:7,key:"chart_range_7d"},{days:30,key:"chart_range_30d"},{days:90,key:"chart_range_90d"},{days:365,key:"chart_range_1y"}],te=class extends N{constructor(){super(...arguments);this.points=[];this.events=[];this.unit="";this.lang="en";this.thresholdAbove=null;this.thresholdBelow=null;this.targetValue=null;this.forceZero=!1;this.projection=null;this.rangeDays=30;this.showRange=!0;this.busy=!1;this.hideOutliers=!1;this.showOutlierToggle=!0;this._width=0;this._hover=null;this._ro=null}connectedCallback(){super.connectedCallback(),this._ro=new ResizeObserver(e=>{let t=Math.floor(e[0]?.contentRect?.width||0);t&&Math.abs(t-this._width)>2&&(this._width=t)}),this._ro.observe(this)}disconnectedCallback(){super.disconnectedCallback(),this._ro?.disconnect(),this._ro=null}_emitRange(e){e!==this.rangeDays&&this.dispatchEvent(new CustomEvent("range-change",{detail:{days:e},bubbles:!0,composed:!0}))}_toggleOutliers(){this.dispatchEvent(new CustomEvent("outlier-toggle",{detail:{hide:!this.hideOutliers},bubbles:!0,composed:!0}))}render(){let e=this._width||320,t=[...this.points].sort((a,r)=>a.ts-r.ts),i=this.lang;return o`
+  `}var je=210,bt=46,Rt=14,Ot=12,us=14,Zs=20+us,ta=[{days:7,key:"chart_range_7d"},{days:30,key:"chart_range_30d"},{days:90,key:"chart_range_90d"},{days:365,key:"chart_range_1y"}],et=class extends N{constructor(){super(...arguments);this.points=[];this.events=[];this.unit="";this.lang="en";this.thresholdAbove=null;this.thresholdBelow=null;this.targetValue=null;this.forceZero=!1;this.projection=null;this.rangeDays=30;this.showRange=!0;this.busy=!1;this.hideOutliers=!1;this.showOutlierToggle=!0;this._width=0;this._hover=null;this._ro=null}connectedCallback(){super.connectedCallback(),this._ro=new ResizeObserver(t=>{let e=Math.floor(t[0]?.contentRect?.width||0);e&&Math.abs(e-this._width)>2&&(this._width=e)}),this._ro.observe(this)}disconnectedCallback(){super.disconnectedCallback(),this._ro?.disconnect(),this._ro=null}_emitRange(t){t!==this.rangeDays&&this.dispatchEvent(new CustomEvent("range-change",{detail:{days:t},bubbles:!0,composed:!0}))}_toggleOutliers(){this.dispatchEvent(new CustomEvent("outlier-toggle",{detail:{hide:!this.hideOutliers},bubbles:!0,composed:!0}))}render(){let t=this._width||320,e=[...this.points].sort((a,r)=>a.ts-r.ts),i=this.lang;return o`
       <div class="chart-wrap">
         ${this.showRange?o`<div class="range-chips" role="group">
               ${this.showOutlierToggle?o`<button
@@ -4809,32 +4809,32 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
                     title=${s("hide_outliers",i)}
                     @click=${()=>this._toggleOutliers()}
                   ><ha-icon icon="mdi:filter-variant"></ha-icon></button>`:h}
-              ${Is.map(a=>o`<button
+              ${ta.map(a=>o`<button
                   class="range-chip ${this.rangeDays===a.days?"active":""}"
                   ?disabled=${this.busy}
                   @click=${()=>this._emitRange(a.days)}
                 >${s(a.key,i)}</button>`)}
             </div>`:h}
-        ${t.length<2?o`<div class="chart-empty">
+        ${e.length<2?o`<div class="chart-empty">
               <ha-icon icon="mdi:chart-line"></ha-icon> ${s("loading_chart",i)}
-            </div>`:this._renderSvg(e,t)}
+            </div>`:this._renderSvg(t,e)}
       </div>
-    `}_renderSvg(e,t){let i=this.lang,a=e-fe-Te,r=wt-zs,l=r-Se,n=1/0,u=-1/0;for(let j of t)n=Math.min(n,j.min??j.val),u=Math.max(u,j.max??j.val);this.thresholdAbove!=null&&(n=Math.min(n,this.thresholdAbove),u=Math.max(u,this.thresholdAbove)),this.thresholdBelow!=null&&(n=Math.min(n,this.thresholdBelow),u=Math.max(u,this.thresholdBelow)),this.targetValue!=null&&(n=Math.min(n,this.targetValue),u=Math.max(u,this.targetValue)),this.forceZero&&(n=Math.min(n,0));let p=(u-n||1)*.06,_=this.forceZero&&n>=0?0:n-p,{ticks:v,niceMin:f,niceMax:y}=Qe(_,u+p,4);this.forceZero&&n>=0&&f<0&&(f=0,v=v.filter(j=>j>=0));let M=t[0].ts,S=this.projection&&this.projection.length===2?this.projection[1].ts:null,T=S!=null?Math.max(t[t.length-1].ts,S):t[t.length-1].ts,x=T-M||1,D=gt(M,T),C=j=>fe+(j-M)/x*a,b=j=>Se+(1-(j-f)/(y-f||1))*l,ie=t.map(j=>`${R(C(j.ts))},${R(b(j.val))}`).join(" "),_e=`M${R(C(t[0].ts))},${r} `+t.map(j=>`L${R(C(j.ts))},${R(b(j.val))}`).join(" ")+` L${R(C(t[t.length-1].ts))},${r} Z`,$="",I=t.filter(j=>j.min!=null&&j.max!=null);if(I.length>=2){let j=I.map(re=>`${R(C(re.ts))},${R(b(re.max))}`),X=[...I].reverse().map(re=>`${R(C(re.ts))},${R(b(re.min))}`);$=`M${j[0]} `+j.slice(1).map(re=>`L${re}`).join(" ")+` L${X.join(" L")} Z`}let L=[];if(this.thresholdBelow!=null){let j=b(this.thresholdBelow);L.push({y:j,h:Math.max(0,r-j),lineY:j,label:`\u25BC ${be(this.thresholdBelow,i)}`,labelY:Math.min(r-4,j+13)})}if(this.thresholdAbove!=null){let j=b(this.thresholdAbove);L.push({y:Se,h:Math.max(0,j-Se),lineY:j,label:`\u25B2 ${be(this.thresholdAbove,i)}`,labelY:Math.max(Se+11,j-5)})}let z=t[t.length-1],F=(this.events||[]).filter(j=>j.ts>=M&&j.ts<=T),J=_t(M,T,Math.max(2,Math.min(5,Math.floor(a/110)+1))),K=this._hover;return o`
+    `}_renderSvg(t,e){let i=this.lang,a=t-bt-Rt,r=je-Zs,c=r-Ot,n=1/0,u=-1/0;for(let S of e)n=Math.min(n,S.min??S.val),u=Math.max(u,S.max??S.val);this.thresholdAbove!=null&&(n=Math.min(n,this.thresholdAbove),u=Math.max(u,this.thresholdAbove)),this.thresholdBelow!=null&&(n=Math.min(n,this.thresholdBelow),u=Math.max(u,this.thresholdBelow)),this.targetValue!=null&&(n=Math.min(n,this.targetValue),u=Math.max(u,this.targetValue)),this.forceZero&&(n=Math.min(n,0));let d=(u-n||1)*.06,g=this.forceZero&&n>=0?0:n-d,{ticks:m,niceMin:v,niceMax:y}=Xt(g,u+d,4);this.forceZero&&n>=0&&v<0&&(v=0,m=m.filter(S=>S>=0));let C=e[0].ts,$=this.projection&&this.projection.length===2?this.projection[1].ts:null,j=$!=null?Math.max(e[e.length-1].ts,$):e[e.length-1].ts,x=j-C||1,M=_e(C,j),b=S=>bt+(S-C)/x*a,D=S=>Ot+(1-(S-v)/(y-v||1))*c,at=e.map(S=>`${R(b(S.ts))},${R(D(S.val))}`).join(" "),pt=`M${R(b(e[0].ts))},${r} `+e.map(S=>`L${R(b(S.ts))},${R(D(S.val))}`).join(" ")+` L${R(b(e[e.length-1].ts))},${r} Z`,T="",I=e.filter(S=>S.min!=null&&S.max!=null);if(I.length>=2){let S=I.map(rt=>`${R(b(rt.ts))},${R(D(rt.max))}`),X=[...I].reverse().map(rt=>`${R(b(rt.ts))},${R(D(rt.min))}`);T=`M${S[0]} `+S.slice(1).map(rt=>`L${rt}`).join(" ")+` L${X.join(" L")} Z`}let H=[];if(this.thresholdBelow!=null){let S=D(this.thresholdBelow);H.push({y:S,h:Math.max(0,r-S),lineY:S,label:`\u25BC ${xt(this.thresholdBelow,i)}`,labelY:Math.min(r-4,S+13)})}if(this.thresholdAbove!=null){let S=D(this.thresholdAbove);H.push({y:Ot,h:Math.max(0,S-Ot),lineY:S,label:`\u25B2 ${xt(this.thresholdAbove,i)}`,labelY:Math.max(Ot+11,S-5)})}let z=e[e.length-1],W=(this.events||[]).filter(S=>S.ts>=C&&S.ts<=j),Q=me(C,j,Math.max(2,Math.min(5,Math.floor(a/110)+1))),J=this._hover;return o`
       <div class="svg-holder">
         <svg
           class="chart-svg"
-          viewBox="0 0 ${e} ${wt}"
-          width=${e}
-          height=${wt}
+          viewBox="0 0 ${t} ${je}"
+          width=${t}
+          height=${je}
           role="img"
           aria-label=${s("chart_sparkline",i)}
-          @pointermove=${j=>this._onPointer(j,t,C,b,e)}
-          @pointerdown=${j=>this._onPointer(j,t,C,b,e)}
+          @pointermove=${S=>this._onPointer(S,e,b,D,t)}
+          @pointerdown=${S=>this._onPointer(S,e,b,D,t)}
           @pointerleave=${()=>this._hover=null}
         >
           <defs>
-            <clipPath id="plot"><rect x="${fe}" y="${Se}" width="${a}" height="${l}" /></clipPath>
-            ${L.length?Y`<clipPath id="danger">${L.map(j=>Y`<rect x="${fe}" y="${R(j.y)}" width="${a}" height="${R(j.h)}" />`)}</clipPath>`:h}
+            <clipPath id="plot"><rect x="${bt}" y="${Ot}" width="${a}" height="${c}" /></clipPath>
+            ${H.length?G`<clipPath id="danger">${H.map(S=>G`<rect x="${bt}" y="${R(S.y)}" width="${a}" height="${R(S.h)}" />`)}</clipPath>`:h}
             <!-- Diagonal hatch so the danger zone reads without relying on the
                  red tint alone (dark-theme contrast + colour-blind support). -->
             <pattern id="dangerHatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">
@@ -4843,63 +4843,63 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
             </pattern>
           </defs>
 
-          ${v.map(j=>{let X=b(j);return X<Se-1||X>r+1?h:Y`
-              <line x1="${fe}" y1="${R(X)}" x2="${e-Te}" y2="${R(X)}"
+          ${m.map(S=>{let X=D(S);return X<Ot-1||X>r+1?h:G`
+              <line x1="${bt}" y1="${R(X)}" x2="${t-Rt}" y2="${R(X)}"
                 stroke="var(--divider-color)" stroke-width="1" opacity="0.6" />
-              <text x="${fe-7}" y="${R(X+3.5)}" text-anchor="end" class="tick-label">${be(j,i)}</text>`})}
+              <text x="${bt-7}" y="${R(X+3.5)}" text-anchor="end" class="tick-label">${xt(S,i)}</text>`})}
 
-          ${L.map(j=>Y`<rect x="${fe}" y="${R(j.y)}" width="${a}" height="${R(j.h)}"
+          ${H.map(S=>G`<rect x="${bt}" y="${R(S.y)}" width="${a}" height="${R(S.h)}"
               fill="url(#dangerHatch)" />`)}
 
-          ${$?Y`<path d="${$}" fill="var(--primary-color)" opacity="0.08" clip-path="url(#plot)" />`:h}
-          <path d="${_e}" fill="var(--primary-color)" opacity="0.10" clip-path="url(#plot)" />
-          <polyline points="${ie}" fill="none" stroke="var(--primary-color)" stroke-width="2"
+          ${T?G`<path d="${T}" fill="var(--primary-color)" opacity="0.08" clip-path="url(#plot)" />`:h}
+          <path d="${pt}" fill="var(--primary-color)" opacity="0.10" clip-path="url(#plot)" />
+          <polyline points="${at}" fill="none" stroke="var(--primary-color)" stroke-width="2"
             stroke-linejoin="round" stroke-linecap="round" clip-path="url(#plot)" />
-          ${L.length?Y`<polyline points="${ie}" fill="none" stroke="var(--error-color, #f44336)" stroke-width="2"
+          ${H.length?G`<polyline points="${at}" fill="none" stroke="var(--error-color, #f44336)" stroke-width="2"
                 stroke-linejoin="round" stroke-linecap="round" clip-path="url(#danger)" />`:h}
 
-          ${L.map(j=>Y`
-              <line x1="${fe}" y1="${R(j.lineY)}" x2="${e-Te}" y2="${R(j.lineY)}"
+          ${H.map(S=>G`
+              <line x1="${bt}" y1="${R(S.lineY)}" x2="${t-Rt}" y2="${R(S.lineY)}"
                 stroke="var(--error-color, #f44336)" stroke-width="1.5" stroke-dasharray="6,4" />
-              <text x="${e-Te-4}" y="${R(j.labelY)}" text-anchor="end" class="zone-label">${j.label}</text>`)}
+              <text x="${t-Rt-4}" y="${R(S.labelY)}" text-anchor="end" class="zone-label">${S.label}</text>`)}
 
-          ${this.targetValue!=null?Y`<line x1="${fe}" y1="${R(b(this.targetValue))}" x2="${e-Te}" y2="${R(b(this.targetValue))}"
+          ${this.targetValue!=null?G`<line x1="${bt}" y1="${R(D(this.targetValue))}" x2="${t-Rt}" y2="${R(D(this.targetValue))}"
                 stroke="var(--error-color, #f44336)" stroke-width="1.5" stroke-dasharray="6,4" />
-              <text x="${e-Te-4}" y="${R(b(this.targetValue)-5)}" text-anchor="end" class="zone-label">◆ ${be(this.targetValue,i)} ${this.unit}</text>`:h}
+              <text x="${t-Rt-4}" y="${R(D(this.targetValue)-5)}" text-anchor="end" class="zone-label">◆ ${xt(this.targetValue,i)} ${this.unit}</text>`:h}
 
-          ${this.projection&&this.projection.length===2?Y`<line x1="${R(C(this.projection[0].ts))}" y1="${R(b(this.projection[0].val))}"
-                x2="${R(Math.min(C(this.projection[1].ts),e-Te))}" y2="${R(b(Math.max(f,Math.min(y,this.projection[1].val))))}"
+          ${this.projection&&this.projection.length===2?G`<line x1="${R(b(this.projection[0].ts))}" y1="${R(D(this.projection[0].val))}"
+                x2="${R(Math.min(b(this.projection[1].ts),t-Rt))}" y2="${R(D(Math.max(v,Math.min(y,this.projection[1].val))))}"
                 stroke="var(--warning-color, #ff9800)" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.8" />`:h}
 
-          ${J.map((j,X)=>{let re=C(j),Re=X===0?"start":X===J.length-1?"end":"middle";return Y`<text x="${R(re)}" y="${wt-5}" text-anchor="${Re}" class="tick-label">${Pe(j,i,D)}</text>`})}
+          ${Q.map((S,X)=>{let rt=b(S),Dt=X===0?"start":X===Q.length-1?"end":"middle";return G`<text x="${R(rt)}" y="${je-5}" text-anchor="${Dt}" class="tick-label">${Nt(S,i,M)}</text>`})}
 
-          <line x1="${fe}" y1="${r}" x2="${e-Te}" y2="${r}" stroke="var(--divider-color)" stroke-width="1" />
+          <line x1="${bt}" y1="${r}" x2="${t-Rt}" y2="${r}" stroke="var(--divider-color)" stroke-width="1" />
 
-          ${F.map(j=>{let X=C(j.ts),re=j.type==="completed"?"var(--success-color, #4caf50)":j.type==="skipped"?"var(--warning-color, #ff9800)":"var(--info-color, #2196f3)";return Y`
-              <line x1="${R(X)}" y1="${Se}" x2="${R(X)}" y2="${r}" stroke="${re}" stroke-width="1" opacity="0.14" />
-              <rect x="${R(X-1.5)}" y="${r+3}" width="3" height="${is-6}" rx="1.5" fill="${re}">
-                <title>${Ct(j.ts,i)}</title>
+          ${W.map(S=>{let X=b(S.ts),rt=S.type==="completed"?"var(--success-color, #4caf50)":S.type==="skipped"?"var(--warning-color, #ff9800)":"var(--info-color, #2196f3)";return G`
+              <line x1="${R(X)}" y1="${Ot}" x2="${R(X)}" y2="${r}" stroke="${rt}" stroke-width="1" opacity="0.14" />
+              <rect x="${R(X-1.5)}" y="${r+3}" width="3" height="${us-6}" rx="1.5" fill="${rt}">
+                <title>${ze(S.ts,i)}</title>
               </rect>`})}
 
-          ${K?Y`
-                <line x1="${R(K.x)}" y1="${Se}" x2="${R(K.x)}" y2="${r}"
+          ${J?G`
+                <line x1="${R(J.x)}" y1="${Ot}" x2="${R(J.x)}" y2="${r}"
                   stroke="var(--secondary-text-color)" stroke-width="1" stroke-dasharray="3,3" opacity="0.7" />
-                <circle cx="${R(K.x)}" cy="${R(K.y)}" r="4.5" fill="var(--primary-color)"
-                  stroke="var(--card-background-color, #fff)" stroke-width="2" />`:Y`<circle cx="${R(C(z.ts))}" cy="${R(b(z.val))}" r="4" fill="var(--primary-color)"
+                <circle cx="${R(J.x)}" cy="${R(J.y)}" r="4.5" fill="var(--primary-color)"
+                  stroke="var(--card-background-color, #fff)" stroke-width="2" />`:G`<circle cx="${R(b(z.ts))}" cy="${R(D(z.val))}" r="4" fill="var(--primary-color)"
                 stroke="var(--card-background-color, #fff)" stroke-width="1.5" />`}
         </svg>
-        ${K?o`<div
+        ${J?o`<div
               class="hover-chip"
-              style="left:${Math.min(Math.max(K.x,70),e-70)}px"
+              style="left:${Math.min(Math.max(J.x,70),t-70)}px"
             >
-              <div class="hover-date">${Ct(K.p.ts,i)}</div>
+              <div class="hover-date">${ze(J.p.ts,i)}</div>
               <div class="hover-val">
-                ${Ce(K.p.val,this.unit,i)}
-                ${K.p.min!=null&&K.p.max!=null?o`<span class="hover-range">(${be(K.p.min,i)}–${be(K.p.max,i)})</span>`:h}
+                ${zt(J.p.val,this.unit,i)}
+                ${J.p.min!=null&&J.p.max!=null?o`<span class="hover-range">(${xt(J.p.min,i)}–${xt(J.p.max,i)})</span>`:h}
               </div>
             </div>`:h}
       </div>
-    `}_onPointer(e,t,i,a,r){let n=e.currentTarget.getBoundingClientRect(),u=(e.clientX-n.left)/n.width*r;if(u<fe-8||u>r-Te+8){this._hover=null;return}let p=t[0],_=1/0;for(let v of t){let f=Math.abs(i(v.ts)-u);f<_&&(_=f,p=v)}this._hover={x:i(p.ts),y:a(p.val),p}}};te.styles=B`
+    `}_onPointer(t,e,i,a,r){let n=t.currentTarget.getBoundingClientRect(),u=(t.clientX-n.left)/n.width*r;if(u<bt-8||u>r-Rt+8){this._hover=null;return}let d=e[0],g=1/0;for(let m of e){let v=Math.abs(i(m.ts)-u);v<g&&(g=v,d=m)}this._hover={x:i(d.ts),y:a(d.val),p:d}}};et.styles=B`
     :host { display: block; width: 100%; }
     .chart-wrap { position: relative; }
     .range-chips { display: flex; gap: 4px; justify-content: flex-end; margin-bottom: 2px; }
@@ -4934,53 +4934,53 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
     .hover-date { font-size: 10.5px; color: var(--secondary-text-color); }
     .hover-val { font-size: 12.5px; font-weight: 600; color: var(--primary-text-color); }
     .hover-range { font-weight: 400; color: var(--secondary-text-color); font-size: 11px; }
-  `,g([E({attribute:!1})],te.prototype,"points",2),g([E({attribute:!1})],te.prototype,"events",2),g([E()],te.prototype,"unit",2),g([E()],te.prototype,"lang",2),g([E({attribute:!1})],te.prototype,"thresholdAbove",2),g([E({attribute:!1})],te.prototype,"thresholdBelow",2),g([E({attribute:!1})],te.prototype,"targetValue",2),g([E({type:Boolean})],te.prototype,"forceZero",2),g([E({attribute:!1})],te.prototype,"projection",2),g([E({attribute:!1})],te.prototype,"rangeDays",2),g([E({type:Boolean})],te.prototype,"showRange",2),g([E({type:Boolean})],te.prototype,"busy",2),g([E({type:Boolean})],te.prototype,"hideOutliers",2),g([E({type:Boolean})],te.prototype,"showOutlierToggle",2),g([m()],te.prototype,"_width",2),g([m()],te.prototype,"_hover",2);customElements.get("maintenance-trigger-chart")||customElements.define("maintenance-trigger-chart",te);function ss(c){let d=(c??"").trim().toLowerCase();return d==="on"||d==="open"||d==="true"?1:d==="off"||d==="closed"||d==="false"?0:null}function Ps(c,d,e){if(c.length<2)return null;let t=e.now??Date.now(),i=Math.max(0,d.trigger_for_minutes??0)*6e4,a=d.trigger_from_state?ss(d.trigger_from_state):null,r=d.trigger_to_state?ss(d.trigger_to_state):null;if(d.trigger_from_state&&a===null||d.trigger_to_state&&r===null)return null;let l=[...c].sort((x,D)=>x.ts-D.ts),n=[];for(let x of l){let D=n[n.length-1];(!D||D.level!==x.val)&&n.push({start:x.ts,level:x.val})}let u=x=>(x+1<n.length?n[x+1].start:t)-n[x].start>=i,p=(x,D,C)=>{let b=x[x.length-1];b&&b.val!==C&&x.push({ts:D,val:b.val}),x.push({ts:D,val:C})};if((d.trigger_target_changes??1)===1&&r!==null){let x=[];n.forEach((C,b)=>p(x,C.start,C.level===r&&u(b)?1:0));let D=x[x.length-1]?.val??0;return x.push({ts:t,val:D}),{points:x,mode:"alarm"}}let v=e.since??n[0].start,f=0,y=[];for(let x=1;x<n.length;x++){let D=n[x-1],C=n[x];a!==null&&D.level!==a||r!==null&&C.level!==r||!u(x)||C.start<v||(f+=1,y.push(C.start))}let M=Math.max(0,(e.current??f)-f),S=[{ts:Math.max(v,n[0].start),val:M}],T=M;for(let x of y)T+=1,p(S,x,T);return S.push({ts:t,val:T}),{points:S,mode:"count"}}function Ls(c){if(c.length<4)return c;let d=c.map(u=>u.val).sort((u,p)=>u-p),e=u=>{let p=(d.length-1)*u,_=Math.floor(p),v=Math.ceil(p);return d[_]+(d[v]-d[_])*(p-_)},t=e(.25),i=e(.75),a=i-t;if(a===0)return c;let r=t-1.5*a,l=i+1.5*a,n=c.filter(u=>u.val>=r&&u.val<=l);return n.length>=2?n:c}function as(c,d){let e=c.trigger_config;if(!e)return h;let t=d.lang,i=c.trigger_entity_info,a=c.trigger_entity_infos,r=i?.friendly_name||e.entity_id||"\u2014",l=e.entity_id||"",n=e.entity_ids||(l?[l]:[]),u=i?.unit_of_measurement||"",p=c.trigger_current_value,_=e.type||"threshold",v=n.length>1,f=Hs(c,u,d);return o`
-    <h3>${s("trigger",t)}</h3>
+  `,_([E({attribute:!1})],et.prototype,"points",2),_([E({attribute:!1})],et.prototype,"events",2),_([E()],et.prototype,"unit",2),_([E()],et.prototype,"lang",2),_([E({attribute:!1})],et.prototype,"thresholdAbove",2),_([E({attribute:!1})],et.prototype,"thresholdBelow",2),_([E({attribute:!1})],et.prototype,"targetValue",2),_([E({type:Boolean})],et.prototype,"forceZero",2),_([E({attribute:!1})],et.prototype,"projection",2),_([E({attribute:!1})],et.prototype,"rangeDays",2),_([E({type:Boolean})],et.prototype,"showRange",2),_([E({type:Boolean})],et.prototype,"busy",2),_([E({type:Boolean})],et.prototype,"hideOutliers",2),_([E({type:Boolean})],et.prototype,"showOutlierToggle",2),_([f()],et.prototype,"_width",2),_([f()],et.prototype,"_hover",2);customElements.get("maintenance-trigger-chart")||customElements.define("maintenance-trigger-chart",et);function gs(l){let p=(l??"").trim().toLowerCase();return p==="on"||p==="open"||p==="true"?1:p==="off"||p==="closed"||p==="false"?0:null}function ea(l,p,t){if(l.length<2)return null;let e=t.now??Date.now(),i=Math.max(0,p.trigger_for_minutes??0)*6e4,a=p.trigger_from_state?gs(p.trigger_from_state):null,r=p.trigger_to_state?gs(p.trigger_to_state):null;if(p.trigger_from_state&&a===null||p.trigger_to_state&&r===null)return null;let c=[...l].sort((x,M)=>x.ts-M.ts),n=[];for(let x of c){let M=n[n.length-1];(!M||M.level!==x.val)&&n.push({start:x.ts,level:x.val})}let u=x=>(x+1<n.length?n[x+1].start:e)-n[x].start>=i,d=(x,M,b)=>{let D=x[x.length-1];D&&D.val!==b&&x.push({ts:M,val:D.val}),x.push({ts:M,val:b})};if((p.trigger_target_changes??1)===1&&r!==null){let x=[];n.forEach((b,D)=>d(x,b.start,b.level===r&&u(D)?1:0));let M=x[x.length-1]?.val??0;return x.push({ts:e,val:M}),{points:x,mode:"alarm"}}let m=t.since??n[0].start,v=0,y=[];for(let x=1;x<n.length;x++){let M=n[x-1],b=n[x];a!==null&&M.level!==a||r!==null&&b.level!==r||!u(x)||b.start<m||(v+=1,y.push(b.start))}let C=Math.max(0,(t.current??v)-v),$=[{ts:Math.max(m,n[0].start),val:C}],j=C;for(let x of y)j+=1,d($,x,j);return $.push({ts:e,val:j}),{points:$,mode:"count"}}function ia(l){if(l.length<4)return l;let p=l.map(u=>u.val).sort((u,d)=>u-d),t=u=>{let d=(p.length-1)*u,g=Math.floor(d),m=Math.ceil(d);return p[g]+(p[m]-p[g])*(d-g)},e=t(.25),i=t(.75),a=i-e;if(a===0)return l;let r=e-1.5*a,c=i+1.5*a,n=l.filter(u=>u.val>=r&&u.val<=c);return n.length>=2?n:l}function _s(l,p){let t=l.trigger_config;if(!t)return h;let e=p.lang,i=l.trigger_entity_info,a=l.trigger_entity_infos,r=i?.friendly_name||t.entity_id||"\u2014",c=t.entity_id||"",n=t.entity_ids||(c?[c]:[]),u=i?.unit_of_measurement||"",d=l.trigger_current_value,g=t.type||"threshold",m=n.length>1,v=sa(l,u,p);return o`
+    <h3>${s("trigger",e)}</h3>
     <div class="trigger-card">
       <div class="trigger-header">
         <ha-icon icon="mdi:pulse" style="color: var(--primary-color); --mdc-icon-size: 20px;"></ha-icon>
         <div>
-          ${v?o`
-            <div class="trigger-entity-name">${n.length} ${s("entities",t)} (${e.entity_logic||"any"})</div>
-            <div class="trigger-entity-id">${n.map((y,M)=>o`${M>0?", ":""}<span class="entity-link" @click=${S=>We(S,y)}>${y}</span>`)}${e.attribute?` \u2192 ${e.attribute}`:""}</div>
+          ${m?o`
+            <div class="trigger-entity-name">${n.length} ${s("entities",e)} (${t.entity_logic||"any"})</div>
+            <div class="trigger-entity-id">${n.map((y,C)=>o`${C>0?", ":""}<span class="entity-link" @click=${$=>Yt($,y)}>${y}</span>`)}${t.attribute?` \u2192 ${t.attribute}`:""}</div>
           `:o`
             <div class="trigger-entity-name">${r}</div>
-            <div class="trigger-entity-id">${l?o`<span class="entity-link" @click=${y=>We(y,l)}>${l}</span>`:""}${e.attribute?` \u2192 ${e.attribute}`:""}</div>
+            <div class="trigger-entity-id">${c?o`<span class="entity-link" @click=${y=>Yt(y,c)}>${c}</span>`:""}${t.attribute?` \u2192 ${t.attribute}`:""}</div>
           `}
         </div>
-        <span class="status-badge ${c.trigger_active?"triggered":"ok"}" style="margin-left: auto;">
-          ${c.trigger_active?s("triggered",t):s("ok",t)}
+        <span class="status-badge ${l.trigger_active?"triggered":"ok"}" style="margin-left: auto;">
+          ${l.trigger_active?s("triggered",e):s("ok",e)}
         </span>
       </div>
 
-      ${f?Bs(f,t):p!=null?o`
+      ${v?aa(v,e):d!=null?o`
               <div class="trigger-value-row">
-                <span class="trigger-current ${c.trigger_active?"active":""}">${_==="due_date"&&typeof p=="number"?me(Bt(p),t):typeof p=="number"?Ce(p,"",t):p}</span>
+                <span class="trigger-current ${l.trigger_active?"active":""}">${g==="due_date"&&typeof d=="number"?ft(Ve(d),e):typeof d=="number"?zt(d,"",e):d}</span>
                 ${u?o`<span class="trigger-unit">${u}</span>`:h}
               </div>
             `:h}
 
       <div class="trigger-limits">
-        ${_==="threshold"?o`
-          ${e.trigger_above!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("threshold_above",t)}: ${e.trigger_above} ${u}</span>`:h}
-          ${e.trigger_below!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("threshold_below",t)}: ${e.trigger_below} ${u}</span>`:h}
-          ${e.trigger_equals!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> = ${e.trigger_equals} ${u}</span>`:h}
-          ${e.trigger_not_equals!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ≠ ${e.trigger_not_equals} ${u}</span>`:h}
-          ${e.trigger_for_minutes?o`<span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${s("for_minutes",t)}: ${e.trigger_for_minutes}</span>`:h}
+        ${g==="threshold"?o`
+          ${t.trigger_above!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("threshold_above",e)}: ${t.trigger_above} ${u}</span>`:h}
+          ${t.trigger_below!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("threshold_below",e)}: ${t.trigger_below} ${u}</span>`:h}
+          ${t.trigger_equals!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> = ${t.trigger_equals} ${u}</span>`:h}
+          ${t.trigger_not_equals!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ≠ ${t.trigger_not_equals} ${u}</span>`:h}
+          ${t.trigger_for_minutes?o`<span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${s("for_minutes",e)}: ${t.trigger_for_minutes}</span>`:h}
         `:h}
-        ${_==="state_change"?o`
-          ${e.trigger_target_changes!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("target_changes",t)}: ${e.trigger_target_changes}</span>`:h}
+        ${g==="state_change"?o`
+          ${t.trigger_target_changes!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("target_changes",e)}: ${t.trigger_target_changes}</span>`:h}
         `:h}
-        ${_==="runtime"?o`
-          ${e.trigger_runtime_hours!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("runtime_hours",t)}: ${e.trigger_runtime_hours}h</span>`:h}
+        ${g==="runtime"?o`
+          ${t.trigger_runtime_hours!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("runtime_hours",e)}: ${t.trigger_runtime_hours}h</span>`:h}
         `:h}
-        ${_==="due_date"?o`
-          <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("days_before",t)}: ${e.trigger_days_before??0}</span>
+        ${g==="due_date"?o`
+          <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("days_before",e)}: ${t.trigger_days_before??0}</span>
         `:h}
-        ${_==="compound"?o`
-          <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("compound_logic",t)}: ${e.compound_logic||e.operator||"AND"}</span>
-          ${(e.conditions||[]).map((y,M)=>o`
-            <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${M+1}. ${s(y.type==="due_date"?"trigger_type_due_date":y.type||"unknown",t)}: ${y.entity_id?o`<span class="entity-link" @click=${S=>We(S,y.entity_id)}>${y.entity_id}</span>`:""}</span>
+        ${g==="compound"?o`
+          <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("compound_logic",e)}: ${t.compound_logic||t.operator||"AND"}</span>
+          ${(t.conditions||[]).map((y,C)=>o`
+            <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${C+1}. ${s(y.type==="due_date"?"trigger_type_due_date":y.type||"unknown",e)}: ${y.entity_id?o`<span class="entity-link" @click=${$=>Yt($,y.entity_id)}>${y.entity_id}</span>`:""}</span>
           `)}
         `:h}
       </div>
@@ -4988,224 +4988,224 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
       ${a&&a.length>1?o`
         <div class="trigger-entity-list">
           ${a.map(y=>o`
-            <span class="trigger-entity-id">${y.friendly_name} (<span class="entity-link" @click=${M=>We(M,y.entity_id)}>${y.entity_id}</span>)</span>
+            <span class="trigger-entity-id">${y.friendly_name} (<span class="entity-link" @click=${C=>Yt(C,y.entity_id)}>${y.entity_id}</span>)</span>
           `)}
         </div>
       `:h}
 
-      ${Ns(c,u,d)}
+      ${ra(l,u,p)}
     </div>
-  `}function Hs(c,d,e){let t=c.trigger_config,i=c.trigger_current_value;if(!t||i==null)return null;switch(t.type||"threshold"){case"counter":{let a=t.trigger_target_value;if(a==null||a<=0)return null;if(!t.trigger_delta_mode)return{progress:Math.max(0,i),target:a,unit:d,meter:null};let r=rs(c,os(c,e));return{progress:Math.max(0,i-(r?.value??i)),target:a,unit:d,meter:i}}case"state_change":{let a=t.trigger_target_changes;return a==null||a<=0?null:{progress:Math.max(0,i),target:a,unit:"",meter:null}}case"runtime":{let a=t.trigger_runtime_hours;return a==null||a<=0?null:{progress:Math.max(0,i),target:a,unit:"h",meter:null}}}return null}function rs(c,d){if(c.trigger_baseline_value!=null)return{value:c.trigger_baseline_value,ts:kt(c)};if(!d.length)return null;let e=kt(c);if(e==null)return{value:d[0].val,ts:null};let t=d[0],i=Math.abs(d[0].ts-e);for(let a of d){let r=Math.abs(a.ts-e);r<i&&(t=a,i=r)}return{value:t.val,ts:e}}function kt(c){let d=[...c.history].filter(e=>e.type==="completed"||e.type==="reset").sort((e,t)=>new Date(t.timestamp).getTime()-new Date(e.timestamp).getTime())[0];return d?new Date(d.timestamp).getTime():null}function Bs(c,d){let e=Math.min(999,Math.round(c.progress/c.target*100)),t=e>=100?"over":e>=75?"near":"ok";return o`
+  `}function sa(l,p,t){let e=l.trigger_config,i=l.trigger_current_value;if(!e||i==null)return null;switch(e.type||"threshold"){case"counter":{let a=e.trigger_target_value;if(a==null||a<=0)return null;if(!e.trigger_delta_mode)return{progress:Math.max(0,i),target:a,unit:p,meter:null};let r=ms(l,fs(l,t));return{progress:Math.max(0,i-(r?.value??i)),target:a,unit:p,meter:i}}case"state_change":{let a=e.trigger_target_changes;return a==null||a<=0?null:{progress:Math.max(0,i),target:a,unit:"",meter:null}}case"runtime":{let a=e.trigger_runtime_hours;return a==null||a<=0?null:{progress:Math.max(0,i),target:a,unit:"h",meter:null}}}return null}function ms(l,p){if(l.trigger_baseline_value!=null)return{value:l.trigger_baseline_value,ts:Se(l)};if(!p.length)return null;let t=Se(l);if(t==null)return{value:p[0].val,ts:null};let e=p[0],i=Math.abs(p[0].ts-t);for(let a of p){let r=Math.abs(a.ts-t);r<i&&(e=a,i=r)}return{value:e.val,ts:t}}function Se(l){let p=[...l.history].filter(t=>t.type==="completed"||t.type==="reset").sort((t,e)=>mt(e.timestamp)-mt(t.timestamp))[0];return p?mt(p.timestamp):null}function aa(l,p){let t=Math.min(999,Math.round(l.progress/l.target*100)),e=t>=100?"over":t>=75?"near":"ok";return o`
     <div class="counter-progress">
       <div class="counter-progress-nums">
-        <span class="counter-progress-main">${Ce(c.progress,"",d)}<span class="counter-progress-target"> / ${Ce(c.target,c.unit,d)}</span></span>
-        <span class="counter-progress-pct ${t}">${e} %</span>
+        <span class="counter-progress-main">${zt(l.progress,"",p)}<span class="counter-progress-target"> / ${zt(l.target,l.unit,p)}</span></span>
+        <span class="counter-progress-pct ${e}">${t} %</span>
       </div>
-      <div class="counter-progress-bar" role="progressbar" aria-valuenow=${e} aria-valuemin="0" aria-valuemax="100">
-        <div class="counter-progress-fill ${t}" style="width:${Math.min(100,e)}%"></div>
+      <div class="counter-progress-bar" role="progressbar" aria-valuenow=${t} aria-valuemin="0" aria-valuemax="100">
+        <div class="counter-progress-fill ${e}" style="width:${Math.min(100,t)}%"></div>
       </div>
       <div class="counter-progress-caption">
-        ${s("chart_since_service",d)}${c.meter!=null?o` · ${s("current",d)}: ${Ce(c.meter,c.unit,d)}`:h}
+        ${s("chart_since_service",p)}${l.meter!=null?o` · ${s("current",p)}: ${zt(l.meter,l.unit,p)}`:h}
       </div>
     </div>
-  `}function os(c,d){let e=c.trigger_config;if(!e)return[];let t=e.type||"threshold",i=e.entity_id||"",a=t==="runtime"?[]:d.detailStatsData.get(i)||[],r=d.isCounterEntity(e),l=[];if(a.length>=2)for(let u of a){let p={ts:u.ts,val:u.val};!r&&u.min!=null&&u.max!=null&&(p.min=u.min,p.max=u.max),l.push(p)}else for(let u of c.history)u.trigger_value!=null&&l.push({ts:new Date(u.timestamp).getTime(),val:u.trigger_value});let n=!!i&&!!d.historyFallbackIds?.has(i)&&a.length>=2;return c.trigger_current_value!=null&&!n&&l.push({ts:Date.now(),val:c.trigger_current_value}),l.sort((u,p)=>u.ts-p.ts),l}function Ns(c,d,e){let t=c.trigger_config;if(!t)return h;let i=t.type||"threshold",a=t.entity_id||"";if(i==="due_date")return h;let r=os(c,e),l=null;i==="state_change"&&a&&e.historyFallbackIds?.has(a)&&(l=Ps(r,t,{since:kt(c),current:c.trigger_current_value??null}),l&&(r=l.points)),i==="runtime"&&t.trigger_runtime_hours&&c.trigger_current_value!=null&&(r=[{ts:kt(c)??r[0]?.ts??Date.now()-864e5,val:0},{ts:Date.now(),val:Math.max(0,c.trigger_current_value)}]),e.hideOutliers&&(r=Ls(r));let n=r.length<2&&!!a&&e.hasStatsService&&!e.detailStatsData.has(a);if(r.length<2&&!n)return h;let u=!!a&&e.detailStatsData.has(a)&&(e.detailStatsData.get(a)?.length??0)<2,p=Date.now()-e.rangeDays*864e5,_=r.filter(x=>x.ts>=p);_.length>=2&&(r=_);let v=null,f=!1;if(i==="counter"&&t.trigger_target_value!=null&&r.length){if(t.trigger_delta_mode){let x=rs(c,r);if(x){if(x.ts!=null){let D=r.filter(C=>C.ts>=x.ts);D.length>=2&&(r=D)}r=r.map(D=>({...D,val:Math.max(0,D.val-x.value)}))}}v=t.trigger_target_value,f=!0}else i==="state_change"&&t.trigger_target_changes&&l?.mode!=="alarm"?(v=t.trigger_target_changes,f=!0):i==="runtime"&&t.trigger_runtime_hours&&(v=t.trigger_runtime_hours,f=!0);let y=null,M=c.degradation_rate,S=M!=null&&(t.trigger_below!=null&&t.trigger_above==null&&M>0||t.trigger_above!=null&&t.trigger_below==null&&M<0);if(v==null&&M!=null&&!S&&(c.degradation_trend!=="stable"||c.days_until_threshold!=null)&&c.degradation_trend!=="insufficient_data"&&r.length>=2){let x=r[r.length-1];y=[x,{ts:x.ts+30*864e5,val:x.val+M*30}]}let T=c.history.filter(x=>["completed","skipped","reset"].includes(x.type)).map(x=>({ts:new Date(x.timestamp).getTime(),type:x.type}));return o`
+  `}function fs(l,p){let t=l.trigger_config;if(!t)return[];let e=t.type||"threshold",i=t.entity_id||"",a=e==="runtime"?[]:p.detailStatsData.get(i)||[],r=p.isCounterEntity(t),c=[];if(a.length>=2)for(let u of a){let d={ts:u.ts,val:u.val};!r&&u.min!=null&&u.max!=null&&(d.min=u.min,d.max=u.max),c.push(d)}else for(let u of l.history)u.trigger_value!=null&&c.push({ts:mt(u.timestamp),val:u.trigger_value});let n=!!i&&!!p.historyFallbackIds?.has(i)&&a.length>=2;return l.trigger_current_value!=null&&!n&&c.push({ts:Date.now(),val:l.trigger_current_value}),c.sort((u,d)=>u.ts-d.ts),c}function ra(l,p,t){let e=l.trigger_config;if(!e)return h;let i=e.type||"threshold",a=e.entity_id||"";if(i==="due_date")return h;let r=fs(l,t),c=null;i==="state_change"&&a&&t.historyFallbackIds?.has(a)&&(c=ea(r,e,{since:Se(l),current:l.trigger_current_value??null}),c&&(r=c.points)),i==="runtime"&&e.trigger_runtime_hours&&l.trigger_current_value!=null&&(r=[{ts:Se(l)??r[0]?.ts??Date.now()-864e5,val:0},{ts:Date.now(),val:Math.max(0,l.trigger_current_value)}]),t.hideOutliers&&(r=ia(r));let n=r.length<2&&!!a&&t.hasStatsService&&!t.detailStatsData.has(a);if(r.length<2&&!n)return h;let u=!!a&&t.detailStatsData.has(a)&&(t.detailStatsData.get(a)?.length??0)<2,d=Date.now()-t.rangeDays*864e5,g=r.filter(x=>x.ts>=d);g.length>=2&&(r=g);let m=null,v=!1;if(i==="counter"&&e.trigger_target_value!=null&&r.length){if(e.trigger_delta_mode){let x=ms(l,r);if(x){if(x.ts!=null){let M=r.filter(b=>b.ts>=x.ts);M.length>=2&&(r=M)}r=r.map(M=>({...M,val:Math.max(0,M.val-x.value)}))}}m=e.trigger_target_value,v=!0}else i==="state_change"&&e.trigger_target_changes&&c?.mode!=="alarm"?(m=e.trigger_target_changes,v=!0):i==="runtime"&&e.trigger_runtime_hours&&(m=e.trigger_runtime_hours,v=!0);let y=null,C=l.degradation_rate,$=C!=null&&(e.trigger_below!=null&&e.trigger_above==null&&C>0||e.trigger_above!=null&&e.trigger_below==null&&C<0);if(m==null&&C!=null&&!$&&(l.degradation_trend!=="stable"||l.days_until_threshold!=null)&&l.degradation_trend!=="insufficient_data"&&r.length>=2){let x=r[r.length-1];y=[x,{ts:x.ts+30*864e5,val:x.val+C*30}]}let j=l.history.filter(x=>["completed","skipped","reset"].includes(x.type)).map(x=>({ts:mt(x.timestamp),type:x.type}));return o`
     <maintenance-trigger-chart
       .points=${n?[]:r}
-      .events=${T}
-      .unit=${d}
-      .lang=${e.lang}
-      .thresholdAbove=${i==="threshold"?t.trigger_above??null:null}
-      .thresholdBelow=${i==="threshold"?t.trigger_below??null:null}
-      .targetValue=${v}
-      .forceZero=${f}
+      .events=${j}
+      .unit=${p}
+      .lang=${t.lang}
+      .thresholdAbove=${i==="threshold"?e.trigger_above??null:null}
+      .thresholdBelow=${i==="threshold"?e.trigger_below??null:null}
+      .targetValue=${m}
+      .forceZero=${v}
       .projection=${y}
-      .rangeDays=${e.rangeDays}
-      .hideOutliers=${e.hideOutliers}
+      .rangeDays=${t.rangeDays}
+      .hideOutliers=${t.hideOutliers}
       .busy=${n}
-      @range-change=${x=>e.setRangeDays(x.detail.days)}
-      @outlier-toggle=${x=>e.setHideOutliers(x.detail.hide)}
+      @range-change=${x=>t.setRangeDays(x.detail.days)}
+      @outlier-toggle=${x=>t.setHideOutliers(x.detail.hide)}
     ></maintenance-trigger-chart>
-    ${n?h:a&&e.historyFallbackIds?.has(a)&&!u?o`<div class="chart-note">
+    ${n?h:a&&t.historyFallbackIds?.has(a)&&!u?o`<div class="chart-note">
           <ha-icon icon="mdi:information-outline"></ha-icon>
-          ${s(l?.mode==="alarm"?"chart_history_alarm":l?.mode==="count"?"chart_history_count":"chart_history_fallback",e.lang)}
+          ${s(c?.mode==="alarm"?"chart_history_alarm":c?.mode==="count"?"chart_history_count":"chart_history_fallback",t.lang)}
         </div>`:u?o`<div class="chart-note">
           <ha-icon icon="mdi:information-outline"></ha-icon>
-          ${s("chart_no_stats",e.lang)}
+          ${s("chart_no_stats",t.lang)}
         </div>`:h}
-  `}var qs=200,Xe=10,Fs=22;function ns(c,d,e,t,i){let a=c.history.filter(n=>n.type==="completed"&&(Ge(n)!=null||n.duration!=null));if(a.length<2)return h;let r=a.some(n=>(Ge(n)??0)!==0),l=a.some(n=>(n.duration??0)>0);return!r&&!l?h:o`
+  `}var oa=200,te=10,na=22;function vs(l,p,t,e,i){let a=l.history.filter(n=>n.type==="completed"&&(Et(n)!=null||n.duration!=null));if(a.length<2)return h;let r=a.some(n=>(Et(n)??0)!==0),c=a.some(n=>(n.duration??0)>0);return!r&&!c?h:o`
     <div class="cost-duration-card">
       <div class="card-header">
-        <h3>${s("cost_duration_chart",d)}</h3>
+        <h3>${s("cost_duration_chart",p)}</h3>
         <div class="toggle-buttons">
           ${r?o`<button
-            class="toggle-btn ${e==="cost"?"active":""}"
-            @click=${()=>t("cost")}>
-            ${s("cost",d)}
+            class="toggle-btn ${t==="cost"?"active":""}"
+            @click=${()=>e("cost")}>
+            ${s("cost",p)}
           </button>`:h}
-          ${r&&l?o`<button
-            class="toggle-btn ${e==="both"?"active":""}"
-            @click=${()=>t("both")}>
-            ${s("both",d)}
+          ${r&&c?o`<button
+            class="toggle-btn ${t==="both"?"active":""}"
+            @click=${()=>e("both")}>
+            ${s("both",p)}
           </button>`:h}
-          ${l?o`<button
-            class="toggle-btn ${e==="duration"?"active":""}"
-            @click=${()=>t("duration")}>
-            ${s("duration",d)}
+          ${c?o`<button
+            class="toggle-btn ${t==="duration"?"active":""}"
+            @click=${()=>e("duration")}>
+            ${s("duration",p)}
           </button>`:h}
         </div>
       </div>
-      ${Us(c,d,e,i)}
+      ${la(l,p,t,i)}
     </div>
-  `}function Us(c,d,e,t){let i=c.history.filter(O=>O.type==="completed"&&(Ge(O)!=null||O.duration!=null)).map(O=>({ts:new Date(O.timestamp).getTime(),cost:Ge(O)??0,duration:O.duration??0})).sort((O,se)=>O.ts-se.ts);if(i.length<2)return h;let a=i.some(O=>O.cost!==0),r=i.some(O=>O.cost<0),l=i.some(O=>O.duration>0);if(!a&&!l)return h;let n=e!=="duration"&&a,u=e!=="cost"&&l,p=n||!u&&a,_=u||!n&&l,v=640,f=qs,y=p?44:12,M=_?44:12,S=v-y-M,T=f-Fs,x=T-Xe,D=i[0].ts,C=i[i.length-1].ts,b=(C-D||864e5)*.05,ie=D-b,_e=C+b,$=gt(D,C),I=O=>y+(O-ie)/(_e-ie)*S,L=Math.min(0,...i.map(O=>O.cost)),z=Math.max(0,...i.map(O=>O.cost)),F=Qe(L,z>L?z:L+1,3),J=Qe(0,Math.max(...i.map(O=>O.duration))||1,3),K=F.niceMax-F.niceMin||1,j=O=>Xe+(1-(O-F.niceMin)/K)*x,X=O=>Xe+(1-O/(J.niceMax||1))*x,re=i.length>1?Math.min(...i.slice(1).map((O,se)=>I(O.ts)-I(i[se].ts))):S,Re=Math.max(6,Math.min(22,re*.55)),pe=_t(D,C,Math.max(2,Math.min(4,i.length)));return o`
+  `}function la(l,p,t,e){let i=l.history.filter(O=>O.type==="completed"&&(Et(O)!=null||O.duration!=null)).map(O=>({ts:mt(O.timestamp),cost:Et(O)??0,duration:O.duration??0})).sort((O,it)=>O.ts-it.ts);if(i.length<2)return h;let a=i.some(O=>O.cost!==0),r=i.some(O=>O.cost<0),c=i.some(O=>O.duration>0);if(!a&&!c)return h;let n=t!=="duration"&&a,u=t!=="cost"&&c,d=n||!u&&a,g=u||!n&&c,m=640,v=oa,y=d?44:12,C=g?44:12,$=m-y-C,j=v-na,x=j-te,M=i[0].ts,b=i[i.length-1].ts,D=(b-M||864e5)*.05,at=M-D,pt=b+D,T=_e(M,b),I=O=>y+(O-at)/(pt-at)*$,H=Math.min(0,...i.map(O=>O.cost)),z=Math.max(0,...i.map(O=>O.cost)),W=Xt(H,z>H?z:H+1,3),Q=Xt(0,Math.max(...i.map(O=>O.duration))||1,3),J=W.niceMax-W.niceMin||1,S=O=>te+(1-(O-W.niceMin)/J)*x,X=O=>te+(1-O/(Q.niceMax||1))*x,rt=i.length>1?Math.min(...i.slice(1).map((O,it)=>I(O.ts)-I(i[it].ts))):$,Dt=Math.max(6,Math.min(22,rt*.55)),ht=me(M,b,Math.max(2,Math.min(4,i.length)));return o`
     <div class="sparkline-container">
-      <svg class="history-chart" viewBox="0 0 ${v} ${f}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${s("chart_history",d)}">
-        ${p?F.ticks.map(O=>{let se=j(O);return se<Xe-1||se>T+1?h:Y`
-            <line x1="${y}" y1="${R(se)}" x2="${v-M}" y2="${R(se)}" stroke="var(--divider-color)" stroke-width="1" opacity="0.55" />
-            <text x="${y-6}" y="${R(se+3.5)}" text-anchor="end" fill="var(--primary-color)" font-size="10.5">${be(O,d)}${t}</text>`}):h}
-        ${_?J.ticks.map(O=>{let se=X(O);return se<Xe-1||se>T+1?h:Y`<text x="${v-M+6}" y="${R(se+3.5)}" text-anchor="start" fill="var(--accent-color, #ff9800)" font-size="10.5">${be(O,d)}m</text>`}):h}
+      <svg class="history-chart" viewBox="0 0 ${m} ${v}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${s("chart_history",p)}">
+        ${d?W.ticks.map(O=>{let it=S(O);return it<te-1||it>j+1?h:G`
+            <line x1="${y}" y1="${R(it)}" x2="${m-C}" y2="${R(it)}" stroke="var(--divider-color)" stroke-width="1" opacity="0.55" />
+            <text x="${y-6}" y="${R(it+3.5)}" text-anchor="end" fill="var(--primary-color)" font-size="10.5">${xt(O,p)}${e}</text>`}):h}
+        ${g?Q.ticks.map(O=>{let it=X(O);return it<te-1||it>j+1?h:G`<text x="${m-C+6}" y="${R(it+3.5)}" text-anchor="start" fill="var(--accent-color, #ff9800)" font-size="10.5">${xt(O,p)}m</text>`}):h}
 
-        ${p&&F.niceMin<0?Y`
-          <line class="cost-zero" x1="${y}" y1="${R(j(0))}" x2="${v-M}" y2="${R(j(0))}" stroke="var(--secondary-text-color)" stroke-width="1" opacity="0.7" />
+        ${d&&W.niceMin<0?G`
+          <line class="cost-zero" x1="${y}" y1="${R(S(0))}" x2="${m-C}" y2="${R(S(0))}" stroke="var(--secondary-text-color)" stroke-width="1" opacity="0.7" />
         `:h}
-        ${p?i.filter(O=>O.cost!==0).map(O=>{let se=j(Math.max(O.cost,0)),Ne=O.cost<0;return Y`
-          <rect class="${Ne?"credit-bar":"cost-bar"}" x="${R(I(O.ts)-Re/2)}" y="${R(se)}" width="${R(Re)}" height="${R(j(Math.min(O.cost,0))-se)}"
-            fill="${Ne?"var(--success-color, #43a047)":"var(--primary-color)"}" opacity="0.6" rx="2">
-            <title>${Pe(O.ts,d,!0)}: ${Ne?`${s("cost_kind_credit",d)} `:""}${U(Math.abs(O.cost),t,d)}${O.duration?` \xB7 ${O.duration}m`:""}</title>
+        ${d?i.filter(O=>O.cost!==0).map(O=>{let it=S(Math.max(O.cost,0)),Vt=O.cost<0;return G`
+          <rect class="${Vt?"credit-bar":"cost-bar"}" x="${R(I(O.ts)-Dt/2)}" y="${R(it)}" width="${R(Dt)}" height="${R(S(Math.min(O.cost,0))-it)}"
+            fill="${Vt?"var(--success-color, #43a047)":"var(--primary-color)"}" opacity="0.6" rx="2">
+            <title>${Nt(O.ts,p,!0)}: ${Vt?`${s("cost_kind_credit",p)} `:""}${F(Math.abs(O.cost),e,p)}${O.duration?` \xB7 ${O.duration}m`:""}</title>
           </rect>`}):h}
-        ${_?Y`
+        ${g?G`
           <polyline points="${i.map(O=>`${R(I(O.ts))},${R(X(O.duration))}`).join(" ")}"
             fill="none" stroke="var(--accent-color, #ff9800)" stroke-width="2" stroke-linejoin="round" />
-          ${i.map(O=>Y`
+          ${i.map(O=>G`
             <circle cx="${R(I(O.ts))}" cy="${R(X(O.duration))}" r="3.5" fill="var(--accent-color, #ff9800)">
-              <title>${Pe(O.ts,d,!0)}: ${O.duration}m${O.cost?` \xB7 ${U(O.cost,t,d)}`:""}</title>
+              <title>${Nt(O.ts,p,!0)}: ${O.duration}m${O.cost?` \xB7 ${F(O.cost,e,p)}`:""}</title>
             </circle>
           `)}
         `:h}
 
-        <line x1="${y}" y1="${T}" x2="${v-M}" y2="${T}" stroke="var(--divider-color)" stroke-width="1" />
-        ${pe.map((O,se)=>{let Ne=se===0?"start":se===pe.length-1?"end":"middle";return Y`<text x="${R(I(O))}" y="${f-6}" text-anchor="${Ne}" fill="var(--secondary-text-color)" font-size="10">${Pe(O,d,$)}</text>`})}
+        <line x1="${y}" y1="${j}" x2="${m-C}" y2="${j}" stroke="var(--divider-color)" stroke-width="1" />
+        ${ht.map((O,it)=>{let Vt=it===0?"start":it===ht.length-1?"end":"middle";return G`<text x="${R(I(O))}" y="${v-6}" text-anchor="${Vt}" fill="var(--secondary-text-color)" font-size="10">${Nt(O,p,T)}</text>`})}
       </svg>
     </div>
     <div class="chart-legend">
-      ${p?o`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color);opacity:0.6"></span>${s("cost",d)}</span>`:h}
-      ${p&&r?o`<span class="legend-item"><span class="legend-swatch" style="background:var(--success-color, #43a047);opacity:0.6"></span>${s("cost_kind_credit",d)}</span>`:h}
-      ${_?o`<span class="legend-item"><span class="legend-swatch" style="background:var(--accent-color, #ff9800)"></span>${s("duration",d)}</span>`:h}
+      ${d?o`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color);opacity:0.6"></span>${s("cost",p)}</span>`:h}
+      ${d&&r?o`<span class="legend-item"><span class="legend-swatch" style="background:var(--success-color, #43a047);opacity:0.6"></span>${s("cost_kind_credit",p)}</span>`:h}
+      ${g?o`<span class="legend-item"><span class="legend-swatch" style="background:var(--accent-color, #ff9800)"></span>${s("duration",p)}</span>`:h}
     </div>
-  `}function Ft(c,d,e){if(!c.responsible_user_id)return h;let t=e?.(c.responsible_user_id)??null;if(t)return o`<span class="user-badge">${yi(t)}${t.name}</span>`;let i=d(c.responsible_user_id);return i?o`
+  `}function Ge(l,p,t){if(!l.responsible_user_id)return h;let e=t?.(l.responsible_user_id)??null;if(e)return o`<span class="user-badge">${$i(e)}${e.name}</span>`;let i=p(l.responsible_user_id);return i?o`
     <span class="user-badge">
       <ha-icon icon="mdi:account"></ha-icon>
       ${i}
     </span>
-  `:h}function Vs(c,d){let e=d.lang,t=d.isOperator;return o`
+  `:h}function ca(l,p){let t=p.lang,e=p.isOperator;return o`
     <div class="task-header">
       <div class="task-header-title">
-        <span class="task-name-breadcrumb" @click=${()=>d.showTaskView()}>${c.name}${He(c.next_event_titles)}</span>
-        ${Ae(d.taskRef??null,s("ref_number",e))}
+        <span class="task-name-breadcrumb" @click=${()=>p.showTaskView()}>${l.name}${Ft(l.next_event_titles)}</span>
+        ${Lt(p.taskRef??null,s("ref_number",t))}
         <span class="breadcrumb-separator">·</span>
-        <span class="object-name-breadcrumb" @click=${()=>d.showObject()}>${d.objectName}</span>
-        ${mt(c,e,"chip")}
-        ${c.paused&&c.paused_until?o`<span class="postponed-badge paused-until" title="${s("task_paused",e)}">
-          <ha-icon icon="mdi:pause-circle-outline"></ha-icon>${s("paused_until_label",e)} ${V(c.paused_until,e)}
+        <span class="object-name-breadcrumb" @click=${()=>p.showObject()}>${p.objectName}</span>
+        ${fe(l,t,"chip")}
+        ${l.paused&&l.paused_until?o`<span class="postponed-badge paused-until" title="${s("task_paused",t)}">
+          <ha-icon icon="mdi:pause-circle-outline"></ha-icon>${s("paused_until_label",t)} ${U(l.paused_until,t)}
         </span>`:h}
-        ${c.due_override?o`<span class="postponed-badge" title="${s("postponed_to",e)}">
-          <ha-icon icon="mdi:calendar-arrow-right"></ha-icon>${V(c.due_override,e)}
+        ${l.due_override?o`<span class="postponed-badge" title="${s("postponed_to",t)}">
+          <ha-icon icon="mdi:calendar-arrow-right"></ha-icon>${U(l.due_override,t)}
         </span>`:h}
-        ${Ft(c,d.getUserName,d.getPerson)}
-        ${c.notify_enabled===!1?o`<span class="nfc-badge muted-badge" title="${s("no_notifications",e)}"><ha-icon icon="mdi:bell-off-outline"></ha-icon></span>`:h}
-        ${c.mirror_todo_entities?.length?o`<span class="nfc-badge mirror-badge" title="${s("task_mirror_todo",e)}: ${c.mirror_todo_entities.map(i=>String(d.hass?.states?.[i]?.attributes?.friendly_name??i)).join(", ")}"><ha-icon icon="mdi:clipboard-list-outline"></ha-icon></span>`:h}
-        ${c.nfc_tag_id?o`<span class="nfc-badge" title="${s("nfc_tag_id",e)}: ${c.nfc_tag_id}"><ha-icon icon="mdi:nfc-variant"></ha-icon> NFC</span>`:t?h:o`<span class="nfc-badge unlinked" title="${s("nfc_link_hint",e)}"
-              @click=${()=>d.openEdit(c)}>
+        ${Ge(l,p.getUserName,p.getPerson)}
+        ${l.notify_enabled===!1?o`<span class="nfc-badge muted-badge" title="${s("no_notifications",t)}"><ha-icon icon="mdi:bell-off-outline"></ha-icon></span>`:h}
+        ${l.mirror_todo_entities?.length?o`<span class="nfc-badge mirror-badge" title="${s("task_mirror_todo",t)}: ${l.mirror_todo_entities.map(i=>String(p.hass?.states?.[i]?.attributes?.friendly_name??i)).join(", ")}"><ha-icon icon="mdi:clipboard-list-outline"></ha-icon></span>`:h}
+        ${l.nfc_tag_id?o`<span class="nfc-badge" title="${s("nfc_tag_id",t)}: ${l.nfc_tag_id}"><ha-icon icon="mdi:nfc-variant"></ha-icon> NFC</span>`:e?h:o`<span class="nfc-badge unlinked" title="${s("nfc_link_hint",t)}"
+              @click=${()=>p.openEdit(l)}>
               <ha-icon icon="mdi:nfc-variant"></ha-icon>
             </span>`}
       </div>
       <div class="task-header-actions">
-        <ha-button appearance="accent" variant="success" @click=${()=>d.openComplete(c)}>${s("complete",e)}</ha-button>
-        ${c.allow_skip!==!1?o`<ha-button appearance="outlined" variant="warning" .disabled=${d.actionLoading} @click=${()=>d.promptSkip()}>${s("skip",e)}</ha-button>`:h}
+        <ha-button appearance="accent" variant="success" @click=${()=>p.openComplete(l)}>${s("complete",t)}</ha-button>
+        ${l.allow_skip!==!1?o`<ha-button appearance="outlined" variant="warning" .disabled=${p.actionLoading} @click=${()=>p.promptSkip()}>${s("skip",t)}</ha-button>`:h}
         <div class="more-menu-wrapper">
-          <ha-icon-button .disabled=${d.actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${()=>d.toggleMoreMenu()}></ha-icon-button>
-          ${d.moreMenuOpen?o`
+          <ha-icon-button .disabled=${p.actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${()=>p.toggleMoreMenu()}></ha-icon-button>
+          ${p.moreMenuOpen?o`
             <div class="popup-menu" @click=${i=>i.stopPropagation()}>
-              ${t?h:o`
-                <div class="popup-menu-item" @click=${()=>{d.closeMoreMenu(),d.openEdit(c)}}>${s("edit",e)}</div>
+              ${e?h:o`
+                <div class="popup-menu-item" @click=${()=>{p.closeMoreMenu(),p.openEdit(l)}}>${s("edit",t)}</div>
               `}
-              <div class="popup-menu-item" @click=${()=>{d.closeMoreMenu(),d.openQr(c.name)}}>${s("qr_code",e)}</div>
-              <div class="popup-menu-item" @click=${()=>{d.closeMoreMenu(),d.printWorksheet()}}>${s("worksheet",e)}</div>
-              ${d.features.adaptive&&c.adaptive_config?.enabled?o`
+              <div class="popup-menu-item" @click=${()=>{p.closeMoreMenu(),p.openQr(l.name)}}>${s("qr_code",t)}</div>
+              <div class="popup-menu-item" @click=${()=>{p.closeMoreMenu(),p.printWorksheet()}}>${s("worksheet",t)}</div>
+              ${p.features.adaptive&&l.adaptive_config?.enabled?o`
                 <!-- The recommendation card carries Re-analyze too, but only
                      once a differing suggestion exists — the analysis it is
                      meant to trigger was unreachable before (audit 2026-09-28). -->
-                <div class="popup-menu-item reanalyze" @click=${()=>{d.closeMoreMenu(),d.reanalyze()}}>${s("reanalyze",e)}</div>
+                <div class="popup-menu-item reanalyze" @click=${()=>{p.closeMoreMenu(),p.reanalyze()}}>${s("reanalyze",t)}</div>
               `:h}
-              ${t?h:o`
-                <div class="popup-menu-item" @click=${()=>d.duplicateTask()}>${s("duplicate",e)}</div>
-                <div class="popup-menu-item" @click=${()=>d.moveTask()}>${s("move_task",e)}</div>
+              ${e?h:o`
+                <div class="popup-menu-item" @click=${()=>p.duplicateTask()}>${s("duplicate",t)}</div>
+                <div class="popup-menu-item" @click=${()=>p.moveTask()}>${s("move_task",t)}</div>
               `}
               <!-- Reset / Postpone / Snooze are household actions (read tier,
                    helpers/permissions HOUSEHOLD_ACTIONS): offered to everyone,
                    like Complete / Skip and the Lovelace quick-actions Reset. -->
-              <div class="popup-menu-item" @click=${()=>{d.closeMoreMenu(),d.promptReset()}}>${s("reset",e)}</div>
-              <div class="popup-menu-item" @click=${()=>{d.closeMoreMenu(),d.promptPostpone()}}>${s("postpone",e)}…</div>
-              <div class="popup-menu-item" @click=${()=>{d.closeMoreMenu(),d.snoozeTask()}}>${s("snooze",e)}</div>
-              ${t?h:o`
-                ${c.archived?h:o`<div class="popup-menu-item" @click=${()=>{d.closeMoreMenu(),d.togglePause(!!c.paused)}}>${c.paused?s("resume_task",e):`${s("pause_task",e)}\u2026`}</div>`}
-                <div class="popup-menu-item" @click=${()=>{d.closeMoreMenu(),d.toggleArchive(!!c.archived)}}>${c.archived?s("unarchive",e):s("archive",e)}</div>
+              <div class="popup-menu-item" @click=${()=>{p.closeMoreMenu(),p.promptReset()}}>${s("reset",t)}</div>
+              <div class="popup-menu-item" @click=${()=>{p.closeMoreMenu(),p.promptPostpone()}}>${s("postpone",t)}…</div>
+              <div class="popup-menu-item" @click=${()=>{p.closeMoreMenu(),p.snoozeTask()}}>${s("snooze",t)}</div>
+              ${e?h:o`
+                ${l.archived?h:o`<div class="popup-menu-item" @click=${()=>{p.closeMoreMenu(),p.togglePause(!!l.paused)}}>${l.paused?s("resume_task",t):`${s("pause_task",t)}\u2026`}</div>`}
+                <div class="popup-menu-item" @click=${()=>{p.closeMoreMenu(),p.toggleArchive(!!l.archived)}}>${l.archived?s("unarchive",t):s("archive",t)}</div>
                 <div class="popup-menu-divider"></div>
-                <div class="popup-menu-item danger" @click=${()=>{d.closeMoreMenu(),d.deleteTask()}}>${s("delete",e)}</div>
+                <div class="popup-menu-item danger" @click=${()=>{p.closeMoreMenu(),p.deleteTask()}}>${s("delete",t)}</div>
               `}
             </div>
           `:h}
         </div>
       </div>
     </div>
-  `}function Ws(c){let d=c.lang;return o`
+  `}function da(l){let p=l.lang;return o`
     <div class="tab-bar">
-      <div class="tab ${c.activeTab==="overview"?"active":""}" @click=${()=>c.setActiveTab("overview")}>
-        ${s("overview",d)}
+      <div class="tab ${l.activeTab==="overview"?"active":""}" @click=${()=>l.setActiveTab("overview")}>
+        ${s("overview",p)}
       </div>
-      <div class="tab ${c.activeTab==="history"?"active":""}" @click=${()=>c.setActiveTab("history")}>
-        ${s("history",d)}
+      <div class="tab ${l.activeTab==="history"?"active":""}" @click=${()=>l.setActiveTab("history")}>
+        ${s("history",p)}
       </div>
     </div>
-  `}function ls(c,d,e,t){let i=t.collapsedSections.has(c);return o`
+  `}function bs(l,p,t,e){let i=e.collapsedSections.has(l);return o`
     <div class="collapsible ${i?"collapsed":""}">
-      <button class="collapsible-head" @click=${()=>t.toggleSection(c)}
+      <button class="collapsible-head" @click=${()=>e.toggleSection(l)}
         aria-expanded=${i?"false":"true"}>
         <ha-icon icon="${i?"mdi:chevron-right":"mdi:chevron-down"}"></ha-icon>
-        <span>${s(d,t.lang)}</span>
+        <span>${s(p,e.lang)}</span>
       </button>
-      ${i?h:o`<div class="collapsible-body">${e}</div>`}
+      ${i?h:o`<div class="collapsible-body">${t}</div>`}
     </div>
-  `}function Ks(c,d){if(!pi(c))return h;let e=d.lang,t=c.phase_sequence,i=di(c.phase_cursor,t.length),a=new Map;for(let r=c.history.length-1;r>=0;r--){let l=c.history[r];l.phase_id&&l.type==="completed"&&!a.has(l.phase_id)&&a.set(l.phase_id,l.timestamp)}return o`
+  `}function pa(l,p){if(!ui(l))return h;let t=p.lang,e=l.phase_sequence,i=hi(l.phase_cursor,e.length),a=new Map;for(let r=l.history.length-1;r>=0;r--){let c=l.history[r];c.phase_id&&c.type==="completed"&&!a.has(c.phase_id)&&a.set(c.phase_id,c.timestamp)}return o`
     <div class="phases-card">
       <div class="phases-card-header">
         <ha-icon icon="mdi:rotate-right"></ha-icon>
-        <span>${s("phase_sequence_label",e)}</span>
+        <span>${s("phase_sequence_label",t)}</span>
       </div>
       <div class="phases-strip">
-        ${t.map((r,l)=>{let n=c.phases?.[r]?.name||r,u=a.get(r);return o`
-            <div class="phase-step ${l===i?"current":""}"
-              title=${l===i?s("phase_current",e):s("phase_set",e)}
-              @click=${()=>{l!==i&&d.setPhaseCursor(l)}}>
-              <span class="phase-step-name">${l+1}. ${n}</span>
-              ${u?o`<span class="phase-step-last">${V(u,e)}</span>`:h}
+        ${e.map((r,c)=>{let n=l.phases?.[r]?.name||r,u=a.get(r);return o`
+            <div class="phase-step ${c===i?"current":""}"
+              title=${c===i?s("phase_current",t):s("phase_set",t)}
+              @click=${()=>{c!==i&&p.setPhaseCursor(c)}}>
+              <span class="phase-step-name">${c+1}. ${n}</span>
+              ${u?o`<span class="phase-step-last">${U(u,t)}</span>`:h}
             </div>
           `})}
       </div>
     </div>
-  `}function Gs(c,d){if(!d.features.checklists)return h;let e=dt(c)?.checklist??(c.checklist||[]);if(e.length===0)return h;let t=d.lang,i=c.checklist_progress||{},a=e.filter(r=>i[r]).length;return o`
+  `}function ha(l,p){if(!p.features.checklists)return h;let t=pe(l)?.checklist??(l.checklist||[]);if(t.length===0)return h;let e=p.lang,i=l.checklist_progress||{},a=t.filter(r=>i[r]).length;return o`
     <div class="checklist-preview-card">
       <div class="checklist-preview-header">
         <ha-icon icon="mdi:format-list-checks"></ha-icon>
-        <span>${s("checklist",t)} (${a}/${e.length})</span>
+        <span>${s("checklist",e)} (${a}/${t.length})</span>
       </div>
       <ol class="checklist-preview-list">
-        ${e.map(r=>o`
+        ${t.map(r=>o`
           <li class=${i[r]?"checked":""}>
             <label>
               <input
                 type="checkbox"
                 .checked=${!!i[r]}
-                @change=${l=>d.setChecklistItem(r,l.target.checked)}
+                @change=${c=>p.setChecklistItem(r,c.target.checked)}
               />
               <span>${r}</span>
             </label>
@@ -5213,168 +5213,168 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
         `)}
       </ol>
     </div>
-  `}function Ys(c,d){let e=ae(c.documentation_url)?c.documentation_url:null,t=ae(d.objectDocUrl)?d.objectDocUrl:null,i=t?null:(d.objectManualDocs||[])[0];if(!c.notes&&!e&&!t&&!i)return h;let a=d.lang;return o`
+  `}function ua(l,p){let t=st(l.documentation_url)?l.documentation_url:null,e=st(p.objectDocUrl)?p.objectDocUrl:null,i=e?null:(p.objectManualDocs||[])[0];if(!l.notes&&!t&&!e&&!i)return h;let a=p.lang;return o`
     <div class="task-meta-card">
-      ${c.notes?o`
+      ${l.notes?o`
         <div class="task-meta-row">
           <ha-icon icon="mdi:note-text-outline"></ha-icon>
-          <span class="task-meta-notes">${ct(c.notes)}</span>
-        </div>
-      `:h}
-      ${e?o`
-        <div class="task-meta-row task-meta-link">
-          <ha-icon icon="mdi:open-in-new"></ha-icon>
-          <a href="${e}" target="_blank" rel="noopener noreferrer">${s("documentation_label",a)}</a>
+          <span class="task-meta-notes">${de(l.notes)}</span>
         </div>
       `:h}
       ${t?o`
         <div class="task-meta-row task-meta-link">
+          <ha-icon icon="mdi:open-in-new"></ha-icon>
+          <a href="${t}" target="_blank" rel="noopener noreferrer">${s("documentation_label",a)}</a>
+        </div>
+      `:h}
+      ${e?o`
+        <div class="task-meta-row task-meta-link">
           <ha-icon icon="mdi:book-open-variant"></ha-icon>
-          <a href="${t}" target="_blank" rel="noopener noreferrer">${s("documentation_url_label",a)} (${d.objectName})</a>
+          <a href="${e}" target="_blank" rel="noopener noreferrer">${s("documentation_url_label",a)} (${p.objectName})</a>
         </div>
       `:i?o`
         <div class="task-meta-row task-meta-link">
           <ha-icon icon="mdi:book-open-variant"></ha-icon>
           <a href="#" title=${i.title}
-            @click=${r=>{r.preventDefault(),d.openManualDoc(i)}}
-            >${s("documentation_url_label",a)} (${d.objectName})</a>
+            @click=${r=>{r.preventDefault(),p.openManualDoc(i)}}
+            >${s("documentation_url_label",a)} (${p.objectName})</a>
         </div>
       `:h}
     </div>
-  `}function Qs(c,d){let e=d.lang,t=c.average_cost!==void 0?c.average_cost??0:c.times_performed>0?c.total_cost/c.times_performed:0,i=c.days_until_due!==null&&c.days_until_due!==void 0?c.days_until_due<0?"overdue":c.days_until_due<=c.warning_days?"warning":"":"";return o`
+  `}function ga(l,p){let t=p.lang,e=l.average_cost!==void 0?l.average_cost??0:l.times_performed>0?l.total_cost/l.times_performed:0,i=l.days_until_due!==null&&l.days_until_due!==void 0?l.days_until_due<0?"overdue":l.days_until_due<=l.warning_days?"warning":"":"";return o`
     <div class="kpi-bar">
       <div class="kpi-card">
-        <div class="kpi-label">${s("next_due",e)}</div>
-        <div class="kpi-value">${c.next_due?V(c.next_due,e):"\u2014"}</div>
-        ${d.features.schedule_time&&c.schedule_time?o`<div class="kpi-subtext">${s("at_time",e)} ${c.schedule_time}</div>`:h}
+        <div class="kpi-label">${s("next_due",t)}</div>
+        <div class="kpi-value">${l.next_due?U(l.next_due,t):"\u2014"}</div>
+        ${p.features.schedule_time&&l.schedule_time?o`<div class="kpi-subtext">${s("at_time",t)} ${l.schedule_time}</div>`:h}
       </div>
       <div class="kpi-card ${i}">
-        <div class="kpi-label">${s("days_until_due",e)}</div>
-        <div class="kpi-value-large">${c.days_until_due!==null&&c.days_until_due!==void 0?c.days_until_due:"\u2014"}</div>
+        <div class="kpi-label">${s("days_until_due",t)}</div>
+        <div class="kpi-value-large">${l.days_until_due!==null&&l.days_until_due!==void 0?l.days_until_due:"\u2014"}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">${s("interval",e)}</div>
-        <div class="kpi-value">${Oe(c,e)}</div>
-        ${d.features.adaptive&&c.suggested_interval&&c.suggested_interval!==c.interval_days?o`
-          <div class="kpi-subtext">${s("recommended",e)}: ${c.suggested_interval}${c.interval_analysis?.confidence_interval_low!=null?` (${c.interval_analysis.confidence_interval_low}\u2013${c.interval_analysis.confidence_interval_high})`:""}</div>
+        <div class="kpi-label">${s("interval",t)}</div>
+        <div class="kpi-value">${At(l,t)}</div>
+        ${p.features.adaptive&&l.suggested_interval&&l.suggested_interval!==l.interval_days?o`
+          <div class="kpi-subtext">${s("recommended",t)}: ${l.suggested_interval}${l.interval_analysis?.confidence_interval_low!=null?` (${l.interval_analysis.confidence_interval_low}\u2013${l.interval_analysis.confidence_interval_high})`:""}</div>
         `:h}
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">${s("warning",e)}</div>
-        <div class="kpi-value">${c.warning_days} ${s("days",e)}</div>
+        <div class="kpi-label">${s("warning",t)}</div>
+        <div class="kpi-value">${l.warning_days} ${s("days",t)}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">${s("last_performed",e)}</div>
-        <div class="kpi-value">${c.last_performed?V(c.last_performed,e):"\u2014"}</div>
+        <div class="kpi-label">${s("last_performed",t)}</div>
+        <div class="kpi-value">${l.last_performed?U(l.last_performed,t):"\u2014"}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">${s("avg_cost",e)}</div>
-        <div class="kpi-value">${U(t,d.currencySymbol,e)}</div>
+        <div class="kpi-label">${s("avg_cost",t)}</div>
+        <div class="kpi-value">${F(e,p.currencySymbol,t)}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">${s("avg_duration",e)}</div>
-        <div class="kpi-value">${c.average_duration?Ve(Math.round(c.average_duration),e):"\u2014"}</div>
+        <div class="kpi-label">${s("avg_duration",t)}</div>
+        <div class="kpi-value">${l.average_duration?Gt(Math.round(l.average_duration),t):"\u2014"}</div>
       </div>
     </div>
-  `}function Js(c,d){let e=d.lang;if(!d.features.adaptive||!c.suggested_interval||c.suggested_interval===c.interval_days)return h;if(d.suggestionDismissed)return h;let t=c.suggested_interval;return o`
+  `}function _a(l,p){let t=p.lang;if(!p.features.adaptive||!l.suggested_interval||l.suggested_interval===l.interval_days)return h;if(p.suggestionDismissed)return h;let e=l.suggested_interval;return o`
     <div class="recommendation-card">
-      <h4>${s("suggested_interval",e)}</h4>
-      ${Hi(c.interval_days,t,c.interval_confidence||"medium",e)}
+      <h4>${s("suggested_interval",t)}</h4>
+      ${Fi(l.interval_days,e,l.interval_confidence||"medium",t)}
       <div class="recommendation-actions">
-        ${d.isOperator?h:o`<ha-button appearance="filled" class="apply-suggestion"
-              @click=${()=>d.applySuggestion(t)}>
-              ${s("apply_suggestion",e)}
+        ${p.isOperator?h:o`<ha-button appearance="filled" class="apply-suggestion"
+              @click=${()=>p.applySuggestion(e)}>
+              ${s("apply_suggestion",t)}
             </ha-button>`}
         <ha-button appearance="plain"
-          @click=${()=>d.reanalyze()}>
-          ${s("reanalyze",e)}
+          @click=${()=>p.reanalyze()}>
+          ${s("reanalyze",t)}
         </ha-button>
         <ha-button appearance="plain"
-          @click=${()=>d.dismissSuggestion()}>
-          ${s("dismiss_suggestion",e)}
+          @click=${()=>p.dismissSuggestion()}>
+          ${s("dismiss_suggestion",t)}
         </ha-button>
       </div>
     </div>
-  `}function Xs(c,d){let e=d.lang,t=Di(c.history).slice(0,3);return t.length===0?h:o`
+  `}function ma(l,p){let t=p.lang,e=Pi(l.history).slice(0,3);return e.length===0?h:o`
     <div class="recent-activities">
-      <h3>${s("recent_activities",e)}</h3>
-      ${t.map(i=>Ii(i,d.history,{compact:!0,showEdit:!1}))}
+      <h3>${s("recent_activities",t)}</h3>
+      ${e.map(i=>Bi(i,p.history,{compact:!0,showEdit:!1}))}
       <div class="activity-show-all">
-        <ha-button appearance="plain" @click=${()=>d.setActiveTab("history")}>${s("show_all",e)} →</ha-button>
+        <ha-button appearance="plain" @click=${()=>p.setActiveTab("history")}>${s("show_all",t)} →</ha-button>
       </div>
     </div>
-  `}function Zs(c,d){let e=d.lang,t=d.features.adaptive&&c.suggested_interval&&c.suggested_interval!==c.interval_days,i=d.features.seasonal&&c.seasonal_factor&&c.seasonal_factor!==1,a=t||i,r=d.features.adaptive&&c.interval_analysis?.weibull_beta!=null&&c.interval_analysis?.weibull_eta!=null,l=d.features.seasonal&&(c.seasonal_factors?.length===12||c.interval_analysis?.seasonal_factors?.length===12);return o`
+  `}function fa(l,p){let t=p.lang,e=p.features.adaptive&&l.suggested_interval&&l.suggested_interval!==l.interval_days,i=p.features.seasonal&&l.seasonal_factor&&l.seasonal_factor!==1,a=e||i,r=p.features.adaptive&&l.interval_analysis?.weibull_beta!=null&&l.interval_analysis?.weibull_eta!=null,c=p.features.seasonal&&(l.seasonal_factors?.length===12||l.interval_analysis?.seasonal_factors?.length===12);return o`
     <div class="tab-content overview-tab">
-      ${c.battery_fleet_task?o`<maintenance-battery-fleet-section .hass=${d.hass}></maintenance-battery-fleet-section>`:h}
-      ${Qs(c,d)}
-      ${Ys(c,d)}
-      ${c.battery_fleet_task?h:o`
-            ${ts(c,d.lang)}
-            ${as(c,d.sparkline)}
-            ${Li(c,e,d.features)}
+      ${l.battery_fleet_task?o`<maintenance-battery-fleet-section .hass=${p.hass}></maintenance-battery-fleet-section>`:h}
+      ${ga(l,p)}
+      ${ua(l,p)}
+      ${l.battery_fleet_task?h:o`
+            ${hs(l,p.lang)}
+            ${_s(l,p.sparkline)}
+            ${qi(l,t,p.features)}
           `}
       <div class="two-column-layout ${a?"":"single-column"}">
         ${a?o`
           <div class="left-column">
-            ${Js(c,d)}
-            ${Bi(c,e,d.features)}
+            ${_a(l,p)}
+            ${Ui(l,t,p.features)}
           </div>
         `:h}
         <div class="right-column">
-          ${ns(c,e,d.costDurationToggle,n=>d.setCostDurationToggle(n),d.currencySymbol)}
+          ${vs(l,t,p.costDurationToggle,n=>p.setCostDurationToggle(n),p.currencySymbol)}
         </div>
       </div>
-      ${r?ls("weibull","weibull_reliability_curve",Pi(c,e),d):h}
-      ${l?ls("seasonal","seasonal_chart_title",o`
-            ${Ni(c,e)}
+      ${r?bs("weibull","weibull_reliability_curve",Ni(l,t),p):h}
+      ${c?bs("seasonal","seasonal_chart_title",o`
+            ${Vi(l,t)}
             <div class="seasonal-actions">
-              <ha-button appearance="plain" @click=${()=>d.openSeasonalOverrides(c)}>
-                ${s("edit_seasonal_overrides",e)}
+              <ha-button appearance="plain" @click=${()=>p.openSeasonalOverrides(l)}>
+                ${s("edit_seasonal_overrides",t)}
               </ha-button>
             </div>
-          `,d):h}
-      ${Ks(c,d)}
-      ${Gs(c,d)}
-      ${Xs(c,d)}
+          `,p):h}
+      ${pa(l,p)}
+      ${ha(l,p)}
+      ${ma(l,p)}
     </div>
-  `}function ea(c,d){return o`
+  `}function va(l,p){return o`
     <div class="tab-content history-tab">
       <div class="history-add-past">
-        <ha-button appearance="plain" class="history-add-past-btn" @click=${()=>d.openComplete(c)}>
+        <ha-button appearance="plain" class="history-add-past-btn" @click=${()=>p.openComplete(l)}>
           <ha-icon icon="mdi:calendar-plus"></ha-icon>
-          ${s("history_add_past",d.lang)}
+          ${s("history_add_past",p.lang)}
         </ha-button>
       </div>
-      ${Ai(c,d.history)}
-      ${zi(c,d.history)}
+      ${Li(l,p.history)}
+      ${Hi(l,p.history)}
     </div>
-  `}function ta(c,d){switch(d.activeTab){case"overview":return Zs(c,d);case"history":return ea(c,d);default:return h}}function cs(c,d){return o`
+  `}function ba(l,p){switch(p.activeTab){case"overview":return fa(l,p);case"history":return va(l,p);default:return h}}function ys(l,p){return o`
     <div class="detail-section">
-      ${Vs(c,d)}
-      ${Ws(d)}
-      ${ta(c,d)}
+      ${ca(l,p)}
+      ${da(p)}
+      ${ba(l,p)}
       <maintenance-task-documents
-        .hass=${d.hass}
-        .entryId=${d.entryId}
-        .taskId=${d.taskId}
-        .canWrite=${!d.isOperator}
+        .hass=${p.hass}
+        .entryId=${p.entryId}
+        .taskId=${p.taskId}
+        .canWrite=${!p.isOperator}
       ></maintenance-task-documents>
     </div>
-  `}var Ze=class extends N{createRenderRoot(){return this}render(){return!this.task||!this.ctx?h:o`${cs(this.task,this.ctx)}`}};g([E({attribute:!1})],Ze.prototype,"task",2),g([E({attribute:!1})],Ze.prototype,"ctx",2);customElements.get("maintenance-task-detail-view")||customElements.define("maintenance-task-detail-view",Ze);function ds(c){if(c.total<=0)return{start:0,end:0,padTop:0,padBottom:0};let d=c.overscan??12,e=Math.max(1,c.step??6),t=Math.max(1,c.rowHeight),i=Math.floor((c.scrollTop-c.listTop)/t),a=Math.ceil(c.viewportHeight/t)+1,r=Math.max(0,i-d);r=Math.floor(r/e)*e;let l=Math.min(c.total,Math.max(i,0)+a+d);return l=Math.min(c.total,Math.ceil(l/e)*e),r>=l&&(r=Math.min(r,Math.max(0,c.total-1)),l=Math.min(c.total,r+Math.max(a,1))),{start:r,end:l,padTop:r*t,padBottom:(c.total-l)*t}}var $t={mode:"top",marginTop:0,lastScrollTop:0};function ps(c,d){return c==="top"?8:d.viewH-d.paneH-8}function hs(c){let d=c.scrollTop+8-c.layoutTop,e=Math.max(0,c.listH-c.paneH);return{mode:"top",marginTop:d>e?Math.max(0,d):0,lastScrollTop:c.scrollTop}}function us(c,d){let e=d.scrollTop,t=d.scrollTop>c.lastScrollTop?"down":d.scrollTop<c.lastScrollTop?"up":"none",i=Math.max(0,d.listH-d.paneH),a=d.paneH+16<=d.viewH||d.listH<=d.paneH,{mode:r,marginTop:l}=c;if(a&&(r="top"),r==="top"&&l>0&&t==="up")l=Math.max(0,Math.min(l,d.scrollTop+8-d.layoutTop)),l<=i&&(l=0);else if(!a&&t==="down"&&r==="top"){let n=d.renderedTop-d.layoutTop;n<=i&&(r="bottom",l=Math.max(0,n))}else!a&&t==="up"&&r==="bottom"&&(l=Math.min(Math.max(0,d.renderedTop-d.layoutTop),i),d.scrollTop+8<=d.layoutTop+l&&(r="top",l=0));return{mode:r,marginTop:l,lastScrollTop:e}}var jt=2,ra=250,Me={objects:6,tasks:10,parts:6,documents:8,history:6},oa="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z",Ut=["due_date","object","type","task_name","area","assigned_user","group"],gs=["none","area","group","user","object"],_s=Kt,ms=["tasks","documents","parts","history"],w=class extends N{constructor(){super(...arguments);this.narrow=!1;this.tight=!1;this.split=!1;this._tightObserver=null;this.panel={};this.embedded=!1;this.presets={};this._presetsApplied=!1;this._mountPath=null;this._objects=[];this._stats=null;this._view="overview";this._allParts=null;this._selectedEntryId=null;this._selectedTaskId=null;this._selectedAreaId=null;this._filterStatus="";this._filterUser=null;this._filterLabel=null;this._filterPriority="";this._savedViews=[];this._activeViewId="";this._unsub=null;this._chartRangeDays=(()=>{try{let e=parseInt(Z(A.chartRange)||"",10);return[7,30,90,365].includes(e)?e:30}catch{return 30}})();this._hideOutliers=(()=>{try{return Z(A.chartHideOutliers)==="1"}catch{return!1}})();this._historyFilter=null;this._budget=null;this._groups={};this._detailStatsData=new Map;this._miniStatsData=new Map;this._features={adaptive:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1};this._adminPanelUserIds=[];this._operatorWriteEnabled=!1;this._defaultWarningDays=7;this._rowActionStyle="buttons_compact";this._refsInLists=!1;this._partsCostMode="purchase";this._rowActionNotice=!1;this._actionLoading=!1;this._moreMenuOpen=!1;this._objMenuOpen=!1;this._toastMessage="";this._toastKind="error";this._toastUndo=null;this._toastActionLabel="";this._filtersOpen=!1;this._newMenuOpen=!1;this._gsSetupsCount=0;this._gsAdoptCount=0;this._gsLoaded=!1;this._resetOffersLoaded=!1;this._resetOffersCount=0;this._batteryFleetSetupAvailable=!1;this._staleBundle=!1;this._staleChecked=!1;this._toastTimer=null;this._dismissedSuggestions=new Set;this._overviewTab=(()=>{try{let e=Z(A.overviewTab);return e==="today"||e==="calendar"?e:"dashboard"}catch{return"dashboard"}})();this._activeTab="overview";this._costDurationToggle="both";this._historySearch="";this._sortMode="due_date";this._objectSortMode="alphabetical";this._groupByMode="none";this._objectViewMode="cards";this._objectsTableColumns=ti;this._showArchived=!1;this._bulkMode=!1;this._bulkSelected=new Set;this._objBulkMode=!1;this._objBulkSelected=new Set;this._bulkMenuOpen=!1;this._virtStart=0;this._virtEnd=0;this._virtRowHeight=53;this._virtTotalRows=0;this._virtScrollAttached=!1;this._virtRaf=0;this._stickyState=$t;this._stickySelectPending=!1;this._stickyRaf=0;this._stickyAttached=!1;this._stickyObserver=null;this._collapsedGroups=new Set;this._collapsedSections=(()=>{try{return new Set(JSON.parse(Z(A.collapsedSections)||"[]"))}catch{return new Set}})();this._objectSectionsCollapsed=(()=>{try{let e=JSON.parse(Z(A.objectSections)||"[]");return new Set((Array.isArray(e)?e:[]).filter(t=>ms.includes(t)))}catch{return new Set}})();this._objectSectionOverride=null;this._paletteOpen=!1;this._paletteQuery="";this._paletteActive=0;this._searchRemote=null;this._searchTimer=null;this._searchSeq=0;this._templateGalleryOpen=!1;this._templates=[];this._homeProfile=null;this._templateCategories={};this._templateBusy=!1;this._statsService=null;this._userService=null;this._dataLoaded=!1;this._lastConnection=null;this._popstateHandler=e=>this._onPopState(e);this._locationChangedHandler=()=>this._onLocationChanged();this._lazyUi=null;this._onStickyScroll=()=>{this._stickyRaf||(this._stickyRaf=requestAnimationFrame(()=>{this._stickyRaf=0,this._updateStickyPane()}))};this._onVirtualScroll=()=>{this._virtRaf||(this._virtRaf=requestAnimationFrame(()=>{this._virtRaf=0,this._updateVirtualWindow()}))};this._deepLinkHandled=!1;this._deepLinkInPlace=!1;this._initialLoadDone=!1;this._detailStatsSeq=new Map;this._kpiRefreshInFlight=!1;this._kpiRefreshPending=!1;this._areaUi=null;this._paletteKeydown=e=>{if(e.key==="/"&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!this._paletteOpen){let i=e.composedPath()[0];if(i instanceof HTMLElement&&(i.tagName==="INPUT"||i.tagName==="TEXTAREA"||i.tagName==="SELECT"||i.isContentEditable))return;e.preventDefault(),this._openPalette();return}if(!this._paletteOpen)return;let t=this._paletteResults;if(e.key==="Escape")e.preventDefault(),this._closePalette();else if(e.key==="ArrowDown")e.preventDefault(),this._paletteActive=Math.min(this._paletteActive+1,t.length-1);else if(e.key==="ArrowUp")e.preventDefault(),this._paletteActive=Math.max(this._paletteActive-1,0);else if(e.key==="Enter"){e.preventDefault();let i=t[this._paletteActive];i&&this._selectPaletteResult(i)}};this._onObjectReplaced=async e=>{this._showToast([s("object_replaced",this._lang),this._deviceSwapText(e.detail.device_swap)].filter(Boolean).join(" \xB7 "),"info");try{await this._loadData()}catch{}e.detail.entry_id&&this._showObject(e.detail.entry_id)};this._onObjectSaved=async e=>{let t=this._deviceSwapText(e.detail?.device_swap);t&&this._showToast(t,"info"),await this._onDialogEvent()};this._checklistPending=new Map;this._checklistChain=Promise.resolve();this._onDialogEvent=async()=>{try{await this._loadData()}catch{}};this._onCalendarLlCustom=e=>{let t=e.detail;t?.type==="maintenance-supporter:open-task"&&t.entry_id&&t.task_id&&(e.stopPropagation(),this._showTask(t.entry_id,t.task_id))};this._fullHistory=null;this._onHistoryEntrySaved=async()=>{await this._loadData()}}get _currencySymbol(){return st(this._budget)}get _lang(){return G(this.hass)}get _isOperator(){return!Ie(this.hass?.user,{operatorWriteEnabled:this._operatorWriteEnabled,operatorIds:this._adminPanelUserIds})}_ensureLazyUi(){return this._lazyUi||(this._lazyUi=Promise.all([import("/maintenance_supporter_panelfiles/panel-chunks/object-dialog-P2V7MPUV.js"),import("/maintenance_supporter_panelfiles/panel-chunks/task-dialog-EE5GCFYK.js"),import("/maintenance_supporter_panelfiles/panel-chunks/complete-dialog-OY3KNAYB.js"),import("/maintenance_supporter_panelfiles/panel-chunks/qr-dialog-X6MJCUUJ.js"),import("/maintenance_supporter_panelfiles/panel-chunks/adopt-problem-sensors-dialog-RQ23EE22.js"),import("/maintenance_supporter_panelfiles/panel-chunks/suggested-setups-dialog-NF6ISSCL.js"),import("/maintenance_supporter_panelfiles/panel-chunks/settings-view-Z5DP5ZSW.js"),import("/maintenance_supporter_panelfiles/panel-chunks/bulk-edit-dialog-AAZ72ERS.js")]).then(()=>this.updateComplete)),this._lazyUi}async _ui(e){return await this._ensureLazyUi(),this.shadowRoot?.querySelector(e)??null}connectedCallback(){super.connectedCallback(),this._mountPath=window.location.pathname;let e=window.requestIdleCallback,t=()=>this._ensureLazyUi();e?e(t,{timeout:3e3}):window.setTimeout(t,1500),window.addEventListener("popstate",this._popstateHandler),window.addEventListener("location-changed",this._locationChangedHandler),window.addEventListener("keydown",this._paletteKeydown),typeof ResizeObserver<"u"&&(this._tightObserver=new ResizeObserver(i=>{let a=i[0]?.contentRect.width??0;a>0&&(this.tight=a<1e3),a>0&&(this.split=a>=1500)}),this._tightObserver.observe(this)),window.addEventListener("resize",this._onVirtualScroll,{passive:!0});try{let i=Z(A.taskSort);i&&Ut.includes(i)&&(this._sortMode=i);let a=Z(A.objectSort);a&&["alphabetical","due_soonest","task_count"].includes(a)&&(this._objectSortMode=a);let r=Z(A.groupBy);r&&gs.includes(r)&&(this._groupByMode=r);let l=Z(A.objectView);(l==="cards"||l==="table")&&(this._objectViewMode=l)}catch{}if(this._objects.length===0){let i=Vi();i&&(this._objects=i.objects,i.stats&&(this._stats=i.stats))}}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("popstate",this._popstateHandler),window.removeEventListener("location-changed",this._locationChangedHandler),window.removeEventListener("keydown",this._paletteKeydown),this._tightObserver?.disconnect(),this._tightObserver=null,window.removeEventListener("resize",this._onVirtualScroll),this.shadowRoot?.querySelector(".content")?.removeEventListener("scroll",this._onVirtualScroll),this._virtScrollAttached=!1,this._virtRaf&&cancelAnimationFrame(this._virtRaf),this._detachStickyPane(),this._unsub&&(this._unsub(),this._unsub=null),this._dataLoaded=!1,this._initialLoadDone=!1,this._lastConnection=null,this._deepLinkHandled=!1,this._searchTimer&&(clearTimeout(this._searchTimer),this._searchTimer=null),this._toastTimer&&(clearTimeout(this._toastTimer),this._toastTimer=null),this._toastMessage="",this._toastUndo=null,this._toastActionLabel="",this._statsService?.clearCache(),this._statsService=null}willUpdate(e){super.willUpdate(e),e.has("_groupByMode")&&this._collapsedGroups.size>0&&(this._collapsedGroups=new Set)}updated(e){if(super.updated(e),ze(this,e),e.has("hass")&&this.hass){if(!this._dataLoaded)this._dataLoaded=!0,this._lastConnection=this.hass.connection,history.replaceState({msp_view:"overview",msp_entry:null,msp_task:null},""),this._loadData(),this._subscribe();else if(this.hass.connection!==this._lastConnection){if(this._lastConnection=this.hass.connection,this._unsub){try{this._unsub()}catch{}this._unsub=null}this._subscribe(),this._loadData()}this._statsService?this._statsService.updateHass(this.hass):(this._statsService=new ft(this.hass),this._fetchMiniStatsForOverview()),this._userService?this._userService.updateHass(this.hass):(this._userService=new xi(this.hass),this._userService.getUsers().then(()=>this.requestUpdate()))}let t=this.shadowRoot?.querySelector(".content");t&&!this._virtScrollAttached&&(t.addEventListener("scroll",this._onVirtualScroll,{passive:!0}),this._virtScrollAttached=!0),this._updateVirtualWindow(),this._syncStickyPane(t)}_syncStickyPane(e){let t=this.shadowRoot?.querySelector(".split-pane");if(!t||!e){this._stickyAttached&&this._detachStickyPane();return}this._stickyAttached||(e.addEventListener("scroll",this._onStickyScroll,{passive:!0}),window.addEventListener("resize",this._onStickyScroll),typeof ResizeObserver<"u"&&(this._stickyObserver=new ResizeObserver(this._onStickyScroll)),this._stickyAttached=!0),this._stickyObserver?.observe(t),this._updateStickyPane()}_detachStickyPane(){this.shadowRoot?.querySelector(".content")?.removeEventListener("scroll",this._onStickyScroll),window.removeEventListener("resize",this._onStickyScroll),this._stickyObserver?.disconnect(),this._stickyObserver=null,this._stickyRaf&&cancelAnimationFrame(this._stickyRaf),this._stickyRaf=0,this._stickyAttached=!1,this._stickyState=$t,this._stickySelectPending=!1}_updateStickyPane(){let e=this.shadowRoot,t=e?.querySelector(".content"),i=e?.querySelector(".split-pane"),a=e?.querySelector(".split-layout"),r=e?.querySelector(".split-list");if(!t||!i||!a||!r)return;let l=t.getBoundingClientRect().top-t.scrollTop,n={scrollTop:t.scrollTop,viewH:t.clientHeight,paneH:i.offsetHeight,listH:r.offsetHeight,layoutTop:a.getBoundingClientRect().top-l,renderedTop:i.getBoundingClientRect().top-l};this._stickySelectPending&&n.scrollTop===this._stickyState.lastScrollTop?this._stickyState=hs(n):(this._stickySelectPending=!1,this._stickyState=us(this._stickyState,n));let u=this._stickyState;i.style.top=`${ps(u.mode,n)}px`,i.style.marginTop=u.marginTop>0?`${u.marginTop}px`:""}_resetStickyPane(){let e=this.shadowRoot?.querySelector(".content");this._stickyState={...$t,lastScrollTop:e?.scrollTop??0},this._stickySelectPending=!0}_updateVirtualWindow(){let e=this.shadowRoot?.querySelector(".content"),t=this.shadowRoot?.querySelector(".task-table.virtual");if(!e||!t)return;let i=t.querySelector(".task-row:not(.virt-sizer)");i&&i.offsetHeight>20&&(this._virtRowHeight=i.offsetHeight);let a=t.getBoundingClientRect().top-e.getBoundingClientRect().top+e.scrollTop,r=ds({scrollTop:e.scrollTop,viewportHeight:e.clientHeight,listTop:a,rowHeight:this._virtRowHeight,total:this._virtTotalRows});(r.start!==this._virtStart||r.end!==this._virtEnd)&&(this._virtStart=r.start,this._virtEnd=r.end)}async _loadData(){let[e,t,i,a,r,l]=await Promise.all([this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects",compact:!0}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/statistics"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/budget_status"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/groups"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/views/list"}).catch(()=>null)]);if(l&&(this._savedViews=l.views||[]),e&&(this._objects=Je(e.objects),At(this._objects,t??this._stats??null),this._maybeLoadGettingStarted()),this._detailOpen()&&this._fetchFullHistory(this._selectedEntryId,this._selectedTaskId),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/battery_fleet/status"}).then(n=>{this._batteryFleetSetupAvailable=!!n.available&&!n.configured}).catch(()=>{this._batteryFleetSetupAvailable=!1}),this._staleChecked||(this._staleChecked=!0,this.hass.connection.sendMessagePromise({type:"maintenance_supporter/version"}).then(n=>{this._staleBundle=Vt(n?.version)}).catch(()=>{})),t&&(this._stats=t),i&&(this._budget=i,Fe(this._budget)),a&&(this._groups=a.groups||{}),r){let n=Ei(r);this._features=n.features,this._adminPanelUserIds=[...n.access.operatorIds],this._operatorWriteEnabled=n.access.operatorWriteEnabled,this._defaultWarningDays=n.defaultWarningDays,this._rowActionStyle=n.rowActionStyle,this._rowActionNotice=n.rowActionNoticePending,this._refsInLists=n.refsInLists,this._objectsTableColumns=ii(n.objectsTableColumns),this._partsCostMode=n.partsCostMode}this._fetchMiniStatsForOverview(),this._initialLoadDone=!0,this._handleDeepLink()}_onLocationChanged(){if(!this._initialLoadDone||!window.location.search||this.embedded&&this._mountPath!==null&&window.location.pathname!==this._mountPath)return;if(!this.embedded){let t=`/${typeof this.panel?.url_path=="string"?this.panel.url_path:"maintenance-supporter"}`,i=window.location.pathname;if(i!==t&&!i.startsWith(`${t}/`))return}this._deepLinkHandled=!1,this._deepLinkInPlace=!0;try{this._handleDeepLink()}finally{this._deepLinkInPlace=!1}history.state?.msp_view||history.replaceState({msp_view:this._view,msp_entry:this._selectedEntryId,msp_task:this._selectedTaskId,msp_area:this._selectedAreaId},"")}_handleDeepLink(){if(this._deepLinkHandled)return;let e=new URLSearchParams(window.location.search),t=e.get("ms_action"),i=()=>{let T=window.location.pathname+window.location.hash;history.replaceState(history.state,"",T)};if(t==="add_object"){this._deepLinkHandled=!0,i(),this._ui("maintenance-object-dialog").then(T=>T?.openCreate());return}if(t==="open_vacation"||t==="open_budget"||t==="open_groups"||t==="open_settings"){if(this._deepLinkHandled=!0,i(),!this.hass?.user?.is_admin)return;this._overviewTab="settings",this._ensureLazyUi().then(()=>requestAnimationFrame(()=>{let T=this.shadowRoot?.querySelector("maintenance-settings-view"),x=t.replace("open_","");T?.scrollToSection?.(x)}));return}if(this.embedded&&!this._presetsApplied){this._presetsApplied=!0;let T=this.presets?.tab??"",x=(this.presets?.view??"").trim();if(!e.has("tab")&&Dt.includes(T)&&(T!=="settings"||this.hass?.user?.is_admin)&&(this._overviewTab=T),!e.has("view")&&x){let D=x.toLowerCase(),C=this._savedViews.find(b=>b.id===x)??this._savedViews.find(b=>b.name.trim().toLowerCase()===D);C&&(this._overviewTab="dashboard",this._applyView(C.id))}}let a=e.get("tab"),r=e.get("view"),l=e.get("sort"),n=e.get("status");if(a!==null||r!==null||l!==null||n!==null){if(i(),this._view!=="overview"&&(this._view="overview",this._selectedEntryId=null,this._selectedTaskId=null,this._moreMenuOpen=!1,this._scrollContentToTop()),Dt.includes(a??"")&&(a!=="settings"||this.hass?.user?.is_admin)&&this._setOverviewTab(a),r!==null){let T=r.trim().toLowerCase(),x=this._savedViews.find(D=>D.id===r)??this._savedViews.find(D=>D.name.trim().toLowerCase()===T);x&&(this._overviewTab!=="dashboard"&&this._setOverviewTab("dashboard"),this._applyView(x.id))}Ut.includes(l??"")&&(this._sortMode=l,this._activeViewId="",W(A.taskSort,this._sortMode)),_s.includes(n??"")&&(this._overviewTab!=="dashboard"&&this._setOverviewTab("dashboard"),this._filterByStatus(n))}let u=e.get("area");if(u&&!e.get("entry_id")){this._deepLinkHandled=!0,i(),this._objects.some(T=>bi(T.object)===u)?this._showArea(u):this._showAllAreas();return}let p=e.get("entry_id");if(!p)return;this._deepLinkHandled=!0;let _=e.get("task_id"),v=e.get("action"),f=e.get("section"),y=ms.includes(f??"")?f:null,M=window.location.pathname+window.location.hash;history.replaceState(history.state,"",M);let S=this._getObject(p);if(!S){this._showOverview();return}if(_){let T=S.tasks.find(x=>x.id===_);if(!T){this._showObject(p,y);return}this._showTask(p,_),v==="complete"?requestAnimationFrame(()=>{this._openCompleteDialog(p,_,T.name,this._features.checklists?T.checklist:void 0,this._features.adaptive&&!!T.adaptive_config?.enabled,{viaTagScan:!0})}):v==="skip"?requestAnimationFrame(()=>{T.allow_skip!==!1&&this._promptSkipTask(p,_)}):v==="quick_complete"&&requestAnimationFrame(()=>{this._handleQuickComplete(p,_,T)})}else this._showObject(p,y)}_isCounterEntity(e){if(!e)return!1;let t=e.type||"threshold";return t==="counter"||t==="state_change"}async _fetchDetailStats(e,t){if(!this._statsService)return;let i=(this._detailStatsSeq.get(e)??0)+1;this._detailStatsSeq.set(e,i);let a=await this._statsService.getDetailStats(e,t,this._chartRangeDays);if(this._detailStatsSeq.get(e)!==i)return;let r=new Map(this._detailStatsData);r.set(e,a),this._detailStatsData=r}_setChartRange(e){if(e===this._chartRangeDays)return;this._chartRangeDays=e;try{W(A.chartRange,String(e))}catch{}let t=this._selectedEntryId&&this._selectedTaskId?this._getTask(this._selectedEntryId,this._selectedTaskId):null,i=t?.trigger_config?.entity_id;if(i){let a=new Map(this._detailStatsData);a.delete(i),this._detailStatsData=a,this._fetchDetailStats(i,this._isCounterEntity(t.trigger_config))}}_setHideOutliers(e){if(e!==this._hideOutliers){this._hideOutliers=e;try{W(A.chartHideOutliers,e?"1":"0")}catch{}}}async _fetchMiniStatsForOverview(){if(!this._statsService)return;let e=[];for(let i of this._objects)for(let a of i.tasks){let r=a.trigger_config?.entity_id;r&&e.push({entityId:r,isCounter:this._isCounterEntity(a.trigger_config)})}if(e.length===0)return;let t=await this._statsService.getBatchMiniStats(e);this._miniStatsData=new Map([...this._miniStatsData,...t])}async _subscribe(){try{let e=await this.hass.connection.subscribeMessage(t=>{let i=t,a=Ui(this._objects,i);a!==null&&(this._objects=a,t.objects&&At(a,this._stats??null),this._refreshKpis(),this._detailOpen()&&(i.objects||(i.delta||[]).some(r=>r.entry_id===this._selectedEntryId))&&this._fetchFullHistory(this._selectedEntryId,this._selectedTaskId))},{type:"maintenance_supporter/subscribe",deltas:!0,compact:!0});if(!this.isConnected){e();return}this._unsub=e}catch{}}async _refreshKpis(){if(this._kpiRefreshInFlight){this._kpiRefreshPending=!0;return}this._kpiRefreshInFlight=!0;try{do{this._kpiRefreshPending=!1;let[e,t]=await Promise.all([this.hass.connection.sendMessagePromise({type:"maintenance_supporter/statistics"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/budget_status"}).catch(()=>null)]);if(!this.isConnected)return;e&&(this._stats=e),t&&(this._budget=t,Fe(this._budget))}while(this._kpiRefreshPending)}finally{this._kpiRefreshInFlight=!1}}get _taskRows(){let e=[];for(let p of this._objects)for(let _ of p.tasks){if(!this._showArchived&&_.archived||this._filterStatus&&_.status!==this._filterStatus)continue;if(this._filterUser){let f=this._filterUser==="current_user"?this._userService?.getCurrentUserId():this._filterUser;if(_.responsible_user_id!==f)continue}if(this._filterLabel&&!(_.labels||[]).includes(this._filterLabel)||this._filterPriority&&(_.priority||"normal")!==this._filterPriority)continue;let v=[];for(let f of Object.values(this._groups))f.task_refs?.some(y=>y.entry_id===p.entry_id&&y.task_id===_.id)&&v.push(f.name);e.push({entry_id:p.entry_id,task_id:_.id,object_name:p.object.name,allow_skip:_.allow_skip!==!1,notify_enabled:_.notify_enabled!==!1,task_name:_.name,type:_.type,schedule_type:_.schedule_type,status:_.status,days_until_due:_.days_until_due??null,next_due:_.next_due??null,next_event_titles:_.next_event_titles??[],trigger_active:_.trigger_active,trigger_current_value:_.trigger_current_value??null,trigger_current_delta:_.trigger_current_delta??null,trigger_config:_.trigger_config??null,trigger_entity_info:_.trigger_entity_info??null,battery_fleet_task:_.battery_fleet_task===!0,times_performed:_.times_performed,total_cost:_.total_cost,interval_days:_.interval_days??null,interval_unit:_.interval_unit??null,interval_anchor:_.interval_anchor??null,is_done:_.is_done??!1,archived:_.archived??!1,history:_.history||[],enabled:_.enabled,nfc_tag_id:_.nfc_tag_id??null,priority:_.priority??"normal",labels:_.labels??[],area_id:p.object.area_id??null,responsible_user_id:_.responsible_user_id??null,group_names:v})}let t=(p,_)=>qe(p.status)-qe(_.status),i=(p,_)=>(p.days_until_due??99999)-(_.days_until_due??99999),a=(p,_)=>t(p,_)||i(p,_),r=p=>p.area_id&&this.hass?.areas?.[p.area_id]?.name||"",l=p=>p.responsible_user_id&&this._userService?.getUserName(p.responsible_user_id)||"",n=p=>p.group_names[0]||"",u={due_date:a,object:(p,_)=>p.object_name.localeCompare(_.object_name)||a(p,_),type:(p,_)=>p.type.localeCompare(_.type)||a(p,_),task_name:(p,_)=>p.task_name.localeCompare(_.task_name),area:(p,_)=>{let v=r(p),f=r(_);return!v&&f?1:v&&!f?-1:v.localeCompare(f)||a(p,_)},assigned_user:(p,_)=>{let v=l(p),f=l(_);return!v&&f?1:v&&!f?-1:v.localeCompare(f)||a(p,_)},group:(p,_)=>{let v=n(p),f=n(_);return!v&&f?1:v&&!f?-1:v.localeCompare(f)||a(p,_)}};return e.sort(u[this._sortMode]),e}_getObject(e){return this._objects.find(t=>t.entry_id===e)}_getTask(e,t){return this._getObject(e)?.tasks.find(a=>a.id===t)}_listRef(e,t){if(!this._refsInLists)return h;let i=this._getObject(e);return Ae(ke(i?.object,i?.tasks.find(a=>a.id===t)))}_objRef(e){return this._refsInLists?Ae(we(e)):h}_pushPanelState(e,t,i,a){let r={msp_view:e,msp_entry:t||null,msp_task:i||null,msp_area:a||null};this._deepLinkInPlace?history.replaceState(r,""):history.pushState(r,"")}_onPopState(e){let t=e.state;if(t?.msp_view&&(this._view=t.msp_view,this._selectedEntryId=t.msp_entry||null,this._selectedTaskId=t.msp_task||null,this._selectedAreaId=t.msp_area||null,this._moreMenuOpen=!1,this._objectSectionOverride=null,t.msp_view==="all_parts"&&this._loadAllParts(),t.msp_view==="task"&&t.msp_entry&&t.msp_task)){this._historyFilter=null;let i=this._getTask(t.msp_entry,t.msp_task);i?.trigger_config?.entity_id&&this._fetchDetailStats(i.trigger_config.entity_id,this._isCounterEntity(i.trigger_config))}}_showOverview(){this._pushPanelState("overview"),this._view="overview",this._selectedEntryId=null,this._selectedTaskId=null,this._moreMenuOpen=!1,this._scrollContentToTop()}_showAllObjects(){this._pushPanelState("all_objects"),this._view="all_objects",this._objBulkMode=!1,this._objBulkSelected=new Set,this._selectedEntryId=null,this._selectedTaskId=null,this._scrollContentToTop()}_showAllParts(){this._pushPanelState("all_parts"),this._view="all_parts",this._selectedEntryId=null,this._selectedTaskId=null,this._scrollContentToTop(),this._loadAllParts()}async _loadAllParts(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/parts/overview"});this._allParts=e.parts||[]}catch{this._allParts=[]}}_showAllAreas(){this._pushPanelState("all_areas"),this._view="all_areas",this._selectedEntryId=null,this._selectedTaskId=null,this._scrollContentToTop()}_showArea(e){this._pushPanelState("area",null,null,e),this._view="area",this._selectedAreaId=e,this._selectedEntryId=null,this._selectedTaskId=null,this._scrollContentToTop()}_ensureAreaUi(){this._areaUi??=Promise.all([import("/maintenance_supporter_panelfiles/panel-chunks/areas-view-TVJJZL6F.js"),import("/maintenance_supporter_panelfiles/panel-chunks/area-view-EU5UROHJ.js")]).catch(()=>{this._areaUi=null})}_filterByStatus(e){this._filterStatus=e,this._activeViewId="",this._overviewTab!=="dashboard"&&(this._overviewTab="dashboard"),this._scrollContentToTop()}get _allLabels(){let e=new Set;for(let t of this._objects)for(let i of t.tasks)for(let a of i.labels||[])e.add(a);return[...e].sort((t,i)=>t.localeCompare(i))}get _currentFilters(){return{status:this._filterStatus,user_id:this._filterUser,label:this._filterLabel,priority:this._filterPriority,archived:this._showArchived,sort_mode:this._sortMode,group_by:this._groupByMode}}_applyView(e){if(this._activeViewId=e,!e)return;let t=this._savedViews.find(a=>a.id===e);if(!t)return;let i=t.filters;this._filterStatus=i.status||"",this._filterUser=i.user_id||null,this._filterLabel=i.label||null,this._filterPriority=i.priority||"",this._showArchived=!!i.archived,Ut.includes(i.sort_mode)&&(this._sortMode=i.sort_mode),gs.includes(i.group_by)&&(this._groupByMode=i.group_by);try{W(A.taskSort,this._sortMode),W(A.groupBy,this._groupByMode)}catch{}this._overviewTab!=="dashboard"&&(this._overviewTab="dashboard")}_openSavedViewsDialog(){this.shadowRoot.querySelector("maintenance-saved-views-dialog")?.open(this._currentFilters,this._savedViews)}_onSavedViewsChanged(e){this._savedViews=e.detail.views||[],this._activeViewId&&!this._savedViews.some(t=>t.id===this._activeViewId)&&(this._activeViewId="")}_scrollContentToTop(){requestAnimationFrame(()=>{let e=this.shadowRoot?.querySelector(".content");e&&e.scrollTo({top:0,behavior:"smooth"})})}_renderLineageLink(e,t){let i=e?this._objects.find(a=>a.entry_id===e):void 0;return i?o`<p class="meta">${t}:
+  `}var ee=class extends N{createRenderRoot(){return this}render(){return!this.task||!this.ctx?h:o`${ys(this.task,this.ctx)}`}};_([E({attribute:!1})],ee.prototype,"task",2),_([E({attribute:!1})],ee.prototype,"ctx",2);customElements.get("maintenance-task-detail-view")||customElements.define("maintenance-task-detail-view",ee);function xs(l){if(l.total<=0)return{start:0,end:0,padTop:0,padBottom:0};let p=l.overscan??12,t=Math.max(1,l.step??6),e=Math.max(1,l.rowHeight),i=Math.floor((l.scrollTop-l.listTop)/e),a=Math.ceil(l.viewportHeight/e)+1,r=Math.max(0,i-p);r=Math.floor(r/t)*t;let c=Math.min(l.total,Math.max(i,0)+a+p);return c=Math.min(l.total,Math.ceil(c/t)*t),r>=c&&(r=Math.min(r,Math.max(0,l.total-1)),c=Math.min(l.total,r+Math.max(a,1))),{start:r,end:c,padTop:r*e,padBottom:(l.total-c)*e}}var Te={mode:"top",marginTop:0,lastScrollTop:0};function ks(l,p){return l==="top"?8:p.viewH-p.paneH-8}function ws(l){let p=l.scrollTop+8-l.layoutTop,t=Math.max(0,l.listH-l.paneH);return{mode:"top",marginTop:p>t?Math.max(0,p):0,lastScrollTop:l.scrollTop}}function $s(l,p){let t=p.scrollTop,e=p.scrollTop>l.lastScrollTop?"down":p.scrollTop<l.lastScrollTop?"up":"none",i=Math.max(0,p.listH-p.paneH),a=p.paneH+16<=p.viewH||p.listH<=p.paneH,{mode:r,marginTop:c}=l;if(a&&(r="top"),r==="top"&&c>0&&e==="up")c=Math.max(0,Math.min(c,p.scrollTop+8-p.layoutTop)),c<=i&&(c=0);else if(!a&&e==="down"&&r==="top"){let n=p.renderedTop-p.layoutTop;n<=i&&(r="bottom",c=Math.max(0,n))}else!a&&e==="up"&&r==="bottom"&&(c=Math.min(Math.max(0,p.renderedTop-p.layoutTop),i),p.scrollTop+8<=p.layoutTop+c&&(r="top",c=0));return{mode:r,marginTop:c,lastScrollTop:t}}var Ee=2,wa=250,It={objects:6,tasks:10,parts:6,documents:8,history:6},$a="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z",Ye=["due_date","object","type","task_name","area","assigned_user","group"],js=["none","area","group","user","object"],Ss=Xe,Ts=["tasks","documents","parts","history"],k=class extends N{constructor(){super(...arguments);this.narrow=!1;this.tight=!1;this.split=!1;this._tightObserver=null;this.panel={};this.embedded=!1;this.presets={};this._presetsApplied=!1;this._mountPath=null;this._objects=[];this._stats=null;this._view="overview";this._allParts=null;this._selectedEntryId=null;this._selectedTaskId=null;this._selectedAreaId=null;this._filterStatus="";this._filterUser=null;this._filterLabel=null;this._filterPriority="";this._savedViews=[];this._activeViewId="";this._unsub=null;this._chartRangeDays=(()=>{try{let t=parseInt(Z(A.chartRange)||"",10);return[7,30,90,365].includes(t)?t:30}catch{return 30}})();this._hideOutliers=(()=>{try{return Z(A.chartHideOutliers)==="1"}catch{return!1}})();this._historyFilter=null;this._budget=null;this._groups={};this._detailStatsData=new Map;this._miniStatsData=new Map;this._features={adaptive:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1};this._adminPanelUserIds=[];this._operatorWriteEnabled=!1;this._defaultWarningDays=7;this._rowActionStyle="buttons_compact";this._refsInLists=!1;this._partsCostMode="purchase";this._rowActionNotice=!1;this._actionLoading=!1;this._moreMenuOpen=!1;this._objMenuOpen=!1;this._toastMessage="";this._toastKind="error";this._toastUndo=null;this._toastActionLabel="";this._filtersOpen=!1;this._newMenuOpen=!1;this._gsSetupsCount=0;this._gsAdoptCount=0;this._gsLoaded=!1;this._resetOffersLoaded=!1;this._resetOffersCount=0;this._batteryFleetSetupAvailable=!1;this._staleBundle=!1;this._staleChecked=!1;this._toastTimer=null;this._dismissedSuggestions=new Set;this._overviewTab=(()=>{try{let t=Z(A.overviewTab);return t==="today"||t==="calendar"?t:"dashboard"}catch{return"dashboard"}})();this._activeTab="overview";this._costDurationToggle="both";this._historySearch="";this._sortMode="due_date";this._objectSortMode="alphabetical";this._groupByMode="none";this._objectViewMode="cards";this._objectsTableColumns=ci;this._showArchived=!1;this._bulkMode=!1;this._bulkSelected=new Set;this._objBulkMode=!1;this._objBulkSelected=new Set;this._bulkMenuOpen=!1;this._virtStart=0;this._virtEnd=0;this._virtRowHeight=53;this._virtTotalRows=0;this._virtScrollAttached=!1;this._virtRaf=0;this._stickyState=Te;this._stickySelectPending=!1;this._stickyRaf=0;this._stickyAttached=!1;this._stickyObserver=null;this._collapsedGroups=new Set;this._collapsedSections=(()=>{try{return new Set(JSON.parse(Z(A.collapsedSections)||"[]"))}catch{return new Set}})();this._objectSectionsCollapsed=(()=>{try{let t=JSON.parse(Z(A.objectSections)||"[]");return new Set((Array.isArray(t)?t:[]).filter(e=>Ts.includes(e)))}catch{return new Set}})();this._objectSectionOverride=null;this._paletteOpen=!1;this._paletteQuery="";this._paletteActive=0;this._searchRemote=null;this._searchTimer=null;this._searchSeq=0;this._templateGalleryOpen=!1;this._templates=[];this._homeProfile=null;this._templateCategories={};this._templateBusy=!1;this._statsService=null;this._userService=null;this._dataLoaded=!1;this._lastConnection=null;this._popstateHandler=t=>this._onPopState(t);this._locationChangedHandler=()=>this._onLocationChanged();this._lazyUi=null;this._onStickyScroll=()=>{this._stickyRaf||(this._stickyRaf=requestAnimationFrame(()=>{this._stickyRaf=0,this._updateStickyPane()}))};this._onVirtualScroll=()=>{this._virtRaf||(this._virtRaf=requestAnimationFrame(()=>{this._virtRaf=0,this._updateVirtualWindow()}))};this._deepLinkHandled=!1;this._deepLinkInPlace=!1;this._initialLoadDone=!1;this._detailStatsSeq=new Map;this._kpiRefreshInFlight=!1;this._kpiRefreshPending=!1;this._areaUi=null;this._paletteKeydown=t=>{if(t.key==="/"&&!t.ctrlKey&&!t.metaKey&&!t.altKey&&!this._paletteOpen){let i=t.composedPath()[0];if(i instanceof HTMLElement&&(i.tagName==="INPUT"||i.tagName==="TEXTAREA"||i.tagName==="SELECT"||i.isContentEditable))return;t.preventDefault(),this._openPalette();return}if(!this._paletteOpen)return;let e=this._paletteResults;if(t.key==="Escape")t.preventDefault(),this._closePalette();else if(t.key==="ArrowDown")t.preventDefault(),this._paletteActive=Math.min(this._paletteActive+1,e.length-1);else if(t.key==="ArrowUp")t.preventDefault(),this._paletteActive=Math.max(this._paletteActive-1,0);else if(t.key==="Enter"){t.preventDefault();let i=e[this._paletteActive];i&&this._selectPaletteResult(i)}};this._onObjectReplaced=async t=>{this._showToast([s("object_replaced",this._lang),this._deviceSwapText(t.detail.device_swap)].filter(Boolean).join(" \xB7 "),"info");try{await this._loadData()}catch{}t.detail.entry_id&&this._showObject(t.detail.entry_id)};this._onObjectSaved=async t=>{let e=this._deviceSwapText(t.detail?.device_swap);e&&this._showToast(e,"info"),await this._onDialogEvent()};this._checklistPending=new Map;this._checklistChain=Promise.resolve();this._onDialogEvent=async()=>{try{await this._loadData()}catch{}};this._onTaskCompleted=async t=>{await this._onDialogEvent();let e=t.detail;e?.undo&&this._offerUndo(e.entryId,e.taskId,s("task_completed_named",this._lang).replace("{task}",e.taskName))};this._onCalendarLlCustom=t=>{let e=t.detail;e?.type==="maintenance-supporter:open-task"&&e.entry_id&&e.task_id&&(t.stopPropagation(),this._showTask(e.entry_id,e.task_id))};this._fullHistory=null;this._onHistoryEntrySaved=async()=>{await this._loadData()}}get _currencySymbol(){return re(this._budget)}get _lang(){return K(this.hass)}get _isOperator(){return!Bt(this.hass?.user,{operatorWriteEnabled:this._operatorWriteEnabled,operatorIds:this._adminPanelUserIds})}_ensureLazyUi(){return this._lazyUi||(this._lazyUi=Promise.all([import("/maintenance_supporter_panelfiles/panel-chunks/object-dialog-OYWUYRRI.js"),import("/maintenance_supporter_panelfiles/panel-chunks/task-dialog-IPFPBUEX.js"),import("/maintenance_supporter_panelfiles/panel-chunks/complete-dialog-NDFCH2BW.js"),import("/maintenance_supporter_panelfiles/panel-chunks/qr-dialog-K3MCYMBW.js"),import("/maintenance_supporter_panelfiles/panel-chunks/adopt-problem-sensors-dialog-NZDGSOCU.js"),import("/maintenance_supporter_panelfiles/panel-chunks/suggested-setups-dialog-FDMM6FWP.js"),import("/maintenance_supporter_panelfiles/panel-chunks/settings-view-PWEBAOAN.js"),import("/maintenance_supporter_panelfiles/panel-chunks/bulk-edit-dialog-PYTKIY6T.js")]).then(()=>this.updateComplete)),this._lazyUi}async _ui(t){return await this._ensureLazyUi(),this.shadowRoot?.querySelector(t)??null}connectedCallback(){super.connectedCallback(),this._mountPath=window.location.pathname;let t=window.requestIdleCallback,e=()=>this._ensureLazyUi();t?t(e,{timeout:3e3}):window.setTimeout(e,1500),window.addEventListener("popstate",this._popstateHandler),window.addEventListener("location-changed",this._locationChangedHandler),window.addEventListener("keydown",this._paletteKeydown),typeof ResizeObserver<"u"&&(this._tightObserver=new ResizeObserver(i=>{let a=i[0]?.contentRect.width??0;a>0&&(this.tight=a<1e3),a>0&&(this.split=a>=1500)}),this._tightObserver.observe(this)),window.addEventListener("resize",this._onVirtualScroll,{passive:!0});try{let i=Z(A.taskSort);i&&Ye.includes(i)&&(this._sortMode=i);let a=Z(A.objectSort);a&&["alphabetical","due_soonest","task_count"].includes(a)&&(this._objectSortMode=a);let r=Z(A.groupBy);r&&js.includes(r)&&(this._groupByMode=r);let c=Z(A.objectView);(c==="cards"||c==="table")&&(this._objectViewMode=c)}catch{}if(this._objects.length===0){let i=Yi();i&&(this._objects=i.objects,i.stats&&(this._stats=i.stats))}}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("popstate",this._popstateHandler),window.removeEventListener("location-changed",this._locationChangedHandler),window.removeEventListener("keydown",this._paletteKeydown),this._tightObserver?.disconnect(),this._tightObserver=null,window.removeEventListener("resize",this._onVirtualScroll),this.shadowRoot?.querySelector(".content")?.removeEventListener("scroll",this._onVirtualScroll),this._virtScrollAttached=!1,this._virtRaf&&cancelAnimationFrame(this._virtRaf),this._detachStickyPane(),this._unsub&&(this._unsub(),this._unsub=null),this._dataLoaded=!1,this._initialLoadDone=!1,this._lastConnection=null,this._deepLinkHandled=!1,this._searchTimer&&(clearTimeout(this._searchTimer),this._searchTimer=null),this._toastTimer&&(clearTimeout(this._toastTimer),this._toastTimer=null),this._toastMessage="",this._toastUndo=null,this._toastActionLabel="",this._statsService?.clearCache(),this._statsService=null}willUpdate(t){super.willUpdate(t),t.has("_groupByMode")&&this._collapsedGroups.size>0&&(this._collapsedGroups=new Set)}updated(t){if(super.updated(t),Ht(this,t),t.has("hass")&&this.hass){if(!this._dataLoaded)this._dataLoaded=!0,this._lastConnection=this.hass.connection,history.replaceState({msp_view:"overview",msp_entry:null,msp_task:null},""),this._loadData(),this._subscribe();else if(this.hass.connection!==this._lastConnection){if(this._lastConnection=this.hass.connection,this._unsub){try{this._unsub()}catch{}this._unsub=null}this._subscribe(),this._loadData()}this._statsService?this._statsService.updateHass(this.hass):(this._statsService=new ye(this.hass),this._fetchMiniStatsForOverview()),this._userService?this._userService.updateHass(this.hass):(this._userService=new ji(this.hass),this._userService.getUsers().then(()=>this.requestUpdate()))}let e=this.shadowRoot?.querySelector(".content");e&&!this._virtScrollAttached&&(e.addEventListener("scroll",this._onVirtualScroll,{passive:!0}),this._virtScrollAttached=!0),this._updateVirtualWindow(),this._syncStickyPane(e)}_syncStickyPane(t){let e=this.shadowRoot?.querySelector(".split-pane");if(!e||!t){this._stickyAttached&&this._detachStickyPane();return}this._stickyAttached||(t.addEventListener("scroll",this._onStickyScroll,{passive:!0}),window.addEventListener("resize",this._onStickyScroll),typeof ResizeObserver<"u"&&(this._stickyObserver=new ResizeObserver(this._onStickyScroll)),this._stickyAttached=!0),this._stickyObserver?.observe(e),this._updateStickyPane()}_detachStickyPane(){this.shadowRoot?.querySelector(".content")?.removeEventListener("scroll",this._onStickyScroll),window.removeEventListener("resize",this._onStickyScroll),this._stickyObserver?.disconnect(),this._stickyObserver=null,this._stickyRaf&&cancelAnimationFrame(this._stickyRaf),this._stickyRaf=0,this._stickyAttached=!1,this._stickyState=Te,this._stickySelectPending=!1}_updateStickyPane(){let t=this.shadowRoot,e=t?.querySelector(".content"),i=t?.querySelector(".split-pane"),a=t?.querySelector(".split-layout"),r=t?.querySelector(".split-list");if(!e||!i||!a||!r)return;let c=e.getBoundingClientRect().top-e.scrollTop,n={scrollTop:e.scrollTop,viewH:e.clientHeight,paneH:i.offsetHeight,listH:r.offsetHeight,layoutTop:a.getBoundingClientRect().top-c,renderedTop:i.getBoundingClientRect().top-c};this._stickySelectPending&&n.scrollTop===this._stickyState.lastScrollTop?this._stickyState=ws(n):(this._stickySelectPending=!1,this._stickyState=$s(this._stickyState,n));let u=this._stickyState;i.style.top=`${ks(u.mode,n)}px`,i.style.marginTop=u.marginTop>0?`${u.marginTop}px`:""}_resetStickyPane(){let t=this.shadowRoot?.querySelector(".content");this._stickyState={...Te,lastScrollTop:t?.scrollTop??0},this._stickySelectPending=!0}_updateVirtualWindow(){let t=this.shadowRoot?.querySelector(".content"),e=this.shadowRoot?.querySelector(".task-table.virtual");if(!t||!e)return;let i=e.querySelector(".task-row:not(.virt-sizer)");i&&i.offsetHeight>20&&(this._virtRowHeight=i.offsetHeight);let a=e.getBoundingClientRect().top-t.getBoundingClientRect().top+t.scrollTop,r=xs({scrollTop:t.scrollTop,viewportHeight:t.clientHeight,listTop:a,rowHeight:this._virtRowHeight,total:this._virtTotalRows});(r.start!==this._virtStart||r.end!==this._virtEnd)&&(this._virtStart=r.start,this._virtEnd=r.end)}async _loadData(){let[t,e,i,a,r,c]=await Promise.all([this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects",compact:!0}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/statistics"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/budget_status"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/groups"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/views/list"}).catch(()=>null)]);if(c&&(this._savedViews=c.views||[]),t&&(this._objects=Zt(t.objects),Le(this._objects,e??this._stats??null),this._maybeLoadGettingStarted()),this._detailOpen()&&this._fetchFullHistory(this._selectedEntryId,this._selectedTaskId),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/battery_fleet/status"}).then(n=>{this._batteryFleetSetupAvailable=!!n.available&&!n.configured}).catch(()=>{this._batteryFleetSetupAvailable=!1}),this._staleChecked||(this._staleChecked=!0,this.hass.connection.sendMessagePromise({type:"maintenance_supporter/version"}).then(n=>{this._staleBundle=Qe(n?.version)}).catch(()=>{})),e&&(this._stats=e),i&&(this._budget=i,Wt(this._budget)),a&&(this._groups=a.groups||{}),r){let n=Mi(r);this._features=n.features,this._adminPanelUserIds=[...n.access.operatorIds],this._operatorWriteEnabled=n.access.operatorWriteEnabled,this._defaultWarningDays=n.defaultWarningDays,this._rowActionStyle=n.rowActionStyle,this._rowActionNotice=n.rowActionNoticePending,this._refsInLists=n.refsInLists,this._objectsTableColumns=di(n.objectsTableColumns),this._partsCostMode=n.partsCostMode}this._fetchMiniStatsForOverview(),this._initialLoadDone=!0,this._handleDeepLink()}_onLocationChanged(){if(!this._initialLoadDone||!window.location.search||this.embedded&&this._mountPath!==null&&window.location.pathname!==this._mountPath)return;if(!this.embedded){let e=`/${typeof this.panel?.url_path=="string"?this.panel.url_path:"maintenance-supporter"}`,i=window.location.pathname;if(i!==e&&!i.startsWith(`${e}/`))return}this._deepLinkHandled=!1,this._deepLinkInPlace=!0;try{this._handleDeepLink()}finally{this._deepLinkInPlace=!1}history.state?.msp_view||history.replaceState({msp_view:this._view,msp_entry:this._selectedEntryId,msp_task:this._selectedTaskId,msp_area:this._selectedAreaId},"")}_handleDeepLink(){if(this._deepLinkHandled)return;let t=new URLSearchParams(window.location.search),e=t.get("ms_action"),i=()=>{let j=window.location.pathname+window.location.hash;history.replaceState(history.state,"",j)};if(e==="add_object"){this._deepLinkHandled=!0,i(),this._ui("maintenance-object-dialog").then(j=>j?.openCreate());return}if(e==="open_vacation"||e==="open_budget"||e==="open_groups"||e==="open_settings"){if(this._deepLinkHandled=!0,i(),!this.hass?.user?.is_admin)return;this._overviewTab="settings",this._ensureLazyUi().then(()=>requestAnimationFrame(()=>{let j=this.shadowRoot?.querySelector("maintenance-settings-view"),x=e.replace("open_","");j?.scrollToSection?.(x)}));return}if(this.embedded&&!this._presetsApplied){this._presetsApplied=!0;let j=this.presets?.tab??"",x=(this.presets?.view??"").trim();if(!t.has("tab")&&Pe.includes(j)&&(j!=="settings"||this.hass?.user?.is_admin)&&(this._overviewTab=j),!t.has("view")&&x){let M=x.toLowerCase(),b=this._savedViews.find(D=>D.id===x)??this._savedViews.find(D=>D.name.trim().toLowerCase()===M);b&&(this._overviewTab="dashboard",this._applyView(b.id))}}let a=t.get("tab"),r=t.get("view"),c=t.get("sort"),n=t.get("status");if(a!==null||r!==null||c!==null||n!==null){if(i(),this._view!=="overview"&&(this._view="overview",this._selectedEntryId=null,this._selectedTaskId=null,this._moreMenuOpen=!1,this._scrollContentToTop()),Pe.includes(a??"")&&(a!=="settings"||this.hass?.user?.is_admin)&&this._setOverviewTab(a),r!==null){let j=r.trim().toLowerCase(),x=this._savedViews.find(M=>M.id===r)??this._savedViews.find(M=>M.name.trim().toLowerCase()===j);x&&(this._overviewTab!=="dashboard"&&this._setOverviewTab("dashboard"),this._applyView(x.id))}Ye.includes(c??"")&&(this._sortMode=c,this._activeViewId="",V(A.taskSort,this._sortMode)),Ss.includes(n??"")&&(this._overviewTab!=="dashboard"&&this._setOverviewTab("dashboard"),this._filterByStatus(n))}let u=t.get("area");if(u&&!t.get("entry_id")){this._deepLinkHandled=!0,i(),this._objects.some(j=>wi(j.object)===u)?this._showArea(u):this._showAllAreas();return}let d=t.get("entry_id");if(!d)return;this._deepLinkHandled=!0;let g=t.get("task_id"),m=t.get("action"),v=t.get("section"),y=Ts.includes(v??"")?v:null,C=window.location.pathname+window.location.hash;history.replaceState(history.state,"",C);let $=this._getObject(d);if(!$){this._showOverview();return}if(g){let j=$.tasks.find(x=>x.id===g);if(!j){this._showObject(d,y);return}this._showTask(d,g),m==="complete"?requestAnimationFrame(()=>{this._openCompleteDialog(d,g,j.name,this._features.checklists?j.checklist:void 0,this._features.adaptive&&!!j.adaptive_config?.enabled,{viaTagScan:!0})}):m==="skip"?requestAnimationFrame(()=>{j.allow_skip!==!1&&this._promptSkipTask(d,g)}):m==="quick_complete"&&requestAnimationFrame(()=>{this._handleQuickComplete(d,g,j)})}else this._showObject(d,y)}_isCounterEntity(t){if(!t)return!1;let e=t.type||"threshold";return e==="counter"||e==="state_change"}async _fetchDetailStats(t,e){if(!this._statsService)return;let i=(this._detailStatsSeq.get(t)??0)+1;this._detailStatsSeq.set(t,i);let a=await this._statsService.getDetailStats(t,e,this._chartRangeDays);if(this._detailStatsSeq.get(t)!==i)return;let r=new Map(this._detailStatsData);r.set(t,a),this._detailStatsData=r}_setChartRange(t){if(t===this._chartRangeDays)return;this._chartRangeDays=t;try{V(A.chartRange,String(t))}catch{}let e=this._selectedEntryId&&this._selectedTaskId?this._getTask(this._selectedEntryId,this._selectedTaskId):null,i=e?.trigger_config?.entity_id;if(i){let a=new Map(this._detailStatsData);a.delete(i),this._detailStatsData=a,this._fetchDetailStats(i,this._isCounterEntity(e.trigger_config))}}_setHideOutliers(t){if(t!==this._hideOutliers){this._hideOutliers=t;try{V(A.chartHideOutliers,t?"1":"0")}catch{}}}async _fetchMiniStatsForOverview(){if(!this._statsService)return;let t=[];for(let i of this._objects)for(let a of i.tasks){let r=a.trigger_config?.entity_id;r&&t.push({entityId:r,isCounter:this._isCounterEntity(a.trigger_config)})}if(t.length===0)return;let e=await this._statsService.getBatchMiniStats(t);this._miniStatsData=new Map([...this._miniStatsData,...e])}async _subscribe(){try{let t=await this.hass.connection.subscribeMessage(e=>{let i=e,a=Gi(this._objects,i);a!==null&&(this._objects=a,e.objects&&Le(a,this._stats??null),this._refreshKpis(),this._detailOpen()&&(i.objects||(i.delta||[]).some(r=>r.entry_id===this._selectedEntryId))&&this._fetchFullHistory(this._selectedEntryId,this._selectedTaskId))},{type:"maintenance_supporter/subscribe",deltas:!0,compact:!0});if(!this.isConnected){t();return}this._unsub=t}catch{}}async _refreshKpis(){if(this._kpiRefreshInFlight){this._kpiRefreshPending=!0;return}this._kpiRefreshInFlight=!0;try{do{this._kpiRefreshPending=!1;let[t,e]=await Promise.all([this.hass.connection.sendMessagePromise({type:"maintenance_supporter/statistics"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/budget_status"}).catch(()=>null)]);if(!this.isConnected)return;t&&(this._stats=t),e&&(this._budget=e,Wt(this._budget))}while(this._kpiRefreshPending)}finally{this._kpiRefreshInFlight=!1}}get _taskRows(){let t=[];for(let d of this._objects)for(let g of d.tasks){if(!this._showArchived&&g.archived||this._filterStatus&&g.status!==this._filterStatus)continue;if(this._filterUser){let v=this._filterUser==="current_user"?this._userService?.getCurrentUserId():this._filterUser;if(g.responsible_user_id!==v)continue}if(this._filterLabel&&!(g.labels||[]).includes(this._filterLabel)||this._filterPriority&&(g.priority||"normal")!==this._filterPriority)continue;let m=[];for(let v of Object.values(this._groups))v.task_refs?.some(y=>y.entry_id===d.entry_id&&y.task_id===g.id)&&m.push(v.name);t.push({entry_id:d.entry_id,task_id:g.id,object_name:d.object.name,allow_skip:g.allow_skip!==!1,notify_enabled:g.notify_enabled!==!1,task_name:g.name,type:g.type,schedule_type:g.schedule_type,status:g.status,days_until_due:g.days_until_due??null,next_due:g.next_due??null,next_event_titles:g.next_event_titles??[],trigger_active:g.trigger_active,trigger_current_value:g.trigger_current_value??null,trigger_current_delta:g.trigger_current_delta??null,trigger_config:g.trigger_config??null,trigger_entity_info:g.trigger_entity_info??null,battery_fleet_task:g.battery_fleet_task===!0,times_performed:g.times_performed,total_cost:g.total_cost,interval_days:g.interval_days??null,interval_unit:g.interval_unit??null,interval_anchor:g.interval_anchor??null,is_done:g.is_done??!1,archived:g.archived??!1,history:g.history||[],enabled:g.enabled,nfc_tag_id:g.nfc_tag_id??null,priority:g.priority??"normal",labels:g.labels??[],area_id:d.object.area_id??null,responsible_user_id:g.responsible_user_id??null,group_names:m})}let e=(d,g)=>Ct(d.status)-Ct(g.status),i=(d,g)=>(d.days_until_due??99999)-(g.days_until_due??99999),a=(d,g)=>e(d,g)||i(d,g),r=d=>d.area_id&&this.hass?.areas?.[d.area_id]?.name||"",c=d=>d.responsible_user_id&&this._userService?.getUserName(d.responsible_user_id)||"",n=d=>d.group_names[0]||"",u={due_date:a,object:(d,g)=>d.object_name.localeCompare(g.object_name)||a(d,g),type:(d,g)=>d.type.localeCompare(g.type)||a(d,g),task_name:(d,g)=>d.task_name.localeCompare(g.task_name),area:(d,g)=>{let m=r(d),v=r(g);return!m&&v?1:m&&!v?-1:m.localeCompare(v)||a(d,g)},assigned_user:(d,g)=>{let m=c(d),v=c(g);return!m&&v?1:m&&!v?-1:m.localeCompare(v)||a(d,g)},group:(d,g)=>{let m=n(d),v=n(g);return!m&&v?1:m&&!v?-1:m.localeCompare(v)||a(d,g)}};return t.sort(u[this._sortMode]),t}_getObject(t){return this._objects.find(e=>e.entry_id===t)}_getTask(t,e){return this._getObject(t)?.tasks.find(a=>a.id===e)}_listRef(t,e){if(!this._refsInLists)return h;let i=this._getObject(t);return Lt(jt(i?.object,i?.tasks.find(a=>a.id===e)))}_objRef(t){return this._refsInLists?Lt($t(t)):h}_pushPanelState(t,e,i,a){let r={msp_view:t,msp_entry:e||null,msp_task:i||null,msp_area:a||null};this._deepLinkInPlace?history.replaceState(r,""):history.pushState(r,"")}_onPopState(t){let e=t.state;if(e?.msp_view&&(this._view=e.msp_view,this._selectedEntryId=e.msp_entry||null,this._selectedTaskId=e.msp_task||null,this._selectedAreaId=e.msp_area||null,this._moreMenuOpen=!1,this._objectSectionOverride=null,e.msp_view==="all_parts"&&this._loadAllParts(),e.msp_view==="task"&&e.msp_entry&&e.msp_task)){this._historyFilter=null;let i=this._getTask(e.msp_entry,e.msp_task);i?.trigger_config?.entity_id&&this._fetchDetailStats(i.trigger_config.entity_id,this._isCounterEntity(i.trigger_config))}}_showOverview(){this._pushPanelState("overview"),this._view="overview",this._selectedEntryId=null,this._selectedTaskId=null,this._moreMenuOpen=!1,this._scrollContentToTop()}_showAllObjects(){this._pushPanelState("all_objects"),this._view="all_objects",this._objBulkMode=!1,this._objBulkSelected=new Set,this._selectedEntryId=null,this._selectedTaskId=null,this._scrollContentToTop()}_showAllParts(){this._pushPanelState("all_parts"),this._view="all_parts",this._selectedEntryId=null,this._selectedTaskId=null,this._scrollContentToTop(),this._loadAllParts()}async _loadAllParts(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/parts/overview"});this._allParts=t.parts||[]}catch{this._allParts=[]}}_showAllAreas(){this._pushPanelState("all_areas"),this._view="all_areas",this._selectedEntryId=null,this._selectedTaskId=null,this._scrollContentToTop()}_showArea(t){this._pushPanelState("area",null,null,t),this._view="area",this._selectedAreaId=t,this._selectedEntryId=null,this._selectedTaskId=null,this._scrollContentToTop()}_ensureAreaUi(){this._areaUi??=Promise.all([import("/maintenance_supporter_panelfiles/panel-chunks/areas-view-OWYBMCUE.js"),import("/maintenance_supporter_panelfiles/panel-chunks/area-view-RZB4K73J.js")]).catch(()=>{this._areaUi=null})}_filterByStatus(t){this._filterStatus=t,this._activeViewId="",this._overviewTab!=="dashboard"&&(this._overviewTab="dashboard"),this._scrollContentToTop()}get _allLabels(){let t=new Set;for(let e of this._objects)for(let i of e.tasks)for(let a of i.labels||[])t.add(a);return[...t].sort((e,i)=>e.localeCompare(i))}get _currentFilters(){return{status:this._filterStatus,user_id:this._filterUser,label:this._filterLabel,priority:this._filterPriority,archived:this._showArchived,sort_mode:this._sortMode,group_by:this._groupByMode}}_applyView(t){if(this._activeViewId=t,!t)return;let e=this._savedViews.find(a=>a.id===t);if(!e)return;let i=e.filters;this._filterStatus=i.status||"",this._filterUser=i.user_id||null,this._filterLabel=i.label||null,this._filterPriority=i.priority||"",this._showArchived=!!i.archived,Ye.includes(i.sort_mode)&&(this._sortMode=i.sort_mode),js.includes(i.group_by)&&(this._groupByMode=i.group_by);try{V(A.taskSort,this._sortMode),V(A.groupBy,this._groupByMode)}catch{}this._overviewTab!=="dashboard"&&(this._overviewTab="dashboard")}_openSavedViewsDialog(){this.shadowRoot.querySelector("maintenance-saved-views-dialog")?.open(this._currentFilters,this._savedViews)}_onSavedViewsChanged(t){this._savedViews=t.detail.views||[],this._activeViewId&&!this._savedViews.some(e=>e.id===this._activeViewId)&&(this._activeViewId="")}_scrollContentToTop(){requestAnimationFrame(()=>{let t=this.shadowRoot?.querySelector(".content");t&&t.scrollTo({top:0,behavior:"smooth"})})}_renderLineageLink(t,e){let i=t?this._objects.find(a=>a.entry_id===t):void 0;return i?o`<p class="meta">${e}:
       <a href="#" class="object-lineage-link" @click=${a=>{a.preventDefault(),this._showObject(i.entry_id)}}
-        >${i.object.name}</a></p>`:h}_showObject(e,t=null){this._pushPanelState("object",e),this._view="object",this._selectedEntryId=e,this._selectedTaskId=null,this._objectSectionOverride=t,t?this._scrollToObjectSection(t):this._scrollContentToTop()}_scrollToObjectSection(e){this.updateComplete.then(()=>requestAnimationFrame(()=>{let t=this.shadowRoot?.querySelector(`.obj-section[data-section="${e}"]`);t?t.scrollIntoView({block:"start",behavior:"smooth"}):this._scrollContentToTop()}))}_toggleObjectSection(e){let t=new Set(this._objectSectionsCollapsed);this._objectSectionOverride===e||!t.has(e)?t.add(e):t.delete(e),this._objectSectionOverride===e&&(this._objectSectionOverride=null),this._objectSectionsCollapsed=t,W(A.objectSections,JSON.stringify([...t]))}_splitActive(){return this.split&&!this.narrow&&!this.tight&&this._view==="overview"&&this._overviewTab==="dashboard"&&!this._bulkMode}_detailOpen(){return(this._view==="task"||this._splitActive())&&!!this._selectedEntryId&&!!this._selectedTaskId}_showFullTaskPage(e,t){this._view!=="task"&&(this._pushPanelState("task",e,t),this._view="task",this._selectedEntryId=e,this._selectedTaskId=t,this._scrollContentToTop())}_showTask(e,t){if(this._splitActive()){this._selectedEntryId=e,this._selectedTaskId=t,this._activeTab="overview",this._historyFilter=null,this._historySearch="",this._resetStickyPane(),this._fetchFullHistory(e,t);let a=this._getTask(e,t);a?.trigger_config?.entity_id&&this._fetchDetailStats(a.trigger_config.entity_id,this._isCounterEntity(a.trigger_config));return}this._pushPanelState("task",e,t),this._view="task",this._selectedEntryId=e,this._selectedTaskId=t,this._activeTab="overview",this._historyFilter=null,this._historySearch="",this._scrollContentToTop(),this._fetchFullHistory(e,t);let i=this._getTask(e,t);if(i?.trigger_config?.entity_id){let a=i.trigger_config.entity_id,r=this._isCounterEntity(i.trigger_config);this._fetchDetailStats(a,r)}}_countText(e,t,i,a,r=this._lang){return a===1?s(t,r):s(e,r).replace(`{${i}}`,String(a))}_showToast(e,t="error"){this._toastTimer&&clearTimeout(this._toastTimer),this._toastKind=t,this._toastUndo=null,this._toastActionLabel="",this._toastMessage=e,this._toastTimer=setTimeout(()=>{this._toastMessage="",this._toastTimer=null},4e3)}_showActionToast(e,t,i){this._showUndoToast(e,i),this._toastActionLabel=t}_showUndoToast(e,t){this._toastTimer&&clearTimeout(this._toastTimer),this._toastKind="info",this._toastActionLabel="",this._toastMessage=e,this._toastUndo=t,this._toastTimer=setTimeout(()=>{this._toastMessage="",this._toastUndo=null,this._toastTimer=null},7e3)}_runToastUndo(){let e=this._toastUndo;this._toastTimer&&clearTimeout(this._toastTimer),this._toastMessage="",this._toastUndo=null,this._toastTimer=null,e?.()}_openPalette(){this._paletteQuery="",this._paletteActive=0,this._paletteOpen=!0,this._searchRemote=null,this.updateComplete.then(()=>{this.shadowRoot?.querySelector(".palette-input")?.focus()})}_closePalette(){this._paletteOpen=!1,this._paletteQuery="",this._searchRemote=null,this._searchTimer&&(clearTimeout(this._searchTimer),this._searchTimer=null)}_onPaletteInput(e){this._paletteQuery=e,this._paletteActive=0,this._searchTimer&&clearTimeout(this._searchTimer);let t=e.trim();if(t.length<jt){this._searchRemote=null;return}this._searchTimer=setTimeout(()=>{this._searchTimer=null;let i=++this._searchSeq;this.hass.connection.sendMessagePromise({type:"maintenance_supporter/search",query:t,limit:Me.documents}).then(a=>{i!==this._searchSeq||!this._paletteOpen||(this._searchRemote={query:t,documents:a.documents||[],history:a.history||[]})}).catch(()=>{i!==this._searchSeq||!this._paletteOpen||(this._searchRemote={query:t,documents:[],history:[]})})},ra)}get _paletteResults(){let e=this._lang,t=this._paletteQuery.trim();if(t.length<jt&&!tt(t))return[];let i=et(t);if(!i.length)return[];let a=[],r=[],l=[],n=tt(t);if(n){for(let v of this._objects){let f=v.object;if(f.ref_no!==n.object)continue;let y=we(f),M=(S,T)=>S?[T,s("archived",e)].filter(Boolean).join(" \xB7 "):T;n.task==null&&a.push({kind:"object",entryId:v.entry_id,label:f.name||"",sub:M(f.archived,s("object",e)),score:1e3,icon:"mdi:package-variant-closed",ref:y});for(let S of v.tasks)n.task!=null&&S.ref_no!==n.task||r.push({kind:"task",entryId:v.entry_id,taskId:S.id,label:S.name||"",sub:M(S.archived||f.archived,f.name||""),score:n.task==null?900:1e3,icon:"mdi:clipboard-check-outline",ref:ke(f,S)})}if(a.length||r.length){let v=this._searchRemote&&this._searchRemote.query===t?this._searchRemote:null,f=[...a,...r.slice(0,Me.tasks)];for(let y of v?.history.slice(0,1)??[])f.push({kind:"history",entryId:y.entry_id,taskId:y.task_id,label:y.task_name||"",sub:[y.object_name,y.timestamp?V(y.timestamp,e):""].filter(Boolean).join(" \xB7 "),snippet:y.snippet||"",score:y.score,icon:"mdi:note-text-outline",ref:y.ref??null});return f}}for(let v of this._objects){let f=v.object;if(f.archived)continue;let y=f.name||"",M=De(i,[{text:y,weight:3},{text:f.manufacturer,weight:2},{text:f.model,weight:2},{text:f.serial_number,weight:2},{text:f.notes,weight:1}]);if(M>0){let S=[f.manufacturer,f.model].filter(Boolean).join(" ");a.push({kind:"object",entryId:v.entry_id,label:y,sub:S||s("object",e),score:M,icon:"mdi:package-variant-closed",ref:we(f)})}for(let S of v.tasks){if(S.archived)continue;let T=(S.labels||[]).join(" "),x=De(i,[{text:S.name,weight:3},{text:y,weight:2},{text:T,weight:2},{text:S.notes,weight:1}]);if(x>0){let D=(S.labels||[]).length?`  #${(S.labels||[]).join(" #")}`:"";r.push({kind:"task",entryId:v.entry_id,taskId:S.id,label:S.name||"",sub:y+D,score:x,icon:"mdi:clipboard-check-outline",ref:ke(f,S)})}}for(let S of v.parts||[]){let T=De(i,[{text:S.name,weight:3},{text:S.mpn,weight:2},{text:S.vendor,weight:1},{text:S.storage_location,weight:1},{text:S.notes,weight:1}]);T>0&&l.push({kind:"part",entryId:v.entry_id,label:S.name||"",sub:[y,S.mpn].filter(Boolean).join(" \xB7 "),score:T,icon:"mdi:cog-outline"})}}let u=(v,f)=>f.score-v.score||v.label.localeCompare(f.label),p=[...a.sort(u).slice(0,Me.objects),...r.sort(u).slice(0,Me.tasks),...l.sort(u).slice(0,Me.parts)],_=this._searchRemote&&this._searchRemote.query===t?this._searchRemote:null;if(_){let v=_.documents.slice(0,Me.documents);for(let f of[...v.filter(y=>y.match!=="content"),...v.filter(y=>y.match==="content")])p.push({kind:f.match==="content"?"content":"document",entryId:f.entry_id,docId:f.id,docKind:f.kind,url:f.url,page:f.page??null,label:ne(f),sub:f.object_name||"",snippet:f.snippet||"",score:f.score,icon:f.kind==="weblink"?"mdi:link-variant":"mdi:file-document-outline"});for(let f of _.history.slice(0,Me.history))p.push({kind:"history",entryId:f.entry_id,taskId:f.task_id,label:f.task_name||"",ref:f.ref??null,sub:[f.object_name,f.timestamp?V(f.timestamp,e):""].filter(Boolean).join(" \xB7 "),snippet:f.snippet||"",score:f.score,icon:f.type==="skipped"?"mdi:skip-next-circle-outline":"mdi:note-text-outline"})}return p}_selectPaletteResult(e){let t=this._paletteQuery.trim();switch(this._closePalette(),e.kind){case"task":e.taskId&&this._showTask(e.entryId,e.taskId);return;case"history":if(!e.taskId)return;this._showTask(e.entryId,e.taskId),this._activeTab="history",this._historySearch=t;return;case"document":case"content":e.docKind==="weblink"?ae(e.url)&&window.open(e.url,"_blank","noopener"):e.docId&&$e(this.hass,e.docId,e.page?`#page=${e.page}`:"").catch(()=>{}),this._showObject(e.entryId,"documents");return;case"part":this._showObject(e.entryId,"parts");return;default:this._showObject(e.entryId)}}_renderPalette(){if(!this._paletteOpen)return h;let e=this._lang,t=this._paletteResults,i=this._paletteQuery.trim(),a={object:s("objects",e),task:s("tasks",e),part:s("search_group_parts",e),document:s("documents",e),content:s("search_group_content",e),history:s("search_group_history",e)},r=i.length>=jt&&(!this._searchRemote||this._searchRemote.query!==i),l=null;return o`
+        >${i.object.name}</a></p>`:h}_showObject(t,e=null){this._pushPanelState("object",t),this._view="object",this._selectedEntryId=t,this._selectedTaskId=null,this._objectSectionOverride=e,e?this._scrollToObjectSection(e):this._scrollContentToTop()}_scrollToObjectSection(t){this.updateComplete.then(()=>requestAnimationFrame(()=>{let e=this.shadowRoot?.querySelector(`.obj-section[data-section="${t}"]`);e?e.scrollIntoView({block:"start",behavior:"smooth"}):this._scrollContentToTop()}))}_toggleObjectSection(t){let e=new Set(this._objectSectionsCollapsed);this._objectSectionOverride===t||!e.has(t)?e.add(t):e.delete(t),this._objectSectionOverride===t&&(this._objectSectionOverride=null),this._objectSectionsCollapsed=e,V(A.objectSections,JSON.stringify([...e]))}_splitActive(){return this.split&&!this.narrow&&!this.tight&&this._view==="overview"&&this._overviewTab==="dashboard"&&!this._bulkMode}_detailOpen(){return(this._view==="task"||this._splitActive())&&!!this._selectedEntryId&&!!this._selectedTaskId}_showFullTaskPage(t,e){this._view!=="task"&&(this._pushPanelState("task",t,e),this._view="task",this._selectedEntryId=t,this._selectedTaskId=e,this._scrollContentToTop())}_showTask(t,e){if(this._splitActive()){this._selectedEntryId=t,this._selectedTaskId=e,this._activeTab="overview",this._historyFilter=null,this._historySearch="",this._resetStickyPane(),this._fetchFullHistory(t,e);let a=this._getTask(t,e);a?.trigger_config?.entity_id&&this._fetchDetailStats(a.trigger_config.entity_id,this._isCounterEntity(a.trigger_config));return}this._pushPanelState("task",t,e),this._view="task",this._selectedEntryId=t,this._selectedTaskId=e,this._activeTab="overview",this._historyFilter=null,this._historySearch="",this._scrollContentToTop(),this._fetchFullHistory(t,e);let i=this._getTask(t,e);if(i?.trigger_config?.entity_id){let a=i.trigger_config.entity_id,r=this._isCounterEntity(i.trigger_config);this._fetchDetailStats(a,r)}}_countText(t,e,i,a,r=this._lang){return a===1?s(e,r):s(t,r).replace(`{${i}}`,String(a))}_showToast(t,e="error"){this._toastTimer&&clearTimeout(this._toastTimer),this._toastKind=e,this._toastUndo=null,this._toastActionLabel="",this._toastMessage=t,this._toastTimer=setTimeout(()=>{this._toastMessage="",this._toastTimer=null},4e3)}_showActionToast(t,e,i){this._showUndoToast(t,i),this._toastActionLabel=e}_showUndoToast(t,e){this._toastTimer&&clearTimeout(this._toastTimer),this._toastKind="info",this._toastActionLabel="",this._toastMessage=t,this._toastUndo=e,this._toastTimer=setTimeout(()=>{this._toastMessage="",this._toastUndo=null,this._toastTimer=null},7e3)}_runToastUndo(){let t=this._toastUndo;this._toastTimer&&clearTimeout(this._toastTimer),this._toastMessage="",this._toastUndo=null,this._toastTimer=null,t?.()}_openPalette(){this._paletteQuery="",this._paletteActive=0,this._paletteOpen=!0,this._searchRemote=null,this.updateComplete.then(()=>{this.shadowRoot?.querySelector(".palette-input")?.focus()})}_closePalette(){this._paletteOpen=!1,this._paletteQuery="",this._searchRemote=null,this._searchTimer&&(clearTimeout(this._searchTimer),this._searchTimer=null)}_onPaletteInput(t){this._paletteQuery=t,this._paletteActive=0,this._searchTimer&&clearTimeout(this._searchTimer);let e=t.trim();if(e.length<Ee){this._searchRemote=null;return}this._searchTimer=setTimeout(()=>{this._searchTimer=null;let i=++this._searchSeq;this.hass.connection.sendMessagePromise({type:"maintenance_supporter/search",query:e,limit:It.documents}).then(a=>{i!==this._searchSeq||!this._paletteOpen||(this._searchRemote={query:e,documents:a.documents||[],history:a.history||[]})}).catch(()=>{i!==this._searchSeq||!this._paletteOpen||(this._searchRemote={query:e,documents:[],history:[]})})},wa)}get _paletteResults(){let t=this._lang,e=this._paletteQuery.trim();if(e.length<Ee&&!se(e))return[];let i=ie(e);if(!i.length)return[];let a=[],r=[],c=[],n=se(e);if(n){for(let m of this._objects){let v=m.object;if(v.ref_no!==n.object)continue;let y=$t(v),C=($,j)=>$?[j,s("archived",t)].filter(Boolean).join(" \xB7 "):j;n.task==null&&a.push({kind:"object",entryId:m.entry_id,label:v.name||"",sub:C(v.archived,s("object",t)),score:1e3,icon:"mdi:package-variant-closed",ref:y});for(let $ of m.tasks)n.task!=null&&$.ref_no!==n.task||r.push({kind:"task",entryId:m.entry_id,taskId:$.id,label:$.name||"",sub:C($.archived||v.archived,v.name||""),score:n.task==null?900:1e3,icon:"mdi:clipboard-check-outline",ref:jt(v,$)})}if(a.length||r.length){let m=this._searchRemote&&this._searchRemote.query===e?this._searchRemote:null,v=[...a,...r.slice(0,It.tasks)];for(let y of m?.history.slice(0,1)??[])v.push({kind:"history",entryId:y.entry_id,taskId:y.task_id,label:y.task_name||"",sub:[y.object_name,y.timestamp?U(y.timestamp,t):""].filter(Boolean).join(" \xB7 "),snippet:y.snippet||"",score:y.score,icon:"mdi:note-text-outline",ref:y.ref??null});return v}}for(let m of this._objects){let v=m.object;if(v.archived)continue;let y=v.name||"",C=Pt(i,[{text:y,weight:3},{text:v.manufacturer,weight:2},{text:v.model,weight:2},{text:v.serial_number,weight:2},{text:v.notes,weight:1}]);if(C>0){let $=[v.manufacturer,v.model].filter(Boolean).join(" ");a.push({kind:"object",entryId:m.entry_id,label:y,sub:$||s("object",t),score:C,icon:"mdi:package-variant-closed",ref:$t(v)})}for(let $ of m.tasks){if($.archived)continue;let j=($.labels||[]).join(" "),x=Pt(i,[{text:$.name,weight:3},{text:y,weight:2},{text:j,weight:2},{text:$.notes,weight:1}]);if(x>0){let M=($.labels||[]).length?`  #${($.labels||[]).join(" #")}`:"";r.push({kind:"task",entryId:m.entry_id,taskId:$.id,label:$.name||"",sub:y+M,score:x,icon:"mdi:clipboard-check-outline",ref:jt(v,$)})}}for(let $ of m.parts||[]){let j=Pt(i,[{text:$.name,weight:3},{text:$.mpn,weight:2},{text:$.vendor,weight:1},{text:$.storage_location,weight:1},{text:$.notes,weight:1}]);j>0&&c.push({kind:"part",entryId:m.entry_id,label:$.name||"",sub:[y,$.mpn].filter(Boolean).join(" \xB7 "),score:j,icon:"mdi:cog-outline"})}}let u=(m,v)=>v.score-m.score||m.label.localeCompare(v.label),d=[...a.sort(u).slice(0,It.objects),...r.sort(u).slice(0,It.tasks),...c.sort(u).slice(0,It.parts)],g=this._searchRemote&&this._searchRemote.query===e?this._searchRemote:null;if(g){let m=g.documents.slice(0,It.documents);for(let v of[...m.filter(y=>y.match!=="content"),...m.filter(y=>y.match==="content")])d.push({kind:v.match==="content"?"content":"document",entryId:v.entry_id,docId:v.id,docKind:v.kind,url:v.url,page:v.page??null,label:nt(v),sub:v.object_name||"",snippet:v.snippet||"",score:v.score,icon:v.kind==="weblink"?"mdi:link-variant":"mdi:file-document-outline"});for(let v of g.history.slice(0,It.history))d.push({kind:"history",entryId:v.entry_id,taskId:v.task_id,label:v.task_name||"",ref:v.ref??null,sub:[v.object_name,v.timestamp?U(v.timestamp,t):""].filter(Boolean).join(" \xB7 "),snippet:v.snippet||"",score:v.score,icon:v.type==="skipped"?"mdi:skip-next-circle-outline":"mdi:note-text-outline"})}return d}_selectPaletteResult(t){let e=this._paletteQuery.trim();switch(this._closePalette(),t.kind){case"task":t.taskId&&this._showTask(t.entryId,t.taskId);return;case"history":if(!t.taskId)return;this._showTask(t.entryId,t.taskId),this._activeTab="history",this._historySearch=e;return;case"document":case"content":t.docKind==="weblink"?st(t.url)&&window.open(t.url,"_blank","noopener"):t.docId&&Tt(this.hass,t.docId,t.page?`#page=${t.page}`:"").catch(()=>{}),this._showObject(t.entryId,"documents");return;case"part":this._showObject(t.entryId,"parts");return;default:this._showObject(t.entryId)}}_renderPalette(){if(!this._paletteOpen)return h;let t=this._lang,e=this._paletteResults,i=this._paletteQuery.trim(),a={object:s("objects",t),task:s("tasks",t),part:s("search_group_parts",t),document:s("documents",t),content:s("search_group_content",t),history:s("search_group_history",t)},r=i.length>=Ee&&(!this._searchRemote||this._searchRemote.query!==i),c=null;return o`
       <div class="palette-backdrop" @click=${()=>this._closePalette()}>
-        <div class="palette" role="dialog" aria-label=${s("search_open",e)} @click=${n=>n.stopPropagation()}>
+        <div class="palette" role="dialog" aria-label=${s("search_open",t)} @click=${n=>n.stopPropagation()}>
           <input
             class="palette-input"
             type="text"
-            placeholder="${s("palette_placeholder",e)}"
+            placeholder="${s("palette_placeholder",t)}"
             .value=${this._paletteQuery}
             @input=${n=>this._onPaletteInput(n.target.value)}
           />
           <div class="palette-results">
-            ${i.length<jt&&!tt(i)?o`<div class="palette-empty">${s("search_empty_hint",e)}</div>`:t.length===0?o`<div class="palette-empty">${r?s("search_searching",e):s("palette_no_results",e)}</div>`:t.map((n,u)=>{let p=n.kind!==l?o`<div class="palette-group">${a[n.kind]}</div>`:h;return l=n.kind,o`
-                      ${p}
+            ${i.length<Ee&&!se(i)?o`<div class="palette-empty">${s("search_empty_hint",t)}</div>`:e.length===0?o`<div class="palette-empty">${r?s("search_searching",t):s("palette_no_results",t)}</div>`:e.map((n,u)=>{let d=n.kind!==c?o`<div class="palette-group">${a[n.kind]}</div>`:h;return c=n.kind,o`
+                      ${d}
                       <div class="palette-item ${u===this._paletteActive?"active":""} ${n.snippet?"has-snippet":""}"
                         @mouseenter=${()=>{this._paletteActive=u}}
                         @click=${()=>this._selectPaletteResult(n)}>
@@ -5383,83 +5383,83 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
                           <div class="palette-line">
                             <span class="palette-label">${n.label}</span>
                             ${n.ref?o`<span class="ref-chip">#${n.ref}</span>`:h}
-                            ${n.page?o`<span class="palette-page">${s("search_page",e).replace("{page}",String(n.page))}</span>`:h}
+                            ${n.page?o`<span class="palette-page">${s("search_page",t).replace("{page}",String(n.page))}</span>`:h}
                             <span class="palette-sub">${n.sub}</span>
                           </div>
                           ${n.snippet?o`<div class="palette-snippet">${n.snippet}</div>`:h}
                         </div>
                       </div>
                     `})}
-            ${t.length>0&&r?o`<div class="palette-group palette-waiting">${s("search_searching",e)}</div>`:h}
+            ${e.length>0&&r?o`<div class="palette-group palette-waiting">${s("search_searching",t)}</div>`:h}
           </div>
-          <div class="palette-hint">${s("palette_hint",e)}</div>
+          <div class="palette-hint">${s("palette_hint",t)}</div>
         </div>
       </div>
-    `}_openAdoptProblemSensors(){this._ui("maintenance-adopt-problem-sensors-dialog").then(e=>e?.open())}async _onProblemSensorsAdopted(e){let t=e.detail?.tasks_created??0,i=e.detail?.created??[];await this._loadData();let a=this._countText("adopt_problem_done","adopt_problem_done_one","tasks",t);i.length>0?this._showActionToast(a,s("adopt_problem_configure",this._lang),()=>{let r=i[0],l=this._objects.find(u=>u.entry_id===r.entry_id),n=l?.tasks.find(u=>u.id===r.task_id);l&&n&&this._ui("maintenance-task-dialog").then(u=>u?.openEdit(r.entry_id,n))}):this._showToast(a,"info")}async _setupBatteryFleet(){let e=await P(this,{type:"maintenance_supporter/battery_fleet/setup",language:this.hass.language||"en"},{reload:async()=>{this._batteryFleetSetupAvailable=!1,await this._loadData()},onError:a=>this._showToast(a)});if(e===void 0)return;let t=this._objects.find(a=>a.entry_id===e?.entry_id),i=t?.tasks.find(a=>a.id===e?.task_id)||t?.tasks[0];t&&i&&this._showTask(t.entry_id,i.id),this._showToast(s("battery_fleet_setup_done",this._lang),"info")}_openSuggestedSetups(){this._ui("maintenance-suggested-setups-dialog").then(e=>e?.open())}_onResetsWired(e){let t=e.detail?.wired??0;this._showToast(this._countText("reset_offers_done","reset_offers_done_one","count",t),"info"),this._resetOffersLoaded=!1,this._resetOffersCount=0,this._maybeLoadResetOffers(),this._loadData()}_onSetupsAdopted(e){let t=e.detail?.tasks_created??0;this._showToast(this._countText("setups_done","setups_done_one","tasks",t),"info"),this._loadData()}async _openTemplateGallery(){this._templateGalleryOpen=!0;let e=await P(this,{type:"maintenance_supporter/templates",language:this._lang},{onError:t=>this._showToast(t)});e!==void 0&&(this._templateCategories=e?.categories||{},this._templates=(e?.templates||[]).filter(t=>!t.disabled),this._homeProfile=e?.profile??null)}async _createFromTemplate(e){let t=await P(this,{type:"maintenance_supporter/object/from_template",language:this._lang,template_id:e},{busy:i=>{this._templateBusy=i},reload:async()=>{this._templateGalleryOpen=!1,await this._loadData()},successToast:s("template_created",this._lang),onSuccess:i=>this._showToast(i,"info"),onError:i=>this._showToast(i)});t?.entry_id&&this._showObject(t.entry_id)}_categoryName(e){let t=this._templateCategories[e];return t&&(t[`name_${this._lang}`]||t.name_en)||e}_renderTemplateCard(e,t=!1){let i=this._lang,a=this._homeProfile?.country??null;return o`
-      <button class="template-card ${e.dwelling_mismatch?"not-typical":""}" .disabled=${this._templateBusy}
-        title=${e.dwelling_mismatch?s("templates_not_typical",i):""}
-        @click=${()=>this._createFromTemplate(e.id)}>
-        <span class="template-card-name">${e.name}</span>
-        <span class="template-card-count">${e.tasks.length===1?s("templates_task_count_one",i):s("templates_task_count",i).replace("{n}",String(e.tasks.length))}</span>
-        ${t&&e.reasons?.length?o`<span class="template-card-reasons">
-              ${e.reasons.map(r=>o`<span class="template-card-reason">${hi(r,i,a)}</span>`)}
+    `}_openAdoptProblemSensors(){this._ui("maintenance-adopt-problem-sensors-dialog").then(t=>t?.open())}async _onProblemSensorsAdopted(t){let e=t.detail?.tasks_created??0,i=t.detail?.created??[];await this._loadData();let a=this._countText("adopt_problem_done","adopt_problem_done_one","tasks",e);i.length>0?this._showActionToast(a,s("adopt_problem_configure",this._lang),()=>{let r=i[0],c=this._objects.find(u=>u.entry_id===r.entry_id),n=c?.tasks.find(u=>u.id===r.task_id);c&&n&&this._ui("maintenance-task-dialog").then(u=>u?.openEdit(r.entry_id,n))}):this._showToast(a,"info")}async _setupBatteryFleet(){let t=await P(this,{type:"maintenance_supporter/battery_fleet/setup",language:this.hass.language||"en"},{reload:async()=>{this._batteryFleetSetupAvailable=!1,await this._loadData()},onError:a=>this._showToast(a)});if(t===void 0)return;let e=this._objects.find(a=>a.entry_id===t?.entry_id),i=e?.tasks.find(a=>a.id===t?.task_id)||e?.tasks[0];e&&i&&this._showTask(e.entry_id,i.id),this._showToast(s("battery_fleet_setup_done",this._lang),"info")}_openSuggestedSetups(){this._ui("maintenance-suggested-setups-dialog").then(t=>t?.open())}_onResetsWired(t){let e=t.detail?.wired??0;this._showToast(this._countText("reset_offers_done","reset_offers_done_one","count",e),"info"),this._resetOffersLoaded=!1,this._resetOffersCount=0,this._maybeLoadResetOffers(),this._loadData()}_onSetupsAdopted(t){let e=t.detail?.tasks_created??0;this._showToast(this._countText("setups_done","setups_done_one","tasks",e),"info"),this._loadData()}async _openTemplateGallery(){this._templateGalleryOpen=!0;let t=await P(this,{type:"maintenance_supporter/templates",language:this._lang},{onError:e=>this._showToast(e)});t!==void 0&&(this._templateCategories=t?.categories||{},this._templates=(t?.templates||[]).filter(e=>!e.disabled),this._homeProfile=t?.profile??null)}async _createFromTemplate(t){let e=await P(this,{type:"maintenance_supporter/object/from_template",language:this._lang,template_id:t},{busy:i=>{this._templateBusy=i},reload:async()=>{this._templateGalleryOpen=!1,await this._loadData()},successToast:s("template_created",this._lang),onSuccess:i=>this._showToast(i,"info"),onError:i=>this._showToast(i)});e?.entry_id&&this._showObject(e.entry_id)}_categoryName(t){let e=this._templateCategories[t];return e&&(e[`name_${this._lang}`]||e.name_en)||t}_renderTemplateCard(t,e=!1){let i=this._lang,a=this._homeProfile?.country??null;return o`
+      <button class="template-card ${t.dwelling_mismatch?"not-typical":""}" .disabled=${this._templateBusy}
+        title=${t.dwelling_mismatch?s("templates_not_typical",i):""}
+        @click=${()=>this._createFromTemplate(t.id)}>
+        <span class="template-card-name">${t.name}</span>
+        <span class="template-card-count">${t.tasks.length===1?s("templates_task_count_one",i):s("templates_task_count",i).replace("{n}",String(t.tasks.length))}</span>
+        ${e&&t.reasons?.length?o`<span class="template-card-reasons">
+              ${t.reasons.map(r=>o`<span class="template-card-reason">${gi(r,i,a)}</span>`)}
             </span>`:h}
-        ${e.set_up?o`<span class="template-card-setup"><ha-icon icon="mdi:check-circle-outline"></ha-icon>${s("templates_set_up",i)}</span>`:h}
+        ${t.set_up?o`<span class="template-card-setup"><ha-icon icon="mdi:check-circle-outline"></ha-icon>${s("templates_set_up",i)}</span>`:h}
       </button>
-    `}_renderTemplateGallery(){if(!this._templateGalleryOpen)return h;let e=this._lang,t=new Map;for(let a of this._templates)t.has(a.category)||t.set(a.category,[]),t.get(a.category).push(a);for(let a of t.values())a.sort((r,l)=>+!!r.dwelling_mismatch-+!!l.dwelling_mismatch);let i=this._templates.filter(a=>a.recommended&&!a.set_up);return o`
+    `}_renderTemplateGallery(){if(!this._templateGalleryOpen)return h;let t=this._lang,e=new Map;for(let a of this._templates)e.has(a.category)||e.set(a.category,[]),e.get(a.category).push(a);for(let a of e.values())a.sort((r,c)=>+!!r.dwelling_mismatch-+!!c.dwelling_mismatch);let i=this._templates.filter(a=>a.recommended&&!a.set_up);return o`
       <div class="palette-backdrop" @click=${()=>{this._templateGalleryOpen=!1}}>
         <div class="template-gallery" @click=${a=>a.stopPropagation()}>
           <div class="template-gallery-head">
-            <span>${s("templates_title",e)}</span>
+            <span>${s("templates_title",t)}</span>
             <ha-icon-button .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
               @click=${()=>{this._templateGalleryOpen=!1}}></ha-icon-button>
           </div>
           <div class="template-gallery-body">
             <div class="template-legal">
               <ha-icon icon="mdi:scale-balance"></ha-icon>
-              <span>${s("templates_legal_hint",e)}</span>
+              <span>${s("templates_legal_hint",t)}</span>
             </div>
             ${i.length>0?o`
                   <div class="template-cat recommended">
                     <div class="template-cat-head">
                       <ha-icon icon="mdi:home-heart"></ha-icon>
-                      ${s("templates_recommended_title",e)}
+                      ${s("templates_recommended_title",t)}
                     </div>
-                    <div class="template-cat-hint">${s("templates_recommended_hint",e)}</div>
+                    <div class="template-cat-hint">${s("templates_recommended_hint",t)}</div>
                     <div class="template-grid">${i.map(a=>this._renderTemplateCard(a,!0))}</div>
                   </div>`:h}
-            ${this._templates.length===0?o`<div class="palette-empty">${s("loading",e)}…</div>`:[...t.entries()].map(([a,r])=>o`
+            ${this._templates.length===0?o`<div class="palette-empty">${s("loading",t)}…</div>`:[...e.entries()].map(([a,r])=>o`
                   <div class="template-cat">
                     <div class="template-cat-head">
                       <ha-icon icon="${this._templateCategories[a]?.icon||"mdi:folder-outline"}"></ha-icon>
                       ${this._categoryName(a)}
                     </div>
-                    <div class="template-grid">${r.map(l=>this._renderTemplateCard(l))}</div>
+                    <div class="template-grid">${r.map(c=>this._renderTemplateCard(c))}</div>
                   </div>
                 `)}
           </div>
         </div>
       </div>
-    `}_bulkKey(e){return`${e.entry_id}:${e.task_id}`}_toggleBulkMode(){this._bulkMode=!this._bulkMode,this._bulkMenuOpen=!1,this._bulkMode||(this._bulkSelected=new Set)}_toggleBulkRow(e){let t=this._bulkKey(e),i=new Set(this._bulkSelected);i.has(t)?i.delete(t):i.add(t),this._bulkSelected=i}_bulkSelectAll(e){let t=e.map(a=>this._bulkKey(a)),i=t.every(a=>this._bulkSelected.has(a));this._bulkSelected=i?new Set:new Set(t)}async _runBulkItems(e,t,i,a,r){if(e.length===0)return;this._actionLoading=!0;let{done:l,failed:n}=await wi(this,e,t);this._actionLoading=!1,a(),await this._loadData();let u=Ot(i(l.length),n,this._lang);r&&l.length>0?this._showUndoToast(u,()=>r(l)):this._showToast(u,n.length>0?"error":"info")}_runBulk(e,t,i,a){return this._runBulkItems(e.filter(r=>this._bulkSelected.has(this._bulkKey(r))),t,i,()=>{this._bulkSelected=new Set,this._bulkMode=!1},a)}async _bulkMove(e){let t=this._objects.filter(l=>!l.object.archived_at).sort((l,n)=>(l.object.name||"").localeCompare(n.object.name||""));if(!t.length||this._bulkSelected.size===0)return;let a=await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.prompt({title:s("move_task_title",this._lang),message:s("bulk_move_message",this._lang),confirmText:s("move_task_title",this._lang),inputLabel:s("move_task_target",this._lang),inputValue:t[0].entry_id,options:t.map(l=>({value:l.entry_id,label:l.object.name||l.entry_id}))});if(!a?.confirmed||!a.value)return;let r=a.value;await this._runBulk(e.filter(l=>l.entry_id!==r),l=>({type:"maintenance_supporter/task/move",entry_id:l.entry_id,task_id:l.task_id,target_entry_id:r}),l=>s("bulk_moved",this._lang).replace("{n}",String(l)))}_toggleObjBulkMode(){this._objBulkMode=!this._objBulkMode,this._objBulkMode||(this._objBulkSelected=new Set)}_toggleObjBulk(e){let t=new Set(this._objBulkSelected);t.has(e)?t.delete(e):t.add(e),this._objBulkSelected=t}_objBulkSelectAll(e){let t=e.map(a=>a.entry_id),i=t.length>0&&t.every(a=>this._objBulkSelected.has(a));this._objBulkSelected=i?new Set:new Set(t)}_runObjBulk(e,t,i,a={}){return this._runBulkItems([...this._objBulkSelected],r=>({type:e,entry_id:r,...a}),t,()=>{this._objBulkSelected=new Set,this._objBulkMode=!1},i?r=>{i(r)}:void 0)}async _objBulkDelete(){let e=this._objBulkSelected.size;e===0||!await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.confirm({title:s("delete",this._lang),message:s("bulk_delete_objects_confirm",this._lang).replace("{n}",String(e)),confirmText:s("delete",this._lang),danger:!0})||await this._runObjBulk("maintenance_supporter/object/delete",a=>s("bulk_objects_deleted",this._lang).replace("{n}",String(a)))}async _objBulkArea(){let e=[...this._objBulkSelected];if(e.length===0)return;let t=Object.values(this.hass?.areas||{}).sort((l,n)=>l.name.localeCompare(n.name)),a=await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.prompt({title:s("area",this._lang),message:s("bulk_n_selected",this._lang).replace("{n}",String(e.length)),confirmText:s("save",this._lang),inputLabel:s("area",this._lang),inputValue:"",options:[{value:"",label:s("no_area",this._lang)},...t.map(l=>({value:l.area_id,label:l.name}))]});if(!a?.confirmed)return;let r=new Map(e.map(l=>[l,this._getObject(l)?.object.area_id??null]));this._runObjBulk("maintenance_supporter/object/update",l=>s("bulk_objects_area",this._lang).replace("{n}",String(l)),async l=>{for(let n of l)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/update",entry_id:n,area_id:r.get(n)??null})}catch{}await this._loadData()},{area_id:a.value||null})}_objBulkArchive(){this._runObjBulk("maintenance_supporter/object/archive",e=>s("bulk_objects_archived",this._lang).replace("{n}",String(e)),async e=>{for(let t of e)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/unarchive",entry_id:t})}catch{}await this._loadData()})}_renderObjBulkBar(e,t){let i=this._objBulkSelected.size,a=e.length>0&&e.every(r=>this._objBulkSelected.has(r.entry_id));return o`
+    `}_bulkKey(t){return`${t.entry_id}:${t.task_id}`}_toggleBulkMode(){this._bulkMode=!this._bulkMode,this._bulkMenuOpen=!1,this._bulkMode||(this._bulkSelected=new Set)}_toggleBulkRow(t){let e=this._bulkKey(t),i=new Set(this._bulkSelected);i.has(e)?i.delete(e):i.add(e),this._bulkSelected=i}_bulkSelectAll(t){let e=t.map(a=>this._bulkKey(a)),i=e.every(a=>this._bulkSelected.has(a));this._bulkSelected=i?new Set:new Set(e)}async _runBulkItems(t,e,i,a,r){if(t.length===0)return;this._actionLoading=!0;let{done:c,failed:n}=await Si(this,t,e);this._actionLoading=!1,a(),await this._loadData();let u=Ae(i(c.length),n,this._lang);r&&c.length>0?this._showUndoToast(u,()=>r(c)):this._showToast(u,n.length>0?"error":"info")}_runBulk(t,e,i,a){return this._runBulkItems(t.filter(r=>this._bulkSelected.has(this._bulkKey(r))),e,i,()=>{this._bulkSelected=new Set,this._bulkMode=!1},a)}async _bulkMove(t){let e=this._objects.filter(c=>!c.object.archived_at).sort((c,n)=>(c.object.name||"").localeCompare(n.object.name||""));if(!e.length||this._bulkSelected.size===0)return;let a=await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.prompt({title:s("move_task_title",this._lang),message:s("bulk_move_message",this._lang),confirmText:s("move_task_title",this._lang),inputLabel:s("move_task_target",this._lang),inputValue:e[0].entry_id,options:e.map(c=>({value:c.entry_id,label:c.object.name||c.entry_id}))});if(!a?.confirmed||!a.value)return;let r=a.value;await this._runBulk(t.filter(c=>c.entry_id!==r),c=>({type:"maintenance_supporter/task/move",entry_id:c.entry_id,task_id:c.task_id,target_entry_id:r}),c=>s("bulk_moved",this._lang).replace("{n}",String(c)))}_toggleObjBulkMode(){this._objBulkMode=!this._objBulkMode,this._objBulkMode||(this._objBulkSelected=new Set)}_toggleObjBulk(t){let e=new Set(this._objBulkSelected);e.has(t)?e.delete(t):e.add(t),this._objBulkSelected=e}_objBulkSelectAll(t){let e=t.map(a=>a.entry_id),i=e.length>0&&e.every(a=>this._objBulkSelected.has(a));this._objBulkSelected=i?new Set:new Set(e)}_runObjBulk(t,e,i,a={}){return this._runBulkItems([...this._objBulkSelected],r=>({type:t,entry_id:r,...a}),e,()=>{this._objBulkSelected=new Set,this._objBulkMode=!1},i?r=>{i(r)}:void 0)}async _objBulkDelete(){let t=this._objBulkSelected.size;t===0||!await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.confirm({title:s("delete",this._lang),message:s("bulk_delete_objects_confirm",this._lang).replace("{n}",String(t)),confirmText:s("delete",this._lang),danger:!0})||await this._runObjBulk("maintenance_supporter/object/delete",a=>s("bulk_objects_deleted",this._lang).replace("{n}",String(a)))}async _objBulkArea(){let t=[...this._objBulkSelected];if(t.length===0)return;let e=Object.values(this.hass?.areas||{}).sort((c,n)=>c.name.localeCompare(n.name)),a=await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.prompt({title:s("area",this._lang),message:s("bulk_n_selected",this._lang).replace("{n}",String(t.length)),confirmText:s("save",this._lang),inputLabel:s("area",this._lang),inputValue:"",options:[{value:"",label:s("no_area",this._lang)},...e.map(c=>({value:c.area_id,label:c.name}))]});if(!a?.confirmed)return;let r=new Map(t.map(c=>[c,this._getObject(c)?.object.area_id??null]));this._runObjBulk("maintenance_supporter/object/update",c=>s("bulk_objects_area",this._lang).replace("{n}",String(c)),async c=>{for(let n of c)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/update",entry_id:n,area_id:r.get(n)??null})}catch{}await this._loadData()},{area_id:a.value||null})}_objBulkArchive(){this._runObjBulk("maintenance_supporter/object/archive",t=>s("bulk_objects_archived",this._lang).replace("{n}",String(t)),async t=>{for(let e of t)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/unarchive",entry_id:e})}catch{}await this._loadData()})}_renderObjBulkBar(t,e){let i=this._objBulkSelected.size,a=t.length>0&&t.every(r=>this._objBulkSelected.has(r.entry_id));return o`
       <div class="bulk-bar obj-bulk-bar">
         <label class="bulk-selectall">
-          <input type="checkbox" .checked=${a} @change=${()=>this._objBulkSelectAll(e)} />
-          ${s("bulk_select_all",t)}
+          <input type="checkbox" .checked=${a} @change=${()=>this._objBulkSelectAll(t)} />
+          ${s("bulk_select_all",e)}
         </label>
-        <span class="bulk-count">${s("bulk_n_selected",t).replace("{n}",String(i))}</span>
+        <span class="bulk-count">${s("bulk_n_selected",e).replace("{n}",String(i))}</span>
         <span class="bulk-actions">
           <ha-button appearance="plain" class="obj-bulk-area" .disabled=${i===0||this._actionLoading} @click=${()=>{this._objBulkArea()}}>
-            <ha-icon icon="mdi:floor-plan"></ha-icon> ${s("area",t)}…
+            <ha-icon icon="mdi:floor-plan"></ha-icon> ${s("area",e)}…
           </ha-button>
           <ha-button appearance="plain" class="obj-bulk-archive" .disabled=${i===0||this._actionLoading} @click=${()=>this._objBulkArchive()}>
-            <ha-icon icon="mdi:archive-outline"></ha-icon> ${s("archive",t)}
+            <ha-icon icon="mdi:archive-outline"></ha-icon> ${s("archive",e)}
           </ha-button>
           <ha-button appearance="filled" variant="danger" class="obj-bulk-delete" .disabled=${i===0||this._actionLoading} @click=${()=>this._objBulkDelete()}>
-            <ha-icon icon="mdi:delete-outline"></ha-icon> ${s("delete",t)}
+            <ha-icon icon="mdi:delete-outline"></ha-icon> ${s("delete",e)}
           </ha-button>
         </span>
       </div>
-    `}_bulkComplete(e){this._runBulk(e,t=>({type:"maintenance_supporter/task/complete",entry_id:t.entry_id,task_id:t.task_id}),t=>s("bulk_completed",this._lang).replace("{n}",String(t)))}_bulkArchive(e){this._runBulk(e,t=>({type:"maintenance_supporter/task/archive",entry_id:t.entry_id,task_id:t.task_id}),t=>s("bulk_archived",this._lang).replace("{n}",String(t)),async t=>{for(let i of t)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/unarchive",entry_id:i.entry_id,task_id:i.task_id})}catch{}await this._loadData()})}async _bulkEdit(e,t){let i=t.filter(n=>this._bulkSelected.has(this._bulkKey(n)));if(i.length===0)return;let a=await this._ui("maintenance-bulk-edit-dialog"),r=this._userService?await this._userService.getUsers():[],l=await a?.open(e,i,r);l&&await this._sendBulkUpdate(i.map(n=>({entry_id:n.entry_id,task_id:n.task_id})),l)}async _sendBulkUpdate(e,t){let i=await P(this,{type:"maintenance_supporter/tasks/update_many",items:e,...t?{changes:t}:{}},{busy:n=>{this._actionLoading=n},onError:n=>this._showToast(n,"error")});if(!i)return;let a=t===null;a||(this._bulkSelected=new Set,this._bulkMode=!1),await this._loadData();let r=ki(i.failed,this._lang),l=Ot(s("bulk_updated",this._lang).replace("{n}",String(i.updated.length)),r,this._lang);!a&&i.previous.length>0?this._showUndoToast(l,()=>{this._sendBulkUpdate(i.previous,null)}):this._showToast(l,r.length>0?"error":"info")}async _bulkPause(e){let t=e.filter(r=>this._bulkSelected.has(this._bulkKey(r))&&r.status!=="paused");if(t.length===0)return;let a=await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.prompt({title:s("pause_task",this._lang),message:s("pause_task_prompt",this._lang),confirmText:s("pause_task",this._lang),inputLabel:s("pause_until_label",this._lang),inputType:"date"});a?.confirmed&&this._runBulk(t,r=>({type:"maintenance_supporter/task/pause",entry_id:r.entry_id,task_id:r.task_id,...a.value?{until:a.value}:{}}),r=>s("bulk_paused",this._lang).replace("{n}",String(r)),async r=>{for(let l of r)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/resume",entry_id:l.entry_id,task_id:l.task_id})}catch{}await this._loadData()})}_bulkResume(e){this._runBulk(e.filter(t=>t.status==="paused"),t=>({type:"maintenance_supporter/task/resume",entry_id:t.entry_id,task_id:t.task_id}),t=>s("bulk_resumed",this._lang).replace("{n}",String(t)))}async _runAction(e,t){let i=await P(this,e,{busy:a=>{this._actionLoading=a},reload:()=>this._loadData(),successToast:t?.successToast,onSuccess:a=>this._showToast(a,"info"),onError:a=>this._showToast(a)});return i===void 0?null:i??{}}async _deleteObject(e){if(!await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.confirm({title:s("delete",this._lang),message:s("delete_object_confirm",this._lang),confirmText:s("delete",this._lang),danger:!0}))return;await this._runAction({type:"maintenance_supporter/object/delete",entry_id:e})&&this._showOverview()}_printObjectReport(e){let t=this._getObject(e);if(!t)return;let i=this._lang,a={title:s("report_title",i),generated:s("report_generated",i),manufacturer:s("manufacturer",i),model:s("model",i),serial:s("serial_number_label",i),installed:s("installed",i),warranty:s("warranty",i),area:s("area",i),notes:s("report_notes",i),tasksHeading:s("tasks",i),colTask:s("task_name",i),colType:s("report_col_type",i),colStatus:s("report_col_status",i),colSchedule:s("report_col_schedule",i),colLastDone:s("last_performed",i),colNextDue:s("next_due",i),colCost:s("cost",i),colTimes:s("report_times_done",i),totalCost:s("report_total_cost",i),scheduleLabel:l=>Oe(l,i),none:"\u2014",statusLabel:l=>s(l,i),typeLabel:l=>s(l,i)},r=Wi(t.object,t.tasks,a,l=>l?V(l,i):"",l=>U(l,this._currencySymbol,i),new Date().toISOString());Ke(r)}async _duplicateObject(e){let t=await this._runAction({type:"maintenance_supporter/object/duplicate",entry_id:e},{successToast:s("object_duplicated",this._lang)});t?.entry_id&&this._showObject(t.entry_id)}async _deleteTask(e,t){if(!await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.confirm({title:s("delete",this._lang),message:s("delete_task_confirm",this._lang),confirmText:s("delete",this._lang),danger:!0}))return;await this._runAction({type:"maintenance_supporter/task/delete",entry_id:e,task_id:t})&&this._showObject(e)}async _duplicateTask(e,t){this._moreMenuOpen=!1;let i=await this._runAction({type:"maintenance_supporter/task/duplicate",entry_id:e,task_id:t},{successToast:s("task_duplicated",this._lang)});i?.task_id&&this._showTask(e,i.task_id)}async _moveTask(e,t){this._moreMenuOpen=!1;let i=this._objects.filter(n=>n.entry_id!==e&&!n.object.archived_at).sort((n,u)=>(n.object.name||"").localeCompare(u.object.name||""));if(!i.length)return;let r=await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.prompt({title:s("move_task_title",this._lang),message:s("move_task_message",this._lang),confirmText:s("move_task_title",this._lang),inputLabel:s("move_task_target",this._lang),inputValue:i[0].entry_id,options:i.map(n=>({value:n.entry_id,label:n.object.name||n.entry_id}))});if(!r?.confirmed||!r.value)return;let l=await this._runAction({type:"maintenance_supporter/task/move",entry_id:e,task_id:t,target_entry_id:r.value},{successToast:s("task_moved",this._lang)});l?.entry_id&&l.task_id&&this._showTask(l.entry_id,l.task_id)}async _toggleArchiveTask(e,t,i){await this._runAction({type:i?"maintenance_supporter/task/unarchive":"maintenance_supporter/task/archive",entry_id:e,task_id:t})&&!i&&this._showUndoToast(s("task_archived",this._lang),()=>this._toggleArchiveTask(e,t,!0))}async _togglePauseTask(e,t,i){if(!i){let r=await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.prompt({title:s("pause_task",this._lang),message:s("pause_task_prompt",this._lang),confirmText:s("pause_task",this._lang),inputLabel:s("pause_until_label",this._lang),inputType:"date"});if(!r?.confirmed)return;let l={type:"maintenance_supporter/task/pause",entry_id:e,task_id:t};r.value&&(l.until=r.value),await this._runAction(l)&&this._showUndoToast(s("task_paused",this._lang),()=>this._togglePauseTask(e,t,!0));return}await this._runAction({type:"maintenance_supporter/task/resume",entry_id:e,task_id:t},{successToast:s("task_resumed",this._lang)})}async _toggleArchiveObject(e,t){await this._runAction({type:t?"maintenance_supporter/object/unarchive":"maintenance_supporter/object/archive",entry_id:e})&&!t&&this._showUndoToast(s("object_archived",this._lang),()=>this._toggleArchiveObject(e,!0))}async _togglePauseObject(e,t){if(!t){let a=await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.prompt({title:s("pause_object",this._lang),message:s("pause_until_prompt",this._lang),confirmText:s("pause_object",this._lang),inputLabel:s("pause_until_label",this._lang),inputType:"date"});if(!a?.confirmed)return;let r={type:"maintenance_supporter/object/pause",entry_id:e};a.value&&(r.until=a.value),await this._runAction(r)&&this._showUndoToast(s("object_paused",this._lang),()=>this._togglePauseObject(e,!0));return}await this._runAction({type:"maintenance_supporter/object/resume",entry_id:e},{successToast:s("object_resumed",this._lang)})}_replaceObject(e,t){this._ui("maintenance-object-dialog").then(i=>i?.openReplace(e,t))}_deviceSwapText(e){if(!e||!e.moved&&!e.unmatched.length)return"";let t=[];return e.moved&&t.push(this._countText("device_swap_moved","device_swap_moved_one","count",e.moved)),e.unmatched.length&&t.push(this._countText("device_swap_unmatched","device_swap_unmatched_one","count",e.unmatched.length)),t.join(" ")}async _skipTask(e,t,i){let a={type:"maintenance_supporter/task/skip",entry_id:e,task_id:t};i&&(a.reason=i),await this._runAction(a)}async _resetTask(e,t,i){let a={type:"maintenance_supporter/task/reset",entry_id:e,task_id:t};i&&(a.date=i),await this._runAction(a)}async _applySuggestion(e,t,i){await this._runAction({type:"maintenance_supporter/task/apply_suggestion",entry_id:e,task_id:t,interval:i})}_openSeasonalOverrides(e){let t=this.shadowRoot.querySelector("maintenance-seasonal-overrides-dialog");if(!t||!this._selectedEntryId)return;let i=e.adaptive_config?.seasonal_overrides;t.open(this._selectedEntryId,e.id,i)}async _reanalyzeInterval(e,t){let i=await this._runAction({type:"maintenance_supporter/task/analyze_interval",entry_id:e,task_id:t});i&&(i.recommended_interval?this._showToast(`${s("reanalyze_result",this._lang)}: ${i.recommended_interval} ${s("days",this._lang)} (${s(`confidence_${i.confidence}`,this._lang)}, ${i.data_points} ${s("data_points",this._lang)})`,"info"):this._showToast(s("reanalyze_insufficient_data",this._lang),"info"))}async _promptSkipTask(e,t){let i=this.shadowRoot.querySelector("maintenance-confirm-dialog");if(!i)return;let a=await i.prompt({title:s("skip",this._lang),message:s("skip_reason_prompt",this._lang),confirmText:s("skip",this._lang),inputLabel:s("reason_optional",this._lang),inputType:"text"});a.confirmed&&this._skipTask(e,t,a.value||void 0)}async _promptResetTask(e,t){let i=this.shadowRoot.querySelector("maintenance-confirm-dialog");if(!i)return;let a=await i.prompt({title:s("reset",this._lang),message:s("reset_date_prompt",this._lang),confirmText:s("reset",this._lang),inputLabel:s("reset_date_optional",this._lang),inputType:"date"});a.confirmed&&this._resetTask(e,t,a.value||void 0)}async _postponeTask(e,t,i){await this._runAction({type:"maintenance_supporter/task/postpone",entry_id:e,task_id:t,until:i},{successToast:s("postponed",this._lang)})}async _promptPostponeTask(e,t){let i=this.shadowRoot.querySelector("maintenance-confirm-dialog");if(!i)return;let a=await i.prompt({title:s("postpone",this._lang),message:s("postpone_date_prompt",this._lang),confirmText:s("postpone",this._lang),inputLabel:s("postpone_date_label",this._lang),inputType:"date"});!a.confirmed||!a.value||this._postponeTask(e,t,a.value)}async _snoozeTask(e,t){let i=await this._runAction({type:"maintenance_supporter/task/snooze",entry_id:e,task_id:t});i&&this._showToast(Mi(i,this._lang),"info")}_dismissSuggestion(e,t){e&&t&&this._dismissedSuggestions.add(`${e}_${t}`),this.requestUpdate()}async _handleQuickComplete(e,t,i){let a=null;if(await P(this,{type:"maintenance_supporter/task/quick_complete",entry_id:e,task_id:t},{fallbackKey:"action_error",onError:(l,n)=>{a={message:l,code:n?.code||""}}})===void 0){let{message:l,code:n}=a??{message:"",code:""};n==="no_defaults"||n==="completion_details_required"?this._openCompleteDialog(e,t,i.name,this._features.checklists?i.checklist:void 0,this._features.adaptive&&!!i.adaptive_config?.enabled,{viaTagScan:!0}):this._showToast(l);return}this._showToast(s("quick_complete_success",this._lang),"info");try{await this._loadData()}catch{}}async _printTaskWorksheet(e,t){let i=this._getObject(e),a=i?.tasks.find(n=>n.id===t);if(!i||!a)return;let r=nt(),l=!1;this._actionLoading=!0;try{let n={type:"maintenance_supporter/qr/generate",entry_id:e,task_id:t,url_mode:"server"},[u,p]=await Promise.all([this.hass.connection.sendMessagePromise({...n,action:"view"}).catch(()=>null),this.hass.connection.sendMessagePromise({...n,action:"complete"}).catch(()=>null)]),_=null;try{let T=((await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/list",entry_id:e})).documents||[]).find(x=>x.kind==="file"&&x.mime==="application/pdf"&&(x.task_ids||[]).includes(t)&&x.task_pages?.[t]);if(T){let x=T.task_pages[t],D=4,C={path:await Zt(this.hass,`/api/maintenance_supporter/document/${T.id}/excerpt?start=${x}&count=${D}`,3600)};_={title:ne(T)||"Manual",startPage:x,endPage:x+D-1,url:new URL(C.path,window.location.origin).toString(),vendorBase:new URL("/maintenance_supporter_vendor",window.location.origin).toString()}}}catch{}let v=this._lang,f={title:s("worksheet",v),object:s("object",v),type:s("maintenance_type",v),interval:s("interval",v),nextDue:s("next_due",v),lastDone:s("last_performed",v),priority:s("priority",v),checklist:s("checklist",v),notes:s("notes_label",v),scanView:s("worksheet_scan_view",v),scanComplete:s("worksheet_scan_complete",v),manualExcerpt:s("worksheet_manual_excerpt",v),pages:s("worksheet_pages",v),printedOn:s("worksheet_printed",v),never:s("worksheet_never",v),typeLabel:S=>s(S,v),statusLabel:S=>s(S,v),parts:s("consumes_parts_label",v)},y=(a.consumes_parts||[]).map(S=>ci(S,i.entry_id,this._objects,v)),M=Ki(a,i.object.name,f,S=>V(S,v),S=>Oe(S,v),u?.svg_data_uri||null,p?.svg_data_uri||null,_,new Date().toISOString(),y,ke(i.object,a));Ke(M,r),l=!0}finally{l||r?.close(),this._actionLoading=!1}}_openManualDoc(e){if(e.kind!=="file"){ae(e.url)&&window.open(e.url,"_blank","noopener");return}$e(this.hass,e.id).catch(()=>{})}_setChecklistItem(e,t,i,a){let r=`${e}/${t}`;this._checklistPending.set(r,{...this._checklistPending.get(r)??{},[i]:a});let l=this._checklistChain.then(async()=>{let n=this._getObject(e)?.tasks.find(f=>f.id===t);if(!n)return;let u=this._checklistPending.get(r)??{},p={},_=dt(n)?.checklist??(n.checklist||[]);for(let f of _)p[f]=f in u?u[f]:n.checklist_progress?.[f]??!1;await this._runAction({type:"maintenance_supporter/task/checklist_progress",entry_id:e,task_id:t,checklist_state:p});let v=this._checklistPending.get(r);if(v){for(let[f,y]of Object.entries(p))f in v&&v[f]===y&&delete v[f];Object.keys(v).length===0&&this._checklistPending.delete(r)}});return this._checklistChain=l.catch(()=>{}),l}_openCompleteDialog(e,t,i,a,r,l){this._ui("maintenance-complete-dialog").then(n=>n&&this._fillAndOpenCompleteDialog(n,e,t,i,a,r,l))}_fillAndOpenCompleteDialog(e,t,i,a,r,l,n){_i(e,gi({entryId:t,taskId:i,taskName:a,task:this._getTask(t,i),objects:this._objects,lang:this._lang,checklist:r,features:this._features,adaptiveEnabled:l,currencySymbol:this._currencySymbol,viaTagScan:n?.viaTagScan,partsCostMode:this._partsCostMode}),this._lang)}_openQrForObject(e,t){this._ui("maintenance-qr-dialog").then(i=>i?.openForObject(e,t))}_openQrForTask(e,t,i,a){this._ui("maintenance-qr-dialog").then(r=>r?.openForTask(e,t,i,a))}render(){return o`
+    `}_bulkComplete(t){this._runBulk(t,e=>({type:"maintenance_supporter/task/complete",entry_id:e.entry_id,task_id:e.task_id}),e=>s("bulk_completed",this._lang).replace("{n}",String(e)))}_bulkArchive(t){this._runBulk(t,e=>({type:"maintenance_supporter/task/archive",entry_id:e.entry_id,task_id:e.task_id}),e=>s("bulk_archived",this._lang).replace("{n}",String(e)),async e=>{for(let i of e)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/unarchive",entry_id:i.entry_id,task_id:i.task_id})}catch{}await this._loadData()})}async _bulkEdit(t,e){let i=e.filter(n=>this._bulkSelected.has(this._bulkKey(n)));if(i.length===0)return;let a=await this._ui("maintenance-bulk-edit-dialog"),r=this._userService?await this._userService.getUsers():[],c=await a?.open(t,i,r);c&&await this._sendBulkUpdate(i.map(n=>({entry_id:n.entry_id,task_id:n.task_id})),c)}async _sendBulkUpdate(t,e){let i=await P(this,{type:"maintenance_supporter/tasks/update_many",items:t,...e?{changes:e}:{}},{busy:n=>{this._actionLoading=n},onError:n=>this._showToast(n,"error")});if(!i)return;let a=e===null;a||(this._bulkSelected=new Set,this._bulkMode=!1),await this._loadData();let r=Ti(i.failed,this._lang),c=Ae(s("bulk_updated",this._lang).replace("{n}",String(i.updated.length)),r,this._lang);!a&&i.previous.length>0?this._showUndoToast(c,()=>{this._sendBulkUpdate(i.previous,null)}):this._showToast(c,r.length>0?"error":"info")}async _bulkPause(t){let e=t.filter(r=>this._bulkSelected.has(this._bulkKey(r))&&r.status!=="paused");if(e.length===0)return;let a=await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.prompt({title:s("pause_task",this._lang),message:s("pause_task_prompt",this._lang),confirmText:s("pause_task",this._lang),inputLabel:s("pause_until_label",this._lang),inputType:"date"});a?.confirmed&&this._runBulk(e,r=>({type:"maintenance_supporter/task/pause",entry_id:r.entry_id,task_id:r.task_id,...a.value?{until:a.value}:{}}),r=>s("bulk_paused",this._lang).replace("{n}",String(r)),async r=>{for(let c of r)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/resume",entry_id:c.entry_id,task_id:c.task_id})}catch{}await this._loadData()})}_bulkResume(t){this._runBulk(t.filter(e=>e.status==="paused"),e=>({type:"maintenance_supporter/task/resume",entry_id:e.entry_id,task_id:e.task_id}),e=>s("bulk_resumed",this._lang).replace("{n}",String(e)))}async _runAction(t,e){let i=await P(this,t,{busy:a=>{this._actionLoading=a},reload:()=>this._loadData(),successToast:e?.successToast,onSuccess:a=>this._showToast(a,"info"),onError:a=>this._showToast(a)});return i===void 0?null:i??{}}async _deleteObject(t){if(!await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.confirm({title:s("delete",this._lang),message:s("delete_object_confirm",this._lang),confirmText:s("delete",this._lang),danger:!0}))return;await this._runAction({type:"maintenance_supporter/object/delete",entry_id:t})&&this._showOverview()}_printObjectReport(t){let e=this._getObject(t);if(!e)return;let i=this._lang,a={title:s("report_title",i),generated:s("report_generated",i),manufacturer:s("manufacturer",i),model:s("model",i),serial:s("serial_number_label",i),installed:s("installed",i),warranty:s("warranty",i),area:s("area",i),notes:s("report_notes",i),tasksHeading:s("tasks",i),colTask:s("task_name",i),colType:s("report_col_type",i),colStatus:s("report_col_status",i),colSchedule:s("report_col_schedule",i),colLastDone:s("last_performed",i),colNextDue:s("next_due",i),colCost:s("cost",i),colTimes:s("report_times_done",i),totalCost:s("report_total_cost",i),scheduleLabel:c=>At(c,i),none:"\u2014",statusLabel:c=>s(c,i),typeLabel:c=>s(c,i)},r=Qi(e.object,e.tasks,a,c=>c?U(c,i):"",c=>F(c,this._currencySymbol,i),new Date().toISOString());Qt(r)}async _duplicateObject(t){let e=await this._runAction({type:"maintenance_supporter/object/duplicate",entry_id:t},{successToast:s("object_duplicated",this._lang)});e?.entry_id&&this._showObject(e.entry_id)}async _deleteTask(t,e){if(!await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.confirm({title:s("delete",this._lang),message:s("delete_task_confirm",this._lang),confirmText:s("delete",this._lang),danger:!0}))return;await this._runAction({type:"maintenance_supporter/task/delete",entry_id:t,task_id:e})&&this._showObject(t)}async _duplicateTask(t,e){this._moreMenuOpen=!1;let i=await this._runAction({type:"maintenance_supporter/task/duplicate",entry_id:t,task_id:e},{successToast:s("task_duplicated",this._lang)});i?.task_id&&this._showTask(t,i.task_id)}async _moveTask(t,e){this._moreMenuOpen=!1;let i=this._objects.filter(n=>n.entry_id!==t&&!n.object.archived_at).sort((n,u)=>(n.object.name||"").localeCompare(u.object.name||""));if(!i.length)return;let r=await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.prompt({title:s("move_task_title",this._lang),message:s("move_task_message",this._lang),confirmText:s("move_task_title",this._lang),inputLabel:s("move_task_target",this._lang),inputValue:i[0].entry_id,options:i.map(n=>({value:n.entry_id,label:n.object.name||n.entry_id}))});if(!r?.confirmed||!r.value)return;let c=await this._runAction({type:"maintenance_supporter/task/move",entry_id:t,task_id:e,target_entry_id:r.value},{successToast:s("task_moved",this._lang)});c?.entry_id&&c.task_id&&this._showTask(c.entry_id,c.task_id)}async _toggleArchiveTask(t,e,i){await this._runAction({type:i?"maintenance_supporter/task/unarchive":"maintenance_supporter/task/archive",entry_id:t,task_id:e})&&!i&&this._showUndoToast(s("task_archived",this._lang),()=>this._toggleArchiveTask(t,e,!0))}async _togglePauseTask(t,e,i){if(!i){let r=await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.prompt({title:s("pause_task",this._lang),message:s("pause_task_prompt",this._lang),confirmText:s("pause_task",this._lang),inputLabel:s("pause_until_label",this._lang),inputType:"date"});if(!r?.confirmed)return;let c={type:"maintenance_supporter/task/pause",entry_id:t,task_id:e};r.value&&(c.until=r.value),await this._runAction(c)&&this._showUndoToast(s("task_paused",this._lang),()=>this._togglePauseTask(t,e,!0));return}await this._runAction({type:"maintenance_supporter/task/resume",entry_id:t,task_id:e},{successToast:s("task_resumed",this._lang)})}async _toggleArchiveObject(t,e){await this._runAction({type:e?"maintenance_supporter/object/unarchive":"maintenance_supporter/object/archive",entry_id:t})&&!e&&this._showUndoToast(s("object_archived",this._lang),()=>this._toggleArchiveObject(t,!0))}async _togglePauseObject(t,e){if(!e){let a=await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.prompt({title:s("pause_object",this._lang),message:s("pause_until_prompt",this._lang),confirmText:s("pause_object",this._lang),inputLabel:s("pause_until_label",this._lang),inputType:"date"});if(!a?.confirmed)return;let r={type:"maintenance_supporter/object/pause",entry_id:t};a.value&&(r.until=a.value),await this._runAction(r)&&this._showUndoToast(s("object_paused",this._lang),()=>this._togglePauseObject(t,!0));return}await this._runAction({type:"maintenance_supporter/object/resume",entry_id:t},{successToast:s("object_resumed",this._lang)})}_replaceObject(t,e){this._ui("maintenance-object-dialog").then(i=>i?.openReplace(t,e))}_deviceSwapText(t){if(!t||!t.moved&&!t.unmatched.length)return"";let e=[];return t.moved&&e.push(this._countText("device_swap_moved","device_swap_moved_one","count",t.moved)),t.unmatched.length&&e.push(this._countText("device_swap_unmatched","device_swap_unmatched_one","count",t.unmatched.length)),e.join(" ")}async _skipTask(t,e,i){let a={type:"maintenance_supporter/task/skip",entry_id:t,task_id:e};i&&(a.reason=i),await this._runAction(a)}async _resetTask(t,e,i){let a={type:"maintenance_supporter/task/reset",entry_id:t,task_id:e};i&&(a.date=i),await this._runAction(a)}async _applySuggestion(t,e,i){await this._runAction({type:"maintenance_supporter/task/apply_suggestion",entry_id:t,task_id:e,interval:i})}_openSeasonalOverrides(t){let e=this.shadowRoot.querySelector("maintenance-seasonal-overrides-dialog");if(!e||!this._selectedEntryId)return;let i=t.adaptive_config?.seasonal_overrides;e.open(this._selectedEntryId,t.id,i)}async _reanalyzeInterval(t,e){let i=await this._runAction({type:"maintenance_supporter/task/analyze_interval",entry_id:t,task_id:e});i&&(i.recommended_interval?this._showToast(`${s("reanalyze_result",this._lang)}: ${i.recommended_interval} ${s("days",this._lang)} (${s(`confidence_${i.confidence}`,this._lang)}, ${i.data_points} ${s("data_points",this._lang)})`,"info"):this._showToast(s("reanalyze_insufficient_data",this._lang),"info"))}async _promptSkipTask(t,e){let i=this.shadowRoot.querySelector("maintenance-confirm-dialog");if(!i)return;let a=await i.prompt({title:s("skip",this._lang),message:s("skip_reason_prompt",this._lang),confirmText:s("skip",this._lang),inputLabel:s("reason_optional",this._lang),inputType:"text"});a.confirmed&&this._skipTask(t,e,a.value||void 0)}async _promptResetTask(t,e){let i=this.shadowRoot.querySelector("maintenance-confirm-dialog");if(!i)return;let a=await i.prompt({title:s("reset",this._lang),message:s("reset_date_prompt",this._lang),confirmText:s("reset",this._lang),inputLabel:s("reset_date_optional",this._lang),inputType:"date"});a.confirmed&&this._resetTask(t,e,a.value||void 0)}async _postponeTask(t,e,i){await this._runAction({type:"maintenance_supporter/task/postpone",entry_id:t,task_id:e,until:i},{successToast:s("postponed",this._lang)})}async _promptPostponeTask(t,e){let i=this.shadowRoot.querySelector("maintenance-confirm-dialog");if(!i)return;let a=await i.prompt({title:s("postpone",this._lang),message:s("postpone_date_prompt",this._lang),confirmText:s("postpone",this._lang),inputLabel:s("postpone_date_label",this._lang),inputType:"date"});!a.confirmed||!a.value||this._postponeTask(t,e,a.value)}async _snoozeTask(t,e){let i=await this._runAction({type:"maintenance_supporter/task/snooze",entry_id:t,task_id:e});i&&this._showToast(Ii(i,this._lang),"info")}_dismissSuggestion(t,e){t&&e&&this._dismissedSuggestions.add(`${t}_${e}`),this.requestUpdate()}async _handleQuickComplete(t,e,i){let a=null,r=await P(this,{type:"maintenance_supporter/task/quick_complete",entry_id:t,task_id:e},{fallbackKey:"action_error",onError:(c,n)=>{a={message:c,code:n?.code||""}}});if(r===void 0){let{message:c,code:n}=a??{message:"",code:""};n==="no_defaults"||n==="completion_details_required"?this._openCompleteDialog(t,e,i.name,this._features.checklists?i.checklist:void 0,this._features.adaptive&&!!i.adaptive_config?.enabled,{viaTagScan:!0}):this._showToast(c);return}r?.undo?this._offerUndo(t,e,s("quick_complete_success",this._lang)):this._showToast(s("quick_complete_success",this._lang),"info");try{await this._loadData()}catch{}}async _printTaskWorksheet(t,e){let i=this._getObject(t),a=i?.tasks.find(n=>n.id===e);if(!i||!a)return;let r=ce(),c=!1;this._actionLoading=!0;try{let n={type:"maintenance_supporter/qr/generate",entry_id:t,task_id:e,url_mode:"server"},[u,d]=await Promise.all([this.hass.connection.sendMessagePromise({...n,action:"view"}).catch(()=>null),this.hass.connection.sendMessagePromise({...n,action:"complete"}).catch(()=>null)]),g=null;try{let j=((await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/list",entry_id:t})).documents||[]).find(x=>x.kind==="file"&&x.mime==="application/pdf"&&(x.task_ids||[]).includes(e)&&x.task_pages?.[e]);if(j){let x=j.task_pages[e],M=4,b={path:await ni(this.hass,`/api/maintenance_supporter/document/${j.id}/excerpt?start=${x}&count=${M}`,3600)};g={title:nt(j)||"Manual",startPage:x,endPage:x+M-1,url:new URL(b.path,window.location.origin).toString(),vendorBase:new URL("/maintenance_supporter_vendor",window.location.origin).toString()}}}catch{}let m=this._lang,v={title:s("worksheet",m),object:s("object",m),type:s("maintenance_type",m),interval:s("interval",m),nextDue:s("next_due",m),lastDone:s("last_performed",m),priority:s("priority",m),checklist:s("checklist",m),notes:s("notes_label",m),scanView:s("worksheet_scan_view",m),scanComplete:s("worksheet_scan_complete",m),manualExcerpt:s("worksheet_manual_excerpt",m),pages:s("worksheet_pages",m),printedOn:s("worksheet_printed",m),never:s("worksheet_never",m),typeLabel:$=>s($,m),statusLabel:$=>s($,m),parts:s("consumes_parts_label",m)},y=(a.consumes_parts||[]).map($=>pi($,i.entry_id,this._objects,m)),C=Ji(a,i.object.name,v,$=>U($,m),$=>At($,m),u?.svg_data_uri||null,d?.svg_data_uri||null,g,new Date().toISOString(),y,jt(i.object,a));Qt(C,r),c=!0}finally{c||r?.close(),this._actionLoading=!1}}_openManualDoc(t){if(t.kind!=="file"){st(t.url)&&window.open(t.url,"_blank","noopener");return}Tt(this.hass,t.id).catch(()=>{})}_setChecklistItem(t,e,i,a){let r=`${t}/${e}`;this._checklistPending.set(r,{...this._checklistPending.get(r)??{},[i]:a});let c=this._checklistChain.then(async()=>{let n=this._getObject(t)?.tasks.find(v=>v.id===e);if(!n)return;let u=this._checklistPending.get(r)??{},d={},g=pe(n)?.checklist??(n.checklist||[]);for(let v of g)d[v]=v in u?u[v]:n.checklist_progress?.[v]??!1;await this._runAction({type:"maintenance_supporter/task/checklist_progress",entry_id:t,task_id:e,checklist_state:d});let m=this._checklistPending.get(r);if(m){for(let[v,y]of Object.entries(d))v in m&&m[v]===y&&delete m[v];Object.keys(m).length===0&&this._checklistPending.delete(r)}});return this._checklistChain=c.catch(()=>{}),c}_openCompleteDialog(t,e,i,a,r,c){this._ui("maintenance-complete-dialog").then(n=>n&&this._fillAndOpenCompleteDialog(n,t,e,i,a,r,c))}_fillAndOpenCompleteDialog(t,e,i,a,r,c,n){fi(t,mi({entryId:e,taskId:i,taskName:a,task:this._getTask(e,i),objects:this._objects,lang:this._lang,checklist:r,features:this._features,adaptiveEnabled:c,currencySymbol:this._currencySymbol,viaTagScan:n?.viaTagScan,partsCostMode:this._partsCostMode}),this._lang)}_openQrForObject(t,e){this._ui("maintenance-qr-dialog").then(i=>i?.openForObject(t,e))}_openQrForTask(t,e,i,a){this._ui("maintenance-qr-dialog").then(r=>r?.openForTask(t,e,i,a))}_offerUndo(t,e,i){this._showUndoToast(i,()=>{this._undoCompletion(t,e)})}async _undoCompletion(t,e){let i=await is(this.hass,t,e,this._lang);this._showToast(i.message,i.ok?"info":"error"),i.ok&&await this._onDialogEvent()}render(){return o`
       <div class="panel">
         ${this._staleBundle?o`
               <div class="update-banner" role="status">
@@ -5506,7 +5506,7 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
       ></maintenance-task-dialog>
       <maintenance-complete-dialog
         .hass=${this.hass}
-        @task-completed=${this._onDialogEvent}
+        @task-completed=${this._onTaskCompleted}
       ></maintenance-complete-dialog>
       <maintenance-history-edit-dialog
         .hass=${this.hass}
@@ -5531,16 +5531,16 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
       <maintenance-bulk-edit-dialog .hass=${this.hass}></maintenance-bulk-edit-dialog>
       <maintenance-adopt-problem-sensors-dialog
         .hass=${this.hass}
-        @problem-sensors-adopted=${e=>this._onProblemSensorsAdopted(e)}
+        @problem-sensors-adopted=${t=>this._onProblemSensorsAdopted(t)}
       ></maintenance-adopt-problem-sensors-dialog>
       <maintenance-suggested-setups-dialog
         .hass=${this.hass}
-        @integration-setups-adopted=${e=>this._onSetupsAdopted(e)}
-        @reset-counters-wired=${e=>this._onResetsWired(e)}
+        @integration-setups-adopted=${t=>this._onSetupsAdopted(t)}
+        @reset-counters-wired=${t=>this._onResetsWired(t)}
       ></maintenance-suggested-setups-dialog>
       <maintenance-saved-views-dialog
         .hass=${this.hass}
-        @saved-views-changed=${e=>this._onSavedViewsChanged(e)}
+        @saved-views-changed=${t=>this._onSavedViewsChanged(t)}
       ></maintenance-saved-views-dialog>
       ${this._toastMessage?o`<div class="toast ${this._toastKind}" role=${this._toastKind==="error"?"alert":"status"}>
         <span>${this._toastMessage}</span>
@@ -5548,13 +5548,13 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
       </div>`:h}
       ${this._renderPalette()}
       ${this._renderTemplateGallery()}
-    `}_renderSearchButton(e){let t=this._lang;return o`<ha-icon-button
-      class=${e}
-      .path=${oa}
-      .label=${s("search_open",t)}
-      title=${s("search_open",t)}
+    `}_renderSearchButton(t){let e=this._lang;return o`<ha-icon-button
+      class=${t}
+      .path=${$a}
+      .label=${s("search_open",e)}
+      title=${s("search_open",e)}
       @click=${()=>this._openPalette()}
-    ></ha-icon-button>`}_renderHeader(){let e=[{label:s("maintenance",this._lang),action:()=>this._showOverview()}];if(this._view==="object"&&this._selectedEntryId){let t=this._getObject(this._selectedEntryId);e.push({label:t?.object.name||"Object"})}if(this._view==="task"&&this._selectedEntryId&&this._selectedTaskId){let t=this._getObject(this._selectedEntryId);e.push({label:t?.object.name||"Object",action:()=>this._showObject(this._selectedEntryId)});let i=this._getTask(this._selectedEntryId,this._selectedTaskId);e.push({label:i?.name||"Task"})}return this._view==="area"&&this._selectedAreaId&&(e.push({label:s("all_areas",this._lang),action:()=>this._showAllAreas()}),e.push({label:Et(this._selectedAreaId,this.hass?.areas,s("no_area",this._lang))})),o`
+    ></ha-icon-button>`}_renderHeader(){let t=[{label:s("maintenance",this._lang),action:()=>this._showOverview()}];if(this._view==="object"&&this._selectedEntryId){let e=this._getObject(this._selectedEntryId);t.push({label:e?.object.name||"Object"})}if(this._view==="task"&&this._selectedEntryId&&this._selectedTaskId){let e=this._getObject(this._selectedEntryId);t.push({label:e?.object.name||"Object",action:()=>this._showObject(this._selectedEntryId)});let i=this._getTask(this._selectedEntryId,this._selectedTaskId);t.push({label:i?.name||"Task"})}return this._view==="area"&&this._selectedAreaId&&(t.push({label:s("all_areas",this._lang),action:()=>this._showAllAreas()}),t.push({label:Me(this._selectedAreaId,this.hass?.areas,s("no_area",this._lang))})),o`
       <div class="header">
         ${this.narrow&&!this.embedded?o`<ha-menu-button .hass=${this.hass} .narrow=${this.narrow}></ha-menu-button>`:h}
         ${this._view!=="overview"?o`<ha-icon-button
@@ -5562,45 +5562,45 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
               @click=${()=>{this._view==="task"?this._showObject(this._selectedEntryId):this._view==="area"?this._showAllAreas():this._showOverview()}}
             ></ha-icon-button>`:h}
         <div class="breadcrumbs">
-          ${e.map((t,i)=>o`
+          ${t.map((e,i)=>o`
               ${i>0?o`<span class="sep">/</span>`:h}
-              ${t.action?o`<a @click=${t.action}>${t.label}</a>`:o`<span class="current">${t.label}</span>`}
+              ${e.action?o`<a @click=${e.action}>${e.label}</a>`:o`<span class="current">${e.label}</span>`}
             `)}
         </div>
         ${this._renderSearchButton("header-search")}
       </div>
-    `}_renderOverview(){let e=this._lang,t=!!this.hass?.user?.is_admin,i=this._stats;return!t&&this._overviewTab==="settings"&&(this._overviewTab="dashboard"),o`
+    `}_renderOverview(){let t=this._lang,e=!!this.hass?.user?.is_admin,i=this._stats;return!e&&this._overviewTab==="settings"&&(this._overviewTab="dashboard"),o`
       ${i?o`
             <div class="stats-bar">
               <div class="stat-item clickable"
                    @click=${()=>this._showAllObjects()}
-                   title=${s("show_all_objects",e)}>
+                   title=${s("show_all_objects",t)}>
                 <span class="stat-value">${i.total_objects}</span>
-                <span class="stat-label">${s("objects",e)}</span>
+                <span class="stat-label">${s("objects",t)}</span>
               </div>
               <div class="stat-item clickable"
                    @click=${()=>this._filterByStatus("")}
-                   title=${s("show_all_tasks",e)}>
+                   title=${s("show_all_tasks",t)}>
                 <span class="stat-value">${i.total_tasks}</span>
-                <span class="stat-label">${s("tasks",e)}</span>
+                <span class="stat-label">${s("tasks",t)}</span>
               </div>
               <div class="stat-item clickable ${this._filterStatus==="overdue"&&this._overviewTab==="dashboard"?"active":""}"
                    @click=${()=>this._filterByStatus("overdue")}
-                   title=${s("filter_to_overdue",e)}>
+                   title=${s("filter_to_overdue",t)}>
                 <span class="stat-value" style="color: var(--error-color)">${i.overdue}</span>
-                <span class="stat-label">${s("overdue",e)}</span>
+                <span class="stat-label">${s("overdue",t)}</span>
               </div>
               <div class="stat-item clickable ${this._filterStatus==="due_soon"&&this._overviewTab==="dashboard"?"active":""}"
                    @click=${()=>this._filterByStatus("due_soon")}
-                   title=${s("filter_to_due_soon",e)}>
+                   title=${s("filter_to_due_soon",t)}>
                 <span class="stat-value" style="color: var(--warning-color)">${i.due_soon}</span>
-                <span class="stat-label">${s("due_soon",e)}</span>
+                <span class="stat-label">${s("due_soon",t)}</span>
               </div>
               <div class="stat-item clickable ${this._filterStatus==="triggered"&&this._overviewTab==="dashboard"?"active":""}"
                    @click=${()=>this._filterByStatus("triggered")}
-                   title=${s("filter_to_triggered",e)}>
+                   title=${s("filter_to_triggered",t)}>
                 <span class="stat-value" style="color: #ff5722">${i.triggered}</span>
-                <span class="stat-label">${s("triggered",e)}</span>
+                <span class="stat-label">${s("triggered",t)}</span>
               </div>
               ${this._features.budget?this._renderBudgetTiles():h}
             </div>
@@ -5608,20 +5608,20 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
       <div class="tab-bar">
         <div class="tab ${this._overviewTab==="today"?"active":""}"
           @click=${()=>this._setOverviewTab("today")}>
-          ${s("tab_today",e)}
+          ${s("tab_today",t)}
         </div>
         <div class="tab ${this._overviewTab==="dashboard"?"active":""}"
           @click=${()=>this._setOverviewTab("dashboard")}>
-          ${s("dashboard",e)}
+          ${s("dashboard",t)}
         </div>
         <div class="tab ${this._overviewTab==="calendar"?"active":""}"
           @click=${()=>this._setOverviewTab("calendar")}>
-          ${s("tab_calendar",e)}
+          ${s("tab_calendar",t)}
         </div>
-        ${t?o`
+        ${e?o`
           <div class="tab ${this._overviewTab==="settings"?"active":""}"
             @click=${()=>this._setOverviewTab("settings")}>
-            ${s("settings",e)}
+            ${s("settings",t)}
           </div>
         `:h}
         ${this.narrow?h:this._renderSearchButton("tab-search")}
@@ -5638,37 +5638,37 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
             .budget=${this._budget}
             @settings-changed=${this._onSettingsChanged}
           ></maintenance-settings-view>`}
-    `}_statusBadge(e,t,i){return mt({archived:e,is_done:t,status:i},this._lang)}_setOverviewTab(e){this._overviewTab=e;try{W(A.overviewTab,e)}catch{}this._scrollContentToTop()}_renderToday(){let e=this._lang,t=this._taskRows,i=u=>`${u.entry_id}:${u.task_id}`,a=t.filter(u=>u.status==="overdue"||u.trigger_active),r=new Set(a.map(i)),l=t.filter(u=>!r.has(i(u))&&u.days_until_due===0);l.forEach(u=>r.add(i(u)));let n=t.filter(u=>!r.has(i(u))&&u.days_until_due!=null&&u.days_until_due>0&&u.days_until_due<=7);return a.length+l.length+n.length===0?o`
+    `}_statusBadge(t,e,i){return fe({archived:t,is_done:e,status:i},this._lang)}_setOverviewTab(t){this._overviewTab=t;try{V(A.overviewTab,t)}catch{}this._scrollContentToTop()}_renderToday(){let t=this._lang,e=this._taskRows,i=u=>`${u.entry_id}:${u.task_id}`,a=e.filter(u=>u.status==="overdue"||u.trigger_active),r=new Set(a.map(i)),c=e.filter(u=>!r.has(i(u))&&u.days_until_due===0);c.forEach(u=>r.add(i(u)));let n=e.filter(u=>!r.has(i(u))&&u.days_until_due!=null&&u.days_until_due>0&&u.days_until_due<=7);return a.length+c.length+n.length===0?o`
         <div class="today-empty">
           <ha-icon icon="mdi:check-circle-outline"></ha-icon>
-          <p>${s("today_all_caught_up",e)}</p>
+          <p>${s("today_all_caught_up",t)}</p>
         </div>
       `:o`
       <div class="today-view">
         ${this._renderTodaySection("today_overdue",a,"overdue")}
-        ${this._renderTodaySection("today_due_today",l,"due_soon")}
+        ${this._renderTodaySection("today_due_today",c,"due_soon")}
         ${this._renderTodaySection("today_this_week",n,"")}
       </div>
-    `}_renderTodaySection(e,t,i){if(t.length===0)return h;let a=this._lang,r=l=>this._filterUser||!l.responsible_user_id?null:this._userService?.getPerson(l.responsible_user_id)??null;return o`
+    `}_renderTodaySection(t,e,i){if(e.length===0)return h;let a=this._lang,r=c=>this._filterUser||!c.responsible_user_id?null:this._userService?.getPerson(c.responsible_user_id)??null;return o`
       <div class="today-section">
         <div class="today-section-header ${i}">
-          <span>${s(e,a)}</span><span class="today-badge">${t.length}</span>
+          <span>${s(t,a)}</span><span class="today-badge">${e.length}</span>
         </div>
-        ${t.map(l=>o`
-          <div class="today-row" @click=${()=>this._showTask(l.entry_id,l.task_id)}>
-            <span class="today-dot ${l.trigger_active?"triggered":l.status}"></span>
+        ${e.map(c=>o`
+          <div class="today-row" @click=${()=>this._showTask(c.entry_id,c.task_id)}>
+            <span class="today-dot ${c.trigger_active?"triggered":c.status}"></span>
             <div class="today-main">
-              <div class="today-task">${this._listRef(l.entry_id,l.task_id)}${l.task_name}${He(l.next_event_titles)}</div>
+              <div class="today-task">${this._listRef(c.entry_id,c.task_id)}${c.task_name}${Ft(c.next_event_titles)}</div>
               <div class="today-object">
-                <span class="today-object-text">${l.object_name} · ${me(l.days_until_due,a)}</span>
-                ${Rt(r(l),"today-person")}
+                <span class="today-object-text">${c.object_name} · ${ft(c.days_until_due,a)}</span>
+                ${De(r(c),"today-person")}
               </div>
             </div>
-            ${this._renderRowActions(a,()=>this._openCompleteDialogForRow(l),void 0,!1)}
+            ${this._renderRowActions(a,()=>this._openCompleteDialogForRow(c),void 0,!1)}
           </div>
         `)}
       </div>
-    `}_renderDashboard(){let e=this._stats,t=this._taskRows,i=this._lang,a=this._isOperator,r=this._objects.reduce((p,_)=>p+_.tasks.filter(v=>v.archived).length,0),l=new Set;for(let p of this._objects)for(let _ of p.tasks)_.responsible_user_id&&l.add(_.responsible_user_id);this._filterUser&&this._filterUser!=="current_user"&&l.add(this._filterUser);let n=[...l].map(p=>({id:p,name:this._userService?.getUserName(p)??null})).filter(p=>p.name!==null||p.id===this._filterUser).sort((p,_)=>(p.name??"").localeCompare(_.name??"")),u=(this._filterStatus?1:0)+(this._filterUser?1:0)+(this._filterLabel?1:0)+(this._filterPriority?1:0)+(this._activeViewId?1:0);return o`
+    `}_renderDashboard(){let t=this._stats,e=this._taskRows,i=this._lang,a=this._isOperator,r=this._objects.reduce((d,g)=>d+g.tasks.filter(m=>m.archived).length,0),c=new Set;for(let d of this._objects)for(let g of d.tasks)g.responsible_user_id&&c.add(g.responsible_user_id);this._filterUser&&this._filterUser!=="current_user"&&c.add(this._filterUser);let n=[...c].map(d=>({id:d,name:this._userService?.getUserName(d)??null})).filter(d=>d.name!==null||d.id===this._filterUser).sort((d,g)=>(d.name??"").localeCompare(g.name??"")),u=(this._filterStatus?1:0)+(this._filterUser?1:0)+(this._filterLabel?1:0)+(this._filterPriority?1:0)+(this._activeViewId?1:0);return o`
 
       ${this.narrow?o`
         <div class="mobile-controls">
@@ -5688,10 +5688,10 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
           <span class="filter-label">${s("views_label",i)}</span>
           <select
             .value=${this._activeViewId}
-            @change=${p=>this._applyView(p.target.value)}
+            @change=${d=>this._applyView(d.target.value)}
           >
             <option value="">${s("views_none",i)}</option>
-            ${this._savedViews.map(p=>o`<option value=${p.id} ?selected=${this._activeViewId===p.id}>${p.name}</option>`)}
+            ${this._savedViews.map(d=>o`<option value=${d.id} ?selected=${this._activeViewId===d.id}>${d.name}</option>`)}
           </select>
         </label>
         ${a?h:o`
@@ -5707,21 +5707,21 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
           <span class="filter-label">${s("filter_label",i)}</span>
           <select
             .value=${this._filterStatus}
-            @change=${p=>{this._filterStatus=p.target.value,this._activeViewId=""}}
+            @change=${d=>{this._filterStatus=d.target.value,this._activeViewId=""}}
           >
             <option value="">${s("all",i)}</option>
-            ${_s.map(p=>o`<option value=${p} ?selected=${this._filterStatus===p}>${s(p,i)}</option>`)}
+            ${Ss.map(d=>o`<option value=${d} ?selected=${this._filterStatus===d}>${s(d,i)}</option>`)}
           </select>
         </label>
         <label class="filter-field">
           <span class="filter-label">${s("user_label",i)}</span>
           <select
             .value=${this._filterUser||""}
-            @change=${p=>{let _=p.target.value;this._filterUser=_||null,this._activeViewId=""}}
+            @change=${d=>{let g=d.target.value;this._filterUser=g||null,this._activeViewId=""}}
           >
             <option value="">${s("all_users",i)}</option>
             <option value="current_user" ?selected=${this._filterUser==="current_user"}>${s("my_tasks",i)}</option>
-            ${n.map(p=>o`<option value=${p.id} ?selected=${this._filterUser===p.id}>${p.name??p.id}</option>`)}
+            ${n.map(d=>o`<option value=${d.id} ?selected=${this._filterUser===d.id}>${d.name??d.id}</option>`)}
           </select>
         </label>
         ${this._allLabels.length>0?o`
@@ -5729,10 +5729,10 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
             <span class="filter-label">${s("label_filter",i)}</span>
             <select
               .value=${this._filterLabel||""}
-              @change=${p=>{let _=p.target.value;this._filterLabel=_||null,this._activeViewId=""}}
+              @change=${d=>{let g=d.target.value;this._filterLabel=g||null,this._activeViewId=""}}
             >
               <option value="">${s("all_labels",i)}</option>
-              ${this._allLabels.map(p=>o`<option value=${p} ?selected=${this._filterLabel===p}>${p}</option>`)}
+              ${this._allLabels.map(d=>o`<option value=${d} ?selected=${this._filterLabel===d}>${d}</option>`)}
             </select>
           </label>
         `:h}
@@ -5740,17 +5740,17 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
           <span class="filter-label">${s("priority",i)}</span>
           <select
             .value=${this._filterPriority}
-            @change=${p=>{this._filterPriority=p.target.value,this._activeViewId=""}}
+            @change=${d=>{this._filterPriority=d.target.value,this._activeViewId=""}}
           >
             <option value="">${s("all_priorities",i)}</option>
-            ${["high","normal","low"].map(p=>o`<option value=${p} ?selected=${this._filterPriority===p}>${s(`priority_${p}`,i)}</option>`)}
+            ${["high","normal","low"].map(d=>o`<option value=${d} ?selected=${this._filterPriority===d}>${s(`priority_${d}`,i)}</option>`)}
           </select>
         </label>
         <label class="filter-field">
           <span class="filter-label">${s("sort_label",i)}</span>
           <select
             .value=${this._sortMode}
-            @change=${p=>{this._sortMode=p.target.value,this._activeViewId="";try{W(A.taskSort,this._sortMode)}catch{}}}
+            @change=${d=>{this._sortMode=d.target.value,this._activeViewId="";try{V(A.taskSort,this._sortMode)}catch{}}}
           >
             <option value="due_date" ?selected=${this._sortMode==="due_date"}>${s("sort_due_date",i)}</option>
             <option value="object" ?selected=${this._sortMode==="object"}>${s("sort_object",i)}</option>
@@ -5765,7 +5765,7 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
           <span class="filter-label">${s("group_by_label",i)}</span>
           <select
             .value=${this._groupByMode}
-            @change=${p=>{this._groupByMode=p.target.value,this._activeViewId="";try{W(A.groupBy,this._groupByMode)}catch{}}}
+            @change=${d=>{this._groupByMode=d.target.value,this._activeViewId="";try{V(A.groupBy,this._groupByMode)}catch{}}}
           >
             <option value="none" ?selected=${this._groupByMode==="none"}>${s("groupby_none",i)}</option>
             <option value="area" ?selected=${this._groupByMode==="area"}>${s("groupby_area",i)}</option>
@@ -5783,7 +5783,7 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
             ${this._showArchived?s("hide_archived",i):`${s("show_archived",i)} (${r})`}
           </ha-button>
         `:h}
-        ${!a&&t.length>0?o`
+        ${!a&&e.length>0?o`
           <ha-button
             class="bulk-toggle ${this._bulkMode?"active":""}"
             @click=${()=>this._toggleBulkMode()}
@@ -5797,7 +5797,7 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
 
       ${a?h:this._renderGettingStartedChips(i)}
 
-      ${t.length===0?o`
+      ${e.length===0?o`
             <div class="empty-state">
               <ha-svg-icon path="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></ha-svg-icon>
               <p>${s("no_tasks",i)}</p>
@@ -5807,194 +5807,194 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
                   <ha-button appearance="filled" @click=${()=>this._openTemplateGallery()}>
                     <ha-icon icon="mdi:view-grid-plus-outline"></ha-icon> ${s("templates_from",i)}
                   </ha-button>
-                  <ha-button appearance="plain" @click=${()=>this._ui("maintenance-object-dialog").then(p=>p?.openCreate())}>
+                  <ha-button appearance="plain" @click=${()=>this._ui("maintenance-object-dialog").then(d=>d?.openCreate())}>
                     ${s("new_object",i)}
                   </ha-button>
                 </div>
               `:h}
             </div>
           `:o`
-            ${this._bulkMode?this._renderBulkBar(t,i):h}
+            ${this._bulkMode?this._renderBulkBar(e,i):h}
             ${this._splitActive()?o`
                   <div class="split-layout">
                     <div class="split-list">
-                      ${this._groupByMode==="none"?this._renderTaskTable(t):this._renderGroupedTasks(t,i)}
+                      ${this._groupByMode==="none"?this._renderTaskTable(e):this._renderGroupedTasks(e,i)}
                     </div>
                     <div class="split-pane">
                       ${this._selectedEntryId&&this._selectedTaskId&&this._getTask(this._selectedEntryId,this._selectedTaskId)?this._renderTaskDetail():o`<div class="split-pane-empty"><ha-icon icon="mdi:cursor-default-click-outline"></ha-icon><p>${s("split_select_hint",i)}</p></div>`}
                     </div>
                   </div>
-                `:this._groupByMode==="none"?this._renderTaskTable(t):this._renderGroupedTasks(t,i)}
+                `:this._groupByMode==="none"?this._renderTaskTable(e):this._renderGroupedTasks(e,i)}
           `}
 
       ${this._features.groups&&!a?this._renderGroupsSection():h}
       ${a?h:o`<maintenance-storage-section-card
             .hass=${this.hass}
             .objects=${this._objects}
-            @open-object=${p=>{let _=p.detail?.entry_id;_&&this._showObject(_)}}
+            @open-object=${d=>{let g=d.detail?.entry_id;g&&this._showObject(g)}}
           ></maintenance-storage-section-card>`}
-    `}_renderTaskTable(e){let t=this._bulkMode?" bulk":"";if(this._virtTotalRows=e.length,this.narrow||e.length<120)return o`
-        <div class="task-table${t}">
-          ${e.map(p=>this._renderOverviewRow(p))}
+    `}_renderTaskTable(t){let e=this._bulkMode?" bulk":"";if(this._virtTotalRows=t.length,this.narrow||t.length<120)return o`
+        <div class="task-table${e}">
+          ${t.map(d=>this._renderOverviewRow(d))}
         </div>
-      `;let i=e.length,a=this._virtRowHeight,r=Math.max(0,Math.min(this._virtStart,i)),l=this._virtEnd>0?Math.min(this._virtEnd,i):Math.min(i,40);l<r&&(r=0,l=Math.min(i,40));let n=r*a,u=(i-l)*a;return o`
-      <div class="task-table${t} virtual">
-        ${this._renderVirtSizerRow(e)}
+      `;let i=t.length,a=this._virtRowHeight,r=Math.max(0,Math.min(this._virtStart,i)),c=this._virtEnd>0?Math.min(this._virtEnd,i):Math.min(i,40);c<r&&(r=0,c=Math.min(i,40));let n=r*a,u=(i-c)*a;return o`
+      <div class="task-table${e} virtual">
+        ${this._renderVirtSizerRow(t)}
         ${n>0?o`<div class="virt-spacer" style="height:${n}px"></div>`:h}
-        ${e.slice(r,l).map(p=>this._renderOverviewRow(p))}
+        ${t.slice(r,c).map(d=>this._renderOverviewRow(d))}
         ${u>0?o`<div class="virt-spacer" style="height:${u}px"></div>`:h}
       </div>
-    `}_renderVirtSizerRow(e){let t=this._lang,i="",a=!1,r=!1,l=!1;for(let n of e){let u=n.archived?s("archived",t):n.is_done?s("completed",t):s(n.status,t);u.length>i.length&&(i=u),n.enabled||(a=!0),n.nfc_tag_id&&(r=!0),(n.priority==="high"||n.priority==="low")&&(l=!0)}return o`
+    `}_renderVirtSizerRow(t){let e=this._lang,i="",a=!1,r=!1,c=!1;for(let n of t){let u=n.archived?s("archived",e):n.is_done?s("completed",e):s(n.status,e);u.length>i.length&&(i=u),n.enabled||(a=!0),n.nfc_tag_id&&(r=!0),(n.priority==="high"||n.priority==="low")&&(c=!0)}return o`
       <div class="task-row virt-sizer" aria-hidden="true">
         ${this._bulkMode?o`<span></span>`:h}
         <span class="cell-badges">
           <span class="status-badge"><ha-icon icon="mdi:circle-medium"></ha-icon><span class="status-label">${i}</span></span>
-          ${a?o`<span class="badge-disabled">${s("disabled",t)}</span>`:h}
+          ${a?o`<span class="badge-disabled">${s("disabled",e)}</span>`:h}
           ${r?o`<span class="nfc-badge"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>`:h}
-          ${l?o`<span class="priority-badge"><ha-icon icon="mdi:chevron-double-up"></ha-icon></span>`:h}
+          ${c?o`<span class="priority-badge"><ha-icon icon="mdi:chevron-double-up"></ha-icon></span>`:h}
         </span>
         <span></span><span></span><span></span><span></span><span></span><span></span>
       </div>
-    `}_renderBulkBar(e,t){let i=this._bulkSelected.size,a=e.length>0&&e.every(r=>this._bulkSelected.has(this._bulkKey(r)));return o`
+    `}_renderBulkBar(t,e){let i=this._bulkSelected.size,a=t.length>0&&t.every(r=>this._bulkSelected.has(this._bulkKey(r)));return o`
       <div class="bulk-bar">
         <label class="bulk-selectall">
-          <input type="checkbox" .checked=${a} @change=${()=>this._bulkSelectAll(e)} />
-          ${s("bulk_select_all",t)}
+          <input type="checkbox" .checked=${a} @change=${()=>this._bulkSelectAll(t)} />
+          ${s("bulk_select_all",e)}
         </label>
-        <span class="bulk-count">${s("bulk_n_selected",t).replace("{n}",String(i))}</span>
+        <span class="bulk-count">${s("bulk_n_selected",e).replace("{n}",String(i))}</span>
         <span class="bulk-actions">
           <ha-button appearance="filled" .disabled=${i===0||this._actionLoading}
-            @click=${()=>this._bulkComplete(e)}>
-            <ha-icon icon="mdi:check"></ha-icon> ${s("complete",t)}
+            @click=${()=>this._bulkComplete(t)}>
+            <ha-icon icon="mdi:check"></ha-icon> ${s("complete",e)}
           </ha-button>
           <ha-button appearance="plain" .disabled=${i===0||this._actionLoading}
-            @click=${()=>this._bulkArchive(e)}>
-            <ha-icon icon="mdi:archive-outline"></ha-icon> ${s("archive",t)}
+            @click=${()=>this._bulkArchive(t)}>
+            <ha-icon icon="mdi:archive-outline"></ha-icon> ${s("archive",e)}
           </ha-button>
           <span class="bulk-more-wrapper">
-            <ha-button appearance="plain" class="bulk-more" title=${s("more_actions",t)} aria-label=${s("more_actions",t)} .disabled=${i===0||this._actionLoading}
+            <ha-button appearance="plain" class="bulk-more" title=${s("more_actions",e)} aria-label=${s("more_actions",e)} .disabled=${i===0||this._actionLoading}
               @click=${r=>{r.stopPropagation(),this._bulkMenuOpen=!this._bulkMenuOpen}}>
               <ha-icon icon="mdi:dots-vertical"></ha-icon>
             </ha-button>
             ${this._bulkMenuOpen?o`
               <div class="popup-menu" @click=${r=>r.stopPropagation()}>
-                <div class="popup-menu-item bulk-move" @click=${()=>{this._bulkMenuOpen=!1,this._bulkMove(e)}}>${s("move_task",t)}</div>
-                <div class="popup-menu-item bulk-assign" @click=${()=>{this._bulkMenuOpen=!1,this._bulkEdit("assign",e)}}>${s("bulk_assign",t)}…</div>
-                <div class="popup-menu-item bulk-labels" @click=${()=>{this._bulkMenuOpen=!1,this._bulkEdit("labels",e)}}>${s("labels",t)}…</div>
-                <div class="popup-menu-item bulk-edit" @click=${()=>{this._bulkMenuOpen=!1,this._bulkEdit("edit",e)}}>${s("edit",t)}…</div>
-                <div class="popup-menu-item bulk-pause" @click=${()=>{this._bulkMenuOpen=!1,this._bulkPause(e)}}>${s("pause_task",t)}…</div>
-                <div class="popup-menu-item bulk-resume" @click=${()=>{this._bulkMenuOpen=!1,this._bulkResume(e)}}>${s("resume_task",t)}</div>
+                <div class="popup-menu-item bulk-move" @click=${()=>{this._bulkMenuOpen=!1,this._bulkMove(t)}}>${s("move_task",e)}</div>
+                <div class="popup-menu-item bulk-assign" @click=${()=>{this._bulkMenuOpen=!1,this._bulkEdit("assign",t)}}>${s("bulk_assign",e)}…</div>
+                <div class="popup-menu-item bulk-labels" @click=${()=>{this._bulkMenuOpen=!1,this._bulkEdit("labels",t)}}>${s("labels",e)}…</div>
+                <div class="popup-menu-item bulk-edit" @click=${()=>{this._bulkMenuOpen=!1,this._bulkEdit("edit",t)}}>${s("edit",e)}…</div>
+                <div class="popup-menu-item bulk-pause" @click=${()=>{this._bulkMenuOpen=!1,this._bulkPause(t)}}>${s("pause_task",e)}…</div>
+                <div class="popup-menu-item bulk-resume" @click=${()=>{this._bulkMenuOpen=!1,this._bulkResume(t)}}>${s("resume_task",e)}</div>
               </div>
             `:h}
           </span>
         </span>
       </div>
-    `}_renderGroupedTasks(e,t){let i=new Map,a=s("unassigned",t);for(let n of e){let u=[];this._groupByMode==="area"?u=[(n.area_id?this.hass?.areas?.[n.area_id]?.name:null)||a]:this._groupByMode==="user"?u=[(n.responsible_user_id?this._userService?.getUserName(n.responsible_user_id):null)||a]:this._groupByMode==="group"?u=n.group_names.length>0?n.group_names:[a]:this._groupByMode==="object"&&(u=[n.object_name]);for(let p of u)i.has(p)||i.set(p,[]),i.get(p).push(n)}let r=[...i.entries()].sort(([n],[u])=>n===a&&u!==a?1:u===a&&n!==a?-1:n.localeCompare(u)),l=this._groupByMode==="area"?"mdi:map-marker-outline":this._groupByMode==="group"?"mdi:folder-outline":this._groupByMode==="object"?"mdi:cube-outline":"mdi:account-outline";return o`
+    `}_renderGroupedTasks(t,e){let i=new Map,a=s("unassigned",e);for(let n of t){let u=[];this._groupByMode==="area"?u=[(n.area_id?this.hass?.areas?.[n.area_id]?.name:null)||a]:this._groupByMode==="user"?u=[(n.responsible_user_id?this._userService?.getUserName(n.responsible_user_id):null)||a]:this._groupByMode==="group"?u=n.group_names.length>0?n.group_names:[a]:this._groupByMode==="object"&&(u=[n.object_name]);for(let d of u)i.has(d)||i.set(d,[]),i.get(d).push(n)}let r=[...i.entries()].sort(([n],[u])=>n===a&&u!==a?1:u===a&&n!==a?-1:n.localeCompare(u)),c=this._groupByMode==="area"?"mdi:map-marker-outline":this._groupByMode==="group"?"mdi:folder-outline":this._groupByMode==="object"?"mdi:cube-outline":"mdi:account-outline";return o`
       <div class="task-table grouped${this._bulkMode?" bulk":""}">
-        ${r.map(([n,u])=>{let p=!this._collapsedGroups.has(n);return o`
-            <div class="group-section" ?open=${p}>
+        ${r.map(([n,u])=>{let d=!this._collapsedGroups.has(n);return o`
+            <div class="group-section" ?open=${d}>
               <div
                 class="group-section-header"
                 role="button"
                 tabindex="0"
-                aria-expanded=${p?"true":"false"}
+                aria-expanded=${d?"true":"false"}
                 @click=${()=>this._toggleGroup(n)}
-                @keydown=${_=>{(_.key==="Enter"||_.key===" ")&&(_.preventDefault(),this._toggleGroup(n))}}
+                @keydown=${g=>{(g.key==="Enter"||g.key===" ")&&(g.preventDefault(),this._toggleGroup(n))}}
               >
-                <ha-icon icon="${l}"></ha-icon>
+                <ha-icon icon="${c}"></ha-icon>
                 <span>${n}</span>
                 <span class="group-section-count">(${u.length})</span>
               </div>
-              ${p?o`<div class="group-rows">${u.map(_=>this._renderOverviewRow(_))}</div>`:h}
+              ${d?o`<div class="group-rows">${u.map(g=>this._renderOverviewRow(g))}</div>`:h}
             </div>
           `})}
       </div>
-    `}_toggleGroup(e){let t=new Set(this._collapsedGroups);t.has(e)?t.delete(e):t.add(e),this._collapsedGroups=t}_warrantyLabel(e,t,i){return e.kind==="expired"?s("warranty_expired",i):e.kind==="expiring"?s("warranty_expires_in",i).replace("{days}",String(e.days??0)):s("warranty_valid_until",i).replace("{date}",V(t,i))}_renderWarrantyMeta(e,t){let i=zt(e);return o`<p class="meta">${s("warranty",t)}:
-      <span class="warranty-chip warranty-${i.kind}">${this._warrantyLabel(i,e,t)}</span></p>`}_renderAllObjects(){let e=this._lang,t=this._isOperator,i=this._objectViewMode==="table"&&!this.narrow,a=this._objects.filter(p=>p.object.archived).length,r=p=>{let _=1/0;for(let v of p.tasks){let f=v.days_until_due;f!=null&&f<_&&(_=f)}return _},l=this._objects.filter(p=>this._showArchived||!p.object.archived);this._objectSortMode==="alphabetical"?l.sort((p,_)=>p.object.name.localeCompare(_.object.name)):this._objectSortMode==="task_count"?l.sort((p,_)=>_.tasks.length-p.tasks.length||p.object.name.localeCompare(_.object.name)):l.sort((p,_)=>r(p)-r(_)||p.object.name.localeCompare(_.object.name));let n=()=>{let p=new Map;for(let _ of l){let v=_.object.area_id,f=v?this.hass?.areas?.[v]?.name||s("unassigned",e):s("no_area",e);p.has(f)||p.set(f,[]),p.get(f).push(_)}return new Map([...p.entries()].sort(([_],[v])=>_.localeCompare(v)))},u=p=>{let _=p.tasks.some(v=>v.status==="overdue"||v.status==="triggered");return o`
-        <div class="object-card${_?" object-card-overdue":""}${this._objBulkMode?" selectable":""}${this._objBulkMode&&this._objBulkSelected.has(p.entry_id)?" bulk-selected":""}"
-          @click=${()=>this._objBulkMode?this._toggleObjBulk(p.entry_id):this._showObject(p.entry_id)}>
-          ${this._objBulkMode?o`<label class="obj-bulk-check bulk-check" @click=${v=>v.stopPropagation()}>
-                <input type="checkbox" .checked=${this._objBulkSelected.has(p.entry_id)} @change=${()=>this._toggleObjBulk(p.entry_id)} />
+    `}_toggleGroup(t){let e=new Set(this._collapsedGroups);e.has(t)?e.delete(t):e.add(t),this._collapsedGroups=e}_warrantyLabel(t,e,i){return t.kind==="expired"?s("warranty_expired",i):t.kind==="expiring"?s("warranty_expires_in",i).replace("{days}",String(t.days??0)):s("warranty_valid_until",i).replace("{date}",U(e,i))}_renderWarrantyMeta(t,e){let i=Be(t);return o`<p class="meta">${s("warranty",e)}:
+      <span class="warranty-chip warranty-${i.kind}">${this._warrantyLabel(i,t,e)}</span></p>`}_renderAllObjects(){let t=this._lang,e=this._isOperator,i=this._objectViewMode==="table"&&!this.narrow,a=this._objects.filter(d=>d.object.archived).length,r=d=>{let g=1/0;for(let m of d.tasks){let v=m.days_until_due;v!=null&&v<g&&(g=v)}return g},c=this._objects.filter(d=>this._showArchived||!d.object.archived);this._objectSortMode==="alphabetical"?c.sort((d,g)=>d.object.name.localeCompare(g.object.name)):this._objectSortMode==="task_count"?c.sort((d,g)=>g.tasks.length-d.tasks.length||d.object.name.localeCompare(g.object.name)):c.sort((d,g)=>r(d)-r(g)||d.object.name.localeCompare(g.object.name));let n=()=>{let d=new Map;for(let g of c){let m=g.object.area_id,v=m?this.hass?.areas?.[m]?.name||s("unassigned",t):s("no_area",t);d.has(v)||d.set(v,[]),d.get(v).push(g)}return new Map([...d.entries()].sort(([g],[m])=>g.localeCompare(m)))},u=d=>{let g=d.tasks.some(m=>m.status==="overdue"||m.status==="triggered");return o`
+        <div class="object-card${g?" object-card-overdue":""}${this._objBulkMode?" selectable":""}${this._objBulkMode&&this._objBulkSelected.has(d.entry_id)?" bulk-selected":""}"
+          @click=${()=>this._objBulkMode?this._toggleObjBulk(d.entry_id):this._showObject(d.entry_id)}>
+          ${this._objBulkMode?o`<label class="obj-bulk-check bulk-check" @click=${m=>m.stopPropagation()}>
+                <input type="checkbox" .checked=${this._objBulkSelected.has(d.entry_id)} @change=${()=>this._toggleObjBulk(d.entry_id)} />
               </label>`:h}
-          ${_?o`<span class="overdue-dot" title="${s("has_overdue",e)}"></span>`:h}
+          ${g?o`<span class="overdue-dot" title="${s("has_overdue",t)}"></span>`:h}
           <div class="object-card-header">
-            <span class="object-card-name">${this._objRef(p.object)}${p.object.name}</span>
-            ${p.object.paused?o`<span class="paused-badge" title="${s("object_paused_badge",e)}${p.object.paused_until?` \u2014 ${V(p.object.paused_until,e)}`:""}">
+            <span class="object-card-name">${this._objRef(d.object)}${d.object.name}</span>
+            ${d.object.paused?o`<span class="paused-badge" title="${s("object_paused_badge",t)}${d.object.paused_until?` \u2014 ${U(d.object.paused_until,t)}`:""}">
                   <ha-icon icon="mdi:pause-circle-outline"></ha-icon>
                 </span>`:h}
-            ${p.object.document_count?o`<span class="doc-badge" title="${p.object.document_count} ${s("documents",e)}">
-                  <ha-icon icon="mdi:paperclip"></ha-icon>${p.object.document_count}
+            ${d.object.document_count?o`<span class="doc-badge" title="${d.object.document_count} ${s("documents",t)}">
+                  <ha-icon icon="mdi:paperclip"></ha-icon>${d.object.document_count}
                 </span>`:h}
-            <span class="object-card-count">${p.tasks.length===1?s("templates_task_count_one",e):s("templates_task_count",e).replace("{n}",String(p.tasks.length))}</span>
+            <span class="object-card-count">${d.tasks.length===1?s("templates_task_count_one",t):s("templates_task_count",t).replace("{n}",String(d.tasks.length))}</span>
           </div>
-          ${p.object.manufacturer||p.object.model?o`<div class="object-card-meta">${[p.object.manufacturer,p.object.model].filter(Boolean).join(" ")}</div>`:h}
-          ${p.tasks.length===0?o`<div class="object-card-empty">${s("no_tasks_yet",e)}</div>`:h}
+          ${d.object.manufacturer||d.object.model?o`<div class="object-card-meta">${[d.object.manufacturer,d.object.model].filter(Boolean).join(" ")}</div>`:h}
+          ${d.tasks.length===0?o`<div class="object-card-empty">${s("no_tasks_yet",t)}</div>`:h}
         </div>
       `};return o`
       <div class="breadcrumb">
         <ha-icon-button @click=${()=>this._showOverview()}>
           <ha-icon icon="mdi:arrow-left"></ha-icon>
         </ha-icon-button>
-        <span>${s("all_objects",e)}</span>
+        <span>${s("all_objects",t)}</span>
         <button class="sibling-view-chip" @click=${()=>this._showAllParts()}>
-          <ha-icon icon="mdi:package-variant-closed"></ha-icon> ${s("all_parts",e)}
+          <ha-icon icon="mdi:package-variant-closed"></ha-icon> ${s("all_parts",t)}
         </button>
         <button class="sibling-view-chip" data-view="all_areas" @click=${()=>this._showAllAreas()}>
-          <ha-icon icon="mdi:floor-plan"></ha-icon> ${s("all_areas",e)}
+          <ha-icon icon="mdi:floor-plan"></ha-icon> ${s("all_areas",t)}
         </button>
       </div>
       <div class="filter-bar">
         <label class="filter-field">
-          <span class="filter-label">${s("sort_label",e)}</span>
+          <span class="filter-label">${s("sort_label",t)}</span>
           <select
             .value=${this._objectSortMode}
-            @change=${p=>{this._objectSortMode=p.target.value;try{W(A.objectSort,this._objectSortMode)}catch{}}}
+            @change=${d=>{this._objectSortMode=d.target.value;try{V(A.objectSort,this._objectSortMode)}catch{}}}
           >
-            <option value="alphabetical" ?selected=${this._objectSortMode==="alphabetical"}>${s("sort_alphabetical",e)}</option>
-            <option value="due_soonest" ?selected=${this._objectSortMode==="due_soonest"}>${s("sort_due_soonest",e)}</option>
-            <option value="task_count" ?selected=${this._objectSortMode==="task_count"}>${s("sort_task_count",e)}</option>
+            <option value="alphabetical" ?selected=${this._objectSortMode==="alphabetical"}>${s("sort_alphabetical",t)}</option>
+            <option value="due_soonest" ?selected=${this._objectSortMode==="due_soonest"}>${s("sort_due_soonest",t)}</option>
+            <option value="task_count" ?selected=${this._objectSortMode==="task_count"}>${s("sort_task_count",t)}</option>
           </select>
         </label>
         ${this.narrow?h:o`
-          <div class="view-toggle" role="group" aria-label="${s("view_mode_label",e)}">
+          <div class="view-toggle" role="group" aria-label="${s("view_mode_label",t)}">
             <button
               class="view-toggle-btn${i?"":" active"}"
-              title="${s("view_cards",e)}"
+              title="${s("view_cards",t)}"
               @click=${()=>this._setObjectViewMode("cards")}
             ><ha-icon icon="mdi:view-grid-outline"></ha-icon></button>
             <button
               class="view-toggle-btn${i?" active":""}"
-              title="${s("view_table",e)}"
+              title="${s("view_table",t)}"
               @click=${()=>this._setObjectViewMode("table")}
             ><ha-icon icon="mdi:table"></ha-icon></button>
           </div>
         `}
         ${i?h:o`
         <label class="filter-field">
-          <span class="filter-label">${s("group_by_label",e)}</span>
+          <span class="filter-label">${s("group_by_label",t)}</span>
           <select
             .value=${this._groupByMode}
-            @change=${p=>{this._groupByMode=p.target.value;try{W(A.groupBy,this._groupByMode)}catch{}}}
+            @change=${d=>{this._groupByMode=d.target.value;try{V(A.groupBy,this._groupByMode)}catch{}}}
           >
-            <option value="none" ?selected=${this._groupByMode==="none"}>${s("groupby_none",e)}</option>
-            <option value="area" ?selected=${this._groupByMode==="area"}>${s("groupby_area",e)}</option>
+            <option value="none" ?selected=${this._groupByMode==="none"}>${s("groupby_none",t)}</option>
+            <option value="area" ?selected=${this._groupByMode==="area"}>${s("groupby_area",t)}</option>
           </select>
         </label>
         `}
-        ${t?h:o`
+        ${e?h:o`
           <ha-button
-            @click=${()=>this._ui("maintenance-object-dialog").then(p=>p?.openCreate())}
+            @click=${()=>this._ui("maintenance-object-dialog").then(d=>d?.openCreate())}
           >
-            ${s("new_object",e)}
+            ${s("new_object",t)}
           </ha-button>
         `}
         <ha-button appearance="plain" @click=${()=>this._exportObjectsCsv()}>
-          <ha-icon icon="mdi:file-delimited-outline"></ha-icon> ${s("settings_export_csv",e)}
+          <ha-icon icon="mdi:file-delimited-outline"></ha-icon> ${s("settings_export_csv",t)}
         </ha-button>
-        ${t?h:o`
+        ${e?h:o`
           <ha-button appearance="plain" class="bulk-toggle obj-bulk-toggle ${this._objBulkMode?"active":""}" @click=${()=>this._toggleObjBulkMode()}>
             <ha-icon icon="mdi:checkbox-multiple-marked-outline"></ha-icon>
-            ${this._objBulkMode?s("cancel",e):s("bulk_select",e)}
+            ${this._objBulkMode?s("cancel",t):s("bulk_select",t)}
           </ha-button>
         `}
         ${a>0?o`
@@ -6003,67 +6003,67 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
             @click=${()=>{this._showArchived=!this._showArchived}}
           >
             <ha-icon icon="mdi:archive-outline"></ha-icon>
-            ${this._showArchived?s("hide_archived",e):`${s("show_archived",e)} (${a})`}
+            ${this._showArchived?s("hide_archived",t):`${s("show_archived",t)} (${a})`}
           </ha-button>
         `:h}
       </div>
-      ${this._objBulkMode?this._renderObjBulkBar(l,e):h}
-      ${i?this._renderObjectsTable(l):this._groupByMode==="area"?o`
-          ${[...n().entries()].map(([p,_])=>o`
+      ${this._objBulkMode?this._renderObjBulkBar(c,t):h}
+      ${i?this._renderObjectsTable(c):this._groupByMode==="area"?o`
+          ${[...n().entries()].map(([d,g])=>o`
             <details class="group-section" open>
               <summary class="group-section-header">
                 <ha-icon icon="mdi:map-marker-outline"></ha-icon>
-                <span>${p}</span>
-                <span class="group-section-count">(${_.length})</span>
+                <span>${d}</span>
+                <span class="group-section-count">(${g.length})</span>
               </summary>
-              <div class="objects-grid">${_.map(u)}</div>
+              <div class="objects-grid">${g.map(u)}</div>
             </details>
           `)}
-        `:o`<div class="objects-grid">${l.map(u)}</div>`}
-    `}_setObjectViewMode(e){this._objectViewMode=e;try{W(A.objectView,e)}catch{}}_renderAllParts(){let e=this._lang,t=this._allParts,i=this._currencySymbol;return o`
+        `:o`<div class="objects-grid">${c.map(u)}</div>`}
+    `}_setObjectViewMode(t){this._objectViewMode=t;try{V(A.objectView,t)}catch{}}_renderAllParts(){let t=this._lang,e=this._allParts,i=this._currencySymbol;return o`
       <div class="breadcrumb">
         <ha-icon-button @click=${()=>this._showAllObjects()}>
           <ha-icon icon="mdi:arrow-left"></ha-icon>
         </ha-icon-button>
-        <span>${s("all_parts",e)}</span>
+        <span>${s("all_parts",t)}</span>
         <button class="sibling-view-chip" @click=${()=>this._showAllObjects()}>
-          <ha-icon icon="mdi:devices"></ha-icon> ${s("all_objects",e)}
+          <ha-icon icon="mdi:devices"></ha-icon> ${s("all_objects",t)}
         </button>
         <button class="sibling-view-chip" data-view="all_areas" @click=${()=>this._showAllAreas()}>
-          <ha-icon icon="mdi:floor-plan"></ha-icon> ${s("all_areas",e)}
+          <ha-icon icon="mdi:floor-plan"></ha-icon> ${s("all_areas",t)}
         </button>
       </div>
       <div class="filter-bar">
         <ha-button appearance="plain" @click=${()=>this._exportPartsCsv()}>
-          <ha-icon icon="mdi:file-delimited-outline"></ha-icon> ${s("settings_export_csv",e)}
+          <ha-icon icon="mdi:file-delimited-outline"></ha-icon> ${s("settings_export_csv",t)}
         </ha-button>
       </div>
-      ${t===null?o`<div class="empty-state">…</div>`:t.length===0?o`<div class="empty-state">${s("parts_section",e)}: 0</div>`:o`
+      ${e===null?o`<div class="empty-state">…</div>`:e.length===0?o`<div class="empty-state">${s("parts_section",t)}: 0</div>`:o`
           <div class="objects-table-wrap">
             <table class="objects-table">
               <thead>
                 <tr>
-                  <th>${s("part_name",e)}</th>
-                  <th>${s("object",e)}</th>
-                  <th>${s("part_stock",e)}</th>
-                  <th>${s("part_reorder_threshold",e)}</th>
-                  <th>${s("part_cost",e)}</th>
-                  <th>${s("part_storage_location",e)}</th>
-                  <th>${s("parts_used_by",e)}</th>
+                  <th>${s("part_name",t)}</th>
+                  <th>${s("object",t)}</th>
+                  <th>${s("part_stock",t)}</th>
+                  <th>${s("part_reorder_threshold",t)}</th>
+                  <th>${s("part_cost",t)}</th>
+                  <th>${s("part_storage_location",t)}</th>
+                  <th>${s("parts_used_by",t)}</th>
                 </tr>
               </thead>
               <tbody>
-                ${t.map(a=>o`
+                ${e.map(a=>o`
                   <tr class="objects-table-row" @click=${()=>this._showObject(a.entry_id)}>
                     <td>
                       <span class="objects-table-name">${this._objRef(this._getObject(a.entry_id)?.object)}${a.name}</span>
                       ${a.low?o`<ha-icon class="part-low-icon" icon="mdi:cart-arrow-down"
-                            title="${s("part_reorder_threshold",e)}: ${a.reorder_threshold}"></ha-icon>`:h}
+                            title="${s("part_reorder_threshold",t)}: ${a.reorder_threshold}"></ha-icon>`:h}
                     </td>
                     <td>${a.object_name||"\u2014"}</td>
-                    <td>${a.stock!==null?Ue(a.stock,a.unit,e):"\u2014"}</td>
+                    <td>${a.stock!==null?Kt(a.stock,a.unit,t):"\u2014"}</td>
                     <td>${a.reorder_threshold??"\u2014"}</td>
-                    <td>${a.cost!=null?a.package_size?`${U(a.cost,i,e)} / ${Ue(a.package_size,a.unit??void 0,e)}`:U(a.cost,i,e):"\u2014"}</td>
+                    <td>${a.cost!=null?a.package_size?`${F(a.cost,i,t)} / ${Kt(a.package_size,a.unit??void 0,t)}`:F(a.cost,i,t):"\u2014"}</td>
                     <td>${a.storage_location||"\u2014"}</td>
                     <td>
                       ${a.consumers.length===0?"\u2014":a.consumers.map(r=>o`
@@ -6079,17 +6079,17 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
             </table>
           </div>
         `}
-    `}_renderAllAreas(){let e=this._lang;return this._ensureAreaUi(),o`
+    `}_renderAllAreas(){let t=this._lang;return this._ensureAreaUi(),o`
       <div class="breadcrumb">
         <ha-icon-button @click=${()=>this._showAllObjects()}>
           <ha-icon icon="mdi:arrow-left"></ha-icon>
         </ha-icon-button>
-        <span>${s("all_areas",e)}</span>
+        <span>${s("all_areas",t)}</span>
         <button class="sibling-view-chip" @click=${()=>this._showAllObjects()}>
-          <ha-icon icon="mdi:devices"></ha-icon> ${s("all_objects",e)}
+          <ha-icon icon="mdi:devices"></ha-icon> ${s("all_objects",t)}
         </button>
         <button class="sibling-view-chip" @click=${()=>this._showAllParts()}>
-          <ha-icon icon="mdi:package-variant-closed"></ha-icon> ${s("all_parts",e)}
+          <ha-icon icon="mdi:package-variant-closed"></ha-icon> ${s("all_parts",t)}
         </button>
       </div>
       <maintenance-areas-view
@@ -6097,15 +6097,15 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
         .objects=${this._objects}
         .showArchived=${this._showArchived}
         .currencySymbol=${this._currencySymbol}
-        @open-area=${t=>this._showArea(t.detail.areaKey)}
+        @open-area=${e=>this._showArea(e.detail.areaKey)}
         @archived-toggle=${()=>{this._showArchived=!this._showArchived}}
       ></maintenance-areas-view>
-    `}_renderArea(){if(!this._selectedAreaId)return h;let e=this._lang;return this._ensureAreaUi(),o`
+    `}_renderArea(){if(!this._selectedAreaId)return h;let t=this._lang;return this._ensureAreaUi(),o`
       <div class="breadcrumb">
         <ha-icon-button @click=${()=>this._showAllAreas()}>
           <ha-icon icon="mdi:arrow-left"></ha-icon>
         </ha-icon-button>
-        <span>${s("all_areas",e)}</span>
+        <span>${s("all_areas",t)}</span>
       </div>
       <maintenance-area-view
         .hass=${this.hass}
@@ -6113,216 +6113,216 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
         .objects=${this._objects}
         .showArchived=${this._showArchived}
         .currencySymbol=${this._currencySymbol}
-        .userName=${t=>this._userService?.getUserName(t)??null}
-        @open-object=${t=>this._showObject(t.detail.entryId)}
-        @open-task=${t=>this._showTask(t.detail.entryId,t.detail.taskId)}
+        .userName=${e=>this._userService?.getUserName(e)??null}
+        @open-object=${e=>this._showObject(e.detail.entryId)}
+        @open-task=${e=>this._showTask(e.detail.entryId,e.detail.taskId)}
       ></maintenance-area-view>
-    `}_exportPartsCsv(){let e=this._allParts||[],t=l=>{let n=l==null?"":String(l);return/[",\n;]/.test(n)?`"${n.replace(/"/g,'""')}"`:n},a=[["name","object","stock","unit","reorder_threshold","unit_cost","storage_location","vendor","used_by"].join(",")];for(let l of e)a.push([t(l.name),t(l.object_name),t(l.stock),t(l.unit),t(l.reorder_threshold),t(l.cost),t(l.storage_location),t(l.vendor),t(l.consumers.map(n=>`${n.object_name??""}/${n.task_name??n.task_id}\xD7${n.quantity}`).join(" | "))].join(","));let r=je(new Date);St(a.join(`
-`),`maintenance_parts_${r}.csv`,"text/csv;charset=utf-8")}async _exportObjectsCsv(){let e=await P(this,{type:"maintenance_supporter/objects/csv"},{onError:i=>this._showToast(i)});if(!e)return;let t=je(new Date);St(e.csv,`maintenance_objects_${t}.csv`,"text/csv;charset=utf-8")}_renderObjectsTable(e){let t=this._lang,i=this._objectsTableColumns;return o`
+    `}_exportPartsCsv(){let t=this._allParts||[],e=c=>{let n=c==null?"":String(c);return/[",\n;]/.test(n)?`"${n.replace(/"/g,'""')}"`:n},a=[["name","object","stock","unit","reorder_threshold","unit_cost","storage_location","vendor","used_by"].join(",")];for(let c of t)a.push([e(c.name),e(c.object_name),e(c.stock),e(c.unit),e(c.reorder_threshold),e(c.cost),e(c.storage_location),e(c.vendor),e(c.consumers.map(n=>`${n.object_name??""}/${n.task_name??n.task_id}\xD7${n.quantity}`).join(" | "))].join(","));let r=yt();Ce(a.join(`
+`),`maintenance_parts_${r}.csv`,"text/csv;charset=utf-8")}async _exportObjectsCsv(){let t=await P(this,{type:"maintenance_supporter/objects/csv"},{onError:i=>this._showToast(i)});if(!t)return;let e=yt();Ce(t.csv,`maintenance_objects_${e}.csv`,"text/csv;charset=utf-8")}_renderObjectsTable(t){let e=this._lang,i=this._objectsTableColumns;return o`
       <div class="objects-table-wrap">
         <table class="objects-table">
           <thead>
             <tr>
               ${this._objBulkMode?o`<th class="oc-bulk"></th>`:h}
-              ${i.map(a=>{let r=ei.find(n=>n.key===a),l=r&&r.key!=="actions"?s(r.labelKey,t):"";return o`<th class="oc-${a}">${l}</th>`})}
+              ${i.map(a=>{let r=li.find(n=>n.key===a),c=r&&r.key!=="actions"?s(r.labelKey,e):"";return o`<th class="oc-${a}">${c}</th>`})}
             </tr>
           </thead>
           <tbody>
-            ${e.map(a=>o`
+            ${t.map(a=>o`
               <tr class="objects-table-row${this._objBulkMode&&this._objBulkSelected.has(a.entry_id)?" bulk-selected":""}"
                 @click=${()=>this._objBulkMode?this._toggleObjBulk(a.entry_id):this._showObject(a.entry_id)}>
                 ${this._objBulkMode?o`<td class="oc-bulk"><input type="checkbox" .checked=${this._objBulkSelected.has(a.entry_id)}
                       @click=${r=>r.stopPropagation()} @change=${()=>this._toggleObjBulk(a.entry_id)} /></td>`:h}
-                ${i.map(r=>this._renderObjectCell(r,a,t))}
+                ${i.map(r=>this._renderObjectCell(r,a,e))}
               </tr>
             `)}
           </tbody>
         </table>
       </div>
-    `}_renderObjectCell(e,t,i){let a=t.object;switch(e){case"name":return o`<td class="oc-name">
+    `}_renderObjectCell(t,e,i){let a=e.object;switch(t){case"name":return o`<td class="oc-name">
           <span class="objects-table-name">${this._objRef(a)}${a.name}</span>
           ${a.document_count?o`<span class="doc-badge" title="${a.document_count} ${s("documents",i)}">
                 <ha-icon icon="mdi:paperclip"></ha-icon>${a.document_count}
               </span>`:h}
-        </td>`;case"manufacturer":return o`<td class="oc-manufacturer">${a.manufacturer||"\u2014"}</td>`;case"model":return o`<td class="oc-model">${a.model||"\u2014"}</td>`;case"serial_number":return o`<td class="oc-serial_number">${a.serial_number||"\u2014"}</td>`;case"installation_date":return o`<td class="oc-installation_date">${a.installation_date?V(a.installation_date,i):"\u2014"}</td>`;case"warranty_expiry":return o`<td class="oc-warranty_expiry">${this._renderWarrantyCell(a.warranty_expiry,i)}</td>`;case"area_id":{let r=a.area_id?this.hass?.areas?.[a.area_id]?.name||a.area_id:"\u2014";return o`<td class="oc-area_id">${r}</td>`}case"documentation_url":{let r=(a.manual_docs||[])[0];return o`<td class="oc-documentation_url">${ae(a.documentation_url)?o`<a href=${a.documentation_url} target="_blank" rel="noopener noreferrer"
-                @click=${l=>l.stopPropagation()}><ha-icon icon="mdi:file-document-outline"></ha-icon></a>`:r?o`<a href="#" title=${r.title}
-                  @click=${l=>{l.preventDefault(),l.stopPropagation(),this._openManualDoc(r)}}
-                  ><ha-icon icon="mdi:file-document-outline"></ha-icon></a>`:"\u2014"}</td>`}case"notes":return o`<td class="oc-notes" title=${a.notes||""}>${a.notes||"\u2014"}</td>`;case"task_count":return o`<td class="oc-task_count">${t.tasks.length}</td>`;case"ref_no":return o`<td class="oc-ref_no">${we(a)?`#${we(a)}`:"\u2014"}</td>`;case"actions":return o`<td class="oc-actions">
-          <ha-icon-button class="obj-table-qr" title="${s("qr_code",i)}" @click=${r=>{r.stopPropagation(),this._openQrForObject(t.entry_id,a.name)}}>
+        </td>`;case"manufacturer":return o`<td class="oc-manufacturer">${a.manufacturer||"\u2014"}</td>`;case"model":return o`<td class="oc-model">${a.model||"\u2014"}</td>`;case"serial_number":return o`<td class="oc-serial_number">${a.serial_number||"\u2014"}</td>`;case"installation_date":return o`<td class="oc-installation_date">${a.installation_date?U(a.installation_date,i):"\u2014"}</td>`;case"warranty_expiry":return o`<td class="oc-warranty_expiry">${this._renderWarrantyCell(a.warranty_expiry,i)}</td>`;case"area_id":{let r=a.area_id?this.hass?.areas?.[a.area_id]?.name||a.area_id:"\u2014";return o`<td class="oc-area_id">${r}</td>`}case"documentation_url":{let r=(a.manual_docs||[])[0];return o`<td class="oc-documentation_url">${st(a.documentation_url)?o`<a href=${a.documentation_url} target="_blank" rel="noopener noreferrer"
+                @click=${c=>c.stopPropagation()}><ha-icon icon="mdi:file-document-outline"></ha-icon></a>`:r?o`<a href="#" title=${r.title}
+                  @click=${c=>{c.preventDefault(),c.stopPropagation(),this._openManualDoc(r)}}
+                  ><ha-icon icon="mdi:file-document-outline"></ha-icon></a>`:"\u2014"}</td>`}case"notes":return o`<td class="oc-notes" title=${a.notes||""}>${a.notes||"\u2014"}</td>`;case"task_count":return o`<td class="oc-task_count">${e.tasks.length}</td>`;case"ref_no":return o`<td class="oc-ref_no">${$t(a)?`#${$t(a)}`:"\u2014"}</td>`;case"actions":return o`<td class="oc-actions">
+          <ha-icon-button class="obj-table-qr" title="${s("qr_code",i)}" @click=${r=>{r.stopPropagation(),this._openQrForObject(e.entry_id,a.name)}}>
             <ha-icon icon="mdi:qrcode"></ha-icon>
           </ha-icon-button>
-        </td>`;default:return o`<td></td>`}}_renderWarrantyCell(e,t){let i=zt(e);return i.kind==="none"?o`<span class="warranty-none">—</span>`:o`<span class="warranty-chip warranty-${i.kind}">${this._warrantyLabel(i,e,t)}</span>`}async _onSettingsChanged(){await this._loadData()}_renderGroupsSection(){if(!this._features.groups)return h;let e=Object.entries(this._groups),t=this._lang;return o`
+        </td>`;default:return o`<td></td>`}}_renderWarrantyCell(t,e){let i=Be(t);return i.kind==="none"?o`<span class="warranty-none">—</span>`:o`<span class="warranty-chip warranty-${i.kind}">${this._warrantyLabel(i,t,e)}</span>`}async _onSettingsChanged(){await this._loadData()}_renderGroupsSection(){if(!this._features.groups)return h;let t=Object.entries(this._groups),e=this._lang;return o`
       <div class="groups-section">
         <div class="groups-header">
-          <h3>${s("groups",t)}</h3>
+          <h3>${s("groups",e)}</h3>
           <ha-button appearance="plain" @click=${()=>this._openGroupCreate()}>
-            ${s("new_group",t)}
+            ${s("new_group",e)}
           </ha-button>
         </div>
-        ${e.length===0?o`<div class="hint">${s("no_groups",t)}</div>`:o`
+        ${t.length===0?o`<div class="hint">${s("no_groups",e)}</div>`:o`
             <div class="groups-grid">
-              ${e.map(([i,a])=>{let r=a.task_refs.map(l=>this._getTask(l.entry_id,l.task_id)?.name).filter(Boolean);return o`
+              ${t.map(([i,a])=>{let r=a.task_refs.map(c=>this._getTask(c.entry_id,c.task_id)?.name).filter(Boolean);return o`
                   <div class="group-card">
                     <div class="group-card-head">
                       <div class="group-card-name">${a.name}</div>
                       <div class="group-card-actions">
-                        <ha-icon-button title="${s("edit",t)}" @click=${()=>this._openGroupEdit(i)}>
+                        <ha-icon-button title="${s("edit",e)}" @click=${()=>this._openGroupEdit(i)}>
                           <ha-svg-icon path="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"></ha-svg-icon>
                         </ha-icon-button>
-                        <ha-icon-button title="${s("delete",t)}" @click=${()=>this._deleteGroup(i,a.name)}>
+                        <ha-icon-button title="${s("delete",e)}" @click=${()=>this._deleteGroup(i,a.name)}>
                           <ha-svg-icon path="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12z"></ha-svg-icon>
                         </ha-icon-button>
                       </div>
                     </div>
                     ${a.description?o`<div class="group-card-desc">${a.description}</div>`:h}
                     <div class="group-card-tasks">
-                      ${r.length>0?r.map(l=>o`<span class="group-task-chip">${l}</span>`):o`<span style="font-size:12px;color:var(--secondary-text-color)">${s("no_tasks_short",t)}</span>`}
+                      ${r.length>0?r.map(c=>o`<span class="group-task-chip">${c}</span>`):o`<span style="font-size:12px;color:var(--secondary-text-color)">${s("no_tasks_short",e)}</span>`}
                     </div>
                   </div>
                 `})}
             </div>
           `}
       </div>
-    `}_openGroupCreate(){this.shadowRoot.querySelector("maintenance-group-dialog")?.openCreate()}_openGroupEdit(e){let t=this._groups[e];t&&this.shadowRoot.querySelector("maintenance-group-dialog")?.openEdit(e,t)}async _deleteGroup(e,t){await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.confirm({title:s("delete_group",this._lang),message:s("delete_group_confirm",this._lang).replace("{name}",t),confirmText:s("delete",this._lang),danger:!0})&&await this._runAction({type:"maintenance_supporter/group/delete",group_id:e})}_renderBudgetTiles(){let e=this._budget;if(!e)return h;let t=this._lang,i=this._currencySymbol,a=(r,l,n)=>{if(n!==null){let u=Math.min(100,Math.max(0,l/n*100)),p=u>=100?"var(--error-color, #f44336)":u>=e.alert_threshold_pct?"var(--warning-color, #ff9800)":"var(--success-color, #4caf50)";return o`
-          <div class="stat-item budget-tile" title="${r}: ${U(l,i,t)} / ${U(n,i,t)}">
-            <span class="stat-value budget-tile-value">${U(l,i,t)}</span>
-            <span class="budget-tile-max">/ ${U(n,i,t)}</span>
-            <div class="budget-tile-bar"><div style="width:${u}%; background:${p}"></div></div>
+    `}_openGroupCreate(){this.shadowRoot.querySelector("maintenance-group-dialog")?.openCreate()}_openGroupEdit(t){let e=this._groups[t];e&&this.shadowRoot.querySelector("maintenance-group-dialog")?.openEdit(t,e)}async _deleteGroup(t,e){await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.confirm({title:s("delete_group",this._lang),message:s("delete_group_confirm",this._lang).replace("{name}",e),confirmText:s("delete",this._lang),danger:!0})&&await this._runAction({type:"maintenance_supporter/group/delete",group_id:t})}_renderBudgetTiles(){let t=this._budget;if(!t)return h;let e=this._lang,i=this._currencySymbol,a=(r,c,n)=>{if(n!==null){let u=Math.min(100,Math.max(0,c/n*100)),d=u>=100?"var(--error-color, #f44336)":u>=t.alert_threshold_pct?"var(--warning-color, #ff9800)":"var(--success-color, #4caf50)";return o`
+          <div class="stat-item budget-tile" title="${r}: ${F(c,i,e)} / ${F(n,i,e)}">
+            <span class="stat-value budget-tile-value">${F(c,i,e)}</span>
+            <span class="budget-tile-max">/ ${F(n,i,e)}</span>
+            <div class="budget-tile-bar"><div style="width:${u}%; background:${d}"></div></div>
             <span class="stat-label">${r}</span>
           </div>
         `}return o`
-        <div class="stat-item budget-tile" title="${r}: ${U(l,i,t)}">
-          <span class="stat-value budget-tile-value">${U(l,i,t)}</span>
+        <div class="stat-item budget-tile" title="${r}: ${F(c,i,e)}">
+          <span class="stat-value budget-tile-value">${F(c,i,e)}</span>
           <span class="stat-label">${r}</span>
         </div>
       `};return o`
-      ${a(s("budget_monthly",t),e.monthly_spent||0,e.monthly_budget>0?e.monthly_budget:null)}
-      ${a(s("budget_yearly",t),e.yearly_spent||0,e.yearly_budget>0?e.yearly_budget:null)}
-    `}_renderOverviewRow(e){let t=this._lang,i=e.schedule_type==="time_based"&&e.interval_days&&e.interval_days>0,a=0,r=it.ok,l=!1;if(i&&e.days_until_due!==null){let v=lt(e.interval_days,e.days_until_due,e.interval_unit);a=v.pct,l=v.overflow,e.status==="overdue"?r=it.overdue:e.status==="due_soon"&&(r=it.due_soon)}let n=e.area_id?this.hass?.areas?.[e.area_id]?.name:null,u=e.responsible_user_id?this._userService?.getUserName(e.responsible_user_id):null,p=e.group_names.length>0||n||u,_=this._bulkMode&&this._bulkSelected.has(this._bulkKey(e));return o`
-      <div class="task-row${e.enabled?"":" task-disabled"}${_?" bulk-selected":""}${this._splitActive()&&e.entry_id===this._selectedEntryId&&e.task_id===this._selectedTaskId?" selected":""}">
+      ${a(s("budget_monthly",e),t.monthly_spent||0,t.monthly_budget>0?t.monthly_budget:null)}
+      ${a(s("budget_yearly",e),t.yearly_spent||0,t.yearly_budget>0?t.yearly_budget:null)}
+    `}_renderOverviewRow(t){let e=this._lang,i=t.schedule_type==="time_based"&&t.interval_days&&t.interval_days>0,a=0,r=ae.ok,c=!1;if(i&&t.days_until_due!==null){let m=ve(t.interval_days,t.days_until_due,t.interval_unit);a=m.pct,c=m.overflow,t.status==="overdue"?r=ae.overdue:t.status==="due_soon"&&(r=ae.due_soon)}let n=t.area_id?this.hass?.areas?.[t.area_id]?.name:null,u=t.responsible_user_id?this._userService?.getUserName(t.responsible_user_id):null,d=t.group_names.length>0||n||u,g=this._bulkMode&&this._bulkSelected.has(this._bulkKey(t));return o`
+      <div class="task-row${t.enabled?"":" task-disabled"}${g?" bulk-selected":""}${this._splitActive()&&t.entry_id===this._selectedEntryId&&t.task_id===this._selectedTaskId?" selected":""}">
         ${this._bulkMode?o`
-          <label class="cell bulk-check" @click=${v=>v.stopPropagation()}>
-            <input type="checkbox" .checked=${_} @change=${()=>this._toggleBulkRow(e)} />
+          <label class="cell bulk-check" @click=${m=>m.stopPropagation()}>
+            <input type="checkbox" .checked=${g} @change=${()=>this._toggleBulkRow(t)} />
           </label>
         `:h}
         <span class="cell-badges">
-          ${this._statusBadge(!!e.archived,e.is_done,e.status)}
-          ${e.enabled?h:o`<span class="badge-disabled">${s("disabled",t)}</span>`}
-          ${e.nfc_tag_id?o`<span class="nfc-badge" title="${s("nfc_linked",t)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>`:h}
-          ${e.priority==="high"?o`<span class="priority-badge priority-high" title="${s("priority_high",t)}"><ha-icon icon="mdi:chevron-double-up"></ha-icon></span>`:h}
-          ${e.priority==="low"?o`<span class="priority-badge priority-low" title="${s("priority_low",t)}"><ha-icon icon="mdi:chevron-double-down"></ha-icon></span>`:h}
+          ${this._statusBadge(!!t.archived,t.is_done,t.status)}
+          ${t.enabled?h:o`<span class="badge-disabled">${s("disabled",e)}</span>`}
+          ${t.nfc_tag_id?o`<span class="nfc-badge" title="${s("nfc_linked",e)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>`:h}
+          ${t.priority==="high"?o`<span class="priority-badge priority-high" title="${s("priority_high",e)}"><ha-icon icon="mdi:chevron-double-up"></ha-icon></span>`:h}
+          ${t.priority==="low"?o`<span class="priority-badge priority-low" title="${s("priority_low",e)}"><ha-icon icon="mdi:chevron-double-down"></ha-icon></span>`:h}
         </span>
         <span class="row-head">
-          <span class="cell object-name" @click=${v=>{v.stopPropagation(),this._showObject(e.entry_id)}}>${e.object_name}</span>
-          <span class="cell task-name" @click=${()=>this._showTask(e.entry_id,e.task_id)}>${this._listRef(e.entry_id,e.task_id)}${e.task_name}${He(e.next_event_titles)}</span>
+          <span class="cell object-name" @click=${m=>{m.stopPropagation(),this._showObject(t.entry_id)}}>${t.object_name}</span>
+          <span class="cell task-name" @click=${()=>this._showTask(t.entry_id,t.task_id)}>${this._listRef(t.entry_id,t.task_id)}${t.task_name}${Ft(t.next_event_titles)}</span>
         </span>
-        <span class="task-sub${p?"":" task-sub-empty"}">
-          ${e.group_names.length>0?o`
-            <span class="sub-chip" title="${s("groups",t)}">
-              <ha-icon icon="mdi:folder-outline"></ha-icon>${e.group_names.join(", ")}
+        <span class="task-sub${d?"":" task-sub-empty"}">
+          ${t.group_names.length>0?o`
+            <span class="sub-chip" title="${s("groups",e)}">
+              <ha-icon icon="mdi:folder-outline"></ha-icon>${t.group_names.join(", ")}
             </span>`:h}
           ${n?o`
             <span class="sub-chip">
               <ha-icon icon="mdi:map-marker-outline"></ha-icon>${n}
             </span>`:h}
-          ${u?Rt(this._userService?.getPerson(e.responsible_user_id)??null,"sub-chip"):h}
-          ${(e.labels||[]).map(v=>o`
-            <span class="sub-chip label-chip" title="${s("labels",t)}">
-              <ha-icon icon="mdi:tag-outline"></ha-icon>${v}
+          ${u?De(this._userService?.getPerson(t.responsible_user_id)??null,"sub-chip"):h}
+          ${(t.labels||[]).map(m=>o`
+            <span class="sub-chip label-chip" title="${s("labels",e)}">
+              <ha-icon icon="mdi:tag-outline"></ha-icon>${m}
             </span>`)}
         </span>
-        <span class="cell type">${s(e.type,t)}</span>
-        <span class="due-cell" @click=${()=>this._showTask(e.entry_id,e.task_id)}>
-          <span class="due-text">${me(e.days_until_due,t)}</span>
-          ${i?o`<div class="days-bar"><div class="days-bar-fill${l?" overflow":""}" style="width:${a}%;background:${r}"></div></div>`:h}
-          ${e.trigger_config?Nt(e,{trend:Ht(e,this._miniStatsData),lang:t}):!i&&e.trigger_active?o`<span style="color:var(--maint-triggered-color);font-weight:600">⚡</span>`:h}
-          ${qt(e,this._miniStatsData,this._lang)}
+        <span class="cell type">${s(t.type,e)}</span>
+        <span class="due-cell" @click=${()=>this._showTask(t.entry_id,t.task_id)}>
+          <span class="due-text">${ft(t.days_until_due,e)}</span>
+          ${i?o`<div class="days-bar"><div class="days-bar-fill${c?" overflow":""}" style="width:${a}%;background:${r}"></div></div>`:h}
+          ${t.trigger_config?We(t,{trend:Ue(t,this._miniStatsData),lang:e}):!i&&t.trigger_active?o`<span style="color:var(--maint-triggered-color);font-weight:600">⚡</span>`:h}
+          ${Ke(t,this._miniStatsData,this._lang)}
         </span>
-        ${this._renderRowActions(t,()=>this._openCompleteDialogForRow(e),()=>this._promptSkipTask(e.entry_id,e.task_id),e.allow_skip)}
+        ${this._renderRowActions(e,()=>this._openCompleteDialogForRow(t),()=>this._promptSkipTask(t.entry_id,t.task_id),t.allow_skip)}
       </div>
-    `}_actionStyle(){return this._rowActionStyle}async _dismissRowActionNotice(e){let t={row_action_notice_pending:!1};e&&(t.row_action_style="icons"),await P(this,{type:"maintenance_supporter/global/update",settings:t},{onError:a=>this._showToast(a)})!==void 0&&(this._rowActionNotice=!1,e&&(this._rowActionStyle="icons"),Ri())}_renderRowActions(e,t,i,a=!0){let r=this._actionStyle();return r==="buttons"||r==="buttons_compact"?r==="buttons_compact"&&(this.narrow||this.tight)?o`
+    `}_actionStyle(){return this._rowActionStyle}async _dismissRowActionNotice(t){let e={row_action_notice_pending:!1};t&&(e.row_action_style="icons"),await P(this,{type:"maintenance_supporter/global/update",settings:e},{onError:a=>this._showToast(a)})!==void 0&&(this._rowActionNotice=!1,t&&(this._rowActionStyle="icons"),Di())}_renderRowActions(t,e,i,a=!0){let r=this._actionStyle();return r==="buttons"||r==="buttons_compact"?r==="buttons_compact"&&(this.narrow||this.tight)?o`
           <span class="row-actions as-buttons compact">
-            <ha-button size="small" appearance="accent" variant="success" title="${s("complete",e)}" aria-label="${s("complete",e)}" @click=${n=>{n.stopPropagation(),t()}}>
+            <ha-button size="small" appearance="accent" variant="success" title="${s("complete",t)}" aria-label="${s("complete",t)}" @click=${n=>{n.stopPropagation(),e()}}>
               <ha-icon icon="mdi:check"></ha-icon>
             </ha-button>
             ${a?o`
-              <ha-button size="small" appearance="outlined" variant="warning" title="${s("skip",e)}" aria-label="${s("skip",e)}" ?disabled=${this._actionLoading} @click=${n=>{n.stopPropagation(),i?.()}}>
+              <ha-button size="small" appearance="outlined" variant="warning" title="${s("skip",t)}" aria-label="${s("skip",t)}" ?disabled=${this._actionLoading} @click=${n=>{n.stopPropagation(),i?.()}}>
                 <ha-icon icon="mdi:skip-next"></ha-icon>
               </ha-button>`:h}
           </span>`:o`
         <span class="row-actions as-buttons">
-          <ha-button size="small" appearance="accent" variant="success" title="${s("complete",e)}" @click=${n=>{n.stopPropagation(),t()}}>
-            <ha-icon slot="start" icon="mdi:check"></ha-icon>${s("complete",e)}
+          <ha-button size="small" appearance="accent" variant="success" title="${s("complete",t)}" @click=${n=>{n.stopPropagation(),e()}}>
+            <ha-icon slot="start" icon="mdi:check"></ha-icon>${s("complete",t)}
           </ha-button>
           ${a?o`
-            <ha-button size="small" appearance="outlined" variant="warning" title="${s("skip",e)}" ?disabled=${this._actionLoading} @click=${n=>{n.stopPropagation(),i?.()}}>
-              <ha-icon slot="start" icon="mdi:skip-next"></ha-icon>${s("skip",e)}
+            <ha-button size="small" appearance="outlined" variant="warning" title="${s("skip",t)}" ?disabled=${this._actionLoading} @click=${n=>{n.stopPropagation(),i?.()}}>
+              <ha-icon slot="start" icon="mdi:skip-next"></ha-icon>${s("skip",t)}
             </ha-button>`:h}
         </span>`:o`
       <span class="row-actions">
-        <ha-icon-button class="btn-complete" title="${s("complete",e)}" @click=${l=>{l.stopPropagation(),t()}}>
+        <ha-icon-button class="btn-complete" title="${s("complete",t)}" @click=${c=>{c.stopPropagation(),e()}}>
           <ha-icon icon="mdi:check"></ha-icon>
         </ha-icon-button>
         ${a?o`
-          <ha-icon-button class="btn-skip" title="${s("skip",e)}" .disabled=${this._actionLoading} @click=${l=>{l.stopPropagation(),i?.()}}>
+          <ha-icon-button class="btn-skip" title="${s("skip",t)}" .disabled=${this._actionLoading} @click=${c=>{c.stopPropagation(),i?.()}}>
             <ha-icon icon="mdi:skip-next"></ha-icon>
           </ha-icon-button>`:h}
-      </span>`}_openCompleteDialogForRow(e){let i=this._objects.find(a=>a.entry_id===e.entry_id)?.tasks.find(a=>a.id===e.task_id);this._openCompleteDialog(e.entry_id,e.task_id,e.task_name,this._features.checklists?i?.checklist:void 0,this._features.adaptive&&!!i?.adaptive_config?.enabled)}_renderObjectDetail(){if(!this._selectedEntryId)return h;let e=this._getObject(this._selectedEntryId);if(!e)return o`<p>Object not found.</p>`;let t=e.object,i=this._lang,a=this._isOperator,r=e.tasks.filter(n=>n.archived).length,l=e.tasks.filter(n=>this._showArchived||!n.archived);return o`
+      </span>`}_openCompleteDialogForRow(t){let i=this._objects.find(a=>a.entry_id===t.entry_id)?.tasks.find(a=>a.id===t.task_id);this._openCompleteDialog(t.entry_id,t.task_id,t.task_name,this._features.checklists?i?.checklist:void 0,this._features.adaptive&&!!i?.adaptive_config?.enabled)}_renderObjectDetail(){if(!this._selectedEntryId)return h;let t=this._getObject(this._selectedEntryId);if(!t)return o`<p>Object not found.</p>`;let e=t.object,i=this._lang,a=this._isOperator,r=t.tasks.filter(n=>n.archived).length,c=t.tasks.filter(n=>this._showArchived||!n.archived);return o`
       <div class="detail-section">
         <div class="detail-header">
-          <h2>${t.name} ${Ae(we(t),s("ref_number",i))}</h2>
+          <h2>${e.name} ${Lt($t(e),s("ref_number",i))}</h2>
           <div class="action-buttons">
             ${a?h:o`
-              <ha-button appearance="filled" @click=${()=>{this._ui("maintenance-task-dialog").then(n=>n?.openCreate(e.entry_id))}}>${s("add_task",i)}</ha-button>
-              <ha-button appearance="plain" @click=${()=>{this._ui("maintenance-object-dialog").then(n=>n?.openEdit(e.entry_id,t))}}>${s("edit",i)}</ha-button>
+              <ha-button appearance="filled" @click=${()=>{this._ui("maintenance-task-dialog").then(n=>n?.openCreate(t.entry_id))}}>${s("add_task",i)}</ha-button>
+              <ha-button appearance="plain" @click=${()=>{this._ui("maintenance-object-dialog").then(n=>n?.openEdit(t.entry_id,e))}}>${s("edit",i)}</ha-button>
             `}
             <div class="more-menu-wrapper">
               <ha-icon-button .disabled=${this._actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${()=>this._toggleObjMenu()}></ha-icon-button>
               ${this._objMenuOpen?o`
                 <div class="popup-menu" @click=${n=>n.stopPropagation()}>
-                  <div class="popup-menu-item" @click=${()=>{this._closeObjMenu(),this._openQrForObject(e.entry_id,t.name)}}>${s("qr_code",i)}</div>
-                  <div class="popup-menu-item" @click=${()=>{this._closeObjMenu(),this._printObjectReport(e.entry_id)}}>${s("report_button",i)}</div>
+                  <div class="popup-menu-item" @click=${()=>{this._closeObjMenu(),this._openQrForObject(t.entry_id,e.name)}}>${s("qr_code",i)}</div>
+                  <div class="popup-menu-item" @click=${()=>{this._closeObjMenu(),this._printObjectReport(t.entry_id)}}>${s("report_button",i)}</div>
                   ${a?h:o`
-                    <div class="popup-menu-item" @click=${()=>{this._closeObjMenu(),this._duplicateObject(e.entry_id)}}>${s("duplicate",i)}</div>
-                    ${t.archived?h:o`
-                      <div class="popup-menu-item" @click=${()=>{this._closeObjMenu(),this._togglePauseObject(e.entry_id,!!t.paused)}}>${t.paused?s("resume_object",i):s("pause_object",i)}</div>
-                      <div class="popup-menu-item" @click=${()=>{this._closeObjMenu(),this._replaceObject(e.entry_id,t)}}>${s("replace_object",i)}</div>
+                    <div class="popup-menu-item" @click=${()=>{this._closeObjMenu(),this._duplicateObject(t.entry_id)}}>${s("duplicate",i)}</div>
+                    ${e.archived?h:o`
+                      <div class="popup-menu-item" @click=${()=>{this._closeObjMenu(),this._togglePauseObject(t.entry_id,!!e.paused)}}>${e.paused?s("resume_object",i):s("pause_object",i)}</div>
+                      <div class="popup-menu-item" @click=${()=>{this._closeObjMenu(),this._replaceObject(t.entry_id,e)}}>${s("replace_object",i)}</div>
                     `}
-                    <div class="popup-menu-item" @click=${()=>{this._closeObjMenu(),this._toggleArchiveObject(e.entry_id,!!t.archived)}}>${t.archived?s("unarchive_object",i):s("archive_object",i)}</div>
+                    <div class="popup-menu-item" @click=${()=>{this._closeObjMenu(),this._toggleArchiveObject(t.entry_id,!!e.archived)}}>${e.archived?s("unarchive_object",i):s("archive_object",i)}</div>
                     <div class="popup-menu-divider"></div>
-                    <div class="popup-menu-item danger" @click=${()=>{this._closeObjMenu(),this._deleteObject(e.entry_id)}}>${s("delete",i)}</div>
+                    <div class="popup-menu-item danger" @click=${()=>{this._closeObjMenu(),this._deleteObject(t.entry_id)}}>${s("delete",i)}</div>
                   `}
                 </div>
               `:h}
             </div>
           </div>
         </div>
-        ${t.paused?o`<p class="meta paused-meta">
+        ${e.paused?o`<p class="meta paused-meta">
               <ha-icon icon="mdi:pause-circle-outline"></ha-icon>
-              ${s("object_paused_badge",i)}${t.paused_until?o` — ${s("paused_until_label",i)} ${V(t.paused_until,i)}`:h}
+              ${s("object_paused_badge",i)}${e.paused_until?o` — ${s("paused_until_label",i)} ${U(e.paused_until,i)}`:h}
             </p>`:h}
-        ${t.manufacturer||t.model?o`<p class="meta">${[t.manufacturer,t.model].filter(Boolean).join(" ")}</p>`:h}
-        ${t.serial_number?o`<p class="meta">${s("serial_number_label",i)}: ${t.serial_number}</p>`:h}
-        ${this._renderLineageLink(t.predecessor_entry_id,s("object_replaces",i))}
-        ${this._renderLineageLink(t.replaced_by_entry_id,s("object_replaced_by",i))}
-        ${t.area_id?o`<p class="meta">${s("area",i)}:
-              <a href="#" class="object-area-link" @click=${n=>{n.preventDefault(),this._showArea(t.area_id)}}
-                >${Et(t.area_id,this.hass?.areas,s("no_area",i))}</a></p>`:h}
-        ${ae(t.documentation_url)?o`<p class="meta">${s("documentation_url_label",i)}:
-              <a href=${t.documentation_url} target="_blank" rel="noopener noreferrer">${t.documentation_url}</a>
-            </p>`:(t.manual_docs||[]).length?o`<p class="meta">${s("documentation_url_label",i)}:
-                ${t.manual_docs.slice(0,3).map((n,u)=>o`${u>0?" \xB7 ":""}<a href="#"
-                    @click=${p=>{p.preventDefault(),this._openManualDoc(n)}}>${n.title}</a>`)}${t.manual_docs.length>3?o` … +${t.manual_docs.length-3}`:h}
+        ${e.manufacturer||e.model?o`<p class="meta">${[e.manufacturer,e.model].filter(Boolean).join(" ")}</p>`:h}
+        ${e.serial_number?o`<p class="meta">${s("serial_number_label",i)}: ${e.serial_number}</p>`:h}
+        ${this._renderLineageLink(e.predecessor_entry_id,s("object_replaces",i))}
+        ${this._renderLineageLink(e.replaced_by_entry_id,s("object_replaced_by",i))}
+        ${e.area_id?o`<p class="meta">${s("area",i)}:
+              <a href="#" class="object-area-link" @click=${n=>{n.preventDefault(),this._showArea(e.area_id)}}
+                >${Me(e.area_id,this.hass?.areas,s("no_area",i))}</a></p>`:h}
+        ${st(e.documentation_url)?o`<p class="meta">${s("documentation_url_label",i)}:
+              <a href=${e.documentation_url} target="_blank" rel="noopener noreferrer">${e.documentation_url}</a>
+            </p>`:(e.manual_docs||[]).length?o`<p class="meta">${s("documentation_url_label",i)}:
+                ${e.manual_docs.slice(0,3).map((n,u)=>o`${u>0?" \xB7 ":""}<a href="#"
+                    @click=${d=>{d.preventDefault(),this._openManualDoc(n)}}>${n.title}</a>`)}${e.manual_docs.length>3?o` … +${e.manual_docs.length-3}`:h}
               </p>`:h}
-        ${t.installation_date?o`<p class="meta">${s("installed",i)}: ${V(t.installation_date,i)}</p>`:h}
-        ${t.warranty_expiry?this._renderWarrantyMeta(t.warranty_expiry,i):h}
-        ${t.notes?o`<div class="object-notes">
+        ${e.installation_date?o`<p class="meta">${s("installed",i)}: ${U(e.installation_date,i)}</p>`:h}
+        ${e.warranty_expiry?this._renderWarrantyMeta(e.warranty_expiry,i):h}
+        ${e.notes?o`<div class="object-notes">
               <div class="object-notes-label">${s("object_notes_label",i)}</div>
-              <div class="object-notes-body">${ct(t.notes)}</div>
+              <div class="object-notes-body">${de(e.notes)}</div>
             </div>`:h}
 
-        ${this._renderObjectSection("tasks",s("tasks",i),l.length,()=>o`
-        <h3>${s("tasks",i)} (${l.length})${r>0?o`
+        ${this._renderObjectSection("tasks",s("tasks",i),c.length,()=>o`
+        <h3>${s("tasks",i)} (${c.length})${r>0?o`
           <ha-button
             class="archived-toggle ${this._showArchived?"active":""}"
             appearance="plain"
@@ -6331,10 +6331,10 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
             <ha-icon icon="mdi:archive-outline"></ha-icon>
             ${this._showArchived?s("hide_archived",i):`${s("show_archived",i)} (${r})`}
           </ha-button>`:h}</h3>
-        ${e.tasks.length===0?o`<div class="empty-state-centered">
+        ${t.tasks.length===0?o`<div class="empty-state-centered">
               <p class="empty">${s("no_tasks_yet",i)}</p>
-              <ha-button appearance="filled" @click=${()=>{this._ui("maintenance-task-dialog").then(n=>n?.openCreate(e.entry_id))}}>${s("add_first_task",i)}</ha-button>
-            </div>`:o`<div class="task-table object-tasks">${[...l].sort((n,u)=>qe(n.status)-qe(u.status)||(n.days_until_due??99999)-(u.days_until_due??99999)).map(n=>o`
+              <ha-button appearance="filled" @click=${()=>{this._ui("maintenance-task-dialog").then(n=>n?.openCreate(t.entry_id))}}>${s("add_first_task",i)}</ha-button>
+            </div>`:o`<div class="task-table object-tasks">${[...c].sort((n,u)=>Ct(n.status)-Ct(u.status)||(n.days_until_due??99999)-(u.days_until_due??99999)).map(n=>o`
               <div class="task-row${n.enabled?"":" task-disabled"}">
                 <span class="cell-badges">
                   ${this._statusBadge(!!n.archived,!!n.is_done,n.status)}
@@ -6342,112 +6342,112 @@ ${l.capped?`<p class="cap-note">${k(e.capNote)}</p>`:""}
                   ${n.nfc_tag_id?o`<span class="nfc-badge" title="${s("nfc_linked",i)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>`:h}
                   ${n.document_count?o`<span class="doc-badge" title="${n.document_count} ${s("documents",i)}"><ha-icon icon="mdi:paperclip"></ha-icon>${n.document_count}</span>`:h}
                 </span>
-                <span class="cell task-name" @click=${()=>this._showTask(e.entry_id,n.id)}>${this._listRef(e.entry_id,n.id)}${n.name}${He(n.next_event_titles)}</span>
-                <span class="task-sub${n.responsible_user_id?"":" task-sub-empty"}">${Ft(n,u=>this._userService?.getUserName(u)??null,u=>this._userService?.getPerson(u)??null)}</span>
+                <span class="cell task-name" @click=${()=>this._showTask(t.entry_id,n.id)}>${this._listRef(t.entry_id,n.id)}${n.name}${Ft(n.next_event_titles)}</span>
+                <span class="task-sub${n.responsible_user_id?"":" task-sub-empty"}">${Ge(n,u=>this._userService?.getUserName(u)??null,u=>this._userService?.getPerson(u)??null)}</span>
                 <span class="cell type">${s(n.type,i)}</span>
-                <span class="due-cell" @click=${()=>this._showTask(e.entry_id,n.id)}>
-                  <span class="due-text">${me(n.days_until_due,i)}</span>
-                  ${n.trigger_config?Nt(n,{trend:Ht(n,this._miniStatsData),lang:i}):h}
-                  ${qt(n,this._miniStatsData,this._lang)}
+                <span class="due-cell" @click=${()=>this._showTask(t.entry_id,n.id)}>
+                  <span class="due-text">${ft(n.days_until_due,i)}</span>
+                  ${n.trigger_config?We(n,{trend:Ue(n,this._miniStatsData),lang:i}):h}
+                  ${Ke(n,this._miniStatsData,this._lang)}
                 </span>
-                ${this._renderRowActions(i,()=>this._openCompleteDialog(e.entry_id,n.id,n.name,this._features.checklists?n.checklist:void 0,this._features.adaptive&&!!n.adaptive_config?.enabled),()=>this._promptSkipTask(e.entry_id,n.id),n.allow_skip)}
+                ${this._renderRowActions(i,()=>this._openCompleteDialog(t.entry_id,n.id,n.name,this._features.checklists?n.checklist:void 0,this._features.adaptive&&!!n.adaptive_config?.enabled),()=>this._promptSkipTask(t.entry_id,n.id),n.allow_skip)}
               </div>
             `)}</div>`}
         `)}
 
-        ${this._renderObjectSection("documents",s("documents",i),typeof t.document_count=="number"?t.document_count:null,()=>o`
+        ${this._renderObjectSection("documents",s("documents",i),typeof e.document_count=="number"?e.document_count:null,()=>o`
         <maintenance-documents-section
           .hass=${this.hass}
-          .entryId=${e.entry_id}
+          .entryId=${t.entry_id}
           .canWrite=${!a}
         ></maintenance-documents-section>
         `)}
 
-        ${(e.parts||[]).length||!a?this._renderObjectSection("parts",s("parts_section",i),(e.parts||[]).length,()=>o`
+        ${(t.parts||[]).length||!a?this._renderObjectSection("parts",s("parts_section",i),(t.parts||[]).length,()=>o`
         <maintenance-parts-section
           .hass=${this.hass}
-          .entryId=${e.entry_id}
-          .parts=${e.parts||[]}
+          .entryId=${t.entry_id}
+          .parts=${t.parts||[]}
           .canWrite=${!a}
           .currencySymbol=${this._currencySymbol}
           @parts-changed=${()=>this._loadData()}
         ></maintenance-parts-section>
         `):h}
 
-        ${e.tasks.some(n=>(n.times_performed||0)>0||(n.history||[]).length>0)?this._renderObjectSection("history",s("object_history_section",i),null,()=>o`
+        ${t.tasks.some(n=>(n.times_performed||0)>0||(n.history||[]).length>0)?this._renderObjectSection("history",s("object_history_section",i),null,()=>o`
         <maintenance-object-history-section
           .hass=${this.hass}
-          .entryId=${e.entry_id}
-          .object=${t}
-          .tasks=${e.tasks}
+          .entryId=${t.entry_id}
+          .object=${e}
+          .tasks=${t.tasks}
           .currencySymbol=${this._currencySymbol}
           .userName=${n=>this._userService?.getUserName(n)??null}
-          @open-task=${n=>this._showTask(e.entry_id,n.detail.taskId)}
+          @open-task=${n=>this._showTask(t.entry_id,n.detail.taskId)}
         ></maintenance-object-history-section>
         `):h}
       </div>
-    `}_renderObjectSection(e,t,i,a){let r=this._lang,l=this._objectSectionOverride===e||!this._objectSectionsCollapsed.has(e),n=l?s("section_collapse",r):s("section_expand",r);return o`
-      <div class="obj-section ${e} ${l?"open":"collapsed"}" data-section=${e}>
+    `}_renderObjectSection(t,e,i,a){let r=this._lang,c=this._objectSectionOverride===t||!this._objectSectionsCollapsed.has(t),n=c?s("section_collapse",r):s("section_expand",r);return o`
+      <div class="obj-section ${t} ${c?"open":"collapsed"}" data-section=${t}>
         <button class="obj-section-toggle" type="button"
-          aria-expanded=${l?"true":"false"}
+          aria-expanded=${c?"true":"false"}
           aria-label=${n} title=${n}
-          @click=${()=>this._toggleObjectSection(e)}>
-          <ha-icon icon=${l?"mdi:chevron-up":"mdi:chevron-down"}></ha-icon>
+          @click=${()=>this._toggleObjectSection(t)}>
+          <ha-icon icon=${c?"mdi:chevron-up":"mdi:chevron-down"}></ha-icon>
         </button>
-        ${l?o`<div class="obj-section-body">${a()}</div>`:o`<h3 class="obj-section-title" @click=${()=>this._toggleObjectSection(e)}>
-              ${t}${i!==null?o`<span class="obj-section-count">${i}</span>`:h}
+        ${c?o`<div class="obj-section-body">${a()}</div>`:o`<h3 class="obj-section-title" @click=${()=>this._toggleObjectSection(t)}>
+              ${e}${i!==null?o`<span class="obj-section-count">${i}</span>`:h}
             </h3>`}
       </div>
-    `}_renderNewMenu(e){return o`
+    `}_renderNewMenu(t){return o`
       <div class="new-menu-wrapper">
         <ha-button appearance="filled" class="new-menu-button"
-          @click=${t=>{t.stopPropagation(),this._toggleNewMenu()}}>
-          <ha-icon icon="mdi:plus"></ha-icon> ${s("add",e)}
+          @click=${e=>{e.stopPropagation(),this._toggleNewMenu()}}>
+          <ha-icon icon="mdi:plus"></ha-icon> ${s("add",t)}
           <ha-icon icon="mdi:menu-down"></ha-icon>
         </ha-button>
         ${this._newMenuOpen?o`
-          <div class="popup-menu new-menu-popup" @click=${t=>t.stopPropagation()}>
-            <div class="popup-menu-item" @click=${()=>{this._closeNewMenu(),this._ui("maintenance-task-dialog").then(t=>t?.openCreate("",this._objects))}}>
-              <ha-icon icon="mdi:clipboard-plus-outline"></ha-icon> ${s("new_task",e)}
+          <div class="popup-menu new-menu-popup" @click=${e=>e.stopPropagation()}>
+            <div class="popup-menu-item" @click=${()=>{this._closeNewMenu(),this._ui("maintenance-task-dialog").then(e=>e?.openCreate("",this._objects))}}>
+              <ha-icon icon="mdi:clipboard-plus-outline"></ha-icon> ${s("new_task",t)}
             </div>
-            <div class="popup-menu-item" @click=${()=>{this._closeNewMenu(),this._ui("maintenance-object-dialog").then(t=>t?.openCreate())}}>
-              <ha-icon icon="mdi:package-variant-closed-plus"></ha-icon> ${s("new_object",e).replace(/^\+\s*/,"")}
+            <div class="popup-menu-item" @click=${()=>{this._closeNewMenu(),this._ui("maintenance-object-dialog").then(e=>e?.openCreate())}}>
+              <ha-icon icon="mdi:package-variant-closed-plus"></ha-icon> ${s("new_object",t).replace(/^\+\s*/,"")}
             </div>
             <div class="popup-menu-item" @click=${()=>{this._closeNewMenu(),this._openTemplateGallery()}}>
-              <ha-icon icon="mdi:view-grid-plus-outline"></ha-icon> ${s("templates_from",e)}
+              <ha-icon icon="mdi:view-grid-plus-outline"></ha-icon> ${s("templates_from",t)}
             </div>
             <div class="popup-menu-divider"></div>
             <div class="popup-menu-item" @click=${()=>{this._closeNewMenu(),this._openAdoptProblemSensors()}}>
-              <ha-icon icon="mdi:alert-circle-check-outline"></ha-icon> ${s("adopt_problem_button",e)}
+              <ha-icon icon="mdi:alert-circle-check-outline"></ha-icon> ${s("adopt_problem_button",t)}
             </div>
             <div class="popup-menu-item" @click=${()=>{this._closeNewMenu(),this._openSuggestedSetups()}}>
-              <ha-icon icon="mdi:auto-fix"></ha-icon> ${s("setups_button",e)}
+              <ha-icon icon="mdi:auto-fix"></ha-icon> ${s("setups_button",t)}
             </div>
             ${this._batteryFleetSetupAvailable?o`
               <div class="popup-menu-item" @click=${()=>{this._closeNewMenu(),this._setupBatteryFleet()}}>
-                <ha-icon icon="mdi:battery-sync"></ha-icon> ${s("battery_fleet_setup_button",e)}
+                <ha-icon icon="mdi:battery-sync"></ha-icon> ${s("battery_fleet_setup_button",t)}
               </div>
             `:h}
           </div>
         `:h}
       </div>
-    `}_togglePopup(e,t){let i=!e();t(i),i&&setTimeout(()=>{let a=()=>{t(!1),document.removeEventListener("click",a)};document.addEventListener("click",a)},0)}_toggleNewMenu(){this._togglePopup(()=>this._newMenuOpen,e=>{this._newMenuOpen=e})}_closeNewMenu(){this._newMenuOpen=!1}_isYoungInstall(){let e=this._objects.filter(i=>!i.object?.battery_fleet),t=e.reduce((i,a)=>i+a.tasks.length,0);return e.length<3&&t<8}_gsDismissed(){try{return new Set(JSON.parse(Z(A.gettingStartedDismissed)||"[]"))}catch{return new Set}}_dismissGettingStarted(e){let t=this._gsDismissed();t.add(e);try{W(A.gettingStartedDismissed,JSON.stringify([...t]))}catch{}this.requestUpdate()}_maybeLoadResetOffers(){this._resetOffersLoaded||(this._resetOffersLoaded=!0,this.hass.connection.sendMessagePromise({type:"maintenance_supporter/integration_setups/reset_offers"}).then(e=>{this._resetOffersCount=(e.offers||[]).length}).catch(()=>{this._resetOffersCount=0}))}_maybeLoadGettingStarted(){this._maybeLoadResetOffers(),!(this._gsLoaded||!this._isYoungInstall())&&(this._gsLoaded=!0,this.hass.connection.sendMessagePromise({type:"maintenance_supporter/integration_setups/discover"}).then(e=>{this._gsSetupsCount=(e.setups||[]).length}).catch(()=>{this._gsSetupsCount=0}),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/problem_sensors/discover"}).then(e=>{this._gsAdoptCount=(e.sensors||[]).length}).catch(()=>{this._gsAdoptCount=0}))}_renderGettingStartedChips(e){let t=this._gsDismissed(),i=this._isYoungInstall(),a=[];return i&&this._gsSetupsCount>0&&!t.has("setups")&&a.push({id:"setups",icon:"mdi:auto-fix",text:this._countText("gs_setups_chip","gs_setups_chip_one","n",this._gsSetupsCount,e),run:()=>this._openSuggestedSetups()}),i&&this._gsAdoptCount>0&&!t.has("adopt")&&a.push({id:"adopt",icon:"mdi:alert-circle-check-outline",text:this._countText("gs_adopt_chip","gs_adopt_chip_one","n",this._gsAdoptCount,e),run:()=>this._openAdoptProblemSensors()}),this._resetOffersCount>0&&!t.has("resets")&&a.push({id:"resets",icon:"mdi:counter",text:this._countText("gs_reset_chip","gs_reset_chip_one","n",this._resetOffersCount,e),run:()=>this._openSuggestedSetups()}),this._batteryFleetSetupAvailable&&!t.has("fleet")&&a.push({id:"fleet",icon:"mdi:battery-sync",text:s("gs_fleet_chip",e),run:()=>this._setupBatteryFleet()}),a.length===0?h:o`
+    `}_togglePopup(t,e){let i=!t();e(i),i&&setTimeout(()=>{let a=()=>{e(!1),document.removeEventListener("click",a)};document.addEventListener("click",a)},0)}_toggleNewMenu(){this._togglePopup(()=>this._newMenuOpen,t=>{this._newMenuOpen=t})}_closeNewMenu(){this._newMenuOpen=!1}_isYoungInstall(){let t=this._objects.filter(i=>!i.object?.battery_fleet),e=t.reduce((i,a)=>i+a.tasks.length,0);return t.length<3&&e<8}_gsDismissed(){try{return new Set(JSON.parse(Z(A.gettingStartedDismissed)||"[]"))}catch{return new Set}}_dismissGettingStarted(t){let e=this._gsDismissed();e.add(t);try{V(A.gettingStartedDismissed,JSON.stringify([...e]))}catch{}this.requestUpdate()}_maybeLoadResetOffers(){this._resetOffersLoaded||(this._resetOffersLoaded=!0,this.hass.connection.sendMessagePromise({type:"maintenance_supporter/integration_setups/reset_offers"}).then(t=>{this._resetOffersCount=(t.offers||[]).length}).catch(()=>{this._resetOffersCount=0}))}_maybeLoadGettingStarted(){this._maybeLoadResetOffers(),!(this._gsLoaded||!this._isYoungInstall())&&(this._gsLoaded=!0,this.hass.connection.sendMessagePromise({type:"maintenance_supporter/integration_setups/discover"}).then(t=>{this._gsSetupsCount=(t.setups||[]).length}).catch(()=>{this._gsSetupsCount=0}),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/problem_sensors/discover"}).then(t=>{this._gsAdoptCount=(t.sensors||[]).length}).catch(()=>{this._gsAdoptCount=0}))}_renderGettingStartedChips(t){let e=this._gsDismissed(),i=this._isYoungInstall(),a=[];return i&&this._gsSetupsCount>0&&!e.has("setups")&&a.push({id:"setups",icon:"mdi:auto-fix",text:this._countText("gs_setups_chip","gs_setups_chip_one","n",this._gsSetupsCount,t),run:()=>this._openSuggestedSetups()}),i&&this._gsAdoptCount>0&&!e.has("adopt")&&a.push({id:"adopt",icon:"mdi:alert-circle-check-outline",text:this._countText("gs_adopt_chip","gs_adopt_chip_one","n",this._gsAdoptCount,t),run:()=>this._openAdoptProblemSensors()}),this._resetOffersCount>0&&!e.has("resets")&&a.push({id:"resets",icon:"mdi:counter",text:this._countText("gs_reset_chip","gs_reset_chip_one","n",this._resetOffersCount,t),run:()=>this._openSuggestedSetups()}),this._batteryFleetSetupAvailable&&!e.has("fleet")&&a.push({id:"fleet",icon:"mdi:battery-sync",text:s("gs_fleet_chip",t),run:()=>this._setupBatteryFleet()}),a.length===0?h:o`
       <div class="gs-chips-wrap">
-        <div class="gs-chips-label">${s("gs_label",e)}</div>
+        <div class="gs-chips-label">${s("gs_label",t)}</div>
         <div class="gs-chips">
           ${a.map(r=>o`
             <div class="gs-chip" @click=${()=>r.run()}>
               <ha-icon icon="${r.icon}"></ha-icon>
               <span>${r.text}</span>
-              <span class="gs-chip-x" title="${s("dismiss",e)}"
-                @click=${l=>{l.stopPropagation(),this._dismissGettingStarted(r.id)}}>
+              <span class="gs-chip-x" title="${s("dismiss",t)}"
+                @click=${c=>{c.stopPropagation(),this._dismissGettingStarted(r.id)}}>
                 <ha-icon icon="mdi:close"></ha-icon>
               </span>
             </div>
           `)}
         </div>
       </div>
-    `}_toggleObjMenu(){this._togglePopup(()=>this._objMenuOpen,e=>{this._objMenuOpen=e})}_closeObjMenu(){this._objMenuOpen=!1}_toggleMoreMenu(){this._togglePopup(()=>this._moreMenuOpen,e=>{this._moreMenuOpen=e})}_closeMoreMenu(){this._moreMenuOpen=!1}get _sparklineCtx(){return{lang:this._lang,detailStatsData:this._detailStatsData,hasStatsService:!!this._statsService,historyFallbackIds:this._statsService?.historyFallbackIds,isCounterEntity:e=>this._isCounterEntity(e),rangeDays:this._chartRangeDays,setRangeDays:e=>this._setChartRange(e),hideOutliers:this._hideOutliers,setHideOutliers:e=>this._setHideOutliers(e)}}_toggleSection(e){let t=new Set(this._collapsedSections);t.has(e)?t.delete(e):t.add(e),this._collapsedSections=t;try{W(A.collapsedSections,JSON.stringify([...t]))}catch{}}_historyCtx(){let e=this._selectedEntryId&&this._selectedTaskId?this._getObject(this._selectedEntryId)?.tasks.find(r=>r.id===this._selectedTaskId):void 0,t=this._fullHistory,i=t&&t.entryId===this._selectedEntryId&&t.taskId===this._selectedTaskId&&t.entries.length>(e?.history||[]).length?t.entries:e?.history||[],a=i.filter(r=>r.reading_value!=null).sort((r,l)=>r.timestamp.localeCompare(l.timestamp));return{lang:this._lang,hass:this.hass,filter:this._historyFilter,search:this._historySearch,currencySymbol:this._currencySymbol,setFilter:r=>{this._historyFilter=r},setSearch:r=>{this._historySearch=r},openEdit:this._isOperator?void 0:r=>this._openHistoryEdit(r),readingUnit:e?.reading_unit??null,taskRef:ke(this._selectedEntryId?this._getObject(this._selectedEntryId)?.object:null,e),phaseNames:Object.fromEntries(Object.entries(e?.phases||{}).map(([r,l])=>[r,l.name])),readingDelta:r=>{let l=a.findIndex(n=>n.timestamp===r.timestamp);return l<=0?null:r.reading_value-a[l-1].reading_value},readingSlotDelta:(r,l)=>ui(i,r,l)}}_taskDetailCtx(){let e=this._selectedEntryId,t=this._selectedTaskId,i=this._getObject(e);return{lang:this._lang,hass:this.hass,entryId:e,taskId:t,objectName:i?.object.name||"",taskRef:ke(i?.object,i?.tasks.find(a=>a.id===t)),objectDocUrl:i?.object?.documentation_url??null,objectManualDocs:i?.object?.manual_docs??[],openManualDoc:a=>this._openManualDoc(a),setChecklistItem:(a,r)=>this._setChecklistItem(e,t,a,r),setPhaseCursor:a=>{this._runAction({type:"maintenance_supporter/task/set_phase",entry_id:e,task_id:t,cursor:a})},isOperator:this._isOperator,actionLoading:this._actionLoading,moreMenuOpen:this._moreMenuOpen,activeTab:this._activeTab,features:this._features,currencySymbol:this._currencySymbol,collapsedSections:this._collapsedSections,costDurationToggle:this._costDurationToggle,suggestionDismissed:this._dismissedSuggestions.has(`${e}_${t}`),sparkline:this._sparklineCtx,history:this._historyCtx(),getUserName:a=>this._userService?.getUserName(a)??null,getPerson:a=>this._userService?.getPerson(a)??null,setActiveTab:a=>{this._activeTab=a},toggleSection:a=>this._toggleSection(a),setCostDurationToggle:a=>{this._costDurationToggle=a},showTaskView:()=>this._showFullTaskPage(e,t),showObject:()=>this._showObject(e),toggleMoreMenu:()=>this._toggleMoreMenu(),closeMoreMenu:()=>this._closeMoreMenu(),openEdit:a=>{this._ui("maintenance-task-dialog").then(r=>r?.openEdit(e,a))},openComplete:a=>this._openCompleteDialog(e,t,a.name,this._features.checklists?a.checklist:void 0,this._features.adaptive&&!!a.adaptive_config?.enabled),promptSkip:()=>this._promptSkipTask(e,t),toggleArchive:a=>this._toggleArchiveTask(e,t,a),togglePause:a=>this._togglePauseTask(e,t,a),openQr:a=>this._openQrForTask(e,t,i?.object.name||"",a),duplicateTask:()=>this._duplicateTask(e,t),moveTask:()=>this._moveTask(e,t),promptReset:()=>this._promptResetTask(e,t),promptPostpone:()=>this._promptPostponeTask(e,t),snoozeTask:()=>this._snoozeTask(e,t),printWorksheet:()=>this._printTaskWorksheet(e,t),deleteTask:()=>this._deleteTask(e,t),applySuggestion:a=>this._applySuggestion(e,t,a),reanalyze:()=>this._reanalyzeInterval(e,t),dismissSuggestion:()=>this._dismissSuggestion(e,t),openSeasonalOverrides:a=>this._openSeasonalOverrides(a)}}async _fetchFullHistory(e,t){try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/history",entry_id:e,task_id:t});this._selectedEntryId===e&&this._selectedTaskId===t&&(this._fullHistory={entryId:e,taskId:t,entries:i.history||[]})}catch{this._fullHistory=null}}_renderTaskDetail(){if(!this._selectedEntryId||!this._selectedTaskId)return h;let e=this._getTask(this._selectedEntryId,this._selectedTaskId);if(!e)return o`<p>Task not found.</p>`;let t=this._fullHistory,i=t&&t.entryId===this._selectedEntryId&&t.taskId===this._selectedTaskId&&t.entries.length>(e.history||[]).length?{...e,history:t.entries}:e;return o`<maintenance-task-detail-view
+    `}_toggleObjMenu(){this._togglePopup(()=>this._objMenuOpen,t=>{this._objMenuOpen=t})}_closeObjMenu(){this._objMenuOpen=!1}_toggleMoreMenu(){this._togglePopup(()=>this._moreMenuOpen,t=>{this._moreMenuOpen=t})}_closeMoreMenu(){this._moreMenuOpen=!1}get _sparklineCtx(){return{lang:this._lang,detailStatsData:this._detailStatsData,hasStatsService:!!this._statsService,historyFallbackIds:this._statsService?.historyFallbackIds,isCounterEntity:t=>this._isCounterEntity(t),rangeDays:this._chartRangeDays,setRangeDays:t=>this._setChartRange(t),hideOutliers:this._hideOutliers,setHideOutliers:t=>this._setHideOutliers(t)}}_toggleSection(t){let e=new Set(this._collapsedSections);e.has(t)?e.delete(t):e.add(t),this._collapsedSections=e;try{V(A.collapsedSections,JSON.stringify([...e]))}catch{}}_historyCtx(){let t=this._selectedEntryId&&this._selectedTaskId?this._getObject(this._selectedEntryId)?.tasks.find(r=>r.id===this._selectedTaskId):void 0,e=this._fullHistory,i=e&&e.entryId===this._selectedEntryId&&e.taskId===this._selectedTaskId&&e.entries.length>(t?.history||[]).length?e.entries:t?.history||[],a=i.filter(r=>r.reading_value!=null).sort((r,c)=>r.timestamp.localeCompare(c.timestamp));return{lang:this._lang,hass:this.hass,filter:this._historyFilter,search:this._historySearch,currencySymbol:this._currencySymbol,setFilter:r=>{this._historyFilter=r},setSearch:r=>{this._historySearch=r},openEdit:this._isOperator?void 0:r=>this._openHistoryEdit(r),readingUnit:t?.reading_unit??null,taskRef:jt(this._selectedEntryId?this._getObject(this._selectedEntryId)?.object:null,t),phaseNames:Object.fromEntries(Object.entries(t?.phases||{}).map(([r,c])=>[r,c.name])),readingDelta:r=>{let c=a.findIndex(n=>n.timestamp===r.timestamp);return c<=0?null:r.reading_value-a[c-1].reading_value},readingSlotDelta:(r,c)=>_i(i,r,c)}}_taskDetailCtx(){let t=this._selectedEntryId,e=this._selectedTaskId,i=this._getObject(t);return{lang:this._lang,hass:this.hass,entryId:t,taskId:e,objectName:i?.object.name||"",taskRef:jt(i?.object,i?.tasks.find(a=>a.id===e)),objectDocUrl:i?.object?.documentation_url??null,objectManualDocs:i?.object?.manual_docs??[],openManualDoc:a=>this._openManualDoc(a),setChecklistItem:(a,r)=>this._setChecklistItem(t,e,a,r),setPhaseCursor:a=>{this._runAction({type:"maintenance_supporter/task/set_phase",entry_id:t,task_id:e,cursor:a})},isOperator:this._isOperator,actionLoading:this._actionLoading,moreMenuOpen:this._moreMenuOpen,activeTab:this._activeTab,features:this._features,currencySymbol:this._currencySymbol,collapsedSections:this._collapsedSections,costDurationToggle:this._costDurationToggle,suggestionDismissed:this._dismissedSuggestions.has(`${t}_${e}`),sparkline:this._sparklineCtx,history:this._historyCtx(),getUserName:a=>this._userService?.getUserName(a)??null,getPerson:a=>this._userService?.getPerson(a)??null,setActiveTab:a=>{this._activeTab=a},toggleSection:a=>this._toggleSection(a),setCostDurationToggle:a=>{this._costDurationToggle=a},showTaskView:()=>this._showFullTaskPage(t,e),showObject:()=>this._showObject(t),toggleMoreMenu:()=>this._toggleMoreMenu(),closeMoreMenu:()=>this._closeMoreMenu(),openEdit:a=>{this._ui("maintenance-task-dialog").then(r=>r?.openEdit(t,a))},openComplete:a=>this._openCompleteDialog(t,e,a.name,this._features.checklists?a.checklist:void 0,this._features.adaptive&&!!a.adaptive_config?.enabled),promptSkip:()=>this._promptSkipTask(t,e),toggleArchive:a=>this._toggleArchiveTask(t,e,a),togglePause:a=>this._togglePauseTask(t,e,a),openQr:a=>this._openQrForTask(t,e,i?.object.name||"",a),duplicateTask:()=>this._duplicateTask(t,e),moveTask:()=>this._moveTask(t,e),promptReset:()=>this._promptResetTask(t,e),promptPostpone:()=>this._promptPostponeTask(t,e),snoozeTask:()=>this._snoozeTask(t,e),printWorksheet:()=>this._printTaskWorksheet(t,e),deleteTask:()=>this._deleteTask(t,e),applySuggestion:a=>this._applySuggestion(t,e,a),reanalyze:()=>this._reanalyzeInterval(t,e),dismissSuggestion:()=>this._dismissSuggestion(t,e),openSeasonalOverrides:a=>this._openSeasonalOverrides(a)}}async _fetchFullHistory(t,e){try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/history",entry_id:t,task_id:e});this._selectedEntryId===t&&this._selectedTaskId===e&&(this._fullHistory={entryId:t,taskId:e,entries:i.history||[]})}catch{this._fullHistory=null}}_renderTaskDetail(){if(!this._selectedEntryId||!this._selectedTaskId)return h;let t=this._getTask(this._selectedEntryId,this._selectedTaskId);if(!t)return o`<p>Task not found.</p>`;let e=this._fullHistory,i=e&&e.entryId===this._selectedEntryId&&e.taskId===this._selectedTaskId&&e.entries.length>(t.history||[]).length?{...t,history:e.entries}:t;return o`<maintenance-task-detail-view
       .task=${i}
       .ctx=${this._taskDetailCtx()}
-    ></maintenance-task-detail-view>`}_openHistoryEdit(e){if(!this._selectedEntryId||!this._selectedTaskId)return;let t=this._getTask(this._selectedEntryId,this._selectedTaskId),i=Oi(this._selectedEntryId,this._selectedTaskId,e,t);this.shadowRoot?.querySelector("maintenance-history-edit-dialog")?.openEdit(i)}};w.styles=[at,Gi],g([E({attribute:!1})],w.prototype,"hass",2),g([E({type:Boolean,reflect:!0})],w.prototype,"narrow",2),g([E({type:Boolean,reflect:!0})],w.prototype,"tight",2),g([E({type:Boolean,reflect:!0})],w.prototype,"split",2),g([E({attribute:!1})],w.prototype,"panel",2),g([E({type:Boolean,reflect:!0})],w.prototype,"embedded",2),g([E({attribute:!1})],w.prototype,"presets",2),g([m()],w.prototype,"_objects",2),g([m()],w.prototype,"_stats",2),g([m()],w.prototype,"_view",2),g([m()],w.prototype,"_allParts",2),g([m()],w.prototype,"_selectedEntryId",2),g([m()],w.prototype,"_selectedTaskId",2),g([m()],w.prototype,"_selectedAreaId",2),g([m()],w.prototype,"_filterStatus",2),g([m()],w.prototype,"_filterUser",2),g([m()],w.prototype,"_filterLabel",2),g([m()],w.prototype,"_filterPriority",2),g([m()],w.prototype,"_savedViews",2),g([m()],w.prototype,"_activeViewId",2),g([m()],w.prototype,"_unsub",2),g([m()],w.prototype,"_chartRangeDays",2),g([m()],w.prototype,"_hideOutliers",2),g([m()],w.prototype,"_historyFilter",2),g([m()],w.prototype,"_budget",2),g([m()],w.prototype,"_groups",2),g([m()],w.prototype,"_detailStatsData",2),g([m()],w.prototype,"_miniStatsData",2),g([m()],w.prototype,"_features",2),g([m()],w.prototype,"_adminPanelUserIds",2),g([m()],w.prototype,"_operatorWriteEnabled",2),g([m()],w.prototype,"_defaultWarningDays",2),g([m()],w.prototype,"_rowActionStyle",2),g([m()],w.prototype,"_refsInLists",2),g([m()],w.prototype,"_partsCostMode",2),g([m()],w.prototype,"_rowActionNotice",2),g([m()],w.prototype,"_actionLoading",2),g([m()],w.prototype,"_moreMenuOpen",2),g([m()],w.prototype,"_objMenuOpen",2),g([m()],w.prototype,"_toastMessage",2),g([m()],w.prototype,"_toastKind",2),g([m()],w.prototype,"_toastUndo",2),g([m()],w.prototype,"_toastActionLabel",2),g([m()],w.prototype,"_filtersOpen",2),g([m()],w.prototype,"_newMenuOpen",2),g([m()],w.prototype,"_gsSetupsCount",2),g([m()],w.prototype,"_gsAdoptCount",2),g([m()],w.prototype,"_resetOffersCount",2),g([m()],w.prototype,"_batteryFleetSetupAvailable",2),g([m()],w.prototype,"_staleBundle",2),g([m()],w.prototype,"_overviewTab",2),g([m()],w.prototype,"_activeTab",2),g([m()],w.prototype,"_costDurationToggle",2),g([m()],w.prototype,"_historySearch",2),g([m()],w.prototype,"_sortMode",2),g([m()],w.prototype,"_objectSortMode",2),g([m()],w.prototype,"_groupByMode",2),g([m()],w.prototype,"_objectViewMode",2),g([m()],w.prototype,"_objectsTableColumns",2),g([m()],w.prototype,"_showArchived",2),g([m()],w.prototype,"_bulkMode",2),g([m()],w.prototype,"_bulkSelected",2),g([m()],w.prototype,"_objBulkMode",2),g([m()],w.prototype,"_objBulkSelected",2),g([m()],w.prototype,"_bulkMenuOpen",2),g([m()],w.prototype,"_virtStart",2),g([m()],w.prototype,"_virtEnd",2),g([m()],w.prototype,"_collapsedGroups",2),g([m()],w.prototype,"_collapsedSections",2),g([m()],w.prototype,"_objectSectionsCollapsed",2),g([m()],w.prototype,"_objectSectionOverride",2),g([m()],w.prototype,"_paletteOpen",2),g([m()],w.prototype,"_paletteQuery",2),g([m()],w.prototype,"_paletteActive",2),g([m()],w.prototype,"_searchRemote",2),g([m()],w.prototype,"_templateGalleryOpen",2),g([m()],w.prototype,"_templates",2),g([m()],w.prototype,"_homeProfile",2),g([m()],w.prototype,"_templateCategories",2),g([m()],w.prototype,"_templateBusy",2),g([m()],w.prototype,"_fullHistory",2),w=g([Wt("maintenance-supporter-panel")],w);export{w as MaintenanceSupporterPanel};
+    ></maintenance-task-detail-view>`}_openHistoryEdit(t){if(!this._selectedEntryId||!this._selectedTaskId)return;let e=this._getTask(this._selectedEntryId,this._selectedTaskId),i=Ai(this._selectedEntryId,this._selectedTaskId,t,e);this.shadowRoot?.querySelector("maintenance-history-edit-dialog")?.openEdit(i)}};k.styles=[oe,Zi],_([E({attribute:!1})],k.prototype,"hass",2),_([E({type:Boolean,reflect:!0})],k.prototype,"narrow",2),_([E({type:Boolean,reflect:!0})],k.prototype,"tight",2),_([E({type:Boolean,reflect:!0})],k.prototype,"split",2),_([E({attribute:!1})],k.prototype,"panel",2),_([E({type:Boolean,reflect:!0})],k.prototype,"embedded",2),_([E({attribute:!1})],k.prototype,"presets",2),_([f()],k.prototype,"_objects",2),_([f()],k.prototype,"_stats",2),_([f()],k.prototype,"_view",2),_([f()],k.prototype,"_allParts",2),_([f()],k.prototype,"_selectedEntryId",2),_([f()],k.prototype,"_selectedTaskId",2),_([f()],k.prototype,"_selectedAreaId",2),_([f()],k.prototype,"_filterStatus",2),_([f()],k.prototype,"_filterUser",2),_([f()],k.prototype,"_filterLabel",2),_([f()],k.prototype,"_filterPriority",2),_([f()],k.prototype,"_savedViews",2),_([f()],k.prototype,"_activeViewId",2),_([f()],k.prototype,"_unsub",2),_([f()],k.prototype,"_chartRangeDays",2),_([f()],k.prototype,"_hideOutliers",2),_([f()],k.prototype,"_historyFilter",2),_([f()],k.prototype,"_budget",2),_([f()],k.prototype,"_groups",2),_([f()],k.prototype,"_detailStatsData",2),_([f()],k.prototype,"_miniStatsData",2),_([f()],k.prototype,"_features",2),_([f()],k.prototype,"_adminPanelUserIds",2),_([f()],k.prototype,"_operatorWriteEnabled",2),_([f()],k.prototype,"_defaultWarningDays",2),_([f()],k.prototype,"_rowActionStyle",2),_([f()],k.prototype,"_refsInLists",2),_([f()],k.prototype,"_partsCostMode",2),_([f()],k.prototype,"_rowActionNotice",2),_([f()],k.prototype,"_actionLoading",2),_([f()],k.prototype,"_moreMenuOpen",2),_([f()],k.prototype,"_objMenuOpen",2),_([f()],k.prototype,"_toastMessage",2),_([f()],k.prototype,"_toastKind",2),_([f()],k.prototype,"_toastUndo",2),_([f()],k.prototype,"_toastActionLabel",2),_([f()],k.prototype,"_filtersOpen",2),_([f()],k.prototype,"_newMenuOpen",2),_([f()],k.prototype,"_gsSetupsCount",2),_([f()],k.prototype,"_gsAdoptCount",2),_([f()],k.prototype,"_resetOffersCount",2),_([f()],k.prototype,"_batteryFleetSetupAvailable",2),_([f()],k.prototype,"_staleBundle",2),_([f()],k.prototype,"_overviewTab",2),_([f()],k.prototype,"_activeTab",2),_([f()],k.prototype,"_costDurationToggle",2),_([f()],k.prototype,"_historySearch",2),_([f()],k.prototype,"_sortMode",2),_([f()],k.prototype,"_objectSortMode",2),_([f()],k.prototype,"_groupByMode",2),_([f()],k.prototype,"_objectViewMode",2),_([f()],k.prototype,"_objectsTableColumns",2),_([f()],k.prototype,"_showArchived",2),_([f()],k.prototype,"_bulkMode",2),_([f()],k.prototype,"_bulkSelected",2),_([f()],k.prototype,"_objBulkMode",2),_([f()],k.prototype,"_objBulkSelected",2),_([f()],k.prototype,"_bulkMenuOpen",2),_([f()],k.prototype,"_virtStart",2),_([f()],k.prototype,"_virtEnd",2),_([f()],k.prototype,"_collapsedGroups",2),_([f()],k.prototype,"_collapsedSections",2),_([f()],k.prototype,"_objectSectionsCollapsed",2),_([f()],k.prototype,"_objectSectionOverride",2),_([f()],k.prototype,"_paletteOpen",2),_([f()],k.prototype,"_paletteQuery",2),_([f()],k.prototype,"_paletteActive",2),_([f()],k.prototype,"_searchRemote",2),_([f()],k.prototype,"_templateGalleryOpen",2),_([f()],k.prototype,"_templates",2),_([f()],k.prototype,"_homeProfile",2),_([f()],k.prototype,"_templateCategories",2),_([f()],k.prototype,"_templateBusy",2),_([f()],k.prototype,"_fullHistory",2),k=_([Je("maintenance-supporter-panel")],k);export{k as MaintenanceSupporterPanel};

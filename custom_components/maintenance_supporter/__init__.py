@@ -53,6 +53,7 @@ from .const import (
     CONF_BUDGET_YEARLY,
     CONF_GROUPS,
     CONF_INSTALL_ASSIST_SENTENCES,
+    CONF_NOTIFY_SERVICE,
     CONF_OBJECT,
     CONF_PANEL_ENABLED,
     CONF_SHOPPING_LIST_ENTITY,
@@ -1150,17 +1151,25 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
 
         from .helpers.entity_rename import rewrite_object, rewrite_store, rewrite_tasks
 
-        # v2.67: the global shopping-list target is an entity reference too.
+        # v2.67: the global shopping-list target is an entity reference too —
+        # and so is a notify ENTITY picked as the notification target (a
+        # renamed one used to leave notifications to a repair message; a
+        # legacy notify service is no entity and never renamed).
         gentry = get_global_entry(hass)
-        if gentry is not None and gentry.options.get(CONF_SHOPPING_LIST_ENTITY) == old_eid:
-            hass.config_entries.async_update_entry(
-                gentry, options={**gentry.options, CONF_SHOPPING_LIST_ENTITY: new_eid}
-            )
-            from .shopping_sync import SHOPPING_SYNC_KEY
+        if gentry is not None:
+            renamed = {
+                key: new_eid
+                for key in (CONF_SHOPPING_LIST_ENTITY, CONF_NOTIFY_SERVICE)
+                if gentry.options.get(key, gentry.data.get(key)) == old_eid
+            }
+            if renamed:
+                hass.config_entries.async_update_entry(gentry, options={**gentry.options, **renamed})
+            if CONF_SHOPPING_LIST_ENTITY in renamed:
+                from .shopping_sync import SHOPPING_SYNC_KEY
 
-            sync = hass.data.get(DOMAIN, {}).get(SHOPPING_SYNC_KEY)
-            if sync is not None:
-                await sync.async_handle_rename(old_eid, new_eid)
+                sync = hass.data.get(DOMAIN, {}).get(SHOPPING_SYNC_KEY)
+                if sync is not None:
+                    await sync.async_handle_rename(old_eid, new_eid)
 
         for ce in hass.config_entries.async_entries(DOMAIN):
             if ce.unique_id == GLOBAL_UNIQUE_ID:

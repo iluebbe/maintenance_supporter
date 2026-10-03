@@ -15,7 +15,9 @@ then direct signals (percent/countdown/resettable counter/event), then derived
 state entities) — a negative verdict only after all rungs.
 Matching uses the entity registry's ``translation_key`` (the stable id from the
 integration's EntityDescription, immune to renames) with an entity_id-suffix
-fallback for custom integrations that don't set one.
+fallback for custom integrations that don't set one — and, for those, the
+registry's ``original_name`` (the integration's own entity name), which a
+user's rename of the entity id leaves alone.
 
 Direction semantics:
 * ``duration_left``  — countdown to the next replacement (device_class
@@ -78,6 +80,7 @@ from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util import slugify
 
 # Hours a duration-countdown may still hold when the task should trigger.
 _DEFAULT_BELOW_HOURS = 24
@@ -256,7 +259,14 @@ def _entity_matches(entry: er.RegistryEntry, key: str, *, tk_authoritative: bool
     # Fourth pattern: integrations that name entities WITHOUT a device prefix
     # (bosch thermostat: ``sensor.system_pressure``) — exact object-id match.
     # Platform scoping keeps this from bleeding across integrations.
-    return entry.entity_id.split(".", 1)[1] == key
+    if entry.entity_id.split(".", 1)[1] == key:
+        return True
+    # Fifth: the integration's own name for the entity. The entity id was
+    # derived from it once, but the user may rename the id — ``original_name``
+    # stays the integration's word ('Filter Life' → filter_life), so a renamed
+    # sensor of an integration without translation keys is still recognised.
+    original = slugify(entry.original_name) if entry.original_name else ""
+    return bool(original) and (original == key or original.endswith(f"_{key}"))
 
 
 def _entity_unit(hass: HomeAssistant, entry: er.RegistryEntry) -> str | None:

@@ -1,8 +1,11 @@
 """Helpers for rewriting entity_id references when HA renames an entity.
 
 Used by the global ``EVENT_ENTITY_REGISTRY_UPDATED`` listener in ``__init__.py``
-to keep ``trigger_config["entity_id"|"entity_ids"]`` and
-``adaptive_config["environmental_entity"]`` in sync with the user's renames.
+to keep ``trigger_config["entity_id"|"entity_ids"]``,
+``adaptive_config["environmental_entity"]``, calendar schedules, to-do mirror
+targets, the completion action's target and the battery fleet's lists in sync
+with the user's renames (the listener itself rewrites the global shopping-list
+and notify-entity targets).
 
 Without this, ``async_track_state_change_event`` (which subscribes by literal
 entity_id) silently misses events on the new id — same dual-storage class of
@@ -101,7 +104,36 @@ def rewrite_task(task_data: dict[str, Any], old_id: str, new_id: str) -> tuple[d
         new_task["mirror_todo_entities"] = [new_id if e == old_id else e for e in mirrors]
         changed = True
 
+    # The completion action's target — above all the integration's reset
+    # button wired at adoption (2.95): a renamed button used to leave the
+    # counter running behind a repair message until someone re-picked it.
+    action = new_task.get("on_complete_action")
+    if isinstance(action, dict):
+        new_action, action_changed = _rewrite_action(action, old_id, new_id)
+        if action_changed:
+            new_task["on_complete_action"] = new_action
+            changed = True
+
     return new_task, changed
+
+
+def _rewrite_action(action: dict[str, Any], old_id: str, new_id: str) -> tuple[dict[str, Any], bool]:
+    """An action's ``target.entity_id`` and ``data.entity_id`` (a single id or
+    a list) with ``old_id`` replaced."""
+    new_action = dict(action)
+    changed = False
+    for part in ("target", "data"):
+        block = new_action.get(part)
+        if not isinstance(block, dict):
+            continue
+        eid = block.get("entity_id")
+        if eid == old_id:
+            new_action[part] = {**block, "entity_id": new_id}
+            changed = True
+        elif isinstance(eid, list) and old_id in eid:
+            new_action[part] = {**block, "entity_id": [new_id if e == old_id else e for e in eid]}
+            changed = True
+    return new_action, changed
 
 
 def rewrite_object(obj: dict[str, Any], old_id: str, new_id: str) -> tuple[dict[str, Any], bool]:

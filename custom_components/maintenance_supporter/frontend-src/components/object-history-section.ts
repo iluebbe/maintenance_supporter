@@ -30,7 +30,7 @@ import {
 import { openHtmlInNewTab, preopenTab, signDocumentPath } from "../helpers/document-url";
 import { objectRef, taskRef } from "../helpers/reference";
 import { historyNoteText } from "../helpers/history-note";
-import { docDisplayName } from "../helpers/document-categories";
+import { docDisplayName, isPhotoDocument } from "../helpers/document-categories";
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import "./ms-date-field";
 import type { HistoryEntry, HomeAssistant, MaintenanceObject, MaintenanceTask } from "../types";
@@ -210,7 +210,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
       // Completion photos are linked to their task too — they print as photos
       // under the entry, not as "linked documents" of the task.
       documents: docs
-        .filter((d) => (d.task_ids || []).includes(task.id) && !(d.tags || []).includes("photo"))
+        .filter((d) => (d.task_ids || []).includes(task.id) && !isPhotoDocument(d))
         .map((d) => ({ title: docDisplayName(d), page: d.task_pages?.[task.id] ?? null, description: (d as { description?: string }).description || null })),
       qrDataUri: qr.get(task.id) ?? null,
     }));

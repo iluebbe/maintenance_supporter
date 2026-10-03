@@ -43,6 +43,8 @@ export function canWrite(
 export const HOUSEHOLD_ACTIONS = [
   "task/complete",
   "task/quick_complete",
+  // Takes back the caller's OWN last completion only (one level, ten minutes).
+  "task/undo",
   "task/skip",
   "task/reset",
   "task/postpone",

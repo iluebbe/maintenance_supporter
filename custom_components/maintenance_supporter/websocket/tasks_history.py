@@ -307,9 +307,11 @@ async def ws_delete_history_entry(
     skip that means nothing on paper. The entry is identified by its
     timestamp (unique within a task's history); the task's last-performed
     anchor is re-derived from what remains, so removing the latest completion
-    moves the schedule back to the previous one. Photos stay in the object's
-    documents and consumed parts are not restocked — a bookkeeping
-    correction, not an undo."""
+    moves the schedule back to the previous one. The parts the entry used go
+    back to stock — the same per-part delta the history edit applies when its
+    parts are cleared (they used to stay deducted, the shelf too low after a
+    mistaken completion). Photos stay in the object's documents, and a buy
+    task's restock is not taken back."""
     ctx = _load_object_task(hass, connection, msg, need_store=True)
     if ctx is None:
         return
@@ -321,14 +323,27 @@ async def ws_delete_history_entry(
     if len(remaining) == len(history):
         connection.send_error(msg["id"], "not_found", f"No history entry with timestamp {msg['timestamp']!r}")
         return
+    removed = next(h for h in history if h.get("timestamp") == msg["timestamp"])
     store.set_history(task_id, remaining)
     # Nothing left to anchor the cycle on → the task reads as never performed
     # until its next completion (the static config's own last_performed, if
     # any, shows through the merge). A moved anchor drops a stale postpone.
     reanchor_from_history(store, task_id, remaining)
     _rewind_phase_cursor(store, task_id, _task, history, msg["timestamp"])
+    # Same synchronous step as the history write: the stock math runs before
+    # any await, the commit after (see the edit command above).
+    old_used = removed.get("used_parts") or []
+    parts_touched: list[Any] = []
+    if old_used:
+        from ..parts_runtime import apply_history_parts_edit
+
+        _kept, parts_touched = apply_history_parts_edit(hass, _entry, _task, old_used, [])
+    if parts_touched:
+        from ..parts_runtime import async_commit_parts_edit
+
+        await async_commit_parts_edit(hass, parts_touched)
     await async_commit_store(rd, budget=True)
-    connection.send_result(msg["id"], {"success": True, "remaining": len(remaining)})
+    connection.send_result(msg["id"], {"success": True, "remaining": len(remaining), "parts_returned": bool(parts_touched)})
 
 
 def _rewind_phase_cursor(store: Any, task_id: str, task: dict[str, Any], history: list[dict[str, Any]], timestamp: str) -> None:

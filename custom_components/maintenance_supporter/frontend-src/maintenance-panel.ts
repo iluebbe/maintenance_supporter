@@ -88,7 +88,8 @@ import "./components/parts-section";
 import "./components/object-history-section";
 import "./components/task-documents";
 import type { MaintenanceTaskDialog } from "./components/task-dialog";
-import type { MaintenanceCompleteDialog } from "./components/complete-dialog";
+import type { MaintenanceCompleteDialog, TaskCompletedDetail } from "./components/complete-dialog";
+import { undoCompletion } from "./helpers/undo-completion";
 import type { MaintenanceQrDialog } from "./components/qr-dialog";
 import type { MaintenanceAdoptProblemSensorsDialog } from "./components/adopt-problem-sensors-dialog";
 import "./components/battery-fleet-section";
@@ -2910,7 +2911,8 @@ export class MaintenanceSupporterPanel extends LitElement {
       }
       return;
     }
-    this._showToast(t("quick_complete_success", this._lang), "info");
+    if ((res as { undo?: boolean } | null)?.undo) this._offerUndo(entryId, taskId, t("quick_complete_success", this._lang));
+    else this._showToast(t("quick_complete_success", this._lang), "info");
     // Silent success: the list must reflect the completion right away — the
     // subscription delta may lag or be coalesced.
     try { await this._loadData(); } catch { /* subscription will sync */ }
@@ -3126,6 +3128,24 @@ export class MaintenanceSupporterPanel extends LitElement {
     try { await this._loadData(); } catch { /* subscription will sync */ }
   };
 
+  /** A completion from the complete dialog: refresh, and offer Undo when the
+   *  server remembered it for this person (helpers/undo-completion). */
+  private _onTaskCompleted = async (e: CustomEvent<TaskCompletedDetail>): Promise<void> => {
+    await this._onDialogEvent();
+    const d = e.detail;
+    if (d?.undo) this._offerUndo(d.entryId, d.taskId, t("task_completed_named", this._lang).replace("{task}", d.taskName));
+  };
+
+  private _offerUndo(entryId: string, taskId: string, message: string): void {
+    this._showUndoToast(message, () => void this._undoCompletion(entryId, taskId));
+  }
+
+  private async _undoCompletion(entryId: string, taskId: string): Promise<void> {
+    const res = await undoCompletion(this.hass, entryId, taskId, this._lang);
+    this._showToast(res.message, res.ok ? "info" : "error");
+    if (res.ok) await this._onDialogEvent();
+  }
+
   // --- Render ---
 
   render() {
@@ -3192,7 +3212,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       ></maintenance-task-dialog>
       <maintenance-complete-dialog
         .hass=${this.hass}
-        @task-completed=${this._onDialogEvent}
+        @task-completed=${this._onTaskCompleted}
       ></maintenance-complete-dialog>
       <maintenance-history-edit-dialog
         .hass=${this.hass}

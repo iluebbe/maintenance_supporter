@@ -33,3 +33,12 @@ export function docDisplayName(doc: { title?: string | null; filename?: string |
 export function docCategory(doc: { tags?: readonly string[] | null }): DocCategory {
   return ((doc.tags || []).find((x) => (CATEGORIES as readonly string[]).includes(x)) as DocCategory | undefined) ?? "other";
 }
+
+/** A photo — completion photos above all, which are linked to their task as
+ *  well. They are the record of a job, not something to work from, so the
+ *  places that list "the task's documents" leave them out: the service
+ *  booklet prints them under the history entry, the dashboard card's row
+ *  chips (one tap to the manual) skip them. */
+export function isPhotoDocument(doc: { tags?: readonly string[] | null }): boolean {
+  return (doc.tags || []).includes("photo");
+}

@@ -246,15 +246,20 @@ export class MaintenanceHistoryEditDialog extends LitElement {
 
   /** #170: remove the entry altogether (after a confirm). The backend
    *  re-anchors last_performed on what remains; photos stay in the object's
-   *  documents, consumed parts are not restocked. */
+   *  documents, and the parts the entry used go back to stock — the confirm
+   *  names them. */
   private async _delete(): Promise<void> {
     if (!this._draft || !this._originalSnapshot) return;
     const L = this._lang;
+    const used = (this._originalSnapshot.used_parts || []).filter((u) => u.quantity > 0);
+    const parts = used.map((u) => `${formatNumber(u.quantity, L)}× ${u.name || u.part_id}`).join(", ");
     // The confirm dialog, not the browser's native modal — this dialog is
     // also mounted on dashboards (DRY audit 2026-09-26).
     const confirmed = await confirmAction(this.hass, {
       title: t("history_delete_entry", L),
-      message: t("history_delete_confirm", L),
+      message: parts
+        ? `${t("history_delete_confirm_entry", L)} ${t("history_delete_returns_parts", L).replace("{parts}", parts)}`
+        : t("history_delete_confirm_entry", L),
       confirmText: t("delete", L),
       danger: true,
     });

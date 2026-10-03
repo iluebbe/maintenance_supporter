@@ -146,6 +146,9 @@ _EXPECTED_TIERS: dict[str, str] = {
     "maintenance_supporter/task/analyze_interval": "read",
     "maintenance_supporter/task/checklist_progress": "read",
     "maintenance_supporter/task/complete": "read",
+    # 2026-10: takes back the CALLER's own last completion (one level, ten
+    # minutes) — the same people who may complete may undo their own.
+    "maintenance_supporter/task/undo": "read",
     "maintenance_supporter/task/history": "read",
     "maintenance_supporter/task/list": "read",
     "maintenance_supporter/task/postpone": "read",

@@ -23,6 +23,15 @@ import { photoPickerStyles } from "./ms-photo-picker";
  *  One TS source (helpers/setting-ranges), pinned to Python. */
 const USED_QTY_RANGE = PART_QTY_RANGE;
 
+/** `task-completed`'s detail: which task, and whether the server remembered
+ *  the completion so the opener may offer Undo. */
+export interface TaskCompletedDetail {
+  entryId: string;
+  taskId: string;
+  taskName: string;
+  undo: boolean;
+}
+
 export class MaintenanceCompleteDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property() public entryId = "";
@@ -273,7 +282,15 @@ export class MaintenanceCompleteDialog extends LitElement {
     if (res === undefined) return;
     this._photos.markAttached(); // attached now — Cancel cleanup must not touch them
     this._open = false;
-    this.dispatchEvent(new CustomEvent("task-completed"));
+    // The opener offers Undo when the server remembered the completion for
+    // this person (task/undo, ten minutes, one level).
+    const detail: TaskCompletedDetail = {
+      entryId: this.entryId,
+      taskId: this.taskId,
+      taskName: this.taskName,
+      undo: (res as { undo?: boolean } | null)?.undo === true,
+    };
+    this.dispatchEvent(new CustomEvent<TaskCompletedDetail>("task-completed", { detail }));
   }
 
   /** #161 phase 2: one field per slot with the previous value as a hint;
