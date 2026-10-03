@@ -52,7 +52,7 @@ describe("completion notes over several lines (#202)", () => {
       return box.querySelector<HTMLElement>(".history-notes")!;
     };
     const twoLines = row(NOTE);
-    const oneLine = row(NOTE.replace("\n", " "));
+    const oneLine = row(NOTE.replace(/\n/g, " "));
     expect(twoLines.textContent).to.equal(NOTE);
     expect(getComputedStyle(twoLines).whiteSpace).to.equal("pre-wrap");
     expect(twoLines.offsetHeight, "two lines drawn, not one").to.be.greaterThan(oneLine.offsetHeight * 1.5);
