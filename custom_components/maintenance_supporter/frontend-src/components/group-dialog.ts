@@ -106,8 +106,10 @@ export class MaintenanceGroupDialog extends LitElement {
     const L = this._lang;
     const title = this._groupId ? t("edit_group", L) : t("new_group", L);
 
+    // Our own title element: Home Assistant's dialog draws no `heading`.
     return html`
-      <ha-dialog open @closed=${this._close} heading="${title}">
+      <ha-dialog open @closed=${this._close}>
+        <div class="dialog-title">${title}</div>
         <div class="content">
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
           <ms-textfield
@@ -169,6 +171,7 @@ export class MaintenanceGroupDialog extends LitElement {
   }
 
   static styles = css`
+    .dialog-title { font-size: 18px; font-weight: 500; padding-bottom: 12px; }
     .content {
       display: flex;
       flex-direction: column;

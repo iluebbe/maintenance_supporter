@@ -55,6 +55,7 @@
   "bulk_labels_add": "Dodaj etykiety",
   "bulk_labels_remove": "Usuń etykiety",
   "bulk_edit_hint": "Zmieniają się tylko zaznaczone ustawienia; wszystko inne pozostaje bez zmian.",
+  "bulk_no_notifications": "Bez powiadomień dla tych zadań",
   "bulk_updated": "Zaktualizowano {n} zadań",
   "bulk_paused": "Wstrzymano {n} zadań",
   "bulk_resumed": "Wznowiono {n} zadań",

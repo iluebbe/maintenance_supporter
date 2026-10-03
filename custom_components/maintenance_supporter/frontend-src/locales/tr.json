@@ -57,6 +57,7 @@
   "bulk_labels_add": "Etiket ekle",
   "bulk_labels_remove": "Etiketleri kaldır",
   "bulk_edit_hint": "Yalnızca işaretli ayarlar değişir; geri kalan her şey olduğu gibi kalır.",
+  "bulk_no_notifications": "Bu görevler için bildirim yok",
   "bulk_updated": "{n} görev güncellendi",
   "bulk_paused": "{n} görev duraklatıldı",
   "bulk_resumed": "{n} göreve devam edildi",

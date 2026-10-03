@@ -47,6 +47,9 @@ describe("bulk edit dialog (D#199)", () => {
     const el = await dialog();
     const pending = el.open("assign", rows([[]]), USERS as never[]);
     await el.updateComplete;
+    // Our own title: Home Assistant's dialog draws no `heading` (the live
+    // docs shot came out without one).
+    expect(q(el, ".dialog-title").textContent!.trim()).to.equal("Assign");
     const select = q<HTMLSelectElement>(el, "select.person");
     expect([...select.options].map((o) => o.textContent?.trim())).to.deep.equal(["Unassigned", "Alice", "Bob"]);
     select.value = "u_alice";
@@ -89,6 +92,9 @@ describe("bulk edit dialog (D#199)", () => {
     const el = await dialog();
     const pending = el.open("edit", rows([[]]), []);
     await el.updateComplete;
+    expect(q(el, ".dialog-title").textContent!.trim()).to.equal("Edit");
+    // Several tasks: the reminders row speaks in the plural.
+    expect(el.shadowRoot!.textContent).to.include("No notifications for these tasks");
     expect(el.changes()).to.equal(null);
     expect(q<HTMLElement & { disabled: boolean }>(el, "ha-button.apply").disabled).to.equal(true);
     q<HTMLInputElement>(el, "input.set-warning").click();

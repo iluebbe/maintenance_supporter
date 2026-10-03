@@ -57,6 +57,7 @@
   "bulk_labels_add": "ラベルを追加",
   "bulk_labels_remove": "ラベルを削除",
   "bulk_edit_hint": "チェックした設定だけが変わり、それ以外はそのままです。",
+  "bulk_no_notifications": "これらのタスクは通知しない",
   "bulk_updated": "{n} 件のタスクを更新しました",
   "bulk_paused": "{n} 件のタスクを一時停止しました",
   "bulk_resumed": "{n} 件のタスクを再開しました",

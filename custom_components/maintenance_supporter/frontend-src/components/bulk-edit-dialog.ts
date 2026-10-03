@@ -193,7 +193,7 @@ export class MaintenanceBulkEditDialog extends LitElement {
       </div>
       <div class="row edit-row">
         <input type="checkbox" class="set-mute" .checked=${this._setMute} @change=${(e: Event) => (this._setMute = (e.target as HTMLInputElement).checked)} />
-        <span class="grow">${t("no_notifications", L)}</span>
+        <span class="grow">${t("bulk_no_notifications", L)}</span>
         <input type="checkbox" class="mute" .checked=${this._mute} ?disabled=${!this._setMute} @change=${(e: Event) => (this._mute = (e.target as HTMLInputElement).checked)} />
       </div>
     `;
@@ -204,8 +204,11 @@ export class MaintenanceBulkEditDialog extends LitElement {
     const L = this._lang;
     const heading = this._mode === "assign" ? t("bulk_assign", L) : this._mode === "labels" ? t("labels", L) : t("edit", L);
     const ready = this.changes() !== null;
+    // The title is our own element: Home Assistant's dialog draws no
+    // `heading` (the other dialogs here render theirs the same way).
     return html`
-      <ha-dialog open heading=${heading} @closed=${() => this._finish(null)}>
+      <ha-dialog open @closed=${() => this._finish(null)}>
+        <div class="dialog-title">${heading}</div>
         <div class="content">
           <div class="count">${t("bulk_n_selected", L).replace("{n}", String(this._count))}</div>
           ${this._mode === "assign" ? this._renderAssign(L) : this._mode === "labels" ? this._renderLabels(L) : this._renderEdit(L)}
@@ -219,6 +222,7 @@ export class MaintenanceBulkEditDialog extends LitElement {
   }
 
   static styles = css`
+    .dialog-title { font-size: 18px; font-weight: 500; padding-bottom: 12px; }
     .content {
       display: flex;
       flex-direction: column;

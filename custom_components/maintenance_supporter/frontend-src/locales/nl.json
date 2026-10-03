@@ -55,6 +55,7 @@
   "bulk_labels_add": "Labels toevoegen",
   "bulk_labels_remove": "Labels verwijderen",
   "bulk_edit_hint": "Alleen de aangevinkte instellingen veranderen; al het andere blijft zoals het is.",
+  "bulk_no_notifications": "Geen notificaties voor deze taken",
   "bulk_updated": "{n} taken bijgewerkt",
   "bulk_paused": "{n} taken gepauzeerd",
   "bulk_resumed": "{n} taken hervat",

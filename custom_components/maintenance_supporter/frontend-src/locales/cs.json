@@ -55,6 +55,7 @@
   "bulk_labels_add": "Přidat štítky",
   "bulk_labels_remove": "Odebrat štítky",
   "bulk_edit_hint": "Změní se jen zaškrtnutá nastavení, vše ostatní zůstane beze změny.",
+  "bulk_no_notifications": "Bez oznámení pro tyto úkoly",
   "bulk_updated": "Aktualizováno {n} úkolů",
   "bulk_paused": "Pozastaveno {n} úkolů",
   "bulk_resumed": "Obnoveno {n} úkolů",

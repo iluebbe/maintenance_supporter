@@ -100,8 +100,10 @@ export class SeasonalOverridesDialog extends LitElement {
   render() {
     if (!this._open) return html``;
     const L = this._lang;
+    // Our own title element: Home Assistant's dialog draws no `heading`.
     return html`
-      <ha-dialog open @closed=${this._close} heading="${t("seasonal_overrides_title", L)}">
+      <ha-dialog open @closed=${this._close}>
+        <div class="dialog-title">${t("seasonal_overrides_title", L)}</div>
         <div class="content">
           <p class="hint">${t("seasonal_overrides_hint", L)}</p>
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
@@ -138,6 +140,7 @@ export class SeasonalOverridesDialog extends LitElement {
   }
 
   static styles = css`
+    .dialog-title { font-size: 18px; font-weight: 500; padding-bottom: 12px; }
     .content {
       min-width: 320px;
       max-width: 480px;

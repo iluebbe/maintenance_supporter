@@ -57,6 +57,7 @@
   "bulk_labels_add": "लेबल जोड़ें",
   "bulk_labels_remove": "लेबल हटाएँ",
   "bulk_edit_hint": "केवल चुनी गई सेटिंग्स बदलती हैं; बाकी सब वैसा ही रहता है।",
+  "bulk_no_notifications": "इन कार्यों के लिए कोई सूचना नहीं",
   "bulk_updated": "{n} कार्य अपडेट किए गए",
   "bulk_paused": "{n} कार्य रोके गए",
   "bulk_resumed": "{n} कार्य फिर से शुरू किए गए",

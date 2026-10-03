@@ -57,6 +57,7 @@
   "bulk_labels_add": "Címkék hozzáadása",
   "bulk_labels_remove": "Címkék eltávolítása",
   "bulk_edit_hint": "Csak a bejelölt beállítások változnak, minden más marad.",
+  "bulk_no_notifications": "Nincs értesítés ezekhez a feladatokhoz",
   "bulk_updated": "{n} feladat frissítve",
   "bulk_paused": "{n} feladat szüneteltetve",
   "bulk_resumed": "{n} feladat folytatva",

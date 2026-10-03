@@ -57,6 +57,7 @@
   "bulk_labels_add": "Tilføj etiketter",
   "bulk_labels_remove": "Fjern etiketter",
   "bulk_edit_hint": "Kun de afkrydsede indstillinger ændres; alt andet forbliver som det er.",
+  "bulk_no_notifications": "Ingen notifikationer for disse opgaver",
   "bulk_updated": "{n} opgaver opdateret",
   "bulk_paused": "{n} opgaver sat på pause",
   "bulk_resumed": "{n} opgaver genoptaget",

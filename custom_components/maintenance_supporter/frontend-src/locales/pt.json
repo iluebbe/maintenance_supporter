@@ -55,6 +55,7 @@
   "bulk_labels_add": "Adicionar etiquetas",
   "bulk_labels_remove": "Remover etiquetas",
   "bulk_edit_hint": "Só as definições assinaladas mudam; tudo o resto fica como está.",
+  "bulk_no_notifications": "Sem notificações para estas tarefas",
   "bulk_updated": "{n} tarefas atualizadas",
   "bulk_paused": "{n} tarefas pausadas",
   "bulk_resumed": "{n} tarefas retomadas",
