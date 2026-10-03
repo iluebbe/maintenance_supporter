@@ -13,6 +13,13 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **The battery list fits a phone and a dashboard column** (discussion #162): every row of *All tracked batteries*
+  shares the list's columns, so one long battery type widened all of them, and the gaps of the columns a phone leaves
+  empty added up — on most phones the status badges and the hide button ran past the card. On a desktop dashboard the
+  battery fleet card, in a 400–500 px column, kept the one-line rows and cut off the badge, the date and the hide
+  button. The list now switches to its two-line rows by its own width instead of the screen's, an empty column costs
+  nothing there, and a long type ends in an ellipsis with the full text as a tooltip. Desktop pages look exactly as
+  before. The phone-width test now has long types, a rechargeable battery and the dashboard column.
 - **A detail the task demands no longer says "(optional)":** the complete dialog labelled a required note
   *Notes (optional)* next to the red star. Notes, cost, duration and photos drop the "(optional)" when the task
   demands them.

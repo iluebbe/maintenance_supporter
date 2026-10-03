@@ -5169,19 +5169,19 @@ ${h?`<div class="sub">${h}</div>`:""}
       @click=${()=>this._recordJump(e.entity_id,i)}
     >
       <ha-icon icon="mdi:calendar-sync"></ha-icon>
-    </button>`}_renderRow(e,t,i){let a=e.available===!1?l`<span class="bf-offline">${n("battery_fleet_offline",t)}</span>`:e.no_sensor?l`<span class="bf-offline bf-nosensor">${n("battery_fleet_no_sensor",t)}</span>`:p,o=l`<span class="bf-type">${e.quantity}× ${e.battery_type}</span>`,d=this._canWrite,h=d&&(i.mark==="always"||e.no_sensor||e.can_mark_replaced);return l`
+    </button>`}_renderRow(e,t,i){let a=e.available===!1?l`<span class="bf-offline">${n("battery_fleet_offline",t)}</span>`:e.no_sensor?l`<span class="bf-offline bf-nosensor">${n("battery_fleet_no_sensor",t)}</span>`:p,o=`${e.quantity}\xD7 ${e.battery_type}`,d=l`<span class="bf-type" title=${o}>${o}</span>`,h=this._canWrite,_=h&&(i.mark==="always"||e.no_sensor||e.can_mark_replaced);return l`
       <div class="bf-row">
         <span class="bf-dev">${e.device_name}</span>
         ${i.status?l`<span class="bf-status bf-${e.status}"
                 >${e.no_sensor&&e.status==="low"?n("battery_fleet_status_due",t):n("battery_fleet_status_"+e.status,t)}</span
-              >${o}${a}`:l`${a}${o}`}
+              >${d}${a}`:l`${a}${d}`}
         ${i.recharge&&e.rechargeable?l`<span class="bf-recharge" title=${n("battery_fleet_rechargeable",t)}
               ><ha-icon icon="mdi:battery-charging-outline"></ha-icon
             ></span>`:p}
         ${i.sparkline?this._sparkline(e):p}
         ${this._levelBar(e)}
         ${e.level!=null?l`<span class="bf-level">${e.level}%</span>`:p}
-        ${h?l`<button
+        ${_?l`<button
               class="bf-mark${i.mark==="replaced"?" bf-replaced":""}"
               title=${e.rechargeable?n("battery_fleet_mark_recharged",t):n("battery_fleet_mark_one",t)}
               .disabled=${this._marking}
@@ -5189,13 +5189,13 @@ ${h?`<div class="sub">${h}</div>`:""}
             >
               <ha-icon icon="mdi:battery-sync"></ha-icon>
             </button>`:p}
-        ${i.jump&&d?this._jumpButton(e,t):p}
+        ${i.jump&&h?this._jumpButton(e,t):p}
         ${i.predicted&&e.days_until!=null?l`<span
               class="bf-predicted ${e.predicted_source==="trend"?"bf-trend":""} ${e.forecast_overdue?"bf-overdue":""}"
               title=${this._predictedTitle(e,t)}
               >${e.forecast_overdue?l`<ha-icon icon="mdi:calendar-alert"></ha-icon>`:p}~${this._predictedDate(e.days_until)}</span
             >`:p}
-        ${i.exclude&&d?l`<button
+        ${i.exclude&&h?l`<button
               class="bf-mark bf-exclude"
               title=${n("battery_fleet_exclude",t)}
               .disabled=${this._marking}
@@ -5325,7 +5325,10 @@ ${h?`<div class="sub">${h}</div>`:""}
               </div>
             `:p}
     `}};z.styles=$`
+    /* The query container of the row layout (see "In a narrow list" below):
+     * the list's own width, not the screen's. */
     .bf-card {
+      container: bf-fleet / inline-size;
       background: var(--card-background-color, #fff);
       border: 1px solid var(--divider-color);
       border-radius: 10px;
@@ -5483,9 +5486,16 @@ ${h?`<div class="sub">${h}</div>`:""}
       font-size: 12px;
       font-style: italic;
     }
+    /* Every row shares the list's columns, so ONE long type ("1× BATTERY
+     * PACK") widened the type column of all of them (D#162): it stops at
+     * 12em and ends in an ellipsis, the full text is the tooltip. */
     .bf-type {
       color: var(--secondary-text-color);
       font-size: 13px;
+      max-width: 12em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .bf-recharge {
       color: var(--secondary-text-color);
@@ -5501,17 +5511,36 @@ ${h?`<div class="sub">${h}</div>`:""}
       flex: 0 0 auto;
       cursor: help;
     }
-    /* On phones the row cannot fit name + chips + curve + bar + date in ONE
-     * line: the decorations yield (the percentage still carries the number)
-     * and the row wraps to two lines - the name spans the full width, the
-     * status chip moves under it (left, into the name column) and the rest
-     * keeps its pinned subgrid column, so type / percentage / date / eye
-     * stay aligned across rows. Without this the fixed max-content columns
-     * overflowed 400 px and the chips overlapped the wrapped names. */
-    @media (max-width: 640px) {
+    /* In a narrow list the row cannot fit name + chips + curve + bar + date
+     * in ONE line: the decorations yield (the percentage still carries the
+     * number) and the row wraps to two lines - the name spans the full
+     * width, the status chip moves under it (left, into the name column)
+     * and the rest keeps its pinned subgrid column, so type / percentage /
+     * date / eye stay aligned across rows. Without this the fixed
+     * max-content columns overflowed 400 px and the chips overlapped the
+     * wrapped names.
+     *
+     * The LIST's width decides, not the screen's (D#162): the Lovelace card
+     * sits in a dashboard column of 400-500 px on a wide screen, kept the
+     * one-line layout there and cut off the badge, the date and the hide
+     * button. 680 px of list is where the one-line rows stop fitting;
+     * desktop task pages (700 px and more) keep them. */
+    @container bf-fleet (max-width: 680px) {
       .bf-spark,
       .bf-bar {
         display: none;
+      }
+      /* No fixed gaps: a column a phone leaves empty (status chip moved,
+       * curve and bar hidden) cost its 8 px gap all the same, and together
+       * with one long type the rows ran 25 px past a 402 px phone. Each
+       * occupied column brings its own 6 px instead, and the type column
+       * may shrink - its text ends in an ellipsis. */
+      .bf-rows {
+        column-gap: 0;
+        grid-template-columns: minmax(0, 1fr) max-content minmax(0, max-content) repeat(7, max-content);
+      }
+      .bf-row > :not(.bf-dev) {
+        margin-inline-start: 6px;
       }
       .bf-row {
         row-gap: 2px;
@@ -5530,12 +5559,10 @@ ${h?`<div class="sub">${h}</div>`:""}
         grid-row: 1;
         justify-self: end;
       }
+      /* The column shrinks, the ellipsis comes from the base rule (a cap in
+       * vw measured the screen, not the list). */
       .bf-type {
         grid-row: 2;
-        max-width: 44vw;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
       }
       .bf-recharge,
       .bf-level,

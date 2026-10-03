@@ -444,7 +444,9 @@ export class MaintenanceBatteryFleetSection extends LitElement {
         : b.no_sensor
           ? html`<span class="bf-offline bf-nosensor">${t("battery_fleet_no_sensor", L)}</span>`
           : nothing;
-    const type = html`<span class="bf-type">${b.quantity}× ${b.battery_type}</span>`;
+    // The full type as a tooltip: a long one ends in an ellipsis (D#162).
+    const typeText = `${b.quantity}× ${b.battery_type}`;
+    const type = html`<span class="bf-type" title=${typeText}>${typeText}</span>`;
     const writer = this._canWrite;
     const showMark = writer && (o.mark === "always" || b.no_sensor || b.can_mark_replaced);
     return html`
@@ -659,7 +661,10 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   }
 
   static styles = css`
+    /* The query container of the row layout (see "In a narrow list" below):
+     * the list's own width, not the screen's. */
     .bf-card {
+      container: bf-fleet / inline-size;
       background: var(--card-background-color, #fff);
       border: 1px solid var(--divider-color);
       border-radius: 10px;
@@ -817,9 +822,16 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       font-size: 12px;
       font-style: italic;
     }
+    /* Every row shares the list's columns, so ONE long type ("1× BATTERY
+     * PACK") widened the type column of all of them (D#162): it stops at
+     * 12em and ends in an ellipsis, the full text is the tooltip. */
     .bf-type {
       color: var(--secondary-text-color);
       font-size: 13px;
+      max-width: 12em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .bf-recharge {
       color: var(--secondary-text-color);
@@ -835,17 +847,36 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       flex: 0 0 auto;
       cursor: help;
     }
-    /* On phones the row cannot fit name + chips + curve + bar + date in ONE
-     * line: the decorations yield (the percentage still carries the number)
-     * and the row wraps to two lines - the name spans the full width, the
-     * status chip moves under it (left, into the name column) and the rest
-     * keeps its pinned subgrid column, so type / percentage / date / eye
-     * stay aligned across rows. Without this the fixed max-content columns
-     * overflowed 400 px and the chips overlapped the wrapped names. */
-    @media (max-width: 640px) {
+    /* In a narrow list the row cannot fit name + chips + curve + bar + date
+     * in ONE line: the decorations yield (the percentage still carries the
+     * number) and the row wraps to two lines - the name spans the full
+     * width, the status chip moves under it (left, into the name column)
+     * and the rest keeps its pinned subgrid column, so type / percentage /
+     * date / eye stay aligned across rows. Without this the fixed
+     * max-content columns overflowed 400 px and the chips overlapped the
+     * wrapped names.
+     *
+     * The LIST's width decides, not the screen's (D#162): the Lovelace card
+     * sits in a dashboard column of 400-500 px on a wide screen, kept the
+     * one-line layout there and cut off the badge, the date and the hide
+     * button. 680 px of list is where the one-line rows stop fitting;
+     * desktop task pages (700 px and more) keep them. */
+    @container bf-fleet (max-width: 680px) {
       .bf-spark,
       .bf-bar {
         display: none;
+      }
+      /* No fixed gaps: a column a phone leaves empty (status chip moved,
+       * curve and bar hidden) cost its 8 px gap all the same, and together
+       * with one long type the rows ran 25 px past a 402 px phone. Each
+       * occupied column brings its own 6 px instead, and the type column
+       * may shrink - its text ends in an ellipsis. */
+      .bf-rows {
+        column-gap: 0;
+        grid-template-columns: minmax(0, 1fr) max-content minmax(0, max-content) repeat(7, max-content);
+      }
+      .bf-row > :not(.bf-dev) {
+        margin-inline-start: 6px;
       }
       .bf-row {
         row-gap: 2px;
@@ -864,12 +895,10 @@ export class MaintenanceBatteryFleetSection extends LitElement {
         grid-row: 1;
         justify-self: end;
       }
+      /* The column shrinks, the ellipsis comes from the base rule (a cap in
+       * vw measured the screen, not the list). */
       .bf-type {
         grid-row: 2;
-        max-width: 44vw;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
       }
       .bf-recharge,
       .bf-level,

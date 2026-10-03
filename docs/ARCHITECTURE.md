@@ -292,7 +292,7 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (43,347 lines)  128 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+├── frontend-src/               (43,376 lines)  128 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
 │   ├── maintenance-panel.ts     (5,237 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,263 lines)  Auto-generated dashboard strategy + 4 section strategies
@@ -394,7 +394,7 @@ custom_components/maintenance_supporter/
 │   │   ├── sparkline.ts           (513 lines)  Trigger section renderer (task detail)
 │   │   ├── status.ts               (62 lines)  A task's status as the user sees it — THE derivation for every surface
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
-│   ├── components/             (19,624 lines)  37 files — Lit elements: dialogs, sections, views, cards
+│   ├── components/             (19,653 lines)  37 files — Lit elements: dialogs, sections, views, cards
 │   │   ├── task-dialog.ts       (3,753 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
 │   │   ├── settings-view.ts     (2,778 lines)  In-panel global settings editor
 │   │   ├── task-quick-actions-dialog.ts (935 lines)  Task ⋮ menu
@@ -403,7 +403,7 @@ custom_components/maintenance_supporter/
 │   │   ├── complete-dialog.ts     (814 lines)  Mark task complete
 │   │   ├── qr-dialog.ts           (478 lines)  QR code generation
 │   │   ├── adopt-problem-sensors-dialog.ts (605 lines)  Adopt HA problem sensors
-│   │   ├── battery-fleet-section.ts (1,110 lines)  Task-detail battery-fleet section
+│   │   ├── battery-fleet-section.ts (1,139 lines)  Task-detail battery-fleet section
 │   │   ├── trigger-chart.ts       (389 lines)  Responsive sensor-history chart of the task detail
 │   │   ├── storage-section-card.ts (380 lines)  Document-storage overview card (panel overview)
 │   │   ├── task-documents.ts      (346 lines)  Documents linked to a task — or (v2.26) to a spare part
@@ -432,7 +432,7 @@ custom_components/maintenance_supporter/
 │   │   ├── required-completion-labels.ts (27 lines)  Labels of the details a task can demand on completion (mirror of helpers/completion_requirements.py)
 │   │   ├── bulk-edit-dialog.ts    (266 lines)  Several tasks changed at once (discussion #199): who is assigned, their labels, and the few settings that make sense in bulk
 │   │   └── ms-cost-input.ts       (109 lines)  A cost that may be a credit (#200): a Cost | Credit switch and the amount
-│   └── __tests__/              (25,883 lines)  192 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (25,979 lines)  192 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
 ├── helpers/                    (30,369 lines)  99 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,448 lines)  Multi-channel notification system
