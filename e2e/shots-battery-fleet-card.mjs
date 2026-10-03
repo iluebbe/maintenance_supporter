@@ -3,7 +3,10 @@
  *  Runs on the seeded ha-shots demo AFTER shots-remainder3.mjs (which seeds
  *  the Battery-Notes-shaped states this card renders). Creates a throwaway
  *  storage dashboard with just the card, shoots the CARD ELEMENT (not the
- *  page), writes docs/images/battery-fleet-card.png, deletes the dashboard.
+ *  page), writes docs/images/battery-fleet-card.png, then the same card in an
+ *  ordinary dashboard column (masonry view) as battery-fleet-card-column.png —
+ *  where the list takes two lines per battery (D#162) — and deletes the
+ *  dashboard.
  */
 import { chromium } from "@playwright/test";
 import { watchdog, wsClient, haLogin } from "./ws-client.mjs";
@@ -83,6 +86,51 @@ try {
   const handle = await p.evaluateHandle(() => window.__bfcCard);
   await handle.asElement().screenshot({ path: OUT + "battery-fleet-card.png" });
   log("SHOT battery-fleet-card.png");
+
+  // The same card in an ordinary dashboard column (masonry view): the list
+  // switches to two lines per battery by its own width (D#162).
+  await api.send({
+    type: "lovelace/config/save",
+    url_path: URL_PATH,
+    config: { views: [{ title: "BFC", cards: [{ type: "custom:maintenance-battery-fleet-card" }] }] },
+  });
+  await p.reload({ waitUntil: "domcontentloaded", timeout: 30000 });
+  let column = null;
+  for (let i = 0; i < 30 && !column; i++) {
+    await p.waitForTimeout(1000);
+    column = await p.evaluate(() => {
+      const deep = (pred) => { const st = [document.documentElement]; const o = []; let n = 0;
+        while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
+          if (pred(el)) o.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
+          for (const k of (el.children || [])) st.push(k); } return o; };
+      const card = deep((el) => el.tagName === "MAINTENANCE-BATTERY-FLEET-CARD")[0];
+      const sec = card && card.shadowRoot && card.shadowRoot.querySelector("maintenance-battery-fleet-section");
+      const sr = sec && sec.shadowRoot;
+      if (!sr || !sr.querySelector(".bf-head")) return null;
+      const roster = sr.querySelector("details.bf-roster");
+      if (roster && !roster.open) { roster.open = true; return null; }
+      const lists = [...sr.querySelectorAll(".bf-rows")];
+      const type = lists.length ? lists[lists.length - 1].querySelector(".bf-type") : null;
+      if (!type) return null;
+      let spill = 0;
+      for (const list of lists) {
+        const box = list.getBoundingClientRect();
+        for (const node of list.querySelectorAll(".bf-row *")) {
+          const r = node.getBoundingClientRect();
+          if (r.width > 0 && r.right > box.right + 1) spill += 1;
+        }
+      }
+      window.__bfcCard = card;
+      return { width: Math.round(card.getBoundingClientRect().width), twoLine: getComputedStyle(type).gridRowStart === "2", spill };
+    }).catch(() => null);
+  }
+  if (!column) throw new Error("card did not render in a column");
+  log("COLUMN", JSON.stringify(column));
+  if (!column.twoLine || column.spill) throw new Error("the column card is not the two-line list it should show");
+  await p.waitForTimeout(1500);
+  const colHandle = await p.evaluateHandle(() => window.__bfcCard);
+  await colHandle.asElement().screenshot({ path: OUT + "battery-fleet-card-column.png" });
+  log("SHOT battery-fleet-card-column.png");
   process.exitCode = 0;
 } catch (err) {
   console.error("ERROR:", err && (err.stack || err.message || err));

@@ -731,6 +731,14 @@ shows, so nothing needs templating over sensor attributes.
 
 ![Battery Fleet Card](images/battery-fleet-card.png)
 
+The list adapts to the space it gets (2.97.1+): in an ordinary dashboard
+column, as on a phone, each battery takes two lines — the name, the percentage
+and the status on the first, the type, the actions, the date and the hide
+button on the second. A long battery type ends in an ellipsis; the full type
+is its tooltip.
+
+![The card in a dashboard column](images/battery-fleet-card-column.png)
+
 **Typical battery lifetimes** (2.83+, D#162) — only batteries **without a percentage** use them: a Battery Notes note that has just a type and a last-replaced date, or a sensor that only reports *low*. Their due date is *last replaced + typical lifetime*; batteries that report a level get their forecast from the measured discharge instead. The table under *Settings → General → Typical battery lifetimes* lists your fleet's types first with the value in use and where it comes from: your own value (always wins), a value **learned from your own replacements** — first the device's own history (two intervals), then devices of the **same model** (manufacturer + model, three intervals pooled; never the type alone, a CR2032 in a door sensor says nothing about one in a thermostat) — the built-in table, or the 12-month default for an unknown type. The table speaks Battery Notes' type vocabulary (AA, CR2032, CR123A, LS14250, PP3 …) and folds aliases onto it (LR6 → AA, CR123 → CR123A) — since 2.84 the fleet rows, *Needed now/soon* and the fleet's spare parts fold the same way, and an alias part left over from earlier versions is merged into its canonical twin once at start-up (stock summed, links and history re-pointed). Every replacement the fleet sees — the roster's *Replaced* action, Battery Notes' own button or service, a corrected date — is logged, so the learning needs nothing from you. Battery Notes itself carries no lifetime data; *Manual*, *Irreplaceable* and *Solar* notes get no type forecast. The roster's ~date tooltip names the lifetime and its source.
 
 ```yaml
