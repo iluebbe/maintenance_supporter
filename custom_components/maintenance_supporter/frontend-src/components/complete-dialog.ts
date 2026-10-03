@@ -14,6 +14,7 @@ import { REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import { PhotoUploadController } from "../helpers/photo-upload-controller";
 import { parseDurationMinutes } from "../helpers/duration";
 import "./ms-date-field";
+import "./ms-textfield";
 import "./ms-photo-picker";
 import { photoPickerStyles } from "./ms-photo-picker";
 
@@ -484,12 +485,15 @@ export class MaintenanceCompleteDialog extends LitElement {
                need it) so the elements render with zero height and the user
                only sees the title + Cancel/Complete buttons — the original
                bug report. Native inputs always render. -->
-          <label class="field">
-            <span class="field-label">${t("notes_optional", L)}${this._req("notes")}</span>
-            <input type="text" class="field-input"
-              .value=${this._notes}
-              @input=${(e: Event) => (this._notes = (e.target as HTMLInputElement).value)} />
-          </label>
+          <ms-textfield
+            label=${t("notes_optional", L)}
+            multiline
+            .rows=${3}
+            .helper=${t("notes_markdown_hint", L)}
+            ?required=${this.requiredFields.includes("notes")}
+            .value=${this._notes}
+            @input=${(e: Event) => (this._notes = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>      
           <label class="field">
             <span class="field-label">${t("cost_optional", L)}${this._req("cost")}</span>
             <input type="number" step="0.01" min="0" class="field-input"
