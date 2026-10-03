@@ -225,7 +225,7 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext
             : nothing}
         </div>
         <div class="history-date">${formatDateTime(entry.timestamp, L)}</div>
-        ${entry.notes ? html`<div>${historyNoteText(entry.notes, L)}</div>` : nothing}
+        ${entry.notes ? html`<div class="history-notes">${historyNoteText(entry.notes, L)}</div>` : nothing}
         ${renderHistoryPhotos(ctx.hass, entry)}
         ${renderHistoryReadings(entry, ctx)}
         ${entry.cost != null || entry.duration != null || entry.trigger_value != null || partsCost != null

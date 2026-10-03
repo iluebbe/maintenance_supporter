@@ -305,7 +305,7 @@ ${done.map((e) => row(e, true)).join("\n")}
   td { border-bottom: 1px solid #e5e5e5; padding: 6px 8px; vertical-align: top; }
   td.num, th.num { text-align: right; white-space: nowrap; }
   td.nowrap { white-space: nowrap; }
-  td.notes { color: #444; }
+  td.notes { color: #444; white-space: pre-wrap; }
   tr.entry-details td { border-bottom: 1px solid #e5e5e5; padding-top: 0; }
   td.details-cell { padding-left: 28px; }
   tr.entry:has(+ tr.entry-details) td { border-bottom: none; }

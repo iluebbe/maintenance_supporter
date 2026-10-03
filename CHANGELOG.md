@@ -19,6 +19,10 @@ All notable changes to Maintenance Supporter are documented in this file.
   moves the selected objects to another area. A new command, `tasks/update_many`, writes and reloads each object once
   however many of its tasks change (the bar used to send one command per task) and returns the replaced values, so
   *Undo* puts back exactly what was there.
+- **Notes over several lines when completing a task** (#202, thanks @korova-sq): the notes field of the complete
+  dialog was a single line, so Enter did nothing and a longer note scrolled out of view. It is a text area now, for a
+  list of what was done, one line each. The task's history, the service booklet and the area report keep the line
+  breaks; they used to fold each one into a space, also for a note edited in the history.
 - **The THG quota in the Electric Car template** (discussion #85): in Germany an electric car's greenhouse-gas savings
   can be certified and sold once per calendar year; the template now reminds of it every 15 January, with a note on
   how. Templates can hold a duty that exists in one country only (`only_in`): it is part of the template there and

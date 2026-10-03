@@ -782,6 +782,10 @@ export const sharedStyles = css`
     color: var(--secondary-text-color);
   }
 
+  /* A note keeps its line breaks — what was done, one line each (#202) —
+     and a long link wraps instead of widening the card. */
+  .history-notes { white-space: pre-wrap; overflow-wrap: anywhere; }
+
   .history-details {
     display: flex;
     gap: 12px;
