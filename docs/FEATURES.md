@@ -160,7 +160,8 @@ documents.
 **Move a task to another object** (2.82+) — a task created on the wrong object: *⋮ → Move to another object…* in the task header. Config, history, readings, adaptive settings, trigger state (incl. counter baselines) and group memberships travel with it; it gets a new reference number under the target object — its completions are numbered afresh there too, so a booklet printed before the move names the old numbers — and its entities are recreated there. Documents stay with the object they were uploaded to.
 
 ### Complete Dialog
-Optional notes / cost / duration, an optional **Completed at** date for
+Optional notes (over several lines, 2.97+), cost (a credit too, 2.97+) and
+duration, an optional **Completed at** date for
 backfilling work that was done earlier (empty = now; see
 [Events](#events) for how backdated entries behave), and completion
 photos — take one with the camera or pick several from the gallery, up

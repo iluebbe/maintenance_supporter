@@ -53,7 +53,7 @@ describe("complete dialog — required details", () => {
     expect(el.shadowRoot!.querySelectorAll(".req-mark").length).to.equal(1);
     expect(completeButton(el).disabled).to.equal(true);
 
-    await setField(el, "input.field-input[type='text']", "descaled with citric acid");
+    await setField(el, "textarea.field-input", "descaled with citric acid");
     expect(completeButton(el).disabled).to.not.equal(true);
   });
 
@@ -61,7 +61,7 @@ describe("complete dialog — required details", () => {
     const el = await openDialog(["notes", "cost"]);
     expect(el.shadowRoot!.querySelectorAll(".req-mark").length).to.equal(2);
 
-    await setField(el, "input.field-input[type='text']", "done");
+    await setField(el, "textarea.field-input", "done");
     expect(completeButton(el).disabled, "cost is still missing").to.equal(true);
   });
 

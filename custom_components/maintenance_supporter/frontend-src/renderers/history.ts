@@ -224,8 +224,8 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext
               </button>`
             : nothing}
         </div>
-        <div class="history-date">${formatDateTime(entry.timestamp, L)}</div>        
-        ${entry.notes ? html`<div style="white-space:pre-wrap">${historyNoteText(entry.notes, L)}</div>` : nothing}        
+        <div class="history-date">${formatDateTime(entry.timestamp, L)}</div>
+        ${entry.notes ? html`<div class="history-notes">${historyNoteText(entry.notes, L)}</div>` : nothing}
         ${renderHistoryPhotos(ctx.hass, entry)}
         ${renderHistoryReadings(entry, ctx)}
         ${entry.cost != null || entry.duration != null || entry.trigger_value != null || partsCost != null

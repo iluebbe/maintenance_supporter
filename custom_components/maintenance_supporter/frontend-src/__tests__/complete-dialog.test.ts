@@ -136,6 +136,18 @@ describe("complete-dialog", () => {
     expect(msg.cost).to.equal(-150);
   });
 
+  it("notes may run over several lines (#202): a text area, sent trimmed, no Markdown promise", async () => {
+    const { el, sent } = await mount();
+    expect(el.shadowRoot!.querySelector("textarea.field-input"), "the notes field is a text area").to.exist;
+    // The history and the printouts show notes as plain text.
+    expect(el.shadowRoot!.textContent).not.to.include("Markdown");
+    setInput(el, 0, "Filter changed\nSeal checked\n");
+    clickComplete(el);
+    await new Promise((r) => setTimeout(r, 10));
+    const msg = sent.find((m) => m.type === "maintenance_supporter/task/complete")!;
+    expect(msg.notes, "the line break inside stays, the one at the end goes").to.equal("Filter changed\nSeal checked");
+  });
+
   /** The optional backdate starts as a "Set date & time" button (#163): the
    *  HA datetime selector has no empty state, so the field only appears once
    *  the user asks for it, seeded with the current minute. */

@@ -15,7 +15,6 @@ import { PhotoUploadController } from "../helpers/photo-upload-controller";
 import { parseDurationMinutes } from "../helpers/duration";
 import "./ms-date-field";
 import "./ms-cost-input";
-import "./ms-textfield";
 import "./ms-photo-picker";
 import { photoPickerStyles } from "./ms-photo-picker";
 
@@ -175,7 +174,10 @@ export class MaintenanceCompleteDialog extends LitElement {
       entry_id: this.entryId,
       task_id: this.taskId,
     };
-    if (this._notes) data.notes = this._notes;
+    // Trimmed like the required check reads it: a text area easily keeps a
+    // trailing line break, which the history would show as an empty line.
+    const notes = this._notes.trim();
+    if (notes) data.notes = notes;
     if (this._cost) {
       // #200: a credit is negative; the server holds the bounds.
       const cost = parseFloat(this._cost);
@@ -487,15 +489,15 @@ export class MaintenanceCompleteDialog extends LitElement {
                need it) so the elements render with zero height and the user
                only sees the title + Cancel/Complete buttons — the original
                bug report. Native inputs always render. -->
-          <ms-textfield
-            label=${t("notes_optional", L)}
-            multiline
-            .rows=${3}
-            .helper=${t("notes_markdown_hint", L)}
-            ?required=${this.requiredFields.includes("notes")}
-            .value=${this._notes}
-            @input=${(e: Event) => (this._notes = (e.target as HTMLInputElement).value)}
-          ></ms-textfield>      
+          <label class="field">
+            <span class="field-label">${t("notes_optional", L)}${this._req("notes")}</span>
+            <!-- Several lines (#202): what was done, one line each. The
+                 history and the printouts keep the line breaks; they show
+                 notes as plain text, so no Markdown hint here. -->
+            <textarea class="field-input notes-input" rows="3"
+              .value=${this._notes}
+              @input=${(e: Event) => (this._notes = (e.target as HTMLTextAreaElement).value)}></textarea>
+          </label>
           <div class="field">
             <span class="field-label">${t("cost_optional", L)}${this._req("cost")}</span>
             <ms-cost-input .lang=${L} .value=${this._cost}
@@ -587,6 +589,7 @@ export class MaintenanceCompleteDialog extends LitElement {
       margin-left: 2px;
       font-weight: 600;
     }
+    .notes-input { resize: vertical; line-height: 1.4; }
     /* #104: one-click cost suggestion from parts — quiet link-style chip. */
     .cost-note {
       font-size: 12px;

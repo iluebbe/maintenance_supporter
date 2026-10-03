@@ -143,7 +143,7 @@ export function buildAreaRecordHtml(
   td { border-bottom: 1px solid #e5e5e5; padding: 6px 8px; vertical-align: top; }
   td.num, th.num { text-align: right; white-space: nowrap; }
   td.nowrap { white-space: nowrap; }
-  td.notes { color: #444; }
+  td.notes { color: #444; white-space: pre-wrap; }
   td.bar-cell { width: 40%; vertical-align: middle; }
   .bar { display: block; height: 10px; background: #9aa7b8; border-radius: 0 3px 3px 0;
          -webkit-print-color-adjust: exact; print-color-adjust: exact; }
