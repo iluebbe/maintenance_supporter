@@ -125,7 +125,7 @@ import{d as H,e as L}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-3
           .value=${this._readingValues[e.id]??""}
           @input=${g=>{this._readingValues={...this._readingValues,[e.id]:g.target.value}}} />
         ${m?c`<span class="reading-warn">${n("reading_below_last",i).replace("{value}",h)}</span>`:f}
-      </label>`}get _missingRequired(){let e={notes:this._notes.trim()!=="",cost:this._cost.trim()!=="",duration:this._duration.trim()!=="",photo:this._photos.photos.length>0,user:!!this.hass?.user};return this.requiredFields.filter(i=>!e[i])}_req(e){return this.requiredFields.includes(e)?c`<span class="req-mark" aria-hidden="true">*</span>`:f}_purchaseSuggestion(){if(this.restockDefault===null)return null;let e=parseFloat(this._restockQty);return this.restockUnitCost==null||!Number.isFinite(e)||e<=0?null:Math.round(this.restockUnitCost*e*100)/100}_partsValue(){if(this.restockDefault!==null||!this.parts.length)return null;let e=0,i=!1;for(let t of Object.values(this._usedParts)){let r=this.parts.find(a=>E({part_id:a.id,entry_id:a.entry_id})===E(t)),s=C(r);s!==null&&(e+=s*(t.quantity||1),i=!0)}return i?Math.round(e*100)/100:null}_renderCostSuggestion(e){let i=this._purchaseSuggestion();if(this.restockDefault!==null){let a=this.partsCostMode==="use"?c`<div class="cost-note">${n("cost_purchase_use_hint",e)}</div>`:f;if(this._cost.trim()!==""||i==null||i<=0)return a;let u=A(i,this.currencySymbol,e);return c`<button
+      </label>`}get _missingRequired(){let e={notes:this._notes.trim()!=="",cost:this._cost.trim()!=="",duration:this._duration.trim()!=="",photo:this._photos.photos.length>0,user:!!this.hass?.user};return this.requiredFields.filter(i=>!e[i])}_demands(e){return this.requiredFields.includes(e)}_req(e){return this._demands(e)?c`<span class="req-mark" aria-hidden="true">*</span>`:f}_purchaseSuggestion(){if(this.restockDefault===null)return null;let e=parseFloat(this._restockQty);return this.restockUnitCost==null||!Number.isFinite(e)||e<=0?null:Math.round(this.restockUnitCost*e*100)/100}_partsValue(){if(this.restockDefault!==null||!this.parts.length)return null;let e=0,i=!1;for(let t of Object.values(this._usedParts)){let r=this.parts.find(a=>E({part_id:a.id,entry_id:a.entry_id})===E(t)),s=C(r);s!==null&&(e+=s*(t.quantity||1),i=!0)}return i?Math.round(e*100)/100:null}_renderCostSuggestion(e){let i=this._purchaseSuggestion();if(this.restockDefault!==null){let a=this.partsCostMode==="use"?c`<div class="cost-note">${n("cost_purchase_use_hint",e)}</div>`:f;if(this._cost.trim()!==""||i==null||i<=0)return a;let u=A(i,this.currencySymbol,e);return c`<button
           type="button"
           class="cost-suggestion"
           @click=${()=>this._cost=String(Math.round(i*100)/100)}
@@ -188,7 +188,7 @@ import{d as H,e as L}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-3
                only sees the title + Cancel/Complete buttons — the original
                bug report. Native inputs always render. -->
           <label class="field">
-            <span class="field-label">${n("notes_optional",e)}${this._req("notes")}</span>
+            <span class="field-label">${this._demands("notes")?n("notes_label",e):n("notes_optional",e)}${this._req("notes")}</span>
             <!-- Several lines (#202): what was done, one line each. The
                  history and the printouts keep the line breaks; they show
                  notes as plain text, so no Markdown hint here. -->
@@ -197,13 +197,13 @@ import{d as H,e as L}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-3
               @input=${t=>this._notes=t.target.value}></textarea>
           </label>
           <div class="field">
-            <span class="field-label">${n("cost_optional",e)}${this._req("cost")}</span>
+            <span class="field-label">${this._demands("cost")?n("cost",e):n("cost_optional",e)}${this._req("cost")}</span>
             <ms-cost-input .lang=${e} .value=${this._cost}
               @value-changed=${t=>this._cost=t.detail.value}></ms-cost-input>
             ${this._renderCostSuggestion(e)}
           </div>
           <label class="field">
-            <span class="field-label">${n("duration_minutes",e)}${this._req("duration")}</span>
+            <span class="field-label">${this._demands("duration")?n("quick_complete_defaults_duration",e):n("duration_minutes",e)}${this._req("duration")}</span>
             <input type="number" step="1" min="0" inputmode="numeric" class="field-input"
               .value=${this._duration}
               @input=${t=>this._duration=t.target.value} />
@@ -222,7 +222,7 @@ import{d as H,e as L}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-3
                 </button>`}
           </div>
           <div class="field">
-            <span class="field-label">${n("completion_photos_optional",e)}${this._req("photo")}</span>
+            <span class="field-label">${this._demands("photo")?n("completion_photos",e):n("completion_photos_optional",e)}${this._req("photo")}</span>
             ${this._photos.photos.length>0?c`<div class="photo-strip">
                   ${this._photos.photos.map(t=>c`
                     <div class="photo-preview">

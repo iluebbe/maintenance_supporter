@@ -11,6 +11,12 @@ All notable changes to Maintenance Supporter are documented in this file.
   empty and wash the dust bin, clean the main filter (with a day to dry), the pre-filter, cyclone and mesh, check the
   nozzles and the tube for blockages, and clean the charging contacts. The catalog has 96 templates.
 
+### 🐛 Fixed
+
+- **A detail the task demands no longer says "(optional)":** the complete dialog labelled a required note
+  *Notes (optional)* next to the red star. Notes, cost, duration and photos drop the "(optional)" when the task
+  demands them.
+
 ## [2.97.0] - 2026-10-03
 
 ### ✨ Added

@@ -70,4 +70,16 @@ describe("complete dialog — required details", () => {
     const marks = [...el.shadowRoot!.querySelectorAll(".req-mark")];
     expect(marks.length).to.equal(1);
   });
+
+  it("a demanded field drops the '(optional)' from its label; the others keep it", async () => {
+    // "Notes (optional) *" said both things at once (seen in the docs shots).
+    const el = await openDialog(["notes", "cost", "duration", "photo"]);
+    const labels = [...el.shadowRoot!.querySelectorAll(".field-label")].map((l) => (l.textContent || "").replace(/\s+/g, " ").trim());
+    expect(labels).to.include.members(["Notes*", "Cost*", "Duration (minutes)*", "Completion photos*"]);
+    expect(labels.filter((l) => l.includes("(optional")), "only the backdate stays optional").to.deep.equal(["Completed at (optional, empty = now)"]);
+
+    const free = await openDialog([]);
+    const freeLabels = [...free.shadowRoot!.querySelectorAll(".field-label")].map((l) => (l.textContent || "").trim());
+    expect(freeLabels).to.include.members(["Notes (optional)", "Cost (optional)", "Duration in minutes (optional)", "Completion photos (optional)"]);
+  });
 });

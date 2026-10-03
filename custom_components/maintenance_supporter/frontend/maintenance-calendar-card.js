@@ -3297,7 +3297,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           .value=${this._readingValues[e.id]??""}
           @input=${f=>{this._readingValues={...this._readingValues,[e.id]:f.target.value}}} />
         ${_?l`<span class="reading-warn">${n("reading_below_last",t).replace("{value}",m)}</span>`:h}
-      </label>`}get _missingRequired(){let e={notes:this._notes.trim()!=="",cost:this._cost.trim()!=="",duration:this._duration.trim()!=="",photo:this._photos.photos.length>0,user:!!this.hass?.user};return this.requiredFields.filter(t=>!e[t])}_req(e){return this.requiredFields.includes(e)?l`<span class="req-mark" aria-hidden="true">*</span>`:h}_purchaseSuggestion(){if(this.restockDefault===null)return null;let e=parseFloat(this._restockQty);return this.restockUnitCost==null||!Number.isFinite(e)||e<=0?null:Math.round(this.restockUnitCost*e*100)/100}_partsValue(){if(this.restockDefault!==null||!this.parts.length)return null;let e=0,t=!1;for(let i of Object.values(this._usedParts)){let a=this.parts.find(d=>re({part_id:d.id,entry_id:d.entry_id})===re(i)),o=Ir(a);o!==null&&(e+=o*(i.quantity||1),t=!0)}return t?Math.round(e*100)/100:null}_renderCostSuggestion(e){let t=this._purchaseSuggestion();if(this.restockDefault!==null){let d=this.partsCostMode==="use"?l`<div class="cost-note">${n("cost_purchase_use_hint",e)}</div>`:h;if(this._cost.trim()!==""||t==null||t<=0)return d;let u=Q(t,this.currencySymbol,e);return l`<button
+      </label>`}get _missingRequired(){let e={notes:this._notes.trim()!=="",cost:this._cost.trim()!=="",duration:this._duration.trim()!=="",photo:this._photos.photos.length>0,user:!!this.hass?.user};return this.requiredFields.filter(t=>!e[t])}_demands(e){return this.requiredFields.includes(e)}_req(e){return this._demands(e)?l`<span class="req-mark" aria-hidden="true">*</span>`:h}_purchaseSuggestion(){if(this.restockDefault===null)return null;let e=parseFloat(this._restockQty);return this.restockUnitCost==null||!Number.isFinite(e)||e<=0?null:Math.round(this.restockUnitCost*e*100)/100}_partsValue(){if(this.restockDefault!==null||!this.parts.length)return null;let e=0,t=!1;for(let i of Object.values(this._usedParts)){let a=this.parts.find(d=>re({part_id:d.id,entry_id:d.entry_id})===re(i)),o=Ir(a);o!==null&&(e+=o*(i.quantity||1),t=!0)}return t?Math.round(e*100)/100:null}_renderCostSuggestion(e){let t=this._purchaseSuggestion();if(this.restockDefault!==null){let d=this.partsCostMode==="use"?l`<div class="cost-note">${n("cost_purchase_use_hint",e)}</div>`:h;if(this._cost.trim()!==""||t==null||t<=0)return d;let u=Q(t,this.currencySymbol,e);return l`<button
           type="button"
           class="cost-suggestion"
           @click=${()=>this._cost=String(Math.round(t*100)/100)}
@@ -3360,7 +3360,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                only sees the title + Cancel/Complete buttons — the original
                bug report. Native inputs always render. -->
           <label class="field">
-            <span class="field-label">${n("notes_optional",e)}${this._req("notes")}</span>
+            <span class="field-label">${this._demands("notes")?n("notes_label",e):n("notes_optional",e)}${this._req("notes")}</span>
             <!-- Several lines (#202): what was done, one line each. The
                  history and the printouts keep the line breaks; they show
                  notes as plain text, so no Markdown hint here. -->
@@ -3369,13 +3369,13 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
               @input=${i=>this._notes=i.target.value}></textarea>
           </label>
           <div class="field">
-            <span class="field-label">${n("cost_optional",e)}${this._req("cost")}</span>
+            <span class="field-label">${this._demands("cost")?n("cost",e):n("cost_optional",e)}${this._req("cost")}</span>
             <ms-cost-input .lang=${e} .value=${this._cost}
               @value-changed=${i=>this._cost=i.detail.value}></ms-cost-input>
             ${this._renderCostSuggestion(e)}
           </div>
           <label class="field">
-            <span class="field-label">${n("duration_minutes",e)}${this._req("duration")}</span>
+            <span class="field-label">${this._demands("duration")?n("quick_complete_defaults_duration",e):n("duration_minutes",e)}${this._req("duration")}</span>
             <input type="number" step="1" min="0" inputmode="numeric" class="field-input"
               .value=${this._duration}
               @input=${i=>this._duration=i.target.value} />
@@ -3394,7 +3394,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                 </button>`}
           </div>
           <div class="field">
-            <span class="field-label">${n("completion_photos_optional",e)}${this._req("photo")}</span>
+            <span class="field-label">${this._demands("photo")?n("completion_photos",e):n("completion_photos_optional",e)}${this._req("photo")}</span>
             ${this._photos.photos.length>0?l`<div class="photo-strip">
                   ${this._photos.photos.map(i=>l`
                     <div class="photo-preview">

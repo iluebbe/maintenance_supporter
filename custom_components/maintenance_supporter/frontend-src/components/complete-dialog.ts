@@ -314,9 +314,15 @@ export class MaintenanceCompleteDialog extends LitElement {
     return this.requiredFields.filter((f) => !filled[f]);
   }
 
+  /** Does the task demand this detail? Its label then drops "(optional)" —
+   *  "Notes (optional) *" contradicted itself. */
+  private _demands(field: string): boolean {
+    return this.requiredFields.includes(field);
+  }
+
   /** Marker appended to a required field's label. */
   private _req(field: string) {
-    return this.requiredFields.includes(field) ? html`<span class="req-mark" aria-hidden="true">*</span>` : nothing;
+    return this._demands(field) ? html`<span class="req-mark" aria-hidden="true">*</span>` : nothing;
   }
 
   /** A buy task's price: restock qty (packages) × the part's price per
@@ -490,7 +496,7 @@ export class MaintenanceCompleteDialog extends LitElement {
                only sees the title + Cancel/Complete buttons — the original
                bug report. Native inputs always render. -->
           <label class="field">
-            <span class="field-label">${t("notes_optional", L)}${this._req("notes")}</span>
+            <span class="field-label">${this._demands("notes") ? t("notes_label", L) : t("notes_optional", L)}${this._req("notes")}</span>
             <!-- Several lines (#202): what was done, one line each. The
                  history and the printouts keep the line breaks; they show
                  notes as plain text, so no Markdown hint here. -->
@@ -499,13 +505,13 @@ export class MaintenanceCompleteDialog extends LitElement {
               @input=${(e: Event) => (this._notes = (e.target as HTMLTextAreaElement).value)}></textarea>
           </label>
           <div class="field">
-            <span class="field-label">${t("cost_optional", L)}${this._req("cost")}</span>
+            <span class="field-label">${this._demands("cost") ? t("cost", L) : t("cost_optional", L)}${this._req("cost")}</span>
             <ms-cost-input .lang=${L} .value=${this._cost}
               @value-changed=${(e: CustomEvent<{ value: string }>) => (this._cost = e.detail.value)}></ms-cost-input>
             ${this._renderCostSuggestion(L)}
           </div>
           <label class="field">
-            <span class="field-label">${t("duration_minutes", L)}${this._req("duration")}</span>
+            <span class="field-label">${this._demands("duration") ? t("quick_complete_defaults_duration", L) : t("duration_minutes", L)}${this._req("duration")}</span>
             <input type="number" step="1" min="0" inputmode="numeric" class="field-input"
               .value=${this._duration}
               @input=${(e: Event) => (this._duration = (e.target as HTMLInputElement).value)} />
@@ -526,7 +532,7 @@ export class MaintenanceCompleteDialog extends LitElement {
                 </button>`}
           </div>
           <div class="field">
-            <span class="field-label">${t("completion_photos_optional", L)}${this._req("photo")}</span>
+            <span class="field-label">${this._demands("photo") ? t("completion_photos", L) : t("completion_photos_optional", L)}${this._req("photo")}</span>
             ${this._photos.photos.length > 0
               ? html`<div class="photo-strip">
                   ${this._photos.photos.map((p) => html`
