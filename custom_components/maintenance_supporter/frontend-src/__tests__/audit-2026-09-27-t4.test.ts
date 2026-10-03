@@ -21,6 +21,7 @@ import type { MsCameraCapture } from "../components/camera-capture";
 import { discardUploadedPhotos } from "../helpers/photo-upload.js";
 import { loadHistoryEntryDraft } from "../helpers/history-draft.js";
 import { isoDateLocal, pastHistoryGaps } from "../helpers/calendar-bucket.js";
+import { haToday } from "../helpers/ha-time.js";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args.js";
 import { renderHistoryEntry } from "../renderers/history.js";
 import { renderTaskDetail, type TaskDetailContext } from "../renderers/task-detail.js";
@@ -272,8 +273,7 @@ describe("bug audit 2026-09-26 #2, tranche 4 (frontend)", () => {
     });
 
     it("the refetch signature changes when a listed entry is edited (same count)", () => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const today = haToday();
       const listed = Array.from({ length: 20 }, (_, i) => ({ timestamp: isoDaysAgo(19 - i), type: "completed", notes: "n" }));
       const objects = (history: unknown[]) => [{
         entry_id: "e1", object: { id: "o1", name: "Pump" }, tasks: [wireTask({ history, history_count: 28 })],

@@ -212,6 +212,7 @@
   "completed_at_optional": "Utført den (valgfritt, tomt = nå)",
   "completed_at_pick": "Velg dato og klokkeslett",
   "completed_at_future_error": "Fullføringsdatoen kan ikke ligge i fremtiden.",
+  "ha_time_zone_hint": "Tid i Home Assistants tidssone ({zone})",
   "days": "dager",
   "day": "dag",
   "today": "I dag",

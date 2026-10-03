@@ -11,6 +11,7 @@ import { t, formatCost } from "../styles";
 import { niceTicks, fmtNum, fmtDateTick, timeTicks, needsYear, px } from "./chart-utils";
 import type { MaintenanceTask } from "../types";
 import { entrySpend } from "../helpers/parts-cost";
+import { stampMs } from "../helpers/ha-time";
 
 const COST_CHART_H = 200;
 const PAD_T = 10;
@@ -63,7 +64,7 @@ export function renderCostDurationCard(
 function renderHistoryChart(task: MaintenanceTask, lang: string, toggle: "cost" | "duration" | "both", currencySymbol: string) {
   const entries = task.history
     .filter((h) => h.type === "completed" && (entrySpend(h) != null || h.duration != null))
-    .map((h) => ({ ts: new Date(h.timestamp).getTime(), cost: entrySpend(h) ?? 0, duration: h.duration ?? 0 }))
+    .map((h) => ({ ts: stampMs(h.timestamp), cost: entrySpend(h) ?? 0, duration: h.duration ?? 0 }))
     .sort((a, b) => a.ts - b.ts);
 
   if (entries.length < 2) return nothing;

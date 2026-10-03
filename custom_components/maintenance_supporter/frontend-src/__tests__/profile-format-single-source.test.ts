@@ -21,7 +21,10 @@
  *      toLocaleDateString / toLocaleTimeString / toLocaleString. Need a new
  *      shape? Add a helper there (formatDate, formatDateTime, formatDateShort,
  *      formatTimeOfDay, formatWeekday, formatMonth, weekdayName, monthName,
- *      formatNumber, formatCost).
+ *      formatNumber, formatCost). The one exception is helpers/ha-time.ts:
+ *      it builds Intl.DateTimeFormat for zone ARITHMETIC (formatToParts —
+ *      HA's today, a timestamp's day in HA's zone), never to format for
+ *      display; B'' holds it to that.
  *   C. Every top-level surface (Lovelace card / panel) whose import closure
  *      formats dates or numbers must feed the profile into the prefs
  *      singleton via syncLocaleFromHass(this, changedProps) in updated() — or
@@ -40,6 +43,8 @@ import { expect } from "@open-wc/testing";
 type Manifest = Record<string, string>;
 
 const AUTHORITY = "styles.ts";
+/** Zone arithmetic on Intl.DateTimeFormat(…).formatToParts — see rule B. */
+const ZONE_HELPER = "helpers/ha-time.ts";
 const PROFILE_FORMATTERS =
   /\b(formatDate|formatDateTime|formatDateShort|formatTimeOfDay|formatWeekday|formatMonth|weekdayName|monthName|fmtDateTick|fmtDateTime|formatNumber|formatCost|fmtNum|fmtVal|formatBytes)\b/;
 const NATIVE_DATE_INPUT = /\btype=["'`](date|time|datetime-local|month|week)["'`]/;
@@ -162,11 +167,29 @@ describe("date/time formatting has a single source (#163 tripwire)", () => {
       if (path === AUTHORITY) continue;
       for (const [n, line] of codeLines(src)) {
         for (const [label, re] of DIRECT_INTL) {
+          if (path === ZONE_HELPER && label === "Intl.DateTimeFormat(") continue;
           if (re.test(line)) hits.push(`${path}:${n}: ${label} — ${line.trim()}`);
         }
       }
     }
     expect(hits, "direct Intl calls bypass the HA profile date/time/number prefs — add a helper to styles.ts instead").to.deep.equal([]);
+  });
+
+  it("B''. the zone helper only does arithmetic: formatToParts, never a formatted string", () => {
+    const src = manifest[ZONE_HELPER];
+    expect(src, "helpers/ha-time.ts is in the manifest").to.be.a("string");
+    expect(src).to.match(/\.formatToParts\(/);
+    const display = codeLines(src).filter(([, l]) => /\.format\s*\(|\.formatRange\s*\(/.test(l));
+    expect(display, "ha-time formats no display strings — styles.ts does, with displayTimeZone()").to.deep.equal([]);
+  });
+
+  it("B'''. every date formatter in styles.ts names its time zone", () => {
+    // A timestamp shows in the profile's zone (displayTimeZone), a
+    // date-only value pinned to UTC — never the browser's zone by default.
+    const unzoned = codeLines(manifest[AUTHORITY])
+      .filter(([, l]) => /\.toLocale(Date|Time)String\s*\(/.test(l) && !/\btimeZone\b/.test(l))
+      .map(([n, l]) => `styles.ts:${n}: ${l.trim()}`);
+    expect(unzoned).to.deep.equal([]);
   });
 
   it("B'. styles.ts itself still owns the formatting (guards against the rule going stale)", () => {

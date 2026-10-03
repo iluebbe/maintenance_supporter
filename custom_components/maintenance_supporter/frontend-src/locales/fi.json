@@ -212,6 +212,7 @@
   "completed_at_optional": "Suoritettu (valinnainen, tyhjä = nyt)",
   "completed_at_pick": "Aseta päivä ja aika",
   "completed_at_future_error": "Suorituspäivä ei voi olla tulevaisuudessa.",
+  "ha_time_zone_hint": "Aika Home Assistantin aikavyöhykkeellä ({zone})",
   "days": "päivää",
   "day": "päivä",
   "today": "Tänään",

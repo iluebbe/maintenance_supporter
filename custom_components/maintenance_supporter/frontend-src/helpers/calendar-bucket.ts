@@ -18,6 +18,7 @@ import type { HistoryEntry, MaintenanceObjectResponse } from "../types";
 import { entrySpend } from "./parts-cost";
 import { intervalSpanDays } from "./interval";
 import { statusRank } from "../status-constants";
+import { addDaysIso, stampDate } from "./ha-time";
 
 export const MAX_OCCURRENCES_PER_TASK = 5;
 
@@ -64,9 +65,10 @@ export interface CalendarDayBucket {
 }
 
 /**
- * Format a Date as ISO YYYY-MM-DD using LOCAL time components — matches what
- * the user sees on their wall clock, not UTC. The naive `.toISOString().slice(0,10)`
- * approach silently shifts dates near midnight in non-UTC timezones.
+ * Format a Date as ISO YYYY-MM-DD using LOCAL time components — the
+ * BROWSER's calendar day of a local Date (the naive `.toISOString().slice(0,10)`
+ * is the UTC day). Never "today": next_due counts from HA's day, which a
+ * device in another zone does not share — that is helpers/ha-time haToday.
  */
 export function isoDateLocal(d: Date): string {
   const y = d.getFullYear();
@@ -75,32 +77,11 @@ export function isoDateLocal(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-/** The local wall-clock minute as "YYYY-MM-DDTHH:MM:00" (seconds zeroed) —
- *  the value shape of a datetime field; the date half is isoDateLocal. */
-export function isoMinuteLocal(d: Date): string {
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  return `${isoDateLocal(d)}T${hh}:${mm}:00`;
-}
-
-/** Build the list of N consecutive ISO dates starting today (local). */
-export function buildWindowDates(today: Date, windowDays: number): string[] {
+/** The N consecutive ISO dates of a window starting at `today` ("YYYY-MM-DD"). */
+export function buildWindowDates(today: string, windowDays: number): string[] {
   const out: string[] = [];
-  for (let i = 0; i < windowDays; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() + i);
-    d.setHours(0, 0, 0, 0);
-    out.push(isoDateLocal(d));
-  }
+  for (let i = 0; i < windowDays; i++) out.push(addDaysIso(today, i));
   return out;
-}
-
-/** Add `days` to an ISO date (local), return new ISO date. */
-function addDaysIso(iso: string, days: number): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  const date = new Date(y, m - 1, d);
-  date.setDate(date.getDate() + days);
-  return isoDateLocal(date);
 }
 
 /** Average recorded cost across history rows that HAVE a cost (mean of
@@ -185,6 +166,8 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
   const nextDue = task.next_due;
   if (typeof nextDue !== "string" || !nextDue) return out;
   const firstDate = nextDue.slice(0, 10);  // strip time portion if any
+  // The projection steps a cursor from here — only from a real date shape.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(firstDate)) return out;
 
   // First occurrence must be in window
   if (firstDate >= windowStart && firstDate <= windowEnd) {
@@ -214,13 +197,15 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
  * Main entry point: build the day-bucketed event list for the Calendar tab.
  *
  * @param objects   The panel's loaded objects (with nested tasks).
- * @param today     "Today" as a Date (caller passes new Date() — easier for tests).
+ * @param today     HA's today, "YYYY-MM-DD" (the caller passes haToday() —
+ *                  next_due and the overdue status count from that day,
+ *                  not from the browser's).
  * @param windowDays Number of days to include (7 / 14 / 30).
  * @param userFilter null/empty = all; otherwise filter tasks by responsible_user_id.
  */
 export function buildCalendarBuckets(
   objects: MaintenanceObjectResponse[],
-  today: Date,
+  today: string,
   windowDays: number,
   userFilter: string | null = null,
 ): CalendarDayBucket[] {
@@ -315,7 +300,7 @@ export function pastHistoryKey(entryId: string, taskId: string): string {
  *  so the card refetches only then. */
 export function pastHistoryGaps(
   objects: MaintenanceObjectResponse[],
-  today: Date,
+  today: string,
   pastDays: number,
 ): Array<{ entryId: string; taskId: string; key: string; sig: string }> {
   const windowStart = buildPastWindowDates(today, pastDays)[0];
@@ -325,8 +310,8 @@ export function pastHistoryGaps(
       const listed = (task.history || []) as HistoryEntryShape[];
       const count = task.history_count ?? listed.length;
       if (count <= listed.length) continue;
-      const stamps = listed.map((h) => (typeof h?.timestamp === "string" ? h.timestamp : "")).filter(Boolean);
-      const oldest = stamps.length ? stamps.reduce((a, b) => (a < b ? a : b)).slice(0, 10) : "";
+      const days = listed.map((h) => stampDate(h?.timestamp)).filter((d): d is string => !!d);
+      const oldest = days.length ? days.reduce((a, b) => (a < b ? a : b)) : "";
       if (oldest && oldest < windowStart) continue; // the window is fully listed
       const key = pastHistoryKey(obj.entry_id, task.id);
       out.push({ entryId: obj.entry_id, taskId: task.id, key, sig: `${key}:${count}:${contentHash(JSON.stringify(listed))}` });
@@ -346,15 +331,10 @@ function contentHash(text: string): string {
   return (h >>> 0).toString(36);
 }
 
-/** Build a list of N consecutive ISO dates ending today (local). */
-export function buildPastWindowDates(today: Date, pastDays: number): string[] {
+/** The N consecutive ISO dates of a window ending at `today` ("YYYY-MM-DD"). */
+export function buildPastWindowDates(today: string, pastDays: number): string[] {
   const out: string[] = [];
-  for (let i = pastDays - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    d.setHours(0, 0, 0, 0);
-    out.push(isoDateLocal(d));
-  }
+  for (let i = pastDays - 1; i >= 0; i--) out.push(addDaysIso(today, -i));
   return out;
 }
 
@@ -364,10 +344,12 @@ export function buildPastWindowDates(today: Date, pastDays: number): string[] {
  * Each history entry whose timestamp falls inside the window becomes one
  * CalendarEvent with `history_timestamp` set — the calendar card uses that
  * timestamp as the stable key when dispatching an edit-history click event.
+ * An entry lands on its HA calendar day (helpers/ha-time stampDate): the
+ * first ten characters were the wrong day for an imported "+00:00" stamp.
  */
 export function buildPastBuckets(
   objects: MaintenanceObjectResponse[],
-  today: Date,
+  today: string,
   pastDays: number,
   userFilter: string | null = null,
   /** Full histories fetched for the tasks `pastHistoryGaps` named, keyed by
@@ -390,8 +372,8 @@ export function buildPastBuckets(
       const history = fullHistory[pastHistoryKey(entryId, task.id)] ?? ((task.history || []) as HistoryEntryShape[]);
       for (const h of history) {
         if (typeof h?.timestamp !== "string") continue;
-        const dateKey = h.timestamp.slice(0, 10);  // YYYY-MM-DD
-        if (dateKey < windowStart || dateKey > windowEnd) continue;
+        const dateKey = stampDate(h.timestamp);  // YYYY-MM-DD, HA's day
+        if (!dateKey || dateKey < windowStart || dateKey > windowEnd) continue;
         const bucket = byDate.get(dateKey);
         if (!bucket) continue;
         const evType = h.type ?? "completed";

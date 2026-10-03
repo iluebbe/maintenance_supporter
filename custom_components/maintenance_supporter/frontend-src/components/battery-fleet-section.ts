@@ -11,7 +11,7 @@ import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import { runWs } from "../helpers/ws-run";
 import { canWrite, NO_DELEGATION, type WriteAccess } from "../helpers/permissions";
 import { fetchSettingsOnce } from "../helpers/settings-cache";
-import { isoDateLocal } from "../helpers/calendar-bucket";
+import { addDaysIso, haToday } from "../helpers/ha-time";
 import { px } from "../renderers/chart-utils";
 import type { HomeAssistant } from "../types";
 
@@ -332,16 +332,18 @@ export class MaintenanceBatteryFleetSection extends LitElement {
    *  `days_until` comes from last-replaced + typical lifetime, so it is an
    *  estimate — the tilde in the template says so. Negative values (past the
    *  typical lifetime but not reported low yet) render as past dates, which
-   *  is honest: the battery is living on borrowed time. */
+   *  is honest: the battery is living on borrowed time. The server counts
+   *  the days from HA's today — so does the date (the browser's day plus
+   *  N × 24 h was a day off on a device in another zone). */
   private _predictedDate(daysUntil: number): string {
-    return this._fmtDate(Date.now() + daysUntil * 864e5);
+    return formatDate(addDaysIso(haToday(), daysUntil), this._lang);
   }
 
-  /** Local calendar date of an epoch, in the HA profile date format (#163 —
-   *  a direct Intl.DateTimeFormat call here ignored the profile and showed
-   *  9/2/2026 to a DD/MM/YYYY user). */
+  /** The calendar date of an epoch (a detected swap), in the HA profile
+   *  date format and time zone (#163 — a direct Intl.DateTimeFormat call
+   *  here ignored the profile and showed 9/2/2026 to a DD/MM/YYYY user). */
   private _fmtDate(epochMs: number): string {
-    return formatDate(isoDateLocal(new Date(epochMs)), this._lang);
+    return Number.isFinite(epochMs) ? formatDate(new Date(epochMs).toISOString(), this._lang) : "—";
   }
 
   /** The grouped shopping quantities as CLICKABLE chips: a type filters the

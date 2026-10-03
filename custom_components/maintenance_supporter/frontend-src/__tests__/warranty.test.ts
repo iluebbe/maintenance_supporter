@@ -7,7 +7,7 @@
 import { expect } from "@open-wc/testing";
 import { warrantyStatus, WARRANTY_WARN_DAYS } from "../helpers/warranty";
 
-const TODAY = new Date(2026, 5, 1); // 2026-06-01 local
+const TODAY = "2026-06-01"; // HA's today, as haToday() gives it
 
 describe("warrantyStatus (#67)", () => {
   it("null / undefined / empty / invalid → none", () => {

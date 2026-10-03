@@ -4,9 +4,9 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant, ReadingSlot, TaskPartLink } from "../types";
 import { lastReadingBefore, type ReadingHistoryEntry } from "../helpers/reading-slots";
-import { t, nativeFieldStyles, formatCost, formatNumber, formatQty } from "../styles";
+import { t, nativeFieldStyles, formatCost, formatNumber, formatQty, haTimeZoneHint } from "../styles";
 import { runWs } from "../helpers/ws-run";
-import { isoMinuteLocal } from "../helpers/calendar-bucket";
+import { haNowMinute, stampMs } from "../helpers/ha-time";
 import { PART_QTY_RANGE, RESTOCK_QTY_RANGE } from "../helpers/setting-ranges";
 import { partLinkKey, type LinkedPart } from "../helpers/shared-parts";
 import { unitPrice, type PartsCostMode } from "../helpers/parts-cost";
@@ -97,7 +97,8 @@ export class MaintenanceCompleteDialog extends LitElement {
   /** #161 phase 2: typed text per slot id (parsed on save; "" = unread). */
   @state() private _readingValues: Record<string, string> = {};
   @state() private _restockQty = "";
-  /** #133: optional backdated completion moment ("YYYY-MM-DDTHH:MM:SS" local; "" = now). */
+  /** #133: optional backdated completion moment ("YYYY-MM-DDTHH:MM:SS" in
+   *  HA local time — zone-less, the way the backend reads it; "" = now). */
   @state() private _completedAt = "";
   /** Keyed by `partLinkKey` — the (entry_id, part_id) pair — because two
    *  objects can carry the same part id, so part_id alone would merge pools. */
@@ -203,8 +204,10 @@ export class MaintenanceCompleteDialog extends LitElement {
     }
     if (this._completedAt) {
       // Client-side guard mirrors the backend rule — a picked future moment
-      // fails fast with a localized message instead of a WS roundtrip.
-      if (new Date(this._completedAt).getTime() > Date.now()) {
+      // fails fast with a localized message instead of a WS roundtrip. The
+      // value is HA local time, so it is judged on HA's clock: read in the
+      // browser's zone, a moment just past was "future" east of HA.
+      if (stampMs(this._completedAt) > Date.now()) {
         this._error = t("completed_at_future_error", this.lang);
         return;
       }
@@ -277,7 +280,7 @@ export class MaintenanceCompleteDialog extends LitElement {
    *  a value below the last one gets a warning (meters count up — a
    *  replaced meter or a typo), never a block. */
   private _renderReadingField(slot: ReadingSlot, L: string) {
-    const at = this._completedAt ? new Date(this._completedAt).getTime() : NaN;
+    const at = this._completedAt ? stampMs(this._completedAt) : NaN;
     const last = lastReadingBefore(this.readingHistory, slot.id, isNaN(at) ? undefined : at);
     const unit = slot.unit || this.readingUnit;
     const raw = (this._readingValues[slot.id] ?? "").trim();
@@ -386,9 +389,12 @@ export class MaintenanceCompleteDialog extends LitElement {
     this._photos.discardOrphans();
   }
 
-  /** Seed the backdate field with the current minute (local, seconds zeroed). */
+  /** Seed the backdate field with HA's current minute (seconds zeroed) —
+   *  the field means HA local time. The browser's minute was refused as
+   *  "future" east of HA and stored hours early west of it (next_due a day
+   *  early once that crossed midnight). */
   private _pickCompletedAt(): void {
-    this._completedAt = isoMinuteLocal(new Date());
+    this._completedAt = `${haNowMinute()}:00`;
   }
 
   render() {
@@ -525,6 +531,7 @@ export class MaintenanceCompleteDialog extends LitElement {
                   .hass=${this.hass}
                   .lang=${L}
                   .value=${this._completedAt}
+                  .helper=${haTimeZoneHint(L)}
                   @value-changed=${(e: CustomEvent) => (this._completedAt = e.detail.value as string)}
                 ></ms-date-field>`
               : html`<button type="button" class="backdate-pick" @click=${this._pickCompletedAt}>

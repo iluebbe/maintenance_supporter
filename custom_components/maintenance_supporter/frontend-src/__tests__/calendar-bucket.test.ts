@@ -22,8 +22,8 @@ import {
   MAX_OCCURRENCES_PER_TASK,
 } from "../helpers/calendar-bucket";
 
-const TODAY = new Date(2026, 4, 1);  // 2026-05-01 local
-const TODAY_ISO = "2026-05-01";
+const TODAY = "2026-05-01";  // HA's today, as haToday() gives it
+const TODAY_ISO = TODAY;
 
 function addDays(iso: string, days: number): string {
   const [y, m, d] = iso.split("-").map(Number);
@@ -341,10 +341,8 @@ describe("buildCalendarBuckets", () => {
 // ── v2.2.0 — past-window bucketer ────────────────────────────────────────
 
 function histEntry(daysAgo: number, type = "completed", over: Partial<any> = {}) {
-  const d = new Date(TODAY);
-  d.setDate(d.getDate() - daysAgo);
   return {
-    timestamp: `${isoDateLocal(d)}T08:30:00`,
+    timestamp: `${addDays(TODAY_ISO, -daysAgo)}T08:30:00`,
     type,
     ...over,
   };

@@ -19,7 +19,7 @@ import { sharedStyles, t, formatDate, formatInterval, formatRecurrence, formatCo
 import { runWs } from "../helpers/ws-run";
 import { snoozedMessage, type SnoozeResult } from "../helpers/snooze";
 import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
-import { isoDateLocal } from "../helpers/calendar-bucket";
+import { haToday } from "../helpers/ha-time";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args";
 import { phaseLabel } from "../helpers/phases";
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
@@ -108,9 +108,11 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     this._showAdaptive = false;
     this._skipReason = "";
     this._postponeDate = "";
-    // Local calendar date — toISOString() is UTC and prefills YESTERDAY for
-    // users east of UTC before their morning (bug audit 2026-08-22).
-    this._resetDate = isoDateLocal(new Date());
+    // HA's calendar date — the server dates the reset and refuses one after
+    // ITS today; the browser's date is a day off around midnight on a device
+    // in another zone (and toISOString() was UTC, YESTERDAY for users east
+    // of UTC before their morning — bug audit 2026-08-22).
+    this._resetDate = haToday();
     this._open = true;
     await Promise.all([this._loadTask(), this._loadFeatures()]);
   }

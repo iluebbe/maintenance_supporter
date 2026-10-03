@@ -28,6 +28,7 @@ import {
   type AreaSummary,
 } from "../helpers/area-history";
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
+import { haToday } from "../helpers/ha-time";
 import type { HomeAssistant, MaintenanceObjectResponse } from "../types";
 
 /** The table's columns: sort key, header label key, numeric alignment. */
@@ -121,7 +122,8 @@ export class MaintenanceAreasView extends LitElement {
   protected render(): unknown {
     if (!this.hass) return nothing;
     const L = this._lang;
-    const year = new Date().getFullYear();
+    // HA's year — the cost columns count HA calendar years, like the sensors.
+    const year = Number(haToday().slice(0, 4));
     const cur = this.currencySymbol;
     const all = this._rows(year);
     const rows = sortAreas(filterAreas(all, this._query), this._sort);

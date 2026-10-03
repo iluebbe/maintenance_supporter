@@ -212,6 +212,7 @@
   "completed_at_optional": "पूर्ण होने का समय (वैकल्पिक, खाली = अभी)",
   "completed_at_pick": "तारीख और समय चुनें",
   "completed_at_future_error": "पूर्णता की तारीख भविष्य में नहीं हो सकती।",
+  "ha_time_zone_hint": "Home Assistant के समय क्षेत्र का समय ({zone})",
   "days": "दिन",
   "day": "दिन",
   "today": "आज",

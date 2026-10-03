@@ -154,14 +154,14 @@ describe("area-history helpers (#191)", () => {
     expect(long.unit).to.equal("year");
     expect(long.buckets.map((b) => b.key)).to.deep.equal(["2020", "2021", "2022", "2023", "2024", "2025", "2026"]);
     expect(long.buckets.at(-2)!.cost).to.equal(90 + 30);
-    const open = costBuckets(merged, { from: null, to: "2026-03-31" }, new Date(2026, 2, 31));
+    const open = costBuckets(merged, { from: null, to: "2026-03-31" }, "2026-03-31");
     expect(open.buckets[0].key, "starts at the 2025-06 oil change").to.equal("2025-06");
     expect(open.buckets.at(-1)!.key).to.equal("2026-03");
   });
 
   it("range presets: the last twelve months and a calendar year", () => {
-    expect(lastTwelveMonths(new Date(2026, 8, 28))).to.deep.equal({ from: "2025-10-01", to: "2026-09-28" });
-    expect(lastTwelveMonths(new Date(2026, 0, 3))).to.deep.equal({ from: "2025-02-01", to: "2026-01-03" });
+    expect(lastTwelveMonths("2026-09-28")).to.deep.equal({ from: "2025-10-01", to: "2026-09-28" });
+    expect(lastTwelveMonths("2026-01-03")).to.deep.equal({ from: "2025-02-01", to: "2026-01-03" });
     expect(calendarYear(2025)).to.deep.equal({ from: "2025-01-01", to: "2025-12-31" });
     const merged = mergeAreaHistory(AREA_OBJECTS, windowOf);
     expect(historyYears(merged, 2027)).to.deep.equal([2027, 2026, 2025]);

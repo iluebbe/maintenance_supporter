@@ -8,6 +8,7 @@
  */
 
 import type { HistoryEntry, ReadingSlot, ReadingValue } from "../types";
+import { stampMs } from "./ha-time";
 
 /** Mirrors MAX_READING_SLOTS in Python. */
 export const MAX_READING_SLOTS = 20;
@@ -73,7 +74,7 @@ export function lastReadingBefore(entries: readonly ReadingHistoryEntry[], slotI
   let last: ReadingValue | undefined;
   for (const h of entries) {
     if (beforeMs !== undefined) {
-      const ts = new Date(h.timestamp).getTime();
+      const ts = stampMs(h.timestamp);
       if (!isNaN(ts) && ts >= beforeMs) break;
     }
     const v = h.values.find((x) => x.id === slotId);

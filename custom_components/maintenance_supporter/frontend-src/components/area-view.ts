@@ -42,7 +42,7 @@ import {
   type CostBucket,
 } from "../helpers/area-history";
 import { buildAreaRecordHtml, type AreaRecordLabels } from "../helpers/area-record";
-import { isoDateLocal } from "../helpers/calendar-bucket";
+import { haToday, stampDate } from "../helpers/ha-time";
 import { historyNoteText } from "../helpers/history-note";
 import { openHtmlInNewTab, preopenTab } from "../helpers/document-url";
 import "./ms-date-field";
@@ -224,9 +224,10 @@ export class MaintenanceAreaView extends LitElement {
       {
         areaName: areaDisplayName(this.areaKey, this.hass?.areas, t("no_area", L)),
         // An open range prints what it covered: the oldest completion shown
-        // (filtered is newest first) up to today.
-        from: this._from || completed[completed.length - 1]?.timestamp || null,
-        to: this._to || isoDateLocal(new Date()),
+        // (filtered is newest first) up to today — HA calendar days, the
+        // ones the totals are counted in.
+        from: this._from || stampDate(completed[completed.length - 1]?.timestamp) || null,
+        to: this._to || haToday(),
         totals,
         byObject,
         buckets,
@@ -249,10 +250,10 @@ export class MaintenanceAreaView extends LitElement {
 
   private _renderRangeChips(entries: AreaHistoryEntry[]) {
     const L = this._lang;
-    const now = new Date();
-    const twelve = lastTwelveMonths(now);
+    const today = haToday();
+    const twelve = lastTwelveMonths(today);
     const isRange = (r: { from: string; to: string }) => this._from === r.from && this._to === r.to;
-    const years = historyYears(entries, now.getFullYear()).slice(0, MAX_YEAR_CHIPS);
+    const years = historyYears(entries, Number(today.slice(0, 4))).slice(0, MAX_YEAR_CHIPS);
     return html`
       <div class="filter-chips area-range-chips">
         <button class="filter-chip ${isRange(twelve) ? "active" : ""}" @click=${() => this._setRange(lastTwelveMonths())}>

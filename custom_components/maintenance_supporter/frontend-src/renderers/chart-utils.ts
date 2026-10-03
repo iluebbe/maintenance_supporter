@@ -1,6 +1,7 @@
 /** Shared chart helpers: nice axis ticks and consistent number/date formats. */
 
 import { formatDateShort, formatTimeOfDay, formatNumber } from "../styles";
+import { displayTimeZone, ymdIn } from "../helpers/ha-time";
 
 /** SVG / CSS coordinate: one decimal, ALWAYS a dot — never a user-facing
  *  number. The only place outside styles.ts allowed to call toFixed (tripwire
@@ -75,9 +76,12 @@ export function fmtDateTime(ts: number, lang: string): string {
 }
 
 /** Whether date ticks need the year: the range crosses a calendar-year
- *  boundary (a "Jun … Feb" sequence would otherwise read backwards). */
+ *  boundary (a "Jun … Feb" sequence would otherwise read backwards) — in
+ *  the zone the ticks are shown in. */
 export function needsYear(tsMin: number, tsMax: number): boolean {
-  return new Date(tsMin).getFullYear() !== new Date(tsMax).getFullYear();
+  if (!Number.isFinite(tsMin) || !Number.isFinite(tsMax)) return false;
+  const zone = displayTimeZone();
+  return ymdIn(tsMin, zone).slice(0, 4) !== ymdIn(tsMax, zone).slice(0, 4);
 }
 
 /** Evenly-spaced x-axis tick timestamps (first/last inclusive). */

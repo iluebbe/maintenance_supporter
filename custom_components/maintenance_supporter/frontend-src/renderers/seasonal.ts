@@ -3,6 +3,7 @@
 import { html, svg, nothing } from "lit";
 import { t, formatNumber } from "../styles";
 import { px } from "./chart-utils";
+import { haToday } from "../helpers/ha-time";
 import type { MaintenanceTask, AdvancedFeatures } from "../types";
 
 const MONTH_KEYS = [
@@ -11,13 +12,18 @@ const MONTH_KEYS = [
   "month_sep", "month_oct", "month_nov", "month_dec",
 ];
 
+/** HA's current month (0 = Jan) — the one the backend applies the factor of. */
+function haMonth(): number {
+  return Number(haToday().slice(5, 7)) - 1;
+}
+
 export function renderSeasonalCardCompact(task: MaintenanceTask, lang: string, features: AdvancedFeatures) {
   if (!features.seasonal || !task.seasonal_factor || task.seasonal_factor === 1.0) {
     return nothing;
   }
 
   const months = MONTH_KEYS.map(k => t(k, lang));
-  const currentMonth = new Date().getMonth();
+  const currentMonth = haMonth();
 
   const realFactors = task.seasonal_factors || task.interval_analysis?.seasonal_factors || null;
   const seasonalData = realFactors && realFactors.length === 12
@@ -66,7 +72,7 @@ function renderSeasonalChart(task: MaintenanceTask, lang: string) {
   if (!factors || factors.length !== 12) return nothing;
 
   const reason = task.interval_analysis?.seasonal_reason;
-  const currentMonth = new Date().getMonth();
+  const currentMonth = haMonth();
   const W = 300, H = 100;
   const PAD_T = 8, PAD_B = 4;
   const chartH = H - PAD_T - PAD_B;

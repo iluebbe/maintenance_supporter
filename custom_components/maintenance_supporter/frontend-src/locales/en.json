@@ -212,6 +212,7 @@
   "completed_at_optional": "Completed at (optional, empty = now)",
   "completed_at_pick": "Set date & time",
   "completed_at_future_error": "The completion date cannot be in the future.",
+  "ha_time_zone_hint": "Time in Home Assistant's time zone ({zone})",
   "days": "days",
   "day": "day",
   "today": "Today",

@@ -673,10 +673,13 @@ export interface HomeAssistant {
   // date_format/time_format are HA's per-user PROFILE settings ("language" |
   // "system" | "DMY" | "MDY" | "YMD" resp. "language" | "system" | "12" | "24")
   // — issue #97: dates must follow them, not just the UI language.
-  locale?: { language: string; number_format?: string; date_format?: string; time_format?: string };
+  // time_zone is the profile's "Time zone": "local" (the browser's, HA's
+  // default) or "server" — the zone timestamps are SHOWN in.
+  locale?: { language: string; number_format?: string; date_format?: string; time_format?: string; time_zone?: string };
   /** Server config — country (#140) feeds the "language"-default date
-   *  format ("en" + AU → en-AU → DD/MM/YYYY). */
-  config?: { country?: string | null };
+   *  format ("en" + AU → en-AU → DD/MM/YYYY); time_zone is HA's own zone,
+   *  the one next_due / days_until_due count in (helpers/ha-time). */
+  config?: { country?: string | null; time_zone?: string | null };
   localize(key: string, ...args: unknown[]): string;
   user?: { id: string; name: string; is_admin: boolean; is_owner: boolean };
   /** HA's registered panels; a custom panel carries its module URL under

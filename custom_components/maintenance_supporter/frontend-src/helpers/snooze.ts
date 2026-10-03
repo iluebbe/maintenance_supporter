@@ -10,6 +10,7 @@
  */
 
 import { formatDateTime, formatNumber, formatTimeOfDay, t } from "../styles";
+import { displayTimeZone, stampMs, ymdIn } from "./ha-time";
 
 export interface SnoozeResult {
   hours?: number;
@@ -18,10 +19,12 @@ export interface SnoozeResult {
 
 export function snoozedMessage(res: SnoozeResult | null | undefined, lang: string, now: Date = new Date()): string {
   const hours = res?.hours;
-  const until = res?.snoozed_until ? new Date(res.snoozed_until) : null;
-  if (typeof hours !== "number" || !until || isNaN(until.getTime())) return t("snoozed", lang);
-  const sameDay = until.toDateString() === now.toDateString();
-  const when = sameDay ? formatTimeOfDay(until, lang) : formatDateTime(res!.snoozed_until!, lang);
+  const until = stampMs(res?.snoozed_until);
+  if (typeof hours !== "number" || !Number.isFinite(until)) return t("snoozed", lang);
+  // "Today" on the clock the time is shown in (the profile's time zone).
+  const zone = displayTimeZone();
+  const sameDay = ymdIn(until, zone) === ymdIn(now, zone);
+  const when = sameDay ? formatTimeOfDay(new Date(until), lang) : formatDateTime(res!.snoozed_until!, lang);
   const text = hours === 1 ? t("snoozed_for_one", lang) : t("snoozed_for", lang).replace("{hours}", formatNumber(hours, lang));
   return text.replace("{until}", when);
 }

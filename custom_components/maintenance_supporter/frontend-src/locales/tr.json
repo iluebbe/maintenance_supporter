@@ -212,6 +212,7 @@
   "completed_at_optional": "Tamamlanma zamanı (isteğe bağlı, boş = şimdi)",
   "completed_at_pick": "Tarih ve saat seç",
   "completed_at_future_error": "Tamamlanma tarihi gelecekte olamaz.",
+  "ha_time_zone_hint": "Home Assistant saat dilimindeki saat ({zone})",
   "days": "gün",
   "day": "gün",
   "today": "Bugün",

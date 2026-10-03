@@ -9,9 +9,10 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t, langOf, formatNumber } from "../styles";
+import { t, langOf, formatNumber, haTimeZoneHint } from "../styles";
 import type { HomeAssistant, ReadingSlot, ReadingValue } from "../types";
 import { runWs } from "../helpers/ws-run";
+import { haWallTime } from "../helpers/ha-time";
 import { PART_QTY_RANGE } from "../helpers/setting-ranges";
 import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
 import { PhotoUploadController } from "../helpers/photo-upload-controller";
@@ -386,10 +387,14 @@ export class MaintenanceHistoryEditDialog extends LitElement {
           .hass=${this.hass}
           .lang=${L}
           .label=${t("history_edit_timestamp", L)}
-          .value=${d.timestamp.slice(0, 19)}
+          .helper=${haTimeZoneHint(L)}
+          .value=${haWallTime(d.timestamp)}
           @value-changed=${(e: CustomEvent) => {
             // Always "YYYY-MM-DDTHH:MM:SS" from the field; the naive value
-            // means local time, exactly as the datetime-local input did.
+            // means HA local time — the backend reads it so. The field
+            // therefore shows HA's wall clock (an imported "+00:00" stamp's
+            // own digits were UTC) and names HA's zone when the history
+            // list shows another one (the profile's "local" zone).
             const v = e.detail.value as string;
             if (v) this._set("timestamp", v);
           }}

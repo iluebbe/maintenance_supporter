@@ -15,6 +15,7 @@ import { html, nothing } from "lit";
 import { t, formatDate, formatDueDays, formatNumber } from "../styles";
 import { px } from "./chart-utils";
 import { daysProgress } from "../helpers/interval";
+import { stampMs } from "../helpers/ha-time";
 import type { MaintenanceTask, TaskRow, StatisticsPoint } from "../types";
 
 const MINI_SPARKLINE_W = 60;
@@ -61,7 +62,7 @@ export function computeTrend(
         ? []
         : (row.history || [])
             .filter((h) => h.trigger_value != null)
-            .map((h) => ({ ts: new Date(h.timestamp).getTime(), val: h.trigger_value as number }));
+            .map((h) => ({ ts: stampMs(h.timestamp), val: h.trigger_value as number }));
   if (row.trigger_current_value != null) points = [...points, { ts: Date.now(), val: row.trigger_current_value }];
   if (points.length < 2) return null;
   points.sort((a, b) => a.ts - b.ts);
@@ -249,7 +250,7 @@ export function renderMiniSparkline(
     if (!row.history) return nothing;
     for (const h of row.history) {
       if (h.trigger_value != null) {
-        points.push({ ts: new Date(h.timestamp).getTime(), val: h.trigger_value });
+        points.push({ ts: stampMs(h.timestamp), val: h.trigger_value });
       }
     }
   }

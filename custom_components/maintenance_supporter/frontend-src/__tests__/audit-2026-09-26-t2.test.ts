@@ -40,6 +40,7 @@ import { canWrite, HOUSEHOLD_ACTIONS } from "../helpers/permissions.js";
 import { fetchSettingsOnce, invalidateSettingsCache, parseSettings } from "../helpers/settings-cache.js";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args.js";
 import { buildPastBuckets, isoDateLocal, pastHistoryGaps } from "../helpers/calendar-bucket.js";
+import { haToday } from "../helpers/ha-time.js";
 import { buildTaskWorksheetHtml } from "../helpers/worksheet.js";
 import { parseDurationMinutes } from "../helpers/duration.js";
 import { ToastTimer } from "../helpers/toast.js";
@@ -182,8 +183,7 @@ describe("audit 2026-09-26 tranche 2", () => {
     });
 
     it("past-mode calendar: names tasks whose list window may miss entries and uses their full history", () => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const today = haToday();
       const listed = Array.from({ length: 20 }, (_, i) => ({ timestamp: isoDaysAgo(19 - i), type: "completed" }));
       const full = Array.from({ length: 28 }, (_, i) => ({ timestamp: isoDaysAgo(27 - i), type: "completed" }));
       const objects = [{

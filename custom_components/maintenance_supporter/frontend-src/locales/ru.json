@@ -210,6 +210,7 @@
   "completed_at_optional": "Выполнено (необязательно, пусто = сейчас)",
   "completed_at_pick": "Указать дату и время",
   "completed_at_future_error": "Дата выполнения не может быть в будущем.",
+  "ha_time_zone_hint": "Время в часовом поясе Home Assistant ({zone})",
   "days": "дней",
   "day": "день",
   "today": "Сегодня",

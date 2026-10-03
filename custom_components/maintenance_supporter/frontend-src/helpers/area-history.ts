@@ -5,10 +5,15 @@
  * (the caller passes `historyOf`, normally helpers/full-history). Objects
  * are grouped by their `area_id`; objects without one land in the NO_AREA
  * bucket, so nothing silently drops out of the totals.
+ *
+ * Months and years are HA calendar ones (helpers/ha-time stampDate /
+ * haToday) — the budget and the area cost sensors count in HA local time,
+ * and the browser's zone put a late-evening completion into the next month
+ * on a device east of HA.
  */
 
 import type { HistoryEntry } from "../types";
-import { isoDateLocal } from "./calendar-bucket";
+import { haToday, stampDate, stampMs } from "./ha-time";
 import {
   filterObjectHistory,
   mergeObjectHistory,
@@ -97,7 +102,7 @@ export function mergeAreaHistory(objects: ReadonlyArray<AreaObjectLike>, history
 }
 
 export interface AreaHistoryFilter {
-  /** Inclusive local dates (YYYY-MM-DD). */
+  /** Inclusive HA calendar dates (YYYY-MM-DD). */
   from?: string | null;
   to?: string | null;
   /** One object of the area; empty = all. */
@@ -197,20 +202,21 @@ function monthKey(year: number, month: number): string {
   return `${year}-${String(month + 1).padStart(2, "0")}`;
 }
 
-/** Cost over time for the filtered range, in calendar months — or years
+/** Cost over time for the filtered range, in HA calendar months — or years
  *  when the range spans more than MAX_MONTH_BUCKETS months. Every bucket of
  *  the range is present (an empty month is a zero, not a gap). An open
- *  range end falls back to the data: the oldest completion / today. */
+ *  range end falls back to the data: the oldest completion / `today`
+ *  ("YYYY-MM-DD", HA's). */
 export function costBuckets(
   entries: ReadonlyArray<AreaHistoryEntry>,
   range: { from?: string | null; to?: string | null },
-  now: Date = new Date(),
+  today: string = haToday(),
 ): CostBuckets {
   const done = entries.filter((e) => e.type === "completed");
-  const localDates = done.map((e) => isoDateLocal(new Date(e.ts)));
-  const today = isoDateLocal(now);
-  const earliest = localDates.reduce((min, d) => (d < min ? d : min), today);
-  const latest = localDates.reduce((max, d) => (d > max ? d : max), today);
+  const localDates = done.map((e) => stampDate(e.timestamp));
+  const known = localDates.filter((d): d is string => d !== null);
+  const earliest = known.reduce((min, d) => (d < min ? d : min), today);
+  const latest = known.reduce((max, d) => (d > max ? d : max), today);
   const [fy, fm] = ymOf(range.from || earliest);
   const [ty, tm] = ymOf(range.to || latest);
   const months = (ty * 12 + tm) - (fy * 12 + fm) + 1;
@@ -235,6 +241,7 @@ export function costBuckets(
   }
   done.forEach((e, i) => {
     const d = localDates[i];
+    if (!d) return;
     const b = index.get(unit === "month" ? d.slice(0, 7) : d.slice(0, 4));
     if (!b) return;
     b.completions++;
@@ -243,9 +250,12 @@ export function costBuckets(
   return { unit, buckets };
 }
 
-/** The default range: the last twelve calendar months including this one. */
-export function lastTwelveMonths(now: Date = new Date()): { from: string; to: string } {
-  return { from: isoDateLocal(new Date(now.getFullYear(), now.getMonth() - 11, 1)), to: isoDateLocal(now) };
+/** The default range: the last twelve calendar months including the one of
+ *  `today` ("YYYY-MM-DD", HA's). */
+export function lastTwelveMonths(today: string = haToday()): { from: string; to: string } {
+  const [y, m] = ymOf(today);
+  const first = y * 12 + m - 11;
+  return { from: `${monthKey(Math.floor(first / 12), first % 12)}-01`, to: today };
 }
 
 /** One calendar year — the annual overview. */
@@ -253,10 +263,19 @@ export function calendarYear(year: number): { from: string; to: string } {
   return { from: `${year}-01-01`, to: `${year}-12-31` };
 }
 
+/** The HA calendar year of an entry (null without a date). */
+function yearOf(e: { timestamp: string }): number | null {
+  const day = stampDate(e.timestamp);
+  return day ? Number(day.slice(0, 4)) : null;
+}
+
 /** Years with completed work, newest first, always including `current`. */
 export function historyYears(entries: ReadonlyArray<AreaHistoryEntry>, current: number): number[] {
   const years = new Set<number>([current]);
-  for (const e of entries) if (e.type === "completed") years.add(new Date(e.ts).getFullYear());
+  for (const e of entries) {
+    const year = e.type === "completed" ? yearOf(e) : null;
+    if (year !== null) years.add(year);
+  }
   return [...years].sort((a, b) => b - a);
 }
 
@@ -307,7 +326,7 @@ export function summarizeAreas(
       if (e.type !== "completed") continue;
       if (e.cost != null) {
         costTotal += e.cost;
-        if (new Date(e.ts).getFullYear() === opts.year) costYear += e.cost;
+        if (yearOf(e) === opts.year) costYear += e.cost;
       }
       if (e.ts > last) {
         last = e.ts;
@@ -366,7 +385,7 @@ function sortValue(a: AreaSummary, key: AreaSortKey): number | string {
     case "due_soon": return a.dueSoon;
     case "cost_year": return a.costYear;
     case "cost_total": return a.costTotal;
-    case "last": return a.lastCompletion ? new Date(a.lastCompletion).getTime() : -Infinity;
+    case "last": return a.lastCompletion ? stampMs(a.lastCompletion) : -Infinity;
   }
 }
 

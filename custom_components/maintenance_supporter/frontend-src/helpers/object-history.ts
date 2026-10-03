@@ -8,9 +8,12 @@
 import type { HistoryEntry, ReadingValue } from "../types";
 import { historyPhotoIds } from "./history-photos";
 import { entrySpend } from "./parts-cost";
+import { stampDate, stampMs } from "./ha-time";
 
 /** One merged lifecycle row: a task's history entry plus its task identity. */
 export interface ObjectHistoryEntry {
+  /** The instant of `timestamp` (helpers/ha-time stampMs — a zone-less
+   *  stamp, as the history editor stores one, is HA local time). */
   ts: number;
   timestamp: string;
   taskId: string;
@@ -84,7 +87,7 @@ export function mergeObjectHistory(
     // Deltas need the task's entries in time order — the previous entry
     // carrying the same slot (a skipped meter keeps its chain, #161).
     const chrono = [...(task.history ?? [])]
-      .map((h) => ({ h, ts: new Date(h.timestamp).getTime() }))
+      .map((h) => ({ h, ts: stampMs(h.timestamp) }))
       .filter((x) => Number.isFinite(x.ts))
       .sort((a, b) => a.ts - b.ts);
     const lastBySlot = new Map<string, number>();
@@ -129,24 +132,26 @@ export function mergeObjectHistory(
 
 export interface ObjectHistoryFilter {
   taskId?: string | null;
-  /** Inclusive ISO dates (YYYY-MM-DD, local calendar). */
+  /** Inclusive ISO dates (YYYY-MM-DD) — HA calendar days, the ones the
+   *  budget and the area cost sensors count in. */
   from?: string | null;
   to?: string | null;
 }
 
 /** Generic over the entry shape: the area history (#191) filters its
- *  object-tagged rows through the same date rule. */
+ *  object-tagged rows through the same date rule — an entry's HA calendar
+ *  day (helpers/ha-time stampDate) against the inclusive range. */
 export function filterObjectHistory<T extends ObjectHistoryEntry>(
   entries: ReadonlyArray<T>,
   f: ObjectHistoryFilter,
 ): T[] {
-  const fromTs = f.from ? new Date(`${f.from}T00:00:00`).getTime() : null;
-  // `to` is inclusive: compare against the START of the following day.
-  const toTs = f.to ? new Date(`${f.to}T00:00:00`).getTime() + 86400000 : null;
   return entries.filter((e) => {
     if (f.taskId && e.taskId !== f.taskId) return false;
-    if (fromTs != null && e.ts < fromTs) return false;
-    if (toTs != null && e.ts >= toTs) return false;
+    if (!f.from && !f.to) return true;
+    const day = stampDate(e.timestamp);
+    if (!day) return false;
+    if (f.from && day < f.from) return false;
+    if (f.to && day > f.to) return false;
     return true;
   });
 }

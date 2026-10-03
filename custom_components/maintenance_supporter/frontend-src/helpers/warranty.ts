@@ -4,6 +4,8 @@
  * deterministically without faking the system clock.
  */
 
+import { daysBetweenIso, haToday } from "./ha-time";
+
 export type WarrantyStatusKind = "valid" | "expiring" | "expired" | "none";
 
 export interface WarrantyStatus {
@@ -21,20 +23,18 @@ export const WARRANTY_WARN_DAYS = 60;
  * Classify an object's warranty expiry date relative to `today`.
  *
  * @param iso    ISO `YYYY-MM-DD` warranty expiry date (null/undefined/""/invalid → "none").
- * @param today  Reference date; defaults to now. Injectable for deterministic tests.
+ * @param today  Reference day "YYYY-MM-DD"; defaults to HA's today (the
+ *               browser's date was a day off around midnight on a device in
+ *               another zone). Injectable for deterministic tests.
  */
 export function warrantyStatus(
   iso: string | null | undefined,
-  today: Date = new Date(),
+  today: string = haToday(),
 ): WarrantyStatus {
   if (!iso) return { kind: "none", days: null, date: null };
-  const exp = new Date(`${iso}T00:00:00`);
-  if (isNaN(exp.getTime())) return { kind: "none", days: null, date: null };
-  // Normalize both ends to local midnight so the difference is whole days
-  // regardless of the time-of-day component of `today`.
-  const t0 = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
-  const t1 = Date.UTC(exp.getFullYear(), exp.getMonth(), exp.getDate());
-  const days = Math.round((t1 - t0) / 86400000);
+  // Whole calendar days between two date-only strings — no time of day, no zone.
+  const days = daysBetweenIso(today, iso);
+  if (!Number.isFinite(days)) return { kind: "none", days: null, date: null };
   if (days < 0) return { kind: "expired", days, date: iso };
   if (days <= WARRANTY_WARN_DAYS) return { kind: "expiring", days, date: iso };
   return { kind: "valid", days, date: iso };

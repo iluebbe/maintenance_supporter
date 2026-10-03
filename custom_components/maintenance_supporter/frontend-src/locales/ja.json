@@ -212,6 +212,7 @@
   "completed_at_optional": "完了日時（任意・空欄 = 現在）",
   "completed_at_pick": "日時を設定",
   "completed_at_future_error": "完了日時に未来は指定できません。",
+  "ha_time_zone_hint": "Home Assistant のタイムゾーンの時刻（{zone}）",
   "days": "日",
   "day": "日",
   "today": "今日",

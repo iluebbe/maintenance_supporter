@@ -31,12 +31,12 @@ import { property, state } from "lit/decorators.js";
 import {
   buildCalendarBuckets,
   buildPastBuckets,
-  isoDateLocal,
   pastHistoryGaps,
   pastHistoryKey,
   type CalendarEvent,
   type HistoryEntryShape,
 } from "./helpers/calendar-bucket";
+import { haToday } from "./helpers/ha-time";
 import { calendarStyles } from "./calendar-styles";
 import { syncLocaleFromHass, sharedStyles, currencySymbolOf, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatInterval, formatWeekday, formatMonth, langOf, formatCost, syncCurrencyDecimals} from "./styles";
 import { registerCustomCard } from "./helpers/register-card";
@@ -218,9 +218,7 @@ export class MaintenanceCalendarCard extends LitElement {
    *  only when that set or its entry counts change); only the newest round
    *  may land. */
   private async _loadPastHistories(): Promise<void> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const gaps = pastHistoryGaps(this._objects, today, this._pastDays || 30);
+    const gaps = pastHistoryGaps(this._objects, haToday(), this._pastDays || 30);
     const sig = gaps.map((g) => g.sig).join("|");
     if (sig === this._pastHistorySig) return;
     this._pastHistorySig = sig;
@@ -370,14 +368,15 @@ export class MaintenanceCalendarCard extends LitElement {
         ? base.filter((o) => o.entry_id === filterEntryId)
         : base;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // HA's today: next_due and the overdue status count from it, so the
+    // window and the Today marker must too — the browser's date is a day
+    // off around midnight on a device in another zone.
+    const todayIso = haToday();
     const isPast = this._pastDays > 0;
     const buckets = isPast
-      ? buildPastBuckets(objects, today, this._pastDays, userFilter, this._pastHistory)
-      : buildCalendarBuckets(objects, today, this._windowDays, userFilter);
+      ? buildPastBuckets(objects, todayIso, this._pastDays, userFilter, this._pastHistory)
+      : buildCalendarBuckets(objects, todayIso, this._windowDays, userFilter);
 
-    const todayIso = isoDateLocal(today);
     // Year view AND past views collapse empty days — past windows can be
     // sparse (most days have no maintenance recorded), so listing "no events"
     // for 30 rows is noise.

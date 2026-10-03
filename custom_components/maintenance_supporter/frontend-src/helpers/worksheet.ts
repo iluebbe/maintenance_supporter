@@ -14,7 +14,7 @@
  */
 
 import type { MaintenanceTask } from "../types";
-import { isoDateLocal } from "./calendar-bucket";
+import { displayTimeZone, ymdIn } from "./ha-time";
 
 export interface WorksheetLabels {
   title: string;          // "Work sheet"
@@ -47,14 +47,14 @@ export interface WorksheetExcerpt {
   vendorBase?: string;
 }
 
-/** The printing day in the USER's calendar and date format. The raw
- *  `nowIso.slice(0, 10)` was the UTC day (`toISOString()`), so a sheet
- *  printed after midnight east of UTC — or in the evening west of it —
- *  carried the wrong date, and in ISO order regardless of the profile's
- *  date format (bug audit 2026-09-26). */
+/** The printing day in the USER's calendar — the profile's time zone — and
+ *  date format. The raw `nowIso.slice(0, 10)` was the UTC day
+ *  (`toISOString()`), so a sheet printed after midnight east of UTC — or in
+ *  the evening west of it — carried the wrong date, and in ISO order
+ *  regardless of the profile's date format (bug audit 2026-09-26). */
 function printedOn(nowIso: string, formatDate: (iso: string) => string): string {
-  const d = new Date(nowIso);
-  return Number.isNaN(d.getTime()) ? nowIso.slice(0, 10) : formatDate(isoDateLocal(d));
+  const ms = Date.parse(nowIso);
+  return Number.isNaN(ms) ? nowIso.slice(0, 10) : formatDate(ymdIn(ms, displayTimeZone()));
 }
 
 const esc = (v: unknown): string =>

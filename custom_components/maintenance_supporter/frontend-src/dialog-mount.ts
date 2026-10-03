@@ -102,8 +102,9 @@ function syncHass(el: HTMLElement & { hass?: HomeAssistant }): boolean {
   // Same story for the profile date/time format (#163): on a strategy
   // dashboard no panel or card may ever have fed hass.locale into the prefs
   // singleton, so formatDate inside the dialog would fall back to the
-  // language default and ignore a DMY/MDY/YMD profile setting.
-  setProfilePrefs(hass.locale as Parameters<typeof setProfilePrefs>[0], hass.config?.country);
+  // language default and ignore a DMY/MDY/YMD profile setting. Likewise
+  // HA's time zone, which a back-dated completion's "now" runs on.
+  setProfilePrefs(hass.locale as Parameters<typeof setProfilePrefs>[0], hass.config?.country, hass.config?.time_zone);
   return true;
 }
 

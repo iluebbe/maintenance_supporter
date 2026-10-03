@@ -15,6 +15,7 @@ import { html, nothing } from "lit";
 import { t, fireMoreInfo, formatDueDays } from "../styles";
 import { fmtNum, fmtVal } from "./chart-utils";
 import { dueDaysOf } from "./progress";
+import { stampMs } from "../helpers/ha-time";
 import "../components/trigger-chart";
 import type { ChartPoint, ChartEvent } from "../components/trigger-chart";
 import type { MaintenanceTask, TriggerConfig, StatisticsPoint } from "../types";
@@ -299,8 +300,8 @@ function counterBaseline(task: MaintenanceTask, rawPoints: ChartPoint[]): { valu
 function lastServiceTs(task: MaintenanceTask): number | null {
   const e = [...task.history]
     .filter((h) => h.type === "completed" || h.type === "reset")
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
-  return e ? new Date(e.timestamp).getTime() : null;
+    .sort((a, b) => stampMs(b.timestamp) - stampMs(a.timestamp))[0];
+  return e ? stampMs(e.timestamp) : null;
 }
 
 /** "8,507 / 15,000 km · 57 %" header + progress bar (counter / state_change / runtime). */
@@ -351,7 +352,7 @@ function rawStatsPoints(task: MaintenanceTask, ctx: SparklineContext): ChartPoin
   } else {
     for (const h of task.history) {
       if (h.trigger_value != null) {
-        points.push({ ts: new Date(h.timestamp).getTime(), val: h.trigger_value });
+        points.push({ ts: stampMs(h.timestamp), val: h.trigger_value });
       }
     }
   }
@@ -472,7 +473,7 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
 
   const events: ChartEvent[] = task.history
     .filter((h) => ["completed", "skipped", "reset"].includes(h.type))
-    .map((h) => ({ ts: new Date(h.timestamp).getTime(), type: h.type }));
+    .map((h) => ({ ts: stampMs(h.timestamp), type: h.type }));
 
   return html`
     <maintenance-trigger-chart

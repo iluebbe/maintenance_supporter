@@ -15,7 +15,7 @@ import { downloadTextFile } from "../helpers/download";
 import { invalidateSettingsCache, ROW_ACTION_STYLES } from "../helpers/settings-cache";
 import { SETTING_INT_RANGES, VACATION_BUFFER_DAYS_RANGE, settingIntRange } from "../helpers/setting-ranges";
 import { ToastTimer } from "../helpers/toast";
-import { isoDateLocal } from "../helpers/calendar-bucket";
+import { haToday } from "../helpers/ha-time";
 import { runWs } from "../helpers/ws-run";
 import { DOCS_ARCHIVE_MAX_BYTES, postMultipart } from "../helpers/photo-upload";
 import { countryName, detectionReasons, dwellingLabel, type HomeProfile } from "../helpers/home-profile";
@@ -2084,7 +2084,8 @@ export class MaintenanceSettingsView extends LitElement {
       ...(ids ? { entry_ids: ids } : {}),
     });
     if (!result) return;
-    const ts = isoDateLocal(new Date());
+    // Dated by HA's day, like every date inside the export.
+    const ts = haToday();
     this._downloadFile(result.data, `maintenance_export_${ts}.json`, "application/json");
     this._showToast(t("settings_export_success", this._lang));
   }
@@ -2095,7 +2096,7 @@ export class MaintenanceSettingsView extends LitElement {
   private async _exportSettings(): Promise<void> {
     const result = await this._ws<{ data: string }>({ type: "maintenance_supporter/settings/export" });
     if (!result) return;
-    const ts = isoDateLocal(new Date());
+    const ts = haToday();
     this._downloadFile(result.data, `maintenance_settings_${ts}.json`, "application/json");
     this._showToast(t("settings_export_success", this._lang));
   }
@@ -2109,7 +2110,7 @@ export class MaintenanceSettingsView extends LitElement {
       ...(ids ? { entry_ids: ids } : {}),
     });
     if (!result) return;
-    const ts = isoDateLocal(new Date());
+    const ts = haToday();
     this._downloadFile(result.data, `maintenance_export_${ts}.yaml`, "application/yaml");
     this._showToast(t("settings_export_success", this._lang));
   }
@@ -2121,7 +2122,7 @@ export class MaintenanceSettingsView extends LitElement {
       ...(ids ? { entry_ids: ids } : {}),
     });
     if (!result) return;
-    const ts = isoDateLocal(new Date());
+    const ts = haToday();
     this._downloadFile(result.csv, `maintenance_export_${ts}.csv`, "text/csv");
     this._showToast(t("settings_export_success", this._lang));
   }

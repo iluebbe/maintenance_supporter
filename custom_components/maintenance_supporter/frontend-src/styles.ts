@@ -33,23 +33,29 @@ export { STATUS_COLORS, STATUS_ICONS } from "./status-constants";
 // `from "./styles"` import keeps working.
 import { ensureLocale, isLocaleLoaded, normLang, seedEnglish, t, type Translations } from "./helpers/locale-core";
 import { primeBackendErrors } from "./helpers/backend-errors";
+import { displayTimeZone, haTimeZone, minuteIn, stampMs, ymdIn } from "./helpers/ha-time";
 export { ensureLocale, isLocaleLoaded, seedEnglish, setLocale, t } from "./helpers/locale-core";
 seedEnglish(EN as Translations);
 
 /** The per-`updated()` locale boot every top-level surface needs: date/time
- * prefs follow the HA profile (#97), and the user's UI language is lazily
- * fetched with a re-render once it arrives (EN is bundled, so strings read
- * in English until then rather than as raw keys). Was copy-pasted across the
- * panel and both cards (drift audit 2026-08). */
+ * prefs follow the HA profile (#97) — its time zone included — while
+ * schedule dates follow HA's own zone (helpers/ha-time), and the user's UI
+ * language is lazily fetched with a re-render once it arrives (EN is
+ * bundled, so strings read in English until then rather than as raw keys).
+ * Was copy-pasted across the panel and both cards (drift audit 2026-08). */
 export function syncLocaleFromHass(
   host: {
-    hass?: { language?: string; locale?: unknown; config?: { country?: string | null } };
+    hass?: { language?: string; locale?: unknown; config?: { country?: string | null; time_zone?: string | null } };
     requestUpdate: () => void;
   },
   changedProps: Map<string, unknown>,
 ): void {
   if (changedProps.has("hass")) {
-    setProfilePrefs(host.hass?.locale as Parameters<typeof setProfilePrefs>[0], host.hass?.config?.country);
+    setProfilePrefs(
+      host.hass?.locale as Parameters<typeof setProfilePrefs>[0],
+      host.hass?.config?.country,
+      host.hass?.config?.time_zone,
+    );
   }
   const lang = host.hass?.language;
   if (lang && !isLocaleLoaded(lang)) {
@@ -101,6 +107,11 @@ interface ProfilePrefs {
   time?: string;
   number?: string;
   country?: string;
+  /** The profile "Time zone" option ("local" | "server") and
+   *  hass.config.time_zone — read by helpers/ha-time (HA's clock for the
+   *  schedule, the display zone for timestamps). */
+  timeZone?: string;
+  serverTimeZone?: string;
 }
 const _w = window as unknown as { __msDateTimePrefs?: ProfilePrefs };
 const DT_PREFS: ProfilePrefs = (_w.__msDateTimePrefs ??= {});
@@ -124,18 +135,24 @@ export function syncCurrencyDecimals(src: { currency_decimals?: number | null } 
   if (src && src.currency_decimals !== undefined && src.currency_decimals !== null) setCurrencyDecimals(Number(src.currency_decimals));
 }
 
-/** Feed HA's per-user date/time/number formats into the formatters below.
- *  `country` is the SERVER's configured country (#140): with the profile
- *  date format left on "language" it regionalizes the language default —
- *  "en" + AU renders DD/MM/YYYY instead of the hard en-US mapping. */
+/** Feed HA's per-user date/time/number formats and time zone option into
+ *  the formatters below. `country` is the SERVER's configured country
+ *  (#140): with the profile date format left on "language" it regionalizes
+ *  the language default — "en" + AU renders DD/MM/YYYY instead of the hard
+ *  en-US mapping. `serverTimeZone` is hass.config.time_zone, the clock every
+ *  schedule date runs on (helpers/ha-time); it is kept even without a locale
+ *  (a test mock, an old core). For both, undefined keeps the stored value. */
 export function setProfilePrefs(
-  locale?: { date_format?: string; time_format?: string; number_format?: string },
+  locale?: { date_format?: string; time_format?: string; number_format?: string; time_zone?: string },
   country?: string | null,
+  serverTimeZone?: string | null,
 ): void {
+  if (serverTimeZone !== undefined) DT_PREFS.serverTimeZone = serverTimeZone || undefined;
   if (!locale) return;
   DT_PREFS.date = locale.date_format;
   DT_PREFS.time = locale.time_format;
   DT_PREFS.number = locale.number_format;
+  DT_PREFS.timeZone = locale.time_zone;
   if (country !== undefined) DT_PREFS.country = country || undefined;
 }
 
@@ -217,54 +234,77 @@ function resolveLocale(lang?: string): string {
   return base;
 }
 
-function _formatDateObj(d: Date, lang?: string): string {
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const yyyy = String(d.getFullYear());
-  switch (DT_PREFS.date) {
-    case "DMY": return `${dd}/${mm}/${yyyy}`;
-    case "MDY": return `${mm}/${dd}/${yyyy}`;
-    case "YMD": return `${yyyy}-${mm}-${dd}`;
-    case "system":
-      return d.toLocaleDateString(undefined, { day: "2-digit", month: "2-digit", year: "numeric" });
-    default: // "language" or unset — UI language, regionalized by the server country (#140)
-      return d.toLocaleDateString(resolveLocale(lang), { day: "2-digit", month: "2-digit", year: "numeric" });
+/** The profile's numeric date of an instant, read in `timeZone` — the
+ *  display zone for a timestamp, UTC for a date-only value pinned to UTC
+ *  midnight. The explicit orders are built from formatToParts (ha-time
+ *  ymdIn): getDate()/getMonth() read the BROWSER's zone whatever the
+ *  profile says. */
+function _formatDateObj(d: Date, lang: string | undefined, timeZone: string): string {
+  const order = DT_PREFS.date;
+  if (order === "DMY" || order === "MDY" || order === "YMD") {
+    const [yyyy, mm, dd] = ymdIn(d, timeZone).split("-");
+    return order === "DMY" ? `${dd}/${mm}/${yyyy}` : order === "MDY" ? `${mm}/${dd}/${yyyy}` : `${yyyy}-${mm}-${dd}`;
   }
+  // "system" = the browser's locale; "language" or unset = the UI language,
+  // regionalized by the server country (#140).
+  const locale = order === "system" ? undefined : resolveLocale(lang);
+  return d.toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric", timeZone });
 }
 
-/** Time of day honouring the HA profile time format (12/24h). Every
- *  clock-time string in the UI goes through here — chart crosshairs included
- *  (#163: a bare toLocaleDateString({hour, minute}) ignored the profile). */
+/** Time of day of an instant honouring the HA profile time format (12/24h)
+ *  and its time zone. Every clock-time string in the UI goes through here —
+ *  chart crosshairs included (#163: a bare toLocaleDateString({hour,
+ *  minute}) ignored the profile). */
 export function formatTimeOfDay(d: Date, lang?: string): string {
+  const timeZone = displayTimeZone();
   switch (DT_PREFS.time) {
-    case "12": return d.toLocaleTimeString(resolveLocale(lang), { hour: "2-digit", minute: "2-digit", hour12: true });
-    case "24": return d.toLocaleTimeString(resolveLocale(lang), { hour: "2-digit", minute: "2-digit", hour12: false });
-    case "system": return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-    default: return d.toLocaleTimeString(resolveLocale(lang), { hour: "2-digit", minute: "2-digit" });
+    case "12": return d.toLocaleTimeString(resolveLocale(lang), { hour: "2-digit", minute: "2-digit", hour12: true, timeZone });
+    case "24": return d.toLocaleTimeString(resolveLocale(lang), { hour: "2-digit", minute: "2-digit", hour12: false, timeZone });
+    case "system": return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", timeZone });
+    default: return d.toLocaleTimeString(resolveLocale(lang), { hour: "2-digit", minute: "2-digit", timeZone });
   }
 }
 
-/** Format a date string (ISO) honouring the HA profile date format.
- *  Appends T00:00:00 to date-only strings so JS parses them as local time, not UTC. */
+const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/** Format a date string (ISO) honouring the HA profile date format. A
+ *  date-only value ("YYYY-MM-DD": next_due, warranty, …) has no zone and
+ *  keeps its day whatever the zones say; a timestamp shows its day in the
+ *  profile's time zone (helpers/ha-time — a zone-less one is HA local time). */
 export function formatDate(iso: string | null | undefined, lang?: string): string {
   if (!iso) return "—";
   try {
-    const local = iso.includes("T") ? iso : iso + "T00:00:00";
-    return _formatDateObj(new Date(local), lang);
+    const day = DATE_ONLY.exec(iso);
+    if (day) return _formatDateObj(new Date(Date.UTC(+day[1], +day[2] - 1, +day[3])), lang, "UTC");
+    return _formatDateObj(new Date(stampMs(iso)), lang, displayTimeZone());
   } catch {
     return iso;
   }
 }
 
-/** Format a datetime string (ISO) honouring the HA profile date/time formats. */
+/** Format a datetime string (ISO) honouring the HA profile date/time formats
+ *  and time zone (a zone-less value is HA local time; a date-only one has no
+ *  time of day to show). */
 export function formatDateTime(iso: string | null | undefined, lang?: string): string {
   if (!iso) return "—";
+  if (DATE_ONLY.test(iso)) return formatDate(iso, lang);
   try {
-    const d = new Date(iso);
-    return _formatDateObj(d, lang) + " " + formatTimeOfDay(d, lang);
+    const d = new Date(stampMs(iso));
+    return _formatDateObj(d, lang, displayTimeZone()) + " " + formatTimeOfDay(d, lang);
   } catch {
     return iso;
   }
+}
+
+/** The hint under a field whose value is HA local time (a back-dated
+ *  completion, a history entry's timestamp): it names HA's zone when the
+ *  times shown everywhere else run on another clock — a device elsewhere
+ *  with the profile's "local" zone — and is "" otherwise. Compared by the
+ *  clock, not by name: "Europe/Berlin" and "Europe/Zurich" agree. */
+export function haTimeZoneHint(lang?: string, at: number = Date.now()): string {
+  const zone = haTimeZone();
+  if (minuteIn(at, zone) === minuteIn(at, displayTimeZone())) return "";
+  return t("ha_time_zone_hint", lang).replace("{zone}", zone);
 }
 
 /** Format "days until due" in localized manner. */
@@ -320,13 +360,12 @@ export function formatMonth(d: Date, lang?: string, style: "long" | "short" = "l
   return monthName(d.getMonth(), lang, style);
 }
 
-/** Short day+month ("Jul 3" / "3. Juli"), with a 2-digit year when the
- *  caller's range needs disambiguating — chart axis ticks and tooltips. */
+/** Short day+month of an instant ("Jul 3" / "3. Juli") in the profile's
+ *  time zone, with a 2-digit year when the caller's range needs
+ *  disambiguating — chart axis ticks and tooltips. */
 export function formatDateShort(d: Date, lang?: string, withYear = false): string {
-  return d.toLocaleDateString(
-    resolveLocale(lang),
-    withYear ? { month: "short", day: "numeric", year: "2-digit" } : { month: "short", day: "numeric" },
-  );
+  const shape: Intl.DateTimeFormatOptions = withYear ? { month: "short", day: "numeric", year: "2-digit" } : { month: "short", day: "numeric" };
+  return d.toLocaleDateString(resolveLocale(lang), { ...shape, timeZone: displayTimeZone() });
 }
 
 /** Recurrence shape carried on the WS payload (see types.TaskSchedule). */

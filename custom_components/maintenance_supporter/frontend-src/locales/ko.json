@@ -212,6 +212,7 @@
   "completed_at_optional": "완료 시각 (선택, 비우면 지금)",
   "completed_at_pick": "날짜 및 시간 설정",
   "completed_at_future_error": "완료 날짜는 미래일 수 없습니다.",
+  "ha_time_zone_hint": "Home Assistant 시간대 기준 시간 ({zone})",
   "days": "일",
   "day": "일",
   "today": "오늘",

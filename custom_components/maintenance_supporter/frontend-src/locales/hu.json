@@ -212,6 +212,7 @@
   "completed_at_optional": "Elvégezve ekkor (opcionális, üres = most)",
   "completed_at_pick": "Dátum és idő megadása",
   "completed_at_future_error": "Az elvégzés dátuma nem lehet a jövőben.",
+  "ha_time_zone_hint": "Idő a Home Assistant időzónájában ({zone})",
   "days": "nap",
   "day": "nap",
   "today": "Ma",

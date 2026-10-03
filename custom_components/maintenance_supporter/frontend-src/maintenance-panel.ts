@@ -113,7 +113,8 @@ import type { MaintenanceGroupDialog } from "./components/group-dialog";
 import "./components/saved-views-dialog";
 import type { MaintenanceSavedViewsDialog } from "./components/saved-views-dialog";
 import { type SparklineContext } from "./renderers/sparkline";
-import { buildCalendarBuckets, isoDateLocal, type CalendarEvent } from "./helpers/calendar-bucket";
+import { buildCalendarBuckets, type CalendarEvent } from "./helpers/calendar-bucket";
+import { haToday } from "./helpers/ha-time";
 import { renderTriggerProgress, renderMiniSparkline, computeTrend } from "./renderers/progress";
 import { type HistoryContext } from "./renderers/history";
 import { renderUserBadge, type TaskDetailContext } from "./renderers/task-detail";
@@ -4271,7 +4272,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         esc(row.consumers.map((c) => `${c.object_name ?? ""}/${c.task_name ?? c.task_id}×${c.quantity}`).join(" | ")),
       ].join(","));
     }
-    const ts = isoDateLocal(new Date());
+    const ts = haToday();
     downloadTextFile(lines.join("\n"), `maintenance_parts_${ts}.csv`, "text/csv;charset=utf-8");
   }
 
@@ -4279,7 +4280,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private async _exportObjectsCsv(): Promise<void> {
     const result = await runWs<{ csv: string }>(this, { type: "maintenance_supporter/objects/csv" }, { onError: (m) => this._showToast(m) });
     if (!result) return;
-    const ts = isoDateLocal(new Date());
+    const ts = haToday();
     downloadTextFile(result.csv, `maintenance_objects_${ts}.csv`, "text/csv;charset=utf-8");
   }
 

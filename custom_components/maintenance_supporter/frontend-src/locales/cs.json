@@ -210,6 +210,7 @@
   "completed_at_optional": "Dokončeno dne (volitelné, prázdné = nyní)",
   "completed_at_pick": "Nastavit datum a čas",
   "completed_at_future_error": "Datum dokončení nesmí být v budoucnosti.",
+  "ha_time_zone_hint": "Čas v časovém pásmu Home Assistantu ({zone})",
   "days": "dní",
   "day": "den",
   "today": "Dnes",

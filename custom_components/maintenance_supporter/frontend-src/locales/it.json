@@ -210,6 +210,7 @@
   "completed_at_optional": "Completato il (opzionale, vuoto = adesso)",
   "completed_at_pick": "Imposta data e ora",
   "completed_at_future_error": "La data di completamento non può essere nel futuro.",
+  "ha_time_zone_hint": "Ora nel fuso orario di Home Assistant ({zone})",
   "days": "giorni",
   "day": "giorno",
   "today": "Oggi",
