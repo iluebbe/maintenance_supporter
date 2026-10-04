@@ -196,6 +196,13 @@ as needed (2.97+):
 
 ![Complete dialog: a note over two lines and a credit](images/complete-dialog-credit.png)
 
+**Whose clock counts:** every date the panel works out, such as *today*, a
+due date, a calendar day or the *Completed at* time, is Home Assistant's, so
+a phone abroad or a browser in another time zone does not move a task to
+another day. Times are shown the way your profile's *Time zone* setting says;
+when that clock differs from Home Assistant's, the *Completed at* field and
+the history editor name the zone they mean.
+
 ### Proof of presence (2.67+)
 Tick **Only complete by scanning the tag** next to the task's NFC tag and the
 task can only be marked done at the thing itself — by scanning that tag or
@@ -228,16 +235,6 @@ entry** (2.84+, #170) — a completion logged by mistake, a skip that means
 nothing on paper; the task's last-performed date falls back to the previous
 completion, photos stay with the object, and the parts it used go back to
 stock (the confirm names them).
-
-**Undo after Complete** — a Complete in the panel or on a dashboard card shows
-a toast with *Undo* for ten minutes (on a card, Home Assistant's own toast):
-it takes back that completion — the history entry, the cycle anchor, the phase,
-the learning and the parts it used. One level per person, only for the task
-the toast names, never over a later change (someone else completed the task
-meanwhile: refused). What already happened outside stays — notifications that
-went out, automations that ran on the event, and a completion action such as a
-device's reset button; the message says so when the task has one. The same
-record is what *undo that* reaches by voice.
 The booklet's print options gained a *Completions without details* switch
 (off = a completion that carries only a date prints nothing), and
 *Settings → General → Reference numbers in lists* puts the `#8` / `#8.3`
@@ -257,6 +254,25 @@ of the cost chart and says *Credit* in the history; the totals net it, the
 average cost per completion leaves it out:
 
 ![A credit in the cost chart and the history](images/task-history-credit.png)
+
+Deleting a completion from its edit dialog says what goes back to stock:
+
+![Deleting a completion names the parts that go back to stock](images/history-delete-parts.png)
+
+**Undo after Complete** — a Complete in the panel or on a dashboard card shows
+a toast with *Undo* (on a card, Home Assistant's own toast). Undo takes back
+that completion with everything it changed: the history entry, the cycle
+anchor, the phase, the learning and the parts it used. One level per person,
+only for the task the toast names, and never over a later change (if someone
+else completed the task meanwhile, it refuses). What already happened outside
+stays: notifications that went out, automations that ran on the event, and a
+completion action such as a device's reset button; the message says so when
+the task has one. Once the toast is gone, *undo that* by voice still reaches
+the same record for ten minutes.
+
+![Undo after Complete](images/gifs/undo-complete.gif)
+
+![The toast after a Complete](images/undo-toast.png)
 
 ### Settings Tab
 Feature toggles (advanced features are hidden until enabled), panel access
@@ -713,6 +729,14 @@ false` (or the editor toggle) hides it. Names are resolved through a
 read-tier command, so household members without admin rights see them too.
 
 ![Lovelace Card](images/lovelace-card.png)
+
+A task's linked documents and its documentation link sit on its row as chips
+(`show_documents`): one tap opens the manual. Two at most, the rest counted as
+*+N*; completion photos are left out. In a narrow card (a phone, an ordinary
+dashboard column) the chips get a line of their own under the task, so the
+name keeps its room:
+
+![The card in a dashboard column, documents under the tasks](images/card-docs-column.png)
 
 ### The whole panel as a card (2.84+, #174)
 `custom:maintenance-supporter-panel-card` mounts the complete panel — Today,
@@ -1255,7 +1279,11 @@ Since 2.96, for the rest of the household routine:
   satellite has no history editor. It refuses when the task changed in the
   meantime (somebody completed it in the panel), and it cannot take back what
   already left the house: fired events, sent notifications, an on-complete
-  action; a sensor trigger's progress keeps counting from where it is.
+  action; a sensor trigger's progress keeps counting from where it is. When
+  Assist knows who is asking (the Assist dialog in the app), a Complete you
+  just tapped in the panel or on a card counts too: the toast's *Undo* and
+  this sentence share one record per person. A voice satellite without a
+  user keeps a record of its own.
 
 **How names are understood.** Say the task the way you would say it: with
 articles (*"den Wasserfilter"*, *"l'huile"*), with the object joined by *on /

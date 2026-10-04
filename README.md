@@ -39,7 +39,8 @@ Create the object once (or pick it from 96 ready-made templates), give it a
 task with an interval — days, weeks, months, or specific patterns like *first
 Saturday* or *last business day of the month*. You get a reminder before it's
 due, and completing it takes one tap — optionally with notes, cost, duration,
-and a photo of the work.
+and a photo of the work. Tapped the wrong row? *Undo* in the toast takes it
+back.
 
 **"My vacuum already knows when its filter is worn."**
 **Suggested setups** (Beta) discovers devices of 262 supported integrations —

@@ -30,11 +30,11 @@ All notable changes to Maintenance Supporter are documented in this file.
     Pandora (service, oil service and tire rotation from the car's own countdowns), the UK's DVLA MOT date
     (*Roadworthiness Test* 30 days ahead), Fronius Wattpilot (cable and plug check by delivered energy) and the
     Neakasa litter box.
-- **Undo after Complete:** a Complete in the panel or on a dashboard card shows a toast with *Undo* for ten minutes (on
-  a card, Home Assistant's own toast). It takes back that completion: the history entry, the cycle anchor, the phase,
-  the learning and the parts it used. One level per person, only for the task the toast names, and never over a later
-  change. Notifications that went out and a completion action that already ran (a device's reset button) stay; the
-  message says so. Saying *undo that* reaches the same record.
+- **Undo after Complete:** a Complete in the panel or on a dashboard card shows a toast with *Undo* (on a card, Home
+  Assistant's own toast). It takes back that completion: the history entry, the cycle anchor, the phase, the learning
+  and the parts it used. One level per person, only for the task the toast names, and never over a later change.
+  Notifications that went out and a completion action that already ran (a device's reset button) stay; the message
+  says so. Saying *undo that* reaches the same record for ten minutes.
 
 ### 🐛 Fixed
 

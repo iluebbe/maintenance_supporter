@@ -309,6 +309,22 @@ const flowComplete = async (p, mark) => {
   await p.waitForTimeout(3200);
 };
 
+// After 2.97.1: the toast of a Complete offers Undo — the same one-click
+// completion as complete-task, then Undo takes it back (history, cycle
+// anchor, parts), so this clip leaves the instance as it found it.
+const flowUndoComplete = async (p, mark) => {
+  await flowComplete(p, mark);
+  const undone = await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    const btn = panel.shadowRoot.querySelector(".toast-undo");
+    if (!btn) return "no undo";
+    btn.click();
+    return "undo";
+  }, panelOf.toString());
+  log("  " + undone);
+  await p.waitForTimeout(3200);
+};
+
 const flowCalendarFilter = async (p, mark) => {
   // The object filter lives on the standalone CALENDAR CARD (v2.40) — show
   // it on the demo dashboard rather than the panel tab. Panel first: its UI
@@ -1089,6 +1105,7 @@ const flowBulkEdit = async (p, mark) => {
 const FLOWS = {
   "create-from-template": flowTemplate,
   "complete-task": flowComplete,
+  "undo-complete": flowUndoComplete,
   "calendar-object-filter": flowCalendarFilter,
   // Order matters: parts-auto-buy and duty-rotation COMPLETE tasks, which
   // changes the state the other flows record against. Each flow gets a fresh
