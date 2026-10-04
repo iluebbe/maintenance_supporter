@@ -703,6 +703,7 @@ export class MaintenanceSettingsView extends LitElement {
       { key: "checklists", settingKey: "advanced_checklists_visible", label: t("feat_checklists", L), desc: t("feat_checklists_desc", L) },
       { key: "schedule_time", settingKey: "advanced_schedule_time_visible", label: t("feat_schedule_time", L), desc: t("feat_schedule_time_desc", L) },
       { key: "completion_actions", settingKey: "advanced_completion_actions_visible", label: t("feat_completion_actions", L), desc: t("feat_completion_actions_desc", L) },
+      { key: "places", settingKey: "advanced_places_visible", label: t("feat_places", L), desc: t("feat_places_desc", L) },
     ];
 
     return html`

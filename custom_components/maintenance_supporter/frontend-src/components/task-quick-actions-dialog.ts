@@ -78,7 +78,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
   @state() private _features: AdvancedFeatures = {
     adaptive: false, seasonal: false, environmental: false,
     budget: false, groups: false, checklists: false, schedule_time: false,
-    completion_actions: false,
+    completion_actions: false, places: false,
   };
   @state() private _toast = "";
   private readonly _toastTimer = new ToastTimer();

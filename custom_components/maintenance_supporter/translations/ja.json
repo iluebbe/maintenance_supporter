@@ -579,7 +579,8 @@
           "advanced_groups_visible": "グループ",
           "advanced_checklists_visible": "チェックリスト",
           "advanced_schedule_time_visible": "時刻指定スケジューリング",
-          "advanced_completion_actions_visible": "完了時アクション"
+          "advanced_completion_actions_visible": "完了時アクション",
+          "advanced_places_visible": "場所"
         },
         "data_description": {
           "advanced_adaptive_visible": "タスクの EWA、ワイブル分析、間隔の提案を表示します。",
@@ -589,7 +590,8 @@
           "advanced_groups_visible": "メンテナンスグループの管理を表示します。",
           "advanced_checklists_visible": "ステップごとの完了用のタスクチェックリストを表示します。",
           "advanced_schedule_time_visible": "タスクが深夜ではなく特定の時刻に期限切れになるようにします。",
-          "advanced_completion_actions_visible": "タスクごとの完了時HAアクション＋事前設定値付きのクイック完了QR。"
+          "advanced_completion_actions_visible": "タスクごとの完了時HAアクション＋事前設定値付きのクイック完了QR。",
+          "advanced_places_visible": "別の場所（Home Assistant のゾーン）で管理するオブジェクト：誰かがその場にいるときだけリマインドし、到着時に通知します。"
         }
       },
       "panel_access": {

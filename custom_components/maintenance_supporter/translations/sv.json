@@ -579,7 +579,8 @@
           "advanced_groups_visible": "Grupper",
           "advanced_checklists_visible": "Checklistor",
           "advanced_schedule_time_visible": "Schema med tid på dagen",
-          "advanced_completion_actions_visible": "Slutförande-åtgärder"
+          "advanced_completion_actions_visible": "Slutförande-åtgärder",
+          "advanced_places_visible": "Platser"
         },
         "data_description": {
           "advanced_adaptive_visible": "Visa EWA, Weibull-analys och intervallförslag för uppgifter.",
@@ -589,7 +590,8 @@
           "advanced_groups_visible": "Visa hantering av underhållsgrupper.",
           "advanced_checklists_visible": "Visa uppgiftschecklistor för stegvis slutförande.",
           "advanced_schedule_time_visible": "Tillåt uppgifter att bli försenade vid en specifik tid på dagen istället för vid midnatt.",
-          "advanced_completion_actions_visible": "HA-åtgärd per uppgift vid slutförande + snabb-slutför-QR med förinställda värden."
+          "advanced_completion_actions_visible": "HA-åtgärd per uppgift vid slutförande + snabb-slutför-QR med förinställda värden.",
+          "advanced_places_visible": "Objekt som sköts på en annan plats (en Home Assistant-zon): påminnelser bara när någon är där, och ett meddelande vid ankomst."
         }
       },
       "panel_access": {

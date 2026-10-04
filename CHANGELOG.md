@@ -4,6 +4,22 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **Places: maintenance away from home.** With *Places* on in Advanced Features an object can be maintained at
+  one of your Home Assistant zones (an allotment garden, a holiday home, a boat); empty means home, so objects at
+  home change nothing. *Remind only while somebody is there* holds the object's reminders until somebody has stayed
+  in the zone for two minutes (driving past is no stay), and vacation mode no longer silences a place while somebody
+  is there. Whoever arrives at a place gets one message with what is due there, after a two-minute stay and once per
+  visit, on their own phones only; quiet hours skip it. For an object that reminds only on site that message is the
+  visit's reminder, so the held reminders do not follow it to the household. The object page shows the place, the
+  dashboard can filter by it, and the calendar events carry it as their location. A renamed zone keeps its objects,
+  the JSON backup carries the place, and a zone that is gone counts as home. Nothing stores positions: only the zones
+  a person is in are compared.
+- **Recipes for maintenance away from home** (EXAMPLES): a dashboard card that appears only on site (Home Assistant
+  2026.10 evaluates integration conditions for card visibility), your own arrival reaction, and the shopping list
+  when you walk into the store.
+
 ### 🐛 Fixed
 
 - **A counter sensor that drops out no longer re-announces its task:** when a counter's sensor was unavailable at the

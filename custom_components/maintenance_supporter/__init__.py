@@ -1503,6 +1503,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
             await todo_mirror.async_setup()
             hass.data[DOMAIN][TODO_MIRROR_KEY] = todo_mirror
 
+        # 2026-10 places: tell a person what is due where they just arrived —
+        # same lifecycle as the mirrors (global entry owns it).
+        from .helpers.places import PLACES_KEY, PlaceArrivals
+
+        if PLACES_KEY not in hass.data[DOMAIN]:
+            place_arrivals = PlaceArrivals(hass)
+            place_arrivals.async_setup()
+            hass.data[DOMAIN][PLACES_KEY] = place_arrivals
+
         # One-time migration: auto-enable advanced feature flags for existing users
         options = dict(entry.options or entry.data)
         if CONF_ADVANCED_ADAPTIVE not in options:
@@ -2127,6 +2136,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: MaintenanceSupporterCon
         todo_mirror = hass.data.get(DOMAIN, {}).pop(TODO_MIRROR_KEY, None)
         if todo_mirror is not None:
             todo_mirror.async_teardown()
+        from .helpers.places import PLACES_KEY
+
+        place_arrivals = hass.data.get(DOMAIN, {}).pop(PLACES_KEY, None)
+        if place_arrivals is not None:
+            place_arrivals.async_teardown()
         # NOT the full-text index: it is shared runtime (built once per boot
         # by _async_setup_shared, which a hub reload does not re-run) — a
         # reload of the global entry (any settings save) closed it for the

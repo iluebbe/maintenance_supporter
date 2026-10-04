@@ -579,7 +579,8 @@
           "advanced_groups_visible": "Skupiny",
           "advanced_checklists_visible": "Kontrolní seznamy",
           "advanced_schedule_time_visible": "Harmonogram s denní dobou",
-          "advanced_completion_actions_visible": "Akce při dokončení"
+          "advanced_completion_actions_visible": "Akce při dokončení",
+          "advanced_places_visible": "Místa"
         },
         "data_description": {
           "advanced_adaptive_visible": "Zobrazit EWA, analýzu Weibulla a návrhy intervalů pro úkoly.",
@@ -589,7 +590,8 @@
           "advanced_groups_visible": "Zobrazit správu skupin údržby.",
           "advanced_checklists_visible": "Zobrazit kontrolní seznamy úkolů pro postupné dokončení.",
           "advanced_schedule_time_visible": "Povolit, aby úkoly byly po termínu v určitou denní dobu místo o půlnoci.",
-          "advanced_completion_actions_visible": "Akce HA na úlohu při dokončení + QR rychlého dokončení s předvolenými hodnotami."
+          "advanced_completion_actions_visible": "Akce HA na úlohu při dokončení + QR rychlého dokončení s předvolenými hodnotami.",
+          "advanced_places_visible": "Objekty udržované na jiném místě (zóna Home Assistantu): připomínky jen když tam někdo je a zpráva při příjezdu."
         }
       },
       "panel_access": {

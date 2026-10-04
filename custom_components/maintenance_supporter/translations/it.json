@@ -579,7 +579,8 @@
           "advanced_groups_visible": "Gruppi",
           "advanced_checklists_visible": "Liste di controllo",
           "advanced_schedule_time_visible": "Pianificazione oraria",
-          "advanced_completion_actions_visible": "Azioni di completamento"
+          "advanced_completion_actions_visible": "Azioni di completamento",
+          "advanced_places_visible": "Luoghi"
         },
         "data_description": {
           "advanced_adaptive_visible": "Mostra analisi EWA, Weibull e suggerimenti di intervallo per le attività.",
@@ -589,7 +590,8 @@
           "advanced_groups_visible": "Mostra la gestione dei gruppi di manutenzione.",
           "advanced_checklists_visible": "Mostra liste di controllo per il completamento passo per passo delle attività.",
           "advanced_schedule_time_visible": "Consente alle attività di scadere a un'ora specifica anziché a mezzanotte.",
-          "advanced_completion_actions_visible": "Azione HA per attività al completamento + QR completamento rapido con valori predefiniti."
+          "advanced_completion_actions_visible": "Azione HA per attività al completamento + QR completamento rapido con valori predefiniti.",
+          "advanced_places_visible": "Oggetti curati in un altro luogo (una zona di Home Assistant): promemoria solo quando qualcuno è lì e un messaggio all'arrivo."
         }
       },
       "panel_access": {

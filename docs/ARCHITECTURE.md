@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.98.0 | 308 source files (177 Python + 131 TypeScript) | **98% test coverage** (5,407 backend tests + 1,254 frontend tests)
+**Version:** 2.98.0 | 309 source files (178 Python + 131 TypeScript) | **98% test coverage** (5,407 backend tests + 1,254 frontend tests)
 
 ---
 
@@ -191,8 +191,8 @@ drifted. The descriptions are hand-written.
 
 ```
 custom_components/maintenance_supporter/
-├── __init__.py                  (2,351 lines)  Integration setup, services, lifecycle, async_migrate_entry
-├── const.py                       (939 lines)  Constants, enums, defaults, PLATFORMS
+├── __init__.py                  (2,365 lines)  Integration setup, services, lifecycle, async_migrate_entry
+├── const.py                       (952 lines)  Constants, enums, defaults, PLATFORMS
 ├── coordinator.py               (2,183 lines)  DataUpdateCoordinator per object
 ├── storage.py                     (657 lines)  Per-entry Store (dynamic state, migration, part stock)
 ├── parts_runtime.py               (545 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
@@ -201,7 +201,7 @@ custom_components/maintenance_supporter/
 ├── config_flow.py                 (943 lines)  Initial setup flow + templates
 ├── config_flow_helpers.py         (362 lines)  Shared config flow utilities
 ├── config_flow_options.py          (13 lines)  Options dispatcher
-├── config_flow_options_global.py (1,689 lines)  Global settings (general incl. currency, notifications, budgets, panel access)
+├── config_flow_options_global.py (1,694 lines)  Global settings (general incl. currency, notifications, budgets, panel access)
 ├── config_flow_options_task.py     (30 lines)  Per-object task options flow — a dispatcher assembled from the mixins below
 │   ├── …_task_base.py             (178 lines)  Shared state + threshold-floor (B1) helpers
 │   ├── …_task_add.py               (87 lines)  Add-task steps of the options flow, on the shared config_flow_schedule.py
@@ -221,7 +221,7 @@ custom_components/maintenance_supporter/
 │                                               BatteryFleetLowSensor, DocumentStorageSensor (per-area cost: entity/area_cost.py)
 ├── binary_sensor.py               (177 lines)  MaintenanceBinarySensor (problem, per task)
 ├── button.py                      (132 lines)  Complete / Skip / Reset buttons per task (no global buttons)
-├── calendar.py                    (833 lines)  MaintenanceCalendar (global, all tasks)
+├── calendar.py                    (842 lines)  MaintenanceCalendar (global, all tasks)
 ├── todo.py                        (176 lines)  Global to-do list aggregating every active task
 ├── entity/                      (2,914 lines)  12 files — Entity bases shared by the platforms, the per-area cost sensors, the trigger engine
 │   ├── entity_base.py             (127 lines)  CoordinatorEntity base class
@@ -237,9 +237,9 @@ custom_components/maintenance_supporter/
 │       ├── compound.py            (367 lines)  AND/OR compound trigger
 │       └── due_date.py             (83 lines)  Due-date trigger: the device reports WHEN the maintenance is due
 │
-├── websocket/                  (11,250 lines)  106 commands, 25 files — split by domain; tasks.py re-exports the task modules drawn under it
-│   ├── __init__.py                (966 lines)  Shared helpers + registration
-│   ├── objects.py               (1,094 lines)  13 commands: objects, object, object/create, object/update, object/delete,
+├── websocket/                  (11,292 lines)  106 commands, 25 files — split by domain; tasks.py re-exports the task modules drawn under it
+│   ├── __init__.py                (986 lines)  Shared helpers + registration
+│   ├── objects.py               (1,111 lines)  13 commands: objects, object, object/create, object/update, object/delete,
 │   │                                           object/duplicate, object/from_template, object/archive, object/unarchive, object/pause,
 │   │                                           object/resume, object/replace, entity/attributes
 │   ├── tasks.py                    (89 lines)  Backward-compat re-export shim (no handlers of its own)
@@ -254,9 +254,9 @@ custom_components/maintenance_supporter/
 │   ├── analysis.py                (314 lines)  5 commands: task/analyze_interval, task/apply_suggestion, task/seasonal_overrides,
 │   │                                           task/set_environmental_entity, task/set_adaptive
 │   ├── users.py                   (160 lines)  3 commands: users/list, task/assign_user, tasks/by_user
-│   ├── io.py                    (1,745 lines)  10 commands: version, templates, export, csv/export, objects/csv, csv/import,
+│   ├── io.py                    (1,748 lines)  10 commands: version, templates, export, csv/export, objects/csv, csv/import,
 │   │                                           settings/export, json/import, qr/generate, qr/batch_generate
-│   ├── dashboard.py             (1,058 lines)  8 commands: settings, statistics, subscribe, schedule/preview, budget_status,
+│   ├── dashboard.py             (1,060 lines)  8 commands: settings, statistics, subscribe, schedule/preview, budget_status,
 │   │                                           global/update, global/test_notification, notify/user_targets
 │   ├── vacation.py                (217 lines)  4 commands: vacation/state, vacation/update, vacation/preview, vacation/end_now
 │   ├── parts.py                   (332 lines)  5 commands: part/create, part/update, part/delete, part/restock, parts/overview
@@ -292,8 +292,8 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (43,922 lines)  131 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
-│   ├── maintenance-panel.ts     (5,261 lines)  Panel shell: today / dashboard / calendar / settings tabs,
+├── frontend-src/               (44,053 lines)  131 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+│   ├── maintenance-panel.ts     (5,303 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,263 lines)  Auto-generated dashboard strategy + 4 section strategies
 │   ├── maintenance-card.ts        (850 lines)  Lovelace card
@@ -302,7 +302,7 @@ custom_components/maintenance_supporter/
 │   ├── maintenance-strategy-shim.ts (441 lines)  Zero-import boot shim: defines the dashboard AND the four
 │   │                                           section strategy tags synchronously (lazy-loads the bundle on
 │   │                                           first generate(); v2.73.0), picker entries, scoped-registry self-heal
-│   ├── panel-styles.ts          (2,157 lines)  Panel-specific CSS
+│   ├── panel-styles.ts          (2,165 lines)  Panel-specific CSS
 │   ├── calendar-styles.ts         (208 lines)  Calendar-card CSS
 │   ├── styles.ts                (1,729 lines)  Shared CSS, i18n runtime loader (bundled EN + on-demand fetch
 │   │                                           of the other 21) + shared helpers; the ONLY module that formats
@@ -310,10 +310,10 @@ custom_components/maintenance_supporter/
 │   │                                           number_format via the __msDateTimePrefs singleton) — tripwired
 │   │                                           by __tests__/profile-format-single-source.test.ts (#163);
 │   │                                           chart-utils px() is the one sanctioned toFixed (SVG geometry)
-│   ├── types.ts                   (704 lines)  TypeScript interfaces
+│   ├── types.ts                   (713 lines)  TypeScript interfaces
 │   ├── statistics-service.ts      (309 lines)  WS statistics cache
 │   ├── user-service.ts            (131 lines)  HA user list cache
-│   ├── dialog-mount.ts            (295 lines)  Lazy dialog mounting (open*Dialog helpers)
+│   ├── dialog-mount.ts            (306 lines)  Lazy dialog mounting (open*Dialog helpers)
 │   ├── ws-errors.ts               (280 lines)  WS error → localized message mapping
 │   ├── ds-entry.ts                 (58 lines)  Design-sync bundle entry
 │   ├── ds-host-stubs.ts           (287 lines)  Design-sync host-element fallbacks
@@ -397,9 +397,9 @@ custom_components/maintenance_supporter/
 │   │   ├── sparkline.ts           (515 lines)  Trigger section renderer (task detail)
 │   │   ├── status.ts               (62 lines)  A task's status as the user sees it — THE derivation for every surface
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
-│   ├── components/             (19,696 lines)  37 files — Lit elements: dialogs, sections, views, cards
+│   ├── components/             (19,757 lines)  37 files — Lit elements: dialogs, sections, views, cards
 │   │   ├── task-dialog.ts       (3,754 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
-│   │   ├── settings-view.ts     (2,779 lines)  In-panel global settings editor
+│   │   ├── settings-view.ts     (2,780 lines)  In-panel global settings editor
 │   │   ├── task-quick-actions-dialog.ts (937 lines)  Task ⋮ menu
 │   │   ├── documents-section.ts   (714 lines)  Object-detail documents/manuals section
 │   │   ├── parts-section.ts       (571 lines)  Object-detail spare-parts section
@@ -414,7 +414,7 @@ custom_components/maintenance_supporter/
 │   │   ├── groups-section-card.ts (328 lines)  Interactive groups section card (dashboard strategy)
 │   │   ├── vacation-section-card.ts (338 lines)  Interactive vacation section card (dashboard strategy)
 │   │   ├── object-quick-actions-dialog.ts (317 lines)  Object ⋮ menu
-│   │   ├── object-dialog.ts       (429 lines)  Add/edit object
+│   │   ├── object-dialog.ts       (489 lines)  Add/edit object
 │   │   ├── budget-section-card.ts (290 lines)  Interactive budget section card (dashboard strategy)
 │   │   ├── history-edit-dialog.ts (633 lines)  Timestamp / notes / cost / duration / parts / photos (#161)
 │   │   ├── saved-views-dialog.ts  (235 lines)  Named panel filter/sort/group views
@@ -435,12 +435,12 @@ custom_components/maintenance_supporter/
 │   │   ├── required-completion-labels.ts (27 lines)  Labels of the details a task can demand on completion (mirror of helpers/completion_requirements.py)
 │   │   ├── bulk-edit-dialog.ts    (266 lines)  Several tasks changed at once (discussion #199): who is assigned, their labels, and the few settings that make sense in bulk
 │   │   └── ms-cost-input.ts       (109 lines)  A cost that may be a credit (#200): a Cost | Credit switch and the amount
-│   └── __tests__/              (27,071 lines)  196 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (27,173 lines)  197 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (31,396 lines)  99 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
-│   ├── notification_manager.py  (2,448 lines)  Multi-channel notification system
-│   ├── notify_hooks.py            (362 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
-│   ├── notify_icons.py             (96 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
+├── helpers/                    (31,842 lines)  100 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+│   ├── notification_manager.py  (2,570 lines)  Multi-channel notification system
+│   ├── notify_hooks.py            (367 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
+│   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
 │   ├── qrcodegen.py               (702 lines)  Vendored QR library (Nayuki, MIT) — excluded from coverage
 │   ├── interval_analyzer.py       (711 lines)  EWA + Weibull + seasonal analysis (pure Python)
 │   ├── schedule.py                (882 lines)  Schedule value object (discriminated-union recurrence) + adapters
@@ -458,7 +458,7 @@ custom_components/maintenance_supporter/
 │   │                                           the chokepoint with source `todo_mirror` (Store task state `todo_mirror`)
 │   ├── intent_speech.py           (234 lines)  What the voice intents SAY, per language (assist_sentences/responses/)
 │   ├── assist_sentences.py        (184 lines)  Installs the shipped Assist sentence files into <config>/custom_sentences/
-│   ├── sanitize.py                (565 lines)  Defensive config-flow input sanitization (incl. rotation seeding)
+│   ├── sanitize.py                (583 lines)  Defensive config-flow input sanitization (incl. rotation seeding)
 │   ├── csv_handler.py             (447 lines)  CSV import/export
 │   ├── vacation.py                (347 lines)  Vacation mode
 │   ├── battery_fleet_setup.py   (1,088 lines)  One-click fleet object + parts + single aggregate task
@@ -468,9 +468,9 @@ custom_components/maintenance_supporter/
 │   ├── entity_analyzer.py         (211 lines)  Entity discovery + recorder stats
 │   ├── retention.py               (245 lines)  Archive & auto-delete retention sweep
 │   ├── trigger_fallback.py        (390 lines)  Per-type fallback evaluators for the coordinator refresh
-│   ├── settings_registry.py       (276 lines)  Single source of truth for global-setting validation
+│   ├── settings_registry.py       (278 lines)  Single source of truth for global-setting validation
 │   ├── dates.py                   (294 lines)  Pure calendar math: add_interval, nth-weekday, day-of-month clamping
-│   ├── entity_rename.py           (259 lines)  Rewrites entity_id references when HA renames an entity
+│   ├── entity_rename.py           (263 lines)  Rewrites entity_id references when HA renames an entity
 │   ├── workday.py                 (177 lines)  Business-day provider bridging HA's Workday integration
 │   ├── qr_generator.py            (173 lines)  QR code URL builder + SVG generator
 │   ├── saved_views.py             (164 lines)  Named, shared panel-filter views
@@ -508,8 +508,8 @@ custom_components/maintenance_supporter/
 │   ├── least_squares.py            (36 lines)  Ordinary least-squares line fit — the one used by the analysers
 │   ├── managed_timer.py           (214 lines)  ManagedTimer — the one-shot / interval / retry / task plumbing every timer-owning class used to hand-roll (DRY audit 2026-09)
 │   ├── member_display.py          (117 lines)  Household member display: initials + colour per HA user (#169 follow-up)
-│   ├── notification_gates.py      (134 lines)  The per-task notification gates, in one place
-│   ├── notification_ids.py        (102 lines)  The wire formats of a notification — one builder (and parser) each
+│   ├── notification_gates.py      (144 lines)  The per-task notification gates, in one place
+│   ├── notification_ids.py        (107 lines)  The wire formats of a notification — one builder (and parser) each
 │   ├── notify_targets.py           (39 lines)  Canonical notify-target discovery
 │   ├── parts_cost.py              (140 lines)  What the spare parts of a completion cost — and when that counts (#104)
 │   ├── pause.py                   (186 lines)  Object and single-task pause (seasonal mode, #193): markers, auto-resume, fresh-cycle re-anchoring
@@ -519,6 +519,7 @@ custom_components/maintenance_supporter/
 │   ├── template_usage.py          (121 lines)  Which templates this home already uses — "already set up" (v2.94)
 │   ├── voice_undo.py              (236 lines)  Undo the last thing somebody did by voice
 │   ├── ws_errors.py                (54 lines)  WS refusals the panel shows in the user's language (i18n audit 2026-09-27)
+│   ├── places.py                  (279 lines)  Places: where an object is maintained — an HA zone, home by default
 │   └── signatures/              (6,934 lines)  19 files — Suggested-setups catalog: 262 integrations / 551 signatures
 │       ├── _model.py              (487 lines)  IntegrationSignature / ConsumableSignature + matcher mechanics
 │       ├── _discovery.py          (388 lines)  Entity-registry scan → per-duty setup proposals
@@ -539,10 +540,10 @@ custom_components/maintenance_supporter/
 │       ├── wallboxes.py           (150 lines)  EV chargers — cable/plug inspection by delivered energy
 │       └── xiaomi.py               (66 lines)  Xiaomi ecosystem integrations (MIoT / Xiaomi Home) — multi-category
 │
-├── models/                        (970 lines)  4 files — Task, object and maintenance-type models
+├── models/                        (980 lines)  4 files — Task, object and maintenance-type models
 │   ├── maintenance_task.py        (766 lines)  Task: schedule, triggers, history, status, on_complete_action,
 │   │                                           quick_complete_defaults, assignee_pool + rotation_strategy
-│   ├── maintenance_object.py      (104 lines)  Object: name, area, manufacturer, model, serial_number,
+│   ├── maintenance_object.py      (114 lines)  Object: name, area, manufacturer, model, serial_number,
 │   │                                           installation_date, warranty_expiry (#67), documentation_url, notes
 │   └── maintenance_type.py         (86 lines)  Predefined maintenance categories
 │
@@ -552,7 +553,7 @@ custom_components/maintenance_supporter/
 ├── repairs.py                     (822 lines)  Repair flows: missing trigger entity, orphan admin-panel-user,
 │                                               stale on_complete_action entity
 ├── diagnostics.py                 (251 lines)  Integration diagnostics with PII redaction
-├── export.py                      (391 lines)  JSON/YAML data export
+├── export.py                      (398 lines)  JSON/YAML data export
 │
 ├── manifest.json                            Integration metadata
 ├── services.yaml                            9 service definitions
@@ -919,19 +920,20 @@ Every notification is one **kind**, and every kind belongs to a **category** tha
 
 | Kind | Category | Routing | Switched on by | Gates |
 |------|----------|---------|----------------|-------|
-| `status` | reminder | personal | notify_<status>_enabled + interval | `enabled`, `target`, `kind_enabled`, `task_mute`, `snooze`, `vacation`, `scope`, `quiet_hours`, `daily_cap`, `repeat` |
-| `lead_time` | reminder | personal | reminder_lead_days | `enabled`, `target`, `task_mute`, `snooze`, `vacation`, `quiet_hours`, `daily_cap` |
-| `bundle` | summary | household | notification_bundling_enabled + threshold | `enabled`, `target`, `task_mute`, `snooze`, `vacation`, `scope`, `quiet_hours`, `daily_cap` |
+| `status` | reminder | personal | notify_<status>_enabled + interval | `enabled`, `target`, `kind_enabled`, `task_mute`, `snooze`, `vacation`, `on_site`, `scope`, `quiet_hours`, `daily_cap`, `repeat` |
+| `lead_time` | reminder | personal | reminder_lead_days | `enabled`, `target`, `task_mute`, `snooze`, `vacation`, `on_site`, `quiet_hours`, `daily_cap` |
+| `bundle` | summary | household | notification_bundling_enabled + threshold | `enabled`, `target`, `task_mute`, `snooze`, `vacation`, `on_site`, `scope`, `quiet_hours`, `daily_cap` |
 | `digest` | summary | household | weekly_digest_enabled | `enabled`, `target` |
 | `warranty` | alert | household | warranty_reminder_enabled + days | `enabled`, `target` |
 | `budget` | alert | household | budget_alerts_enabled + threshold | `enabled`, `target`, `quiet_hours`, `daily_cap` |
 | `quiet_end` | summary | household | quiet_hours_enabled | `enabled`, `target`, `daily_cap` |
 | `completed` | activity | household | notify_completed (off / automatic / all) | `enabled`, `target`, `kind_enabled`, `task_mute`, `scope`, `quiet_hours`, `daily_cap` |
+| `place_arrival` | reminder | personal | an object's place (advanced_places_visible) | `enabled`, `target`, `task_mute`, `snooze`, `quiet_hours` |
 | `test` | test | household | — | `target` |
 
 **Icons (#185).** The send hook stamps `data.notification_icon` on every outgoing payload unless the caller or the user's extra-data template already set it: task `notify_icon` override → `completed` kind → battery-fleet flag → maintenance-type default → kind default → `mdi:wrench-clock` (`helpers/notify_icons.py::notify_icon_for`; the panel keeps a tripwired copy of the type map in `frontend-src/helpers/notify-icons.ts`).
 
-Gates: `enabled` = notifications on at all; `target` = a notify service or event-only mode; `kind_enabled` = the kind's own switch (per-status toggles, the completion mode); `task_mute` = the task's *No notifications*; `snooze` = the per-task snooze; `vacation` = the vacation mode's silence; `scope` = the saved-view scope; `quiet_hours`; `daily_cap` = max notifications per day; `repeat` = the per-status repeat interval. The digest and the warranty reminder deliberately ignore quiet hours and the cap (both are scheduled once at the 08:00 tick and would otherwise be lost), and the test ignores everything but the target (it exists to verify the target). Lead-time reminders are sent at most once per task, lead and day (the 08:00 tick and the noon retry share that stamp), and a bundle announces only the tasks whose own status reminder is due, stamping each of them like the per-task path.
+Gates: `enabled` = notifications on at all; `target` = a notify service or event-only mode; `kind_enabled` = the kind's own switch (per-status toggles, the completion mode); `task_mute` = the task's *No notifications*; `snooze` = the per-task snooze; `vacation` = the vacation mode's silence (not for an object whose place away from home has somebody there right now); `on_site` = the object's reminders wait until somebody has stayed at its place for two minutes (*Remind only on site*, helpers/places.py; the zone's count, unchanged for the arrival dwell); `scope` = the saved-view scope; `quiet_hours`; `daily_cap` = max notifications per day; `repeat` = the per-status repeat interval. The digest and the warranty reminder deliberately ignore quiet hours and the cap (both are scheduled once at the 08:00 tick and would otherwise be lost), and the test ignores everything but the target (it exists to verify the target). Lead-time reminders are sent at most once per task, lead and day (the 08:00 tick and the noon retry share that stamp), and a bundle announces only the tasks whose own status reminder is due, stamping each of them like the per-task path. The arrival message (`place_arrival`, 2026-10) goes to the arriving person's own phones only, never the household service, after a two-minute stay and at most once per place in six hours; it is skipped, not held, in quiet hours (the place's reminders follow when they end). For an object that reminds only on site a sent arrival message stamps its tasks' status reminders: it is the visit's reminder, and the held ones do not follow it to the household.
 
 ### Notification event fields
 
@@ -939,7 +941,7 @@ Every `maintenance_supporter_notification` event — and the `notify_extra_data`
 
 | Field | Kinds | Meaning |
 |-------|-------|---------|
-| `kind` | all | status, lead_time, bundle, digest, warranty, budget, completed, quiet_end, test |
+| `kind` | all | status, lead_time, bundle, digest, warranty, budget, completed, quiet_end, place_arrival, test |
 | `category` | all | reminder, summary, alert, activity, test (see the matrix above) |
 | `status` | status, lead_time, test | due_soon, overdue, triggered (lead_time is always due_soon) |
 | `entry_id` | task/object kinds | the object's config-entry id (deep links, WS calls) |
@@ -959,7 +961,8 @@ Every `maintenance_supporter_notification` event — and the `notify_extra_data`
 | `sensor_entity_id` | task kinds | the task's status sensor (`sensor.<object>_<task>`), for automations that read more (2.84) |
 | `trigger_entity_id` | task kinds | the sensor a sensor-based task watches, or null (2.84) |
 | `url` | all | in-app deep link |
-| `tasks` | bundle | `[{task_id, task_name, status, task_ref, priority, labels, notes, …}]` |
+| `tasks` | bundle, place_arrival | `[{task_id, task_name, status, task_ref, priority, labels, notes, …}]` (place_arrival: each with its `entry_id`) |
+| `place`, `place_name` | place_arrival | the zone the person arrived at and its name (2026-10) |
 | `reason`, `completed_by`, `completed_by_name`, `completed_at` | completed | how, by whom, when |
 | `overdue`, `due_soon` | digest | counts |
 | `names`, `days` | warranty | objects whose warranty ends in `days` |

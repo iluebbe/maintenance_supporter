@@ -64,6 +64,7 @@ These toggles control which advanced features the panel offers and shows — the
 | `advanced_groups_visible` | bool | `false` | Show task grouping management section in the panel with create / edit / delete controls |
 | `advanced_checklists_visible` | bool | `false` | Show checklist editing per task |
 | `advanced_schedule_time_visible` | bool | `false` | Expose the `schedule_time` (HH:MM) field on every date-driven task (interval, calendar kinds, one-time). When off, the coordinator strips stored times before computing status so tasks revert to midnight semantics (but retain the stored value for re-enable) |
+| `advanced_places_visible` | bool | `false` | Show an object's **place** (an HA zone) and *Remind only while somebody is there* in the panel's object dialog, plus the dashboard's *Place* filter. Visibility only: a place set before keeps working when it is switched off (see FEATURES → Places) |
 | `advanced_completion_actions_visible` | bool | `false` | (1.3.0+) Expose the `on_complete_action` (HA service-call) and `quick_complete_defaults` sections in the task dialog, plus the new `quick_complete` QR action. When off, the dialog hides both sections for new tasks — beginners aren't confronted with service-call YAML — but a task that already has an action (a counter reset wired by Suggested setups, 2.95+) still shows it; stored quick-complete defaults stay persisted |
 
 > **Operator mode (read-only end-user view, 1.0.44+)** is not a global flag — it's derived from the HA user role plus an explicit per-user override list:
@@ -176,6 +177,8 @@ Each maintenance object is a separate config entry. Accessible via **Settings > 
 |-----------|------|---------|-------------|
 | `name` | string | *(required)* | Display name of the maintenance object |
 | `area_id` | string | `""` | Home Assistant area to associate the object with |
+| `place` | string (zone entity id) | *(unset = home)* | Where the object is maintained: one of your Home Assistant zones. Unset, empty or `zone.home` mean home. Drives *Remind only on site*, the arrival message and the calendar events' location. A zone that no longer exists counts as home. Set in the panel's object dialog (with *Places* on in Advanced Features) or via `object/create` / `object/update` |
+| `remind_on_site` | bool | `false` | With a place: the object's status and bundled reminders wait until somebody has been in that zone for two minutes (driving past is no stay); a lead-time reminder goes out only if somebody is there on its day. Whoever arrives gets the arrival message, which then stands in for the held reminders. Vacation mode does not silence a place while somebody is there |
 | `manufacturer` | string | `""` | Manufacturer name (shown in device info) |
 | `model` | string | `""` | Model name (shown in device info) |
 | `serial_number` | string | `""` | Serial number (shown in device info, redacted in diagnostics) |

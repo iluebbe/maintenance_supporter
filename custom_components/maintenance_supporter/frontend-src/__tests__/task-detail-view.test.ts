@@ -66,7 +66,7 @@ function ctx(overrides: Partial<TaskDetailContext> = {}): TaskDetailContext {
     features: {
       adaptive: false, seasonal: false,
       environmental: false, budget: false, groups: false,
-      checklists: false, schedule_time: false, completion_actions: false,
+      checklists: false, schedule_time: false, completion_actions: false, places: false,
     },
     currencySymbol: "€",
     collapsedSections: new Set(),

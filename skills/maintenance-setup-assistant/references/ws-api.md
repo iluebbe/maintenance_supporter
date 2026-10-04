@@ -91,6 +91,8 @@ manual-column fallback when `documentation_url` is empty).
   "notes": "…",                        // optional | null
   "ha_device_id": "<device_id>",       // optional; bind to an existing HA device
   "parent_entry_id": "<entry_id>",     // optional; nest under another object
+  "place": "zone.allotment",           // optional | null; an HA zone, null/"zone.home" = home (2026-10)
+  "remind_on_site": true,              // optional; with a place: reminders wait until somebody is there
   "dry_run": true }                    // optional; true = validate only
 ```
 Result: `{"entry_id": "<config_entry_id>"}`. Dry-run: `{"valid": true, "entry_id": null}`.
@@ -112,6 +114,11 @@ Result: `{"success": true}`. Same field errors as create, incl.
 entities, completion-action targets and `origin.device_id` go to the matching
 entities of the new device — and the result adds `device_swap: {moved,
 unmatched: [entity ids left as they were]}`; check the unmatched tasks.
+Places (2026-10): `place` is a zone entity id (anything else, `""` and
+`zone.home` store home); `remind_on_site` only sticks next to a place. The
+`objects` / `object` payload adds `place`, `place_name`, `place_missing`
+(set but the zone is gone; the object then behaves as at home) and
+`remind_on_site`.
 
 ### `object/delete` — `@require_write`
 `{entry_id}`. Result `{"success": true}`.

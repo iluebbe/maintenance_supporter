@@ -579,7 +579,8 @@
           "advanced_groups_visible": "Csoportok",
           "advanced_checklists_visible": "Ellenőrzőlisták",
           "advanced_schedule_time_visible": "Napszakhoz kötött ütemezés",
-          "advanced_completion_actions_visible": "Elvégzési műveletek"
+          "advanced_completion_actions_visible": "Elvégzési műveletek",
+          "advanced_places_visible": "Helyszínek"
         },
         "data_description": {
           "advanced_adaptive_visible": "EWA, Weibull-elemzés és intervallumjavaslatok megjelenítése a feladatokhoz.",
@@ -589,7 +590,8 @@
           "advanced_groups_visible": "Karbantartási csoportok kezelésének megjelenítése.",
           "advanced_checklists_visible": "Feladat-ellenőrzőlisták megjelenítése a lépésenkénti elvégzéshez.",
           "advanced_schedule_time_visible": "A feladatok nem éjfélkor, hanem egy megadott napszakban válhassanak lejárttá.",
-          "advanced_completion_actions_visible": "Feladatonkénti HA művelet elvégzéskor + gyorselvégző QR előre beállított értékekkel."
+          "advanced_completion_actions_visible": "Feladatonkénti HA művelet elvégzéskor + gyorselvégző QR előre beállított értékekkel.",
+          "advanced_places_visible": "Másik helyszínen (Home Assistant-zóna) karbantartott objektumok: emlékeztető csak akkor, ha valaki ott van, és üzenet érkezéskor."
         }
       },
       "panel_access": {

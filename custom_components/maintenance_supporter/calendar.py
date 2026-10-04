@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import logging
 from datetime import date, datetime, time, timedelta
 from typing import TYPE_CHECKING, Any
@@ -700,6 +701,12 @@ class MaintenanceCalendar(CalendarEntity):
             else:
                 live_tasks = {}
 
+            # 2026-10 places: an object maintained away from home names its
+            # place as the events' location (phone calendars show it).
+            from .helpers.places import object_place, zone_name
+
+            place_name = zone_name(self._hass, object_place(entry.data.get(CONF_OBJECT)))
+
             # Merge static (ConfigEntry) + dynamic (Store) task data
             tasks_data = merged_tasks(entry)
             schedule_time_enabled = self._is_schedule_time_feature_enabled()
@@ -731,6 +738,8 @@ class MaintenanceCalendar(CalendarEntity):
 
                 event = self._create_event_for_task(task, obj_name, start_d, end_d, live_status=live.get("_status"))
                 if event:
+                    if place_name:
+                        event = dataclasses.replace(event, location=place_name)
                     events.append(event)
 
         return events

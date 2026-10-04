@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from datetime import date
 from typing import Any, Final
 
@@ -345,6 +345,22 @@ def _strip_empty(d: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in d.items() if not (v is None or v in (_EMPTY_LIST, _EMPTY_DICT))}
 
 
+def _place_fields(hass: HomeAssistant, obj_data: Mapping[str, Any]) -> dict[str, Any]:
+    """2026-10 places, for the object's payload: ``place`` (the zone, None =
+    home), ``place_name``, ``place_missing`` (set but the zone is gone) and
+    ``remind_on_site``."""
+    from ..helpers.places import object_place, zone_name
+
+    place = object_place(obj_data)
+    name = zone_name(hass, place)
+    return {
+        "place": place,
+        "place_name": name,
+        "place_missing": place is not None and name is None,
+        "remind_on_site": bool(place) and obj_data.get("remind_on_site") is True,
+    }
+
+
 def _build_object_response(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -412,6 +428,10 @@ def _build_object_response(
             "warranty_expiry": obj_data.get("warranty_expiry"),
             "ha_device_id": obj_data.get("ha_device_id"),
             "parent_entry_id": obj_data.get("parent_entry_id"),
+            # 2026-10 places: the zone (None = home), its name, whether the
+            # zone is gone (the object then behaves as at home), and whether
+            # its reminders wait for somebody on site.
+            **_place_fields(hass, obj_data),
             # v1.4.0 (#43): expose to the frontend so the manual link
             # renders in the object detail header AND, since v1.4.1, on
             # every task detail page belonging to this object.

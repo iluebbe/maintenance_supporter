@@ -48,6 +48,11 @@ class MaintenanceObject:
     # high-water mark for its tasks' numbers ("8.3").
     ref_no: int | None = None
     next_task_ref: int | None = None
+    # 2026-10 places: where the object is maintained — an HA zone's entity
+    # id; None = home (the default, also for "zone.home"). remind_on_site
+    # holds its reminders until somebody is in that zone.
+    place: str | None = None
+    remind_on_site: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary for config entry storage."""
@@ -71,6 +76,9 @@ class MaintenanceObject:
             "task_ids": self.task_ids,
             **({"ref_no": self.ref_no} if self.ref_no is not None else {}),
             **({"next_task_ref": self.next_task_ref} if self.next_task_ref is not None else {}),
+            # Only when set: an object at home stores nothing new.
+            **({"place": self.place} if self.place else {}),
+            **({"remind_on_site": True} if self.remind_on_site else {}),
         }
 
     @classmethod
@@ -96,6 +104,8 @@ class MaintenanceObject:
             task_ids=data.get("task_ids", []),
             ref_no=data.get("ref_no"),
             next_task_ref=data.get("next_task_ref"),
+            place=data.get("place") or None,
+            remind_on_site=data.get("remind_on_site") is True,
         )
 
     @property

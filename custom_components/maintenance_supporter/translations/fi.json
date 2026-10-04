@@ -579,7 +579,8 @@
           "advanced_groups_visible": "Ryhmät",
           "advanced_checklists_visible": "Tarkistuslistat",
           "advanced_schedule_time_visible": "Kellonaikaan perustuva aikataulutus",
-          "advanced_completion_actions_visible": "Suoritustoiminnot"
+          "advanced_completion_actions_visible": "Suoritustoiminnot",
+          "advanced_places_visible": "Paikat"
         },
         "data_description": {
           "advanced_adaptive_visible": "Näytä EWA-, Weibull-analyysi ja aikaväliehdotukset tehtäville.",
@@ -589,7 +590,8 @@
           "advanced_groups_visible": "Näytä huoltoryhmien hallinta.",
           "advanced_checklists_visible": "Näytä tehtävien tarkistuslistat vaiheittaista suorittamista varten.",
           "advanced_schedule_time_visible": "Salli tehtävien erääntyminen tiettyyn kellonaikaan keskiyön sijaan.",
-          "advanced_completion_actions_visible": "Tehtäväkohtainen HA-toiminto suorituksen yhteydessä + pikasuoritus-QR esiasetetuilla arvoilla."
+          "advanced_completion_actions_visible": "Tehtäväkohtainen HA-toiminto suorituksen yhteydessä + pikasuoritus-QR esiasetetuilla arvoilla.",
+          "advanced_places_visible": "Toisessa paikassa (Home Assistant -vyöhyke) huollettavat kohteet: muistutukset vain, kun joku on paikalla, ja viesti saavuttaessa."
         }
       },
       "panel_access": {

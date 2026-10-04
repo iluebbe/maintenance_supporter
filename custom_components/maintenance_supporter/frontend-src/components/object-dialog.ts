@@ -21,6 +21,8 @@ export class MaintenanceObjectDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   /** All objects — choices for the parent-object picker (2.19). */
   @property({ attribute: false }) public objects: MaintenanceObjectResponse[] = [];
+  /** 2026-10 places: the advanced feature switch shows the place fields. */
+  @property({ type: Boolean }) public placesEnabled = false;
   @state() private _open = false;
   @state() private _loading = false;
   @state() private _error = "";
@@ -39,6 +41,9 @@ export class MaintenanceObjectDialog extends LitElement {
   // 2.19: attach to an existing HA device / nest under another object
   @state() private _haDeviceId = "";
   @state() private _parentEntryId = "";
+  // 2026-10 places: an HA zone ("" = home) and "remind only on site".
+  @state() private _place = "";
+  @state() private _remindOnSite = false;
   @state() private _entryId: string | null = null; // null = create, string = update
   // Replace (journey N1): the successor's device. The old unit's device is
   // what the object links to now; a new unit usually is a new device.
@@ -63,6 +68,8 @@ export class MaintenanceObjectDialog extends LitElement {
     this._notes = "";
     this._haDeviceId = "";
     this._parentEntryId = "";
+    this._place = "";
+    this._remindOnSite = false;
     this._replacing = false;
     this._error = "";
     this._open = true;
@@ -96,6 +103,8 @@ export class MaintenanceObjectDialog extends LitElement {
     this._notes = obj.notes || "";
     this._haDeviceId = obj.ha_device_id || "";
     this._parentEntryId = obj.parent_entry_id || "";
+    this._place = obj.place || "";
+    this._remindOnSite = !!obj.remind_on_site;
     this._replacing = false;
     this._error = "";
     this._open = true;
@@ -194,6 +203,35 @@ export class MaintenanceObjectDialog extends LitElement {
     `;
   }
 
+  /** 2026-10 places: the zone the object is maintained at ("" = home) and
+   *  whether its reminders wait until somebody is there. */
+  private _renderPlace(L: string) {
+    const missing = !!this._place && !this.hass?.states?.[this._place];
+    return html`
+      <ha-form
+        .hass=${this.hass}
+        .data=${{ place: this._place || undefined }}
+        .schema=${[{ name: "place", selector: { entity: { domain: "zone" } } }]}
+        .computeLabel=${() => t("place_optional", L)}
+        @value-changed=${(e: CustomEvent) => {
+          this._place = ((e.detail.value as { place?: string })?.place as string) || "";
+          if (!this._place) this._remindOnSite = false;
+        }}
+      ></ha-form>
+      ${missing ? html`<div class="place-missing">${t("place_missing", L)}</div>` : nothing}
+      <label class="place-on-site ${this._place ? "" : "disabled"}">
+        <input
+          type="checkbox"
+          .checked=${this._remindOnSite}
+          ?disabled=${!this._place}
+          @change=${(e: Event) => (this._remindOnSite = (e.target as HTMLInputElement).checked)}
+        />
+        <span>${t("remind_on_site", L)}</span>
+      </label>
+      ${this._place ? html`<div class="place-hint">${t("remind_on_site_hint", L)}</div>` : nothing}
+    `;
+  }
+
   private async _save(): Promise<void> {
     if (this._loading) return;  // synchronous re-entry guard (double-click)
     if (!this._name.trim()) return;
@@ -211,6 +249,8 @@ export class MaintenanceObjectDialog extends LitElement {
       notes: this._notes.trim() || null,
       ha_device_id: this._haDeviceId || null,
       parent_entry_id: this._parentEntryId || null,
+      // Only with the feature on: switched off, a stored place is kept as is.
+      ...(this.placesEnabled ? { place: this._place || null, remind_on_site: !!this._place && this._remindOnSite } : {}),
     };
     const res = await runWs<{ device_swap?: DeviceSwap }>(
       this,
@@ -278,6 +318,7 @@ export class MaintenanceObjectDialog extends LitElement {
             @value-changed=${(e: CustomEvent) =>
               (this._areaId = (e.detail.value as string) || "")}
           ></ha-area-picker>
+          ${this.placesEnabled ? this._renderPlace(L) : nothing}
           <ms-date-field
             kind="date"
             clearable
@@ -352,6 +393,25 @@ export class MaintenanceObjectDialog extends LitElement {
   }
 
   static styles = css`
+    .place-on-site {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--primary-text-color);
+    }
+    .place-on-site.disabled {
+      color: var(--disabled-text-color, var(--secondary-text-color));
+    }
+    .place-hint,
+    .place-missing {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      margin-top: -4px;
+    }
+    .place-missing {
+      color: var(--warning-color, #c77700);
+    }
     .dialog-title {
       font-size: 18px;
       font-weight: 500;

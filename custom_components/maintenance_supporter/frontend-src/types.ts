@@ -40,6 +40,13 @@ export interface MaintenanceObject {
   // 2.19: attach to an existing HA device / nest under another object
   ha_device_id?: string | null;
   parent_entry_id?: string | null;
+  /** 2026-10 places: an HA zone the object is maintained at (null = home),
+   *  its name, whether the zone is gone (then: as at home), and whether the
+   *  object's reminders wait until somebody is there. */
+  place?: string | null;
+  place_name?: string | null;
+  place_missing?: boolean;
+  remind_on_site?: boolean;
   /** v1.4.0 (#43): optional link to PDF manual / vendor page for the object */
   documentation_url?: string | null;
   /** v1.4.10 (#46): free-form notes — part numbers, procedures, etc. */
@@ -550,6 +557,8 @@ export interface AdvancedFeatures {
   schedule_time: boolean;
   /** v1.3.0: gates per-task on_complete_action + quick_complete_defaults UI. */
   completion_actions: boolean;
+  /** 2026-10: an object's place (an HA zone) and "remind only on site". */
+  places: boolean;
 }
 
 /** A single point in a recorder statistics time series. */

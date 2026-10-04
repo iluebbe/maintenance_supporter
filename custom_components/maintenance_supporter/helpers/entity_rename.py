@@ -139,11 +139,15 @@ def _rewrite_action(action: dict[str, Any], old_id: str, new_id: str) -> tuple[d
 def rewrite_object(obj: dict[str, Any], old_id: str, new_id: str) -> tuple[dict[str, Any], bool]:
     """Rewrite the battery fleet's manual include / exclude lists (#135) —
     a renamed battery sensor fell out of the fleet (include) or came back
-    into it (exclude) after an entity rename (bug audit 2026-09-27)."""
-    from ..const import BATTERY_FLEET_EXCLUDED, BATTERY_FLEET_INCLUDED
+    into it (exclude) after an entity rename (bug audit 2026-09-27) — and
+    the object's place (2026-10): a renamed zone keeps its objects."""
+    from ..const import BATTERY_FLEET_EXCLUDED, BATTERY_FLEET_INCLUDED, CONF_OBJECT_PLACE
 
     new_obj = dict(obj)
     changed = False
+    if new_obj.get(CONF_OBJECT_PLACE) == old_id and new_id.startswith("zone."):
+        new_obj[CONF_OBJECT_PLACE] = new_id
+        changed = True
     for key in (BATTERY_FLEET_INCLUDED, BATTERY_FLEET_EXCLUDED):
         ids = new_obj.get(key)
         if isinstance(ids, list) and old_id in ids:

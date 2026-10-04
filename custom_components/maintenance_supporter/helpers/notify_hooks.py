@@ -56,6 +56,7 @@ KIND_BUDGET = "budget"  # budget alert
 KIND_TEST = "test"  # the Settings "Send test" button
 KIND_COMPLETED = "completed"  # #173 follow-up: a task was completed (activity, opt-in)
 KIND_QUIET_END = "quiet_end"  # what quiet hours held back, as one summary at their end
+KIND_PLACE_ARRIVAL = "place_arrival"  # 2026-10: what is due at a place, to the person who just arrived there
 
 
 @dataclass(frozen=True)
@@ -78,11 +79,11 @@ class KindSpec:
     routing: str  # "personal" | "household"
 
 
-_GATES_REMINDER = frozenset({"enabled", "target", "kind_enabled", "task_mute", "snooze", "vacation", "scope", "quiet_hours", "daily_cap", "repeat"})
+_GATES_REMINDER = frozenset({"enabled", "target", "kind_enabled", "task_mute", "snooze", "vacation", "on_site", "scope", "quiet_hours", "daily_cap", "repeat"})
 NOTIFICATION_KINDS: dict[str, KindSpec] = {
     KIND_STATUS: KindSpec(KIND_STATUS, "reminder", "notify_<status>_enabled + interval", _GATES_REMINDER, "personal"),
-    KIND_LEAD_TIME: KindSpec(KIND_LEAD_TIME, "reminder", "reminder_lead_days", frozenset({"enabled", "target", "task_mute", "snooze", "vacation", "quiet_hours", "daily_cap"}), "personal"),
-    KIND_BUNDLE: KindSpec(KIND_BUNDLE, "summary", "notification_bundling_enabled + threshold", frozenset({"enabled", "target", "task_mute", "snooze", "vacation", "scope", "quiet_hours", "daily_cap"}), "household"),
+    KIND_LEAD_TIME: KindSpec(KIND_LEAD_TIME, "reminder", "reminder_lead_days", frozenset({"enabled", "target", "task_mute", "snooze", "vacation", "on_site", "quiet_hours", "daily_cap"}), "personal"),
+    KIND_BUNDLE: KindSpec(KIND_BUNDLE, "summary", "notification_bundling_enabled + threshold", frozenset({"enabled", "target", "task_mute", "snooze", "vacation", "on_site", "scope", "quiet_hours", "daily_cap"}), "household"),
     KIND_DIGEST: KindSpec(KIND_DIGEST, "summary", "weekly_digest_enabled", frozenset({"enabled", "target"}), "household"),
     # Fires once from the 08:00 tick (no retry) - like the digest it must not
     # be lost to quiet hours or the cap (the matrix claimed both; bug audit 2026-09-12).
@@ -92,6 +93,10 @@ NOTIFICATION_KINDS: dict[str, KindSpec] = {
     # One message for everything the quiet hours held back — sent at the first
     # send attempt after they end (instead of a burst of single pushes).
     KIND_QUIET_END: KindSpec(KIND_QUIET_END, "summary", "quiet_hours_enabled", frozenset({"enabled", "target", "daily_cap"}), "household"),
+    # 2026-10 places: on arrival at an object's place (after a short stay, once
+    # per visit), the tasks due there, to the arriving person's phones only.
+    # Not held through quiet hours: the reminders follow once they end.
+    KIND_PLACE_ARRIVAL: KindSpec(KIND_PLACE_ARRIVAL, "reminder", "an object's place (advanced_places_visible)", frozenset({"enabled", "target", "task_mute", "snooze", "quiet_hours"}), "personal"),
     KIND_TEST: KindSpec(KIND_TEST, "test", "—", frozenset({"target"}), "household"),
 }
 

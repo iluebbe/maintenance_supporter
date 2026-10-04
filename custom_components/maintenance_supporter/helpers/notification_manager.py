@@ -52,6 +52,7 @@ from .notification_ids import (
     budget_tag,
     bundle_tag,
     panel_url,
+    place_tag,
     task_tag,
 )
 from .notify_hooks import (
@@ -59,6 +60,7 @@ from .notify_hooks import (
     KIND_BUNDLE,
     KIND_DIGEST,
     KIND_LEAD_TIME,
+    KIND_PLACE_ARRIVAL,
     KIND_QUIET_END,
     KIND_STATUS,
     KIND_WARRANTY,
@@ -116,6 +118,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Später",
         "bundled_title": "Wartung: {count} Aufgaben",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Wartung vor Ort: {place}",
+        "place_arrival_message": "Hier fällig: {task_list}",
         "quiet_end_title": "{count} Erinnerungen aus der Ruhezeit",
         "digest_title": "Wöchentliche Wartungsübersicht",
         "digest_message": "{overdue} überfällig, {due_soon} diese Woche fällig.",
@@ -156,6 +160,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Later",
         "bundled_title": "Onderhoud: {count} taken",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Onderhoud ter plaatse: {place}",
+        "place_arrival_message": "Hier te doen: {task_list}",
         "quiet_end_title": "{count} herinneringen uit de stille uren",
         "digest_title": "Wekelijks onderhoudsoverzicht",
         "digest_message": "{overdue} achterstallig, {due_soon} deze week.",
@@ -196,6 +202,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Reporter",
         "bundled_title": "Maintenance : {count} tâches",
         "bundled_message": "{object} : {task_list}",
+        "place_arrival_title": "Entretien sur place : {place}",
+        "place_arrival_message": "À faire ici : {task_list}",
         "quiet_end_title": "{count} rappels des heures calmes",
         "digest_title": "Récapitulatif hebdomadaire d'entretien",
         "digest_message": "{overdue} en retard, {due_soon} cette semaine.",
@@ -236,6 +244,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Posticipa",
         "bundled_title": "Manutenzione: {count} attività",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Manutenzione sul posto: {place}",
+        "place_arrival_message": "Da fare qui: {task_list}",
         "quiet_end_title": "{count} promemoria dalle ore di silenzio",
         "digest_title": "Riepilogo settimanale manutenzione",
         "digest_message": "{overdue} scadute, {due_soon} questa settimana.",
@@ -276,6 +286,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Posponer",
         "bundled_title": "Mantenimiento: {count} tareas",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Mantenimiento en el lugar: {place}",
+        "place_arrival_message": "Pendiente aquí: {task_list}",
         "quiet_end_title": "{count} recordatorios de las horas de silencio",
         "digest_title": "Resumen semanal de mantenimiento",
         "digest_message": "{overdue} vencidas, {due_soon} esta semana.",
@@ -316,6 +328,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Snooze",
         "bundled_title": "Maintenance: {count} tasks",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Maintenance at {place}",
+        "place_arrival_message": "Due here: {task_list}",
         "quiet_end_title": "{count} reminders held during quiet hours",
         "digest_title": "Weekly maintenance digest",
         "digest_message": "{overdue} overdue, {due_soon} due this week.",
@@ -356,6 +370,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Senere",
         "bundled_title": "Vedligeholdelse: {count} opgaver",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Vedligeholdelse på stedet: {place}",
+        "place_arrival_message": "Skal gøres her: {task_list}",
         "quiet_end_title": "{count} påmindelser fra de stille timer",
         "digest_title": "Ugentlig vedligeholdelsesoversigt",
         "digest_message": "{overdue} forfaldne, {due_soon} denne uge.",
@@ -396,6 +412,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Myöhemmin",
         "bundled_title": "Huolto: {count} tehtävää",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Huolto paikan päällä: {place}",
+        "place_arrival_message": "Tehtävänä täällä: {task_list}",
         "quiet_end_title": "{count} muistutusta hiljaisilta tunneilta",
         "digest_title": "Viikoittainen huoltokooste",
         "digest_message": "{overdue} myöhässä, {due_soon} tällä viikolla.",
@@ -436,6 +454,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Senere",
         "bundled_title": "Vedlikehold: {count} oppgaver",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Vedlikehold på stedet: {place}",
+        "place_arrival_message": "Skal gjøres her: {task_list}",
         "quiet_end_title": "{count} påminnelser fra de stille timene",
         "digest_title": "Ukentlig vedlikeholdsoversikt",
         "digest_message": "{overdue} forfalt, {due_soon} denne uken.",
@@ -476,6 +496,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "後で",
         "bundled_title": "メンテナンス: {count} 件のタスク",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "現地のメンテナンス: {place}",
+        "place_arrival_message": "ここでの作業: {task_list}",
         "quiet_end_title": "静音時間中の{count}件のリマインダー",
         "digest_title": "週間メンテナンスまとめ",
         "digest_message": "期限切れ {overdue} 件、今週 {due_soon} 件。",
@@ -516,6 +538,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "बाद में",
         "bundled_title": "रखरखाव: {count} कार्य",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "मौके पर रखरखाव: {place}",
+        "place_arrival_message": "यहाँ करने के काम: {task_list}",
         "quiet_end_title": "शांत घंटों के {count} अनुस्मारक",
         "digest_title": "साप्ताहिक रखरखाव सारांश",
         "digest_message": "{overdue} अतिदेय, {due_soon} इस सप्ताह।",
@@ -556,6 +580,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "稍后提醒",
         "bundled_title": "维护：共有 {count} 项任务",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "现场维护：{place}",
+        "place_arrival_message": "此处待办：{task_list}",
         "quiet_end_title": "静音时段积累的 {count} 条提醒",
         "digest_title": "每周维护摘要",
         "digest_message": "逾期 {overdue} 项，本周 {due_soon} 项。",
@@ -596,6 +622,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Отложить",
         "bundled_title": "Обслуживание: {count} задач",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Обслуживание на месте: {place}",
+        "place_arrival_message": "Здесь нужно сделать: {task_list}",
         "quiet_end_title": "{count} напоминаний за тихие часы",
         "digest_title": "Еженедельная сводка обслуживания",
         "digest_message": "{overdue} просрочено, {due_soon} на этой неделе.",
@@ -636,6 +664,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Відкласти",
         "bundled_title": "Обслуговування: {count} завдань",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Обслуговування на місці: {place}",
+        "place_arrival_message": "Тут потрібно зробити: {task_list}",
         "quiet_end_title": "{count} нагадувань за тихі години",
         "digest_title": "Щотижневий огляд обслуговування",
         "digest_message": "{overdue} прострочено, {due_soon} цього тижня.",
@@ -676,6 +706,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Adiar",
         "bundled_title": "Manutenção: {count} tarefas",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Manutenção no local: {place}",
+        "place_arrival_message": "A fazer aqui: {task_list}",
         "quiet_end_title": "{count} lembretes das horas de silêncio",
         "digest_title": "Resumo semanal de manutenção",
         "digest_message": "{overdue} atrasadas, {due_soon} esta semana.",
@@ -718,6 +750,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Drzemka",
         "bundled_title": "Konserwacja: {count} zadań",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Konserwacja na miejscu: {place}",
+        "place_arrival_message": "Do zrobienia tutaj: {task_list}",
         "quiet_end_title": "{count} przypomnień z godzin ciszy",
         "digest_title": "Cotygodniowe podsumowanie konserwacji",
         "digest_message": "{overdue} zaległych, {due_soon} w tym tygodniu.",
@@ -760,6 +794,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Odložit",
         "bundled_title": "Údržba: {count} úkolů",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Údržba na místě: {place}",
+        "place_arrival_message": "Zde je potřeba udělat: {task_list}",
         "quiet_end_title": "{count} připomínek z tichých hodin",
         "digest_title": "Týdenní přehled údržby",
         "digest_message": "{overdue} po termínu, {due_soon} tento týden.",
@@ -801,6 +837,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Snooza",
         "bundled_title": "Underhåll: {count} uppgifter",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Underhåll på plats: {place}",
+        "place_arrival_message": "Att göra här: {task_list}",
         "quiet_end_title": "{count} påminnelser från de tysta timmarna",
         "digest_title": "Veckovis underhållssammanfattning",
         "digest_message": "{overdue} försenade, {due_soon} denna vecka.",
@@ -841,6 +879,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Adiar",
         "bundled_title": "Manutenção: {count} tarefas",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Manutenção no local: {place}",
+        "place_arrival_message": "Pendente aqui: {task_list}",
         "quiet_end_title": "{count} lembretes das horas de silêncio",
         "digest_title": "Resumo semanal de manutenção",
         "digest_message": "{overdue} atrasadas, {due_soon} vencem nesta semana.",
@@ -881,6 +921,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Halasztás",
         "bundled_title": "Karbantartás: {count} feladat",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Karbantartás a helyszínen: {place}",
+        "place_arrival_message": "Itt esedékes: {task_list}",
         "quiet_end_title": "{count} emlékeztető a csendes órákból",
         "digest_title": "Heti karbantartási összefoglaló",
         "digest_message": "{overdue} lejárt, {due_soon} esedékes ezen a héten.",
@@ -921,6 +963,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "미루기",
         "bundled_title": "유지보수: 작업 {count}개",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "현장 유지보수: {place}",
+        "place_arrival_message": "여기서 할 일: {task_list}",
         "quiet_end_title": "방해 금지 시간 동안 쌓인 알림 {count}건",
         "digest_title": "주간 유지보수 요약",
         "digest_message": "기한 초과 {overdue}건, 이번 주 예정 {due_soon}건.",
@@ -961,6 +1005,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Ertele",
         "bundled_title": "Bakım: {count} görev",
         "bundled_message": "{object}: {task_list}",
+        "place_arrival_title": "Yerinde bakım: {place}",
+        "place_arrival_message": "Burada yapılacaklar: {task_list}",
         "quiet_end_title": "Sessiz saatlerden {count} hatırlatma",
         "digest_title": "Haftalık bakım özeti",
         "digest_message": "{overdue} gecikmiş, {due_soon} bu hafta yapılacak.",
@@ -2061,6 +2107,82 @@ class NotificationManager:
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.exception("Failed to send notification to %s", service)
             return False
+
+    async def async_place_arrival(
+        self,
+        *,
+        user_id: str,
+        zone_id: str,
+        place_name: str,
+        tasks: list[dict[str, Any]],
+    ) -> bool:
+        """2026-10 places: what is due at ``place_name``, to the person who
+        just arrived there (helpers/places.PlaceArrivals). Only that person's
+        own phones, never the household service: nobody else is there. Not
+        held through quiet hours (the place's reminders follow once they
+        end). Each task passes the kind's per-task gates (mute, snooze).
+        True when it went out."""
+        self.async_verify_configured_service()
+        if not self.enabled or self._is_quiet_hours():
+            return False
+        due = [
+            t
+            for t in tasks
+            if task_may_notify(
+                self.hass, t["entry_id"], t["task_id"], str(t["status"]), t.get("task_data") or {}, kind=KIND_PLACE_ARRIVAL, manager=self
+            )
+        ]
+        if not due:
+            return False
+        targets: list[str] = await get_user_notify_services(self.hass, user_id)
+        if not targets:
+            if not self.event_only:
+                _LOGGER.debug("Place arrival at %s: user %s has no phone to tell", zone_id, user_id)
+                return False
+            targets = [""]  # #173: the event IS the delivery
+        lang = self._lang
+        by_object: dict[str, list[str]] = {}
+        for t in due:
+            by_object.setdefault(str(t["object_name"]), []).append(_bundled_line(t["status"], lang, str(t["task_name"])))
+        task_list = "; ".join(f"{name}: {', '.join(lines)}" for name, lines in by_object.items())
+        entry_ids = sorted({str(t["entry_id"]) for t in due})
+        single = entry_ids[0] if len(entry_ids) == 1 else None
+        service_data = _service_payload(
+            _notif_t("place_arrival_title", lang, place=place_name),
+            _notif_t("place_arrival_message", lang, task_list=task_list),
+            tag=place_tag(zone_id),
+            url=panel_url(entry_id=single),
+        )
+        context = notification_context(
+            self.hass,
+            KIND_PLACE_ARRIVAL,
+            entry_id=single,
+            responsible_user_id=user_id,
+            tasks=[
+                {"entry_id": t["entry_id"], "task_id": t["task_id"], "task_name": t["task_name"], "status": str(t["status"])}
+                for t in due
+            ],
+            place=zone_id,
+            place_name=place_name,
+        )
+        sent = False
+        for target in targets:
+            try:
+                if await async_emit_and_dispatch(self.hass, target, service_data, context):
+                    sent = True
+            except Exception:  # noqa: BLE001 — one phone failing must not stop the others
+                _LOGGER.warning("Place arrival message to %s failed", target or "the event", exc_info=True)
+        if sent:
+            from .places import reminds_on_site
+
+            # For an object whose reminders wait for somebody on site this
+            # message IS the visit's reminder: unstamped, the held reminders
+            # followed on the next refresh, to everybody (at home too).
+            for t in due:
+                if reminds_on_site(self.hass, t["entry_id"]):
+                    status = str(t["status"])
+                    self._stamp_status_sent(notification_key(t["entry_id"], t["task_id"], status), self._get_interval_hours(status))
+        return sent
 
     async def async_send_bundled(
         self,

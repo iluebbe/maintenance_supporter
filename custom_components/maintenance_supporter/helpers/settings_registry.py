@@ -40,6 +40,7 @@ from ..const import (
     CONF_ADVANCED_COMPLETION_ACTIONS,
     CONF_ADVANCED_ENVIRONMENTAL,
     CONF_ADVANCED_GROUPS,
+    CONF_ADVANCED_PLACES,
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
     CONF_ARCHIVE_ONEOFF_DAYS,
@@ -171,6 +172,7 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_ADVANCED_CHECKLISTS, bool, False),
     SettingSpec(CONF_ADVANCED_SCHEDULE_TIME, bool, False),
     SettingSpec(CONF_ADVANCED_COMPLETION_ACTIONS, bool, False),
+    SettingSpec(CONF_ADVANCED_PLACES, bool, False),
     # Governance (list elements sanitised by a bespoke rule in the handler)
     SettingSpec(CONF_ADMIN_PANEL_USER_IDS, list, []),
     SettingSpec(CONF_OPERATOR_WRITE_ENABLED, bool, False),

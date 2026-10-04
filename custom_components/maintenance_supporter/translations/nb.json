@@ -579,7 +579,8 @@
           "advanced_groups_visible": "Grupper",
           "advanced_checklists_visible": "Sjekklister",
           "advanced_schedule_time_visible": "Planlegging på klokkeslett",
-          "advanced_completion_actions_visible": "Fullføringshandlinger"
+          "advanced_completion_actions_visible": "Fullføringshandlinger",
+          "advanced_places_visible": "Steder"
         },
         "data_description": {
           "advanced_adaptive_visible": "Vis EWA, Weibull-analyse og intervallforslag for oppgaver.",
@@ -589,7 +590,8 @@
           "advanced_groups_visible": "Vis administrasjon av vedlikeholdsgrupper.",
           "advanced_checklists_visible": "Vis sjekklister for oppgaver for trinnvis fullføring.",
           "advanced_schedule_time_visible": "Tillat at oppgaver blir forfalt på et bestemt klokkeslett i stedet for ved midnatt.",
-          "advanced_completion_actions_visible": "HA-handling per oppgave ved fullføring + hurtigfullføring med QR og forhåndsinnstilte verdier."
+          "advanced_completion_actions_visible": "HA-handling per oppgave ved fullføring + hurtigfullføring med QR og forhåndsinnstilte verdier.",
+          "advanced_places_visible": "Objekter som vedlikeholdes et annet sted (en Home Assistant-sone): påminnelser bare når noen er der, og en melding ved ankomst."
         }
       },
       "panel_access": {

@@ -1049,6 +1049,9 @@ async def ws_import_json(
                 # An id is looked up (device area, area filters): a list here made
                 # every entity of the object fail to be added (bug audit 2026-09-29).
                 "area_id": obj_data.get("area_id") if isinstance(obj_data.get("area_id"), str) else None,
+                # 2026-10 places: normalized (zone id or nothing) by cap_object_fields.
+                "place": obj_data.get("place") if isinstance(obj_data.get("place"), str) else None,
+                "remind_on_site": obj_data.get("remind_on_site") is True,
                 "installation_date": obj_data.get("installation_date"),
                 "warranty_expiry": obj_data.get("warranty_expiry"),
                 # Imported counterparts of the export fields above; length-capped by

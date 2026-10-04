@@ -112,7 +112,9 @@ def task_may_notify(
     ``notify_enabled is False``), ``kind_enabled`` (the per-status reminder
     toggle — for the status kind; the completion kind's mode needs the
     completion source and stays in the manager), ``scope`` (saved-view),
-    ``vacation`` (silenced unless exempt) and ``snooze``.
+    ``vacation`` (silenced unless exempt, or the object's place away from
+    home has somebody there), ``on_site`` (the object's reminders wait for
+    somebody at its place — helpers/places.py) and ``snooze``.
     """
     gates = NOTIFICATION_KINDS[kind].gates
     nm = manager if manager is not None else hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
@@ -125,10 +127,18 @@ def task_may_notify(
     if "scope" in gates and not scope_view_matches(hass, task_data):
         return GateResult(False, "scope")
     if "vacation" in gates:
+        from .places import somebody_on_site
         from .vacation import get_vacation_state
 
-        if get_vacation_state(hass).is_silent_for(task_id):
+        # Vacation is about being away from home: a place away from home with
+        # somebody there right now is exactly where things get done.
+        if get_vacation_state(hass).is_silent_for(task_id) and not somebody_on_site(hass, entry_id):
             return GateResult(False, "vacation")
+    if "on_site" in gates:
+        from .places import waits_for_someone_on_site
+
+        if waits_for_someone_on_site(hass, entry_id):
+            return GateResult(False, "on_site")
     if "snooze" in gates and nm is not None and nm.is_snoozed(entry_id, task_id, status):
         return GateResult(False, "snooze")
     return ALLOWED

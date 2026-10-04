@@ -579,7 +579,8 @@
           "advanced_groups_visible": "Gruplar",
           "advanced_checklists_visible": "Kontrol Listeleri",
           "advanced_schedule_time_visible": "Günün saatine göre zamanlama",
-          "advanced_completion_actions_visible": "Tamamlama eylemleri"
+          "advanced_completion_actions_visible": "Tamamlama eylemleri",
+          "advanced_places_visible": "Yerler"
         },
         "data_description": {
           "advanced_adaptive_visible": "Görevler için EWA, Weibull analizi ve aralık önerilerini göster.",
@@ -589,7 +590,8 @@
           "advanced_groups_visible": "Bakım grubu yönetimini göster.",
           "advanced_checklists_visible": "Adım adım tamamlama için görev kontrol listelerini göster.",
           "advanced_schedule_time_visible": "Görevlerin gece yarısı yerine günün belirli bir saatinde gecikmiş duruma geçmesine izin ver.",
-          "advanced_completion_actions_visible": "Görev başına tamamlamada HA eylemi + önceden ayarlı değerlerle hızlı tamamlama QR'ı."
+          "advanced_completion_actions_visible": "Görev başına tamamlamada HA eylemi + önceden ayarlı değerlerle hızlı tamamlama QR'ı.",
+          "advanced_places_visible": "Başka bir yerde (Home Assistant bölgesi) bakımı yapılan nesneler: hatırlatmalar yalnızca biri oradayken, varışta bir mesaj."
         }
       },
       "panel_access": {

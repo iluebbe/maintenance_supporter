@@ -1018,6 +1018,45 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 
 ![The printable area report](images/area-report.png)
 
+### Places: maintenance away from home
+
+Some things are not at home: a shed in an allotment garden, a holiday home, a
+boat in the marina, the parents' house, a rented flat. With *Places* switched
+on (*Settings → Advanced Features → Places*) an object gets a **place**, one
+of your Home Assistant zones; empty means home, so nothing changes for
+objects at home.
+
+- **Remind only while somebody is there** — the object's reminders wait until
+  somebody has been in that zone for two minutes (driving past is no stay),
+  so a task at the allotment stops nagging at home and speaks up when it can
+  be done (a lead-time reminder goes out only if somebody is there on its
+  day). Vacation mode is about being away from home: it does not silence a
+  place while somebody is there
+- **A message on arrival** — whoever arrives at the place gets one message
+  with what is due there (overdue, triggered, due soon), after a two-minute
+  stay (a drive past the zone edge is no visit) and at most once per visit.
+  It goes to that person's own phones only, never to the household service,
+  and quiet hours skip it (the place's reminders follow when they end). A
+  tap opens the object. Muted and snoozed tasks are left out. For an object
+  that reminds only while somebody is there, this message is the visit's
+  reminder: the held reminders do not go out to the household as well
+- **On the object page and in the dashboard** — the object shows its place;
+  the dashboard gets a *Place* filter (all places, home, or one place)
+- **In the calendar** — the object's calendar events carry the place as their
+  location, so phone calendars show where the job is
+
+How well it works depends on your phones: the Home Assistant Companion app
+reports which zones a person is in (all of them since app and core 2026.6,
+passive zones included). Give a place a radius of at least 100 m; Android
+watches up to 100 zones, iOS fewer. A shed on your own property is too close
+for GPS, so keep using an area there. A zone that no longer exists counts as
+home, and the object page says so. Nothing here stores positions: the
+integration only compares the zones a person is in.
+
+Recipes for your own reactions (a card that shows only on site, a speaker
+announcement, the shopping list at the store) are in
+[EXAMPLES.md](EXAMPLES.md#maintenance-away-from-home).
+
 ### Data Management
 - **Move several tasks at once** (2.90+, #188) — in the task list's selection mode the bar's ⋯ menu offers *Move to another object…*: one target prompt, then every selected task moves with its history, readings and trigger state (tasks already in the target are skipped)
 - **Change several tasks at once** (2.97+, discussion #199) — the same ⋯ menu offers *Assign…* (one person, or several in turns), *Labels…* (add some, remove others; the rest stay), *Edit…* (warning days, priority, reminders — only the ticked settings change), *Pause…* (until a date or until resumed) and *Resume*. However many tasks of an object change, it is written and reloaded once, and *Undo* in the toast puts back exactly what was replaced. In *All objects*, *Area…* moves the selected objects to another Home Assistant area
@@ -1138,7 +1177,7 @@ All lifecycle events also render as readable, localized entries in HA's
 activity timeline (logbook) — *"Oil Change (Family Car) was completed —
 95 €, 45 min"* — attached to the task's sensor entity (2.19+).
 
-- `maintenance_supporter_notification` (2.80+, #165) — fired for **every notification the integration sends** (status changes and repeats, lead-time reminders, bundles, the weekly digest, warranty reminders, budget alerts, the Settings test). Payload: `kind` (`status` · `lead_time` · `bundle` · `digest` · `warranty` · `budget` · `completed` · `quiet_end` · `test`), `category` (e.g. `activity` for completion news), `status` (`due_soon` / `overdue` / `triggered` where it applies), `entry_id`, `task_id`, `task_name`, `object_name`, `object_ref`, `task_ref`, `priority`, `days_until_due`, `next_due`, `responsible_user_id`, `url` (deep link), `tasks` (bundle members), `target` (the notify service/entity), `title`, `message`, `data` (the notify payload's data incl. the extra-data template). With the setting *Only fire the event* this event **is** the delivery — see [Configuration → Notification Settings](CONFIGURATION.md#notification-settings)
+- `maintenance_supporter_notification` (2.80+, #165) — fired for **every notification the integration sends** (status changes and repeats, lead-time reminders, bundles, the weekly digest, warranty reminders, budget alerts, the arrival message at a place, the Settings test). Payload: `kind` (`status` · `lead_time` · `bundle` · `digest` · `warranty` · `budget` · `completed` · `quiet_end` · `place_arrival` · `test`), `category` (e.g. `activity` for completion news), `status` (`due_soon` / `overdue` / `triggered` where it applies), `entry_id`, `task_id`, `task_name`, `object_name`, `object_ref`, `task_ref`, `priority`, `days_until_due`, `next_due`, `responsible_user_id`, `url` (deep link), `tasks` (bundle members, the tasks due at a place), `place` / `place_name` (the zone of an arrival message), `target` (the notify service/entity), `title`, `message`, `data` (the notify payload's data incl. the extra-data template). With the setting *Only fire the event* this event **is** the delivery — see [Configuration → Notification Settings](CONFIGURATION.md#notification-settings)
 - `maintenance_supporter_trigger_activated` — fired when a sensor trigger condition becomes true
 - `maintenance_supporter_trigger_deactivated` — fired when a sensor trigger condition clears
 - `maintenance_supporter_task_completed` — fired on every completion path (panel, complete-QR, quick-complete, mobile action). Payload: `entry_id`, `task_id`, `task_name`, `object_name`, `entity_id` (the task's status sensor, 2.75+ — also what makes the entry show up under that sensor in the HA logbook), `completed_at` (ISO timestamp of the history entry — for a backdated completion this is the chosen past moment, not the moment the event fired; #133), `backfill` (bool — `true` when the completion was recorded for a moment OLDER than the task's latest completion; such pure backfills do not run `on_complete_action`), `source` (the surface that completed it: `panel`, `qr`, `nfc`, `button`, `todo`, `todo_mirror`, `voice`, `notification_action`, `shopping_list`, `service`, `auto_recovery`), plus optional `notes`, `cost`, `duration`, `feedback`, `completed_by`, `reading_value` / `reading_values` (the recorded meter value(s), 2.75+)

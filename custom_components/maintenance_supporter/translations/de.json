@@ -579,7 +579,8 @@
           "advanced_groups_visible": "Gruppen",
           "advanced_checklists_visible": "Checklisten",
           "advanced_schedule_time_visible": "Uhrzeit-Scheduling",
-          "advanced_completion_actions_visible": "Completion-Actions"
+          "advanced_completion_actions_visible": "Completion-Actions",
+          "advanced_places_visible": "Orte"
         },
         "data_description": {
           "advanced_adaptive_visible": "EWA-, Weibull-Analyse und Intervallvorschläge für Aufgaben anzeigen.",
@@ -589,7 +590,8 @@
           "advanced_groups_visible": "Wartungsgruppen-Verwaltung anzeigen.",
           "advanced_checklists_visible": "Aufgaben-Checklisten für schrittweise Erledigung anzeigen.",
           "advanced_schedule_time_visible": "Erlaubt Tasks, zu einer festen Uhrzeit fällig zu werden statt um Mitternacht.",
-          "advanced_completion_actions_visible": "Pro Aufgabe HA-Action beim Abschluss konfigurieren + Quick-Complete-QR mit voreingestellten Werten."
+          "advanced_completion_actions_visible": "Pro Aufgabe HA-Action beim Abschluss konfigurieren + Quick-Complete-QR mit voreingestellten Werten.",
+          "advanced_places_visible": "Objekte an einem anderen Ort (eine Home-Assistant-Zone): Erinnerungen nur, wenn jemand dort ist, und eine Nachricht bei Ankunft."
         }
       },
       "panel_access": {

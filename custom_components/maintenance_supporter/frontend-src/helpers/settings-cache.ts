@@ -25,7 +25,7 @@ export interface SettingsCache {
   features: {
     adaptive: boolean; seasonal: boolean;
     environmental: boolean; budget: boolean; groups: boolean;
-    checklists: boolean; schedule_time: boolean; completion_actions: boolean;
+    checklists: boolean; schedule_time: boolean; completion_actions: boolean; places: boolean;
   };
   defaultWarningDays: number;
   /** #145: global "Task row actions" style (buttons_compact | buttons | icons). */
@@ -102,7 +102,7 @@ export const FALLBACK_SETTINGS: SettingsCache = {
   features: {
     adaptive: false, seasonal: false,
     environmental: false, budget: false, groups: false,
-    checklists: false, schedule_time: false, completion_actions: false,
+    checklists: false, schedule_time: false, completion_actions: false, places: false,
   },
   defaultWarningDays: 7,
   rowActionStyle: "buttons_compact",

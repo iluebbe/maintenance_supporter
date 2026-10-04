@@ -129,7 +129,17 @@ export function openCreateObjectDialog(): boolean {
   if (!syncHass(dlg)) return false;
   // openCreate is defined on MaintenanceObjectDialog
   dlg.openCreate();
+  void applyObjectDialogSettings(dlg);
   return true;
+}
+
+/** 2026-10 places: the object dialog shows its place fields by the same
+ *  feature switch as in the panel. Opened at once; the fields appear when
+ *  the (page-wide cached) settings are in. */
+async function applyObjectDialogSettings(dlg: MaintenanceObjectDialog): Promise<void> {
+  const hass = getHass();
+  if (!hass) return;
+  dlg.placesEnabled = (await fetchSettingsOnce(hass)).features.places;
 }
 
 export function openEditObjectDialog(
@@ -139,6 +149,7 @@ export function openEditObjectDialog(
   const dlg = getOrCreate<MaintenanceObjectDialog>(OBJECT_DIALOG_TAG);
   if (!syncHass(dlg)) return false;
   dlg.openEdit(entryId, obj);
+  void applyObjectDialogSettings(dlg);
   return true;
 }
 

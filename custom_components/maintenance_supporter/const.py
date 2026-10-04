@@ -162,6 +162,9 @@ CONF_ADVANCED_SCHEDULE_TIME = "advanced_schedule_time_visible"
 # Print-QR generator. Default OFF — beginners aren't overwhelmed; data
 # still persists if a user toggles the flag off again.
 CONF_ADVANCED_COMPLETION_ACTIONS = "advanced_completion_actions_visible"
+# 2026-10: shows the object's place (an HA zone) and "remind only on site" in
+# the panel. Visibility only, like the others: a place set before keeps working.
+CONF_ADVANCED_PLACES = "advanced_places_visible"
 
 # Panel-access overrides: HA user IDs who get the full admin panel despite
 # not being HA admins. Empty list means only admins see the full panel.
@@ -419,6 +422,10 @@ VENDOR_URL = "/maintenance_supporter_vendor"
 CONF_OBJECT = "object"
 CONF_OBJECT_NAME = "name"
 CONF_OBJECT_AREA = "area_id"
+# 2026-10 places: an HA zone the object is maintained at (None = home), and
+# whether its reminders wait until somebody is there (helpers/places.py).
+CONF_OBJECT_PLACE = "place"
+CONF_OBJECT_REMIND_ON_SITE = "remind_on_site"
 CONF_OBJECT_MANUFACTURER = "manufacturer"
 CONF_OBJECT_MODEL = "model"
 CONF_OBJECT_SERIAL_NUMBER = "serial_number"
@@ -838,6 +845,12 @@ SIGNAL_DOCUMENTS_UPDATED = f"{DOMAIN}_documents_updated"
 
 # --- Trigger Completion Cooldown ---
 TRIGGER_COMPLETION_COOLDOWN_SECONDS = 600  # 10 minutes
+
+# Places (helpers/places.py): a person must stay this long in a zone before
+# the arrival message goes out (a drive past a zone edge is no visit), and
+# gets it at most once per this window for the same place.
+PLACE_ARRIVAL_DWELL_SECONDS = 120
+PLACE_ARRIVAL_COOLDOWN_SECONDS = 6 * 3600
 # Household double-complete window: two people tapping Complete on the same
 # task within this many seconds count as ONE real-world action (journey M1).
 # Short on purpose — a deliberate complete → reset → complete-again correction

@@ -20,6 +20,8 @@ from ..const import (
     CONF_OBJECT_MODEL,
     CONF_OBJECT_NAME,
     CONF_OBJECT_NOTES,
+    CONF_OBJECT_PLACE,
+    CONF_OBJECT_REMIND_ON_SITE,
     CONF_OBJECT_SERIAL_NUMBER,
     CONF_OBJECT_WARRANTY_EXPIRY,
     CONF_TASKS,
@@ -55,6 +57,8 @@ from .tasks import (  # v1.4.0 (#43): reuse the existing URL safety check
 # which is also applied on persist via cap_object_fields as a safety net.
 _OBJECT_STR_FIELD_SCHEMA: dict[Any, Any] = {
     vol.Optional("area_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+    # 2026-10 places: an HA zone's entity id; null / "" / "zone.home" = home.
+    vol.Optional("place"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
     vol.Optional("manufacturer"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
     vol.Optional("model"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
     vol.Optional("serial_number"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
@@ -248,6 +252,8 @@ async def async_create_object(
     notes: str | None = None,
     ha_device_id: str | None = None,
     parent_entry_id: str | None = None,
+    place: str | None = None,
+    remind_on_site: bool = False,
 ) -> str:
     """Create a maintenance object (config entry) and return its entry_id.
 
@@ -282,6 +288,9 @@ async def async_create_object(
             CONF_OBJECT_NOTES: (notes.strip() if isinstance(notes, str) and notes.strip() else None),
             "ha_device_id": ha_device_id,
             "parent_entry_id": parent_entry_id,
+            # Normalized by cap_object_fields (helpers/sanitize._normalize_place).
+            **({CONF_OBJECT_PLACE: place} if place else {}),
+            **({CONF_OBJECT_REMIND_ON_SITE: True} if remind_on_site else {}),
             "task_ids": [],
         },
         CONF_TASKS: {},
@@ -297,6 +306,7 @@ async def async_create_object(
         vol.Required("type"): "maintenance_supporter/object/create",
         vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         **_OBJECT_STR_FIELD_SCHEMA,
+        vol.Optional("remind_on_site"): bool,
         vol.Optional("dry_run", default=False): bool,
     }
 )
@@ -356,6 +366,8 @@ async def ws_create_object(
             notes=notes,
             ha_device_id=msg.get("ha_device_id"),
             parent_entry_id=msg.get("parent_entry_id"),
+            place=msg.get("place"),
+            remind_on_site=msg.get("remind_on_site") is True,
         )
     except ValueError as err:
         connection.send_error(msg["id"], "create_failed", str(err))
@@ -369,6 +381,7 @@ async def ws_create_object(
         vol.Required("entry_id"): ID_FIELD,
         vol.Optional("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         **_OBJECT_STR_FIELD_SCHEMA,
+        vol.Optional("remind_on_site"): bool,
     }
 )
 @require_write
@@ -444,6 +457,10 @@ async def ws_update_object(
         obj[CONF_OBJECT_NAME] = msg["name"]
     if "area_id" in msg:
         obj[CONF_OBJECT_AREA] = msg["area_id"]
+    if "place" in msg:
+        obj[CONF_OBJECT_PLACE] = msg["place"]
+    if "remind_on_site" in msg:
+        obj[CONF_OBJECT_REMIND_ON_SITE] = msg["remind_on_site"]
     if "manufacturer" in msg:
         obj[CONF_OBJECT_MANUFACTURER] = msg["manufacturer"]
     if "model" in msg:

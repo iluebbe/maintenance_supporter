@@ -80,6 +80,7 @@ _OBJECT_STR_LIMITS: dict[str, int] = {
     "model": MAX_META_LENGTH,
     "serial_number": MAX_META_LENGTH,
     "area_id": MAX_META_LENGTH,
+    "place": MAX_META_LENGTH,  # 2026-10: an HA zone (helpers/places.py)
     "installation_date": MAX_DATE_LENGTH,
     "warranty_expiry": MAX_DATE_LENGTH,  # (#67)
     "documentation_url": MAX_URL_LENGTH,  # v1.4.0 #43
@@ -543,7 +544,24 @@ def cap_object_fields(obj_data: dict[str, Any]) -> dict[str, Any]:
     """Truncate user-controllable strings on an object dict in-place."""
     _cap_strings(obj_data, _OBJECT_STR_LIMITS)
     _drop_unsafe_url(obj_data)
+    _normalize_place(obj_data)
     return obj_data
+
+
+def _normalize_place(data: dict[str, Any]) -> None:
+    """2026-10 places, on every create, edit and import path: a zone's entity
+    id or nothing (home — also for ``zone.home`` and anything that is no
+    zone), and ``remind_on_site`` only as a real True next to a place."""
+    from .places import normalize_place
+
+    if "place" in data:
+        place = normalize_place(data.get("place"))
+        if place is None:
+            data.pop("place")
+        else:
+            data["place"] = place
+    if "remind_on_site" in data and not (data.get("remind_on_site") is True and data.get("place")):
+        data.pop("remind_on_site")
 
 
 def _drop_unsafe_url(data: dict[str, Any]) -> None:

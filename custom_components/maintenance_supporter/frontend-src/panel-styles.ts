@@ -963,6 +963,14 @@ export const panelStyles = css`
     color: var(--info-color, #2196f3); font-weight: 500;
   }
   .paused-meta ha-icon { --mdc-icon-size: 16px; }
+  /* 2026-10 places: the object's place on its detail page. */
+  .place-meta {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  .place-meta ha-icon { --mdc-icon-size: 16px; color: var(--secondary-text-color); }
+  .place-missing-badge {
+    font-size: 12px; color: var(--warning-color, #c77700);
+  }
   .objects-table .oc-notes {
     max-width: 220px;
     overflow: hidden;

@@ -579,7 +579,8 @@
           "advanced_groups_visible": "分组",
           "advanced_checklists_visible": "检查清单",
           "advanced_schedule_time_visible": "具体时间调度",
-          "advanced_completion_actions_visible": "完成动作"
+          "advanced_completion_actions_visible": "完成动作",
+          "advanced_places_visible": "地点"
         },
         "data_description": {
           "advanced_adaptive_visible": "显示 EWA、韦伯分析以及针对任务的间隔建议。",
@@ -589,7 +590,8 @@
           "advanced_groups_visible": "显示维护分组管理。",
           "advanced_checklists_visible": "显示任务检查清单以进行逐步操作。",
           "advanced_schedule_time_visible": "允许任务在一天中的特定时间变为超期，而非午夜。",
-          "advanced_completion_actions_visible": "为每个任务配置完成时的 HA 动作 + 预设值的快速完成二维码。"
+          "advanced_completion_actions_visible": "为每个任务配置完成时的 HA 动作 + 预设值的快速完成二维码。",
+          "advanced_places_visible": "在其他地点（Home Assistant 区域）维护的对象：仅当有人在场时提醒，并在到达时发送消息。"
         }
       },
       "panel_access": {

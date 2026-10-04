@@ -353,6 +353,7 @@ async def test_get_settings_no_global_entry(
         "checklists": False,
         "schedule_time": False,
         "completion_actions": False,
+        "places": False,
     }
 
 

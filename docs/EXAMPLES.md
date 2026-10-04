@@ -349,6 +349,77 @@ automation:
             is overdue by {{ state_attr('sensor.family_car_oil_change', 'days_until_due') | abs }} days.
 ```
 
+### Maintenance away from home
+
+The built-in part is *Places* (see
+[FEATURES → Places](FEATURES.md#places-maintenance-away-from-home)): an
+object at another zone, reminders only on site, a message on arrival. For
+your own reactions, Home Assistant's zones give you the rest.
+
+**A dashboard card that appears only on site (HA 2026.10+).** Edit the
+maintenance card, open *Visibility* and add two conditions: the zone
+condition (*Anna is in Allotment*) and the maintenance condition *A
+maintenance task needs attention* for the shed's tasks. The card then shows
+up only while somebody is there and something is due. Since 2026.10 the
+visibility tab offers the automation conditions of integrations, and Home
+Assistant evaluates them on the server, so this works on every device.
+
+**Your own arrival reaction**, for example a voice announcement on a speaker
+in the shed:
+
+```yaml
+automation:
+  - alias: "Shed: tell me what is due"
+    triggers:
+      - trigger: zone
+        entity_id: person.anna
+        zone: zone.allotment
+        event: enter
+    conditions:
+      - condition: maintenance_supporter.task_needs_attention
+        target:
+          entity_id: sensor.garden_shed_oil_the_gate
+    actions:
+      - action: tts.speak
+        target:
+          entity_id: tts.home_assistant_cloud
+        data:
+          media_player_entity_id: media_player.shed_speaker
+          message: "The gate lock needs oil."
+```
+
+**The shopping list when you walk into the store.** With a shopping list
+picked under *Settings → General*, buy reminders land in that to-do list. Create a
+zone for the store (a passive one keeps it off the map and out of the
+person's state), then:
+
+```yaml
+automation:
+  - alias: "Shopping list at the hardware store"
+    triggers:
+      - trigger: zone
+        entity_id: person.anna
+        zone: zone.hardware_store
+        event: enter
+    actions:
+      - action: todo.get_items
+        target:
+          entity_id: todo.shopping_list
+        data:
+          status: needs_action
+        response_variable: items
+      - condition: template
+        value_template: "{{ items['todo.shopping_list']['items'] | count > 0 }}"
+      - action: notify.mobile_app_anna_phone
+        data:
+          title: "You are at the hardware store"
+          message: "{{ items['todo.shopping_list']['items'] | map(attribute='summary') | join(', ') }}"
+```
+
+A drive past the store rarely triggers it: phones report zone changes with
+a delay, so it is reliable when you stop there, not when you pass by. Keep
+the store zones few (Android watches up to 100 zones, iOS fewer).
+
 ### Service Call: Complete a Task with Details
 
 Since 2.71 `entity_id` accepts a **list** (or a comma-separated string) on

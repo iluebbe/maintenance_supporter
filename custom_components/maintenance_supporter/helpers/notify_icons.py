@@ -51,6 +51,7 @@ KIND_NOTIFY_ICONS: dict[str, str] = {
     "warranty": "mdi:shield-check-outline",
     "budget": "mdi:piggy-bank-outline",
     "completed": "mdi:check-circle-outline",
+    "place_arrival": "mdi:map-marker-check-outline",
     "test": "mdi:bell-ring-outline",
 }
 

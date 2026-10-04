@@ -142,6 +142,7 @@ _KIND_EXTRAS = {
     "digest": {"overdue", "due_soon"},
     "warranty": {"names", "days"},
     "budget": {"period", "spent", "budget", "percent"},
+    "place_arrival": {"place", "place_name"},  # 2026-10 places
 }
 _DISPATCHER_ADDS = {"category", "target", "title", "message", "data"}
 

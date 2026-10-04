@@ -579,7 +579,8 @@
           "advanced_groups_visible": "Groepen",
           "advanced_checklists_visible": "Checklists",
           "advanced_schedule_time_visible": "Tijd-van-dag-planning",
-          "advanced_completion_actions_visible": "Voltooiings-acties"
+          "advanced_completion_actions_visible": "Voltooiings-acties",
+          "advanced_places_visible": "Locaties"
         },
         "data_description": {
           "advanced_adaptive_visible": "Toon EWA-, Weibull-analyse en intervalsuggesties voor taken.",
@@ -589,7 +590,8 @@
           "advanced_groups_visible": "Toon onderhoudsgroepbeheer.",
           "advanced_checklists_visible": "Toon taakchecklists voor stapsgewijze voltooiing.",
           "advanced_schedule_time_visible": "Laat taken op een specifieke tijd vervallen in plaats van om middernacht.",
-          "advanced_completion_actions_visible": "Per taak HA-actie bij voltooien + snel-voltooien-QR met vooraf ingestelde waarden."
+          "advanced_completion_actions_visible": "Per taak HA-actie bij voltooien + snel-voltooien-QR met vooraf ingestelde waarden.",
+          "advanced_places_visible": "Objecten op een andere locatie (een Home Assistant-zone): herinneringen alleen als er iemand is, en een bericht bij aankomst."
         }
       },
       "panel_access": {

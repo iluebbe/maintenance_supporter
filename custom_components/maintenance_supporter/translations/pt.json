@@ -579,7 +579,8 @@
           "advanced_groups_visible": "Grupos",
           "advanced_checklists_visible": "Listas de Verificação",
           "advanced_schedule_time_visible": "Agendamento por hora",
-          "advanced_completion_actions_visible": "Ações de conclusão"
+          "advanced_completion_actions_visible": "Ações de conclusão",
+          "advanced_places_visible": "Locais"
         },
         "data_description": {
           "advanced_adaptive_visible": "Mostrar análise EWA, Weibull e sugestões de intervalo para tarefas.",
@@ -589,7 +590,8 @@
           "advanced_groups_visible": "Mostrar gestão de grupos de manutenção.",
           "advanced_checklists_visible": "Mostrar listas de verificação de tarefas para conclusão passo a passo.",
           "advanced_schedule_time_visible": "Permite que tarefas vençam num horário específico em vez de meia-noite.",
-          "advanced_completion_actions_visible": "Ação HA por tarefa ao concluir + QR de conclusão rápida com valores predefinidos."
+          "advanced_completion_actions_visible": "Ação HA por tarefa ao concluir + QR de conclusão rápida com valores predefinidos.",
+          "advanced_places_visible": "Objetos mantidos noutro local (uma zona do Home Assistant): lembretes só quando alguém lá está e uma mensagem à chegada."
         }
       },
       "panel_access": {

@@ -237,6 +237,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _filterStatus = "";
   @state() private _filterUser: string | null = null;
   @state() private _filterLabel: string | null = null;
+  // 2026-10 places: "" = all, "home" = objects without a place, else a zone id.
+  @state() private _filterPlace = "";
   /** #134: only tasks of this priority (low|normal|high); "" = no filter. */
   @state() private _filterPriority = "";
   // v2.24: shared saved filter views + the id of the one currently applied ("" =
@@ -265,7 +267,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _groups: Record<string, MaintenanceGroup> = {};
   @state() private _detailStatsData: Map<string, StatisticsPoint[]> = new Map();
   @state() private _miniStatsData: Map<string, StatisticsPoint[]> = new Map();
-  @state() private _features: AdvancedFeatures = { adaptive: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false, schedule_time: false, completion_actions: false };
+  @state() private _features: AdvancedFeatures = { adaptive: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false, schedule_time: false, completion_actions: false, places: false };
   // HA user IDs (UUIDs) granted full panel access despite not being HA admins.
   @state() private _adminPanelUserIds: string[] = [];
   // v2.8.4: master switch — the allowlist only grants the full panel when this
@@ -1219,6 +1221,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         // Label filter (v2.26 — also captured by saved views)
         if (this._filterLabel && !(task.labels || []).includes(this._filterLabel)) continue;
 
+        // Place filter (2026-10): the object's zone, "home" for none.
+        if (this._filterPlace && (obj.object.place || "home") !== this._filterPlace) continue;
+
         // Priority filter (#134 — also captured by saved views). Tasks
         // without an explicit priority are "normal", the model default.
         if (this._filterPriority && (task.priority || "normal") !== this._filterPriority) continue;
@@ -1455,6 +1460,16 @@ export class MaintenanceSupporterPanel extends LitElement {
       }
     }
     return [...seen].sort((a, b) => a.localeCompare(b));
+  }
+
+  /** 2026-10 places: the zones objects are maintained at, for the filter. */
+  private get _allPlaces(): { id: string; name: string }[] {
+    const seen = new Map<string, string>();
+    for (const obj of this._objects) {
+      const o = obj.object;
+      if (o.place && !seen.has(o.place)) seen.set(o.place, o.place_name || o.place);
+    }
+    return [...seen].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /** The panel's current task-list filter state, in the shape a view stores. */
@@ -3199,6 +3214,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       <maintenance-object-dialog
         .hass=${this.hass}
         .objects=${this._objects}
+        .placesEnabled=${this._features.places}
         @object-saved=${this._onObjectSaved}
         @object-replaced=${this._onObjectReplaced}
       ></maintenance-object-dialog>
@@ -3546,6 +3562,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       (this._filterStatus ? 1 : 0) +
       (this._filterUser ? 1 : 0) +
       (this._filterLabel ? 1 : 0) +
+      (this._filterPlace ? 1 : 0) +
       (this._filterPriority ? 1 : 0) +
       (this._activeViewId ? 1 : 0);
 
@@ -3625,6 +3642,24 @@ export class MaintenanceSupporterPanel extends LitElement {
               <option value="">${t("all_labels", L)}</option>
               ${this._allLabels.map(
                 (lb) => html`<option value=${lb} ?selected=${this._filterLabel === lb}>${lb}</option>`
+              )}
+            </select>
+          </label>
+        ` : nothing}
+        ${this._features.places && this._allPlaces.length > 0 ? html`
+          <label class="filter-field">
+            <span class="filter-label">${t("filter_place", L)}</span>
+            <select
+              .value=${this._filterPlace}
+              @change=${(e: Event) => {
+                this._filterPlace = (e.target as HTMLSelectElement).value;
+                this._activeViewId = "";
+              }}
+            >
+              <option value="">${t("filter_place_all", L)}</option>
+              <option value="home" ?selected=${this._filterPlace === "home"}>${t("place_home", L)}</option>
+              ${this._allPlaces.map(
+                (pl) => html`<option value=${pl.id} ?selected=${this._filterPlace === pl.id}>${pl.name}</option>`
               )}
             </select>
           </label>
@@ -4745,6 +4780,13 @@ export class MaintenanceSupporterPanel extends LitElement {
           ? html`<p class="meta">${t("area", L)}:
               <a href="#" class="object-area-link" @click=${(e: Event) => { e.preventDefault(); this._showArea(o.area_id!); }}
                 >${areaDisplayName(o.area_id, this.hass?.areas, t("no_area", L))}</a></p>`
+          : nothing}
+        ${o.place
+          ? html`<p class="meta place-meta">
+              <ha-icon icon="mdi:map-marker-outline"></ha-icon>
+              ${t("filter_place", L)}: ${o.place_name || o.place}${o.remind_on_site ? html` · ${t("remind_on_site", L)}` : nothing}
+              ${o.place_missing ? html`<span class="place-missing-badge">${t("place_missing", L)}</span>` : nothing}
+            </p>`
           : nothing}
         ${isSafeHttpUrl(o.documentation_url)
           ? html`<p class="meta">${t("documentation_url_label", L)}:

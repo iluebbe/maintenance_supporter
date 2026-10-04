@@ -579,7 +579,8 @@
           "advanced_groups_visible": "Groupes",
           "advanced_checklists_visible": "Listes de contrôle",
           "advanced_schedule_time_visible": "Planification à l'heure",
-          "advanced_completion_actions_visible": "Actions de finalisation"
+          "advanced_completion_actions_visible": "Actions de finalisation",
+          "advanced_places_visible": "Lieux"
         },
         "data_description": {
           "advanced_adaptive_visible": "Afficher l'analyse EWA, Weibull et les suggestions d'intervalle pour les tâches.",
@@ -589,7 +590,8 @@
           "advanced_groups_visible": "Afficher la gestion des groupes de maintenance.",
           "advanced_checklists_visible": "Afficher les listes de contrôle pour la réalisation étape par étape des tâches.",
           "advanced_schedule_time_visible": "Permettre aux tâches d'arriver à échéance à une heure précise plutôt qu'à minuit.",
-          "advanced_completion_actions_visible": "Action HA par tâche lors de la finalisation + QR de finalisation rapide avec valeurs pré-définies."
+          "advanced_completion_actions_visible": "Action HA par tâche lors de la finalisation + QR de finalisation rapide avec valeurs pré-définies.",
+          "advanced_places_visible": "Objets entretenus à un autre endroit (une zone Home Assistant) : rappels seulement quand quelqu'un y est, et un message à l'arrivée."
         }
       },
       "panel_access": {

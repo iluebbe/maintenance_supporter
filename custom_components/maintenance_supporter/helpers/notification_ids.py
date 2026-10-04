@@ -48,6 +48,11 @@ def bundle_tag(entry_id: str) -> str:
     return f"{_TAG_PREFIX}bundled_{entry_id}"
 
 
+def place_tag(zone_id: str) -> str:
+    """The per-place tag of an arrival message: the next visit's replaces it."""
+    return f"{_TAG_PREFIX}place_{zone_id}"
+
+
 def budget_tag(period: str) -> str:
     """The tag of a budget alert (``monthly`` / ``yearly``)."""
     return f"{_TAG_PREFIX}budget_{period}"

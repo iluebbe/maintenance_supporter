@@ -25,6 +25,7 @@ from ..const import (
     CONF_ADVANCED_COMPLETION_ACTIONS,
     CONF_ADVANCED_ENVIRONMENTAL,
     CONF_ADVANCED_GROUPS,
+    CONF_ADVANCED_PLACES,
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
     CONF_ARCHIVE_ONEOFF_DAYS,
@@ -215,6 +216,7 @@ def _build_full_settings(
             "checklists": _opt(options, CONF_ADVANCED_CHECKLISTS),
             "schedule_time": _opt(options, CONF_ADVANCED_SCHEDULE_TIME),
             "completion_actions": _opt(options, CONF_ADVANCED_COMPLETION_ACTIONS),
+            "places": _opt(options, CONF_ADVANCED_PLACES),
         },
         # Top-level (not a feature toggle, not a bool): list of HA user IDs
         # whose UI gets the full admin panel even though they're not HA admins.

@@ -227,6 +227,13 @@ def _build_export_object(
     # gallery) — only emitted when set, like the fleet flag below.
     if obj_data.get("template_id"):
         export_obj["template_id"] = obj_data["template_id"]
+    # 2026-10 places — only when set, so an object at home exports as before.
+    # A zone id is instance-specific: on another instance without that zone
+    # the object behaves as at home and the panel says the zone is missing.
+    if obj_data.get("place"):
+        export_obj["place"] = obj_data["place"]
+        if obj_data.get("remind_on_site") is True:
+            export_obj["remind_on_site"] = True
     # Battery fleet identity — only emitted for the fleet object so a plain
     # object's export stays byte-identical to earlier versions. The importer
     # mirrors these (and keeps the deterministic ``batt_<type>`` part ids).

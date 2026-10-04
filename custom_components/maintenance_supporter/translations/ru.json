@@ -579,7 +579,8 @@
           "advanced_groups_visible": "Группы",
           "advanced_checklists_visible": "Контрольные списки",
           "advanced_schedule_time_visible": "Планирование по времени",
-          "advanced_completion_actions_visible": "Действия при завершении"
+          "advanced_completion_actions_visible": "Действия при завершении",
+          "advanced_places_visible": "Места"
         },
         "data_description": {
           "advanced_adaptive_visible": "Показывать EWA, анализ Вейбулла и предложения интервалов для задач.",
@@ -589,7 +590,8 @@
           "advanced_groups_visible": "Показывать управление группами обслуживания.",
           "advanced_checklists_visible": "Показывать контрольные списки задач для пошагового выполнения.",
           "advanced_schedule_time_visible": "Позволяет задачам становиться просроченными в определённое время дня, а не в полночь.",
-          "advanced_completion_actions_visible": "HA-действие по задаче при завершении + QR быстрого завершения с предустановленными значениями."
+          "advanced_completion_actions_visible": "HA-действие по задаче при завершении + QR быстрого завершения с предустановленными значениями.",
+          "advanced_places_visible": "Объекты в другом месте (зона Home Assistant): напоминания только когда там кто-то есть, и сообщение по прибытии."
         }
       },
       "panel_access": {

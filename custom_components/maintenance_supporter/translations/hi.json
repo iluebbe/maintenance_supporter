@@ -579,7 +579,8 @@
           "advanced_groups_visible": "समूह",
           "advanced_checklists_visible": "चेकलिस्ट",
           "advanced_schedule_time_visible": "दिन-के-समय अनुसूचन",
-          "advanced_completion_actions_visible": "पूर्णता क्रियाएँ"
+          "advanced_completion_actions_visible": "पूर्णता क्रियाएँ",
+          "advanced_places_visible": "स्थान"
         },
         "data_description": {
           "advanced_adaptive_visible": "कार्यों के लिए EWA, वाइबुल विश्लेषण और अंतराल सुझाव दिखाएँ।",
@@ -589,7 +590,8 @@
           "advanced_groups_visible": "रखरखाव समूह प्रबंधन दिखाएँ।",
           "advanced_checklists_visible": "चरण-दर-चरण पूर्णता के लिए कार्य चेकलिस्ट दिखाएँ।",
           "advanced_schedule_time_visible": "कार्यों को आधी रात के बजाय दिन के एक विशिष्ट समय पर अतिदेय होने दें।",
-          "advanced_completion_actions_visible": "पूर्ण होने पर प्रति-कार्य HA क्रिया + पूर्व-निर्धारित मानों के साथ त्वरित-पूर्ण QR।"
+          "advanced_completion_actions_visible": "पूर्ण होने पर प्रति-कार्य HA क्रिया + पूर्व-निर्धारित मानों के साथ त्वरित-पूर्ण QR।",
+          "advanced_places_visible": "किसी दूसरी जगह (Home Assistant ज़ोन) पर रखरखाव वाले ऑब्जेक्ट: रिमाइंडर तभी जब कोई वहाँ हो, और पहुँचने पर एक संदेश।"
         }
       },
       "panel_access": {
