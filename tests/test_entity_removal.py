@@ -431,7 +431,14 @@ async def test_multi_entity_trigger_all_logic_one_removed(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
 ) -> None:
-    """Multi-entity trigger with entity_logic='all': one entity removed → not triggered."""
+    """Multi-entity trigger with entity_logic='all': one entity removed.
+
+    A missing entity gives no reading, so it decides nothing: the latch
+    stays (as the event-driven trigger keeps it), and the missing entity is
+    reported by the repair flow instead. Read as "not reached", a sensor that
+    dropped out flipped triggered tasks to OK and back on every refresh
+    (live installation 2026-10-04). A READING of the remaining entity that
+    breaks "all" still ends it."""
     set_sensor_state(hass, "sensor.zone_a", "1.5")
     set_sensor_state(hass, "sensor.zone_b", "1.5")
 
@@ -471,12 +478,19 @@ async def test_multi_entity_trigger_all_logic_one_removed(
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
     assert task_data.get("_trigger_active") is True
 
-    # Remove one entity → "all" can't be satisfied → not triggered
+    # Remove one entity → no reading, no verdict: the latch stays
     hass.states.async_remove("sensor.zone_b")
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    # With one missing, "all" logic treats missing as False
+    assert task_data.get("_trigger_active") is True
+
+    # The remaining entity reads back in range → "all" is broken → not triggered
+    set_sensor_state(hass, "sensor.zone_a", "2.5")
+    await hass.async_block_till_done()
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
     assert task_data.get("_trigger_active") is not True
 
 
