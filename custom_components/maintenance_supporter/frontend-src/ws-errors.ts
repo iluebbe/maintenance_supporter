@@ -25,6 +25,9 @@ export const WS_ERROR_CODE_KEYS: Record<string, string> = {
   already_archived: "ws_err_already_archived",
   already_paused: "ws_err_already_paused",
   archived: "ws_err_archived",
+  // task/undo (2026-10): the person's last completion is another task / gone,
+  // or the task changed since.
+  changed_since: "undo_changed",
   create_failed: "ws_err_create_failed",
   duplicate_failed: "ws_err_duplicate_failed",
   empty: "ws_err_empty",
@@ -55,6 +58,7 @@ export const WS_ERROR_CODE_KEYS: Record<string, string> = {
   not_found: "ws_err_not_found",
   not_loaded: "ws_err_not_loaded",
   not_paused: "ws_err_not_paused",
+  nothing_to_undo: "undo_nothing",
   replace_failed: "ws_err_replace_failed",
   self_link_device: "ws_err_self_link_device",
   storage_unavailable: "ws_err_storage_unavailable",

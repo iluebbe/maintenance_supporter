@@ -64,7 +64,7 @@ async def test_delete_latest_completion_re_anchors_on_previous(hass: HomeAssista
     assert store.get_last_performed(TASK_ID_1) == latest["timestamp"][:10]
     conn = await _delete(hass, obj, latest["timestamp"])
     result = assert_ws_success(conn)
-    assert result == {"success": True, "remaining": 1}
+    assert result == {"success": True, "remaining": 1, "parts_returned": False}
     assert [h["notes"] for h in store.get_history(TASK_ID_1)] == ["first"]
     assert store.get_last_performed(TASK_ID_1) == older["timestamp"][:10]
     # Persisted: the Store's saved data carries the shortened history.
