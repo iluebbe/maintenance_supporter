@@ -70,6 +70,28 @@ def primary_entity_id(trigger_config: Any) -> str | None:
     return next((eid for eid in normalize_entity_ids(trigger_config) if isinstance(eid, str) and eid), None)
 
 
+def trigger_runtime_stale(old: Any, new: Any) -> bool:
+    """Whether a trigger edit invalidates the task's persisted trigger
+    runtime (counter baselines, runtime hours, change counts): another type,
+    other entities or an edited counting start value. The ONE rule for the
+    WebSocket update and the options flow.
+
+    The entities are compared normalized. An old task stores only the legacy
+    ``entity_id``, while every validated edit carries ``entity_ids`` too;
+    comparing the raw keys read that as "other entities", so the first save
+    of such a task wiped its baseline or hours even when only the target
+    changed (live installation 2026-10-04). A compound keeps its runtime per
+    condition and, as before, only a type change resets it.
+    """
+    old_tc = old if isinstance(old, dict) else {}
+    new_tc = new if isinstance(new, dict) else {}
+    if old_tc.get("type") != new_tc.get("type"):
+        return True
+    if new_tc.get("type") != TriggerType.COMPOUND and normalize_entity_ids(old_tc) != normalize_entity_ids(new_tc):
+        return True
+    return bool(old_tc.get("trigger_baseline_value") != new_tc.get("trigger_baseline_value"))
+
+
 def _migrate_flat_to_per_entity(config: dict[str, Any], first_entity_id: str) -> dict[str, dict[str, Any]]:
     """Create ``_trigger_state`` from legacy flat keys on first load.
 

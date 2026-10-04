@@ -879,17 +879,14 @@ async def ws_update_task(
 
     # Clear stale trigger runtime in Store only when trigger fundamentally changes
     if "trigger_config" in msg:
-        old_tc = stored_task.get("trigger_config") or {}
-        new_tc = msg["trigger_config"] or {}
+        from ..entity.triggers import trigger_runtime_stale
+
         # An edited baseline counts as fundamental: the Store baseline wins
         # over the config on restore (#102 restart fix), so without clearing
         # it a user-entered start value would silently never take effect.
-        if (
-            old_tc.get("type") != new_tc.get("type")
-            or old_tc.get("entity_id") != new_tc.get("entity_id")
-            or old_tc.get("entity_ids") != new_tc.get("entity_ids")
-            or old_tc.get("trigger_baseline_value") != new_tc.get("trigger_baseline_value")
-        ):
+        # Compared normalized (trigger_runtime_stale): a task stored in the
+        # legacy form lost its runtime on a target-only edit.
+        if trigger_runtime_stale(stored_task.get("trigger_config"), msg["trigger_config"]):
             store_tc = get_store(hass, entry.entry_id)
             if store_tc is not None:
                 store_tc.clear_trigger_runtime(task_id)

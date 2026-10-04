@@ -49,6 +49,30 @@ def _aggregate(per_entity: list[bool], entity_logic: str) -> bool:
     return all(per_entity) if entity_logic == "all" else any(per_entity)
 
 
+def _aggregate_known(per_entity: list[bool | None], entity_logic: str) -> bool | None:
+    """The verdict of entities that may lack a reading (``None``).
+
+    Three-valued, so a sensor that dropped out never decides: "any" is True
+    as soon as one entity reached, False only when every entity reported and
+    none reached; "all" is False as soon as one entity reported not reaching,
+    True only when every entity reported and all reached. Anything else is
+    None, no verdict: the event-driven latch stays as it is (base_trigger
+    keeps an entity's last state through an outage). A counter that dropped
+    out read as "not reached" ended an episode its sensor never left: the
+    task flipped to OK and back on every refresh, and the next restart
+    announced the same activation again (live installation 2026-10-04).
+    """
+    known = [verdict for verdict in per_entity if verdict is not None]
+    complete = bool(per_entity) and len(known) == len(per_entity)
+    if entity_logic == "all":
+        if False in known:
+            return False
+        return True if complete else None
+    if True in known:
+        return True
+    return False if complete else None
+
+
 def threshold_exceeds(
     value: float,
     *,
@@ -118,28 +142,28 @@ def evaluate_threshold(
     if not entity_ids:
         return FallbackResult(current_value=None, active=False)
 
-    per_entity: list[bool] = []
+    per_entity: list[bool | None] = []
     last_value: float | None = None
     for eid in entity_ids:
         value = _numeric_entity_value(get_state, eid, attribute)
         if value is None:
-            per_entity.append(False)
+            per_entity.append(None)  # no reading: no verdict for this entity
             continue
         last_value = value
         per_entity.append(threshold_exceeds(value, above=above, below=below, equals=equals, not_equals=not_equals))
 
-    aggregated = _aggregate(per_entity, entity_logic) if per_entity else False
+    # Only READINGS decide. base_trigger deliberately keeps the latch through
+    # unavailable blips ("unavailable carries no measurement"); this sweep
+    # used to overrule it: a 90 s sensor dropout inside the 5-min window
+    # flipped a latched task OK and back, firing state automations twice
+    # (bug audit 2026-08-22). Per entity since 2026-10-04: one dropped-out
+    # entity of several no longer counts as "not exceeded" either.
+    aggregated = _aggregate_known(per_entity, entity_logic)
 
     active: bool | None
     if for_minutes == 0:
-        # Only assert a verdict when at least one entity produced a READING.
-        # base_trigger deliberately keeps the latch through unavailable blips
-        # ("unavailable carries no measurement"); this sweep used to overrule
-        # it — a 90 s sensor dropout inside the 5-min window flipped a latched
-        # task OK and back, firing state automations twice (bug audit
-        # 2026-08-22). Mirrors the guard the for_minutes>0 branch always had.
-        active = aggregated if last_value is not None else None
-    elif not aggregated and last_value is not None:
+        active = aggregated
+    elif aggregated is False:
         # Back in the normal range — safe to deactivate even with for_minutes.
         active = False
     else:
@@ -221,12 +245,14 @@ def evaluate_counter(
     target = trigger_config.get("trigger_target_value", 0)  # pragma: no mutate (WS-required; default only guards hand-edited data)
     delta_mode = trigger_config.get("trigger_delta_mode", False)
 
-    per_entity: list[bool] = []
+    per_entity: list[bool | None] = []
     last_value: float | None = None
     for eid in entity_ids:
         value = _numeric_entity_value(get_state, eid, attribute)
         if value is None:
-            per_entity.append(False)
+            # No reading, no verdict: a dropped-out counter is not "below
+            # target" (live installation 2026-10-04, see _aggregate_known).
+            per_entity.append(None)
             continue
         last_value = value
         if delta_mode:
@@ -240,8 +266,7 @@ def evaluate_counter(
         if reading is not None:
             last_value = reading
 
-    active = _aggregate(per_entity, entity_logic) if per_entity else None
-    return FallbackResult(current_value=last_value, active=active)
+    return FallbackResult(current_value=last_value, active=_aggregate_known(per_entity, entity_logic))
 
 
 def evaluate_state_change(
@@ -298,22 +323,20 @@ def evaluate_due_date(
     entity_logic = trigger_config.get("entity_logic", "any")
     days_before = float(trigger_config.get("trigger_days_before") or 0)
     now = now or dt_util.utcnow()
-    per_entity: list[bool] = []
+    per_entity: list[bool | None] = []
     soonest: float | None = None
     for eid in entity_ids:
         state = get_state(eid)
-        if state is None or state.state in UNAVAILABLE_STATES:
-            continue
-        due = due_instant(state.attributes.get(attribute) if attribute else state.state)
+        due = None if state is None or state.state in UNAVAILABLE_STATES else due_instant(state.attributes.get(attribute) if attribute else state.state)
         if due is None:
+            per_entity.append(None)  # no readable date: no verdict for this entity
             continue
         left = days_until(due, now)
         soonest = left if soonest is None else min(soonest, left)
         per_entity.append(left <= days_before)
-    if not per_entity:
-        # No readable date — keep the event-driven latch as it is.
-        return FallbackResult(current_value=None, active=None)
-    return FallbackResult(current_value=soonest, active=_aggregate(per_entity, entity_logic))
+    # No readable date at all, or too few to decide: the event-driven latch
+    # stays as it is (_aggregate_known).
+    return FallbackResult(current_value=soonest, active=_aggregate_known(per_entity, entity_logic))
 
 
 def evaluate_runtime(

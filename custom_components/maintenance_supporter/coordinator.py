@@ -89,6 +89,10 @@ _TRIGGER_EPOCH_TYPES = frozenset(
     }
 )
 
+# Trigger types whose refresh-time fallback reads the live entity states (the
+# others read persisted counters): only a reading may end their episode.
+_STATE_READING_TRIGGER_TYPES = frozenset({"threshold", "counter", "due_date"})
+
 
 def _takes_day_suggestion(schedule: Schedule) -> bool:
     """True when a suggested interval IN DAYS can be applied to the schedule:
@@ -706,6 +710,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             task._trigger_current_value = result.current_value
         if in_cooldown:
             return  # the value for display only — no re-activation yet
+        if result.active is False and trigger_type in _STATE_READING_TRIGGER_TYPES and not self._trigger_has_reading(entity_ids):
+            # An episode ends on a reading, never on sensors that are all
+            # offline. The evaluators already give no verdict then; this
+            # keeps the rule for any evaluator to come: a counter read as
+            # "not reached" while it was unavailable flipped the task to OK
+            # and back, and the next restart announced the same activation
+            # again (live installation 2026-10-04).
+            return
         if result.active is not None:
             if task._trigger_active and not result.active:
                 # A recovery only this sweep saw still ends the episode.
@@ -1958,6 +1970,15 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             task_result["_trigger_active"] = active
             task_result["_trigger_current_value"] = value
             task_result["_status"] = compute_status_from_task_dict(task_result)
+
+    def _trigger_has_reading(self, entity_ids: list[str]) -> bool:
+        """Whether at least one of a trigger's entities has a state at all
+        (exists, and is not unavailable / unknown)."""
+        for entity_id in entity_ids:
+            state = self.hass.states.get(entity_id)
+            if state is not None and state.state not in UNAVAILABLE_STATES:
+                return True
+        return False
 
     def note_trigger_cleared(self, task_id: str) -> None:
         """The task's trigger episode ended (every entity back in range).

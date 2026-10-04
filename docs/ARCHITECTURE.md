@@ -193,7 +193,7 @@ drifted. The descriptions are hand-written.
 custom_components/maintenance_supporter/
 ├── __init__.py                  (2,342 lines)  Integration setup, services, lifecycle, async_migrate_entry
 ├── const.py                       (939 lines)  Constants, enums, defaults, PLATFORMS
-├── coordinator.py               (2,162 lines)  DataUpdateCoordinator per object
+├── coordinator.py               (2,183 lines)  DataUpdateCoordinator per object
 ├── storage.py                     (657 lines)  Per-entry Store (dynamic state, migration, part stock)
 ├── parts_runtime.py               (545 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
 ├── shopping_sync.py               (379 lines)  2.67: mirrors auto buy tasks into a user-picked todo.* list (own-rows uid map)
@@ -206,7 +206,7 @@ custom_components/maintenance_supporter/
 │   ├── …_task_base.py             (178 lines)  Shared state + threshold-floor (B1) helpers
 │   ├── …_task_add.py               (87 lines)  Add-task steps of the options flow, on the shared config_flow_schedule.py
 │   ├── …_task_crud.py             (737 lines)  Manage / edit / delete / checklist steps
-│   ├── …_task_trigger.py          (497 lines)  Trigger edit / summary / remove steps
+│   ├── …_task_trigger.py          (494 lines)  Trigger edit / summary / remove steps
 │   ├── …_task_adaptive.py         (193 lines)  Adaptive-scheduling step + schema
 │   └── …_task_object.py           (158 lines)  Object-settings (metadata) step
 ├── config_flow_trigger.py       (1,201 lines)  TriggerConfigMixin for trigger UI
@@ -223,12 +223,12 @@ custom_components/maintenance_supporter/
 ├── button.py                      (132 lines)  Complete / Skip / Reset buttons per task (no global buttons)
 ├── calendar.py                    (833 lines)  MaintenanceCalendar (global, all tasks)
 ├── todo.py                        (176 lines)  Global to-do list aggregating every active task
-├── entity/                      (2,892 lines)  12 files — Entity bases shared by the platforms, the per-area cost sensors, the trigger engine
+├── entity/                      (2,914 lines)  12 files — Entity bases shared by the platforms, the per-area cost sensors, the trigger engine
 │   ├── entity_base.py             (127 lines)  CoordinatorEntity base class
 │   ├── summary_coordinator.py     (113 lines)  No-poll coordinator behind the global summary sensors
 │   ├── area_cost.py               (263 lines)  Maintenance cost per Home Assistant area as sensors (#191)
-│   └── triggers/                (2,382 lines)  8 files — The trigger engine: one class per trigger type
-│       ├── __init__.py            (220 lines)  Factory: create_triggers(), multi-entity
+│   └── triggers/                (2,404 lines)  8 files — The trigger engine: one class per trigger type
+│       ├── __init__.py            (242 lines)  Factory: create_triggers(), multi-entity
 │       ├── base_trigger.py        (482 lines)  Abstract base with availability tracking
 │       ├── threshold.py           (180 lines)  Value above/below trigger
 │       ├── counter.py             (179 lines)  Accumulated value trigger
@@ -237,7 +237,7 @@ custom_components/maintenance_supporter/
 │       ├── compound.py            (367 lines)  AND/OR compound trigger
 │       └── due_date.py             (83 lines)  Due-date trigger: the device reports WHEN the maintenance is due
 │
-├── websocket/                  (11,253 lines)  106 commands, 25 files — split by domain; tasks.py re-exports the task modules drawn under it
+├── websocket/                  (11,250 lines)  106 commands, 25 files — split by domain; tasks.py re-exports the task modules drawn under it
 │   ├── __init__.py                (966 lines)  Shared helpers + registration
 │   ├── objects.py               (1,094 lines)  13 commands: objects, object, object/create, object/update, object/delete,
 │   │                                           object/duplicate, object/from_template, object/archive, object/unarchive, object/pause,
@@ -245,7 +245,7 @@ custom_components/maintenance_supporter/
 │   ├── tasks.py                    (89 lines)  Backward-compat re-export shim (no handlers of its own)
 │   │   ├── tasks_actions.py       (603 lines)  9 commands: task/complete, task/quick_complete, task/undo, task/skip, task/reset,
 │   │   │                                       task/set_phase, task/postpone, task/snooze, task/checklist_progress
-│   │   ├── tasks_crud.py        (1,141 lines)  5 commands: task/create, task/update, task/delete, task/duplicate, task/move
+│   │   ├── tasks_crud.py        (1,138 lines)  5 commands: task/create, task/update, task/delete, task/duplicate, task/move
 │   │   ├── tasks_history.py       (369 lines)  2 commands: task/history/update, task/history/delete
 │   │   ├── tasks_lifecycle.py     (323 lines)  6 commands: task/archive, task/pause, task/resume, task/unarchive, task/list, task/history
 │   │   ├── tasks_persist.py       (483 lines)  Shared persist path (no handlers)
@@ -436,7 +436,7 @@ custom_components/maintenance_supporter/
 │   │   └── ms-cost-input.ts       (109 lines)  A cost that may be a credit (#200): a Cost | Credit switch and the amount
 │   └── __tests__/              (27,014 lines)  195 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (31,365 lines)  99 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+├── helpers/                    (31,388 lines)  99 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,448 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (362 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (96 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
@@ -466,7 +466,7 @@ custom_components/maintenance_supporter/
 │   ├── entity_attributes.py       (239 lines)  Domain→attribute mapping for trigger setup
 │   ├── entity_analyzer.py         (211 lines)  Entity discovery + recorder stats
 │   ├── retention.py               (245 lines)  Archive & auto-delete retention sweep
-│   ├── trigger_fallback.py        (367 lines)  Per-type fallback evaluators for the coordinator refresh
+│   ├── trigger_fallback.py        (390 lines)  Per-type fallback evaluators for the coordinator refresh
 │   ├── settings_registry.py       (276 lines)  Single source of truth for global-setting validation
 │   ├── dates.py                   (294 lines)  Pure calendar math: add_interval, nth-weekday, day-of-month clamping
 │   ├── entity_rename.py           (259 lines)  Rewrites entity_id references when HA renames an entity

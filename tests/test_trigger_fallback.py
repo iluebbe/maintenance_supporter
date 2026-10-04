@@ -148,14 +148,18 @@ def test_counter_delta_mode_uses_per_entity_baseline() -> None:
     assert reached.active is True
 
 
-def test_counter_unavailable_entity_counts_as_not_reached() -> None:
+def test_counter_unavailable_entity_gives_no_verdict() -> None:
+    """No reading is not "below target": the latch stays as it is. Read as
+    "not reached", a dropped-out counter flipped its task to OK and back on
+    every refresh and the next restart announced the same activation again
+    (live installation 2026-10-04)."""
     r = evaluate_counter(
         _states({"input_number.odo": "unknown"}),
         {"trigger_target_value": 10},
         ["input_number.odo"],
     )
     assert r.current_value is None
-    assert r.active is False
+    assert r.active is None
 
 
 def test_counter_delta_without_baseline_is_inactive() -> None:

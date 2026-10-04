@@ -2,6 +2,22 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **A counter sensor that drops out no longer re-announces its task:** when a counter's sensor was unavailable at the
+  moment of the periodic check (every five minutes), the check read it as "target not reached". The task flipped from
+  triggered to overdue or OK and back, and the trigger counted as finished, so the next restart or task edit recorded
+  the same activation again: a second "triggered" history entry, a second activation event in the logbook, and
+  automations on that event ran again. A sensor without a reading now leaves the trigger as it is. The same rule now
+  holds per sensor when a threshold, counter or date trigger watches several sensors, and an episode only ends on a
+  real reading.
+- **Editing an older trigger keeps its progress:** a task created with an older version stores its trigger in an
+  older form. The first save of such a task, even of just a new target, read that as "another sensor" and reset the
+  counter's starting value or the runtime hours collected so far. Only a real change of the trigger type, its sensors
+  or its counting start value resets them now.
+
 ## [2.98.0] - 2026-10-04
 
 ### ✨ Added
