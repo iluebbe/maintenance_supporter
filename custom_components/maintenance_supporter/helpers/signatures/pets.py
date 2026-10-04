@@ -59,22 +59,34 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "litterrobot": IntegrationSignature(
         name="Litter-Robot",
-        verified="2026-07-18 @ home-assistant/core dev; re-checked 2026-09-27 @ home-assistant/core 2026.9",
+        verified="2026-07-18 @ home-assistant/core dev; re-checked 2026-09-27 @ home-assistant/core 2026.9; filter due date 2026-10-03 @ home-assistant/core 2026.10.0b0",
         source=(
             "home-assistant/core homeassistant/components/litterrobot/sensor.py "
             "(waste_drawer_level tk 'waste_drawer' % FULL -> alert_above; "
             "litter_level tk 'litter_level' % remaining (LR4/5) -> "
             "percent_left; total_cycles lifetime counter -> usage_delta). "
-            "2026-09 re-check, skipped: LR5 tk 'next_filter_replacement' (TIMESTAMP, "
-            "pylitterbot nextFilterReplacementDate — no catalog direction reads a due "
-            "date; its 'change_filter' button has no counter duty to reset), LR5 binary "
-            "'laser_dirty' (device_class problem → problem-sensor adoption), button "
-            "'reset' (LR4/LR5 robot reset, not a counter reset)."
+            "2026-10-03 (identical in 2026.9): LR5 tk 'next_filter_replacement' "
+            "(device_class TIMESTAMP, DIAGNOSTIC, enabled; pylitterbot LitterRobot5."
+            "next_filter_replacement_date = the cloud's nextFilterReplacementDate) → "
+            "due_date, now that the catalog reads due dates; button.py LR5 tk "
+            "'change_filter' (CONFIG; pylitterbot change_filter() 'Reset the filter "
+            "replacement counter', command CHANGE_FILTER) moves that date forward → the "
+            "duty's reset. Skipped: LR5 binary 'laser_dirty' (device_class problem → "
+            "problem-sensor adoption), button 'reset' (LR4/LR5 robot reset, not a counter "
+            "reset)."
         ),
         tasks=(
             ConsumableSignature(("waste_drawer",), "Empty Waste Drawer", "alert_above", delta_units=90, resets=(("waste_drawer", "reset_waste_drawer"),)),
             ConsumableSignature(("litter_level",), "Refill Litter", "percent_left"),
             ConsumableSignature(("total_cycles",), "Wash Litter Box", "usage_delta", delta_units=150),
+            # LR5 filter: a week's lead time to order one (as for Vitesy's filter).
+            ConsumableSignature(
+                ("next_filter_replacement",),
+                "Replace Filter",
+                "due_date",
+                days_before=7,
+                resets=(("next_filter_replacement", "change_filter"),),
+            ),
         ),
     ),
     "petlibro": IntegrationSignature(
@@ -156,6 +168,32 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 "usage_above",
                 above_hours=120,
                 resets=(("rake_counter", "reset"),),
+            ),
+        ),
+    ),
+    # --- Round 16 (2026-10-03) --------------------------------------------
+    "neakasa": IntegrationSignature(
+        name="Neakasa litter box",
+        verified="2026-10-03 @ tabascoz/hass-neakasa main (0052c0a)",
+        source=(
+            "HACS neakasa (custom repository; Neakasa M1) — every entity class sets "
+            "_attr_translation_key: sensor/sand_percent.py tk 'sand_percent' ('Cat litter level', "
+            "PERCENTAGE = the device's sand level percent) → Refill Litter at the household floor (the "
+            "Litter-Robot precedent); binary_sensor/bin_full.py tk 'bin_full' ('Garbage can full' = "
+            "property binFullWaitReset == 1, NO device_class → not adoptable as a problem sensor) → "
+            "latch on 'on', cleared once the bin is emptied. Skipped: the 'bin_state' / 'sand_state' "
+            "ENUMs (the same two signals as text) and the clean / level buttons (actions, not "
+            "counter resets)."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(("sand_percent",), "Refill Litter", "percent_left"),
+            ConsumableSignature(
+                ("bin_full",),
+                "Empty Waste Drawer",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
             ),
         ),
     ),

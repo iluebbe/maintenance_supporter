@@ -101,6 +101,14 @@ FILTER_LIFE_PERCENT = ConsumableSignature(
     "percent_left",
 )
 
+# 3 integrations (heating.py).
+HEATING_SYSTEM_PRESSURE_LOW = ConsumableSignature(
+    ("system_pressure",),
+    "Refill Heating Water",
+    "value_below",
+    delta_units=1,
+)
+
 # 4 integrations (heating.py).
 HEATING_WATER_PRESSURE_LOW = ConsumableSignature(
     ("water_pressure",),

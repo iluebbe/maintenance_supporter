@@ -23,13 +23,22 @@ from ._shared import (
 
 # Duties two integrations of this module name identically (same key, same
 # countdown) — one object each, so the verbatim-duplicate tripwire holds.
-# 'Service inspection distance': Audi Connect and Volkswagen (WeConnect).
+# 'Service inspection distance': Audi Connect, Volkswagen (WeConnect) and PyCupra.
 _ANNUAL_SERVICE_INSPECTION_DISTANCE = ConsumableSignature(
     ("service_inspection_distance",), "Annual Service", "value_below", delta_units=1000
 )
 # 'Days to service': the unofficial Polestar API and Smart #1/#3.
 _ANNUAL_SERVICE_DAYS_TO_SERVICE = ConsumableSignature(
     ("days_to_service",), "Annual Service", "duration_left", below_hours=336
+)
+# The volkswagencarnet / pycupra dashboard instruments ('Service inspection
+# days', 'Oil inspection days' / 'distance') — one object per duty for both.
+_ANNUAL_SERVICE_INSPECTION_DAYS = ConsumableSignature(
+    ("service_inspection_days",), "Annual Service", "duration_left", below_hours=336
+)
+_OIL_SERVICE_INSPECTION_DAYS = ConsumableSignature(("oil_inspection_days",), "Oil Service", "duration_left", below_hours=336)
+_OIL_SERVICE_INSPECTION_DISTANCE = ConsumableSignature(
+    ("oil_inspection_distance",), "Oil Service", "value_below", delta_units=1000
 )
 
 SIGNATURES: dict[str, IntegrationSignature] = {
@@ -497,10 +506,10 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             TIRE_ROTATION_ODOMETER,
-            ConsumableSignature(("service_inspection_days",), "Annual Service", "duration_left", below_hours=336),
+            _ANNUAL_SERVICE_INSPECTION_DAYS,
             _ANNUAL_SERVICE_INSPECTION_DISTANCE,
-            ConsumableSignature(("oil_inspection_days",), "Oil Service", "duration_left", below_hours=336),
-            ConsumableSignature(("oil_inspection_distance",), "Oil Service", "value_below", delta_units=1000),
+            _OIL_SERVICE_INSPECTION_DAYS,
+            _OIL_SERVICE_INSPECTION_DISTANCE,
         ),
     ),
     "smarthashtag": IntegrationSignature(
@@ -539,6 +548,111 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ANNUAL_SERVICE_ODOMETER,
             TIRE_ROTATION_ODOMETER,
             ConsumableSignature(("oil",), "Oil Service", "percent_left"),
+        ),
+    ),
+    # ─── Round 16 (2026-10-03): HACS cars, car alarms and the UK MOT ────────
+    "byd_vehicle": IntegrationSignature(
+        name="BYD",
+        verified="2026-10-03 @ jkaberg/hass-byd-vehicle main (0f0cf3f)",
+        source=(
+            "HACS byd_vehicle (custom repository) sensor.py BydSensor: _attr_translation_key = "
+            "description.key on every sensor (every other platform sets one too). tk 'total_mileage' "
+            "(realtime total_mileage, KILOMETERS, DISTANCE, TOTAL_INCREASING, enabled; en 'Odometer' → "
+            "entity id …_odometer) — the lifetime odometer → the usual 15,000 km service / 10,000 km "
+            "tire-rotation pair; no service countdown exists. translation_keys_authoritative keeps the "
+            "suffix fallback off the twins 'total_mileage_v2' and 'energy_cumulative_total_mileage' "
+            "(own keys, DIAGNOSTIC, disabled by default)."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(("total_mileage",), "Annual Service", "usage_delta", delta_units=15000),
+            ConsumableSignature(("total_mileage",), "Tire Rotation", "usage_delta", delta_units=10000),
+        ),
+    ),
+    "dvla": IntegrationSignature(
+        name="DVLA Vehicle Enquiry (UK)",
+        verified="2026-10-03 @ jampez77/DVLA-Vehicle-Enquiry-Service main (739ebee)",
+        source=(
+            "HACS dvla sensor.py: 'motExpiryDate' ('MOT Expiry Date', device_class DATE) — entity_id "
+            "forced to sensor.dvla_<registration>_motexpirydate (lowercased), no translation_key, no "
+            "has_entity_name, so the original name 'MOT Expiry Date' slugifies differently: both "
+            "'motexpirydate' and 'mot_expiry_date' are keys. Always created: without an MOT date in "
+            "the DVLA record (a car under three years old) update_from_coordinator falls back to the "
+            "first-registration month + 3 years — the first MOT. → Roadworthiness Test (the car "
+            "templates' duty) 30 days ahead; the record's next expiry date clears the trigger after "
+            "the test. Skipped: 'taxDueDate' (vehicle tax, not maintenance) and 'motStatus' / "
+            "'taxStatus' (status)."
+        ),
+        tasks=(ConsumableSignature(("motexpirydate", "mot_expiry_date"), "Roadworthiness Test", "due_date", days_before=30),),
+    ),
+    "pandora_cas": IntegrationSignature(
+        name="Pandora Car Alarm System",
+        verified="2026-10-03 @ alryaz/hass-pandora-cas master (ca2194d) + pandora-cas 0.0.16; turbulator/pandora-cas master (1392544)",
+        source=(
+            "Two HACS forks share the domain. alryaz/hass-pandora-cas: "
+            "PandoraCASEntityDescription.__post_init__ sets translation_key = key on every "
+            "description, entity_id sensor.<device_id>_<key>. sensor.py 'mileage' ('Mileage', "
+            "KILOMETERS, DISTANCE, state_class TOTAL — the alarm unit's odometer) → Tire Rotation; "
+            "'days_to_maintenance' ('Days to Maintenance', DURATION, UnitOfTime.DAYS, DIAGNOSTIC; "
+            "CurrentState.can_days_to_maintenance = the CAN bus's 'CAN_days_to_maintenance') → Annual "
+            "Service two weeks ahead — the car's own countdown, as for Škoda and Stellantis (the entity "
+            "is unavailable while the car's CAN bus does not report it, entity.py "
+            "update_native_value). translation_keys_authoritative keeps 'can_mileage' / "
+            "'can_mileage_by_battery' / 'can_mileage_to_empty' (own keys) off the mileage duty. "
+            "turbulator/pandora-cas (older, no translation keys): ENTITY_CONFIGS 'mileage' → "
+            "sensor.<pandora_id>_mileage (suffix match); it has no maintenance countdown. Skipped: "
+            "'remaining_engine_runtime' (the remote-start timer)."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            TIRE_ROTATION_MILEAGE,
+            ConsumableSignature(("days_to_maintenance",), "Annual Service", "duration_left", below_hours=336),
+        ),
+    ),
+    "vag_connect": IntegrationSignature(
+        name="VW Group Connect (vag_connect)",
+        verified="2026-10-03 @ its-me-prash/vwgroup-connect-ha main (3f18940)",
+        source=(
+            "HACS vag_connect (Volkswagen / Audi / Škoda / SEAT / CUPRA / Porsche incl. North America) "
+            "sensor.py SENSOR_DESCRIPTIONS: every description sets translation_key (= key); data "
+            "sensors spawn only once their value arrives (hide_empty_entities, default on). "
+            "'service_due_in_days' (unit 'd', days remaining) and 'service_km' (KILOMETERS remaining — "
+            "vw_eu inspectionDue_km, skoda inspectionDueInKm, porsche MAIN_SERVICE_RANGE) → Annual "
+            "Service; 'oil_service_due_in_days' / 'oil_service_km' (condition 'combustion') → Oil "
+            "Service — the car's own countdowns replace the editorial odometer service, as for Škoda "
+            "and Audi; 'odometer_km' (KILOMETERS, TOTAL_INCREASING) → Tire Rotation. "
+            "translation_keys_authoritative plus the longer-key guard keep the 'oil_service_*' entities "
+            "off the 'service_*' keys. Skipped: the DATE twins 'service_due_at' / 'oil_service_at' "
+            "(the same countdowns as dates) and 'reminder_technical_inspection' (date-or-status mix)."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(("odometer_km",), "Tire Rotation", "usage_delta", delta_units=10000),
+            ConsumableSignature(("service_due_in_days",), "Annual Service", "duration_left", below_hours=336),
+            ConsumableSignature(("service_km",), "Annual Service", "value_below", delta_units=1000),
+            ConsumableSignature(("oil_service_due_in_days",), "Oil Service", "duration_left", below_hours=336),
+            ConsumableSignature(("oil_service_km",), "Oil Service", "value_below", delta_units=1000),
+        ),
+    ),
+    "pycupra": IntegrationSignature(
+        name="CUPRA / SEAT (PyCupra)",
+        verified="2026-10-03 @ WulfgarW/homeassistant-pycupra main (6187999) + pycupra 0.2.37",
+        source=(
+            "HACS pycupra: entity name = f'{vehicle_name} {instrument.name}' (no has_entity_name, no "
+            "translation_key → entity-id suffixes). The instruments come from the pinned pycupra "
+            "library (>=0.2.36; 0.2.37 dashboard.py) and exist only where the car supports them "
+            "(Instrument.setup → is_<attr>_supported): 'Odometer' (km), 'Service inspection days' "
+            "(unit 'd', maintenance.inspectionDueDays — 'time left until service inspection'), "
+            "'Service inspection distance' (km, inspectionDueKm), 'Oil inspection days' / 'Oil "
+            "inspection distance' (oilServiceDueDays / oilServiceDueKm, only where reported) — the "
+            "volkswagencarnet instruments, names and semantics, so the same duty objects."
+        ),
+        tasks=(
+            TIRE_ROTATION_ODOMETER,
+            _ANNUAL_SERVICE_INSPECTION_DAYS,
+            _ANNUAL_SERVICE_INSPECTION_DISTANCE,
+            _OIL_SERVICE_INSPECTION_DAYS,
+            _OIL_SERVICE_INSPECTION_DISTANCE,
         ),
     ),
 }

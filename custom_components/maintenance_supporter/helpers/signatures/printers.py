@@ -238,7 +238,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "brother": IntegrationSignature(
         name="Brother printer",
-        verified="2026-09-25 @ home-assistant/core dev",
+        verified="2026-09-25 @ home-assistant/core dev; skips re-checked 2026-10-03 @ home-assistant/core 2026.10.0b0",
         source=(
             "home-assistant/core homeassistant/components/brother/sensor.py "
             "(*_toner_remaining / *_ink_remaining / *_remaining_life, PERCENTAGE). "
@@ -246,7 +246,11 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "ink_capture_box_remaining_life (dev, 2026-09; strings.json 'Ink capture "
             "box remaining lifetime') = the waste-ink box → the maintenance-box duty. "
             "laser_remaining_life, pf_kit_1_remaining_life, pf_kit_mp_remaining_life "
-            "(paper-feed kits, tray 1 / multipurpose tray)."
+            "(paper-feed kits, tray 1 / multipurpose tray). 2026-10-03 skips: the unitless "
+            "'*drum_remaining_pages' / '*drum_page_counter' page counts describe the same "
+            "drums as the % duty (one signal per part); binary_sensor.py (new in 2026.10: "
+            "low/no toner or ink, overdue_prevent_maint, jams, trays, door) is device_class "
+            "problem throughout → problem-sensor adoption."
         ),
         tasks=(
             ConsumableSignature(

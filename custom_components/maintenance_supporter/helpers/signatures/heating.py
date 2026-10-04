@@ -8,7 +8,7 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
-from ._shared import HEATING_WATER_PRESSURE_LOW, SOFTENER_SALT_LEVEL
+from ._shared import HEATING_SYSTEM_PRESSURE_LOW, HEATING_WATER_PRESSURE_LOW, SOFTENER_SALT_LEVEL
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "vicare": IntegrationSignature(
@@ -19,7 +19,14 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(GLOBAL_SENSORS translation_key 'filter_remaining_hours', UnitOfTime.HOURS, "
             "disabled-by-default; PyViCare ventilation.filter.runtime.remainingHours; "
             "BURNER_SENSORS/COMPRESSOR_SENSORS 'burner_hours'/'compressor_hours', "
-            "UnitOfTime.HOURS, TOTAL_INCREASING lifetime → usage_delta)."
+            "UnitOfTime.HOURS, TOTAL_INCREASING lifetime → usage_delta). "
+            "Re-checked 2026-10-03 @ core 2026.10.0b0: 'filter_hours' "
+            "(operatingHours) and 'filter_overdue_hours' (overdueHours) read the "
+            "same ventilation.filter.runtime as the countdown — one duty per "
+            "filter, not signed; 'compressor_hours_loadclass1'-'5', "
+            "'heating_rod_hours' and 'supply_fan_hours' are statistics, not "
+            "duties. No filter-reset button (button.py: one-time DHW charge "
+            "only)."
         ),
         tasks=(
             ConsumableSignature(("filter_remaining_hours",), "Replace Filter", "duration_left"),
@@ -49,8 +56,9 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             # Heating-loop pressure: refill water when it drops below 1 bar;
-            # topping up raises the value back (auto-resolve).
-            ConsumableSignature(("system_pressure",), "Refill Heating Water", "value_below", delta_units=1),
+            # topping up raises the value back (auto-resolve). Shared with
+            # bosch_homecom and nefiteasy (round 16).
+            HEATING_SYSTEM_PRESSURE_LOW,
         ),
     ),
     # ─── Research round 4 (2026-07-19): boiler pressure, HRV filters, ───
@@ -59,7 +67,17 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         name="OpenTherm Gateway",
         verified="2026-07-19 @ core/dev opentherm_gw/sensor.py",
         source=(
-            "core opentherm_gw: tk 'central_heating_pressure', BAR, MEASUREMENT — generic for EVERY OpenTherm-connected boiler."
+            "core opentherm_gw: tk 'central_heating_pressure', BAR, MEASUREMENT — generic for EVERY OpenTherm-connected boiler. "
+            "Re-checked 2026-10-03 @ core 2026.10.0b0: every sensor and "
+            "binary sensor is registered TWICE, on the 'boiler' and on the "
+            "'thermostat' device (BOILER_/THERMOSTAT_DEVICE_DESCRIPTION, "
+            "identical translation_keys, neither device has a model string), "
+            "so no gate keeps a duty off the thermostat device — the "
+            "burner/pump running-time counters ('total_burner_hours', "
+            "'central_heating_pump_hours', 'hot_water_burner_hours', "
+            "'hot_water_pump_hours'; HOURS, TOTAL) are not signed for that "
+            "reason. 'service_required' is a problem-class binary (adoption "
+            "path)."
         ),
         tasks=(ConsumableSignature(("central_heating_pressure",), "Refill Heating Water", "value_below", delta_units=1),),
     ),
@@ -214,7 +232,11 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "the last maintenance, resets when maintenance is recorded) → "
             "usage_above at 100 h — Kohler's oil-change interval (every "
             "100 run-hours or annually). An 'oil_pressure' problem binary "
-            "also exists (adoption path)."
+            "also exists (adoption path). Re-checked 2026-10-03 @ core "
+            "2026.10.0b0: the sensor is disabled by default (the suggestion "
+            "appears once it is enabled); 'total_runtime' (lifetime HOURS) and "
+            "'next_maintainance' (TIMESTAMP), both disabled by default too, "
+            "describe the same service — one duty, not signed twice."
         ),
         tasks=(ConsumableSignature(("runtime_since_last_maintenance",), "Oil Service", "usage_above", above_hours=100),),
     ),
@@ -388,7 +410,10 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "no interval is set; negative when overdue) → duration_left, "
             "task at 24 run-hours left. The counter reset "
             "(ServiceCounterReset) is a library SERVICE topic, not an HA "
-            "button — nothing to wire."
+            "button — nothing to wire. Re-checked 2026-10-03 @ core "
+            "2026.10.0b0: 'generator_total_runtime' (AccumulatedRuntime, "
+            "lifetime h) is the same service seen from the other side — not "
+            "signed twice."
         ),
         tasks=(ConsumableSignature(("generator_service_counter",), "Oil Service", "duration_left"),),
     ),
@@ -433,5 +458,143 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "exclude it (no translation_key to tell them apart)."
         ),
         tasks=(HEATING_WATER_PRESSURE_LOW,),
+    ),
+    # ─── Round 16 (2026-10-03): pellet-stove service by burn hours ──────
+    # (hr_energy_qube 'alarm_working_hours' is a problem-class binary →
+    # problem-sensor adoption.)
+    "ecoforest": IntegrationSignature(
+        name="Ecoforest pellet stoves",
+        verified="2026-10-03 @ home-assistant/core 2026.10.0b0 (sensor.py identical in 2026.9.0b0 and dev) + pyecoforest 0.4.0",
+        source=(
+            "core ecoforest sensor.py: tk 'working_hours' ('Working time', "
+            "DURATION, HOURS, no state class, entity_registry_enabled_default="
+            "False) = pyecoforest Device.working_hours, the stove's stats "
+            "field 'Nh' — the TOTAL working hours of the stove (HA docs: 'total "
+            "number of working hours of the device'), never reset → "
+            "usage_delta. Every 1,500 h — editorial: about one heating season "
+            "of a stove used as the main heating, i.e. the yearly 'Stove "
+            "Service' of the Fireplace & Wood Stove template counted in burn "
+            "hours. NOTE: disabled by default — the suggestion appears once the "
+            "user enables the sensor. The 'ignitions' counter and the 'alarm' "
+            "enum (pellets / air depression / CPU overheating) are not "
+            "maintenance duties."
+        ),
+        tasks=(ConsumableSignature(("working_hours",), "Stove Service", "usage_delta", delta_units=1500),),
+    ),
+    # ─── Round 16 HACS wave (2026-10-03): heating-loop pressure, the ─────
+    # ─── pellet-stove service countdown, a heat pump's vent filter ───────
+    # (Reviewed and left out: the sfstar 'victron' Modbus integration's
+    # generator_servicecounter — dbus-modbustcp returns 0 for an invalid
+    # value, so a GX without a service interval would read "due now".)
+    "ariston": IntegrationSignature(
+        name="Ariston NET (Remotethermo)",
+        verified="2026-10-03 @ fustom/ariston-remotethermo-home-assistant-v3 main (31900cb)",
+        source=(
+            "HACS ariston const.py ARISTON_SENSOR_TYPES "
+            "DeviceProperties.HEATING_CIRCUIT_PRESSURE: name f'{NAME} heating "
+            "circuit pressure' with NAME 'Ariston' and no has_entity_name / "
+            "translation_key → sensor.ariston_heating_circuit_pressure, suffix "
+            "_heating_circuit_pressure (the original name also matches a "
+            "second boiler's _2 id); PRESSURE, MEASUREMENT, DIAGNOSTIC, "
+            "enabled, GALEVO systems only. Value and unit are the cloud item's "
+            "own (ariston library galevo_device.heating_circuit_pressure_value"
+            " / _unit; HeatingCircuitPressure is in bar) → value_below 1 like "
+            "the other boiler-loop duties. Core 'ariston' is only a virtual "
+            "brand entry (supported_by midea) without entities."
+        ),
+        tasks=(ConsumableSignature(("heating_circuit_pressure",), "Refill Heating Water", "value_below", delta_units=1),),
+    ),
+    "aquarea": IntegrationSignature(
+        name="Panasonic Aquarea (HeishaMon)",
+        verified="2026-10-03 @ kamaradclimber/heishamon-homeassistant main (3a528fd)",
+        source=(
+            "HACS aquarea (HeishaMon, MQTT-fed) definitions.py build_sensors "
+            "TOP115 key f'{mqtt_prefix}main/Water_Pressure', name 'Aquarea "
+            "Water Pressure', PRESSURE, 'bar', entity_registry_enabled_default="
+            "False (K/L series only); sensor.py sets entity_id = "
+            "sensor.<slugify(key)> → sensor.panasonic_heat_pump_main_water_"
+            "pressure (suffix _water_pressure; the original name ends in it "
+            "too). No other HeishaMon key ends in water_pressure (High/Low "
+            "Pressure are the refrigerant side). NOTE: disabled by default — "
+            "the suggestion appears once the user enables the sensor. The "
+            "cloud fork wpatrik14/home-assistant-aquarea shares the domain but "
+            "has no pressure entity (verified @ a588223)."
+        ),
+        tasks=(HEATING_WATER_PRESSURE_LOW,),
+    ),
+    "maestro_mcz": IntegrationSignature(
+        name="MCZ pellet stoves (Maestro)",
+        verified="2026-10-03 @ Robbe-B/maestro_mcz main (a2ba9cf)",
+        source=(
+            "HACS maestro_mcz maestro/models/models.py supported_sensors: "
+            "SensorMczConfigItem 'Next Maintenance' (status field "
+            "'ore_prox_manut' = hours to the next maintenance, UnitOfTime.HOURS, "
+            "MEASUREMENT, DIAGNOSTIC, enabled; created only when the stove "
+            "reports the field). sensor.py MczSensorEntity has_entity_name with "
+            "_attr_name = the item name, no translation_key → suffix "
+            "_next_maintenance. The stove controller's own service countdown "
+            "(the fumis pattern) → duration_left 24 h; named after the "
+            "technician's 'Stove Service' of the Fireplace & Wood Stove "
+            "template, like the ecoforest duty. The only binary ('Alarm', "
+            "is_in_error) is problem-class."
+        ),
+        tasks=(ConsumableSignature(("next_maintenance",), "Stove Service", "duration_left"),),
+    ),
+    "bosch_homecom": IntegrationSignature(
+        name="Bosch HomeCom Easy",
+        verified="2026-10-03 @ serbanb11/bosch-homecom-hass main (d9c28a6)",
+        source=(
+            "HACS bosch_homecom sensor.py: K40/ICOM coordinators get "
+            "BoschComK40ExtraSensor('systemPressure', translation_key "
+            "'system_pressure', PRESSURE, 'bar') when the heat source reports "
+            "it (strings.json 'System pressure', has_entity_name). ICOM "
+            "devices additionally get BoschComIcomExtraSensor name "
+            "'hs_system_pressure' (no translation_key, bar) reading the same "
+            "heat_sources.systemPressure — its id ends in _system_pressure too, "
+            "so the duty watches both copies of one reading (any-low). "
+            "value_below 1 bar → the shared bosch duty."
+        ),
+        tasks=(HEATING_SYSTEM_PRESSURE_LOW,),
+    ),
+    "nefiteasy": IntegrationSignature(
+        name="Nefit Easy (Bosch thermostat)",
+        verified="2026-10-03 @ ksya/ha-nefiteasy dev (28880e4)",
+        source=(
+            "HACS nefiteasy const.py SENSORS: key 'system_pressure', name "
+            "'System pressure', url /system/appliance/systemPressure, "
+            "UnitOfPressure.BAR, PRESSURE, MEASUREMENT; nefit_entity.py sets "
+            "neither has_entity_name nor translation_key → "
+            "sensor.system_pressure (exact-object-id pattern; a second boiler's "
+            "_2 id is matched by the original name). value_below 1 bar → the "
+            "shared bosch duty."
+        ),
+        tasks=(HEATING_SYSTEM_PRESSURE_LOW,),
+    ),
+    "waterkotte_heatpump": IntegrationSignature(
+        name="Waterkotte heat pumps (BasicVent)",
+        verified="2026-10-03 @ marq24/ha-waterkotte main (f5491c9)",
+        source=(
+            "HACS waterkotte_heatpump const.py "
+            "BASICVENT_FILTER_CHANGE_REMAINING_OPERATING_DAYS_A4504 (DURATION, "
+            "UnitOfTime.DAYS, MEASUREMENT, vent feature only, "
+            "entity_registry_enabled_default=False); __init__.py sets "
+            "translation_key = key.lower() → tk "
+            "'basicvent_filter_change_remaining_operating_days_a4504' (en.json "
+            "'Vent Air-Filter-Change operating hours remaining time') — the "
+            "BasicVent ventilation unit's own filter countdown → duration_left "
+            "7 days. NOTE: disabled by default — the suggestion appears once "
+            "the user enables it. The counter reset "
+            "(BASICVENT_FILTER_CHANGE_OPERATING_HOURS_RESET_D1544) is a SWITCH, "
+            "not a button, and cannot be wired; the 'filter change display' "
+            "binary carries device_class running and is not signed."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("basicvent_filter_change_remaining_operating_days_a4504",),
+                "Replace Ventilation Filter",
+                "duration_left",
+                below_hours=168,
+            ),
+        ),
     ),
 }

@@ -1,4 +1,4 @@
-"""NAS & home IT.
+"""NAS, home IT & safety detectors.
 
 Data module of the suggested-setups signature catalog — see
 ``helpers/signatures/_model.py`` for the direction semantics and the
@@ -107,5 +107,54 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "per storage pool, so each pool gets its own cleanup duty."
         ),
         tasks=(ConsumableSignature(("pool_usage",), "Storage Cleanup", "alert_above", delta_units=85),),
+    ),
+    # Reviewed 2026-10-03 @ core 2026.10.0b0 (round 16), not signed: apcupsd
+    # 'battery_replacement_date' is apcupsd's BATTDATE ('Battery replaced',
+    # plain string sensor) — the date the battery WAS replaced, a last-done
+    # date rather than a due date, so the due_date direction does not fit; the
+    # UPS template's "Replace UPS Battery" covers the duty.
+    # ─── Round 16 HACS wave (2026-10-03): smoke/CO alarms that report ────
+    # ─── their own end of life ───────────────────────────────────────────
+    "nest_protect": IntegrationSignature(
+        name="Google Nest Protect",
+        verified="2026-10-03 @ iMicknl/ha-nest-protect main (8b58fc1)",
+        source=(
+            "HACS nest_protect sensor.py SENSOR_DESCRIPTIONS: key = "
+            "translation_key 'replace_by_date_utc_secs' (strings.json 'Replace "
+            "by'; device_class DATE, DIAGNOSTIC, enabled; created only when the "
+            "device reports the key) = datetime.utcfromtimestamp of the "
+            "alarm's replace-by date, the end of its service life → due_date 30 "
+            "days ahead, time to buy the successor. Core renders the naive "
+            "datetime under DATE as an ISO datetime, which the due_date trigger "
+            "parses. The replacement is a new device, so the task is completed "
+            "by hand. 'last_audio_self_test_end_utc_secs' / "
+            "'latest_manual_test_end_utc_secs' are LAST-done dates (no due "
+            "date); every binary carries a device class (smoke/CO/heat, "
+            "problem-class self-tests → problem-sensor adoption)."
+        ),
+        tasks=(ConsumableSignature(("replace_by_date_utc_secs",), "Replace Detectors", "due_date", days_before=30),),
+    ),
+    "kidde_homesafe": IntegrationSignature(
+        name="Kidde HomeSafe",
+        verified="2026-10-03 @ snell-evan-itt/Kidde-HomeSafe main (47b9568)",
+        source=(
+            "HACS kidde_homesafe sensor.py KiddeSensorLifeEntity (the API field "
+            "'life', created when the device reports it; has_entity_name, no "
+            "translation_key, MEASUREMENT): LIFE_SENSOR_CONFIG names it per "
+            "mb_model — 'Days to replace' (UnitOfTime.DAYS) on the DETECT "
+            "series (mb_model 46/48), else 'Weeks to replace' "
+            "(UnitOfTime.WEEKS) → suffixes _days_to_replace / "
+            "_weeks_to_replace: the alarm's end-of-life countdown → "
+            "duration_left 30 days (converted into days resp. weeks). The 'End "
+            "of Life Fault' binaries are problem-class (adoption path)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("days_to_replace", "weeks_to_replace"),
+                "Replace Detectors",
+                "duration_left",
+                below_hours=720,
+            ),
+        ),
     ),
 }

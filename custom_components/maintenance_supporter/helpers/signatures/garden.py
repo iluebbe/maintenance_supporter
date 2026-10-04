@@ -191,8 +191,13 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     # back — auto-resolve.
     "screenlogic": IntegrationSignature(
         name="Pentair ScreenLogic",
-        verified="2026-07-20 @ home-assistant/core dev",
-        source=("core screenlogic: tk 'salt_ppm' (MEASUREMENT, ppm) — IntelliChlor salt concentration."),
+        verified="2026-07-20 @ home-assistant/core dev; skips re-checked 2026-10-03 @ home-assistant/core 2026.10.0b0",
+        source=(
+            "core screenlogic: tk 'salt_ppm' (MEASUREMENT, ppm) — IntelliChlor salt concentration. "
+            "2026-10-03 skip: 'salt_tds_ppm' is IntelliChem's CONFIGURATION value (a CONFIG "
+            "number; its sensor twin is disabled by default as superseded) — a setting, not a "
+            "reading."
+        ),
         tasks=(ConsumableSignature(("salt_ppm",), "Refill Pool Salt", "value_below", delta_units=2700),),
     ),
     "ondilo_ico": IntegrationSignature(
@@ -470,5 +475,105 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
             ConsumableSignature(("salt_to_add",), "Refill Pool Salt", "alert_above", delta_units=5),
         ),
+    ),
+    # --- Round 16 (2026-10-03): HACS spas, mowers and pool equipment --------
+    "gecko": IntegrationSignature(
+        name="Gecko spa packs (in.touch)",
+        verified="2026-10-03 @ gazoodle/gecko-home-assistant main (eb3fba4) + geckolib 1.0.16",
+        source=(
+            "HACS gecko sensor.py GeckoReminderSensor: one sensor per reminder the spa pack reports "
+            "(geckolib GeckoReminders.reminders, INVALID slots dropped), name '<spa>: <Type> due' "
+            "(GeckoEntityBase.name; no has_entity_name, no translation_key → entity-id and "
+            "original-name suffixes _rinse_filter_due, _clean_filter_due, _change_water_due, "
+            "_change_ozonator_due, _change_vision_cartridge_due), device_class timestamp, no unit; the "
+            "value is midnight UTC today + the reminder's remaining days (in the past once overdue). "
+            "Resetting the reminder on the spa (or through the CONFIG date twin of the same name, "
+            "date.py set_reminder) moves the date forward, which clears the trigger and auto-completes "
+            "the task — there is no button to wire. The date.* twins carry the same names and are kept "
+            "out by the sensor domain. Rinse / clean / change water map onto the Hot Tub template's "
+            "duties, due on the date itself (the spa's own reminder); the ozonator and the Vision "
+            "cartridge are parts to order → two weeks' lead. Skipped: 'Check Spa due' (a generic "
+            "check, no part or action)."
+        ),
+        tasks=(
+            ConsumableSignature(("rinse_filter_due",), "Rinse Filter", "due_date"),
+            ConsumableSignature(("clean_filter_due",), "Deep Clean Filter", "due_date"),
+            ConsumableSignature(("change_water_due",), "Drain and Refill", "due_date"),
+            ConsumableSignature(("change_ozonator_due",), "Replace Ozonator", "due_date", days_before=14),
+            ConsumableSignature(("change_vision_cartridge_due",), "Replace Vision Cartridge", "due_date", days_before=14),
+        ),
+    ),
+    "terramow": IntegrationSignature(
+        name="TerraMow",
+        verified="2026-10-03 @ TerraMow/TerraMowHA main (045d789)",
+        source=(
+            "TerraMow's own HACS integration (custom repository) sensor.py — has_entity_name and "
+            "_attr_translation_key on every entity class: 'remaining_blade_time' ('Remaining Blade "
+            "Time', de 'Verbleibende Laufzeit der Klingen'; MINUTES, DURATION, DIAGNOSTIC) = "
+            "const.BLADE_MAINTENANCE_CYCLE_MINUTES (14,400 = 240 h) minus dp_126 'blade disk usage "
+            "time', floored at 0; 'remaining_base_station_time' (MINUTES) = "
+            "BASE_STATION_MAINTENANCE_CYCLE_MINUTES (43,200 = 30 days) minus dp_125 'base station usage "
+            "time' — both computed in the integration from the vendor's recommended cycles and both "
+            "restart when the robot's counter is reset in the TerraMow app (dp value 0; no HA "
+            "button). The base-station cycle maps to Clean Charging Contacts (the Robot Lawn Mower "
+            "template's station duty). 'total_mowing_time' (dp_124 statistics duration, SECONDS, "
+            "TOTAL_INCREASING, lifetime) → Clean Undercarriage every 25 h like the other lifetime "
+            "mowing counters. NOTE: docs/en/developers/data_point.md calls both cycles a 'recommended "
+            "cleaning cycle' (and gives 240 minutes for the blade disk where the integration uses 240 "
+            "hours)."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(("remaining_blade_time",), "Replace Blades", "duration_left"),
+            ConsumableSignature(("remaining_base_station_time",), "Clean Charging Contacts", "duration_left"),
+            ConsumableSignature(("total_mowing_time",), "Clean Undercarriage", "usage_delta", delta_units=25),
+        ),
+    ),
+    "stihl_imow": IntegrationSignature(
+        name="STIHL iMOW",
+        verified="2026-10-03 @ ChrisHaPunkt/ha-stihl-imow main (0fe6c7b)",
+        source=(
+            "HACS stihl_imow (custom repository) maps.py IMOW_SENSORS_MAP + entity.py: has_entity_name, "
+            "translation_key = to_translation_key(property) on every entity → "
+            "'statistics_total_blade_operating_time' (statistics_totalBladeOperatingTime) and "
+            "'statistics_total_operating_time' — DURATION, SECONDS with suggested HOURS, "
+            "TOTAL_INCREASING lifetime counters, enabled (not in DISABLED_BY_DEFAULT_PROPERTIES) → the "
+            "Gardena / Indego pair: blades every 100 h of blade time, undercarriage every 25 h of "
+            "operation. Skipped: 'status_blade_service' (status_bladeService, no type or unit, meaning "
+            "undocumented). No reset button."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(("statistics_total_blade_operating_time",), "Replace Blades", "usage_delta", delta_units=100),
+            ConsumableSignature(("statistics_total_operating_time",), "Clean Undercarriage", "usage_delta", delta_units=25),
+        ),
+    ),
+    "omnilogic_local": IntegrationSignature(
+        name="Hayward OmniLogic (local)",
+        verified="2026-10-03 @ cryptk/haomnilogic-local main (6a8abb8)",
+        source=(
+            "HACS omnilogic_local (custom repository; not the core 'omnilogic' cloud domain) sensor.py "
+            "CHLORINATOR_SALT_SENSORS 'chlorinator_salt_level_average' (name 'Average Salt Level', "
+            "PARTS_PER_MILLION, MEASUREMENT); the entity is named f'{equipment.name} Average Salt "
+            "Level' under has_entity_name, no translation_key → suffix _average_salt_level. Hayward "
+            "salt cells start their operating range at 2,700 ppm, the IntelliChlor band of the "
+            "ScreenLogic entry → value_below 2,700; topping up raises the reading (auto-resolve). The "
+            "'Instant Salt Level' twin (the raw reading) is not used."
+        ),
+        tasks=(ConsumableSignature(("average_salt_level",), "Refill Pool Salt", "value_below", delta_units=2700),),
+    ),
+    "fluidra_pool": IntegrationSignature(
+        name="Fluidra Pool (Fluidra Connect)",
+        verified="2026-10-03 @ foXaCe/Fluidra-pool main (fef0d33)",
+        source=(
+            "HACS fluidra_pool (custom repository) sensor/chlorinator.py FluidraUvRunningHoursSensor: "
+            "tk 'uv_running_hours' (DURATION, HOURS, TOTAL_INCREASING — 'a plain integer hour counter "
+            "… the lamp-replacement interval is a running-hours threshold'), created only when the "
+            "chlorinator reports a UV block with running_hours (sensor/__init__.py) → Replace UV Lamp "
+            "every 8,000 h (the UV-lamp rating of the NeoPool entry). Whether the controller restarts "
+            "the counter after a lamp change is not documented, hence usage_delta (completing "
+            "re-baselines either way)."
+        ),
+        tasks=(ConsumableSignature(("uv_running_hours",), "Replace UV Lamp", "usage_delta", delta_units=8000),),
     ),
 }

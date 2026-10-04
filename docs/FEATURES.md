@@ -428,7 +428,7 @@ devices they sit on), type an existing object's name and they join it.
 
 **Suggested setups** (in the dashboard's *Add ▾* menu) discovers devices of supported integrations
 whose consumable sensors can drive maintenance tasks and sets them up in one
-click. The catalog currently covers **225 integrations with 485 verified
+click. The catalog currently covers **262 integrations with 551 verified
 signatures** — vacuums, mowers, kitchen appliances, printers, cars (including
 Škoda/Audi service countdowns straight from the vehicle), air purifiers,
 heating and water treatment, locks, pet tech and more; the complete,
@@ -475,7 +475,7 @@ keeps the single task.
 **Counter resets (2.95+):** vacuums, mowers, litter boxes and air handlers
 often count their consumables themselves — and until that counter is reset in
 the integration, it keeps saying the brush is worn out. Where the integration
-offers a reset button (107 duties so far — Roborock, Ecovacs, Dreame, Tapo,
+offers a reset button (115 duties so far — Roborock, Ecovacs, Dreame, Tapo,
 Eufy, Automower, Landroid, PetKit, Pluggit … — marked *completing presses …* in
 [INTEGRATIONS.md](INTEGRATIONS.md)), the suggested task says so and
 adopting wires that button as the task's completion action: completing the

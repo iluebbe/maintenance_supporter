@@ -35,7 +35,7 @@ ELECTROLUX_WATER_FILTER_STATE = ConsumableSignature(
 SIGNATURES: dict[str, IntegrationSignature] = {
     "lg_thinq": IntegrationSignature(
         name="LG ThinQ",
-        verified="2026-07-17 @ home-assistant/core dev + thinq-connect/pythinqconnect main; dishwasher/fridge latches 2026-09-27 @ home-assistant/core 2026.9",
+        verified="2026-07-17 @ home-assistant/core dev + thinq-connect/pythinqconnect main; dishwasher/fridge latches 2026-09-27 @ home-assistant/core 2026.9; skips re-checked 2026-10-03 @ home-assistant/core 2026.10.0b0",
         source=(
             "home-assistant/core homeassistant/components/lg_thinq/sensor.py "
             "(ThinQProperty StrEnum translation_key; FILTER_LIFETIME is shared by "
@@ -54,7 +54,11 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "(binaries machine_clean_reminder / clean_light_reminder / signal_level) and "
             "rinse_level (dispenser SETTING 0-4); used_time (MONTHS, the same water filter as "
             "water_filter_*_remain_percent — no gate can keep both off one fridge) and "
-            "water_filter_state (values undocumented)."
+            "water_filter_state (values undocumented). 2026-10-03 (entity descriptions "
+            "unchanged since 2026.9): kimchi-refrigerator binary 'one_touch_filter' "
+            "(refrigeration.oneTouchFilter, on_key 'on', no device_class) is the fresh-air "
+            "filter FUNCTION being on, not a replace flag — the 'fresh_air_filter' latch "
+            "already carries that filter; skipped."
         ),
         tasks=(
             # AC filter reports hours-remaining; air-purifier/RAC filters report
@@ -367,7 +371,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "midea": IntegrationSignature(
         name="Midea (core)",
-        verified="2026-09-25 @ home-assistant/core dev (new in 2026.8) + midea-local 12.1.0",
+        verified="2026-09-25 @ home-assistant/core dev (new in 2026.8) + midea-local 12.1.0; skips re-checked 2026-10-03 @ home-assistant/core 2026.10.0b0",
         source=(
             "home-assistant/core homeassistant/components/midea/sensor.py "
             "SENSOR_ENTITIES (created only when the device reports the "
@@ -383,7 +387,11 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "brands with supported_by: midea share the domain. "
             "binary_sensor.py salt / rinse_aid / filter_cleaning_reminder / "
             "full_dust / tank_full are device_class problem → problem-sensor "
-            "adoption."
+            "adoption. 2026-10-03 skips: 'filter_available_days' (keys filter1/2/3, "
+            "DURATION DAYS = midea-local ED body-01 hours ÷ 24) counts the SAME three "
+            "filters as 'filter_life_level' — one signal per filter; the soft-water "
+            "body-05 'remaining_days' / 'use_days' (meaning undocumented) and the binary "
+            "'arofene_link' (PLUG, module-attached status)."
         ),
         tasks=(
             ConsumableSignature(("salt_available",), "Refill Softener Salt", "percent_left"),
@@ -802,6 +810,159 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 "due_date",
                 resets=(("fridge_cleaning_due", "fridge_cleaned"),),
             ),
+        ),
+    ),
+    "tami4": IntegrationSignature(
+        name="Tami4 Edge / Edge+",
+        verified="2026-10-03 @ home-assistant/core 2026.10.0b0",
+        source=(
+            "core tami4 sensor.py ENTITY_DESCRIPTIONS (unchanged since 2026.9; every sensor "
+            "and button description sets a translation_key, has_entity_name): tk "
+            "'filter_upcoming_replacement' / 'uv_upcoming_replacement' (device_class DATE, "
+            "no unit, enabled; coordinator.py FlattenedWaterQuality ← Tami4EdgeAPI 3.0 "
+            "water_quality.py QualityInfo.upcoming_replacement = date.fromtimestamp(cloud "
+            "dynamicData filterInfo / uvInfo 'upcomingReplacement' / 1000); HA docs: 'Date "
+            "when the filter / UV lamp needs to be replaced') → due_date. button.py has only "
+            "'boil_water' / 'prepare_drink' — no reset to wire: the Tami4 cloud moves the "
+            "date after the replacement, which clears the trigger (auto-complete). Skipped: "
+            "'filter_litters_passed' (LITERS, TOTAL — water through the currently installed "
+            "filter, the part the date duty already covers) and 'filter_installed' / "
+            "'uv_installed' (booleans, status)."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            # A week's lead time to order the cartridge / lamp (as for Vitesy's filter).
+            ConsumableSignature(("filter_upcoming_replacement",), "Replace Water Filter", "due_date", days_before=7),
+            ConsumableSignature(("uv_upcoming_replacement",), "Replace UV Lamp", "due_date", days_before=7),
+        ),
+    ),
+    # ─── Round 16 (2026-10-03): HACS water treatment and Polaris / Rusclimate ─
+    "midea_auto_cloud": IntegrationSignature(
+        name="Midea Auto Cloud",
+        verified="2026-10-03 @ sususweet/midea_auto_cloud master (8d0f9a5)",
+        source=(
+            "HACS midea_auto_cloud (not the midea_ac_lan / core midea domains): midea_entity.py sets "
+            "_attr_translation_key = the mapping's translation_key, else the entity key, on every "
+            "entity; platform_setup.py creates every entity the device's mapping lists "
+            "(device_mapping/T0x<type>.py, picked by subtype → sn8 → default_<category>). T0xED water "
+            "purifiers (PERCENTAGE): life_1 / life_2 with tk 'life_fcb' / 'life_ro' "
+            "(default_water_purifier, 63600118 — en 'FCB filter remaining life' / 'RO filter remaining "
+            "life'), 'life_ro' / 'life_pcb' (632009F5, 632009C6; 632009C6 lists translation_key twice, "
+            "the last wins) and 'life_1' / 'life_2_pcb' (632009EN) → one task per cartridge. T0xFC air "
+            "purifiers (571Z3081, 571Z307F): 'deep_filter_percent' ('Filter Life Remaining', "
+            "PERCENTAGE). T0xAC fresh-air units (default_central_fresh_air, 26096947): "
+            "'fresh_filter_time' ('Filter remaining life', %; the default mapping writes "
+            "native_unit_of_measurement, which the entity ignores → no unit, the lenient unit gate) → "
+            "the ventilation filter. Skipped: T0xED 'left_salt' (% salt left) exists only in "
+            "default_water_purifier, which creates its softener, purifier and pipeline-machine "
+            "attributes for every device it serves (issues #48, #129) — a purifier would get a salt "
+            "duty on an entity that never reports; 'remind_maintenance_days' (meaning undocumented); "
+            "the C2 toilet's 'filter_use_per' ('Filter Use Percentage' but BATTERY class — direction "
+            "contradictory); T0xFA 'filter_life_time' / 'dust_life_time' and T0xCE "
+            "'clean_net_used_time' / 'change_net_used_time' (hours, used vs left not established); "
+            "the 'maintenance_remind' / 'filter_value' binaries are device_class problem "
+            "(problem-sensor adoption). button.py has no filter reset."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(
+                ("life_fcb", "life_ro", "life_pcb", "life_1", "life_2_pcb"),
+                "Replace Water Filter",
+                "percent_left",
+                per_entity=True,
+            ),
+            ConsumableSignature(("deep_filter_percent",), "Replace Filter", "percent_left"),
+            ConsumableSignature(("fresh_filter_time",), "Replace Ventilation Filter", "percent_left"),
+        ),
+    ),
+    "gruenbeck_cloud": IntegrationSignature(
+        name="Grünbeck softliQ (cloud)",
+        verified="2026-10-03 @ p0l0/hagruenbeck_cloud main (571eb1d)",
+        source=(
+            "HACS gruenbeck_cloud (custom repository) sensor.py SENSORS — every description sets a "
+            "translation_key, GruenbeckCloudEntity has_entity_name: tk 'salt_range' ('Salt Range' / "
+            "'Salzvorrat', UnitOfTime.DAYS, no device class, enabled; pygruenbeck_cloud "
+            "realtime.salt_range = the days the salt supply lasts) → Refill Softener Salt a week ahead "
+            "(the BWT / EcoWater days precedent); tk 'next_service' ('Next Service', source comment "
+            "'Perform maintenance in [days]', UnitOfTime.DAYS, DIAGNOSTIC, "
+            "entity_registry_enabled_default=False — 'Not available at SE devices') → Annual Service "
+            "two weeks ahead, the Water Softener template's service duty; it is proposed once the "
+            "entity is enabled. Skipped: the 'has_error' binary (device_class problem → problem-sensor "
+            "adoption), 'last_service' (DATE of the last service), 'salt_consumption' (kg used). The "
+            "integration has no button platform."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(("salt_range",), "Refill Softener Salt", "duration_left", below_hours=168),
+            ConsumableSignature(("next_service",), "Annual Service", "duration_left", below_hours=336),
+        ),
+    ),
+    "gruenbeck_softliq_sc": IntegrationSignature(
+        name="Grünbeck softliQ SC (local)",
+        verified="2026-10-03 @ tizianodeg/gruenbeck_softliQ_SC main (c603343)",
+        source=(
+            "HACS gruenbeck_softliq_sc (custom repository; the softliQ:SC's local web interface) "
+            "sensor.py: every SoftQLinkSensorEntityDescription sets translation_key = the controller's "
+            "own parameter id (upper case, matched exactly): 'D_A_2_3' ('Salt range in days') and "
+            "'D_A_2_2' ('days until the next maintenance'), both UnitOfTime.DAYS, DIAGNOSTIC, enabled — "
+            "the same pair as the cloud integration, same leads. button.py has only "
+            "'manual_regeneration' / 'reset_error_memory' — no counter reset."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(("D_A_2_3",), "Refill Softener Salt", "duration_left", below_hours=168),
+            ConsumableSignature(("D_A_2_2",), "Annual Service", "duration_left", below_hours=336),
+        ),
+    ),
+    "polaris": IntegrationSignature(
+        name="Polaris IQ Home / Rusclimate (MQTT)",
+        verified="2026-10-03 @ samoswall/polaris-mqtt main (0db4fa1)",
+        source=(
+            "HACS polaris (polaris-mqtt: Polaris IQ Home and Rusclimate — Ballu / Electrolux / Royal "
+            "Thermo / Zanussi — appliances over MQTT). sensor.py PolarisSensor: entity_id "
+            "sensor.<class>_<model>_<description.name>, has_entity_name; const.py SENSORS_* carry a "
+            "translation_key; device model = '<class> - <model>'. The 'expendables' payload '[x,y]' "
+            "feeds the '… retain' sensors (= remaining, ru 'Остаток …'): tk 'filter_retain' = x — "
+            "HOURS on humidifiers (SENSORS_HUMIDIFIER; the vendor app's expendable_max 4392 h filter / "
+            "168 h tank), Polaris air cleaners (SENSORS_AIRCLEANER) and the Electrolux EPVS/ERVX "
+            "ventilation unit (SENSORS_VENTILATION, model 'ventilation - …' → the ventilation filter, "
+            "a week's lead), PERCENTAGE on the Ballu ONEAIR ASP-100/200 breezers (SENSORS_CLIMATE / "
+            "_200) and the Electrolux EAP purifier — the unit routes each entity to its direction; tk "
+            "'clean_retain' = y (HOURS, humidifiers except type 835: water-tank cleaning); tk "
+            "'pre_filter_retain' = y (PERCENTAGE, ASP-200); tk 'anode_retain' = x (UnitOfTime.DAYS, "
+            "water heaters 844/876/877). button.py: humidifiers (not 835/881) 'button_reset_filter' "
+            "(payload [0,0], 'Reset time filter') and 'button_reset_tank' ([1,0], 'Reset time water "
+            "tank'), Polaris air cleaners (not PAW-0804) 'button_reset_filter' ([0]) → wired on the "
+            "hour duties. The Ballu breezers' resets stay unwired: the ASP-100 sends [100], the "
+            "ASP-200 'button_reset_filter' [0,100] and 'button_reset_prefilter' [100,0] while "
+            "sensor.py reads the filter from index 0 and the pre-filter from index 1 — which counter "
+            "each ASP-200 button resets is not established. No anode reset exists. Skipped: the "
+            "vacuums' 'expendables' brush/filter/mop hours (used vs left not established)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("filter_retain",),
+                "Replace Filter",
+                "duration_left",
+                models_exclude=("ventilation",),
+                resets=(("filter_retain", "button_reset_filter"),),
+            ),
+            ConsumableSignature(("filter_retain",), "Replace Filter", "percent_left"),
+            ConsumableSignature(
+                ("filter_retain",),
+                "Replace Ventilation Filter",
+                "duration_left",
+                below_hours=168,
+                models=("ventilation",),
+            ),
+            ConsumableSignature(
+                ("clean_retain",),
+                "Clean Tank",
+                "duration_left",
+                resets=(("clean_retain", "button_reset_tank"),),
+            ),
+            ConsumableSignature(("pre_filter_retain",), "Clean Pre-Filter", "percent_left"),
+            ConsumableSignature(("anode_retain",), "Anode Rod Inspection", "duration_left", below_hours=336),
         ),
     ),
 }

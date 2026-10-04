@@ -548,7 +548,9 @@
    "waste_drawer",
    "litter_level",
    "total_cycles",
-   "reset_waste_drawer"
+   "reset_waste_drawer",
+   "translation_key=\"next_filter_replacement\"",
+   "translation_key=\"change_filter\""
   ]
  },
  "husqvarna_automower_ble": {
@@ -2391,6 +2393,423 @@
    "SensorDeviceClass.TIMESTAMP",
    "translation_key=\"filter_changed\"",
    "translation_key=\"fridge_cleaned\""
+  ]
+ },
+ "smarty": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smarty/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smarty/button.py"
+  ],
+  "strings": [
+   "translation_key=\"filter_days_left\"",
+   "SensorDeviceClass.TIMESTAMP",
+   "get_filter_days_left",
+   "translation_key=\"reset_filters_timer\""
+  ]
+ },
+ "vallox": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/vallox/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"remaining_time_for_filter\"",
+   "SensorDeviceClass.TIMESTAMP",
+   "next_filter_change_date"
+  ]
+ },
+ "ecoforest": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/ecoforest/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"working_hours\"",
+   "UnitOfTime.HOURS",
+   "data.working_hours"
+  ]
+ },
+ "tami4": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/tami4/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"filter_upcoming_replacement\"",
+   "translation_key=\"uv_upcoming_replacement\"",
+   "SensorDeviceClass.DATE"
+  ]
+ },
+ "midea_auto_cloud": {
+  "urls": [
+   "https://raw.githubusercontent.com/sususweet/midea_auto_cloud/master/custom_components/midea_auto_cloud/midea_entity.py",
+   "https://raw.githubusercontent.com/sususweet/midea_auto_cloud/master/custom_components/midea_auto_cloud/device_mapping/T0xED.py",
+   "https://raw.githubusercontent.com/sususweet/midea_auto_cloud/master/custom_components/midea_auto_cloud/device_mapping/T0xFC.py",
+   "https://raw.githubusercontent.com/sususweet/midea_auto_cloud/master/custom_components/midea_auto_cloud/device_mapping/T0xAC.py"
+  ],
+  "strings": [
+   "self._attr_translation_key = self._config.get(\"translation_key\") or self._entity_key",
+   "\"translation_key\": \"life_fcb\"",
+   "\"translation_key\": \"life_ro\"",
+   "\"translation_key\": \"life_pcb\"",
+   "\"translation_key\": \"life_1\"",
+   "\"translation_key\": \"life_2_pcb\"",
+   "\"deep_filter_percent\": {",
+   "\"fresh_filter_time\": {"
+  ]
+ },
+ "gruenbeck_cloud": {
+  "urls": [
+   "https://raw.githubusercontent.com/p0l0/hagruenbeck_cloud/main/custom_components/gruenbeck_cloud/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"salt_range\"",
+   "translation_key=\"next_service\"",
+   "native_unit_of_measurement=UnitOfTime.DAYS"
+  ]
+ },
+ "gruenbeck_softliq_sc": {
+  "urls": [
+   "https://raw.githubusercontent.com/tizianodeg/gruenbeck_softliQ_SC/main/custom_components/gruenbeck_softliQ_SC/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"D_A_2_3\"",
+   "translation_key=\"D_A_2_2\""
+  ]
+ },
+ "polaris": {
+  "urls": [
+   "https://raw.githubusercontent.com/samoswall/polaris-mqtt/main/custom_components/polaris/const.py",
+   "https://raw.githubusercontent.com/samoswall/polaris-mqtt/main/custom_components/polaris/sensor.py",
+   "https://raw.githubusercontent.com/samoswall/polaris-mqtt/main/custom_components/polaris/button.py"
+  ],
+  "strings": [
+   "translation_key=\"filter_retain\"",
+   "translation_key=\"clean_retain\"",
+   "translation_key=\"pre_filter_retain\"",
+   "translation_key=\"anode_retain\"",
+   "translation_key=\"button_reset_filter\"",
+   "translation_key=\"button_reset_tank\"",
+   "\"class\": \"ventilation\"",
+   "{description.name.replace(' ', '_').lower()}"
+  ]
+ },
+ "gecko": {
+  "urls": [
+   "https://raw.githubusercontent.com/gazoodle/gecko-home-assistant/main/custom_components/gecko/sensor.py",
+   "https://raw.githubusercontent.com/gazoodle/gecko-home-assistant/main/custom_components/gecko/entity.py"
+  ],
+  "strings": [
+   "f\"{GeckoReminderSensor.type_to_name(reminder_type)} due\"",
+   "return \"Rinse filter\"",
+   "return \"Clean filter\"",
+   "return \"Change water\"",
+   "return \"Change Ozonator\"",
+   "return \"Change Vision cartridge\"",
+   "return f\"{self._parent_name}: {self._name}\""
+  ]
+ },
+ "terramow": {
+  "urls": [
+   "https://raw.githubusercontent.com/TerraMow/TerraMowHA/main/custom_components/terramow/sensor.py",
+   "https://raw.githubusercontent.com/TerraMow/TerraMowHA/main/custom_components/terramow/const.py"
+  ],
+  "strings": [
+   "_attr_translation_key = \"remaining_blade_time\"",
+   "_attr_translation_key = \"remaining_base_station_time\"",
+   "_attr_translation_key = \"total_mowing_time\"",
+   "BLADE_MAINTENANCE_CYCLE_MINUTES = 14400",
+   "BASE_STATION_MAINTENANCE_CYCLE_MINUTES = 43200"
+  ]
+ },
+ "stihl_imow": {
+  "urls": [
+   "https://raw.githubusercontent.com/ChrisHaPunkt/ha-stihl-imow/main/custom_components/stihl_imow/maps.py",
+   "https://raw.githubusercontent.com/ChrisHaPunkt/ha-stihl-imow/main/custom_components/stihl_imow/entity.py"
+  ],
+  "strings": [
+   "\"statistics_totalBladeOperatingTime\": {",
+   "\"statistics_totalOperatingTime\": {",
+   "self._attr_translation_key = to_translation_key(mower_state_property)"
+  ]
+ },
+ "omnilogic_local": {
+  "urls": [
+   "https://raw.githubusercontent.com/cryptk/haomnilogic-local/main/custom_components/omnilogic_local/sensor.py"
+  ],
+  "strings": [
+   "key=\"chlorinator_salt_level_average\"",
+   "name=\"Average Salt Level\""
+  ]
+ },
+ "fluidra_pool": {
+  "urls": [
+   "https://raw.githubusercontent.com/foXaCe/Fluidra-pool/main/custom_components/fluidra_pool/sensor/chlorinator.py"
+  ],
+  "strings": [
+   "_attr_translation_key = \"uv_running_hours\"",
+   "class FluidraUvRunningHoursSensor"
+  ]
+ },
+ "byd_vehicle": {
+  "urls": [
+   "https://raw.githubusercontent.com/jkaberg/hass-byd-vehicle/main/custom_components/byd_vehicle/sensor.py"
+  ],
+  "strings": [
+   "key=\"total_mileage\",",
+   "key=\"energy_cumulative_total_mileage\",",
+   "self._attr_translation_key = description.key"
+  ]
+ },
+ "dvla": {
+  "urls": [
+   "https://raw.githubusercontent.com/jampez77/DVLA-Vehicle-Enquiry-Service/main/custom_components/dvla/sensor.py"
+  ],
+  "strings": [
+   "key=\"motExpiryDate\",",
+   "name=\"MOT Expiry Date\",",
+   "self.entity_id = f\"sensor.{DOMAIN}_{name}_{description.key}\".lower()"
+  ]
+ },
+ "pandora_cas": {
+  "urls": [
+   "https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/custom_components/pandora_cas/sensor.py",
+   "https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/custom_components/pandora_cas/entity.py",
+   "https://raw.githubusercontent.com/turbulator/pandora-cas/master/custom_components/pandora_cas/sensor.py"
+  ],
+  "strings": [
+   "key=\"mileage\",",
+   "key=\"days_to_maintenance\",",
+   "object.__setattr__(self, \"translation_key\", self.key)",
+   "\"mileage\": {"
+  ]
+ },
+ "vag_connect": {
+  "urls": [
+   "https://raw.githubusercontent.com/its-me-prash/vwgroup-connect-ha/main/custom_components/vag_connect/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"odometer_km\",",
+   "translation_key=\"service_km\",",
+   "translation_key=\"service_due_in_days\",",
+   "translation_key=\"oil_service_km\",",
+   "translation_key=\"oil_service_due_in_days\","
+  ]
+ },
+ "pycupra": {
+  "urls": [
+   "https://raw.githubusercontent.com/WulfgarW/homeassistant-pycupra/main/custom_components/pycupra/__init__.py",
+   "https://raw.githubusercontent.com/WulfgarW/pycupra/main/pycupra/dashboard.py"
+  ],
+  "strings": [
+   "return f\"{self._vehicle_name} {self._entity_name}\"",
+   "name=\"Odometer\",",
+   "name=\"Service inspection days\",",
+   "name=\"Service inspection distance\",",
+   "name=\"Oil inspection days\",",
+   "name=\"Oil inspection distance\","
+  ]
+ },
+ "wattpilot": {
+  "urls": [
+   "https://raw.githubusercontent.com/mk-maddin/wattpilot-HA/master/custom_components/wattpilot/sensor.yaml",
+   "https://raw.githubusercontent.com/mk-maddin/wattpilot-HA/master/custom_components/wattpilot/entities.py"
+  ],
+  "strings": [
+   "id: eto",
+   "name: \"Totally Charged\"",
+   "self._attr_name = self._charger_id + ' ' + self._entity_cfg.get('name', self._entity_cfg.get('id'))"
+  ]
+ },
+ "neakasa": {
+  "urls": [
+   "https://raw.githubusercontent.com/tabascoz/hass-neakasa/main/custom_components/neakasa/sensor/sand_percent.py",
+   "https://raw.githubusercontent.com/tabascoz/hass-neakasa/main/custom_components/neakasa/binary_sensor/bin_full.py"
+  ],
+  "strings": [
+   "_attr_translation_key = \"sand_percent\"",
+   "_attr_translation_key = \"bin_full\""
+  ]
+ },
+ "nest_protect": {
+  "urls": [
+   "https://raw.githubusercontent.com/iMicknl/ha-nest-protect/main/custom_components/nest_protect/sensor.py"
+  ],
+  "strings": [
+   "key=\"replace_by_date_utc_secs\"",
+   "translation_key=\"replace_by_date_utc_secs\"",
+   "value_fn=datetime.datetime.utcfromtimestamp",
+   "device_class=SensorDeviceClass.DATE"
+  ]
+ },
+ "kidde_homesafe": {
+  "urls": [
+   "https://raw.githubusercontent.com/snell-evan-itt/Kidde-HomeSafe/main/custom_components/kidde_homesafe/sensor.py"
+  ],
+  "strings": [
+   "LIFE_SENSOR_KEY: Final = \"life\"",
+   "\"name\": \"Days to replace\"",
+   "\"name\": \"Weeks to replace\"",
+   "\"unit\": UnitOfTime.WEEKS"
+  ]
+ },
+ "ariston": {
+  "urls": [
+   "https://raw.githubusercontent.com/fustom/ariston-remotethermo-home-assistant-v3/main/custom_components/ariston/const.py"
+  ],
+  "strings": [
+   "NAME: Final[str] = \"Ariston\"",
+   "key=DeviceProperties.HEATING_CIRCUIT_PRESSURE",
+   "name=f\"{NAME} heating circuit pressure\""
+  ]
+ },
+ "aquarea": {
+  "urls": [
+   "https://raw.githubusercontent.com/kamaradclimber/heishamon-homeassistant/main/custom_components/aquarea/definitions.py",
+   "https://raw.githubusercontent.com/kamaradclimber/heishamon-homeassistant/main/custom_components/aquarea/sensor.py"
+  ],
+  "strings": [
+   "key=f\"{mqtt_prefix}main/Water_Pressure\"",
+   "name=\"Aquarea Water Pressure\"",
+   "slug = slugify(description.key.replace(\"/\", \"_\"))",
+   "self.entity_id = f\"sensor.{slug}\""
+  ]
+ },
+ "maestro_mcz": {
+  "urls": [
+   "https://raw.githubusercontent.com/Robbe-B/maestro_mcz/main/custom_components/maestro_mcz/maestro/models/models.py",
+   "https://raw.githubusercontent.com/Robbe-B/maestro_mcz/main/custom_components/maestro_mcz/sensor.py"
+  ],
+  "strings": [
+   "\"Next Maintenance\"",
+   "\"ore_prox_manut\"",
+   "self._attr_name = supported_sensor.user_friendly_name"
+  ]
+ },
+ "bosch_homecom": {
+  "urls": [
+   "https://raw.githubusercontent.com/serbanb11/bosch-homecom-hass/main/custom_components/bosch_homecom/sensor.py"
+  ],
+  "strings": [
+   "\"systemPressure\",",
+   "\"system_pressure\",",
+   "name_suffix=\"hs_system_pressure\"",
+   "self._attr_translation_key = translation_key"
+  ]
+ },
+ "nefiteasy": {
+  "urls": [
+   "https://raw.githubusercontent.com/ksya/ha-nefiteasy/dev/custom_components/nefiteasy/const.py"
+  ],
+  "strings": [
+   "key=\"system_pressure\"",
+   "name=\"System pressure\"",
+   "unit=UnitOfPressure.BAR"
+  ]
+ },
+ "waterkotte_heatpump": {
+  "urls": [
+   "https://raw.githubusercontent.com/marq24/ha-waterkotte/main/custom_components/waterkotte_heatpump/const.py",
+   "https://raw.githubusercontent.com/marq24/ha-waterkotte/main/custom_components/waterkotte_heatpump/__init__.py"
+  ],
+  "strings": [
+   "key=\"BASICVENT_FILTER_CHANGE_REMAINING_OPERATING_DAYS_A4504\"",
+   "self._attr_translation_key = description.key.lower()"
+  ]
+ },
+ "panasonic_cc": {
+  "urls": [
+   "https://raw.githubusercontent.com/sockless-coding/panasonic_cc/master/custom_components/panasonic_cc/panasonic/climate.py"
+  ],
+  "strings": [
+   "_attr_translation_key = \"climate\"",
+   "return HVACMode.COOL if iauto else HVACMode.HEAT_COOL",
+   "return HVACMode.FAN_ONLY"
+  ]
+ },
+ "mitsubishi_wf_rac": {
+  "urls": [
+   "https://raw.githubusercontent.com/blues-sechseck/Mitsubishi-WF-RAC-Integration/main/custom_components/mitsubishi_wf_rac/climate.py",
+   "https://raw.githubusercontent.com/blues-sechseck/Mitsubishi-WF-RAC-Integration/main/custom_components/mitsubishi_wf_rac/const.py"
+  ],
+  "strings": [
+   "_attr_translation_key = \"mitsubishi_wf_rac\"",
+   "SUPPORTED_HVAC_MODES = [",
+   "HVACMode.FAN_ONLY: 3"
+  ]
+ },
+ "toshiba_ac": {
+  "urls": [
+   "https://raw.githubusercontent.com/h4de5/home-assistant-toshiba_ac/main/custom_components/toshiba_ac/climate.py"
+  ],
+  "strings": [
+   "ToshibaAcMode.AUTO: HVACMode.AUTO",
+   "ToshibaAcMode.FAN: HVACMode.FAN_ONLY"
+  ]
+ },
+ "fujitsu_airstage": {
+  "urls": [
+   "https://raw.githubusercontent.com/danielkaldheim/ha_airstage/main/custom_components/fujitsu_airstage/climate.py"
+  ],
+  "strings": [
+   "constants.OperationModeDescriptors.FAN: HVACMode.FAN_ONLY",
+   "constants.OperationModeDescriptors.AUTO: HVACMode.AUTO"
+  ]
+ },
+ "aux_cloud": {
+  "urls": [
+   "https://raw.githubusercontent.com/maeek/ha-aux-cloud/main/custom_components/aux_cloud/climate.py",
+   "https://raw.githubusercontent.com/maeek/ha-aux-cloud/main/custom_components/aux_cloud/const.py"
+  ],
+  "strings": [
+   "translation_key=\"aux_ac\"",
+   "translation_key=\"aux_heater\"",
+   "AC_MODE_FAN: HVACMode.FAN_ONLY"
+  ]
+ },
+ "daikin_onecta": {
+  "urls": [
+   "https://raw.githubusercontent.com/jwillemsen/daikin_onecta/master/custom_components/daikin_onecta/climate.py",
+   "https://raw.githubusercontent.com/jwillemsen/daikin_onecta/master/custom_components/daikin_onecta/entity_descriptions.py",
+   "https://raw.githubusercontent.com/jwillemsen/daikin_onecta/master/custom_components/daikin_onecta/device.py"
+  ],
+  "strings": [
+   "\"auto\": HVACMode.HEAT_COOL",
+   "translation_key=\"roomtemperature\"",
+   "device_info[\"model\"] = point.model_info.value",
+   "self._device.fill_gateway_device_info(self._attr_device_info)"
+  ]
+ },
+ "ambientika": {
+  "urls": [
+   "https://raw.githubusercontent.com/ambientika/HomeAssistant-integration-for-Ambientika/main/custom_components/ambientika/sensor.py",
+   "https://raw.githubusercontent.com/ambientika/HomeAssistant-integration-for-Ambientika/main/custom_components/ambientika/button.py",
+   "https://raw.githubusercontent.com/ambientika/HomeAssistant-integration-for-Ambientika/main/custom_components/ambientika/const.py"
+  ],
+  "strings": [
+   "_attr_translation_key = \"filter_status\"",
+   "_attr_translation_key = \"filter_reset\"",
+   "Bad = \"bad\""
+  ]
+ },
+ "siku": {
+  "urls": [
+   "https://raw.githubusercontent.com/hmn/siku-integration/main/custom_components/siku/sensor.py",
+   "https://raw.githubusercontent.com/hmn/siku-integration/main/custom_components/siku/button.py"
+  ],
+  "strings": [
+   "key=\"filter_timer_minutes\"",
+   "name=\"Filter timer countdown\"",
+   "key=\"reset_filter_alarm\"",
+   "name=\"Reset filter alarm\""
+  ]
+ },
+ "ecovent_v2": {
+  "urls": [
+   "https://raw.githubusercontent.com/gody01/ecovent_v2/main/custom_components/ecovent_v2/sensor_specs.py",
+   "https://raw.githubusercontent.com/gody01/ecovent_v2/main/custom_components/ecovent_v2/sensor.py"
+  ],
+  "strings": [
+   "\"_filter_remaining\"",
+   "\"Filter remaining\"",
+   "def filter_remaining(self):"
   ]
  }
 }

@@ -7,6 +7,8 @@ integration's source; drift-probed weekly)."""
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from ._model import ConsumableSignature, IntegrationSignature
 from ._shared import (
     FILTER_LIFE_PERCENT,
@@ -16,8 +18,10 @@ from ._shared import (
 )
 
 # One object for the AC-only integrations whose climate entity runs through
-# these HVAC modes (gree, midea_ac) — shared here, next to its users, so the
-# verbatim-duplicate tripwire holds without a _shared.py entry.
+# these HVAC modes (gree, midea_ac, mitsubishi_wf_rac, toshiba_ac,
+# fujitsu_airstage; aux_cloud keys a copy to its AC climate) — shared here,
+# next to its users, so the verbatim-duplicate tripwire holds without a
+# _shared.py entry.
 _AC_FILTER_CLEANING_RUNTIME = ConsumableSignature(
     (),
     "Filter Cleaning",
@@ -619,5 +623,253 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 per_entity=True,
             ),
         ),
+    ),
+    # ─── Round 16 (2026-10-03): ventilation units that report the filter ─
+    # ─── change DATE (due_date engine), core 2026.9 + 2026.10 ────────────
+    # Reviewed and left out (problem-class binaries → problem-sensor
+    # adoption): sensibo 'filter_clean' (its 'filter_last_reset' TIMESTAMP is
+    # the LAST reset, not a due date; the 'reset_filter' button has no duty to
+    # attach to), coolmaster 'clean_filter' (+ 'reset_filter' button),
+    # actron_air 'clean_filter', intelliclima 'filter_cleaning', homee
+    # 'replace_filter', flexit_bacnet 'air_filter_polluted'. helty: only the
+    # 'reset_filter' button — core exposes no filter sensor (pyhelty 0.2.0
+    # reads the remaining filter hours but no entity carries them). wemo: the
+    # humidifier's filter life is only the 'filter_life' ATTRIBUTE of its fan
+    # entity, reset only by the wemo.reset_filter_life service.
+    "smarty": IntegrationSignature(
+        name="Salda Smarty ventilation",
+        verified="2026-10-03 @ home-assistant/core 2026.10.0b0 (sensor.py/button.py identical in 2026.9.0b0 and dev)",
+        source=(
+            "core smarty sensor.py: tk 'filter_days_left' ('Filter days left', "
+            "device_class TIMESTAMP, no unit, enabled) — get_filter_days_left "
+            "returns now + pysmarty2 Smarty.filter_timer days (Modbus "
+            "'IR_FILTERS_TIMER_DAYS_LEFT'), i.e. the DATE the filter needs to "
+            "be replaced → due_date with a week's lead to order filters. "
+            "button.py: tk 'reset_filters_timer' ('Reset filters timer', "
+            "Smarty.reset_filters_timer writes 'COIL_FILTER_TIMER_RESET') "
+            "restarts the timer, which moves the date forward and "
+            "auto-completes the task. Every entity sets a translation_key "
+            "(the fan 'fan')."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(
+                ("filter_days_left",),
+                "Replace Ventilation Filter",
+                "due_date",
+                days_before=7,
+                resets=(("filter_days_left", "reset_filters_timer"),),
+            ),
+        ),
+    ),
+    "vallox": IntegrationSignature(
+        name="Vallox ventilation",
+        verified="2026-10-03 @ home-assistant/core 2026.10.0b0 (sensor.py identical in 2026.9.0b0 and dev)",
+        source=(
+            "core vallox sensor.py: tk 'remaining_time_for_filter' ('Remaining "
+            "time for filter', device_class TIMESTAMP, DIAGNOSTIC, enabled) — "
+            "ValloxFilterRemainingSensor returns vallox_websocket_api's "
+            "next_filter_change_date (last change date "
+            "A_CYC_FILTER_CHANGED_DAY/MONTH/YEAR + A_CYC_FILTER_CHANGE_INTERVAL "
+            "days) at 13:00 local → due_date with a week's lead. No reset "
+            "button: the change date is the CONFIG date entity "
+            "'filter_change_date' (date.py, set_filter_change_date) — setting "
+            "it after the change moves the due date forward and auto-completes "
+            "the task, but a date entity cannot be wired as a button press."
+        ),
+        tasks=(
+            ConsumableSignature(("remaining_time_for_filter",), "Replace Ventilation Filter", "due_date", days_before=7),
+        ),
+    ),
+    # ─── Round 16 HACS wave (2026-10-03): air conditioners by engine ─────
+    # ─── runtime, decentral HRV filters ──────────────────────────────────
+    # Reviewed and left out: ithodaalderop 'airfilter_counter' /
+    # 'filter_use_counter' (hours, TOTAL_INCREASING — whether the unit zeroes
+    # them at a filter reset is not established in the source); xtend_tuya
+    # 'filter_life' (its descriptor manager can also hand it core tuya's
+    # category descriptors, so the key is not specific to fresh-air units,
+    # and the unit comes from the device's DP).
+    "panasonic_cc": IntegrationSignature(
+        name="Panasonic Comfort Cloud (air conditioners)",
+        verified="2026-10-03 @ sockless-coding/panasonic_cc master (90c653c)",
+        source=(
+            "HACS panasonic_cc panasonic/climate.py: the AC's climate entity "
+            "has translation_key 'climate' (PANASONIC_CLIMATE_DESCRIPTION; "
+            "has_entity_name, no translated name → climate.<device>); "
+            "convert_operation_mode_to_hvac_mode maps Auto/Cool/Dry/Fan/Heat to "
+            "heat_cool (cool under iAUTO-X)/cool/dry/fan_only/heat — every mode "
+            "except off moves air through the filter → engine runtime with the "
+            "AC cadence of gree/midea_ac (filters cleaned every 2 weeks ≈ 100 "
+            "runtime hours in season). The Aquarea heat pumps of the same "
+            "integration (aquarea/climate.py) carry per-zone climates with tk "
+            "'zone-<id>-climate' and stay out: every panasonic_cc entity sets a "
+            "translation_key (PanasonicDataEntity / AquareaDataEntity / "
+            "HwsDataEntity bases and the buttons), so the key is authoritative."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(
+                ("climate",),
+                "Filter Cleaning",
+                "runtime_hours",
+                delta_units=100,
+                entity_domain="climate",
+                on_states=("cool", "dry", "fan_only", "heat", "heat_cool"),
+            ),
+        ),
+    ),
+    "mitsubishi_wf_rac": IntegrationSignature(
+        name="Mitsubishi Heavy Industries (WF-RAC)",
+        verified="2026-10-03 @ blues-sechseck/Mitsubishi-WF-RAC-Integration main (3056b27)",
+        source=(
+            "HACS mitsubishi_wf_rac climate.py: one AircoClimate per device "
+            "(translation_key 'mitsubishi_wf_rac', name None); const.py "
+            "SUPPORTED_HVAC_MODES off/auto/cool/dry/heat/fan_only — every mode "
+            "except off moves air through the filter → the shared AC "
+            "engine-runtime duty of gree/midea_ac. No filter entity."
+        ),
+        tasks=(_AC_FILTER_CLEANING_RUNTIME,),
+    ),
+    "toshiba_ac": IntegrationSignature(
+        name="Toshiba AC",
+        verified="2026-10-03 @ h4de5/home-assistant-toshiba_ac main (b0b893e)",
+        source=(
+            "HACS toshiba_ac climate.py: one ToshibaClimate per AC device "
+            "(has_entity_name, name None); TOSHIBA_TO_HVAC_MODE maps "
+            "AUTO/COOL/HEAT/DRY/FAN to auto/cool/heat/dry/fan_only, off "
+            "otherwise → the shared AC engine-runtime duty. No filter entity."
+        ),
+        tasks=(_AC_FILTER_CLEANING_RUNTIME,),
+    ),
+    "fujitsu_airstage": IntegrationSignature(
+        name="Fujitsu Airstage",
+        verified="2026-10-03 @ danielkaldheim/ha_airstage main (12d4dbe)",
+        source=(
+            "HACS fujitsu_airstage climate.py: one AirstageAC per indoor unit, "
+            "each its own device (entity.py AirstageAcEntity identifiers = the "
+            "ac_key); FUJITSU_TO_HA_STATE maps FAN/DRY/COOL/HEAT/AUTO to "
+            "fan_only/dry/cool/heat/auto → the shared AC engine-runtime duty. "
+            "No filter entity."
+        ),
+        tasks=(_AC_FILTER_CLEANING_RUNTIME,),
+    ),
+    "aux_cloud": IntegrationSignature(
+        name="AUX Cloud (air conditioners)",
+        verified="2026-10-03 @ maeek/ha-aux-cloud main (85ae111)",
+        source=(
+            "HACS aux_cloud climate.py: an AIR_CONDITIONER device gets "
+            "AuxACClimateEntity (AC_DESCRIPTION translation_key 'aux_ac', "
+            "strings.json 'Air Conditioner'), a HEAT_PUMP device "
+            "AuxHeatPumpClimateEntity (tk 'aux_heater', heat/cool only); "
+            "const.py MODE_MAP_AUX_AC_TO_HA maps auto/cooling/heating/dry/fan "
+            "to auto/cool/heat/dry/fan_only → the shared AC engine-runtime "
+            "duty, keyed to 'aux_ac' so the heat pump's climate stays out."
+        ),
+        tasks=(replace(_AC_FILTER_CLEANING_RUNTIME, keys=("aux_ac",)),),
+    ),
+    "daikin_onecta": IntegrationSignature(
+        name="Daikin Onecta (air conditioners)",
+        verified=(
+            "2026-10-03 @ jwillemsen/daikin_onecta master (e45cc60) + jwillemsen/daikin-onecta main "
+            "(models.py model_info = 'modelInfo')"
+        ),
+        source=(
+            "HACS daikin_onecta climate.py: one DaikinClimate per setpoint of "
+            "the climateControl management point, translation_key from "
+            "entity_descriptions.py ENTITY_METADATA ('roomtemperature', "
+            "'leavingwateroffset', 'leavingwatertemperature', "
+            "'calculatedleavingwatertemperature'); DAIKIN_HVAC_TO_HA maps "
+            "fanOnly/dry/cooling/heating/auto/humidification to "
+            "fan_only/dry/cool/heat/heat_cool/dry. The 'roomtemperature' "
+            "climate also exists on Altherma heat pumps and Daikin gas boilers, "
+            "and the type-identifying entities (streamer, econo mode, caution "
+            "state) sit on per-management-point sub-devices out of a sibling "
+            "gate's reach. Gate: the climate's device model is the gateway "
+            "adapter (device.py fill_device_info: gateway modelInfo) — the AC "
+            "WLAN adapter families BRP069A4x / BRP069B4x / BRP069C4x-C8x, "
+            "while the heat-pump and boiler fixtures report the Altherma "
+            "LAN/WLAN adapters BRP069A61/A62/A71/A78 or DRGATEWAYAA (NDJ gas "
+            "boiler) — all 20 API fixtures in the integration's tests "
+            "checked. Engine runtime with the core daikin cadence (clean "
+            "filters every 2 weeks ≈ 100 runtime hours)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("roomtemperature",),
+                "Filter Cleaning",
+                "runtime_hours",
+                delta_units=100,
+                entity_domain="climate",
+                on_states=("cool", "dry", "fan_only", "heat", "heat_cool"),
+                models=("BRP069A4", "BRP069B4", "BRP069C"),
+            ),
+        ),
+    ),
+    "ambientika": IntegrationSignature(
+        name="Ambientika (SUEDWIND)",
+        verified="2026-10-03 @ ambientika/HomeAssistant-integration-for-Ambientika main (98af980)",
+        source=(
+            "HACS ambientika sensor.py FilterStatusSensor: translation_key "
+            "'filter_status' (translations/en.json 'Filter Status'), "
+            "has_entity_name, no unit; the state is const.py FilterStatus "
+            "(StrEnum values 'bad' / 'medium' / 'good') from the cloud's "
+            "filters_status → event latch on 'bad' ('medium' is the "
+            "pre-warning, not latched), cleared when the status recovers. "
+            "button.py FilterResetButton: translation_key 'filter_reset' (GET "
+            "device/reset-filter) resets it. SUEDWIND decentral heat-recovery "
+            "units, one sensor and one button per unit."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("filter_status",),
+                "Replace Ventilation Filter",
+                "event_present",
+                on_states=("bad",),
+                resets=(("filter_status", "filter_reset"),),
+            ),
+        ),
+    ),
+    "siku": IntegrationSignature(
+        name="Siku / Blauberg ventilation fans",
+        verified="2026-10-03 @ hmn/siku-integration main (3afa1bb)",
+        source=(
+            "HACS siku sensor.py SENSORS key 'filter_timer_minutes', name "
+            "'Filter timer countdown' (DURATION, native minutes, suggested unit "
+            "days; V2 API only — api_v2.py parses register 0x64 as the "
+            "days/hours/minutes LEFT until the filter change). SikuEntity sets "
+            "neither has_entity_name nor translation_key → "
+            "sensor.filter_timer_countdown (exact-object-id pattern; a second "
+            "fan's _2 id is matched by the original name) → duration_left 7 "
+            "days. button.py 'Reset filter alarm' (key reset_filter_alarm → "
+            "button.reset_filter_alarm) sends reset-alarms + 0x65 "
+            "reset-filter-timer, which restarts the countdown."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("filter_timer_countdown",),
+                "Replace Ventilation Filter",
+                "duration_left",
+                below_hours=168,
+                resets=(("filter_timer_countdown", "reset_filter_alarm"),),
+            ),
+        ),
+    ),
+    "ecovent_v2": IntegrationSignature(
+        name="Vents / Blauberg EcoVent (v2)",
+        verified="2026-10-03 @ gody01/ecovent_v2 main (4851688)",
+        source=(
+            "HACS ecovent_v2 sensor_specs.py SensorSpec '_filter_remaining' "
+            "('Filter remaining', PERCENTAGE, DIAGNOSTIC, enabled; fans with the "
+            "filter_maintenance capability reporting the filter countdown and "
+            "its setpoint): sensor.py filter_remaining = countdown hours / "
+            "(setpoint days × 24) × 100, clamped 0-100 → % REMAINING. "
+            "VentoSensor has_entity_name without translation_key, object id "
+            "<fan>_<method> (entity_naming.py) → suffix _filter_remaining. One "
+            "duty per filter: the hours countdown ('Filter change in', h; older "
+            "ids of it also ended in _filter_remaining — the % unit gate keeps "
+            "them out) is the same filter. The timer reset is only the fan "
+            "entity SERVICE ecovent_v2.filter_timer_reset (no button)."
+        ),
+        tasks=(ConsumableSignature(("filter_remaining",), "Replace Ventilation Filter", "percent_left"),),
     ),
 }

@@ -92,7 +92,12 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "filter is reset on the purifier) → usage_above at 4,320 h = the "
             "cluster's default filter_life_time of 259,200 min (the "
             "DIRIGERA/STARKVIND duty). The 'replace_filter' binary is "
-            "device_class problem (adoption path); no reset button."
+            "device_class problem (adoption path); no reset button. "
+            "Re-checked 2026-10-03 @ core 2026.10.0b0 / zha 2.3.0: unchanged; "
+            "IkeaDeviceRunTime 'device_run_time' is the purifier's own "
+            "lifetime, not the filter's, and the zhaquirks 'lifetime' sensor "
+            "(Schneider W599001 smoke alarm, half-years, meaning undocumented) "
+            "is not signed."
         ),
         tasks=(
             LOCK_CYLINDER_CYCLES,
@@ -148,4 +153,9 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             LOCK_CYLINDER_CYCLES,
         ),
     ),
+    # Reviewed 2026-10-03 @ core 2026.10.0b0 (round 16), not signed: homee —
+    # 'replace_filter' (AttributeType.REPLACE_FILTER_ALARM) is a problem-class
+    # binary (adoption path); 'operating_hours' (DURATION, TOTAL_INCREASING)
+    # sits on whatever node the hub bridges, so no duty fits it without a
+    # device-type gate; the 'reset_meter' buttons reset energy meters.
 }

@@ -3,7 +3,7 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg)](https://github.com/hacs/default)
 [![Active installs](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fanalytics.home-assistant.io%2Fcustom_integrations.json&query=%24.maintenance_supporter.total&label=active%20installs&color=41BDF5&logo=home-assistant)](https://analytics.home-assistant.io/)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
-[![Tests](https://img.shields.io/badge/tests-6500%2B_passed-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
+[![Tests](https://img.shields.io/badge/tests-6600%2B_passed-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 [![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 [![Community Forum](https://img.shields.io/badge/Community-Forum-41BDF5.svg)](https://community.home-assistant.io/t/custom-integration-maintenance-supporter-sensor-triggered-adaptive-maintenance-for-your-home/995556)
 
@@ -42,7 +42,7 @@ due, and completing it takes one tap — optionally with notes, cost, duration,
 and a photo of the work.
 
 **"My vacuum already knows when its filter is worn."**
-**Suggested setups** (Beta) discovers devices of 225 supported integrations —
+**Suggested setups** (Beta) discovers devices of 262 supported integrations —
 vacuums, robotic mowers, printers, kitchen appliances, heating, 3D printers,
 cars, e-bikes, wallboxes, locks, pool and spa, NAS — and sets them up in one
 click with **sensor triggers pre-wired**:
@@ -132,7 +132,7 @@ for you — always previewing before it writes.
 
 | Area | What you get | Details |
 |---|---|---|
-| **Suggested setups** | 225 integrations / 485 verified signatures with pre-wired sensor triggers — boilers, vacuums, cars, locks, printers, purifiers and more; completing a task presses the device's own counter reset where it has one (2.95) | [Supported integrations](docs/INTEGRATIONS.md) |
+| **Suggested setups** | 262 integrations / 551 verified signatures with pre-wired sensor triggers — boilers, vacuums, cars, locks, printers, purifiers and more; completing a task presses the device's own counter reset where it has one (2.95) | [Supported integrations](docs/INTEGRATIONS.md) |
 | **Battery fleet** | One task for all 30–70+ batteries — grouped shopping list, discharge-trend forecast with per-battery sparklines, mark-all-replaced, spare-part stock; rechargeables are tracked for charging, never shopped. Best with [Battery Notes](https://github.com/andrew-codechimp/HA-Battery-Notes); native `device_class: battery` devices work too (degraded) | [Features → Battery Fleet](docs/FEATURES.md#battery-fleet-battery-notes-or-native) |
 | **Scheduling** | Intervals (days→years), calendar patterns (weekdays, nth weekday, day of month, last/business day ±offset), the events of a Home Assistant calendar entity (once per event — waste collection), one-time, manual; seasonal month windows, finite series (ends after N times / on a date), postpone a single occurrence; drift-free planned anchoring; time-of-day precision (Advanced Features); live "next three dates" preview while editing | [Features → Task Management](docs/FEATURES.md#task-management) |
 | **Sensor triggers** | Threshold, counter, runtime, state-change, compound (AND/OR), multi-entity; auto-complete on sensor recovery; adopt HA `device_class: problem` sensors as tasks | [Features → Triggers](docs/FEATURES.md#sensor-based-triggers) |

@@ -230,7 +230,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "tuya": IntegrationSignature(
         name="Tuya vacuum",
-        verified="2026-09-25 @ home-assistant/core dev",
+        verified="2026-09-25 @ home-assistant/core dev; skips re-checked 2026-10-03 @ home-assistant/core 2026.10.0b0",
         source=(
             "home-assistant/core homeassistant/components/tuya/vacuum.py (vacuum "
             "platform) — the ENGINE accumulates cleaning time, entity_domain-gated so "
@@ -248,7 +248,11 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "used-vs-remaining undetermined) and CWYSJ fountain 'filter_duration' (DP "
             "filter_life 'hours', direction undetermined). The runtime duties stay: "
             "washing the filter / de-tangling the brush is a separate duty from "
-            "replacing the part at end of life."
+            "replacing the part at end of life. 2026-10-03 skips: CWYSJ 'uv_runtime' "
+            "(DURATION, disabled by default, device-defined unit, direction undocumented; "
+            "the fountain's filter/pump/water resets are SWITCHES, not buttons, and UV has "
+            "none) and the binary 'filter_cleaning' (a device_class problem fault bit → "
+            "problem-sensor adoption)."
         ),
         tasks=(
             # 2.95: each counter has its reset_* button (button.py category SD).
@@ -275,7 +279,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "smartthings": IntegrationSignature(
         name="SmartThings",
-        verified="2026-07-18 (vacuum) / 2026-07-20 (filters) @ home-assistant/core dev; dust bag 2026-09-27 @ home-assistant/core 2026.9",
+        verified="2026-07-18 (vacuum) / 2026-07-20 (filters) @ home-assistant/core dev; dust bag 2026-09-27 @ home-assistant/core 2026.9; skips re-checked 2026-10-03 @ home-assistant/core 2026.10.0b0",
         source=(
             "home-assistant/core homeassistant/components/smartthings/vacuum.py "
             "(vacuum platform verified present; no consumable sensors) — the "
@@ -291,7 +295,9 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "/ 'filter_status' (device_class problem → problem-sensor adoption), "
             "'stick_cleaner_dust_bag_usage' (unitless TOTAL_INCREASING bag cycles, reset "
             "semantics not established) and button 'reset_hepa_filter' (custom.hepaFilter — "
-            "no sensor exposes that filter, core 2026.9 nor dev, so there is no duty to wire)."
+            "no sensor exposes that filter, core 2026.9 nor dev, so there is no duty to wire). "
+            "2026-10-03: the washer's 'microfiber_filter_job_state' / "
+            "'microfiber_filter_operating_state' ENUMs are operating status — skipped."
         ),
         tasks=(
             VACUUM_FILTER_CLEANING_RUNTIME,

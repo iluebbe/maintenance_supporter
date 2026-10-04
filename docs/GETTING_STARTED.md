@@ -107,7 +107,7 @@ due when **a sensor says so**.
 
 **Suggested setups — one click for devices you already have.** Panel →
 **Add ▾ → Suggested setups** looks through your Home Assistant devices for
-the 225 integrations it knows — robot vacuums, mowers, printers, heating,
+the 262 integrations it knows — robot vacuums, mowers, printers, heating,
 water softeners, cars, wallboxes, purifiers … — and proposes their
 maintenance with the sensors **already wired**: "replace the filter when it
 is below 10 %", "clean the brush every 30 hours of cleaning". Tick what you

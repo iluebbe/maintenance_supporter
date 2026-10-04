@@ -133,4 +133,18 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(CHARGER_CABLE_ETO,),
     ),
+    # --- Round 16 (2026-10-03) --------------------------------------------
+    "wattpilot": IntegrationSignature(
+        name="Fronius Wattpilot",
+        verified="2026-10-03 @ mk-maddin/wattpilot-HA master (507a066)",
+        source=(
+            "HACS wattpilot (custom repository) sensor.yaml: property 'eto' ('Totally Charged' — "
+            "'Totally charged power', device_class energy, state_class total, unit Wh; the go-e API "
+            "lifetime energy the catalogued go-e entries use); entities.py names it "
+            "f'{charger} Totally Charged' (no has_entity_name, no translation_key) → suffix "
+            "_totally_charged. The unit map converts the 5,000 kWh target into Wh. 'wh' ('Connection "
+            "Charged', energy since the car was connected) is per session — not used."
+        ),
+        tasks=(ConsumableSignature(("totally_charged",), "Inspect Cable and Plug", "usage_delta", delta_units=5000),),
+    ),
 }

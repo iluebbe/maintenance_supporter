@@ -6,6 +6,30 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ✨ Added
 
+- **Suggested setups know 37 more integrations** (262 integrations, 551 verified signatures; 115 duties now reset
+  the device's own counter when completed):
+  - *Home Assistant:* Tami4 water bars (*Replace Water Filter* and *Replace UV Lamp* a week before the dates the bar
+    reports), Salda Smarty and Vallox ventilation (*Replace Ventilation Filter* a week before the unit's filter date;
+    on a Smarty completing it presses *Reset filters timer*), Ecoforest pellet stoves (*Stove Service* every 1,500
+    working hours; enable the *Working time* sensor first) and the Litter-Robot 5 filter (a week before its date;
+    completing it presses the robot's *Change filter*).
+  - *Smoke alarms and heating (HACS):* Nest Protect (*Replace Detectors* a month before the replace-by date), Kidde
+    HomeSafe, Ariston, HeishaMon Aquarea, Bosch HomeCom Easy and Nefit Easy (*Refill Heating Water* below 1 bar), MCZ
+    pellet stoves and Waterkotte heat pumps.
+  - *Air conditioners and ventilation (HACS):* Panasonic Comfort Cloud, Mitsubishi Heavy WF-RAC, Toshiba, Fujitsu
+    Airstage, AUX Cloud and Daikin Onecta air conditioners (*Filter Cleaning* after 100 hours of operation; Daikin
+    heat pumps and boilers are left out), Ambientika, Siku/Blauberg and EcoVent fans (Ambientika and Siku with their
+    filter reset).
+  - *Kitchen, water and pool (HACS):* Midea Auto Cloud water purifiers (one *Replace Water Filter* per cartridge),
+    air purifiers and fresh-air units, Grünbeck softliQ softeners (salt a week ahead, the annual service two weeks
+    ahead), Polaris / Rusclimate humidifiers, purifiers, breezers, ventilation units and water heaters (completing
+    *Replace Filter* or *Clean Tank* presses the matching reset), Gecko spa packs (their own reminders as dated tasks,
+    with the new *Replace Ozonator* and *Replace Vision Cartridge*), Hayward OmniLogic pool salt and Fluidra Pool UV
+    lamp hours.
+  - *Garden, cars, chargers and pets (HACS):* TerraMow and STIHL iMOW mowers, BYD, VW Group Connect, PyCupra and
+    Pandora (service, oil service and tire rotation from the car's own countdowns), the UK's DVLA MOT date
+    (*Roadworthiness Test* 30 days ahead), Fronius Wattpilot (cable and plug check by delivered energy) and the
+    Neakasa litter box.
 - **Undo after Complete:** a Complete in the panel or on a dashboard card shows a toast with *Undo* for ten minutes (on
   a card, Home Assistant's own toast). It takes back that completion: the history entry, the cycle anchor, the phase,
   the learning and the parts it used. One level per person, only for the task the toast names, and never over a later
