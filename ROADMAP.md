@@ -11,6 +11,31 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ## Next up (recommended order)
 
+### ✅ Places — maintenance away from home (HA zones) — shipped 2.99
+
+An object can be maintained at one of the Home Assistant zones (allotment
+garden, holiday home, boat, the parents' house); empty means home. *Remind only
+while somebody is there* holds its reminders until somebody has stayed in the
+zone for two minutes, whoever arrives gets one message with what is due there
+(own phones only, once per visit), the dashboard filters by place and the
+calendar events carry it as their location. Three recipes in EXAMPLES cover
+the rest with plain Home Assistant: a card that shows only on site (2026.10
+evaluates integration conditions for card visibility), an own arrival
+automation, the shopping list at the store.
+
+💡 Follow-ups, each waiting for a real use case:
+- A task-level place that overrides the object's (one task of the house is
+  done at the recycling centre).
+- Shops for buy reminders: a zone, or a zone label (*Hardware store*), on a
+  spare part; walking into one lists just what to buy there. Unreliable on
+  the drive past (phones report zone changes late), so it would only list,
+  never book a purchase by itself.
+- Vehicles: a car, caravan or boat follows its own tracker instead of a fixed
+  place.
+- Visits as a schedule: checklists on arrival and on leaving (water on/off at
+  the holiday home), "every fifth visit", a reminder on leaving with what is
+  still open.
+
 ### ✅ Dashboard header cleanup — one New menu, onboarding chips, budget as KPI (#125) — SHIPPED 2026-08-07
 
 Six creation/discovery buttons accumulated release by release (task, object,

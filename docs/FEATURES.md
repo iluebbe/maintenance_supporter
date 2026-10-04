@@ -1045,6 +1045,12 @@ objects at home.
 - **In the calendar** — the object's calendar events carry the place as their
   location, so phone calendars show where the job is
 
+![An object at the allotment garden, on its page](images/object-place.png)
+
+![The place in the object dialog, with Remind only while somebody is there](images/object-dialog-place.png)
+
+![The dashboard filtered to one place](images/dashboard-place-filter.png)
+
 How well it works depends on your phones: the Home Assistant Companion app
 reports which zones a person is in (all of them since app and core 2026.6,
 passive zones included). Give a place a radius of at least 100 m; Android

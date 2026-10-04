@@ -7,7 +7,7 @@ level — everything below it already works on its own. Nothing here needs YAML.
 | Level | You get | Time |
 |---|---|---|
 | [1 — Your first maintenance task](#level-1--your-first-maintenance-task) | Objects, tasks, due dates, one-tap completion | 5 min |
-| [2 — Never miss a date](#level-2--never-miss-a-date) | Notifications, calendar, To-do list, Today view | 10 min |
+| [2 — Never miss a date](#level-2--never-miss-a-date) | Notifications, calendar, To-do list, Today view, places away from home | 10 min |
 | [3 — Let your devices tell you](#level-3--let-your-devices-tell-you) | Sensor triggers, suggested setups, counter resets, battery fleet | 15 min |
 | [4 — Share the chores](#level-4--share-the-chores) | Users, rotation, QR codes and NFC tags at the device | 15 min |
 | [5 — Parts, documents and money](#level-5--parts-documents-and-money) | Spare parts, shopping list, manuals, costs, reports, areas | 20 min |
@@ -80,6 +80,13 @@ app only).
 Useful extras in that section: quiet hours, a weekly digest and bundling
 several reminders into one. Going away? *Settings → Vacation mode* pauses
 the reminders while you're gone.
+
+**Things that are not at home.** A shed in an allotment garden, a holiday
+home, a boat: switch on *Settings → Advanced Features → Places* and give
+the object one of your Home Assistant zones as its place. With *Remind only
+while somebody is there* its reminders stop nagging you at home and wait
+until somebody is there, and whoever arrives gets a message with what is
+due ([details](FEATURES.md#places-maintenance-away-from-home)).
 
 **Today view.** The *Today* tab shows only what needs you soon, in three
 sections: *Overdue* (including what a sensor triggered), *Due today* and

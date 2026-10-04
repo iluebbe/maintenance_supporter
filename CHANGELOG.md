@@ -44,6 +44,17 @@ All notable changes to Maintenance Supporter are documented in this file.
   readers learned the second form: the notes kept for re-adopting a problem sensor, and the repair of the Gree and
   Daikin runtime triggers.
 
+### 📝 Documentation
+
+- **The README in HACS shows its badges and links:** before HACS shows a README it rewrites the relative links, and in
+  a badge line it put its prefix in front of the image instead of the link, so the Tests and Coverage badges showed as
+  broken images; a relative link after an absolute one on the same line was not rewritten at all and led nowhere.
+  Those links are absolute now, and a test runs HACS's rewriting over the README, so a new line of that kind fails CI.
+  HACS shows the README of the installed release, so the fix appears with this version.
+- **Places in the guides:** getting started (level 2), a troubleshooting entry for a missing arrival message, pictures
+  of the object page, the object dialog and the place filter, and the roadmap with the follow-up ideas. The
+  multi-sensor row in CONFIGURATION says what a sensor without a reading decides.
+
 ## [2.98.0] - 2026-10-04
 
 ### ✨ Added

@@ -17,6 +17,18 @@
 4. Use **Test Notification** in the global options to verify the service works
 5. Check the per-status enable toggles (`notify_due_soon_enabled`, etc.)
 
+### Places: No Message on Arrival
+
+The arrival message goes to the arriving person's own phones only. Check, in order:
+
+1. The person is linked to a Home Assistant user (*Settings → People*), and that user has the Companion app with notifications allowed. The household notify service alone gets no arrival message; with *Only fire the event* on, the event `maintenance_supporter_notification` (kind `place_arrival`) is sent instead
+2. The object's place is that zone, and one of its tasks is overdue, triggered or due soon. Muted and snoozed tasks are left out
+3. The person stayed two minutes: a drive past the zone edge is no visit. In Developer tools → States the person's `in_zones` attribute must list the zone (apps and cores before 2026.6 report only the zone in the state)
+4. At most one message per person and place in six hours, and none during quiet hours
+5. A person who is already in the zone when Home Assistant starts did not arrive: the next visit brings the message
+
+Reminders of an object with *Remind only while somebody is there* wait for the same two-minute stay. A zone that no longer exists counts as home, and the object page says so.
+
 ### Sidebar Panel Not Visible
 
 1. Ensure `panel_enabled` is `true` in global settings (it defaults to `true`)
