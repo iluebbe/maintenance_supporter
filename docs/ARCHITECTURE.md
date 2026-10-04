@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.98.0 | 307 source files (177 Python + 130 TypeScript) | **98% test coverage** (5,407 backend tests + 1,254 frontend tests)
+**Version:** 2.98.0 | 308 source files (177 Python + 131 TypeScript) | **98% test coverage** (5,407 backend tests + 1,254 frontend tests)
 
 ---
 
@@ -191,12 +191,12 @@ drifted. The descriptions are hand-written.
 
 ```
 custom_components/maintenance_supporter/
-├── __init__.py                  (2,342 lines)  Integration setup, services, lifecycle, async_migrate_entry
+├── __init__.py                  (2,351 lines)  Integration setup, services, lifecycle, async_migrate_entry
 ├── const.py                       (939 lines)  Constants, enums, defaults, PLATFORMS
 ├── coordinator.py               (2,183 lines)  DataUpdateCoordinator per object
 ├── storage.py                     (657 lines)  Per-entry Store (dynamic state, migration, part stock)
 ├── parts_runtime.py               (545 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
-├── shopping_sync.py               (379 lines)  2.67: mirrors auto buy tasks into a user-picked todo.* list (own-rows uid map)
+├── shopping_sync.py               (403 lines)  2.67: mirrors auto buy tasks into a user-picked todo.* list (own-rows uid map)
 │
 ├── config_flow.py                 (943 lines)  Initial setup flow + templates
 ├── config_flow_helpers.py         (362 lines)  Shared config flow utilities
@@ -292,8 +292,8 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (43,887 lines)  130 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
-│   ├── maintenance-panel.ts     (5,258 lines)  Panel shell: today / dashboard / calendar / settings tabs,
+├── frontend-src/               (43,922 lines)  131 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+│   ├── maintenance-panel.ts     (5,261 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,263 lines)  Auto-generated dashboard strategy + 4 section strategies
 │   ├── maintenance-card.ts        (850 lines)  Lovelace card
@@ -321,7 +321,7 @@ custom_components/maintenance_supporter/
 │   ├── ds-preview-kit.ts          (229 lines)  Design-sync preview kit: a demo household behind a mock `hass`
 │   ├── maintenance-panel-card.ts  (369 lines)  The whole panel as a Lovelace card (#174)
 │   ├── status-constants.ts         (62 lines)  Status colors + icons — THE single source for every renderer
-│   ├── helpers/                 (5,729 lines)  62 files — Pure functions and small services shared by the panel, the cards and the dialogs
+│   ├── helpers/                 (5,755 lines)  63 files — Pure functions and small services shared by the panel, the cards and the dialogs
 │   │   ├── calendar-bucket.ts     (426 lines)  Pure 7/14/30/365-day projection, 5 occurrences max per task, no projection for sensor-based
 │   │   ├── notes-markdown.ts       (24 lines)  Notes rendering (ha-markdown hand-off)
 │   │   ├── bundle-version.ts       (19 lines)  Stale-bundle guard
@@ -383,21 +383,22 @@ custom_components/maintenance_supporter/
 │   │   ├── worksheet.ts           (180 lines)  Task work sheet (v2.21) — a printable one-pager for a single task
 │   │   ├── ws-run.ts              (130 lines)  One WS round-trip with its error routed to the surface's own feedback (toast / error line)
 │   │   ├── ha-time.ts             (258 lines)  Home Assistant's clock: the time zone behind every date the UI computes or shows
-│   │   └── undo-completion.ts      (64 lines)  Undo a completion the current person just made — the panel's and the dashboard card's toast action (2026-10)
-│   ├── renderers/               (2,393 lines)  11 files — Pure lit-html render functions of the task views and the charts
+│   │   ├── undo-completion.ts      (64 lines)  Undo a completion the current person just made — the panel's and the dashboard card's toast action (2026-10)
+│   │   └── trigger-entities.ts     (26 lines)  The entities a stored trigger watches, in either stored shape
+│   ├── renderers/               (2,398 lines)  11 files — Pure lit-html render functions of the task views and the charts
 │   │   ├── task-detail.ts         (569 lines)  The task detail view (header, ⋮ menu, sections) as a function of its context
 │   │   ├── chart-utils.ts          (93 lines)  Shared chart helpers: nice axis ticks and consistent number/date formats
 │   │   ├── charts.ts              (167 lines)  Cost/duration chart renderers (task detail)
 │   │   ├── history.ts             (251 lines)  Task history sub-view: filter chips + search + the timeline of entries
 │   │   ├── prediction.ts           (61 lines)  Sensor prediction section renderer
-│   │   ├── progress.ts            (321 lines)  Progress renderers shared by the dashboard rows, the object-detail view and the task-detail overview tab
+│   │   ├── progress.ts            (325 lines)  Progress renderers shared by the dashboard rows, the object-detail view and the task-detail overview tab
 │   │   ├── recommendation.ts       (49 lines)  Shared recommendation-card visuals (bars + confidence badge)
 │   │   ├── seasonal.ts            (118 lines)  Seasonal factor chart renderers
-│   │   ├── sparkline.ts           (514 lines)  Trigger section renderer (task detail)
+│   │   ├── sparkline.ts           (515 lines)  Trigger section renderer (task detail)
 │   │   ├── status.ts               (62 lines)  A task's status as the user sees it — THE derivation for every surface
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
-│   ├── components/             (19,695 lines)  37 files — Lit elements: dialogs, sections, views, cards
-│   │   ├── task-dialog.ts       (3,753 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
+│   ├── components/             (19,696 lines)  37 files — Lit elements: dialogs, sections, views, cards
+│   │   ├── task-dialog.ts       (3,754 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
 │   │   ├── settings-view.ts     (2,779 lines)  In-panel global settings editor
 │   │   ├── task-quick-actions-dialog.ts (937 lines)  Task ⋮ menu
 │   │   ├── documents-section.ts   (714 lines)  Object-detail documents/manuals section
@@ -434,9 +435,9 @@ custom_components/maintenance_supporter/
 │   │   ├── required-completion-labels.ts (27 lines)  Labels of the details a task can demand on completion (mirror of helpers/completion_requirements.py)
 │   │   ├── bulk-edit-dialog.ts    (266 lines)  Several tasks changed at once (discussion #199): who is assigned, their labels, and the few settings that make sense in bulk
 │   │   └── ms-cost-input.ts       (109 lines)  A cost that may be a credit (#200): a Cost | Credit switch and the amount
-│   └── __tests__/              (27,014 lines)  195 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (27,071 lines)  196 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (31,388 lines)  99 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+├── helpers/                    (31,396 lines)  99 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,448 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (362 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (96 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
@@ -462,7 +463,7 @@ custom_components/maintenance_supporter/
 │   ├── vacation.py                (347 lines)  Vacation mode
 │   ├── battery_fleet_setup.py   (1,088 lines)  One-click fleet object + parts + single aggregate task
 │   ├── doc_archive.py             (597 lines)  Documents ZIP archive (the export that carries file contents)
-│   ├── problem_sensors.py         (285 lines)  Adopt HA `device_class: problem` sensors as triggered tasks
+│   ├── problem_sensors.py         (289 lines)  Adopt HA `device_class: problem` sensors as triggered tasks
 │   ├── entity_attributes.py       (239 lines)  Domain→attribute mapping for trigger setup
 │   ├── entity_analyzer.py         (211 lines)  Entity discovery + recorder stats
 │   ├── retention.py               (245 lines)  Archive & auto-delete retention sweep
@@ -481,7 +482,7 @@ custom_components/maintenance_supporter/
 │   ├── aggregate.py               (224 lines)  compute_status_counts — the single KPI source
 │   ├── i18n.py                     (74 lines)  normalize_language_code (pt-br is its own table key)
 │   ├── integration_signatures.py   (28 lines)  Compatibility shim → signatures/
-│   ├── catalog_heal.py            (135 lines)  Repairs catalog-adopted triggers a later signature fix invalidated (gree/daikin AC runtime)
+│   ├── catalog_heal.py            (139 lines)  Repairs catalog-adopted triggers a later signature fix invalidated (gree/daikin AC runtime)
 │   ├── climate.py                 (236 lines)  Offline climate of the home location: Köppen class + coldest/warmest month → traits (freeze, snow, hot_humid, termites, cyclone …), hemisphere flip
 │   ├── home_profile.py            (406 lines)  House vs apartment from floors/areas/entities, `home_type` override, country, region (`home_region` override), radon countries, earthquake / Gulf-coast freeze boxes, Australia-wide bushfire/termites, equipment from integrations (UPS: NUT/apcupsd)
 │   ├── region.py                  (171 lines)  Offline state / province / region of the home location (ISO 3166-2): two-level grid from Natural Earth admin-1, nearest region on the coast

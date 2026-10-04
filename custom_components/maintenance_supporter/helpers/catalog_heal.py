@@ -58,7 +58,11 @@ def _catalog_on_states(platform: str) -> tuple[str, ...]:
 def _healed_trigger(hass: HomeAssistant, tc: Mapping[str, Any]) -> dict[str, Any] | None:
     if tc.get("type") != "runtime" or tc.get("attribute") != "hvac_action":
         return None
-    entity_id = tc.get("entity_id")
+    from ..entity.triggers import primary_entity_id
+
+    # Either stored shape: a trigger with only the ``entity_ids`` list was
+    # never healed (same-class audit 2026-10-04).
+    entity_id = primary_entity_id(dict(tc))
     if not isinstance(entity_id, str) or not entity_id.startswith("climate."):
         return None
     reg = er.async_get(hass).async_get(entity_id)

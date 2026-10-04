@@ -209,7 +209,11 @@ def stash_task_config_for_readopt(hass: HomeAssistant, task: dict[str, Any]) -> 
     tc = task.get("trigger_config")
     if not isinstance(tc, dict) or not tc.get("auto_complete_on_recovery"):
         return
-    entity_ids = tc.get("entity_ids") or []
+    from ..entity.triggers import normalize_entity_ids
+
+    # Either stored shape: a task with only the legacy ``entity_id`` lost its
+    # notes on un-adopt (same-class audit 2026-10-04).
+    entity_ids = normalize_entity_ids(tc)
     config = {k: task[k] for k in _STASHED_TASK_FIELDS if task.get(k) and (not isinstance(task[k], str) or task[k].strip())}
     # "normal" priority is the default — not worth resurrecting on its own.
     if config.get("priority") == "normal":

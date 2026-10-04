@@ -131,6 +131,7 @@ import type { PartsCostMode } from "./helpers/parts-cost";
 import { canWrite } from "./helpers/permissions";
 import { renderStatusBadge } from "./renderers/status";
 import { TOAST_MS, ACTION_TOAST_MS } from "./helpers/toast";
+import { primaryTriggerEntity } from "./helpers/trigger-entities";
 import { buildHistoryEntryDraft } from "./helpers/history-draft";
 import { readingSlotDelta } from "./helpers/reading-slots";
 import { bulkResultMessage, codedFailures, runWs, runWsEach } from "./helpers/ws-run";
@@ -1087,7 +1088,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const task = this._selectedEntryId && this._selectedTaskId
       ? this._getTask(this._selectedEntryId, this._selectedTaskId)
       : null;
-    const entityId = task?.trigger_config?.entity_id;
+    const entityId = primaryTriggerEntity(task?.trigger_config);
     if (entityId) {
       // Drop the stale-range series so the chart shows its loading state.
       const updated = new Map(this._detailStatsData);
@@ -1111,7 +1112,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     const entities: Array<{ entityId: string; isCounter: boolean }> = [];
     for (const obj of this._objects) {
       for (const task of obj.tasks) {
-        const entityId = task.trigger_config?.entity_id;
+        // The battery fleet's row shows "N to replace", not a sparkline.
+        const entityId = task.battery_fleet_task ? undefined : primaryTriggerEntity(task.trigger_config);
         if (!entityId) continue;
         entities.push({ entityId, isCounter: this._isCounterEntity(task.trigger_config) });
       }
@@ -1353,8 +1355,9 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (s.msp_view === "task" && s.msp_entry && s.msp_task) {
       this._historyFilter = null;
       const task = this._getTask(s.msp_entry, s.msp_task);
-      if (task?.trigger_config?.entity_id) {
-        this._fetchDetailStats(task.trigger_config.entity_id, this._isCounterEntity(task.trigger_config));
+      const entityId = primaryTriggerEntity(task?.trigger_config);
+      if (task && entityId) {
+        this._fetchDetailStats(entityId, this._isCounterEntity(task.trigger_config));
       }
     }
   }
@@ -1615,8 +1618,9 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._resetStickyPane();
       this._fetchFullHistory(entryId, taskId);
       const task = this._getTask(entryId, taskId);
-      if (task?.trigger_config?.entity_id) {
-        this._fetchDetailStats(task.trigger_config.entity_id, this._isCounterEntity(task.trigger_config));
+      const entityId = primaryTriggerEntity(task?.trigger_config);
+      if (task && entityId) {
+        this._fetchDetailStats(entityId, this._isCounterEntity(task.trigger_config));
       }
       return;
     }
@@ -1637,10 +1641,9 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     // Lazy-load statistics for the task's trigger entity
     const task = this._getTask(entryId, taskId);
-    if (task?.trigger_config?.entity_id) {
-      const entityId = task.trigger_config.entity_id;
-      const isCounter = this._isCounterEntity(task.trigger_config);
-      this._fetchDetailStats(entityId, isCounter);
+    const entityId = primaryTriggerEntity(task?.trigger_config);
+    if (task && entityId) {
+      this._fetchDetailStats(entityId, this._isCounterEntity(task.trigger_config));
     }
   }
 

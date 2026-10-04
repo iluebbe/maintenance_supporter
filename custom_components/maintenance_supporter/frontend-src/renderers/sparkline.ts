@@ -16,6 +16,7 @@ import { t, fireMoreInfo, formatDueDays } from "../styles";
 import { fmtNum, fmtVal } from "./chart-utils";
 import { dueDaysOf } from "./progress";
 import { stampMs } from "../helpers/ha-time";
+import { primaryTriggerEntity, triggerEntityIds } from "../helpers/trigger-entities";
 import "../components/trigger-chart";
 import type { ChartPoint, ChartEvent } from "../components/trigger-chart";
 import type { MaintenanceTask, TriggerConfig, StatisticsPoint } from "../types";
@@ -156,9 +157,9 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
   const L = ctx.lang;
   const info = task.trigger_entity_info;
   const infos = task.trigger_entity_infos;
-  const friendlyName = info?.friendly_name || tc.entity_id || "—";
-  const entityId = tc.entity_id || "";
-  const entityIds = tc.entity_ids || (entityId ? [entityId] : []);
+  const entityId = primaryTriggerEntity(tc) || "";
+  const friendlyName = info?.friendly_name || entityId || "—";
+  const entityIds = triggerEntityIds(tc);
   const unit = info?.unit_of_measurement || "";
   const currentVal = task.trigger_current_value;
   const triggerType = tc.type || "threshold";
@@ -215,7 +216,7 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
         ${triggerType === "compound" ? html`
           <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("compound_logic", L)}: ${tc.compound_logic || (tc as any).operator || "AND"}</span>
           ${(tc.conditions || []).map((cond: any, i: number) => html`
-            <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${i + 1}. ${t(cond.type === "due_date" ? "trigger_type_due_date" : cond.type || "unknown", L)}: ${cond.entity_id ? html`<span class="entity-link" @click=${(ev: Event) => fireMoreInfo(ev, cond.entity_id)}>${cond.entity_id}</span>` : ""}</span>
+            <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${i + 1}. ${t(cond.type === "due_date" ? "trigger_type_due_date" : cond.type || "unknown", L)}: ${triggerEntityIds(cond).map((eid, j) => html`${j > 0 ? ", " : ""}<span class="entity-link" @click=${(ev: Event) => fireMoreInfo(ev, eid)}>${eid}</span>`)}</span>
           `)}
         ` : nothing}
       </div>
@@ -330,7 +331,7 @@ function rawStatsPoints(task: MaintenanceTask, ctx: SparklineContext): ChartPoin
   const tc = task.trigger_config;
   if (!tc) return [];
   const triggerType = tc.type || "threshold";
-  const entityId = tc.entity_id || "";
+  const entityId = primaryTriggerEntity(tc) || "";
   // Runtime accumulates hours DERIVED from the entity's on/off time — the
   // entity's own long-term statistics (an on/off ratio, or an unrelated raw
   // sensor value) are NOT that accumulation. Plot only the recorded per-cycle
@@ -372,7 +373,7 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
   const tc = task.trigger_config;
   if (!tc) return nothing;
   const triggerType = tc.type || "threshold";
-  const entityId = tc.entity_id || "";
+  const entityId = primaryTriggerEntity(tc) || "";
   // A due date only counts down — no curve to tell.
   if (triggerType === "due_date") return nothing;
 

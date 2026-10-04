@@ -607,6 +607,23 @@ async def test_stash_ignores_non_adopted_tasks_and_empty_notes(
     assert (global_entry.options or global_entry.data).get(CONF_ADOPTED_NOTES) in (None, {})
 
 
+async def test_a_legacy_trigger_config_is_stashed_too(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """The stash read only ``entity_ids``: a task stored with the legacy single
+    ``entity_id`` lost its notes on un-adopt (same-class audit 2026-10-04)."""
+    from custom_components.maintenance_supporter.const import CONF_ADOPTED_NOTES
+    from custom_components.maintenance_supporter.helpers.problem_sensors import (
+        stash_task_config_for_readopt,
+    )
+
+    await setup_integration(hass, global_entry)
+    stash_task_config_for_readopt(
+        hass,
+        {"notes": "needs part X", "trigger_config": {"auto_complete_on_recovery": True, "entity_id": "binary_sensor.old"}},
+    )
+    stash = (global_entry.options or global_entry.data)[CONF_ADOPTED_NOTES]
+    assert stash["binary_sensor.old"] == {"notes": "needs part X"}
+
+
 async def test_stash_is_fifo_capped(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     from custom_components.maintenance_supporter.const import CONF_ADOPTED_NOTES, MAX_ADOPTED_NOTES
     from custom_components.maintenance_supporter.helpers.problem_sensors import (

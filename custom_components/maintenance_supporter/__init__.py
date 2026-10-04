@@ -14,6 +14,7 @@ from homeassistant.auth import EVENT_USER_REMOVED
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import (
+    CoreState,
     Event,
     HomeAssistant,
     ServiceCall,
@@ -1726,6 +1727,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         coordinator = MaintenanceCoordinator(hass, entry, store)
         entry.runtime_data = MaintenanceSupporterData(coordinator=coordinator, store=store)
         await coordinator.async_config_entry_first_refresh()
+
+        # A shopping-list row checked while this object was not loaded (a
+        # reload after a task edit, a setup retry) waits for it — the resync
+        # books it now. At startup the pass after "started" covers it.
+        if hass.state is CoreState.running:
+            from .shopping_sync import schedule_resync
+
+            schedule_resync(hass)
 
         # #148: a battery type that becomes known only after fleet setup (a
         # Battery Notes note added later, a typed low-only Matter binary)

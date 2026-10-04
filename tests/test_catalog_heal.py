@@ -160,3 +160,17 @@ async def test_hon_filters_read_inverted_are_flipped_to_wear(hass: HomeAssistant
     assert tasks["mine"] == data[CONF_TASKS]["mine"]
     assert tasks["other"] == data[CONF_TASKS]["other"]
     assert heal_catalog_triggers(hass, healed) is None, "idempotent"
+
+
+async def test_a_trigger_stored_with_only_entity_ids_is_healed_too(hass: HomeAssistant) -> None:
+    """The heal read only the legacy ``entity_id``: a trigger stored with just
+    the ``entity_ids`` list was never healed (same-class audit 2026-10-04)."""
+    gree = _climate(hass, "gree", "g3")
+    task = _task(gree, OLD_STATES)
+    del task["trigger_config"]["entity_id"]
+    data = build_object_entry_data(object_data=build_object_data(name="ACs"), tasks={"t1": task})
+    healed = heal_catalog_triggers(hass, data)
+    assert healed is not None
+    tc = healed[CONF_TASKS]["t1"]["trigger_config"]
+    assert "attribute" not in tc and tc["trigger_on_states"] == ["auto", "cool", "dry", "fan_only", "heat"]
+    assert "entity_id" not in tc, "the stored shape is kept"

@@ -507,3 +507,71 @@ async def test_a_checked_row_with_our_text_is_not_adopted(hass: HomeAssistant) -
     assert entry.runtime_data.store.get_part_stock("p1") == 1, "restocked without a purchase"
     merged = entry.runtime_data.coordinator._get_merged_tasks_data()[buy_id]
     assert not [h for h in merged["history"] if h["type"] == "completed"]
+
+
+async def test_rows_of_an_object_that_is_not_loaded_stay(hass: HomeAssistant) -> None:
+    """An object that is not loaded right now (reloading after a task edit,
+    a setup retry) still has its buy tasks: its rows stay in the list,
+    untouched. The resync read "no buy tasks" and deleted them; they came
+    back later as new rows (found 2026-10-04)."""
+    todo, entry, sync = await _setup(hass)
+    await sync.async_resync()
+    (rec,) = sync._data["items"].values()
+
+    await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+    await sync.async_resync()
+    assert rec["uid"] in todo.uids()
+    assert list(sync._data["items"].values()) == [rec]
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    await sync.async_resync()
+    assert [r["uid"] for r in sync._data["items"].values()] == [rec["uid"]]  # the same row, not a new one
+    assert sum("Filter" in s for s in todo.summaries()) == 1
+
+
+async def test_a_row_checked_while_its_object_is_not_loaded_counts_once_it_is_back(hass: HomeAssistant) -> None:
+    """A purchase checked off while its object was not loaded was dropped:
+    no completion, no restock, and the row came back. It now waits, and the
+    object's setup asks for the resync that books it."""
+    from datetime import timedelta
+
+    from homeassistant.util import dt as dt_util
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+    todo, entry, sync = await _setup(hass)
+    buy_id = _buy_task_id(entry)
+    await sync.async_resync()
+    (rec,) = sync._data["items"].values()
+
+    await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+    todo.check_off(rec["uid"])
+    await sync.async_resync()
+    assert rec["uid"] in todo.uids()  # still there, checked, waiting for its object
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=12))
+    await hass.async_block_till_done()
+
+    entry = hass.config_entries.async_get_entry(entry.entry_id)
+    merged = entry.runtime_data.coordinator._get_merged_tasks_data()[buy_id]
+    assert [h for h in merged["history"] if h["type"] == "completed"], "the purchase was not booked"
+    assert entry.runtime_data.store.get_part_stock("p1") == 6  # 1 + restock_quantity
+    assert not any("Filter" in s for s in todo.summaries())
+
+
+async def test_a_disabled_object_still_drops_its_rows(hass: HomeAssistant) -> None:
+    """Disabling an object is a decision, not a gap: its rows go."""
+    from homeassistant.config_entries import ConfigEntryDisabler
+
+    todo, entry, sync = await _setup(hass)
+    await sync.async_resync()
+    assert any("Filter" in s for s in todo.summaries())
+
+    await hass.config_entries.async_set_disabled_by(entry.entry_id, ConfigEntryDisabler.USER)
+    await hass.async_block_till_done()
+    await sync.async_resync()
+    assert not any("Filter" in s for s in todo.summaries())

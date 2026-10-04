@@ -17,6 +17,16 @@ All notable changes to Maintenance Supporter are documented in this file.
   older form. The first save of such a task, even of just a new target, read that as "another sensor" and reset the
   counter's starting value or the runtime hours collected so far. Only a real change of the trigger type, its sensors
   or its counting start value resets them now.
+- **The shopping list keeps the rows of an object that is reloading:** while an object was not loaded (it reloads after
+  every task edit, or Home Assistant retries a setup that failed), the sync read "no buy tasks" and deleted its rows;
+  they came back later as new rows, and a row checked off in that moment was dropped without booking the purchase.
+  The rows now stay, a checked one waits for its object, and the object asks for the sync as soon as it is back. A
+  disabled object still takes its rows out.
+- **Charts for triggers stored with only their sensor list:** an adopted problem sensor stores its sensor as a list
+  only, and the task's chart, the sparkline in the overview and the trend arrow read just the single-sensor field, so
+  none of them showed. All of them read both forms now, and a test keeps every reader on that one rule. Two more
+  readers learned the second form: the notes kept for re-adopting a problem sensor, and the repair of the Gree and
+  Daikin runtime triggers.
 
 ## [2.98.0] - 2026-10-04
 

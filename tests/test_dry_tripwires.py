@@ -87,6 +87,26 @@ def test_localstorage_only_via_guarded_helper() -> None:
     assert not offenders, f"direct localStorage use in {offenders} — use lsGet/lsSet from helpers/storage-keys"
 
 
+def test_trigger_entities_read_through_the_helper() -> None:
+    """A trigger stores its entities as ``entity_ids``, the legacy single
+    ``entity_id``, or both. Reading one of them directly missed the other
+    shape: the detail chart, the overview sparkline and the trend arrow read
+    only ``entity_id``, so an adopted problem sensor (stored with just the
+    list) showed none of them (same-class audit 2026-10-04). All reads go
+    through helpers/trigger-entities.ts (the twin of the backend's
+    normalize_entity_ids / primary_entity_id). Object keys that BUILD a
+    config (``entity_id: ids[0]``) are not reads and do not match."""
+    read = re.compile(r"\b(?:trigger_config|tc|cond)\??\.entity_ids?\b")
+    offenders = [
+        f"{p.name}:{n}"
+        for p in _frontend_sources()
+        if p.name != "trigger-entities.ts" and "__tests__" not in p.parts
+        for n, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1)
+        if read.search(line)
+    ]
+    assert not offenders, f"direct trigger entity read in {offenders} — use helpers/trigger-entities"
+
+
 def test_signed_document_urls_single_source() -> None:
     """The auth/sign_path dance lives ONLY in helpers/document-url.ts — nine
     hand-copied call sites had drifted (page-fragment handling, popup close,

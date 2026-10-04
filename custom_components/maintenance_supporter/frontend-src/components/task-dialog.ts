@@ -28,6 +28,7 @@ import type { TriggerType } from "../types";
 import { REQUIRED_COMPLETION_KEYS, REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import "./ms-textfield";
 import { defaultNotifyIcon } from "../helpers/notify-icons";
+import { primaryTriggerEntity, triggerEntityIds } from "../helpers/trigger-entities";
 import "./ms-date-field";
 import "./ms-cost-input";
 
@@ -160,7 +161,7 @@ export function applyTypeFields(c: TriggerConfig, d: TriggerTypeFields): void {
 
 /** Map a persisted compound condition (storage shape) to an editable draft. */
 function conditionToDraft(c: TriggerConfig): CompoundConditionDraft {
-  const ids = c.entity_ids || (c.entity_id ? [c.entity_id] : []);
+  const ids = triggerEntityIds(c);
   return {
     entityIds: ids.join(", "),
     ...typeFieldsFromConfig(c),
@@ -617,8 +618,8 @@ export class MaintenanceTaskDialog extends LitElement {
       // Fleet task) must still hydrate the singular field — the save path
       // gates on _triggerEntityId and would otherwise NULL the whole trigger
       // on an unrelated edit (issue #106).
-      this._triggerEntityId = tc.entity_id || (tc.entity_ids && tc.entity_ids[0]) || "";
-      this._triggerEntityIds = tc.entity_ids || (tc.entity_id ? [tc.entity_id] : []);
+      this._triggerEntityId = primaryTriggerEntity(tc) || "";
+      this._triggerEntityIds = triggerEntityIds(tc);
       this._triggerEntityLogic = tc.entity_logic || "any";
       this._setTypeFields(typeFieldsFromConfig(tc));
       this._triggerCombinator = tc.trigger_combinator === "all" ? "all" : "any";

@@ -179,6 +179,7 @@ class ShoppingListSync:
         by_uid = {i["uid"]: i for i in listed if i.get("uid")}
         mapping: dict[str, dict[str, Any]] = self._data["items"]
         changed = False
+        unloaded = self._unloaded_entry_ids()
 
         # 1. Rows the user checked → complete the buy task (restocks the part
         #    by its configured default), then drop the row.
@@ -186,6 +187,8 @@ class ShoppingListSync:
             item = by_uid.get(rec.get("uid"))
             if item is None or item.get("status") != "completed":
                 continue
+            if key.partition(":")[0] in unloaded:
+                continue  # booked once its object is back (its setup asks for a resync)
             await self._complete_buy_task(key)
             await self._remove_item(entity, rec)
             mapping.pop(key, None)
@@ -194,8 +197,9 @@ class ShoppingListSync:
         desired = self._desired()
 
         # 2. Buy tasks gone (restocked / opted out / deleted) → drop the row.
+        #    Not the rows of an object that is only not loaded right now.
         for key, rec in list(mapping.items()):
-            if key in desired:
+            if key in desired or key.partition(":")[0] in unloaded:
                 continue
             if rec.get("uid") in by_uid:
                 await self._remove_item(entity, rec)
@@ -277,6 +281,26 @@ class ShoppingListSync:
 
         if changed or to_add:
             await self._save()
+
+    def _unloaded_entry_ids(self) -> set[str]:
+        """Object entries that exist and are not disabled, but are not loaded
+        right now: reloading after a task edit, a setup retry or error.
+
+        Their buy tasks are unknown, not gone. Read as "no buy tasks", their
+        rows were deleted (and came back later as new rows), and a row
+        checked in that window was dropped without booking the purchase
+        (found 2026-10-04). Their rows now stay untouched, a checked one
+        waits, and the object's setup asks for the resync that books it. A
+        disabled object is a decision, not a gap: its rows go as before.
+        """
+        out: set[str] = set()
+        for ce in self._hass.config_entries.async_entries(DOMAIN):
+            if ce.unique_id == GLOBAL_UNIQUE_ID or ce.disabled_by is not None:
+                continue
+            rd = getattr(ce, "runtime_data", None)
+            if getattr(rd, "store", None) is None or getattr(rd, "coordinator", None) is None:
+                out.add(ce.entry_id)
+        return out
 
     def _desired(self) -> dict[str, str]:
         """Open buy tasks across all object entries → {key: row summary}."""
