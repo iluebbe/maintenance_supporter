@@ -25,6 +25,7 @@ from typing import Any
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_component import async_update_entity
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
@@ -37,6 +38,7 @@ from custom_components.maintenance_supporter.const import (
     STORES_CACHE_KEY,
 )
 from custom_components.maintenance_supporter.helpers import doc_archive
+from custom_components.maintenance_supporter.helpers.battery_fleet_setup import LOW_COUNT_ENTITY_ID
 from custom_components.maintenance_supporter.helpers.global_options import get_global_options
 from custom_components.maintenance_supporter.storage import legacy_runtime_to_trigger_state
 from custom_components.maintenance_supporter.websocket.io import (
@@ -226,7 +228,20 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
     hass.config_entries.async_update_entry(global_entry, options=options)
     await hass.async_block_till_done()
     await _seed_the_rest(hass, global_entry, rig, kitchen, manual, docs)
+    await _count_the_fleet(hass)
     return {"alice": alice, "bob": bob, "task_id": task["id"]}
+
+
+async def _count_the_fleet(hass: HomeAssistant) -> None:
+    """Let the hub's low-count sensor count now what a running instance
+    counts within its 30-s poll (it recounts on Battery Notes events and that
+    poll only). The seed writes the fleet's low latch straight into the Store:
+    left uncounted, the original was photographed half-way (latch low, count
+    0, task OK), and whether the new instance's poll landed before its
+    snapshot decided the test. It did under heavy load (2026-10-04): an
+    extra "triggered" entry on the moved fleet task."""
+    await async_update_entity(hass, LOW_COUNT_ENTITY_ID)
+    await hass.async_block_till_done()
 
 
 def _kitchen_extras() -> dict[str, dict[str, Any]]:
@@ -604,6 +619,9 @@ async def test_a_move_to_another_instance_keeps_everything(
     hass: HomeAssistant, global_entry: MockConfigEntry, settings_first: bool
 ) -> None:
     people = await _seed(hass, global_entry)
+    # The garage remote's latch is counted: the move carries an ACTIVE fleet
+    # trigger with its history.
+    assert hass.states.get(LOW_COUNT_ENTITY_ID).state == "1"
     before, seen_state = await _snapshot(hass)
     objects_json, settings_json, archive = await _export_all(hass)
 
@@ -617,6 +635,13 @@ async def test_a_move_to_another_instance_keeps_everything(
     assert "error" not in restored, restored
     await hass.async_block_till_done()
     assert not any(r.get("unmatched_users") for r in results), results
+    # The new instance counts the latch too, and its fleet task refreshes:
+    # neither may record the carried activation again or complete it.
+    await _count_the_fleet(hass)
+    assert hass.states.get(LOW_COUNT_ENTITY_ID).state == "1"
+    fleet = next(e for e in hass.config_entries.async_entries(DOMAIN) if (e.data.get("object") or {}).get("battery_fleet"))
+    await fleet.runtime_data.coordinator.async_refresh()
+    await hass.async_block_till_done()
 
     after, _ = await _snapshot(hass)
     diffs = _diff(before, after, "", [])
