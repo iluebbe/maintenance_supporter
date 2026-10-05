@@ -84,6 +84,7 @@ from .const import (
     SERVICE_RESET,
     SERVICE_SKIP,
     SERVICE_UPDATE_TASK,
+    SIGNAL_BATTERY_FLEET_CHANGED,
     SIGNAL_NEW_OBJECT_ENTRY,
     SIGNAL_OBJECT_ENTRY_REMOVED,
     STORES_CACHE_KEY,
@@ -1735,6 +1736,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
 
         coordinator = MaintenanceCoordinator(hass, entry, store)
         entry.runtime_data = MaintenanceSupporterData(coordinator=coordinator, store=store)
+        if obj_data.get(BATTERY_FLEET_OBJECT_FLAG):
+            # The hub counts this fleet's batteries now (its Store, with the
+            # low latch, is reachable through runtime_data from here on), so
+            # the first refresh and the trigger of the fleet task read the
+            # real count, not the hub's count from before this fleet loaded.
+            # A stale 0 there was taken for a recovery, and the count catching
+            # up announced the same low battery again (2026-10-05).
+            from homeassistant.helpers.dispatcher import async_dispatcher_send
+
+            async_dispatcher_send(hass, SIGNAL_BATTERY_FLEET_CHANGED)
         await coordinator.async_config_entry_first_refresh()
 
         # A shopping-list row checked while this object was not loaded (a
@@ -1991,6 +2002,11 @@ async def _async_global_options_updated(hass: HomeAssistant, entry: ConfigEntry)
     from .shopping_sync import schedule_resync
 
     schedule_resync(hass)
+    # The low/recovered battery percentages may have changed: the hub counts
+    # now, not at its next poll.
+    from homeassistant.helpers.dispatcher import async_dispatcher_send
+
+    async_dispatcher_send(hass, SIGNAL_BATTERY_FLEET_CHANGED)
 
 
 _ORPHAN_ISSUE_PREFIX = "orphan_admin_panel_user_"

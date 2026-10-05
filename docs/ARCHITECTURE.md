@@ -191,8 +191,8 @@ drifted. The descriptions are hand-written.
 
 ```
 custom_components/maintenance_supporter/
-├── __init__.py                  (2,365 lines)  Integration setup, services, lifecycle, async_migrate_entry
-├── const.py                       (952 lines)  Constants, enums, defaults, PLATFORMS
+├── __init__.py                  (2,381 lines)  Integration setup, services, lifecycle, async_migrate_entry
+├── const.py                       (956 lines)  Constants, enums, defaults, PLATFORMS
 ├── coordinator.py               (2,183 lines)  DataUpdateCoordinator per object
 ├── storage.py                     (657 lines)  Per-entry Store (dynamic state, migration, part stock)
 ├── parts_runtime.py               (545 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
@@ -215,7 +215,7 @@ custom_components/maintenance_supporter/
 ├── condition.py                    (46 lines)  Purpose-specific automation conditions (HA 2026.7+, import-guarded)
 │
 │                                               Five platforms (const.PLATFORMS):
-├── sensor.py                    (1,027 lines)  MaintenanceSensor (enum, per task), MaintenanceNextDueSensor,
+├── sensor.py                    (1,041 lines)  MaintenanceSensor (enum, per task), MaintenanceNextDueSensor,
 │                                               MaintenanceDaysUntilDueSensor (numeric countdown, disabled by default),
 │                                               MaintenanceSummarySensor, PartStockSensor, PartsToReorderSensor,
 │                                               BatteryFleetLowSensor, DocumentStorageSensor (per-area cost: entity/area_cost.py)
@@ -762,6 +762,7 @@ Surface: `integration_setups/discover` + `integration_setups/preview` + `integra
 Battery Notes-style setups have 30–70+ battery devices. One maintenance task per battery would bury the task list, so `helpers/battery_fleet.py` aggregates them into **one** fleet view instead: which batteries are low now, grouped by battery *type* (so you know what to buy), plus a deterministic forecast of what will be needed soon (so you can order in time).
 
 - **Two detection paths.** Preferred: the Battery Notes integration's single `battery_plus` sensor, which carries everything needed as attributes (`battery_type`, `battery_quantity`, `battery_low`, `battery_low_threshold`, `battery_last_replaced`) — no dependency on its optional, often-disabled low binary. Fallback: plain HA `device_class: battery` percentage sensors, where a heuristic supplies what the attributes would have: `NATIVE_LOW_PERCENT = 20 %` is the fleet-wide low floor, and the battery type is inferred from the device.
+- **When the hub counts.** The low-count sensor recounts on the Battery Notes events, its 30-s poll and `SIGNAL_BATTERY_FLEET_CHANGED`: sent by a fleet object's setup between `runtime_data` (its Store with the low latch becomes reachable) and the first refresh, so the fleet task's first refresh and trigger read the real count (a stale 0 was taken for a recovery and re-announced the same low battery after a move, 2026-10-05), and by the global options listener (the low/recovered percentages).
 - **48 h native retention.** A dead battery often takes its device offline, which would make the entity vanish exactly when it matters most. For the native path a battery last seen *low* stays in the fleet from its last-known snapshot for `_NATIVE_RETENTION = 48 h` before it drops out. (The Battery Notes path gets this for free — its sensor keeps reporting.)
 - **Forecast.** `TYPICAL_LIFETIME_MONTHS` holds editorial service-life estimates per type (AA 12, D 24, CR2032 18, …; `DEFAULT_LIFETIME_MONTHS = 12` for unknown types); predicted replacement is `battery_last_replaced + lifetime`, and "needed soon" looks `DEFAULT_HORIZON_DAYS = 28` ahead. `build_overview` is a pure builder taking plain dicts plus an injected `today`, so the forecast is unit-testable against synthetic dates; `read_batteries` is the thin HA-reading adapter.
 - **Setup is one click and idempotent.** `helpers/battery_fleet_setup.py` creates ONE object whose **parts** are the battery types present (so the existing stock/reorder machinery handles ordering) and ONE task, "Replace low batteries", hanging off the fixed aggregate sensor `sensor.maintenance_supporter_batteries_to_replace` via an ordinary threshold trigger. `OBJECT_FLAG` / `TASK_FLAG` markers make the panel render the fleet section and guarantee a second fleet is never created.

@@ -603,7 +603,11 @@ async def _wipe_to_a_new_instance(hass: HomeAssistant, global_entry: MockConfigE
     for key in ("alice", "bob"):
         await hass.auth.async_remove_user(people[key])
         await hass.auth.async_create_user(people[key].name)
+    # A new instance's hub has counted nothing yet: its battery count starts
+    # at 0 before the objects arrive (the old one would hand its count over).
+    await hass.config_entries.async_reload(global_entry.entry_id)
     await hass.async_block_till_done()
+    assert hass.states.get(LOW_COUNT_ENTITY_ID).state == "0"
 
 
 async def _import_json(hass: HomeAssistant, content: str) -> dict[str, Any]:

@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **After a move to a new Home Assistant the battery fleet does not announce its low battery again:** the hub's
+  battery count waits for its 30-second poll, so the fleet task first read the count from before its batteries were
+  loaded, took that 0 for a recovery and announced the same low battery a second time when the count caught up: a
+  second "triggered" entry, activation event and reminder. The hub now counts the moment the fleet has loaded, and
+  changed low or recovered percentages count at once instead of up to 30 seconds later.
+
 ## [2.99.0] - 2026-10-04
 
 ### ✨ Added

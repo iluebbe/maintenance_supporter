@@ -842,6 +842,10 @@ SIGNAL_OBJECT_ENTRY_REMOVED = f"{DOMAIN}_object_entry_removed"
 # Fired by the DocumentStore after any metadata/blob change so the storage
 # sensor (and any other listener) can refresh without polling.
 SIGNAL_DOCUMENTS_UPDATED = f"{DOMAIN}_documents_updated"
+# The battery fleet's inputs changed outside the hub's own count (a fleet
+# object loaded its Store, the low/recovered percentages changed): the hub's
+# low-count sensor recounts now instead of at its next 30-s poll.
+SIGNAL_BATTERY_FLEET_CHANGED = f"{DOMAIN}_battery_fleet_changed"
 
 # --- Trigger Completion Cooldown ---
 TRIGGER_COMPLETION_COOLDOWN_SECONDS = 600  # 10 minutes

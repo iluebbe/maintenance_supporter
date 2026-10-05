@@ -29,6 +29,7 @@ from .const import (
     DEFAULT_TASK_PRIORITY,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    SIGNAL_BATTERY_FLEET_CHANGED,
     SIGNAL_DOCUMENTS_UPDATED,
     SIGNAL_TASK_RESET,
     MaintenanceStatus,
@@ -852,7 +853,9 @@ class BatteryFleetLowSensor(SensorEntity):
         self.entity_id = async_generate_entity_id(ENTITY_ID_FORMAT, "maintenance_supporter_batteries_to_replace", hass=hass)
 
     async def async_added_to_hass(self) -> None:
-        """Refresh on Battery Notes threshold/replaced/increased events."""
+        """Refresh on Battery Notes threshold/replaced/increased events, and
+        when the fleet's inputs change outside this count (between the 30-s
+        polls)."""
         await super().async_added_to_hass()
         for event in (
             "battery_notes_battery_threshold",
@@ -860,6 +863,17 @@ class BatteryFleetLowSensor(SensorEntity):
             "battery_notes_battery_increased",
         ):
             self.async_on_remove(self.hass.bus.async_listen(event, self._handle_event))
+        self.async_on_remove(async_dispatcher_connect(self.hass, SIGNAL_BATTERY_FLEET_CHANGED, self._handle_fleet_changed))
+
+    @callback
+    def _handle_fleet_changed(self) -> None:
+        """A fleet object loaded its Store (restart, reload, import) or the
+        low/recovered percentages changed: count now. The fleet task's trigger
+        reads this count first; a stale 0 there was taken for a recovery, so
+        the count catching up announced the same low battery again (a second
+        TRIGGERED entry and activation event after every move to a new
+        instance, 2026-10-05)."""
+        self.async_write_ha_state()
 
     # A battery hovering at its threshold (20 %, 21 %, 20 %, ...) flipped the
     # count 1 -> 0 -> 1 and the fleet task - auto-complete-on-recovery - recorded
