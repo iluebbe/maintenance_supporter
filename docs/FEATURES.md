@@ -119,6 +119,8 @@ history chart.
 
 ![Master-detail split on a wide panel](images/split-view.png)
 
+![Tasks without a due date say when they were last done (2.100+)](images/due-last-done.png)
+
 <details>
 <summary>More screenshots</summary>
 
@@ -493,6 +495,8 @@ ink/toner/drum duties (IPP, Brother) split into *Replace Toner — Cyan*,
 *— Magenta*, … named after the cartridge entity, each watching only its own
 sensor, so completing one colour never touches the others; a mono printer
 keeps the single task.
+
+![Plant Monitor: Check Plant for every plant, latched on its ok/problem summary (2.100+)](images/suggested-setups-plant.png)
 
 **Counter resets (2.95+):** vacuums, mowers, litter boxes and air handlers
 often count their consumables themselves — and until that counter is reset in

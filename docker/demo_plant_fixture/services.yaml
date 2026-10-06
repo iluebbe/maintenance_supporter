@@ -1,0 +1,11 @@
+set_demo_state:
+  fields:
+    plant:
+      required: true
+      selector:
+        text:
+    state:
+      required: true
+      selector:
+        select:
+          options: ["ok", "problem"]

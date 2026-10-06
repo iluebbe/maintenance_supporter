@@ -11,6 +11,14 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ## Next up (recommended order)
 
+### ✅ Plants in Suggested setups, last-done dates (#204, D#203) — shipped 2.100
+
+Plant Monitor (HACS) sums each plant up as ok/problem; Suggested setups now
+proposes *Check Plant* per plant, latched on that summary so the plant's own
+thresholds stay in charge, and plant entities can be picked as a trigger by
+hand. Tasks without a due date (manual, sensor-only, paused) say in the due
+column when they were last done instead of showing a dash.
+
 ### ✅ Places — maintenance away from home (HA zones) — shipped 2.99
 
 An object can be maintained at one of the Home Assistant zones (allotment

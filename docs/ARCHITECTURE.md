@@ -1339,9 +1339,10 @@ The `docker/config-dev/configuration.yaml` defines test entities grouped by trig
 
 The documentation imagery is **scripted and committed**. The current tooling is the `e2e/shots-*.mjs` family, driven by the dockerised Playwright server against a throwaway HA instance (`ha-shots`, port 8131) rather than the dev instance — so a run never depends on whatever state `ha-maint` happens to be in.
 
-- `e2e/shots-demo.mjs` is the main entry: it onboards a fresh HA, adds the integration, seeds a realistic English demo dataset (mixed statuses, rich history with costs, priorities, labels, checklists, warranties, calendar kinds, sensor triggers with 30 days of imported statistics, two demo users with a rotation, an uploaded PDF manual), switches to the dark theme, and captures the desktop + mobile documentation set into `docs/images/` (29 captures; `docs/images/` currently holds 41 PNGs across all scripts).
+- `e2e/shots-demo.mjs` is the main entry: it onboards a fresh HA, adds the integration, seeds a realistic English demo dataset (mixed statuses, rich history with costs, priorities, labels, checklists, warranties, calendar kinds, sensor triggers with 30 days of imported statistics, two demo users with a rotation, an uploaded PDF manual), switches to the dark theme, and captures the desktop + mobile documentation set into `docs/images/` (44 captures; `docs/images/` currently holds 75 PNGs across all scripts).
 - Focused companions refresh single areas without a full reseed: `shots-adopt-problem.mjs`, `shots-schedule-preview.mjs`, `shots-trigger-hint.mjs`, `shots-mobile-dashboard.mjs`, `shots-docs-under-tasks.mjs`, `shots-ux-viewports.mjs`, `shots-theme-qa.mjs`, …
 - `e2e/gifs-demo.mjs` records the animated GIFs used in the README and FEATURES docs.
+- Two demo integrations stand in for catalogued ones, mounted into `ha-shots` only and never shipped: `docker/demo_roborock_fixture` (two robots keyed like core Roborock, for Suggested setups and the counter resets) and `docker/demo_plant_fixture` (two Plant Monitor plants, one reporting a problem, for the plant setups picture). Their mount points under `custom_components/` are gitignored.
 
 The older standalone script still exists and captures 17 screenshots against the dev instance:
 

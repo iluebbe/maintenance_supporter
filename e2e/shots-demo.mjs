@@ -20,6 +20,9 @@
  * integration. Recreate ha-shots with the extra
  *   -v <repo>/docker/demo_roborock_fixture:/config/custom_components/roborock:ro
  * (the empty custom_components/roborock mount point is gitignored).
+ * Since 2.100 also docker/demo_plant_fixture as custom_components/plant
+ * (two plants keyed like Plant Monitor, for the plant setups shot):
+ *   -v <repo>/docker/demo_plant_fixture:/config/custom_components/plant:ro
  */
 import { chromium } from "@playwright/test";
 import fs from "fs";
@@ -732,6 +735,39 @@ log("SEED OK", JSON.stringify(seed));
       }
     }
   } catch (e) { log("v2.97 seed skipped:", String(e && e.message || e)); }
+}
+
+// (2.100) Idempotent extras — #204: two plants of the demo Plant Monitor
+// (docker/demo_plant_fixture, the Monstera reports a problem) for the
+// Suggested setups picture; D#203: an object with tasks without a due date,
+// whose due column says when they were last done.
+{
+  const send = api.send;
+  const authJson = { Authorization: "Bearer " + token, "Content-Type": "application/json" };
+  try {
+    const entries = await fetch(REST + "/api/config/config_entries/entry", { headers: authJson }).then(j);
+    if (!entries.some((e) => e.domain === "plant")) {
+      await fetch(REST + "/api/config/config_entries/flow", { method: "POST", headers: authJson, body: JSON.stringify({ handler: "plant" }) }).then(j);
+      await new Promise((r) => setTimeout(r, 3000));
+      log("v2.100 seed: demo Plant Monitor");
+    }
+  } catch (e) { log("v2.100 plant seed skipped:", String(e && e.message || e)); }
+  try {
+    const all = (await send({ type: "maintenance_supporter/objects" })).objects || [];
+    if (!all.some((o) => o.object.name === "Home Office PC")) {
+      const pc = await send({ type: "maintenance_supporter/object/create", name: "Home Office PC", manufacturer: "Custom build" });
+      const day = (n) => ts(-n).slice(0, 10);
+      for (const t of [
+        { name: "Dust the Case Inside", task_type: "cleaning", schedule_type: "manual", last_performed: day(23) },
+        { name: "Replace Thermal Paste", task_type: "replacement", schedule_type: "manual" },
+        { name: "Clean Keyboard", task_type: "cleaning", schedule_type: "time_based", interval_days: 30, last_performed: day(12) },
+        { name: "Back Up the Photos", task_type: "service", schedule_type: "time_based", interval_days: 30, last_performed: day(9) },
+      ]) {
+        await send({ type: "maintenance_supporter/task/create", entry_id: pc.entry_id, ...t });
+      }
+      log("v2.100 seed: Home Office PC with tasks without a due date");
+    }
+  } catch (e) { log("v2.100 PC seed skipped:", String(e && e.message || e)); }
 }
 
 // Documents: upload a PDF manual to the Family Car + add a web link, and

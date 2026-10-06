@@ -65,6 +65,8 @@ custom_components/battery_notes
 custom_components/dev_battery_fixtures/
 # mount point of docker/demo_roborock_fixture in the ha-shots container
 custom_components/roborock/
+# mount point of docker/demo_plant_fixture in the ha-shots container
+custom_components/plant/
 
 # gif pipeline intermediate videos (e2e/gifs-demo.mjs)
 docs/images/gifs/.video-tmp/

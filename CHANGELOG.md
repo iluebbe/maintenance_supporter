@@ -2,6 +2,14 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 📝 Documentation
+
+- **Fresh screenshots and GIFs** from a newly seeded demo, with two new pictures: the plants in Suggested setups
+  (a demo Plant Monitor whose Monstera reports a problem) and an object page whose tasks without a due date say when
+  they were last done. The roadmap records both features as shipped.
+
 ## [2.100.0] - 2026-10-06
 
 ### ✨ Added
