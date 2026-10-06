@@ -67,6 +67,8 @@
   "interval": "Intervall",
   "warning": "Advarsel",
   "last_performed": "Sist utført",
+  "last_done_days_ago": "utført for {n} d siden",
+  "last_done_today": "utført i dag",
   "next_due": "Neste forfall",
   "days_until_due": "Dager til forfall",
   "avg_duration": "Gj.snittlig varighet",

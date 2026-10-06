@@ -67,6 +67,8 @@
   "interval": "Väli",
   "warning": "Varoitus",
   "last_performed": "Viimeksi suoritettu",
+  "last_done_days_ago": "tehty {n} pv sitten",
+  "last_done_today": "tehty tänään",
   "next_due": "Seuraava eräpäivä",
   "days_until_due": "Päiviä eräpäivään",
   "avg_duration": "Keskim. kesto",

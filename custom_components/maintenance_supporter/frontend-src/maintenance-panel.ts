@@ -116,7 +116,7 @@ import type { MaintenanceSavedViewsDialog } from "./components/saved-views-dialo
 import { type SparklineContext } from "./renderers/sparkline";
 import { buildCalendarBuckets, type CalendarEvent } from "./helpers/calendar-bucket";
 import { haToday } from "./helpers/ha-time";
-import { renderTriggerProgress, renderMiniSparkline, computeTrend } from "./renderers/progress";
+import { renderTriggerProgress, renderMiniSparkline, computeTrend, renderDueText } from "./renderers/progress";
 import { type HistoryContext } from "./renderers/history";
 import { renderUserBadge, type TaskDetailContext } from "./renderers/task-detail";
 import { renderPersonChip, type PersonDisplay } from "./helpers/person";
@@ -1248,6 +1248,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           status: task.status,
           days_until_due: task.days_until_due ?? null,
           next_due: task.next_due ?? null,
+          last_performed: task.last_performed ?? null,
           next_event_titles: task.next_event_titles ?? [],
           trigger_active: task.trigger_active,
           trigger_current_value: task.trigger_current_value ?? null,
@@ -4615,7 +4616,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         </span>
         <span class="cell type">${t(row.type, L)}</span>
         <span class="due-cell" @click=${() => this._showTask(row.entry_id, row.task_id)}>
-          <span class="due-text">${formatDueDays(row.days_until_due, L)}</span>
+          ${renderDueText(row.days_until_due, row.last_performed, L)}
           ${hasDaysBar
             ? html`<div class="days-bar"><div class="days-bar-fill${daysOverflow ? " overflow" : ""}" style="width:${pct}%;background:${barColor}"></div></div>`
             : nothing}
@@ -4845,7 +4846,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 <span class="task-sub${task.responsible_user_id ? '' : ' task-sub-empty'}">${renderUserBadge(task, (id) => this._userService?.getUserName(id) ?? null, (id) => this._userService?.getPerson(id) ?? null)}</span>
                 <span class="cell type">${t(task.type, L)}</span>
                 <span class="due-cell" @click=${() => this._showTask(obj.entry_id, task.id)}>
-                  <span class="due-text">${formatDueDays(task.days_until_due, L)}</span>
+                  ${renderDueText(task.days_until_due, task.last_performed, L)}
                   ${task.trigger_config
                     ? renderTriggerProgress(task, { trend: computeTrend(task, this._miniStatsData), lang: L })
                     : nothing}

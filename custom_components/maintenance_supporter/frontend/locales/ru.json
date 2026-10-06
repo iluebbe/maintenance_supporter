@@ -65,6 +65,8 @@
   "interval": "Интервал",
   "warning": "Предупреждение",
   "last_performed": "Последнее выполнение",
+  "last_done_days_ago": "выполнено {n} дн. назад",
+  "last_done_today": "выполнено сегодня",
   "next_due": "Следующий срок",
   "days_until_due": "Дней до срока",
   "avg_duration": "Ср. длительность",

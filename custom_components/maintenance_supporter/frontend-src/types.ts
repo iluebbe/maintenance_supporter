@@ -599,6 +599,8 @@ export interface TaskRow {
   status: string;
   days_until_due: number | null;
   next_due: string | null;
+  /** D#203: shown as "done N d ago" when the task has no due date. */
+  last_performed?: string | null;
   trigger_active: boolean;
   trigger_current_value: number | null;
   trigger_current_delta: number | null;

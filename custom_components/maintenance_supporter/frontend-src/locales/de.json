@@ -67,6 +67,8 @@
   "interval": "Intervall",
   "warning": "Vorwarnung",
   "last_performed": "Zuletzt durchgeführt",
+  "last_done_days_ago": "vor {n} T erledigt",
+  "last_done_today": "heute erledigt",
   "next_due": "Nächste Fälligkeit",
   "days_until_due": "Tage bis fällig",
   "avg_duration": "Ø Dauer",

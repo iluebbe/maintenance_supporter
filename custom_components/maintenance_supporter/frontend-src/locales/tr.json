@@ -67,6 +67,8 @@
   "interval": "Aralık",
   "warning": "Uyarı",
   "last_performed": "Son yapılma",
+  "last_done_days_ago": "{n} g önce yapıldı",
+  "last_done_today": "bugün yapıldı",
   "next_due": "Sonraki vade",
   "days_until_due": "Vadeye kalan gün",
   "avg_duration": "Ort. süre",

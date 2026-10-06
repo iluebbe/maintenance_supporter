@@ -67,6 +67,8 @@
   "interval": "間隔",
   "warning": "警告",
   "last_performed": "最終実施",
+  "last_done_days_ago": "{n}日前に実施",
+  "last_done_today": "今日実施",
   "next_due": "次回期限",
   "days_until_due": "期限までの日数",
   "avg_duration": "平均所要時間",

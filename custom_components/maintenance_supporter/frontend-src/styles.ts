@@ -33,7 +33,7 @@ export { STATUS_COLORS, STATUS_ICONS } from "./status-constants";
 // `from "./styles"` import keeps working.
 import { ensureLocale, isLocaleLoaded, normLang, seedEnglish, t, type Translations } from "./helpers/locale-core";
 import { primeBackendErrors } from "./helpers/backend-errors";
-import { displayTimeZone, haTimeZone, minuteIn, stampMs, ymdIn } from "./helpers/ha-time";
+import { daysBetweenIso, displayTimeZone, haTimeZone, haToday, minuteIn, stampDate, stampMs, ymdIn } from "./helpers/ha-time";
 export { ensureLocale, isLocaleLoaded, seedEnglish, setLocale, t } from "./helpers/locale-core";
 seedEnglish(EN as Translations);
 
@@ -314,6 +314,18 @@ export function formatDueDays(days: number | null | undefined, lang?: string): s
   if (days < 0) return `${Math.abs(days)} ${t("d_overdue", l)}`;
   if (days === 0) return t("today", l);
   return `${days} ${days === 1 ? t("day", l) : t("days", l)}`;
+}
+
+/** "done 23 d ago" / "done today" on HA's calendar — what the due column
+ *  shows for a task without a due date (manual, sensor-only, paused) instead
+ *  of a bare dash (D#203). null when the task was never done. */
+export function formatLastDone(lastPerformed: string | null | undefined, lang?: string): string | null {
+  const day = stampDate(lastPerformed);
+  if (!day) return null;
+  const days = daysBetweenIso(day, haToday());
+  if (!Number.isFinite(days)) return null;
+  if (days <= 0) return t("last_done_today", lang || "en");
+  return t("last_done_days_ago", lang || "en").replace("{n}", String(days));
 }
 
 /** Localized interval label, e.g. "3 Months" / "7 Days" (issue #59 — was
@@ -1045,6 +1057,9 @@ export const sharedStyles = css`
   }
 
   .due-text { font-size: 13px; }
+  /* D#203: a task without a due date shows when it was last done — muted,
+     so it never reads as a status. */
+  .due-text.last-done { color: var(--secondary-text-color); }
 
   .days-bar {
     width: 100%;

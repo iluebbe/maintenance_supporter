@@ -67,6 +67,8 @@
   "interval": "अंतराल",
   "warning": "चेतावनी",
   "last_performed": "अंतिम बार किया गया",
+  "last_done_days_ago": "{n} दिन पहले किया",
+  "last_done_today": "आज किया",
   "next_due": "अगली देय",
   "days_until_due": "देय तक दिन",
   "avg_duration": "औसत अवधि",

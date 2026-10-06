@@ -25,6 +25,7 @@ export const TRIGGER_PICKER_DOMAINS = [
   "valve",
   "lawn_mower",
   "lock",
+  "plant",
 ];
 
 /** Environmental-entity picker filter — mirrors the options flow's adaptive

@@ -65,6 +65,8 @@
   "interval": "Intervalo",
   "warning": "Aviso",
   "last_performed": "Última ejecución",
+  "last_done_days_ago": "hecho hace {n} d",
+  "last_done_today": "hecho hoy",
   "next_due": "Próximo vencimiento",
   "days_until_due": "Días hasta vencimiento",
   "avg_duration": "Ø Duración",

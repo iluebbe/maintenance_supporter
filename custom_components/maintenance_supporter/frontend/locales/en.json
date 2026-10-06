@@ -67,6 +67,8 @@
   "interval": "Interval",
   "warning": "Warning",
   "last_performed": "Last performed",
+  "last_done_days_ago": "done {n} d ago",
+  "last_done_today": "done today",
   "next_due": "Next due",
   "days_until_due": "Days until due",
   "avg_duration": "Avg duration",

@@ -287,6 +287,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Clean Undercarriage | every 25 units (counter delta) |  |
 | Bosch Indego | `indego` | Replace Blades | every 100 units (counter delta) |  |
 |  |  | Clean Undercarriage | every 25 units (counter delta) |  |
+| Plant Monitor | `plant` | Check Plant | while the appliance reports 'problem' | plant entity |
 | Dreame / MOVA lawn mowers | `dreame_lawn_mower` | Replace Blades | below the household consumable floor (default 10 %) | completing presses `reset_blade_maintenance` |
 |  |  | Replace Cleaning Brush | below the household consumable floor (default 10 %) | completing presses `reset_cleaning_brush_maintenance` |
 |  |  | Clean Undercarriage | below the household consumable floor (default 10 %) | completing presses `reset_robot_maintenance_maintenance` |
@@ -763,6 +764,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**262 integrations / 551 verified signatures.**
+**263 integrations / 552 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).

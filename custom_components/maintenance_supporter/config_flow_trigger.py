@@ -92,6 +92,8 @@ TRIGGER_ENTITY_DOMAINS = [
     "valve",
     "lawn_mower",
     "lock",
+    # #204: Plant Monitor (HACS) sums a plant up as ok / problem.
+    "plant",
 ]
 
 

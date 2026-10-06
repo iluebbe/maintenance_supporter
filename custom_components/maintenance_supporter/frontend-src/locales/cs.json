@@ -65,6 +65,8 @@
   "interval": "Interval",
   "warning": "Upozornění",
   "last_performed": "Naposledy provedeno",
+  "last_done_days_ago": "hotovo před {n} d",
+  "last_done_today": "hotovo dnes",
   "next_due": "Další termín",
   "days_until_due": "Dnů do termínu",
   "avg_duration": "Prům. trvání",

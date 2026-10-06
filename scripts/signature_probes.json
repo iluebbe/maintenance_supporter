@@ -2811,5 +2811,17 @@
    "\"Filter remaining\"",
    "def filter_remaining(self):"
   ]
+ },
+ "plant": {
+  "urls": [
+   "https://raw.githubusercontent.com/Olen/homeassistant-plant/master/custom_components/plant/__init__.py",
+   "https://raw.githubusercontent.com/Olen/homeassistant-plant/master/custom_components/plant/plant.py"
+  ],
+  "strings": [
+   "class PlantDevice",
+   "STATE_PROBLEM",
+   "self._attr_unique_id = self._config.entry_id",
+   "async_add_entities([plant])"
+  ]
  }
 }

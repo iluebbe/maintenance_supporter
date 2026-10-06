@@ -65,6 +65,8 @@
   "interval": "Interwał",
   "warning": "Ostrzeżenie",
   "last_performed": "Ostatnio wykonane",
+  "last_done_days_ago": "wykonano {n} d temu",
+  "last_done_today": "wykonano dziś",
   "next_due": "Następny termin",
   "days_until_due": "Dni do terminu",
   "avg_duration": "Śr. czas trwania",

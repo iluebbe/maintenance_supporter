@@ -403,6 +403,27 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("runtime_total",), "Clean Undercarriage", "usage_delta", delta_units=25),
         ),
     ),
+    "plant": IntegrationSignature(
+        name="Plant Monitor",
+        verified="2026-10-06 @ Olen/homeassistant-plant master (aa1c721, 2026.9.0)",
+        source=(
+            "HACS plant (Olen/homeassistant-plant; shadows HA's YAML plant "
+            "component) custom_components/plant/__init__.py PlantDevice: one "
+            "plant.<name> entity per plant, unique_id = its config entry, state "
+            "STATE_OK / STATE_PROBLEM — problem while any watched reading "
+            "(moisture, light, temperature, conductivity, humidity, DLI) is "
+            "outside the plant's thresholds, which the plant keeps as its own "
+            "number entities. plant.py adds it through the config-entry "
+            "platform, so it is registered with the plant's device."
+        ),
+        tasks=(
+            # The plant's own summary, not one reading: the thresholds stay
+            # the plant's (OpenPlantbook or edited there), the latch follows
+            # every change of them, and back to "ok" (watered, moved into the
+            # shade) completes the task by itself. #204.
+            ConsumableSignature((), "Check Plant", "event_present", entity_domain="plant", on_states=("problem",)),
+        ),
+    ),
     "dreame_lawn_mower": IntegrationSignature(
         name="Dreame / MOVA lawn mowers",
         verified="2026-09-27 @ EvotecIT/homeassistant-dreamelawnmower main (967e50b)",

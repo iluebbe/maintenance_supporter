@@ -12,7 +12,7 @@
  */
 
 import { html, nothing } from "lit";
-import { t, formatDate, formatDueDays, formatNumber } from "../styles";
+import { t, formatDate, formatDueDays, formatLastDone, formatNumber } from "../styles";
 import { px } from "./chart-utils";
 import { daysProgress } from "../helpers/interval";
 import { stampMs } from "../helpers/ha-time";
@@ -294,6 +294,24 @@ export function renderMiniSparkline(
       <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round" />
     </svg>
   `;
+}
+
+/** The due column's text: days until due, or, for a task without a due date
+ *  (manual, sensor-only, paused), when it was last done (D#203) — muted, so
+ *  it never reads as a status. A bare dash only for a task never done. */
+export function renderDueText(
+  days: number | null | undefined,
+  lastPerformed: string | null | undefined,
+  lang: string,
+  cls = "due-text",
+) {
+  if (days == null) {
+    const done = formatLastDone(lastPerformed, lang);
+    if (done) {
+      return html`<span class="${cls} last-done" title="${t("last_performed", lang)}: ${formatDate(lastPerformed, lang)}">${done}</span>`;
+    }
+  }
+  return html`<span class="${cls}">${formatDueDays(days, lang)}</span>`;
 }
 
 /** A detailed days-progress bar (last performed → next due) for the detail view. */

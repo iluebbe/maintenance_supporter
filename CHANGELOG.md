@@ -4,6 +4,17 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **Plants in Suggested setups:** Plant Monitor (the HACS integration Olen/homeassistant-plant) sums each plant up
+  as "ok" or "problem" (too dry, too dark, too warm, too little fertilizer). Suggested setups now proposes *Check
+  Plant* for every plant, triggered while the plant reports a problem and completed by itself when it is back to
+  ok. The trigger watches the plant's summary, not one of its sensors, so the plant's own thresholds stay in charge.
+  Plant entities can also be picked as a trigger by hand (a state-change trigger to *problem*).
+- **When a task without a due date was last done:** a manual task, a sensor task without a schedule and a paused
+  task showed a bare dash in the due column. The dashboard, the object page and the card now say when it was last
+  done (*done 23 d ago*, muted); the dash stays for a task that was never done.
+
 ### 🐛 Fixed
 
 - **After a move to a new Home Assistant the battery fleet does not announce its low battery again:** the hub's

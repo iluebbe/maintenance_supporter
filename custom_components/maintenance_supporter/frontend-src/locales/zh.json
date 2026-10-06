@@ -67,6 +67,8 @@
   "interval": "间隔",
   "warning": "预警",
   "last_performed": "上次执行",
+  "last_done_days_ago": "{n} 天前完成",
+  "last_done_today": "今天完成",
   "next_due": "下次到期",
   "days_until_due": "距离到期天数",
   "avg_duration": "平均耗时",

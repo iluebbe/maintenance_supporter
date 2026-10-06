@@ -67,6 +67,8 @@
   "interval": "주기",
   "warning": "경고",
   "last_performed": "마지막 수행일",
+  "last_done_days_ago": "{n}일 전 완료",
+  "last_done_today": "오늘 완료",
   "next_due": "다음 예정일",
   "days_until_due": "남은 일수",
   "avg_duration": "평균 소요 시간",

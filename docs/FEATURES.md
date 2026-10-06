@@ -110,7 +110,10 @@ markers, labels, per-user assignment badges, and mini-sparklines for
 sensor-triggered tasks — on phone-width rows the squeezed curve gives way
 to a colour-coded **trend arrow** in the trigger label (heading toward the
 threshold ↗, holding →, easing away ↘) and the due column is fixed-width
-so every row's progress bar reads the same scale (2.71+). On panels wider than ~1500 px the dashboard becomes a **master-detail split**: the task list stays on the left and the full task detail (trigger chart, KPIs, history, actions) docks on the right — clicking a task previews it in place instead of switching pages, and the detail's breadcrumb still opens the full page (2.71+). The docked detail never scrolls on its own: it docks scroll-aware — a detail taller than the window is pinned by its bottom edge while you scroll down and by its top edge on the way back up — and selecting a task parks it where you are looking, even at the end of a long list. The task detail page adds the full trigger chart
+so every row's progress bar reads the same scale (2.71+). A task without a
+due date (manual, a sensor task without a schedule, paused) says there when
+it was last done, *done 23 d ago*, muted so it never reads as a status; the
+card and the object page do the same. On panels wider than ~1500 px the dashboard becomes a **master-detail split**: the task list stays on the left and the full task detail (trigger chart, KPIs, history, actions) docks on the right — clicking a task previews it in place instead of switching pages, and the detail's breadcrumb still opens the full page (2.71+). The docked detail never scrolls on its own: it docks scroll-aware — a detail taller than the window is pinned by its bottom edge while you scroll down and by its top edge on the way back up — and selecting a task parks it where you are looking, even at the end of a long list. The task detail page adds the full trigger chart
 (current value vs. threshold over 7d–1y), KPI tiles, and the cost & duration
 history chart.
 
@@ -444,7 +447,7 @@ devices they sit on), type an existing object's name and they join it.
 
 **Suggested setups** (in the dashboard's *Add ▾* menu) discovers devices of supported integrations
 whose consumable sensors can drive maintenance tasks and sets them up in one
-click. The catalog currently covers **262 integrations with 551 verified
+click. The catalog currently covers **263 integrations with 552 verified
 signatures** — vacuums, mowers, kitchen appliances, printers, cars (including
 Škoda/Audi service countdowns straight from the vehicle), air purifiers,
 heating and water treatment, locks, pet tech and more; the complete,
@@ -467,6 +470,9 @@ for numeric consumables, a **state latch** on the event for Home Connect's
 `full` / `nearly_empty` / `empty`, on *anything but full* (2.91+, Home
 Connect Local salt and rinse aid) — or a **usage-interval counter** for
 lifetime hour meters (every N hours of use, re-baselined on completion).
+Plants (Plant Monitor, HACS) get *Check Plant*, latched on the plant's own
+ok/problem summary: triggered while it is too dry, too dark or too warm by
+the plant's thresholds, completed by itself when it is back to ok.
 When an appliance reports one condition through several events (Home
 Connect's *salt nearly empty*, *salt lack* and *program blocked — salt
 lack*), one task watches them all and whichever fires first makes it due
@@ -932,7 +938,7 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 ### Sensor-Based Triggers
 - **Threshold**: trigger when a sensor value exceeds or falls below a limit — or equals (`=`) / deviates from (`≠`) a discrete level such as a filter stage or error code (with optional duration)
 - **Counter**: trigger when accumulated value reaches a target (absolute or delta mode)
-- **State change**: trigger after a number of state transitions (e.g., on/off cycles). An optional *for (minutes)* hold (#136) makes a transition count only once the new state has held that long — flappy problem sensors stop firing on second-long night-time flickers, and a flicker never counts as an appliance cycle. 0 (default) counts every change immediately, so sensors that pulse only briefly keep working. The hold window survives restarts and is also offered when adopting problem sensors.
+- **State change**: trigger after a number of state transitions (e.g., on/off cycles); the entity can also be a plant (`plant.*`, ok/problem). An optional *for (minutes)* hold (#136) makes a transition count only once the new state has held that long — flappy problem sensors stop firing on second-long night-time flickers, and a flicker never counts as an appliance cycle. 0 (default) counts every change immediately, so sensors that pulse only briefly keep working. The hold window survives restarts and is also offered when adopting problem sensors.
 - **Runtime**: trigger after accumulated operating hours (e.g., 500h of compressor runtime) — with an optional per-session cap so a sensor stuck ON (lost connection, restart) cannot book a whole night as runtime (2.71+)
 - **Due date** (2.96+): for a sensor that reports *when* the maintenance is due — a timestamp or date such as a purifier's *Filter change due*. The task becomes due N days before that date (0 = on the date itself) and fires on time even though the sensor keeps reporting the same date until then. When the device moves its date forward — usually its own *filter changed* button, which can be the task's completion action — the trigger clears and, with *auto-complete on recovery*, the task records the completion
 - **Compound**: combine multiple conditions with AND/OR logic (e.g., threshold AND runtime)
