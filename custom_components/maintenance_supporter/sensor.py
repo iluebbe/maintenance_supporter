@@ -914,6 +914,18 @@ class BatteryFleetLowSensor(SensorEntity):
                 sticky.pop(eid, None)  # gone from the fleet
                 continue
             level = current.get("level")
+            # #205: a threshold lowered since this battery went low is a
+            # decision, not a hover — judged against the new threshold,
+            # without the band (the latch releases it the same way).
+            now_threshold = current.get("low_threshold")
+            if (
+                isinstance(now_threshold, (int, float))
+                and now_threshold < sticky[eid]
+                and level is not None
+                and float(level) > float(now_threshold)
+            ):
+                sticky.pop(eid, None)
+                continue
             # A sensorless note (D#162) has no level to hover — it leaves
             # `low` only when its forecast re-anchors (or the option is
             # switched off), and that is the real all-clear.

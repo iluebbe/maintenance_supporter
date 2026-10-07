@@ -40,6 +40,8 @@ from typing import Any, cast
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
+from ..const import DEFAULT_BATTERY_LOW_PERCENT
+
 _LOGGER = logging.getLogger(__name__)
 
 # The typical-lifetime table, the household overrides and the learned values
@@ -521,12 +523,23 @@ def get_battery_auto_record_recovery(hass: HomeAssistant) -> bool:
 # latched: their binary saying "not low" is the all-clear, exactly as before.
 # Sensorless notes (D#162) leave ``low`` only when their forecast re-anchors.
 #
-# Persisted on the fleet task's Store state ({entity_id: {at, last_replaced}})
+# #205: each entry also keeps the low threshold it latched at. A threshold
+# lowered since then (the household's battery_low_percent, a Battery Notes
+# threshold) is a decision, not a hover: a battery above the NEW threshold
+# is released at once instead of waiting for the recovered level, which
+# kept 15 % batteries on the list after the floor went from 20 % to 10 %.
+#
+# Persisted on the fleet task's Store state ({entity_id: {at, last_replaced, threshold}})
 # so a restart does not re-open the episode; without a fleet the latch lives
 # in memory (the low-count sensor exists before the fleet does).
 
 LOW_LATCH_KEY = "battery_low_latch"
 _LATCH_MEMORY_KEY = "battery_fleet_low_latch_memory"
+# What a latch from before #205 (no threshold of its own) is taken to have
+# latched at: the household default, the floor almost every such latch
+# was set under. (A floor lowered long before leaves such a latch released
+# once it reads above it; a battery that is really low latches again.)
+_LEGACY_LATCH_THRESHOLD = float(DEFAULT_BATTERY_LOW_PERCENT)
 
 
 def sanitize_low_latch(raw: Any) -> dict[str, dict[str, Any]]:
@@ -556,6 +569,9 @@ def sanitize_low_latch(raw: Any) -> dict[str, dict[str, Any]]:
             continue
         last = entry.get("last_replaced")
         out[key] = {"at": at.strip()[:40], "last_replaced": last[:40] if isinstance(last, str) else None}
+        threshold = entry.get("threshold")
+        if isinstance(threshold, (int, float)) and not isinstance(threshold, bool) and 0 <= threshold <= 100:
+            out[key]["threshold"] = float(threshold)
     return out
 
 
@@ -587,7 +603,10 @@ def apply_low_latch(
       and the fresh reading is STILL low — a new episode);
     * latched + unavailable → stays low (no reading is no proof of recovery);
     * latched + reading not low → released when the level is above
-      ``recovered`` or a replacement was recorded, else held low.
+      ``recovered`` or a replacement was recorded, else held low;
+    * latched + the battery's low threshold lowered since it latched
+      (#205) and the level above the new one → released (not a recovery:
+      it never reaches ``released_by_level``, nothing is recorded).
 
     ``released_by_level`` (#181 follow-up) collects the ids released by their
     LEVEL alone — no newer replacement date on the note — which is the
@@ -604,9 +623,15 @@ def apply_low_latch(
         last = bat.last_replaced.isoformat() if bat.last_replaced else None
         raw_entry = latch.get(bat.entity_id)
         entry = raw_entry if isinstance(raw_entry, dict) else None
+        threshold = float(bat.low_threshold)
         if bat.low:
             if entry is None or _replaced_since(last, entry):
-                latch[bat.entity_id] = {"at": now_iso, "last_replaced": last}
+                latch[bat.entity_id] = {"at": now_iso, "last_replaced": last, "threshold": threshold}
+                changed = True
+            elif entry.get("threshold") != threshold:
+                # Low at the CURRENT threshold: the episode belongs to it
+                # (a rebound after this is held, as always).
+                latch[bat.entity_id] = {**entry, "threshold": threshold}
                 changed = True
             continue
         if entry is None:
@@ -614,6 +639,15 @@ def apply_low_latch(
         if bat.available and (_replaced_since(last, entry) or (bat.level is not None and bat.level > recovered)):
             if released_by_level is not None and not _replaced_since(last, entry):
                 released_by_level.append(bat.entity_id)
+            del latch[bat.entity_id]
+            changed = True
+            continue
+        latched_at = entry.get("threshold")
+        if not isinstance(latched_at, (int, float)):
+            latched_at = max(_LEGACY_LATCH_THRESHOLD, threshold)
+            latch[bat.entity_id] = {**entry, "threshold": latched_at}
+            changed = True
+        if bat.available and bat.level is not None and threshold < latched_at and bat.level > threshold:
             del latch[bat.entity_id]
             changed = True
             continue

@@ -4,6 +4,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🐛 Fixed
+
+- **A lowered battery threshold takes batteries off the list:** a battery that went low stays low until it rises
+  above the recovered level (50 %), so a battery that rebounds while idle does not flip the fleet task. That also kept
+  batteries on the list when the threshold itself was lowered: after changing the low floor from 20 % to 10 % (to
+  match Battery Notes), a battery at 15 % stayed "to replace" and its to-dos stayed open. A lowered threshold, the
+  household floor or a battery's own Battery Notes threshold, now releases every battery above it at once (in the
+  count, the fleet task and its to-dos); nothing is recorded as replaced. Batteries that went low before this version
+  count as having gone low at the default 20 %, so after the update they leave the list without another change.
+
 ### 📝 Documentation
 
 - **Fresh screenshots and GIFs** from a newly seeded demo, with two new pictures: the plants in Suggested setups
