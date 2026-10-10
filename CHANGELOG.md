@@ -18,6 +18,10 @@ All notable changes to Maintenance Supporter are documented in this file.
   message now stays and names the file ("manual.pdf: File is too large (max 25 MB)"). A file over the limit is
   refused before it is sent, so a phone no longer uploads 45 MB only to learn that, and when several files are
   uploaded at once, each refused or failed one is named while the others still go up.
+- **Groups stack on a phone:** the panel's groups shared one row on a narrow screen, three groups at 96 px each on a
+  360 px phone, so the edit and delete buttons did not fit and one group's delete button lay over the next group.
+  On a phone each group now takes its own row, with larger edit and delete buttons set apart; a long group or task
+  name wraps inside its card. Wider screens keep the groups side by side.
 
 ### 📝 Documentation
 

@@ -1274,10 +1274,13 @@ export const sharedStyles = css`
     font-weight: 500;
     font-size: 14px;
     margin-bottom: 4px;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .group-card-actions {
     display: flex;
+    flex-shrink: 0;
     gap: 0;
   }
   .group-card-actions ha-icon-button {
@@ -1324,6 +1327,8 @@ export const sharedStyles = css`
     border-radius: 10px;
     background: var(--secondary-background-color, #f5f5f5);
     color: var(--primary-text-color);
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 
   /* Adaptive scheduling suggestion badge */
@@ -1712,7 +1717,19 @@ export const sharedStyles = css`
        suffix is hidden instead — the bar and the title carry the ratio. */
     .budget-tile-max { display: none; }
 
-    .group-card { min-width: 0; max-width: 100%; }
+    /* #206 — one group per row. flex: 1 with min-width 0 put every group
+       into ONE row: three groups were 96 px each on a 360 px phone, and the
+       delete button of one lay over the next group. The buttons get the
+       same 44 px targets as the task rows, apart from each other; the
+       negative margin lets them reach into the card's padding instead of
+       pushing the tasks down. */
+    .group-card { flex: 1 1 100%; min-width: 0; max-width: 100%; }
+    .group-card-actions { gap: 8px; margin: -8px -8px -8px 0; }
+    .group-card-actions ha-icon-button {
+      --ha-icon-button-size: 44px;
+      --mdc-icon-button-size: 44px;
+      --mdc-icon-size: 22px;
+    }
 
     .filter-chip { padding: 6px 12px; font-size: 13px; }
 
