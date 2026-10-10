@@ -40,6 +40,12 @@ export async function authFetch(hass: HomeAssistant, url: string, init: RequestI
   });
 }
 
+/** Per-file upload limit — the TS twin of helpers/documents.py MAX_DOC_BYTES
+ *  (tests/test_frontend_const_parity.py). A larger file is refused before it
+ *  is sent: the view refuses it anyway, after the browser pushed it over the
+ *  wire, and a 45 MB manual took a while on a phone to learn that (#209). */
+export const DOC_MAX_BYTES = 25 * 1024 * 1024;
+
 /** Import ceiling of the documents archive — the TS twin of
  *  helpers/doc_archive.py MAX_ARCHIVE_BYTES (tests/test_frontend_const_parity.py);
  *  it names the limit in the "too large" message. */
@@ -71,14 +77,16 @@ export async function postMultipart<T>(
 }
 
 /** Upload one file as a document of `entryId`, tagged with `tags`. Throws
- *  `Error("doc_too_large")` on a 413 and `Error("doc_upload_failed")` on
- *  any other refusal (a network failure propagates as-is). */
+ *  `Error("doc_too_large")` for a file over DOC_MAX_BYTES (without sending
+ *  it) or on a 413, and `Error("doc_upload_failed")` on any other refusal
+ *  (a network failure propagates as-is). */
 export async function uploadDocument(
   hass: HomeAssistant,
   entryId: string,
   file: File,
   tags: string[],
 ): Promise<UploadedDocument> {
+  if (file.size > DOC_MAX_BYTES) throw new Error("doc_too_large");
   const form = new FormData();
   form.append("entry_id", entryId);
   for (const tag of tags) form.append("tags", tag);

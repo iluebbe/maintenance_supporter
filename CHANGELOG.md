@@ -13,6 +13,11 @@ All notable changes to Maintenance Supporter are documented in this file.
   household floor or a battery's own Battery Notes threshold, now releases every battery above it at once (in the
   count, the fleet task and its to-dos); nothing is recorded as replaced. Batteries that went low before this version
   count as having gone low at the default 20 %, so after the update they leave the list without another change.
+- **A document that is too large says so:** a file over the 25 MB limit (a 45 MB manual) was refused by Home
+  Assistant, but the message vanished the moment the document list reloaded, so the upload seemed to do nothing. The
+  message now stays and names the file ("manual.pdf: File is too large (max 25 MB)"). A file over the limit is
+  refused before it is sent, so a phone no longer uploads 45 MB only to learn that, and when several files are
+  uploaded at once, each refused or failed one is named while the others still go up.
 
 ### 📝 Documentation
 

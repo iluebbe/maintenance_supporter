@@ -668,15 +668,37 @@ def test_ts_field_ranges_match_backend() -> None:
     assert _ts_range(src, "SEASONAL_FACTOR_RANGE") == bound
 
 
+def _photo_upload_bytes(name: str) -> int:
+    """A ``export const NAME = a * b * c;`` byte constant of photo-upload.ts."""
+    src = (_FRONTEND / "helpers" / "photo-upload.ts").read_text(encoding="utf-8")
+    m = re.search(rf"export const {name} = ([\d\s*]+);", src)
+    assert m, f"{name} not found in photo-upload.ts"
+    value = 1
+    for factor in m.group(1).split("*"):
+        value *= int(factor.strip())
+    return value
+
+
 def test_ts_docs_archive_ceiling_matches_backend() -> None:
     """photo-upload.ts DOCS_ARCHIVE_MAX_BYTES names the limit in the
     archive import's "too large" message — it must be the import's real cap."""
     from custom_components.maintenance_supporter.helpers.doc_archive import MAX_ARCHIVE_BYTES
 
-    src = (_FRONTEND / "helpers" / "photo-upload.ts").read_text(encoding="utf-8")
-    m = re.search(r"export const DOCS_ARCHIVE_MAX_BYTES = ([\d\s*]+);", src)
-    assert m, "DOCS_ARCHIVE_MAX_BYTES not found in photo-upload.ts"
-    value = 1
-    for factor in m.group(1).split("*"):
-        value *= int(factor.strip())
-    assert value == MAX_ARCHIVE_BYTES, "photo-upload.ts DOCS_ARCHIVE_MAX_BYTES drifted from doc_archive.MAX_ARCHIVE_BYTES"
+    assert _photo_upload_bytes("DOCS_ARCHIVE_MAX_BYTES") == MAX_ARCHIVE_BYTES, (
+        "photo-upload.ts DOCS_ARCHIVE_MAX_BYTES drifted from doc_archive.MAX_ARCHIVE_BYTES"
+    )
+
+
+def test_ts_document_limit_matches_backend_and_message() -> None:
+    """#209: the frontend refuses a file over DOC_MAX_BYTES before sending it,
+    so it must be the upload view's real limit; and the "too large" message
+    names that limit in every language ("max 25 MB")."""
+    from custom_components.maintenance_supporter.helpers.documents import MAX_DOC_BYTES
+
+    assert _photo_upload_bytes("DOC_MAX_BYTES") == MAX_DOC_BYTES, (
+        "photo-upload.ts DOC_MAX_BYTES drifted from documents.MAX_DOC_BYTES"
+    )
+    megabytes = str(MAX_DOC_BYTES // (1024 * 1024))
+    for path in sorted(_LOCALES_DIR.glob("*.json")):
+        message = json.loads(path.read_text(encoding="utf-8"))["doc_too_large"]
+        assert re.search(rf"(?<!\d){megabytes}(?!\d)", message), f"{path.name}: doc_too_large does not name {megabytes} MB: {message}"

@@ -9,6 +9,7 @@
 import { expect, fixture, html } from "@open-wc/testing";
 import "../components/documents-section.js";
 import type { MaintenanceDocumentsSection } from "../components/documents-section";
+import { DOC_MAX_BYTES } from "../helpers/photo-upload.js";
 import { createMockHass } from "./_test-utils.js";
 
 const FILE_DOC = {
@@ -196,6 +197,62 @@ describe("documents-section", () => {
     } finally {
       window.fetch = origFetch;
     }
+  });
+
+  describe("a refused upload says so and keeps saying it (#209)", () => {
+    const origFetch = window.fetch;
+    afterEach(() => { window.fetch = origFetch; });
+    const pdf = (name: string, size = 1) => {
+      const f = new File(["x"], name, { type: "application/pdf" });
+      Object.defineProperty(f, "size", { value: size });
+      return f;
+    };
+    const upload = async (el: MaintenanceDocumentsSection, files: File[]) => {
+      (el.hass as unknown as { auth: unknown }).auth = { data: { access_token: "tok" } };
+      await (el as unknown as { _uploadFiles: (f: File[]) => Promise<void> })._uploadFiles.call(el, files);
+      await el.updateComplete;
+      return el.shadowRoot!.querySelector(".doc-msg.error")?.textContent?.trim() ?? "";
+    };
+
+    it("a 413 is still on the error line after the list reloaded", async () => {
+      const { el, sent } = await mount(true, [FILE_DOC]);
+      window.fetch = (async () => new Response("{}", { status: 413 })) as typeof fetch;
+      const lists = () => sent.filter((m) => m.type === "maintenance_supporter/documents/list").length;
+      const before = lists();
+      const shown = await upload(el, [pdf("hvac.pdf")]);
+      expect(lists(), "the list reloaded").to.equal(before + 1);
+      expect(shown).to.equal("hvac.pdf: File is too large (max 25 MB).");
+    });
+
+    it("a file over the limit is refused without being sent", async () => {
+      const { el } = await mount(true, [FILE_DOC]);
+      const posted: string[] = [];
+      window.fetch = (async (_u: string, o: { body: FormData }) => {
+        posted.push((o.body.get("file") as File).name);
+        return new Response(JSON.stringify({ id: "n", deduped: false }), { status: 200 });
+      }) as unknown as typeof fetch;
+      const shown = await upload(el, [pdf("manual.pdf", DOC_MAX_BYTES + 1), pdf("invoice.pdf", DOC_MAX_BYTES)]);
+      expect(posted, "only the file within the limit went up").to.deep.equal(["invoice.pdf"]);
+      expect(shown).to.equal("manual.pdf: File is too large (max 25 MB).");
+    });
+
+    it("a dropped connection is named per file and the rest still go up", async () => {
+      const { el } = await mount(true, [FILE_DOC]);
+      let calls = 0;
+      window.fetch = (async () => {
+        if (calls++ === 0) throw new TypeError("Failed to fetch");
+        return new Response(JSON.stringify({ id: "n", deduped: false }), { status: 200 });
+      }) as typeof fetch;
+      const shown = await upload(el, [pdf("a.pdf"), pdf("b.pdf")]);
+      expect(calls).to.equal(2);
+      expect(shown).to.equal("a.pdf: Upload failed.");
+    });
+
+    it("an upload without a refusal leaves no error behind", async () => {
+      const { el } = await mount(true, [FILE_DOC]);
+      window.fetch = (async () => new Response(JSON.stringify({ id: "n", deduped: false }), { status: 200 })) as typeof fetch;
+      expect(await upload(el, [pdf("ok.pdf")])).to.equal("");
+    });
   });
 
   it("opens the file picker via keyboard on the upload label (a11y)", async () => {

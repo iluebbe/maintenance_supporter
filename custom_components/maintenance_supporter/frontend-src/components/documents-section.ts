@@ -230,17 +230,18 @@ export class MaintenanceDocumentsSection extends LitElement {
     this._hint = "";
     let deduped = 0;
     let dupInObject = 0;
+    const refused: string[] = [];
     try {
-      // Bulk upload: one refused file (too large, rejected) is noted and
-      // the rest still go up — unlike the photo dialogs, which stop.
+      // Bulk upload: one refused file (too large, rejected, the connection
+      // dropped) is noted by name and the rest still go up — unlike the
+      // photo dialogs, which stop.
       for (const file of files) {
         let doc;
         try {
           doc = await uploadDocument(this.hass, entryId, file, [cat]);
         } catch (e) {
-          const key = e instanceof Error ? e.message : "";
-          if (key !== "doc_too_large" && key !== "doc_upload_failed") throw e;
-          this._error = t(key, this._lang);
+          const key = e instanceof Error && e.message === "doc_too_large" ? "doc_too_large" : "doc_upload_failed";
+          refused.push(`${file.name}: ${t(key, this._lang)}`);
           continue;
         }
         if (doc.duplicate_in_object) dupInObject++;
@@ -250,9 +251,10 @@ export class MaintenanceDocumentsSection extends LitElement {
       if (dupInObject) this._hint = t("doc_dup_in_object", this._lang);
       else if (deduped) this._hint = t("doc_deduped", this._lang);
       await this._load();
-    } catch {
-      this._error = t("doc_upload_failed", this._lang);
     } finally {
+      // Said AFTER the reload: _load() clears the error line, so a refusal
+      // set before it flashed for a moment and was gone (#209).
+      if (refused.length && entryId === this.entryId) this._error = refused.join(" · ");
       this._busy = false;
     }
   }
