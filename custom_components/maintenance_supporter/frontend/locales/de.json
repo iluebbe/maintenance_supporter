@@ -888,7 +888,7 @@
   "doc_link_title": "Titel (optional)",
   "doc_open": "Öffnen",
   "doc_delete_confirm": "„{name}“ löschen?",
-  "doc_too_large": "Datei ist zu groß (max. 25 MB).",
+  "doc_too_large": "Datei ist zu groß (max. 100 MB).",
   "doc_upload_failed": "Upload fehlgeschlagen.",
   "docs_archive_too_large": "Das Archiv ist zu groß (max. {max}).",
   "docs_archive_no_manifest": "Dieses ZIP enthält keine manifest.json, daher weiß die Wiederherstellung nicht, zu welchem Dokument eine Datei gehört. Lass die manifest.json beim erneuten Zippen neben den Ordnern liegen.",

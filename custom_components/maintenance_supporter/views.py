@@ -132,7 +132,6 @@ class DocumentUploadView(HomeAssistantView):
                     HTTPStatus.CONFLICT,
                 )
 
-        content = await self.hass.async_add_executor_job(file_field.file.read)
         # Multipart fields bypass the voluptuous caps of the WS document
         # paths, so cap them here to the SAME limits (title = MAX_NAME_LENGTH,
         # tag = _MAX_TAG_LEN): the filename is echoed back in every
@@ -149,9 +148,12 @@ class DocumentUploadView(HomeAssistantView):
         description = description if isinstance(description, str) else None
 
         try:
+            # aiohttp spooled the upload into a temporary file; the store
+            # copies it from there in pieces. Never read() whole: a file can
+            # be 100 MB, on a Pi with 1 GB of memory.
             doc = await _get_store(self.hass).async_add_file(
                 object_id_for_entry(entry),
-                content=content,
+                content=file_field.file,
                 filename=filename,
                 mime=mime,
                 title=title.strip() if isinstance(title, str) and title.strip() else None,
@@ -165,6 +167,8 @@ class DocumentUploadView(HomeAssistantView):
                     HTTPStatus.CONFLICT,
                 )
             return self.json_message("File too large", HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
+        finally:
+            await self.hass.async_add_executor_job(file_field.file.close)
 
         return self.json(doc)
 
@@ -194,17 +198,20 @@ class DocumentServeView(HomeAssistantView):
         if not await self.hass.async_add_executor_job(path.is_file):
             return web.Response(status=HTTPStatus.NOT_FOUND)
 
-        content = await self.hass.async_add_executor_job(path.read_bytes)
         # Only preview known-safe types inline; serve anything else (text/html,
         # image/svg+xml, unknown) as an opaque attachment so a malicious upload
         # can't execute as script on the HA origin. nosniff blocks sniffing on
         # top of the declared type.
         raw_mime = doc.get("mime") or "application/octet-stream"
         inline_safe = raw_mime in _INLINE_SAFE_MIMES
-        return web.Response(
-            body=content,
-            content_type=raw_mime if inline_safe else "application/octet-stream",
+        # Streamed from disk, never read whole into memory (a file can be
+        # 100 MB); range requests come with it, so a PDF viewer can fetch the
+        # pages it shows. The explicit Content-Type wins over the guess from
+        # the (extension-less) blob name.
+        return web.FileResponse(
+            path,
             headers={
+                hdrs.CONTENT_TYPE: raw_mime if inline_safe else "application/octet-stream",
                 hdrs.CONTENT_DISPOSITION: _content_disposition(doc.get("filename") or "document", inline=inline_safe),
                 "X-Content-Type-Options": "nosniff",
             },
@@ -258,16 +265,19 @@ class DocumentExcerptView(HomeAssistantView):
 
             from pypdf import PdfReader, PdfWriter
 
-            reader = PdfReader(str(path))
-            total = len(reader.pages)
-            if start > total:
-                return None
-            writer = PdfWriter()
-            for i in range(start - 1, min(start - 1 + count, total)):
-                writer.add_page(reader.pages[i])
-            buf = _io.BytesIO()
-            writer.write(buf)
-            return buf.getvalue()
+            # An open file, not the path: pypdf reads a path into memory
+            # whole, a file only as far as the pages it needs.
+            with path.open("rb") as handle:
+                reader = PdfReader(handle)
+                total = len(reader.pages)
+                if start > total:
+                    return None
+                writer = PdfWriter()
+                for i in range(start - 1, min(start - 1 + count, total)):
+                    writer.add_page(reader.pages[i])
+                buf = _io.BytesIO()
+                writer.write(buf)
+                return buf.getvalue()
 
         try:
             content = await self.hass.async_add_executor_job(_extract)

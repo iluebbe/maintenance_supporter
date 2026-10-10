@@ -888,7 +888,7 @@
   "doc_link_title": "Otsikko (valinnainen)",
   "doc_open": "Avaa",
   "doc_delete_confirm": "Poistetaanko \"{name}\"?",
-  "doc_too_large": "Tiedosto on liian suuri (enint. 25 Mt).",
+  "doc_too_large": "Tiedosto on liian suuri (enint. 100 Mt).",
   "doc_upload_failed": "Lataus epäonnistui.",
   "docs_archive_too_large": "Arkisto on liian suuri (enintään {max}).",
   "docs_archive_no_manifest": "Tässä ZIP-tiedostossa ei ole manifest.json-tiedostoa, joten palautus ei tiedä, mihin asiakirjaan tiedosto kuuluu. Pidä manifest.json kansioiden vieressä, kun pakkaat uudelleen.",

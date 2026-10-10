@@ -895,7 +895,7 @@
   "doc_link_title": "Título (opcional)",
   "doc_open": "Abrir",
   "doc_delete_confirm": "Excluir \"{name}\"?",
-  "doc_too_large": "O arquivo é muito grande (máx. 25 MB).",
+  "doc_too_large": "O arquivo é muito grande (máx. 100 MB).",
   "doc_upload_failed": "Falha no envio.",
   "docs_archive_too_large": "O arquivo é grande demais (máx. {max}).",
   "docs_archive_no_manifest": "Este ZIP não tem manifest.json, então a restauração não sabe a qual documento cada arquivo pertence. Mantenha o manifest.json junto às pastas ao compactar de novo.",

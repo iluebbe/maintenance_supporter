@@ -895,7 +895,7 @@
   "doc_link_title": "제목 (선택)",
   "doc_open": "열기",
   "doc_delete_confirm": "\"{name}\"을(를) 삭제할까요?",
-  "doc_too_large": "파일이 너무 큽니다 (최대 25 MB).",
+  "doc_too_large": "파일이 너무 큽니다 (최대 100 MB).",
   "doc_upload_failed": "업로드에 실패했습니다.",
   "docs_archive_too_large": "아카이브가 너무 큽니다(최대 {max}).",
   "docs_archive_no_manifest": "이 ZIP에는 manifest.json이 없어 복원 시 파일이 어느 문서에 속하는지 알 수 없습니다. 다시 압축할 때 manifest.json을 폴더 옆에 두세요.",

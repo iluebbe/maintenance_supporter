@@ -888,7 +888,7 @@
   "doc_link_title": "标题（可选）",
   "doc_open": "打开",
   "doc_delete_confirm": "删除“{name}”？",
-  "doc_too_large": "文件过大（最大 25 MB）。",
+  "doc_too_large": "文件过大（最大 100 MB）。",
   "doc_upload_failed": "上传失败。",
   "docs_archive_too_large": "压缩包过大（最大 {max}）。",
   "docs_archive_no_manifest": "此 ZIP 中没有 manifest.json，因此恢复时无法判断文件属于哪个文档。重新压缩时请把 manifest.json 放在各文件夹旁边。",

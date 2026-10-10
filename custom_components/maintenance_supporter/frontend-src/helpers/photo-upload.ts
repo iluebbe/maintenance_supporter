@@ -43,8 +43,10 @@ export async function authFetch(hass: HomeAssistant, url: string, init: RequestI
 /** Per-file upload limit — the TS twin of helpers/documents.py MAX_DOC_BYTES
  *  (tests/test_frontend_const_parity.py). A larger file is refused before it
  *  is sent: the view refuses it anyway, after the browser pushed it over the
- *  wire, and a 45 MB manual took a while on a phone to learn that (#209). */
-export const DOC_MAX_BYTES = 25 * 1024 * 1024;
+ *  wire, and a 45 MB manual took a while on a phone to learn that (#209).
+ *  Raised from 25 MB in the same round: the server no longer holds a file
+ *  in memory whole. */
+export const DOC_MAX_BYTES = 100 * 1024 * 1024;
 
 /** Import ceiling of the documents archive — the TS twin of
  *  helpers/doc_archive.py MAX_ARCHIVE_BYTES (tests/test_frontend_const_parity.py);

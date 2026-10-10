@@ -895,7 +895,7 @@
   "doc_link_title": "Title (optional)",
   "doc_open": "Open",
   "doc_delete_confirm": "Delete \"{name}\"?",
-  "doc_too_large": "File is too large (max 25 MB).",
+  "doc_too_large": "File is too large (max 100 MB).",
   "doc_upload_failed": "Upload failed.",
   "docs_archive_too_large": "The archive is too large (max {max}).",
   "docs_archive_no_manifest": "This ZIP has no manifest.json, so the restore cannot tell which document a file belongs to. Keep manifest.json next to the folders when zipping again.",

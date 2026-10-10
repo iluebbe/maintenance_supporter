@@ -275,7 +275,7 @@ custom_components/maintenance_supporter/
 │   ├── reference_numbers.py        (46 lines)  1 command: reference_numbers/compact
 │   └── tasks_bulk.py              (171 lines)  1 command: tasks/update_many
 │
-├── views.py                       (383 lines)  Four authenticated HTTP views: DocumentUploadView,
+├── views.py                       (393 lines)  Four authenticated HTTP views: DocumentUploadView,
 │                                               DocumentServeView, DocumentExcerptView, DocumentsArchiveView
 ├── intent.py                    (1,036 lines)  8 intents: ListTasks, CompleteTask, TaskInstructions, TaskDue, SnoozeTask, PartStock,
 │                                               PostponeTask, SkipTask
@@ -292,7 +292,7 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (44,126 lines)  131 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+├── frontend-src/               (44,128 lines)  131 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
 │   ├── maintenance-panel.ts     (5,304 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,263 lines)  Auto-generated dashboard strategy + 4 section strategies
@@ -321,12 +321,12 @@ custom_components/maintenance_supporter/
 │   ├── ds-preview-kit.ts          (229 lines)  Design-sync preview kit: a demo household behind a mock `hass`
 │   ├── maintenance-panel-card.ts  (369 lines)  The whole panel as a Lovelace card (#174)
 │   ├── status-constants.ts         (62 lines)  Status colors + icons — THE single source for every renderer
-│   ├── helpers/                 (5,764 lines)  63 files — Pure functions and small services shared by the panel, the cards and the dialogs
+│   ├── helpers/                 (5,766 lines)  63 files — Pure functions and small services shared by the panel, the cards and the dialogs
 │   │   ├── calendar-bucket.ts     (426 lines)  Pure 7/14/30/365-day projection, 5 occurrences max per task, no projection for sensor-based
 │   │   ├── notes-markdown.ts       (24 lines)  Notes rendering (ha-markdown hand-off)
 │   │   ├── bundle-version.ts       (19 lines)  Stale-bundle guard
 │   │   ├── history-photos.ts       (33 lines)  #161: photo_doc_ids ∪ legacy photo_doc_id, cap 10
-│   │   ├── photo-upload.ts        (123 lines)  Multipart upload + orphan cleanup
+│   │   ├── photo-upload.ts        (125 lines)  Multipart upload + orphan cleanup
 │   │   ├── reading-slots.ts       (130 lines)  #161 phase 2: entry snapshot, last value per slot, per-slot delta
 │   │   ├── area-history.ts        (412 lines)  Area history and costs (#191): every object of an area merged into one lifecycle history
 │   │   ├── area-record.ts         (201 lines)  Printable area report (#191): period, key figures, cost per object
@@ -437,7 +437,7 @@ custom_components/maintenance_supporter/
 │   │   └── ms-cost-input.ts       (109 lines)  A cost that may be a credit (#200): a Cost | Credit switch and the amount
 │   └── __tests__/              (27,447 lines)  199 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (31,897 lines)  100 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+├── helpers/                    (31,939 lines)  100 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,570 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (367 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
@@ -446,8 +446,8 @@ custom_components/maintenance_supporter/
 │   ├── schedule.py                (882 lines)  Schedule value object (discriminated-union recurrence) + adapters
 │   ├── calendar_source.py         (239 lines)  Calendar-entity occurrences (#187): `calendar.get_events` prefetch, 15-min cache in hass.data, provider for the pure engine
 │   ├── sensor_predictor.py        (898 lines)  Degradation + environmental correlation
-│   ├── documents.py               (971 lines)  Content-addressed manual/PDF storage + web links
-│   ├── document_text.py           (448 lines)  Full-text index over the blobs: pypdf text layer → sidecar + inverted index (#171)
+│   ├── documents.py             (1,009 lines)  Content-addressed manual/PDF storage + web links
+│   ├── document_text.py           (451 lines)  Full-text index over the blobs: pypdf text layer → sidecar + inverted index (#171)
 │   ├── search_match.py            (212 lines)  Tolerant matcher (fold, digraph variants, one-edit typos, AND rule) — TS twin in the panel
 │   ├── reference_numbers.py       (310 lines)  Object / task / completion reference numbers (#170): counters, creation-order assignment
 │   ├── battery_fleet.py         (1,656 lines)  Battery Notes aggregation, native-battery fallback, forecast
@@ -462,7 +462,7 @@ custom_components/maintenance_supporter/
 │   ├── csv_handler.py             (447 lines)  CSV import/export
 │   ├── vacation.py                (347 lines)  Vacation mode
 │   ├── battery_fleet_setup.py   (1,088 lines)  One-click fleet object + parts + single aggregate task
-│   ├── doc_archive.py             (597 lines)  Documents ZIP archive (the export that carries file contents)
+│   ├── doc_archive.py             (598 lines)  Documents ZIP archive (the export that carries file contents)
 │   ├── problem_sensors.py         (289 lines)  Adopt HA `device_class: problem` sensors as triggered tasks
 │   ├── entity_attributes.py       (239 lines)  Domain→attribute mapping for trigger setup
 │   ├── entity_analyzer.py         (211 lines)  Entity discovery + recorder stats

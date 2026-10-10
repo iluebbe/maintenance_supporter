@@ -888,7 +888,7 @@
   "doc_link_title": "Název (nepovinné)",
   "doc_open": "Otevřít",
   "doc_delete_confirm": "Smazat „{name}“?",
-  "doc_too_large": "Soubor je příliš velký (max. 25 MB).",
+  "doc_too_large": "Soubor je příliš velký (max. 100 MB).",
   "doc_upload_failed": "Nahrání selhalo.",
   "docs_archive_too_large": "Archiv je příliš velký (max. {max}).",
   "docs_archive_no_manifest": "Tento ZIP neobsahuje manifest.json, takže obnovení neví, ke kterému dokumentu soubor patří. Při opětovném zabalení ponechte manifest.json vedle složek.",

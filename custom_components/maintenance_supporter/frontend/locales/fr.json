@@ -888,7 +888,7 @@
   "doc_link_title": "Titre (facultatif)",
   "doc_open": "Ouvrir",
   "doc_delete_confirm": "Supprimer « {name} » ?",
-  "doc_too_large": "Fichier trop volumineux (max. 25 Mo).",
+  "doc_too_large": "Fichier trop volumineux (max. 100 Mo).",
   "doc_upload_failed": "Échec du téléversement.",
   "docs_archive_too_large": "Archive trop volumineuse (max. {max}).",
   "docs_archive_no_manifest": "Ce ZIP ne contient pas de manifest.json : la restauration ne peut pas savoir à quel document appartient un fichier. Gardez manifest.json à côté des dossiers lorsque vous recompressez.",

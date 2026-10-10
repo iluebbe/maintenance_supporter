@@ -895,7 +895,7 @@
   "doc_link_title": "Cím (opcionális)",
   "doc_open": "Megnyitás",
   "doc_delete_confirm": "Törli a(z) „{name}” elemet?",
-  "doc_too_large": "A fájl túl nagy (max. 25 MB).",
+  "doc_too_large": "A fájl túl nagy (max. 100 MB).",
   "doc_upload_failed": "A feltöltés nem sikerült.",
   "docs_archive_too_large": "Az archívum túl nagy (max. {max}).",
   "docs_archive_no_manifest": "Ebben a ZIP-ben nincs manifest.json, ezért a visszaállítás nem tudja, melyik dokumentumhoz tartozik egy fájl. Újratömörítéskor hagyd a manifest.json fájlt a mappák mellett.",

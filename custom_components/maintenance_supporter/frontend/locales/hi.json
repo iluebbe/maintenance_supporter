@@ -888,7 +888,7 @@
   "doc_link_title": "शीर्षक (वैकल्पिक)",
   "doc_open": "खोलें",
   "doc_delete_confirm": "\"{name}\" हटाएँ?",
-  "doc_too_large": "फ़ाइल बहुत बड़ी है (अधिकतम 25 MB)।",
+  "doc_too_large": "फ़ाइल बहुत बड़ी है (अधिकतम 100 MB)।",
   "doc_upload_failed": "अपलोड विफल रहा।",
   "docs_archive_too_large": "आर्काइव बहुत बड़ा है (अधिकतम {max})।",
   "docs_archive_no_manifest": "इस ZIP में manifest.json नहीं है, इसलिए पुनर्स्थापना यह नहीं जान सकती कि कोई फ़ाइल किस दस्तावेज़ की है। दोबारा ज़िप करते समय manifest.json को फ़ोल्डरों के साथ रखें।",

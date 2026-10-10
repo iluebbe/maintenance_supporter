@@ -888,7 +888,7 @@
   "doc_link_title": "Tytuł (opcjonalnie)",
   "doc_open": "Otwórz",
   "doc_delete_confirm": "Usunąć „{name}”?",
-  "doc_too_large": "Plik jest za duży (maks. 25 MB).",
+  "doc_too_large": "Plik jest za duży (maks. 100 MB).",
   "doc_upload_failed": "Przesyłanie nie powiodło się.",
   "docs_archive_too_large": "Archiwum jest za duże (maks. {max}).",
   "docs_archive_no_manifest": "Ten ZIP nie zawiera pliku manifest.json, więc przywracanie nie wie, do którego dokumentu należy plik. Przy ponownym pakowaniu zostaw manifest.json obok folderów.",

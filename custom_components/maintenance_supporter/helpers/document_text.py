@@ -94,26 +94,29 @@ def extract_text_sync(path: Path, mime: str) -> dict[str, Any]:
     try:
         from pypdf import PdfReader
 
-        reader = PdfReader(str(path))
-        if reader.is_encrypted:
-            try:
-                reader.decrypt("")
-            except Exception:  # noqa: BLE001 — any decrypt failure = unreadable
-                return {"status": STATUS_ERROR, "text": "", "pages": 0, "indexed_pages": 0, "chars": 0}
-        total = len(reader.pages)
         pages: list[str] = []
         chars = 0
-        for i, page in enumerate(reader.pages):
-            if i >= MAX_PAGES or chars >= MAX_CHARS:
-                break
-            try:
-                page_text = " ".join((page.extract_text() or "").split())
-            except Exception:  # noqa: BLE001 — a broken page must not sink the document
-                page_text = ""
-            if chars + len(page_text) > MAX_CHARS:
-                page_text = page_text[: MAX_CHARS - chars]
-            pages.append(page_text)
-            chars += len(page_text)
+        # An open file, not the path: pypdf reads a path into memory whole,
+        # a file only as far as the pages it extracts (manuals go up to 100 MB).
+        with path.open("rb") as handle:
+            reader = PdfReader(handle)
+            if reader.is_encrypted:
+                try:
+                    reader.decrypt("")
+                except Exception:  # noqa: BLE001 — any decrypt failure = unreadable
+                    return {"status": STATUS_ERROR, "text": "", "pages": 0, "indexed_pages": 0, "chars": 0}
+            total = len(reader.pages)
+            for i, page in enumerate(reader.pages):
+                if i >= MAX_PAGES or chars >= MAX_CHARS:
+                    break
+                try:
+                    page_text = " ".join((page.extract_text() or "").split())
+                except Exception:  # noqa: BLE001 — a broken page must not sink the document
+                    page_text = ""
+                if chars + len(page_text) > MAX_CHARS:
+                    page_text = page_text[: MAX_CHARS - chars]
+                pages.append(page_text)
+                chars += len(page_text)
         text = PAGE_BREAK.join(pages)
         has_words = sum(1 for w in words(text[:50_000]) if len(w) >= 2) >= 3
         return {

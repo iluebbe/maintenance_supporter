@@ -221,7 +221,7 @@ describe("documents-section", () => {
       const before = lists();
       const shown = await upload(el, [pdf("hvac.pdf")]);
       expect(lists(), "the list reloaded").to.equal(before + 1);
-      expect(shown).to.equal("hvac.pdf: File is too large (max 25 MB).");
+      expect(shown).to.equal("hvac.pdf: File is too large (max 100 MB).");
     });
 
     it("a file over the limit is refused without being sent", async () => {
@@ -233,7 +233,7 @@ describe("documents-section", () => {
       }) as unknown as typeof fetch;
       const shown = await upload(el, [pdf("manual.pdf", DOC_MAX_BYTES + 1), pdf("invoice.pdf", DOC_MAX_BYTES)]);
       expect(posted, "only the file within the limit went up").to.deep.equal(["invoice.pdf"]);
-      expect(shown).to.equal("manual.pdf: File is too large (max 25 MB).");
+      expect(shown).to.equal("manual.pdf: File is too large (max 100 MB).");
     });
 
     it("a dropped connection is named per file and the rest still go up", async () => {

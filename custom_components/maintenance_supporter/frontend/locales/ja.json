@@ -888,7 +888,7 @@
   "doc_link_title": "タイトル（任意）",
   "doc_open": "開く",
   "doc_delete_confirm": "「{name}」を削除しますか？",
-  "doc_too_large": "ファイルが大きすぎます（最大 25 MB）。",
+  "doc_too_large": "ファイルが大きすぎます（最大 100 MB）。",
   "doc_upload_failed": "アップロードに失敗しました。",
   "docs_archive_too_large": "アーカイブが大きすぎます（最大 {max}）。",
   "docs_archive_no_manifest": "この ZIP には manifest.json がないため、復元時にファイルがどのドキュメントのものか判断できません。再度圧縮するときは manifest.json をフォルダーと同じ場所に置いてください。",

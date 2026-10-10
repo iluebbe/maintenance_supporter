@@ -888,7 +888,7 @@
   "doc_link_title": "Titel (optioneel)",
   "doc_open": "Openen",
   "doc_delete_confirm": "\"{name}\" verwijderen?",
-  "doc_too_large": "Bestand is te groot (max. 25 MB).",
+  "doc_too_large": "Bestand is te groot (max. 100 MB).",
   "doc_upload_failed": "Uploaden mislukt.",
   "docs_archive_too_large": "Het archief is te groot (max. {max}).",
   "docs_archive_no_manifest": "Deze ZIP bevat geen manifest.json, dus het herstel weet niet bij welk document een bestand hoort. Laat manifest.json naast de mappen staan als je opnieuw zipt.",

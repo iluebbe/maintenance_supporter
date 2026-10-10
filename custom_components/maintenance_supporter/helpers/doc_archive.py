@@ -53,8 +53,9 @@ LINKS_NAME = "Links.txt"
 BLOB_DIR = "blobs/"
 ARCHIVE_VERSION = 2
 # Cap a single archive import so a crafted ZIP can't exhaust memory/disk. A
-# real documents backup is dominated by the blobs, already capped at 25 MB
-# each × 100 docs/object — this is a coarse whole-archive ceiling on top.
+# real documents backup is dominated by the blobs, already capped at
+# MAX_DOC_BYTES each × 100 docs/object — this is a coarse whole-archive
+# ceiling on top.
 MAX_ARCHIVE_BYTES = 500 * 1024 * 1024  # 500 MB uncompressed-blob budget
 MAX_MANIFEST_BYTES = 16 * 1024 * 1024  # the manifest is metadata only
 MAX_ARCHIVE_MEMBERS = 20000  # ceiling on ZIP entry count (blobs cap at 100/obj)

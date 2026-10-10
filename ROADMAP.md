@@ -664,7 +664,7 @@ ships, drop the Android fallback in `helpers/companion.ts`.
 ### 🟡 Deferred from the bug audit 2026-09-12
 
 - **PDF text extraction has no byte budget before the character cap**: `page.extract_text()` decompresses a page's
-  content stream in full before the result is truncated, so a crafted FlateDecode-heavy PDF (≤ 25 MB) from a
+  content stream in full before the result is truncated, so a crafted FlateDecode-heavy PDF (≤ 100 MB) from a
   write-permitted user can exhaust the executor's memory (serialised by the work lock, so it also stalls the backfill).
   A per-page raw-size cutoff or a page-level timeout in `helpers/document_text.py`.
 - **Learned battery lifetimes die with the fleet task**: the replacement log lives in the fleet task's Store state; when

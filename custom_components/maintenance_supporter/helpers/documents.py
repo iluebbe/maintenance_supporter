@@ -16,12 +16,13 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import io
 import logging
 import math
 import os
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, BinaryIO
 from uuid import uuid4
 
 from homeassistant.core import HomeAssistant
@@ -53,8 +54,13 @@ BLOBS_SUBDIR = "blobs"
 DOC_CATEGORIES = ("manual", "warranty", "invoice", "spare_parts", "photo", "other")
 
 # Per-file cap — guards against runaway backup growth (docs live in /config and
-# are therefore duplicated into every retained backup).
-MAX_DOC_BYTES = 25 * 1024 * 1024  # 25 MB
+# are therefore duplicated into every retained backup). Was 25 MB; a scanned
+# manual is easily 45 MB (#209), and since a file is never held in memory
+# whole (copied and hashed in pieces, served from disk) the cap is about
+# backups only.
+MAX_DOC_BYTES = 100 * 1024 * 1024  # 100 MB
+# A stored file is copied and hashed in pieces of this size.
+_COPY_CHUNK_BYTES = 1024 * 1024
 
 KIND_FILE = "file"
 KIND_WEBLINK = "weblink"
@@ -337,7 +343,7 @@ class DocumentStore:
         self,
         object_id: str,
         *,
-        content: bytes,
+        content: bytes | BinaryIO,
         filename: str,
         mime: str,
         title: str | None = None,
@@ -346,12 +352,21 @@ class DocumentStore:
     ) -> dict[str, Any]:
         """Store an uploaded file (content-addressed + deduped) for an object.
 
+        ``content`` is the bytes, or a binary file read from where it stands
+        (the upload view hands over the temporary file aiohttp spooled the
+        upload into): either way it is copied to disk and hashed in pieces,
+        so a 100 MB manual never sits in memory whole. Raises
+        ``ValueError("file_too_large")`` past MAX_DOC_BYTES and
+        ``ValueError("too_many_documents")`` at the per-object cap.
+
         Returns the new document dict plus ``deduped`` (the blob already existed)
         and ``duplicate_in_object`` (the id of an existing doc on the *same*
         object with identical content, if any — the caller surfaces a hint).
         """
-        if len(content) > MAX_DOC_BYTES:
-            raise ValueError("file_too_large")
+        if isinstance(content, bytes):
+            if len(content) > MAX_DOC_BYTES:
+                raise ValueError("file_too_large")
+            content = io.BytesIO(content)
 
         # Per-object document cap — a runaway upload loop must not be able to
         # bloat the (single, global) documents store without bound.
@@ -360,7 +375,7 @@ class DocumentStore:
             raise ValueError("too_many_documents")
 
         async with self._blob_lock:
-            digest, wrote_new = await self.hass.async_add_executor_job(self._store_blob_sync, content)
+            digest, wrote_new, size = await self.hass.async_add_executor_job(self._store_stream_sync, content, MAX_DOC_BYTES)
 
             # Register / adopt the blob and bump its refcount — in the same
             # critical section as the write, so a concurrent last-reference
@@ -368,7 +383,7 @@ class DocumentStore:
             blob = self.blobs.get(digest)
             deduped = blob is not None
             if blob is None:
-                blob = {"size": len(content), "mime": mime, "refcount": 0}
+                blob = {"size": size, "mime": mime, "refcount": 0}
                 self.blobs[digest] = blob
             blob["refcount"] += 1
 
@@ -385,7 +400,7 @@ class DocumentStore:
             "title": title or filename,
             "filename": filename,
             "mime": mime,
-            "size": len(content),
+            "size": size,
             "tags": list(tags or []),
             "description": self.clean_description(description),
             "task_ids": [],
@@ -413,21 +428,44 @@ class DocumentStore:
     def _store_blob_sync(self, content: bytes) -> tuple[str, bool]:
         """Hash content and write the blob if absent. Returns (digest, wrote_new)."""
         digest = hashlib.sha256(content).hexdigest()
-        path = self.blob_path(digest)
-        if path.exists():
+        if self.blob_path(digest).exists():
             return digest, False
+        digest, wrote_new, _size = self._store_stream_sync(io.BytesIO(content))
+        return digest, wrote_new
+
+    def _store_stream_sync(self, source: BinaryIO, max_bytes: int | None = None) -> tuple[str, bool, int]:
+        """Copy ``source`` into a blob, hashing it on the way, in pieces.
+
+        Returns ``(digest, wrote_new, size)``. The copy lands in a temporary
+        file next to the blobs and is renamed to its digest only when that
+        blob is absent. Past ``max_bytes`` it stops and raises
+        ``ValueError("file_too_large")``; the temporary file never outlives
+        the call.
+        """
         self._blobs_dir.mkdir(parents=True, exist_ok=True)
         # A temp name of its own per write: two uploads of the same content
         # shared "<digest>.tmp", and the second os.replace found it already
         # moved away — a 500 for a perfectly good upload (bug audit
-        # 2026-09-26). Replacing an identical blob is harmless.
-        tmp = path.with_name(f"{path.name}.{uuid4().hex}.tmp")
+        # 2026-09-26). Not a 64-hex name, so the orphan scan never sees it.
+        tmp = self._blobs_dir / f"upload.{uuid4().hex}.tmp"
+        hasher = hashlib.sha256()
+        size = 0
         try:
-            tmp.write_bytes(content)
+            with tmp.open("wb") as out:
+                while chunk := source.read(_COPY_CHUNK_BYTES):
+                    size += len(chunk)
+                    if max_bytes is not None and size > max_bytes:
+                        raise ValueError("file_too_large")
+                    hasher.update(chunk)
+                    out.write(chunk)
+            digest = hasher.hexdigest()
+            path = self.blob_path(digest)
+            if path.exists():
+                return digest, False, size
             os.replace(tmp, path)  # atomic
+            return digest, True, size
         finally:
             tmp.unlink(missing_ok=True)
-        return digest, True
 
     async def async_add_weblink(
         self,

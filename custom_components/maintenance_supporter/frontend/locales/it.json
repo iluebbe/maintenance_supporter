@@ -888,7 +888,7 @@
   "doc_link_title": "Titolo (facoltativo)",
   "doc_open": "Apri",
   "doc_delete_confirm": "Eliminare «{name}»?",
-  "doc_too_large": "File troppo grande (max 25 MB).",
+  "doc_too_large": "File troppo grande (max 100 MB).",
   "doc_upload_failed": "Caricamento non riuscito.",
   "docs_archive_too_large": "L'archivio è troppo grande (max {max}).",
   "docs_archive_no_manifest": "Questo ZIP non contiene manifest.json, quindi il ripristino non sa a quale documento appartiene un file. Lascia manifest.json accanto alle cartelle quando lo comprimi di nuovo.",

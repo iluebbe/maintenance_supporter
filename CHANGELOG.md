@@ -4,6 +4,13 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Changed
+
+- **Documents up to 100 MB:** the limit per file was 25 MB, too small for a scanned manual (a 45 MB one was refused).
+  It is now 100 MB, and a large file no longer costs memory: an upload is copied to disk and checked in pieces
+  instead of being held whole, and a document is streamed from disk when opened, so a PDF viewer can load the pages
+  it shows. The search index and the manual excerpt read a PDF only as far as they need.
+
 ### 🐛 Fixed
 
 - **A lowered battery threshold takes batteries off the list:** a battery that went low stays low until it rises
@@ -13,11 +20,11 @@ All notable changes to Maintenance Supporter are documented in this file.
   household floor or a battery's own Battery Notes threshold, now releases every battery above it at once (in the
   count, the fleet task and its to-dos); nothing is recorded as replaced. Batteries that went low before this version
   count as having gone low at the default 20 %, so after the update they leave the list without another change.
-- **A document that is too large says so:** a file over the 25 MB limit (a 45 MB manual) was refused by Home
-  Assistant, but the message vanished the moment the document list reloaded, so the upload seemed to do nothing. The
-  message now stays and names the file ("manual.pdf: File is too large (max 25 MB)"). A file over the limit is
-  refused before it is sent, so a phone no longer uploads 45 MB only to learn that, and when several files are
-  uploaded at once, each refused or failed one is named while the others still go up.
+- **A document that is too large says so:** a file over the limit (a 45 MB manual, when the limit was 25 MB) was
+  refused by Home Assistant, but the message vanished the moment the document list reloaded, so the upload seemed to
+  do nothing. The message now stays and names the file ("manual.pdf: File is too large (max 100 MB)"). A file over
+  the limit is refused before it is sent, so a phone no longer uploads it in full only to learn that, and when
+  several files are uploaded at once, each refused or failed one is named while the others still go up.
 - **Groups stack on a phone:** the panel's groups shared one row on a narrow screen, three groups at 96 px each on a
   360 px phone, so the edit and delete buttons did not fit and one group's delete button lay over the next group.
   On a phone each group now takes its own row, with larger edit and delete buttons set apart; a long group or task
