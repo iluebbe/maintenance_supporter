@@ -35,6 +35,9 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Fresh screenshots and GIFs** from a newly seeded demo, with two new pictures: the plants in Suggested setups
   (a demo Plant Monitor whose Monstera reports a problem) and an object page whose tasks without a due date say when
   they were last done. The roadmap records both features as shipped.
+- **The groups on a phone pictured:** a new picture shows the panel's groups one per row at phone width. The
+  documents section of the feature guide names the 100 MB limit and how a large file is handled, and the
+  architecture guide says how the upload and serve views move files without holding them in memory.
 
 ## [2.100.0] - 2026-10-06
 

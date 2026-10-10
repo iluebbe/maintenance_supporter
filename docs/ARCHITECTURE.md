@@ -1007,8 +1007,8 @@ File binaries are handled by `views.py`, outside the WS API:
 
 | View | Route |
 |---|---|
-| `DocumentUploadView` | `POST /api/maintenance_supporter/document/upload` |
-| `DocumentServeView` | `GET /api/maintenance_supporter/document/{doc_id}` |
+| `DocumentUploadView` | `POST /api/maintenance_supporter/document/upload` (multipart, ≤ `MAX_DOC_BYTES` = 100 MB; aiohttp spools the file to disk and `DocumentStore._store_stream_sync` copies and hashes it in 1 MB pieces, so no upload is held in memory whole) |
+| `DocumentServeView` | `GET /api/maintenance_supporter/document/{doc_id}` (`FileResponse`: streamed from disk with range requests; the Content-Type is set by the view, never guessed from the extension-less blob name) |
 | `DocumentExcerptView` | `GET /api/maintenance_supporter/document/{doc_id}/excerpt` (pdf.js-backed page range for the work sheet) |
 | `DocumentsArchiveView` | `GET /api/maintenance_supporter/documents/archive` (ZIP of all document contents) |
 
