@@ -2072,7 +2072,7 @@
     },
     "list_tasks": {
       "name": "Listar tarefas",
-      "description": "Retorna um panorama das tarefas de manutenção ativas (id, entity_id do sensor, nome, status, próximo vencimento, última conclusão, leitura atual do gatilho com meta e unidade) para automações, scripts e voz. Permite filtrar por objeto e status.",
+      "description": "Retorna um panorama das tarefas de manutenção ativas (id, entity_id do sensor, nome, status, próximo vencimento, última conclusão, leitura atual do gatilho com meta e unidade, pessoa responsável) para automações, scripts e voz. Permite filtrar por objeto, status e pessoa.",
       "fields": {
         "entry_id": {
           "name": "Objeto",
@@ -2081,6 +2081,10 @@
         "status": {
           "name": "Status",
           "description": "Retornar apenas as tarefas com este status."
+        },
+        "person": {
+          "name": "Pessoa",
+          "description": "Retornar apenas as tarefas destinadas a esta pessoa (as que estão sob sua responsabilidade e as compartilhadas com ela pelas quais ninguém é responsável). A pessoa deve estar vinculada a um usuário do Home Assistant."
         }
       }
     }

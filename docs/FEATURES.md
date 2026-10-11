@@ -903,6 +903,7 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 - **Completion photos** (2.17+): attach photos when completing a task — camera capture or several from the gallery at once, up to ten per completion (2.75+) — stored via the documents engine, shown as a thumbnail strip in the history timeline, and editable afterwards from the history entry (add more, detach one)
 - **Missed status + completion window** (2.17+): skipping an overdue task records it as *Missed* (distinct from a deliberate skip); an optional per-task *earliest completion* window blocks signing tasks off too early
 - **Shared maintenance & rotation** (2.17+): assign a task to several household members and rotate responsibility on each completion (round-robin / least-completed / random). Since 2.42.1 a rotation task **always carries an effective assignee** (discussion #49): the first pool member is seeded whenever the task is created, edited or imported, a storage migration repaired existing tasks on upgrade, and editing the current assignee out of the pool hands the duty to the next member. Before that, a pool configured without an initial assignee left the task invisible to every user filter (panel, card, calendar card, saved views, per-user notifications) until its first completion
+- **Shared without a rotation** (discussion #110): pick several people under *Shared with* and leave *Rotation* off, and the task is meant for all of them. Each of their phones gets its reminders (the notification service in Settings is the fallback only when none of them has a phone), completing it from one phone clears it from the others, and it is listed under each of them wherever tasks are filtered by person: the panel, the card and the calendar card, saved views, `tasks/by_user`, "my tasks" by voice and `list_tasks`. A task with a responsible person, a rotation included, stays that person's alone
 - **Member avatars** (2.76+, #169): the responsible person appears as initials in a colour of their own — next to Today rows, in the dashboard sub-line, on the task page and in the Lovelace card. Initials and colour derive from the HA user by default; *Settings → Member avatars* lets an admin set initials (1–3 characters) and pick one of twelve palette colours per member, so two "M"s stay tellable apart on a phone where only the avatar fits
 - **Native To-do entity** (2.17+): a global `todo.maintenance` list mirrors every active task; checking an item off completes the task — works with the To-do card and Assist/voice
 - **Mirror a task into your own to-do lists** (2.87+, D#183): the task dialog's *Mirror into to-do lists* takes up to five `todo.*` lists (the children's list, the parents' list, Bring!, a Local To-do …). While the task is due — due soon, overdue or triggered — one item *Object: Task* sits on every chosen list; checking it off in **any** of them completes the task here (completion reason *from a mirrored to-do list*) and removes it from all of them. Completing, skipping, resetting, archiving or pausing in Maintenance Supporter removes the items too, and a row deleted by hand comes back while the task is still due — Maintenance Supporter stays the single source of truth. Its own `todo.maintenance` cannot be a target; a list that does not exist yet is picked up when it appears
@@ -979,7 +980,7 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 ### Notifications
 - Configurable notification service (any `notify.*` service)
 - **"Send test" button** in Settings to verify the notify service without having to wait for a real due event
-- Per-user notifications for tasks with a responsible user assigned
+- Per-user notifications: a task with a responsible user reaches that person's phones, and a task shared with several people while nobody is responsible reaches each of theirs
 - Rate limiting per status level (due soon, overdue, triggered)
 - Quiet hours support — what falls into the quiet hours is held and arrives as **one summary** at their end (2.86+); the manager's bookkeeping (what was sent when, snoozes, the daily counter) survives a restart, so a restart no longer re-announces everything once the sensors come back
 - **Multiple lead-time reminders** (2.17+): an opt-in list (e.g. 14 / 3 / 0 days before due) fires one extra reminder on each matching day
@@ -1183,7 +1184,7 @@ Archives from before 2.96 (files stored as `blobs/<hash>`) still restore.
 
 Each sensor entity exposes attributes grouped by function. Only stable values are exposed as entity attributes (to avoid excessive recorder writes); fast-changing trigger values are served via the WebSocket `subscribe` endpoint instead (see below).
 
-- **Core**: `maintenance_type`, `schedule_type`, `interval_days`, `interval_unit`, `interval_anchor`, `due_date`, `warning_days`, `last_performed`, `next_due`, `next_event_titles` (2.92+, #189 — calendar-entity schedules only: the titles of the events behind `next_due`, e.g. `["Residual waste", "Paper"]`; absent otherwise), `days_until_due`, `parent_object`, `times_performed`, `total_cost`, `average_duration`, `notes`, `documentation_url`, `priority` (#134 — route automations on it: `state_attr(..., 'priority') == 'high'`; tasks without an explicit value read `normal`)
+- **Core**: `maintenance_type`, `schedule_type`, `interval_days`, `interval_unit`, `interval_anchor`, `due_date`, `warning_days`, `last_performed`, `next_due`, `next_event_titles` (2.92+, #189 — calendar-entity schedules only: the titles of the events behind `next_due`, e.g. `["Residual waste", "Paper"]`; absent otherwise), `days_until_due`, `parent_object`, `times_performed`, `total_cost`, `average_duration`, `notes`, `documentation_url`, `priority` (#134 — route automations on it: `state_attr(..., 'priority') == 'high'`; tasks without an explicit value read `normal`), `responsible_user_id` and `responsible_user` (#210: the Home Assistant user id and the person entity of whoever is responsible, on a rotation whose turn it is; `null` while nobody is)
 - **Trigger** (only when a trigger is configured): `trigger_type`, `trigger_active`, plus type-specific fields (e.g. `trigger_above` / `trigger_below` / `trigger_for_minutes`, `trigger_target_value`, …)
 - **Adaptive** (only when adaptive scheduling is enabled): `suggested_interval`, `interval_confidence`, `adaptive_scheduling_enabled`, `seasonal_factor`, `seasonal_reason`
 - **Weibull** (after 5+ completions): `weibull_beta`, `weibull_eta`, `weibull_r_squared`, `weibull_beta_interpretation`, `confidence_interval_low`, `confidence_interval_high`
@@ -1236,8 +1237,8 @@ binary sensors above keep working unchanged.
 Full task CRUD from automations, scripts and voice (2.19+): `add_object`,
 `add_task`, `update_task`, `delete_task`, and `list_tasks` (returns a
 response — ids, the task's sensor `entity_id`, status, next due, last
-completion and the live trigger reading with target and unit per task,
-filterable by object and status) join the long-standing `complete` / `skip` / `reset` /
+completion, the live trigger reading with target and unit and who is
+responsible per task, filterable by object, status and person) join the long-standing `complete` / `skip` / `reset` /
 `export_data`. A call made by a person (the service call carries their user)
 follows the panel's rules: creating, editing and deleting need write access
 (admins, or operators when delegation is on) and `export_data` is admin-only;
@@ -1252,7 +1253,8 @@ The services take `schedule_type` `time_based`, `one_time` (with a
 A sensor-triggered task needs a trigger, which the services cannot set —
 create those in the panel (2.96+ refuses `sensor_based` instead of quietly
 building a plain task). `list_tasks` filters by `ok`, `due_soon`, `overdue`,
-`triggered` or `paused`.
+`triggered` or `paused`, and its `person` (a person entity, #210) returns the tasks meant for
+that person: their own, and the ones shared with them that nobody is responsible for.
 `complete` also accepts `via_tag_scan: true` (2.67+) so an automation that
 reacts to a physical scan can complete a tag-gated task — see
 [Examples](EXAMPLES.md#complete-a-tag-gated-task-from-an-automation-267) —

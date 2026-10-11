@@ -45,6 +45,7 @@ from homeassistant.helpers import intent
 from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_TASKS, DOMAIN, NOTIFIABLE_STATUSES
 from .helpers.aggregate import get_object_entries, iter_live_tasks, priority_rank
 from .helpers.aggregate import object_name as aggregate_object_name
+from .helpers.assignees import task_user_ids
 
 INTENT_LIST_TASKS = "MaintenanceSupporterListTasks"
 INTENT_COMPLETE_TASK = "MaintenanceSupporterCompleteTask"
@@ -120,6 +121,9 @@ def _task_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
                 "name": str(task.get("name") or ""),
                 # Whose turn it is — for a rotation this is the current duty.
                 "responsible_user_id": task.get("responsible_user_id") or None,
+                # Who it is meant for: that person, or everyone it is shared
+                # with while nobody is responsible ("my tasks" reads this).
+                "user_ids": task_user_ids(task),
                 "status": str(task.get("_status", "")),
                 "days_until_due": task.get("_days_until_due"),
                 "next_due": task.get("_next_due"),
@@ -379,7 +383,7 @@ class ListTasksIntent(intent.IntentHandler):
                     _sp("unknown_user", lang),
                 )
                 return response
-            tasks = [t for t in tasks if t.get("responsible_user_id") == user_id]
+            tasks = [t for t in tasks if user_id in t["user_ids"]]
         elif scope == "here":
             area = _asking_area(intent_obj)
             if not area:

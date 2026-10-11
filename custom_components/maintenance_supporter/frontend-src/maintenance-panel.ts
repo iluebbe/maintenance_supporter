@@ -13,6 +13,7 @@ import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
 import { openHtmlInNewTab, openSignedDocument, preopenTab, signApiPath } from "./helpers/document-url";
 import { readObjectsCache, writeObjectsCache } from "./helpers/objects-cache";
 import { hydrateObjects } from "./helpers/hydrate-objects";
+import { taskIsFor, taskUserIds } from "./helpers/assignees";
 import { daysProgress } from "./helpers/interval";
 import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
 import { warrantyStatus } from "./helpers/warranty";
@@ -1215,7 +1216,8 @@ export class MaintenanceSupporterPanel extends LitElement {
           const userId = this._filterUser === "current_user"
             ? this._userService?.getCurrentUserId()
             : this._filterUser;
-          if (task.responsible_user_id !== userId) continue;
+          // Theirs, or shared with them while nobody is responsible.
+          if (!taskIsFor(task, userId)) continue;
         }
 
         // Label filter (v2.26 — also captured by saved views)
@@ -3544,12 +3546,12 @@ export class MaintenanceSupporterPanel extends LitElement {
     const archivedCount = this._objects.reduce(
       (n, o) => n + o.tasks.filter((tk) => tk.archived).length, 0,
     );
-    // The people someone can filter by: everyone responsible for a task, plus
+    // The people someone can filter by: everyone a task is meant for, plus
     // the person a saved view narrows to — otherwise that view leaves the
     // select blank while it filters.
     const filterPeople = new Set<string>();
     for (const o of this._objects) {
-      for (const tk of o.tasks) if (tk.responsible_user_id) filterPeople.add(tk.responsible_user_id);
+      for (const tk of o.tasks) for (const id of taskUserIds(tk)) filterPeople.add(id);
     }
     if (this._filterUser && this._filterUser !== "current_user") filterPeople.add(this._filterUser);
     const personOptions = [...filterPeople]

@@ -782,8 +782,9 @@ _ATTR_EXEMPT = {
     "name": "the entity's friendly_name IS the task name",
     "enabled": "a disabled task's entities go inert; state visible via WS/panel",
     "trigger_config": "faceted into per-type trigger_* attributes instead",
-    "responsible_user_id": "raw HA-user UUIDs are meaningless in recorder rows",
-    "assignee_pool": "list of HA-user UUIDs — same reason as responsible_user_id",
+    # responsible_user_id IS exposed since #210 (with responsible_user, the
+    # person entity), so an automation can pick one person's tasks.
+    "assignee_pool": "list of HA-user UUIDs; list_tasks names them as person entities (shared_with)",
     "rotation_strategy": "assignment mechanics; visible in the panel/WS",
     "required_completion_fields": "dialog gating config, not routable state",
     "entity_slug": "already manifest in the entity_id itself",

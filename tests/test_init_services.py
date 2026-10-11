@@ -256,7 +256,7 @@ async def test_notification_action_complete_dismisses_notification(
         hass.bus.async_fire("mobile_app_notification_action", {"action": action})
         await hass.async_block_till_done()
 
-        mock_dismiss.assert_called_once_with(TASK_ID_1, responsible_user_id=None)
+        mock_dismiss.assert_called_once_with(TASK_ID_1, user_ids=[])
         mock_clear.assert_called_once_with(entry_id, TASK_ID_1)
 
 

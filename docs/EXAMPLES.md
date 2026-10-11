@@ -435,6 +435,9 @@ straight into `complete`/`skip`/`reset`), `last_performed`,
 `trigger_current_delta` (delta-mode counters: progress since the last
 service), `trigger_target` and `trigger_unit` (`h` for runtime, the source
 entity's unit for threshold/counter, none for state-change counts).
+Who does it (#210): `responsible_user_id` and `responsible_user` (the person
+entity, the same one `update_task` takes) name whoever is responsible, and
+`shared_with` lists the person entities under *Shared with*.
 
 ```yaml
 # "printer ink at 54.2 %", "brush head 0.9 / 6 h" — then complete the first
@@ -548,6 +551,21 @@ To remove an assignment, call `update_task` with `clear_responsible_user: true`
 instead. For tasks with an assignee pool, a manual assignment simply sets the
 current responsible person — rotation continues from there on the next
 completion.
+
+`list_tasks` picks one person's tasks (#210): the ones they are responsible
+for, and the ones shared with them that nobody is responsible for.
+
+```yaml
+# Every evening, tell Alice what is overdue for her
+- action: maintenance_supporter.list_tasks
+  data: { person: person.alice, status: overdue }
+  response_variable: hers
+- if: "{{ hers.count > 0 }}"
+  then:
+    - action: notify.mobile_app_alice_phone
+      data:
+        message: "{{ hers.tasks | map(attribute='name') | join(', ') }}"
+```
 
 ### Automation: Handle Mobile Notification Actions
 

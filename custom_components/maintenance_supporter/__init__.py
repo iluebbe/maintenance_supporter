@@ -102,6 +102,7 @@ from .frontend import async_register_card
 from .helpers.aggregate import iter_live_tasks
 from .helpers.aggregate import object_name as aggregate_object_name
 from .helpers.aggregate import task_sensor_entity_id as aggregate_task_sensor_entity_id
+from .helpers.assignees import person_of_user, shared_user_ids, task_is_for, task_user_ids
 from .helpers.assist_sentences import async_sync as async_sync_assist_sentences
 from .helpers.dates import INTERVAL_UNITS, local_date_from_iso
 from .helpers.documents import DocumentStore
@@ -279,6 +280,8 @@ SERVICE_LIST_TASKS_SCHEMA = vol.Schema(
     {
         vol.Optional("entry_id"): cv.string,
         vol.Optional("status"): vol.In(["ok", "due_soon", "overdue", "triggered", "paused"]),
+        # #210: only the tasks meant for this person (helpers/assignees).
+        vol.Optional("person"): cv.entity_id,
     }
 )
 
@@ -869,6 +872,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         """Handle list_tasks — a queryable snapshot for automations/voice."""
         wanted_entry = call.data.get("entry_id")
         wanted_status = call.data.get("status")
+        wanted_user = _resolve_person_user_id(call.data["person"]) if call.data.get("person") else None
         tasks: list[dict[str, Any]] = []
         # The shared cross-object walk (loaded objects, archived tasks left
         # out) — the Assist snapshot uses the same one (DRY audit 2026-09-26 B).
@@ -876,8 +880,11 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             status = str(task.get("_status", ""))
             if wanted_status and status != wanted_status:
                 continue
+            if wanted_user and not task_is_for(task, wanted_user):
+                continue
             # #151: last completion + live trigger reading, so
             # notification automations don't need extra lookups.
+            responsible = task.get("responsible_user_id") or None
             lp = task.get("last_performed")
             days_since: int | None = None
             if lp:
@@ -911,6 +918,13 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                     "trigger_current_delta": task.get("_trigger_current_delta"),
                     "trigger_target": trigger_target,
                     "trigger_unit": trigger_unit,
+                    # #210: who does it, as the user id and as the person
+                    # entity (what update_task takes as responsible_user);
+                    # shared_with is everyone under "Shared with" (on a
+                    # rotation, the people it rotates between).
+                    "responsible_user_id": responsible,
+                    "responsible_user": person_of_user(hass, responsible),
+                    "shared_with": [p for u in shared_user_ids(task) if (p := person_of_user(hass, u))],
                 }
             )
         return {"tasks": tasks, "count": len(tasks)}
@@ -1005,7 +1019,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         if nm is not None:
             cfg_entry = hass.config_entries.async_get_entry(entry_id)
             task_cfg = ((cfg_entry.data.get(CONF_TASKS) or {}).get(task_id) or {}) if cfg_entry is not None else {}
-            await nm.async_dismiss_task_notification(task_id, responsible_user_id=task_cfg.get("responsible_user_id"))
+            await nm.async_dismiss_task_notification(task_id, user_ids=task_user_ids(task_cfg))
             nm.clear_task_state(entry_id, task_id)
 
     unsub_notification = hass.bus.async_listen("mobile_app_notification_action", _handle_notification_action)

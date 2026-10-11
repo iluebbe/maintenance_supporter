@@ -2072,7 +2072,7 @@
     },
     "list_tasks": {
       "name": "List opp oppgaver",
-      "description": "Returnerer et øyeblikksbilde av aktive vedlikeholdsoppgaver (id, sensorens entity_id, navn, status, neste forfall, siste fullføring, gjeldende utløseravlesning med mål og enhet) for automatiseringer, skript og tale. Støtter filtrering etter objekt og status.",
+      "description": "Returnerer et øyeblikksbilde av aktive vedlikeholdsoppgaver (id, sensorens entity_id, navn, status, neste forfall, siste fullføring, gjeldende utløseravlesning med mål og enhet, ansvarlig person) for automatiseringer, skript og tale. Støtter filtrering etter objekt, status og person.",
       "fields": {
         "entry_id": {
           "name": "Objekt",
@@ -2081,6 +2081,10 @@
         "status": {
           "name": "Status",
           "description": "Returner kun oppgaver med denne statusen."
+        },
+        "person": {
+          "name": "Person",
+          "description": "Returner kun oppgavene som er ment for denne personen (de personen er ansvarlig for, og de som er delt med personen og som ingen er ansvarlig for). Personen må være knyttet til en Home Assistant-bruker."
         }
       }
     }

@@ -18,6 +18,7 @@ import type { HistoryEntry, MaintenanceObjectResponse } from "../types";
 import { entrySpend } from "./parts-cost";
 import { intervalSpanDays } from "./interval";
 import { statusRank } from "../status-constants";
+import { taskIsFor } from "./assignees";
 import { addDaysIso, stampDate } from "./ha-time";
 
 export const MAX_OCCURRENCES_PER_TASK = 5;
@@ -201,7 +202,8 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
  *                  next_due and the overdue status count from that day,
  *                  not from the browser's).
  * @param windowDays Number of days to include (7 / 14 / 30).
- * @param userFilter null/empty = all; otherwise filter tasks by responsible_user_id.
+ * @param userFilter null/empty = all; otherwise only the tasks meant for that
+ *                  user (helpers/assignees: theirs, or shared with nobody on duty).
  */
 export function buildCalendarBuckets(
   objects: MaintenanceObjectResponse[],
@@ -220,7 +222,7 @@ export function buildCalendarBuckets(
     const tasks = obj.tasks || [];
     for (const task of tasks) {
       // User filter
-      if (userFilter && task.responsible_user_id !== userFilter) continue;
+      if (userFilter && !taskIsFor(task, userFilter)) continue;
       // Disabled tasks never produce calendar events
       if (task.enabled === false) continue;
       const projected = projectTask({
@@ -368,7 +370,7 @@ export function buildPastBuckets(
     const entryId = obj.entry_id;
     const tasks = obj.tasks || [];
     for (const task of tasks) {
-      if (userFilter && task.responsible_user_id !== userFilter) continue;
+      if (userFilter && !taskIsFor(task, userFilter)) continue;
       const history = fullHistory[pastHistoryKey(entryId, task.id)] ?? ((task.history || []) as HistoryEntryShape[]);
       for (const h of history) {
         if (typeof h?.timestamp !== "string") continue;

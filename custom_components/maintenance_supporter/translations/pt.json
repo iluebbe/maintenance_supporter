@@ -2072,7 +2072,7 @@
     },
     "list_tasks": {
       "name": "Listar tarefas",
-      "description": "Devolve um instantâneo das tarefas de manutenção ativas (id, entity_id do sensor, nome, estado, próximo vencimento, última conclusão, leitura atual do acionador com objetivo e unidade) para automações, scripts e voz. Suporta filtragem por objeto e estado.",
+      "description": "Devolve um instantâneo das tarefas de manutenção ativas (id, entity_id do sensor, nome, estado, próximo vencimento, última conclusão, leitura atual do acionador com objetivo e unidade, pessoa responsável) para automações, scripts e voz. Suporta filtragem por objeto, estado e pessoa.",
       "fields": {
         "entry_id": {
           "name": "Objeto",
@@ -2081,6 +2081,10 @@
         "status": {
           "name": "Estado",
           "description": "Devolver apenas as tarefas com este estado."
+        },
+        "person": {
+          "name": "Pessoa",
+          "description": "Devolver apenas as tarefas destinadas a esta pessoa (as que estão a seu cargo e as partilhadas com ela pelas quais ninguém é responsável). A pessoa tem de estar associada a um utilizador do Home Assistant."
         }
       }
     }

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from datetime import date, datetime, time, timedelta
 from typing import Any
 
@@ -40,6 +40,7 @@ from ..const import (
     MaintenanceStatus,
 )
 from .aggregate import priority_rank
+from .assignees import task_user_ids
 from .global_options import get_global_options, global_option
 from .i18n import format_text, normalize_language
 from .notification_gates import STATUS_ENABLED_KEYS, status_reminder_enabled, task_may_notify
@@ -1337,22 +1338,14 @@ class NotificationManager:
 
         The status-change and lead-reminder paths carried drifting copies of
         this block — one logged the per-user fallback, the other was silent.
+        Without a responsible person, a task shared with people reaches each
+        of their phones (discussion #110: "shared, no rotation" notified
+        only the global service, so one partner never heard of it).
         """
-        target_services: list[str] = []
-        if responsible_user_id:
-            user_services = await get_user_notify_services(self.hass, responsible_user_id)
-            if user_services:
-                target_services = user_services
-                _LOGGER.debug(
-                    "Sending notification to user %s services: %s",
-                    responsible_user_id,
-                    user_services,
-                )
-            else:
-                _LOGGER.debug(
-                    "User %s has no notification services, falling back to global",
-                    responsible_user_id,
-                )
+        user_ids = [responsible_user_id] if responsible_user_id else task_user_ids(self._task_config(entry_id, task_id))
+        target_services = await self._user_services(user_ids)
+        if user_ids:
+            _LOGGER.debug("Notification for users %s goes to %s", user_ids, target_services or "the global service")
         if not target_services and self.notify_service:
             target_services = [self.notify_service]
         if not target_services:
@@ -1422,6 +1415,16 @@ class NotificationManager:
             return {}
         task: Mapping[str, Any] = (entry.data.get(CONF_TASKS) or {}).get(task_id) or {}
         return task
+
+    async def _user_services(self, user_ids: Iterable[str]) -> list[str]:
+        """Every notify service of these users' phones, each once."""
+        services: list[str] = []
+        for user_id in user_ids:
+            found = await get_user_notify_services(self.hass, user_id)
+            if not found:
+                _LOGGER.debug("User %s has no notification services", user_id)
+            services.extend(s for s in found if s not in services)
+        return services
 
     def _opt(self, key: str) -> Any:
         """A global setting, or its registry default when unset."""
@@ -2526,21 +2529,21 @@ class NotificationManager:
         self._seeded_entries.discard(entry_id)
         self._dirty()
 
-    async def async_dismiss_task_notification(self, task_id: str, responsible_user_id: str | None = None) -> None:
+    async def async_dismiss_task_notification(self, task_id: str, user_ids: Iterable[str] = ()) -> None:
         """Dismiss a task notification on Companion App devices.
 
         ``clear_notification`` is a legacy mobile_app service feature; the notify
         *entity* model (notify.send_message) has no equivalent, so an entity-only
         target can't be dismissed and is simply skipped. Reminders for a task
-        with a responsible person land on THAT person's devices (see
-        _resolve_and_send), so those are cleared too (bug audit 2026-09-12).
+        meant for people (``task_user_ids``: the responsible person, or everyone
+        it is shared with) land on THEIR devices (see _resolve_and_send), so
+        those are cleared too (bug audit 2026-09-12).
         """
         services = [self.notify_service]
-        if responsible_user_id:
-            try:
-                services.extend(await get_user_notify_services(self.hass, responsible_user_id))
-            except Exception:  # noqa: BLE001 - a lookup failure must not keep the action from finishing
-                _LOGGER.debug("User notify services unavailable for %s", responsible_user_id, exc_info=True)
+        try:
+            services.extend(await self._user_services(user_ids))
+        except Exception:  # noqa: BLE001 - a lookup failure must not keep the action from finishing
+            _LOGGER.debug("User notify services unavailable for %s", user_ids, exc_info=True)
         tag = task_tag(task_id)
         for service in dict.fromkeys(s for s in services if s):
             domain, _, name = service.partition(".")

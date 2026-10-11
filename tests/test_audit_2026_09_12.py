@@ -195,7 +195,7 @@ async def test_dismissal_clears_the_household_and_the_responsible_persons_device
     phone = _notify(hass, "mobile_app_ben")
     nm = NotificationManager(hass)
     with patch("custom_components.maintenance_supporter.helpers.notification_manager.get_user_notify_services", AsyncMock(return_value=["notify.mobile_app_ben"])):
-        await nm.async_dismiss_task_notification("t1", responsible_user_id="ben")
+        await nm.async_dismiss_task_notification("t1", user_ids=["ben"])
     await hass.async_block_till_done()
     for svc in (household, phone):
         assert svc.await_count == 1

@@ -378,7 +378,7 @@ delete_task:
 
 list_tasks:
   name: List Tasks
-  description: Return a snapshot of active maintenance tasks (ids, sensor entity_id, name, status, next due, last completion, live trigger reading with target and unit) for automations, scripts and voice. Supports filtering by object and status.
+  description: Return a snapshot of active maintenance tasks (ids, sensor entity_id, name, status, next due, last completion, live trigger reading with target and unit, who is responsible) for automations, scripts and voice. Supports filtering by object, status and person.
   fields:
     entry_id:
       name: Object
@@ -392,3 +392,9 @@ list_tasks:
       selector:
         select:
           options: ["ok", "due_soon", "overdue", "triggered", "paused"]
+    person:
+      name: Person
+      description: Only return the tasks meant for this person (the ones they are responsible for, and the ones shared with them that nobody is responsible for). The person must be linked to a Home Assistant user.
+      selector:
+        entity:
+          domain: person

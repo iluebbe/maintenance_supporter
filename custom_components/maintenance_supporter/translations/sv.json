@@ -2072,7 +2072,7 @@
     },
     "list_tasks": {
       "name": "Lista uppgifter",
-      "description": "Returnerar en ögonblicksbild av aktiva underhållsuppgifter (id, sensorns entity_id, namn, status, nästa förfall, senaste slutförande, aktuell utlösaravläsning med mål och enhet) för automationer, skript och röst. Stöder filtrering efter objekt och status.",
+      "description": "Returnerar en ögonblicksbild av aktiva underhållsuppgifter (id, sensorns entity_id, namn, status, nästa förfall, senaste slutförande, aktuell utlösaravläsning med mål och enhet, ansvarig person) för automationer, skript och röst. Stöder filtrering efter objekt, status och person.",
       "fields": {
         "entry_id": {
           "name": "Objekt",
@@ -2081,6 +2081,10 @@
         "status": {
           "name": "Status",
           "description": "Returnera endast uppgifter med denna status."
+        },
+        "person": {
+          "name": "Person",
+          "description": "Returnera endast uppgifterna som är avsedda för denna person (de som personen ansvarar för och de som delas med personen och som ingen ansvarar för). Personen måste vara kopplad till en Home Assistant-användare."
         }
       }
     }

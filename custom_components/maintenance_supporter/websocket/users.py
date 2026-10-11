@@ -14,6 +14,7 @@ from ..const import (
     MAX_META_LENGTH,
 )
 from ..helpers.aggregate import get_coordinator_data, get_runtime_data, object_name
+from ..helpers.assignees import task_is_for
 from ..helpers.entry_tasks import write_task
 from ..helpers.permissions import require_write, user_may_write
 from . import (
@@ -134,7 +135,8 @@ async def ws_tasks_by_user(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Return all tasks assigned to a specific user across all objects."""
+    """Return all tasks meant for a user across all objects: theirs, and
+    shared ones nobody is responsible for (helpers/assignees)."""
     user_id = msg["user_id"]
     # Authorization: a user may query their OWN assignments; querying another
     # user's requires write access (admin or operator) — prevents a plain user
@@ -151,7 +153,7 @@ async def ws_tasks_by_user(
         obj_name = object_name(entry)
 
         for tid, tdata in tasks_data.items():
-            if tdata.get("responsible_user_id") == user_id:
+            if task_is_for(tdata, user_id):
                 task_summary = _build_task_summary(hass, tid, tdata, ct_tasks.get(tid))
                 task_summary["object_name"] = obj_name
                 task_summary["entry_id"] = entry.entry_id

@@ -2072,7 +2072,7 @@
     },
     "list_tasks": {
       "name": "Feladatok listázása",
-      "description": "Az aktív karbantartási feladatok pillanatképét adja vissza (azonosító, az érzékelő entity_id-ja, név, állapot, következő esedékesség, utolsó elvégzés, az eseményindító aktuális értéke céllal és mértékegységgel) automatizálásokhoz, szkriptekhez és hangvezérléshez. Támogatja az objektum és állapot szerinti szűrést.",
+      "description": "Az aktív karbantartási feladatok pillanatképét adja vissza (azonosító, az érzékelő entity_id-ja, név, állapot, következő esedékesség, utolsó elvégzés, az eseményindító aktuális értéke céllal és mértékegységgel, felelős személy) automatizálásokhoz, szkriptekhez és hangvezérléshez. Támogatja az objektum, állapot és személy szerinti szűrést.",
       "fields": {
         "entry_id": {
           "name": "Objektum",
@@ -2081,6 +2081,10 @@
         "status": {
           "name": "Állapot",
           "description": "Csak az ilyen állapotú feladatok."
+        },
+        "person": {
+          "name": "Személy",
+          "description": "Csak az ennek a személynek szánt feladatok (amelyekért felelős, és a vele megosztottak, amelyekért senki sem felelős). A személynek Home Assistant-felhasználóhoz kell kapcsolódnia."
         }
       }
     }

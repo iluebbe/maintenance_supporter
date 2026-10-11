@@ -2072,7 +2072,7 @@
     },
     "list_tasks": {
       "name": "Listaa tehtävät",
-      "description": "Palauttaa tilannekuvan aktiivisista huoltotehtävistä (id, anturin entity_id, nimi, tila, seuraava eräpäivä, viimeisin suoritus, laukaisimen nykyinen lukema tavoitteineen ja yksikköineen) automaatioille, skripteille ja puheelle. Tukee suodatusta kohteen ja tilan mukaan.",
+      "description": "Palauttaa tilannekuvan aktiivisista huoltotehtävistä (id, anturin entity_id, nimi, tila, seuraava eräpäivä, viimeisin suoritus, laukaisimen nykyinen lukema tavoitteineen ja yksikköineen, vastuuhenkilö) automaatioille, skripteille ja puheelle. Tukee suodatusta kohteen, tilan ja henkilön mukaan.",
       "fields": {
         "entry_id": {
           "name": "Kohde",
@@ -2081,6 +2081,10 @@
         "status": {
           "name": "Tila",
           "description": "Palauta vain tehtävät, joilla on tämä tila."
+        },
+        "person": {
+          "name": "Henkilö",
+          "description": "Palauta vain tälle henkilölle tarkoitetut tehtävät (ne, joista hän vastaa, ja hänen kanssaan jaetut tehtävät, joista kukaan ei vastaa). Henkilön on oltava liitetty Home Assistant -käyttäjään."
         }
       }
     }

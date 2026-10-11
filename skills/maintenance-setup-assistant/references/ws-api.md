@@ -464,7 +464,8 @@ status fields. The flat counterpart to `objects` when you only care about tasks.
 of one task, oldest first, exactly as stored. Error: `not_found`.
 
 ### `tasks/by_user` — read (self) / write (others)
-`{user_id (req)}` → `{tasks:[…]}` — the tasks assigned to that user, with
+`{user_id (req)}` → `{tasks:[…]}` — the tasks meant for that user (theirs, and
+the ones shared with them that nobody is responsible for), with
 `object_name`+`entry_id` on each. A plain user may query **their own** id only;
 another user's assignments need write permission, else `unauthorized`.
 

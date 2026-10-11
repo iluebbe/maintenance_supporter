@@ -2072,7 +2072,7 @@
     },
     "list_tasks": {
       "name": "Aufgaben auflisten",
-      "description": "Gibt eine Momentaufnahme der aktiven Wartungsaufgaben (id, entity_id des Sensors, Name, Status, nächste Fälligkeit, letzte Erledigung, aktueller Auslöser-Messwert mit Ziel und Einheit) für Automationen, Skripte und Sprache zurück. Unterstützt Filterung nach Objekt und Status.",
+      "description": "Gibt eine Momentaufnahme der aktiven Wartungsaufgaben (id, entity_id des Sensors, Name, Status, nächste Fälligkeit, letzte Erledigung, aktueller Auslöser-Messwert mit Ziel und Einheit, verantwortliche Person) für Automationen, Skripte und Sprache zurück. Unterstützt Filterung nach Objekt, Status und Person.",
       "fields": {
         "entry_id": {
           "name": "Objekt",
@@ -2081,6 +2081,10 @@
         "status": {
           "name": "Status",
           "description": "Nur Aufgaben mit diesem Status zurückgeben."
+        },
+        "person": {
+          "name": "Person",
+          "description": "Nur die Aufgaben für diese Person zurückgeben (die, für die sie verantwortlich ist, und die mit ihr geteilten, für die niemand verantwortlich ist). Die Person muss mit einem Home-Assistant-Benutzer verknüpft sein."
         }
       }
     }

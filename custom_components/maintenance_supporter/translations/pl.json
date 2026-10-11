@@ -2072,7 +2072,7 @@
     },
     "list_tasks": {
       "name": "Wyświetl zadania",
-      "description": "Zwraca migawkę aktywnych zadań konserwacji (id, entity_id czujnika, nazwa, status, następny termin, ostatnie wykonanie, bieżący odczyt wyzwalacza z celem i jednostką) dla automatyzacji, skryptów i głosu. Obsługuje filtrowanie według obiektu i statusu.",
+      "description": "Zwraca migawkę aktywnych zadań konserwacji (id, entity_id czujnika, nazwa, status, następny termin, ostatnie wykonanie, bieżący odczyt wyzwalacza z celem i jednostką, osoba odpowiedzialna) dla automatyzacji, skryptów i głosu. Obsługuje filtrowanie według obiektu, statusu i osoby.",
       "fields": {
         "entry_id": {
           "name": "Obiekt",
@@ -2081,6 +2081,10 @@
         "status": {
           "name": "Status",
           "description": "Zwracaj tylko zadania o tym statusie."
+        },
+        "person": {
+          "name": "Osoba",
+          "description": "Zwracaj tylko zadania przeznaczone dla tej osoby (te, za które odpowiada, oraz udostępnione jej, za które nikt nie odpowiada). Osoba musi być powiązana z użytkownikiem Home Assistant."
         }
       }
     }

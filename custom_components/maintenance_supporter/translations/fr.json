@@ -2072,7 +2072,7 @@
     },
     "list_tasks": {
       "name": "Lister les tâches",
-      "description": "Renvoie un instantané des tâches de maintenance actives (id, entity_id du capteur, nom, statut, prochaine échéance, dernière réalisation, relevé actuel du déclencheur avec cible et unité) pour les automatisations, scripts et la voix. Prend en charge le filtrage par objet et statut.",
+      "description": "Renvoie un instantané des tâches de maintenance actives (id, entity_id du capteur, nom, statut, prochaine échéance, dernière réalisation, relevé actuel du déclencheur avec cible et unité, personne responsable) pour les automatisations, scripts et la voix. Prend en charge le filtrage par objet, statut et personne.",
       "fields": {
         "entry_id": {
           "name": "Objet",
@@ -2081,6 +2081,10 @@
         "status": {
           "name": "Statut",
           "description": "Ne renvoyer que les tâches ayant ce statut."
+        },
+        "person": {
+          "name": "Personne",
+          "description": "Ne renvoyer que les tâches destinées à cette personne (celles dont elle est responsable et celles partagées avec elle dont personne n'est responsable). La personne doit être liée à un utilisateur Home Assistant."
         }
       }
     }

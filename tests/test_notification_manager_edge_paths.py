@@ -251,7 +251,7 @@ async def test_dismiss_skips_unknown_and_broken_services_but_clears_the_rest(
         patch.object(ServiceRegistry, "async_call", _flaky),
         caplog.at_level(logging.DEBUG, logger=_NM_MOD),
     ):
-        await nm.async_dismiss_task_notification("t1", responsible_user_id="user-1")
+        await nm.async_dismiss_task_notification("t1", user_ids=["user-1"])
         await hass.async_block_till_done()
 
     assert main_calls == [{"message": "clear_notification", "data": {"tag": "maintenance_t1"}}]
@@ -264,7 +264,7 @@ async def test_dismiss_survives_a_failing_user_lookup(hass: HomeAssistant) -> No
     main_calls = _register_notify(hass, "mobile_app")
 
     with patch(f"{_NM_MOD}.get_user_notify_services", AsyncMock(side_effect=RuntimeError("auth store locked"))):
-        await nm.async_dismiss_task_notification("t9", responsible_user_id="user-2")
+        await nm.async_dismiss_task_notification("t9", user_ids=["user-2"])
         await hass.async_block_till_done()
 
     assert main_calls == [{"message": "clear_notification", "data": {"tag": "maintenance_t9"}}]

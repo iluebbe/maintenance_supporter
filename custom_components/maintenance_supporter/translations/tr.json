@@ -2072,7 +2072,7 @@
     },
     "list_tasks": {
       "name": "Görevleri Listele",
-      "description": "Otomasyonlar, betikler ve sesli komutlar için etkin bakım görevlerinin anlık görüntüsünü (kimlik, sensörün entity_id'si, ad, durum, sonraki vade, son tamamlama, hedef ve birimiyle birlikte tetikleyicinin güncel okuması) döndürür. Nesneye ve duruma göre filtrelemeyi destekler.",
+      "description": "Otomasyonlar, betikler ve sesli komutlar için etkin bakım görevlerinin anlık görüntüsünü (kimlik, sensörün entity_id'si, ad, durum, sonraki vade, son tamamlama, hedef ve birimiyle birlikte tetikleyicinin güncel okuması, sorumlu kişi) döndürür. Nesneye, duruma ve kişiye göre filtrelemeyi destekler.",
       "fields": {
         "entry_id": {
           "name": "Nesne",
@@ -2081,6 +2081,10 @@
         "status": {
           "name": "Durum",
           "description": "Yalnızca bu duruma sahip görevleri döndür."
+        },
+        "person": {
+          "name": "Kişi",
+          "description": "Yalnızca bu kişiye yönelik görevleri döndür (sorumlu olduğu görevler ve onunla paylaşılan, kimsenin sorumlu olmadığı görevler). Kişi bir Home Assistant kullanıcısına bağlı olmalıdır."
         }
       }
     }

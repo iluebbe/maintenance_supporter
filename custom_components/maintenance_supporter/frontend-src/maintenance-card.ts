@@ -3,6 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { hydrateObjects } from "./helpers/hydrate-objects";
+import { taskIsFor } from "./helpers/assignees";
 import { property, state } from "lit/decorators.js";
 import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatLastDone, formatDate, langOf, currencySymbolOf, syncCurrencyDecimals} from "./styles";
 import { openSignedDocument } from "./helpers/document-url";
@@ -439,7 +440,7 @@ export class MaintenanceSupporterCard extends LitElement {
           if (vf.status && task.status !== vf.status) continue;
           if (vf.label && !(task.labels || []).includes(vf.label)) continue;
           if (vf.priority && (task.priority || "normal") !== vf.priority) continue;
-          if (viewUser && task.responsible_user_id !== viewUser) continue;
+          if (viewUser && !taskIsFor(task, viewUser)) continue;
         }
         tasks.push({ entry_id: obj.entry_id, object_name: obj.object.name, task });
       }

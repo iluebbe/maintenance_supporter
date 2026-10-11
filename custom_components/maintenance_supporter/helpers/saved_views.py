@@ -24,6 +24,7 @@ from uuid import uuid4
 from homeassistant.core import HomeAssistant
 
 from ..const import CONF_SAVED_FILTER_VIEWS, DEFAULT_TASK_PRIORITY, MAX_SAVED_VIEWS, MAX_VIEW_NAME_LENGTH, TaskPriority
+from .assignees import task_is_for
 from .global_options import get_global_options
 
 # Closed value sets mirrored from the panel's filter controls. Anything outside
@@ -93,7 +94,9 @@ def view_matches_task(filters: Mapping[str, Any], task: Mapping[str, Any]) -> bo
     if label and label not in (task.get("labels") or []):
         return False
     user_id = filters.get("user_id")
-    if user_id and user_id != "current_user" and task.get("responsible_user_id") != user_id:
+    # A person's view holds the tasks meant for them: their own, and shared
+    # ones nobody is responsible for (helpers/assignees, discussion #110).
+    if user_id and user_id != "current_user" and not task_is_for(task, user_id):
         return False
     # Tasks without an explicit priority are "normal" everywhere (the model
     # default) — the filter must see them the same way.

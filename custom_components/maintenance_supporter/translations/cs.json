@@ -2072,7 +2072,7 @@
     },
     "list_tasks": {
       "name": "Vypsat úkoly",
-      "description": "Vrátí přehled aktivních úkolů údržby (id, entity_id senzoru, název, stav, další termín, poslední dokončení, aktuální hodnota spouštěče s cílem a jednotkou) pro automatizace, skripty a hlas. Podporuje filtrování podle objektu a stavu.",
+      "description": "Vrátí přehled aktivních úkolů údržby (id, entity_id senzoru, název, stav, další termín, poslední dokončení, aktuální hodnota spouštěče s cílem a jednotkou, odpovědná osoba) pro automatizace, skripty a hlas. Podporuje filtrování podle objektu, stavu a osoby.",
       "fields": {
         "entry_id": {
           "name": "Objekt",
@@ -2081,6 +2081,10 @@
         "status": {
           "name": "Stav",
           "description": "Vrátit pouze úkoly s tímto stavem."
+        },
+        "person": {
+          "name": "Osoba",
+          "description": "Vrátit pouze úkoly určené této osobě (ty, za které odpovídá, a ty, které jsou s ní sdílené a za které nikdo neodpovídá). Osoba musí být propojena s uživatelem Home Assistant."
         }
       }
     }
