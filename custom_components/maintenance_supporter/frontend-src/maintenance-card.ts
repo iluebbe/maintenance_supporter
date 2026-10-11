@@ -8,7 +8,7 @@ import { property, state } from "lit/decorators.js";
 import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatLastDone, formatDate, langOf, currencySymbolOf, syncCurrencyDecimals} from "./styles";
 import { openSignedDocument } from "./helpers/document-url";
 import { isPhotoDocument } from "./helpers/document-categories";
-import { isSafeHttpUrl } from "./helpers/url";
+import { isSafeLink } from "./helpers/url";
 import { registerCustomCard } from "./helpers/register-card";
 import { healCardRegistry } from "./helpers/registry-heal";
 import { localizePickerWhenReady } from "./helpers/picker-i18n";
@@ -316,9 +316,9 @@ export class MaintenanceSupporterCard extends LitElement {
   private async _openDoc(doc: CardDoc): Promise<void> {
     if (doc.kind === "weblink" && doc.url) {
       // Same guarded sink as every other weblink opener: never hand a
-      // non-http(s) URL to window.open (defense-in-depth against a link
+      // blocked scheme to window.open (defense-in-depth against a link
       // stored before the server-side scheme check existed).
-      if (isSafeHttpUrl(doc.url)) window.open(doc.url, "_blank", "noopener");
+      if (isSafeLink(doc.url)) window.open(doc.url, "_blank", "noopener");
       return;
     }
     try {

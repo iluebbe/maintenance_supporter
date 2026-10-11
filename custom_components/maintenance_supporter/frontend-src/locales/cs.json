@@ -903,7 +903,7 @@
   "remove": "Odebrat",
   "doc_deduped": "Již uloženo jinde — sdíleno, bez dalšího místa.",
   "doc_dup_in_object": "Tento soubor je již připojen k tomuto objektu.",
-  "doc_link_invalid": "Povoleny jsou pouze odkazy http/https.",
+  "doc_link_not_allowed": "Tento odkaz není povolen: odkazy, které spouštějí skripty nebo otevírají místní soubory (javascript:, data:, file: …), jsou odmítnuty.",
   "doc_cat_manual": "Návod",
   "doc_cat_warranty": "Záruka",
   "doc_cat_invoice": "Faktura",

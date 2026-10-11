@@ -903,7 +903,7 @@
   "remove": "Poista",
   "doc_deduped": "Jo tallennettu muualle — jaettu, ei lisätilaa.",
   "doc_dup_in_object": "Tämä tiedosto on jo liitetty tähän kohteeseen.",
-  "doc_link_invalid": "Vain http/https-linkit ovat sallittuja.",
+  "doc_link_not_allowed": "Tämä linkki ei ole sallittu: linkit, jotka suorittavat skriptejä tai avaavat paikallisia tiedostoja (javascript:, data:, file: …), hylätään.",
   "doc_cat_manual": "Käyttöohje",
   "doc_cat_warranty": "Takuu",
   "doc_cat_invoice": "Lasku",

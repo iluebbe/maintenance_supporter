@@ -2316,7 +2316,7 @@
       "message": "{field} só pode ser usado com um único entity_id."
     },
     "unsafe_url": {
-      "message": "Só são permitidos URL http e https."
+      "message": "Esta ligação não é permitida: ligações que executam scripts ou abrem ficheiros locais (javascript:, data:, file: e semelhantes) são recusadas."
     },
     "responsible_user_conflict": {
       "message": "Indique responsible_user ou clear_responsible_user, não ambos."

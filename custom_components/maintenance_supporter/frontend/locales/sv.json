@@ -903,7 +903,7 @@
   "remove": "Ta bort",
   "doc_deduped": "Redan lagrad någon annanstans — delad, inget extra utrymme.",
   "doc_dup_in_object": "Den här filen är redan kopplad till detta objekt.",
-  "doc_link_invalid": "Endast http/https-länkar tillåts.",
+  "doc_link_not_allowed": "Den här länken är inte tillåten: länkar som kör skript eller öppnar lokala filer (javascript:, data:, file: …) avvisas.",
   "doc_cat_manual": "Manual",
   "doc_cat_warranty": "Garanti",
   "doc_cat_invoice": "Faktura",

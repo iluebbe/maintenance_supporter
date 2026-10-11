@@ -2316,7 +2316,7 @@
       "message": "{field} का उपयोग केवल एक entity_id के साथ किया जा सकता है।"
     },
     "unsafe_url": {
-      "message": "केवल http और https URL की अनुमति है।"
+      "message": "यह लिंक अनुमत नहीं है: स्क्रिप्ट चलाने वाले या स्थानीय फ़ाइलें खोलने वाले लिंक (javascript:, data:, file: और इसी तरह के) अस्वीकार किए जाते हैं।"
     },
     "responsible_user_conflict": {
       "message": "responsible_user या clear_responsible_user में से कोई एक दें, दोनों नहीं।"

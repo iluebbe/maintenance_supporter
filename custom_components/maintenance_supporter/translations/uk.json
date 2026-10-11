@@ -2316,7 +2316,7 @@
       "message": "{field} можна використовувати лише з одним entity_id."
     },
     "unsafe_url": {
-      "message": "Дозволено лише URL-адреси http і https."
+      "message": "Це посилання не дозволено: посилання, які запускають скрипти або відкривають локальні файли (javascript:, data:, file: тощо), відхиляються."
     },
     "responsible_user_conflict": {
       "message": "Вкажіть або responsible_user, або clear_responsible_user, але не обидва."

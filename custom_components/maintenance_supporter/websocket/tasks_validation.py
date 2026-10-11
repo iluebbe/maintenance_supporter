@@ -20,7 +20,6 @@ from ..const import (
 )
 from ..helpers.aggregate import object_name
 from ..helpers.trigger_fallback import threshold_limits_overlap
-from ..helpers.url_safety import _SAFE_URL_SCHEMES as _SAFE_URL_SCHEMES
 from ..helpers.url_safety import is_safe_url
 from . import (
     _get_object_entries,

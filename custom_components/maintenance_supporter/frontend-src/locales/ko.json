@@ -910,7 +910,7 @@
   "remove": "제거",
   "doc_deduped": "이미 다른 곳에 저장됨 — 공유되어 추가 공간을 쓰지 않습니다.",
   "doc_dup_in_object": "이 파일은 이미 이 객체에 첨부되어 있습니다.",
-  "doc_link_invalid": "http/https 링크만 허용됩니다.",
+  "doc_link_not_allowed": "이 링크는 허용되지 않습니다. 스크립트를 실행하거나 로컬 파일을 여는 링크(javascript:, data:, file: …)는 거부됩니다.",
   "doc_cat_manual": "설명서",
   "doc_cat_warranty": "보증서",
   "doc_cat_invoice": "영수증",

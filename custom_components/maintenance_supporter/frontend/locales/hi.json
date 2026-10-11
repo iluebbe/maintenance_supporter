@@ -903,7 +903,7 @@
   "remove": "हटाएँ",
   "doc_deduped": "पहले से कहीं और संग्रहीत — साझा, कोई अतिरिक्त स्थान नहीं।",
   "doc_dup_in_object": "यह फ़ाइल पहले से इस ऑब्जेक्ट से जुड़ी है।",
-  "doc_link_invalid": "केवल http/https लिंक की अनुमति है।",
+  "doc_link_not_allowed": "यह लिंक अनुमत नहीं है: स्क्रिप्ट चलाने वाले या स्थानीय फ़ाइलें खोलने वाले लिंक (javascript:, data:, file: …) अस्वीकार किए जाते हैं।",
   "doc_cat_manual": "मैनुअल",
   "doc_cat_warranty": "वारंटी",
   "doc_cat_invoice": "चालान",

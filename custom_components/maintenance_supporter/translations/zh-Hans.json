@@ -2316,7 +2316,7 @@
       "message": "{field} 只能与单个 entity_id 一起使用。"
     },
     "unsafe_url": {
-      "message": "只允许 http 和 https 网址。"
+      "message": "不允许使用此链接：运行脚本或打开本地文件的链接（javascript:、data:、file: 等）会被拒绝。"
     },
     "responsible_user_conflict": {
       "message": "请提供 responsible_user 或 clear_responsible_user 之一，不能同时提供。"

@@ -2316,7 +2316,7 @@
       "message": "{field} lze použít jen s jedním entity_id."
     },
     "unsafe_url": {
-      "message": "Povoleny jsou pouze adresy URL http a https."
+      "message": "Tento odkaz není povolen: odkazy, které spouštějí skripty nebo otevírají místní soubory (javascript:, data:, file: a podobné), jsou odmítnuty."
     },
     "responsible_user_conflict": {
       "message": "Zadejte buď responsible_user, nebo clear_responsible_user, ne obojí."

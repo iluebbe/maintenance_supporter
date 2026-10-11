@@ -2316,7 +2316,7 @@
       "message": "{field} kan alleen met één entity_id worden gebruikt."
     },
     "unsafe_url": {
-      "message": "Alleen http- en https-URL's zijn toegestaan."
+      "message": "Deze link is niet toegestaan: links die scripts uitvoeren of lokale bestanden openen (javascript:, data:, file: en dergelijke) worden geweigerd."
     },
     "responsible_user_conflict": {
       "message": "Geef responsible_user of clear_responsible_user op, niet allebei."

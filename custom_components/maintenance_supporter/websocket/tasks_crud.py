@@ -487,7 +487,7 @@ async def ws_create_task(
         task_data["notes"] = msg["notes"]
     if msg.get("documentation_url") is not None:
         if not _is_safe_url(msg["documentation_url"]):
-            send_translated_error(connection, msg["id"], "invalid_url", "Only http/https URLs are allowed", translation_key="unsafe_url")
+            send_translated_error(connection, msg["id"], "invalid_url", "This link is not allowed: links that run scripts or open local files (javascript:, data:, file: and the like) are refused.", translation_key="unsafe_url")
             return
         task_data["documentation_url"] = msg["documentation_url"]
     if msg.get("responsible_user_id") is not None:
@@ -703,7 +703,7 @@ async def ws_update_task(
 
     # Validate documentation_url if provided
     if "documentation_url" in msg and not _is_safe_url(msg["documentation_url"]):
-        send_translated_error(connection, msg["id"], "invalid_url", "Only http/https URLs are allowed", translation_key="unsafe_url")
+        send_translated_error(connection, msg["id"], "invalid_url", "This link is not allowed: links that run scripts or open local files (javascript:, data:, file: and the like) are refused.", translation_key="unsafe_url")
         return
 
     # D#183: mirror targets — same sanitize + own-platform refusal as create;

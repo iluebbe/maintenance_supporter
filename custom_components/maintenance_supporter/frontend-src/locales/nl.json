@@ -903,7 +903,7 @@
   "remove": "Weghalen",
   "doc_deduped": "Al elders opgeslagen — gedeeld, geen extra ruimte.",
   "doc_dup_in_object": "Dit bestand is al aan dit object gekoppeld.",
-  "doc_link_invalid": "Alleen http/https-links zijn toegestaan.",
+  "doc_link_not_allowed": "Deze link is niet toegestaan: links die scripts uitvoeren of lokale bestanden openen (javascript:, data:, file: …) worden geweigerd.",
   "doc_cat_manual": "Handleiding",
   "doc_cat_warranty": "Garantie",
   "doc_cat_invoice": "Factuur",

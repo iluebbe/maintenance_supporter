@@ -903,7 +903,7 @@
   "remove": "Quitar",
   "doc_deduped": "Ya almacenado en otro lugar — compartido, sin espacio adicional.",
   "doc_dup_in_object": "Este archivo ya está adjunto a este objeto.",
-  "doc_link_invalid": "Solo se permiten enlaces http/https.",
+  "doc_link_not_allowed": "Este enlace no está permitido: se rechazan los enlaces que ejecutan scripts o abren archivos locales (javascript:, data:, file: …).",
   "doc_cat_manual": "Manual",
   "doc_cat_warranty": "Garantía",
   "doc_cat_invoice": "Factura",

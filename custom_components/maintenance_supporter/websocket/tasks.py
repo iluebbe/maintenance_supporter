@@ -41,7 +41,6 @@ from .tasks_persist import (
     async_persist_task,
 )
 from .tasks_validation import (
-    _SAFE_URL_SCHEMES,
     _TRIGGER_ALLOWED_KEYS,
     _TRIGGER_REQUIRED_FIELDS,
     _VALID_TRIGGER_TYPES,
@@ -52,7 +51,6 @@ from .tasks_validation import (
 )
 
 __all__ = [
-    "_SAFE_URL_SCHEMES",
     "_TRIGGER_ALLOWED_KEYS",
     "_TRIGGER_REQUIRED_FIELDS",
     "_VALID_TRIGGER_TYPES",

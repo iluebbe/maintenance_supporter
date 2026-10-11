@@ -2316,7 +2316,7 @@
       "message": "A(z) {field} csak egyetlen entity_id-vel használható."
     },
     "unsafe_url": {
-      "message": "Csak http és https URL-ek engedélyezettek."
+      "message": "Ez a hivatkozás nem engedélyezett: a szkripteket futtató vagy helyi fájlokat megnyitó hivatkozásokat (javascript:, data:, file: és hasonlók) elutasítjuk."
     },
     "responsible_user_conflict": {
       "message": "Vagy a responsible_user, vagy a clear_responsible_user értéket adja meg, ne mindkettőt."

@@ -910,7 +910,7 @@
   "remove": "Eltávolítás",
   "doc_deduped": "Már máshol is tárolva — megosztott, nem foglal extra helyet.",
   "doc_dup_in_object": "Ez a fájl már csatolva van ehhez az objektumhoz.",
-  "doc_link_invalid": "Csak http/https hivatkozás engedélyezett.",
+  "doc_link_not_allowed": "Ez a hivatkozás nem engedélyezett: a szkripteket futtató vagy helyi fájlokat megnyitó hivatkozásokat (javascript:, data:, file: …) elutasítjuk.",
   "doc_cat_manual": "Kézikönyv",
   "doc_cat_warranty": "Garancia",
   "doc_cat_invoice": "Számla",

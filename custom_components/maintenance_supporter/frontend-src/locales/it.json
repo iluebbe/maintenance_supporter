@@ -903,7 +903,7 @@
   "remove": "Rimuovi",
   "doc_deduped": "Già archiviato altrove — condiviso, nessuno spazio aggiuntivo.",
   "doc_dup_in_object": "Questo file è già allegato a questo oggetto.",
-  "doc_link_invalid": "Sono consentiti solo link http/https.",
+  "doc_link_not_allowed": "Questo link non è consentito: i link che eseguono script o aprono file locali (javascript:, data:, file: …) vengono rifiutati.",
   "doc_cat_manual": "Manuale",
   "doc_cat_warranty": "Garanzia",
   "doc_cat_invoice": "Fattura",

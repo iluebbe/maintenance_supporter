@@ -9,7 +9,7 @@
  */
 
 import { LitElement, html, css, nothing } from "lit";
-import { isSafeHttpUrl } from "../helpers/url";
+import { isSafeHttpUrl, isSafeLink } from "../helpers/url";
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { property, state } from "lit/decorators.js";
 import { t, langOf } from "../styles";
@@ -231,26 +231,28 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
 
   private _renderMetaRow(obj: MaintenanceObject) {
     const L = this._lang;
-    const items: Array<[string, string]> = [];
+    const items: Array<[string, string, boolean?]> = [];
     if (obj.area_id) items.push([t("area", L), obj.area_id]);
     if (obj.manufacturer) items.push([t("manufacturer", L), obj.manufacturer]);
     if (obj.model) items.push([t("model", L), obj.model]);
     if (obj.serial_number) items.push([t("serial_number_label", L), obj.serial_number]);
     if (obj.installation_date) items.push([t("installed", L), obj.installation_date]);
     if (obj.warranty_expiry) items.push([t("warranty", L), obj.warranty_expiry]);
-    if (obj.documentation_url) items.push([t("documentation_url_label", L), obj.documentation_url]);
+    // The documentation link may also open an app (#207).
+    if (obj.documentation_url) items.push([t("documentation_url_label", L), obj.documentation_url, isSafeLink(obj.documentation_url)]);
 
     if (items.length === 0) return nothing;
     return html`
       <div class="meta">
         ${items.map(
-          ([label, value]) => html`
+          ([label, value, docLink]) => html`
             <div class="meta-item">
               <span class="meta-label">${label}</span>
               <span class="meta-value">${
                 // Only render http(s) values as links (never javascript:/data:);
                 // value-based so it works in every UI language, not just English.
-                isSafeHttpUrl(value)
+                // The documentation link was checked by the app-link rule above.
+                docLink || isSafeHttpUrl(value)
                   ? html`<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`
                   : value
               }</span>

@@ -30,9 +30,9 @@ from ..const import (
 from ..helpers.aggregate import object_name
 from ..helpers.permissions import require_write
 from ..helpers.search_match import query_tokens, score_fields, snippet
+from ..helpers.url_safety import is_safe_link
 from ..helpers.ws_errors import send_translated_error
 from . import ID_FIELD, _get_object_entries, _load_object_entry, object_id_for_entry
-from .tasks import _is_safe_url
 
 if TYPE_CHECKING:
     from ..helpers.documents import DocumentStore
@@ -129,11 +129,11 @@ async def ws_documents_add_link(
         return
 
     url = msg["url"].strip()
-    # Web-links must be absolute http/https — a relative or scheme-less URL is
-    # meaningless as a stored external reference (and _is_safe_url treats those
-    # as "safe", so the explicit prefix check is required here).
-    if not url.lower().startswith(("http://", "https://")) or not _is_safe_url(url):
-        send_translated_error(connection, msg["id"], "invalid_url", "Only http/https URLs are allowed", translation_key="unsafe_url")
+    # Web-links must be absolute (http(s) or an app link, #207) — a relative
+    # or scheme-less URL is meaningless as a stored external reference (and
+    # _is_safe_url treats those as "safe", so is_safe_link asks for a scheme).
+    if not is_safe_link(url):
+        send_translated_error(connection, msg["id"], "invalid_url", "This link is not allowed: links that run scripts or open local files (javascript:, data:, file: and the like) are refused.", translation_key="unsafe_url")
         return
 
     title = msg.get("title")

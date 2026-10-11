@@ -903,7 +903,7 @@
   "remove": "Fjern",
   "doc_deduped": "Allerede gemt et andet sted — delt, ingen ekstra plads.",
   "doc_dup_in_object": "Denne fil er allerede vedhæftet dette objekt.",
-  "doc_link_invalid": "Kun http/https-links er tilladt.",
+  "doc_link_not_allowed": "Dette link er ikke tilladt: links, der kører scripts eller åbner lokale filer (javascript:, data:, file: …), afvises.",
   "doc_cat_manual": "Vejledning",
   "doc_cat_warranty": "Garanti",
   "doc_cat_invoice": "Faktura",

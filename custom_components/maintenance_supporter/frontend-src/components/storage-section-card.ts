@@ -12,7 +12,7 @@ import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf } from "../styles";
 import { runWs } from "../helpers/ws-run";
 import { openSignedDocument } from "../helpers/document-url";
-import { isSafeHttpUrl } from "../helpers/url";
+import { isSafeLink } from "../helpers/url";
 import { formatBytes } from "../helpers/format-bytes";
 import type { HomeAssistant } from "../types";
 
@@ -145,7 +145,7 @@ export class MaintenanceStorageSectionCard extends LitElement {
       // Defense-in-depth (mirrors task-documents/documents-section): never
       // hand a non-http(s) weblink to window.open, even though the WS add
       // path already rejects such schemes.
-      if (isSafeHttpUrl(doc.url)) window.open(doc.url, "_blank", "noopener");
+      if (isSafeLink(doc.url)) window.open(doc.url, "_blank", "noopener");
       return;
     }
     await runWs(this, () => openSignedDocument(this.hass, doc.id), { onError: (m) => { this._error = m; } });

@@ -2316,7 +2316,7 @@
       "message": "{field}은(는) 단일 entity_id에서만 사용할 수 있습니다."
     },
     "unsafe_url": {
-      "message": "http 및 https URL만 허용됩니다."
+      "message": "이 링크는 허용되지 않습니다. 스크립트를 실행하거나 로컬 파일을 여는 링크(javascript:, data:, file: 등)는 거부됩니다."
     },
     "responsible_user_conflict": {
       "message": "responsible_user 또는 clear_responsible_user 중 하나만 지정하세요."

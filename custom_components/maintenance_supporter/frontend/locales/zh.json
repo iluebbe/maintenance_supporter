@@ -903,7 +903,7 @@
   "remove": "移除",
   "doc_deduped": "已在别处存储——共享，不占用额外空间。",
   "doc_dup_in_object": "此文件已附加到该对象。",
-  "doc_link_invalid": "仅允许 http/https 链接。",
+  "doc_link_not_allowed": "不允许使用此链接：运行脚本或打开本地文件的链接（javascript:、data:、file: …）会被拒绝。",
   "doc_cat_manual": "手册",
   "doc_cat_warranty": "保修",
   "doc_cat_invoice": "发票",

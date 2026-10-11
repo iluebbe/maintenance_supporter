@@ -336,7 +336,7 @@ async def ws_create_object(
     # v1.4.0 (#43): documentation_url
     documentation_url = (msg.get("documentation_url") or "").strip() or None
     if documentation_url and not _is_safe_url(documentation_url):
-        send_translated_error(connection, msg["id"], "invalid_url", "Only http/https URLs are allowed", translation_key="unsafe_url")
+        send_translated_error(connection, msg["id"], "invalid_url", "This link is not allowed: links that run scripts or open local files (javascript:, data:, file: and the like) are refused.", translation_key="unsafe_url")
         return
 
     # v1.4.10 (#46): notes (free-form, may contain newlines)
@@ -432,7 +432,7 @@ async def ws_update_object(
             stripped = (msg["documentation_url"] or "").strip()
             msg["documentation_url"] = stripped or None
         if msg["documentation_url"] and not _is_safe_url(msg["documentation_url"]):
-            send_translated_error(connection, msg["id"], "invalid_url", "Only http/https URLs are allowed", translation_key="unsafe_url")
+            send_translated_error(connection, msg["id"], "invalid_url", "This link is not allowed: links that run scripts or open local files (javascript:, data:, file: and the like) are refused.", translation_key="unsafe_url")
             return
 
     # v1.4.10 (#46): notes — strip but keep newlines, empty -> None

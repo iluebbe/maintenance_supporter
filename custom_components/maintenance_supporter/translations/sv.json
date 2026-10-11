@@ -2316,7 +2316,7 @@
       "message": "{field} kan bara användas med ett enda entity_id."
     },
     "unsafe_url": {
-      "message": "Endast http- och https-adresser är tillåtna."
+      "message": "Den här länken är inte tillåten: länkar som kör skript eller öppnar lokala filer (javascript:, data:, file: och liknande) avvisas."
     },
     "responsible_user_conflict": {
       "message": "Ange antingen responsible_user eller clear_responsible_user, inte båda."

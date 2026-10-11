@@ -2316,7 +2316,7 @@
       "message": "{field} yalnızca tek bir entity_id ile kullanılabilir."
     },
     "unsafe_url": {
-      "message": "Yalnızca http ve https URL'lerine izin verilir."
+      "message": "Bu bağlantıya izin verilmiyor: betik çalıştıran veya yerel dosyaları açan bağlantılar (javascript:, data:, file: ve benzerleri) reddedilir."
     },
     "responsible_user_conflict": {
       "message": "responsible_user veya clear_responsible_user'dan yalnızca birini belirtin, ikisini birden değil."

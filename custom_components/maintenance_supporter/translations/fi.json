@@ -2316,7 +2316,7 @@
       "message": "{field} voidaan käyttää vain yhden entity_id:n kanssa."
     },
     "unsafe_url": {
-      "message": "Vain http- ja https-osoitteet ovat sallittuja."
+      "message": "Tämä linkki ei ole sallittu: linkit, jotka suorittavat skriptejä tai avaavat paikallisia tiedostoja (javascript:, data:, file: ja vastaavat), hylätään."
     },
     "responsible_user_conflict": {
       "message": "Anna joko responsible_user tai clear_responsible_user, ei molempia."

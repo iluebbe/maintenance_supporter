@@ -15,7 +15,7 @@ import { t, ensureLocale, langOf } from "../styles";
 import { runWs } from "../helpers/ws-run";
 import { downloadUrl } from "../helpers/download";
 import { downloadSignedDocument, openSignedDocument } from "../helpers/document-url";
-import { isSafeHttpUrl } from "../helpers/url";
+import { isSafeLink } from "../helpers/url";
 import { formatBytes } from "../helpers/format-bytes";
 import { docCategory, docDisplayName, CATEGORY_ICONS } from "../helpers/document-categories";
 import { DOC_FILTER_MIN, filterDocuments } from "../helpers/document-filter";
@@ -152,7 +152,7 @@ export class MaintenanceTaskDocuments extends LitElement {
       // schemes, but a weblink stored before that check (or via a future
       // path) must never reach window.open as javascript:/data: — guard the
       // sink too, like documents-section does.
-      if (isSafeHttpUrl(doc.url)) window.open(doc.url, "_blank", "noopener");
+      if (isSafeLink(doc.url)) window.open(doc.url, "_blank", "noopener");
       return;
     }
     // A per-task page hint jumps straight to the relevant page via the PDF

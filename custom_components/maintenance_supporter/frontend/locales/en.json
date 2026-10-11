@@ -910,7 +910,7 @@
   "remove": "Remove",
   "doc_deduped": "Already stored elsewhere — shared, no extra space used.",
   "doc_dup_in_object": "This file is already attached to this object.",
-  "doc_link_invalid": "Only http/https links are allowed.",
+  "doc_link_not_allowed": "This link is not allowed: links that run scripts or open local files (javascript:, data:, file: …) are refused.",
   "doc_cat_manual": "Manual",
   "doc_cat_warranty": "Warranty",
   "doc_cat_invoice": "Invoice",

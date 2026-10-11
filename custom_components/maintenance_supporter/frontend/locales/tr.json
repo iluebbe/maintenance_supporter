@@ -910,7 +910,7 @@
   "remove": "Kaldır",
   "doc_deduped": "Zaten başka bir yerde saklı — paylaşıldı, ek alan kullanılmadı.",
   "doc_dup_in_object": "Bu dosya zaten bu nesneye ekli.",
-  "doc_link_invalid": "Yalnızca http/https bağlantılarına izin verilir.",
+  "doc_link_not_allowed": "Bu bağlantıya izin verilmiyor: betik çalıştıran veya yerel dosyaları açan bağlantılar (javascript:, data:, file: …) reddedilir.",
   "doc_cat_manual": "Kılavuz",
   "doc_cat_warranty": "Garanti",
   "doc_cat_invoice": "Fatura",

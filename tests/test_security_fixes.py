@@ -51,11 +51,22 @@ from custom_components.maintenance_supporter.websocket.tasks import _is_safe_url
         ("data:text/html,<h1>x</h1>", False),
         ("vbscript:msgbox(1)", False),
         ("file:///etc/passwd", False),
-        ("ftp://evil.com/x", False),  # only http/https hosts allowed
+        # #207: every scheme but the blocked ones (an app link is the user's
+        # choice, and the browser asks before it opens the app)
+        ("ftp://example.com/x", True),
+        ("obsidian://open?vault=Home&file=Boiler", True),
+        ("onenote:https://d.docs.live.net/x/Manual.one", True),
+        ("mailto:service@example.com", True),
+        ("blob:https://x/1", False),
+        ("about:blank", False),
+        ("view-source:https://x", False),
+        ("ms-msdt:/id PCWDiagnostic", False),
+        ("search-ms:query=x", False),
+        ("C:\\docs\\manual.pdf", False),  # a drive letter is no scheme
     ],
 )
 def test_is_safe_url(url: str | None, safe: bool) -> None:
-    """Whitespace/control-char-masked hosts and non-http schemes are rejected."""
+    """Whitespace/control-char-masked hosts and blocked schemes are rejected."""
     assert _is_safe_url(url) is safe
 
 

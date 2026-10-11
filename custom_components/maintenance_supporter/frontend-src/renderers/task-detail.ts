@@ -10,7 +10,7 @@
  */
 
 import { html, nothing } from "lit";
-import { isSafeHttpUrl } from "../helpers/url";
+import { isSafeLink } from "../helpers/url";
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { renderPersonAvatar, type PersonDisplay } from "../helpers/person";
 import { t, formatDate, formatRecurrence, formatCost, formatDuration } from "../styles";
@@ -310,9 +310,9 @@ function renderChecklistCard(task: MaintenanceTask, ctx: TaskDetailContext) {
  *  documentation_url for quick access to the device manual without having to
  *  navigate back to the object detail. */
 function renderTaskMeta(task: MaintenanceTask, ctx: TaskDetailContext) {
-  const safeTaskUrl = isSafeHttpUrl(task.documentation_url)
+  const safeTaskUrl = isSafeLink(task.documentation_url)
     ? task.documentation_url : null;
-  const safeObjUrl = isSafeHttpUrl(ctx.objectDocUrl) ? ctx.objectDocUrl : null;
+  const safeObjUrl = isSafeLink(ctx.objectDocUrl) ? ctx.objectDocUrl : null;
   // Same fallback rule as the objects table: an UPLOADED manual (category
   // "manual") stands in when the object's URL field is empty.
   const manualDoc = safeObjUrl ? null : (ctx.objectManualDocs || [])[0];

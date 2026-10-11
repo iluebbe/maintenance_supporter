@@ -237,19 +237,19 @@ custom_components/maintenance_supporter/
 │       ├── compound.py            (367 lines)  AND/OR compound trigger
 │       └── due_date.py             (83 lines)  Due-date trigger: the device reports WHEN the maintenance is due
 │
-├── websocket/                  (11,294 lines)  106 commands, 25 files — split by domain; tasks.py re-exports the task modules drawn under it
+├── websocket/                  (11,291 lines)  106 commands, 25 files — split by domain; tasks.py re-exports the task modules drawn under it
 │   ├── __init__.py                (986 lines)  Shared helpers + registration
 │   ├── objects.py               (1,111 lines)  13 commands: objects, object, object/create, object/update, object/delete,
 │   │                                           object/duplicate, object/from_template, object/archive, object/unarchive, object/pause,
 │   │                                           object/resume, object/replace, entity/attributes
-│   ├── tasks.py                    (89 lines)  Backward-compat re-export shim (no handlers of its own)
+│   ├── tasks.py                    (87 lines)  Backward-compat re-export shim (no handlers of its own)
 │   │   ├── tasks_actions.py       (603 lines)  9 commands: task/complete, task/quick_complete, task/undo, task/skip, task/reset,
 │   │   │                                       task/set_phase, task/postpone, task/snooze, task/checklist_progress
 │   │   ├── tasks_crud.py        (1,138 lines)  5 commands: task/create, task/update, task/delete, task/duplicate, task/move
 │   │   ├── tasks_history.py       (369 lines)  2 commands: task/history/update, task/history/delete
 │   │   ├── tasks_lifecycle.py     (323 lines)  6 commands: task/archive, task/pause, task/resume, task/unarchive, task/list, task/history
 │   │   ├── tasks_persist.py       (483 lines)  Shared persist path (no handlers)
-│   │   └── tasks_validation.py    (414 lines)  Shared task-payload validation (no handlers)
+│   │   └── tasks_validation.py    (413 lines)  Shared task-payload validation (no handlers)
 │   ├── groups.py                  (183 lines)  4 commands: groups, group/create, group/update, group/delete
 │   ├── analysis.py                (314 lines)  5 commands: task/analyze_interval, task/apply_suggestion, task/seasonal_overrides,
 │   │                                           task/set_environmental_entity, task/set_adaptive
@@ -292,7 +292,7 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (44,157 lines)  132 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+├── frontend-src/               (44,305 lines)  132 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
 │   ├── maintenance-panel.ts     (5,306 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,263 lines)  Auto-generated dashboard strategy + 4 section strategies
@@ -321,9 +321,9 @@ custom_components/maintenance_supporter/
 │   ├── ds-preview-kit.ts          (229 lines)  Design-sync preview kit: a demo household behind a mock `hass`
 │   ├── maintenance-panel-card.ts  (369 lines)  The whole panel as a Lovelace card (#174)
 │   ├── status-constants.ts         (62 lines)  Status colors + icons — THE single source for every renderer
-│   ├── helpers/                 (5,792 lines)  64 files — Pure functions and small services shared by the panel, the cards and the dialogs
+│   ├── helpers/                 (5,938 lines)  64 files — Pure functions and small services shared by the panel, the cards and the dialogs
 │   │   ├── calendar-bucket.ts     (428 lines)  Pure 7/14/30/365-day projection, 5 occurrences max per task, no projection for sensor-based
-│   │   ├── notes-markdown.ts       (24 lines)  Notes rendering (ha-markdown hand-off)
+│   │   ├── notes-markdown.ts      (119 lines)  Notes rendering (ha-markdown hand-off)
 │   │   ├── bundle-version.ts       (19 lines)  Stale-bundle guard
 │   │   ├── history-photos.ts       (33 lines)  #161: photo_doc_ids ∪ legacy photo_doc_id, cap 10
 │   │   ├── photo-upload.ts        (125 lines)  Multipart upload + orphan cleanup
@@ -377,7 +377,7 @@ custom_components/maintenance_supporter/
 │   │   ├── subscription-merge.ts   (51 lines)  Merge logic for the 2.52 delta subscription protocol
 │   │   ├── toast.ts                (38 lines)  Toast timing — one set for every surface that shows a transient message
 │   │   ├── trigger-domains.ts      (35 lines)  Domains offered by the trigger entity pickers (#129)
-│   │   ├── url.ts                  (11 lines)  Shared URL-safety guard for rendering user-supplied links
+│   │   ├── url.ts                  (62 lines)  Shared URL-safety guard for rendering user-supplied links
 │   │   ├── virtual-window.ts       (69 lines)  Windowing math for the virtualized dashboard task table (500+ tasks)
 │   │   ├── warranty.ts             (41 lines)  (#67) Warranty status computation for object asset tracking
 │   │   ├── worksheet.ts           (180 lines)  Task work sheet (v2.21) — a printable one-pager for a single task
@@ -398,7 +398,7 @@ custom_components/maintenance_supporter/
 │   │   ├── sparkline.ts           (515 lines)  Trigger section renderer (task detail)
 │   │   ├── status.ts               (62 lines)  A task's status as the user sees it — THE derivation for every surface
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
-│   ├── components/             (19,759 lines)  37 files — Lit elements: dialogs, sections, views, cards
+│   ├── components/             (19,761 lines)  37 files — Lit elements: dialogs, sections, views, cards
 │   │   ├── task-dialog.ts       (3,754 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
 │   │   ├── settings-view.ts     (2,780 lines)  In-panel global settings editor
 │   │   ├── task-quick-actions-dialog.ts (937 lines)  Task ⋮ menu
@@ -414,7 +414,7 @@ custom_components/maintenance_supporter/
 │   │   ├── suggested-setups-dialog.ts (531 lines)  Signature-catalog discovery UI
 │   │   ├── groups-section-card.ts (328 lines)  Interactive groups section card (dashboard strategy)
 │   │   ├── vacation-section-card.ts (338 lines)  Interactive vacation section card (dashboard strategy)
-│   │   ├── object-quick-actions-dialog.ts (317 lines)  Object ⋮ menu
+│   │   ├── object-quick-actions-dialog.ts (319 lines)  Object ⋮ menu
 │   │   ├── object-dialog.ts       (489 lines)  Add/edit object
 │   │   ├── budget-section-card.ts (290 lines)  Interactive budget section card (dashboard strategy)
 │   │   ├── history-edit-dialog.ts (633 lines)  Timestamp / notes / cost / duration / parts / photos (#161)
@@ -436,9 +436,9 @@ custom_components/maintenance_supporter/
 │   │   ├── required-completion-labels.ts (27 lines)  Labels of the details a task can demand on completion (mirror of helpers/completion_requirements.py)
 │   │   ├── bulk-edit-dialog.ts    (266 lines)  Several tasks changed at once (discussion #199): who is assigned, their labels, and the few settings that make sense in bulk
 │   │   └── ms-cost-input.ts       (109 lines)  A cost that may be a credit (#200): a Cost | Credit switch and the amount
-│   └── __tests__/              (27,587 lines)  200 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (27,738 lines)  201 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (31,996 lines)  101 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+├── helpers/                    (32,055 lines)  101 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,573 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (367 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
@@ -479,7 +479,7 @@ custom_components/maintenance_supporter/
 │   ├── action_listener.py         (238 lines)  On-complete action listener
 │   ├── permissions.py             (125 lines)  @require_write / @require_admin authorization; `service_tier` holds service callers to the same tiers
 │   ├── object_names.py             (91 lines)  One object-name rule (by slug, current names) + a free config-entry unique id
-│   ├── url_safety.py               (42 lines)  Which stored links are safe (http/https, path-relative) — shared by WS, flows, imports
+│   ├── url_safety.py              (101 lines)  Which stored links are safe (http/https, path-relative) — shared by WS, flows, imports
 │   ├── aggregate.py               (224 lines)  compute_status_counts — the single KPI source
 │   ├── i18n.py                     (74 lines)  normalize_language_code (pt-br is its own table key)
 │   ├── integration_signatures.py   (28 lines)  Compatibility shim → signatures/

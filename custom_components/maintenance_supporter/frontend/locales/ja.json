@@ -903,7 +903,7 @@
   "remove": "削除",
   "doc_deduped": "既に別の場所に保存済み — 共有され、追加容量はかかりません。",
   "doc_dup_in_object": "このファイルは既にこのオブジェクトに添付されています。",
-  "doc_link_invalid": "http/https のリンクのみ許可されています。",
+  "doc_link_not_allowed": "このリンクは使用できません。スクリプトを実行したりローカルファイルを開いたりするリンク（javascript:、data:、file: …）は拒否されます。",
   "doc_cat_manual": "取扱説明書",
   "doc_cat_warranty": "保証書",
   "doc_cat_invoice": "請求書",

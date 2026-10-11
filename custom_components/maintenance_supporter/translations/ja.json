@@ -2316,7 +2316,7 @@
       "message": "{field} は単一の entity_id でのみ使用できます。"
     },
     "unsafe_url": {
-      "message": "http と https の URL のみ使用できます。"
+      "message": "このリンクは使用できません。スクリプトを実行したりローカルファイルを開いたりするリンク（javascript:、data:、file: など）は拒否されます。"
     },
     "responsible_user_conflict": {
       "message": "responsible_user と clear_responsible_user のどちらか一方だけを指定してください。"

@@ -6,6 +6,11 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ✨ Added
 
+- **Links that open an app:** a documentation link, a document's web link and a link in the notes may now open an
+  app, for example a note in Obsidian (`obsidian://open?vault=…`), a OneNote page (`onenote:…`) or a mail
+  (`mailto:`). Before, only web links were accepted, and a notes link to an app rendered as dead text because Home
+  Assistant's own Markdown sanitiser drops such links; it now keeps its target. Links that run scripts or open
+  local files (`javascript:`, `data:`, `file:` and the like) are still refused, with a message that names them.
 - **A task shared without a rotation is meant for everyone it is shared with:** pick several people under *Shared
   with*, leave *Rotation* off, and until now only the notification service in Settings heard of the task (often one
   partner's phone), and nobody's person filter listed it. Now each of them gets its reminders on their own phones,

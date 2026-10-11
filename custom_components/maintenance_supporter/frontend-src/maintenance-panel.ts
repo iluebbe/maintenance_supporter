@@ -1,7 +1,7 @@
 /** Maintenance Supporter Sidebar Panel. */
 
 import { LitElement, html, nothing, type TemplateResult } from "lit";
-import { isSafeHttpUrl } from "./helpers/url";
+import { isSafeLink } from "./helpers/url";
 import { queryTokens, scoreFields } from "./helpers/search-match";
 import { objectRef, parseRef, renderRefChip, taskRef, type HasRef } from "./helpers/reference";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
@@ -1909,7 +1909,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       case "document":
       case "content":
         if (r.docKind === "weblink") {
-          if (isSafeHttpUrl(r.url)) window.open(r.url!, "_blank", "noopener");
+          if (isSafeLink(r.url)) window.open(r.url!, "_blank", "noopener");
         } else if (r.docId) {
           // A content hit opens the PDF on the matching page (browser viewers
           // honour #page=N; the Companion app's external viewer may not).
@@ -3046,7 +3046,7 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  Companion-safe recipe as the documents section). */
   private _openManualDoc(doc: ManualDocRef): void {
     if (doc.kind !== "file") {
-      if (isSafeHttpUrl(doc.url)) window.open(doc.url!, "_blank", "noopener");
+      if (isSafeLink(doc.url)) window.open(doc.url!, "_blank", "noopener");
       return;
     }
     void openSignedDocument(this.hass, doc.id).catch(() => {
@@ -4413,7 +4413,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         // handbook attached must not render "—" here (prod: Easee vs Epson).
         const manualDoc = (o.manual_docs || [])[0];
         return html`<td class="oc-documentation_url">${
-          isSafeHttpUrl(o.documentation_url)
+          isSafeLink(o.documentation_url)
             ? html`<a href=${o.documentation_url} target="_blank" rel="noopener noreferrer"
                 @click=${(e: Event) => e.stopPropagation()}><ha-icon icon="mdi:file-document-outline"></ha-icon></a>`
             : manualDoc
@@ -4791,7 +4791,7 @@ export class MaintenanceSupporterPanel extends LitElement {
               ${o.place_missing ? html`<span class="place-missing-badge">${t("place_missing", L)}</span>` : nothing}
             </p>`
           : nothing}
-        ${isSafeHttpUrl(o.documentation_url)
+        ${isSafeLink(o.documentation_url)
           ? html`<p class="meta">${t("documentation_url_label", L)}:
               <a href=${o.documentation_url} target="_blank" rel="noopener noreferrer">${o.documentation_url}</a>
             </p>`
