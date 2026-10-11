@@ -134,6 +134,8 @@ def test_every_text_actually_formats(language: str) -> None:
             "phase", "next",
             # voice packages B/C (2026-09-30)
             "example", "area", "value", "unit", "user", "device", "type", "needs",
+            # whose turn on a task shared without a rotation (discussion #110)
+            "users",
         }
     }
     for key, text in load_language(language).items():
