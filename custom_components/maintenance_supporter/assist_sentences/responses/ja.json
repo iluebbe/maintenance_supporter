@@ -68,6 +68,7 @@
   "turn_user": "今の担当は{user}です：{object}の「{task}」。",
   "turn_you": "今の担当はあなたです：{object}の「{task}」。",
   "turn_nobody": "{object}の「{task}」には担当者がいません。",
+  "turn_shared": "{object}の「{task}」には今は担当者がいません。共有相手：{users}。",
   "buy_none": "残り少ないものはありません。交換部品を買う必要はありません。",
   "buy_list": "残り少ない交換部品が{count}件あります：{items}。",
   "buy_list_one": "残り少ない交換部品が1件あります：{items}。",

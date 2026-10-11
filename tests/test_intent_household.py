@@ -217,6 +217,21 @@ async def test_an_unassigned_task_is_nobodys_turn(hass: HomeAssistant) -> None:
     assert "Nobody" in _speech(await _ask(hass, INTENT_WHOSE_TURN, {"name": "mow the lawn"}))
 
 
+async def test_a_shared_task_with_nobody_on_duty_says_who_it_is_shared_with(hass: HomeAssistant) -> None:
+    """Discussion #110: shared without a rotation, nobody is responsible, so
+    the answer says that and names the people it is shared with."""
+    alice = await hass.auth.async_create_user("alice")
+    bob = await hass.auth.async_create_user("Bob")
+    hass.states.async_set("person.alice", "home", {"user_id": alice.id, "friendly_name": "Alice Smith"})
+    await _object(hass, _task("Clean the gutters", assignee_pool=[alice.id, bob.id]), name="House")
+
+    speech = _speech(await _ask(hass, INTENT_WHOSE_TURN, {"name": "clean the gutters"}))
+    assert "Nobody is assigned" in speech and "right now" in speech
+    assert "Alice Smith, Bob" in speech  # the person's name, else the login's
+    german = _speech(await _ask(hass, INTENT_WHOSE_TURN, {"name": "clean the gutters"}, language="de"))
+    assert "gerade niemand" in german and "geteilt mit Alice Smith, Bob" in german
+
+
 # ─── shopping and bought parts ────────────────────────────────────────────
 
 _PARTS = {

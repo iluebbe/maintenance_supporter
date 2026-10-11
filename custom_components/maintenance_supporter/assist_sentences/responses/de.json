@@ -68,6 +68,7 @@
   "turn_user": "{user} ist dran: '{task}' an {object}.",
   "turn_you": "Du bist dran: '{task}' an {object}.",
   "turn_nobody": "Für '{task}' an {object} ist niemand eingetragen.",
+  "turn_shared": "Für '{task}' an {object} ist gerade niemand eingetragen; geteilt mit {users}.",
   "buy_none": "Nichts wird knapp — es müssen keine Ersatzteile gekauft werden.",
   "buy_list": "{count} Ersatzteile werden knapp: {items}.",
   "buy_list_one": "Ein Ersatzteil wird knapp: {items}.",

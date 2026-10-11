@@ -68,6 +68,7 @@
   "turn_user": "Tocca a {user}: '{task}' su {object}.",
   "turn_you": "Tocca a te: '{task}' su {object}.",
   "turn_nobody": "Nessuno è assegnato a '{task}' su {object}.",
+  "turn_shared": "Al momento nessuno è assegnato a '{task}' su {object}; è condivisa con {users}.",
   "buy_none": "Non sta finendo niente: non serve comprare ricambi.",
   "buy_list": "Stanno finendo {count} ricambi: {items}.",
   "buy_list_one": "Sta finendo un ricambio: {items}.",

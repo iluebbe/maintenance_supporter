@@ -12,7 +12,8 @@ All notable changes to Maintenance Supporter are documented in this file.
   completing it from one phone clears it from the others, and it is listed under each of them wherever tasks are
   filtered by person: the panel, the card and the calendar card, saved views, "my tasks" by voice and the
   automation actions below. The notification service in Settings is the fallback only when none of them has a phone.
-  A task with a responsible person, a rotation included, stays that person's alone.
+  A task with a responsible person, a rotation included, stays that person's alone. Asked by voice whose turn it
+  is, Assist says that nobody is assigned right now and names the people the task is shared with.
 - **Who does a task, for automations:** the *List tasks* action names whoever is responsible
   (`responsible_user_id`, and `responsible_user` as the person entity that *Update task* also takes) and who it is
   shared with (`shared_with`), and its new *Person* field returns only the tasks meant for that person. Each task

@@ -1324,7 +1324,8 @@ Since 2.96, for the rest of the household routine:
   already there is kept.
 - **`MaintenanceSupporterWhoseTurn`** — *"Whose turn is it to mow the
   lawn?"* — names the person (by their Home Assistant person name) on duty,
-  following the rotation.
+  following the rotation. A task shared without a rotation has nobody on duty:
+  the answer says so and names the people it is shared with.
 - **`MaintenanceSupporterShoppingList`** — *"What do we need to buy?"* — the
   spare parts at or below their reorder threshold, with what is left.
 - **`MaintenanceSupporterBoughtPart`** — *"I bought four water filters"* —

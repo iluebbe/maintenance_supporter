@@ -68,6 +68,7 @@
   "turn_user": "{user} har tur: '{task}' på {object}.",
   "turn_you": "Det er din tur: '{task}' på {object}.",
   "turn_nobody": "Ingen er tildelt '{task}' på {object}.",
+  "turn_shared": "Ingen er tildelt '{task}' på {object} lige nu; den er delt med {users}.",
   "buy_none": "Intet er ved at slippe op — der skal ikke købes reservedele.",
   "buy_list": "{count} reservedele er ved at slippe op: {items}.",
   "buy_list_one": "Én reservedel er ved at slippe op: {items}.",

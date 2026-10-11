@@ -68,6 +68,7 @@
   "turn_user": "C'est au tour de {user} : '{task}' sur {object}.",
   "turn_you": "C'est ton tour : '{task}' sur {object}.",
   "turn_nobody": "Personne n'est assigné à '{task}' sur {object}.",
+  "turn_shared": "Personne n'est assigné à '{task}' sur {object} pour le moment ; la tâche est partagée avec {users}.",
   "buy_none": "Rien ne manque — aucune pièce à acheter.",
   "buy_list": "{count} pièces arrivent en rupture : {items}.",
   "buy_list_one": "Une pièce arrive en rupture : {items}.",

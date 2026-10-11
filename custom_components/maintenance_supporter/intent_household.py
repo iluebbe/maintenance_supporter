@@ -311,7 +311,12 @@ class WhoseTurnIntent(intent.IntentHandler):
         response = intent_obj.create_response()
         fields = {"task": target["name"], "object": target["object_name"]}
         user_id = target.get("responsible_user_id")
-        if not user_id:
+        if not user_id and (shared := target.get("user_ids")):
+            # Shared with people and nobody on duty (discussion #110): say so,
+            # and who it is shared with.
+            names = [await _person_name(hass, uid) for uid in shared]
+            response.async_set_speech(_sp("turn_shared", lang, users=", ".join(names), **fields))
+        elif not user_id:
             response.async_set_speech(_sp("turn_nobody", lang, **fields))
         elif user_id == _asking_user(intent_obj):
             response.async_set_speech(_sp("turn_you", lang, **fields))

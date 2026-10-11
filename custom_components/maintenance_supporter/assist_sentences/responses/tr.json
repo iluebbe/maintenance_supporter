@@ -68,6 +68,7 @@
   "turn_user": "Sıradaki kişi: {user} — {object} için '{task}'.",
   "turn_you": "Sıra sende: {object} için '{task}'.",
   "turn_nobody": "{object} için '{task}' görevine kimse atanmamış.",
+  "turn_shared": "{object} için '{task}' görevine şu anda kimse atanmamış; paylaşılanlar: {users}.",
   "buy_none": "Tükenmek üzere olan bir şey yok — yedek parça almaya gerek yok.",
   "buy_list": "{count} yedek parça tükenmek üzere: {items}.",
   "buy_list_one": "Bir yedek parça tükenmek üzere: {items}.",

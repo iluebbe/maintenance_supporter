@@ -68,6 +68,7 @@
   "turn_user": "Teď je na řadě: {user} — '{task}' u zařízení {object}.",
   "turn_you": "Teď jsi na řadě ty: '{task}' u zařízení {object}.",
   "turn_nobody": "K úkolu '{task}' u zařízení {object} není nikdo přiřazen.",
+  "turn_shared": "K úkolu '{task}' u zařízení {object} teď není nikdo přiřazen; je sdílený s: {users}.",
   "buy_none": "Nic nedochází — není potřeba kupovat díly.",
   "buy_list": "Docházejí díly, celkem {count}: {items}.",
   "buy_list_one": "Dochází jeden díl: {items}.",

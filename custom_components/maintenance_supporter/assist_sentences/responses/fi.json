@@ -68,6 +68,7 @@
   "turn_user": "Vuorossa on {user}: '{task}' kohteessa {object}.",
   "turn_you": "Sinä olet vuorossa: '{task}' kohteessa {object}.",
   "turn_nobody": "Tehtävälle '{task}' kohteessa {object} ei ole määritetty ketään.",
+  "turn_shared": "Tehtävälle '{task}' kohteessa {object} ei ole nyt määritetty ketään; se on jaettu: {users}.",
   "buy_none": "Mikään ei ole loppumassa — varaosia ei tarvitse ostaa.",
   "buy_list": "Varaosia on loppumassa, yhteensä {count}: {items}.",
   "buy_list_one": "Yksi varaosa on loppumassa: {items}.",

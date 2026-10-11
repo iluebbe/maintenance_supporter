@@ -68,6 +68,7 @@
   "turn_user": "Most {user} következik: '{task}' – {object}.",
   "turn_you": "Most te következel: '{task}' – {object}.",
   "turn_nobody": "Senki sincs hozzárendelve ehhez: '{task}' – {object}.",
+  "turn_shared": "Jelenleg senki sincs hozzárendelve ehhez: '{task}' – {object}; megosztva: {users}.",
   "buy_none": "Semmi sem fogy ki — nem kell alkatrészt venni.",
   "buy_list": "Kifogyóban lévő alkatrészek, összesen {count}: {items}.",
   "buy_list_one": "Egy alkatrész fogyóban van: {items}.",

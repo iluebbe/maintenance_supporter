@@ -68,6 +68,7 @@
   "turn_user": "지금 차례: {user} — {object}의 '{task}'.",
   "turn_you": "지금은 당신 차례예요: {object}의 '{task}'.",
   "turn_nobody": "{object}의 '{task}' 작업에는 담당자가 없어요.",
+  "turn_shared": "{object}의 '{task}' 작업에는 지금 담당자가 없어요. 공유 대상: {users}.",
   "buy_none": "떨어져 가는 게 없어요. 예비 부품을 살 필요가 없어요.",
   "buy_list": "떨어져 가는 예비 부품이 {count}개 있어요: {items}.",
   "buy_list_one": "떨어져 가는 예비 부품이 1개 있어요: {items}.",

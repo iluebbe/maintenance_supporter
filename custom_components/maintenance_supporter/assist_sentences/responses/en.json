@@ -68,6 +68,7 @@
   "turn_user": "It's {user}'s turn: '{task}' on {object}.",
   "turn_you": "It's your turn: '{task}' on {object}.",
   "turn_nobody": "Nobody is assigned to '{task}' on {object}.",
+  "turn_shared": "Nobody is assigned to '{task}' on {object} right now; it is shared with {users}.",
   "buy_none": "Nothing is running low — no spare parts need buying.",
   "buy_list": "{count} spare parts are running low: {items}.",
   "buy_list_one": "One spare part is running low: {items}.",

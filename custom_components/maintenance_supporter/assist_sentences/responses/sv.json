@@ -68,6 +68,7 @@
   "turn_user": "{user} har turen: '{task}' på {object}.",
   "turn_you": "Det är din tur: '{task}' på {object}.",
   "turn_nobody": "Ingen är tilldelad '{task}' på {object}.",
+  "turn_shared": "Ingen är tilldelad '{task}' på {object} just nu; den delas med {users}.",
   "buy_none": "Inget håller på att ta slut — inga reservdelar behöver köpas.",
   "buy_list": "{count} reservdelar håller på att ta slut: {items}.",
   "buy_list_one": "En reservdel håller på att ta slut: {items}.",

@@ -68,6 +68,7 @@
   "turn_user": "É a vez de {user}: '{task}' em {object}.",
   "turn_you": "É a tua vez: '{task}' em {object}.",
   "turn_nobody": "Ninguém está atribuído a '{task}' em {object}.",
+  "turn_shared": "Ninguém está atribuído a '{task}' em {object} neste momento; está partilhada com {users}.",
   "buy_none": "Nada está a acabar — não é preciso comprar peças.",
   "buy_list": "Estão a acabar {count} peças: {items}.",
   "buy_list_one": "Está a acabar uma peça: {items}.",

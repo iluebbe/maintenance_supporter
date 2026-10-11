@@ -68,6 +68,7 @@
   "turn_user": "Teraz kolej: {user} — '{task}' na urządzeniu {object}.",
   "turn_you": "Teraz twoja kolej: '{task}' na urządzeniu {object}.",
   "turn_nobody": "Nikt nie jest przypisany do zadania '{task}' na urządzeniu {object}.",
+  "turn_shared": "Nikt nie jest teraz przypisany do zadania '{task}' na urządzeniu {object}; jest udostępnione: {users}.",
   "buy_none": "Nic się nie kończy — nie trzeba kupować części.",
   "buy_list": "Kończą się części, łącznie {count}: {items}.",
   "buy_list_one": "Kończy się jedna część: {items}.",

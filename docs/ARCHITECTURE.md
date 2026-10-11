@@ -279,7 +279,7 @@ custom_components/maintenance_supporter/
 │                                               DocumentServeView, DocumentExcerptView, DocumentsArchiveView
 ├── intent.py                    (1,040 lines)  8 intents: ListTasks, CompleteTask, TaskInstructions, TaskDue, SnoozeTask, PartStock,
 │                                               PostponeTask, SkipTask
-├── intent_household.py            (529 lines)  7 intents: RecordReading, AddNote, WhoseTurn, ShoppingList, BoughtPart, LowBatteries, Undo
+├── intent_household.py            (534 lines)  7 intents: RecordReading, AddNote, WhoseTurn, ShoppingList, BoughtPart, LowBatteries, Undo
 ├── logbook.py                     (315 lines)  Localized activity-timeline descriptions for lifecycle events
 ├── panel.py                       (144 lines)  Sidebar panel registration
 ├── frontend/                                  Built esbuild output (committed)

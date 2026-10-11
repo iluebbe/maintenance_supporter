@@ -68,6 +68,7 @@
   "turn_user": "现在轮到{user}：{object}的“{task}”。",
   "turn_you": "现在轮到你：{object}的“{task}”。",
   "turn_nobody": "{object}的“{task}”没有指派任何人。",
+  "turn_shared": "{object}的“{task}”目前没有指派任何人；共享给：{users}。",
   "buy_none": "没有快用完的东西，不需要买备件。",
   "buy_list": "有{count}个备件快用完了：{items}。",
   "buy_list_one": "有1个备件快用完了：{items}。",
