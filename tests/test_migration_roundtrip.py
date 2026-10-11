@@ -137,6 +137,8 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
                     "product_url": "https://example.org/filter",
                     # #98 follow-up: bought in packs of ten.
                     "package_size": 10,
+                    # #208: a reusable part; one used one waits to be ready again.
+                    "reuse": "charge",
                 }
             )
         },
@@ -161,6 +163,7 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
 
     rig_store = hass.data[STORES_CACHE_KEY][rig.entry_id]
     rig_store.set_part_stock("part_a", 1)  # below the threshold → a buy task
+    rig_store.set_part_restoring("part_a", 1)  # #208: 1 + 1 waiting = 2 owned, still at it
     rig_store.set_checklist_progress(task["id"], {"step1": True})
     await rig_store.async_save()
     from custom_components.maintenance_supporter.parts_runtime import async_reconcile_buy_tasks
@@ -524,7 +527,9 @@ async def _snapshot(hass: HomeAssistant) -> tuple[dict[str, Any], set[str]]:
             portable = {k: v for k, v in state.items() if k not in RUNTIME_ONLY}
             rec["tasks"][task_label[tid]] = tr({**{k: v for k, v in t.items() if k != "id"}, "_state": portable})
         for pid, p in (e.data.get("parts") or {}).items():
-            rec["parts"][p["name"]] = tr({**{k: v for k, v in p.items() if k != "id"}, "_stock": store.get_part_stock(pid)})
+            rec["parts"][p["name"]] = tr(
+                {**{k: v for k, v in p.items() if k != "id"}, "_stock": store.get_part_stock(pid), "_restoring": store.get_part_restoring(pid)}
+            )
         objects[entry_name[e.entry_id]] = rec
 
     documents: dict[str, Any] = {}

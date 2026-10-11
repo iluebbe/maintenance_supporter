@@ -37,6 +37,8 @@ from ..const import (
 from .battery_fleet import (
     canonical_type,
     discover_battery_types,
+    discover_rechargeable_cells,
+    is_rechargeable_type,
     lifetime_months,
     note_sibling_entity,
     read_batteries,
@@ -87,6 +89,9 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
 
     lang = normalize_language_code(language) if language else normalize_language(hass)
     types = discover_battery_types(hass)  # {TYPE: total_qty}
+    # #208: rechargeable cells get a reusable part; it starts untracked — a
+    # device charged in place must not grow a "to charge" pile.
+    cells = discover_rechargeable_cells(hass)
 
     existing = find_fleet_entry(hass)
     if existing is not None:
@@ -97,7 +102,7 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
         # the parts deleted since (the start-up reconcile honours them).
         if existing.data.get(CONF_OBJECT, {}).get(BATTERY_FLEET_REMOVED_PARTS):
             _mutate_fleet_object(hass, lambda obj: obj.pop(BATTERY_FLEET_REMOVED_PARTS, None))
-        added_pids = _reconcile_type_parts(hass, existing, types, lang)
+        added_pids = _reconcile_type_parts(hass, existing, {**types, **cells}, lang)
         # Track stock at 0 for the parts just added — the CREATE path below
         # does, and a part left untracked (stock None) shows no stock line
         # and never flags for reorder. Found on a real fleet: types added by
@@ -108,7 +113,8 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
             store = getattr(rd, "store", None) if rd else None
             if store is not None:
                 for pid in added_pids:
-                    store.set_part_stock(pid, 0)
+                    if not _is_cell_part(pid):
+                        store.set_part_stock(pid, 0)
                 await store.async_save()
         repaired = await _reconcile_fleet_task(hass, existing, lang)
         if migrated and not repaired:
@@ -138,7 +144,7 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
     obj[OBJECT_FLAG] = True
     new_data[CONF_OBJECT] = obj
     parts: dict[str, dict[str, Any]] = {}
-    for btype, total_qty in types.items():
+    for btype, total_qty in {**types, **cells}.items():
         part = normalize_part(_type_part(btype, total_qty, lang))
         parts[part["id"]] = part
     new_data[CONF_PARTS] = parts
@@ -149,7 +155,8 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
     store = getattr(rd, "store", None) if rd else None
     if store is not None:
         for pid in parts:
-            store.set_part_stock(pid, 0)
+            if not _is_cell_part(pid):
+                store.set_part_stock(pid, 0)
         await store.async_save()
 
     # The single aggregate task, triggered by the global low-count sensor.
@@ -218,8 +225,18 @@ def _type_part(btype: str, total_qty: int, lang: str) -> dict[str, Any]:
     """
     from ..templates import localize_template_text
 
-    threshold = max(2, total_qty)
     name_tpl = localize_template_text("{type} battery", lang) or "{type} battery"
+    if is_rechargeable_type(btype):
+        # #208: charged, not bought — a reusable part with no reorder
+        # threshold and no buy link to nag with.
+        return {
+            "id": f"batt_{btype.lower()}",
+            "name": name_tpl.format(type=btype),
+            "unit": "pcs",
+            "auto_buy_task": False,
+            "reuse": "charge",
+        }
+    threshold = max(2, total_qty)
     notes_tpl = localize_template_text("Typical service life ~{months} months.", lang) or "Typical service life ~{months} months."
     return {
         "id": f"batt_{btype.lower()}",
@@ -422,8 +439,9 @@ async def async_consume_type_parts(hass: HomeAssistant, by_type: dict[str, int])
     parts = fleet.data.get(CONF_PARTS) or {}
     for btype, qty in by_type.items():
         pid = f"{FLEET_PART_PREFIX}{btype.lower()}"
-        if pid in parts:
-            await async_change_part_stock(hass, fleet, pid, delta=-qty)
+        # A use (#208): a rechargeable cell's empty one waits to be charged;
+        # an untracked part (a pack charged in place) is left alone.
+        if pid in parts and await async_change_part_stock(hass, fleet, pid, delta=-qty, use=True) is not None:
             consumed[pid] = qty
     return consumed
 
@@ -716,7 +734,7 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
     migrated = await migrate_fleet_part_ids(hass, entry)
 
     types = discover_battery_types(hass)
-    added = _reconcile_type_parts(hass, entry, types, lang)
+    added = _reconcile_type_parts(hass, entry, {**types, **discover_rechargeable_cells(hass)}, lang)
 
     pruned = False
     rd = getattr(entry, "runtime_data", None)
@@ -761,7 +779,8 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
 
     if store is not None and (added or pruned):
         for pid in added:
-            store.set_part_stock(pid, 0)
+            if not _is_cell_part(pid):
+                store.set_part_stock(pid, 0)
         await store.async_save()
     return {
         "added": added,
@@ -783,6 +802,11 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
 # folded once, here, with every reference following.
 
 FLEET_PART_PREFIX = "batt_"
+
+
+def _is_cell_part(part_id: str) -> bool:
+    """A rechargeable cell's part (#208): it starts untracked."""
+    return part_id.startswith(FLEET_PART_PREFIX) and is_rechargeable_type(part_id[len(FLEET_PART_PREFIX) :])
 
 
 def canonical_part_id(part_id: str) -> str | None:

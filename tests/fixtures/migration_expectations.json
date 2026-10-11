@@ -11,7 +11,8 @@
     "trigger_runtime",
     "trigger_runtime_legacy",
     "battery_replacements",
-    "battery_low_latch"
+    "battery_low_latch",
+    "restoring"
   ],
   "runtime_only_state": {
     "next_history_ref": "re-derived from the highest history number at the next completion",

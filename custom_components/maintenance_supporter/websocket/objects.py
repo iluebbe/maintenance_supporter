@@ -1060,6 +1060,7 @@ async def ws_replace_object(
                 stock = src_store.get_part_stock(old_pid)
                 if stock is not None:
                     new_store.set_part_stock(new_pid, stock)
+                    new_store.set_part_restoring(new_pid, src_store.get_part_restoring(old_pid))
             await new_store.async_save()
         # Objects BORROWING the predecessor's pool (#111) now draw on the
         # successor's shelf. They kept linking to the archived predecessor —

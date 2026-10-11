@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All 106 WebSocket commands the integration registers are covered here. Their
+All 107 WebSocket commands the integration registers are covered here. Their
 authorization tiers are frozen in `tests/test_ws_permission_matrix.py` — that
 test is the inventory of record; this file is its prose companion (and
 `tests/test_docs_counts_in_sync.py` keeps the counts quoted here honest).
@@ -213,8 +213,13 @@ device. Errors: `archived` (already retired), `invalid_device`.
 `part/create` `{entry_id, name (req), vendor?, mpn?, gtin?  (EAN/UPC digits,
 GS1 check-digit validated), storage_location?, product_url?, unit?, cost?,
 stock? (number ≤100000, two decimals — omit for a catalog-only part),
-reorder_threshold?, restock_quantity?, package_size?, auto_buy_task?, notes?}`
-→ `{part_id}`. `package_size` (2.96, #98) = units per bought package (a 400 ml
+reorder_threshold?, restock_quantity?, package_size?, auto_buy_task?, notes?,
+reuse?, restoring?}` → `{part_id}`. `reuse` (#208) marks a part that is not used
+up: one of `charge` · `sharpen` · `clean` · `dry` · `refill` · `restore` (null =
+used up). A use then moves the used ones from `stock` to `restoring` (waiting to
+be ready again), and they still count as owned for `reorder_threshold`, buying
+and the low/out events; `restoring` sets that count (a correction, or a worn-out
+one thrown away). `package_size` (2.96, #98) = units per bought package (a 400 ml
 can: `400`, unit `ml`): `stock`, `reorder_threshold` and task quantities count
 units, `restock_quantity` and `cost` count packages; unset = one package is one
 unit.
@@ -222,10 +227,14 @@ unit.
 required on every update; other omitted fields keep their stored values;
 `stock: null` untracks). `part/delete` `{entry_id, part_id}`
 (also prunes task links + any open buy reminder). `part/restock`
-`{entry_id, part_id, delta | absolute}` → `{stock}`.
+`{entry_id, part_id, delta | absolute}` → `{stock}`. `part/ready_again` (#208)
+`{entry_id, part_id, quantity?}` → `{moved, stock, restoring}` — used ones of a
+reusable part are ready again (charged, sharpened, ...): back from `restoring`
+to `stock`, all of them without `quantity`; `not_found` for a part that is not
+reusable or has no tracked stock.
 `parts/overview` (#130, read tier, no args) → `{parts: [...], count}` — the
 instance-wide inventory: every part with its stored fields plus `part_id`,
-`entry_id` + `object_name` (owner), live `stock`, `low`, and `consumers:
+`entry_id` + `object_name` (owner), live `stock`, `restoring`, `low`, and `consumers:
 [{entry_id, object_name, task_id, task_name, quantity, pooled}]` covering the
 owner's own task links AND pooled #111 links from other objects.
 Link consumption on the task: `task/create|update` accept

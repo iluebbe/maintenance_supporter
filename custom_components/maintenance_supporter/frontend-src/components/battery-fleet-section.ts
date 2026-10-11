@@ -75,6 +75,8 @@ interface Overview {
   available: boolean;
   configured: boolean;
   task_ok?: boolean;
+  /** The fleet object's entry (its parts are the battery types). */
+  entry_id?: string | null;
   total: number;
   low: BatteryRow[];
   soon: BatteryRow[];
@@ -84,6 +86,9 @@ interface Overview {
   needs_now: Record<string, number>;
   needs_soon: Record<string, number>;
   types: string[];
+  // #208: the counted rechargeable spares — charged (stock) and waiting to
+  // be charged (restoring). An older backend omits it.
+  charging?: { part_id: string; name: string; reuse: string; stock: number; restoring: number }[];
   excluded?: { entity_id: string; device_name: string }[];
   // #135 follow-up: fleet-wide "track self-charging devices" opt-in.
   track_self_charging?: boolean;
@@ -550,6 +555,34 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                 : nothing}
             `}
 
+        ${ov.charging?.length
+          ? html`
+              <div class="bf-charging">
+                <span class="bf-label">${t("battery_fleet_charging", L)}</span>
+                ${ov.charging.map(
+                  (c) => html`<span class="bf-charge-item">
+                    <span class="bf-charge-name">${c.name}</span>
+                    <span>${t("battery_fleet_ready", L).replace("{count}", String(c.stock))}</span>
+                    ${c.restoring > 0
+                      ? html`<span class="bf-charge-waiting">${t(`part_waiting_${c.reuse}`, L).replace("{count}", String(c.restoring))}</span>
+                          ${this._canWrite
+                            ? html`<button
+                                class="bf-charged"
+                                title=${t("part_ready_again_hint", L)}
+                                .disabled=${this._marking}
+                                @click=${() => this._act({
+                                  type: "maintenance_supporter/part/ready_again",
+                                  entry_id: ov.entry_id,
+                                  part_id: c.part_id,
+                                })}
+                              ><ha-icon icon="mdi:battery-charging-100"></ha-icon>${t(`part_reuse_${c.reuse}`, L)}</button>`
+                            : nothing}`
+                      : nothing}
+                  </span>`,
+                )}
+              </div>
+            `
+          : nothing}
         ${ov.soon.length
           ? html`
               <div class="bf-soon">
@@ -729,6 +762,46 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       flex-wrap: wrap;
       align-items: baseline;
       gap: 8px;
+    }
+    .bf-charging {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0;
+    }
+    .bf-charge-item {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: var(--secondary-background-color, #eee);
+      font-size: 13px;
+    }
+    .bf-charge-name {
+      font-weight: 500;
+    }
+    .bf-charge-waiting {
+      color: var(--warning-color, #f57c00);
+    }
+    .bf-charged {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font: inherit;
+      font-size: 12px;
+      min-height: 28px;
+      padding: 2px 10px;
+      border-radius: 14px;
+      border: 1px solid var(--primary-color);
+      background: transparent;
+      color: var(--primary-color);
+      cursor: pointer;
+    }
+    .bf-charged ha-icon {
+      --mdc-icon-size: 16px;
     }
     .bf-label {
       font-size: 12px;

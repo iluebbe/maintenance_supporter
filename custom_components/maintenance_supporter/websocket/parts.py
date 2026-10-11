@@ -14,6 +14,7 @@ from ..helpers.aggregate import get_store, object_name
 from ..helpers.parts import (
     MAX_PART_STOCK,
     MAX_PARTS_PER_OBJECT,
+    REUSE_KINDS,
     PartValidationError,
     normalize_part,
 )
@@ -50,9 +51,13 @@ _PART_FIELDS_SCHEMA: VolDictType = {
     vol.Optional("package_size"): vol.Any(int, float, None),
     vol.Optional("auto_buy_task"): bool,
     vol.Optional("doc_id"): vol.Any(ID_FIELD, None),
+    # #208: what readies a used one again (charge, sharpen, ...); None = used up.
+    vol.Optional("reuse"): vol.Any(vol.In(REUSE_KINDS), None),
     # Initial / edited stock travels WITH the definition for dialog simplicity,
-    # but is stored in the per-entry Store (dynamic), not entry.data.
+    # but is stored in the per-entry Store (dynamic), not entry.data — as does
+    # the count of used ones waiting (#208).
     vol.Optional("stock"): vol.Any(int, float, None),
+    vol.Optional("restoring"): vol.Any(vol.All(vol.Any(int, float), vol.Range(min=0, max=MAX_PART_STOCK)), None),
 }
 
 
@@ -90,9 +95,11 @@ async def ws_create_part(
 
     stock = msg.get("stock")
     if stock is not None:
-        from ..parts_runtime import async_change_part_stock
+        from ..parts_runtime import async_change_part_stock, async_set_part_restoring
 
         await async_change_part_stock(hass, entry, part["id"], absolute=float(stock))
+        if part.get("reuse") and msg.get("restoring"):
+            await async_set_part_restoring(hass, entry, part["id"], float(msg["restoring"]))
     # Reload so the part's stock sensor appears (entities are created at setup).
     await hass.config_entries.async_reload(entry.entry_id)
     connection.send_result(msg["id"], {"part_id": part["id"]})
@@ -132,8 +139,14 @@ async def ws_update_part(
     parts[part["id"]] = part
     _persist_parts(hass, entry, parts)
 
-    from ..parts_runtime import async_change_part_stock, schedule_buy_task_reconcile
+    from ..parts_runtime import async_change_part_stock, async_set_part_restoring, schedule_buy_task_reconcile
 
+    # #208: the waiting pile goes with the part's reuse — set when given, and
+    # gone when the part is no longer reusable.
+    if not part.get("reuse") and existing.get("reuse"):
+        await async_set_part_restoring(hass, entry, part["id"], 0)
+    elif part.get("reuse") and msg.get("restoring") is not None:
+        await async_set_part_restoring(hass, entry, part["id"], float(msg["restoring"]))
     if "stock" in msg:
         stock = msg.get("stock")
         if stock is None:
@@ -151,7 +164,7 @@ async def ws_update_part(
 
 
 # str() of a voluptuous marker is its key name (Marker.__str__ -> str(schema)).
-_PART_FIELD_KEYS = {str(k) for k in _PART_FIELDS_SCHEMA if str(k) != "stock"}
+_PART_FIELD_KEYS = {str(k) for k in _PART_FIELDS_SCHEMA if str(k) not in ("stock", "restoring")}
 
 
 @websocket_api.websocket_command(
@@ -271,6 +284,36 @@ async def ws_restock_part(
     connection.send_result(msg["id"], {"stock": new})
 
 
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/part/ready_again",
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("part_id"): ID_FIELD,
+        # How many are ready again; all waiting ones when left out.
+        vol.Optional("quantity"): vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=0, max=MAX_PART_STOCK)),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_part_ready_again(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Used items of a reusable part are ready again (#208): charged,
+    sharpened, cleaned, dried or refilled — back from the pile to the stock."""
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+    from ..parts_runtime import async_part_ready_again
+
+    result = await async_part_ready_again(hass, entry, msg["part_id"], msg.get("quantity"))
+    if result is None:
+        connection.send_error(msg["id"], "not_found", "No reusable part with a tracked stock")
+        return
+    connection.send_result(msg["id"], result)
+
+
 @websocket_api.websocket_command({vol.Required("type"): "maintenance_supporter/parts/overview"})
 @websocket_api.async_response
 async def ws_parts_overview(
@@ -284,7 +327,7 @@ async def ws_parts_overview(
     every consuming task — the object's own tasks and pooled #111 links from
     other objects. Read-only; the per-object CRUD stays on part/*.
     """
-    from ..helpers.parts import part_is_low
+    from ..helpers.parts import on_hand, part_is_low
     from . import _get_merged_tasks, _get_object_entries
 
     entries = _get_object_entries(hass)
@@ -317,6 +360,7 @@ async def ws_parts_overview(
         store = get_store(hass, e.entry_id)
         for part_id, part in parts.items():
             stock = store.get_part_stock(part_id) if store is not None else None
+            restoring = store.get_part_restoring(part_id) if store is not None else 0
             rows.append(
                 {
                     **part,
@@ -324,7 +368,8 @@ async def ws_parts_overview(
                     "entry_id": e.entry_id,
                     "object_name": names.get(e.entry_id),
                     "stock": stock,
-                    "low": part_is_low(part, stock),
+                    "restoring": restoring,
+                    "low": part_is_low(part, on_hand(part, stock, restoring)),
                     "consumers": consumers.get((e.entry_id, part_id), []),
                 }
             )

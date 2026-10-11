@@ -1134,6 +1134,10 @@ async def ws_import_json(
                     stock = part_entry.get("stock")
                     if isinstance(stock, (int, float)) and not isinstance(stock, bool) and stock >= 0:
                         pdata["stock"] = stock
+                        # #208: the used ones waiting go with the stock.
+                        waiting = part_entry.get("restoring")
+                        if pdata.get("reuse") and isinstance(waiting, (int, float)) and not isinstance(waiting, bool) and waiting > 0:
+                            pdata["restoring"] = waiting
                     import_parts[new_id] = pdata
                     if old_id:
                         part_id_map[old_id] = new_id

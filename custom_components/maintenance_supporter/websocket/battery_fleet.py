@@ -40,6 +40,33 @@ from ..helpers.permissions import require_write
 from ..helpers.ws_errors import send_translated_error
 
 
+def _charging(hass: HomeAssistant, fleet: Any) -> list[dict[str, Any]]:
+    """The fleet's counted reusable parts: ready and waiting (#208)."""
+    if fleet is None:
+        return []
+    from ..const import CONF_PARTS
+    from ..helpers.aggregate import get_store
+
+    store = get_store(hass, fleet.entry_id)
+    if store is None:
+        return []
+    rows: list[dict[str, Any]] = []
+    for part_id, part in sorted((fleet.data.get(CONF_PARTS) or {}).items()):
+        stock = store.get_part_stock(part_id)
+        if not part.get("reuse") or stock is None:
+            continue
+        rows.append(
+            {
+                "part_id": part_id,
+                "name": part.get("name"),
+                "reuse": part["reuse"],
+                "stock": stock,
+                "restoring": store.get_part_restoring(part_id),
+            }
+        )
+    return rows
+
+
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/battery_fleet/overview"})
 @websocket_api.async_response
 async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
@@ -73,6 +100,11 @@ async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_a
             "needs_now": dict(ov.needs_now),
             "needs_soon": dict(ov.needs_soon),
             "types": ov.types,
+            # #208: the fleet's reusable parts (rechargeable cells) with how
+            # many are charged and how many wait to be charged — only those
+            # whose spares are counted (an untracked part is a device charged
+            # in place, or nobody counts).
+            "charging": _charging(hass, fleet),
             # #135 follow-up: the roster's track-self-charging toggle state.
             "track_self_charging": fleet_track_self_charging(hass),
             # D#162: whether a passed forecast on a sensorless note counts as

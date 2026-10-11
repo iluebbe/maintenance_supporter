@@ -748,6 +748,12 @@ class PartStockSensor(MaintenanceEntity, SensorEntity):
         return store.get_part_stock(self._part_id) if store else None
 
     @property
+    def _restoring(self) -> float:
+        rd = getattr(self.coordinator.entry, "runtime_data", None)
+        store = getattr(rd, "store", None) if rd else None
+        return store.get_part_restoring(self._part_id) if store else 0
+
+    @property
     def available(self) -> bool:
         """Catalog-only parts (no tracked stock) read unavailable."""
         return self._part_id in (self.coordinator.entry.data.get("parts") or {}) and self._stock is not None
@@ -762,15 +768,21 @@ class PartStockSensor(MaintenanceEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        from .helpers.parts import part_is_low
+        from .helpers.parts import on_hand, part_is_low
 
         part = self._part
-        return {
+        attrs: dict[str, Any] = {
             "part_name": part.get("name"),
             "reorder_threshold": part.get("reorder_threshold"),
             "storage_location": part.get("storage_location") or None,
-            "is_low": part_is_low(part, self._stock),
+            "is_low": part_is_low(part, on_hand(part, self._stock, self._restoring)),
         }
+        # #208: a reusable part says what readies a used one (charge, sharpen,
+        # ...) and how many wait for it; the state stays the ready stock.
+        if part.get("reuse"):
+            attrs["reuse"] = part["reuse"]
+            attrs["restoring"] = self._restoring
+        return attrs
 
 
 class PartsToReorderSensor(SensorEntity):
@@ -815,7 +827,7 @@ class PartsToReorderSensor(SensorEntity):
     @property
     def native_value(self) -> int:
         from .const import CONF_PARTS
-        from .helpers.parts import part_is_low
+        from .helpers.parts import on_hand, part_is_low
 
         count = 0
         for entry in self.hass.config_entries.async_entries(DOMAIN):
@@ -826,7 +838,7 @@ class PartsToReorderSensor(SensorEntity):
             if store is None:
                 continue
             for part in (entry.data.get(CONF_PARTS) or {}).values():
-                if part_is_low(part, store.get_part_stock(part["id"])):
+                if part_is_low(part, on_hand(part, store.get_part_stock(part["id"]), store.get_part_restoring(part["id"]))):
                     count += 1
         return count
 

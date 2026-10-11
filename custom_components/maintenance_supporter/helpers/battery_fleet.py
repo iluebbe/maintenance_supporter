@@ -53,6 +53,7 @@ from .battery_lifetime import (
     has_type_forecast,
     is_rechargeable_type,
     is_shoppable_type,
+    is_swappable_cell,
     lifetime_resolver,
     observe_replacements,
     table_lifetime_months,
@@ -1624,6 +1625,24 @@ def discover_battery_types(hass: HomeAssistant) -> OrderedDict[str, int]:
     return OrderedDict(sorted(totals.items()))
 
 
+def discover_rechargeable_cells(hass: HomeAssistant) -> OrderedDict[str, int]:
+    """Rechargeable cell types across the fleet → total quantity (#208).
+
+    Kept apart from :func:`discover_battery_types` (cells anyone BUYS): a
+    swappable rechargeable cell ("AAA NiMH", "18650") gets a reusable part
+    instead — no reorder threshold, no buy link; a swap takes charged cells
+    and puts the empty ones on the "to charge" pile. A pack built into the
+    device gets nothing.
+    """
+    totals: OrderedDict[str, int] = OrderedDict()
+    for bat in read_batteries(hass):
+        if not is_swappable_cell(bat.battery_type):
+            continue
+        t = canonical_type(bat.battery_type)
+        totals[t] = totals.get(t, 0) + bat.quantity
+    return OrderedDict(sorted(totals.items()))
+
+
 __all__ = [
     "DEFAULT_HORIZON_DAYS",
     "LOW_LATCH_KEY",
@@ -1640,6 +1659,7 @@ __all__ = [
     "canonical_type",
     "compute_overview",
     "discover_battery_types",
+    "discover_rechargeable_cells",
     "fleet_due_without_sensor",
     "fleet_excluded_entities",
     "fleet_included_entities",

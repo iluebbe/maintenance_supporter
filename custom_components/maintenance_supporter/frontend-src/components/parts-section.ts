@@ -22,6 +22,9 @@ import { restockUnits, unitPrice } from "../helpers/parts-cost";
 // Per-part document links (v2.26) — the task-documents component in part mode.
 import "./task-documents";
 
+/** #208: what readies a used part again (helpers/parts.py REUSE_KINDS). */
+export const REUSE_KINDS = ["charge", "sharpen", "clean", "dry", "refill", "restore"] as const;
+
 interface PartForm {
   id?: string;
   name: string;
@@ -33,6 +36,9 @@ interface PartForm {
   unit: string;
   cost: string;
   stock: string;
+  /** #208: "" = used up, else what readies a used one again. */
+  reuse: string;
+  restoring: string;
   reorder_threshold: string;
   restock_quantity: string;
   package_size: string;
@@ -50,6 +56,8 @@ const EMPTY_FORM: PartForm = {
   unit: "",
   cost: "",
   stock: "",
+  reuse: "",
+  restoring: "",
   reorder_threshold: "",
   restock_quantity: "",
   package_size: "",
@@ -112,6 +120,8 @@ export class MaintenancePartsSection extends LitElement {
       unit: part.unit || "",
       cost: part.cost != null ? String(part.cost) : "",
       stock: part.stock != null ? String(part.stock) : "",
+      reuse: part.reuse || "",
+      restoring: part.restoring ? String(part.restoring) : "",
       reorder_threshold: part.reorder_threshold != null ? String(part.reorder_threshold) : "",
       restock_quantity: part.restock_quantity != null ? String(part.restock_quantity) : "",
       package_size: part.package_size != null ? String(part.package_size) : "",
@@ -133,6 +143,8 @@ export class MaintenancePartsSection extends LitElement {
       unit: f.unit.trim() || null,
       cost: num(f.cost),
       stock: num(f.stock),
+      reuse: f.reuse || null,
+      ...(f.reuse ? { restoring: num(f.restoring) ?? 0 } : {}),
       reorder_threshold: num(f.reorder_threshold),
       restock_quantity: num(f.restock_quantity),
       package_size: num(f.package_size),
@@ -193,6 +205,23 @@ export class MaintenancePartsSection extends LitElement {
     }
   }
 
+  /** #208: the used ones of a reusable part are ready again (charged,
+   *  sharpened, ...) — back from the pile to the stock. */
+  private async _readyAgain(part: MaintenancePart): Promise<void> {
+    if (this._busy) return;
+    const result = await this._send<{ stock: number; restoring: number }>({
+      type: "maintenance_supporter/part/ready_again",
+      entry_id: this.entryId,
+      part_id: part.id,
+    });
+    if (result) {
+      part.stock = result.stock;
+      part.restoring = result.restoring;
+      this.requestUpdate();
+      this._notifyChanged();
+    }
+  }
+
   private _identLine(part: MaintenancePart): string {
     return [part.vendor, part.mpn ? `MPN: ${part.mpn}` : "", part.gtin ? `GTIN: ${part.gtin}` : ""]
       .filter(Boolean)
@@ -220,6 +249,17 @@ export class MaintenancePartsSection extends LitElement {
                 >`
               : nothing}
           </div>
+          ${tracked && part.reuse && (part.restoring ?? 0) > 0
+            ? html`<div class="part-waiting">
+                <span class="waiting-badge">${t(`part_waiting_${part.reuse}`, L).replace("{count}", formatNumber(part.restoring!, L))}</span>
+                ${this.canWrite
+                  ? html`<button class="ready-again" title=${t("part_ready_again_hint", L)} .disabled=${this._busy}
+                      @click=${() => this._readyAgain(part)}>
+                      <ha-icon icon="mdi:check"></ha-icon>${t(`part_reuse_${part.reuse}`, L)}
+                    </button>`
+                  : nothing}
+              </div>`
+            : nothing}
           <div class="part-meta">
             ${ident ? html`<span>${ident}</span>` : nothing}
             ${part.storage_location
@@ -322,6 +362,23 @@ export class MaintenancePartsSection extends LitElement {
           ${this._field(t("part_unit", L), "unit")}
           ${this._field(t("part_cost", L), "cost", { type: "number" })}
           ${this._field(t("part_stock", L), "stock", { type: "number" })}
+          <label class="form-field">
+            <span>${t("part_reuse", L)}</span>
+            <select
+              class="reuse-select"
+              .value=${f.reuse}
+              @change=${(e: Event) => {
+                this._editing = { ...this._editing!, reuse: (e.target as HTMLSelectElement).value };
+              }}
+            >
+              <option value="" ?selected=${!f.reuse}>${t("part_reuse_none", L)}</option>
+              ${REUSE_KINDS.map(
+                (kind) => html`<option value=${kind} ?selected=${f.reuse === kind}>${t(`part_reuse_${kind}`, L)}</option>`,
+              )}
+            </select>
+          </label>
+          ${f.reuse ? this._field(t("part_restoring", L), "restoring", { type: "number" }) : nothing}
+          ${f.reuse ? html`<div class="form-hint">${t("part_reuse_hint", L)}</div>` : nothing}
           ${this._field(t("part_reorder_threshold", L), "reorder_threshold", { type: "number" })}
           ${this._field(t("part_package_size", L), "package_size", { type: "number" })}
           ${this._field(
@@ -476,6 +533,45 @@ export class MaintenancePartsSection extends LitElement {
     }
     .part-meta .loc ha-icon {
       --mdc-icon-size: 13px;
+    }
+    .part-waiting {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .waiting-badge {
+      font-size: 12px;
+      padding: 1px 8px;
+      border-radius: 10px;
+      background: var(--secondary-background-color, #eee);
+      color: var(--primary-text-color);
+    }
+    .ready-again {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font: inherit;
+      font-size: 12px;
+      padding: 2px 10px;
+      min-height: 28px;
+      border-radius: 14px;
+      border: 1px solid var(--primary-color);
+      background: transparent;
+      color: var(--primary-color);
+      cursor: pointer;
+    }
+    .ready-again ha-icon {
+      --mdc-icon-size: 16px;
+    }
+    .reuse-select {
+      font: inherit;
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid var(--divider-color, #ccc);
+      background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
     }
     .restock-input {
       width: 64px;

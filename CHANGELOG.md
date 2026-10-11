@@ -6,6 +6,17 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ✨ Added
 
+- **Parts that come back, and charged spares for rechargeable batteries:** a spare part can now be marked as not
+  used up but readied again: charged (rechargeable cells, swappable packs), sharpened (mower blades), cleaned
+  (washable filters), dried (desiccant), refilled (gas bottles) or restored. A task that uses it takes the ready
+  ones from the stock and puts the used ones on a pile (*2 to charge*) with a one-click *Charged* button that puts
+  them back. Cells waiting to be charged still count as owned, so they are never bought again; the reorder
+  threshold and the shopping reminder react only when items are really gone. In the battery fleet, a rechargeable
+  type that names a swappable cell (*AAA NiMH*, *AA Eneloop*, *18650*) gets such a part: count the charged spares,
+  and *Replaced* on such a device takes charged cells and puts the empty ones on the pile; the fleet detail lists
+  them with their *Charged* button. A pack built into its device gets no part, and an uncounted part changes
+  nothing. Undo, deleting a completion, export/import and *Replace object* carry the pile. Eneloop cells now count
+  as rechargeable.
 - **Links that open an app:** a documentation link, a document's web link and a link in the notes may now open an
   app, for example a note in Obsidian (`obsidian://open?vault=…`), a OneNote page (`onenote:…`) or a mail
   (`mailto:`). Before, only web links were accepted, and a notes link to an app rendered as dead text because Home

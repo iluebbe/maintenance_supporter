@@ -772,6 +772,9 @@ def _part_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
                     "restock_quantity": part.get("restock_quantity"),
                     "package_size": part.get("package_size"),
                     "stock": store.get_part_stock(part_id) if store is not None else None,
+                    # #208: a reusable part's used ones still count as owned.
+                    "reuse": part.get("reuse"),
+                    "restoring": store.get_part_restoring(part_id) if store is not None else 0,
                 }
             )
     return rows
@@ -834,12 +837,12 @@ class PartStockIntent(intent.IntentHandler):
             response.async_set_speech(_sp("stock_untracked", lang, part=part["name"]))
             return response
 
-        from .helpers.parts import part_is_low
+        from .helpers.parts import on_hand, part_is_low
 
         loc = _sp("stock_loc", lang, loc=part["storage_location"]) if part.get("storage_location") else ""
         # The shared stock rule: a decimal threshold ("0.5 bags") counts too —
         # the int-only check here never warned for one.
-        low = _sp("stock_low", lang) if part_is_low(part, part["stock"]) else ""
+        low = _sp("stock_low", lang) if part_is_low(part, on_hand(part, part["stock"], part.get("restoring"))) else ""
         response.async_set_speech(
             _sp("stock_line", lang, stock=_num(part["stock"]), part=part["name"], loc=loc, low=low)
         )

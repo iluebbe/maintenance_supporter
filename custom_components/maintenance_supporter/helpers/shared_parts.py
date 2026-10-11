@@ -188,6 +188,7 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
         source_store = MaintenanceStore(hass, owner_id)
         await source_store.async_load()
     stocks = {pid: source_store.get_part_stock(pid) for pid in pools}
+    waiting = {pid: source_store.get_part_restoring(pid) for pid in pools}
 
     # Move the definitions onto the heir, keeping their ids so the links only
     # need their entry_id rewritten (ids are uuid4 — a clash is not a concern,
@@ -225,6 +226,7 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
         value = stocks.get(pid)
         if value is not None:
             heir_store.set_part_stock(target_id, value)
+            heir_store.set_part_restoring(target_id, waiting.get(pid, 0))
     await heir_store.async_save()
 
     # Everybody else now points at the heir.

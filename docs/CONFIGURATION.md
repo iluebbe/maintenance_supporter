@@ -275,6 +275,7 @@ is dynamic state (Store). Parts round-trip through JSON export/import
 | `reorder_threshold` | number | *(none)* | 0–100000 | Stock at/below this is *low*: fires the edge-triggered low/out events and (with auto-buy) creates the reminder |
 | `restock_quantity` | number | 1 | ≤100000 | How many **packages** completing the buy task adds (× `package_size` units) — editable in the complete dialog |
 | `auto_buy_task` | bool | `false` | — | Auto-create a one-off **"Buy {part}"** task while the part is low; it clears itself once restocked above the threshold. A *completed* reminder keeps its cost history and blocks duplicates while the part stays low |
+| `reuse` (#208) | string | *(none)* | `charge` · `sharpen` · `clean` · `dry` · `refill` · `restore` | A part that is not used up: a use moves it from the stock to a *waiting* pile (`restoring` in the Store and the export) until *Ready again* puts it back. The pile still counts as owned for the reorder threshold, the buy reminder and the low/out events. Unset = used up |
 | `doc_id` | string | *(none)* | — | Legacy single-document link, kept for imports and the API. The panel attaches files to a part with the paperclip on its row (documents linked to the part), any number of them |
 
 **Task link:** `task.consumes_parts = [{"part_id", "quantity", "entry_id"?}]`

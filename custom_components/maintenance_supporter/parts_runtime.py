@@ -1,7 +1,8 @@
 """Spare-parts runtime — the hass-aware driver around helpers/parts.py.
 
-Owns the three mutations (consume on completion, restock, manual adjust) and
-applies the declarative buy-task reconcile to the entry. The pure rules live in
+Owns the mutations (consume on completion, restock, manual adjust, a
+reusable part ready again) and applies the declarative buy-task reconcile to
+the entry. The pure rules live in
 :mod:`helpers.parts`; this module only wires them to the Store, the ConfigEntry
 and the event bus.
 """
@@ -33,6 +34,7 @@ from .helpers.global_options import global_option
 from .helpers.i18n import normalize_language
 from .helpers.parts import (
     PART_REF_FIELD,
+    on_hand,
     reconcile_buy_tasks,
     stock_transition,
 )
@@ -111,6 +113,33 @@ def _fire_transition(
     )
 
 
+def _owned(store: Any, part: dict[str, Any], stock: float | None = None) -> float | None:
+    """The part's on-hand count (stock, plus the waiting pile of a reusable
+    part, #208) — what the low / out / restocked edges compare."""
+    pid = part["id"]
+    return on_hand(part, store.get_part_stock(pid) if stock is None else stock, store.get_part_restoring(pid))
+
+
+def _book_use(store: Any, part: dict[str, Any], qty: float) -> tuple[float | None, float | None] | None:
+    """Book ``qty`` of a part as used (positive) or given back (negative).
+
+    The stock goes down (up); a reusable part's used ones are not gone but
+    wait to be ready again (#208), so its pile goes up (down) by as much.
+    Returns the on-hand count before and after, None for an untracked part
+    (catalog-only: nothing to book). The one booking behind completions,
+    history edits and the battery fleet.
+    """
+    pid = part["id"]
+    old = store.get_part_stock(pid)
+    if old is None:
+        return None
+    before = _owned(store, part, old)
+    store.set_part_stock(pid, max(0.0, old - qty))
+    if part.get("reuse"):
+        store.set_part_restoring(pid, max(0.0, store.get_part_restoring(pid) + qty))
+    return before, _owned(store, part)
+
+
 def _signal_parts_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
     from homeassistant.helpers.dispatcher import async_dispatcher_send
 
@@ -124,28 +153,42 @@ async def async_change_part_stock(
     *,
     delta: float | None = None,
     absolute: float | None = None,
+    use: bool = False,
 ) -> float | None:
     """Change one part's stock (clamped at 0), fire the edge event, save.
 
     Returns the new stock, or None when the part is unknown / untracked with a
     pure delta (a delta on an untracked part starts tracking from 0 so a first
     "restock" works naturally). Schedules the buy-task reconcile.
+
+    ``use``: the delta is items going into service (negative) — booked like a
+    completion's parts (:func:`_book_use`), so a reusable part's used ones
+    wait to be ready again (#208); an untracked part is left untracked.
     """
     part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
     store = _get_store(hass, entry)
     if part is None or store is None:
         return None
-    old = store.get_part_stock(part_id)
-    if absolute is not None:
-        new = max(0.0, float(absolute))
+    if use:
+        booked = _book_use(store, part, -float(delta or 0))
+        if booked is None:
+            return None
+        old_owned, new_owned = booked
     else:
-        new = max(0.0, (old or 0) + float(delta or 0))
-    store.set_part_stock(part_id, new)
+        old_owned = _owned(store, part)
+        old = store.get_part_stock(part_id)
+        if absolute is not None:
+            target = max(0.0, float(absolute))
+        else:
+            target = max(0.0, (old or 0) + float(delta or 0))
+        store.set_part_stock(part_id, target)
+        new_owned = _owned(store, part)
+    new: float | None = store.get_part_stock(part_id)
     # Immediate save: part CRUD and the buy-task reconcile may reload the entry
     # right after, which re-reads the store from disk — a debounced save would
     # silently lose the stock write across that reload.
     await store.async_save()
-    _fire_transition(hass, entry, part, new, stock_transition(part, old, new))
+    _fire_transition(hass, entry, part, new, stock_transition(part, old_owned, new_owned))
     _signal_parts_updated(hass, entry)
     schedule_buy_task_reconcile(hass, entry)
     return new
@@ -181,10 +224,10 @@ async def async_handle_completion_parts(
         from .helpers.parts import restock_units
 
         qty = restock_units(part, restock_quantity)
-        old = store.get_part_stock(part["id"])
-        new = max(0, (old or 0) + qty)
+        old_owned = _owned(store, part)
+        new = max(0, (store.get_part_stock(part["id"]) or 0) + qty)
         store.set_part_stock(part["id"], new)
-        _fire_transition(hass, entry, part, new, stock_transition(part, old, new))
+        _fire_transition(hass, entry, part, new, stock_transition(part, old_owned, _owned(store, part)))
         changed = True
 
     # #99: an explicit per-completion selection REPLACES the fixed links —
@@ -223,13 +266,10 @@ async def async_handle_completion_parts(
             # that consumed nothing and tell nobody — surface it instead.
             broken.append(str(link.get("part_id") or "?"))
             continue
-        old = target_store.get_part_stock(part["id"])
-        if old is None:
+        booked = _book_use(target_store, part, float(link.get("quantity", 1) or 1))
+        if booked is None:
             continue  # catalog-only part — nothing to decrement
-        qty = float(link.get("quantity", 1) or 1)
-        new = max(0, old - qty)
-        target_store.set_part_stock(part["id"], new)
-        _fire_transition(hass, target_entry, part, new, stock_transition(part, old, new))
+        _fire_transition(hass, target_entry, part, target_store.get_part_stock(part["id"]), stock_transition(part, *booked))
         touched[target_entry.entry_id] = (target_entry, target_store)
         changed = True
 
@@ -330,12 +370,10 @@ def apply_history_parts_edit(
         if resolved is None:
             continue
         owner, part, store = resolved
-        old_stock = store.get_part_stock(part["id"])
-        if old_stock is None:
+        edge = _book_use(store, part, delta)
+        if edge is None:
             continue  # catalog-only part — nothing to adjust
-        new_stock = max(0.0, old_stock - delta)
-        store.set_part_stock(part["id"], new_stock)
-        _fire_transition(hass, owner, part, new_stock, stock_transition(part, old_stock, new_stock))
+        _fire_transition(hass, owner, part, store.get_part_stock(part["id"]), stock_transition(part, *edge))
         touched[owner.entry_id] = (owner, store)
 
     # #104: a part already on the entry keeps the price it was booked at; one
@@ -367,6 +405,47 @@ def apply_history_parts_edit(
             item["unit_cost"] = price
         enriched.append(item)
     return enriched, list(touched.values())
+
+
+async def async_part_ready_again(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    part_id: str,
+    quantity: float | None = None,
+) -> dict[str, float] | None:
+    """Move used items of a reusable part back to the stock (#208): the
+    cells are charged, the blades sharpened. ``quantity`` defaults to every
+    waiting one and is capped at them. None for an unknown, untracked or
+    not reusable part. What is owned does not change, so no edge fires."""
+    part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
+    store = _get_store(hass, entry)
+    if part is None or store is None or not part.get("reuse"):
+        return None
+    stock = store.get_part_stock(part_id)
+    if stock is None:
+        return None
+    waiting = store.get_part_restoring(part_id)
+    moved = waiting if quantity is None else min(waiting, max(0.0, float(quantity)))
+    store.set_part_restoring(part_id, waiting - moved)
+    store.set_part_stock(part_id, stock + moved)
+    await store.async_save()
+    _signal_parts_updated(hass, entry)
+    return {"moved": moved, "stock": store.get_part_stock(part_id) or 0, "restoring": store.get_part_restoring(part_id)}
+
+
+async def async_set_part_restoring(hass: HomeAssistant, entry: ConfigEntry, part_id: str, count: float) -> None:
+    """Set how many used ones wait (a correction, or a worn-out one thrown
+    away): fires the edge event when what is owned crosses the threshold."""
+    part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
+    store = _get_store(hass, entry)
+    if part is None or store is None:
+        return
+    before = _owned(store, part)
+    store.set_part_restoring(part_id, count)
+    await store.async_save()
+    _fire_transition(hass, entry, part, store.get_part_stock(part_id), stock_transition(part, before, _owned(store, part)))
+    _signal_parts_updated(hass, entry)
+    schedule_buy_task_reconcile(hass, entry)
 
 
 def schedule_buy_task_reconcile(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -438,9 +517,12 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
         return False
     tasks: dict[str, Any] = entry.data.get(CONF_TASKS, {})
 
+    # A reusable part's used ones are still owned (#208): nobody buys cells
+    # that are only waiting to be charged.
+    owned = {pid: (_owned(store, parts[pid], stock) if pid in parts else stock) for pid, stock in store.all_part_stocks().items()}
     new_tasks, created, removed, changed = reconcile_buy_tasks(
         parts,
-        store.all_part_stocks(),
+        owned,
         tasks,
         object_id=entry.data.get(CONF_OBJECT, {}).get("id", ""),
         lang=normalize_language(hass),

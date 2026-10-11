@@ -338,12 +338,12 @@ class ShoppingListIntent(intent.IntentHandler):
 
     async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
         """Handle the intent."""
-        from .helpers.parts import part_is_low
+        from .helpers.parts import on_hand, part_is_low
 
         lang = intent_obj.language
         response = intent_obj.create_response()
         low = sorted(
-            (p for p in _part_snapshot(intent_obj.hass) if part_is_low(p, p["stock"])),
+            (p for p in _part_snapshot(intent_obj.hass) if part_is_low(p, on_hand(p, p["stock"], p.get("restoring")))),
             key=lambda p: p["name"].casefold(),
         )
         if not low:

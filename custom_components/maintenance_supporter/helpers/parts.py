@@ -5,6 +5,8 @@ the part model and every rule around it, hass-free so it is trivially
 unit-testable:
 
 - normalization/validation of the part dict stored in ``entry.data["parts"]``
+- reusable parts (#208): a used one is not gone but waits to be ready again
+  (charged, sharpened, cleaned, dried, refilled); it still counts as owned
 - GTIN validation (GS1 check digit; the GTIN family covers EAN-13/UPC-A/EAN-8)
 - edge-triggered stock transitions (``low`` / ``out`` / ``restocked``)
 - the **declarative buy-task reconciler**: an auto "Buy {part}" task exists
@@ -45,6 +47,12 @@ MAX_PART_COST = 100_000.0
 MAX_PART_STOCK = 100_000
 MAX_CONSUMES_PER_TASK = 10
 MAX_CONSUME_QUANTITY = 10_000
+
+# #208: what happens to a used reusable part before it is ready again. A
+# part without ``reuse`` is used up as before. Rechargeable cells and
+# swappable packs are charged, mower blades sharpened, washable filters
+# cleaned, desiccant dried, gas bottles refilled; "restore" covers the rest.
+REUSE_KINDS = ("charge", "sharpen", "clean", "dry", "refill", "restore")
 
 # Marker on auto-created buy tasks: {"part_id": "..."} — the reconciler
 # exclusively owns tasks carrying it. Detached (popped) from a COMPLETED buy
@@ -255,6 +263,15 @@ def _clean_stock(raw: Any, field: str) -> float | int | None:
     return round_qty(v)
 
 
+def _clean_reuse(raw: Any) -> str | None:
+    """One of :data:`REUSE_KINDS`, or None for a part that is used up."""
+    if raw in (None, "", False):
+        return None
+    if raw not in REUSE_KINDS:
+        raise PartValidationError(f"reuse must be one of {', '.join(REUSE_KINDS)}")
+    return str(raw)
+
+
 def normalize_part(raw: Mapping[str, Any]) -> dict[str, Any]:
     """Validate + normalize one part definition (the stored static shape).
 
@@ -283,6 +300,7 @@ def normalize_part(raw: Mapping[str, Any]) -> dict[str, Any]:
         # #98 follow-up: bought in packages, used and stocked in the unit.
         "package_size": _clean_package_size(raw.get("package_size")),
         "auto_buy_task": bool(raw.get("auto_buy_task")),
+        "reuse": _clean_reuse(raw.get("reuse")),
         # Receipt/datasheet via the refcounted DocumentStore (not inline files).
         "doc_id": _clean_str(raw.get("doc_id"), "doc_id", 64) or None,
     }
@@ -419,8 +437,21 @@ def map_part_links(
 # ── Stock rules ──────────────────────────────────────────────────────────────
 
 
+def on_hand(part: Mapping[str, Any], stock: float | None, restoring: float | None = None) -> float | None:
+    """What the household owns of a part: its stock, and for a reusable part
+    (#208) also the used ones waiting to be ready again. Charging cells are
+    not bought again, so buying, the low/out events and the reorder
+    threshold all read this. None while the stock is not tracked."""
+    if stock is None:
+        return None
+    if part.get("reuse") and restoring:
+        return round_qty(float(stock) + float(restoring))
+    return stock
+
+
 def part_is_low(part: Mapping[str, Any], stock: float | None) -> bool:
-    """Tracked stock at/below the reorder threshold."""
+    """Tracked stock at/below the reorder threshold (pass :func:`on_hand`
+    for a reusable part)."""
     threshold = part.get("reorder_threshold")
     return stock is not None and threshold is not None and stock <= float(threshold)
 

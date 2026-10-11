@@ -77,6 +77,8 @@ class Snapshot:
     static: dict[str, Any] = field(default_factory=dict)
     snooze: dict[str, datetime] = field(default_factory=dict)
     stocks: dict[tuple[str, str], float | None] = field(default_factory=dict)
+    # #208: a reusable part's used ones waiting to be ready again.
+    piles: dict[tuple[str, str], float] = field(default_factory=dict)
 
 
 @dataclass
@@ -133,6 +135,7 @@ def capture(hass: HomeAssistant, entry_id: str, task_id: str | None) -> Snapshot
             continue
         for part_id in ce.data.get(CONF_PARTS) or {}:
             snap.stocks[(ce.entry_id, part_id)] = ce_store.get_part_stock(part_id)
+            snap.piles[(ce.entry_id, part_id)] = ce_store.get_part_restoring(part_id)
     return snap
 
 
@@ -158,7 +161,7 @@ def remember_as(hass: HomeAssistant, who: str, kind: str, before: Snapshot, **sp
     remembering it would let its Undo claim to take back a completion that is
     somebody else's (or the person's own previous one stays undoable)."""
     after = capture(hass, before.entry_id, before.task_id)
-    if (after.task, after.static, after.snooze, after.stocks) == (before.task, before.static, before.snooze, before.stocks):
+    if (after.task, after.static, after.snooze, after.stocks, after.piles) == (before.task, before.static, before.snooze, before.stocks, before.piles):
         return False
     hass.data.setdefault(_DATA_KEY, {})[who] = UndoRecord(kind=kind, at=dt_util.utcnow(), before=before, after=after, speech=speech)
     return True
@@ -193,6 +196,14 @@ def _changed_stocks(record: UndoRecord) -> dict[tuple[str, str], float | None]:
     }
 
 
+def _changed_piles(record: UndoRecord) -> dict[tuple[str, str], float]:
+    return {
+        key: record.before.piles.get(key, 0)
+        for key, value in record.after.piles.items()
+        if record.before.piles.get(key, 0) != value
+    }
+
+
 def unchanged_since(hass: HomeAssistant, record: UndoRecord) -> bool:
     """Whether everything the action touched still looks as it left it."""
     now = capture(hass, record.after.entry_id, record.after.task_id)
@@ -201,12 +212,14 @@ def unchanged_since(hass: HomeAssistant, record: UndoRecord) -> bool:
             return False
     if now.snooze != record.after.snooze:
         return False
-    return all(now.stocks.get(key) == record.after.stocks.get(key) for key in _changed_stocks(record))
+    return all(now.stocks.get(key) == record.after.stocks.get(key) for key in _changed_stocks(record)) and all(
+        now.piles.get(key, 0) == record.after.piles.get(key, 0) for key in _changed_piles(record)
+    )
 
 
 async def async_restore(hass: HomeAssistant, record: UndoRecord) -> None:
     """Put back what *record*'s action changed."""
-    from ..parts_runtime import async_change_part_stock
+    from ..parts_runtime import async_change_part_stock, async_set_part_restoring
 
     before = record.before
     entry = hass.config_entries.async_get_entry(before.entry_id)
@@ -230,6 +243,10 @@ async def async_restore(hass: HomeAssistant, record: UndoRecord) -> None:
                 await store.async_save()
         else:
             await async_change_part_stock(hass, part_entry, part_id, absolute=stock)
+    for (entry_id, part_id), count in _changed_piles(record).items():
+        part_entry = hass.config_entries.async_get_entry(entry_id)
+        if part_entry is not None:
+            await async_set_part_restoring(hass, part_entry, part_id, count)
 
     if coordinator is not None and before.task_id and before.task is not None:
         if before.task != record.after.task or before.static != record.after.static:

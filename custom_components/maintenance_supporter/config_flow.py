@@ -540,6 +540,10 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
                 stock = praw.get("stock") if isinstance(praw, dict) else None
                 if isinstance(stock, (int, float)) and not isinstance(stock, bool) and stock >= 0:
                     part["stock"] = stock
+                    # #208: and a reusable part's used ones waiting.
+                    waiting = praw.get("restoring")
+                    if part.get("reuse") and isinstance(waiting, (int, float)) and not isinstance(waiting, bool) and waiting > 0:
+                        part["restoring"] = waiting
                 parts[part["id"]] = part
 
         data: dict[str, Any] = {

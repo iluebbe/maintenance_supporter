@@ -159,7 +159,7 @@ def has_type_forecast(raw: Any) -> bool:
 # it. Low tracking and the discharge-trend forecast stay: "charge the lock in
 # ~20 days" is exactly what the roster is for.
 _RECHARGEABLE_TYPE_RE = re.compile(
-    r"recharge?able|akku|accu|li[- ]?ion|li[- ]?po|lifepo|ni[- ]?mh|nicd|18650|21700|"
+    r"recharge?able|akku|accu|eneloop|li[- ]?ion|li[- ]?po|lifepo|ni[- ]?mh|nicd|18650|21700|"
     r"power ?pack|battery ?pack|built[- ]?in",
     re.IGNORECASE,
 )
@@ -168,6 +168,26 @@ _RECHARGEABLE_TYPE_RE = re.compile(
 def is_rechargeable_type(battery_type: Any) -> bool:
     """Whether a battery-type label describes a rechargeable pack/cell."""
     return bool(_RECHARGEABLE_TYPE_RE.search(str(battery_type or "")))
+
+
+# Cell formats a rechargeable label can name: the AA family, 9V, and the
+# lithium-ion sizes (18650 = 18 mm x 65.0 mm).
+_CELL_SIZES = frozenset({"AAAA", "AAA", "AA", "C", "D", "9V"})
+_LI_ION_CELL_RE = re.compile(r"^(1[0-9]|2[0-9]|3[0-9])[0-9]{3}$")
+
+
+def is_swappable_cell(raw: Any) -> bool:
+    """Whether a rechargeable label names a cell someone keeps charged spares
+    of ("AAA NiMH", "AA Eneloop", "18650"), not a pack built into the device
+    ("Rechargeable", "Nuki Battery Pack", "Li-ion"). Such a type gets a
+    reusable spare part (#208): a swap takes charged cells and puts the
+    empty ones on the "to charge" pile."""
+    if not is_rechargeable_type(raw):
+        return False
+    # The label as written too: canonical_type reads a leading "9V" as a
+    # voltage and drops it ("9V NiMH" -> "NIMH").
+    tokens = re.split(r"[\s\-_/]+", f"{str(raw).upper()} {canonical_type(raw)}")
+    return any(t in _CELL_SIZES or _LI_ION_CELL_RE.match(t) for t in tokens)
 
 
 def is_shoppable_type(raw: Any) -> bool:

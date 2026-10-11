@@ -329,6 +329,26 @@ class MaintenanceStore:
         else:
             parts.setdefault(part_id, {})["stock"] = min(max(0, round_qty(stock)), MAX_PART_STOCK)
 
+    def get_part_restoring(self, part_id: str) -> float:
+        """How many used items of a reusable part wait to be ready again
+        (#208: charged, sharpened, ...). 0 when none or not tracked."""
+        value = self._data.get("parts", {}).get(part_id, {}).get("restoring")
+        return value if isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0 else 0
+
+    def set_part_restoring(self, part_id: str, count: float | None) -> None:
+        """Set the waiting count, clamped like the stock. Only a tracked part
+        has one: the count lives next to its stock and goes with it."""
+        from .helpers.parts import MAX_PART_STOCK
+
+        state = self._data.get("parts", {}).get(part_id)
+        if state is None:
+            return
+        value = min(max(0, round_qty(count or 0)), MAX_PART_STOCK)
+        if value:
+            state["restoring"] = value
+        else:
+            state.pop("restoring", None)
+
     def remove_part(self, part_id: str) -> None:
         """Drop a deleted part's stock state."""
         self._data.get("parts", {}).pop(part_id, None)
@@ -635,8 +655,11 @@ async def async_migrate_to_store(
             if isinstance(part, dict) and "stock" in part:
                 part = dict(part)
                 stock = part.pop("stock")
+                waiting = part.pop("restoring", None)
                 if isinstance(stock, (int, float)) and not isinstance(stock, bool) and stock >= 0:
                     store.set_part_stock(part_id, stock)
+                    if isinstance(waiting, (int, float)) and not isinstance(waiting, bool):
+                        store.set_part_restoring(part_id, waiting)
             static_parts[part_id] = part
 
     # Save store immediately (must succeed before we strip ConfigEntry)

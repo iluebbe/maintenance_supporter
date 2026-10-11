@@ -252,9 +252,14 @@ def _build_export_object(
         "tasks": tasks,
         "documents": documents,
         # Spare parts: full static definition + the tracked stock (dynamic,
-        # read from the Store) so a backup/restore keeps the shelf state.
+        # read from the Store) so a backup/restore keeps the shelf state —
+        # with a reusable part's used ones waiting to be ready again (#208).
         "parts": [
-            {**part, "stock": store.get_part_stock(part["id"]) if store is not None else None}
+            {
+                **part,
+                "stock": store.get_part_stock(part["id"]) if store is not None else None,
+                **({"restoring": store.get_part_restoring(part["id"])} if store is not None and part.get("reuse") else {}),
+            }
             for part in (entry.data.get("parts") or {}).values()
         ],
     }

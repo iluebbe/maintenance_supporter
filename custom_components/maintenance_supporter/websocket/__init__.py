@@ -397,7 +397,7 @@ def _build_object_response(
     from ..const import CONF_PART_SEARCH_URL_TEMPLATE, CONF_PARTS
     from ..helpers.global_options import get_global_options
     from ..helpers.i18n import normalize_language
-    from ..helpers.parts import part_is_low, resolve_shopping_url
+    from ..helpers.parts import on_hand, part_is_low, resolve_shopping_url
 
     part_store = get_store(hass, entry.entry_id)
     search_template = get_global_options(hass).get(CONF_PART_SEARCH_URL_TEMPLATE)
@@ -405,11 +405,14 @@ def _build_object_response(
     parts_payload = []
     for part in (entry.data.get(CONF_PARTS) or {}).values():
         stock = part_store.get_part_stock(part["id"]) if part_store else None
+        # #208: used items of a reusable part waiting to be ready again.
+        restoring = part_store.get_part_restoring(part["id"]) if part_store else 0
         parts_payload.append(
             {
                 **part,
                 "stock": stock,
-                "is_low": part_is_low(part, stock),
+                "restoring": restoring,
+                "is_low": part_is_low(part, on_hand(part, stock, restoring)),
                 "shopping_url": resolve_shopping_url(part, search_template, lang, hass.config.country),
             }
         )
@@ -809,6 +812,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     from .parts import (
         ws_create_part,
         ws_delete_part,
+        ws_part_ready_again,
         ws_parts_overview,
         ws_restock_part,
         ws_update_part,
@@ -898,6 +902,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_delete_part)
     websocket_api.async_register_command(hass, ws_parts_overview)
     websocket_api.async_register_command(hass, ws_restock_part)
+    websocket_api.async_register_command(hass, ws_part_ready_again)
     websocket_api.async_register_command(hass, ws_update_history_entry)
     websocket_api.async_register_command(hass, ws_delete_history_entry)
     websocket_api.async_register_command(hass, ws_get_templates)

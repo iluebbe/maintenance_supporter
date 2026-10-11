@@ -305,6 +305,18 @@ datasheet or receipt right at the shelf; part links survive export/import and
 Completing the auto-created *Buy…* reminder asks for the **quantity bought**
 (prefilled with the part's restock quantity) and restocks the shelf.
 
+**Parts that come back** (#208): not every part is used up. Rechargeable
+cells are charged, mower blades sharpened, a washable filter cleaned,
+desiccant dried, a gas bottle refilled. Set a part's *After use* to one of
+*Charged · Sharpened · Cleaned · Dried · Refilled · Restored*, and a task (or
+a battery swap) that uses it takes the ready ones from the stock and puts the
+used ones on a pile: the row shows *2 to charge* with a **Charged** button
+that puts them back. The pile still counts as owned, so the reorder
+threshold, the shopping reminder and the low/out events only react when
+items are really gone; a worn-out one is thrown away by lowering *Used, not
+ready yet* in the part's form. Undo and deleting the completion take the use
+back, and the pile travels with export/import and *Replace object*.
+
 **Bought in packages, used in their unit** (2.96+, discussion #98): give a part
 a *package size* — a 400 ml can of contact spray, a 25 kg bag of salt — and it
 is bought per package but used per unit. The stock, what a task uses and the
@@ -577,9 +589,17 @@ so a note is no proof anyone means to swap cells there. **Rechargeable battery
 types** (Rechargeable, Li-ion, NiMH, power/battery packs — a Nuki's pack, a
 camera's quick-release battery) stay in the fleet — a low reading still means
 *charge it* and still fires the fleet task, marked with a small charging icon —
-but they never enter the shopping groupings, never become a spare-part at
-setup, and get no type-lifetime date (only a discharge-trend one, which for a
-rechargeable literally reads "charge it in ~N days"). A native battery that was low
+but they never enter the shopping groupings, and get no type-lifetime date (only a discharge-trend one, which for a
+rechargeable literally reads "charge it in ~N days"). A rechargeable type that
+names a swappable cell (`AAA NiMH`, `AA Eneloop`, `18650`; #208) gets a spare
+part that is charged, not bought: count your charged spares in it, and
+*Replaced* on such a device takes charged cells and puts the empty ones on a
+*to charge* pile. The fleet detail lists these spares (*2 ready · 2 to
+charge*) with a **Charged** button. The part starts uncounted, so a device
+charged in place grows no pile. A pack built into its device (*Rechargeable*,
+*Li-ion*, a Nuki pack) gets no part. A household that uses both rechargeable
+and disposable cells of one size gives the rechargeable devices their own
+type in Battery Notes (`AAA NiMH` next to `AAA`). A native battery that was low
 and then goes **unavailable** (a dead battery takes its device offline)
 stays listed for up to 48 hours instead of vanishing at the exact moment it
 needs replacing.
@@ -1157,7 +1177,7 @@ Archives from before 2.96 (files stored as `blobs/<hash>`) still restore.
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 106 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
+- 107 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -1264,7 +1284,7 @@ and, for a reading task with several named readings, `reading_values`
 keyed by reading name (2.75+; see [Examples](EXAMPLES.md)). Completion
 photos need an upload and are therefore a panel/card affair, not a service
 parameter.
-For the full WebSocket API (106 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (107 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

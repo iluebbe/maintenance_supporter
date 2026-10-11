@@ -427,8 +427,14 @@ export interface MaintenancePart {
   package_size?: number | null;
   auto_buy_task?: boolean;
   doc_id?: string | null;
-  /** Tracked on-hand count; null = catalog-only (not tracked). */
+  /** #208: what readies a used one again (charge, sharpen, clean, dry,
+   *  refill, restore); null/absent = the part is used up. */
+  reuse?: string | null;
+  /** Tracked on-hand count; null = catalog-only (not tracked). For a
+   *  reusable part: the ready ones. */
   stock?: number | null;
+  /** #208: used ones of a reusable part waiting to be ready again. */
+  restoring?: number;
   /** Derived: tracked stock at/below the reorder threshold. */
   is_low?: boolean;
   /** Derived: product_url or the configured shopping-search link. */
