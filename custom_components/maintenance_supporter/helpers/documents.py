@@ -22,7 +22,7 @@ import math
 import os
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO
+from typing import IO, TYPE_CHECKING, Any
 from uuid import uuid4
 
 from homeassistant.core import HomeAssistant
@@ -343,7 +343,7 @@ class DocumentStore:
         self,
         object_id: str,
         *,
-        content: bytes | BinaryIO,
+        content: bytes | IO[bytes],
         filename: str,
         mime: str,
         title: str | None = None,
@@ -433,7 +433,7 @@ class DocumentStore:
         digest, wrote_new, _size = self._store_stream_sync(io.BytesIO(content))
         return digest, wrote_new
 
-    def _store_stream_sync(self, source: BinaryIO, max_bytes: int | None = None) -> tuple[str, bool, int]:
+    def _store_stream_sync(self, source: IO[bytes], max_bytes: int | None = None) -> tuple[str, bool, int]:
         """Copy ``source`` into a blob, hashing it on the way, in pieces.
 
         Returns ``(digest, wrote_new, size)``. The copy lands in a temporary
