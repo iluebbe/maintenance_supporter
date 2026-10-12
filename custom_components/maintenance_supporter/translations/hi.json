@@ -1928,7 +1928,7 @@
         },
         "documentation_url": {
           "name": "दस्तावेज़ीकरण URL",
-          "description": "मैनुअल या विक्रेता पृष्ठ का लिंक (केवल http/https)।"
+          "description": "मैनुअल या विक्रेता पृष्ठ का लिंक; obsidian:// जैसा ऐप लिंक भी चलता है।"
         },
         "notes": {
           "name": "टिप्पणियाँ",

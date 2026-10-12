@@ -50,6 +50,7 @@ from .battery_lifetime import (
     TYPICAL_LIFETIME_MONTHS,
     LifetimeInfo,
     canonical_type,
+    fleet_part_type,
     has_type_forecast,
     is_rechargeable_type,
     is_shoppable_type,
@@ -1636,9 +1637,9 @@ def discover_rechargeable_cells(hass: HomeAssistant) -> OrderedDict[str, int]:
     """
     totals: OrderedDict[str, int] = OrderedDict()
     for bat in read_batteries(hass):
-        if not is_swappable_cell(bat.battery_type):
+        t = fleet_part_type(bat.battery_type) if is_swappable_cell(bat.battery_type) else None
+        if t is None:
             continue
-        t = canonical_type(bat.battery_type)
         totals[t] = totals.get(t, 0) + bat.quantity
     return OrderedDict(sorted(totals.items()))
 
@@ -1663,6 +1664,7 @@ __all__ = [
     "fleet_due_without_sensor",
     "fleet_excluded_entities",
     "fleet_included_entities",
+    "fleet_part_type",
     "fleet_track_self_charging",
     "get_battery_auto_record_recovery",
     "get_battery_recovered_percent",

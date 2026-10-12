@@ -2,6 +2,40 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **App links survive Replace object and a restore:** a document's link that opens an app (`obsidian://`,
+  `onenote:`, new in 2.102.0) was dropped when the object was replaced, imported from a JSON export or restored
+  from a documents ZIP, because that path still took web links only. It now takes what adding a link takes, and
+  still refuses links that run scripts or open local files. The *Add object* action's field description no longer
+  says "http/https only".
+- **A 9V rechargeable cell gets a part of its own:** the battery type folding reads a "9V" as a voltage and drops
+  it, so a smoke detector noted *9V NiMH* shared its spare part with a lock's built-in *NiMH* pack, and *Replaced*
+  on the lock took a charged 9V cell. A swappable cell's part now keeps its size, and a pack charged in place takes
+  nothing from any part. A part 2.102.0 created under the wrong name is removed at start while nobody has counted
+  it. Folding an alias part into its canonical one now carries the cells waiting to be charged along.
+- **The waiting count is kept when a part is counted for the first time:** editing an uncounted reusable part (the
+  battery fleet starts its cells so) to *4 ready, 2 to charge* saved the second number as 0, because it was written
+  before the stock it belongs to. The part form and *Undo* now book the stock and the waiting pile together, so an
+  undo no longer fires a *restocked* and then a *low* event, and the shopping reminder is not deleted and made
+  again.
+- **Bundled reminders reach a household without a notification service:** with bundling on and every reminder
+  going to the people's own phones (no service set in *Settings*), an object with several due tasks notified
+  nobody, because a bundle goes to that service only. Such tasks now go out one by one, each to whoever it is
+  meant for.
+- **Grouping and sorting by person list shared tasks:** the panel's person filter shows a task shared with Anna and
+  Ben (nobody responsible) under both, but *Group by person* put it under *Unassigned* and *Sort by person* sorted
+  it last. Both now follow the filter.
+- **Completing from a phone on a rotation clears the right phones:** the notification was cleared on the phones of
+  the next person in the rotation instead of the one who was reminded.
+- **Assigning someone on a rotation keeps the rotation intact:** `task/assign_user` stored nobody, or a person
+  outside the rotation, where editing the task keeps someone of the rotation on duty. With nobody on duty, a
+  rotation now reminds everyone it rotates between, so this mattered. It now follows the same rule.
+- **A re-adopted problem sensor keeps who its task is for:** un-adopting and adopting a problem sensor again kept
+  the responsible person but lost who the task was shared with and its rotation.
+
 ## [2.102.0] - 2026-10-11
 
 ### ✨ Added

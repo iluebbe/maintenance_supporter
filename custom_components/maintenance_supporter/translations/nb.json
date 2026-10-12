@@ -1928,7 +1928,7 @@
         },
         "documentation_url": {
           "name": "Dokumentasjons-URL",
-          "description": "Lenke til en manual eller leverandørside (kun http/https)."
+          "description": "Lenke til en manual eller leverandørside; en app-lenke som obsidian:// fungerer også."
         },
         "notes": {
           "name": "Notater",

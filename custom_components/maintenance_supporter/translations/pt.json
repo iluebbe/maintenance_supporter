@@ -1928,7 +1928,7 @@
         },
         "documentation_url": {
           "name": "URL de documentação",
-          "description": "Link para um manual ou página do fornecedor (apenas http/https)."
+          "description": "Link para um manual ou página do fornecedor; também serve um link para uma aplicação como obsidian://."
         },
         "notes": {
           "name": "Notas",

@@ -973,7 +973,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         bundling_enabled = global_option(self.hass, CONF_NOTIFICATION_BUNDLING_ENABLED)
         bundle_threshold = int(global_option(self.hass, CONF_NOTIFICATION_BUNDLE_THRESHOLD))
 
-        if bundling_enabled and len(notifiable) >= bundle_threshold:
+        # No household target: a bundle would reach nobody, so the tasks go
+        # out one by one to their people's phones (D#110).
+        if bundling_enabled and nm.can_bundle and len(notifiable) >= bundle_threshold:
             await nm.async_send_bundled(
                 entry_id=self.entry.entry_id,
                 object_name=obj_name,

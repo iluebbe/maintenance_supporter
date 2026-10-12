@@ -591,13 +591,13 @@ camera's quick-release battery) stay in the fleet — a low reading still means
 *charge it* and still fires the fleet task, marked with a small charging icon —
 but they never enter the shopping groupings, and get no type-lifetime date (only a discharge-trend one, which for a
 rechargeable literally reads "charge it in ~N days"). A rechargeable type that
-names a swappable cell (`AAA NiMH`, `AA Eneloop`, `18650`; #208) gets a spare
-part that is charged, not bought: count your charged spares in it, and
+names a swappable cell (`AAA NiMH`, `AA Eneloop`, `9V NiMH`, `18650`; #208) gets a
+spare part of its own size that is charged, not bought: count your charged spares in it, and
 *Replaced* on such a device takes charged cells and puts the empty ones on a
 *to charge* pile. The fleet detail lists these spares (*2 ready · 2 to
 charge*) with a **Charged** button. The part starts uncounted, so a device
 charged in place grows no pile. A pack built into its device (*Rechargeable*,
-*Li-ion*, a Nuki pack) gets no part. A household that uses both rechargeable
+*Li-ion*, *NiMH*, a Nuki pack) gets no part and takes nothing from one. A household that uses both rechargeable
 and disposable cells of one size gives the rechargeable devices their own
 type in Battery Notes (`AAA NiMH` next to `AAA`). A native battery that was low
 and then goes **unavailable** (a dead battery takes its device offline)

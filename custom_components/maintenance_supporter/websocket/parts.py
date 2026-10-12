@@ -95,11 +95,12 @@ async def ws_create_part(
 
     stock = msg.get("stock")
     if stock is not None:
-        from ..parts_runtime import async_change_part_stock, async_set_part_restoring
+        from ..parts_runtime import async_change_part_stock
 
-        await async_change_part_stock(hass, entry, part["id"], absolute=float(stock))
-        if part.get("reuse") and msg.get("restoring"):
-            await async_set_part_restoring(hass, entry, part["id"], float(msg["restoring"]))
+        pile = msg.get("restoring") if part.get("reuse") else None
+        await async_change_part_stock(
+            hass, entry, part["id"], absolute=float(stock), restoring=float(pile) if pile is not None else None
+        )
     # Reload so the part's stock sensor appears (entities are created at setup).
     await hass.config_entries.async_reload(entry.entry_id)
     connection.send_result(msg["id"], {"part_id": part["id"]})
@@ -139,24 +140,27 @@ async def ws_update_part(
     parts[part["id"]] = part
     _persist_parts(hass, entry, parts)
 
-    from ..parts_runtime import async_change_part_stock, async_set_part_restoring, schedule_buy_task_reconcile
+    from ..parts_runtime import (
+        async_change_part_stock,
+        async_set_part_restoring,
+        async_untrack_part_stock,
+        schedule_buy_task_reconcile,
+    )
 
     # #208: the waiting pile goes with the part's reuse — set when given, and
-    # gone when the part is no longer reusable.
+    # gone when the part is no longer reusable. Booked together with the
+    # stock: a first count creates the stock the pile lives next to.
+    pile: float | None = None
     if not part.get("reuse") and existing.get("reuse"):
-        await async_set_part_restoring(hass, entry, part["id"], 0)
+        pile = 0.0
     elif part.get("reuse") and msg.get("restoring") is not None:
-        await async_set_part_restoring(hass, entry, part["id"], float(msg["restoring"]))
-    if "stock" in msg:
-        stock = msg.get("stock")
-        if stock is None:
-            rd = _get_runtime_data(hass, entry.entry_id)
-            if rd and rd.store:
-                rd.store.set_part_stock(part["id"], None)
-                await rd.store.async_save()
-            schedule_buy_task_reconcile(hass, entry)
-        else:
-            await async_change_part_stock(hass, entry, part["id"], absolute=float(stock))
+        pile = float(msg["restoring"])
+    if "stock" in msg and msg.get("stock") is None:
+        await async_untrack_part_stock(hass, entry, part["id"])
+    elif "stock" in msg:
+        await async_change_part_stock(hass, entry, part["id"], absolute=float(msg["stock"]), restoring=pile)
+    elif pile is not None:
+        await async_set_part_restoring(hass, entry, part["id"], pile)
     else:
         # Threshold/opt-in edits can change the desired buy-task set.
         schedule_buy_task_reconcile(hass, entry)

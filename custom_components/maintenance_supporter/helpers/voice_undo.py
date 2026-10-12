@@ -219,7 +219,7 @@ def unchanged_since(hass: HomeAssistant, record: UndoRecord) -> bool:
 
 async def async_restore(hass: HomeAssistant, record: UndoRecord) -> None:
     """Put back what *record*'s action changed."""
-    from ..parts_runtime import async_change_part_stock, async_set_part_restoring
+    from ..parts_runtime import async_change_part_stock, async_set_part_restoring, async_untrack_part_stock
 
     before = record.before
     entry = hass.config_entries.async_get_entry(before.entry_id)
@@ -230,23 +230,21 @@ async def async_restore(hass: HomeAssistant, record: UndoRecord) -> None:
     if before.task_id and nm is not None and before.snooze != record.after.snooze:
         nm.restore_task_snooze_state(before.entry_id, before.task_id, before.snooze)
 
-    # Stock first: restoring it goes through the one stock writer, which
-    # fires the low / restocked edge and re-plans the buy tasks.
-    for (entry_id, part_id), stock in _changed_stocks(record).items():
+    # Stock and waiting pile (#208) go back in ONE booking through the one
+    # stock writer: what is owned moves once, so the low / restocked edge
+    # fires at most once and the buy tasks are re-planned once.
+    stocks, piles = _changed_stocks(record), _changed_piles(record)
+    for key in dict.fromkeys([*stocks, *piles]):
+        entry_id, part_id = key
         part_entry = hass.config_entries.async_get_entry(entry_id)
         if part_entry is None:
             continue
-        if stock is None:
-            store = _store_of(hass, entry_id)
-            if store is not None:
-                store.set_part_stock(part_id, None)
-                await store.async_save()
+        if key in stocks and stocks[key] is None:
+            await async_untrack_part_stock(hass, part_entry, part_id)
+        elif key in stocks:
+            await async_change_part_stock(hass, part_entry, part_id, absolute=stocks[key], restoring=piles.get(key))
         else:
-            await async_change_part_stock(hass, part_entry, part_id, absolute=stock)
-    for (entry_id, part_id), count in _changed_piles(record).items():
-        part_entry = hass.config_entries.async_get_entry(entry_id)
-        if part_entry is not None:
-            await async_set_part_restoring(hass, part_entry, part_id, count)
+            await async_set_part_restoring(hass, part_entry, part_id, piles[key])
 
     if coordinator is not None and before.task_id and before.task is not None:
         if before.task != record.after.task or before.static != record.after.static:

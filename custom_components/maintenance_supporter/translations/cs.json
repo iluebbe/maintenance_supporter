@@ -1928,7 +1928,7 @@
         },
         "documentation_url": {
           "name": "URL dokumentace",
-          "description": "Odkaz na návod nebo stránku výrobce (pouze http/https)."
+          "description": "Odkaz na návod nebo stránku výrobce; funguje i odkaz do aplikace, například obsidian://."
         },
         "notes": {
           "name": "Poznámky",

@@ -1928,7 +1928,7 @@
         },
         "documentation_url": {
           "name": "Dokümantasyon URL'si",
-          "description": "Bir kılavuza veya satıcı sayfasına bağlantı (yalnızca http/https)."
+          "description": "Bir kılavuza veya satıcı sayfasına bağlantı; obsidian:// gibi bir uygulama bağlantısı da olur."
         },
         "notes": {
           "name": "Notlar",

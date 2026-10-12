@@ -1928,7 +1928,7 @@
         },
         "documentation_url": {
           "name": "文档 URL",
-          "description": "手册或供应商页面的链接（仅限 http/https）。"
+          "description": "手册或供应商页面的链接；也可以使用 obsidian:// 这样的应用链接。"
         },
         "notes": {
           "name": "备注",

@@ -1928,7 +1928,7 @@
         },
         "documentation_url": {
           "name": "Dokumentations-URL",
-          "description": "Link zu einer Anleitung oder Herstellerseite (nur http/https)."
+          "description": "Link zu einer Anleitung oder Herstellerseite; ein App-Link wie obsidian:// geht auch."
         },
         "notes": {
           "name": "Notizen",

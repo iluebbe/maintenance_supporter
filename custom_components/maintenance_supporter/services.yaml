@@ -166,7 +166,7 @@ add_object:
         date:
     documentation_url:
       name: Documentation URL
-      description: Link to a manual or vendor page (http/https only).
+      description: Link to a manual or vendor page; an app link such as obsidian:// works too.
       selector:
         text:
     notes:

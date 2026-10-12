@@ -1928,7 +1928,7 @@
         },
         "documentation_url": {
           "name": "Dokumentaation URL-osoite",
-          "description": "Linkki käyttöohjeeseen tai valmistajan sivulle (vain http/https)."
+          "description": "Linkki käyttöohjeeseen tai valmistajan sivulle; myös sovelluslinkki, kuten obsidian://, käy."
         },
         "notes": {
           "name": "Muistiinpanot",

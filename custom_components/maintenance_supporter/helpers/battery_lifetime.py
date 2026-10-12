@@ -200,6 +200,28 @@ def is_shoppable_type(raw: Any) -> bool:
     return not is_rechargeable_type(raw) and has_type_forecast(raw)
 
 
+def _cell_size(raw: Any) -> str | None:
+    """The cell format a label names ("AAA", "9V", "18650"), else None."""
+    tokens = re.split(r"[\s\-_/]+", str(raw or "").upper())
+    return next((t for t in tokens if t in _CELL_SIZES or _LI_ION_CELL_RE.match(t)), None)
+
+
+def fleet_part_type(raw: Any) -> str | None:
+    """The type whose fleet spare part a battery draws from: the canonical
+    type of a cell anyone buys, and for a swappable rechargeable cell the
+    canonical type WITH its size (#208). canonical_type reads a leading or
+    trailing "9V" as a voltage and drops it, but for a 9V cell the voltage
+    is the size: "9V NiMH" must not share a part with a lock's built-in
+    "NiMH" pack. None for a pack charged in place, which has no part."""
+    if is_rechargeable_type(raw):
+        if not is_swappable_cell(raw):
+            return None
+        key = canonical_type(raw)
+        size = _cell_size(raw)
+        return f"{size} {key}" if size and size not in re.split(r"[\s\-_/]+", key) else key
+    return canonical_type(raw)
+
+
 def table_lifetime_months(raw: Any) -> int:
     """The built-in typical value (table, else the default)."""
     return TYPICAL_LIFETIME_MONTHS.get(canonical_type(raw), DEFAULT_LIFETIME_MONTHS)

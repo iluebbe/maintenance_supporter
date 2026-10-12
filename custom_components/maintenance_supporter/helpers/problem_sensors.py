@@ -190,7 +190,17 @@ def discover_problem_sensors(hass: HomeAssistant) -> list[dict[str, Any]]:
 # accumulated knowledge; the rest is configuration the user set up once and
 # shouldn't have to redo (consumes_parts is re-validated against the target
 # object's parts on restore — the object may differ or the part may be gone).
-_STASHED_TASK_FIELDS = ("notes", "responsible_user_id", "priority", "labels", "consumes_parts")
+# Who the task is meant for travels as a unit: the responsible person, the
+# people it is shared with and the rotation between them (D#110).
+_STASHED_TASK_FIELDS = (
+    "notes",
+    "responsible_user_id",
+    "assignee_pool",
+    "rotation_strategy",
+    "priority",
+    "labels",
+    "consumes_parts",
+)
 
 
 def stash_task_config_for_readopt(hass: HomeAssistant, task: dict[str, Any]) -> None:

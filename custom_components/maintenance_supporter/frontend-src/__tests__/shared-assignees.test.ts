@@ -102,6 +102,36 @@ describe("panel: the person filter includes shared tasks", () => {
     expect(bens.some((r) => r.includes("Clean gutters"))).to.equal(true);
     expect(bens.some((r) => r.includes("Descale kettle"))).to.equal(false);
   });
+
+  it("groups a shared task under each of its people, as the filter lists it", async () => {
+    const { el } = await mountPanel(
+      [
+        obj("e1", [
+          task({ name: "Clean gutters", assignee_pool: ["u-ann", "u-ben"] }),
+          task({ name: "Descale kettle", responsible_user_id: "u-ann" }),
+          task({ name: "Mow lawn", assignee_pool: ["u-ann", "u-ben"], rotation_strategy: "round_robin", responsible_user_id: "u-ben" }),
+          task({ name: "Service boiler" }),
+        ]),
+      ],
+      { "maintenance_supporter/users/list": () => ({ users: [{ id: "u-ann", name: "Ann" }, { id: "u-ben", name: "Ben" }] }) },
+    );
+    await new Promise((r) => setTimeout(r, 30));
+    const groupSelect = [...sr(el).querySelectorAll<HTMLSelectElement>("select")].find((s) => s.querySelector('option[value="user"]'))!;
+    groupSelect.value = "user";
+    groupSelect.dispatchEvent(new Event("change"));
+    await el.updateComplete;
+    const groups = Object.fromEntries(
+      [...sr(el).querySelectorAll(".group-section")].map((g) => [
+        g.querySelector(".group-section-header span")!.textContent!.trim(),
+        [...g.querySelectorAll(".task-name")].map((n) => n.textContent!.trim()).join(" | "),
+      ]),
+    );
+    expect(Object.keys(groups)).to.have.length(3);
+    expect(groups["Ann"]).to.include("Clean gutters").and.to.include("Descale kettle").and.not.include("Mow lawn");
+    expect(groups["Ben"]).to.include("Clean gutters").and.to.include("Mow lawn").and.not.include("Descale kettle");
+    const nobody = Object.entries(groups).find(([k]) => k !== "Ann" && k !== "Ben")![1];
+    expect(nobody).to.include("Service boiler").and.not.include("Clean gutters");
+  });
 });
 
 describe("card: a 'my tasks' view includes shared tasks", () => {

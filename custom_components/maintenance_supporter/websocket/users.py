@@ -17,6 +17,7 @@ from ..helpers.aggregate import get_coordinator_data, get_runtime_data, object_n
 from ..helpers.assignees import task_is_for
 from ..helpers.entry_tasks import write_task
 from ..helpers.permissions import require_write, user_may_write
+from ..helpers.sanitize import seed_rotation_assignee
 from . import (
     ID_FIELD,
     _build_task_summary,
@@ -110,6 +111,10 @@ async def ws_assign_user(
         task.pop("responsible_user_id", None)
     else:
         task["responsible_user_id"] = user_id
+    # The rotation rule of task/update: a rotation keeps someone of its pool
+    # on duty (unassigning, or a user outside the pool, picks its first).
+    seed_rotation_assignee(task)
+    user_id = task.get("responsible_user_id")
 
     # Patch only this task's key onto a fresh read — never write back a map
     # snapshot from before an await.

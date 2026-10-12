@@ -1928,7 +1928,7 @@
         },
         "documentation_url": {
           "name": "Documentatie-URL",
-          "description": "Link naar een handleiding of leverancierspagina (alleen http/https)."
+          "description": "Link naar een handleiding of leverancierspagina; een app-link zoals obsidian:// werkt ook."
         },
         "notes": {
           "name": "Notities",

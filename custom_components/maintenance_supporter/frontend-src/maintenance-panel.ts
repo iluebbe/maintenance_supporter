@@ -1272,6 +1272,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           labels: task.labels ?? [],
           area_id: obj.object.area_id ?? null,
           responsible_user_id: task.responsible_user_id ?? null,
+          assignee_pool: task.assignee_pool ?? null,
           group_names: groupNames,
         });
       }
@@ -1281,8 +1282,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     const byDue = (a: TaskRow, b: TaskRow) => byStatus(a, b) || byDays(a, b);
     const areaName = (r: TaskRow) =>
       r.area_id ? this.hass?.areas?.[r.area_id]?.name || "" : "";
-    const userName = (r: TaskRow) =>
-      r.responsible_user_id ? this._userService?.getUserName(r.responsible_user_id) || "" : "";
+    // Whom the task is meant for, as the person filter reads it (D#110):
+    // the responsible person, else everyone it is shared with.
+    const userNames = (r: TaskRow) =>
+      taskUserIds(r).map((id) => this._userService?.getUserName(id) || "").filter(Boolean);
+    const userName = (r: TaskRow) => userNames(r).sort((a, b) => a.localeCompare(b)).join(", ");
     const groupName = (r: TaskRow) => r.group_names[0] || "";
     const sorts: Record<SortMode, (a: TaskRow, b: TaskRow) => number> = {
       due_date: byDue,
@@ -3906,8 +3910,10 @@ export class MaintenanceSupporterPanel extends LitElement {
         const a = row.area_id ? this.hass?.areas?.[row.area_id]?.name : null;
         keys = [a || noneLabel];
       } else if (this._groupByMode === "user") {
-        const u = row.responsible_user_id ? this._userService?.getUserName(row.responsible_user_id) : null;
-        keys = [u || noneLabel];
+        // A shared task with nobody responsible is listed under each of its
+        // people, as the person filter lists it (D#110).
+        const names = taskUserIds(row).map((id) => this._userService?.getUserName(id)).filter((n): n is string => !!n);
+        keys = names.length > 0 ? [...new Set(names)] : [noneLabel];
       } else if (this._groupByMode === "group") {
         keys = row.group_names.length > 0 ? row.group_names : [noneLabel];
       } else if (this._groupByMode === "object") {

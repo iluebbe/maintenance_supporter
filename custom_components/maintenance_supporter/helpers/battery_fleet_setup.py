@@ -38,6 +38,7 @@ from .battery_fleet import (
     canonical_type,
     discover_battery_types,
     discover_rechargeable_cells,
+    fleet_part_type,
     is_rechargeable_type,
     lifetime_months,
     note_sibling_entity,
@@ -415,8 +416,9 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
         await hass.services.async_call("button", "press", {"entity_id": button}, blocking=False)
         pressed += 1
         pressed_ids.append(eid)
-        t = canonical_type(bat.battery_type)
-        by_type[t] = by_type.get(t, 0) + bat.quantity
+        t = fleet_part_type(bat.battery_type)
+        if t is not None:
+            by_type[t] = by_type.get(t, 0) + bat.quantity
 
     # #180: a marked battery leaves the low latch now — the count must not
     # wait for Battery Notes to echo the new date (nor for the level).
@@ -505,7 +507,8 @@ async def async_record_replacement(hass: HomeAssistant, entity_id: str, replaced
 
     consumed: dict[str, int] = {}
     if not already:
-        consumed = await async_consume_type_parts(hass, {canonical_type(bat.battery_type): bat.quantity})
+        part_type = fleet_part_type(bat.battery_type)
+        consumed = await async_consume_type_parts(hass, {part_type: bat.quantity} if part_type else {})
         if found is not None:
             store, task_id = found
             recorded[entity_id] = day
@@ -753,6 +756,24 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
             if store is not None:
                 store.remove_part("batt_unknown")
 
+    # #208 follow-up: v2.102.0 keyed a 9V cell's part without its size
+    # ("9V NiMH" → batt_nimh, the key of a lock's built-in NiMH pack). No
+    # battery draws from such a part any more; prune it while untouched.
+    stale_cells = [
+        pid
+        for pid, part in parts.items()
+        if _stale_cell_part_untouched(entry, str(pid), part, store.get_part_stock(pid) if store is not None else None)
+    ]
+    if stale_cells:
+        for pid in stale_cells:
+            parts.pop(pid)
+            if store is not None:
+                store.remove_part(pid)
+        new_data = dict(entry.data)
+        new_data[CONF_PARTS] = parts
+        hass.config_entries.async_update_entry(entry, data=new_data)
+        pruned = True
+
     # #148 follow-up (v2.70.0 aftermath): the prune must not leave the
     # part's stock sensor behind as an unavailable orphan in the entity
     # registry — the official ws_delete_part removes that entry, the v2.70.0
@@ -811,13 +832,16 @@ def _is_cell_part(part_id: str) -> bool:
 
 def canonical_part_id(part_id: str) -> str | None:
     """``batt_<label>`` → ``batt_<canonical label>``; None when the id is not
-    a fleet type-part id or already canonical."""
+    a fleet type-part id or already canonical. The key is the one the
+    batteries draw from (:func:`fleet_part_type`): a 9V cell keeps its size,
+    and a pack's part (none is minted) is not re-keyed."""
     if not part_id.startswith(FLEET_PART_PREFIX):
         return None
     label = part_id[len(FLEET_PART_PREFIX) :]
-    if not label:
+    key = fleet_part_type(label) if label else None
+    if not key:
         return None
-    new_id = f"{FLEET_PART_PREFIX}{canonical_type(label).lower()}"
+    new_id = f"{FLEET_PART_PREFIX}{key.lower()}"
     return None if new_id == part_id else new_id
 
 
@@ -990,13 +1014,16 @@ async def migrate_fleet_part_ids(hass: HomeAssistant, entry: ConfigEntry) -> dic
             name = str(gone.get("name") or "")
             label = _extract_placeholder(name, "{type} battery", "type")
             if label is not None and label.lower() == old[len(FLEET_PART_PREFIX) :]:
-                gone["name"] = name.replace(label, canonical_type(label), 1)
+                gone["name"] = name.replace(label, fleet_part_type(label) or canonical_type(label), 1)
             parts[new] = gone
             _LOGGER.info("Battery fleet: renamed part %s to %s (canonical type)", old, new)
         if store is not None:
             old_stock, new_stock = store.get_part_stock(old), store.get_part_stock(new)
+            piles = store.get_part_restoring(old) + store.get_part_restoring(new)
             if old_stock is not None or new_stock is not None:
                 store.set_part_stock(new, (old_stock or 0) + (new_stock or 0))
+                # #208: the used ones waiting to be charged move along.
+                store.set_part_restoring(new, piles)
             store.remove_part(old)
 
     # 2. The fleet's own tasks (links + auto-buy refs) and its history.
@@ -1054,6 +1081,25 @@ async def migrate_fleet_part_ids(hass: HomeAssistant, entry: ConfigEntry) -> dic
 
 # The notes text v2.38 minted before the seeded texts were localized.
 _LEGACY_UNKNOWN_NOTES = re.compile(r"Typical service life ~\d+ months( \(editorial\))?\.")
+
+
+def _stale_cell_part_untouched(entry: ConfigEntry, part_id: str, part: dict[str, Any], stock: Any) -> bool:
+    """Whether ``part_id`` is a rechargeable cell part no battery draws from
+    (a v2.102.0 9V key without its size) that nobody has touched: never
+    counted, no product data, its seeded name, and no task linking it."""
+    if not _is_cell_part(part_id) or fleet_part_type(part_id[len(FLEET_PART_PREFIX) :]) is not None:
+        return False
+    if stock is not None or part.get("reuse") != "charge":
+        return False
+    if any(part.get(key) for key in ("product_url", "vendor", "mpn", "gtin", "cost", "doc_id", "storage_location", "notes")):
+        return False
+    if _extract_placeholder(str(part.get("name") or ""), "{type} battery", "type") is None:
+        return False
+    for task in (entry.data.get(CONF_TASKS) or {}).values():
+        links = task.get(CONF_TASK_CONSUMES_PARTS)
+        if isinstance(links, list) and any(isinstance(x, dict) and x.get("part_id") == part_id for x in links):
+            return False
+    return True
 
 
 def _legacy_unknown_untouched(entry: ConfigEntry, legacy: dict[str, Any], stock: Any) -> bool:

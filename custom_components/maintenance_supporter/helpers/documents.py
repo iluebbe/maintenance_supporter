@@ -39,6 +39,7 @@ from ..const import (
     MAX_TEXT_LENGTH,
     SIGNAL_DOCUMENTS_UPDATED,
 )
+from .url_safety import is_safe_link
 
 if TYPE_CHECKING:
     from .document_text import DocumentTextIndex
@@ -569,10 +570,11 @@ class DocumentStore:
         pages = remap_pages(meta)
         if meta.get("kind") == KIND_WEBLINK:
             url = meta.get("url")
-            # Only http(s) links — the add-link WS path enforces the same, so
-            # a crafted export can't smuggle a javascript:/data: URL that the
-            # frontend would later window.open (matches ws_documents_add_link).
-            if not isinstance(url, str) or not url.lower().startswith(("http://", "https://")):
+            # The add-link WS path's rule (#207): web and app links pass, so
+            # an obsidian:// link survives Replace object and a backup; a
+            # crafted export still can't smuggle a javascript:/data: URL that
+            # the frontend would later open.
+            if not isinstance(url, str) or not is_safe_link(url):
                 return 0
             new_id = uuid4().hex
             remember(meta, new_id)

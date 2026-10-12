@@ -701,6 +701,39 @@ async def test_full_config_survives_unadopt_readopt_cycle(
     assert (global_entry.options or global_entry.data)[CONF_ADOPTED_NOTES] == {}
 
 
+async def test_who_the_task_is_for_survives_unadopt_readopt(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """The responsible person, the people it is shared with and the rotation
+    between them travel as one (D#110): the stash kept only the first, so a
+    re-adopted rotation lost its pool."""
+    from custom_components.maintenance_supporter.websocket.tasks_crud import ws_delete_task
+
+    ann = await hass.auth.async_create_user("Ann")
+    ben = await hass.auth.async_create_user("Ben")
+    await setup_integration(hass, global_entry)
+    _problem_sensor(hass, "binary_sensor.filter_fault", "Filter fault")
+    await _adopt(hass, "binary_sensor.filter_fault", "Filter fault", "Pool filter")
+
+    obj, task = _adopted_object_and_task(hass, "Pool filter")
+    new_data = dict(obj.data)
+    new_data[CONF_TASKS] = {
+        task["id"]: {**task, "assignee_pool": [ann.id, ben.id], "rotation_strategy": "round_robin", "responsible_user_id": ben.id}
+    }
+    hass.config_entries.async_update_entry(obj, data=new_data)
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_delete_task, hass, conn,
+        {"id": 1, "type": "maintenance_supporter/task/delete", "entry_id": obj.entry_id, "task_id": task["id"]},
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    await hass.async_block_till_done()
+
+    await _adopt(hass, "binary_sensor.filter_fault", "Filter fault", "Pool filter 2")
+    _, task2 = _adopted_object_and_task(hass, "Pool filter 2")
+    assert task2["assignee_pool"] == [ann.id, ben.id]
+    assert task2["rotation_strategy"] == "round_robin"
+    assert task2["responsible_user_id"] == ben.id
+
+
 async def test_legacy_string_stash_still_restores_notes(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:

@@ -1928,7 +1928,7 @@
         },
         "documentation_url": {
           "name": "ドキュメントの URL",
-          "description": "マニュアルまたはベンダーページへのリンク（http/https のみ）。"
+          "description": "マニュアルまたはベンダーページへのリンク。obsidian:// のようなアプリへのリンクも使えます。"
         },
         "notes": {
           "name": "メモ",

@@ -974,6 +974,10 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             return
 
         nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+        # Whose phones carry the reminder: read BEFORE completing, which
+        # hands a rotation on to the next person.
+        task_cfg = (config_entry.data.get(CONF_TASKS) or {}).get(task_id) or {} if config_entry is not None else {}
+        reminded_user_ids = task_user_ids(task_cfg)
 
         try:
             if action_type == "complete":
@@ -1017,9 +1021,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
 
         # Action succeeded — dismiss notification and clear NM rate-limit state
         if nm is not None:
-            cfg_entry = hass.config_entries.async_get_entry(entry_id)
-            task_cfg = ((cfg_entry.data.get(CONF_TASKS) or {}).get(task_id) or {}) if cfg_entry is not None else {}
-            await nm.async_dismiss_task_notification(task_id, user_ids=task_user_ids(task_cfg))
+            await nm.async_dismiss_task_notification(task_id, user_ids=reminded_user_ids)
             nm.clear_task_state(entry_id, task_id)
 
     unsub_notification = hass.bus.async_listen("mobile_app_notification_action", _handle_notification_action)

@@ -154,6 +154,7 @@ async def async_change_part_stock(
     delta: float | None = None,
     absolute: float | None = None,
     use: bool = False,
+    restoring: float | None = None,
 ) -> float | None:
     """Change one part's stock (clamped at 0), fire the edge event, save.
 
@@ -164,6 +165,10 @@ async def async_change_part_stock(
     ``use``: the delta is items going into service (negative) — booked like a
     completion's parts (:func:`_book_use`), so a reusable part's used ones
     wait to be ready again (#208); an untracked part is left untracked.
+
+    ``restoring``: set a reusable part's waiting pile in the same booking
+    (after the stock, which a first count creates), so what is owned moves
+    once and fires at most one edge: the part form and undo set both.
     """
     part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
     store = _get_store(hass, entry)
@@ -182,6 +187,8 @@ async def async_change_part_stock(
         else:
             target = max(0.0, (old or 0) + float(delta or 0))
         store.set_part_stock(part_id, target)
+        if restoring is not None:
+            store.set_part_restoring(part_id, restoring)
         new_owned = _owned(store, part)
     new: float | None = store.get_part_stock(part_id)
     # Immediate save: part CRUD and the buy-task reconcile may reload the entry
@@ -192,6 +199,18 @@ async def async_change_part_stock(
     _signal_parts_updated(hass, entry)
     schedule_buy_task_reconcile(hass, entry)
     return new
+
+
+async def async_untrack_part_stock(hass: HomeAssistant, entry: ConfigEntry, part_id: str) -> None:
+    """Stop counting a part (catalog-only): its stock and waiting pile go,
+    and the buy tasks are re-planned."""
+    store = _get_store(hass, entry)
+    if store is None:
+        return
+    store.set_part_stock(part_id, None)
+    await store.async_save()
+    _signal_parts_updated(hass, entry)
+    schedule_buy_task_reconcile(hass, entry)
 
 
 async def async_handle_completion_parts(

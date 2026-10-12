@@ -199,14 +199,19 @@ async def ws_adopt_problem_sensors(
                 # dialog's suggestion (the target object/parts may have changed).
                 from ..const import CONF_PARTS
                 from ..helpers.parts import sanitize_consumes_parts
+                from ..helpers.sanitize import sanitize_assignee_pool, seed_rotation_assignee
 
                 stashed = pop_stashed_config(hass, entity_id) or {}
-                for field in ("notes", "responsible_user_id", "priority", "labels"):
+                for field in ("notes", "responsible_user_id", "assignee_pool", "rotation_strategy", "priority", "labels"):
                     if stashed.get(field):
                         task_data[field] = stashed[field]
-                # An explicit dialog pick wins over the stashed responsible user.
+                if "assignee_pool" in task_data:
+                    task_data["assignee_pool"] = sanitize_assignee_pool(task_data["assignee_pool"])
+                # An explicit dialog pick wins over the stashed responsible user;
+                # a rotation keeps someone of its pool on duty.
                 if sel.get("responsible_user_id"):
                     task_data["responsible_user_id"] = sel["responsible_user_id"]
+                seed_rotation_assignee(task_data)
                 # Link the suggested spare part — or, absent one, the stashed link —
                 # validated against the target object's parts (an unknown id is
                 # silently dropped, same as the task-CRUD path).

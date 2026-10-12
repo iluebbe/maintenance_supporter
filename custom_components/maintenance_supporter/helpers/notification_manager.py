@@ -1447,6 +1447,13 @@ class NotificationManager:
         return bool(self.notify_service) or self.event_only
 
     @property
+    def can_bundle(self) -> bool:
+        """A bundle is one message for a whole object, sent to the household
+        target. Without one (every reminder goes to the people's own phones)
+        the tasks go out one by one, each to whoever it is meant for."""
+        return self._has_target
+
+    @property
     def event_only(self) -> bool:
         """#165/#173: the user routes every notification through the event."""
         return bool(self._opt(CONF_NOTIFY_EVENT_ONLY))

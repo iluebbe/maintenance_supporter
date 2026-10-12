@@ -455,7 +455,7 @@ items (without a shared `changes`) to undo.
   overdue / triggered reminders for the configured `snooze_duration_hours`.
   Changes neither schedule nor status; the snooze is stored and survives a
   restart. Without a configured notifier → `unavailable`.
-- `task/assign_user` `{entry_id, task_id, user_id|null}` — `@require_write`; `null` unassigns; unknown user → `invalid_user`
+- `task/assign_user` `{entry_id, task_id, user_id|null}` — `@require_write`; `null` unassigns; unknown user → `invalid_user`. On a rotation the assignee stays in its pool, as with `task/update`: `null` or a user outside the pool assigns the pool's first; the reply's `user_id` is who is assigned now
 
 ### `task/list` — read
 `{entry_id?}` → `{tasks:[…]}`. Every task across all objects (or one object's),

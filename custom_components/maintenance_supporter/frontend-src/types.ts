@@ -633,6 +633,8 @@ export interface TaskRow {
   labels: string[];
   area_id: string | null;
   responsible_user_id: string | null;
+  /** "Shared with": with nobody responsible, the task is meant for each (D#110). */
+  assignee_pool?: string[] | null;
   group_names: string[];
   /** #189: titles of the calendar events behind next_due (calendar kind). */
   next_event_titles: string[];

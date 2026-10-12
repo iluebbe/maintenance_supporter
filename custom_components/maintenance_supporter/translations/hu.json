@@ -1928,7 +1928,7 @@
         },
         "documentation_url": {
           "name": "Dokumentáció URL",
-          "description": "Hivatkozás kézikönyvre vagy gyártói oldalra (csak http/https)."
+          "description": "Hivatkozás kézikönyvre vagy gyártói oldalra; alkalmazáshivatkozás (például obsidian://) is megadható."
         },
         "notes": {
           "name": "Megjegyzések",
