@@ -11,6 +11,12 @@
  * under another name starts unticked with that task's name; a summary says
  * per object how many tasks it has before and after. Typing another object
  * asks the server again (problem_sensors/preview).
+ *
+ * #211 (54 problem sensors of 18 devices, on a phone): the summary grew a
+ * line per object and squeezed the list, the only part that could shrink,
+ * to nothing. The dialog now sits in the shared modal frame: the title and
+ * the buttons stay, everything between them scrolls as one, and the summary
+ * folds to its totals once it names more than three objects.
  */
 
 import { css, html, LitElement, nothing } from "lit";
@@ -18,6 +24,7 @@ import { property, state } from "lit/decorators.js";
 
 import { t, ensureLocale, langOf } from "../styles";
 import { runWs } from "../helpers/ws-run";
+import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
 import { TRIGGER_FOR_MINUTES_RANGE } from "../helpers/setting-ranges";
 import { UserService } from "../user-service";
 import type { HAUser, HomeAssistant } from "../types";
@@ -52,6 +59,16 @@ interface AdoptResponse {
   errors?: string[];
 }
 
+/** One object of the summary: the tasks it gains (entry null = a new object). */
+interface SummaryGroup {
+  name: string;
+  entry: string | null;
+  adding: number;
+}
+
+/** Up to this many objects the summary opens with its lines shown. */
+const SUMMARY_LINES_OPEN = 3;
+
 export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
@@ -74,6 +91,9 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
   // #136: minutes the problem must persist before the created task triggers
   // (one field applied to every selection). "0" = react to the first flicker.
   @state() private _forMinutes = "0";
+  /** #211: the summary's lines shown; decided when the list arrives (folded
+   *  beyond three objects), then the user's. */
+  @state() private _summaryOpen = true;
 
   private _localeReady = false;
   private _userService: UserService | null = null;
@@ -87,6 +107,7 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
       this._localeReady = true;
       ensureLocale(this._lang).then(() => this.requestUpdate());
     }
+    if (changed.has("_open") && this._open) focusModalShell(this.shadowRoot);
   }
 
   public async open(): Promise<void> {
@@ -125,6 +146,7 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
     // What the target probably already watches starts unticked.
     this._selected = new Set(this._sensors.filter((s) => !s.covered_by).map((s) => s.entity_id));
     this._users = users;
+    this._summaryOpen = this._summaryGroups().length <= SUMMARY_LINES_OPEN;
   }
 
   /** The default object: the one linked to the device, else the one the
@@ -169,9 +191,9 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
     if (resp?.covered) this._covered = { ...this._covered, ...resp.covered };
   }
 
-  /** Per target object: tasks before → after (only ticked rows count). */
-  private _summary(L: string) {
-    const groups = new Map<string, { name: string; entry: string | null; adding: number }>();
+  /** The objects the ticked rows go to, each with the tasks it gains. */
+  private _summaryGroups(): SummaryGroup[] {
+    const groups = new Map<string, SummaryGroup>();
     for (const s of this._sensors) {
       if (!this._selected.has(s.entity_id)) continue;
       const entry = this._existingEntryFor(s);
@@ -181,11 +203,30 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
       g.adding += 1;
       groups.set(key, g);
     }
-    if (groups.size === 0) return nothing;
+    return [...groups.values()];
+  }
+
+  /** Per target object: tasks before → after (only ticked rows count), under
+   *  a line with the totals that stays when the lines are folded (#211). */
+  private _summary(L: string) {
+    const groups = this._summaryGroups();
+    if (groups.length === 0) return nothing;
+    const created = groups.filter((g) => !g.entry).length;
+    const totals = t(created ? "adopt_summary_totals_new" : "adopt_summary_totals", L)
+      .replace("{tasks}", String(groups.reduce((n, g) => n + g.adding, 0)))
+      .replace("{objects}", String(groups.length))
+      .replace("{new}", String(created));
     return html`
-      <div class="summary">
-        <div class="summary-title">${t("adopt_summary_title", L)}</div>
-        ${[...groups.values()].map((g) => {
+      <details
+        class="summary"
+        .open=${this._summaryOpen}
+        @toggle=${(e: Event) => { this._summaryOpen = (e.target as HTMLDetailsElement).open; }}
+      >
+        <summary>
+          <span class="summary-title">${t("adopt_summary_title", L)}</span>
+          <span class="summary-totals">${totals}</span>
+        </summary>
+        ${groups.map((g) => {
           if (!g.entry) {
             return html`<div class="summary-line new">
               ${t("setups_new_object_count", L).replace("{name}", g.name).replace("{count}", String(g.adding))}
@@ -199,7 +240,7 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
               .replace("{after}", String(before + g.adding))}
           </div>`;
         })}
-      </div>
+      </details>
     `;
   }
 
@@ -269,13 +310,12 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
     const allSelected =
       this._sensors.length > 0 && this._selected.size === this._sensors.length;
 
-    return html`
-      <div class="overlay" @click=${this._close}>
-        <div class="card" @click=${(e: Event) => e.stopPropagation()}>
-          <div class="title">${t("adopt_problem_title", L)}</div>
-          <div class="hint">${t("adopt_problem_hint", L)}</div>
-          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+    return renderModalShell(() => this._close(), html`
+        <div class="title">${t("adopt_problem_title", L)}</div>
+        ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
 
+        <div class="dialog-scroll">
+          <div class="hint">${t("adopt_problem_hint", L)}</div>
           ${this._loading
             ? html`<div class="loading">…</div>`
             : this._sensors.length === 0
@@ -392,47 +432,28 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
                 </label>
               `
             : nothing}
-
-          <div class="actions">
-            <ha-button appearance="plain" @click=${this._close}>
-              ${t("cancel", L)}
-            </ha-button>
-            <ha-button
-              @click=${this._adopt}
-              .disabled=${this._selected.size === 0 || this._adopting}
-            >
-              ${t("adopt_problem_adopt", L)}
-            </ha-button>
-          </div>
         </div>
-      </div>
-    `;
+
+        <div class="actions">
+          <ha-button appearance="plain" @click=${this._close}>
+            ${t("cancel", L)}
+          </ha-button>
+          <ha-button
+            @click=${this._adopt}
+            .disabled=${this._selected.size === 0 || this._adopting}
+          >
+            ${t("adopt_problem_adopt", L)}
+          </ha-button>
+        </div>
+    `);
   }
 
-  static styles = css`
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-    .card {
-      background: var(--card-background-color, #fff);
-      color: var(--primary-text-color);
-      border-radius: 12px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      min-width: min(360px, calc(100vw - 24px));
-      max-width: 560px;
-      width: 90vw;
-      max-height: 80vh;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  static styles = [modalShellStyles, css`
+    :host {
+      --ms-modal-max-width: 560px;
+      --ms-modal-max-height: 90dvh;
+      --ms-modal-gap: 12px;
+      --ms-modal-z: 1000;
     }
     .title {
       font-size: 18px;
@@ -452,6 +473,9 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
       font-size: 14px;
       padding: 12px 0;
     }
+    /* Stays at the top of the scrolling middle: the count while ticking.
+       top: -1px + 1px more padding: on a 3x screen a fractional offset let a
+       line of the text scrolled under it show above it. */
     .select-all {
       display: flex;
       align-items: center;
@@ -459,6 +483,11 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
       font-size: 12px;
       color: var(--secondary-text-color);
       cursor: pointer;
+      position: sticky;
+      top: -1px;
+      z-index: 1;
+      padding: 5px 0 4px;
+      background: var(--card-background-color, var(--ha-card-background, #1c1c1c));
     }
     .select-all input {
       cursor: pointer;
@@ -467,8 +496,6 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
       display: flex;
       flex-direction: column;
       gap: 6px;
-      overflow-y: auto;
-      max-height: 50vh;
     }
     .row {
       display: flex;
@@ -536,9 +563,15 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
       border-top: 1px dashed var(--divider-color);
       padding-top: 6px;
     }
+    .summary > summary {
+      cursor: pointer;
+      margin-bottom: 2px;
+    }
     .summary-title {
       font-weight: 500;
-      margin-bottom: 2px;
+    }
+    .summary-totals {
+      color: var(--secondary-text-color);
     }
     .summary-line {
       color: var(--primary-color);
@@ -594,7 +627,7 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
       gap: 8px;
       padding-top: 8px;
     }
-  `;
+  `];
 }
 
 if (!customElements.get("maintenance-adopt-problem-sensors-dialog")) {

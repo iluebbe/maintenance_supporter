@@ -7,6 +7,9 @@
  *
  * Uses a native <input> for the name — <ha-textfield> is not registered in the
  * custom-panel context, so it renders without its field (the documented trap).
+ *
+ * In the shared modal frame (#211): the list of views scrolls, the name
+ * field and the Close button stay.
  */
 
 import { css, html, LitElement, nothing } from "lit";
@@ -14,6 +17,7 @@ import { property, state } from "lit/decorators.js";
 
 import { t, ensureLocale, langOf } from "../styles";
 import { runWs } from "../helpers/ws-run";
+import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
 import type { HomeAssistant, SavedView, SavedViewFilters } from "../types";
 
 interface ViewsResponse {
@@ -41,6 +45,7 @@ export class MaintenanceSavedViewsDialog extends LitElement {
       this._localeReady = true;
       ensureLocale(this._lang).then(() => this.requestUpdate());
     }
+    if (changed.has("_open") && this._open) focusModalShell(this.shadowRoot);
   }
 
   public async open(currentFilters: SavedViewFilters, views: SavedView[]): Promise<void> {
@@ -90,81 +95,58 @@ export class MaintenanceSavedViewsDialog extends LitElement {
   render() {
     if (!this._open) return html``;
     const L = this._lang;
-    return html`
-      <div class="overlay" @click=${this._close}>
-        <div class="card" @click=${(e: Event) => e.stopPropagation()}>
-          <div class="title">${t("views_dialog_title", L)}</div>
-          <div class="hint">${t("views_dialog_hint", L)}</div>
-          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+    return renderModalShell(() => this._close(), html`
+        <div class="title">${t("views_dialog_title", L)}</div>
+        <div class="hint">${t("views_dialog_hint", L)}</div>
+        ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
 
-          <div class="save-row">
-            <input
-              class="name-input"
-              type="text"
-              .value=${this._name}
-              placeholder=${t("views_name_placeholder", L)}
-              maxlength="60"
-              @input=${(e: Event) => (this._name = (e.target as HTMLInputElement).value)}
-              @keydown=${(e: KeyboardEvent) => {
-                if (e.key === "Enter") this._save();
-              }}
-            />
-            <ha-button @click=${this._save} .disabled=${!this._name.trim() || this._busy}>
-              ${t("views_save_current", L)}
-            </ha-button>
-          </div>
-
-          ${this._views.length === 0
-            ? html`<div class="empty">${t("views_none_yet", L)}</div>`
-            : html`
-                <div class="list">
-                  ${this._views.map(
-                    (v) => html`
-                      <div class="row">
-                        <span class="row-name">${v.name}</span>
-                        <ha-icon-button
-                          .path=${"M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"}
-                          .label=${t("delete", L)}
-                          @click=${() => this._delete(v.id)}
-                        ></ha-icon-button>
-                      </div>
-                    `,
-                  )}
-                </div>
-              `}
-
-          <div class="actions">
-            <ha-button appearance="plain" @click=${this._close}>${t("close", L)}</ha-button>
-          </div>
+        <div class="save-row">
+          <input
+            class="name-input"
+            type="text"
+            .value=${this._name}
+            placeholder=${t("views_name_placeholder", L)}
+            maxlength="60"
+            @input=${(e: Event) => (this._name = (e.target as HTMLInputElement).value)}
+            @keydown=${(e: KeyboardEvent) => {
+              if (e.key === "Enter") this._save();
+            }}
+          />
+          <ha-button @click=${this._save} .disabled=${!this._name.trim() || this._busy}>
+            ${t("views_save_current", L)}
+          </ha-button>
         </div>
-      </div>
-    `;
+
+        ${this._views.length === 0
+          ? html`<div class="empty">${t("views_none_yet", L)}</div>`
+          : html`
+              <div class="list dialog-scroll">
+                ${this._views.map(
+                  (v) => html`
+                    <div class="row">
+                      <span class="row-name">${v.name}</span>
+                      <ha-icon-button
+                        .path=${"M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"}
+                        .label=${t("delete", L)}
+                        @click=${() => this._delete(v.id)}
+                      ></ha-icon-button>
+                    </div>
+                  `,
+                )}
+              </div>
+            `}
+
+        <div class="actions">
+          <ha-button appearance="plain" @click=${this._close}>${t("close", L)}</ha-button>
+        </div>
+    `);
   }
 
-  static styles = css`
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-    .card {
-      background: var(--card-background-color, #fff);
-      color: var(--primary-text-color);
-      border-radius: 12px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      min-width: min(360px, calc(100vw - 24px));
-      max-width: 480px;
-      width: 90vw;
-      max-height: 80vh;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  static styles = [modalShellStyles, css`
+    :host {
+      --ms-modal-max-height: 90dvh;
+      --ms-modal-gap: 12px;
+      --ms-modal-z: 1000;
     }
     .title {
       font-size: 18px;
@@ -198,11 +180,7 @@ export class MaintenanceSavedViewsDialog extends LitElement {
       padding: 8px 0;
     }
     .list {
-      display: flex;
-      flex-direction: column;
       gap: 6px;
-      overflow-y: auto;
-      max-height: 50vh;
     }
     .row {
       display: flex;
@@ -227,7 +205,7 @@ export class MaintenanceSavedViewsDialog extends LitElement {
       gap: 8px;
       padding-top: 8px;
     }
-  `;
+  `];
 }
 
 if (!customElements.get("maintenance-saved-views-dialog")) {

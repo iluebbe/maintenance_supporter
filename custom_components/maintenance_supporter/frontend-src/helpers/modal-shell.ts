@@ -7,7 +7,13 @@
  *  unlike every HA dialog next to them (DRY audit 2026-09-26). One frame
  *  now: `renderModalShell()` + `modalShellStyles`, sized per dialog through
  *  custom properties (`--ms-modal-max-width`, `--ms-modal-max-height`,
- *  `--ms-modal-gap`) so each keeps its own proportions.
+ *  `--ms-modal-gap`, `--ms-modal-z`) so each keeps its own proportions.
+ *
+ *  A dialog whose middle can grow long (a list of found sensors or devices)
+ *  puts it in `.dialog-scroll`: the title above and the buttons below stay
+ *  on screen and only the middle scrolls. #211: with 54 problem sensors the
+ *  adopt dialog's summary took the whole height and the list shrank to
+ *  nothing, because the list was the only part allowed to shrink.
  *
  *  Escape is handled on the frame itself, not on window: a dialog stacked
  *  ON TOP (the confirm dialog, the complete dialog a quick action opens)
@@ -17,7 +23,7 @@ import { css, html, type TemplateResult } from "lit";
 
 export const modalShellStyles = css`
   .backdrop {
-    position: fixed; inset: 0; z-index: 100;
+    position: fixed; inset: 0; z-index: var(--ms-modal-z, 100);
     background: rgba(0,0,0,0.5);
   }
   .dialog {
@@ -31,10 +37,17 @@ export const modalShellStyles = css`
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
     padding: 20px;
     display: flex; flex-direction: column; gap: var(--ms-modal-gap, 14px);
-    z-index: 101;
+    z-index: calc(var(--ms-modal-z, 100) + 1);
   }
   /* Focused programmatically on open (so Escape works at once) — no ring. */
   .dialog:focus { outline: none; }
+  /* The one part that shrinks and scrolls (min-height: 0); the header and the
+     buttons around it keep their content's height. */
+  .dialog-scroll {
+    flex: 1 1 auto; min-height: 0;
+    overflow-y: auto; overscroll-behavior: contain;
+    display: flex; flex-direction: column; gap: var(--ms-modal-gap, 14px);
+  }
 `;
 
 /** Close on Escape unless something inside already consumed the key (a

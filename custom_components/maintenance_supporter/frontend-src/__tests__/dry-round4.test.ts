@@ -468,12 +468,17 @@ describe("DRY round 4 (frontend)", () => {
       expect(await offenders(/"manual",\s*"warranty"/, ["helpers/document-categories.ts"])).to.deep.equal([]);
     });
 
-    it("the three hand-built dialogs share the modal shell", async () => {
+    it("the hand-built dialogs share the modal shell", async () => {
       const src = await sources();
-      for (const path of ["components/history-edit-dialog.ts", "components/object-quick-actions-dialog.ts", "components/task-quick-actions-dialog.ts"]) {
+      // #211 added the panel's adopt, suggested-setups and saved-views dialogs:
+      // each had its own copy of an older frame whose list could shrink to nothing.
+      for (const path of [
+        "components/history-edit-dialog.ts", "components/object-quick-actions-dialog.ts", "components/task-quick-actions-dialog.ts",
+        "components/adopt-problem-sensors-dialog.ts", "components/suggested-setups-dialog.ts", "components/saved-views-dialog.ts",
+      ]) {
         expect(src[path], path).to.contain("renderModalShell(");
         expect(src[path], path).to.contain("modalShellStyles");
-        expect(src[path], `${path} keeps no own frame CSS`).to.not.match(/\.backdrop\s*\{|\n\s*\.dialog\s*\{/);
+        expect(src[path], `${path} keeps no own frame CSS`).to.not.match(/\.backdrop\s*\{|\n\s*\.dialog\s*\{|\.overlay\s*\{/);
       }
     });
 

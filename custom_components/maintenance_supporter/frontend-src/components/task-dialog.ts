@@ -3072,6 +3072,7 @@ export class MaintenanceTaskDialog extends LitElement {
                     <option value="completion" ?selected=${this._intervalAnchor === "completion"}>${t("anchor_completion", L)}</option>
                     <option value="planned" ?selected=${this._intervalAnchor === "planned"}>${t("anchor_planned", L)}</option>
                   </select>
+                  <div class="field-help anchor-help">${t("interval_anchor_hint", L)}</div>
                 </div>
               `
             : nothing}

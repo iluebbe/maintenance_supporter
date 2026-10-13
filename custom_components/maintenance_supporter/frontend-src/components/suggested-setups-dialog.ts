@@ -19,6 +19,9 @@
  * reset button completing it will press; tasks adopted before (or wired by
  * hand) are offered the same in their own section, with a before/after line
  * (integration_setups/reset_offers + wire_resets).
+ *
+ * #211: in the shared modal frame like the adopt dialog: the title and the
+ * buttons stay, the offers and the devices scroll as one.
  */
 
 import { css, html, LitElement, nothing } from "lit";
@@ -26,6 +29,7 @@ import { property, state } from "lit/decorators.js";
 
 import { t, ensureLocale, langOf } from "../styles";
 import { runWs } from "../helpers/ws-run";
+import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
 import type { HomeAssistant } from "../types";
 
 interface SetupTask {
@@ -112,6 +116,7 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
       this._localeReady = true;
       ensureLocale(this._lang).then(() => this.requestUpdate());
     }
+    if (changed.has("_open") && this._open) focusModalShell(this.shadowRoot);
   }
 
   /** Ticked by default: everything the target does not probably have yet. */
@@ -336,13 +341,12 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
     if (!this._open) return html``;
     const L = this._lang;
 
-    return html`
-      <div class="overlay" @click=${this._close}>
-        <div class="card" @click=${(e: Event) => e.stopPropagation()}>
-          <div class="title">${t("setups_title", L)}</div>
-          <div class="hint">${t("setups_hint", L)}</div>
-          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+    return renderModalShell(() => this._close(), html`
+        <div class="title">${t("setups_title", L)}</div>
+        ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
 
+        <div class="dialog-scroll">
+          <div class="hint">${t("setups_hint", L)}</div>
           ${this._renderOffers(L)}
           ${this._loading
             ? html`<div class="loading">…</div>`
@@ -428,50 +432,31 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
                     })}
                   </div>
                 `}
-
-          <div class="actions">
-            <ha-button appearance="plain" @click=${this._close}>
-              ${t("cancel", L)}
-            </ha-button>
-            <ha-button @click=${this._adopt} .disabled=${!this._anythingTicked || this._adopting}>
-              ${t("setups_adopt", L)}
-            </ha-button>
-          </div>
         </div>
-      </div>
-    `;
+
+        <div class="actions">
+          <ha-button appearance="plain" @click=${this._close}>
+            ${t("cancel", L)}
+          </ha-button>
+          <ha-button @click=${this._adopt} .disabled=${!this._anythingTicked || this._adopting}>
+            ${t("setups_adopt", L)}
+          </ha-button>
+        </div>
+    `);
   }
 
-  static styles = css`
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-    .card {
-      background: var(--card-background-color, #fff);
-      color: var(--primary-text-color);
-      border-radius: 12px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      min-width: min(360px, calc(100vw - 24px));
-      max-width: 560px;
-      width: 90vw;
-      max-height: 80vh;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  static styles = [modalShellStyles, css`
+    :host {
+      --ms-modal-max-width: 560px;
+      --ms-modal-max-height: 90dvh;
+      --ms-modal-gap: 12px;
+      --ms-modal-z: 1000;
     }
     .title { font-size: 18px; font-weight: 500; }
     .hint { color: var(--secondary-text-color); font-size: 13px; }
     .error { color: var(--error-color, #f44336); font-size: 13px; }
     .loading, .empty { color: var(--secondary-text-color); font-size: 14px; padding: 12px 0; }
-    .list { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; max-height: 55vh; }
+    .list { display: flex; flex-direction: column; gap: 6px; }
     .row {
       display: flex; align-items: flex-start; gap: 10px; padding: 8px;
       border: 1px solid var(--divider-color); border-radius: 6px;
@@ -497,7 +482,6 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
     .offers {
       display: flex; flex-direction: column; gap: 6px; padding: 8px;
       border: 1px solid var(--primary-color); border-radius: 6px;
-      overflow-y: auto; max-height: 40vh; flex-shrink: 0;
     }
     .offers-title { font-weight: 500; font-size: 14px; }
     .offer { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; cursor: pointer; }
@@ -520,7 +504,7 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
       color: var(--primary-text-color);
     }
     .actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 8px; }
-  `;
+  `];
 }
 
 if (!customElements.get("maintenance-suggested-setups-dialog")) {

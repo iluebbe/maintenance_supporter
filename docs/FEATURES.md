@@ -437,6 +437,11 @@ sensor the object probably already watches under another name starts
 unticked and names that task; a summary lists per object the task count
 before and after adopting, and typing another object recomputes the hints.
 
+**Long lists (2.103+):** the dialog's title and buttons stay in place and the
+list, the summary and the fields scroll as one, with *Selected n / m* kept at
+the top. The summary shows its totals (*Tasks: 54 · objects: 18*) and folds
+its per-object lines once it names more than three objects; a tap opens them.
+
 **Configuration survives un-adopting**: deleting an adopted task stashes its
 notes, responsible user, priority, labels and part link per sensor, and the
 next adoption of the same sensor restores them (part links are re-validated
@@ -932,7 +937,7 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 - **Snooze from the panel** (2.17+): the notification snooze is also available in the task ⋮ menu
 - **Virtualized task table** (2.17+): with hundreds of tasks, only the visible window is rendered — large installs stay snappy
 - **Binary sensor** per task (`device_class: problem`) — ON when overdue or triggered, ideal for HA automations
-- **Interval anchoring**: choose between completion-based (default) or planned-date anchoring to prevent schedule drift
+- **Interval anchoring**: choose between completion-based (default) or planned-date anchoring to prevent schedule drift. *From completion date* counts the next due date from the day the task is done, so finishing early or late moves the schedule; *From planned date* keeps the schedule's dates, so a bill paid weeks before it is due stays due on its usual date next time. The task dialog explains both under the field (2.103+)
 - **Time-of-day scheduling** (optional, advanced): tasks flip to OVERDUE at a configured `HH:MM` in HA's timezone instead of at midnight. Works on every kind that has a due date — intervals, weekdays, nth weekday, day of month, calendar-entity and one-time tasks (2.77+; intervals only before), so "every Sunday at 21:00" is the Weekdays kind plus a time. Calendar events become timed 30-min blocks so mobile calendars can set real reminders. Enable under Settings → Advanced Features → Time-of-day scheduling.
 - Assign tasks to responsible Home Assistant users with per-user notification routing — and since 2.44 a **per-person self-test** under *Settings → General → Per-person delivery*: each household member is listed with the notify services they actually resolve to, plus a button that sends a test to exactly those. Members without a Companion device are named as such instead of quietly falling back, so "will this person get their reminders?" can be answered before a task comes due
 - Custom task icons (any `mdi:*` icon via the HA icon picker)

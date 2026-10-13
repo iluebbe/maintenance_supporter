@@ -13,6 +13,19 @@ All notable changes to Maintenance Supporter are documented in this file.
   the update.* An action whose call fails that way (in the panel, the cards or their dialogs) says to restart
   instead of *Unknown error*. This works from the update after this one on: the running code has to know how to
   check. `maintenance_supporter/version` answers `installed_version` and `restart_pending` next to `version`.
+- **The interval anchor explains itself:** under *Interval anchor* in the task dialog, a short text now says what
+  the two choices do. *From completion date* counts the next due date from the day the task is done, so doing it
+  early moves the schedule earlier; *From planned date* keeps the schedule's dates, for example for a bill paid
+  weeks before it is due.
+
+### 🐛 Fixed
+
+- **Adopting many problem sensors works on a phone:** with dozens of problem sensors (54 from 18 Matter devices in
+  the report), the summary of what adopting changes took the whole dialog and the list of sensors shrank to
+  nothing, so none could be picked. The title and the buttons now stay in place and everything between them
+  scrolls as one; *Selected n / m* stays at the top while scrolling. The summary shows its totals (*Tasks: 54 ·
+  objects: 18*) and folds its per-object lines once it names more than three objects. The suggested-setups and
+  saved-views dialogs got the same frame, and all three now close on Escape.
 
 ## [2.102.1] - 2026-10-12
 
