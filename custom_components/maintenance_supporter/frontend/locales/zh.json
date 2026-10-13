@@ -1282,6 +1282,8 @@
   "battery_fleet_setup_done": "电池群已设置 — 一个任务跟踪所有电池。",
   "update_banner": "服务器上有更新版本的 Maintenance Supporter——请重新加载以更新面板。",
   "update_reload": "重新加载",
+  "restart_pending_banner": "Maintenance Supporter 已更新到 {version} 版本。请重启 Home Assistant 以完成更新。",
+  "restart_pending_error": "操作失败：Maintenance Supporter 已更新到 {version} 版本，但 Home Assistant 此后尚未重启。请重启 Home Assistant 后重试。",
   "row_actions_banner": "任务行中的“完成”和“跳过”现在是按钮。更喜欢旧的图标？",
   "row_actions_keep": "保留按钮",
   "row_actions_back": "改回图标",

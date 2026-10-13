@@ -1282,6 +1282,8 @@
   "battery_fleet_setup_done": "Flotila baterií nastavena — jeden úkol sleduje všechny.",
   "update_banner": "Na serveru je novější verze Maintenance Supporter — načtěte znovu pro aktualizaci panelu.",
   "update_reload": "Načíst znovu",
+  "restart_pending_banner": "Maintenance Supporter byl aktualizován na verzi {version}. Restartujte Home Assistant, aby se aktualizace dokončila.",
+  "restart_pending_error": "Nepodařilo se: Maintenance Supporter byl aktualizován na verzi {version}, ale Home Assistant od té doby nebyl restartován. Restartujte Home Assistant a zkuste to znovu.",
   "row_actions_banner": "Dokončit a Přeskočit jsou v řádcích úkolů nyní tlačítka. Dáváte přednost starým ikonám?",
   "row_actions_keep": "Ponechat tlačítka",
   "row_actions_back": "Zpět na ikony",

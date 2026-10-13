@@ -46,6 +46,7 @@ from ..helpers.qr_generator import (
     generate_qr_svg,
     generate_qr_svg_data_uri,
 )
+from ..helpers.update_state import async_version_state
 from ..helpers.ws_errors import send_translated_error
 from ..websocket.tasks import _check_nfc_tag_duplicate, _validate_trigger_config
 from . import ID_FIELD, _get_object_entries, _load_object_entry, _load_object_task, _merge_global_options
@@ -512,17 +513,17 @@ def _keep_fleet_part_id(is_fleet: bool, old_id: str) -> bool:
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/version"})
 @websocket_api.async_response
 async def ws_version(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
-    """The installed integration version (manifest).
+    """The running integration version, and the installed one while an update waits for a restart.
 
-    Roadmap guard 2 — stale-bundle handshake: the panel compares this against
-    the version esbuild stamped into its bundle and offers a reload when a
-    cached old frontend is talking to a newer backend (HA's service worker
-    updates stale-while-revalidate, so this happens routinely after updates).
+    Roadmap guard 2 — stale-bundle handshake: the panel compares `version`
+    against the version esbuild stamped into its bundle and offers a reload
+    when a cached old frontend is talking to a newer backend (HA's service
+    worker updates stale-while-revalidate, so this happens routinely after
+    updates). `restart_pending` (with `installed_version`, the manifest on
+    disk) says the files were updated but Home Assistant still runs the old
+    code — the panel then asks for a restart instead (helpers/update_state).
     """
-    from homeassistant.loader import async_get_integration
-
-    integration = await async_get_integration(hass, DOMAIN)
-    connection.send_result(msg["id"], {"version": integration.version})
+    connection.send_result(msg["id"], await async_version_state(hass))
 
 
 @websocket_api.websocket_command(

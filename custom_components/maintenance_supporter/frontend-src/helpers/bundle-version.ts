@@ -17,3 +17,19 @@ export function isStaleBundle(serverVersion: string | null | undefined, bundleVe
   if (!serverVersion || !bundleVersion || bundleVersion === "dev") return false;
   return serverVersion !== bundleVersion;
 }
+
+/** The answer of `maintenance_supporter/version`: the running version, the
+ *  one on disk, and whether Home Assistant still runs the older code (an
+ *  older backend answers `version` only). */
+export interface ServerVersion {
+  version?: string;
+  installed_version?: string | null;
+  restart_pending?: boolean;
+}
+
+/** The installed version when an update waits for Home Assistant's restart
+ *  (helpers/update_state.py), else null. Until then, an action can fail with
+ *  "Unknown error", and reloading the page does not help. */
+export function pendingRestartVersion(v: ServerVersion | null | undefined): string | null {
+  return v?.restart_pending && v.installed_version ? v.installed_version : null;
+}

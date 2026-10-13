@@ -662,6 +662,10 @@ export interface HomeAssistant {
       subscribeMsg: Record<string, unknown>,
       options?: Record<string, unknown>
     ): Promise<() => void>;
+    /** "ready" fires after a reconnect (a Home Assistant restart). Optional:
+     *  test stubs leave it out. */
+    addEventListener?(event: "ready", callback: () => void): void;
+    removeEventListener?(event: "ready", callback: () => void): void;
   };
   callService(
     domain: string,

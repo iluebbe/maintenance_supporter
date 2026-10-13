@@ -5,7 +5,7 @@ import { isSafeLink } from "./helpers/url";
 import { queryTokens, scoreFields } from "./helpers/search-match";
 import { objectRef, parseRef, renderRefChip, taskRef, type HasRef } from "./helpers/reference";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
-import { isStaleBundle } from "./helpers/bundle-version";
+import { isStaleBundle, pendingRestartVersion, type ServerVersion } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
 import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, formatQty, syncCurrencyDecimals} from "./styles";
 import { OVERVIEW_TABS, type OverviewTab } from "./helpers/overview-tabs";
@@ -313,7 +313,11 @@ export class MaintenanceSupporterPanel extends LitElement {
   // and the fleet isn't set up yet.
   @state() private _batteryFleetSetupAvailable = false;
   @state() private _staleBundle = false;
+  /** The version an update installed while Home Assistant still runs the
+   *  old code (helpers/update_state.py); null when both agree. */
+  @state() private _restartPendingVersion: string | null = null;
   private _staleChecked = false;
+  private _onReconnect = (): void => this._checkServerVersion();
   private _toastTimer: ReturnType<typeof setTimeout> | null = null;
   private _dismissedSuggestions = new Set<string>();
 
@@ -408,7 +412,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _statsService: StatisticsService | null = null;
   private _userService: UserService | null = null;
   private _dataLoaded = false;
-  private _lastConnection: unknown = null;
+  private _lastConnection: HomeAssistant["connection"] | null = null;
 
   private get _lang(): string {
     return langOf(this.hass);
@@ -553,7 +557,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
     this._dataLoaded = false;
     this._initialLoadDone = false;
-    this._lastConnection = null;
+    this._watchConnection(null);
     this._deepLinkHandled = false;
     // `_presetsApplied` intentionally survives (see its declaration).
     // Pending timers must not fire into a detached element (bug audit
@@ -582,13 +586,13 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (changedProps.has("hass") && this.hass) {
       if (!this._dataLoaded) {
         this._dataLoaded = true;
-        this._lastConnection = this.hass.connection;
+        this._watchConnection(this.hass.connection);
         // Seed initial history state so back button returns to overview
         history.replaceState({ msp_view: "overview", msp_entry: null, msp_task: null }, "");
         this._loadData();
         this._subscribe();
       } else if (this.hass.connection !== this._lastConnection) {
-        this._lastConnection = this.hass.connection;
+        this._watchConnection(this.hass.connection);
         if (this._unsub) {
           try { this._unsub(); } catch { /* ignore */ }
           this._unsub = null;
@@ -743,6 +747,31 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
   }
 
+  /** Follow `conn`'s reconnects for the version check (and stop following
+   *  the previous connection). */
+  private _watchConnection(conn: HomeAssistant["connection"] | null): void {
+    this._lastConnection?.removeEventListener?.("ready", this._onReconnect);
+    this._lastConnection = conn;
+    conn?.addEventListener?.("ready", this._onReconnect);
+  }
+
+  /** Stale-bundle handshake (roadmap guard 2): compare the version esbuild
+   *  stamped into this bundle with the backend's — a mismatch means the
+   *  browser/service worker is still serving an OLD cached frontend, and no
+   *  amount of HA restarts fixes that. Unless an update waits for its
+   *  restart: then that explains any difference, and only the restart helps. */
+  private _checkServerVersion(): void {
+    this.hass.connection
+      .sendMessagePromise<ServerVersion>({ type: "maintenance_supporter/version" })
+      .then((v) => {
+        this._restartPendingVersion = pendingRestartVersion(v);
+        this._staleBundle = !this._restartPendingVersion && isStaleBundle(v?.version);
+      })
+      .catch(() => {
+        /* backend too old to answer — no banner */
+      });
+  }
+
   private async _loadData(): Promise<void> {
     const [objResult, statsResult, budgetResult, groupsResult, settingsResult, viewsResult] = await Promise.all([
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/objects", compact: true }).catch(() => null),
@@ -780,20 +809,11 @@ export class MaintenanceSupporterPanel extends LitElement {
       .catch(() => {
         this._batteryFleetSetupAvailable = false;
       });
-    // Stale-bundle handshake (roadmap guard 2): compare the version esbuild
-    // stamped into this bundle with the backend's — a mismatch means the
-    // browser/service worker is still serving an OLD cached frontend, and no
-    // amount of HA restarts fixes that. Checked once per panel lifetime.
+    // Checked once per panel lifetime, and again after every reconnect (a
+    // Home Assistant restart ends the "restart pending" state).
     if (!this._staleChecked) {
       this._staleChecked = true;
-      this.hass.connection
-        .sendMessagePromise<{ version: string }>({ type: "maintenance_supporter/version" })
-        .then((v) => {
-          this._staleBundle = isStaleBundle(v?.version);
-        })
-        .catch(() => {
-          /* backend too old to answer — no banner */
-        });
+      this._checkServerVersion();
     }
     if (statsResult) this._stats = statsResult as StatisticsResponse;
     if (budgetResult) { this._budget = budgetResult as BudgetStatus; syncCurrencyDecimals(this._budget); }
@@ -3176,6 +3196,14 @@ export class MaintenanceSupporterPanel extends LitElement {
   render() {
     return html`
       <div class="panel">
+        ${this._restartPendingVersion
+          ? html`
+              <div class="update-banner restart-pending-banner" role="status">
+                <ha-icon icon="mdi:restart"></ha-icon>
+                <span>${t("restart_pending_banner", this._lang).replace("{version}", this._restartPendingVersion)}</span>
+              </div>
+            `
+          : nothing}
         ${this._staleBundle
           ? html`
               <div class="update-banner" role="status">

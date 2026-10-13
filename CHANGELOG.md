@@ -2,6 +2,18 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **The panel asks for a restart after an update:** HACS installs a new version right away, but Home Assistant
+  keeps running the old code until it restarts, and in between an action can fail with nothing but *Unknown
+  error* (seen when completing a task). The integration now notes the version it started with, and while the
+  files on disk are newer the panel shows *Maintenance Supporter was updated to X. Restart Home Assistant to finish
+  the update.* An action whose call fails that way (in the panel, the cards or their dialogs) says to restart
+  instead of *Unknown error*. This works from the update after this one on: the running code has to know how to
+  check. `maintenance_supporter/version` answers `installed_version` and `restart_pending` next to `version`.
+
 ## [2.102.1] - 2026-10-12
 
 ### 🐛 Fixed

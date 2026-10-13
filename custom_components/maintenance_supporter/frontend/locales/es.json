@@ -1282,6 +1282,8 @@
   "battery_fleet_setup_done": "Flota de baterías configurada — una tarea controla todas.",
   "update_banner": "Hay una versión más reciente de Maintenance Supporter en el servidor — recarga para actualizar el panel.",
   "update_reload": "Recargar",
+  "restart_pending_banner": "Maintenance Supporter se actualizó a la versión {version}. Reinicia Home Assistant para completar la actualización.",
+  "restart_pending_error": "No ha funcionado: Maintenance Supporter se actualizó a la versión {version}, pero Home Assistant no se ha reiniciado desde entonces. Reinicia Home Assistant y vuelve a intentarlo.",
   "row_actions_banner": "Completar y Omitir ahora son botones en las filas de tareas. ¿Prefieres los iconos antiguos?",
   "row_actions_keep": "Mantener botones",
   "row_actions_back": "Volver a los iconos",

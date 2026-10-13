@@ -1282,6 +1282,8 @@
   "battery_fleet_setup_done": "Batterie-Flotte eingerichtet — ein Task überwacht alle Batterien.",
   "update_banner": "Auf dem Server läuft eine neuere Version von Maintenance Supporter — neu laden, um das Panel zu aktualisieren.",
   "update_reload": "Neu laden",
+  "restart_pending_banner": "Maintenance Supporter wurde auf {version} aktualisiert. Starte Home Assistant neu, um das Update abzuschließen.",
+  "restart_pending_error": "Das hat nicht geklappt: Maintenance Supporter wurde auf {version} aktualisiert, Home Assistant aber seitdem nicht neu gestartet. Starte Home Assistant neu und versuche es dann noch einmal.",
   "row_actions_banner": "Erledigt und Überspringen sind in den Aufgabenzeilen jetzt Buttons. Lieber die alten Symbole?",
   "row_actions_keep": "Buttons behalten",
   "row_actions_back": "Zurück zu Symbolen",

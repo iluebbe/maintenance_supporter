@@ -1282,6 +1282,8 @@
   "battery_fleet_setup_done": "Batteriflotta konfigurerad — en uppgift följer alla batterier.",
   "update_banner": "En nyare version av Maintenance Supporter finns på servern — ladda om för att uppdatera panelen.",
   "update_reload": "Ladda om",
+  "restart_pending_banner": "Maintenance Supporter har uppdaterats till {version}. Starta om Home Assistant för att slutföra uppdateringen.",
+  "restart_pending_error": "Det fungerade inte: Maintenance Supporter har uppdaterats till {version}, men Home Assistant har inte startats om sedan dess. Starta om Home Assistant och försök igen.",
   "row_actions_banner": "Slutför och Hoppa över är nu knappar i uppgiftsraderna. Föredrar du de gamla ikonerna?",
   "row_actions_keep": "Behåll knappar",
   "row_actions_back": "Tillbaka till ikoner",

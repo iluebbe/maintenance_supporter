@@ -1282,6 +1282,8 @@
   "battery_fleet_setup_done": "Flota baterii skonfigurowana — jedno zadanie śledzi wszystkie.",
   "update_banner": "Na serwerze jest nowsza wersja Maintenance Supporter — załaduj ponownie, aby zaktualizować panel.",
   "update_reload": "Załaduj ponownie",
+  "restart_pending_banner": "Maintenance Supporter został zaktualizowany do wersji {version}. Uruchom ponownie Home Assistant, aby dokończyć aktualizację.",
+  "restart_pending_error": "Nie udało się: Maintenance Supporter został zaktualizowany do wersji {version}, ale od tego czasu Home Assistant nie został uruchomiony ponownie. Uruchom ponownie Home Assistant i spróbuj jeszcze raz.",
   "row_actions_banner": "Ukończ i Pomiń w wierszach zadań są teraz przyciskami. Wolisz stare ikony?",
   "row_actions_keep": "Zachowaj przyciski",
   "row_actions_back": "Wróć do ikon",

@@ -1282,6 +1282,8 @@
   "battery_fleet_setup_done": "Batteriflåde opsat — én opgave følger alle batterier.",
   "update_banner": "En nyere version af Maintenance Supporter er på serveren — genindlæs for at opdatere panelet.",
   "update_reload": "Genindlæs",
+  "restart_pending_banner": "Maintenance Supporter er blevet opdateret til {version}. Genstart Home Assistant for at fuldføre opdateringen.",
+  "restart_pending_error": "Det lykkedes ikke: Maintenance Supporter er blevet opdateret til {version}, men Home Assistant er ikke blevet genstartet siden. Genstart Home Assistant, og prøv igen.",
   "row_actions_banner": "Fuldfør og Spring over er nu knapper i opgaverækkerne. Foretrækker du de gamle ikoner?",
   "row_actions_keep": "Behold knapper",
   "row_actions_back": "Tilbage til ikoner",

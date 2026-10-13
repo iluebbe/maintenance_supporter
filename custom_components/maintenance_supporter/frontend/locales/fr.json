@@ -1282,6 +1282,8 @@
   "battery_fleet_setup_done": "Parc de piles configuré — une tâche suit toutes vos piles.",
   "update_banner": "Une version plus récente de Maintenance Supporter est sur le serveur — rechargez pour mettre à jour le panneau.",
   "update_reload": "Recharger",
+  "restart_pending_banner": "Maintenance Supporter a été mis à jour vers la version {version}. Redémarrez Home Assistant pour terminer la mise à jour.",
+  "restart_pending_error": "Cela n'a pas fonctionné : Maintenance Supporter a été mis à jour vers la version {version}, mais Home Assistant n'a pas été redémarré depuis. Redémarrez Home Assistant, puis réessayez.",
   "row_actions_banner": "Terminer et Ignorer sont désormais des boutons dans les lignes de tâches. Vous préférez les anciennes icônes ?",
   "row_actions_keep": "Garder les boutons",
   "row_actions_back": "Revenir aux icônes",

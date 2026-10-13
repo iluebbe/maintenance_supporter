@@ -17,6 +17,7 @@
 
 import { describeWsError } from "../ws-errors";
 import { langOf, t } from "../styles";
+import { pendingRestartVersion, type ServerVersion } from "./bundle-version";
 
 export interface RunWsHost {
   hass: { language?: string; connection: { sendMessagePromise<T>(msg: Record<string, unknown>): Promise<T> } };
@@ -75,10 +76,33 @@ export async function runWs<T = unknown>(
     return res === undefined ? (null as T) : res;
   } catch (e) {
     const lang = opts.lang || langOf(host.hass);
-    opts.onError?.(describeWsError(e, lang, opts.fallbackKey ? t(opts.fallbackKey, lang) : undefined), e);
+    const message = (await restartPendingMessage(host, e, lang))
+      ?? describeWsError(e, lang, opts.fallbackKey ? t(opts.fallbackKey, lang) : undefined);
+    opts.onError?.(message, e);
     return undefined;
   } finally {
     opts.busy?.(false);
+  }
+}
+
+/** The error codes a backend still running the code from before an update
+ *  answers the new files with: a crash in a module imported fresh from disk
+ *  ("Unknown error"), a field or a command it does not know yet. */
+const VERSION_MISMATCH_CODES = new Set(["unknown_error", "invalid_format", "unknown_command"]);
+
+/** "Restart Home Assistant" instead of the bare error, when the call failed
+ *  that way while an update waits for the restart (2026-10-12: the complete
+ *  dialog said only "Unknown error"); null otherwise. */
+async function restartPendingMessage(host: RunWsHost, e: unknown, lang: string): Promise<string | null> {
+  const err = (typeof e === "object" && e !== null ? e : {}) as { code?: string; error?: { code?: string } };
+  if (!VERSION_MISMATCH_CODES.has(err.code || err.error?.code || "")) return null;
+  try {
+    const version = pendingRestartVersion(
+      await host.hass.connection.sendMessagePromise<ServerVersion>({ type: "maintenance_supporter/version" }),
+    );
+    return version ? t("restart_pending_error", lang).replace("{version}", version) : null;
+  } catch {
+    return null;
   }
 }
 

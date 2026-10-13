@@ -29,6 +29,14 @@ The arrival message goes to the arriving person's own phones only. Check, in ord
 
 Reminders of an object with *Remind only while somebody is there* wait for the same two-minute stay. A zone that no longer exists counts as home, and the object page says so.
 
+### "Unknown error" Right After an Update
+
+Symptom: an action that worked before (completing a task, saving a part) fails with *Unknown error*, soon after HACS installed a new version.
+
+Cause: HACS replaces the files right away, but Home Assistant keeps running the code it loaded at start until it restarts. A part of the integration that is loaded for the first time then comes from the new files and does not fit the old code still running. Nothing is saved when this happens.
+
+Fix: **restart Home Assistant**. HACS lists the pending restart under *Repairs*. The panel shows a banner while an update waits for the restart, and an action that fails this way says to restart instead of *Unknown error*. Both work from the version after the one that is running, since the running code has to know how to check.
+
 ### Sidebar Panel Not Visible
 
 1. Ensure `panel_enabled` is `true` in global settings (it defaults to `true`)

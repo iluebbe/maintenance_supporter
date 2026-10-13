@@ -1282,6 +1282,8 @@
   "battery_fleet_setup_done": "배터리 플릿이 설정되었습니다 — 하나의 작업이 모든 배터리를 추적합니다.",
   "update_banner": "서버에 Maintenance Supporter의 새 버전이 있습니다 — 패널을 업데이트하려면 새로 고침하세요.",
   "update_reload": "새로 고침",
+  "restart_pending_banner": "Maintenance Supporter가 {version} 버전으로 업데이트되었습니다. 업데이트를 완료하려면 Home Assistant를 다시 시작하세요.",
+  "restart_pending_error": "실패했습니다: Maintenance Supporter가 {version} 버전으로 업데이트되었지만 그 이후 Home Assistant가 다시 시작되지 않았습니다. Home Assistant를 다시 시작한 후 다시 시도하세요.",
   "row_actions_banner": "작업 행의 완료와 건너뛰기가 이제 버튼으로 표시됩니다. 이전 아이콘이 더 좋으신가요?",
   "row_actions_keep": "버튼 유지",
   "row_actions_back": "아이콘으로 되돌리기",

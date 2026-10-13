@@ -1282,6 +1282,8 @@
   "battery_fleet_setup_done": "電池フリートを設定 — 1つのタスクで全電池を管理。",
   "update_banner": "サーバーに新しいバージョンの Maintenance Supporter があります — 再読み込みしてパネルを更新してください。",
   "update_reload": "再読み込み",
+  "restart_pending_banner": "Maintenance Supporter はバージョン {version} に更新されました。更新を完了するには Home Assistant を再起動してください。",
+  "restart_pending_error": "実行できませんでした: Maintenance Supporter はバージョン {version} に更新されましたが、その後 Home Assistant が再起動されていません。Home Assistant を再起動してから、もう一度お試しください。",
   "row_actions_banner": "タスク行の「完了」と「スキップ」がボタンになりました。以前のアイコンに戻しますか？",
   "row_actions_keep": "ボタンのままにする",
   "row_actions_back": "アイコンに戻す",

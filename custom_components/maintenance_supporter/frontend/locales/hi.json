@@ -1282,6 +1282,8 @@
   "battery_fleet_setup_done": "बैटरी फ्लीट सेट — एक कार्य सभी बैटरियों को ट्रैक करता है।",
   "update_banner": "सर्वर पर Maintenance Supporter का नया संस्करण है — पैनल अपडेट करने के लिए पुनः लोड करें।",
   "update_reload": "पुनः लोड करें",
+  "restart_pending_banner": "Maintenance Supporter को {version} संस्करण में अपडेट किया गया है। अपडेट पूरा करने के लिए Home Assistant को पुनः आरंभ करें।",
+  "restart_pending_error": "यह नहीं हो सका: Maintenance Supporter को {version} संस्करण में अपडेट किया गया है, लेकिन उसके बाद से Home Assistant को पुनः आरंभ नहीं किया गया है। Home Assistant को पुनः आरंभ करें, फिर दोबारा प्रयास करें।",
   "row_actions_banner": "कार्य पंक्तियों में पूर्ण और छोड़ें अब बटन हैं। पुराने आइकन पसंद हैं?",
   "row_actions_keep": "बटन रखें",
   "row_actions_back": "आइकन पर वापस जाएँ",

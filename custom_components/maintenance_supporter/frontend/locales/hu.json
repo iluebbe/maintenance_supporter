@@ -1282,6 +1282,8 @@
   "battery_fleet_setup_done": "Elemflotta beállítva — egyetlen feladat követi az összes elemet.",
   "update_banner": "A Maintenance Supporter újabb verziója érhető el a szerveren — töltse újra az oldalt a panel frissítéséhez.",
   "update_reload": "Újratöltés",
+  "restart_pending_banner": "A Maintenance Supporter frissült a(z) {version} verzióra. Indítsa újra a Home Assistantot a frissítés befejezéséhez.",
+  "restart_pending_error": "Ez nem sikerült: a Maintenance Supporter frissült a(z) {version} verzióra, de a Home Assistant azóta nem indult újra. Indítsa újra a Home Assistantot, majd próbálja újra.",
   "row_actions_banner": "A Kész és a Kihagyás a feladatsorokban mostantól gombok. Inkább a régi ikonokat szeretné?",
   "row_actions_keep": "Gombok megtartása",
   "row_actions_back": "Vissza az ikonokhoz",

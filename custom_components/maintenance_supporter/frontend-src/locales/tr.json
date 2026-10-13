@@ -1282,6 +1282,8 @@
   "battery_fleet_setup_done": "Pil filosu kuruldu — tek bir görev tüm pillerinizi takip ediyor.",
   "update_banner": "Sunucuda Maintenance Supporter'ın daha yeni bir sürümü var — paneli güncellemek için sayfayı yeniden yükleyin.",
   "update_reload": "Yeniden yükle",
+  "restart_pending_banner": "Maintenance Supporter {version} sürümüne güncellendi. Güncellemeyi tamamlamak için Home Assistant'ı yeniden başlatın.",
+  "restart_pending_error": "Bu işlem başarısız oldu: Maintenance Supporter {version} sürümüne güncellendi, ancak Home Assistant o zamandan beri yeniden başlatılmadı. Home Assistant'ı yeniden başlatın ve tekrar deneyin.",
   "row_actions_banner": "Görev satırlarındaki Tamamla ve Atla artık düğme. Eski simgeleri mi tercih edersiniz?",
   "row_actions_keep": "Düğmeleri koru",
   "row_actions_back": "Simgelere geri dön",

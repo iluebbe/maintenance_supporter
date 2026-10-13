@@ -480,6 +480,13 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     """
     hass.data.setdefault(DOMAIN, {})
 
+    # Which version this run imported: an update HACS installs later changes
+    # the files (and HA's integration cache) but not the code in memory, and
+    # the panel asks for a restart until they agree again.
+    from .helpers.update_state import async_remember_running_version
+
+    await async_remember_running_version(hass)
+
     # The Lovelace card / calendar card / strategy modules FIRST (#184): HA
     # builds the list of extra module scripts into index.html at the moment a
     # page is served, and the frontend does not load modules registered later

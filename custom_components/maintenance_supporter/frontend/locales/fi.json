@@ -1282,6 +1282,8 @@
   "battery_fleet_setup_done": "Paristokanta määritetty — yksi tehtävä seuraa kaikkia.",
   "update_banner": "Palvelimella on uudempi Maintenance Supporter -versio — lataa uudelleen päivittääksesi paneelin.",
   "update_reload": "Lataa uudelleen",
+  "restart_pending_banner": "Maintenance Supporter on päivitetty versioon {version}. Käynnistä Home Assistant uudelleen viimeistelläksesi päivityksen.",
+  "restart_pending_error": "Se ei onnistunut: Maintenance Supporter on päivitetty versioon {version}, mutta Home Assistantia ei ole sen jälkeen käynnistetty uudelleen. Käynnistä Home Assistant uudelleen ja yritä sitten uudelleen.",
   "row_actions_banner": "Valmis ja Ohita ovat tehtäväriveillä nyt painikkeita. Haluatko mieluummin vanhat kuvakkeet?",
   "row_actions_keep": "Pidä painikkeet",
   "row_actions_back": "Takaisin kuvakkeisiin",

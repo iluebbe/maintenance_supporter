@@ -609,9 +609,14 @@ For most setup work, `interval_days` + `interval_unit` is all you need.
 ## Read & settings
 
 ### `version`
-→ `{version:"2.95.0"}` — the installed integration (manifest) version. The
-panel uses it for the stale-bundle handshake; useful for the assistant to
-report/verify what is running.
+→ `{version:"2.95.0", installed_version:"2.96.0", restart_pending:true}` —
+`version` is the integration version Home Assistant runs, `installed_version`
+the one in manifest.json on disk (null when unreadable). They differ after an
+update was installed and Home Assistant has not restarted since:
+`restart_pending` is then true, and the panel asks for a restart (until then,
+actions can fail with `unknown_error`). The panel also uses `version` for the
+stale-bundle handshake; useful for the assistant to report/verify what is
+running.
 
 ### `statistics`
 → `{total_objects, total_tasks, overdue, due_soon, triggered, ok, total_cost,
