@@ -275,6 +275,21 @@ def test_compound_sub_entity_write_ha_state_noop() -> None:
     sub.async_write_ha_state()
 
 
+def test_compound_sub_entity_names_the_renamed_sensor() -> None:
+    """#214: from Home Assistant 2026.11 a rename changes the task sensor in
+    place and its triggers keep running. The condition proxy reads the new
+    entity_id instead of keeping the one it was built with."""
+    mock_parent = MagicMock()
+    mock_parent.entity.entity_id = "sensor.boiler_service"
+    mock_parent.entity._task_id = TASK_ID_1
+    mock_parent.entity.coordinator = MagicMock()
+
+    sub = CompoundSubEntity(mock_parent, 0, {})
+    assert sub.entity_id == "sensor.boiler_service"
+    mock_parent.entity.entity_id = "sensor.boiler_annual_service"
+    assert sub.entity_id == "sensor.boiler_annual_service"
+
+
 def test_compound_sub_entity_no_trigger_entity_id() -> None:
     """Test CompoundSubEntity with no trigger_entity_id uses direct value."""
     mock_parent = MagicMock()

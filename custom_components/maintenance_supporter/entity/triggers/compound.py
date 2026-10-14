@@ -55,11 +55,18 @@ class CompoundSubEntity:
         self._per_entity_states: dict[str, bool] = {eid: False for eid in _eids} if len(_eids) > 1 else {}
         self._per_entity_values: dict[str, float | None] = {}
         self._entity_logic = condition_config.get("entity_logic", "any")
-        # Mirror attributes the real entity exposes for trigger access
-        self.entity_id: str = parent.entity.entity_id
+        # Mirror attributes the real entity exposes for trigger access (the
+        # entity_id is read live, see the property).
         self._task_id: str = parent.entity._task_id
         # Replaced by the condition's _CompoundCoordinatorProxy right after.
         self.coordinator: TriggerCoordinator = parent.entity.coordinator
+
+    @property
+    def entity_id(self) -> str:
+        """The task sensor's entity_id, read live. From Home Assistant 2026.11 a
+        rename changes the sensor in place and its triggers keep running, so a
+        copy taken here would name the old entity until the next reload (#214)."""
+        return self._parent.entity.entity_id
 
     @callback
     def async_update_trigger_state(
