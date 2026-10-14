@@ -8,7 +8,7 @@ from datetime import date, datetime, time, timedelta
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
@@ -20,6 +20,7 @@ from .const import (
     MaintenanceStatus,
     ScheduleType,
 )
+from .entity.id_change import entity_id_changed
 from .helpers.aggregate import merged_tasks
 from .helpers.dates import interval_span_days, parse_hhmm
 from .helpers.global_options import is_schedule_time_enabled
@@ -602,6 +603,23 @@ class MaintenanceCalendar(CalendarEntity):
     def is_live(self) -> bool:
         """Added to Home Assistant and not removed since."""
         return self.hass is not None and not self._removed
+
+    async def async_added_to_hass(self) -> None:
+        """Live again whenever it is added, including added back.
+
+        Before Home Assistant 2026.11, renaming the calendar's entity_id
+        removes it and adds the same object again. ``_removed`` stayed set and
+        the global entry's registration was gone, so the coordinators stopped
+        repainting the calendar until the next reload (#214).
+        """
+        await super().async_added_to_hass()
+        self._removed = False
+        self._hass.data.setdefault(DOMAIN, {})["_calendar_entity"] = self
+
+    @callback
+    def async_entity_id_changed(self, old_entity_id: str) -> None:
+        """Renamed in place (HA 2026.11, #214): nothing here is keyed on its own entity_id."""
+        entity_id_changed(super(), old_entity_id)
 
     async def async_will_remove_from_hass(self) -> None:
         """Stop the coordinators repainting a removed calendar.

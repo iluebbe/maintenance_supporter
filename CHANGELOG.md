@@ -17,6 +17,11 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Battery percentages are only red when low:** every percentage in the battery fleet was red, a full battery in
   *Needed soon* included, because the number used to appear only in *Buy now*. It now takes the colour of the bar
   next to it: red at or below the battery's own threshold, orange just above it, plain text when healthy.
+- **The maintenance calendar keeps updating after a rename:** renaming the calendar's entity ID made Home
+  Assistant remove it and add it back, and the calendar then counted itself as removed: new, completed and
+  rescheduled tasks no longer reached it until Home Assistant restarted or the integration was reloaded. It picks
+  up again at once now. From Home Assistant 2026.11 a renamed entity is changed in place instead of being removed
+  and added back; every entity of the integration takes part in that already.
 - **Task rows line up on their first line:** in the task list each cell was centred on its own, and the due cell
   is a stack (date, then bar, sensor value and the small chart), so in sensor rows the date sat up to 24 px above
   the type next to it. Status, object, task, type, date and the button labels now share one line, and what a cell

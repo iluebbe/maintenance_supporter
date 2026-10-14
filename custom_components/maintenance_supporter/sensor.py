@@ -38,6 +38,7 @@ from .const import (
 )
 from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
+from .entity.id_change import entity_id_changed
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .entity.triggers import BaseTrigger, create_triggers, normalize_entity_ids
 from .helpers.aggregate import object_slug as aggregate_object_slug
@@ -343,6 +344,11 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             attrs["confidence_interval_high"] = analysis.get("confidence_interval_high")
 
         return attrs
+
+    @callback
+    def async_entity_id_changed(self, old_entity_id: str) -> None:
+        """Renamed in place (HA 2026.11, #214): nothing here is keyed on its own entity_id."""
+        entity_id_changed(super(), old_entity_id)
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass, set up triggers if configured."""
@@ -729,6 +735,11 @@ class PartStockSensor(MaintenanceEntity, SensorEntity):
         result: dict[str, Any] = parts.get(self._part_id, {})
         return result
 
+    @callback
+    def async_entity_id_changed(self, old_entity_id: str) -> None:
+        """Renamed in place (HA 2026.11, #214): nothing here is keyed on its own entity_id."""
+        entity_id_changed(super(), old_entity_id)
+
     async def async_added_to_hass(self) -> None:
         """Subscribe to stock-change notifications."""
         await super().async_added_to_hass()
@@ -813,6 +824,11 @@ class PartsToReorderSensor(SensorEntity):
             hass=hass,
         )
 
+    @callback
+    def async_entity_id_changed(self, old_entity_id: str) -> None:
+        """Renamed in place (HA 2026.11, #214): nothing here is keyed on its own entity_id."""
+        entity_id_changed(super(), old_entity_id)
+
     async def async_added_to_hass(self) -> None:
         """Subscribe to stock-change notifications (any entry)."""
         await super().async_added_to_hass()
@@ -869,6 +885,11 @@ class BatteryFleetLowSensor(SensorEntity):
             entry_type=DeviceEntryType.SERVICE,
         )
         self.entity_id = async_generate_entity_id(ENTITY_ID_FORMAT, "maintenance_supporter_batteries_to_replace", hass=hass)
+
+    @callback
+    def async_entity_id_changed(self, old_entity_id: str) -> None:
+        """Renamed in place (HA 2026.11, #214): nothing here is keyed on its own entity_id."""
+        entity_id_changed(super(), old_entity_id)
 
     async def async_added_to_hass(self) -> None:
         """Refresh on Battery Notes threshold/replaced/increased events, and
@@ -1036,6 +1057,11 @@ class DocumentStorageSensor(SensorEntity):
             "maintenance_supporter_document_storage",
             hass=hass,
         )
+
+    @callback
+    def async_entity_id_changed(self, old_entity_id: str) -> None:
+        """Renamed in place (HA 2026.11, #214): nothing here is keyed on its own entity_id."""
+        entity_id_changed(super(), old_entity_id)
 
     async def async_added_to_hass(self) -> None:
         """Subscribe to document-change notifications."""

@@ -33,6 +33,7 @@ from .const import (
 )
 from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
+from .entity.id_change import entity_id_changed
 from .helpers.aggregate import object_slug as aggregate_object_slug
 from .helpers.coordinator_data import has_coordinator_data
 from .helpers.status import compute_status_from_task_dict
@@ -126,6 +127,11 @@ class MaintenanceBinarySensor(MaintenanceEntity, BinarySensorEntity):
             "next_due": task.get("_next_due"),
             "parent_object": self._object_data.get("name"),
         }
+
+    @callback
+    def async_entity_id_changed(self, old_entity_id: str) -> None:
+        """Renamed in place (HA 2026.11, #214): nothing here is keyed on its own entity_id."""
+        entity_id_changed(super(), old_entity_id)
 
     async def async_added_to_hass(self) -> None:
         """Register for task reset signals for immediate updates."""

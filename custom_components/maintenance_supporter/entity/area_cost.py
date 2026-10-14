@@ -47,6 +47,7 @@ from ..const import (
 from ..helpers.aggregate import get_object_entries
 from ..helpers.area_costs import AreaCost, entry_cost, object_area_id
 from ..helpers.global_options import global_option
+from .id_change import entity_id_changed
 from .summary_coordinator import MaintenanceSummaryCoordinator
 
 KINDS = ("total", "year")
@@ -113,6 +114,11 @@ class AreaCostSensor(SensorEntity):
         if self._kind != "year":
             return None
         return dt_util.start_of_local_day(date(dt_util.now().year, 1, 1))
+
+    @callback
+    def async_entity_id_changed(self, old_entity_id: str) -> None:
+        """Renamed in place (HA 2026.11, #214): nothing here is keyed on its own entity_id."""
+        entity_id_changed(super(), old_entity_id)
 
     async def async_added_to_hass(self) -> None:
         """Place the sensor in its area — once, so a later move sticks."""
