@@ -2,6 +2,31 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **The battery fleet's columns line up:** the *replaced* button sat one column further left on rows without a
+  percentage (offline devices, Battery Notes without a sensor) than on rows with one, 40 px apart in the same
+  list. It now has one column on every row. The right-hand columns (percentage, button, date, hide) also have the
+  same width in *Buy now*, *Needed soon* and the full list, so the dates of the three lists end at one edge.
+- **A passed battery forecast keeps its date:** when the expected replacement date of a battery has passed but
+  the battery still reports healthy, the fleet showed today's date for it, every day anew, because the days left
+  are held at 0 for sorting. It now shows the date the forecast actually ran out, with the warning sign as before.
+  The fleet overview's rows carry that forecast unclamped as `forecast_days` (negative once passed).
+- **Battery percentages are only red when low:** every percentage in the battery fleet was red, a full battery in
+  *Needed soon* included, because the number used to appear only in *Buy now*. It now takes the colour of the bar
+  next to it: red at or below the battery's own threshold, orange just above it, plain text when healthy.
+- **Task rows line up on their first line:** in the task list each cell was centred on its own, and the due cell
+  is a stack (date, then bar, sensor value and the small chart), so in sensor rows the date sat up to 24 px above
+  the type next to it. Status, object, task, type, date and the button labels now share one line, and what a cell
+  stacks below hangs underneath. On a phone a date that wraps in its narrow column ends flush right like the bar
+  under it.
+- **Long task lists no longer freeze while scrolling:** above 120 tasks the list only draws the rows on screen and
+  estimates the rest from a row height. It took that height from whichever row came first after every redraw,
+  and with rows of different heights (a sensor row is taller) the estimate could flip between two values for
+  good, which froze the page. The height is now the mean of the rows on screen, taken once per scroll.
+
 ## [2.103.0] - 2026-10-13
 
 ### ✨ Added

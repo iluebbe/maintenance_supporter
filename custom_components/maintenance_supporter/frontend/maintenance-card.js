@@ -589,6 +589,10 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
   }
 
   .due-text { font-size: 13px; }
+  /* The cell is right-aligned; a date that wraps in a narrow column
+     ("63 d / overdue") ends flush right like the bar and the value under it,
+     instead of starting each line at a different spot from row to row. */
+  .due-cell .due-text { text-align: end; }
   /* D#203: a task without a due date shows when it was last done — muted,
      so it never reads as a status. */
   .due-text.last-done { color: var(--secondary-text-color); }
@@ -5212,7 +5216,7 @@ ${h?`<div class="sub">${h}</div>`:""}
       font-size: 14px;
       max-width: 320px;
     }
-  `,c([f({attribute:!1})],oe.prototype,"hass",2),c([u()],oe.prototype,"_config",2),c([u()],oe.prototype,"_objects",2),c([u()],oe.prototype,"_loadingObjects",2),c([u()],oe.prototype,"_loadError",2),c([u()],oe.prototype,"_views",2);customElements.get("maintenance-supporter-card-editor")||customElements.define("maintenance-supporter-card-editor",oe);Rs();C();async function xl(r,s,e,t){try{let i=await r.connection.sendMessagePromise({type:"maintenance_supporter/task/undo",entry_id:s,task_id:e});return{ok:!0,message:n(i?.action_ran?"undo_done_action_ran":"undo_done",t)}}catch(i){let a=i?.code;return a==="changed_since"?{ok:!1,message:n("undo_changed",t)}:a==="nothing_to_undo"?{ok:!1,message:n("undo_nothing",t)}:{ok:!1,message:n("action_error",t)}}}function Kn(r,s,e,t,i){let a=(o,d)=>r.dispatchEvent(new CustomEvent("hass-notification",{detail:d?{message:o,action:d,duration:1e4}:{message:o},bubbles:!0,composed:!0}));a(n("task_completed_named",t).replace("{task}",e.taskName),{text:n("undo",t),action:()=>{xl(s,e.entryId,e.taskId,t).then(o=>{a(o.message),o.ok&&i()})}})}R();j();R();j();C();As();Se();et();st();ee();$i();var z=class z extends E{constructor(){super(...arguments);this.flat=!1;this._ov=null;this._loading=!1;this._marking=!1;this._error="";this._history=null;this._rosterSort=z._storedSort();this._typeFilter=null;this._recorded=[];this._access=he;this._historyRequested=!1;this._localeReady=!1;this._markAll=async()=>{await this._mark(void 0)};this._repair=async()=>{await this._act({type:"maintenance_supporter/battery_fleet/setup",language:this._lang})};this._loadHistory=async e=>{let t=e.target.open;if(Dt(Ae.batteryRosterOpen,t?"1":"0"),!(!t||this._historyRequested)){this._historyRequested=!0;try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/battery_fleet/overview_history"});this._history=i.series}catch{this._history=null}}}}get _lang(){return P(this.hass)}get _canWrite(){return ae(this.hass?.user,this._access)}connectedCallback(){super.connectedCallback(),this.hass&&this._load()}updated(e){si(this,e),e.has("hass")&&this.hass&&!this._localeReady&&(this._localeReady=!0,ue(this._lang).then(()=>this.requestUpdate()),B(this.hass).then(t=>{this._access=t.access}),this._ov===null&&!this._loading&&this._load())}async _load(){this._error="";let e=await D(this,{type:"maintenance_supporter/battery_fleet/overview"},{busy:t=>{this._loading=t},onError:t=>{this._error=t}});e!==void 0&&(this._ov=e)}async _act(e,t){this._marking||(this._error="",await D(this,e,{busy:i=>{this._marking=i},reload:async()=>{t?.(),await this._load()},onError:i=>{this._error=i}}))}async _mark(e){await this._act({type:"maintenance_supporter/battery_fleet/mark_replaced",...e?{entity_ids:e}:{}})}async _setExcluded(e,t){await this._act({type:"maintenance_supporter/battery_fleet/set_excluded",entity_id:e,excluded:t})}async _addBattery(e){let t=e.detail?.value;t&&await this._act({type:"maintenance_supporter/battery_fleet/set_included",entity_id:t,included:!0})}async _setTrackSelf(e){await this._setFleetOption("set_track_self_charging",e.target.checked)}async _setDueWithoutSensor(e){await this._setFleetOption("set_due_without_sensor",e.target.checked)}async _setFleetOption(e,t){await this._act({type:`maintenance_supporter/battery_fleet/${e}`,enabled:t})}_rosterOpen(){return jt(Ae.batteryRosterOpen)!=="0"}_predictedTitle(e,t){if(e.forecast_overdue)return n("battery_fleet_forecast_overdue",t);let i=this._predictedDate(e.days_until??0);if(e.predicted_source==="trend")return n("battery_fleet_predicted_trend",t).replace("{date}",i).replace("{confidence}",n("cal_confidence_"+(e.prediction_confidence||"medium"),t));if(e.lifetime_months!=null&&e.lifetime_source){let a=n("lifetime_source_"+e.lifetime_source,t).replace("{n}",String(e.lifetime_samples??0));return n("battery_fleet_predicted_typical",t).replace("{date}",i).replace("{months}",String(e.lifetime_months)).replace("{type}",e.battery_type).replace("{source}",a)}return n("battery_fleet_predicted_on",t).replace("{date}",i)}_sparkline(e){let t=this._history?.[e.entity_id];if(!t||t.points.length<2)return p;let i=110,a=24,o=2,d=t.points[0][0],h=t.points[t.points.length-1][0],_=Date.now()/1e3,m=e.status!=="low"&&e.predicted_source==="trend"&&e.days_until!=null?_+e.days_until*86400:null,b=Math.max(h,m??h),k=O=>b===d?o:o+(O-d)/(b-d)*(i-2*o),w=O=>o+(1-Math.min(100,Math.max(0,O))/100)*(a-2*o),v=t.points.map(([O,G])=>`${A(k(O))},${A(w(G))}`).join(" "),x=t.points[t.points.length-1][1],T=A(w(t.threshold));return l`<svg
+  `,c([f({attribute:!1})],oe.prototype,"hass",2),c([u()],oe.prototype,"_config",2),c([u()],oe.prototype,"_objects",2),c([u()],oe.prototype,"_loadingObjects",2),c([u()],oe.prototype,"_loadError",2),c([u()],oe.prototype,"_views",2);customElements.get("maintenance-supporter-card-editor")||customElements.define("maintenance-supporter-card-editor",oe);Rs();C();async function xl(r,s,e,t){try{let i=await r.connection.sendMessagePromise({type:"maintenance_supporter/task/undo",entry_id:s,task_id:e});return{ok:!0,message:n(i?.action_ran?"undo_done_action_ran":"undo_done",t)}}catch(i){let a=i?.code;return a==="changed_since"?{ok:!1,message:n("undo_changed",t)}:a==="nothing_to_undo"?{ok:!1,message:n("undo_nothing",t)}:{ok:!1,message:n("action_error",t)}}}function Kn(r,s,e,t,i){let a=(o,d)=>r.dispatchEvent(new CustomEvent("hass-notification",{detail:d?{message:o,action:d,duration:1e4}:{message:o},bubbles:!0,composed:!0}));a(n("task_completed_named",t).replace("{task}",e.taskName),{text:n("undo",t),action:()=>{xl(s,e.entryId,e.taskId,t).then(o=>{a(o.message),o.ok&&i()})}})}R();j();R();j();C();As();Se();et();st();ee();$i();var z=class z extends E{constructor(){super(...arguments);this.flat=!1;this._ov=null;this._loading=!1;this._marking=!1;this._error="";this._history=null;this._rosterSort=z._storedSort();this._typeFilter=null;this._recorded=[];this._access=he;this._historyRequested=!1;this._localeReady=!1;this._markAll=async()=>{await this._mark(void 0)};this._repair=async()=>{await this._act({type:"maintenance_supporter/battery_fleet/setup",language:this._lang})};this._loadHistory=async e=>{let t=e.target.open;if(Dt(Ae.batteryRosterOpen,t?"1":"0"),!(!t||this._historyRequested)){this._historyRequested=!0;try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/battery_fleet/overview_history"});this._history=i.series}catch{this._history=null}}}}get _lang(){return P(this.hass)}get _canWrite(){return ae(this.hass?.user,this._access)}connectedCallback(){super.connectedCallback(),this.hass&&this._load()}updated(e){si(this,e),e.has("hass")&&this.hass&&!this._localeReady&&(this._localeReady=!0,ue(this._lang).then(()=>this.requestUpdate()),B(this.hass).then(t=>{this._access=t.access}),this._ov===null&&!this._loading&&this._load())}async _load(){this._error="";let e=await D(this,{type:"maintenance_supporter/battery_fleet/overview"},{busy:t=>{this._loading=t},onError:t=>{this._error=t}});e!==void 0&&(this._ov=e)}async _act(e,t){this._marking||(this._error="",await D(this,e,{busy:i=>{this._marking=i},reload:async()=>{t?.(),await this._load()},onError:i=>{this._error=i}}))}async _mark(e){await this._act({type:"maintenance_supporter/battery_fleet/mark_replaced",...e?{entity_ids:e}:{}})}async _setExcluded(e,t){await this._act({type:"maintenance_supporter/battery_fleet/set_excluded",entity_id:e,excluded:t})}async _addBattery(e){let t=e.detail?.value;t&&await this._act({type:"maintenance_supporter/battery_fleet/set_included",entity_id:t,included:!0})}async _setTrackSelf(e){await this._setFleetOption("set_track_self_charging",e.target.checked)}async _setDueWithoutSensor(e){await this._setFleetOption("set_due_without_sensor",e.target.checked)}async _setFleetOption(e,t){await this._act({type:`maintenance_supporter/battery_fleet/${e}`,enabled:t})}_rosterOpen(){return jt(Ae.batteryRosterOpen)!=="0"}_predictedTitle(e,t){if(e.forecast_overdue)return n("battery_fleet_forecast_overdue",t);let i=this._predictedDate(this._forecastDays(e)??0);if(e.predicted_source==="trend")return n("battery_fleet_predicted_trend",t).replace("{date}",i).replace("{confidence}",n("cal_confidence_"+(e.prediction_confidence||"medium"),t));if(e.lifetime_months!=null&&e.lifetime_source){let a=n("lifetime_source_"+e.lifetime_source,t).replace("{n}",String(e.lifetime_samples??0));return n("battery_fleet_predicted_typical",t).replace("{date}",i).replace("{months}",String(e.lifetime_months)).replace("{type}",e.battery_type).replace("{source}",a)}return n("battery_fleet_predicted_on",t).replace("{date}",i)}_sparkline(e){let t=this._history?.[e.entity_id];if(!t||t.points.length<2)return p;let i=110,a=24,o=2,d=t.points[0][0],h=t.points[t.points.length-1][0],_=Date.now()/1e3,m=e.status!=="low"&&e.predicted_source==="trend"&&e.days_until!=null?_+e.days_until*86400:null,b=Math.max(h,m??h),k=O=>b===d?o:o+(O-d)/(b-d)*(i-2*o),w=O=>o+(1-Math.min(100,Math.max(0,O))/100)*(a-2*o),v=t.points.map(([O,G])=>`${A(k(O))},${A(w(G))}`).join(" "),x=t.points[t.points.length-1][1],T=A(w(t.threshold));return l`<svg
       class="bf-spark"
       viewBox="0 0 ${i} ${a}"
       role="img"
@@ -5228,14 +5232,14 @@ ${h?`<div class="sub">${h}</div>`:""}
             x2=${A(k(m))}
             y2=${T}
           ></line>`:p}
-    </svg>`}static _storedSort(){return jt(Ae.batteryRosterSort)==="name"?"name":"urgency"}_setSort(e){this._rosterSort=e,Dt(Ae.batteryRosterSort,e)}_sortedRoster(e){let t=this._typeFilter===null?e:e.filter(a=>a.battery_type===this._typeFilter);if(this._rosterSort==="name")return t;let i=a=>a.status==="low"?-1e3+(a.level??101)/101:a.days_until??1/0;return[...t].sort((a,o)=>i(a)-i(o)||a.device_name.localeCompare(o.device_name))}_predictedDate(e){return H(Qr(we(),e),this._lang)}_fmtDate(e){return Number.isFinite(e)?H(new Date(e).toISOString(),this._lang):"\u2014"}_shoppingLine(e){return Object.entries(e).map(([t,i])=>l`<button
+    </svg>`}static _storedSort(){return jt(Ae.batteryRosterSort)==="name"?"name":"urgency"}_setSort(e){this._rosterSort=e,Dt(Ae.batteryRosterSort,e)}_sortedRoster(e){let t=this._typeFilter===null?e:e.filter(a=>a.battery_type===this._typeFilter);if(this._rosterSort==="name")return t;let i=a=>a.status==="low"?-1e3+(a.level??101)/101:a.days_until??1/0;return[...t].sort((a,o)=>i(a)-i(o)||a.device_name.localeCompare(o.device_name))}_predictedDate(e){return H(Qr(we(),e),this._lang)}_forecastDays(e){return e.forecast_days!==void 0?e.forecast_days:e.days_until}_fmtDate(e){return Number.isFinite(e)?H(new Date(e).toISOString(),this._lang):"\u2014"}_shoppingLine(e){return Object.entries(e).map(([t,i])=>l`<button
         class="bf-type-chip ${this._typeFilter===t?"bf-type-chip-active":""}"
         title=${n("battery_fleet_filter_type",this._lang)}
         @click=${()=>this._toggleTypeFilter(t)}
       >
         ${i}× ${t}
-      </button>`)}_toggleTypeFilter(e){if(this._typeFilter=this._typeFilter===e?null:e,this._typeFilter!==null){let t=this.shadowRoot?.querySelector("details.bf-roster");t&&!t.open&&(t.open=!0)}}async _recordJump(e,t){await this._act({type:"maintenance_supporter/battery_fleet/record_replacement",entity_id:e,replaced_at:new Date(t.at*1e3).toISOString()},()=>{this._recorded=[...this._recorded,e]})}_levelBar(e){let t=e.level;if(t==null)return p;let i=e.low_threshold??20,a=t<=i?"bad":t<=i+20?"warn":"good";return l`<span class="bf-bar" aria-hidden="true"
-      ><span class="bf-bar-fill bf-bar-${a}" style="width: ${Math.min(100,Math.max(0,t))}%"></span
+      </button>`)}_toggleTypeFilter(e){if(this._typeFilter=this._typeFilter===e?null:e,this._typeFilter!==null){let t=this.shadowRoot?.querySelector("details.bf-roster");t&&!t.open&&(t.open=!0)}}async _recordJump(e,t){await this._act({type:"maintenance_supporter/battery_fleet/record_replacement",entity_id:e,replaced_at:new Date(t.at*1e3).toISOString()},()=>{this._recorded=[...this._recorded,e]})}_levelTone(e,t){let i=t.low_threshold??20;return e<=i?"bad":e<=i+20?"warn":"good"}_levelBar(e){let t=e.level;return t==null?p:l`<span class="bf-bar" aria-hidden="true"
+      ><span class="bf-bar-fill bf-bar-${this._levelTone(t,e)}" style="width: ${Math.min(100,Math.max(0,t))}%"></span
     ></span>`}_jumpButton(e,t){let i=this._history?.[e.entity_id]?.jump;return!i||this._recorded.includes(e.entity_id)?p:l`<button
       class="bf-mark bf-jump"
       title=${n("battery_fleet_record_replacement",t).replace("{date}",this._fmtDate(i.at*1e3))}
@@ -5243,7 +5247,7 @@ ${h?`<div class="sub">${h}</div>`:""}
       @click=${()=>this._recordJump(e.entity_id,i)}
     >
       <ha-icon icon="mdi:calendar-sync"></ha-icon>
-    </button>`}_renderRow(e,t,i){let a=e.available===!1?l`<span class="bf-offline">${n("battery_fleet_offline",t)}</span>`:e.no_sensor?l`<span class="bf-offline bf-nosensor">${n("battery_fleet_no_sensor",t)}</span>`:p,o=`${e.quantity}\xD7 ${e.battery_type}`,d=l`<span class="bf-type" title=${o}>${o}</span>`,h=this._canWrite,_=h&&(i.mark==="always"||e.no_sensor||e.can_mark_replaced);return l`
+    </button>`}_renderRow(e,t,i){let a=e.available===!1?l`<span class="bf-offline">${n("battery_fleet_offline",t)}</span>`:e.no_sensor?l`<span class="bf-offline bf-nosensor">${n("battery_fleet_no_sensor",t)}</span>`:p,o=`${e.quantity}\xD7 ${e.battery_type}`,d=l`<span class="bf-type" title=${o}>${o}</span>`,h=this._canWrite,_=h&&(i.mark==="always"||e.no_sensor||e.can_mark_replaced),m=this._forecastDays(e);return l`
       <div class="bf-row">
         <span class="bf-dev">${e.device_name}</span>
         ${i.status?l`<span class="bf-status bf-${e.status}"
@@ -5254,7 +5258,7 @@ ${h?`<div class="sub">${h}</div>`:""}
             ></span>`:p}
         ${i.sparkline?this._sparkline(e):p}
         ${this._levelBar(e)}
-        ${e.level!=null?l`<span class="bf-level">${e.level}%</span>`:p}
+        ${e.level!=null?l`<span class="bf-level bf-level-${this._levelTone(e.level,e)}">${e.level}%</span>`:p}
         ${_?l`<button
               class="bf-mark${i.mark==="replaced"?" bf-replaced":""}"
               title=${e.rechargeable?n("battery_fleet_mark_recharged",t):n("battery_fleet_mark_one",t)}
@@ -5264,10 +5268,10 @@ ${h?`<div class="sub">${h}</div>`:""}
               <ha-icon icon="mdi:battery-sync"></ha-icon>
             </button>`:p}
         ${i.jump&&h?this._jumpButton(e,t):p}
-        ${i.predicted&&e.days_until!=null?l`<span
+        ${i.predicted&&m!=null?l`<span
               class="bf-predicted ${e.predicted_source==="trend"?"bf-trend":""} ${e.forecast_overdue?"bf-overdue":""}"
               title=${this._predictedTitle(e,t)}
-              >${e.forecast_overdue?l`<ha-icon icon="mdi:calendar-alert"></ha-icon>`:p}~${this._predictedDate(e.days_until)}</span
+              >${e.forecast_overdue?l`<ha-icon icon="mdi:calendar-alert"></ha-icon>`:p}~${this._predictedDate(m)}</span
             >`:p}
         ${i.exclude&&h?l`<button
               class="bf-mark bf-exclude"
@@ -5540,7 +5544,14 @@ ${h?`<div class="sub">${h}</div>`:""}
      * has no status chip, no sparkline, no date). */
     .bf-rows {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) repeat(9, max-content);
+      /* The right-hand columns (percentage, action, date, eye) have a
+       * minimum width, so they line up across the three lists ("Buy now",
+       * "Needed soon", the roster) although each list is a grid of its own
+       * and fills different columns - only the roster has the eye, and its
+       * dates used to end 32 px left of the soon list's. */
+      grid-template-columns:
+        minmax(0, 1fr) repeat(5, max-content)
+        minmax(40px, max-content) minmax(32px, max-content) minmax(92px, max-content) minmax(32px, max-content);
       column-gap: 8px;
     }
     .bf-row {
@@ -5586,23 +5597,15 @@ ${h?`<div class="sub">${h}</div>`:""}
       grid-column: 7;
       justify-self: end;
     }
+    /* Every row action, the Replaced one included, sits in column 8. The
+     * Replaced action used to take the empty percentage slot on sensorless
+     * rows (D#162, while nothing else filled column 8) and column 8 on rows
+     * with a percentage (since 2.79), so it jumped 40 px between
+     * neighbouring rows (prod report 2026-10-13). Rows with a percentage
+     * fill column 8 anyway, so one column for all costs no width. The
+     * narrow layout below gives Replaced a slot of its own. */
     .bf-row .bf-mark {
       grid-column: 8;
-    }
-    /* D#162: the sensorless row's Replaced action sits in the percentage
-     * slot (always empty for such a row) instead of the row-action column
-     * - a new max-content track there widens EVERY row via the subgrid
-     * and pushed the phone roster 34 px past its edge. */
-    .bf-row .bf-mark.bf-replaced {
-      grid-column: 7;
-      justify-self: end;
-    }
-    /* D#162 (maisun's iPhone): since 2.79 rows WITH a level offer Replaced
-     * too — level and button shared column 7 and overlapped. With a
-     * percentage present the button takes the row-action column instead. */
-    .bf-row .bf-level + .bf-mark.bf-replaced {
-      grid-column: 8;
-      justify-self: start;
     }
     .bf-predicted {
       grid-column: 9;
@@ -5722,7 +5725,7 @@ ${h?`<div class="sub">${h}</div>`:""}
       .bf-soon-rows .bf-row:has(.bf-level) .bf-dev {
         grid-column: 1 / 9;
       }
-      .bf-row .bf-level + .bf-mark.bf-replaced {
+      .bf-row .bf-mark.bf-replaced {
         grid-row: 2;
         grid-column: 7;
         justify-self: end;
@@ -5809,9 +5812,18 @@ ${h?`<div class="sub">${h}</div>`:""}
       border-color: var(--primary-color);
       color: var(--primary-color);
     }
+    /* The number takes the bar's colour. It was red on every row, from the
+     * days it only showed in the low list; the soon list and the roster
+     * show it too, and a full battery read as an alarm there (prod report
+     * 2026-10-13). A healthy level is plain text. */
     .bf-level {
       font-size: 12px;
+    }
+    .bf-level-bad {
       color: var(--error-color, #f44336);
+    }
+    .bf-level-warn {
+      color: var(--warning-color, #ff9800);
     }
     .bf-mark {
       background: transparent;

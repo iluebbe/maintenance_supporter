@@ -293,8 +293,8 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (44,569 lines)  132 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
-│   ├── maintenance-panel.ts     (5,340 lines)  Panel shell: today / dashboard / calendar / settings tabs,
+├── frontend-src/               (44,638 lines)  132 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+│   ├── maintenance-panel.ts     (5,357 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,263 lines)  Auto-generated dashboard strategy + 4 section strategies
 │   ├── maintenance-card.ts        (860 lines)  Lovelace card
@@ -303,9 +303,9 @@ custom_components/maintenance_supporter/
 │   ├── maintenance-strategy-shim.ts (441 lines)  Zero-import boot shim: defines the dashboard AND the four
 │   │                                           section strategy tags synchronously (lazy-loads the bundle on
 │   │                                           first generate(); v2.73.0), picker entries, scoped-registry self-heal
-│   ├── panel-styles.ts          (2,165 lines)  Panel-specific CSS
+│   ├── panel-styles.ts          (2,188 lines)  Panel-specific CSS
 │   ├── calendar-styles.ts         (208 lines)  Calendar-card CSS
-│   ├── styles.ts                (1,761 lines)  Shared CSS, i18n runtime loader (bundled EN + on-demand fetch
+│   ├── styles.ts                (1,765 lines)  Shared CSS, i18n runtime loader (bundled EN + on-demand fetch
 │   │                                           of the other 21) + shared helpers; the ONLY module that formats
 │   │                                           dates, times and numbers (HA profile date_format/time_format/
 │   │                                           number_format via the __msDateTimePrefs singleton) — tripwired
@@ -399,7 +399,7 @@ custom_components/maintenance_supporter/
 │   │   ├── sparkline.ts           (515 lines)  Trigger section renderer (task detail)
 │   │   ├── status.ts               (62 lines)  A task's status as the user sees it — THE derivation for every surface
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
-│   ├── components/             (19,926 lines)  37 files — Lit elements: dialogs, sections, views, cards
+│   ├── components/             (19,951 lines)  37 files — Lit elements: dialogs, sections, views, cards
 │   │   ├── task-dialog.ts       (3,755 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
 │   │   ├── settings-view.ts     (2,780 lines)  In-panel global settings editor
 │   │   ├── task-quick-actions-dialog.ts (937 lines)  Task ⋮ menu
@@ -408,7 +408,7 @@ custom_components/maintenance_supporter/
 │   │   ├── complete-dialog.ts     (838 lines)  Mark task complete
 │   │   ├── qr-dialog.ts           (478 lines)  QR code generation
 │   │   ├── adopt-problem-sensors-dialog.ts (638 lines)  Adopt HA problem sensors
-│   │   ├── battery-fleet-section.ts (1,214 lines)  Task-detail battery-fleet section
+│   │   ├── battery-fleet-section.ts (1,239 lines)  Task-detail battery-fleet section
 │   │   ├── trigger-chart.ts       (389 lines)  Responsive sensor-history chart of the task detail
 │   │   ├── storage-section-card.ts (380 lines)  Document-storage overview card (panel overview)
 │   │   ├── task-documents.ts      (346 lines)  Documents linked to a task — or (v2.26) to a spare part
@@ -437,9 +437,9 @@ custom_components/maintenance_supporter/
 │   │   ├── required-completion-labels.ts (27 lines)  Labels of the details a task can demand on completion (mirror of helpers/completion_requirements.py)
 │   │   ├── bulk-edit-dialog.ts    (266 lines)  Several tasks changed at once (discussion #199): who is assigned, their labels, and the few settings that make sense in bulk
 │   │   └── ms-cost-input.ts       (109 lines)  A cost that may be a credit (#200): a Cost | Credit switch and the amount
-│   └── __tests__/              (28,269 lines)  205 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (28,683 lines)  206 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (32,314 lines)  102 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+├── helpers/                    (32,323 lines)  102 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,580 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (367 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
@@ -452,7 +452,7 @@ custom_components/maintenance_supporter/
 │   ├── document_text.py           (451 lines)  Full-text index over the blobs: pypdf text layer → sidecar + inverted index (#171)
 │   ├── search_match.py            (212 lines)  Tolerant matcher (fold, digraph variants, one-edit typos, AND rule) — TS twin in the panel
 │   ├── reference_numbers.py       (310 lines)  Object / task / completion reference numbers (#170): counters, creation-order assignment
-│   ├── battery_fleet.py         (1,678 lines)  Battery Notes aggregation, native-battery fallback, forecast
+│   ├── battery_fleet.py         (1,687 lines)  Battery Notes aggregation, native-battery fallback, forecast
 │   ├── parts.py                   (680 lines)  Spare-parts rules: GTIN, stock transitions, buy-task reconciler
 │   ├── shared_parts.py            (259 lines)  Pools shared across objects (#111): borrower lookup, owner-deletion transfer
 │   ├── todo_mirror.py             (431 lines)  TodoMirror (2.87, D#183): per-task `mirror_todo_entities`, rows kept in sync from the
@@ -770,7 +770,7 @@ Battery Notes-style setups have 30–70+ battery devices. One maintenance task p
 - **48 h native retention.** A dead battery often takes its device offline, which would make the entity vanish exactly when it matters most. For the native path a battery last seen *low* stays in the fleet from its last-known snapshot for `_NATIVE_RETENTION = 48 h` before it drops out. (The Battery Notes path gets this for free — its sensor keeps reporting.)
 - **Forecast.** `TYPICAL_LIFETIME_MONTHS` holds editorial service-life estimates per type (AA 12, D 24, CR2032 18, …; `DEFAULT_LIFETIME_MONTHS = 12` for unknown types); predicted replacement is `battery_last_replaced + lifetime`, and "needed soon" looks `DEFAULT_HORIZON_DAYS = 28` ahead. `build_overview` is a pure builder taking plain dicts plus an injected `today`, so the forecast is unit-testable against synthetic dates; `read_batteries` is the thin HA-reading adapter.
 - **Setup is one click and idempotent.** `helpers/battery_fleet_setup.py` creates ONE object whose **parts** are the battery types present (so the existing stock/reorder machinery handles ordering) and ONE task, "Replace low batteries", hanging off the fixed aggregate sensor `sensor.maintenance_supporter_batteries_to_replace` via an ordinary threshold trigger. `OBJECT_FLAG` / `TASK_FLAG` markers make the panel render the fleet section and guarantee a second fleet is never created.
-- Self-charging devices (vacuums, mowers, `mobile_app` phones/tablets — `_is_self_charging`, #107) are skipped entirely — in BOTH passes: a Battery Notes note no longer overrides the skip, because Battery Notes auto-discovers such devices from its library. Rechargeable battery TYPES (`is_rechargeable_type`: Rechargeable/Li-ion/NiMH/power- and battery-packs) stay in the roster for low tracking but never enter `needs_now`/`needs_soon`, never become a type-part at setup (`discover_battery_types` skips them, and the typeless UNKNOWN bucket with them — an "UNKNOWN battery" part with an Amazon-search buy link helps no one), and get no type-lifetime date — only a trend-earned one. Any battery can be manually excluded (`battery_fleet/set_excluded`). WS: `battery_fleet/overview | overview_history | setup | mark_replaced | set_excluded`; UI: `components/battery-fleet-section.ts`, rendered **first** inside the task detail view. The roster draws per-battery **sparklines** from `battery_fleet/overview_history` (30 d downsampled level series + the battery's own `low_threshold` — ONE `Battery` field feeds the trend regression, the sparkline threshold line and the level-bar colors alike; fetched lazily on roster expand, recorder work 6 h-cached like the trend): a solid level line, a faint threshold line, and — on trend-dated rows — a dotted projection from the last reading down to the threshold, ending exactly where the ~date comes from. The roster sorts by urgency by default (#123: lows by level ascending, then days-until; toggle to name, choice persisted in localStorage); low rechargeable rows label the mark action "recharged"; the shopping-line type chips filter the roster; rows carry a small level bar colored against the row's own threshold (red at/below it, amber in a 20-point approach band). The history response also flags **unrecorded swaps** (`_detect_unrecorded_jump`: a ≥25-point upward step whose date is not within ±2 days of `battery_last_replaced`; rechargeables exempt — they jump on every charge) with the source `device_id`, and the panel offers a one-click `battery_notes.set_battery_replaced` at the detected time — re-anchoring the forecast on the real replacement instead of the dead battery's date.
+- Self-charging devices (vacuums, mowers, `mobile_app` phones/tablets — `_is_self_charging`, #107) are skipped entirely — in BOTH passes: a Battery Notes note no longer overrides the skip, because Battery Notes auto-discovers such devices from its library. Rechargeable battery TYPES (`is_rechargeable_type`: Rechargeable/Li-ion/NiMH/power- and battery-packs) stay in the roster for low tracking but never enter `needs_now`/`needs_soon`, never become a type-part at setup (`discover_battery_types` skips them, and the typeless UNKNOWN bucket with them — an "UNKNOWN battery" part with an Amazon-search buy link helps no one), and get no type-lifetime date — only a trend-earned one. Any battery can be manually excluded (`battery_fleet/set_excluded`). WS: `battery_fleet/overview | overview_history | setup | mark_replaced | set_excluded`; UI: `components/battery-fleet-section.ts`, rendered **first** inside the task detail view. The roster draws per-battery **sparklines** from `battery_fleet/overview_history` (30 d downsampled level series + the battery's own `low_threshold` — ONE `Battery` field feeds the trend regression, the sparkline threshold line and the level-bar colors alike; fetched lazily on roster expand, recorder work 6 h-cached like the trend): a solid level line, a faint threshold line, and — on trend-dated rows — a dotted projection from the last reading down to the threshold, ending exactly where the ~date comes from. The roster sorts by urgency by default (#123: lows by level ascending, then days-until; toggle to name, choice persisted in localStorage); low rechargeable rows label the mark action "recharged"; the shopping-line type chips filter the roster; rows carry a small level bar and the percentage beside it, both colored against the row's own threshold by one `_levelTone` (red at/below it, amber in a 20-point approach band, a healthy number plain). A forecast that passed on a still-healthy battery stays in `soon` with `days_until` clamped to 0 for the sort; the row's `forecast_days` keeps it unclamped and the ~date is drawn from that, so it shows the day the forecast ran out rather than today. The history response also flags **unrecorded swaps** (`_detect_unrecorded_jump`: a ≥25-point upward step whose date is not within ±2 days of `battery_last_replaced`; rechargeables exempt — they jump on every charge) with the source `device_id`, and the panel offers a one-click `battery_notes.set_battery_replaced` at the detected time — re-anchoring the forecast on the real replacement instead of the dead battery's date.
 
 ### Object ↔ device attachment
 

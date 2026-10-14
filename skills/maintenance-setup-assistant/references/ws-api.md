@@ -1055,9 +1055,14 @@ total, low, soon, all, needs_now:{type:count}, needs_soon:{…}, types,
 excluded:[{entity_id,device_name}], track_self_charging, due_without_sensor}`.
 `all` is the full roster (#113): every
 tracked battery as `{entity_id, device_name, battery_type, quantity, level,
-days_until, available, predicted_source, prediction_confidence, rechargeable,
-low_threshold, forecast_overdue, no_sensor, last_replaced, status}` with status
-`low|soon|ok`. `no_sensor` (2.75+, D#162) marks a Battery Notes note whose
+days_until, forecast_days, available, predicted_source, prediction_confidence,
+rechargeable, low_threshold, forecast_overdue, no_sensor, last_replaced, status}`
+with status `low|soon|ok`. `days_until` of a `soon` row never goes below 0: a
+forecast that has passed on a battery still reporting healthy is clamped to 0
+with `forecast_overdue` true (it sorts first and never escalates to `low`).
+`forecast_days` is the same forecast unclamped, negative once it has
+passed, and null where the row shows no forecast; the panel draws the ~date
+from it. `no_sensor` (2.75+, D#162) marks a Battery Notes note whose
 device has NO battery level at all — the row is read from the note's
 `…_battery_type` sensor (`entity_id` is that sensor), `level` is null, it is
 never offline, and `last_replaced` (ISO date or null) is the forecast's

@@ -634,7 +634,7 @@ The fleet task's detail view is the whole surface:
   forever — is kept for exactly this: the date is all the fallback needs, so
   those batteries surface here instead of dropping out unseen. A prediction
   whose date has **passed while the battery still reports healthy** shows a
-  warn-tinted calendar hint instead of a negative countdown — deliberately
+  warn-tinted calendar hint with the date it ran out — deliberately
   never counted as low and never firing the task (forecasts carry error
   bars; the sensor says fine): the usual cause is a swap that was never
   recorded, which the hint's tooltip points at.
@@ -651,9 +651,10 @@ The fleet task's detail view is the whole surface:
   choice is remembered per browser. On a low rechargeable
   the mark action reads *mark as recharged*. The **shopping quantities are
   clickable**: tapping "4× AAA" filters the roster to the devices that need
-  them. Every row carries a small **level bar** next to the percentage,
+  them. Every row carries a small **level bar** next to the percentage, both
   colored against the battery's **own** low threshold (a sensor whose note
-  warns at 35 % turns red at 35, not at a hard-coded 20), and
+  warns at 35 % turns red at 35, not at a hard-coded 20; a healthy level is
+  plain text), and
   when the history shows a big upward step that was never recorded — fresh
   cells went in, but nobody pressed Battery Notes' *replaced* button, so the
   forecast still anchors on the dead battery's date — an amber **record this

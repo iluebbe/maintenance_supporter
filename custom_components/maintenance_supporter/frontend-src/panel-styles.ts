@@ -221,6 +221,29 @@ export const panelStyles = css`
     transition: background 0.15s;
   }
 
+  /* One-line rows line up on their FIRST TEXT LINE, not on their middles.
+     The due cell is a stack (date, then bar, sensor value, sparkline) and
+     "center" centred the whole stack, so in sensor rows the date sat 11-24 px
+     above the type next to it. Baseline alignment puts status, object, task,
+     type, date and the button labels on one line; whatever a cell stacks
+     below hangs underneath. Only the one-line layout: narrow, tight and the
+     768 px fallback lay their rows out in two lines of their own. */
+  @media (min-width: 769px) {
+    :host(:not([narrow]):not([tight])) .task-row { align-items: first baseline; }
+    /* The status pill starts with its icon, which has no text, so the pill
+       took its baseline from the icon's bottom edge and sat 3.5 px off the
+       line. The label is the taller item, so this does not move it inside
+       the pill. */
+    :host(:not([narrow]):not([tight])) .task-row .status-label { align-self: baseline; }
+    /* Icon-only actions have no text, so they would hang off their bottom
+       edge. A zero-width character in their vertical middle gives the pair
+       a baseline, and the buttons centre on the text line. */
+    :host(:not([narrow]):not([tight])) .row-actions:not(.as-buttons)::before {
+      content: "\\200b";
+      margin-inline-end: -2px;
+    }
+  }
+
   /* Virtualized task table (large installs): only the scroll window of rows
      is in the DOM. The spacers span all columns and carry the off-window
      height so the scrollbar stays honest. The sizer row is invisible and

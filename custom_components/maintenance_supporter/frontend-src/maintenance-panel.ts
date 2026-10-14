@@ -355,6 +355,9 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _virtStart = 0;
   @state() private _virtEnd = 0; // 0 = uninitialized → initial slice
   private _virtRowHeight = 53;
+  /** Set by the first render and by every scroll/resize: the next window
+   *  pass may re-measure the row height (see _updateVirtualWindow). */
+  private _virtMeasure = true;
   private _virtTotalRows = 0;
   private _virtScrollAttached = false;
   private _virtRaf = 0;
@@ -619,8 +622,9 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     // Virtualized task table: attach the scroll listener once `.content`
     // exists (lit keeps the node stable across renders), then reconcile the
-    // window with the just-rendered DOM (row-height probe + clamps). Only
-    // sets state when the window actually moved, so this can't loop.
+    // window with the just-rendered DOM (clamps). Only sets state when the
+    // window actually moved, and the row-height estimate holds still until
+    // the next scroll or resize, so this can't loop.
     const content = this.shadowRoot?.querySelector(".content");
     if (content && !this._virtScrollAttached) {
       content.addEventListener("scroll", this._onVirtualScroll, { passive: true });
@@ -715,6 +719,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   /** rAF-throttled scroll/resize handler for the virtualized task table. */
   private _onVirtualScroll = (): void => {
+    this._virtMeasure = true;
     if (this._virtRaf) return;
     this._virtRaf = requestAnimationFrame(() => {
       this._virtRaf = 0;
@@ -728,10 +733,22 @@ export class MaintenanceSupporterPanel extends LitElement {
     const content = this.shadowRoot?.querySelector<HTMLElement>(".content");
     const table = this.shadowRoot?.querySelector<HTMLElement>(".task-table.virtual");
     if (!content || !table) return;
-    // Probe the real row height from a rendered row (uniform rows; the
-    // hidden sizer row is height 0 and excluded).
-    const probe = table.querySelector<HTMLElement>(".task-row:not(.virt-sizer)");
-    if (probe && probe.offsetHeight > 20) this._virtRowHeight = probe.offsetHeight;
+    // The row-height estimate is the mean of the rendered rows (the hidden
+    // sizer row is height 0 and excluded), taken on the first render and
+    // after each scroll or resize, never from the render the new window
+    // caused. Rows are not uniform: a sensor row carries a value and a
+    // sparkline under its date. Probing the first row after every render
+    // fed a loop: window A measured a short row, the new estimate moved the
+    // window to B, B's first row was a tall one, the estimate moved it back
+    // to A, and the page froze (2026-10-13, a 125-task install).
+    if (this._virtMeasure) {
+      const rows = [...table.querySelectorAll<HTMLElement>(".task-row:not(.virt-sizer)")];
+      const mean = rows.length ? rows.reduce((n, r) => n + r.offsetHeight, 0) / rows.length : 0;
+      if (mean > 20) {
+        if (Math.abs(mean - this._virtRowHeight) >= 2) this._virtRowHeight = Math.round(mean);
+        this._virtMeasure = false;
+      }
+    }
     const listTop =
       table.getBoundingClientRect().top - content.getBoundingClientRect().top + content.scrollTop;
     const w = computeWindow({

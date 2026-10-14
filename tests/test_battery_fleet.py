@@ -966,6 +966,37 @@ def test_forecast_overdue_stays_soon_never_low():
     assert all_rows["Fresh"]["forecast_overdue"] is False
 
 
+def test_forecast_days_keep_the_passed_date():
+    """Prod report 2026-10-13: the roster dated every overdue row from the
+    clamped ``days_until`` (0), so each one read today's date and moved on by
+    a day every day. ``forecast_days`` is the same forecast unclamped; the
+    clamp stays for the sort and the horizon (B1)."""
+    today = date(2026, 10, 13)
+    last = date(2023, 1, 10)
+    bats = [
+        _bat("Stale", "AA", qty=2, low=False, level=100, last=last),
+        _bat("Fresh", "AA", low=False, level=90, last=today),
+        _bat("Dead", "AA", low=True, level=5, last=last),
+        _bat("Trend", "AA", low=False, level=40, last=today),
+    ]
+    ov = build_overview(bats, today=today, trend_predictions={"sensor.Trend_battery_plus": (9, "high")})
+    rows = {r["device_name"]: r for r in ov.all}
+    soon = {r["device_name"]: r for r in ov.soon}
+
+    m = last.month + lifetime_months("AA")
+    ran_out = date(last.year + (m - 1) // 12, (m - 1) % 12 + 1, last.day)
+    assert ran_out < today, "the fixture's forecast has passed"
+    for label, row in (("soon", soon["Stale"]), ("roster", rows["Stale"])):
+        assert row["days_until"] == 0, f"{label}: still clamped for the sort (B1)"
+        assert row["forecast_overdue"] is True
+        assert today + timedelta(days=row["forecast_days"]) == ran_out, f"{label}: the date it ran out"
+    # Where nothing has passed, both numbers are the same.
+    assert rows["Fresh"]["forecast_days"] == rows["Fresh"]["days_until"] > 0
+    assert soon["Trend"]["forecast_days"] == soon["Trend"]["days_until"] == 9
+    # A battery reported low shows no forecast at all.
+    assert rows["Dead"]["forecast_days"] is None and rows["Dead"]["days_until"] is None
+
+
 # ─── sensorless notes (discussion #162) ───────────────────────────────────
 
 
@@ -1083,6 +1114,7 @@ async def test_sensorless_note_passed_forecast_is_due_by_default(hass):
     low = ov.low[0]
     assert low["entity_id"] == "sensor.hall_temp_battery_type"
     assert low["days_until"] is not None and low["days_until"] < 0
+    assert low["forecast_days"] == low["days_until"], "the roster dates from forecast_days"
     assert low["forecast_overdue"] is True and low["no_sensor"] is True
     rows = {r["entity_id"]: r for r in ov.all}
     assert rows["sensor.hall_temp_battery_type"]["status"] == "low"

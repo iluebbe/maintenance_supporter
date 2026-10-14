@@ -13,7 +13,8 @@ import { expect, fixture, html } from "@open-wc/testing";
 import "../components/battery-fleet-section.js";
 import type { MaintenanceBatteryFleetSection } from "../components/battery-fleet-section";
 import { createMockHass } from "./_test-utils.js";
-import { setProfilePrefs } from "../styles";
+import { formatDate, setProfilePrefs } from "../styles";
+import { addDaysIso, haToday } from "../helpers/ha-time";
 import { setViewport } from "@web/test-runner-commands";
 
 const LOW = {
@@ -541,7 +542,7 @@ describe("battery fleet sensorless notes (discussion #162)", () => {
     expect(rowOf(r, "Front Lock").querySelector("button.bf-mark:not(.bf-exclude)"), "sensor rows keep the jump-only slot").to.equal(null);
     const btn = rowOf(r, "Hall Temp").querySelector<HTMLButtonElement>("button.bf-mark:not(.bf-exclude)")!;
     expect(btn.getAttribute("title")).to.match(/replaced/i);
-    expect(btn.classList.contains("bf-replaced"), "pinned to the empty percentage column").to.equal(true);
+    expect(btn.classList.contains("bf-replaced"), "the Replaced action, not the low list's mark").to.equal(true);
     btn.click();
     await new Promise((r2) => setTimeout(r2, 0));
     const call = calls.find((c) => c.type === "maintenance_supporter/battery_fleet/mark_replaced");
@@ -610,3 +611,165 @@ describe("battery fleet: a household member without write access (audit 2026-09-
   });
 });
 
+// Prod report 2026-10-13: the Replaced action jumped 40 px between rows with
+// and without a percentage (column 7 vs 8), and the three lists put their
+// action and date columns at different x - only the roster has the eye.
+describe("battery fleet: actions and dates line up", () => {
+  const WITH_LEVEL = {
+    entity_id: "sensor.motion_bath_battery_plus", device_name: "Motion Bath",
+    battery_type: "AAA", quantity: 2, level: 100, days_until: 0, forecast_overdue: true,
+    predicted_source: "typical", can_mark_replaced: true,
+  };
+  const OFFLINE = {
+    entity_id: "sensor.window_hall_battery_plus", device_name: "Window Hall",
+    battery_type: "CR1632", quantity: 1, level: null, available: false, days_until: 0, forecast_overdue: true,
+    predicted_source: "typical", can_mark_replaced: true,
+  };
+  const LATER = {
+    entity_id: "sensor.leak_cellar_battery_plus", device_name: "Leak Cellar",
+    battery_type: "AAA", quantity: 2, level: 66, days_until: 170, predicted_source: "trend",
+    prediction_confidence: "high", can_mark_replaced: true,
+  };
+  const ov = () => overview({
+    total: 4,
+    soon: [WITH_LEVEL, OFFLINE],
+    needs_soon: { AAA: 2, CR1632: 1 },
+    all: [{ ...LOW, status: "low" }, { ...WITH_LEVEL, status: "soon" }, { ...OFFLINE, status: "soon" }, { ...LATER, status: "ok" }],
+    types: ["AA", "AAA", "CR1632"],
+  });
+  const lists = (el: MaintenanceBatteryFleetSection) => {
+    const sr = el.shadowRoot!;
+    const [buy, soon] = [...sr.querySelectorAll(".bf-card > .bf-rows")];
+    return { buy, soon, all: roster(el)!.querySelector(".bf-rows")! };
+  };
+  const row = (list: Element, name: string) =>
+    [...list.querySelectorAll<HTMLElement>(".bf-row")].find((r) => r.textContent!.includes(name))!;
+  const x = (el: Element | null, edge: "left" | "right" = "left") => Math.round(el!.getBoundingClientRect()[edge]);
+  const replaced = (r: Element) => r.querySelector(".bf-mark.bf-replaced");
+
+  afterEach(async () => {
+    await setViewport({ width: 800, height: 600 });
+  });
+
+  it("desktop: Replaced sits in one column with or without a percentage, and every list's action, date and eye share their x", async () => {
+    await setViewport({ width: 1200, height: 900 });
+    const { el } = await mount(ov());
+    const { buy, soon, all } = lists(el);
+    for (const [label, list] of [["soon", soon], ["roster", all]] as const) {
+      const a = replaced(row(list, "Motion Bath")), b = replaced(row(list, "Window Hall"));
+      expect(a && b, `${label}: both rows offer Replaced`).to.be.ok;
+      expect(x(b), `${label}: offline row's Replaced vs the row with a percentage`).to.equal(x(a));
+      expect(getComputedStyle(b!).gridColumnStart, `${label}: the row-action column`).to.equal("8");
+    }
+    const action = x(replaced(row(soon, "Motion Bath")));
+    expect(x(replaced(row(all, "Leak Cellar"))), "roster action = soon action").to.equal(action);
+    expect(x(row(buy, "Front Lock").querySelector(".bf-mark:not(.bf-exclude)")), "buy-now action = soon action").to.equal(action);
+    const dateRight = x(row(soon, "Motion Bath").querySelector(".bf-predicted"), "right");
+    expect(x(row(all, "Motion Bath").querySelector(".bf-predicted"), "right"), "roster date ends where the soon date ends").to.equal(dateRight);
+    expect(x(row(all, "Leak Cellar").querySelector(".bf-predicted"), "right"), "a date without the overdue icon too").to.equal(dateRight);
+    expect(x(row(buy, "Front Lock").querySelector(".bf-exclude")), "buy-now eye = roster eye")
+      .to.equal(x(row(all, "Leak Cellar").querySelector(".bf-exclude")));
+  });
+
+  it("phone: Replaced keeps one slot with or without a percentage", async () => {
+    await setViewport({ width: 400, height: 860 });
+    const { el } = await mount(ov());
+    const { soon, all } = lists(el);
+    for (const [label, list] of [["soon", soon], ["roster", all]] as const) {
+      const a = replaced(row(list, "Motion Bath"))!, b = replaced(row(list, "Window Hall"))!;
+      expect(getComputedStyle(b).gridColumnStart, `${label}: the percentage slot on line 2`).to.equal("7");
+      expect(getComputedStyle(b).gridRowStart, `${label}: line 2`).to.equal("2");
+      expect(x(b), `${label}: same x as the row with a percentage`).to.equal(x(a));
+      expect(x(b, "right") <= x(list, "right") + 1, `${label}: inside the list`).to.equal(true);
+    }
+  });
+});
+
+// Prod report 2026-10-13: every overdue row in "Needed soon" read today's
+// date (the server clamps days_until to 0 for a passed forecast, B1), and
+// every percentage was red, a full battery included.
+describe("battery fleet: a passed forecast and the percentage's colour", () => {
+  const PASSED = {
+    entity_id: "sensor.motion_bath_battery_plus", device_name: "Motion Bath",
+    battery_type: "AAA", quantity: 2, level: 100, days_until: 0, forecast_days: -40,
+    forecast_overdue: true, predicted_source: "typical", low_threshold: 20,
+  };
+  const BAND = {
+    entity_id: "sensor.thermo_battery_plus", device_name: "Thermo",
+    battery_type: "CR2032", quantity: 1, level: 50, days_until: 12, forecast_days: 12,
+    predicted_source: "typical", low_threshold: 35,
+  };
+  const ov = () => overview({
+    total: 4,
+    soon: [PASSED, BAND],
+    needs_soon: { AAA: 2, CR2032: 1 },
+    all: [{ ...LOW, status: "low" }, { ...PASSED, status: "soon" }, { ...BAND, status: "soon" }, { ...HEALTHY, status: "ok" }],
+    types: ["AA", "AAA", "CR2032", "Li-ion"],
+  });
+  const dateIn = (days: number) => `~${formatDate(addDaysIso(haToday(), days), "en")}`;
+  const rowIn = (list: Element, name: string) =>
+    [...list.querySelectorAll<HTMLElement>(".bf-row")].find((r) => r.querySelector(".bf-dev")!.textContent!.trim() === name)!;
+
+  it("a passed forecast shows its own date, not today's, in the soon list and the roster", async () => {
+    const { el } = await mount(ov());
+    const sr = el.shadowRoot!;
+    for (const [label, list] of [["soon", sr.querySelector(".bf-soon-rows")!], ["roster", roster(el)!]] as const) {
+      const chip = rowIn(list, "Motion Bath").querySelector(".bf-predicted")!;
+      expect(chip.classList.contains("bf-overdue"), `${label}: still marked overdue`).to.equal(true);
+      expect(chip.textContent!.trim(), `${label}: the date the forecast ran out`).to.equal(dateIn(-40));
+      expect(chip.textContent!.trim(), `${label}: not today`).to.not.equal(dateIn(0));
+      expect(rowIn(list, "Thermo").querySelector(".bf-predicted")!.textContent!.trim(), `${label}: a future one unchanged`).to.equal(dateIn(12));
+    }
+  });
+
+  it("a server from before forecast_days still dates from days_until", async () => {
+    const oldPassed: Record<string, unknown> = { ...PASSED };
+    const oldBand: Record<string, unknown> = { ...BAND };
+    delete oldPassed.forecast_days;
+    delete oldBand.forecast_days;
+    const { el } = await mount(overview({
+      total: 2, soon: [oldPassed, oldBand],
+      all: [{ ...oldPassed, status: "soon" }, { ...oldBand, status: "soon" }],
+    }));
+    const r = roster(el)!;
+    expect(rowIn(r, "Thermo").querySelector(".bf-predicted")!.textContent!.trim()).to.equal(dateIn(12));
+    expect(rowIn(r, "Motion Bath").querySelector(".bf-predicted")!.textContent!.trim()).to.equal(dateIn(0));
+  });
+
+  it("the percentage takes its bar's colour: plain when healthy, amber in the band, red at the threshold", async () => {
+    const { el } = await mount(ov());
+    const sr = el.shadowRoot!;
+    const lowList = sr.querySelector(".bf-rows")!;
+    const cases: Array<[string, Element, string, string]> = [
+      ["soon, 100 %", sr.querySelector(".bf-soon-rows")!, "Motion Bath", "good"],
+      ["soon, 50 % at threshold 35", sr.querySelector(".bf-soon-rows")!, "Thermo", "warn"],
+      ["low, 8 %", lowList, "Front Lock", "bad"],
+      ["roster, 100 %", roster(el)!, "Motion Bath", "good"],
+      ["roster, 96 %", roster(el)!, "Robot Vacuum", "good"],
+      ["roster, 8 %", roster(el)!, "Front Lock", "bad"],
+    ];
+    const tone = (name: string) => {
+      const probe = document.createElement("span");
+      probe.style.color = name;
+      sr.appendChild(probe);
+      const c = getComputedStyle(probe).color;
+      probe.remove();
+      return c;
+    };
+    const red = tone("var(--error-color, #f44336)");
+    const amber = tone("var(--warning-color, #ff9800)");
+    for (const [label, list, name, want] of cases) {
+      const row = rowIn(list, name);
+      const level = row.querySelector<HTMLElement>(".bf-level")!;
+      expect(row.querySelector(".bf-bar-fill")!.className, `${label}: the bar`).to.contain(`bf-bar-${want}`);
+      expect(level.className, `${label}: the number agrees with its bar`).to.contain(`bf-level-${want}`);
+      const color = getComputedStyle(level).color;
+      if (want === "bad") expect(color, `${label}: red`).to.equal(red);
+      else if (want === "warn") expect(color, `${label}: amber`).to.equal(amber);
+      else {
+        expect(color, `${label}: plain text, no alarm`).to.equal(getComputedStyle(row).color);
+        expect(color, `${label}: not red`).to.not.equal(red);
+      }
+    }
+  });
+});

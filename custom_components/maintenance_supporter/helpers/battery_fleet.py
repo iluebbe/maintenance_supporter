@@ -300,7 +300,8 @@ def build_overview(
             source, confidence = "typical", None
         # B1 (decided 2026-08): a PASSED prediction while the battery still
         # reports healthy is "forecast overdue" — it stays in `soon` (clamped
-        # to 0 days, no negative countdowns) and NEVER escalates into `low`
+        # to 0 days, no negative countdowns; `forecast_days` keeps the real,
+        # passed date for the roster) and NEVER escalates into `low`
         # or the task trigger: the forecast has error bars, the sensor says
         # fine, and the usual cause is a swap that was never recorded (the
         # roster's unrecorded-swap hint covers exactly that). Reality fires
@@ -313,7 +314,7 @@ def build_overview(
             # why it is due: keep the (negative) days and the overdue flag so
             # the roster can show the date the prediction ran out.
             if bat.no_sensor:
-                low_row = _row(bat, t, days_raw, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue, lifetime=info)
+                low_row = _row(bat, t, days_raw, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue, lifetime=info, forecast_days=days_raw)
             else:
                 low_row = _row(bat, t, None, rechargeable=rechargeable, lifetime=info)
             ov.low.append(low_row)
@@ -322,12 +323,13 @@ def build_overview(
             ov.all.append({**low_row, "status": "low"})
             continue
         if days is not None and days <= horizon_days:
-            ov.soon.append(_row(bat, t, days, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue, lifetime=info))
+            soon_row = _row(bat, t, days, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue, lifetime=info, forecast_days=days_raw)
+            ov.soon.append(soon_row)
             if shoppable:
                 ov.needs_soon[t] = ov.needs_soon.get(t, 0) + bat.quantity
-            ov.all.append({**_row(bat, t, days, source, confidence, rechargeable=rechargeable, forecast_overdue=overdue, lifetime=info), "status": "soon"})
+            ov.all.append({**soon_row, "status": "soon"})
             continue
-        ov.all.append({**_row(bat, t, days, source, confidence, rechargeable=rechargeable, lifetime=info), "status": "ok"})
+        ov.all.append({**_row(bat, t, days, source, confidence, rechargeable=rechargeable, lifetime=info, forecast_days=days_raw), "status": "ok"})
 
     ov.soon.sort(key=lambda r: r["days_until"] if r["days_until"] is not None else 1 << 30)
     ov.types = sorted(types_seen)
@@ -346,6 +348,7 @@ def _row(
     rechargeable: bool = False,
     forecast_overdue: bool = False,
     lifetime: LifetimeInfo | None = None,
+    forecast_days: int | None = None,
 ) -> dict[str, Any]:
     return {
         "entity_id": bat.entity_id,
@@ -376,6 +379,12 @@ def _row(
         # carries error bars and the sensor says fine — but the roster shows
         # the discrepancy (common cause: a swap that was never recorded).
         "forecast_overdue": forecast_overdue,
+        # The same forecast, NOT clamped: negative once the date has passed.
+        # `days_until` holds at 0 for the sort and the horizon (B1), so a
+        # roster that dated from it showed today's date on every overdue row,
+        # moving on by a day each day (prod report 2026-10-13). The ~date is
+        # drawn from this one; null where the row shows no forecast.
+        "forecast_days": forecast_days,
         # D#162: no level source at all — the roster shows a "No sensor" chip
         # instead of a level bar, and the replaced button is the row's action.
         "no_sensor": bat.no_sensor,

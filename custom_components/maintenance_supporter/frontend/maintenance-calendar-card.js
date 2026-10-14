@@ -589,6 +589,10 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
   }
 
   .due-text { font-size: 13px; }
+  /* The cell is right-aligned; a date that wraps in a narrow column
+     ("63 d / overdue") ends flush right like the bar and the value under it,
+     instead of starting each line at a different spot from row to row. */
+  .due-cell .due-text { text-align: end; }
   /* D#203: a task without a due date shows when it was last done — muted,
      so it never reads as a status. */
   .due-text.last-done { color: var(--secondary-text-color); }

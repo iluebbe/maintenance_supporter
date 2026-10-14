@@ -38,6 +38,10 @@ interface BatteryRow {
    *  healthy. Never escalates to low/task — the row just shows the
    *  discrepancy (usual cause: an unrecorded swap). */
   forecast_overdue?: boolean;
+  /** The forecast in days, NOT clamped: negative once the date has passed.
+   *  `days_until` holds at 0 for overdue rows (B1, sorting), so the ~date
+   *  is drawn from this one. */
+  forecast_days?: number | null;
   /** D#162: a Battery Notes note whose device has NO battery level at
    *  all — read from its type sensor. No level bar, never offline; the
    *  forecast is the whole signal and (option) a passed one is `low`. */
@@ -235,7 +239,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
    *  replacements)" (D#162 follow-up). */
   private _predictedTitle(b: BatteryRow, L: string): string {
     if (b.forecast_overdue) return t("battery_fleet_forecast_overdue", L);
-    const date = this._predictedDate(b.days_until ?? 0);
+    const date = this._predictedDate(this._forecastDays(b) ?? 0);
     if (b.predicted_source === "trend") {
       return t("battery_fleet_predicted_trend", L)
         .replace("{date}", date)
@@ -344,6 +348,15 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     return formatDate(addDaysIso(haToday(), daysUntil), this._lang);
   }
 
+  /** The days the ~date is drawn from: the unclamped forecast, so a passed
+   *  one keeps its own date instead of reading "today" every day (prod
+   *  report 2026-10-13). `days_until` only covers a server from before
+   *  `forecast_days` (an update not yet restarted); it is the same number
+   *  wherever the forecast has not passed. */
+  private _forecastDays(b: BatteryRow): number | null {
+    return b.forecast_days !== undefined ? b.forecast_days : b.days_until;
+  }
+
   /** The calendar date of an epoch (a detected swap), in the HA profile
    *  date format and time zone (#163 — a direct Intl.DateTimeFormat call
    *  here ignored the profile and showed 9/2/2026 to a DD/MM/YYYY user). */
@@ -390,16 +403,20 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     );
   }
 
-  /** Purely visual level bar next to the number — scannable at a glance.
-   *  Colored against the battery's OWN low threshold: red at/below it,
-   *  amber inside a 20-point approach band, green above. */
+  /** How a level reads against the battery's OWN low threshold: "bad"
+   *  at/below it, "warn" inside a 20-point approach band, "good" above.
+   *  ONE judgement for the bar and the number beside it. */
+  private _levelTone(level: number, b: BatteryRow): "bad" | "warn" | "good" {
+    const t = b.low_threshold ?? 20;
+    return level <= t ? "bad" : level <= t + 20 ? "warn" : "good";
+  }
+
+  /** Purely visual level bar next to the number — scannable at a glance. */
   private _levelBar(b: BatteryRow) {
     const level = b.level;
     if (level == null) return nothing;
-    const t = b.low_threshold ?? 20;
-    const cls = level <= t ? "bad" : level <= t + 20 ? "warn" : "good";
     return html`<span class="bf-bar" aria-hidden="true"
-      ><span class="bf-bar-fill bf-bar-${cls}" style="width: ${Math.min(100, Math.max(0, level))}%"></span
+      ><span class="bf-bar-fill bf-bar-${this._levelTone(level, b)}" style="width: ${Math.min(100, Math.max(0, level))}%"></span
     ></span>`;
   }
 
@@ -425,8 +442,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
    *
    *  DOM order is load-bearing for the grid CSS: `.bf-status + .bf-type +
    *  .bf-offline` (the roster's chip sits AFTER the type, the low/soon
-   *  lists' BEFORE it), `.bf-level + .bf-mark.bf-replaced`, and the phone
-   *  layout's column assignments — keep it. */
+   *  lists' BEFORE it) and the phone layout's column assignments — keep it. */
   private _renderRow(
     b: FleetRow,
     L: string,
@@ -456,6 +472,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     const type = html`<span class="bf-type" title=${typeText}>${typeText}</span>`;
     const writer = this._canWrite;
     const showMark = writer && (o.mark === "always" || b.no_sensor || b.can_mark_replaced);
+    const days = this._forecastDays(b);
     return html`
       <div class="bf-row">
         <span class="bf-dev">${b.device_name}</span>
@@ -473,7 +490,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
           : nothing}
         ${o.sparkline ? this._sparkline(b) : nothing}
         ${this._levelBar(b)}
-        ${b.level != null ? html`<span class="bf-level">${b.level}%</span>` : nothing}
+        ${b.level != null ? html`<span class="bf-level bf-level-${this._levelTone(b.level, b)}">${b.level}%</span>` : nothing}
         ${showMark
           ? html`<button
               class="bf-mark${o.mark === "replaced" ? " bf-replaced" : ""}"
@@ -485,11 +502,11 @@ export class MaintenanceBatteryFleetSection extends LitElement {
             </button>`
           : nothing}
         ${o.jump && writer ? this._jumpButton(b, L) : nothing}
-        ${o.predicted && b.days_until != null
+        ${o.predicted && days != null
           ? html`<span
               class="bf-predicted ${b.predicted_source === "trend" ? "bf-trend" : ""} ${b.forecast_overdue ? "bf-overdue" : ""}"
               title=${this._predictedTitle(b, L)}
-              >${b.forecast_overdue ? html`<ha-icon icon="mdi:calendar-alert"></ha-icon>` : nothing}~${this._predictedDate(b.days_until)}</span
+              >${b.forecast_overdue ? html`<ha-icon icon="mdi:calendar-alert"></ha-icon>` : nothing}~${this._predictedDate(days)}</span
             >`
           : nothing}
         ${o.exclude && writer
@@ -821,7 +838,14 @@ export class MaintenanceBatteryFleetSection extends LitElement {
      * has no status chip, no sparkline, no date). */
     .bf-rows {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) repeat(9, max-content);
+      /* The right-hand columns (percentage, action, date, eye) have a
+       * minimum width, so they line up across the three lists ("Buy now",
+       * "Needed soon", the roster) although each list is a grid of its own
+       * and fills different columns - only the roster has the eye, and its
+       * dates used to end 32 px left of the soon list's. */
+      grid-template-columns:
+        minmax(0, 1fr) repeat(5, max-content)
+        minmax(40px, max-content) minmax(32px, max-content) minmax(92px, max-content) minmax(32px, max-content);
       column-gap: 8px;
     }
     .bf-row {
@@ -867,23 +891,15 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       grid-column: 7;
       justify-self: end;
     }
+    /* Every row action, the Replaced one included, sits in column 8. The
+     * Replaced action used to take the empty percentage slot on sensorless
+     * rows (D#162, while nothing else filled column 8) and column 8 on rows
+     * with a percentage (since 2.79), so it jumped 40 px between
+     * neighbouring rows (prod report 2026-10-13). Rows with a percentage
+     * fill column 8 anyway, so one column for all costs no width. The
+     * narrow layout below gives Replaced a slot of its own. */
     .bf-row .bf-mark {
       grid-column: 8;
-    }
-    /* D#162: the sensorless row's Replaced action sits in the percentage
-     * slot (always empty for such a row) instead of the row-action column
-     * - a new max-content track there widens EVERY row via the subgrid
-     * and pushed the phone roster 34 px past its edge. */
-    .bf-row .bf-mark.bf-replaced {
-      grid-column: 7;
-      justify-self: end;
-    }
-    /* D#162 (maisun's iPhone): since 2.79 rows WITH a level offer Replaced
-     * too — level and button shared column 7 and overlapped. With a
-     * percentage present the button takes the row-action column instead. */
-    .bf-row .bf-level + .bf-mark.bf-replaced {
-      grid-column: 8;
-      justify-self: start;
     }
     .bf-predicted {
       grid-column: 9;
@@ -1003,7 +1019,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       .bf-soon-rows .bf-row:has(.bf-level) .bf-dev {
         grid-column: 1 / 9;
       }
-      .bf-row .bf-level + .bf-mark.bf-replaced {
+      .bf-row .bf-mark.bf-replaced {
         grid-row: 2;
         grid-column: 7;
         justify-self: end;
@@ -1090,9 +1106,18 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       border-color: var(--primary-color);
       color: var(--primary-color);
     }
+    /* The number takes the bar's colour. It was red on every row, from the
+     * days it only showed in the low list; the soon list and the roster
+     * show it too, and a full battery read as an alarm there (prod report
+     * 2026-10-13). A healthy level is plain text. */
     .bf-level {
       font-size: 12px;
+    }
+    .bf-level-bad {
       color: var(--error-color, #f44336);
+    }
+    .bf-level-warn {
+      color: var(--warning-color, #ff9800);
     }
     .bf-mark {
       background: transparent;
