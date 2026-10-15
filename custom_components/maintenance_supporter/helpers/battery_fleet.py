@@ -142,6 +142,46 @@ def note_sibling_entity(hass: HomeAssistant, entity_id: str, *, domain: str, uid
     return None
 
 
+def _offline_note_attributes(hass: HomeAssistant, state: Any, *, binary: bool) -> dict[str, Any] | None:
+    """The attributes of a Battery Notes plus entity that lost them, rebuilt
+    from its siblings — or None when ``state`` is no such entity.
+
+    Battery Notes 3.7.2 makes ``…_battery_plus`` and ``…_battery_plus_low``
+    unavailable while their source is (unless the note's *retain state* is
+    on), and Home Assistant writes no attributes for an unavailable entity.
+    Up to 3.7.1 they read ``unknown`` and kept them. The note itself lives on
+    in its type sensor (type and quantity) and its last-replaced sensor, both
+    independent of the source, so the battery stays in the fleet as offline
+    with its forecast instead of vanishing when it most likely just died.
+    ``battery_low`` stays unknown here; the low latch carries it over.
+    """
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+
+    if str(state.state).lower() not in _NO_READING:
+        return None
+    reg = er.async_get(hass).async_get(state.entity_id)
+    suffix = "_battery_low" if binary else "_battery_plus"
+    if reg is None or reg.platform != "battery_notes" or not isinstance(reg.unique_id, str) or not reg.unique_id.endswith(suffix):
+        return None
+    attrs: dict[str, Any] = dict(state.attributes)
+    type_eid = note_sibling_entity(hass, state.entity_id, domain="sensor", uid_suffix="_battery_type")
+    type_state = hass.states.get(type_eid) if type_eid else None
+    if type_state is not None and _is_type_note(type_state):
+        attrs["battery_type"] = type_state.attributes.get("battery_type")
+        attrs["battery_quantity"] = type_state.attributes.get("battery_quantity")
+    else:
+        attrs["battery_type"] = "Unknown"
+    last_eid = note_sibling_entity(hass, state.entity_id, domain="sensor", uid_suffix="_battery_last_replaced")
+    last_state = hass.states.get(last_eid) if last_eid else None
+    if last_state is not None and str(last_state.state).lower() not in _NO_READING:
+        attrs["battery_last_replaced"] = last_state.state
+    device = dr.async_get(hass).async_get(reg.device_id) if reg.device_id else None
+    if device is not None and (device.name_by_user or device.name):
+        attrs["device_name"] = device.name_by_user or device.name
+    return attrs
+
+
 def _native_snapshot_cache(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
     """Runtime cache of last-known native battery readings (per entity_id)."""
     from ..const import DOMAIN
@@ -197,6 +237,10 @@ class Battery:
     # ``battery_recovered_percent`` (and no replacement was recorded) since
     # it went low. A level hovering around the floor stays ONE low episode.
     latched: bool = False
+    # The source entity of a Battery Notes ENTITY note ("" for a device note
+    # or a native row): ``set_battery_replaced`` reaches such a note only
+    # through it, by device it prefers the device's own note (BN 3.7.2).
+    note_source: str = ""
 
 
 @dataclass
@@ -530,8 +574,10 @@ def get_battery_auto_record_recovery(hass: HomeAssistant) -> bool:
 # date moves forward (a recorded replacement releases it at any level), or the
 # Replaced action / the record-replacement command releases it directly.
 #
-# Level-less rows (a low-only binary, a native binary battery) are NOT
-# latched: their binary saying "not low" is the all-clear, exactly as before.
+# Level-less rows are latched only to bridge an outage: a Battery Notes low
+# binary (#121) stays low while it is unavailable (Battery Notes 3.7.2 drops
+# its attributes then), and its "not low" is the all-clear once it reads
+# again. A native binary battery is not latched (it has the native retention).
 # Sensorless notes (D#162) leave ``low`` only when their forecast re-anchors.
 #
 # #205: each entry also keeps the low threshold it latched at. A threshold
@@ -603,6 +649,7 @@ def apply_low_latch(
     now_iso: str,
     eligible: set[str] | None = None,
     released_by_level: list[str] | None = None,
+    levelless: set[str] | None = None,
 ) -> bool:
     """Pure latch step: mutate ``bat.low``/``bat.latched`` and the ``latch``
     map in place. Returns True when the map changed (the caller persists).
@@ -623,13 +670,19 @@ def apply_low_latch(
     LEVEL alone — no newer replacement date on the note — which is the
     auto-record hook's input: a recorded date already counts as recorded.
 
+    ``levelless`` = ids without a level whose low comes from a binary (a
+    Battery Notes low binary, #121). They latch only to bridge an outage:
+    unavailable they stay low, and once they read again their "not low" is
+    the all-clear (never an auto-record: no level rose).
+
     Entries for batteries no longer in the fleet are dropped.
     """
     changed = False
     if eligible is None:
         eligible = {b.entity_id for b in batteries if b.level is not None and not b.no_sensor}
+    levelless = levelless or set()
     for bat in batteries:
-        if bat.entity_id not in eligible:
+        if bat.entity_id not in eligible and bat.entity_id not in levelless:
             continue
         last = bat.last_replaced.isoformat() if bat.last_replaced else None
         raw_entry = latch.get(bat.entity_id)
@@ -646,6 +699,10 @@ def apply_low_latch(
                 changed = True
             continue
         if entry is None:
+            continue
+        if bat.available and bat.entity_id in levelless:
+            del latch[bat.entity_id]
+            changed = True
             continue
         if bat.available and (_replaced_since(last, entry) or (bat.level is not None and bat.level > recovered)):
             if released_by_level is not None and not _replaced_since(last, entry):
@@ -692,7 +749,7 @@ def _latch_backend(hass: HomeAssistant) -> tuple[dict[str, Any], Callable[[], No
     return memory, lambda: None
 
 
-def _apply_low_latch(hass: HomeAssistant, batteries: list[Battery], eligible: set[str]) -> None:
+def _apply_low_latch(hass: HomeAssistant, batteries: list[Battery], eligible: set[str], levelless: set[str] | None = None) -> None:
     latch, save = _latch_backend(hass)
     released: list[str] = []
     if apply_low_latch(
@@ -702,6 +759,7 @@ def _apply_low_latch(hass: HomeAssistant, batteries: list[Battery], eligible: se
         now_iso=dt_util.utcnow().isoformat(),
         eligible=eligible,
         released_by_level=released,
+        levelless=levelless,
     ):
         # Persist BEFORE scheduling: the record path re-reads the fleet and
         # must see the entry gone (or it would release — and schedule — again).
@@ -862,9 +920,13 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
 
     * **Battery Notes** ``battery_plus`` sensors (device_class ``battery`` + a
       ``battery_type`` attribute) give the rich view: type, quantity, low,
-      last-replaced. When the source goes offline the sensor reads
-      unavailable/unknown but RETAINS its last-known ``battery_low`` — so a
-      dead battery that took its device offline stays visible. A device whose
+      last-replaced. When the source goes offline, Battery Notes up to
+      3.7.1 reads ``unknown`` and keeps its attributes; from 3.7.2 it reads
+      ``unavailable`` WITHOUT them (unless the note retains its state), and
+      the note is rebuilt from its type and last-replaced sensors
+      (:func:`_offline_note_attributes`) while the low latch keeps it low —
+      either way a dead battery that took its device offline stays visible.
+      A device whose
       source reports no percentage at all (a Matter lock with only a
       battery-low binary, #121) gets NO percentage sensor from Battery Notes —
       its metadata lives solely on the ``…_battery_plus_low`` BINARY, so a
@@ -942,8 +1004,14 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     covered_sources: set[str] = set()
     covered_devices: set[str] = set()
     # #180: rows whose ``low`` is decided by a LEVEL — the recovery latch
-    # applies to these only (a binary's "off" is its own all-clear).
+    # applies to these (a binary's "off" is its own all-clear) ...
     latch_eligible: set[str] = set()
+    # ... and Battery Notes' low binaries (#121), latched only to bridge an
+    # outage: unavailable they carry no low flag any more (BN 3.7.2).
+    latch_levelless: set[str] = set()
+    # A latched battery is never dropped as connectivity noise below: it was
+    # low, and going offline is no proof it was replaced.
+    latched_now = set(_latch_backend(hass)[0])
 
     # ── Pass 1: Battery Notes battery_plus ──────────────────────────────────
     # Percentage SENSORS first, then LOW-ONLY BINARIES (#121): a source with
@@ -962,9 +1030,16 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     note_devices_all: set[str] = set()
     for domain, binary_pass in (("sensor", False), ("binary_sensor", True)):
         for state in hass.states.async_all(domain):
-            attrs = state.attributes
-            if attrs.get("device_class") != "battery" or "battery_type" not in attrs:
+            attrs: dict[str, Any] = state.attributes
+            if attrs.get("device_class") != "battery":
                 continue
+            if "battery_type" not in attrs:
+                # Battery Notes 3.7.2: unavailable while its source is, and
+                # without attributes - rebuilt from the note's siblings.
+                rebuilt = _offline_note_attributes(hass, state, binary=binary_pass)
+                if rebuilt is None:
+                    continue
+                attrs = rebuilt
             if not binary_pass:
                 # EVERY matching percentage note counts as sibling coverage —
                 # kept, dropped or excluded: its low binary describes the same
@@ -994,6 +1069,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
                 level = None
                 available = state.state not in _NO_READING
                 low = bool(attrs.get("battery_low")) or str(state.state).lower() == "on"
+                latch_levelless.add(state.entity_id)
             else:
                 level = _level_of(state.state)
                 available = state.state not in _NO_READING and level is not None
@@ -1014,7 +1090,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             # Offline AND not low AND no date = pure connectivity noise → drop —
             # unless the user explicitly included THIS entity (#135): a stated
             # battery stays visible even while it reads like noise.
-            if not available and not low and last_replaced is None and state.entity_id not in included:
+            if not available and not low and last_replaced is None and state.entity_id not in included and state.entity_id not in latched_now:
                 continue
             # B3: only a KEPT note covers its source/device — a dropped dead note
             # must not suppress the native fallback for its own device (a device
@@ -1057,6 +1133,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
                     available=available,
                     source="battery_notes",
                     low_threshold=_note_low_threshold(attrs, floor),
+                    note_source=str(attrs.get("source_entity_id") or ""),
                 )
             )
 
@@ -1289,7 +1366,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     # #180: hold level-driven rows low until they clearly recover (or a
     # replacement is recorded) — AFTER every pass, so the sensor, the panel
     # overview and the Replaced action all see the same ``low``.
-    _apply_low_latch(hass, out, latch_eligible)
+    _apply_low_latch(hass, out, latch_eligible, latch_levelless)
     for bat in out:
         if bat.source == "battery_notes":
             bat.can_mark_replaced = has_replaced_button(hass, bat.entity_id)

@@ -484,7 +484,11 @@ async def async_record_replacement(hass: HomeAssistant, entity_id: str, replaced
     if bat is None:
         raise HomeAssistantError("not_found")
     reg = er.async_get(hass).async_get(entity_id)
-    if reg is None or not reg.device_id:
+    # An entity note is reached through its source entity: by device, Battery
+    # Notes (3.7.2) prefers the device's own note, and the date would land on
+    # another battery of the same device.
+    target = {"source_entity_id": bat.note_source} if bat.note_source else {"device_id": reg.device_id} if reg and reg.device_id else None
+    if target is None:
         raise HomeAssistantError("invalid_device")
     if not hass.services.has_service("battery_notes", "set_battery_replaced"):
         raise HomeAssistantError("not_available")
@@ -500,7 +504,7 @@ async def async_record_replacement(hass: HomeAssistant, entity_id: str, replaced
     await hass.services.async_call(
         "battery_notes",
         "set_battery_replaced",
-        {"device_id": reg.device_id, "datetime_replaced": parsed.isoformat()},
+        {**target, "datetime_replaced": parsed.isoformat()},
         blocking=False,
     )
     release_low_latch(hass, [entity_id])

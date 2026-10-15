@@ -716,10 +716,14 @@ triggered by a global `sensor.maintenance_supporter_batteries_to_replace`
 and it auto-completes when the count returns to zero.
 
 **Removed or offline batteries** are handled gracefully. A battery whose device
-goes *offline* (a dead battery often takes its whole device down) keeps its
-last-known low flag, so it stays visible in the list — marked *offline* — rather
-than silently vanishing when you most need to see it. A battery that is merely
-offline **without** being low is treated as connectivity noise and hidden. And a
+goes *offline* (a dead battery often takes its whole device down) stays low, so
+it stays visible in the list — marked *offline* — rather than silently vanishing
+when you most need to see it. This holds for every Battery Notes version: up to
+3.7.1 the note keeps its details while its source is offline, from 3.7.2 it
+loses them (unless the note retains its state) and the fleet takes the type,
+quantity and replacement date from the note's type and last-replaced sensors. A
+battery that is offline **without** being low keeps its forecast row when it has
+a replacement date; without one it is treated as connectivity noise and hidden. And a
 device that is fully **removed** from Home Assistant (unpaired, deleted) simply
 drops out of the aggregate on the next read — the low count falls, and the task
 auto-completes if nothing else is low. Marking is robust to a battery that

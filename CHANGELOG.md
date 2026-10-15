@@ -2,6 +2,22 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Batteries stay in the fleet when their device goes offline with Battery Notes 3.7.2:** Battery Notes 3.7.2
+  shows a note as *unavailable* while its battery's device is offline (before it showed *unknown*), and Home
+  Assistant then drops the note's details such as type, quantity and the low flag. The fleet lost such a battery
+  completely: a dead battery that took its device offline left *Buy now*, the shopping list and the count of low
+  batteries, and the fleet task could complete itself. The fleet now takes the details from the note's type and
+  last-replaced sensors and keeps a battery that was low counted as low until its device reports again. A battery
+  that was fine stays listed as offline with its forecast. Devices that report only a low binary are held the same
+  way while they are offline.
+- **A recorded replacement reaches the right note:** recording a detected battery swap sent the date to Battery
+  Notes by device, and Battery Notes 3.7.2 then picks the device's own note. A note on a single battery entity
+  of a device is now addressed through that entity.
+
 ## [2.103.1] - 2026-10-15
 
 ### 🐛 Fixed
