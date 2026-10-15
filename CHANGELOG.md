@@ -11,6 +11,14 @@ All notable changes to Maintenance Supporter are documented in this file.
   left it out since 2.56.0 (before, the entity was typed in and counters worked), and the setup flow never offered
   it. Both offer it now, also for the conditions of a combined trigger, where the setup flow had a shorter list
   than the dialog.
+- **More entities can trigger a sensor-based task:** the same picker left out entities the triggers read, so they
+  could no longer be chosen after 2.56.0: a selection (`select`, `input_select`) for a state change such as a
+  washer programme, a date (`input_datetime`, `date`, `datetime`) for the due-date trigger, a `timer` and an
+  `update`. A task that already watched one of them could not be saved in the trigger step of *Configure* without
+  picking another entity. Both are fixed.
+- **Any sensor can be the environmental sensor:** the picker offered only temperature, humidity and pressure
+  sensors, although the correlation works with any sensor that keeps statistics, such as fine dust for an air
+  filter or soil moisture for a garden task.
 
 ## [2.103.3] - 2026-10-15
 

@@ -182,9 +182,11 @@ class AdaptiveMixin:
                     default=current_adaptive.get(CONF_SENSOR_PREDICTION_ENABLED, True),
                 ): selector.BooleanSelector(),
                 env_key: selector.EntitySelector(
+                    # Any sensor with statistics feeds the correlation (fine
+                    # dust for an air filter, soil moisture), not only
+                    # temperature / humidity / pressure (audit after #215).
                     selector.EntitySelectorConfig(
                         domain=["sensor"],
-                        device_class=["temperature", "humidity", "pressure"],
                         multiple=False,
                     )
                 ),

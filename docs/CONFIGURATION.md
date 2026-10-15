@@ -420,7 +420,7 @@ Available when `advanced_adaptive_visible` is enabled globally. Configured per t
 | `min_interval_days` | int | 7 | 1–365 | Floor for adaptive interval recommendations |
 | `max_interval_days` | int | 365 | 1–3650 | Ceiling for adaptive interval recommendations |
 | `sensor_prediction_enabled` | bool | `false` | — | Enable sensor degradation analysis from recorder data |
-| `environmental_entity` | string | `""` | — | Entity ID of an environmental sensor (temperature, humidity) for correlation analysis. Editable in the **task dialog** for sensor-based tasks; persisted via `maintenance_supporter/task/set_environmental_entity`. |
+| `environmental_entity` | string | `""` | — | Entity ID of an environmental sensor for correlation analysis: any sensor with long-term statistics (temperature, humidity, fine dust, soil moisture; the pickers offered only temperature, humidity and pressure before 2.103.4). Editable in the **task dialog** for sensor-based tasks; persisted via `maintenance_supporter/task/set_environmental_entity`. |
 | `environmental_attribute` | string | `""` | — | Attribute name if monitoring an attribute instead of the entity state |
 | `seasonal_overrides` | dict | `{}` | month 1–12 → 0.1–5.0 | Manual per-month factor overrides. Editable via the "Edit seasonal factors" dialog opened below the seasonal chart; persisted via `maintenance_supporter/task/seasonal_overrides`. Empty = learned from history. |
 
@@ -524,7 +524,10 @@ Assistant was offline, which the delta counter can.
 
 ### State Change Trigger
 
-Activates after a specified number of state transitions.
+Activates after a specified number of state transitions. Any entity with
+states works, including a selection (`select` / `input_select`, e.g. a
+washer's programme switching to *descale*), a `timer` or an `update` that
+turns `on` when new firmware is available (2.103.4+).
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -556,7 +559,7 @@ Runtime hours are persisted every 5 minutes and survive restarts. Up to 5 minute
 
 ### Due Date Trigger (2.96+)
 
-For a sensor (or an attribute) that reports **when** the maintenance is due — a `timestamp` (ISO datetime; a naive one is local time) or a `date` (due at local midnight). Its reading is the days left until that date, negative once it has passed.
+For a sensor (or an attribute) that reports **when** the maintenance is due — a `timestamp` (ISO datetime; a naive one is local time) or a `date` (due at local midnight). Its reading is the days left until that date, negative once it has passed. A date helper or entity works the same way (`input_datetime` with a date, `date`, `datetime`; 2.103.4+), e.g. a due date you set by hand.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|

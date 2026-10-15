@@ -8,7 +8,6 @@ import { UserService } from "../user-service";
 import { partLinkKey } from "../helpers/shared-parts";
 import { MAX_READING_SLOTS, cleanReadingSlots, duplicateReadingSlotIds, newReadingSlotId } from "../helpers/reading-slots";
 import {
-  ENVIRONMENTAL_PICKER_DEVICE_CLASSES,
   ENVIRONMENTAL_PICKER_DOMAINS,
   TRIGGER_PICKER_DOMAINS,
 } from "../helpers/trigger-domains";
@@ -3216,10 +3215,7 @@ export class MaintenanceTaskDialog extends LitElement {
               .hass=${this.hass}
               .schema=${[{
                 name: "environmental_entity",
-                selector: { entity: {
-                  domain: ENVIRONMENTAL_PICKER_DOMAINS,
-                  device_class: ENVIRONMENTAL_PICKER_DEVICE_CLASSES,
-                } },
+                selector: { entity: { domain: ENVIRONMENTAL_PICKER_DOMAINS } },
               }]}
               .data=${{ environmental_entity: this._environmentalEntity }}
               .computeLabel=${() => t("environmental_entity_optional", L)}

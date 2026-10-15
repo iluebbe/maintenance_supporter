@@ -463,27 +463,24 @@ def test_ts_trigger_picker_domains_match_config_flow() -> None:
 
 def test_ts_environmental_picker_filter_matches_options_flow() -> None:
     """The environmental-entity picker mirrors the adaptive options step's
-    EntitySelectorConfig (domain + device_class), parsed from the Python
-    source since the config is inline."""
+    EntitySelectorConfig, parsed from the Python source since the config is
+    inline. Neither filters by device_class any more: any sensor with
+    statistics feeds the correlation (audit after #215)."""
     flow_src = (
         Path(__file__).parents[1]
         / "custom_components"
         / "maintenance_supporter"
         / "config_flow_options_task_adaptive.py"
     ).read_text(encoding="utf-8")
-    m = re.search(
-        r"EntitySelectorConfig\(\s*domain=\[([^\]]+)\],\s*device_class=\[([^\]]+)\]",
-        flow_src,
-    )
+    m = re.search(r"EntitySelectorConfig\(\s*domain=\[([^\]]+)\],(.*?)\)", flow_src, re.S)
     assert m, "adaptive EntitySelectorConfig not found in config_flow_options_task_adaptive.py"
     py_domains = re.findall(r'"([^"]+)"', m.group(1))
-    py_classes = re.findall(r'"([^"]+)"', m.group(2))
+    assert "device_class" not in m.group(2), "the adaptive step filters by device_class again"
 
     ts_src = (_FRONTEND / "helpers" / "trigger-domains.ts").read_text(encoding="utf-8")
     ts_domains = _quoted_strings(_block(ts_src, "export const ENVIRONMENTAL_PICKER_DOMAINS"))
-    ts_classes = _quoted_strings(_block(ts_src, "export const ENVIRONMENTAL_PICKER_DEVICE_CLASSES"))
     assert ts_domains == py_domains, "ENVIRONMENTAL_PICKER_DOMAINS drifted from the adaptive options step"
-    assert ts_classes == py_classes, "ENVIRONMENTAL_PICKER_DEVICE_CLASSES drifted from the adaptive options step"
+    assert "ENVIRONMENTAL_PICKER_DEVICE_CLASSES" not in ts_src, "the dialog filters by device_class again"
 
 
 def test_ts_setting_int_ranges_match_registry() -> None:

@@ -27,10 +27,18 @@ export const TRIGGER_PICKER_DOMAINS = [
   "lawn_mower",
   "lock",
   "plant",
+  "input_select",
+  "select",
+  "input_datetime",
+  "date",
+  "datetime",
+  "timer",
+  "update",
 ];
 
 /** Environmental-entity picker filter — mirrors the options flow's adaptive
- *  step (EntitySelectorConfig: domain sensor, device_class temperature/
- *  humidity/pressure). */
+ *  step (EntitySelectorConfig: domain sensor). Any sensor with statistics
+ *  feeds the correlation (fine dust for an air filter, soil moisture); the
+ *  former device_class filter (temperature/humidity/pressure) hid them from
+ *  the dialog since its picker replaced the free text (2.56.0). */
 export const ENVIRONMENTAL_PICKER_DOMAINS = ["sensor"];
-export const ENVIRONMENTAL_PICKER_DEVICE_CLASSES = ["temperature", "humidity", "pressure"];

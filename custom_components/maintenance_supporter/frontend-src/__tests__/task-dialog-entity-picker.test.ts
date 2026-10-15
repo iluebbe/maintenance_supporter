@@ -14,7 +14,6 @@ import { expect, fixture, html } from "@open-wc/testing";
 import "../components/task-dialog.js";
 import type { MaintenanceTaskDialog } from "../components/task-dialog";
 import {
-  ENVIRONMENTAL_PICKER_DEVICE_CLASSES,
   ENVIRONMENTAL_PICKER_DOMAINS,
   TRIGGER_PICKER_DOMAINS,
 } from "../helpers/trigger-domains";
@@ -59,6 +58,15 @@ describe("task-dialog entity pickers (#129)", () => {
     expect(sel.entity.multiple).to.equal(true);
     expect(sel.entity.domain).to.deep.equal(TRIGGER_PICKER_DOMAINS);
     expect(form.data.trigger_entities).to.deep.equal(["sensor.dust", "sensor.dust2"]);
+  });
+
+  it("date, selection, timer and update entities can be picked as the trigger", async () => {
+    // Typed in freely before the picker (2.56.0); the triggers read them all.
+    const el = await mountSensorBased();
+    const sel = formByField(el, "trigger_entities")!.schema[0].selector as { entity: { domain: string[] } };
+    for (const d of ["input_select", "select", "input_datetime", "date", "datetime", "timer", "update"]) {
+      expect(sel.entity.domain, d).to.include(d);
+    }
   });
 
   it("a counter helper can be picked as the trigger (#215)", async () => {
@@ -113,9 +121,11 @@ describe("task-dialog entity pickers (#129)", () => {
     await el.updateComplete;
     const form = formByField(el, "environmental_entity")!;
     expect(form, "environmental picker rendered").to.exist;
-    const sel = form.schema[0].selector as { entity: { domain: string[]; device_class: string[] } };
+    const sel = form.schema[0].selector as { entity: { domain: string[]; device_class?: string[] } };
     expect(sel.entity.domain).to.deep.equal(ENVIRONMENTAL_PICKER_DOMAINS);
-    expect(sel.entity.device_class).to.deep.equal(ENVIRONMENTAL_PICKER_DEVICE_CLASSES);
+    // Any sensor with statistics (fine dust, soil moisture), not only
+    // temperature / humidity / pressure (audit after #215).
+    expect(sel.entity.device_class).to.equal(undefined);
 
     emitValue(form, { environmental_entity: "sensor.outdoor_temp" });
     await el.updateComplete;

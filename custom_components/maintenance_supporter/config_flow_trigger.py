@@ -98,6 +98,18 @@ TRIGGER_ENTITY_DOMAINS = [
     "lock",
     # #204: Plant Monitor (HACS) sums a plant up as ok / problem.
     "plant",
+    # Typed in freely before the task dialog's picker (2.56.0) and handled by
+    # the triggers all along (audit after #215): a selection for a state
+    # change (a wash programme), a date for the due-date trigger (an
+    # input_datetime / date / datetime state is an ISO date), a timer's
+    # active time, an update that is available.
+    "input_select",
+    "select",
+    "input_datetime",
+    "date",
+    "datetime",
+    "timer",
+    "update",
 ]
 
 
