@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.103.0 | 313 source files (181 Python + 132 TypeScript) | **98% test coverage** (5,603 backend tests + 1,307 frontend tests)
+**Version:** 2.103.1 | 313 source files (181 Python + 132 TypeScript) | **98% test coverage** (5,609 backend tests + 1,318 frontend tests)
 
 ---
 
@@ -223,19 +223,19 @@ custom_components/maintenance_supporter/
 ├── button.py                      (132 lines)  Complete / Skip / Reset buttons per task (no global buttons)
 ├── calendar.py                    (860 lines)  MaintenanceCalendar (global, all tasks)
 ├── todo.py                        (176 lines)  Global to-do list aggregating every active task
-├── entity/                      (2,947 lines)  13 files — Entity bases shared by the platforms, the per-area cost sensors, the trigger engine
+├── entity/                      (2,954 lines)  13 files — Entity bases shared by the platforms, the per-area cost sensors, the trigger engine
 │   ├── entity_base.py             (127 lines)  CoordinatorEntity base class
 │   ├── summary_coordinator.py     (113 lines)  No-poll coordinator behind the global summary sensors
 │   ├── area_cost.py               (269 lines)  Maintenance cost per Home Assistant area as sensors (#191)
 │   ├── id_change.py                (27 lines)  In-place entity_id changes (Home Assistant 2026.11, #214)
-│   └── triggers/                (2,404 lines)  8 files — The trigger engine: one class per trigger type
+│   └── triggers/                (2,411 lines)  8 files — The trigger engine: one class per trigger type
 │       ├── __init__.py            (242 lines)  Factory: create_triggers(), multi-entity
 │       ├── base_trigger.py        (482 lines)  Abstract base with availability tracking
 │       ├── threshold.py           (180 lines)  Value above/below trigger
 │       ├── counter.py             (179 lines)  Accumulated value trigger
 │       ├── state_change.py        (466 lines)  State transition counter
 │       ├── runtime.py             (405 lines)  Accumulated operating hours trigger
-│       ├── compound.py            (367 lines)  AND/OR compound trigger
+│       ├── compound.py            (374 lines)  AND/OR compound trigger
 │       └── due_date.py             (83 lines)  Due-date trigger: the device reports WHEN the maintenance is due
 │
 ├── websocket/                  (11,393 lines)  107 commands, 25 files — split by domain; tasks.py re-exports the task modules drawn under it
@@ -1092,7 +1092,7 @@ The rules that are easiest to regress are tripwired:
 
 ## Test Coverage
 
-**5,603 tests** across **334 test files** with **98% code coverage** (plus a 1,307-test frontend suite in real Chromium across 202 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
+**5,609 tests** across **335 test files** with **98% code coverage** (plus a 1,318-test frontend suite in real Chromium across 203 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 
