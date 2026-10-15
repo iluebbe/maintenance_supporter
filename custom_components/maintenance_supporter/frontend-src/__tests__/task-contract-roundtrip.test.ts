@@ -98,6 +98,7 @@ const READONLY = new Set([
   "battery_fleet_task",
   "part_ref",
   "last_planned_due",
+  "planned_day",
   "due_override",
   "sensor_entity_id",
   "binary_sensor_entity_id",

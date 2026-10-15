@@ -78,6 +78,7 @@ def clear_cycle_modifiers(task_state: dict[str, Any]) -> None:
     both must go when a task is re-anchored.
     """
     task_state.pop("last_planned_due", None)
+    task_state.pop("planned_day", None)
     task_state.pop("due_override", None)
 
 

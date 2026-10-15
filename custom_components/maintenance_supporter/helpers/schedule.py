@@ -24,6 +24,7 @@ so the engine stays pure and sync.
 
 from __future__ import annotations
 
+import calendar
 import logging
 import statistics
 from collections.abc import Callable, Mapping, Sequence
@@ -318,6 +319,7 @@ class Schedule:
         today: date,
         times_performed: int = 0,
         due_override: date | None = None,
+        planned_day: int | None = None,
     ) -> date | None:
         """The next due date, or None for manual / archived one-time tasks.
 
@@ -341,6 +343,7 @@ class Schedule:
                 today=today,
                 times_performed=times_performed,
                 due_override=due_override,
+                planned_day=planned_day,
             )
         except (OverflowError, ValueError):
             return None
@@ -354,6 +357,7 @@ class Schedule:
         today: date,
         times_performed: int,
         due_override: date | None,
+        planned_day: int | None = None,
     ) -> date | None:
         """:meth:`next_due` without the end-of-calendar guard."""
         # Finite series exhausted by completion count → terminally done. Checked
@@ -375,6 +379,7 @@ class Schedule:
             created_at=created_at,
             last_planned_due=last_planned_due,
             today=today,
+            planned_day=planned_day,
         )
         if self.kind == KIND_ONE_TIME:
             return result
@@ -450,6 +455,7 @@ class Schedule:
         created_at: date | None,
         last_planned_due: date | None,
         today: date,
+        planned_day: int | None = None,
     ) -> date | None:
         """The raw next due date before the seasonal window is applied."""
         if self.kind == KIND_ONE_TIME:
@@ -488,21 +494,37 @@ class Schedule:
                 periods = 1 if days_gap < 0 else (days_gap // step) + 1
                 return anchor + timedelta(days=periods * step)
             # Calendar units (months/years): step until past last_performed.
-            # Multiply from the ORIGINAL anchor instead of iterating on the
-            # clamped result — iterative adds let February permanently drag a
-            # day-31 anchor to day 28 (Jan 31 → Feb 28 → Mar 28 …); n×interval
-            # from the anchor recovers the intended day per target month
-            # (Jan 31 + 2 months = Mar 31). The clamp can still stick across
-            # CYCLES when a February due itself becomes the next anchor — the
-            # day_of_month kind is the tool for hard month-end pinning.
+            # Multiply from the anchor instead of iterating on the clamped
+            # result (Jan 31 + 2 months = Mar 31, not Mar 28). Across cycles a
+            # clamped February due becomes the next anchor; ``planned_day``
+            # (see carry_planned_day) remembers the day it stands for, so the
+            # series goes back to the 31st instead of staying on the 28th.
+            day = planned_day if last_planned_due is not None and planned_day and planned_day > anchor.day else None
             candidate = anchor
             for n in range(1, _MAX_PLANNED_STEPS + 1):
-                candidate = add_interval(anchor, n * every, self.unit)
+                candidate = add_interval(anchor, n * every, self.unit, day=day)
                 if candidate > last_performed:
                     return candidate
             return candidate
 
         return add_interval(last_performed, every, self.unit)
+
+    def carry_planned_day(self, intended: int | None, grid: date) -> int | None:
+        """The day of month a new planned anchor stands for, or None when it is
+        the anchor's own day.
+
+        ``grid`` is the occurrence just completed or skipped, ``intended`` the
+        day the series was on before it. A monthly or yearly series on the
+        29th-31st lands on a short month's last day; without this the clamped
+        date became the anchor and the series stayed on the 28th for good.
+        """
+        if self.kind != KIND_INTERVAL or self.anchor != "planned" or self.unit not in ("months", "years"):
+            return None
+        if intended is None or not 1 <= intended <= 31 or intended <= grid.day:
+            return None
+        if grid.day != calendar.monthrange(grid.year, grid.month)[1]:
+            return None  # not a clamped month end: the grid's own day is meant
+        return intended
 
     def _calendar_occurrence(self, ref: date, *, inclusive: bool) -> date | None:
         """Next EFFECTIVE occurrence of a calendar kind on/after ``ref``.
@@ -724,6 +746,7 @@ def preview_occurrences(
     series_ended = False
     lp = last_performed
     lpd: date | None = None
+    pday: int | None = None
     times = times_performed
     for _ in range(count):
         nxt = schedule.next_due(
@@ -732,6 +755,7 @@ def preview_occurrences(
             last_planned_due=lpd,
             today=today,
             times_performed=times,
+            planned_day=pday,
         )
         if nxt is None:
             # A calendar entity that merely ran out of KNOWN events has not
@@ -741,6 +765,7 @@ def preview_occurrences(
         if occurrences and nxt <= occurrences[-1]:  # pragma: no cover
             break  # safety net: the engine must advance — never loop
         occurrences.append(nxt)
+        pday = schedule.carry_planned_day(pday or (lpd or lp or today).day, nxt)
         lp = nxt
         lpd = nxt
         times += 1

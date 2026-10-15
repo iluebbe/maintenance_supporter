@@ -257,6 +257,7 @@ def task_next_due(task: MaintenanceTask, today: date) -> date | None:
         today=today,
         times_performed=task.times_performed,
         due_override=parse_iso_date(task.due_override),
+        planned_day=task.planned_day,
     )
 
 

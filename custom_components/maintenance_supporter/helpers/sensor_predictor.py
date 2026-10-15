@@ -12,6 +12,7 @@ from __future__ import annotations
 import itertools
 import logging
 import math
+from collections.abc import Awaitable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
@@ -41,6 +42,8 @@ from .trigger_fallback import counter_baseline
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
+
+    from .prediction_cache import PredictionCache
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -114,10 +117,16 @@ class SensorPredictor:
 
     Async — requires HA recorder access for statistics_during_period.
     Only applicable to sensor_based tasks with threshold/counter triggers.
+
+    ``cache`` (the coordinator's) keeps the recorder-derived parts for a
+    statistics hour; without it every call queries the recorder. ``stale_ok``
+    lets a refresh that answers a click use the previous hour's values.
     """
 
-    def __init__(self, hass: HomeAssistant) -> None:
+    def __init__(self, hass: HomeAssistant, cache: PredictionCache | None = None, *, stale_ok: bool = False) -> None:
         self.hass = hass
+        self._cache = cache
+        self._stale_ok = stale_ok
 
     # ------------------------------------------------------------------
     # Public entry point
@@ -197,15 +206,29 @@ class SensorPredictor:
         #    instead of fitting one line across the jumps (which reported a
         #    refill as a rising trend — the ET-4800 ink finding).
         boundary = self._cycle_boundary_direction(trigger_config)
-        if boundary is not None:
-            points = await self._async_fetch_statistics_points(entity_id, DEGRADATION_CYCLE_LOOKBACK_DAYS)
-            degradation = self._compute_cycle_aware_degradation(entity_id, boundary, points)
-        else:
-            degradation = await self._async_compute_degradation(
+
+        async def _degradation() -> DegradationAnalysis:
+            if boundary is not None:
+                points = await self._async_fetch_statistics_points(entity_id, DEGRADATION_CYCLE_LOOKBACK_DAYS)
+                return self._compute_cycle_aware_degradation(entity_id, boundary, points)
+            return await self._async_compute_degradation(
                 entity_id,
                 attribute,
                 DEFAULT_DEGRADATION_LOOKBACK_DAYS,
             )
+
+        # Only the recorder series feeds it, so the fit is cached per sensor
+        # and cycle direction; thresholds and baseline are applied below on
+        # every call. No series at all (current_value None) is not cached.
+        if self._cache is not None:
+            degradation = await self._cache.async_get(
+                ("degradation", entity_id, boundary),
+                _degradation,
+                keep=lambda d: d.current_value is not None,
+                stale_ok=self._stale_ok,
+            )
+        else:
+            degradation = await _degradation()
 
         # 2. Threshold prediction (synchronous math)
         threshold_prediction = None
@@ -611,8 +634,15 @@ class SensorPredictor:
         3. Compute Pearson correlation between env_value and actual_interval
         4. If |correlation| > threshold, compute adjustment factor
         """
-        # Fetch environmental stats
-        env_points = await self._async_fetch_statistics_points(env_entity_id, DEFAULT_ENVIRONMENTAL_LOOKBACK_DAYS)
+        # Fetch environmental stats (cached per statistics hour; the live value
+        # and the completions below are read fresh on every call)
+        def _env_series() -> Awaitable[list[tuple[float, float]]]:
+            return self._async_fetch_statistics_points(env_entity_id, DEFAULT_ENVIRONMENTAL_LOOKBACK_DAYS)
+
+        if self._cache is not None:
+            env_points = await self._cache.async_get(("environment", env_entity_id), _env_series, stale_ok=self._stale_ok)
+        else:
+            env_points = await _env_series()
 
         # Get current environmental value
         current_env: float | None = None

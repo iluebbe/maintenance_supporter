@@ -1186,6 +1186,7 @@ async def ws_import_json(
                     "due_date",
                     "interval_anchor",
                     "last_planned_due",
+                    "planned_day",
                     # per-occurrence postpone (round-trips like last_planned_due)
                     "due_override",
                     # nested recurrence (calendar kinds) — config-flow normalize

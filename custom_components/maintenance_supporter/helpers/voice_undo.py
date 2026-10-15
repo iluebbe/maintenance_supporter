@@ -55,6 +55,7 @@ _DATA_KEY = f"{DOMAIN}_voice_undo"
 TASK_FIELDS = (
     "last_performed",
     "last_planned_due",
+    "planned_day",
     "due_override",
     "history",
     "adaptive_config",

@@ -445,6 +445,7 @@ _TASK_EXPORT_EXEMPT = {
     # mirror (ISO-validated) and exercised by tests/test_task_pause.py:
     "paused_at", "paused_until",
     "last_planned_due",  # planned-anchor bookkeeping, written by complete()
+    "planned_day",  # the day a clamped planned anchor stands for, written by complete()/skip()
     "due_date",  # flat twin of the nested schedule, compared via read_legacy_fields
     "schedule",  # nested twin of the flat schedule fields compared above
     # The user cluster IS in the import mirror, but non-existent HA users are
@@ -486,7 +487,7 @@ _CSV_TASK_EXCLUDED = {
     "id", "created_at", "archived_at", "archived_reason",  # lifecycle/ids
     "paused_at", "paused_until",  # #193: a task's pause (JSON backup)
     # (the nested "schedule" IS a column since bug audit 2026-09-27)
-    "last_planned_due", "due_override",  # per-occurrence schedule state
+    "last_planned_due", "planned_day", "due_override",  # per-occurrence schedule state
     "adaptive_config", "checklist_progress", "history",  # structured state
     "on_complete_action", "quick_complete_defaults",  # nested service configs
     "assignee_pool", "rotation_strategy",  # multi-user config (JSON backup)

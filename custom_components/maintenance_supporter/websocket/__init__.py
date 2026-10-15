@@ -193,6 +193,7 @@ def _build_task_summary(
         "schedule": schedule_obj,
         **({"schedule_entity_name": schedule_entity_name} if schedule_entity_name is not None else {}),
         "last_planned_due": task_data.get("last_planned_due"),
+        "planned_day": task_data.get("planned_day"),
         "schedule_time": task_data.get("schedule_time"),
         "warning_days": task_data.get("warning_days", DEFAULT_WARNING_DAYS),
         "last_performed": task_data.get("last_performed"),

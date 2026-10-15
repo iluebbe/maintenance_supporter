@@ -121,6 +121,7 @@ _FRESH_COPY_STRIP_KEYS = (
     "history",
     "last_performed",
     "last_planned_due",
+    "planned_day",
     "due_override",
     "adaptive_config",
     "archived_at",

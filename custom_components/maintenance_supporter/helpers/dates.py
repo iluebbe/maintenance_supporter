@@ -124,27 +124,33 @@ def days_until(due: datetime, now: datetime) -> float:
     return round((due - now).total_seconds() / 86400, 3)
 
 
-def _add_months(anchor: date, months: int) -> date:
-    """Advance ``anchor`` by ``months`` calendar months, clamping the day."""
+def _add_months(anchor: date, months: int, day: int | None = None) -> date:
+    """Advance ``anchor`` by ``months`` calendar months, clamping the day.
+
+    ``day`` aims at another day of month than the anchor's own (a series on
+    the 31st whose anchor is a clamped 28 February), clamped the same way.
+    """
     total = anchor.month - 1 + months
     year = anchor.year + total // 12
     month = total % 12 + 1
     last_day = calendar.monthrange(year, month)[1]
-    return date(year, month, min(anchor.day, last_day))
+    return date(year, month, min(day or anchor.day, last_day))
 
 
-def add_interval(anchor: date, n: int, unit: str = "days") -> date:
+def add_interval(anchor: date, n: int, unit: str = "days", *, day: int | None = None) -> date:
     """Return ``anchor`` advanced by ``n`` of ``unit``.
 
     ``unit`` is one of days / weeks / months / years; anything else (or None)
     falls back to days, which keeps existing day-based tasks working unchanged.
+    ``day`` (months / years only) is the day of month to land on, clamped to
+    the target month's length; the anchor's own day by default.
     """
     if unit == "weeks":
         return anchor + timedelta(weeks=n)
     if unit == "months":
-        return _add_months(anchor, n)
+        return _add_months(anchor, n, day)
     if unit == "years":
-        return _add_months(anchor, n * 12)
+        return _add_months(anchor, n * 12, day)
     return anchor + timedelta(days=n)
 
 

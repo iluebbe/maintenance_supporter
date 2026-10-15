@@ -106,6 +106,7 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
     task["object_id"] = "rig_obj"
     task["created_at"] = "2026-01-15"
     task["last_planned_due"] = "2026-05-28"
+    task["planned_day"] = 31  # the 28th stands for the 31st (a monthly series)
     task["responsible_user_id"] = alice.id
     task["assignee_pool"] = [alice.id, bob.id]
     task["rotation_strategy"] = "round_robin"

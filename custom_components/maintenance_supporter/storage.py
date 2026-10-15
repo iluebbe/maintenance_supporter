@@ -30,7 +30,7 @@ STORE_KEY_PREFIX = f"{DOMAIN}"
 STORE_SAVE_DELAY = 60.0  # seconds — debounce writes to protect SD cards
 
 # Fields that migrate from ConfigEntry.data to Store
-_DYNAMIC_TASK_FIELDS = ("last_performed", "last_planned_due", "due_override", "history", "adaptive_config", "phase_cursor")
+_DYNAMIC_TASK_FIELDS = ("last_performed", "last_planned_due", "planned_day", "due_override", "history", "adaptive_config", "phase_cursor")
 
 # Presentation-state fields that SPLIT/migrate into the Store like the dynamic
 # fields but are deliberately NOT overlaid by merge_task_data: merged dicts feed
@@ -184,6 +184,10 @@ class MaintenanceStore:
                 if key in state and state[key] is not None and not isinstance(state[key], str):
                     _LOGGER.warning("Dropping malformed %s for task %s", key, tid)
                     del state[key]
+            pday = state.get("planned_day")
+            if pday is not None and (isinstance(pday, bool) or not isinstance(pday, int) or not 1 <= pday <= 31):
+                _LOGGER.warning("Dropping malformed planned_day for task %s", tid)
+                del state["planned_day"]
             clean[tid] = state
         data["tasks"] = clean
         # Spare-part stock counts ({part_id: {"stock": int}}) — same shape

@@ -91,6 +91,7 @@ def _build_export_object(
             # nth_weekday / day_of_month) that the flat fields above can't.
             "schedule": Schedule.parse(tdata).to_dict(),
             "last_planned_due": tdata.get("last_planned_due"),
+            "planned_day": tdata.get("planned_day"),
             # A pending per-occurrence postpone is user intent — round-trip it
             # like last_planned_due so a backup/restore keeps the deferral.
             "due_override": tdata.get("due_override"),

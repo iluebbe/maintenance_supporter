@@ -2,6 +2,22 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Monthly tasks on the 29th to 31st keep their day:** a task that repeats monthly or yearly *from planned date*
+  and falls on the 29th, 30th or 31st moved to a short month's last day, and then stayed there: 31 January, 28
+  February, 28 March and so on. It now goes back to its own day: 28 February, 31 March, 30 April, 31 May. A
+  yearly task on 29 February returns to it in the next leap year. Tasks counted from their completion date start
+  from the day they were done, as before.
+- **Skipping or completing is quick on objects with sensor forecasts:** every refresh of an object read up to 180
+  days of recorder statistics for each sensor-based task with a forecast, so a skip or a completion there waited
+  about half a second (more on a slow database) for numbers that change once an hour. The statistics are now read
+  once per hour; a click uses the last hour's forecast and the next background refresh brings the new one. The
+  thresholds, the counter baseline, the environmental sensor's current value and the completions are still taken
+  fresh on every refresh. In a test home with five such tasks a skip went from 160 ms to 20 ms.
+
 ## [2.103.2] - 2026-10-15
 
 ### 🐛 Fixed

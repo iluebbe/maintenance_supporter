@@ -64,6 +64,7 @@ from .helpers.notification_gates import task_may_notify
 from .helpers.notify_hooks import KIND_STATUS
 from .helpers.pause import is_task_inert
 from .helpers.phases import task_label
+from .helpers.prediction_cache import PredictionCache
 from .helpers.schedule import KIND_INTERVAL, KIND_MANUAL, Schedule, read_legacy_fields
 from .models.maintenance_object import MaintenanceObject
 from .models.maintenance_task import MaintenanceTask
@@ -200,6 +201,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # The post-completion cooldown is re-derived from the history once
         # per instance (_seed_cooldown_from_history).
         self._cooldown_seeded = False
+        # The sensor predictions' recorder half, kept per statistics hour: a
+        # skip or completion on an object with sensor-based tasks waited
+        # ~0.5 s for 180-day recorder queries on every refresh (2026-10-15).
+        # A refresh for a click (async_refresh_now) may use the previous
+        # hour's values; the next periodic refresh fetches the new hour.
+        self._prediction_cache = PredictionCache()
+        self._refresh_for_user = False
+        self._prediction_stale_ok = False
 
     def _log_analysis_failure(self, task_id: str, stage: str, message: str) -> None:
         """Log a swallowed analysis error — loudly once, then quietly.
@@ -317,6 +326,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch and compute the current state of all tasks."""
+        self._prediction_stale_ok = self._refresh_for_user
+        self._refresh_for_user = False
         # Seasonal pause (N3): auto-resume on the first refresh on/after
         # paused_until, then continue this refresh un-paused.
         await self._async_maybe_auto_resume()
@@ -584,7 +595,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             try:
                 from .helpers.sensor_predictor import SensorPredictor
 
-                predictor = SensorPredictor(self.hass)
+                predictor = SensorPredictor(self.hass, cache=self._prediction_cache, stale_ok=self._prediction_stale_ok)
                 prediction = await predictor.async_analyze(task_result, adaptive_cfg)
                 if prediction:
                     # Degradation data
@@ -1094,7 +1105,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # The cycle modifiers: the drift-free planned anchor and the
         # per-occurrence postpone (set by async_postpone_task, cleared on
         # complete) — None removes the key.
-        self._store.update_task_state(task_id, last_planned_due=td.get("last_planned_due"), due_override=td.get("due_override"))
+        self._store.update_task_state(
+            task_id,
+            last_planned_due=td.get("last_planned_due"),
+            planned_day=td.get("planned_day"),
+            due_override=td.get("due_override"),
+        )
         # Phase cursor (#139): to_dict emits it only for phase-carrying tasks.
         pc = td.get("phase_cursor")
         if pc is not None:
@@ -2039,6 +2055,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         cheap; the debounced path stays exactly as it was for triggers.
         """
         self._calendar_refresh_forced = True
+        self._refresh_for_user = True
         await self.async_refresh()
 
     async def _persist_and_signal_task_change(

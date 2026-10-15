@@ -109,6 +109,7 @@
       "name": "Swap cutting disks"
     }
   },
+  "planned_day": null,
   "prediction_cycles": 0,
   "priority": "high",
   "quick_complete_defaults": {

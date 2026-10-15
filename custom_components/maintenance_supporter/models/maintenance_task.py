@@ -25,6 +25,11 @@ from ..helpers.schedule import Schedule, read_legacy_fields
 from ..helpers.status import compute_status, effective_warning_days, is_past_schedule_time
 
 
+def _planned_day_of(raw: Any) -> int | None:
+    """``planned_day`` from stored data: a day of month, anything else None."""
+    return raw if isinstance(raw, int) and not isinstance(raw, bool) and 1 <= raw <= 31 else None
+
+
 @dataclass
 class MaintenanceTask:
     """Represents a specific maintenance task belonging to an object.
@@ -51,6 +56,10 @@ class MaintenanceTask:
     created_at: str | None = None  # ISO date: fallback anchor for next_due when last_performed is None
     interval_anchor: str = "completion"  # "completion" or "planned"
     last_planned_due: str | None = None  # ISO date: anchor for planned mode
+    # The day of month a clamped planned anchor stands for (a monthly series
+    # on the 31st anchored on 28 February); None when the anchor's own day is
+    # meant. See Schedule.carry_planned_day.
+    planned_day: int | None = None
     schedule_time: str | None = None  # "HH:MM" in HA's configured TZ; None = midnight (default)
     due_date: str | None = None  # ISO date: one-time task due date (ScheduleType.ONE_TIME)
     # Per-occurrence postpone: an ISO date that overrides just the CURRENT
@@ -162,6 +171,7 @@ class MaintenanceTask:
             today=dt_util.now().date(),
             times_performed=self.times_performed,
             due_override=parse_iso_date(self.due_override),
+            planned_day=self.planned_day,
         )
 
     @property
@@ -193,7 +203,17 @@ class MaintenanceTask:
             today=dt_util.now().date(),
             times_performed=self.times_performed,
             due_override=None,
+            planned_day=self.planned_day,
         )
+
+    def _advance_planned_anchor(self, grid: date) -> None:
+        """Make ``grid`` (the occurrence just completed or skipped) the planned
+        anchor, remembering the day of month it stands for when it is a
+        clamped month end."""
+        previous = parse_iso_date(self.last_planned_due) or parse_iso_date(self.last_performed) or parse_iso_date(self.created_at)
+        intended = self.planned_day or (previous.day if previous else None)
+        self.planned_day = self._schedule().carry_planned_day(intended, grid)
+        self.last_planned_due = grid.isoformat()
 
     def _schedule(self) -> Schedule:
         """The recurrence as a value object (see docs/design/schedule-model-v2.md).
@@ -424,7 +444,7 @@ class MaintenanceTask:
             if self.interval_anchor == "planned" or self._schedule().is_calendar_kind:
                 grid = self._planned_grid_due()
                 if grid is not None:
-                    self.last_planned_due = grid.isoformat()
+                    self._advance_planned_anchor(grid)
 
             self.last_performed = ts.date().isoformat()
             self._trigger_active = False
@@ -502,6 +522,7 @@ class MaintenanceTask:
         # helpers/pause.clear_cycle_modifiers ("both must go when a task is
         # re-anchored").
         self.last_planned_due = None
+        self.planned_day = None
         self.due_override = None
 
         self.add_history_entry(
@@ -523,7 +544,7 @@ class MaintenanceTask:
         if self.interval_anchor == "planned" or self._schedule().is_calendar_kind:
             grid = self._planned_grid_due()
             if grid is not None:
-                self.last_planned_due = grid.isoformat()
+                self._advance_planned_anchor(grid)
 
         # Move last_performed to today to restart the cycle
         self.last_performed = dt_util.now().date().isoformat()
@@ -647,6 +668,8 @@ class MaintenanceTask:
         data["schedule"] = self._schedule().to_dict()
         if self.last_planned_due is not None:
             data["last_planned_due"] = self.last_planned_due
+        if self.planned_day is not None:
+            data["planned_day"] = self.planned_day
         if self.due_override is not None:
             data["due_override"] = self.due_override
         if self.schedule_time is not None:
@@ -738,6 +761,7 @@ class MaintenanceTask:
             created_at=data.get("created_at"),
             interval_anchor=sched["interval_anchor"],
             last_planned_due=data.get("last_planned_due"),
+            planned_day=_planned_day_of(data.get("planned_day")),
             due_override=data.get("due_override"),
             schedule_time=data.get("schedule_time"),
             trigger_config=data.get("trigger_config"),
