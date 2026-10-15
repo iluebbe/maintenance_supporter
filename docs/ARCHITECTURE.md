@@ -209,7 +209,7 @@ custom_components/maintenance_supporter/
 │   ├── …_task_trigger.py          (494 lines)  Trigger edit / summary / remove steps
 │   ├── …_task_adaptive.py         (193 lines)  Adaptive-scheduling step + schema
 │   └── …_task_object.py           (158 lines)  Object-settings (metadata) step
-├── config_flow_trigger.py       (1,203 lines)  TriggerConfigMixin for trigger UI
+├── config_flow_trigger.py       (1,207 lines)  TriggerConfigMixin for trigger UI
 ├── config_flow_schedule.py        (437 lines)  Add-task + schedule-kind steps shared by BOTH task-creation flows
 ├── trigger.py                      (56 lines)  Purpose-specific automation triggers (HA 2026.7+, import-guarded)
 ├── condition.py                    (46 lines)  Purpose-specific automation conditions (HA 2026.7+, import-guarded)
@@ -294,7 +294,7 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (44,638 lines)  132 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+├── frontend-src/               (44,639 lines)  132 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
 │   ├── maintenance-panel.ts     (5,357 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,263 lines)  Auto-generated dashboard strategy + 4 section strategies
@@ -323,7 +323,7 @@ custom_components/maintenance_supporter/
 │   ├── ds-preview-kit.ts          (229 lines)  Design-sync preview kit: a demo household behind a mock `hass`
 │   ├── maintenance-panel-card.ts  (369 lines)  The whole panel as a Lovelace card (#174)
 │   ├── status-constants.ts         (62 lines)  Status colors + icons — THE single source for every renderer
-│   ├── helpers/                 (5,991 lines)  64 files — Pure functions and small services shared by the panel, the cards and the dialogs
+│   ├── helpers/                 (5,992 lines)  64 files — Pure functions and small services shared by the panel, the cards and the dialogs
 │   │   ├── calendar-bucket.ts     (428 lines)  Pure 7/14/30/365-day projection, 5 occurrences max per task, no projection for sensor-based
 │   │   ├── notes-markdown.ts      (119 lines)  Notes rendering (ha-markdown hand-off)
 │   │   ├── bundle-version.ts       (35 lines)  Stale-bundle guard
@@ -378,7 +378,7 @@ custom_components/maintenance_supporter/
 │   │   ├── storage-keys.ts         (61 lines)  localStorage keys for panel UI preferences — single source of truth
 │   │   ├── subscription-merge.ts   (51 lines)  Merge logic for the 2.52 delta subscription protocol
 │   │   ├── toast.ts                (38 lines)  Toast timing — one set for every surface that shows a transient message
-│   │   ├── trigger-domains.ts      (35 lines)  Domains offered by the trigger entity pickers (#129)
+│   │   ├── trigger-domains.ts      (36 lines)  Domains offered by the trigger entity pickers (#129)
 │   │   ├── url.ts                  (62 lines)  Shared URL-safety guard for rendering user-supplied links
 │   │   ├── virtual-window.ts       (69 lines)  Windowing math for the virtualized dashboard task table (500+ tasks)
 │   │   ├── warranty.ts             (41 lines)  (#67) Warranty status computation for object asset tracking
@@ -438,7 +438,7 @@ custom_components/maintenance_supporter/
 │   │   ├── required-completion-labels.ts (27 lines)  Labels of the details a task can demand on completion (mirror of helpers/completion_requirements.py)
 │   │   ├── bulk-edit-dialog.ts    (266 lines)  Several tasks changed at once (discussion #199): who is assigned, their labels, and the few settings that make sense in bulk
 │   │   └── ms-cost-input.ts       (109 lines)  A cost that may be a credit (#200): a Cost | Credit switch and the amount
-│   └── __tests__/              (28,684 lines)  206 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (28,696 lines)  206 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
 ├── helpers/                    (32,549 lines)  103 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,580 lines)  Multi-channel notification system
@@ -1095,7 +1095,7 @@ The rules that are easiest to regress are tripwired:
 
 ## Test Coverage
 
-**5,637 tests** across **338 test files** with **98% code coverage** (plus a 1,318-test frontend suite in real Chromium across 203 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
+**5,637 tests** across **339 test files** with **98% code coverage** (plus a 1,318-test frontend suite in real Chromium across 203 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 

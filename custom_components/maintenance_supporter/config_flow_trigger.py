@@ -78,6 +78,10 @@ TRIGGER_ENTITY_DOMAINS = [
     "number",
     "input_number",
     "input_boolean",
+    # #215: a counter helper counts prints, cycles or uses; its state is the
+    # number. Missing from this list since it was written, and from the
+    # task dialog since its entity picker replaced the free text (2.56.0).
+    "counter",
     "switch",
     "climate",
     "vacuum",
@@ -969,7 +973,7 @@ class TriggerConfigMixin:
         schema_dict: dict[Any, Any] = {
             vol.Required(CONF_TRIGGER_ENTITY): selector.EntitySelector(
                 selector.EntitySelectorConfig(
-                    domain=["sensor", "binary_sensor", "number", "input_number", "input_boolean", "switch"],
+                    domain=TRIGGER_ENTITY_DOMAINS,
                     multiple=True,
                 )
             ),

@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Counter helpers can trigger a sensor-based task (#215):** a counter helper (`counter.…`) counts prints, washes
+  or uses, and a threshold or counter trigger reads its count like a sensor. The entity picker of the task dialog
+  left it out since 2.56.0 (before, the entity was typed in and counters worked), and the setup flow never offered
+  it. Both offer it now, also for the conditions of a combined trigger, where the setup flow had a shorter list
+  than the dialog.
+
 ## [2.103.3] - 2026-10-15
 
 ### 🐛 Fixed

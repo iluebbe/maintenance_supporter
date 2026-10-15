@@ -61,6 +61,18 @@ describe("task-dialog entity pickers (#129)", () => {
     expect(form.data.trigger_entities).to.deep.equal(["sensor.dust", "sensor.dust2"]);
   });
 
+  it("a counter helper can be picked as the trigger (#215)", async () => {
+    // Its state is the count; the picker filtered it out after it replaced
+    // the free text field (2.56.0).
+    const el = await mountSensorBased();
+    const form = formByField(el, "trigger_entities")!;
+    const sel = form.schema[0].selector as { entity: { domain: string[] } };
+    expect(sel.entity.domain).to.include("counter");
+    emitValue(form, { trigger_entities: ["counter.printer_nozzle_hours"] });
+    await el.updateComplete;
+    expect((el as any)._triggerEntityId).to.equal("counter.printer_nozzle_hours");
+  });
+
   it("picker output lands in _triggerEntityId/_triggerEntityIds", async () => {
     const el = await mountSensorBased();
     const form = formByField(el, "trigger_entities")!;

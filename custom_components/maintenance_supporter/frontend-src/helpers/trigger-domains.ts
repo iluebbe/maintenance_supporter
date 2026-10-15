@@ -11,6 +11,7 @@ export const TRIGGER_PICKER_DOMAINS = [
   "number",
   "input_number",
   "input_boolean",
+  "counter",
   "switch",
   "climate",
   "vacuum",

@@ -496,7 +496,10 @@ but 0"). Want a *band*? Use the two limits the other way round:
 
 ### Counter Trigger
 
-Activates when an accumulated value reaches a target.
+Activates when an accumulated value reaches a target. The source is any
+numeric sensor, a `number` / `input_number`, or a **counter helper**
+(`counter.*`, 2.103.4+, #215): an automation increments it per print, wash or
+use, and the task's completion action resets it with `counter.reset`.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
