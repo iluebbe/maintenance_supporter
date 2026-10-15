@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.103.1 | 313 source files (181 Python + 132 TypeScript) | **98% test coverage** (5,609 backend tests + 1,318 frontend tests)
+**Version:** 2.103.2 | 313 source files (181 Python + 132 TypeScript) | **98% test coverage** (5,617 backend tests + 1,318 frontend tests)
 
 ---
 
@@ -1092,7 +1092,7 @@ The rules that are easiest to regress are tripwired:
 
 ## Test Coverage
 
-**5,609 tests** across **335 test files** with **98% code coverage** (plus a 1,318-test frontend suite in real Chromium across 203 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
+**5,617 tests** across **336 test files** with **98% code coverage** (plus a 1,318-test frontend suite in real Chromium across 203 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 
