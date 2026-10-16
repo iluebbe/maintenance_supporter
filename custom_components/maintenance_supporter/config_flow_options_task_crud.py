@@ -57,6 +57,7 @@ from .helpers.global_options import get_default_warning_days, is_schedule_time_e
 from .helpers.pause import write_anchor
 from .helpers.reading_slots import parse_reading_slots_text, reading_slots_text
 from .helpers.schedule import (
+    keep_month_filter,
     read_legacy_fields,
 )
 from .helpers.task_fields import (
@@ -215,6 +216,8 @@ class TaskCrudMixin:
                 if edit_kind in CALENDAR_KIND_VALUES:
                     schedule = schedule_from_calendar_input(edit_kind, user_input)
                     if schedule is not None:
+                        # The form has no month field: keep a yearly task yearly.
+                        keep_month_filter(schedule, schedule, task.get("schedule"))
                         for key in ("interval_days", "interval_unit", "interval_anchor", "due_date"):
                             updated_task.pop(key, None)
                         updated_task["schedule"] = schedule

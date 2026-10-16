@@ -141,6 +141,11 @@ async def ws_pause_task(
         vol.Required("type"): "maintenance_supporter/task/resume",
         vol.Required("entry_id"): ID_FIELD,
         vol.Required("task_id"): ID_FIELD,
+        # The Undo of an archive / a pause just made: restore the task as it
+        # was instead of starting a fresh cycle (bug audit 2026-10-16: the
+        # Undo toast re-anchored the task to today, clearing overdue and
+        # postponed dates).
+        vol.Optional("undo", default=False): bool,
     }
 )
 @require_write
@@ -150,7 +155,8 @@ async def ws_resume_task(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """End a task's pause: a recurring task restarts a fresh cycle today."""
+    """End a task's pause: a recurring task restarts a fresh cycle today
+    (with ``undo``, the Undo of the pause, it keeps its dates)."""
     ctx = _load_object_task(hass, connection, msg)
     if ctx is None:
         return
@@ -164,7 +170,7 @@ async def ws_resume_task(
     # await), then the static dict from a FRESH read, so a writer landing
     # during the disk write cannot be reverted by a stale copy.
     store = get_store(hass, entry.entry_id)
-    recurring = td.get("archived_at") is None and _is_recurring_schedule(td)
+    recurring = not msg.get("undo") and td.get("archived_at") is None and _is_recurring_schedule(td)
     today_iso = dt_util.now().date().isoformat()
     if recurring and store is not None:
         reanchor_recurring_task(task_id, store=store, today_iso=today_iso)
@@ -191,6 +197,11 @@ async def ws_resume_task(
         vol.Required("type"): "maintenance_supporter/task/unarchive",
         vol.Required("entry_id"): ID_FIELD,
         vol.Required("task_id"): ID_FIELD,
+        # The Undo of an archive / a pause just made: restore the task as it
+        # was instead of starting a fresh cycle (bug audit 2026-10-16: the
+        # Undo toast re-anchored the task to today, clearing overdue and
+        # postponed dates).
+        vol.Optional("undo", default=False): bool,
     }
 )
 @require_write
@@ -205,6 +216,7 @@ async def ws_unarchive_task(
     Recurring tasks restart a fresh cycle (D2): ``last_performed`` is re-anchored
     to today so ``next_due = today + interval`` rather than resurfacing as
     retroactively overdue. One-off / manual tasks keep their terminal state.
+    With ``undo`` (the Undo of the archive) the task keeps its dates.
     """
     ctx = _load_object_task(hass, connection, msg)
     if ctx is None:
@@ -222,7 +234,7 @@ async def ws_unarchive_task(
     # write can't be reverted by a stale whole-map write (the migration-race
     # class, bug audit 2026-07-11).
     store = get_store(hass, entry.entry_id)
-    recurring = _is_recurring_schedule(td)
+    recurring = not msg.get("undo") and _is_recurring_schedule(td)
     legacy_anchor = False
     if recurring:
         today_iso = dt_util.now().date().isoformat()

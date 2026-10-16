@@ -59,7 +59,11 @@ export function syncLocaleFromHass(
   }
   const lang = host.hass?.language;
   if (lang && !isLocaleLoaded(lang)) {
-    ensureLocale(lang).then(() => host.requestUpdate());
+    // Re-render only when the table really arrived: this runs in every
+    // updated(), so re-rendering after a failed fetch fetched again at once.
+    ensureLocale(lang).then(() => {
+      if (isLocaleLoaded(lang)) host.requestUpdate();
+    });
   }
   // Refusals the backend sends with a translation key read in this language.
   primeBackendErrors(host.hass as Parameters<typeof primeBackendErrors>[0]);
@@ -384,7 +388,7 @@ export function formatDateShort(d: Date, lang?: string, withYear = false): strin
 interface RecurrenceLike {
   schedule?: {
     kind?: string; every?: number | null; unit?: string;
-    weekdays?: number[]; nth?: number; weekday?: number; day?: number;
+    weekdays?: number[]; nth?: number; weekday?: number; day?: number; months?: number[];
     business?: boolean; offset?: number; entity_id?: string | null;
   } | null;
   interval_days?: number | null;
@@ -410,13 +414,17 @@ export function formatRecurrence(task: RecurrenceLike, lang?: string): string {
   }
   // (#83) ±N-day shift suffix shared by the calendar kinds.
   const off = s?.offset ? ` ${s.offset > 0 ? "+" : "−"}${Math.abs(s.offset)}d` : "";
+  // The month restriction of a pattern: "Day 1 · Sep" for a yearly task.
+  const inMonths = s?.months?.length
+    ? ` · ${[...s.months].sort((a, b) => a - b).map((m) => monthName(m - 1, lang, "short")).join(", ")}`
+    : "";
   switch (s?.kind) {
     case "weekdays":
       return ((s.weekdays || []).map((d) => weekdayName(d, lang, "short")).join(" & ") || "—") + off;
     case "nth_weekday": {
       if (s.weekday == null || s.nth == null) return "—";
       const ord = s.nth === -1 ? t("ord_last", lang) : t("ord_" + s.nth, lang);
-      return `${ord} ${weekdayName(s.weekday, lang, "long")}${off}`;
+      return `${ord} ${weekdayName(s.weekday, lang, "long")}${off}${inMonths}`;
     }
     case "day_of_month": {
       if (s.day == null) return "—";
@@ -424,7 +432,7 @@ export function formatRecurrence(task: RecurrenceLike, lang?: string): string {
       const base = s.day === -1
         ? t(s.business ? "last_business_day_month" : "last_day_month", lang)
         : `${t("day_word", lang)} ${s.day}`;
-      return base + off;
+      return base + off + inMonths;
     }
     case "calendar":
       // (#187) "Calendar: Bio waste" — the summary carries the friendly name;

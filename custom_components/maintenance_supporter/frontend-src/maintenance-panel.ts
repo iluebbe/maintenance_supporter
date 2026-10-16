@@ -2408,7 +2408,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       async (ids) => {
         for (const id of ids) {
           try {
-            await this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/object/unarchive", entry_id: id });
+            await this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/object/unarchive", entry_id: id, undo: true });
           } catch { /* best effort */ }
         }
         await this._loadData();
@@ -2454,12 +2454,13 @@ export class MaintenanceSupporterPanel extends LitElement {
       rows,
       (row) => ({ type: "maintenance_supporter/task/archive", entry_id: row.entry_id, task_id: row.task_id }),
       (n) => t("bulk_archived", this._lang).replace("{n}", String(n)),
-      // The undo unarchives exactly the rows that were archived.
+      // The undo unarchives exactly the rows that were archived, keeping
+      // their dates (undo: no fresh cycle).
       async (done) => {
         for (const k of done) {
           try {
             await this.hass.connection.sendMessagePromise({
-              type: "maintenance_supporter/task/unarchive", entry_id: k.entry_id, task_id: k.task_id,
+              type: "maintenance_supporter/task/unarchive", entry_id: k.entry_id, task_id: k.task_id, undo: true,
             });
           } catch { /* best effort */ }
         }
@@ -2534,7 +2535,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         for (const k of done) {
           try {
             await this.hass.connection.sendMessagePromise({
-              type: "maintenance_supporter/task/resume", entry_id: k.entry_id, task_id: k.task_id,
+              type: "maintenance_supporter/task/resume", entry_id: k.entry_id, task_id: k.task_id, undo: true,
             });
           } catch { /* best effort */ }
         }
@@ -2692,25 +2693,29 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (res?.entry_id && res.task_id) this._showTask(res.entry_id, res.task_id);
   }
 
-  private async _toggleArchiveTask(entryId: string, taskId: string, archived: boolean): Promise<void> {
+  /** ``undo``: the Undo toast of an archive just made. The task comes back
+   *  with its dates (overdue, postponed) instead of a fresh cycle from today
+   *  (bug audit 2026-10-16). */
+  private async _toggleArchiveTask(entryId: string, taskId: string, archived: boolean, undo = false): Promise<void> {
     const res = await this._runAction({
       type: archived
         ? "maintenance_supporter/task/unarchive"
         : "maintenance_supporter/task/archive",
       entry_id: entryId,
       task_id: taskId,
+      ...(undo ? { undo: true } : {}),
     });
     // Just archived → offer a one-tap undo (unarchive) instead of a confirm.
     if (res && !archived) {
       this._showUndoToast(t("task_archived", this._lang),
-        () => this._toggleArchiveTask(entryId, taskId, true));
+        () => this._toggleArchiveTask(entryId, taskId, true, true));
     }
   }
 
   // #193: pause ONE task (items used in rotation: the filter comes out of use
   // for a while) — the object pause, per task. Pausing asks for an optional
   // resume date; resuming starts a fresh cycle from that day.
-  private async _togglePauseTask(entryId: string, taskId: string, paused: boolean): Promise<void> {
+  private async _togglePauseTask(entryId: string, taskId: string, paused: boolean, undo = false): Promise<void> {
     if (!paused) {
       const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
       const result = await dlg?.prompt({
@@ -2724,12 +2729,12 @@ export class MaintenanceSupporterPanel extends LitElement {
       const msg: Record<string, unknown> = { type: "maintenance_supporter/task/pause", entry_id: entryId, task_id: taskId };
       if (result.value) msg.until = result.value;
       if (await this._runAction(msg)) {
-        this._showUndoToast(t("task_paused", this._lang), () => this._togglePauseTask(entryId, taskId, true));
+        this._showUndoToast(t("task_paused", this._lang), () => this._togglePauseTask(entryId, taskId, true, true));
       }
       return;
     }
     await this._runAction(
-      { type: "maintenance_supporter/task/resume", entry_id: entryId, task_id: taskId },
+      { type: "maintenance_supporter/task/resume", entry_id: entryId, task_id: taskId, ...(undo ? { undo: true } : {}) },
       { successToast: t("task_resumed", this._lang) },
     );
   }
@@ -2737,22 +2742,23 @@ export class MaintenanceSupporterPanel extends LitElement {
   // v2.10.0: archive / unarchive an object. Archiving cascades to its tasks but
   // is fully reversible, so instead of a blocking confirm we run it immediately
   // and offer an Undo toast (v2.14.0).
-  private async _toggleArchiveObject(entryId: string, archived: boolean): Promise<void> {
+  private async _toggleArchiveObject(entryId: string, archived: boolean, undo = false): Promise<void> {
     const res = await this._runAction({
       type: archived
         ? "maintenance_supporter/object/unarchive"
         : "maintenance_supporter/object/archive",
       entry_id: entryId,
+      ...(undo ? { undo: true } : {}),
     });
     if (res && !archived) {
       this._showUndoToast(t("object_archived", this._lang),
-        () => this._toggleArchiveObject(entryId, true));
+        () => this._toggleArchiveObject(entryId, true, true));
     }
   }
 
   // v2.20 (N3): seasonal pause / resume. Pausing asks for an optional
   // auto-resume date; resuming re-anchors recurring tasks to a fresh cycle.
-  private async _togglePauseObject(entryId: string, paused: boolean): Promise<void> {
+  private async _togglePauseObject(entryId: string, paused: boolean, undo = false): Promise<void> {
     if (!paused) {
       const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
       const result = await dlg?.prompt({
@@ -2770,12 +2776,12 @@ export class MaintenanceSupporterPanel extends LitElement {
       if (result.value) msg.until = result.value;
       if (await this._runAction(msg)) {
         this._showUndoToast(t("object_paused", this._lang),
-          () => this._togglePauseObject(entryId, true));
+          () => this._togglePauseObject(entryId, true, true));
       }
       return;
     }
     await this._runAction(
-      { type: "maintenance_supporter/object/resume", entry_id: entryId },
+      { type: "maintenance_supporter/object/resume", entry_id: entryId, ...(undo ? { undo: true } : {}) },
       { successToast: t("object_resumed", this._lang) },
     );
   }

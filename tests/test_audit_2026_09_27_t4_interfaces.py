@@ -137,7 +137,12 @@ async def _open_edit_task(hass: HomeAssistant, entry: MockConfigEntry, task_id: 
 async def _photo(hass: HomeAssistant, object_id: str, *, tags: list[str] | None = None, content: bytes = b"img") -> str:
     store = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
     doc = await store.async_add_file(
-        object_id, content=content, filename="p.jpg", mime="image/jpeg", tags=["photo"] if tags is None else tags
+        object_id,
+        content=content,
+        filename="p.jpg",
+        mime="image/jpeg",
+        tags=["photo"] if tags is None else tags,
+        completion_photo=tags is None,
     )
     return str(doc["id"])
 

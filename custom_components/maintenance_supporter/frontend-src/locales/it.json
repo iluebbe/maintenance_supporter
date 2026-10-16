@@ -105,6 +105,8 @@
   "recurrence_business_day": "Solo giorni lavorativi (anticipa dal fine settimana)",
   "recurrence_offset": "Scostamento (giorni, ±)",
   "recurrence_offset_help": "Sposta la data di ±N giorni, ad es. -2 = due giorni prima.",
+  "recurrence_months_label": "Solo in questi mesi",
+  "recurrence_months_hint": "La data si ripete solo nei mesi scelti; per un'attività annuale scegli un solo mese. Nessuno = ogni mese.",
   "last_day_month": "Ultimo giorno del mese",
   "last_business_day_month": "Ultimo giorno lavorativo",
   "ord_1": "1º",

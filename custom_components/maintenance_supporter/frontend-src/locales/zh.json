@@ -107,6 +107,8 @@
   "recurrence_business_day": "仅工作日（从周末向前调整）",
   "recurrence_offset": "偏移（天，±）",
   "recurrence_offset_help": "将日期偏移 ±N 天，例如 -2 = 提前两天。",
+  "recurrence_months_label": "仅在这些月份",
+  "recurrence_months_hint": "日期仅在所选月份重复；年度任务请选择一个月份。不选 = 每月。",
   "last_day_month": "每月最后一天",
   "last_business_day_month": "最后一个工作日",
   "ord_1": "第 1",

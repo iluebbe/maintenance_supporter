@@ -252,6 +252,13 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _domLastDay = false;
   @state() private _domBusiness = false;
   @state() private _calOffset = "0";
+  // Months an nth_weekday / day_of_month pattern is restricted to (the
+  // yearly template tasks: "the 1st of September"). Dropped on every save
+  // before this field existed, so an edit made them monthly (bug audit
+  // 2026-10-16). _hadCalMonths: the loaded task had a restriction, so an
+  // emptied selection is sent as [] (the backend keeps an omitted one).
+  @state() private _calMonths: number[] = [];
+  private _hadCalMonths = false;
   // #187: the HA calendar entity whose events are the occurrences ("calendar" kind).
   @state() private _calendarEntity = "";
   // Recurrence extras (apply to interval + calendar kinds): a seasonal active
@@ -492,6 +499,10 @@ export class MaintenanceTaskDialog extends LitElement {
     this._domDay = sched?.kind === "day_of_month" && (sched.day ?? 1) >= 1 ? String(sched.day ?? 1) : "1";
     this._domLastDay = sched?.kind === "day_of_month" && sched.day === -1;
     this._domBusiness = sched?.kind === "day_of_month" && sched.business === true;
+    this._calMonths = (sched?.kind === "day_of_month" || sched?.kind === "nth_weekday") && Array.isArray(sched.months)
+      ? [...sched.months]
+      : [];
+    this._hadCalMonths = this._calMonths.length > 0;
     this._calendarEntity = sched?.kind === "calendar" ? (sched.entity_id || "") : "";
     this._calOffset = sched?.offset ? String(sched.offset) : "0";
     // Recurrence extras — read from the nested schedule wherever it lives.
@@ -664,6 +675,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._domLastDay = false;
     this._domBusiness = false;
     this._calOffset = "0";
+    this._calMonths = [];
+    this._hadCalMonths = false;
     this._seasonMonths = [];
     this._endsMode = "never";
     this._endsCount = "";
@@ -2318,7 +2331,7 @@ export class MaintenanceTaskDialog extends LitElement {
   private static readonly _PREVIEW_RELEVANT = new Set([
     "_open", "_scheduleType", "_intervalDays", "_intervalUnit", "_intervalAnchor",
     "_dueDate", "_weekdays", "_nth", "_nthWeekday", "_domDay", "_domLastDay",
-    "_domBusiness", "_calOffset", "_calendarEntity", "_seasonMonths", "_endsMode", "_endsCount",
+    "_domBusiness", "_calOffset", "_calMonths", "_calendarEntity", "_seasonMonths", "_endsMode", "_endsCount",
     "_endsUntil", "_lastPerformed",
   ]);
 
@@ -2451,11 +2464,17 @@ export class MaintenanceTaskDialog extends LitElement {
       if (off) schedule.offset = Math.max(-SCHEDULE_OFFSET_MAX_DAYS, Math.min(off, SCHEDULE_OFFSET_MAX_DAYS));
       return schedule;
     };
+    const withMonths = (schedule: Record<string, unknown>) => {
+      if (this._calMonths.length || this._hadCalMonths) {
+        schedule.months = [...this._calMonths].sort((a, b) => a - b);
+      }
+      return withOffset(schedule);
+    };
     if (this._scheduleType === "weekdays") {
       return withOffset({ kind: "weekdays", weekdays: [...this._weekdays].sort((a, b) => a - b) });
     }
     if (this._scheduleType === "nth_weekday") {
-      return withOffset({
+      return withMonths({
         kind: "nth_weekday",
         nth: parseInt(this._nth, 10),
         weekday: parseInt(this._nthWeekday, 10),
@@ -2471,7 +2490,7 @@ export class MaintenanceTaskDialog extends LitElement {
       day: this._domLastDay ? -1 : (parseInt(this._domDay, 10) || 1),
     };
     if (this._domBusiness) schedule.business = true;
-    return withOffset(schedule);
+    return withMonths(schedule);
   }
 
   /** The season/finite-series extras to attach to a recurring schedule. Empty
@@ -2487,6 +2506,28 @@ export class MaintenanceTaskDialog extends LitElement {
       extras.ends = { until: this._endsUntil };
     }
     return extras;
+  }
+
+  private _toggleCalMonth(m: number): void {
+    this._calMonths = this._calMonths.includes(m)
+      ? this._calMonths.filter((x) => x !== m)
+      : [...this._calMonths, m];
+  }
+
+  /** The month restriction of an nth_weekday / day_of_month pattern. */
+  private _renderCalMonths() {
+    const L = this._lang;
+    return html`
+      <label class="field-label">${t("recurrence_months_label", L)}</label>
+      <div class="field-help">${t("recurrence_months_hint", L)}</div>
+      <div class="weekday-chips season-chips cal-month-chips">
+        ${monthNames(L).map((name, i) => html`
+          <button
+            type="button"
+            class="season-chip ${this._calMonths.includes(i + 1) ? "selected" : ""}"
+            @click=${() => this._toggleCalMonth(i + 1)}
+          >${name}</button>`)}
+      </div>`;
   }
 
   private _toggleSeasonMonth(m: number): void {
@@ -2577,6 +2618,7 @@ export class MaintenanceTaskDialog extends LitElement {
             ${days.map((name, i) => html`<option value=${String(i)} ?selected=${String(i) === this._nthWeekday}>${name}</option>`)}
           </select>
         </div>
+        ${this._renderCalMonths()}
         ${this._renderCalOffsetField()}`;
     }
     if (this._scheduleType === "calendar") {
@@ -2627,6 +2669,7 @@ export class MaintenanceTaskDialog extends LitElement {
             @change=${(e: Event) => (this._domBusiness = (e.target as HTMLInputElement).checked)} />
           <span>${t("recurrence_business_day", L)}</span>
         </label>
+        ${this._renderCalMonths()}
         ${this._renderCalOffsetField()}`;
     }
     return nothing;

@@ -778,6 +778,11 @@ def _archived_entry_data(entry_data: Any, now_iso: str, *, keep_task_ids: set[st
     {
         vol.Required("type"): "maintenance_supporter/object/unarchive",
         vol.Required("entry_id"): ID_FIELD,
+        # The Undo of an archive / a pause just made: restore the task as it
+        # was instead of starting a fresh cycle (bug audit 2026-10-16: the
+        # Undo toast re-anchored the task to today, clearing overdue and
+        # postponed dates).
+        vol.Optional("undo", default=False): bool,
     }
 )
 @require_write
@@ -790,8 +795,9 @@ async def ws_unarchive_object(
     """Unarchive an object and un-cascade the tasks it had archived.
 
     Only tasks archived BY this object (reason OBJECT) are restored; recurring
-    ones get a fresh cycle (D2). Tasks archived manually or auto-archived keep
-    their archived state — they were retired independently.
+    ones get a fresh cycle (D2), except with ``undo`` (the Undo of the
+    archive): then they keep their dates. Tasks archived manually or
+    auto-archived keep their archived state — they were retired independently.
     """
     entry = _load_object_entry(hass, connection, msg)
     if entry is None:
@@ -815,7 +821,7 @@ async def ws_unarchive_object(
             # Fresh cycle for recurring tasks (D2); last_performed is dynamic →
             # Store when present, else the static dict (legacy). Shared core so
             # this path can't drift from resume/task-unarchive.
-            if _is_recurring_schedule(td):
+            if not msg.get("undo") and _is_recurring_schedule(td):
                 reanchor_recurring_task(tid, store=store, today_iso=today_iso, task_data=td)
         new_tasks[tid] = td
 
@@ -894,6 +900,11 @@ async def ws_pause_object(
     {
         vol.Required("type"): "maintenance_supporter/object/resume",
         vol.Required("entry_id"): ID_FIELD,
+        # The Undo of an archive / a pause just made: restore the task as it
+        # was instead of starting a fresh cycle (bug audit 2026-10-16: the
+        # Undo toast re-anchored the task to today, clearing overdue and
+        # postponed dates).
+        vol.Optional("undo", default=False): bool,
     }
 )
 @require_write
@@ -906,7 +917,8 @@ async def ws_resume_object(
     """End a seasonal pause: schedules re-anchor to a fresh cycle from today.
 
     Same core as the coordinator's ``paused_until`` auto-resume — the pool
-    pump comes back with a clean slate, not five months overdue.
+    pump comes back with a clean slate, not five months overdue. With
+    ``undo`` (the Undo of the pause) the tasks keep their dates.
     """
     from ..helpers.pause import build_resumed_entry_data
 
@@ -920,7 +932,7 @@ async def ws_resume_object(
         return
 
     store = get_store(hass, entry.entry_id)
-    new_data = build_resumed_entry_data(dict(entry.data), store, dt_util.now().date().isoformat())
+    new_data = build_resumed_entry_data(dict(entry.data), store, dt_util.now().date().isoformat(), fresh_cycle=not msg.get("undo"))
     hass.config_entries.async_update_entry(entry, data=new_data)
     if store is not None:
         await store.async_save()

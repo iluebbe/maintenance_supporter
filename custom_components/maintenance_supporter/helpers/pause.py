@@ -139,6 +139,8 @@ def build_resumed_entry_data(
     entry_data: dict[str, Any],
     store: MaintenanceStore | None,
     today_iso: str,
+    *,
+    fresh_cycle: bool = True,
 ) -> dict[str, Any]:
     """Return new entry data with the pause cleared and schedules re-anchored.
 
@@ -147,6 +149,8 @@ def build_resumed_entry_data(
     one-time and manual tasks keep their dates. Mutates the Store's dynamic
     state when one is provided (the caller saves); falls back to the static
     dict otherwise (legacy shape). Archived tasks are untouched.
+    ``fresh_cycle=False`` (the Undo of a pause just made) only lifts the
+    pause: the tasks keep their dates, overdue and postponed ones included.
     """
     from .schedule import is_recurring
 
@@ -161,7 +165,7 @@ def build_resumed_entry_data(
         td = dict(td)
         # A task paused on its own (#193) stays paused — resuming the object
         # does not end a pause somebody set for that one task.
-        if td.get("archived_at") is None and not is_task_paused(td) and is_recurring(td):
+        if fresh_cycle and td.get("archived_at") is None and not is_task_paused(td) and is_recurring(td):
             reanchor_recurring_task(tid, store=store, today_iso=today_iso, task_data=td)
         new_tasks[tid] = td
     new_data[CONF_TASKS] = new_tasks

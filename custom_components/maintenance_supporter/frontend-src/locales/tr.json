@@ -107,6 +107,8 @@
   "recurrence_business_day": "Yalnızca iş günleri (hafta sonundan geriye kaydır)",
   "recurrence_offset": "Kaydırma (gün, ±)",
   "recurrence_offset_help": "Tarihi ±N gün kaydırır, örn. -2 = iki gün önce.",
+  "recurrence_months_label": "Yalnızca bu aylarda",
+  "recurrence_months_hint": "Tarih yalnızca seçilen aylarda tekrarlanır; yıllık bir görev için bir ay seçin. Hiçbiri = her ay.",
   "last_day_month": "Ayın son günü",
   "last_business_day_month": "Son iş günü",
   "ord_1": "1.",

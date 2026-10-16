@@ -107,6 +107,8 @@
   "recurrence_business_day": "평일만 (주말이면 앞당김)",
   "recurrence_offset": "오프셋 (일, ±)",
   "recurrence_offset_help": "날짜를 ±N일 이동합니다. 예: -2 = 이틀 전.",
+  "recurrence_months_label": "이 달에만",
+  "recurrence_months_hint": "날짜는 선택한 달에만 반복됩니다. 연간 작업은 한 달만 선택하세요. 없음 = 매월.",
   "last_day_month": "매월 마지막 날",
   "last_business_day_month": "마지막 평일",
   "ord_1": "첫째",

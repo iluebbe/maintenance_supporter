@@ -253,7 +253,9 @@ def import_objects_csv(
 
     default_warning_days = get_default_warning_days(hass) if hass is not None else 7
     today = dt_util.now().date()
-    reader = csv.DictReader(io.StringIO(csv_content))
+    # A spreadsheet's "CSV UTF-8" save starts with a byte-order mark, which
+    # would otherwise glue itself to the first header cell.
+    reader = csv.DictReader(io.StringIO(csv_content.lstrip("\ufeff")))
 
     # Group rows by the source object (its entry id), or — for a CSV written
     # before that column existed — by object name.

@@ -105,6 +105,8 @@
   "recurrence_business_day": "Endast vardagar (tidigarelägg från helgen)",
   "recurrence_offset": "Förskjutning (dagar, ±)",
   "recurrence_offset_help": "Flyttar datumet ±N dagar, t.ex. -2 = två dagar före.",
+  "recurrence_months_label": "Endast dessa månader",
+  "recurrence_months_hint": "Datumet upprepas bara under de valda månaderna; välj en månad för en årlig uppgift. Ingen = varje månad.",
   "last_day_month": "Sista dagen i månaden",
   "last_business_day_month": "Sista vardagen",
   "ord_1": "1:a",

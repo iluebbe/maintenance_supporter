@@ -1484,8 +1484,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     _LOGGER.warning("Adaptive learning skipped for %s: malformed adaptive_config", task_id)
 
         try:
-            await self._persist_and_signal_task_change(task_id, task)
-            self._completion_cooldown.add(task_id)
+            # A pure backfill closed no current cycle: the triggers keep their
+            # progress (runtime hours, delta baseline, counts, an active
+            # trigger) and no cooldown starts. It used to send the reset
+            # signal like a fresh completion (bug audit 2026-10-16).
+            await self._persist_and_signal_task_change(task_id, task, occurrence_done=is_latest)
+            if is_latest:
+                self._completion_cooldown.add(task_id)
         except Exception:
             # The completion did not land on disk - release the double-tap
             # guard stamped above, or the user's retry within 30 s would be
@@ -2071,9 +2076,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         task's dynamic state (last_performed, history, due_override) flows
         through here so the Store-vs-ConfigEntry split, the recently-completed
         marker, the dispatcher signal and the refresh request stay in
-        lockstep. ``occurrence_done=False`` (postpone) only moves the due
-        date: the triggers keep their progress, so neither the reset signal
-        nor the completion marker is sent.
+        lockstep. ``occurrence_done=False`` (postpone, a backfilled
+        completion) closes no current cycle: the triggers keep their
+        progress, so neither the reset signal nor the completion marker is
+        sent.
         """
         # Dynamic state only → Store (no ConfigEntry write needed)
         self._persist_dynamic_state(task_id, task)

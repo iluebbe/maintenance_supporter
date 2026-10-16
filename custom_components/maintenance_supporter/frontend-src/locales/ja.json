@@ -107,6 +107,8 @@
   "recurrence_business_day": "平日のみ（週末から前倒し）",
   "recurrence_offset": "オフセット（日、±）",
   "recurrence_offset_help": "日付を±N日ずらします。例：-2 = 2日前。",
+  "recurrence_months_label": "この月のみ",
+  "recurrence_months_hint": "日付は選んだ月にのみ繰り返されます。年1回のタスクは1か月だけ選択してください。なし = 毎月。",
   "last_day_month": "月の最終日",
   "last_business_day_month": "最終営業日",
   "ord_1": "第1",

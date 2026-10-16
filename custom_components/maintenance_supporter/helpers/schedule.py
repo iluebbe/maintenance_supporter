@@ -224,6 +224,30 @@ def _sanitize_months(raw: object) -> tuple[int, ...]:
     return tuple(sorted(seen))
 
 
+def keep_month_filter(new: dict[str, Any], sent: object, previous: object) -> None:
+    """Carry a stored month restriction onto an edited schedule that does not
+    mention one.
+
+    ``months`` restricts an nth_weekday / day_of_month pattern (the yearly
+    template tasks: the 1st of September). The panel dialog and the options
+    flow had no field for it and rebuilt the schedule without it, so any
+    edit turned a yearly task into a monthly one (bug audit 2026-10-16). An
+    edit of the same kind whose ``sent`` schedule has no ``months`` key now
+    keeps the stored restriction; an explicit ``months: []`` still clears it.
+    Mutates ``new`` (the normalised schedule about to be stored).
+    """
+    kind = new.get("kind")
+    if kind not in (KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH) or "months" in new:
+        return
+    if isinstance(sent, Mapping) and "months" in sent:
+        return
+    if not isinstance(previous, Mapping) or previous.get("kind") != kind:
+        return
+    months = _sanitize_months(previous.get("months"))
+    if months:
+        new["months"] = list(months)
+
+
 def _parse_ends(raw: object) -> tuple[int | None, date | None]:
     """Read a finite-series ``ends`` block: (count>=1 or None, until-date or None)."""
     if not isinstance(raw, Mapping):

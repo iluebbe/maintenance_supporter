@@ -22,6 +22,11 @@ describe("formatRecurrence", () => {
   it("weekdays → 'Mon & Thu'", () => {
     expect(formatRecurrence({ schedule: { kind: "weekdays", weekdays: [0, 3] } }, "en")).to.equal("Mon & Thu");
   });
+  it("a month restriction is named: 'Day 1 · Sep' (yearly template task)", () => {
+    expect(formatRecurrence({ schedule: { kind: "day_of_month", day: 1, months: [9] } }, "en")).to.equal("Day 1 · Sep");
+    expect(formatRecurrence({ schedule: { kind: "nth_weekday", nth: 1, weekday: 5, months: [10, 4] } }, "en"))
+      .to.equal("1st Saturday · Apr, Oct");
+  });
   it("day_of_month → 'Day 15'", () => {
     expect(formatRecurrence({ schedule: { kind: "day_of_month", day: 15 } }, "en")).to.equal("Day 15");
   });

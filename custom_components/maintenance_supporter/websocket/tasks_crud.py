@@ -53,6 +53,7 @@ from ..helpers.schedule import (
     FLAT_RECURRENCE_KEYS,
     KIND_INTERVAL,
     Schedule,
+    keep_month_filter,
 )
 from ..helpers.task_fields import (
     EARLIEST_COMPLETION_RANGE,
@@ -820,6 +821,7 @@ async def ws_update_task(
     )
     if msg.get("schedule"):
         incoming = Schedule.from_dict(msg["schedule"]).to_dict()
+        keep_month_filter(incoming, msg["schedule"], task.get("schedule"))
         task["schedule"] = incoming
         # A COMPLETE nested schedule is authoritative — drop the flat recurrence
         # keys so it wins. But a BARE interval schedule (kind=interval with no

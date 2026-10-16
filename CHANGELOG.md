@@ -6,6 +6,28 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **The panel and the cards no longer freeze in a language without a translation:** with Home Assistant set to
+  Greek, Hebrew, Slovak, Romanian, Catalan, Croatian, Bulgarian, Serbian, Vietnamese, Norwegian Nynorsk or any
+  other language outside the 22 the integration speaks, the panel and every card re-rendered in an endless loop
+  and the browser tab stopped responding. They now read in English, as intended. A translation file that fails to
+  load is tried again a minute later instead of on every update.
+- **Photos in the Documents section are kept:** a photo filed under the *Photo* category, or taken with the
+  section's camera button, looked like an abandoned completion photo to the daily clean-up, which deleted it a day
+  later. Only photos taken for a completion are cleaned up now, and only while no history entry points at them.
+- **A yearly task stays yearly:** the templates' yearly and twice-yearly tasks (*Annual inspection* on
+  1 September, *Bleed radiators* on 1 October and 62 more) became monthly as soon as they were edited in the panel
+  or in the options flow, because their months were dropped on save. The task dialog now shows the months of a day-of-month or
+  nth-weekday pattern (*Only in these months*), the task page and the reports name them (*Day 1 · Sep*), and an
+  edit that does not mention them keeps them.
+- **A late entry keeps the trigger's progress:** recording a completion dated before the last one reset the sensor
+  triggers like a fresh completion: a runtime task lost its hours, a distance counter its baseline, and a
+  triggered task went back to OK. A backdated entry now only adds to the history.
+- **The panel imports its own CSV again:** since 2.100.0 the CSV export starts with the object's id, and the
+  import box only recognised a CSV that started with the object's name; it refused the panel's own export as
+  "not valid JSON or YAML". A CSV saved by a spreadsheet with a byte-order mark is read correctly too.
+- **Undo puts a task back as it was:** *Undo* after archiving or pausing a task or an object restored it with a
+  fresh cycle from today, so an overdue task came back as due in a month and a postponed date was lost. Undo now
+  keeps the dates; unarchiving or resuming later still starts a fresh cycle.
 - **Every surface tells the same story** (a live check walked a task through its whole life and compared the
   panel, the card, the entities, the to-do list and the calendar after every step):
   - **The countdown sensor's id matches its siblings:** on an object created in an area, Home Assistant puts the
@@ -25,8 +47,9 @@ All notable changes to Maintenance Supporter are documented in this file.
     only; the *equal to* and *different from* limits fire as well and are now named too.
   - **Both calendars put an overdue task on today:** the panel's Calendar tab showed an overdue or triggered task
     on today, the integration's calendar entity on its past due date. The calendar entity now shows it on today
-    as well, with its due date in the event description. A calendar-trigger automation sees such a task again
-    each day until it is done.
+    as well, as an all-day event with its due date in the description. A calendar-trigger automation sees such a
+    task again each day until it is done. A timed event of today that has already ended is no longer shown as
+    the calendar's next event.
 - **Docs:** the examples said the countdown's id is translated on a non-English Home Assistant; it has ended in
   `_days_until_due` in every language since 2.43.
 

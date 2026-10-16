@@ -8,6 +8,7 @@ import type { HomeAssistant, AdvancedFeatures, BudgetStatus, HAUser } from "../t
 import { t, langOf, personStyles, syncCurrencyDecimals, formatNumber } from "../styles";
 import { signApiPath } from "../helpers/document-url";
 import { downloadUrl } from "../helpers/download";
+import { isCsvExport } from "../helpers/import-format";
 import { UserService } from "../user-service";
 import { AVATAR_PALETTE, personOf, renderPersonAvatar } from "../helpers/person";
 import { OBJECT_COLUMNS, sanitizeColumns } from "../helpers/object-columns";
@@ -2131,10 +2132,10 @@ export class MaintenanceSettingsView extends LitElement {
   private async _importCsvAction(): Promise<void> {
     const content = this._importCsv.trim();
     if (!content) return;
-    // CSV exports start with the "object_name" header; anything else
-    // (JSON `{`/`[` or YAML `version:`) goes to the structured importer,
-    // which parses JSON and YAML alike.
-    const isCsv = content.startsWith("object_name");
+    // A CSV export has an "object_name" header cell; anything else (JSON
+    // `{`/`[` or YAML `version:`) goes to the structured importer, which
+    // parses JSON and YAML alike.
+    const isCsv = isCsvExport(content);
     this._importUnmatched = [];
     const result = await this._ws<{ created: number; unmatched_users?: string[] }>(
       isCsv

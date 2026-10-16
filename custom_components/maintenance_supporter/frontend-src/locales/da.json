@@ -107,6 +107,8 @@
   "recurrence_business_day": "Kun hverdage (ryk tilbage fra weekenden)",
   "recurrence_offset": "Forskydning (dage, ±)",
   "recurrence_offset_help": "Forskyder datoen ±N dage, f.eks. -2 = to dage før.",
+  "recurrence_months_label": "Kun i disse måneder",
+  "recurrence_months_hint": "Datoen gentages kun i de valgte måneder; vælg én måned for en årlig opgave. Ingen = hver måned.",
   "last_day_month": "Sidste dag i måneden",
   "last_business_day_month": "Sidste hverdag",
   "ord_1": "1.",

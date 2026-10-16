@@ -87,20 +87,25 @@ export async function uploadDocument(
   entryId: string,
   file: File,
   tags: string[],
+  purpose?: "completion",
 ): Promise<UploadedDocument> {
   if (file.size > DOC_MAX_BYTES) throw new Error("doc_too_large");
   const form = new FormData();
   form.append("entry_id", entryId);
   for (const tag of tags) form.append("tags", tag);
+  if (purpose) form.append("purpose", purpose);
   form.append("file", file, file.name);
   const doc = await postMultipart<Partial<UploadedDocument>>(hass, "/api/maintenance_supporter/document/upload", form);
   if (!doc.id) throw new Error("doc_upload_failed");
   return { id: doc.id, deduped: !!doc.deduped, duplicate_in_object: doc.duplicate_in_object ?? null };
 }
 
-/** Upload one image as a `photo`-tagged document; resolves to its doc id. */
+/** Upload one image as a `photo`-tagged completion photo; resolves to its
+ *  doc id. The purpose marks it as one: until a history entry points at it,
+ *  the daily sweep may remove it. A photo filed in the Documents section
+ *  carries the same tag but no purpose, so it is kept. */
 export async function uploadCompletionPhoto(hass: HomeAssistant, entryId: string, file: File): Promise<string> {
-  return (await uploadDocument(hass, entryId, file, ["photo"])).id;
+  return (await uploadDocument(hass, entryId, file, ["photo"], "completion")).id;
 }
 
 /** Best-effort removal of photos uploaded in a dialog session that was

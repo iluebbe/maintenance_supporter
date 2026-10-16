@@ -159,6 +159,10 @@ class DocumentUploadView(HomeAssistantView):
                 title=title.strip() if isinstance(title, str) and title.strip() else None,
                 tags=tags,
                 description=description,
+                # A non-writer may only upload completion photos; a writer's
+                # complete dialog says so. A photo filed in the Documents
+                # section is neither, so the sweep leaves it alone.
+                completion_photo=not may_write or data.get("purpose") == "completion",
             )
         except ValueError as err:
             if str(err) == "too_many_documents":

@@ -13,7 +13,7 @@
  * the no-fetch fast paths of ensureLocale/isLocaleLoaded.
  */
 import { expect } from "@open-wc/testing";
-import { t, isLocaleLoaded, ensureLocale, seedEnglish } from "../styles";
+import { t, isLocaleLoaded, ensureLocale, seedEnglish, syncLocaleFromHass } from "../styles";
 
 describe("i18n runtime loader", () => {
   it("serves bundled English synchronously", () => {
@@ -37,7 +37,50 @@ describe("i18n runtime loader", () => {
   it("ensureLocale resolves immediately for English and unsupported langs", async () => {
     await ensureLocale("en"); // bundled → no-op
     await ensureLocale("xx"); // unsupported → no fetch, stays on English
-    expect(isLocaleLoaded("xx")).to.be.false;
+    // Nothing left to fetch, so it counts as loaded (see the freeze test below).
+    expect(isLocaleLoaded("xx")).to.be.true;
+  });
+
+  it("an HA language without a table does not re-render in a loop (tab freeze, audit 2026-10-16)", async () => {
+    // Every surface calls syncLocaleFromHass() from updated(). For Greek,
+    // Hebrew, Slovak, … isLocaleLoaded() was false while ensureLocale()
+    // resolved at once, so each update queued the next: an endless
+    // microtask loop that froze the tab.
+    let updates = 0;
+    const host = { hass: { language: "el" }, requestUpdate: () => { updates++; } };
+    syncLocaleFromHass(host, new Map());
+    await new Promise((r) => setTimeout(r, 0));
+    expect(updates).to.equal(0);
+    expect(t("loading", "el")).to.equal(t("loading", "en"));
+  });
+
+  it("a failed locale fetch neither re-renders nor refetches on the next update", async () => {
+    const g = (window as unknown as {
+      __msLocales: { store: Record<string, unknown>; inflight: Record<string, unknown>; failedAt: Record<string, number> };
+    }).__msLocales;
+    delete g.store.ko;
+    delete g.inflight.ko;
+    delete g.failedAt.ko;
+    const realFetch = window.fetch;
+    let fetches = 0;
+    window.fetch = (() => {
+      fetches++;
+      return Promise.resolve(new Response("", { status: 404 }));
+    }) as typeof window.fetch;
+    let updates = 0;
+    const host = { hass: { language: "ko" }, requestUpdate: () => { updates++; } };
+    try {
+      syncLocaleFromHass(host, new Map());
+      await new Promise((r) => setTimeout(r, 0));
+      syncLocaleFromHass(host, new Map());
+      await new Promise((r) => setTimeout(r, 0));
+      expect(fetches, "one fetch, then a pause before the retry").to.equal(1);
+      expect(updates, "no re-render without a table").to.equal(0);
+      expect(isLocaleLoaded("ko")).to.be.false;
+    } finally {
+      window.fetch = realFetch;
+      delete g.failedAt.ko;
+    }
   });
 
   it("shares the locale store across bundle copies via window (German-panel/English-dialog regression)", () => {

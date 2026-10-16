@@ -65,6 +65,11 @@ _COPY_CHUNK_BYTES = 1024 * 1024
 
 KIND_FILE = "file"
 KIND_WEBLINK = "weblink"
+# A photo uploaded for a completion (the complete dialog, a non-writer's
+# upload) rather than filed in the Documents section. Only such a photo is
+# an orphan to sweep while nothing points at it: the Documents section's
+# "Photo" category carries the same ``photo`` tag (bug audit 2026-10-16).
+COMPLETION_PHOTO_KEY = "completion_photo"
 
 
 def doc_wire_dict(doc: dict[str, Any], *, include_id: bool) -> dict[str, Any]:
@@ -350,6 +355,7 @@ class DocumentStore:
         title: str | None = None,
         tags: list[str] | None = None,
         description: str | None = None,
+        completion_photo: bool = False,
     ) -> dict[str, Any]:
         """Store an uploaded file (content-addressed + deduped) for an object.
 
@@ -363,6 +369,11 @@ class DocumentStore:
         Returns the new document dict plus ``deduped`` (the blob already existed)
         and ``duplicate_in_object`` (the id of an existing doc on the *same*
         object with identical content, if any — the caller surfaces a hint).
+
+        ``completion_photo`` marks a photo taken for a completion: until a
+        history entry points at it, the retention sweep and
+        ``documents/discard_upload`` may remove it (see
+        ``completion_requirements.is_unattached_photo``).
         """
         if isinstance(content, bytes):
             if len(content) > MAX_DOC_BYTES:
@@ -408,6 +419,8 @@ class DocumentStore:
             "part_ids": [],
             "added_at": dt_util.utcnow().isoformat(),
         }
+        if completion_photo:
+            doc[COMPLETION_PHOTO_KEY] = True
         self.documents[doc_id] = doc
         await self._async_save()
         if not wrote_new and not deduped:

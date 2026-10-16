@@ -128,12 +128,18 @@ def photo_references(hass: HomeAssistant, *, strict: bool = True) -> set[str] | 
 
 
 def is_unattached_photo(doc: dict[str, Any], doc_id: str, references: set[str]) -> bool:
-    """A file tagged exactly ``photo`` that nothing points at: no history
-    entry, no spare part, no task / part link."""
-    from .documents import KIND_FILE
+    """A completion photo, still tagged exactly ``photo``, that nothing
+    points at: no history entry, no spare part, no task / part link.
+
+    The tag alone is not enough: a photo filed in the Documents section
+    under the "Photo" category carries the same tag, and the daily sweep
+    deleted every such photo after a day (bug audit 2026-10-16). Only an
+    upload marked as a completion photo qualifies."""
+    from .documents import COMPLETION_PHOTO_KEY, KIND_FILE
 
     return (
         doc.get("kind") == KIND_FILE
+        and doc.get(COMPLETION_PHOTO_KEY) is True
         and list(doc.get("tags") or []) == [PHOTO_TAG]
         and not doc.get("task_ids")
         and not doc.get("part_ids")

@@ -107,6 +107,8 @@
   "recurrence_business_day": "Vain arkipäivät (siirrä taaksepäin viikonlopusta)",
   "recurrence_offset": "Siirtymä (päivää, ±)",
   "recurrence_offset_help": "Siirtää päivämäärää ±N päivää, esim. -2 = kaksi päivää aiemmin.",
+  "recurrence_months_label": "Vain näinä kuukausina",
+  "recurrence_months_hint": "Päivä toistuu vain valittuina kuukausina; valitse vuosittaiselle tehtävälle yksi kuukausi. Ei mitään = joka kuukausi.",
   "last_day_month": "Kuukauden viimeinen päivä",
   "last_business_day_month": "Viimeinen arkipäivä",
   "ord_1": "1.",

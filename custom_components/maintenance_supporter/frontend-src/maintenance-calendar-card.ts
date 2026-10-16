@@ -587,7 +587,11 @@ class MaintenanceCalendarCardEditor extends LitElement {
    *  it lands so the labels localize (same pattern as the card itself). */
   updated(): void {
     const lang = this._lang;
-    if (lang && !isLocaleLoaded(lang)) void ensureLocale(lang).then(() => this.requestUpdate());
+    if (lang && !isLocaleLoaded(lang)) {
+      void ensureLocale(lang).then(() => {
+        if (isLocaleLoaded(lang)) this.requestUpdate();
+      });
+    }
   }
 
   private _valueChanged(key: keyof CalendarCardConfig, value: unknown): void {

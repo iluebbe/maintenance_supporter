@@ -26,15 +26,25 @@ const DEFAULT_LANG = "en";
 interface LocaleGlobals {
   store: Record<string, Translations>;
   inflight: Record<string, Promise<void>>;
+  /** When a language's fetch last failed (ms). Optional: a stale bundle
+   *  that created the globals first knows only store + inflight. */
+  failedAt?: Record<string, number>;
 }
 const _localeGlobals: LocaleGlobals = (() => {
   const w = window as unknown as { __msLocales?: LocaleGlobals };
   if (!w.__msLocales) w.__msLocales = { store: {}, inflight: {} };
+  if (!w.__msLocales.failedAt) w.__msLocales.failedAt = {};
   return w.__msLocales;
 })();
 
 const STORE = _localeGlobals.store;
 const _localeInflight = _localeGlobals.inflight;
+const _localeFailedAt = _localeGlobals.failedAt as Record<string, number>;
+
+/** A failed fetch is retried, but not before this much time has passed:
+ *  surfaces call ensureLocale() on every hass update, and without a pause a
+ *  missing file was fetched again on each one. */
+const RETRY_AFTER_MS = 60_000;
 
 /** Seed/extend the shared English table with this bundle's copy.
  *
@@ -78,10 +88,16 @@ export function t(key: string, lang?: string, fallback?: string): string {
   return STORE[l]?.[key] ?? STORE.en?.[key] ?? fallback ?? key;
 }
 
-/** True when *lang*'s table is in memory (English counts as loaded). */
+/** True when nothing is left to fetch for *lang*: English, a language we
+ *  have no table for (it reads in English for good) or a table in memory.
+ *
+ *  An unsupported language used to count as NOT loaded while ensureLocale()
+ *  resolved at once for it, so surfaces that re-render "once the locale
+ *  arrives" re-rendered in an endless microtask loop and froze the browser
+ *  tab for every HA language outside our 22 (Greek, Hebrew, Slovak, …). */
 export function isLocaleLoaded(lang?: string): boolean {
   const l = normLang(lang);
-  return l === DEFAULT_LANG || l in STORE;
+  return l === DEFAULT_LANG || l in STORE || !SUPPORTED_LANGS.has(l);
 }
 
 /**
@@ -93,6 +109,10 @@ export function isLocaleLoaded(lang?: string): boolean {
 export function ensureLocale(lang?: string): Promise<void> {
   const l = normLang(lang);
   if (l === DEFAULT_LANG || l in STORE || !SUPPORTED_LANGS.has(l)) {
+    return Promise.resolve();
+  }
+  const failedAt = _localeFailedAt[l];
+  if (failedAt !== undefined && Date.now() - failedAt < RETRY_AFTER_MS) {
     return Promise.resolve();
   }
   if (!(l in _localeInflight)) {
@@ -107,12 +127,14 @@ export function ensureLocale(lang?: string): Promise<void> {
           STORE[l] = data as Translations;
         } else {
           // Don't make one failed fetch sticky for the whole page session —
-          // the next ensureLocale() call retries.
+          // a call after RETRY_AFTER_MS retries.
           delete _localeInflight[l];
+          _localeFailedAt[l] = Date.now();
         }
       })
       .catch(() => {
         delete _localeInflight[l];
+        _localeFailedAt[l] = Date.now();
       });
   }
   return _localeInflight[l];

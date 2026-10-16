@@ -105,6 +105,8 @@
   "recurrence_business_day": "Tylko dni robocze (przesuń wstecz z weekendu)",
   "recurrence_offset": "Przesunięcie (dni, ±)",
   "recurrence_offset_help": "Przesuwa datę o ±N dni, np. -2 = dwa dni wcześniej.",
+  "recurrence_months_label": "Tylko w tych miesiącach",
+  "recurrence_months_hint": "Termin powtarza się tylko w wybranych miesiącach; dla zadania corocznego wybierz jeden miesiąc. Brak = co miesiąc.",
   "last_day_month": "Ostatni dzień miesiąca",
   "last_business_day_month": "Ostatni dzień roboczy",
   "ord_1": "1.",

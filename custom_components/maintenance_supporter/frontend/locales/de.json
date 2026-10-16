@@ -107,6 +107,8 @@
   "recurrence_business_day": "Nur Werktage (vom Wochenende vorziehen)",
   "recurrence_offset": "Versatz (Tage, ±)",
   "recurrence_offset_help": "Verschiebt das Datum um ±N Tage, z. B. -2 = zwei Tage davor.",
+  "recurrence_months_label": "Nur in diesen Monaten",
+  "recurrence_months_hint": "Der Termin wiederholt sich nur in den gewählten Monaten; für eine jährliche Aufgabe einen Monat wählen. Keiner = jeden Monat.",
   "last_day_month": "Letzter Tag des Monats",
   "last_business_day_month": "Letzter Werktag",
   "ord_1": "1.",

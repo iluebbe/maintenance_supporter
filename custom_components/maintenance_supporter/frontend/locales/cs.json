@@ -105,6 +105,8 @@
   "recurrence_business_day": "Pouze pracovní dny (posunout zpět z víkendu)",
   "recurrence_offset": "Posun (dny, ±)",
   "recurrence_offset_help": "Posune datum o ±N dní, např. -2 = dva dny předem.",
+  "recurrence_months_label": "Jen v těchto měsících",
+  "recurrence_months_hint": "Termín se opakuje jen ve vybraných měsících; pro roční úkol vyberte jeden měsíc. Žádný = každý měsíc.",
   "last_day_month": "Poslední den v měsíci",
   "last_business_day_month": "Poslední pracovní den",
   "ord_1": "1.",

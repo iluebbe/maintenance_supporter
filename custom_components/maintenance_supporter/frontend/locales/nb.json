@@ -107,6 +107,8 @@
   "recurrence_business_day": "Kun virkedager (flytt tilbake fra helgen)",
   "recurrence_offset": "Forskyvning (dager, ±)",
   "recurrence_offset_help": "Forskyver datoen ±N dager, f.eks. -2 = to dager før.",
+  "recurrence_months_label": "Bare i disse månedene",
+  "recurrence_months_hint": "Datoen gjentas bare i de valgte månedene; velg én måned for en årlig oppgave. Ingen = hver måned.",
   "last_day_month": "Siste dag i måneden",
   "last_business_day_month": "Siste virkedag",
   "ord_1": "1.",

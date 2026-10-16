@@ -107,6 +107,8 @@
   "recurrence_business_day": "Business days only (roll back from weekend)",
   "recurrence_offset": "Offset (days, ±)",
   "recurrence_offset_help": "Shift the date by ±N days, e.g. -2 = two days before.",
+  "recurrence_months_label": "Only in these months",
+  "recurrence_months_hint": "The date repeats in the selected months only; pick one month for a yearly task. None = every month.",
   "last_day_month": "Last day of month",
   "last_business_day_month": "Last business day",
   "ord_1": "1st",

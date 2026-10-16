@@ -105,6 +105,8 @@
   "recurrence_business_day": "Jours ouvrés uniquement (avancer depuis le week-end)",
   "recurrence_offset": "Décalage (jours, ±)",
   "recurrence_offset_help": "Décale la date de ±N jours, p. ex. -2 = deux jours avant.",
+  "recurrence_months_label": "Uniquement ces mois-ci",
+  "recurrence_months_hint": "La date ne se répète que dans les mois choisis ; choisissez un seul mois pour une tâche annuelle. Aucun = chaque mois.",
   "last_day_month": "Dernier jour du mois",
   "last_business_day_month": "Dernier jour ouvré",
   "ord_1": "1er",

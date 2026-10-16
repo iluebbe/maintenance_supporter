@@ -107,6 +107,8 @@
   "recurrence_business_day": "केवल कार्यदिवस (सप्ताहांत से पीछे खिसकाएँ)",
   "recurrence_offset": "ऑफ़सेट (दिन, ±)",
   "recurrence_offset_help": "तिथि को ±N दिन खिसकाता है, जैसे -2 = दो दिन पहले।",
+  "recurrence_months_label": "केवल इन महीनों में",
+  "recurrence_months_hint": "तारीख केवल चुने गए महीनों में दोहराई जाती है; वार्षिक कार्य के लिए एक महीना चुनें। कोई नहीं = हर महीने।",
   "last_day_month": "महीने का अंतिम दिन",
   "last_business_day_month": "अंतिम कार्य दिवस",
   "ord_1": "पहला",

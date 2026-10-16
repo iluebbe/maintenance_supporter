@@ -107,6 +107,8 @@
   "recurrence_business_day": "Somente dias úteis (antecipar do fim de semana)",
   "recurrence_offset": "Deslocamento (dias, ±)",
   "recurrence_offset_help": "Desloque a data em ±N dias, ex.: -2 = dois dias antes.",
+  "recurrence_months_label": "Somente nestes meses",
+  "recurrence_months_hint": "A data se repete apenas nos meses escolhidos; escolha um mês para uma tarefa anual. Nenhum = todo mês.",
   "last_day_month": "Último dia do mês",
   "last_business_day_month": "Último dia útil",
   "ord_1": "1º",

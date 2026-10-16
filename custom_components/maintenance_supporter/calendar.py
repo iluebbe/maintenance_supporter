@@ -664,7 +664,15 @@ class MaintenanceCalendar(CalendarEntity):
         if self._cache_time is not None and (now - self._cache_time).total_seconds() < 3600:
             return self._cached_next_event
 
-        events = self._get_all_events(now, now + timedelta(days=365))
+        # A timed event of today that has already ended is not the next one
+        # (bug audit 2026-10-16): it sorted first and the entity showed it.
+        def _ended(e: CalendarEvent) -> bool:
+            end = e.end
+            if not isinstance(end, datetime):
+                return False
+            return (end if end.tzinfo else end.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)) <= now
+
+        events = [e for e in self._get_all_events(now, now + timedelta(days=365)) if not _ended(e)]
         if events:
             # Events mix all-day (date) and timed (datetime) starts since v1.0.41.
             # Normalise to datetime for comparison so sort doesn't TypeError.
@@ -864,7 +872,9 @@ class MaintenanceCalendar(CalendarEntity):
         # set proper alarms instead of the generic "all-day" reminder.
         start: date | datetime = event_day
         end: date | datetime = event_day + timedelta(days=1)
-        if task.schedule_time and self._is_schedule_time_feature_enabled():
+        # An overdue task moved onto today is all-day: its time of day has
+        # passed, and a timed event would end before the work is done.
+        if event_day == next_due and task.schedule_time and self._is_schedule_time_feature_enabled():
             # "HH:MM" and "HH:MM:SS" alike; malformed → stays all-day.
             at = parse_hhmm(task.schedule_time)
             if at is not None:

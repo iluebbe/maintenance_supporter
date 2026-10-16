@@ -125,8 +125,10 @@ Places (2026-10): `place` is a zone entity id (anything else, `""` and
 
 ### `object/archive` / `object/unarchive` — `@require_write`
 `{entry_id}`. Archive cascades `archived_reason:"object"` onto active tasks;
-result `{"success": true, "archived_at": "<iso>"}`. Unarchive restores those
-tasks (recurring ones re-anchored). Errors: `already_archived` / `not_archived`.
+result `{"success": true, "archived_at": "<iso>"}`. Unarchive `{entry_id, undo?}`
+restores those tasks (recurring ones re-anchored to a fresh cycle; with
+`undo: true`, the Undo of an archive just made, they keep their dates).
+Errors: `already_archived` / `not_archived`.
 
 ### Meter readings (v2.20, #83)
 `reading`-type tasks accept `reading_unit` (str ≤32, e.g. "kWh") on
@@ -184,16 +186,18 @@ service.
 Seasonal pause. Pause: `{entry_id, until?}` (`until` = ISO date, must be in the
 future; omit for an open-ended pause) → `{"success": true, "paused_at",
 "paused_until"}`. Tasks read status `paused` (frozen, nothing fires); the
-coordinator auto-resumes on `until`. Resume: `{entry_id}` → `{"success": true}`;
-recurring tasks re-anchor to a fresh cycle from today. Errors: `archived` /
+coordinator auto-resumes on `until`. Resume: `{entry_id, undo?}` → `{"success": true}`;
+recurring tasks re-anchor to a fresh cycle from today (`undo: true`, the Undo of
+a pause just made, keeps their dates). Errors: `archived` /
 `already_paused` / `not_paused` / `invalid_date`.
 
 ### `task/pause` / `task/resume` — `@require_write` (2.96, #193)
 The object pause for ONE task. Pause: `{entry_id, task_id, until?}` → `{"success":
 true, "paused_at", "paused_until"}`; the task reads status `paused` (frozen,
 nothing fires), the object's other tasks keep running, the coordinator
-auto-resumes on `until`. Resume: `{entry_id, task_id}` → `{"success": true}`; a
-recurring task restarts a fresh cycle from today. An object resume leaves a
+auto-resumes on `until`. Resume: `{entry_id, task_id, undo?}` → `{"success": true}`; a
+recurring task restarts a fresh cycle from today (`undo: true` keeps its dates).
+An object resume leaves a
 task paused on its own paused. Task payloads carry `paused`, `paused_at`,
 `paused_until`. Errors: `archived` / `already_paused` / `not_paused` /
 `invalid_date`.
@@ -407,7 +411,11 @@ it is prefixed with `Condition <index>:`.
 ### `task/update` / `task/delete` / `task/duplicate` / `task/move` / `task/archive` / `task/unarchive` — `@require_write`
 `update`: `{entry_id, task_id, + any task field}` (partial). `delete`:
 `{entry_id, task_id}`. Recurrence edit: an explicit nested `schedule` wins; a
-flat interval edit rebuilds from flat and drops the nested schedule.
+flat interval edit rebuilds from flat and drops the nested schedule. A month
+restriction (`months` on `nth_weekday` / `day_of_month`, the yearly template
+tasks) is kept when the sent schedule of the same kind leaves `months` out;
+`months: []` clears it. `unarchive` takes `undo?` like `task/resume`: `true`
+keeps a recurring task's dates instead of starting a fresh cycle.
 `move` (2.82): `{entry_id, task_id, target_entry_id}` → `{task_id, entry_id}` — the task
 keeps its id, config, history, readings, adaptive config, trigger runtime and
 group memberships; it gets a new reference number under the target object and

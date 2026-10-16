@@ -105,6 +105,8 @@
   "recurrence_business_day": "Solo días laborables (adelantar desde el fin de semana)",
   "recurrence_offset": "Desplazamiento (días, ±)",
   "recurrence_offset_help": "Desplaza la fecha ±N días, p. ej. -2 = dos días antes.",
+  "recurrence_months_label": "Solo en estos meses",
+  "recurrence_months_hint": "La fecha solo se repite en los meses elegidos; elige un mes para una tarea anual. Ninguno = cada mes.",
   "last_day_month": "Último día del mes",
   "last_business_day_month": "Último día laborable",
   "ord_1": "1.º",

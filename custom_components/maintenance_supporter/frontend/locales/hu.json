@@ -107,6 +107,8 @@
   "recurrence_business_day": "Csak munkanapokon (hétvégéről visszalépve)",
   "recurrence_offset": "Eltolás (nap, ±)",
   "recurrence_offset_help": "A dátum eltolása ±N nappal, pl. -2 = két nappal korábban.",
+  "recurrence_months_label": "Csak ezekben a hónapokban",
+  "recurrence_months_hint": "Az időpont csak a kiválasztott hónapokban ismétlődik; éves feladathoz válasszon egy hónapot. Egyik sem = minden hónapban.",
   "last_day_month": "A hónap utolsó napja",
   "last_business_day_month": "Utolsó munkanap",
   "ord_1": "1.",

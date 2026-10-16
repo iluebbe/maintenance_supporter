@@ -105,6 +105,8 @@
   "recurrence_business_day": "Alleen werkdagen (vervroegen vanaf het weekend)",
   "recurrence_offset": "Verschuiving (dagen, ±)",
   "recurrence_offset_help": "Verschuift de datum met ±N dagen, bijv. -2 = twee dagen eerder.",
+  "recurrence_months_label": "Alleen in deze maanden",
+  "recurrence_months_hint": "De datum herhaalt zich alleen in de gekozen maanden; kies één maand voor een jaarlijkse taak. Geen = elke maand.",
   "last_day_month": "Laatste dag van de maand",
   "last_business_day_month": "Laatste werkdag",
   "ord_1": "1e",
