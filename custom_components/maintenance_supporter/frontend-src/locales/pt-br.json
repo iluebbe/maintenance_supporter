@@ -69,6 +69,7 @@
   "last_performed": "Última execução",
   "last_done_days_ago": "feito há {n} d",
   "last_done_today": "feito hoje",
+  "no_due_date": "Sem vencimento",
   "next_due": "Próximo vencimento",
   "days_until_due": "Dias até o vencimento",
   "avg_duration": "Duração média",

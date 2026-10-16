@@ -67,6 +67,7 @@
   "last_performed": "Ultima esecuzione",
   "last_done_days_ago": "fatto {n} g fa",
   "last_done_today": "fatto oggi",
+  "no_due_date": "Senza scadenza",
   "next_due": "Prossima scadenza",
   "days_until_due": "Giorni alla scadenza",
   "avg_duration": "Ø Durata",

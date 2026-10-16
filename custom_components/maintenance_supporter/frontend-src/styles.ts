@@ -541,6 +541,9 @@ export const sharedStyles = css`
   .status-badge.triggered { background-color: var(--maint-triggered-color); }
   /* Completed one-time task ("done") — muted blue-grey. */
   .status-badge.done { background-color: var(--maint-done-color, #78909c); }
+  /* D#203: a manual task without a due date — an outline in the muted grey of
+     its "done 23 d ago", so it does not read as a green, on-schedule OK. */
+  .status-badge.no_due { background-color: var(--maint-no-due-background, transparent); color: var(--secondary-text-color, #727272); box-shadow: inset 0 0 0 1px currentColor; }
   /* v2.10.0: archived (retire-but-retain) — neutral grey, clearly inert. */
   .status-badge.archived { background-color: var(--disabled-color, #9e9e9e); color: #000; }
   /* v2.20 (N3): paused — frozen but present, info blue. */

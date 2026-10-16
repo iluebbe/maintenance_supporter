@@ -130,7 +130,7 @@ import { INITIAL_STICKY, nextStickyState, stickyStateOnSelect, stickyTop, type S
 import { invalidateSettingsCache, parseSettings, type SettingsWire } from "./helpers/settings-cache";
 import type { PartsCostMode } from "./helpers/parts-cost";
 import { canWrite } from "./helpers/permissions";
-import { renderStatusBadge } from "./renderers/status";
+import { renderStatusBadge, statusKey, statusLabel, type StatusLike } from "./renderers/status";
 import { TOAST_MS, ACTION_TOAST_MS } from "./helpers/toast";
 import { primaryTriggerEntity } from "./helpers/trigger-entities";
 import { buildHistoryEntryDraft } from "./helpers/history-draft";
@@ -3512,8 +3512,8 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  (colour-blind accessibility) — icon + text + colour together. The label
    *  is its own span so narrow/tight rows can drop it (#150: the pill ate a
    *  third of a phone row) while `title`/`aria-label` keep the text reachable. */
-  private _statusBadge(archived: boolean, isDone: boolean, status: string) {
-    return renderStatusBadge({ archived, is_done: isDone, status }, this._lang);
+  private _statusBadge(task: StatusLike) {
+    return renderStatusBadge(task, this._lang);
   }
 
   private _setOverviewTab(tab: OverviewTab): void {
@@ -3886,7 +3886,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     let anyNfc = false;
     let anyPriority = false;
     for (const r of rows) {
-      const label = r.archived ? t("archived", L) : (r.is_done ? t("completed", L) : t(r.status, L));
+      const label = statusLabel(statusKey(r), L);
       if (label.length > widest.length) widest = label;
       if (!r.enabled) anyDisabled = true;
       if (r.nfc_tag_id) anyNfc = true;
@@ -4642,7 +4642,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           </label>
         ` : nothing}
         <span class="cell-badges">
-          ${this._statusBadge(!!row.archived, row.is_done, row.status)}
+          ${this._statusBadge(row)}
           ${!row.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
           ${row.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
           ${row.priority === "high" ? html`<span class="priority-badge priority-high" title="${t("priority_high", L)}"><ha-icon icon="mdi:chevron-double-up"></ha-icon></span>` : nothing}
@@ -4888,7 +4888,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             ).map((task) => html`
               <div class="task-row${!task.enabled ? ' task-disabled' : ''}">
                 <span class="cell-badges">
-                  ${this._statusBadge(!!task.archived, !!task.is_done, task.status)}
+                  ${this._statusBadge(task)}
                   ${!task.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
                   ${task.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
                   ${task.document_count

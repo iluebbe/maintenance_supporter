@@ -10,6 +10,7 @@ import { render } from "lit";
 import { addDaysIso, haToday } from "../helpers/ha-time";
 import { renderDueText } from "../renderers/progress";
 import { formatLastDone } from "../styles";
+import { NO_DUE_COLOR, renderStatusBadge, statusColor, statusKey } from "../renderers/status";
 import "../maintenance-card.js";
 import type { MaintenanceSupporterCard } from "../maintenance-card";
 
@@ -94,5 +95,42 @@ describe("maintenance card", () => {
     expect(due["Replace thermal paste"]).to.equal("—");
     expect(due["Clean the fan"]).to.equal("⚡", "a triggered task keeps its mark");
     expect(el.shadowRoot!.querySelector(".task-due .last-done")).to.exist;
+    // The status dot follows the shared derivation: grey for the manual task
+    // without a due date, not the green of an on-schedule OK.
+    const dot = [...el.shadowRoot!.querySelectorAll(".task-item")]
+      .find((r) => r.querySelector(".task-name")!.textContent!.includes("Dust the case"))!
+      .querySelector<HTMLElement>(".status-dot")!;
+    expect(dot.getAttribute("style")).to.contain(NO_DUE_COLOR);
+  });
+});
+
+describe("status of a task without a due date (D#203 follow-up)", () => {
+  // The green OK pill of a manual task that only records when it was last
+  // done looked like every task on schedule; it reads "No due date" instead.
+  it("is no_due for a manual task without a due date", () => {
+    expect(statusKey({ status: "ok", schedule_type: "manual", days_until_due: null })).to.equal("no_due");
+  });
+
+  it("keeps the real status otherwise", () => {
+    // postponed to a date: the task has a due date and its real status
+    expect(statusKey({ status: "ok", schedule_type: "manual", days_until_due: 5 })).to.equal("ok");
+    expect(statusKey({ status: "due_soon", schedule_type: "manual", days_until_due: 1 })).to.equal("due_soon");
+    // a sensor task without a schedule: its OK means "not triggered"
+    expect(statusKey({ status: "ok", schedule_type: "sensor_based", days_until_due: null })).to.equal("ok");
+    expect(statusKey({ status: "paused", schedule_type: "manual", days_until_due: null })).to.equal("paused");
+    expect(statusKey({ status: "ok", schedule_type: "manual", days_until_due: null, archived: true })).to.equal("archived");
+  });
+
+  it("renders a grey pill and chip labelled No due date", () => {
+    const host = document.createElement("div");
+    const task = { status: "ok", schedule_type: "manual", days_until_due: null };
+    render(renderStatusBadge(task, "en"), host);
+    const pill = host.querySelector(".status-badge")!;
+    expect(pill.classList.contains("no_due")).to.equal(true);
+    expect(pill.textContent!.trim()).to.equal("No due date");
+    expect(pill.querySelector("ha-icon")!.getAttribute("icon")).to.equal("mdi:calendar-blank-outline");
+    render(renderStatusBadge(task, "en", "chip"), host);
+    expect(host.querySelector(".status-chip.no_due")!.textContent).to.equal("No due date");
+    expect(statusColor(task)).to.equal(NO_DUE_COLOR);
   });
 });

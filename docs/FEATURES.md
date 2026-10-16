@@ -113,7 +113,10 @@ threshold ↗, holding →, easing away ↘) and the due column is fixed-width
 so every row's progress bar reads the same scale (2.71+). A task without a
 due date (manual, a sensor task without a schedule, paused) says there when
 it was last done, *done 23 d ago*, muted so it never reads as a status; the
-card and the object page do the same. On panels wider than ~1500 px the dashboard becomes a **master-detail split**: the task list stays on the left and the full task detail (trigger chart, KPIs, history, actions) docks on the right — clicking a task previews it in place instead of switching pages, and the detail's breadcrumb still opens the full page (2.71+). The docked detail never scrolls on its own: it docks scroll-aware — a detail taller than the window is pinned by its bottom edge while you scroll down and by its top edge on the way back up — and selecting a task parks it where you are looking, even at the end of a long list. The task detail page adds the full trigger chart
+card and the object page do the same. A manual task without a due date also
+trades the green *OK* pill for a grey outlined **No due date** (2.103.4+,
+D#203), so it does not look like a task on schedule; its status stays `ok`
+for counts, filters, sensors and automations. On panels wider than ~1500 px the dashboard becomes a **master-detail split**: the task list stays on the left and the full task detail (trigger chart, KPIs, history, actions) docks on the right — clicking a task previews it in place instead of switching pages, and the detail's breadcrumb still opens the full page (2.71+). The docked detail never scrolls on its own: it docks scroll-aware — a detail taller than the window is pinned by its bottom edge while you scroll down and by its top edge on the way back up — and selecting a task parks it where you are looking, even at the end of a long list. The task detail page adds the full trigger chart
 (current value vs. threshold over 7d–1y), KPI tiles, and the cost & duration
 history chart.
 

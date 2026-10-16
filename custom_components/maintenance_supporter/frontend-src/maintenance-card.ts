@@ -5,7 +5,7 @@ import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscr
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { taskIsFor } from "./helpers/assignees";
 import { property, state } from "lit/decorators.js";
-import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatLastDone, formatDate, langOf, currencySymbolOf, syncCurrencyDecimals} from "./styles";
+import { syncLocaleFromHass, sharedStyles, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatLastDone, formatDate, langOf, currencySymbolOf, syncCurrencyDecimals} from "./styles";
 import { openSignedDocument } from "./helpers/document-url";
 import { isPhotoDocument } from "./helpers/document-categories";
 import { isSafeLink } from "./helpers/url";
@@ -28,6 +28,7 @@ import { renderEventTitles } from "./helpers/event-titles";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
 import { fetchSettingsOnce, FALLBACK_SETTINGS, type SettingsCache } from "./helpers/settings-cache";
 import { canWrite } from "./helpers/permissions";
+import { statusColor } from "./renderers/status";
 import { ACTIONABLE_STATUSES, isActionableStatus, statusRank } from "./status-constants";
 import "./maintenance-card-editor";
 import "./components/complete-dialog";
@@ -579,7 +580,7 @@ export class MaintenanceSupporterCard extends LitElement {
                     <div class="task-item clickable"
                          @click=${() => this._openTaskDetail(entry_id, task.id)}
                          title="${t("open_task", L)}">
-                      <div class="status-dot" style="background: ${STATUS_COLORS[task.status] || "#ccc"}"></div>
+                      <div class="status-dot" style="background: ${statusColor(task)}"></div>
                       <div class="task-info">
                         <div class="task-name">
                           ${task.name}${renderEventTitles(task.next_event_titles)}

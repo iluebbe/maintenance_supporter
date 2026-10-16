@@ -849,6 +849,13 @@ export const panelStyles = css`
     color: white;
   }
 
+  /* D#203: a manual task without a due date (outline, muted grey). */
+  .status-chip.no_due {
+    background: var(--maint-no-due-background, transparent);
+    color: var(--secondary-text-color, #727272);
+    box-shadow: inset 0 0 0 1px currentColor;
+  }
+
   /* (#67) Warranty status chip — object detail meta + objects table */
   .warranty-chip {
     display: inline-block;

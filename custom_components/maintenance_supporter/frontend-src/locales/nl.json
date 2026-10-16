@@ -67,6 +67,7 @@
   "last_performed": "Laatst uitgevoerd",
   "last_done_days_ago": "{n} d geleden gedaan",
   "last_done_today": "vandaag gedaan",
+  "no_due_date": "Geen vervaldatum",
   "next_due": "Volgende keer",
   "days_until_due": "Dagen tot vervaldatum",
   "avg_duration": "Ø Duur",

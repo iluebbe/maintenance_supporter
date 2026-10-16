@@ -67,6 +67,7 @@
   "last_performed": "Останнє виконання",
   "last_done_days_ago": "виконано {n} д тому",
   "last_done_today": "виконано сьогодні",
+  "no_due_date": "Без терміну",
   "next_due": "Наступний термін",
   "days_until_due": "Днів до терміну",
   "avg_duration": "Сер. тривалість",

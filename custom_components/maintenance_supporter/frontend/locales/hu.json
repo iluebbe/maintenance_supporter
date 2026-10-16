@@ -69,6 +69,7 @@
   "last_performed": "Utoljára elvégezve",
   "last_done_days_ago": "{n} napja elvégezve",
   "last_done_today": "ma elvégezve",
+  "no_due_date": "Nincs határidő",
   "next_due": "Következő esedékesség",
   "days_until_due": "Napok az esedékességig",
   "avg_duration": "Átl. időtartam",

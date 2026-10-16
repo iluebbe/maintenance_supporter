@@ -5,6 +5,9 @@
  *      dashboard row, on its object page and on the Lovelace card; a task
  *      never done keeps "—"; a task with a due date keeps its days.
  *   2. A paused task (no due date while paused) shows when it was last done.
+ *      D#203 follow-up: a manual task without a due date wears a grey
+ *      "No due date" pill instead of the green OK, and a grey card dot; a
+ *      task with a due date stays OK, a paused one paused.
  *   3. #204: the task dialog's trigger picker offers plant entities; a
  *      state-change trigger on plant.<name> → "problem" makes the task
  *      triggered, and back to "ok" completes it by itself.
@@ -91,7 +94,7 @@ try {
       const c = deep((el) => el.tagName === "MAINTENANCE-SUPPORTER-CARD")[0];
       if (!c || !c.shadowRoot || c.shadowRoot.querySelectorAll(".task-item").length < 4) return null;
       const out = {};
-      for (const r of c.shadowRoot.querySelectorAll(".task-item")) out[r.querySelector(".task-name").textContent.trim()] = { due: r.querySelector(".task-due").textContent.trim(), muted: !!r.querySelector(".task-due .last-done") };
+      for (const r of c.shadowRoot.querySelectorAll(".task-item")) out[r.querySelector(".task-name").textContent.trim()] = { due: r.querySelector(".task-due").textContent.trim(), muted: !!r.querySelector(".task-due .last-done"), dot: r.querySelector(".status-dot")?.getAttribute("style") || "" };
       return out;
     })()`).catch(() => null);
   }
@@ -99,6 +102,8 @@ try {
   assert(card && card["Dust the case"].due === "done 23 d ago" && card["Dust the case"].muted, "card: done 23 d ago");
   assert(card["Replace thermal paste"].due === "—", "card: never done keeps the dash");
   assert(/days?$/.test(card["Clean the filter"].due), "card: a due date keeps its days");
+  assert(card["Dust the case"].dot.includes("secondary-text-color"), "card: a manual task without a due date has a grey dot");
+  assert(!card["Clean the filter"].dot.includes("secondary-text-color"), "card: a task with a due date keeps its status colour");
 
   await p.goto(`${HA}/maintenance-supporter`, { waitUntil: "domcontentloaded", timeout: 30000 });
   let up = false;
@@ -118,7 +123,8 @@ try {
       for (const r of panel.shadowRoot.querySelectorAll(".task-row")) {
         const name = r.querySelector(".task-name")?.textContent?.trim() || "";
         const due = r.querySelector(".due-text");
-        if (due) out[name.replace(/^#\S+\s*/, "")] = { due: due.textContent.trim(), muted: due.classList.contains("last-done") };
+        const badge = r.querySelector(".status-badge");
+        if (due) out[name.replace(/^#\S+\s*/, "")] = { due: due.textContent.trim(), muted: due.classList.contains("last-done"), badge: badge ? [...badge.classList].filter((c) => c !== "status-badge").join(" ") : "", label: badge?.getAttribute("aria-label") || "" };
       }
       return out;
     };
@@ -152,6 +158,12 @@ try {
   log("  paused row:", JSON.stringify(pausedRow));
   assert(ui.pickers.some((d) => d.includes("plant")), "the trigger picker offers plant entities");
   assert(pausedRow?.due === "done 12 d ago" && pausedRow.muted, "a paused task shows when it was last done");
+  const dustRow = pick(ui.dashboard, "Dust the case");
+  assert(dustRow?.badge === "no_due" && dustRow.label === "No due date", "dashboard: a manual task without a due date reads No due date");
+  assert(pick(ui.dashboard, "Replace thermal paste")?.badge === "no_due", "dashboard: also when it was never done");
+  assert(["ok", "due_soon"].includes(pick(ui.dashboard, "Clean the filter")?.badge), "dashboard: a task with a due date keeps its status");
+  assert(pick(ui.objectPage, "Dust the case")?.badge === "no_due", "object page: No due date");
+  assert(pausedRow?.badge === "paused", "a paused task keeps its paused pill");
   await ctx.close();
 
   // 4. The longest translation (ru, "выполнено 23 дн. назад") stays inside
@@ -186,6 +198,11 @@ try {
         const d = due.getBoundingClientRect(), c = cell.getBoundingClientRect(), r = row.getBoundingClientRect();
         out.texts.push(due.textContent.trim());
         if (d.right > c.right + 1 || d.left < c.left - 1 || d.right > r.right + 1) out.spill.push(`${due.textContent.trim()} (cell)`);
+        const badge = row.querySelector(".status-badge"), badges = row.querySelector(".cell-badges");
+        if (badge && badges) {
+          const b = badge.getBoundingClientRect(), bc = badges.getBoundingClientRect();
+          if (b.right > bc.right + 1 || badge.scrollWidth > badge.clientWidth + 1) out.spill.push(`${badge.getAttribute("aria-label")} (badge)`);
+        }
         if (acts) {
           const a = acts.getBoundingClientRect();
           const overlap = d.right > a.left + 1 && d.left < a.right - 1 && d.bottom > a.top + 1 && d.top < a.bottom - 1;

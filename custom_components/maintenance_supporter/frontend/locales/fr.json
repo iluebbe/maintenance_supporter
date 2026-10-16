@@ -67,6 +67,7 @@
   "last_performed": "Dernière exécution",
   "last_done_days_ago": "fait il y a {n} j",
   "last_done_today": "fait aujourd’hui",
+  "no_due_date": "Sans échéance",
   "next_due": "Prochaine échéance",
   "days_until_due": "Jours restants",
   "avg_duration": "Ø Durée",

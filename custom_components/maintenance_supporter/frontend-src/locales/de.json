@@ -69,6 +69,7 @@
   "last_performed": "Zuletzt durchgeführt",
   "last_done_days_ago": "vor {n} T erledigt",
   "last_done_today": "heute erledigt",
+  "no_due_date": "Ohne Fälligkeit",
   "next_due": "Nächste Fälligkeit",
   "days_until_due": "Tage bis fällig",
   "avg_duration": "Ø Dauer",

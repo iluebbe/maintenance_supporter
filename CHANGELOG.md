@@ -4,6 +4,14 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Changed
+
+- **A manual task without a due date says so (D#203):** its green *OK* pill looked like every task that is on
+  schedule, so it was easy to miss in a long list. It now reads **No due date** in a grey outline, the same grey as
+  its *done 23 d ago*, in the task lists, the task page and the card's dialogs; the card's status dot turns grey
+  too. Only the display changes: the task still counts as OK for the summaries, filters, sensors and automations.
+  A manual task postponed to a date shows its usual status.
+
 ### 🐛 Fixed
 
 - **Counter helpers can trigger a sensor-based task (#215):** a counter helper (`counter.…`) counts prints, washes

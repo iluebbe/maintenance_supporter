@@ -20,31 +20,50 @@ export interface StatusLike {
   status?: string | null;
   archived?: boolean | null;
   is_done?: boolean | null;
+  schedule_type?: string | null;
+  days_until_due?: number | null;
 }
 
 /** Every key statusKey() can return (the CSS tripwire iterates it). */
-export const STATUS_KEYS = ["ok", "due_soon", "overdue", "triggered", "paused", "archived", "done"] as const;
+export const STATUS_KEYS = ["ok", "due_soon", "overdue", "triggered", "paused", "archived", "done", "no_due"] as const;
 
 /** Muted blue-grey of a completed one-time task (matches `.status-badge.done`). */
 export const DONE_COLOR = "var(--maint-done-color, #78909c)";
 
-/** archived > done > the backend status. */
+/** The muted text colour of a task without a due date — the same grey as its
+ *  "done 23 d ago" in the due column (matches `.status-badge.no_due`). */
+export const NO_DUE_COLOR = "var(--secondary-text-color, #727272)";
+
+/** archived > done > a manual task without a due date > the backend status.
+ *
+ *  D#203: a manual task that only records when it was last done is "ok" to
+ *  the backend for good, and its green OK pill looked like every task that
+ *  is on schedule. It reads "No due date" instead. Display only: the status
+ *  stays "ok" for counts, filters, sensors and automations, and a task with
+ *  a postponed date (days_until_due set) shows its real status. */
 export function statusKey(task: StatusLike): string {
   if (task.archived) return "archived";
   if (task.is_done) return "done";
-  return task.status || "ok";
+  const status = task.status || "ok";
+  if (status === "ok" && task.schedule_type === "manual" && task.days_until_due == null) return "no_due";
+  return status;
 }
 
+const _LABEL_KEYS: Record<string, string> = { done: "completed", no_due: "no_due_date" };
+
 export function statusLabel(key: string, lang: string): string {
-  return t(key === "done" ? "completed" : key, lang);
+  return t(_LABEL_KEYS[key] ?? key, lang);
 }
 
 export function statusColor(task: StatusLike): string {
   const key = statusKey(task);
-  return key === "done" ? DONE_COLOR : (STATUS_COLORS[key] || "var(--disabled-color, #9e9e9e)");
+  if (key === "done") return DONE_COLOR;
+  if (key === "no_due") return NO_DUE_COLOR;
+  return STATUS_COLORS[key] || "var(--disabled-color, #9e9e9e)";
 }
 
 export function statusIcon(key: string): string {
+  if (key === "no_due") return "mdi:calendar-blank-outline";
   return STATUS_ICONS[key === "done" ? "completed" : key] || "mdi:circle-medium";
 }
 

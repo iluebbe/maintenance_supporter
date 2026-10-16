@@ -67,6 +67,7 @@
   "last_performed": "Senast utförd",
   "last_done_days_ago": "klar för {n} d sedan",
   "last_done_today": "klar i dag",
+  "no_due_date": "Inget förfallodatum",
   "next_due": "Nästa förfallodatum",
   "days_until_due": "Dagar till förfallodatum",
   "avg_duration": "Snittlig varaktighet",
