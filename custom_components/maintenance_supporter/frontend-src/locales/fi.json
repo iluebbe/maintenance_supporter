@@ -71,6 +71,7 @@
   "last_done_today": "tehty tänään",
   "no_due_date": "Ei eräpäivää",
   "next_due": "Seuraava eräpäivä",
+  "kpi_reported_by_sensor": "Anturin ilmoittama",
   "days_until_due": "Päiviä eräpäivään",
   "avg_duration": "Keskim. kesto",
   "trigger": "Laukaisin",

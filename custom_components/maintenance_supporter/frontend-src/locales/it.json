@@ -69,6 +69,7 @@
   "last_done_today": "fatto oggi",
   "no_due_date": "Senza scadenza",
   "next_due": "Prossima scadenza",
+  "kpi_reported_by_sensor": "Indicato dal sensore",
   "days_until_due": "Giorni alla scadenza",
   "avg_duration": "Ø Durata",
   "trigger": "Trigger",

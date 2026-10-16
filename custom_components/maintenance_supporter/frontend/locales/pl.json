@@ -69,6 +69,7 @@
   "last_done_today": "wykonano dziś",
   "no_due_date": "Bez terminu",
   "next_due": "Następny termin",
+  "kpi_reported_by_sensor": "Według czujnika",
   "days_until_due": "Dni do terminu",
   "avg_duration": "Śr. czas trwania",
   "trigger": "Wyzwalacz",

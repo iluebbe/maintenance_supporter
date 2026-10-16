@@ -69,6 +69,7 @@
   "last_done_today": "hotovo dnes",
   "no_due_date": "Bez termínu",
   "next_due": "Další termín",
+  "kpi_reported_by_sensor": "Podle senzoru",
   "days_until_due": "Dnů do termínu",
   "avg_duration": "Prům. trvání",
   "trigger": "Spouštěč",

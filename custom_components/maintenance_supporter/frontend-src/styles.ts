@@ -1128,17 +1128,29 @@ export const sharedStyles = css`
     text-align: right;
     max-width: 100%;
     white-space: nowrap;
+    /* The text ellipsizes, the trend arrow keeps its place: inline, the
+       arrow pushed the unit out on a phone ("100.0 / 100 …", trigger check
+       2026-10-16). */
+    display: flex;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+  .trigger-progress-text {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  .tp-num, .tp-unit { white-space: nowrap; }
 
   /* #150 follow-up: 3-state trend arrow — replaces the sparkline on
      narrow/tight rows (panel-styles toggles visibility per regime). */
   .trend-arrow {
     display: none;
+    flex: none;
+    align-self: flex-end; /* after the unit when it wrapped to a second line */
     font-style: normal;
     font-weight: 700;
-    margin-left: 2px;
+    margin-left: 4px;
   }
   .trend-approaching { color: var(--warning-color, #ff9800); }
   .trend-stable { color: var(--secondary-text-color); }

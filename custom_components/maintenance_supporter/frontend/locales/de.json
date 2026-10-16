@@ -71,6 +71,7 @@
   "last_done_today": "heute erledigt",
   "no_due_date": "Ohne Fälligkeit",
   "next_due": "Nächste Fälligkeit",
+  "kpi_reported_by_sensor": "Vom Sensor gemeldet",
   "days_until_due": "Tage bis fällig",
   "avg_duration": "Ø Dauer",
   "trigger": "Trigger",

@@ -418,8 +418,14 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
   if (inRange.length >= 2) points = inRange;
 
   let targetValue: number | null = null;
+  let targetMark = "◆";
   let forceZero = false;
-  if (triggerType === "counter" && tc.trigger_target_value != null && points.length) {
+  if (triggerType === "threshold" && tc.trigger_above == null && tc.trigger_below == null && (tc.trigger_equals != null || tc.trigger_not_equals != null)) {
+    // A discrete level (= / ≠) is drawn like the limits are: the chart had
+    // no line for it at all (trigger check 2026-10-16).
+    targetValue = tc.trigger_equals ?? tc.trigger_not_equals ?? null;
+    targetMark = tc.trigger_equals != null ? "=" : "≠";
+  } else if (triggerType === "counter" && tc.trigger_target_value != null && points.length) {
     // Progress domain: cumulative since the last service, never negative.
     // Baseline subtraction is a DELTA-mode concept — a non-delta counter's
     // raw value already is the cycle progress (bug audit 2026-08-22).
@@ -485,6 +491,7 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
       .thresholdAbove=${triggerType === "threshold" ? tc.trigger_above ?? null : null}
       .thresholdBelow=${triggerType === "threshold" ? tc.trigger_below ?? null : null}
       .targetValue=${targetValue}
+      .targetMark=${targetMark}
       .forceZero=${forceZero}
       .projection=${projection}
       .rangeDays=${ctx.rangeDays}

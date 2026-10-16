@@ -71,6 +71,7 @@
   "last_done_today": "done today",
   "no_due_date": "No due date",
   "next_due": "Next due",
+  "kpi_reported_by_sensor": "Reported by the sensor",
   "days_until_due": "Days until due",
   "avg_duration": "Avg duration",
   "trigger": "Trigger",

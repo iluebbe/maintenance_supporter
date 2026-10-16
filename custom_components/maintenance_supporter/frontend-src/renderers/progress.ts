@@ -13,7 +13,7 @@
 
 import { html, nothing } from "lit";
 import { t, formatDate, formatDueDays, formatLastDone, formatNumber } from "../styles";
-import { px } from "./chart-utils";
+import { fmtVal, px } from "./chart-utils";
 import { daysProgress } from "../helpers/interval";
 import { stampMs } from "../helpers/ha-time";
 import { primaryTriggerEntity } from "../helpers/trigger-entities";
@@ -108,6 +108,9 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
 
   let pct = 0;
   let label = "";
+  // The unit of an "a / b unit" label: its own span, so a phone row can put
+  // it on a second line instead of cutting it off (trigger check 2026-10-16).
+  let labelUnit = "";
 
   if (triggerType === "threshold") {
     const val = row.trigger_current_value ?? null;
@@ -124,7 +127,8 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
       const half = Math.abs(above - below) / 2 || 1;
       pct = Math.min(100, Math.max(0, (Math.abs(val - mid) / half) * 100));
       const nearer = Math.abs(val - above) <= Math.abs(val - below) ? above : below;
-      label = `${formatNumber(val, opts?.lang, 1)} / ${formatNumber(nearer, opts?.lang)} ${unit}`;
+      label = `${fmtVal(val, "", opts?.lang)} / ${formatNumber(nearer, opts?.lang)}`;
+      labelUnit = unit;
     } else if (above != null) {
       // Progress toward the upper limit, from a sign-aware floor: 0 for a
       // positive limit; for a negative one (freezer "warn above −15 °C")
@@ -135,7 +139,8 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
       const low = above > 0 ? 0 : entityMin != null && entityMin < above ? entityMin : above < 0 ? 2 * above : -100;
       const range = above - low || 1;
       pct = Math.min(100, Math.max(0, ((val - low) / range) * 100));
-      label = `${formatNumber(val, opts?.lang, 1)} / ${formatNumber(above, opts?.lang)} ${unit}`;
+      label = `${fmtVal(val, "", opts?.lang)} / ${formatNumber(above, opts?.lang)}`;
+      labelUnit = unit;
     } else if (below != null) {
       // Progress toward the lower limit (inverted: lower is worse), from a
       // sign-aware ceiling: the entity max, else 2× the limit for a
@@ -145,12 +150,13 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
       const high = entityMax != null && entityMax > below ? entityMax : below > 0 ? below * 2 : below < 0 ? 0 : 100;
       const range = high - below || 1;
       pct = Math.min(100, Math.max(0, ((high - val) / range) * 100));
-      label = `${formatNumber(val, opts?.lang, 1)} / ${formatNumber(below, opts?.lang)} ${unit}`;
+      label = `${fmtVal(val, "", opts?.lang)} / ${formatNumber(below, opts?.lang)}`;
+      labelUnit = unit;
     } else if (tc.trigger_equals != null || tc.trigger_not_equals != null) {
       // Discrete = / ≠ levels have no meaningful gradient — binary bar,
       // same treatment as compound.
       const target = tc.trigger_equals != null ? `= ${tc.trigger_equals}` : `≠ ${tc.trigger_not_equals}`;
-      label = `${formatNumber(val, opts?.lang, 1)} (${target}${unit ? ` ${unit}` : ""})`;
+      label = `${fmtVal(val, "", opts?.lang)} (${target}${unit ? ` ${unit}` : ""})`;
       pct = row.trigger_active ? 100 : 0;
     } else {
       return nothing;
@@ -173,7 +179,8 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
     }
     if (val == null) return nothing;
     pct = Math.min(100, Math.max(0, (val / target) * 100));
-    label = `${formatNumber(val, opts?.lang, 1)} / ${formatNumber(target, opts?.lang)} ${unit}`;
+    label = `${fmtVal(val, "", opts?.lang)} / ${formatNumber(target, opts?.lang)}`;
+    labelUnit = unit;
   } else if (triggerType === "state_change") {
     const target = tc.trigger_target_changes || 1;
     const val = row.trigger_current_value ?? null;
@@ -185,7 +192,7 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
     const val = row.trigger_current_value ?? null;
     if (val == null) return nothing;
     pct = Math.min(100, Math.max(0, (val / target) * 100));
-    label = `${formatNumber(val, opts?.lang, 1)}h / ${formatNumber(target, opts?.lang)}h`;
+    label = `${fmtVal(val, "", opts?.lang)}h / ${formatNumber(target, opts?.lang)}h`;
   } else if (triggerType === "due_date") {
     // The reading is the days left until the date the device reports: the
     // bar fills over the last month before the lead time runs out.
@@ -213,6 +220,7 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
     const limit = tc.trigger_above ?? 0;
     pct = count > limit ? 100 : limit > 0 ? Math.max(0, (count / (limit + 1)) * 100) : 0;
     label = t("battery_fleet_progress", opts?.lang ?? "en").replace("{n}", formatNumber(count, opts?.lang, 0));
+    labelUnit = "";
   }
 
   const triggerOverflow = pct >= 100;
@@ -225,8 +233,10 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
       <div class="trigger-progress-bar">
         <div class="trigger-progress-fill${triggerOverflow ? " overflow" : ""}" style="width:${pct}%;background:${barColor}"></div>
       </div>
-      <span class="trigger-progress-label">${label}${opts?.trend
-        ? html` <i class="trend-arrow trend-${opts.trend}" title="${t(`trend_${opts.trend}`, opts.lang ?? "en")}" aria-label="${t(`trend_${opts.trend}`, opts.lang ?? "en")}">${TREND_GLYPHS[opts.trend]}</i>`
+      <span class="trigger-progress-label"><span class="trigger-progress-text"><span class="tp-num">${label}</span>${labelUnit
+        ? html` <span class="tp-unit">${labelUnit}</span>`
+        : nothing}</span>${opts?.trend
+        ? html`<i class="trend-arrow trend-${opts.trend}" title="${t(`trend_${opts.trend}`, opts.lang ?? "en")}" aria-label="${t(`trend_${opts.trend}`, opts.lang ?? "en")}">${TREND_GLYPHS[opts.trend]}</i>`
         : nothing}</span>
     </div>
   `;

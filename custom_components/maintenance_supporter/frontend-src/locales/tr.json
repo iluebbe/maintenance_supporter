@@ -71,6 +71,7 @@
   "last_done_today": "bugün yapıldı",
   "no_due_date": "Vade tarihi yok",
   "next_due": "Sonraki vade",
+  "kpi_reported_by_sensor": "Sensöre göre",
   "days_until_due": "Vadeye kalan gün",
   "avg_duration": "Ort. süre",
   "trigger": "Tetikleyici",

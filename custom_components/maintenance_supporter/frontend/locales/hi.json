@@ -71,6 +71,7 @@
   "last_done_today": "आज किया",
   "no_due_date": "कोई देय तिथि नहीं",
   "next_due": "अगली देय",
+  "kpi_reported_by_sensor": "सेंसर द्वारा बताया गया",
   "days_until_due": "देय तक दिन",
   "avg_duration": "औसत अवधि",
   "trigger": "ट्रिगर",

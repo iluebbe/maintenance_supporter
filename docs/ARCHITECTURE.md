@@ -294,7 +294,7 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (44,857 lines)  133 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+├── frontend-src/               (44,927 lines)  133 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
 │   ├── maintenance-panel.ts     (5,372 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,266 lines)  Auto-generated dashboard strategy + 4 section strategies
@@ -304,9 +304,9 @@ custom_components/maintenance_supporter/
 │   ├── maintenance-strategy-shim.ts (448 lines)  Zero-import boot shim: defines the dashboard AND the four
 │   │                                           section strategy tags synchronously (lazy-loads the bundle on
 │   │                                           first generate(); v2.73.0), picker entries, scoped-registry self-heal
-│   ├── panel-styles.ts          (2,196 lines)  Panel-specific CSS
+│   ├── panel-styles.ts          (2,199 lines)  Panel-specific CSS
 │   ├── calendar-styles.ts         (208 lines)  Calendar-card CSS
-│   ├── styles.ts                (1,776 lines)  Shared CSS, i18n runtime loader (bundled EN + on-demand fetch
+│   ├── styles.ts                (1,788 lines)  Shared CSS, i18n runtime loader (bundled EN + on-demand fetch
 │   │                                           of the other 21) + shared helpers; the ONLY module that formats
 │   │                                           dates, times and numbers (HA profile date_format/time_format/
 │   │                                           number_format via the __msDateTimePrefs singleton) — tripwired
@@ -389,19 +389,19 @@ custom_components/maintenance_supporter/
 │   │   ├── undo-completion.ts      (64 lines)  Undo a completion the current person just made — the panel's and the dashboard card's toast action (2026-10)
 │   │   ├── trigger-entities.ts     (26 lines)  The entities a stored trigger watches, in either stored shape
 │   │   └── assignees.ts            (24 lines)  Who a task is meant for: the one rule every person filter reads
-│   ├── renderers/               (2,435 lines)  11 files — Pure lit-html render functions of the task views and the charts
-│   │   ├── task-detail.ts         (569 lines)  The task detail view (header, ⋮ menu, sections) as a function of its context
-│   │   ├── chart-utils.ts          (93 lines)  Shared chart helpers: nice axis ticks and consistent number/date formats
+│   ├── renderers/               (2,482 lines)  11 files — Pure lit-html render functions of the task views and the charts
+│   │   ├── task-detail.ts         (580 lines)  The task detail view (header, ⋮ menu, sections) as a function of its context
+│   │   ├── chart-utils.ts         (112 lines)  Shared chart helpers: nice axis ticks and consistent number/date formats
 │   │   ├── charts.ts              (167 lines)  Cost/duration chart renderers (task detail)
 │   │   ├── history.ts             (251 lines)  Task history sub-view: filter chips + search + the timeline of entries
 │   │   ├── prediction.ts           (61 lines)  Sensor prediction section renderer
-│   │   ├── progress.ts            (343 lines)  Progress renderers shared by the dashboard rows, the object-detail view and the task-detail overview tab
+│   │   ├── progress.ts            (353 lines)  Progress renderers shared by the dashboard rows, the object-detail view and the task-detail overview tab
 │   │   ├── recommendation.ts       (49 lines)  Shared recommendation-card visuals (bars + confidence badge)
 │   │   ├── seasonal.ts            (118 lines)  Seasonal factor chart renderers
-│   │   ├── sparkline.ts           (515 lines)  Trigger section renderer (task detail)
+│   │   ├── sparkline.ts           (522 lines)  Trigger section renderer (task detail)
 │   │   ├── status.ts               (81 lines)  A task's status as the user sees it — THE derivation for every surface
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
-│   ├── components/             (20,016 lines)  37 files — Lit elements: dialogs, sections, views, cards
+│   ├── components/             (20,024 lines)  37 files — Lit elements: dialogs, sections, views, cards
 │   │   ├── task-dialog.ts       (3,806 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
 │   │   ├── settings-view.ts     (2,781 lines)  In-panel global settings editor
 │   │   ├── task-quick-actions-dialog.ts (937 lines)  Task ⋮ menu
@@ -411,7 +411,7 @@ custom_components/maintenance_supporter/
 │   │   ├── qr-dialog.ts           (478 lines)  QR code generation
 │   │   ├── adopt-problem-sensors-dialog.ts (638 lines)  Adopt HA problem sensors
 │   │   ├── battery-fleet-section.ts (1,239 lines)  Task-detail battery-fleet section
-│   │   ├── trigger-chart.ts       (389 lines)  Responsive sensor-history chart of the task detail
+│   │   ├── trigger-chart.ts       (397 lines)  Responsive sensor-history chart of the task detail
 │   │   ├── storage-section-card.ts (380 lines)  Document-storage overview card (panel overview)
 │   │   ├── task-documents.ts      (346 lines)  Documents linked to a task — or (v2.26) to a spare part
 │   │   ├── suggested-setups-dialog.ts (515 lines)  Signature-catalog discovery UI
@@ -439,7 +439,7 @@ custom_components/maintenance_supporter/
 │   │   ├── required-completion-labels.ts (27 lines)  Labels of the details a task can demand on completion (mirror of helpers/completion_requirements.py)
 │   │   ├── bulk-edit-dialog.ts    (266 lines)  Several tasks changed at once (discussion #199): who is assigned, their labels, and the few settings that make sense in bulk
 │   │   └── ms-cost-input.ts       (109 lines)  A cost that may be a credit (#200): a Cost | Credit switch and the amount
-│   └── __tests__/              (29,190 lines)  209 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (29,234 lines)  209 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
 ├── helpers/                    (32,811 lines)  103 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,604 lines)  Multi-channel notification system

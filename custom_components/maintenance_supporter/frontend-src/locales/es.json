@@ -69,6 +69,7 @@
   "last_done_today": "hecho hoy",
   "no_due_date": "Sin vencimiento",
   "next_due": "Próximo vencimiento",
+  "kpi_reported_by_sensor": "Indicado por el sensor",
   "days_until_due": "Días hasta vencimiento",
   "avg_duration": "Ø Duración",
   "trigger": "Disparador",

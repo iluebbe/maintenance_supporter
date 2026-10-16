@@ -71,6 +71,7 @@
   "last_done_today": "ma elvégezve",
   "no_due_date": "Nincs határidő",
   "next_due": "Következő esedékesség",
+  "kpi_reported_by_sensor": "Az érzékelő szerint",
   "days_until_due": "Napok az esedékességig",
   "avg_duration": "Átl. időtartam",
   "trigger": "Kiváltó",

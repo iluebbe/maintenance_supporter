@@ -70,6 +70,17 @@ All notable changes to Maintenance Supporter are documented in this file.
   opened, which undid completions and *Ready again* in the meantime. Only a changed number is saved now.
 - **Ticking a checklist item by its text works:** tapping the text of a checklist item in the complete dialog
   ticked and unticked it at once.
+- **Sensor readings read the same everywhere:** the task lists showed every reading with a decimal
+  (*100.0 / 100 cycles*, *360.0*) while the task page did not; both now show decimals only where the value has
+  them, and a very small target such as a 0.01 h runtime reads as such instead of *0*. On a phone the trend arrow no
+  longer pushes the unit out of the row.
+- **Charts:** a threshold at an exact level (*=* or *≠*) is drawn as a line like the other limits, readings that
+  are all positive no longer get an axis below zero, the y-axis shows as many decimals as its steps need, and a
+  chart that covers less than two days labels its time axis with clock times instead of the same date under every
+  tick.
+- **A task due when its device says so shows that date:** for a due-date trigger, the task page's *Next due* and
+  *Days until due* showed *—* while the trigger itself said *2 days*. They now show the date the sensor reports,
+  marked *Reported by the sensor*.
 
 ## [2.103.5] - 2026-10-16
 

@@ -69,6 +69,7 @@
   "last_done_today": "vandaag gedaan",
   "no_due_date": "Geen vervaldatum",
   "next_due": "Volgende keer",
+  "kpi_reported_by_sensor": "Gemeld door de sensor",
   "days_until_due": "Dagen tot vervaldatum",
   "avg_duration": "Ø Duur",
   "trigger": "Trigger",

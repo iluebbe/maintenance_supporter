@@ -69,6 +69,7 @@
   "last_done_today": "fait aujourd’hui",
   "no_due_date": "Sans échéance",
   "next_due": "Prochaine échéance",
+  "kpi_reported_by_sensor": "Indiqué par le capteur",
   "days_until_due": "Jours restants",
   "avg_duration": "Ø Durée",
   "trigger": "Déclencheur",

@@ -3,7 +3,7 @@
 import { expect, fixture, html } from "@open-wc/testing";
 import "../components/trigger-chart.js";
 import type { MaintenanceTriggerChart } from "../components/trigger-chart";
-import { niceTicks, fmtNum } from "../renderers/chart-utils.js";
+import { niceTicks, fmtNum, fmtTick, fmtVal, fmtXTick } from "../renderers/chart-utils.js";
 
 const DAY = 86400000;
 const NOW = Date.now();
@@ -117,6 +117,32 @@ describe("trigger-chart", () => {
     // still clamped inside the plot
     const svgW = Number(el.shadowRoot!.querySelector("svg")!.getAttribute("width"));
     expect(x2).to.be.at.most(svgW);
+  });
+});
+
+describe("trigger check 2026-10-16: chart cosmetics", () => {
+  it("an = / ≠ level gets its line, and positive readings no negative axis", async () => {
+    const levels = POINTS.map((p, i) => ({ ts: p.ts, val: i % 2 ? 360 : 0 }));
+    const el = await fixture<MaintenanceTriggerChart>(html`
+      <maintenance-trigger-chart .points=${levels} .events=${[]} .unit=${""} .lang=${"en"}
+        .targetValue=${360} .targetMark=${"="} .rangeDays=${30}></maintenance-trigger-chart>
+    `);
+    await new Promise((r) => setTimeout(r, 40));
+    await el.updateComplete;
+    const zone = [...el.shadowRoot!.querySelectorAll("text.zone-label")].map((t) => t.textContent).join(" ");
+    expect(zone).to.contain("= 360");
+    const ticks = [...el.shadowRoot!.querySelectorAll("text.tick-label")].map((t) => t.textContent || "");
+    expect(ticks.some((l) => l.startsWith("-") || l.startsWith("−")), `no negative tick in ${ticks}`).to.be.false;
+  });
+
+  it("ticks keep the decimals their step needs, short ranges read clock times", () => {
+    expect([fmtTick(0.005, 0.005, "en"), fmtTick(0.01, 0.005, "en")]).to.deep.equal(["0.005", "0.01"]);
+    expect(fmtTick(150, 50, "en")).to.equal("150");
+    expect(fmtVal(100, "", "en")).to.equal("100");
+    expect(fmtVal(0.01, "h", "en")).to.equal("0.01 h");
+    const t0 = new Date(2026, 9, 16, 9, 0).getTime();
+    expect(fmtXTick(t0, "en", t0, t0 + 3600_000)).to.match(/9:00|09:00/);
+    expect(fmtXTick(t0, "en", t0, t0 + 10 * DAY)).to.not.match(/9:00|09:00/);
   });
 });
 

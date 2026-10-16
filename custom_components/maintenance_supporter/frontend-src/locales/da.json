@@ -71,6 +71,7 @@
   "last_done_today": "udført i dag",
   "no_due_date": "Ingen forfaldsdato",
   "next_due": "Næste forfald",
+  "kpi_reported_by_sensor": "Ifølge sensoren",
   "days_until_due": "Dage til forfald",
   "avg_duration": "Gns. varighed",
   "trigger": "Udløser",

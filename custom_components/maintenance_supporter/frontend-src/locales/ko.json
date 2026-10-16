@@ -71,6 +71,7 @@
   "last_done_today": "오늘 완료",
   "no_due_date": "예정일 없음",
   "next_due": "다음 예정일",
+  "kpi_reported_by_sensor": "센서 보고",
   "days_until_due": "남은 일수",
   "avg_duration": "평균 소요 시간",
   "trigger": "트리거",

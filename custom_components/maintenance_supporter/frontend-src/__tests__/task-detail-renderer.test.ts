@@ -314,6 +314,22 @@ describe("task-detail renderer", () => {
     expect(calls).to.deep.equal([["Drain", true]]);
   });
 
+  it("a due-date trigger's date fills the due tiles (trigger check 2026-10-16)", () => {
+    const host = mount(
+      task({
+        next_due: null, days_until_due: null, schedule_type: "sensor_based",
+        trigger_config: { type: "due_date", entity_id: "sensor.filter_due", trigger_days_before: 3 },
+        trigger_current_value: 2.4,
+      }),
+      ctx(),
+    );
+    const cards = [...host.querySelectorAll(".kpi-bar .kpi-card")];
+    expect(cards[0].querySelector(".kpi-value")!.textContent).to.not.equal("—");
+    expect(cards[0].textContent).to.include("Reported by the sensor");
+    expect(cards[1].querySelector(".kpi-value-large")!.textContent!.trim()).to.equal("3");
+    expect(cards[1].classList.contains("warning"), "within the trigger's lead time").to.be.true;
+  });
+
   it("KPI bar shows warning days and currency symbol", () => {
     const host = mount(task(), ctx({ currencySymbol: "$" }));
     const kpi = host.querySelector(".kpi-bar")!;

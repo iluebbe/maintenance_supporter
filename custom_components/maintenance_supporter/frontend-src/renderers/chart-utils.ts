@@ -56,10 +56,29 @@ export function fmtNum(v: number, lang?: string): string {
   return formatNumber(v, lang, max(2));
 }
 
-/** Full-precision value + unit for tooltips (profile grouping/decimal). */
-export function fmtVal(v: number, unit: string, lang: string): string {
-  const s = formatNumber(v, lang, { maximumFractionDigits: Math.abs(v) >= 100 ? 0 : 1 });
+/** A reading with the decimals it has: none from 100 up, one from 1, two
+ *  below 1 — "100 / 100 cycles", not "100.0", and a 0.01 h runtime target
+ *  no longer reads "0" (trigger check 2026-10-16). Tooltips and the task
+ *  page's progress use it, and so do the list rows. */
+export function fmtVal(v: number, unit: string, lang?: string): string {
+  const a = Math.abs(v);
+  const s = formatNumber(v, lang, { maximumFractionDigits: a >= 100 ? 0 : a >= 1 || a === 0 ? 1 : 2 });
   return unit ? `${s} ${unit}` : s;
+}
+
+/** A y-axis tick with as many decimals as the tick step needs: a 0.005 step
+ *  printed "0.01" twice. Large values keep fmtNum's k / M. */
+export function fmtTick(v: number, step: number, lang?: string): string {
+  if (Math.abs(v) >= 1000 || !(step > 0)) return fmtNum(v, lang);
+  const digits = Math.max(0, Math.min(4, -Math.floor(Math.log10(step) + 1e-9)));
+  return formatNumber(v, lang, { maximumFractionDigits: digits });
+}
+
+/** An x-axis tick: the clock time when the plotted range is shorter than two
+ *  days — every tick read "Oct 16" on a fresh install — else the date. */
+export function fmtXTick(ts: number, lang: string, tsMin: number, tsMax: number): string {
+  if (tsMax - tsMin < 2 * 86_400_000) return formatTimeOfDay(new Date(ts), lang);
+  return fmtDateTick(ts, lang, needsYear(tsMin, tsMax));
 }
 
 /** Short date tick: "3. Juli" / "Jul 3", with year appended when the plotted

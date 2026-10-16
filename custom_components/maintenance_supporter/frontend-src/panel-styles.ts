@@ -1983,6 +1983,9 @@ export const panelStyles = css`
   :host([narrow]) .task-sub-empty { display: none; }
   :host([narrow]) .mini-sparkline { display: none; }
   :host([narrow]) .trend-arrow { display: inline; }
+  /* The due column is 84-100 px on a phone: "100 / 100 cycles" does not fit,
+     so the unit moves to a second line instead of being cut off. */
+  :host([narrow]) .trigger-progress-text { white-space: normal; }
 
   /* Phone band (≤429px): with SHARED tracks the widest badge sizes column 1
      for every row, and the fixed 100px due column + both action buttons no

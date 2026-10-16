@@ -69,6 +69,7 @@
   "last_done_today": "klar i dag",
   "no_due_date": "Inget förfallodatum",
   "next_due": "Nästa förfallodatum",
+  "kpi_reported_by_sensor": "Enligt sensorn",
   "days_until_due": "Dagar till förfallodatum",
   "avg_duration": "Snittlig varaktighet",
   "trigger": "Utlösare",

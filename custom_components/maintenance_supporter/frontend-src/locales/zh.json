@@ -71,6 +71,7 @@
   "last_done_today": "今天完成",
   "no_due_date": "无到期日期",
   "next_due": "下次到期",
+  "kpi_reported_by_sensor": "由传感器报告",
   "days_until_due": "距离到期天数",
   "avg_duration": "平均耗时",
   "trigger": "触发器",

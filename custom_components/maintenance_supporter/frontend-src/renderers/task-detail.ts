@@ -17,6 +17,7 @@ import { t, formatDate, formatRecurrence, formatCost, formatDuration } from "../
 import { renderRefChip } from "../helpers/reference";
 import type { AdvancedFeatures, HomeAssistant, MaintenanceTask, ManualDocRef } from "../types";
 import { renderTriggerSection, type SparklineContext } from "./sparkline";
+import { dueDaysOf } from "./progress";
 import { renderPredictionSection } from "./prediction";
 import { renderWeibullSection } from "./weibull";
 import { renderRecommendationBars } from "./recommendation";
@@ -357,22 +358,32 @@ function renderKPIBar(task: MaintenanceTask, ctx: TaskDetailContext) {
   const avgCost = task.average_cost !== undefined
     ? task.average_cost ?? 0
     : task.times_performed > 0 ? task.total_cost / task.times_performed : 0;
-  const daysClass = task.days_until_due !== null && task.days_until_due !== undefined
-    ? (task.days_until_due < 0 ? "overdue" : (task.days_until_due <= task.warning_days ? "warning" : ""))
+  // A task due when its device says so (a due-date trigger) has no date of
+  // its own: both tiles showed "—" while the trigger read "2 days" (trigger
+  // check 2026-10-16). They show the device's date then, marked as such.
+  const tc = task.trigger_config;
+  const fromSensor = task.next_due == null && tc?.type === "due_date" && task.trigger_current_value != null;
+  const nextDue = fromSensor ? new Date(Date.now() + (task.trigger_current_value as number) * 86_400_000).toISOString() : task.next_due;
+  const daysUntil = fromSensor ? dueDaysOf(task.trigger_current_value as number) : task.days_until_due;
+  const warnWithin = fromSensor ? (tc?.trigger_days_before ?? 0) : task.warning_days;
+  const daysClass = daysUntil !== null && daysUntil !== undefined
+    ? (daysUntil < 0 ? "overdue" : (daysUntil <= warnWithin ? "warning" : ""))
     : "";
 
   return html`
     <div class="kpi-bar">
       <div class="kpi-card">
         <div class="kpi-label">${t("next_due", L)}</div>
-        <div class="kpi-value">${task.next_due ? formatDate(task.next_due, L) : "—"}</div>
-        ${ctx.features.schedule_time && task.schedule_time
-          ? html`<div class="kpi-subtext">${t("at_time", L)} ${task.schedule_time}</div>`
-          : nothing}
+        <div class="kpi-value">${nextDue ? formatDate(nextDue, L) : "—"}</div>
+        ${fromSensor
+          ? html`<div class="kpi-subtext">${t("kpi_reported_by_sensor", L)}</div>`
+          : ctx.features.schedule_time && task.schedule_time
+            ? html`<div class="kpi-subtext">${t("at_time", L)} ${task.schedule_time}</div>`
+            : nothing}
       </div>
       <div class="kpi-card ${daysClass}">
         <div class="kpi-label">${t("days_until_due", L)}</div>
-        <div class="kpi-value-large">${task.days_until_due !== null && task.days_until_due !== undefined ? task.days_until_due : "—"}</div>
+        <div class="kpi-value-large">${daysUntil !== null && daysUntil !== undefined ? daysUntil : "—"}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">${t("interval", L)}</div>

@@ -71,6 +71,7 @@
   "last_done_today": "今日実施",
   "no_due_date": "期限なし",
   "next_due": "次回期限",
+  "kpi_reported_by_sensor": "センサーの報告",
   "days_until_due": "期限までの日数",
   "avg_duration": "平均所要時間",
   "trigger": "トリガー",

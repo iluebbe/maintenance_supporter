@@ -69,6 +69,7 @@
   "last_done_today": "выполнено сегодня",
   "no_due_date": "Без срока",
   "next_due": "Следующий срок",
+  "kpi_reported_by_sensor": "По данным датчика",
   "days_until_due": "Дней до срока",
   "avg_duration": "Ср. длительность",
   "trigger": "Триггер",

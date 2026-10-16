@@ -127,7 +127,8 @@ describe("narrow regime: arrow visible, sparkline hidden, equal bar widths", () 
     const sr = el.shadowRoot!;
     await waitUntil(() => !!sr.querySelector(".task-row .trend-arrow"), "arrow rendered");
     const arrow = sr.querySelector(".task-row .trend-arrow")!;
-    expect(getComputedStyle(arrow).display).to.equal("inline");
+    // A flex item of the label (the text ellipsizes, the arrow keeps its place).
+    expect(getComputedStyle(arrow).display).to.not.equal("none");
     const spark = sr.querySelector(".task-row .mini-sparkline");
     if (spark) expect(getComputedStyle(spark).display).to.equal("none");
 

@@ -70,7 +70,7 @@ describe("renderTriggerProgress — sign-aware threshold bars", () => {
     expect(await pctOf(row(band, 55)), "near the upper edge").to.equal(75);
     expect(await pctOf(row(band, 25)), "near the lower edge").to.equal(75);
     expect(await pctOf(row(band, 15)), "below the band = triggered").to.equal(100);
-    expect(await labelOf(row(band, 25))).to.contain("25.0 / 20");
-    expect(await labelOf(row(band, 55))).to.contain("55.0 / 60");
+    expect(await labelOf(row(band, 25))).to.contain("25 / 20");
+    expect(await labelOf(row(band, 55))).to.contain("55 / 60");
   });
 });

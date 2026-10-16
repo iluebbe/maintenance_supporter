@@ -15,7 +15,7 @@
 import { LitElement, html, css, svg, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t } from "../styles";
-import { niceTicks, fmtNum, fmtVal, fmtDateTick, fmtDateTime, timeTicks, needsYear, px } from "../renderers/chart-utils";
+import { niceTicks, fmtNum, fmtTick, fmtVal, fmtXTick, fmtDateTime, timeTicks, px } from "../renderers/chart-utils";
 
 export interface ChartPoint {
   ts: number;
@@ -52,6 +52,8 @@ export class MaintenanceTriggerChart extends LitElement {
   @property({ attribute: false }) public thresholdBelow: number | null = null;
   /** Absolute y of a counter target line (points are pre-transformed). */
   @property({ attribute: false }) public targetValue: number | null = null;
+  /** The target line's mark: ◆ a target to reach, = / ≠ a discrete level. */
+  @property() public targetMark = "◆";
   @property({ type: Boolean }) public forceZero = false;
   /** Optional dashed projection segment (e.g. degradation trend). */
   @property({ attribute: false }) public projection: ChartPoint[] | null = null;
@@ -147,13 +149,16 @@ export class MaintenanceTriggerChart extends LitElement {
     if (this.targetValue != null) { lo = Math.min(lo, this.targetValue); hi = Math.max(hi, this.targetValue); }
     if (this.forceZero) lo = Math.min(lo, 0);
     const pad = (hi - lo || 1) * 0.06;
-    // A progress axis never dips below zero — padding must not create a -50 tick.
-    const loPadded = this.forceZero && lo >= 0 ? 0 : lo - pad;
+    // A progress axis never dips below zero — padding must not create a -50
+    // tick. Nor does any axis whose values are all positive: readings
+    // between 0 and 360 got an axis down to -100 (trigger check 2026-10-16).
+    const loPadded = this.forceZero && lo >= 0 ? 0 : lo >= 0 ? Math.max(0, lo - pad) : lo - pad;
     let { ticks, niceMin, niceMax } = niceTicks(loPadded, hi + pad, 4);
-    if (this.forceZero && lo >= 0 && niceMin < 0) {
+    if (lo >= 0 && niceMin < 0) {
       niceMin = 0;
       ticks = ticks.filter((v) => v >= 0);
     }
+    const tickStep = ticks.length > 1 ? ticks[1] - ticks[0] : 0;
 
     const tsMin = pts[0].ts;
     // The dashed projection extends the TIME domain. sparkline.ts builds it
@@ -165,7 +170,6 @@ export class MaintenanceTriggerChart extends LitElement {
     const projEnd = this.projection && this.projection.length === 2 ? this.projection[1].ts : null;
     const tsMax = projEnd != null ? Math.max(pts[pts.length - 1].ts, projEnd) : pts[pts.length - 1].ts;
     const tsSpan = tsMax - tsMin || 1;
-    const withYear = needsYear(tsMin, tsMax);
 
     const toX = (ts: number) => PAD_L + ((ts - tsMin) / tsSpan) * plotW;
     const toY = (v: number) => PAD_T + (1 - (v - niceMin) / (niceMax - niceMin || 1)) * plotH;
@@ -234,7 +238,7 @@ export class MaintenanceTriggerChart extends LitElement {
             return svg`
               <line x1="${PAD_L}" y1="${px(y)}" x2="${W - PAD_R}" y2="${px(y)}"
                 stroke="var(--divider-color)" stroke-width="1" opacity="0.6" />
-              <text x="${PAD_L - 7}" y="${px(y + 3.5)}" text-anchor="end" class="tick-label">${fmtNum(v, L)}</text>`;
+              <text x="${PAD_L - 7}" y="${px(y + 3.5)}" text-anchor="end" class="tick-label">${fmtTick(v, tickStep, L)}</text>`;
           })}
 
           ${zones.map(
@@ -261,7 +265,7 @@ export class MaintenanceTriggerChart extends LitElement {
           ${this.targetValue != null
             ? svg`<line x1="${PAD_L}" y1="${px(toY(this.targetValue))}" x2="${W - PAD_R}" y2="${px(toY(this.targetValue))}"
                 stroke="var(--error-color, #f44336)" stroke-width="1.5" stroke-dasharray="6,4" />
-              <text x="${W - PAD_R - 4}" y="${px(toY(this.targetValue) - 5)}" text-anchor="end" class="zone-label">◆ ${fmtNum(this.targetValue, L)} ${this.unit}</text>`
+              <text x="${W - PAD_R - 4}" y="${px(toY(this.targetValue) - 5)}" text-anchor="end" class="zone-label">${this.targetMark} ${fmtNum(this.targetValue, L)} ${this.unit}</text>`
             : nothing}
 
           ${this.projection && this.projection.length === 2
@@ -273,7 +277,11 @@ export class MaintenanceTriggerChart extends LitElement {
           ${xTicks.map((ts, i) => {
             const x = toX(ts);
             const anchor = i === 0 ? "start" : i === xTicks.length - 1 ? "end" : "middle";
-            return svg`<text x="${px(x)}" y="${H - 5}" text-anchor="${anchor}" class="tick-label">${fmtDateTick(ts, L, withYear)}</text>`;
+            // A label repeating its left neighbour's (ticks a minute apart)
+            // says nothing new.
+            const text = fmtXTick(ts, L, tsMin, tsMax);
+            if (i > 0 && text === fmtXTick(xTicks[i - 1], L, tsMin, tsMax)) return nothing;
+            return svg`<text x="${px(x)}" y="${H - 5}" text-anchor="${anchor}" class="tick-label">${text}</text>`;
           })}
 
           <line x1="${PAD_L}" y1="${plotB}" x2="${W - PAD_R}" y2="${plotB}" stroke="var(--divider-color)" stroke-width="1" />

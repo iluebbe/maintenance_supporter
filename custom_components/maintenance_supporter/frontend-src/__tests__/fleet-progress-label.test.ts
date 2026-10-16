@@ -50,6 +50,7 @@ describe("renderTriggerProgress — battery fleet", () => {
   });
 
   it("any other threshold task keeps its current / limit label", async () => {
-    expect((await render(fleet(4, 0, false))).label).to.equal("4.0 / 0 batteries");
+    // (No decimal where the reading has none, trigger check 2026-10-16.)
+    expect((await render(fleet(4, 0, false))).label).to.equal("4 / 0 batteries");
   });
 });
