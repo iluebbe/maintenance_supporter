@@ -138,13 +138,21 @@ def _validate_device_link(
     msg: dict[str, Any],
     *,
     self_entry_id: str | None,
+    stored: dict[str, Any] | None = None,
 ) -> bool:
     """Validate ha_device_id / parent_entry_id; sends the WS error itself.
 
     The parent chain is walked upwards so an A->B->A cycle (which would make
     the via_device hierarchy unresolvable) is rejected at write time.
+
+    ``stored`` is the object being updated: a value it already holds was
+    checked when it was written and is not checked again. The edit dialog
+    re-sends both on every save, and an object whose parent had been deleted
+    could not be saved at all (``invalid_parent``, bug audit 2026-10-16, W3);
+    a parent that is gone by now is cleared instead.
     """
-    if device_id := msg.get("ha_device_id"):
+    stored = stored or {}
+    if (device_id := msg.get("ha_device_id")) and device_id != stored.get("ha_device_id"):
         from homeassistant.helpers import device_registry as dr
 
         device = dr.async_get(hass).async_get(device_id)
@@ -168,7 +176,12 @@ def _validate_device_link(
             )
             return False
 
-    if parent_id := msg.get("parent_entry_id"):
+    parent_id = msg.get("parent_entry_id")
+    if parent_id and parent_id == stored.get("parent_entry_id"):
+        if not is_object_entry(hass.config_entries.async_get_entry(parent_id)):
+            msg["parent_entry_id"] = None
+        return True
+    if parent_id:
         parent = hass.config_entries.async_get_entry(parent_id)
         if not is_object_entry(parent):
             connection.send_error(msg["id"], "invalid_parent", f"No maintenance object {parent_id!r}")
@@ -442,7 +455,7 @@ async def ws_update_object(
             msg["notes"] = stripped or None
 
     # 2.19: device link / parent hierarchy
-    if not _validate_device_link(hass, connection, msg, self_entry_id=entry.entry_id):
+    if not _validate_device_link(hass, connection, msg, self_entry_id=entry.entry_id, stored=entry.data.get(CONF_OBJECT) or {}):
         return
 
     new_data = dict(entry.data)

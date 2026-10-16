@@ -76,10 +76,20 @@ export class MaintenanceSupporterCardEditor extends LitElement {
     this._valueChanged("filter_status", [...current]);
   }
 
-  private _toggleObject(name: string, on: boolean): void {
+  /** Objects are kept by entry id: by name, renaming an object emptied the
+   *  card ("All caught up") and the editor no longer showed the old name to
+   *  untick (bug audit 2026-10-16, FE-3). A name from an older config is
+   *  replaced by the id the moment its row is touched. */
+  private _toggleObject(entryId: string, name: string, on: boolean): void {
     const current = new Set(this._config.filter_objects || []);
-    if (on) current.add(name); else current.delete(name);
+    current.delete(name);
+    if (on) current.add(entryId); else current.delete(entryId);
     this._valueChanged("filter_objects", [...current]);
+  }
+
+  /** A configured value that matches nothing any more — only unticked. */
+  private _dropStale(key: "filter_objects" | "filter_labels", value: string): void {
+    this._valueChanged(key, (this._config[key] || []).filter((v) => v !== value));
   }
 
   private _toggleLabel(label: string, on: boolean): void {
@@ -104,13 +114,30 @@ export class MaintenanceSupporterCardEditor extends LitElement {
     this._valueChanged("entity_ids", e.detail.value || []);
   };
 
+  /** A configured object or label that no longer exists: shown struck
+   *  through and ticked, so it can be unticked. */
+  private _staleRow(key: "filter_objects" | "filter_labels", value: string) {
+    return html`
+      <label class="object-row stale">
+        <input type="checkbox" .checked=${true} @change=${() => this._dropStale(key, value)} />
+        <span>${value}</span>
+      </label>
+    `;
+  }
+
   render() {
     const L = this._lang;
     const selectedStatuses = new Set(this._config.filter_status || []);
     const selectedObjects = new Set(this._config.filter_objects || []);
-    const objectNames = [...this._objects]
-      .map((o) => o.object.name)
-      .sort((a, b) => a.localeCompare(b));
+    const objectRows = [...this._objects]
+      .map((o) => ({
+        entryId: o.entry_id,
+        name: o.object.name,
+        checked: selectedObjects.has(o.entry_id) || selectedObjects.has(o.object.name),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    const knownObjects = new Set(this._objects.flatMap((o) => [o.entry_id, o.object.name]));
+    const staleObjects = [...selectedObjects].filter((v) => !knownObjects.has(v));
     // Areas (C8): offer exactly the areas that actually hold an object — an
     // area with nothing in it could only ever empty the card. Names resolve
     // through hass.areas; an area HA no longer knows falls back to its raw id
@@ -136,6 +163,7 @@ export class MaintenanceSupporterCardEditor extends LitElement {
     const labelNames = [
       ...new Set(this._objects.flatMap((o) => o.tasks.flatMap((tk) => tk.labels || []))),
     ].sort((a, b) => a.localeCompare(b));
+    const staleLabels = [...selectedLabels].filter((v) => !labelNames.includes(v));
     // Build the list of OUR sensor + binary_sensor entity_ids so the
     // ha-entities-picker only shows maintenance_supporter entities, not
     // every sensor in HA.
@@ -179,18 +207,19 @@ export class MaintenanceSupporterCardEditor extends LitElement {
             ? html`<div class="field-help">${t("card_loading_objects", L)}</div>`
             : this._loadError
               ? html`<div class="field-help error-text">${t("card_load_error", L)}</div>`
-              : objectNames.length === 0
+              : objectRows.length === 0 && staleObjects.length === 0
                 ? html`<div class="field-help">${t("no_objects", L)}</div>`
                 : html`
                 <div class="object-list">
-                  ${objectNames.map((name) => html`
+                  ${objectRows.map((row) => html`
                     <label class="object-row">
                       <input type="checkbox"
-                        .checked=${selectedObjects.has(name)}
-                        @change=${(e: Event) => this._toggleObject(name, (e.target as HTMLInputElement).checked)} />
-                      <span>${name}</span>
+                        .checked=${row.checked}
+                        @change=${(e: Event) => this._toggleObject(row.entryId, row.name, (e.target as HTMLInputElement).checked)} />
+                      <span>${row.name}</span>
                     </label>
                   `)}
+                  ${staleObjects.map((value) => this._staleRow("filter_objects", value))}
                 </div>
                 <div class="field-help">${t("card_filter_objects_help", L)}</div>
               `
@@ -214,7 +243,7 @@ export class MaintenanceSupporterCardEditor extends LitElement {
           </div>
           <div class="field-help">${t("card_filter_areas_help", L)}</div>
         </div>` : nothing}
-        ${labelNames.length ? html`
+        ${labelNames.length || staleLabels.length ? html`
         <div class="field">
           <div class="field-label">${t("labels", L)}</div>
           <div class="object-list">
@@ -226,6 +255,7 @@ export class MaintenanceSupporterCardEditor extends LitElement {
                 <span>${name}</span>
               </label>
             `)}
+            ${staleLabels.map((value) => this._staleRow("filter_labels", value))}
           </div>
         </div>` : nothing}
         <div class="field">
@@ -422,6 +452,7 @@ export class MaintenanceSupporterCardEditor extends LitElement {
       cursor: pointer;
     }
     .object-row input { cursor: pointer; }
+    .object-row.stale span { text-decoration: line-through; opacity: 0.7; }
     .view-select {
       padding: 8px;
       border: 1px solid var(--divider-color);

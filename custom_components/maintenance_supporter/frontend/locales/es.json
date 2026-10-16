@@ -508,6 +508,7 @@
   "hist_note_sensor_triggered": "Disparador de sensor activado",
   "hist_note_initial": "Valor inicial establecido al crear la tarea",
   "hist_note_auto_recovered": "Completada automáticamente: el sensor se recuperó ({value})",
+  "hist_note_auto_recovered_plain": "Completada automáticamente: el sensor se recuperó",
   "hist_note_reset": "Restablecida al {date}",
   "hist_note_trigger_replaced": "Entidad disparadora reemplazada: {old} → {new}",
   "hist_note_trigger_removed": "Disparador de sensor eliminado (entidad: {entity}). Programación convertida a {schedule}.",

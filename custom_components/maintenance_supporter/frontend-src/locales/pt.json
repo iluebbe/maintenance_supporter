@@ -508,6 +508,7 @@
   "hist_note_sensor_triggered": "Gatilho do sensor acionado",
   "hist_note_initial": "Valor inicial definido ao criar a tarefa",
   "hist_note_auto_recovered": "Concluída automaticamente: sensor recuperado ({value})",
+  "hist_note_auto_recovered_plain": "Concluída automaticamente: sensor recuperado",
   "hist_note_reset": "Reposta para {date}",
   "hist_note_trigger_replaced": "Entidade do gatilho substituída: {old} → {new}",
   "hist_note_trigger_removed": "Gatilho de sensor removido (entidade: {entity}). Agenda convertida para {schedule}.",

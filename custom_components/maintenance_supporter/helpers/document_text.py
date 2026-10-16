@@ -170,7 +170,11 @@ class DocumentTextIndex:
 
     def _needs_extraction(self, digest: str) -> bool:
         m = self._meta.get(digest)
-        return m is None or m.get("v") != EXTRACT_VERSION
+        if m is None or m.get("v") != EXTRACT_VERSION:
+            return True
+        # An error recorded before the file check (``seen``) may have been a
+        # missing file, not an unreadable one: tried once more (F4).
+        return m.get("status") == STATUS_ERROR and not m.get("seen")
 
     # ------------------------------------------------------------------
     # Index maintenance
@@ -258,6 +262,13 @@ class DocumentTextIndex:
             if not self._needs_extraction(digest):
                 return self._meta.get(digest)
             path = self.store.blob_path(digest)
+            # No file (yet): a backup restore registers the documents before
+            # their files arrive, or a file went missing. Recorded, that read
+            # as "unreadable" with the current version and the document was
+            # never searched again (bug audit 2026-10-16, F4) — nothing is
+            # recorded, the restore's own schedule or the next backfill tries.
+            if not await self.hass.async_add_executor_job(path.is_file):
+                return None
             result = await self.hass.async_add_executor_job(extract_text_sync, path, str(blob.get("mime") or ""))
             text = result.pop("text", "")
             if result["status"] == STATUS_TEXT:
@@ -265,7 +276,7 @@ class DocumentTextIndex:
                 if self._loaded:
                     self._drop_from_index(digest)
                     self._add_to_index(digest, text)
-            meta = {**result, "v": EXTRACT_VERSION}
+            meta = {**result, "v": EXTRACT_VERSION, "seen": True}
             self._meta[digest] = meta
             await self._async_save_meta()
             return meta

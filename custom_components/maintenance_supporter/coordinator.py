@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Mapping
+from dataclasses import replace
 from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
@@ -62,10 +64,10 @@ from .helpers.interval_analyzer import hemisphere
 from .helpers.issues import async_purge_task_issues, missing_trigger_issue_id, stale_action_issue_id
 from .helpers.notification_gates import task_may_notify
 from .helpers.notify_hooks import KIND_STATUS
-from .helpers.pause import is_task_inert
+from .helpers.pause import is_task_inert, pauses_with_object
 from .helpers.phases import task_label
 from .helpers.prediction_cache import PredictionCache
-from .helpers.schedule import KIND_INTERVAL, KIND_MANUAL, Schedule, read_legacy_fields
+from .helpers.schedule import FLAT_RECURRENCE_KEYS, KIND_INTERVAL, KIND_MANUAL, Schedule, read_legacy_fields
 from .models.maintenance_object import MaintenanceObject
 from .models.maintenance_task import MaintenanceTask
 from .storage import MaintenanceStore
@@ -400,7 +402,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Same short-circuit surface as archived, but the object remains a
             # first-class citizen in every view. `_paused` mirrors the status
             # for the dict-twin recomputation in helpers.status.
-            if object_paused or task.paused_at is not None:
+            paused_by_object = object_paused and pauses_with_object(self.entry.data.get(CONF_TASKS, {}).get(task_id) or {})
+            if paused_by_object or task.paused_at is not None:
                 result[CONF_TASKS][task_id] = _inert_task_result(task, MaintenanceStatus.PAUSED, _paused=True)
                 continue
 
@@ -1561,7 +1564,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # completion, so a sensor task that re-triggered weeks later was never
         # announced again until HA restarted (bug audit 2026-08-29).
         if is_latest:
-            self._clear_notification_state(task_id)
+            self._clear_notification_state(task_id, reminded=merged[task_id])
 
         _LOGGER.debug("Maintenance completed: %s on %s", task.name, self.maintenance_object.name)
 
@@ -1606,7 +1609,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if is_latest:
             await self._async_notify_completed(task_id, done_label, effective_source, completed_by, effective_ts.isoformat())
 
-    async def async_auto_complete_on_recovery(self, task_id: str, trigger_value: float) -> None:
+    async def async_auto_complete_on_recovery(self, task_id: str, trigger_value: float | None) -> None:
         """Record a completion because the task's trigger cleared itself (#53).
 
         Called from ``BaseTrigger._on_trigger_deactivated`` when the task opted
@@ -1654,11 +1657,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.maintenance_object.name,
             trigger_value,
         )
-        await self.complete_maintenance(
-            task_id,
-            notes=f"Auto-completed: sensor recovered ({trigger_value:g})",
-            auto=True,
-        )
+        # A compound trigger has no single value (None).
+        if trigger_value is None:
+            notes = "Auto-completed: sensor recovered"
+        else:
+            notes = f"Auto-completed: sensor recovered ({trigger_value:g})"
+        await self.complete_maintenance(task_id, notes=notes, auto=True)
 
     async def reset_maintenance(
         self,
@@ -1689,7 +1693,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # A reset starts a new cycle — a following completion is a NEW
         # real-world action, never a double-tap of the previous one.
         self._recent_manual_completions.pop(task_id, None)
-        self._clear_notification_state(task_id)
+        self._clear_notification_state(task_id, reminded=merged[task_id])
 
         task = MaintenanceTask.from_dict(merged[task_id])
         task.reset(reset_date=date)
@@ -1796,17 +1800,32 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 translation_placeholders={"task_name": str(task_data.get("name", task_id))},
             )
 
-    def _clear_notification_state(self, task_id: str) -> None:
+    def _clear_notification_state(self, task_id: str, *, reminded: Mapping[str, Any] | None = None) -> None:
         """Forget the per-status notification bookkeeping for a task.
+
+        With ``reminded`` — the task as it was when its reminder went out,
+        BEFORE a completion hands a rotation on — a reminder sent in this
+        cycle is also taken off the phones. Only the reminder's own buttons
+        did that: one closed in the panel, by voice or a tag stayed on the
+        phones, and its Complete button then completed the NEXT cycle (bug
+        audit 2026-10-16, N1; the buttons now also carry the cycle).
 
         The notification manager lives on the shared runtime; it may be absent
         in tests or during teardown - then there is nothing to clear.
         """
         from .const import NOTIFICATION_MANAGER_KEY
+        from .helpers.assignees import task_user_ids
 
         nm = self.hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
-        if nm is not None:
-            nm.clear_task_state(self.entry.entry_id, task_id)
+        if nm is None:
+            return
+        dismiss = reminded is not None and nm.was_reminded(self.entry.entry_id, task_id)
+        nm.clear_task_state(self.entry.entry_id, task_id)
+        if dismiss and reminded is not None:
+            self.hass.async_create_task(
+                nm.async_dismiss_task_notification(task_id, user_ids=task_user_ids(reminded)),
+                f"{DOMAIN} dismiss reminder {task_id}",
+            )
 
     async def skip_maintenance(
         self,
@@ -1840,7 +1859,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # this BEFORE the gates re-armed the "task overdue" push for a locked
         # task on every refused skip (bug review 2026-09-04).
         self._recent_manual_completions.pop(task_id, None)
-        self._clear_notification_state(task_id)
+        self._clear_notification_state(task_id, reminded=merged[task_id])
 
         task = MaintenanceTask.from_dict(merged[task_id])
         # Skipping an already-overdue task means it lapsed → record it as MISSED
@@ -2136,7 +2155,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
 
         task_dict = dict(tasks_data[task_id])
-        if not _takes_day_suggestion(Schedule.parse(task_dict)):
+        schedule = Schedule.parse(task_dict)
+        if not _takes_day_suggestion(schedule):
             # Refused rather than rewritten: the suggestion is a day count
             # and the task's cadence is not (see _takes_day_suggestion).
             _LOGGER.warning(
@@ -2147,15 +2167,16 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
         fields = read_legacy_fields(task_dict)
         old_interval = fields["interval_days"]
-        # The suggested interval is expressed in days; rebuild the recurrence as
-        # a days interval (preserving the anchor) and store it nested. Adaptive
+        # The suggested interval is expressed in days; only the count (and, for
+        # a sensor task without a safety interval, the kind) changes. Adaptive
         # is gated to day-based tasks upstream, so this can't reinterpret a
-        # weeks/months/years task.
-        task_dict.pop("schedule", None)
-        task_dict["schedule_type"] = "time_based"
-        task_dict["interval_days"] = interval
-        task_dict["interval_unit"] = "days"
-        task_dict["interval_anchor"] = fields["interval_anchor"]
+        # weeks/months/years task. The schedule was rebuilt from the flat
+        # fields, which cannot say "only in season" or "ends after 5": the
+        # seasonal window and the series end were lost (bug audit
+        # 2026-10-16, W2).
+        for key in FLAT_RECURRENCE_KEYS:
+            task_dict.pop(key, None)
+        task_dict["schedule"] = replace(schedule, kind=KIND_INTERVAL, every=interval, unit="days").to_dict()
         # The one task-write chokepoint (normalizes to the nested schedule).
         write_task(self.hass, self.entry, task_id, task_dict)
         await self.async_refresh_now()

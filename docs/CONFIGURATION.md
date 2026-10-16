@@ -622,7 +622,7 @@ The card is WS-driven (subscribes to `maintenance_supporter/subscribe`) so it al
 | `compact` | bool | `false` | Tighter rows without the *object · type · phase* line; the assignee stays |
 | `max_items` | int | `0` (unlimited) | Cap on the number of tasks shown |
 | `filter_status` | string[] | `[]` | Show only tasks whose `status` is in the list. Values: `overdue`, `triggered`, `due_soon`, `ok` |
-| `filter_objects` | string[] | `[]` | Show only tasks whose parent object name is in the list |
+| `filter_objects` | string[] | `[]` | Show only tasks of these objects. The card editor stores each object's entry id, so a renamed object stays on the card; object names written by hand work too (2.104+) |
 | `filter_areas` | string[] | `[]` | Show only tasks whose parent object sits in one of these HA areas (area **ids**, OR semantics, ANDed with the other filters). Objects without an area never match. This is what a per-room wall dashboard uses |
 | `filter_due_min_days` | int | unset | Lower bound on `days_until_due` (inclusive). E.g. `1` hides everything due today or overdue |
 | `filter_due_max_days` | int | unset | Upper bound on `days_until_due` (inclusive). E.g. `0` = today and overdue only, `-1` = overdue only. Combined with `filter_due_min_days` this expresses a window (`min: 1, max: 7` = "this week"); it is what the auto-dashboard's due-date buckets use. Tasks without a computed `days_until_due` (e.g. a sensor-triggered task with no next due date) are excluded as soon as either bound is set |

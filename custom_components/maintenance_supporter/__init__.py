@@ -108,7 +108,7 @@ from .helpers.dates import INTERVAL_UNITS, local_date_from_iso
 from .helpers.documents import DocumentStore
 from .helpers.global_options import entry_option, get_default_warning_days, get_global_entry
 from .helpers.notification_gates import task_may_notify
-from .helpers.notification_ids import parse_action_id
+from .helpers.notification_ids import action_cycle, parse_action_id
 from .helpers.notification_manager import NotificationManager
 from .helpers.notify_hooks import KIND_LEAD_TIME
 from .helpers.pause import is_task_inert
@@ -986,6 +986,22 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         task_cfg = (config_entry.data.get(CONF_TASKS) or {}).get(task_id) or {} if config_entry is not None else {}
         reminded_user_ids = task_user_ids(task_cfg)
 
+        # A reminder whose cycle was closed elsewhere (panel, voice, a tag,
+        # another phone) is outdated: its Complete or Skip acted on the NEXT
+        # cycle — a second history entry, the rotation handed on twice, a
+        # planned date skipped (bug audit 2026-10-16, N1). It is only taken
+        # off the phones. Buttons from before 2.104 carry no cycle.
+        sent_cycle = action_cycle(action)
+        if sent_cycle is not None and action_type in ("complete", "skip"):
+            from .helpers.history import cycle_token
+
+            current = runtime_data.coordinator._get_merged_tasks_data().get(task_id)
+            if current is not None and cycle_token(current.get("history")) != sent_cycle:
+                _LOGGER.info("Ignoring %s of task %s from an outdated reminder", action_type, task_id)
+                if nm is not None:
+                    await nm.async_dismiss_task_notification(task_id, user_ids=reminded_user_ids)
+                return
+
         try:
             if action_type == "complete":
                 _LOGGER.info("Completing task %s via notification action", task_id)
@@ -1040,43 +1056,51 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         if not tag_id:
             return
 
-        # Search all entries for a task with matching nfc_tag_id
-        for ce in hass.config_entries.async_entries(DOMAIN):
-            if ce.unique_id == GLOBAL_UNIQUE_ID:
-                continue
-            tasks = ce.data.get(CONF_TASKS, {})
-            for task_id, task_data in tasks.items():
-                if task_data.get("nfc_tag_id") != tag_id:
-                    continue
-                # Found matching task
-                runtime_data = getattr(ce, "runtime_data", None)
-                if not runtime_data or not getattr(runtime_data, "coordinator", None):
-                    _LOGGER.warning(
-                        "No coordinator for NFC tag match (entry=%s)",
-                        ce.entry_id,
-                    )
-                    continue
-                _LOGGER.debug(
-                    "Completing task %s via NFC tag scan (%s)",
-                    task_id,
-                    tag_id,
+        # Search all entries for a task with matching nfc_tag_id. An
+        # archived, disabled or paused task keeps its tag: the search stopped
+        # at the first match, so a tag moved on to a new task (the sticker
+        # stays on the appliance) completed nothing once the old one was
+        # retired (bug audit 2026-10-16, C-E). Active matches go first.
+        from .helpers.pause import is_task_inert
+
+        matches = [
+            (ce, task_id)
+            for ce in hass.config_entries.async_entries(DOMAIN)
+            if ce.unique_id != GLOBAL_UNIQUE_ID
+            for task_id, task_data in (ce.data.get(CONF_TASKS) or {}).items()
+            if task_data.get("nfc_tag_id") == tag_id
+        ]
+        matches.sort(key=lambda m: is_task_inert(m[0].data[CONF_TASKS][m[1]], m[0].data.get(CONF_OBJECT) or {}))
+        for ce, task_id in matches:
+            # Found matching task
+            runtime_data = getattr(ce, "runtime_data", None)
+            if not runtime_data or not getattr(runtime_data, "coordinator", None):
+                _LOGGER.warning(
+                    "No coordinator for NFC tag match (entry=%s)",
+                    ce.entry_id,
                 )
-                user_id = event.context.user_id if event.context else None
-                try:
-                    await runtime_data.coordinator.complete_maintenance(
-                        task_id=task_id,
-                        completed_by=user_id,
-                        notes=COMPLETION_PROVENANCE_NOTES["nfc"],
-                        unattended=True,
-                        source="nfc",
-                        tag_verified=True,
-                    )
-                except ServiceValidationError as err:
-                    # A tag tap cannot capture a cost or a photo. Log it
-                    # plainly and leave the task open so the user finishes it
-                    # in the panel — the honest outcome, not a silent no-op.
-                    _LOGGER.warning("NFC completion of task %s rejected: %s", task_id, err)
-                return
+                continue
+            _LOGGER.debug(
+                "Completing task %s via NFC tag scan (%s)",
+                task_id,
+                tag_id,
+            )
+            user_id = event.context.user_id if event.context else None
+            try:
+                await runtime_data.coordinator.complete_maintenance(
+                    task_id=task_id,
+                    completed_by=user_id,
+                    notes=COMPLETION_PROVENANCE_NOTES["nfc"],
+                    unattended=True,
+                    source="nfc",
+                    tag_verified=True,
+                )
+            except ServiceValidationError as err:
+                # A tag tap cannot capture a cost or a photo. Log it
+                # plainly and leave the task open so the user finishes it
+                # in the panel — the honest outcome, not a silent no-op.
+                _LOGGER.warning("NFC completion of task %s rejected: %s", task_id, err)
+            return
 
         # No match found — not our tag, ignore silently
 
@@ -2099,6 +2123,11 @@ async def _check_task_responsible_user_orphans(
                     # A rotation needs at least two members.
                     new_td.pop("assignee_pool", None)
                     new_td.pop("rotation_strategy", None)
+                    # The one person left keeps the task: a task shared by
+                    # two lost BOTH when one of them was deleted (bug audit
+                    # 2026-10-16, C-D).
+                    if pruned_pool and (resp_orphaned or not ruid):
+                        new_td["responsible_user_id"] = pruned_pool[0]
             if resp_orphaned:
                 _LOGGER.info(
                     "Clearing orphaned responsible_user_id %s on task %s (%s)",
@@ -2106,7 +2135,7 @@ async def _check_task_responsible_user_orphans(
                     tid,
                     entry.title,
                 )
-                if len(pruned_pool) >= 2:
+                if pruned_pool:
                     # Keep the shared task assigned: hand over to the pool.
                     new_td["responsible_user_id"] = pruned_pool[0]
                 else:
@@ -2294,6 +2323,10 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     from .websocket import cleanup_group_refs, object_id_for_entry
 
     cleanup_group_refs(hass, entry_id=entry.entry_id)
+    # Objects nested under this one lose the parent pointer (W3).
+    from .helpers.device_link import forget_removed_parent
+
+    forget_removed_parent(hass, entry.entry_id)
 
     # Remove this object's documents (refcount-aware — a blob shared with another
     # object survives; only bytes freed for good are reclaimed). Archiving keeps

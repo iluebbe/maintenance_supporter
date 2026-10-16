@@ -510,6 +510,7 @@
   "hist_note_sensor_triggered": "Anturin laukaisin aktivoitui",
   "hist_note_initial": "Alkuarvo asetettu tehtävän luonnissa",
   "hist_note_auto_recovered": "Suoritettu automaattisesti: anturi palautui ({value})",
+  "hist_note_auto_recovered_plain": "Suoritettu automaattisesti: anturi palautui",
   "hist_note_reset": "Nollattu päivään {date}",
   "hist_note_trigger_replaced": "Laukaisimen entiteetti korvattu: {old} → {new}",
   "hist_note_trigger_removed": "Anturin laukaisin poistettu (entiteetti: {entity}). Aikataulu muutettu: {schedule}.",

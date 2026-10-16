@@ -8,6 +8,7 @@ failure so a red test says which bug came back.
 from __future__ import annotations
 
 import asyncio
+import io
 from datetime import date, datetime, timedelta
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -765,9 +766,9 @@ async def test_two_writers_never_share_a_temp_file(hass: HomeAssistant, monkeypa
         real_replace(src, dst)
 
     monkeypatch.setattr(docmod.os, "replace", spy)
-    digest, _ = store._store_blob_sync(b"same bytes")
+    digest, _, _ = store._store_stream_sync(io.BytesIO(b"same bytes"))
     store.blob_path(digest).unlink()
-    store._store_blob_sync(b"same bytes")
+    store._store_stream_sync(io.BytesIO(b"same bytes"))
     assert len(sources) == 2 and sources[0] != sources[1]
     assert not [p for p in store._blobs_dir.iterdir() if p.name.endswith(".tmp")]
 

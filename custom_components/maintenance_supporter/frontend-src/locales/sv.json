@@ -508,6 +508,7 @@
   "hist_note_sensor_triggered": "Sensorutlösare aktiverad",
   "hist_note_initial": "Startvärde angavs när uppgiften skapades",
   "hist_note_auto_recovered": "Automatiskt slutförd: sensorn återhämtade sig ({value})",
+  "hist_note_auto_recovered_plain": "Automatiskt slutförd: sensorn återhämtade sig",
   "hist_note_reset": "Återställd till {date}",
   "hist_note_trigger_replaced": "Utlösarentitet ersatt: {old} → {new}",
   "hist_note_trigger_removed": "Sensorutlösare borttagen (entitet: {entity}). Schemat ändrat till {schedule}.",

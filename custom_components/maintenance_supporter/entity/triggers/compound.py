@@ -51,15 +51,26 @@ class CompoundSubEntity:
         # that have already transitioned (an entity that never toggles must keep
         # the AND from firing). Single-entity conditions stay empty and use the
         # is_triggered fallback in async_update_trigger_state. (H1)
-        _eids = condition_config.get("entity_ids") or []
-        self._per_entity_states: dict[str, bool] = {eid: False for eid in _eids} if len(_eids) > 1 else {}
+        self._per_entity_states: dict[str, bool] = {}
         self._per_entity_values: dict[str, float | None] = {}
+        self.reset()
         self._entity_logic = condition_config.get("entity_logic", "any")
         # Mirror attributes the real entity exposes for trigger access (the
         # entity_id is read live, see the property).
         self._task_id: str = parent.entity._task_id
         # Replaced by the condition's _CompoundCoordinatorProxy right after.
         self.coordinator: TriggerCoordinator = parent.entity.coordinator
+
+    def reset(self) -> None:
+        """Forget what each entity last reported (seeded as above). The
+        compound's reset() calls this with its sub-triggers' — the map kept
+        the pre-completion True of every entity, so after "Complete" one
+        entity crossing again made an "all" condition true while the others
+        had long recovered, or a recovered one never cleared it (bug audit
+        2026-10-16, T1)."""
+        eids = self._condition_config.get("entity_ids") or []
+        self._per_entity_states = {eid: False for eid in eids} if len(eids) > 1 else {}
+        self._per_entity_values = {}
 
     @property
     def entity_id(self) -> str:
@@ -148,7 +159,7 @@ class _CompoundCoordinatorProxy:
         """Delegate to the object's coordinator."""
         await self._real.async_request_refresh()
 
-    async def async_auto_complete_on_recovery(self, task_id: str, trigger_value: float) -> None:
+    async def async_auto_complete_on_recovery(self, task_id: str, trigger_value: float | None) -> None:
         """Delegate to the object's coordinator."""
         await self._real.async_auto_complete_on_recovery(task_id, trigger_value)
 
@@ -277,9 +288,11 @@ class CompoundTrigger(BaseTrigger):
         return any(self._condition_states)  # OR
 
     def reset(self) -> None:
-        """Reset all sub-triggers."""
+        """Reset all sub-triggers (and what their conditions aggregate)."""
         super().reset()
         self._condition_states = [False] * len(self._conditions)
+        for sub_entity in self._sub_entities:
+            sub_entity.reset()
         for trigger_list in self._sub_triggers:
             for trigger in trigger_list:
                 trigger.reset()
@@ -372,3 +385,9 @@ class CompoundTrigger(BaseTrigger):
                 "condition_states": list(self._condition_states),
             },
         )
+        # The opt-in the dialog offers for every trigger kind (#53). The
+        # conditions' sub-triggers leave it to the compound (they are not the
+        # task's trigger), and the compound never ran it: "complete when it
+        # recovers" did nothing on an AND/OR trigger (bug audit 2026-10-16, T4).
+        if self.config.get("auto_complete_on_recovery"):
+            self._track(self._coordinator.async_auto_complete_on_recovery(self._task_id, None), cancel_on_close=False)

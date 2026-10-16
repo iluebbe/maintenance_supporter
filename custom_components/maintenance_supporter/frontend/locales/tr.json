@@ -510,6 +510,7 @@
   "hist_note_sensor_triggered": "Sensör tetikleyicisi etkinleşti",
   "hist_note_initial": "Görev oluşturulurken ayarlanan başlangıç değeri",
   "hist_note_auto_recovered": "Otomatik tamamlandı: sensör düzeldi ({value})",
+  "hist_note_auto_recovered_plain": "Otomatik tamamlandı: sensör düzeldi",
   "hist_note_reset": "{date} tarihine sıfırlandı",
   "hist_note_trigger_replaced": "Tetikleyici varlık değiştirildi: {old} → {new}",
   "hist_note_trigger_removed": "Sensör tetikleyicisi kaldırıldı (varlık: {entity}). Zamanlama {schedule} olarak değiştirildi.",

@@ -429,8 +429,9 @@ export class MaintenanceCompleteDialog extends LitElement {
             <div class="checklist-section">
               <label class="checklist-label">${t("checklist", L)}</label>
               ${this.checklist.map((item, idx) => html`
-                <label class="checklist-item" @click=${() => this._toggleCheck(idx)}>
-                  <input type="checkbox" .checked=${!!this._checklistState[String(idx)]} />
+                <label class="checklist-item">
+                  <input type="checkbox" .checked=${!!this._checklistState[String(idx)]}
+                    @change=${() => this._toggleCheck(idx)} />
                   <span>${item}</span>
                 </label>
               `)}

@@ -510,6 +510,7 @@
   "hist_note_sensor_triggered": "传感器触发器已触发",
   "hist_note_initial": "创建任务时设置的初始值",
   "hist_note_auto_recovered": "自动完成：传感器已恢复（{value}）",
+  "hist_note_auto_recovered_plain": "自动完成：传感器已恢复",
   "hist_note_reset": "重置为 {date}",
   "hist_note_trigger_replaced": "触发实体已替换：{old} → {new}",
   "hist_note_trigger_removed": "传感器触发器已移除（原实体：{entity}）。计划已转换为{schedule}。",

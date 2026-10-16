@@ -356,9 +356,11 @@ async def ws_parts_overview(
                     }
                 )
 
+    from ..helpers.shared_parts import live_parts
+
     rows: list[dict[str, Any]] = []
     for e in entries:
-        parts = _parts_of(e)
+        parts = live_parts(hass, e)
         if not parts:
             continue
         store = get_store(hass, e.entry_id)

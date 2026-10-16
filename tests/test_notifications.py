@@ -1157,7 +1157,10 @@ async def test_dismiss_task_notification(
     nm = hass.data.get(DOMAIN, {}).get("_notification_manager")
     assert nm is not None
 
-    with patch.object(nm, "hass") as mock_hass:
+    with (
+        patch.object(nm, "hass") as mock_hass,
+        patch.object(type(nm), "notify_service", new_callable=PropertyMock, return_value="notify.mobile_app_phone"),
+    ):
         mock_hass.services = MagicMock()
         mock_hass.services.async_call = AsyncMock()
         mock_hass.config_entries = hass.config_entries
@@ -1166,7 +1169,7 @@ async def test_dismiss_task_notification(
 
         mock_hass.services.async_call.assert_called_once_with(
             "notify",
-            "mobile_app",
+            "mobile_app_phone",
             {"message": "clear_notification", "data": {"tag": "maintenance_t1"}},
             blocking=False,
         )

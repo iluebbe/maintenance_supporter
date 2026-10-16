@@ -374,8 +374,8 @@ class DocumentsArchiveView(HomeAssistantView):
         file_field = data.get("file")
         if not isinstance(file_field, web.FileField):
             return self.json_message("file is required", HTTPStatus.BAD_REQUEST)
-        content = await self.hass.async_add_executor_job(file_field.file.read)
-        result = await import_documents_archive(self.hass, content)
+        # The spooled upload file itself, read in pieces by the restore (F5).
+        result = await import_documents_archive(self.hass, file_field.file)
         if "error" in result:
             return self.json_message(result["error"], HTTPStatus.BAD_REQUEST, message_code=result.get("code"))
         return self.json(result)

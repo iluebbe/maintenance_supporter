@@ -508,6 +508,7 @@
   "hist_note_sensor_triggered": "Trigger del sensore attivato",
   "hist_note_initial": "Valore iniziale impostato alla creazione dell'attività",
   "hist_note_auto_recovered": "Completato automaticamente: sensore ripristinato ({value})",
+  "hist_note_auto_recovered_plain": "Completato automaticamente: sensore ripristinato",
   "hist_note_reset": "Reimpostato al {date}",
   "hist_note_trigger_replaced": "Entità trigger sostituita: {old} → {new}",
   "hist_note_trigger_removed": "Trigger del sensore rimosso (entità: {entity}). Pianificazione convertita in {schedule}.",

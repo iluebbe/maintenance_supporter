@@ -18,8 +18,9 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
-from .const import CONF_PARTS, CONF_TASKS, DEFAULT_MAX_HISTORY_ENTRIES, DOMAIN, LIFECYCLE_HISTORY_TYPES
+from .const import CONF_PARTS, CONF_TASKS, DEFAULT_MAX_HISTORY_ENTRIES, DOMAIN
 from .helpers.dates import local_date_from_iso
+from .helpers.history import latest_anchor_stamp
 from .helpers.parts import round_qty
 from .helpers.pause import write_anchor
 
@@ -550,29 +551,40 @@ def _coerce_history_timestamp(entry: dict[str, Any]) -> dict[str, Any]:
     return fixed
 
 
-def reanchor_from_history(store: MaintenanceStore, task_id: str, history: list[dict[str, Any]]) -> str | None:
-    """Re-derive a task's ``last_performed`` from its history and write it.
+def reanchor_from_history(
+    store: MaintenanceStore,
+    task_id: str,
+    before: list[dict[str, Any]],
+    after: list[dict[str, Any]],
+) -> str | None:
+    """Re-derive a task's ``last_performed`` after a history edit or delete
+    turned ``before`` into ``after``, and write it. Returns the anchor.
 
     The single rule behind the history edit AND delete commands: the anchor
     is the day of the LATEST lifecycle entry (completed / reset / skipped /
-    missed — ``LIFECYCLE_HISTORY_TYPES``); with none left the task reads as
-    never performed. The cycle modifiers (a postpone's ``due_override``,
-    ``last_planned_due``) are dropped only when the anchor actually MOVES —
-    editing a note on the last completion keeps a postponed occurrence,
-    deleting that completion abandons it. Returns the new anchor.
+    missed — ``helpers.history.anchor_stamp``; a reset to an earlier day
+    counts on that day); with none left the task reads as never performed.
+
+    The anchor moves only when the change moved that derivation. It used to
+    be re-derived on every edit (bug audit 2026-10-16, W1): a note fixed on
+    an old completion threw away a reset to an earlier day (its entry is
+    stamped when recorded) and the "last performed" day set in the task
+    dialog (which writes no entry), and with them a postponed occurrence. An
+    anchor LATER than the history explains (that dialog field) also stays
+    unless the change brings the history past it. The cycle modifiers (a
+    postpone's ``due_override``, ``last_planned_due``) go only when the
+    anchor actually moves.
     """
-    # String stamps only: an imported epoch number made max() compare int
-    # with str and the history edit / delete raised (bug audit 2026-09-27).
-    latest = max(
-        (
-            stamp
-            for h in history
-            if isinstance(h, dict) and h.get("type") in LIFECYCLE_HISTORY_TYPES and isinstance(stamp := h.get("timestamp"), str)
-        ),
-        default="",
-    )
-    anchor = local_date_from_iso(latest) if latest else None  # the stamp's local calendar day
-    store.set_anchor(task_id, anchor, clear_modifiers=anchor != store.get_last_performed(task_id))
+    old = latest_anchor_stamp(before)
+    new = latest_anchor_stamp(after)
+    current = store.get_last_performed(task_id)
+    if old == new:
+        return current
+    anchor = local_date_from_iso(new) if new else None  # the stamp's local calendar day
+    old_day = local_date_from_iso(old) if old else None
+    if current is not None and (old_day is None or current > old_day) and (anchor is None or anchor < current):
+        return current
+    store.set_anchor(task_id, anchor, clear_modifiers=anchor != current)
     return anchor
 
 

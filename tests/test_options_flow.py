@@ -741,6 +741,8 @@ async def test_remove_trigger_flow(
         result["flow_id"],
         user_input={
             CONF_TRIGGER_ABOVE: 50.0,
+            # The form shows the task's interval and sends it back (G5).
+            CONF_TASK_INTERVAL_DAYS: 30,
             CONF_TRIGGER_FOR_MINUTES: 0,
             CONF_TASK_WARNING_DAYS: 7,
         },
@@ -1739,6 +1741,8 @@ async def test_remove_trigger_all_entities_removes_trigger(
         result["flow_id"],
         user_input={
             CONF_TRIGGER_ABOVE: 50.0,
+            # The form shows the task's interval and sends it back (G5).
+            CONF_TASK_INTERVAL_DAYS: 30,
             CONF_TRIGGER_FOR_MINUTES: 0,
             CONF_TASK_WARNING_DAYS: 7,
         },

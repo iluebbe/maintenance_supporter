@@ -97,6 +97,25 @@ def borrowed_part_ids(hass: HomeAssistant, owner_id: str, *, active_only: bool =
     return wanted
 
 
+def live_parts(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, dict[str, Any]]:
+    """The parts of ``entry`` on a shelf that is still in use: all of them,
+    unless the object is archived — then only a shared pool live objects
+    still draw on (the buy-task reconcile's rule). A replaced object hands
+    its parts on to its successor as copies, and counting the archived
+    predecessor's as well kept the reorder count up for good, listed every
+    part twice in the inventory and made voice ask "which one?" (bug audit
+    2026-10-16, S2)."""
+    parts = entry.data.get(CONF_PARTS)
+    if not isinstance(parts, dict):
+        return {}
+    # Only well-formed parts (a hand-edited backup can hold anything).
+    shelf = {pid: part for pid, part in parts.items() if isinstance(part, dict)}
+    if (entry.data.get(CONF_OBJECT) or {}).get("archived_at") is None:
+        return shelf
+    in_use = borrowed_part_ids(hass, entry.entry_id, active_only=True)
+    return {pid: part for pid, part in shelf.items() if pid in in_use}
+
+
 def relink_tasks(
     tasks: dict[str, Any], old_owner: str, new_owner: str, moved: dict[str, str]
 ) -> tuple[dict[str, Any], int]:

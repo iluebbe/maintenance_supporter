@@ -5,15 +5,22 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from .base_trigger import TriggerHost
 
+from ...helpers.managed_timer import ManagedTimer
 from ...helpers.trigger_fallback import counter_baseline
 from .base_trigger import BaseTrigger
 
 _LOGGER = logging.getLogger(__name__)
+
+# How long a reading under the delta baseline waits for a reading back above
+# it before it counts as the source counter's reset (see _evaluate_drop).
+DROP_CONFIRM_SECONDS = 120
 
 
 class CounterTrigger(BaseTrigger):
@@ -39,6 +46,10 @@ class CounterTrigger(BaseTrigger):
         # Set when reset_baseline is called while the source is unavailable, so
         # the re-baseline is applied against the next real value (M4).
         self._reset_pending: bool = False
+        # Delta mode: the first reading under the baseline, waiting to be
+        # told apart from a glitch (see _evaluate_drop).
+        self._drop_low: float | None = None
+        self._drop_timer = ManagedTimer(hass, f"CounterTrigger:{self.entity_id}:drop")
 
     async def async_setup(self) -> None:
         """Set up counter trigger with baseline initialization."""
@@ -106,21 +117,53 @@ class CounterTrigger(BaseTrigger):
                 self._baseline_value = value
                 return False
             if value < self._baseline_value:
-                # Source counter reset / rolled over (device reboot, meter
-                # rollover) — re-baseline to the new lower value so we don't
-                # miss the next interval waiting for it to climb back past the
-                # old baseline. (M3)
-                self._baseline_value = value
-                self.hass.async_create_task(
-                    self._persist_baseline(),
-                    eager_start=False,
-                )
-                return False
+                return self._evaluate_drop(value)
+            if self._drop_low is not None:
+                # Back up: the reading under the baseline was a glitch.
+                self._drop_low = None
+                self._drop_timer.cancel()
             delta = value - self._baseline_value
             return delta >= self._target_value
 
         # Absolute mode
         return value >= self._target_value
+
+    def _evaluate_drop(self, value: float) -> bool:
+        """A reading under the baseline: a glitch (a sensor that reported 0
+        for a moment) or the source counter's reset (the device's own reset —
+        for a counter that counts since then, that IS the maintenance — a
+        reboot, a meter rollover).
+
+        One reading decided at once: it re-based the count, so a single 0
+        made the next real reading count from 0 and fire the task (bug audit
+        2026-10-16, T5). A drop is a reset when the next reading is still
+        under the baseline, or when no reading back above it arrives within
+        DROP_CONFIRM_SECONDS; then counting starts from the new value instead
+        of waiting for the counter to climb back past the old baseline (M3).
+        Until then the trigger keeps its state."""
+        if self._drop_low is None:
+            self._drop_low = value
+            self._drop_timer.schedule(DROP_CONFIRM_SECONDS, self._drop_timer_fired)
+            return self._triggered
+        # Counted from the first low reading: what came since is new use.
+        self._baseline_value = min(self._drop_low, value)
+        self._drop_low = None
+        self._drop_timer.cancel()
+        self.hass.async_create_task(self._persist_baseline(), eager_start=False)
+        return value - self._baseline_value >= self._target_value
+
+    @callback
+    def _drop_timer_fired(self, _now: datetime) -> None:
+        """No reading back above the baseline: the drop was a reset."""
+        if self._drop_low is None:
+            return
+        state = self.hass.states.get(self.entity_id)
+        live = self._get_numeric_value(state) if state is not None else None
+        if live is None or self._baseline_value is None or live >= self._baseline_value:
+            self._drop_low = None
+            return
+        self._current_value = live
+        self._evaluate_and_update(live)
 
     @property
     def current_delta(self) -> float | None:
@@ -136,6 +179,8 @@ class CounterTrigger(BaseTrigger):
         if self._current_value is not None:
             self._baseline_value = self._current_value
             self._reset_pending = False
+            self._drop_low = None
+            self._drop_timer.cancel()
             self.hass.async_create_task(self._persist_baseline())
             _LOGGER.debug(
                 "Counter baseline reset: %s = %s",
@@ -177,3 +222,8 @@ class CounterTrigger(BaseTrigger):
         """Reset trigger and baseline."""
         super().reset()
         self.reset_baseline()
+
+    async def async_teardown(self) -> None:
+        """Clean up the drop timer on teardown."""
+        self._drop_timer.close()
+        await super().async_teardown()

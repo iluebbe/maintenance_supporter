@@ -846,8 +846,8 @@ class PartsToReorderSensor(SensorEntity):
 
     @property
     def native_value(self) -> int:
-        from .const import CONF_PARTS
         from .helpers.parts import on_hand, part_is_low
+        from .helpers.shared_parts import live_parts
 
         count = 0
         for entry in self.hass.config_entries.async_entries(DOMAIN):
@@ -857,7 +857,7 @@ class PartsToReorderSensor(SensorEntity):
             store = getattr(rd, "store", None) if rd else None
             if store is None:
                 continue
-            for part in (entry.data.get(CONF_PARTS) or {}).values():
+            for part in live_parts(self.hass, entry).values():
                 if part_is_low(part, on_hand(part, store.get_part_stock(part["id"]), store.get_part_restoring(part["id"]))):
                     count += 1
         return count

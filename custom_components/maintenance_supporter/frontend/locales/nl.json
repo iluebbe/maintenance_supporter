@@ -508,6 +508,7 @@
   "hist_note_sensor_triggered": "Sensortrigger geactiveerd",
   "hist_note_initial": "Beginwaarde ingesteld bij het aanmaken van de taak",
   "hist_note_auto_recovered": "Automatisch voltooid: sensor hersteld ({value})",
+  "hist_note_auto_recovered_plain": "Automatisch voltooid: sensor hersteld",
   "hist_note_reset": "Teruggezet naar {date}",
   "hist_note_trigger_replaced": "Trigger-entiteit vervangen: {old} → {new}",
   "hist_note_trigger_removed": "Sensortrigger verwijderd (entiteit was: {entity}). Schema omgezet naar {schedule}.",

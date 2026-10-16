@@ -151,6 +151,9 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
             clean.pop("purchase", None)
         if "cost_basis" in clean and clean["cost_basis"] != "use":
             clean.pop("cost_basis", None)
+        # The day a reset restarted the cycle on (anchors the history edit).
+        if "reset_date" in clean and (not isinstance(clean["reset_date"], str) or parse_iso_date(clean["reset_date"]) is None):
+            clean.pop("reset_date", None)
         # Readings (#83 / #161 phase 2): same NaN/Infinity hole — a poisoned
         # value would break every delta after it. Malformed slot snapshots
         # are dropped item-wise, the completion itself is kept.

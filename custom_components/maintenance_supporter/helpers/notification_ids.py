@@ -8,9 +8,10 @@
   where a tap lands in the panel — the query keys the panel's deep-link
   handler reads (``entry_id``, ``task_id``, ``tab``).
 * **Action ids** (Companion buttons): ``MS_<VERB>_<entry_id>_<task_id>``,
-  parsed back by the ``mobile_app_notification_action`` listener; the
-  Settings test send uses ``MS_TEST_<VERB>``, which the parser ignores so a
-  tap on a test button completes nothing.
+  plus ``@<cycle>`` naming the cycle the reminder was about, parsed back by
+  the ``mobile_app_notification_action`` listener; the Settings test send
+  uses ``MS_TEST_<VERB>``, which the parser ignores so a tap on a test button
+  completes nothing.
 
 They were hand-formatted at a dozen sites across the notification manager,
 the notification context and the action listener (DRY audit 2026-09-26 B);
@@ -78,12 +79,26 @@ def parse_panel_url(url: str) -> dict[str, str]:
     return {key: values[0] for key, values in parse_qs(parts.query).items() if values}
 
 
-def action_id(verb: str, entry_id: str | None, task_id: str | None) -> str:
+_CYCLE_SEPARATOR = "@"
+
+
+def action_id(verb: str, entry_id: str | None, task_id: str | None, cycle: str | None = None) -> str:
     """A Companion button's action id; ``entry_id``/``task_id`` ``None`` = the
-    Settings test send (``MS_TEST_<VERB>``)."""
+    Settings test send (``MS_TEST_<VERB>``). ``cycle`` is the task's
+    ``helpers.history.cycle_token`` when the reminder went out."""
     if entry_id is None or task_id is None:
         return f"{_TEST_ACTION_PREFIX}{verb}"
-    return f"{ACTION_PREFIX}{verb}_{entry_id}_{task_id}"
+    suffix = f"{_CYCLE_SEPARATOR}{cycle}" if cycle else ""
+    return f"{ACTION_PREFIX}{verb}_{entry_id}_{task_id}{suffix}"
+
+
+def action_cycle(action: Any) -> str | None:
+    """The cycle token an :func:`action_id` carries; ``None`` for a button
+    sent before 2.104 (or one that is not ours)."""
+    if not isinstance(action, str) or not action.startswith(ACTION_PREFIX):
+        return None
+    _, sep, cycle = action.rpartition(_CYCLE_SEPARATOR)
+    return cycle if sep and cycle else None
 
 
 def parse_action_id(action: Any) -> tuple[str, str, str] | None:
@@ -101,6 +116,7 @@ def parse_action_id(action: Any) -> tuple[str, str, str] | None:
         prefix = f"{ACTION_PREFIX}{verb}_"
         if action.startswith(prefix):
             entry_id, _, task_id = action[len(prefix) :].partition("_")
+            task_id = task_id.partition(_CYCLE_SEPARATOR)[0]
             if not entry_id or not task_id:
                 raise ValueError(f"malformed notification action {action!r}")
             return kind, entry_id, task_id

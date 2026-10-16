@@ -41,6 +41,16 @@ def is_task_paused(task_data: dict[str, Any]) -> bool:
     return task_data.get("paused_at") is not None
 
 
+def pauses_with_object(task_data: dict[str, Any]) -> bool:
+    """Whether the object's pause freezes this task. The buy task of a shared
+    pool other live objects still draw on does not (the buy-task reconcile
+    marks it): frozen with its paused owner it reminded nobody, never reached
+    the shopping list and could not be completed (bug audit 2026-10-16, S1)."""
+    from .parts import POOL_IN_USE_FIELD
+
+    return task_data.get(POOL_IN_USE_FIELD) is not True
+
+
 def is_task_inert(task_data: dict[str, Any], obj: dict[str, Any]) -> bool:
     """True when nothing may happen to the task: it is archived, disabled or
     its object is paused. The one predicate behind the coordinator's
@@ -52,7 +62,7 @@ def is_task_inert(task_data: dict[str, Any], obj: dict[str, Any]) -> bool:
         task_data.get("archived_at") is not None
         or task_data.get("enabled") is False
         or is_task_paused(task_data)
-        or is_object_paused(obj)
+        or (is_object_paused(obj) and pauses_with_object(task_data))
     )
 
 

@@ -603,7 +603,7 @@ async def test_document_cleanup_does_not_delete_a_blob_an_upload_is_registering(
     await setup_integration(hass, g)
     store = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
     content = b"%PDF-1.4 manual"
-    digest, wrote = await hass.async_add_executor_job(store._store_blob_sync, content)
+    digest, wrote, _ = await hass.async_add_executor_job(store._store_stream_sync, io.BytesIO(content))
     assert wrote
 
     async def _scan() -> dict[str, list[str]]:
@@ -790,7 +790,7 @@ def test_the_store_repairs_and_tolerates_non_string_timestamps() -> None:
 
     fake = _Store()
     raw = [{"type": "completed", "timestamp": 1695000000}, {"type": "completed", "timestamp": "2026-09-01T10:00:00"}]
-    assert reanchor_from_history(fake, "t", raw) == "2026-09-01"  # type: ignore[arg-type]
+    assert reanchor_from_history(fake, "t", [], raw) == "2026-09-01"  # type: ignore[arg-type]
 
 
 # ─── Low (journeys): deleting an object ──────────────────────────────────────

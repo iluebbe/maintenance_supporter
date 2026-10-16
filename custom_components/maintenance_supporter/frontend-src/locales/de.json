@@ -510,6 +510,7 @@
   "hist_note_sensor_triggered": "Sensor-Trigger ausgelöst",
   "hist_note_initial": "Anfangswert bei der Aufgabenerstellung gesetzt",
   "hist_note_auto_recovered": "Automatisch abgeschlossen: Sensor hat sich erholt ({value})",
+  "hist_note_auto_recovered_plain": "Automatisch abgeschlossen: Sensor hat sich erholt",
   "hist_note_reset": "Zurückgesetzt auf {date}",
   "hist_note_trigger_replaced": "Trigger-Entität ersetzt: {old} → {new}",
   "hist_note_trigger_removed": "Sensor-Trigger entfernt (Entität war: {entity}). Zeitplan umgestellt auf {schedule}.",

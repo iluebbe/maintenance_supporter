@@ -213,6 +213,17 @@ def _safe_size(raw: Any) -> int:
     return max(0, int(raw))
 
 
+def counts_toward_cap(doc: dict[str, Any]) -> bool:
+    """Whether a document counts toward ``MAX_DOCS_PER_OBJECT``. A photo
+    attached to a completion does not: it is the record of work done, as
+    many as there were completions. Counted, a daily task that asks for a
+    photo could not be completed any more after about a hundred days
+    (bug audit 2026-10-16, F3). Photos waiting to be attached still count —
+    the cap is what stops a runaway upload loop."""
+    is_photo = doc.get(COMPLETION_PHOTO_KEY) is True or list(doc.get("tags") or []) == ["photo"]
+    return not (is_photo and doc.get("task_ids"))
+
+
 class DocumentStore:
     """Global store for maintenance-object documents (metadata + blob registry).
 
@@ -382,7 +393,7 @@ class DocumentStore:
 
         # Per-object document cap — a runaway upload loop must not be able to
         # bloat the (single, global) documents store without bound.
-        object_doc_count = sum(1 for d in self.documents.values() if d.get("object_id") == object_id)
+        object_doc_count = sum(1 for d in self.documents.values() if d.get("object_id") == object_id and counts_toward_cap(d))
         if object_doc_count >= MAX_DOCS_PER_OBJECT:
             raise ValueError("too_many_documents")
 
@@ -439,22 +450,17 @@ class DocumentStore:
         if self.text_index is not None:
             self.text_index.schedule(digest)
 
-    def _store_blob_sync(self, content: bytes) -> tuple[str, bool]:
-        """Hash content and write the blob if absent. Returns (digest, wrote_new)."""
-        digest = hashlib.sha256(content).hexdigest()
-        if self.blob_path(digest).exists():
-            return digest, False
-        digest, wrote_new, _size = self._store_stream_sync(io.BytesIO(content))
-        return digest, wrote_new
-
-    def _store_stream_sync(self, source: IO[bytes], max_bytes: int | None = None) -> tuple[str, bool, int]:
+    def _store_stream_sync(
+        self, source: IO[bytes], max_bytes: int | None = None, accept: Callable[[str], bool] | None = None
+    ) -> tuple[str, bool, int]:
         """Copy ``source`` into a blob, hashing it on the way, in pieces.
 
         Returns ``(digest, wrote_new, size)``. The copy lands in a temporary
         file next to the blobs and is renamed to its digest only when that
-        blob is absent. Past ``max_bytes`` it stops and raises
-        ``ValueError("file_too_large")``; the temporary file never outlives
-        the call.
+        blob is absent — and, given ``accept``, only when it accepts the
+        digest (the archive restore checks it against the manifest). Past
+        ``max_bytes`` it stops and raises ``ValueError("file_too_large")``;
+        the temporary file never outlives the call.
         """
         self._blobs_dir.mkdir(parents=True, exist_ok=True)
         # A temp name of its own per write: two uploads of the same content
@@ -474,7 +480,7 @@ class DocumentStore:
                     out.write(chunk)
             digest = hasher.hexdigest()
             path = self.blob_path(digest)
-            if path.exists():
+            if path.exists() or (accept is not None and not accept(digest)):
                 return digest, False, size
             os.replace(tmp, path)  # atomic
             return digest, True, size

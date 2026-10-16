@@ -510,6 +510,7 @@
   "hist_note_sensor_triggered": "センサートリガーが発生",
   "hist_note_initial": "タスク作成時に設定された初期値",
   "hist_note_auto_recovered": "自動完了：センサーが回復（{value}）",
+  "hist_note_auto_recovered_plain": "自動完了：センサーが回復",
   "hist_note_reset": "{date} にリセット",
   "hist_note_trigger_replaced": "トリガーエンティティを置換: {old} → {new}",
   "hist_note_trigger_removed": "センサートリガーを削除しました（エンティティ: {entity}）。スケジュールを{schedule}に変更しました。",

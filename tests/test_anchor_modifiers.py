@@ -122,7 +122,9 @@ def test_write_anchor_and_reanchor_from_history_rules(hass: HomeAssistant) -> No
     store.set_anchor(TASK_ID_1, "2026-04-20")
     store._ensure_task(TASK_ID_1)["due_override"] = "2026-06-20"
     # Only lifecycle entries anchor; TRIGGERED does not, and none → cleared.
-    assert reanchor_from_history(store, TASK_ID_1, [{"timestamp": "2026-04-20T10:00:00", "type": HistoryEntryType.COMPLETED}, {"timestamp": "2026-04-29T10:00:00", "type": HistoryEntryType.TRIGGERED}]) == "2026-04-20"
+    done = {"timestamp": "2026-04-20T10:00:00", "type": HistoryEntryType.COMPLETED}
+    triggered = {"timestamp": "2026-04-29T10:00:00", "type": HistoryEntryType.TRIGGERED}
+    assert reanchor_from_history(store, TASK_ID_1, [done, triggered], [{**done, "notes": "fixed"}, triggered]) == "2026-04-20"
     assert store.get_task_state(TASK_ID_1).get("due_override") == "2026-06-20", "same anchor keeps the modifiers"
-    assert reanchor_from_history(store, TASK_ID_1, [{"timestamp": "2026-04-29T10:00:00", "type": HistoryEntryType.TRIGGERED}]) is None
+    assert reanchor_from_history(store, TASK_ID_1, [done, triggered], [triggered]) is None
     assert store.get_task_state(TASK_ID_1) == {}

@@ -98,20 +98,22 @@ class ThresholdTrigger(BaseTrigger):
                     # Fresh start: persist timestamp and start full timer
                     self._exceeded_since = dt_util.utcnow().isoformat()
                     self._exceeded_since_dt = None
-                    if self.hass.is_running:
-                        self._track(self._persist_exceeded_since())
+                    self._persist_soon(self._persist_exceeded_since)
                     self._start_for_timer()
                     return False
                 # Timer running or already triggered
                 return self._triggered
             return True
 
-        # Value back in normal range
-        if self._threshold_exceeded and self._exceeded_since is not None:
+        # Value back in normal range. Also when this instance never saw the
+        # crossing: a start restored from before a restart is over once the
+        # value is seen in range. It stayed, and the next crossing — days
+        # later — counted from it and activated at once, without the hold
+        # (bug audit 2026-10-16, T2).
+        if self._exceeded_since is not None or self._exceeded_since_dt is not None:
             self._exceeded_since = None
             self._exceeded_since_dt = None
-            if self.hass.is_running:
-                self._track(self._persist_exceeded_since())
+            self._persist_soon(self._persist_exceeded_since)
         self._threshold_exceeded = False
         self._for_timer.cancel()
         return False
@@ -144,8 +146,7 @@ class ThresholdTrigger(BaseTrigger):
             self._threshold_exceeded = False
             self._exceeded_since = None
             self._exceeded_since_dt = None
-            if self.hass.is_running:
-                self._track(self._persist_exceeded_since())
+            self._persist_soon(self._persist_exceeded_since)
             return
         if self._threshold_exceeded:
             _LOGGER.debug(
@@ -175,6 +176,5 @@ class ThresholdTrigger(BaseTrigger):
         self._threshold_exceeded = False
         self._exceeded_since = None
         self._exceeded_since_dt = None
-        if self.hass.is_running:
-            self._track(self._persist_exceeded_since())
+        self._persist_soon(self._persist_exceeded_since)
         self._for_timer.cancel()

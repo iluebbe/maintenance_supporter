@@ -255,16 +255,15 @@ async def ws_update_history_entry(
 
         refresh_parts_cost(patched)
 
+    before = list(history)
     history[target_index] = patched
     store.set_history(task_id, history)
 
     # Re-derive last_performed from the (possibly re-dated) lifecycle
     # entries — the same rule the delete command applies, so a timestamp edit
-    # that moves the anchor also drops a stale postpone. Only the patchable
-    # fields change here (never an entry's type), so a task whose only
-    # lifecycle entry is the seed keeps its anchor.
-    if any(h.get("type") in LIFECYCLE_HISTORY_TYPES for h in history):
-        reanchor_from_history(store, task_id, history)
+    # that moves the anchor also drops a stale postpone, and an edit that
+    # moves nothing (a note, a cost) leaves anchor and postpone alone.
+    reanchor_from_history(store, task_id, before, history)
 
     # The awaiting side effects run only now, for an entry that is written.
     if parts_touched:
@@ -328,7 +327,7 @@ async def ws_delete_history_entry(
     # Nothing left to anchor the cycle on → the task reads as never performed
     # until its next completion (the static config's own last_performed, if
     # any, shows through the merge). A moved anchor drops a stale postpone.
-    reanchor_from_history(store, task_id, remaining)
+    reanchor_from_history(store, task_id, history, remaining)
     _rewind_phase_cursor(store, task_id, _task, history, msg["timestamp"])
     # Same synchronous step as the history write: the stock math runs before
     # any await, the commit after (see the edit command above).

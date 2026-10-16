@@ -508,6 +508,7 @@
   "hist_note_sensor_triggered": "Сработал триггер датчика",
   "hist_note_initial": "Начальное значение задано при создании задачи",
   "hist_note_auto_recovered": "Автоматически выполнено: датчик восстановился ({value})",
+  "hist_note_auto_recovered_plain": "Автоматически выполнено: датчик восстановился",
   "hist_note_reset": "Сброшено на {date}",
   "hist_note_trigger_replaced": "Сущность триггера заменена: {old} → {new}",
   "hist_note_trigger_removed": "Триггер датчика удалён (сущность: {entity}). Расписание изменено на «{schedule}».",

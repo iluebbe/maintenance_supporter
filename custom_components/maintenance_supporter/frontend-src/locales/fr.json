@@ -508,6 +508,7 @@
   "hist_note_sensor_triggered": "Déclencheur de capteur activé",
   "hist_note_initial": "Valeur initiale définie lors de la création de la tâche",
   "hist_note_auto_recovered": "Terminé automatiquement : capteur rétabli ({value})",
+  "hist_note_auto_recovered_plain": "Terminé automatiquement : capteur rétabli",
   "hist_note_reset": "Réinitialisé au {date}",
   "hist_note_trigger_replaced": "Entité déclencheuse remplacée : {old} → {new}",
   "hist_note_trigger_removed": "Déclencheur de capteur supprimé (entité : {entity}). Planning converti en {schedule}.",

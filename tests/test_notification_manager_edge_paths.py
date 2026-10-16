@@ -51,10 +51,10 @@ def _global(hass: HomeAssistant, *, enabled: bool = True, max_per_day: int = 0, 
     make_global_entry(
         hass,
         notifications_enabled=enabled,
-        notify_service="notify.mobile_app",
+        notify_service="notify.mobile_app_hall",
         options={
             CONF_NOTIFICATIONS_ENABLED: enabled,
-            CONF_NOTIFY_SERVICE: "notify.mobile_app",
+            CONF_NOTIFY_SERVICE: "notify.mobile_app_hall",
             CONF_QUIET_HOURS_ENABLED: False,
             CONF_MAX_NOTIFICATIONS_PER_DAY: max_per_day,
             **extra,
@@ -237,17 +237,17 @@ async def test_dismiss_skips_unknown_and_broken_services_but_clears_the_rest(
 ) -> None:
     _global(hass)
     nm = NotificationManager(hass)
-    main_calls = _register_notify(hass, "mobile_app")
-    _register_notify(hass, "broken_phone")
+    main_calls = _register_notify(hass, "mobile_app_hall")
+    _register_notify(hass, "mobile_app_broken_phone")
     real_call = ServiceRegistry.async_call
 
     async def _flaky(self: ServiceRegistry, domain: str, service: str, *args: Any, **kwargs: Any) -> Any:
-        if service == "broken_phone":
+        if service == "mobile_app_broken_phone":
             raise HomeAssistantError("phone unreachable")
         return await real_call(self, domain, service, *args, **kwargs)
 
     with (
-        patch(f"{_NM_MOD}.get_user_notify_services", AsyncMock(return_value=["notify.broken_phone", "notify.gone_phone"])),
+        patch(f"{_NM_MOD}.get_user_notify_services", AsyncMock(return_value=["notify.mobile_app_broken_phone", "notify.mobile_app_gone_phone"])),
         patch.object(ServiceRegistry, "async_call", _flaky),
         caplog.at_level(logging.DEBUG, logger=_NM_MOD),
     ):
@@ -255,13 +255,13 @@ async def test_dismiss_skips_unknown_and_broken_services_but_clears_the_rest(
         await hass.async_block_till_done()
 
     assert main_calls == [{"message": "clear_notification", "data": {"tag": "maintenance_t1"}}]
-    assert "Failed to dismiss notification for tag maintenance_t1 on notify.broken_phone" in caplog.text
+    assert "Failed to dismiss notification for tag maintenance_t1 on notify.mobile_app_broken_phone" in caplog.text
 
 
 async def test_dismiss_survives_a_failing_user_lookup(hass: HomeAssistant) -> None:
     _global(hass)
     nm = NotificationManager(hass)
-    main_calls = _register_notify(hass, "mobile_app")
+    main_calls = _register_notify(hass, "mobile_app_hall")
 
     with patch(f"{_NM_MOD}.get_user_notify_services", AsyncMock(side_effect=RuntimeError("auth store locked"))):
         await nm.async_dismiss_task_notification("t9", user_ids=["user-2"])

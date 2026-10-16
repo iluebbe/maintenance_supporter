@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 from typing import Any
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, PropertyMock, patch
 
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
@@ -197,13 +197,17 @@ async def test_dismissal_clears_the_household_and_the_responsible_persons_device
     with patch("custom_components.maintenance_supporter.helpers.notification_manager.get_user_notify_services", AsyncMock(return_value=["notify.mobile_app_ben"])):
         await nm.async_dismiss_task_notification("t1", user_ids=["ben"])
     await hass.async_block_till_done()
-    for svc in (household, phone):
-        assert svc.await_count == 1
-        assert svc.call_args[0][0].data == {"message": "clear_notification", "data": {"tag": "maintenance_t1"}}
-    # Without a person only the household service is cleared.
-    await nm.async_dismiss_task_notification("t2")
+    assert phone.await_count == 1
+    assert phone.call_args[0][0].data == {"message": "clear_notification", "data": {"tag": "maintenance_t1"}}
+    # The household service here is no phone: it would have shown the
+    # command as text (bug audit 2026-10-16, N2). A phone as the household
+    # service is cleared, with or without a person.
+    assert household.await_count == 0
+    hall = _notify(hass, "mobile_app_hall")
+    with patch.object(type(nm), "notify_service", new_callable=PropertyMock, return_value="notify.mobile_app_hall"):
+        await nm.async_dismiss_task_notification("t2")
     await hass.async_block_till_done()
-    assert household.await_count == 2 and phone.await_count == 1
+    assert hall.await_count == 1 and phone.await_count == 1
 
 
 # ─── same-day earlier completion is a backfill for parts AND history ────────

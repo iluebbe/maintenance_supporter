@@ -677,6 +677,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._calOffset = "0";
     this._calMonths = [];
     this._hadCalMonths = false;
+    this._calendarEntity = "";
     this._seasonMonths = [];
     this._endsMode = "never";
     this._endsCount = "";
@@ -693,6 +694,9 @@ export class MaintenanceTaskDialog extends LitElement {
     this._nfcTagId = "";
     this._requireTagScan = false;
     this._allowSkip = true;
+    // "No notifications" of the task edited before carried into the next
+    // New task (bug audit 2026-10-16, P2).
+    this._notifyEnabled = true;
     this._readingUnit = "";
     this._readings = [];
     this._consumesParts = {};
@@ -729,6 +733,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._actionPresent = false;
     this._actionTesting = false;
     this._actionTestResult = "";
+    this._actionTestError = "";
     this._qcNotes = "";
     this._qcCost = "";
     this._qcDuration = "";

@@ -510,6 +510,7 @@
   "hist_note_sensor_triggered": "Sensor trigger activated",
   "hist_note_initial": "Initial value set during task creation",
   "hist_note_auto_recovered": "Auto-completed: sensor recovered ({value})",
+  "hist_note_auto_recovered_plain": "Auto-completed: sensor recovered",
   "hist_note_reset": "Reset to {date}",
   "hist_note_trigger_replaced": "Trigger entity replaced: {old} → {new}",
   "hist_note_trigger_removed": "Sensor trigger removed (entity was: {entity}). Schedule converted to {schedule}.",

@@ -288,6 +288,12 @@ async def test_the_fleet_charges_rechargeable_cells(hass: HomeAssistant, global_
     assert store.get_part_restoring("batt_aaa nimh") == 0
 
     # Counted: four charged cells; a swap takes two, two wait to be charged.
+    # (A later day's swap: the same battery's swap is taken once a day, S3.)
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import RECORDED_REPLACEMENTS_KEY
+    from custom_components.maintenance_supporter.helpers.battery_lifetime import fleet_store_and_task
+
+    fleet_store, fleet_task = fleet_store_and_task(hass)
+    fleet_store.update_task_state(fleet_task, **{RECORDED_REPLACEMENTS_KEY: {}})
     await async_change_part_stock(hass, fleet, "batt_aaa nimh", absolute=4)
     conn = make_ws_connection()
     await call_ws_handler(ws_battery_fleet_mark_replaced, hass, conn, {"id": 3, "type": "x", "entity_ids": ["sensor.remote_battery_plus"]})

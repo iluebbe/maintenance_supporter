@@ -480,9 +480,13 @@ class TestCounterTrigger:
             "trigger_baseline_value": 500,
         }
         trigger = CounterTrigger(hass, entity, config)
-        # Counter dropped below baseline (device reboot / rollover).
+        # Counter dropped below baseline (device reboot / rollover): the next
+        # reading still under it confirms the reset — one alone may be a
+        # glitch (bug audit 2026-10-16, T5).
         assert trigger.evaluate(300) is False
-        assert trigger._baseline_value == 300  # re-baselined
+        assert trigger._baseline_value == 500
+        assert trigger.evaluate(301) is False
+        assert trigger._baseline_value == 300  # re-baselined from the first low reading
         # Now counts from the new baseline and fires at +100.
         assert trigger.evaluate(399) is False
         assert trigger.evaluate(400) is True

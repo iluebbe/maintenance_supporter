@@ -269,6 +269,21 @@ def sync_via_device_links(hass: HomeAssistant, entry: Any) -> None:
             apply(other)
 
 
+def forget_removed_parent(hass: HomeAssistant, removed_entry_id: str) -> None:
+    """Clear ``parent_entry_id`` on every object nested under a removed one.
+
+    The pointer outlived its parent, and the edit dialog re-sends it on every
+    save: no change to a child object could be saved any more
+    (``invalid_parent``, bug audit 2026-10-16, W3). The registry already
+    dropped the device link with the parent's device."""
+    from ..const import CONF_OBJECT, DOMAIN
+
+    for other in hass.config_entries.async_entries(DOMAIN):
+        obj = other.data.get(CONF_OBJECT) or {}
+        if other.entry_id != removed_entry_id and obj.get("parent_entry_id") == removed_entry_id:
+            hass.config_entries.async_update_entry(other, data={**other.data, CONF_OBJECT: {**obj, "parent_entry_id": None}})
+
+
 def has_own_devices(hass: HomeAssistant, own_entry_id: str) -> bool:
     """Whether our config entry owns any device. A linked object owns none."""
     return bool(dr.async_entries_for_config_entry(dr.async_get(hass), own_entry_id))

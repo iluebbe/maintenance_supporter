@@ -510,6 +510,7 @@
   "hist_note_sensor_triggered": "Gatilho do sensor acionado",
   "hist_note_initial": "Valor inicial definido na criação da tarefa",
   "hist_note_auto_recovered": "Concluída automaticamente: o sensor se recuperou ({value})",
+  "hist_note_auto_recovered_plain": "Concluída automaticamente: o sensor se recuperou",
   "hist_note_reset": "Redefinida para {date}",
   "hist_note_trigger_replaced": "Entidade do gatilho substituída: {old} → {new}",
   "hist_note_trigger_removed": "Gatilho do sensor removido (entidade era: {entity}). Agendamento convertido para {schedule}.",

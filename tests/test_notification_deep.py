@@ -1172,7 +1172,7 @@ async def test_dismiss_task_notification(hass: HomeAssistant) -> None:
         unique_id=GLOBAL_UNIQUE_ID,
         data={
             CONF_NOTIFICATIONS_ENABLED: True,
-            CONF_NOTIFY_SERVICE: "notify.test",
+            CONF_NOTIFY_SERVICE: "notify.mobile_app_test",
         },
     )
     entry.add_to_hass(hass)

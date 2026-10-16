@@ -432,8 +432,7 @@ class StateChangeTrigger(BaseTrigger):
         _LOGGER.debug("State change counter reset: %s", self.entity_id)
 
     def _persist_runtime_soon(self) -> None:
-        if self.hass.is_running:
-            self._track(self._persist_runtime())
+        self._persist_soon(self._persist_runtime)
 
     async def _persist_runtime(self) -> None:
         """Persist the full runtime dict (count + hold window) to the Store.

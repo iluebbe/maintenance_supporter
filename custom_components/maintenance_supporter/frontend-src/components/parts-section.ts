@@ -73,6 +73,8 @@ export class MaintenancePartsSection extends LitElement {
   @property({ attribute: false }) public currencySymbol = "€";
 
   @state() private _editing: PartForm | null = null;
+  /** The form as it was opened — an edit sends the stock only when changed. */
+  private _opened: PartForm | null = null;
   @state() private _busy = false;
   @state() private _error = "";
   @state() private _restockFor: string | null = null;
@@ -106,6 +108,7 @@ export class MaintenancePartsSection extends LitElement {
 
   private _openAdd(): void {
     this._editing = { ...EMPTY_FORM };
+    this._opened = null;
   }
 
   private _openEdit(part: MaintenancePart): void {
@@ -128,6 +131,7 @@ export class MaintenancePartsSection extends LitElement {
       auto_buy_task: !!part.auto_buy_task,
       notes: part.notes || "",
     };
+    this._opened = { ...this._editing };
   }
 
   private _formValue(f: PartForm): Record<string, unknown> {
@@ -157,6 +161,14 @@ export class MaintenancePartsSection extends LitElement {
     const f = this._editing;
     if (this._busy || !f || !f.name.trim()) return;
     const payload = this._formValue(f);
+    const opened = this._opened;
+    if (f.id && opened) {
+      // Only a count the form changed: stock and pile move with every
+      // completion and "ready again", and the values from when the form was
+      // opened overwrote them (bug audit 2026-10-16, P3).
+      if (f.stock === opened.stock) delete payload.stock;
+      if (f.restoring === opened.restoring && f.reuse === opened.reuse) delete payload.restoring;
+    }
     const type = f.id ? "maintenance_supporter/part/update" : "maintenance_supporter/part/create";
     const result = await this._send<{ part_id?: string }>(f.id ? { type, part_id: f.id, ...payload } : { type, ...payload });
     if (result !== undefined) {

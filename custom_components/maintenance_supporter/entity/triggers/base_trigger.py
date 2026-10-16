@@ -5,11 +5,11 @@ from __future__ import annotations
 import logging
 import math
 from abc import ABC, abstractmethod
-from collections.abc import Coroutine
+from collections.abc import Callable, Coroutine
 from datetime import datetime
 from typing import Any, Protocol
 
-from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, State, callback
+from homeassistant.core import CALLBACK_TYPE, CoreState, Event, HomeAssistant, State, callback
 from homeassistant.helpers.event import (
     EventStateChangedData,
     async_track_state_change_event,
@@ -31,7 +31,7 @@ class TriggerCoordinator(Protocol):
 
     async def async_add_trigger_history_entry(self, task_id: str, trigger_value: float | None = None) -> None: ...
 
-    async def async_auto_complete_on_recovery(self, task_id: str, trigger_value: float) -> None: ...
+    async def async_auto_complete_on_recovery(self, task_id: str, trigger_value: float | None) -> None: ...
 
     async def async_persist_trigger_runtime(
         self,
@@ -315,6 +315,25 @@ class BaseTrigger(ABC):
         delegates per instance, have none and keep announcing as before."""
         check = getattr(type(self._coordinator), "trigger_already_announced", None)
         return callable(check) and check(self._coordinator, self._task_id) is True
+
+    def _persist_soon(self, write: Callable[[], Coroutine[Any, Any, Any]]) -> None:
+        """Run a runtime write now while Home Assistant runs; while it boots
+        (integrations set up before it starts) once it has started; never
+        while it shuts down — the task would be left unawaited. Gated on
+        ``hass.is_running`` alone, the first readings after a restart were
+        dropped, so a stale hold-window start survived them (bug audit
+        2026-10-16, T2). Shutting down also passes ``not_running``, but no
+        start follows it."""
+        if self.hass.is_running:
+            self._track(write())
+        elif self.hass.state is CoreState.not_running:
+            from homeassistant.helpers.start import async_at_started
+
+            @callback
+            def _started(_hass: HomeAssistant) -> None:
+                self._track(write())
+
+            async_at_started(self.hass, _started)
 
     def _in_completion_cooldown(self) -> bool:
         """Whether the task was completed moments ago (the coordinator's

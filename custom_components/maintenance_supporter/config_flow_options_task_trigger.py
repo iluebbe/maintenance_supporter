@@ -43,8 +43,11 @@ class TriggerStepsMixin(TriggerConfigMixin):
         if task.get("trigger_config"):
             return await self.async_step_trigger_summary()
 
-        # No existing trigger — go directly to sensor select
-        self._current_task = {}
+        # No existing trigger — go directly to sensor select. The form
+        # defaults are the task's own interval, unit and warning days: the
+        # steps showed a blank interval and the global warning days, and
+        # saved those over the task (bug audit 2026-10-16, G4).
+        self._current_task = {"_edit_defaults": self._schedule_defaults(task)}
         self._trigger_on_complete = self._save_edited_trigger
         self._on_cancel = self._show_task_action_menu
         return await self.async_step_opt_sensor_select()
@@ -176,23 +179,31 @@ class TriggerStepsMixin(TriggerConfigMixin):
         # (bug review 2026-09-04). The type steps also default their
         # recovery/baseline/combinator fields from it.
         task = self.config_entry.data.get(CONF_TASKS, {}).get(self._selected_task_id or "", {})
-        from .helpers.schedule import read_legacy_fields
-
-        flat = read_legacy_fields(task)
         self._current_task = {
             "trigger_config": dict(task.get("trigger_config") or {}),
             # The form defaults of the shared steps: the task's own interval,
-            # unit and warning days, and the stored trigger (delta mode).
+            # unit and warning days, and the stored trigger (every type
+            # step pre-fills its fields from it).
             "_edit_defaults": {
-                "interval_days": flat.get("interval_days"),
-                "interval_unit": flat.get("interval_unit") or "days",
-                "warning_days": task.get("warning_days"),
+                **self._schedule_defaults(task),
                 "trigger_config": dict(task.get("trigger_config") or {}),
             },
         }
         self._trigger_on_complete = self._save_edited_trigger
         self._on_cancel = self._show_task_action_menu
         return await self.async_step_opt_sensor_select()
+
+    @staticmethod
+    def _schedule_defaults(task: dict[str, Any]) -> dict[str, Any]:
+        """The task's interval, unit and warning days as form defaults."""
+        from .helpers.schedule import read_legacy_fields
+
+        flat = read_legacy_fields(task)
+        return {
+            "interval_days": flat.get("interval_days"),
+            "interval_unit": flat.get("interval_unit") or "days",
+            "warning_days": task.get("warning_days"),
+        }
 
     def _clear_stale_trigger_runtime(self, old_tc: dict[str, Any], new_tc: dict[str, Any]) -> None:
         """Drop persisted trigger runtime when the trigger fundamentally changed.
@@ -223,8 +234,18 @@ class TriggerStepsMixin(TriggerConfigMixin):
                 self._current_task["trigger_config"] or {},
             )
             updated_task["trigger_config"] = self._current_task["trigger_config"]
-        if CONF_TASK_SCHEDULE_TYPE in self._current_task:
+        # The schedule changes only with the safety interval: a filled field
+        # makes it that interval, one cleared that showed the task's own
+        # interval removes it (the trigger alone, G5). A blank field on a
+        # task without one leaves its schedule alone: "sensor_based" written
+        # here unconditionally turned a one-time task's due date — and any
+        # weekly or monthly rule — into no schedule at all (bug audit
+        # 2026-10-16, G3).
+        shown = (self._current_task.get("_edit_defaults") or {}).get("interval_days")
+        if CONF_TASK_SCHEDULE_TYPE in self._current_task and (CONF_TASK_INTERVAL_DAYS in self._current_task or shown):
             updated_task["schedule_type"] = self._current_task[CONF_TASK_SCHEDULE_TYPE]
+            if CONF_TASK_INTERVAL_DAYS not in self._current_task:
+                updated_task["interval_days"] = None
         if CONF_TASK_INTERVAL_DAYS in self._current_task:
             updated_task["interval_days"] = int(self._current_task[CONF_TASK_INTERVAL_DAYS])
             # Always with its unit: normalize_task_storage falls back to the

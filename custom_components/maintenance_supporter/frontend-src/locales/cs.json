@@ -508,6 +508,7 @@
   "hist_note_sensor_triggered": "Spouštěč senzoru aktivován",
   "hist_note_initial": "Počáteční hodnota nastavena při vytvoření úkolu",
   "hist_note_auto_recovered": "Automaticky dokončeno: senzor se zotavil ({value})",
+  "hist_note_auto_recovered_plain": "Automaticky dokončeno: senzor se zotavil",
   "hist_note_reset": "Resetováno na {date}",
   "hist_note_trigger_replaced": "Entita spouštěče nahrazena: {old} → {new}",
   "hist_note_trigger_removed": "Spouštěč senzoru odebrán (entita: {entity}). Plán převeden na {schedule}.",

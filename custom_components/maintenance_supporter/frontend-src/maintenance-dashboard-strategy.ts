@@ -416,7 +416,10 @@ function viewsByArea(
         makeCardSection({
           type: "custom:maintenance-supporter-card",
           show_header: false,
-          filter_objects: objs.map((o) => o.object.name),
+          // The area itself, not its objects' names: a renamed object — or
+          // one added later, once the dashboard was taken control of — stays
+          // on the view (bug audit 2026-10-16, FE-3 / DRY FE5-A9).
+          filter_areas: [areaId],
         }),
       ],
     });
@@ -433,7 +436,7 @@ function viewsByArea(
         makeCardSection({
           type: "custom:maintenance-supporter-card",
           show_header: false,
-          filter_objects: unassigned.map((o) => o.object.name),
+          filter_objects: unassigned.map((o) => o.entry_id),
         }),
       ],
     });
@@ -512,7 +515,7 @@ function viewsByFloor(
         makeCardSection({
           type: "custom:maintenance-supporter-card",
           show_header: false,
-          filter_objects: objs.map((o) => o.object.name),
+          filter_areas: [...new Set(objs.map((o) => o.object.area_id as string))],
         }),
       ],
     });
@@ -529,7 +532,7 @@ function viewsByFloor(
         makeCardSection({
           type: "custom:maintenance-supporter-card",
           show_header: false,
-          filter_objects: unassigned.map((o) => o.object.name),
+          filter_objects: unassigned.map((o) => o.entry_id),
         }),
       ],
     });

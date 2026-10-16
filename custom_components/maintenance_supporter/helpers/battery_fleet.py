@@ -1617,8 +1617,12 @@ def _detect_unrecorded_jump(
         if recovered is not None and v <= recovered:
             continue  # did not cross the recovery threshold: a bounce, not a swap
         jump_date = dt_util.utc_from_timestamp(ts).date()
-        if last_replaced is not None and abs((jump_date - last_replaced).days) <= _JUMP_RECORDED_SLACK_DAYS:
-            continue  # already recorded
+        # Recorded already — near the jump, or any time after it: a later
+        # replacement date accounts for this swap (recorded late) or for a
+        # newer one. Offered again, recording it took the cells a second
+        # time and moved the date back (bug audit 2026-10-16, S3).
+        if last_replaced is not None and (jump_date - last_replaced).days <= _JUMP_RECORDED_SLACK_DAYS:
+            continue
         return {"at": round(ts), "from": round(v_prev, 1), "to": round(v, 1)}
     return None
 

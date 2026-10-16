@@ -173,7 +173,8 @@ async def test_pool_shrinking_below_two_dissolves_rotation(hass: HomeAssistant, 
     await simulate_restart(hass, global_entry, entry)
 
     task = hass.config_entries.async_get_entry(entry_id).data[CONF_TASKS][task_id]
-    # One member is no rotation: pool + strategy dissolve, pointer clears.
+    # One member is no rotation: pool + strategy dissolve, and the person
+    # left keeps the task (bug audit 2026-10-16, C-D: it went to nobody).
     assert "assignee_pool" not in task
     assert "rotation_strategy" not in task
-    assert "responsible_user_id" not in task
+    assert task["responsible_user_id"] == "anna2-uid"

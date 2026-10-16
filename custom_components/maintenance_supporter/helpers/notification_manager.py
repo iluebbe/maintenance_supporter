@@ -1078,6 +1078,7 @@ def build_action_buttons(
     task_id: str | None,
     skip_allowed: bool,
     complete_allowed: bool = True,
+    cycle: str | None = None,
 ) -> list[dict[str, str]]:
     """The Companion-app action buttons a reminder carries, per the three
     action toggles — translated labels, at most three (Android's cap).
@@ -1088,13 +1089,15 @@ def build_action_buttons(
     test send: its ids are ``MS_TEST_<VERB>``, which the action listener
     ignores — a tap on a test button must not complete anything. ``hass`` is
     unused today (the caller resolves ``lang``); it keeps the signature in
-    step with ``notification_context`` for a future lookup.
+    step with ``notification_context`` for a future lookup. ``cycle`` (the
+    task's ``cycle_token``) rides on each id so the listener can tell a tap
+    on an outdated reminder.
     """
     del hass
     is_test = entry_id is None or task_id is None
 
     def _id(verb: str) -> str:
-        return action_id(verb, None, None) if is_test else action_id(verb, entry_id, task_id)
+        return action_id(verb, None, None) if is_test else action_id(verb, entry_id, task_id, cycle)
 
     actions: list[dict[str, str]] = []
     if options.get(CONF_ACTION_COMPLETE_ENABLED, setting_default(CONF_ACTION_COMPLETE_ENABLED)) and complete_allowed:
@@ -1405,6 +1408,17 @@ class NotificationManager:
             return bool(MaintenanceTask.from_dict(task).can_complete_now)
         except (KeyError, TypeError, ValueError):
             return True
+
+    def _cycle_token(self, entry_id: str, task_id: str) -> str | None:
+        """The task's current ``cycle_token`` (``None`` when it is unknown)."""
+        from .history import cycle_token
+
+        entry = self.hass.config_entries.async_get_entry(entry_id)
+        coordinator = getattr(getattr(entry, "runtime_data", None), "coordinator", None)
+        if coordinator is None:
+            return None
+        task = coordinator._get_merged_tasks_data().get(task_id)
+        return cycle_token(task.get("history")) if task else None
 
     def _task_config(self, entry_id: str, task_id: str) -> Mapping[str, Any]:
         """The task's static config dict (``entry.data``) — carries the flags
@@ -2099,6 +2113,7 @@ class NotificationManager:
             task_id=task_id,
             skip_allowed=self._skip_allowed(entry_id, task_id),
             complete_allowed=self._complete_allowed(entry_id, task_id),
+            cycle=self._cycle_token(entry_id, task_id),
         )
 
         service_data = _service_payload(
@@ -2498,6 +2513,10 @@ class NotificationManager:
             self._last_notified[key] = dt_util.now()
         self._dirty()
 
+    def was_reminded(self, entry_id: str, task_id: str) -> bool:
+        """Whether a reminder about the task went out in its current cycle."""
+        return any(notification_key(entry_id, task_id, status) in self._last_notified for status in NOTIFIABLE_STATUSES)
+
     def clear_task_state(self, entry_id: str, task_id: str) -> None:
         """Clear notification state for a task (after completion/reset)."""
         for status in NOTIFIABLE_STATUSES:
@@ -2545,6 +2564,11 @@ class NotificationManager:
         meant for people (``task_user_ids``: the responsible person, or everyone
         it is shared with) land on THEIR devices (see _resolve_and_send), so
         those are cleared too (bug audit 2026-09-12).
+
+        Only a Companion phone (``notify.mobile_app_*``) understands the
+        command: a household service that is a notify group, Telegram or a
+        persistent notification posted the literal text "clear_notification"
+        (bug audit 2026-10-16, N2).
         """
         services = [self.notify_service]
         try:
@@ -2554,7 +2578,7 @@ class NotificationManager:
         tag = task_tag(task_id)
         for service in dict.fromkeys(s for s in services if s):
             domain, _, name = service.partition(".")
-            if not (name and self.hass.services.has_service(domain, name)):
+            if domain != "notify" or not name.startswith("mobile_app_") or not self.hass.services.has_service(domain, name):
                 continue
             try:
                 await self.hass.services.async_call(

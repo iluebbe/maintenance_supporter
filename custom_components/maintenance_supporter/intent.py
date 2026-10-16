@@ -751,16 +751,14 @@ class SnoozeTaskIntent(intent.IntentHandler):
 def _part_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
     """Every spare part across all objects, in the _match_tasks row shape
     (``name`` + ``object_name``) so the same fuzzy matcher applies."""
-    from .const import CONF_PARTS
+    from .helpers.shared_parts import live_parts
 
     rows: list[dict[str, Any]] = []
     for ce in get_object_entries(hass):
         object_name = aggregate_object_name(ce)
         rd = getattr(ce, "runtime_data", None)
         store = getattr(rd, "store", None) if rd else None
-        for part_id, part in (ce.data.get(CONF_PARTS) or {}).items():
-            if not isinstance(part, dict):
-                continue
+        for part_id, part in live_parts(hass, ce).items():
             rows.append(
                 {
                     "entry_id": ce.entry_id,

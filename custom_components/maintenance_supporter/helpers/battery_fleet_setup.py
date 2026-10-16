@@ -396,6 +396,11 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
     """
     by_eid = {b.entity_id: b for b in read_batteries(hass)}
     targets = entity_ids if entity_ids is not None else [e for e, b in by_eid.items() if b.low]
+    # One swap, one consumption per day: a second press (another person, a
+    # double tap) or a press after the level-driven auto-record took the
+    # cells again (bug audit 2026-10-16, S3).
+    today = dt_util.now().date().isoformat()
+    found, recorded = _recorded_replacements(hass)
 
     pressed = 0
     pressed_ids: list[str] = []
@@ -416,6 +421,11 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
         await hass.services.async_call("button", "press", {"entity_id": button}, blocking=False)
         pressed += 1
         pressed_ids.append(eid)
+        # Our own memory only: a date Battery Notes holds for today may come
+        # from its own button, pressed on the device page — nothing consumed.
+        if recorded.get(eid) == today:
+            continue
+        recorded[eid] = today
         t = fleet_part_type(bat.battery_type)
         if t is not None:
             by_type[t] = by_type.get(t, 0) + bat.quantity
@@ -423,6 +433,7 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
     # #180: a marked battery leaves the low latch now — the count must not
     # wait for Battery Notes to echo the new date (nor for the level).
     release_low_latch(hass, pressed_ids)
+    _remember_recorded(found, recorded)
     consumed = await async_consume_type_parts(hass, by_type)
     return {"marked": pressed, "pressed": pressed, "consumed": consumed}
 
@@ -456,6 +467,37 @@ RECORDED_REPLACEMENTS_KEY = "battery_recorded_replacements"
 _RECORDED_CAP = 500
 
 
+def _recorded_replacements(hass: HomeAssistant) -> tuple[Any, dict[str, Any]]:
+    """(the fleet's (store, task id) or None, ``{entity_id: day}`` of the
+    replacements whose cells were consumed) — the once-per-day memory of
+    the Replaced action and the record-replacement command."""
+    from .battery_lifetime import fleet_store_and_task
+
+    found = fleet_store_and_task(hass)
+    if found is None:
+        return None, {}
+    raw = found[0].get_task_state(found[1]).get(RECORDED_REPLACEMENTS_KEY)
+    return found, dict(raw) if isinstance(raw, dict) else {}
+
+
+def _replaced_on(recorded: dict[str, Any], bat: Any, day: str) -> bool:
+    """Whether this battery's replacement on ``day`` is already counted:
+    remembered here, or the date Battery Notes holds."""
+    return recorded.get(bat.entity_id) == day or (bat.last_replaced is not None and bat.last_replaced.isoformat() == day)
+
+
+def _remember_recorded(found: Any, recorded: dict[str, Any]) -> None:
+    """Persist the memory (capped, oldest first out)."""
+    if found is None:
+        return
+    if len(recorded) > _RECORDED_CAP:
+        for old in list(recorded)[: len(recorded) - _RECORDED_CAP]:
+            recorded.pop(old, None)
+    store, task_id = found
+    store.update_task_state(task_id, **{RECORDED_REPLACEMENTS_KEY: recorded})
+    store.async_delay_save()
+
+
 async def async_record_replacement(hass: HomeAssistant, entity_id: str, replaced_at: str) -> dict[str, Any]:
     """Record a replacement the level history revealed (#181, the roster's
     calendar-sync chip): write the date through Battery Notes'
@@ -475,8 +517,6 @@ async def async_record_replacement(hass: HomeAssistant, entity_id: str, replaced
     """
     from homeassistant.helpers import entity_registry as er
 
-    from .battery_lifetime import fleet_store_and_task
-
     parsed = dt_util.parse_datetime(replaced_at)
     if parsed is None:
         raise HomeAssistantError("invalid_date")
@@ -494,12 +534,8 @@ async def async_record_replacement(hass: HomeAssistant, entity_id: str, replaced
         raise HomeAssistantError("not_available")
 
     day = (dt_util.as_local(parsed) if parsed.tzinfo is not None else parsed).date().isoformat()
-    found = fleet_store_and_task(hass)
-    recorded: dict[str, Any] = {}
-    if found is not None:
-        raw = found[0].get_task_state(found[1]).get(RECORDED_REPLACEMENTS_KEY)
-        recorded = dict(raw) if isinstance(raw, dict) else {}
-    already = recorded.get(entity_id) == day or (bat.last_replaced is not None and bat.last_replaced.isoformat() == day)
+    found, recorded = _recorded_replacements(hass)
+    already = _replaced_on(recorded, bat, day)
 
     await hass.services.async_call(
         "battery_notes",
@@ -513,14 +549,8 @@ async def async_record_replacement(hass: HomeAssistant, entity_id: str, replaced
     if not already:
         part_type = fleet_part_type(bat.battery_type)
         consumed = await async_consume_type_parts(hass, {part_type: bat.quantity} if part_type else {})
-        if found is not None:
-            store, task_id = found
-            recorded[entity_id] = day
-            if len(recorded) > _RECORDED_CAP:
-                for old in list(recorded)[: len(recorded) - _RECORDED_CAP]:
-                    recorded.pop(old, None)
-            store.update_task_state(task_id, **{RECORDED_REPLACEMENTS_KEY: recorded})
-            store.async_delay_save()
+        recorded[entity_id] = day
+        _remember_recorded(found, recorded)
     return {"recorded": True, "already_recorded": already, "consumed": consumed}
 
 

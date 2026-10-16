@@ -12,14 +12,13 @@ from homeassistant.util import dt as dt_util
 from ..const import (
     DEFAULT_MAX_HISTORY_ENTRIES,
     DEFAULT_WARNING_DAYS,
-    LIFECYCLE_HISTORY_TYPES,
     HistoryEntryType,
     MaintenanceStatus,
     MaintenanceTypeEnum,
     ScheduleType,
 )
 from ..helpers.dates import parse_iso_date
-from ..helpers.history import completed_entries, finite_amount, signed_amount
+from ..helpers.history import completed_entries, finite_amount, latest_anchor_stamp, signed_amount
 from ..helpers.phases import current_phase
 from ..helpers.schedule import Schedule, read_legacy_fields
 from ..helpers.status import compute_status, effective_warning_days, is_past_schedule_time
@@ -364,15 +363,13 @@ class MaintenanceTask:
         history-trimmed task has a cycle anchor but no lifecycle entries, and
         a backfill must not drag that anchor backwards either. A full
         timestamp on the same day sorts after the bare date, so a same-day
-        completion still counts as latest."""
+        completion still counts as latest. A reset to an earlier day anchors
+        on that day, not on when it was recorded
+        (``helpers.history.anchor_stamp``)."""
         # Only string stamps: an imported history carrying an epoch number
         # made max() compare int with str and every completion of the task
         # raised TypeError (bug audit 2026-09-27).
-        anchors = [
-            stamp
-            for h in self.history
-            if isinstance(h, dict) and h.get("type") in LIFECYCLE_HISTORY_TYPES and isinstance(stamp := h.get("timestamp"), str)
-        ]
+        anchors = [latest_anchor_stamp(self.history)]
         if self.last_performed:
             anchors.append(self.last_performed)
         return ts.isoformat() >= max(anchors, default="")
@@ -525,9 +522,12 @@ class MaintenanceTask:
         self.planned_day = None
         self.due_override = None
 
+        # reset_date: the entry is stamped now, the cycle restarts on this day
+        # — what the history edit / delete re-derive the anchor from (W1).
         self.add_history_entry(
             entry_type=HistoryEntryType.RESET,
             notes=f"Reset to {reset_date.isoformat()}",
+            reset_date=reset_date.isoformat(),
         )
 
     def skip(self, reason: str | None = None, *, as_missed: bool = False) -> None:
@@ -576,6 +576,7 @@ class MaintenanceTask:
         auto: bool = False,
         timestamp: str | None = None,
         phase_id: str | None = None,
+        reset_date: str | None = None,
     ) -> None:
         """Add an entry to the maintenance history.
 
@@ -592,6 +593,8 @@ class MaintenanceTask:
         # per-phase statistics and "last done" lines pool by.
         if phase_id is not None:
             entry["phase_id"] = phase_id
+        if reset_date is not None:
+            entry["reset_date"] = reset_date
         if notes is not None:
             entry["notes"] = notes
         if cost is not None:

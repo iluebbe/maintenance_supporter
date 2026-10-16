@@ -150,7 +150,12 @@ per task (case-insensitive; duplicates are dropped by the sanitizer).
 `task/history/delete` `{entry_id, task_id, timestamp}` (2.84, #170) removes one
 entry; last_performed is re-derived from the remaining lifecycle entries (none
 left → the task reads as never performed), photos stay in the documents, and
-the entry's `used_parts` go back to stock (answer: `parts_returned`).
+the entry's `used_parts` go back to stock (answer: `parts_returned`). The
+delete and `task/history/update` move last_performed only when they change
+which lifecycle entry is the latest (2.104): a reset entry counts on its
+`reset_date` (the day it restarted the cycle; older entries name it in their
+`Reset to YYYY-MM-DD` note), and a last_performed set through `task/update`
+that is newer than the history stays.
 
 `task/undo` `{entry_id, task_id}` (2026-10) takes back the caller's own last
 completion (`task/complete` / `task/quick_complete` answer `undo: true` when

@@ -2,6 +2,75 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Correcting the history keeps the dates you set:** after a reset to an earlier day, or with a *Last performed*
+  day set in the task dialog, fixing a note or a cost on an old history entry moved the task's last-done day to the
+  newest entry, and a postponed date was lost with it. The day now moves only when the edit or the delete changes
+  which entry is the latest. A completion recorded after a reset to an earlier day also counts as the latest one now.
+- **A suggested interval keeps the season and the end:** applying the interval the adaptive scheduling suggests
+  dropped a task's seasonal window and its *Ends after* setting.
+- **A nested object stays editable when its parent is deleted:** the object kept pointing at the deleted parent and
+  refused every later change (*No maintenance object*). Deleting an object now detaches the objects nested under it,
+  and an object saved with a parent that no longer exists drops it.
+- **A reminder whose task was already done does nothing:** when a task was completed in the panel, by voice or with a
+  tag, the reminder stayed on the phones, and its *Complete* or *Skip* button acted on the next cycle: a second
+  history entry, the rotation moved on twice, a planned date skipped. A reminder sent in the current cycle is now
+  taken off the phones when the task is closed anywhere, and the buttons of an older reminder only remove it.
+- **No more "clear_notification" messages:** removing a reminder sent that text to the household notify service as
+  well, so a Telegram group, a notify group or a persistent notification showed it. It now goes to phones with the
+  Companion app only.
+- **AND/OR triggers start fresh after a completion:** a condition over several sensors with *all must trigger* kept
+  the sensors' states from before the completion, so one sensor crossing again made it true although the others
+  had long recovered. *Complete when the sensor recovers* now also works on an AND/OR trigger; it never fired there.
+- **A hold time counts from the crossing:** with *for 30 minutes*, a crossing recorded before a restart outlived the
+  value returning to normal, and the next crossing days later triggered at once. The first readings after a restart
+  were not saved at all; they are now saved once Home Assistant has started.
+- **One odd counter reading no longer resets the count:** a single reading below the starting value (a sensor
+  reporting 0 for a moment) restarted a delta counter from 0, and the next real reading triggered the task. A drop
+  now counts as the counter's reset only when the next reading is still below the starting value, or when two
+  minutes pass without a higher one.
+- **Editing a trigger in the options flow starts from its settings:** every step showed blank or default values,
+  so saving the form unchanged reset the limits, the hold time, the from and to states, the running states, the
+  days before, the attribute and the any/all setting. Adding a trigger to a one-time task kept no due date, and
+  any task got the default warning days instead of its own. The safety interval is now shown as well, and clearing
+  it removes it.
+- **A shared task keeps its last person:** when one of the two people sharing a task was deleted in Home Assistant,
+  the task was left without anyone. The remaining person now keeps it.
+- **A tag moves on with the task:** a scanned tag completed nothing when an archived or paused task still carried
+  it, even though an active task had the same tag. The active task is completed now.
+- **Completion photos don't fill up an object:** the limit of 100 documents per object counted every completion
+  photo, so a daily task that asks for a photo could no longer be completed after about three months. Photos that
+  belong to a completion no longer count.
+- **Restored documents become searchable:** a document whose file was not yet back when the text index ran was
+  marked as unreadable for good. It is now indexed once the file arrives, and documents marked that way before are
+  tried once more.
+- **Restoring a large documents archive needs far less memory:** the archive was read into memory whole, and every
+  file in it again, which could take about a gigabyte. Files are now copied one at a time. A password-protected
+  archive is refused with a clear message instead of an error.
+- **A shared pool's shopping reminder works while its owner is paused:** the reminder for a pool that other objects
+  still use was frozen with the paused object: no notification, no shopping-list entry, and *Complete* was refused.
+- **A replaced object's parts are not counted twice:** after *Replace…*, the archived object's copies of the parts
+  still counted toward *Parts to reorder*, showed up in the parts overview, and made voice commands ask which of two
+  parts was meant.
+- **One battery swap uses its spare cells once:** pressing *Replaced* twice on the same day, or after the swap had
+  been recorded automatically, took the cells from stock again. A level jump from before the recorded replacement
+  is no longer offered as an unrecorded swap.
+- **The dashboard card keeps its objects after a rename:** a card limited to some objects showed *All caught up*
+  once one of them was renamed, and the card editor no longer showed the old name to untick. The editor now stores
+  the objects themselves, and a name or label that no longer exists is shown struck through so it can be removed.
+  The generated area and floor views filter by area.
+- **One-card dashboard views stay put:** the dashboard's self-repair took an area or section view with only one card
+  for a failed one and reloaded it every few seconds, three times.
+- **A new task starts with notifications on:** *No notifications* of the task edited before carried over into the
+  next new task, and so did a calendar schedule's calendar.
+- **Editing a part keeps its current stock:** saving a part sent the stock and the used ones from when the form was
+  opened, which undid completions and *Ready again* in the meantime. Only a changed number is saved now.
+- **Ticking a checklist item by its text works:** tapping the text of a checklist item in the complete dialog
+  ticked and unticked it at once.
+
 ## [2.103.5] - 2026-10-16
 
 ### 🐛 Fixed

@@ -329,6 +329,7 @@ for (const entry of PICKER_ENTRIES) {
     let cards = 0;
     let ourError = false;
     let hasEmptyState = false;
+    let ourCards = 0;
     const stack: Array<Element | ShadowRoot> = [document.documentElement];
     let scanned = 0;
     while (stack.length && scanned < 9000) {
@@ -345,6 +346,8 @@ for (const entry of PICKER_ENTRIES) {
         // cards" blank-view heuristic below — issue #69, where the empty state
         // was mistaken for a broken render and the page reloaded every ~5 s.
         if (tag === "hui-empty-state-card") hasEmptyState = true;
+        // One of our own cards on the view, upgraded: generate() ran.
+        if (tag.startsWith("maintenance-") && tag.endsWith("-card") && el.matches(":defined")) ourCards++;
         if (tag === "hui-error-card" && ERROR_RE.test(el.textContent || "")) {
           ourError = true;
         }
@@ -364,6 +367,10 @@ for (const entry of PICKER_ENTRIES) {
     // genuine strategy timeout shows hui-error-card or zero cards, never this
     // card (issue #69).
     if (hasEmptyState) return false;
+    // Likewise a view showing one of our cards: an area or section view with
+    // a single object is one card, and the "< 3 cards" guess bounced it
+    // every 6 s, three times (bug audit 2026-10-16, FE-2).
+    if (ourCards > 0) return false;
     return hasView && cards < 3 && isOurStrategyView();
   }
 

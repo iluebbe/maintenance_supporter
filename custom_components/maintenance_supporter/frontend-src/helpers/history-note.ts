@@ -14,6 +14,7 @@ import { formatDate, t } from "../styles";
 
 const EXACT: Record<string, string> = {
   "Completed from dashboard button": "hist_note_button",
+  "Auto-completed: sensor recovered": "hist_note_auto_recovered_plain",
   "Completed from the To-do list": "hist_note_todo",
   "Completed by voice": "hist_note_voice",
   "Completed from the notification": "hist_note_notification",

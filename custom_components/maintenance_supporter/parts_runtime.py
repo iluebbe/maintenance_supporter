@@ -34,6 +34,7 @@ from .helpers.global_options import global_option
 from .helpers.i18n import normalize_language
 from .helpers.parts import (
     PART_REF_FIELD,
+    POOL_IN_USE_FIELD,
     on_hand,
     reconcile_buy_tasks,
     stock_transition,
@@ -522,7 +523,8 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
     # object desires NO buy tasks — open reminders are removed, and the
     # resume/unarchive setup catch-up recreates them if the part is still low.
     obj = entry.data.get(CONF_OBJECT, {})
-    if obj.get("archived_at") is not None or obj.get("paused_at") is not None:
+    owner_inert = obj.get("archived_at") is not None or obj.get("paused_at") is not None
+    if owner_inert:
         # ...except for a pool OTHER live objects still draw on (#111): the
         # shelf is in use, only its owner retired. Suppressing those too
         # meant the borrowers ran the pool empty without a single reminder
@@ -551,7 +553,15 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
         decimals=int(global_option(hass, CONF_CURRENCY_DECIMALS)),
         is_task_done=lambda td: store.get_last_performed(td["id"]) is not None,
     )
-    if not changed:
+    # The buy tasks that stay live although their owner is paused: every one
+    # left on an inert owner is for a pool in use (``parts`` was narrowed to
+    # those above). Marked here, unmarked once the owner is live again.
+    flips = [
+        tid
+        for tid, td in new_tasks.items()
+        if td.get(PART_REF_FIELD) and (td.get(POOL_IN_USE_FIELD) is True) != owner_inert
+    ]
+    if not changed and not flips:
         return False
 
     # The diff relative to the snapshot: brand-new buy tasks, and existing
@@ -586,6 +596,14 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
             td = dict(merged_tasks[tid])
             td.pop(PART_REF_FIELD, None)
             merged_tasks[tid] = td
+    for tid in flips:
+        if tid in merged_tasks and merged_tasks[tid].get(PART_REF_FIELD):
+            td = dict(merged_tasks[tid])
+            if owner_inert:
+                td[POOL_IN_USE_FIELD] = True
+            else:
+                td.pop(POOL_IN_USE_FIELD, None)
+            merged_tasks[tid] = td
     obj["task_ids"] = [t for t in task_ids if t in merged_tasks]
     new_data[CONF_TASKS] = merged_tasks
     new_data[CONF_OBJECT] = obj
@@ -601,8 +619,9 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
         len(created),
         len(removed),
     )
-    if created or removed:
-        # Entities for created/removed tasks appear/vanish on reload.
+    if created or removed or flips:
+        # Entities for created/removed tasks appear/vanish on reload; a
+        # flipped pool mark changes whether the task reads as paused.
         await hass.config_entries.async_reload(entry.entry_id)
 
     # v2.67: mirror the new buy-task set into the configured shopping list

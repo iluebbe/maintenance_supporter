@@ -510,6 +510,7 @@
   "hist_note_sensor_triggered": "센서 트리거 활성화됨",
   "hist_note_initial": "작업 생성 시 설정된 초기값",
   "hist_note_auto_recovered": "자동 완료: 센서가 정상으로 돌아옴 ({value})",
+  "hist_note_auto_recovered_plain": "자동 완료: 센서가 정상으로 돌아옴",
   "hist_note_reset": "{date}(으)로 초기화됨",
   "hist_note_trigger_replaced": "트리거 엔티티 교체됨: {old} → {new}",
   "hist_note_trigger_removed": "센서 트리거 제거됨 (엔티티: {entity}). 일정이 {schedule}(으)로 변경됨.",

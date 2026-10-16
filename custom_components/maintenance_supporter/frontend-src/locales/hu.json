@@ -510,6 +510,7 @@
   "hist_note_sensor_triggered": "Érzékelős kiváltó aktiválva",
   "hist_note_initial": "Kezdőérték a feladat létrehozásakor beállítva",
   "hist_note_auto_recovered": "Automatikusan elvégezve: az érzékelő helyreállt ({value})",
+  "hist_note_auto_recovered_plain": "Automatikusan elvégezve: az érzékelő helyreállt",
   "hist_note_reset": "Visszaállítva erre: {date}",
   "hist_note_trigger_replaced": "Kiváltó entitás lecserélve: {old} → {new}",
   "hist_note_trigger_removed": "Érzékelős kiváltó eltávolítva (entitás: {entity}). Ütemezés átállítva: {schedule}.",

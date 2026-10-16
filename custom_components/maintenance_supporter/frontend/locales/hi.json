@@ -510,6 +510,7 @@
   "hist_note_sensor_triggered": "सेंसर ट्रिगर सक्रिय हुआ",
   "hist_note_initial": "कार्य बनाते समय प्रारंभिक मान सेट किया गया",
   "hist_note_auto_recovered": "स्वतः पूर्ण: सेंसर ठीक हुआ ({value})",
+  "hist_note_auto_recovered_plain": "स्वतः पूर्ण: सेंसर ठीक हुआ",
   "hist_note_reset": "{date} पर रीसेट किया गया",
   "hist_note_trigger_replaced": "ट्रिगर एंटिटी बदली गई: {old} → {new}",
   "hist_note_trigger_removed": "सेंसर ट्रिगर हटाया गया (एंटिटी थी: {entity})। शेड्यूल {schedule} में बदला गया।",

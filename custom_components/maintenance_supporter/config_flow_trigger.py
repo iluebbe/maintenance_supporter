@@ -139,13 +139,14 @@ def _recovery_field(tc: dict[str, Any] | None) -> dict[Any, Any]:
     }
 
 
-def _entity_logic_field(entity_ids: list[Any]) -> dict[Any, Any]:
+def _entity_logic_field(entity_ids: list[Any], stored: Mapping[str, Any] | None = None) -> dict[Any, Any]:
     """The any/all selector, shown only with 2+ entities — identical on every
     trigger-type step (and per compound condition)."""
     if len(entity_ids) < 2:
         return {}
+    current = (stored or {}).get(CONF_TRIGGER_ENTITY_LOGIC)
     return {
-        vol.Optional(CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC): selector.SelectSelector(
+        vol.Optional(CONF_TRIGGER_ENTITY_LOGIC, default=current if current in ("any", "all") else DEFAULT_ENTITY_LOGIC): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=[
                     selector.SelectOptionDict(value="any", label="Any entity triggers"),
@@ -265,19 +266,39 @@ def _decimal_selector() -> selector.NumberSelector:
     return selector.NumberSelector(selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX, step="any"))
 
 
-def _limit_fields() -> dict[Any, Any]:
-    """The four optional threshold limits (above / below / = / ≠)."""
+def _stored_number(stored: Mapping[str, Any] | None, key: str, low: float | None = None, high: float | None = None) -> float | None:
+    """A number of the trigger being edited (``stored``) to pre-fill a field
+    with — ``None`` when absent, not a number or outside the field's range
+    (a default the form would refuse to submit)."""
+    value = (stored or {}).get(key)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if (low is not None and value < low) or (high is not None and value > high):
+        return None
+    return value
+
+
+def _suggested(value: Any) -> dict[str, Any]:
+    """``vol.Optional`` kwargs pre-filling a field that stays clearable."""
+    return {"description": {"suggested_value": value}} if value not in (None, "") else {}
+
+
+def _limit_fields(stored: Mapping[str, Any] | None = None) -> dict[Any, Any]:
+    """The four optional threshold limits (above / below / = / ≠). ``stored``
+    — the trigger being edited — pre-fills them; a cleared field removes the
+    limit."""
     return {
-        vol.Optional(key): _decimal_selector()
+        vol.Optional(key, **_suggested(_stored_number(stored, key))): _decimal_selector()
         for key in (CONF_TRIGGER_ABOVE, CONF_TRIGGER_BELOW, CONF_TRIGGER_EQUALS, CONF_TRIGGER_NOT_EQUALS)
     }
 
 
-def _for_minutes_field() -> dict[Any, Any]:
+def _for_minutes_field(stored: Mapping[str, Any] | None = None) -> dict[Any, Any]:
     """#136 hold time: the limit / new state must persist this long (0 = at once)."""
     low, high = TRIGGER_FIELD_RANGES[CONF_TRIGGER_FOR_MINUTES]
+    current = _stored_number(stored, CONF_TRIGGER_FOR_MINUTES, low, high)
     return {
-        vol.Optional(CONF_TRIGGER_FOR_MINUTES, default=0): selector.NumberSelector(
+        vol.Optional(CONF_TRIGGER_FOR_MINUTES, default=current if current is not None else 0): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=low, max=high, step=1, mode=selector.NumberSelectorMode.BOX, unit_of_measurement="min"
             )
@@ -285,25 +306,30 @@ def _for_minutes_field() -> dict[Any, Any]:
     }
 
 
-def _target_value_field() -> dict[Any, Any]:
+def _target_value_field(stored: Mapping[str, Any] | None = None) -> dict[Any, Any]:
     """The counter's target (absolute, or the delta per cycle)."""
-    return {vol.Required(CONF_TRIGGER_TARGET_VALUE): _decimal_selector()}
+    current = _stored_number(stored, CONF_TRIGGER_TARGET_VALUE)
+    key = vol.Required(CONF_TRIGGER_TARGET_VALUE, default=current) if current is not None else vol.Required(CONF_TRIGGER_TARGET_VALUE)
+    return {key: _decimal_selector()}
 
 
-def _target_changes_field() -> dict[Any, Any]:
+def _target_changes_field(stored: Mapping[str, Any] | None = None) -> dict[Any, Any]:
     """How many matching state changes fire the trigger."""
     low, high = TRIGGER_FIELD_RANGES[CONF_TRIGGER_TARGET_CHANGES]
+    current = _stored_number(stored, CONF_TRIGGER_TARGET_CHANGES, low, high)
     return {
-        vol.Required(CONF_TRIGGER_TARGET_CHANGES, default=1): selector.NumberSelector(
+        vol.Required(CONF_TRIGGER_TARGET_CHANGES, default=current if current is not None else 1): selector.NumberSelector(
             selector.NumberSelectorConfig(min=low, max=high, step=1, mode=selector.NumberSelectorMode.BOX)
         )
     }
 
 
-def _runtime_hours_field() -> dict[Any, Any]:
+def _runtime_hours_field(stored: Mapping[str, Any] | None = None) -> dict[Any, Any]:
     """The runtime target in hours."""
+    current = _stored_number(stored, CONF_TRIGGER_RUNTIME_HOURS, 1, TRIGGER_RUNTIME_HOURS_MAX)
+    key = vol.Required(CONF_TRIGGER_RUNTIME_HOURS, default=current) if current is not None else vol.Required(CONF_TRIGGER_RUNTIME_HOURS)
     return {
-        vol.Required(CONF_TRIGGER_RUNTIME_HOURS): selector.NumberSelector(
+        key: selector.NumberSelector(
             selector.NumberSelectorConfig(
                 mode=selector.NumberSelectorMode.BOX,
                 step=1,
@@ -315,11 +341,12 @@ def _runtime_hours_field() -> dict[Any, Any]:
     }
 
 
-def _days_before_field() -> dict[Any, Any]:
+def _days_before_field(stored: Mapping[str, Any] | None = None) -> dict[Any, Any]:
     """due_date: how many days before the reported date the task fires."""
     low, high = TRIGGER_FIELD_RANGES[CONF_TRIGGER_DAYS_BEFORE]
+    current = _stored_number(stored, CONF_TRIGGER_DAYS_BEFORE, low, high)
     return {
-        vol.Optional(CONF_TRIGGER_DAYS_BEFORE, default=0): selector.NumberSelector(
+        vol.Optional(CONF_TRIGGER_DAYS_BEFORE, default=current if current is not None else 0): selector.NumberSelector(
             selector.NumberSelectorConfig(
                 min=low, max=high, step=1, mode=selector.NumberSelectorMode.BOX, unit_of_measurement="d"
             )
@@ -403,6 +430,18 @@ class TriggerConfigMixin:
             return None
         return entity_ids
 
+    def _stored_trigger(self, trigger_type: str | None = None) -> dict[str, Any]:
+        """The trigger being edited, as stored (options flow; ``{}`` when
+        adding one) — or ``{}`` when the edit picked another type, whose
+        settings do not apply. The steps pre-fill their fields from it: they
+        showed blank or default values, and saving the form unchanged reset
+        the limits, hold time, from/to states, on-states, days before, the
+        attribute and the entity logic (bug audit 2026-10-16, G2)."""
+        stored: dict[str, Any] = (self._current_task.get("_edit_defaults") or {}).get("trigger_config") or {}
+        if trigger_type is not None and stored.get("type") != trigger_type:
+            return {}
+        return stored
+
     def _apply_type_step_tail(self, tc: dict[str, Any], user_input: dict[str, Any]) -> None:
         """Persist what the four plain type steps share (DRY audit 2026-09-26 B):
         the #53 recovery flag, the trigger∧interval combinator, the any/all
@@ -426,7 +465,7 @@ class TriggerConfigMixin:
         tc = self._current_task.get("trigger_config") or {}
         return {
             **_recovery_field(tc),
-            **_entity_logic_field(tc.get("entity_ids", [])),
+            **_entity_logic_field(tc.get("entity_ids", []), self._stored_trigger(tc.get("type"))),
             **_interval_warning_fields(self.hass, tc, self._current_task.get("_edit_defaults")),
         }
 
@@ -579,8 +618,10 @@ class TriggerConfigMixin:
         current_state = state.state
         unit = state.attributes.get("unit_of_measurement", "")
 
+        stored_attr = self._stored_trigger().get("attribute") or "_state"
+        attr_default = stored_attr if any(o["value"] == stored_attr for o in options) else "_state"
         schema_dict: dict[Any, Any] = {
-            vol.Required(CONF_TRIGGER_ATTRIBUTE, default="_state"): selector.SelectSelector(
+            vol.Required(CONF_TRIGGER_ATTRIBUTE, default=attr_default): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=options,
                     mode=selector.SelectSelectorMode.LIST,
@@ -631,9 +672,11 @@ class TriggerConfigMixin:
             return await state_change_step()
 
         trigger_options = [t.value for t in TriggerType]
+        stored_type = self._stored_trigger().get("type")
+        type_default = stored_type if stored_type in trigger_options else TriggerType.THRESHOLD
 
         schema_dict: dict[Any, Any] = {
-            vol.Required(CONF_TRIGGER_TYPE, default=TriggerType.THRESHOLD): selector.SelectSelector(
+            vol.Required(CONF_TRIGGER_TYPE, default=type_default): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=trigger_options,
                     mode=selector.SelectSelectorMode.LIST,
@@ -692,9 +735,10 @@ class TriggerConfigMixin:
         attribute = self._current_task.get("trigger_config", {}).get("attribute", "state")
         suggestions = await async_get_threshold_suggestions(self.hass, self._trigger_entity_id, self._current_task)
 
+        stored = self._stored_trigger(TriggerType.THRESHOLD)
         schema_fields: dict[Any, Any] = {
-            **_limit_fields(),
-            **_for_minutes_field(),
+            **_limit_fields(stored),
+            **_for_minutes_field(stored),
             **self._type_step_tail_fields(),
         }
 
@@ -754,7 +798,7 @@ class TriggerConfigMixin:
             else vol.Optional("trigger_baseline_value")
         )
         schema_fields: dict[Any, Any] = {
-            **_target_value_field(),
+            **_target_value_field(self._stored_trigger(TriggerType.COUNTER)),
             vol.Optional(
                 CONF_TRIGGER_DELTA_MODE,
                 default=bool(
@@ -809,11 +853,12 @@ class TriggerConfigMixin:
             self._apply_type_step_tail(tc, user_input)
             return on_complete()
 
+        stored = self._stored_trigger(TriggerType.STATE_CHANGE)
         schema_fields: dict[Any, Any] = {
-            vol.Optional(CONF_TRIGGER_FROM_STATE): _state_selector(self._trigger_entity_id),
-            vol.Optional(CONF_TRIGGER_TO_STATE): _state_selector(self._trigger_entity_id),
-            **_target_changes_field(),
-            **_for_minutes_field(),
+            vol.Optional(CONF_TRIGGER_FROM_STATE, **_suggested(stored.get(CONF_TRIGGER_FROM_STATE))): _state_selector(self._trigger_entity_id),
+            vol.Optional(CONF_TRIGGER_TO_STATE, **_suggested(stored.get(CONF_TRIGGER_TO_STATE))): _state_selector(self._trigger_entity_id),
+            **_target_changes_field(stored),
+            **_for_minutes_field(stored),
             **self._type_step_tail_fields(),
         }
 
@@ -851,12 +896,13 @@ class TriggerConfigMixin:
 
         # Pre-fill existing custom states for editing
         current_tc = self._current_task.get("trigger_config", {})
-        existing_states = current_tc.get(CONF_TRIGGER_ON_STATES) or []
+        stored = self._stored_trigger(TriggerType.RUNTIME)
+        existing_states = current_tc.get(CONF_TRIGGER_ON_STATES) or stored.get(CONF_TRIGGER_ON_STATES) or []
         # The state selector takes/returns a LIST; the text fallback a comma string.
         default_states: Any = list(existing_states) if self._trigger_entity_id else ", ".join(existing_states)
 
         schema_fields: dict[Any, Any] = {
-            **_runtime_hours_field(),
+            **_runtime_hours_field(stored),
             vol.Optional(CONF_TRIGGER_ON_STATES, default=default_states): _state_selector(
                 self._trigger_entity_id, multiple=True
             ),
@@ -892,7 +938,9 @@ class TriggerConfigMixin:
         state = self._trigger_entity_state
         return self.async_show_form(
             step_id=step_id,
-            data_schema=vol.Schema(self._mixin_add_go_back({**_days_before_field(), **self._type_step_tail_fields()})),
+            data_schema=vol.Schema(
+                self._mixin_add_go_back({**_days_before_field(self._stored_trigger(TriggerType.DUE_DATE)), **self._type_step_tail_fields()})
+            ),
             description_placeholders={
                 "entity_id": self._trigger_entity_id or "",
                 "current_state": state.state if state is not None else "",

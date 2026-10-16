@@ -508,6 +508,7 @@
   "hist_note_sensor_triggered": "Wyzwalacz czujnika aktywowany",
   "hist_note_initial": "Wartość początkowa ustawiona przy tworzeniu zadania",
   "hist_note_auto_recovered": "Wykonano automatycznie: czujnik wrócił do normy ({value})",
+  "hist_note_auto_recovered_plain": "Wykonano automatycznie: czujnik wrócił do normy",
   "hist_note_reset": "Zresetowano na {date}",
   "hist_note_trigger_replaced": "Zastąpiono encję wyzwalacza: {old} → {new}",
   "hist_note_trigger_removed": "Usunięto wyzwalacz czujnika (encja: {entity}). Harmonogram zmieniono na {schedule}.",

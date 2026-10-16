@@ -36,7 +36,7 @@ import mimetypes
 import re
 import zipfile
 from pathlib import PurePosixPath
-from typing import Any
+from typing import IO, Any
 
 from homeassistant.core import HomeAssistant
 
@@ -410,120 +410,124 @@ def _doc_key(doc: dict[str, Any]) -> tuple[str | None, str | None]:
     return (kind if isinstance(kind, str) else None, ref if isinstance(ref, str) else None)
 
 
-async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str, Any]:
+def _manifest_objects(manifest: dict[str, Any]) -> list[tuple[dict[str, Any], list[Any]]]:
+    """The manifest's (object, documents) pairs of the right shape. The
+    manifest is untrusted JSON: an "objects" that is no list or a "documents"
+    that is a number raised AttributeError / TypeError — a bare 500 instead
+    of the clean error (bug audit 2026-09-27). Wrong shapes are skipped."""
+    raw_objects = manifest.get("objects")
+    return [
+        (obj, docs)
+        for obj in (raw_objects if isinstance(raw_objects, list) else [])
+        if isinstance(obj, dict) and isinstance(docs := obj.get("documents", []), list)
+    ]
+
+
+def _restore_files_sync(store: Any, source: IO[bytes]) -> tuple[Any, set[str], int]:
+    """Read the manifest and write the files it references back into the
+    blob store. Returns (manifest — None when the archive has none, the
+    content hashes now on disk, how many of them were new). Blocking.
+
+    Each file goes from the archive into the store in pieces, hashed on the
+    way. The archive used to be read into memory whole, and every file in it
+    again — up to 500 MB each, about a gigabyte on a Raspberry Pi (bug audit
+    2026-10-16, F5). Only files a manifest document references are kept: an
+    archive carrying extra blobs must not litter /config with orphans that
+    ride every HA backup and are never refcounted (disk-fill hardening).
+    """
+    import unicodedata
+
+    def nfc(text: str) -> str:
+        return unicodedata.normalize("NFC", text)
+
+    stored: set[str] = set()
+    written = 0
+    manifest: Any = None
+    total = 0
+    with zipfile.ZipFile(source) as zf:
+        names = zf.namelist()
+        if len(names) > MAX_ARCHIVE_MEMBERS:
+            raise ValueError("archive_too_many_members")
+        # An archive browsed and zipped again: macOS stores names
+        # decomposed ("u" + combining diaeresis), and zipping the unpacked
+        # folder wraps everything in one more folder. Match NFC names
+        # below that folder (bug audit 2026-09-29: such an archive
+        # imported nothing, silently).
+        prefix = ""
+        if not any(nfc(n) == MANIFEST_NAME for n in names):
+            nested = {nfc(n)[: -len(MANIFEST_NAME)] for n in names if nfc(n).endswith("/" + MANIFEST_NAME) and nfc(n).count("/") == 1}
+            if len(nested) == 1:
+                prefix = nested.pop()
+        members = {nfc(n)[len(prefix) :]: n for n in names if nfc(n).startswith(prefix)}
+        if MANIFEST_NAME in members:
+            # Bound the metadata member too (was read uncapped).
+            manifest = json.loads(_read_member_bounded(zf, members[MANIFEST_NAME], MAX_MANIFEST_BYTES).decode("utf-8"))
+        if not isinstance(manifest, dict):
+            return manifest, stored, written
+        # Version 2: the files sit at the readable paths the manifest names;
+        # keyed by their content hash, which the documents' hash then has to
+        # match like a version-1 blob name.
+        listed: set[str] = set()
+        referenced: set[str] = set()
+        for _obj, docs in _manifest_objects(manifest):
+            for doc in docs:
+                if not isinstance(doc, dict):
+                    continue
+                if isinstance(doc.get("path"), str):
+                    listed.add(nfc(doc["path"]))
+                if isinstance(doc.get("hash"), str):
+                    referenced.add(doc["hash"])
+        for name, member in members.items():
+            expected = None
+            if name in listed:
+                pass
+            elif name.startswith(BLOB_DIR) and not name.endswith("/"):
+                expected = name[len(BLOB_DIR) :]
+                if not (len(expected) == 64 and all(c in "0123456789abcdef" for c in expected)):
+                    continue
+            else:
+                continue
+            remaining = MAX_ARCHIVE_BYTES - total
+            if remaining <= 0:
+                raise ValueError("archive_too_large")
+
+            def accept(actual: str, expected: str | None = expected) -> bool:
+                return (expected is None or actual == expected) and actual in referenced
+
+            # Bounded by the remaining budget, so a bomb cannot inflate past
+            # the whole-archive ceiling (checked DURING the copy).
+            with zf.open(member) as fh:
+                try:
+                    actual, wrote_new, size = store._store_stream_sync(fh, remaining, accept)
+                except ValueError as err:
+                    raise ValueError("archive_too_large") from err
+            total += size
+            if expected is not None and actual != expected:
+                _LOGGER.warning("Documents archive: blob %s failed hash check, skipped", expected[:12])
+            elif actual not in referenced:
+                _LOGGER.info("Documents archive: blob %s referenced by no document, skipped", actual[:12])
+            else:
+                stored.add(actual)
+                written += wrote_new
+    return manifest, stored, written
+
+
+async def import_documents_archive(hass: HomeAssistant, data: bytes | IO[bytes]) -> dict[str, Any]:
     """Restore a documents ZIP: write blobs back, re-attach metadata.
+
+    ``data`` is the archive as bytes, or a seekable binary file (the upload
+    view hands over the temporary file the upload was spooled into).
 
     Objects are matched by id first (same instance), then by name (a
     cross-instance restore after a JSON import created fresh ids). Documents
     already present on the target object are skipped so a repeat import is
     idempotent. Returns counts.
     """
-    import hashlib
-
     store = _get_store(hass)
     if store is None:
         return {"error": "documents store unavailable"}
+    source: IO[bytes] = io.BytesIO(data) if isinstance(data, (bytes, bytearray)) else data
 
-    def _read() -> tuple[Any, dict[str, bytes]]:
-        """(manifest — None when the archive has none, verified blobs by
-        content hash). Everything here runs in the executor, the hashing
-        included: it covers up to 500 MB (it ran on the event loop)."""
-        import unicodedata
-
-        def nfc(text: str) -> str:
-            return unicodedata.normalize("NFC", text)
-
-        blobs: dict[str, bytes] = {}
-        manifest: Any = None
-        total = 0
-        with zipfile.ZipFile(io.BytesIO(data)) as zf:
-            names = zf.namelist()
-            if len(names) > MAX_ARCHIVE_MEMBERS:
-                raise ValueError("archive_too_many_members")
-            # An archive browsed and zipped again: macOS stores names
-            # decomposed ("u" + combining diaeresis), and zipping the unpacked
-            # folder wraps everything in one more folder. Match NFC names
-            # below that folder (bug audit 2026-09-29: such an archive
-            # imported nothing, silently).
-            prefix = ""
-            if not any(nfc(n) == MANIFEST_NAME for n in names):
-                nested = {nfc(n)[: -len(MANIFEST_NAME)] for n in names if nfc(n).endswith("/" + MANIFEST_NAME) and nfc(n).count("/") == 1}
-                if len(nested) == 1:
-                    prefix = nested.pop()
-            members = {nfc(n)[len(prefix) :]: n for n in names if nfc(n).startswith(prefix)}
-            if MANIFEST_NAME in members:
-                # Bound the metadata member too (was read uncapped).
-                manifest = json.loads(_read_member_bounded(zf, members[MANIFEST_NAME], MAX_MANIFEST_BYTES).decode("utf-8"))
-            # Version 2: the files sit at the readable paths the manifest
-            # names; keyed by their content hash, which the documents' hash
-            # then has to match like a version-1 blob name.
-            listed: set[str] = set()
-            raw_objects = manifest.get("objects") if isinstance(manifest, dict) else None
-            for obj in raw_objects if isinstance(raw_objects, list) else []:
-                docs_in = obj.get("documents") if isinstance(obj, dict) else None
-                for doc in docs_in if isinstance(docs_in, list) else []:
-                    if isinstance(doc, dict) and isinstance(doc.get("path"), str):
-                        listed.add(nfc(doc["path"]))
-            for name, member in members.items():
-                digest = None
-                if name in listed:
-                    pass
-                elif name.startswith(BLOB_DIR) and not name.endswith("/"):
-                    digest = name[len(BLOB_DIR) :]
-                    if not (len(digest) == 64 and all(c in "0123456789abcdef" for c in digest)):
-                        continue
-                else:
-                    continue
-                remaining = MAX_ARCHIVE_BYTES - total
-                if remaining <= 0:
-                    raise ValueError("archive_too_large")
-                # Read bounded by the remaining budget so a bomb can't
-                # inflate past the whole-archive ceiling (checked DURING the
-                # read, not after materialising the full member).
-                content = _read_member_bounded(zf, member, remaining)
-                total += len(content)
-                actual = hashlib.sha256(content).hexdigest()
-                if digest is not None and actual != digest:
-                    _LOGGER.warning("Documents archive: blob %s failed hash check, skipped", digest[:12])
-                    continue
-                blobs.setdefault(actual, content)
-        return manifest, blobs
-
-    try:
-        manifest, blobs = await hass.async_add_executor_job(_read)
-    except (zipfile.BadZipFile, ValueError, json.JSONDecodeError, KeyError) as err:
-        return {"error": f"invalid archive: {err}"}
-    if manifest is None:
-        # Zipped without it (only the folders): nothing says which document a
-        # file belongs to — said, instead of "0 restored".
-        return {
-            "error": f"invalid archive: no {MANIFEST_NAME} — keep it next to the folders when zipping again",
-            "code": "docs_archive_no_manifest",
-        }
-
-    # The manifest is untrusted JSON: a list at the top, an "objects" that is
-    # no list or a "documents" that is a number raised AttributeError /
-    # TypeError past the handler above — a bare 500 instead of the clean
-    # error (bug audit 2026-09-27). Wrong shapes are refused or skipped.
-    if not isinstance(manifest, dict):
-        return {"error": "invalid archive: the manifest is not an object"}
-    raw_objects = manifest.get("objects")
-    manifest_objects: list[tuple[dict[str, Any], list[Any]]] = [
-        (obj, docs)
-        for obj in (raw_objects if isinstance(raw_objects, list) else [])
-        if isinstance(obj, dict) and isinstance(docs := obj.get("documents", []), list)
-    ]
-
-    # 1) Write back only blobs a manifest document actually references — an
-    # archive carrying extra blobs must not litter /config with orphans that
-    # ride every HA backup and are never refcounted (disk-fill hardening).
-    referenced: set[str] = set()
-    for _obj, docs in manifest_objects:
-        for m in docs:
-            if isinstance(m, dict) and isinstance(m.get("hash"), str):
-                referenced.add(m["hash"])
-
-    written = 0
     docs_created = 0
     objects_matched = 0
     # old → new document ids across every restored object, so history photos
@@ -536,13 +540,25 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes) -> dict[str
     # document registered it — a document pointing at nothing (bug audit
     # 2026-09-27; the upload and delete paths took the lock, this one not).
     async with store.blob_lock:
-        for digest, content in blobs.items():
-            if digest not in referenced:
-                _LOGGER.info("Documents archive: blob %s referenced by no document, skipped", digest[:12])
-                continue
-            _, wrote_new = await hass.async_add_executor_job(store._store_blob_sync, content)
-            if wrote_new:
-                written += 1
+        # 1) The files. An encrypted archive raised RuntimeError — a bare
+        # 500 (bug audit 2026-10-16, F9).
+        try:
+            manifest, stored, written = await hass.async_add_executor_job(_restore_files_sync, store, source)
+        except (zipfile.BadZipFile, ValueError, json.JSONDecodeError, KeyError, RuntimeError) as err:
+            return {"error": f"invalid archive: {err}"}
+        if manifest is None:
+            # Zipped without it (only the folders): nothing says which
+            # document a file belongs to — said, instead of "0 restored".
+            return {
+                "error": f"invalid archive: no {MANIFEST_NAME} — keep it next to the folders when zipping again",
+                "code": "docs_archive_no_manifest",
+            }
+        # A list at the top raised AttributeError past the handler above
+        # (bug audit 2026-09-27): refused.
+        if not isinstance(manifest, dict):
+            return {"error": "invalid archive: the manifest is not an object"}
+        manifest_objects = _manifest_objects(manifest)
+        for digest in stored:
             store.notify_blob_added(digest)
 
         # A file document whose file neither came with the archive nor is on

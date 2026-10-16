@@ -83,6 +83,7 @@ def test_every_backend_history_note_is_translated_by_the_frontend() -> None:
         ("__init__.py", r'reason="(Skipped from [^"]+)"'),
         ("button.py", r'reason="(Skipped from [^"]+)"'),
         ("coordinator.py", r'notes="(Sensor trigger activated)"'),
+        ("coordinator.py", r'notes = "(Auto-completed: sensor recovered)"'),
         ("websocket/tasks_crud.py", r'"notes": "(Initial value set during task creation)"'),
     ):
         found = re.findall(pattern, (COMPONENT / rel).read_text(encoding="utf-8"))

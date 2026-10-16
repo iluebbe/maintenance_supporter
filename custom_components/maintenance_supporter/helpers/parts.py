@@ -60,6 +60,10 @@ REUSE_KINDS = ("charge", "sharpen", "clean", "dry", "refill", "restore")
 # one-off (its cost history stays in the statistics) while the next low
 # episode is free to create a fresh reminder.
 PART_REF_FIELD = "part_ref"
+# Set by the buy-task reconcile on a buy task of a paused or archived owner
+# whose pool live objects still draw on (#111): the owner's pause does not
+# freeze it (helpers.pause.pauses_with_object).
+POOL_IN_USE_FIELD = "pool_in_use"
 
 # Label + icon stamped on auto-created buy tasks (design decision: existing
 # ``custom`` task type + label instead of a new task-type enum).

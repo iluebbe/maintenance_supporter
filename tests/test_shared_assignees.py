@@ -180,9 +180,12 @@ async def test_dismissal_clears_every_members_phone(hass: HomeAssistant) -> None
     with _phones({"u-ann": ["notify.mobile_app_ann"], "u-ben": ["notify.mobile_app_ben"]}):
         await nm.async_dismiss_task_notification("t", user_ids=["u-ann", "u-ben"])
         await hass.async_block_till_done()
-    for svc in (household, ann, ben):
+    for svc in (ann, ben):
         assert svc.await_count == 1
         assert svc.call_args[0][0].data == {"message": "clear_notification", "data": {"tag": "maintenance_t"}}
+    # The household service is no phone: it would have shown the command as
+    # text (bug audit 2026-10-16, N2).
+    assert household.await_count == 0
 
 
 async def test_completing_from_a_phone_clears_the_reminder_for_everyone_it_was_shared_with(hass: HomeAssistant) -> None:

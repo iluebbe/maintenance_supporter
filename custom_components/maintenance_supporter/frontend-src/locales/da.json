@@ -510,6 +510,7 @@
   "hist_note_sensor_triggered": "Sensorudløser aktiveret",
   "hist_note_initial": "Startværdi angivet ved oprettelse af opgaven",
   "hist_note_auto_recovered": "Automatisk fuldført: sensoren er normal igen ({value})",
+  "hist_note_auto_recovered_plain": "Automatisk fuldført: sensoren er normal igen",
   "hist_note_reset": "Nulstillet til {date}",
   "hist_note_trigger_replaced": "Udløserentitet erstattet: {old} → {new}",
   "hist_note_trigger_removed": "Sensorudløser fjernet (entitet: {entity}). Tidsplan ændret til {schedule}.",
