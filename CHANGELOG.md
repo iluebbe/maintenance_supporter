@@ -2,6 +2,34 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Every surface tells the same story** (a live check walked a task through its whole life and compared the
+  panel, the card, the entities, the to-do list and the calendar after every step):
+  - **The countdown sensor's id matches its siblings:** on an object created in an area, Home Assistant puts the
+    area in front of a task's entity ids (`sensor.garage_family_car_oil_change`), but the days-until-due countdown
+    skipped it (`sensor.family_car_oil_change_days_until_due`). New countdown sensors now share the prefix and keep
+    the `_days_until_due` ending in every language. Existing ones keep their id, so cards that use them keep
+    working.
+  - **The summary sensors follow at once:** the overdue, due-soon and triggered counts trailed a skip or a
+    completion by up to ten seconds. They now follow within a second.
+  - **A falling sensor reads as falling:** the sensor forecast showed *Trend: Stable* for a filter losing 1.4 % a
+    day, 40 points in a month and past its threshold, because the trend needed a change of 5 % per day. It now
+    counts 5 % over 30 days.
+  - **The Today view separates triggered tasks:** its *Overdue* section also held the triggered sensor tasks (8
+    under a header that said 4 overdue and 4 triggered). They have their own *Triggered* section now and say when
+    they were last done instead of a dash.
+  - **The threshold hint names every limit:** the hint under a threshold trigger mentioned *above* and *below*
+    only; the *equal to* and *different from* limits fire as well and are now named too.
+  - **Both calendars put an overdue task on today:** the panel's Calendar tab showed an overdue or triggered task
+    on today, the integration's calendar entity on its past due date. The calendar entity now shows it on today
+    as well, with its due date in the event description. A calendar-trigger automation sees such a task again
+    each day until it is done.
+- **Docs:** the examples said the countdown's id is translated on a non-English Home Assistant; it has ended in
+  `_days_until_due` in every language since 2.43.
+
 ## [2.103.4] - 2026-10-16
 
 ### ✨ Changed

@@ -12,6 +12,7 @@ import logging
 from typing import Any
 
 from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
+from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -29,6 +30,14 @@ from ..helpers.aggregate import (
 
 _LOGGER = logging.getLogger(__name__)
 
+# The counts are a cheap pass over the coordinators' data. HA's default
+# request-refresh cooldown (10 s) let the summary sensors trail a skip or a
+# completion by up to ten seconds: with several objects refreshing on their
+# own five-minute timers the debouncer was nearly always inside a window
+# (consistency audit 2026-10-16). One second still coalesces a burst, such
+# as every object refreshing at start-up.
+SUMMARY_REFRESH_COOLDOWN = 1.0
+
 
 class MaintenanceSummaryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Event-driven aggregator of task status counts across all objects."""
@@ -40,6 +49,7 @@ class MaintenanceSummaryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER,
             name="Maintenance Supporter summary",
             update_interval=None,
+            request_refresh_debouncer=Debouncer(hass, _LOGGER, cooldown=SUMMARY_REFRESH_COOLDOWN, immediate=True),
         )
         self._unsubs: list[CALLBACK_TYPE] = []
         self._attached: dict[str, tuple[Any, CALLBACK_TYPE]] = {}

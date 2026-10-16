@@ -157,6 +157,28 @@ describe("panel shell", () => {
     expect(textOf(overdueSection)).to.include("Late");
   });
 
+  it("Today view keeps triggered tasks apart from overdue ones (consistency audit 2026-10-16)", async () => {
+    // One "Overdue" list held both: it read 8 under a header saying 4 overdue
+    // and 4 triggered, and the triggered rows showed a bare dash.
+    localStorage.setItem("msp-overview-tab", "today");
+    const nineDaysAgo = new Date(Date.now() - 9 * 86400e3).toISOString().slice(0, 10);
+    const { el } = await mountPanel([
+      obj("e1", [
+        task({ name: "Late", status: "overdue", days_until_due: -3 }),
+        task({ name: "Clogged", status: "triggered", trigger_active: true, days_until_due: null, last_performed: nineDaysAgo }),
+      ]),
+    ]);
+    const sections = [...sr(el).querySelectorAll(".today-section")];
+    const byClass = (cls: string) =>
+      sections.find((s) => s.querySelector(".today-section-header")!.classList.contains(cls));
+    const names = (s: Element | undefined) =>
+      [...(s?.querySelectorAll(".today-task") || [])].map((t2) => t2.textContent?.trim());
+    expect(names(byClass("overdue"))).to.deep.equal(["Late"]);
+    expect(names(byClass("triggered"))).to.deep.equal(["Clogged"]);
+    const sub = byClass("triggered")!.querySelector(".today-object-text")!.textContent!;
+    expect(sub).to.include("done 9 d ago");
+  });
+
   it("Today rows name the responsible person, except under the person filter (#169)", async () => {
     localStorage.setItem("msp-overview-tab", "today");
     const { el } = await mountPanel(

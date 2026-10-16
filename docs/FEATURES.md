@@ -141,7 +141,8 @@ for the visit and scrolls to it.
 
 ### Today View
 One tab over from the Dashboard (the panel opens on the tab you used last) — what needs attention now, bucketed into
-*Overdue / Due today / This week* with one-tap complete; each row shows
+*Overdue / Triggered / Due today / This week* (triggered sensor tasks get their own section since 2.103.5, as in
+the header counts, and say when they were last done) with one-tap complete; each row shows
 the responsible person's avatar — initials in their colour — plus the name
 on wide screens (2.76+, #169). Deep-linkable
 (2.74+): `/maintenance-supporter?tab=today`, `?status=overdue`,
@@ -839,7 +840,9 @@ at 55 % opacity — hypothetical cycles assuming you stay on schedule.
 
 ### Calendar (HA-native entity)
 The integration's calendar entity in Home Assistant's own calendar panel —
-every task due date as an event.
+every task due date as an event. An overdue or triggered task sits on **today**,
+as in the panel's Calendar tab, with its own due date in the event description
+(2.103.5+); before, an overdue task stayed on its past due date.
 
 ![Calendar entity](images/calendar.png)
 

@@ -1140,6 +1140,8 @@
   "trigger_hint_now": "Sensör şu anda {value} değerini okuyor.",
   "trigger_hint_above": "Görev, değer {target} üzerine çıktığında tetiklenir.",
   "trigger_hint_below": "Değer {target} altına düştüğünde tetiklenir.",
+  "trigger_hint_equals": "Değer tam olarak {target} olduğunda tetiklenir.",
+  "trigger_hint_not_equals": "Değer {target} değerinden farklı olduğunda tetiklenir.",
   "trigger_hint_overlap": "Bu sınırlar çakışıyor: her okuma görevi tetikler ve görev asla normale dönemez. Alanlardan birini boş bırakın.",
   "trigger_hint_counter_delta": "Mevcut okumadan ({value}) itibaren sayar: {due} değerinde vadesi gelir (+{target}) ve sayım her tamamlamadan sonra yeniden başlar.",
   "trigger_hint_counter_delta_edit": "Son tamamlamadan bu yana kullanımı sayar: +{target} sonrasında vadesi gelir; sayım her tamamlamadan sonra yeniden başlar.",

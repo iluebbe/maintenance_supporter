@@ -59,6 +59,31 @@ describe("task-dialog live trigger hint", () => {
     expect(text).to.include("1.5 bar");
   });
 
+  it("threshold: names the = and ≠ limits too (consistency audit 2026-10-16)", async () => {
+    // All limits are OR-combined; the hint named only above / below, and an
+    // =-only trigger showed no hint at all.
+    const el = await mountCreate({
+      "sensor.filter_days_left": { state: "42", attributes: { unit_of_measurement: "d" } },
+    });
+    (el as any)._triggerEntityId = "sensor.filter_days_left";
+    (el as any)._triggerEntityIds = ["sensor.filter_days_left"];
+    (el as any)._triggerType = "threshold";
+    (el as any)._triggerBelow = "3";
+    (el as any)._triggerEquals = "360";
+    await el.updateComplete;
+    let text = hint(el)!;
+    expect(text).to.include("falls below 3 d");
+    expect(text).to.include("reads exactly 360 d");
+
+    (el as any)._triggerBelow = "";
+    (el as any)._triggerEquals = "";
+    (el as any)._triggerNotEquals = "0";
+    await el.updateComplete;
+    text = hint(el)!;
+    expect(text, "a ≠-only trigger still gets its hint").to.not.equal(null);
+    expect(text).to.include("anything but 0 d");
+  });
+
   it("formats the figures in the user's number format (bug review 2026-09-04)", async () => {
     // Decimal comma + thousands separators for a de user — like the entity
     // card next to the dialog; the hint used raw String(n).

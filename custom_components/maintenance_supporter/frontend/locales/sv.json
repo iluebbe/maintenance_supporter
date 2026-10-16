@@ -1140,6 +1140,8 @@
   "trigger_hint_now": "Sensorn visar {value} just nu.",
   "trigger_hint_above": "Uppgiften utlöses när värdet stiger över {target}.",
   "trigger_hint_below": "Den utlöses när värdet faller under {target}.",
+  "trigger_hint_equals": "Den utlöses när värdet är exakt {target}.",
+  "trigger_hint_not_equals": "Den utlöses när värdet skiljer sig från {target}.",
   "trigger_hint_overlap": "Dessa gränser överlappar: varje mätvärde utlöser uppgiften och den kan aldrig återhämta sig. Lämna ett av fälten tomt.",
   "trigger_hint_counter_delta": "Räknar från den aktuella avläsningen ({value}): förfaller vid {due} (+{target}); räknaren börjar om efter varje slutförande.",
   "trigger_hint_counter_delta_edit": "Räknar förbrukningen sedan senaste slutförandet: förfaller efter +{target}; räknaren börjar om efter varje slutförande.",

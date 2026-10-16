@@ -105,6 +105,7 @@ async function gather() {
 
 const ACTION = new Set(["overdue", "due_soon", "triggered"]);
 const PROBLEM = new Set(["overdue", "triggered"]);
+const ACTION_NOW = new Set(["overdue", "triggered"]);
 const SUFFIX = { next_due: "_next_due", days_until_due: "_days_until_due", overdue: "_overdue", complete: "_complete", skip: "_skip", reset: "_reset" };
 
 let staticOut = [];
@@ -192,8 +193,11 @@ function parity(s) {
       const evs = s.cal.filter((e) => (e.summary || "").includes(t.name) && (e.summary || "").includes(`(${o.object.name})`));
       const days = evs.map((e) => e.start?.date || (e.start?.dateTime ? localDay(new Date(e.start.dateTime)) : null)).sort();
       if (inert && evs.length) out.push(`${label}: inert task has calendar events (${days.join(", ")})`);
-      if (!inert && t.next_due && !days.includes(t.next_due)) out.push(`${label}: no calendar event on next due ${t.next_due} (events: ${days.join(", ") || "none"})`);
-      if (!inert && !t.next_due && t.status === "triggered" && !days.includes(localDay())) out.push(`${label}: triggered without a date but no calendar event today (events: ${days.join(", ") || "none"})`);
+      // Overdue and triggered tasks sit on today (as in the panel's Calendar
+      // tab), everything else on its next due date.
+      const calDay = ACTION_NOW.has(t.status) ? localDay() : t.next_due;
+      if (!inert && calDay && !days.includes(calDay)) out.push(`${label}: no calendar event on ${calDay} for status ${t.status} (events: ${days.join(", ") || "none"})`);
+      if (!inert && calDay && days.some((d) => d !== calDay)) out.push(`${label}: calendar event off ${calDay} (events: ${days.join(", ")})`);
     }
   }
   // summary sensors + statistics vs counts recomputed from the payload

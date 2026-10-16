@@ -33,7 +33,6 @@ from .const import (
     SIGNAL_DOCUMENTS_UPDATED,
     SIGNAL_TASK_RESET,
     MaintenanceStatus,
-    slugify_object_name,
     task_unique_id,
 )
 from .coordinator import MaintenanceCoordinator
@@ -636,14 +635,19 @@ class MaintenanceDaysUntilDueSensor(MaintenanceEntity, SensorEntity):
         object_slug = aggregate_object_slug(obj_data)
         self._attr_unique_id = task_unique_id(object_slug, task_id, "days_until_due")
         self._attr_translation_placeholders = {"task_name": task_data.get("name", "")}
-        # Pin the documented, language-independent entity_id. Only NEW entities
-        # are affected — an already-registered one keeps its registry id.
-        task_slug = task_data.get("entity_slug") or slugify_object_name(task_data.get("name", task_id))
-        self.entity_id = async_generate_entity_id(
-            ENTITY_ID_FORMAT,
-            f"{object_slug}_{task_slug}_days_until_due",
-            hass=coordinator.hass,
-        )
+        # The id base stays English in every language (the documented gauge
+        # recipe) while HA puts the area and the object in front exactly as it
+        # does for the task's other entities. A pinned entity_id skipped that
+        # prefix: on an object created in an area the countdown alone read
+        # sensor.<object>_<task>_days_until_due beside
+        # sensor.<area>_<object>_<task> (consistency audit 2026-10-16). Only
+        # NEW entities are affected; a registered one keeps its id.
+        self._object_id_base = f"{task_data.get('entity_slug') or task_data.get('name', task_id)} days until due"
+
+    @property
+    def suggested_object_id(self) -> str | None:
+        """The language-independent id base; HA adds area and object (see __init__)."""
+        return self._object_id_base
 
     @property
     def native_value(self) -> int | None:

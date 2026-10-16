@@ -418,6 +418,7 @@ export const panelStyles = css`
   }
   .today-section-header.overdue { border-left-color: var(--error-color, #f44336); }
   .today-section-header.due_soon { border-left-color: var(--warning-color, #ff9800); }
+  .today-section-header.triggered { border-left-color: var(--deep-orange-color, #ff5722); }
   .today-badge {
     min-width: 22px; text-align: center; padding: 1px 8px; border-radius: 11px;
     background: var(--primary-color); color: var(--text-primary-color, #fff); font-size: 12.5px;

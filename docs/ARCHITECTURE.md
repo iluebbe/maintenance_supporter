@@ -192,7 +192,7 @@ drifted. The descriptions are hand-written.
 ```
 custom_components/maintenance_supporter/
 ├── __init__.py                  (2,404 lines)  Integration setup, services, lifecycle, async_migrate_entry
-├── const.py                       (956 lines)  Constants, enums, defaults, PLATFORMS
+├── const.py                       (961 lines)  Constants, enums, defaults, PLATFORMS
 ├── coordinator.py               (2,202 lines)  DataUpdateCoordinator per object
 ├── storage.py                     (684 lines)  Per-entry Store (dynamic state, migration, part stock)
 ├── parts_runtime.py               (646 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
@@ -215,17 +215,17 @@ custom_components/maintenance_supporter/
 ├── condition.py                    (46 lines)  Purpose-specific automation conditions (HA 2026.7+, import-guarded)
 │
 │                                               Five platforms (const.PLATFORMS):
-├── sensor.py                    (1,097 lines)  MaintenanceSensor (enum, per task), MaintenanceNextDueSensor,
+├── sensor.py                    (1,101 lines)  MaintenanceSensor (enum, per task), MaintenanceNextDueSensor,
 │                                               MaintenanceDaysUntilDueSensor (numeric countdown, disabled by default),
 │                                               MaintenanceSummarySensor, PartStockSensor, PartsToReorderSensor,
 │                                               BatteryFleetLowSensor, DocumentStorageSensor (per-area cost: entity/area_cost.py)
 ├── binary_sensor.py               (183 lines)  MaintenanceBinarySensor (problem, per task)
 ├── button.py                      (132 lines)  Complete / Skip / Reset buttons per task (no global buttons)
-├── calendar.py                    (860 lines)  MaintenanceCalendar (global, all tasks)
+├── calendar.py                    (889 lines)  MaintenanceCalendar (global, all tasks)
 ├── todo.py                        (176 lines)  Global to-do list aggregating every active task
-├── entity/                      (2,954 lines)  13 files — Entity bases shared by the platforms, the per-area cost sensors, the trigger engine
+├── entity/                      (2,964 lines)  13 files — Entity bases shared by the platforms, the per-area cost sensors, the trigger engine
 │   ├── entity_base.py             (127 lines)  CoordinatorEntity base class
-│   ├── summary_coordinator.py     (113 lines)  No-poll coordinator behind the global summary sensors
+│   ├── summary_coordinator.py     (123 lines)  No-poll coordinator behind the global summary sensors
 │   ├── area_cost.py               (269 lines)  Maintenance cost per Home Assistant area as sensors (#191)
 │   ├── id_change.py                (27 lines)  In-place entity_id changes (Home Assistant 2026.11, #214)
 │   └── triggers/                (2,411 lines)  8 files — The trigger engine: one class per trigger type
@@ -294,8 +294,8 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (44,673 lines)  132 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
-│   ├── maintenance-panel.ts     (5,357 lines)  Panel shell: today / dashboard / calendar / settings tabs,
+├── frontend-src/               (44,690 lines)  132 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+│   ├── maintenance-panel.ts     (5,366 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,263 lines)  Auto-generated dashboard strategy + 4 section strategies
 │   ├── maintenance-card.ts        (861 lines)  Lovelace card
@@ -304,7 +304,7 @@ custom_components/maintenance_supporter/
 │   ├── maintenance-strategy-shim.ts (441 lines)  Zero-import boot shim: defines the dashboard AND the four
 │   │                                           section strategy tags synchronously (lazy-loads the bundle on
 │   │                                           first generate(); v2.73.0), picker entries, scoped-registry self-heal
-│   ├── panel-styles.ts          (2,195 lines)  Panel-specific CSS
+│   ├── panel-styles.ts          (2,196 lines)  Panel-specific CSS
 │   ├── calendar-styles.ts         (208 lines)  Calendar-card CSS
 │   ├── styles.ts                (1,768 lines)  Shared CSS, i18n runtime loader (bundled EN + on-demand fetch
 │   │                                           of the other 21) + shared helpers; the ONLY module that formats
@@ -400,8 +400,8 @@ custom_components/maintenance_supporter/
 │   │   ├── sparkline.ts           (515 lines)  Trigger section renderer (task detail)
 │   │   ├── status.ts               (81 lines)  A task's status as the user sees it — THE derivation for every surface
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
-│   ├── components/             (19,947 lines)  37 files — Lit elements: dialogs, sections, views, cards
-│   │   ├── task-dialog.ts       (3,751 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
+│   ├── components/             (19,954 lines)  37 files — Lit elements: dialogs, sections, views, cards
+│   │   ├── task-dialog.ts       (3,758 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
 │   │   ├── settings-view.ts     (2,780 lines)  In-panel global settings editor
 │   │   ├── task-quick-actions-dialog.ts (937 lines)  Task ⋮ menu
 │   │   ├── documents-section.ts   (716 lines)  Object-detail documents/manuals section
@@ -438,9 +438,9 @@ custom_components/maintenance_supporter/
 │   │   ├── required-completion-labels.ts (27 lines)  Labels of the details a task can demand on completion (mirror of helpers/completion_requirements.py)
 │   │   ├── bulk-edit-dialog.ts    (266 lines)  Several tasks changed at once (discussion #199): who is assigned, their labels, and the few settings that make sense in bulk
 │   │   └── ms-cost-input.ts       (109 lines)  A cost that may be a credit (#200): a Cost | Credit switch and the amount
-│   └── __tests__/              (28,744 lines)  206 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (28,791 lines)  206 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (32,549 lines)  103 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+├── helpers/                    (32,550 lines)  103 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,580 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (367 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
@@ -448,7 +448,7 @@ custom_components/maintenance_supporter/
 │   ├── interval_analyzer.py       (711 lines)  EWA + Weibull + seasonal analysis (pure Python)
 │   ├── schedule.py                (907 lines)  Schedule value object (discriminated-union recurrence) + adapters
 │   ├── calendar_source.py         (239 lines)  Calendar-entity occurrences (#187): `calendar.get_events` prefetch, 15-min cache in hass.data, provider for the pure engine
-│   ├── sensor_predictor.py        (928 lines)  Degradation + environmental correlation
+│   ├── sensor_predictor.py        (929 lines)  Degradation + environmental correlation
 │   ├── documents.py             (1,011 lines)  Content-addressed manual/PDF storage + web links
 │   ├── document_text.py           (451 lines)  Full-text index over the blobs: pypdf text layer → sidecar + inverted index (#171)
 │   ├── search_match.py            (212 lines)  Tolerant matcher (fold, digraph variants, one-edit typos, AND rule) — TS twin in the panel
@@ -735,7 +735,7 @@ Three-layer interval prediction:
 ### Sensor Prediction (sensor_predictor.py)
 
 When a task has a sensor-based trigger, the predictor analyzes recorder statistics to forecast:
-- **Degradation rate**: Linear regression on historical sensor values (X-normalized to avoid catastrophic cancellation with Unix timestamps), classified as stable/rising/falling
+- **Degradation rate**: Linear regression on historical sensor values (X-normalized to avoid catastrophic cancellation with Unix timestamps), classified as stable/rising/falling: rising or falling once the trend would move the reading by at least 5 % of its mean within 30 days (`DEFAULT_DEGRADATION_SIGNIFICANCE` over `DEGRADATION_TREND_HORIZON_DAYS`; until 2.103.4 it was 5 % per day, so nearly every real degradation read "stable")
 - **Threshold prediction**: Days until the sensor value reaches the trigger threshold
 - **Environmental correlation**: Pearson correlation between an environmental sensor (temperature, humidity) and maintenance intervals, producing an adjustment factor
 
@@ -1095,7 +1095,7 @@ The rules that are easiest to regress are tripwired:
 
 ## Test Coverage
 
-**5,651 tests** across **340 test files** with **98% code coverage** (plus a 1,323-test frontend suite in real Chromium across 203 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
+**5,651 tests** across **341 test files** with **98% code coverage** (plus a 1,323-test frontend suite in real Chromium across 203 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 

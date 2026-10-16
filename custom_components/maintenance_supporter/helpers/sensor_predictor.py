@@ -34,6 +34,7 @@ from ..const import (
     DEGRADATION_CYCLE_NOISE_SIGMAS,
     DEGRADATION_CYCLE_SETTLE_POINTS,
     DEGRADATION_MIN_CYCLE_HOURS,
+    DEGRADATION_TREND_HORIZON_DAYS,
 )
 from .history import completed_entries
 from .least_squares import linear_fit
@@ -420,7 +421,7 @@ class SensorPredictor:
         mean_val = sum(values) / len(values) if values else 1.0
         if mean_val == 0:
             mean_val = 1.0
-        ratio = abs(slope_per_day) / abs(mean_val)
+        ratio = abs(slope_per_day) * DEGRADATION_TREND_HORIZON_DAYS / abs(mean_val)
         if ratio < DEFAULT_DEGRADATION_SIGNIFICANCE:
             trend = "stable"
         elif slope_per_day > 0:
@@ -491,7 +492,7 @@ class SensorPredictor:
         if mean_val == 0:
             mean_val = 1.0  # avoid division by zero
 
-        ratio = abs(slope_per_day) / abs(mean_val)
+        ratio = abs(slope_per_day) * DEGRADATION_TREND_HORIZON_DAYS / abs(mean_val)
         if ratio < DEFAULT_DEGRADATION_SIGNIFICANCE:
             trend = "stable"
         elif slope_per_day > 0:

@@ -7,7 +7,7 @@ import { objectRef, parseRef, renderRefChip, taskRef, type HasRef } from "./help
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle, pendingRestartVersion, type ServerVersion } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
-import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, formatQty, syncCurrencyDecimals} from "./styles";
+import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatLastDone, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, formatQty, syncCurrencyDecimals} from "./styles";
 import { OVERVIEW_TABS, type OverviewTab } from "./helpers/overview-tabs";
 import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
 import { openHtmlInNewTab, openSignedDocument, preopenTab, signApiPath } from "./helpers/document-url";
@@ -3527,14 +3527,18 @@ export class MaintenanceSupporterPanel extends LitElement {
     const L = this._lang;
     const rows = this._taskRows; // already excludes archived + disabled
     const key = (r: TaskRow) => `${r.entry_id}:${r.task_id}`;
-    const overdue = rows.filter((r) => r.status === "overdue" || r.trigger_active);
-    const claimed = new Set(overdue.map(key));
+    // Overdue and triggered are two sections, as the header counts them: one
+    // "Overdue" list holding both read 8 under a header saying 4 overdue and
+    // 4 triggered (consistency audit 2026-10-16).
+    const overdue = rows.filter((r) => r.status === "overdue");
+    const triggered = rows.filter((r) => r.status === "triggered");
+    const claimed = new Set([...overdue, ...triggered].map(key));
     const dueToday = rows.filter((r) => !claimed.has(key(r)) && r.days_until_due === 0);
     dueToday.forEach((r) => claimed.add(key(r)));
     const thisWeek = rows.filter((r) => !claimed.has(key(r))
       && r.days_until_due != null && r.days_until_due > 0 && r.days_until_due <= 7);
 
-    if (overdue.length + dueToday.length + thisWeek.length === 0) {
+    if (overdue.length + triggered.length + dueToday.length + thisWeek.length === 0) {
       return html`
         <div class="today-empty">
           <ha-icon icon="mdi:check-circle-outline"></ha-icon>
@@ -3545,6 +3549,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     return html`
       <div class="today-view">
         ${this._renderTodaySection("today_overdue", overdue, "overdue")}
+        ${this._renderTodaySection("triggered", triggered, "triggered")}
         ${this._renderTodaySection("today_due_today", dueToday, "due_soon")}
         ${this._renderTodaySection("today_this_week", thisWeek, "")}
       </div>
@@ -3574,7 +3579,11 @@ export class MaintenanceSupporterPanel extends LitElement {
             <div class="today-main">
               <div class="today-task">${this._listRef(row.entry_id, row.task_id)}${row.task_name}${renderEventTitles(row.next_event_titles)}</div>
               <div class="today-object">
-                <span class="today-object-text">${row.object_name} · ${formatDueDays(row.days_until_due, L)}</span>
+                <span class="today-object-text">${row.object_name} · ${row.days_until_due == null
+                  // No due date (a triggered sensor task): when it was last
+                  // done, like the dashboard's due column, not a bare dash.
+                  ? formatLastDone(row.last_performed, L) ?? "—"
+                  : formatDueDays(row.days_until_due, L)}</span>
                 ${renderPersonChip(personOf(row), "today-person")}
               </div>
             </div>

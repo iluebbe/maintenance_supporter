@@ -51,6 +51,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Letzter",
         "cal_day": "Tag",
         "last_performed": "Zuletzt durchgeführt",
+        "due": "Fällig",
         "never": "Nie",
         "manually_triggered": "Manuell ausgelöste Wartungsaufgabe",
         "sensor_triggered": "Sensor-Trigger ausgelöst für {name}",
@@ -69,6 +70,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Laatste",
         "cal_day": "Dag",
         "last_performed": "Laatst uitgevoerd",
+        "due": "Vervalt",
         "never": "Nooit",
         "manually_triggered": "Handmatig geactiveerde onderhoudstaak",
         "sensor_triggered": "Sensortrigger geactiveerd voor {name}",
@@ -87,6 +89,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Dernier",
         "cal_day": "Jour",
         "last_performed": "Dernière exécution",
+        "due": "Échéance",
         "never": "Jamais",
         "manually_triggered": "Tâche de maintenance déclenchée manuellement",
         "sensor_triggered": "Déclencheur capteur activé pour {name}",
@@ -105,6 +108,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Ultimo",
         "cal_day": "Giorno",
         "last_performed": "Ultima esecuzione",
+        "due": "Scadenza",
         "never": "Mai",
         "manually_triggered": "Attività di manutenzione attivata manualmente",
         "sensor_triggered": "Trigger sensore attivato per {name}",
@@ -123,6 +127,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Último",
         "cal_day": "Día",
         "last_performed": "Última ejecución",
+        "due": "Vence",
         "never": "Nunca",
         "manually_triggered": "Tarea de mantenimiento activada manualmente",
         "sensor_triggered": "Disparador de sensor activado para {name}",
@@ -141,6 +146,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Last",
         "cal_day": "Day",
         "last_performed": "Last performed",
+        "due": "Due",
         "never": "Never",
         "manually_triggered": "Manually triggered maintenance task",
         "sensor_triggered": "Sensor trigger activated for {name}",
@@ -159,6 +165,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Последний",
         "cal_day": "День",
         "last_performed": "Последнее выполнение",
+        "due": "Срок",
         "never": "Никогда",
         "manually_triggered": "Задача обслуживания запущена вручную",
         "sensor_triggered": "Триггер датчика активирован для {name}",
@@ -177,6 +184,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Останній",
         "cal_day": "День",
         "last_performed": "Останнє виконання",
+        "due": "Термін",
         "never": "Ніколи",
         "manually_triggered": "Завдання обслуговування запущено вручну",
         "sensor_triggered": "Спрацював сенсорний тригер для {name}",
@@ -195,6 +203,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Último",
         "cal_day": "Dia",
         "last_performed": "Última execução",
+        "due": "Vence",
         "never": "Nunca",
         "manually_triggered": "Tarefa de manutenção acionada manualmente",
         "sensor_triggered": "Gatilho do sensor ativado para {name}",
@@ -213,6 +222,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "最后",
         "cal_day": "日",
         "last_performed": "最后执行时间",
+        "due": "到期",
         "never": "从未",
         "manually_triggered": "手动触发维护任务",
         "sensor_triggered": "{name} 的传感器触发器已激活",
@@ -231,6 +241,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Última",
         "cal_day": "Dia",
         "last_performed": "Última realização",
+        "due": "Vence",
         "never": "Nunca",
         "manually_triggered": "Tarefa de manutenção acionada manualmente",
         "sensor_triggered": "Gatilho de sensor ativado para {name}",
@@ -249,6 +260,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Utolsó",
         "cal_day": "Nap",
         "last_performed": "Utoljára elvégezve",
+        "due": "Esedékes",
         "never": "Soha",
         "manually_triggered": "Kézzel indított karbantartási feladat",
         "sensor_triggered": "Érzékelő-trigger aktiválódott: {name}",
@@ -267,6 +279,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "마지막",
         "cal_day": "일",
         "last_performed": "마지막 수행",
+        "due": "예정일",
         "never": "없음",
         "manually_triggered": "수동으로 실행된 유지보수 작업",
         "sensor_triggered": "{name} 센서 트리거 활성화됨",
@@ -285,6 +298,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Son",
         "cal_day": "Gün",
         "last_performed": "Son yapılma",
+        "due": "Vade",
         "never": "Hiç",
         "manually_triggered": "Elle tetiklenen bakım görevi",
         "sensor_triggered": "{name} için sensör tetikleyicisi etkinleşti",
@@ -303,6 +317,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Poslední",
         "cal_day": "Den",
         "last_performed": "Naposledy provedeno",
+        "due": "Termín",
         "never": "Nikdy",
         "manually_triggered": "Ručně spuštěná úloha údržby",
         "sensor_triggered": "Spuštěno senzorem pro {name}",
@@ -321,6 +336,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Seneste",
         "cal_day": "Dag",
         "last_performed": "Senest udført",
+        "due": "Forfalder",
         "never": "Aldrig",
         "manually_triggered": "Manuelt udløst vedligeholdelsesopgave",
         "sensor_triggered": "Sensorudløst for {name}",
@@ -339,6 +355,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Viimeisin",
         "cal_day": "Päivä",
         "last_performed": "Viimeksi suoritettu",
+        "due": "Erääntyy",
         "never": "Ei koskaan",
         "manually_triggered": "Manuaalisesti käynnistetty huoltotehtävä",
         "sensor_triggered": "Anturin laukaisema: {name}",
@@ -357,6 +374,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "अंतिम",
         "cal_day": "दिन",
         "last_performed": "अंतिम बार किया गया",
+        "due": "देय",
         "never": "कभी नहीं",
         "manually_triggered": "मैन्युअल रूप से शुरू किया गया रखरखाव कार्य",
         "sensor_triggered": "{name} के लिए सेंसर ट्रिगर",
@@ -375,6 +393,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "前回",
         "cal_day": "日",
         "last_performed": "前回実施",
+        "due": "期限",
         "never": "なし",
         "manually_triggered": "手動トリガーのメンテナンスタスク",
         "sensor_triggered": "{name} のセンサートリガー",
@@ -393,6 +412,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Siste",
         "cal_day": "Dag",
         "last_performed": "Sist utført",
+        "due": "Forfaller",
         "never": "Aldri",
         "manually_triggered": "Manuelt utløst vedlikeholdsoppgave",
         "sensor_triggered": "Sensorutløst for {name}",
@@ -411,6 +431,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Ostatni",
         "cal_day": "Dzień",
         "last_performed": "Ostatnio wykonano",
+        "due": "Termin",
         "never": "Nigdy",
         "manually_triggered": "Ręcznie wyzwolone zadanie konserwacji",
         "sensor_triggered": "Wyzwolone czujnikiem dla {name}",
@@ -429,6 +450,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "cal_last": "Senaste",
         "cal_day": "Dag",
         "last_performed": "Senast utförd",
+        "due": "Förfaller",
         "never": "Aldrig",
         "manually_triggered": "Manuellt utlöst underhållsuppgift",
         "sensor_triggered": "Sensorutlöst för {name}",
@@ -816,12 +838,18 @@ class MaintenanceCalendar(CalendarEntity):
                     )
             return None
 
-        # Check if next_due is in range
-        if next_due < start_d or next_due > end_d:
-            return None
-
         status = live_status or task.status
         prefix = STATUS_PREFIX.get(status, "")
+
+        # An overdue or triggered task is something to do now: it sits on
+        # today, as in the panel's Calendar tab, instead of on a due date in
+        # the past where the calendar hid it (consistency audit 2026-10-16).
+        # Its own due date stays in the description.
+        event_day = next_due
+        if status in (MaintenanceStatus.OVERDUE, MaintenanceStatus.TRIGGERED):
+            event_day = dt_util.now().date()
+        if event_day < start_d or event_day > end_d:
+            return None
 
         # Build translated description
         type_translated = _cal_t(task.type, lang) if task.type else task.type
@@ -834,13 +862,13 @@ class MaintenanceCalendar(CalendarEntity):
         # (and the global advanced flag is on), render as a 30-min timed
         # event at HH:MM in HA's configured TZ — calendar apps can then
         # set proper alarms instead of the generic "all-day" reminder.
-        start: date | datetime = next_due
-        end: date | datetime = next_due + timedelta(days=1)
+        start: date | datetime = event_day
+        end: date | datetime = event_day + timedelta(days=1)
         if task.schedule_time and self._is_schedule_time_feature_enabled():
             # "HH:MM" and "HH:MM:SS" alike; malformed → stays all-day.
             at = parse_hhmm(task.schedule_time)
             if at is not None:
-                start_dt = datetime.combine(next_due, at, tzinfo=dt_util.DEFAULT_TIME_ZONE)
+                start_dt = datetime.combine(event_day, at, tzinfo=dt_util.DEFAULT_TIME_ZONE)
                 start = start_dt
                 end = start_dt + timedelta(minutes=30)
 
@@ -849,7 +877,8 @@ class MaintenanceCalendar(CalendarEntity):
             start=start,
             end=end,
             description=(
-                f"{_cal_t('type', lang)}: {type_translated}\n"
+                (f"{_cal_t('due', lang)}: {next_due.isoformat()}\n" if event_day != next_due else "")
+                + f"{_cal_t('type', lang)}: {type_translated}\n"
                 f"{_cal_t('interval', lang)}: {interval_text}\n"
                 f"{_cal_t('last_performed', lang)}: {last_perf}"
             ),

@@ -608,14 +608,16 @@ max_items: 10
 ```
 
 > **Non-English Home Assistant?** The per-task *status* sensor
-> (`sensor.<object>_<task>`) and the global `sensor.maintenance_supporter_*`
-> sensors keep the ids shown here in every language. The per-task
-> **companions** — the `_overdue` binary sensor, the next-due and
-> days-until-due sensors, and the complete / skip / reset buttons — get their
-> name from a **translated** string, so their suffix is localized as well (on
-> a German install the countdown reads `sensor.<object>_<task>_tage_bis_fallig`,
-> not `_days_until_due`). Look the exact id up under *Developer Tools → States*
-> or on the object's device page — see [Entity naming](#entity-naming).
+> (`sensor.<object>_<task>`), the days-until-due countdown
+> (`…_days_until_due`) and the global `sensor.maintenance_supporter_*`
+> sensors keep the ids shown here in every language. The other per-task
+> **companions** — the `_overdue` binary sensor, the next-due sensor and the
+> complete / skip / reset buttons — get their name from a **translated**
+> string, so their suffix is localized (on a German install the binary sensor
+> ends in `_uberfallig`). An object created **in an area** carries the area in
+> front of all its task ids (`sensor.<area>_<object>_<task>`). Look the exact
+> id up under *Developer Tools → States* or on the object's device page — see
+> [Entity naming](#entity-naming).
 
 ### The whole panel as a card (2.84+, #174)
 
@@ -679,10 +681,10 @@ segments:
     color: green
 ```
 
-The countdown sensor's name is translated, so **its entity id is localized**
-too — the `_days_until_due` suffix above only holds on an English Home
-Assistant (German: `_tage_bis_fallig`). Copy the real id from *Developer
-Tools → States* before pasting the card.
+The countdown's id ends in `_days_until_due` in every language, after the
+same prefix as the task's status sensor. That prefix carries the area when the
+object was created in one (`sensor.garage_family_car_oil_change_days_until_due`),
+so copy the real id from *Developer Tools → States* before pasting the card.
 
 On older versions (or for one-off needs) the same number is available
 without the sensor via a template:
@@ -786,7 +788,7 @@ Alongside that status sensor each task also registers **companion entities** on 
 | `binary_sensor.<object>_<task>_overdue` | `device_class: problem`, ON when overdue or triggered |
 | `button.<object>_<task>_complete` / `_skip` / `_reset` | One-press actions (see [Action buttons](#action-buttons)) |
 
-> **The companion suffixes are localized.** Only the status sensor (its name *is* the task name) and the global `sensor.maintenance_supporter_*` sensors carry the same id in every language. The companions above take their name from a translated string, so on a German install the countdown is `sensor.<object>_<task>_tage_bis_fallig` and the binary sensor ends in `_uberfallig`. Read the real ids off *Developer Tools → States*, or from the object's page under *Settings → Devices & Services → Devices*.
+> **Most companion suffixes are localized.** The status sensor (its name *is* the task name), the `_days_until_due` countdown and the global `sensor.maintenance_supporter_*` sensors carry the same id in every language. The other companions take their name from a translated string, so on a German install the binary sensor ends in `_uberfallig` and the next-due sensor in `_nachste_falligkeit`. An object created in an area has the area in front of every task id (`sensor.<area>_<object>_<task>…`). Read the real ids off *Developer Tools → States*, or from the object's page under *Settings → Devices & Services → Devices*.
 
 Because the names vary per setup, **don't filter by entity-id prefix** in templates — filter by integration instead, using `integration_entities('maintenance_supporter')`. Each status sensor's state is one of `ok`, `due_soon`, `overdue`, `triggered`, `archived`, `paused`.
 

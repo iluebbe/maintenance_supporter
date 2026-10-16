@@ -572,7 +572,12 @@ CONF_SEASONAL_HEMISPHERE = "seasonal_hemisphere"
 # --- Sensor Prediction Defaults (Phase 3) ---
 DEFAULT_DEGRADATION_LOOKBACK_DAYS = 30  # Days of recorder data for slope computation
 DEFAULT_DEGRADATION_MIN_POINTS = 10  # Min hourly data points to compute regression
-DEFAULT_DEGRADATION_SIGNIFICANCE = 0.05  # Min |slope|/mean ratio for rising/falling
+# Rising/falling = the trend would move the reading by at least this share of
+# its mean within DEGRADATION_TREND_HORIZON_DAYS. It was a per-DAY ratio, so a
+# filter losing 1.4 %/day (40 points a month, past its threshold) read
+# "stable" (consistency audit 2026-10-16).
+DEFAULT_DEGRADATION_SIGNIFICANCE = 0.05
+DEGRADATION_TREND_HORIZON_DAYS = 30
 
 # --- Cycle-aware degradation (ET-4800 ink finding, 2026-08) ---
 # Consumption sensors are sawtooths: the value drifts toward the threshold and

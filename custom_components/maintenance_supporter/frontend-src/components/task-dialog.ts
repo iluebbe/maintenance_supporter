@@ -2689,10 +2689,17 @@ export class MaintenanceTaskDialog extends LitElement {
     if (this._triggerType === "threshold") {
       const above = parseFloat(this._triggerAbove);
       const below = parseFloat(this._triggerBelow);
-      if (isNaN(above) && isNaN(below)) return nothing;
+      // The = / ≠ limits fire too (all limits are OR-combined); the hint
+      // named only above / below and said nothing for an =-only trigger
+      // (consistency audit 2026-10-16).
+      const equals = parseFloat(this._triggerEquals);
+      const notEquals = parseFloat(this._triggerNotEquals);
+      if ([above, below, equals, notEquals].every((v) => isNaN(v))) return nothing;
       if (hasNum) parts.push(t("trigger_hint_now", L).replace("{value}", fmt(num) + unit));
       if (!isNaN(above)) parts.push(t("trigger_hint_above", L).replace("{target}", fmt(above) + unit));
       if (!isNaN(below)) parts.push(t("trigger_hint_below", L).replace("{target}", fmt(below) + unit));
+      if (!isNaN(equals)) parts.push(t("trigger_hint_equals", L).replace("{target}", fmt(equals) + unit));
+      if (!isNaN(notEquals)) parts.push(t("trigger_hint_not_equals", L).replace("{target}", fmt(notEquals) + unit));
     } else if (this._triggerType === "counter") {
       const target = parseFloat(this._triggerTargetValue);
       if (isNaN(target)) return nothing;
