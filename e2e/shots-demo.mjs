@@ -1448,7 +1448,13 @@ await step("calendar.png", async () => {
 
 // 19. Native To-do list entity
 await step("todo-list.png", async () => {
-  await p.goto(HA + "/todo", { waitUntil: "domcontentloaded" });
+  // The integration's own list, not whichever list HA opens first. (The
+  // 2.67 steps below were once pasted INSIDE this step, so the shot showed
+  // the last page they opened, the oil-change task.)
+  await p.goto(HA + "/todo?entity_id=todo.maintenance", { waitUntil: "domcontentloaded" });
+  await p.waitForTimeout(6000);
+  await shot("todo-list.png");
+});
 
 // 19b. (2.67) Shopping-list sync — the espresso buy reminder mirrored into
 // the household's Local To-do list (the sync only ever touches its own rows).
@@ -1515,10 +1521,6 @@ await step("task-notes-markdown.png", async () => {
   }, { finder: deepFindPanel });
   await p.waitForTimeout(3000);
   await shot("task-notes-markdown.png");
-});
-
-  await p.waitForTimeout(6000);
-  await shot("todo-list.png");
 });
 
 // 20. Config flow (integration options via Settings → Integrations)

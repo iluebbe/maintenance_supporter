@@ -5,6 +5,8 @@
  *  printable service record (popup) and asserts its content. Writes
  *  docs/images/object-history.png (section) and service-record.png (sheet).
  */
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { chromium } from "@playwright/test";
 import { haLogin, watchdog, wsClient } from "./ws-client.mjs";
 
@@ -124,11 +126,13 @@ try {
     const b = sec.getBoundingClientRect();
     return { x: b.x, y: b.y, w: b.width, h: Math.min(b.height, 700) };
   });
+  // docs/images/object-history.png belongs to shots-object-history.mjs (dark,
+  // like the rest of the docs set); this check's own light shot goes to TEMP.
   await page.screenshot({
-    path: OUT + "object-history.png",
+    path: join(tmpdir(), "object-history-check.png"),
     clip: { x: Math.max(0, secBox.x - 8), y: Math.max(0, secBox.y - 8), width: secBox.w + 16, height: secBox.h + 16 },
   });
-  log("  wrote docs/images/object-history.png");
+  log(`  wrote ${join(tmpdir(), "object-history-check.png")}`);
 
   // Printable service record opens as a popup with content + total.
   const [popup] = await Promise.all([
@@ -156,6 +160,9 @@ try {
     }),
   ]);
   await popup.waitForLoadState("domcontentloaded");
+  // The sheet fills in after the blob page loads (the QR codes are built
+  // first): wait for the first completion row instead of reading at once.
+  await popup.waitForSelector("table tbody tr", { timeout: 15000 }).catch(() => {});
   const sheet = await popup.evaluate(() => ({
     title: document.title,
     hasTable: !!document.querySelector("table tbody tr"),

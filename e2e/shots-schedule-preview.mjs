@@ -1,19 +1,21 @@
 /** Screenshot: the live schedule preview with the #83 configuration
- *  (2nd Saturday, seasonal window Jan+Jul) — clipped to the dialog. */
+ *  (2nd Saturday, seasonal window Jan+Jul) — clipped to the dialog. On the
+ *  seeded, dark ha-shots instance like the rest of the docs set.
+ *  node shots-schedule-preview.mjs ../docs/images */
 import { chromium } from "@playwright/test";
-import { loadToken, watchdog, wsClient, hassTokensInit } from "./ws-client.mjs";
+import { haLogin, watchdog, wsClient, hassTokensInit } from "./ws-client.mjs";
 
-const HA = "http://ha-maint:8123", REST = "http://127.0.0.1:8125", PW_WS = "ws://127.0.0.1:3000/";
+const HA = "http://ha-shots:8123", REST = "http://127.0.0.1:8131", PW_WS = "ws://127.0.0.1:3000/";
 const OUT = process.argv[2] || ".";
 const log = (...a) => console.log(...a);
 watchdog(5 * 60e3, "schedule preview shot");
 
-const token = loadToken();
+const token = await haLogin(REST, { user: "demo", pass: "demo-pass-1", cid: HA + "/" });
 const api = await wsClient(REST, token);
 let browser;
 try {
   browser = await chromium.connect(PW_WS);
-  const ctx = await browser.newContext({ viewport: { width: 1400, height: 1100 }, deviceScaleFactor: 2 });
+  const ctx = await browser.newContext({ viewport: { width: 1400, height: 1100 }, deviceScaleFactor: 2, colorScheme: "dark" });
   const p = await ctx.newPage();
   await p.addInitScript(hassTokensInit, { t: token, ha: HA });
   await p.goto(HA + "/maintenance-supporter", { waitUntil: "domcontentloaded", timeout: 30000 });
@@ -25,7 +27,8 @@ try {
       ?.querySelector("home-assistant-main")?.shadowRoot
       ?.querySelector("ha-drawer partial-panel-resolver ha-panel-custom maintenance-supporter-panel");
     if (!panel?.shadowRoot) return { err: "panel not found" };
-    const dlg = panel.shadowRoot.querySelector("maintenance-task-dialog");
+    // Dialogs are lazy: _ui() mounts it on first use.
+    const dlg = panel.shadowRoot.querySelector("maintenance-task-dialog") || (await panel._ui("maintenance-task-dialog"));
     const objsResp = await panel.hass.connection.sendMessagePromise({ type: "maintenance_supporter/objects" });
     const entryId = objsResp.objects[0]?.entry_id;
     if (!entryId) return { err: "no objects" };
