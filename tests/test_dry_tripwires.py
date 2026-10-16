@@ -384,8 +384,9 @@ async def test_checklist_progress_clean_error_when_store_missing(
     object_entry: MockConfigEntry,
 ) -> None:
     """Checklist ticks live ONLY in the Store — with the Store unavailable the
-    handler must answer storage_unavailable, not crash with AttributeError
-    (the audit found this as the one unguarded rd.store access)."""
+    handler must answer not_loaded (the code of every Store command, BI5-A11),
+    not crash with AttributeError (the audit found this as the one unguarded
+    rd.store access)."""
     from custom_components.maintenance_supporter.websocket.tasks_actions import ws_checklist_progress
 
     await setup_integration(hass, global_entry, object_entry)
@@ -405,7 +406,7 @@ async def test_checklist_progress_clean_error_when_store_missing(
         },
     )
     assert conn.send_error.called
-    assert conn.send_error.call_args[0][1] == "storage_unavailable"
+    assert conn.send_error.call_args[0][1] == "not_loaded"
 
 
 async def test_readopt_restores_pooled_part_link(

@@ -35,6 +35,8 @@ export interface WorksheetLabels {
   never: string;
   typeLabel: (t: string) => string;
   statusLabel: (s: string) => string;
+  /** The priority's name ("High") — the sheet printed the raw key (FE5-A7). */
+  priorityLabel: (p: string) => string;
 }
 
 export interface WorksheetExcerpt {
@@ -83,7 +85,7 @@ export function buildTaskWorksheetHtml(
     [L.lastDone, task.last_performed ? esc(formatDate(task.last_performed)) : esc(L.never)],
   ];
   if (task.priority && task.priority !== "normal") {
-    meta.push([L.priority, esc(task.priority)]);
+    meta.push([L.priority, esc(L.priorityLabel(task.priority))]);
   }
 
   const checklist = (task.checklist || [])

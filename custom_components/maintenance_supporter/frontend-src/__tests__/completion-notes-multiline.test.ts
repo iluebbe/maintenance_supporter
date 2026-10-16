@@ -88,7 +88,7 @@ describe("completion notes over several lines (#202)", () => {
       },
       keyLabels<AreaRecordLabels>(),
       {
-        date: (iso) => iso.slice(0, 10), cost: (n) => `${n} €`, duration: (m) => `${m} min`,
+        date: (iso) => iso.slice(0, 10), cost: (n) => `${n} €`, entryCost: (n) => `${n} €`, duration: (m) => `${m} min`,
         bucket: (b) => b.key, share: (f) => `${Math.round(f * 100)} %`, number: (n) => String(n),
       },
       "2026-10-03T10:00:00Z",

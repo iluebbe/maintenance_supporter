@@ -19,7 +19,7 @@ export function currencySymbolOf(budget: { currency_symbol?: string | null } | n
 // Moved to the dependency-free status-constants.ts so the dashboard strategy
 // bundle can share them without pulling Lit in; re-exported here so every
 // existing `from "./styles"` import keeps working.
-export { STATUS_COLORS, STATUS_ICONS } from "./status-constants";
+export { HISTORY_TYPE_COLORS, STATUS_COLORS, STATUS_ICONS, historyTypeColor } from "./status-constants";
 
 /* ─── i18n ─── */
 
@@ -204,6 +204,14 @@ export function formatNumber(n: number, lang?: string, digits?: number | Intl.Nu
  *  fraction digits come from the global `currency_decimals` setting (default
  *  0) unless a caller pins them. A credit (#200) is a negative amount; one
  *  that rounds away prints "0", never Intl's "-0". */
+/** One history entry's amount: a credit (#200 — negative) reads "Credit:
+ *  50 €" wherever an entry is listed. The task history said so; the object
+ *  history, the area view and its printable record printed "-50 €" (DRY audit
+ *  2026-10-12, FE5-A8). Totals keep the signed form. */
+export function formatEntryCost(amount: number, symbol?: string, lang?: string): string {
+  return amount < 0 ? `${t("cost_kind_credit", lang ?? "en")}: ${formatCost(-amount, symbol, lang)}` : formatCost(amount, symbol, lang);
+}
+
 export function formatCost(amount: number, symbol?: string, lang?: string, digits?: number): string {
   const d = digits ?? currencyDecimals();
   const shown = Math.abs(amount) < 0.5 / Math.pow(10, d) ? 0 : amount;
@@ -750,10 +758,7 @@ export const sharedStyles = css`
     color: white;
   }
 
-  .history-icon.completed { background: var(--maint-ok-color); }
-  .history-icon.skipped { background: var(--secondary-text-color); }
-  .history-icon.reset { background: var(--info-color, #2196f3); }
-  .history-icon.triggered { background: var(--maint-triggered-color); }
+  /* The background comes from HISTORY_TYPE_COLORS (renderers/history.ts). */
 
   .history-content { flex: 1; min-width: 0; }
 

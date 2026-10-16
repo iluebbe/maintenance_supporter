@@ -1477,7 +1477,7 @@ export class MaintenanceTaskDialog extends LitElement {
 
   private async _save(): Promise<void> {
     if (this._loading) return;  // synchronous re-entry guard (double-click)
-    if (!this._name.trim()) return;
+    if (!this._name.trim() || this._missingDueDate()) return;
     if (this._adaptiveSnapshot() !== this._adaptiveInitial) {
       const minIv = parseInt(this._adaptiveMin, 10);
       const maxIv = parseInt(this._adaptiveMax, 10);
@@ -1571,6 +1571,12 @@ export class MaintenanceTaskDialog extends LitElement {
     } finally {
       this._loading = false;
     }
+  }
+
+  /** A one-time task without its date: the backend refuses it (DRY audit
+   *  2026-10-12, BI5-A5), so Save waits for the date. */
+  private _missingDueDate(): boolean {
+    return this._scheduleType === "one_time" && !this._dueDate;
   }
 
   /** The task/create | task/update message from the form (validated above). */
@@ -3388,7 +3394,7 @@ export class MaintenanceTaskDialog extends LitElement {
           <ha-button appearance="plain" @click=${this._close}>${t("cancel", L)}</ha-button>
           <ha-button
             @click=${this._save}
-            .disabled=${this._loading || !this._name.trim()}
+            .disabled=${this._loading || !this._name.trim() || this._missingDueDate()}
           >
             ${this._loading ? t("saving", L) : t("save", L)}
           </ha-button>

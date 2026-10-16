@@ -355,9 +355,11 @@ function renderKPIBar(task: MaintenanceTask, ctx: TaskDetailContext) {
   const L = ctx.lang;
   // Per completion with the credits left out (#200: a sale is no job); the
   // old division where a payload predates the field.
+  // No completion with a cost yet reads "—" like the area view, not "0"
+  // (DRY audit 2026-10-12, FE5-A8).
   const avgCost = task.average_cost !== undefined
-    ? task.average_cost ?? 0
-    : task.times_performed > 0 ? task.total_cost / task.times_performed : 0;
+    ? task.average_cost
+    : task.times_performed > 0 ? task.total_cost / task.times_performed : null;
   // A task due when its device says so (a due-date trigger) has no date of
   // its own: both tiles showed "—" while the trigger read "2 days" (trigger
   // check 2026-10-16). They show the device's date then, marked as such.
@@ -402,7 +404,7 @@ function renderKPIBar(task: MaintenanceTask, ctx: TaskDetailContext) {
       </div>
       <div class="kpi-card">
         <div class="kpi-label">${t("avg_cost", L)}</div>
-        <div class="kpi-value">${formatCost(avgCost, ctx.currencySymbol, L)}</div>
+        <div class="kpi-value">${avgCost != null ? formatCost(avgCost, ctx.currencySymbol, L) : "—"}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">${t("avg_duration", L)}</div>

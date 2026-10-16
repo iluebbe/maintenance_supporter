@@ -70,11 +70,18 @@ def _clean_filters(raw: Any) -> dict[str, Any]:
     priority = src.get("priority", "")
     priority = priority if isinstance(priority, str) and priority in VALID_PRIORITIES else ""
 
+    # 2026-10 places: "" = anywhere, "home", or a zone. The panel's place
+    # filter was not part of a view — applying one kept whatever place was
+    # picked before (DRY audit 2026-10-12, FE5-A4).
+    place = src.get("place", "")
+    place = place if isinstance(place, str) and (place == "home" or (place.startswith("zone.") and len(place) <= 255)) else ""
+
     return {
         "status": status,
         "user_id": user_id,
         "label": label,
         "priority": priority,
+        "place": place,
         "archived": bool(src.get("archived")),
         "sort_mode": sort_mode,
         "group_by": group_by,

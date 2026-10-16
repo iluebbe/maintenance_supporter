@@ -391,13 +391,10 @@ class DocumentStore:
                 raise ValueError("file_too_large")
             content = io.BytesIO(content)
 
-        # Per-object document cap — a runaway upload loop must not be able to
-        # bloat the (single, global) documents store without bound.
-        object_doc_count = sum(1 for d in self.documents.values() if d.get("object_id") == object_id and counts_toward_cap(d))
-        if object_doc_count >= MAX_DOCS_PER_OBJECT:
-            raise ValueError("too_many_documents")
-
         async with self._blob_lock:
+            # Checked under the lock: two uploads racing past a check made
+            # before it both got in at the 99th document (F13).
+            self._check_object_cap(object_id)
             digest, wrote_new, size = await self.hass.async_add_executor_job(self._store_stream_sync, content, MAX_DOC_BYTES)
 
             # Register / adopt the blob and bump its refcount — in the same
@@ -487,6 +484,15 @@ class DocumentStore:
         finally:
             tmp.unlink(missing_ok=True)
 
+    def _check_object_cap(self, object_id: str) -> None:
+        """Per-object document cap — a runaway loop must not be able to bloat
+        the (single, global) documents store without bound. Uploads only had
+        it; a link is a document too (DRY audit 2026-10-12, BI5-A11 / F13).
+        Raises ``ValueError("too_many_documents")``."""
+        count = sum(1 for d in self.documents.values() if d.get("object_id") == object_id and counts_toward_cap(d))
+        if count >= MAX_DOCS_PER_OBJECT:
+            raise ValueError("too_many_documents")
+
     async def async_add_weblink(
         self,
         object_id: str,
@@ -496,7 +502,9 @@ class DocumentStore:
         tags: list[str] | None = None,
         description: str | None = None,
     ) -> dict[str, Any]:
-        """Attach an external web-link (0 storage, NOT in backups)."""
+        """Attach an external web-link (0 storage, NOT in backups). Raises
+        ``ValueError("too_many_documents")`` at the per-object cap."""
+        self._check_object_cap(object_id)
         doc_id = uuid4().hex
         doc = {
             "object_id": object_id,

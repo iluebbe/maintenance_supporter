@@ -29,6 +29,9 @@ from ..const import (
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    MAX_ID_LENGTH,
+    MAX_VACATION_EXEMPT_TASKS,
+    VACATION_BUFFER_DAYS_RANGE,
     ScheduleType,
 )
 from .dates import parse_iso_date, try_add_interval
@@ -134,9 +137,37 @@ def _coerce_buffer(value: Any) -> int:
         i = int(value)
     except (TypeError, ValueError):
         return DEFAULT_VACATION_BUFFER_DAYS
-    if i < 0 or i > 14:
+    low, high = VACATION_BUFFER_DAYS_RANGE
+    if i < low or i > high:
         return DEFAULT_VACATION_BUFFER_DAYS
     return i
+
+
+def valid_buffer_days(value: Any) -> int | None:
+    """A buffer-days value within VACATION_BUFFER_DAYS_RANGE, else None."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None
+    low, high = VACATION_BUFFER_DAYS_RANGE
+    return value if low <= value <= high else None
+
+
+def clean_exempt_task_ids(raw: Iterable[Any]) -> list[str]:
+    """The exempt task list as stored: trimmed ids, each once, capped — the
+    rule of vacation/update and of the settings import, which kept
+    duplicates (DRY audit 2026-10-12, BI5-A9)."""
+    seen: set[str] = set()
+    cleaned: list[str] = []
+    for value in raw:
+        if not isinstance(value, str):
+            continue
+        v = value.strip()
+        if not v or len(v) > MAX_ID_LENGTH or v in seen:
+            continue
+        seen.add(v)
+        cleaned.append(v)
+        if len(cleaned) >= MAX_VACATION_EXEMPT_TASKS:
+            break
+    return cleaned
 
 
 def _task_warning_days(task: Mapping[str, Any]) -> int:

@@ -20,6 +20,27 @@ export const STATUS_COLORS: Record<string, string> = {
   paused: "var(--info-color, #2196f3)",
 };
 
+/** The colour of a history entry's type — the status palette's meaning: done
+ *  green, missed red, a reset (a cycle restarted) info blue, triggered deep
+ *  orange, a skip or a configuration change grey. The task history's icons,
+ *  the area view's markers and the object history's chips each kept a map of
+ *  their own; they disagreed, and missed / trigger_replaced / trigger_removed
+ *  icons had no colour at all (DRY audit 2026-10-12, FE5-A5). */
+export const HISTORY_TYPE_COLORS: Record<string, string> = {
+  completed: STATUS_COLORS.ok,
+  missed: STATUS_COLORS.overdue,
+  reset: STATUS_COLORS.paused,
+  skipped: "var(--secondary-text-color)",
+  triggered: STATUS_COLORS.triggered,
+  trigger_replaced: STATUS_COLORS.triggered,
+  trigger_removed: "var(--secondary-text-color)",
+};
+
+/** A history entry type's colour; grey for a type it does not know. */
+export function historyTypeColor(type: string): string {
+  return HISTORY_TYPE_COLORS[type] ?? "var(--secondary-text-color)";
+}
+
 /** The live task statuses by urgency, most urgent first — the order every
  *  list sorts by and every status picker offers (the card editor's filter,
  *  the panel's status filter, the calendar pills). Four hand-kept copies of

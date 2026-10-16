@@ -262,6 +262,10 @@ CONF_VACATION_END = "vacation_end"  # ISO date
 CONF_VACATION_BUFFER_DAYS = "vacation_buffer_days"
 CONF_VACATION_EXEMPT_TASK_IDS = "vacation_exempt_task_ids"
 DEFAULT_VACATION_BUFFER_DAYS = 3
+# The buffer's bounds: vacation/update's schema, the settings import and the
+# stored-value read (helpers.vacation) — three literals 0 / 14 before (DRY
+# audit 2026-10-12, Welle 3). The panel's twin is setting-ranges.ts.
+VACATION_BUFFER_DAYS_RANGE = (0, 14)
 
 # --- Config Keys: Notification Per-Status ---
 CONF_NOTIFY_DUE_SOON_ENABLED = "notify_due_soon_enabled"

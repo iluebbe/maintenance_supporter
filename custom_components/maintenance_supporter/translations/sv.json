@@ -510,6 +510,7 @@
     },
     "error": {
       "name_exists": "Ett underhållsobjekt med detta namn finns redan.",
+      "name_empty": "Ange ett namn.",
       "no_tasks": "Minst en underhållsuppgift krävs.",
       "invalid_entity": "Den valda entiteten finns inte eller har inga numeriska data.",
       "invalid_attribute": "Det valda attributet är inte tillgängligt för denna entitet.",
@@ -1323,6 +1324,7 @@
     },
     "error": {
       "name_exists": "Ett underhållsobjekt med detta namn finns redan.",
+      "name_empty": "Ange ett namn.",
       "no_tasks": "Minst en underhållsuppgift krävs.",
       "invalid_entity": "Den valda entiteten finns inte eller har inga numeriska data.",
       "invalid_attribute": "Det valda attributet är inte tillgängligt för denna entitet.",

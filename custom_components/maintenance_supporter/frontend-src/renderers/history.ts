@@ -12,7 +12,7 @@
  */
 
 import { html, nothing } from "lit";
-import { t, formatDateTime, formatNumber, formatCost, formatDuration, STATUS_ICONS } from "../styles";
+import { t, formatDateTime, formatNumber, formatCost, formatDuration, formatEntryCost, STATUS_ICONS, historyTypeColor } from "../styles";
 import type { MaintenanceTask, HistoryEntry, HistoryEntryType, HomeAssistant } from "../types";
 import "../components/history-photo";
 import { historyPhotoIds } from "../helpers/history-photos";
@@ -208,7 +208,7 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext
     <div class="history-entry${compact ? " compact" : ""}">
       ${compact
         ? nothing
-        : html`<div class="history-icon ${entry.type}">
+        : html`<div class="history-icon ${entry.type}" style="background: ${historyTypeColor(entry.type)}">
             <ha-icon .icon=${STATUS_ICONS[entry.type] || "mdi:circle"}></ha-icon>
           </div>`}
       <div class="history-content">
@@ -235,7 +235,7 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext
                 ? stockPurchase
                   ? html`<span>${t("history_purchase_stock", L).replace("{amount}", formatCost(entry.cost, ctx.currencySymbol, L))}</span>`
                   : entry.cost < 0
-                    ? html`<span class="history-credit">${t("cost_kind_credit", L)}: ${formatCost(-entry.cost, ctx.currencySymbol, L)}</span>`
+                    ? html`<span class="history-credit">${formatEntryCost(entry.cost, ctx.currencySymbol, L)}</span>`
                     : html`<span>${t("cost", L)}: ${formatCost(entry.cost, ctx.currencySymbol, L)}</span>`
                 : nothing}
               ${partsCost != null

@@ -90,7 +90,7 @@ describe("printable documents state their own colour scheme", () => {
         byObject: [], buckets: { unit: "month", buckets: [] }, entries: [], capped: false,
       },
       labels as never,
-      { date: (iso: string) => iso, cost: (n: number) => String(n), duration: (m: number) => String(m), bucket: (b: { key: string }) => b.key, share: (f: number) => String(f), number: (n: number) => String(n) },
+      { date: (iso: string) => iso, cost: (n: number) => String(n), entryCost: (n: number) => String(n), duration: (m: number) => String(m), bucket: (b: { key: string }) => b.key, share: (f: number) => String(f), number: (n: number) => String(n) },
       "2026-07-29T12:00:00Z",
     );
     assertPaintsItsOwnColours(html, "area report");

@@ -111,12 +111,17 @@ class ScheduleStepsMixin:
         description_placeholders: dict[str, str] | None = None,
     ) -> ConfigFlowResult:
         """Step 1 of a new task: name, type, schedule kind + secondary fields."""
+        errors: dict[str, str] = {}
+        if user_input is not None and not user_input.get("go_back") and not str(user_input.get(CONF_TASK_NAME) or "").strip():
+            # A name of spaces became a task called "" (BI5-A11).
+            errors[CONF_TASK_NAME] = "name_empty"
+            user_input = None
         if user_input is not None:
             if user_input.get("go_back"):
                 return await _resolve(on_go_back())
 
             self._current_task = {
-                CONF_TASK_NAME: user_input[CONF_TASK_NAME],
+                CONF_TASK_NAME: str(user_input[CONF_TASK_NAME]).strip(),
                 CONF_TASK_TYPE: user_input.get(CONF_TASK_TYPE, MaintenanceTypeEnum.CLEANING),
                 CONF_TASK_SCHEDULE_TYPE: user_input[CONF_TASK_SCHEDULE_TYPE],
             }
@@ -195,6 +200,7 @@ class ScheduleStepsMixin:
                     **_go_back_field(),
                 }
             ),
+            errors=errors,
             description_placeholders=description_placeholders,
         )
 

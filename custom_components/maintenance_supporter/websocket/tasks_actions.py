@@ -587,17 +587,15 @@ async def ws_checklist_progress(
     # Merged view: the phase cursor lives in the Store. A phased task (#139)
     # shows the CURRENT phase's checklist; validating against the task-level
     # list dropped every tick on it (bug audit 2026-09-26).
-    ctx = _load_object_task(hass, connection, msg, merged=True, need_coordinator=True)
+    # Progress lives ONLY in the Store (no legacy fallback): a Store that
+    # failed to load answers "not_loaded" like every other Store command —
+    # this one had its own "storage_unavailable" (DRY audit 2026-10-12, BI5-A11).
+    ctx = _load_object_task(hass, connection, msg, merged=True, need_coordinator=True, need_store=True)
     if ctx is None:
         return
     _entry, rd, task = ctx
     task_items = set(effective_field(task, "checklist") or [])
     state = {item: bool(done) for item, done in msg["checklist_state"].items() if item in task_items}
-    # Progress lives ONLY in the Store (no legacy fallback) — degrade to a
-    # clean error instead of an AttributeError when it failed to load.
-    if rd.store is None:
-        connection.send_error(msg["id"], "storage_unavailable", "Task storage not loaded")
-        return
     rd.store.set_checklist_progress(msg["task_id"], state)
     await async_commit_store(rd)
     connection.send_result(msg["id"], {"success": True, "checklist_state": state})

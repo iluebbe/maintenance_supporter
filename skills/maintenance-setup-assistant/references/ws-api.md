@@ -96,7 +96,8 @@ manual-column fallback when `documentation_url` is empty).
   "dry_run": true }                    // optional; true = validate only
 ```
 Result: `{"entry_id": "<config_entry_id>"}`. Dry-run: `{"valid": true, "entry_id": null}`.
-Errors: `invalid_input` (empty name), `invalid_date`, `invalid_url`, `create_failed`,
+Errors: `invalid_input` (empty name; a name another object already has, also on a
+dry run: translation key `object_name_taken`), `invalid_date`, `invalid_url`, `create_failed`,
 `invalid_device` (unknown `ha_device_id`), `self_link_device` (the device belongs
 to Maintenance Supporter itself — the object's own twin or a sibling object's
 device; pick the appliance integration's device, for hierarchy use
@@ -388,6 +389,10 @@ panel's task dialog until the matching *Advanced Features* switch is on
 Result: `{"task_id": "<uuid>"}` (+ `"warnings"` maybe). Dry-run:
 `{"valid": true, "task_id": null}`. Errors: `invalid_input`,
 `invalid_trigger_config`, `invalid_url`, `invalid_entity_slug`, `invalid_format`.
+Without a nested `schedule`, `invalid_input` also refuses a flat recurrence that
+contradicts itself (2.104): an unknown `schedule_type`, `one_time` without a
+`due_date` (on `task/update`: unless the task already has one), and `manual` with
+an `interval_days`. A task cannot be added to an archived object.
 
 `invalid_trigger_config` also covers the VALUES (2.68.1+): thresholds,
 `trigger_target_value` and `trigger_baseline_value` must be finite numbers,
@@ -912,7 +917,8 @@ without a text layer (scans), `unsupported` photos and other binaries,
 ### `documents/add_link` — `@require_write`
 `{entry_id (req), url (req, absolute http/https), title?, tags? (≤20 × ≤64), description? (≤2000, 2.84)}` →
 the created document. Costs 0 storage and is not carried in backups (it's a
-reference, not a file). A relative or non-http(s) URL → `invalid_url`. This is
+reference, not a file). A relative or non-http(s) URL → `invalid_url`; a link counts
+toward the 100 documents per object (`limit_reached`, 2.104). This is
 the right home for a manufacturer manual you found in Phase 3.
 
 ### `documents/update` — `@require_write`

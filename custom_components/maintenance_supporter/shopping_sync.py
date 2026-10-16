@@ -53,8 +53,7 @@ from homeassistant.helpers.storage import Store
 from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_SHOPPING_LIST_ENTITY, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
 from .helpers.global_options import global_option
 from .helpers.managed_timer import ManagedTimer
-from .helpers.parts import PART_REF_FIELD
-from .helpers.pause import is_task_inert
+from .helpers.parts import is_open_buy_task
 from .helpers.todo_mirror import async_todo_add_item, async_todo_get_items, async_todo_remove_item, mirror_summary
 
 _LOGGER = logging.getLogger(__name__)
@@ -316,16 +315,10 @@ class ShoppingListSync:
             obj_name = coordinator.maintenance_object.name
             obj_data = ce.data.get(CONF_OBJECT) or {}
             for tid, td in (ce.data.get(CONF_TASKS) or {}).items():
-                ref = td.get(PART_REF_FIELD)
-                if not isinstance(ref, dict) or not ref.get("part_id"):
+                # A disabled, retired (bug audit 2026-08-29, P-F13), paused
+                # (2026-09-26) or completed reminder is not shopping.
+                if not is_open_buy_task(td, obj_data, store.get_last_performed(tid)):
                     continue
-                # A disabled, retired (bug audit 2026-08-29, P-F13) or paused
-                # reminder is not shopping — the pause check was missing
-                # (bug audit 2026-09-26: the one inert predicate).
-                if is_task_inert(td, obj_data):
-                    continue
-                if store.get_last_performed(tid) is not None:
-                    continue  # completed reminder — history, not shopping
                 # Same row text as our own to-do platform (a buy task has no
                 # phases or calendar events, so the text is its bare name).
                 out[f"{ce.entry_id}:{tid}"] = mirror_summary(obj_name, {"id": tid, **td})

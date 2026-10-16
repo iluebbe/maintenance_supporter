@@ -21,6 +21,10 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 
+class ArchivedObjectError(ValueError):
+    """The object is archived: it gets no new tasks."""
+
+
 def write_tasks(hass: HomeAssistant, entry: ConfigEntry, tasks: Mapping[str, dict[str, Any]]) -> None:
     """Write task dicts into ``entry.data``, normalized, in one update."""
     new_data = dict(entry.data)
@@ -57,6 +61,12 @@ def insert_new_task(
     awaits ``async_save`` and reloads, the flow delay-saves and reloads on its
     done step.
     """
+    # An archived object is hidden and gets no new tasks: task/create and
+    # task/duplicate refused it, but the add_task service, the options flow
+    # and the adoption of discovered duties wrote into it — tasks nobody
+    # sees that still notify (DRY audit 2026-10-12, BI5-A4).
+    if (entry.data.get(CONF_OBJECT) or {}).get("archived_at"):
+        raise ArchivedObjectError("An archived object cannot get new tasks")
     task_data = normalize_task_storage(task_data)
     task_id = task_data["id"]
     existing_tasks = entry.data.get(CONF_TASKS, {})

@@ -510,6 +510,7 @@
     },
     "error": {
       "name_exists": "Ya existe un objeto de mantenimiento con este nombre.",
+      "name_empty": "Introduce un nombre.",
       "no_tasks": "Se requiere al menos una tarea de mantenimiento.",
       "invalid_entity": "La entidad seleccionada no existe o no tiene datos numéricos.",
       "invalid_attribute": "El atributo seleccionado no está disponible en esta entidad.",
@@ -1323,6 +1324,7 @@
     },
     "error": {
       "name_exists": "Ya existe un objeto de mantenimiento con este nombre.",
+      "name_empty": "Introduce un nombre.",
       "no_tasks": "Se requiere al menos una tarea de mantenimiento.",
       "invalid_entity": "La entidad seleccionada no existe o no tiene datos numéricos.",
       "invalid_attribute": "El atributo seleccionado no está disponible en esta entidad.",

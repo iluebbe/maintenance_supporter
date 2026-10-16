@@ -29,7 +29,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import intent
 from homeassistant.util import dt as dt_util
 
-from .const import COMPLETION_PROVENANCE_NOTES, CONF_TASKS, MAX_TEXT_LENGTH
+from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_TASKS, MAX_TEXT_LENGTH
 from .helpers.parts import MAX_PART_STOCK
 from .intent import (
     INTENT_ADD_NOTE,
@@ -356,16 +356,17 @@ class ShoppingListIntent(intent.IntentHandler):
 
 def _open_buy_task(hass: Any, part: dict[str, Any]) -> str | None:
     """The live buy task restocking *part*, if the shopping reminder is open."""
-    from .helpers.parts import PART_REF_FIELD
+    from .helpers.parts import buy_task_part_id, is_open_buy_task
 
-    for row in _task_snapshot(hass):
-        if row["entry_id"] != part["entry_id"]:
-            continue
-        entry = hass.config_entries.async_get_entry(row["entry_id"])
-        static = ((entry.data.get(CONF_TASKS) or {}).get(row["task_id"]) or {}) if entry else {}
-        ref = static.get(PART_REF_FIELD)
-        if isinstance(ref, dict) and ref.get("part_id") == part["part_id"]:
-            return str(row["task_id"])
+    entry = hass.config_entries.async_get_entry(part["entry_id"])
+    rd = getattr(entry, "runtime_data", None) if entry else None
+    store = getattr(rd, "store", None) if rd else None
+    if entry is None or store is None:
+        return None
+    obj = entry.data.get(CONF_OBJECT) or {}
+    for task_id, task in (entry.data.get(CONF_TASKS) or {}).items():
+        if buy_task_part_id(task) == part["part_id"] and is_open_buy_task(task, obj, store.get_last_performed(task_id)):
+            return str(task_id)
     return None
 
 

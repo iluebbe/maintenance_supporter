@@ -169,9 +169,13 @@ def move_tasks_to_device(
         if isinstance(trigger := new_task.get("trigger_config"), dict):
             new_task["trigger_config"] = swap_trigger(trigger)
         action = new_task.get("on_complete_action")
+        if isinstance(action, dict):
+            from .action_listener import map_action_entity_ids
+
+            action, _ = map_action_entity_ids(action, swap)
+            new_task["on_complete_action"] = action
         if isinstance(action, dict) and isinstance(target := action.get("target"), dict):
-            if "entity_id" in target:
-                target["entity_id"] = swap_list(target["entity_id"])
+            target = action["target"] = dict(target)
             if "device_id" in target:
                 devices = target["device_id"]
                 target["device_id"] = (

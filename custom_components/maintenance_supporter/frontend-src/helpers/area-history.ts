@@ -55,6 +55,14 @@ export function areaKeyOf(o: { area_id?: string | null }): string {
   return o.area_id || NO_AREA;
 }
 
+/** The label of an object's area: its name, and ``noAreaLabel`` both for
+ *  no area and for one Home Assistant no longer knows. The surfaces said
+ *  the raw id, "Unassigned", nothing or "No area" for the same object (DRY
+ *  audit 2026-10-12, FE5-A2). */
+export function areaLabel(areaId: string | null | undefined, areas: AreaRegistry, noAreaLabel: string): string {
+  return (areaId && areas?.[areaId]?.name) || noAreaLabel;
+}
+
 /** The area's HA name; the raw id for an area HA no longer knows (deleted
  *  since — the objects still point at it); the caller's "No area" label for
  *  the bucket. */

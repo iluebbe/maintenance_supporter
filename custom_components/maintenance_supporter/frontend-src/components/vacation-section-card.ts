@@ -19,8 +19,17 @@ import { runWs } from "../helpers/ws-run";
 import { VACATION_BUFFER_DAYS_RANGE } from "../helpers/setting-ranges";
 import { confirmAction } from "../helpers/confirm";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
+import { vacationPhase, type VacationPhase } from "../helpers/vacation-phase";
 import "./ms-date-field";
 import type { HomeAssistant } from "../types";
+
+/** The status pill's text per phase (literal keys: the locale tripwire reads them). */
+const PHASE_LABEL_KEYS: Record<VacationPhase, string> = {
+  active: "vacation_status_active",
+  scheduled: "vacation_status_scheduled",
+  ended: "vacation_status_ended",
+  inactive: "vacation_status_inactive",
+};
 
 interface VacationState {
   enabled?: boolean;
@@ -155,15 +164,14 @@ export class MaintenanceVacationSectionCard extends LitElement {
     if (!s) {
       return html`<ha-card><div class="loading">${t("loading", L)}</div></ha-card>`;
     }
-    const active = s.is_active === true;
-    const enabled = s.enabled === true;
     const exemptCount = s.exempt_task_ids?.length ?? 0;
-    const statusLabel = active
-      ? t("vacation_status_active", L)
-      : enabled
-        ? t("vacation_status_scheduled", L)
-        : t("vacation_status_inactive", L);
-    const statusClass = active ? "active" : enabled ? "scheduled" : "inactive";
+    // The settings' rule (helpers/vacation-phase): a window that has passed
+    // reads "Ended" here too, not "Scheduled".
+    const phase = vacationPhase(s);
+    const active = phase === "active";
+    const enabled = s.enabled === true;
+    const statusLabel = t(PHASE_LABEL_KEYS[phase], L);
+    const statusClass = phase === "ended" ? "inactive" : phase;
 
     return html`
       <ha-card>

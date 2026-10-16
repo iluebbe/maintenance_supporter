@@ -877,24 +877,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # stale target is no problem (a disabled task was flagged).
                 # Earlier issues were purged by the trigger scan above.
                 continue
-            action = task_dict.get("on_complete_action") or {}
-            if not isinstance(action, dict):
-                continue
-            target = action.get("target") or {}
-            if not isinstance(target, dict):
-                continue
-            raw_eid = target.get("entity_id")
-            # Only single-entity targets are checked here. List/template targets
-            # are out of scope (HA's service-call already validates them at
-            # call-time and our action_listener tolerates failures).
-            if isinstance(raw_eid, list):
-                eids: list[str] = [e for e in raw_eid if isinstance(e, str)]
-            elif isinstance(raw_eid, str):
-                eids = [raw_eid]
-            else:
-                continue
+            from .helpers.action_listener import action_entity_ids
 
-            for entity_id in eids:
+            for entity_id in action_entity_ids(task_dict.get("on_complete_action")):
                 issue_id = stale_action_issue_id(self.entry.entry_id, task_id, entity_id)
                 state = self.hass.states.get(entity_id)
                 if state is not None:
@@ -1529,8 +1514,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             td["responsible_user_id"] = task.responsible_user_id
             write_task(self.hass, self.entry, task_id, td)
 
-        # Invalidate budget cache when a cost is recorded
-        if cost is not None:
+        # Invalidate the budget cache when the entry carries money: a cost,
+        # or the value of the parts it used ("when used", #104) — that one
+        # alone left the totals stale until the next refresh hour (DRY audit
+        # 2026-10-12, BR5-A9).
+        last_entry = task.history[-1] if task.history else {}
+        if cost is not None or last_entry.get("parts_cost") is not None:
             self._recalculate_budget_cache()
 
         # Spare parts: consume linked parts / restock a completed buy task.
@@ -1778,6 +1767,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._recently_completed.pop(task_id, None)
         self._completion_cooldown.discard(task_id)
         await self._store.async_save()
+        # The undone entry's cost leaves the budget too: the undo bypassed
+        # the budget refresh every other history write runs (BR5-A9).
+        self._recalculate_budget_cache()
         await self.async_refresh_now()
 
     def _is_inert(self, task_data: dict[str, Any]) -> bool:

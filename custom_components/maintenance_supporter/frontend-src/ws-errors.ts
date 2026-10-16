@@ -61,7 +61,6 @@ export const WS_ERROR_CODE_KEYS: Record<string, string> = {
   nothing_to_undo: "undo_nothing",
   replace_failed: "ws_err_replace_failed",
   self_link_device: "ws_err_self_link_device",
-  storage_unavailable: "ws_err_storage_unavailable",
   too_early: "ws_err_too_early",
   too_large: "ws_err_too_large",
   too_many: "ws_err_too_many",

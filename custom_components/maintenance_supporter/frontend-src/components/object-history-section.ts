@@ -10,7 +10,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t, ensureLocale, langOf, formatDate, formatDateTime, formatCost, formatDuration, formatNumber, formatRecurrence } from "../styles";
+import { t, ensureLocale, langOf, formatDate, formatDateTime, formatCost, formatDuration, formatEntryCost, formatNumber, formatRecurrence, historyTypeColor } from "../styles";
 import {
   filterObjectHistory,
   HISTORY_RETENTION_CAP,
@@ -400,10 +400,10 @@ export class MaintenanceObjectHistorySection extends LitElement {
                 ${shown.map((e) => html`
                   <div class="row">
                     <span class="date" title=${formatDateTime(e.timestamp, L)}>${formatDate(e.timestamp, L)}</span>
-                    <span class="type type-${e.type}">${t(e.type, L)}</span>
+                    <span class="type type-${e.type}" style="--type-color: ${historyTypeColor(e.type)}">${t(e.type, L)}</span>
                     <button class="task-link" @click=${() => this._openTask(e.taskId)}>${e.taskName}${e.phaseName ? ` · ${e.phaseName}` : ""}</button>
                     <span class="facts">
-                      ${e.cost != null ? html`<span>${formatCost(e.cost, this.currencySymbol, L)}</span>` : nothing}
+                      ${e.cost != null ? html`<span>${formatEntryCost(e.cost, this.currencySymbol, L)}</span>` : nothing}
                       ${e.partsCost != null
                         ? html`<span class="parts-cost" title=${t(e.partsCounted ? "history_parts_counted_hint" : "history_parts_info_hint", L)}>${t(e.partsCounted ? "history_parts_counted" : "history_parts_info", L).replace("{amount}", formatCost(e.partsCost, this.currencySymbol, L))}</span>`
                         : nothing}
@@ -475,10 +475,8 @@ export class MaintenanceObjectHistorySection extends LitElement {
       font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
       padding: 1px 6px; border-radius: 4px; white-space: nowrap;
     }
-    .type-completed { background: color-mix(in srgb, var(--success-color, #43a047) 18%, transparent); color: var(--success-color, #43a047); }
-    .type-skipped { background: color-mix(in srgb, var(--secondary-text-color) 15%, transparent); color: var(--secondary-text-color); }
-    .type-missed { background: color-mix(in srgb, var(--error-color, #db4437) 15%, transparent); color: var(--error-color, #db4437); }
-    .type-reset { background: color-mix(in srgb, var(--info-color, #039be5) 15%, transparent); color: var(--info-color, #039be5); }
+    /* The colour comes from HISTORY_TYPE_COLORS (status-constants.ts). */
+    .type { background: color-mix(in srgb, var(--type-color) 15%, transparent); color: var(--type-color); }
     .task-link {
       background: none; border: none; padding: 0; cursor: pointer;
       color: var(--primary-text-color); font: inherit; font-weight: 500;

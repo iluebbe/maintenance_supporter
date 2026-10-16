@@ -55,14 +55,18 @@ def test_import_csv_notes_set_when_non_empty() -> None:
     assert task["notes"] == "Check valve too"
 
 
-def test_safe_int_none_returns_default() -> None:
-    """Lines 265, 268-269: _safe_int handles None and invalid strings."""
-    from custom_components.maintenance_supporter.helpers.csv_handler import _safe_int
+def test_imported_numbers_follow_one_rule() -> None:
+    """The CSV and the JSON import read numbers alike (BI5-A10): a whole
+    number in range, else no interval / the default warning days."""
+    from custom_components.maintenance_supporter.helpers.task_fields import import_interval_days, import_warning_days
 
-    assert _safe_int(None, 7) == 7
-    assert _safe_int("bad", 14) == 14
-    assert _safe_int("30", None) == 30
-    assert _safe_int("15.7", 0) == 15  # float string → int
+    assert import_warning_days(None, 7) == 7
+    assert import_warning_days("bad", 14) == 14
+    assert import_warning_days("500", 14) == 14
+    assert import_interval_days("30") == 30
+    assert import_interval_days("30.0") == 30
+    assert import_interval_days("15.7") is None
+    assert import_interval_days("0") is None and import_interval_days(-3) is None
 
 
 def test_csv_object_documentation_url_and_notes_roundtrip() -> None:

@@ -510,6 +510,7 @@
     },
     "error": {
       "name_exists": "A maintenance object with this name already exists.",
+      "name_empty": "Please enter a name.",
       "no_tasks": "At least one maintenance task is required.",
       "invalid_entity": "The selected entity does not exist or has no numeric data.",
       "invalid_attribute": "The selected attribute is not available on this entity.",
@@ -1323,6 +1324,7 @@
     },
     "error": {
       "name_exists": "A maintenance object with this name already exists.",
+      "name_empty": "Please enter a name.",
       "no_tasks": "At least one maintenance task is required.",
       "invalid_entity": "The selected entity does not exist or has no numeric data.",
       "invalid_attribute": "The selected attribute is not available on this entity.",

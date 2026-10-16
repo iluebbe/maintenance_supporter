@@ -510,6 +510,7 @@
     },
     "error": {
       "name_exists": "Bu ada sahip bir bakım nesnesi zaten var.",
+      "name_empty": "Bir ad girin.",
       "no_tasks": "En az bir bakım görevi gereklidir.",
       "invalid_entity": "Seçilen varlık mevcut değil veya sayısal verisi yok.",
       "invalid_attribute": "Seçilen öznitelik bu varlıkta mevcut değil.",
@@ -1323,6 +1324,7 @@
     },
     "error": {
       "name_exists": "Bu ada sahip bir bakım nesnesi zaten var.",
+      "name_empty": "Bir ad girin.",
       "no_tasks": "En az bir bakım görevi gereklidir.",
       "invalid_entity": "Seçilen varlık mevcut değil veya sayısal verisi yok.",
       "invalid_attribute": "Seçilen öznitelik bu varlıkta mevcut değil.",

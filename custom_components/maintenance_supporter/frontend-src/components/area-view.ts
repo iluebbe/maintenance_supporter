@@ -17,13 +17,14 @@ import {
   ensureLocale,
   langOf,
   formatCost,
+  formatEntryCost,
   formatDate,
   formatDateTime,
   formatDuration,
   formatNumber,
   monthName,
-  STATUS_COLORS,
   STATUS_ICONS,
+  historyTypeColor,
 } from "../styles";
 import { FullHistoryLoader } from "../helpers/full-history";
 import {
@@ -53,13 +54,6 @@ const HISTORY_PAGE = 25;
 /** Year chips offered besides "last 12 months" / "all time". */
 const MAX_YEAR_CHIPS = 5;
 
-/** Entry-type marker colours — the status palette's meaning, not new hues. */
-const TYPE_COLORS: Record<string, string> = {
-  completed: STATUS_COLORS.ok,
-  missed: STATUS_COLORS.overdue,
-  reset: STATUS_COLORS.paused,
-  skipped: "var(--secondary-text-color)",
-};
 
 export class MaintenanceAreaView extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -238,6 +232,7 @@ export class MaintenanceAreaView extends LitElement {
       {
         date: (iso) => formatDate(iso, L),
         cost: (amount) => formatCost(amount, cur, L),
+        entryCost: (amount) => formatEntryCost(amount, cur, L),
         duration: (minutes) => formatDuration(minutes, L),
         bucket: (b) => this._bucketLabel(b, "long"),
         share: (fraction) => `${formatNumber(fraction * 100, L, 0)} %`,
@@ -452,7 +447,7 @@ export class MaintenanceAreaView extends LitElement {
                       <tr class="objects-table-row area-history-row" @click=${() => this._openTask(e.entryId, e.taskId)}>
                         <td title=${formatDateTime(e.timestamp, L)}>${formatDate(e.timestamp, L)}</td>
                         <td>
-                          <span class="area-entry-type" style="color: ${TYPE_COLORS[e.type] ?? "inherit"}">
+                          <span class="area-entry-type" style="color: ${historyTypeColor(e.type)}">
                             <ha-icon .icon=${STATUS_ICONS[e.type] || "mdi:circle"}></ha-icon>${t(e.type, L)}
                           </span>
                         </td>
@@ -462,7 +457,7 @@ export class MaintenanceAreaView extends LitElement {
                           </button>
                         </td>
                         <td><button class="area-task-link">${e.taskName}${e.phaseName ? ` · ${e.phaseName}` : ""}</button></td>
-                        <td class="num">${e.cost != null ? formatCost(e.cost, cur, L) : "—"}</td>
+                        <td class="num">${e.cost != null ? formatEntryCost(e.cost, cur, L) : "—"}</td>
                         <td class="num">${e.duration != null ? formatDuration(e.duration, L) : "—"}</td>
                         <td class="oc-notes" title=${notes}>${notes || "—"}</td>
                       </tr>

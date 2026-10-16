@@ -24,6 +24,7 @@ from ..helpers.completion_photos import (
     normalize_photo_doc_ids,
 )
 from ..helpers.permissions import require_write
+from ..helpers.ws_errors import send_translated_error
 from ..storage import reanchor_from_history
 from . import (
     ID_FIELD,
@@ -122,11 +123,9 @@ async def ws_update_history_entry(
         if parsed_ts.tzinfo is None:
             parsed_ts = parsed_ts.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
         if parsed_ts > dt_util.now():
-            connection.send_error(
-                msg["id"],
-                "invalid_date",
-                "timestamp cannot be in the future",
-            )
+            # Translated like every other "not in the future" (it was raw
+            # English, DRY audit 2026-10-12, BI5-A11).
+            send_translated_error(connection, msg["id"], "invalid_date", "timestamp cannot be in the future", translation_key="date_in_future")
             return
 
     # Locate the entry by its original timestamp — first match wins.

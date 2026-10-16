@@ -303,12 +303,16 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
             if user_input.get("go_back"):
                 return await self.async_step_template_select()
 
-            name = user_input[CONF_OBJECT_NAME]
+            # Trimmed, and never blank: the flows stored "  Boiler " and a
+            # name of spaces (DRY audit 2026-10-12, BI5-A11).
+            name = str(user_input[CONF_OBJECT_NAME]).strip()
 
             # Validate unique name (helpers.object_names: by slug, current names)
             from .helpers.object_names import name_taken
 
-            if name_taken(self.hass, name):
+            if not name:
+                errors[CONF_OBJECT_NAME] = "name_empty"
+            elif name_taken(self.hass, name):
                 errors[CONF_OBJECT_NAME] = "name_exists"
             else:
                 # Build object data
@@ -391,13 +395,15 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            name = user_input[CONF_OBJECT_NAME]
+            name = str(user_input[CONF_OBJECT_NAME]).strip()
             # Validate unique name — only a CHANGED name: the successor of a
             # replace shares its archived predecessor's name and must stay
             # editable (bug audit 2026-09-27, helpers.object_names).
             from .helpers.object_names import name_changed_onto_taken
 
-            if name_changed_onto_taken(self.hass, entry, name):
+            if not name:
+                errors[CONF_OBJECT_NAME] = "name_empty"
+            elif name_changed_onto_taken(self.hass, entry, name):
                 errors["base"] = "name_exists"
 
             if not errors:
@@ -562,12 +568,16 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
             if user_input.get("go_back"):
                 return await self.async_step_user()
 
-            name = user_input[CONF_OBJECT_NAME]
+            # Trimmed, and never blank: the flows stored "  Boiler " and a
+            # name of spaces (DRY audit 2026-10-12, BI5-A11).
+            name = str(user_input[CONF_OBJECT_NAME]).strip()
 
             # Validate unique name (helpers.object_names: by slug, current names)
             from .helpers.object_names import name_taken
 
-            if name_taken(self.hass, name):
+            if not name:
+                errors[CONF_OBJECT_NAME] = "name_empty"
+            elif name_taken(self.hass, name):
                 errors[CONF_OBJECT_NAME] = "name_exists"
             else:
                 from .helpers.sanitize import cap_object_fields

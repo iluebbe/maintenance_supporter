@@ -510,6 +510,7 @@
     },
     "error": {
       "name_exists": "Een onderhoudsobject met deze naam bestaat al.",
+      "name_empty": "Voer een naam in.",
       "no_tasks": "Er is minimaal één onderhoudstaak vereist.",
       "invalid_entity": "De geselecteerde entiteit bestaat niet of heeft geen numerieke gegevens.",
       "invalid_attribute": "Het geselecteerde attribuut is niet beschikbaar op deze entiteit.",
@@ -1323,6 +1324,7 @@
     },
     "error": {
       "name_exists": "Een onderhoudsobject met deze naam bestaat al.",
+      "name_empty": "Voer een naam in.",
       "no_tasks": "Er is minimaal één onderhoudstaak vereist.",
       "invalid_entity": "De geselecteerde entiteit bestaat niet of heeft geen numerieke gegevens.",
       "invalid_attribute": "Het geselecteerde attribuut is niet beschikbaar op deze entiteit.",

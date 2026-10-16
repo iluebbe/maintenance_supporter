@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from ..const import CONF_OBJECT
 from ..helpers.aggregate import is_object_entry
 
 if TYPE_CHECKING:
@@ -71,6 +72,9 @@ class AdoptBatch:
         entry = self.hass.config_entries.async_get_entry(entry_id)
         # is_object_entry() rejects None too; the explicit test narrows the type.
         if entry is None or not is_object_entry(entry):
+            return None
+        # An archived object gets no new tasks (entry_tasks.insert_new_task).
+        if (entry.data.get(CONF_OBJECT) or {}).get("archived_at"):
             return None
         return entry
 

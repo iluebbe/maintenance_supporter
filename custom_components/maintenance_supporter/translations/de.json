@@ -510,6 +510,7 @@
     },
     "error": {
       "name_exists": "Ein Wartungsobjekt mit diesem Namen existiert bereits.",
+      "name_empty": "Bitte gib einen Namen ein.",
       "no_tasks": "Mindestens eine Wartungsaufgabe ist erforderlich.",
       "invalid_entity": "Die ausgewählte Entität existiert nicht oder hat keine numerischen Daten.",
       "invalid_attribute": "Das ausgewählte Attribut ist bei dieser Entität nicht verfügbar.",
@@ -1323,6 +1324,7 @@
     },
     "error": {
       "name_exists": "Ein Wartungsobjekt mit diesem Namen existiert bereits.",
+      "name_empty": "Bitte gib einen Namen ein.",
       "no_tasks": "Mindestens eine Wartungsaufgabe ist erforderlich.",
       "invalid_entity": "Die ausgewählte Entität existiert nicht oder hat keine numerischen Daten.",
       "invalid_attribute": "Das ausgewählte Attribut ist bei dieser Entität nicht verfügbar.",

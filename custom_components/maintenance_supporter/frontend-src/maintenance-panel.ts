@@ -27,7 +27,7 @@ import { effectivePhase } from "./helpers/phases";
 import { renderEventTitles } from "./helpers/event-titles";
 import { recommendationReason, type HomeProfile, type TemplateRecommendation } from "./helpers/home-profile";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
-import { areaDisplayName, areaKeyOf } from "./helpers/area-history";
+import { areaDisplayName, areaKeyOf, areaLabel } from "./helpers/area-history";
 import { panelStyles } from "./panel-styles";
 
 // Global search (#171): what the panel needs to know about a hit — enough
@@ -1523,6 +1523,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       user_id: this._filterUser,
       label: this._filterLabel,
       priority: this._filterPriority,
+      place: this._filterPlace,
       archived: this._showArchived,
       sort_mode: this._sortMode,
       group_by: this._groupByMode,
@@ -1540,6 +1541,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._filterUser = f.user_id || null;
     this._filterLabel = f.label || null;
     this._filterPriority = f.priority || "";
+    this._filterPlace = f.place || "";
     this._showArchived = !!f.archived;
     // Validate against the current enums before assigning — a view saved by an
     // older/renamed build could carry a mode no longer valid, which would then
@@ -3060,6 +3062,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         never: t("worksheet_never", L),
         typeLabel: (ty: string) => t(ty, L),
         statusLabel: (st: string) => t(st, L),
+        priorityLabel: (p: string) => t(`priority_${p}`, L),
         parts: t("consumes_parts_label", L),
       };
       // Required parts as checkable lines: qty × name (owner) (stock unit) —
@@ -3967,8 +3970,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     for (const row of rows) {
       let keys: string[] = [];
       if (this._groupByMode === "area") {
-        const a = row.area_id ? this.hass?.areas?.[row.area_id]?.name : null;
-        keys = [a || noneLabel];
+        keys = [areaLabel(row.area_id, this.hass?.areas, t("no_area", L))];
       } else if (this._groupByMode === "user") {
         // A shared task with nobody responsible is listed under each of its
         // people, as the person filter lists it (D#110).
@@ -4090,8 +4092,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const groupedByArea = (): Map<string, MaintenanceObjectResponse[]> => {
       const map = new Map<string, MaintenanceObjectResponse[]>();
       for (const obj of sorted) {
-        const areaId = obj.object.area_id;
-        const key = areaId ? this.hass?.areas?.[areaId]?.name || t("unassigned", L) : t("no_area", L);
+        const key = areaLabel(obj.object.area_id, this.hass?.areas, t("no_area", L));
         if (!map.has(key)) map.set(key, []);
         map.get(key)!.push(obj);
       }
@@ -4470,7 +4471,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       case "warranty_expiry":
         return html`<td class="oc-warranty_expiry">${this._renderWarrantyCell(o.warranty_expiry, L)}</td>`;
       case "area_id": {
-        const area = o.area_id ? (this.hass?.areas?.[o.area_id]?.name || o.area_id) : "—";
+        const area = areaLabel(o.area_id, this.hass?.areas, "—");
         return html`<td class="oc-area_id">${area}</td>`;
       }
       case "documentation_url": {

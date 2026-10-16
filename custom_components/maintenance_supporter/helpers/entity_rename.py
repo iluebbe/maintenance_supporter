@@ -109,31 +109,14 @@ def rewrite_task(task_data: dict[str, Any], old_id: str, new_id: str) -> tuple[d
     # counter running behind a repair message until someone re-picked it.
     action = new_task.get("on_complete_action")
     if isinstance(action, dict):
-        new_action, action_changed = _rewrite_action(action, old_id, new_id)
+        from .action_listener import map_action_entity_ids
+
+        new_action, action_changed = map_action_entity_ids(action, lambda e: new_id if e == old_id else e)
         if action_changed:
             new_task["on_complete_action"] = new_action
             changed = True
 
     return new_task, changed
-
-
-def _rewrite_action(action: dict[str, Any], old_id: str, new_id: str) -> tuple[dict[str, Any], bool]:
-    """An action's ``target.entity_id`` and ``data.entity_id`` (a single id or
-    a list) with ``old_id`` replaced."""
-    new_action = dict(action)
-    changed = False
-    for part in ("target", "data"):
-        block = new_action.get(part)
-        if not isinstance(block, dict):
-            continue
-        eid = block.get("entity_id")
-        if eid == old_id:
-            new_action[part] = {**block, "entity_id": new_id}
-            changed = True
-        elif isinstance(eid, list) and old_id in eid:
-            new_action[part] = {**block, "entity_id": [new_id if e == old_id else e for e in eid]}
-            changed = True
-    return new_action, changed
 
 
 def rewrite_object(obj: dict[str, Any], old_id: str, new_id: str) -> tuple[dict[str, Any], bool]:

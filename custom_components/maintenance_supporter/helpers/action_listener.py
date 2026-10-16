@@ -34,6 +34,51 @@ from .sanitize import _FORBIDDEN_ACTION_DOMAINS, ACTION_OWNER_KEY
 
 _LOGGER = logging.getLogger(__name__)
 
+# Where an ``on_complete_action`` names entities: the service-call target and
+# the data (``button.press`` takes the button either way).
+_ACTION_ENTITY_BLOCKS = ("target", "data")
+
+
+def action_entity_ids(action: Any) -> list[str]:
+    """Every entity an ``on_complete_action`` names — ``target.entity_id``
+    and ``data.entity_id``, each a single id or a list. Four readers walked
+    this on their own and two read the target only: a device swap left the
+    data's entity on the old device, and the stale-target repair and the
+    wait for a not-yet-loaded button never saw it (DRY audit 2026-10-12,
+    BR5-A6)."""
+    out: list[str] = []
+    if not isinstance(action, dict):
+        return out
+    for part in _ACTION_ENTITY_BLOCKS:
+        block = action.get(part)
+        raw = block.get("entity_id") if isinstance(block, dict) else None
+        for eid in [raw] if isinstance(raw, str) else raw if isinstance(raw, list) else []:
+            if isinstance(eid, str) and eid and eid not in out:
+                out.append(eid)
+    return out
+
+
+def map_action_entity_ids(action: dict[str, Any], rewrite: Callable[[str], str]) -> tuple[dict[str, Any], bool]:
+    """A copy of ``action`` with every entity it names (see
+    :func:`action_entity_ids`) passed through ``rewrite``; ``(action, changed)``."""
+    new_action = dict(action)
+    changed = False
+    for part in _ACTION_ENTITY_BLOCKS:
+        block = new_action.get(part)
+        if not isinstance(block, dict) or "entity_id" not in block:
+            continue
+        raw = block["entity_id"]
+        if isinstance(raw, str):
+            new: Any = rewrite(raw)
+        elif isinstance(raw, list):
+            new = [rewrite(e) if isinstance(e, str) else e for e in raw]
+        else:
+            continue
+        if new != raw:
+            new_action[part] = {**block, "entity_id": new}
+            changed = True
+    return new_action, changed
+
 
 def _resolve_task_action(hass: HomeAssistant, entry_id: str, task_id: str) -> dict[str, Any] | None:
     """Look up `on_complete_action` from the task's config entry.
@@ -65,7 +110,7 @@ def _split_service(spec: str) -> tuple[str, str] | None:
 _LOAD_WAIT_S = 60
 
 
-async def _await_loaded_targets(hass: HomeAssistant, target: dict[str, Any] | None) -> None:
+async def _await_loaded_targets(hass: HomeAssistant, entity_ids: list[str]) -> None:
     """Wait for target entities that are enabled but not loaded yet.
 
     Wiring a counter reset switches on a button the integration shipped
@@ -77,8 +122,6 @@ async def _await_loaded_targets(hass: HomeAssistant, target: dict[str, Any] | No
     unknown or disabled are not waited for — that is a broken action, which
     the stale-action repair reports.
     """
-    raw = (target or {}).get("entity_id")
-    entity_ids = [raw] if isinstance(raw, str) else [e for e in (raw or []) if isinstance(e, str)]
     if not entity_ids:
         return
     from homeassistant.helpers import entity_registry as er
@@ -148,7 +191,7 @@ async def _dispatch_action(hass: HomeAssistant, action: dict[str, Any]) -> bool:
             )
             return False
         context = Context(user_id=owner)
-    await _await_loaded_targets(hass, target)
+    await _await_loaded_targets(hass, action_entity_ids(action))
     try:
         await hass.services.async_call(domain, name, service_data=data, target=target, blocking=False, context=context)
     except Exception:

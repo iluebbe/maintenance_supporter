@@ -49,3 +49,51 @@ REQUIRABLE_COMPLETION_FIELDS: tuple[str, ...] = _REQUIRABLE_COMPLETION_FIELDS
 WARNING_DAYS_RANGE: tuple[int, int] = (0, 365)
 EARLIEST_COMPLETION_RANGE: tuple[int, int] = (0, 3650)
 INTERVAL_DAYS_RANGE: tuple[int, int] = (1, MAX_INTERVAL_DAYS)
+
+
+# ─── Imported values (JSON / YAML backup, CSV) ──────────────────────────────
+# One rule per field for both import formats: the JSON import dropped a zero
+# interval and replaced an out-of-range warning value with the default, while
+# the CSV import kept both for the sanitizer to clamp (interval 1, warning 365)
+# and took any YYYY-MM-DD shape as a due date (2026-02-31) that the JSON
+# import did not check at all — the same file in two formats became two
+# different tasks (DRY audit 2026-10-12, BI5-A10).
+
+
+def import_interval_days(value: object) -> int | None:
+    """An imported interval: a whole number within INTERVAL_DAYS_RANGE, read
+    from a number or numeric text; ``None`` (no interval) otherwise."""
+    if isinstance(value, bool):
+        return None
+    try:
+        number = float(value) if isinstance(value, (int, float, str)) else None
+    except ValueError:
+        return None
+    if number is None or not number.is_integer():
+        return None
+    days = int(number)
+    return days if INTERVAL_DAYS_RANGE[0] <= days <= INTERVAL_DAYS_RANGE[1] else None
+
+
+def import_warning_days(value: object, default: int) -> int:
+    """Imported warning days within WARNING_DAYS_RANGE, else ``default``."""
+    if isinstance(value, bool):
+        return default
+    try:
+        number = float(value) if isinstance(value, (int, float, str)) else None
+    except ValueError:
+        return default
+    if number is None or not number.is_integer():
+        return default
+    days = int(number)
+    return days if WARNING_DAYS_RANGE[0] <= days <= WARNING_DAYS_RANGE[1] else default
+
+
+def import_due_date(value: object) -> str | None:
+    """An imported one-time due date: a real ISO date (``YYYY-MM-DD``)."""
+    from .dates import parse_iso_date
+
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    return text if len(text) == 10 and parse_iso_date(text) is not None else None

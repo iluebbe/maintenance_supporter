@@ -510,6 +510,7 @@
     },
     "error": {
       "name_exists": "已存在同名的维护项。",
+      "name_empty": "请输入名称。",
       "no_tasks": "至少需要一项维护任务。",
       "invalid_entity": "所选实体不存在或没有数值数据。",
       "invalid_attribute": "所选属性在此实体上不可用。",
@@ -1323,6 +1324,7 @@
     },
     "error": {
       "name_exists": "已存在同名的维护项。",
+      "name_empty": "请输入名称。",
       "no_tasks": "至少需要一项维护任务。",
       "invalid_entity": "所选实体不存在或没有数值数据。",
       "invalid_attribute": "所选属性在此实体上不可用。",

@@ -510,6 +510,7 @@
     },
     "error": {
       "name_exists": "Un oggetto di manutenzione con questo nome esiste già.",
+      "name_empty": "Inserisci un nome.",
       "no_tasks": "È richiesta almeno un'attività di manutenzione.",
       "invalid_entity": "L'entità selezionata non esiste o non ha dati numerici.",
       "invalid_attribute": "L'attributo selezionato non è disponibile per questa entità.",
@@ -1323,6 +1324,7 @@
     },
     "error": {
       "name_exists": "Un oggetto di manutenzione con questo nome esiste già.",
+      "name_empty": "Inserisci un nome.",
       "no_tasks": "È richiesta almeno un'attività di manutenzione.",
       "invalid_entity": "L'entità selezionata non esiste o non ha dati numerici.",
       "invalid_attribute": "L'attributo selezionato non è disponibile per questa entità.",

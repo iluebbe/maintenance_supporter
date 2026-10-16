@@ -510,6 +510,7 @@
     },
     "error": {
       "name_exists": "Tämänniminen huoltokohde on jo olemassa.",
+      "name_empty": "Anna nimi.",
       "no_tasks": "Vähintään yksi huoltotehtävä vaaditaan.",
       "invalid_entity": "Valittua entiteettiä ei ole olemassa tai sillä ei ole numeerista dataa.",
       "invalid_attribute": "Valittu attribuutti ei ole käytettävissä tällä entiteetillä.",
@@ -1323,6 +1324,7 @@
     },
     "error": {
       "name_exists": "Tämänniminen huoltokohde on jo olemassa.",
+      "name_empty": "Anna nimi.",
       "no_tasks": "Vähintään yksi huoltotehtävä vaaditaan.",
       "invalid_entity": "Valittua entiteettiä ei ole olemassa tai sillä ei ole numeerista dataa.",
       "invalid_attribute": "Valittu attribuutti ei ole käytettävissä tällä entiteetillä.",

@@ -400,6 +400,8 @@ export class MaintenanceSupporterCard extends LitElement {
       vf?.user_id === "current_user" ? (this.hass.user?.id ?? null) : (vf?.user_id ?? null);
 
     for (const obj of this._objects) {
+      // A view's place (FE5-A4): object-level, like the panel's filter.
+      if (vf?.place && (obj.object.place || "home") !== vf.place) continue;
       // An object by its entry id (what the editor writes since 2.104 — a
       // rename keeps it), or by name (older configs, hand-written YAML).
       if (filter_objects?.length && !filter_objects.includes(obj.entry_id) && !filter_objects.includes(obj.object.name)) continue;

@@ -196,7 +196,8 @@ class TaskCrudMixin:
                 new_tasks = dict(new_data.get(CONF_TASKS, {}))
                 updated_task = dict(new_tasks.get(self._selected_task_id or "", {}))
 
-                updated_task["name"] = user_input.get(CONF_TASK_NAME, updated_task.get("name"))
+                # Trimmed; a name of spaces keeps the old one (BI5-A11).
+                updated_task["name"] = str(user_input.get(CONF_TASK_NAME) or "").strip() or updated_task.get("name")
                 updated_task["type"] = user_input.get(CONF_TASK_TYPE, updated_task.get("type"))
                 if user_input.get(CONF_TASK_INTERVAL_DAYS):
                     updated_task["interval_days"] = int(user_input[CONF_TASK_INTERVAL_DAYS])

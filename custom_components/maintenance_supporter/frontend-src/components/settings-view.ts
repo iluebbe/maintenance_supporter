@@ -20,6 +20,7 @@ import { haToday } from "../helpers/ha-time";
 import { runWs } from "../helpers/ws-run";
 import { DOCS_ARCHIVE_MAX_BYTES, postMultipart } from "../helpers/photo-upload";
 import { countryName, detectionReasons, dwellingLabel, type HomeProfile } from "../helpers/home-profile";
+import { vacationPhase } from "../helpers/vacation-phase";
 import "./ms-date-field";
 
 /** One household member and the notify services they actually resolve to.
@@ -1425,8 +1426,8 @@ export class MaintenanceSettingsView extends LitElement {
   // --- Section: Vacation mode (v1.2.0) ---
 
   private _renderVacation(L: string) {
-    const isStale = this._vacEnabled && !this._vacIsActive && this._vacWindowEnd
-      && new Date(this._vacWindowEnd) < new Date();
+    // The vacation card's rule, by Home Assistant's day (helpers/vacation-phase).
+    const isStale = vacationPhase({ enabled: this._vacEnabled, is_active: this._vacIsActive, window_end: this._vacWindowEnd }) === "ended";
     const exemptCount = this._vacExempt.size;
     return html`
       <div class="settings-section vacation-section" data-section="vacation">

@@ -12,7 +12,8 @@ import { LitElement, html, css, nothing } from "lit";
 import { isSafeHttpUrl, isSafeLink } from "../helpers/url";
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { property, state } from "lit/decorators.js";
-import { t, langOf } from "../styles";
+import { t, langOf, formatDate } from "../styles";
+import { areaLabel } from "../helpers/area-history";
 import { runWs } from "../helpers/ws-run";
 import { statusColor, statusKey, statusLabel } from "../renderers/status";
 import { fetchSettingsOnce } from "../helpers/settings-cache";
@@ -232,12 +233,14 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
   private _renderMetaRow(obj: MaintenanceObject) {
     const L = this._lang;
     const items: Array<[string, string, boolean?]> = [];
-    if (obj.area_id) items.push([t("area", L), obj.area_id]);
+    // The area's name and the dates in the user's format — the raw id and
+    // ISO dates showed here (FE5-A2).
+    if (obj.area_id) items.push([t("area", L), areaLabel(obj.area_id, this.hass?.areas, t("no_area", L))]);
     if (obj.manufacturer) items.push([t("manufacturer", L), obj.manufacturer]);
     if (obj.model) items.push([t("model", L), obj.model]);
     if (obj.serial_number) items.push([t("serial_number_label", L), obj.serial_number]);
-    if (obj.installation_date) items.push([t("installed", L), obj.installation_date]);
-    if (obj.warranty_expiry) items.push([t("warranty", L), obj.warranty_expiry]);
+    if (obj.installation_date) items.push([t("installed", L), formatDate(obj.installation_date, L)]);
+    if (obj.warranty_expiry) items.push([t("warranty", L), formatDate(obj.warranty_expiry, L)]);
     // The documentation link may also open an app (#207).
     if (obj.documentation_url) items.push([t("documentation_url_label", L), obj.documentation_url, isSafeLink(obj.documentation_url)]);
 

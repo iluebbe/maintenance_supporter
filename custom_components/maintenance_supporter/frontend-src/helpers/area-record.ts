@@ -35,6 +35,8 @@ export interface AreaRecordLabels {
 export interface AreaRecordFormat {
   date: (iso: string) => string;
   cost: (amount: number) => string;
+  /** One entry's amount (a credit named as such, FE5-A8). */
+  entryCost: (amount: number) => string;
   duration: (minutes: number) => string;
   /** Month / year label of a bucket. */
   bucket: (b: CostBucket) => string;
@@ -111,7 +113,7 @@ export function buildAreaRecordHtml(
       <td class="nowrap">${esc(fmt.date(e.timestamp))}</td>
       <td>${esc(e.objectName)}</td>
       <td>${esc(task)}</td>
-      <td class="num">${e.cost != null ? esc(fmt.cost(e.cost)) : esc(labels.none)}</td>
+      <td class="num">${e.cost != null ? esc(fmt.entryCost(e.cost)) : esc(labels.none)}</td>
       <td class="num">${e.duration != null ? esc(fmt.duration(e.duration)) : esc(labels.none)}</td>
       <td class="notes">${esc(notes) || esc(labels.none)}</td>
     </tr>`;

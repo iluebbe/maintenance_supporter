@@ -335,6 +335,14 @@ async def ws_create_object(
     if not name:
         send_translated_error(connection, msg["id"], "invalid_input", "Name must not be empty", translation_key="name_empty")
         return
+    # A taken name is refused the way a rename onto it is — before the dry
+    # run too, which called it valid; the create then failed with a bare
+    # "already_configured" (DRY audit 2026-10-12, BI5-A2).
+    from ..helpers.object_names import name_taken
+
+    if name_taken(hass, name):
+        send_translated_error(connection, msg["id"], "invalid_input", "Another object already has this name", translation_key="object_name_taken")
+        return
 
     manufacturer = (msg.get("manufacturer") or "").strip() or None
     model = (msg.get("model") or "").strip() or None
@@ -586,11 +594,16 @@ async def ws_duplicate_object(
     new_obj = deepcopy(dict(src_obj))
     new_obj["id"] = uuid4().hex
     base_name = str(src_obj.get(CONF_OBJECT_NAME, "")).strip() or "Object"
-    new_obj[CONF_OBJECT_NAME] = f"{base_name} (copy)"[:MAX_NAME_LENGTH]
+    from ..helpers.object_names import unique_object_name
+
+    new_obj[CONF_OBJECT_NAME] = unique_object_name(hass, f"{base_name[: MAX_NAME_LENGTH - 7]} (copy)")
     # Serial number identifies one physical unit — never duplicate it.
     new_obj[CONF_OBJECT_SERIAL_NUMBER] = None
     new_obj["task_ids"] = []
-    new_obj.pop("archived_at", None)
+    # A new unit: not archived, not paused, not part of a replacement chain
+    # (the copy kept the pause and the "Replaces / Replaced by" links, BI5-A7).
+    for key in ("archived_at", "paused_at", "paused_until", "predecessor_entry_id", "replaced_by_entry_id"):
+        new_obj.pop(key, None)
     strip_object_reference(new_obj)
 
     # The parts shelf travels with fresh ids (like replace) and the task
@@ -601,6 +614,7 @@ async def ws_duplicate_object(
     part_id_map, new_parts = _carry_parts_shelf(entry.data.get("parts"), keep_doc_links=False)
 
     from ..helpers.parts import PART_REF_FIELD
+    from ..helpers.task_origin import ORIGIN_KEY
 
     new_tasks: dict[str, Any] = {}
     for src_task in entry.data.get(CONF_TASKS, {}).values():
@@ -612,6 +626,9 @@ async def ws_duplicate_object(
         task["id"] = task_id
         task["object_id"] = new_obj["id"]
         strip_task_runtime_state(task)
+        # The copy is the user's own task, not the duty / template task the
+        # original was created as (2.95 fingerprint) — like task/duplicate.
+        task.pop(ORIGIN_KEY, None)
         task = _remap_own_part_links(task, part_id_map, entry.entry_id)
         new_tasks[task_id] = task
         new_obj["task_ids"].append(task_id)
@@ -666,17 +683,10 @@ async def ws_create_from_template(
     name = (msg.get("name") or default_name).strip() or default_name
     # Auto-number on collision: applying the same template twice (or owning
     # three litter boxes) must not fail with already_configured — the second
-    # object becomes "Name 2", then "Name 3", … The check is the config
-    # flow's own (helpers.object_names).
-    from ..helpers.object_names import name_taken
+    # object becomes "Name 2", then "Name 3", …
+    from ..helpers.object_names import unique_object_name
 
-    if name_taken(hass, name):
-        base = name[: MAX_NAME_LENGTH - 4]
-        for n in range(2, 100):
-            candidate = f"{base} {n}"
-            if not name_taken(hass, candidate):
-                name = candidate
-                break
+    name = unique_object_name(hass, name)
     object_id = uuid4().hex
     new_obj: dict[str, Any] = {
         "id": object_id,

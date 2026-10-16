@@ -18,9 +18,9 @@ from ..const import (
     CONF_VACATION_EXEMPT_TASK_IDS,
     CONF_VACATION_START,
     DOMAIN,
-    MAX_ID_LENGTH,
     MAX_INTERVAL_DAYS,
     MAX_VACATION_EXEMPT_TASKS,
+    VACATION_BUFFER_DAYS_RANGE,
 )
 from ..helpers.aggregate import object_name
 from ..helpers.dates import parse_iso_date
@@ -52,7 +52,7 @@ async def ws_vacation_state(
         vol.Optional("enabled"): bool,
         vol.Optional("start"): vol.Any(vol.All(str, vol.Length(max=10)), None),
         vol.Optional("end"): vol.Any(vol.All(str, vol.Length(max=10)), None),
-        vol.Optional("buffer_days"): vol.All(int, vol.Range(min=0, max=14)),
+        vol.Optional("buffer_days"): vol.All(int, vol.Range(min=VACATION_BUFFER_DAYS_RANGE[0], max=VACATION_BUFFER_DAYS_RANGE[1])),
         vol.Optional("exempt_task_ids"): vol.All(
             [ID_FIELD],
             vol.Length(max=MAX_VACATION_EXEMPT_TASKS),
@@ -108,20 +108,9 @@ async def ws_vacation_update(
         options[CONF_VACATION_BUFFER_DAYS] = int(msg["buffer_days"])
 
     if "exempt_task_ids" in msg:
-        # Sanitise: strip + dedupe + cap.
-        seen: set[str] = set()
-        cleaned: list[str] = []
-        for raw in msg["exempt_task_ids"]:
-            if not isinstance(raw, str):
-                continue
-            v = raw.strip()
-            if not v or len(v) > MAX_ID_LENGTH or v in seen:
-                continue
-            seen.add(v)
-            cleaned.append(v)
-            if len(cleaned) >= MAX_VACATION_EXEMPT_TASKS:
-                break
-        options[CONF_VACATION_EXEMPT_TASK_IDS] = cleaned
+        from ..helpers.vacation import clean_exempt_task_ids
+
+        options[CONF_VACATION_EXEMPT_TASK_IDS] = clean_exempt_task_ids(msg["exempt_task_ids"])
 
     _save_global_options(hass, global_entry, options)
     connection.send_result(msg["id"], _state_payload(hass))

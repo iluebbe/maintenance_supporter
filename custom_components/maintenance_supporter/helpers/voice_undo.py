@@ -14,7 +14,8 @@ What an undo covers, precisely:
 * the task's own record in the Store — completion history, the cycle anchor,
   a postponement, the phase cursor, checklist ticks, adaptive learning;
 * the entry fields a voice action writes: the rotation pointer and the notes;
-* spare-part stock the action consumed or added;
+* spare-part stock the action consumed or added — and, for a buy reminder,
+  its link to the part and the price its purchase set;
 * a snooze.
 
 What it cannot take back, and does not pretend to: events that were fired
@@ -67,6 +68,13 @@ TASK_FIELDS = (
 #: Entry-level task fields a voice action writes.
 STATIC_FIELDS = ("responsible_user_id", "notes")
 
+#: Entry-level fields put back but not compared: the buy-task reconcile
+#: detaches a completed reminder's part link in the background, a moment
+#: after the action — compared, that read as "changed since" and the undo
+#: was refused. Not put back, the reopened reminder had no link and the
+#: reconcile created a second one (DRY audit 2026-10-12, BR5-A2).
+RESTORE_ONLY_FIELDS = ("part_ref",)
+
 
 @dataclass
 class Snapshot:
@@ -80,6 +88,9 @@ class Snapshot:
     stocks: dict[tuple[str, str], float | None] = field(default_factory=dict)
     # #208: a reusable part's used ones waiting to be ready again.
     piles: dict[tuple[str, str], float] = field(default_factory=dict)
+    restore_only: dict[str, Any] = field(default_factory=dict)
+    # #104 "when used": a buy reminder's paid price becomes its part's price.
+    part_costs: dict[tuple[str, str], Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -125,6 +136,7 @@ def capture(hass: HomeAssistant, entry_id: str, task_id: str | None) -> Snapshot
         state = store.get_task_state(task_id)
         snap.task = {key: copy.deepcopy(state.get(key)) for key in TASK_FIELDS}
         snap.static = {key: copy.deepcopy(static.get(key)) for key in STATIC_FIELDS}
+        snap.restore_only = {key: copy.deepcopy(static.get(key)) for key in RESTORE_ONLY_FIELDS}
     nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
     if task_id and nm is not None:
         snap.snooze = dict(nm.task_snooze_state(entry_id, task_id))
@@ -134,9 +146,10 @@ def capture(hass: HomeAssistant, entry_id: str, task_id: str | None) -> Snapshot
         ce_store = _store_of(hass, ce.entry_id)
         if ce_store is None:
             continue
-        for part_id in ce.data.get(CONF_PARTS) or {}:
+        for part_id, part in (ce.data.get(CONF_PARTS) or {}).items():
             snap.stocks[(ce.entry_id, part_id)] = ce_store.get_part_stock(part_id)
             snap.piles[(ce.entry_id, part_id)] = ce_store.get_part_restoring(part_id)
+            snap.part_costs[(ce.entry_id, part_id)] = part.get("cost") if isinstance(part, dict) else None
     return snap
 
 
@@ -231,6 +244,14 @@ async def async_restore(hass: HomeAssistant, record: UndoRecord) -> None:
     if before.task_id and nm is not None and before.snooze != record.after.snooze:
         nm.restore_task_snooze_state(before.entry_id, before.task_id, before.snooze)
 
+    # The task first: put back before the stock, a reopened buy reminder
+    # carries its part link again when the stock change re-plans the buy
+    # tasks — otherwise that re-plan created a second reminder.
+    if coordinator is not None and before.task_id and before.task is not None:
+        static = {**before.static, **before.restore_only}
+        if before.task != record.after.task or static != {**record.after.static, **record.after.restore_only}:
+            await coordinator.async_restore_task_fields(before.task_id, dict(before.task), static)
+
     # Stock and waiting pile (#208) go back in ONE booking through the one
     # stock writer: what is owned moves once, so the low / restocked edge
     # fires at most once and the buy tasks are re-planned once.
@@ -247,6 +268,14 @@ async def async_restore(hass: HomeAssistant, record: UndoRecord) -> None:
         else:
             await async_set_part_restoring(hass, part_entry, part_id, piles[key])
 
-    if coordinator is not None and before.task_id and before.task is not None:
-        if before.task != record.after.task or before.static != record.after.static:
-            await coordinator.async_restore_task_fields(before.task_id, dict(before.task), dict(before.static))
+    # The price a buy reminder's purchase set (#104 "when used").
+    for (entry_id, part_id), cost in before.part_costs.items():
+        if record.after.part_costs.get((entry_id, part_id)) == cost:
+            continue
+        part_entry = hass.config_entries.async_get_entry(entry_id)
+        parts = dict((part_entry.data.get(CONF_PARTS) or {}) if part_entry else {})
+        part = parts.get(part_id)
+        if part_entry is None or not isinstance(part, dict) or part.get("cost") == cost:
+            continue
+        parts[part_id] = {**part, "cost": cost} if cost is not None else {k: v for k, v in part.items() if k != "cost"}
+        hass.config_entries.async_update_entry(part_entry, data={**part_entry.data, CONF_PARTS: parts})

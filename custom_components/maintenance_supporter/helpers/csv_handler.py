@@ -6,7 +6,6 @@ import csv
 import io
 import json
 import logging
-import re
 from typing import Any
 from uuid import uuid4
 
@@ -14,6 +13,8 @@ from homeassistant.core import HomeAssistant
 
 from ..const import (
     CONF_OBJECT,
+    CONF_OBJECT_PLACE,
+    CONF_OBJECT_REMIND_ON_SITE,
     CONF_TASKS,
     DEFAULT_TASK_PRIORITY,
     DEFAULT_WARNING_DAYS,
@@ -26,6 +27,7 @@ from .global_options import get_default_warning_days
 from .pause import write_anchor
 from .reading_slots import parse_reading_slots_text, reading_slots_text
 from .schedule import Schedule, read_legacy_fields
+from .task_fields import import_due_date, import_interval_days, import_warning_days
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,6 +54,10 @@ _COLUMNS = [
     # dropped object notes + documentation URL.
     "object_documentation_url",
     "object_notes",
+    # The object's place (a zone) and the on-site reminder: a CSV round trip
+    # dropped both (DRY audit 2026-10-12, BI5-A11).
+    "object_place",
+    "object_remind_on_site",
     "task_name",
     "task_type",
     "enabled",
@@ -137,6 +143,8 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
                     "object_warranty_expiry": _csv_safe(obj_data.get("warranty_expiry", "")),
                     "object_documentation_url": _csv_safe(obj_data.get("documentation_url") or ""),
                     "object_notes": _csv_safe(obj_data.get("notes") or ""),
+                    "object_place": _csv_safe(str(obj_data.get(CONF_OBJECT_PLACE) or "")),
+                    "object_remind_on_site": "true" if obj_data.get(CONF_OBJECT_REMIND_ON_SITE) is True else "",
                     "task_name": _csv_safe(tdata.get("name", "")),
                     # Free text over the WS API ("=HYPERLINK(…)" was exported
                     # raw — bug audit 2026-09-26); the dates were only
@@ -187,6 +195,8 @@ _OBJECT_RECORD_COLUMNS = [
     "object_warranty_expiry",
     "object_documentation_url",
     "object_notes",
+    "object_place",
+    "object_remind_on_site",
     "task_count",
 ]
 
@@ -222,6 +232,8 @@ def export_object_records_csv(hass: HomeAssistant, entry_ids: set[str] | None = 
                 "object_warranty_expiry": _csv_safe(obj_data.get("warranty_expiry") or ""),
                 "object_documentation_url": _csv_safe(obj_data.get("documentation_url") or ""),
                 "object_notes": _csv_safe(obj_data.get("notes") or ""),
+                "object_place": _csv_safe(str(obj_data.get(CONF_OBJECT_PLACE) or "")),
+                "object_remind_on_site": "true" if obj_data.get(CONF_OBJECT_REMIND_ON_SITE) is True else "",
                 "task_count": len(tasks_data),
             }
         )
@@ -287,6 +299,9 @@ def import_objects_csv(
                     # import until now (round-trip gap, audit 2026-07-11).
                     "documentation_url": (row.get("object_documentation_url") or "").strip() or None,
                     "notes": (row.get("object_notes") or "").strip() or None,
+                    # Only a zone is a place (what the place picker offers).
+                    CONF_OBJECT_PLACE: place if (place := (row.get("object_place") or "").strip()).startswith("zone.") else None,
+                    CONF_OBJECT_REMIND_ON_SITE: (row.get("object_remind_on_site") or "").strip().lower() == "true",
                     "archived_at": archived_at if _is_iso_moment(archived_at) else None,
                     "predecessor_entry_id": predecessor or None,
                     "task_ids": [],
@@ -307,20 +322,21 @@ def import_objects_csv(
             "type": (row.get("task_type") or "custom").strip(),
             "enabled": True,
             "schedule_type": (row.get("schedule_type") or "time_based").strip(),
-            "warning_days": _safe_int(row.get("warning_days"), default_warning_days),
+            "warning_days": import_warning_days(row.get("warning_days"), default_warning_days),
             "history": [],
         }
 
-        interval = row.get("interval_days", "").strip()
-        if interval:
-            task_data["interval_days"] = _safe_int(interval, None)
+        # The JSON import's rules (helpers.task_fields, BI5-A10).
+        interval = import_interval_days((row.get("interval_days") or "").strip())
+        if interval is not None:
+            task_data["interval_days"] = interval
 
         interval_unit = (row.get("interval_unit") or "").strip().lower()
         if interval_unit in INTERVAL_UNITS:
             task_data["interval_unit"] = interval_unit
 
-        due_date = (row.get("due_date") or "").strip()
-        if due_date and re.fullmatch(r"\d{4}-\d{2}-\d{2}", due_date):
+        due_date = import_due_date(row.get("due_date"))
+        if due_date is not None:
             task_data["due_date"] = due_date
 
         anchor = (row.get("interval_anchor") or "").strip()
@@ -438,12 +454,3 @@ def _is_iso_moment(value: str) -> bool:
         return False
     return True
 
-
-def _safe_int(value: str | None, default: int | None) -> int | None:
-    """Safely convert a string to int."""
-    if value is None:
-        return default
-    try:
-        return int(float(value))
-    except (ValueError, TypeError):
-        return default

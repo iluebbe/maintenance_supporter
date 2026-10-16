@@ -467,6 +467,8 @@ export interface SavedViewFilters {
   label?: string | null;
   /** Only tasks of this priority (#134): low|normal|high; "" = no filter. */
   priority?: string;
+  /** Only objects at this place: "home" or a zone; "" = anywhere. */
+  place?: string;
   archived: boolean;
   sort_mode: string;
   group_by: string;

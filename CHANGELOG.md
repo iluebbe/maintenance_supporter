@@ -81,6 +81,57 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **A task due when its device says so shows that date:** for a due-date trigger, the task page's *Next due* and
   *Days until due* showed *—* while the trigger itself said *2 days*. They now show the date the sensor reports,
   marked *Reported by the sensor*.
+- **Undoing a purchase reopens the one shopping reminder:** after *Undo* on a completed buy reminder, a second
+  reminder for the same part appeared, and the price the purchase had set for the part stayed.
+- **A completion action is followed wherever it names its entity:** an action that names its button in the data
+  instead of the target (*button.press* accepts both) was not moved to the new device by *Replace…*, not checked for
+  a deleted entity, and not waited for while Home Assistant starts. The repair for a deleted entity replaced the
+  whole list of targets; it now replaces only the missing one.
+- **"I bought …" completes a reminder once:** a buy reminder completed a moment before was taken for an open one and
+  completed again.
+- **The budget updates at once:** a completion whose only cost was the value of its parts (spare parts count *When
+  used*), and an undone completion, left the totals unchanged until the next hourly refresh.
+- **Duplicating an object twice works:** the second copy failed because both were called *X (copy)*; it is now
+  *X (copy) 2*. Creating an object under a name that is already taken says so, in the panel (also on the check
+  before saving) and in the *add_object* action, instead of *already_configured*. The *add_object* action accepts
+  names up to 200 characters, like the panel.
+- **A duplicate is a new unit:** the copy of a paused object was paused as well, kept the original's *Replaces* and
+  *Replaced by* links, and its tasks still counted as created from a template or an integration.
+- **Deleting a part removes all of its links:** links in a task's phases, and links from other objects that use
+  the part's shared pool, kept pointing at the deleted part and raised a *broken part link* repair on the next
+  completion. The parts overview now also lists tasks that use a part only in one of their phases.
+- **An archived object gets no new tasks:** the *add_task* action, the options flow and *Adopt problem sensors*
+  added tasks to an archived object, where nobody saw them but they still sent reminders.
+- **A task whose schedule contradicts itself is refused:** the WebSocket API stored an unknown schedule type, a
+  one-time task without a due date and a manual task with an interval, which the *add_task* action already refused.
+  In the task dialog, *Save* now waits for a one-time task's due date.
+- **Imports follow one set of rules:** a JSON backup and a CSV file with the same task became two different tasks.
+  The CSV import kept an interval of 0 and 999 warning days (saved as 1 and 365) and accepted dates such as
+  2026-02-31; the JSON import accepted any due date and dropped an interval written as text. Both now read
+  intervals, warning days and due dates the same way. The settings import accepts 0 to 14 vacation buffer days
+  only, lists each exempt task once, and keeps group descriptions up to 2,000 characters instead of cutting them
+  at 200.
+- **The CSV keeps the place:** an object's place (a zone) and *Remind only while somebody is there* were lost in a
+  CSV export and import.
+- **Names are trimmed:** the setup and options flows saved names with leading or trailing spaces, and names of
+  spaces only. Such a name is refused now; when editing a task in the options flow it keeps the old name.
+- **Web links count toward the document limit:** the limit of 100 documents per object applied to uploads only, and
+  two uploads at the same moment could both get past it.
+- **An object's area reads the same everywhere:** the object's quick actions showed the area's internal ID and the
+  dates unformatted, and grouping by area said *Unassigned* in one list and *No area* in another.
+- **History colours agree:** the task history, the object history and the area view coloured the entry types
+  differently, and missed entries had no colour in the task history.
+- **A finished vacation says so on the card:** the vacation card showed *Scheduled* for a vacation that was already
+  over, while the settings said it had ended. The settings judged the end by midnight UTC instead of Home
+  Assistant's day.
+- **Saved views remember the place filter:** applying a saved view kept whatever place was picked before. The
+  dashboard card applies a view's place too.
+- **Credits are named everywhere:** the object history, the area view and its printable record showed a credit as
+  *-50 €*; they now say *Credit: 50 €* like the task history. The task page's average cost shows *—* instead of
+  *0* until a completion has a cost.
+- **Smaller fixes:** the work sheet prints the priority's name instead of its internal key; moving a history entry
+  into the future is refused in your language; the complete dialog opened from a dashboard card or the calendar card
+  now offers *Undo* like the panel.
 
 ## [2.103.5] - 2026-10-16
 

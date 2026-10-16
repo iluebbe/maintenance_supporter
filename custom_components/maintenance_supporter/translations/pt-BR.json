@@ -510,6 +510,7 @@
     },
     "error": {
       "name_exists": "Já existe um objeto de manutenção com este nome.",
+      "name_empty": "Digite um nome.",
       "no_tasks": "É necessária pelo menos uma tarefa de manutenção.",
       "invalid_entity": "A entidade selecionada não existe ou não tem dados numéricos.",
       "invalid_attribute": "O atributo selecionado não está disponível nesta entidade.",
@@ -1323,6 +1324,7 @@
     },
     "error": {
       "name_exists": "Já existe um objeto de manutenção com este nome.",
+      "name_empty": "Digite um nome.",
       "no_tasks": "É necessária pelo menos uma tarefa de manutenção.",
       "invalid_entity": "A entidade selecionada não existe ou não tem dados numéricos.",
       "invalid_attribute": "O atributo selecionado não está disponível nesta entidade.",

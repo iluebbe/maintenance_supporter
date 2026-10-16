@@ -201,7 +201,9 @@ SERVICE_EXPORT_SCHEMA = vol.Schema(
 
 SERVICE_ADD_OBJECT_SCHEMA = vol.Schema(
     {
-        vol.Required("name"): vol.All(cv.string, vol.Length(min=1, max=255)),
+        # The panel's limit (MAX_NAME_LENGTH): 255 here let the service store
+        # a name no other surface could save again (BI5-A11).
+        vol.Required("name"): vol.All(cv.string, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         vol.Optional("area_id"): cv.string,
         vol.Optional("manufacturer"): cv.string,
         vol.Optional("model"): cv.string,
@@ -743,6 +745,12 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         url = call.data.get("documentation_url")
         if url and not _is_safe_url(url):
             raise ServiceValidationError(translation_domain=DOMAIN, translation_key="unsafe_url")
+        # The same answer for a taken name as the panel's (it was "The action
+        # could not be carried out: already_configured", BI5-A2).
+        from .helpers.object_names import name_taken
+
+        if name_taken(hass, str(call.data["name"]).strip()):
+            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="object_name_taken")
         try:
             entry_id = await async_create_object(
                 hass,
@@ -766,6 +774,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
 
     async def _handle_add_task(call: ServiceCall) -> dict[str, Any] | None:
         """Handle the add_task service — add a task to an existing object."""
+        from .helpers.entry_tasks import ArchivedObjectError
         from .websocket.tasks import async_create_task_simple
 
         try:
@@ -785,6 +794,8 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                 notes=call.data.get("notes"),
                 schedule=call.data.get("schedule"),
             )
+        except ArchivedObjectError as err:
+            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="archived_no_new_tasks") from err
         except ValueError as err:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,

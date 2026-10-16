@@ -26,7 +26,7 @@ import unicodedata
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from ..const import CONF_OBJECT, CONF_OBJECT_NAME, DOMAIN, GLOBAL_UNIQUE_ID, slugify_object_name
+from ..const import CONF_OBJECT, CONF_OBJECT_NAME, DOMAIN, GLOBAL_UNIQUE_ID, MAX_NAME_LENGTH, slugify_object_name
 
 _UNIQUE_ID_PREFIX = "maintenance_supporter_"
 
@@ -59,6 +59,23 @@ def name_taken(hass: HomeAssistant, name: str, *, exclude_entry_id: str | None =
         if current and name_key(current) == key:
             return True
     return False
+
+
+def unique_object_name(hass: HomeAssistant, name: str) -> str:
+    """``name`` when no object carries it yet, else the first free "name 2",
+    "name 3", … — applying the same template twice, or duplicating the same
+    object a second time. The duplicate always proposed "X (copy)", so the
+    second one failed with ``already_configured`` (DRY audit 2026-10-12,
+    BI5-A2; the template gallery had its own copy of this loop)."""
+    name = name[:MAX_NAME_LENGTH]
+    if not name_taken(hass, name):
+        return name
+    base = name[: MAX_NAME_LENGTH - 4]
+    for n in range(2, 100):
+        candidate = f"{base} {n}"
+        if not name_taken(hass, candidate):
+            return candidate
+    return name
 
 
 def name_changed_onto_taken(hass: HomeAssistant, entry: ConfigEntry, new_name: str) -> bool:

@@ -39,7 +39,8 @@ import type {
   MaintenanceHistoryEditDialog,
   HistoryEntryDraft,
 } from "./components/history-edit-dialog";
-import type { MaintenanceCompleteDialog } from "./components/complete-dialog";
+import type { MaintenanceCompleteDialog, TaskCompletedDetail } from "./components/complete-dialog";
+import { offerUndoToast } from "./helpers/undo-completion";
 import type { MaintenanceQrDialog } from "./components/qr-dialog";
 import type { MaintenanceTaskQuickActionsDialog } from "./components/task-quick-actions-dialog";
 import type { MaintenanceObjectQuickActionsDialog } from "./components/object-quick-actions-dialog";
@@ -267,6 +268,19 @@ export function openHistoryEditDialog(draft: HistoryEntryDraft): boolean {
 export function openCompleteDialog(args: CompleteDialogArgs): boolean {
   const dlg = getOrCreate<MaintenanceCompleteDialog>(COMPLETE_DIALOG_TAG);
   if (!syncHass(dlg)) return false;
+  // The Undo the panel and the card offer after a completion: this dialog
+  // (a card row's quick actions, a strategy row, the calendar card) had
+  // nobody listening to its task-completed event, so it offered none (DRY
+  // audit 2026-10-12, FE5-A1). Wired once per dialog element.
+  const wired = dlg as MaintenanceCompleteDialog & { __msUndoWired?: boolean };
+  if (!wired.__msUndoWired) {
+    wired.__msUndoWired = true;
+    dlg.addEventListener("task-completed", (e: Event) => {
+      const detail = (e as CustomEvent<TaskCompletedDetail>).detail;
+      const hass = getHass();
+      if (detail?.undo && hass) offerUndoToast(dlg, hass, detail, langOf(hass), () => undefined);
+    });
+  }
   fillAndOpenCompleteDialog(dlg, args, langOf(getHass()));
   return true;
 }

@@ -31,7 +31,6 @@ from ..const import (
     MAX_ID_LENGTH,
     MAX_IMPORT_PAYLOAD_BYTES,
     MAX_JSON_IMPORT_PAYLOAD_BYTES,
-    MAX_VACATION_EXEMPT_TASKS,
     MIN_COST,
 )
 from ..helpers.aggregate import object_name
@@ -849,6 +848,7 @@ def _apply_settings_import(
         MAX_GROUP_TASK_REFS,
         MAX_NAME_LENGTH,
         MAX_SAVED_VIEWS,
+        MAX_TEXT_LENGTH,
     )
     from ..export import _NON_PORTABLE_SETTINGS
     from ..helpers.global_options import get_global_entry
@@ -891,7 +891,9 @@ def _apply_settings_import(
             ][:MAX_GROUP_TASK_REFS]
             groups[str(gid)] = {
                 "name": str(g["name"]).strip()[:MAX_NAME_LENGTH],
-                "description": str(g.get("description") or "")[:MAX_NAME_LENGTH],
+                # groups/create allows MAX_TEXT_LENGTH; the import cut a
+                # description to a name's 200 characters (BI5-A9).
+                "description": str(g.get("description") or "")[:MAX_TEXT_LENGTH],
                 "task_refs": refs,
             }
         if groups:
@@ -931,12 +933,17 @@ def _apply_settings_import(
             _LOGGER.warning("Settings import: %s %s is more than %d days away — dropped", key, val, MAX_INTERVAL_DAYS)
             continue
         filtered[key] = val
-    if isinstance(raw.get(CONF_VACATION_BUFFER_DAYS), int) and not isinstance(raw.get(CONF_VACATION_BUFFER_DAYS), bool):
-        filtered[CONF_VACATION_BUFFER_DAYS] = raw[CONF_VACATION_BUFFER_DAYS]
+    # The rules of vacation/update: a buffer within its range, the exempt
+    # list trimmed and each task once (the import took any int and kept
+    # duplicates, BI5-A9).
+    from ..helpers.vacation import clean_exempt_task_ids, valid_buffer_days
+
+    buffer_days = valid_buffer_days(raw.get(CONF_VACATION_BUFFER_DAYS))
+    if buffer_days is not None:
+        filtered[CONF_VACATION_BUFFER_DAYS] = buffer_days
     exempt = raw.get(CONF_VACATION_EXEMPT_TASK_IDS)
     if isinstance(exempt, list):
-        cleaned = [t.strip() for t in exempt if isinstance(t, str) and t.strip()][:MAX_VACATION_EXEMPT_TASKS]
-        filtered[CONF_VACATION_EXEMPT_TASK_IDS] = cleaned
+        filtered[CONF_VACATION_EXEMPT_TASK_IDS] = clean_exempt_task_ids(exempt)
 
     if not filtered:
         return []
@@ -1339,19 +1346,30 @@ async def ws_import_json(
                 # user a file names (bug audit 2026-09-27, SEC-2).
                 _stamp_imported_action_owner(task_data, importing_user)
 
-                # Sanitize critical fields from import data
-                iv = task_data.get("interval_days")
-                if iv is not None and (not isinstance(iv, int) or iv < 1):
-                    task_data.pop("interval_days", None)
+                # Sanitize critical fields from import data — the rules the
+                # CSV import applies too (helpers.task_fields, BI5-A10).
+                from ..helpers.task_fields import import_due_date, import_interval_days, import_warning_days
+
+                if task_data.get("interval_days") is not None:
+                    iv = import_interval_days(task_data["interval_days"])
+                    if iv is None:
+                        task_data.pop("interval_days", None)
+                    else:
+                        task_data["interval_days"] = iv
+                if task_data.get("due_date") is not None:
+                    due = import_due_date(task_data["due_date"])
+                    if due is None:
+                        task_warnings.append(f"{task_name}: due date {task_data['due_date']!r} is no date — dropped")
+                        task_data.pop("due_date", None)
+                    else:
+                        task_data["due_date"] = due
                 lp = task_data.get("last_performed")
                 if lp is not None and parse_iso_date(lp) is None:
                     task_data.pop("last_performed", None)
                 elif _future_last_performed(lp):
                     task_data.pop("last_performed", None)
                     task_warnings.append(f"{task_name}: last performed date {lp} is in the future — dropped")
-                wd = task_data.get("warning_days")
-                if not isinstance(wd, int) or wd < 0 or wd > 365:
-                    task_data["warning_days"] = get_default_warning_days(hass)
+                task_data["warning_days"] = import_warning_days(task_data.get("warning_days"), get_default_warning_days(hass))
                 # A rotation task must carry its effective assignee (imports from
                 # pre-seeding exports may lack one) — same rule as create/update.
                 from ..helpers.sanitize import seed_rotation_assignee

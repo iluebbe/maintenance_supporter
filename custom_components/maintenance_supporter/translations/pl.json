@@ -510,6 +510,7 @@
     },
     "error": {
       "name_exists": "Obiekt konserwacji o tej nazwie już istnieje.",
+      "name_empty": "Wpisz nazwę.",
       "no_tasks": "Wymagane jest co najmniej jedno zadanie konserwacji.",
       "invalid_entity": "Wybrana encja nie istnieje lub nie ma danych liczbowych.",
       "invalid_attribute": "Wybrany atrybut nie jest dostępny dla tej encji.",
@@ -1323,6 +1324,7 @@
     },
     "error": {
       "name_exists": "Obiekt konserwacji o tej nazwie już istnieje.",
+      "name_empty": "Wpisz nazwę.",
       "no_tasks": "Wymagane jest co najmniej jedno zadanie konserwacji.",
       "invalid_entity": "Wybrana encja nie istnieje lub nie ma danych liczbowych.",
       "invalid_attribute": "Wybrany atrybut nie jest dostępny dla tej encji.",

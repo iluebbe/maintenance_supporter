@@ -510,6 +510,7 @@
     },
     "error": {
       "name_exists": "Már létezik karbantartási objektum ezzel a névvel.",
+      "name_empty": "Adj meg egy nevet.",
       "no_tasks": "Legalább egy karbantartási feladat szükséges.",
       "invalid_entity": "A kiválasztott entitás nem létezik, vagy nincs numerikus adata.",
       "invalid_attribute": "A kiválasztott attribútum nem érhető el ezen az entitáson.",
@@ -1323,6 +1324,7 @@
     },
     "error": {
       "name_exists": "Már létezik karbantartási objektum ezzel a névvel.",
+      "name_empty": "Adj meg egy nevet.",
       "no_tasks": "Legalább egy karbantartási feladat szükséges.",
       "invalid_entity": "A kiválasztott entitás nem létezik, vagy nincs numerikus adata.",
       "invalid_attribute": "A kiválasztott attribútum nem érhető el ezen az entitáson.",

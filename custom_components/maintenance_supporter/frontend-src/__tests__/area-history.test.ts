@@ -263,6 +263,7 @@ describe("area report printable (#191)", () => {
       {
         date: (iso) => iso.slice(0, 10),
         cost: (n) => `${n} €`,
+        entryCost: (n) => (n < 0 ? `Credit: ${-n} €` : `${n} €`),
         duration: (m) => `${m} min`,
         bucket: (b) => `M${b.key}`,
         share: (f) => `${Math.round(f * 100)} %`,

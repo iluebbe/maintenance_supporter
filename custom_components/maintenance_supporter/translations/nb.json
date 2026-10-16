@@ -510,6 +510,7 @@
     },
     "error": {
       "name_exists": "Et vedlikeholdsobjekt med dette navnet finnes allerede.",
+      "name_empty": "Skriv inn et navn.",
       "no_tasks": "Minst én vedlikeholdsoppgave kreves.",
       "invalid_entity": "Den valgte enheten finnes ikke eller har ingen numeriske data.",
       "invalid_attribute": "Det valgte attributtet er ikke tilgjengelig på denne enheten.",
@@ -1323,6 +1324,7 @@
     },
     "error": {
       "name_exists": "Et vedlikeholdsobjekt med dette navnet finnes allerede.",
+      "name_empty": "Skriv inn et navn.",
       "no_tasks": "Minst én vedlikeholdsoppgave kreves.",
       "invalid_entity": "Den valgte enheten finnes ikke eller har ingen numeriske data.",
       "invalid_attribute": "Det valgte attributtet er ikke tilgjengelig på denne enheten.",

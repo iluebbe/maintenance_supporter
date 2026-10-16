@@ -16,6 +16,7 @@ from ..helpers.parts import (
     MAX_PARTS_PER_OBJECT,
     REUSE_KINDS,
     PartValidationError,
+    iter_part_links,
     normalize_part,
 )
 from ..helpers.permissions import require_write
@@ -195,23 +196,40 @@ async def ws_delete_part(
         return
     del parts[msg["part_id"]]
 
-    # Prune task-side consumption links pointing at the deleted part.
-    from ..const import CONF_TASK_CONSUMES_PARTS, CONF_TASKS
+    # Prune every consumption link pointing at the deleted part: the task
+    # level and each phase (#139), of this object's tasks and of the tasks
+    # other objects draw on its pool with (#111). Only this object's own
+    # task-level links were pruned; the rest dangled and raised a broken
+    # part link repair on the next completion (DRY audit 2026-10-12, BI5-A3).
+    from ..const import CONF_TASKS
+    from ..helpers.parts import map_part_links
+
+    part_id = msg["part_id"]
+
+    def _pruned(task_entry_id: str, tasks: dict[str, Any]) -> tuple[dict[str, Any], bool]:
+        def rewrite(link: dict[str, Any]) -> dict[str, Any] | None:
+            owner = str(link.get("entry_id") or task_entry_id)
+            return None if owner == entry.entry_id and str(link.get("part_id") or "") == part_id else link
+
+        out, changed = dict(tasks), False
+        for tid, td in tasks.items():
+            if isinstance(td, dict):
+                new, did = map_part_links(td, rewrite)
+                if did:
+                    out[tid], changed = new, True
+        return out, changed
 
     new_data = dict(entry.data)
     new_data[CONF_PARTS] = parts
-    tasks = dict(new_data.get(CONF_TASKS, {}))
-    for tid, td in list(tasks.items()):
-        links = td.get(CONF_TASK_CONSUMES_PARTS)
-        if isinstance(links, list) and any(isinstance(x, dict) and x.get("part_id") == msg["part_id"] for x in links):
-            td = dict(td)
-            td[CONF_TASK_CONSUMES_PARTS] = [
-                x for x in links if not (isinstance(x, dict) and x.get("part_id") == msg["part_id"])
-            ]
-            if not td[CONF_TASK_CONSUMES_PARTS]:
-                td.pop(CONF_TASK_CONSUMES_PARTS, None)
-            tasks[tid] = td
-    new_data[CONF_TASKS] = tasks
+    new_data[CONF_TASKS], _ = _pruned(entry.entry_id, dict(new_data.get(CONF_TASKS) or {}))
+    from ..helpers.aggregate import get_object_entries
+
+    for other in get_object_entries(hass):
+        if other.entry_id == entry.entry_id:
+            continue
+        other_tasks, changed = _pruned(other.entry_id, dict(other.data.get(CONF_TASKS) or {}))
+        if changed:
+            hass.config_entries.async_update_entry(other, data={**other.data, CONF_TASKS: other_tasks})
     # A deleted fleet type-part must STAY deleted: the start-up reconcile
     # re-minted ``batt_<type>`` on every boot while the type was still in
     # the fleet (bug review 2026-09-04). Tombstone it on the fleet object.
@@ -341,8 +359,9 @@ async def ws_parts_overview(
     consumers: dict[tuple[str, str], list[dict[str, Any]]] = {}
     for e in entries:
         for task_id, task in _get_merged_tasks(e).items():
-            for link in task.get("consumes_parts") or []:
-                if not isinstance(link, dict) or not link.get("part_id"):
+            # Phase links (#139) consume too: listed like the task's own.
+            for link in iter_part_links(task):
+                if not link.get("part_id"):
                     continue
                 owner = link.get("entry_id") or e.entry_id
                 consumers.setdefault((owner, link["part_id"]), []).append(

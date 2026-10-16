@@ -23,6 +23,7 @@ from homeassistant.core import HomeAssistant
 from ..const import (
     CONF_OBJECT,
     DOMAIN,
+    MAX_DOCS_PER_OBJECT,
     MAX_NAME_LENGTH,
     MAX_TEXT_LENGTH,
     MAX_URL_LENGTH,
@@ -137,13 +138,17 @@ async def ws_documents_add_link(
         return
 
     title = msg.get("title")
-    doc = await _get_store(hass).async_add_weblink(
-        object_id_for_entry(entry),
-        url=url,
-        title=title.strip() if isinstance(title, str) and title.strip() else None,
-        tags=msg.get("tags"),
-        description=msg.get("description"),
-    )
+    try:
+        doc = await _get_store(hass).async_add_weblink(
+            object_id_for_entry(entry),
+            url=url,
+            title=title.strip() if isinstance(title, str) and title.strip() else None,
+            tags=msg.get("tags"),
+            description=msg.get("description"),
+        )
+    except ValueError:
+        connection.send_error(msg["id"], "limit_reached", f"At most {MAX_DOCS_PER_OBJECT} documents per object")
+        return
     connection.send_result(msg["id"], doc)
 
 

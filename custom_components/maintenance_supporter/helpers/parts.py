@@ -60,6 +60,24 @@ REUSE_KINDS = ("charge", "sharpen", "clean", "dry", "refill", "restore")
 # one-off (its cost history stays in the statistics) while the next low
 # episode is free to create a fresh reminder.
 PART_REF_FIELD = "part_ref"
+def buy_task_part_id(task: Mapping[str, Any]) -> str | None:
+    """The part a buy reminder restocks (its ``part_ref``), or None."""
+    ref = task.get(PART_REF_FIELD)
+    part_id = ref.get("part_id") if isinstance(ref, Mapping) else None
+    return str(part_id) if part_id else None
+
+
+def is_open_buy_task(task: Mapping[str, Any], obj: Mapping[str, Any], last_performed: str | None) -> bool:
+    """A buy reminder still to do: it restocks a part, is live (not retired,
+    disabled or frozen with its object) and not completed. The shopping list
+    and voice "bought …" each spelled this out, and voice took a completed
+    reminder for an open one and completed it again (DRY audit 2026-10-12,
+    BR5-A8)."""
+    from .pause import is_task_inert
+
+    return buy_task_part_id(task) is not None and last_performed is None and not is_task_inert(dict(task), dict(obj))
+
+
 # Set by the buy-task reconcile on a buy task of a paused or archived owner
 # whose pool live objects still draw on (#111): the owner's pause does not
 # freeze it (helpers.pause.pauses_with_object).

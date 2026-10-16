@@ -564,12 +564,18 @@ class StaleActionEntityRepairFlow(RepairsFlow):
         return _entry_for_issue(self.hass, self.data)
 
     def _patch_action_entity(self, entry: Any, new_entity_id: str) -> None:
+        """Replace the missing entity wherever the action names it (target or
+        data, one of several in a list) — the whole target used to be
+        overwritten, dropping the other entities of a list."""
+        from .helpers.action_listener import map_action_entity_ids
+
         task_id = str((self.data or {}).get("task_id", ""))
+        stale = str((self.data or {}).get("stale_entity", ""))
         task = dict(entry.data.get(CONF_TASKS, {}).get(task_id) or {})
         action = dict(task.get("on_complete_action") or {})
-        target = dict(action.get("target") or {})
-        target["entity_id"] = new_entity_id
-        action["target"] = target
+        action, changed = map_action_entity_ids(action, lambda e: new_entity_id if e == stale else e)
+        if not changed:
+            action["target"] = {**(action.get("target") or {}), "entity_id": new_entity_id}
         task["on_complete_action"] = action
         write_task(self.hass, entry, task_id, task)
 

@@ -510,6 +510,7 @@
     },
     "error": {
       "name_exists": "Un objet de maintenance avec ce nom existe déjà.",
+      "name_empty": "Veuillez saisir un nom.",
       "no_tasks": "Au moins une tâche de maintenance est requise.",
       "invalid_entity": "L'entité sélectionnée n'existe pas ou n'a pas de données numériques.",
       "invalid_attribute": "L'attribut sélectionné n'est pas disponible sur cette entité.",
@@ -1323,6 +1324,7 @@
     },
     "error": {
       "name_exists": "Un objet de maintenance avec ce nom existe déjà.",
+      "name_empty": "Veuillez saisir un nom.",
       "no_tasks": "Au moins une tâche de maintenance est requise.",
       "invalid_entity": "L'entité sélectionnée n'existe pas ou n'a pas de données numériques.",
       "invalid_attribute": "L'attribut sélectionné n'est pas disponible sur cette entité.",

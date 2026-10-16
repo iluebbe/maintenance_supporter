@@ -510,6 +510,7 @@
     },
     "error": {
       "name_exists": "Objekt údržby s tímto názvem již existuje.",
+      "name_empty": "Zadejte název.",
       "no_tasks": "Je vyžadován alespoň jeden úkol údržby.",
       "invalid_entity": "Vybraná entita neexistuje nebo nemá číselná data.",
       "invalid_attribute": "Vybraný atribut není pro tuto entitu k dispozici.",
@@ -1323,6 +1324,7 @@
     },
     "error": {
       "name_exists": "Objekt údržby s tímto názvem již existuje.",
+      "name_empty": "Zadejte název.",
       "no_tasks": "Je vyžadován alespoň jeden úkol údržby.",
       "invalid_entity": "Vybraná entita neexistuje nebo nemá číselná data.",
       "invalid_attribute": "Vybraný atribut není pro tuto entitu k dispozici.",

@@ -41,6 +41,7 @@ from ..const import (
     MIRROR_TODO_ENTITY_PATTERN,
     NOTIFICATION_MANAGER_KEY,
     HistoryEntryType,
+    ScheduleType,
 )
 from ..helpers.aggregate import get_store
 from ..helpers.dates import INTERVAL_UNITS
@@ -149,6 +150,22 @@ def _refuse_archived_object(connection: websocket_api.ActiveConnection, msg: dic
         return False
     send_translated_error(connection, msg["id"], "archived", "An archived object cannot get new tasks", translation_key="archived_no_new_tasks")
     return True
+
+
+def _flat_recurrence_refusal(schedule_type: str, msg: dict[str, Any], *, stored_due: Any = None) -> str | None:
+    """Why a flat recurrence request contradicts itself, or None — the rules
+    the ``add_task`` / ``update_task`` services apply. The WS commands took
+    any text as the schedule type, a one-time task without a date and a
+    manual task with an interval, and stored something else than asked (DRY
+    audit 2026-10-12, BI5-A5). ``stored_due``: the due date an edited task
+    already has."""
+    if schedule_type not in {str(s) for s in ScheduleType}:
+        return f"Unknown schedule_type {schedule_type!r}"
+    if schedule_type == ScheduleType.ONE_TIME and not msg.get("due_date") and not stored_due:
+        return "A one-time task needs a due_date"
+    if schedule_type == ScheduleType.MANUAL and msg.get("interval_days") is not None:
+        return "A manual task has no interval — leave interval_days out"
+    return None
 
 
 def _valid_due_date(connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> bool:
@@ -443,7 +460,12 @@ async def ws_create_task(
             if msg.get("interval_anchor", "completion") != "completion":
                 task_data["interval_anchor"] = msg["interval_anchor"]
     else:
-        task_data["schedule_type"] = msg.get("schedule_type", "time_based")
+        schedule_type = msg.get("schedule_type", "time_based")
+        refusal = _flat_recurrence_refusal(schedule_type, msg)
+        if refusal:
+            connection.send_error(msg["id"], "invalid_input", refusal)
+            return
+        task_data["schedule_type"] = schedule_type
         if msg.get("interval_days") is not None:
             task_data["interval_days"] = msg["interval_days"]
         if msg.get("interval_unit", "days") != "days":
@@ -819,6 +841,14 @@ async def ws_update_task(
         any(k in msg for k in ("interval_days", "interval_unit", "interval_anchor", "due_date"))
         or msg.get("schedule_type") in FLAT_SCHEDULE_TYPES
     )
+    if not msg.get("schedule") and msg.get("schedule_type") in FLAT_SCHEDULE_TYPES:
+        stored = Schedule.parse(task)
+        refusal = _flat_recurrence_refusal(
+            msg["schedule_type"], msg, stored_due=stored.due_date if "due_date" not in msg else None
+        )
+        if refusal:
+            connection.send_error(msg["id"], "invalid_input", refusal)
+            return
     if msg.get("schedule"):
         incoming = Schedule.from_dict(msg["schedule"]).to_dict()
         keep_month_filter(incoming, msg["schedule"], task.get("schedule"))
