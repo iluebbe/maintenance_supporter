@@ -300,7 +300,6 @@
   "area_no_costs": "此期间没有记录费用。",
   "no_tasks_yet": "尚无任务",
   "add_first_task": "添加首个任务",
-  "trigger_configuration": "触发器配置",
   "entity_id": "实体 ID",
   "comma_separated": "逗号分隔",
   "entity_logic": "实体逻辑",

@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.104.0] - 2026-10-17
 
 ### ✨ Added
 
@@ -16,8 +16,8 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Battery fleet: ask which cells went in** (D#213, opt-in): a device takes whatever is in the drawer. With
   *Ask which cells went in* switched on in the roster, *Replaced* asks whether disposable or rechargeable cells of
   the device's size went in, books those, and remembers them for the device. Rechargeable cells taken out go on
-  their *to charge* pile, disposable ones are simply gone. Battery Notes keeps its type; the shopping list and the
-  forecast follow it.
+  their *to charge* pile, disposable ones are simply gone. Picked the wrong ones? Choose again the same day and
+  the first choice is corrected. Battery Notes keeps its type; the shopping list and the forecast follow it.
 
 ### 🐛 Fixed
 
@@ -40,7 +40,7 @@ All notable changes to Maintenance Supporter are documented in this file.
   taken off the phones when the task is closed anywhere, and the buttons of an older reminder only remove it.
 - **No more "clear_notification" messages:** removing a reminder sent that text to the household notify service as
   well, so a Telegram group, a notify group or a persistent notification showed it. It now goes to phones with the
-  Companion app only.
+  Companion app only; a notify group is cleared on the phones among its members.
 - **AND/OR triggers start fresh after a completion:** a condition over several sensors with *all must trigger* kept
   the sensors' states from before the completion, so one sensor crossing again made it true although the others
   had long recovered. *Complete when the sensor recovers* now also works on an AND/OR trigger; it never fired there.
@@ -55,7 +55,8 @@ All notable changes to Maintenance Supporter are documented in this file.
   so saving the form unchanged reset the limits, the hold time, the from and to states, the running states, the
   days before, the attribute and the any/all setting. Adding a trigger to a one-time task kept no due date, and
   any task got the default warning days instead of its own. The safety interval is now shown as well, and clearing
-  it removes it.
+  it removes it. Editing an AND/OR trigger keeps the safety interval, shows the stored AND or OR, and keeps
+  whether trigger and interval are both required.
 - **A shared task keeps its last person:** when one of the two people sharing a task was deleted in Home Assistant,
   the task was left without anyone. The remaining person now keeps it.
 - **A tag moves on with the task:** a scanned tag completed nothing when an archived or paused task still carried
