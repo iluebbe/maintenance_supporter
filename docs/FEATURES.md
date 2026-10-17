@@ -609,8 +609,10 @@ charged in place grows no pile. A pack built into its device (*Rechargeable*,
 *Li-ion*, *NiMH*, a Nuki pack) gets no part and takes nothing from one. A household that uses both rechargeable
 and disposable cells of one size gives the rechargeable devices their own
 type in Battery Notes (`AAA NiMH` next to `AAA`), or switches on **Ask which
-cells went in** in the roster (2.104+, D#213): *Replaced* then asks whether
-disposable or rechargeable cells of the device's size went in, books those
+cells went in** in the roster (2.104+, D#213): *Replaced* then asks which
+cells of the device's size went in (the type Battery Notes names, or another
+type of that size the fleet has a part for; it has one for every type a
+Battery Notes device uses), books those
 (the ones taken out go on the *to charge* pile when they were rechargeable)
 and remembers them for the device; choosing again the same day corrects the
 first choice. Battery Notes keeps its type; the shopping list and the

@@ -14,8 +14,10 @@ All notable changes to Maintenance Supporter are documented in this file.
   field labels and help texts share one style, the labels field is a regular text field, and the selects and
   checkbox rows look like their neighbours.
 - **Battery fleet: ask which cells went in** (D#213, opt-in): a device takes whatever is in the drawer. With
-  *Ask which cells went in* switched on in the roster, *Replaced* asks whether disposable or rechargeable cells of
-  the device's size went in, books those, and remembers them for the device. Rechargeable cells taken out go on
+  *Ask which cells went in* switched on in the roster, *Replaced* asks which cells of the device's size went in:
+  the type Battery Notes names, or another type of that size the fleet has a part for (it has one for every type
+  a Battery Notes device uses, so `AAA NiMH` next to `AAA` once one device runs on NiMH). It books those and
+  remembers them for the device. Rechargeable cells taken out go on
   their *to charge* pile, disposable ones are simply gone. Picked the wrong ones? Choose again the same day and
   the first choice is corrected. Battery Notes keeps its type; the shopping list and the forecast follow it.
 
