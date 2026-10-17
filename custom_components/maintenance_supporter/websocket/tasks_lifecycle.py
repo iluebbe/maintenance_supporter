@@ -17,7 +17,7 @@ from ..const import (
 )
 from ..helpers.aggregate import get_coordinator_data, get_store, object_name
 from ..helpers.entry_tasks import write_task
-from ..helpers.pause import clear_cycle_modifiers, reanchor_recurring_task
+from ..helpers.pause import clear_cycle_modifiers, reanchor_recurring_task, wants_fresh_cycle
 from ..helpers.permissions import require_write
 from ..helpers.ws_errors import send_translated_error
 from . import (
@@ -26,7 +26,7 @@ from . import (
     _get_merged_tasks,
     _get_object_entries,
     _load_object_task,
-    _parse_iso_date,
+    _parse_pause_until,
 )
 
 
@@ -119,17 +119,12 @@ async def ws_pause_task(
         connection.send_error(msg["id"], "already_paused", "Task already paused")
         return
 
-    until = msg.get("until")
-    if until:
-        until_date = _parse_iso_date(connection, msg["id"], until, field="until")
-        if until_date is None:
-            return
-        if until_date <= dt_util.now().date():
-            send_translated_error(connection, msg["id"], "invalid_date", "until must be a future date", translation_key="until_in_past")
-            return
+    ok, until = _parse_pause_until(connection, msg["id"], msg.get("until"))
+    if not ok:
+        return
 
     td["paused_at"] = dt_util.now().isoformat()
-    td["paused_until"] = until or None
+    td["paused_until"] = until
     write_task(hass, entry, task_id, td)
     # Reload: a sensor task's triggers tear down (paused = inert) and every
     # per-task entity repaints as paused.
@@ -241,7 +236,7 @@ async def ws_unarchive_task(
     # write can't be reverted by a stale whole-map write (the migration-race
     # class, bug audit 2026-07-11).
     store = get_store(hass, entry.entry_id)
-    recurring = not msg.get("undo") and _is_recurring_schedule(td)
+    recurring = not msg.get("undo") and wants_fresh_cycle(td)
     legacy_anchor = False
     if recurring:
         today_iso = dt_util.now().date().isoformat()

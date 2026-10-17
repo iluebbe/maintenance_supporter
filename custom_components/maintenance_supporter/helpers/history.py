@@ -37,6 +37,27 @@ def signed_amount(value: Any) -> float | None:
     return number if math.isfinite(number) else None
 
 
+def strict_amount(value: Any) -> float | None:
+    """A stored money value as a float — a real, finite number and nothing
+    else, or ``None``. The budget's rule, strict on purpose:
+
+    * Every write path stores a plain number already (the WS schemas coerce
+      and bound it, the importer drops anything else), so a string can only
+      come from a hand-edited ``.storage`` file or a broken backup.
+    * A lenient ``float()`` takes ``"Infinity"`` and ``"nan"`` too — the very
+      poison the importer keeps out: a ``+inf`` fake "budget exceeded" alert,
+      or ``nan`` silently disabling every alert, on the path that messages
+      the user. A ``bool`` is an ``int``: a stray ``True`` counted as 1.
+
+    The parts cost, the budget and the importer's money checks each spelled
+    it out (``budget.is_countable_cost`` was left without a caller; DRY audit
+    2026-10-12). :func:`signed_amount` is the lenient twin a task's own
+    totals read through."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+        return None
+    return float(value)
+
+
 def finite_amount(value: Any) -> float | None:
     """A history number that cannot be negative (a duration) as a finite,
     non-negative float, or ``None`` (see ``signed_amount``)."""

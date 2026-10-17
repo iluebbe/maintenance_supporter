@@ -1235,10 +1235,10 @@ async def test_csv_import_caps_checklist_length(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
 ) -> None:
-    """Malicious CSV with too many or too long checklist items must be capped."""
-    from custom_components.maintenance_supporter.helpers.csv_handler import (
-        import_objects_csv,
-    )
+    """Malicious CSV with too many or too long checklist items must be capped.
+    The parse only splits the cell; the import's flow step caps it like every
+    other import (cap_task_fields) — checked on what is stored."""
+    await setup_integration(hass, global_entry)
 
     # Build a CSV row where the checklist cell contains 200 lines (> cap=100)
     # plus one absurdly long line (> per-item cap=500).
@@ -1250,10 +1250,14 @@ async def test_csv_import_caps_checklist_length(
         "object_name,task_name,task_type,schedule_type,interval_days,warning_days,checklist\n"
         f'Big Pump,Service,service,time_based,30,7,"{checklist_cell}"\n'
     )
-    parsed = import_objects_csv(csv)
-    task = next(iter(parsed[0]["tasks"].values()))
+    conn = _mock_connection()
+    await call_ws_handler(ws_import_csv, hass, conn, {"id": 1, "type": "maintenance_supporter/csv/import", "csv_content": csv})
+    await hass.async_block_till_done()
+    assert conn.send_result.call_args[0][1]["created"] == 1
+    (entry,) = [e for e in hass.config_entries.async_entries(DOMAIN) if e.title == "Big Pump"]
+    task = next(iter(entry.data[CONF_TASKS].values()))
     items = task.get("checklist", [])
-    assert len(items) <= 100, f"checklist not capped: got {len(items)} items"
+    assert items and len(items) <= 100, f"checklist not capped: got {len(items)} items"
     assert all(len(item) <= 500 for item in items), "per-item length not capped"
 
 

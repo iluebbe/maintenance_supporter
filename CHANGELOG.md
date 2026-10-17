@@ -207,6 +207,36 @@ All notable changes to Maintenance Supporter are documented in this file.
   Ukrainian and Czech; a sensor used by a counter task and by a level task shows each its own chart and sparkline; a
   card moved on the page no longer keeps a second live connection.
 
+### ✨ Changed
+
+Rules that were written out in several places now live in one. Where one copy behaved differently, all of them
+follow the intended rule now:
+
+- **Imports:**
+  - A spare part's shop link written `HTTPS://…` no longer drops the whole part from a JSON import. An over-long
+    link drops only the link.
+  - A backup's pause end with a time of day no longer ends the pause on the first refresh.
+  - The CSV import removes duplicate labels before it applies the 25-label limit.
+  - An unknown priority is now dropped by the JSON import too, as the CSV import already did.
+  - The settings import cleans its groups like creating a group does.
+- **Dates:** a pause end, an object's installation and warranty dates and the vacation days are stored as
+  `YYYY-MM-DD`, even when typed as `20261231`.
+- **Archive:** a task paused on its own no longer reads *done today* after it comes back from the archive.
+- **Task links:** a task's documentation link loses its surrounding blanks, like an object's.
+- **Back-dated completions:** a completion sent by an automation with a UTC offset, dated just before midnight here,
+  is no longer refused as too early.
+- **Battery fleet:** merging rechargeable battery parts keeps their charging pile counted.
+- **Notifications:** *completed by* names the person the way voice does, not by the login name.
+- **Panel and cards:**
+  - *Undo* names the server's reason instead of *Action failed*.
+  - The budget tiles warn at the default threshold when none is stored.
+  - Counts and charging piles use the viewer's number format.
+  - The object's service history loads only the histories that are cut short. A server reply without a list keeps
+    the entries already shown, here and in the calendar's past view.
+  - A failed history load no longer clears the task page opened meanwhile.
+  - QR print pages escape apostrophes too.
+  - The success green is the theme's everywhere.
+
 ## [2.103.5] - 2026-10-16
 
 ### 🐛 Fixed

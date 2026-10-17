@@ -41,6 +41,7 @@ from ..const import (
     MAX_TEXT_LENGTH,
     SIGNAL_DOCUMENTS_UPDATED,
 )
+from .aggregate import store_of
 from .url_safety import is_safe_link
 
 if TYPE_CHECKING:
@@ -138,8 +139,7 @@ async def async_rewrite_doc_refs(hass: HomeAssistant, rewrite: Callable[[str], s
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.unique_id == GLOBAL_UNIQUE_ID:
             continue
-        rd = getattr(entry, "runtime_data", None)
-        store = getattr(rd, "store", None) if rd else None
+        store = store_of(entry)
         if store is not None:
             store_changed = False
             for task_id in list(entry.data.get(CONF_TASKS) or {}):

@@ -55,8 +55,9 @@ def test_ws_modules_do_not_enumerate_entries_inline() -> None:
 
 
 def test_lang_getters_delegate_to_langof() -> None:
-    """Every component's _lang getter delegates to styles.langOf — the 23
-    hand-copied getters had drifted into three different resolution rules."""
+    """Every component's _lang getter delegates to langOf (helpers/
+    locale-core, re-exported by styles) — the 23 hand-copied getters had
+    drifted into three different resolution rules."""
     for p in _frontend_sources():
         text = p.read_text(encoding="utf-8")
         idx = 0
@@ -67,7 +68,7 @@ def test_lang_getters_delegate_to_langof() -> None:
             body = text[idx : idx + 200]
             assert "return langOf(this.hass);" in body, f"{p.name}: _lang getter does not delegate to langOf()"
             idx += 1
-        if p.name != "styles.ts":
+        if p.name != "locale-core.ts":  # langOf's docstring names the old variant
             assert "navigator.language" not in text, f"{p.name}: hand-rolled language resolution — use langOf()"
 
 
@@ -459,3 +460,56 @@ async def test_readopt_restores_pooled_part_link(
     await _adopt(hass, "binary_sensor.softener_salt_low", "Softener salt low", "Water softener 2")
     _, task2 = _adopted_object_and_task(hass, "Water softener 2")
     assert task2.get("consumes_parts") == [pooled_link], "pooled part link lost on re-adopt"
+
+
+# ─── DRY audit 2026-10-12, wave 3: one copy of each rule ─────────────────
+
+
+def _live_frontend_sources() -> list[Path]:
+    """The shipped TS sources: no tests, no design-system preview data."""
+    return [p for p in _frontend_sources() if "__tests__" not in p.parts and p.name != "ds-preview-kit.ts"]
+
+
+@pytest.mark.parametrize(
+    ("pattern", "home", "why"),
+    [
+        ("&amp;", "helpers/html-escape.ts", "an HTML escaper of its own (the QR dialog's left out the apostrophe)"),
+        ('"maintenance_supporter/task/history"', "helpers/task-history-fetch.ts", "a task/history fetch of its own"),
+        ('language || "en"', "helpers/locale-core.ts", "the UI-language rule spelled out (use langOf)"),
+        ("#43a047", None, "a second success green (the theme's, #4caf50 as its fallback)"),
+    ],
+)
+def test_frontend_rules_live_in_one_place(pattern: str, home: str | None, why: str) -> None:
+    """Each of these was written out on several surfaces and one copy drifted
+    (DRY audit 2026-10-12); the helper named here is the only place left."""
+    offenders = [
+        p.relative_to(FRONTEND).as_posix()
+        for p in _live_frontend_sources()
+        if pattern in p.read_text(encoding="utf-8") and p.relative_to(FRONTEND).as_posix() != home
+    ]
+    assert not offenders, f"{why}: {offenders}"
+
+
+def test_a_store_is_read_through_store_of() -> None:
+    """``getattr(rd, "store", None)`` was spelled out at some thirty sites
+    (DRY audit 2026-10-12); helpers/aggregate.store_of / get_store are the
+    one spelling. The three left also read the entry's coordinator."""
+    allowed = {"helpers/aggregate.py", "helpers/reference_numbers.py", "helpers/todo_mirror.py", "shopping_sync.py"}
+    offenders = [
+        p.relative_to(COMPONENT).as_posix()
+        for p in COMPONENT.rglob("*.py")
+        if 'getattr(rd, "store", None)' in p.read_text(encoding="utf-8") and p.relative_to(COMPONENT).as_posix() not in allowed
+    ]
+    assert not offenders, f"inline Store lookups — use store_of(entry) / get_store(hass, entry_id): {offenders}"
+
+
+def test_the_budget_alert_default_matches_the_backend() -> None:
+    """The budget tiles and the budget card share helpers/budget-level.ts;
+    its default threshold is the setting's registry default."""
+    from custom_components.maintenance_supporter.const import CONF_BUDGET_ALERT_THRESHOLD
+    from custom_components.maintenance_supporter.helpers.settings_registry import SETTING_SPECS
+
+    src = (FRONTEND / "helpers" / "budget-level.ts").read_text(encoding="utf-8")
+    m = re.search(r"export const DEFAULT_ALERT_THRESHOLD_PCT = (\d+);", src)
+    (spec,) = [s for s in SETTING_SPECS if s.key == CONF_BUDGET_ALERT_THRESHOLD]
+    assert m and int(m.group(1)) == spec.default

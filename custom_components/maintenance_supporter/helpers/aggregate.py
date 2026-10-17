@@ -62,13 +62,20 @@ def is_object_entry(entry: ConfigEntry | None) -> bool:
     return entry is not None and entry.domain == DOMAIN and entry.unique_id != GLOBAL_UNIQUE_ID
 
 
+def name_or_title(obj: Mapping[str, Any] | None, title: str) -> str:
+    """An object dict's display name, falling back to the entry title — the
+    rule of :func:`object_name` for an object dict not written yet (a rename
+    on its way into the entry)."""
+    return str((obj or {}).get("name") or title)
+
+
 def object_name(entry: ConfigEntry) -> str:
     """The object's display name, falling back to the entry title.
 
     One rule for the ~13 hand-written fallbacks that existed in four spellings
     — half used ``.get("name", title)``, which kept an EMPTY name instead of
     falling through to the title."""
-    return str((entry.data.get(CONF_OBJECT) or {}).get("name") or entry.title)
+    return name_or_title(entry.data.get(CONF_OBJECT), entry.title)
 
 
 def object_slug(obj_data: Mapping[str, Any]) -> str:
@@ -109,8 +116,7 @@ def merged_tasks(entry: ConfigEntry) -> dict[str, Any]:
     data when the Store is unavailable.
     """
     tasks_data: dict[str, Any] = entry.data.get(CONF_TASKS, {})
-    rd = getattr(entry, "runtime_data", None)
-    store = getattr(rd, "store", None) if rd else None
+    store = store_of(entry)
     if store is None:
         return tasks_data
     merged: dict[str, Any] = store.merge_all_tasks(tasks_data)
@@ -139,14 +145,23 @@ def get_runtime_data(hass: HomeAssistant, entry_id: str) -> MaintenanceSupporter
     return getattr(entry, "runtime_data", None)
 
 
-def get_store(hass: HomeAssistant, entry_id: str) -> MaintenanceStore | None:
-    """The entry's dynamic-state Store, or None when the entry is unknown or
-    not loaded (disabled / setup-retry / mid-reload = no runtime_data).
+def store_of(entry: ConfigEntry) -> MaintenanceStore | None:
+    """The dynamic-state Store of an entry in hand, or None while it is not
+    loaded (disabled / setup-retry / mid-reload = no runtime_data).
 
     ``store = getattr(rd, "store", None) if rd else None`` was copied at nine
-    WS sites — this is the one spelling."""
-    rd = get_runtime_data(hass, entry_id)
+    WS sites (now :func:`get_store`) and at some twenty more that held the
+    entry already (DRY audit 2026-10-12) — this is the one spelling. It does
+    not reach the Store of an entry being removed (the STORES_CACHE_KEY
+    reads do that on purpose)."""
+    rd = getattr(entry, "runtime_data", None)
     return getattr(rd, "store", None) if rd else None
+
+
+def get_store(hass: HomeAssistant, entry_id: str) -> MaintenanceStore | None:
+    """:func:`store_of` by entry id; None for an unknown entry too."""
+    entry = hass.config_entries.async_get_entry(entry_id)
+    return store_of(entry) if entry is not None else None
 
 
 def get_coordinator_data(hass: HomeAssistant, entry_id: str) -> dict[str, Any] | None:

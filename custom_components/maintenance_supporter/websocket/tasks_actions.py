@@ -12,7 +12,6 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.util import dt as dt_util
 
 from ..const import (
-    CONF_OBJECT,
     CONF_TASKS,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
@@ -23,7 +22,9 @@ from ..const import (
     MAX_TIMESTAMP_LENGTH,
     MIN_COST,
 )
+from ..helpers.aggregate import object_name
 from ..helpers.completion_photos import MAX_COMPLETION_PHOTOS, normalize_photo_doc_ids
+from ..helpers.dates import is_past_dated
 from ..helpers.parts import MAX_PART_STOCK
 from ..helpers.ws_errors import send_exception_error, send_translated_error
 from ..models.maintenance_task import MaintenanceTask
@@ -147,8 +148,7 @@ async def ws_complete_task(
     # — recording a completion that already happened on a PAST day is a
     # history correction, not early work, so it bypasses the gate. A
     # today-dated completed_at still honours it.
-    is_past_dated = completed_at is not None and completed_at.date() < dt_util.now().date()
-    if not is_past_dated and _refuse_too_early(connection, msg, rd):
+    if not is_past_dated(completed_at) and _refuse_too_early(connection, msg, rd):
         return
 
     # #99: validate the per-completion selection against the object's parts
@@ -306,14 +306,13 @@ def _remember_for_undo(
     completion changed nothing (a double tap the guard swallowed): no Undo."""
     from ..helpers import voice_undo
 
-    obj = entry.data.get(CONF_OBJECT) or {}
     return voice_undo.remember_as(
         hass,
         voice_undo.user_actor(connection.user.id if connection.user else None),
         "completed",
         before,
         task=str(task.get("name") or ""),
-        object=str(obj.get("name") or entry.title or ""),
+        object=object_name(entry),
     )
 
 

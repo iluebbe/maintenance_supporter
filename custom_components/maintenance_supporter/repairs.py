@@ -27,7 +27,7 @@ from .const import (
     HistoryEntryType,
     ScheduleType,
 )
-from .helpers.aggregate import object_name
+from .helpers.aggregate import object_name, store_of
 from .helpers.entry_tasks import write_task
 from .helpers.global_options import entry_option
 from .helpers.issues import DEVICE_LINK_LOST_PREFIX, STALE_ACTION_PREFIX
@@ -159,8 +159,7 @@ def _persist_trigger_repair(
     (DRY audit 2026-09-26 B).
     """
     write_task(hass, entry, task_id, task_dict)
-    rd = getattr(entry, "runtime_data", None)
-    store = getattr(rd, "store", None) if rd else None
+    store = store_of(entry)
     if store is not None:
         task = MaintenanceTask.from_dict(store.merge_task_data(task_id, task_dict))
         task.add_history_entry(entry_type=entry_type, notes=notes)

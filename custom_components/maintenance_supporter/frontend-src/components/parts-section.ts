@@ -16,6 +16,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { isSafeHttpUrl } from "../helpers/url";
 import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf, formatCost, formatNumber, formatQty } from "../styles";
+import { reuseWaitingText } from "../helpers/part-reuse";
 import { runWs } from "../helpers/ws-run";
 import type { HomeAssistant, MaintenancePart } from "../types";
 import { restockUnits, unitPrice } from "../helpers/parts-cost";
@@ -24,6 +25,8 @@ import "./task-documents";
 
 /** #208: what readies a used part again (helpers/parts.py REUSE_KINDS). */
 export const REUSE_KINDS = ["charge", "sharpen", "clean", "dry", "refill", "restore"] as const;
+/** helpers/parts.py MAX_PART_NOTES — both pinned by tests/test_frontend_const_parity.py. */
+export const MAX_PART_NOTES = 500;
 
 interface PartForm {
   id?: string;
@@ -263,7 +266,7 @@ export class MaintenancePartsSection extends LitElement {
           </div>
           ${tracked && part.reuse && (part.restoring ?? 0) > 0
             ? html`<div class="part-waiting">
-                <span class="waiting-badge">${t(`part_waiting_${part.reuse}`, L).replace("{count}", formatNumber(part.restoring!, L))}</span>
+                <span class="waiting-badge">${reuseWaitingText(part.reuse, part.restoring!, L)}</span>
                 ${this.canWrite
                   ? html`<button class="ready-again" title=${t("part_ready_again_hint", L)} .disabled=${this._busy}
                       @click=${() => this._readyAgain(part)}>
@@ -418,7 +421,7 @@ export class MaintenancePartsSection extends LitElement {
             <span>${t("notes_label", L)}</span>
             <textarea
               rows="2"
-              maxlength="500"
+              maxlength=${MAX_PART_NOTES}
               .value=${f.notes}
               @input=${(e: Event) => {
                 this._editing = { ...this._editing!, notes: (e.target as HTMLTextAreaElement).value };

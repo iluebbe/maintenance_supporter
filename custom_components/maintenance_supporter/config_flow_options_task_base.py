@@ -19,6 +19,7 @@ from .const import (
     CONF_OBJECT,
     CONF_TASKS,
 )
+from .helpers.aggregate import store_of
 from .helpers.history import completed_entries
 from .helpers.schedule import (
     normalize_task_storage,
@@ -114,8 +115,7 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
         """Close the options flow."""
         self._reloaded = True
         # Flush store and reload to pick up config changes from this flow
-        rd = getattr(self.config_entry, "runtime_data", None)
-        store = getattr(rd, "store", None) if rd else None
+        store = store_of(self.config_entry)
         if store is not None:
             await store.async_save()
         self.hass.async_create_task(self.hass.config_entries.async_reload(self.config_entry.entry_id))
@@ -175,8 +175,7 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
         from .helpers.schedule import Schedule, preview_occurrences
 
         merged: dict[str, Any] = dict(static_task)
-        rd = getattr(self.config_entry, "runtime_data", None)
-        store = getattr(rd, "store", None) if rd else None
+        store = store_of(self.config_entry)
         if store is not None:
             merged = store.merge_task_data(task_id, merged)
 

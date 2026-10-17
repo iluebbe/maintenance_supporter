@@ -16,7 +16,6 @@ money).
 
 from __future__ import annotations
 
-import math
 from collections.abc import Iterator
 from datetime import datetime
 from typing import Any
@@ -26,35 +25,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from ..const import CONF_TASKS, HistoryEntryType
-from .aggregate import get_object_entries, get_runtime_data
+from .aggregate import get_object_entries, store_of
 from .parts_cost import entry_spend
-
-
-def is_countable_cost(value: Any) -> bool:
-    """True when a history entry's ``cost`` may be summed into the budget.
-
-    Strict on purpose — a real, finite number and nothing else:
-
-    * Every write path already guarantees that. ``task/complete`` and
-      ``history/patch`` both run ``vol.Coerce(float)`` +
-      ``Range(MIN_COST, MAX_COST)`` before the entry is stored (a credit,
-      #200, is a negative cost and lowers the spend), and the JSON/YAML
-      importer (``websocket/io.py::_sanitize_history``) *drops* any cost that
-      isn't a plain finite number within those bounds. A string cost is therefore not
-      producible through any supported path; it can only come from a
-      hand-edited ``.storage`` file or a corrupted backup.
-    * The lenient ``float(cost)`` alternative re-opens the exact hole that
-      importer closes: ``float("Infinity")`` and ``float("nan")`` both succeed,
-      and ``_sanitize_history`` exists specifically because a non-finite cost
-      poisons budget aggregation ("a ``+inf`` fake 'budget exceeded' alert, or
-      ``nan`` silently disabling all alerts"). Accepting *strings* let those
-      values back in through the side door — on the alert path, the one that
-      actually messages the user.
-
-    ``bool`` is excluded explicitly: it is an ``int`` subclass, so a stray
-    ``True`` would otherwise silently count as 1 unit of currency.
-    """
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
 
 def completed_spend(
@@ -74,8 +46,7 @@ def completed_spend(
     the walk to some objects (default: all of them).
     """
     for entry in entries if entries is not None else get_object_entries(hass):
-        rd = get_runtime_data(hass, entry.entry_id)
-        store = getattr(rd, "store", None) if rd else None
+        store = store_of(entry)
         tasks: dict[str, Any] = entry.data.get(CONF_TASKS, {})
 
         for task_id in tasks:

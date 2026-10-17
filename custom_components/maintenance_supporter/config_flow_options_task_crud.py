@@ -53,6 +53,7 @@ from .const import (
     MaintenanceTypeEnum,
     ScheduleType,
 )
+from .helpers.aggregate import store_of
 from .helpers.dates import normalize_hhmm
 from .helpers.global_options import get_default_warning_days, is_schedule_time_enabled
 from .helpers.pause import write_anchor
@@ -362,8 +363,7 @@ class TaskCrudMixin:
                 # writing it (with clear_modifiers) rolled completions and
                 # postpones back (bug audit 2026-09-27).
                 if lp_changed and submitted_lp is not None and self._selected_task_id:
-                    lp_rd = getattr(self.config_entry, "runtime_data", None)
-                    lp_store = getattr(lp_rd, "store", None)
+                    lp_store = store_of(self.config_entry)
                     if lp_store is not None:
                         lp_store.set_anchor(
                             self._selected_task_id,
@@ -686,8 +686,7 @@ class TaskCrudMixin:
             # Clamp/clear the Store cursor against the edited sequence —
             # the Store wins on restore, so an out-of-range cursor would
             # otherwise survive this edit forever (same block as ws_update).
-            rd = getattr(self.config_entry, "runtime_data", None)
-            store = getattr(rd, "store", None)
+            store = store_of(self.config_entry)
             if store is not None and self._selected_task_id:
                 seq = updated_task.get("phase_sequence") or []
                 if seq:

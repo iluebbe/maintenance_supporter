@@ -14,6 +14,7 @@ import { LitElement, html, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import {
   t,
+  countText,
   ensureLocale,
   langOf,
   formatCost,
@@ -162,11 +163,6 @@ export class MaintenanceAreaView extends LitElement {
 
   private _bucketLabel(b: CostBucket, style: "long" | "short"): string {
     return b.month == null ? String(b.year) : `${monthName(b.month, this._lang, style)} ${b.year}`;
-  }
-
-  private _countText(key: string, oneKey: string, n: number): string {
-    const L = this._lang;
-    return n === 1 ? t(oneKey, L) : t(key, L).replace("{n}", formatNumber(n, L));
   }
 
   /** The printable area report. The tab opens in the click's synchronous
@@ -328,8 +324,8 @@ export class MaintenanceAreaView extends LitElement {
           </div>
         </div>
         <p class="meta">
-          ${this._countText("area_object_count", "area_object_count_one", objects.length)} ·
-          ${this._countText("templates_task_count", "templates_task_count_one", taskCount)}
+          ${countText("area_object_count", "area_object_count_one", objects.length, L)} ·
+          ${countText("templates_task_count", "templates_task_count_one", taskCount, L)}
           ${this._histories.loading ? html` · <span class="area-loading">${t("loading", L)}</span>` : nothing}
         </p>
 

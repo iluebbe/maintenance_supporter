@@ -35,6 +35,7 @@ from ..const import (
     STORES_CACHE_KEY,
 )
 from .aggregate import get_object_entries, object_name
+from .entry_tasks import write_tasks
 from .issues import SHARED_PARTS_MOVED_PREFIX, shared_parts_moved_issue_id
 from .parts import iter_part_links, map_part_links
 from .pause import is_task_inert
@@ -161,7 +162,7 @@ def relink_borrowers(hass: HomeAssistant, old_owner: str, new_owner: str, moved:
             continue
         tasks, changed = relink_tasks(dict(entry.data.get(CONF_TASKS) or {}), old_owner, new_owner, moved)
         if changed:
-            hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_TASKS: tasks})
+            write_tasks(hass, entry, tasks)
             touched += 1
     return touched
 
@@ -252,7 +253,7 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
     for other in heirs[1:]:
         tasks, changed = relink_tasks(dict(other.data.get(CONF_TASKS) or {}), owner_id, heir.entry_id, moved)
         if changed:
-            hass.config_entries.async_update_entry(other, data={**other.data, CONF_TASKS: tasks})
+            write_tasks(hass, other, tasks)
 
     heir_name = object_name(heir)
     owner_name = object_name(entry)

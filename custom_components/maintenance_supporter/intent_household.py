@@ -30,6 +30,7 @@ from homeassistant.helpers import intent
 from homeassistant.util import dt as dt_util
 
 from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_TASKS, MAX_TEXT_LENGTH
+from .helpers.aggregate import store_of
 from .helpers.parts import MAX_PART_STOCK
 from .intent import (
     INTENT_ADD_NOTE,
@@ -278,12 +279,10 @@ class AddNoteIntent(intent.IntentHandler):
 
 
 async def _person_name(hass: Any, user_id: str) -> str:
-    """How the household calls a user: the person's name, else the login's."""
-    for state in hass.states.async_all("person"):
-        if state.attributes.get("user_id") == user_id:
-            return str(state.name)
-    user = await hass.auth.async_get_user(user_id)
-    return str(user.name) if user is not None and user.name else user_id
+    """How the household calls a user (helpers/assignees), else the raw id."""
+    from .helpers.assignees import person_display_name
+
+    return await person_display_name(hass, user_id) or user_id
 
 
 class WhoseTurnIntent(intent.IntentHandler):
@@ -338,12 +337,12 @@ class ShoppingListIntent(intent.IntentHandler):
 
     async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
         """Handle the intent."""
-        from .helpers.parts import on_hand, part_is_low
+        from .helpers.parts import is_part_low
 
         lang = intent_obj.language
         response = intent_obj.create_response()
         low = sorted(
-            (p for p in _part_snapshot(intent_obj.hass) if part_is_low(p, on_hand(p, p["stock"], p.get("restoring")))),
+            (p for p in _part_snapshot(intent_obj.hass) if is_part_low(p, p["stock"], p.get("restoring"))),
             key=lambda p: p["name"].casefold(),
         )
         if not low:
@@ -359,8 +358,7 @@ def _open_buy_task(hass: Any, part: dict[str, Any]) -> str | None:
     from .helpers.parts import buy_task_part_id, is_open_buy_task
 
     entry = hass.config_entries.async_get_entry(part["entry_id"])
-    rd = getattr(entry, "runtime_data", None) if entry else None
-    store = getattr(rd, "store", None) if rd else None
+    store = store_of(entry) if entry is not None else None
     if entry is None or store is None:
         return None
     obj = entry.data.get(CONF_OBJECT) or {}
@@ -439,8 +437,7 @@ class BoughtPartIntent(intent.IntentHandler):
 
             await async_change_part_stock(hass, entry, part["part_id"], delta=restock_units(part, quantity))
         voice_undo.remember(hass, intent_obj, "bought", before, part=part["name"], qty=say_number(quantity, lang))
-        rd = getattr(entry, "runtime_data", None)
-        store = getattr(rd, "store", None) if rd else None
+        store = store_of(entry)
         stock = store.get_part_stock(part["part_id"]) if store is not None else None
         response.async_set_speech(
             _sp(

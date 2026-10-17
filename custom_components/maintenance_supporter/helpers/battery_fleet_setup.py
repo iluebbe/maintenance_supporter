@@ -34,6 +34,7 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
+from .aggregate import name_or_title, store_of
 from .battery_fleet import (
     canonical_type,
     discover_battery_types,
@@ -110,8 +111,7 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
         # a later reconcile sat untracked next to setup-created "0 pcs/2"
         # siblings, silently disarming their reorder thresholds.
         if added_pids:
-            rd = getattr(existing, "runtime_data", None)
-            store = getattr(rd, "store", None) if rd else None
+            store = store_of(existing)
             if store is not None:
                 for pid in added_pids:
                     if not _is_cell_part(pid):
@@ -152,8 +152,7 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
     hass.config_entries.async_update_entry(entry, data=new_data)
 
     # Track stock at 0 for each type (user counts their drawer later).
-    rd = getattr(entry, "runtime_data", None)
-    store = getattr(rd, "store", None) if rd else None
+    store = store_of(entry)
     if store is not None:
         for pid in parts:
             if not _is_cell_part(pid):
@@ -347,7 +346,7 @@ def retranslate_seeded_texts(hass: HomeAssistant, entry: ConfigEntry, lang: str)
             changed = True
 
     if changed:
-        title = (data.get(CONF_OBJECT) or {}).get("name") or entry.title
+        title = name_or_title(data.get(CONF_OBJECT), entry.title)
         hass.config_entries.async_update_entry(entry, data=data, title=title)
     return changed
 
@@ -774,8 +773,7 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
     added = _reconcile_type_parts(hass, entry, {**types, **discover_rechargeable_cells(hass)}, lang)
 
     pruned = False
-    rd = getattr(entry, "runtime_data", None)
-    store = getattr(rd, "store", None) if rd else None
+    store = store_of(entry)
 
     parts = dict(entry.data.get(CONF_PARTS) or {})
     legacy = parts.get("batt_unknown")
@@ -885,7 +883,12 @@ def canonical_part_id(part_id: str) -> str | None:
     return None if new_id == part_id else new_id
 
 
-_MERGE_TAKE_IF_EMPTY = ("mpn", "gtin", "vendor", "storage_location", "product_url", "cost", "doc_id")
+# reuse / package_size / unit too: the migration carries a reusable alias's
+# waiting pile over (#208), and on a canonical part without ``reuse`` that
+# pile counted for nothing (DRY audit 2026-10-12).
+_MERGE_TAKE_IF_EMPTY = (
+    "mpn", "gtin", "vendor", "storage_location", "product_url", "cost", "doc_id", "reuse", "package_size", "unit"
+)
 
 
 def _merge_parts(keep: dict[str, Any], gone: dict[str, Any]) -> dict[str, Any]:
@@ -1054,8 +1057,7 @@ async def migrate_fleet_part_ids(hass: HomeAssistant, entry: ConfigEntry) -> dic
     if not moves and not tombstones_changed:
         return {}
 
-    rd = getattr(entry, "runtime_data", None)
-    store = getattr(rd, "store", None) if rd else None
+    store = store_of(entry)
     if store is None:
         store = hass.data.get(STORES_CACHE_KEY, {}).get(entry.entry_id)
 

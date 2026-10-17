@@ -291,10 +291,12 @@ async def test_unsafe_links_are_dropped_on_the_flow_and_import_paths(hass: HomeA
     assert data["object"]["documentation_url"] is None
     assert data[CONF_TASKS]["t1"]["documentation_url"] is None
 
+    # The CSV parse only splits its cells; the flow step above, which the
+    # CSV import hands every object to, drops the link.
     rows = "object_name,task_name,task_type,schedule_type,interval_days,documentation_url\nPump,Clean,cleaning,time_based,30,//evil.example\n"
     parsed = import_objects_csv(rows)
     task = next(iter(parsed[0]["tasks"].values()))
-    assert "documentation_url" not in task
+    assert cap_task_fields(dict(task))["documentation_url"] is None
 
 
 # ─── SEC-2: a completion action runs with its author's rights ────────────

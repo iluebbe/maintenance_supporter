@@ -43,7 +43,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import intent
 
 from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_TASKS, DOMAIN, NOTIFIABLE_STATUSES, MaintenanceStatus
-from .helpers.aggregate import get_object_entries, iter_live_tasks, priority_rank
+from .helpers.aggregate import get_object_entries, iter_live_tasks, priority_rank, store_of
 from .helpers.aggregate import object_name as aggregate_object_name
 from .helpers.assignees import task_user_ids
 
@@ -547,7 +547,6 @@ class TaskInstructionsIntent(intent.IntentHandler):
         response = intent_obj.create_response()
 
         entry = hass.config_entries.async_get_entry(target["entry_id"])
-        rd = getattr(entry, "runtime_data", None) if entry else None
         # Static fields (notes/checklist/url/consumes_parts) come from the entry
         # record — the system of record; the coordinator payload carries only a
         # computed subset (consumes_parts, for one, is not in it).
@@ -561,7 +560,7 @@ class TaskInstructionsIntent(intent.IntentHandler):
         # other surface. Falls through untouched for phase-less tasks.
         from .helpers.phases import current_phase, effective_field
 
-        store = getattr(rd, "store", None) if rd else None
+        store = store_of(entry) if entry is not None else None
         if store is not None and task.get("phases"):
             task["phase_cursor"] = store.get_task_state(target["task_id"]).get("phase_cursor", 0)
         phase = current_phase(task)
@@ -759,8 +758,7 @@ def _part_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for ce in get_object_entries(hass):
         object_name = aggregate_object_name(ce)
-        rd = getattr(ce, "runtime_data", None)
-        store = getattr(rd, "store", None) if rd else None
+        store = store_of(ce)
         for part_id, part in live_parts(hass, ce).items():
             rows.append(
                 {
@@ -838,12 +836,12 @@ class PartStockIntent(intent.IntentHandler):
             response.async_set_speech(_sp("stock_untracked", lang, part=part["name"]))
             return response
 
-        from .helpers.parts import on_hand, part_is_low
+        from .helpers.parts import is_part_low
 
         loc = _sp("stock_loc", lang, loc=part["storage_location"]) if part.get("storage_location") else ""
         # The shared stock rule: a decimal threshold ("0.5 bags") counts too —
         # the int-only check here never warned for one.
-        low = _sp("stock_low", lang) if part_is_low(part, on_hand(part, part["stock"], part.get("restoring"))) else ""
+        low = _sp("stock_low", lang) if is_part_low(part, part["stock"], part.get("restoring")) else ""
         response.async_set_speech(
             _sp("stock_line", lang, stock=_num(part["stock"]), part=part["name"], loc=loc, low=low)
         )

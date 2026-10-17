@@ -18,9 +18,9 @@ import {
   buildCalendarBuckets,
   buildPastBuckets,
   buildPastWindowDates,
-  isoDateLocal,
   MAX_OCCURRENCES_PER_TASK,
 } from "../helpers/calendar-bucket";
+import { browserTimeZone, ymdIn } from "../helpers/ha-time";
 
 const TODAY = "2026-05-01";  // HA's today, as haToday() gives it
 const TODAY_ISO = TODAY;
@@ -29,7 +29,7 @@ function addDays(iso: string, days: number): string {
   const [y, m, d] = iso.split("-").map(Number);
   const date = new Date(y, m - 1, d);
   date.setDate(date.getDate() + days);
-  return isoDateLocal(date);
+  return ymdIn(date, browserTimeZone());
 }
 
 function task(over: Partial<any> = {}) {

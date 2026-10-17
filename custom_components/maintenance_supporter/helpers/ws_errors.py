@@ -40,6 +40,19 @@ def send_translated_error(
     )
 
 
+UNSAFE_URL_MESSAGE = (
+    "This link is not allowed: links that run scripts or open local files (javascript:, data:, file: and the like) are refused."
+)
+
+
+def send_unsafe_url_error(connection: ActiveConnection, msg_id: int) -> None:
+    """Refuse a link that runs scripts or opens local files — the one refusal
+    of every command that takes a link (a document web-link, a task's or an
+    object's documentation URL; the add_object action raises the same key).
+    Five commands spelled it out word for word (DRY audit 2026-10-12)."""
+    send_translated_error(connection, msg_id, "invalid_url", UNSAFE_URL_MESSAGE, translation_key="unsafe_url")
+
+
 def send_exception_error(connection: ActiveConnection, msg_id: int, err: HomeAssistantError, fallback_code: str) -> None:
     """Refuse with a raised Home Assistant exception — its key is the code,
     and its translation (with the task name) reaches the panel."""

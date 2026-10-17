@@ -539,7 +539,7 @@ export const panelStyles = css`
   /* 2.94: the home already has an object for this template. */
   .template-card-setup {
     display: inline-flex; align-items: center; gap: 4px; font-size: 12px;
-    color: var(--success-color, #43a047); --mdc-icon-size: 14px;
+    color: var(--success-color, #4caf50); --mdc-icon-size: 14px;
   }
   .template-legal {
     display: flex; gap: 6px; align-items: flex-start; margin-top: 8px;
@@ -1055,7 +1055,7 @@ export const panelStyles = css`
   .area-chart-min { font-size: 11px; color: var(--secondary-text-color); padding-top: 2px; }
   .area-bar { flex: 1 1 0; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
   .area-bar-fill { position: relative; width: 100%; max-width: 24px; min-height: 1px; background: var(--primary-color); border-radius: 4px 4px 0 0; }
-  .area-bar-fill.credit { background: var(--success-color, #43a047); border-radius: 0 0 4px 4px; }
+  .area-bar-fill.credit { background: var(--success-color, #4caf50); border-radius: 0 0 4px 4px; }
   .area-bar:hover .area-bar-fill { opacity: 0.75; }
   .area-chart-axis { display: flex; gap: 2px; margin-top: 4px; }
   .area-bar-label {
@@ -1603,7 +1603,7 @@ export const panelStyles = css`
   }
 
   .confidence-badge.high {
-    background: #4caf50;
+    background: var(--success-color, #4caf50);
     color: white;
   }
 

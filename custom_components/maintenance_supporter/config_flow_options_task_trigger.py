@@ -17,6 +17,7 @@ from .const import (
     ScheduleType,
     TriggerType,
 )
+from .helpers.aggregate import store_of
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -216,8 +217,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
         from .entity.triggers import trigger_runtime_stale
 
         if trigger_runtime_stale(old_tc, new_tc):
-            rd = getattr(self.config_entry, "runtime_data", None)
-            store = getattr(rd, "store", None) if rd else None
+            store = store_of(self.config_entry)
             if store is not None:
                 store.clear_trigger_runtime(self._selected_task_id or "")
                 store.async_delay_save()

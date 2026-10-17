@@ -32,7 +32,7 @@ from ..helpers.aggregate import object_name
 from ..helpers.permissions import require_write
 from ..helpers.search_match import query_tokens, score_fields, snippet
 from ..helpers.url_safety import is_safe_link
-from ..helpers.ws_errors import send_translated_error
+from ..helpers.ws_errors import send_unsafe_url_error
 from . import ID_FIELD, _get_object_entries, _load_object_entry, object_id_for_entry
 
 if TYPE_CHECKING:
@@ -134,7 +134,7 @@ async def ws_documents_add_link(
     # or scheme-less URL is meaningless as a stored external reference (and
     # _is_safe_url treats those as "safe", so is_safe_link asks for a scheme).
     if not is_safe_link(url):
-        send_translated_error(connection, msg["id"], "invalid_url", "This link is not allowed: links that run scripts or open local files (javascript:, data:, file: and the like) are refused.", translation_key="unsafe_url")
+        send_unsafe_url_error(connection, msg["id"])
         return
 
     title = msg.get("title")

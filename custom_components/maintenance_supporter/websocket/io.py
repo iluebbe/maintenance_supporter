@@ -36,8 +36,9 @@ from ..const import (
 from ..helpers.aggregate import object_name
 from ..helpers.dates import normalize_hhmm, parse_iso_date
 from ..helpers.global_options import get_default_warning_days
-from ..helpers.history import finite_amount
-from ..helpers.parts import PartValidationError, map_part_links, normalize_part
+from ..helpers.history import finite_amount, strict_amount
+from ..helpers.parts import PartValidationError, is_http_url, map_part_links, normalize_part, portable_stock
+from ..helpers.pause import pause_end_day
 from ..helpers.phases import clamp_phase_cursor, sanitize_phase_defs, sanitize_phase_sequence
 from ..helpers.qr_generator import (
     _ACTION_ICON_MAP,
@@ -103,8 +104,6 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
     alert, or `nan` silently disabling all alerts). The completion still counts;
     only the bad cost is removed.
     """
-    import math
-
     if not isinstance(history, list):
         return []
     out: list[dict[str, Any]] = []
@@ -135,16 +134,12 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
         if "completed_by" in clean and not isinstance(clean["completed_by"], str):
             clean.pop("completed_by")
         cost = clean.get("cost")
-        if "cost" in clean and (
-            isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost) or not MIN_COST <= cost <= MAX_COST
-        ):
+        if "cost" in clean and ((amount := strict_amount(cost)) is None or not MIN_COST <= amount <= MAX_COST):
             clean.pop("cost", None)
         # #104 bookkeeping: the parts value is money too (same NaN hole), the
         # two markers are exact values or nothing.
         parts_cost = clean.get("parts_cost")
-        if "parts_cost" in clean and (
-            isinstance(parts_cost, bool) or not isinstance(parts_cost, (int, float)) or not math.isfinite(parts_cost) or parts_cost < 0
-        ):
+        if "parts_cost" in clean and ((parts_amount := strict_amount(parts_cost)) is None or parts_amount < 0):
             clean.pop("parts_cost", None)
         if "purchase" in clean and clean["purchase"] is not True:
             clean.pop("purchase", None)
@@ -157,7 +152,7 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
         # value would break every delta after it. Malformed slot snapshots
         # are dropped item-wise, the completion itself is kept.
         rv = clean.get("reading_value")
-        if rv is not None and (isinstance(rv, bool) or not isinstance(rv, (int, float)) or not math.isfinite(rv)):
+        if rv is not None and strict_amount(rv) is None:
             clean.pop("reading_value", None)
         # Duration: text or NaN made the object's average-duration sum raise
         # on every refresh (bug audit 2026-09-26) — numeric text is kept as a
@@ -858,13 +853,11 @@ def _apply_settings_import(
         CONF_VACATION_END,
         CONF_VACATION_EXEMPT_TASK_IDS,
         CONF_VACATION_START,
-        MAX_GROUP_TASK_REFS,
-        MAX_NAME_LENGTH,
         MAX_SAVED_VIEWS,
-        MAX_TEXT_LENGTH,
     )
     from ..export import _NON_PORTABLE_SETTINGS
     from ..helpers.global_options import get_global_entry
+    from ..helpers.sanitize import sanitize_group
     from ..helpers.saved_views import sanitize_view
     from ..helpers.settings_registry import ALLOWED_SETTING_KEYS
     from .dashboard import sanitize_settings_input, settings_error_field
@@ -895,20 +888,10 @@ def _apply_settings_import(
     if isinstance(groups_in, dict):
         groups: dict[str, dict[str, Any]] = {}
         for gid, g in groups_in.items():
-            if not isinstance(g, dict) or not str(g.get("name") or "").strip():
-                continue
-            refs = [
-                {"entry_id": str(r["entry_id"]), "task_id": str(r["task_id"])}
-                for r in (g.get("task_refs") or [])
-                if isinstance(r, dict) and r.get("entry_id") and r.get("task_id")
-            ][:MAX_GROUP_TASK_REFS]
-            groups[str(gid)] = {
-                "name": str(g["name"]).strip()[:MAX_NAME_LENGTH],
-                # groups/create allows MAX_TEXT_LENGTH; the import cut a
-                # description to a name's 200 characters (BI5-A9).
-                "description": str(g.get("description") or "")[:MAX_TEXT_LENGTH],
-                "task_refs": refs,
-            }
+            # The group/create limits (BI5-A9: the import cut a description
+            # to a name's 200 characters).
+            if (clean := sanitize_group(g)) is not None:
+                groups[str(gid)] = clean
         if groups:
             filtered[CONF_GROUPS] = groups
 
@@ -1093,7 +1076,7 @@ async def ws_import_json(
                 # 2.20: seasonal pause round-trips (a paused pool restored in
                 # winter stays paused).
                 "paused_at": _iso_marker(obj_data.get("paused_at")),
-                "paused_until": _iso_marker(obj_data.get("paused_until")),
+                "paused_until": pause_end_day(obj_data.get("paused_until")),
                 # Object-level archive marker — same presence-means-archived
                 # semantics as paused_at, so it gets the same ISO validation. Its
                 # tasks carry their own archived_* pair (mirrored below).
@@ -1138,10 +1121,11 @@ async def ws_import_json(
                     old_id = str(part_entry.get("id") or "")
                     new_id = old_id if _keep_fleet_part_id(is_fleet, old_id) else _uuid4().hex
                     raw_part = dict(part_entry)
-                    # Drop a non-http(s) product_url rather than the whole part —
-                    # a crafted backup could carry a javascript: link.
+                    # Drop a product_url the part check would refuse rather than
+                    # the whole part — a crafted backup could carry a javascript:
+                    # link, an old one an over-long one.
                     _purl = raw_part.get("product_url")
-                    if not (isinstance(_purl, str) and _purl.strip().lower().startswith(("http://", "https://"))):
+                    if not (isinstance(_purl, str) and is_http_url(_purl.strip())):
                         raw_part.pop("product_url", None)
                     # The same validation as the part/create write path. The flow
                     # step validates parts too, but it drops a bad one without a
@@ -1155,15 +1139,8 @@ async def ws_import_json(
                     # The stock rides the part into entry.data and the fresh
                     # entry's first setup moves it into the Store — BEFORE the
                     # buy-task reconcile, which otherwise saw no stock, removed the
-                    # imported buy task and made a new one (storage.
-                    # async_migrate_to_store).
-                    stock = part_entry.get("stock")
-                    if isinstance(stock, (int, float)) and not isinstance(stock, bool) and stock >= 0:
-                        pdata["stock"] = stock
-                        # #208: the used ones waiting go with the stock.
-                        waiting = part_entry.get("restoring")
-                        if pdata.get("reuse") and isinstance(waiting, (int, float)) and not isinstance(waiting, bool) and waiting > 0:
-                            pdata["restoring"] = waiting
+                    # imported buy task and made a new one.
+                    pdata.update(portable_stock(pdata, part_entry))
                     import_parts[new_id] = pdata
                     if old_id:
                         part_id_map[old_id] = new_id
@@ -1268,9 +1245,10 @@ async def ws_import_json(
 
                 # #193: a task's pause — the object's markers, validated the
                 # same way (garbage would freeze the task forever).
-                for key in ("paused_at", "paused_until"):
-                    if (marker := _iso_marker(task_entry.get(key))) is not None:
-                        task_data[key] = marker
+                if (marker := _iso_marker(task_entry.get("paused_at"))) is not None:
+                    task_data["paused_at"] = marker
+                if (end := pause_end_day(task_entry.get("paused_until"))) is not None:
+                    task_data["paused_until"] = end
 
                 # The fleet's single aggregate task keeps its marker (detail view
                 # renders the battery section; the fleet reconcile repairs its

@@ -30,6 +30,7 @@ from .const import (
     EVENT_PART_STOCK_OUT,
 )
 from .helpers.aggregate import object_name as _object_name
+from .helpers.aggregate import store_of
 from .helpers.global_options import global_option
 from .helpers.i18n import normalize_language
 from .helpers.parts import (
@@ -50,11 +51,6 @@ _TRANSITION_EVENTS = {
 
 # Dispatcher signal fired after any stock change — the parts sensors listen.
 SIGNAL_PARTS_UPDATED = f"{DOMAIN}_parts_updated"
-
-
-def _get_store(hass: HomeAssistant, entry: ConfigEntry) -> Any:
-    rd = getattr(entry, "runtime_data", None)
-    return getattr(rd, "store", None) if rd else None
 
 
 def resolve_part_link(
@@ -79,7 +75,7 @@ def resolve_part_link(
     if owner is None:
         return None, None, None
     part = (owner.data.get(CONF_PARTS) or {}).get(part_id)
-    return owner, part, _get_store(hass, owner)
+    return owner, part, store_of(owner)
 
 
 def part_link_name(hass: HomeAssistant, entry: ConfigEntry, link: dict[str, Any]) -> str:
@@ -181,7 +177,7 @@ async def async_change_part_stock(
     once and fires at most one edge: the part form and undo set both.
     """
     part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
-    store = _get_store(hass, entry)
+    store = store_of(entry)
     if part is None or store is None:
         return None
     if use:
@@ -214,7 +210,7 @@ async def async_change_part_stock(
 async def async_untrack_part_stock(hass: HomeAssistant, entry: ConfigEntry, part_id: str) -> None:
     """Stop counting a part (catalog-only): its stock and waiting pile go,
     and the buy tasks are re-planned."""
-    store = _get_store(hass, entry)
+    store = store_of(entry)
     if store is None:
         return
     store.set_part_stock(part_id, None)
@@ -240,7 +236,7 @@ async def async_handle_completion_parts(
     a broken part link must never block the completion itself.
     """
     parts = entry.data.get(CONF_PARTS) or {}
-    store = _get_store(hass, entry)
+    store = store_of(entry)
     if store is None:
         return
     changed = False
@@ -447,7 +443,7 @@ async def async_part_ready_again(
     waiting one and is capped at them. None for an unknown, untracked or
     not reusable part. What is owned does not change, so no edge fires."""
     part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
-    store = _get_store(hass, entry)
+    store = store_of(entry)
     if part is None or store is None or not part.get("reuse"):
         return None
     stock = store.get_part_stock(part_id)
@@ -466,7 +462,7 @@ async def async_set_part_restoring(hass: HomeAssistant, entry: ConfigEntry, part
     """Set how many used ones wait (a correction, or a worn-out one thrown
     away): fires the edge event when what is owned crosses the threshold."""
     part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
-    store = _get_store(hass, entry)
+    store = store_of(entry)
     if part is None or store is None:
         return
     before = _owned(store, part)
@@ -542,7 +538,7 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
 
         in_use = borrowed_part_ids(hass, entry.entry_id, active_only=True)
         parts = {pid: part for pid, part in parts.items() if pid in in_use}
-    store = _get_store(hass, entry)
+    store = store_of(entry)
     if store is None:
         return False
     tasks: dict[str, Any] = entry.data.get(CONF_TASKS, {})

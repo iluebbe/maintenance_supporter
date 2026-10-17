@@ -40,7 +40,7 @@ from ..const import (
     MaintenanceStatus,
 )
 from .aggregate import priority_rank
-from .assignees import task_user_ids
+from .assignees import person_display_name, task_user_ids
 from .global_options import get_global_options, global_option
 from .i18n import format_text, normalize_language
 from .notification_gates import STATUS_ENABLED_KEYS, status_reminder_enabled, task_may_notify
@@ -2045,8 +2045,8 @@ class NotificationManager:
         who = ""
         actor_name: str | None = None
         if completed_by:
-            user = await self.hass.auth.async_get_user(completed_by)
-            actor_name = user.name if user else None
+            # The person's name, like voice says it (the login's otherwise).
+            actor_name = await person_display_name(self.hass, completed_by)
             if actor_name:
                 who = _notif_t("completed_by", lang, name=actor_name)
         reason = _notif_t(f"reason_{src}" if f"reason_{src}" in _NOTIFICATION_STRINGS["en"] else "reason_unknown", lang)

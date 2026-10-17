@@ -1072,7 +1072,7 @@ async def test_budget_string_cost_no_crash(
 
     A string cost is not producible by any supported write path (the WS
     schemas coerce to float, the importer drops non-numerics), so it can only
-    come from a hand-edited .storage file. ``helpers/budget.is_countable_cost``
+    come from a hand-edited .storage file. ``helpers/history.strict_amount``
     skips it rather than ``float()``-ing it: the lenient version also accepted
     ``"Infinity"``/``"nan"``, which is exactly the budget poison
     ``websocket/io.py::_sanitize_history`` was written to keep out, and it made

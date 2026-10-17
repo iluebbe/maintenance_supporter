@@ -9,15 +9,14 @@ import { css, html, LitElement, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 
 import { langOf, t } from "../styles";
+import { ROTATION_STRATEGIES, TASK_PRIORITIES } from "../helpers/task-choices";
+import { WARNING_DAYS_RANGE } from "../helpers/setting-ranges";
 import "./ms-textfield";
 import type { HAUser, HomeAssistant, TaskRow } from "../types";
 
 export type BulkMode = "assign" | "labels" | "edit";
 export type BulkChanges = Record<string, unknown>;
 
-const ROTATIONS = ["round_robin", "least_completed", "random"] as const;
-const PRIORITIES = ["low", "normal", "high"] as const;
-const WARNING_DAYS_MAX = 365;
 
 export class MaintenanceBulkEditDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -31,7 +30,7 @@ export class MaintenanceBulkEditDialog extends LitElement {
   @state() private _assignKind: "one" | "rotate" = "one";
   @state() private _person = "";
   @state() private _pool: Set<string> = new Set();
-  @state() private _rotation: string = ROTATIONS[0];
+  @state() private _rotation: string = ROTATION_STRATEGIES[0];
   // Labels
   @state() private _addText = "";
   @state() private _remove: Set<string> = new Set();
@@ -59,7 +58,7 @@ export class MaintenanceBulkEditDialog extends LitElement {
     this._assignKind = "one";
     this._person = "";
     this._pool = new Set();
-    this._rotation = ROTATIONS[0];
+    this._rotation = ROTATION_STRATEGIES[0];
     this._addText = "";
     this._remove = new Set();
     this._setWarning = false;
@@ -141,7 +140,7 @@ export class MaintenanceBulkEditDialog extends LitElement {
             <label class="field">
               <span>${t("rotation_strategy", L)}</span>
               <select class="rotation" .value=${this._rotation} @change=${(e: Event) => (this._rotation = (e.target as HTMLSelectElement).value)}>
-                ${ROTATIONS.map((r) => html`<option value=${r} ?selected=${this._rotation === r}>${t(`rotation_${r}`, L)}</option>`)}
+                ${ROTATION_STRATEGIES.map((r) => html`<option value=${r} ?selected=${this._rotation === r}>${t(`rotation_${r}`, L)}</option>`)}
               </select>
             </label>
             ${this._pool.size < 2 ? html`<div class="hint">${t("bulk_rotation_min_two", L)}</div>` : nothing}`
@@ -178,17 +177,17 @@ export class MaintenanceBulkEditDialog extends LitElement {
       <div class="row edit-row">
         <input type="checkbox" class="set-warning" .checked=${this._setWarning} @change=${(e: Event) => (this._setWarning = (e.target as HTMLInputElement).checked)} />
         <span class="grow">${t("warning_days", L)}</span>
-        <input type="number" class="warning" min="0" max=${WARNING_DAYS_MAX} .value=${String(this._warning)} ?disabled=${!this._setWarning}
+        <input type="number" class="warning" min=${WARNING_DAYS_RANGE[0]} max=${WARNING_DAYS_RANGE[1]} .value=${String(this._warning)} ?disabled=${!this._setWarning}
           @change=${(e: Event) => {
             const v = parseInt((e.target as HTMLInputElement).value, 10);
-            this._warning = Number.isInteger(v) ? Math.min(Math.max(v, 0), WARNING_DAYS_MAX) : this._warning;
+            this._warning = Number.isInteger(v) ? Math.min(Math.max(v, WARNING_DAYS_RANGE[0]), WARNING_DAYS_RANGE[1]) : this._warning;
           }} />
       </div>
       <div class="row edit-row">
         <input type="checkbox" class="set-priority" .checked=${this._setPriority} @change=${(e: Event) => (this._setPriority = (e.target as HTMLInputElement).checked)} />
         <span class="grow">${t("priority", L)}</span>
         <select class="priority" .value=${this._priority} ?disabled=${!this._setPriority} @change=${(e: Event) => (this._priority = (e.target as HTMLSelectElement).value)}>
-          ${PRIORITIES.map((p) => html`<option value=${p} ?selected=${this._priority === p}>${t(`priority_${p}`, L)}</option>`)}
+          ${TASK_PRIORITIES.map((p) => html`<option value=${p} ?selected=${this._priority === p}>${t(`priority_${p}`, L)}</option>`)}
         </select>
       </div>
       <div class="row edit-row">

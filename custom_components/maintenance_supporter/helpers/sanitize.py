@@ -40,7 +40,7 @@ from ..const import (
     MAX_URL_LENGTH,
     MIN_COST,
 )
-from .task_fields import EARLIEST_COMPLETION_RANGE
+from .task_fields import EARLIEST_COMPLETION_RANGE, TASK_PRIORITIES
 from .url_safety import is_safe_url
 
 # Per-field cap for task dicts. Values mirror the voluptuous schemas in
@@ -186,6 +186,10 @@ def cap_task_fields(task_data: dict[str, Any], *, keep_action_owner: bool = Fals
     """
     _cap_strings(task_data, _TASK_STR_LIMITS)
     _drop_unsafe_url(task_data)
+    # One of the three levels or none: the CSV import dropped an unknown
+    # priority the JSON import kept (DRY audit 2026-10-12).
+    if "priority" in task_data and task_data["priority"] not in TASK_PRIORITIES:
+        task_data.pop("priority")
 
     iv = task_data.get("interval_days")
     if isinstance(iv, int):
@@ -580,7 +584,30 @@ def _drop_unsafe_url(data: dict[str, Any]) -> None:
         data["documentation_url"] = None
 
 
-def cap_group_fields(group_data: dict[str, Any]) -> dict[str, Any]:
-    """Truncate user-controllable strings on a group dict in-place."""
-    _cap_strings(group_data, _GROUP_STR_LIMITS)
-    return group_data
+def sanitize_group(raw: Any) -> dict[str, Any] | None:
+    """A group as stored — the limits of ``group/create``: a trimmed name
+    (none = no group), its description, task references with ids of at most
+    MAX_ID_LENGTH, at most MAX_GROUP_TASK_REFS of them. The options flow and
+    the settings import each cleaned a group their own way; the import took
+    references of any length and a number for a name (DRY audit 2026-10-12)."""
+    from ..const import MAX_GROUP_TASK_REFS
+
+    if not isinstance(raw, dict):
+        return None
+    name = raw.get("name")
+    if not isinstance(name, str) or not name.strip():
+        return None
+    refs = [
+        {"entry_id": r["entry_id"], "task_id": r["task_id"]}
+        for r in (raw.get("task_refs") or [])
+        if isinstance(r, dict)
+        and all(isinstance(r.get(k), str) and 0 < len(r[k]) <= MAX_ID_LENGTH for k in ("entry_id", "task_id"))
+    ]
+    description = raw.get("description")
+    group: dict[str, Any] = {
+        "name": name.strip(),
+        "description": description if isinstance(description, str) else "",
+        "task_refs": refs[:MAX_GROUP_TASK_REFS],
+    }
+    _cap_strings(group, _GROUP_STR_LIMITS)
+    return group

@@ -13,12 +13,9 @@ import { registerCustomCard } from "../helpers/register-card";
 import { runWs } from "../helpers/ws-run";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
 import type { BudgetStatus, HomeAssistant } from "../types";
+import { budgetLevel } from "../helpers/budget-level";
 
 interface CardConfig { type: string; title?: string; }
-
-/** Backend default for budget_alert_threshold (const.py / settings_registry).
- *  Only reached if an older core omits the field from budget_status. */
-const DEFAULT_ALERT_THRESHOLD_PCT = 80;
 
 export class MaintenanceBudgetSectionCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -101,9 +98,6 @@ export class MaintenanceBudgetSectionCard extends LitElement {
       return html`<ha-card><div class="loading">${t("loading", L)}</div></ha-card>`;
     }
     const sym = currencySymbolOf(s);
-    // The amber step is the CONFIGURED budget_alert_threshold, not a literal 80
-    // — same rule the panel's budget bar uses (maintenance-panel._renderBudgetBar).
-    const threshold = s.alert_threshold_pct ?? DEFAULT_ALERT_THRESHOLD_PCT;
     const tracks = [
       {
         label: t("budget_monthly", L),
@@ -144,8 +138,9 @@ export class MaintenanceBudgetSectionCard extends LitElement {
                 </div>
               `;
             }
-            const pct = Math.min(100, Math.max(0, (track.spent / track.budget) * 100));
-            const warn = pct >= 100 ? "danger" : pct >= threshold ? "warning" : "ok";
+            // The amber step is the CONFIGURED budget_alert_threshold — the
+            // panel's budget tiles share the rule.
+            const { pct, level: warn } = budgetLevel(track.spent, track.budget, s.alert_threshold_pct);
             return html`
               <div class="track">
                 <div class="track-label-row">
@@ -237,7 +232,7 @@ export class MaintenanceBudgetSectionCard extends LitElement {
     }
     .track-numbers { font-size: 13px; font-weight: 600; }
     .track-numbers.ok { color: var(--primary-text-color); }
-    .track-numbers.warning { color: #ff9800; }
+    .track-numbers.warning { color: var(--warning-color, #ff9800); }
     .track-numbers.danger { color: var(--error-color, #f44336); }
     .bar {
       height: 6px; background: var(--secondary-background-color);
@@ -245,7 +240,7 @@ export class MaintenanceBudgetSectionCard extends LitElement {
     }
     .bar-fill { height: 100%; transition: width 0.3s; border-radius: 3px; }
     .bar-fill.ok { background: var(--primary-color); }
-    .bar-fill.warning { background: #ff9800; }
+    .bar-fill.warning { background: var(--warning-color, #ff9800); }
     .bar-fill.danger { background: var(--error-color, #f44336); }
     /* minmax(0, …): a bare 1fr never shrinks below the number inputs'
        natural width — the row was 420 px wide on a phone (2026-09-27). */

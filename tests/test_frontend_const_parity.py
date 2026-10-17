@@ -33,6 +33,7 @@ _SETTINGS_VIEW_TS = _FRONTEND / "components" / "settings-view.ts"
 _TASK_DIALOG_TS = _FRONTEND / "components" / "task-dialog.ts"
 _STYLES_TS = _FRONTEND / "styles.ts"
 _SETTING_RANGES_TS = _FRONTEND / "helpers" / "setting-ranges.ts"
+_TASK_CHOICES_TS = _FRONTEND / "helpers" / "task-choices.ts"
 _LOCALES_DIR = _FRONTEND / "locales"
 
 
@@ -91,29 +92,65 @@ def test_ts_trigger_type_keys_match_enum() -> None:
     assert [*flat, "compound"] == all_types, "TRIGGER_TYPE_KEYS + compound must equal the full TriggerType enum"
 
 
+def _ts_string_tuple(source: str, name: str) -> list[str]:
+    """The strings of ``export const NAME = [...] as const``."""
+    m = re.search(rf"export const {name} = \[([^\]]*)\]", source)
+    assert m, f"could not locate {name}"
+    return _quoted_strings(m.group(1))
+
+
 def test_ts_priority_keys_match_enum() -> None:
-    """task-dialog PRIORITY_KEYS must equal the Python TaskPriority enum."""
-    src = _TASK_DIALOG_TS.read_text(encoding="utf-8")
-    keys = _quoted_strings(_block(src, "const PRIORITY_KEYS"))
-    assert keys == [e.value for e in TaskPriority], "task-dialog.ts PRIORITY_KEYS drifted from TaskPriority"
+    """helpers/task-choices.ts TASK_PRIORITIES must equal the Python
+    TaskPriority enum — every dialog, filter and editor reads it (DRY audit
+    2026-10-12: four copies, one pinned)."""
+    src = _TASK_CHOICES_TS.read_text(encoding="utf-8")
+    keys = _ts_string_tuple(src, "TASK_PRIORITIES")
+    assert keys == [e.value for e in TaskPriority], "task-choices.ts TASK_PRIORITIES drifted from TaskPriority"
 
 
 def test_ts_rotation_strategies_match_const() -> None:
-    """The task-dialog's rotation dropdown options must equal the Python
-    ROTATION_STRATEGIES tuple (helpers/task_fields routes every Python surface
-    through it; the TS dialog is the one hand-written copy left)."""
+    """helpers/task-choices.ts ROTATION_STRATEGIES must equal the Python
+    tuple (helpers/task_fields routes every Python surface through it; the
+    task dialog and the bulk edit read the TS one)."""
     from custom_components.maintenance_supporter.helpers.task_fields import (
         ROTATION_STRATEGY_VALUES,
     )
 
-    src = _TASK_DIALOG_TS.read_text(encoding="utf-8")
-    # The dropdown maps over an inline array: ["round_robin", ...].map(
-    m = re.search(r"\[((?:\s*\"[a-z_]+\",?)+)\]\.map\(\s*\n?\s*\(key\) [^\n]*rotation_", src)
-    assert m, "could not locate the rotation dropdown option array in task-dialog.ts"
-    ts_values = re.findall(r'"([a-z_]+)"', m.group(1))
+    src = _TASK_CHOICES_TS.read_text(encoding="utf-8")
+    ts_values = _ts_string_tuple(src, "ROTATION_STRATEGIES")
     assert ts_values == list(ROTATION_STRATEGY_VALUES), (
-        f"task-dialog rotation options {ts_values} drifted from ROTATION_STRATEGIES {list(ROTATION_STRATEGY_VALUES)}"
+        f"task-choices.ts ROTATION_STRATEGIES {ts_values} drifted from ROTATION_STRATEGIES {list(ROTATION_STRATEGY_VALUES)}"
     )
+
+
+def test_task_choice_lists_are_not_spelled_out_again() -> None:
+    """No surface writes the priority or rotation list out again — the bulk
+    edit, the panel filter and the card editor each had their own copy."""
+    hits = []
+    for path in _FRONTEND.rglob("*.ts"):
+        if "__tests__" in path.parts or "node_modules" in path.parts or path == _TASK_CHOICES_TS:
+            continue
+        src = path.read_text(encoding="utf-8")
+        compact = re.sub(r"\s+", "", src)
+        for literal in ('["low","normal","high"]', '["high","normal","low"]', '["round_robin","least_completed","random"]'):
+            if literal in compact:
+                hits.append(f"{path.relative_to(_FRONTEND)}: {literal}")
+    assert not hits, f"use helpers/task-choices.ts instead: {hits}"
+
+
+def test_ts_part_twins_match_backend() -> None:
+    """parts-section.ts REUSE_KINDS / MAX_PART_NOTES and object-history.ts
+    HISTORY_RETENTION_CAP mirror the backend; nothing compared them."""
+    from custom_components.maintenance_supporter.const import DEFAULT_MAX_HISTORY_ENTRIES
+    from custom_components.maintenance_supporter.helpers.parts import MAX_PART_NOTES, REUSE_KINDS
+
+    parts_src = (_FRONTEND / "components" / "parts-section.ts").read_text(encoding="utf-8")
+    assert _ts_string_tuple(parts_src, "REUSE_KINDS") == list(REUSE_KINDS)
+    m = re.search(r"export const MAX_PART_NOTES = (\d+);", parts_src)
+    assert m and int(m.group(1)) == MAX_PART_NOTES, "parts-section.ts MAX_PART_NOTES drifted from helpers/parts.py"
+    history_src = (_FRONTEND / "helpers" / "object-history.ts").read_text(encoding="utf-8")
+    m = re.search(r"export const HISTORY_RETENTION_CAP = (\d+);", history_src)
+    assert m and int(m.group(1)) == DEFAULT_MAX_HISTORY_ENTRIES, "HISTORY_RETENTION_CAP drifted from const.py"
 
 
 def test_python_enum_surfaces_share_task_fields_source() -> None:

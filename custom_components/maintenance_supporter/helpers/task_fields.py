@@ -90,10 +90,9 @@ def import_warning_days(value: object, default: int) -> int:
 
 
 def import_due_date(value: object) -> str | None:
-    """An imported one-time due date: a real ISO date (``YYYY-MM-DD``)."""
-    from .dates import parse_iso_date
+    """An imported one-time due date: a real ISO date, stored ``YYYY-MM-DD``."""
+    from .dates import canonical_iso_date
 
     if not isinstance(value, str):
         return None
-    text = value.strip()
-    return text if len(text) == 10 and parse_iso_date(text) is not None else None
+    return canonical_iso_date(value.strip())

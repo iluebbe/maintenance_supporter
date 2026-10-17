@@ -130,7 +130,7 @@ def _reset_candidates(hass: HomeAssistant) -> list[dict[str, Any]]:
     carry what wiring needs to record the task's fingerprint."""
     from ..const import CONF_OBJECT, CONF_TASKS
     from ..entity.triggers import normalize_entity_ids
-    from .aggregate import get_object_entries
+    from .aggregate import get_object_entries, object_name
     from .signatures._discovery import reset_button_for
     from .signatures._model import PER_ENTITY_SEPARATOR
 
@@ -164,7 +164,7 @@ def _reset_candidates(hass: HomeAssistant) -> list[dict[str, Any]]:
                 out.append(
                     {
                         "entry_id": entry.entry_id,
-                        "object_name": obj.get("name", entry.title),
+                        "object_name": object_name(entry),
                         "task_id": task_id,
                         "task_name": name,
                         "integration_name": catalog.name,

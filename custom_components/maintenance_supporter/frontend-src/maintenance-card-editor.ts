@@ -5,6 +5,7 @@ import { property, state } from "lit/decorators.js";
 import { t, langOf } from "./styles";
 import type { HomeAssistant, CardConfig, MaintenanceObjectResponse, SavedView } from "./types";
 import { STATUS_ORDER } from "./status-constants";
+import { TASK_PRIORITIES_HIGH_FIRST } from "./helpers/task-choices";
 
 export class MaintenanceSupporterCardEditor extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -261,7 +262,7 @@ export class MaintenanceSupporterCardEditor extends LitElement {
         <div class="field">
           <div class="field-label">${t("priority", L)}</div>
           <div class="object-list">
-            ${["high", "normal", "low"].map((pr) => html`
+            ${TASK_PRIORITIES_HIGH_FIRST.map((pr) => html`
               <label class="object-row">
                 <input type="checkbox"
                   .checked=${selectedPriorities.has(pr)}

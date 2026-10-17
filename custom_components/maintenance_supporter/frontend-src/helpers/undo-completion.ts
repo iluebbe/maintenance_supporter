@@ -12,26 +12,33 @@
  */
 import { t } from "../styles";
 import type { HomeAssistant } from "../types";
+import { runWs } from "./ws-run";
 
 export interface UndoResult {
   ok: boolean;
   message: string;
 }
 
+/** The two refusals the toast explains in its own words; any other one reads
+ *  as runWs puts it (the server's reason, or "restart Home Assistant" while
+ *  an update waits for it) — it used to be the bare "Action failed". */
+const UNDO_REFUSALS: Record<string, string> = { changed_since: "undo_changed", nothing_to_undo: "undo_nothing" };
+
 export async function undoCompletion(hass: HomeAssistant, entryId: string, taskId: string, lang: string): Promise<UndoResult> {
-  try {
-    const res = (await hass.connection.sendMessagePromise({
-      type: "maintenance_supporter/task/undo",
-      entry_id: entryId,
-      task_id: taskId,
-    })) as { action_ran?: boolean } | null;
-    return { ok: true, message: t(res?.action_ran ? "undo_done_action_ran" : "undo_done", lang) };
-  } catch (err) {
-    const code = (err as { code?: string } | null)?.code;
-    if (code === "changed_since") return { ok: false, message: t("undo_changed", lang) };
-    if (code === "nothing_to_undo") return { ok: false, message: t("undo_nothing", lang) };
-    return { ok: false, message: t("action_error", lang) };
-  }
+  let failure = "";
+  const res = await runWs<{ action_ran?: boolean } | null>(
+    { hass },
+    { type: "maintenance_supporter/task/undo", entry_id: entryId, task_id: taskId },
+    {
+      lang,
+      onError: (message, err) => {
+        const key = UNDO_REFUSALS[(err as { code?: string } | null)?.code ?? ""];
+        failure = key ? t(key, lang) : message;
+      },
+    },
+  );
+  if (res === undefined) return { ok: false, message: failure };
+  return { ok: true, message: t(res?.action_ran ? "undo_done_action_ran" : "undo_done", lang) };
 }
 
 /** Home Assistant's own toast with an Undo button — for surfaces without a

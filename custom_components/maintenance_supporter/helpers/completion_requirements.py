@@ -109,13 +109,12 @@ def photo_references(hass: HomeAssistant, *, strict: bool = True) -> set[str] | 
     completion record is also linked to its task, which
     :func:`is_unattached_photo` checks on its own.
     """
-    from .aggregate import get_object_entries, merged_tasks
+    from .aggregate import get_object_entries, merged_tasks, store_of
     from .completion_photos import history_photo_ids
 
     refs: set[str] = set()
     for entry in get_object_entries(hass):
-        rd = getattr(entry, "runtime_data", None)
-        if strict and getattr(rd, "store", None) is None:
+        if strict and store_of(entry) is None:
             return None
         for task in merged_tasks(entry).values():
             for hist in task.get("history") or []:

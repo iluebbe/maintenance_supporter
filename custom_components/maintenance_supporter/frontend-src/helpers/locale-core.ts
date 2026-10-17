@@ -81,6 +81,17 @@ export function normLang(lang?: string): string {
   return l.substring(0, 2);
 }
 
+/**
+ * The UI language for a hass object — the ONE rule every component's `_lang`
+ * getter delegates to. Before this helper the 23 hand-copied getters had
+ * drifted into three variants (`|| "en"`, `?? navigator.language...`, and a
+ * `locale.language` probe), so sibling components could resolve different
+ * languages from the same hass.
+ */
+export function langOf(hass?: { language?: string }): string {
+  return hass?.language || "en";
+}
+
 /** Get a localized string. Falls back to English, then to ``fallback``
  *  (the strategy's own English), then to the key itself. */
 export function t(key: string, lang?: string, fallback?: string): string {

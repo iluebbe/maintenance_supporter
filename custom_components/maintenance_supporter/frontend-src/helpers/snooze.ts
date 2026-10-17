@@ -9,7 +9,7 @@
  * the plain word.
  */
 
-import { formatDateTime, formatNumber, formatTimeOfDay, t } from "../styles";
+import { countText, formatDateTime, formatTimeOfDay, t } from "../styles";
 import { displayTimeZone, stampMs, ymdIn } from "./ha-time";
 
 export interface SnoozeResult {
@@ -25,6 +25,6 @@ export function snoozedMessage(res: SnoozeResult | null | undefined, lang: strin
   const zone = displayTimeZone();
   const sameDay = ymdIn(until, zone) === ymdIn(now, zone);
   const when = sameDay ? formatTimeOfDay(new Date(until), lang) : formatDateTime(res!.snoozed_until!, lang);
-  const text = hours === 1 ? t("snoozed_for_one", lang) : t("snoozed_for", lang).replace("{hours}", formatNumber(hours, lang));
+  const text = countText("snoozed_for", "snoozed_for_one", hours, lang, "hours");
   return text.replace("{until}", when);
 }

@@ -71,6 +71,34 @@ def parse_iso_date(value: str | None) -> date | None:
         return None
 
 
+def local_moment(value: datetime) -> datetime:
+    """A given moment in HA's time zone: naive input (a datetime-local field,
+    service YAML) is local time, an offset from elsewhere ("…T23:30:00+00:00"
+    from an automation) the same instant there — so every day derived from
+    it is the LOCAL day, not the offset's (bug audit 2026-09-26, SCH-11)."""
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
+    return dt_util.as_local(value)
+
+
+def is_past_dated(completed_at: datetime | None) -> bool:
+    """A completion recorded for a PAST local day: a history correction, not
+    early work, so it bypasses the earliest-completion window. The WS
+    pre-check took the offset's day and the coordinator the local one, so
+    near midnight one refused what the other let through (DRY audit
+    2026-10-12)."""
+    return completed_at is not None and local_moment(completed_at).date() < dt_util.now().date()
+
+
+def canonical_iso_date(value: str | None) -> str | None:
+    """A date as ``YYYY-MM-DD``, or ``None`` when it is not one. Python reads
+    the compact (``20261001``) and week (``2026-W40-4``) forms too; the
+    handlers that validated with it stored what was typed, so the compact
+    form reached the panel and the exports (DRY audit 2026-10-12)."""
+    day = parse_iso_date(value)
+    return day.isoformat() if day is not None else None
+
+
 def parse_persisted_utc(value: str | None) -> datetime | None:
     """Persisted ISO timestamp → TZ-aware ``datetime``; ``None`` when absent
     or malformed.

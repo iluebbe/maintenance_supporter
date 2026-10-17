@@ -31,8 +31,9 @@
  */
 
 import { ACTIONABLE_STATUSES, STATUS_ICONS } from "./status-constants";
-import { ensureLocale, t } from "./helpers/locale-core";
+import { ensureLocale, langOf, t } from "./helpers/locale-core";
 import { loadHistoryEntryDraft } from "./helpers/history-draft";
+import { escapeHtml } from "./helpers/html-escape";
 
 interface MaintenanceObjectResp {
   entry_id: string;
@@ -115,7 +116,7 @@ const s = (key: StringKey): string => t(key, _lang, STRINGS[key]);
 /** Load the user's language before generating (the English fallbacks keep
  *  working when the fetch fails). */
 async function useLanguage(hass: { language?: string } | undefined): Promise<void> {
-  _lang = hass?.language || "en";
+  _lang = langOf(hass);
   await ensureLocale(_lang);
 }
 
@@ -738,10 +739,6 @@ const GROUP_BY_OPTIONS: Array<{ value: GroupBy; label: StringKey }> = [
   { value: "calendar", label: "strat_group_calendar" },
 ];
 
-function escapeHtml(text: string): string {
-  return text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
-}
-
 class MaintenanceStrategyEditor extends HTMLElement {
   private _config: MaintenanceDashboardStrategyConfig = {
     type: "custom:maintenance-supporter",
@@ -749,7 +746,7 @@ class MaintenanceStrategyEditor extends HTMLElement {
   private _hass: HassLike | undefined;
 
   set hass(hass: HassLike | undefined) {
-    const changed = (hass?.language || "en") !== _lang;
+    const changed = langOf(hass) !== _lang;
     this._hass = hass;
     if (changed) void useLanguage(hass).then(() => this._render());
   }

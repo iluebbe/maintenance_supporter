@@ -16,7 +16,7 @@
  *   - helpers/modal-shell (one frame, Escape closes);
  *   - docDisplayName / docCategory / the Python-pinned CATEGORIES;
  *   - photo-upload postMultipart (413 mapping for the archive import);
- *   - calendar-bucket isoDateLocal (a zone's minute: helpers/ha-time minuteIn);
+ *   - the browser's day and minute (helpers/ha-time ymdIn / minuteIn);
  *   - helpers/setting-ranges field bounds (pinned to Python in
  *     tests/test_frontend_const_parity.py).
  */
@@ -38,8 +38,7 @@ import type { MaintenanceHistoryEditDialog } from "../components/history-edit-di
 import { CATEGORIES, docCategory, docDisplayName } from "../helpers/document-categories.js";
 import { sortDocuments } from "../helpers/document-filter.js";
 import { DOCS_ARCHIVE_MAX_BYTES, postMultipart, uploadDocument } from "../helpers/photo-upload.js";
-import { isoDateLocal } from "../helpers/calendar-bucket.js";
-import { browserTimeZone, minuteIn } from "../helpers/ha-time.js";
+import { browserTimeZone, minuteIn, ymdIn } from "../helpers/ha-time.js";
 import { PART_QTY_RANGE, SCHEDULE_OFFSET_MAX_DAYS } from "../helpers/setting-ranges.js";
 import "../components/settings-view.js";
 import type { MaintenanceSettingsView } from "../components/settings-view";
@@ -441,9 +440,9 @@ describe("DRY round 4 (frontend)", () => {
 
   // ── dates ───────────────────────────────────────────────────────────────
   describe("local dates", () => {
-    it("isoDateLocal / minuteIn read the wall clock, seconds dropped", () => {
+    it("ymdIn / minuteIn read the wall clock, seconds dropped", () => {
       const d = new Date(2026, 0, 5, 7, 9, 42);
-      expect(isoDateLocal(d)).to.equal("2026-01-05");
+      expect(ymdIn(d, browserTimeZone())).to.equal("2026-01-05");
       expect(minuteIn(d, browserTimeZone())).to.equal("2026-01-05T07:09");
     });
   });

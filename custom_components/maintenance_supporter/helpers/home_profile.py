@@ -10,7 +10,6 @@ offline grids in :mod:`.climate`. The guess is a suggestion — the
 
 from __future__ import annotations
 
-import unicodedata
 import zlib
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
@@ -20,6 +19,7 @@ from homeassistant.core import HomeAssistant
 
 from ..const import CONF_HOME_REGION, CONF_HOME_TYPE, DOMAIN, HOME_REGION_AUTO, HOME_TYPES
 from .climate import TRAIT_FREEZE, TRAIT_TERMITES, TRAIT_WILDFIRE, ClimateInfo, describe, load_grids
+from .intent_match import fold
 from .region import (
     RegionGrid,
     load_region_grid,
@@ -144,12 +144,6 @@ _BALCONY = (
 )  # fmt: skip
 
 
-def _fold(text: str) -> str:
-    """Lower-case and strip accents (ö→o, ž→z); keeps non-Latin scripts."""
-    decomposed = unicodedata.normalize("NFKD", text.casefold())
-    return "".join(ch for ch in decomposed if not unicodedata.combining(ch))
-
-
 @dataclass(frozen=True)
 class DwellingGuess:
     kind: str  # house | apartment | unknown
@@ -165,7 +159,9 @@ def guess_dwelling(floor_levels: Iterable[int | None], names: Iterable[str], ent
     is small (one floor, at most 6 areas); anything else stays unknown.
     """
     levels = list(floor_levels)
-    folded = [_fold(n) for n in names if n]
+    # The voice matcher's fold (accents stripped, ö→o): this module had a
+    # copy of its own (DRY audit 2026-10-12).
+    folded = [fold(n) for n in names if n]
     score = 0
     reasons: list[str] = []
     if len(levels) >= 2:

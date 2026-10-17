@@ -84,8 +84,9 @@ async def ws_vacation_update(
     for field, key in (("start", CONF_VACATION_START), ("end", CONF_VACATION_END)):
         if field not in msg:
             continue
-        if msg[field] is not None:
-            parsed = _parse_iso_date(connection, msg["id"], msg[field], field=field)
+        value = msg[field]
+        if value is not None:
+            parsed = _parse_iso_date(connection, msg["id"], value, field=field)
             if parsed is None:
                 return
             if parsed > latest:
@@ -93,7 +94,8 @@ async def ws_vacation_update(
                     msg["id"], "invalid_range", f"{field} must be within {MAX_INTERVAL_DAYS} days from today"
                 )
                 return
-        options[key] = msg[field]
+            value = parsed.isoformat()  # stored YYYY-MM-DD, not as typed
+        options[key] = value
 
     # End-vs-start sanity (only when both are present after the patch; a
     # stored value that does not parse is skipped — the patch above already

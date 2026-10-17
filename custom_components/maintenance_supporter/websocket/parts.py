@@ -11,6 +11,7 @@ from homeassistant.helpers.typing import VolDictType
 
 from ..const import BATTERY_FLEET_OBJECT_FLAG, BATTERY_FLEET_REMOVED_PARTS, CONF_OBJECT, CONF_PARTS
 from ..helpers.aggregate import get_store, object_name
+from ..helpers.entry_tasks import write_tasks
 from ..helpers.parts import (
     MAX_PART_STOCK,
     MAX_PARTS_PER_OBJECT,
@@ -236,7 +237,7 @@ async def ws_delete_part(
             continue
         other_tasks, changed = _pruned(other.entry_id, dict(other.data.get(CONF_TASKS) or {}))
         if changed:
-            hass.config_entries.async_update_entry(other, data={**other.data, CONF_TASKS: other_tasks})
+            write_tasks(hass, other, other_tasks)
     # A deleted fleet type-part must STAY deleted: the start-up reconcile
     # re-minted ``batt_<type>`` on every boot while the type was still in
     # the fleet (bug review 2026-09-04). Tombstone it on the fleet object.
@@ -356,7 +357,7 @@ async def ws_parts_overview(
     every consuming task — the object's own tasks and pooled #111 links from
     other objects. Read-only; the per-object CRUD stays on part/*.
     """
-    from ..helpers.parts import on_hand, part_is_low
+    from ..helpers.parts import is_part_low
     from . import _get_merged_tasks, _get_object_entries
 
     entries = _get_object_entries(hass)
@@ -401,7 +402,7 @@ async def ws_parts_overview(
                     "object_name": names.get(e.entry_id),
                     "stock": stock,
                     "restoring": restoring,
-                    "low": part_is_low(part, on_hand(part, stock, restoring)),
+                    "low": is_part_low(part, stock, restoring),
                     "consumers": consumers.get((e.entry_id, part_id), []),
                 }
             )

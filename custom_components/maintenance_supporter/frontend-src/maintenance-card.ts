@@ -5,7 +5,7 @@ import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscr
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { taskIsFor } from "./helpers/assignees";
 import { property, state } from "lit/decorators.js";
-import { syncLocaleFromHass, sharedStyles, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatLastDone, formatDate, langOf, currencySymbolOf, syncCurrencyDecimals} from "./styles";
+import { syncLocaleFromHass, sharedStyles, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, langOf, currencySymbolOf, syncCurrencyDecimals} from "./styles";
 import { openSignedDocument } from "./helpers/document-url";
 import { isPhotoDocument } from "./helpers/document-categories";
 import { isSafeLink } from "./helpers/url";
@@ -29,6 +29,7 @@ import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/co
 import { fetchSettingsOnce, FALLBACK_SETTINGS, type SettingsCache } from "./helpers/settings-cache";
 import { canWrite } from "./helpers/permissions";
 import { statusColor } from "./renderers/status";
+import { renderLastDone } from "./renderers/progress";
 import { ACTIONABLE_STATUSES, isActionableStatus, statusRank } from "./status-constants";
 import "./maintenance-card-editor";
 import "./components/complete-dialog";
@@ -208,15 +209,6 @@ export class MaintenanceSupporterCard extends LitElement {
     }
     await viewScope;
     this._firstLoadDone = true;
-  }
-
-  /** A task without a due date (manual, sensor-only, paused): when it was
-   *  last done, "done 23 d ago" (D#203) — a dash only when never done. */
-  private _lastDone(task: MaintenanceTask, L: string) {
-    const done = formatLastDone(task.last_performed, L);
-    return done
-      ? html`<span class="last-done" title="${t("last_performed", L)}: ${formatDate(task.last_performed, L)}">${done}</span>`
-      : "—";
   }
 
   /** Display name of the task's responsible user, or "" when the badge must
@@ -625,7 +617,7 @@ export class MaintenanceSupporterCard extends LitElement {
                             : formatDueDays(task.days_until_due, L)
                           : task.trigger_active
                           ? "⚡"
-                          : this._lastDone(task, L)}
+                          : renderLastDone(task.last_performed, L) ?? "—"}
                       </div>
                       ${showActions && useButtons
                         ? html`

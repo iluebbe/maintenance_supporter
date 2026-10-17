@@ -97,7 +97,7 @@ export class MsCostInput extends LitElement {
         cursor: pointer;
       }
       .kind.on { background: var(--primary-color); color: var(--text-primary-color, #fff); }
-      .kind.credit.on { background: var(--success-color, #43a047); }
+      .kind.credit.on { background: var(--success-color, #4caf50); }
       .amount { flex: 1; min-width: 0; }
       .hint { margin-top: 4px; font-size: 12px; color: var(--secondary-text-color); }
     `,

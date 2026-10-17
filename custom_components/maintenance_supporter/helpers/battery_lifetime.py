@@ -281,8 +281,8 @@ def _fleet_store_and_task(hass: HomeAssistant) -> tuple[Any, str] | None:
     entry = find_fleet_entry(hass)
     if entry is None:
         return None
-    rd = getattr(entry, "runtime_data", None)
-    store = getattr(rd, "store", None) if rd else None
+    from .aggregate import store_of
+    store = store_of(entry)
     found = find_fleet_task(entry)
     if store is None or found is None:
         return None

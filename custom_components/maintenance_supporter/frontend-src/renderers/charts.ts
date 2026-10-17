@@ -137,7 +137,7 @@ function renderHistoryChart(task: MaintenanceTask, lang: string, toggle: "cost" 
           const credit = e.cost < 0;
           return svg`
           <rect class="${credit ? "credit-bar" : "cost-bar"}" x="${px(toX(e.ts) - barW / 2)}" y="${px(top)}" width="${px(barW)}" height="${px(costY(Math.min(e.cost, 0)) - top)}"
-            fill="${credit ? "var(--success-color, #43a047)" : "var(--primary-color)"}" opacity="0.6" rx="2">
+            fill="${credit ? "var(--success-color, #4caf50)" : "var(--primary-color)"}" opacity="0.6" rx="2">
             <title>${fmtDateTick(e.ts, lang, true)}: ${credit ? `${t("cost_kind_credit", lang)} ` : ""}${formatCost(Math.abs(e.cost), currencySymbol, lang)}${e.duration ? ` · ${e.duration}m` : ""}</title>
           </rect>`;
         }) : nothing}
@@ -160,7 +160,7 @@ function renderHistoryChart(task: MaintenanceTask, lang: string, toggle: "cost" 
     </div>
     <div class="chart-legend">
       ${showCost ? html`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color);opacity:0.6"></span>${t("cost", lang)}</span>` : nothing}
-      ${showCost && anyCredit ? html`<span class="legend-item"><span class="legend-swatch" style="background:var(--success-color, #43a047);opacity:0.6"></span>${t("cost_kind_credit", lang)}</span>` : nothing}
+      ${showCost && anyCredit ? html`<span class="legend-item"><span class="legend-swatch" style="background:var(--success-color, #4caf50);opacity:0.6"></span>${t("cost_kind_credit", lang)}</span>` : nothing}
       ${showDuration ? html`<span class="legend-item"><span class="legend-swatch" style="background:var(--accent-color, #ff9800)"></span>${t("duration", lang)}</span>` : nothing}
     </div>
   `;

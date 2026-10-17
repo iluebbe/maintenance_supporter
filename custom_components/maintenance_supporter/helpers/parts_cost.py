@@ -28,7 +28,6 @@ never counted twice.
 
 from __future__ import annotations
 
-import math
 from collections.abc import Callable, Mapping
 from typing import Any
 
@@ -36,15 +35,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from ..const import PARTS_COST_MODES
+from .history import strict_amount
 
 DEFAULT_PARTS_COST_MODE = "purchase"
 COST_BASIS_USE = "use"
-
-
-def _amount(value: Any) -> float | None:
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
-        return None
-    return float(value)
 
 
 def parts_cost_mode(hass: HomeAssistant) -> str:
@@ -56,14 +50,14 @@ def parts_cost_mode(hass: HomeAssistant) -> str:
     return mode if mode in PARTS_COST_MODES else DEFAULT_PARTS_COST_MODE
 
 
-def entry_spend(entry: Mapping[str, Any], amount: Callable[[Any], float | None] = _amount) -> float:
+def entry_spend(entry: Mapping[str, Any], amount: Callable[[Any], float | None] = strict_amount) -> float:
     """What one history entry counts in every total — the budget, a task's
     and an object's cost, the area report.
 
     Decided by what the entry itself recorded when it was booked, so a
     changed setting never re-values the past. ``amount`` reads a stored
     number: strict by default (the budget's rule — a real finite number,
-    see ``helpers.budget.is_countable_cost``); a task's total passes the
+    see ``helpers.history.strict_amount``); a task's total passes the
     lenient ``helpers.history.signed_amount``. Both keep a credit's sign
     (#200): a negative cost lowers every total.
     """
@@ -82,8 +76,8 @@ def parts_value(used_parts: Any) -> float | None:
     for link in used_parts if isinstance(used_parts, list) else []:
         if not isinstance(link, dict):
             continue
-        unit = _amount(link.get("unit_cost"))
-        qty = _amount(link.get("quantity"))
+        unit = strict_amount(link.get("unit_cost"))
+        qty = strict_amount(link.get("quantity"))
         if unit is None:
             continue
         total += unit * (qty if qty is not None else 1.0)
@@ -134,7 +128,7 @@ def annotate_completion(
 
 def purchase_unit_price(part: Mapping[str, Any], cost: float, packages: float | None) -> float | None:
     """The price one package (or unit) cost on this purchase."""
-    count = packages if packages and packages > 0 else _amount(part.get("restock_quantity")) or 1.0
+    count = packages if packages and packages > 0 else strict_amount(part.get("restock_quantity")) or 1.0
     if count <= 0 or cost <= 0:
         return None
     return round(cost / count, 2)

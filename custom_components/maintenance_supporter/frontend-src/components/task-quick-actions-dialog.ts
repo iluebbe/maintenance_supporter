@@ -915,7 +915,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     .toast {
       padding: 8px 12px; border-radius: 6px;
       background: rgba(76, 175, 80, 0.15);
-      color: #4caf50; font-size: 13px; font-weight: 500;
+      color: var(--success-color, #4caf50); font-size: 13px; font-weight: 500;
     }
     /* The panel's recommendation-card uses ha-button. We use plain <button>
        in this dialog's button styles. Re-style the action row to match. */

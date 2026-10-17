@@ -39,8 +39,8 @@ import { newestFirst } from "../renderers/history.js";
 import { canWrite, HOUSEHOLD_ACTIONS } from "../helpers/permissions.js";
 import { fetchSettingsOnce, invalidateSettingsCache, parseSettings } from "../helpers/settings-cache.js";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args.js";
-import { buildPastBuckets, isoDateLocal, pastHistoryGaps } from "../helpers/calendar-bucket.js";
-import { haToday } from "../helpers/ha-time.js";
+import { buildPastBuckets, pastHistoryGaps } from "../helpers/calendar-bucket.js";
+import { browserTimeZone, haToday, ymdIn } from "../helpers/ha-time.js";
 import { buildTaskWorksheetHtml } from "../helpers/worksheet.js";
 import { parseDurationMinutes } from "../helpers/duration.js";
 import { ToastTimer } from "../helpers/toast.js";
@@ -67,7 +67,7 @@ async function sourceManifest(): Promise<Record<string, string>> {
 function isoDaysAgo(n: number): string {
   const d = new Date();
   d.setDate(d.getDate() - n);
-  return `${isoDateLocal(d)}T10:00:00`;
+  return `${ymdIn(d, browserTimeZone())}T10:00:00`;
 }
 
 /** A task as the object/objects WS responses carry it. */
@@ -890,7 +890,7 @@ describe("audit 2026-09-26 tranche 2", () => {
         (iso: string) => `F<${iso}>`, () => "—", null, null, null, now.toISOString(),
       );
       const footer = /<footer>([^<]*)<\/footer>/.exec(sheet.replace(/&lt;|&gt;/g, (m) => (m === "&lt;" ? "[" : "]")))![1];
-      expect(footer).to.contain(`F[${isoDateLocal(now)}]`);
+      expect(footer).to.contain(`F[${ymdIn(now, browserTimeZone())}]`);
     });
 
     it("the calendar card says 'every day', not 'every 1 days'", async () => {
@@ -899,7 +899,7 @@ describe("audit 2026-09-26 tranche 2", () => {
       const { hass } = createMockHass({
         handlers: {
           "maintenance_supporter/objects": () => ({
-            objects: [{ entry_id: "e1", object: { id: "o1", name: "Pump", area_id: null }, tasks: [wireTask({ interval_days: 1, days_until_due: 2, next_due: isoDateLocal(soon) })] }],
+            objects: [{ entry_id: "e1", object: { id: "o1", name: "Pump", area_id: null }, tasks: [wireTask({ interval_days: 1, days_until_due: 2, next_due: ymdIn(soon, browserTimeZone()) })] }],
           }),
           "maintenance_supporter/statistics": () => ({}),
         },

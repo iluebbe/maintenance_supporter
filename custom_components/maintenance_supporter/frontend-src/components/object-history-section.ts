@@ -28,12 +28,13 @@ import {
   type ServiceRecordTask,
 } from "../helpers/service-record";
 import { openHtmlInNewTab, preopenTab, signDocumentPath } from "../helpers/document-url";
+import { FullHistoryLoader } from "../helpers/full-history";
 import { objectRef, taskRef } from "../helpers/reference";
 import { historyNoteText } from "../helpers/history-note";
 import { docDisplayName, isPhotoDocument } from "../helpers/document-categories";
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import "./ms-date-field";
-import type { HistoryEntry, HomeAssistant, MaintenanceObject, MaintenanceTask } from "../types";
+import type { HomeAssistant, MaintenanceObject, MaintenanceTask } from "../types";
 
 /** Photos signed for one booklet — one WS call each; beyond this, names only. */
 const MAX_BOOKLET_PHOTOS = 60;
@@ -48,8 +49,6 @@ export class MaintenanceObjectHistorySection extends LitElement {
    *  raw UUID on a printed service record is noise, not information. */
   @property({ attribute: false }) public userName: (id: string) => string | null = () => null;
 
-  @state() private _full: Record<string, HistoryEntry[]> = {};
-  @state() private _loading = false;
   @state() private _filterTask = "";
   @state() private _from = "";
   @state() private _to = "";
@@ -62,15 +61,13 @@ export class MaintenanceObjectHistorySection extends LitElement {
   @state() private _printing = false;
 
   private _loadedFor: string | null = null;
-  /** What the full histories were fetched against — every task's entry
-   *  count + its recent window. A completion, an edit or a deletion changes
-   *  it; the section used to fetch ONCE per object and then showed (and
-   *  printed) the stale booklet until the object was reopened (bug audit
-   *  2026-09-26). */
-  private _loadedSignature = "";
-  /** Only the newest fetch may land — an older, slower one must not
-   *  overwrite it (or another object's) with outdated entries. */
-  private _loadSeq = 0;
+  /** The full histories, through the area views' loader: only truncated
+   *  tasks are fetched, at most six at a time, and a task refetches when its
+   *  count or recent window changes (a completion, an edit or a deletion —
+   *  the section once fetched only once per object, bug audit 2026-09-26).
+   *  Its own copy fetched every task at once and let a reply without a
+   *  history list wipe the window (DRY audit 2026-10-12). */
+  private readonly _histories = new FullHistoryLoader(this);
   private _localeReady = false;
 
   connectedCallback(): void {
@@ -95,68 +92,28 @@ export class MaintenanceObjectHistorySection extends LitElement {
     return langOf(this.hass);
   }
 
+  protected willUpdate(changed: Map<string, unknown>): void {
+    super.willUpdate(changed);
+    if (this.entryId && this._loadedFor !== this.entryId) {
+      // Another object: its own filters; filters and print options stay
+      // across the subscription's task-list deltas of the same object.
+      this._loadedFor = this.entryId;
+      this._filterTask = "";
+      this._from = "";
+      this._to = "";
+    }
+    // In willUpdate, so the "Loading…" hint lands in this very render.
+    if (this.entryId && (changed.has("entryId") || changed.has("tasks") || (changed.has("hass") && changed.get("hass") === undefined))) {
+      void this._histories.sync(this.hass, this.tasks.map((task) => ({ entryId: this.entryId, task })));
+    }
+  }
+
   updated(changed: Map<string, unknown>): void {
     super.updated(changed);
     if (!this._localeReady && this.hass) {
       this._localeReady = true;
       void ensureLocale(this._lang).then(() => this.requestUpdate());
     }
-    if (this.entryId && this._loadedFor !== this.entryId) {
-      this._loadedFor = this.entryId;
-      this._full = {};
-      this._filterTask = "";
-      this._from = "";
-      this._to = "";
-      this._loadedSignature = this._historySignature();
-      void this._loadFullHistories();
-    } else if (this.entryId && changed.has("tasks")) {
-      // Same object, new task list (the panel's subscription delta): refetch
-      // when a history actually changed — filters and print options stay.
-      const signature = this._historySignature();
-      if (signature !== this._loadedSignature) {
-        this._loadedSignature = signature;
-        void this._loadFullHistories();
-      }
-    }
-  }
-
-  /** Cheap change detector over the list payload: ids, total counts and
-   *  the recent window (catches an edited cost or a deleted entry, not only
-   *  new ones). */
-  private _historySignature(): string {
-    return JSON.stringify(this.tasks.map((task) => [task.id, task.history_count ?? null, task.history ?? []]));
-  }
-
-  /** Fetch every task's full history in parallel; tasks whose fetch fails
-   *  keep their (windowed) list-response history — degraded, never empty. */
-  private async _loadFullHistories(): Promise<void> {
-    const entryId = this.entryId;
-    const tasks = this.tasks;
-    const seq = ++this._loadSeq;
-    if (!tasks.length) {
-      this._full = {};
-      this._loading = false;
-      return;
-    }
-    this._loading = true;
-    const results = await Promise.all(
-      tasks.map(async (task) => {
-        try {
-          const res = (await this.hass.connection.sendMessagePromise({
-            type: "maintenance_supporter/task/history",
-            entry_id: entryId,
-            task_id: task.id,
-          })) as { history?: HistoryEntry[] };
-          return [task.id, res.history ?? []] as const;
-        } catch {
-          return [task.id, task.history ?? []] as const;
-        }
-      }),
-    );
-    // Navigated away, or a newer fetch was started meanwhile.
-    if (this.entryId !== entryId || seq !== this._loadSeq) return;
-    this._full = Object.fromEntries(results);
-    this._loading = false;
   }
 
   private get _entries(): ObjectHistoryEntry[] {
@@ -164,7 +121,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
       this.tasks.map((task) => ({
         id: task.id,
         name: task.name,
-        history: this._full[task.id] ?? task.history ?? [],
+        history: this._histories.historyOf(this.entryId, task),
         ref_no: task.ref_no,
         reading_unit: task.reading_unit,
       })),
@@ -172,7 +129,8 @@ export class MaintenanceObjectHistorySection extends LitElement {
   }
 
   private get _capped(): boolean {
-    return Object.values(this._full).some((h) => h.length >= HISTORY_RETENTION_CAP);
+    // This object's tasks only: the loader's cache also holds objects opened before.
+    return this.tasks.some((task) => this._histories.historyOf(this.entryId, task).length >= HISTORY_RETENTION_CAP);
   }
 
   private _openTask(taskId: string): void {
@@ -346,7 +304,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
   render() {
     const L = this._lang;
     const all = this._entries;
-    if (!all.length && !this._loading) return nothing;
+    if (!all.length && !this._histories.loading) return nothing;
     const filtered = filterObjectHistory(all, {
       taskId: this._filterTask || null,
       from: this._from || null,
@@ -360,7 +318,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
         <h3>
           ${t("object_history_section", L)}
           <span class="count">${filtered.length}</span>
-          ${this._loading ? html`<span class="loading-hint">${t("loading", L)}</span>` : nothing}
+          ${this._histories.loading ? html`<span class="loading-hint">${t("loading", L)}</span>` : nothing}
           <ha-button appearance="plain" class="print-btn" @click=${() => { this._printOpen = !this._printOpen; }}>
             <ha-icon icon="mdi:printer-outline"></ha-icon>
             ${t("service_record_print", L)}

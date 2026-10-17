@@ -19,7 +19,7 @@ from ..const import (
 )
 from ..helpers.aggregate import get_store, is_object_entry
 from ..helpers.dates import parse_iso_date
-from ..helpers.entry_tasks import insert_new_task
+from ..helpers.entry_tasks import insert_new_task, write_task
 from ..helpers.global_options import get_default_warning_days
 from ..helpers.sanitize import cap_task_fields
 from ..helpers.schedule import (
@@ -27,7 +27,6 @@ from ..helpers.schedule import (
     KIND_MANUAL,
     KIND_ONE_TIME,
     Schedule,
-    normalize_task_storage,
 )
 
 _TIME_BASED = "time_based"
@@ -312,9 +311,7 @@ async def async_update_task_simple(
     # action run with system rights after any service edit (bug audit
     # 2026-09-27).
     cap_task_fields(task, keep_action_owner=True)
-    new_tasks[task_id] = normalize_task_storage(task)
-    new_data[CONF_TASKS] = new_tasks
-    hass.config_entries.async_update_entry(entry, data=new_data)
+    write_task(hass, entry, task_id, task)
     await hass.config_entries.async_reload(entry_id)
 
 
@@ -331,13 +328,6 @@ class TaskMoveRefused(ValueError):
         super().__init__(message)
         self.code = code
         self.translation_key = translation_key
-
-
-def _stamp_part_links(links: Any, entry_id: str) -> Any:
-    """Give every own-pool part link an explicit ``entry_id`` (foreign-pool form)."""
-    if not isinstance(links, list):
-        return links
-    return [{**link, "entry_id": link.get("entry_id") or entry_id} if isinstance(link, dict) else link for link in links]
 
 
 async def async_move_task(
@@ -371,7 +361,7 @@ async def async_move_task(
 
     from ..const import CONF_VACATION_EXEMPT_TASK_IDS, DOCUMENT_STORE_KEY
     from ..helpers.completion_photos import history_photo_ids
-    from ..helpers.parts import PART_REF_FIELD
+    from ..helpers.parts import PART_REF_FIELD, map_part_links
     from .tasks_crud import async_delete_task
 
     task_data = deepcopy(dict(source.data[CONF_TASKS][task_id]))
@@ -394,14 +384,10 @@ async def async_move_task(
     # The task now belongs to the target object — like the duplicate /
     # replace paths re-stamp it (bug audit 2026-09-12).
     task_data["object_id"] = (target.data.get(CONF_OBJECT) or {}).get("id", "")
-    task_data["consumes_parts"] = _stamp_part_links(task_data.get("consumes_parts"), source.entry_id)
-    if task_data["consumes_parts"] is None:
-        del task_data["consumes_parts"]
-    phases = task_data.get("phases")
-    if isinstance(phases, dict):
-        for pdef in phases.values():
-            if isinstance(pdef, dict) and isinstance(pdef.get("consumes_parts"), list):
-                pdef["consumes_parts"] = _stamp_part_links(pdef["consumes_parts"], source.entry_id)
+    # Its own object's parts are now a foreign pool: every link, the task's
+    # and each phase's, names the source explicitly (map_part_links, the walker
+    # of every other link rewrite — this one walked the phases by hand).
+    task_data, _ = map_part_links(task_data, lambda link: {**link, "entry_id": link.get("entry_id") or source.entry_id})
 
     def _strip_refs(state: dict[str, Any]) -> dict[str, Any]:
         state.pop("next_history_ref", None)

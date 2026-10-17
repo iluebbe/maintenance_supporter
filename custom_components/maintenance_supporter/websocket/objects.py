@@ -33,21 +33,21 @@ from ..const import (
     MAX_TEXT_LENGTH,
     MAX_URL_LENGTH,
 )
-from ..helpers.aggregate import get_coordinator_data, get_store, is_object_entry
-from ..helpers.pause import reanchor_recurring_task
+from ..helpers.aggregate import get_coordinator_data, get_store, is_object_entry, name_or_title
+from ..helpers.pause import reanchor_recurring_task, wants_fresh_cycle
 from ..helpers.permissions import require_write
 from ..helpers.sanitize import cap_object_fields, strip_object_reference, strip_task_runtime_state
-from ..helpers.ws_errors import send_translated_error
+from ..helpers.ws_errors import send_translated_error, send_unsafe_url_error
 from . import (
     ID_FIELD,
     _build_object_response,
     _get_object_entries,
     _load_object_entry,
     _parse_iso_date,
+    _parse_pause_until,
     cleanup_group_refs,
 )
 from .tasks import (  # v1.4.0 (#43): reuse the existing URL safety check
-    _is_recurring_schedule,
     _is_safe_url,
 )
 
@@ -127,8 +127,12 @@ def _validate_object_dates(connection: websocket_api.ActiveConnection, msg: dict
     """False (after sending ``invalid_date``) when a present installation_date
     / warranty_expiry (#67) is not ``YYYY-MM-DD`` — shared by create and update."""
     for field in ("installation_date", "warranty_expiry"):
-        if msg.get(field) and _parse_iso_date(connection, msg["id"], msg[field], field=field) is None:
-            return False
+        if msg.get(field):
+            parsed = _parse_iso_date(connection, msg["id"], msg[field], field=field)
+            if parsed is None:
+                return False
+            # Stored as YYYY-MM-DD: a compact "20261001" was kept as typed.
+            msg[field] = parsed.isoformat()
     return True
 
 
@@ -357,7 +361,7 @@ async def ws_create_object(
     # v1.4.0 (#43): documentation_url
     documentation_url = (msg.get("documentation_url") or "").strip() or None
     if documentation_url and not _is_safe_url(documentation_url):
-        send_translated_error(connection, msg["id"], "invalid_url", "This link is not allowed: links that run scripts or open local files (javascript:, data:, file: and the like) are refused.", translation_key="unsafe_url")
+        send_unsafe_url_error(connection, msg["id"])
         return
 
     # v1.4.10 (#46): notes (free-form, may contain newlines)
@@ -453,7 +457,7 @@ async def ws_update_object(
             stripped = (msg["documentation_url"] or "").strip()
             msg["documentation_url"] = stripped or None
         if msg["documentation_url"] and not _is_safe_url(msg["documentation_url"]):
-            send_translated_error(connection, msg["id"], "invalid_url", "This link is not allowed: links that run scripts or open local files (javascript:, data:, file: and the like) are refused.", translation_key="unsafe_url")
+            send_unsafe_url_error(connection, msg["id"])
             return
 
     # v1.4.10 (#46): notes — strip but keep newlines, empty -> None
@@ -521,7 +525,7 @@ async def ws_update_object(
     # create path (which caps via the config flow) and tasks (cap_task_fields).
     cap_object_fields(obj)
     new_data[CONF_OBJECT] = obj
-    title = obj.get(CONF_OBJECT_NAME, entry.title)
+    title = name_or_title(obj, entry.title)
     hass.config_entries.async_update_entry(entry, data=new_data, title=title)
     if device_link_changed:
         hass.config_entries.async_schedule_reload(entry.entry_id)
@@ -853,7 +857,7 @@ async def ws_unarchive_object(
             # Fresh cycle for recurring tasks (D2); last_performed is dynamic →
             # Store when present, else the static dict (legacy). Shared core so
             # this path can't drift from resume/task-unarchive.
-            if not msg.get("undo") and _is_recurring_schedule(td):
+            if not msg.get("undo") and wants_fresh_cycle(td):
                 reanchor_recurring_task(tid, store=store, today_iso=today_iso, task_data=td)
         new_tasks[tid] = td
 
@@ -902,18 +906,13 @@ async def ws_pause_object(
         connection.send_error(msg["id"], "already_paused", "Object already paused")
         return
 
-    until = msg.get("until")
-    if until:
-        until_date = _parse_iso_date(connection, msg["id"], until, field="until")
-        if until_date is None:
-            return
-        if until_date <= dt_util.now().date():
-            send_translated_error(connection, msg["id"], "invalid_date", "until must be a future date", translation_key="until_in_past")
-            return
+    ok, until = _parse_pause_until(connection, msg["id"], msg.get("until"))
+    if not ok:
+        return
 
     now_iso = dt_util.now().isoformat()
     obj["paused_at"] = now_iso
-    obj["paused_until"] = until or None
+    obj["paused_until"] = until
 
     new_data = dict(entry.data)
     new_data[CONF_OBJECT] = obj

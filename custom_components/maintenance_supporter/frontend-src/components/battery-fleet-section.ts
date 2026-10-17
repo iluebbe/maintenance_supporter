@@ -6,7 +6,8 @@
 import { css, html, LitElement, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 
-import { t, ensureLocale, langOf, formatDate, syncLocaleFromHass } from "../styles";
+import { t, ensureLocale, langOf, formatDate, formatNumber, syncLocaleFromHass } from "../styles";
+import { reuseWaitingText } from "../helpers/part-reuse";
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import { runWs } from "../helpers/ws-run";
 import { canWrite, NO_DELEGATION, type WriteAccess } from "../helpers/permissions";
@@ -579,9 +580,9 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                 ${ov.charging.map(
                   (c) => html`<span class="bf-charge-item">
                     <span class="bf-charge-name">${c.name}</span>
-                    <span>${t("battery_fleet_ready", L).replace("{count}", String(c.stock))}</span>
+                    <span>${t("battery_fleet_ready", L).replace("{count}", formatNumber(c.stock, L))}</span>
                     ${c.restoring > 0
-                      ? html`<span class="bf-charge-waiting">${t(`part_waiting_${c.reuse}`, L).replace("{count}", String(c.restoring))}</span>
+                      ? html`<span class="bf-charge-waiting">${reuseWaitingText(c.reuse, c.restoring, L)}</span>
                           ${this._canWrite
                             ? html`<button
                                 class="bf-charged"

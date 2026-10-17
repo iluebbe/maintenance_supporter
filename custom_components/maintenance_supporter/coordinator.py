@@ -57,7 +57,7 @@ from .const import (
 from .helpers.aggregate import task_sensor_entity_id as aggregate_task_sensor_entity_id
 from .helpers.budget import compute_spend
 from .helpers.calendar_source import next_event_titles
-from .helpers.entry_tasks import write_task
+from .helpers.entry_tasks import write_task, write_tasks
 from .helpers.global_options import global_option, is_schedule_time_enabled
 from .helpers.history import completed_entries
 from .helpers.interval_analyzer import hemisphere
@@ -73,6 +73,17 @@ from .models.maintenance_task import MaintenanceTask
 from .storage import MaintenanceStore
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _double_tap_age(stamp: float | None) -> float | None:
+    """Seconds since a completion / skip / backfill stamped at ``stamp``
+    (monotonic) while that is inside the double-tap window — a second tap of
+    the same real-world action; None outside it. Its three checks and the
+    prune each did the maths."""
+    if stamp is None:
+        return None
+    age = time.monotonic() - stamp
+    return age if age < MANUAL_COMPLETION_DEDUP_SECONDS else None
 
 
 def _notify_task_label(task: dict[str, Any]) -> str:
@@ -271,9 +282,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         due = [tid for tid, td in tasks.items() if isinstance(td, dict) and pause_due_for_auto_resume(td, today)]
         if not due:
             return
-        for tid in due:
-            tasks[tid] = resume_task_data(tid, tasks[tid], self._store, today.isoformat())
-        self.hass.config_entries.async_update_entry(self.entry, data={**self.entry.data, CONF_TASKS: tasks})
+        write_tasks(self.hass, self.entry, {tid: resume_task_data(tid, tasks[tid], self._store, today.isoformat()) for tid in due})
         await self._store.async_save()
         # A paused sensor task set up no triggers — only a reload wires them.
         self.hass.config_entries.async_schedule_reload(self.entry.entry_id)
@@ -366,12 +375,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         }
         self._completion_cooldown &= set(self._recently_completed)
         self._recent_manual_completions = {
-            tid: ts for tid, ts in self._recent_manual_completions.items() if now_mono - ts < MANUAL_COMPLETION_DEDUP_SECONDS
+            tid: ts for tid, ts in self._recent_manual_completions.items() if _double_tap_age(ts) is not None
         }
-        self._recent_skips = {tid: ts for tid, ts in self._recent_skips.items() if now_mono - ts < MANUAL_COMPLETION_DEDUP_SECONDS}
-        self._recent_backfills = {
-            key: ts for key, ts in self._recent_backfills.items() if now_mono - ts < MANUAL_COMPLETION_DEDUP_SECONDS
-        }
+        self._recent_skips = {tid: ts for tid, ts in self._recent_skips.items() if _double_tap_age(ts) is not None}
+        self._recent_backfills = {key: ts for key, ts in self._recent_backfills.items() if _double_tap_age(ts) is not None}
 
         result: dict[str, Any] = {
             CONF_OBJECT: obj.to_dict(),
@@ -1228,15 +1235,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
 
         if completed_at is not None:
-            # Naive input (datetime-local field, service YAML) means local time.
-            if completed_at.tzinfo is None:
-                completed_at = completed_at.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
-            # An offset from elsewhere ("…T23:30:00+00:00" from an automation)
-            # is the same instant in HA's time zone: every date derived below
-            # (last_performed, the past-dated window check, the cycle anchor)
-            # must be the LOCAL day — it was the offset's day (bug audit
-            # 2026-09-26, SCH-11).
-            completed_at = dt_util.as_local(completed_at)
+            from .helpers.dates import local_moment
+
+            # Every date derived below (last_performed, the past-dated window
+            # check, the cycle anchor) is the LOCAL day.
+            completed_at = local_moment(completed_at)
             if completed_at > dt_util.now():
                 raise ServiceValidationError(
                     "The completion date cannot be in the future",
@@ -1327,8 +1330,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # 2026-08-29). A completion dated on a PAST day is a history correction,
         # not early work, and bypasses the window exactly like the WS pre-check.
         if not auto:
-            _past_dated = completed_at is not None and completed_at.date() < dt_util.now().date()
-            if not _past_dated and not MaintenanceTask.from_dict(merged[task_id]).can_complete_now:
+            from .helpers.dates import is_past_dated
+
+            if not is_past_dated(completed_at) and not MaintenanceTask.from_dict(merged[task_id]).can_complete_now:
                 raise ServiceValidationError(
                     translation_domain=DOMAIN,
                     translation_key="too_early",
@@ -1349,13 +1353,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # swallow a normal completion made right after backfilling, and a
         # normal completion's stamp must not swallow the backfill).
         if completed_at is None and not auto:
-            last_manual = self._recent_manual_completions.get(task_id)
-            if last_manual is not None and time.monotonic() - last_manual < MANUAL_COMPLETION_DEDUP_SECONDS:
-                _LOGGER.info(
-                    "Ignoring duplicate completion of %s within %.0fs (double-tap from a second device?)",
-                    task_id,
-                    time.monotonic() - last_manual,
-                )
+            age = _double_tap_age(self._recent_manual_completions.get(task_id))
+            if age is not None:
+                _LOGGER.info("Ignoring duplicate completion of %s within %.0fs (double-tap from a second device?)", task_id, age)
                 return
             # Stamp the guard NOW, before any await (the photo-link below yields the
             # loop). Stamping only at the end let two photo-carrying completions in
@@ -1365,8 +1365,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         if completed_at is not None:
             backfill_key = (task_id, completed_at.isoformat())
-            last_backfill = self._recent_backfills.get(backfill_key)
-            if last_backfill is not None and time.monotonic() - last_backfill < MANUAL_COMPLETION_DEDUP_SECONDS:
+            if _double_tap_age(self._recent_backfills.get(backfill_key)) is not None:
                 _LOGGER.info(
                     "Ignoring duplicate backdated completion of %s @ %s (double submit)",
                     task_id,
@@ -1901,9 +1900,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # A second skip inside the double-tap window is the same tap (bug
         # audit 2026-10-16, C-G) — dropped like a doubled completion.
-        last_skip = self._recent_skips.get(task_id)
-        if last_skip is not None and time.monotonic() - last_skip < MANUAL_COMPLETION_DEDUP_SECONDS:
-            _LOGGER.info("Ignoring duplicate skip of %s within %.0fs", task_id, time.monotonic() - last_skip)
+        age = _double_tap_age(self._recent_skips.get(task_id))
+        if age is not None:
+            _LOGGER.info("Ignoring duplicate skip of %s within %.0fs", task_id, age)
             return
 
         # Only now that the skip is going to happen: like reset, skipping

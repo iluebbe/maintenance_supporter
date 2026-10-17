@@ -13,6 +13,7 @@ import { UserService } from "../user-service";
 import { AVATAR_PALETTE, personOf, renderPersonAvatar } from "../helpers/person";
 import { OBJECT_COLUMNS, sanitizeColumns } from "../helpers/object-columns";
 import { downloadTextFile } from "../helpers/download";
+import { escapeHtml } from "../helpers/html-escape";
 import { invalidateSettingsCache, ROW_ACTION_STYLES } from "../helpers/settings-cache";
 import { SETTING_INT_RANGES, VACATION_BUFFER_DAYS_RANGE, settingIntRange } from "../helpers/setting-ranges";
 import { ToastTimer } from "../helpers/toast";
@@ -1949,19 +1950,19 @@ export class MaintenanceSettingsView extends LitElement {
         <div class="cell">
           <div class="qr">${q.svg}</div>
           <div class="label">
-            <div class="obj">${this._escapeHtml(q.object_name)}</div>
-            <div class="task">${this._escapeHtml(q.task_name)}</div>
-            <div class="action">${this._escapeHtml(actionLabel)}</div>
+            <div class="obj">${escapeHtml(q.object_name)}</div>
+            <div class="task">${escapeHtml(q.task_name)}</div>
+            <div class="action">${escapeHtml(actionLabel)}</div>
           </div>
         </div>`;
     }).join("");
 
     const title = t("qr_print_title", L);
     const html = `<!DOCTYPE html>
-<html lang="${this._escapeHtml(L)}">
+<html lang="${escapeHtml(L)}">
 <head>
   <meta charset="utf-8" />
-  <title>${this._escapeHtml(title)}</title>
+  <title>${escapeHtml(title)}</title>
   <style>
     @page { size: A4; margin: 10mm; }
     * { box-sizing: border-box; }
@@ -1986,8 +1987,8 @@ export class MaintenanceSettingsView extends LitElement {
 </head>
 <body>
   <div class="toolbar">
-    <h1>${this._escapeHtml(title)} — ${this._qrBatchResults.length}</h1>
-    <button onclick="window.print()">${this._escapeHtml(t("qr_print_print_button", L))}</button>
+    <h1>${escapeHtml(title)} — ${this._qrBatchResults.length}</h1>
+    <button onclick="window.print()">${escapeHtml(t("qr_print_print_button", L))}</button>
   </div>
   <div class="grid">${cells}</div>
   <script>window.addEventListener("load", function () { setTimeout(function () { window.print(); }, 250); });</script>
@@ -2004,12 +2005,6 @@ export class MaintenanceSettingsView extends LitElement {
     win.document.open();
     win.document.write(html);
     win.document.close();
-  }
-
-  private _escapeHtml(s: string): string {
-    return s.replace(/[&<>"']/g, (c) => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-    }[c] as string));
   }
 
   private _renderImportExport(L: string) {

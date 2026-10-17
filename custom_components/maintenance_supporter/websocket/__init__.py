@@ -398,7 +398,7 @@ def _build_object_response(
     from ..const import CONF_PART_SEARCH_URL_TEMPLATE, CONF_PARTS
     from ..helpers.global_options import get_global_options
     from ..helpers.i18n import normalize_language
-    from ..helpers.parts import on_hand, part_is_low, resolve_shopping_url
+    from ..helpers.parts import is_part_low, resolve_shopping_url
 
     part_store = get_store(hass, entry.entry_id)
     search_template = get_global_options(hass).get(CONF_PART_SEARCH_URL_TEMPLATE)
@@ -413,7 +413,7 @@ def _build_object_response(
                 **part,
                 "stock": stock,
                 "restoring": restoring,
-                "is_low": part_is_low(part, on_hand(part, stock, restoring)),
+                "is_low": is_part_low(part, stock, restoring),
                 "shopping_url": resolve_shopping_url(part, search_template, lang, hass.config.country),
             }
         )
@@ -643,6 +643,24 @@ def _parse_iso_date(
             send_translated_error(connection, msg_id, "invalid_date", f"{field} must not be in the future", translation_key="date_in_future")
             return None
     return parsed
+
+
+def _parse_pause_until(connection: websocket_api.ActiveConnection, msg_id: Any, value: Any) -> tuple[bool, str | None]:
+    """A pause's optional end day: ``(True, "YYYY-MM-DD")``, ``(True, None)``
+    for none, ``(False, None)`` once a bad or past day was refused. The
+    object pause and the task pause each spelled this out and stored the day
+    as typed (DRY audit 2026-10-12)."""
+    if not value:
+        return True, None
+    until = _parse_iso_date(connection, msg_id, value, field="until")
+    if until is None:
+        return False, None
+    from homeassistant.util import dt as dt_util
+
+    if until <= dt_util.now().date():
+        send_translated_error(connection, msg_id, "invalid_date", "until must be a future date", translation_key="until_in_past")
+        return False, None
+    return True, until.isoformat()
 
 
 async def async_commit_store(rd: Any, *, budget: bool = False) -> None:

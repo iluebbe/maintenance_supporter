@@ -306,6 +306,16 @@ export function renderMiniSparkline(
   `;
 }
 
+/** When a task was last done, "done 23 d ago", with the date as its tooltip
+ *  (D#203) — or null for a task never done. The due column and the
+ *  dashboard card share it (the card kept its own copy). */
+export function renderLastDone(lastPerformed: string | null | undefined, lang: string, cls = "last-done") {
+  const done = formatLastDone(lastPerformed, lang);
+  return done
+    ? html`<span class="${cls}" title="${t("last_performed", lang)}: ${formatDate(lastPerformed, lang)}">${done}</span>`
+    : null;
+}
+
 /** The due column's text: days until due, or, for a task without a due date
  *  (manual, sensor-only, paused), when it was last done (D#203) — muted, so
  *  it never reads as a status. A bare dash only for a task never done. */
@@ -315,13 +325,8 @@ export function renderDueText(
   lang: string,
   cls = "due-text",
 ) {
-  if (days == null) {
-    const done = formatLastDone(lastPerformed, lang);
-    if (done) {
-      return html`<span class="${cls} last-done" title="${t("last_performed", lang)}: ${formatDate(lastPerformed, lang)}">${done}</span>`;
-    }
-  }
-  return html`<span class="${cls}">${formatDueDays(days, lang)}</span>`;
+  const done = days == null ? renderLastDone(lastPerformed, lang, `${cls} last-done`) : null;
+  return done ?? html`<span class="${cls}">${formatDueDays(days, lang)}</span>`;
 }
 
 /** A detailed days-progress bar (last performed → next due) for the detail view. */

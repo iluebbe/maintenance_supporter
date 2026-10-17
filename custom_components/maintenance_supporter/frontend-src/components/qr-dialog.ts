@@ -11,6 +11,8 @@ import { property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
 import { langOf, t } from "../styles";
 import { downloadTextFile } from "../helpers/download";
+// document.write contexts: the apostrophe too (its own copy left it out).
+import { escapeHtml } from "../helpers/html-escape";
 
 interface QrResult {
   svg_data_uri: string;
@@ -21,11 +23,6 @@ interface QrResult {
     model: string;
     task_name: string | null;
   };
-}
-
-/** Escape HTML entities to prevent XSS in document.write contexts. */
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 /** Sanitize a data URI for safe use in an img src attribute. */

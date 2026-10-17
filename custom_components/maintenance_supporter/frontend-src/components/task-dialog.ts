@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { AdaptiveConfig, HomeAssistant, MaintenanceTask, ReadingSlot, TaskPartLink, TriggerConfig, HAUser } from "../types";
-import { formatDate, formatNumber, t, weekdayName, monthName, langOf } from "../styles";
+import { countText, formatDate, formatNumber, t, weekdayName, monthName, langOf } from "../styles";
 import { UserService } from "../user-service";
 import { partLinkKey } from "../helpers/shared-parts";
 import { MAX_READING_SLOTS, cleanReadingSlots, duplicateReadingSlotIds, newReadingSlotId } from "../helpers/reading-slots";
@@ -28,11 +28,11 @@ import { REQUIRED_COMPLETION_KEYS, REQUIRED_COMPLETION_LABELS } from "./required
 import "./ms-textfield";
 import { defaultNotifyIcon } from "../helpers/notify-icons";
 import { primaryTriggerEntity, triggerEntityIds } from "../helpers/trigger-entities";
+import { ROTATION_STRATEGIES, TASK_PRIORITIES } from "../helpers/task-choices";
 import "./ms-date-field";
 import "./ms-cost-input";
 
 const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibration", "service", "reading", "custom"];
-const PRIORITY_KEYS = ["low", "normal", "high"];
 const SCHEDULE_TYPE_KEYS = ["time_based", "weekdays", "nth_weekday", "day_of_month", "calendar", "sensor_based", "one_time", "manual"];
 // The nested calendar kinds — the three date patterns plus, since #187, a HA
 // calendar entity (one occurrence per event). Mirrors _CALENDAR_KINDS in
@@ -2802,8 +2802,7 @@ export class MaintenanceTaskDialog extends LitElement {
       const days = parseInt(this._triggerDaysBefore, 10) || 0;
       parts.push(
         days === 0 ? t("trigger_hint_due_date_same_day", L)
-        : days === 1 ? t("trigger_hint_due_date_one", L)
-        : t("trigger_hint_due_date", L).replace("{days}", String(days)),
+        : countText("trigger_hint_due_date", "trigger_hint_due_date_one", days, L, "days"),
       );
       const reported = raw == null ? "" : String(raw);
       if (reported && !isNaN(Date.parse(reported))) {
@@ -3067,7 +3066,7 @@ export class MaintenanceTaskDialog extends LitElement {
               .value=${this._priority}
               @change=${(e: Event) => (this._priority = (e.target as HTMLSelectElement).value)}
             >
-              ${PRIORITY_KEYS.map(
+              ${TASK_PRIORITIES.map(
                 (key) => html`<option value=${key} ?selected=${key === this._priority}>${t("priority_" + key, L)}</option>`
               )}
             </select>
@@ -3262,7 +3261,7 @@ export class MaintenanceTaskDialog extends LitElement {
                   @change=${(e: Event) => (this._rotationStrategy = (e.target as HTMLSelectElement).value)}
                 >
                   <option value="" ?selected=${!this._rotationStrategy}>${t("rotation_none", L)}</option>
-                  ${["round_robin", "least_completed", "random"].map(
+                  ${ROTATION_STRATEGIES.map(
                     (key) => html`<option value=${key} ?selected=${key === this._rotationStrategy}>${t("rotation_" + key, L)}</option>`
                   )}
                 </select>

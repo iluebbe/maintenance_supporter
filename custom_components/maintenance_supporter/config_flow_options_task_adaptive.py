@@ -22,6 +22,7 @@ from .const import (
     DEFAULT_ADAPTIVE_MAX_INTERVAL,
     DEFAULT_ADAPTIVE_MIN_INTERVAL,
 )
+from .helpers.aggregate import store_of
 from .helpers.schedule import (
     read_legacy_fields,
 )
@@ -54,8 +55,7 @@ class AdaptiveMixin:
     async def async_step_adaptive_scheduling(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure adaptive scheduling for a task."""
         # Read adaptive_config from Store (merged) data
-        rd = getattr(self.config_entry, "runtime_data", None)
-        store = getattr(rd, "store", None) if rd else None
+        store = store_of(self.config_entry)
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
         task = tasks_data.get(self._selected_task_id or "", {})
         if store is not None:

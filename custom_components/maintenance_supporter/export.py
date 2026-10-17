@@ -23,7 +23,7 @@ from .const import (
     DEFAULT_WARNING_DAYS,
     DOMAIN,
 )
-from .helpers.aggregate import get_object_entries, merged_tasks
+from .helpers.aggregate import get_object_entries, merged_tasks, store_of
 from .helpers.documents import doc_wire_dict
 from .helpers.schedule import Schedule, read_legacy_fields
 
@@ -57,8 +57,7 @@ def _build_export_object(
     """Build a single object's export dict."""
     obj_data = entry.data.get(CONF_OBJECT, {})
     # Merge static + Store dynamic data for each task
-    rd = getattr(entry, "runtime_data", None)
-    store = getattr(rd, "store", None) if rd else None
+    store = store_of(entry)
     tasks_data = merged_tasks(entry)
     ct_tasks = (coordinator_data or {}).get(CONF_TASKS, {})
 

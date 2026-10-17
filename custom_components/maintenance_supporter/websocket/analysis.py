@@ -18,6 +18,7 @@ from ..const import (
     MAX_META_LENGTH,
 )
 from ..helpers.aggregate import get_runtime_data
+from ..helpers.entry_tasks import write_task
 from ..helpers.interval_analyzer import hemisphere
 from ..helpers.permissions import require_write
 from ..helpers.task_fields import INTERVAL_DAYS_RANGE
@@ -40,13 +41,9 @@ async def _persist_adaptive_config(
         return
 
     # Legacy: write to ConfigEntry.data
-    static_tasks = dict(entry.data.get(CONF_TASKS, {}))
-    task = dict(static_tasks[task_id])
+    task = dict(entry.data.get(CONF_TASKS, {})[task_id])
     task["adaptive_config"] = adaptive_config
-    static_tasks[task_id] = task
-    new_data = dict(entry.data)
-    new_data[CONF_TASKS] = static_tasks
-    hass.config_entries.async_update_entry(entry, data=new_data)
+    write_task(hass, entry, task_id, task)
 
     if rd and rd.coordinator:
         await rd.coordinator.async_refresh_now()

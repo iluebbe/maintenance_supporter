@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, State
 
 
 def shared_user_ids(task: Mapping[str, Any]) -> list[str]:
@@ -37,15 +37,34 @@ def task_is_for(task: Mapping[str, Any], user_id: str | None) -> bool:
     return bool(user_id) and user_id in task_user_ids(task)
 
 
+def _person_state(hass: HomeAssistant, user_id: str | None) -> State | None:
+    """The person entity's state linked to a HA user, else None."""
+    if not user_id:
+        return None
+    for state in hass.states.async_all("person"):
+        if state.attributes.get("user_id") == user_id:
+            return state
+    return None
+
+
 def person_of_user(hass: HomeAssistant, user_id: str | None) -> str | None:
     """The person entity linked to a HA user (``person.jane``), else None.
 
     The way automations name people: the same entity the ``update_task``
     action takes as ``responsible_user``.
     """
+    state = _person_state(hass, user_id)
+    return state.entity_id if state is not None else None
+
+
+async def person_display_name(hass: HomeAssistant, user_id: str | None) -> str | None:
+    """How the household calls a user: the person's name, else the login's,
+    else None. Voice named the person, the "completed by" notification the
+    login, so one completion read under two names (DRY audit 2026-10-12)."""
+    state = _person_state(hass, user_id)
+    if state is not None:
+        return str(state.name)
     if not user_id:
         return None
-    for state in hass.states.async_all("person"):
-        if state.attributes.get("user_id") == user_id:
-            return state.entity_id
-    return None
+    user = await hass.auth.async_get_user(user_id)
+    return str(user.name) if user is not None and user.name else None

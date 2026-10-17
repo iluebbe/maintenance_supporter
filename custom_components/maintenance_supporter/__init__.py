@@ -100,7 +100,7 @@ from .const import (
 from .coordinator import MaintenanceCoordinator
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .frontend import async_register_card
-from .helpers.aggregate import iter_live_tasks
+from .helpers.aggregate import iter_live_tasks, store_of
 from .helpers.aggregate import object_name as aggregate_object_name
 from .helpers.aggregate import task_sensor_entity_id as aggregate_task_sensor_entity_id
 from .helpers.assignees import person_of_user, shared_user_ids, task_is_for, task_user_ids
@@ -1263,8 +1263,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
 
             # 2. adaptive_config.environmental_entity + trigger_runtime keys
             #    live in Store (post-migration; see _DYNAMIC_TASK_FIELDS).
-            rd = getattr(ce, "runtime_data", None)
-            store = getattr(rd, "store", None) if rd else None
+            store = store_of(ce)
             store_changed = False
             if store is not None:
                 store_changed = rewrite_store(store, old_eid, new_eid)
@@ -2165,8 +2164,9 @@ async def _check_task_responsible_user_orphans(
                     new_td.pop("responsible_user_id", None)
             new_tasks[tid] = new_td
         if changed:
-            new_data = {**entry.data, CONF_TASKS: new_tasks}
-            hass.config_entries.async_update_entry(entry, data=new_data)
+            from .helpers.entry_tasks import write_tasks
+
+            write_tasks(hass, entry, new_tasks)
 
 
 async def _check_admin_panel_user_orphans(hass: HomeAssistant, entry: ConfigEntry) -> None:

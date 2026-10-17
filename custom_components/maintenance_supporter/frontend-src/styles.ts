@@ -34,7 +34,7 @@ export { HISTORY_TYPE_COLORS, STATUS_COLORS, STATUS_ICONS, historyTypeColor } fr
 import { ensureLocale, isLocaleLoaded, normLang, seedEnglish, t, type Translations } from "./helpers/locale-core";
 import { primeBackendErrors } from "./helpers/backend-errors";
 import { daysBetweenIso, displayTimeZone, haTimeZone, haToday, minuteIn, stampDate, stampMs, ymdIn } from "./helpers/ha-time";
-export { ensureLocale, isLocaleLoaded, seedEnglish, setLocale, t } from "./helpers/locale-core";
+export { ensureLocale, isLocaleLoaded, langOf, seedEnglish, setLocale, t } from "./helpers/locale-core";
 seedEnglish(EN as Translations);
 
 /** The per-`updated()` locale boot every top-level surface needs: date/time
@@ -67,17 +67,6 @@ export function syncLocaleFromHass(
   }
   // Refusals the backend sends with a translation key read in this language.
   primeBackendErrors(host.hass as Parameters<typeof primeBackendErrors>[0]);
-}
-
-/**
- * The UI language for a hass object — the ONE rule every component's `_lang`
- * getter delegates to. Before this helper the 23 hand-copied getters had
- * drifted into three variants (`|| "en"`, `?? navigator.language...`, and a
- * `locale.language` probe), so sibling components could resolve different
- * languages from the same hass.
- */
-export function langOf(hass?: { language?: string }): string {
-  return hass?.language || "en";
 }
 
 /** Map language table key to BCP-47 locale for date formatting. */
@@ -182,6 +171,15 @@ function numberLocale(lang?: string): string | string[] | undefined {
  *  zeros. "none" mirrors HA: plain digits, no grouping, trailing zeros
  *  dropped. Every human-facing number in the UI goes through here — SVG
  *  coordinates use chart-utils px() instead, which must stay locale-free. */
+/** A count sentence with its own singular for exactly one ("1 devices"
+ *  read in every language, 2.95); other counts fill `{placeholder}` in the
+ *  viewer's number format. Keys stay literal at the call sites, so the locale
+ *  hygiene scan sees them. The panel and the area view each had a copy, and
+ *  the panel's printed raw digits (DRY audit 2026-10-12). */
+export function countText(key: string, oneKey: string, n: number, lang: string, placeholder = "n"): string {
+  return n === 1 ? t(oneKey, lang) : t(key, lang).replace(`{${placeholder}}`, formatNumber(n, lang));
+}
+
 export function formatNumber(n: number, lang?: string, digits?: number | Intl.NumberFormatOptions): string {
   if (!Number.isFinite(n)) return String(n);
   const opts: Intl.NumberFormatOptions =
@@ -869,7 +867,7 @@ export const sharedStyles = css`
     color: var(--secondary-text-color);
     margin-top: 4px;
   }
-  .history-details .history-credit { color: var(--success-color, #43a047); }
+  .history-details .history-credit { color: var(--success-color, #4caf50); }
 
   /* History filter chips */
   .history-filters {

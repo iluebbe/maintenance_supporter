@@ -17,6 +17,7 @@
 import type { ReactiveController, ReactiveControllerHost } from "lit";
 import type { HistoryEntry, HomeAssistant } from "../types";
 import { HISTORY_RETENTION_CAP } from "./object-history";
+import { fetchTaskHistory } from "./task-history-fetch";
 
 export const FULL_HISTORY_CONCURRENCY = 6;
 
@@ -115,13 +116,8 @@ export class FullHistoryLoader implements ReactiveController {
     const run = mapLimit(todo, FULL_HISTORY_CONCURRENCY, async (r) => {
       let entries: HistoryEntry[];
       try {
-        const res = (await hass.connection.sendMessagePromise({
-          type: "maintenance_supporter/task/history",
-          entry_id: r.entryId,
-          task_id: r.task.id,
-        })) as { history?: HistoryEntry[] } | null;
         // A reply without a history list is no answer — keep the window.
-        entries = Array.isArray(res?.history) ? res.history : r.task.history ?? [];
+        entries = (await fetchTaskHistory<HistoryEntry>(hass, r.entryId, r.task.id)) ?? r.task.history ?? [];
       } catch {
         entries = r.task.history ?? [];
       }

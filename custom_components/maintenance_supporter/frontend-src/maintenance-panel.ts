@@ -7,7 +7,7 @@ import { objectRef, parseRef, renderRefChip, taskRef, type HasRef } from "./help
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle, pendingRestartVersion, type ServerVersion } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
-import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatLastDone, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, formatQty, syncCurrencyDecimals} from "./styles";
+import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, countText, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, formatQty, syncCurrencyDecimals} from "./styles";
 import { OVERVIEW_TABS, type OverviewTab } from "./helpers/overview-tabs";
 import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
 import { openHtmlInNewTab, openSignedDocument, preopenTab, signApiPath } from "./helpers/document-url";
@@ -116,7 +116,7 @@ import type { MaintenanceSavedViewsDialog } from "./components/saved-views-dialo
 import { type SparklineContext } from "./renderers/sparkline";
 import { buildCalendarBuckets, type CalendarEvent } from "./helpers/calendar-bucket";
 import { haToday } from "./helpers/ha-time";
-import { renderTriggerProgress, renderMiniSparkline, computeTrend, renderDueText } from "./renderers/progress";
+import { renderTriggerProgress, renderMiniSparkline, computeTrend, renderDueText, renderLastDone } from "./renderers/progress";
 import { type HistoryContext } from "./renderers/history";
 import { renderUserBadge, type TaskDetailContext } from "./renderers/task-detail";
 import { renderPersonChip, type PersonDisplay } from "./helpers/person";
@@ -132,6 +132,9 @@ import { canWrite } from "./helpers/permissions";
 import { renderStatusBadge, statusKey, statusLabel, type StatusLike } from "./renderers/status";
 import { TOAST_MS, ACTION_TOAST_MS } from "./helpers/toast";
 import { isCounterTrigger, primaryTriggerEntity } from "./helpers/trigger-entities";
+import { TASK_PRIORITIES_HIGH_FIRST } from "./helpers/task-choices";
+import { fetchTaskHistory } from "./helpers/task-history-fetch";
+import { budgetLevel } from "./helpers/budget-level";
 import { buildHistoryEntryDraft } from "./helpers/history-draft";
 import { readingSlotDelta } from "./helpers/reading-slots";
 import { bulkResultMessage, codedFailures, runWs, runWsEach } from "./helpers/ws-run";
@@ -1722,13 +1725,6 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   // --- Toast ---
 
-  /** A count sentence with its own singular for exactly one ("1 devices"
-   *  read in every language, 2.95). Both keys literal, so the locale
-   *  hygiene scan sees them. */
-  private _countText(key: string, oneKey: string, placeholder: string, n: number, L: string = this._lang): string {
-    return n === 1 ? t(oneKey, L) : t(key, L).replace(`{${placeholder}}`, String(n));
-  }
-
   private _showToast(msg: string, kind: "error" | "info" = "error"): void {
     if (this._toastTimer) clearTimeout(this._toastTimer);
     this._toastKind = kind;
@@ -2049,7 +2045,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const tasks = e.detail?.tasks_created ?? 0;
     const created = (e.detail?.created ?? []) as Array<{ entry_id: string; task_id: string; name: string }>;
     await this._loadData();
-    const msg = this._countText("adopt_problem_done", "adopt_problem_done_one", "tasks", tasks);
+    const msg = countText("adopt_problem_done", "adopt_problem_done_one", tasks, this._lang, "tasks");
     if (created.length > 0) {
       // Adopted tasks are fully configurable from day one (responsible user,
       // priority, documents) — surface that with a direct path to the first.
@@ -2072,7 +2068,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private async _setupBatteryFleet(): Promise<void> {
     const res = await runWs<{ entry_id: string; task_id?: string }>(
       this,
-      { type: "maintenance_supporter/battery_fleet/setup", language: this.hass.language || "en" },
+      { type: "maintenance_supporter/battery_fleet/setup", language: langOf(this.hass) },
       {
         reload: async () => {
           this._batteryFleetSetupAvailable = false;
@@ -2098,7 +2094,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _onResetsWired(e: CustomEvent): void {
     const count = e.detail?.wired ?? 0;
-    this._showToast(this._countText("reset_offers_done", "reset_offers_done_one", "count", count), "info");
+    this._showToast(countText("reset_offers_done", "reset_offers_done_one", count, this._lang, "count"), "info");
     this._resetOffersLoaded = false;
     this._resetOffersCount = 0;
     this._maybeLoadResetOffers();
@@ -2107,7 +2103,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _onSetupsAdopted(e: CustomEvent): void {
     const tasks = e.detail?.tasks_created ?? 0;
-    this._showToast(this._countText("setups_done", "setups_done_one", "tasks", tasks), "info");
+    this._showToast(countText("setups_done", "setups_done_one", tasks, this._lang, "tasks"), "info");
     this._loadData();
   }
 
@@ -2164,9 +2160,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         title=${tpl.dwelling_mismatch ? t("templates_not_typical", L) : ""}
         @click=${() => this._createFromTemplate(tpl.id)}>
         <span class="template-card-name">${tpl.name}</span>
-        <span class="template-card-count">${tpl.tasks.length === 1
-          ? t("templates_task_count_one", L)
-          : t("templates_task_count", L).replace("{n}", String(tpl.tasks.length))}</span>
+        <span class="template-card-count">${countText("templates_task_count", "templates_task_count_one", tpl.tasks.length, L)}</span>
         ${withReasons && tpl.reasons?.length
           ? html`<span class="template-card-reasons">
               ${tpl.reasons.map((r) => html`<span class="template-card-reason">${recommendationReason(r, L, country)}</span>`)}
@@ -2825,9 +2819,9 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _deviceSwapText(swap: DeviceSwap | undefined): string {
     if (!swap || (!swap.moved && !swap.unmatched.length)) return "";
     const parts: string[] = [];
-    if (swap.moved) parts.push(this._countText("device_swap_moved", "device_swap_moved_one", "count", swap.moved));
+    if (swap.moved) parts.push(countText("device_swap_moved", "device_swap_moved_one", swap.moved, this._lang, "count"));
     if (swap.unmatched.length) {
-      parts.push(this._countText("device_swap_unmatched", "device_swap_unmatched_one", "count", swap.unmatched.length));
+      parts.push(countText("device_swap_unmatched", "device_swap_unmatched_one", swap.unmatched.length, this._lang, "count"));
     }
     return parts.join(" ");
   }
@@ -3614,7 +3608,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 <span class="today-object-text">${row.object_name} · ${row.days_until_due == null
                   // No due date (a triggered sensor task): when it was last
                   // done, like the dashboard's due column, not a bare dash.
-                  ? formatLastDone(row.last_performed, L) ?? "—"
+                  ? renderLastDone(row.last_performed, L) ?? "—"
                   : formatDueDays(row.days_until_due, L)}</span>
                 ${renderPersonChip(personOf(row), "today-person")}
               </div>
@@ -3767,7 +3761,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             }}
           >
             <option value="">${t("all_priorities", L)}</option>
-            ${["high", "normal", "low"].map(
+            ${TASK_PRIORITIES_HIGH_FIRST.map(
               (pr) => html`<option value=${pr} ?selected=${this._filterPriority === pr}>${t(`priority_${pr}`, L)}</option>`
             )}
           </select>
@@ -4145,9 +4139,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   <ha-icon icon="mdi:paperclip"></ha-icon>${obj.object.document_count}
                 </span>`
               : nothing}
-            <span class="object-card-count">${obj.tasks.length === 1
-              ? t("templates_task_count_one", L)
-              : t("templates_task_count", L).replace("{n}", String(obj.tasks.length))}</span>
+            <span class="object-card-count">${countText("templates_task_count", "templates_task_count_one", obj.tasks.length, L)}</span>
           </div>
           ${obj.object.manufacturer || obj.object.model
             ? html`<div class="object-card-meta">${[obj.object.manufacturer, obj.object.model].filter(Boolean).join(" ")}</div>`
@@ -4629,8 +4621,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     const cs = this._currencySymbol;
     const tile = (label: string, spent: number, budget: number | null) => {
       if (budget !== null) {
-        const pct = Math.min(100, Math.max(0, (spent / budget) * 100));
-        const color = pct >= 100 ? "var(--error-color, #f44336)" : pct >= b.alert_threshold_pct ? "var(--warning-color, #ff9800)" : "var(--success-color, #4caf50)";
+        const { pct, level } = budgetLevel(spent, budget, b.alert_threshold_pct);
+        const color = { danger: "var(--error-color, #f44336)", warning: "var(--warning-color, #ff9800)", ok: "var(--success-color, #4caf50)" }[level];
         return html`
           <div class="stat-item budget-tile" title="${label}: ${formatCost(spent, cs, L)} / ${formatCost(budget, cs, L)}">
             <span class="stat-value budget-tile-value">${formatCost(spent, cs, L)}</span>
@@ -5147,21 +5139,21 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (young && this._gsSetupsCount > 0 && !dismissed.has("setups")) {
       chips.push({
         id: "setups", icon: "mdi:auto-fix",
-        text: this._countText("gs_setups_chip", "gs_setups_chip_one", "n", this._gsSetupsCount, L),
+        text: countText("gs_setups_chip", "gs_setups_chip_one", this._gsSetupsCount, L),
         run: () => this._openSuggestedSetups(),
       });
     }
     if (young && this._gsAdoptCount > 0 && !dismissed.has("adopt")) {
       chips.push({
         id: "adopt", icon: "mdi:alert-circle-check-outline",
-        text: this._countText("gs_adopt_chip", "gs_adopt_chip_one", "n", this._gsAdoptCount, L),
+        text: countText("gs_adopt_chip", "gs_adopt_chip_one", this._gsAdoptCount, L),
         run: () => this._openAdoptProblemSensors(),
       });
     }
     if (this._resetOffersCount > 0 && !dismissed.has("resets")) {
       chips.push({
         id: "resets", icon: "mdi:counter",
-        text: this._countText("gs_reset_chip", "gs_reset_chip_one", "n", this._resetOffersCount, L),
+        text: countText("gs_reset_chip", "gs_reset_chip_one", this._resetOffersCount, L),
         run: () => this._openSuggestedSetups(),
       });
     }
@@ -5345,17 +5337,16 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _fullHistory: { entryId: string; taskId: string; entries: HistoryEntry[] } | null = null;
 
   private async _fetchFullHistory(entryId: string, taskId: string): Promise<void> {
+    let entries: HistoryEntry[] | null;
     try {
-      const res = (await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/task/history",
-        entry_id: entryId,
-        task_id: taskId,
-      })) as { history: HistoryEntry[] };
-      if (this._selectedEntryId === entryId && this._selectedTaskId === taskId) {
-        this._fullHistory = { entryId, taskId, entries: res.history || [] };
-      }
+      entries = await fetchTaskHistory<HistoryEntry>(this.hass, entryId, taskId);
     } catch {
-      this._fullHistory = null;
+      entries = null;
+    }
+    // Only for the task still open: a failed fetch of the task left before
+    // used to clear the history just loaded for the one opened since.
+    if (this._selectedEntryId === entryId && this._selectedTaskId === taskId) {
+      this._fullHistory = entries ? { entryId, taskId, entries } : null;
     }
   }
 

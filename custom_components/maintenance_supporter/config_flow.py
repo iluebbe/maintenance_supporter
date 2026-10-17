@@ -534,7 +534,7 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
         parts_in = user_input.get("parts")
         parts: dict[str, dict[str, Any]] = {}
         if isinstance(parts_in, dict):
-            from .helpers.parts import PartValidationError, normalize_part
+            from .helpers.parts import PartValidationError, normalize_part, portable_stock
 
             for pid, praw in parts_in.items():
                 try:
@@ -542,14 +542,8 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
                 except (PartValidationError, TypeError):
                     continue
                 # A backup's stock rides along; the entry's first setup moves
-                # it into the Store (storage.async_migrate_to_store).
-                stock = praw.get("stock") if isinstance(praw, dict) else None
-                if isinstance(stock, (int, float)) and not isinstance(stock, bool) and stock >= 0:
-                    part["stock"] = stock
-                    # #208: and a reusable part's used ones waiting.
-                    waiting = praw.get("restoring")
-                    if part.get("reuse") and isinstance(waiting, (int, float)) and not isinstance(waiting, bool) and waiting > 0:
-                        part["restoring"] = waiting
+                # it into the Store.
+                part.update(portable_stock(part, praw))
                 parts[part["id"]] = part
 
         data: dict[str, Any] = {

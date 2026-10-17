@@ -203,13 +203,44 @@ def _clean_str(raw: Any, field: str, max_len: int) -> str:
     return s
 
 
+_HTTP_URL = re.compile(r"^https?://", re.IGNORECASE)
+
+
+def is_http_url(url: str) -> bool:
+    """An absolute http(s) URL of at most MAX_PART_URL characters — a part's
+    shop page and the shopping-search template. The scheme in any case, as
+    the panel's isSafeHttpUrl reads it: the JSON import's own pre-filter let
+    "HTTPS://…" through, this check refused it, and the whole part was
+    dropped (DRY audit 2026-10-12)."""
+    return len(url) <= MAX_PART_URL and bool(_HTTP_URL.match(url))
+
+
 def _clean_url(raw: Any) -> str:
     s = str(raw or "").strip()
     if not s:
         return ""
-    if len(s) > MAX_PART_URL or not re.match(r"^https?://", s):
+    if not is_http_url(s):
         raise PartValidationError("product_url must be an http(s) URL")
     return s
+
+
+def portable_stock(part: Mapping[str, Any], raw: Any) -> dict[str, Any]:
+    """The stock a backup row carries for the normalized ``part``, with a
+    reusable part's used ones waiting (#208): a count from 0 for the stock,
+    above 0 for the pile, anything else stays behind. The fresh entry's first
+    setup moves both into the Store (storage.async_migrate_to_store). The JSON
+    import and the flow step it hands over to each spelled this out (DRY
+    audit 2026-10-12)."""
+    if not isinstance(raw, Mapping):
+        return {}
+    stock = raw.get("stock")
+    if isinstance(stock, bool) or not isinstance(stock, (int, float)) or stock < 0:
+        return {}
+    out: dict[str, Any] = {"stock": stock}
+    waiting = raw.get("restoring")
+    if part.get("reuse") and isinstance(waiting, (int, float)) and not isinstance(waiting, bool) and waiting > 0:
+        out["restoring"] = waiting
+    return out
 
 
 def _clean_cost(raw: Any) -> float | None:
@@ -478,6 +509,14 @@ def part_is_low(part: Mapping[str, Any], stock: float | None) -> bool:
     return stock is not None and threshold is not None and stock <= float(threshold)
 
 
+def is_part_low(part: Mapping[str, Any], stock: float | None, restoring: float | None = None) -> bool:
+    """Low on what the household owns: the stock plus a reusable part's used
+    ones waiting (:func:`on_hand`) at or below the reorder threshold. The low
+    sensors, the parts overview, the objects payload and voice each combined
+    the two themselves (DRY audit 2026-10-12)."""
+    return part_is_low(part, on_hand(part, stock, restoring))
+
+
 def part_wants_buy_task(part: Mapping[str, Any]) -> bool:
     return bool(part.get("auto_buy_task")) and part.get("reorder_threshold") is not None
 
@@ -520,7 +559,7 @@ def valid_search_template(template: Any) -> bool:
     """Whether a user-supplied search template is usable: an http(s) URL
     carrying the ``{q}`` placeholder (the sanitiser's rule; "" = automatic)."""
     s = str(template or "").strip()
-    return bool(s) and len(s) <= MAX_PART_URL and bool(re.match(r"^https?://", s)) and "{q}" in s
+    return bool(s) and is_http_url(s) and "{q}" in s
 
 
 def search_query(part: Mapping[str, Any]) -> str:

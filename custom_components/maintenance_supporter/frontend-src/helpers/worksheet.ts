@@ -15,6 +15,7 @@
 
 import type { MaintenanceTask } from "../types";
 import { displayTimeZone, ymdIn } from "./ha-time";
+import { escapeHtml as esc } from "./html-escape";
 
 export interface WorksheetLabels {
   title: string;          // "Work sheet"
@@ -58,10 +59,6 @@ function printedOn(nowIso: string, formatDate: (iso: string) => string): string 
   const ms = Date.parse(nowIso);
   return Number.isNaN(ms) ? nowIso.slice(0, 10) : formatDate(ymdIn(ms, displayTimeZone()));
 }
-
-const esc = (v: unknown): string =>
-  String(v ?? "").replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
 
 export function buildTaskWorksheetHtml(
   task: MaintenanceTask,

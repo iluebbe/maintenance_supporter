@@ -46,6 +46,7 @@ import { canWrite } from "./helpers/permissions";
 import { fetchSettingsOnce } from "./helpers/settings-cache";
 import { openHistoryEditDialog, openTaskQuickActions } from "./dialog-mount";
 import { EDITABLE_HISTORY_TYPES } from "./status-constants";
+import { fetchTaskHistory } from "./helpers/task-history-fetch";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -227,12 +228,9 @@ export class MaintenanceCalendarCard extends LitElement {
     const seq = ++this._pastSeq;
     const results = await Promise.all(gaps.map(async (g) => {
       try {
-        const r = await this.hass.connection.sendMessagePromise<{ history?: HistoryEntryShape[] }>({
-          type: "maintenance_supporter/task/history",
-          entry_id: g.entryId,
-          task_id: g.taskId,
-        });
-        return [g.key, r.history ?? []] as const;
+        // A reply without a list is no answer either: it emptied the window.
+        const history = await fetchTaskHistory<HistoryEntryShape>(this.hass, g.entryId, g.taskId);
+        return history ? ([g.key, history] as const) : null;
       } catch {
         return null; // degrade to the listed window for this task
       }

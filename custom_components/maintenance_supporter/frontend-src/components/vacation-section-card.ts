@@ -291,7 +291,7 @@ export class MaintenanceVacationSectionCard extends LitElement {
     }
     .status-pill.active {
       background: rgba(76, 175, 80, 0.15);
-      color: #4caf50;
+      color: var(--success-color, #4caf50);
     }
     .status-pill.scheduled {
       background: rgba(255, 152, 0, 0.15);

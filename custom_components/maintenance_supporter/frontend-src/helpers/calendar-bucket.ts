@@ -65,19 +65,6 @@ export interface CalendarDayBucket {
   events: CalendarEvent[];
 }
 
-/**
- * Format a Date as ISO YYYY-MM-DD using LOCAL time components — the
- * BROWSER's calendar day of a local Date (the naive `.toISOString().slice(0,10)`
- * is the UTC day). Never "today": next_due counts from HA's day, which a
- * device in another zone does not share — that is helpers/ha-time haToday.
- */
-export function isoDateLocal(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
 /** The N consecutive ISO dates of a window starting at `today` ("YYYY-MM-DD"). */
 export function buildWindowDates(today: string, windowDays: number): string[] {
   const out: string[] = [];

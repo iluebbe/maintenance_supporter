@@ -19,13 +19,11 @@ from ..const import (
     CONF_TASKS,
     DEFAULT_TASK_PRIORITY,
     DEFAULT_WARNING_DAYS,
-    MAX_CHECKLIST_ITEM_LENGTH,
-    MAX_CHECKLIST_ITEMS,
 )
 from .aggregate import merged_tasks
 from .dates import INTERVAL_UNITS, normalize_hhmm, parse_iso_date
 from .global_options import get_default_warning_days
-from .pause import write_anchor
+from .pause import pause_end_day, write_anchor
 from .reading_slots import parse_reading_slots_text, reading_slots_text
 from .schedule import Schedule, read_legacy_fields
 from .task_fields import import_due_date, import_interval_days, import_warning_days
@@ -388,9 +386,13 @@ def import_objects_csv(
         if sched_time:
             task_data["schedule_time"] = sched_time
 
+        # The cells are only split here: the flow step both imports hand
+        # over to caps them (cap_task_fields) — the CSV's own copies of those
+        # caps capped the labels before dropping duplicates and dropped an
+        # unknown priority the JSON import kept (DRY audit 2026-10-12).
         reading_unit = (row.get("reading_unit") or "").strip()
         if reading_unit:
-            task_data["reading_unit"] = reading_unit[:32]
+            task_data["reading_unit"] = reading_unit
         readings_raw = row.get("readings") or ""
         if readings_raw.strip():
             slots = parse_reading_slots_text(readings_raw)
@@ -417,10 +419,7 @@ def import_objects_csv(
             task_data["enabled"] = False
         doc_url = (row.get("documentation_url") or "").strip()
         if doc_url:
-            from .url_safety import is_safe_url
-
-            if is_safe_url(doc_url):  # the "//host" form got through the old scheme check
-                task_data["documentation_url"] = doc_url
+            task_data["documentation_url"] = doc_url
         custom_icon = (row.get("custom_icon") or "").strip()
         if custom_icon:
             task_data["custom_icon"] = custom_icon
@@ -433,26 +432,14 @@ def import_objects_csv(
 
         # #134 audit: priority (closed set) + labels ("\n" cell like checklist).
         priority = (row.get("priority") or "").strip().lower()
-        if priority in ("low", "normal", "high"):
+        if priority:
             task_data["priority"] = priority
-        labels_raw = row.get("labels") or ""
-        if labels_raw:
-            from ..const import MAX_LABEL_LENGTH, MAX_LABELS
-
-            labels = [line.strip()[:MAX_LABEL_LENGTH] for line in labels_raw.splitlines() if line.strip()][:MAX_LABELS]
-            if labels:
-                task_data["labels"] = labels
-
-        # Checklist round-trips via a single cell with "\n" between items.
-        # Apply the same hard caps as the WebSocket schema so a malicious or
-        # accidental CSV can't bloat the entry.
-        checklist_raw = row.get("checklist") or ""
-        if checklist_raw:
-            items = [line.strip()[:MAX_CHECKLIST_ITEM_LENGTH] for line in checklist_raw.splitlines() if line.strip()][
-                :MAX_CHECKLIST_ITEMS
-            ]
-            if items:
-                task_data["checklist"] = items
+        # Labels and the checklist round-trip as one cell with "\n" between
+        # the items.
+        for field in ("labels", "checklist"):
+            lines = (row.get(field) or "").splitlines()
+            if any(line.strip() for line in lines):
+                task_data[field] = lines
 
         # An archived object's tasks are archived WITH it (reason object, so
         # an unarchive restores them), and an archived object with live tasks
@@ -468,7 +455,7 @@ def import_objects_csv(
         paused_at = (row.get("task_paused_at") or "").strip().lstrip("\t")
         if _is_iso_moment(paused_at):
             task_data["paused_at"] = paused_at
-            paused_until = import_due_date((row.get("task_paused_until") or "").lstrip("\t"))
+            paused_until = pause_end_day((row.get("task_paused_until") or "").lstrip("\t"))
             if paused_until is not None:
                 task_data["paused_until"] = paused_until
 

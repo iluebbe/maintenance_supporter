@@ -4,7 +4,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant, ReadingSlot, TaskPartLink } from "../types";
 import { lastReadingBefore, type ReadingHistoryEntry } from "../helpers/reading-slots";
-import { t, nativeFieldStyles, formatCost, formatNumber, formatQty, haTimeZoneHint } from "../styles";
+import { t, langOf, nativeFieldStyles, formatCost, formatNumber, formatQty, haTimeZoneHint } from "../styles";
 import { runWs } from "../helpers/ws-run";
 import { haNowMinute, stampMs } from "../helpers/ha-time";
 import { PART_QTY_RANGE, RESTOCK_QTY_RANGE } from "../helpers/setting-ranges";
@@ -416,7 +416,7 @@ export class MaintenanceCompleteDialog extends LitElement {
 
   render() {
     if (!this._open) return html``;
-    const L = this.lang || this.hass?.language || "en";
+    const L = this.lang || langOf(this.hass);
     const error = this._error || this._photos.errorText(L);
     return html`
       <ha-dialog open @closed=${this._close}>

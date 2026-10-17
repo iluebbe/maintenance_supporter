@@ -10,6 +10,7 @@ import type { HistoryEntryDraft } from "../components/history-edit-dialog";
 import type { HistoryEntry, ReadingSlot } from "../types";
 import { historyPhotoIds } from "./history-photos";
 import { entryReadingValues } from "./reading-slots";
+import { fetchTaskHistory } from "./task-history-fetch";
 
 /** The task fields the draft needs — a MaintenanceTask or the slim shape
  *  the cards fetch through `maintenance_supporter/object`. */
@@ -87,12 +88,8 @@ export async function loadHistoryEntryDraft(
   if (!task) return null;
   let entry = task.history?.find((h) => h.timestamp === timestamp);
   if (!entry) {
-    const full = await hass.connection.sendMessagePromise<{ history?: Array<Record<string, unknown>> }>({
-      type: "maintenance_supporter/task/history",
-      entry_id: entryId,
-      task_id: taskId,
-    });
-    entry = full.history?.find((h) => h.timestamp === timestamp);
+    const full = await fetchTaskHistory(hass, entryId, taskId);
+    entry = full?.find((h) => h.timestamp === timestamp);
   }
   if (!entry) return null;
   return buildHistoryEntryDraft(entryId, taskId, entry, task);

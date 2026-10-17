@@ -41,6 +41,18 @@ def is_task_paused(task_data: dict[str, Any]) -> bool:
     return task_data.get("paused_at") is not None
 
 
+def wants_fresh_cycle(task_data: dict[str, Any]) -> bool:
+    """Whether a task that comes back (its object resumed or unarchived, the
+    task itself unarchived) restarts a fresh cycle from today: a recurring
+    task not paused on its own (#193). A self-paused one keeps its dates
+    until the end of its own pause restarts it. The unarchive paths
+    re-anchored it anyway, and the still-paused task read "done today" (DRY
+    audit 2026-10-12). Archived state and Undo are the caller's."""
+    from .schedule import is_recurring
+
+    return not is_task_paused(task_data) and is_recurring(task_data)
+
+
 def pauses_with_object(task_data: dict[str, Any]) -> bool:
     """Whether the object's pause freezes this task. The buy task of a shared
     pool other live objects still draw on does not (the buy-task reconcile
@@ -64,6 +76,28 @@ def is_task_inert(task_data: dict[str, Any], obj: dict[str, Any]) -> bool:
         or is_task_paused(task_data)
         or (is_object_paused(obj) and pauses_with_object(task_data))
     )
+
+
+def pause_end_day(value: Any) -> str | None:
+    """A ``paused_until`` from a backup as the day it names, ``YYYY-MM-DD``:
+    a timestamp keeps its date, anything else means no end. The JSON import
+    kept a timestamp as typed; the auto-resume could not read it as a day and
+    resumed the restored object (or task) on its first refresh (DRY audit
+    2026-10-12)."""
+    from datetime import datetime
+
+    from .dates import parse_iso_date
+
+    if not isinstance(value, str) or not value.strip():
+        return None
+    text = value.strip()
+    day = parse_iso_date(text)
+    if day is None:
+        try:
+            day = datetime.fromisoformat(text.replace("Z", "+00:00")).date()
+        except ValueError:
+            return None
+    return day.isoformat()
 
 
 def pause_due_for_auto_resume(obj: dict[str, Any], today: date) -> bool:
@@ -162,8 +196,6 @@ def build_resumed_entry_data(
     ``fresh_cycle=False`` (the Undo of a pause just made) only lifts the
     pause: the tasks keep their dates, overdue and postponed ones included.
     """
-    from .schedule import is_recurring
-
     new_data = dict(entry_data)
     obj = dict(new_data.get(CONF_OBJECT, {}))
     obj.pop("paused_at", None)
@@ -175,7 +207,7 @@ def build_resumed_entry_data(
         td = dict(td)
         # A task paused on its own (#193) stays paused — resuming the object
         # does not end a pause somebody set for that one task.
-        if fresh_cycle and td.get("archived_at") is None and not is_task_paused(td) and is_recurring(td):
+        if fresh_cycle and td.get("archived_at") is None and wants_fresh_cycle(td):
             reanchor_recurring_task(tid, store=store, today_iso=today_iso, task_data=td)
         new_tasks[tid] = td
     new_data[CONF_TASKS] = new_tasks
@@ -191,11 +223,9 @@ def resume_task_data(task_id: str, task_data: dict[str, Any], store: Maintenance
     tasks keep their dates. Mutates the Store's anchor when there is one
     (the caller saves).
     """
-    from .schedule import is_recurring
-
     td = dict(task_data)
     td.pop("paused_at", None)
     td.pop("paused_until", None)
-    if td.get("archived_at") is None and is_recurring(td):
+    if td.get("archived_at") is None and wants_fresh_cycle(td):
         reanchor_recurring_task(task_id, store=store, today_iso=today_iso, task_data=td)
     return td

@@ -65,7 +65,7 @@ from ..helpers.task_fields import (
     TASK_PRIORITIES,
     WARNING_DAYS_RANGE,
 )
-from ..helpers.ws_errors import send_translated_error
+from ..helpers.ws_errors import send_translated_error, send_unsafe_url_error
 from . import (
     ID_FIELD,
     _load_object_entry,
@@ -510,11 +510,13 @@ async def ws_create_task(
         task_data["trigger_config"] = trigger_config
     if msg.get("notes") is not None:
         task_data["notes"] = msg["notes"]
-    if msg.get("documentation_url") is not None:
-        if not _is_safe_url(msg["documentation_url"]):
-            send_translated_error(connection, msg["id"], "invalid_url", "This link is not allowed: links that run scripts or open local files (javascript:, data:, file: and the like) are refused.", translation_key="unsafe_url")
+    # Trimmed like an object's link: the surrounding blanks were stored.
+    documentation_url = (msg.get("documentation_url") or "").strip()
+    if documentation_url:
+        if not _is_safe_url(documentation_url):
+            send_unsafe_url_error(connection, msg["id"])
             return
-        task_data["documentation_url"] = msg["documentation_url"]
+        task_data["documentation_url"] = documentation_url
     if msg.get("responsible_user_id") is not None:
         task_data["responsible_user_id"] = msg["responsible_user_id"]
     if msg.get("earliest_completion_days") is not None:
@@ -726,9 +728,11 @@ async def ws_update_task(
             return
         msg["last_performed"] = lp_date.isoformat()
 
-    # Validate documentation_url if provided
+    # Validate documentation_url if provided (trimmed, like on create)
+    if isinstance(msg.get("documentation_url"), str):
+        msg["documentation_url"] = msg["documentation_url"].strip()
     if "documentation_url" in msg and not _is_safe_url(msg["documentation_url"]):
-        send_translated_error(connection, msg["id"], "invalid_url", "This link is not allowed: links that run scripts or open local files (javascript:, data:, file: and the like) are refused.", translation_key="unsafe_url")
+        send_unsafe_url_error(connection, msg["id"])
         return
 
     # D#183: mirror targets — same sanitize + own-platform refusal as create;

@@ -20,8 +20,8 @@ import type { MaintenanceTaskQuickActionsDialog } from "../components/task-quick
 import type { MsCameraCapture } from "../components/camera-capture";
 import { discardUploadedPhotos } from "../helpers/photo-upload.js";
 import { loadHistoryEntryDraft } from "../helpers/history-draft.js";
-import { isoDateLocal, pastHistoryGaps } from "../helpers/calendar-bucket.js";
-import { haToday } from "../helpers/ha-time.js";
+import { pastHistoryGaps } from "../helpers/calendar-bucket.js";
+import { browserTimeZone, haToday, ymdIn } from "../helpers/ha-time.js";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args.js";
 import { renderHistoryEntry } from "../renderers/history.js";
 import { renderTaskDetail, type TaskDetailContext } from "../renderers/task-detail.js";
@@ -62,7 +62,7 @@ function pickFiles(root: ShadowRoot, names: string[]) {
 function isoDaysAgo(n: number): string {
   const d = new Date();
   d.setDate(d.getDate() - n);
-  return `${isoDateLocal(d)}T10:00:00`;
+  return `${ymdIn(d, browserTimeZone())}T10:00:00`;
 }
 
 /** A task as the object/objects WS responses carry it. */

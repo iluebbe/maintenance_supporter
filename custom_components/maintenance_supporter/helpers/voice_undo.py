@@ -43,7 +43,7 @@ from homeassistant.helpers import intent
 from homeassistant.util import dt as dt_util
 
 from ..const import CONF_PARTS, CONF_TASKS, DOMAIN, NOTIFICATION_MANAGER_KEY
-from .aggregate import get_object_entries
+from .aggregate import get_object_entries, get_store, store_of
 
 UNDO_WINDOW = timedelta(minutes=10)
 
@@ -118,17 +118,11 @@ def actor(intent_obj: intent.Intent) -> str:
     return "anonymous"
 
 
-def _store_of(hass: HomeAssistant, entry_id: str) -> Any:
-    entry = hass.config_entries.async_get_entry(entry_id)
-    rd = getattr(entry, "runtime_data", None) if entry else None
-    return getattr(rd, "store", None) if rd else None
-
-
 def capture(hass: HomeAssistant, entry_id: str, task_id: str | None) -> Snapshot:
     """Everything the coming action may change, copied."""
     snap = Snapshot(entry_id=entry_id, task_id=task_id)
     entry = hass.config_entries.async_get_entry(entry_id)
-    store = _store_of(hass, entry_id)
+    store = get_store(hass, entry_id)
     static: Any =(entry.data.get(CONF_TASKS) or {}).get(task_id) if entry is not None and task_id else None
     # A task that no longer exists (a buy task the restock retired) has no
     # record left to compare or restore — only its stock does.
@@ -143,7 +137,7 @@ def capture(hass: HomeAssistant, entry_id: str, task_id: str | None) -> Snapshot
     # Every tracked stock: a completion may consume from another object's
     # pool (#111), and the list is small.
     for ce in get_object_entries(hass):
-        ce_store = _store_of(hass, ce.entry_id)
+        ce_store = store_of(ce)
         if ce_store is None:
             continue
         for part_id, part in (ce.data.get(CONF_PARTS) or {}).items():
