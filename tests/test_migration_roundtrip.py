@@ -180,6 +180,8 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
             "sensor.hall_smoke_battery": {"type": "9V", "model": "Acme|S1", "dates": ["2024-11-10", "2025-10-02"], "anchored": True}
         },
         battery_low_latch={"sensor.garage_remote_battery": {"at": "2026-09-20T08:00:00+00:00", "last_replaced": "2025-09-04"}},
+        # D#213: the cells a battery holds, chosen at Replaced.
+        battery_installed_cells={"sensor.garage_remote_battery": "AAA NIMH"},
     )
     await fleet_store.async_save()
 
@@ -658,7 +660,7 @@ async def test_a_move_to_another_instance_keeps_everything(
     unexpected = [d for d in diffs if not any(k in d for k in EXPECTED_DIFFS)]
     assert not unexpected, "a move lost or changed:\n" + "\n".join(unexpected)
     # The seed really exercised the Store keys a move must carry.
-    assert {"history", "checklist_progress", "battery_replacements", "battery_low_latch"} <= seen_state, seen_state
+    assert {"history", "checklist_progress", "battery_replacements", "battery_low_latch", "battery_installed_cells"} <= seen_state, seen_state
 
 
 # ─── tripwires: new fields and Store keys cannot slip past the move ────────

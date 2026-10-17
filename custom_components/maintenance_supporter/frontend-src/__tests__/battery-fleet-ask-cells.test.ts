@@ -2,7 +2,9 @@
  * D#213: with the fleet's ask-cells option on, Replaced asks which cells
  * went in (the note's type or a fleet part of the same size) and sends the
  * choice; a battery with nothing to choose is booked at once, as before.
- * The option is a roster toggle like its neighbours.
+ * The option is a roster toggle like its neighbours. The overview tags
+ * the rows of every list (low, soon, roster), as the backend does; the
+ * chooser opens under the row that was clicked only.
  */
 
 import { expect, fixture, html } from "@open-wc/testing";
@@ -27,7 +29,7 @@ function overview(lock: Record<string, unknown>) {
   };
 }
 
-async function mount(lock: Record<string, unknown>) {
+async function mount(lock: Record<string, unknown>, handlers: Record<string, (msg: Record<string, unknown>) => unknown> = {}) {
   const calls: Array<Record<string, unknown>> = [];
   const record = (msg: Record<string, unknown>) => { calls.push(msg); return { success: true, marked: 1, pressed: 1, consumed: {} }; };
   const { hass } = createMockHass({
@@ -36,6 +38,7 @@ async function mount(lock: Record<string, unknown>) {
       "maintenance_supporter/battery_fleet/overview_history": () => ({ series: {} }),
       "maintenance_supporter/battery_fleet/mark_replaced": record,
       "maintenance_supporter/battery_fleet/set_ask_cells": record,
+      ...handlers,
     },
   });
   (hass as unknown as { user: unknown }).user = { id: "u_admin", name: "Admin", is_admin: true };
@@ -67,6 +70,17 @@ describe("battery fleet: which cells went in (D#213)", () => {
     expect(call.cells).to.deep.equal({ [LOCK.entity_id]: "AA NIMH" });
   });
 
+  it("opens under the clicked row only, across the list's width", async () => {
+    const { el } = await mount({ ...LOCK, cell_choices: CHOICES, cells_installed: "AA" });
+    markButton(el).click();
+    await el.updateComplete;
+    const boxes = el.shadowRoot!.querySelectorAll<HTMLElement>(".bf-cells");
+    expect(boxes, "one chooser, not one per list").to.have.length(1);
+    expect(boxes[0].previousElementSibling?.classList.contains("bf-row")).to.equal(true);
+    const list = boxes[0].parentElement!.getBoundingClientRect().width;
+    expect(boxes[0].getBoundingClientRect().width).to.be.closeTo(list, 1);
+  });
+
   it("books at once when there is nothing to choose", async () => {
     const { el, calls } = await mount(LOCK);
     markButton(el).click();
@@ -84,5 +98,17 @@ describe("battery fleet: which cells went in (D#213)", () => {
     box.click();
     await new Promise((r) => setTimeout(r, 0));
     expect(calls.find((c) => c.type === "maintenance_supporter/battery_fleet/set_ask_cells")).to.deep.include({ enabled: false });
+  });
+
+  it("a refused toggle shows the fleet's setting again", async () => {
+    // Lit writes .checked only when the bound value changes: after a failed
+    // write the box stayed flipped (audit 2026-10-17).
+    const { el } = await mount(LOCK, {
+      "maintenance_supporter/battery_fleet/set_ask_cells": () => { throw { code: "unauthorized", message: "no" }; },
+    });
+    el.shadowRoot!.querySelector<HTMLInputElement>(".bf-ask-cells input")!.click();
+    await new Promise((r) => setTimeout(r, 0));
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector<HTMLInputElement>(".bf-ask-cells input")!.checked).to.equal(true);
   });
 });

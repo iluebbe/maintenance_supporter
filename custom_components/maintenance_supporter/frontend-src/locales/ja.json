@@ -300,7 +300,6 @@
   "area_no_costs": "この期間に記録された費用はありません。",
   "no_tasks_yet": "タスクがまだありません",
   "add_first_task": "最初のタスクを追加",
-  "trigger_configuration": "トリガー設定",
   "entity_id": "エンティティID",
   "comma_separated": "カンマ区切り",
   "entity_logic": "エンティティ条件",

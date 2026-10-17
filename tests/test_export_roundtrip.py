@@ -14,6 +14,7 @@ Three pins:
 
 from __future__ import annotations
 
+import copy
 import json
 from datetime import date, timedelta
 
@@ -203,7 +204,10 @@ def _full_trigger_config() -> dict:
 
 
 async def _make_source_entry(hass: HomeAssistant) -> MockConfigEntry:
-    task = dict(build_task_data(), **FULL_TASK, trigger_config=_full_trigger_config())
+    # Deep: the setup numbers the history entries in place, and with a
+    # shared list the next test saw them numbered already (no high-water
+    # mark exported), so the probe below passed or failed by test order.
+    task = dict(build_task_data(), **copy.deepcopy(FULL_TASK), trigger_config=_full_trigger_config())
     data = build_object_entry_data(tasks={task["id"]: task})
     data = {**data, "object": {**data["object"], **FULL_OBJECT}, "parts": {"part_a": dict(FULL_PART)}}
     entry = MockConfigEntry(
@@ -455,6 +459,9 @@ _TASK_EXPORT_EXEMPT = {
     "checklist_progress",  # Store-side; asserted separately in the roundtrip
     "part_ref",  # auto-buy marker; covered by the parts/buy-task tests
     "trigger_config",  # key-set-compared separately (import normalises values)
+    # The completion-number high-water mark (Store-side, bug audit 2026-10-16
+    # F11): in the import mirror, asserted by test_bug_audit_2026_10_16_t3.
+    "next_history_ref",
 }
 
 
@@ -493,6 +500,7 @@ _CSV_TASK_EXCLUDED = {
     "assignee_pool", "rotation_strategy",  # multi-user config (JSON backup)
     "required_completion_fields", "earliest_completion_days",  # niche gates
     "ref_no",  # #170 reference number — assigned, never typed into a sheet
+    "next_history_ref",  # the completion-number high-water mark (JSON backup carries it)
     "require_tag_scan",  # completion gate (JSON backup carries it)
     "allow_skip",  # skip lock (#150) - JSON backup carries it
     "notify_enabled",  # per-task mute (#173) - JSON backup carries it
@@ -520,6 +528,7 @@ _CSV_OBJECT_EXCLUDED = {
     # backup round-trips it (test_json_roundtrip_keeps_battery_fleet_identity).
     "battery_fleet", "battery_fleet_excluded", "battery_fleet_included",
     "battery_fleet_track_self_charging", "battery_fleet_due_without_sensor", "battery_fleet_removed_parts",
+    "battery_fleet_ask_cells",
 }
 
 
@@ -649,6 +658,7 @@ async def _make_fleet_entry(hass: HomeAssistant) -> MockConfigEntry:
             "battery_fleet_track_self_charging": True,
             "battery_fleet_due_without_sensor": False,  # D#162: only the opt-OUT is stored
             "battery_fleet_removed_parts": ["batt_aaa"],
+            "battery_fleet_ask_cells": True,  # D#213
         },
         "parts": {
             "batt_aa": normalize_part(
@@ -692,6 +702,7 @@ async def test_json_roundtrip_keeps_battery_fleet_identity(
     assert exported_obj.get("battery_fleet_track_self_charging") is True
     assert exported_obj.get("battery_fleet_due_without_sensor") is False
     assert exported_obj.get("battery_fleet_removed_parts") == ["batt_aaa"]
+    assert exported_obj.get("battery_fleet_ask_cells") is True
     assert payload["objects"][0]["tasks"][0].get("battery_fleet_task") is True
 
     # The restore scenario: the original fleet is gone.
@@ -713,6 +724,7 @@ async def test_json_roundtrip_keeps_battery_fleet_identity(
     assert obj.get("battery_fleet_due_without_sensor") is False
     # Bug review 2026-09-04: a deleted type-part stays deleted after a restore.
     assert obj.get("battery_fleet_removed_parts") == ["batt_aaa"]
+    assert obj.get("battery_fleet_ask_cells") is True
     assert find_fleet_entry(hass) is not None and find_fleet_entry(hass).entry_id == dst.entry_id
     assert list(dst.data["parts"]) == ["batt_aa"], "deterministic fleet part id was re-minted"
     dst_task = next(iter(dst.data[CONF_TASKS].values()))
@@ -741,7 +753,7 @@ async def test_json_import_never_creates_a_second_fleet(
     obj = dst.data["object"]
     assert "battery_fleet" not in obj and "battery_fleet_excluded" not in obj
     assert "battery_fleet_included" not in obj and "battery_fleet_track_self_charging" not in obj
-    assert "battery_fleet_due_without_sensor" not in obj
+    assert "battery_fleet_due_without_sensor" not in obj and "battery_fleet_ask_cells" not in obj
     assert find_fleet_entry(hass).entry_id == src.entry_id
     (new_pid,) = dst.data["parts"]
     assert new_pid != "batt_aa"
@@ -764,6 +776,7 @@ async def test_json_import_validates_fleet_lists(hass: HomeAssistant, global_ent
                     "battery_fleet_included": "sensor.not_a_list",
                     "battery_fleet_track_self_charging": "yes",
                     "battery_fleet_due_without_sensor": "no",  # only a literal False switches it off
+                    "battery_fleet_ask_cells": "yes",  # only a literal True switches it on
                 },
                 "tasks": [],
             }
@@ -779,3 +792,4 @@ async def test_json_import_validates_fleet_lists(hass: HomeAssistant, global_ent
     assert "battery_fleet_included" not in obj
     assert "battery_fleet_track_self_charging" not in obj
     assert "battery_fleet_due_without_sensor" not in obj
+    assert "battery_fleet_ask_cells" not in obj

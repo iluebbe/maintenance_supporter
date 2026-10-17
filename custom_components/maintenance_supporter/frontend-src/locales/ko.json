@@ -300,7 +300,6 @@
   "area_no_costs": "이 기간에 기록된 비용이 없습니다.",
   "no_tasks_yet": "아직 작업 없음",
   "add_first_task": "첫 작업 추가",
-  "trigger_configuration": "트리거 설정",
   "entity_id": "엔티티 ID",
   "comma_separated": "쉼표로 구분",
   "entity_logic": "엔티티 논리",

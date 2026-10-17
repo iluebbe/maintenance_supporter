@@ -174,10 +174,11 @@ export class MaintenanceBatteryFleetSection extends LitElement {
 
   /** One fleet action — helpers/ws-run runWs behind the `_marking` guard,
    *  with the error line and the overview reload (`onDone` runs first). */
-  private async _act(payload: Record<string, unknown>, onDone?: () => void): Promise<void> {
-    if (this._marking) return;
+  /** True when the backend took it. */
+  private async _act(payload: Record<string, unknown>, onDone?: () => void): Promise<boolean> {
+    if (this._marking) return false;
     this._error = "";
-    await runWs(this, payload, {
+    const res = await runWs(this, payload, {
       busy: (b) => { this._marking = b; },
       reload: async () => {
         onDone?.();
@@ -185,6 +186,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       },
       onError: (m) => { this._error = m; },
     });
+    return res !== undefined;
   }
 
   private _markAll = async (): Promise<void> => {
@@ -267,25 +269,29 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   // #135 follow-up: fleet-wide opt-in that keeps self-charging devices
   // (phones, vacuums, smart rings) in the roster as rechargeables.
   private async _setTrackSelf(e: Event): Promise<void> {
-    await this._setFleetOption("set_track_self_charging", (e.target as HTMLInputElement).checked);
+    await this._setFleetOption("set_track_self_charging", e.target as HTMLInputElement);
   }
 
   // D#162: fleet-wide option — a passed forecast on a sensorless note is
   // due (fires the task). Default on; only the opt-out is stored.
   private async _setDueWithoutSensor(e: Event): Promise<void> {
-    await this._setFleetOption("set_due_without_sensor", (e.target as HTMLInputElement).checked);
+    await this._setFleetOption("set_due_without_sensor", e.target as HTMLInputElement);
   }
 
   // D#213: fleet-wide opt-in — Replaced asks which cells went in.
   private async _setAskCells(e: Event): Promise<void> {
-    await this._setFleetOption("set_ask_cells", (e.target as HTMLInputElement).checked);
+    await this._setFleetOption("set_ask_cells", e.target as HTMLInputElement);
   }
 
   private async _setFleetOption(
     command: "set_track_self_charging" | "set_due_without_sensor" | "set_ask_cells",
-    enabled: boolean,
+    box: HTMLInputElement,
   ): Promise<void> {
-    await this._act({ type: `maintenance_supporter/battery_fleet/${command}`, enabled });
+    const enabled = box.checked;
+    // Refused or failed: the box shows the fleet's setting again. Lit
+    // writes `.checked` only when the bound value changes, so it stayed
+    // flipped (audit 2026-10-17).
+    if (!(await this._act({ type: `maintenance_supporter/battery_fleet/${command}`, enabled }))) box.checked = !enabled;
   }
 
   /** Lazy: the recorder-backed history is fetched once, when the roster is
@@ -1226,8 +1232,10 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       color: var(--secondary-text-color);
       padding: 2px 0;
     }
-    /* D#213: which cells went in — under the battery's row. */
+    /* D#213: which cells went in — under the battery's row, across the
+     * list's grid (in one column it squeezed into the name's). */
     .bf-cells {
+      grid-column: 1 / -1;
       display: flex;
       flex-direction: column;
       gap: 6px;

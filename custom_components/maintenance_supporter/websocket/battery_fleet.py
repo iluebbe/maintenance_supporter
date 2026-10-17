@@ -27,6 +27,7 @@ from ..helpers.battery_fleet import (
     read_batteries,
 )
 from ..helpers.battery_fleet_setup import (
+    MAX_CELL_TYPE_LENGTH,
     async_mark_replaced,
     async_record_replacement,
     async_setup_battery_fleet,
@@ -81,8 +82,13 @@ async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_a
     ov = await async_compute_overview(hass)
     fleet = find_fleet_entry(hass)
     # D#213: what each battery may take at Replaced (option on, two choices or more).
+    # On every list: Replaced on a low row booked the note's type without
+    # asking (audit 2026-10-17).
     choices = roster_cell_choices(hass)
-    roster = [{**row, **choices[row["entity_id"]]} if row.get("entity_id") in choices else row for row in ov.all]
+
+    def _with_choices(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [{**row, **choices[row["entity_id"]]} if row.get("entity_id") in choices else row for row in rows]
+
     connection.send_result(
         msg["id"],
         {
@@ -95,14 +101,14 @@ async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_a
             "task_ok": fleet is not None and fleet_task_trigger_ok(fleet),
             "entry_id": fleet.entry_id if fleet else None,
             "total": ov.total,
-            "low": ov.low,
-            "soon": ov.soon,
+            "low": _with_choices(ov.low),
+            "soon": _with_choices(ov.soon),
             # The full roster, each row tagged low/soon/ok. The detail section
             # lists it behind a disclosure so a device can be excluded before
             # it ever goes low — previously the exclude control existed only on
             # low rows, so a self-recharging vacuum could be dismissed only
             # while it was already nagging (discussion #113).
-            "all": roster,
+            "all": _with_choices(ov.all),
             "needs_now": dict(ov.needs_now),
             "needs_soon": dict(ov.needs_soon),
             "types": ov.types,
@@ -286,7 +292,7 @@ async def ws_battery_fleet_set_ask_cells(
         # battery_plus entity_ids to mark; omit to mark ALL currently low.
         vol.Optional("entity_ids"): [vol.All(str, vol.Length(max=MAX_ENTITY_ID_LENGTH))],
         # D#213: {entity_id: cell type} — which cells went in (ask-cells on).
-        vol.Optional("cells"): {str: vol.All(str, vol.Length(max=64))},
+        vol.Optional("cells"): {str: vol.All(str, vol.Length(max=MAX_CELL_TYPE_LENGTH))},
     }
 )
 @require_write

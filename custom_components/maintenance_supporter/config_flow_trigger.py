@@ -970,6 +970,12 @@ class TriggerConfigMixin:
                 CONF_COMPOUND_LOGIC: logic,
                 CONF_COMPOUND_CONDITIONS: [],
             }
+            # How the trigger and the kept safety interval combine: no
+            # compound step asks, so the stored choice stays (an edit reset
+            # "both required" to "whichever first", audit 2026-10-17).
+            edited = (self._current_task.get("_edit_defaults") or {}).get("trigger_config") or {}
+            if CONF_TRIGGER_COMBINATOR in edited:
+                self._current_task["trigger_config"][CONF_TRIGGER_COMBINATOR] = edited[CONF_TRIGGER_COMBINATOR]
             _apply_recovery_flag(self._current_task["trigger_config"], user_input)
             if not hasattr(self, "_compound_conditions"):
                 self._compound_conditions: list[dict[str, Any]] = []
@@ -977,8 +983,10 @@ class TriggerConfigMixin:
             self._compound_logic = logic
             return await next_step()
 
+        # An edit shows the stored logic: always "AND", a saved OR flipped.
+        stored_logic = str(self._stored_trigger(TriggerType.COMPOUND).get(CONF_COMPOUND_LOGIC) or "and").lower()
         schema_dict: dict[Any, Any] = {
-            vol.Required(CONF_COMPOUND_LOGIC, default="and"): selector.SelectSelector(
+            vol.Required(CONF_COMPOUND_LOGIC, default=stored_logic if stored_logic in ("and", "or") else "and"): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=[
                         selector.SelectOptionDict(

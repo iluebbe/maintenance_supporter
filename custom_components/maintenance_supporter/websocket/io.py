@@ -14,6 +14,7 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
 from ..const import (
+    BATTERY_FLEET_ASK_CELLS,
     BATTERY_FLEET_DUE_WITHOUT_SENSOR,
     BATTERY_FLEET_EXCLUDED,
     BATTERY_FLEET_INCLUDED,
@@ -487,6 +488,8 @@ def _import_fleet_identity(
         import_obj[BATTERY_FLEET_TRACK_SELF_CHARGING] = True
     if obj_data.get(BATTERY_FLEET_DUE_WITHOUT_SENSOR) is False:
         import_obj[BATTERY_FLEET_DUE_WITHOUT_SENSOR] = False
+    if obj_data.get(BATTERY_FLEET_ASK_CELLS) is True:
+        import_obj[BATTERY_FLEET_ASK_CELLS] = True
     # Deleted type-parts stay deleted after a restore too — same id rule as
     # _keep_fleet_part_id, so nothing but ``batt_<type>`` ids get through.
     raw_removed = obj_data.get(BATTERY_FLEET_REMOVED_PARTS)

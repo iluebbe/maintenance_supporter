@@ -3606,6 +3606,21 @@ export class MaintenanceTaskDialog extends LitElement {
       background: var(--card-background-color);
       color: var(--primary-text-color);
     }
+    /* On a phone the name gets its own line: beside a part and its
+     * quantity it was squeezed to nothing (audit 2026-10-17). */
+    @media (max-width: 600px) {
+      .phase-def-head {
+        flex-wrap: wrap;
+      }
+      .phase-def-head ms-textfield {
+        flex-basis: 100%;
+      }
+      .phase-part {
+        flex: 1 1 0;
+        min-width: 0;
+        max-width: none;
+      }
+    }
     .phase-checklist {
       min-height: 56px;
       margin-top: 6px;

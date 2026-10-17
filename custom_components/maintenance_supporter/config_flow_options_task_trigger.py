@@ -240,11 +240,14 @@ class TriggerStepsMixin(TriggerConfigMixin):
         # task without one leaves its schedule alone: "sensor_based" written
         # here unconditionally turned a one-time task's due date — and any
         # weekly or monthly rule — into no schedule at all (bug audit
-        # 2026-10-16, G3).
+        # 2026-10-16, G3). The compound steps show no interval field: the
+        # task's own interval stays its safety interval (their finish read
+        # as a cleared field and removed it, audit 2026-10-17).
         shown = (self._current_task.get("_edit_defaults") or {}).get("interval_days")
+        compound = (self._current_task.get("trigger_config") or {}).get("type") == TriggerType.COMPOUND
         if CONF_TASK_SCHEDULE_TYPE in self._current_task and (CONF_TASK_INTERVAL_DAYS in self._current_task or shown):
             updated_task["schedule_type"] = self._current_task[CONF_TASK_SCHEDULE_TYPE]
-            if CONF_TASK_INTERVAL_DAYS not in self._current_task:
+            if CONF_TASK_INTERVAL_DAYS not in self._current_task and not compound:
                 updated_task["interval_days"] = None
         if CONF_TASK_INTERVAL_DAYS in self._current_task:
             updated_task["interval_days"] = int(self._current_task[CONF_TASK_INTERVAL_DAYS])

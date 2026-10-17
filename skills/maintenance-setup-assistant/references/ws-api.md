@@ -1131,7 +1131,9 @@ renamed entities, through the registry. `cells` (2.104+, D#213, with
 the row's `cell_choices` in `battery_fleet/overview`. The new cells leave
 their own part's stock; the ones taken out go on their part's *to charge*
 pile when they were rechargeable. A battery without a choice (or with one it
-cannot take) keeps the cells it holds.
+cannot take) keeps the cells it holds. Another choice for a battery already
+marked today corrects the first one: the cells booked go back to their
+stock, the chosen ones leave theirs.
 
 ### `battery_fleet/set_excluded` — `@require_write`
 `{entity_id (req), excluded (req, bool)}` → `{"success": true}`. Keeps a
@@ -1178,8 +1180,8 @@ OFF: *Replaced* asks which cells went in — the type Battery Notes names or
 any fleet part of the same size, disposable or rechargeable — books those
 and remembers them per battery (a backup carries them). Battery Notes keeps
 its type; the shopping needs and the forecast follow it. With the option
-on, `battery_fleet/overview` returns `ask_cells: true` and, on every roster
-row with two choices or more, `cell_choices: [{type, name, rechargeable}]`
+on, `battery_fleet/overview` returns `ask_cells: true` and, on every row
+(`low`, `soon`, `all`) with two choices or more, `cell_choices: [{type, name, rechargeable}]`
 and `cells_installed`. Fleet not set up → `not_configured`.
 
 ### `battery_fleet/record_replacement` — `@require_write` (#181, 2.87+)

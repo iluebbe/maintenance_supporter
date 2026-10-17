@@ -244,13 +244,21 @@ async def test_the_coordinator_never_ends_an_episode_without_a_reading(hass: Hom
 
 async def test_a_real_recovery_still_ends_the_episode(hass: HomeAssistant) -> None:
     """The counter sensor really went back (a device reset below the
-    baseline): that is a reading, and it still clears the task."""
+    baseline): that is a reading, and it still clears the task. One reading
+    under the baseline is not a reset yet (bug audit 2026-10-16, T5): the
+    refresh gives it no verdict (audit 2026-10-17); the next one still under
+    it confirms the reset and ends the episode."""
     obj = await _triggered_counter(hass)
+    coordinator = _coordinator(hass, obj)
     set_sensor_state(hass, SENSOR, "2")
     await hass.async_block_till_done()
-    await _coordinator(hass, obj).async_refresh()
+    await coordinator.async_refresh()
     await hass.async_block_till_done()
-    coordinator = _coordinator(hass, obj)
+    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    set_sensor_state(hass, SENSOR, "1")
+    await hass.async_block_till_done()
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
     assert coordinator.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is False
     assert coordinator._store.get_task_state(TASK_ID_1).get("trigger_cleared_at") is not None
 

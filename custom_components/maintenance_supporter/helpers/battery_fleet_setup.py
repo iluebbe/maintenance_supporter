@@ -401,6 +401,8 @@ async def async_mark_replaced(
     — which cells went in, one of :func:`cell_choices`. A battery without a
     choice keeps the cells it had; the cells taken out go on their own
     part's pile when they were rechargeable (:func:`_async_book_swaps`).
+    Another choice on the same day corrects the first one
+    (:func:`_async_correct_cells`).
     """
     by_eid = {b.entity_id: b for b in read_batteries(hass)}
     targets = entity_ids if entity_ids is not None else [e for e, b in by_eid.items() if b.low]
@@ -413,11 +415,13 @@ async def async_mark_replaced(
     ask = fleet_ask_cells(hass)
     fleet = find_fleet_entry(hass) if ask else None
     fleet_parts = (fleet.data.get(CONF_PARTS) or {}) if fleet is not None else {}
-    installed = _installed_cells(found) if ask else {}
+    installed = _installed_cells(found)
+    installed_before = dict(installed)
 
     pressed = 0
     pressed_ids: list[str] = []
     swaps: list[tuple[str, str, int]] = []
+    corrections: list[tuple[str, str, int]] = []
     for eid in targets:
         bat = by_eid.get(eid)
         if bat is None:
@@ -434,30 +438,48 @@ async def async_mark_replaced(
         await hass.services.async_call("button", "press", {"entity_id": button}, blocking=False)
         pressed += 1
         pressed_ids.append(eid)
+        choices = cell_choices(bat, fleet_parts) if ask else []
+        held = _held_type(bat, installed, choices)
+        chosen = (cells or {}).get(eid)
+        put_in = chosen if chosen in choices else held
         # Our own memory only: a date Battery Notes holds for today may come
         # from its own button, pressed on the device page — nothing consumed.
         if recorded.get(eid) == today:
+            # The same swap again, with other cells chosen: the first choice
+            # was a slip (it stayed remembered and booked, audit 2026-10-17).
+            if put_in is not None and held is not None and put_in != held:
+                corrections.append((held, put_in, bat.quantity))
+                installed[eid] = put_in
             continue
         recorded[eid] = today
-        out = fleet_part_type(bat.battery_type)
-        put_in = out
-        if ask:
-            out = installed.get(eid) or out
-            chosen = (cells or {}).get(eid)
-            put_in = chosen if chosen in cell_choices(bat, fleet_parts) else out
-            if put_in is not None:
-                installed[eid] = put_in
+        if ask and put_in is not None:
+            installed[eid] = put_in
+        else:
+            # The note's type went in: a memory from while the option was
+            # on would claim other cells once it is on again.
+            installed.pop(eid, None)
         if put_in is not None:
-            swaps.append((put_in, out or put_in, bat.quantity))
+            swaps.append((put_in, held or put_in, bat.quantity))
 
     # #180: a marked battery leaves the low latch now — the count must not
     # wait for Battery Notes to echo the new date (nor for the level).
     release_low_latch(hass, pressed_ids)
     _remember_recorded(found, recorded)
-    if ask:
+    if installed != installed_before:
         _remember_installed(found, installed)
     consumed = await _async_book_swaps(hass, swaps)
+    for pid, qty in (await _async_correct_cells(hass, corrections)).items():
+        consumed[pid] = consumed.get(pid, 0) + qty
     return {"marked": pressed, "pressed": pressed, "consumed": consumed}
+
+
+def _held_type(bat: Any, installed: dict[str, str], choices: list[str]) -> str | None:
+    """The cells ``bat`` holds: the ones chosen at the last Replaced (D#213)
+    while it can still take them, else the type its note names. A memory
+    outside ``choices`` (the part was deleted, the note now names another
+    size, the option is off) is not trusted."""
+    held = installed.get(bat.entity_id)
+    return held if held in choices else fleet_part_type(bat.battery_type)
 
 
 def cell_choices(bat: Any, parts: dict[str, Any]) -> list[str]:
@@ -500,7 +522,7 @@ def roster_cell_choices(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
                 }
                 for choice in choices
             ],
-            "cells_installed": installed.get(bat.entity_id) if installed.get(bat.entity_id) in choices else choices[0],
+            "cells_installed": _held_type(bat, installed, choices) or choices[0],
         }
     return out
 
@@ -538,6 +560,29 @@ async def _async_book_swaps(hass: HomeAssistant, swaps: list[tuple[str, str, int
         if out_part and out_part.get("reuse") and store.get_part_stock(out_pid) is not None:
             await async_change_part_stock(hass, fleet, out_pid, delta=0, restoring=store.get_part_restoring(out_pid) + qty)
     return consumed
+
+
+async def _async_correct_cells(hass: HomeAssistant, corrections: list[tuple[str, str, int]]) -> dict[str, int]:
+    """Correct today's swaps ``(cells booked, cells that went in, count)``
+    (D#213): the booked ones go back to their stock, the right ones leave
+    theirs. The cells taken out are the same either way, so their pile
+    stays as the first booking left it. Returns ``{part_id: qty}`` taken."""
+    fleet = find_fleet_entry(hass)
+    store = store_of(fleet) if fleet is not None else None
+    taken: dict[str, int] = {}
+    if not corrections or fleet is None or store is None:
+        return taken
+    from ..parts_runtime import async_change_part_stock
+
+    parts = fleet.data.get(CONF_PARTS) or {}
+    for booked, right, qty in corrections:
+        for part_type, delta in ((booked, qty), (right, -qty)):
+            pid = f"{FLEET_PART_PREFIX}{part_type.lower()}"
+            if pid in parts and store.get_part_stock(pid) is not None:
+                await async_change_part_stock(hass, fleet, pid, delta=delta)
+                if delta < 0:
+                    taken[pid] = taken.get(pid, 0) + qty
+    return taken
 
 
 async def async_consume_type_parts(hass: HomeAssistant, by_type: dict[str, int]) -> dict[str, int]:
@@ -585,6 +630,8 @@ def _recorded_replacements(hass: HomeAssistant) -> tuple[Any, dict[str, Any]]:
 # Store key on the fleet task's dynamic state: {entity_id: fleet part type}
 # — the cells each battery holds, once the fleet asks at Replaced (D#213).
 INSTALLED_CELLS_KEY = "battery_installed_cells"
+# The longest cell type taken (WS ``cells``, an import): fleet types are short.
+MAX_CELL_TYPE_LENGTH = 64
 
 
 def _installed_cells(found: Any) -> dict[str, str]:
@@ -607,7 +654,7 @@ def sanitize_installed_cells(raw: Any) -> dict[str, str]:
     for key, value in raw.items():
         if len(out) >= _RECORDED_CAP:
             break
-        if isinstance(key, str) and valid_entity_id(key) and isinstance(value, str) and 0 < len(value) <= 64:
+        if isinstance(key, str) and valid_entity_id(key) and isinstance(value, str) and 0 < len(value) <= MAX_CELL_TYPE_LENGTH:
             out[key] = value
     return out
 
@@ -674,8 +721,6 @@ async def async_record_replacement(hass: HomeAssistant, entity_id: str, replaced
         raise HomeAssistantError("not_available")
 
     day = (dt_util.as_local(parsed) if parsed.tzinfo is not None else parsed).date().isoformat()
-    found, recorded = _recorded_replacements(hass)
-    already = _replaced_on(recorded, bat, day)
 
     await hass.services.async_call(
         "battery_notes",
@@ -685,13 +730,24 @@ async def async_record_replacement(hass: HomeAssistant, entity_id: str, replaced
     )
     release_low_latch(hass, [entity_id])
 
+    # Read and written with no await between: the memory was written after
+    # the consumption, so the automatic record and a click on the chip for
+    # the same swap both took the cells (audit 2026-10-17).
+    found, recorded = _recorded_replacements(hass)
+    already = _replaced_on(recorded, bat, day)
     consumed: dict[str, int] = {}
     if not already:
-        # The cells it holds (D#213: the ones chosen at the last Replaced).
-        part_type = (_installed_cells(found).get(entity_id) if fleet_ask_cells(hass) else None) or fleet_part_type(bat.battery_type)
-        consumed = await async_consume_type_parts(hass, {part_type: bat.quantity} if part_type else {})
         recorded[entity_id] = day
         _remember_recorded(found, recorded)
+        # The cells it holds (D#213: the ones chosen at the last Replaced).
+        ask = fleet_ask_cells(hass)
+        fleet = find_fleet_entry(hass) if ask else None
+        installed = _installed_cells(found)
+        part_type = _held_type(bat, installed, cell_choices(bat, fleet.data.get(CONF_PARTS) or {}) if fleet is not None else [])
+        if not ask and installed.pop(entity_id, None) is not None:
+            # The note's type is booked (see async_mark_replaced).
+            _remember_installed(found, installed)
+        consumed = await async_consume_type_parts(hass, {part_type: bat.quantity} if part_type else {})
     return {"recorded": True, "already_recorded": already, "consumed": consumed}
 
 

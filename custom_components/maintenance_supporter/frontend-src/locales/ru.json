@@ -298,7 +298,6 @@
   "no_tasks_yet": "Пока нет задач",
   "add_first_task": "Добавить первую задачу",
   "last_performed_optional": "Последнее выполнение (опционально)",
-  "trigger_configuration": "Настройка триггера",
   "entity_id": "ID сущности",
   "comma_separated": "через запятую",
   "entity_logic": "Логика сущностей",

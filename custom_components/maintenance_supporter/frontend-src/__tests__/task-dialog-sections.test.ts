@@ -10,6 +10,7 @@
  */
 
 import { expect, fixture, html } from "@open-wc/testing";
+import { setViewport } from "@web/test-runner-commands";
 import "../components/task-dialog.js";
 import type { MaintenanceTaskDialog } from "../components/task-dialog";
 import { createMockHass } from "./_test-utils.js";
@@ -71,5 +72,29 @@ describe("task dialog sections (#216)", () => {
     expect((root.querySelector(".phases-section") as HTMLDetailsElement).open).to.equal(false);
     const withPhases = await open({ schedule_type: "time_based", interval_days: 30, phases: { p1: { name: "Flip" } }, phase_sequence: ["p1"] });
     expect((withPhases.querySelector(".phases-section") as HTMLDetailsElement).open).to.equal(true);
+  });
+
+  it("a phase with a part keeps its name readable on a phone", async () => {
+    // Beside the part and its quantity the name field was squeezed to
+    // nothing at 360 px (audit 2026-10-17): it gets its own line there.
+    await setViewport({ width: 360, height: 740 });
+    try {
+      const { hass } = createMockHass({
+        handlers: { "maintenance_supporter/object": () => ({ parts: [{ id: "p1", name: "Water filter cartridge" }] }) },
+      });
+      const el = await fixture<MaintenanceTaskDialog>(html`<maintenance-task-dialog .hass=${hass}></maintenance-task-dialog>`);
+      await el.openEdit("e1", {
+        id: "t1", name: "Filter", type: "custom", warning_days: 7, enabled: true, schedule_type: "time_based", interval_days: 30,
+        phases: { p1: { name: "Flip", consumes_parts: [{ part_id: "p1", quantity: 2 }] } }, phase_sequence: ["p1"],
+      } as never);
+      await new Promise((r) => setTimeout(r, 0));
+      await el.updateComplete;
+      const root = el.shadowRoot!;
+      expect(root.querySelector(".phase-def-head .phase-qty"), "the part and its quantity are shown").to.exist;
+      const name = root.querySelector<HTMLElement>(".phase-def-head ms-textfield")!;
+      expect(name.getBoundingClientRect().width).to.be.closeTo(name.parentElement!.getBoundingClientRect().width, 1);
+    } finally {
+      await setViewport({ width: 800, height: 600 });
+    }
   });
 });

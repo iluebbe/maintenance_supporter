@@ -1164,6 +1164,29 @@ async def get_user_notify_services(hass: HomeAssistant, user_id: str) -> list[st
     return services
 
 
+def _companion_phones(hass: HomeAssistant, service: str, depth: int = 0) -> list[str]:
+    """The Companion phones (``notify.mobile_app_*``) behind ``service``: the
+    service itself when it is one, else the phones among the members of a
+    notify group (nested ones too). Home Assistant's group platform keeps
+    the members on its service object; when that cannot be read, none."""
+    domain, _, name = service.partition(".")
+    if domain != "notify" or not name:
+        return []
+    if name.startswith("mobile_app_"):
+        return [service] if hass.services.has_service(domain, name) else []
+    if depth >= 3:
+        return []
+    members: list[str] = []
+    try:
+        for platform in (hass.data.get("notify_services") or {}).get("group") or []:
+            if getattr(platform, "_service_name", None) == name:
+                members = [str(m.get("action") or m.get("service")) for m in getattr(platform, "entities", None) or [] if isinstance(m, dict)]
+                break
+    except Exception:  # noqa: BLE001 - another core's internals: no members, no dismissal
+        _LOGGER.debug("Notify group %s unreadable", service, exc_info=True)
+    return [phone for member in members for phone in _companion_phones(hass, f"notify.{member}", depth + 1)]
+
+
 async def async_dispatch_notify(
     hass: HomeAssistant,
     target: str,
@@ -2625,7 +2648,10 @@ class NotificationManager:
         Only a Companion phone (``notify.mobile_app_*``) understands the
         command: a household service that is a notify group, Telegram or a
         persistent notification posted the literal text "clear_notification"
-        (bug audit 2026-10-16, N2).
+        (bug audit 2026-10-16, N2). A notify group is cleared on the phones
+        among its members (:func:`_companion_phones`) — sent to the group
+        itself it reached Telegram too, skipped it left the reminder on
+        every phone of a ``notify.family`` (audit 2026-10-17).
         """
         services = [self.notify_service]
         try:
@@ -2633,10 +2659,9 @@ class NotificationManager:
         except Exception:  # noqa: BLE001 - a lookup failure must not keep the action from finishing
             _LOGGER.debug("User notify services unavailable for %s", user_ids, exc_info=True)
         tag = task_tag(task_id)
-        for service in dict.fromkeys(s for s in services if s):
+        phones = [phone for s in services if s for phone in _companion_phones(self.hass, s)]
+        for service in dict.fromkeys(phones):
             domain, _, name = service.partition(".")
-            if domain != "notify" or not name.startswith("mobile_app_") or not self.hass.services.has_service(domain, name):
-                continue
             try:
                 await self.hass.services.async_call(
                     domain,

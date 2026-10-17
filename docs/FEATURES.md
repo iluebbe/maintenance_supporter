@@ -612,8 +612,9 @@ type in Battery Notes (`AAA NiMH` next to `AAA`), or switches on **Ask which
 cells went in** in the roster (2.104+, D#213): *Replaced* then asks whether
 disposable or rechargeable cells of the device's size went in, books those
 (the ones taken out go on the *to charge* pile when they were rechargeable)
-and remembers them for the device. Battery Notes keeps its type; the
-shopping list and the forecast follow it. A native battery that was low
+and remembers them for the device; choosing again the same day corrects the
+first choice. Battery Notes keeps its type; the shopping list and the
+forecast follow it. A native battery that was low
 and then goes **unavailable** (a dead battery takes its device offline)
 stays listed for up to 48 hours instead of vanishing at the exact moment it
 needs replacing.

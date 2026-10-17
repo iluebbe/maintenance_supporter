@@ -257,6 +257,14 @@ def evaluate_counter(
         last_value = value
         if delta_mode:
             baseline = counter_baseline(trigger_config, eid)
+            if baseline is not None and value < baseline:
+                # A reading under the baseline is a glitch or a reset the
+                # live trigger has not confirmed yet (it keeps its state,
+                # counter._evaluate_drop): no verdict. Read as "not reached"
+                # it ended the episode the trigger held, and a confirmed
+                # reset then found nothing to recover from (audit 2026-10-17).
+                per_entity.append(None)
+                continue
             per_entity.append(baseline is not None and (value - baseline) >= target)
         else:
             per_entity.append(value >= target)

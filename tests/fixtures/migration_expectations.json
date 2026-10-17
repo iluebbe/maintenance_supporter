@@ -12,6 +12,7 @@
     "trigger_runtime_legacy",
     "battery_replacements",
     "battery_low_latch",
+    "battery_installed_cells",
     "restoring"
   ],
   "runtime_only_state": {
