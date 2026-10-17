@@ -42,6 +42,31 @@ _ENTRY_SCOPED_PREFIXES = (
 )
 
 
+@callback
+def async_purge_unnamed_entity_issues(
+    hass: HomeAssistant, entry_id: str, task_id: str, *, trigger_entities: set[str], action_entities: set[str]
+) -> int:
+    """Delete a task's missing-trigger and stale-action issues about entities
+    the task no longer names. An edit in the panel moved the trigger or the
+    action to another entity, and the old issue stayed — its fix flow then
+    replaced or removed what was working (bug audit 2026-10-16, N3).
+    Returns how many issues went."""
+    doomed: list[str] = []
+    for (domain, issue_id), issue in ir.async_get(hass).issues.items():
+        if domain != DOMAIN:
+            continue
+        data = issue.data or {}
+        if data.get("entry_id") != entry_id or data.get("task_id") != task_id:
+            continue
+        if issue_id.startswith(MISSING_TRIGGER_PREFIX) and data.get("entity_id") not in trigger_entities:
+            doomed.append(issue_id)
+        elif issue_id.startswith(STALE_ACTION_PREFIX) and data.get("stale_entity") not in action_entities:
+            doomed.append(issue_id)
+    for issue_id in doomed:
+        ir.async_delete_issue(hass, DOMAIN, issue_id)
+    return len(doomed)
+
+
 def missing_trigger_issue_id(entry_id: str, task_id: str, entity_id: str) -> str:
     """A task's trigger entity has been missing for a while."""
     return f"{MISSING_TRIGGER_PREFIX}{entry_id}_{task_id}_{entity_id}"

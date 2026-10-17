@@ -1809,6 +1809,20 @@
         "purchase": "Vásárláskor",
         "use": "Felhasználáskor"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "Körforgás",
+        "least_completed": "Legkevesebbet végezte",
+        "random": "Véletlenszerű"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Alacsony",
+        "normal": "Normál",
+        "high": "Magas"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "Érzékelős kiváltó eltávolítása",
             "description": "Ez eltávolítja az érzékelős kiváltót a(z) \"{object_name}\" objektum \"{task_name}\" feladatáról, és az ütemezést időalapúra vagy kézire alakítja. A karbantartási előzmények megmaradnak.\n\nKorábbi kiváltó entitás: `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "Ez a feladat már nem létezik — nincs mit javítani.",
+          "already_fixed": "Az eseményindító már nem használja ezt az entitást — nincs mit javítani."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "Árva felhasználó a panel-hozzáférési listában",
             "description": "A(z) `{user_id}…` felhasználó szerepel a Maintenance Supporter panel-hozzáférési listájában, de már nem létezik a Home Assistantban. Valószínűleg törölték a felhasználót.\n\nKattintson a **Küldés** gombra a felhasználó eltávolításához a listából. (Ha inkább békén hagyná a problémát, használja a Home Assistant **Mellőzés** gombját a Javítások oldalon.)"
           }
+        },
+        "abort": {
+          "entry_gone": "Az integráció beállításai már nem léteznek — nincs mit javítani."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "Elvégzési művelet eltávolítása",
             "description": "Az `on_complete_action` teljes törlése a(z) **{task_name}** feladatról. Magát a feladatot nem érinti — csak az elvégzéskori szolgáltatáshívás kerül eltávolításra."
           }
+        },
+        "abort": {
+          "entry_gone": "Ez az objektum már nem létezik — nincs mit javítani.",
+          "task_deleted": "Ez a feladat már nem létezik — nincs mit javítani.",
+          "already_fixed": "A befejezéskor futó művelet már nem használja ezt az entitást — nincs mit javítani.",
+          "no_entity": "Nem választott entitást — semmi sem változott."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "Nincs Home Assistant URL beállítva — adjon meg külső vagy belső URL-t a Beállítások → Rendszer → Hálózat alatt."
+    },
+    "postpone_in_past": {
+      "message": "Az új dátum nem lehet a múltban."
+    },
+    "postpone_done": {
+      "message": "„{task_name}” kész — nincs mit elhalasztani."
     }
   },
   "triggers": {

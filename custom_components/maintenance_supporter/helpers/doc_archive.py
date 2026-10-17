@@ -576,10 +576,12 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes | IO[bytes])
         # 2) Re-attach metadata to the matching object (id, then name).
         ids, by_name = _object_name_map(hass)
         claimed: set[str] = set()
+        unmatched: list[str] = []
         for obj, docs in manifest_objects:
             target = _match_object(obj, ids, by_name, claimed)
             if target is None:
                 _LOGGER.info("Documents archive: no object matches %r, its docs skipped", obj.get("object_name"))
+                unmatched.append(str(obj.get("object_name") or obj.get("object_id") or "?"))
                 continue
             claimed.add(target)
             objects_matched += 1
@@ -611,4 +613,10 @@ async def import_documents_archive(hass: HomeAssistant, data: bytes | IO[bytes])
     }
     if files_missing:
         result["files_missing"] = files_missing
+    # The files of an object that matched nothing here stay on disk: a JSON
+    # import run after this restore still attaches them, and the storage
+    # repair reclaims them otherwise. The result used to read as a plain
+    # success all the same (bug audit 2026-10-16, F10): the objects are named.
+    if unmatched:
+        result["objects_unmatched"] = unmatched
     return result

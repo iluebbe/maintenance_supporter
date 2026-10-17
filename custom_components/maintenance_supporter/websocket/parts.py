@@ -165,6 +165,13 @@ async def ws_update_part(
     else:
         # Threshold/opt-in edits can change the desired buy-task set.
         schedule_buy_task_reconcile(hass, entry)
+    # The stock sensor repaints its name and attributes: without a stock
+    # change nothing told it the part was renamed (bug audit 2026-10-16).
+    from homeassistant.helpers.dispatcher import async_dispatcher_send
+
+    from ..parts_runtime import SIGNAL_PARTS_UPDATED
+
+    async_dispatcher_send(hass, SIGNAL_PARTS_UPDATED, entry.entry_id)
     connection.send_result(msg["id"], {"success": True})
 
 

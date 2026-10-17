@@ -1809,6 +1809,20 @@
         "purchase": "Beim Kauf",
         "use": "Beim Verbrauch"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "Reihum",
+        "least_completed": "Am wenigsten erledigt",
+        "random": "Zufällig"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Niedrig",
+        "normal": "Normal",
+        "high": "Hoch"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "Sensor-Trigger entfernen",
             "description": "Dies entfernt den Sensor-Trigger von Aufgabe \"{task_name}\" an \"{object_name}\" und konvertiert den Zeitplan zu zeitbasiert oder manuell. Die Wartungshistorie bleibt erhalten.\n\nBisherige Trigger-Entität: `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "Diese Aufgabe gibt es nicht mehr — nichts zu reparieren.",
+          "already_fixed": "Der Auslöser verwendet diese Entität nicht mehr — nichts zu reparieren."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "Verwaister User in Panel-Zugriffsliste",
             "description": "User `{user_id}…` ist in der Panel-Zugriffsliste, existiert aber nicht mehr in Home Assistant. Wahrscheinlich wurde der User gelöscht.\n\nKlicke **Senden** um den User aus der Liste zu entfernen. (Soll das Issue offen bleiben: nutze stattdessen den **Ignorieren**-Button auf der Repairs-Seite von Home Assistant.)"
           }
+        },
+        "abort": {
+          "entry_gone": "Die Einstellungen der Integration gibt es nicht mehr — nichts zu reparieren."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "Completion-Action entfernen",
             "description": "Entferne die `on_complete_action` von Aufgabe **{task_name}** vollständig. Die Aufgabe selbst bleibt unverändert — nur der Service-Call beim Abschluss wird entfernt."
           }
+        },
+        "abort": {
+          "entry_gone": "Dieses Objekt existiert nicht mehr — nichts zu reparieren.",
+          "task_deleted": "Diese Aufgabe gibt es nicht mehr — nichts zu reparieren.",
+          "already_fixed": "Die Aktion nach dem Erledigen verwendet diese Entität nicht mehr — nichts zu reparieren.",
+          "no_entity": "Es wurde keine Entität gewählt — nichts wurde geändert."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "Keine Home-Assistant-URL konfiguriert — bitte unter Einstellungen → System → Netzwerk eine externe oder interne URL setzen."
+    },
+    "postpone_in_past": {
+      "message": "Das neue Datum darf nicht in der Vergangenheit liegen."
+    },
+    "postpone_done": {
+      "message": "„{task_name}“ ist erledigt — es gibt nichts mehr zu verschieben."
     }
   },
   "triggers": {

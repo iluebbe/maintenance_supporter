@@ -64,10 +64,15 @@ def _content_disposition(filename: str, *, inline: bool = True) -> str:
 
 
 def _get_store(hass: HomeAssistant) -> docmod.DocumentStore:
-    """Return the loaded document store (an async_setup invariant)."""
+    """Return the loaded document store. The views outlive the integration
+    (Home Assistant cannot unregister them): after its last entry went, a
+    document link answered with a KeyError 500 (bug audit 2026-10-16) —
+    now a 404."""
     from . import DOCUMENT_STORE_KEY
 
-    store: docmod.DocumentStore = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
+    store: docmod.DocumentStore | None = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    if store is None:
+        raise web.HTTPNotFound
     return store
 
 

@@ -400,6 +400,8 @@ _BACKEND_VALUE_OK: dict[str, frozenset[str] | str] = {
     "Manual": frozenset({"da", "es", "pt", "pt-BR", "sv"}),
     "Model": frozenset({"cs", "da", "nl", "pl", "tr"}),
     "Name": frozenset({"de"}),
+    # The task priority selector (2026-10-16, G9) — the panel's priority_normal.
+    "Normal": frozenset({"da", "de", "es", "nb", "pt", "pt-BR", "sv", "tr"}),
     "Notes": frozenset({"fr"}),
     "Object": frozenset({"nl"}),
     "Orange": frozenset({"da", "de", "fr", "sv"}),

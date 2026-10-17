@@ -20,6 +20,7 @@ import io
 import logging
 import math
 import os
+import re
 from collections.abc import Callable
 from pathlib import Path
 from typing import IO, TYPE_CHECKING, Any
@@ -36,6 +37,7 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MAX_DOCS_PER_OBJECT,
+    MAX_NAME_LENGTH,
     MAX_TEXT_LENGTH,
     SIGNAL_DOCUMENTS_UPDATED,
 )
@@ -199,6 +201,15 @@ async def async_forget_doc_ids(hass: HomeAssistant, doc_ids: set[str]) -> int:
     if not doc_ids:
         return 0
     return await async_rewrite_doc_refs(hass, lambda old: None if old in doc_ids else old)
+
+
+# type/subtype — what a served file's Content-Type may be.
+_MIME_RE = re.compile(r"[A-Za-z0-9][\w.+-]{0,63}/[A-Za-z0-9][\w.+-]{0,127}")
+
+
+def _text_or_none(raw: Any, limit: int) -> str | None:
+    """A non-empty imported text, capped; ``None`` for anything else."""
+    return raw.strip()[:limit] or None if isinstance(raw, str) else None
 
 
 def _safe_size(raw: Any) -> int:
@@ -593,7 +604,11 @@ class DocumentStore:
     ) -> int:
         """Recreate ONE exported document record; returns 1 if created, else 0."""
         tags = [x for x in (meta.get("tags") or []) if isinstance(x, str)]
-        title = meta.get("title")
+        # Text where text belongs: a number as title or file name broke the
+        # panel's list, and a list as MIME type the file view (a 500) — the
+        # record was stored as it came (bug audit 2026-10-16, F8).
+        title = _text_or_none(meta.get("title"), MAX_NAME_LENGTH)
+        filename = _text_or_none(meta.get("filename"), MAX_NAME_LENGTH)
         pages = remap_pages(meta)
         if meta.get("kind") == KIND_WEBLINK:
             url = meta.get("url")
@@ -623,7 +638,8 @@ class DocumentStore:
             if not isinstance(digest, str) or len(digest) != 64 or not all(c in "0123456789abcdef" for c in digest):
                 return 0
             size = _safe_size(meta.get("size"))
-            mime = meta.get("mime") or "application/octet-stream"
+            raw_mime = meta.get("mime")
+            mime = raw_mime if isinstance(raw_mime, str) and _MIME_RE.fullmatch(raw_mime) else "application/octet-stream"
             blob = self.blobs.get(digest)
             if blob is None:
                 blob = {"size": size, "mime": mime, "refcount": 0}
@@ -635,8 +651,8 @@ class DocumentStore:
                 "object_id": object_id,
                 "kind": KIND_FILE,
                 "hash": digest,
-                "title": title or meta.get("filename") or "document",
-                "filename": meta.get("filename") or "document",
+                "title": title or filename or "document",
+                "filename": filename or "document",
                 "mime": mime,
                 "size": size,
                 "tags": tags,

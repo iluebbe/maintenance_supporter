@@ -246,8 +246,10 @@ def stash_task_config_for_readopt(hass: HomeAssistant, task: dict[str, Any]) -> 
     hass.config_entries.async_update_entry(entry, options=options)
 
 
-def pop_stashed_config(hass: HomeAssistant, entity_id: str) -> dict[str, Any] | None:
-    """Consume (return + remove) the stashed config for ``entity_id``, if any.
+def pop_stashed_config(hass: HomeAssistant, entity_id: str, *, consume: bool = True) -> dict[str, Any] | None:
+    """Consume (return + remove) the stashed config for ``entity_id``, if any;
+    ``consume=False`` only reads it — the adopt path removes it once the task
+    is saved (it was gone already when the save failed, bug audit 2026-10-16).
 
     Pre-v2.37 stashes stored the notes string bare — normalized here to the
     dict shape so the adopt path has a single format to apply.
@@ -262,8 +264,9 @@ def pop_stashed_config(hass: HomeAssistant, entity_id: str) -> dict[str, Any] | 
     stored = stash.pop(entity_id, None)
     if stored is None:
         return None
-    options[CONF_ADOPTED_NOTES] = stash
-    hass.config_entries.async_update_entry(entry, options=options)
+    if consume:
+        options[CONF_ADOPTED_NOTES] = stash
+        hass.config_entries.async_update_entry(entry, options=options)
     if isinstance(stored, str):
         return {"notes": stored} if stored.strip() else None
     if isinstance(stored, dict):

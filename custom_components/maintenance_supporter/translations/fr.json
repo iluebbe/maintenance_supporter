@@ -1809,6 +1809,20 @@
         "purchase": "À l'achat",
         "use": "À l'utilisation"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "À tour de rôle",
+        "least_completed": "Le moins de complétions",
+        "random": "Aléatoire"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Basse",
+        "normal": "Normale",
+        "high": "Haute"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "Supprimer le déclencheur capteur",
             "description": "Cela supprimera le déclencheur capteur de la tâche « {task_name} » sur « {object_name} » et convertira la planification en temporelle ou manuelle. L'historique de maintenance sera conservé.\n\nEntité déclencheur précédente : `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "Cette tâche n’existe plus — rien à réparer.",
+          "already_fixed": "Le déclencheur n’utilise plus cette entité — rien à réparer."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "Utilisateur orphelin dans la liste d'accès",
             "description": "L'utilisateur `{user_id}…` est dans la liste d'accès au panneau Maintenance Supporter mais n'existe plus dans Home Assistant. L'utilisateur a probablement été supprimé.\n\nCliquez sur **Envoyer** pour retirer cet utilisateur de la liste. (Pour laisser le problème en place, utilisez plutôt le bouton **Ignorer** sur la page Réparations de Home Assistant.)"
           }
+        },
+        "abort": {
+          "entry_gone": "Les paramètres de l’intégration n’existent plus — rien à réparer."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "Supprimer l'action de finalisation",
             "description": "Supprime entièrement la `on_complete_action` de la tâche **{task_name}**. La tâche elle-même n'est pas affectée — seul l'appel de service à la finalisation est supprimé."
           }
+        },
+        "abort": {
+          "entry_gone": "Cet objet n'existe plus — rien à réparer.",
+          "task_deleted": "Cette tâche n’existe plus — rien à réparer.",
+          "already_fixed": "L’action à l’achèvement n’utilise plus cette entité — rien à réparer.",
+          "no_entity": "Aucune entité n’a été choisie — rien n’a été modifié."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "Aucune URL Home Assistant n'est configurée — définissez une URL externe ou interne dans Paramètres → Système → Réseau."
+    },
+    "postpone_in_past": {
+      "message": "La nouvelle date ne peut pas être dans le passé."
+    },
+    "postpone_done": {
+      "message": "« {task_name} » est terminée — il n’y a plus rien à reporter."
     }
   },
   "triggers": {

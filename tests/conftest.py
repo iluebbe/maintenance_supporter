@@ -281,13 +281,15 @@ def make_object_entry(
     unique_id: str | None = None,
     minor_version: int = 1,
     extra_data: dict[str, Any] | None = None,
+    entry_id: str | None = None,
 ) -> MockConfigEntry:
     """Build + register a maintenance-object config entry.
 
     ``name`` is both the object name and (unless ``title`` is given) the entry title;
     ``object_id`` is forwarded to build_object_data() when no ``object_data`` is passed.
     ``unique_id`` overrides the ``maintenance_supporter_{uid}`` convention verbatim.
-    ``extra_data`` is merged into the entry data (e.g. ``CONF_PARTS``). Pass
+    ``extra_data`` is merged into the entry data (e.g. ``CONF_PARTS``). ``entry_id``
+    fixes the entry's id (a test naming its tasks by entry id). Pass
     ``hass=None`` to build the entry WITHOUT registering it.
     """
     od = object_data or build_object_data(name=name, object_id=object_id)
@@ -302,6 +304,7 @@ def make_object_entry(
         data=data,
         source="user",
         unique_id=f"maintenance_supporter_{uid}" if unique_id is None else unique_id,
+        **({"entry_id": entry_id} if entry_id else {}),
     )
     if hass is not None:
         entry.add_to_hass(hass)

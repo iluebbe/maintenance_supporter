@@ -199,6 +199,12 @@ class SensorPredictor:
             return None
 
         attribute = trigger_config.get("attribute")
+        # The recorder's statistics are the entity's STATE: a trigger on an
+        # attribute (a vacuum's battery_level beside its "docked" state) was
+        # predicted from a series it does not watch (bug audit 2026-10-16,
+        # T8). No series of the attribute exists — no prediction.
+        if attribute and attribute != "_state":
+            return None
 
         # 1. Degradation rate. Consumption/accumulation sensors are sawtooths
         #    (drift toward the threshold, jump back on service) — when the

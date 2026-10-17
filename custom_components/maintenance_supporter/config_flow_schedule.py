@@ -28,6 +28,7 @@ from .config_flow_helpers import (
     interval_anchor_selector,
     interval_unit_selector,
     is_future_date,
+    own_calendar_entity_ids,
     schedule_from_calendar_input,
 )
 from .const import (
@@ -286,7 +287,7 @@ class ScheduleStepsMixin:
                     write_anchor(self._current_task, str(user_input["last_performed"]))
                 return await _resolve(on_complete())
 
-        schema = calendar_schema(kind).extend(
+        schema = calendar_schema(kind, exclude=own_calendar_entity_ids(self.hass)).extend(
             {
                 vol.Optional("last_performed"): selector.DateSelector(),
                 **_warning_days_field(self.hass),

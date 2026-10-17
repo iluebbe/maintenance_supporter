@@ -131,6 +131,7 @@ export class MaintenanceSupporterCard extends LitElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
+    this._subGen++;
     if (this._unsub) {
       this._unsub();
       this._unsub = null;
@@ -348,7 +349,13 @@ export class MaintenanceSupporterCard extends LitElement {
     }
   }
 
+  /** Each subscribe attempt's number: one still in flight when the element
+   *  was detached and attached again resolved next to the new one, and its
+   *  subscription was never released (bug audit 2026-10-16, FE-7). */
+  private _subGen = 0;
+
   private async _subscribe(): Promise<void> {
+    const gen = ++this._subGen;
     try {
       const unsub = await this.hass.connection.subscribeMessage(
         (msg: unknown) => {
@@ -363,7 +370,7 @@ export class MaintenanceSupporterCard extends LitElement {
         { type: "maintenance_supporter/subscribe", deltas: true, compact: true }
       );
       // Detached mid-subscribe → drop the orphaned subscription.
-      if (!this.isConnected) {
+      if (!this.isConnected || gen !== this._subGen) {
         unsub();
         return;
       }

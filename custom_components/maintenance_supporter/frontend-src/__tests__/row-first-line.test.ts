@@ -13,6 +13,7 @@
 import { expect, waitUntil } from "@open-wc/testing";
 import { setViewport } from "@web/test-runner-commands";
 import type { StatisticsPoint } from "../types";
+import { miniSeriesKey } from "../helpers/trigger-entities.js";
 import { DEFAULT_SETTINGS_RESPONSE } from "./_test-utils.js";
 import { mountPanel, obj, resetTaskSeq, task } from "./_panel-utils.js";
 
@@ -68,7 +69,7 @@ async function mountWide(): Promise<{ el: PanelEl; sr: ShadowRoot }> {
   const el = r.el as PanelEl;
   const now = Date.now();
   el._miniStatsData = new Map([
-    ["sensor.spark", [30, 45, 54].map((val, i) => ({ ts: now - (3 - i) * DAY, val })) as StatisticsPoint[]],
+    [miniSeriesKey("sensor.spark", false), [30, 45, 54].map((val, i) => ({ ts: now - (3 - i) * DAY, val })) as StatisticsPoint[]],
   ]);
   el.requestUpdate();
   await new Promise((res) => setTimeout(res, 80));
@@ -218,7 +219,7 @@ describe("the virtual table with rows of different heights", () => {
     const el = r.el as PanelEl;
     const now = Date.now();
     el._miniStatsData = new Map([
-      ["sensor.spark", [30, 45, 54].map((val, i) => ({ ts: now - (3 - i) * DAY, val })) as StatisticsPoint[]],
+      [miniSeriesKey("sensor.spark", false), [30, 45, 54].map((val, i) => ({ ts: now - (3 - i) * DAY, val })) as StatisticsPoint[]],
     ]);
     el.requestUpdate();
     await el.updateComplete;

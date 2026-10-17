@@ -1809,6 +1809,20 @@
         "purchase": "Při nákupu",
         "use": "Při spotřebě"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "Postupně",
+        "least_completed": "Nejméně dokončení",
+        "random": "Náhodná"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Nízká",
+        "normal": "Normální",
+        "high": "Vysoká"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "Odstranit spoušť senzoru",
             "description": "To odstraní spoušť senzoru z úkolu „{task_name}“ na „{object_name}“ a převede harmonogram na časový nebo ruční. Historie údržby zůstane zachována.\n\nPředchozí spouštěcí entita: `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "Tento úkol už neexistuje — není co opravovat.",
+          "already_fixed": "Spouštěč tuto entitu už nepoužívá — není co opravovat."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "Osiřelý uživatel v seznamu přístupu k panelu",
             "description": "Uživatel `{user_id}…` je v seznamu přístupu k panelu Maintenance Supporter, ale již neexistuje v Home Assistant. Pravděpodobně byl uživatel smazán.\n\nKlikněte na **Odeslat** pro odstranění tohoto uživatele ze seznamu. (Pro ignorování problému použijte tlačítko **Ignorovat** Home Assistant na stránce Opravy.)"
           }
+        },
+        "abort": {
+          "entry_gone": "Nastavení integrace už neexistuje — není co opravovat."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "Odstranit akci po dokončení",
             "description": "Vyčistit `on_complete_action` z úkolu **{task_name}** úplně. Samotný úkol zůstane nedotčen — odstraňuje se pouze volání služby po dokončení."
           }
+        },
+        "abort": {
+          "entry_gone": "Tento objekt už neexistuje — není co opravovat.",
+          "task_deleted": "Tento úkol už neexistuje — není co opravovat.",
+          "already_fixed": "Akce po dokončení tuto entitu už nepoužívá — není co opravovat.",
+          "no_entity": "Nebyla vybrána žádná entita — nic se nezměnilo."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "Není nastavena adresa URL Home Assistantu — nastavte externí nebo interní URL v Nastavení → Systém → Síť."
+    },
+    "postpone_in_past": {
+      "message": "Nové datum nesmí být v minulosti."
+    },
+    "postpone_done": {
+      "message": "„{task_name}“ je hotovo — není co odložit."
     }
   },
   "triggers": {

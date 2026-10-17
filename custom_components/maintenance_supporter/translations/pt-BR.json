@@ -1809,6 +1809,20 @@
         "purchase": "Na compra",
         "use": "No uso"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "Revezamento",
+        "least_completed": "Quem concluiu menos",
+        "random": "Aleatório"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Baixa",
+        "normal": "Normal",
+        "high": "Alta"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "Remover gatilho do sensor",
             "description": "Isso removerá o gatilho do sensor da tarefa \"{task_name}\" em \"{object_name}\" e converterá o agendamento para baseado em tempo ou manual. O histórico de manutenção será preservado.\n\nEntidade de gatilho anterior: `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "Esta tarefa não existe mais — nada para reparar.",
+          "already_fixed": "O gatilho não usa mais esta entidade — nada para reparar."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "Usuário órfão na lista de acesso ao painel",
             "description": "O usuário `{user_id}…` está na lista de acesso ao painel do Maintenance Supporter, mas não existe mais no Home Assistant. Provavelmente o usuário foi excluído.\n\nClique em **Enviar** para remover este usuário da lista. (Para deixar o problema como está, use o botão **Ignorar** do Home Assistant na página de Reparos.)"
           }
+        },
+        "abort": {
+          "entry_gone": "As configurações da integração não existem mais — nada para reparar."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "Remover ação de conclusão",
             "description": "Remove completamente a `on_complete_action` da tarefa **{task_name}**. A tarefa em si não é afetada — apenas a chamada de serviço na conclusão é removida."
           }
+        },
+        "abort": {
+          "entry_gone": "Este objeto não existe mais — nada a reparar.",
+          "task_deleted": "Esta tarefa não existe mais — nada para reparar.",
+          "already_fixed": "A ação ao concluir não usa mais esta entidade — nada para reparar.",
+          "no_entity": "Nenhuma entidade foi escolhida — nada foi alterado."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "Nenhuma URL do Home Assistant configurada — defina uma URL externa ou interna em Configurações → Sistema → Rede."
+    },
+    "postpone_in_past": {
+      "message": "A nova data não pode estar no passado."
+    },
+    "postpone_done": {
+      "message": "“{task_name}” está concluída — não há nada para adiar."
     }
   },
   "triggers": {

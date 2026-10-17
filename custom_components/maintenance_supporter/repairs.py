@@ -16,6 +16,7 @@ from typing import Any, cast
 import voluptuous as vol
 from homeassistant.components.repairs import RepairsFlow, RepairsFlowResult
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers import selector
 
 from .config_flow_trigger import TRIGGER_ENTITY_DOMAINS
@@ -54,6 +55,22 @@ def _entry_for_issue(hass: HomeAssistant, issue_data: dict[str, Any] | None) -> 
     if not eid:
         return None
     return hass.config_entries.async_get_entry(eid)
+
+
+def _issue_resolved(flow: RepairsFlow) -> RepairsFlowResult:
+    """The issue is about something the task no longer names (edited since):
+    the issue goes, and nothing is changed (bug audit 2026-10-16, N3)."""
+    if issue_id := getattr(flow, "issue_id", None):
+        ir.async_delete_issue(flow.hass, DOMAIN, issue_id)
+    return flow.async_abort(reason="already_fixed")
+
+
+def _trigger_names(entry: Any, task_id: str, entity_id: str) -> bool:
+    """Whether the task's trigger still uses ``entity_id``."""
+    from .entity.triggers import normalize_entity_ids
+
+    trigger = ((entry.data.get(CONF_TASKS) or {}).get(task_id) or {}).get("trigger_config")
+    return isinstance(trigger, dict) and entity_id in normalize_entity_ids(trigger)
 
 
 def _entry_has_task(entry: Any, task_id: str | None) -> bool:
@@ -195,6 +212,8 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             entry = _entry_for_issue(self.hass, issue_data)
             if not _entry_has_task(entry, str(issue_data.get("task_id") or "")):
                 return self.async_abort(reason="task_deleted")
+            if not _trigger_names(entry, str(issue_data.get("task_id")), str(issue_data.get("entity_id", ""))):
+                return _issue_resolved(self)
             await self._replace_trigger_entity(new_entity_id)
             return self.async_create_entry(data={})
 
@@ -226,6 +245,8 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             entry = _entry_for_issue(self.hass, issue_data)
             if not _entry_has_task(entry, str(issue_data.get("task_id") or "")):
                 return self.async_abort(reason="task_deleted")
+            if not _trigger_names(entry, str(issue_data.get("task_id")), str(issue_data.get("entity_id", ""))):
+                return _issue_resolved(self)
             await self._remove_trigger()
             return self.async_create_entry(data={})
 
@@ -268,7 +289,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         # Read static task data from ConfigEntry
         tasks_data = dict(entry.data.get(CONF_TASKS, {}))
         task_dict = dict(tasks_data[task_id])
-        trigger_config = dict(task_dict.get("trigger_config", {}))
+        trigger_config = dict(task_dict.get("trigger_config") or {})
 
         if trigger_config.get("type") == "compound":
             # Recurse into conditions
@@ -336,7 +357,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
 
         tasks_data = dict(entry.data.get(CONF_TASKS, {}))
         task_dict = dict(tasks_data[task_id])
-        trigger_config = dict(task_dict.get("trigger_config", {}))
+        trigger_config = dict(task_dict.get("trigger_config") or {})
 
         history_notes: str
 
@@ -378,6 +399,14 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         safety_interval = trigger_config.get("interval_days")
         fields = read_legacy_fields(task_dict)
         task_dict.pop("trigger_config", None)
+
+        # A calendar schedule (weekdays, nth weekday, day of month, a
+        # calendar) stays: rebuilt from the flat fields, which cannot say it,
+        # the task became manual (bug audit 2026-10-16, N3).
+        from .helpers.schedule import Schedule
+
+        if Schedule.parse(task_dict).is_calendar_kind:
+            return f"Sensor trigger removed (entity was: {old_entity_id}). The calendar schedule stays."
 
         # Rebuild the recurrence from a flat spec (drop the nested schedule so
         # the change takes effect; the caller normalizes back to nested).
@@ -488,7 +517,8 @@ class OrphanAdminPanelUserRepairFlow(RepairsFlow):
             ids.remove(target_uid)
             self.hass.config_entries.async_update_entry(
                 entry,
-                options={**entry.options, CONF_ADMIN_PANEL_USER_IDS: ids},
+                # options, else the creation data — see get_global_options.
+                options={**(entry.options or entry.data), CONF_ADMIN_PANEL_USER_IDS: ids},
             )
         return self.async_create_entry(data={})
 
@@ -528,6 +558,8 @@ class StaleActionEntityRepairFlow(RepairsFlow):
             new_eid = str(user_input.get("new_entity", "")).strip()
             if not new_eid:
                 return self.async_abort(reason="no_entity")
+            if (gone := self._gone_or_resolved(entry)) is not None:
+                return gone
             self._patch_action_entity(entry, new_eid)
             return self.async_create_entry(data={})
         return self.async_show_form(
@@ -548,6 +580,8 @@ class StaleActionEntityRepairFlow(RepairsFlow):
             entry = self._entry()
             if entry is None:
                 return self.async_abort(reason="entry_gone")
+            if (gone := self._gone_or_resolved(entry)) is not None:
+                return gone
             self._clear_action(entry)
             return self.async_create_entry(data={})
         return self.async_show_form(
@@ -557,6 +591,20 @@ class StaleActionEntityRepairFlow(RepairsFlow):
                 "task_name": str((self.data or {}).get("task_name", "?")),
             },
         )
+
+    def _gone_or_resolved(self, entry: Any) -> RepairsFlowResult | None:
+        """An abort when the task is gone or its action no longer names the
+        stale entity (edited since) — a deleted task got a task dict holding
+        only the action, and a working action was rewritten (N3)."""
+        from .helpers.action_listener import action_entity_ids
+
+        task_id = str((self.data or {}).get("task_id", ""))
+        if not _entry_has_task(entry, task_id):
+            return self.async_abort(reason="task_deleted")
+        action = ((entry.data.get(CONF_TASKS) or {}).get(task_id) or {}).get("on_complete_action")
+        if str((self.data or {}).get("stale_entity", "")) not in action_entity_ids(action):
+            return _issue_resolved(self)
+        return None
 
     def _entry(self) -> Any:
         # Thin wrapper kept for readability of callers in this class —

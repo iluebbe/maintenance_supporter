@@ -1023,9 +1023,12 @@ class GlobalOptionsFlow(OptionsFlow):
                         CONF_NOTIFICATIONS_ENABLED,
                         default=self._opt(CONF_NOTIFICATIONS_ENABLED),
                     ): selector.BooleanSelector(),
+                    # suggested, not default: an emptied select is left out of
+                    # the submission, and a default put the stored service
+                    # back — it could not be cleared (bug audit 2026-10-16, G7).
                     vol.Optional(
                         CONF_NOTIFY_SERVICE,
-                        default=self._opt(CONF_NOTIFY_SERVICE),
+                        description={"suggested_value": self._opt(CONF_NOTIFY_SERVICE)},
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=notify_services,

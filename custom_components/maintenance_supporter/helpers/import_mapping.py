@@ -177,6 +177,8 @@ def attach_device_hints(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, 
             origin = task.get("origin") if isinstance(task, dict) else None
             if isinstance(origin, dict) and isinstance(origin.get("device_id"), str):
                 ids.add(origin["device_id"])
+            if isinstance(task, dict):
+                ids.update(_action_device_ids(task))
     dev_reg = dr.async_get(hass)
     hints: dict[str, Any] = {}
     for device_id in sorted(ids):
@@ -257,11 +259,34 @@ def _find_device(
     return None
 
 
+def _action_device_ids(task: dict[str, Any]) -> list[str]:
+    """The devices a task's completion action targets (``target.device_id``)."""
+    action = task.get("on_complete_action")
+    target = action.get("target") if isinstance(action, dict) else None
+    raw = target.get("device_id") if isinstance(target, dict) else None
+    if isinstance(raw, str):
+        return [raw]
+    return [d for d in raw if isinstance(d, str)] if isinstance(raw, list) else []
+
+
 def remap_task_device(task: dict[str, Any], mapping: dict[str, str]) -> None:
-    """An adopted task's fingerprint follows its device (in place)."""
+    """An adopted task's fingerprint follows its device (in place) — and so
+    does a completion action aimed at a device: a move kept the old
+    instance's device id and the action failed (bug audit 2026-10-16)."""
     origin = task.get("origin")
     if mapping and isinstance(origin, dict) and origin.get("device_id") in mapping:
         task["origin"] = {**origin, "device_id": mapping[origin["device_id"]]}
+    action = task.get("on_complete_action")
+    if mapping and isinstance(action, dict) and isinstance(target := action.get("target"), dict) and "device_id" in target:
+        raw = target["device_id"]
+        if isinstance(raw, str):
+            new: Any = mapping.get(raw, raw)
+        elif isinstance(raw, list):
+            new = [mapping.get(d, d) if isinstance(d, str) else d for d in raw]
+        else:
+            return
+        if new != raw:
+            task["on_complete_action"] = {**action, "target": {**target, "device_id": new}}
 
 
 # --- task references in the settings ----------------------------------------

@@ -1809,6 +1809,20 @@
         "purchase": "Satın alındığında",
         "use": "Kullanıldığında"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "Sırayla",
+        "least_completed": "En az tamamlayan",
+        "random": "Rastgele"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Düşük",
+        "normal": "Normal",
+        "high": "Yüksek"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "Sensör tetikleyicisini kaldır",
             "description": "Bu işlem, \"{object_name}\" üzerindeki \"{task_name}\" görevinden sensör tetikleyicisini kaldırır ve zamanlamayı zamana dayalı veya manuel biçime dönüştürür. Bakım geçmişi korunacaktır.\n\nÖnceki tetikleyici varlık: `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "Bu görev artık yok — onarılacak bir şey yok.",
+          "already_fixed": "Tetikleyici artık bu varlığı kullanmıyor — onarılacak bir şey yok."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "Panel erişim listesinde sahipsiz kullanıcı",
             "description": "`{user_id}…` kullanıcısı Maintenance Supporter panel erişim listesinde ancak artık Home Assistant'ta mevcut değil. Muhtemelen kullanıcı silinmiş.\n\nBu kullanıcıyı listeden kaldırmak için **Gönder**'e tıklayın. (Sorunu olduğu gibi bırakmak için bunun yerine Onarımlar sayfasındaki Home Assistant **Yoksay** düğmesini kullanın.)"
           }
+        },
+        "abort": {
+          "entry_gone": "Entegrasyonun ayarları artık yok — onarılacak bir şey yok."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "Tamamlama eylemini kaldır",
             "description": "**{task_name}** görevindeki `on_complete_action` tamamen temizlensin. Görevin kendisi etkilenmez — yalnızca tamamlama sonrası servis çağrısı kaldırılır."
           }
+        },
+        "abort": {
+          "entry_gone": "Bu nesne artık yok — onarılacak bir şey kalmadı.",
+          "task_deleted": "Bu görev artık yok — onarılacak bir şey yok.",
+          "already_fixed": "Tamamlama eylemi artık bu varlığı kullanmıyor — onarılacak bir şey yok.",
+          "no_entity": "Hiçbir varlık seçilmedi — hiçbir şey değiştirilmedi."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "Yapılandırılmış bir Home Assistant URL'si yok — Ayarlar → Sistem → Ağ bölümünden bir dış veya iç URL ayarlayın."
+    },
+    "postpone_in_past": {
+      "message": "Yeni tarih geçmişte olamaz."
+    },
+    "postpone_done": {
+      "message": "“{task_name}” tamamlandı — ertelenecek bir şey kalmadı."
     }
   },
   "triggers": {

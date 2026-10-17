@@ -140,6 +140,8 @@ _FRESH_COPY_STRIP_KEYS = (
     # import (storage._SPLIT_ONLY_TASK_FIELDS); a copy never carries them.
     "battery_replacements",
     "battery_low_latch",
+    # ...as does the completion-number counter of an imported task.
+    "next_history_ref",
 )
 
 

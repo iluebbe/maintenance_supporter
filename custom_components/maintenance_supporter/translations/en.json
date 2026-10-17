@@ -1809,6 +1809,20 @@
         "purchase": "When bought",
         "use": "When used"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "Round-robin",
+        "least_completed": "Least completed",
+        "random": "Random"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Low",
+        "normal": "Normal",
+        "high": "High"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "Remove sensor trigger",
             "description": "This will remove the sensor trigger from task \"{task_name}\" on \"{object_name}\" and convert the schedule to time-based or manual. The maintenance history will be preserved.\n\nPrevious trigger entity: `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "This task no longer exists — nothing to repair.",
+          "already_fixed": "The trigger no longer uses this entity — nothing to repair."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "Orphaned user in panel-access list",
             "description": "User `{user_id}…` is in the Maintenance Supporter panel-access list but no longer exists in Home Assistant. Probably the user was deleted.\n\nClick **Submit** to remove this user from the list. (To leave the issue alone, use Home Assistant's **Ignore** button on the Repairs page instead.)"
           }
+        },
+        "abort": {
+          "entry_gone": "The integration’s settings no longer exist — nothing to repair."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "Remove completion action",
             "description": "Clear the `on_complete_action` from task **{task_name}** entirely. The task itself is unaffected — only the on-complete service-call is removed."
           }
+        },
+        "abort": {
+          "entry_gone": "This object no longer exists — nothing to repair.",
+          "task_deleted": "This task no longer exists — nothing to repair.",
+          "already_fixed": "The completion action no longer uses this entity — nothing to repair.",
+          "no_entity": "No entity was chosen — nothing was changed."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "No Home Assistant URL is configured — set an external or internal URL in Settings → System → Network."
+    },
+    "postpone_in_past": {
+      "message": "The new date must not be in the past."
+    },
+    "postpone_done": {
+      "message": "“{task_name}” is done — there is nothing left to postpone."
     }
   },
   "triggers": {

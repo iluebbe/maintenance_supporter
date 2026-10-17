@@ -201,7 +201,7 @@ async def ws_adopt_problem_sensors(
                 from ..helpers.parts import sanitize_consumes_parts
                 from ..helpers.sanitize import sanitize_assignee_pool, seed_rotation_assignee
 
-                stashed = pop_stashed_config(hass, entity_id) or {}
+                stashed = pop_stashed_config(hass, entity_id, consume=False) or {}
                 for field in ("notes", "responsible_user_id", "assignee_pool", "rotation_strategy", "priority", "labels"):
                     if stashed.get(field):
                         task_data[field] = stashed[field]
@@ -211,6 +211,11 @@ async def ws_adopt_problem_sensors(
                 # a rotation keeps someone of its pool on duty.
                 if sel.get("responsible_user_id"):
                     task_data["responsible_user_id"] = sel["responsible_user_id"]
+                # Only a user Home Assistant knows: the pick came unchecked and
+                # a stashed one may have been deleted since — the task showed
+                # an unknown assignee (bug audit 2026-10-16, W8).
+                if task_data.get("responsible_user_id") and await hass.auth.async_get_user(task_data["responsible_user_id"]) is None:
+                    task_data.pop("responsible_user_id")
                 seed_rotation_assignee(task_data)
                 # Link the suggested spare part — or, absent one, the stashed link —
                 # validated against the target object's parts (an unknown id is
@@ -236,6 +241,7 @@ async def ws_adopt_problem_sensors(
 
                 task_data[ORIGIN_KEY] = problem_sensor_origin(entity_id)
                 await batch.persist_task(entry, task_data)
+                pop_stashed_config(hass, entity_id)
                 created.append({"entry_id": entry_id, "task_id": task_data["id"], "name": task_data["name"]})
             except (ValueError, KeyError) as err:
                 # Roll back an object created in THIS iteration whose task failed —

@@ -1809,6 +1809,20 @@
         "purchase": "Ostettaessa",
         "use": "Käytettäessä"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "Vuorotellen",
+        "least_completed": "Vähiten suorittanut",
+        "random": "Satunnainen"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Matala",
+        "normal": "Normaali",
+        "high": "Korkea"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "Poista anturilaukaisin",
             "description": "Tämä poistaa anturilaukaisimen tehtävältä \"{task_name}\" kohteessa \"{object_name}\" ja muuntaa aikataulun aikaperusteiseksi tai manuaaliseksi. Huoltohistoria säilytetään.\n\nAiempi laukaiseva entiteetti: `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "Tätä tehtävää ei ole enää — korjattavaa ei ole.",
+          "already_fixed": "Laukaisin ei enää käytä tätä entiteettiä — korjattavaa ei ole."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "Orpo käyttäjä paneelin käyttöoikeusluettelossa",
             "description": "Käyttäjä `{user_id}…` on Maintenance Supporterin paneelin käyttöoikeusluettelossa, mutta häntä ei ole enää olemassa Home Assistantissa. Todennäköisesti käyttäjä poistettiin.\n\nNapsauta **Lähetä** poistaaksesi tämän käyttäjän luettelosta. (Jättääksesi ongelman ennalleen käytä sen sijaan Home Assistantin **Ohita**-painiketta Korjaukset-sivulla.)"
           }
+        },
+        "abort": {
+          "entry_gone": "Integraation asetuksia ei ole enää — korjattavaa ei ole."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "Poista suoritustoiminto",
             "description": "Tyhjennä `on_complete_action` kokonaan tehtävältä **{task_name}**. Tehtävä itse ei muutu – vain suorituksen yhteydessä tapahtuva palvelukutsu poistetaan."
           }
+        },
+        "abort": {
+          "entry_gone": "Tätä kohdetta ei enää ole — ei korjattavaa.",
+          "task_deleted": "Tätä tehtävää ei ole enää — korjattavaa ei ole.",
+          "already_fixed": "Valmistumistoiminto ei enää käytä tätä entiteettiä — korjattavaa ei ole.",
+          "no_entity": "Entiteettiä ei valittu — mitään ei muutettu."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "Home Assistantin URL-osoitetta ei ole määritetty — aseta ulkoinen tai sisäinen URL kohdassa Asetukset → Järjestelmä → Verkko."
+    },
+    "postpone_in_past": {
+      "message": "Uusi päivämäärä ei voi olla menneisyydessä."
+    },
+    "postpone_done": {
+      "message": "”{task_name}” on tehty — lykättävää ei ole."
     }
   },
   "triggers": {

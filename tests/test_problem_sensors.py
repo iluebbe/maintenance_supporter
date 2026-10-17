@@ -657,6 +657,7 @@ async def test_full_config_survives_unadopt_readopt_cycle(
     from custom_components.maintenance_supporter.websocket.tasks_crud import ws_delete_task
 
     await setup_integration(hass, global_entry)
+    user_abc = (await hass.auth.async_create_user("Abc")).id
     _problem_sensor(hass, "binary_sensor.pump_fault", "Pump fault")
     await _adopt(hass, "binary_sensor.pump_fault", "Pump fault", "Pond pump")
 
@@ -666,7 +667,7 @@ async def test_full_config_survives_unadopt_readopt_cycle(
     new_tasks[task["id"]] = {
         **task,
         "notes": "Impeller spare in basement.",
-        "responsible_user_id": "user-abc",
+        "responsible_user_id": user_abc,
         "priority": "high",
         "labels": ["outdoor", "seasonal"],
     }
@@ -686,7 +687,7 @@ async def test_full_config_survives_unadopt_readopt_cycle(
     stash = (global_entry.options or global_entry.data)[CONF_ADOPTED_NOTES]
     assert stash["binary_sensor.pump_fault"] == {
         "notes": "Impeller spare in basement.",
-        "responsible_user_id": "user-abc",
+        "responsible_user_id": user_abc,
         "priority": "high",
         "labels": ["outdoor", "seasonal"],
     }
@@ -694,7 +695,7 @@ async def test_full_config_survives_unadopt_readopt_cycle(
     await _adopt(hass, "binary_sensor.pump_fault", "Pump fault", "Pond pump 2")
     _, task2 = _adopted_object_and_task(hass, "Pond pump 2")
     assert task2["notes"] == "Impeller spare in basement."
-    assert task2["responsible_user_id"] == "user-abc"
+    assert task2["responsible_user_id"] == user_abc
     assert task2["priority"] == "high"
     assert task2["labels"] == ["outdoor", "seasonal"]
     # Consumed.
@@ -760,6 +761,7 @@ async def test_adopt_with_responsible_user_and_created_list(
     from custom_components.maintenance_supporter.websocket.problem_sensors import ws_adopt_problem_sensors
 
     await setup_integration(hass, global_entry)
+    picked = (await hass.auth.async_create_user("Picked")).id
     # Stash claims another user — the explicit selection must win.
     options = dict(global_entry.options or global_entry.data)
     options[CONF_ADOPTED_NOTES] = {
@@ -781,7 +783,7 @@ async def test_adopt_with_responsible_user_and_created_list(
                     "entity_id": "binary_sensor.filter_alarm",
                     "name": "Filter alarm",
                     "object_name": "Ventilation",
-                    "responsible_user_id": "picked-user",
+                    "responsible_user_id": picked,
                 }
             ],
         },
@@ -789,7 +791,7 @@ async def test_adopt_with_responsible_user_and_created_list(
     assert not conn.send_error.called, conn.send_error.call_args
     result = conn.send_result.call_args[0][1]
     obj, task = _adopted_object_and_task(hass, "Ventilation")
-    assert task["responsible_user_id"] == "picked-user"
+    assert task["responsible_user_id"] == picked
     assert task["notes"] == "old note"
     assert result["created"] == [{"entry_id": obj.entry_id, "task_id": task["id"], "name": "Filter alarm"}]
 

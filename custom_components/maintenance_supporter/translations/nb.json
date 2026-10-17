@@ -1809,6 +1809,20 @@
         "purchase": "Ved kjøp",
         "use": "Ved bruk"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "På omgang",
+        "least_completed": "Færrest fullførte",
+        "random": "Tilfeldig"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Lav",
+        "normal": "Normal",
+        "high": "Høy"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "Fjern sensorutløser",
             "description": "Dette fjerner sensorutløseren fra oppgaven «{task_name}» på «{object_name}» og konverterer planen til tidsbasert eller manuell. Vedlikeholdshistorikken bevares.\n\nForrige utløserenhet: `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "Denne oppgaven finnes ikke lenger — ingenting å reparere.",
+          "already_fixed": "Utløseren bruker ikke lenger denne entiteten — ingenting å reparere."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "Foreldreløs bruker i paneltilgangslisten",
             "description": "Brukeren `{user_id}…` er i paneltilgangslisten for Maintenance Supporter, men finnes ikke lenger i Home Assistant. Sannsynligvis ble brukeren slettet.\n\nKlikk **Send inn** for å fjerne denne brukeren fra listen. (For å la problemet være, bruk Home Assistants **Ignorer**-knapp på Reparasjoner-siden i stedet.)"
           }
+        },
+        "abort": {
+          "entry_gone": "Integrasjonens innstillinger finnes ikke lenger — ingenting å reparere."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "Fjern fullføringshandling",
             "description": "Fjern `on_complete_action` fra oppgaven **{task_name}** helt. Selve oppgaven berøres ikke – bare tjenestekallet ved fullføring fjernes."
           }
+        },
+        "abort": {
+          "entry_gone": "Objektet finnes ikke lenger — ingenting å reparere.",
+          "task_deleted": "Denne oppgaven finnes ikke lenger — ingenting å reparere.",
+          "already_fixed": "Handlingen ved fullføring bruker ikke lenger denne entiteten — ingenting å reparere.",
+          "no_entity": "Ingen entitet ble valgt — ingenting ble endret."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "Ingen Home Assistant-URL er konfigurert — angi en ekstern eller intern URL under Innstillinger → System → Nettverk."
+    },
+    "postpone_in_past": {
+      "message": "Den nye datoen kan ikke være i fortiden."
+    },
+    "postpone_done": {
+      "message": "«{task_name}» er utført — det er ingenting å utsette."
     }
   },
   "triggers": {

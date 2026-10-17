@@ -11,6 +11,7 @@ from homeassistant.util import dt as dt_util
 
 from ..const import (
     ARCHIVE_REASON_MANUAL,
+    CONF_OBJECT,
     CONF_TASKS,
     MAX_DATE_LENGTH,
 )
@@ -225,6 +226,12 @@ async def ws_unarchive_task(
     task_id = msg["task_id"]
     if td.get("archived_at") is None:
         connection.send_error(msg["id"], "not_archived", "Task is not archived")
+        return
+    # Restored inside an archived object, the task was live in an object
+    # nobody sees — and still notified (bug audit 2026-10-16, W4). The
+    # object comes back first; its unarchive brings the tasks along.
+    if (entry.data.get(CONF_OBJECT) or {}).get("archived_at"):
+        send_translated_error(connection, msg["id"], "archived", "Restore the object first", translation_key="archived_no_new_tasks")
         return
 
     # Fresh cycle for recurring tasks. last_performed is dynamic state → Store

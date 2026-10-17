@@ -71,7 +71,6 @@ import type {
   AdvancedFeatures,
   TaskRow,
   HistoryEntry,
-  TriggerConfig,
   StatisticsPoint,
   SavedView,
   SavedViewFilters,
@@ -132,7 +131,7 @@ import type { PartsCostMode } from "./helpers/parts-cost";
 import { canWrite } from "./helpers/permissions";
 import { renderStatusBadge, statusKey, statusLabel, type StatusLike } from "./renderers/status";
 import { TOAST_MS, ACTION_TOAST_MS } from "./helpers/toast";
-import { primaryTriggerEntity } from "./helpers/trigger-entities";
+import { isCounterTrigger, primaryTriggerEntity } from "./helpers/trigger-entities";
 import { buildHistoryEntryDraft } from "./helpers/history-draft";
 import { readingSlotDelta } from "./helpers/reading-slots";
 import { bulkResultMessage, codedFailures, runWs, runWsEach } from "./helpers/ws-run";
@@ -544,6 +543,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
+    this._subGen++;
     window.removeEventListener("popstate", this._popstateHandler);
     window.removeEventListener("location-changed", this._locationChangedHandler);
     window.removeEventListener("keydown", this._paletteKeydown);
@@ -1097,12 +1097,6 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
   }
 
-  private _isCounterEntity(tc: TriggerConfig | null | undefined): boolean {
-    if (!tc) return false;
-    const type = tc.type || "threshold";
-    return type === "counter" || type === "state_change";
-  }
-
   /** Newest request per entity — quick range-chip clicks (7 → 30 → 90) put
    *  several fetches in flight, and a slower OLDER answer landed last and
    *  showed the wrong window under the new chip (bug audit 2026-09-26). */
@@ -1134,7 +1128,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       const updated = new Map(this._detailStatsData);
       updated.delete(entityId);
       this._detailStatsData = updated;
-      void this._fetchDetailStats(entityId, this._isCounterEntity(task!.trigger_config));
+      void this._fetchDetailStats(entityId, isCounterTrigger(task!.trigger_config));
     }
   }
 
@@ -1155,7 +1149,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         // The battery fleet's row shows "N to replace", not a sparkline.
         const entityId = task.battery_fleet_task ? undefined : primaryTriggerEntity(task.trigger_config);
         if (!entityId) continue;
-        entities.push({ entityId, isCounter: this._isCounterEntity(task.trigger_config) });
+        entities.push({ entityId, isCounter: isCounterTrigger(task.trigger_config) });
       }
     }
 
@@ -1164,7 +1158,13 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._miniStatsData = new Map([...this._miniStatsData, ...batchResult]);
   }
 
+  /** Each subscribe attempt's number: one still in flight when the element
+   *  was detached and attached again resolved next to the new one, and its
+   *  subscription was never released (bug audit 2026-10-16, FE-7). */
+  private _subGen = 0;
+
   private async _subscribe(): Promise<void> {
+    const gen = ++this._subGen;
     try {
       const unsub = await this.hass.connection.subscribeMessage(
         (msg: unknown) => {
@@ -1200,7 +1200,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       );
       // If the element was detached while the subscribe was in flight, drop the
       // now-orphaned subscription instead of storing it on a dead component.
-      if (!this.isConnected) {
+      if (!this.isConnected || gen !== this._subGen) {
         unsub();
         return;
       }
@@ -1241,12 +1241,20 @@ export class MaintenanceSupporterPanel extends LitElement {
   // --- Data accessors ---
 
   private get _taskRows(): TaskRow[] {
+    return this._rowsFiltered(true);
+  }
+
+  /** The task rows under the panel's filters; ``filterStatus`` false leaves the
+   *  status filter out — the Today tab's sections are statuses, and a
+   *  status picked on the dashboard emptied it without a word (bug audit
+   *  2026-10-16, P5). */
+  private _rowsFiltered(filterStatus: boolean): TaskRow[] {
     const rows: TaskRow[] = [];
     for (const obj of this._objects) {
       for (const task of obj.tasks) {
         // v2.10.0: archived tasks are hidden unless the toggle reveals them.
         if (!this._showArchived && task.archived) continue;
-        if (this._filterStatus && task.status !== this._filterStatus) continue;
+        if (filterStatus && this._filterStatus && task.status !== this._filterStatus) continue;
 
         // User filter
         if (this._filterUser) {
@@ -1403,10 +1411,14 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (s.msp_view === "all_parts") void this._loadAllParts();
     if (s.msp_view === "task" && s.msp_entry && s.msp_task) {
       this._historyFilter = null;
+      // The list payload carries the last 20 entries only: back / forward
+      // into a task page showed those until it was opened afresh (bug
+      // audit 2026-10-16, P6).
+      this._fetchFullHistory(s.msp_entry, s.msp_task);
       const task = this._getTask(s.msp_entry, s.msp_task);
       const entityId = primaryTriggerEntity(task?.trigger_config);
       if (task && entityId) {
-        this._fetchDetailStats(entityId, this._isCounterEntity(task.trigger_config));
+        this._fetchDetailStats(entityId, isCounterTrigger(task.trigger_config));
       }
     }
   }
@@ -1681,7 +1693,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       const task = this._getTask(entryId, taskId);
       const entityId = primaryTriggerEntity(task?.trigger_config);
       if (task && entityId) {
-        this._fetchDetailStats(entityId, this._isCounterEntity(task.trigger_config));
+        this._fetchDetailStats(entityId, isCounterTrigger(task.trigger_config));
       }
       return;
     }
@@ -1704,7 +1716,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const task = this._getTask(entryId, taskId);
     const entityId = primaryTriggerEntity(task?.trigger_config);
     if (task && entityId) {
-      this._fetchDetailStats(entityId, this._isCounterEntity(task.trigger_config));
+      this._fetchDetailStats(entityId, isCounterTrigger(task.trigger_config));
     }
   }
 
@@ -3477,7 +3489,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         ? this._renderDashboard()
         : this._overviewTab === "calendar"
         ? html`
-            <div @ll-custom=${this._onCalendarLlCustom}>
+            <div @ll-custom=${this._onCalendarLlCustom} @maintenance-supporter-open-task=${this._onCalendarOpenTask}>
               <maintenance-supporter-calendar-card
                 .hass=${this.hass}
               ></maintenance-supporter-calendar-card>
@@ -3497,6 +3509,17 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  letting the document-level dialog-mount handler open a duplicate
    *  dialog on top. The handler stops propagation so the document listener
    *  (registered by the dashboard-strategy bundle) doesn't also fire. */
+  /** The embedded calendar card asks to open a task: the panel shows the
+   *  task page and claims the request, so the card opens no dialog (FE-4). */
+  private _onCalendarOpenTask = (e: Event): void => {
+    const detail = (e as CustomEvent<{ entry_id?: string; task_id?: string }>).detail;
+    if (detail?.entry_id && detail.task_id) {
+      e.preventDefault();
+      e.stopPropagation();
+      this._showTask(detail.entry_id, detail.task_id);
+    }
+  };
+
   private _onCalendarLlCustom = (e: Event): void => {
     const detail = (e as CustomEvent<{ type?: string; entry_id?: string; task_id?: string }>).detail;
     if (
@@ -3534,7 +3557,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   /** Mobile-first focus list: what needs attention now, grouped by urgency. */
   private _renderToday() {
     const L = this._lang;
-    const rows = this._taskRows; // already excludes archived + disabled
+    const rows = this._rowsFiltered(false); // excludes archived + disabled; no status filter (P5)
     const key = (r: TaskRow) => `${r.entry_id}:${r.task_id}`;
     // Overdue and triggered are two sections, as the header counts them: one
     // "Overdue" list holding both read 8 under a header saying 4 overdue and
@@ -5191,7 +5214,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       detailStatsData: this._detailStatsData,
       hasStatsService: !!this._statsService,
       historyFallbackIds: this._statsService?.historyFallbackIds,
-      isCounterEntity: (tc) => this._isCounterEntity(tc),
+      isCounterEntity: isCounterTrigger,
       rangeDays: this._chartRangeDays,
       setRangeDays: (days) => this._setChartRange(days),
       hideOutliers: this._hideOutliers,

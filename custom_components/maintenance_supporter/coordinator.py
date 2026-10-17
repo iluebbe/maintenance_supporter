@@ -180,6 +180,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._completion_cooldown: set[str] = set()
         # Manual completions only — the double-tap dedup window (journey M1).
         self._recent_manual_completions: dict[str, float] = {}
+        # Skips get the same window: two phones tapping a reminder's Skip
+        # skipped two occurrences of a planned / calendar task (C-G).
+        self._recent_skips: dict[str, float] = {}
         # Backdated completions (explicit completed_at) get their OWN dedup,
         # keyed by (task_id, timestamp): a double-submitted backfill wrote two
         # identical history entries and consumed parts/budget twice (bug audit
@@ -365,6 +368,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._recent_manual_completions = {
             tid: ts for tid, ts in self._recent_manual_completions.items() if now_mono - ts < MANUAL_COMPLETION_DEDUP_SECONDS
         }
+        self._recent_skips = {tid: ts for tid, ts in self._recent_skips.items() if now_mono - ts < MANUAL_COMPLETION_DEDUP_SECONDS}
         self._recent_backfills = {
             key: ts for key, ts in self._recent_backfills.items() if now_mono - ts < MANUAL_COMPLETION_DEDUP_SECONDS
         }
@@ -382,11 +386,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         schedule_time_enabled = self._is_schedule_time_feature_enabled()
 
         for task_id, task in tasks.items():
-            if not task.enabled:
-                result[CONF_TASKS][task_id] = task.to_dict()
-                result[CONF_TASKS][task_id]["_status"] = MaintenanceStatus.OK
-                continue
-
             # v2.10.0: an archived task is inert. Short-circuit before any
             # trigger evaluation / adaptive analysis / issue check — its status
             # reads ARCHIVED (highest precedence, so it's excluded from notify +
@@ -395,6 +394,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # the record).
             if task.archived_at is not None:
                 result[CONF_TASKS][task_id] = _inert_task_result(task, MaintenanceStatus.ARCHIVED)
+                continue
+
+            # A disabled task reads OK — after the archive check: an archived
+            # task that was also disabled counted as live, and its payload
+            # lacked the totals every other inert task carries (bug audit
+            # 2026-10-16, C-J).
+            if not task.enabled:
+                result[CONF_TASKS][task_id] = _inert_task_result(task, MaintenanceStatus.OK)
                 continue
 
             # v2.20 (N3): tasks of a paused object are frozen — status PAUSED,
@@ -752,6 +759,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         from .entity.triggers import normalize_entity_ids
 
+        static_tasks = self.entry.data.get(CONF_TASKS, {})
         for task_id, task in tasks.items():
             # Inert tasks (archived / disabled / paused object) — the one
             # predicate — raise no missing-entity or stale-action issues for
@@ -759,9 +767,25 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # ones raised before the task went inert (the paused object was
             # missing here and a disabled task's issues stayed; bug audit
             # 2026-09-26).
-            if self._is_inert({"archived_at": task.archived_at, "enabled": task.enabled}):
+            # The task's own pause and the pool marker are read too: the
+            # hand-built dict carried neither, so a paused task got repairs
+            # (bug audit 2026-10-16, C-I).
+            if self._is_inert(
+                {**(static_tasks.get(task_id) or {}), "archived_at": task.archived_at, "enabled": task.enabled, "paused_at": task.paused_at}
+            ):
                 async_purge_task_issues(self.hass, self.entry.entry_id, task_id)
                 continue
+            # Issues about entities the task no longer names go first (N3).
+            from .helpers.action_listener import action_entity_ids
+            from .helpers.issues import async_purge_unnamed_entity_issues
+
+            async_purge_unnamed_entity_issues(
+                self.hass,
+                self.entry.entry_id,
+                task_id,
+                trigger_entities=set(normalize_entity_ids(task.trigger_config)) if task.trigger_config else set(),
+                action_entities=set(action_entity_ids((static_tasks.get(task_id) or {}).get("on_complete_action"))),
+            )
             if task.trigger_config is None:
                 continue
 
@@ -973,8 +997,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         bundle_threshold = int(global_option(self.hass, CONF_NOTIFICATION_BUNDLE_THRESHOLD))
 
         # No household target: a bundle would reach nobody, so the tasks go
-        # out one by one to their people's phones (D#110).
-        if bundling_enabled and nm.can_bundle and len(notifiable) >= bundle_threshold:
+        # out one by one to their people's phones (D#110). Counted are the
+        # reminders due NOW: tasks reminded an hour ago met the threshold,
+        # and the "bundle" carried the one new task to the household —
+        # without its person's routing and buttons (bug audit 2026-10-16, N7).
+        due_now = [item for item in notifiable if nm.reminder_due(self.entry.entry_id, item[0], item[2])]
+        if bundling_enabled and nm.can_bundle and len(due_now) >= bundle_threshold:
             await nm.async_send_bundled(
                 entry_id=self.entry.entry_id,
                 object_name=obj_name,
@@ -985,7 +1013,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         "status": status,
                         "days_until_due": tr.get("_days_until_due"),
                     }
-                    for tid, tr, status, _old in notifiable
+                    for tid, tr, status, _old in due_now
                 ],
             )
         else:
@@ -1479,6 +1507,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             await self._persist_and_signal_task_change(task_id, task, occurrence_done=is_latest)
             if is_latest:
                 self._completion_cooldown.add(task_id)
+                # A new cycle: a skip right after it skips that one, it is
+                # no double tap of a skip made before the completion.
+                self._recent_skips.pop(task_id, None)
         except Exception:
             # The completion did not land on disk - release the double-tap
             # guard stamped above, or the user's retry within 30 s would be
@@ -1513,6 +1544,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             td = dict(self.entry.data.get(CONF_TASKS, {}).get(task_id, {}))
             td["responsible_user_id"] = task.responsible_user_id
             write_task(self.hass, self.entry, task_id, td)
+            # The refresh inside the persist above ran before this write: its
+            # data named the previous person until the next refresh, five
+            # minutes on (bug audit 2026-10-16, C-M).
+            published = (self.data or {}).get(CONF_TASKS, {}).get(task_id)
+            if isinstance(published, dict):
+                published["responsible_user_id"] = task.responsible_user_id
+                self.async_update_listeners()
 
         # Invalidate the budget cache when the entry carries money: a cost,
         # or the value of the parts it used ("when used", #104) — that one
@@ -1628,15 +1666,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # TypeError OUTSIDE the old try — the recovery coroutine died and
             # the auto-completion was silently never recorded (bug audit
             # 2026-08-22). The UTC assumption is harmless for a 120 s guard.
-            from .helpers.dates import parse_persisted_utc
+            from .helpers.dates import stamp_instant
 
-            last_ts = parse_persisted_utc(entry.get("timestamp", ""))
-            if last_ts is not None and (dt_util.utcnow() - last_ts).total_seconds() < 120:
-                _LOGGER.debug(
-                    "Skipping auto-complete for %s: completed %.0fs ago",
-                    task_id,
-                    (dt_util.utcnow() - last_ts).total_seconds(),
-                )
+            # Naive stamps are local time: read as UTC (the old rule) one lay
+            # hours ahead east of UTC and blocked the auto-completion for
+            # those hours (bug audit 2026-10-16).
+            age = (dt_util.utcnow() - stamp_instant(entry.get("timestamp"))).total_seconds()
+            if 0 <= age < 120:
+                _LOGGER.debug("Skipping auto-complete for %s: completed %.0fs ago", task_id, age)
                 return
             break
 
@@ -1679,13 +1716,17 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 translation_key="completed_at_in_future",
             )
 
-        # A reset starts a new cycle — a following completion is a NEW
-        # real-world action, never a double-tap of the previous one.
+        # A reset starts a new cycle — a following completion or skip is a
+        # NEW real-world action, never a double-tap of the previous one.
         self._recent_manual_completions.pop(task_id, None)
+        self._recent_skips.pop(task_id, None)
         self._clear_notification_state(task_id, reminded=merged[task_id])
 
         task = MaintenanceTask.from_dict(merged[task_id])
         task.reset(reset_date=date)
+        # Like skip (#73): the checklist ticks belonged to the cycle the
+        # reset ended (bug audit 2026-10-16, C-L).
+        self._store.clear_checklist_progress(task_id)
 
         await self._persist_and_signal_task_change(task_id, task)
 
@@ -1724,7 +1765,19 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 translation_key="postpone_too_far",
                 translation_placeholders={"days": str(MAX_INTERVAL_DAYS)},
             )
+        # A day already gone is no postponement: the task read as overdue
+        # since then (bug audit 2026-10-16).
+        if until < dt_util.now().date():
+            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="postpone_in_past")
         task = MaintenanceTask.from_dict(merged[task_id])
+        # A done one-time task has nothing left to postpone: the override
+        # brought it back as due (bug audit 2026-10-16, C-K).
+        if task.is_done:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="postpone_done",
+                translation_placeholders={"task_name": task.name},
+            )
         task.due_override = until.isoformat()
         # Only the due date moves: the sensor triggers keep their progress
         # (runtime hours, counter baseline) — no reset signal, no cooldown.
@@ -1763,6 +1816,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # with the same moment (to add the forgotten note), it was dropped as
         # a "double submit" for 30 s.
         self._recent_manual_completions.pop(task_id, None)
+        self._recent_skips.pop(task_id, None)
         self._recent_backfills = {key: ts for key, ts in self._recent_backfills.items() if key[0] != task_id}
         self._recently_completed.pop(task_id, None)
         self._completion_cooldown.discard(task_id)
@@ -1845,6 +1899,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # an old NFC sticker (bug review 2026-09-04).
         self._require_active(task_id, merged[task_id], translation_key="task_inactive_skip")
 
+        # A second skip inside the double-tap window is the same tap (bug
+        # audit 2026-10-16, C-G) — dropped like a doubled completion.
+        last_skip = self._recent_skips.get(task_id)
+        if last_skip is not None and time.monotonic() - last_skip < MANUAL_COMPLETION_DEDUP_SECONDS:
+            _LOGGER.info("Ignoring duplicate skip of %s within %.0fs", task_id, time.monotonic() - last_skip)
+            return
+
         # Only now that the skip is going to happen: like reset, skipping
         # restarts the cycle — clear the double-tap window so a follow-up
         # completion counts, and forget the notification bookkeeping. Doing
@@ -1854,6 +1915,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._clear_notification_state(task_id, reminded=merged[task_id])
 
         task = MaintenanceTask.from_dict(merged[task_id])
+        if not self._is_schedule_time_feature_enabled():
+            # The refresh's rule: a stored time of day counts only while
+            # the feature is on — read anyway, a task due later today was
+            # recorded as missed (bug audit 2026-10-16).
+            task.schedule_time = None
         # Skipping an already-overdue task means it lapsed → record it as MISSED
         # (not a deliberate skip). An explicit as_missed=True always wins.
         missed = as_missed or task.status == MaintenanceStatus.OVERDUE
@@ -1861,7 +1927,15 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # #73: skipping restarts the cycle — the ticks belong to the old one.
         self._store.clear_checklist_progress(task_id)
 
-        await self._persist_and_signal_task_change(task_id, task)
+        # Stamped right before the first await, so a second tap waiting on
+        # this one finds it; released when the skip did not land on disk,
+        # or the retry would be swallowed as a duplicate of nothing.
+        self._recent_skips[task_id] = time.monotonic()
+        try:
+            await self._persist_and_signal_task_change(task_id, task)
+        except Exception:
+            self._recent_skips.pop(task_id, None)
+            raise
 
         _LOGGER.debug("Maintenance skipped: %s on %s", task.name, self.maintenance_object.name)
 
@@ -1948,7 +2022,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         exactly as ``complete_maintenance`` left it live. A skip / reset
         cooldown is not re-created: any activation lifts that one anyway,
         and a recovered trigger's next activation is a genuine edge."""
-        from .helpers.dates import parse_persisted_utc
+        from .helpers.dates import parse_persisted_utc, stamp_instant
 
         now = dt_util.utcnow()
         now_mono = time.monotonic()
@@ -1959,11 +2033,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if not isinstance(entry, dict) or entry.get("type") not in LIFECYCLE_HISTORY_TYPES:
                     continue
                 ts = entry.get("timestamp")
-                if isinstance(ts, str) and ts >= latest_ts:
+                if isinstance(ts, str) and stamp_instant(ts) >= stamp_instant(latest_ts):
                     latest_ts, latest_type = ts, entry.get("type")
-            stamp = parse_persisted_utc(latest_ts)
-            if latest_type != HistoryEntryType.COMPLETED or stamp is None:
+            if latest_type != HistoryEntryType.COMPLETED or not latest_ts:
                 continue
+            stamp = stamp_instant(latest_ts)
             elapsed = (now - stamp).total_seconds()
             if not 0 <= elapsed < TRIGGER_COMPLETION_COOLDOWN_SECONDS:
                 continue
@@ -2034,22 +2108,23 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         task = self._get_merged_tasks_data().get(task_id) or {}
         latest_type: str | None = None
         latest_ts = ""
+        from .helpers.dates import parse_persisted_utc, stamp_instant
+
         for entry in task.get("history") or []:
             if not isinstance(entry, dict) or entry.get("type") not in _TRIGGER_EPOCH_TYPES:
                 continue
             ts = str(entry.get("timestamp") or "")
-            if ts >= latest_ts:
+            if stamp_instant(ts) >= stamp_instant(latest_ts):
                 latest_type, latest_ts = entry.get("type"), ts
         if latest_type != HistoryEntryType.TRIGGERED:
             return False
         # A recovery recorded after that activation closed the episode
         # (note_trigger_cleared) — compared as instants, the two stamps come
         # from different clocks' ISO forms.
-        from .helpers.dates import parse_persisted_utc
-
         cleared = parse_persisted_utc(self._store.get_task_state(task_id).get("trigger_cleared_at"))
-        triggered = parse_persisted_utc(latest_ts)
-        return cleared is None or triggered is None or cleared < triggered
+        if cleared is None or parse_persisted_utc(latest_ts) is None:
+            return True
+        return cleared < stamp_instant(latest_ts)
 
     async def async_refresh_now(self) -> None:
         """Recompute immediately — for changes a person just made.
@@ -2139,12 +2214,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         sensor registered under "unknown")."""
         return aggregate_task_sensor_entity_id(self.hass, self.entry.data.get(CONF_OBJECT) or {}, task_id)
 
-    async def async_apply_suggested_interval(self, task_id: str, interval: int) -> None:
-        """Apply a suggested interval to a task (static config → ConfigEntry)."""
+    async def async_apply_suggested_interval(self, task_id: str, interval: int) -> bool:
+        """Apply a suggested interval to a task (static config → ConfigEntry);
+        False when it was not applied — the panel said "applied" either way
+        (bug audit 2026-10-16)."""
         tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
         if task_id not in tasks_data:
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
-            return
+            return False
 
         task_dict = dict(tasks_data[task_id])
         schedule = Schedule.parse(task_dict)
@@ -2156,7 +2233,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 interval,
                 task_id,
             )
-            return
+            return False
         fields = read_legacy_fields(task_dict)
         old_interval = fields["interval_days"]
         # The suggested interval is expressed in days; only the count (and, for
@@ -2179,6 +2256,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             interval,
             task_id,
         )
+        return True
 
     async def async_persist_trigger_runtime(
         self,

@@ -121,6 +121,8 @@ async def test_an_undelivered_quiet_summary_keeps_the_held_reminders(
     hass: HomeAssistant, caplog: pytest.LogCaptureFixture, outcome: str
 ) -> None:
     _global(hass)
+    # The held task exists: the summary leaves out tasks gone since.
+    make_object_entry(hass, tasks={"t1": build_task_data(task_id="t1")}, name="Pool", uid="pool", entry_id="e1")
     nm, _ = _manager(hass)
     nm._quiet_held = dict(_HELD)
     dispatch = (

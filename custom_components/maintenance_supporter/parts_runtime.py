@@ -135,6 +135,15 @@ def _book_use(store: Any, part: dict[str, Any], qty: float) -> tuple[float | Non
     if old is None:
         return None
     before = _owned(store, part, old)
+    if part.get("reuse") and qty < 0:
+        # A reusable one given back comes out of the waiting pile. One made
+        # ready again since is in the stock already: added once more, it was
+        # owned twice (bug audit 2026-10-16, S6).
+        pile = store.get_part_restoring(pid)
+        back = min(-qty, pile)
+        store.set_part_stock(pid, old + back)
+        store.set_part_restoring(pid, pile - back)
+        return before, _owned(store, part)
     store.set_part_stock(pid, max(0.0, old - qty))
     if part.get("reuse"):
         store.set_part_restoring(pid, max(0.0, store.get_part_restoring(pid) + qty))

@@ -315,6 +315,7 @@ async def test_without_a_household_service_a_bundle_goes_out_task_by_task(hass: 
             patch.object(nm, "async_task_status_changed", new_callable=AsyncMock) as per_task,
         ):
             coord._previous_statuses = {}
+            nm._last_notified.clear()  # both reminders due again
             await coord._async_notify_status_changes(coord.data[CONF_TASKS])
         return bundled, per_task
 

@@ -166,9 +166,23 @@ def rewrite_store(store: Any, old_id: str, new_id: str) -> bool:
 
     Returns True iff anything was rewritten.
     """
+    from .battery_fleet import LOW_LATCH_KEY
+    from .battery_fleet_setup import RECORDED_REPLACEMENTS_KEY
+    from .battery_lifetime import REPLACEMENT_LOG_KEY
+
     changed = False
     compound_key = re.compile(r"_compound_(\d+)_" + re.escape(old_id))
     for state in store.all_task_states().values():
+        # The battery fleet's per-battery maps — the open low episode, the
+        # log of past swaps the lifetime is learned from, the once-per-day
+        # swap memory — are keyed by the battery sensor: a renamed sensor
+        # started over, and the dropped latch read as a recovery (bug audit
+        # 2026-10-16, S4).
+        for key in (LOW_LATCH_KEY, REPLACEMENT_LOG_KEY, RECORDED_REPLACEMENTS_KEY):
+            per_battery = state.get(key)
+            if isinstance(per_battery, dict) and old_id in per_battery and new_id not in per_battery:
+                state[key] = {(new_id if k == old_id else k): v for k, v in per_battery.items()}
+                changed = True
         ac = state.get("adaptive_config")
         if isinstance(ac, dict) and ac.get("environmental_entity") == old_id:
             state["adaptive_config"] = {**ac, "environmental_entity": new_id}

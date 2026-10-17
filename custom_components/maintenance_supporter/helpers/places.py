@@ -272,8 +272,18 @@ class PlaceArrivals:
         nm = self.hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
         if nm is None:
             return
-        self._last_sent[key] = now
-        self.hass.async_create_task(
-            nm.async_place_arrival(user_id=str(user_id), zone_id=zone, place_name=zone_name(self.hass, zone) or zone, tasks=tasks),
-            eager_start=False,
-        )
+        previous = last
+        self._last_sent[key] = now  # claimed now: a second arrival meanwhile waits
+
+        async def _send() -> None:
+            sent = await nm.async_place_arrival(user_id=str(user_id), zone_id=zone, place_name=zone_name(self.hass, zone) or zone, tasks=tasks)
+            # Nothing went out (quiet hours, every task muted, no phone): the
+            # cooldown kept the next arrival silent too, though nobody had
+            # been told anything (bug audit 2026-10-16, N12).
+            if not sent and self._last_sent.get(key) == now:
+                if previous is None:
+                    self._last_sent.pop(key, None)
+                else:
+                    self._last_sent[key] = previous
+
+        self.hass.async_create_task(_send(), eager_start=False)

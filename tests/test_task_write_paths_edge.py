@@ -163,8 +163,12 @@ async def test_edit_form_writes_rotation_labels_units_and_icons(hass: HomeAssist
     result = await _open_edit_form(hass, obj)
     # The stale assignee must not become the select's default (it would fail
     # the select's own validation and 400 the whole form).
-    schema_defaults = {str(k): k.default() for k in result["data_schema"].schema if hasattr(k, "default") and callable(k.default)}
-    assert schema_defaults["responsible_user_id"] == ""
+    suggested = {
+        str(k): k.description["suggested_value"]
+        for k in result["data_schema"].schema
+        if isinstance(getattr(k, "description", None), dict) and "suggested_value" in k.description
+    }
+    assert suggested["responsible_user_id"] == ""
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],

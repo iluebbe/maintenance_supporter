@@ -180,6 +180,12 @@ def _build_export_object(
 
         if include_history:
             task["history"] = tdata.get("history") or []
+            # The completion-number high-water mark: without it a restore
+            # handed out again the numbers of entries deleted before the
+            # backup (bug audit 2026-10-16, F11). Store state, not merged.
+            next_ref = (store.get_task_state(tid) if store is not None else {}).get("next_history_ref")
+            if isinstance(next_ref, int) and not isinstance(next_ref, bool) and next_ref > 1:
+                task["next_history_ref"] = next_ref
 
         tasks.append(task)
 

@@ -89,6 +89,7 @@ from ..const import (
     MAX_PANEL_TITLE_LENGTH,
     MAX_REMINDER_LEADS,
     SIGNAL_NEW_OBJECT_ENTRY,
+    SIGNAL_OBJECT_ENTRY_REMOVED,
     TIME_HHMMSS_PATTERN,
 )
 from ..helpers.aggregate import compute_status_counts
@@ -593,6 +594,19 @@ async def ws_subscribe(
         _forward_update(entry_id)
 
     unsub_callbacks.append(async_dispatcher_connect(hass, SIGNAL_NEW_OBJECT_ENTRY, _on_new_entry))
+
+    # A deleted object: no coordinator of it fires again, so other clients
+    # kept showing it until some other object's next 5-minute update (bug
+    # audit 2026-10-16, W5). Detach and push the removal.
+    @callback
+    def _on_removed_entry(entry_id: str) -> None:
+        previous = attached_entry_ids.pop(entry_id, None)
+        if previous is not None:
+            previous[1]()
+            unsub_callbacks.remove(previous[1])
+        _forward_update(None)
+
+    unsub_callbacks.append(async_dispatcher_connect(hass, SIGNAL_OBJECT_ENTRY_REMOVED, _on_removed_entry))
 
     @callback
     def _unsub() -> None:

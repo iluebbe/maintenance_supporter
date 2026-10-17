@@ -132,6 +132,80 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Smaller fixes:** the work sheet prints the priority's name instead of its internal key; moving a history entry
   into the future is refused in your language; the complete dialog opened from a dashboard card or the calendar card
   now offers *Undo* like the panel.
+- **A task of an archived object stays archived:** restoring one task of an archived object made it live in an
+  object nobody sees, and it sent reminders. Restore the object first.
+- **Other open panels follow at once:** renaming or deleting an object showed in the other open panels and cards
+  only after the next refresh, up to five minutes later.
+- **Deleting one history entry deletes one:** two entries recorded at the same moment were both removed.
+- **Postponing is checked:** a date in the past, and a one-time task that is already done, can no longer be
+  postponed (the task came back as due).
+- **Adopted problem sensors keep only known people:** the adoption stored a responsible person that did not exist,
+  and the task showed an unknown assignee. Settings remembered from an earlier adoption are no longer lost when an
+  adoption fails.
+- **Runtime counting stops while the sensor is gone:** after a restart, a runtime trigger whose sensor stayed
+  unavailable kept adding hours every five minutes, for good if the sensor never came back.
+- **Editing a done to-do item records nothing:** renaming or re-dating an item the maintenance to-do list showed as
+  done recorded a new completion.
+- **No forecast from the wrong values:** a trigger on an attribute (a vacuum's battery level beside its state) got a
+  forecast computed from the entity's state.
+- **Mirrored to-do lists stay tidy:** a list whose provider hides row IDs got the same row added again on every check.
+- **A deleted area takes its spending sensors along** instead of keeping them until the next restart.
+- **A double tap on Skip skips once:** two taps within seconds (two phones, a double click) skipped two occurrences.
+  A skip right after a reset or a completion, or a retry after a skip that could not be saved, still counts.
+- **Seasonal planned series keep their rhythm:** a task anchored to its planned dates (for example every two weeks,
+  April to October) now comes due on the first date of its own grid inside the season. It used to start the
+  season on the 1st and stayed on the 1st from then on.
+- **Repairs:** a paused task no longer raises *missing trigger entity* repairs. A repair about an entity the task no
+  longer uses (changed in the panel since) is removed instead of applied, and removing a sensor trigger keeps a
+  weekday or calendar schedule. Repair dialogs show a sentence instead of a raw key when nothing is left to repair.
+- **Archived and disabled counts as archived:** such a task counted as live in the status counts.
+- **A reset starts the checklist afresh**, like a skip.
+- **The next person shows at once:** after a completion moved a shared task on, the task still named the previous
+  person until the next refresh.
+- **Later is later:** a completion recorded after the clocks went back, or after restoring a backup written in UTC,
+  could be taken for a back-dated entry. Times are compared as moments now, not as text, also in the check before an
+  automatic completion.
+- **Applying a suggested interval says when it cannot:** for a task with a weekday or calendar schedule, the panel
+  said "applied" though nothing changed.
+- **The daily clean-up also runs after a restart:** done one-time tasks are archived and deleted ten minutes after
+  each start too, so a system restarted every night no longer skips it.
+- **Skipping with the time of day switched off** no longer records a task due later today as missed.
+- **CSV:** a file saved with semicolons (spreadsheets in many languages do this) is read, and a damaged file gives a
+  clear message instead of an unknown error. Objects without tasks are exported and imported, a task's own archive
+  or pause survives the round trip, and people who do not exist here are cleared like in the JSON import.
+- **Imports:** document records with numbers or lists where text belongs no longer break the documents list or the
+  file view; a file with a broken objects list no longer changes the settings before it is refused; a completion
+  action aimed at a device follows that device to the new installation; the backup carries each task's completion
+  counter, so reference numbers are not handed out twice after a restore.
+- **Documents:** restoring a documents archive names the objects that match nothing here (their files stay, so a
+  backup imported afterwards still finds them). Deleting the last object removes its documents too, and document
+  links answer *not found* instead of an error once the integration is gone.
+- **Battery fleet:** a renamed battery sensor keeps its replacement history and its open low-battery episode;
+  merged battery parts also move the links in task phases; an object whose name contains "part" no longer loses its
+  task entities at startup.
+- **Spare parts:** a cost typed on a skip or reset entry no longer counts toward the task's total (the budget never
+  counted it); giving back a reusable part that was already ready again no longer counts it twice; renaming a part
+  renames its stock sensor at once.
+- **Options flow:** a one-time task's due date is pre-filled; the responsible person, the shared list, the rotation
+  and the household notification service can be cleared; the shared list survives a save while fewer than two
+  users are active; closing the dialog with its X still reloads the object; the adaptive scheduling form keeps the
+  task's name on an error; a tag two tasks share no longer blocks editing them; an imported priority outside the
+  three levels no longer makes the form unsaveable; the maintenance calendar itself is no longer offered as the
+  source of a calendar schedule; the priority and rotation choices are translated.
+- **Notifications:** the summary after quiet hours leaves out tasks done or muted since; reminders that waited for
+  the daily limit or for the end of quiet hours are no longer marked as sent after a restart; a bundle counts only
+  reminders due now (one new task went out as a "bundle" without its buttons); a persistent notification replaces
+  the previous one for the same task; the daily count and the budget alert survive a restart; "no notification
+  target" is logged once per task; arriving at a place where nothing could be sent no longer silences the next
+  arrival.
+- **Voice:** "what is due today" no longer lists every task that is due soon.
+- **Panel and cards:** the Today tab ignores the status filter picked on the dashboard; going back to a task page
+  loads its full history; several vacation changes in a row are all saved, and a refused one no longer stays shown
+  as saved; an object's quick actions show an error instead of loading forever; in the panel, a calendar event opens
+  the task page instead of a dialog on top; the calendar's past view opens the editor only for entries that can be
+  edited; *New task* no longer offers an archived object; *in 3 days* takes the right plural form in Russian,
+  Ukrainian and Czech; a sensor used by a counter task and by a level task shows each its own chart and sparkline; a
+  card moved on the page no longer keeps a second live connection.
 
 ## [2.103.5] - 2026-10-16
 

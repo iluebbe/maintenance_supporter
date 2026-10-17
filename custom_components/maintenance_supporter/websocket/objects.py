@@ -525,6 +525,15 @@ async def ws_update_object(
     hass.config_entries.async_update_entry(entry, data=new_data, title=title)
     if device_link_changed:
         hass.config_entries.async_schedule_reload(entry.entry_id)
+    else:
+        # The other open panels and cards: their subscription pushes on a
+        # coordinator update, and this write is none — a rename showed there
+        # after the next 5-minute refresh (bug audit 2026-10-16, W5).
+        from ..helpers.aggregate import get_runtime_data
+
+        rd = get_runtime_data(hass, entry.entry_id)
+        if rd is not None and rd.coordinator is not None:
+            rd.coordinator.async_update_listeners()
 
     result: dict[str, Any] = {"success": True}
     if swap_report is not None:

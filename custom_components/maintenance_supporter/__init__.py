@@ -32,6 +32,7 @@ from homeassistant.helpers import (
     entity_registry as er,
 )
 from homeassistant.helpers.event import (
+    async_call_later,
     async_track_time_change,
     async_track_time_interval,
 )
@@ -1217,13 +1218,18 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         # legacy notify service is no entity and never renamed).
         gentry = get_global_entry(hass)
         if gentry is not None:
+            # The settings' read rule (options, else the creation data): a
+            # hub entry whose settings still live in ``data`` got options of
+            # the renamed key alone, and every other setting vanished behind
+            # them (bug audit 2026-10-16).
+            settings = gentry.options or gentry.data
             renamed = {
                 key: new_eid
                 for key in (CONF_SHOPPING_LIST_ENTITY, CONF_NOTIFY_SERVICE)
-                if gentry.options.get(key, gentry.data.get(key)) == old_eid
+                if settings.get(key) == old_eid
             }
             if renamed:
-                hass.config_entries.async_update_entry(gentry, options={**gentry.options, **renamed})
+                hass.config_entries.async_update_entry(gentry, options={**settings, **renamed})
             if CONF_SHOPPING_LIST_ENTITY in renamed:
                 from .shopping_sync import SHOPPING_SYNC_KEY
 
@@ -1311,6 +1317,11 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         await async_run_retention_sweep(hass)
 
     unsub_retention = async_track_time_interval(hass, _retention_tick, timedelta(hours=24), cancel_on_shutdown=True)
+    # ...and once ten minutes after each start: an install restarted every
+    # night (backups, a power-saving host) never reached the 24-hour tick
+    # and swept nothing (bug audit 2026-10-16, C-H).
+    unsub_retention_boot = async_call_later(hass, timedelta(minutes=10), _retention_tick)
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, lambda _e: unsub_retention_boot())
 
     # v2.15.0: opt-in weekly digest — one summary notification on Monday morning.
     # Fires daily at 08:00 local; the gating lives in async_maybe_send_weekly_digest.
@@ -1344,6 +1355,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         unsub_device,
         unsub_entity,
         unsub_retention,
+        unsub_retention_boot,
         unsub_digest,
         unsub_lead_retry,
     ]
@@ -2345,6 +2357,12 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     # the Configure-UI, and the service delete paths alike — the single place it
     # belongs.
     doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    if not isinstance(doc_store, DocumentStore):
+        # The last entry to go: its unload already dropped the integration's
+        # runtime data, and the object's documents stayed on disk for good
+        # (bug audit 2026-10-16). Loaded for this one clean-up.
+        doc_store = DocumentStore(hass)
+        await doc_store.async_load()
     if isinstance(doc_store, DocumentStore):
         object_id = object_id_for_entry(entry)
         removed_doc_ids = {doc["id"] for doc in doc_store.for_object(object_id)}

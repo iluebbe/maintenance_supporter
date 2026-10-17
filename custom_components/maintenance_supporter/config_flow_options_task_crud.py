@@ -18,6 +18,7 @@ from .config_flow_helpers import (
     interval_anchor_selector,
     interval_unit_selector,
     is_future_date,
+    own_calendar_entity_ids,
     schedule_from_calendar_input,
     season_ends_schema,
     select_default,
@@ -164,9 +165,13 @@ class TaskCrudMixin:
             if user_input.get("go_back"):
                 return self._show_task_action_menu()
 
-            # Validate NFC tag uniqueness before saving
+            # Validate NFC tag uniqueness before saving — a CHANGED tag only:
+            # the panel allows a shared tag (with a warning), and then every
+            # later edit of either task was refused here (bug audit
+            # 2026-10-16, G11).
             nfc_val = (user_input.get(CONF_TASK_NFC_TAG) or "").strip()
-            if nfc_val:
+            stored_nfc = ((self.config_entry.data.get(CONF_TASKS) or {}).get(self._selected_task_id or "") or {}).get(CONF_TASK_NFC_TAG)
+            if nfc_val and nfc_val != stored_nfc:
                 from .websocket.tasks import _check_nfc_tag_duplicate
 
                 dup_warn = _check_nfc_tag_duplicate(
@@ -277,16 +282,20 @@ class TaskCrudMixin:
                 lp_changed = submitted_lp is not None and submitted_lp != current_lp
                 if lp_changed and submitted_lp is not None:
                     write_anchor(updated_task, submitted_lp)
-                pool = user_input.get(CONF_TASK_ASSIGNEE_POOL, [])
-                if pool:
-                    updated_task["assignee_pool"] = pool
-                else:
-                    updated_task.pop("assignee_pool", None)
-                rot = user_input.get(CONF_TASK_ROTATION_STRATEGY, "")
-                if rot:
-                    updated_task["rotation_strategy"] = rot
-                else:
-                    updated_task.pop("rotation_strategy", None)
+                # Only when the form showed them (two active users or more):
+                # not shown, they read as cleared and every save dissolved
+                # the shared list (bug audit 2026-10-16, G12).
+                if getattr(self, "_edit_pool_shown", True):
+                    pool = user_input.get(CONF_TASK_ASSIGNEE_POOL, [])
+                    if pool:
+                        updated_task["assignee_pool"] = pool
+                    else:
+                        updated_task.pop("assignee_pool", None)
+                    rot = user_input.get(CONF_TASK_ROTATION_STRATEGY, "")
+                    if rot:
+                        updated_task["rotation_strategy"] = rot
+                    else:
+                        updated_task.pop("rotation_strategy", None)
                 ecd = user_input.get("earliest_completion_days")
                 if ecd is not None and ecd != "":
                     updated_task["earliest_completion_days"] = int(ecd)
@@ -389,11 +398,11 @@ class TaskCrudMixin:
         nfc_tag_key = _suggested(CONF_TASK_NFC_TAG, task.get(CONF_TASK_NFC_TAG))
         reading_unit_key = _suggested(CONF_TASK_READING_UNIT, task.get(CONF_TASK_READING_UNIT))
         labels_key = _suggested(CONF_TASK_LABELS_TEXT, ", ".join(task.get("labels") or []))
-        due_date_key = (
-            vol.Required(CONF_TASK_DUE_DATE, default=task.get(CONF_TASK_DUE_DATE))
-            if task.get(CONF_TASK_DUE_DATE)
-            else vol.Required(CONF_TASK_DUE_DATE)
-        )
+        # Either storage shape: a one-time task saved as a nested schedule
+        # has no flat due_date, and its date was not pre-filled (bug audit
+        # 2026-10-16, G6).
+        stored_due = read_legacy_fields(task)["due_date"]
+        due_date_key = vol.Required(CONF_TASK_DUE_DATE, default=stored_due) if stored_due else vol.Required(CONF_TASK_DUE_DATE)
         # Build user dropdown options
         users = await self.hass.auth.async_get_users()
         user_options = [selector.SelectOptionDict(value="", label="\u2014")]
@@ -406,9 +415,16 @@ class TaskCrudMixin:
         # stored None, or a user since deleted (hence no longer in the
         # dropdown), would fail the select's own validation and 400 the whole
         # form on save.
-        user_id_key = vol.Optional(CONF_RESPONSIBLE_USER_ID, default=select_default(task.get(CONF_RESPONSIBLE_USER_ID), user_options))
+        # suggested, not default: choosing "—" leaves the field out of the
+        # submission and a default put the stored person back — nobody could
+        # be unassigned here (bug audit 2026-10-16, G7). Absence = cleared.
+        user_id_key = vol.Optional(
+            CONF_RESPONSIBLE_USER_ID,
+            description={"suggested_value": select_default(task.get(CONF_RESPONSIBLE_USER_ID), user_options)},
+        )
         # Rotation pool options = the real users (no empty sentinel).
         pool_options = [o for o in user_options if o["value"]]
+        self._edit_pool_shown = len(pool_options) >= 2
         pool_default = select_default(task.get("assignee_pool") or [], pool_options)
         rotation_default = select_default(task.get("rotation_strategy"), ["", *ROTATION_STRATEGIES])
         # A task created over the WS API may carry a free-text type the
@@ -481,7 +497,7 @@ class TaskCrudMixin:
                     # Calendar kinds (Phase 4): per-kind fields, prefilled from
                     # the task's nested schedule.
                     **(
-                        calendar_schema(sched["schedule_type"], calendar_current(task)).schema
+                        calendar_schema(sched["schedule_type"], calendar_current(task), exclude=own_calendar_entity_ids(self.hass)).schema
                         if sched["schedule_type"] in CALENDAR_KIND_VALUES
                         else dict[Any, Any]()
                     ),
@@ -539,14 +555,14 @@ class TaskCrudMixin:
                     ),
                     **(
                         {
-                            vol.Optional(CONF_TASK_ASSIGNEE_POOL, default=pool_default): selector.SelectSelector(
+                            vol.Optional(CONF_TASK_ASSIGNEE_POOL, description={"suggested_value": pool_default}): selector.SelectSelector(
                                 selector.SelectSelectorConfig(
                                     options=pool_options,
                                     mode=selector.SelectSelectorMode.LIST,
                                     multiple=True,
                                 )
                             ),
-                            vol.Optional(CONF_TASK_ROTATION_STRATEGY, default=rotation_default): selector.SelectSelector(
+                            vol.Optional(CONF_TASK_ROTATION_STRATEGY, description={"suggested_value": rotation_default}): selector.SelectSelector(
                                 selector.SelectSelectorConfig(
                                     options=["", *ROTATION_STRATEGIES],
                                     mode=selector.SelectSelectorMode.DROPDOWN,
@@ -559,7 +575,11 @@ class TaskCrudMixin:
                     ),
                     icon_key: selector.IconSelector(),
                     notify_icon_key: selector.IconSelector(),
-                    vol.Optional(CONF_TASK_PRIORITY, default=task.get(CONF_TASK_PRIORITY, "normal")): selector.SelectSelector(
+                    # Guarded: an imported value outside the three made the
+                    # form unsaveable (bug audit 2026-10-16).
+                    vol.Optional(
+                        CONF_TASK_PRIORITY, default=select_default(task.get(CONF_TASK_PRIORITY), list(TASK_PRIORITIES), "normal")
+                    ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=list(TASK_PRIORITIES),
                             mode=selector.SelectSelectorMode.DROPDOWN,

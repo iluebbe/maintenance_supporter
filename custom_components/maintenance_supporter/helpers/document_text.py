@@ -271,8 +271,16 @@ class DocumentTextIndex:
                 return None
             result = await self.hass.async_add_executor_job(extract_text_sync, path, str(blob.get("mime") or ""))
             text = result.pop("text", "")
+            # Deleted while it was read (a long PDF): the sidecar and the
+            # meta written now belonged to nothing and stayed for good (bug
+            # audit 2026-10-16, F12).
+            if digest not in self.store.blobs:
+                return None
             if result["status"] == STATUS_TEXT:
                 await self.hass.async_add_executor_job(self._write_sidecar_sync, digest, text)
+                if digest not in self.store.blobs:
+                    await self.hass.async_add_executor_job(lambda: text_sidecar_path(self.hass, digest).unlink(missing_ok=True))
+                    return None
                 if self._loaded:
                     self._drop_from_index(digest)
                     self._add_to_index(digest, text)

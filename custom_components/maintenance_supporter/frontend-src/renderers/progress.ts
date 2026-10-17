@@ -16,7 +16,7 @@ import { t, formatDate, formatDueDays, formatLastDone, formatNumber } from "../s
 import { fmtVal, px } from "./chart-utils";
 import { daysProgress } from "../helpers/interval";
 import { stampMs } from "../helpers/ha-time";
-import { primaryTriggerEntity } from "../helpers/trigger-entities";
+import { isCounterTrigger, miniSeriesKey, primaryTriggerEntity } from "../helpers/trigger-entities";
 import type { MaintenanceTask, TaskRow, StatisticsPoint } from "../types";
 
 const MINI_SPARKLINE_W = 60;
@@ -51,7 +51,7 @@ export function computeTrend(
   } else {
     return null; // compound: conditions may point both ways
   }
-  const statsPoints = miniStatsData.get(entityId) || [];
+  const statsPoints = miniStatsData.get(miniSeriesKey(entityId, isCounterTrigger(tc))) || [];
   // Runtime and state_change accumulate SINCE the last completion — the
   // history's trigger_value is the count at the previous trigger, a point
   // from before the reset. Falling back to it read a freshly reset task
@@ -253,7 +253,7 @@ export function renderMiniSparkline(
   if (!entityId || row.battery_fleet_task) return nothing;
 
   // PRIMARY: HA recorder statistics (daily, last 14 days)
-  const statsPoints = miniStatsData.get(entityId) || [];
+  const statsPoints = miniStatsData.get(miniSeriesKey(entityId, isCounterTrigger(row.trigger_config))) || [];
 
   let points: { ts: number; val: number }[] = [];
 

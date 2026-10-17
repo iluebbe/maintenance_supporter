@@ -8,6 +8,7 @@
 
 import { expect, fixture, html, waitUntil } from "@open-wc/testing";
 import { computeTrend, renderTriggerProgress } from "../renderers/progress.js";
+import { miniSeriesKey } from "../helpers/trigger-entities.js";
 import type { StatisticsPoint, TaskRow } from "../types";
 import { DEFAULT_SETTINGS_RESPONSE } from "./_test-utils.js";
 import { mountPanel, obj, resetTaskSeq, task } from "./_panel-utils.js";
@@ -16,7 +17,9 @@ const DAY = 86400e3;
 const pts = (...vals: number[]): StatisticsPoint[] =>
   vals.map((val, i) => ({ ts: Date.now() - (vals.length - i) * DAY, val })) as StatisticsPoint[];
 
-const stats = (eid: string, ...vals: number[]) => new Map([[eid, pts(...vals)]]);
+// Both series of the entity: the counter and the level kind read the same points here.
+const stats = (eid: string, ...vals: number[]) =>
+  new Map([[miniSeriesKey(eid, false), pts(...vals)], [miniSeriesKey(eid, true), pts(...vals)]]);
 
 function row(tc: Record<string, unknown>, current: number | null = null): TaskRow {
   return { trigger_config: { entity_id: "sensor.x", ...tc }, trigger_current_value: current } as unknown as TaskRow;

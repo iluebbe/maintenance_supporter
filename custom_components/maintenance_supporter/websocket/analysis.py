@@ -131,10 +131,15 @@ async def ws_apply_suggestion(
         return
     _entry, rd, _task = ctx
 
-    await rd.coordinator.async_apply_suggested_interval(
+    applied = await rd.coordinator.async_apply_suggested_interval(
         task_id=msg["task_id"],
         interval=msg["interval"],
     )
+    if not applied:
+        # Its schedule is no day interval (a calendar kind): refused, and
+        # said so — the panel reported "applied" (bug audit 2026-10-16).
+        connection.send_error(msg["id"], "invalid_input", "The suggestion is a number of days; this task's schedule is not a day interval")
+        return
     connection.send_result(msg["id"], {"success": True})
 
 

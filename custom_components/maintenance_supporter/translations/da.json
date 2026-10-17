@@ -1809,6 +1809,20 @@
         "purchase": "Ved køb",
         "use": "Ved forbrug"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "På skift",
+        "least_completed": "Færrest fuldførte",
+        "random": "Tilfældig"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Lav",
+        "normal": "Normal",
+        "high": "Høj"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "Fjern sensorudløser",
             "description": "Dette fjerner sensorudløseren fra opgaven \"{task_name}\" på \"{object_name}\" og konverterer planen til tidsbaseret eller manuel. Vedligeholdelseshistorikken bevares.\n\nTidligere udløserenhed: `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "Denne opgave findes ikke længere — der er intet at reparere.",
+          "already_fixed": "Udløseren bruger ikke længere denne entitet — der er intet at reparere."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "Forældreløs bruger i listen over paneladgang",
             "description": "Brugeren `{user_id}…` er på Maintenance Supporters liste over paneladgang, men findes ikke længere i Home Assistant. Sandsynligvis blev brugeren slettet.\n\nKlik på **Indsend** for at fjerne denne bruger fra listen. (For at lade problemet være, brug i stedet Home Assistants **Ignorér**-knap på Reparationer-siden.)"
           }
+        },
+        "abort": {
+          "entry_gone": "Integrationens indstillinger findes ikke længere — der er intet at reparere."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "Fjern fuldførelseshandling",
             "description": "Ryd `on_complete_action` fra opgaven **{task_name}** helt. Selve opgaven påvirkes ikke — kun tjenestekaldet ved fuldførelse fjernes."
           }
+        },
+        "abort": {
+          "entry_gone": "Dette objekt findes ikke længere — intet at reparere.",
+          "task_deleted": "Denne opgave findes ikke længere — der er intet at reparere.",
+          "already_fixed": "Handlingen ved udførelse bruger ikke længere denne entitet — der er intet at reparere.",
+          "no_entity": "Der blev ikke valgt nogen entitet — intet blev ændret."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "Der er ikke konfigureret nogen Home Assistant-URL — angiv en ekstern eller intern URL under Indstillinger → System → Netværk."
+    },
+    "postpone_in_past": {
+      "message": "Den nye dato må ikke ligge i fortiden."
+    },
+    "postpone_done": {
+      "message": "”{task_name}” er udført — der er intet at udskyde."
     }
   },
   "triggers": {

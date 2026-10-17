@@ -1809,6 +1809,20 @@
         "purchase": "Bij aankoop",
         "use": "Bij gebruik"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "Om de beurt",
+        "least_completed": "Minst voltooid",
+        "random": "Willekeurig"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Laag",
+        "normal": "Normaal",
+        "high": "Hoog"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "Sensortrigger verwijderen",
             "description": "Dit verwijdert de sensortrigger van taak \"{task_name}\" op \"{object_name}\" en converteert het schema naar tijdgebaseerd of handmatig. De onderhoudsgeschiedenis blijft behouden.\n\nVorige triggerentiteit: `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "Deze taak bestaat niet meer — niets te repareren.",
+          "already_fixed": "De trigger gebruikt deze entiteit niet meer — niets te repareren."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "Verweesde gebruiker in paneel-toegangslijst",
             "description": "Gebruiker `{user_id}…` staat in de paneel-toegangslijst maar bestaat niet meer in Home Assistant. Waarschijnlijk is de gebruiker verwijderd.\n\nKlik **Verzenden** om de gebruiker uit de lijst te verwijderen. (Wil je het issue laten staan: gebruik de **Negeren**-knop op de Reparaties-pagina van Home Assistant.)"
           }
+        },
+        "abort": {
+          "entry_gone": "De instellingen van de integratie bestaan niet meer — niets te repareren."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "Voltooiings-actie verwijderen",
             "description": "Verwijder de `on_complete_action` van taak **{task_name}** volledig. De taak zelf wordt niet beïnvloed — alleen de service-call bij voltooien wordt verwijderd."
           }
+        },
+        "abort": {
+          "entry_gone": "Dit object bestaat niet meer — niets te repareren.",
+          "task_deleted": "Deze taak bestaat niet meer — niets te repareren.",
+          "already_fixed": "De actie bij voltooien gebruikt deze entiteit niet meer — niets te repareren.",
+          "no_entity": "Er is geen entiteit gekozen — er is niets gewijzigd."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "Er is geen Home Assistant-URL geconfigureerd — stel een externe of interne URL in via Instellingen → Systeem → Netwerk."
+    },
+    "postpone_in_past": {
+      "message": "De nieuwe datum mag niet in het verleden liggen."
+    },
+    "postpone_done": {
+      "message": "„{task_name}” is klaar — er valt niets meer uit te stellen."
     }
   },
   "triggers": {

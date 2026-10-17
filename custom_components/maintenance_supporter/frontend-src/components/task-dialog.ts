@@ -447,7 +447,10 @@ export class MaintenanceTaskDialog extends LitElement {
     return langOf(this.hass);
   }
 
-  public async openCreate(entryId: string, objects?: Array<{ entry_id: string; object: { name: string } }>): Promise<void> {
+  public async openCreate(
+    entryId: string,
+    objects?: Array<{ entry_id: string; object: { name: string; archived?: boolean; archived_at?: string | null } }>,
+  ): Promise<void> {
     this._entryId = entryId;
     this._taskId = null;
     this._isFleetTask = false;
@@ -457,8 +460,12 @@ export class MaintenanceTaskDialog extends LitElement {
     // Sort alphabetically by name so the user doesn't have to scan for a target
     // object in creation order (#40). First object after sort becomes the
     // default selection so save can work without forced UI.
-    if (!entryId && objects && objects.length > 0) {
-      this._objectChoices = objects
+    // An archived object gets no new tasks (the backend refuses them): it
+    // was offered, first in the list when its name sorted first (bug audit
+    // 2026-10-16).
+    const live = (objects || []).filter((o) => !o.object.archived && !o.object.archived_at);
+    if (!entryId && live.length > 0) {
+      this._objectChoices = live
         .map(o => ({ entry_id: o.entry_id, name: o.object.name }))
         .sort((a, b) => a.name.localeCompare(b.name));
       this._entryId = this._objectChoices[0].entry_id;

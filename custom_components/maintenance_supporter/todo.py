@@ -158,6 +158,12 @@ class MaintenanceTodoList(TodoListEntity):
         coordinator = getattr(getattr(entry, "runtime_data", None), "coordinator", None)
         if coordinator is None:
             return
+        # Only a check of an OPEN item completes: renaming or re-dating an
+        # item the list already shows as done sends it back as completed,
+        # and that recorded a new completion (bug audit 2026-10-16, T7).
+        live = (coordinator.data or {}).get(CONF_TASKS, {}).get(task_id, {})
+        if live.get("_status", MaintenanceStatus.OK) not in _ACTION_STATUSES:
+            return
         # Respect a task's completion window — silently no-op (the item stays
         # needs_action) rather than completing an item that's not yet due.
         from .models.maintenance_task import MaintenanceTask

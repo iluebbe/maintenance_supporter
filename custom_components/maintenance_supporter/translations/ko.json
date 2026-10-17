@@ -1809,6 +1809,20 @@
         "purchase": "구매할 때",
         "use": "사용할 때"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "순서대로",
+        "least_completed": "완료 횟수가 적은 사람",
+        "random": "무작위"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "낮음",
+        "normal": "보통",
+        "high": "높음"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "센서 트리거 제거",
             "description": "\"{object_name}\"의 작업 \"{task_name}\"에서 센서 트리거를 제거하고 일정을 시간 기반 또는 수동으로 전환합니다. 유지보수 이력은 보존됩니다.\n\n이전 트리거 엔티티: `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "이 작업은 더 이상 존재하지 않습니다 — 복구할 것이 없습니다.",
+          "already_fixed": "트리거가 더 이상 이 엔티티를 사용하지 않습니다 — 복구할 것이 없습니다."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "패널 접근 목록에 남아 있는 사용자",
             "description": "사용자 `{user_id}…`가 Maintenance Supporter 패널 접근 목록에 있지만 Home Assistant에 더 이상 존재하지 않습니다. 해당 사용자가 삭제된 것으로 보입니다.\n\n**제출**을 클릭하면 이 사용자를 목록에서 제거합니다. (그대로 두려면 수리 페이지에서 Home Assistant의 **무시** 버튼을 사용하세요.)"
           }
+        },
+        "abort": {
+          "entry_gone": "통합 구성요소의 설정이 더 이상 존재하지 않습니다 — 복구할 것이 없습니다."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "완료 동작 제거",
             "description": "작업 **{task_name}**에서 `on_complete_action`을 완전히 제거합니다. 작업 자체는 영향을 받지 않으며, 완료 시 서비스 호출만 제거됩니다."
           }
+        },
+        "abort": {
+          "entry_gone": "이 객체는 더 이상 존재하지 않습니다. 복구할 것이 없습니다.",
+          "task_deleted": "이 작업은 더 이상 존재하지 않습니다 — 복구할 것이 없습니다.",
+          "already_fixed": "완료 시 작업이 더 이상 이 엔티티를 사용하지 않습니다 — 복구할 것이 없습니다.",
+          "no_entity": "엔티티를 선택하지 않았습니다 — 아무것도 변경되지 않았습니다."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "Home Assistant URL이 설정되어 있지 않습니다 — 설정 → 시스템 → 네트워크에서 외부 또는 내부 URL을 설정하세요."
+    },
+    "postpone_in_past": {
+      "message": "새 날짜는 과거일 수 없습니다."
+    },
+    "postpone_done": {
+      "message": "“{task_name}”은(는) 완료되어 연기할 항목이 없습니다."
     }
   },
   "triggers": {

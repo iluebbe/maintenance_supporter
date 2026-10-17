@@ -1195,6 +1195,12 @@ async def async_dispatch_notify(
         if url and "](" not in msg:
             link_text = _notif_t("open_task_link", normalize_language(hass))
             service_data = {**service_data, "message": f"{msg}\n\n[{link_text}]({url})"}
+        # The reminder's tag as its id: a newer reminder about the same task
+        # replaces the older one, as on a phone — every repeat added one
+        # more card (bug audit 2026-10-16, N8).
+        tag = (service_data.get("data") or {}).get("tag")
+        if tag:
+            service_data = {**service_data, "data": {**(service_data.get("data") or {}), "notification_id": f"{DOMAIN}_{tag}"}}
     if hass.services.has_service(domain, name):
         await hass.services.async_call(domain, name, service_data, blocking=blocking)
         return True
@@ -1241,6 +1247,9 @@ class NotificationManager:
         self._last_notified: dict[str, datetime] = {}
         self._snoozed_until: dict[str, datetime] = {}
         self._daily_count: int = 0
+        # Tasks already logged as having nobody to tell (N11: once, not on
+        # every refresh).
+        self._no_target_warned: set[str] = set()
         # Daily-limit fairness (2026-09-13): which tasks got a message today,
         # which were turned away today (limit / reserve / hold), and which
         # were turned away YESTERDAY and never served — those go first today.
@@ -1275,6 +1284,11 @@ class NotificationManager:
     def _global_options(self) -> Mapping[str, Any]:
         """Get global options from the global config entry."""
         return get_global_options(self.hass)
+
+    def reminder_due(self, entry_id: str, task_id: str, status: str) -> bool:
+        """Whether the task's ``status`` reminder would go out now (never
+        sent, or its repeat interval elapsed) — for counting a bundle."""
+        return self._status_due(notification_key(entry_id, task_id, status), self._get_interval_hours(status))
 
     def _status_due(self, key: str, interval_hours: int) -> bool:
         """Whether a status notification for ``key`` is due now: never sent,
@@ -1357,7 +1371,13 @@ class NotificationManager:
                 # automation IS the delivery. One event, empty target.
                 target_services = [""]
             else:
-                _LOGGER.warning("No notification services available")
+                # Once per task and run: per-person routing without a
+                # household service logged this on every refresh for every
+                # unassigned task (bug audit 2026-10-16, N11).
+                tkey = task_key_of(entry_id, task_id)
+                if tkey not in self._no_target_warned:
+                    self._no_target_warned.add(tkey)
+                    _LOGGER.warning("No notification target for %s: nobody responsible has a phone and no household service is set", task_id)
                 return False
 
         success = False
@@ -1419,6 +1439,22 @@ class NotificationManager:
             return None
         task = coordinator._get_merged_tasks_data().get(task_id)
         return cycle_token(task.get("history")) if task else None
+
+    def _held_still_current(self, facts: Mapping[str, Any]) -> bool:
+        """Whether a reminder quiet hours held is still one to send: the
+        task's gates pass and it is still in a status worth a reminder."""
+        entry_id, task_id = str(facts.get("entry_id") or ""), str(facts.get("task_id") or "")
+        if not entry_id or not task_id:
+            return True
+        entry = self.hass.config_entries.async_get_entry(entry_id)
+        if entry is None or task_id not in (entry.data.get(CONF_TASKS) or {}):
+            return False
+        coordinator = getattr(getattr(entry, "runtime_data", None), "coordinator", None)
+        live = ((coordinator.data or {}).get(CONF_TASKS) or {}).get(task_id) if coordinator is not None else None
+        status = str(live.get("_status")) if isinstance(live, dict) and live.get("_status") else str(facts.get("status"))
+        if status not in STATUS_ENABLED_KEYS:
+            return False
+        return bool(task_may_notify(self.hass, entry_id, task_id, status, self._task_config(entry_id, task_id), kind=KIND_STATUS, manager=self))
 
     def _task_config(self, entry_id: str, task_id: str) -> Mapping[str, Any]:
         """The task's static config dict (``entry.data``) — carries the flags
@@ -1700,6 +1736,15 @@ class NotificationManager:
         if not self._quiet_held or self._is_quiet_hours():
             return False
         if not self.enabled or not self._has_target or not self._check_daily_limit():
+            return False
+        # Held hours ago: a task completed, muted, snoozed or paused since
+        # is no news any more — the summary listed it anyway (bug audit
+        # 2026-10-16, N5).
+        for key, f in list(self._quiet_held.items()):
+            if not self._held_still_current(f):
+                del self._quiet_held[key]
+        if not self._quiet_held:
+            self._dirty()
             return False
         held = list(self._quiet_held.values())
         lang = self._lang
@@ -2026,6 +2071,9 @@ class NotificationManager:
         sent = await async_emit_and_dispatch(self.hass, self.notify_service, service_data, context)
         if sent:
             self._daily_count += 1
+            # Saved like every other stamp: unsaved, a restart forgot the
+            # count (bug audit 2026-10-16, N10).
+            self._dirty()
         return sent
 
     def _build_message(
@@ -2479,6 +2527,9 @@ class NotificationManager:
             if await async_emit_and_dispatch(self.hass, self.notify_service, service_data, context):
                 self._last_notified[budget_key] = dt_util.now()
                 self._daily_count += 1
+                # Unsaved, the alert went out again after every restart
+                # (bug audit 2026-10-16, N10).
+                self._dirty()
                 _LOGGER.debug("Budget alert sent: %s - %s", title, message)
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.exception("Failed to send budget alert")
@@ -2506,6 +2557,12 @@ class NotificationManager:
         key = notification_key(entry_id, task_id, status)
         if key in self._last_notified:
             return  # persisted from the previous process — keep the real stamp
+        # Never sent, only waiting — for a slot under the daily limit, or for
+        # the end of quiet hours: stamped as sent here, it stayed silent for
+        # a whole repeat interval (bug audit 2026-10-16, N6).
+        tkey = task_key_of(entry_id, task_id)
+        if tkey in self._deferred_today or tkey in self._starved or key in self._quiet_held:
+            return
         interval_hours = self._get_interval_hours(status)
         if interval_hours == 0:
             self._last_notified[key] = _SENT_ONCE

@@ -80,10 +80,23 @@ _NTH_OPTIONS = (
 )
 
 
-def calendar_schema(kind: str, current: dict[str, Any] | None = None) -> vol.Schema:
+def own_calendar_entity_ids(hass: HomeAssistant) -> list[str]:
+    """This integration's own calendar — no source for a calendar schedule:
+    its events ARE the tasks' due dates, a task scheduled by it chased its
+    own tail (bug audit 2026-10-16)."""
+    from homeassistant.helpers import entity_registry as er
+
+    from .const import DOMAIN
+
+    entity_id = er.async_get(hass).async_get_entity_id("calendar", DOMAIN, "maintenance_supporter_calendar")
+    return [entity_id] if entity_id else []
+
+
+def calendar_schema(kind: str, current: dict[str, Any] | None = None, *, exclude: list[str] | None = None) -> vol.Schema:
     """Voluptuous schema for a calendar kind's fields (weekdays / nth_weekday /
     day_of_month). Shared by the config + options flows (DRY). Callers extend it
-    with their own warning_days / last_performed / go_back fields."""
+    with their own warning_days / last_performed / go_back fields. ``exclude``:
+    calendar entities the picker leaves out (:func:`own_calendar_entity_ids`)."""
     cur = current or {}
     weekday_opts = [selector.SelectOptionDict(value=str(i), label=lbl) for i, lbl in enumerate(_WEEKDAY_LABELS)]
     fields: dict[Any, Any] = {}
@@ -121,7 +134,7 @@ def calendar_schema(kind: str, current: dict[str, Any] | None = None) -> vol.Sch
         # when the task has none yet — an empty string would fail the entity
         # selector's own validation on submit.
         entity_key = vol.Required("entity_id", default=cur["entity_id"]) if cur.get("entity_id") else vol.Required("entity_id")
-        fields[entity_key] = selector.EntitySelector(selector.EntitySelectorConfig(domain="calendar"))
+        fields[entity_key] = selector.EntitySelector(selector.EntitySelectorConfig(domain="calendar", exclude_entities=exclude or []))
     # (#83) ±N-day shift of the computed occurrence, on every calendar kind
     # ("two days before the last working day" = last_day + business + offset -2).
     fields[vol.Optional("offset", default=cur.get("offset", 0))] = selector.NumberSelector(

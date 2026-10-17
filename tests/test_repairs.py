@@ -692,7 +692,7 @@ async def test_stale_action_repair_remove_action_success(hass: HomeAssistant) ->
     task_id = "t2"
     entry = MockConfigEntry(
         domain="maintenance_supporter",
-        data={CONF_TASKS: {task_id: {"on_complete_action": {"service": "light.turn_on"}}}},
+        data={CONF_TASKS: {task_id: {"on_complete_action": {"service": "light.turn_on", "target": {"entity_id": "sensor.dead"}}}}},
         unique_id="test_stale_remove",
     )
     entry.add_to_hass(hass)

@@ -1809,6 +1809,20 @@
         "purchase": "Al comprarlos",
         "use": "Al usarlos"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "Por turnos",
+        "least_completed": "Menos completadas",
+        "random": "Aleatoria"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Baja",
+        "normal": "Normal",
+        "high": "Alta"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "Eliminar disparador de sensor",
             "description": "Esto eliminará el disparador de sensor de la tarea \"{task_name}\" en \"{object_name}\" y convertirá la programación a temporal o manual. El historial de mantenimiento se conservará.\n\nEntidad disparador anterior: `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "Esta tarea ya no existe — no hay nada que reparar.",
+          "already_fixed": "El disparador ya no usa esta entidad — no hay nada que reparar."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "Usuario huérfano en la lista de acceso al panel",
             "description": "El usuario `{user_id}…` está en la lista de acceso al panel de Maintenance Supporter pero ya no existe en Home Assistant. Probablemente el usuario fue eliminado.\n\nHaz clic en **Enviar** para quitar al usuario de la lista. (Para dejar el problema sin resolver, usa el botón **Ignorar** en la página de Reparaciones de Home Assistant.)"
           }
+        },
+        "abort": {
+          "entry_gone": "La configuración de la integración ya no existe — no hay nada que reparar."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "Eliminar acción de finalización",
             "description": "Elimina completamente la `on_complete_action` de la tarea **{task_name}**. La tarea en sí no se ve afectada — solo se elimina la llamada al servicio en la finalización."
           }
+        },
+        "abort": {
+          "entry_gone": "Este objeto ya no existe: no hay nada que reparar.",
+          "task_deleted": "Esta tarea ya no existe — no hay nada que reparar.",
+          "already_fixed": "La acción al completar ya no usa esta entidad — no hay nada que reparar.",
+          "no_entity": "No se eligió ninguna entidad — no se cambió nada."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "No hay ninguna URL de Home Assistant configurada — establece una URL externa o interna en Ajustes → Sistema → Red."
+    },
+    "postpone_in_past": {
+      "message": "La nueva fecha no puede estar en el pasado."
+    },
+    "postpone_done": {
+      "message": "«{task_name}» está hecha — no queda nada que posponer."
     }
   },
   "triggers": {

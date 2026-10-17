@@ -317,11 +317,15 @@ async def ws_delete_history_entry(
     store = rd.store
     task_id = msg["task_id"]
     history = list(store.get_history(task_id))
-    remaining = [h for h in history if h.get("timestamp") != msg["timestamp"]]
-    if len(remaining) == len(history):
+    # The first match, like the edit: two entries sharing a moment (a reset
+    # and a completion) were both removed, and only the first one's parts
+    # went back to stock (bug audit 2026-10-16, W7).
+    index = next((i for i, h in enumerate(history) if h.get("timestamp") == msg["timestamp"]), None)
+    if index is None:
         connection.send_error(msg["id"], "not_found", f"No history entry with timestamp {msg['timestamp']!r}")
         return
-    removed = next(h for h in history if h.get("timestamp") == msg["timestamp"])
+    removed = history[index]
+    remaining = history[:index] + history[index + 1 :]
     store.set_history(task_id, remaining)
     # Nothing left to anchor the cycle on → the task reads as never performed
     # until its next completion (the static config's own last_performed, if

@@ -701,7 +701,14 @@ async def ws_import_csv(
         send_translated_error(connection, msg["id"], "too_large", "CSV content exceeds 1MB limit", translation_key="import_too_large", translation_placeholders={"limit": "1 MB"})
         return
 
-    objects = import_objects_csv(csv_content, hass=hass)
+    import csv
+
+    try:
+        objects = import_objects_csv(csv_content, hass=hass)
+    except csv.Error:
+        # A NUL byte or an oversized cell raised past the handler — an
+        # "unknown error" (bug audit 2026-10-16, F6).
+        objects = []
     if len(objects) > 1000:
         send_translated_error(connection, msg["id"], "too_many", "CSV contains more than 1000 objects", translation_key="import_too_many", translation_placeholders={"max": "1000"})
         return
@@ -756,6 +763,12 @@ async def ws_import_csv(
             obj_name = obj_data.get("object", {}).get("name", f"row {idx + 1}")
             errors.append({"name": obj_name, "reason": result.get("reason", "unknown")})
     lineage.finish()
+    if created:
+        # The JSON import's sweep: a person no user here is cleared now, not
+        # at the next restart (bug audit 2026-10-16).
+        from .. import _check_task_responsible_user_orphans
+
+        await _check_task_responsible_user_orphans(hass)
 
     resp: dict[str, Any] = {
         "imported": created,
@@ -1000,12 +1013,8 @@ async def ws_import_json(
     # integration identifiers.
     dev_map = device_map(hass, data.get(DEVICES_KEY))
 
-    settings_applied: list[str] = []
-    if has_settings:
-        settings_applied = _apply_settings_import(
-            hass, data["global_settings"], user_map=user_map, task_names=data.get(TASK_NAMES_KEY)
-        )
-
+    # The objects' shape is checked BEFORE any setting changes: a refused
+    # file had already rewritten the settings (bug audit 2026-10-16).
     objects = data.get("objects", [])
     if not isinstance(objects, list):
         send_translated_error(connection, msg["id"], "invalid_format", "'objects' must be an array", translation_key="import_no_objects_list")
@@ -1014,6 +1023,12 @@ async def ws_import_json(
     if len(objects) > 1000:
         send_translated_error(connection, msg["id"], "too_many", "JSON contains more than 1000 objects", translation_key="import_too_many", translation_placeholders={"max": "1000"})
         return
+
+    settings_applied: list[str] = []
+    if has_settings:
+        settings_applied = _apply_settings_import(
+            hass, data["global_settings"], user_map=user_map, task_names=data.get(TASK_NAMES_KEY)
+        )
 
     if not objects and not settings_applied:
         send_translated_error(connection, msg["id"], "empty", "No objects found in JSON", translation_key="import_no_objects")
@@ -1288,6 +1303,12 @@ async def ws_import_json(
                 # exactly like the live checklist_progress WS write. Rides
                 # entry.data until the fresh entry's first setup migrates it into
                 # the Store (split-only field — storage._SPLIT_ONLY_TASK_FIELDS).
+                # The completion-number counter (F11): numbers handed out to
+                # entries deleted before the backup are not handed out again.
+                next_ref = task_entry.get("next_history_ref")
+                if isinstance(next_ref, int) and not isinstance(next_ref, bool) and 1 < next_ref <= 10**9:
+                    task_data["next_history_ref"] = next_ref
+
                 raw_progress = task_entry.get("checklist_progress")
                 if isinstance(raw_progress, dict):
                     items = set(task_data.get("checklist") or [])

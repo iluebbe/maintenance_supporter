@@ -10,7 +10,7 @@ from typing import Any
 from uuid import uuid4
 
 from homeassistant.config_entries import ConfigFlowResult, OptionsFlow
-from homeassistant.core import State
+from homeassistant.core import State, callback
 
 from .config_flow_trigger import TriggerConfigMixin
 from .const import (
@@ -92,10 +92,27 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Show main options menu."""
+        # What the entry looked like when the flow opened (G8, async_remove).
+        if not hasattr(self, "_data_at_start"):
+            self._data_at_start = self.config_entry.data
         return self._show_init_menu()
+
+    @callback
+    def async_remove(self) -> None:
+        """The flow went away. Closed with its X instead of "Done", what the
+        steps had saved was in the entry, but the running object reloads only
+        on "Done" — its tasks and entities stayed as they were until a
+        restart (bug audit 2026-10-16, G8). A changed entry reloads now."""
+        # Not while Home Assistant stops: it aborts every open flow then.
+        if getattr(self, "_reloaded", False) or getattr(self, "_data_at_start", None) is None or not self.hass.is_running:
+            return
+        entry = self.hass.config_entries.async_get_entry(self.handler) if isinstance(self.handler, str) else None
+        if entry is not None and entry.data is not self._data_at_start:
+            self.hass.config_entries.async_schedule_reload(entry.entry_id)
 
     async def async_step_done(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Close the options flow."""
+        self._reloaded = True
         # Flush store and reload to pick up config changes from this flow
         rd = getattr(self.config_entry, "runtime_data", None)
         store = getattr(rd, "store", None) if rd else None

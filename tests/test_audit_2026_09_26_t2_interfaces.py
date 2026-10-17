@@ -273,14 +273,21 @@ async def test_the_task_form_saves_despite_stale_select_values(hass: HomeAssista
     await hass.auth.async_deactivate_user(carl)
     result = await _open_edit_task(hass, entry)
     assert result["step_id"] == "edit_task"
+    # The people fields are suggested, not defaulted (clearable, G7).
     defaults = {str(key): key.default() for key in result["data_schema"].schema if callable(getattr(key, "default", None))}
-    assert defaults["rotation_strategy"] == ""
-    assert defaults["assignee_pool"] == [anna.id, ben.id]
-    assert defaults["responsible_user_id"] == ""
+    suggested = {
+        str(key): key.description["suggested_value"]
+        for key in result["data_schema"].schema
+        if isinstance(getattr(key, "description", None), dict) and "suggested_value" in key.description
+    }
+    assert suggested["rotation_strategy"] == ""
+    assert suggested["assignee_pool"] == [anna.id, ben.id]
+    assert suggested["responsible_user_id"] == ""
     assert defaults["type"] == "filter_swap"
 
-    # The form as the UI submits it: every default untouched.
-    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={})
+    # The form as the UI submits it: every pre-filled value untouched.
+    submit = {k: v for k, v in suggested.items() if k in ("rotation_strategy", "assignee_pool", "responsible_user_id")}
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input=submit)
     assert result["step_id"] == "task_action"
     task = _entry(hass, entry).data[CONF_TASKS][TASK]
     assert task["type"] == "filter_swap"

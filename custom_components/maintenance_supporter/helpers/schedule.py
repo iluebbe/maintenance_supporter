@@ -157,6 +157,13 @@ def _sanitize_unit(raw: object) -> str:
     return raw if isinstance(raw, str) and raw in INTERVAL_UNITS else "days"
 
 
+def _sanitize_anchor(raw: object) -> str:
+    """``completion`` or ``planned``; anything else reads as completion. A
+    stored unknown anchor reached the task dialog, whose picker had no such
+    option — the task could not be saved again (bug audit 2026-10-16)."""
+    return "planned" if raw == "planned" else "completion"
+
+
 def _sanitize_every(raw: object, unit: str = "days") -> int | None:
     """Interval count >= 1 (clamped to the unit's maximum), or None."""
     val = _coerce_int(raw)
@@ -282,7 +289,8 @@ class Schedule:
     entity_id: str | None = None
     # Seasonal active window: months (1..12) the task may be due in. A computed
     # due date outside the window rolls forward to the 1st of the next active
-    # month, so the task pauses through the off-season and resumes in season.
+    # month (a planned-anchor interval: to its first grid date in season), so
+    # the task pauses through the off-season and resumes in season.
     # Empty = active all year. Applies to interval + calendar kinds (not one_time).
     season_months: tuple[int, ...] = ()
     # Finite series: the recurrence ends after `ends_count` completions and/or
@@ -321,7 +329,7 @@ class Schedule:
             kind=KIND_INTERVAL,
             every=every,
             unit=unit,
-            anchor=interval_anchor or "completion",
+            anchor=_sanitize_anchor(interval_anchor),
         )
 
     def is_finite(self) -> bool:
@@ -441,8 +449,9 @@ class Schedule:
         """Roll a due date outside the seasonal window into the next active
         month; a no-op when there's no window or the date is in season.
 
-        Interval kinds land on the month's 1st ("due once the season starts").
-        Calendar kinds PRESERVE their pattern inside the window — a "2nd
+        Interval kinds land on the month's 1st ("due once the season starts");
+        a planned-anchor interval reaches this already in season, on its own
+        grid (:meth:`_first_in_season`). Calendar kinds PRESERVE their pattern inside the window — a "2nd
         Saturday" task must come due on the 2nd Saturday of the active month,
         not on the 1st (#83). If the pattern (or its ±offset) misses the
         active month, the search continues into the next one, bounded.
@@ -506,7 +515,10 @@ class Schedule:
 
         if last_performed is None:
             # First-time anchor: created_at if known, else today (issue #30).
-            return add_interval(created_at or today, every, self.unit)
+            start = created_at or today
+            if self.anchor == "planned":
+                return self._first_in_season(lambda k: add_interval(start, (1 + k) * every, self.unit))
+            return add_interval(start, every, self.unit)
 
         if self.anchor == "planned":
             # Anchor from the previously planned due date so a late completion
@@ -516,7 +528,7 @@ class Schedule:
                 step = every * (7 if self.unit == "weeks" else 1)
                 days_gap = (last_performed - anchor).days
                 periods = 1 if days_gap < 0 else (days_gap // step) + 1
-                return anchor + timedelta(days=periods * step)
+                return self._first_in_season(lambda k: anchor + timedelta(days=(periods + k) * step))
             # Calendar units (months/years): step until past last_performed.
             # Multiply from the anchor instead of iterating on the clamped
             # result (Jan 31 + 2 months = Mar 31, not Mar 28). Across cycles a
@@ -528,10 +540,35 @@ class Schedule:
             for n in range(1, _MAX_PLANNED_STEPS + 1):
                 candidate = add_interval(anchor, n * every, self.unit, day=day)
                 if candidate > last_performed:
-                    return candidate
-            return candidate
+                    break
+            else:
+                return candidate
+            return self._first_in_season(lambda k: add_interval(anchor, (n + k) * every, self.unit, day=day))
 
         return add_interval(last_performed, every, self.unit)
+
+    def _first_in_season(self, occurrence: Callable[[int], date]) -> date:
+        """The first of ``occurrence(0)``, ``occurrence(1)``, … inside the
+        seasonal window.
+
+        A planned series keeps its grid through the off-season: rolled to the
+        1st of the active month instead, that 1st became the next planned
+        anchor and the whole series sat on the 1st for good (bug audit
+        2026-10-16, C-F). Without a window, or when no step within two years
+        is in season (a yearly grid outside the window), ``occurrence(0)``,
+        which the season roll then moves to the 1st as before.
+        """
+        first = occurrence(0)
+        if not self.season_months or first.month in self.season_months:
+            return first
+        k = 1
+        while True:
+            d = occurrence(k)
+            if d.month in self.season_months:
+                return d
+            if (d - first).days > 731:
+                return first
+            k += 1
 
     def carry_planned_day(self, intended: int | None, grid: date) -> int | None:
         """The day of month a new planned anchor stands for, or None when it is
@@ -682,7 +719,7 @@ class Schedule:
                 kind=KIND_INTERVAL,
                 every=_sanitize_every(d.get("every"), unit),
                 unit=unit,
-                anchor=d.get("anchor") or "completion",
+                anchor=_sanitize_anchor(d.get("anchor")),
                 season_months=season,
                 ends_count=ends_count,
                 ends_until=ends_until,

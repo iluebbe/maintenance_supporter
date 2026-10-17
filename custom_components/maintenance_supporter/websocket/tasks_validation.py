@@ -386,7 +386,10 @@ def _validate_compound_trigger(
 
     _validate_combinator(trigger_config, errors)
 
-    compound_logic = trigger_config.get("compound_logic", "AND").upper()
+    # null / a non-string read as AND by the trigger, but ``.upper()`` on it
+    # here answered unknown_error (bug audit 2026-10-16, W small).
+    raw_logic = trigger_config.get("compound_logic")
+    compound_logic = raw_logic.upper() if isinstance(raw_logic, str) else "AND" if raw_logic is None else str(raw_logic)
     if compound_logic not in ("AND", "OR"):
         errors.append(f"compound_logic must be 'AND' or 'OR', got '{compound_logic}'")
 

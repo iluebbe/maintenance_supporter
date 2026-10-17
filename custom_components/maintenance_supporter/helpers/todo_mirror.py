@@ -333,8 +333,15 @@ class TodoMirror:
                     rows = await rows_of(eid)
                     if rows is None:
                         continue  # list not loaded — leave the record alone
+                    # By uid; a row whose uid the provider never showed by
+                    # its text — matched by uid alone it read as deleted by
+                    # hand, was added again on every check and piled up
+                    # (bug audit 2026-10-16, T11).
                     uid = rec.get("uid")
-                    row = next((r for r in rows if uid and r.get("uid") == uid), None)
+                    row = next(
+                        (r for r in rows if (r.get("uid") == uid if uid else r.get("summary") == rec.get("summary"))),
+                        None,
+                    )
                     if row is None:
                         gone.append(eid)
                     elif row.get("status") == "completed":

@@ -1347,10 +1347,15 @@ async def test_start_reconcile_sweep_tolerates_an_object_slug_containing_part(
     await call_ws_handler(ws_battery_fleet_setup, hass, conn, {"id": 1, "type": "x"})
     fleet = _fleet_entry(hass)
     assert fleet is not None
+    hass.config_entries.async_update_entry(fleet, data={**fleet.data, "object": {**fleet.data["object"], "name": "Spare part bin"}})
 
     ent_reg = er.async_get(hass)
     live = ent_reg.async_get_or_create(
         "sensor", "maintenance_supporter", "maintenance_supporter_spare_part_bin_part_batt_aa", config_entry=fleet
+    ).entity_id
+    # A task entity of that object: "_part_" in its id, no part (S9 — swept).
+    task_entity = ent_reg.async_get_or_create(
+        "sensor", "maintenance_supporter", "maintenance_supporter_spare_part_bin_abc123", config_entry=fleet
     ).entity_id
     orphan = ent_reg.async_get_or_create(
         "sensor", "maintenance_supporter", "maintenance_supporter_spare_part_bin_part_batt_gone", config_entry=fleet
@@ -1360,6 +1365,7 @@ async def test_start_reconcile_sweep_tolerates_an_object_slug_containing_part(
     assert result["orphans_removed"] == 1
     assert ent_reg.async_get(live) is not None
     assert ent_reg.async_get(orphan) is None
+    assert ent_reg.async_get(task_entity) is not None
 
 
 def _touch_name(parts: dict, tasks: dict) -> None:

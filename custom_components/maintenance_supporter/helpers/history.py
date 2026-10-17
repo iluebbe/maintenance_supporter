@@ -15,7 +15,7 @@ from collections.abc import Iterable
 from typing import Any
 
 from ..const import LIFECYCLE_HISTORY_TYPES, HistoryEntryType
-from .dates import local_date_from_iso, parse_iso_date
+from .dates import local_date_from_iso, parse_iso_date, stamp_instant
 
 # The note ``MaintenanceTask.reset`` has always written ("Reset to 2026-10-01")
 # — the only record of the day on resets from before ``reset_date``.
@@ -86,12 +86,13 @@ def cycle_token(history: Iterable[Any] | None) -> str:
         for entry in history or ()
         if isinstance(entry, dict) and entry.get("type") in LIFECYCLE_HISTORY_TYPES and isinstance(stamp := entry.get("timestamp"), str)
     ]
-    return hashlib.sha256(max(stamps, default="").encode()).hexdigest()[:8]
+    return hashlib.sha256(max(stamps, key=stamp_instant, default="").encode()).hexdigest()[:8]
 
 
 def latest_anchor_stamp(history: Iterable[Any] | None) -> str:
-    """The latest :func:`anchor_stamp` in ``history``; ``""`` without one."""
-    return max((stamp for entry in history or () if (stamp := anchor_stamp(entry)) is not None), default="")
+    """The latest :func:`anchor_stamp` in ``history`` by the instant it
+    names (:func:`stamp_instant`); ``""`` without one."""
+    return max((stamp for entry in history or () if (stamp := anchor_stamp(entry)) is not None), key=stamp_instant, default="")
 
 
 def completed_entries(history: Iterable[Any] | None) -> list[dict[str, Any]]:

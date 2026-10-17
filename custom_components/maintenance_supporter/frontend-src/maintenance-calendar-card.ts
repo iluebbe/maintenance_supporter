@@ -45,6 +45,7 @@ import { loadHistoryEntryDraft } from "./helpers/history-draft";
 import { canWrite } from "./helpers/permissions";
 import { fetchSettingsOnce } from "./helpers/settings-cache";
 import { openHistoryEditDialog, openTaskQuickActions } from "./dialog-mount";
+import { EDITABLE_HISTORY_TYPES } from "./status-constants";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -163,6 +164,7 @@ export class MaintenanceCalendarCard extends LitElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
+    this._subGen++;
     window.removeEventListener("history-entry-saved", this._onHistorySaved);
     if (this._unsub) {
       try { this._unsub(); } catch { /* ignore */ }
@@ -239,7 +241,13 @@ export class MaintenanceCalendarCard extends LitElement {
     this._pastHistory = Object.fromEntries(results.filter((r): r is readonly [string, HistoryEntryShape[]] => r !== null));
   }
 
+  /** Each subscribe attempt's number: one still in flight when the element
+   *  was detached and attached again resolved next to the new one, and its
+   *  subscription was never released (bug audit 2026-10-16, FE-7). */
+  private _subGen = 0;
+
   private async _subscribe(): Promise<void> {
+    const gen = ++this._subGen;
     try {
       const unsub = await this.hass.connection.subscribeMessage(
         (msg: unknown) => {
@@ -249,7 +257,7 @@ export class MaintenanceCalendarCard extends LitElement {
         { type: "maintenance_supporter/subscribe" },
       );
       // Detached mid-subscribe → drop the orphaned subscription.
-      if (!this.isConnected) {
+      if (!this.isConnected || gen !== this._subGen) {
         unsub();
         return;
       }
@@ -267,7 +275,10 @@ export class MaintenanceCalendarCard extends LitElement {
     // dispatch is only handled by the strategy bundle's document listener,
     // so on a plain dashboard the clicks silently did nothing. ll-custom
     // stays as the fallback when the dialog helper cannot mount.
-    if (ev.history_timestamp) {
+    // Only what the task's history lets you edit: a triggered or missed
+    // entry opened the editor — with Delete — for a record the sensors and
+    // the schedule wrote (bug audit 2026-10-16, FE-5).
+    if (ev.history_timestamp && EDITABLE_HISTORY_TYPES.includes(String(ev.history_type || "completed"))) {
       void this._openHistoryEntry(ev);
       return;
     }
@@ -275,6 +286,16 @@ export class MaintenanceCalendarCard extends LitElement {
   }
 
   private _openTask(ev: CalendarEvent): void {
+    // Embedded in the panel, the panel opens the task page itself and
+    // claims the request; the quick-actions dialog opened on top of it
+    // instead (bug audit 2026-10-16, FE-4).
+    const claim = new CustomEvent("maintenance-supporter-open-task", {
+      detail: { entry_id: ev.entry_id, task_id: ev.task_id },
+      bubbles: true,
+      composed: true,
+      cancelable: true,
+    });
+    if (!this.dispatchEvent(claim)) return;
     if (openTaskQuickActions(ev.entry_id, ev.task_id)) return;
     this.dispatchEvent(
       new CustomEvent("ll-custom", {

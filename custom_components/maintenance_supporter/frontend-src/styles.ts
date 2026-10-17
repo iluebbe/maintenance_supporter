@@ -325,7 +325,16 @@ export function formatDueDays(days: number | null | undefined, lang?: string): s
   const l = lang || "en";
   if (days < 0) return `${Math.abs(days)} ${t("d_overdue", l)}`;
   if (days === 0) return t("today", l);
-  return `${days} ${days === 1 ? t("day", l) : t("days", l)}`;
+  // The language's plural rule: "3 дней" / "22 дней" / "21 дней" in Russian,
+  // Ukrainian and Czech, where 2–4 (and 22–24 …) take their own form and 21
+  // the singular (bug audit 2026-10-16, FE-6).
+  let form = days === 1 ? "one" : "other";
+  try {
+    form = new Intl.PluralRules(l).select(days);
+  } catch {
+    // an unknown language tag: the English rule above
+  }
+  return `${days} ${form === "one" ? t("day", l) : form === "few" ? t("days_few", l) : t("days", l)}`;
 }
 
 /** "done 23 d ago" / "done today" on HA's calendar — what the due column

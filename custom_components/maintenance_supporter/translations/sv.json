@@ -1809,6 +1809,20 @@
         "purchase": "Vid köp",
         "use": "Vid användning"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "Turordning",
+        "least_completed": "Minst slutförda",
+        "random": "Slumpmässig"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Låg",
+        "normal": "Normal",
+        "high": "Hög"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "Ta bort sensorutlösaren",
             "description": "Detta kommer att ta bort sensorutlösaren från uppgiften ”{task_name}” på ”{object_name}” och konvertera schemat till tidsbaserat eller manuellt. Underhållshistoriken kommer att bevaras.\n\nFöregående utlösarentitet: `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "Den här uppgiften finns inte längre — inget att reparera.",
+          "already_fixed": "Utlösaren använder inte längre den här entiteten — inget att reparera."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "Föräldralös användare i listan över paneläåtkomst",
             "description": "Användaren `{user_id}…` finns i listan över paneläåtkomst för Maintenance Supporter men finns inte längre i Home Assistant. Användaren har förmodligen tagits bort.\n\nKlicka på **Skicka** för att ta bort denna användare från listan. (För att lämna problemet ifred, använd Home Assistants **Ignorera**-knapp på sidan Reparationer istället.)"
           }
+        },
+        "abort": {
+          "entry_gone": "Integrationens inställningar finns inte längre — inget att reparera."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "Ta bort slutförandeåtgärd",
             "description": "Rensa `on_complete_action` från uppgiften **{task_name}** helt. Själva uppgiften påverkas inte — endast tjänsteanropet vid slutförande tas bort."
           }
+        },
+        "abort": {
+          "entry_gone": "Objektet finns inte längre — inget att reparera.",
+          "task_deleted": "Den här uppgiften finns inte längre — inget att reparera.",
+          "already_fixed": "Åtgärden vid slutförande använder inte längre den här entiteten — inget att reparera.",
+          "no_entity": "Ingen entitet valdes — inget ändrades."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "Ingen Home Assistant-URL är konfigurerad — ange en extern eller intern URL i Inställningar → System → Nätverk."
+    },
+    "postpone_in_past": {
+      "message": "Det nya datumet får inte ligga i det förflutna."
+    },
+    "postpone_done": {
+      "message": "”{task_name}” är klar — det finns inget kvar att skjuta upp."
     }
   },
   "triggers": {

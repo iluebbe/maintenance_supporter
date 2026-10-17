@@ -24,3 +24,18 @@ export function primaryTriggerEntity(tc: TriggerConfig | null | undefined): stri
   if (!tc || tc.type === "compound") return undefined;
   return triggerEntityIds(tc)[0];
 }
+
+/** Counter-style triggers chart the recorder's sum / change, every other
+ *  kind a level (mean / min / max): two different series of one entity. */
+export function isCounterTrigger(tc: TriggerConfig | null | undefined): boolean {
+  if (!tc) return false;
+  const type = tc.type || "threshold";
+  return type === "counter" || type === "state_change";
+}
+
+/** The key of a row's overview sparkline series: its entity plus that kind.
+ *  One sensor can sit behind a counter task and a level task at once, and
+ *  both rows showed whichever series came back last (bug audit 2026-10-16). */
+export function miniSeriesKey(entityId: string, isCounter: boolean): string {
+  return `${entityId}:${isCounter ? "counter" : "level"}`;
+}

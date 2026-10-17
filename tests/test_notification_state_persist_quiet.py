@@ -46,7 +46,7 @@ from custom_components.maintenance_supporter.helpers.notification_manager import
 )
 from custom_components.maintenance_supporter.helpers.notify_hooks import KIND_QUIET_END, NOTIFICATION_KINDS
 
-from .conftest import build_global_entry_data
+from .conftest import build_global_entry_data, build_task_data, make_object_entry
 
 
 def _global(hass: HomeAssistant, *, quiet: bool = False, max_per_day: int = 0) -> MockConfigEntry:
@@ -133,6 +133,9 @@ async def test_unload_saves_before_clearing(hass: HomeAssistant, hass_storage: d
 
 async def test_quiet_hours_hold_then_one_summary(hass: HomeAssistant, caplog: Any) -> None:
     _global(hass, quiet=True, max_per_day=10)
+    # The held tasks exist: the summary leaves out tasks gone since.
+    make_object_entry(hass, tasks={t: build_task_data(task_id=t) for t in ("t1", "t3")}, name="Obj e1", uid="obj_e1", entry_id="e1")
+    make_object_entry(hass, tasks={"t2": build_task_data(task_id="t2")}, name="Obj e2", uid="obj_e2", entry_id="e2")
     nm, sent = _manager(hass)
     dispatch = AsyncMock(return_value=True)
     caplog.set_level(logging.DEBUG, logger="custom_components.maintenance_supporter.helpers.notification_manager")

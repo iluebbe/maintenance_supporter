@@ -321,7 +321,11 @@ class MaintenanceTask:
         nothing — helpers.parts_cost.entry_spend decides for every total)."""
         from ..helpers.parts_cost import entry_spend
 
-        return sum(entry_spend(entry, signed_amount) for entry in self.history if isinstance(entry, dict))
+        # Completions only, like the budget and the area totals: a cost
+        # typed onto a skip or a reset entry counted here and nowhere else,
+        # so the task's total and the budget disagreed (bug audit
+        # 2026-10-16, S5).
+        return sum(entry_spend(entry, signed_amount) for entry in completed_entries(self.history))
 
     @property
     def average_cost(self) -> float | None:
@@ -369,10 +373,15 @@ class MaintenanceTask:
         # Only string stamps: an imported history carrying an epoch number
         # made max() compare int with str and every completion of the task
         # raised TypeError (bug audit 2026-09-27).
+        from ..helpers.dates import stamp_instant
+
         anchors = [latest_anchor_stamp(self.history)]
         if self.last_performed:
             anchors.append(self.last_performed)
-        return ts.isoformat() >= max(anchors, default="")
+        # By instant, not by text (bug audit 2026-10-16): a completion after
+        # the clocks went back, or after a backup restored in UTC, sorted
+        # before the latest entry and was recorded as a backfill.
+        return stamp_instant(ts.isoformat()) >= max(stamp_instant(a) for a in anchors)
 
     def complete(
         self,

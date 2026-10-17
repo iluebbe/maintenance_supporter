@@ -1809,6 +1809,20 @@
         "purchase": "购买时",
         "use": "使用时"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "轮流",
+        "least_completed": "完成最少者",
+        "random": "随机"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "低",
+        "normal": "普通",
+        "high": "高"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "移除传感器触发器",
             "description": "这将从 “{object_name}” 的任务 “{task_name}” 中移除传感器触发器，并将计划转换为基于时间或手动。维护历史记录将被保留。\n\n原触发实体：`{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "此任务已不存在 — 无需修复。",
+          "already_fixed": "触发器已不再使用此实体 — 无需修复。"
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "面板访问列表中存在孤立用户",
             "description": "用户 `{user_id}…` 存在于维护助手面板访问列表中，但已不存在于 Home Assistant 中。该用户可能已被删除。\n\n点击 **提交** 从列表中移除该用户。（如果不处理此问题，请在修复页面使用 Home Assistant 的 **忽略** 按钮。）"
           }
+        },
+        "abort": {
+          "entry_gone": "集成的设置已不存在 — 无需修复。"
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "移除完成动作",
             "description": "完全清除任务 **{task_name}** 的 `on_complete_action`。任务本身不受影响 —— 仅移除完成时的服务调用。"
           }
+        },
+        "abort": {
+          "entry_gone": "该对象已不存在——无需修复。",
+          "task_deleted": "此任务已不存在 — 无需修复。",
+          "already_fixed": "完成时的操作已不再使用此实体 — 无需修复。",
+          "no_entity": "未选择实体 — 未做任何更改。"
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "未配置 Home Assistant URL — 请在“设置 → 系统 → 网络”中设置外部或内部 URL。"
+    },
+    "postpone_in_past": {
+      "message": "新日期不能早于今天。"
+    },
+    "postpone_done": {
+      "message": "“{task_name}”已完成 — 没有可推迟的内容。"
     }
   },
   "triggers": {

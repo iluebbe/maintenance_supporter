@@ -42,7 +42,7 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import intent
 
-from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_TASKS, DOMAIN, NOTIFIABLE_STATUSES
+from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_TASKS, DOMAIN, NOTIFIABLE_STATUSES, MaintenanceStatus
 from .helpers.aggregate import get_object_entries, iter_live_tasks, priority_rank
 from .helpers.aggregate import object_name as aggregate_object_name
 from .helpers.assignees import task_user_ids
@@ -350,10 +350,13 @@ class ListTasksIntent(intent.IntentHandler):
             # A window asks "what comes up", not "what needs attention": a
             # task due in five days is in "this week" whatever its status
             # (due-soon starts at each task's own warning days).
+            # Overdue and triggered always; anything else (due-soon included)
+            # only inside the window — "due today" listed every due-soon
+            # task, one 20 days out too (bug audit 2026-10-16, N4).
             tasks = [
                 t
                 for t in snapshot
-                if t["status"] in _ACTIONABLE
+                if t["status"] in (MaintenanceStatus.OVERDUE, MaintenanceStatus.TRIGGERED)
                 or (isinstance(t["days_until_due"], int) and t["days_until_due"] <= int(within))
             ]
         else:

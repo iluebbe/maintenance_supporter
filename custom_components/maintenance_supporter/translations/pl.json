@@ -1809,6 +1809,20 @@
         "purchase": "Przy zakupie",
         "use": "Przy zużyciu"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "Po kolei",
+        "least_completed": "Najmniej ukończeń",
+        "random": "Losowa"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Niski",
+        "normal": "Normalny",
+        "high": "Wysoki"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "Usuń wyzwalacz czujnika",
             "description": "Spowoduje to usunięcie wyzwalacza czujnika z zadania „{task_name}” na „{object_name}” i konwersję harmonogramu na czasowy lub ręczny. Historia konserwacji zostanie zachowana.\n\nPoprzednia encja wyzwalająca: `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "To zadanie już nie istnieje — nie ma czego naprawiać.",
+          "already_fixed": "Wyzwalacz nie używa już tej encji — nie ma czego naprawiać."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "Osierocony użytkownik na liście dostępu do panelu",
             "description": "Użytkownik `{user_id}…` znajduje się na liście dostępu do panelu Maintenance Supporter, ale nie istnieje już w Home Assistant. Prawdopodobnie został usunięty.\n\nKliknij **Wyślij**, aby usunąć tego użytkownika z listy. (Aby zignorować problem, użyj przycisku **Ignoruj** Home Assistant na stronie Naprawy.)"
           }
+        },
+        "abort": {
+          "entry_gone": "Ustawienia integracji już nie istnieją — nie ma czego naprawiać."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "Usuń akcję po ukończeniu",
             "description": "Wyczyść `on_complete_action` z zadania **{task_name}** całkowicie. Samo zadanie pozostanie nienaruszone — usuwane jest tylko wywołanie usługi po ukończeniu."
           }
+        },
+        "abort": {
+          "entry_gone": "Ten obiekt już nie istnieje — nie ma czego naprawiać.",
+          "task_deleted": "To zadanie już nie istnieje — nie ma czego naprawiać.",
+          "already_fixed": "Akcja po wykonaniu nie używa już tej encji — nie ma czego naprawiać.",
+          "no_entity": "Nie wybrano encji — nic nie zostało zmienione."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "Nie skonfigurowano adresu URL Home Assistant — ustaw zewnętrzny lub wewnętrzny URL w Ustawienia → System → Sieć."
+    },
+    "postpone_in_past": {
+      "message": "Nowa data nie może być w przeszłości."
+    },
+    "postpone_done": {
+      "message": "„{task_name}” jest wykonane — nie ma już czego odroczyć."
     }
   },
   "triggers": {

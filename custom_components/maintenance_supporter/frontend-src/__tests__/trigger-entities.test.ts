@@ -8,13 +8,13 @@
 
 import { expect } from "@open-wc/testing";
 import { nothing } from "lit";
-import { primaryTriggerEntity, triggerEntityIds } from "../helpers/trigger-entities.js";
+import { miniSeriesKey, primaryTriggerEntity, triggerEntityIds } from "../helpers/trigger-entities.js";
 import { computeTrend, renderMiniSparkline } from "../renderers/progress.js";
 import type { StatisticsPoint, TaskRow, TriggerConfig } from "../types";
 
 const DAY = 86400e3;
 const stats = (eid: string, ...vals: number[]) =>
-  new Map([[eid, vals.map((val, i) => ({ ts: Date.now() - (vals.length - i) * DAY, val })) as StatisticsPoint[]]]);
+  new Map([[miniSeriesKey(eid, false), vals.map((val, i) => ({ ts: Date.now() - (vals.length - i) * DAY, val })) as StatisticsPoint[]]]);
 
 describe("trigger entities in either stored shape", () => {
   it("reads the list, the legacy single entity, or both", () => {

@@ -480,7 +480,9 @@ async def ws_create_task(
         )
         if lp_date is None:
             return
-        initial_last_performed = msg["last_performed"]
+        # Canonical: fromisoformat also reads "20261001", which then broke
+        # every string comparison of dates (bug audit 2026-10-16, W6).
+        initial_last_performed = lp_date.isoformat()
         # Add initial history entry so times_performed reflects the value.
         # Use HA-TZ-aware midnight to keep interval_analyzer consistent.
         from datetime import datetime, time
@@ -714,15 +716,15 @@ async def ws_update_task(
     if not _valid_due_date(connection, msg):
         return
 
-    # Validate last_performed date format if provided
-    if (
-        msg.get("last_performed") is not None
-        and _parse_iso_date(
+    # Validate last_performed date format if provided — stored canonical
+    # (fromisoformat also reads "20261001", W6).
+    if msg.get("last_performed") is not None:
+        lp_date = _parse_iso_date(
             connection, msg["id"], msg["last_performed"], field="last_performed", code="invalid_format", not_future=True
         )
-        is None
-    ):
-        return
+        if lp_date is None:
+            return
+        msg["last_performed"] = lp_date.isoformat()
 
     # Validate documentation_url if provided
     if "documentation_url" in msg and not _is_safe_url(msg["documentation_url"]):

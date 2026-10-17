@@ -222,7 +222,10 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
                   `
                 : nothing}
             `
-          : html`<div class="loading">${t("loading", L)}</div>`}
+          : this._error
+            // A failed load said "Loading…" for good (bug audit 2026-10-16, P8).
+            ? html`<div class="error">${this._error}</div>`
+            : html`<div class="loading">${t("loading", L)}</div>`}
     `);
   }
 

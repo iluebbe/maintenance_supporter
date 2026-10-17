@@ -1809,6 +1809,20 @@
         "purchase": "All'acquisto",
         "use": "All'uso"
       }
+    },
+    "rotation_strategy": {
+      "options": {
+        "round_robin": "A turno",
+        "least_completed": "Meno completamenti",
+        "random": "Casuale"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Bassa",
+        "normal": "Normale",
+        "high": "Alta"
+      }
     }
   },
   "services": {
@@ -2130,6 +2144,10 @@
             "title": "Rimuovi trigger sensore",
             "description": "Questo rimuoverà il trigger sensore dall'attività \"{task_name}\" su \"{object_name}\" e convertirà la pianificazione in temporale o manuale. La cronologia della manutenzione sarà conservata.\n\nEntità trigger precedente: `{entity_id}`"
           }
+        },
+        "abort": {
+          "task_deleted": "Questa attività non esiste più — niente da riparare.",
+          "already_fixed": "L’attivatore non usa più questa entità — niente da riparare."
         }
       }
     },
@@ -2141,6 +2159,9 @@
             "title": "Utente orfano nell'elenco di accesso al pannello",
             "description": "L'utente `{user_id}…` è nell'elenco di accesso al pannello Maintenance Supporter ma non esiste più in Home Assistant. Probabilmente l'utente è stato eliminato.\n\nClicca **Invia** per rimuovere l'utente dall'elenco. (Per lasciare il problema in pace: usa il pulsante **Ignora** sulla pagina Riparazioni di Home Assistant.)"
           }
+        },
+        "abort": {
+          "entry_gone": "Le impostazioni dell’integrazione non esistono più — niente da riparare."
         }
       }
     },
@@ -2167,6 +2188,12 @@
             "title": "Rimuovi azione di completamento",
             "description": "Rimuove completamente la `on_complete_action` dall'attività **{task_name}**. L'attività in sé non è influenzata — solo la chiamata al servizio di completamento viene rimossa."
           }
+        },
+        "abort": {
+          "entry_gone": "Questo oggetto non esiste più: niente da riparare.",
+          "task_deleted": "Questa attività non esiste più — niente da riparare.",
+          "already_fixed": "L’azione al completamento non usa più questa entità — niente da riparare.",
+          "no_entity": "Nessuna entità scelta — non è stato modificato nulla."
         }
       }
     },
@@ -2430,6 +2457,12 @@
     },
     "qr_no_url": {
       "message": "Nessun URL di Home Assistant configurato — imposta un URL esterno o interno in Impostazioni → Sistema → Rete."
+    },
+    "postpone_in_past": {
+      "message": "La nuova data non può essere nel passato."
+    },
+    "postpone_done": {
+      "message": "«{task_name}» è completata — non c’è più nulla da rinviare."
     }
   },
   "triggers": {

@@ -259,11 +259,23 @@ class AreaCostSensorManager:
 
     @callback
     def _on_area_registry(self, event: Event[ar.EventAreaRegistryUpdatedData]) -> None:
-        if event.data.get("action") != "update":
+        action = event.data.get("action")
+        area_id = event.data.get("area_id") or ""
+        sensors = self._sensors.get(area_id)
+        if not sensors:
             return
-        area_id = event.data.get("area_id")
-        sensors = self._sensors.get(area_id or "")
-        if sensors:
-            name = self._area_name(area_id or "")
+        if action == "update":
+            name = self._area_name(area_id)
             for sensor in sensors.values():
                 sensor.async_rename(name)
+        elif action == "remove":
+            # A deleted area's sensors stayed until the next start (bug audit
+            # 2026-10-16) — the start-up tidy-up's rule, applied at once:
+            # kept while objects still name the area.
+            if any(object_area_id(entry) == area_id for entry in get_object_entries(self.hass)):
+                return
+            ent_reg = er.async_get(self.hass)
+            for sensor in sensors.values():
+                if sensor.entity_id and ent_reg.async_get(sensor.entity_id) is not None:
+                    ent_reg.async_remove(sensor.entity_id)
+            del self._sensors[area_id]

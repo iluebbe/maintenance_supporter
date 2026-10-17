@@ -92,6 +92,36 @@ def parse_persisted_utc(value: str | None) -> datetime | None:
     return parsed
 
 
+# Sorts before every real stamp (unreadable text, a non-string).
+_NO_INSTANT = datetime.min.replace(tzinfo=UTC)
+
+
+def stamp_instant(value: Any) -> datetime:
+    """A history stamp as the instant it names, for ordering and age.
+
+    History mixes aware stamps of two offsets (summer and winter time, an
+    import written in UTC) with naive ones (the history editor's local
+    time) and bare dates (a reset day). Compared as text, a completion
+    after the clocks went back, or after a restored UTC backup, sorted
+    before the entry it follows and was taken for an old backfill; read
+    with ``parse_persisted_utc`` (naive = UTC), a naive local stamp lay
+    hours in the future (bug audit 2026-10-16). Naive and date-only stamps
+    are Home Assistant's local time, a bare date its midnight — before any
+    time on that day. Unreadable values sort first."""
+    if not isinstance(value, str) or not value:
+        return _NO_INSTANT
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        return _NO_INSTANT
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
+    try:
+        return parsed.astimezone(UTC)
+    except (OverflowError, ValueError):
+        return _NO_INSTANT
+
+
 def due_instant(raw: Any) -> datetime | None:
     """The instant a sensor's REPORTED due date stands for, or None.
 

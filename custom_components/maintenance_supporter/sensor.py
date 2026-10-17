@@ -306,7 +306,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             elif ttype == "due_date":
                 attrs["trigger_days_before"] = trigger_config.get("trigger_days_before", 0)
             elif ttype == "compound":
-                attrs["compound_logic"] = trigger_config.get("compound_logic", "AND")
+                attrs["compound_logic"] = trigger_config.get("compound_logic") or "AND"
                 conditions = trigger_config.get("conditions", [])
                 attrs["compound_conditions_count"] = len(conditions)
 
@@ -728,8 +728,12 @@ class PartStockSensor(MaintenanceEntity, SensorEntity):
         obj_data = coordinator.entry.data.get(CONF_OBJECT, {})
         object_slug = aggregate_object_slug(obj_data)
         self._attr_unique_id = f"maintenance_supporter_{object_slug}_part_{part_id}"
-        part = self._part
-        self._attr_name = f"{part.get('name', 'Part')} stock"
+
+    @property
+    def name(self) -> str:
+        """Read from the part every time: set once, a renamed part kept its
+        old sensor name until the next reload (bug audit 2026-10-16)."""
+        return f"{self._part.get('name', 'Part')} stock"
 
     @property
     def _part(self) -> dict[str, Any]:

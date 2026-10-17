@@ -332,8 +332,23 @@ class RuntimeTrigger(BaseTrigger):
         """Periodic callback to persist runtime every 5 minutes."""
         if self._on_since_dt is None:
             return
-        # Accumulate elapsed, reset window, persist
         now = dt_util.utcnow()
+        state = self.hass.states.get(self.entity_id)
+        if state is None or state.state in UNAVAILABLE_STATES:
+            # Still no usable state after a restart: the restored anchor
+            # carried the restart gap (a sensor that connects late), but
+            # booking on every tick while the entity stays missing or
+            # unavailable added hours nobody ran — for good if it never came
+            # back (bug audit 2026-10-16, T6). Pause like a live "became
+            # unavailable"; the first real ON state starts a new session.
+            self._accumulate_elapsed(now)
+            self._on_since_dt = None
+            self._on_since = None
+            self._session_booked = 0.0
+            self._persist_runtime_soon()
+            self._update_evaluation()
+            return
+        # Accumulate elapsed, reset window, persist
         self._accumulate_elapsed(now)
         self._on_since_dt = now
         self._on_since = now.isoformat()

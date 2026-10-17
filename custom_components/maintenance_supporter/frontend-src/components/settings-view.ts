@@ -1602,31 +1602,59 @@ export class MaintenanceSettingsView extends LitElement {
     this._vacAllTasks = flat;
   }
 
+  /** Changes made while a save is on its way: sent right after it. They
+   *  were dropped, and their checkbox stayed ticked although nothing was
+   *  saved (bug audit 2026-10-16, P7). */
+  private _vacQueued: Record<string, unknown> | null = null;
+
   private async _saveVacation(patch: Record<string, unknown>): Promise<void> {
-    if (this._vacSaving) return;
+    if (this._vacSaving) {
+      this._vacQueued = { ...(this._vacQueued ?? {}), ...patch };
+      return;
+    }
     this._vacSaving = true;
     try {
       const result = await this._ws<SettingsResponse["vacation"]>({
         type: "maintenance_supporter/vacation/update",
         ...patch,
       });
-      if (!result) return;
-      // Server is the source of truth — re-hydrate from response.
-      this._vacEnabled = result.enabled;
-      this._vacStart = result.start || "";
-      this._vacEnd = result.end || "";
-      this._vacBuffer = result.buffer_days;
-      this._vacExempt = new Set(result.exempt_task_ids || []);
-      this._vacIsActive = result.is_active;
-      this._vacWindowEnd = result.window_end;
+      if (!result) {
+        // Refused (the toast says why): the toggle or tick set at once
+        // stayed as if saved (bug audit 2026-10-16, P7). The server's state
+        // is read back; a queued save answers with it anyway.
+        // Silent (no onError): the refusal already has its toast.
+        if (!this._vacQueued) {
+          const current = await runWs<SettingsResponse["vacation"]>(this, { type: "maintenance_supporter/vacation/state" });
+          if (current) this._applyVacationState(current);
+        }
+        return;
+      }
+      this._applyVacationState(result);
       // Notify the panel (so the Vacation tab can appear/disappear)
       this.dispatchEvent(new CustomEvent("settings-changed"));
     } finally {
       this._vacSaving = false;
+      const queued = this._vacQueued;
+      this._vacQueued = null;
+      if (queued) void this._saveVacation(queued);
     }
   }
 
+  /** Server is the source of truth — re-hydrated from it, except what a
+   *  queued change is about to overwrite. */
+  private _applyVacationState(v: SettingsResponse["vacation"]): void {
+    const queued = this._vacQueued ?? {};
+    if (!("enabled" in queued)) this._vacEnabled = v.enabled;
+    if (!("start" in queued)) this._vacStart = v.start || "";
+    if (!("end" in queued)) this._vacEnd = v.end || "";
+    if (!("buffer_days" in queued)) this._vacBuffer = v.buffer_days;
+    if (!("exempt_task_ids" in queued)) this._vacExempt = new Set(v.exempt_task_ids || []);
+    this._vacIsActive = v.is_active;
+    this._vacWindowEnd = v.window_end;
+  }
+
   private _toggleVacationEnabled(on: boolean): void {
+    this._vacEnabled = on;
     this._saveVacation({ enabled: on });
   }
 
@@ -1656,6 +1684,9 @@ export class MaintenanceSettingsView extends LitElement {
   private _toggleVacationExempt(taskId: string, on: boolean): void {
     const next = new Set(this._vacExempt);
     if (on) next.add(taskId); else next.delete(taskId);
+    // Kept at once: a second tick before the first save answered built on
+    // the old list and undid the first (P7).
+    this._vacExempt = next;
     this._saveVacation({ exempt_task_ids: [...next] });
   }
 
@@ -2181,19 +2212,27 @@ export class MaintenanceSettingsView extends LitElement {
     try {
       const form = new FormData();
       form.append("file", file, file.name);
-      const result = await postMultipart<{ blobs_written: number; documents_created: number; files_missing?: number }>(
+      const result = await postMultipart<{
+        blobs_written: number; documents_created: number; files_missing?: number; objects_unmatched?: string[];
+      }>(
         this.hass, "/api/maintenance_supporter/documents/archive", form, "docs_archive_too_large", ["docs_archive_no_manifest"],
       );
-      const restored = t("settings_docs_import_success", this._lang)
-        .replace("{blobs}", String(result.blobs_written ?? 0))
-        .replace("{docs}", String(result.documents_created ?? 0));
+      const parts = [
+        t("settings_docs_import_success", this._lang)
+          .replace("{blobs}", String(result.blobs_written ?? 0))
+          .replace("{docs}", String(result.documents_created ?? 0)),
+      ];
       // Documents whose file the archive did not carry are not created —
       // said, so a file left out when zipping again is noticed.
-      this._showToast(
-        result.files_missing
-          ? `${restored} · ${t("settings_docs_import_missing", this._lang).replace("{n}", String(result.files_missing))}`
-          : restored,
-      );
+      if (result.files_missing) {
+        parts.push(t("settings_docs_import_missing", this._lang).replace("{n}", String(result.files_missing)));
+      }
+      // An archived object no object here matches: its documents were
+      // skipped, which read as a plain success (bug audit 2026-10-16, F10).
+      if (result.objects_unmatched?.length) {
+        parts.push(t("settings_docs_import_unmatched", this._lang).replace("{names}", result.objects_unmatched.join(", ")));
+      }
+      this._showToast(parts.join(" · "));
       this.dispatchEvent(new CustomEvent("settings-changed"));
     } catch (e) {
       // A 413 names the limit; anything else stays the generic message.

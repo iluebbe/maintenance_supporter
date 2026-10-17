@@ -817,11 +817,17 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
     # already ran (the part is gone, only the registry corpse remains).
     from homeassistant.helpers import entity_registry as er
 
+    from .aggregate import object_slug
+
     ent_reg = er.async_get(hass)
     orphans_removed = 0
+    # Exactly the stock sensors' shape: any unique id containing "_part_"
+    # was a candidate, and an object named "Spare part batteries" had its
+    # task entities swept (bug audit 2026-10-16, S9).
+    part_prefix = f"maintenance_supporter_{object_slug(entry.data.get(CONF_OBJECT) or {})}_part_"
     for reg_entry in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
         uid = reg_entry.unique_id or ""
-        if "_part_" not in uid:
+        if not uid.startswith(part_prefix):
             continue
         # Match the way the sensor mints it (``…_{object_slug}_part_{pid}``)
         # from the END — splitting at the first "_part_" mis-parsed a slug
@@ -986,6 +992,22 @@ def _repoint_tasks(tasks: dict[str, Any], moves: dict[str, str], *, owner_id: st
         if c:
             task = {**task, CONF_TASK_CONSUMES_PARTS: links}
             changed = True
+        # A phase consumes too (#139): its links kept the alias id and the
+        # next completion raised a broken part link (bug audit 2026-10-16, S7).
+        phases = task.get("phases")
+        if isinstance(phases, dict):
+            new_phases: dict[str, Any] = {}
+            phases_changed = False
+            for phase_id, pdef in phases.items():
+                if isinstance(pdef, dict) and isinstance(pdef.get(CONF_TASK_CONSUMES_PARTS), list):
+                    plinks, pc = _repoint_links(pdef[CONF_TASK_CONSUMES_PARTS], moves, owner_id=owner_id, foreign=foreign)
+                    if pc:
+                        pdef = {**pdef, CONF_TASK_CONSUMES_PARTS: plinks}
+                        phases_changed = True
+                new_phases[phase_id] = pdef
+            if phases_changed:
+                task = {**task, "phases": new_phases}
+                changed = True
         ref = task.get(PART_REF_FIELD) if not foreign else None
         if isinstance(ref, dict) and str(ref.get("part_id") or "") in moves:
             task = {**task, PART_REF_FIELD: {**ref, "part_id": moves[str(ref["part_id"])]}}
@@ -1129,9 +1151,11 @@ def _stale_cell_part_untouched(entry: ConfigEntry, part_id: str, part: dict[str,
         return False
     if _extract_placeholder(str(part.get("name") or ""), "{type} battery", "type") is None:
         return False
+    # Phase links count (S7): a part only a phase uses is not untouched.
+    from .parts import iter_part_links
+
     for task in (entry.data.get(CONF_TASKS) or {}).values():
-        links = task.get(CONF_TASK_CONSUMES_PARTS)
-        if isinstance(links, list) and any(isinstance(x, dict) and x.get("part_id") == part_id for x in links):
+        if any(x.get("part_id") == part_id for x in iter_part_links(task)):
             return False
     return True
 
@@ -1164,9 +1188,10 @@ def _legacy_unknown_untouched(entry: ConfigEntry, legacy: dict[str, Any], stock:
     threshold = legacy.get("reorder_threshold")
     if not (isinstance(threshold, (int, float)) and threshold >= 2 and legacy.get("restock_quantity") == threshold * 2):
         return False
+    from .parts import iter_part_links
+
     for task in (entry.data.get(CONF_TASKS) or {}).values():
-        links = task.get(CONF_TASK_CONSUMES_PARTS)
-        if isinstance(links, list) and any(isinstance(x, dict) and x.get("part_id") == "batt_unknown" for x in links):
+        if any(x.get("part_id") == "batt_unknown" for x in iter_part_links(task)):
             return False
     return True
 

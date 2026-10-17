@@ -28,6 +28,8 @@ from .helpers.schedule import (
 from .helpers.task_fields import INTERVAL_DAYS_RANGE
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
@@ -47,6 +49,7 @@ class AdaptiveMixin:
 
         def _show_task_action_menu(self) -> ConfigFlowResult: ...
         def async_show_form(self, **kwargs: Any) -> ConfigFlowResult: ...
+        def add_suggested_values_to_schema(self, data_schema: vol.Schema, suggested_values: Mapping[str, Any] | None) -> vol.Schema: ...
 
     async def async_step_adaptive_scheduling(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure adaptive scheduling for a task."""
@@ -71,10 +74,14 @@ class AdaptiveMixin:
             min_iv = int(user_input.get(CONF_ADAPTIVE_MIN_INTERVAL, DEFAULT_ADAPTIVE_MIN_INTERVAL))
             max_iv = int(user_input.get(CONF_ADAPTIVE_MAX_INTERVAL, DEFAULT_ADAPTIVE_MAX_INTERVAL))
             if min_iv > max_iv:
+                # The task's name in the heading and what was just typed —
+                # the error form showed "{task_name}" and the stored values
+                # (bug audit 2026-10-16, G10).
                 return self.async_show_form(
                     step_id="adaptive_scheduling",
-                    data_schema=self._adaptive_schema(current_adaptive, task),
+                    data_schema=self.add_suggested_values_to_schema(self._adaptive_schema(current_adaptive, task), user_input),
                     errors={CONF_ADAPTIVE_MIN_INTERVAL: "min_exceeds_max"},
+                    description_placeholders={"task_name": task.get("name", "")},
                 )
             adaptive_config[CONF_ADAPTIVE_MIN_INTERVAL] = min_iv
             adaptive_config[CONF_ADAPTIVE_MAX_INTERVAL] = max_iv

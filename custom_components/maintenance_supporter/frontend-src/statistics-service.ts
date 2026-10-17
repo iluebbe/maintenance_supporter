@@ -3,10 +3,19 @@
  * Used by sparkline charts to display dense time-series data.
  */
 import type { HomeAssistant, StatisticsPoint, EntityStatisticsCache, HAStatisticsRow } from "./types";
+import { miniSeriesKey } from "./helpers/trigger-entities";
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const DETAIL_DAYS = 30;
 const MINI_DAYS = 14;
+
+/** The cache key of one series. The counter flag is part of it: one sensor
+ *  behind a counter task (sum / change) and a threshold task (mean / min /
+ *  max) is two different series, and whichever loaded first was shown for
+ *  both (bug audit 2026-10-16). */
+function statsKey(entityId: string, period: string, days: number, isCounter: boolean): string {
+  return `${entityId}:${period}:${days}:${isCounter ? "counter" : "level"}`;
+}
 
 /** history/history_during_period rows — compressed keys over WS ({s, lu});
  *  the uncompressed REST shape is tolerated defensively. */
@@ -58,7 +67,9 @@ export class StatisticsService {
 
   /**
    * Batch-fetch mini stats for multiple entities in at most 2 WS calls
-   * (one for counter-type, one for non-counter-type entities).
+   * (one for counter-type, one for non-counter-type entities). Keyed by
+   * {@link miniSeriesKey}: the entity alone let a sensor's counter and level
+   * series overwrite each other.
    */
   async getBatchMiniStats(
     entities: Array<{ entityId: string; isCounter: boolean }>,
@@ -69,10 +80,10 @@ export class StatisticsService {
     // Check cache first, collect cache misses (same key shape as _getStats
     // so the single-entity mini path and the batch path share the cache).
     for (const e of entities) {
-      const cacheKey = `${e.entityId}:day:${MINI_DAYS}`;
+      const cacheKey = statsKey(e.entityId, "day", MINI_DAYS, e.isCounter);
       const cached = this._cache.get(cacheKey);
       if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
-        result.set(e.entityId, cached.points);
+        result.set(miniSeriesKey(e.entityId, e.isCounter), cached.points);
       } else {
         toFetch.push(e);
       }
@@ -115,7 +126,7 @@ export class StatisticsService {
   ): Promise<StatisticsPoint[]> {
     // days must be part of the key: the same entity/period at a different
     // range (7d vs 30d) is a different dataset, not a cache hit.
-    const cacheKey = `${entityId}:${period}:${days}`;
+    const cacheKey = statsKey(entityId, period, days, isCounter);
 
     const cached = this._cache.get(cacheKey);
     if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
@@ -263,8 +274,8 @@ export class StatisticsService {
       for (const entityId of entityIds) {
         const rows = response[entityId] || [];
         const points = this._normalizeRows(rows, isCounter);
-        out.set(entityId, points);
-        this._cache.set(`${entityId}:${period}:${MINI_DAYS}`, {
+        out.set(miniSeriesKey(entityId, isCounter), points);
+        this._cache.set(statsKey(entityId, period, MINI_DAYS, isCounter), {
           entityId,
           fetchedAt: Date.now(),
           period,

@@ -149,7 +149,7 @@ is refused with `invalid_input`, `null` means "meter not read this time".
 slot patch on a scalar-era entry drops the scalar. Slot names are unique
 per task (case-insensitive; duplicates are dropped by the sanitizer).
 `task/history/delete` `{entry_id, task_id, timestamp}` (2.84, #170) removes one
-entry; last_performed is re-derived from the remaining lifecycle entries (none
+entry (the first with that timestamp); last_performed is re-derived from the remaining lifecycle entries (none
 left → the task reads as never performed), photos stay in the documents, and
 the entry's `used_parts` go back to stock (answer: `parts_returned`). The
 delete and `task/history/update` move last_performed only when they change
@@ -425,7 +425,9 @@ flat interval edit rebuilds from flat and drops the nested schedule. A month
 restriction (`months` on `nth_weekday` / `day_of_month`, the yearly template
 tasks) is kept when the sent schedule of the same kind leaves `months` out;
 `months: []` clears it. `unarchive` takes `undo?` like `task/resume`: `true`
-keeps a recurring task's dates instead of starting a fresh cycle.
+keeps a recurring task's dates instead of starting a fresh cycle; a task of an
+archived object is refused (`archived`, 2.104) — unarchive the object instead.
+`last_performed` is stored as `YYYY-MM-DD` whatever ISO form was sent.
 `move` (2.82): `{entry_id, task_id, target_entry_id}` → `{task_id, entry_id}` — the task
 keeps its id, config, history, readings, adaptive config, trigger runtime and
 group memberships; it gets a new reference number under the target object and
@@ -468,7 +470,8 @@ items (without a shared `changes`) to undo.
   defers **this occurrence only** to a chosen date; the recurrence itself is untouched.
   Bad date, or one more than 3650 days out → `invalid_date` (the latter with
   translation key `postpone_too_far`; since 2.96 the limit holds on every
-  surface, voice included).
+  surface, voice included). A date in the past (`postpone_in_past`) and a done
+  one-time task (`postpone_done`) are refused (2.104).
 - `task/snooze` `{entry_id, task_id}` → `{"success": true, "hours", "snoozed_until"}` (the duration and the ISO end, 2.96) — silences due-soon /
   overdue / triggered reminders for the configured `snooze_duration_hours`.
   Changes neither schedule nor status; the snooze is stored and survives a
@@ -505,7 +508,8 @@ another user's assignments need write permission, else `unauthorized`.
   seasonal_reason}`. Pure analysis of the completion history — nothing is written.
   Unknown task → `not_found`.
 - `task/apply_suggestion` — `@require_write` — `{entry_id, task_id, interval
-  (1..3650)}` → `{"success": true}`. Writes an analysed interval onto the task.
+  (1..3650)}` → `{"success": true}`. Writes an analysed interval onto the task;
+  a task whose schedule is not a day interval (a calendar kind) → `invalid_input`.
 - `task/seasonal_overrides` — `@require_write` — `{entry_id, task_id, overrides:
   {"<month 1..12>": factor 0.1..5.0}}` (≤12 keys; `{}` clears them) →
   `{"success": true, "overrides": {…}}`. Manual per-month interval multipliers.
