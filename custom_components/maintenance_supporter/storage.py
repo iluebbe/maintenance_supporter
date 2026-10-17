@@ -44,7 +44,14 @@ _DYNAMIC_TASK_FIELDS = ("last_performed", "last_planned_due", "planned_day", "du
 # LOW_LATCH_KEY — literals here to keep storage free of helper imports,
 # pinned equal by a test).
 # The completion-number high-water mark rides an import the same way (F11).
-_SPLIT_ONLY_TASK_FIELDS = ("checklist_progress", "battery_replacements", "battery_low_latch", "next_history_ref")
+_SPLIT_ONLY_TASK_FIELDS = (
+    "checklist_progress",
+    "battery_replacements",
+    "battery_low_latch",
+    "next_history_ref",
+    # D#213: the cells each battery holds (battery_fleet_setup.INSTALLED_CELLS_KEY).
+    "battery_installed_cells",
+)
 
 # Flat trigger_config keys that should move to Store trigger_runtime
 _LEGACY_TRIGGER_RUNTIME_KEYS = (

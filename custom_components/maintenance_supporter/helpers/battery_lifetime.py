@@ -200,7 +200,7 @@ def is_shoppable_type(raw: Any) -> bool:
     return not is_rechargeable_type(raw) and has_type_forecast(raw)
 
 
-def _cell_size(raw: Any) -> str | None:
+def cell_size(raw: Any) -> str | None:
     """The cell format a label names ("AAA", "9V", "18650"), else None."""
     tokens = re.split(r"[\s\-_/]+", str(raw or "").upper())
     return next((t for t in tokens if t in _CELL_SIZES or _LI_ION_CELL_RE.match(t)), None)
@@ -217,7 +217,7 @@ def fleet_part_type(raw: Any) -> str | None:
         if not is_swappable_cell(raw):
             return None
         key = canonical_type(raw)
-        size = _cell_size(raw)
+        size = cell_size(raw)
         return f"{size} {key}" if size and size not in re.split(r"[\s\-_/]+", key) else key
     return canonical_type(raw)
 

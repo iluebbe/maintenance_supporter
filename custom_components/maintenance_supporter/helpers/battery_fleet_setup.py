@@ -39,6 +39,7 @@ from .battery_fleet import (
     canonical_type,
     discover_battery_types,
     discover_rechargeable_cells,
+    fleet_ask_cells,
     fleet_part_type,
     is_rechargeable_type,
     lifetime_months,
@@ -46,6 +47,7 @@ from .battery_fleet import (
     read_batteries,
     release_low_latch,
 )
+from .battery_lifetime import cell_size
 from .entry_tasks import write_task, write_tasks
 from .global_options import get_default_warning_days
 from .trigger_fallback import threshold_limits_overlap
@@ -378,7 +380,9 @@ def replaced_button_for(battery_plus_entity_id: str) -> str:
     )
 
 
-async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None = None) -> dict[str, Any]:
+async def async_mark_replaced(
+    hass: HomeAssistant, entity_ids: list[str] | None = None, cells: dict[str, str] | None = None
+) -> dict[str, Any]:
     """Mark batteries replaced: press their Battery Notes 'replaced' button
     (records the replacement date → resets the forecast) and consume the
     matching type-part spares from stock.
@@ -392,6 +396,11 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
     (Battery Notes, per device) — never a task's ``consumes_parts`` link
     quantity. Setup gives the fleet task no such links (#181 follow-up); a
     link added by hand is consumed by the task's own completions on top.
+
+    ``cells`` (D#213, with :func:`fleet_ask_cells` on): ``{entity_id: type}``
+    — which cells went in, one of :func:`cell_choices`. A battery without a
+    choice keeps the cells it had; the cells taken out go on their own
+    part's pile when they were rechargeable (:func:`_async_book_swaps`).
     """
     by_eid = {b.entity_id: b for b in read_batteries(hass)}
     targets = entity_ids if entity_ids is not None else [e for e, b in by_eid.items() if b.low]
@@ -401,9 +410,14 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
     today = dt_util.now().date().isoformat()
     found, recorded = _recorded_replacements(hass)
 
+    ask = fleet_ask_cells(hass)
+    fleet = find_fleet_entry(hass) if ask else None
+    fleet_parts = (fleet.data.get(CONF_PARTS) or {}) if fleet is not None else {}
+    installed = _installed_cells(found) if ask else {}
+
     pressed = 0
     pressed_ids: list[str] = []
-    by_type: dict[str, int] = {}
+    swaps: list[tuple[str, str, int]] = []
     for eid in targets:
         bat = by_eid.get(eid)
         if bat is None:
@@ -425,16 +439,105 @@ async def async_mark_replaced(hass: HomeAssistant, entity_ids: list[str] | None 
         if recorded.get(eid) == today:
             continue
         recorded[eid] = today
-        t = fleet_part_type(bat.battery_type)
-        if t is not None:
-            by_type[t] = by_type.get(t, 0) + bat.quantity
+        out = fleet_part_type(bat.battery_type)
+        put_in = out
+        if ask:
+            out = installed.get(eid) or out
+            chosen = (cells or {}).get(eid)
+            put_in = chosen if chosen in cell_choices(bat, fleet_parts) else out
+            if put_in is not None:
+                installed[eid] = put_in
+        if put_in is not None:
+            swaps.append((put_in, out or put_in, bat.quantity))
 
     # #180: a marked battery leaves the low latch now — the count must not
     # wait for Battery Notes to echo the new date (nor for the level).
     release_low_latch(hass, pressed_ids)
     _remember_recorded(found, recorded)
-    consumed = await async_consume_type_parts(hass, by_type)
+    if ask:
+        _remember_installed(found, installed)
+    consumed = await _async_book_swaps(hass, swaps)
     return {"marked": pressed, "pressed": pressed, "consumed": consumed}
+
+
+def cell_choices(bat: Any, parts: dict[str, Any]) -> list[str]:
+    """The cells that may go into ``bat`` (D#213): the type its note names,
+    then every fleet part of the same size, disposable or rechargeable
+    ("AA", "AA NIMH"). Fewer than two: nothing to ask (a coin cell)."""
+    own = fleet_part_type(bat.battery_type)
+    size = cell_size(bat.battery_type) or (cell_size(own) if own else None)
+    out = [own] if own else []
+    if size:
+        for pid in sorted(parts):
+            if not pid.startswith(FLEET_PART_PREFIX):
+                continue
+            part_type = fleet_part_type(pid[len(FLEET_PART_PREFIX) :].upper())
+            if part_type and part_type not in out and cell_size(part_type) == size:
+                out.append(part_type)
+    return out
+
+
+def roster_cell_choices(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
+    """Per battery with something to choose (D#213, option on): the choices
+    as ``{type, name, rechargeable}`` and the cells it holds now."""
+    fleet = find_fleet_entry(hass)
+    if fleet is None or not fleet_ask_cells(hass):
+        return {}
+    parts = fleet.data.get(CONF_PARTS) or {}
+    found, _recorded = _recorded_replacements(hass)
+    installed = _installed_cells(found)
+    out: dict[str, dict[str, Any]] = {}
+    for bat in read_batteries(hass):
+        choices = cell_choices(bat, parts)
+        if len(choices) < 2:
+            continue
+        out[bat.entity_id] = {
+            "cell_choices": [
+                {
+                    "type": choice,
+                    "name": (parts.get(f"{FLEET_PART_PREFIX}{choice.lower()}") or {}).get("name") or choice,
+                    "rechargeable": is_rechargeable_type(choice),
+                }
+                for choice in choices
+            ],
+            "cells_installed": installed.get(bat.entity_id) if installed.get(bat.entity_id) in choices else choices[0],
+        }
+    return out
+
+
+async def _async_book_swaps(hass: HomeAssistant, swaps: list[tuple[str, str, int]]) -> dict[str, int]:
+    """Book battery swaps ``(cells in, cells out, count)``. The same cells
+    as before: :func:`async_consume_type_parts` (a rechargeable's empty ones
+    wait to be charged). Other cells (D#213): the new ones leave their own
+    stock, and the ones taken out join their part's pile when they were
+    rechargeable and counted; disposable ones are simply gone."""
+    same: dict[str, int] = {}
+    switched: list[tuple[str, str, int]] = []
+    for put_in, taken_out, qty in swaps:
+        if put_in == taken_out:
+            same[put_in] = same.get(put_in, 0) + qty
+        else:
+            switched.append((put_in, taken_out, qty))
+    consumed = await async_consume_type_parts(hass, same)
+    fleet = find_fleet_entry(hass)
+    store = store_of(fleet) if fleet is not None else None
+    if not switched or fleet is None or store is None:
+        return consumed
+    from ..parts_runtime import async_change_part_stock
+
+    parts = fleet.data.get(CONF_PARTS) or {}
+    for put_in, taken_out, qty in switched:
+        in_pid = f"{FLEET_PART_PREFIX}{put_in.lower()}"
+        # An untracked part is left untracked, like a use (a delta would
+        # start counting it from 0).
+        if in_pid in parts and store.get_part_stock(in_pid) is not None:
+            await async_change_part_stock(hass, fleet, in_pid, delta=-qty)
+            consumed[in_pid] = consumed.get(in_pid, 0) + qty
+        out_pid = f"{FLEET_PART_PREFIX}{taken_out.lower()}"
+        out_part = parts.get(out_pid)
+        if out_part and out_part.get("reuse") and store.get_part_stock(out_pid) is not None:
+            await async_change_part_stock(hass, fleet, out_pid, delta=0, restoring=store.get_part_restoring(out_pid) + qty)
+    return consumed
 
 
 async def async_consume_type_parts(hass: HomeAssistant, by_type: dict[str, int]) -> dict[str, int]:
@@ -477,6 +580,44 @@ def _recorded_replacements(hass: HomeAssistant) -> tuple[Any, dict[str, Any]]:
         return None, {}
     raw = found[0].get_task_state(found[1]).get(RECORDED_REPLACEMENTS_KEY)
     return found, dict(raw) if isinstance(raw, dict) else {}
+
+
+# Store key on the fleet task's dynamic state: {entity_id: fleet part type}
+# — the cells each battery holds, once the fleet asks at Replaced (D#213).
+INSTALLED_CELLS_KEY = "battery_installed_cells"
+
+
+def _installed_cells(found: Any) -> dict[str, str]:
+    """``{entity_id: type}`` of the cells chosen at Replaced (D#213)."""
+    if found is None:
+        return {}
+    raw = found[0].get_task_state(found[1]).get(INSTALLED_CELLS_KEY)
+    return {str(k): str(v) for k, v in raw.items() if isinstance(v, str)} if isinstance(raw, dict) else {}
+
+
+def sanitize_installed_cells(raw: Any) -> dict[str, str]:
+    """An imported ``{entity_id: cell type}`` map reduced to valid entries —
+    which devices hold rechargeable cells is the user's own record and rides
+    the backup like the swap log."""
+    from homeassistant.core import valid_entity_id
+
+    if not isinstance(raw, dict):
+        return {}
+    out: dict[str, str] = {}
+    for key, value in raw.items():
+        if len(out) >= _RECORDED_CAP:
+            break
+        if isinstance(key, str) and valid_entity_id(key) and isinstance(value, str) and 0 < len(value) <= 64:
+            out[key] = value
+    return out
+
+
+def _remember_installed(found: Any, installed: dict[str, str]) -> None:
+    if found is None:
+        return
+    store, task_id = found
+    store.update_task_state(task_id, **{INSTALLED_CELLS_KEY: dict(list(installed.items())[-_RECORDED_CAP:])})
+    store.async_delay_save()
 
 
 def _replaced_on(recorded: dict[str, Any], bat: Any, day: str) -> bool:
@@ -546,7 +687,8 @@ async def async_record_replacement(hass: HomeAssistant, entity_id: str, replaced
 
     consumed: dict[str, int] = {}
     if not already:
-        part_type = fleet_part_type(bat.battery_type)
+        # The cells it holds (D#213: the ones chosen at the last Replaced).
+        part_type = (_installed_cells(found).get(entity_id) if fleet_ask_cells(hass) else None) or fleet_part_type(bat.battery_type)
         consumed = await async_consume_type_parts(hass, {part_type: bat.quantity} if part_type else {})
         recorded[entity_id] = day
         _remember_recorded(found, recorded)
@@ -643,6 +785,14 @@ def set_due_without_sensor(hass: HomeAssistant, enabled: bool) -> bool:
     from ..const import BATTERY_FLEET_DUE_WITHOUT_SENSOR
 
     return _mutate_fleet_object(hass, lambda obj: obj.__setitem__(BATTERY_FLEET_DUE_WITHOUT_SENSOR, bool(enabled)))
+
+
+def set_ask_cells(hass: HomeAssistant, enabled: bool) -> bool:
+    """Persist the fleet-wide ask-which-cells opt-in (D#213). Returns False
+    when no fleet exists yet."""
+    from ..const import BATTERY_FLEET_ASK_CELLS
+
+    return _mutate_fleet_object(hass, lambda obj: obj.__setitem__(BATTERY_FLEET_ASK_CELLS, bool(enabled)))
 
 
 def find_fleet_task(entry: ConfigEntry) -> tuple[str, dict[str, Any]] | None:

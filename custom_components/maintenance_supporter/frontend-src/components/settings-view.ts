@@ -2376,6 +2376,12 @@ export class MaintenanceSettingsView extends LitElement {
 
     .setting-label { font-size: 14px; display: block; }
     .setting-desc { font-size: 12px; color: var(--secondary-text-color); display: block; }
+    /* #216 consistency pass: used two dozen times and styled nowhere, so every hint
+       read like the setting it explains (14 px, text colour). The help-text
+       and field-label styles of the dialogs. */
+    .setting-hint,
+    .hint { font-size: 12px; line-height: 1.4; color: var(--secondary-text-color); margin: 4px 0 8px; }
+    .filter-label { font-size: 12px; font-weight: 500; color: var(--secondary-text-color); }
 
     .setting-row input[type="checkbox"] {
       width: 18px; height: 18px; flex-shrink: 0;
@@ -2385,7 +2391,8 @@ export class MaintenanceSettingsView extends LitElement {
       max-width: 60%;
     }
     .setting-row input[type="number"],
-    .setting-row input[type="text"] {
+    .setting-row input[type="text"],
+    .setting-row input[type="url"] {
       width: 120px;
       padding: 6px 8px;
       border: 1px solid var(--divider-color, #e0e0e0);
@@ -2398,7 +2405,14 @@ export class MaintenanceSettingsView extends LitElement {
     .setting-row input[type="number"] {
       text-align: right;
     }
-    .setting-row select {
+    /* A shop search template is a URL: room for it, not a number's 120 px. */
+    .setting-row input.part-search-url {
+      width: auto;
+      flex: 1 1 200px;
+      min-width: 0;
+    }
+    .setting-row select,
+    .qr-filter-group select {
       padding: 6px 8px;
       border: 1px solid var(--divider-color, #e0e0e0);
       border-radius: 4px;
@@ -2423,6 +2437,14 @@ export class MaintenanceSettingsView extends LitElement {
       align-items: flex-start;
     }
     .docs-archive-block h4, .docs-archive-block .section-desc { margin: 0; }
+    /* The buttons outside an action row (and the .ha-button / .btn ones,
+       a class nothing styled) showed the browser's grey default. */
+    .settings-section button:not([class]),
+    .settings-section button[class=""],
+    .settings-section button.ha-button,
+    .settings-section button.btn,
+    .settings-section button.vac-end-now,
+    .settings-section button.vac-notify-on,
     .settings-actions button {
       padding: 8px 16px;
       border-radius: 8px;
@@ -2432,9 +2454,15 @@ export class MaintenanceSettingsView extends LitElement {
       cursor: pointer;
       font-size: 14px;
     }
+    .settings-section button:not([class]):hover,
+    .settings-section button[class=""]:hover,
+    .settings-section button.ha-button:hover,
+    .settings-section button.btn:hover,
     .settings-actions button:hover {
       background: var(--secondary-background-color, #f5f5f5);
     }
+    .settings-section button:not([class])[disabled],
+    .settings-section button.btn[disabled],
     .settings-actions button[disabled] {
       opacity: 0.5;
       cursor: not-allowed;

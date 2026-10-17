@@ -167,7 +167,7 @@ def rewrite_store(store: Any, old_id: str, new_id: str) -> bool:
     Returns True iff anything was rewritten.
     """
     from .battery_fleet import LOW_LATCH_KEY
-    from .battery_fleet_setup import RECORDED_REPLACEMENTS_KEY
+    from .battery_fleet_setup import INSTALLED_CELLS_KEY, RECORDED_REPLACEMENTS_KEY
     from .battery_lifetime import REPLACEMENT_LOG_KEY
 
     changed = False
@@ -178,7 +178,7 @@ def rewrite_store(store: Any, old_id: str, new_id: str) -> bool:
         # swap memory — are keyed by the battery sensor: a renamed sensor
         # started over, and the dropped latch read as a recovery (bug audit
         # 2026-10-16, S4).
-        for key in (LOW_LATCH_KEY, REPLACEMENT_LOG_KEY, RECORDED_REPLACEMENTS_KEY):
+        for key in (LOW_LATCH_KEY, REPLACEMENT_LOG_KEY, RECORDED_REPLACEMENTS_KEY, INSTALLED_CELLS_KEY):
             per_battery = state.get(key)
             if isinstance(per_battery, dict) and old_id in per_battery and new_id not in per_battery:
                 state[key] = {(new_id if k == old_id else k): v for k, v in per_battery.items()}

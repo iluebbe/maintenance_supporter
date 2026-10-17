@@ -106,6 +106,7 @@ export class MaintenanceSavedViewsDialog extends LitElement {
             type="text"
             .value=${this._name}
             placeholder=${t("views_name_placeholder", L)}
+            aria-label=${t("views_name_placeholder", L)}
             maxlength="60"
             @input=${(e: Event) => (this._name = (e.target as HTMLInputElement).value)}
             @keydown=${(e: KeyboardEvent) => {

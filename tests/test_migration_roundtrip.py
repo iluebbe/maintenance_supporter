@@ -723,10 +723,11 @@ def test_the_non_portable_options_match_the_export() -> None:
 def test_the_split_only_fields_name_the_fleet_keys() -> None:
     """storage keeps the fleet keys as literals (no helper imports there)."""
     from custom_components.maintenance_supporter.helpers.battery_fleet import LOW_LATCH_KEY
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import INSTALLED_CELLS_KEY
     from custom_components.maintenance_supporter.helpers.battery_lifetime import REPLACEMENT_LOG_KEY
     from custom_components.maintenance_supporter.storage import _SPLIT_ONLY_TASK_FIELDS
 
-    assert {REPLACEMENT_LOG_KEY, LOW_LATCH_KEY} <= set(_SPLIT_ONLY_TASK_FIELDS)
+    assert {REPLACEMENT_LOG_KEY, LOW_LATCH_KEY, INSTALLED_CELLS_KEY} <= set(_SPLIT_ONLY_TASK_FIELDS)
 
 
 # ─── the moves that cannot be exact, said out loud ─────────────────────────

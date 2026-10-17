@@ -37,6 +37,7 @@ import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
 import { renderRecommendationBars } from "../renderers/recommendation";
 import "./ms-date-field";
+import "./ms-textfield";
 import {
   renderSeasonalCardCompact,
   renderSeasonalCardExpanded,
@@ -617,9 +618,8 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
               ${this._showSkip
                 ? html`
                     <div class="inline-form">
-                      <label>${t("skip_reason", L)}</label>
-                      <input type="text" .value=${this._skipReason}
-                        @input=${(e: Event) => { this._skipReason = (e.target as HTMLInputElement).value; }} />
+                      <ms-textfield label=${t("skip_reason", L)} .value=${this._skipReason}
+                        @input=${(e: Event) => { this._skipReason = (e.target as HTMLInputElement).value; }}></ms-textfield>
                       <div class="inline-actions">
                         <button class="btn cancel" @click=${() => { this._showSkip = false; }} ?disabled=${this._busy}>
                           ${t("cancel", L)}
@@ -633,9 +633,9 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                 : this._showReset
                 ? html`
                     <div class="inline-form">
-                      <label>${t("reset_to_date", L)}</label>
                       <ms-date-field
                         kind="date"
+                        label=${t("reset_to_date", L)}
                         .hass=${this.hass}
                         .lang=${L}
                         .value=${this._resetDate}
@@ -654,9 +654,9 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                 : this._showPostpone
                 ? html`
                     <div class="inline-form">
-                      <label>${t("postpone_date_prompt", L)}</label>
                       <ms-date-field
                         kind="date"
+                        label=${t("postpone_date_prompt", L)}
                         .hass=${this.hass}
                         .lang=${L}
                         .value=${this._postponeDate}
@@ -836,14 +836,6 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       font-size: 13px; white-space: pre-wrap; word-break: break-word;
     }
     .notes-body ha-markdown { white-space: normal; }
-    .inline-form label { font-size: 13px; color: var(--secondary-text-color); }
-    .inline-form input {
-      padding: 8px; font-size: 14px;
-      background: var(--secondary-background-color, #2c2c2c);
-      color: var(--primary-text-color);
-      border: 1px solid var(--divider-color, #444);
-      border-radius: 6px;
-    }
     .inline-actions { display: flex; gap: 8px; justify-content: flex-end; }
     .footer { display: flex; justify-content: center; padding-top: 4px; }
     .link {
@@ -917,6 +909,14 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       background: rgba(76, 175, 80, 0.15);
       color: var(--success-color, #4caf50); font-size: 13px; font-weight: 500;
     }
+    /* The panel's card look (panel-styles.ts is not in this shadow root, so
+       the card and its heading rendered bare). */
+    .recommendation-card {
+      padding: 16px;
+      border: 1px solid var(--divider-color);
+      border-radius: 8px;
+    }
+    .recommendation-card h4 { margin: 0 0 12px; font-size: 14px; }
     /* The panel's recommendation-card uses ha-button. We use plain <button>
        in this dialog's button styles. Re-style the action row to match. */
     .recommendation-actions {

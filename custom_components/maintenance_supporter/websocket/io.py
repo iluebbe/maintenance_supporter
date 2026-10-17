@@ -1268,6 +1268,11 @@ async def ws_import_json(
                         task_data[REPLACEMENT_LOG_KEY] = log
                     if latch := sanitize_low_latch(task_entry.get(LOW_LATCH_KEY)):
                         task_data[LOW_LATCH_KEY] = latch
+                    # D#213: the cells chosen at Replaced.
+                    from ..helpers.battery_fleet_setup import INSTALLED_CELLS_KEY, sanitize_installed_cells
+
+                    if cells := sanitize_installed_cells(task_entry.get(INSTALLED_CELLS_KEY)):
+                        task_data[INSTALLED_CELLS_KEY] = cells
 
                 # 2.95: the task's fingerprint (catalog duty / template task) —
                 # shape-checked, it is untrusted input like everything imported.

@@ -55,6 +55,10 @@ interface BatteryRow {
   lifetime_samples?: number;
   /** ISO date the forecast anchors on (Battery Notes' last replaced). */
   last_replaced?: string | null;
+  /** D#213 (ask-cells on): what may go in at Replaced — the note's type and
+   *  every fleet part of the same size — and what it holds now. */
+  cell_choices?: { type: string; name: string; rechargeable: boolean }[];
+  cells_installed?: string;
 }
 interface RosterRow extends BatteryRow {
   status: "low" | "soon" | "ok";
@@ -100,6 +104,8 @@ interface Overview {
   // D#162: a passed forecast on a sensorless note counts as due (default
   // on — an older backend omits the field, which renders as on too).
   due_without_sensor?: boolean;
+  // D#213: Replaced asks which cells went in (opt-in).
+  ask_cells?: boolean;
 }
 
 export class MaintenanceBatteryFleetSection extends LitElement {
@@ -112,6 +118,8 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   @state() private _ov: Overview | null = null;
   @state() private _loading = false;
   @state() private _marking = false;
+  /** D#213: the battery whose Replaced waits for the cells that went in. */
+  @state() private _choosing: { entityId: string; list: string; selected: string } | null = null;
   @state() private _error = "";
   @state() private _history: HistorySeries | null = null;
   // Urgency by default (issue #123: "soon sat in the middle of the list");
@@ -189,6 +197,50 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     await this._act({ type: "maintenance_supporter/battery_fleet/setup", language: this._lang });
   };
 
+  /** One battery's Replaced: asks which cells went in when the fleet is
+   *  set to (D#213) and there is a choice, else books right away. */
+  private _markOne(b: BatteryRow, list: string): void {
+    if (b.cell_choices && b.cell_choices.length > 1) {
+      this._choosing = { entityId: b.entity_id, list, selected: b.cells_installed || b.cell_choices[0].type };
+      return;
+    }
+    void this._mark([b.entity_id]);
+  }
+
+  private async _confirmCells(): Promise<void> {
+    const choice = this._choosing;
+    if (!choice) return;
+    this._choosing = null;
+    await this._act({
+      type: "maintenance_supporter/battery_fleet/mark_replaced",
+      entity_ids: [choice.entityId],
+      cells: { [choice.entityId]: choice.selected },
+    });
+  }
+
+  private _renderCellChooser(b: BatteryRow, list: string, L: string) {
+    const choice = this._choosing;
+    if (!choice || choice.entityId !== b.entity_id || choice.list !== list || !b.cell_choices) return nothing;
+    return html`
+      <div class="bf-cells" role="group" aria-label=${t("battery_fleet_cells_question", L)}>
+        <div class="bf-cells-q">${t("battery_fleet_cells_question", L)}</div>
+        ${b.cell_choices.map((c) => html`
+          <label class="bf-cell-choice">
+            <input type="radio" name=${`cells-${b.entity_id}`} .checked=${choice.selected === c.type}
+              @change=${() => { this._choosing = { ...choice, selected: c.type }; }} />
+            <span>${c.name}</span>
+            ${c.rechargeable ? html`<span class="bf-cell-tag">${t("battery_fleet_cells_rechargeable", L)}</span>` : nothing}
+          </label>`)}
+        <div class="bf-cells-actions">
+          <button class="bf-cells-cancel" @click=${() => { this._choosing = null; }}>${t("cancel", L)}</button>
+          <button class="bf-cells-ok" .disabled=${this._marking} @click=${() => this._confirmCells()}>
+            ${t("battery_fleet_mark_one", L)}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   private async _mark(entityIds: string[] | undefined): Promise<void> {
     await this._act({
       type: "maintenance_supporter/battery_fleet/mark_replaced",
@@ -224,7 +276,15 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     await this._setFleetOption("set_due_without_sensor", (e.target as HTMLInputElement).checked);
   }
 
-  private async _setFleetOption(command: "set_track_self_charging" | "set_due_without_sensor", enabled: boolean): Promise<void> {
+  // D#213: fleet-wide opt-in — Replaced asks which cells went in.
+  private async _setAskCells(e: Event): Promise<void> {
+    await this._setFleetOption("set_ask_cells", (e.target as HTMLInputElement).checked);
+  }
+
+  private async _setFleetOption(
+    command: "set_track_self_charging" | "set_due_without_sensor" | "set_ask_cells",
+    enabled: boolean,
+  ): Promise<void> {
     await this._act({ type: `maintenance_supporter/battery_fleet/${command}`, enabled });
   }
 
@@ -457,6 +517,8 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       /** "always": every row gets the mark action (low list); "replaced":
        *  only a sensorless row or a note with a replaced button. */
       mark: "always" | "replaced";
+      /** Which list the row is in (a low battery is in two). */
+      list: "low" | "soon" | "roster";
       jump?: boolean;
       predicted?: boolean;
       exclude?: boolean;
@@ -497,7 +559,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
               class="bf-mark${o.mark === "replaced" ? " bf-replaced" : ""}"
               title=${b.rechargeable ? t("battery_fleet_mark_recharged", L) : t("battery_fleet_mark_one", L)}
               .disabled=${this._marking}
-              @click=${() => this._mark([b.entity_id])}
+              @click=${() => this._markOne(b, o.list)}
             >
               <ha-icon icon="mdi:battery-sync"></ha-icon>
             </button>`
@@ -521,6 +583,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
             </button>`
           : nothing}
       </div>
+      ${this._renderCellChooser(b, o.list, L)}
     `;
   }
 
@@ -562,7 +625,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                 <span class="bf-list">${this._shoppingLine(ov.needs_now)}</span>
               </div>
               <div class="bf-rows">
-                ${ov.low.map((b) => this._renderRow(b, L, { recharge: true, mark: "always", exclude: true }))}
+                ${ov.low.map((b) => this._renderRow(b, L, { list: "low", recharge: true, mark: "always", exclude: true }))}
               </div>
               ${this._canWrite
                 ? html`<div class="bf-actions">
@@ -609,7 +672,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                 <div class="bf-soon-hint">${t("battery_fleet_soon_hint", L)}</div>
               </div>
               <div class="bf-rows bf-soon-rows">
-                ${ov.soon.map((b) => this._renderRow(b, L, { mark: "replaced", predicted: true }))}
+                ${ov.soon.map((b) => this._renderRow(b, L, { list: "soon", mark: "replaced", predicted: true }))}
               </div>
             `
           : nothing}
@@ -633,7 +696,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                 </div>
                 <div class="bf-rows">
                   ${this._sortedRoster(ov.all).map((b) =>
-                    this._renderRow(b, L, { status: true, recharge: true, sparkline: true, mark: "replaced", jump: true, predicted: true, exclude: true }),
+                    this._renderRow(b, L, { list: "roster", status: true, recharge: true, sparkline: true, mark: "replaced", jump: true, predicted: true, exclude: true }),
                   )}
                 </div>
                 <div class="bf-roster-hint">${t("battery_fleet_all_hint", L)}</div>
@@ -680,6 +743,16 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                   ${t("battery_fleet_due_without_sensor", L)}
                 </label>
                 <div class="bf-roster-hint">${t("battery_fleet_due_without_sensor_hint", L)}</div>
+                <label class="bf-track-self bf-ask-cells">
+                  <input
+                    type="checkbox"
+                    .checked=${!!ov.ask_cells}
+                    .disabled=${this._marking}
+                    @change=${this._setAskCells}
+                  />
+                  ${t("battery_fleet_ask_cells", L)}
+                </label>
+                <div class="bf-roster-hint">${t("battery_fleet_ask_cells_hint", L)}</div>
     `;
   }
 
@@ -1152,6 +1225,42 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       font-size: 13px;
       color: var(--secondary-text-color);
       padding: 2px 0;
+    }
+    /* D#213: which cells went in — under the battery's row. */
+    .bf-cells {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 4px 0 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--divider-color);
+      border-radius: 8px;
+    }
+    .bf-cells-q { font-size: 12px; font-weight: 500; color: var(--secondary-text-color); }
+    .bf-cell-choice { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+    .bf-cell-choice input { width: 16px; height: 16px; margin: 0; }
+    .bf-cell-tag {
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 8px;
+      background: var(--secondary-background-color);
+      color: var(--secondary-text-color);
+    }
+    .bf-cells-actions { display: flex; justify-content: flex-end; gap: 8px; }
+    .bf-cells-actions button {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--divider-color);
+      background: transparent;
+      color: var(--primary-text-color);
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .bf-cells-actions .bf-cells-ok {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      color: var(--text-primary-color, #fff);
     }
     .bf-roster-hint {
       font-size: 12px;

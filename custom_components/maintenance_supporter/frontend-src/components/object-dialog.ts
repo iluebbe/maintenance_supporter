@@ -448,8 +448,9 @@ export class MaintenanceObjectDialog extends LitElement {
     .textarea-field textarea:focus {
       outline: none; border-color: var(--primary-color);
     }
+    /* The help text of every field (12 px, secondary; #216 consistency pass). */
     .md-hint {
-      font-size: 11px; color: var(--secondary-text-color); font-style: italic;
+      font-size: 12px; color: var(--secondary-text-color);
     }
     .parent-select {
       padding: 8px 10px; font-size: 14px; font-family: inherit;

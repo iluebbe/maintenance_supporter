@@ -226,12 +226,12 @@ export class MsDateField extends LitElement {
     }
     .clear:hover, .type-toggle:hover { background: rgba(var(--rgb-primary-text-color, 0, 0, 0), 0.08); }
     .clear:focus-visible, .type-toggle:focus-visible { outline: 2px solid var(--primary-color); }
+    /* The dialogs' .field-help: one help-text style (#216). */
     .helper {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--secondary-text-color);
-      font-style: italic;
     }
-    .helper.invalid { color: var(--error-color, #f44336); font-style: normal; }
+    .helper.invalid { color: var(--error-color, #f44336); }
     input.typed {
       flex: 1;
       min-width: 0;

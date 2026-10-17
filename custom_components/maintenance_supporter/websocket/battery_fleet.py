@@ -18,6 +18,7 @@ from ..const import DOMAIN, MAX_ENTITY_ID_LENGTH
 from ..helpers.battery_fleet import (
     async_compute_overview,
     async_level_history,
+    fleet_ask_cells,
     fleet_due_without_sensor,
     fleet_excluded_entities,
     fleet_track_self_charging,
@@ -31,6 +32,8 @@ from ..helpers.battery_fleet_setup import (
     async_setup_battery_fleet,
     find_fleet_entry,
     fleet_task_trigger_ok,
+    roster_cell_choices,
+    set_ask_cells,
     set_battery_excluded,
     set_battery_included,
     set_due_without_sensor,
@@ -77,6 +80,9 @@ async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_a
     """
     ov = await async_compute_overview(hass)
     fleet = find_fleet_entry(hass)
+    # D#213: what each battery may take at Replaced (option on, two choices or more).
+    choices = roster_cell_choices(hass)
+    roster = [{**row, **choices[row["entity_id"]]} if row.get("entity_id") in choices else row for row in ov.all]
     connection.send_result(
         msg["id"],
         {
@@ -96,7 +102,7 @@ async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_a
             # it ever goes low — previously the exclude control existed only on
             # low rows, so a self-recharging vacuum could be dismissed only
             # while it was already nagging (discussion #113).
-            "all": ov.all,
+            "all": roster,
             "needs_now": dict(ov.needs_now),
             "needs_soon": dict(ov.needs_soon),
             "types": ov.types,
@@ -110,6 +116,8 @@ async def ws_battery_fleet_overview(hass: HomeAssistant, connection: websocket_a
             # D#162: whether a passed forecast on a sensorless note counts as
             # due (the roster's second toggle; default on).
             "due_without_sensor": fleet_due_without_sensor(hass),
+            # D#213: Replaced asks which cells went in (opt-in).
+            "ask_cells": fleet_ask_cells(hass),
             # Manually excluded batteries (issue #107) — names enriched where
             # the entity still exists, so the restore list stays readable.
             "excluded": [
@@ -256,9 +264,29 @@ async def ws_battery_fleet_set_due_without_sensor(
 
 @websocket_api.websocket_command(
     {
+        vol.Required("type"): f"{DOMAIN}/battery_fleet/set_ask_cells",
+        vol.Required("enabled"): bool,
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_battery_fleet_set_ask_cells(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
+) -> None:
+    """Fleet-wide opt-in: Replaced asks which cells went in (D#213)."""
+    if not set_ask_cells(hass, msg["enabled"]):
+        send_translated_error(connection, msg["id"], "not_configured", "Battery Fleet is not set up", translation_key="fleet_not_set_up")
+        return
+    connection.send_result(msg["id"], {"success": True})
+
+
+@websocket_api.websocket_command(
+    {
         vol.Required("type"): f"{DOMAIN}/battery_fleet/mark_replaced",
         # battery_plus entity_ids to mark; omit to mark ALL currently low.
         vol.Optional("entity_ids"): [vol.All(str, vol.Length(max=MAX_ENTITY_ID_LENGTH))],
+        # D#213: {entity_id: cell type} — which cells went in (ask-cells on).
+        vol.Optional("cells"): {str: vol.All(str, vol.Length(max=64))},
     }
 )
 @require_write
@@ -267,7 +295,7 @@ async def ws_battery_fleet_mark_replaced(
     hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
 ) -> None:
     """Mark batteries replaced (press their button + consume the type-parts)."""
-    result = await async_mark_replaced(hass, msg.get("entity_ids"))
+    result = await async_mark_replaced(hass, msg.get("entity_ids"), msg.get("cells"))
     connection.send_result(msg["id"], result)
 
 

@@ -681,18 +681,19 @@ export class MaintenanceCompleteDialog extends LitElement {
     /* #99: editable per-completion parts selection */
     .used-parts { margin: 4px 0 8px; display: flex; flex-direction: column; gap: 4px; }
     .used-part-row { display: flex; align-items: center; gap: 8px; }
+    /* #216 consistency pass: the checklist rows' look (14 px, 18 px box). */
     .used-part-check {
-      display: flex; align-items: center; gap: 6px; flex: 1;
-      font-size: 13px; cursor: pointer;
+      display: flex; align-items: center; gap: 8px; flex: 1;
+      font-size: 14px; cursor: pointer;
     }
-    .used-part-check input { cursor: pointer; }
+    .used-part-check input { width: 18px; height: 18px; cursor: pointer; }
     /* #111: whose stock this row draws on. Muted but never omitted — an
        unlabelled foreign pool is indistinguishable from an own part. */
     .used-part-owner { color: var(--secondary-text-color); }
     .used-part-qty {
-      width: 76px; padding: 4px 6px; border-radius: 4px; font: inherit; font-size: 13px;
+      width: 76px; padding: 6px 8px; border-radius: 6px; font: inherit; font-size: 14px;
       border: 1px solid var(--divider-color);
-      background: var(--card-background-color);
+      background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color);
     }
     .error {
@@ -776,9 +777,10 @@ export class MaintenanceCompleteDialog extends LitElement {
       border-bottom: 1px solid var(--divider-color);
       margin-bottom: 4px;
     }
+    /* The field label of every dialog (12 px, 500, secondary). */
     .checklist-label {
       font-weight: 500;
-      font-size: 13px;
+      font-size: 12px;
       color: var(--secondary-text-color);
     }
     .checklist-item {
@@ -803,7 +805,7 @@ export class MaintenanceCompleteDialog extends LitElement {
     }
     .feedback-label {
       font-weight: 500;
-      font-size: 13px;
+      font-size: 12px;
       color: var(--secondary-text-color);
     }
     .feedback-buttons {

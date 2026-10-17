@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { AdaptiveConfig, HomeAssistant, MaintenanceTask, ReadingSlot, TaskPartLink, TriggerConfig, HAUser } from "../types";
-import { countText, formatDate, formatNumber, t, weekdayName, monthName, langOf } from "../styles";
+import { countText, formatDate, formatNumber, formStyles, nativeFieldStyles, t, weekdayName, monthName, langOf } from "../styles";
 import { UserService } from "../user-service";
 import { partLinkKey } from "../helpers/shared-parts";
 import { MAX_READING_SLOTS, cleanReadingSlots, duplicateReadingSlotIds, newReadingSlotId } from "../helpers/reading-slots";
@@ -1379,7 +1379,8 @@ export class MaintenanceTaskDialog extends LitElement {
   private _renderPhasesEditor(L: string) {
     const defName = (id: string) => this._phaseDefs.find((d) => d.id === id)?.name || id;
     return html`
-      <h3>${t("phases_section", L)}</h3>
+      <details class="phases-section" ?open=${this._phaseDefs.length > 0}>
+      <summary>${t("phases_section", L)}</summary>
       <div class="field-help">${t("phases_hint", L)}</div>
       ${this._phaseDefs.map((d) => html`
         <div class="phase-def">
@@ -1479,6 +1480,7 @@ export class MaintenanceTaskDialog extends LitElement {
           </select>
         </div>
       ` : nothing}
+      </details>
     `;
   }
 
@@ -1845,7 +1847,6 @@ export class MaintenanceTaskDialog extends LitElement {
 
     const isCompound = this._triggerType === "compound";
     return html`
-      <h3>${t("trigger_configuration", L)}</h3>
       <div class="select-row">
         <label>${t("trigger_type", L)}</label>
         <select
@@ -2972,16 +2973,22 @@ export class MaintenanceTaskDialog extends LitElement {
     return nothing;
   }
 
-  render() {
-    if (!this._open) return html``;
-    const L = this._lang;
-    const title = this._taskId ? t("edit_task", L) : t("new_task", L);
+  /** #216: the dialog answers one question per section, in the order a task
+   *  is set up — what it is (no heading), when it is due, what sets it off
+   *  (sensor tasks only), what completing it takes, who does it and who
+   *  hears about it, and the rest. A new field joins the section whose
+   *  question it answers; one most tasks never need goes behind a
+   *  disclosure inside it (like the adaptive scheduling and the completion
+   *  action). The fields had grown in the order they were added. */
+  private _section(cls: string, title: string, content: unknown) {
+    return html`<section class="form-section ${cls}">
+      <h3 class="section-title">${title}</h3>
+      ${content}
+    </section>`;
+  }
+
+  private _renderIdentity(L: string) {
     return html`
-      <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${title}</div>
-        <div class="content">
-          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
-          ${this._warning ? html`<div class="error warning">${this._warning}</div>` : nothing}
           ${this._taskId === null && this._objectChoices.length > 0 ? html`
             <div class="select-row">
               <label>${t("object", L)}</label>
@@ -3020,46 +3027,6 @@ export class MaintenanceTaskDialog extends LitElement {
               )}
             </select>
           </div>
-          ${this._type === "reading"
-            ? html`
-                <ms-textfield
-                  label="${t("reading_unit_label", L)}"
-                  .value=${this._readingUnit}
-                  @input=${(e: Event) => (this._readingUnit = (e.target as HTMLInputElement).value)}
-                ></ms-textfield>
-                <div class="field-help">${t("reading_unit_help", L)}</div>
-                ${this._renderReadingsEditor(L)}
-              `
-            : nothing}
-          ${this._partsLoadFailed
-            ? html`<div class="field-help parts-load-failed">${t("parts_load_failed", L)}</div>`
-            : nothing}
-          ${this._isFleetTask
-            ? html`<div class="field-help parts-fleet-hint">${t("task_parts_fleet_hint", L)}</div>`
-            : this.parts.length || this._foreignOwners.length
-            ? html`
-                <div class="field">
-                  <label>${t("consumes_parts_label", L)}</label>
-                  ${this.parts.map((part) => this._renderConsumesRow(part))}
-                  ${this._foreignOwners.length
-                    ? html`
-                        <details class="shared-pools" ?open=${this._hasForeignPick}>
-                          <summary>${t("shared_parts_other_objects", L)}</summary>
-                          <div class="field-help">${t("shared_parts_help", L)}</div>
-                          ${this._foreignOwners.map(
-                            (owner) => html`
-                              <div class="shared-pool-owner">${owner.name}</div>
-                              ${owner.parts.map((part) =>
-                                this._renderConsumesRow(part, owner.entry_id),
-                              )}
-                            `,
-                          )}
-                        </details>
-                      `
-                    : nothing}
-                </div>
-              `
-            : nothing}
           <div class="select-row">
             <label>${t("priority", L)}</label>
             <select
@@ -3071,44 +3038,11 @@ export class MaintenanceTaskDialog extends LitElement {
               )}
             </select>
           </div>
-          <div class="field">
-            <label>${t("labels", L)}</label>
-            <input
-              type="text"
-              .value=${this._labels}
-              placeholder="${t("labels_placeholder", L)}"
-              @input=${(e: Event) => (this._labels = (e.target as HTMLInputElement).value)}
-            />
-            <div class="field-help">${t("labels_help", L)}</div>
-          </div>
-          <div class="field mirror-todo-field">
-            ${this._entityPickerFallback ? html`
-              <ms-textfield
-                label="${t("task_mirror_todo", L)}"
-                placeholder="todo.family, todo.kids"
-                .value=${this._mirrorTodoEntities.join(", ")}
-                @input=${(e: Event) => {
-                  this._mirrorTodoEntities = (e.target as HTMLInputElement).value
-                    .split(",").map((s: string) => s.trim()).filter(Boolean);
-                }}
-              ></ms-textfield>
-            ` : html`
-              <ha-form
-                class="entity-picker-form"
-                .hass=${this.hass}
-                .schema=${[{
-                  name: "mirror_todo_entities",
-                  selector: { entity: { multiple: true, domain: ["todo"] } },
-                }]}
-                .data=${{ mirror_todo_entities: this._mirrorTodoEntities }}
-                .computeLabel=${() => t("task_mirror_todo", L)}
-                @value-changed=${(e: CustomEvent) => {
-                  const ids = ((e.detail.value as { mirror_todo_entities?: string[] }).mirror_todo_entities || []).filter(Boolean);
-                  this._mirrorTodoEntities = ids;
-                }}
-              ></ha-form>`}
-            <div class="field-help">${t("task_mirror_todo_hint", L)}</div>
-          </div>
+    `;
+  }
+
+  private _renderScheduleSection(L: string) {
+    return this._section("schedule-section", t("task_section_schedule", L), html`
           <div class="select-row">
             <label>${t("schedule_type", L)}</label>
             <select
@@ -3174,47 +3108,6 @@ export class MaintenanceTaskDialog extends LitElement {
           ` : nothing}
           ${this._renderRecurrenceExtras()}
           ${this._renderSchedulePreview()}
-          <ms-textfield
-            label="${t("warning_days", L)}"
-            type="number"
-            min=${WARNING_DAYS_RANGE[0]}
-            max=${WARNING_DAYS_RANGE[1]}
-            .value=${this._warningDays}
-            @input=${(e: Event) => (this._warningDays = (e.target as HTMLInputElement).value)}
-          ></ms-textfield>
-          <ms-textfield
-            label="${t("earliest_completion_days", L)}"
-            helper="${t("earliest_completion_days_help", L)}"
-            type="number"
-            .value=${this._earliestCompletionDays}
-            @input=${(e: Event) => (this._earliestCompletionDays = (e.target as HTMLInputElement).value)}
-          ></ms-textfield>
-          ${this.checklistsEnabled ? html`
-            <h3>${t("checklist_steps_optional", L)}</h3>
-            <textarea
-              id="checklist-textarea"
-              class="checklist-textarea"
-              rows="5"
-              placeholder="${t("checklist_placeholder", L)}"
-              .value=${this._checklistText}
-              @input=${(e: Event) => (this._checklistText = (e.target as HTMLTextAreaElement).value)}
-            ></textarea>
-            <div class="field-help">${t("checklist_help", L)}</div>
-          ` : nothing}
-          ${this._renderPhasesEditor(L)}
-          <h3>${t("require_on_completion", L)}</h3>
-          <div class="required-completion">
-            ${REQUIRED_COMPLETION_KEYS.map((field) => html`
-              <label class="req-option">
-                <input
-                  type="checkbox"
-                  .checked=${this._requiredCompletion.includes(field)}
-                  @change=${(e: Event) => this._toggleRequired(field, (e.target as HTMLInputElement).checked)}
-                />
-                <span>${t(REQUIRED_COMPLETION_LABELS[field], L)}</span>
-              </label>
-            `)}
-          </div>
           <ms-date-field
             kind="date"
             clearable
@@ -3224,49 +3117,21 @@ export class MaintenanceTaskDialog extends LitElement {
             .value=${this._lastPerformed}
             @value-changed=${(e: CustomEvent) => (this._lastPerformed = e.detail.value as string)}
           ></ms-date-field>
-          <div class="select-row">
-            <label>${t("responsible_user", L)}</label>
-            <select
-              .value=${this._responsibleUserId || ""}
-              @change=${(e: Event) => {
-                const val = (e.target as HTMLSelectElement).value;
-                this._responsibleUserId = val || null;
-              }}
-            >
-              <option value="" ?selected=${!this._responsibleUserId}>${t("no_user_assigned", L)}</option>
-              ${this._availableUsers.map(
-                (user) => html`<option value=${user.id} ?selected=${user.id === this._responsibleUserId}>${user.name}</option>`
-              )}
-            </select>
-          </div>
-          ${this._availableUsers.length >= 2 ? html`
-            <div class="field">
-              <label>${t("shared_with", L)}</label>
-              <div class="field-help">${t("shared_with_help", L)}</div>
-              <div class="assignee-pool">
-                ${this._availableUsers.map((user) => html`
-                  <label class="pool-item">
-                    <input type="checkbox"
-                      .checked=${this._assigneePool.includes(user.id)}
-                      @change=${() => this._toggleAssignee(user.id)} />
-                    <span>${user.name}</span>
-                  </label>`)}
-              </div>
-            </div>
-            ${this._assigneePool.length >= 2 ? html`
-              <div class="select-row">
-                <label>${t("rotation_strategy", L)}</label>
-                <select
-                  .value=${this._rotationStrategy}
-                  @change=${(e: Event) => (this._rotationStrategy = (e.target as HTMLSelectElement).value)}
-                >
-                  <option value="" ?selected=${!this._rotationStrategy}>${t("rotation_none", L)}</option>
-                  ${ROTATION_STRATEGIES.map(
-                    (key) => html`<option value=${key} ?selected=${key === this._rotationStrategy}>${t("rotation_" + key, L)}</option>`
-                  )}
-                </select>
-              </div>` : nothing}
-          ` : nothing}
+          <ms-textfield
+            label="${t("warning_days", L)}"
+            type="number"
+            min=${WARNING_DAYS_RANGE[0]}
+            max=${WARNING_DAYS_RANGE[1]}
+            .value=${this._warningDays}
+            @input=${(e: Event) => (this._warningDays = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>
+          ${this._renderAdaptiveSection(L)}
+    `);
+  }
+
+  private _renderTriggerSection(L: string) {
+    if (this._scheduleType !== "sensor_based") return nothing;
+    return this._section("trigger-section", t("task_section_trigger", L), html`
           ${this._renderTriggerFields()}
           ${this._scheduleType === "sensor_based" && (this.environmentalFeature || this._environmentalInitial) ? html`
             ${this._entityPickerFallback ? html`
@@ -3293,39 +3158,83 @@ export class MaintenanceTaskDialog extends LitElement {
             ></ha-form>`}
             ${this._environmentalEntity ? this._renderEnvironmentalAttribute(L) : nothing}
           ` : nothing}
-          ${this._renderAdaptiveSection(L)}
-          <ms-textfield
-            label="${t("notes_optional", L)}"
-            multiline
-            .rows=${3}
-            .helper=${t("notes_markdown_hint", L)}
-            .value=${this._notes}
-            @input=${(e: Event) => (this._notes = (e.target as HTMLInputElement).value)}
-          ></ms-textfield>
-          <ms-textfield
-            label="${t("documentation_url_optional", L)}"
-            .value=${this._documentationUrl}
-            @input=${(e: Event) => (this._documentationUrl = (e.target as HTMLInputElement).value)}
-          ></ms-textfield>
-          <ha-icon-picker
-            .hass=${this.hass}
-            label="${t("custom_icon_optional", L)}"
-            .value=${this._customIcon}
-            @value-changed=${(e: CustomEvent) =>
-              (this._customIcon = (e.detail.value as string) || "")}
-          ></ha-icon-picker>
-          <ha-icon-picker
-            class="notify-icon-picker"
-            .hass=${this.hass}
-            label="${t("notify_icon", L)}"
-            .value=${this._notifyIcon}
-            @value-changed=${(e: CustomEvent) =>
-              (this._notifyIcon = (e.detail.value as string) || "")}
-          ></ha-icon-picker>
-          <div class="field-help notify-icon-help">
-            <ha-icon icon=${this._notifyIcon.trim() || defaultNotifyIcon(this._type)}></ha-icon>
-            ${t("notify_icon_hint", L).replace("{default}", defaultNotifyIcon(this._type))}
+    `);
+  }
+
+  private _renderCompletionSection(L: string) {
+    return this._section("completion-section", t("task_section_completion", L), html`
+          ${this._type === "reading"
+            ? html`
+                <ms-textfield
+                  label="${t("reading_unit_label", L)}"
+                  .value=${this._readingUnit}
+                  @input=${(e: Event) => (this._readingUnit = (e.target as HTMLInputElement).value)}
+                ></ms-textfield>
+                <div class="field-help">${t("reading_unit_help", L)}</div>
+                ${this._renderReadingsEditor(L)}
+              `
+            : nothing}
+          ${this.checklistsEnabled ? html`
+            <label class="field-label" for="checklist-textarea">${t("checklist_steps_optional", L)}</label>
+            <textarea
+              id="checklist-textarea"
+              class="checklist-textarea"
+              rows="5"
+              placeholder="${t("checklist_placeholder", L)}"
+              .value=${this._checklistText}
+              @input=${(e: Event) => (this._checklistText = (e.target as HTMLTextAreaElement).value)}
+            ></textarea>
+            <div class="field-help">${t("checklist_help", L)}</div>
+          ` : nothing}
+          ${this._partsLoadFailed
+            ? html`<div class="field-help parts-load-failed">${t("parts_load_failed", L)}</div>`
+            : nothing}
+          ${this._isFleetTask
+            ? html`<div class="field-help parts-fleet-hint">${t("task_parts_fleet_hint", L)}</div>`
+            : this.parts.length || this._foreignOwners.length
+            ? html`
+                <div class="field">
+                  <label>${t("consumes_parts_label", L)}</label>
+                  ${this.parts.map((part) => this._renderConsumesRow(part))}
+                  ${this._foreignOwners.length
+                    ? html`
+                        <details class="shared-pools" ?open=${this._hasForeignPick}>
+                          <summary>${t("shared_parts_other_objects", L)}</summary>
+                          <div class="field-help">${t("shared_parts_help", L)}</div>
+                          ${this._foreignOwners.map(
+                            (owner) => html`
+                              <div class="shared-pool-owner">${owner.name}</div>
+                              ${owner.parts.map((part) =>
+                                this._renderConsumesRow(part, owner.entry_id),
+                              )}
+                            `,
+                          )}
+                        </details>
+                      `
+                    : nothing}
+                </div>
+              `
+            : nothing}
+          <div class="field-label">${t("require_on_completion", L)}</div>
+          <div class="required-completion">
+            ${REQUIRED_COMPLETION_KEYS.map((field) => html`
+              <label class="req-option">
+                <input
+                  type="checkbox"
+                  .checked=${this._requiredCompletion.includes(field)}
+                  @change=${(e: Event) => this._toggleRequired(field, (e.target as HTMLInputElement).checked)}
+                />
+                <span>${t(REQUIRED_COMPLETION_LABELS[field], L)}</span>
+              </label>
+            `)}
           </div>
+          <ms-textfield
+            label="${t("earliest_completion_days", L)}"
+            helper="${t("earliest_completion_days_help", L)}"
+            type="number"
+            .value=${this._earliestCompletionDays}
+            @input=${(e: Event) => (this._earliestCompletionDays = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>
           ${this._availableTags.length > 0
             ? html`
               <div class="select-row">
@@ -3377,6 +3286,56 @@ export class MaintenanceTaskDialog extends LitElement {
             <span>${t("disallow_skip", L)}</span>
           </label>
           ${!this._allowSkip ? html`<div class="field-help">${t("disallow_skip_help", L)}</div>` : nothing}
+          ${this._renderPhasesEditor(L)}
+          ${this._renderCompletionActionsSection(L)}
+    `);
+  }
+
+  private _renderPeopleSection(L: string) {
+    return this._section("people-section", t("task_section_people", L), html`
+          <div class="select-row">
+            <label>${t("responsible_user", L)}</label>
+            <select
+              .value=${this._responsibleUserId || ""}
+              @change=${(e: Event) => {
+                const val = (e.target as HTMLSelectElement).value;
+                this._responsibleUserId = val || null;
+              }}
+            >
+              <option value="" ?selected=${!this._responsibleUserId}>${t("no_user_assigned", L)}</option>
+              ${this._availableUsers.map(
+                (user) => html`<option value=${user.id} ?selected=${user.id === this._responsibleUserId}>${user.name}</option>`
+              )}
+            </select>
+          </div>
+          ${this._availableUsers.length >= 2 ? html`
+            <div class="field">
+              <label>${t("shared_with", L)}</label>
+              <div class="field-help">${t("shared_with_help", L)}</div>
+              <div class="assignee-pool">
+                ${this._availableUsers.map((user) => html`
+                  <label class="pool-item">
+                    <input type="checkbox"
+                      .checked=${this._assigneePool.includes(user.id)}
+                      @change=${() => this._toggleAssignee(user.id)} />
+                    <span>${user.name}</span>
+                  </label>`)}
+              </div>
+            </div>
+            ${this._assigneePool.length >= 2 ? html`
+              <div class="select-row">
+                <label>${t("rotation_strategy", L)}</label>
+                <select
+                  .value=${this._rotationStrategy}
+                  @change=${(e: Event) => (this._rotationStrategy = (e.target as HTMLSelectElement).value)}
+                >
+                  <option value="" ?selected=${!this._rotationStrategy}>${t("rotation_none", L)}</option>
+                  ${ROTATION_STRATEGIES.map(
+                    (key) => html`<option value=${key} ?selected=${key === this._rotationStrategy}>${t("rotation_" + key, L)}</option>`
+                  )}
+                </select>
+              </div>` : nothing}
+          ` : nothing}
           <label class="req-option">
             <input
               type="checkbox"
@@ -3386,6 +3345,78 @@ export class MaintenanceTaskDialog extends LitElement {
             <span>${t("no_notifications", L)}</span>
           </label>
           ${!this._notifyEnabled ? html`<div class="field-help">${t("no_notifications_help", L)}</div>` : nothing}
+          <ha-icon-picker
+            class="notify-icon-picker"
+            .hass=${this.hass}
+            label="${t("notify_icon", L)}"
+            .value=${this._notifyIcon}
+            @value-changed=${(e: CustomEvent) =>
+              (this._notifyIcon = (e.detail.value as string) || "")}
+          ></ha-icon-picker>
+          <div class="field-help notify-icon-help">
+            <ha-icon icon=${this._notifyIcon.trim() || defaultNotifyIcon(this._type)}></ha-icon>
+            ${t("notify_icon_hint", L).replace("{default}", defaultNotifyIcon(this._type))}
+          </div>
+          <div class="field mirror-todo-field">
+            ${this._entityPickerFallback ? html`
+              <ms-textfield
+                label="${t("task_mirror_todo", L)}"
+                placeholder="todo.family, todo.kids"
+                .value=${this._mirrorTodoEntities.join(", ")}
+                @input=${(e: Event) => {
+                  this._mirrorTodoEntities = (e.target as HTMLInputElement).value
+                    .split(",").map((s: string) => s.trim()).filter(Boolean);
+                }}
+              ></ms-textfield>
+            ` : html`
+              <ha-form
+                class="entity-picker-form"
+                .hass=${this.hass}
+                .schema=${[{
+                  name: "mirror_todo_entities",
+                  selector: { entity: { multiple: true, domain: ["todo"] } },
+                }]}
+                .data=${{ mirror_todo_entities: this._mirrorTodoEntities }}
+                .computeLabel=${() => t("task_mirror_todo", L)}
+                @value-changed=${(e: CustomEvent) => {
+                  const ids = ((e.detail.value as { mirror_todo_entities?: string[] }).mirror_todo_entities || []).filter(Boolean);
+                  this._mirrorTodoEntities = ids;
+                }}
+              ></ha-form>`}
+            <div class="field-help">${t("task_mirror_todo_hint", L)}</div>
+          </div>
+    `);
+  }
+
+  private _renderDetailsSection(L: string) {
+    return this._section("details-section", t("task_section_details", L), html`
+          <ms-textfield
+            label="${t("labels", L)}"
+            placeholder="${t("labels_placeholder", L)}"
+            helper="${t("labels_help", L)}"
+            .value=${this._labels}
+            @input=${(e: Event) => (this._labels = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>
+          <ms-textfield
+            label="${t("notes_optional", L)}"
+            multiline
+            .rows=${3}
+            .helper=${t("notes_markdown_hint", L)}
+            .value=${this._notes}
+            @input=${(e: Event) => (this._notes = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>
+          <ms-textfield
+            label="${t("documentation_url_optional", L)}"
+            .value=${this._documentationUrl}
+            @input=${(e: Event) => (this._documentationUrl = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>
+          <ha-icon-picker
+            .hass=${this.hass}
+            label="${t("custom_icon_optional", L)}"
+            .value=${this._customIcon}
+            @value-changed=${(e: CustomEvent) =>
+              (this._customIcon = (e.detail.value as string) || "")}
+          ></ha-icon-picker>
           <label class="toggle-row">
             <input
               type="checkbox"
@@ -3394,7 +3425,25 @@ export class MaintenanceTaskDialog extends LitElement {
             />
             ${t("task_enabled", L)}
           </label>
-          ${this._renderCompletionActionsSection(L)}
+    `);
+  }
+
+  render() {
+    if (!this._open) return html``;
+    const L = this._lang;
+    const title = this._taskId ? t("edit_task", L) : t("new_task", L);
+    return html`
+      <ha-dialog open @closed=${this._close}>
+        <div class="dialog-title">${title}</div>
+        <div class="content">
+          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+          ${this._warning ? html`<div class="error warning">${this._warning}</div>` : nothing}
+          ${this._renderIdentity(L)}
+          ${this._renderScheduleSection(L)}
+          ${this._renderTriggerSection(L)}
+          ${this._renderCompletionSection(L)}
+          ${this._renderPeopleSection(L)}
+          ${this._renderDetailsSection(L)}
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._close}>${t("cancel", L)}</ha-button>
@@ -3409,7 +3458,7 @@ export class MaintenanceTaskDialog extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [nativeFieldStyles, formStyles, css`
     .dialog-title {
       font-size: 18px;
       font-weight: 500;
@@ -3424,16 +3473,23 @@ export class MaintenanceTaskDialog extends LitElement {
     /* v1.3.0: completion-action sections (.adaptive-section shares the shell
        but keeps its own class — tests count .ca-section elements) */
     .ca-section,
-    .adaptive-section {
+    .adaptive-section,
+    .phases-section {
       border: 1px solid var(--divider-color);
       border-radius: 6px;
       padding: 8px 12px;
       margin-top: 8px;
     }
     .ca-section > summary,
-    .adaptive-section > summary {
+    .adaptive-section > summary,
+    .phases-section > summary {
       cursor: pointer;
       font-weight: 500;
+    }
+    .phases-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
     .adaptive-section ms-textfield {
       width: 100%;
@@ -3499,10 +3555,6 @@ export class MaintenanceTaskDialog extends LitElement {
     }
     ms-textfield {
       display: block;
-    }
-    .field-label {
-      font-size: 12px;
-      color: var(--secondary-text-color);
     }
     .checklist-textarea {
       width: 100%;
@@ -3655,10 +3707,6 @@ export class MaintenanceTaskDialog extends LitElement {
     }
     .qc-cost { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; }
     .qc-cost-label { font-size: 12px; color: var(--secondary-text-color); }
-    .field-help {
-      font-size: 12px;
-      color: var(--secondary-text-color);
-    }
     .baseline-effective {
       margin-top: 2px;
       font-weight: 500;
@@ -3704,66 +3752,15 @@ export class MaintenanceTaskDialog extends LitElement {
       color: var(--primary-color);
       opacity: 0.7;
     }
-    h3 {
-      margin: 8px 0 0;
-      font-size: 14px;
-      color: var(--primary-color);
-    }
-    .select-row {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
     .assignee-pool {
       display: flex;
       flex-wrap: wrap;
       gap: 6px 14px;
       margin-top: 4px;
     }
-    .checkbox-row {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      cursor: pointer;
-      margin: 2px 0;
-    }
-    .checkbox-row input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-    }
     .schedule-time-toggle {
       display: flex;
       margin: 8px 0 4px;
-    }
-    .pool-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      cursor: pointer;
-    }
-    .pool-item input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-    }
-    .select-row label {
-      font-size: 12px;
-      color: var(--secondary-text-color);
-    }
-    .select-row select {
-      padding: 8px;
-      border: 1px solid var(--divider-color);
-      border-radius: 4px;
-      background: var(--card-background-color, #fff);
-      color: var(--primary-text-color);
-      font-size: 14px;
-    }
-    .field-label {
-      font-size: 12px;
-      color: var(--secondary-text-color);
     }
     .weekday-chips {
       display: flex;
@@ -3803,14 +3800,12 @@ export class MaintenanceTaskDialog extends LitElement {
       color: var(--error-color, #f44336);
       font-size: 13px;
     }
-    .toggle-row {
+    .required-completion {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      cursor: pointer;
+      flex-wrap: wrap;
+      gap: 6px 16px;
     }
-  `;
+  `];
 }
 
 if (!customElements.get("maintenance-task-dialog")) {

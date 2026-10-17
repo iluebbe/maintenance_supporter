@@ -4,8 +4,27 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **The task dialog is grouped by question** (#216, first draft): name, object, type and priority at the top, then
+  *Schedule* (the schedule with the last-done day, the warning days and adaptive scheduling), *Sensor trigger* (sensor
+  tasks), *Completing it* (checklist, readings, parts, required fields, the earliest completion, tag scan, skipping,
+  cycle phases, completion action), *People and notifications* and *Details* (labels, notes, link, icon, enabled).
+  Each section has a heading that stands out while scrolling. Cycle phases fold away until a task has some. All
+  field labels and help texts share one style, the labels field is a regular text field, and the selects and
+  checkbox rows look like their neighbours.
+- **Battery fleet: ask which cells went in** (D#213, opt-in): a device takes whatever is in the drawer. With
+  *Ask which cells went in* switched on in the roster, *Replaced* asks whether disposable or rechargeable cells of
+  the device's size went in, books those, and remembers them for the device. Rechargeable cells taken out go on
+  their *to charge* pile, disposable ones are simply gone. Battery Notes keeps its type; the shopping list and the
+  forecast follow it.
+
 ### 🐛 Fixed
 
+- **Settings and dialogs look alike:** the settings page's hints read as large as the settings they explain and
+  some of its buttons and fields had the browser's default look; the quick actions' skip, reset and postpone forms,
+  the history editor and the completion dialog used their own label sizes. They now share the dialogs' label,
+  help-text and field styles.
 - **Correcting the history keeps the dates you set:** after a reset to an earlier day, or with a *Last performed*
   day set in the task dialog, fixing a note or a cost on an old history entry moved the task's last-done day to the
   newest entry, and a postponed date was lost with it. The day now moves only when the edit or the delete changes

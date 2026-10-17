@@ -467,6 +467,11 @@ BATTERY_FLEET_TRACK_SELF_CHARGING = "battery_fleet_track_self_charging"
 # is. Default ON: a passed predicted date on such a note counts as due
 # (low → task trigger). Stored as False to switch off; absent means on.
 BATTERY_FLEET_DUE_WITHOUT_SENSOR = "battery_fleet_due_without_sensor"
+# D#213: opt-in — Replaced asks which cells went in (the note's type or any
+# fleet part of the same size, disposable or rechargeable) and books those,
+# without editing the Battery Notes type. Default off: the note's type is
+# booked, as before.
+BATTERY_FLEET_ASK_CELLS = "battery_fleet_ask_cells"
 # Bug review 2026-09-04: ``batt_<type>`` part ids the user DELETED. The
 # start-up reconcile re-minted them on every boot as long as the type was
 # still in the fleet, so a deleted type-part never stayed deleted. Written

@@ -534,18 +534,20 @@ export class MaintenanceHistoryEditDialog extends LitElement {
 
   static styles = [photoPickerStyles, modalShellStyles, css`
     :host { display: contents; --ms-modal-max-height: 90vh; --ms-modal-gap: 12px; }
-    h2 { margin: 0; font-size: 18px; }
+    h2 { margin: 0; font-size: 18px; font-weight: 500; }
     .entry-type {
       display: flex; align-items: center; gap: 6px;
       color: var(--secondary-text-color); font-size: 13px;
     }
-    label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
-    label span { color: var(--secondary-text-color); }
-    .cost-field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; min-width: 0; }
-    .cost-field > span { color: var(--secondary-text-color); }
+    /* #216 consistency pass: the field label of ms-textfield / ms-date-field
+       (12 px, 500, secondary) — this dialog's were 13 px, normal weight. */
+    label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+    label:not([class]) > span,
+    .cost-field > span { font-size: 12px; font-weight: 500; color: var(--secondary-text-color); }
+    .cost-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     input, textarea {
-      padding: 8px; font-size: 14px;
+      padding: 8px 10px; font-size: 14px;
       background: var(--secondary-background-color, #2c2c2c);
       color: var(--primary-text-color);
       border: 1px solid var(--divider-color, #444);
@@ -586,7 +588,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
       border: 1px solid var(--divider-color, #444);
       border-radius: 6px; padding: 8px;
     }
-    .parts-title { color: var(--secondary-text-color); font-size: 13px; }
+    .parts-title { color: var(--secondary-text-color); font-size: 12px; font-weight: 500; }
     .part-row-edit {
       display: flex; flex-direction: row; align-items: center; gap: 8px;
       font-size: 14px;

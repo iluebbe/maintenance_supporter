@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All 107 WebSocket commands the integration registers are covered here. Their
+All 108 WebSocket commands the integration registers are covered here. Their
 authorization tiers are frozen in `tests/test_ws_permission_matrix.py` — that
 test is the inventory of record; this file is its prose companion (and
 `tests/test_docs_counts_in_sync.py` keeps the counts quoted here honest).
@@ -40,7 +40,7 @@ through (e.g. free-form maps).
   `task/seasonal_overrides`, `task/set_environmental_entity`, `part/*`,
   `documents/{add_link,update,delete}`, `group/{create,update,delete}`,
   `views/{save,delete}`, `problem_sensors/adopt`,
-  `integration_setups/{adopt,wire_resets}`, `battery_fleet/{setup,mark_replaced,set_excluded,set_included,set_track_self_charging,set_due_without_sensor,record_replacement}`.
+  `integration_setups/{adopt,wire_resets}`, `battery_fleet/{setup,mark_replaced,set_excluded,set_included,set_track_self_charging,set_due_without_sensor,set_ask_cells,record_replacement}`.
 - `@require_admin` (admin only): `reference_numbers/compact` (2.88), `global/update`, `global/test_notification`,
   `notify/user_targets`,
   bulk import **and export** (`export`, `csv/export`, `settings/export`,
@@ -1126,7 +1126,12 @@ button and consumes the matching type-parts). Omit `entity_ids` to mark
 everything currently low. Accepts the roster's `entity_id`s — `battery_plus`
 sensors, low binaries or (2.75+) a sensorless note's `…_battery_type`
 sensor; the button is found by Battery Notes' naming contract or, for
-renamed entities, through the registry.
+renamed entities, through the registry. `cells` (2.104+, D#213, with
+`set_ask_cells` on): `{entity_id: cell type}` — which cells went in, one of
+the row's `cell_choices` in `battery_fleet/overview`. The new cells leave
+their own part's stock; the ones taken out go on their part's *to charge*
+pile when they were rechargeable. A battery without a choice (or with one it
+cannot take) keeps the cells it holds.
 
 ### `battery_fleet/set_excluded` — `@require_write`
 `{entity_id (req), excluded (req, bool)}` → `{"success": true}`. Keeps a
@@ -1166,6 +1171,16 @@ such notes only forecast (soon, never low). Batteries WITH a sensor are
 unaffected either way. The current state is returned as
 `due_without_sensor` in `battery_fleet/overview`. Fleet not set up →
 `not_configured`.
+
+### `battery_fleet/set_ask_cells` — `@require_write` (D#213, 2.104+)
+`{enabled (req, bool)}` → `{"success": true}`. Fleet-wide opt-in, default
+OFF: *Replaced* asks which cells went in — the type Battery Notes names or
+any fleet part of the same size, disposable or rechargeable — books those
+and remembers them per battery (a backup carries them). Battery Notes keeps
+its type; the shopping needs and the forecast follow it. With the option
+on, `battery_fleet/overview` returns `ask_cells: true` and, on every roster
+row with two choices or more, `cell_choices: [{type, name, rechargeable}]`
+and `cells_installed`. Fleet not set up → `not_configured`.
 
 ### `battery_fleet/record_replacement` — `@require_write` (#181, 2.87+)
 `{entity_id (req), replaced_at (req, ISO datetime)}` → `{recorded, already_recorded,

@@ -170,10 +170,11 @@ def _build_export_object(
             # Store state, which merged_tasks does not overlay — a backup
             # lost every recorded battery swap (round-trip audit 2026-09-29).
             from .helpers.battery_fleet import LOW_LATCH_KEY
+            from .helpers.battery_fleet_setup import INSTALLED_CELLS_KEY
             from .helpers.battery_lifetime import REPLACEMENT_LOG_KEY
 
             state = store.get_task_state(tid) if store is not None else {}
-            for key in (REPLACEMENT_LOG_KEY, LOW_LATCH_KEY):
+            for key in (REPLACEMENT_LOG_KEY, LOW_LATCH_KEY, INSTALLED_CELLS_KEY):
                 if state.get(key):
                     task[key] = state[key]
 

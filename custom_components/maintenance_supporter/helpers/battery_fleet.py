@@ -537,6 +537,15 @@ def fleet_due_without_sensor(hass: HomeAssistant) -> bool:
     return _fleet_object(hass).get(BATTERY_FLEET_DUE_WITHOUT_SENSOR) is not False
 
 
+def fleet_ask_cells(hass: HomeAssistant) -> bool:
+    """Whether Replaced asks which cells went in (D#213): a device takes
+    whatever is in the drawer, disposable or rechargeable, and Battery Notes
+    names one type per device. Opt-in, stored on the fleet object."""
+    from ..const import BATTERY_FLEET_ASK_CELLS
+
+    return bool(_fleet_object(hass).get(BATTERY_FLEET_ASK_CELLS))
+
+
 def get_battery_recovered_percent(hass: HomeAssistant) -> int:
     """#180: the level a low battery must rise ABOVE to count as recovered
     (replaced). Out-of-range / junk values fall back to the default."""
@@ -1751,6 +1760,7 @@ __all__ = [
     "compute_overview",
     "discover_battery_types",
     "discover_rechargeable_cells",
+    "fleet_ask_cells",
     "fleet_due_without_sensor",
     "fleet_excluded_entities",
     "fleet_included_entities",

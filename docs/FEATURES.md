@@ -608,7 +608,12 @@ charge*) with a **Charged** button. The part starts uncounted, so a device
 charged in place grows no pile. A pack built into its device (*Rechargeable*,
 *Li-ion*, *NiMH*, a Nuki pack) gets no part and takes nothing from one. A household that uses both rechargeable
 and disposable cells of one size gives the rechargeable devices their own
-type in Battery Notes (`AAA NiMH` next to `AAA`). A native battery that was low
+type in Battery Notes (`AAA NiMH` next to `AAA`), or switches on **Ask which
+cells went in** in the roster (2.104+, D#213): *Replaced* then asks whether
+disposable or rechargeable cells of the device's size went in, books those
+(the ones taken out go on the *to charge* pile when they were rechargeable)
+and remembers them for the device. Battery Notes keeps its type; the
+shopping list and the forecast follow it. A native battery that was low
 and then goes **unavailable** (a dead battery takes its device offline)
 stays listed for up to 48 hours instead of vanishing at the exact moment it
 needs replacing.
@@ -910,6 +915,7 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 
 ### Task Management
 - Create maintenance objects (devices, equipment, appliances) and assign tasks to them
+- **The task dialog is grouped by question** (2.104+, #216): name, object, type and priority first, then *Schedule* (when it is due, incl. last done and the warning days), *Sensor trigger* (sensor tasks), *Completing it* (checklist, readings, parts, required fields, tag scan, skipping, cycle phases, completion action), *People and notifications* and *Details* (labels, notes, link, icon, enabled). Options most tasks never need sit behind a disclosure inside their section
 - Seven task types: cleaning, inspection, replacement, calibration, service, **reading** (record a value — meter readings, level checks; 2.18+), custom
 - Scheduling modes: **time-based** (recurring interval), **calendar recurrence** (specific weekdays, *nth weekday of the month* — e.g. "1st Saturday", a *day of the month*, or — since 2.89 — the events of a **Home Assistant calendar entity**), **sensor-based** (triggered by entity state), **one-time** (single due date, marked *done* once completed), **manual**
 - **Interval units**: time-based intervals can be **days, weeks, months or years** — months and years use real calendar arithmetic (last-day clamping, leap years); a series *from planned date* on the 29th–31st goes back to its own day after a short month (31 Jan → 28 Feb → 31 Mar)
@@ -1194,7 +1200,7 @@ Archives from before 2.96 (files stored as `blobs/<hash>`) still restore.
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 107 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
+- 108 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -1301,7 +1307,7 @@ and, for a reading task with several named readings, `reading_values`
 keyed by reading name (2.75+; see [Examples](EXAMPLES.md)). Completion
 photos need an upload and are therefore a panel/card affair, not a service
 parameter.
-For the full WebSocket API (107 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (108 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

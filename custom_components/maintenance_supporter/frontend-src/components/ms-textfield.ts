@@ -132,10 +132,10 @@ export class MsTextfield extends LitElement {
     }
     textarea:focus { border-color: var(--primary-color); }
     textarea:disabled { opacity: 0.5; cursor: not-allowed; }
+    /* The dialogs' .field-help: one help-text style (#216). */
     .helper {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--secondary-text-color);
-      font-style: italic;
     }
   `;
 }

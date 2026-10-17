@@ -486,7 +486,8 @@ export function fireMoreInfo(ev: Event, entityId: string) {
  * complete-dialog can't drift — they already had (12px vs 8px margins). */
 export const nativeFieldStyles = css`
   .field { display: flex; flex-direction: column; gap: 4px; }
-  .field-label { font-size: 12px; color: var(--secondary-text-color); }
+  /* The label of ms-textfield / ms-date-field: every field label reads alike. */
+  .field-label { font-size: 12px; font-weight: 500; color: var(--secondary-text-color); }
   .field-input {
     padding: 8px 10px; font-size: 14px;
     background: var(--secondary-background-color, rgba(0,0,0,0.06));
@@ -495,6 +496,55 @@ export const nativeFieldStyles = css`
     font-family: inherit; width: 100%; box-sizing: border-box;
   }
   .field-input:focus { outline: none; border-color: var(--primary-color); }
+`;
+
+/** The form vocabulary of the larger dialogs (#216): a section per question
+ *  with a heading that stands out while scrolling, one label style (the
+ *  ms-textfield one), one help-text style, option rows (checkbox + text)
+ *  and selects that look like the text fields next to them. Each dialog had
+ *  grown its own sizes — 12 px labels next to 14 px ones, browser-default
+ *  inputs between styled ones. Use with nativeFieldStyles. */
+export const formStyles = css`
+  .form-section { display: flex; flex-direction: column; gap: 12px; }
+  .section-title {
+    margin: 8px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--divider-color);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--primary-text-color);
+  }
+  .select-row { display: flex; flex-direction: column; gap: 4px; }
+  .select-row > label,
+  .field > label { font-size: 12px; font-weight: 500; color: var(--secondary-text-color); }
+  .select-row select {
+    padding: 8px 10px;
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--secondary-background-color, rgba(0,0,0,0.06));
+    color: var(--primary-text-color);
+    border: 1px solid var(--divider-color);
+    border-radius: 6px;
+  }
+  .select-row select:focus { outline: none; border-color: var(--primary-color); }
+  .field-help { font-size: 12px; color: var(--secondary-text-color); }
+  .option-row,
+  .req-option,
+  .toggle-row,
+  .checkbox-row,
+  .pool-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .option-row input[type="checkbox"],
+  .req-option input[type="checkbox"],
+  .toggle-row input[type="checkbox"],
+  .checkbox-row input[type="checkbox"],
+  .pool-item input[type="checkbox"] { width: 16px; height: 16px; margin: 0; flex: none; cursor: pointer; }
 `;
 
 /** Household member avatar (#169 follow-up): initials in the member's
