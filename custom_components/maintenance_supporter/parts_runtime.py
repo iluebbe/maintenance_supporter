@@ -117,7 +117,7 @@ def _owned(store: Any, part: dict[str, Any], stock: float | None = None) -> floa
     return on_hand(part, store.get_part_stock(pid) if stock is None else stock, store.get_part_restoring(pid))
 
 
-def _book_use(store: Any, part: dict[str, Any], qty: float) -> tuple[float | None, float | None] | None:
+def _book_use(store: Any, part: dict[str, Any], qty: float, *, keeps_used: bool = True) -> tuple[float | None, float | None] | None:
     """Book ``qty`` of a part as used (positive) or given back (negative).
 
     The stock goes down (up); a reusable part's used ones are not gone but
@@ -125,6 +125,13 @@ def _book_use(store: Any, part: dict[str, Any], qty: float) -> tuple[float | Non
     Returns the on-hand count before and after, None for an untracked part
     (catalog-only: nothing to book). The one booking behind completions,
     history edits and the battery fleet.
+
+    What the stock cannot cover came off a reusable part's waiting pile: it
+    was made ready (charged, sharpened) and never marked so. Growing the pile
+    by the full quantity anyway made a use add to what is owned, without limit
+    while nobody pressed *ready again* (bug audit 2026-10-17, S-2).
+    ``keeps_used`` False: the ones taken out are another part (D#213, other
+    cells went in), so this part's pile only gives.
     """
     pid = part["id"]
     old = store.get_part_stock(pid)
@@ -140,9 +147,12 @@ def _book_use(store: Any, part: dict[str, Any], qty: float) -> tuple[float | Non
         store.set_part_stock(pid, old + back)
         store.set_part_restoring(pid, pile - back)
         return before, _owned(store, part)
-    store.set_part_stock(pid, max(0.0, old - qty))
+    taken = min(qty, old)
+    store.set_part_stock(pid, old - taken)
     if part.get("reuse"):
-        store.set_part_restoring(pid, max(0.0, store.get_part_restoring(pid) + qty))
+        pile = store.get_part_restoring(pid)
+        pile -= min(qty - taken, pile)
+        store.set_part_restoring(pid, pile + qty if keeps_used else pile)
     return before, _owned(store, part)
 
 
@@ -160,6 +170,7 @@ async def async_change_part_stock(
     delta: float | None = None,
     absolute: float | None = None,
     use: bool = False,
+    keeps_used: bool = True,
     restoring: float | None = None,
 ) -> float | None:
     """Change one part's stock (clamped at 0), fire the edge event, save.
@@ -171,6 +182,8 @@ async def async_change_part_stock(
     ``use``: the delta is items going into service (negative) — booked like a
     completion's parts (:func:`_book_use`), so a reusable part's used ones
     wait to be ready again (#208); an untracked part is left untracked.
+    ``keeps_used`` False: the ones taken out are another part
+    (:func:`_book_use`).
 
     ``restoring``: set a reusable part's waiting pile in the same booking
     (after the stock, which a first count creates), so what is owned moves
@@ -181,7 +194,7 @@ async def async_change_part_stock(
     if part is None or store is None:
         return None
     if use:
-        booked = _book_use(store, part, -float(delta or 0))
+        booked = _book_use(store, part, -float(delta or 0), keeps_used=keeps_used)
         if booked is None:
             return None
         old_owned, new_owned = booked
@@ -456,6 +469,27 @@ async def async_part_ready_again(
     await store.async_save()
     _signal_parts_updated(hass, entry)
     return {"moved": moved, "stock": store.get_part_stock(part_id) or 0, "restoring": store.get_part_restoring(part_id)}
+
+
+async def async_part_dispose(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    part_id: str,
+    quantity: float | None = None,
+) -> dict[str, float] | None:
+    """Used items of a reusable part that cannot be made ready again (#218):
+    a dead cell, a blade past sharpening. They leave the waiting pile without
+    going back to the stock, so what is owned shrinks and the reorder
+    threshold sees it. ``quantity`` defaults to one and is capped at the
+    waiting ones. None for an unknown, untracked or not reusable part."""
+    part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
+    store = store_of(entry)
+    if part is None or store is None or not part.get("reuse") or store.get_part_stock(part_id) is None:
+        return None
+    waiting = store.get_part_restoring(part_id)
+    gone = min(waiting, max(0.0, 1.0 if quantity is None else float(quantity)))
+    await async_set_part_restoring(hass, entry, part_id, waiting - gone)
+    return {"disposed": gone, "stock": store.get_part_stock(part_id) or 0, "restoring": store.get_part_restoring(part_id)}
 
 
 async def async_set_part_restoring(hass: HomeAssistant, entry: ConfigEntry, part_id: str, count: float) -> None:

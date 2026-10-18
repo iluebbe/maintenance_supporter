@@ -619,6 +619,7 @@
           "parts_cost_mode": "Części liczą się jako wydatek",
           "battery_low_percent": "Próg „bateria słaba” (%)",
           "battery_recovered_percent": "Bateria uznana za wymienioną powyżej (%)",
+          "battery_low_delay_minutes": "Bateria uznana za słabą dopiero po (minutach)",
           "battery_auto_record_recovery": "Automatycznie zapisuj wymianę, gdy słaba bateria się regeneruje",
           "panel_title": "Tytuł panelu na pasku bocznym",
           "shopping_list_entity": "Lista zakupów do synchronizacji zadań zakupowych",
@@ -638,6 +639,7 @@
           "parts_cost_mode": "Przy zakupie: liczy się koszt przypomnienia o zakupie, zużyte części są pokazywane informacyjnie. Przy zużyciu: każde wykonanie księguje zużyte części, a zakup zamiast tego ustawia cenę części. Dotyczy wykonań od teraz.",
           "battery_low_percent": "Dolny próg dla całej floty: bateria na tym poziomie lub poniżej liczy się jako słaba, chyba że jej próg w Battery Notes jest wyższy.",
           "battery_recovered_percent": "Słaba bateria pozostaje liczona jako słaba, dopóki jej poziom nie wzrośnie powyżej tej wartości lub nie zostanie zapisana wymiana — poziom oscylujący wokół progu nie kończy więc zadania floty raz za razem.",
+          "battery_low_delay_minutes": "Bateria musi tak długo zgłaszać niski poziom, zanim zostanie uznana za słabą, więc czujnik, który na chwilę zgłasza bardzo niski poziom i sam wraca do normy, nie dopisze jej do listy. 0 = od razu.",
           "battery_auto_record_recovery": "Gdy poziom baterii, która była słaba, wzrośnie powyżej progu regeneracji, data wymiany zostaje zapisana w Battery Notes, a zapasowe ogniwa są odejmowane ze stanu — bez żadnego kliknięcia",
           "panel_title": "Własna nazwa wpisu na pasku bocznym. Pozostaw puste, aby użyć „Maintenance”. Przydatne, aby uniknąć kolizji z wbudowanym pulpitem Maintenance w Home Assistant.",
           "shopping_list_entity": "Automatyczne przypomnienia o zakupie brakujących części pojawiają się na tej liście zadań; odhaczenie kończy przypomnienie i uzupełnia zapas. Pozostaw puste, aby wyłączyć.",
@@ -2103,6 +2105,52 @@
           "description": "Zwracaj tylko zadania przeznaczone dla tej osoby (te, za które odpowiada, oraz udostępnione jej, za które nikt nie odpowiada). Osoba musi być powiązana z użytkownikiem Home Assistant."
         }
       }
+    },
+    "part_restock": {
+      "name": "Uzupełnij część zamienną",
+      "description": "Zmień zapas części zamiennej: kupione nowe lub korekta. Podaj dokładnie jedno: zmianę albo nowy zapas.",
+      "fields": {
+        "entity_id": {
+          "name": "Część zamienna",
+          "description": "Czujnik zapasu jednej lub kilku części zamiennych."
+        },
+        "delta": {
+          "name": "Zmiana",
+          "description": "Ile dodać; ujemna wartość, aby odjąć."
+        },
+        "absolute": {
+          "name": "Nowy zapas",
+          "description": "Nowy zapas zastępujący dotychczasowy."
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "Część zamienna znów gotowa",
+      "description": "Zużyte sztuki części wielokrotnego użytku są znów gotowe (naładowane, naostrzone, ...): z kolejki oczekujących z powrotem do zapasu.",
+      "fields": {
+        "entity_id": {
+          "name": "Część zamienna",
+          "description": "Czujnik zapasu jednej lub kilku części zamiennych."
+        },
+        "quantity": {
+          "name": "Ilość",
+          "description": "Ile jest znów gotowych. Bez wartości wszystkie oczekujące."
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "Wyrzuć zużyte części zamienne",
+      "description": "Zużyte sztuki części wielokrotnego użytku, których nie da się już przygotować, np. martwe ogniwo, opuszczają kolejkę oczekujących bez powrotu do zapasu.",
+      "fields": {
+        "entity_id": {
+          "name": "Część zamienna",
+          "description": "Czujnik zapasu jednej lub kilku części zamiennych."
+        },
+        "quantity": {
+          "name": "Ilość",
+          "description": "Ile przepadło na dobre. Bez wartości jedna."
+        }
+      }
     }
   },
   "issues": {
@@ -2463,6 +2511,12 @@
     },
     "postpone_done": {
       "message": "„{task_name}” jest wykonane — nie ma już czego odroczyć."
+    },
+    "no_part_for_entity": {
+      "message": "{entity_id} nie jest czujnikiem zapasu części zamiennej."
+    },
+    "part_not_reusable": {
+      "message": "{entity_id} nie jest częścią zamienną wielokrotnego użytku z liczonym zapasem."
     }
   },
   "triggers": {

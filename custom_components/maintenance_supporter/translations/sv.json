@@ -619,6 +619,7 @@
           "parts_cost_mode": "Reservdelar räknas som utgift",
           "battery_low_percent": "Tröskel „batteri lågt“ (%)",
           "battery_recovered_percent": "Batteri räknas som bytt över (%)",
+          "battery_low_delay_minutes": "Batteri räknas som lågt först efter (minuter)",
           "battery_auto_record_recovery": "Registrera ett byte automatiskt när ett lågt batteri återhämtar sig",
           "panel_title": "Titel för sidofältspanel",
           "shopping_list_entity": "Inköpslista att synka köpuppgifter till",
@@ -638,6 +639,7 @@
           "parts_cost_mode": "Vid köp: kostnaden för en köppåminnelse räknas, använda delar visas som information. Vid användning: varje slutförande bokför de delar som användes, och ett köp sätter i stället delens pris. Gäller från och med nu.",
           "battery_low_percent": "Golv för hela flottan: ett batteri på eller under denna nivå räknas som lågt, om inte dess Battery Notes-tröskel är högre.",
           "battery_recovered_percent": "Ett lågt batteri räknas som lågt tills nivån stiger över detta värde eller ett byte registreras — så kan en nivå som pendlar kring tröskeln inte slutföra flottuppgiften om och om igen.",
+          "battery_low_delay_minutes": "Ett batteri måste visa lågt så här länge innan det räknas som lågt, så att en sensor som en kort stund rapporterar en mycket låg nivå och återhämtar sig själv inte sätter det på listan. 0 = direkt.",
           "battery_auto_record_recovery": "När ett batteri som var lågt stiger över återhämtningströskeln registreras bytesdatumet i Battery Notes och reservcellerna dras från lagret — utan ett tryck",
           "panel_title": "Eget namn för sidofältsposten. Lämna tomt för att använda \"Maintenance\". Användbart för att undvika krock med Home Assistants inbyggda Maintenance-panel.",
           "shopping_list_entity": "Automatiska köppåminnelser för delar som håller på att ta slut visas i denna att-göra-lista; att bocka av en slutför påminnelsen och fyller på lagret. Lämna tomt för att inaktivera.",
@@ -2103,6 +2105,52 @@
           "description": "Returnera endast uppgifterna som är avsedda för denna person (de som personen ansvarar för och de som delas med personen och som ingen ansvarar för). Personen måste vara kopplad till en Home Assistant-användare."
         }
       }
+    },
+    "part_restock": {
+      "name": "Fyll på reservdel",
+      "description": "Ändra lagret för en reservdel: nya köpta eller en rättelse. Ange exakt en av ändring och nytt lager.",
+      "fields": {
+        "entity_id": {
+          "name": "Reservdel",
+          "description": "Lagersensorn för en eller flera reservdelar."
+        },
+        "delta": {
+          "name": "Ändring",
+          "description": "Hur många som ska läggas till; negativt för att ta bort."
+        },
+        "absolute": {
+          "name": "Nytt lager",
+          "description": "Det nya lagret, som ersätter det gamla."
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "Reservdel klar igen",
+      "description": "Använda exemplar av en återanvändbar del är klara igen (laddade, slipade, ...): från väntehögen tillbaka till lagret.",
+      "fields": {
+        "entity_id": {
+          "name": "Reservdel",
+          "description": "Lagersensorn för en eller flera reservdelar."
+        },
+        "quantity": {
+          "name": "Antal",
+          "description": "Hur många som är klara igen. Alla väntande om det utelämnas."
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "Kassera använda reservdelar",
+      "description": "Använda exemplar av en återanvändbar del som inte kan göras klara igen, till exempel en död cell, lämnar väntehögen utan att gå tillbaka till lagret.",
+      "fields": {
+        "entity_id": {
+          "name": "Reservdel",
+          "description": "Lagersensorn för en eller flera reservdelar."
+        },
+        "quantity": {
+          "name": "Antal",
+          "description": "Hur många som är borta för gott. En om det utelämnas."
+        }
+      }
     }
   },
   "issues": {
@@ -2463,6 +2511,12 @@
     },
     "postpone_done": {
       "message": "”{task_name}” är klar — det finns inget kvar att skjuta upp."
+    },
+    "no_part_for_entity": {
+      "message": "{entity_id} är inte lagersensorn för en reservdel."
+    },
+    "part_not_reusable": {
+      "message": "{entity_id} är inte en återanvändbar reservdel med räknat lager."
     }
   },
   "triggers": {

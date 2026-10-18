@@ -719,6 +719,10 @@ SERVICE_ADD_TASK = "add_task"
 SERVICE_UPDATE_TASK = "update_task"
 SERVICE_DELETE_TASK = "delete_task"
 SERVICE_LIST_TASKS = "list_tasks"
+# #218: the part actions for automations and dashboard buttons.
+SERVICE_PART_RESTOCK = "part_restock"
+SERVICE_PART_READY_AGAIN = "part_ready_again"
+SERVICE_PART_DISPOSE = "part_dispose"
 
 
 class MaintenanceStatus(StrEnum):
@@ -939,6 +943,12 @@ MISSING_ENTITY_THRESHOLD_REFRESHES = 6  # ~30 min at 5-min intervals
 CONF_BATTERY_RECOVERED_PERCENT = "battery_recovered_percent"
 DEFAULT_BATTERY_RECOVERED_PERCENT = 50
 BATTERY_RECOVERED_PERCENT_RANGE: tuple[int, int] = (20, 100)
+# #219: a battery counts as low only once it has read low this many minutes
+# (0 = at once). Some sensors (Shelly BT) report a very low level for a
+# while and recover by themselves.
+CONF_BATTERY_LOW_DELAY_MINUTES = "battery_low_delay_minutes"
+DEFAULT_BATTERY_LOW_DELAY_MINUTES = 0
+BATTERY_LOW_DELAY_MINUTES_RANGE: tuple[int, int] = (0, 1440)
 # #181 follow-up (advanced, default off): when the latch releases a battery
 # BECAUSE ITS LEVEL rose above the recovery threshold, record the replacement
 # in Battery Notes and consume the type's spare cells — no tap needed.

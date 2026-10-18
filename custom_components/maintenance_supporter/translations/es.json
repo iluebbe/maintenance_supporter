@@ -619,6 +619,7 @@
           "parts_cost_mode": "Los repuestos cuentan como gasto",
           "battery_low_percent": "Umbral „pila baja“ (%)",
           "battery_recovered_percent": "Pila considerada sustituida por encima de (%)",
+          "battery_low_delay_minutes": "Pila considerada baja solo tras (minutos)",
           "battery_auto_record_recovery": "Registrar una sustitución automáticamente cuando una pila baja se recupera",
           "panel_title": "Título del panel lateral",
           "shopping_list_entity": "Lista de la compra para sincronizar las tareas de compra",
@@ -638,6 +639,7 @@
           "parts_cost_mode": "Al comprarlos: cuenta el coste de un recordatorio de compra y los repuestos usados son solo informativos. Al usarlos: cada tarea completada registra los repuestos usados y una compra fija en su lugar el precio del repuesto. Se aplica a partir de ahora.",
           "battery_low_percent": "Umbral mínimo de toda la flota: una pila en este nivel o por debajo cuenta como baja, salvo que su umbral de Battery Notes sea más alto.",
           "battery_recovered_percent": "Una pila baja sigue contando como baja hasta que su nivel supere este valor o se registre una sustitución — así un nivel que oscila alrededor del umbral no completa la tarea de la flota una y otra vez.",
+          "battery_low_delay_minutes": "Una pila debe marcar nivel bajo durante este tiempo antes de contar como baja, así un sensor que informa un momento de un nivel muy bajo y se recupera solo no la pone en la lista. 0 = al instante.",
           "battery_auto_record_recovery": "Cuando una pila que estaba baja supera el umbral de recuperación, la fecha de sustitución se registra en Battery Notes y las pilas de repuesto se descuentan del stock — sin ningún toque",
           "panel_title": "Nombre personalizado para la entrada de la barra lateral. Déjalo en blanco para usar \"Maintenance\". Útil para evitar conflictos con el panel de Mantenimiento integrado de Home Assistant.",
           "shopping_list_entity": "Los recordatorios automáticos de compra de piezas escasas aparecen en esta lista de tareas; marcar uno completa el recordatorio y repone la pieza. Dejar vacío para desactivar.",
@@ -2103,6 +2105,52 @@
           "description": "Devolver solo las tareas destinadas a esta persona (las que tiene a su cargo y las compartidas con ella de las que nadie es responsable). La persona debe estar vinculada a un usuario de Home Assistant."
         }
       }
+    },
+    "part_restock": {
+      "name": "Reponer un repuesto",
+      "description": "Cambia el stock de un repuesto: nuevos comprados o una corrección. Indica exactamente uno entre cambio y nuevo stock.",
+      "fields": {
+        "entity_id": {
+          "name": "Repuesto",
+          "description": "El sensor de stock de uno o más repuestos."
+        },
+        "delta": {
+          "name": "Cambio",
+          "description": "Cuántos añadir; negativo para quitar algunos."
+        },
+        "absolute": {
+          "name": "Nuevo stock",
+          "description": "El nuevo stock, que sustituye al anterior."
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "Repuesto listo de nuevo",
+      "description": "Unidades usadas de un repuesto reutilizable vuelven a estar listas (cargadas, afiladas, ...): de la pila en espera de vuelta al stock.",
+      "fields": {
+        "entity_id": {
+          "name": "Repuesto",
+          "description": "El sensor de stock de uno o más repuestos."
+        },
+        "quantity": {
+          "name": "Cantidad",
+          "description": "Cuántas vuelven a estar listas. Todas las que esperan si se omite."
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "Desechar repuestos usados",
+      "description": "Unidades usadas de un repuesto reutilizable que ya no se pueden dejar listas, como una pila agotada, salen de la pila en espera sin volver al stock.",
+      "fields": {
+        "entity_id": {
+          "name": "Repuesto",
+          "description": "El sensor de stock de uno o más repuestos."
+        },
+        "quantity": {
+          "name": "Cantidad",
+          "description": "Cuántas se han perdido para siempre. Una si se omite."
+        }
+      }
     }
   },
   "issues": {
@@ -2463,6 +2511,12 @@
     },
     "postpone_done": {
       "message": "«{task_name}» está hecha — no queda nada que posponer."
+    },
+    "no_part_for_entity": {
+      "message": "{entity_id} no es el sensor de stock de un repuesto."
+    },
+    "part_not_reusable": {
+      "message": "{entity_id} no es un repuesto reutilizable con stock contado."
     }
   },
   "triggers": {

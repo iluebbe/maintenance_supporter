@@ -1751,14 +1751,38 @@ class NotificationManager:
         self._note_quiet_skip("a reminder")
         self._dirty()
 
+    async def _held_targets(self, facts: Mapping[str, Any]) -> tuple[str, ...]:
+        """Where a held reminder would have gone: the routing of
+        :meth:`_resolve_and_send` (the responsible person's phones, else the
+        phones of the people the task is shared with, else the household
+        target). One held from an object's bundle keeps the bundle's
+        household target."""
+        household = (self.notify_service,) if self.notify_service else (("",) if self.event_only else ())
+        if "responsible_user_id" not in facts:
+            return household
+        responsible = facts.get("responsible_user_id")
+        user_ids = (
+            [str(responsible)]
+            if responsible
+            else task_user_ids(self._task_config(str(facts.get("entry_id") or ""), str(facts.get("task_id") or "")))
+        )
+        return tuple(await self._user_services(user_ids)) or household
+
     async def async_flush_quiet_held(self) -> bool:
-        """Deliver what quiet hours held back as ONE household summary. Called
-        at the first send attempt after quiet hours; True when a summary went
-        out. Every member is stamped as sent, so the per-task reminders that
-        follow in the same refresh wave stay silent."""
+        """Deliver what quiet hours held back: ONE summary per recipient. A
+        reminder meant for a person goes to that person's phones, the rest to
+        the household target. Called at the first send attempt after quiet
+        hours; True when a summary went out. The members of every summary
+        sent are stamped, so the per-task reminders that follow in the same
+        refresh wave stay silent; the others stay held for the next attempt.
+
+        Bug audit 2026-10-17 (N-3): the one summary went to the household
+        service only and stamped every member, so a person's own reminders
+        that fell into quiet hours (every midnight due date does) never
+        reached their phone."""
         if not self._quiet_held or self._is_quiet_hours():
             return False
-        if not self.enabled or not self._has_target or not self._check_daily_limit():
+        if not self.enabled or not self._check_daily_limit():
             return False
         # Held hours ago: a task completed, muted, snoozed or paused since
         # is no news any more — the summary listed it anyway (bug audit
@@ -1769,7 +1793,25 @@ class NotificationManager:
         if not self._quiet_held:
             self._dirty()
             return False
-        held = list(self._quiet_held.values())
+        groups: dict[tuple[str, ...], dict[str, dict[str, Any]]] = {}
+        for key, f in self._quiet_held.items():
+            groups.setdefault(await self._held_targets(f), {})[key] = f
+        sent_any = False
+        for targets, members in groups.items():
+            if not targets:
+                # Nobody to tell (no phone, no household target): the
+                # per-task path logs that once.
+                continue
+            if not self._check_daily_limit():
+                break
+            if await self._send_quiet_summary(targets, members):
+                sent_any = True
+        return sent_any
+
+    async def _send_quiet_summary(self, targets: tuple[str, ...], members: dict[str, dict[str, Any]]) -> bool:
+        """One quiet-hours summary of ``members`` to ``targets``; on success
+        its members are stamped and leave the held set."""
+        held = list(members.values())
         lang = self._lang
         parts: list[str] = []
         for f in held:
@@ -1794,21 +1836,23 @@ class NotificationManager:
                 for f in held
             ],
         )
-        try:
-            sent = await async_emit_and_dispatch(self.hass, self.notify_service, service_data, context)
-        except (HomeAssistantError, ValueError, TypeError):
-            _LOGGER.exception("Failed to send the quiet-hours summary")
-            return False
+        sent = False
+        for target in targets:
+            try:
+                if await async_emit_and_dispatch(self.hass, target, service_data, context):
+                    sent = True
+            except (HomeAssistantError, ValueError, TypeError):
+                _LOGGER.exception("Failed to send the quiet-hours summary to %s", target or "the event")
         if not sent:
             return False
         keys: list[str] = []
-        for key, f in self._quiet_held.items():
+        for key, f in members.items():
             self._stamp_status_sent(key, self._get_interval_hours(str(f.get("status"))))
+            self._quiet_held.pop(key, None)
             if f.get("entry_id") and f.get("task_id"):
                 keys.append(task_key_of(str(f["entry_id"]), str(f["task_id"])))
-        self._quiet_held.clear()
         self._mark_delivered(keys)
-        _LOGGER.debug("Quiet-hours summary sent: %s", title)
+        _LOGGER.debug("Quiet-hours summary sent to %s: %s", ", ".join(t or "the event" for t in targets), title)
         return True
 
     @staticmethod

@@ -619,6 +619,7 @@
           "parts_cost_mode": "Az alkatrészek kiadásként számítanak",
           "battery_low_percent": "„Alacsony akkumulátor” küszöb (%)",
           "battery_recovered_percent": "Az elem cseréltnek számít e fölött (%)",
+          "battery_low_delay_minutes": "Az elem csak ennyi perc után számít alacsonynak",
           "battery_auto_record_recovery": "Csere automatikus rögzítése, amikor egy lemerült elem helyreáll",
           "panel_title": "Oldalsáv-panel címe",
           "shopping_list_entity": "Bevásárlólista a vásárlási feladatok szinkronizálásához",
@@ -638,6 +639,7 @@
           "parts_cost_mode": "Vásárláskor: a vásárlási emlékeztető költsége számít, a felhasznált alkatrészek csak tájékoztatásul jelennek meg. Felhasználáskor: minden elvégzés könyveli a felhasznált alkatrészeket, a vásárlás pedig helyette az alkatrész árát állítja be. Mostantól érvényes.",
           "battery_low_percent": "Flottaszintű alsó határ: az ezen a szinten vagy alatta lévő elem lemerültnek számít, hacsak a Battery Notes küszöbe nem magasabb.",
           "battery_recovered_percent": "A lemerült elem addig számít lemerültnek, amíg a töltöttsége e fölé az érték fölé nem emelkedik, vagy egy cserét nem rögzítenek — így a küszöb körül ingadozó töltöttség nem zárja le újra és újra a flottafeladatot.",
+          "battery_low_delay_minutes": "Az elemnek ennyi ideig alacsony szintet kell jeleznie, mielőtt alacsonynak számít, így egy pillanatra nagyon alacsony szintet jelző, majd magától helyreálló érzékelő nem teszi fel a listára. 0 = azonnal.",
           "battery_auto_record_recovery": "Ha egy korábban lemerült elem töltöttsége a helyreállási küszöb fölé emelkedik, a csere dátuma bekerül a Battery Notesba, és a tartalék cellák levonódnak a készletből — érintés nélkül",
           "panel_title": "Az oldalsáv-bejegyzés egyéni neve. Hagyja üresen a „Karbantartás” használatához. Hasznos, ha ütközne a Home Assistant beépített Karbantartás irányítópultjával.",
           "shopping_list_entity": "A fogyóban lévő alkatrészek automatikus vásárlási emlékeztetői ezen a teendőlistán jelennek meg; a kipipálás befejezi az emlékeztetőt és feltölti a készletet. Hagyja üresen a kikapcsoláshoz.",
@@ -2103,6 +2105,52 @@
           "description": "Csak az ennek a személynek szánt feladatok (amelyekért felelős, és a vele megosztottak, amelyekért senki sem felelős). A személynek Home Assistant-felhasználóhoz kell kapcsolódnia."
         }
       }
+    },
+    "part_restock": {
+      "name": "Pótalkatrész feltöltése",
+      "description": "Egy pótalkatrész készletének módosítása: újak vásárlása vagy javítás. Pontosan egyet adj meg: változást vagy új készletet.",
+      "fields": {
+        "entity_id": {
+          "name": "Pótalkatrész",
+          "description": "Egy vagy több pótalkatrész készletérzékelője."
+        },
+        "delta": {
+          "name": "Változás",
+          "description": "Mennyi jöjjön hozzá; negatív, ha el kell venni."
+        },
+        "absolute": {
+          "name": "Új készlet",
+          "description": "Az új készlet, amely felváltja a régit."
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "Pótalkatrész ismét kész",
+      "description": "Egy újrahasználható alkatrész használt darabjai ismét készek (feltöltve, megélezve, ...): a várakozó halomból vissza a készletbe.",
+      "fields": {
+        "entity_id": {
+          "name": "Pótalkatrész",
+          "description": "Egy vagy több pótalkatrész készletérzékelője."
+        },
+        "quantity": {
+          "name": "Mennyiség",
+          "description": "Mennyi kész ismét. Ha nincs megadva, az összes várakozó."
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "Használt pótalkatrészek kidobása",
+      "description": "Egy újrahasználható alkatrész azon használt darabjai, amelyeket már nem lehet újra használhatóvá tenni, például egy halott cella, elhagyják a várakozó halmot, és nem kerülnek vissza a készletbe.",
+      "fields": {
+        "entity_id": {
+          "name": "Pótalkatrész",
+          "description": "Egy vagy több pótalkatrész készletérzékelője."
+        },
+        "quantity": {
+          "name": "Mennyiség",
+          "description": "Mennyi veszett el végleg. Ha nincs megadva, egy."
+        }
+      }
     }
   },
   "issues": {
@@ -2463,6 +2511,12 @@
     },
     "postpone_done": {
       "message": "„{task_name}” kész — nincs mit elhalasztani."
+    },
+    "no_part_for_entity": {
+      "message": "A(z) {entity_id} nem egy pótalkatrész készletérzékelője."
+    },
+    "part_not_reusable": {
+      "message": "A(z) {entity_id} nem számolt készletű, újrahasználható pótalkatrész."
     }
   },
   "triggers": {

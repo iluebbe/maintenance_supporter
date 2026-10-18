@@ -389,6 +389,17 @@ class BaseTrigger(ABC):
         object on every state change; user actions use async_refresh_now."""
         self._track(self._coordinator.async_request_refresh())
 
+    def _flips_task(self, is_triggered: bool) -> bool | None:
+        """Whether this entity's flip is the TASK's (see the sensor's
+        ``flips_task_trigger``); None = no opinion, announce as before.
+        Class lookup like :meth:`_already_announced`: a mocked host and the
+        compound condition proxy have none."""
+        check = getattr(type(self.entity), "flips_task_trigger", None)
+        if not callable(check):
+            return None
+        flips = check(self.entity, self.entity_id, is_triggered)
+        return flips if isinstance(flips, bool) else None
+
     def _on_trigger_activated(self, value: float) -> None:
         """Handle trigger activation."""
         _LOGGER.info(
@@ -398,6 +409,7 @@ class BaseTrigger(ABC):
             self.entity_id,
         )
 
+        flips_task = self._flips_task(True)
         # Update entity state
         self.entity.async_update_trigger_state(
             is_triggered=True,
@@ -409,6 +421,13 @@ class BaseTrigger(ABC):
             # TASK activated and announces it. Firing here sent
             # maintenance_supporter_trigger_activated with the task's ids when
             # one half of an AND flipped (bug audit 2026-09-29).
+            return
+        if flips_task is False:
+            # One sensor of several: with "any" another one holds the task
+            # already, with "all" the set is not complete. Not the task's
+            # activation, so no history entry and no event (bug audit
+            # 2026-10-17, T-2).
+            self._request_coordinator_refresh()
             return
 
         # Add history entry for the trigger activation
@@ -438,6 +457,7 @@ class BaseTrigger(ABC):
             self.entity_id,
         )
 
+        flips_task = self._flips_task(False)
         # Update entity state — it answers whether the TASK recovered (all
         # entities of "any" clear, the "all" set broken up), not just this
         # entity; None (a proxy entity) keeps the per-entity meaning.
@@ -450,6 +470,10 @@ class BaseTrigger(ABC):
             return  # the compound announces the task's recovery (see activation)
 
         self._request_coordinator_refresh()
+        if flips_task is False:
+            # A sibling still holds the task, or the "all" set this sensor
+            # leaves was never complete: the task did not recover (T-2).
+            return
 
         # Fire event
         self.hass.bus.async_fire(

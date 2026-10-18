@@ -31,6 +31,7 @@ from ..const import (
     CONF_ARCHIVE_ONEOFF_DAYS,
     CONF_BATTERY_AUTO_RECORD_RECOVERY,
     CONF_BATTERY_LIFETIME_MONTHS,
+    CONF_BATTERY_LOW_DELAY_MINUTES,
     CONF_BATTERY_LOW_PERCENT,
     CONF_BATTERY_RECOVERED_PERCENT,
     CONF_BUDGET_ALERT_THRESHOLD,
@@ -250,6 +251,8 @@ def _build_full_settings(
             "battery_low_percent": _opt(options, CONF_BATTERY_LOW_PERCENT),
             # #180: a low battery counts as replaced only above this level.
             "battery_recovered_percent": _opt(options, CONF_BATTERY_RECOVERED_PERCENT),
+            # #219: a battery counts as low once it has read low this long.
+            "battery_low_delay_minutes": _opt(options, CONF_BATTERY_LOW_DELAY_MINUTES),
             # #181 follow-up: a level-driven recovery records the replacement
             # (Battery Notes date + stock) by itself — advanced, off by default.
             "battery_auto_record_recovery": _opt(options, CONF_BATTERY_AUTO_RECORD_RECOVERY),

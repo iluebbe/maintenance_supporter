@@ -121,6 +121,9 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   /** D#213: the battery whose Replaced waits for the cells that went in. */
   @state() private _choosing: { entityId: string; list: string; selected: string } | null = null;
   @state() private _error = "";
+  /** #218: the cells whose dispose field is open, and how many. */
+  @state() private _disposeFor: string | null = null;
+  @state() private _disposeQty = "1";
   @state() private _history: HistorySeries | null = null;
   // Urgency by default (issue #123: "soon sat in the middle of the list");
   // the choice is remembered per browser.
@@ -187,6 +190,44 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       onError: (m) => { this._error = m; },
     });
     return res !== undefined;
+  }
+
+  /** #218: dead cells leave the "to charge" pile without going back to
+   *  the stock, so the shopping list sees they are gone. */
+  private async _dispose(entryId: string | null | undefined, partId: string): Promise<void> {
+    const qty = parseFloat(this._disposeQty);
+    if (!Number.isFinite(qty) || qty <= 0) return;
+    if (await this._act({ type: "maintenance_supporter/part/dispose", entry_id: entryId, part_id: partId, quantity: qty })) {
+      this._disposeFor = null;
+    }
+  }
+
+  private _renderDispose(entryId: string | null | undefined, c: { part_id: string; restoring: number }, L: string) {
+    if (this._disposeFor !== c.part_id) {
+      return html`<button class="bf-charged bf-dispose" title=${t("part_dispose_hint", L)} .disabled=${this._marking}
+        @click=${() => {
+          this._disposeFor = c.part_id;
+          this._disposeQty = "1";
+        }}><ha-icon icon="mdi:trash-can-outline"></ha-icon>${t("part_dispose", L)}</button>`;
+    }
+    return html`<input
+        class="bf-dispose-qty"
+        type="number"
+        min="1"
+        max=${String(c.restoring)}
+        .value=${this._disposeQty}
+        aria-label=${t("part_dispose_how_many", L)}
+        title=${t("part_dispose_how_many", L)}
+        @input=${(e: Event) => (this._disposeQty = (e.target as HTMLInputElement).value)}
+        @keydown=${(e: KeyboardEvent) => {
+          if (e.key === "Enter") void this._dispose(entryId, c.part_id);
+          if (e.key === "Escape") this._disposeFor = null;
+        }}
+      /><button class="bf-charged bf-dispose confirm" title=${t("part_dispose_hint", L)} .disabled=${this._marking}
+        @click=${() => this._dispose(entryId, c.part_id)}><ha-icon icon="mdi:check"></ha-icon>${t("part_dispose", L)}</button
+      ><button class="bf-charged bf-dispose" title=${t("cancel", L)} @click=${() => (this._disposeFor = null)}
+        ><ha-icon icon="mdi:close"></ha-icon
+      ></button>`;
   }
 
   private _markAll = async (): Promise<void> => {
@@ -662,7 +703,8 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                                   entry_id: ov.entry_id,
                                   part_id: c.part_id,
                                 })}
-                              ><ha-icon icon="mdi:battery-charging-100"></ha-icon>${t(`part_reuse_${c.reuse}`, L)}</button>`
+                              ><ha-icon icon="mdi:battery-charging-100"></ha-icon>${t(`part_reuse_${c.reuse}`, L)}</button>
+                              ${this._renderDispose(ov.entry_id, c, L)}`
                             : nothing}`
                       : nothing}
                   </span>`,
@@ -899,6 +941,23 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     }
     .bf-charged ha-icon {
       --mdc-icon-size: 16px;
+    }
+    .bf-dispose {
+      border-color: var(--divider-color, #ccc);
+      color: var(--secondary-text-color);
+    }
+    .bf-dispose.confirm {
+      border-color: var(--error-color, #db4437);
+      color: var(--error-color, #db4437);
+    }
+    .bf-dispose-qty {
+      width: 56px;
+      padding: 4px;
+      font: inherit;
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
     }
     .bf-label {
       font-size: 12px;

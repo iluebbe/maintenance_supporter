@@ -173,7 +173,86 @@ async def test_quiet_hours_hold_then_one_summary(hass: HomeAssistant, caplog: An
     assert sent.await_count == 1
 
 
+async def test_a_persons_held_reminders_reach_their_own_phones(hass: HomeAssistant) -> None:
+    """Bug audit 2026-10-17 (N-3): the summary went to the household service
+    only and stamped every member, so a person's own reminder that fell into
+    quiet hours (every midnight due date does) never reached their phone.
+    Each recipient gets a summary of their own now; one that fails stays
+    held for the next attempt."""
+    _global(hass, quiet=True, max_per_day=10)
+    make_object_entry(hass, tasks={t: build_task_data(task_id=t) for t in ("t1", "t2", "t3")}, name="Obj e1", uid="obj_e1", entry_id="e1")
+    nm, sent = _manager(hass)
+    phones = {"anna": ["notify.mobile_app_anna"], "ben": ["notify.mobile_app_ben"]}
+
+    async def _phones(_hass: HomeAssistant, user_id: str) -> list[str]:
+        return phones.get(user_id, [])
+
+    async def _offer_for(task: str, person: str | None) -> None:
+        await nm.async_task_status_changed(
+            entry_id="e1", task_id=task, task_name=f"Task {task}", object_name="Obj e1", new_status=MaintenanceStatus.OVERDUE,
+            responsible_user_id=person, task_data={"priority": "normal", "notify_enabled": True},
+        )
+
+    dispatch = AsyncMock(side_effect=lambda _hass, target, _data, _ctx: target != "notify.mobile_app_ben")
+    with patch("custom_components.maintenance_supporter.helpers.notification_manager.get_user_notify_services", _phones), \
+         patch("custom_components.maintenance_supporter.helpers.notification_manager.async_emit_and_dispatch", dispatch):
+        with patch.object(nm, "_is_quiet_hours", return_value=True):
+            await _offer_for("t1", "anna")
+            await _offer_for("t2", None)
+            await _offer_for("t3", "ben")
+        with patch.object(nm, "_is_quiet_hours", return_value=False):
+            await _offer_for("t1", "anna")
+
+    by_target = {c.args[1]: c.args[2]["message"] for c in dispatch.await_args_list}
+    assert set(by_target) == {"notify.mobile_app_anna", "notify.mobile_app", "notify.mobile_app_ben"}
+    assert "Task t1" in by_target["notify.mobile_app_anna"] and "Task t2" not in by_target["notify.mobile_app_anna"]
+    assert "Task t2" in by_target["notify.mobile_app"] and "Task t1" not in by_target["notify.mobile_app"]
+    assert sent.await_count == 0, "Anna's reminder went out in her summary"
+    assert nm._daily_count == 2, "two summaries were delivered"
+    # Ben's phone refused: his reminder is neither stamped nor dropped.
+    assert set(nm._quiet_held) == {notification_key("e1", "t3", MaintenanceStatus.OVERDUE)}
+    assert nm.reminder_due("e1", "t3", MaintenanceStatus.OVERDUE)
+    assert not nm.reminder_due("e1", "t2", MaintenanceStatus.OVERDUE)
+
+
+async def test_the_summaries_keep_the_daily_cap_and_the_bundle_route(hass: HomeAssistant) -> None:
+    """A reminder held from an object's bundle goes to the household like the
+    bundle would have; the daily cap stops the summaries that do not fit (they
+    stay held); a person nobody can reach keeps their reminder held too."""
+    from custom_components.maintenance_supporter.const import CONF_NOTIFY_EVENT_ONLY
+
+    entry = _global(hass, quiet=True, max_per_day=1)
+    make_object_entry(hass, tasks={t: build_task_data(task_id=t) for t in ("t1", "t2")}, name="Obj e1", uid="obj_e1", entry_id="e1")
+    nm, _sent = _manager(hass)
+
+    async def _phones(_hass: HomeAssistant, user_id: str) -> list[str]:
+        return ["notify.mobile_app_anna"] if user_id == "anna" else []
+
+    k1, k2 = (notification_key("e1", t, MaintenanceStatus.OVERDUE) for t in ("t1", "t2"))
+    facts = {"entry_id": "e1", "task_name": "x", "object_name": "Obj e1", "status": MaintenanceStatus.OVERDUE}
+    nm._hold_for_quiet_end(k1, {**facts, "task_id": "t1"})  # from a bundle: no person
+    nm._hold_for_quiet_end(k2, {**facts, "task_id": "t2", "responsible_user_id": "anna"})
+    dispatch = AsyncMock(return_value=True)
+    with patch("custom_components.maintenance_supporter.helpers.notification_manager.get_user_notify_services", _phones), \
+         patch("custom_components.maintenance_supporter.helpers.notification_manager.async_emit_and_dispatch", dispatch), \
+         patch.object(nm, "_is_quiet_hours", return_value=False):
+        assert await nm._held_targets(nm._quiet_held[k1]) == ("notify.mobile_app",)
+        assert await nm.async_flush_quiet_held() is True
+        assert dispatch.await_count == 1, "the cap of one summary a day"
+        assert len(nm._quiet_held) == 1
+
+        # Without a household target, a person without a phone is reachable
+        # by nobody: the reminder stays held, nothing is sent.
+        hass.config_entries.async_update_entry(entry, options={**entry.options, CONF_NOTIFY_SERVICE: "", CONF_NOTIFY_EVENT_ONLY: False, CONF_MAX_NOTIFICATIONS_PER_DAY: 10})
+        nm._quiet_held.clear()
+        nm._hold_for_quiet_end(k2, {**facts, "task_id": "t2", "responsible_user_id": "ben"})
+        assert await nm._held_targets(nm._quiet_held[k2]) == ()
+        assert await nm.async_flush_quiet_held() is False
+        assert set(nm._quiet_held) == {k2}
+
+
 def test_quiet_end_is_in_the_kind_matrix() -> None:
     spec = NOTIFICATION_KINDS[KIND_QUIET_END]
-    assert spec.category == "summary" and spec.routing == "household"
+    # Routed like the reminders it holds (bug audit 2026-10-17, N-3).
+    assert spec.category == "summary" and spec.routing == "personal"
     assert "quiet_hours" not in spec.gates, "the summary is what quiet hours produce — it cannot be gated by them"

@@ -619,6 +619,7 @@
           "parts_cost_mode": "Spare parts count as spending",
           "battery_low_percent": "Battery low threshold (%)",
           "battery_recovered_percent": "Battery counts as replaced above (%)",
+          "battery_low_delay_minutes": "Battery counts as low after (minutes)",
           "battery_auto_record_recovery": "Record a replacement automatically when a low battery recovers",
           "panel_title": "Sidebar panel title",
           "shopping_list_entity": "Shopping list to sync buy tasks into",
@@ -638,6 +639,7 @@
           "parts_cost_mode": "When bought: a buy reminder's cost counts, parts used on a job are shown as information. When used: every completion books the parts it used, and a purchase sets the part's price instead. Applies to completions from now on.",
           "battery_low_percent": "Fleet-wide floor: a battery at or below this level counts as low unless its Battery Notes threshold is higher.",
           "battery_recovered_percent": "A low battery stays counted as low until its level rises above this value or a replacement is recorded — so a level hovering around the low threshold cannot complete the fleet task again and again.",
+          "battery_low_delay_minutes": "A battery must read low this long before it counts as low, so a sensor that reports a very low level for a moment and recovers by itself does not put it on the list. 0 = at once.",
           "battery_auto_record_recovery": "When a battery that was low rises above the recovery threshold, the replacement date is recorded in Battery Notes and the spare cells are taken from stock — no tap needed",
           "panel_title": "Custom name for the sidebar entry. Leave blank to use \"Maintenance\". Useful to avoid clashing with Home Assistant's built-in Maintenance dashboard.",
           "shopping_list_entity": "Automatic “buy” reminders for low parts appear in this to-do list; checking one off completes the reminder and restocks the part. Leave empty to disable.",
@@ -1949,6 +1951,52 @@
           "description": "Only return the tasks meant for this person (the ones they are responsible for, and the ones shared with them that nobody is responsible for). The person must be linked to a Home Assistant user."
         }
       }
+    },
+    "part_restock": {
+      "name": "Restock spare part",
+      "description": "Change a spare part's stock: new ones bought, or a correction. Give exactly one of change and new count.",
+      "fields": {
+        "entity_id": {
+          "name": "Spare part",
+          "description": "The stock sensor of one or more spare parts."
+        },
+        "delta": {
+          "name": "Change",
+          "description": "How many to add; negative to take some away."
+        },
+        "absolute": {
+          "name": "New count",
+          "description": "The new stock, replacing the old one."
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "Spare part ready again",
+      "description": "Used ones of a reusable part are ready again (charged, sharpened, ...): from the waiting pile back to the stock.",
+      "fields": {
+        "entity_id": {
+          "name": "Spare part",
+          "description": "The stock sensor of one or more spare parts."
+        },
+        "quantity": {
+          "name": "Quantity",
+          "description": "How many are ready again. All waiting ones when left out."
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "Dispose of used spare parts",
+      "description": "Used ones of a reusable part that cannot be made ready again, such as a dead cell, leave the waiting pile without going back to the stock.",
+      "fields": {
+        "entity_id": {
+          "name": "Spare part",
+          "description": "The stock sensor of one or more spare parts."
+        },
+        "quantity": {
+          "name": "Quantity",
+          "description": "How many are gone for good. One when left out."
+        }
+      }
     }
   },
   "selector": {
@@ -2463,6 +2511,12 @@
     },
     "postpone_done": {
       "message": "“{task_name}” is done — there is nothing left to postpone."
+    },
+    "no_part_for_entity": {
+      "message": "{entity_id} is not the stock sensor of a spare part."
+    },
+    "part_not_reusable": {
+      "message": "{entity_id} is not a reusable spare part with a counted stock."
     }
   },
   "triggers": {

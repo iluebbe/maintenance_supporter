@@ -561,6 +561,21 @@ def get_battery_recovered_percent(hass: HomeAssistant) -> int:
     return value if lo <= value <= hi else DEFAULT_BATTERY_RECOVERED_PERCENT
 
 
+def get_battery_low_delay_minutes(hass: HomeAssistant) -> int:
+    """#219: how long a battery must read low before it counts as low
+    (0 = at once). Out-of-range / junk values fall back to the default."""
+    from ..const import BATTERY_LOW_DELAY_MINUTES_RANGE, CONF_BATTERY_LOW_DELAY_MINUTES, DEFAULT_BATTERY_LOW_DELAY_MINUTES
+    from .global_options import global_option
+
+    raw = global_option(hass, CONF_BATTERY_LOW_DELAY_MINUTES)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return DEFAULT_BATTERY_LOW_DELAY_MINUTES
+    lo, hi = BATTERY_LOW_DELAY_MINUTES_RANGE
+    return value if lo <= value <= hi else DEFAULT_BATTERY_LOW_DELAY_MINUTES
+
+
 def get_battery_auto_record_recovery(hass: HomeAssistant) -> bool:
     """#181 follow-up: whether a battery the latch releases BY ITS LEVEL gets
     its replacement recorded automatically (the Battery Notes date + the
@@ -598,9 +613,18 @@ def get_battery_auto_record_recovery(hass: HomeAssistant) -> bool:
 # Persisted on the fleet task's Store state ({entity_id: {at, last_replaced, threshold}})
 # so a restart does not re-open the episode; without a fleet the latch lives
 # in memory (the low-count sensor exists before the fleet does).
+#
+# #219: with ``battery_low_delay_minutes`` set, a battery latches only once
+# it has read low that long. Some sensors (Shelly BT) report a very low level
+# for a while and recover by themselves; latched at the first reading, such a
+# dip put the battery on the list (and, with the automatic record on, recorded
+# a replacement once it recovered). When it first read low is kept in memory:
+# a restart waits the delay again. The low-count sensor polls every 30 s, so
+# a battery that keeps reading low latches without a new reading.
 
 LOW_LATCH_KEY = "battery_low_latch"
 _LATCH_MEMORY_KEY = "battery_fleet_low_latch_memory"
+_LOW_SINCE_KEY = "battery_fleet_low_since"
 # What a latch from before #205 (no threshold of its own) is taken to have
 # latched at: the household default, the floor almost every such latch
 # was set under. (A floor lowered long before leaves such a latch released
@@ -659,9 +683,16 @@ def apply_low_latch(
     eligible: set[str] | None = None,
     released_by_level: list[str] | None = None,
     levelless: set[str] | None = None,
+    low_since: dict[str, str] | None = None,
+    low_delay_minutes: float = 0,
 ) -> bool:
     """Pure latch step: mutate ``bat.low``/``bat.latched`` and the ``latch``
     map in place. Returns True when the map changed (the caller persists).
+
+    ``low_delay_minutes`` (#219) with ``low_since`` (``{entity_id: when it
+    first read low}``, mutated too): a battery that is not latched yet counts
+    as low only once it has read low that long; until then it reads not low.
+    A reading that is not low any more forgets when it first read low.
 
     ``eligible`` = entity ids whose ``low`` is level-driven (default: every
     battery with a level, never a sensorless note). Per eligible battery:
@@ -697,6 +728,13 @@ def apply_low_latch(
         raw_entry = latch.get(bat.entity_id)
         entry = raw_entry if isinstance(raw_entry, dict) else None
         threshold = float(bat.low_threshold)
+        if bat.low and entry is None and low_since is not None and low_delay_minutes > 0:
+            first = low_since.setdefault(bat.entity_id, now_iso)
+            if _minutes_between(first, now_iso) < low_delay_minutes:
+                bat.low = False
+                continue
+        if low_since is not None and (bat.low or bat.available):
+            low_since.pop(bat.entity_id, None)
         if bat.low:
             if entry is None or _replaced_since(last, entry):
                 latch[bat.entity_id] = {"at": now_iso, "last_replaced": last, "threshold": threshold}
@@ -734,7 +772,19 @@ def apply_low_latch(
     for eid in [e for e in latch if e not in known]:
         del latch[eid]
         changed = True
+    if low_since is not None:
+        for eid in [e for e in low_since if e not in known]:
+            del low_since[eid]
     return changed
+
+
+def _minutes_between(earlier_iso: str, later_iso: str) -> float:
+    """Minutes from one ISO instant to another; an unreadable one reads as
+    long ago (the delay is over)."""
+    earlier, later = dt_util.parse_datetime(earlier_iso), dt_util.parse_datetime(later_iso)
+    if earlier is None or later is None:
+        return float("inf")
+    return (later - earlier).total_seconds() / 60
 
 
 def _latch_backend(hass: HomeAssistant) -> tuple[dict[str, Any], Callable[[], None]]:
@@ -759,8 +809,14 @@ def _latch_backend(hass: HomeAssistant) -> tuple[dict[str, Any], Callable[[], No
 
 
 def _apply_low_latch(hass: HomeAssistant, batteries: list[Battery], eligible: set[str], levelless: set[str] | None = None) -> None:
+    from ..const import DOMAIN
+
     latch, save = _latch_backend(hass)
     released: list[str] = []
+    delay = get_battery_low_delay_minutes(hass)
+    low_since: dict[str, str] = hass.data.setdefault(DOMAIN, {}).setdefault(_LOW_SINCE_KEY, {})
+    if not delay:
+        low_since.clear()
     if apply_low_latch(
         batteries,
         latch,
@@ -769,6 +825,8 @@ def _apply_low_latch(hass: HomeAssistant, batteries: list[Battery], eligible: se
         eligible=eligible,
         released_by_level=released,
         levelless=levelless,
+        low_since=low_since,
+        low_delay_minutes=float(delay),
     ):
         # Persist BEFORE scheduling: the record path re-reads the fleet and
         # must see the entry gone (or it would release — and schedule — again).
@@ -807,16 +865,24 @@ def _auto_record_inflight(hass: HomeAssistant) -> set[str]:
 def _schedule_auto_record(hass: HomeAssistant, batteries: list[Battery]) -> int:
     """Schedule the auto-record for batteries just released by their level.
     Returns how many were scheduled: a native row has no Battery Notes note
-    to record on, and a rechargeable's recovery is a charge, not a swap."""
+    to record on, and a rechargeable's recovery is a charge, not a swap.
+
+    Rechargeable by the cells the battery holds (D#213: the ones chosen at
+    the last Replaced while the fleet asks), not by the note: an "AA NiMH"
+    note running on disposables recovered by a swap that was never recorded
+    (S-12)."""
     import threading
 
+    from .battery_fleet_setup import held_cell_types
+
     inflight = _auto_record_inflight(hass)
+    held = held_cell_types(hass, [b for b in batteries if b.source == "battery_notes"])
     scheduled = 0
     for bat in batteries:
         if bat.source != "battery_notes":
             _LOGGER.debug("Battery %s recovered but has no Battery Notes note - nothing to record on", bat.entity_id)
             continue
-        if is_rechargeable_type(bat.battery_type):
+        if is_rechargeable_type(held.get(bat.entity_id) or bat.battery_type):
             _LOGGER.debug("Battery %s recovered by charging - no replacement to record", bat.entity_id)
             continue
         if bat.entity_id in inflight:

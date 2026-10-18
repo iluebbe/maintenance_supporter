@@ -619,6 +619,7 @@
           "parts_cost_mode": "Reservedele tæller som udgift",
           "battery_low_percent": "Tærskel „batteri lavt“ (%)",
           "battery_recovered_percent": "Batteri regnes som udskiftet over (%)",
+          "battery_low_delay_minutes": "Batteri regnes først som lavt efter (minutter)",
           "battery_auto_record_recovery": "Registrér automatisk et skift, når et lavt batteri kommer sig",
           "panel_title": "Titel på sidebjælkepanel",
           "shopping_list_entity": "Indkøbsliste til synkronisering af købsopgaver",
@@ -638,6 +639,7 @@
           "parts_cost_mode": "Ved køb: prisen på en købspåmindelse tæller, brugte dele vises som information. Ved forbrug: hver afslutning bogfører de brugte dele, og et køb sætter i stedet delens pris. Gælder fra nu af.",
           "battery_low_percent": "Gulv for hele flåden: et batteri på eller under dette niveau tælles som lavt, medmindre dets Battery Notes-tærskel er højere.",
           "battery_recovered_percent": "Et lavt batteri tælles som lavt, indtil niveauet stiger over denne værdi, eller et skift registreres — så kan et niveau, der svinger omkring tærsklen, ikke fuldføre flådeopgaven igen og igen.",
+          "battery_low_delay_minutes": "Et batteri skal vise lavt så længe, før det regnes som lavt, så en sensor, der et øjeblik melder et meget lavt niveau og selv kommer sig, ikke sætter det på listen. 0 = med det samme.",
           "battery_auto_record_recovery": "Når et batteri, der var lavt, stiger over gendannelsestærsklen, registreres skiftedatoen i Battery Notes, og reservecellerne trækkes fra lageret — uden et tryk",
           "panel_title": "Brugerdefineret navn til sidebjælkeposten. Lad feltet stå tomt for at bruge \"Vedligeholdelse\". Nyttigt for at undgå sammenfald med Home Assistants indbyggede vedligeholdelses-dashboard.",
           "shopping_list_entity": "Automatiske købspåmindelser for dele med lav beholdning vises på denne opgaveliste; afkrydsning fuldfører påmindelsen og genopfylder delen. Lad feltet være tomt for at deaktivere.",
@@ -2103,6 +2105,52 @@
           "description": "Returner kun de opgaver, der er tiltænkt denne person (dem, personen er ansvarlig for, og dem, der er delt med personen, som ingen er ansvarlig for). Personen skal være knyttet til en Home Assistant-bruger."
         }
       }
+    },
+    "part_restock": {
+      "name": "Fyld reservedel op",
+      "description": "Ændr lageret for en reservedel: nye købt eller en rettelse. Angiv præcis én af ændring og nyt lager.",
+      "fields": {
+        "entity_id": {
+          "name": "Reservedel",
+          "description": "Lagersensoren for en eller flere reservedele."
+        },
+        "delta": {
+          "name": "Ændring",
+          "description": "Hvor mange der skal lægges til; negativt for at trække fra."
+        },
+        "absolute": {
+          "name": "Nyt lager",
+          "description": "Det nye lager, der erstatter det gamle."
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "Reservedel klar igen",
+      "description": "Brugte stykker af en genbrugelig del er klar igen (opladet, slebet, ...): fra ventebunken tilbage til lageret.",
+      "fields": {
+        "entity_id": {
+          "name": "Reservedel",
+          "description": "Lagersensoren for en eller flere reservedele."
+        },
+        "quantity": {
+          "name": "Antal",
+          "description": "Hvor mange der er klar igen. Alle ventende, hvis udeladt."
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "Kassér brugte reservedele",
+      "description": "Brugte stykker af en genbrugelig del, der ikke kan gøres klar igen, fx en død celle, forlader ventebunken uden at komme tilbage på lageret.",
+      "fields": {
+        "entity_id": {
+          "name": "Reservedel",
+          "description": "Lagersensoren for en eller flere reservedele."
+        },
+        "quantity": {
+          "name": "Antal",
+          "description": "Hvor mange der er væk for altid. Ét, hvis udeladt."
+        }
+      }
     }
   },
   "issues": {
@@ -2463,6 +2511,12 @@
     },
     "postpone_done": {
       "message": "”{task_name}” er udført — der er intet at udskyde."
+    },
+    "no_part_for_entity": {
+      "message": "{entity_id} er ikke lagersensoren for en reservedel."
+    },
+    "part_not_reusable": {
+      "message": "{entity_id} er ikke en genbrugelig reservedel med et talt lager."
     }
   },
   "triggers": {

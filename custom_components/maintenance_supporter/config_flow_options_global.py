@@ -35,6 +35,7 @@ from .const import (
     CONF_ARCHIVE_ONEOFF_DAYS,
     CONF_BATTERY_AUTO_RECORD_RECOVERY,
     CONF_BATTERY_LIFETIME_MONTHS,
+    CONF_BATTERY_LOW_DELAY_MINUTES,
     CONF_BATTERY_LOW_PERCENT,
     CONF_BATTERY_RECOVERED_PERCENT,
     CONF_BUDGET_ALERT_THRESHOLD,
@@ -967,6 +968,19 @@ class GlobalOptionsFlow(OptionsFlow):
                             max=int_range(CONF_BATTERY_RECOVERED_PERCENT)[1],
                             step=1,
                             mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
+                    # #219: low only once it has read low this many minutes.
+                    vol.Optional(
+                        CONF_BATTERY_LOW_DELAY_MINUTES,
+                        default=self._opt(CONF_BATTERY_LOW_DELAY_MINUTES),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=int_range(CONF_BATTERY_LOW_DELAY_MINUTES)[0],
+                            max=int_range(CONF_BATTERY_LOW_DELAY_MINUTES)[1],
+                            step=1,
+                            mode=selector.NumberSelectorMode.BOX,
+                            unit_of_measurement="min",
                         )
                     ),
                     # #181 follow-up (advanced): a level-driven recovery records

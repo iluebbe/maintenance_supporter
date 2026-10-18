@@ -619,6 +619,7 @@
           "parts_cost_mode": "As peças contam como despesa",
           "battery_low_percent": "Limiar „pilha fraca“ (%)",
           "battery_recovered_percent": "Pilha considerada substituída acima de (%)",
+          "battery_low_delay_minutes": "Pilha considerada fraca só após (minutos)",
           "battery_auto_record_recovery": "Registar automaticamente uma substituição quando uma pilha fraca recupera",
           "panel_title": "Título do painel lateral",
           "shopping_list_entity": "Lista de compras para sincronizar as tarefas de compra",
@@ -638,6 +639,7 @@
           "parts_cost_mode": "Na compra: conta o custo de um lembrete de compra e as peças usadas são só informativas. No uso: cada conclusão regista as peças usadas e uma compra define antes o preço da peça. Aplica-se a partir de agora.",
           "battery_low_percent": "Limiar mínimo de toda a frota: uma pilha neste nível ou abaixo conta como fraca, salvo se o seu limiar do Battery Notes for mais alto.",
           "battery_recovered_percent": "Uma pilha fraca continua a contar como fraca até o nível subir acima deste valor ou ser registada uma substituição — assim, um nível que oscila em torno do limiar não conclui a tarefa da frota vezes sem conta.",
+          "battery_low_delay_minutes": "Uma pilha tem de indicar nível baixo durante este tempo antes de contar como fraca, para que um sensor que reporta por instantes um nível muito baixo e recupera sozinho não a ponha na lista. 0 = de imediato.",
           "battery_auto_record_recovery": "Quando uma pilha que estava fraca sobe acima do limiar de recuperação, a data de substituição é registada no Battery Notes e as pilhas sobressalentes são retiradas do stock — sem qualquer toque",
           "panel_title": "Nome personalizado para a entrada da barra lateral. Deixe em branco para usar \"Maintenance\". Útil para evitar conflitos com o painel de Manutenção integrado do Home Assistant.",
           "shopping_list_entity": "Os lembretes automáticos de compra de peças em falta aparecem nesta lista de tarefas; marcar um conclui o lembrete e repõe a peça. Deixar vazio para desativar.",
@@ -2103,6 +2105,52 @@
           "description": "Devolver apenas as tarefas destinadas a esta pessoa (as que estão a seu cargo e as partilhadas com ela pelas quais ninguém é responsável). A pessoa tem de estar associada a um utilizador do Home Assistant."
         }
       }
+    },
+    "part_restock": {
+      "name": "Repor peça sobressalente",
+      "description": "Altera o stock de uma peça sobressalente: novas compradas ou uma correção. Indica exatamente um entre alteração e novo stock.",
+      "fields": {
+        "entity_id": {
+          "name": "Peça sobressalente",
+          "description": "O sensor de stock de uma ou mais peças sobressalentes."
+        },
+        "delta": {
+          "name": "Alteração",
+          "description": "Quantas adicionar; negativo para retirar algumas."
+        },
+        "absolute": {
+          "name": "Novo stock",
+          "description": "O novo stock, que substitui o anterior."
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "Peça sobressalente pronta de novo",
+      "description": "Unidades usadas de uma peça reutilizável estão prontas de novo (carregadas, afiadas, ...): da pilha em espera de volta ao stock.",
+      "fields": {
+        "entity_id": {
+          "name": "Peça sobressalente",
+          "description": "O sensor de stock de uma ou mais peças sobressalentes."
+        },
+        "quantity": {
+          "name": "Quantidade",
+          "description": "Quantas estão prontas de novo. Todas as que esperam se omitido."
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "Descartar peças sobressalentes usadas",
+      "description": "Unidades usadas de uma peça reutilizável que já não podem ficar prontas, como uma pilha morta, saem da pilha em espera sem voltar ao stock.",
+      "fields": {
+        "entity_id": {
+          "name": "Peça sobressalente",
+          "description": "O sensor de stock de uma ou mais peças sobressalentes."
+        },
+        "quantity": {
+          "name": "Quantidade",
+          "description": "Quantas se perderam de vez. Uma se omitido."
+        }
+      }
     }
   },
   "issues": {
@@ -2463,6 +2511,12 @@
     },
     "postpone_done": {
       "message": "«{task_name}» está concluída — não há nada para adiar."
+    },
+    "no_part_for_entity": {
+      "message": "{entity_id} não é o sensor de stock de uma peça sobressalente."
+    },
+    "part_not_reusable": {
+      "message": "{entity_id} não é uma peça sobressalente reutilizável com stock contado."
     }
   },
   "triggers": {

@@ -151,6 +151,55 @@ async def test_the_same_rechargeable_again_charges_the_old_ones(hass: HomeAssist
     assert _stock(fleet, NIMH) == (0, 2)
 
 
+async def test_charged_cells_off_the_pile_leave_it(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """Bug audit 2026-10-17 (S-2): with no charged NiMH in the stock, the
+    ones that went in came off the pile, charged and never marked ready. The
+    pile kept them anyway, and the same cells again grew it by two on every
+    swap although only two are ever out of the device."""
+    from custom_components.maintenance_supporter.parts_runtime import async_change_part_stock
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_mark_replaced,
+        ws_battery_fleet_set_ask_cells,
+    )
+
+    fleet = await _fleet(hass, global_entry)
+    await async_change_part_stock(hass, fleet, NIMH, absolute=0, restoring=2)
+    await _ws(hass, ws_battery_fleet_set_ask_cells, {"enabled": True})
+    await _ws(hass, ws_battery_fleet_mark_replaced, {"entity_ids": [REMOTE], "cells": {REMOTE: "AAA NIMH"}})
+    assert _stock(fleet, NIMH) == (0, 0), "the charged ones went in"
+    for _ in range(3):
+        _next_day(hass)
+        await _ws(hass, ws_battery_fleet_mark_replaced, {"entity_ids": [REMOTE], "cells": {REMOTE: "AAA NIMH"}})
+        assert _stock(fleet, NIMH) == (0, 2)
+
+
+async def test_a_recovery_is_a_charge_by_the_cells_held_not_the_note(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """S-12 (2026-10-17): the automatic record took every recovery of a
+    rechargeable NOTE for a charge, so an "AAA NiMH" clock running on
+    disposables recovered by a swap that was never recorded. It follows the
+    cells chosen at the last Replaced now; the note decides while the fleet
+    does not ask."""
+    from custom_components.maintenance_supporter.helpers.battery_fleet import _schedule_auto_record, read_batteries
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_mark_replaced,
+        ws_battery_fleet_set_ask_cells,
+    )
+
+    clock = "sensor.clock_battery_plus"
+    await _fleet(hass, global_entry)
+    async_mock_service(hass, "battery_notes", "set_battery_replaced")
+    by_id = {b.entity_id: b for b in read_batteries(hass)}
+    assert _schedule_auto_record(hass, [by_id[clock]]) == 0, "the note says NiMH: a charge"
+    await hass.async_block_till_done()
+
+    await _ws(hass, ws_battery_fleet_set_ask_cells, {"enabled": True})
+    await _ws(hass, ws_battery_fleet_mark_replaced, {"entity_ids": [clock, REMOTE], "cells": {clock: "AAA", REMOTE: "AAA NIMH"}})
+    by_id = {b.entity_id: b for b in read_batteries(hass)}
+    assert _schedule_auto_record(hass, [by_id[clock]]) == 1, "disposables went in: a swap"
+    assert _schedule_auto_record(hass, [by_id[REMOTE]]) == 0, "NiMH went in: a charge"
+    await hass.async_block_till_done()
+
+
 async def test_a_recorded_swap_books_the_cells_the_battery_holds(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     from custom_components.maintenance_supporter.helpers.battery_fleet_setup import async_record_replacement
     from custom_components.maintenance_supporter.websocket.battery_fleet import (

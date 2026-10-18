@@ -619,6 +619,7 @@
           "parts_cost_mode": "Varaosat lasketaan kuluksi",
           "battery_low_percent": "Kynnys „paristo vähissä“ (%)",
           "battery_recovered_percent": "Paristo lasketaan vaihdetuksi yli (%)",
+          "battery_low_delay_minutes": "Paristo lasketaan vähissä olevaksi vasta (minuutin) jälkeen",
           "battery_auto_record_recovery": "Kirjaa vaihto automaattisesti, kun vähissä ollut paristo palautuu",
           "panel_title": "Sivupalkin paneelin otsikko",
           "shopping_list_entity": "Ostoslista, johon ostotehtävät synkronoidaan",
@@ -638,6 +639,7 @@
           "parts_cost_mode": "Ostettaessa: ostomuistutuksen kulu lasketaan, käytetyt osat näytetään tiedoksi. Käytettäessä: jokainen valmistuminen kirjaa käytetyt osat, ja osto asettaa sen sijaan osan hinnan. Koskee valmistumisia tästä eteenpäin.",
           "battery_low_percent": "Koko laivaston alaraja: tällä tasolla tai sen alla oleva paristo lasketaan vähissä olevaksi, ellei sen Battery Notes -kynnys ole korkeampi.",
           "battery_recovered_percent": "Vähissä oleva paristo lasketaan vähissä olevaksi, kunnes sen taso nousee tämän arvon yli tai vaihto kirjataan — näin kynnyksen ympärillä heilahteleva taso ei suorita laivastotehtävää yhä uudelleen.",
+          "battery_low_delay_minutes": "Pariston täytyy näyttää vähissä olevaa tasoa näin kauan ennen kuin se lasketaan vähissä olevaksi, jotta hetkellisesti hyvin matalaa tasoa ilmoittava ja itsestään palautuva anturi ei lisää sitä listalle. 0 = heti.",
           "battery_auto_record_recovery": "Kun vähissä ollut paristo nousee palautumiskynnyksen yli, vaihtopäivä kirjataan Battery Notesiin ja varaparistot vähennetään varastosta — ilman napautusta",
           "panel_title": "Mukautettu nimi sivupalkin kohteelle. Jätä tyhjäksi käyttääksesi nimeä \"Maintenance\". Hyödyllinen Home Assistantin sisäänrakennetun Maintenance-koontinäytön kanssa tapahtuvan päällekkäisyyden välttämiseksi.",
           "shopping_list_entity": "Automaattiset ostomuistutukset vähiin käyneistä osista ilmestyvät tähän tehtäväluetteloon; kuittaus suorittaa muistutuksen ja täydentää varaston. Jätä tyhjäksi poistaaksesi käytöstä.",
@@ -2103,6 +2105,52 @@
           "description": "Palauta vain tälle henkilölle tarkoitetut tehtävät (ne, joista hän vastaa, ja hänen kanssaan jaetut tehtävät, joista kukaan ei vastaa). Henkilön on oltava liitetty Home Assistant -käyttäjään."
         }
       }
+    },
+    "part_restock": {
+      "name": "Täydennä varaosaa",
+      "description": "Muuta varaosan varastoa: uusia ostettu tai korjaus. Anna täsmälleen yksi: muutos tai uusi varasto.",
+      "fields": {
+        "entity_id": {
+          "name": "Varaosa",
+          "description": "Yhden tai useamman varaosan varastoanturi."
+        },
+        "delta": {
+          "name": "Muutos",
+          "description": "Montako lisätään; negatiivinen vähentää."
+        },
+        "absolute": {
+          "name": "Uusi varasto",
+          "description": "Uusi varasto, joka korvaa vanhan."
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "Varaosa taas valmis",
+      "description": "Uudelleenkäytettävän osan käytetyt kappaleet ovat taas valmiita (ladattu, teroitettu, ...): odottavien pinosta takaisin varastoon.",
+      "fields": {
+        "entity_id": {
+          "name": "Varaosa",
+          "description": "Yhden tai useamman varaosan varastoanturi."
+        },
+        "quantity": {
+          "name": "Määrä",
+          "description": "Montako on taas valmiina. Kaikki odottavat, jos jätetään tyhjäksi."
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "Hävitä käytetyt varaosat",
+      "description": "Uudelleenkäytettävän osan käytetyt kappaleet, joita ei voi enää saada valmiiksi, kuten kuollut kenno, poistuvat odottavien pinosta palaamatta varastoon.",
+      "fields": {
+        "entity_id": {
+          "name": "Varaosa",
+          "description": "Yhden tai useamman varaosan varastoanturi."
+        },
+        "quantity": {
+          "name": "Määrä",
+          "description": "Montako on lopullisesti poissa. Yksi, jos jätetään tyhjäksi."
+        }
+      }
     }
   },
   "issues": {
@@ -2463,6 +2511,12 @@
     },
     "postpone_done": {
       "message": "”{task_name}” on tehty — lykättävää ei ole."
+    },
+    "no_part_for_entity": {
+      "message": "{entity_id} ei ole varaosan varastoanturi."
+    },
+    "part_not_reusable": {
+      "message": "{entity_id} ei ole uudelleenkäytettävä varaosa, jolla on laskettu varasto."
     }
   },
   "triggers": {

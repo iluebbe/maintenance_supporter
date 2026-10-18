@@ -25,6 +25,7 @@ _EXPECTED_INT_RANGES = {
     "default_consumable_threshold": (1, 90),
     "battery_low_percent": (1, 90),
     "battery_recovered_percent": (20, 100),  # #180 fleet hysteresis
+    "battery_low_delay_minutes": (0, 1440),  # #219 low only after a while
     "max_notifications_per_day": (0, 1000),
     "notify_due_soon_interval_hours": (0, 720),
     "notify_overdue_interval_hours": (0, 720),
@@ -71,17 +72,18 @@ def test_str_max_lengths_frozen() -> None:
 
 
 def test_allowed_keys_count_and_types() -> None:
-    # 66 writable settings, each mapped to a concrete Python type
+    # 67 writable settings, each mapped to a concrete Python type
     # (#169 follow-up added the dict-typed member_display; #165 the two
     # notification-hook settings; #180 battery_recovered_percent; D#182
     # part_search_url_template; #181 follow-up battery_auto_record_recovery;
     # v2.93 home_type; 2.94 home_region; 2.96 dropped the no-op
-    # advanced_predictions_visible; 2026-10 advanced_places_visible).
-    assert len(ALLOWED_SETTING_KEYS) == 66
+    # advanced_predictions_visible; 2026-10 advanced_places_visible; #219
+    # battery_low_delay_minutes).
+    assert len(ALLOWED_SETTING_KEYS) == 67
     assert all(isinstance(t, type) for t in ALLOWED_SETTING_KEYS.values())
     # No duplicate keys crept into the spec tuple.
     keys = [s.key for s in SETTING_SPECS]
-    assert len(keys) == len(set(keys)) == 66
+    assert len(keys) == len(set(keys)) == 67
 
 
 def test_every_ranged_key_is_declared_with_matching_type() -> None:

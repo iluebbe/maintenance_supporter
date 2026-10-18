@@ -482,6 +482,20 @@ def _held_type(bat: Any, installed: dict[str, str], choices: list[str]) -> str |
     return held if held in choices else fleet_part_type(bat.battery_type)
 
 
+def held_cell_types(hass: HomeAssistant, batteries: list[Any]) -> dict[str, str | None]:
+    """``{entity_id: the cells it holds}`` (:func:`_held_type`): the ones
+    chosen at the last Replaced while the fleet asks (D#213), else the type
+    the note names. Never reads the batteries itself, so the latch step
+    inside :func:`read_batteries` can ask."""
+    if not fleet_ask_cells(hass):
+        return {bat.entity_id: fleet_part_type(bat.battery_type) for bat in batteries}
+    fleet = find_fleet_entry(hass)
+    parts = (fleet.data.get(CONF_PARTS) or {}) if fleet is not None else {}
+    found, _recorded = _recorded_replacements(hass)
+    installed = _installed_cells(found)
+    return {bat.entity_id: _held_type(bat, installed, cell_choices(bat, parts)) for bat in batteries}
+
+
 def cell_choices(bat: Any, parts: dict[str, Any]) -> list[str]:
     """The cells that may go into ``bat`` (D#213): the type its note names,
     then every fleet part of the same size, disposable or rechargeable
@@ -553,7 +567,8 @@ async def _async_book_swaps(hass: HomeAssistant, swaps: list[tuple[str, str, int
         # An untracked part is left untracked, like a use (a delta would
         # start counting it from 0).
         if in_pid in parts and store.get_part_stock(in_pid) is not None:
-            await async_change_part_stock(hass, fleet, in_pid, delta=-qty)
+            # What the stock cannot cover were charged cells off their pile.
+            await async_change_part_stock(hass, fleet, in_pid, delta=-qty, use=True, keeps_used=False)
             consumed[in_pid] = consumed.get(in_pid, 0) + qty
         out_pid = f"{FLEET_PART_PREFIX}{taken_out.lower()}"
         out_part = parts.get(out_pid)

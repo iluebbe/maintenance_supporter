@@ -85,6 +85,37 @@ automation:
           item: "{{ trigger.event.data.part_name }} ({{ trigger.event.data.object_name }})"
 ```
 
+### Book spare parts from a button or an automation (2.105+, #218)
+
+The part actions are services, addressed by the part's stock sensor. A
+dashboard button that throws away one dead cell from the *to charge* pile,
+and one that puts the charged ones back in stock:
+
+```yaml
+type: horizontal-stack
+cards:
+  - type: button
+    name: Cell is dead
+    icon: mdi:trash-can-outline
+    tap_action:
+      action: perform-action
+      perform_action: maintenance_supporter.part_dispose
+      data:
+        entity_id: sensor.tv_remote_aaa_eneloop_stock
+  - type: button
+    name: Charged
+    icon: mdi:battery-charging-100
+    tap_action:
+      action: perform-action
+      perform_action: maintenance_supporter.part_ready_again
+      data:
+        entity_id: sensor.tv_remote_aaa_eneloop_stock
+```
+
+`part_dispose` takes one without `quantity`, `part_ready_again` all waiting
+ones. `part_restock` takes either `delta` (bought six: `delta: 6`) or
+`absolute` (counted the shelf: `absolute: 14`).
+
 ### React to sensor triggers firing
 
 Condition-based tasks (threshold / runtime / count) fire

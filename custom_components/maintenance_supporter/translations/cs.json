@@ -619,6 +619,7 @@
           "parts_cost_mode": "Díly se počítají jako výdaj",
           "battery_low_percent": "Práh „baterie slabá“ (%)",
           "battery_recovered_percent": "Baterie se považuje za vyměněnou nad (%)",
+          "battery_low_delay_minutes": "Baterie se považuje za slabou až po (minutách)",
           "battery_auto_record_recovery": "Automaticky zaznamenat výměnu, když se slabá baterie zotaví",
           "panel_title": "Název panelu v postranním panelu",
           "shopping_list_entity": "Nákupní seznam pro synchronizaci nákupních úkolů",
@@ -638,6 +639,7 @@
           "parts_cost_mode": "Při nákupu: počítá se cena připomínky nákupu, spotřebované díly se zobrazují informativně. Při spotřebě: každé dokončení zaúčtuje spotřebované díly a nákup místo toho nastaví cenu dílu. Platí od teď.",
           "battery_low_percent": "Spodní hranice pro celou flotilu: baterie na této úrovni nebo pod ní se počítá jako slabá, pokud není její práh v Battery Notes vyšší.",
           "battery_recovered_percent": "Slabá baterie se počítá jako slabá, dokud její stav nevystoupí nad tuto hodnotu nebo není zaznamenána výměna — stav kolísající kolem prahu tak nedokončuje úlohu flotily stále dokola.",
+          "battery_low_delay_minutes": "Baterie musí hlásit nízký stav takto dlouho, než se bude považovat za slabou, takže senzor, který na chvíli nahlásí velmi nízkou úroveň a sám se zotaví, ji nezařadí na seznam. 0 = hned.",
           "battery_auto_record_recovery": "Když stav dříve slabé baterie vystoupí nad práh zotavení, datum výměny se zaznamená v Battery Notes a náhradní články se odečtou ze zásoby — bez klepnutí",
           "panel_title": "Vlastní název pro položku v postranním panelu. Ponechte prázdné pro \"Maintenance\". Užitečné pro odlišení od vestavěného přehledu Maintenance v Home Assistantu.",
           "shopping_list_entity": "Automatická upozornění na nákup docházejících dílů se objeví v tomto seznamu úkolů; odškrtnutí dokončí upozornění a doplní zásobu. Ponechte prázdné pro vypnutí.",
@@ -2103,6 +2105,52 @@
           "description": "Vrátit pouze úkoly určené této osobě (ty, za které odpovídá, a ty, které jsou s ní sdílené a za které nikdo neodpovídá). Osoba musí být propojena s uživatelem Home Assistant."
         }
       }
+    },
+    "part_restock": {
+      "name": "Doplnit náhradní díl",
+      "description": "Změní zásobu náhradního dílu: nové koupené nebo oprava. Zadejte přesně jedno: změnu nebo novou zásobu.",
+      "fields": {
+        "entity_id": {
+          "name": "Náhradní díl",
+          "description": "Senzor zásoby jednoho nebo více náhradních dílů."
+        },
+        "delta": {
+          "name": "Změna",
+          "description": "Kolik přidat; záporně pro odebrání."
+        },
+        "absolute": {
+          "name": "Nová zásoba",
+          "description": "Nová zásoba, která nahradí dosavadní."
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "Náhradní díl znovu připraven",
+      "description": "Použité kusy opakovaně použitelného dílu jsou znovu připravené (nabité, nabroušené, ...): z čekající hromádky zpět do zásoby.",
+      "fields": {
+        "entity_id": {
+          "name": "Náhradní díl",
+          "description": "Senzor zásoby jednoho nebo více náhradních dílů."
+        },
+        "quantity": {
+          "name": "Množství",
+          "description": "Kolik je znovu připraveno. Bez zadání všechny čekající."
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "Vyhodit použité náhradní díly",
+      "description": "Použité kusy opakovaně použitelného dílu, které už nejde připravit, například mrtvý článek, opustí čekající hromádku a do zásoby se nevrátí.",
+      "fields": {
+        "entity_id": {
+          "name": "Náhradní díl",
+          "description": "Senzor zásoby jednoho nebo více náhradních dílů."
+        },
+        "quantity": {
+          "name": "Množství",
+          "description": "Kolik je nadobro pryč. Bez zadání jeden."
+        }
+      }
     }
   },
   "issues": {
@@ -2463,6 +2511,12 @@
     },
     "postpone_done": {
       "message": "„{task_name}“ je hotovo — není co odložit."
+    },
+    "no_part_for_entity": {
+      "message": "{entity_id} není senzor zásoby náhradního dílu."
+    },
+    "part_not_reusable": {
+      "message": "{entity_id} není opakovaně použitelný náhradní díl se sledovanou zásobou."
     }
   },
   "triggers": {

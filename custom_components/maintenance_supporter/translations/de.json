@@ -619,6 +619,7 @@
           "parts_cost_mode": "Ersatzteile zählen als Ausgabe",
           "battery_low_percent": "Schwelle „Batterie niedrig“ (%)",
           "battery_recovered_percent": "Batterie gilt als ersetzt ab (%)",
+          "battery_low_delay_minutes": "Batterie gilt als niedrig erst nach (Minuten)",
           "battery_auto_record_recovery": "Wechsel automatisch erfassen, wenn eine niedrige Batterie sich erholt",
           "panel_title": "Titel des Seitenleisten-Panels",
           "shopping_list_entity": "Einkaufsliste für den Abgleich der Kauf-Aufgaben",
@@ -638,6 +639,7 @@
           "parts_cost_mode": "Beim Kauf: Die Kosten einer Kauf-Erinnerung zählen, verbrauchte Teile werden nur informativ angezeigt. Beim Verbrauch: Jede Erledigung bucht die verbrauchten Teile, ein Kauf setzt stattdessen den Preis des Teils. Gilt für Erledigungen ab jetzt.",
           "battery_low_percent": "Flottenweite Untergrenze: Eine Batterie auf oder unter diesem Stand gilt als niedrig, sofern ihre Battery-Notes-Schwelle nicht höher liegt.",
           "battery_recovered_percent": "Eine niedrige Batterie bleibt so lange als niedrig gezählt, bis ihr Stand über diesen Wert steigt oder ein Wechsel erfasst wird — ein Stand, der um die Schwelle pendelt, schließt die Flottenaufgabe so nicht immer wieder ab.",
+          "battery_low_delay_minutes": "Eine Batterie muss so lange niedrig melden, bevor sie als niedrig gilt. So landet sie nicht auf der Liste, wenn ein Sensor kurz einen sehr niedrigen Stand meldet und sich von selbst erholt. 0 = sofort.",
           "battery_auto_record_recovery": "Steigt eine zuvor niedrige Batterie über die Erholungsschwelle, wird das Wechseldatum in Battery Notes erfasst und die Ersatzzellen werden vom Bestand abgezogen — ohne Antippen",
           "panel_title": "Eigener Name für den Seitenleisten-Eintrag. Leer lassen für \"Maintenance\". Praktisch, um Verwechslungen mit dem integrierten Wartungs-Dashboard von Home Assistant zu vermeiden.",
           "shopping_list_entity": "Automatische „Kaufen“-Erinnerungen für knappe Teile erscheinen in dieser To-do-Liste; Abhaken schließt die Erinnerung ab und füllt den Bestand auf. Leer lassen zum Deaktivieren.",
@@ -2103,6 +2105,52 @@
           "description": "Nur die Aufgaben für diese Person zurückgeben (die, für die sie verantwortlich ist, und die mit ihr geteilten, für die niemand verantwortlich ist). Die Person muss mit einem Home-Assistant-Benutzer verknüpft sein."
         }
       }
+    },
+    "part_restock": {
+      "name": "Ersatzteil auffüllen",
+      "description": "Den Bestand eines Ersatzteils ändern: neue gekauft oder eine Korrektur. Genau eines von Änderung und neuem Bestand angeben.",
+      "fields": {
+        "entity_id": {
+          "name": "Ersatzteil",
+          "description": "Der Bestandssensor eines oder mehrerer Ersatzteile."
+        },
+        "delta": {
+          "name": "Änderung",
+          "description": "Wie viele dazukommen; negativ, um welche abzuziehen."
+        },
+        "absolute": {
+          "name": "Neuer Bestand",
+          "description": "Der neue Bestand, ersetzt den bisherigen."
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "Ersatzteil wieder bereit",
+      "description": "Gebrauchte Stücke eines wiederverwendbaren Teils sind wieder bereit (geladen, geschärft, ...): vom Wartestapel zurück in den Bestand.",
+      "fields": {
+        "entity_id": {
+          "name": "Ersatzteil",
+          "description": "Der Bestandssensor eines oder mehrerer Ersatzteile."
+        },
+        "quantity": {
+          "name": "Menge",
+          "description": "Wie viele wieder bereit sind. Ohne Angabe alle wartenden."
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "Gebrauchte Ersatzteile entsorgen",
+      "description": "Gebrauchte Stücke eines wiederverwendbaren Teils, die nicht mehr bereit gemacht werden können, etwa eine tote Zelle, verlassen den Wartestapel, ohne in den Bestand zurückzugehen.",
+      "fields": {
+        "entity_id": {
+          "name": "Ersatzteil",
+          "description": "Der Bestandssensor eines oder mehrerer Ersatzteile."
+        },
+        "quantity": {
+          "name": "Menge",
+          "description": "Wie viele endgültig weg sind. Ohne Angabe eines."
+        }
+      }
     }
   },
   "issues": {
@@ -2463,6 +2511,12 @@
     },
     "postpone_done": {
       "message": "„{task_name}“ ist erledigt — es gibt nichts mehr zu verschieben."
+    },
+    "no_part_for_entity": {
+      "message": "{entity_id} ist nicht der Bestandssensor eines Ersatzteils."
+    },
+    "part_not_reusable": {
+      "message": "{entity_id} ist kein wiederverwendbares Ersatzteil mit gezähltem Bestand."
     }
   },
   "triggers": {

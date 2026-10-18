@@ -619,6 +619,7 @@
           "parts_cost_mode": "I ricambi contano come spesa",
           "battery_low_percent": "Soglia „batteria scarica“ (%)",
           "battery_recovered_percent": "Batteria considerata sostituita sopra (%)",
+          "battery_low_delay_minutes": "Batteria considerata scarica solo dopo (minuti)",
           "battery_auto_record_recovery": "Registra automaticamente una sostituzione quando una batteria scarica si riprende",
           "panel_title": "Titolo del pannello laterale",
           "shopping_list_entity": "Lista della spesa per sincronizzare le attività di acquisto",
@@ -638,6 +639,7 @@
           "parts_cost_mode": "All'acquisto: conta il costo di un promemoria di acquisto, i ricambi usati sono solo informativi. All'uso: ogni completamento registra i ricambi usati e un acquisto imposta invece il prezzo del ricambio. Vale da ora in poi.",
           "battery_low_percent": "Soglia minima per tutta la flotta: una batteria a questo livello o sotto conta come scarica, a meno che la sua soglia Battery Notes sia più alta.",
           "battery_recovered_percent": "Una batteria scarica resta conteggiata come scarica finché il livello non supera questo valore o non viene registrata una sostituzione — così un livello che oscilla attorno alla soglia non completa di continuo l'attività della flotta.",
+          "battery_low_delay_minutes": "Una batteria deve risultare scarica per questo tempo prima di essere considerata scarica, così un sensore che segnala per un attimo un livello molto basso e poi si riprende da solo non la mette in elenco. 0 = subito.",
           "battery_auto_record_recovery": "Quando una batteria che era scarica supera la soglia di ripristino, la data di sostituzione viene registrata in Battery Notes e le celle di ricambio vengono scalate dalla scorta — senza alcun tocco",
           "panel_title": "Nome personalizzato per la voce nella barra laterale. Lascia vuoto per usare \"Maintenance\". Utile per evitare conflitti con la dashboard Manutenzione integrata di Home Assistant.",
           "shopping_list_entity": "I promemoria di acquisto automatici per i ricambi scarsi appaiono in questo elenco; spuntarne uno completa il promemoria e rifornisce il ricambio. Lasciare vuoto per disattivare.",
@@ -2103,6 +2105,52 @@
           "description": "Restituisce solo le attività destinate a questa persona (quelle di cui è responsabile e quelle condivise con lei di cui nessuno è responsabile). La persona deve essere collegata a un utente Home Assistant."
         }
       }
+    },
+    "part_restock": {
+      "name": "Rifornire un ricambio",
+      "description": "Modifica la scorta di un ricambio: nuovi acquistati o una correzione. Indica esattamente uno tra variazione e nuova scorta.",
+      "fields": {
+        "entity_id": {
+          "name": "Ricambio",
+          "description": "Il sensore di scorta di uno o più ricambi."
+        },
+        "delta": {
+          "name": "Variazione",
+          "description": "Quanti aggiungerne; negativo per toglierne."
+        },
+        "absolute": {
+          "name": "Nuova scorta",
+          "description": "La nuova scorta, che sostituisce quella precedente."
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "Ricambio di nuovo pronto",
+      "description": "Pezzi usati di un ricambio riutilizzabile sono di nuovo pronti (ricaricati, affilati, ...): dalla pila in attesa di nuovo alla scorta.",
+      "fields": {
+        "entity_id": {
+          "name": "Ricambio",
+          "description": "Il sensore di scorta di uno o più ricambi."
+        },
+        "quantity": {
+          "name": "Quantità",
+          "description": "Quanti sono di nuovo pronti. Tutti quelli in attesa se omesso."
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "Smaltire ricambi usati",
+      "description": "Pezzi usati di un ricambio riutilizzabile che non si possono più rimettere in uso, come una pila esaurita, lasciano la pila in attesa senza tornare alla scorta.",
+      "fields": {
+        "entity_id": {
+          "name": "Ricambio",
+          "description": "Il sensore di scorta di uno o più ricambi."
+        },
+        "quantity": {
+          "name": "Quantità",
+          "description": "Quanti sono andati per sempre. Uno se omesso."
+        }
+      }
     }
   },
   "issues": {
@@ -2463,6 +2511,12 @@
     },
     "postpone_done": {
       "message": "«{task_name}» è completata — non c’è più nulla da rinviare."
+    },
+    "no_part_for_entity": {
+      "message": "{entity_id} non è il sensore di scorta di un ricambio."
+    },
+    "part_not_reusable": {
+      "message": "{entity_id} non è un ricambio riutilizzabile con una scorta conteggiata."
     }
   },
   "triggers": {

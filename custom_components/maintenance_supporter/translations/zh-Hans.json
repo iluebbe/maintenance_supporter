@@ -619,6 +619,7 @@
           "parts_cost_mode": "备件计入支出",
           "battery_low_percent": "电池“电量低”阈值（%）",
           "battery_recovered_percent": "电量高于此值视为已更换（%）",
+          "battery_low_delay_minutes": "电量低持续多久才算电量低（分钟）",
           "battery_auto_record_recovery": "低电量电池恢复时自动记录更换",
           "panel_title": "侧边栏面板标题",
           "shopping_list_entity": "同步购买任务的购物清单",
@@ -638,6 +639,7 @@
           "parts_cost_mode": "购买时：计入购买提醒的费用，所用备件仅作参考。使用时：每次完成都会计入所用备件，购买则只更新备件价格。从现在起的完成记录生效。",
           "battery_low_percent": "全部电池的底线：电量等于或低于此值的电池计为低电量，除非其 Battery Notes 阈值更高。",
           "battery_recovered_percent": "电量低的电池会一直计为低电量，直到电量高于此值或记录了更换——这样在阈值附近波动的电量不会反复完成电池组任务。",
+          "battery_low_delay_minutes": "电池需持续报告电量低这么长时间才算电量低，这样传感器短暂报告极低电量又自行恢复时，不会把它列入清单。0 = 立即。",
           "battery_auto_record_recovery": "当曾经电量低的电池升至恢复阈值以上时，更换日期会记录到 Battery Notes 中，备用电池会从库存中扣除——无需点击",
           "panel_title": "侧边栏条目的自定义名称。留空使用 “Maintenance”。有助于避免与 Home Assistant 内置的维护面板冲突。",
           "shopping_list_entity": "库存不足部件的自动购买提醒会显示在此待办清单中；勾选一项即完成提醒并补充库存。留空则禁用。",
@@ -2103,6 +2105,52 @@
           "description": "仅返回此人员负责的任务，以及与其共享且无人负责的任务。人员必须关联 Home Assistant 用户。"
         }
       }
+    },
+    "part_restock": {
+      "name": "补充备件",
+      "description": "更改备件库存：新买的，或一次更正。变化量和新库存只填一项。",
+      "fields": {
+        "entity_id": {
+          "name": "备件",
+          "description": "一个或多个备件的库存传感器。"
+        },
+        "delta": {
+          "name": "变化量",
+          "description": "增加多少；负数表示减少。"
+        },
+        "absolute": {
+          "name": "新库存",
+          "description": "新的库存，替换原来的。"
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "备件重新可用",
+      "description": "可重复使用备件的已用件重新可用（已充电、已磨利……）：从待处理堆回到库存。",
+      "fields": {
+        "entity_id": {
+          "name": "备件",
+          "description": "一个或多个备件的库存传感器。"
+        },
+        "quantity": {
+          "name": "数量",
+          "description": "有多少重新可用。留空则为全部待处理的。"
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "丢弃已用备件",
+      "description": "可重复使用备件中无法再恢复可用的已用件（例如报废的电池）离开待处理堆，不回到库存。",
+      "fields": {
+        "entity_id": {
+          "name": "备件",
+          "description": "一个或多个备件的库存传感器。"
+        },
+        "quantity": {
+          "name": "数量",
+          "description": "有多少永久报废。留空则为一个。"
+        }
+      }
     }
   },
   "issues": {
@@ -2463,6 +2511,12 @@
     },
     "postpone_done": {
       "message": "“{task_name}”已完成 — 没有可推迟的内容。"
+    },
+    "no_part_for_entity": {
+      "message": "{entity_id} 不是备件的库存传感器。"
+    },
+    "part_not_reusable": {
+      "message": "{entity_id} 不是有库存计数的可重复使用备件。"
     }
   },
   "triggers": {

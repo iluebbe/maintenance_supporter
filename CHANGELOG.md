@@ -2,6 +2,48 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.105.0] - 2026-10-18
+
+### ✨ Added
+
+- **A battery counts as low only after a while** (#219): some sensors, Shelly BT ones among them, report a very low
+  level for a few minutes and recover by themselves. Such a dip put the battery on the list, triggered the fleet task
+  and, with *Record a replacement automatically* on, recorded a replacement once it recovered. *Settings → General →
+  Battery counts as low after (minutes)* sets how long a battery must read low before it counts as low. The default
+  0 keeps "at once".
+- **Dispose of used spare parts** (#218): a dead cell on the *to charge* pile, or a blade past sharpening, is thrown
+  away with **Dispose** next to *Charged*, in the parts list and in the battery fleet. It asks how many (one by
+  default) and takes them off the pile without putting them back in stock, so the reorder threshold and the shopping
+  reminder see that they are gone.
+- **The part actions as services** (#218): `part_restock` (`delta` or `absolute`), `part_ready_again` and
+  `part_dispose`, addressed by the part's stock sensor, for automations and dashboard buttons. They need write access
+  like the panel's buttons, take several parts at once and return the new counts when asked for a response.
+
+### 🐛 Fixed
+
+- **Voice completes the task you named, or asks:** for a phrase it could not match word by word, the fallback took
+  any stored name it found inside the phrase. *Spülmaschine Filter reinigen* completed the pool's *Filter*, and
+  *Ölfilterwechsel* matched *Filter* too. A name now has to stand as a word of its own, with its object named as
+  well or nothing else said; a compound of object and name (*Poolfilter*) still counts. The same rule finds the part
+  to restock by voice.
+- **Quiet hours: a person's reminders reach their own phones:** the one summary at the end of the quiet hours went to
+  the household service only and marked every reminder in it as sent. A reminder meant for one person, which every
+  midnight due date is, never reached that person's phone. Each person now gets a summary of their own reminders on
+  their phones, and the household service one for the rest. A summary that cannot be delivered keeps its reminders
+  for the next attempt.
+- **A trigger watching several sensors announces the task once:** each sensor reported its own crossing as the
+  task's. With *all sensors*, one sensor over its limit wrote a *Triggered* history entry and fired the activation
+  event while the task stayed OK; with *any sensor*, every further sensor wrote one more, and each one clearing fired
+  the deactivation event while another still held the task. The task is announced when it changes now.
+- **The *to charge* pile no longer grows on its own:** a swap with no charged cells counted in stock took the cells
+  from nowhere and still put the empty ones on the pile, so with nobody pressing *Charged* the pile grew by the
+  device's cells on every swap. The cells that went in now come off the pile when the stock has none: they were
+  charged, never marked ready.
+- **Automatic record: a charge or a swap by the cells that went in** (D#213): with *Ask which cells went in* on, an
+  `AA NiMH` note that runs on disposables took every recovery for a charge and never recorded the swap. Whether a
+  recovery was a charge follows the cells chosen at the last *Replaced* now. The shopping list and the forecast still
+  follow the type in Battery Notes.
+
 ## [2.104.1] - 2026-10-18
 
 ### 🐛 Fixed

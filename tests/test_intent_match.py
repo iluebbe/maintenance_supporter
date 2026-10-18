@@ -90,6 +90,33 @@ def test_a_script_without_spaces_matches_by_the_whole_name() -> None:
     assert len(match_rows("フィルター", rows, "ja")) == 2
 
 
+def test_a_name_inside_a_word_or_beside_another_object_is_not_that_task() -> None:
+    """Bug audit 2026-10-17 (N-2): the fallback for scripts without spaces
+    took a stored name found anywhere in the phrase, so "Spülmaschine Filter
+    reinigen" completed the pool's "Filter" and "Ölfilterwechsel" did too."""
+    rows = _rows(("Filter", "Pool"), ("Sieb reinigen", "Spülmaschine"))
+    assert match_rows("Spülmaschine Filter reinigen", rows, "de") == []
+    assert match_rows("Ölfilterwechsel", rows, "de") == []
+    assert match_rows("Ölfilterwechsel am Pool", rows, "de") == []
+    # As words of its own, with its object said too, it still is, and so is a
+    # compound of the object and the name.
+    assert _names(match_rows("Filter xyz Pool", rows, "de")) == [("Filter", "Pool")]
+    assert _names(match_rows("Poolfilter reinigen", rows, "de")) == [("Filter", "Pool")]
+    dishwasher = _rows(("Filter", "Pool"), ("Filter", "Spülmaschine"))
+    assert _names(match_rows("Spülmaschinenfilter", dishwasher, "de")) == [("Filter", "Spülmaschine")]
+
+    ja = _rows(("フィルター", "プール"), ("清掃", "食洗機"))
+    assert match_rows("食洗機のフィルター", ja, "ja") == []
+    # A particle is not another name.
+    assert _names(match_rows("フィルターを", ja, "ja")) == [("フィルター", "プール")]
+    ko = _rows(("필터", "수영장"), ("청소", "식기세척기"))
+    assert _names(match_rows("수영장의 필터", ko, "ko")) == [("필터", "수영장")]
+    assert _names(match_rows("필터를", ko, "ko")) == [("필터", "수영장")]
+    assert match_rows("식기세척기 필터", ko, "ko") == []
+    # A row without a name or without an object never matches by the fallback.
+    assert match_rows("xyz filter pool", _rows(("", "Pool"), ("Filter", "")), "en") == []
+
+
 def test_the_ambiguity_answer_is_a_phrase_that_resolves() -> None:
     """The "say it like this" example is "task <connector> object" in the
     speaker's language — it must resolve when repeated, in every language the

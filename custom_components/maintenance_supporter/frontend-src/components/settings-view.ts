@@ -67,6 +67,7 @@ interface SettingsResponse {
     battery_low_percent?: number;
     /** #180: a low battery counts as replaced only once its level is above this. */
     battery_recovered_percent?: number;
+    battery_low_delay_minutes?: number;
     battery_auto_record_recovery?: boolean;
     /** D#182: shopping-search URL with {q} ("" = automatic) + the automatic value in effect. */
     part_search_url_template?: string;
@@ -1010,6 +1011,11 @@ export class MaintenanceSettingsView extends LitElement {
           ${this._intSetting("battery_recovered_percent", g.battery_recovered_percent ?? 50)}
         </label>
         <div class="setting-hint">${t("settings_battery_recovered_percent_hint", L)}</div>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_battery_low_delay", L)}</span>
+          ${this._intSetting("battery_low_delay_minutes", g.battery_low_delay_minutes ?? 0)}
+        </label>
+        <div class="setting-hint">${t("settings_battery_low_delay_hint", L)}</div>
         <label class="setting-row">
           <span class="setting-label">${t("settings_battery_auto_record", L)}</span>
           <input type="checkbox" class="auto-record-recovery"

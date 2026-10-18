@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All 108 WebSocket commands the integration registers are covered here. Their
+All 109 WebSocket commands the integration registers are covered here. Their
 authorization tiers are frozen in `tests/test_ws_permission_matrix.py` — that
 test is the inventory of record; this file is its prose companion (and
 `tests/test_docs_counts_in_sync.py` keeps the counts quoted here honest).
@@ -241,7 +241,10 @@ required on every update; other omitted fields keep their stored values;
 `{entry_id, part_id, quantity?}` → `{moved, stock, restoring}` — used ones of a
 reusable part are ready again (charged, sharpened, ...): back from `restoring`
 to `stock`, all of them without `quantity`; `not_found` for a part that is not
-reusable or has no tracked stock.
+reusable or has no tracked stock. `part/dispose` (#218) `{entry_id, part_id,
+quantity?}` → `{disposed, stock, restoring}` — used ones that cannot be made
+ready again (a dead cell): off `restoring` without going back to `stock`, one
+without `quantity`, capped at the waiting ones; same `not_found`.
 `parts/overview` (#130, read tier, no args) → `{parts: [...], count}` — the
 instance-wide inventory: every part with its stored fields plus `part_id`,
 `entry_id` + `object_name` (owner), live `stock`, `restoring`, `low`, and `consumers:

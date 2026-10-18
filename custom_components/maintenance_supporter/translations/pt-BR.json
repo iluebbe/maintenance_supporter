@@ -619,6 +619,7 @@
           "parts_cost_mode": "As peças contam como despesa",
           "battery_low_percent": "Limite „pilha fraca“ (%)",
           "battery_recovered_percent": "Pilha considerada trocada acima de (%)",
+          "battery_low_delay_minutes": "Pilha considerada fraca só após (minutos)",
           "battery_auto_record_recovery": "Registrar automaticamente uma troca quando uma pilha fraca se recupera",
           "panel_title": "Título do painel na barra lateral",
           "shopping_list_entity": "Lista de compras para sincronizar as tarefas de compra",
@@ -638,6 +639,7 @@
           "parts_cost_mode": "Na compra: conta o custo de um lembrete de compra, e as peças usadas aparecem só como informação. No uso: cada conclusão registra as peças usadas, e uma compra define o preço da peça. Vale a partir de agora.",
           "battery_low_percent": "Limite mínimo de toda a frota: uma pilha neste nível ou abaixo conta como fraca, a menos que seu limite do Battery Notes seja maior.",
           "battery_recovered_percent": "Uma pilha fraca continua contando como fraca até o nível subir acima deste valor ou uma troca ser registrada — assim um nível oscilando em torno do limite não conclui a tarefa da frota repetidamente.",
+          "battery_low_delay_minutes": "Uma pilha precisa indicar nível baixo por este tempo antes de contar como fraca, para que um sensor que informa por um instante um nível muito baixo e se recupera sozinho não a coloque na lista. 0 = na hora.",
           "battery_auto_record_recovery": "Quando uma pilha que estava fraca sobe acima do limite de recuperação, a data da troca é registrada no Battery Notes e as pilhas reserva são retiradas do estoque — sem nenhum toque",
           "panel_title": "Nome personalizado para a entrada na barra lateral. Deixe em branco para usar \"Manutenção\". Útil para evitar conflito com o painel de Manutenção nativo do Home Assistant.",
           "shopping_list_entity": "Os lembretes automáticos de compra de peças em falta aparecem nesta lista de tarefas; marcar um conclui o lembrete e repõe a peça. Deixe vazio para desativar.",
@@ -2103,6 +2105,52 @@
           "description": "Retornar apenas as tarefas destinadas a esta pessoa (as que estão sob sua responsabilidade e as compartilhadas com ela pelas quais ninguém é responsável). A pessoa deve estar vinculada a um usuário do Home Assistant."
         }
       }
+    },
+    "part_restock": {
+      "name": "Repor peça de reposição",
+      "description": "Altera o estoque de uma peça de reposição: novas compradas ou uma correção. Informe exatamente um entre alteração e novo estoque.",
+      "fields": {
+        "entity_id": {
+          "name": "Peça de reposição",
+          "description": "O sensor de estoque de uma ou mais peças de reposição."
+        },
+        "delta": {
+          "name": "Alteração",
+          "description": "Quantas adicionar; negativo para tirar algumas."
+        },
+        "absolute": {
+          "name": "Novo estoque",
+          "description": "O novo estoque, que substitui o anterior."
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "Peça de reposição pronta de novo",
+      "description": "Unidades usadas de uma peça reutilizável estão prontas de novo (carregadas, afiadas, ...): da pilha em espera de volta ao estoque.",
+      "fields": {
+        "entity_id": {
+          "name": "Peça de reposição",
+          "description": "O sensor de estoque de uma ou mais peças de reposição."
+        },
+        "quantity": {
+          "name": "Quantidade",
+          "description": "Quantas estão prontas de novo. Todas as que esperam se omitido."
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "Descartar peças de reposição usadas",
+      "description": "Unidades usadas de uma peça reutilizável que não podem mais ficar prontas, como uma pilha morta, saem da pilha em espera sem voltar ao estoque.",
+      "fields": {
+        "entity_id": {
+          "name": "Peça de reposição",
+          "description": "O sensor de estoque de uma ou mais peças de reposição."
+        },
+        "quantity": {
+          "name": "Quantidade",
+          "description": "Quantas se perderam de vez. Uma se omitido."
+        }
+      }
     }
   },
   "issues": {
@@ -2463,6 +2511,12 @@
     },
     "postpone_done": {
       "message": "“{task_name}” está concluída — não há nada para adiar."
+    },
+    "no_part_for_entity": {
+      "message": "{entity_id} não é o sensor de estoque de uma peça de reposição."
+    },
+    "part_not_reusable": {
+      "message": "{entity_id} não é uma peça de reposição reutilizável com estoque contado."
     }
   },
   "triggers": {

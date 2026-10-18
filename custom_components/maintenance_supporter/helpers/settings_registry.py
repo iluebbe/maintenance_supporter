@@ -29,6 +29,7 @@ from typing import Any
 import voluptuous as vol
 
 from ..const import (
+    BATTERY_LOW_DELAY_MINUTES_RANGE,
     BATTERY_RECOVERED_PERCENT_RANGE,
     CONF_ACTION_COMPLETE_ENABLED,
     CONF_ACTION_SKIP_ENABLED,
@@ -46,6 +47,7 @@ from ..const import (
     CONF_ARCHIVE_ONEOFF_DAYS,
     CONF_BATTERY_AUTO_RECORD_RECOVERY,
     CONF_BATTERY_LIFETIME_MONTHS,
+    CONF_BATTERY_LOW_DELAY_MINUTES,
     CONF_BATTERY_LOW_PERCENT,
     CONF_BATTERY_RECOVERED_PERCENT,
     CONF_BUDGET_ALERT_THRESHOLD,
@@ -97,6 +99,7 @@ from ..const import (
     CONF_WARRANTY_REMINDER_ENABLED,
     CONF_WEEKLY_DIGEST_ENABLED,
     DEFAULT_ARCHIVE_ONEOFF_DAYS,
+    DEFAULT_BATTERY_LOW_DELAY_MINUTES,
     DEFAULT_BATTERY_LOW_PERCENT,
     DEFAULT_BATTERY_RECOVERED_PERCENT,
     DEFAULT_BUDGET_CURRENCY,
@@ -139,6 +142,8 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_BATTERY_LOW_PERCENT, int, DEFAULT_BATTERY_LOW_PERCENT, int_range=(1, 90)),
     # #180: a low battery stays low until its level rises ABOVE this (hysteresis).
     SettingSpec(CONF_BATTERY_RECOVERED_PERCENT, int, DEFAULT_BATTERY_RECOVERED_PERCENT, int_range=BATTERY_RECOVERED_PERCENT_RANGE),
+    # #219: low only once it has read low this many minutes (0 = at once).
+    SettingSpec(CONF_BATTERY_LOW_DELAY_MINUTES, int, DEFAULT_BATTERY_LOW_DELAY_MINUTES, int_range=BATTERY_LOW_DELAY_MINUTES_RANGE),
     # #181 follow-up: a level-driven recovery records the replacement itself
     # (Battery Notes date + stock) — advanced, off by default.
     SettingSpec(CONF_BATTERY_AUTO_RECORD_RECOVERY, bool, False),

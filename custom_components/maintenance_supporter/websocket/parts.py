@@ -344,6 +344,36 @@ async def ws_part_ready_again(
     connection.send_result(msg["id"], result)
 
 
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/part/dispose",
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("part_id"): ID_FIELD,
+        # How many are gone for good; one when left out.
+        vol.Optional("quantity"): vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=0, max=MAX_PART_STOCK)),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_part_dispose(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Used items of a reusable part are gone for good (#218): a dead cell,
+    a blade past sharpening — off the pile, not back to the stock."""
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+    from ..parts_runtime import async_part_dispose
+
+    result = await async_part_dispose(hass, entry, msg["part_id"], msg.get("quantity"))
+    if result is None:
+        connection.send_error(msg["id"], "not_found", "No reusable part with a tracked stock")
+        return
+    connection.send_result(msg["id"], result)
+
+
 @websocket_api.websocket_command({vol.Required("type"): "maintenance_supporter/parts/overview"})
 @websocket_api.async_response
 async def ws_parts_overview(

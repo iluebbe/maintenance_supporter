@@ -529,11 +529,30 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             self.async_write_ha_state()
         return bool(prev_active) and not task.get("_trigger_active", False)
 
-    def _aggregate(self, entity_logic: str) -> bool:
+    def _aggregate(self, entity_logic: str, states: dict[str, bool] | None = None) -> bool:
         """The task-level latch of a multi-entity trigger ("all" / "any")."""
+        states = self._trigger_states if states is None else states
         if entity_logic == "all":
-            return bool(self._trigger_states) and all(self._trigger_states.values())
-        return any(self._trigger_states.values())
+            return bool(states) and all(states.values())
+        return any(states.values())
+
+    def flips_task_trigger(self, trigger_entity_id: str, is_triggered: bool) -> bool | None:
+        """Whether this entity's new state changes the TASK's trigger state,
+        asked before :meth:`async_update_trigger_state` applies it. None
+        when the task watches one entity (its state is the task's) or there
+        is no read model yet.
+
+        Bug audit 2026-10-17 (T-2): every entity of a multi-entity trigger
+        announced its own flip as the task's, so an "all" task wrote a
+        TRIGGERED history entry and fired the activation event when ONE of
+        its sensors crossed, and "any" wrote one more for every further
+        sensor."""
+        if len(self._triggers) <= 1 or not has_coordinator_data(self.coordinator):
+            return None
+        trigger_config = self.coordinator.entry.data.get(CONF_TASKS, {}).get(self._task_id, {}).get("trigger_config", {})
+        entity_logic = trigger_config.get("entity_logic", DEFAULT_ENTITY_LOGIC)
+        after = {**self._trigger_states, trigger_entity_id: is_triggered}
+        return self._aggregate(entity_logic) != self._aggregate(entity_logic, after)
 
     @staticmethod
     def _compute_live_status(task: dict[str, Any]) -> str:

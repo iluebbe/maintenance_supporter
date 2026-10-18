@@ -52,3 +52,33 @@ describe("settings: battery auto-record on recovery (#181)", () => {
     expect(msg.settings).to.deep.equal({ battery_auto_record_recovery: true });
   });
 });
+
+describe("settings: a battery counts as low only after a while (#219)", () => {
+  it("offers the minutes with their bounds and writes battery_low_delay_minutes", async () => {
+    const settings = { ...DEFAULT_SETTINGS_RESPONSE, general: { ...DEFAULT_SETTINGS_RESPONSE.general } };
+    const { hass, sent } = createMockHass({
+      handlers: {
+        "maintenance_supporter/settings": () => settings,
+        "maintenance_supporter/global/update": (msg: any) => ({ ...settings, general: { ...settings.general, ...msg.settings } }),
+      },
+    });
+    const el = await fixture<MaintenanceSettingsView>(html`
+      <maintenance-settings-view .hass=${hass} .features=${DEFAULT_FEATURES}></maintenance-settings-view>
+    `);
+    await new Promise((r) => setTimeout(r, 50));
+    await el.updateComplete;
+    const row = [...el.shadowRoot!.querySelectorAll<HTMLLabelElement>("label.setting-row")].find((r) =>
+      r.textContent!.includes("Battery counts as low after (minutes)"),
+    )!;
+    expect(row, "row rendered").to.exist;
+    const input = row.querySelector<HTMLInputElement>("input[type=number]")!;
+    expect([input.min, input.max, input.value]).to.deep.equal(["0", "1440", "0"]);
+    expect(row.nextElementSibling!.textContent).to.contain("0 = at once");
+
+    input.value = "15";
+    input.dispatchEvent(new Event("change"));
+    await new Promise((r) => setTimeout(r, 30));
+    const msg = (sent as SentMessage[]).find((m) => m.type === "maintenance_supporter/global/update") as any;
+    expect(msg.settings).to.deep.equal({ battery_low_delay_minutes: 15 });
+  });
+});

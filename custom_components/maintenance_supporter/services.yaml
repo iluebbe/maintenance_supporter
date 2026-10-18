@@ -398,3 +398,81 @@ list_tasks:
       selector:
         entity:
           domain: person
+
+part_restock:
+  name: Restock spare part
+  description: "Change a spare part's stock: new ones bought, or a correction. Give exactly one of change and new count."
+  fields:
+    entity_id:
+      name: Spare part
+      description: The stock sensor of one or more spare parts.
+      required: true
+      selector:
+        entity:
+          domain: sensor
+          integration: maintenance_supporter
+          multiple: true
+    delta:
+      name: Change
+      description: How many to add; negative to take some away.
+      selector:
+        number:
+          min: -100000
+          max: 100000
+          step: any
+          mode: box
+    absolute:
+      name: New count
+      description: The new stock, replacing the old one.
+      selector:
+        number:
+          min: 0
+          max: 100000
+          step: any
+          mode: box
+
+part_ready_again:
+  name: Spare part ready again
+  description: "Used ones of a reusable part are ready again (charged, sharpened, ...): from the waiting pile back to the stock."
+  fields:
+    entity_id:
+      name: Spare part
+      description: The stock sensor of one or more spare parts.
+      required: true
+      selector:
+        entity:
+          domain: sensor
+          integration: maintenance_supporter
+          multiple: true
+    quantity:
+      name: Quantity
+      description: How many are ready again. All waiting ones when left out.
+      selector:
+        number:
+          min: 0
+          max: 100000
+          step: any
+          mode: box
+
+part_dispose:
+  name: Dispose of used spare parts
+  description: Used ones of a reusable part that cannot be made ready again, such as a dead cell, leave the waiting pile without going back to the stock.
+  fields:
+    entity_id:
+      name: Spare part
+      description: The stock sensor of one or more spare parts.
+      required: true
+      selector:
+        entity:
+          domain: sensor
+          integration: maintenance_supporter
+          multiple: true
+    quantity:
+      name: Quantity
+      description: How many are gone for good. One when left out.
+      selector:
+        number:
+          min: 0
+          max: 100000
+          step: any
+          mode: box

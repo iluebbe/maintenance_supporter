@@ -90,9 +90,11 @@ NOTIFICATION_KINDS: dict[str, KindSpec] = {
     KIND_WARRANTY: KindSpec(KIND_WARRANTY, "alert", "warranty_reminder_enabled + days", frozenset({"enabled", "target"}), "household"),
     KIND_BUDGET: KindSpec(KIND_BUDGET, "alert", "budget_alerts_enabled + threshold", frozenset({"enabled", "target", "quiet_hours", "daily_cap"}), "household"),
     KIND_COMPLETED: KindSpec(KIND_COMPLETED, "activity", "notify_completed (off | automatic | all)", frozenset({"enabled", "target", "kind_enabled", "task_mute", "scope", "quiet_hours", "daily_cap"}), "household"),
-    # One message for everything the quiet hours held back — sent at the first
-    # send attempt after they end (instead of a burst of single pushes).
-    KIND_QUIET_END: KindSpec(KIND_QUIET_END, "summary", "quiet_hours_enabled", frozenset({"enabled", "target", "daily_cap"}), "household"),
+    # One message per recipient for what the quiet hours held back — sent at
+    # the first send attempt after they end (instead of a burst of single
+    # pushes). Routed like the reminders it holds: a person's own reminders to
+    # that person's phones, the rest to the household (bug audit 2026-10-17).
+    KIND_QUIET_END: KindSpec(KIND_QUIET_END, "summary", "quiet_hours_enabled", frozenset({"enabled", "target", "daily_cap"}), "personal"),
     # 2026-10 places: on arrival at an object's place (after a short stay, once
     # per visit), the tasks due there, to the arriving person's phones only.
     # Not held through quiet hours: the reminders follow once they end.

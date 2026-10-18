@@ -83,6 +83,10 @@ export class MaintenancePartsSection extends LitElement {
   @state() private _restockFor: string | null = null;
   @state() private _restockQty = "";
   @state() private _restockInvalid = false;
+  /** #218: the part whose dispose field is open, and its count. */
+  @state() private _disposeFor: string | null = null;
+  @state() private _disposeQty = "1";
+  @state() private _disposeInvalid = false;
   @state() private _docsFor: string | null = null;
 
   private get _lang(): string {
@@ -237,6 +241,64 @@ export class MaintenancePartsSection extends LitElement {
     }
   }
 
+  /** #218: used ones that cannot be made ready again (a dead cell, a blade
+   *  past sharpening) leave the pile without going back to the stock. */
+  private async _dispose(part: MaintenancePart): Promise<void> {
+    if (this._busy) return;
+    const qty = parseFloat(this._disposeQty);
+    if (!Number.isFinite(qty) || qty <= 0) {
+      this._disposeInvalid = true;
+      return;
+    }
+    this._disposeInvalid = false;
+    const result = await this._send<{ stock: number; restoring: number }>({
+      type: "maintenance_supporter/part/dispose",
+      entry_id: this.entryId,
+      part_id: part.id,
+      quantity: qty,
+    });
+    this._disposeFor = null;
+    if (result) {
+      part.stock = result.stock;
+      part.restoring = result.restoring;
+      this.requestUpdate();
+      this._notifyChanged();
+    }
+  }
+
+  private _renderDispose(part: MaintenancePart, L: string) {
+    if (this._disposeFor !== part.id) {
+      return html`<button class="ready-again dispose" title=${t("part_dispose_hint", L)} .disabled=${this._busy}
+        @click=${() => {
+          this._disposeFor = part.id;
+          this._disposeQty = "1";
+          this._disposeInvalid = false;
+        }}>
+        <ha-icon icon="mdi:trash-can-outline"></ha-icon>${t("part_dispose", L)}
+      </button>`;
+    }
+    return html`<input
+        class="restock-input dispose-input${this._disposeInvalid ? " invalid" : ""}"
+        type="number"
+        min="1"
+        max=${String(part.restoring ?? 0)}
+        .value=${this._disposeQty}
+        aria-label=${t("part_dispose_how_many", L)}
+        title=${t("part_dispose_how_many", L)}
+        @input=${(e: Event) => (this._disposeQty = (e.target as HTMLInputElement).value)}
+        @keydown=${(e: KeyboardEvent) => {
+          if (e.key === "Enter") this._dispose(part);
+          if (e.key === "Escape") this._disposeFor = null;
+        }}
+      />
+      <button class="ready-again dispose confirm" title=${t("part_dispose_hint", L)} .disabled=${this._busy} @click=${() => this._dispose(part)}>
+        <ha-icon icon="mdi:check"></ha-icon>${t("part_dispose", L)}
+      </button>
+      <ha-icon-button title=${t("cancel", L)} @click=${() => (this._disposeFor = null)}
+        ><ha-icon icon="mdi:close"></ha-icon
+      ></ha-icon-button>`;
+  }
+
   private _identLine(part: MaintenancePart): string {
     return [part.vendor, part.mpn ? `MPN: ${part.mpn}` : "", part.gtin ? `GTIN: ${part.gtin}` : ""]
       .filter(Boolean)
@@ -269,9 +331,10 @@ export class MaintenancePartsSection extends LitElement {
                 <span class="waiting-badge">${reuseWaitingText(part.reuse, part.restoring!, L)}</span>
                 ${this.canWrite
                   ? html`<button class="ready-again" title=${t("part_ready_again_hint", L)} .disabled=${this._busy}
-                      @click=${() => this._readyAgain(part)}>
-                      <ha-icon icon="mdi:check"></ha-icon>${t(`part_reuse_${part.reuse}`, L)}
-                    </button>`
+                        @click=${() => this._readyAgain(part)}>
+                        <ha-icon icon="mdi:check"></ha-icon>${t(`part_reuse_${part.reuse}`, L)}
+                      </button>
+                      ${this._renderDispose(part, L)}`
                   : nothing}
               </div>`
             : nothing}
@@ -579,6 +642,14 @@ export class MaintenancePartsSection extends LitElement {
     }
     .ready-again ha-icon {
       --mdc-icon-size: 16px;
+    }
+    .ready-again.dispose {
+      border-color: var(--divider-color, #ccc);
+      color: var(--secondary-text-color);
+    }
+    .ready-again.dispose.confirm {
+      border-color: var(--error-color, #db4437);
+      color: var(--error-color, #db4437);
     }
     .reuse-select {
       font: inherit;

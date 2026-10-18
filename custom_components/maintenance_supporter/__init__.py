@@ -58,6 +58,7 @@ from .const import (
     CONF_NOTIFY_SERVICE,
     CONF_OBJECT,
     CONF_PANEL_ENABLED,
+    CONF_PARTS,
     CONF_SHOPPING_LIST_ENTITY,
     CONF_TASKS,
     CONF_VACATION_EXEMPT_TASK_IDS,
@@ -82,6 +83,9 @@ from .const import (
     SERVICE_DELETE_TASK,
     SERVICE_EXPORT,
     SERVICE_LIST_TASKS,
+    SERVICE_PART_DISPOSE,
+    SERVICE_PART_READY_AGAIN,
+    SERVICE_PART_RESTOCK,
     SERVICE_RESET,
     SERVICE_SKIP,
     SERVICE_UPDATE_TASK,
@@ -102,6 +106,7 @@ from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .frontend import async_register_card
 from .helpers.aggregate import iter_live_tasks, store_of
 from .helpers.aggregate import object_name as aggregate_object_name
+from .helpers.aggregate import object_slug as aggregate_object_slug
 from .helpers.aggregate import task_sensor_entity_id as aggregate_task_sensor_entity_id
 from .helpers.assignees import person_of_user, shared_user_ids, task_is_for, task_user_ids
 from .helpers.assist_sentences import async_sync as async_sync_assist_sentences
@@ -112,6 +117,7 @@ from .helpers.notification_gates import task_may_notify
 from .helpers.notification_ids import action_cycle, parse_action_id
 from .helpers.notification_manager import NotificationManager
 from .helpers.notify_hooks import KIND_LEAD_TIME
+from .helpers.parts import MAX_PART_STOCK
 from .helpers.pause import is_task_inert
 from .helpers.permissions import service_tier
 from .helpers.phases import task_label
@@ -285,6 +291,26 @@ SERVICE_LIST_TASKS_SCHEMA = vol.Schema(
         vol.Optional("status"): vol.In(["ok", "due_soon", "overdue", "triggered", "paused"]),
         # #210: only the tasks meant for this person (helpers/assignees).
         vol.Optional("person"): cv.entity_id,
+    }
+)
+
+# #218: the part actions, addressed by the part's stock sensor. The bounds
+# are the WS commands' (part/restock, part/ready_again, part/dispose).
+_PART_COUNT = vol.All(vol.Coerce(float), vol.Range(min=0, max=MAX_PART_STOCK))
+
+SERVICE_PART_RESTOCK_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): vol.All(cv.entity_ids, vol.Length(min=1)),
+        # Exactly one: a change (negative for a correction) or the new count.
+        vol.Exclusive("delta", "amount"): vol.All(vol.Coerce(float), vol.Range(min=-MAX_PART_STOCK, max=MAX_PART_STOCK)),
+        vol.Exclusive("absolute", "amount"): _PART_COUNT,
+    }
+)
+
+SERVICE_PART_PILE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): vol.All(cv.entity_ids, vol.Length(min=1)),
+        vol.Optional("quantity"): _PART_COUNT,
     }
 )
 
@@ -967,6 +993,80 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         schema=SERVICE_LIST_TASKS_SCHEMA,
         supports_response=SupportsResponse.ONLY,
     )
+
+    # #218: restock, ready again and dispose for automations and dashboard
+    # buttons — the panel's part actions, same tier (write) and the same
+    # runtime calls, so the stock, its events and the buy tasks move alike.
+    def _resolve_part_targets(entity_ids: list[str]) -> list[tuple[str, ConfigEntry, str]]:
+        """Each part stock sensor -> (entity_id, owner entry, part_id); all
+        resolved before anything is booked."""
+        registry = er.async_get(hass)
+        targets: list[tuple[str, ConfigEntry, str]] = []
+        for eid in dict.fromkeys(entity_ids):
+            reg = registry.async_get(eid)
+            entry = hass.config_entries.async_get_entry(reg.config_entry_id) if reg and reg.config_entry_id else None
+            part_id = None
+            if entry is not None and entry.domain == DOMAIN and reg is not None:
+                prefix = f"maintenance_supporter_{aggregate_object_slug(entry.data.get(CONF_OBJECT) or {})}_part_"
+                candidate = reg.unique_id[len(prefix) :] if reg.unique_id.startswith(prefix) else None
+                part_id = candidate if candidate in (entry.data.get(CONF_PARTS) or {}) else None
+            if entry is None or part_id is None:
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="no_part_for_entity",
+                    translation_placeholders={"entity_id": eid},
+                )
+            targets.append((eid, entry, part_id))
+        return targets
+
+    async def _handle_part_restock(call: ServiceCall) -> dict[str, Any] | None:
+        from .parts_runtime import async_change_part_stock
+
+        if ("delta" in call.data) == ("absolute" in call.data):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="invalid_input",
+                translation_placeholders={"error": "provide exactly one of delta / absolute"},
+            )
+        results = []
+        for eid, entry, part_id in _resolve_part_targets(call.data[ATTR_ENTITY_ID]):
+            stock = await async_change_part_stock(hass, entry, part_id, delta=call.data.get("delta"), absolute=call.data.get("absolute"))
+            results.append({"entity_id": eid, "stock": stock})
+        return {"parts": results} if call.return_response else None
+
+    def _reusable(eid: str, result: dict[str, float] | None) -> dict[str, float]:
+        if result is None:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="part_not_reusable",
+                translation_placeholders={"entity_id": eid},
+            )
+        return result
+
+    async def _handle_part_ready_again(call: ServiceCall) -> dict[str, Any] | None:
+        from .parts_runtime import async_part_ready_again
+
+        results = [
+            {"entity_id": eid, **_reusable(eid, await async_part_ready_again(hass, entry, part_id, call.data.get("quantity")))}
+            for eid, entry, part_id in _resolve_part_targets(call.data[ATTR_ENTITY_ID])
+        ]
+        return {"parts": results} if call.return_response else None
+
+    async def _handle_part_dispose(call: ServiceCall) -> dict[str, Any] | None:
+        from .parts_runtime import async_part_dispose
+
+        results = [
+            {"entity_id": eid, **_reusable(eid, await async_part_dispose(hass, entry, part_id, call.data.get("quantity")))}
+            for eid, entry, part_id in _resolve_part_targets(call.data[ATTR_ENTITY_ID])
+        ]
+        return {"parts": results} if call.return_response else None
+
+    for service, handler, schema in (
+        (SERVICE_PART_RESTOCK, _handle_part_restock, SERVICE_PART_RESTOCK_SCHEMA),
+        (SERVICE_PART_READY_AGAIN, _handle_part_ready_again, SERVICE_PART_PILE_SCHEMA),
+        (SERVICE_PART_DISPOSE, _handle_part_dispose, SERVICE_PART_PILE_SCHEMA),
+    ):
+        hass.services.async_register(DOMAIN, service, service_tier(hass, handler), schema=schema, supports_response=SupportsResponse.OPTIONAL)
 
     # Register WebSocket commands
     async_register_commands(hass)

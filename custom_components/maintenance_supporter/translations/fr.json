@@ -619,6 +619,7 @@
           "parts_cost_mode": "Les pièces comptent comme dépense",
           "battery_low_percent": "Seuil « pile faible » (%)",
           "battery_recovered_percent": "Pile considérée remplacée au-dessus de (%)",
+          "battery_low_delay_minutes": "Pile considérée faible seulement après (minutes)",
           "battery_auto_record_recovery": "Enregistrer automatiquement un remplacement quand une pile faible se rétablit",
           "panel_title": "Titre du panneau latéral",
           "shopping_list_entity": "Liste de courses pour synchroniser les tâches d’achat",
@@ -638,6 +639,7 @@
           "parts_cost_mode": "À l'achat : le coût d'un rappel d'achat compte, les pièces utilisées sont indiquées pour information. À l'utilisation : chaque réalisation comptabilise les pièces utilisées, et un achat fixe plutôt le prix de la pièce. S'applique dès maintenant.",
           "battery_low_percent": "Plancher pour tout le parc : une pile à ce niveau ou en dessous compte comme faible, sauf si son seuil Battery Notes est plus élevé.",
           "battery_recovered_percent": "Une pile faible reste comptée comme faible tant que son niveau ne dépasse pas cette valeur ou qu'un remplacement n'est pas enregistré — un niveau qui oscille autour du seuil ne peut ainsi plus terminer la tâche du parc encore et encore.",
+          "battery_low_delay_minutes": "Une pile doit indiquer un niveau faible pendant ce temps avant d'être considérée faible : un capteur qui signale un instant un niveau très bas puis se rétablit seul ne la met pas sur la liste. 0 = immédiatement.",
           "battery_auto_record_recovery": "Quand une pile qui était faible repasse au-dessus du seuil de rétablissement, la date de remplacement est enregistrée dans Battery Notes et les piles de rechange sont retirées du stock — sans aucune action",
           "panel_title": "Nom personnalisé pour l'entrée de la barre latérale. Laissez vide pour utiliser « Maintenance ». Utile pour éviter la confusion avec le tableau de bord Maintenance intégré de Home Assistant.",
           "shopping_list_entity": "Les rappels d’achat automatiques pour les pièces en rupture apparaissent dans cette liste de tâches ; cocher un élément termine le rappel et réapprovisionne la pièce. Laisser vide pour désactiver.",
@@ -2103,6 +2105,52 @@
           "description": "Ne renvoyer que les tâches destinées à cette personne (celles dont elle est responsable et celles partagées avec elle dont personne n'est responsable). La personne doit être liée à un utilisateur Home Assistant."
         }
       }
+    },
+    "part_restock": {
+      "name": "Réapprovisionner une pièce de rechange",
+      "description": "Modifier le stock d'une pièce de rechange : nouvelles pièces achetées ou correction. Indiquez exactement l'un des deux : variation ou nouveau stock.",
+      "fields": {
+        "entity_id": {
+          "name": "Pièce de rechange",
+          "description": "Le capteur de stock d'une ou plusieurs pièces de rechange."
+        },
+        "delta": {
+          "name": "Variation",
+          "description": "Combien en ajouter ; négatif pour en retirer."
+        },
+        "absolute": {
+          "name": "Nouveau stock",
+          "description": "Le nouveau stock, qui remplace l'ancien."
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "Pièce de rechange de nouveau prête",
+      "description": "Des exemplaires usagés d'une pièce réutilisable sont de nouveau prêts (rechargés, affûtés, ...) : de la pile en attente vers le stock.",
+      "fields": {
+        "entity_id": {
+          "name": "Pièce de rechange",
+          "description": "Le capteur de stock d'une ou plusieurs pièces de rechange."
+        },
+        "quantity": {
+          "name": "Quantité",
+          "description": "Combien sont de nouveau prêts. Tous ceux en attente si omis."
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "Jeter des pièces de rechange usagées",
+      "description": "Des exemplaires usagés d'une pièce réutilisable qui ne peuvent plus être remis en état, comme une pile morte, quittent la pile en attente sans revenir au stock.",
+      "fields": {
+        "entity_id": {
+          "name": "Pièce de rechange",
+          "description": "Le capteur de stock d'une ou plusieurs pièces de rechange."
+        },
+        "quantity": {
+          "name": "Quantité",
+          "description": "Combien sont définitivement perdus. Un si omis."
+        }
+      }
     }
   },
   "issues": {
@@ -2463,6 +2511,12 @@
     },
     "postpone_done": {
       "message": "« {task_name} » est terminée — il n’y a plus rien à reporter."
+    },
+    "no_part_for_entity": {
+      "message": "{entity_id} n'est pas le capteur de stock d'une pièce de rechange."
+    },
+    "part_not_reusable": {
+      "message": "{entity_id} n'est pas une pièce de rechange réutilisable avec un stock suivi."
     }
   },
   "triggers": {

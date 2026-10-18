@@ -125,3 +125,82 @@ describe("rechargeable spares in the battery fleet", () => {
     expect(calls[0]).to.deep.include({ entry_id: "fleet", part_id: "batt_aaa nimh" });
   });
 });
+
+describe("dispose of used ones (#218)", () => {
+  it("asks how many, one by default, and sends part/dispose", async () => {
+    const sent: Array<Record<string, unknown>> = [];
+    const hass = {
+      language: "en",
+      connection: {
+        sendMessagePromise: async (msg: Record<string, unknown>) => {
+          sent.push(msg);
+          return { disposed: msg.quantity, stock: 2, restoring: 2 - Number(msg.quantity) };
+        },
+      },
+    };
+    const el = await fixture<MaintenancePartsSection>(html`
+      <maintenance-parts-section .hass=${hass as never} .entryId=${"e1"} .parts=${[{ ...CELLS }]} .canWrite=${true}></maintenance-parts-section>
+    `);
+    await el.updateComplete;
+    const open = el.shadowRoot!.querySelector<HTMLButtonElement>(".ready-again.dispose")!;
+    expect(open.textContent!.trim()).to.equal("Dispose");
+    open.click();
+    await el.updateComplete;
+    const input = el.shadowRoot!.querySelector<HTMLInputElement>(".dispose-input")!;
+    expect(input.value).to.equal("1");
+    expect(input.max).to.equal("2");
+    expect(sent, "nothing booked by opening it").to.deep.equal([]);
+
+    // Zero is no amount: the field stays open and says so.
+    input.value = "0";
+    input.dispatchEvent(new Event("input"));
+    el.shadowRoot!.querySelector<HTMLButtonElement>(".dispose.confirm")!.click();
+    await el.updateComplete;
+    expect(sent).to.deep.equal([]);
+    expect(el.shadowRoot!.querySelector(".dispose-input.invalid")).to.exist;
+
+    input.value = "2";
+    input.dispatchEvent(new Event("input"));
+    el.shadowRoot!.querySelector<HTMLButtonElement>(".dispose.confirm")!.click();
+    await new Promise((r) => setTimeout(r, 20));
+    await el.updateComplete;
+    expect(sent[0]).to.deep.include({ type: "maintenance_supporter/part/dispose", entry_id: "e1", part_id: "p_cells", quantity: 2 });
+    expect(el.shadowRoot!.querySelector(".waiting-badge"), "the pile is empty").to.equal(null);
+  });
+
+  it("is a writer's action only", async () => {
+    const { el } = await mountParts(false);
+    expect(el.shadowRoot!.querySelector(".dispose")).to.equal(null);
+  });
+
+  it("disposes of dead cells in the battery fleet", async () => {
+    const calls: Array<Record<string, unknown>> = [];
+    const { hass } = createMockHass({
+      handlers: {
+        "maintenance_supporter/battery_fleet/overview": () => ({
+          available: true, has_battery_notes: true, configured: true, task_ok: true, entry_id: "fleet",
+          total: 1, low: [], soon: [], all: [], needs_now: {}, needs_soon: {}, types: ["AAA NIMH"], excluded: [],
+          charging: [{ part_id: "batt_aaa nimh", name: "AAA NIMH battery", reuse: "charge", stock: 2, restoring: 2 }],
+        }),
+        "maintenance_supporter/battery_fleet/overview_history": () => ({ series: {} }),
+        "maintenance_supporter/part/dispose": (msg: Record<string, unknown>) => {
+          calls.push(msg);
+          return { disposed: 1, stock: 2, restoring: 1 };
+        },
+      },
+    });
+    (hass as unknown as { user: unknown }).user = { id: "u", name: "Admin", is_admin: true };
+    const el = await fixture<MaintenanceBatteryFleetSection>(html`<maintenance-battery-fleet-section .hass=${hass}></maintenance-battery-fleet-section>`);
+    await new Promise((r) => setTimeout(r, 20));
+    await el.updateComplete;
+    el.shadowRoot!.querySelector<HTMLButtonElement>(".bf-dispose")!.click();
+    await el.updateComplete;
+    const qty = el.shadowRoot!.querySelector<HTMLInputElement>(".bf-dispose-qty")!;
+    expect(qty.value).to.equal("1");
+    el.shadowRoot!.querySelector<HTMLButtonElement>(".bf-dispose.confirm")!.click();
+    await new Promise((r) => setTimeout(r, 20));
+    await el.updateComplete;
+    expect(calls[0]).to.deep.include({ entry_id: "fleet", part_id: "batt_aaa nimh", quantity: 1 });
+    expect(el.shadowRoot!.querySelector(".bf-dispose-qty"), "the field closes").to.equal(null);
+  });
+});

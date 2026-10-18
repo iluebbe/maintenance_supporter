@@ -619,6 +619,7 @@
           "parts_cost_mode": "예비 부품을 지출로 계산하는 시점",
           "battery_low_percent": "배터리 „부족“ 임계값 (%)",
           "battery_recovered_percent": "이 값 초과 시 배터리 교체됨으로 간주 (%)",
+          "battery_low_delay_minutes": "배터리 부족으로 간주하기까지의 시간 (분)",
           "battery_auto_record_recovery": "부족했던 배터리가 회복되면 교체를 자동으로 기록",
           "panel_title": "사이드바 패널 제목",
           "shopping_list_entity": "구매 작업을 동기화할 쇼핑 목록",
@@ -638,6 +639,7 @@
           "parts_cost_mode": "구매할 때: 구매 알림의 비용을 계산하고, 사용한 부품은 참고로만 표시합니다. 사용할 때: 완료할 때마다 사용한 부품을 기록하고, 구매는 대신 부품 가격을 정합니다. 지금부터 적용됩니다.",
           "battery_low_percent": "전체 배터리의 하한선: 이 수준 이하의 배터리는 부족으로 계산됩니다(Battery Notes 임계값이 더 높은 경우 제외).",
           "battery_recovered_percent": "부족한 배터리는 잔량이 이 값을 초과하거나 교체가 기록될 때까지 부족으로 계속 집계됩니다. 임계값 근처에서 오르내리는 잔량이 배터리 일괄 작업을 반복 완료하지 못하게 합니다.",
+          "battery_low_delay_minutes": "배터리가 이 시간 동안 계속 낮게 보고되어야 부족으로 간주합니다. 잠깐 매우 낮은 값을 보고했다가 저절로 회복되는 센서 때문에 목록에 오르지 않도록 합니다. 0 = 즉시.",
           "battery_auto_record_recovery": "부족했던 배터리의 잔량이 회복 임계값을 초과하면 교체 날짜가 Battery Notes에 기록되고 예비 배터리가 재고에서 차감됩니다 — 탭할 필요가 없습니다",
           "panel_title": "사이드바 항목의 사용자 지정 이름입니다. 비워 두면 \"유지보수\"를 사용합니다. Home Assistant 기본 유지보수 대시보드와 이름이 겹치지 않게 할 때 유용합니다.",
           "shopping_list_entity": "부족한 부품의 자동 구매 알림이 이 할 일 목록에 표시됩니다. 항목을 체크하면 알림이 완료되고 부품이 재입고됩니다. 비워두면 비활성화됩니다.",
@@ -2103,6 +2105,52 @@
           "description": "이 사람을 위한 작업만 반환합니다(담당하는 작업과, 이 사람과 공유되었지만 담당자가 없는 작업). Home Assistant 사용자와 연결되어 있어야 합니다."
         }
       }
+    },
+    "part_restock": {
+      "name": "예비 부품 보충",
+      "description": "예비 부품의 재고를 바꿉니다. 새로 샀거나 수정할 때 사용하세요. 변경량과 새 재고 중 하나만 지정하세요.",
+      "fields": {
+        "entity_id": {
+          "name": "예비 부품",
+          "description": "하나 이상의 예비 부품 재고 센서."
+        },
+        "delta": {
+          "name": "변경량",
+          "description": "추가할 수량. 빼려면 음수."
+        },
+        "absolute": {
+          "name": "새 재고",
+          "description": "기존 재고를 대신할 새 재고."
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "예비 부품 다시 준비됨",
+      "description": "재사용 부품의 사용한 것이 다시 준비되었습니다(충전, 연마 등). 대기 더미에서 재고로 돌아갑니다.",
+      "fields": {
+        "entity_id": {
+          "name": "예비 부품",
+          "description": "하나 이상의 예비 부품 재고 센서."
+        },
+        "quantity": {
+          "name": "수량",
+          "description": "다시 준비된 수량. 비워 두면 대기 중인 전부."
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "사용한 예비 부품 폐기",
+      "description": "재사용 부품 중 더 이상 다시 준비할 수 없는 사용한 것(수명이 다한 전지 등)은 재고로 돌아가지 않고 대기 더미에서 빠집니다.",
+      "fields": {
+        "entity_id": {
+          "name": "예비 부품",
+          "description": "하나 이상의 예비 부품 재고 센서."
+        },
+        "quantity": {
+          "name": "수량",
+          "description": "완전히 없어진 수량. 비워 두면 하나."
+        }
+      }
     }
   },
   "issues": {
@@ -2463,6 +2511,12 @@
     },
     "postpone_done": {
       "message": "“{task_name}”은(는) 완료되어 연기할 항목이 없습니다."
+    },
+    "no_part_for_entity": {
+      "message": "{entity_id}은(는) 예비 부품의 재고 센서가 아닙니다."
+    },
+    "part_not_reusable": {
+      "message": "{entity_id}은(는) 재고를 세는 재사용 예비 부품이 아닙니다."
     }
   },
   "triggers": {

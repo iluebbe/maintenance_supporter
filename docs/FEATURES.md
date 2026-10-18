@@ -317,9 +317,16 @@ a battery swap) that uses it takes the ready ones from the stock and puts the
 used ones on a pile: the row shows *2 to charge* with a **Charged** button
 that puts them back. The pile still counts as owned, so the reorder
 threshold, the shopping reminder and the low/out events only react when
-items are really gone; a worn-out one is thrown away by lowering *Used, not
-ready yet* in the part's form. Undo and deleting the completion take the use
-back, and the pile travels with export/import and *Replace object*.
+items are really gone. A worn-out one (a dead cell, a blade past sharpening)
+is thrown away with **Dispose** next to *Charged* (2.105+, #218): it asks how
+many (one by default) and takes them off the pile without putting them back in
+stock, so the reorder threshold sees they are gone. A swap with no ready ones
+counted takes the missing ones off the pile (charged, never marked ready), so a
+pile nobody empties stays at what is really out of the devices. Undo and
+deleting the completion take the use back, and the pile travels with
+export/import and *Replace object*. Automations and dashboard buttons book the
+same actions through the services `part_restock`, `part_ready_again` and
+`part_dispose` (see [Services](#services)).
 
 **Bought in packages, used in their unit** (2.96+, discussion #98): give a part
 a *package size* — a 400 ml can of contact spray, a 25 kg bag of salt — and it
@@ -616,7 +623,10 @@ Battery Notes device uses), books those
 (the ones taken out go on the *to charge* pile when they were rechargeable)
 and remembers them for the device; choosing again the same day corrects the
 first choice. Battery Notes keeps its type; the shopping list and the
-forecast follow it. A native battery that was low
+forecast follow it. Whether a recovery was a charge or a swap follows the
+cells chosen (2.105+): with *Record a replacement automatically* on, an
+`AA NiMH` note that runs on disposables is recorded like any disposable. A
+native battery that was low
 and then goes **unavailable** (a dead battery takes its device offline)
 stays listed for up to 48 hours instead of vanishing at the exact moment it
 needs replacing.
@@ -712,7 +722,11 @@ went low **stays low until it recovers** (2.87+, #180): its level must rise abov
 replacement date must be recorded — so a level that oscillates around the low
 floor no longer flips the fleet task and its auto-completion several times a
 day, and the roster's calendar chip ignores upward jumps that stay below the
-threshold. Recording a replacement through that chip now also consumes the
+threshold. A sensor that reports a very low level for a few minutes and recovers
+by itself (some Shelly BT sensors do) is kept off the list with *Settings →
+General → Battery counts as low after (minutes)* (2.105+, #219): a battery is
+then low only once it has read low that long (0, the default, means at once),
+and such a dip records no replacement either. Recording a replacement through that chip now also consumes the
 battery type's spare cells like the *Replaced* action (once per day, #181).
 Every one of those paths takes the quantity from the device's Battery Notes
 note (`battery_quantity`), so there is nothing to link on the fleet task itself
@@ -1029,7 +1043,7 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 - **"Send test" button** in Settings to verify the notify service without having to wait for a real due event
 - Per-user notifications: a task with a responsible user reaches that person's phones, and a task shared with several people while nobody is responsible reaches each of theirs
 - Rate limiting per status level (due soon, overdue, triggered)
-- Quiet hours support — what falls into the quiet hours is held and arrives as **one summary** at their end (2.86+); the manager's bookkeeping (what was sent when, snoozes, the daily counter) survives a restart, so a restart no longer re-announces everything once the sensors come back
+- Quiet hours support — what falls into the quiet hours is held and arrives as **one summary** at their end (2.86+), a person's own reminders in a summary of their own on that person's phones (2.105+); the manager's bookkeeping (what was sent when, snoozes, the daily counter) survives a restart, so a restart no longer re-announces everything once the sensors come back
 - **Multiple lead-time reminders** (2.17+): an opt-in list (e.g. 14 / 3 / 0 days before due) fires one extra reminder on each matching day
 - **Warranty-expiry reminders** (2.17+): opt-in one-time reminder N days before an object's warranty runs out
 - **Weekly digest** (2.15+): opt-in Monday-morning summary of what's overdue / due this week
@@ -1203,7 +1217,7 @@ Archives from before 2.96 (files stored as `blobs/<hash>`) still restore.
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 108 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
+- 109 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -1310,7 +1324,15 @@ and, for a reading task with several named readings, `reading_values`
 keyed by reading name (2.75+; see [Examples](EXAMPLES.md)). Completion
 photos need an upload and are therefore a panel/card affair, not a service
 parameter.
-For the full WebSocket API (108 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+
+The spare-part actions are services too (2.105+, #218), addressed by the part's
+stock sensor: `part_restock` (`delta`, negative for a correction, or `absolute`),
+`part_ready_again` (`quantity`, all waiting ones when left out) and `part_dispose`
+(`quantity`, one when left out) for the used ones of a reusable part. They need
+write access like the panel's buttons, accept several parts at once, book
+nothing unless every entity is a part's stock sensor, and return the new counts
+when asked for a response.
+For the full WebSocket API (109 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 
