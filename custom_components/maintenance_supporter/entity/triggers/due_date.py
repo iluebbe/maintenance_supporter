@@ -65,7 +65,11 @@ class DueDateTrigger(BaseTrigger):
         if self._due_at is None or self._triggered:
             self._due_timer.cancel()
             return
-        self._due_timer.schedule_at(self._due_at - timedelta(days=self._days_before), self._on_due)
+        # In absolute time, as days_until counts it. Subtracting days from the
+        # local date moved the wake-up by the hour a clock change inside the
+        # lead time adds or removes: an hour early it read "not yet", re-armed
+        # in the past and spun the event loop until that hour was over.
+        self._due_timer.schedule_at(dt_util.as_utc(self._due_at) - timedelta(days=self._days_before), self._on_due)
 
     @callback
     def _on_due(self, _now: datetime) -> None:

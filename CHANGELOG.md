@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.104.1] - 2026-10-18
+
+### 🐛 Fixed
+
+- **A due-date trigger no longer keeps Home Assistant busy when the clocks change:** a task that fires a set number
+  of days before a date the device reports (a filter change or a service due date) woke an hour early when the
+  clocks go back inside that lead time. It read "not yet" and tried again at once, over and over for a whole hour.
+  This hit each such trigger once a year, in most of Europe on 25 October and in the US on 1 November. With the
+  clocks going forward it woke an hour late. It now wakes at the exact moment the date comes within the lead time.
+
 ## [2.104.0] - 2026-10-17
 
 ### ✨ Added

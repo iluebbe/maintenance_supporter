@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from freezegun.api import FrozenDateTimeFactory
 from homeassistant.core import HomeAssistant
@@ -22,6 +22,7 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry, async_fire_time_changed
 
 from custom_components.maintenance_supporter.entity.triggers import create_trigger, create_triggers
+from custom_components.maintenance_supporter.helpers import managed_timer
 from custom_components.maintenance_supporter.helpers.signatures import SIGNATURES, discover_integration_setups
 from custom_components.maintenance_supporter.helpers.signatures._model import build_setup_trigger
 from custom_components.maintenance_supporter.helpers.dates import days_until, due_instant
@@ -170,6 +171,35 @@ async def test_an_attribute_can_carry_the_date(hass: HomeAssistant) -> None:
     await trigger.async_setup()
     assert trigger._triggered is True
     await trigger.async_teardown()
+
+
+async def test_the_wake_up_counts_absolute_days_across_a_clock_change(
+    hass: HomeAssistant, freezer: FrozenDateTimeFactory
+) -> None:
+    """Bug audit 2026-10-17 (T-1): with the clocks going back inside the lead
+    time, the wake-up (the local date minus the lead days) came an hour early,
+    read "not yet", re-armed in the past and spun the event loop for that hour.
+    Going forward it came an hour late. It reads exactly the lead time now."""
+    await hass.config.async_set_time_zone("Europe/Berlin")
+    freezer.move_to("2026-10-01T12:00:00+00:00")
+    # Back on 25 October 2026, forward on 28 March 2027.
+    for due_day in ("2026-11-10", "2027-04-10"):
+        hass.states.async_set(SENSOR, due_day)
+        trigger = create_trigger(hass, _host(hass), _config(trigger_days_before=30))
+        with patch.object(managed_timer, "async_track_point_in_utc_time", wraps=managed_timer.async_track_point_in_utc_time) as spy:
+            await trigger.async_setup()
+        wake_up = spy.call_args.args[2]
+        due = due_instant(due_day)
+        assert due is not None
+        assert days_until(due, wake_up) == 30.0, due_day
+
+        freezer.move_to(wake_up)
+        async_fire_time_changed(hass)
+        await hass.async_block_till_done()
+        assert trigger._triggered is True, due_day
+        assert not trigger._due_timer.pending
+        await trigger.async_teardown()
+        freezer.move_to("2026-10-01T12:00:00+00:00")
 
 
 async def test_teardown_cancels_the_due_timer(hass: HomeAssistant) -> None:
