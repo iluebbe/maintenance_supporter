@@ -785,7 +785,7 @@ def test_the_store_repairs_and_tolerates_non_string_timestamps() -> None:
         def get_last_performed(self, task_id: str) -> str | None:
             return None
 
-        def set_anchor(self, task_id: str, anchor: str | None, *, clear_modifiers: bool) -> None:
+        def set_anchor(self, task_id: str, anchor: str | None, *, clear_modifiers: bool, keep_grid: bool = False) -> None:
             self.anchor = anchor
 
     fake = _Store()
