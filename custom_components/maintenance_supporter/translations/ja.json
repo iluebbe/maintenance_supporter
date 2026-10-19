@@ -751,6 +751,18 @@
           "group_description": "このグループの任意の説明です。"
         }
       },
+      "edit_group": {
+        "title": "グループを編集",
+        "description": "グループ名を変更するか、チェックを入れて削除します。",
+        "data": {
+          "group_name": "グループ名",
+          "group_description": "説明",
+          "delete_group": "このグループを削除"
+        },
+        "data_description": {
+          "delete_group": "タスクは残り、グループだけが削除されます。"
+        }
+      },
       "manage_tasks": {
         "title": "タスクを管理",
         "description": "編集または削除するタスクを選択してください。",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "電池フリートのオブジェクトは複製できません。"
+    },
+    "fleet_not_replaceable": {
+      "message": "電池フリートのオブジェクトは置き換えできません。"
     },
     "parts_limit": {
       "message": "1つのオブジェクトに登録できる部品は最大 {max} 個です。"

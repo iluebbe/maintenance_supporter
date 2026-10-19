@@ -222,6 +222,13 @@ def fleet_part_type(raw: Any) -> str | None:
     return canonical_type(raw)
 
 
+def charged_kind(size: str | None) -> str | None:
+    """The rechargeable kind of a cell size anyone buys, keyed like its part
+    ("AAA" → "AAA NIMH", "9V" → "9V NIMH"; D#213). None for a lithium-ion
+    size (an 18650 is the rechargeable one already) and for no size."""
+    return fleet_part_type(f"{size} NiMH") if size in _CELL_SIZES else None
+
+
 def table_lifetime_months(raw: Any) -> int:
     """The built-in typical value (table, else the default)."""
     return TYPICAL_LIFETIME_MONTHS.get(canonical_type(raw), DEFAULT_LIFETIME_MONTHS)

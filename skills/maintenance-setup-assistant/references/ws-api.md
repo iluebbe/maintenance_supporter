@@ -1179,9 +1179,12 @@ unaffected either way. The current state is returned as
 
 ### `battery_fleet/set_ask_cells` — `@require_write` (D#213, 2.104+)
 `{enabled (req, bool)}` → `{"success": true}`. Fleet-wide opt-in, default
-OFF: *Replaced* asks which cells went in — the type Battery Notes names or
-any fleet part of the same size, disposable or rechargeable — books those
-and remembers them per battery (a backup carries them). Battery Notes keeps
+OFF: *Replaced* asks which cells went in — the type Battery Notes names,
+any fleet part of the same size, disposable or rechargeable, or, with no
+rechargeable among those, the NiMH kind of an AAAA/AAA/AA/C/D/9V cell (the
+first `mark_replaced` that picks it adds the part, uncounted; a deleted part
+is not offered again) — books those and remembers them per battery (a
+backup carries them). Battery Notes keeps
 its type; the shopping needs and the forecast follow it. With the option
 on, `battery_fleet/overview` returns `ask_cells: true` and, on every row
 (`low`, `soon`, `all`) with two choices or more, `cell_choices: [{type, name, rechargeable}]`

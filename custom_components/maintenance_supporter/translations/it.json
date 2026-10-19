@@ -751,6 +751,18 @@
           "group_description": "Descrizione opzionale per questo gruppo."
         }
       },
+      "edit_group": {
+        "title": "Modifica gruppo",
+        "description": "Rinomina il gruppo oppure seleziona la casella per eliminarlo.",
+        "data": {
+          "group_name": "Nome gruppo",
+          "group_description": "Descrizione",
+          "delete_group": "Elimina questo gruppo"
+        },
+        "data_description": {
+          "delete_group": "Le sue attività restano; viene rimosso solo il gruppo."
+        }
+      },
       "manage_tasks": {
         "title": "Gestisci attività",
         "description": "Seleziona un'attività da modificare o rimuovere.",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "L'oggetto del parco batterie non può essere duplicato."
+    },
+    "fleet_not_replaceable": {
+      "message": "L'oggetto del parco batterie non può essere sostituito."
     },
     "parts_limit": {
       "message": "Un oggetto può avere al massimo {max} ricambi."

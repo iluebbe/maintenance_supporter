@@ -751,6 +751,18 @@
           "group_description": "Descrição opcional para este grupo."
         }
       },
+      "edit_group": {
+        "title": "Editar grupo",
+        "description": "Renomeie o grupo ou marque a caixa para excluí-lo.",
+        "data": {
+          "group_name": "Nome do grupo",
+          "group_description": "Descrição",
+          "delete_group": "Excluir este grupo"
+        },
+        "data_description": {
+          "delete_group": "As tarefas continuam; apenas o grupo é removido."
+        }
+      },
       "manage_tasks": {
         "title": "Gerenciar tarefas",
         "description": "Selecione uma tarefa para editar ou remover.",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "O objeto da frota de baterias não pode ser duplicado."
+    },
+    "fleet_not_replaceable": {
+      "message": "O objeto da frota de baterias não pode ser substituído."
     },
     "parts_limit": {
       "message": "Um objeto pode ter no máximo {max} peças."

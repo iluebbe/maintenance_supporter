@@ -160,7 +160,11 @@ async function complete(api, o, t) {
   }
   if (t.adaptive_config?.enabled) msg.feedback = ["needed", "needed", "not_needed", "not_sure"][Math.floor(rand() * 4)];
   if (req.has("photo") || rand() < 0.08) {
-    const photo = await upload(BASE, api.token, o.entry_id, `photo-${isoDay(now)}.jpg`, "image/jpeg", Buffer.from([0xff, 0xd8, 0xff, 0xe0, Math.floor(rand() * 255)]), ["photo"]);
+    // Named per task: two photos of one object on one day shared a name, and
+    // the move's comparison (keyed by object and file name) paired them the
+    // other way round (Timelapse run of 2026-10-19).
+    const name = `photo-${isoDay(now)}-${t.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.jpg`;
+    const photo = await upload(BASE, api.token, o.entry_id, name, "image/jpeg", Buffer.from([0xff, 0xd8, 0xff, 0xe0, Math.floor(rand() * 255)]), ["photo"]);
     msg.photo_doc_ids = [photo.id];
     COUNT.photo++;
   }

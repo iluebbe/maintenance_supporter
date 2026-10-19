@@ -751,6 +751,18 @@
           "group_description": "此分组的可选描述。"
         }
       },
+      "edit_group": {
+        "title": "编辑分组",
+        "description": "重命名分组，或勾选复选框将其删除。",
+        "data": {
+          "group_name": "分组名称",
+          "group_description": "描述",
+          "delete_group": "删除此分组"
+        },
+        "data_description": {
+          "delete_group": "任务会保留，只删除分组。"
+        }
+      },
       "manage_tasks": {
         "title": "管理任务",
         "description": "选择一个任务进行编辑或移除。",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "电池群对象无法复制。"
+    },
+    "fleet_not_replaceable": {
+      "message": "电池群对象无法更换。"
     },
     "parts_limit": {
       "message": "一个对象最多可有 {max} 个备件。"

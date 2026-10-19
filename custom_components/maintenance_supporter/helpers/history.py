@@ -116,6 +116,13 @@ def latest_anchor_stamp(history: Iterable[Any] | None) -> str:
     return max((stamp for entry in history or () if (stamp := anchor_stamp(entry)) is not None), key=stamp_instant, default="")
 
 
+def latest_anchor_index(history: list[Any]) -> int | None:
+    """The position of the entry :func:`latest_anchor_stamp` reads; ``None``
+    without one."""
+    stamped = [(i, stamp) for i, entry in enumerate(history) if (stamp := anchor_stamp(entry)) is not None]
+    return max(stamped, key=lambda item: stamp_instant(item[1]))[0] if stamped else None
+
+
 def completed_entries(history: Iterable[Any] | None) -> list[dict[str, Any]]:
     """The completion entries of ``history``, in stored order; non-dict
     entries (hand-edited / imported logs) are skipped."""

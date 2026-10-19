@@ -751,6 +751,18 @@
           "group_description": "이 그룹에 대한 설명입니다(선택 사항)."
         }
       },
+      "edit_group": {
+        "title": "그룹 편집",
+        "description": "그룹 이름을 바꾸거나 확인란을 선택해 삭제하세요.",
+        "data": {
+          "group_name": "그룹 이름",
+          "group_description": "설명",
+          "delete_group": "이 그룹 삭제"
+        },
+        "data_description": {
+          "delete_group": "작업은 그대로 남고 그룹만 삭제됩니다."
+        }
+      },
       "manage_tasks": {
         "title": "작업 관리",
         "description": "편집하거나 제거할 작업을 선택하세요.",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "배터리 플릿 객체는 복제할 수 없습니다."
+    },
+    "fleet_not_replaceable": {
+      "message": "배터리 플릿 객체는 교체할 수 없습니다."
     },
     "parts_limit": {
       "message": "객체 하나에 예비 부품을 최대 {max}개까지 둘 수 있습니다."

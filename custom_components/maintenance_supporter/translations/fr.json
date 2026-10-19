@@ -751,6 +751,18 @@
           "group_description": "Description optionnelle pour ce groupe."
         }
       },
+      "edit_group": {
+        "title": "Modifier le groupe",
+        "description": "Renommez le groupe, ou cochez la case pour le supprimer.",
+        "data": {
+          "group_name": "Nom du groupe",
+          "group_description": "Description",
+          "delete_group": "Supprimer ce groupe"
+        },
+        "data_description": {
+          "delete_group": "Ses tâches sont conservées ; seul le groupe est supprimé."
+        }
+      },
       "manage_tasks": {
         "title": "Gérer les tâches",
         "description": "Sélectionnez une tâche à modifier ou supprimer.",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "L'objet du parc de piles ne peut pas être dupliqué."
+    },
+    "fleet_not_replaceable": {
+      "message": "L'objet du parc de piles ne peut pas être remplacé."
     },
     "parts_limit": {
       "message": "Un objet peut avoir au maximum {max} pièces détachées."

@@ -158,6 +158,23 @@ def store_of(entry: ConfigEntry) -> MaintenanceStore | None:
     return getattr(rd, "store", None) if rd else None
 
 
+async def async_store_even_unloaded(hass: HomeAssistant, entry: ConfigEntry) -> MaintenanceStore | None:
+    """The entry's Store while it is not loaded too: the copy the store cache
+    keeps across reloads, else its file (a disabled object, one in setup
+    retry). Through :func:`store_of` alone, an entity rename left such an
+    object's counter baselines, runtime hours and to-do mirror records under
+    the old id (bug audit 2026-10-17, T-5). None when it never wrote one."""
+    from ..const import STORES_CACHE_KEY
+
+    store = store_of(entry) or hass.data.get(STORES_CACHE_KEY, {}).get(entry.entry_id)
+    if store is not None:
+        return store
+    from ..storage import MaintenanceStore
+
+    disk = MaintenanceStore(hass, entry.entry_id)
+    return disk if await disk.async_load() is not None else None
+
+
 def get_store(hass: HomeAssistant, entry_id: str) -> MaintenanceStore | None:
     """:func:`store_of` by entry id; None for an unknown entry too."""
     entry = hass.config_entries.async_get_entry(entry_id)

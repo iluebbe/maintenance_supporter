@@ -751,6 +751,18 @@
           "group_description": "Valfri beskrivning för denna grupp."
         }
       },
+      "edit_group": {
+        "title": "Redigera grupp",
+        "description": "Byt namn på gruppen, eller markera rutan för att ta bort den.",
+        "data": {
+          "group_name": "Gruppnamn",
+          "group_description": "Beskrivning",
+          "delete_group": "Ta bort den här gruppen"
+        },
+        "data_description": {
+          "delete_group": "Uppgifterna finns kvar; bara gruppen tas bort."
+        }
+      },
       "manage_tasks": {
         "title": "Hantera uppgifter",
         "description": "Välj en uppgift att redigera eller ta bort.",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "Batteriflottans objekt kan inte dupliceras."
+    },
+    "fleet_not_replaceable": {
+      "message": "Batteriflottans objekt kan inte ersättas."
     },
     "parts_limit": {
       "message": "Ett objekt kan ha högst {max} reservdelar."

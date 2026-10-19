@@ -751,6 +751,18 @@
           "group_description": "Valinnainen kuvaus tälle ryhmälle."
         }
       },
+      "edit_group": {
+        "title": "Muokkaa ryhmää",
+        "description": "Nimeä ryhmä uudelleen tai poista se valitsemalla ruutu.",
+        "data": {
+          "group_name": "Ryhmän nimi",
+          "group_description": "Kuvaus",
+          "delete_group": "Poista tämä ryhmä"
+        },
+        "data_description": {
+          "delete_group": "Tehtävät säilyvät, vain ryhmä poistetaan."
+        }
+      },
       "manage_tasks": {
         "title": "Hallitse tehtäviä",
         "description": "Valitse muokattava tai poistettava tehtävä.",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "Paristokannan kohdetta ei voi monistaa."
+    },
+    "fleet_not_replaceable": {
+      "message": "Paristokannan kohdetta ei voi korvata."
     },
     "parts_limit": {
       "message": "Kohteella voi olla enintään {max} varaosaa."

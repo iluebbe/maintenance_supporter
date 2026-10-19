@@ -1011,6 +1011,14 @@ async def ws_replace_object(
     if src_obj.get("archived_at") is not None:
         send_translated_error(connection, msg["id"], "archived", "An archived object cannot be replaced", translation_key="archived_cannot_replace")
         return
+    # The one battery fleet: a replacement ran a second fleet whose parts no
+    # fleet code reaches, while the fleet commands kept acting on the archived
+    # predecessor (bug audit 2026-10-17, W-1; object/duplicate refuses alike).
+    from ..const import BATTERY_FLEET_OBJECT_FLAG
+
+    if src_obj.get(BATTERY_FLEET_OBJECT_FLAG):
+        send_translated_error(connection, msg["id"], "invalid_input", "The battery fleet object cannot be replaced", translation_key="fleet_not_replaceable")
+        return
 
     name = (msg.get("name") or "").strip() or str(src_obj.get(CONF_OBJECT_NAME, "")).strip() or "Object"
     if not _validate_device_link(hass, connection, msg, self_entry_id=None):
@@ -1109,9 +1117,15 @@ async def ws_replace_object(
         # successor's shelf. They kept linking to the archived predecessor —
         # whose buy tasks the archive suppresses — so the pool silently split
         # in two (bug audit 2026-09-27).
-        from ..helpers.shared_parts import relink_borrowers
+        from ..helpers.aggregate import get_object_entries
+        from ..helpers.shared_parts import async_relink_history, relink_borrowers
 
         relink_borrowers(hass, entry.entry_id, new_entry_id, part_id_map)
+        # Their history too: a later edit or delete of a completion put the
+        # parts back on the archived predecessor's shelf (audit 2026-10-17, S-7).
+        for other in get_object_entries(hass):
+            if other.entry_id not in (entry.entry_id, new_entry_id):
+                await async_relink_history(hass, other, entry.entry_id, new_entry_id, part_id_map)
         if new_entry is not None:
             from ..parts_runtime import schedule_buy_task_reconcile
 

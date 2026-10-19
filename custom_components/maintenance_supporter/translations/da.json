@@ -751,6 +751,18 @@
           "group_description": "Valgfri beskrivelse af denne gruppe."
         }
       },
+      "edit_group": {
+        "title": "Rediger gruppe",
+        "description": "Omdøb gruppen, eller sæt flueben for at slette den.",
+        "data": {
+          "group_name": "Gruppenavn",
+          "group_description": "Beskrivelse",
+          "delete_group": "Slet denne gruppe"
+        },
+        "data_description": {
+          "delete_group": "Opgaverne bevares; kun gruppen fjernes."
+        }
+      },
       "manage_tasks": {
         "title": "Administrer opgaver",
         "description": "Vælg en opgave at redigere eller fjerne.",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "Batteriflådens objekt kan ikke duplikeres."
+    },
+    "fleet_not_replaceable": {
+      "message": "Batteriflådens objekt kan ikke udskiftes."
     },
     "parts_limit": {
       "message": "Et objekt kan højst have {max} reservedele."

@@ -99,6 +99,19 @@ def canonical_iso_date(value: str | None) -> str | None:
     return day.isoformat() if day is not None else None
 
 
+def import_day(value: Any, label: str, warnings: list[str]) -> str | None:
+    """An imported date as ``YYYY-MM-DD``. One that is not a date is dropped
+    with a warning naming ``label``: the imports stored it as it was, and a
+    spreadsheet that saved "01.10.2026" left a task that never fell due and
+    an object no edit could save (bug audit 2026-10-17, W-2)."""
+    if value is None or value == "":
+        return None
+    day = canonical_iso_date(value) if isinstance(value, str) else None
+    if day is None:
+        warnings.append(f"{label} {value!r} is not a date — dropped")
+    return day
+
+
 def parse_persisted_utc(value: str | None) -> datetime | None:
     """Persisted ISO timestamp → TZ-aware ``datetime``; ``None`` when absent
     or malformed.

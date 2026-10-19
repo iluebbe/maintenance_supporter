@@ -751,6 +751,18 @@
           "group_description": "Descripción opcional para este grupo."
         }
       },
+      "edit_group": {
+        "title": "Editar grupo",
+        "description": "Cambie el nombre del grupo o marque la casilla para eliminarlo.",
+        "data": {
+          "group_name": "Nombre del grupo",
+          "group_description": "Descripción",
+          "delete_group": "Eliminar este grupo"
+        },
+        "data_description": {
+          "delete_group": "Sus tareas se conservan; solo se elimina el grupo."
+        }
+      },
       "manage_tasks": {
         "title": "Gestionar tareas",
         "description": "Seleccione una tarea para editar o eliminar.",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "El objeto de la flota de baterías no se puede duplicar."
+    },
+    "fleet_not_replaceable": {
+      "message": "El objeto de la flota de baterías no se puede sustituir."
     },
     "parts_limit": {
       "message": "Un objeto puede tener como máximo {max} repuestos."

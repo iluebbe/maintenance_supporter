@@ -238,6 +238,15 @@ describe("full-history loader (#191)", () => {
     const changed = { ...tasks[3], history_count: 31, history: [...win, h("2026-02-01T12:00:00", "completed", 3)] };
     await loader.sync(hass as never, [{ entryId: "e1", task: changed }]);
     expect(calls.slice(11)).to.deep.equal(["t3"]);
+
+    // Bug audit 2026-10-17 (P-3): back under the window (an undo), the task's
+    // window is its whole history — the fetched list with the undone entry
+    // must not be served any more.
+    const undone = { ...tasks[3], history_count: 1, history: win };
+    expect(loader.historyOf("e1", undone), "even before the next sync").to.equal(win);
+    await loader.sync(hass as never, [{ entryId: "e1", task: undone }]);
+    expect(loader.historyOf("e1", undone)).to.equal(win);
+    expect(calls.length, "nothing fetched for it").to.equal(12);
   });
 });
 

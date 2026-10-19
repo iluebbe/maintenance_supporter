@@ -35,7 +35,7 @@ from ..const import (
     MIN_COST,
 )
 from ..helpers.aggregate import object_name
-from ..helpers.dates import normalize_hhmm, parse_iso_date
+from ..helpers.dates import canonical_iso_date, import_day, normalize_hhmm, parse_iso_date
 from ..helpers.global_options import get_default_warning_days
 from ..helpers.history import finite_amount, strict_amount
 from ..helpers.parts import PartValidationError, is_http_url, map_part_links, normalize_part, portable_stock
@@ -1051,6 +1051,7 @@ async def ws_import_json(
         # that does not exist) used to escape this loop and abort the whole
         # import after the first objects were created (bug audit 2026-09-29).
         # Such an object is reported and skipped; the others still import.
+        date_warnings: list[str] = []
         try:
             import_obj: dict[str, Any] = {
                 "id": obj_id,
@@ -1064,8 +1065,8 @@ async def ws_import_json(
                 # 2026-10 places: normalized (zone id or nothing) by cap_object_fields.
                 "place": obj_data.get("place") if isinstance(obj_data.get("place"), str) else None,
                 "remind_on_site": obj_data.get("remind_on_site") is True,
-                "installation_date": obj_data.get("installation_date"),
-                "warranty_expiry": obj_data.get("warranty_expiry"),
+                "installation_date": import_day(obj_data.get("installation_date"), f"{obj_name}: installation date", date_warnings),
+                "warranty_expiry": import_day(obj_data.get("warranty_expiry"), f"{obj_name}: warranty expiry", date_warnings),
                 # Imported counterparts of the export fields above; length-capped by
                 # cap_object_fields and the frontend only renders http(s) doc URLs.
                 "documentation_url": obj_data.get("documentation_url"),
@@ -1155,7 +1156,7 @@ async def ws_import_json(
             fleet_task_seen = False
             # Per-task import losses (an invalid trigger is dropped, not fatal) —
             # reported next to the NFC warnings instead of vanishing silently.
-            task_warnings: list[str] = []
+            task_warnings: list[str] = list(date_warnings)
             tasks_list = obj_entry.get("tasks", [])
             if not isinstance(tasks_list, list):
                 tasks_list = []
@@ -1376,6 +1377,10 @@ async def ws_import_json(
                 elif _future_last_performed(lp):
                     task_data.pop("last_performed", None)
                     task_warnings.append(f"{task_name}: last performed date {lp} is in the future — dropped")
+                elif lp is not None:
+                    # Stored as YYYY-MM-DD: the compact "20261001" was kept as
+                    # it was (bug audit 2026-10-17, W-2; WS writes since W6).
+                    task_data["last_performed"] = canonical_iso_date(lp)
                 task_data["warning_days"] = import_warning_days(task_data.get("warning_days"), get_default_warning_days(hass))
                 # A rotation task must carry its effective assignee (imports from
                 # pre-seeding exports may lack one) — same rule as create/update.

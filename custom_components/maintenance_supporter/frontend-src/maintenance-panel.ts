@@ -550,6 +550,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     window.removeEventListener("popstate", this._popstateHandler);
     window.removeEventListener("location-changed", this._locationChangedHandler);
     window.removeEventListener("keydown", this._paletteKeydown);
+    for (const key of [...this._popupClosers.keys()]) this._dropPopupCloser(key);
     this._tightObserver?.disconnect();
     this._tightObserver = null;
     window.removeEventListener("resize", this._onVirtualScroll);
@@ -4833,10 +4834,14 @@ export class MaintenanceSupporterPanel extends LitElement {
                   <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._openQrForObject(obj.entry_id, o.name); }}>${t("qr_code", L)}</div>
                   <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._printObjectReport(obj.entry_id); }}>${t("report_button", L)}</div>
                   ${!isOperator ? html`
-                    <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._duplicateObject(obj.entry_id); }}>${t("duplicate", L)}</div>
+                    ${!o.battery_fleet ? html`
+                      <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._duplicateObject(obj.entry_id); }}>${t("duplicate", L)}</div>
+                    ` : nothing}
                     ${!o.archived ? html`
                       <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._togglePauseObject(obj.entry_id, !!o.paused); }}>${o.paused ? t("resume_object", L) : t("pause_object", L)}</div>
-                      <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._replaceObject(obj.entry_id, o); }}>${t("replace_object", L)}</div>
+                      ${!o.battery_fleet ? html`
+                        <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._replaceObject(obj.entry_id, o); }}>${t("replace_object", L)}</div>
+                      ` : nothing}
                     ` : nothing}
                     <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._toggleArchiveObject(obj.entry_id, !!o.archived); }}>${o.archived ? t("unarchive_object", L) : t("archive_object", L)}</div>
                     <div class="popup-menu-divider"></div>
@@ -5058,19 +5063,35 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  three times): flip the flag, and while open arm a one-shot document
    *  click that closes it again. The setTimeout defers past the click that
    *  opened the menu. */
-  private _togglePopup(get: () => boolean, set: (v: boolean) => void): void {
+  private _togglePopup(key: string, get: () => boolean, set: (v: boolean) => void): void {
     const open = !get();
     set(open);
+    // A pick inside the menu stops its click, so the closer armed last time
+    // never ran: the next click on ⋮ opened the menu and that closer shut it
+    // in the same click, arming another (bug audit 2026-10-17, P-5). The
+    // button's handler runs before the click reaches the document.
+    this._dropPopupCloser(key);
     if (open) {
       setTimeout(() => {
-        const handler = () => { set(false); document.removeEventListener("click", handler); };
+        if (!get()) return; // closed by a pick before the closer was armed
+        const handler = () => { set(false); this._dropPopupCloser(key); };
+        this._popupClosers.set(key, handler);
         document.addEventListener("click", handler);
       }, 0);
     }
   }
 
+  /** The document closer armed for each popup (see _togglePopup). */
+  private readonly _popupClosers = new Map<string, () => void>();
+
+  private _dropPopupCloser(key: string): void {
+    const handler = this._popupClosers.get(key);
+    if (handler) document.removeEventListener("click", handler);
+    this._popupClosers.delete(key);
+  }
+
   private _toggleNewMenu(): void {
-    this._togglePopup(() => this._newMenuOpen, (v) => { this._newMenuOpen = v; });
+    this._togglePopup("new", () => this._newMenuOpen, (v) => { this._newMenuOpen = v; });
   }
 
   private _closeNewMenu(): void {
@@ -5185,7 +5206,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private _toggleObjMenu(): void {
-    this._togglePopup(() => this._objMenuOpen, (v) => { this._objMenuOpen = v; });
+    this._togglePopup("object", () => this._objMenuOpen, (v) => { this._objMenuOpen = v; });
   }
 
   private _closeObjMenu(): void {
@@ -5193,7 +5214,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private _toggleMoreMenu(): void {
-    this._togglePopup(() => this._moreMenuOpen, (v) => { this._moreMenuOpen = v; });
+    this._togglePopup("more", () => this._moreMenuOpen, (v) => { this._moreMenuOpen = v; });
   }
 
   private _closeMoreMenu(): void {

@@ -751,6 +751,18 @@
           "group_description": "Optionale Beschreibung für diese Gruppe."
         }
       },
+      "edit_group": {
+        "title": "Gruppe bearbeiten",
+        "description": "Benennen Sie die Gruppe um oder setzen Sie den Haken, um sie zu löschen.",
+        "data": {
+          "group_name": "Gruppenname",
+          "group_description": "Beschreibung",
+          "delete_group": "Diese Gruppe löschen"
+        },
+        "data_description": {
+          "delete_group": "Die Aufgaben bleiben erhalten, nur die Gruppe wird entfernt."
+        }
+      },
       "manage_tasks": {
         "title": "Aufgaben verwalten",
         "description": "Wählen Sie eine Aufgabe zum Bearbeiten oder Entfernen.",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "Das Objekt der Batterie-Flotte kann nicht dupliziert werden."
+    },
+    "fleet_not_replaceable": {
+      "message": "Das Objekt der Batterie-Flotte kann nicht ersetzt werden."
     },
     "parts_limit": {
       "message": "Ein Objekt kann höchstens {max} Ersatzteile haben."

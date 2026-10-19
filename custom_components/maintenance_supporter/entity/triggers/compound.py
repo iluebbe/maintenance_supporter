@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.util import dt as dt_util
 
 if TYPE_CHECKING:
     from .base_trigger import TriggerCoordinator, TriggerHost
@@ -15,8 +17,10 @@ from ...const import (
     CONF_COMPOUND_LOGIC,
     EVENT_TRIGGER_ACTIVATED,
     EVENT_TRIGGER_DEACTIVATED,
+    TRIGGER_COMPLETION_COOLDOWN_SECONDS,
     UNAVAILABLE_STATES,
 )
+from ...helpers.managed_timer import ManagedTimer
 from .base_trigger import BaseTrigger
 
 _LOGGER = logging.getLogger(__name__)
@@ -176,6 +180,7 @@ class CompoundTrigger(BaseTrigger):
     # BaseTrigger's flags; __init__ sets the real starting values.
     _setting_up: bool = False
     _settled: bool = True
+    _cooldown_timer: ManagedTimer | None = None
 
     def __init__(
         self,
@@ -205,6 +210,8 @@ class CompoundTrigger(BaseTrigger):
         # activation after that is a new edge and is announced.
         self._setting_up = False
         self._settled = False
+        # Re-latches an activation the post-completion cooldown held back.
+        self._cooldown_timer = ManagedTimer(hass, f"CompoundTrigger:{self._task_id}:cooldown")
 
     @property
     def condition_states(self) -> list[bool]:
@@ -279,6 +286,8 @@ class CompoundTrigger(BaseTrigger):
         self._sub_triggers = []
         self._sub_entities = []
         self._condition_states = [False] * len(self._conditions)
+        if self._cooldown_timer is not None:
+            self._cooldown_timer.close()
         await super().async_teardown()
 
     def evaluate(self, value: float) -> bool:
@@ -290,6 +299,8 @@ class CompoundTrigger(BaseTrigger):
     def reset(self) -> None:
         """Reset all sub-triggers (and what their conditions aggregate)."""
         super().reset()
+        if self._cooldown_timer is not None:
+            self._cooldown_timer.cancel()
         self._condition_states = [False] * len(self._conditions)
         for sub_entity in self._sub_entities:
             sub_entity.reset()
@@ -318,9 +329,38 @@ class CompoundTrigger(BaseTrigger):
                 self._restore_activation(0.0)
             else:
                 self._on_trigger_activated(0.0)
+            if not self._recovered_since_reset and self._in_completion_cooldown():
+                self._relatch_after_cooldown()
         elif not now_triggered and was_triggered:
+            # Seen clear since the completion: the next activation is a new
+            # edge, as BaseTrigger records it. The compound never did, so a
+            # problem back within ten minutes of a completion was taken for
+            # the old one (bug audit 2026-10-17, T-4).
+            if not self._recovered_since_reset:
+                self._note_recovered()
+            self._recovered_since_reset = True
+            if self._cooldown_timer is not None:
+                self._cooldown_timer.cancel()
             self._on_trigger_deactivated(0.0)
         self._maybe_settle()
+
+    def _relatch_after_cooldown(self) -> None:
+        """An activation right after a completion whose conditions never
+        cleared is not applied while the cooldown lasts (the user completed
+        before fixing it). The sensor triggers re-latch after it through the
+        coordinator's fallback; a compound has none, so the task read OK while
+        its conditions held, until the next reload (bug audit 2026-10-17,
+        T-4). Repaint it once the cooldown is over."""
+        if self._cooldown_timer is None:
+            return
+        left = getattr(type(self._coordinator), "completion_cooldown_left", None)
+        seconds = left(self._coordinator, self._task_id) if callable(left) else TRIGGER_COMPLETION_COOLDOWN_SECONDS
+        self._cooldown_timer.schedule_at(dt_util.utcnow() + timedelta(seconds=seconds + 1), self._on_cooldown_over)
+
+    @callback
+    def _on_cooldown_over(self, _now: datetime) -> None:
+        if self._triggered and not self._in_completion_cooldown():
+            self._restore_activation(0.0)
 
     def _restore_activation(self, value: float) -> None:
         """Repaint an activation already on record (see ``_settled``) — no
@@ -369,7 +409,7 @@ class CompoundTrigger(BaseTrigger):
             self._condition_states,
             self._compound_logic,
         )
-        self.entity.async_update_trigger_state(
+        task_recovered = self.entity.async_update_trigger_state(
             is_triggered=False,
             current_value=None,
             trigger_entity_id=None,
@@ -389,5 +429,8 @@ class CompoundTrigger(BaseTrigger):
         # conditions' sub-triggers leave it to the compound (they are not the
         # task's trigger), and the compound never ran it: "complete when it
         # recovers" did nothing on an AND/OR trigger (bug audit 2026-10-16, T4).
-        if self.config.get("auto_complete_on_recovery"):
+        # Only when the TASK recovered, as BaseTrigger checks: an activation
+        # the cooldown held back never latched the task, and its end recorded
+        # a second completion for the one job (bug audit 2026-10-17, T-4).
+        if self.config.get("auto_complete_on_recovery") and task_recovered is not False:
             self._track(self._coordinator.async_auto_complete_on_recovery(self._task_id, None), cancel_on_close=False)

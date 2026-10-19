@@ -27,7 +27,7 @@ from .const import (
     HistoryEntryType,
     ScheduleType,
 )
-from .helpers.aggregate import object_name, store_of
+from .helpers.aggregate import async_store_even_unloaded, object_name
 from .helpers.entry_tasks import write_task
 from .helpers.global_options import entry_option
 from .helpers.issues import DEVICE_LINK_LOST_PREFIX, STALE_ACTION_PREFIX
@@ -146,7 +146,7 @@ def _strip_entity_from_condition(cond: dict[str, Any], target: str) -> tuple[dic
     return cond, top_has or nested_has
 
 
-def _persist_trigger_repair(
+async def _persist_trigger_repair(
     hass: HomeAssistant, entry: Any, task_id: str, task_dict: dict[str, Any], entry_type: str, notes: str
 ) -> None:
     """Write a repaired task and record the repair in its history.
@@ -159,13 +159,17 @@ def _persist_trigger_repair(
     (DRY audit 2026-09-26 B).
     """
     write_task(hass, entry, task_id, task_dict)
-    store = store_of(entry)
+    # An object that is not loaded (the repair is offered for a disabled one,
+    # or one in setup retry) has a Store too: the inline legacy path wrote its
+    # history into the entry and kept the old trigger's runtime (bug audit
+    # 2026-10-17, T-5). Saved at once, the caller reloads right after.
+    store = await async_store_even_unloaded(hass, entry)
     if store is not None:
         task = MaintenanceTask.from_dict(store.merge_task_data(task_id, task_dict))
         task.add_history_entry(entry_type=entry_type, notes=notes)
         store.set_history(task_id, task.to_dict().get("history", []))
         store.clear_trigger_runtime(task_id)
-        store.async_delay_save()
+        await store.async_save()
     else:
         # Legacy: history via a full task round trip in ConfigEntry.
         task = MaintenanceTask.from_dict(task_dict)
@@ -314,7 +318,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         trigger_config.pop("trigger_change_count", None)
         task_dict["trigger_config"] = trigger_config
 
-        _persist_trigger_repair(
+        await _persist_trigger_repair(
             self.hass,
             entry,
             str(task_id),
@@ -365,7 +369,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         else:
             history_notes = self._remove_from_flat(task_dict, trigger_config, missing_entity_id)
 
-        _persist_trigger_repair(self.hass, entry, str(task_id), task_dict, HistoryEntryType.TRIGGER_REMOVED, history_notes)
+        await _persist_trigger_repair(self.hass, entry, str(task_id), task_dict, HistoryEntryType.TRIGGER_REMOVED, history_notes)
 
         await self.hass.config_entries.async_reload(entry_id)
 

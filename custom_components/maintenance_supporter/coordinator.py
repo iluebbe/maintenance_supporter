@@ -451,7 +451,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # process: a reload (every task edit) hands a fresh coordinator an
             # empty _previous_statuses too, but the manager's stamps are live
             # and a still-pending notification must not be marked as sent
-            # (bug audit 2026-09-12).
+            # (bug audit 2026-09-12). Nor when the manager restored the
+            # previous process's stamps (N-5, 2026-10-17).
             seeding = isinstance(nm, NotificationManager) and nm.begin_startup_seed(self.entry.entry_id)
             for task_id_n, task_result_n in result[CONF_TASKS].items():
                 status = task_result_n.get("_status", MaintenanceStatus.OK)
@@ -1415,10 +1416,17 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # latest one recorded "used parts" in history while the stock stayed
         # untouched (bug audit 2026-09-12).
         _is_backfill = completed_at is not None and not task.would_be_latest(effective_ts)
+        # The battery fleet task consumes per device, never its own links
+        # (parts_runtime, #181): recorded anyway, they showed as used, were
+        # valued in the budget and went back to the shelf on a history
+        # delete, though they never left it (bug audit 2026-10-17, S-5).
+        from .const import BATTERY_FLEET_TASK_FLAG
+
+        _automatic = not _is_backfill and not merged[task_id].get(BATTERY_FLEET_TASK_FLAG)
         record_links = (
             used_parts
             if used_parts is not None
-            else ([] if _is_backfill else (_phase_effective(merged[task_id], "consumes_parts") or []))
+            else ((_phase_effective(merged[task_id], "consumes_parts") or []) if _automatic else [])
         )
         enriched_used: list[dict[str, Any]] | None = None
         if used_parts is not None or record_links:
@@ -2011,6 +2019,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             and stamp is not None
             and time.monotonic() - stamp < TRIGGER_COMPLETION_COOLDOWN_SECONDS
         )
+
+    def completion_cooldown_left(self, task_id: str) -> float:
+        """Seconds left of the task's post-completion cooldown; 0 outside it."""
+        stamp = self._recently_completed.get(task_id)
+        if task_id not in self._completion_cooldown or stamp is None:
+            return 0.0
+        return max(0.0, TRIGGER_COMPLETION_COOLDOWN_SECONDS - (time.monotonic() - stamp))
 
     def _seed_cooldown_from_history(self, tasks: dict[str, MaintenanceTask]) -> None:
         """Re-create the post-completion cooldown from the history after a

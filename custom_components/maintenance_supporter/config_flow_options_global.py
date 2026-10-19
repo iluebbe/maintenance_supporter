@@ -628,6 +628,9 @@ async def _send_test_to(
 class GlobalOptionsFlow(OptionsFlow):
     """Handle global options with menu-based navigation."""
 
+    # The group Manage groups opened in edit_group.
+    _editing_group: str | None = None
+
     @property
     def _current(self) -> dict[str, Any]:
         """Get current options."""
@@ -1625,7 +1628,10 @@ class GlobalOptionsFlow(OptionsFlow):
             if selected == "_add_new":
                 return await self.async_step_add_group()
             if selected and selected in groups:
-                return await self._delete_group(selected)
+                # Selecting a group deleted it on the spot, with no way back
+                # (bug audit 2026-10-17, N-6): it opens the group instead.
+                self._editing_group = selected
+                return await self.async_step_edit_group()
 
         if not groups:
             # No groups yet — go directly to add
@@ -1688,6 +1694,51 @@ class GlobalOptionsFlow(OptionsFlow):
                             multiline=True,
                         )
                     ),
+                }
+            ),
+        )
+
+    async def async_step_edit_group(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Rename a group, or delete it when the delete box is ticked."""
+        from .const import CONF_GROUPS
+        from .helpers.sanitize import sanitize_group
+
+        group_id = self._editing_group or ""
+        group = (self._current.get(CONF_GROUPS) or {}).get(group_id)
+        if not isinstance(group, dict):
+            return await self.async_step_manage_groups()
+
+        if user_input is not None:
+            if user_input.get("delete_group"):
+                return await self._delete_group(group_id)
+            edited = sanitize_group(
+                {**group, "name": user_input.get("group_name", ""), "description": user_input.get("group_description", "")}
+            )
+            if edited is not None:
+                merged = self._current
+                groups = dict(merged.get(CONF_GROUPS, {}))
+                groups[group_id] = edited
+                merged[CONF_GROUPS] = groups
+                self.hass.config_entries.async_update_entry(self.config_entry, options=merged)
+            return self.async_show_menu(
+                step_id="global_init",
+                menu_options=self._menu_options(),
+            )
+
+        return self.async_show_form(
+            step_id="edit_group",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("group_name", default=group.get("name", "")): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+                    ),
+                    vol.Optional("group_description", default=group.get("description", "")): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT,
+                            multiline=True,
+                        )
+                    ),
+                    vol.Optional("delete_group", default=False): selector.BooleanSelector(),
                 }
             ),
         )

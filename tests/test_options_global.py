@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -883,7 +884,9 @@ async def test_manage_groups_delete(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
 ) -> None:
-    """Lines 671-680: _delete_group removes group and returns menu."""
+    """Selecting a group opens it; it is renamed there, and deleted only when
+    the delete box is ticked. Selecting it deleted it on the spot, with no
+    confirmation and no way to rename (bug audit 2026-10-17, N-6)."""
     # Add a group via options
     group_id = uuid4().hex
     hass.config_entries.async_update_entry(
@@ -913,18 +916,30 @@ async def test_manage_groups_delete(
     )
     assert result["type"] == FlowResultType.FORM
 
-    # Select the group (triggers _delete_group)
+    def groups() -> dict[str, Any]:
+        entry = hass.config_entries.async_get_entry(global_entry.entry_id)
+        assert entry is not None
+        return dict((entry.options or entry.data).get(CONF_GROUPS, {}))
+
+    # Selecting the group opens it, and it is still there.
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"selected_group": group_id})
+    assert (result["type"], result["step_id"]) == (FlowResultType.FORM, "edit_group")
+    assert group_id in groups()
+    # Saved without the box: renamed, its tasks kept.
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"],
-        {"selected_group": group_id},
+        result["flow_id"], {"group_name": "Pool", "group_description": "Pump and filter", "delete_group": False}
     )
     assert result["type"] == FlowResultType.MENU
+    assert groups()[group_id] == {"name": "Pool", "description": "Pump and filter", "task_refs": []}
 
-    # Verify group was deleted
-    entry = hass.config_entries.async_get_entry(global_entry.entry_id)
-    assert entry is not None
-    groups = (entry.options or entry.data).get(CONF_GROUPS, {})
-    assert group_id not in groups
+    # With the box ticked: deleted.
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "manage_groups"})
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"selected_group": group_id})
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"group_name": "Pool", "group_description": "", "delete_group": True}
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert group_id not in groups()
 
 
 async def test_manage_groups_no_groups_redirects_to_add(

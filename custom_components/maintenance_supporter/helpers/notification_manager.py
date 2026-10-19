@@ -1296,6 +1296,9 @@ class NotificationManager:
         # entry and hands the coordinator an empty _previous_statuses), and
         # re-seeding on every reload marked never-sent notifications as sent.
         self._seeded_entries: set[str] = set()
+        # The previous process's bookkeeping was loaded: its stamps say what
+        # was sent, so nothing is seeded (bug audit 2026-10-17, N-5).
+        self._restored = False
         self._daily_reset_date: date | None = None
         # Tracks the last-known state of the "configured notify service missing"
         # repair issue. None = not yet reconciled this process; the first
@@ -1665,6 +1668,7 @@ class NotificationManager:
         raw = await self._store.async_load()
         if not isinstance(raw, dict):
             return
+        self._restored = True
 
         def _dt(value: Any) -> datetime | None:
             if value == "once":
@@ -2608,8 +2612,14 @@ class NotificationManager:
         reloaded on each task edit) inherits the manager's live state: stamps
         of what was sent survive, and a notification that was still pending
         (quiet hours, daily cap) is not silently marked as sent (bug audit
-        2026-09-12)."""
-        if entry_id in self._seeded_entries:
+        2026-09-12).
+
+        Never once the previous process's bookkeeping was loaded: a reminder
+        it has no stamp for was never sent. It was held by a gate (vacation,
+        a mute, a status switched off) or the task got there while Home
+        Assistant was down, and seeding it as sent kept a once-only status
+        such as *triggered* silent for good (bug audit 2026-10-17, N-5)."""
+        if self._restored or entry_id in self._seeded_entries:
             return False
         self._seeded_entries.add(entry_id)
         return True

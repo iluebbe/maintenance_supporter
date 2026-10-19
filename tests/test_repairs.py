@@ -118,8 +118,19 @@ def _make_flow(
     return flow
 
 
-def _set_store_none(hass: HomeAssistant, entry_id: str) -> None:
-    """Disable the Store on runtime_data to force legacy fallback paths.
+def _history(hass: HomeAssistant, entry: Any) -> list[dict[str, Any]]:
+    """The task's history where it lives after the repair's reload: the
+    reload of a legacy entry moves the inline history into a new Store."""
+    store = entry.runtime_data.store if getattr(entry, "runtime_data", None) else None
+    if store is not None:
+        return list(store.get_history(TASK_ID_1))
+    return list(entry.data[CONF_TASKS][TASK_ID_1].get("history", []))
+
+
+async def _set_store_none(hass: HomeAssistant, entry_id: str) -> None:
+    """Make the entry one without a Store (none loaded, cached or on disk)
+    to force the legacy fallback paths: since T-5 (bug audit 2026-10-17) a
+    repair finds the Store of an entry that is not loaded.
 
     Also writes the full task data back into ConfigEntry.data so that the
     legacy code has something to read (migration normally strips dynamic
@@ -129,6 +140,11 @@ def _set_store_none(hass: HomeAssistant, entry_id: str) -> None:
     assert entry is not None
     rd = entry.runtime_data
     rd.store = None
+    from custom_components.maintenance_supporter.const import STORES_CACHE_KEY
+
+    cached = hass.data.get(STORES_CACHE_KEY, {}).pop(entry_id, None)
+    if cached is not None:
+        await cached.async_remove()
 
     # Ensure task data in ConfigEntry includes all fields the legacy path needs
     tasks_data = dict(entry.data.get(CONF_TASKS, {}))
@@ -168,7 +184,7 @@ async def test_replace_trigger_legacy_no_store(
     obj_entry = _make_sensor_entry(hass, unique_id="replace_legacy_store")
     await setup_integration(hass, global_entry, obj_entry)
 
-    _set_store_none(hass, obj_entry.entry_id)
+    await _set_store_none(hass, obj_entry.entry_id)
 
     flow = _make_flow(hass, obj_entry.entry_id)
     result = await flow.async_step_replace_entity({"new_entity_id": "sensor.new_temp"})
@@ -183,7 +199,7 @@ async def test_replace_trigger_legacy_no_store(
     tc = task_data.get("trigger_config", {})
     assert tc.get("entity_id") == "sensor.new_temp"
     # History should contain a trigger_replaced entry with the replace note
-    history = task_data.get("history", [])
+    history = _history(hass, entry)
     assert len(history) >= 1
     last_entry = history[-1]
     assert last_entry["type"] == HistoryEntryType.TRIGGER_REPLACED
@@ -204,7 +220,7 @@ async def test_replace_trigger_legacy_multi_entity(
     )
     await setup_integration(hass, global_entry, obj_entry)
 
-    _set_store_none(hass, obj_entry.entry_id)
+    await _set_store_none(hass, obj_entry.entry_id)
 
     flow = _make_flow(hass, obj_entry.entry_id, entity_id="sensor.old_temp")
     result = await flow.async_step_replace_entity({"new_entity_id": "sensor.new_temp"})
@@ -218,7 +234,7 @@ async def test_replace_trigger_legacy_multi_entity(
     assert "sensor.new_temp" in tc.get("entity_ids", [])
     assert "sensor.old_temp" not in tc.get("entity_ids", [])
     # History should be written via legacy path
-    history = task_data.get("history", [])
+    history = _history(hass, entry)
     assert any(h["type"] == HistoryEntryType.TRIGGER_REPLACED for h in history)
 
 
@@ -297,7 +313,7 @@ async def test_remove_trigger_legacy_no_store(
     )
     await setup_integration(hass, global_entry, obj_entry)
 
-    _set_store_none(hass, obj_entry.entry_id)
+    await _set_store_none(hass, obj_entry.entry_id)
 
     flow = _make_flow(hass, obj_entry.entry_id)
     result = await flow.async_step_remove_trigger({})
@@ -312,7 +328,7 @@ async def test_remove_trigger_legacy_no_store(
     # Should convert to time_based since interval_days exists
     assert read_legacy_fields(task_data)["schedule_type"] == ScheduleType.TIME_BASED
     # History should contain a trigger_removed entry via legacy path
-    history = task_data.get("history", [])
+    history = _history(hass, entry)
     assert len(history) >= 1
     last_entry = history[-1]
     assert last_entry["type"] == HistoryEntryType.TRIGGER_REMOVED
@@ -332,7 +348,7 @@ async def test_remove_trigger_legacy_no_store_multi_entity(
     )
     await setup_integration(hass, global_entry, obj_entry)
 
-    _set_store_none(hass, obj_entry.entry_id)
+    await _set_store_none(hass, obj_entry.entry_id)
 
     flow = _make_flow(hass, obj_entry.entry_id, entity_id="sensor.old_temp")
     result = await flow.async_step_remove_trigger({})
@@ -345,7 +361,7 @@ async def test_remove_trigger_legacy_no_store_multi_entity(
     tc = task_data.get("trigger_config", {})
     assert tc["entity_ids"] == ["sensor.other"]
     # History written via legacy path
-    history = task_data.get("history", [])
+    history = _history(hass, entry)
     assert any(h["type"] == HistoryEntryType.TRIGGER_REMOVED for h in history)
 
 
@@ -372,7 +388,7 @@ async def test_remove_trigger_legacy_to_manual(
     new_data[CONF_TASKS] = tasks
     hass.config_entries.async_update_entry(entry, data=new_data)
 
-    _set_store_none(hass, obj_entry.entry_id)
+    await _set_store_none(hass, obj_entry.entry_id)
 
     flow = _make_flow(hass, obj_entry.entry_id)
     result = await flow.async_step_remove_trigger({})
@@ -384,7 +400,7 @@ async def test_remove_trigger_legacy_to_manual(
     task_data = updated.data[CONF_TASKS][TASK_ID_1]
     assert read_legacy_fields(task_data)["schedule_type"] == ScheduleType.MANUAL
     # History written via legacy path
-    history = task_data.get("history", [])
+    history = _history(hass, updated)
     assert any(h["type"] == HistoryEntryType.TRIGGER_REMOVED for h in history)
 
 
@@ -860,3 +876,28 @@ def test_remove_from_compound_zero_remaining_delegates_flat() -> None:
     notes = flow._remove_from_compound(task_dict, trigger_config, "sensor.dead")
     # Should have delegated to _remove_from_flat → contains "Sensor trigger removed"
     assert "trigger" in notes.lower()
+
+
+async def test_remove_trigger_of_an_unloaded_object_writes_its_store(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """Bug audit 2026-10-17 (T-5): an object that is not loaded right now
+    (disabled, setup retry) has a Store too. The repair took the legacy path:
+    the history went inline into the entry and the old trigger's runtime
+    stayed in the Store."""
+    obj_entry = _make_sensor_entry(hass, interval_days=30, unique_id="remove_unloaded")
+    await setup_integration(hass, global_entry, obj_entry)
+    obj_entry.runtime_data.store.update_task_state(TASK_ID_1, trigger_runtime={"sensor.old_temp": {"exceeded_since": "x"}})
+    assert await hass.config_entries.async_unload(obj_entry.entry_id)
+
+    result = await _make_flow(hass, obj_entry.entry_id).async_step_remove_trigger({})
+    assert result["type"] == "create_entry"
+    await hass.async_block_till_done()
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    assert "history" not in entry.data[CONF_TASKS][TASK_ID_1]
+    state = entry.runtime_data.store.get_task_state(TASK_ID_1)
+    assert state["history"][-1]["type"] == HistoryEntryType.TRIGGER_REMOVED
+    assert not state.get("trigger_runtime")

@@ -2,8 +2,9 @@
 
 A device takes whatever is in the drawer, disposable or rechargeable, while
 Battery Notes names one type per device. With the option on, Replaced offers
-the note's type and every fleet part of the same size, books the cells that
-went in, remembers them for the device, and puts the cells taken out on
+the note's type, every fleet part of the same size and the rechargeable kind
+of that size, books the cells that went in, remembers them for the device,
+and puts the cells taken out on
 their own part's charging pile when they were rechargeable. Off, nothing
 changes: the note's type is booked and a ``cells`` choice is ignored.
 """
@@ -361,6 +362,129 @@ def test_the_cells_ride_a_backup_and_a_rename() -> None:
     store.all_task_states.return_value = {"fleet": state}
     assert rewrite_store(store, "sensor.old", "sensor.new")
     assert state[INSTALLED_CELLS_KEY] == {"sensor.new": "AA NIMH"}
+
+
+# ─── the rechargeable kind before any note names it ─────────────────────────
+
+
+async def _disposables_only(hass: HomeAssistant, global_entry: MockConfigEntry) -> Any:
+    """Every note names a disposable or a cell with no other kind: a remote
+    on AAA, a smoke alarm on 9V, a scale on a coin cell, a torch on an 18650.
+    No NiMH part exists, the AAA stock is counted (10)."""
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import find_fleet_entry
+    from custom_components.maintenance_supporter.parts_runtime import async_change_part_stock
+    from custom_components.maintenance_supporter.websocket.battery_fleet import (
+        ws_battery_fleet_set_ask_cells,
+        ws_battery_fleet_setup,
+    )
+
+    await setup_integration(hass, global_entry)
+    _battery(hass, "remote", "AAA", 2)
+    _battery(hass, "smoke", "9V", 1)
+    _battery(hass, "scale", "CR2032", 1)
+    _battery(hass, "torch", "18650", 1)
+    await _ws(hass, ws_battery_fleet_setup, {})
+    fleet = find_fleet_entry(hass)
+    await async_change_part_stock(hass, fleet, AAA, absolute=10)
+    await _ws(hass, ws_battery_fleet_set_ask_cells, {"enabled": True})
+    async_mock_service(hass, "button", "press")
+    return fleet
+
+
+async def _mark(hass: HomeAssistant, entity_id: str, cells: str) -> Any:
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_mark_replaced
+
+    return await _ws(hass, ws_battery_fleet_mark_replaced, {"entity_ids": [entity_id], "cells": {entity_id: cells}})
+
+
+async def test_the_rechargeable_kind_is_offered_before_any_note_names_it(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """D#213 follow-up: the choice listed only the types the fleet had a part
+    for, and it mints one for each type a note names. With every note on
+    disposables there was nothing to choose and Replaced never asked; the
+    way out was editing Battery Notes, which the option exists to avoid."""
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import reconcile_fleet_parts_at_start
+    from custom_components.maintenance_supporter.parts_runtime import async_change_part_stock
+    from custom_components.maintenance_supporter.websocket.battery_fleet import ws_battery_fleet_overview
+
+    from homeassistant.helpers import entity_registry as er
+
+    fleet = await _disposables_only(hass, global_entry)
+    assert NIMH not in fleet.data["parts"]
+    ov = await _ws(hass, ws_battery_fleet_overview, {})
+    rows = {r["entity_id"]: r for r in ov["all"]}
+    choices = rows[REMOTE]["cell_choices"]
+    assert [(c["type"], c["name"], c["rechargeable"]) for c in choices] == [("AAA", "AAA battery", False), ("AAA NIMH", "AAA NIMH battery", True)]
+    assert [c["type"] for c in rows["sensor.smoke_battery_plus"]["cell_choices"]] == ["9V", "9V NIMH"]
+    # A coin cell has no rechargeable kind, and an 18650 is one: no question.
+    assert "cell_choices" not in rows["sensor.scale_battery_plus"]
+    assert "cell_choices" not in rows["sensor.torch_battery_plus"]
+
+    # The first pick mints the part: uncounted, so nothing is taken yet, and
+    # the disposables taken out are simply gone.
+    res = await _mark(hass, REMOTE, "AAA NIMH")
+    assert res["consumed"] == {}
+    part = fleet.data["parts"][NIMH]
+    assert (part["name"], part["reuse"]) == ("AAA NIMH battery", "charge")
+    assert _stock(fleet, NIMH)[0] is None and _stock(fleet, AAA) == (10, 0)
+    sensors = er.async_entries_for_config_entry(er.async_get(hass), fleet.entry_id)
+    assert any(e.unique_id.endswith(f"_part_{NIMH}") and hass.states.get(e.entity_id) for e in sensors), "its stock sensor"
+    _ov, row = await _overview_row(hass, REMOTE)
+    assert row["cells_installed"] == "AAA NIMH"
+    # A start keeps it, and once counted it books like any cell part.
+    await reconcile_fleet_parts_at_start(hass, fleet, "en")
+    assert NIMH in fleet.data["parts"]
+    await async_change_part_stock(hass, fleet, NIMH, absolute=2)
+    _next_day(hass)
+    await _mark(hass, REMOTE, "AAA NIMH")
+    assert _stock(fleet, NIMH) == (0, 2)
+
+    # Only a rechargeable kind is minted: a disposable type seen since the
+    # start waits for the start-up reconcile, which counts it from 0.
+    _battery(hass, "toy", "AA", 2)
+    await _mark(hass, "sensor.toy_battery_plus", "AA")
+    assert "batt_aa" not in fleet.data["parts"]
+
+
+async def test_a_corrected_pick_mints_the_kind_too(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    fleet = await _disposables_only(hass, global_entry)
+    await _mark(hass, REMOTE, "AAA")
+    assert NIMH not in fleet.data["parts"]
+    await _mark(hass, REMOTE, "AAA NIMH")
+    assert NIMH in fleet.data["parts"]
+    assert _stock(fleet, AAA) == (10, 0), "the disposables went back"
+
+
+async def test_a_deleted_kind_is_not_offered_again(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """Deleting the part says the household keeps no such cells: like every
+    deleted fleet part it stays deleted, and the question goes with it."""
+    from custom_components.maintenance_supporter.websocket.parts import ws_delete_part
+
+    fleet = await _disposables_only(hass, global_entry)
+    await _mark(hass, REMOTE, "AAA NIMH")
+    await _ws(hass, ws_delete_part, {"entry_id": fleet.entry_id, "part_id": NIMH})
+    _ov, row = await _overview_row(hass, REMOTE)
+    assert "cell_choices" not in row
+    _next_day(hass)
+    res = await _mark(hass, REMOTE, "AAA NIMH")
+    assert res["consumed"] == {AAA: 2}, "the cells the note names"
+    assert NIMH not in fleet.data["parts"]
+
+
+def test_the_rechargeable_kind_of_each_size() -> None:
+    from types import SimpleNamespace
+
+    from custom_components.maintenance_supporter.const import CONF_PARTS
+    from custom_components.maintenance_supporter.helpers.battery_fleet_setup import cell_choices
+    from custom_components.maintenance_supporter.helpers.battery_lifetime import charged_kind
+
+    sizes = ("AAAA", "AAA", "AA", "C", "D", "9V")
+    assert [charged_kind(s) for s in sizes] == ["AAAA NIMH", "AAA NIMH", "AA NIMH", "C NIMH", "D NIMH", "9V NIMH"]
+    assert charged_kind("18650") is None and charged_kind(None) is None
+    # A rechargeable part of the size is the household's kind already: no
+    # second one next to it.
+    aa = SimpleNamespace(battery_type="AA")
+    assert cell_choices(aa, {CONF_PARTS: {"batt_aa eneloop": {}}}) == ["AA", "AA ENELOOP"]
+    assert cell_choices(aa, {}) == ["AA", "AA NIMH"]
 
 
 async def test_the_option_needs_a_fleet(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:

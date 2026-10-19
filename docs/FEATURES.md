@@ -345,7 +345,9 @@ bought for €30 and used in one change is €30 spent, not €60.
 - **When used:** every completion — panel, card, NFC tag, voice, automation —
   books the parts it used at their price (*Parts: €15*), so you enter only what
   came on top. A purchase is stock, not spending: its price becomes the part's
-  price, and the next change is valued at what you actually paid.
+  price, and the next change is valued at what you actually paid. Batteries
+  for the battery fleet are the exception: they count when bought, because a
+  swap in the fleet takes cells without a completion that could value them.
 
 Each history entry keeps how it was booked, so switching changes what comes
 after and never re-values the past — an entry you booked by hand under the old
@@ -617,9 +619,10 @@ charged in place grows no pile. A pack built into its device (*Rechargeable*,
 and disposable cells of one size gives the rechargeable devices their own
 type in Battery Notes (`AAA NiMH` next to `AAA`), or switches on **Ask which
 cells went in** in the roster (2.104+, D#213): *Replaced* then asks which
-cells of the device's size went in (the type Battery Notes names, or another
-type of that size the fleet has a part for; it has one for every type a
-Battery Notes device uses), books those
+cells of the device's size went in (the type Battery Notes names, another
+type of that size the fleet has a part for, or, when none of those is
+rechargeable, the NiMH kind of an AAAA, AAA, AA, C, D or 9V cell; the first
+pick adds its part, and a part you delete is not offered again), books those
 (the ones taken out go on the *to charge* pile when they were rechargeable)
 and remembers them for the device; choosing again the same day corrects the
 first choice. Battery Notes keeps its type; the shopping list and the

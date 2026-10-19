@@ -45,6 +45,8 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
   }
 
   public async openFor(entryId: string): Promise<void> {
+    // Another object's data must not show under this one's id while it loads.
+    if (entryId !== this._entryId) this._data = null;
     this._entryId = entryId;
     this._error = "";
     this._open = true;
@@ -55,19 +57,31 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
   }
 
   public close(): void {
+    this._loadSeq++; // a load still in flight belongs to the closed dialog
     this._open = false;
     this._data = null;
     this._error = "";
   }
 
+  /** Only the newest `_load` may land (the task dialog's rule). A slow
+   *  answer for an object closed before it arrived showed under the next
+   *  one's id: Edit opened B's editor with A's fields and saving wrote them
+   *  over B, Delete and Archive acted on B (bug audit 2026-10-17, P-4). */
+  private _loadSeq = 0;
+
   private async _load(): Promise<void> {
-    if (!this._entryId) return;
+    const entryId = this._entryId;
+    if (!entryId) return;
+    const seq = ++this._loadSeq;
+    let failure = "";
     const r = await runWs<ObjectFull>(
       this,
-      { type: "maintenance_supporter/object", entry_id: this._entryId },
-      { onError: (m) => { this._error = m; } },
+      { type: "maintenance_supporter/object", entry_id: entryId },
+      { onError: (m) => { failure = m; } },
     );
-    if (r !== undefined) this._data = r;
+    if (seq !== this._loadSeq) return;
+    if (r === undefined) this._error = failure;
+    else this._data = r;
   }
 
   /** helpers/ws-run runWs bound to this dialog's busy flag and error line. */

@@ -751,6 +751,18 @@
           "group_description": "Bu grup için isteğe bağlı açıklama."
         }
       },
+      "edit_group": {
+        "title": "Grubu Düzenle",
+        "description": "Grubu yeniden adlandırın veya silmek için kutuyu işaretleyin.",
+        "data": {
+          "group_name": "Grup adı",
+          "group_description": "Açıklama",
+          "delete_group": "Bu grubu sil"
+        },
+        "data_description": {
+          "delete_group": "Görevler kalır; yalnızca grup kaldırılır."
+        }
+      },
       "manage_tasks": {
         "title": "Görevleri Yönet",
         "description": "Düzenlenecek veya kaldırılacak bir görev seçin.",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "Pil filosu nesnesi çoğaltılamaz."
+    },
+    "fleet_not_replaceable": {
+      "message": "Pil filosu nesnesi değiştirilemez."
     },
     "parts_limit": {
       "message": "Bir nesnenin en fazla {max} yedek parçası olabilir."

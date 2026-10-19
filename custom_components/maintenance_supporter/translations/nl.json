@@ -751,6 +751,18 @@
           "group_description": "Optionele beschrijving voor deze groep."
         }
       },
+      "edit_group": {
+        "title": "Groep bewerken",
+        "description": "Wijzig de naam van de groep, of vink het vakje aan om hem te verwijderen.",
+        "data": {
+          "group_name": "Groepsnaam",
+          "group_description": "Beschrijving",
+          "delete_group": "Deze groep verwijderen"
+        },
+        "data_description": {
+          "delete_group": "De taken blijven bestaan; alleen de groep wordt verwijderd."
+        }
+      },
       "manage_tasks": {
         "title": "Taken beheren",
         "description": "Selecteer een taak om te bewerken of te verwijderen.",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "Het object van de batterijvloot kan niet worden gedupliceerd."
+    },
+    "fleet_not_replaceable": {
+      "message": "Het object van de batterijvloot kan niet worden vervangen."
     },
     "parts_limit": {
       "message": "Een object kan maximaal {max} reserveonderdelen hebben."

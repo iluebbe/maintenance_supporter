@@ -21,7 +21,7 @@ from ..const import (
     DEFAULT_WARNING_DAYS,
 )
 from .aggregate import merged_tasks
-from .dates import INTERVAL_UNITS, normalize_hhmm, parse_iso_date
+from .dates import INTERVAL_UNITS, import_day, normalize_hhmm, parse_iso_date
 from .global_options import get_default_warning_days
 from .pause import pause_end_day, write_anchor
 from .reading_slots import parse_reading_slots_text, reading_slots_text
@@ -306,9 +306,10 @@ def import_objects_csv(
         if group not in objects_map:
             archived_at = (row.get("object_archived_at") or "").strip().lstrip("\t")
             predecessor = (row.get("object_predecessor_entry_id") or "").strip()
+            obj_warnings: list[str] = []
             objects_map[group] = {
                 "entry_id": source_id or None,
-                "warnings": [],
+                "warnings": obj_warnings,
                 "object": {
                     "id": uuid4().hex,
                     "name": obj_name,
@@ -316,8 +317,12 @@ def import_objects_csv(
                     "model": (row.get("object_model") or "").strip() or None,
                     "serial_number": (row.get("object_serial_number") or "").strip() or None,
                     "area_id": (row.get("object_area_id") or "").strip() or None,
-                    "installation_date": (row.get("object_installation_date") or "").strip() or None,
-                    "warranty_expiry": (row.get("object_warranty_expiry") or "").strip() or None,
+                    "installation_date": import_day(
+                        (row.get("object_installation_date") or "").strip(), f"{obj_name}: installation date", obj_warnings
+                    ),
+                    "warranty_expiry": import_day(
+                        (row.get("object_warranty_expiry") or "").strip(), f"{obj_name}: warranty expiry", obj_warnings
+                    ),
                     # In the object-CSV export columns but never read back on
                     # import until now (round-trip gap, audit 2026-07-11).
                     "documentation_url": (row.get("object_documentation_url") or "").strip() or None,
@@ -402,13 +407,17 @@ def import_objects_csv(
         last_performed = (row.get("last_performed") or "").strip()
         if last_performed:
             lp_date = parse_iso_date(last_performed)
-            if lp_date is not None and lp_date > today:
+            if lp_date is None:
+                # Stored as it was, "01.10.2026" left a task that never fell
+                # due (bug audit 2026-10-17, W-2).
+                current["warnings"].append(f"{task_name}: last performed date {last_performed!r} is not a date — dropped")
+            elif lp_date > today:
                 # A day the work WAS done cannot lie ahead — a far-future one
                 # overflowed the schedule math and kept the object in
                 # setup-retry (bug audit 2026-09-27).
                 current["warnings"].append(f"{task_name}: last performed date {last_performed} is in the future — dropped")
             else:
-                write_anchor(task_data, last_performed)
+                write_anchor(task_data, lp_date.isoformat())
 
         notes = (row.get("notes") or "").strip()
         if notes:

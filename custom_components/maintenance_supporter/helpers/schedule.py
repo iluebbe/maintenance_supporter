@@ -876,8 +876,14 @@ def normalize_task_storage(task: Mapping[str, Any]) -> dict[str, Any]:
     (the issue #58 class) instead of silently resetting it to days.
 
     Idempotent: a pure-nested task (no flat keys) is returned unchanged.
+
+    A task without a trigger has no ``trigger_config``: the task dialog sends
+    null for one on every save, and a stored null broke the first setup of a
+    copy or an import of the task (#221).
     """
     out = dict(task)
+    if "trigger_config" in out and not isinstance(out["trigger_config"], Mapping):
+        del out["trigger_config"]
     nested = out.get("schedule")
     if isinstance(nested, Mapping) and nested.get("kind") in _CALENDAR_KINDS:
         # Calendar kinds can't be expressed via the flat fields, so the nested

@@ -751,6 +751,18 @@
           "group_description": "Optional description for this group."
         }
       },
+      "edit_group": {
+        "title": "Edit Group",
+        "description": "Rename the group, or tick the box to delete it.",
+        "data": {
+          "group_name": "Group name",
+          "group_description": "Description",
+          "delete_group": "Delete this group"
+        },
+        "data_description": {
+          "delete_group": "Its tasks stay; only the group is removed."
+        }
+      },
       "manage_tasks": {
         "title": "Manage Tasks",
         "description": "Select a task to edit or remove.",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "The battery fleet object cannot be duplicated."
+    },
+    "fleet_not_replaceable": {
+      "message": "The battery fleet object cannot be replaced."
     },
     "parts_limit": {
       "message": "An object can have at most {max} spare parts."

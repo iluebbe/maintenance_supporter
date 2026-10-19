@@ -120,10 +120,22 @@ def annotate_completion(
             if unit is not None:
                 link["unit_cost"] = unit
     refresh_parts_cost(history_entry)
-    if isinstance(task_data.get(PART_REF_FIELD), dict):
+    purchase = isinstance(task_data.get(PART_REF_FIELD), dict)
+    if purchase:
         history_entry["purchase"] = True
-    if parts_cost_mode(hass) == COST_BASIS_USE:
+    if parts_cost_mode(hass) == COST_BASIS_USE and not (purchase and _bought_for_the_battery_fleet(entry)):
         history_entry["cost_basis"] = COST_BASIS_USE
+
+
+def _bought_for_the_battery_fleet(entry: ConfigEntry) -> bool:
+    """A purchase of battery fleet cells counts when bought, whatever the
+    mode: the fleet's swaps (Replaced, a recorded replacement) take cells
+    without a completion that could value them, so under "count when used"
+    batteries cost nothing in the budget, the area cost or any total (bug
+    audit 2026-10-17, S-6)."""
+    from ..const import BATTERY_FLEET_OBJECT_FLAG, CONF_OBJECT
+
+    return bool((entry.data.get(CONF_OBJECT) or {}).get(BATTERY_FLEET_OBJECT_FLAG))
 
 
 def purchase_unit_price(part: Mapping[str, Any], cost: float, packages: float | None) -> float | None:

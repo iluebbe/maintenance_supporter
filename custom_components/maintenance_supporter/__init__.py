@@ -104,7 +104,7 @@ from .const import (
 from .coordinator import MaintenanceCoordinator
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .frontend import async_register_card
-from .helpers.aggregate import iter_live_tasks, store_of
+from .helpers.aggregate import async_store_even_unloaded, iter_live_tasks
 from .helpers.aggregate import object_name as aggregate_object_name
 from .helpers.aggregate import object_slug as aggregate_object_slug
 from .helpers.aggregate import task_sensor_entity_id as aggregate_task_sensor_entity_id
@@ -1362,8 +1362,9 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                 hass.config_entries.async_update_entry(ce, data=new_data)
 
             # 2. adaptive_config.environmental_entity + trigger_runtime keys
-            #    live in Store (post-migration; see _DYNAMIC_TASK_FIELDS).
-            store = store_of(ce)
+            #    live in Store (post-migration; see _DYNAMIC_TASK_FIELDS),
+            #    an object's that is not loaded right now included.
+            store = await async_store_even_unloaded(hass, ce)
             store_changed = False
             if store is not None:
                 store_changed = rewrite_store(store, old_eid, new_eid)

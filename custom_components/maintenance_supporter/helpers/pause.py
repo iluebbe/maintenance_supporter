@@ -126,7 +126,7 @@ def clear_cycle_modifiers(task_state: dict[str, Any]) -> None:
     task_state.pop("due_override", None)
 
 
-def write_anchor(task_state: dict[str, Any], date_str: str | None, *, clear_modifiers: bool = True) -> None:
+def write_anchor(task_state: dict[str, Any], date_str: str | None, *, clear_modifiers: bool = True, keep_grid: bool = False) -> None:
     """Write (or with ``None`` clear) a task dict's ``last_performed`` anchor.
 
     The ONE place an anchor is poked into a task-state dict — the Store's
@@ -136,12 +136,18 @@ def write_anchor(task_state: dict[str, Any], date_str: str | None, *, clear_modi
     postpone, ``last_planned_due``) go with it unless the caller says
     otherwise: a history edit that deleted the last completion used to leave
     the postponed date in place, and ``next_due`` kept returning it.
+
+    ``keep_grid``: the anchor moved, but the cycle is the same one (the
+    latest completion re-dated), so only the postpone goes; the planned
+    occurrence it covered stays (bug audit 2026-10-17, C-1).
     """
     if date_str is None:
         task_state.pop("last_performed", None)
     else:
         task_state["last_performed"] = date_str
-    if clear_modifiers:
+    if clear_modifiers and keep_grid:
+        task_state.pop("due_override", None)
+    elif clear_modifiers:
         clear_cycle_modifiers(task_state)
 
 

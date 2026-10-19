@@ -751,6 +751,18 @@
           "group_description": "Volitelný popis této skupiny."
         }
       },
+      "edit_group": {
+        "title": "Upravit skupinu",
+        "description": "Přejmenujte skupinu, nebo zaškrtněte políčko a smažte ji.",
+        "data": {
+          "group_name": "Název skupiny",
+          "group_description": "Popis",
+          "delete_group": "Smazat tuto skupinu"
+        },
+        "data_description": {
+          "delete_group": "Úkoly zůstanou, odstraní se jen skupina."
+        }
+      },
       "manage_tasks": {
         "title": "Spravovat úkoly",
         "description": "Vyberte úkol k úpravě nebo odstranění.",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "Objekt flotily baterií nelze duplikovat."
+    },
+    "fleet_not_replaceable": {
+      "message": "Objekt flotily baterií nelze nahradit."
     },
     "parts_limit": {
       "message": "Objekt může mít nejvýše {max} náhradních dílů."

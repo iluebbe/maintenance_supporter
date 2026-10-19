@@ -117,6 +117,27 @@ def test_a_name_inside_a_word_or_beside_another_object_is_not_that_task() -> Non
     assert match_rows("xyz filter pool", _rows(("", "Pool"), ("Filter", "")), "en") == []
 
 
+def test_names_that_differ_by_one_digit_or_letter_resolve() -> None:
+    """Bug audit 2026-10-17 (N-7): one-character words were dropped, so the
+    two smoke detectors stayed ambiguous however they were named, and so
+    did the phrase the ambiguity answer suggested."""
+    rows = _rows(("Battery", "Smoke detector 1"), ("Battery", "Smoke detector 2"), ("Battery", "Smoke detector 12"))
+    assert _names(match_rows("battery on smoke detector 2", rows, "en")) == [("Battery", "Smoke detector 2")]
+    assert _names(match_rows("the battery of a smoke detector 1", rows, "en")) == [("Battery", "Smoke detector 1")]
+    assert _names(match_rows("Batterie am Rauchmelder 12", _rows(("Batterie", "Rauchmelder 1"), ("Batterie", "Rauchmelder 12")), "de")) == [
+        ("Batterie", "Rauchmelder 12")
+    ]
+    filters = _rows(("Filter A", "Pool"), ("Filter B", "Pool"))
+    assert _names(match_rows("filter b on the pool", filters, "en")) == [("Filter B", "Pool")]
+    # Without the digit it is still a question.
+    assert len(match_rows("battery on the smoke detector", rows, "en")) == 3
+    for language in ("en", "de", "fr"):
+        from custom_components.maintenance_supporter.helpers.intent_speech import load_language
+
+        example = load_language(language)["item_on"].format(task="Battery", object="Smoke detector 2")
+        assert _names(match_rows(example, rows, language)) == [("Battery", "Smoke detector 2")], (language, example)
+
+
 def test_the_ambiguity_answer_is_a_phrase_that_resolves() -> None:
     """The "say it like this" example is "task <connector> object" in the
     speaker's language — it must resolve when repeated, in every language the

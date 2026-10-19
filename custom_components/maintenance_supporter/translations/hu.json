@@ -751,6 +751,18 @@
           "group_description": "A csoport opcionális leírása."
         }
       },
+      "edit_group": {
+        "title": "Csoport szerkesztése",
+        "description": "Nevezze át a csoportot, vagy jelölje be a négyzetet a törléséhez.",
+        "data": {
+          "group_name": "Csoport neve",
+          "group_description": "Leírás",
+          "delete_group": "A csoport törlése"
+        },
+        "data_description": {
+          "delete_group": "A feladatok megmaradnak, csak a csoport törlődik."
+        }
+      },
       "manage_tasks": {
         "title": "Feladatok kezelése",
         "description": "Válasszon egy feladatot szerkesztéshez vagy eltávolításhoz.",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "Az elemflotta objektuma nem duplikálható."
+    },
+    "fleet_not_replaceable": {
+      "message": "Az elemflotta objektuma nem cserélhető le."
     },
     "parts_limit": {
       "message": "Egy objektumnak legfeljebb {max} alkatrésze lehet."

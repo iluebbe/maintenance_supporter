@@ -128,14 +128,7 @@ def relink_tasks(
     """
 
     def _rewrite(link: dict[str, Any]) -> dict[str, Any]:
-        if str(link.get("entry_id") or "") != old_owner or str(link.get("part_id") or "") not in moved:
-            return link
-        link["part_id"] = moved[str(link["part_id"])]
-        if new_owner == "":
-            link.pop("entry_id", None)  # the pool is now ours
-        else:
-            link["entry_id"] = new_owner
-        return link
+        return _relinked(link, old_owner, new_owner, moved)
 
     out: dict[str, Any] = {}
     count = 0
@@ -147,6 +140,54 @@ def relink_tasks(
         else:
             out[task_id] = task
     return out, count
+
+
+def _relinked(link: dict[str, Any], old_owner: str, new_owner: str, moved: dict[str, str]) -> dict[str, Any]:
+    """One link pointed at the pool's new home (see :func:`relink_tasks`)."""
+    if str(link.get("entry_id") or "") != old_owner or str(link.get("part_id") or "") not in moved:
+        return link
+    link = {**link, "part_id": moved[str(link["part_id"])]}
+    if new_owner == "":
+        link.pop("entry_id", None)  # the pool is now ours
+    else:
+        link["entry_id"] = new_owner
+    return link
+
+
+def relink_history(store: Any, old_owner: str, new_owner: str, moved: dict[str, str]) -> bool:
+    """Point the history's ``used_parts`` at the pool's new home, like the
+    task links. A recorded link names its owner, and that name wins when a
+    history edit or delete looks the part up: after the owner was deleted
+    the stock went back to nothing, after a replace into the archived
+    predecessor's hidden copy (bug audit 2026-10-17, S-7)."""
+    changed = False
+    for task_id, state in store.all_task_states().items():
+        history = state.get("history")
+        if not isinstance(history, list):
+            continue
+        rewritten: list[Any] = []
+        touched = False
+        for entry in history:
+            used = entry.get("used_parts") if isinstance(entry, dict) else None
+            if isinstance(used, list):
+                relinked = [_relinked(link, old_owner, new_owner, moved) if isinstance(link, dict) else link for link in used]
+                if relinked != used:
+                    entry = {**entry, "used_parts": relinked}
+                    touched = True
+            rewritten.append(entry)
+        if touched:
+            store.set_history(task_id, rewritten)
+            changed = True
+    return changed
+
+
+async def async_relink_history(hass: HomeAssistant, entry: ConfigEntry, old_owner: str, new_owner: str, moved: dict[str, str]) -> None:
+    """:func:`relink_history` on an object's Store, loaded or not, saved."""
+    from .aggregate import async_store_even_unloaded
+
+    store = await async_store_even_unloaded(hass, entry)
+    if store is not None and relink_history(store, old_owner, new_owner, moved):
+        await store.async_save()
 
 
 def relink_borrowers(hass: HomeAssistant, old_owner: str, new_owner: str, moved: dict[str, str]) -> int:
@@ -247,13 +288,15 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
         if value is not None:
             heir_store.set_part_stock(target_id, value)
             heir_store.set_part_restoring(target_id, waiting.get(pid, 0))
+    relink_history(heir_store, owner_id, "", moved)
     await heir_store.async_save()
 
-    # Everybody else now points at the heir.
+    # Everybody else now points at the heir, its history included.
     for other in heirs[1:]:
         tasks, changed = relink_tasks(dict(other.data.get(CONF_TASKS) or {}), owner_id, heir.entry_id, moved)
         if changed:
             write_tasks(hass, other, tasks)
+        await async_relink_history(hass, other, owner_id, heir.entry_id, moved)
 
     heir_name = object_name(heir)
     owner_name = object_name(entry)

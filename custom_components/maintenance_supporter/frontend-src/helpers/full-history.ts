@@ -95,8 +95,12 @@ export class FullHistoryLoader implements ReactiveController {
   }
 
   /** The best history there is for a task: the fetched full one, else the
-   *  list window (complete when the task is not truncated). */
+   *  list window. A window that is the whole history wins over the cache:
+   *  a task back under the window size (an undo, a deleted entry) kept
+   *  showing the fetched list with the entry gone from it, and counting its
+   *  cost (bug audit 2026-10-17, P-3). */
   historyOf(entryId: string, task: HistoryTaskLike): HistoryEntry[] {
+    if (!isHistoryTruncated(task)) return task.history ?? [];
     return this._cache.get(cacheKey(entryId, task.id))?.entries ?? task.history ?? [];
   }
 
@@ -105,6 +109,9 @@ export class FullHistoryLoader implements ReactiveController {
    *  never empty, and no retry loop on every re-render. */
   sync(hass: HomeAssistant | undefined, refs: ReadonlyArray<HistoryTaskRef>): Promise<void> {
     if (!hass?.connection) return this._pending;
+    // A whole window needs no fetched copy (see historyOf); a stale one would
+    // still count toward `capped`.
+    for (const r of refs) if (!isHistoryTruncated(r.task)) this._cache.delete(cacheKey(r.entryId, r.task.id));
     const todo = refs
       .filter((r) => isHistoryTruncated(r.task))
       .map((r) => ({ ...r, key: cacheKey(r.entryId, r.task.id), sig: signature(r.task) }))

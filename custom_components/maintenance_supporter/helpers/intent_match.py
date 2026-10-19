@@ -241,5 +241,23 @@ def match_rows(query: str, rows: list[dict[str, Any]], language: str | None = No
             if all(_token_in(tok, spoken) for tok in content_tokens(r["name"], language))
         ]
         if whole:
-            return whole
-    return matches
+            matches = whole
+    return _by_single_characters(matches, q)
+
+
+def _by_single_characters(rows: list[dict[str, Any]], phrase: str) -> list[dict[str, Any]]:
+    """Narrow several rows by the one-character words spoken ("2", "B"):
+    "battery on smoke detector 2" fits both smoke detectors by its longer
+    words, and the suggested "Battery on Smoke detector 1" was ambiguous
+    again, so the speaker went round in circles (bug audit 2026-10-17, N-7).
+    Each digit or letter counts as a whole word of a row's name; one no row
+    has (the article "a") is passed over."""
+    if len(rows) < 2:
+        return rows
+    for char in re.findall(r"\w+", phrase):
+        if len(char) != 1 or not char.isascii():
+            continue
+        having = [r for r in rows if char in re.findall(r"\w+", fold(f"{r['name']} {r['object_name']}"))]
+        if having:
+            rows = having
+    return rows

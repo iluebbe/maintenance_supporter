@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import Any
 from uuid import uuid4
 
@@ -47,7 +47,7 @@ from .battery_fleet import (
     read_batteries,
     release_low_latch,
 )
-from .battery_lifetime import cell_size
+from .battery_lifetime import cell_size, charged_kind
 from .entry_tasks import write_task, write_tasks
 from .global_options import get_default_warning_days
 from .trigger_fallback import threshold_limits_overlap
@@ -70,11 +70,13 @@ TASK_FLAG = BATTERY_FLEET_TASK_FLAG
 
 
 def find_fleet_entry(hass: HomeAssistant) -> ConfigEntry | None:
-    """The existing Battery Fleet object entry, or None."""
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if entry.data.get(CONF_OBJECT, {}).get(OBJECT_FLAG):
-            return entry
-    return None
+    """The existing Battery Fleet object entry, or None. A live one wins
+    over an archived one: a fleet replaced before object/replace refused it
+    left its flag on the archived predecessor, listed first, and every fleet
+    command acted on that (bug audit 2026-10-17, W-1)."""
+    flagged = [e for e in hass.config_entries.async_entries(DOMAIN) if e.data.get(CONF_OBJECT, {}).get(OBJECT_FLAG)]
+    live = [e for e in flagged if not e.data.get(CONF_OBJECT, {}).get("archived_at")]
+    return (live or flagged)[0] if flagged else None
 
 
 async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = None) -> dict[str, Any]:
@@ -227,13 +229,12 @@ def _type_part(btype: str, total_qty: int, lang: str) -> dict[str, Any]:
     """
     from ..templates import localize_template_text
 
-    name_tpl = localize_template_text("{type} battery", lang) or "{type} battery"
     if is_rechargeable_type(btype):
         # #208: charged, not bought — a reusable part with no reorder
         # threshold and no buy link to nag with.
         return {
             "id": f"batt_{btype.lower()}",
-            "name": name_tpl.format(type=btype),
+            "name": _type_part_name(btype, lang),
             "unit": "pcs",
             "auto_buy_task": False,
             "reuse": "charge",
@@ -242,13 +243,20 @@ def _type_part(btype: str, total_qty: int, lang: str) -> dict[str, Any]:
     notes_tpl = localize_template_text("Typical service life ~{months} months.", lang) or "Typical service life ~{months} months."
     return {
         "id": f"batt_{btype.lower()}",
-        "name": name_tpl.format(type=btype),
+        "name": _type_part_name(btype, lang),
         "unit": "pcs",
         "reorder_threshold": threshold,
         "restock_quantity": threshold * 2,
         "auto_buy_task": False,
         "notes": notes_tpl.format(months=lifetime_months(btype)),
     }
+
+
+def _type_part_name(btype: str, lang: str) -> str:
+    """The seeded name of a type's part ("AAA battery"), localized."""
+    from ..templates import localize_template_text
+
+    return (localize_template_text("{type} battery", lang) or "{type} battery").format(type=btype)
 
 
 # ── retranslating the seeded texts (issue #115) ────────────────────────────
@@ -395,7 +403,9 @@ async def async_mark_replaced(
     The cells consumed per battery are the note's own ``battery_quantity``
     (Battery Notes, per device) — never a task's ``consumes_parts`` link
     quantity. Setup gives the fleet task no such links (#181 follow-up); a
-    link added by hand is consumed by the task's own completions on top.
+    link added by hand is neither consumed nor recorded by the task's own
+    completions (``async_handle_completion_parts``; bug audit 2026-10-17,
+    S-5). A part chosen in the complete dialog still is.
 
     ``cells`` (D#213, with :func:`fleet_ask_cells` on): ``{entity_id: type}``
     — which cells went in, one of :func:`cell_choices`. A battery without a
@@ -414,7 +424,7 @@ async def async_mark_replaced(
 
     ask = fleet_ask_cells(hass)
     fleet = find_fleet_entry(hass) if ask else None
-    fleet_parts = (fleet.data.get(CONF_PARTS) or {}) if fleet is not None else {}
+    fleet_data = fleet.data if fleet is not None else {}
     installed = _installed_cells(found)
     installed_before = dict(installed)
 
@@ -438,7 +448,7 @@ async def async_mark_replaced(
         await hass.services.async_call("button", "press", {"entity_id": button}, blocking=False)
         pressed += 1
         pressed_ids.append(eid)
-        choices = cell_choices(bat, fleet_parts) if ask else []
+        choices = cell_choices(bat, fleet_data) if ask else []
         held = _held_type(bat, installed, choices)
         chosen = (cells or {}).get(eid)
         put_in = chosen if chosen in choices else held
@@ -470,6 +480,16 @@ async def async_mark_replaced(
     consumed = await _async_book_swaps(hass, swaps)
     for pid, qty in (await _async_correct_cells(hass, corrections)).items():
         consumed[pid] = consumed.get(pid, 0) + qty
+    if fleet is not None:
+        # A rechargeable kind offered before any note named it (cell_choices)
+        # gets its part at the first Replaced that picks it. It starts
+        # uncounted like every cell part; its stock sensor comes with a reload.
+        from .i18n import normalize_language
+
+        went_in = {put_in for put_in, _out, _qty in swaps} | {right for _booked, right, _qty in corrections}
+        kinds = {kind: 0 for kind in sorted(went_in) if is_rechargeable_type(kind)}
+        if _reconcile_type_parts(hass, fleet, kinds, normalize_language(hass)):
+            hass.config_entries.async_schedule_reload(fleet.entry_id)
     return {"marked": pressed, "pressed": pressed, "consumed": consumed}
 
 
@@ -490,16 +510,21 @@ def held_cell_types(hass: HomeAssistant, batteries: list[Any]) -> dict[str, str 
     if not fleet_ask_cells(hass):
         return {bat.entity_id: fleet_part_type(bat.battery_type) for bat in batteries}
     fleet = find_fleet_entry(hass)
-    parts = (fleet.data.get(CONF_PARTS) or {}) if fleet is not None else {}
+    fleet_data = fleet.data if fleet is not None else {}
     found, _recorded = _recorded_replacements(hass)
     installed = _installed_cells(found)
-    return {bat.entity_id: _held_type(bat, installed, cell_choices(bat, parts)) for bat in batteries}
+    return {bat.entity_id: _held_type(bat, installed, cell_choices(bat, fleet_data)) for bat in batteries}
 
 
-def cell_choices(bat: Any, parts: dict[str, Any]) -> list[str]:
+def cell_choices(bat: Any, fleet_data: Mapping[str, Any]) -> list[str]:
     """The cells that may go into ``bat`` (D#213): the type its note names,
     then every fleet part of the same size, disposable or rechargeable
-    ("AA", "AA NIMH"). Fewer than two: nothing to ask (a coin cell)."""
+    ("AA", "AA NIMH"), then, with no rechargeable among them, the
+    rechargeable kind of a size anyone buys even before a part stands for
+    it (a household whose notes all name disposables had nothing to
+    choose), unless that part was deleted. Fewer than two: nothing to ask
+    (a coin cell)."""
+    parts = fleet_data.get(CONF_PARTS) or {}
     own = fleet_part_type(bat.battery_type)
     size = cell_size(bat.battery_type) or (cell_size(own) if own else None)
     out = [own] if own else []
@@ -510,6 +535,10 @@ def cell_choices(bat: Any, parts: dict[str, Any]) -> list[str]:
             part_type = fleet_part_type(pid[len(FLEET_PART_PREFIX) :].upper())
             if part_type and part_type not in out and cell_size(part_type) == size:
                 out.append(part_type)
+        kind = charged_kind(size)
+        removed = (fleet_data.get(CONF_OBJECT) or {}).get(BATTERY_FLEET_REMOVED_PARTS) or ()
+        if kind and not any(map(is_rechargeable_type, out)) and f"{FLEET_PART_PREFIX}{kind.lower()}" not in removed:
+            out.append(kind)
     return out
 
 
@@ -519,19 +548,23 @@ def roster_cell_choices(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
     fleet = find_fleet_entry(hass)
     if fleet is None or not fleet_ask_cells(hass):
         return {}
+    from .i18n import normalize_language
+
     parts = fleet.data.get(CONF_PARTS) or {}
+    lang = normalize_language(hass)
     found, _recorded = _recorded_replacements(hass)
     installed = _installed_cells(found)
     out: dict[str, dict[str, Any]] = {}
     for bat in read_batteries(hass):
-        choices = cell_choices(bat, parts)
+        choices = cell_choices(bat, fleet.data)
         if len(choices) < 2:
             continue
         out[bat.entity_id] = {
             "cell_choices": [
                 {
                     "type": choice,
-                    "name": (parts.get(f"{FLEET_PART_PREFIX}{choice.lower()}") or {}).get("name") or choice,
+                    # A kind without its part yet: the name the part will get.
+                    "name": (parts.get(f"{FLEET_PART_PREFIX}{choice.lower()}") or {}).get("name") or _type_part_name(choice, lang),
                     "rechargeable": is_rechargeable_type(choice),
                 }
                 for choice in choices
@@ -758,7 +791,7 @@ async def async_record_replacement(hass: HomeAssistant, entity_id: str, replaced
         ask = fleet_ask_cells(hass)
         fleet = find_fleet_entry(hass) if ask else None
         installed = _installed_cells(found)
-        part_type = _held_type(bat, installed, cell_choices(bat, fleet.data.get(CONF_PARTS) or {}) if fleet is not None else [])
+        part_type = _held_type(bat, installed, cell_choices(bat, fleet.data) if fleet is not None else [])
         if not ask and installed.pop(entity_id, None) is not None:
             # The note's type is booked (see async_mark_replaced).
             _remember_installed(found, installed)

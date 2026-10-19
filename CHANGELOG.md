@@ -2,6 +2,52 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Changed
+
+- **Ask which cells went in offers rechargeables without a Battery Notes change** (D#213): the choice listed only the
+  battery types the fleet had a part for, and it creates one for each type a Battery Notes device uses. With every
+  device on disposables there was nothing to choose, so *Replaced* never asked. It now also offers the NiMH kind of
+  every AAAA, AAA, AA, C, D and 9V device (`AAA NiMH`), unless a rechargeable of that size is already offered. The
+  first *Replaced* that picks it adds the spare part,
+  uncounted like every rechargeable cell part. Coin cells and 18650 cells still don't ask, and a part you delete is
+  not offered again.
+- **Options → Manage groups opens the group** instead of deleting it on the spot: rename it there, or tick *Delete
+  this group*. The tasks stay either way.
+
+### 🐛 Fixed
+
+- **A copied object sets up again** (#221): a task saved in the task dialog without a sensor trigger was stored with an
+  empty trigger, and the first start of a copy, a replacement or an import of it failed with "Setup error", whatever
+  was tried. Such a task is stored without one now, and a copy the earlier version left broken loads after the update
+  with no change by hand.
+- **Reminders held back before a restart are sent:** after a restart every task that was already due was marked as
+  reminded. A reminder a vacation, a mute or a switched-off status had held back, or one for a task that became due
+  while Home Assistant was down, never came; a *triggered* reminder, sent once, was lost for good.
+- **Voice tells "Smoke detector 1" from "Smoke detector 2":** a single digit or letter in a name was ignored, so two
+  such tasks were always ambiguous, and so was the phrase the answer suggested.
+- **The battery fleet cannot be replaced:** *Replace* on the fleet ran a second fleet whose spare parts nothing used,
+  while the fleet commands kept acting on the archived original. The menu no longer offers *Duplicate* and *Replace* on
+  the fleet, and a fleet replaced earlier is found again.
+- **Imported dates are checked:** a CSV or JSON import kept a date it could not read (a spreadsheet saves
+  `01.10.2026`): the task never fell due, and the object could not be saved any more. Such a date is dropped with a
+  warning, and `20261001` is stored as `2026-10-01`.
+- **Correcting the latest completion keeps the schedule:** a task planned for the 1st, completed on the 5th and
+  corrected to the 4th, fell due on the 4th from then on, and a weekday task completed early was due again.
+- **AND/OR triggers right after a completion:** a problem that came back within ten minutes of a completion was lost
+  until the next restart, and its end could record a second completion for the one job.
+- **Renaming an entity reaches objects that are not loaded:** a disabled object kept its counter start, runtime hours
+  and the rest under the old name, and a trigger repair on it wrote its note in the wrong place.
+- **Battery fleet and spare parts money:** a part linked to the fleet task by hand was listed as used on every fleet
+  completion, though nothing was taken, and a deleted entry put it back on the shelf. With spare parts counted when
+  used, batteries for the fleet never counted at all; they count when bought now.
+- **A shared spare part's history moves with it:** after its owner was deleted or replaced, deleting or editing a
+  completion that used the part put it back on a shelf that no longer counted.
+- **Panel:** after an undo, the area pages and the object booklet kept showing the undone entry and its cost. On a slow
+  phone, the object quick actions could show one object under another's name, and saving wrote it over that one. After
+  a pick in a ⋮ menu, the next click on ⋮ opened and closed it at once.
+
 ## [2.105.0] - 2026-10-18
 
 ### ✨ Added

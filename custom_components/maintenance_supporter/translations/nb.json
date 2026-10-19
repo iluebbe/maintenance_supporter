@@ -751,6 +751,18 @@
           "group_description": "Valgfri beskrivelse for denne gruppen."
         }
       },
+      "edit_group": {
+        "title": "Rediger gruppe",
+        "description": "Gi gruppen nytt navn, eller kryss av i boksen for å slette den.",
+        "data": {
+          "group_name": "Gruppenavn",
+          "group_description": "Beskrivelse",
+          "delete_group": "Slett denne gruppen"
+        },
+        "data_description": {
+          "delete_group": "Oppgavene beholdes; bare gruppen fjernes."
+        }
+      },
       "manage_tasks": {
         "title": "Administrer oppgaver",
         "description": "Velg en oppgave å redigere eller fjerne.",
@@ -2424,6 +2436,9 @@
     },
     "fleet_not_duplicable": {
       "message": "Batteriflåtens objekt kan ikke dupliseres."
+    },
+    "fleet_not_replaceable": {
+      "message": "Batteriflåtens objekt kan ikke erstattes."
     },
     "parts_limit": {
       "message": "Et objekt kan ha maks {max} reservedeler."

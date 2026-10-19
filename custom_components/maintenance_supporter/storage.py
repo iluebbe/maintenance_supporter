@@ -20,7 +20,7 @@ from homeassistant.helpers.storage import Store
 
 from .const import CONF_PARTS, CONF_TASKS, DEFAULT_MAX_HISTORY_ENTRIES, DOMAIN
 from .helpers.dates import local_date_from_iso
-from .helpers.history import latest_anchor_stamp
+from .helpers.history import latest_anchor_index, latest_anchor_stamp
 from .helpers.parts import round_qty
 from .helpers.pause import write_anchor
 
@@ -385,7 +385,7 @@ class MaintenanceStore:
         coordinator's ``_persist_dynamic_state`` writes those itself)."""
         self._ensure_task(task_id)["last_performed"] = date_str
 
-    def set_anchor(self, task_id: str, date_str: str | None, *, clear_modifiers: bool = True) -> None:
+    def set_anchor(self, task_id: str, date_str: str | None, *, clear_modifiers: bool = True, keep_grid: bool = False) -> None:
         """Move (or with ``None`` clear) a task's ``last_performed`` anchor.
 
         Every anchor poke outside the coordinator goes through here: the
@@ -394,7 +394,7 @@ class MaintenanceStore:
         cycle's per-occurrence modifiers (``due_override``,
         ``last_planned_due``) go too — see :func:`helpers.pause.write_anchor`.
         """
-        write_anchor(self._ensure_task(task_id), date_str, clear_modifiers=clear_modifiers)
+        write_anchor(self._ensure_task(task_id), date_str, clear_modifiers=clear_modifiers, keep_grid=keep_grid)
 
     def set_phase_cursor(self, task_id: str, cursor: int) -> None:
         """Set the phase cursor (#139) — which cycle step is due next."""
@@ -495,11 +495,13 @@ class MaintenanceStore:
 
         # Merge trigger_runtime into trigger_config._trigger_state
         trigger_runtime = state.get("trigger_runtime")
-        if not trigger_runtime and state.get("trigger_runtime_legacy") and "trigger_config" in result:
+        # A stored null is no trigger (#221).
+        has_trigger = isinstance(result.get("trigger_config"), Mapping)
+        if not trigger_runtime and state.get("trigger_runtime_legacy") and has_trigger:
             # No per-entity data yet: reshape the legacy flat keys so the
             # triggers actually restore them (see legacy_runtime_to_trigger_state).
             trigger_runtime = legacy_runtime_to_trigger_state(result["trigger_config"], state["trigger_runtime_legacy"])
-        if trigger_runtime and "trigger_config" in result:
+        if trigger_runtime and has_trigger:
             tc = dict(result["trigger_config"])
             # Restructure compound flat keys (_compound_N_key) into nested
             # conditions list that CompoundTrigger.async_setup() expects
@@ -582,6 +584,13 @@ def reanchor_from_history(
     unless the change brings the history past it. The cycle modifiers (a
     postpone's ``due_override``, ``last_planned_due``) go only when the
     anchor actually moves.
+
+    When the latest entry stays the same one with another date, only the
+    postpone goes: the entry still covers the occurrence it covered.
+    Dropping ``last_planned_due`` there moved a planned grid onto the
+    corrected day for good (a monthly task on the 1st completed on the 5th,
+    corrected to the 4th, fell due on the 4th from then on), and a calendar
+    occurrence completed early was due again (bug audit 2026-10-17, C-1).
     """
     old = latest_anchor_stamp(before)
     new = latest_anchor_stamp(after)
@@ -592,7 +601,8 @@ def reanchor_from_history(
     old_day = local_date_from_iso(old) if old else None
     if current is not None and (old_day is None or current > old_day) and (anchor is None or anchor < current):
         return current
-    store.set_anchor(task_id, anchor, clear_modifiers=anchor != current)
+    same_entry = len(before) == len(after) and latest_anchor_index(before) == latest_anchor_index(after) is not None
+    store.set_anchor(task_id, anchor, clear_modifiers=anchor != current, keep_grid=same_entry)
     return anchor
 
 
@@ -610,6 +620,12 @@ def extract_dynamic_from_task(
     for field in _DYNAMIC_TASK_FIELDS + _SPLIT_ONLY_TASK_FIELDS:
         if field in static:
             dynamic[field] = static.pop(field)
+
+    # A task without a trigger has no trigger_config. The task dialog sent
+    # null for one and it was stored; a copy or an import of such a task
+    # failed to set up here (#221).
+    if "trigger_config" in static and not isinstance(static["trigger_config"], Mapping):
+        del static["trigger_config"]
 
     # Extract trigger runtime from trigger_config
     if "trigger_config" in static:
