@@ -46,6 +46,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.storage import Store
 
 from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+from .dates import stamp_instant
 from .history import completed_entries
 
 if TYPE_CHECKING:
@@ -135,7 +136,10 @@ def assign_history_refs(store: MaintenanceStore, tasks: dict[str, Any]) -> int:
         missing = [e for e in completed_entries(history) if _as_ref(e.get("ref_no")) is None]
         if not missing:
             continue
-        missing.sort(key=lambda e: str(e.get("timestamp") or ""))
+        # By the instant, not the text: two offsets (the clocks went back, a
+        # UTC import) numbered completions out of date order (bug audit
+        # 2026-10-17, C-8).
+        missing.sort(key=lambda e: stamp_instant(e.get("timestamp")))
         for e in missing:
             e["ref_no"] = next_history_ref(store, task_id, history)
             count += 1
@@ -182,7 +186,7 @@ def compact_history_refs(store: MaintenanceStore, tasks: dict[str, Any]) -> tupl
     for task_id in tasks:
         history = store.get_history(task_id)
         done = completed_entries(history)
-        done.sort(key=lambda e: str(e.get("timestamp") or ""))
+        done.sort(key=lambda e: stamp_instant(e.get("timestamp")))
         for ref, e in enumerate(done, start=1):
             total += 1
             if _as_ref(e.get("ref_no")) != ref:

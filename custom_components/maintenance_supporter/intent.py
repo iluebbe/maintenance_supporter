@@ -914,6 +914,15 @@ class PostponeTaskIntent(intent.IntentHandler):
                 )
                 return response
         elif days is not None:
+            # "By minus three days" moved the due day earlier while the answer
+            # said "postponed", and a huge negative number overflowed the date
+            # arithmetic (bug audit 2026-10-17, N-12).
+            if int(days) < 1:
+                response.async_set_error(
+                    intent.IntentResponseErrorCode.FAILED_TO_HANDLE,
+                    _sp("postpone_needs_when", lang),
+                )
+                return response
             # Counted from the due date, or from today when that has already
             # passed: "postpone by three days" on a task that went overdue last
             # month must not land on a date that is still in the past.
@@ -937,7 +946,9 @@ class PostponeTaskIntent(intent.IntentHandler):
             )
             return response
 
-        if until <= today:
+        # Today is a postponement too (an overdue task moved to today), as in
+        # the panel and the coordinator (bug audit 2026-10-17, C-10).
+        if until < today:
             response.async_set_error(
                 intent.IntentResponseErrorCode.FAILED_TO_HANDLE,
                 _sp("postpone_past", lang, task=target["name"]),

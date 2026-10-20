@@ -534,6 +534,7 @@
       "missing_data": "Nödvändig data har inte tillhandahållits.",
       "reconfigure_successful": "Konfigurationen uppdaterades framgångsrikt.",
       "reconfigure_cancelled": "Omkonfigurering avbröts.",
+      "reconfigure_global": "De globala inställningarna är inget objekt och kan inte konfigureras om. Ändra dem via Konfigurera.",
       "entity_unavailable": "Den valda entiteten är inte tillgänglig just nu. Försök igen när den rapporterar ett tillstånd.",
       "unknown": "Ett oväntat fel inträffade. Börja om."
     }
@@ -1359,7 +1360,9 @@
       "invalid_reminder_lead_days": "Ange hela dagar mellan 0 och 365, åtskilda med kommatecken (t.ex. 14, 3, 0)."
     },
     "abort": {
-      "entity_unavailable": "Den valda entiteten är inte tillgänglig just nu. Försök igen när den rapporterar ett tillstånd."
+      "entity_unavailable": "Den valda entiteten är inte tillgänglig just nu. Försök igen när den rapporterar ett tillstånd.",
+      "task_limit": "Ett objekt kan ha högst {max} uppgifter.",
+      "archived_no_new_tasks": "Ett arkiverat objekt kan inte få nya uppgifter — återställ det först."
     }
   },
   "entity": {

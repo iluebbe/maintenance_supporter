@@ -18,7 +18,10 @@ Policy (locked design):
   tasks never reach a terminal "done" state, so they are archived manually only.
 * Auto-delete applies to **auto-archived** one-offs only (``archived_reason ==
   "auto"``). A manually archived item is never auto-deleted — deleting a manual
-  archive stays an explicit user action.
+  archive stays an explicit user action. Nor is one whose completion booked
+  money: deleted, its spending left the budget and the area totals (the
+  recorder stored a negative cost), against "money spent keeps counting"
+  (bug audit 2026-10-17, S-16). It stays archived.
 * Both thresholds are "0 = disabled" (archive) / "0 = never" (delete).
 """
 
@@ -96,6 +99,11 @@ def should_auto_delete(task: dict[str, Any], *, delete_days: int, today: date) -
         return False
     archived_on = _to_date(task.get("archived_at"))
     if archived_on is None:
+        return False
+    from .history import completed_entries
+    from .parts_cost import entry_spend
+
+    if any(entry_spend(entry) for entry in completed_entries(task.get("history"))):
         return False
     return (today - archived_on).days >= delete_days
 

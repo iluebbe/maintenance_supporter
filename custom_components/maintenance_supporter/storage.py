@@ -20,7 +20,7 @@ from homeassistant.helpers.storage import Store
 
 from .const import CONF_PARTS, CONF_TASKS, DEFAULT_MAX_HISTORY_ENTRIES, DOMAIN
 from .helpers.dates import local_date_from_iso
-from .helpers.history import latest_anchor_index, latest_anchor_stamp
+from .helpers.history import latest_anchor_index, latest_anchor_stamp, trim_history
 from .helpers.parts import round_qty
 from .helpers.pause import write_anchor
 
@@ -412,8 +412,8 @@ class MaintenanceStore:
         state = self._ensure_task(task_id)
         history = state.setdefault("history", [])
         history.append(entry)
-        if len(history) > DEFAULT_MAX_HISTORY_ENTRIES:
-            state["history"] = history[-DEFAULT_MAX_HISTORY_ENTRIES:]
+        # The model's rule: noise first, completions last (C-11).
+        state["history"] = trim_history(history, DEFAULT_MAX_HISTORY_ENTRIES)
 
     def set_history(self, task_id: str, history: list[dict[str, Any]]) -> None:
         """Replace the entire history list."""

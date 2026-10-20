@@ -534,6 +534,7 @@
       "missing_data": "未提供必需的数据。",
       "reconfigure_successful": "配置更新成功。",
       "reconfigure_cancelled": "重新配置已取消。",
+      "reconfigure_global": "全局设置不是对象，无法重新配置。请通过“配置”进行更改。",
       "entity_unavailable": "所选实体当前不可用。请在其报告状态后重试。",
       "unknown": "发生意外错误。请重新开始。"
     }
@@ -1359,7 +1360,9 @@
       "invalid_reminder_lead_days": "请输入 0 到 365 之间的整数天数，用逗号分隔（例如 14, 3, 0）。"
     },
     "abort": {
-      "entity_unavailable": "所选实体当前不可用。请在其报告状态后重试。"
+      "entity_unavailable": "所选实体当前不可用。请在其报告状态后重试。",
+      "task_limit": "一个对象最多可有 {max} 个任务。",
+      "archived_no_new_tasks": "已归档的对象无法添加新任务 — 请先恢复。"
     }
   },
   "entity": {

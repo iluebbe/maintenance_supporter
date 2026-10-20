@@ -792,9 +792,13 @@ class TriggerConfigMixin:
                 current_value = state.state
 
         prev_tc = self._current_task.get("trigger_config") or {}
+        # Only a start value the field accepts: a negative one stored by the
+        # API came back as the default, and the form refused every save, even
+        # with the field cleared (bug audit 2026-10-17, N-18).
+        stored_baseline = _stored_number(prev_tc, "trigger_baseline_value", 0)
         baseline_key = (
-            vol.Optional("trigger_baseline_value", default=prev_tc["trigger_baseline_value"])
-            if "trigger_baseline_value" in prev_tc
+            vol.Optional("trigger_baseline_value", default=stored_baseline)
+            if stored_baseline is not None
             else vol.Optional("trigger_baseline_value")
         )
         schema_fields: dict[Any, Any] = {
@@ -1094,9 +1098,12 @@ class TriggerConfigMixin:
                 )
             ),
         }
+        # The title numbers the condition like the entity step before it; it
+        # read "Translation Error" without the value (bug audit 2026-10-17, N-13).
         return self.async_show_form(
             step_id=step_id,
             data_schema=vol.Schema(self._mixin_add_go_back(schema_dict)),
+            description_placeholders={"condition_num": str(len(getattr(self, "_compound_conditions", [])) + 1)},
         )
 
     async def _trigger_compound_condition_config(

@@ -354,13 +354,17 @@ def _rewind_phase_cursor(store: Any, task_id: str, task: dict[str, Any], history
     (reanchor_from_history), but the cursor stayed — the step the user just
     un-did was skipped for good (bug audit 2026-09-27). Older completions and
     pure backfills never moved the cursor, so they leave it alone."""
+    from ..helpers.dates import stamp_instant
     from ..helpers.phases import clamp_phase_cursor
 
     seq = [p for p in task.get("phase_sequence") or [] if isinstance(p, str)]
     lifecycle = [h for h in history if h.get("type") in LIFECYCLE_HISTORY_TYPES]
     if not seq or not lifecycle:
         return
-    latest = max(lifecycle, key=lambda h: str(h.get("timestamp") or ""))
+    # By the instant, like the anchor that rewinds beside it: as text, two
+    # offsets (the clocks went back, a UTC import) picked another entry and
+    # the phase stayed while the anchor moved (bug audit 2026-10-17, W-11).
+    latest = max(lifecycle, key=lambda h: stamp_instant(h.get("timestamp")))
     phase_id = latest.get("phase_id")
     if latest.get("timestamp") != timestamp or latest.get("type") != "completed" or phase_id not in seq:
         return

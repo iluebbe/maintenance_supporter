@@ -138,10 +138,15 @@ _KEYWORDS: dict[str, tuple[int, tuple[str, ...]]] = {
         ),
     ),
 }
-_BALCONY = (
+_BALCONY: tuple[str, ...] = (
     "balcony", "balkon", "balcon", "balcone", "sacada", "балкон", "balkong", "altan", "parveke",
     "erkely", "ベランダ", "バルコニー", "阳台", "बालकनी", "발코니", "베란다",
 )  # fmt: skip
+# Folded the way the names are (kana voicing marks and Hangul syllables come
+# apart, й loses its breve): the raw 정원, ガレージ or сарай never matched a
+# folded name (bug audit 2026-10-17, N-20).
+_KEYWORDS = {reason: (weight, tuple(fold(w) for w in words)) for reason, (weight, words) in _KEYWORDS.items()}
+_BALCONY = tuple(fold(w) for w in _BALCONY)
 
 
 @dataclass(frozen=True)

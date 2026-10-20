@@ -534,6 +534,7 @@
       "missing_data": "Erforderliche Daten wurden nicht angegeben.",
       "reconfigure_successful": "Konfiguration erfolgreich aktualisiert.",
       "reconfigure_cancelled": "Neukonfiguration abgebrochen.",
+      "reconfigure_global": "Die globalen Einstellungen sind kein Objekt und lassen sich nicht neu konfigurieren. Ändere sie über Konfigurieren.",
       "entity_unavailable": "Die ausgewählte Entität ist gerade nicht verfügbar. Versuche es erneut, sobald sie einen Zustand meldet.",
       "unknown": "Ein unerwarteter Fehler ist aufgetreten. Bitte beginne von vorn."
     }
@@ -1359,7 +1360,9 @@
       "invalid_reminder_lead_days": "Ganze Tage zwischen 0 und 365 eingeben, durch Kommas getrennt (z. B. 14, 3, 0)."
     },
     "abort": {
-      "entity_unavailable": "Die ausgewählte Entität ist gerade nicht verfügbar. Versuche es erneut, sobald sie einen Zustand meldet."
+      "entity_unavailable": "Die ausgewählte Entität ist gerade nicht verfügbar. Versuche es erneut, sobald sie einen Zustand meldet.",
+      "task_limit": "Ein Objekt kann höchstens {max} Aufgaben haben.",
+      "archived_no_new_tasks": "Ein archiviertes Objekt kann keine neuen Aufgaben erhalten — bitte zuerst wiederherstellen."
     }
   },
   "entity": {

@@ -894,7 +894,8 @@ def _apply_settings_import(
             # The group/create limits (BI5-A9: the import cut a description
             # to a name's 200 characters).
             if (clean := sanitize_group(g)) is not None:
-                groups[str(gid)] = clean
+                # An id group/update and group/delete accept (W-14).
+                groups[str(gid) if 0 < len(str(gid)) <= MAX_ID_LENGTH else uuid4().hex] = clean
         if groups:
             filtered[CONF_GROUPS] = groups
 
@@ -902,7 +903,7 @@ def _apply_settings_import(
     if isinstance(views_in, list):
         views = []
         for v in views_in[:MAX_SAVED_VIEWS]:
-            clean = sanitize_view(v, view_id=str(v.get("id")) if isinstance(v, dict) and v.get("id") else None)
+            clean = sanitize_view(v)
             if clean is not None:
                 views.append(clean)
         if views:
@@ -931,7 +932,16 @@ def _apply_settings_import(
         if parsed_day > latest_vacation_day:
             _LOGGER.warning("Settings import: %s %s is more than %d days away — dropped", key, val, MAX_INTERVAL_DAYS)
             continue
-        filtered[key] = val
+        # Stored YYYY-MM-DD as vacation/update stores it, not as typed (W-14).
+        filtered[key] = parsed_day.isoformat()
+    # A range that ends before it starts is refused by vacation/update; the
+    # import kept it (bug audit 2026-10-17, W-14).
+    vacation_start = parse_iso_date(filtered.get(CONF_VACATION_START))
+    vacation_end = parse_iso_date(filtered.get(CONF_VACATION_END))
+    if vacation_start is not None and vacation_end is not None and vacation_end < vacation_start:
+        _LOGGER.warning("Settings import: the vacation ends before it starts, its dates were dropped")
+        filtered.pop(CONF_VACATION_START)
+        filtered.pop(CONF_VACATION_END)
     # The rules of vacation/update: a buffer within its range, the exempt
     # list trimmed and each task once (the import took any int and kept
     # duplicates, BI5-A9).
@@ -1039,7 +1049,11 @@ async def ws_import_json(
         if not isinstance(obj_data, dict):
             errors.append({"name": f"object {idx + 1}", "reason": "invalid object data"})
             continue
-        obj_name = (obj_data.get("name") or "").strip()
+        # A number for a name ran .strip() on it before the per-object try:
+        # the whole import aborted, its earlier objects already created (bug
+        # audit 2026-10-17, W-6).
+        raw_name = obj_data.get("name")
+        obj_name = raw_name.strip() if isinstance(raw_name, str) else ""
         if not obj_name:
             errors.append({"name": f"object {idx + 1}", "reason": "missing name"})
             continue

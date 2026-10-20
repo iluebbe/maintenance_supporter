@@ -534,6 +534,7 @@
       "missing_data": "Les données requises n'ont pas été fournies.",
       "reconfigure_successful": "Configuration mise à jour avec succès.",
       "reconfigure_cancelled": "Reconfiguration annulée.",
+      "reconfigure_global": "Les paramètres globaux ne sont pas un objet et ne peuvent pas être reconfigurés. Modifiez-les via Configurer.",
       "entity_unavailable": "L'entité sélectionnée n'est pas disponible pour le moment. Réessayez lorsqu'elle signale un état.",
       "unknown": "Une erreur inattendue s'est produite. Veuillez recommencer."
     }
@@ -1359,7 +1360,9 @@
       "invalid_reminder_lead_days": "Saisissez des jours entiers entre 0 et 365, séparés par des virgules (ex. 14, 3, 0)."
     },
     "abort": {
-      "entity_unavailable": "L'entité sélectionnée n'est pas disponible pour le moment. Réessayez lorsqu'elle signale un état."
+      "entity_unavailable": "L'entité sélectionnée n'est pas disponible pour le moment. Réessayez lorsqu'elle signale un état.",
+      "task_limit": "Un objet peut avoir au maximum {max} tâches.",
+      "archived_no_new_tasks": "Un objet archivé ne peut pas recevoir de nouvelles tâches — restaurez-le d'abord."
     }
   },
   "entity": {

@@ -34,7 +34,7 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
-from .aggregate import name_or_title, store_of
+from .aggregate import name_or_title, store_of, store_or_cached
 from .battery_fleet import (
     canonical_type,
     discover_battery_types,
@@ -589,7 +589,7 @@ async def _async_book_swaps(hass: HomeAssistant, swaps: list[tuple[str, str, int
             switched.append((put_in, taken_out, qty))
     consumed = await async_consume_type_parts(hass, same)
     fleet = find_fleet_entry(hass)
-    store = store_of(fleet) if fleet is not None else None
+    store = store_or_cached(hass, fleet) if fleet is not None else None
     if not switched or fleet is None or store is None:
         return consumed
     from ..parts_runtime import async_change_part_stock
@@ -599,9 +599,13 @@ async def _async_book_swaps(hass: HomeAssistant, swaps: list[tuple[str, str, int
         in_pid = f"{FLEET_PART_PREFIX}{put_in.lower()}"
         # An untracked part is left untracked, like a use (a delta would
         # start counting it from 0).
-        if in_pid in parts and store.get_part_stock(in_pid) is not None:
-            # What the stock cannot cover were charged cells off their pile.
-            await async_change_part_stock(hass, fleet, in_pid, delta=-qty, use=True, keeps_used=False)
+        # What the stock cannot cover were charged cells off their pile. Counted
+        # as consumed only when booked (S-10).
+        if (
+            in_pid in parts
+            and store.get_part_stock(in_pid) is not None
+            and await async_change_part_stock(hass, fleet, in_pid, delta=-qty, use=True, keeps_used=False) is not None
+        ):
             consumed[in_pid] = consumed.get(in_pid, 0) + qty
         out_pid = f"{FLEET_PART_PREFIX}{taken_out.lower()}"
         out_part = parts.get(out_pid)
@@ -616,7 +620,7 @@ async def _async_correct_cells(hass: HomeAssistant, corrections: list[tuple[str,
     theirs. The cells taken out are the same either way, so their pile
     stays as the first booking left it. Returns ``{part_id: qty}`` taken."""
     fleet = find_fleet_entry(hass)
-    store = store_of(fleet) if fleet is not None else None
+    store = store_or_cached(hass, fleet) if fleet is not None else None
     taken: dict[str, int] = {}
     if not corrections or fleet is None or store is None:
         return taken
@@ -1140,25 +1144,46 @@ def canonical_part_id(part_id: str) -> str | None:
 # reuse / package_size / unit too: the migration carries a reusable alias's
 # waiting pile over (#208), and on a canonical part without ``reuse`` that
 # pile counted for nothing (DRY audit 2026-10-12).
-_MERGE_TAKE_IF_EMPTY = (
-    "mpn", "gtin", "vendor", "storage_location", "product_url", "cost", "doc_id", "reuse", "package_size", "unit"
-)
+_MERGE_TAKE_IF_EMPTY = ("mpn", "gtin", "vendor", "storage_location", "product_url", "doc_id", "reuse", "unit")
+
+
+def _has_pricing(part: dict[str, Any]) -> bool:
+    return bool(part.get("cost")) or bool(part.get("package_size"))
 
 
 def _merge_parts(keep: dict[str, Any], gone: dict[str, Any]) -> dict[str, Any]:
     """Fold ``gone`` into ``keep`` (the canonical part wins on conflicts):
     the LOWER reorder threshold, the union of product/vendor/document
-    fields, auto-buy if either had it, notes concatenated when they differ."""
+    fields, auto-buy if either had it, notes concatenated when they differ.
+
+    Price, package size and restock quantity are read together (a price per
+    package, a restock in packages) and come from ONE side: taken one by one,
+    a price per cell met the alias's package of 4 and a cell cost a quarter,
+    and a restock of 8 cells became 8 packages (bug audit 2026-10-17, S-9).
+    """
     out = dict(keep)
     for key in _MERGE_TAKE_IF_EMPTY:
         if not out.get(key) and gone.get(key):
             out[key] = gone[key]
-    for key in ("reorder_threshold", "restock_quantity"):
-        a, b = out.get(key), gone.get(key)
+    priced, other = (keep, gone) if _has_pricing(keep) or not _has_pricing(gone) else (gone, keep)
+    for key in ("cost", "package_size"):
+        if priced.get(key) is not None:
+            out[key] = priced[key]
+    # The other side's restock counts the same thing only in the same package.
+    same_package = (priced.get("package_size") or None) == (other.get("package_size") or None)
+    pairs = (
+        ("reorder_threshold", out.get("reorder_threshold"), gone.get("reorder_threshold")),
+        ("restock_quantity", priced.get("restock_quantity"), other.get("restock_quantity") if same_package else None),
+    )
+    for key, a, b in pairs:
         if isinstance(a, (int, float)) and isinstance(b, (int, float)):
             out[key] = min(a, b)
         elif a is None and b is not None:
             out[key] = b
+        elif a is not None:
+            out[key] = a
+        else:
+            out.pop(key, None)
     out["auto_buy_task"] = bool(out.get("auto_buy_task")) or bool(gone.get("auto_buy_task"))
     gone_notes = str(gone.get("notes") or "")
     keep_notes = str(out.get("notes") or "")

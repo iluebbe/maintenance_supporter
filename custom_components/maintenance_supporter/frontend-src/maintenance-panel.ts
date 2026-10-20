@@ -2,6 +2,7 @@
 
 import { LitElement, html, nothing, type TemplateResult } from "lit";
 import { isSafeLink } from "./helpers/url";
+import { clickOnActivationKey } from "./helpers/keyboard";
 import { queryTokens, scoreFields } from "./helpers/search-match";
 import { objectRef, parseRef, renderRefChip, taskRef, type HasRef } from "./helpers/reference";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
@@ -3967,13 +3968,13 @@ export class MaintenanceSupporterPanel extends LitElement {
               <ha-icon icon="mdi:dots-vertical"></ha-icon>
             </ha-button>
             ${this._bulkMenuOpen ? html`
-              <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
-                <div class="popup-menu-item bulk-move" @click=${() => { this._bulkMenuOpen = false; void this._bulkMove(rows); }}>${t("move_task", L)}</div>
-                <div class="popup-menu-item bulk-assign" @click=${() => { this._bulkMenuOpen = false; void this._bulkEdit("assign", rows); }}>${t("bulk_assign", L)}…</div>
-                <div class="popup-menu-item bulk-labels" @click=${() => { this._bulkMenuOpen = false; void this._bulkEdit("labels", rows); }}>${t("labels", L)}…</div>
-                <div class="popup-menu-item bulk-edit" @click=${() => { this._bulkMenuOpen = false; void this._bulkEdit("edit", rows); }}>${t("edit", L)}…</div>
-                <div class="popup-menu-item bulk-pause" @click=${() => { this._bulkMenuOpen = false; void this._bulkPause(rows); }}>${t("pause_task", L)}…</div>
-                <div class="popup-menu-item bulk-resume" @click=${() => { this._bulkMenuOpen = false; this._bulkResume(rows); }}>${t("resume_task", L)}</div>
+              <div class="popup-menu" role="menu" @keydown=${clickOnActivationKey} @click=${(e: Event) => e.stopPropagation()}>
+                <div role="menuitem" tabindex="0" class="popup-menu-item bulk-move" @click=${() => { this._bulkMenuOpen = false; void this._bulkMove(rows); }}>${t("move_task", L)}</div>
+                <div role="menuitem" tabindex="0" class="popup-menu-item bulk-assign" @click=${() => { this._bulkMenuOpen = false; void this._bulkEdit("assign", rows); }}>${t("bulk_assign", L)}…</div>
+                <div role="menuitem" tabindex="0" class="popup-menu-item bulk-labels" @click=${() => { this._bulkMenuOpen = false; void this._bulkEdit("labels", rows); }}>${t("labels", L)}…</div>
+                <div role="menuitem" tabindex="0" class="popup-menu-item bulk-edit" @click=${() => { this._bulkMenuOpen = false; void this._bulkEdit("edit", rows); }}>${t("edit", L)}…</div>
+                <div role="menuitem" tabindex="0" class="popup-menu-item bulk-pause" @click=${() => { this._bulkMenuOpen = false; void this._bulkPause(rows); }}>${t("pause_task", L)}…</div>
+                <div role="menuitem" tabindex="0" class="popup-menu-item bulk-resume" @click=${() => { this._bulkMenuOpen = false; this._bulkResume(rows); }}>${t("resume_task", L)}</div>
               </div>
             ` : nothing}
           </span>
@@ -4154,7 +4155,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     return html`
       <div class="breadcrumb">
-        <ha-icon-button @click=${() => this._showOverview()}>
+        <ha-icon-button .label=${t("back", L)} @click=${() => this._showOverview()}>
           <ha-icon icon="mdi:arrow-left"></ha-icon>
         </ha-icon-button>
         <span>${t("all_objects", L)}</span>
@@ -4268,7 +4269,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const currency = this._currencySymbol;
     return html`
       <div class="breadcrumb">
-        <ha-icon-button @click=${() => this._showAllObjects()}>
+        <ha-icon-button .label=${t("back", L)} @click=${() => this._showAllObjects()}>
           <ha-icon icon="mdi:arrow-left"></ha-icon>
         </ha-icon-button>
         <span>${t("all_parts", L)}</span>
@@ -4347,7 +4348,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._ensureAreaUi();
     return html`
       <div class="breadcrumb">
-        <ha-icon-button @click=${() => this._showAllObjects()}>
+        <ha-icon-button .label=${t("back", L)} @click=${() => this._showAllObjects()}>
           <ha-icon icon="mdi:arrow-left"></ha-icon>
         </ha-icon-button>
         <span>${t("all_areas", L)}</span>
@@ -4375,7 +4376,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._ensureAreaUi();
     return html`
       <div class="breadcrumb">
-        <ha-icon-button @click=${() => this._showAllAreas()}>
+        <ha-icon-button .label=${t("back", L)} @click=${() => this._showAllAreas()}>
           <ha-icon icon="mdi:arrow-left"></ha-icon>
         </ha-icon-button>
         <span>${t("all_areas", L)}</span>
@@ -4828,24 +4829,24 @@ export class MaintenanceSupporterPanel extends LitElement {
               }}>${t("edit", L)}</ha-button>
             ` : nothing}
             <div class="more-menu-wrapper">
-              <ha-icon-button .disabled=${this._actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${() => this._toggleObjMenu()}></ha-icon-button>
+              <ha-icon-button .disabled=${this._actionLoading} .label=${t("more_actions", L)} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${() => this._toggleObjMenu()}></ha-icon-button>
               ${this._objMenuOpen ? html`
-                <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
-                  <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._openQrForObject(obj.entry_id, o.name); }}>${t("qr_code", L)}</div>
-                  <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._printObjectReport(obj.entry_id); }}>${t("report_button", L)}</div>
+                <div class="popup-menu" role="menu" @keydown=${clickOnActivationKey} @click=${(e: Event) => e.stopPropagation()}>
+                  <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._openQrForObject(obj.entry_id, o.name); }}>${t("qr_code", L)}</div>
+                  <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._printObjectReport(obj.entry_id); }}>${t("report_button", L)}</div>
                   ${!isOperator ? html`
                     ${!o.battery_fleet ? html`
-                      <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._duplicateObject(obj.entry_id); }}>${t("duplicate", L)}</div>
+                      <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._duplicateObject(obj.entry_id); }}>${t("duplicate", L)}</div>
                     ` : nothing}
                     ${!o.archived ? html`
-                      <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._togglePauseObject(obj.entry_id, !!o.paused); }}>${o.paused ? t("resume_object", L) : t("pause_object", L)}</div>
+                      <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._togglePauseObject(obj.entry_id, !!o.paused); }}>${o.paused ? t("resume_object", L) : t("pause_object", L)}</div>
                       ${!o.battery_fleet ? html`
-                        <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._replaceObject(obj.entry_id, o); }}>${t("replace_object", L)}</div>
+                        <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._replaceObject(obj.entry_id, o); }}>${t("replace_object", L)}</div>
                       ` : nothing}
                     ` : nothing}
-                    <div class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._toggleArchiveObject(obj.entry_id, !!o.archived); }}>${o.archived ? t("unarchive_object", L) : t("archive_object", L)}</div>
+                    <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._toggleArchiveObject(obj.entry_id, !!o.archived); }}>${o.archived ? t("unarchive_object", L) : t("archive_object", L)}</div>
                     <div class="popup-menu-divider"></div>
-                    <div class="popup-menu-item danger" @click=${() => { this._closeObjMenu(); this._deleteObject(obj.entry_id); }}>${t("delete", L)}</div>
+                    <div role="menuitem" tabindex="0" class="popup-menu-item danger" @click=${() => { this._closeObjMenu(); this._deleteObject(obj.entry_id); }}>${t("delete", L)}</div>
                   ` : nothing}
                 </div>
               ` : nothing}
@@ -5031,25 +5032,25 @@ export class MaintenanceSupporterPanel extends LitElement {
           <ha-icon icon="mdi:menu-down"></ha-icon>
         </ha-button>
         ${this._newMenuOpen ? html`
-          <div class="popup-menu new-menu-popup" @click=${(e: Event) => e.stopPropagation()}>
-            <div class="popup-menu-item" @click=${() => { this._closeNewMenu(); void this._ui<MaintenanceTaskDialog>("maintenance-task-dialog").then((d) => d?.openCreate("", this._objects)); }}>
+          <div class="popup-menu new-menu-popup" role="menu" @keydown=${clickOnActivationKey} @click=${(e: Event) => e.stopPropagation()}>
+            <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeNewMenu(); void this._ui<MaintenanceTaskDialog>("maintenance-task-dialog").then((d) => d?.openCreate("", this._objects)); }}>
               <ha-icon icon="mdi:clipboard-plus-outline"></ha-icon> ${t("new_task", L)}
             </div>
-            <div class="popup-menu-item" @click=${() => { this._closeNewMenu(); void this._ui<MaintenanceObjectDialog>("maintenance-object-dialog").then((d) => d?.openCreate()); }}>
+            <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeNewMenu(); void this._ui<MaintenanceObjectDialog>("maintenance-object-dialog").then((d) => d?.openCreate()); }}>
               <ha-icon icon="mdi:package-variant-closed-plus"></ha-icon> ${t("new_object", L).replace(/^\+\s*/, "")}
             </div>
-            <div class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._openTemplateGallery(); }}>
+            <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._openTemplateGallery(); }}>
               <ha-icon icon="mdi:view-grid-plus-outline"></ha-icon> ${t("templates_from", L)}
             </div>
             <div class="popup-menu-divider"></div>
-            <div class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._openAdoptProblemSensors(); }}>
+            <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._openAdoptProblemSensors(); }}>
               <ha-icon icon="mdi:alert-circle-check-outline"></ha-icon> ${t("adopt_problem_button", L)}
             </div>
-            <div class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._openSuggestedSetups(); }}>
+            <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._openSuggestedSetups(); }}>
               <ha-icon icon="mdi:auto-fix"></ha-icon> ${t("setups_button", L)}
             </div>
             ${this._batteryFleetSetupAvailable ? html`
-              <div class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._setupBatteryFleet(); }}>
+              <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._setupBatteryFleet(); }}>
                 <ha-icon icon="mdi:battery-sync"></ha-icon> ${t("battery_fleet_setup_button", L)}
               </div>
             ` : nothing}

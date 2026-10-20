@@ -11,6 +11,7 @@
 
 import { html, nothing } from "lit";
 import { isSafeLink } from "../helpers/url";
+import { clickOnActivationKey } from "../helpers/keyboard";
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { renderPersonAvatar, type PersonDisplay } from "../helpers/person";
 import { t, formatDate, formatRecurrence, formatCost, formatDuration } from "../styles";
@@ -159,35 +160,35 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
           ? html`<ha-button appearance="outlined" variant="warning" .disabled=${ctx.actionLoading} @click=${() => ctx.promptSkip()}>${t("skip", L)}</ha-button>`
           : nothing}
         <div class="more-menu-wrapper">
-          <ha-icon-button .disabled=${ctx.actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${() => ctx.toggleMoreMenu()}></ha-icon-button>
+          <ha-icon-button .disabled=${ctx.actionLoading} .label=${t("more_actions", L)} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${() => ctx.toggleMoreMenu()}></ha-icon-button>
           ${ctx.moreMenuOpen ? html`
-            <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
+            <div class="popup-menu" role="menu" @keydown=${clickOnActivationKey} @click=${(e: Event) => e.stopPropagation()}>
               ${!isOperator ? html`
-                <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.openEdit(task); }}>${t("edit", L)}</div>
+                <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.openEdit(task); }}>${t("edit", L)}</div>
               ` : nothing}
-              <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.openQr(task.name); }}>${t("qr_code", L)}</div>
-              <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.printWorksheet(); }}>${t("worksheet", L)}</div>
+              <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.openQr(task.name); }}>${t("qr_code", L)}</div>
+              <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.printWorksheet(); }}>${t("worksheet", L)}</div>
               ${ctx.features.adaptive && task.adaptive_config?.enabled ? html`
                 <!-- The recommendation card carries Re-analyze too, but only
                      once a differing suggestion exists — the analysis it is
                      meant to trigger was unreachable before (audit 2026-09-28). -->
-                <div class="popup-menu-item reanalyze" @click=${() => { ctx.closeMoreMenu(); ctx.reanalyze(); }}>${t("reanalyze", L)}</div>
+                <div role="menuitem" tabindex="0" class="popup-menu-item reanalyze" @click=${() => { ctx.closeMoreMenu(); ctx.reanalyze(); }}>${t("reanalyze", L)}</div>
               ` : nothing}
               ${!isOperator ? html`
-                <div class="popup-menu-item" @click=${() => ctx.duplicateTask()}>${t("duplicate", L)}</div>
-                <div class="popup-menu-item" @click=${() => ctx.moveTask()}>${t("move_task", L)}</div>
+                <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => ctx.duplicateTask()}>${t("duplicate", L)}</div>
+                <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => ctx.moveTask()}>${t("move_task", L)}</div>
               ` : nothing}
               <!-- Reset / Postpone / Snooze are household actions (read tier,
                    helpers/permissions HOUSEHOLD_ACTIONS): offered to everyone,
                    like Complete / Skip and the Lovelace quick-actions Reset. -->
-              <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptReset(); }}>${t("reset", L)}</div>
-              <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptPostpone(); }}>${t("postpone", L)}…</div>
-              <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.snoozeTask(); }}>${t("snooze", L)}</div>
+              <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptReset(); }}>${t("reset", L)}</div>
+              <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptPostpone(); }}>${t("postpone", L)}…</div>
+              <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.snoozeTask(); }}>${t("snooze", L)}</div>
               ${!isOperator ? html`
-                ${!task.archived ? html`<div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.togglePause(!!task.paused); }}>${task.paused ? t("resume_task", L) : `${t("pause_task", L)}…`}</div>` : nothing}
-                <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.toggleArchive(!!task.archived); }}>${task.archived ? t("unarchive", L) : t("archive", L)}</div>
+                ${!task.archived ? html`<div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.togglePause(!!task.paused); }}>${task.paused ? t("resume_task", L) : `${t("pause_task", L)}…`}</div>` : nothing}
+                <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.toggleArchive(!!task.archived); }}>${task.archived ? t("unarchive", L) : t("archive", L)}</div>
                 <div class="popup-menu-divider"></div>
-                <div class="popup-menu-item danger" @click=${() => { ctx.closeMoreMenu(); ctx.deleteTask(); }}>${t("delete", L)}</div>
+                <div role="menuitem" tabindex="0" class="popup-menu-item danger" @click=${() => { ctx.closeMoreMenu(); ctx.deleteTask(); }}>${t("delete", L)}</div>
               ` : nothing}
             </div>
           ` : nothing}

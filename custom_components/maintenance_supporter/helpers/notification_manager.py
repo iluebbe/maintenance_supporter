@@ -1164,27 +1164,38 @@ async def get_user_notify_services(hass: HomeAssistant, user_id: str) -> list[st
     return services
 
 
-def _companion_phones(hass: HomeAssistant, service: str, depth: int = 0) -> list[str]:
-    """The Companion phones (``notify.mobile_app_*``) behind ``service``: the
-    service itself when it is one, else the phones among the members of a
-    notify group (nested ones too). Home Assistant's group platform keeps
-    the members on its service object; when that cannot be read, none."""
+def _notify_leaves(hass: HomeAssistant, service: str, depth: int = 0) -> list[str]:
+    """The notify services behind ``service``: the members of a notify group
+    (nested ones too), else the service itself. Home Assistant's group
+    platform keeps the members on its service object; a group that cannot be
+    read stands for itself."""
     domain, _, name = service.partition(".")
     if domain != "notify" or not name:
         return []
-    if name.startswith("mobile_app_"):
-        return [service] if hass.services.has_service(domain, name) else []
-    if depth >= 3:
-        return []
-    members: list[str] = []
-    try:
-        for platform in (hass.data.get("notify_services") or {}).get("group") or []:
-            if getattr(platform, "_service_name", None) == name:
-                members = [str(m.get("action") or m.get("service")) for m in getattr(platform, "entities", None) or [] if isinstance(m, dict)]
-                break
-    except Exception:  # noqa: BLE001 - another core's internals: no members, no dismissal
-        _LOGGER.debug("Notify group %s unreadable", service, exc_info=True)
-    return [phone for member in members for phone in _companion_phones(hass, f"notify.{member}", depth + 1)]
+    members: list[str] | None = None
+    if depth < 3 and not name.startswith("mobile_app_"):
+        try:
+            for platform in (hass.data.get("notify_services") or {}).get("group") or []:
+                if getattr(platform, "_service_name", None) == name:
+                    members = [str(m.get("action") or m.get("service")) for m in getattr(platform, "entities", None) or [] if isinstance(m, dict)]
+                    break
+        except Exception:  # noqa: BLE001 - another core's internals: no members, no dismissal
+            _LOGGER.debug("Notify group %s unreadable", service, exc_info=True)
+    if members is None:
+        return [service]
+    return [leaf for member in members for leaf in _notify_leaves(hass, f"notify.{member}", depth + 1)]
+
+
+def _companion_phones(hass: HomeAssistant, service: str) -> list[str]:
+    """The Companion phones (``notify.mobile_app_*``) behind ``service``: the
+    service itself when it is one, else the phones among the members of a
+    notify group."""
+    return [leaf for leaf in _notify_leaves(hass, service) if _is_phone(hass, leaf)]
+
+
+def _is_phone(hass: HomeAssistant, service: str) -> bool:
+    name = service.partition(".")[2]
+    return name.startswith("mobile_app_") and hass.services.has_service("notify", name)
 
 
 async def async_dispatch_notify(
@@ -2667,6 +2678,17 @@ class NotificationManager:
         self._starved.discard(tkey)
         self._dirty()
 
+    def release_waiting(self, entry_id: str, task_id: str) -> None:
+        """A task that cannot notify now (postponed out of its status, muted,
+        snoozed, on vacation) leaves the daily-limit waiting lists. Only a
+        completion or a delete took it off, so it kept the "starved first"
+        budget from tasks that could be sent (bug audit 2026-10-17, N-11)."""
+        tkey = task_key_of(entry_id, task_id)
+        if tkey in self._deferred_today or tkey in self._starved:
+            self._deferred_today.discard(tkey)
+            self._starved.discard(tkey)
+            self._dirty()
+
     def purge_entry(self, entry_id: str) -> None:
         """Forget every piece of bookkeeping about a deleted object's tasks —
         the stamps, snoozes, held quiet-hours reminders, daily-limit lists and
@@ -2690,7 +2712,8 @@ class NotificationManager:
         self._dirty()
 
     async def async_dismiss_task_notification(self, task_id: str, user_ids: Iterable[str] = ()) -> None:
-        """Dismiss a task notification on Companion App devices.
+        """Dismiss a task notification on Companion App devices and its
+        persistent-notification card.
 
         ``clear_notification`` is a legacy mobile_app service feature; the notify
         *entity* model (notify.send_message) has no equivalent, so an entity-only
@@ -2713,8 +2736,15 @@ class NotificationManager:
         except Exception:  # noqa: BLE001 - a lookup failure must not keep the action from finishing
             _LOGGER.debug("User notify services unavailable for %s", user_ids, exc_info=True)
         tag = task_tag(task_id)
-        phones = [phone for s in services if s for phone in _companion_phones(self.hass, s)]
-        for service in dict.fromkeys(phones):
+        leaves = [leaf for s in services if s for leaf in _notify_leaves(self.hass, s)]
+        # A persistent notification carries the tag as its id (see
+        # async_dispatch_notify): the card is dismissed by it. It stayed
+        # forever after the task was done (bug audit 2026-10-17, N-19).
+        if "notify.persistent_notification" in leaves:
+            from homeassistant.components import persistent_notification
+
+            persistent_notification.async_dismiss(self.hass, f"{DOMAIN}_{tag}")
+        for service in dict.fromkeys(leaf for leaf in leaves if _is_phone(self.hass, leaf)):
             domain, _, name = service.partition(".")
             try:
                 await self.hass.services.async_call(

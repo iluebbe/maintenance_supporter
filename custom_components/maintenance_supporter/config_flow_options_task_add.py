@@ -26,7 +26,10 @@ class AddTaskMixin(ScheduleStepsMixin):
         hass: HomeAssistant
         _on_cancel: Callable[[], ConfigFlowResult | Awaitable[ConfigFlowResult]] | None
 
+        _selected_task_id: str | None
+
         def _save_new_task(self) -> ConfigFlowResult: ...
+        def _add_task_refused(self) -> ConfigFlowResult | None: ...
         def _show_init_menu(self) -> ConfigFlowResult: ...
         def async_show_form(self, **kwargs: Any) -> ConfigFlowResult: ...
         async def async_step_opt_sensor_select(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult: ...
@@ -35,9 +38,15 @@ class AddTaskMixin(ScheduleStepsMixin):
         """Route the sensor-trigger sub-flow's completion/cancel to this flow."""
         self._trigger_on_complete = self._save_new_task
         self._on_cancel = self._show_init_menu
+        # A task managed earlier in this flow stays selected; the sensor step
+        # then pre-filled ITS sensors for the new task (bug audit 2026-10-17,
+        # N-15).
+        self._selected_task_id = None
 
     async def async_step_add_task(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Add a new task — step 1: name, type, schedule."""
+        if user_input is None and (refused := self._add_task_refused()) is not None:
+            return refused
         return await self._schedule_add_task(
             user_input,
             step_id="add_task",

@@ -21,6 +21,7 @@ import { canWrite, NO_DELEGATION, type WriteAccess } from "../helpers/permission
 import { confirmAction } from "../helpers/confirm";
 import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
 import type { HomeAssistant, MaintenanceObject, MaintenanceTask } from "../types";
+import { clickOnActivationKey } from "../helpers/keyboard";
 
 interface ObjectFull {
   entry_id: string;
@@ -194,7 +195,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
                   : html`
                       <div class="task-list">
                         ${tasks.map((task) => html`
-                          <div class="task-row" @click=${() => this._onTaskClick(task.id)}>
+                          <div class="task-row" role="button" tabindex="0" @click=${() => this._onTaskClick(task.id)} @keydown=${clickOnActivationKey}>
                             <span class="status-dot" style="background: ${statusColor(task)}"></span>
                             <span class="task-name">${task.name}</span>
                             <span class="task-status ${statusKey(task)}">${statusLabel(statusKey(task), L)}</span>
@@ -307,6 +308,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
       transition: background 0.12s;
     }
     .task-row:hover { background: var(--state-icon-color, rgba(255,255,255,0.06)); }
+    .task-row:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
     .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .task-name { flex: 1; font-size: 14px; }
     .task-status { font-size: 11px; color: var(--secondary-text-color); text-transform: uppercase; }

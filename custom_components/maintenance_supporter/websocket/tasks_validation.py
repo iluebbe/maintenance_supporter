@@ -9,7 +9,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, valid_entity_id
 
 from ..const import (
     CONF_TASKS,
@@ -147,8 +147,11 @@ def _validate_trigger_config(
     warnings: list[str] = []
 
     # Trigger type
+    # A list as the type, or a number as an entity id, threw instead of being
+    # refused: unknown_error on task/create, and the JSON import skipped the
+    # whole object instead of the trigger (bug audit 2026-10-17, W-9).
     trigger_type = trigger_config.get("type", "threshold")
-    if trigger_type not in _VALID_TRIGGER_TYPES:
+    if not isinstance(trigger_type, str) or trigger_type not in _VALID_TRIGGER_TYPES:
         errors.append(f"Invalid trigger type '{trigger_type}'. Must be one of: {', '.join(sorted(_VALID_TRIGGER_TYPES))}")
         return errors, warnings
 
@@ -160,6 +163,9 @@ def _validate_trigger_config(
     entity_ids = normalize_entity_ids(trigger_config)
     if not entity_ids:
         errors.append("trigger_config requires entity_id or entity_ids")
+    elif not all(isinstance(eid, str) and valid_entity_id(eid) for eid in entity_ids):
+        errors.append("trigger_config entity ids must be entity ids (domain.object_id)")
+        return errors, warnings
     else:
         for eid in entity_ids:
             state = hass.states.get(eid)

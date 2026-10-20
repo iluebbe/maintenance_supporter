@@ -189,7 +189,16 @@ export class MaintenanceObjectHistorySection extends LitElement {
     return { tasks, photos };
   }
 
-  private async _print(filtered: ReadonlyArray<ObjectHistoryEntry>): Promise<void> {
+  /** The entries the filters let through, as listed. */
+  private _filteredEntries(): ObjectHistoryEntry[] {
+    return filterObjectHistory(this._entries, {
+      taskId: this._filterTask || null,
+      from: this._from || null,
+      to: this._to || null,
+    });
+  }
+
+  private async _print(): Promise<void> {
     const L = this._lang;
     const o = this.object;
     if (!o || this._printing) return;
@@ -198,8 +207,14 @@ export class MaintenanceObjectHistorySection extends LitElement {
     // more and popup blockers swallowed the booklet (bug audit 2026-09-26 #2).
     const tab = preopenTab();
     this._printing = true;
+    let filtered: ObjectHistoryEntry[];
     let data: { tasks: ServiceRecordTask[]; photos: Record<string, ServiceRecordPhoto> };
     try {
+      // The full histories first, as the area report waits for them: printed
+      // while "Loading…" showed, the booklet held each task's 20-entry
+      // window and no cap note (audit 2026-10-17, P-11).
+      await this._histories.settled();
+      filtered = this._filteredEntries();
       data = await this._bookletData(filtered);
     } catch (e) {
       tab?.close();
@@ -257,7 +272,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
   }
 
   /** The print options panel (#170): layout + one switch per block. */
-  private _renderPrintOptions(filtered: ReadonlyArray<ObjectHistoryEntry>) {
+  private _renderPrintOptions() {
     const L = this._lang;
     const inc = this._printInclude;
     const box = (key: keyof ServiceRecordInclude, labelKey: string, disabled = false) => html`
@@ -294,7 +309,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
         </div>
         <div class="po-actions">
           <ha-button appearance="plain" @click=${() => { this._printOpen = false; }}>${t("cancel", L)}</ha-button>
-          <ha-button appearance="filled" class="po-print" .disabled=${this._printing} @click=${() => this._print(filtered)}>
+          <ha-button appearance="filled" class="po-print" .disabled=${this._printing} @click=${() => this._print()}>
             ${this._printing ? t("loading", L) : t("print_button", L)}
           </ha-button>
         </div>
@@ -305,11 +320,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
     const L = this._lang;
     const all = this._entries;
     if (!all.length && !this._histories.loading) return nothing;
-    const filtered = filterObjectHistory(all, {
-      taskId: this._filterTask || null,
-      from: this._from || null,
-      to: this._to || null,
-    });
+    const filtered = this._filteredEntries();
     const { completed, totalCost } = objectHistoryTotals(filtered);
     const shown = this._expanded ? filtered : filtered.slice(0, 15);
 
@@ -324,7 +335,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
             ${t("service_record_print", L)}
           </ha-button>
         </h3>
-        ${this._printOpen ? this._renderPrintOptions(filtered) : nothing}
+        ${this._printOpen ? this._renderPrintOptions() : nothing}
 
         <div class="filters">
           <select .value=${this._filterTask} @change=${(e: Event) => { this._filterTask = (e.target as HTMLSelectElement).value; }}>

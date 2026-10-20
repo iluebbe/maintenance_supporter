@@ -158,15 +158,25 @@ def store_of(entry: ConfigEntry) -> MaintenanceStore | None:
     return getattr(rd, "store", None) if rd else None
 
 
+def store_or_cached(hass: HomeAssistant, entry: ConfigEntry) -> MaintenanceStore | None:
+    """:func:`store_of`, else the Store the cache keeps while the entry
+    reloads — the instance the reloaded entry takes up again, so a write made
+    meanwhile is kept. A pool owner in the middle of a reload read as gone: a
+    borrower's completion consumed nothing and raised a false "spare part no
+    longer exists" repair (bug audit 2026-10-17, S-10). None for an entry
+    being removed (its cache slot goes first)."""
+    from ..const import STORES_CACHE_KEY
+
+    return store_of(entry) or hass.data.get(STORES_CACHE_KEY, {}).get(entry.entry_id)
+
+
 async def async_store_even_unloaded(hass: HomeAssistant, entry: ConfigEntry) -> MaintenanceStore | None:
     """The entry's Store while it is not loaded too: the copy the store cache
     keeps across reloads, else its file (a disabled object, one in setup
     retry). Through :func:`store_of` alone, an entity rename left such an
     object's counter baselines, runtime hours and to-do mirror records under
     the old id (bug audit 2026-10-17, T-5). None when it never wrote one."""
-    from ..const import STORES_CACHE_KEY
-
-    store = store_of(entry) or hass.data.get(STORES_CACHE_KEY, {}).get(entry.entry_id)
+    store = store_or_cached(hass, entry)
     if store is not None:
         return store
     from ..storage import MaintenanceStore

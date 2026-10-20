@@ -534,6 +534,7 @@
       "missing_data": "Požadovaná data nebyla poskytnuta.",
       "reconfigure_successful": "Konfigurace úspěšně aktualizována.",
       "reconfigure_cancelled": "Překonfigurování zrušeno.",
+      "reconfigure_global": "Globální nastavení není objekt a nelze ho překonfigurovat. Změňte ho přes Konfigurovat.",
       "entity_unavailable": "Vybraná entita teď není dostupná. Zkuste to znovu, až bude hlásit stav.",
       "unknown": "Došlo k neočekávané chybě. Začněte prosím znovu."
     }
@@ -1359,7 +1360,9 @@
       "invalid_reminder_lead_days": "Zadejte celé dny od 0 do 365 oddělené čárkami (např. 14, 3, 0)."
     },
     "abort": {
-      "entity_unavailable": "Vybraná entita teď není dostupná. Zkuste to znovu, až bude hlásit stav."
+      "entity_unavailable": "Vybraná entita teď není dostupná. Zkuste to znovu, až bude hlásit stav.",
+      "task_limit": "Objekt může mít nejvýše {max} úkolů.",
+      "archived_no_new_tasks": "Archivovanému objektu nelze přidávat nové úkoly — nejprve jej obnovte."
     }
   },
   "entity": {

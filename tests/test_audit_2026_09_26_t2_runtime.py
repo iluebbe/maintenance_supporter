@@ -147,9 +147,10 @@ def test_the_vacation_preview_projects_what_the_task_model_says() -> None:
     ]
     rows = {r["task_id"]: r for r in compute_preview(state, tasks, today=date(2026, 6, 1))}
 
-    assert [e["date"] for e in rows["postponed"]["events"] if e["status"] == "overdue"] == ["2026-06-25"]
+    # Overdue the day after the postponed due date (bug audit 2026-10-17, C-7).
+    assert [e["date"] for e in rows["postponed"]["events"] if e["status"] == "overdue"] == ["2026-06-26"]
     assert rows["oneoff"]["kind"] == "one_time"
-    assert {"date": "2026-06-20", "status": "overdue"} in rows["oneoff"]["events"]
+    assert {"date": "2026-06-21", "status": "overdue"} in rows["oneoff"]["events"]
     assert "archived" not in rows, "an archived task fires nothing"
     assert "seasonal" not in rows, "due 1 September (season start), not inside the vacation"
     # Due 22 June; the warning is capped below one cycle (6 days) like the status.

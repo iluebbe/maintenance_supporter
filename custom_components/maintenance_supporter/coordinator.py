@@ -974,6 +974,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         for task_id, task_result in task_results.items():
             new_status = task_result.get("_status")
             if new_status not in NOTIFIABLE_STATUSES:
+                nm.release_waiting(self.entry.entry_id, task_id)
                 continue
             gate = task_may_notify(
                 self.hass,
@@ -986,6 +987,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             )
             if not gate:
                 _LOGGER.debug("Task %s not notifiable (%s)", task_id, gate.blocked_by)
+                nm.release_waiting(self.entry.entry_id, task_id)
                 continue
             notifiable.append((task_id, task_result, new_status, self._previous_statuses.get(task_id)))
 
@@ -1727,7 +1729,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # NEW real-world action, never a double-tap of the previous one.
         self._recent_manual_completions.pop(task_id, None)
         self._recent_skips.pop(task_id, None)
-        self._clear_notification_state(task_id, reminded=merged[task_id])
 
         task = MaintenanceTask.from_dict(merged[task_id])
         task.reset(reset_date=date)
@@ -1736,6 +1737,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._store.clear_checklist_progress(task_id)
 
         await self._persist_and_signal_task_change(task_id, task)
+        # After the persist, as complete does it: cleared before, a refresh
+        # already running on the old snapshot saw the task overdue and
+        # unstamped and sent the reminder again, its buttons carrying the
+        # new cycle's token (bug audit 2026-10-17, C-4).
+        self._clear_notification_state(task_id, reminded=merged[task_id])
 
         _LOGGER.debug("Maintenance reset: %s on %s", task.name, self.maintenance_object.name)
 
@@ -1915,11 +1921,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Only now that the skip is going to happen: like reset, skipping
         # restarts the cycle — clear the double-tap window so a follow-up
-        # completion counts, and forget the notification bookkeeping. Doing
-        # this BEFORE the gates re-armed the "task overdue" push for a locked
-        # task on every refused skip (bug review 2026-09-04).
+        # completion counts. Doing this BEFORE the gates re-armed the "task
+        # overdue" push for a locked task on every refused skip (bug review
+        # 2026-09-04); the notification bookkeeping goes after the persist
+        # (C-4, see reset_maintenance).
         self._recent_manual_completions.pop(task_id, None)
-        self._clear_notification_state(task_id, reminded=merged[task_id])
 
         task = MaintenanceTask.from_dict(merged[task_id])
         if not self._is_schedule_time_feature_enabled():
@@ -1943,6 +1949,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except Exception:
             self._recent_skips.pop(task_id, None)
             raise
+        self._clear_notification_state(task_id, reminded=merged[task_id])
 
         _LOGGER.debug("Maintenance skipped: %s on %s", task.name, self.maintenance_object.name)
 

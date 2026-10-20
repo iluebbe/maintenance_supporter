@@ -95,10 +95,11 @@ async def test_flow_save_uses_the_core_and_returns_to_menu_at_cap(hass: HomeAssi
     assert len(new_ids) == 1 and new_ids[0] in obj.data[CONF_OBJECT]["task_ids"]
     assert obj.runtime_data.store.get_last_performed(new_ids[0]) == "2026-06-01"
     assert flow._current_task == {}
-    # at the cap the flow refuses through the same ValueError and returns to the menu
+    # at the cap the flow refuses through the same ValueError and says so
+    # (bug audit 2026-10-17, N-16: it went back to the menu without a word)
     filler = {f"f{i}": _record(f"f{i}") for i in range(MAX_TASKS_PER_OBJECT - len(obj.data[CONF_TASKS]))}
     hass.config_entries.async_update_entry(obj, data={**obj.data, CONF_TASKS: {**obj.data[CONF_TASKS], **filler}})
     flow._current_task = {"name": "Over the cap", "schedule_type": "time_based", "interval_days": 14, "warning_days": 3}
-    with patch.object(flow, "_show_init_menu", return_value={"type": "menu"}):
-        assert flow._save_new_task() == {"type": "menu"}
+    refused = flow._save_new_task()
+    assert refused["type"] == "abort" and refused["reason"] == "task_limit"
     assert not any(td.get("name") == "Over the cap" for td in obj.data[CONF_TASKS].values())

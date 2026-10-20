@@ -534,6 +534,7 @@
       "missing_data": "Vaadittuja tietoja ei annettu.",
       "reconfigure_successful": "Määritys päivitetty onnistuneesti.",
       "reconfigure_cancelled": "Uudelleenmääritys peruutettu.",
+      "reconfigure_global": "Yleiset asetukset eivät ole kohde, eikä niitä voi määrittää uudelleen. Muuta niitä kohdasta Määritä.",
       "entity_unavailable": "Valittu entiteetti ei ole juuri nyt käytettävissä. Yritä uudelleen, kun se ilmoittaa tilan.",
       "unknown": "Tapahtui odottamaton virhe. Aloita alusta."
     }
@@ -1359,7 +1360,9 @@
       "invalid_reminder_lead_days": "Anna kokonaisia päiviä väliltä 0–365 pilkuin erotettuina (esim. 14, 3, 0)."
     },
     "abort": {
-      "entity_unavailable": "Valittu entiteetti ei ole juuri nyt käytettävissä. Yritä uudelleen, kun se ilmoittaa tilan."
+      "entity_unavailable": "Valittu entiteetti ei ole juuri nyt käytettävissä. Yritä uudelleen, kun se ilmoittaa tilan.",
+      "task_limit": "Kohteella voi olla enintään {max} tehtävää.",
+      "archived_no_new_tasks": "Arkistoidulle kohteelle ei voi lisätä uusia tehtäviä — palauta se ensin."
     }
   },
   "entity": {

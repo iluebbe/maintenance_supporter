@@ -1238,8 +1238,13 @@ export const panelStyles = css`
     color: var(--primary-text-color);
   }
 
-  .popup-menu-item:hover {
+  .popup-menu-item:hover,
+  .popup-menu-item:focus-visible {
     background: var(--table-row-alternative-background-color, rgba(0, 0, 0, 0.04));
+  }
+  .popup-menu-item:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
   }
 
   .popup-menu-item.danger {

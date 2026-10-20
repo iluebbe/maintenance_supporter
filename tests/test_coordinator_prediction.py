@@ -24,6 +24,7 @@ from custom_components.maintenance_supporter.const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MISSING_ENTITY_THRESHOLD_REFRESHES,
+    STORES_CACHE_KEY,
     MaintenanceStatus,
     ScheduleType,
     TriggerEntityState,
@@ -1043,9 +1044,11 @@ async def test_budget_history_no_store(
     coord = entry.runtime_data.coordinator
     original_store = coord._store
 
-    # Set store to None, re-inject history into entry.data
+    # Set store to None (and out of the reload cache), re-inject history into
+    # entry.data
     rd = entry.runtime_data
     rd.store = None
+    cached = hass.data[STORES_CACHE_KEY].pop(entry.entry_id)
     new_data = dict(entry.data)
     tasks = dict(new_data[CONF_TASKS])
     t = dict(tasks[TASK_ID_1])
@@ -1062,6 +1065,7 @@ async def test_budget_history_no_store(
     assert cache.get("yearly_spent", 0) >= 25.0
 
     rd.store = original_store
+    hass.data[STORES_CACHE_KEY][entry.entry_id] = cached
 
 
 async def test_budget_string_cost_no_crash(

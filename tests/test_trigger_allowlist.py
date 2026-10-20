@@ -62,6 +62,8 @@ _RUNTIME_INJECTED_KEYS = frozenset(
         # #136 state-change hold window (pending transition anchor).
         "trigger_state_pending_since",
         "trigger_state_pending_state",
+        # A counter re-baseline still waiting for a reading (audit 2026-10-17, T-7).
+        "trigger_rebaseline_pending",
         # Compound trigger runtime state (per-condition triggered flags).
         # Written by compound.py at runtime; extracted out of the save path by
         # storage.py before the dict ever reaches the WS save validator.

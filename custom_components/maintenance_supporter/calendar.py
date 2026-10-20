@@ -25,6 +25,7 @@ from .helpers.aggregate import merged_tasks
 from .helpers.dates import interval_span_days, parse_hhmm
 from .helpers.global_options import is_schedule_time_enabled
 from .helpers.i18n import format_text, normalize_language
+from .helpers.pause import is_task_inert
 from .models.maintenance_task import MaintenanceTask
 
 if TYPE_CHECKING:
@@ -731,10 +732,6 @@ class MaintenanceCalendar(CalendarEntity):
             # tasks are cascade-archived too, but skip the whole entry up front).
             if obj_data.get("archived_at") is not None:
                 continue
-            # v2.20 (N3): a seasonally paused object's schedules are frozen —
-            # projecting due dates would show events that won't fire.
-            if obj_data.get("paused_at") is not None:
-                continue
 
             # Use live coordinator data (has trigger state) if available,
             # fall back to config entry data
@@ -768,6 +765,14 @@ class MaintenanceCalendar(CalendarEntity):
                 if not schedule_time_enabled:
                     task.schedule_time = None
 
+                # Archived, disabled or paused — the task's own pause, or its
+                # object's (v2.20, N3: frozen schedules would show events that
+                # won't fire). The buy task of a pool other objects still draw
+                # on stays live, as in the coordinator, the to-do list and the
+                # vacation preview; skipping the whole paused object hid it
+                # (bug audit 2026-10-17, C-6).
+                if is_task_inert(task_dict, obj_data):
+                    continue
                 if not task.enabled:
                     continue
                 # Archived task → no calendar entries (inert).

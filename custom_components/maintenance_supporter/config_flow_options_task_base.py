@@ -18,6 +18,7 @@ from .const import (
     CONF_ADVANCED_CHECKLISTS,
     CONF_OBJECT,
     CONF_TASKS,
+    MAX_TASKS_PER_OBJECT,
 )
 from .helpers.aggregate import store_of
 from .helpers.history import completed_entries
@@ -66,19 +67,29 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
         )
         # The one create rule shared with task/create and add_task (cap,
         # task_ids, Store init). The flow keeps its own save/reload timing:
-        # delay-save now, reload on the done step. At the cap the flow simply
-        # returns to the menu — the cap is enforced upstream by the same rule.
+        # delay-save now, reload on the done step. A refusal is said: the
+        # flow went back to the menu and the task was simply gone (bug audit
+        # 2026-10-17, N-16).
         try:
             store = insert_new_task(self.hass, self.config_entry, task_data, last_performed=self._current_task.get("last_performed"))
         except ValueError:
             self._current_task = {}
-            return self._show_init_menu()
+            return self._add_task_refused() or self.async_abort(reason="task_limit", description_placeholders={"max": str(MAX_TASKS_PER_OBJECT)})
         if store is not None:
             store.async_delay_save()
 
         self._current_task = {}
 
         return self._show_init_menu()
+
+    def _add_task_refused(self) -> ConfigFlowResult | None:
+        """The abort when this object takes no new task (archived, or at the
+        cap) — said before the form, not after it was filled in."""
+        if (self.config_entry.data.get(CONF_OBJECT) or {}).get("archived_at"):
+            return self.async_abort(reason="archived_no_new_tasks")
+        if len(self.config_entry.data.get(CONF_TASKS) or {}) >= MAX_TASKS_PER_OBJECT:
+            return self.async_abort(reason="task_limit", description_placeholders={"max": str(MAX_TASKS_PER_OBJECT)})
+        return None
 
     def _show_init_menu(self) -> ConfigFlowResult:
         """Show the init menu (sync helper for callbacks)."""
@@ -172,7 +183,7 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
 
         from homeassistant.util import dt as dt_util
 
-        from .helpers.schedule import Schedule, preview_occurrences
+        from .helpers.schedule import Schedule, cycle_state, preview_occurrences
 
         merged: dict[str, Any] = dict(static_task)
         store = store_of(self.config_entry)
@@ -185,7 +196,7 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
             lp = date_cls.fromisoformat(lp_raw[:10]) if isinstance(lp_raw, str) and lp_raw else None
             times = len(completed_entries(merged.get("history")))
             dates, _ended = preview_occurrences(
-                sched, last_performed=lp, times_performed=times, today=dt_util.now().date()
+                sched, last_performed=lp, times_performed=times, today=dt_util.now().date(), **cycle_state(merged)
             )
         except (TypeError, ValueError):  # pragma: no cover — malformed legacy data
             return "—"

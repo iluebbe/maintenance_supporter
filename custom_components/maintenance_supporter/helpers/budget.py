@@ -25,7 +25,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from ..const import CONF_TASKS, HistoryEntryType
-from .aggregate import get_object_entries, store_of
+from .aggregate import get_object_entries, store_or_cached
 from .parts_cost import entry_spend
 
 
@@ -46,7 +46,11 @@ def completed_spend(
     the walk to some objects (default: all of them).
     """
     for entry in entries if entries is not None else get_object_entries(hass):
-        store = store_of(entry)
+        # The Store the cache keeps while an object reloads (or retries its
+        # setup) too: through store_of alone its spending counted 0 and the
+        # budget and its alert undercounted until the next recompute (bug
+        # audit 2026-10-17, S-15).
+        store = store_or_cached(hass, entry)
         tasks: dict[str, Any] = entry.data.get(CONF_TASKS, {})
 
         for task_id in tasks:

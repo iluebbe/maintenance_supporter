@@ -534,6 +534,7 @@
       "missing_data": "Os dados necessários não foram fornecidos.",
       "reconfigure_successful": "Configuração atualizada com sucesso.",
       "reconfigure_cancelled": "Reconfiguração cancelada.",
+      "reconfigure_global": "As definições globais não são um objeto e não podem ser reconfiguradas. Altere-as em Configurar.",
       "entity_unavailable": "A entidade selecionada não está disponível neste momento. Tente novamente quando comunicar um estado.",
       "unknown": "Ocorreu um erro inesperado. Recomece, por favor."
     }
@@ -1359,7 +1360,9 @@
       "invalid_reminder_lead_days": "Introduza dias inteiros entre 0 e 365, separados por vírgulas (p. ex. 14, 3, 0)."
     },
     "abort": {
-      "entity_unavailable": "A entidade selecionada não está disponível neste momento. Tente novamente quando comunicar um estado."
+      "entity_unavailable": "A entidade selecionada não está disponível neste momento. Tente novamente quando comunicar um estado.",
+      "task_limit": "Um objeto pode ter no máximo {max} tarefas.",
+      "archived_no_new_tasks": "Um objeto arquivado não pode receber novas tarefas — restaure-o primeiro."
     }
   },
   "entity": {

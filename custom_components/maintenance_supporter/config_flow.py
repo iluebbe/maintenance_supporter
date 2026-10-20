@@ -391,6 +391,11 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
     async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Allow user to reconfigure object settings."""
         entry = self._get_reconfigure_entry()
+        # The menu offers Reconfigure on every entry; on the global one it
+        # wrote an object block into the hub and renamed it (bug audit
+        # 2026-10-17, N-14). Its settings live behind Configure.
+        if entry.unique_id == GLOBAL_UNIQUE_ID:
+            return self.async_abort(reason="reconfigure_global")
         obj_data = dict(entry.data.get(CONF_OBJECT, {}))
         errors: dict[str, str] = {}
 

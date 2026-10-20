@@ -164,7 +164,7 @@ Panel-managed (Settings → **Archive & Retention**). Automates retiring complet
 | Parameter | Type | Default | Range | Description |
 |-----------|------|---------|-------|-------------|
 | `archive_oneoff_days` | int | 14 | 0–3650 | Auto-archive a completed one-off task this many days after completion. `0` = off (archive manually only). Recurring / sensor-triggered tasks are never auto-archived — they have no terminal "done" state |
-| `delete_archived_oneoff_days` | int | 0 | 0–3650 | Auto-delete an **auto-archived** one-off task this many days after it was archived. `0` = never. Applies to auto-archived items only — **manually** archived tasks/objects are never auto-deleted (deleting a manual archive stays an explicit action) |
+| `delete_archived_oneoff_days` | int | 0 | 0–3650 | Auto-delete an **auto-archived** one-off task this many days after it was archived. `0` = never. Applies to auto-archived items only — **manually** archived tasks/objects are never auto-deleted (deleting a manual archive stays an explicit action), and neither is a task whose completion recorded a cost (its spending keeps counting in the budget) |
 
 Archived items are hidden by default in the panel and card (a *Show archived* toggle reveals them) and go **inert** — they read an `archived` status and fire nothing (no triggers, notifications, calendar entries, or active status counts) — **except budget**, where already-spent costs keep counting toward the period totals. Archiving an **object** cascades to its active tasks; unarchiving the object restores exactly those, and unarchiving a recurring task starts a fresh cycle (`next_due = today + interval`).
 

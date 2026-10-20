@@ -453,14 +453,16 @@ def import_objects_csv(
         # An archived object's tasks are archived WITH it (reason object, so
         # an unarchive restores them), and an archived object with live tasks
         # kept notifying. A task's own archive and pause have their columns
-        # (bug audit 2026-10-16, F7).
+        # (bug audit 2026-10-16, F7). The task's own archive comes first, as in
+        # the JSON import: cascaded over, an unarchive of the object brought
+        # back a task that was archived on its own (bug audit 2026-10-17, W-8).
         task_archived = (row.get("task_archived_at") or "").strip().lstrip("\t")
-        if current["object"].get("archived_at"):
-            task_data["archived_at"] = current["object"]["archived_at"]
-            task_data["archived_reason"] = ARCHIVE_REASON_OBJECT
-        elif _is_iso_moment(task_archived):
+        if _is_iso_moment(task_archived):
             task_data["archived_at"] = task_archived
             task_data["archived_reason"] = ARCHIVE_REASON_MANUAL
+        elif current["object"].get("archived_at"):
+            task_data["archived_at"] = current["object"]["archived_at"]
+            task_data["archived_reason"] = ARCHIVE_REASON_OBJECT
         paused_at = (row.get("task_paused_at") or "").strip().lstrip("\t")
         if _is_iso_moment(paused_at):
             task_data["paused_at"] = paused_at

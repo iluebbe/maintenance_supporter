@@ -252,6 +252,14 @@ class RuntimeTrigger(BaseTrigger):
                 self.entity_id,
                 self._accumulated_seconds / 3600.0,
             )
+        elif not was_on and now_on and self._on_since_dt is not None:
+            # unavailable → on right after a deferred setup: the anchor
+            # restored from before the restart stays, as on the appearance
+            # path, so the restart gap is booked. A fresh anchor here dropped
+            # it, and the same device counted fewer hours when its sensor was
+            # unavailable at setup than when it was missing (bug audit
+            # 2026-10-17, T-8). A mid-run unavailability cleared the anchor.
+            pass
         elif not was_on and now_on:
             # Turned ON — start tracking
             now = dt_util.utcnow()

@@ -221,17 +221,21 @@ def _events_from_next_due(
     """DUE_SOON / OVERDUE preview events for a single next-due date. Shared by
     the interval and calendar projections (DRY)."""
     due_soon_from = next_due - timedelta(days=max(0, warning_days))
+    # Overdue the day AFTER the due date, as the status ladder has it (on the
+    # due date a task reads due soon); the preview said so a day early (bug
+    # audit 2026-10-17, C-7).
+    overdue_from = next_due + timedelta(days=1)
     events: list[PreviewEvent] = []
     if window_start <= due_soon_from <= window_end and due_soon_from > today:
         events.append(PreviewEvent(date=due_soon_from, status="due_soon"))
-    if window_start <= next_due <= window_end and next_due > today:
-        events.append(PreviewEvent(date=next_due, status="overdue"))
+    if window_start <= overdue_from <= window_end and overdue_from > today:
+        events.append(PreviewEvent(date=overdue_from, status="overdue"))
     # Edge: task is already DUE_SOON or OVERDUE today and stays in that state
     # — surface as a "today" event so the user can act on it before leaving.
     if not events:
-        if today >= next_due and today <= window_end:
+        if today >= overdue_from and today <= window_end:
             events.append(PreviewEvent(date=today, status="overdue"))
-        elif today >= due_soon_from and today <= window_end and due_soon_from <= today < next_due:
+        elif today <= window_end and due_soon_from <= today < overdue_from:
             events.append(PreviewEvent(date=today, status="due_soon"))
     return events
 

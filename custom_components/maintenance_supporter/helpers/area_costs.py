@@ -18,7 +18,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from ..const import CONF_OBJECT
-from .aggregate import get_store
+from .aggregate import store_or_cached
 from .budget import completed_spend
 
 
@@ -38,12 +38,12 @@ def object_area_id(entry: ConfigEntry) -> str | None:
 
 def entry_cost(hass: HomeAssistant, entry: ConfigEntry) -> AreaCost | None:
     """One object's spending — or None while its history cannot be read
-    (the entry is not loaded: Home Assistant is starting, or it reloads).
+    (no Store yet: Home Assistant is starting, or the object is disabled).
 
     None is not zero: a sum that briefly dropped to zero would be recorded
     as a negative cost and a positive one right after it.
     """
-    if get_store(hass, entry.entry_id) is None:
+    if store_or_cached(hass, entry) is None:
         return None
     this_year = dt_util.now().year
     cost = AreaCost()

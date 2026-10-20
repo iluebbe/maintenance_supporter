@@ -22,7 +22,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import CONF_OBJECT, CONF_TASKS, GLOBAL_UNIQUE_ID
 from custom_components.maintenance_supporter.entity.area_cost import AreaCostSensorManager, area_cost_unique_id
-from custom_components.maintenance_supporter.helpers.area_costs import entry_cost
+from custom_components.maintenance_supporter.helpers.area_costs import AreaCost, entry_cost
 
 from .conftest import build_object_data, build_task_data, make_global_entry, make_object_entry, setup_integration
 
@@ -192,10 +192,11 @@ async def test_unavailable_until_every_object_was_read(hass: HomeAssistant) -> N
     total = next(s for s in added if s.unique_id == area_cost_unique_id(lab.id, "total"))
     assert total.available and total.native_value == 30.0
 
-    # Mid-reload the last known spending stands in — no dip.
+    # Mid-reload the Store the cache keeps is read (bug audit 2026-10-17,
+    # S-15) — no dip.
     await hass.config_entries.async_unload(loaded.entry_id)
     await hass.async_block_till_done()
-    assert entry_cost(hass, loaded) is None
+    assert entry_cost(hass, loaded) == AreaCost(total=10.0, year=10.0)
     manager._refresh()
     assert total.native_value == 30.0 and manager.ready
     # A deleted object's spending leaves the area.

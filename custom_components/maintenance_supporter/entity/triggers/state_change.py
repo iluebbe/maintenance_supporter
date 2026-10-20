@@ -316,6 +316,12 @@ class StateChangeTrigger(BaseTrigger):
                 self._needs_latch_reconcile = False
                 self._last_state = new_val
                 self._reconcile_persisted_latch(new_val)
+                # The hold window open at the restart resumes here too: only
+                # an entity ready at setup got it back, so a late Zigbee /
+                # Z-Wave sensor never counted a state that kept holding, and
+                # the stale window stayed in the Store (bug audit 2026-10-17,
+                # T-6).
+                self._resume_pending_window(new_val)
             return
 
         old_val = old_state.state
@@ -369,6 +375,7 @@ class StateChangeTrigger(BaseTrigger):
             self._needs_latch_reconcile = False
             self._last_state = new_val
             self._reconcile_persisted_latch(new_val)
+            self._resume_pending_window(new_val)
             return
 
         # Use _last_state as fallback when old_val is unavailable/unknown

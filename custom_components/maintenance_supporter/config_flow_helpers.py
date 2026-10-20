@@ -15,6 +15,7 @@ from .const import (
     CONF_TASK_ENDS_UNTIL,
     CONF_TASK_INTERVAL_UNIT,
     CONF_TASK_SEASON_MONTHS,
+    MAX_SERIES_COUNT,
     SCHEDULE_OFFSET_MAX_DAYS,
 )
 from .helpers.dates import INTERVAL_UNITS
@@ -278,7 +279,7 @@ def season_ends_schema(current_schedule: dict[str, Any] | None) -> dict[Any, Any
     # made endless again here (audit 2026-09-29). apply_season_ends reads
     # absence as "no end".
     count_key = (
-        vol.Optional(CONF_TASK_ENDS_COUNT, description={"suggested_value": int(count)})
+        vol.Optional(CONF_TASK_ENDS_COUNT, description={"suggested_value": min(int(count), MAX_SERIES_COUNT)})
         if isinstance(count, int) and count >= 1
         else vol.Optional(CONF_TASK_ENDS_COUNT)
     )
@@ -296,7 +297,8 @@ def season_ends_schema(current_schedule: dict[str, Any] | None) -> dict[Any, Any
             )
         ),
         count_key: selector.NumberSelector(
-            selector.NumberSelectorConfig(min=1, max=9999, step=1, mode=selector.NumberSelectorMode.BOX)
+            # Not past what the history can count (C-11).
+            selector.NumberSelectorConfig(min=1, max=MAX_SERIES_COUNT, step=1, mode=selector.NumberSelectorMode.BOX)
         ),
         until_key: selector.DateSelector(),
     }

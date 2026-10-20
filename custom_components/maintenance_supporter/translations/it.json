@@ -534,6 +534,7 @@
       "missing_data": "I dati richiesti non sono stati forniti.",
       "reconfigure_successful": "Configurazione aggiornata con successo.",
       "reconfigure_cancelled": "Riconfigurazione annullata.",
+      "reconfigure_global": "Le impostazioni globali non sono un oggetto e non possono essere riconfigurate. Modificale con Configura.",
       "entity_unavailable": "L'entità selezionata non è disponibile al momento. Riprova quando segnala uno stato.",
       "unknown": "Si è verificato un errore imprevisto. Ricomincia da capo."
     }
@@ -1359,7 +1360,9 @@
       "invalid_reminder_lead_days": "Inserisci giorni interi tra 0 e 365, separati da virgole (es. 14, 3, 0)."
     },
     "abort": {
-      "entity_unavailable": "L'entità selezionata non è disponibile al momento. Riprova quando segnala uno stato."
+      "entity_unavailable": "L'entità selezionata non è disponibile al momento. Riprova quando segnala uno stato.",
+      "task_limit": "Un oggetto può avere al massimo {max} attività.",
+      "archived_no_new_tasks": "Un oggetto archiviato non può ricevere nuove attività — ripristinalo prima."
     }
   },
   "entity": {

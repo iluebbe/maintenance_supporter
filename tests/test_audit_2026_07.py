@@ -110,8 +110,13 @@ def test_due_override_cannot_resurrect_exhausted_finite_series() -> None:
 def test_due_override_respects_ends_until() -> None:
     s = Schedule(kind=KIND_INTERVAL, every=30, unit="days", ends_until=date(2026, 7, 1))
     common = dict(last_performed=date(2026, 5, 1), created_at=None, last_planned_due=None, today=TODAY)
-    # An override past the series end date does not extend the series.
-    assert s.next_due(due_override=date(2026, 8, 1), **common) is None
+    # The series' last occurrence (May 31) moved past the end date stays: it
+    # is still that occurrence (bug audit 2026-10-17, C-3) ...
+    assert s.next_due(due_override=date(2026, 8, 1), **common) == date(2026, 8, 1)
+    # ... and nothing follows it: done on that day, the series is over.
+    assert s.next_due(**{**common, "last_performed": date(2026, 8, 1)}, due_override=date(2026, 8, 1)) is None
+    # Past the end with no occurrence left, an override does not extend it.
+    assert s.next_due(**{**common, "last_performed": date(2026, 6, 15)}, due_override=date(2026, 8, 1)) is None
     # An override within the window is honoured.
     assert s.next_due(due_override=date(2026, 6, 20), **common) == date(2026, 6, 20)
 

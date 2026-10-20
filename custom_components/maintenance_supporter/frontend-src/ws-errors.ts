@@ -39,10 +39,14 @@ export const WS_ERROR_CODE_KEYS: Record<string, string> = {
   invalid_format: "ws_err_invalid_format",
   invalid_input: "ws_err_invalid_input",
   invalid_mirror_todo: "ws_err_invalid_mirror_todo",
+  // global/update (audit 2026-10-17, W-13): the settings checks return these
+  // as values, so the parity tripwire, which reads literal codes, missed them.
+  invalid_notify_service: "ws_err_invalid_notify_service",
   invalid_parent: "ws_err_invalid_parent",
   invalid_icon: "ws_err_invalid_icon",
   invalid_range: "ws_err_invalid_range",
   invalid_search_template: "ws_err_invalid_search_template",
+  invalid_shopping_list_entity: "ws_err_invalid_shopping_list_entity",
   invalid_target: "ws_err_invalid_target",
   invalid_trigger_config: "ws_err_invalid_trigger_config",
   invalid_url: "ws_err_invalid_url",
@@ -56,6 +60,7 @@ export const WS_ERROR_CODE_KEYS: Record<string, string> = {
   not_available: "ws_err_not_available",
   not_configured: "ws_err_not_configured",
   not_found: "ws_err_not_found",
+  notify_service_not_found: "ws_err_notify_service_not_found",
   not_loaded: "ws_err_not_loaded",
   not_paused: "ws_err_not_paused",
   nothing_to_undo: "undo_nothing",

@@ -534,6 +534,7 @@
       "missing_data": "Påkrævede data blev ikke angivet.",
       "reconfigure_successful": "Konfigurationen blev opdateret.",
       "reconfigure_cancelled": "Omkonfiguration annulleret.",
+      "reconfigure_global": "De globale indstillinger er ikke et objekt og kan ikke omkonfigureres. Skift dem via Konfigurer.",
       "entity_unavailable": "Den valgte entitet er ikke tilgængelig lige nu. Prøv igen, når den melder en tilstand.",
       "unknown": "Der opstod en uventet fejl. Start venligst forfra."
     }
@@ -1359,7 +1360,9 @@
       "invalid_reminder_lead_days": "Angiv hele dage mellem 0 og 365, adskilt af kommaer (f.eks. 14, 3, 0)."
     },
     "abort": {
-      "entity_unavailable": "Den valgte entitet er ikke tilgængelig lige nu. Prøv igen, når den melder en tilstand."
+      "entity_unavailable": "Den valgte entitet er ikke tilgængelig lige nu. Prøv igen, når den melder en tilstand.",
+      "task_limit": "Et objekt kan højst have {max} opgaver.",
+      "archived_no_new_tasks": "Et arkiveret objekt kan ikke få nye opgaver — gendan det først."
     }
   },
   "entity": {

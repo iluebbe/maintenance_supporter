@@ -534,6 +534,7 @@
       "missing_data": "Nie podano wymaganych danych.",
       "reconfigure_successful": "Konfiguracja zaktualizowana pomyślnie.",
       "reconfigure_cancelled": "Rekonfiguracja anulowana.",
+      "reconfigure_global": "Ustawienia globalne nie są obiektem i nie można ich ponownie skonfigurować. Zmień je przez Konfiguruj.",
       "entity_unavailable": "Wybrana encja jest teraz niedostępna. Spróbuj ponownie, gdy zgłosi stan.",
       "unknown": "Wystąpił nieoczekiwany błąd. Zacznij od nowa."
     }
@@ -1359,7 +1360,9 @@
       "invalid_reminder_lead_days": "Podaj pełne dni od 0 do 365, oddzielone przecinkami (np. 14, 3, 0)."
     },
     "abort": {
-      "entity_unavailable": "Wybrana encja jest teraz niedostępna. Spróbuj ponownie, gdy zgłosi stan."
+      "entity_unavailable": "Wybrana encja jest teraz niedostępna. Spróbuj ponownie, gdy zgłosi stan.",
+      "task_limit": "Obiekt może mieć najwyżej {max} zadań.",
+      "archived_no_new_tasks": "Do zarchiwizowanego obiektu nie można dodawać nowych zadań — najpierw go przywróć."
     }
   },
   "entity": {

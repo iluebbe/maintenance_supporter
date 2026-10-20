@@ -90,7 +90,7 @@ async def test_triggers_actions_and_origin_follow_the_new_device(hass: HomeAssis
     hass.states.async_set("sensor.outdoor_temperature", "12")
     tasks = {"brush": _brush_task(old, old_dev.id, outdoor="sensor.outdoor_temperature")}
 
-    moved, report = move_tasks_to_device(hass, tasks, {old_dev.id}, new_dev.id)
+    moved, report = move_tasks_to_device(hass, tasks, {old_dev.id}, new_dev.id, user_id=None)
 
     task = moved["brush"]
     assert task["trigger_config"]["entity_ids"] == [new["main_brush_time_left"], "sensor.outdoor_temperature"]
@@ -109,7 +109,7 @@ async def test_a_link_counts_once_though_the_trigger_names_it_twice(hass: HomeAs
     task = _brush_task(old, old_dev.id)
     task["trigger_config"]["entity_id"] = old["main_brush_time_left"]
 
-    moved, report = move_tasks_to_device(hass, {"brush": task}, {old_dev.id}, new_dev.id)
+    moved, report = move_tasks_to_device(hass, {"brush": task}, {old_dev.id}, new_dev.id, user_id=None)
 
     assert moved["brush"]["trigger_config"]["entity_id"] == new["main_brush_time_left"]
     assert report.moved == 2
@@ -124,7 +124,7 @@ async def test_an_entity_without_a_counterpart_is_reported_not_guessed(hass: Hom
     )
     tasks = {"brush": _brush_task(old, old_dev.id)}
 
-    moved, report = move_tasks_to_device(hass, tasks, {old_dev.id}, new_dev.id)
+    moved, report = move_tasks_to_device(hass, tasks, {old_dev.id}, new_dev.id, user_id=None)
 
     assert moved["brush"]["trigger_config"]["entity_ids"] == [old["main_brush_time_left"]]
     assert set(report.unmatched) == {old["main_brush_time_left"], old["reset_main_brush_consumable"]}
@@ -143,7 +143,7 @@ async def test_a_dangling_entity_needs_more_than_one_shared_word(hass: HomeAssis
         "trigger_below": 5,
     }
 
-    moved, report = move_tasks_to_device(hass, {"t": task}, {old_dev.id}, new_dev.id)
+    moved, report = move_tasks_to_device(hass, {"t": task}, {old_dev.id}, new_dev.id, user_id=None)
 
     assert moved["t"]["trigger_config"]["entity_ids"] == [new["filter_time_left"], "sensor.gone_temperature"]
     assert report.unmatched == ["sensor.gone_temperature"]
@@ -170,7 +170,7 @@ async def test_compound_conditions_device_targets_and_lists_move_too(hass: HomeA
     start["on_complete_action"] = {"service": "vacuum.start", "target": {"device_id": old_dev.id}}
     start["origin"] = {"kind": "integration", "device_id": "someone_else"}
 
-    moved, report = move_tasks_to_device(hass, {"t": task, "u": start}, {old_dev.id}, new_dev.id)
+    moved, report = move_tasks_to_device(hass, {"t": task, "u": start}, {old_dev.id}, new_dev.id, user_id=None)
 
     conditions = moved["t"]["trigger_config"]["conditions"]
     assert conditions[0]["entity_id"] == new["main_brush_time_left"]
@@ -218,7 +218,7 @@ async def test_counterparts_by_name_by_key_and_name_and_the_enabled_twin(hass: H
         "trigger_above": 5,
     }
 
-    moved, report = move_tasks_to_device(hass, {"t": task}, {old_dev.id}, new_dev.id)
+    moved, report = move_tasks_to_device(hass, {"t": task}, {old_dev.id}, new_dev.id, user_id=None)
 
     assert moved["t"]["trigger_config"]["entity_ids"] == [new_hardness, new_salt, new_filter, kitchen, already]
     assert report.as_dict() == {"moved": 3, "unmatched": []}
@@ -226,7 +226,7 @@ async def test_counterparts_by_name_by_key_and_name_and_the_enabled_twin(hass: H
 
 async def test_nothing_to_move_from_returns_the_tasks_as_they_are(hass: HomeAssistant) -> None:
     tasks: dict[str, dict[str, Any]] = {"t": {"trigger_config": {"entity_ids": ["sensor.x"]}}}
-    moved, report = move_tasks_to_device(hass, tasks, set(), "new")
+    moved, report = move_tasks_to_device(hass, tasks, set(), "new", user_id=None)
     assert moved is tasks and report.as_dict() == {"moved": 0, "unmatched": []}
 
 

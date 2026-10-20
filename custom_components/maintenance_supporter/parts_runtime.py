@@ -30,7 +30,7 @@ from .const import (
     EVENT_PART_STOCK_OUT,
 )
 from .helpers.aggregate import object_name as _object_name
-from .helpers.aggregate import store_of
+from .helpers.aggregate import store_of, store_or_cached
 from .helpers.global_options import global_option
 from .helpers.i18n import normalize_language
 from .helpers.parts import (
@@ -75,7 +75,7 @@ def resolve_part_link(
     if owner is None:
         return None, None, None
     part = (owner.data.get(CONF_PARTS) or {}).get(part_id)
-    return owner, part, store_of(owner)
+    return owner, part, store_or_cached(hass, owner)
 
 
 def part_link_name(hass: HomeAssistant, entry: ConfigEntry, link: dict[str, Any]) -> str:
@@ -190,7 +190,7 @@ async def async_change_part_stock(
     once and fires at most one edge: the part form and undo set both.
     """
     part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
-    store = store_of(entry)
+    store = store_or_cached(hass, entry)
     if part is None or store is None:
         return None
     if use:
@@ -223,7 +223,7 @@ async def async_change_part_stock(
 async def async_untrack_part_stock(hass: HomeAssistant, entry: ConfigEntry, part_id: str) -> None:
     """Stop counting a part (catalog-only): its stock and waiting pile go,
     and the buy tasks are re-planned."""
-    store = store_of(entry)
+    store = store_or_cached(hass, entry)
     if store is None:
         return
     store.set_part_stock(part_id, None)
@@ -496,7 +496,7 @@ async def async_set_part_restoring(hass: HomeAssistant, entry: ConfigEntry, part
     """Set how many used ones wait (a correction, or a worn-out one thrown
     away): fires the edge event when what is owned crosses the threshold."""
     part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
-    store = store_of(entry)
+    store = store_or_cached(hass, entry)
     if part is None or store is None:
         return
     before = _owned(store, part)

@@ -534,6 +534,7 @@
       "missing_data": "A szükséges adatok nem lettek megadva.",
       "reconfigure_successful": "A konfiguráció sikeresen frissítve.",
       "reconfigure_cancelled": "Az újrakonfigurálás megszakítva.",
+      "reconfigure_global": "A globális beállítások nem objektumok, ezért nem konfigurálhatók újra. A Konfigurálás menüpontban módosíthatod őket.",
       "entity_unavailable": "A kiválasztott entitás jelenleg nem érhető el. Próbáld újra, amint állapotot jelent.",
       "unknown": "Váratlan hiba történt. Kérlek, kezdd újra."
     }
@@ -1359,7 +1360,9 @@
       "invalid_reminder_lead_days": "Adjon meg egész napokat 0 és 365 között, vesszővel elválasztva (pl. 14, 3, 0)."
     },
     "abort": {
-      "entity_unavailable": "A kiválasztott entitás jelenleg nem érhető el. Próbáld újra, amint állapotot jelent."
+      "entity_unavailable": "A kiválasztott entitás jelenleg nem érhető el. Próbáld újra, amint állapotot jelent.",
+      "task_limit": "Egy objektumnak legfeljebb {max} feladata lehet.",
+      "archived_no_new_tasks": "Archivált objektumhoz nem adhatók új feladatok — először állítsa vissza."
     }
   },
   "entity": {

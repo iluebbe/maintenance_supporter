@@ -250,7 +250,7 @@ async def test_a_device_swap_moves_an_action_entity_in_the_data(hass: HomeAssist
     task = build_task_data(task_id="f", name="Filter")
     task["on_complete_action"] = {"service": "button.press", "data": {"entity_id": old_button}}
 
-    moved, report = move_tasks_to_device(hass, {"f": task}, {old_dev.id}, new_dev.id)
+    moved, report = move_tasks_to_device(hass, {"f": task}, {old_dev.id}, new_dev.id, user_id=None)
 
     assert moved["f"]["on_complete_action"]["data"]["entity_id"] == new_button
     assert report.moved == 1

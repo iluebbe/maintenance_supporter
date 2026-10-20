@@ -776,6 +776,8 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         # could not be carried out: already_configured", BI5-A2).
         from .helpers.object_names import name_taken
 
+        if not str(call.data["name"]).strip():
+            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="name_empty")
         if name_taken(hass, str(call.data["name"]).strip()):
             raise ServiceValidationError(translation_domain=DOMAIN, translation_key="object_name_taken")
         try:

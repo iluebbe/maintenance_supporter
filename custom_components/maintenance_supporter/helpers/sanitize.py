@@ -102,9 +102,22 @@ _GROUP_STR_LIMITS: dict[str, int] = {
 
 
 def _cap_strings(d: dict[str, Any], limits: dict[str, int]) -> None:
-    """Truncate string fields in-place to their per-field max length."""
+    """Truncate string fields in-place to their per-field max length.
+
+    A number becomes its text (a model "3000"); anything else that is not a
+    string goes. A list in ``documentation_url`` or ``notes`` from a JSON
+    import was stored and threw in the panel's link check (bug audit
+    2026-10-17, W-5).
+    """
     for field, max_len in limits.items():
         v = d.get(field)
+        if v is None or isinstance(v, str):
+            pass
+        elif isinstance(v, (int, float)) and not isinstance(v, bool):
+            v = d[field] = str(v)
+        else:
+            d.pop(field)
+            continue
         if isinstance(v, str) and len(v) > max_len:
             d[field] = v[:max_len]
 
@@ -598,9 +611,12 @@ def sanitize_group(raw: Any) -> dict[str, Any] | None:
     name = raw.get("name")
     if not isinstance(name, str) or not name.strip():
         return None
+    # A number here threw, and the settings import failed before any object
+    # was read (bug audit 2026-10-17, W-7).
+    raw_refs = raw.get("task_refs")
     refs = [
         {"entry_id": r["entry_id"], "task_id": r["task_id"]}
-        for r in (raw.get("task_refs") or [])
+        for r in (raw_refs if isinstance(raw_refs, list) else [])
         if isinstance(r, dict)
         and all(isinstance(r.get(k), str) and 0 < len(r[k]) <= MAX_ID_LENGTH for k in ("entry_id", "task_id"))
     ]

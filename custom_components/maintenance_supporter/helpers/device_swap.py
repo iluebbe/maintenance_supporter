@@ -125,8 +125,17 @@ def move_tasks_to_device(
     tasks: dict[str, dict[str, Any]],
     old_ids: set[str],
     new_device_id: str,
+    *,
+    user_id: str | None,
 ) -> tuple[dict[str, dict[str, Any]], SwapReport]:
-    """Copies of *tasks* with their old-device wiring pointed at the new device."""
+    """Copies of *tasks* with their old-device wiring pointed at the new device.
+
+    A completion action this retargets belongs to ``user_id`` from then on,
+    the user who chose the device, like any changed action
+    (:func:`.sanitize.settle_action_owner`). It kept its owner, so an
+    operator could point an admin's action, run with admin rights, at a
+    device of their choosing (bug audit 2026-10-17, W-4).
+    """
     report = SwapReport()
     if not old_ids or not new_device_id:
         return tasks, report
@@ -183,6 +192,10 @@ def move_tasks_to_device(
                     if isinstance(devices, list)
                     else (new_device_id if devices in old_ids else devices)
                 )
+        if isinstance(action, dict) and action != task.get("on_complete_action") and user_id:
+            from .sanitize import stamp_action_owner
+
+            stamp_action_owner(new_task, user_id)
         origin = new_task.get("origin")
         if isinstance(origin, dict) and origin.get("device_id") in old_ids:
             new_task["origin"] = {**origin, "device_id": new_device_id}

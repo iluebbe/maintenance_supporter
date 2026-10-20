@@ -44,8 +44,11 @@ class CounterTrigger(BaseTrigger):
         self._delta_mode: bool = trigger_config.get("trigger_delta_mode", False)
         self._baseline_value: float | None = trigger_config.get("trigger_baseline_value")
         # Set when reset_baseline is called while the source is unavailable, so
-        # the re-baseline is applied against the next real value (M4).
-        self._reset_pending: bool = False
+        # the re-baseline is applied against the next real value (M4). Kept in
+        # the Store: lost on a reload before that reading, the first one
+        # counted from the old baseline and fired the task just completed
+        # (bug audit 2026-10-17, T-7).
+        self._reset_pending: bool = trigger_config.get("trigger_rebaseline_pending") is True
         # Delta mode: the first reading under the baseline, waiting to be
         # told apart from a glitch (see _evaluate_drop).
         self._drop_low: float | None = None
@@ -193,6 +196,7 @@ class CounterTrigger(BaseTrigger):
             # the just-completed task when the entity returns. (M4; delta-only,
             # absolute mode has no baseline to defer.)
             self._reset_pending = True
+            self.hass.async_create_task(self._persist_baseline())
             _LOGGER.debug(
                 "Counter baseline reset deferred (source unavailable): %s",
                 self.entity_id,
@@ -203,7 +207,7 @@ class CounterTrigger(BaseTrigger):
         if self._baseline_value is not None:
             await self._coordinator.async_persist_trigger_runtime(
                 self._task_id,
-                {"baseline_value": self._baseline_value},
+                {"baseline_value": self._baseline_value, **({"rebaseline_pending": True} if self._reset_pending else {})},
                 entity_id=self.entity_id,
                 immediate=True,
             )

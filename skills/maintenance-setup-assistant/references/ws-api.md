@@ -665,11 +665,15 @@ same message id. Useful to watch a trigger flip during verification; a plain
 
 ### `schedule/preview` — read — "your next three dates"
 `{schedule (req, nested Schedule dict), last_performed?, times_performed?
-(0..100000, default 0), count? (1..10, default 3)}` →
+(0..100000, default 0), count? (1..10, default 3), entry_id?, task_id?}` →
 `{occurrences:["YYYY-MM-DD", …], series_ended: bool}`. Runs a **draft**
 recurrence through the real scheduling engine (nothing is stored), simulating an
 on-time completion per step — so completion-anchored intervals, calendar kinds,
 season windows and finite series all advance exactly as they will in production.
+With `entry_id` + `task_id` of an existing task, its cycle state shapes the dates:
+its completions count (instead of `times_performed`), and while `last_performed`
+matches the stored one its postponement and planned anchor apply too. An
+unknown id previews the draft alone.
 Use it to show the user concrete dates before `task/create`. Bad
 `last_performed` → `invalid_date`; an unusable schedule → `invalid_input`.
 

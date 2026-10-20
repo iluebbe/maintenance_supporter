@@ -60,8 +60,9 @@ def test_vacation_preview_honors_interval_unit() -> None:
         window_end=date(2026, 12, 31),
         interval_unit="months",
     )
-    # next_due = 2026-04-01 + 6 months = 2026-10-01 (not 2026-04-07).
-    assert any(e.date == date(2026, 10, 1) and e.status == "overdue" for e in events)
+    # next_due = 2026-04-01 + 6 months = 2026-10-01 (not 2026-04-07); overdue
+    # the day after (bug audit 2026-10-17, C-7).
+    assert any(e.date == date(2026, 10, 2) and e.status == "overdue" for e in events)
     assert all(e.date != date(2026, 4, 7) for e in events)
 
 

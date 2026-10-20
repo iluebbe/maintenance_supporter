@@ -474,6 +474,8 @@ async def ws_search(
                 hit["snippet"] = piece or " ".join(notes.split())[:160]
                 history.append(hit)
     # Best first; equal scores newest first (two stable sorts).
-    history.sort(key=lambda h: str(h.get("timestamp") or ""), reverse=True)
+    from ..helpers.dates import stamp_instant
+
+    history.sort(key=lambda h: stamp_instant(h.get("timestamp")), reverse=True)
     history.sort(key=lambda h: -h["score"])
     connection.send_result(msg["id"], {"documents": documents, "history": history[:limit]})

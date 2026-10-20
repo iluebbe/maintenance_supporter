@@ -23,7 +23,14 @@ from uuid import uuid4
 
 from homeassistant.core import HomeAssistant
 
-from ..const import CONF_SAVED_FILTER_VIEWS, DEFAULT_TASK_PRIORITY, MAX_SAVED_VIEWS, MAX_VIEW_NAME_LENGTH, TaskPriority
+from ..const import (
+    CONF_SAVED_FILTER_VIEWS,
+    DEFAULT_TASK_PRIORITY,
+    MAX_ID_LENGTH,
+    MAX_SAVED_VIEWS,
+    MAX_VIEW_NAME_LENGTH,
+    TaskPriority,
+)
 from .assignees import task_is_for
 from .global_options import get_global_options
 
@@ -127,7 +134,9 @@ def sanitize_view(raw: Any, *, view_id: str | None = None) -> dict[str, Any] | N
     resolved_id = view_id
     if resolved_id is None:
         rid = raw.get("id")
-        resolved_id = rid if isinstance(rid, str) and rid.strip() else uuid4().hex
+        # Longer than views/delete accepts, an imported view could never be
+        # deleted or changed: it gets a fresh id (bug audit 2026-10-17, W-14).
+        resolved_id = rid if isinstance(rid, str) and rid.strip() and len(rid) <= MAX_ID_LENGTH else uuid4().hex
     return {
         "id": resolved_id,
         "name": name.strip()[:MAX_VIEW_NAME_LENGTH],

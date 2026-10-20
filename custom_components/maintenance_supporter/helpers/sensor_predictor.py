@@ -36,6 +36,7 @@ from ..const import (
     DEGRADATION_MIN_CYCLE_HOURS,
     DEGRADATION_TREND_HORIZON_DAYS,
 )
+from .dates import stamp_instant
 from .history import completed_entries
 from .least_squares import linear_fit
 from .schedule import read_legacy_fields
@@ -680,7 +681,7 @@ class SensorPredictor:
         # Extract completion intervals with env values at completion time
         history = task_data.get("history") or []
         completed = [h for h in completed_entries(history) if h.get("timestamp")]
-        completed.sort(key=lambda h: h["timestamp"])
+        completed.sort(key=lambda h: stamp_instant(h["timestamp"]))  # by instant (bug audit 2026-10-17, C-8)
 
         if len(completed) < 2:
             return EnvironmentalAnalysis(

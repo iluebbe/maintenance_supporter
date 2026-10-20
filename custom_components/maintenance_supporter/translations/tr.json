@@ -534,6 +534,7 @@
       "missing_data": "Gerekli veriler sağlanmadı.",
       "reconfigure_successful": "Yapılandırma başarıyla güncellendi.",
       "reconfigure_cancelled": "Yeniden yapılandırma iptal edildi.",
+      "reconfigure_global": "Genel ayarlar bir nesne değildir ve yeniden yapılandırılamaz. Bunları Yapılandır ile değiştirin.",
       "entity_unavailable": "Seçilen varlık şu anda kullanılamıyor. Bir durum bildirdiğinde tekrar deneyin.",
       "unknown": "Beklenmeyen bir hata oluştu. Lütfen baştan başlayın."
     }
@@ -1359,7 +1360,9 @@
       "invalid_reminder_lead_days": "0 ile 365 arasında tam günleri virgülle ayırarak girin (ör. 14, 3, 0)."
     },
     "abort": {
-      "entity_unavailable": "Seçilen varlık şu anda kullanılamıyor. Bir durum bildirdiğinde tekrar deneyin."
+      "entity_unavailable": "Seçilen varlık şu anda kullanılamıyor. Bir durum bildirdiğinde tekrar deneyin.",
+      "task_limit": "Bir nesnenin en fazla {max} görevi olabilir.",
+      "archived_no_new_tasks": "Arşivlenmiş bir nesneye yeni görev eklenemez — önce geri yükleyin."
     }
   },
   "entity": {

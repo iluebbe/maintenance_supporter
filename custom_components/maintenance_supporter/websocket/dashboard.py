@@ -637,6 +637,10 @@ async def ws_subscribe(
         vol.Optional("last_performed"): vol.Any(str, None),
         vol.Optional("times_performed", default=0): vol.All(int, vol.Range(min=0, max=100000)),
         vol.Optional("count", default=3): vol.All(int, vol.Range(min=1, max=10)),
+        # The task being edited: its cycle state (postpone, planned anchor,
+        # creation day, completions) shapes the dates (C-5).
+        vol.Optional("entry_id"): ID_FIELD,
+        vol.Optional("task_id"): ID_FIELD,
     }
 )
 @websocket_api.async_response
@@ -659,7 +663,9 @@ async def ws_schedule_preview(
 
     from homeassistant.util import dt as dt_util
 
-    from ..helpers.schedule import KIND_CALENDAR, Schedule, preview_occurrences
+    from ..helpers.aggregate import is_object_entry, merged_tasks
+    from ..helpers.history import completed_entries
+    from ..helpers.schedule import KIND_CALENDAR, Schedule, cycle_state, preview_occurrences
 
     lp: date_cls | None = None
     raw_lp = msg.get("last_performed")
@@ -669,6 +675,23 @@ async def ws_schedule_preview(
         except ValueError:
             connection.send_error(msg["id"], "invalid_date", "Invalid last_performed (expected YYYY-MM-DD)")
             return
+
+    # An existing task's cycle state — the panel previewed every task as if
+    # it were new (bug audit 2026-10-17, C-5). Only while the dialog keeps
+    # its last-performed day: a new one re-anchors the task on saving and
+    # drops the postpone and the planned anchor. An unknown id previews the
+    # draft alone.
+    times_performed = int(msg.get("times_performed", 0))
+    state: dict[str, Any] = {}
+    entry = hass.config_entries.async_get_entry(msg.get("entry_id") or "")
+    task = merged_tasks(entry).get(msg.get("task_id") or "") if entry is not None and is_object_entry(entry) else None
+    if isinstance(task, dict):
+        times_performed = len(completed_entries(task.get("history")))
+        stored_lp = task.get("last_performed")
+        if (str(stored_lp)[:10] if stored_lp else None) == (lp.isoformat() if lp else None):
+            state = cycle_state(task)
+        else:
+            state = {"created_at": cycle_state(task)["created_at"]}
 
     today = dt_util.now().date()
     try:
@@ -682,9 +705,10 @@ async def ws_schedule_preview(
         dates, series_ended = preview_occurrences(
             sched,
             last_performed=lp,
-            times_performed=int(msg.get("times_performed", 0)),
+            times_performed=times_performed,
             today=today,
             count=int(msg.get("count", 3)),
+            **state,
         )
     except (TypeError, ValueError) as err:
         connection.send_error(msg["id"], "invalid_input", f"Invalid schedule: {err}")
@@ -807,6 +831,9 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
 
     if CONF_PARTS_COST_MODE in filtered and filtered[CONF_PARTS_COST_MODE] not in PARTS_COST_MODES:
         del filtered[CONF_PARTS_COST_MODE]
+    # Only a currency the pickers offer (bug audit 2026-10-17, N-17).
+    if CONF_BUDGET_CURRENCY in filtered and filtered[CONF_BUDGET_CURRENCY] not in BUDGET_CURRENCIES:
+        del filtered[CONF_BUDGET_CURRENCY]
 
     if CONF_HOME_TYPE in filtered and filtered[CONF_HOME_TYPE] not in HOME_TYPES:
         del filtered[CONF_HOME_TYPE]
@@ -973,7 +1000,10 @@ async def ws_update_global_settings(
 
     filtered, notify_error = sanitize_settings_input(settings_input)
     if notify_error:
-        connection.send_error(msg["id"], notify_error, f"Invalid setting value: {notify_error}")
+        # The code names the problem; the panel shows its translated text
+        # (ws-errors.ts). "Invalid setting value: <code>" came through raw,
+        # in English, in every language (bug audit 2026-10-17, W-13).
+        connection.send_error(msg["id"], notify_error, notify_error.replace("_", " "))
         return
     if not filtered:
         connection.send_error(msg["id"], "invalid_input", "No valid setting keys provided")

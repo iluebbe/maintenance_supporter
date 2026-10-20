@@ -790,6 +790,7 @@ export class MaintenanceTaskDialog extends LitElement {
   }
 
   private _resetTriggerFields(): void {
+    ++this._attrSeq; // an attribute fetch still running must not land (P-10)
     this._triggerEntityId = "";
     this._triggerEntityIds = [];
     this._triggerEntityLogic = "any";
@@ -1071,7 +1072,7 @@ export class MaintenanceTaskDialog extends LitElement {
           .value=${this._qcDuration}
           @input=${(e: Event) => { this._qcDuration = (e.target as HTMLInputElement).value; }}
         ></ms-textfield>
-        <select class="qc-feedback"
+        <select class="qc-feedback" aria-label=${t("was_maintenance_needed", L)}
           .value=${this._qcFeedback}
           @change=${(e: Event) => { this._qcFeedback = (e.target as HTMLSelectElement).value as "" | "needed" | "not_needed" | "not_sure"; }}>
           <option value="">${t("quick_complete_defaults_feedback_none", L)}</option>
@@ -1088,15 +1089,21 @@ export class MaintenanceTaskDialog extends LitElement {
     // every dialog opener (panel, card, task detail) gets them without
     // threading props through.
     this.parts = [];
-    if (!this._entryId) return;
+    // The object picked when the request went out: a late answer for one
+    // picked before showed its parts, and a box ticked there was saved as an
+    // own-part link of the new object (audit 2026-10-17, P-8).
+    const entryId = this._entryId;
+    if (!entryId) return;
     try {
       const result = (await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/object",
-        entry_id: this._entryId,
+        entry_id: entryId,
       })) as { parts?: Array<{ id: string; name: string; unit?: string }> };
+      if (entryId !== this._entryId) return;
       this.parts = result.parts || [];
       this._partsLoadFailed = false;
     } catch {
+      if (entryId !== this._entryId) return;
       // Surface the failure: an empty-but-failed load must not just hide the
       // "consumes parts" section as if the object had no parts.
       this.parts = [];
@@ -1114,7 +1121,8 @@ export class MaintenanceTaskDialog extends LitElement {
    *  must not disappear because this second call did not come back. */
   private async _loadForeignPools(): Promise<void> {
     this._foreignOwners = [];
-    if (!this._entryId) return;
+    const entryId = this._entryId; // P-8, see _loadParts
+    if (!entryId) return;
     try {
       const result = (await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/objects",
@@ -1125,8 +1133,9 @@ export class MaintenanceTaskDialog extends LitElement {
           parts?: Array<{ id: string; name: string; unit?: string }>;
         }>;
       };
+      if (entryId !== this._entryId) return;
       this._foreignOwners = (result.objects || [])
-        .filter((o) => o.entry_id !== this._entryId && (o.parts || []).length > 0)
+        .filter((o) => o.entry_id !== entryId && (o.parts || []).length > 0)
         .map((o) => ({
           entry_id: o.entry_id,
           name: o.object?.name || o.entry_id,
@@ -1189,7 +1198,13 @@ export class MaintenanceTaskDialog extends LitElement {
       });
   }
 
+  /** Bumped per request and on every reset: only the newest answer lands
+   *  (audit 2026-10-17, P-10 — a quick re-pick, or a reopen while the last
+   *  fetch ran, left another entity's attributes in the dropdown). */
+  private _attrSeq = 0;
+
   private async _fetchEntityAttributes(entityId: string): Promise<void> {
+    const seq = ++this._attrSeq;
     if (!entityId || !this.hass) {
       this._suggestedAttributes = [];
       this._availableAttributes = [];
@@ -1205,10 +1220,12 @@ export class MaintenanceTaskDialog extends LitElement {
         suggested_attributes: string[];
         available_attributes: Array<{ name: string; value: unknown; numeric: boolean }>;
       };
+      if (seq !== this._attrSeq) return;
       this._entityDomain = result.domain || "";
       this._suggestedAttributes = result.suggested_attributes || [];
       this._availableAttributes = result.available_attributes || [];
     } catch {
+      if (seq !== this._attrSeq) return;
       this._suggestedAttributes = [];
       this._availableAttributes = [];
       this._entityDomain = "";
@@ -1258,6 +1275,7 @@ export class MaintenanceTaskDialog extends LitElement {
         ${link !== undefined
           ? html`<input
               class="consumes-qty"
+              aria-label=${`${part.name}: ${t("quantity", this._lang)}`}
               type="number"
               min=${CONSUMES_QTY_RANGE[0]}
               max=${CONSUMES_QTY_RANGE[1]}
@@ -1335,7 +1353,7 @@ export class MaintenanceTaskDialog extends LitElement {
               .value=${s.unit || ""}
               @input=${(e: Event) => this._patchReading(s.id, { unit: (e.target as HTMLInputElement).value })}
             ></ms-textfield>
-            <ha-icon-button class="phase-remove reading-remove" @click=${() => (this._readings = this._readings.filter((x) => x.id !== s.id))}>
+            <ha-icon-button class="phase-remove reading-remove" .label=${t("remove", L)} @click=${() => (this._readings = this._readings.filter((x) => x.id !== s.id))}>
               <ha-icon icon="mdi:delete-outline"></ha-icon>
             </ha-icon-button>
           </div>
@@ -1393,6 +1411,7 @@ export class MaintenanceTaskDialog extends LitElement {
             ${this.parts.length ? html`
               <select
                 class="phase-part"
+                aria-label=${t("spare_part", L)}
                 .value=${d.partId}
                 @change=${(e: Event) => {
                   const partId = (e.target as HTMLSelectElement).value;
@@ -1406,11 +1425,11 @@ export class MaintenanceTaskDialog extends LitElement {
                 <!-- The typed text as-is: a "|| '1'" here rewrote a cleared
                      field to 1 and the next digit gave "13" (bug audit
                      2026-09-26 #2); an empty field saves as 1. -->
-                <input class="phase-qty" type="number" min=${PART_QTY_RANGE[0]} step="0.01" placeholder="1" .value=${d.partQty}
+                <input class="phase-qty" aria-label=${t("quantity", L)} type="number" min=${PART_QTY_RANGE[0]} step="0.01" placeholder="1" .value=${d.partQty}
                   @input=${(e: Event) => this._patchPhaseDef(d.id, { partQty: (e.target as HTMLInputElement).value })} />
               ` : nothing}
             ` : nothing}
-            <ha-icon-button class="phase-remove" @click=${() => this._removePhaseDef(d.id)}>
+            <ha-icon-button class="phase-remove" .label=${t("remove", L)} @click=${() => this._removePhaseDef(d.id)}>
               <ha-icon icon="mdi:delete-outline"></ha-icon>
             </ha-icon-button>
           </div>
@@ -1468,6 +1487,7 @@ export class MaintenanceTaskDialog extends LitElement {
           `)}
           <select
             class="phase-seq-add"
+            aria-label=${t("phase_sequence_add_step", L)}
             .value=${""}
             @change=${(e: Event) => {
               const id = (e.target as HTMLSelectElement).value;
@@ -1849,7 +1869,7 @@ export class MaintenanceTaskDialog extends LitElement {
     return html`
       <div class="select-row">
         <label>${t("trigger_type", L)}</label>
-        <select
+        <select aria-label=${t("trigger_type", L)}
           .value=${this._triggerType}
           @change=${(e: Event) => (this._triggerType = (e.target as HTMLSelectElement).value as TriggerType)}
         >
@@ -1896,7 +1916,7 @@ export class MaintenanceTaskDialog extends LitElement {
         ${this._triggerEntityIds.length > 1 ? html`
           <div class="select-row">
             <label>${t("entity_logic", L)}</label>
-            <select
+            <select aria-label=${t("entity_logic", L)}
               .value=${this._triggerEntityLogic}
               @change=${(e: Event) => (this._triggerEntityLogic = (e.target as HTMLSelectElement).value as "any" | "all")}
             >
@@ -1935,7 +1955,7 @@ export class MaintenanceTaskDialog extends LitElement {
         ? html`
             <div class="select-row">
               <label>${t("trigger_combinator", L)}</label>
-              <select
+              <select aria-label=${t("trigger_combinator", L)}
                 @change=${(e: Event) => (this._triggerCombinator = (e.target as HTMLSelectElement).value as "any" | "all")}
               >
                 <option value="any" ?selected=${this._triggerCombinator === "any"}>${t("trigger_combinator_any", L)}</option>
@@ -1968,7 +1988,7 @@ export class MaintenanceTaskDialog extends LitElement {
     return html`
       <div class="select-row">
         <label>${t("compound_logic", L)}</label>
-        <select
+        <select aria-label=${t("compound_logic", L)}
           .value=${this._compoundLogic}
           @change=${(e: Event) => (this._compoundLogic = (e.target as HTMLSelectElement).value as "AND" | "OR")}
         >
@@ -2025,7 +2045,7 @@ export class MaintenanceTaskDialog extends LitElement {
         ${this._renderConditionAttribute(c, i)}
         <div class="select-row">
           <label>${t("trigger_type", L)}</label>
-          <select
+          <select aria-label=${t("trigger_type", L)}
             .value=${c.type}
             @change=${(e: Event) => this._patchCondition(i, { type: (e.target as HTMLSelectElement).value as TriggerType })}
           >
@@ -2174,7 +2194,7 @@ export class MaintenanceTaskDialog extends LitElement {
       return html`
         <div class="select-row">
           <label>${cfg.label}</label>
-          <select
+          <select aria-label=${cfg.label}
             .value=${cfg.value}
             @change=${(e: Event) => cfg.onSelect((e.target as HTMLSelectElement).value)}
           >
@@ -2308,7 +2328,7 @@ export class MaintenanceTaskDialog extends LitElement {
     return html`
       <div class="select-row">
         <label>${t("interval_unit", L)}</label>
-        <select
+        <select aria-label=${t("interval_unit", L)}
           .value=${this._intervalUnit}
           @change=${(e: Event) => (this._intervalUnit = (e.target as HTMLSelectElement).value)}
         >
@@ -2429,6 +2449,9 @@ export class MaintenanceTaskDialog extends LitElement {
   private async _fetchSchedulePreview(): Promise<void> {
     const sched = this._open ? this._previewScheduleDict() : null;
     if (!sched) {
+      // A request still in flight must not paint its dates after this
+      // (switched to Manual, or the dialog closed — audit 2026-10-17, P-9).
+      ++this._previewSeq;
       this._schedulePreview = [];
       this._schedulePreviewEnded = false;
       return;
@@ -2442,6 +2465,9 @@ export class MaintenanceTaskDialog extends LitElement {
         type: "maintenance_supporter/schedule/preview",
         schedule: sched,
         ...(this._lastPerformed ? { last_performed: this._lastPerformed } : {}),
+        // The task being edited: its postpone, planned anchor and creation
+        // day shape the dates the backend previews (audit 2026-10-17, C-5).
+        ...(this._taskId ? { entry_id: this._entryId, task_id: this._taskId } : {}),
       });
       if (seq !== this._previewSeq) return; // a newer edit superseded this
       this._schedulePreview = res.occurrences || [];
@@ -2576,7 +2602,7 @@ export class MaintenanceTaskDialog extends LitElement {
 
       <label class="field-label">${t("series_end_label", L)}</label>
       <div class="select-row">
-        <select .value=${this._endsMode}
+        <select aria-label=${t("series_end_label", L)} .value=${this._endsMode}
           @change=${(e: Event) => (this._endsMode = (e.target as HTMLSelectElement).value as "never" | "count" | "until")}>
           <option value="never" ?selected=${this._endsMode === "never"}>${t("series_end_never", L)}</option>
           <option value="count" ?selected=${this._endsMode === "count"}>${t("series_end_after_count", L)}</option>
@@ -2584,9 +2610,10 @@ export class MaintenanceTaskDialog extends LitElement {
         </select>
       </div>
       ${this._endsMode === "count" ? html`
+        <!-- max: MAX_SERIES_COUNT (const.py), what the history can count. -->
         <ms-textfield
           label="${t("series_end_count_label", L)}"
-          type="number" min="1"
+          type="number" min="1" max="500"
           .value=${this._endsCount}
           @input=${(e: Event) => (this._endsCount = (e.target as HTMLInputElement).value)}
         ></ms-textfield>` : nothing}
@@ -2627,13 +2654,13 @@ export class MaintenanceTaskDialog extends LitElement {
       return html`
         <div class="select-row">
           <label>${t("recurrence_occurrence", L)}</label>
-          <select .value=${this._nth} @change=${(e: Event) => (this._nth = (e.target as HTMLSelectElement).value)}>
+          <select aria-label=${t("recurrence_occurrence", L)} .value=${this._nth} @change=${(e: Event) => (this._nth = (e.target as HTMLSelectElement).value)}>
             ${nths.map(([v, lbl]) => html`<option value=${v} ?selected=${v === this._nth}>${lbl}</option>`)}
           </select>
         </div>
         <div class="select-row">
           <label>${t("recurrence_weekday", L)}</label>
-          <select .value=${this._nthWeekday} @change=${(e: Event) => (this._nthWeekday = (e.target as HTMLSelectElement).value)}>
+          <select aria-label=${t("recurrence_weekday", L)} .value=${this._nthWeekday} @change=${(e: Event) => (this._nthWeekday = (e.target as HTMLSelectElement).value)}>
             ${days.map((name, i) => html`<option value=${String(i)} ?selected=${String(i) === this._nthWeekday}>${name}</option>`)}
           </select>
         </div>
@@ -2992,7 +3019,7 @@ export class MaintenanceTaskDialog extends LitElement {
           ${this._taskId === null && this._objectChoices.length > 0 ? html`
             <div class="select-row">
               <label>${t("object", L)}</label>
-              <select
+              <select aria-label=${t("object", L)}
                 .value=${this._entryId}
                 @change=${(e: Event) => {
                   this._entryId = (e.target as HTMLSelectElement).value;
@@ -3018,7 +3045,7 @@ export class MaintenanceTaskDialog extends LitElement {
           ></ms-textfield>
           <div class="select-row">
             <label>${t("maintenance_type", L)}</label>
-            <select
+            <select aria-label=${t("maintenance_type", L)}
               .value=${this._type}
               @change=${(e: Event) => (this._type = (e.target as HTMLSelectElement).value)}
             >
@@ -3029,7 +3056,7 @@ export class MaintenanceTaskDialog extends LitElement {
           </div>
           <div class="select-row">
             <label>${t("priority", L)}</label>
-            <select
+            <select aria-label=${t("priority", L)}
               .value=${this._priority}
               @change=${(e: Event) => (this._priority = (e.target as HTMLSelectElement).value)}
             >
@@ -3045,7 +3072,7 @@ export class MaintenanceTaskDialog extends LitElement {
     return this._section("schedule-section", t("task_section_schedule", L), html`
           <div class="select-row">
             <label>${t("schedule_type", L)}</label>
-            <select
+            <select aria-label=${t("schedule_type", L)}
               .value=${this._scheduleType}
               @change=${(e: Event) => (this._scheduleType = (e.target as HTMLSelectElement).value)}
             >
@@ -3065,7 +3092,7 @@ export class MaintenanceTaskDialog extends LitElement {
                 ${this._renderUnitSelect()}
                 <div class="select-row">
                   <label>${t("interval_anchor", L)}</label>
-                  <select
+                  <select aria-label=${t("interval_anchor", L)}
                     .value=${this._intervalAnchor}
                     @change=${(e: Event) => (this._intervalAnchor = (e.target as HTMLSelectElement).value as "completion" | "planned")}
                   >
@@ -3239,7 +3266,7 @@ export class MaintenanceTaskDialog extends LitElement {
             ? html`
               <div class="select-row">
                 <label>${t("nfc_tag_id_optional", L)}</label>
-                <select
+                <select aria-label=${t("nfc_tag_id_optional", L)}
                   .value=${this._nfcTagId}
                   @change=${(e: Event) => (this._nfcTagId = (e.target as HTMLSelectElement).value)}
                 >
@@ -3295,7 +3322,7 @@ export class MaintenanceTaskDialog extends LitElement {
     return this._section("people-section", t("task_section_people", L), html`
           <div class="select-row">
             <label>${t("responsible_user", L)}</label>
-            <select
+            <select aria-label=${t("responsible_user", L)}
               .value=${this._responsibleUserId || ""}
               @change=${(e: Event) => {
                 const val = (e.target as HTMLSelectElement).value;
@@ -3325,7 +3352,7 @@ export class MaintenanceTaskDialog extends LitElement {
             ${this._assigneePool.length >= 2 ? html`
               <div class="select-row">
                 <label>${t("rotation_strategy", L)}</label>
-                <select
+                <select aria-label=${t("rotation_strategy", L)}
                   .value=${this._rotationStrategy}
                   @change=${(e: Event) => (this._rotationStrategy = (e.target as HTMLSelectElement).value)}
                 >

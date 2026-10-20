@@ -284,13 +284,18 @@ async def async_create_object(
     spring" as an installation date broke every age / warranty computation
     that parses it (bug audit 2026-09-27). Raises ValueError.
     """
-    from ..helpers.dates import parse_iso_date
+    from ..helpers.dates import canonical_iso_date, parse_iso_date
 
     for field, value in (("installation_date", installation_date), ("warranty_expiry", warranty_expiry)):
         if value and (not isinstance(value, str) or parse_iso_date(value) is None):
             raise ValueError(f"{field} must be a valid date (YYYY-MM-DD), got {value!r}")
-    installation_date = installation_date or None
-    warranty_expiry = warranty_expiry or None
+    # The service's "   " passed its schema and became an object called "",
+    # as often as it was called; the compact date form was stored as typed
+    # (bug audit 2026-10-17, W-10).
+    if not name.strip():
+        raise ValueError("The name must not be empty")
+    installation_date = canonical_iso_date(installation_date)
+    warranty_expiry = canonical_iso_date(warranty_expiry)
     data: dict[str, Any] = {
         CONF_OBJECT: {
             "id": uuid4().hex,
@@ -513,7 +518,7 @@ async def ws_update_object(
 
         tasks = dict(new_data.get(CONF_TASKS) or {})
         moved_tasks, swap_report = move_tasks_to_device(
-            hass, tasks, old_device_ids(obj, tasks.values(), new_device), new_device
+            hass, tasks, old_device_ids(obj, tasks.values(), new_device), new_device, user_id=connection.user.id
         )
         new_data[CONF_TASKS] = moved_tasks
     for key in ("ha_device_id", "parent_entry_id"):
@@ -1072,7 +1077,7 @@ async def ws_replace_object(
             from ..helpers.device_swap import move_tasks_to_device, old_device_ids
 
             new_tasks, swap_report = move_tasks_to_device(
-                hass, new_tasks, old_device_ids(src_obj, new_tasks.values(), new_device), new_device
+                hass, new_tasks, old_device_ids(src_obj, new_tasks.values(), new_device), new_device, user_id=connection.user.id
             )
         new_obj["ha_device_id"] = new_device
 

@@ -2,6 +2,50 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.107.0] - 2026-10-20
+
+### 🐛 Fixed
+
+- **Voice:** a reading with a decimal point is read as one in every language (in German, `1234.567` was recorded as
+  1234567). "The water meter reads …" goes to the meter's task that takes a reading when another of its tasks matches
+  too. "Postpone by minus three days" is refused instead of moving the due date earlier, and an overdue task can be
+  postponed to today, as in the panel.
+- **Settings and setup:** General settings and the type step of an AND/OR condition showed "Translation Error".
+  *Reconfigure* on the global settings entry turned it into an object; it is refused now. A new sensor task added
+  after editing another one started with that task's sensors. Adding a task to an archived object, or to one at the
+  task limit, says why instead of dropping the task. An unknown currency (from an import) or a negative counter start
+  no longer blocks saving the form. Errors of the panel's settings page read in your language.
+- **Notifications:** a persistent-notification card is dismissed when its task is done, like a phone notification.
+  With a daily limit, postponed, muted, snoozed and vacation-silenced tasks no longer hold back the budget other tasks
+  wait for. Skipping or resetting an overdue task while a refresh ran could send its reminder again.
+- **Triggers:** a state trigger with a hold time resumes its window when its sensor comes back late after a restart
+  (Zigbee, Z-Wave). A counter completed while its sensor had no reading does not fire again after a restart that comes
+  before the next reading. A runtime trigger whose sensor is unavailable at startup books the hours the device ran
+  meanwhile. Undo after a completion or a skip puts the sensor progress back: a pump at 180 of 200 hours read 0.
+- **Schedules:** postponing the last occurrence of a series past its end date ended the series and marked the task
+  done; the occurrence stays now. The "next dates" preview (task dialog and options) counts a postponement, the planned
+  anchor, an early-completed calendar occurrence and the creation day of a task never done. A completed one-time task
+  with a sensor trigger is done, and a postponement no longer brings it back. "Ends after N times" goes up to 500, what
+  the history keeps, and the history gives up skips and trigger entries before completions: "ends after 600" never
+  ended. The calendar shows a paused object's buy task that other objects still draw on. The vacation preview has a
+  task become overdue the day after its due date, not on it. Completions on either side of the clocks going back, or
+  imported in UTC, are numbered and ordered by their time.
+- **Imports and actions:** a device swap hands a completion action it changed to the user who chose the device. The
+  JSON import drops a list in a text field, and a number as an object name or odd task references in a group no longer
+  stop the whole import. A CSV import keeps a task archived on its own when its object is archived too. A malformed
+  trigger is refused with a reason instead of "Unknown error". The `add_object` action refuses a blank name and stores
+  `20261001` as `2026-10-01`. The settings import stores vacation dates as days, ignores a vacation that ends before it
+  starts, and gives a group or view whose id is too long a new id.
+- **Spare parts and budget:** folding a battery alias part takes price, package size and restock quantity from one
+  side (a cell could cost a quarter, and a restock of 8 cells became 8 packs), and a second buy reminder for the part
+  goes. A completion drawing on another object's part while that object reloads takes the part instead of raising a
+  false repair, and the budget counts that object's spending. Automatic deletion of archived one-off tasks keeps those
+  that recorded a cost: their spending left the budget and the area totals.
+- **Panel:** a late answer no longer shows another object's spare parts, another entity's attributes or old "next
+  dates" in the task dialog. The object booklet waits for the full history before it prints. The ⋮ menus and the
+  object quick-actions task list work with the keyboard, and the task dialog's selects and icon buttons have names
+  for screen readers.
+
 ## [2.106.0] - 2026-10-20
 
 ### ✨ Changed

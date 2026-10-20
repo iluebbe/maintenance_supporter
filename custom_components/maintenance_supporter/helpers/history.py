@@ -123,6 +123,32 @@ def latest_anchor_index(history: list[Any]) -> int | None:
     return max(stamped, key=lambda item: stamp_instant(item[1]))[0] if stamped else None
 
 
+_TRIM_NOISE = frozenset({HistoryEntryType.TRIGGERED, HistoryEntryType.TRIGGER_REMOVED})
+
+
+def trim_history(history: list[Any], limit: int) -> list[Any]:
+    """``history`` cut to ``limit`` entries, oldest first within each rank:
+    trigger noise, then the other entries, then completions — the record
+    ``times_performed``, the costs and adaptive learning are read from. The
+    newest entry and the entry the cycle is anchored on always stay.
+
+    The Store's own trim went oldest first over everything, and the model's
+    after the noise: skips pushed completions out, and a series that ends
+    after N completions never counted to N (bug audit 2026-10-17, C-11).
+    """
+    overflow = len(history) - limit
+    if overflow <= 0:
+        return history
+    keep = {len(history) - 1, latest_anchor_index(history)}
+
+    def rank(item: tuple[int, Any]) -> tuple[int, int]:
+        kind = item[1].get("type") if isinstance(item[1], dict) else None
+        return (0 if kind in _TRIM_NOISE else 2 if kind == HistoryEntryType.COMPLETED else 1, item[0])
+
+    drop = {i for i, _entry in sorted((item for item in enumerate(history) if item[0] not in keep), key=rank)[:overflow]}
+    return [entry for i, entry in enumerate(history) if i not in drop]
+
+
 def completed_entries(history: Iterable[Any] | None) -> list[dict[str, Any]]:
     """The completion entries of ``history``, in stored order; non-dict
     entries (hand-edited / imported logs) are skipped."""

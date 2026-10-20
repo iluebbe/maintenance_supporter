@@ -78,6 +78,10 @@ DEFAULT_WARNING_DAYS = 7
 DEFAULT_INTERVAL_DAYS = 30
 DEFAULT_UPDATE_INTERVAL_MINUTES = 5
 DEFAULT_MAX_HISTORY_ENTRIES = 500
+# The most completions a finite series may count to: the history keeps that
+# many entries, and times_performed is counted in it (bug audit 2026-10-17,
+# C-11 — "ends after 600" never ended).
+MAX_SERIES_COUNT = DEFAULT_MAX_HISTORY_ENTRIES
 DEFAULT_SNOOZE_DURATION_HOURS = 4
 DEFAULT_MAX_NOTIFICATIONS_PER_DAY = 0  # 0 = unlimited
 

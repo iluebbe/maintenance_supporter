@@ -133,6 +133,9 @@ def _inject_per_entity_state(config: dict[str, Any], entity_state: dict[str, Any
     if trigger_type == TriggerType.COUNTER:
         if "baseline_value" in entity_state:
             config["trigger_baseline_value"] = entity_state["baseline_value"]
+        # A re-baseline still waiting for the source's next reading.
+        if entity_state.get("rebaseline_pending") is True:
+            config["trigger_rebaseline_pending"] = True
     elif trigger_type == TriggerType.RUNTIME:
         if "accumulated_seconds" in entity_state:
             config["trigger_accumulated_seconds"] = entity_state["accumulated_seconds"]

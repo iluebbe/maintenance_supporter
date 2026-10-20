@@ -18,9 +18,9 @@ from ..const import (
     ScheduleType,
 )
 from ..helpers.dates import parse_iso_date
-from ..helpers.history import completed_entries, finite_amount, latest_anchor_stamp, signed_amount
+from ..helpers.history import completed_entries, finite_amount, latest_anchor_stamp, signed_amount, trim_history
 from ..helpers.phases import current_phase
-from ..helpers.schedule import Schedule, read_legacy_fields
+from ..helpers.schedule import KIND_ONE_TIME, Schedule, read_legacy_fields
 from ..helpers.status import compute_status, effective_warning_days, is_past_schedule_time
 
 
@@ -301,7 +301,11 @@ class MaintenanceTask:
         "archived" — see ``archived`` — which is the retire-but-retain state
         added in v2.10.0 and reserved for that feature.)
         """
-        if self.schedule_type == ScheduleType.ONE_TIME and self.last_performed is not None:
+        # The schedule's kind, not the derived label: that reads sensor_based
+        # once a trigger exists, and a completed one-time task with a trigger
+        # was never done — a postpone brought it back (bug audit 2026-10-17,
+        # C-9).
+        if self._schedule().kind == KIND_ONE_TIME and self.last_performed is not None:
             return True
         # A finite recurring series (repeat N times / recur until a date) is
         # terminally done once it has been performed and no longer re-arms.
@@ -642,24 +646,8 @@ class MaintenanceTask:
         # noise is evicted first, so a flapping sensor (hundreds of
         # `triggered` entries) can never push out the completion record that
         # `times_performed` / `total_cost` / adaptive learning are computed
-        # from. Only if dropping all trigger entries still isn't enough does
-        # the trim fall back to oldest-first over everything.
-        if len(self.history) > DEFAULT_MAX_HISTORY_ENTRIES:
-            overflow = len(self.history) - DEFAULT_MAX_HISTORY_ENTRIES
-            noise_types = {
-                HistoryEntryType.TRIGGERED,
-                HistoryEntryType.TRIGGER_REMOVED,
-            }
-            kept: list[dict[str, Any]] = []
-            dropped = 0
-            for h in self.history:
-                if dropped < overflow and h.get("type") in noise_types:
-                    dropped += 1
-                    continue
-                kept.append(h)
-            if len(kept) > DEFAULT_MAX_HISTORY_ENTRIES:
-                kept = kept[-DEFAULT_MAX_HISTORY_ENTRIES:]
-            self.history = kept
+        # from; completions go last (helpers.history.trim_history).
+        self.history = trim_history(self.history, DEFAULT_MAX_HISTORY_ENTRIES)
 
     # --- Serialization ---
 

@@ -699,13 +699,29 @@ def reconcile_buy_tasks(
 
     result: dict[str, dict[str, Any]] = {tid: dict(t) for tid, t in tasks.items()}
     existing_by_part: dict[str, str] = {}
+    created: list[str] = []
+    removed: list[str] = []
+    # Two reminders for one part (a battery alias folded into its canonical
+    # part brought its own along): one stays, an open one before a done one,
+    # and the other goes like an orphan. The second was simply overlooked
+    # and reminded twice (bug audit 2026-10-17, S-14).
+    duplicates: list[str] = []
     for tid, task in result.items():
         ref = task.get(PART_REF_FIELD)
         if isinstance(ref, Mapping) and ref.get("part_id"):
+            held = existing_by_part.get(str(ref["part_id"]))
+            if held is not None and not (is_task_done(result[held]) and not is_task_done(task)):
+                duplicates.append(tid)
+                continue
+            if held is not None:
+                duplicates.append(held)
             existing_by_part[str(ref["part_id"])] = tid
-
-    created: list[str] = []
-    removed: list[str] = []
+    for tid in duplicates:
+        if is_task_done(result[tid]):
+            result[tid].pop(PART_REF_FIELD, None)
+        else:
+            removed.append(tid)
+            del result[tid]
 
     for part_id, tid in list(existing_by_part.items()):
         if part_id in desired:

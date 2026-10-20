@@ -41,6 +41,7 @@ from .intent import (
     INTENT_UNDO,
     INTENT_WHOSE_TURN,
     _asking_user,
+    _match_tasks,
     _num,
     _part_snapshot,
     _refusal,
@@ -66,6 +67,17 @@ def _lang(language: str | None) -> str:
     return normalize_language_code(language)
 
 
+def _grouped(raw: str, sep: str) -> bool:
+    """Whether ``sep`` reads as a thousands separator in ``raw``: a lead of
+    one to three digits that is not 0, then groups of exactly three.
+
+    An LLM passes "1234.567" or "0.125" with a decimal point in any language;
+    those were recorded a thousand times too large (bug audit 2026-10-17, N-8).
+    """
+    lead, *groups = raw.lstrip("-").split(sep)
+    return 1 <= len(lead) <= 3 and not lead.startswith("0") and all(len(g) == 3 for g in groups)
+
+
 def parse_spoken_number(text: str, language: str | None) -> float | None:
     """The number in a spoken value ("1.234,5 kWh", "12,5", "1 234").
 
@@ -86,13 +98,12 @@ def parse_spoken_number(text: str, language: str | None) -> float | None:
         head, _, tail = raw.rpartition(",")
         if raw.count(",") > 1:
             raw = raw.replace(",", "")  # "1,234,567"
-        elif comma_decimal or len(tail) != 3:
+        elif comma_decimal or not _grouped(raw, ","):
             raw = f"{head}.{tail}"  # "12,5" — a decimal wherever it is written so
         else:
             raw = head + tail  # "1,234" in English is a thousand
     elif "." in raw:
-        head, _, tail = raw.rpartition(".")
-        if raw.count(".") > 1 or (comma_decimal and len(tail) == 3):
+        if (raw.count(".") > 1 or comma_decimal) and _grouped(raw, "."):
             raw = raw.replace(".", "")  # "12.500" in German is twelve thousand five hundred
     try:
         return float(raw)
@@ -126,6 +137,17 @@ def _entry_and_static(hass: Any, target: dict[str, Any]) -> tuple[Any, dict[str,
     return entry, static
 
 
+def _takes_a_reading(static: dict[str, Any]) -> bool:
+    """Whether a task records a value: named readings, the reading kind, or a unit."""
+    from .helpers.reading_slots import sanitize_reading_slots
+
+    return bool(
+        sanitize_reading_slots(list(static.get("readings") or []))
+        or static.get("type") == "reading"
+        or static.get("reading_unit")
+    )
+
+
 class RecordReadingIntent(intent.IntentHandler):
     """Record a meter reading / measured value by voice."""
 
@@ -148,14 +170,21 @@ class RecordReadingIntent(intent.IntentHandler):
         spoken = str(slots["value"]["value"]).strip()
         lang = intent_obj.language
 
-        target, err = _resolve_single(intent_obj, name, _task_snapshot(hass))
+        from .helpers.reading_slots import resolve_reading_values, sanitize_reading_slots
+
+        # Matched among the tasks that take a reading first: "the water meter
+        # reads 1234" was ambiguous between its Reading and its Calibration,
+        # and the classic agent cannot ask back (bug audit 2026-10-17, N-9).
+        # Only when none of them matches does the whole list answer, so a
+        # task that takes no reading is still told so.
+        snapshot = _task_snapshot(hass)
+        readable = [row for row in snapshot if _takes_a_reading(_entry_and_static(hass, row)[1])]
+        target, err = _resolve_single(intent_obj, name, readable if _match_tasks(name, readable, lang) else snapshot)
         if err is not None:
             return err
         assert target is not None
         response = intent_obj.create_response()
         entry, static = _entry_and_static(hass, target)
-
-        from .helpers.reading_slots import resolve_reading_values, sanitize_reading_slots
 
         slots_def = sanitize_reading_slots(list(static.get("readings") or []))
         if len(slots_def) > 1:
@@ -164,7 +193,7 @@ class RecordReadingIntent(intent.IntentHandler):
                 _sp("reading_multi", lang, task=target["name"]),
             )
             return response
-        if not slots_def and static.get("type") != "reading" and not static.get("reading_unit"):
+        if not _takes_a_reading(static):
             response.async_set_error(
                 intent.IntentResponseErrorCode.FAILED_TO_HANDLE,
                 _sp("reading_not_a_reading", lang, task=target["name"]),

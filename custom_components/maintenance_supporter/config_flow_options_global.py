@@ -894,7 +894,10 @@ class GlobalOptionsFlow(OptionsFlow):
                 return self._save_and_return(user_input)
 
         current = self._current
-        currency_code = self._opt(CONF_BUDGET_CURRENCY)
+        # A code the list does not carry (from an import or an older API
+        # write) came back as the default and failed every save (bug audit
+        # 2026-10-17, N-17).
+        currency_code = select_default(self._opt(CONF_BUDGET_CURRENCY), list(BUDGET_CURRENCIES), DEFAULT_BUDGET_CURRENCY)
         currency_options = [
             selector.SelectOptionDict(value=code, label=f"{code} ({symbol})") for code, symbol in BUDGET_CURRENCIES.items()
         ]
@@ -1079,6 +1082,10 @@ class GlobalOptionsFlow(OptionsFlow):
                 }
             ),
             errors=errors,
+            # The search link's help and its error name the {q} placeholder;
+            # without a value both read "Translation Error" (bug audit
+            # 2026-10-17, N-10).
+            description_placeholders={"q": "{q}"},
         )
 
     # --- Notification Settings ---

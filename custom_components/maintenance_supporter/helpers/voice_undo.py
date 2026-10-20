@@ -16,13 +16,16 @@ What an undo covers, precisely:
 * the entry fields a voice action writes: the rotation pointer and the notes;
 * spare-part stock the action consumed or added — and, for a buy reminder,
   its link to the part and the price its purchase set;
-* a snooze.
+* a snooze;
+* the sensor trigger's progress a completion or a skip reset (the runtime
+  hours, the counter's baseline, the counted changes): the object reloads so
+  its triggers count on from there. A pump at 180 of 200 hours read 0 after
+  an undone mis-tap (bug audit 2026-10-17, T-9).
 
 What it cannot take back, and does not pretend to: events that were fired
 (automations already ran), notifications that were sent, an on-complete
-action, and a sensor trigger's progress — the triggers keep counting from
-where they are, and restoring an old copy of their state would contradict
-the live sensors. The reference-number counter is not rewound either, so a
+action. What a trigger counted in the minutes between the action and its
+undo is not kept. The reference-number counter is not rewound either, so a
 later completion never reuses an undone entry's number.
 
 One level, per person (the Home Assistant user, or the satellite that heard
@@ -50,7 +53,8 @@ UNDO_WINDOW = timedelta(minutes=10)
 _DATA_KEY = f"{DOMAIN}_voice_undo"
 
 #: Store fields a voice action changes and an undo puts back. Not listed on
-#: purpose: trigger_runtime (live sensor progress), next_history_ref (never
+#: purpose: trigger_runtime (live sensor progress, put back but never
+#: compared, see TRIGGER_RESETTING_KINDS), next_history_ref (never
 #: renumber), todo_mirror (rows in another integration's list), the battery
 #: low latch (follows the sensors).
 TASK_FIELDS = (
@@ -75,6 +79,9 @@ STATIC_FIELDS = ("responsible_user_id", "notes")
 #: reconcile created a second one (DRY audit 2026-10-12, BR5-A2).
 RESTORE_ONLY_FIELDS = ("part_ref",)
 
+#: The actions that reset the task's sensor triggers (they close the cycle).
+TRIGGER_RESETTING_KINDS = frozenset({"completed", "skipped", "reading"})
+
 
 @dataclass
 class Snapshot:
@@ -91,6 +98,9 @@ class Snapshot:
     restore_only: dict[str, Any] = field(default_factory=dict)
     # #104 "when used": a buy reminder's paid price becomes its part's price.
     part_costs: dict[tuple[str, str], Any] = field(default_factory=dict)
+    # The triggers' progress before the action (T-9); never compared, it
+    # moves with the sensors.
+    trigger_runtime: Any = None
 
 
 @dataclass
@@ -131,6 +141,7 @@ def capture(hass: HomeAssistant, entry_id: str, task_id: str | None) -> Snapshot
         snap.task = {key: copy.deepcopy(state.get(key)) for key in TASK_FIELDS}
         snap.static = {key: copy.deepcopy(static.get(key)) for key in STATIC_FIELDS}
         snap.restore_only = {key: copy.deepcopy(static.get(key)) for key in RESTORE_ONLY_FIELDS}
+        snap.trigger_runtime = copy.deepcopy(state.get("trigger_runtime"))
     nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
     if task_id and nm is not None:
         snap.snooze = dict(nm.task_snooze_state(entry_id, task_id))
@@ -245,6 +256,7 @@ async def async_restore(hass: HomeAssistant, record: UndoRecord) -> None:
         static = {**before.static, **before.restore_only}
         if before.task != record.after.task or static != {**record.after.static, **record.after.restore_only}:
             await coordinator.async_restore_task_fields(before.task_id, dict(before.task), static)
+        await _async_restore_trigger_progress(hass, entry, record)
 
     # Stock and waiting pile (#208) go back in ONE booking through the one
     # stock writer: what is owned moves once, so the low / restocked edge
@@ -273,3 +285,23 @@ async def async_restore(hass: HomeAssistant, record: UndoRecord) -> None:
             continue
         parts[part_id] = {**part, "cost": cost} if cost is not None else {k: v for k, v in part.items() if k != "cost"}
         hass.config_entries.async_update_entry(part_entry, data={**part_entry.data, CONF_PARTS: parts})
+
+
+async def _async_restore_trigger_progress(hass: HomeAssistant, entry: Any, record: UndoRecord) -> None:
+    """The trigger progress the undone completion or skip reset (T-9).
+
+    The live triggers hold their count in memory, so the object reloads
+    and they read it back from the Store.
+    """
+    before = record.before
+    if record.kind not in TRIGGER_RESETTING_KINDS or entry is None or before.task_id is None:
+        return
+    static = (entry.data.get(CONF_TASKS) or {}).get(before.task_id) or {}
+    store = store_of(entry)
+    if not isinstance(static.get("trigger_config"), dict) or store is None:
+        return
+    if store.get_task_state(before.task_id).get("trigger_runtime") == before.trigger_runtime:
+        return
+    store.update_task_state(before.task_id, trigger_runtime=copy.deepcopy(before.trigger_runtime))
+    await store.async_save()
+    hass.config_entries.async_schedule_reload(entry.entry_id)

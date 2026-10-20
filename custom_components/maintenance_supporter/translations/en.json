@@ -534,6 +534,7 @@
       "missing_data": "Required data was not provided.",
       "reconfigure_successful": "Configuration updated successfully.",
       "reconfigure_cancelled": "Reconfiguration cancelled.",
+      "reconfigure_global": "The global settings are not an object and cannot be reconfigured. Use Configure to change them.",
       "entity_unavailable": "The selected entity is not available right now. Try again once it reports a state.",
       "unknown": "An unexpected error occurred. Please start again."
     }
@@ -1359,7 +1360,9 @@
       "invalid_reminder_lead_days": "Enter whole days between 0 and 365, separated by commas (e.g. 14, 3, 0)."
     },
     "abort": {
-      "entity_unavailable": "The selected entity is not available right now. Try again once it reports a state."
+      "entity_unavailable": "The selected entity is not available right now. Try again once it reports a state.",
+      "task_limit": "An object can have at most {max} tasks.",
+      "archived_no_new_tasks": "An archived object cannot get new tasks — restore it first."
     }
   },
   "entity": {

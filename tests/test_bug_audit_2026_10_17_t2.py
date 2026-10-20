@@ -17,6 +17,7 @@ from custom_components.maintenance_supporter.const import (
     CONF_NOTIFY_OVERDUE_INTERVAL,
     CONF_NOTIFY_SERVICE,
     CONF_NOTIFY_TRIGGERED_INTERVAL,
+    CONF_QUIET_HOURS_ENABLED,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MaintenanceStatus,
@@ -37,6 +38,9 @@ def _notify_global(hass: HomeAssistant) -> MockConfigEntry:
             CONF_NOTIFY_OVERDUE_INTERVAL: 12,
             CONF_NOTIFY_TRIGGERED_INTERVAL: 0,
             CONF_MAX_NOTIFICATIONS_PER_DAY: 0,
+            # Quiet hours (22:00-08:00 in the fixtures' US/Pacific) held the
+            # reminder whenever the suite ran in them.
+            CONF_QUIET_HOURS_ENABLED: False,
         },
     )
     entry.add_to_hass(hass)

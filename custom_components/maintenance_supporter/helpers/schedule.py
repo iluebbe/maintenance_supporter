@@ -33,7 +33,7 @@ from datetime import date, timedelta
 from itertools import pairwise
 from typing import Any
 
-from ..const import MAX_INTERVAL_DAYS, SCHEDULE_OFFSET_MAX_DAYS
+from ..const import MAX_INTERVAL_DAYS, MAX_SERIES_COUNT, SCHEDULE_OFFSET_MAX_DAYS
 from .dates import (
     INTERVAL_UNITS,
     add_interval,
@@ -260,7 +260,7 @@ def _parse_ends(raw: object) -> tuple[int | None, date | None]:
     if not isinstance(raw, Mapping):
         return None, None
     count = _coerce_int(raw.get("count"))
-    valid_count = count if count is not None and count >= 1 else None
+    valid_count = min(count, MAX_SERIES_COUNT) if count is not None and count >= 1 else None
     until_raw = raw.get("until")
     until = parse_iso_date(until_raw) if isinstance(until_raw, str) else None
     return valid_count, until
@@ -400,10 +400,22 @@ class Schedule:
 
         # A postponed occurrence wins for the current cycle — until it's been
         # completed past the override date (then fall through to normal cadence).
-        # It still respects the series end date.
+        # Moved past the series end it is still the series' occurrence, as long
+        # as the series had one left: postponing the last weekly date of a
+        # series to after its end date ended the series, and the task read
+        # Done (bug audit 2026-10-17, C-3).
         if due_override is not None and (last_performed is None or due_override > last_performed):
             if self.ends_until is not None and due_override > self.ends_until:
-                return None
+                in_series = self._next_due(
+                    last_performed=last_performed,
+                    created_at=created_at,
+                    last_planned_due=last_planned_due,
+                    today=today,
+                    times_performed=times_performed,
+                    due_override=None,
+                    planned_day=planned_day,
+                )
+                return due_override if in_series is not None else None
             return due_override
 
         result = self._compute_next_due(
@@ -784,6 +796,17 @@ class Schedule:
 
 
 
+def cycle_state(task: Mapping[str, Any]) -> dict[str, Any]:
+    """A stored task's cycle state as :func:`preview_occurrences` takes it."""
+    raw_day = task.get("planned_day")
+    return {
+        "last_planned_due": parse_iso_date(task.get("last_planned_due")) if isinstance(task.get("last_planned_due"), str) else None,
+        "planned_day": raw_day if isinstance(raw_day, int) and not isinstance(raw_day, bool) else None,
+        "due_override": parse_iso_date(task.get("due_override")) if isinstance(task.get("due_override"), str) else None,
+        "created_at": parse_iso_date(str(task.get("created_at"))[:10]) if isinstance(task.get("created_at"), str) else None,
+    }
+
+
 def preview_occurrences(
     schedule: Schedule,
     *,
@@ -791,6 +814,10 @@ def preview_occurrences(
     times_performed: int = 0,
     today: date,
     count: int = 3,
+    last_planned_due: date | None = None,
+    planned_day: int | None = None,
+    due_override: date | None = None,
+    created_at: date | None = None,
 ) -> tuple[list[date], bool]:
     """The next ``count`` occurrences a schedule produces, plus whether the
     series ends within them.
@@ -802,22 +829,32 @@ def preview_occurrences(
     Single source of truth for BOTH preview surfaces — the panel's
     ``schedule/preview`` WS command and the options flow's next-dates line
     (#83; keep them DRY through this helper).
+
+    An existing task passes its cycle state (the planned anchor, a postpone,
+    its creation day): without it the first date ignored a postponement, an
+    occurrence already covered by an early completion and a late completion
+    of a planned series, and a task never done counted from today (bug
+    audit 2026-10-17, C-5). Completing a postponed occurrence anchors the
+    planned grid on its grid date, as ``MaintenanceTask.complete`` does.
     """
     occurrences: list[date] = []
     series_ended = False
     lp = last_performed
-    lpd: date | None = None
-    pday: int | None = None
+    lpd = last_planned_due
+    pday = planned_day
+    override = due_override
+    created = created_at or today
     times = times_performed
     for _ in range(count):
-        nxt = schedule.next_due(
-            last_performed=lp,
-            created_at=today,
-            last_planned_due=lpd,
-            today=today,
-            times_performed=times,
-            planned_day=pday,
-        )
+        state: dict[str, Any] = {
+            "last_performed": lp,
+            "created_at": created,
+            "last_planned_due": lpd,
+            "today": today,
+            "times_performed": times,
+            "planned_day": pday,
+        }
+        nxt = schedule.next_due(**state, due_override=override)
         if nxt is None:
             # A calendar entity that merely ran out of KNOWN events has not
             # ended its series — only a finite one has.
@@ -826,9 +863,11 @@ def preview_occurrences(
         if occurrences and nxt <= occurrences[-1]:  # pragma: no cover
             break  # safety net: the engine must advance — never loop
         occurrences.append(nxt)
-        pday = schedule.carry_planned_day(pday or (lpd or lp or today).day, nxt)
+        grid = (schedule.next_due(**state) or nxt) if override is not None else nxt
+        pday = schedule.carry_planned_day(pday or (lpd or lp or today).day, grid)
         lp = nxt
-        lpd = nxt
+        lpd = grid
+        override = None
         times += 1
     return occurrences, series_ended
 

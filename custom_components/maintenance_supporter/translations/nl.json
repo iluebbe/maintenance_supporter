@@ -534,6 +534,7 @@
       "missing_data": "Vereiste gegevens zijn niet opgegeven.",
       "reconfigure_successful": "Configuratie succesvol bijgewerkt.",
       "reconfigure_cancelled": "Herconfiguratie geannuleerd.",
+      "reconfigure_global": "De algemene instellingen zijn geen object en kunnen niet opnieuw worden geconfigureerd. Wijzig ze via Configureren.",
       "entity_unavailable": "De gekozen entiteit is nu niet beschikbaar. Probeer het opnieuw zodra ze een status meldt.",
       "unknown": "Er is een onverwachte fout opgetreden. Begin opnieuw."
     }
@@ -1359,7 +1360,9 @@
       "invalid_reminder_lead_days": "Voer hele dagen tussen 0 en 365 in, gescheiden door komma's (bijv. 14, 3, 0)."
     },
     "abort": {
-      "entity_unavailable": "De gekozen entiteit is nu niet beschikbaar. Probeer het opnieuw zodra ze een status meldt."
+      "entity_unavailable": "De gekozen entiteit is nu niet beschikbaar. Probeer het opnieuw zodra ze een status meldt.",
+      "task_limit": "Een object kan maximaal {max} taken hebben.",
+      "archived_no_new_tasks": "Een gearchiveerd object kan geen nieuwe taken krijgen — herstel het eerst."
     }
   },
   "entity": {
