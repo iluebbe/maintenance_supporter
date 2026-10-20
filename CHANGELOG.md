@@ -2,7 +2,28 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [2.107.0] - 2026-10-20
+## [2.107.0] - 2026-10-21
+
+### ✨ Added
+
+- **Each spare part can say when it counts as spending** (#222, thanks @MarcoK89). The part form has *Counts as
+  spending*: *As in Settings* (the default), *When bought* or *When used*. Batteries, bulbs and bicycle parts can count
+  on the object and area where they go in, while the pool chemicals, the vacuum filter and the ink count in the year
+  they were bought. A completion books the parts that count when used and names the others as counted at purchase; a
+  purchase counts, or becomes the part's price, by the part it buys. History keeps how each entry was booked. The
+  battery fleet's cells still count when bought.
+
+### ✨ Changed
+
+- **Battery fleet:** a battery whose level reads healthy is *Healthy*, also after its type's typical lifetime has run
+  out (#223, thanks @liblit). It is no longer *Soon* or on the shopping preview, and the passed date stays as a muted
+  hint. Batteries without a level (no sensor, low-only, offline) keep showing a passed forecast as before.
+- **Task dialog** (#216, thanks @pkolbus): *People* and *Notifications* are two sections. The notes follow the name and
+  type, with priority, labels, documentation link and icon folded below them in *Details* (open when one is set).
+  *Earliest completion* moved to *Schedule*. The open list of a select takes the theme's card colours and, in current
+  Chrome-based browsers and apps, looks like Home Assistant's own menus.
+- **Brand icons** ship inside the integration, where Home Assistant 2026.3 and newer look for them (#224, thanks
+  @frenck).
 
 ### 🐛 Fixed
 

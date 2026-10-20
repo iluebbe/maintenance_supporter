@@ -124,6 +124,10 @@ export function partsForCompletion(
       unit: part?.unit,
       stock: part?.stock ?? null,
       storage_location: part?.storage_location,
+      // The completion dialog values a pool's part like an own one (#222).
+      cost: part?.cost ?? null,
+      package_size: part?.package_size ?? null,
+      cost_mode: part?.cost_mode ?? null,
       entry_id: link.entry_id,
       owner_name: ownerName,
     });

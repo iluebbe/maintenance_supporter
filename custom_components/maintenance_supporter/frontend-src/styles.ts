@@ -528,6 +528,39 @@ export const formStyles = css`
     border-radius: 6px;
   }
   .select-row select:focus { outline: none; border-color: var(--primary-color); }
+  /* #216 follow-up: the open list took the select's grey fill and the chosen
+     entry the system blue. The entries carry the card's colors; where a
+     select can be styled (appearance: base-select), the list and the chosen
+     entry look like HA's own menus. */
+  .select-row select option {
+    background-color: var(--card-background-color, #fff);
+    color: var(--primary-text-color);
+  }
+  @supports (appearance: base-select) {
+    .select-row select,
+    .select-row select::picker(select) {
+      appearance: base-select;
+    }
+    .select-row select::picker(select) {
+      background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color);
+      border-radius: 6px;
+      padding: 4px 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+    .select-row select option {
+      padding: 8px 12px;
+    }
+    .select-row select option:hover,
+    .select-row select option:focus-visible {
+      background-color: var(--secondary-background-color, rgba(0, 0, 0, 0.06));
+    }
+    .select-row select option:checked {
+      background-color: color-mix(in srgb, var(--primary-color) 15%, transparent);
+      color: var(--primary-color);
+    }
+  }
   .field-help { font-size: 12px; color: var(--secondary-text-color); }
   .option-row,
   .req-option,

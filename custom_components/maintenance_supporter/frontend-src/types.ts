@@ -161,7 +161,9 @@ export interface HistoryEntry {
   reading_values?: ReadingValue[] | null;
   /** #99/#130: the completion's part consumption (entry_id set for pooled);
    *  #104: `unit_cost` is the part's price per unit when it was booked. */
-  used_parts?: Array<{ part_id: string; name?: string; quantity: number; entry_id?: string; unit_cost?: number }> | null;
+  /** #222: cost_basis "purchase" on a link = that part counted at purchase
+   *  (its value is not in parts_cost). */
+  used_parts?: Array<{ part_id: string; name?: string; quantity: number; entry_id?: string; unit_cost?: number; cost_basis?: "purchase" }> | null;
   /** #104: value of the parts this completion used (Σ quantity × unit_cost). */
   parts_cost?: number | null;
   /** #104: "use" = booked while spare parts counted when used — the parts
@@ -430,6 +432,9 @@ export interface MaintenancePart {
   /** #208: what readies a used one again (charge, sharpen, clean, dry,
    *  refill, restore); null/absent = the part is used up. */
   reuse?: string | null;
+  /** #222: when this part counts as spending; null/absent = the household
+   *  setting (Settings → General → Spare parts count as spending). */
+  cost_mode?: "purchase" | "use" | null;
   /** Tracked on-hand count; null = catalog-only (not tracked). For a
    *  reusable part: the ready ones. */
   stock?: number | null;

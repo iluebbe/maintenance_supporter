@@ -4967,6 +4967,8 @@ export class MaintenanceSupporterPanel extends LitElement {
           .parts=${obj.parts || []}
           .canWrite=${!isOperator}
           .currencySymbol=${this._currencySymbol}
+          .partsCostMode=${this._partsCostMode}
+          .fleet=${!!o.battery_fleet}
           @parts-changed=${() => this._loadData()}
         ></maintenance-parts-section>
         `) : nothing}

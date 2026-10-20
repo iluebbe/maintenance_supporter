@@ -211,7 +211,8 @@ Home Assistant backup, and the search finds words **inside** the PDFs.
 
 **Costs and budgets.** Every completion can record its cost, and spare parts
 count too — *Settings → General → Spare parts count as spending* decides
-whether a part counts when it is bought or when a job uses it. Switch on
+whether a part counts when it is bought or when a job uses it, and a part
+can choose for itself in its form. Switch on
 *Settings → Advanced Features → Budget Tracking* for monthly and yearly
 budgets with alerts.
 

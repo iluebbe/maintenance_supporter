@@ -280,6 +280,10 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _notifyIcon = "";
   @state() private _priority = "normal";
   @state() private _labels = "";
+  /** #216: the Details disclosure opens on a task that has any of its fields
+   *  set — decided once per open, so clearing the last one while typing
+   *  does not fold it away under the cursor. */
+  @state() private _detailsOpen = false;
   /** D#183: external todo.* lists the task is mirrored into while due. */
   @state() private _mirrorTodoEntities: string[] = [];
   @state() private _enabled = true;
@@ -661,11 +665,14 @@ export class MaintenanceTaskDialog extends LitElement {
       this._fetchEntityAttributes(this._triggerEntityId);
     }
 
+    this._detailsOpen =
+      this._priority !== "normal" || !!this._labels.trim() || !!this._documentationUrl.trim() || !!this._customIcon;
     await Promise.all([this._loadUsers(), this._loadTags(), this._loadParts(), this._loadForeignPools()]);
     this._open = true;
   }
 
   private _resetFields(): void {
+    this._detailsOpen = false;
     this._name = "";
     this._type = "custom";
     this._scheduleType = "time_based";
@@ -3001,9 +3008,10 @@ export class MaintenanceTaskDialog extends LitElement {
   }
 
   /** #216: the dialog answers one question per section, in the order a task
-   *  is set up — what it is (no heading), when it is due, what sets it off
-   *  (sensor tasks only), what completing it takes, who does it and who
-   *  hears about it, and the rest. A new field joins the section whose
+   *  is set up — what it is (no heading; the notes, then the folded
+   *  details), when it is due and may be done, what sets it off (sensor
+   *  tasks only), what completing it takes, who does it, and who hears
+   *  about it. A new field joins the section whose
    *  question it answers; one most tasks never need goes behind a
    *  disclosure inside it (like the adaptive scheduling and the completion
    *  action). The fields had grown in the order they were added. */
@@ -3054,17 +3062,63 @@ export class MaintenanceTaskDialog extends LitElement {
               )}
             </select>
           </div>
-          <div class="select-row">
-            <label>${t("priority", L)}</label>
-            <select aria-label=${t("priority", L)}
-              .value=${this._priority}
-              @change=${(e: Event) => (this._priority = (e.target as HTMLSelectElement).value)}
-            >
-              ${TASK_PRIORITIES.map(
-                (key) => html`<option value=${key} ?selected=${key === this._priority}>${t("priority_" + key, L)}</option>`
-              )}
-            </select>
-          </div>
+          <ms-textfield
+            label="${t("notes_optional", L)}"
+            multiline
+            .rows=${3}
+            .helper=${t("notes_markdown_hint", L)}
+            .value=${this._notes}
+            @input=${(e: Event) => (this._notes = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>
+          ${this._renderDetails(L)}
+          <label class="toggle-row">
+            <input
+              type="checkbox"
+              .checked=${this._enabled}
+              @change=${(e: Event) => (this._enabled = (e.target as HTMLInputElement).checked)}
+            />
+            ${t("task_enabled", L)}
+          </label>
+    `;
+  }
+
+  /** #216 follow-up: what further describes the work sits with the name, the
+   *  notes first and the rarely changed rest folded below them. */
+  private _renderDetails(L: string) {
+    return html`
+      <details class="details-section" ?open=${this._detailsOpen}>
+        <summary>${t("task_section_details", L)}</summary>
+        <div class="select-row">
+          <label>${t("priority", L)}</label>
+          <select aria-label=${t("priority", L)}
+            .value=${this._priority}
+            @change=${(e: Event) => (this._priority = (e.target as HTMLSelectElement).value)}
+          >
+            ${TASK_PRIORITIES.map(
+              (key) => html`<option value=${key} ?selected=${key === this._priority}>${t("priority_" + key, L)}</option>`
+            )}
+          </select>
+        </div>
+        <ms-textfield
+          label="${t("labels", L)}"
+          placeholder="${t("labels_placeholder", L)}"
+          helper="${t("labels_help", L)}"
+          .value=${this._labels}
+          @input=${(e: Event) => (this._labels = (e.target as HTMLInputElement).value)}
+        ></ms-textfield>
+        <ms-textfield
+          label="${t("documentation_url_optional", L)}"
+          .value=${this._documentationUrl}
+          @input=${(e: Event) => (this._documentationUrl = (e.target as HTMLInputElement).value)}
+        ></ms-textfield>
+        <ha-icon-picker
+          .hass=${this.hass}
+          label="${t("custom_icon_optional", L)}"
+          .value=${this._customIcon}
+          @value-changed=${(e: CustomEvent) =>
+            (this._customIcon = (e.detail.value as string) || "")}
+        ></ha-icon-picker>
+      </details>
     `;
   }
 
@@ -3151,6 +3205,13 @@ export class MaintenanceTaskDialog extends LitElement {
             max=${WARNING_DAYS_RANGE[1]}
             .value=${this._warningDays}
             @input=${(e: Event) => (this._warningDays = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>
+          <ms-textfield
+            label="${t("earliest_completion_days", L)}"
+            helper="${t("earliest_completion_days_help", L)}"
+            type="number"
+            .value=${this._earliestCompletionDays}
+            @input=${(e: Event) => (this._earliestCompletionDays = (e.target as HTMLInputElement).value)}
           ></ms-textfield>
           ${this._renderAdaptiveSection(L)}
     `);
@@ -3255,13 +3316,6 @@ export class MaintenanceTaskDialog extends LitElement {
               </label>
             `)}
           </div>
-          <ms-textfield
-            label="${t("earliest_completion_days", L)}"
-            helper="${t("earliest_completion_days_help", L)}"
-            type="number"
-            .value=${this._earliestCompletionDays}
-            @input=${(e: Event) => (this._earliestCompletionDays = (e.target as HTMLInputElement).value)}
-          ></ms-textfield>
           ${this._availableTags.length > 0
             ? html`
               <div class="select-row">
@@ -3363,6 +3417,13 @@ export class MaintenanceTaskDialog extends LitElement {
                 </select>
               </div>` : nothing}
           ` : nothing}
+    `);
+  }
+
+  /** #216 follow-up: notifications are their own section — next to the
+   *  shared-with list, "No notifications" read as one of its people. */
+  private _renderNotificationsSection(L: string) {
+    return this._section("notifications-section", t("task_section_notifications", L), html`
           <label class="req-option">
             <input
               type="checkbox"
@@ -3415,46 +3476,6 @@ export class MaintenanceTaskDialog extends LitElement {
     `);
   }
 
-  private _renderDetailsSection(L: string) {
-    return this._section("details-section", t("task_section_details", L), html`
-          <ms-textfield
-            label="${t("labels", L)}"
-            placeholder="${t("labels_placeholder", L)}"
-            helper="${t("labels_help", L)}"
-            .value=${this._labels}
-            @input=${(e: Event) => (this._labels = (e.target as HTMLInputElement).value)}
-          ></ms-textfield>
-          <ms-textfield
-            label="${t("notes_optional", L)}"
-            multiline
-            .rows=${3}
-            .helper=${t("notes_markdown_hint", L)}
-            .value=${this._notes}
-            @input=${(e: Event) => (this._notes = (e.target as HTMLInputElement).value)}
-          ></ms-textfield>
-          <ms-textfield
-            label="${t("documentation_url_optional", L)}"
-            .value=${this._documentationUrl}
-            @input=${(e: Event) => (this._documentationUrl = (e.target as HTMLInputElement).value)}
-          ></ms-textfield>
-          <ha-icon-picker
-            .hass=${this.hass}
-            label="${t("custom_icon_optional", L)}"
-            .value=${this._customIcon}
-            @value-changed=${(e: CustomEvent) =>
-              (this._customIcon = (e.detail.value as string) || "")}
-          ></ha-icon-picker>
-          <label class="toggle-row">
-            <input
-              type="checkbox"
-              .checked=${this._enabled}
-              @change=${(e: Event) => (this._enabled = (e.target as HTMLInputElement).checked)}
-            />
-            ${t("task_enabled", L)}
-          </label>
-    `);
-  }
-
   render() {
     if (!this._open) return html``;
     const L = this._lang;
@@ -3470,7 +3491,7 @@ export class MaintenanceTaskDialog extends LitElement {
           ${this._renderTriggerSection(L)}
           ${this._renderCompletionSection(L)}
           ${this._renderPeopleSection(L)}
-          ${this._renderDetailsSection(L)}
+          ${this._renderNotificationsSection(L)}
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._close}>${t("cancel", L)}</ha-button>
@@ -3501,7 +3522,8 @@ export class MaintenanceTaskDialog extends LitElement {
        but keeps its own class — tests count .ca-section elements) */
     .ca-section,
     .adaptive-section,
-    .phases-section {
+    .phases-section,
+    .details-section {
       border: 1px solid var(--divider-color);
       border-radius: 6px;
       padding: 8px 12px;
@@ -3509,11 +3531,13 @@ export class MaintenanceTaskDialog extends LitElement {
     }
     .ca-section > summary,
     .adaptive-section > summary,
-    .phases-section > summary {
+    .phases-section > summary,
+    .details-section > summary {
       cursor: pointer;
       font-weight: 500;
     }
-    .phases-section {
+    .phases-section,
+    .details-section {
       display: flex;
       flex-direction: column;
       gap: 8px;

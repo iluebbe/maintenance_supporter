@@ -7,6 +7,10 @@
  * Pins: the section order (the trigger section only for sensor tasks), which
  * section holds which field, one label style, the labels field as a styled
  * text field, cycle phases behind a disclosure.
+ *
+ * Follow-up (pkolbus): people and notifications are two sections, the notes
+ * follow the name and type, priority / labels / link / icon fold into
+ * Details below them, and the earliest completion is part of the schedule.
  */
 
 import { expect, fixture, html } from "@open-wc/testing";
@@ -34,10 +38,10 @@ const labelsIn = (root: ShadowRoot, cls: string) =>
 describe("task dialog sections (#216)", () => {
   it("orders the sections by question; the trigger only for sensor tasks", async () => {
     expect(sections(await open({ schedule_type: "time_based", interval_days: 30 }))).to.deep.equal([
-      "schedule-section", "completion-section", "people-section", "details-section",
+      "schedule-section", "completion-section", "people-section", "notifications-section",
     ]);
     expect(sections(await open({ schedule_type: "sensor_based", trigger_config: { type: "threshold", entity_id: "sensor.x", trigger_above: 5 } }))).to.deep.equal([
-      "schedule-section", "trigger-section", "completion-section", "people-section", "details-section",
+      "schedule-section", "trigger-section", "completion-section", "people-section", "notifications-section",
     ]);
   });
 
@@ -49,9 +53,13 @@ describe("task dialog sections (#216)", () => {
     expect(schedule.some((l) => /warning/i.test(l)), "warning days").to.equal(true);
     expect(root.querySelector(".completion-section .required-completion"), "required fields").to.exist;
     expect(root.querySelector(".completion-section .phases-section"), "cycle phases").to.exist;
-    expect(root.querySelector(".people-section .mirror-todo-field"), "to-do mirror").to.exist;
+    expect(schedule.some((l) => /earliest/i.test(l)), "earliest completion is a schedule rule").to.equal(true);
+    expect(labelsIn(root, "completion-section").some((l) => /earliest/i.test(l))).to.equal(false);
+    expect(root.querySelector(".notifications-section .mirror-todo-field"), "to-do mirror").to.exist;
     expect(labelsIn(root, "people-section").some((l) => /responsible/i.test(l)), "responsible user").to.equal(true);
-    expect(root.querySelector(".details-section .toggle-row"), "enabled").to.exist;
+    const mute = [...root.querySelectorAll(".req-option")].find((n) => /no notifications/i.test(n.textContent || ""));
+    expect(mute?.closest("section")?.classList.contains("notifications-section"), "no notifications").to.equal(true);
+    expect(root.querySelector(".content > .toggle-row"), "enabled stays in sight, with the name").to.exist;
     // The tag scan rule sits with the completion, not at the dialog's end.
     const scan = [...root.querySelectorAll(".req-option")].find((n) => /scanning the tag/i.test(n.textContent || ""));
     expect(scan?.closest("section")?.classList.contains("completion-section")).to.equal(true);
@@ -72,6 +80,46 @@ describe("task dialog sections (#216)", () => {
     expect((root.querySelector(".phases-section") as HTMLDetailsElement).open).to.equal(false);
     const withPhases = await open({ schedule_type: "time_based", interval_days: 30, phases: { p1: { name: "Flip" } }, phase_sequence: ["p1"] });
     expect((withPhases.querySelector(".phases-section") as HTMLDetailsElement).open).to.equal(true);
+  });
+
+  it("the notes follow the name; the rest of the details folds below them", async () => {
+    const root = await open({ schedule_type: "time_based", interval_days: 30 });
+    const ids = [...root.querySelectorAll(".content > *")].map((n) =>
+      n.getAttribute("label") || (n.classList.contains("details-section") ? "details" : n.classList.contains("toggle-row") ? "enabled" : n.className || n.tagName));
+    const name = ids.indexOf("Task name");
+    const notes = ids.findIndex((i) => /^Notes/.test(i));
+    expect(name, "name field").to.be.greaterThan(-1);
+    expect(notes, "notes right after name and type").to.equal(name + 2);
+    expect(ids[notes + 1]).to.equal("details");
+    expect(ids[notes + 2]).to.equal("enabled");
+    const details = root.querySelector<HTMLDetailsElement>(".details-section")!;
+    expect(details.open, "folded when nothing in it is set").to.equal(false);
+    const select = details.querySelector<HTMLSelectElement>("select")!;
+    expect(select.getAttribute("aria-label")).to.equal("Priority");
+    for (const label of ["Labels", "Documentation URL (optional)"]) {
+      expect([...details.querySelectorAll("ms-textfield")].some((n) => n.getAttribute("label") === label), label).to.equal(true);
+    }
+    expect(details.querySelector("ha-icon-picker"), "icon").to.exist;
+    for (const set of [{ priority: "high" }, { labels: ["garden"] }, { documentation_url: "https://x" }, { custom_icon: "mdi:leaf" }]) {
+      const r = await open({ schedule_type: "time_based", interval_days: 30, ...set });
+      expect(r.querySelector<HTMLDetailsElement>(".details-section")!.open, JSON.stringify(set)).to.equal(true);
+    }
+  });
+
+  it("a cleared detail does not fold the disclosure while typing", async () => {
+    const { hass } = createMockHass();
+    const el = await fixture<MaintenanceTaskDialog>(html`<maintenance-task-dialog .hass=${hass}></maintenance-task-dialog>`);
+    await el.openEdit("e1", { id: "t1", name: "Filter", type: "custom", warning_days: 7, enabled: true, schedule_type: "time_based", interval_days: 30, labels: ["a"] } as never);
+    await el.updateComplete;
+    const details = el.shadowRoot!.querySelector<HTMLDetailsElement>(".details-section")!;
+    expect(details.open).to.equal(true);
+    (el as unknown as { _labels: string })._labels = "";
+    await el.updateComplete;
+    expect(details.open).to.equal(true);
+    // A new task starts folded again.
+    await el.openCreate("e1");
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector<HTMLDetailsElement>(".details-section")!.open).to.equal(false);
   });
 
   it("a phase with a part keeps its name readable on a phone", async () => {
@@ -95,6 +143,28 @@ describe("task dialog sections (#216)", () => {
       expect(name.getBoundingClientRect().width).to.be.closeTo(name.parentElement!.getBoundingClientRect().width, 1);
     } finally {
       await setViewport({ width: 800, height: 600 });
+    }
+  });
+});
+
+// #216 follow-up (pkolbus): the open list of a select was grey with the
+// chosen entry in the system blue — the entries carry the card's colours,
+// and where a select can be styled it is drawn like HA's own menus.
+describe("task dialog selects", () => {
+  it("lists their entries in the card's colours", async () => {
+    const root = await open({ schedule_type: "time_based", interval_days: 30 });
+    const host = root.host as HTMLElement;
+    host.style.setProperty("--card-background-color", "rgb(1, 2, 3)");
+    host.style.setProperty("--primary-text-color", "rgb(250, 251, 252)");
+    host.style.setProperty("--primary-color", "rgb(0, 128, 255)");
+    const select = root.querySelector<HTMLSelectElement>(".select-row select")!;
+    const option = select.querySelector("option")!;
+    expect(getComputedStyle(option).backgroundColor).to.equal("rgb(1, 2, 3)");
+    expect(getComputedStyle(option).color).to.equal("rgb(250, 251, 252)");
+    if (CSS.supports("appearance", "base-select")) {
+      expect(getComputedStyle(select).appearance).to.equal("base-select");
+      const chosen = select.querySelector<HTMLOptionElement>("option:checked")!;
+      expect(getComputedStyle(chosen).color, "the chosen entry in the theme's colour").to.equal("rgb(0, 128, 255)");
     }
   });
 });

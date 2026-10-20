@@ -140,6 +140,8 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
                     "package_size": 10,
                     # #208: a reusable part; one used one waits to be ready again.
                     "reuse": "charge",
+                    # #222: counts when used, whatever the household says.
+                    "cost_mode": "use",
                 }
             )
         },

@@ -1,6 +1,7 @@
 import { expect } from "@open-wc/testing";
 import { setViewport } from "@web/test-runner-commands";
 import { mountPanel, obj, resetTaskSeq, sr, task } from "./_panel-utils.js";
+import { addDaysIso, haToday } from "../helpers/ha-time";
 describe("panel shell", () => {
   beforeEach(() => {
     resetTaskSeq();
@@ -161,7 +162,8 @@ describe("panel shell", () => {
     // One "Overdue" list held both: it read 8 under a header saying 4 overdue
     // and 4 triggered, and the triggered rows showed a bare dash.
     localStorage.setItem("msp-overview-tab", "today");
-    const nineDaysAgo = new Date(Date.now() - 9 * 86400e3).toISOString().slice(0, 10);
+    // HA's day: the UTC date is a day off for hours around midnight.
+    const nineDaysAgo = addDaysIso(haToday(), -9);
     const { el } = await mountPanel([
       obj("e1", [
         task({ name: "Late", status: "overdue", days_until_due: -3 }),

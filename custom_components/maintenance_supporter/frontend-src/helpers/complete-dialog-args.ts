@@ -20,7 +20,7 @@ import type { MaintenanceCompleteDialog } from "../components/complete-dialog";
 import { describePartLink, partsForCompletion, type LinkedPart, type PartOwner } from "./shared-parts";
 import { effectivePhase, phaseLabel } from "./phases";
 import { currencySymbolOf, formatQty } from "../styles";
-import type { PartsCostMode } from "./parts-cost";
+import { partCostMode, type PartsCostMode } from "./parts-cost";
 
 /** Wire-shaped (snake_case) argument bag — what `dialog-mount.openCompleteDialog`
  *  has always accepted, now complete. */
@@ -153,7 +153,9 @@ export function buildCompleteDialogArgs(o: BuildCompleteDialogArgsOptions): Comp
     // #73: ticks recorded during the cycle prefill the dialog's checklist.
     checklist_prefill: task?.checklist_progress || {},
     via_tag_scan: !!o.viaTagScan,
-    parts_cost_mode: o.partsCostMode ?? "purchase",
+    // #222: a purchase follows the part it buys; a completion that uses
+    // parts judges each by its own (the dialog reads them from `parts`).
+    parts_cost_mode: isBuy ? partCostMode(refPart, o.partsCostMode ?? "purchase") : (o.partsCostMode ?? "purchase"),
   };
 }
 

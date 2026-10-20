@@ -24,6 +24,14 @@ with the value of its parts at that moment (``unit_cost`` per used part).
 Switching the setting therefore changes only what comes after — history is
 never re-valued, and an entry someone booked by hand under the old rule is
 never counted twice.
+
+A part can make its own choice (#222, ``cost_mode`` on the part; absent =
+the setting): batteries and bulbs counted where they are used, the pool
+chemicals and the ink in the year they were bought. A completion is then
+booked "when used" as soon as one of its parts counts when used, and a part
+in it that counts at purchase is marked ``cost_basis: "purchase"`` on its
+link and left out of the entry's ``parts_cost``. A purchase follows the
+part it buys.
 """
 
 from __future__ import annotations
@@ -39,6 +47,9 @@ from .history import strict_amount
 
 DEFAULT_PARTS_COST_MODE = "purchase"
 COST_BASIS_USE = "use"
+# #222: on a used-part link of an entry booked "when used" — this part
+# counted at purchase, so its value is not in the entry's parts_cost.
+COST_BASIS_PURCHASE = "purchase"
 
 
 def parts_cost_mode(hass: HomeAssistant) -> str:
@@ -48,6 +59,13 @@ def parts_cost_mode(hass: HomeAssistant) -> str:
 
     mode = global_option(hass, CONF_PARTS_COST_MODE)
     return mode if mode in PARTS_COST_MODES else DEFAULT_PARTS_COST_MODE
+
+
+def part_cost_mode(part: Any, house: str) -> str:
+    """When this part counts as spending: its own ``cost_mode`` (#222), else
+    the household's ``house`` mode (:func:`parts_cost_mode`)."""
+    mode = part.get("cost_mode") if isinstance(part, Mapping) else None
+    return mode if mode in PARTS_COST_MODES else house
 
 
 def entry_spend(entry: Mapping[str, Any], amount: Callable[[Any], float | None] = strict_amount) -> float:
@@ -70,11 +88,12 @@ def entry_spend(entry: Mapping[str, Any], amount: Callable[[Any], float | None] 
 
 
 def parts_value(used_parts: Any) -> float | None:
-    """Σ quantity × unit cost over the priced links, or None when none is."""
+    """Σ quantity × unit cost over the priced links, or None when none is.
+    A link marked as counted at purchase (#222) is not part of it."""
     total = 0.0
     priced = False
     for link in used_parts if isinstance(used_parts, list) else []:
-        if not isinstance(link, dict):
+        if not isinstance(link, dict) or link.get("cost_basis") == COST_BASIS_PURCHASE:
             continue
         unit = strict_amount(link.get("unit_cost"))
         qty = strict_amount(link.get("quantity"))
@@ -94,13 +113,56 @@ def refresh_parts_cost(entry: dict[str, Any]) -> None:
         entry["parts_cost"] = value
 
 
-def link_unit_cost(hass: HomeAssistant, entry: ConfigEntry, link: Mapping[str, Any]) -> float | None:
-    """The current price of one unit of a used part (pools resolved)."""
+def _linked_part(hass: HomeAssistant, entry: ConfigEntry, link: Mapping[str, Any]) -> dict[str, Any] | None:
+    """The part a link names (pools resolved), or None."""
     from ..parts_runtime import resolve_part_link
-    from .parts import unit_price
 
     _owner, part, _store = resolve_part_link(hass, entry, dict(link))
-    return unit_price(part) if isinstance(part, dict) else None
+    return part if isinstance(part, dict) else None
+
+
+def link_unit_cost(hass: HomeAssistant, entry: ConfigEntry, link: Mapping[str, Any]) -> float | None:
+    """The current price of one unit of a used part (pools resolved)."""
+    from .parts import unit_price
+
+    part = _linked_part(hass, entry, link)
+    return unit_price(part) if part is not None else None
+
+
+def mark_link_bases(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    history_entry: dict[str, Any],
+    previous: Any = None,
+) -> None:
+    """Mark (in place) the used parts of an entry booked "when used" that
+    count at purchase (#222), and recompute its ``parts_cost``.
+
+    A part that was on the entry before (``previous``, a history edit) keeps
+    how it was booked; one added is judged by its part's mode today. On an
+    entry booked at purchase no link carries a mark: its parts value is
+    information, all of it."""
+    kept = {
+        str(link["part_id"]): link.get("cost_basis")
+        for link in (previous if isinstance(previous, list) else [])
+        if isinstance(link, dict) and link.get("part_id")
+    }
+    house = parts_cost_mode(hass)
+    booked_on_use = history_entry.get("cost_basis") == COST_BASIS_USE
+    for link in history_entry.get("used_parts") or []:
+        if not isinstance(link, dict):
+            continue
+        part_id = str(link.get("part_id"))
+        if part_id in kept:
+            basis = kept[part_id]
+        else:
+            counts_at_purchase = part_cost_mode(_linked_part(hass, entry, link), house) == COST_BASIS_PURCHASE
+            basis = COST_BASIS_PURCHASE if counts_at_purchase else None
+        if booked_on_use and basis == COST_BASIS_PURCHASE:
+            link["cost_basis"] = COST_BASIS_PURCHASE
+        else:
+            link.pop("cost_basis", None)
+    refresh_parts_cost(history_entry)
 
 
 def annotate_completion(
@@ -111,20 +173,31 @@ def annotate_completion(
 ) -> None:
     """Book a fresh completion entry (in place): the price of every used
     part at this moment, their value, whether it was a purchase, and the
-    mode it was booked under."""
+    mode it was booked under.
+
+    A purchase is booked "when used" when the part it buys counts when used;
+    any other completion when one of its parts does — or, using none, when
+    the household counts parts when used (#222)."""
     from .parts import PART_REF_FIELD
 
-    for link in history_entry.get("used_parts") or []:
-        if isinstance(link, dict) and link.get("unit_cost") is None:
+    links = [link for link in history_entry.get("used_parts") or [] if isinstance(link, dict)]
+    for link in links:
+        if link.get("unit_cost") is None:
             unit = link_unit_cost(hass, entry, link)
             if unit is not None:
                 link["unit_cost"] = unit
-    refresh_parts_cost(history_entry)
-    purchase = isinstance(task_data.get(PART_REF_FIELD), dict)
-    if purchase:
+    house = parts_cost_mode(hass)
+    ref = task_data.get(PART_REF_FIELD)
+    if isinstance(ref, dict):
         history_entry["purchase"] = True
-    if parts_cost_mode(hass) == COST_BASIS_USE and not (purchase and _bought_for_the_battery_fleet(entry)):
+        on_use = not _bought_for_the_battery_fleet(entry) and part_cost_mode(_linked_part(hass, entry, ref), house) == COST_BASIS_USE
+    elif links:
+        on_use = any(part_cost_mode(_linked_part(hass, entry, link), house) == COST_BASIS_USE for link in links)
+    else:
+        on_use = house == COST_BASIS_USE
+    if on_use:
         history_entry["cost_basis"] = COST_BASIS_USE
+    mark_link_bases(hass, entry, history_entry)
 
 
 def _bought_for_the_battery_fleet(entry: ConfigEntry) -> bool:

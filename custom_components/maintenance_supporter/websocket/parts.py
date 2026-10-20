@@ -9,7 +9,7 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import VolDictType
 
-from ..const import BATTERY_FLEET_OBJECT_FLAG, BATTERY_FLEET_REMOVED_PARTS, CONF_OBJECT, CONF_PARTS
+from ..const import BATTERY_FLEET_OBJECT_FLAG, BATTERY_FLEET_REMOVED_PARTS, CONF_OBJECT, CONF_PARTS, PARTS_COST_MODES
 from ..helpers.aggregate import get_store, object_name
 from ..helpers.entry_tasks import write_tasks
 from ..helpers.parts import (
@@ -55,6 +55,8 @@ _PART_FIELDS_SCHEMA: VolDictType = {
     vol.Optional("doc_id"): vol.Any(ID_FIELD, None),
     # #208: what readies a used one again (charge, sharpen, ...); None = used up.
     vol.Optional("reuse"): vol.Any(vol.In(REUSE_KINDS), None),
+    # #222: when this part counts as spending; None = the household setting.
+    vol.Optional("cost_mode"): vol.Any(vol.In(PARTS_COST_MODES), None),
     # Initial / edited stock travels WITH the definition for dialog simplicity,
     # but is stored in the per-entry Store (dynamic), not entry.data — as does
     # the count of used ones waiting (#208).

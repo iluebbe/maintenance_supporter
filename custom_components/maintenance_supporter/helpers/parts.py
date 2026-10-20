@@ -30,7 +30,7 @@ from typing import Any
 from urllib.parse import quote_plus
 from uuid import uuid4
 
-from ..const import DEFAULT_CURRENCY_DECIMALS
+from ..const import DEFAULT_CURRENCY_DECIMALS, PARTS_COST_MODES
 
 # ── Limits (mirrored in the WS schemas + panel dialog) ──────────────────────
 MAX_PARTS_PER_OBJECT = 50
@@ -316,6 +316,16 @@ def _clean_stock(raw: Any, field: str) -> float | int | None:
     return round_qty(v)
 
 
+def _clean_cost_mode(raw: Any) -> str | None:
+    """#222: when this part counts as spending (one of PARTS_COST_MODES), or
+    None to follow the household setting."""
+    if raw in (None, ""):
+        return None
+    if raw not in PARTS_COST_MODES:
+        raise PartValidationError(f"cost_mode must be one of {', '.join(PARTS_COST_MODES)}")
+    return str(raw)
+
+
 def _clean_reuse(raw: Any) -> str | None:
     """One of :data:`REUSE_KINDS`, or None for a part that is used up."""
     if raw in (None, "", False):
@@ -354,6 +364,8 @@ def normalize_part(raw: Mapping[str, Any]) -> dict[str, Any]:
         "package_size": _clean_package_size(raw.get("package_size")),
         "auto_buy_task": bool(raw.get("auto_buy_task")),
         "reuse": _clean_reuse(raw.get("reuse")),
+        # #222: purchase / use, or None = the household setting.
+        "cost_mode": _clean_cost_mode(raw.get("cost_mode")),
         # Receipt/datasheet via the refcounted DocumentStore (not inline files).
         "doc_id": _clean_str(raw.get("doc_id"), "doc_id", 64) or None,
     }

@@ -237,11 +237,9 @@ it("shows the predicted replacement date where a forecast exists (#114)", async 
       await new Promise((r) => setTimeout(r, 0));
       await el.updateComplete;
       const chip = roster(el)!.querySelector(".bf-predicted")!;
-      const expected = new Date(Date.now() + 12 * 864e5);
-      const pad = (n: number) => String(n).padStart(2, "0");
-      expect(chip.textContent!.trim()).to.equal(
-        `~${pad(expected.getDate())}/${pad(expected.getMonth() + 1)}/${expected.getFullYear()}`,
-      );
+      // HA's day, not the browser's: between the two midnights they differ.
+      const [y, m, d] = addDaysIso(haToday(), 12).split("-");
+      expect(chip.textContent!.trim()).to.equal(`~${d}/${m}/${y}`);
     } finally {
       setProfilePrefs({ date_format: undefined, time_format: undefined }, null);
     }
@@ -771,5 +769,51 @@ describe("battery fleet: a passed forecast and the percentage's colour", () => {
         expect(color, `${label}: not red`).to.not.equal(red);
       }
     }
+  });
+});
+
+// #223: a CR2032 that has read 100 % all along is healthy, even after its
+// type's typical lifetime ran out — the server lists it as `ok` with the
+// passed date; the roster shows it as a quiet hint, not a warning.
+describe("battery fleet: a healthy level past the typical lifetime (#223)", () => {
+  const DIMMER = {
+    entity_id: "sensor.dimmer_battery_plus", device_name: "Great Room Dimmer",
+    battery_type: "CR2032", quantity: 1, level: 100, days_until: null, forecast_days: -102,
+    forecast_overdue: true, predicted_source: "typical", low_threshold: 20,
+  };
+  const STALE_LOW_ONLY = {
+    entity_id: "binary_sensor.window_battery_plus_low", device_name: "Window",
+    battery_type: "CR1632", quantity: 1, level: null, days_until: 0, forecast_days: -40,
+    forecast_overdue: true, predicted_source: "typical",
+  };
+  const ov = () => overview({
+    total: 3,
+    soon: [STALE_LOW_ONLY],
+    needs_soon: { CR1632: 1 },
+    all: [{ ...LOW, status: "low" }, { ...DIMMER, status: "ok" }, { ...STALE_LOW_ONLY, status: "soon" }],
+    types: ["AA", "CR1632", "CR2032"],
+  });
+  const rowIn = (list: Element, name: string) =>
+    [...list.querySelectorAll<HTMLElement>(".bf-row")].find((r) => r.querySelector(".bf-dev")!.textContent!.trim() === name)!;
+
+  it("reads Healthy, with the passed date muted and explained", async () => {
+    const { el } = await mount(ov());
+    el.style.setProperty("--secondary-text-color", "rgb(10, 20, 30)");
+    const r = roster(el)!;
+    (r as HTMLDetailsElement).open = true;
+    await el.updateComplete;
+    const dimmer = rowIn(r, "Great Room Dimmer");
+    expect(dimmer.querySelector(".bf-status")!.textContent!.trim()).to.equal("Healthy");
+    const chip = dimmer.querySelector<HTMLElement>(".bf-predicted")!;
+    expect(chip.classList.contains("bf-quiet")).to.equal(true);
+    expect(chip.title).to.match(/Predicted date passed/);
+    expect(getComputedStyle(chip).color, "muted, not the warning tint").to.equal("rgb(10, 20, 30)");
+    // A row nothing measures still warns.
+    const windowChip = rowIn(r, "Window").querySelector<HTMLElement>(".bf-predicted")!;
+    expect(windowChip.classList.contains("bf-quiet")).to.equal(false);
+    expect(getComputedStyle(windowChip).color).to.equal("rgb(255, 152, 0)");
+    // And it is not among the batteries needed soon.
+    const soonNames = [...el.shadowRoot!.querySelectorAll(".bf-soon-rows .bf-dev")].map((n) => n.textContent!.trim());
+    expect(soonNames).to.deep.equal(["Window"]);
   });
 });

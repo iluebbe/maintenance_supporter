@@ -9,7 +9,7 @@ import { runWs } from "../helpers/ws-run";
 import { haNowMinute, stampMs } from "../helpers/ha-time";
 import { PART_QTY_RANGE, RESTOCK_QTY_RANGE } from "../helpers/setting-ranges";
 import { partLinkKey, type LinkedPart } from "../helpers/shared-parts";
-import { unitPrice, type PartsCostMode } from "../helpers/parts-cost";
+import { partCostMode, unitPrice, type PartsCostMode } from "../helpers/parts-cost";
 import { REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import { PhotoUploadController } from "../helpers/photo-upload-controller";
 import { parseDurationMinutes } from "../helpers/duration";
@@ -357,21 +357,25 @@ export class MaintenanceCompleteDialog extends LitElement {
   /** #104: the value of the SELECTED parts used (qty × each part's price per
    *  unit — a package price spread over its contents, #98). Follows the live
    *  selection. Null when no selected part carries a price. */
-  private _partsValue(): number | null {
-    if (this.restockDefault !== null || !this.parts.length) return null;
-    let sum = 0;
-    let priced = false;
+  /** The value of the ticked parts, split by when each counts (#222): the
+   *  ones that count when used are booked with this completion, the others
+   *  were counted when bought. null where nothing is priced. */
+  private _partsValues(): { booked: number | null; info: number | null } {
+    const out: { booked: number | null; info: number | null } = { booked: null, info: null };
+    if (this.restockDefault !== null || !this.parts.length) return out;
     for (const link of Object.values(this._usedParts)) {
       const def = this.parts.find(
         (pt) => partLinkKey({ part_id: pt.id, entry_id: pt.entry_id }) === partLinkKey(link),
       );
       const price = unitPrice(def);
-      if (price !== null) {
-        sum += price * (link.quantity || 1);
-        priced = true;
-      }
+      if (price === null) continue;
+      const side = partCostMode(def, this.partsCostMode) === "use" ? "booked" : "info";
+      out[side] = (out[side] ?? 0) + price * (link.quantity || 1);
     }
-    return priced ? Math.round(sum * 100) / 100 : null;
+    for (const side of ["booked", "info"] as const) {
+      if (out[side] !== null) out[side] = Math.round(out[side]! * 100) / 100;
+    }
+    return out;
   }
 
   /** Under the cost field. A buy task gets the one-click price suggestion
@@ -394,11 +398,12 @@ export class MaintenanceCompleteDialog extends LitElement {
           @click=${() => (this._cost = String(Math.round(purchase * 100) / 100))}
         >${t("cost_from_parts", L).replace("{amount}", amount)}</button>${hint}`;
     }
-    const value = this._partsValue();
-    if (value == null || value <= 0) return nothing;
-    const amount = formatCost(value, this.currencySymbol, L);
-    const key = this.partsCostMode === "use" ? "cost_parts_booked" : "cost_parts_info";
-    return html`<div class="cost-note">${t(key, L).replace("{amount}", amount)}</div>`;
+    const { booked, info } = this._partsValues();
+    const line = (value: number | null, key: string) =>
+      value != null && value > 0
+        ? html`<div class="cost-note">${t(key, L).replace("{amount}", formatCost(value, this.currencySymbol, L))}</div>`
+        : nothing;
+    return html`${line(booked, "cost_parts_booked")}${line(info, "cost_parts_info")}`;
   }
 
   private _close(): void {

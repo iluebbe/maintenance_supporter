@@ -349,6 +349,14 @@ bought for €30 and used in one change is €30 spent, not €60.
   for the battery fleet are the exception: they count when bought, because a
   swap in the fleet takes cells without a completion that could value them.
 
+A part can make its own choice (2.107+, #222): the part form's *Counts as
+spending* is *As in Settings* by default, or *When bought* / *When used* for
+that part alone. Batteries and bulbs can count on the object and area where
+they go in, while the pool chemicals and the ink count in the year they were
+bought. A completion books the parts that count when used and names the
+others as counted at purchase; a purchase counts, or becomes the part's price,
+by the part it buys.
+
 Each history entry keeps how it was booked, so switching changes what comes
 after and never re-values the past — an entry you booked by hand under the old
 rule is never counted twice. Budget, task and object costs, the area report
@@ -658,11 +666,13 @@ The fleet task's detail view is the whole surface:
   **only** a replacement date and no level sensor — its state reads *unknown*
   forever — is kept for exactly this: the date is all the fallback needs, so
   those batteries surface here instead of dropping out unseen. A prediction
-  whose date has **passed while the battery still reports healthy** shows a
-  warn-tinted calendar hint with the date it ran out — deliberately
-  never counted as low and never firing the task (forecasts carry error
-  bars; the sensor says fine): the usual cause is a swap that was never
-  recorded, which the hint's tooltip points at.
+  whose date has **passed while the battery still reports healthy** is never
+  counted as low and never fires the task (forecasts carry error bars; the
+  sensor says fine): the usual cause is a swap that was never recorded, which
+  the hint's tooltip points at. A battery whose **level** reads healthy is
+  *Healthy* with the passed date as a muted hint (2.107+, #223: a CR2032 can
+  read 100 % for years); one without a level to say so (no sensor, low-only,
+  offline) stays under *Soon* with a warn-tinted calendar hint.
 - **Every tracked battery, behind *All tracked batteries*** — the full roster,
   each row tagged *Low*, *Soon* or *Healthy*, collapsed by default so the
   section still opens on what needs doing. Each row draws a **30-day
@@ -935,7 +945,7 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 
 ### Task Management
 - Create maintenance objects (devices, equipment, appliances) and assign tasks to them
-- **The task dialog is grouped by question** (2.104+, #216): name, object, type and priority first, then *Schedule* (when it is due, incl. last done and the warning days), *Sensor trigger* (sensor tasks), *Completing it* (checklist, readings, parts, required fields, tag scan, skipping, cycle phases, completion action), *People and notifications* and *Details* (labels, notes, link, icon, enabled). Options most tasks never need sit behind a disclosure inside their section
+- **The task dialog is grouped by question** (2.104+, #216; regrouped in 2.107): name, object, type and notes first, with priority, labels, documentation link and icon folded below them in *Details* (open when one is set) and *Task enabled*; then *Schedule* (when it is due, incl. last done, the warning days and the earliest completion), *Sensor trigger* (sensor tasks), *Completing it* (checklist, readings, parts, required fields, tag scan, skipping, cycle phases, completion action), *People* and *Notifications*. Options most tasks never need sit behind a disclosure inside their section
 - Seven task types: cleaning, inspection, replacement, calibration, service, **reading** (record a value — meter readings, level checks; 2.18+), custom
 - Scheduling modes: **time-based** (recurring interval), **calendar recurrence** (specific weekdays, *nth weekday of the month* — e.g. "1st Saturday", a *day of the month*, or — since 2.89 — the events of a **Home Assistant calendar entity**), **sensor-based** (triggered by entity state), **one-time** (single due date, marked *done* once completed), **manual**
 - **Interval units**: time-based intervals can be **days, weeks, months or years** — months and years use real calendar arithmetic (last-day clamping, leap years); a series *from planned date* on the 29th–31st goes back to its own day after a short month (31 Jan → 28 Feb → 31 Mar)
@@ -961,7 +971,7 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 
 ![The new unit links the one it replaced](images/object-lineage.png)
 
-- **Spare parts & consumables inventory** (2.23+): a per-object parts list closes the "is the filter on the shelf?" loop. Each part carries identifiers (**manufacturer, MPN, GTIN/EAN** — validated against the worldwide GS1 GTIN family), a **storage location** ("basement shelf B, box 3"), a product URL, unit, unit price, and an optional **tracked stock** with a reorder threshold. Completing a task that *consumes* parts (linked in the task dialog, with a quantity per part) decrements the stock; crossing the threshold fires an edge-triggered event and — when the part opts in — **auto-creates a one-off "Buy {part}" task** whose notes carry everything needed to order (identifiers, quantity, price, storage spot) and whose link opens the product page or a **configurable shopping search** (Amazon by default, template with `{q}` placeholder). Completing the buy task **restocks** (quantity editable in the dialog, cost prefilled) and the reminder retires itself; restocking any other way clears the open reminder automatically. On the consumption side the complete dialog shows the **value of the selected parts**; whether it counts as spending when a part is bought or when it is used is one setting (2.96+, discussion #104). A part can be bought in **packages** and used in its unit — a 400 ml can, 30 ml per job (2.96+, discussion #98). Per-part **stock sensors** on the object device + a global *Parts to reorder* counter; the printable work sheet lists required parts with tick boxes; everything round-trips through JSON export/import. **Since 2.44 (#111) several objects can share one stock**: a task may consume a part owned by a different object, so identical appliances draw on one real pile rather than three bookkeeping copies — one threshold, one buy reminder, and an automatic hand-over of the pool if the owning object is ever deleted. The parts section header shows the **inventory value** (2.49+, discussion #104): Σ unit price × tracked stock across the parts that have both — purely informational, it never enters any budget total
+- **Spare parts & consumables inventory** (2.23+): a per-object parts list closes the "is the filter on the shelf?" loop. Each part carries identifiers (**manufacturer, MPN, GTIN/EAN** — validated against the worldwide GS1 GTIN family), a **storage location** ("basement shelf B, box 3"), a product URL, unit, unit price, and an optional **tracked stock** with a reorder threshold. Completing a task that *consumes* parts (linked in the task dialog, with a quantity per part) decrements the stock; crossing the threshold fires an edge-triggered event and — when the part opts in — **auto-creates a one-off "Buy {part}" task** whose notes carry everything needed to order (identifiers, quantity, price, storage spot) and whose link opens the product page or a **configurable shopping search** (Amazon by default, template with `{q}` placeholder). Completing the buy task **restocks** (quantity editable in the dialog, cost prefilled) and the reminder retires itself; restocking any other way clears the open reminder automatically. On the consumption side the complete dialog shows the **value of the selected parts**; whether it counts as spending when a part is bought or when it is used is one setting (2.96+, discussion #104), which a part can override (2.107+, #222). A part can be bought in **packages** and used in its unit — a 400 ml can, 30 ml per job (2.96+, discussion #98). Per-part **stock sensors** on the object device + a global *Parts to reorder* counter; the printable work sheet lists required parts with tick boxes; everything round-trips through JSON export/import. **Since 2.44 (#111) several objects can share one stock**: a task may consume a part owned by a different object, so identical appliances draw on one real pile rather than three bookkeeping copies — one threshold, one buy reminder, and an automatic hand-over of the pool if the owning object is ever deleted. The parts section header shows the **inventory value** (2.49+, discussion #104): Σ unit price × tracked stock across the parts that have both — purely informational, it never enters any budget total
 - **Priorities** (2.17+): Low / Normal / High per task, shown as a badge (▲/▼) on task rows
 - **Labels / tags** (2.17+): lightweight comma-separated tags per task (e.g. `safety`, `seasonal`), shown as chips and searchable in the global search
 - **Completion photos** (2.17+): attach photos when completing a task — camera capture or several from the gallery at once, up to ten per completion (2.75+) — stored via the documents engine, shown as a thumbnail strip in the history timeline, and editable afterwards from the history entry (add more, detach one)

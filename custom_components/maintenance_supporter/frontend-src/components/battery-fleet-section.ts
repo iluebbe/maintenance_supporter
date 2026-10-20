@@ -37,7 +37,8 @@ interface BatteryRow {
   low_threshold?: number;
   /** B1: the predicted date has passed while the battery still reports
    *  healthy. Never escalates to low/task — the row just shows the
-   *  discrepancy (usual cause: an unrecorded swap). */
+   *  discrepancy (usual cause: an unrecorded swap). A row whose level
+   *  reads healthy stays `ok` with it (#223) and shows it quietly. */
   forecast_overdue?: boolean;
   /** The forecast in days, NOT clamped: negative once the date has passed.
    *  `days_until` holds at 0 for overdue rows (B1, sorting), so the ~date
@@ -614,7 +615,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
         ${o.jump && writer ? this._jumpButton(b, L) : nothing}
         ${o.predicted && days != null
           ? html`<span
-              class="bf-predicted ${b.predicted_source === "trend" ? "bf-trend" : ""} ${b.forecast_overdue ? "bf-overdue" : ""}"
+              class="bf-predicted ${b.predicted_source === "trend" ? "bf-trend" : ""} ${b.forecast_overdue ? "bf-overdue" : ""} ${b.forecast_overdue && b.status === "ok" ? "bf-quiet" : ""}"
               title=${this._predictedTitle(b, L)}
               >${b.forecast_overdue ? html`<ha-icon icon="mdi:calendar-alert"></ha-icon>` : nothing}~${this._predictedDate(days)}</span
             >`
@@ -1366,6 +1367,11 @@ export class MaintenanceBatteryFleetSection extends LitElement {
        was off). Deliberately NOT red: this is a discrepancy, not an alarm. */
     .bf-predicted.bf-overdue {
       color: var(--warning-color, #ff9800);
+    }
+    /* #223: the level reads healthy, so the passed type lifetime is only a
+       hint — the row is OK. */
+    .bf-predicted.bf-overdue.bf-quiet {
+      color: var(--secondary-text-color);
     }
     .bf-predicted.bf-overdue ha-icon {
       --mdc-icon-size: 14px;

@@ -224,7 +224,9 @@ device. Errors: `archived` (already retired), `invalid_device`.
 GS1 check-digit validated), storage_location?, product_url?, unit?, cost?,
 stock? (number ≤100000, two decimals — omit for a catalog-only part),
 reorder_threshold?, restock_quantity?, package_size?, auto_buy_task?, notes?,
-reuse?, restoring?}` → `{part_id}`. `reuse` (#208) marks a part that is not used
+reuse?, restoring?, cost_mode?}` → `{part_id}`. `cost_mode` (2.107, #222):
+`purchase` | `use` | null — when this part counts as spending; null follows
+the `parts_cost_mode` setting (see *Parts cost*). `reuse` (#208) marks a part that is not used
 up: one of `charge` · `sharpen` · `clean` · `dry` · `refill` · `restore` (null =
 used up). A use then moves the used ones from `stock` to `restoring` (waiting to
 be ready again), and they still count as owned for `reorder_threshold`, buying
@@ -265,10 +267,15 @@ borrower and repoints the other links. Parts ride the `objects` payload
 
 **Parts cost (2.96, #104).** Every completion entry records `used_parts[].
 unit_cost` (the price of one unit at that moment), `parts_cost` (their value),
-`purchase: true` on a buy task, and `cost_basis: "use"` when the setting
-`parts_cost_mode` was `use`. An entry's spending is its `cost`, except with
-`cost_basis: "use"`: then a purchase counts 0 and `parts_cost` is added — the
-budget, `total_cost` and `statistics` follow that rule.
+`purchase: true` on a buy task, and `cost_basis: "use"` when the entry was
+booked "when used": a purchase whose part counts when used, any other
+completion when one of its parts does (a part's own `cost_mode`, else the
+setting `parts_cost_mode`), or one without parts under `use`. In such an entry
+a part that counts at purchase carries `cost_basis: "purchase"` on its
+`used_parts` link and is left out of `parts_cost`. An entry's spending is its
+`cost`, except with `cost_basis: "use"`: then a purchase counts 0 and
+`parts_cost` is added — the budget, `total_cost` and `statistics` follow that
+rule.
 
 **Credits (#200).** A `cost` below zero is money that came back — the old
 unit sold, a refund. Every writer takes it down to -1e6 (`task/complete`,

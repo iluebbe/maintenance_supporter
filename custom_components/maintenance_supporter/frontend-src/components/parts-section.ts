@@ -19,7 +19,7 @@ import { t, ensureLocale, langOf, formatCost, formatNumber, formatQty } from "..
 import { reuseWaitingText } from "../helpers/part-reuse";
 import { runWs } from "../helpers/ws-run";
 import type { HomeAssistant, MaintenancePart } from "../types";
-import { restockUnits, unitPrice } from "../helpers/parts-cost";
+import { restockUnits, unitPrice, type PartsCostMode } from "../helpers/parts-cost";
 // Per-part document links (v2.26) — the task-documents component in part mode.
 import "./task-documents";
 
@@ -42,6 +42,8 @@ interface PartForm {
   /** #208: "" = used up, else what readies a used one again. */
   reuse: string;
   restoring: string;
+  /** #222: "" = the household setting, else "purchase" / "use". */
+  cost_mode: string;
   reorder_threshold: string;
   restock_quantity: string;
   package_size: string;
@@ -61,6 +63,7 @@ const EMPTY_FORM: PartForm = {
   stock: "",
   reuse: "",
   restoring: "",
+  cost_mode: "",
   reorder_threshold: "",
   restock_quantity: "",
   package_size: "",
@@ -74,6 +77,11 @@ export class MaintenancePartsSection extends LitElement {
   @property({ attribute: false }) public parts: MaintenancePart[] = [];
   @property({ type: Boolean }) public canWrite = false;
   @property({ attribute: false }) public currencySymbol = "€";
+  /** #222: the household's mode — what "as in Settings" stands for. */
+  @property({ attribute: false }) public partsCostMode: PartsCostMode = "purchase";
+  /** The battery fleet's cells count when bought whatever is chosen (S-6),
+   *  so its parts offer no choice. */
+  @property({ type: Boolean }) public fleet = false;
 
   @state() private _editing: PartForm | null = null;
   /** The form as it was opened — an edit sends the stock only when changed. */
@@ -132,6 +140,7 @@ export class MaintenancePartsSection extends LitElement {
       stock: part.stock != null ? String(part.stock) : "",
       reuse: part.reuse || "",
       restoring: part.restoring ? String(part.restoring) : "",
+      cost_mode: part.cost_mode || "",
       reorder_threshold: part.reorder_threshold != null ? String(part.reorder_threshold) : "",
       restock_quantity: part.restock_quantity != null ? String(part.restock_quantity) : "",
       package_size: part.package_size != null ? String(part.package_size) : "",
@@ -156,6 +165,7 @@ export class MaintenancePartsSection extends LitElement {
       stock: num(f.stock),
       reuse: f.reuse || null,
       ...(f.reuse ? { restoring: num(f.restoring) ?? 0 } : {}),
+      ...(this.fleet ? {} : { cost_mode: f.cost_mode || null }),
       reorder_threshold: num(f.reorder_threshold),
       restock_quantity: num(f.restock_quantity),
       package_size: num(f.package_size),
@@ -425,6 +435,31 @@ export class MaintenancePartsSection extends LitElement {
     `;
   }
 
+  /** #222: when this part counts as spending — the household's choice
+   *  unless the part makes its own (pool chemicals in the year they were
+   *  bought, bulbs in the room where they went in). */
+  private _renderCostMode(L: string) {
+    const f = this._editing!;
+    const modeName = (mode: string) => t(mode === "use" ? "settings_parts_cost_use" : "settings_parts_cost_purchase", L);
+    return html`
+      <label class="form-field">
+        <span>${t("part_cost_mode", L)}</span>
+        <select
+          class="cost-mode-select"
+          .value=${f.cost_mode}
+          @change=${(e: Event) => {
+            this._editing = { ...this._editing!, cost_mode: (e.target as HTMLSelectElement).value };
+          }}
+        >
+          <option value="" ?selected=${!f.cost_mode}>${t("part_cost_mode_house", L).replace("{mode}", modeName(this.partsCostMode))}</option>
+          <option value="purchase" ?selected=${f.cost_mode === "purchase"}>${modeName("purchase")}</option>
+          <option value="use" ?selected=${f.cost_mode === "use"}>${modeName("use")}</option>
+        </select>
+      </label>
+      <div class="form-hint">${t("part_cost_mode_hint", L)}</div>
+    `;
+  }
+
   private _renderForm() {
     const L = this._lang;
     const f = this._editing!;
@@ -439,6 +474,7 @@ export class MaintenancePartsSection extends LitElement {
           ${this._field(t("part_product_url", L), "product_url", { placeholder: "https://…" })}
           ${this._field(t("part_unit", L), "unit")}
           ${this._field(t("part_cost", L), "cost", { type: "number" })}
+          ${this.fleet ? nothing : this._renderCostMode(L)}
           ${this._field(t("part_stock", L), "stock", { type: "number" })}
           <label class="form-field">
             <span>${t("part_reuse", L)}</span>
@@ -651,7 +687,8 @@ export class MaintenancePartsSection extends LitElement {
       border-color: var(--error-color, #db4437);
       color: var(--error-color, #db4437);
     }
-    .reuse-select {
+    .reuse-select,
+    .cost-mode-select {
       font: inherit;
       padding: 6px;
       border-radius: 4px;

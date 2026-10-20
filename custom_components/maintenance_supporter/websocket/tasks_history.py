@@ -249,10 +249,11 @@ async def ws_update_history_entry(
             patched["used_parts"] = enriched
         else:
             patched.pop("used_parts", None)
-        # #104: the entry's parts value follows the corrected selection.
-        from ..helpers.parts_cost import refresh_parts_cost
+        # #104: the entry's parts value follows the corrected selection; a
+        # part already on it keeps how it was booked (#222).
+        from ..helpers.parts_cost import mark_link_bases
 
-        refresh_parts_cost(patched)
+        mark_link_bases(hass, entry, patched, previous=old_used)
 
     before = list(history)
     history[target_index] = patched

@@ -1590,10 +1590,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # what was actually paid becomes the part's price, so the parts it
         # bought are valued at that price when they are used.
         if is_latest and cost is not None and cost > 0:
-            from .helpers.parts_cost import COST_BASIS_USE, parts_cost_mode
-
-            if parts_cost_mode(self.hass) == COST_BASIS_USE:
-                self._record_purchase_price(merged[task_id], float(cost), restock_quantity)
+            self._record_purchase_price(merged[task_id], float(cost), restock_quantity)
 
         # A status configured to notify ONCE (interval 0) stays silenced by the
         # _SENT_ONCE sentinel until something clears it; nothing did after a
@@ -1961,15 +1958,16 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def _record_purchase_price(self, task_data: dict[str, Any], cost: float, packages: float | None) -> None:
         """A buy reminder's paid cost becomes its part's price (per package
-        with a package size, else per unit) — "when used" mode only."""
+        with a package size, else per unit) — for a part that counts when
+        used (its own choice, else the household's; #222)."""
         from .const import CONF_PARTS
         from .helpers.parts import MAX_PART_COST, PART_REF_FIELD
-        from .helpers.parts_cost import purchase_unit_price
+        from .helpers.parts_cost import COST_BASIS_USE, part_cost_mode, parts_cost_mode, purchase_unit_price
 
         ref = task_data.get(PART_REF_FIELD)
         parts = dict(self.entry.data.get(CONF_PARTS) or {})
         part = parts.get(ref.get("part_id")) if isinstance(ref, dict) else None
-        if not isinstance(part, dict):
+        if not isinstance(part, dict) or part_cost_mode(part, parts_cost_mode(self.hass)) != COST_BASIS_USE:
             return
         price = purchase_unit_price(part, cost, packages)
         if price is None or price > MAX_PART_COST or price == part.get("cost"):

@@ -33,6 +33,7 @@ from ..const import (
     MAX_IMPORT_PAYLOAD_BYTES,
     MAX_JSON_IMPORT_PAYLOAD_BYTES,
     MIN_COST,
+    PARTS_COST_MODES,
 )
 from ..helpers.aggregate import object_name
 from ..helpers.dates import canonical_iso_date, import_day, normalize_hhmm, parse_iso_date
@@ -1145,6 +1146,9 @@ async def ws_import_json(
                     _purl = raw_part.get("product_url")
                     if not (isinstance(_purl, str) and is_http_url(_purl.strip())):
                         raw_part.pop("product_url", None)
+                    # #222: an unknown cost mode follows the household setting.
+                    if raw_part.get("cost_mode") not in PARTS_COST_MODES:
+                        raw_part.pop("cost_mode", None)
                     # The same validation as the part/create write path. The flow
                     # step validates parts too, but it drops a bad one without a
                     # word; checked here, the import names it in its result

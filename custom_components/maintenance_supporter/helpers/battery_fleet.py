@@ -301,7 +301,8 @@ def build_overview(
       option on (D#162; decided in :func:`read_batteries`).
     * ``soon`` = NOT low yet but predicted to reach end-of-life within
       ``horizon_days`` (deterministic last_replaced + typical-lifetime forecast).
-      A battery already low is never double-counted into soon.
+      A battery already low is never double-counted into soon, nor one whose
+      level reads healthy past its typical lifetime (#223).
     * ``needs_now`` / ``needs_soon`` = summed quantities per type — the shopping
       grouping ("2× AA, 4× AAA"). Rechargeable types never enter it: a low
       rechargeable means "charge it", not "buy one".
@@ -342,8 +343,8 @@ def build_overview(
             pred = None if rechargeable or not has_type_forecast(bat.battery_type) else _predicted_date(bat, info.months)
             days_raw = (pred - today).days if pred is not None else None
             source, confidence = "typical", None
-        # B1 (decided 2026-08): a PASSED prediction while the battery still
-        # reports healthy is "forecast overdue" — it stays in `soon` (clamped
+        # B1 (decided 2026-08): a PASSED prediction while the battery is not
+        # reported low is "forecast overdue" — it stays in `soon` (clamped
         # to 0 days, no negative countdowns; `forecast_days` keeps the real,
         # passed date for the roster) and NEVER escalates into `low`
         # or the task trigger: the forecast has error bars, the sensor says
@@ -352,6 +353,16 @@ def build_overview(
         # the task; predictions only shop.
         overdue = days_raw is not None and days_raw < 0
         days = max(0, days_raw) if days_raw is not None else None
+        # #223: a battery whose level reads healthy contradicts a passed TYPE
+        # lifetime — the level is a measurement, the table only the prior it
+        # stood in for (a trend never runs out above the low threshold).
+        # Such a row is healthy and shops nothing; it keeps the passed date
+        # as a quiet hint (an unrecorded swap, or a long-lived cell). A
+        # sensorless, low-only or offline row has no level to contradict it,
+        # so B1 still holds there.
+        if overdue and not bat.low and bat.level is not None and bat.available:
+            ov.all.append({**_row(bat, t, None, source, confidence, rechargeable=rechargeable, forecast_overdue=True, lifetime=info, forecast_days=days_raw), "status": "ok"})
+            continue
         if bat.low:
             # A battery reported low has no meaningful forecast left to show —
             # except a sensorless note (D#162), where the PASSED forecast IS

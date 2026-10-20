@@ -974,7 +974,9 @@ def test_forecast_days_keep_the_passed_date():
     today = date(2026, 10, 13)
     last = date(2023, 1, 10)
     bats = [
-        _bat("Stale", "AA", qty=2, low=False, level=100, last=last),
+        # Level-less (a low-only binary): a healthy level would keep it out
+        # of `soon` (#223).
+        _bat("Stale", "AA", qty=2, low=False, level=None, last=last),
         _bat("Fresh", "AA", low=False, level=90, last=today),
         _bat("Dead", "AA", low=True, level=5, last=last),
         _bat("Trend", "AA", low=False, level=40, last=today),
@@ -1096,13 +1098,14 @@ async def test_sensorless_note_passed_forecast_is_due_by_default(hass):
     """Nothing can ever report such a battery low — the forecast is the whole
     signal. Default: a PASSED predicted date makes the row low (→ needs_now →
     the fleet task fires), keeping the negative countdown + overdue flag so
-    the roster can show when the prediction ran out. B1 stays for batteries
-    WITH a sensor."""
+    the roster can show when the prediction ran out. A battery WITH a level
+    that reads healthy is healthy (#223)."""
     from custom_components.maintenance_supporter.helpers.battery_fleet import fleet_due_without_sensor
 
     assert fleet_due_without_sensor(hass) is True, "no fleet object yet = default on"
     _set_type_note(hass, "hall_temp", last="2020-01-01T00:00:00+00:00")
-    # Control: a plus WITH a level and the same ancient date stays B1.
+    # Control: a plus WITH a level and the same ancient date — its level
+    # reads healthy, so it is OK and only hints at the passed date (#223).
     _set_note(hass, "porch_motion", battery_low=False, _state="77", battery_last_replaced="2020-01-01T00:00:00+00:00")
 
     bats = {b.entity_id: b for b in read_batteries(hass)}
@@ -1118,8 +1121,9 @@ async def test_sensorless_note_passed_forecast_is_due_by_default(hass):
     assert low["forecast_overdue"] is True and low["no_sensor"] is True
     rows = {r["entity_id"]: r for r in ov.all}
     assert rows["sensor.hall_temp_battery_type"]["status"] == "low"
-    assert rows["sensor.porch_motion_battery_plus"]["status"] == "soon"
-    assert rows["sensor.porch_motion_battery_plus"]["days_until"] == 0
+    assert rows["sensor.porch_motion_battery_plus"]["status"] == "ok"
+    assert rows["sensor.porch_motion_battery_plus"]["forecast_overdue"] is True
+    assert rows["sensor.porch_motion_battery_plus"]["forecast_days"] < 0
 
 
 async def test_sensorless_note_due_option_off_keeps_the_forecast_only(hass):

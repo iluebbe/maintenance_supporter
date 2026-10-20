@@ -25,6 +25,13 @@ export function partsCostModeOf(value: unknown): PartsCostMode {
   return value === "use" ? "use" : "purchase";
 }
 
+/** #222: when one part counts — its own choice, else the household's
+ *  (helpers/parts_cost.py part_cost_mode). */
+export function partCostMode(part: Pick<MaintenancePart, "cost_mode"> | null | undefined, house: PartsCostMode): PartsCostMode {
+  const own = part?.cost_mode;
+  return own === "use" || own === "purchase" ? own : house;
+}
+
 const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
 
 /** Price of ONE stock unit, or null when the part has no price. */

@@ -326,6 +326,7 @@ _VALUE_OK: dict[str, frozenset[str] | str] = {
     "settings_general": frozenset({"es"}),
     "settings_import_export": frozenset({"de", "fr", "it", "nl", "sv", "cs"}),
     "settings_notifications": frozenset({"fr"}),
+    "task_section_notifications": frozenset({"fr"}),
     "settings_quiet_start": frozenset({"nl", "sv", "da", "nb"}),
     "vacation_start": frozenset({"sv", "da", "nb"}),
     "trend_stable": frozenset({"fr"}),
