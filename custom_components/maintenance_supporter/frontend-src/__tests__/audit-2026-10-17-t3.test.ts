@@ -66,7 +66,7 @@ describe("P-8 task dialog: parts of the object picked before", () => {
     await priv._loadParts();
     slowE1.resolve({ parts: [{ id: "p1", name: "Burner nozzle" }] });
     await opening;
-    expect((el.parts as Array<{ id: string }>).map((p) => p.id), "e1's parts under e2").to.deep.equal(["p2"]);
+    expect((priv.parts as Array<{ id: string }>).map((p) => p.id), "e1's parts under e2").to.deep.equal(["p2"]);
   });
 });
 
