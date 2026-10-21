@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "Utiliser une pièce de rechange",
+      "description": "Une partie d'une pièce de rechange a été utilisée en dehors d'une tâche, par exemple du liquide lave-glace ajouté. Elle sort du stock comme les pièces d'une tâche effectuée ; les exemplaires usagés d'une pièce réutilisable attendent d'être de nouveau prêts. Rien n'est compté comme dépense.",
+      "fields": {
+        "entity_id": {
+          "name": "Pièce de rechange",
+          "description": "Le capteur de stock d'une ou plusieurs pièces de rechange."
+        },
+        "quantity": {
+          "name": "Quantité",
+          "description": "Combien a été utilisé, dans l'unité de la pièce. Un si omis."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Pièce de rechange de nouveau prête",
       "description": "Des exemplaires usagés d'une pièce réutilisable sont de nouveau prêts (rechargés, affûtés, ...) : de la pile en attente vers le stock.",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "{entity_id} n'est pas une pièce de rechange réutilisable avec un stock suivi."
+    },
+    "part_not_counted": {
+      "message": "{entity_id} est une pièce de rechange sans stock suivi."
     }
   },
   "triggers": {

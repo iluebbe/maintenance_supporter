@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "Käytä varaosaa",
+      "description": "Varaosaa käytettiin tehtävän ulkopuolella, esimerkiksi tuulilasinpesunestettä lisättiin. Se vähennetään varastosta kuten suorituksen osat; uudelleenkäytettävän osan käytetyt kappaleet odottavat, kunnes ne ovat taas valmiita. Mitään ei kirjata kuluksi.",
+      "fields": {
+        "entity_id": {
+          "name": "Varaosa",
+          "description": "Yhden tai useamman varaosan varastoanturi."
+        },
+        "quantity": {
+          "name": "Määrä",
+          "description": "Paljonko käytettiin, osan yksikössä. Yksi, jos jätetään tyhjäksi."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Varaosa taas valmis",
       "description": "Uudelleenkäytettävän osan käytetyt kappaleet ovat taas valmiita (ladattu, teroitettu, ...): odottavien pinosta takaisin varastoon.",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "{entity_id} ei ole uudelleenkäytettävä varaosa, jolla on laskettu varasto."
+    },
+    "part_not_counted": {
+      "message": "{entity_id} on varaosa, jolla ei ole laskettua varastoa."
     }
   },
   "triggers": {

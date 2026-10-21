@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "Usar peça de reposição",
+      "description": "Parte de uma peça de reposição foi usada fora de uma tarefa, como completar o fluido do limpador de para-brisa. Sai do estoque como as peças de uma conclusão; unidades usadas de uma peça reutilizável aguardam ficar prontas de novo. Nada é lançado como gasto.",
+      "fields": {
+        "entity_id": {
+          "name": "Peça de reposição",
+          "description": "O sensor de estoque de uma ou mais peças de reposição."
+        },
+        "quantity": {
+          "name": "Quantidade",
+          "description": "Quanto foi usado, na unidade da peça. Uma se omitido."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Peça de reposição pronta de novo",
       "description": "Unidades usadas de uma peça reutilizável estão prontas de novo (carregadas, afiadas, ...): da pilha em espera de volta ao estoque.",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "{entity_id} não é uma peça de reposição reutilizável com estoque contado."
+    },
+    "part_not_counted": {
+      "message": "{entity_id} é uma peça de reposição sem estoque contado."
     }
   },
   "triggers": {

@@ -204,6 +204,8 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
 # (#67) Per-object CSV columns — one row per maintenance object (asset record).
 _OBJECT_RECORD_COLUMNS = [
     "object_name",
+    # #225: the object it sits inside, by name.
+    "object_parent",
     "object_manufacturer",
     "object_model",
     "object_serial_number",
@@ -238,9 +240,12 @@ def export_object_records_csv(hass: HomeAssistant, entry_ids: set[str] | None = 
     for entry in entries:
         obj_data = entry.data.get(CONF_OBJECT, {})
         tasks_data = merged_tasks(entry)
+        parent_id = obj_data.get("parent_entry_id")
+        parent = hass.config_entries.async_get_entry(parent_id) if parent_id else None
         writer.writerow(
             {
                 "object_name": _csv_safe(obj_data.get("name", "")),
+                "object_parent": _csv_safe((parent.data.get(CONF_OBJECT) or {}).get("name") or "") if parent is not None else "",
                 "object_manufacturer": _csv_safe(obj_data.get("manufacturer") or ""),
                 "object_model": _csv_safe(obj_data.get("model") or ""),
                 "object_serial_number": _csv_safe(obj_data.get("serial_number") or ""),

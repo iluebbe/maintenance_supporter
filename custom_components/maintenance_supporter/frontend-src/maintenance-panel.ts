@@ -128,8 +128,11 @@ import "./components/task-detail-view";
 import { computeWindow, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
 import { INITIAL_STICKY, nextStickyState, stickyStateOnSelect, stickyTop, type StickyState } from "./helpers/sticky-pane";
 import { invalidateSettingsCache, parseSettings, type SettingsWire } from "./helpers/settings-cache";
-import type { PartsCostMode } from "./helpers/parts-cost";
+import { partCostMode, type PartsCostMode } from "./helpers/parts-cost";
 import { canWrite } from "./helpers/permissions";
+// #226: the All-parts view's Use pill (the parts shelf imports it too).
+import "./components/ms-part-use";
+import { ancestorsOf, buildObjectTree, sortTree, subtreeOf, treeRows, type ObjectTree } from "./helpers/object-tree";
 import { renderStatusBadge, statusKey, statusLabel, type StatusLike } from "./renderers/status";
 import { TOAST_MS, ACTION_TOAST_MS } from "./helpers/toast";
 import { isCounterTrigger, primaryTriggerEntity } from "./helpers/trigger-entities";
@@ -160,6 +163,8 @@ interface PartsOverviewRow {
   storage_location?: string | null;
   vendor?: string | null;
   reorder_threshold?: number | null;
+  /** #222: when this part counts as spending; absent = the household's. */
+  cost_mode?: PartsCostMode | null;
   stock: number | null;
   low: boolean;
   consumers: Array<{
@@ -188,8 +193,9 @@ const GROUP_BY_MODES: readonly GroupByMode[] = ["none", "area", "group", "user",
 const STATUS_FILTERS: readonly string[] = STATUS_ORDER;
 /** #179: the object page's collapsible sections — the ids saved under
  *  LS_KEYS.objectSections and accepted by the `?section=` deep link. */
-type ObjectSection = "tasks" | "documents" | "parts" | "history";
-const OBJECT_SECTIONS: readonly ObjectSection[] = ["tasks", "documents", "parts", "history"];
+type ObjectSection = "children" | "tasks" | "documents" | "parts" | "history";
+// #225: "children" = the objects inside this one.
+const OBJECT_SECTIONS: readonly ObjectSection[] = ["children", "tasks", "documents", "parts", "history"];
 
 // Chart dimension constants for mini sparklines (overview)
 
@@ -394,6 +400,14 @@ export class MaintenanceSupporterPanel extends LitElement {
     } catch { return new Set<ObjectSection>(); }
   })();
   @state() private _objectSectionOverride: ObjectSection | null = null;
+  // #225: the objects table's parents opened to show the rows inside them —
+  // folded by default, remembered per browser.
+  @state() private _objTreeOpen: Set<string> = (() => {
+    try {
+      const raw: unknown = JSON.parse(lsGet(LS_KEYS.objectTreeOpen) || "[]");
+      return new Set((Array.isArray(raw) ? raw : []).filter((s): s is string => typeof s === "string"));
+    } catch { return new Set<string>(); }
+  })();
   // v2.15.0: command palette ("/" since 2.18.1 — Ctrl+K clashed with HA's own
   // global search); 2.78 (#171): the panel's global search — a magnifier in
   // the header opens it too, results are grouped (objects / tasks / parts
@@ -1624,6 +1638,12 @@ export class MaintenanceSupporterPanel extends LitElement {
     return html`<p class="meta">${label}:
       <a href="#" class="object-lineage-link" @click=${(e: Event) => { e.preventDefault(); this._showObject(other.entry_id); }}
         >${other.object.name}</a></p>`;
+  }
+
+  /** #225: a new object inside this one — the object dialog with its
+   *  parent set. */
+  private _addSubObject(parentEntryId: string): void {
+    void this._ui<MaintenanceObjectDialog>("maintenance-object-dialog").then((d) => d?.openCreate(parentEntryId));
   }
 
   private _showObject(entryId: string, section: ObjectSection | null = null): void {
@@ -3363,6 +3383,12 @@ export class MaintenanceSupporterPanel extends LitElement {
     const crumbs: { label: string; action?: () => void }[] = [
       { label: t("maintenance", this._lang), action: () => this._showOverview() },
     ];
+    // #225: the objects this one sits inside, outermost first.
+    const ancestors = (this._view === "object" || this._view === "task") && this._selectedEntryId
+      ? ancestorsOf(this._objects, this._selectedEntryId)
+      : [];
+    // A phone shows the one it sits in; the back arrow climbs the rest.
+    for (const a of this.narrow ? ancestors.slice(-1) : ancestors) crumbs.push({ label: a.object.name, action: () => this._showObject(a.entry_id) });
     if (this._view === "object" && this._selectedEntryId) {
       const obj = this._getObject(this._selectedEntryId);
       crumbs.push({ label: obj?.object.name || "Object" });
@@ -3390,6 +3416,8 @@ export class MaintenanceSupporterPanel extends LitElement {
               @click=${() => {
                 if (this._view === "task") this._showObject(this._selectedEntryId!);
                 else if (this._view === "area") this._showAllAreas();
+                // #225: a sub-object's page goes up to the object it is in.
+                else if (this._view === "object" && ancestors.length) this._showObject(ancestors[ancestors.length - 1].entry_id);
                 else this._showOverview();
               }}
             ></ha-icon-button>`
@@ -4088,69 +4116,24 @@ export class MaintenanceSupporterPanel extends LitElement {
     // v2.10.0: how many objects are archived (drives the reveal toggle below).
     const archivedObjCount = this._objects.filter((o) => o.object.archived).length;
 
-    // Sort + group helpers
-    const minDays = (obj: MaintenanceObjectResponse): number => {
-      let m = Infinity;
-      for (const t of obj.tasks) {
-        const d = t.days_until_due;
-        if (d !== null && d !== undefined && d < m) m = d;
-      }
-      return m;
-    };
-    const sorted = this._objects.filter((o) => this._showArchived || !o.object.archived);
-    if (this._objectSortMode === "alphabetical") {
-      sorted.sort((a, b) => a.object.name.localeCompare(b.object.name));
-    } else if (this._objectSortMode === "task_count") {
-      sorted.sort((a, b) => b.tasks.length - a.tasks.length || a.object.name.localeCompare(b.object.name));
-    } else {
-      // due_soonest
-      sorted.sort((a, b) => minDays(a) - minDays(b) || a.object.name.localeCompare(b.object.name));
-    }
+    const visible = this._objects.filter((o) => this._showArchived || !o.object.archived);
+    // #225: a sub-object sits inside its parent when the parent is in the
+    // same list; select mode lists every object on its own, so each can be
+    // ticked.
+    const arrange = (objs: MaintenanceObjectResponse[]) =>
+      this._arrangeObjects(objs, !this._objBulkMode);
+    const all = arrange(visible);
 
-    // Group by area for objects view
-    const groupedByArea = (): Map<string, MaintenanceObjectResponse[]> => {
+    // Group by area for objects view — each area its own tree: a car in the
+    // garage sits inside Vehicles only where Vehicles is listed too.
+    const groupedByArea = (): Array<[string, MaintenanceObjectResponse[]]> => {
       const map = new Map<string, MaintenanceObjectResponse[]>();
-      for (const obj of sorted) {
+      for (const obj of visible) {
         const key = areaLabel(obj.object.area_id, this.hass?.areas, t("no_area", L));
         if (!map.has(key)) map.set(key, []);
         map.get(key)!.push(obj);
       }
-      return new Map([...map.entries()].sort(([a], [b]) => a.localeCompare(b)));
-    };
-
-    const renderObject = (obj: MaintenanceObjectResponse) => {
-      const overdue = obj.tasks.some(t => t.status === "overdue" || t.status === "triggered");
-      return html`
-        <div class="object-card${overdue ? ' object-card-overdue' : ''}${this._objBulkMode ? ' selectable' : ''}${this._objBulkMode && this._objBulkSelected.has(obj.entry_id) ? ' bulk-selected' : ''}"
-          @click=${() => (this._objBulkMode ? this._toggleObjBulk(obj.entry_id) : this._showObject(obj.entry_id))}>
-          ${this._objBulkMode
-            ? html`<label class="obj-bulk-check bulk-check" @click=${(e: Event) => e.stopPropagation()}>
-                <input type="checkbox" .checked=${this._objBulkSelected.has(obj.entry_id)} @change=${() => this._toggleObjBulk(obj.entry_id)} />
-              </label>`
-            : nothing}
-          ${overdue ? html`<span class="overdue-dot" title="${t("has_overdue", L)}"></span>` : nothing}
-          <div class="object-card-header">
-            <span class="object-card-name">${this._objRef(obj.object)}${obj.object.name}</span>
-            ${obj.object.paused
-              ? html`<span class="paused-badge" title="${t("object_paused_badge", L)}${obj.object.paused_until ? ` — ${formatDate(obj.object.paused_until, L)}` : ""}">
-                  <ha-icon icon="mdi:pause-circle-outline"></ha-icon>
-                </span>`
-              : nothing}
-            ${obj.object.document_count
-              ? html`<span class="doc-badge" title="${obj.object.document_count} ${t("documents", L)}">
-                  <ha-icon icon="mdi:paperclip"></ha-icon>${obj.object.document_count}
-                </span>`
-              : nothing}
-            <span class="object-card-count">${countText("templates_task_count", "templates_task_count_one", obj.tasks.length, L)}</span>
-          </div>
-          ${obj.object.manufacturer || obj.object.model
-            ? html`<div class="object-card-meta">${[obj.object.manufacturer, obj.object.model].filter(Boolean).join(" ")}</div>`
-            : nothing}
-          ${obj.tasks.length === 0
-            ? html`<div class="object-card-empty">${t("no_tasks_yet", L)}</div>`
-            : nothing}
-        </div>
-      `;
+      return [...map.entries()].sort(([a], [b]) => a.localeCompare(b));
     };
 
     return html`
@@ -4236,23 +4219,118 @@ export class MaintenanceSupporterPanel extends LitElement {
           </ha-button>
         ` : nothing}
       </div>
-      ${this._objBulkMode ? this._renderObjBulkBar(sorted, L) : nothing}
+      ${this._objBulkMode ? this._renderObjBulkBar(all.roots, L) : nothing}
       ${tableMode
-        ? this._renderObjectsTable(sorted)
+        ? this._renderObjectsTable(all)
         : this._groupByMode === "area"
         ? html`
-          ${[...groupedByArea().entries()].map(([area, objs]) => html`
+          ${groupedByArea().map(([area, objs]) => {
+            const tree = arrange(objs);
+            return html`
             <details class="group-section" open>
               <summary class="group-section-header">
                 <ha-icon icon="mdi:map-marker-outline"></ha-icon>
                 <span>${area}</span>
                 <span class="group-section-count">(${objs.length})</span>
               </summary>
-              <div class="objects-grid">${objs.map(renderObject)}</div>
+              <div class="objects-grid">${tree.roots.map((o) => this._renderObjectCard(o, tree))}</div>
             </details>
-          `)}
+          `;
+          })}
         `
-        : html`<div class="objects-grid">${sorted.map(renderObject)}</div>`}
+        : html`<div class="objects-grid">${all.roots.map((o) => this._renderObjectCard(o, all))}</div>`}
+    `;
+  }
+
+  /** #225: `objs` as a sorted tree (`nest` false: every object at the top
+   *  level). A parent sorts by what is inside it too: Vehicles holding the
+   *  overdue car comes first when sorted by due date. */
+  private _arrangeObjects(objs: MaintenanceObjectResponse[], nest = true): ObjectTree {
+    const tree: ObjectTree = nest ? buildObjectTree(objs) : { roots: [...objs], children: new Map() };
+    const byName = (a: MaintenanceObjectResponse, b: MaintenanceObjectResponse) => a.object.name.localeCompare(b.object.name);
+    if (this._objectSortMode === "alphabetical") {
+      sortTree(tree, byName);
+      return tree;
+    }
+    const key = new Map<string, number>();
+    for (const o of objs) {
+      const below = subtreeOf(tree, o);
+      if (this._objectSortMode === "task_count") {
+        key.set(o.entry_id, below.reduce((n, x) => n + x.tasks.length, 0));
+      } else {
+        // due_soonest: the soonest due date anywhere inside.
+        let m = Infinity;
+        for (const x of below) {
+          for (const tk of x.tasks) {
+            const d = tk.days_until_due;
+            if (d !== null && d !== undefined && d < m) m = d;
+          }
+        }
+        key.set(o.entry_id, m);
+      }
+    }
+    const k = (o: MaintenanceObjectResponse) => key.get(o.entry_id) ?? 0;
+    sortTree(tree, this._objectSortMode === "task_count"
+      ? (a, b) => k(b) - k(a) || byName(a, b)
+      : (a, b) => k(a) - k(b) || byName(a, b));
+    return tree;
+  }
+
+  /** One object card — the All-objects grid and an object page's
+   *  sub-objects. #225: the objects inside it are chips that open them; it
+   *  is marked overdue when anything inside it is. */
+  private _renderObjectCard(obj: MaintenanceObjectResponse, tree: ObjectTree) {
+    const L = this._lang;
+    const kids = tree.children.get(obj.entry_id) ?? [];
+    const isOverdue = (o: MaintenanceObjectResponse) => o.tasks.some((tk) => tk.status === "overdue" || tk.status === "triggered");
+    const overdueInside = (o: MaintenanceObjectResponse) => subtreeOf(tree, o).some(isOverdue);
+    const overdue = overdueInside(obj);
+    // Select mode belongs to the All-objects view, not an object page.
+    const bulk = this._objBulkMode && this._view === "all_objects";
+    return html`
+      <div class="object-card${overdue ? ' object-card-overdue' : ''}${bulk ? ' selectable' : ''}${bulk && this._objBulkSelected.has(obj.entry_id) ? ' bulk-selected' : ''}"
+        data-entry-id=${obj.entry_id}
+        @click=${() => (bulk ? this._toggleObjBulk(obj.entry_id) : this._showObject(obj.entry_id))}>
+        ${bulk
+          ? html`<label class="obj-bulk-check bulk-check" @click=${(e: Event) => e.stopPropagation()}>
+              <input type="checkbox" .checked=${this._objBulkSelected.has(obj.entry_id)} @change=${() => this._toggleObjBulk(obj.entry_id)} />
+            </label>`
+          : nothing}
+        ${overdue ? html`<span class="overdue-dot" title="${t("has_overdue", L)}"></span>` : nothing}
+        <div class="object-card-header">
+          <span class="object-card-name">${this._objRef(obj.object)}${obj.object.name}</span>
+          ${obj.object.paused
+            ? html`<span class="paused-badge" title="${t("object_paused_badge", L)}${obj.object.paused_until ? ` — ${formatDate(obj.object.paused_until, L)}` : ""}">
+                <ha-icon icon="mdi:pause-circle-outline"></ha-icon>
+              </span>`
+            : nothing}
+          ${obj.object.document_count
+            ? html`<span class="doc-badge" title="${obj.object.document_count} ${t("documents", L)}">
+                <ha-icon icon="mdi:paperclip"></ha-icon>${obj.object.document_count}
+              </span>`
+            : nothing}
+          <span class="object-card-count">${kids.length && !obj.tasks.length
+            ? countText("sub_objects_count", "sub_objects_count_one", kids.length, L)
+            : countText("templates_task_count", "templates_task_count_one", obj.tasks.length, L)}</span>
+        </div>
+        ${obj.object.manufacturer || obj.object.model
+          ? html`<div class="object-card-meta">${[obj.object.manufacturer, obj.object.model].filter(Boolean).join(" ")}</div>`
+          : nothing}
+        ${kids.length
+          ? html`<div class="object-card-children" aria-label=${t("sub_objects", L)}>
+              ${kids.map((k) => {
+                const inside = tree.children.get(k.entry_id)?.length ?? 0;
+                return html`<button class="object-child-chip${overdueInside(k) ? " overdue" : ""}"
+                  data-entry-id=${k.entry_id}
+                  title=${overdueInside(k) ? `${k.object.name}: ${t("has_overdue", L)}` : k.object.name}
+                  @click=${(e: Event) => { e.stopPropagation(); this._showObject(k.entry_id); }}
+                  ><span class="object-child-name">${k.object.name}</span>${inside ? html`<span class="object-child-count">${inside}</span>` : nothing}</button>`;
+              })}
+            </div>`
+          : obj.tasks.length === 0
+          ? html`<div class="object-card-empty">${t("no_tasks_yet", L)}</div>`
+          : nothing}
+      </div>
     `;
   }
 
@@ -4314,7 +4392,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                         : nothing}
                     </td>
                     <td>${row.object_name || "—"}</td>
-                    <td>${row.stock !== null ? formatQty(row.stock, row.unit, L) : "—"}</td>
+                    <td class="all-parts-stock">${row.stock !== null ? formatQty(row.stock, row.unit, L) : "—"}${this._renderAllPartsUse(row)}</td>
                     <td>${row.reorder_threshold ?? "—"}</td>
                     <td>${row.cost != null
                       ? row.package_size
@@ -4339,6 +4417,21 @@ export class MaintenanceSupporterPanel extends LitElement {
           </div>
         `}
     `;
+  }
+
+  /** #226: some of a part used outside a task, right where its stock is
+   *  read — the washer fluid on the garage shelf topped up in either car. */
+  private _renderAllPartsUse(row: PartsOverviewRow) {
+    if (this._isOperator || !(typeof row.stock === "number" && row.stock > 0)) return nothing;
+    const fleet = !!this._getObject(row.entry_id)?.object.battery_fleet;
+    return html`<ms-part-use
+      nowrap
+      .hass=${this.hass}
+      .entryId=${row.entry_id}
+      .sparePart=${{ id: row.part_id, unit: row.unit ?? undefined, package_size: row.package_size ?? undefined }}
+      ?notBooked=${!fleet && partCostMode(row, this._partsCostMode) === "use"}
+      @part-used=${() => { void this._loadAllParts(); void this._loadData(); }}
+    ></ms-part-use>`;
   }
 
   // ── #191: areas ──────────────────────────────────────────────────────────
@@ -4430,10 +4523,16 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   // (#67) Tabular All-Objects view honouring the configured columns. Desktop
-  // only — the caller falls back to cards on narrow viewports.
-  private _renderObjectsTable(objs: MaintenanceObjectResponse[]) {
+  // only — the caller falls back to cards on narrow viewports. #225: drawn as
+  // a tree, a parent's rows folded until it is opened (remembered per
+  // browser).
+  private _renderObjectsTable(tree: ObjectTree) {
     const L = this._lang;
     const cols = this._objectsTableColumns;
+    const rows = treeRows(tree, (id) => this._objTreeOpen.has(id));
+    // With a tree in the table, names without a chevron line up behind a
+    // spacer where it would sit.
+    const align = tree.children.size > 0;
     return html`
       <div class="objects-table-wrap">
         <table class="objects-table">
@@ -4449,14 +4548,17 @@ export class MaintenanceSupporterPanel extends LitElement {
             </tr>
           </thead>
           <tbody>
-            ${objs.map((obj) => html`
-              <tr class="objects-table-row${this._objBulkMode && this._objBulkSelected.has(obj.entry_id) ? ' bulk-selected' : ''}"
+            ${rows.map(({ obj, depth }) => html`
+              <tr class="objects-table-row${this._objBulkMode && this._objBulkSelected.has(obj.entry_id) ? ' bulk-selected' : ''}${depth ? ' sub-object-row' : ''}"
+                data-entry-id=${obj.entry_id}
                 @click=${() => (this._objBulkMode ? this._toggleObjBulk(obj.entry_id) : this._showObject(obj.entry_id))}>
                 ${this._objBulkMode
                   ? html`<td class="oc-bulk"><input type="checkbox" .checked=${this._objBulkSelected.has(obj.entry_id)}
                       @click=${(e: Event) => e.stopPropagation()} @change=${() => this._toggleObjBulk(obj.entry_id)} /></td>`
                   : nothing}
-                ${cols.map((key) => this._renderObjectCell(key, obj, L))}
+                ${cols.map((key) => key === "name"
+                  ? this._renderObjectNameCell(obj, L, depth, tree.children.get(obj.entry_id)?.length ?? 0, align)
+                  : this._renderObjectCell(key, obj, L))}
               </tr>
             `)}
           </tbody>
@@ -4465,18 +4567,42 @@ export class MaintenanceSupporterPanel extends LitElement {
     `;
   }
 
+  /** The table's name cell — #225: indented by its depth, with a chevron
+   *  that opens or folds the objects inside it. */
+  private _renderObjectNameCell(obj: MaintenanceObjectResponse, L: string, depth = 0, kids = 0, align = false) {
+    const o = obj.object;
+    const open = this._objTreeOpen.has(obj.entry_id);
+    const label = open ? t("sub_objects_hide", L) : t("sub_objects_show", L);
+    return html`<td class="oc-name" style=${depth ? `padding-left: ${12 + depth * 22}px` : ""}>
+      ${kids
+        ? html`<button class="object-tree-toggle" type="button" aria-expanded=${open ? "true" : "false"}
+            aria-label=${label} title=${label}
+            @click=${(e: Event) => { e.stopPropagation(); this._toggleObjTree(obj.entry_id); }}
+            ><ha-icon icon=${open ? "mdi:chevron-down" : "mdi:chevron-right"}></ha-icon></button>`
+        : align ? html`<span class="object-tree-spacer"></span>` : nothing}
+      <span class="objects-table-name">${this._objRef(o)}${o.name}</span>
+      ${kids && !open ? html`<span class="object-tree-count" title=${t("sub_objects", L)}>${kids}</span>` : nothing}
+      ${o.document_count
+        ? html`<span class="doc-badge" title="${o.document_count} ${t("documents", L)}">
+            <ha-icon icon="mdi:paperclip"></ha-icon>${o.document_count}
+          </span>`
+        : nothing}
+    </td>`;
+  }
+
+  private _toggleObjTree(entryId: string): void {
+    const next = new Set(this._objTreeOpen);
+    if (next.has(entryId)) next.delete(entryId);
+    else next.add(entryId);
+    this._objTreeOpen = next;
+    lsSet(LS_KEYS.objectTreeOpen, JSON.stringify([...next]));
+  }
+
   private _renderObjectCell(key: string, obj: MaintenanceObjectResponse, L: string) {
     const o = obj.object;
     switch (key) {
       case "name":
-        return html`<td class="oc-name">
-          <span class="objects-table-name">${this._objRef(o)}${o.name}</span>
-          ${o.document_count
-            ? html`<span class="doc-badge" title="${o.document_count} ${t("documents", L)}">
-                <ha-icon icon="mdi:paperclip"></ha-icon>${o.document_count}
-              </span>`
-            : nothing}
-        </td>`;
+        return this._renderObjectNameCell(obj, L);
       case "manufacturer":
         return html`<td class="oc-manufacturer">${o.manufacturer || "—"}</td>`;
       case "model":
@@ -4812,6 +4938,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     // this object has any (e.g. a task archived individually on an active object).
     const archivedInObj = obj.tasks.filter((tk) => tk.archived).length;
     const visibleTasks = obj.tasks.filter((tk) => this._showArchived || !tk.archived);
+    // #225: the objects inside this one, under the same archive rule as the
+    // All-objects view (this object itself always counts, archived or not).
+    const tree = this._arrangeObjects(this._objects.filter((x) => x.entry_id === obj.entry_id || this._showArchived || !x.object.archived));
+    const kids = tree.children.get(obj.entry_id) ?? [];
+    const canNest = !isOperator && !o.archived && !o.battery_fleet;
 
     return html`
       <div class="detail-section">
@@ -4837,6 +4968,9 @@ export class MaintenanceSupporterPanel extends LitElement {
                   ${!isOperator ? html`
                     ${!o.battery_fleet ? html`
                       <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._duplicateObject(obj.entry_id); }}>${t("duplicate", L)}</div>
+                    ` : nothing}
+                    ${canNest ? html`
+                      <div role="menuitem" tabindex="0" class="popup-menu-item add-sub-object-item" @click=${() => { this._closeObjMenu(); this._addSubObject(obj.entry_id); }}>${t("add_sub_object", L)}</div>
                     ` : nothing}
                     ${!o.archived ? html`
                       <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._togglePauseObject(obj.entry_id, !!o.paused); }}>${o.paused ? t("resume_object", L) : t("pause_object", L)}</div>
@@ -4901,6 +5035,14 @@ export class MaintenanceSupporterPanel extends LitElement {
               <div class="object-notes-body">${renderNotesMarkdown(o.notes)}</div>
             </div>`
           : nothing}
+
+        ${kids.length ? this._renderObjectSection("children", t("sub_objects", L), kids.length, () => html`
+        <h3 class="sub-objects-head"><span>${t("sub_objects", L)} (${kids.length})</span>${canNest ? html`
+          <ha-button appearance="plain" class="add-sub-object" @click=${() => this._addSubObject(obj.entry_id)}>
+            <ha-icon icon="mdi:plus"></ha-icon> ${t("add_sub_object", L)}
+          </ha-button>` : nothing}</h3>
+        <div class="objects-grid sub-objects">${kids.map((k) => this._renderObjectCard(k, tree))}</div>
+        `) : nothing}
 
         ${this._renderObjectSection("tasks", t("tasks", L), visibleTasks.length, () => html`
         <h3>${t("tasks", L)} (${visibleTasks.length})${archivedInObj > 0 ? html`

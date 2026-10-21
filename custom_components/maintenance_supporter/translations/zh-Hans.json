@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "使用备件",
+      "description": "在任务之外用掉了部分备件，例如补充了玻璃水。它像完成任务时的备件一样从库存中扣除；可重复使用备件的已用件会等待重新可用。不会记为支出。",
+      "fields": {
+        "entity_id": {
+          "name": "备件",
+          "description": "一个或多个备件的库存传感器。"
+        },
+        "quantity": {
+          "name": "数量",
+          "description": "用掉了多少，以备件的单位计。留空则为一个。"
+        }
+      }
+    },
     "part_ready_again": {
       "name": "备件重新可用",
       "description": "可重复使用备件的已用件重新可用（已充电、已磨利……）：从待处理堆回到库存。",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "{entity_id} 不是有库存计数的可重复使用备件。"
+    },
+    "part_not_counted": {
+      "message": "{entity_id} 是没有库存计数的备件。"
     }
   },
   "triggers": {

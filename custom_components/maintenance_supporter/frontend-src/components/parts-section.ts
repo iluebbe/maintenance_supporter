@@ -2,8 +2,9 @@
  * Spare parts & consumables section on the object detail page.
  *
  * Shows the object's parts list (stock badge, storage location, identifiers,
- * shopping link), lets admins add/edit/delete parts, and adjust stock
- * (inventory correction / manual restock). Follows the documents-section
+ * shopping link), lets admins add/edit/delete parts, adjust stock
+ * (inventory correction / manual restock) and use some outside a task
+ * (#226, ms-part-use). Follows the documents-section
  * conventions: standalone LitElement fed by the panel, native <input>s in the
  * inline form (the ha-textfield-in-custom-panel trap), t() i18n.
  *
@@ -19,9 +20,12 @@ import { t, ensureLocale, langOf, formatCost, formatNumber, formatQty } from "..
 import { reuseWaitingText } from "../helpers/part-reuse";
 import { runWs } from "../helpers/ws-run";
 import type { HomeAssistant, MaintenancePart } from "../types";
-import { restockUnits, unitPrice, type PartsCostMode } from "../helpers/parts-cost";
+import { partCostMode, restockUnits, unitPrice, type PartsCostMode } from "../helpers/parts-cost";
 // Per-part document links (v2.26) — the task-documents component in part mode.
 import "./task-documents";
+// #226: use some outside a task.
+import "./ms-part-use";
+import type { PartUsedDetail } from "./ms-part-use";
 
 /** #208: what readies a used part again (helpers/parts.py REUSE_KINDS). */
 export const REUSE_KINDS = ["charge", "sharpen", "clean", "dry", "refill", "restore"] as const;
@@ -276,6 +280,26 @@ export class MaintenancePartsSection extends LitElement {
     }
   }
 
+  /** #226: some used outside a task — the counts the server booked. */
+  private _onUsed(part: MaintenancePart, detail: PartUsedDetail): void {
+    part.stock = detail.stock;
+    part.restoring = detail.restoring;
+    this.requestUpdate();
+    this._notifyChanged();
+  }
+
+  /** The Use pill: for a counted part with some in stock. */
+  private _renderUse(part: MaintenancePart) {
+    if (!this.canWrite || !(typeof part.stock === "number" && part.stock > 0)) return nothing;
+    return html`<ms-part-use
+      .hass=${this.hass}
+      .entryId=${this.entryId}
+      .sparePart=${part}
+      ?notBooked=${!this.fleet && partCostMode(part, this.partsCostMode) === "use"}
+      @part-used=${(e: CustomEvent<PartUsedDetail>) => this._onUsed(part, e.detail)}
+    ></ms-part-use>`;
+  }
+
   private _renderDispose(part: MaintenancePart, L: string) {
     if (this._disposeFor !== part.id) {
       return html`<button class="ready-again dispose" title=${t("part_dispose_hint", L)} .disabled=${this._busy}
@@ -335,6 +359,7 @@ export class MaintenancePartsSection extends LitElement {
                     : nothing}</span
                 >`
               : nothing}
+            ${this._renderUse(part)}
           </div>
           ${tracked && part.reuse && (part.restoring ?? 0) > 0
             ? html`<div class="part-waiting">
@@ -582,6 +607,21 @@ export class MaintenancePartsSection extends LitElement {
     :host {
       display: block;
       margin: 12px 0;
+      container-type: inline-size;
+    }
+    /* #226: an open Use field takes a line of its own below the name; on a
+       narrow shelf the row's buttons step down a line to give it the width. */
+    .part-name ms-part-use[open] {
+      flex-basis: 100%;
+    }
+    @container (max-width: 520px) {
+      .part-row:has(ms-part-use[open]) {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .part-row:has(ms-part-use[open]) .part-main {
+        flex: 1 1 calc(100% - 40px);
+      }
     }
     .inventory-value {
       margin-left: 8px;
@@ -619,7 +659,8 @@ export class MaintenancePartsSection extends LitElement {
       font-weight: 500;
       display: flex;
       align-items: center;
-      gap: 8px;
+      flex-wrap: wrap;
+      gap: 4px 8px;
     }
     .part-name a {
       color: var(--primary-color);

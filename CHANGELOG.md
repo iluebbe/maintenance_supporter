@@ -2,6 +2,23 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Sub-objects** (#225, thanks @Bunky101). An object can sit inside another one: *Vehicles* holding both cars,
+  *Lawn & Garden* the mower, the trimmer and the snow blower. The object dialog's *Parent object* puts it there (until
+  now it only nested the object's device in Home Assistant), and an object's ⋮ menu has *Add sub-object*. *All
+  objects* shows a sub-object as a chip on its parent's card instead of a card of its own; a parent with anything
+  overdue inside it is marked and sorts by what it holds. In the table a parent's rows fold behind a chevron. The
+  object page lists its sub-objects, and the breadcrumb and the back arrow climb the chain. The objects CSV has an
+  `object_parent` column.
+- **Use a spare part outside a task** (#226, thanks @Bunky101). *Use* beside a counted part's stock, on the object's
+  parts shelf and in *All parts*, takes some off the stock: one, or a whole package of a part bought in packages. It
+  is booked like the parts of a completion, so a reusable part's used ones wait to be ready again and the reorder
+  threshold and the buy reminder follow. Nothing is booked as spending, as there is no completion to value it on, and
+  for a part that counts when used *Use* says so. Automations and dashboard buttons have the `part_use` service.
+
 ## [2.107.0] - 2026-10-21
 
 ### ✨ Added

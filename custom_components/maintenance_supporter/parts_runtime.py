@@ -1,7 +1,7 @@
 """Spare-parts runtime — the hass-aware driver around helpers/parts.py.
 
-Owns the mutations (consume on completion, restock, manual adjust, a
-reusable part ready again) and applies the declarative buy-task reconcile to
+Owns the mutations (consume on completion, a use outside a task, restock,
+manual adjust, a reusable part ready again) and applies the declarative buy-task reconcile to
 the entry. The pure rules live in
 :mod:`helpers.parts`; this module only wires them to the Store, the ConfigEntry
 and the event bus.
@@ -443,6 +443,28 @@ def apply_history_parts_edit(
             item["unit_cost"] = price
         enriched.append(item)
     return enriched, list(touched.values())
+
+
+async def async_part_use(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    part_id: str,
+    quantity: float | None = None,
+) -> dict[str, float] | None:
+    """Items of a part used outside a task (#226): the washer fluid topped
+    up between two oil changes, a cell for the kitchen scale. Booked like a
+    completion's parts (:func:`_book_use`), so a reusable part's used ones
+    wait to be ready again and the low / out edges and the buy reminder
+    follow. Valued nowhere: there is no completion to book a price on.
+    ``quantity`` defaults to one. None for an unknown or untracked part
+    (catalog-only: nothing to count down)."""
+    part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
+    store = store_of(entry)
+    if part is None or store is None or store.get_part_stock(part_id) is None:
+        return None
+    qty = 1.0 if quantity is None else max(0.0, float(quantity))
+    stock = await async_change_part_stock(hass, entry, part_id, delta=-qty, use=True)
+    return {"stock": stock or 0, "restoring": store.get_part_restoring(part_id)}
 
 
 async def async_part_ready_again(

@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "Pótalkatrész felhasználása",
+      "description": "Egy pótalkatrészből feladaton kívül használtak fel, például ablakmosó folyadékot töltöttek utána. Úgy kerül le a készletből, mint egy elvégzett feladat alkatrészei; egy újrahasználható alkatrész használt darabjai arra várnak, hogy ismét készek legyenek. Semmi sem könyvelődik kiadásként.",
+      "fields": {
+        "entity_id": {
+          "name": "Pótalkatrész",
+          "description": "Egy vagy több pótalkatrész készletérzékelője."
+        },
+        "quantity": {
+          "name": "Mennyiség",
+          "description": "Mennyit használtak fel, az alkatrész mértékegységében. Ha nincs megadva, egy."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Pótalkatrész ismét kész",
       "description": "Egy újrahasználható alkatrész használt darabjai ismét készek (feltöltve, megélezve, ...): a várakozó halomból vissza a készletbe.",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "A(z) {entity_id} nem számolt készletű, újrahasználható pótalkatrész."
+    },
+    "part_not_counted": {
+      "message": "A(z) {entity_id} számolt készlet nélküli pótalkatrész."
     }
   },
   "triggers": {

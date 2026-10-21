@@ -140,10 +140,10 @@ for you — always previewing before it writes.
 | **Adaptive scheduling** | Learns real intervals (EWA + Weibull), seasonal factors, feedback loop — switched on in Settings → Advanced Features; sensor degradation predictions run for every sensor task | [Features → Adaptive](docs/FEATURES.md#adaptive-scheduling) |
 | **Notifications** | Any `notify.*` target, per-user routing, actionable mobile buttons, icons per maintenance type (overridable per task), quiet hours, bundling, lead-time reminders, weekly digest, warranty reminders, vacation mode | [Features → Notifications](docs/FEATURES.md#notifications) |
 | **Places** | An object can live at another Home Assistant zone (allotment, holiday home, boat): its reminders wait until somebody is there, and whoever arrives gets a message with what is due | [Features → Places](docs/FEATURES.md#places-maintenance-away-from-home) |
-| **Household** | Priorities, labels, checklists (Advanced Features), user assignment + rotation (whose turn it is shows on the card), operator (read-only) mode, native To-do entity, Markdown notes on tasks and objects | [Features → Task Management](docs/FEATURES.md#task-management) |
+| **Household** | Objects inside objects (both cars inside *Vehicles*), priorities, labels, checklists (Advanced Features), user assignment + rotation (whose turn it is shows on the card), operator (read-only) mode, native To-do entity, Markdown notes on tasks and objects | [Features → Task Management](docs/FEATURES.md#task-management) |
 | **History & money** | Full history with cost/duration/photos, Missed-vs-skipped, budgets + alerts (Advanced Features), PDF report per object, history + costs per area with an area report (2.95), CSV/JSON import & export | [Features → Areas](docs/FEATURES.md#areas-295-191) |
 | **Documents** | Attach manuals/invoices/photos per object — backup-safe, deduplicated, searchable, linkable to tasks (PDF page jump) | [Features → Documents](docs/FEATURES.md#documents--manuals-2110) |
-| **Spare parts** | Parts inventory: identifiers (MPN, GTIN/EAN), storage location, stock + reorder threshold, auto “buy” tasks with shopping links, restock on completion, stock sensors, buy reminders mirrored into the HA shopping list you pick in Settings (check one off at the store, the part is restocked). Several objects can share one stock, so identical appliances draw on one real pile | [Features → Task Management](docs/FEATURES.md#task-management) |
+| **Spare parts** | Parts inventory: identifiers (MPN, GTIN/EAN), storage location, stock + reorder threshold, auto “buy” tasks with shopping links, restock on completion, *Use* for what goes outside a task, stock sensors, buy reminders mirrored into the HA shopping list you pick in Settings (check one off at the store, the part is restocked). Several objects can share one stock, so identical appliances draw on one real pile | [Features → Task Management](docs/FEATURES.md#task-management) |
 | **Quick actions** | QR codes (view / complete / one-tap quick-complete), NFC tags — optionally as **proof of presence** (a task only a scan at the thing itself may complete), on-complete service calls back to the device (quick-complete defaults and your own service calls need *Completion actions* in Advanced Features) | [Features → Completion Actions](docs/FEATURES.md#completion-actions-130-advanced) |
 | **Dashboards** | Sidebar panel (Today view, global search across objects, tasks, parts, document contents and notes, bulk actions, saved filter views), Lovelace card, calendar card, battery-fleet card, the whole panel as a card for a dashboard subview (2.84+), auto-generated dashboard strategies | [Examples → Dashboards](docs/EXAMPLES.md#lovelace-card) |
 | **Localization** | Full UI in 22 languages across panel, config flow, and notifications; dates, times and numbers follow your HA profile formats | [Features → Frontend](docs/FEATURES.md#frontend) |
@@ -159,10 +159,11 @@ count what needs attention, alongside *parts to reorder*, *batteries to
 replace* and *document storage*; spare parts get their own **stock
 sensors**, a **calendar** entity feeds your calendar cards, and a **to-do**
 entity mirrors open work. Lifecycle **events** (`…_task_completed`,
-`…_trigger_activated`, …) fire on every path, and twelve **services** —
+`…_trigger_activated`, …) fire on every path, and thirteen **services** —
 `complete` / `skip` / `reset` / `export_data`, full task CRUD
 (`add_object`, `add_task`, `update_task`, `delete_task`, `list_tasks`) and
-the spare-part actions (`part_restock`, `part_ready_again`, `part_dispose`) —
+the spare-part actions (`part_restock`, `part_use`, `part_ready_again`,
+`part_dispose`) —
 cover scripting. 15 **Assist intents** answer *"what maintenance is due?"*
 (this week, in the kitchen), complete, skip, postpone or snooze tasks, record
 readings and notes, read out instructions, say whose turn it is, check stock,
@@ -189,7 +190,7 @@ with copy-paste automations: [EXAMPLES.md](docs/EXAMPLES.md).
 | [CONFIGURATION.md](docs/CONFIGURATION.md) | Every configurable parameter (global, per-object, per-task, triggers) |
 | [EXAMPLES.md](docs/EXAMPLES.md) | Use-case recipes, automation YAML, cards & dashboard strategies |
 | [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Known limitations, common issues, debug logging, uninstalling |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Internals: data flow, trigger engine, WebSocket API (109 commands), tests |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Internals: data flow, trigger engine, WebSocket API (110 commands), tests |
 | [ROADMAP.md](https://github.com/iluebbe/maintenance_supporter/blob/master/ROADMAP.md) | What's planned and what shipped — ideas welcome via [Discussions](https://github.com/iluebbe/maintenance_supporter/discussions) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 

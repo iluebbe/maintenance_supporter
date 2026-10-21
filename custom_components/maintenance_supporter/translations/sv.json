@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "Använd reservdel",
+      "description": "Något av en reservdel användes utanför en uppgift, till exempel spolarvätska som fylldes på. Det dras från lagret som delarna vid en utförd uppgift; använda exemplar av en återanvändbar del väntar på att bli klara igen. Inget bokförs som utgift.",
+      "fields": {
+        "entity_id": {
+          "name": "Reservdel",
+          "description": "Lagersensorn för en eller flera reservdelar."
+        },
+        "quantity": {
+          "name": "Antal",
+          "description": "Hur mycket som användes, i delens enhet. En om det utelämnas."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Reservdel klar igen",
       "description": "Använda exemplar av en återanvändbar del är klara igen (laddade, slipade, ...): från väntehögen tillbaka till lagret.",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "{entity_id} är inte en återanvändbar reservdel med räknat lager."
+    },
+    "part_not_counted": {
+      "message": "{entity_id} är en reservdel utan räknat lager."
     }
   },
   "triggers": {

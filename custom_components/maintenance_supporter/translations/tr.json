@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "Yedek parça kullan",
+      "description": "Bir yedek parçanın bir kısmı görev dışında kullanıldı, örneğin cam suyu eklendi. Tamamlanan bir görevin parçaları gibi stoktan düşer; yeniden kullanılabilir bir parçanın kullanılmış olanları yeniden hazır olmayı bekler. Hiçbir şey harcama olarak kaydedilmez.",
+      "fields": {
+        "entity_id": {
+          "name": "Yedek parça",
+          "description": "Bir veya daha fazla yedek parçanın stok sensörü."
+        },
+        "quantity": {
+          "name": "Miktar",
+          "description": "Ne kadar kullanıldığı, parçanın biriminde. Boş bırakılırsa bir."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Yedek parça yeniden hazır",
       "description": "Yeniden kullanılabilir bir parçanın kullanılmış olanları yeniden hazır (şarj edildi, bilendi, ...): bekleyen yığından stoğa geri.",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "{entity_id} sayılan stoku olan yeniden kullanılabilir bir yedek parça değil."
+    },
+    "part_not_counted": {
+      "message": "{entity_id} sayılan stoku olmayan bir yedek parça."
     }
   },
   "triggers": {

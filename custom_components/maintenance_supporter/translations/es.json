@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "Usar un repuesto",
+      "description": "Se usó parte de un repuesto fuera de una tarea, como rellenar el líquido limpiaparabrisas. Sale del stock como los repuestos de una tarea completada; las unidades usadas de un repuesto reutilizable esperan a estar listas de nuevo. No se registra ningún gasto.",
+      "fields": {
+        "entity_id": {
+          "name": "Repuesto",
+          "description": "El sensor de stock de uno o más repuestos."
+        },
+        "quantity": {
+          "name": "Cantidad",
+          "description": "Cuánto se usó, en la unidad del repuesto. Una si se omite."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Repuesto listo de nuevo",
       "description": "Unidades usadas de un repuesto reutilizable vuelven a estar listas (cargadas, afiladas, ...): de la pila en espera de vuelta al stock.",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "{entity_id} no es un repuesto reutilizable con stock contado."
+    },
+    "part_not_counted": {
+      "message": "{entity_id} es un repuesto sin stock contado."
     }
   },
   "triggers": {

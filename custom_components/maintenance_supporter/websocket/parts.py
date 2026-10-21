@@ -318,6 +318,36 @@ async def ws_restock_part(
 
 @websocket_api.websocket_command(
     {
+        vol.Required("type"): "maintenance_supporter/part/use",
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("part_id"): ID_FIELD,
+        # How many were used; one when left out.
+        vol.Optional("quantity"): vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=0, min_included=False, max=MAX_PART_STOCK)),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_part_use(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Items of a part used outside a task (#226): off the stock like a
+    completion's parts, a reusable part's used ones onto the pile."""
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+    from ..parts_runtime import async_part_use
+
+    result = await async_part_use(hass, entry, msg["part_id"], msg.get("quantity"))
+    if result is None:
+        connection.send_error(msg["id"], "not_found", "No part with a counted stock")
+        return
+    connection.send_result(msg["id"], result)
+
+
+@websocket_api.websocket_command(
+    {
         vol.Required("type"): "maintenance_supporter/part/ready_again",
         vol.Required("entry_id"): ID_FIELD,
         vol.Required("part_id"): ID_FIELD,

@@ -34,6 +34,9 @@ export const LS_KEYS = {
   batteryRosterSort: "ms_bf_roster_sort",
   /** #191: the areas table's sort column + direction ("cost_year:desc"). */
   areaSort: "msp-area-sort",
+  /** #225: the objects table's parents opened to show their sub-objects
+   *  (JSON list of entry ids). */
+  objectTreeOpen: "msp-object-tree-open",
 } as const;
 
 /**

@@ -431,6 +431,29 @@ part_restock:
           step: any
           mode: box
 
+part_use:
+  name: Use spare part
+  description: Some of a spare part were used outside a task, such as washer fluid topped up. They come off the stock like the parts of a completion; used ones of a reusable part wait to be ready again. Nothing is booked as spending.
+  fields:
+    entity_id:
+      name: Spare part
+      description: The stock sensor of one or more spare parts.
+      required: true
+      selector:
+        entity:
+          domain: sensor
+          integration: maintenance_supporter
+          multiple: true
+    quantity:
+      name: Quantity
+      description: How many were used, in the part's unit. One when left out.
+      selector:
+        number:
+          min: 0
+          max: 100000
+          step: any
+          mode: box
+
 part_ready_again:
   name: Spare part ready again
   description: "Used ones of a reusable part are ready again (charged, sharpened, ...): from the waiting pile back to the stock."

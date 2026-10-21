@@ -43,6 +43,11 @@ manufacturer's instructions take precedence.)
 No template fits? **Add ▾ → New object**, then add tasks with a name and an
 interval (every 3 months, every year …).
 
+Many objects? Put them inside one another: an object's *Parent object* (or
+*⋮ → Add sub-object* on the parent) keeps both cars inside *Vehicles* and
+the mower, the trimmer and the snow blower inside *Lawn & Garden*. The list
+of objects then shows a few groups with their contents as chips.
+
 **The dashboard.** Every task shows its status — *OK*, *Due soon*,
 *Overdue* — and how far it is from being due. Sort, filter and group it;
 the numbers on top are the counts per status.
@@ -199,7 +204,8 @@ can consume them on completion; when the stock drops to the reorder
 threshold, a *"Buy …"* reminder appears on its own. Pick a list in
 *Settings → General → Shopping list (buy tasks)* and the reminder also lands
 on that Home Assistant shopping list — check it off at the store and the
-part is restocked.
+part is restocked. Used some without a task, washer fluid topped up between
+two oil changes? *Use* beside the stock takes it off.
 
 ![Parts that reorder themselves](images/gifs/parts-auto-buy.gif)
 

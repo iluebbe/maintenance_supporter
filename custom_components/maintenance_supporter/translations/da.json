@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "Brug reservedel",
+      "description": "Noget af en reservedel blev brugt uden for en opgave, fx sprinklervæske fyldt op. Det trækkes fra lageret som delene ved en udførelse; brugte stykker af en genbrugelig del venter på at blive klar igen. Intet bogføres som udgift.",
+      "fields": {
+        "entity_id": {
+          "name": "Reservedel",
+          "description": "Lagersensoren for en eller flere reservedele."
+        },
+        "quantity": {
+          "name": "Antal",
+          "description": "Hvor meget der blev brugt, i delens enhed. Ét, hvis udeladt."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Reservedel klar igen",
       "description": "Brugte stykker af en genbrugelig del er klar igen (opladet, slebet, ...): fra ventebunken tilbage til lageret.",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "{entity_id} er ikke en genbrugelig reservedel med et talt lager."
+    },
+    "part_not_counted": {
+      "message": "{entity_id} er en reservedel uden et talt lager."
     }
   },
   "triggers": {

@@ -86,6 +86,7 @@ from .const import (
     SERVICE_PART_DISPOSE,
     SERVICE_PART_READY_AGAIN,
     SERVICE_PART_RESTOCK,
+    SERVICE_PART_USE,
     SERVICE_RESET,
     SERVICE_SKIP,
     SERVICE_UPDATE_TASK,
@@ -311,6 +312,14 @@ SERVICE_PART_PILE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): vol.All(cv.entity_ids, vol.Length(min=1)),
         vol.Optional("quantity"): _PART_COUNT,
+    }
+)
+
+# #226: the bounds of part/use — a use of nothing is no use.
+SERVICE_PART_USE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): vol.All(cv.entity_ids, vol.Length(min=1)),
+        vol.Optional("quantity"): vol.All(vol.Coerce(float), vol.Range(min=0, min_included=False, max=MAX_PART_STOCK)),
     }
 )
 
@@ -996,9 +1005,10 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         supports_response=SupportsResponse.ONLY,
     )
 
-    # #218: restock, ready again and dispose for automations and dashboard
-    # buttons — the panel's part actions, same tier (write) and the same
-    # runtime calls, so the stock, its events and the buy tasks move alike.
+    # #218: restock, ready again and dispose (and #226 use) for automations
+    # and dashboard buttons — the panel's part actions, same tier (write) and
+    # the same runtime calls, so the stock, its events and the buy tasks move
+    # alike.
     def _resolve_part_targets(entity_ids: list[str]) -> list[tuple[str, ConfigEntry, str]]:
         """Each part stock sensor -> (entity_id, owner entry, part_id); all
         resolved before anything is booked."""
@@ -1063,8 +1073,29 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         ]
         return {"parts": results} if call.return_response else None
 
+    async def _handle_part_use(call: ServiceCall) -> dict[str, Any] | None:
+        from .helpers.aggregate import store_of
+        from .parts_runtime import async_part_use
+
+        targets = _resolve_part_targets(call.data[ATTR_ENTITY_ID])
+        # Every one must have a stock to count down before any is booked.
+        for eid, entry, part_id in targets:
+            store = store_of(entry)
+            if store is None or store.get_part_stock(part_id) is None:
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="part_not_counted",
+                    translation_placeholders={"entity_id": eid},
+                )
+        results = []
+        for eid, entry, part_id in targets:
+            result = await async_part_use(hass, entry, part_id, call.data.get("quantity"))
+            results.append({"entity_id": eid, **(result or {})})
+        return {"parts": results} if call.return_response else None
+
     for service, handler, schema in (
         (SERVICE_PART_RESTOCK, _handle_part_restock, SERVICE_PART_RESTOCK_SCHEMA),
+        (SERVICE_PART_USE, _handle_part_use, SERVICE_PART_USE_SCHEMA),
         (SERVICE_PART_READY_AGAIN, _handle_part_ready_again, SERVICE_PART_PILE_SCHEMA),
         (SERVICE_PART_DISPOSE, _handle_part_dispose, SERVICE_PART_PILE_SCHEMA),
     ):

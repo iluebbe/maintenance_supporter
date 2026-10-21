@@ -834,6 +834,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_delete_part,
         ws_part_dispose,
         ws_part_ready_again,
+        ws_part_use,
         ws_parts_overview,
         ws_restock_part,
         ws_update_part,
@@ -923,6 +924,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_delete_part)
     websocket_api.async_register_command(hass, ws_parts_overview)
     websocket_api.async_register_command(hass, ws_restock_part)
+    websocket_api.async_register_command(hass, ws_part_use)
     websocket_api.async_register_command(hass, ws_part_ready_again)
     websocket_api.async_register_command(hass, ws_part_dispose)
     websocket_api.async_register_command(hass, ws_update_history_entry)

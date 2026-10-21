@@ -742,6 +742,45 @@ export const sharedStyles = css`
     box-shadow: 0 0 0 2px var(--card-background-color);
   }
 
+  /* #225: the objects inside an object — chips on its card that open them,
+     and the objects table drawn as a tree. */
+  .object-card-children { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .object-child-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    min-width: 0; max-width: 100%; min-height: 26px; padding: 2px 10px;
+    font: inherit; font-size: 12px;
+    border: 1px solid var(--divider-color); border-radius: 13px;
+    background: var(--secondary-background-color, rgba(0, 0, 0, 0.04));
+    color: var(--primary-text-color);
+    cursor: pointer;
+  }
+  .object-child-chip:hover { border-color: var(--primary-color); color: var(--primary-color); }
+  .object-child-chip.overdue::before {
+    content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--error-color);
+  }
+  .object-child-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .object-child-count { flex: none; font-size: 11px; color: var(--secondary-text-color); }
+  .object-child-count::before { content: "· "; }
+  .object-tree-toggle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; margin: -2px 2px -2px 0; padding: 0;
+    vertical-align: middle;
+    border: none; border-radius: 50%; background: transparent;
+    color: var(--secondary-text-color); cursor: pointer;
+  }
+  .object-tree-toggle:hover { background: var(--secondary-background-color, rgba(0, 0, 0, 0.06)); color: var(--primary-text-color); }
+  .object-tree-toggle ha-icon { --mdc-icon-size: 18px; }
+  .object-tree-spacer { display: inline-block; width: 26px; }
+  .object-tree-count {
+    margin-left: 6px; padding: 0 7px; border-radius: 10px;
+    font-size: 12px; vertical-align: middle;
+    background: var(--secondary-background-color, rgba(0, 0, 0, 0.06));
+    color: var(--secondary-text-color);
+  }
+  .sub-objects-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .objects-grid.sub-objects { padding-top: 0; }
+
   /* Group-by collapsible sections (#35 + #36) */
   .group-section {
     margin: 12px 0;

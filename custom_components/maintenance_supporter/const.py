@@ -727,6 +727,8 @@ SERVICE_LIST_TASKS = "list_tasks"
 SERVICE_PART_RESTOCK = "part_restock"
 SERVICE_PART_READY_AGAIN = "part_ready_again"
 SERVICE_PART_DISPOSE = "part_dispose"
+# #226: some used outside a task (the washer fluid topped up).
+SERVICE_PART_USE = "part_use"
 
 
 class MaintenanceStatus(StrEnum):

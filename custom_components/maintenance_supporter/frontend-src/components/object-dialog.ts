@@ -14,6 +14,7 @@ type ReplaceDevice = "keep" | "other" | "none";
 import { t, langOf } from "../styles";
 
 import { runWs } from "../helpers/ws-run";
+import { ancestorsOf, descendantIds } from "../helpers/object-tree";
 import "./ms-textfield";
 import "./ms-date-field";
 
@@ -55,7 +56,8 @@ export class MaintenanceObjectDialog extends LitElement {
     return langOf(this.hass);
   }
 
-  public openCreate(): void {
+  /** `parentEntryId` (#225): a new object inside that one. */
+  public openCreate(parentEntryId = ""): void {
     this._entryId = null;
     this._name = "";
     this._manufacturer = "";
@@ -67,7 +69,7 @@ export class MaintenanceObjectDialog extends LitElement {
     this._documentationUrl = "";
     this._notes = "";
     this._haDeviceId = "";
-    this._parentEntryId = "";
+    this._parentEntryId = parentEntryId;
     this._place = "";
     this._remindOnSite = false;
     this._replacing = false;
@@ -266,8 +268,18 @@ export class MaintenanceObjectDialog extends LitElement {
     this.dispatchEvent(new CustomEvent("object-saved", { detail: { device_swap: res?.device_swap } }));
   }
 
-  private _parentChoices(): MaintenanceObjectResponse[] {
-    return (this.objects || []).filter((o) => o.entry_id !== this._entryId);
+  /** Every object but this one and those inside it (the server refuses the
+   *  cycle), each named by its path — "Vehicles › Car" — in path order. */
+  private _parentChoices(): Array<{ entryId: string; label: string }> {
+    const objs = this.objects || [];
+    const below = this._entryId ? descendantIds(objs, this._entryId) : new Set<string>();
+    return objs
+      .filter((o) => o.entry_id !== this._entryId && !below.has(o.entry_id))
+      .map((o) => ({
+        entryId: o.entry_id,
+        label: [...ancestorsOf(objs, o.entry_id), o].map((x) => x.object.name).join(" › "),
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
   }
 
   private _close(): void {
@@ -360,11 +372,12 @@ export class MaintenanceObjectDialog extends LitElement {
                   </option>
                   ${this._parentChoices().map(
                     (o) => html`<option
-                      value=${o.entry_id}
-                      ?selected=${this._parentEntryId === o.entry_id}
-                    >${o.object.name}</option>`,
+                      value=${o.entryId}
+                      ?selected=${this._parentEntryId === o.entryId}
+                    >${o.label}</option>`,
                   )}
                 </select>
+                <span class="md-hint">${t("parent_object_hint", L)}</span>
               </label>`
             : nothing}
           <label class="textarea-field">

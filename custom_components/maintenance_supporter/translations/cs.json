@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "Spotřebovat náhradní díl",
+      "description": "Část náhradního dílu byla spotřebována mimo úkol, například doplněná kapalina do ostřikovačů. Odečte se ze zásoby jako díly při dokončení; použité kusy opakovaně použitelného dílu čekají, až budou znovu připravené. Nic se nezapočítá jako výdaj.",
+      "fields": {
+        "entity_id": {
+          "name": "Náhradní díl",
+          "description": "Senzor zásoby jednoho nebo více náhradních dílů."
+        },
+        "quantity": {
+          "name": "Množství",
+          "description": "Kolik se spotřebovalo, v jednotce dílu. Bez zadání jeden."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Náhradní díl znovu připraven",
       "description": "Použité kusy opakovaně použitelného dílu jsou znovu připravené (nabité, nabroušené, ...): z čekající hromádky zpět do zásoby.",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "{entity_id} není opakovaně použitelný náhradní díl se sledovanou zásobou."
+    },
+    "part_not_counted": {
+      "message": "{entity_id} je náhradní díl bez sledované zásoby."
     }
   },
   "triggers": {

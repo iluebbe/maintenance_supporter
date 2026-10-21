@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "Bruk reservedel",
+      "description": "Noe av en reservedel ble brukt utenom en oppgave, for eksempel spylervæske fylt på. Det trekkes fra lageret som delene ved en utførelse; brukte eksemplarer av en gjenbrukbar del venter på å bli klare igjen. Ingenting føres som utgift.",
+      "fields": {
+        "entity_id": {
+          "name": "Reservedel",
+          "description": "Lagersensoren for én eller flere reservedeler."
+        },
+        "quantity": {
+          "name": "Antall",
+          "description": "Hvor mye som ble brukt, i delens enhet. Én hvis utelatt."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Reservedel klar igjen",
       "description": "Brukte eksemplarer av en gjenbrukbar del er klare igjen (ladet, slipt, ...): fra ventehaugen tilbake til lageret.",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "{entity_id} er ikke en gjenbrukbar reservedel med et telt lager."
+    },
+    "part_not_counted": {
+      "message": "{entity_id} er en reservedel uten et telt lager."
     }
   },
   "triggers": {

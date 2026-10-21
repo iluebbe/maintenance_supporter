@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "예비 부품 사용",
+      "description": "작업 외에 예비 부품을 사용했습니다(워셔액 보충 등). 완료된 작업의 부품처럼 재고에서 빠지며, 재사용 부품의 사용한 것은 다시 준비될 때까지 기다립니다. 지출로 기록되는 것은 없습니다.",
+      "fields": {
+        "entity_id": {
+          "name": "예비 부품",
+          "description": "하나 이상의 예비 부품 재고 센서."
+        },
+        "quantity": {
+          "name": "수량",
+          "description": "사용한 양(부품 단위). 비워 두면 하나."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "예비 부품 다시 준비됨",
       "description": "재사용 부품의 사용한 것이 다시 준비되었습니다(충전, 연마 등). 대기 더미에서 재고로 돌아갑니다.",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "{entity_id}은(는) 재고를 세는 재사용 예비 부품이 아닙니다."
+    },
+    "part_not_counted": {
+      "message": "{entity_id}은(는) 재고를 세지 않는 예비 부품입니다."
     }
   },
   "triggers": {

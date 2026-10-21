@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "Ersatzteil verbrauchen",
+      "description": "Etwas von einem Ersatzteil wurde außerhalb einer Aufgabe verbraucht, etwa Scheibenwischwasser nachgefüllt. Es geht vom Bestand ab wie die Teile einer Erledigung; gebrauchte Stücke eines wiederverwendbaren Teils warten darauf, wieder bereit zu sein. Als Ausgabe wird nichts gebucht.",
+      "fields": {
+        "entity_id": {
+          "name": "Ersatzteil",
+          "description": "Der Bestandssensor eines oder mehrerer Ersatzteile."
+        },
+        "quantity": {
+          "name": "Menge",
+          "description": "Wie viel verbraucht wurde, in der Einheit des Teils. Ohne Angabe eines."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Ersatzteil wieder bereit",
       "description": "Gebrauchte Stücke eines wiederverwendbaren Teils sind wieder bereit (geladen, geschärft, ...): vom Wartestapel zurück in den Bestand.",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "{entity_id} ist kein wiederverwendbares Ersatzteil mit gezähltem Bestand."
+    },
+    "part_not_counted": {
+      "message": "{entity_id} ist ein Ersatzteil ohne gezählten Bestand."
     }
   },
   "triggers": {

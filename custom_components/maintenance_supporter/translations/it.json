@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "Usare un ricambio",
+      "description": "Una parte di un ricambio è stata usata fuori da un'attività, ad esempio liquido lavavetri rabboccato. Esce dalla scorta come i ricambi di un'attività completata; i pezzi usati di un ricambio riutilizzabile aspettano di essere di nuovo pronti. Nulla viene contato come spesa.",
+      "fields": {
+        "entity_id": {
+          "name": "Ricambio",
+          "description": "Il sensore di scorta di uno o più ricambi."
+        },
+        "quantity": {
+          "name": "Quantità",
+          "description": "Quanto è stato usato, nell'unità del ricambio. Uno se omesso."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Ricambio di nuovo pronto",
       "description": "Pezzi usati di un ricambio riutilizzabile sono di nuovo pronti (ricaricati, affilati, ...): dalla pila in attesa di nuovo alla scorta.",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "{entity_id} non è un ricambio riutilizzabile con una scorta conteggiata."
+    },
+    "part_not_counted": {
+      "message": "{entity_id} è un ricambio senza una scorta conteggiata."
     }
   },
   "triggers": {

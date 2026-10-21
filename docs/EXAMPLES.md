@@ -116,6 +116,27 @@ cards:
 ones. `part_restock` takes either `delta` (bought six: `delta: 6`) or
 `absolute` (counted the shelf: `absolute: 14`).
 
+`part_use` (2.108+, #226) books some used outside a task: the washer fluid
+topped up between two oil changes, a cell for the kitchen scale. It comes off
+the stock like the parts of a completion (a reusable part's used ones wait to
+be ready again) and books nothing as spending. An NFC tag on the shelf that
+takes one jug, in the part's unit:
+
+```yaml
+automation:
+  - alias: "Washer fluid: a jug taken from the shelf"
+    triggers:
+      - trigger: tag
+        tag_id: garage-washer-fluid
+    actions:
+      - action: maintenance_supporter.part_use
+        data:
+          entity_id: sensor.garage_shelf_washer_fluid_stock
+          quantity: 5
+```
+
+Without `quantity` it takes one.
+
 ### React to sensor triggers firing
 
 Condition-based tasks (threshold / runtime / count) fire

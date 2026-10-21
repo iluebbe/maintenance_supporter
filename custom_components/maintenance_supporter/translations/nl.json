@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "Reserveonderdeel gebruiken",
+      "description": "Er is iets van een reserveonderdeel gebruikt buiten een taak, zoals ruitensproeiervloeistof bijgevuld. Het gaat van de voorraad af zoals de onderdelen van een voltooiing; gebruikte exemplaren van een herbruikbaar onderdeel wachten tot ze weer klaar zijn. Er wordt niets als uitgave geboekt.",
+      "fields": {
+        "entity_id": {
+          "name": "Reserveonderdeel",
+          "description": "De voorraadsensor van een of meer reserveonderdelen."
+        },
+        "quantity": {
+          "name": "Aantal",
+          "description": "Hoeveel er is gebruikt, in de eenheid van het onderdeel. Zonder waarde één."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Reserveonderdeel weer klaar",
       "description": "Gebruikte exemplaren van een herbruikbaar onderdeel zijn weer klaar (opgeladen, geslepen, ...): van de wachtstapel terug naar de voorraad.",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "{entity_id} is geen herbruikbaar reserveonderdeel met een getelde voorraad."
+    },
+    "part_not_counted": {
+      "message": "{entity_id} is een reserveonderdeel zonder getelde voorraad."
     }
   },
   "triggers": {

@@ -172,6 +172,33 @@ documents.
 
 **Move a task to another object** (2.82+) — a task created on the wrong object: *⋮ → Move to another object…* in the task header. Config, history, readings, adaptive settings, trigger state (incl. counter baselines) and group memberships travel with it; it gets a new reference number under the target object — its completions are numbered afresh there too, so a booklet printed before the move names the old numbers — and its entities are recreated there. Documents stay with the object they were uploaded to.
 
+### Sub-objects (2.108+, #225)
+An object can sit inside another one: *Vehicles* holding both cars, *Lawn &
+Garden* the mower, the trimmer and the snow blower. Set *Parent object* in the
+object dialog, or open the parent and pick *⋮ → Add sub-object*. The dialog
+names every choice by its path (*Vehicles › Car*) and never offers an object
+that sits inside the one being edited.
+
+- **All objects** shows a sub-object as a chip on its parent's card instead of
+  a card of its own, so a long list folds into a few groups; the chip opens
+  it. A container without tasks of its own says how many objects it holds. A
+  parent with anything overdue inside it is marked, and it sorts by what is
+  inside: by due date it comes first when one of its cars is overdue, by task
+  count it counts their tasks too.
+- **The table** draws the tree: a parent's rows fold behind a chevron with
+  their count, and an opened parent stays open in this browser.
+- **The object page** lists its sub-objects first, with *Add sub-object*. The
+  breadcrumb names the chain (*Maintenance / Garden / Mower / Blade set*) and
+  the back arrow goes up one level.
+- An object stands on its own wherever its parent is not listed with it: an
+  archived parent while archived objects are hidden, a parent in another area
+  when grouped by area. Select mode lists every object on its own, so each
+  can be ticked. The objects CSV names the parent in its `object_parent`
+  column.
+
+In Home Assistant, an object's own device is nested under its parent's device
+(2.19+).
+
 ### Complete Dialog
 Optional notes (over several lines, 2.97+), cost (a credit too, 2.97+) and
 duration, an optional **Completed at** date for
@@ -325,8 +352,19 @@ counted takes the missing ones off the pile (charged, never marked ready), so a
 pile nobody empties stays at what is really out of the devices. Undo and
 deleting the completion take the use back, and the pile travels with
 export/import and *Replace object*. Automations and dashboard buttons book the
-same actions through the services `part_restock`, `part_ready_again` and
-`part_dispose` (see [Services](#services)).
+same actions through the services `part_restock`, `part_use`,
+`part_ready_again` and `part_dispose` (see [Services](#services)).
+
+**Used outside a task** (2.108+, #226): the washer fluid on the garage shelf
+goes into the car at the oil change, and in between whenever a car needs some.
+*Use* beside a counted part's stock, on the object's parts shelf and in *All
+parts*, takes some off the stock: one, or a whole package of a part bought in
+packages (the jug that is empty), or any amount in the part's unit. It is
+booked like the parts of a completion, so a reusable part's used ones wait to
+be ready again, and the reorder threshold, its events and the buy reminder
+follow. Nothing is booked as spending, since there is no completion to value
+it on; for a part that counts when used, *Use* says so (such a part is best
+set to count when bought). *Adjust stock* stays for corrections.
 
 **Bought in packages, used in their unit** (2.96+, discussion #98): give a part
 a *package size* — a 400 ml can of contact spray, a 25 kg bag of salt — and it
@@ -1230,7 +1268,7 @@ Archives from before 2.96 (files stored as `blobs/<hash>`) still restore.
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 109 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
+- 110 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock / use), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -1340,12 +1378,14 @@ parameter.
 
 The spare-part actions are services too (2.105+, #218), addressed by the part's
 stock sensor: `part_restock` (`delta`, negative for a correction, or `absolute`),
-`part_ready_again` (`quantity`, all waiting ones when left out) and `part_dispose`
-(`quantity`, one when left out) for the used ones of a reusable part. They need
+`part_use` (2.108+, #226: `quantity`, one when left out; used outside a task,
+booked like a completion's parts and valued nowhere), `part_ready_again`
+(`quantity`, all waiting ones when left out) and `part_dispose` (`quantity`, one
+when left out) for the used ones of a reusable part. They need
 write access like the panel's buttons, accept several parts at once, book
 nothing unless every entity is a part's stock sensor, and return the new counts
 when asked for a response.
-For the full WebSocket API (109 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (110 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

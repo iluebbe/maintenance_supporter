@@ -2139,6 +2139,20 @@
         }
       }
     },
+    "part_use": {
+      "name": "Zużyj część zamienną",
+      "description": "Część zamienną zużyto poza zadaniem, np. dolano płyn do spryskiwaczy. Schodzi z zapasu jak części przy wykonaniu zadania; zużyte sztuki części wielokrotnego użytku czekają, aż będą znów gotowe. Nic nie jest księgowane jako wydatek.",
+      "fields": {
+        "entity_id": {
+          "name": "Część zamienna",
+          "description": "Czujnik zapasu jednej lub kilku części zamiennych."
+        },
+        "quantity": {
+          "name": "Ilość",
+          "description": "Ile zużyto, w jednostce części. Bez wartości jedna."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Część zamienna znów gotowa",
       "description": "Zużyte sztuki części wielokrotnego użytku są znów gotowe (naładowane, naostrzone, ...): z kolejki oczekujących z powrotem do zapasu.",
@@ -2535,6 +2549,9 @@
     },
     "part_not_reusable": {
       "message": "{entity_id} nie jest częścią zamienną wielokrotnego użytku z liczonym zapasem."
+    },
+    "part_not_counted": {
+      "message": "{entity_id} jest częścią zamienną bez liczonego zapasu."
     }
   },
   "triggers": {
