@@ -28,7 +28,7 @@ import { renderDaysProgress } from "./progress";
 import { newestFirst, renderHistoryEntry, renderHistoryFilters, renderHistoryList, type HistoryContext } from "./history";
 import { renderStatusBadge } from "./status";
 import { clampPhaseCursor, effectivePhase, hasPhases } from "../helpers/phases";
-import { renderEventTitles } from "../helpers/event-titles";
+import { renderEventTitles, renderTriggerDetail } from "../helpers/event-titles";
 import "../components/task-documents";
 
 export interface TaskDetailContext {
@@ -127,7 +127,7 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
   return html`
     <div class="task-header">
       <div class="task-header-title">
-        <span class="task-name-breadcrumb" @click=${() => ctx.showTaskView()}>${task.name}${renderEventTitles(task.next_event_titles)}</span>
+        <span class="task-name-breadcrumb" @click=${() => ctx.showTaskView()}>${task.name}${renderEventTitles(task.next_event_titles)}${renderTriggerDetail(task.trigger_detail)}</span>
         ${renderRefChip(ctx.taskRef ?? null, t("ref_number", L))}
         <span class="breadcrumb-separator">·</span>
         <span class="object-name-breadcrumb" @click=${() => ctx.showObject()}>${ctx.objectName}</span>

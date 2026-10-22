@@ -162,6 +162,7 @@
     "_trigger_state": {},
     "attribute": "level",
     "auto_complete_on_recovery": true,
+    "detail_attribute": "level",
     "entity_id": "sensor.contract_a",
     "entity_ids": [
       "sensor.contract_a",
@@ -175,6 +176,7 @@
   },
   "trigger_current_delta": null,
   "trigger_current_value": null,
+  "trigger_detail": null,
   "trigger_entity_info": {
     "entity_id": "sensor.contract_a",
     "friendly_name": "Contract A",

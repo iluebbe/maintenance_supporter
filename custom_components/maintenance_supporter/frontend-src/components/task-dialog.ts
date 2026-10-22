@@ -190,6 +190,15 @@ function monthNames(lang?: string): string[] {
   return Array.from({ length: 12 }, (_, i) => monthName(i, lang, "short"));
 }
 
+/** #228: an attribute's value as a short preview for the Show-with-the-task
+ *  choices ("Trulicity: 3 left"); the server formats the real detail. */
+function attributePreview(value: unknown): string {
+  const text = Array.isArray(value)
+    ? value.filter((v) => v !== null && v !== undefined && v !== "").join(", ")
+    : value !== null && typeof value === "object" ? "" : value === undefined || value === null ? "" : String(value);
+  return text.length > 40 ? `${text.slice(0, 39)}…` : text;
+}
+
 export class MaintenanceTaskDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean, attribute: "checklists-enabled" }) public checklistsEnabled = false;
@@ -321,6 +330,9 @@ export class MaintenanceTaskDialog extends LitElement {
   // tasks ship e.g. ["mowing"], and dropping it on save silently stops
   // the accumulation.
   @state() private _triggerOnStates = "";
+  /** #228: an attribute of the watched entity shown with the task while the
+   *  trigger is active ("" = none). */
+  @state() private _triggerDetailAttribute = "";
   // Compound trigger (type === "compound"): a list of conditions + AND/OR logic
   @state() private _compoundLogic: "AND" | "OR" = "AND";
   @state() private _compoundConditions: CompoundConditionDraft[] = [];
@@ -649,6 +661,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._liveBaselineValue = task.trigger_baseline_value ?? null;
       this._autoCompleteOnRecovery = tc.auto_complete_on_recovery || false;
       this._triggerRuntimeMaxSession = tc.trigger_runtime_max_session_seconds?.toString() || "";
+      this._triggerDetailAttribute = tc.detail_attribute || "";
       if (tc.type === "compound") {
         this._compoundLogic = tc.compound_logic === "OR" ? "OR" : "AND";
         this._compoundConditions = (tc.conditions || []).map(conditionToDraft);
@@ -810,6 +823,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._liveBaselineValue = null;
     this._autoCompleteOnRecovery = false;
     this._triggerRuntimeMaxSession = "";
+    this._triggerDetailAttribute = "";
     this._compoundLogic = "AND";
     this._compoundConditions = [];
   }
@@ -1764,6 +1778,7 @@ export class MaintenanceTaskDialog extends LitElement {
         };
         if (this._autoCompleteOnRecovery) triggerConfig.auto_complete_on_recovery = true;
         if (this._triggerCombinator === "all") triggerConfig.trigger_combinator = "all";
+        if (this._triggerDetailAttribute) triggerConfig.detail_attribute = this._triggerDetailAttribute;
         data.trigger_config = triggerConfig;
       } else if (this._taskId) {
         data.trigger_config = null;
@@ -1781,6 +1796,7 @@ export class MaintenanceTaskDialog extends LitElement {
       applyTypeFields(triggerConfig, this._typeFields());
       if (this._autoCompleteOnRecovery) triggerConfig.auto_complete_on_recovery = true;
       if (this._triggerCombinator === "all") triggerConfig.trigger_combinator = "all";
+      if (this._triggerDetailAttribute) triggerConfig.detail_attribute = this._triggerDetailAttribute;
 
       // Multi-entity: store entity_logic for all trigger types
       if (entityIds.length > 1) {
@@ -1942,6 +1958,7 @@ export class MaintenanceTaskDialog extends LitElement {
         ${this._renderTriggerTypeFields()}
         ${this._renderTriggerLiveHint()}
       `}
+      ${this._renderDetailAttributeSelect(L)}
       <label>
         <input
           type="checkbox"
@@ -2225,6 +2242,43 @@ export class MaintenanceTaskDialog extends LitElement {
         @input=${(e: Event) => cfg.onSelect((e.target as HTMLInputElement).value.trim())}
       ></ms-textfield>
     `;
+  }
+
+  /** #228: Show with the task — an attribute of the watched entities (every
+   *  condition's for a compound trigger) whose value says what the active
+   *  trigger is about: which medicine runs low. Any attribute, numeric or
+   *  not, each with its value now; a text field while none are known. */
+  private _renderDetailAttributeSelect(L: string) {
+    const ids = this._triggerType === "compound"
+      ? this._compoundConditions.flatMap((c) => c.entityIds.split(",").map((s) => s.trim()).filter(Boolean))
+      : (this._triggerEntityIds.length ? this._triggerEntityIds : [this._triggerEntityId]).filter(Boolean);
+    if (!ids.length) return nothing;
+    const states = this.hass?.states ?? {};
+    const names = new Map<string, string>(); // attribute → its value now, for the label
+    for (const id of ids) {
+      this._fetchConditionAttributes(id);
+      for (const a of this._conditionAttrOptions[id]?.available ?? []) {
+        if (!names.has(a.name)) names.set(a.name, attributePreview(states[id]?.attributes?.[a.name]));
+      }
+    }
+    const value = this._triggerDetailAttribute;
+    if (value && !names.has(value)) names.set(value, "");
+    const label = t("trigger_detail_attribute", L);
+    const field = names.size
+      ? html`
+        <div class="select-row">
+          <label>${label}</label>
+          <select class="detail-attribute-select" aria-label=${label} .value=${value}
+            @change=${(e: Event) => (this._triggerDetailAttribute = (e.target as HTMLSelectElement).value)}>
+            <option value="" ?selected=${!value}>${t("trigger_detail_none", L)}</option>
+            ${[...names.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([name, now]) =>
+              html`<option value=${name} ?selected=${name === value}>${now ? `${name}: ${now}` : name}</option>`)}
+          </select>
+        </div>`
+      : html`
+        <ms-textfield class="detail-attribute-input" label=${label} .value=${value}
+          @input=${(e: Event) => (this._triggerDetailAttribute = (e.target as HTMLInputElement).value.trim())}></ms-textfield>`;
+    return html`${field}<div class="field-help">${t("trigger_detail_attribute_help", L)}</div>`;
   }
 
   /** Environmental attribute — the same live-fetched dropdown the flat and

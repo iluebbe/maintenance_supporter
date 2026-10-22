@@ -111,6 +111,8 @@ const READONLY = new Set([
   // #189: titles of the calendar events behind next_due — computed, read-only.
   "next_event_titles",
   "trigger_active",
+  // #228: the detail attribute's value while the trigger is active — computed.
+  "trigger_detail",
   "trigger_current_value",
   "trigger_entity_state",
   "trigger_current_delta",

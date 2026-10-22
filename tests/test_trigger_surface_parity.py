@@ -76,6 +76,9 @@ _FLOW_FIELDLESS_OK = {
     # value (#102) — both carried over verbatim by the rebuild.
     "auto_complete_on_recovery",
     "trigger_baseline_value",
+    # #228: the detail shown with a triggered task — set in the panel,
+    # carried across both rebuilds (plain and compound).
+    "detail_attribute",
 }
 
 

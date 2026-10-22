@@ -24,7 +24,7 @@ import type {
 import { UserService } from "./user-service";
 import { personOf, renderPersonAvatar, type PersonDisplay } from "./helpers/person";
 import { phaseLabel } from "./helpers/phases";
-import { renderEventTitles } from "./helpers/event-titles";
+import { renderEventTitles, renderTriggerDetail } from "./helpers/event-titles";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
 import { fetchSettingsOnce, FALLBACK_SETTINGS, type SettingsCache } from "./helpers/settings-cache";
 import { canWrite } from "./helpers/permissions";
@@ -586,7 +586,7 @@ export class MaintenanceSupporterCard extends LitElement {
                       <div class="status-dot" style="background: ${statusColor(task)}"></div>
                       <div class="task-info">
                         <div class="task-name">
-                          ${task.name}${renderEventTitles(task.next_event_titles)}
+                          ${task.name}${renderEventTitles(task.next_event_titles)}${renderTriggerDetail(task.trigger_detail)}
                           ${(task as any).due_override
                             ? html`<ha-icon
                                 class="postponed-icon"

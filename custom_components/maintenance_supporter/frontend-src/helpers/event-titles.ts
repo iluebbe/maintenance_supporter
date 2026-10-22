@@ -14,3 +14,11 @@ export function renderEventTitles(titles: readonly string[] | null | undefined) 
   if (!list.length) return nothing;
   return html`<span class="event-titles"> · ${list.join(", ")}</span>`;
 }
+
+/** #228: what an active sensor trigger is about (`trigger_detail`, the value
+ *  of its *Show with the task* attribute): "Buy medicine · Trulicity: 3
+ *  left". Muted after the name like the event titles; the backend sends it
+ *  only while the trigger is active, and the reminder carries the same text. */
+export function renderTriggerDetail(detail: string | null | undefined) {
+  return detail ? html`<span class="event-titles trigger-detail"> · ${detail}</span>` : nothing;
+}

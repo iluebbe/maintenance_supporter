@@ -194,6 +194,7 @@ def _full_trigger_config() -> dict:
         "conditions": [{"type": "threshold", "entity_id": "sensor.sub", "trigger_above": 1}],
         "auto_complete_on_recovery": True,
         "trigger_combinator": "all",
+        "detail_attribute": "low",
     }
     missing = _TRIGGER_ALLOWED_KEYS - set(dummies)
     assert not missing, (

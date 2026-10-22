@@ -112,6 +112,8 @@ export interface TriggerConfig {
   conditions?: Array<TriggerConfig>;
   /** Record a completion when the trigger clears itself (#53). */
   auto_complete_on_recovery?: boolean;
+  /** #228: an attribute of the watched entity shown with the task while triggered. */
+  detail_attribute?: string | null;
 }
 
 export interface TriggerEntityInfo {
@@ -325,6 +327,8 @@ export interface MaintenanceTask {
   /** Per-occurrence postpone: the ISO date the current cycle was deferred to. */
   due_override?: string | null;
   trigger_active: boolean;
+  /** #228: the trigger's detail attribute's value, while the trigger is active. */
+  trigger_detail?: string | null;
   trigger_current_value?: number | null;
   trigger_current_delta?: number | null;
   trigger_baseline_value?: number | null;
@@ -615,6 +619,7 @@ export interface TaskRow {
   /** D#203: shown as "done N d ago" when the task has no due date. */
   last_performed?: string | null;
   trigger_active: boolean;
+  trigger_detail?: string | null;
   trigger_current_value: number | null;
   trigger_current_delta: number | null;
   trigger_baseline_value?: number | null;

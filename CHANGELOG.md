@@ -2,6 +2,25 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.109.0] - 2026-10-22
+
+### ✨ Added
+
+- **A triggered task can say what its trigger is about** (#228, thanks @ph-dekeyser). The task dialog's sensor trigger
+  has *Show with the task*: one attribute of the watched entity, such as the `low` list of a medication sensor. While
+  the trigger is active its value follows the task's name in every list (*Buy medicine · Trulicity: 3 left*), ends the
+  triggered reminder (and the task's line in a bundle), is the item's description in the integration's to-do list and
+  the new `trigger_detail` field of the notification event. The value is read when it is shown, so it stays current
+  while the task waits. A compound trigger reads it from every condition's entity, and with several entities each
+  value is named after its entity.
+
+### ✨ Changed
+
+- **Add sub-object** (#225 follow-up, thanks @Bunky101) offers three choices: a new object, one from a template (the
+  gallery says where it goes) or an object you already have, moved inside with whatever sits inside it. The move
+  lists each object by its path and leaves out the ones that cannot go there. `object/from_template` takes a
+  `parent_entry_id`.
+
 ## [2.108.0] - 2026-10-21
 
 ### ✨ Added

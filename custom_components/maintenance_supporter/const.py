@@ -557,6 +557,9 @@ CONF_TRIGGER_FOR_MINUTES = "trigger_for_minutes"
 # "all" — the task only becomes due once the trigger fired AND the interval
 # elapsed (the interval acts as a minimum age, not a deadline).
 CONF_TRIGGER_COMBINATOR = "trigger_combinator"
+# #228: an attribute of the trigger's entity shown with the task while the
+# trigger is active (which medicine runs low); helpers/trigger_detail.py.
+CONF_TRIGGER_DETAIL_ATTRIBUTE = "detail_attribute"
 CONF_TRIGGER_TARGET_VALUE = "trigger_target_value"
 CONF_TRIGGER_DELTA_MODE = "trigger_delta_mode"
 CONF_TRIGGER_BASELINE_VALUE = "trigger_baseline_value"

@@ -562,6 +562,10 @@ Any key outside the whitelist is stripped.
 - `entity_logic`: `"any"` | `"all"` (multi-entity aggregation; default `any`)
 - `attribute`: `str|null` — monitor an attribute instead of the state value
 - `auto_complete_on_recovery`: `bool` — auto-record completion when trigger clears
+- `detail_attribute`: `str|null` (2.109+) — an attribute of the watched entity
+  shown with the task while the trigger is active (the task summary's
+  `trigger_detail`, the reminder's last line), e.g. `"low"` of a medication
+  sensor. Also on a compound trigger (read from every condition's entity).
 - `trigger_combinator`: `"any"` (default) | `"all"` — how the trigger pairs with
   the task's safety interval. `any` = whichever is met first makes the task due;
   `all` = the task only becomes due once the trigger fired AND the interval

@@ -170,6 +170,7 @@ def notification_context(
         "responsible_user_id": responsible_user_id,
         "sensor_entity_id": task.get("sensor_entity_id"),
         "trigger_entity_id": task.get("trigger_entity_id"),
+        "trigger_detail": task.get("trigger_detail"),
         "url": url,
         "tasks": task_items,
         **extra,
@@ -217,6 +218,7 @@ def sample_notification_context(hass: HomeAssistant) -> dict[str, Any]:
         last_performed=(today - timedelta(days=87)).isoformat(),
         sensor_entity_id="sensor.sample_object_sample_task",
         trigger_entity_id="sensor.sample_trigger",
+        trigger_detail="Sample detail",
         url=PANEL_PATH,
     )
 
@@ -249,6 +251,7 @@ def _task_block(hass: HomeAssistant, entry: Any, obj: Mapping[str, Any], task_id
     its status sensor and trigger entity."""
     from ..entity.triggers import primary_entity_id
     from .aggregate import task_sensor_entity_id
+    from .trigger_detail import trigger_detail
 
     td = (entry.data.get(CONF_TASKS) or {}).get(task_id) or {}
     if not td:
@@ -290,6 +293,8 @@ def _task_block(hass: HomeAssistant, entry: Any, obj: Mapping[str, Any], task_id
         # with only the plural entity_ids read null).
         "sensor_entity_id": task_sensor_entity_id(hass, obj, task_id),
         "trigger_entity_id": primary_entity_id(trigger),
+        # #228: the trigger's detail attribute, as the reminder shows it.
+        "trigger_detail": trigger_detail(hass, trigger),
     }
 
 

@@ -126,6 +126,7 @@ def _build_task_summary(
     """
     from ..entity.triggers import normalize_entity_ids
     from ..helpers.schedule import KIND_CALENDAR, Schedule, read_legacy_fields
+    from ..helpers.trigger_detail import trigger_detail
 
     ct = coordinator_task or {}
 
@@ -293,6 +294,8 @@ def _build_task_summary(
         # #189: titles of the calendar events behind next_due (calendar kind).
         "next_event_titles": list(ct.get("_next_event_titles") or []),
         "trigger_active": ct.get("_trigger_active", False),
+        # #228: what the active trigger is about, from its detail attribute.
+        "trigger_detail": trigger_detail(hass, trigger_config) if ct.get("_trigger_active") else None,
         "trigger_current_value": ct.get("_trigger_current_value"),
         "trigger_entity_state": ct.get("_trigger_entity_state", "available"),
         "trigger_current_delta": ct.get("_trigger_current_delta"),

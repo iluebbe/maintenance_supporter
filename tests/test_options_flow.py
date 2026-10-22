@@ -1527,6 +1527,8 @@ async def test_edit_trigger_keeps_panel_managed_keys(
         "trigger_baseline_value": 20000.0,
         "auto_complete_on_recovery": True,
         "trigger_runtime_max_session_seconds": 3600,
+        # #228: the detail shown with the triggered task
+        "detail_attribute": "low",
     }
     new_tasks[task_id] = task
     new_data[CONF_TASKS] = new_tasks
@@ -1563,6 +1565,7 @@ async def test_edit_trigger_keeps_panel_managed_keys(
     assert tc["trigger_baseline_value"] == 20000.0
     assert tc["auto_complete_on_recovery"] is True
     assert tc["trigger_runtime_max_session_seconds"] == 3600
+    assert tc["detail_attribute"] == "low"
 
 
 async def test_edit_trigger_starts_from_the_task_and_keeps_the_unit(

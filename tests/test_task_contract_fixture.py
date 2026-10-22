@@ -65,6 +65,8 @@ _MAXIMAL_TASK = {
         "trigger_below": 10,
         "trigger_for_minutes": 5,
         "auto_complete_on_recovery": True,
+        # #228: the detail shown with the triggered task
+        "detail_attribute": "level",
     },
     "warning_days": 9,
     "earliest_completion_days": 3,

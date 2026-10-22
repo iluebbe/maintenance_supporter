@@ -1048,9 +1048,11 @@ _BUNDLED_LINE_KEYS: dict[str, str] = {
 }
 
 
-def _bundled_line(status: Any, lang: str, task_name: str) -> str:
-    """One task's line in a bundle / quiet-hours summary."""
-    return _notif_t(_BUNDLED_LINE_KEYS.get(str(status or ""), "bundled_due_soon"), lang, task=task_name)
+def _bundled_line(status: Any, lang: str, task_name: str, detail: str | None = None) -> str:
+    """One task's line in a bundle / quiet-hours summary; a triggered task's
+    detail (#228) follows it."""
+    line = _notif_t(_BUNDLED_LINE_KEYS.get(str(status or ""), "bundled_due_soon"), lang, task=task_name)
+    return f"{line} · {detail}" if detail else line
 
 
 def task_key_of(entry_id: str, task_id: str) -> str:
@@ -1493,6 +1495,16 @@ class NotificationManager:
             return False
         return bool(task_may_notify(self.hass, entry_id, task_id, status, self._task_config(entry_id, task_id), kind=KIND_STATUS, manager=self))
 
+    def _trigger_detail(self, status: Any, entry_id: Any, task_id: Any, task_data: Mapping[str, Any] | None = None) -> str | None:
+        """#228: what a TRIGGERED task's trigger is about (its detail
+        attribute's value), for its reminder; None for any other status."""
+        if str(status or "") != MaintenanceStatus.TRIGGERED or not entry_id or not task_id:
+            return None
+        from .trigger_detail import trigger_detail
+
+        cfg = task_data if task_data is not None else self._task_config(str(entry_id), str(task_id))
+        return trigger_detail(self.hass, cfg.get("trigger_config"))
+
     def _task_config(self, entry_id: str, task_id: str) -> Mapping[str, Any]:
         """The task's static config dict (``entry.data``) — carries the flags
         the computed coordinator payload drops (``notify_enabled``,
@@ -1830,7 +1842,7 @@ class NotificationManager:
         lang = self._lang
         parts: list[str] = []
         for f in held:
-            line = _bundled_line(f.get("status"), lang, str(f.get("task_name") or ""))
+            line = _bundled_line(f.get("status"), lang, str(f.get("task_name") or ""), self._trigger_detail(f.get("status"), f.get("entry_id"), f.get("task_id")))
             parts.append(f"{f.get('object_name') or ''}: {line}" if f.get("object_name") else line)
         title = _notif_t("quiet_end_title", lang, count=str(len(held)))
         message = "; ".join(parts)
@@ -2054,6 +2066,9 @@ class NotificationManager:
         # Build translated message
         lang = self._lang
         title, message = self._build_message(new_status, lang, task_name, object_name, days_until_due, next_due)
+        # #228: a triggered task says what its trigger is about.
+        if detail := self._trigger_detail(new_status, entry_id, task_id, task_data):
+            message = f"{message}\n{detail}"
 
         context = notification_context(
             self.hass,
@@ -2298,7 +2313,9 @@ class NotificationManager:
         lang = self._lang
         by_object: dict[str, list[str]] = {}
         for t in due:
-            by_object.setdefault(str(t["object_name"]), []).append(_bundled_line(t["status"], lang, str(t["task_name"])))
+            by_object.setdefault(str(t["object_name"]), []).append(
+                _bundled_line(t["status"], lang, str(t["task_name"]), self._trigger_detail(t["status"], t["entry_id"], t["task_id"], t.get("task_data")))
+            )
         task_list = "; ".join(f"{name}: {', '.join(lines)}" for name, lines in by_object.items())
         entry_ids = sorted({str(t["entry_id"]) for t in due})
         single = entry_ids[0] if len(entry_ids) == 1 else None
@@ -2395,7 +2412,7 @@ class NotificationManager:
             return
 
         lang = self._lang
-        task_parts = [_bundled_line(t["status"], lang, t["task_name"]) for t in tasks]
+        task_parts = [_bundled_line(t["status"], lang, t["task_name"], self._trigger_detail(t["status"], entry_id, t.get("task_id"))) for t in tasks]
 
         title = _notif_t("bundled_title", lang, count=str(len(tasks)))
         message = _notif_t("bundled_message", lang, object=object_name, task_list=", ".join(task_parts))

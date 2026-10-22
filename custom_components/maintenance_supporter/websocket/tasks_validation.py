@@ -129,7 +129,12 @@ _TRIGGER_ALLOWED_KEYS: set[str] = {
     "auto_complete_on_recovery",
     # trigger ∧/∨ safety interval (any = whichever first, all = both required)
     "trigger_combinator",
+    # #228: an attribute of the watched entity shown with the triggered task
+    "detail_attribute",
 }
+
+# The longest attribute name a detail_attribute may hold.
+_MAX_DETAIL_ATTRIBUTE_LENGTH = 255
 
 
 def _validate_trigger_config(
@@ -154,6 +159,8 @@ def _validate_trigger_config(
     if not isinstance(trigger_type, str) or trigger_type not in _VALID_TRIGGER_TYPES:
         errors.append(f"Invalid trigger type '{trigger_type}'. Must be one of: {', '.join(sorted(_VALID_TRIGGER_TYPES))}")
         return errors, warnings
+
+    _normalize_detail_attribute(trigger_config, errors)
 
     # --- Compound triggers ---
     if trigger_type == "compound":
@@ -369,6 +376,26 @@ def _validate_trigger_values(trigger_type: str, trigger_config: dict[str, Any], 
                 "trigger_config.trigger_target_value must be greater than 0 when trigger_delta_mode is on, "
                 f"got {trigger_config.get('trigger_target_value')!r}"
             )
+
+
+def _normalize_detail_attribute(trigger_config: dict[str, Any], errors: list[str]) -> None:
+    """#228: the attribute shown with the task while triggered — a name, or
+    absent (an empty or null value clears it). Plain and compound alike: a
+    compound trigger reads it from every condition's entities."""
+    raw = trigger_config.get("detail_attribute")
+    if raw is None:
+        trigger_config.pop("detail_attribute", None)
+        return
+    if not isinstance(raw, str):
+        errors.append(f"trigger_config.detail_attribute must be an attribute name, got {raw!r}")
+        return
+    name = raw.strip()
+    if not name:
+        del trigger_config["detail_attribute"]
+    elif len(name) > _MAX_DETAIL_ATTRIBUTE_LENGTH:
+        errors.append(f"trigger_config.detail_attribute must be at most {_MAX_DETAIL_ATTRIBUTE_LENGTH} characters")
+    else:
+        trigger_config["detail_attribute"] = name
 
 
 def _validate_combinator(trigger_config: dict[str, Any], errors: list[str]) -> None:

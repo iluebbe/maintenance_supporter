@@ -11,6 +11,13 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ## Next up (recommended order)
 
+### ✅ What a trigger is about, sub-objects from a template (#228, #225) — shipped 2.109
+
+A sensor trigger can name an attribute of its entity to show with the task
+while it is triggered (*Buy medicine · Trulicity: 3 left*): in the lists, the
+reminder, the to-do list and the notification event. *Add sub-object* also
+starts from a template or moves an object you already have inside.
+
 ### ✅ Sub-objects, a part used outside a task (#225, #226) — shipped 2.108
 
 An object can sit inside another one (*Garden* holding the mower and the pool

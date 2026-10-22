@@ -565,6 +565,13 @@ class TriggerConfigMixin:
                     if prev_tc.get(CONF_TRIGGER_COMBINATOR)
                     else {}
                 ),
+                # #228: the detail shown with the triggered task is
+                # panel-managed too (no flow field).
+                **(
+                    {"detail_attribute": prev_tc["detail_attribute"]}
+                    if prev_tc.get("detail_attribute")
+                    else {}
+                ),
             }
             return await next_step()
 
@@ -980,6 +987,9 @@ class TriggerConfigMixin:
             edited = (self._current_task.get("_edit_defaults") or {}).get("trigger_config") or {}
             if CONF_TRIGGER_COMBINATOR in edited:
                 self._current_task["trigger_config"][CONF_TRIGGER_COMBINATOR] = edited[CONF_TRIGGER_COMBINATOR]
+            # #228: so does the detail shown with the triggered task.
+            if edited.get("detail_attribute"):
+                self._current_task["trigger_config"]["detail_attribute"] = edited["detail_attribute"]
             _apply_recovery_flag(self._current_task["trigger_config"], user_input)
             if not hasattr(self, "_compound_conditions"):
                 self._compound_conditions: list[dict[str, Any]] = []

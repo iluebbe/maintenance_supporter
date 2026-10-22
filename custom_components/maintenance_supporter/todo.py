@@ -37,6 +37,7 @@ from .const import (
 )
 from .helpers.pause import is_task_inert
 from .helpers.todo_mirror import mirror_summary
+from .helpers.trigger_detail import trigger_detail
 
 if TYPE_CHECKING:
     from . import MaintenanceSupporterConfigEntry
@@ -139,6 +140,8 @@ class MaintenanceTodoList(TodoListEntity):
                         summary=mirror_summary(obj_name, {**task_cfg, **task_live}),
                         status=(TodoItemStatus.NEEDS_ACTION if status in _ACTION_STATUSES else TodoItemStatus.COMPLETED),
                         due=due,
+                        # #228: what an active trigger is about.
+                        description=trigger_detail(self._hass, task_cfg.get("trigger_config")) if task_live.get("_trigger_active") else None,
                     )
                 )
         return items
