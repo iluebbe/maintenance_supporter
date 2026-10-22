@@ -99,6 +99,10 @@ per object:
 
 ![Several tasks changed at once](images/gifs/bulk-edit.gif)
 
+**Objects inside objects (2.108)** — *Garden* holds the mower and the pool pump as chips and is marked while one of them is overdue; a chip opens the mower, the breadcrumb names the chain, and the back arrow climbs up again
+
+![Sub-objects: a chip opens the mower, the back arrow climbs up](images/gifs/sub-objects.gif)
+
 ## Screenshots
 
 | Dashboard | Task Detail | Mobile |
@@ -185,11 +189,20 @@ that sits inside the one being edited.
   parent with anything overdue inside it is marked, and it sorts by what is
   inside: by due date it comes first when one of its cars is overdue, by task
   count it counts their tasks too.
+
+  ![All objects by due date: Utility Room and Garden hold their objects as chips](images/objects-sub-objects.png)
+
 - **The table** draws the tree: a parent's rows fold behind a chevron with
   their count, and an opened parent stays open in this browser.
+
+  ![The objects table: Garden unfolded down to the mower's charging station, Utility Room folded with its count](images/objects-table-tree.png)
+
 - **The object page** lists its sub-objects first, with *Add sub-object*. The
   breadcrumb names the chain (*Maintenance / Garden / Mower / Blade set*) and
   the back arrow goes up one level.
+
+  ![The mower's page: the breadcrumb through Garden, its charging station above the tasks](images/object-sub-objects.png)
+
 - An object stands on its own wherever its parent is not listed with it: an
   archived parent while archived objects are hidden, a parent in another area
   when grouped by area. Select mode lists every object on its own, so each
@@ -326,7 +339,8 @@ admins.
 The object's parts shelf (below the task list): a stocked descaler (6 pcs),
 the water filter **at its reorder threshold** (orange low badge + cart icon —
 its auto-created *Buy…* task is already in the task list above), and a
-catalog-only seal with just identifiers. Stock adjust, edit and delete per row.
+catalog-only seal with just identifiers. *Use* beside each counted stock
+(2.108+), stock adjust, edit and delete per row.
 The paperclip on a row (2.26+) links the object's **documents** to that part —
 datasheet or receipt right at the shelf; part links survive export/import and
 *Replace object* like task links do.
@@ -366,6 +380,8 @@ follow. Nothing is booked as spending, since there is no completion to value
 it on; for a part that counts when used, *Use* says so (such a part is best
 set to count when bought). *Adjust stock* stays for corrections.
 
+![Use on the washer fluid: a whole 5 l jug prefilled](images/part-use.png)
+
 **Bought in packages, used in their unit** (2.96+, discussion #98): give a part
 a *package size* — a 400 ml can of contact spray, a 25 kg bag of salt — and it
 is bought per package but used per unit. The stock, what a task uses and the
@@ -394,6 +410,8 @@ they go in, while the pool chemicals and the ink count in the year they were
 bought. A completion books the parts that count when used and names the
 others as counted at purchase; a purchase counts, or becomes the part's price,
 by the part it buys.
+
+![The part form: Counts as spending set to When bought for the washer fluid](images/part-cost-mode.png)
 
 Each history entry keeps how it was booked, so switching changes what comes
 after and never re-values the past — an entry you booked by hand under the old

@@ -824,7 +824,12 @@ const deepFindPanel = `
 `;
 
 const failures = [];
+// Some pictures only (node shots-demo.mjs a.png,b.png): the seed and its
+// extras still run, every other step is skipped. A step that leans on the
+// page an earlier step left open has to open the panel itself.
+const only = process.argv[2] ? process.argv[2].split(",") : null;
 async function step(name, fn) {
+  if (only && !only.includes(name)) return;
   log("STEP", name);
   try { await fn(); log("OK", name); }
   catch (e) { failures.push(name); log("FAIL", name, String(e && e.message || e).slice(0, 300)); }
@@ -860,7 +865,7 @@ async function shot(name, page = p) {
 
 // Open the task dialog in edit mode for a named task, optionally scrolling a
 // section heading into view (matched by rendered text).
-async function openTaskDialog(objName, taskName, scrollToText) {
+async function openTaskDialog(objName, taskName, scrollToText, retry = false) {
   await p.evaluate(({ finder, objName, taskName, scrollToText }) => {
     eval(finder);
     const panel = window.__panel;
@@ -871,7 +876,7 @@ async function openTaskDialog(objName, taskName, scrollToText) {
     if (scrollToText) {
       // The action + quick-complete sections are collapsed <details> — open
       // the matching one and scroll its summary into view. Plain section
-      // headings (h3, e.g. "Trigger Configuration") match too: since the
+      // headings (h3, e.g. "Sensor trigger" since #216) match too: since the
       // dialog grew (entity pickers, adaptive section) the default scroll
       // position no longer happens to show the trigger area.
       setTimeout(() => {
@@ -890,11 +895,24 @@ async function openTaskDialog(objName, taskName, scrollToText) {
     }
   }, { finder: deepFindPanel, objName, taskName, scrollToText: scrollToText || null });
   await p.waitForTimeout(2000);
+  // An Escape on the previous dialog closes it only after its animation: an
+  // openEdit that lands before that is undone by the late "closed" event
+  // (multi-entity-trigger.png showed the bare dashboard, 2026-10-22).
+  const open = await p.evaluate(({ finder }) => {
+    eval(finder);
+    const dlg = window.__panel.shadowRoot.querySelector("maintenance-task-dialog");
+    return !!dlg && dlg._open && !!dlg.shadowRoot.querySelector("ha-dialog");
+  }, { finder: deepFindPanel });
+  if (!open) {
+    if (retry) throw new Error(`task dialog for ${taskName} did not open`);
+    await p.waitForTimeout(800);
+    return openTaskDialog(objName, taskName, scrollToText, true);
+  }
 }
 
 async function closeDialogs() {
   await p.keyboard.press("Escape");
-  await p.waitForTimeout(500);
+  await p.waitForTimeout(1200);
 }
 
 // 1. Dashboard overview — sparklines, user badges, priorities, Triggered KPI
@@ -1226,6 +1244,7 @@ await step("task-dialog-calendar.png", async () => {
 
 // 8e. (2.89, #185) Task dialog — notification icon override with preview + type default
 await step("task-dialog-notify-icon.png", async () => {
+  await openPanel("dashboard");
   await openTaskDialog("Smoke Detectors", "Test Buttons");
   await p.evaluate(({ finder }) => {
     eval(finder);
@@ -1255,14 +1274,15 @@ await step("task-dialog-schedule.png", async () => {
 
 // 11. Multi-entity trigger (Smoke Detectors battery — ANY-of-two threshold)
 await step("multi-entity-trigger.png", async () => {
-  await openTaskDialog("Smoke Detectors", "Battery Replacement", "trigger config");
+  await openPanel("dashboard");
+  await openTaskDialog("Smoke Detectors", "Battery Replacement", "sensor trigger");
   await shot("multi-entity-trigger.png");
   await closeDialogs();
 });
 
 // 12. Compound trigger (Pump Service — runtime OR pressure)
 await step("compound-trigger.png", async () => {
-  await openTaskDialog("Pool Pump", "Pump Service", "trigger config");
+  await openTaskDialog("Pool Pump", "Pump Service", "sensor trigger");
   await shot("compound-trigger.png");
   await closeDialogs();
 });
@@ -1372,6 +1392,7 @@ await step("entity-attributes.png", async () => {
 // 17. Lovelace card — a dedicated storage-mode dashboard (saving the default
 // config has no effect: HA 2026 renders its auto home dashboard on /lovelace).
 await step("lovelace-card.png", async () => {
+  await openPanel();
   await p.evaluate(async () => {
     const hass = document.querySelector("home-assistant").hass;
     const send = (m) => hass.connection.sendMessagePromise(m);

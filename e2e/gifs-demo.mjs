@@ -23,6 +23,7 @@
  *   counter-reset.gif          complete a robot's brush task → the robot's own counter resets (2.95)
  *   areas.gif                  All objects → All areas → an area's history and costs (#191)
  *   bulk-edit.gif              three tasks, one person for all of them, the rows change together, Undo (D#199)
+ *   sub-objects.gif            a chip on Garden's card opens the mower, the breadcrumb and back arrow climb (#225)
  * The demo robots come from docker/demo_roborock_fixture (mounted as
  * custom_components/roborock in ha-shots; see shots-demo.mjs).
  *
@@ -46,6 +47,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "@playwright/test";
 import { watchdog, haLogin, wsClient } from "./ws-client.mjs";
+import { seedSubObjects, unseedSubObjects } from "./demo-sub-objects.mjs";
 
 const REST = "http://127.0.0.1:8131";
 const HA = "http://ha-shots:8123";
@@ -62,7 +64,7 @@ const REPO_ROOT = join(new URL(".", import.meta.url).pathname.replace(/^\/([A-Za
 const VIDEO_DIR = join(REPO_ROOT, "docs", "images", "gifs", ".video-tmp");
 const GIF_DIR = join(REPO_ROOT, "docs", "images", "gifs");
 const log = (...a) => console.log(...a);
-watchdog(25 * 60e3, "gifs-demo"); // 19 clips, one waits ~40 s for re-enabled buttons
+watchdog(60 * 60e3, "gifs-demo"); // 21 clips at ~2 min each (a restarted server per clip); 40 min cut off the last one
 
 // ── ffmpeg discovery ────────────────────────────────────────────────────────
 // Playwright's bundled ffmpeg is a minimal build WITHOUT the gif muxer —
@@ -1036,6 +1038,75 @@ const flowAreas = async (p, mark) => {
   await p.waitForTimeout(3500);
 };
 
+/** (2.108, #225) Sub-objects: Garden is marked for the overdue pool pump
+ *  inside it, a chip on its card opens the mower, the mower's page names
+ *  the chain and lists its charging station, and the back arrow climbs up
+ *  again. A hiding place: the cars and tools are inside their parent's card.
+ *  The hierarchy is seeded for this clip and taken out after it. */
+/** Chrome records a frame only when the page paints: a view that just stands
+ *  there shrinks to one frame, and the clip jumps past it (the All objects
+ *  grid of sub-objects.gif lasted 40 ms). A 2-px dot in the corner, invisible
+ *  against the dark theme, changes every 100 ms so the recording keeps the
+ *  wall clock. Call it once the page is open; a navigation removes it. */
+async function keepPainting(p) {
+  await p.evaluate(() => {
+    const dot = document.createElement("div");
+    dot.style.cssText = "position:fixed;right:0;bottom:0;width:2px;height:2px;z-index:2147483647;pointer-events:none;background:#111";
+    document.body.appendChild(dot);
+    let on = false;
+    setInterval(() => { on = !on; dot.style.background = on ? "#121212" : "#111"; }, 100);
+  });
+}
+
+const flowSubObjects = (token) => Object.assign(async (p, mark) => {
+  const api = await wsClient(REST, token);
+  try {
+    await unseedSubObjects(api);
+    await seedSubObjects(api, log);
+  } finally {
+    api.close();
+  }
+  const clickChip = (re, scope) => p.evaluate(({ fnStr, re, scope }) => {
+    const panel = eval(`(${fnStr})`)();
+    const el = [...panel.shadowRoot.querySelectorAll(scope)].find((x) => new RegExp(re).test(x.textContent || ""));
+    if (!el) return "no " + re;
+    el.scrollIntoView({ block: "center" });
+    el.click();
+    return "opened " + re;
+  }, { fnStr: panelOf.toString(), re, scope });
+  const back = () => p.evaluate((fnStr) => {
+    eval(`(${fnStr})`)().shadowRoot.querySelector(".header ha-icon-button")?.click();
+  }, panelOf.toString());
+  await openPanel(p);
+  await keepPainting(p);
+  await p.evaluate((fnStr) => {
+    const panel = eval(`(${fnStr})`)();
+    panel._objectViewMode = "cards";
+    panel._groupByMode = "none";
+    panel._objectSortMode = "due_soonest";
+    panel._showAllObjects();
+  }, panelOf.toString());
+  await p.waitForTimeout(2500);
+  mark();
+  await p.waitForTimeout(2200);          // the parents with their chips
+  log("  " + await clickChip("Lawn Mower", ".object-child-chip"));
+  await p.waitForTimeout(3200);          // breadcrumb through Garden, the station first
+  log("  " + await clickChip("Charging Station", ".sub-objects .object-card"));
+  await p.waitForTimeout(3000);
+  await back();
+  await p.waitForTimeout(2200);
+  await back();
+  await p.waitForTimeout(3000);          // Garden's page: the mower and the pool pump
+}, {
+  // After the recording: taken out while it still ran, Garden's page turned
+  // into "Object not found" for the clip's last two seconds.
+  after: async () => {
+    const api = await wsClient(REST, token);
+    await unseedSubObjects(api).catch((e) => log("  unseed failed:", e.message));
+    api.close();
+  },
+});
+
 /** (2.97, D#199) Several tasks at once: three unassigned tasks ticked in
  *  the task list, one person given to all of them in one step — the three
  *  rows change together — and Undo puts back exactly what was there. Causal
@@ -1127,12 +1198,17 @@ const FLOWS = {
   "objects-bulk-select": flowObjectsBulkSelect(token),
   "bulk-edit": flowBulkEdit,
   "areas": flowAreas,
+  "sub-objects": flowSubObjects(token),
   // Completes the Q7 brush task — mutating, so it records last.
   "counter-reset": flowCounterReset(token),
 };
 const only = process.argv[2];
 for (const [name, flow] of Object.entries(FLOWS)) {
   if (only && name !== only) continue;
-  await record(token, name, flow);
+  try {
+    await record(token, name, flow);
+  } finally {
+    if (flow.after) await flow.after();
+  }
 }
 log("GIFS DONE");

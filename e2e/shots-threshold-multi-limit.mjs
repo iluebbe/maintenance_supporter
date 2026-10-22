@@ -55,7 +55,7 @@ try {
     await dlg.updateComplete;
     await wait(1200);
     const root = dlg.shadowRoot;
-    const label = [...root.querySelectorAll("label, span, div, h3")].find((x) => /trigger configuration/i.test(x.textContent || "") && x.children.length < 3);
+    const label = [...root.querySelectorAll("label, span, div, h3")].find((x) => /^\s*sensor trigger\s*$/i.test(x.textContent || "") && x.children.length < 3);
     (label || root.querySelector("ha-form.entity-picker-form"))?.scrollIntoView({ block: "start" });
     await wait(800);
     const text = root.textContent || "";

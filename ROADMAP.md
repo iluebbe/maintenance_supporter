@@ -11,6 +11,17 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ## Next up (recommended order)
 
+### ✅ Sub-objects, a part used outside a task (#225, #226) — shipped 2.108
+
+An object can sit inside another one (*Garden* holding the mower and the pool
+pump): *All objects* shows the sub-objects as chips on the parent's card, the
+table folds them behind a chevron, and the object page lists them under a
+breadcrumb that climbs the chain. *Parent object* had nested only the devices
+in Home Assistant since 2.19. *Use* beside a counted part's stock takes some
+off outside a task (the washer fluid between two oil changes), booked like the
+parts of a completion but never as spending; the `part_use` action does the
+same for an NFC tag or a dashboard button.
+
 ### ✅ Plants in Suggested setups, last-done dates (#204, D#203) — shipped 2.100
 
 Plant Monitor (HACS) sums each plant up as ok/problem; Suggested setups now
