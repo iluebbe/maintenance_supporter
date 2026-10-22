@@ -10,7 +10,8 @@
  *   - an archived (hidden) parent, another area group, select mode: the
  *     object stands on its own
  *   - the table: a parent's rows fold behind a chevron, remembered
- *   - the object page: a Sub-objects section, Add sub-object, the
+ *   - the object page: a Sub-objects section, Add sub-object (a new
+ *     object, one from a template, an existing one moved inside), the
  *     breadcrumb and the back arrow climb the chain
  *   - the object dialog: a preset parent, no cycles offered, path names
  */
@@ -253,7 +254,14 @@ describe("the object page of a tree (#225)", () => {
     let asked: string | null = null;
     el._addSubObject = (id: string) => { asked = id; };
     section.querySelector<HTMLElement>(".add-sub-object")!.click();
+    await el.updateComplete;
+    const menu = section.querySelector<HTMLElement>(".sub-object-menu")!;
+    expect([...menu.querySelectorAll(".popup-menu-item")].map((i) => i.textContent!.trim()))
+      .to.deep.equal(["New Object", "From template", "Move an existing object here"]);
+    menu.querySelector<HTMLElement>(".sub-object-new")!.click();
+    await el.updateComplete;
     expect(asked).to.equal("gar");
+    expect(section.querySelector(".sub-object-menu") === null, "the pick closes it").to.equal(true);
   });
 
   it("no section without objects inside, and none to add for a reader", async () => {
@@ -305,11 +313,107 @@ describe("the object page of a tree (#225)", () => {
     expect(crumbs.textContent!.replace(/\s+/g, " ").trim()).to.equal("Maintenance / Mower / Blade set");
   });
 
-  it("the ⋮ menu offers Add sub-object", async () => {
+  it("the ⋮ menu's Add sub-object opens the same choices in its place", async () => {
     const el = await page("boil");
     (el as unknown as { _toggleObjMenu: () => void })._toggleObjMenu();
     await el.updateComplete;
-    expect(sr(el).querySelector(".add-sub-object-item")!.textContent).to.equal("Add sub-object");
+    const item = sr(el).querySelector<HTMLElement>(".add-sub-object-item")!;
+    expect(item.textContent).to.equal("Add sub-object");
+    item.click();
+    await el.updateComplete;
+    const wrapper = sr(el).querySelector<HTMLElement>(".detail-header .more-menu-wrapper")!;
+    expect(wrapper.querySelector(".add-sub-object-item") === null, "the ⋮ menu closed").to.equal(true);
+    expect(wrapper.querySelector(".sub-object-menu .sub-object-template")).to.exist;
+    expect(wrapper.querySelector(".sub-object-menu-head") === null, "placed like the ⋮ menu").to.equal(true);
+  });
+});
+
+describe("Add sub-object: from a template, or an existing object (#225)", () => {
+  beforeEach(() => {
+    resetTaskSeq();
+    localStorage.clear();
+    localStorage.setItem("msp-overview-tab", "dashboard");
+  });
+  afterEach(() => localStorage.clear());
+
+  type Chooser = Panel & {
+    _moveHereChoices: (id: string) => Array<{ value: string; label: string }>;
+    _openTemplateGallery: (parent?: string | null) => Promise<void>;
+  };
+
+  async function page(id: string, objects = fleet()) {
+    const { el, sent } = await mountPanel(objects, {
+      "maintenance_supporter/templates": () => ({ categories: {}, templates: [{ id: "home_hvac", name: "HVAC", category: "home", tasks: [{}] }] }),
+      "maintenance_supporter/object/from_template": () => ({ entry_id: "new-1" }),
+      "maintenance_supporter/object/update": () => ({ success: true }),
+    });
+    const panel = el as Chooser;
+    panel._showObject(id);
+    await settle(panel);
+    return { el: panel, sent: sent as Array<Record<string, unknown>> };
+  }
+
+  async function pick(el: Chooser, cls: string) {
+    sr(el).querySelector<HTMLElement>(".add-sub-object")!.click();
+    await el.updateComplete;
+    sr(el).querySelector<HTMLElement>(`.sub-object-menu .${cls}`)!.click();
+    await settle(el);
+  }
+
+  it("offers every object but itself, those it sits in and those already inside it", async () => {
+    const objects = fleet();
+    objects.push(child("old", null, [], "Old shed", { archived: true }), child("bat", null, [], "Batteries", { battery_fleet: true }));
+    const { el } = await page("mow", objects);
+    expect(el._moveHereChoices("mow").map((c) => [c.value, c.label])).to.deep.equal([
+      ["boil", "Boiler"],
+      ["veh", "Vehicles"],
+      ["car1", "Vehicles › Car 1"],
+      ["car2", "Vehicles › Car 2"],
+    ]);
+    expect(el._moveHereChoices("veh").map((c) => c.label), "a whole branch can move").to.deep.equal([
+      "Boiler", "Garden", "Garden › Mower", "Garden › Mower › Blade set",
+    ]);
+  });
+
+  it("moves the chosen object inside", async () => {
+    const { el, sent } = await page("mow");
+    type Prompt = { title: string; message: string; options: Array<{ value: string }> };
+    const asked: { opts?: Prompt } = {};
+    const dlg = sr(el).querySelector("maintenance-confirm-dialog") as unknown as { prompt: (o: Prompt) => Promise<unknown> };
+    dlg.prompt = async (o: Prompt) => { asked.opts = o; return { confirmed: true, value: "boil" }; };
+    await pick(el, "sub-object-move");
+    expect(asked.opts!.title).to.equal("Move an existing object here");
+    expect(asked.opts!.message).to.contain("inside Mower");
+    expect(asked.opts!.options.map((o) => o.value)).to.deep.equal(["boil", "veh", "car1", "car2"]);
+    const update = sent.find((m) => m.type === "maintenance_supporter/object/update")!;
+    expect(update).to.include({ entry_id: "boil", parent_entry_id: "mow" });
+  });
+
+  it("no move without an object that could go there", async () => {
+    const { el } = await page("p", [child("p", null, [], "Parent"), child("c", "p", [], "Child")]);
+    sr(el).querySelector<HTMLElement>(".add-sub-object")!.click();
+    await el.updateComplete;
+    expect([...sr(el).querySelectorAll(".sub-object-menu .popup-menu-item")].map((i) => i.textContent!.trim()))
+      .to.deep.equal(["New Object", "From template"]);
+  });
+
+  it("from a template: the gallery says where the object goes, and it is created there", async () => {
+    const { el, sent } = await page("gar");
+    await pick(el, "sub-object-template");
+    expect(sr(el).querySelector(".template-parent-hint")!.textContent!.trim()).to.equal("The new object goes inside Garden.");
+    sr(el).querySelector<HTMLElement>(".template-card")!.click();
+    await settle(el);
+    const create = sent.find((m) => m.type === "maintenance_supporter/object/from_template")!;
+    expect(create).to.include({ template_id: "home_hvac", parent_entry_id: "gar" });
+
+    // The New menu's gallery still makes a top-level object.
+    await el._openTemplateGallery();
+    await settle(el);
+    expect(sr(el).querySelector(".template-parent-hint") === null).to.equal(true);
+    sr(el).querySelector<HTMLElement>(".template-card")!.click();
+    await settle(el);
+    const second = sent.filter((m) => m.type === "maintenance_supporter/object/from_template")[1];
+    expect("parent_entry_id" in second).to.equal(false);
   });
 });
 

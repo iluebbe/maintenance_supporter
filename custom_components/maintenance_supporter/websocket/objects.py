@@ -670,6 +670,9 @@ async def ws_duplicate_object(
         # v2.21.1: the caller's UI language — created object/task names are
         # localized (falls back to the server language).
         vol.Optional("language"): vol.All(str, vol.Length(max=10)),
+        # #225: the new object goes inside this one (Add sub-object › From
+        # a template).
+        vol.Optional("parent_entry_id"): vol.Any(ID_FIELD, None),
     }
 )
 @require_write
@@ -695,6 +698,8 @@ async def ws_create_from_template(
     if template is None:
         connection.send_error(msg["id"], "not_found", "Template not found")
         return
+    if not _validate_device_link(hass, connection, msg, self_entry_id=None):
+        return
 
     lang = normalize_language_code(msg.get("language")) if msg.get("language") else normalize_language(hass)
     default_name = localize_template_text(template.name, lang) or template.name
@@ -712,6 +717,7 @@ async def ws_create_from_template(
         "task_ids": [],
         # 2.94: the gallery marks templates in use as "already set up".
         OBJECT_TEMPLATE_ID: template.id,
+        **({"parent_entry_id": msg["parent_entry_id"]} if msg.get("parent_entry_id") else {}),
     }
     # Seasons follow the home's hemisphere and climate (helpers/climate.py).
     new_tasks = await async_build_template_tasks(hass, template, lang, object_id)

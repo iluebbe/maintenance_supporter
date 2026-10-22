@@ -338,9 +338,10 @@ guidance researched in September 2026, never as legal advice: rules vary by
 region and change, and local regulations take precedence.
 
 ### `object/from_template` — `@require_write`
-`{template_id (req), name?, language?}` → `{entry_id}`. Creates the object **and
+`{template_id (req), name?, language?, parent_entry_id?}` → `{entry_id}`. Creates the object **and
 all of the template's tasks** in one call; `language` (the user's UI language)
-localizes the created object and task names, else the server language. `object/duplicate` `{entry_id}` → `{entry_id}`.
+localizes the created object and task names, else the server language;
+`parent_entry_id` (2.109+) creates it inside that object (`invalid_parent` when it is none). `object/duplicate` `{entry_id}` → `{entry_id}`.
 
 ---
 

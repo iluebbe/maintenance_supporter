@@ -179,9 +179,11 @@ documents.
 ### Sub-objects (2.108+, #225)
 An object can sit inside another one: *Vehicles* holding both cars, *Lawn &
 Garden* the mower, the trimmer and the snow blower. Set *Parent object* in the
-object dialog, or open the parent and pick *⋮ → Add sub-object*. The dialog
-names every choice by its path (*Vehicles › Car*) and never offers an object
-that sits inside the one being edited.
+object dialog, or open the parent and pick *⋮ → Add sub-object*: a new
+object, one from a template (2.109+), or an object you already have, moved
+inside (2.109+, with whatever sits inside it). The dialog names every choice
+by its path (*Vehicles › Car*) and never offers an object that sits inside
+the one being edited.
 
 - **All objects** shows a sub-object as a chip on its parent's card instead of
   a card of its own, so a long list folds into a few groups; the chip opens
@@ -197,7 +199,8 @@ that sits inside the one being edited.
 
   ![The objects table: Garden unfolded down to the mower's charging station, Utility Room folded with its count](images/objects-table-tree.png)
 
-- **The object page** lists its sub-objects first, with *Add sub-object*. The
+- **The object page** lists its sub-objects first, with the same *Add
+  sub-object* choices. The
   breadcrumb names the chain (*Maintenance / Garden / Mower / Blade set*) and
   the back arrow goes up one level.
 

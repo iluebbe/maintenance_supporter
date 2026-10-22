@@ -779,6 +779,13 @@ export const sharedStyles = css`
     color: var(--secondary-text-color);
   }
   .sub-objects-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  /* Right-aligned even when the heading wraps on a phone, so the menu below
+     it, anchored to its right edge, stays on screen. */
+  .sub-object-add-wrap { position: relative; margin-left: auto; }
+  .sub-object-menu { font-weight: normal; }
+  .sub-object-menu .popup-menu-item ha-icon { color: var(--secondary-text-color); flex: none; }
+  .popup-menu.sub-object-menu-head,
+  :host([narrow]) .popup-menu.sub-object-menu-head { right: 0; left: auto; min-width: 256px; }
   .objects-grid.sub-objects { padding-top: 0; }
 
   /* Group-by collapsible sections (#35 + #36) */

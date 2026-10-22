@@ -44,7 +44,8 @@ No template fits? **Add ▾ → New object**, then add tasks with a name and an
 interval (every 3 months, every year …).
 
 Many objects? Put them inside one another: an object's *Parent object* (or
-*⋮ → Add sub-object* on the parent) keeps both cars inside *Vehicles* and
+*⋮ → Add sub-object* on the parent: new, from a template, or one you
+already have) keeps both cars inside *Vehicles* and
 the mower, the trimmer and the snow blower inside *Lawn & Garden*. The list
 of objects then shows a few groups with their contents as chips.
 

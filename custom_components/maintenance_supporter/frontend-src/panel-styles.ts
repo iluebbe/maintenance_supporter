@@ -546,6 +546,12 @@ export const panelStyles = css`
     font-size: 12px; color: var(--secondary-text-color);
   }
   .template-legal ha-icon { --mdc-icon-size: 16px; flex: none; margin-top: 1px; }
+  /* #225: the gallery opened from Add sub-object says where the object goes. */
+  .template-parent-hint {
+    display: flex; gap: 8px; align-items: center; margin-top: 8px;
+    font-size: 14px; color: var(--primary-text-color);
+  }
+  .template-parent-hint ha-icon { --mdc-icon-size: 18px; flex: none; color: var(--primary-color); }
   .empty-onboard-hint { color: var(--secondary-text-color); font-size: 13px; margin: 4px 0 12px; }
   .empty-onboard-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 

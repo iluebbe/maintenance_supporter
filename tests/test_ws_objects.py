@@ -147,6 +147,53 @@ async def test_ws_create_from_template_not_found(
     assert conn.send_error.call_args[0][1] == "not_found"
 
 
+async def test_ws_create_from_template_inside_a_parent(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """#225: Add sub-object › From a template — the new object sits inside
+    the parent; a parent that is no object is refused before anything is
+    created."""
+    await setup_integration(hass, global_entry)
+    before = len(hass.config_entries.async_entries(DOMAIN))
+
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_create_from_template,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/from_template",
+            "template_id": "home_hvac",
+            "parent_entry_id": "no_such_entry",
+        },
+    )
+    assert conn.send_error.call_args[0][1] == "invalid_parent"
+    assert len(hass.config_entries.async_entries(DOMAIN)) == before
+
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_create_from_template,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/object/from_template",
+            "template_id": "home_hvac",
+            "parent_entry_id": object_entry.entry_id,
+        },
+    )
+    conn.send_error.assert_not_called()
+    entry_id = conn.send_result.call_args[0][1]["entry_id"]
+    entry = hass.config_entries.async_get_entry(entry_id)
+    assert entry is not None
+    assert entry.data[CONF_OBJECT]["parent_entry_id"] == object_entry.entry_id
+
+    await hass.config_entries.async_remove(entry_id)
+
+
 async def test_ws_duplicate_object_clones_object_and_tasks(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,

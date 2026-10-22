@@ -298,6 +298,9 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _actionLoading = false;
   @state() private _moreMenuOpen = false;
   @state() private _objMenuOpen = false;
+  /** #225: the Add sub-object choices, opened from the Sub-objects heading
+   *  or from the ⋮ menu (where it takes the ⋮ menu's place). */
+  @state() private _subObjMenu: "head" | "more" | null = null;
   @state() private _toastMessage = "";
   /** error = red (a refusal, a failure); info = neutral like HA's own
    *  toasts — a success used to show in the error red too (2.95). */
@@ -424,6 +427,9 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _homeProfile: HomeProfile | null = null;
   @state() private _templateCategories: Record<string, { icon?: string; [k: string]: unknown }> = {};
   @state() private _templateBusy = false;
+  /** #225: the object a template's new object goes inside, while the
+   *  gallery is open from Add sub-object. */
+  @state() private _templateParentId: string | null = null;
   // v1.5.0: Calendar tab state
   // v2.0.0: window-days + user-filter state moved into the
   // <maintenance-supporter-calendar-card> custom element — the panel just
@@ -1646,6 +1652,73 @@ export class MaintenanceSupporterPanel extends LitElement {
     void this._ui<MaintenanceObjectDialog>("maintenance-object-dialog").then((d) => d?.openCreate(parentEntryId));
   }
 
+  /** #225: the objects that can move inside `parentEntryId`: not itself,
+   *  not one it sits inside (the server refuses the cycle), not one already
+   *  directly inside it. Archived and battery-fleet objects stay out, as
+   *  they have no Add sub-object of their own. Named by their path, like
+   *  the object dialog's parent choices. */
+  private _moveHereChoices(parentEntryId: string): Array<{ value: string; label: string }> {
+    const objs = this._objects;
+    const above = new Set(ancestorsOf(objs, parentEntryId).map((o) => o.entry_id));
+    return objs
+      .filter((o) => o.entry_id !== parentEntryId && !above.has(o.entry_id) && o.object.parent_entry_id !== parentEntryId
+        && !o.object.archived && !o.object.battery_fleet)
+      .map((o) => ({ value: o.entry_id, label: [...ancestorsOf(objs, o.entry_id), o].map((x) => x.object.name).join(" › ") }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }
+
+  /** #225: Add sub-object › Move an existing object here. The object
+   *  leaves the one it sat in, if any; what is inside it comes along. */
+  private async _moveObjectHere(parentEntryId: string): Promise<void> {
+    const choices = this._moveHereChoices(parentEntryId);
+    if (!choices.length) return;
+    const L = this._lang;
+    const name = this._objects.find((o) => o.entry_id === parentEntryId)?.object.name ?? "";
+    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+    const result = await dlg?.prompt({
+      title: t("sub_object_move_here", L),
+      message: t("sub_object_move_message", L).replace("{name}", name),
+      confirmText: t("sub_object_move_confirm", L),
+      inputLabel: t("object", L),
+      inputValue: choices[0].value,
+      options: choices,
+    });
+    if (!result?.confirmed || !result.value) return;
+    await this._runAction(
+      { type: "maintenance_supporter/object/update", entry_id: result.value, parent_entry_id: parentEntryId },
+      { successToast: t("sub_object_moved", L).replace("{name}", name) },
+    );
+  }
+
+  private _toggleSubObjMenu(anchor: "head" | "more"): void {
+    if (this._subObjMenu && this._subObjMenu !== anchor) this._subObjMenu = null;
+    this._togglePopup("sub-object", () => this._subObjMenu !== null, (v) => { this._subObjMenu = v ? anchor : null; });
+  }
+
+  private _closeSubObjMenu(): void {
+    this._subObjMenu = null;
+  }
+
+  /** #225: Add sub-object: a new object, one from a template, or one that
+   *  exists already, moved inside. */
+  private _renderSubObjMenu(parentEntryId: string, L: string) {
+    return html`
+      <div class="popup-menu sub-object-menu ${this._subObjMenu === "head" ? "sub-object-menu-head" : ""}" role="menu"
+        @keydown=${clickOnActivationKey} @click=${(e: Event) => e.stopPropagation()}>
+        <div role="menuitem" tabindex="0" class="popup-menu-item sub-object-new" @click=${() => { this._closeSubObjMenu(); this._addSubObject(parentEntryId); }}>
+          <ha-icon icon="mdi:package-variant-closed-plus"></ha-icon> ${t("new_object", L).replace(/^\+\s*/, "")}
+        </div>
+        <div role="menuitem" tabindex="0" class="popup-menu-item sub-object-template" @click=${() => { this._closeSubObjMenu(); void this._openTemplateGallery(parentEntryId); }}>
+          <ha-icon icon="mdi:view-grid-plus-outline"></ha-icon> ${t("templates_from", L)}
+        </div>
+        ${this._moveHereChoices(parentEntryId).length ? html`
+          <div role="menuitem" tabindex="0" class="popup-menu-item sub-object-move" @click=${() => { this._closeSubObjMenu(); void this._moveObjectHere(parentEntryId); }}>
+            <ha-icon icon="mdi:folder-move-outline"></ha-icon> ${t("sub_object_move_here", L)}
+          </div>` : nothing}
+      </div>
+    `;
+  }
+
   private _showObject(entryId: string, section: ObjectSection | null = null): void {
     this._pushPanelState("object", entryId);
     this._view = "object";
@@ -2131,7 +2204,9 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   // --- Template gallery ---
 
-  private async _openTemplateGallery(): Promise<void> {
+  /** `parentEntryId` (#225): the new object goes inside that one. */
+  private async _openTemplateGallery(parentEntryId: string | null = null): Promise<void> {
+    this._templateParentId = parentEntryId;
     this._templateGalleryOpen = true;
     // Refetched on every open (the last list shows meanwhile): the home
     // profile behind the recommendations can change in Settings. A refusal
@@ -2153,7 +2228,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     // e.g. "Limit reached" / a create_failed reason instead of "Action failed".
     const res = await runWs<{ entry_id?: string }>(
       this,
-      { type: "maintenance_supporter/object/from_template", language: this._lang, template_id: templateId },
+      {
+        type: "maintenance_supporter/object/from_template", language: this._lang, template_id: templateId,
+        ...(this._templateParentId ? { parent_entry_id: this._templateParentId } : {}),
+      },
       {
         busy: (b) => { this._templateBusy = b; },
         reload: async () => {
@@ -2210,6 +2288,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     // 2.94: a template the home already uses is not recommended again (the
     // server says so too; kept here so an older server answer can't list it).
     const recommended = this._templates.filter((tpl) => tpl.recommended && !tpl.set_up);
+    const parent = this._templateParentId ? this._objects.find((o) => o.entry_id === this._templateParentId) : undefined;
     return html`
       <div class="palette-backdrop" @click=${() => { this._templateGalleryOpen = false; }}>
         <div class="template-gallery" @click=${(e: Event) => e.stopPropagation()}>
@@ -2219,6 +2298,11 @@ export class MaintenanceSupporterPanel extends LitElement {
               @click=${() => { this._templateGalleryOpen = false; }}></ha-icon-button>
           </div>
           <div class="template-gallery-body">
+            ${parent ? html`
+              <div class="template-parent-hint">
+                <ha-icon icon="mdi:file-tree-outline"></ha-icon>
+                <span>${t("templates_inside", L).replace("{name}", parent.object.name)}</span>
+              </div>` : nothing}
             <div class="template-legal">
               <ha-icon icon="mdi:scale-balance"></ha-icon>
               <span>${t("templates_legal_hint", L)}</span>
@@ -4970,7 +5054,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                       <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._duplicateObject(obj.entry_id); }}>${t("duplicate", L)}</div>
                     ` : nothing}
                     ${canNest ? html`
-                      <div role="menuitem" tabindex="0" class="popup-menu-item add-sub-object-item" @click=${() => { this._closeObjMenu(); this._addSubObject(obj.entry_id); }}>${t("add_sub_object", L)}</div>
+                      <div role="menuitem" tabindex="0" class="popup-menu-item add-sub-object-item" @click=${() => { this._closeObjMenu(); this._toggleSubObjMenu("more"); }}>${t("add_sub_object", L)}</div>
                     ` : nothing}
                     ${!o.archived ? html`
                       <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._togglePauseObject(obj.entry_id, !!o.paused); }}>${o.paused ? t("resume_object", L) : t("pause_object", L)}</div>
@@ -4984,6 +5068,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   ` : nothing}
                 </div>
               ` : nothing}
+              ${this._subObjMenu === "more" && canNest ? this._renderSubObjMenu(obj.entry_id, L) : nothing}
             </div>
           </div>
         </div>
@@ -5038,9 +5123,13 @@ export class MaintenanceSupporterPanel extends LitElement {
 
         ${kids.length ? this._renderObjectSection("children", t("sub_objects", L), kids.length, () => html`
         <h3 class="sub-objects-head"><span>${t("sub_objects", L)} (${kids.length})</span>${canNest ? html`
-          <ha-button appearance="plain" class="add-sub-object" @click=${() => this._addSubObject(obj.entry_id)}>
-            <ha-icon icon="mdi:plus"></ha-icon> ${t("add_sub_object", L)}
-          </ha-button>` : nothing}</h3>
+          <span class="sub-object-add-wrap">
+            <ha-button appearance="plain" class="add-sub-object" @click=${() => this._toggleSubObjMenu("head")}>
+              <ha-icon icon="mdi:plus"></ha-icon> ${t("add_sub_object", L)}
+              <ha-icon icon="mdi:menu-down"></ha-icon>
+            </ha-button>
+            ${this._subObjMenu === "head" ? this._renderSubObjMenu(obj.entry_id, L) : nothing}
+          </span>` : nothing}</h3>
         <div class="objects-grid sub-objects">${kids.map((k) => this._renderObjectCard(k, tree))}</div>
         `) : nothing}
 
