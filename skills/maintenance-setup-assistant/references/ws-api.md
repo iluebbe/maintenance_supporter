@@ -383,6 +383,8 @@ localizes the created object and task names, else the server language;
   "reading_unit": "kWh",               // reading tasks — see "Meter readings" (also `readings` slots)
   "consumes_parts": [{"part_id": "p1", "quantity": 1}], // see "Spare parts"
   "mirror_todo_entities": ["todo.household"], // ≤5 todo.* lists the task is mirrored into while due (D#183)
+  "complete_when": {"entity_id": "binary_sensor.washer_door", "to_state": "on"},
+                                       // D#229: while due, that entity changing INTO the state completes the task; null clears; malformed = invalid_input
   "on_complete_action": {"service": "counter.reset", "target": {"entity_id": "counter.x"}, "data": {}},
                                        // HA service called after each (non-backfill) completion; a privileged domain drops the action on save
   "quick_complete_defaults": {"notes": "…", "cost": 0}, // what task/quick_complete (and the quick-complete QR) records
@@ -593,6 +595,11 @@ default 0) makes a transition count only once the new state has HELD that long
 — the flicker filter for flappy problem sensors and phantom appliance cycles;
 0 counts immediately (some sensors pulse only briefly). The hold window
 survives restarts; an unavailability blip restarts it.
+`trigger_hold_until_done: true` (D#229, 2.110+) keeps a single-shot latch
+(`trigger_target_changes` 1 with a from- or to-state) triggered after the entity
+leaves its alert state, until the task is completed, skipped or reset; refused
+together with `auto_complete_on_recovery`, ignored on other triggers, dropped
+inside a compound.
 
 ### `runtime`
 `{"type":"runtime","entity_ids":["switch.pump"],"trigger_runtime_hours":500,"trigger_on_states":["on"]}`

@@ -82,6 +82,12 @@ export interface ManualDocRef {
   url?: string | null;
 }
 
+/** D#229: one entity and the state that completes the task while it is due. */
+export interface CompleteWhen {
+  entity_id: string;
+  to_state: string;
+}
+
 export interface TriggerConfig {
   entity_id?: string;
   entity_ids?: string[];
@@ -101,6 +107,8 @@ export interface TriggerConfig {
   trigger_from_state?: string | null;
   trigger_to_state?: string | null;
   trigger_target_changes?: number;
+  /** D#229: a single-shot state change stays triggered until the task is done. */
+  trigger_hold_until_done?: boolean;
   trigger_runtime_hours?: number;
   /** due_date: fire this many days before the date the entity reports. */
   trigger_days_before?: number;
@@ -276,6 +284,8 @@ export interface MaintenanceTask {
   labels?: string[];
   /** D#183: external todo.* lists the task is mirrored into while it is due. */
   mirror_todo_entities?: string[];
+  /** D#229: the task completes itself when this entity changes to the state, while due. */
+  complete_when?: CompleteWhen | null;
   assignee_pool?: string[];
   rotation_strategy?: string | null;
   /** Details this task demands on completion (v2.44): notes/cost/duration/photo/user. */

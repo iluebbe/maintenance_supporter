@@ -62,6 +62,12 @@ class StateChangeTrigger(BaseTrigger):
         self._from_state: str | None = _norm_state(trigger_config.get("trigger_from_state"))
         self._to_state: str | None = _norm_state(trigger_config.get("trigger_to_state"))
         self._target_changes: int = trigger_config.get("trigger_target_changes", 1)
+        # D#229: a single-shot latch that does NOT recover when the entity
+        # leaves its alert state — the washer's "finished" lasts a minute, the
+        # laundry stays in until someone empties it. Only completing, skipping
+        # or resetting the task (reset()) ends it; the persisted change count
+        # carries it across restarts like any latch.
+        self._hold_until_done: bool = bool(trigger_config.get("trigger_hold_until_done")) and self._target_changes == 1
         # Restore persisted change count from config, default to 0
         self._change_count: int = trigger_config.get("trigger_change_count", 0)
         self._current_value = float(self._change_count)
@@ -167,11 +173,12 @@ class StateChangeTrigger(BaseTrigger):
         longer in its alert state is cleared QUIETLY — the recovery
         transition was never observed, so we must NOT auto-complete for it
         here (that path only runs on a live off event, guarded against
-        double-count). Otherwise the latch is restored and repainted.
+        double-count). Otherwise the latch is restored and repainted, and so
+        is a latch held until done (D#229), whatever the entity reads now.
         """
         if self._change_count < self._target_changes:
             return
-        if self._target_changes == 1 and self._in_alert_state(live_state) is False:
+        if self._target_changes == 1 and not self._hold_until_done and self._in_alert_state(live_state) is False:
             self._change_count = 0
             self._current_value = 0.0
             self._triggered = False
@@ -282,6 +289,16 @@ class StateChangeTrigger(BaseTrigger):
         was_triggered = self._triggered
         is_triggered = self._change_count >= self._target_changes
         self._triggered = is_triggered
+
+        # A counted transition is a real edge: the entity was on the normal
+        # side right before it. Reported like the base trigger's recovery
+        # after a reset, which this trigger never went through — a new episode
+        # right after a completion stayed hidden behind the post-completion
+        # cooldown for its ten minutes, while the history already said
+        # "triggered" (found live with D#229).
+        if not self._recovered_since_reset:
+            self._note_recovered()
+            self._recovered_since_reset = True
 
         if is_triggered and not was_triggered:
             self._on_trigger_activated(float(self._change_count))
@@ -411,8 +428,8 @@ class StateChangeTrigger(BaseTrigger):
         # occurrence can fire again, and run the deactivation path — which
         # auto-completes on recovery when opted in. Multi-count triggers keep
         # accumulating and only reset on manual completion, so they are
-        # untouched here.
-        elif self._target_changes == 1 and self._triggered and self._in_alert_state(new_val) is False:
+        # untouched here, and so is a latch held until done (D#229).
+        elif self._target_changes == 1 and self._triggered and not self._hold_until_done and self._in_alert_state(new_val) is False:
             self._change_count = 0
             self._current_value = 0.0
             self._persist_runtime_soon()
@@ -420,6 +437,11 @@ class StateChangeTrigger(BaseTrigger):
             self._on_trigger_deactivated(0.0)
 
         self._last_state = new_val
+
+    def _recovery_reading(self, value: float) -> float | None:
+        """The value is the reset change count, not a reading — the
+        auto-completion's note said "sensor recovered (0)"."""
+        return None
 
     def evaluate(self, value: float) -> bool:
         """Evaluate is handled by _handle_state_transition directly."""

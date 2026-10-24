@@ -11,6 +11,12 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ## Next up (recommended order)
 
+### ✅ Done when another entity changes, keep it until done (D#229) — shipped 2.110
+
+A task can complete itself when another entity changes to a state while it is
+due (the washer's door opens), and a state-change trigger whose state lasts
+only a moment can keep the task triggered until it is done.
+
 ### ✅ What a trigger is about, sub-objects from a template (#228, #225) — shipped 2.109
 
 A sensor trigger can name an attribute of its entity to show with the task

@@ -177,6 +177,10 @@ def move_tasks_to_device(
         new_task = copy.deepcopy(task)
         if isinstance(trigger := new_task.get("trigger_config"), dict):
             new_task["trigger_config"] = swap_trigger(trigger)
+        # D#229: a door sensor of the replaced washer moves with it; another
+        # device's sensor stays (the matcher keeps it).
+        if isinstance(rule := new_task.get("complete_when"), dict) and "entity_id" in rule:
+            rule["entity_id"] = swap(rule["entity_id"])
         action = new_task.get("on_complete_action")
         if isinstance(action, dict):
             from .action_listener import map_action_entity_ids

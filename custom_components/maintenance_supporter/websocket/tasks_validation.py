@@ -120,6 +120,8 @@ _TRIGGER_ALLOWED_KEYS: set[str] = {
     "trigger_from_state",
     "trigger_to_state",
     "trigger_target_changes",
+    # D#229: the single-shot latch stays triggered until the task is done
+    "trigger_hold_until_done",
     # due_date
     "trigger_days_before",
     # compound
@@ -255,7 +257,33 @@ def _validate_trigger_config(
                 else:
                     trigger_config.pop(key, None)
 
+    _normalize_hold_until_done(trigger_type, trigger_config, errors)
+
     return errors, warnings
+
+
+def _normalize_hold_until_done(trigger_type: str, trigger_config: dict[str, Any], errors: list[str]) -> None:
+    """D#229: ``trigger_hold_until_done`` as a real True, or absent (off).
+
+    It acts on a single-shot state change only (one transition, with a from-
+    or to-state) — the one latch that recovers by itself; on any other
+    trigger the engine ignores it, kept like the other type-specific keys.
+    A held latch never recovers, so there it cannot also auto-complete on
+    recovery."""
+    if not trigger_config.get("trigger_hold_until_done"):
+        trigger_config.pop("trigger_hold_until_done", None)
+        return
+    trigger_config["trigger_hold_until_done"] = True
+    latch = (
+        trigger_type == "state_change"
+        and trigger_config.get("trigger_target_changes", 1) == 1
+        and bool(trigger_config.get("trigger_from_state") or trigger_config.get("trigger_to_state"))
+    )
+    if latch and trigger_config.get("auto_complete_on_recovery"):
+        errors.append(
+            "trigger_config.trigger_hold_until_done and auto_complete_on_recovery exclude each other: "
+            "a trigger held until the task is done never recovers by itself"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -418,6 +446,7 @@ def _validate_compound_trigger(
     warnings: list[str] = []
 
     _validate_combinator(trigger_config, errors)
+    trigger_config.pop("trigger_hold_until_done", None)
 
     # null / a non-string read as AND by the trigger, but ``.upper()`` on it
     # here answered unknown_error (bug audit 2026-10-16, W small).
@@ -439,6 +468,10 @@ def _validate_compound_trigger(
         if cond_type == "compound":
             errors.append(f"Condition {idx}: nested compound triggers are not allowed")
             continue
+        # D#229: holding is offered for a plain trigger only — the panel's
+        # condition editor has no field for it and would drop it on the next
+        # edit, so a condition never stores it (nor the compound, above).
+        condition.pop("trigger_hold_until_done", None)
         # Validate each condition as a regular trigger
         cond_errors, cond_warnings = _validate_trigger_config(hass, condition)
         for err in cond_errors:

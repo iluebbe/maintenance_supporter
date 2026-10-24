@@ -500,7 +500,14 @@ class BaseTrigger(ABC):
         if self.config.get("auto_complete_on_recovery") and task_recovered is not False:
             # cancel_on_close=False: a completion in flight must land even
             # when the recovery coincides with a reload of the entry.
-            self._track(self._coordinator.async_auto_complete_on_recovery(self._task_id, value), cancel_on_close=False)
+            self._track(
+                self._coordinator.async_auto_complete_on_recovery(self._task_id, self._recovery_reading(value)),
+                cancel_on_close=False,
+            )
+
+    def _recovery_reading(self, value: float) -> float | None:
+        """The reading a recovery records in its auto-completion note."""
+        return value
 
     def _get_numeric_value(self, state: State) -> float | None:
         """Extract numeric value from state or attribute."""

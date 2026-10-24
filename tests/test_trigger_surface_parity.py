@@ -79,6 +79,9 @@ _FLOW_FIELDLESS_OK = {
     # #228: the detail shown with a triggered task — set in the panel,
     # carried across both rebuilds (plain and compound).
     "detail_attribute",
+    # D#229: holding a state-change latch until the task is done — chosen
+    # in the panel, carried across the plain rebuild (a compound never has it).
+    "trigger_hold_until_done",
 }
 
 

@@ -2,6 +2,30 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.110.0] - 2026-10-24
+
+### ✨ Added
+
+- **Done when: a task completes itself when another entity changes** (D#229, thanks @tracymckibben). The task dialog's
+  *Completing it* section can name an entity and a state, such as the washer's door and *open*. While the task is due,
+  that entity changing into the state completes the task: an automatic completion with a note naming the entity, and
+  the phone notifications go away as with any completion. Only a real change counts, so a door sensor reconnecting
+  after a restart completes nothing, and opening the door while the task is not due records nothing. Works for
+  time-based tasks too (a coffee machine's descaling program starting). WebSocket field `complete_when`, completion
+  source `auto_entity`.
+- **Keep a triggered task until it is done** (D#229). A state that lasts only a moment, like a washer's *finished*
+  before it switches *off*, took the task back to OK with it while the laundry was still inside. A state-change trigger
+  with one transition now offers *When the state ends*: the task goes back to OK, it is recorded as done (the former
+  *Auto-complete when the sensor recovers*), or it stays triggered until someone completes it, by hand or through
+  *Done when*. The held task survives a restart. Trigger key `trigger_hold_until_done`.
+
+### 🐛 Fixed
+
+- A state-change trigger that fired again within ten minutes of a completion wrote *triggered* into the history at
+  once, but the task stayed OK and its reminder waited until the ten minutes were over. It shows at once now.
+- A state-change trigger's automatic completion note read *Auto-completed: sensor recovered (0)*; the 0 was the
+  reset change count, not a reading, and is gone.
+
 ## [2.109.0] - 2026-10-22
 
 ### ✨ Added

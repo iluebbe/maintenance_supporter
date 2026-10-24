@@ -268,6 +268,15 @@ def cap_task_fields(task_data: dict[str, Any], *, keep_action_owner: bool = Fals
         else:
             task_data.pop("mirror_todo_entities", None)
 
+    # D#229: one entity and the state that completes the task; a malformed or
+    # empty rule drops the key (absence = off).
+    if "complete_when" in task_data:
+        rule = sanitize_complete_when(task_data["complete_when"])
+        if rule:
+            task_data["complete_when"] = rule
+        else:
+            task_data.pop("complete_when", None)
+
     if task_data.get("assignee_pool") is not None:
         task_data["assignee_pool"] = sanitize_assignee_pool(task_data["assignee_pool"])
 
@@ -352,6 +361,27 @@ def sanitize_mirror_todo_entities(value: object) -> list[str]:
             seen.add(v)
             out.append(v)
     return out[:MAX_MIRROR_TODO_LISTS]
+
+
+def sanitize_complete_when(value: object) -> dict[str, str] | None:
+    """Clean a ``complete_when`` rule (D#229): ``{"entity_id", "to_state"}``
+    with a valid entity id and a non-empty state of at most
+    ``MAX_COMPLETE_WHEN_STATE_LENGTH`` characters, both trimmed. Anything
+    else is None (no rule)."""
+    if not isinstance(value, dict):
+        return None
+    from homeassistant.core import valid_entity_id
+
+    from ..const import MAX_COMPLETE_WHEN_STATE_LENGTH
+
+    entity_id = value.get("entity_id")
+    to_state = value.get("to_state")
+    if not isinstance(entity_id, str) or not isinstance(to_state, str):
+        return None
+    entity_id, to_state = entity_id.strip(), to_state.strip()
+    if not valid_entity_id(entity_id) or not to_state or len(to_state) > MAX_COMPLETE_WHEN_STATE_LENGTH:
+        return None
+    return {"entity_id": entity_id, "to_state": to_state}
 
 
 def seed_rotation_assignee(task_data: dict[str, Any]) -> None:

@@ -103,6 +103,8 @@ _MAXIMAL_TASK = {
     "labels": ["safety", "seasonal"],
     # D#183: external to-do lists the due task is mirrored into.
     "mirror_todo_entities": ["todo.family", "todo.kids"],
+    # D#229: the entity whose change to a state completes the due task.
+    "complete_when": {"entity_id": "binary_sensor.contract_door", "to_state": "on"},
     "schedule_time": "08:30",
     "on_complete_action": {
         "service": "light.turn_off",

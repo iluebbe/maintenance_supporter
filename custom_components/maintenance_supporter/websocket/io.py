@@ -93,6 +93,7 @@ _TASK_FIELD_TYPES: dict[str, type | tuple[type, ...]] = {
     "labels": list,
     "required_completion_fields": list,
     "mirror_todo_entities": list,
+    "complete_when": dict,
 }
 
 
@@ -1238,6 +1239,8 @@ async def ws_import_json(
                     "labels",
                     # D#183: mirror targets (shape-sanitized below).
                     "mirror_todo_entities",
+                    # D#229: completion entity (shape-sanitized below).
+                    "complete_when",
                     "earliest_completion_days",
                     "ref_no",
                     "on_complete_action",

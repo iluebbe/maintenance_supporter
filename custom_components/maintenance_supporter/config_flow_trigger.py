@@ -121,6 +121,9 @@ def _apply_recovery_flag(tc: dict[str, Any], user_input: dict[str, Any]) -> None
     """
     if user_input.get("auto_complete_on_recovery"):
         tc["auto_complete_on_recovery"] = True
+        # D#229: completing on recovery and holding until done exclude each
+        # other; the tick is the newer choice.
+        tc.pop("trigger_hold_until_done", None)
     else:
         tc.pop("auto_complete_on_recovery", None)
 
@@ -448,6 +451,10 @@ class TriggerConfigMixin:
         entity logic (2+ entities), the sensor schedule type and the optional
         safety interval + warning days."""
         _apply_recovery_flag(tc, user_input)
+        # D#229: only a single-shot state change holds until done (the
+        # rebuild carried the flag over whatever type the edit chose).
+        if tc.get("type") != TriggerType.STATE_CHANGE or tc.get(CONF_TRIGGER_TARGET_CHANGES, 1) != 1:
+            tc.pop("trigger_hold_until_done", None)
         _apply_combinator(tc, user_input)
         if len(tc.get("entity_ids", [])) > 1:
             tc[CONF_TRIGGER_ENTITY_LOGIC] = user_input.get(CONF_TRIGGER_ENTITY_LOGIC, DEFAULT_ENTITY_LOGIC)
@@ -572,6 +579,8 @@ class TriggerConfigMixin:
                     if prev_tc.get("detail_attribute")
                     else {}
                 ),
+                # D#229: so is holding the latch until the task is done.
+                **({"trigger_hold_until_done": True} if prev_tc.get("trigger_hold_until_done") else {}),
             }
             return await next_step()
 

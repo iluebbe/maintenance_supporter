@@ -123,6 +123,8 @@ def _build_export_object(
             "labels": tdata.get("labels") or [],
             # D#183: mirror targets (todo.* ids) — config, so a backup keeps them.
             "mirror_todo_entities": tdata.get("mirror_todo_entities") or [],
+            # D#229: the entity whose change to a state completes the due task.
+            "complete_when": tdata.get("complete_when"),
             "earliest_completion_days": tdata.get("earliest_completion_days"),
             # #170: reference number — a restore keeps "8.3" on the booklets
             # already printed; a colliding import is renumbered on setup.

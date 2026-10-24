@@ -265,6 +265,8 @@ def _build_task_summary(
         "labels": task_data.get("labels", []),
         # D#183: external to-do lists the task is mirrored into while due.
         "mirror_todo_entities": task_data.get("mirror_todo_entities", []),
+        # D#229: the entity whose change to a state completes the due task.
+        "complete_when": task_data.get("complete_when"),
         # Payload diet (perf, 2026-08): the LIST response carries only the
         # most recent entries — at 150+ tasks the full histories dominated
         # the `objects` payload (407 KB measured at just 8 entries/task) and

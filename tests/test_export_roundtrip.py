@@ -82,6 +82,8 @@ FULL_TASK = {
     "labels": ["alpha", "beta"],
     # D#183: mirror targets — config, so the JSON backup carries them.
     "mirror_todo_entities": ["todo.family", "todo.kids"],
+    # D#229: the completion entity — config, so the JSON backup carries it.
+    "complete_when": {"entity_id": "binary_sensor.washer_door", "to_state": "on"},
     "checklist": ["step1", "step2"],
     "schedule_time": "07:30",
     "entity_slug": "full_field_probe",
@@ -195,6 +197,7 @@ def _full_trigger_config() -> dict:
         "auto_complete_on_recovery": True,
         "trigger_combinator": "all",
         "detail_attribute": "low",
+        "trigger_hold_until_done": True,
     }
     missing = _TRIGGER_ALLOWED_KEYS - set(dummies)
     assert not missing, (
@@ -509,6 +512,7 @@ _CSV_TASK_EXCLUDED = {
     "entity_slug",  # instance-specific entity naming
     "origin",  # 2.95 fingerprint (catalog duty / template task) - JSON backup carries it
     "mirror_todo_entities",  # D#183 to-do entity ids (instance-specific; JSON backup carries them)
+    "complete_when",  # D#229 completion entity (instance-specific; JSON backup carries it)
     "consumes_parts", "part_ref",  # part links (ids are instance-specific)
     # #139: nested defs + cycle + Store cursor — structured state that doesn't
     # fit a flat cell; the JSON backup round-trips all three.

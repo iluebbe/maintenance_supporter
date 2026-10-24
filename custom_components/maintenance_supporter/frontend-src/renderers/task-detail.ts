@@ -146,6 +146,11 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
           ? html`<span class="nfc-badge mirror-badge" title="${t("task_mirror_todo", L)}: ${task.mirror_todo_entities
               .map((eid) => String(ctx.hass?.states?.[eid]?.attributes?.friendly_name ?? eid)).join(", ")}"><ha-icon icon="mdi:clipboard-list-outline"></ha-icon></span>`
           : nothing}
+        ${task.complete_when?.entity_id
+          ? html`<span class="nfc-badge complete-when-badge" title="${t("complete_when_badge", L)
+              .replace("{entity}", String(ctx.hass?.states?.[task.complete_when.entity_id]?.attributes?.friendly_name ?? task.complete_when.entity_id))
+              .replace("{state}", task.complete_when.to_state)}"><ha-icon icon="mdi:check-circle-outline"></ha-icon></span>`
+          : nothing}
         ${task.nfc_tag_id
           ? html`<span class="nfc-badge" title="${t("nfc_tag_id", L)}: ${task.nfc_tag_id}"><ha-icon icon="mdi:nfc-variant"></ha-icon> NFC</span>`
           : !isOperator ? html`<span class="nfc-badge unlinked" title="${t("nfc_link_hint", L)}"

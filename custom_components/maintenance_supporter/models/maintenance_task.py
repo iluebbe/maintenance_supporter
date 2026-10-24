@@ -92,6 +92,10 @@ class MaintenanceTask:
     # (helpers/todo_mirror.py). Static config; the row bookkeeping lives in
     # the Store under ``todo_mirror``.
     mirror_todo_entities: list[str] = field(default_factory=list)
+    # D#229: {"entity_id", "to_state"} — the task completes itself when that
+    # entity changes to the state while the task is due
+    # (helpers/complete_when.py). Static config.
+    complete_when: dict[str, str] | None = None
     # --- Meter readings (v2.20, #83) ---
     # Display unit for the recorded value of a `reading`-type task ("kWh",
     # "m³", …). The value itself lives per completion in the history entry
@@ -699,6 +703,8 @@ class MaintenanceTask:
             data["labels"] = self.labels
         if self.mirror_todo_entities:
             data["mirror_todo_entities"] = self.mirror_todo_entities
+        if self.complete_when:
+            data["complete_when"] = dict(self.complete_when)
         if self.earliest_completion_days is not None:
             data["earliest_completion_days"] = self.earliest_completion_days
         if self.ref_no is not None:
@@ -774,6 +780,7 @@ class MaintenanceTask:
             priority=data.get("priority", "normal"),
             labels=data.get("labels", []),
             mirror_todo_entities=list(data.get("mirror_todo_entities") or []),
+            complete_when=dict(data["complete_when"]) if isinstance(data.get("complete_when"), dict) else None,
             archived_at=data.get("archived_at"),
             archived_reason=data.get("archived_reason"),
             paused_at=data.get("paused_at"),

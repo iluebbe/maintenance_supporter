@@ -800,6 +800,7 @@ _ATTR_EXEMPT = {
     "checklist": "structured list — recorder bloat; served via WS",
     "labels": "list; candidate for exposure if automations need it (#134 follow-up)",
     "mirror_todo_entities": "D#183 mirror-target entity ids — plumbing config, not routable state; served via WS",
+    "complete_when": "D#229 completion entity + state — plumbing config, not routable state; served via WS",
     "schedule_time": "sub-day refinement of due_date; panel/WS surface it",
     "earliest_completion_days": "completion-window config, not routable state",
     "on_complete_action": "nested service-call config (data minimisation)",

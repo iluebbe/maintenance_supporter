@@ -1652,6 +1652,30 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         should reflect it. Runs through the canonical complete path (history,
         adaptive learning, events, on_complete_action).
         """
+        # A compound trigger has no single value, a state-change trigger only
+        # its reset count — neither is a reading (None).
+        if trigger_value is None:
+            notes = "Auto-completed: sensor recovered"
+        else:
+            notes = f"Auto-completed: sensor recovered ({trigger_value:g})"
+        await self._async_auto_complete(task_id, notes)
+
+    async def async_auto_complete_from_entity(self, task_id: str, entity_name: str, to_state: str) -> None:
+        """Record a completion because the task's ``complete_when`` entity
+        changed to its state (D#229): the washer's door opened, so the laundry
+        is out. Only while the task is due — opening the door between washes
+        records nothing. ``helpers.complete_when`` matches the change; this
+        decides on the task, from the read model the panel shows.
+        """
+        task_result = ((self.data or {}).get(CONF_TASKS) or {}).get(task_id) or {}
+        if task_result.get("_status") not in NOTIFIABLE_STATUSES:
+            _LOGGER.debug("Not completing %s from %s: the task is not due (%s)", task_id, entity_name, task_result.get("_status"))
+            return
+        await self._async_auto_complete(task_id, f"Auto-completed: {entity_name} changed to {to_state}", source="auto_entity")
+
+    async def _async_auto_complete(self, task_id: str, notes: str, *, source: str | None = None) -> None:
+        """The automatic completions' shared gates: an inert task records
+        nothing, and a completion moments ago is not repeated."""
         merged = self._get_merged_tasks_data()
         task_data = merged.get(task_id)
         if task_data is None:
@@ -1664,7 +1688,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
         # Race guard: if a completion was recorded moments ago (e.g. a manual
         # complete whose trigger reset crossed paths with a queued state
-        # change), don't record a second one.
+        # change, or the door opening as the sensor recovers), don't record a
+        # second one.
         for entry in reversed(completed_entries(task_data.get("history"))):
             # parse_persisted_utc, NOT dt_util.parse_datetime: history can
             # hold NAIVE timestamps (the history-edit dialog sends
@@ -1683,18 +1708,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 return
             break
 
-        _LOGGER.info(
-            "Auto-completing task %s on %s: trigger recovered (value: %s)",
-            task_id,
-            self.maintenance_object.name,
-            trigger_value,
-        )
-        # A compound trigger has no single value (None).
-        if trigger_value is None:
-            notes = "Auto-completed: sensor recovered"
-        else:
-            notes = f"Auto-completed: sensor recovered ({trigger_value:g})"
-        await self.complete_maintenance(task_id, notes=notes, auto=True)
+        _LOGGER.info("Auto-completing task %s on %s: %s", task_id, self.maintenance_object.name, notes)
+        await self.complete_maintenance(task_id, notes=notes, auto=True, source=source)
 
     async def reset_maintenance(
         self,

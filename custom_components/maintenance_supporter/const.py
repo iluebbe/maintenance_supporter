@@ -335,8 +335,10 @@ COMPLETION_SOURCES = (
     "todo_mirror",
     "service",
     "auto_recovery",
+    # D#229: the task's complete_when entity changed to its state.
+    "auto_entity",
 )
-COMPLETION_SOURCES_AUTOMATIC = frozenset({"shopping_list", "service", "auto_recovery"})
+COMPLETION_SOURCES_AUTOMATIC = frozenset({"shopping_list", "service", "auto_recovery", "auto_entity"})
 # The canned history note an UNATTENDED surface attaches (nobody was asked
 # for one) — provenance, never the note a task demands. One table, so the
 # wording lives once; tests/test_completion_sources.py keeps it complete.
@@ -355,6 +357,12 @@ COMPLETION_PROVENANCE_NOTES: dict[str, str] = {
 # list of entity ids is capped and shape-validated at every write path.
 MAX_MIRROR_TODO_LISTS = 5
 MIRROR_TODO_ENTITY_PATTERN = r"^todo\.[a-z0-9_]+$"
+
+# D#229: a task completes itself when one entity changes to one state while
+# the task is due (the washer's door opens); helpers/complete_when.py. Stored
+# as {"entity_id", "to_state"}; the state is capped like an attribute name.
+CONF_TASK_COMPLETE_WHEN = "complete_when"
+MAX_COMPLETE_WHEN_STATE_LENGTH = 255
 
 # --- Config Keys: Notification Actions ---
 CONF_ACTION_COMPLETE_ENABLED = "action_complete_enabled"
@@ -566,6 +574,10 @@ CONF_TRIGGER_BASELINE_VALUE = "trigger_baseline_value"
 CONF_TRIGGER_FROM_STATE = "trigger_from_state"
 CONF_TRIGGER_TO_STATE = "trigger_to_state"
 CONF_TRIGGER_TARGET_CHANGES = "trigger_target_changes"
+# D#229: a single-shot state-change latch stays triggered after the entity
+# leaves its alert state, until the task is completed, skipped or reset (the
+# washer's "finished" lasts a minute, the laundry stays in until emptied).
+CONF_TRIGGER_HOLD_UNTIL_DONE = "trigger_hold_until_done"
 CONF_TRIGGER_RUNTIME_HOURS = "trigger_runtime_hours"
 CONF_TRIGGER_ON_STATES = "trigger_on_states"
 CONF_TRIGGER_DAYS_BEFORE = "trigger_days_before"

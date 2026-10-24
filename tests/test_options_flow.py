@@ -940,6 +940,38 @@ async def test_edit_task_partial_new_fields(
     assert CONF_RESPONSIBLE_USER_ID not in task or task.get(CONF_RESPONSIBLE_USER_ID) is None
 
 
+async def test_edit_task_keeps_complete_when(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """D#229: the flow has no Done when field; a task edit there keeps the
+    rule the panel set (the edit starts from the stored task)."""
+    _mock_auth_users(hass)
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
+    new_data = dict(object_config_entry.data)
+    new_tasks = dict(new_data[CONF_TASKS])
+    rule = {"entity_id": "binary_sensor.washer_door", "to_state": "on"}
+    new_tasks[task_id] = {**new_tasks[task_id], "complete_when": rule}
+    hass.config_entries.async_update_entry(object_config_entry, data={**new_data, CONF_TASKS: new_tasks})
+    await hass.async_block_till_done()
+
+    result, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "edit_task"})
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Filter Cleaning",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.CLEANING,
+            CONF_TASK_INTERVAL_DAYS: 30,
+            CONF_TASK_WARNING_DAYS: 7,
+            CONF_TASK_ENABLED: True,
+        },
+    )
+    assert result["step_id"] == "task_action"
+    assert object_config_entry.data[CONF_TASKS][task_id]["complete_when"] == rule
+
+
 # ─── 4.9 Object Settings with New Fields ──────────────────────────────
 
 
@@ -1566,6 +1598,91 @@ async def test_edit_trigger_keeps_panel_managed_keys(
     assert tc["auto_complete_on_recovery"] is True
     assert tc["trigger_runtime_max_session_seconds"] == 3600
     assert tc["detail_attribute"] == "low"
+
+
+async def _edit_state_change_trigger(
+    hass: HomeAssistant, global_config_entry: ConfigEntry, object_config_entry: ConfigEntry, stored: dict, submit: dict
+) -> dict:
+    """Seed a state-change trigger, walk the flow's trigger edit, submit."""
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
+    new_data = dict(object_config_entry.data)
+    new_tasks = dict(new_data[CONF_TASKS])
+    new_tasks[task_id] = {**new_tasks[task_id], "trigger_config": stored}
+    hass.config_entries.async_update_entry(object_config_entry, data={**new_data, CONF_TASKS: new_tasks})
+    await hass.async_block_till_done()
+
+    result, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "edit_trigger"})
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "edit_trigger_proceed"})
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={CONF_TRIGGER_ENTITY: ["sensor.washer"]})
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={CONF_TRIGGER_ATTRIBUTE: "_state"})
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={CONF_TRIGGER_TYPE: TriggerType.STATE_CHANGE})
+    assert result["step_id"] == "opt_trigger_state_change"
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={CONF_TASK_WARNING_DAYS: 7, **submit})
+    assert result["step_id"] == "task_action"
+    return dict(object_config_entry.data[CONF_TASKS][task_id]["trigger_config"])
+
+
+async def test_edit_trigger_keeps_hold_until_done(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """D#229: holding a state-change latch until the task is done is set in
+    the panel; an options-flow re-save keeps it, ticking the flow's
+    auto-complete replaces it (the two exclude each other), and a second
+    transition to count drops it (only a single-shot latch holds)."""
+    hass.states.async_set("sensor.washer", "off")
+    stored = {
+        "type": TriggerType.STATE_CHANGE,
+        "entity_id": "sensor.washer",
+        "entity_ids": ["sensor.washer"],
+        CONF_TRIGGER_TO_STATE: "finished",
+        CONF_TRIGGER_TARGET_CHANGES: 1,
+        "trigger_hold_until_done": True,
+    }
+    resave = {CONF_TRIGGER_TO_STATE: "finished", CONF_TRIGGER_TARGET_CHANGES: 1}
+    tc = await _edit_state_change_trigger(hass, global_config_entry, object_config_entry, stored, resave)
+    assert tc["trigger_hold_until_done"] is True
+    assert "auto_complete_on_recovery" not in tc
+
+
+async def test_edit_trigger_auto_complete_replaces_hold(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    hass.states.async_set("sensor.washer", "off")
+    stored = {
+        "type": TriggerType.STATE_CHANGE,
+        "entity_id": "sensor.washer",
+        "entity_ids": ["sensor.washer"],
+        CONF_TRIGGER_TO_STATE: "finished",
+        "trigger_hold_until_done": True,
+    }
+    submit = {CONF_TRIGGER_TO_STATE: "finished", CONF_TRIGGER_TARGET_CHANGES: 1, "auto_complete_on_recovery": True}
+    tc = await _edit_state_change_trigger(hass, global_config_entry, object_config_entry, stored, submit)
+    assert tc["auto_complete_on_recovery"] is True
+    assert "trigger_hold_until_done" not in tc
+
+
+async def test_edit_trigger_counting_drops_hold(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    hass.states.async_set("sensor.washer", "off")
+    stored = {
+        "type": TriggerType.STATE_CHANGE,
+        "entity_id": "sensor.washer",
+        "entity_ids": ["sensor.washer"],
+        CONF_TRIGGER_TO_STATE: "finished",
+        "trigger_hold_until_done": True,
+    }
+    submit = {CONF_TRIGGER_TO_STATE: "finished", CONF_TRIGGER_TARGET_CHANGES: 30}
+    tc = await _edit_state_change_trigger(hass, global_config_entry, object_config_entry, stored, submit)
+    assert tc[CONF_TRIGGER_TARGET_CHANGES] == 30
+    assert "trigger_hold_until_done" not in tc
 
 
 async def test_edit_trigger_starts_from_the_task_and_keeps_the_unit(

@@ -93,6 +93,7 @@ def test_every_backend_history_note_is_translated_by_the_frontend() -> None:
     # the notes with values: their English shape is matched by a pattern
     for fragment in (
         r"^Auto-completed: sensor recovered \(",
+        r"^Auto-completed: (.+) changed to (",
         r"^Reset to (",
         r"^Trigger entity replaced: (",
         r"^Sensor trigger removed \(entity was: (",
@@ -101,6 +102,7 @@ def test_every_backend_history_note_is_translated_by_the_frontend() -> None:
         assert fragment in table, fragment
     for rel, needle in (
         ("coordinator.py", 'f"Auto-completed: sensor recovered ('),
+        ("coordinator.py", 'f"Auto-completed: {entity_name} changed to {'),
         ("models/maintenance_task.py", 'f"Reset to {'),
         ("repairs.py", 'f"Trigger entity replaced: {'),
         ("repairs.py", 'f"Sensor trigger removed (entity was: {'),

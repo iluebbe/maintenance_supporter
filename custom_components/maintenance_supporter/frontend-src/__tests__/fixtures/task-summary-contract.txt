@@ -17,6 +17,10 @@
     "step two"
   ],
   "checklist_progress": {},
+  "complete_when": {
+    "entity_id": "binary_sensor.contract_door",
+    "to_state": "on"
+  },
   "consumes_parts": [
     {
       "part_id": "part_1",

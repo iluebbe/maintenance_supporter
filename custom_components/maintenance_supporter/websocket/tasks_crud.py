@@ -244,6 +244,8 @@ TASK_UPDATE_FIELD_MAP = {
     "labels": "labels",
     # D#183: external to-do lists the task is mirrored into while due.
     "mirror_todo_entities": "mirror_todo_entities",
+    # D#229: the entity whose change to a state completes the due task.
+    "complete_when": "complete_when",
     "schedule_time": "schedule_time",
     # v1.3.0
     "on_complete_action": "on_complete_action",
@@ -357,6 +359,9 @@ _TASK_FIELDS: dict[str, Any] = {
     "mirror_todo_entities": vol.Any(
         vol.All([vol.All(str, vol.Match(MIRROR_TODO_ENTITY_PATTERN))], vol.Length(max=MAX_MIRROR_TODO_LISTS)), None
     ),
+    # D#229: {"entity_id", "to_state"} — loose here, shape-checked by
+    # helpers/sanitize.sanitize_complete_when at both write paths (None clears).
+    "complete_when": vol.Any(dict, None),
     # HH:MM strict (00–23 : 00–59). None clears the time → midnight semantic.
     "schedule_time": vol.Any(vol.All(str, vol.Match(r"^([01]\d|2[0-3]):[0-5]\d$")), None),
     # v1.3.0: per-task on_complete_action + quick_complete_defaults.
@@ -601,6 +606,15 @@ async def ws_create_task(
             return
         if mirrors:
             task_data["mirror_todo_entities"] = mirrors
+    # D#229: the entity whose change to a state completes the task while due.
+    if msg.get("complete_when"):
+        from ..helpers.sanitize import sanitize_complete_when
+
+        rule = sanitize_complete_when(msg["complete_when"])
+        if rule is None:
+            connection.send_error(msg["id"], "invalid_input", "complete_when needs an entity_id and a to_state")
+            return
+        task_data["complete_when"] = rule
     if msg.get("schedule_time"):
         task_data["schedule_time"] = msg["schedule_time"]
     # v1.3.0: optional completion-action + quick-defaults. Strict shape
@@ -746,6 +760,16 @@ async def ws_update_task(
             connection.send_error(msg["id"], "invalid_mirror_todo", mirror_err)
             return
 
+    # D#229: same shape check as create; null or {} clears the rule.
+    if msg.get("complete_when"):
+        from ..helpers.sanitize import sanitize_complete_when
+
+        rule = sanitize_complete_when(msg["complete_when"])
+        if rule is None:
+            connection.send_error(msg["id"], "invalid_input", "complete_when needs an entity_id and a to_state")
+            return
+        msg["complete_when"] = rule
+
     for msg_key, data_key in TASK_UPDATE_FIELD_MAP.items():
         if msg_key in msg:
             task[data_key] = msg[msg_key]
@@ -786,6 +810,9 @@ async def ws_update_task(
     # D#183: an empty mirror list means "off" — drop the key, don't store [].
     if "mirror_todo_entities" in msg and not msg["mirror_todo_entities"]:
         task.pop("mirror_todo_entities", None)
+    # D#229: no rule is ABSENCE, not a stored null.
+    if "complete_when" in msg and not msg["complete_when"]:
+        task.pop("complete_when", None)
     # No rotation is ABSENCE: the dialog sends null on every save, and the
     # stored None came back as the options flow's select default, failing
     # its validation — the task form could not be saved (bug audit 2026-09-26).

@@ -3,9 +3,9 @@
 Used by the global ``EVENT_ENTITY_REGISTRY_UPDATED`` listener in ``__init__.py``
 to keep ``trigger_config["entity_id"|"entity_ids"]``,
 ``adaptive_config["environmental_entity"]``, calendar schedules, to-do mirror
-targets, the completion action's target and the battery fleet's lists in sync
-with the user's renames (the listener itself rewrites the global shopping-list
-and notify-entity targets).
+targets, the completion action's target, the ``complete_when`` entity and the
+battery fleet's lists in sync with the user's renames (the listener itself
+rewrites the global shopping-list and notify-entity targets).
 
 Without this, ``async_track_state_change_event`` (which subscribes by literal
 entity_id) silently misses events on the new id — same dual-storage class of
@@ -102,6 +102,13 @@ def rewrite_task(task_data: dict[str, Any], old_id: str, new_id: str) -> tuple[d
     mirrors = new_task.get("mirror_todo_entities")
     if isinstance(mirrors, list) and old_id in mirrors:
         new_task["mirror_todo_entities"] = [new_id if e == old_id else e for e in mirrors]
+        changed = True
+
+    # D#229: the entity whose change completes the task — its listener
+    # subscribes by the literal id, like the triggers'.
+    rule = new_task.get("complete_when")
+    if isinstance(rule, dict) and rule.get("entity_id") == old_id:
+        new_task["complete_when"] = {**rule, "entity_id": new_id}
         changed = True
 
     # The completion action's target — above all the integration's reset

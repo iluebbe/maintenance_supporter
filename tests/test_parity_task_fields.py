@@ -100,6 +100,11 @@ PANEL_ONLY = {
     # class): the panel's entity multi-picker is the editor, enforcement
     # (helpers/todo_mirror.py) is surface-independent.
     "mirror_todo_entities",
+    # D#229: the entity and state that complete the due task — the same
+    # class: an entity picker plus the entity's state picker in the panel
+    # dialog, enforced surface-independently (helpers/complete_when.py); an
+    # options-flow task edit keeps it (the flow never rebuilds the task).
+    "complete_when",
 }
 # Config-flow-only: none at the top-level task-field layer. Compound triggers
 # and per-entity trigger removal are *within* trigger_config and are covered by

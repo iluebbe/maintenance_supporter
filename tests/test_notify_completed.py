@@ -107,7 +107,7 @@ async def test_automatic_mode_announces_only_unattended_sources(hass: HomeAssist
         await _send(hass, obj, source=src)
     await hass.async_block_till_done()
     assert sorted(e.data["reason"] for e in events) == sorted(COMPLETION_SOURCES_AUTOMATIC)
-    assert {"shopping_list", "service", "auto_recovery"} == COMPLETION_SOURCES_AUTOMATIC
+    assert {"shopping_list", "service", "auto_recovery", "auto_entity"} == COMPLETION_SOURCES_AUTOMATIC
 
 
 async def test_all_mode_announces_every_source_with_reason_actor_and_category(hass: HomeAssistant) -> None:

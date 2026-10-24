@@ -295,6 +295,9 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _detailsOpen = false;
   /** D#183: external todo.* lists the task is mirrored into while due. */
   @state() private _mirrorTodoEntities: string[] = [];
+  // D#229: the entity (and its state) whose change completes the due task.
+  @state() private _completeWhenEntity = "";
+  @state() private _completeWhenState = "";
   @state() private _enabled = true;
 
   // Trigger fields
@@ -319,6 +322,8 @@ export class MaintenanceTaskDialog extends LitElement {
   // even though counting is anchored at e.g. 27,000 km.
   @state() private _liveBaselineValue: number | null = null;
   @state() private _autoCompleteOnRecovery = false;
+  // D#229: a single-shot state change stays triggered until the task is done.
+  @state() private _holdUntilDone = false;
   @state() private _triggerFromState = "";
   @state() private _triggerToState = "";
   @state() private _triggerTargetChanges = "";
@@ -549,6 +554,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._priority = task.priority || "normal";
     this._labels = (task.labels || []).join(", ");
     this._mirrorTodoEntities = [...(task.mirror_todo_entities || [])];
+    this._completeWhenEntity = task.complete_when?.entity_id || "";
+    this._completeWhenState = task.complete_when?.to_state || "";
     this._enabled = task.enabled !== false;
     this._lastPerformed = task.last_performed || "";
     this._loadedLastPerformed = this._lastPerformed;
@@ -660,6 +667,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._triggerBaselineValue = tc.trigger_baseline_value?.toString() || "";
       this._liveBaselineValue = task.trigger_baseline_value ?? null;
       this._autoCompleteOnRecovery = tc.auto_complete_on_recovery || false;
+      this._holdUntilDone = tc.trigger_hold_until_done === true;
       this._triggerRuntimeMaxSession = tc.trigger_runtime_max_session_seconds?.toString() || "";
       this._triggerDetailAttribute = tc.detail_attribute || "";
       if (tc.type === "compound") {
@@ -716,6 +724,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._priority = "normal";
     this._labels = "";
     this._mirrorTodoEntities = [];
+    this._completeWhenEntity = "";
+    this._completeWhenState = "";
     this._enabled = true;
     this._lastPerformed = "";
     this._nfcTagId = "";
@@ -822,6 +832,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._triggerBaselineValue = "";
     this._liveBaselineValue = null;
     this._autoCompleteOnRecovery = false;
+    this._holdUntilDone = false;
     this._triggerRuntimeMaxSession = "";
     this._triggerDetailAttribute = "";
     this._compoundLogic = "AND";
@@ -1704,6 +1715,10 @@ export class MaintenanceTaskDialog extends LitElement {
     data.nfc_tag_id = this._nfcTagId || null;
     data.require_tag_scan = this._requireTagScan;
     data.allow_skip = this._allowSkip;
+    // D#229: null clears the rule (an entity without a state is no rule).
+    data.complete_when = this._completeWhenEntity && this._completeWhenState.trim()
+      ? { entity_id: this._completeWhenEntity, to_state: this._completeWhenState.trim() }
+      : null;
     data.notify_enabled = this._notifyEnabled;
     data.reading_unit = this._readingUnit.trim() || null;
     // #161 phase 2: always sent — [] clears the slots (single-value task).
@@ -1794,7 +1809,9 @@ export class MaintenanceTaskDialog extends LitElement {
       };
       // The per-type fields: the same rules a compound condition uses.
       applyTypeFields(triggerConfig, this._typeFields());
-      if (this._autoCompleteOnRecovery) triggerConfig.auto_complete_on_recovery = true;
+      // D#229: holding until done and completing on recovery are one choice.
+      if (this._holdUntilDone && this._isStateLatch()) triggerConfig.trigger_hold_until_done = true;
+      else if (this._autoCompleteOnRecovery) triggerConfig.auto_complete_on_recovery = true;
       if (this._triggerCombinator === "all") triggerConfig.trigger_combinator = "all";
       if (this._triggerDetailAttribute) triggerConfig.detail_attribute = this._triggerDetailAttribute;
 
@@ -1959,15 +1976,17 @@ export class MaintenanceTaskDialog extends LitElement {
         ${this._renderTriggerLiveHint()}
       `}
       ${this._renderDetailAttributeSelect(L)}
-      <label>
-        <input
-          type="checkbox"
-          .checked=${this._autoCompleteOnRecovery}
-          @change=${(e: Event) => (this._autoCompleteOnRecovery = (e.target as HTMLInputElement).checked)}
-        />
-        ${t("auto_complete_on_recovery", L)}
-      </label>
-      <div class="field-help">${t("auto_complete_on_recovery_help", L)}</div>
+      ${this._isStateLatch() ? this._renderTriggerEnd(L) : html`
+        <label>
+          <input
+            type="checkbox"
+            .checked=${this._autoCompleteOnRecovery}
+            @change=${(e: Event) => (this._autoCompleteOnRecovery = (e.target as HTMLInputElement).checked)}
+          />
+          ${t("auto_complete_on_recovery", L)}
+        </label>
+        <div class="field-help">${t("auto_complete_on_recovery_help", L)}</div>
+      `}
       <ms-textfield
         label="${t("safety_interval", L)}"
         type="number"
@@ -2079,6 +2098,78 @@ export class MaintenanceTaskDialog extends LitElement {
           </select>
         </div>
         ${this._renderConditionTypeFields(c, i)}
+      </div>
+    `;
+  }
+
+  /** D#229: a plain state-change trigger with one transition and a from- or
+   *  to-state is a latch that ends by itself when the state ends — the one
+   *  trigger that can instead hold until the task is done. */
+  private _isStateLatch(): boolean {
+    return this._triggerType === "state_change"
+      && (this._triggerTargetChanges === "" || Number(this._triggerTargetChanges) === 1)
+      && !!(this._triggerFromState.trim() || this._triggerToState.trim());
+  }
+
+  /** D#229: what happens when the latch's state ends — the task goes back to
+   *  OK, is recorded as done (#53), or stays triggered until someone (or its
+   *  Done when entity) completes it. One choice: the last two exclude each
+   *  other, the server refuses both. */
+  private _renderTriggerEnd(L: string) {
+    const end = this._holdUntilDone ? "hold" : this._autoCompleteOnRecovery ? "done" : "ok";
+    const labels = { ok: "trigger_end_ok", done: "trigger_end_done", hold: "trigger_end_hold" } as const;
+    const choose = (v: keyof typeof labels) => {
+      this._autoCompleteOnRecovery = v === "done";
+      this._holdUntilDone = v === "hold";
+    };
+    return html`
+      <div class="trigger-end" role="radiogroup" aria-label=${t("trigger_end", L)}>
+        <div class="field-label">${t("trigger_end", L)}</div>
+        ${(Object.keys(labels) as Array<keyof typeof labels>).map((v) => html`
+          <label class="trigger-end-option">
+            <input type="radio" name="trigger-end" value=${v} .checked=${end === v} @change=${() => choose(v)} />
+            ${t(labels[v], L)}
+          </label>
+        `)}
+        ${end === "done" ? html`<div class="field-help">${t("auto_complete_on_recovery_help", L)}</div>` : nothing}
+        ${end === "hold" ? html`<div class="field-help">${t("trigger_end_hold_help", L)}</div>` : nothing}
+      </div>
+    `;
+  }
+
+  /** D#229: the task completes itself when one entity changes to a state
+   *  while the task is due (the washer's door opens). A new entity clears
+   *  the state, which belonged to the old one. */
+  private _renderCompleteWhen(L: string) {
+    return html`
+      <div class="field complete-when-field">
+        ${this._entityPickerFallback ? html`
+          <ms-textfield
+            label="${t("complete_when", L)}"
+            placeholder="binary_sensor.washer_door"
+            .value=${this._completeWhenEntity}
+            @input=${(e: Event) => (this._completeWhenEntity = (e.target as HTMLInputElement).value.trim())}
+          ></ms-textfield>
+        ` : html`
+          <ha-form
+            class="entity-picker-form"
+            .hass=${this.hass}
+            .schema=${[{ name: "complete_when", selector: { entity: {} } }]}
+            .data=${{ complete_when: this._completeWhenEntity }}
+            .computeLabel=${() => t("complete_when", L)}
+            @value-changed=${(e: CustomEvent) => {
+              const id = ((e.detail.value as { complete_when?: string }).complete_when || "").trim();
+              if (id !== this._completeWhenEntity) this._completeWhenState = "";
+              this._completeWhenEntity = id;
+            }}
+          ></ha-form>`}
+        ${this._completeWhenEntity ? this._renderStateField({
+          label: t("complete_when_state", L),
+          value: this._completeWhenState,
+          entityId: this._completeWhenEntity,
+          onInput: (v) => (this._completeWhenState = v),
+        }) : nothing}
+        <div class="field-help">${t("complete_when_help", L)}</div>
       </div>
     `;
   }
@@ -3421,6 +3512,7 @@ export class MaintenanceTaskDialog extends LitElement {
             <span>${t("disallow_skip", L)}</span>
           </label>
           ${!this._allowSkip ? html`<div class="field-help">${t("disallow_skip_help", L)}</div>` : nothing}
+          ${this._renderCompleteWhen(L)}
           ${this._renderPhasesEditor(L)}
           ${this._renderCompletionActionsSection(L)}
     `);
@@ -3571,6 +3663,18 @@ export class MaintenanceTaskDialog extends LitElement {
     .state-picker-form {
       display: block;
       margin: 8px 0;
+    }
+    /* D#229: one option per line — three sentences flowed into each other. */
+    .trigger-end {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin: 8px 0;
+    }
+    .trigger-end-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     /* v1.3.0: completion-action sections (.adaptive-section shares the shell
        but keeps its own class — tests count .ca-section elements) */

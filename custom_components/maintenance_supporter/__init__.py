@@ -1951,6 +1951,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
             async_dispatcher_send(hass, SIGNAL_BATTERY_FLEET_CHANGED)
         await coordinator.async_config_entry_first_refresh()
 
+        # D#229: a task may complete itself when another entity changes to a
+        # state (the washer's door opens) — one listener for the entry, set up
+        # once its tasks have a status to check.
+        from .helpers.complete_when import async_track_complete_when
+
+        entry.async_on_unload(async_track_complete_when(hass, coordinator))
+
         # A shopping-list row checked while this object was not loaded (a
         # reload after a task edit, a setup retry) waits for it — the resync
         # books it now. At startup the pass after "started" covers it.
