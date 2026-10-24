@@ -244,6 +244,8 @@ TASK_UPDATE_FIELD_MAP = {
     "labels": "labels",
     # D#183: external to-do lists the task is mirrored into while due.
     "mirror_todo_entities": "mirror_todo_entities",
+    # #231: False keeps a task without its own lists off the default lists.
+    "mirror_todo_use_default": "mirror_todo_use_default",
     # D#229: the entity whose change to a state completes the due task.
     "complete_when": "complete_when",
     "schedule_time": "schedule_time",
@@ -359,6 +361,9 @@ _TASK_FIELDS: dict[str, Any] = {
     "mirror_todo_entities": vol.Any(
         vol.All([vol.All(str, vol.Match(MIRROR_TODO_ENTITY_PATTERN))], vol.Length(max=MAX_MIRROR_TODO_LISTS)), None
     ),
+    # #231: False = not on the default to-do lists (Settings → General) when
+    # the task names no lists of its own; True / None = it takes them.
+    "mirror_todo_use_default": vol.Any(bool, None),
     # D#229: {"entity_id", "to_state"} — loose here, shape-checked by
     # helpers/sanitize.sanitize_complete_when at both write paths (None clears).
     "complete_when": vol.Any(dict, None),
@@ -606,6 +611,10 @@ async def ws_create_task(
             return
         if mirrors:
             task_data["mirror_todo_entities"] = mirrors
+    # #231: stored only when False, and only without own lists (they replace
+    # the default lists anyway).
+    if msg.get("mirror_todo_use_default") is False and not task_data.get("mirror_todo_entities"):
+        task_data["mirror_todo_use_default"] = False
     # D#229: the entity whose change to a state completes the task while due.
     if msg.get("complete_when"):
         from ..helpers.sanitize import sanitize_complete_when
@@ -810,6 +819,11 @@ async def ws_update_task(
     # D#183: an empty mirror list means "off" — drop the key, don't store [].
     if "mirror_todo_entities" in msg and not msg["mirror_todo_entities"]:
         task.pop("mirror_todo_entities", None)
+    # #231: the create rule — only a False is kept, and only on a task without
+    # its own lists (the verbatim copy above would persist True / None).
+    if "mirror_todo_use_default" in msg or "mirror_todo_entities" in msg:
+        if task.get("mirror_todo_use_default") is not False or task.get("mirror_todo_entities"):
+            task.pop("mirror_todo_use_default", None)
     # D#229: no rule is ABSENCE, not a stored null.
     if "complete_when" in msg and not msg["complete_when"]:
         task.pop("complete_when", None)

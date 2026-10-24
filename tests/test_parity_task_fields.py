@@ -100,6 +100,9 @@ PANEL_ONLY = {
     # class): the panel's entity multi-picker is the editor, enforcement
     # (helpers/todo_mirror.py) is surface-independent.
     "mirror_todo_entities",
+    # #231: the opt-out of the default to-do lists — the same class; the panel
+    # dialog's choice is the editor, an options-flow task edit keeps it.
+    "mirror_todo_use_default",
     # D#229: the entity and state that complete the due task — the same
     # class: an entity picker plus the entity's state picker in the panel
     # dialog, enforced surface-independently (helpers/complete_when.py); an

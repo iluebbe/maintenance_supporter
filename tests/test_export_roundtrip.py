@@ -466,6 +466,10 @@ _TASK_EXPORT_EXEMPT = {
     # The completion-number high-water mark (Store-side, bug audit 2026-10-16
     # F11): in the import mirror, asserted by test_bug_audit_2026_10_16_t3.
     "next_history_ref",
+    # #231: the opt-out is stored only as False and only WITHOUT own lists —
+    # FULL_TASK has lists; the move's one-time task carries it (in the import
+    # mirror; also asserted by test_todo_mirror_default_231).
+    "mirror_todo_use_default",
 }
 
 
@@ -512,6 +516,7 @@ _CSV_TASK_EXCLUDED = {
     "entity_slug",  # instance-specific entity naming
     "origin",  # 2.95 fingerprint (catalog duty / template task) - JSON backup carries it
     "mirror_todo_entities",  # D#183 to-do entity ids (instance-specific; JSON backup carries them)
+    "mirror_todo_use_default",  # #231 opt-out of the default lists, which are instance-specific too (JSON backup carries it)
     "complete_when",  # D#229 completion entity (instance-specific; JSON backup carries it)
     "consumes_parts", "part_ref",  # part links (ids are instance-specific)
     # #139: nested defs + cycle + Store cursor — structured state that doesn't

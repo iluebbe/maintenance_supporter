@@ -267,6 +267,12 @@ def cap_task_fields(task_data: dict[str, Any], *, keep_action_owner: bool = Fals
             task_data["mirror_todo_entities"] = mirrors
         else:
             task_data.pop("mirror_todo_entities", None)
+    # #231: only a False is stored, and only on a task without its own lists
+    # (those replace the default lists anyway).
+    if "mirror_todo_use_default" in task_data and (
+        task_data["mirror_todo_use_default"] is not False or task_data.get("mirror_todo_entities")
+    ):
+        task_data.pop("mirror_todo_use_default")
 
     # D#229: one entity and the state that completes the task; a malformed or
     # empty rule drops the key (absence = off).

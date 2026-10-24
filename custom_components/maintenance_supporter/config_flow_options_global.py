@@ -53,6 +53,7 @@ from .const import (
     CONF_INSTALL_ASSIST_SENTENCES,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_MEMBER_DISPLAY,
+    CONF_MIRROR_TODO_DEFAULT_ENTITIES,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
     CONF_NOTIFICATION_TITLE_STYLE,
@@ -864,6 +865,17 @@ class GlobalOptionsFlow(OptionsFlow):
                 errors[CONF_SHOPPING_LIST_ENTITY] = "invalid_shopping_list_entity"
             user_input[CONF_SHOPPING_LIST_ENTITY] = raw_list
 
+            # #231: the to-do mirror's default lists — the panel's rules: a
+            # cleared selector omits the key (= off), the shape sanitiser of
+            # the per-task field, and none of our own lists.
+            from .helpers.sanitize import sanitize_mirror_todo_entities
+            from .websocket.tasks_validation import _mirror_todo_error
+
+            defaults = sanitize_mirror_todo_entities(user_input.get(CONF_MIRROR_TODO_DEFAULT_ENTITIES) or [])
+            if _mirror_todo_error(self.hass, defaults):
+                errors[CONF_MIRROR_TODO_DEFAULT_ENTITIES] = "invalid_mirror_todo"
+            user_input[CONF_MIRROR_TODO_DEFAULT_ENTITIES] = defaults
+
             # Trim + cap the optional sidebar title; blank clears the override
             # (panel falls back to the default "Maintenance").
             # An emptied field arrives ABSENT (the frontend drops it) and the
@@ -1062,6 +1074,12 @@ class GlobalOptionsFlow(OptionsFlow):
                         CONF_SHOPPING_LIST_ENTITY,
                         description={"suggested_value": current.get(CONF_SHOPPING_LIST_ENTITY, "")},
                     ): selector.EntitySelector(selector.EntitySelectorConfig(domain="todo")),
+                    # #231: every task without its own mirror lists goes onto
+                    # these while due ([] = off); suggested_value keeps it clearable.
+                    vol.Optional(
+                        CONF_MIRROR_TODO_DEFAULT_ENTITIES,
+                        description={"suggested_value": list(current.get(CONF_MIRROR_TODO_DEFAULT_ENTITIES) or [])},
+                    ): selector.EntitySelector(selector.EntitySelectorConfig(domain="todo", multiple=True)),
                     vol.Optional(
                         CONF_PANEL_ENABLED,
                         default=self._opt(CONF_PANEL_ENABLED),

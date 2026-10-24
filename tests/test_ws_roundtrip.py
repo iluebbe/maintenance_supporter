@@ -717,6 +717,7 @@ _SETTING_SAMPLES: dict[str, Any] = {
     # Format-validated (todo.* prefix) by a bespoke sanitiser rule; the
     # qualified form round-trips unchanged.
     "shopping_list_entity": "todo.shopping_list",
+    "mirror_todo_default_entities": ["todo.family", "todo.kids"],
     "panel_enabled": True,
     # Already trimmed + under the 50-char cap, so it round-trips unchanged.
     "panel_title": "Upkeep",
@@ -824,6 +825,7 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "notifications_enabled": settings["general"]["notifications_enabled"],
         "notify_service": settings["general"]["notify_service"],
         "shopping_list_entity": settings["general"]["shopping_list_entity"],
+        "mirror_todo_default_entities": settings["general"]["mirror_todo_default_entities"],
         "panel_enabled": settings["general"]["panel_enabled"],
         "panel_title": settings["general"]["panel_title"],
         "row_action_style": settings["general"]["row_action_style"],

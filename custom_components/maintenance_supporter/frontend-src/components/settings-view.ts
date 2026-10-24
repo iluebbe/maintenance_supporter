@@ -56,6 +56,8 @@ interface SettingsResponse {
     notify_targets?: string[];
     /** v2.67: todo.* entity the buy-task shopping sync mirrors into ("" = off). */
     shopping_list_entity?: string;
+    /** #231: the to-do lists every task without its own is mirrored into. */
+    mirror_todo_default_entities?: string[];
     panel_enabled: boolean;
     panel_title: string;
     /** 2.94: the sidebar title an empty field means (server language). */
@@ -180,6 +182,10 @@ const CURRENCIES = [
 
 /** The currency_decimals <select> options — derived from the registry range
  *  (0..3), not a literal list. */
+// #231: the default lists are capped like a task's own — keep in lockstep with
+// const.MAX_MIRROR_TODO_LISTS (tests/test_frontend_const_parity.py).
+const MAX_MIRROR_TODO_LISTS = 5;
+
 const CURRENCY_DECIMAL_OPTIONS: readonly number[] = (([lo, hi]) =>
   Array.from({ length: hi - lo + 1 }, (_, i) => lo + i))(SETTING_INT_RANGES.currency_decimals);
 
@@ -1153,7 +1159,37 @@ export class MaintenanceSettingsView extends LitElement {
             `)}
           </select>
         </label>
+        ${this._renderMirrorTodoDefault(L, g.mirror_todo_default_entities ?? [])}
       </div>
+    `;
+  }
+
+  /** #231: the to-do lists every task without its own goes onto while due —
+   *  one checkbox per list (not our own Maintenance list, which takes no
+   *  rows), at most as many as a task may name. */
+  private _renderMirrorTodoDefault(L: string, picked: string[]) {
+    const lists = this._todoEntities("").filter((id) => this.hass?.entities?.[id]?.platform !== "maintenance_supporter");
+    for (const id of [...picked].reverse()) if (!lists.includes(id)) lists.unshift(id);
+    const full = picked.length >= MAX_MIRROR_TODO_LISTS;
+    const toggle = (id: string, on: boolean): void => {
+      void this._updateSetting("mirror_todo_default_entities", on ? [...picked, id] : picked.filter((x) => x !== id));
+    };
+    return html`
+        <div class="setting-row mirror-todo-default">
+          <span>
+            <span class="setting-label">${t("settings_mirror_todo_default", L)}</span>
+            <span class="setting-desc">${t("settings_mirror_todo_default_help", L)}</span>
+          </span>
+        </div>
+        ${lists.length
+          ? lists.map((id) => html`
+            <label class="setting-row mirror-todo-default-list">
+              <span class="setting-label">${String(this.hass?.states?.[id]?.attributes?.friendly_name ?? id)}</span>
+              <input type="checkbox" data-list=${id} .checked=${picked.includes(id)}
+                ?disabled=${full && !picked.includes(id)}
+                @change=${(e: Event) => toggle(id, (e.target as HTMLInputElement).checked)} />
+            </label>`)
+          : html`<div class="setting-row hint">${t("settings_mirror_todo_default_none", L)}</div>`}
     `;
   }
 

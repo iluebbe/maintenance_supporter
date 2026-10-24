@@ -56,6 +56,8 @@ export interface TaskDetailContext {
   moreMenuOpen: boolean;
   activeTab: "overview" | "history";
   features: AdvancedFeatures;
+  /** #231: the to-do mirror's default lists — a task without its own shows them. */
+  mirrorTodoDefault?: string[];
   currencySymbol: string;
   collapsedSections: Set<string>;
   costDurationToggle: "cost" | "duration" | "both";
@@ -142,10 +144,7 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
         ${task.notify_enabled === false
           ? html`<span class="nfc-badge muted-badge" title="${t("no_notifications", L)}"><ha-icon icon="mdi:bell-off-outline"></ha-icon></span>`
           : nothing}
-        ${task.mirror_todo_entities?.length
-          ? html`<span class="nfc-badge mirror-badge" title="${t("task_mirror_todo", L)}: ${task.mirror_todo_entities
-              .map((eid) => String(ctx.hass?.states?.[eid]?.attributes?.friendly_name ?? eid)).join(", ")}"><ha-icon icon="mdi:clipboard-list-outline"></ha-icon></span>`
-          : nothing}
+        ${renderMirrorBadge(task, ctx, L)}
         ${task.complete_when?.entity_id
           ? html`<span class="nfc-badge complete-when-badge" title="${t("complete_when_badge", L)
               .replace("{entity}", String(ctx.hass?.states?.[task.complete_when.entity_id]?.attributes?.friendly_name ?? task.complete_when.entity_id))
@@ -571,6 +570,17 @@ function renderTabContent(task: MaintenanceTask, ctx: TaskDetailContext) {
 /** The complete task-detail view. Renders into the PANEL's shadow root (this
  *  is a render function, not a component) so the panel's dialogs and styles
  *  keep working unchanged. */
+/** D#183 / #231: the lists the task goes onto while due — its own, else the
+ *  default lists (named as such) unless it opted out. */
+function renderMirrorBadge(task: MaintenanceTask, ctx: TaskDetailContext, L: string) {
+  const own = task.mirror_todo_entities ?? [];
+  const lists = own.length ? own : task.mirror_todo_use_default === false ? [] : ctx.mirrorTodoDefault ?? [];
+  if (!lists.length) return nothing;
+  const names = lists.map((eid) => String(ctx.hass?.states?.[eid]?.attributes?.friendly_name ?? eid)).join(", ");
+  const title = own.length ? `${t("task_mirror_todo", L)}: ${names}` : t("task_mirror_todo_default", L).replace("{lists}", names);
+  return html`<span class="nfc-badge mirror-badge ${own.length ? "" : "inherited"}" title=${title}><ha-icon icon="mdi:clipboard-list-outline"></ha-icon></span>`;
+}
+
 export function renderTaskDetail(task: MaintenanceTask, ctx: TaskDetailContext) {
   return html`
     <div class="detail-section">

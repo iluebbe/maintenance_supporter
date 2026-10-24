@@ -28,6 +28,7 @@
     "admin_panel_user_ids": "HA user ids of this instance",
     "adopted_task_notes": "this instance's adoption bookkeeping",
     "shopping_list_entity": "a to-do entity of this instance",
+    "mirror_todo_default_entities": "to-do entities of this instance",
     "member_display": "avatar overrides keyed by this instance's user ids"
   }
 }

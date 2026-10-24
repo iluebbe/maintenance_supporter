@@ -92,6 +92,9 @@ class MaintenanceTask:
     # (helpers/todo_mirror.py). Static config; the row bookkeeping lives in
     # the Store under ``todo_mirror``.
     mirror_todo_entities: list[str] = field(default_factory=list)
+    # #231: False keeps a task without its own lists off the default lists
+    # (Settings → General); stored only when False.
+    mirror_todo_use_default: bool = True
     # D#229: {"entity_id", "to_state"} — the task completes itself when that
     # entity changes to the state while the task is due
     # (helpers/complete_when.py). Static config.
@@ -703,6 +706,8 @@ class MaintenanceTask:
             data["labels"] = self.labels
         if self.mirror_todo_entities:
             data["mirror_todo_entities"] = self.mirror_todo_entities
+        if not self.mirror_todo_use_default:
+            data["mirror_todo_use_default"] = False
         if self.complete_when:
             data["complete_when"] = dict(self.complete_when)
         if self.earliest_completion_days is not None:
@@ -780,6 +785,7 @@ class MaintenanceTask:
             priority=data.get("priority", "normal"),
             labels=data.get("labels", []),
             mirror_todo_entities=list(data.get("mirror_todo_entities") or []),
+            mirror_todo_use_default=data.get("mirror_todo_use_default") is not False,
             complete_when=dict(data["complete_when"]) if isinstance(data.get("complete_when"), dict) else None,
             archived_at=data.get("archived_at"),
             archived_reason=data.get("archived_reason"),

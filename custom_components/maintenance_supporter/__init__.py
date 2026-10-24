@@ -55,6 +55,7 @@ from .const import (
     CONF_BUDGET_YEARLY,
     CONF_GROUPS,
     CONF_INSTALL_ASSIST_SENTENCES,
+    CONF_MIRROR_TODO_DEFAULT_ENTITIES,
     CONF_NOTIFY_SERVICE,
     CONF_OBJECT,
     CONF_PANEL_ENABLED,
@@ -1356,11 +1357,16 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             # the renamed key alone, and every other setting vanished behind
             # them (bug audit 2026-10-16).
             settings = gentry.options or gentry.data
-            renamed = {
+            renamed: dict[str, Any] = {
                 key: new_eid
                 for key in (CONF_SHOPPING_LIST_ENTITY, CONF_NOTIFY_SERVICE)
                 if settings.get(key) == old_eid
             }
+            # #231: the to-do mirror's default lists (the Store records'
+            # keys follow below, per object, with the per-task lists').
+            defaults = settings.get(CONF_MIRROR_TODO_DEFAULT_ENTITIES)
+            if isinstance(defaults, list) and old_eid in defaults:
+                renamed[CONF_MIRROR_TODO_DEFAULT_ENTITIES] = [new_eid if e == old_eid else e for e in defaults]
             if renamed:
                 hass.config_entries.async_update_entry(gentry, options={**settings, **renamed})
             if CONF_SHOPPING_LIST_ENTITY in renamed:
@@ -2212,6 +2218,11 @@ async def _async_global_options_updated(hass: HomeAssistant, entry: ConfigEntry)
     from .shopping_sync import schedule_resync
 
     schedule_resync(hass)
+    # #231: the to-do mirror's default lists may have changed — it compares
+    # and, if so, moves the inheriting tasks' rows.
+    from .helpers.todo_mirror import settings_changed as _todo_mirror_settings_changed
+
+    _todo_mirror_settings_changed(hass)
     # The low/recovered battery percentages may have changed: the hub counts
     # now, not at its next poll.
     from homeassistant.helpers.dispatcher import async_dispatcher_send

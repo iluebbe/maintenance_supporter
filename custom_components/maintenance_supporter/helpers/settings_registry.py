@@ -65,6 +65,7 @@ from ..const import (
     CONF_INSTALL_ASSIST_SENTENCES,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_MEMBER_DISPLAY,
+    CONF_MIRROR_TODO_DEFAULT_ENTITIES,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
     CONF_NOTIFICATION_TITLE_STYLE,
@@ -159,6 +160,9 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     # format-validated by a bespoke sanitiser rule (todo. prefix), max_len is
     # HA's entity-id cap.
     SettingSpec(CONF_SHOPPING_LIST_ENTITY, str, "", max_len=255),
+    # #231: the to-do mirror's default lists ([] = off); shape-sanitised and
+    # our own to-do platform refused by bespoke rules in dashboard.py.
+    SettingSpec(CONF_MIRROR_TODO_DEFAULT_ENTITIES, list, []),
     # #145: enum-validated by a bespoke rule (ROW_ACTION_STYLES); the notice
     # flag is only ever cleared by the panel banner.
     SettingSpec(CONF_ROW_ACTION_STYLE, str, DEFAULT_ROW_ACTION_STYLE, max_len=32),

@@ -67,6 +67,7 @@
     "todo.family",
     "todo.kids"
   ],
+  "mirror_todo_use_default": true,
   "name": "Contract Fixture Task",
   "next_due": null,
   "next_event_titles": [],

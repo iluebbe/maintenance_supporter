@@ -506,8 +506,9 @@ async def test_entry_option_and_global_option_agree(hass: HomeAssistant) -> None
 
 
 def test_todo_service_calls_live_in_the_shared_wrappers() -> None:
-    """``todo.*`` services are called only by the three module-level wrappers
-    in helpers/todo_mirror (the shopping sync carried a byte-identical copy)."""
+    """``todo.*`` services are called only by the module-level wrappers in
+    helpers/todo_mirror (the shopping sync carried a byte-identical copy;
+    #231 added the update for the row's due date)."""
     shopping = ast.parse((COMPONENT / "shopping_sync.py").read_text(encoding="utf-8"))
     assert not [n for n in ast.walk(shopping) if isinstance(n, ast.Attribute) and n.attr == "async_call"]
     mirror = ast.parse((COMPONENT / "helpers" / "todo_mirror.py").read_text(encoding="utf-8"))
@@ -517,7 +518,7 @@ def test_todo_service_calls_live_in_the_shared_wrappers() -> None:
         if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef))
         and any(isinstance(n, ast.Attribute) and n.attr == "async_call" for n in ast.walk(fn))
     }
-    assert callers == {"async_todo_get_items", "async_todo_add_item", "async_todo_remove_item"}
+    assert callers == {"async_todo_get_items", "async_todo_add_item", "async_todo_update_item", "async_todo_remove_item"}
 
 
 # ─── smaller twins ───────────────────────────────────────────────────────

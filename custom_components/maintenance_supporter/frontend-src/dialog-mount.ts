@@ -190,6 +190,7 @@ function applyTaskDialogSettings(dlg: MaintenanceTaskDialog, settings: SettingsC
   dlg.seasonalFeature = settings.features.seasonal;
   dlg.environmentalFeature = settings.features.environmental;
   dlg.defaultWarningDays = settings.defaultWarningDays;
+  dlg.mirrorTodoDefault = settings.mirrorTodoDefault;
 }
 
 export function openEditTaskDialog(

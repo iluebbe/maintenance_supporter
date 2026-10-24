@@ -119,6 +119,9 @@ CONF_NOTIFY_SERVICE = "notify_service"
 # v2.67: mirror auto "buy" tasks into a user-picked HA to-do list (todo.*).
 # Empty = feature off. Instance-bound → excluded from settings export.
 CONF_SHOPPING_LIST_ENTITY = "shopping_list_entity"
+# #231: the to-do lists every task without its own mirror lists is mirrored
+# into (helpers/todo_mirror). Empty = off. Instance-bound like the shopping list.
+CONF_MIRROR_TODO_DEFAULT_ENTITIES = "mirror_todo_default_entities"
 CONF_PANEL_ENABLED = "panel_enabled"
 # v2.10.4 (#69 follow-up): the sidebar panel is the integration's hub — the
 # auto-dashboard's "Open Maintenance panel" button, QR codes, and notifications

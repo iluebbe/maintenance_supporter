@@ -18,6 +18,15 @@ All notable changes to Maintenance Supporter are documented in this file.
   with one transition now offers *When the state ends*: the task goes back to OK, it is recorded as done (the former
   *Auto-complete when the sensor recovers*), or it stays triggered until someone completes it, by hand or through
   *Done when*. The held task survives a restart. Trigger key `trigger_hold_until_done`.
+- **Default to-do lists for the mirror** (#231, thanks @rloipfinger). *Settings → General → Default to-do lists for
+  tasks* names the lists every task without lists of its own goes onto while it is due, so a new task needs no setting,
+  whichever way it was created. In the task dialog the field then offers *Default lists*, *Other lists* or *Not on any
+  to-do list*. Changing the default lists moves the items of every task that uses them. Also in the options flow;
+  setting `mirror_todo_default_entities`, task field `mirror_todo_use_default`.
+- **Mirrored to-do items carry the due date** (#231). On a list that takes due dates, such as CalDAV (iCloud
+  Reminders), Google Tasks, Local To-do or Todoist, the item shows the task's next due date and follows it when it
+  moves. Items already on such a list get their date on the first sync. A date changed by hand on the list stays
+  until the task's own date changes.
 
 ### 🐛 Fixed
 

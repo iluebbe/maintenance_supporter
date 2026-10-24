@@ -284,6 +284,8 @@ export interface MaintenanceTask {
   labels?: string[];
   /** D#183: external todo.* lists the task is mirrored into while it is due. */
   mirror_todo_entities?: string[];
+  /** #231: false keeps a task without its own lists off the default lists. */
+  mirror_todo_use_default?: boolean;
   /** D#229: the task completes itself when this entity changes to the state, while due. */
   complete_when?: CompleteWhen | null;
   assignee_pool?: string[];
@@ -696,6 +698,9 @@ export interface HomeAssistant {
   ): Promise<void>;
   states: Record<string, HassEntity>;
   areas?: Record<string, { area_id: string; name: string; icon?: string | null }>;
+  /** The entity registry's display entries — `platform` names the
+   *  integration an entity belongs to. */
+  entities?: Record<string, { entity_id?: string; platform?: string }>;
   /**
    * HA service registry, mirroring the structure exposed to the frontend.
    * Used by the task-dialog action section to drive ha-service-picker

@@ -123,6 +123,8 @@ def _build_export_object(
             "labels": tdata.get("labels") or [],
             # D#183: mirror targets (todo.* ids) — config, so a backup keeps them.
             "mirror_todo_entities": tdata.get("mirror_todo_entities") or [],
+            # #231: False keeps the task off the default lists (which stay behind).
+            "mirror_todo_use_default": tdata.get("mirror_todo_use_default") is not False,
             # D#229: the entity whose change to a state completes the due task.
             "complete_when": tdata.get("complete_when"),
             "earliest_completion_days": tdata.get("earliest_completion_days"),
@@ -363,9 +365,16 @@ def export_maintenance_data(
 
 
 # Global settings the export deliberately leaves behind: HA user ids are
-# instance-bound (and the panel-access allowlist is security-relevant), and
-# the adopted-task stash is transient re-adopt state.
-_NON_PORTABLE_SETTINGS = ("admin_panel_user_ids", "adopted_task_notes", "shopping_list_entity", "member_display")
+# instance-bound (and the panel-access allowlist is security-relevant), so are
+# the to-do list entity ids, and the adopted-task stash is transient re-adopt
+# state.
+_NON_PORTABLE_SETTINGS = (
+    "admin_panel_user_ids",
+    "adopted_task_notes",
+    "shopping_list_entity",
+    "mirror_todo_default_entities",
+    "member_display",
+)
 
 
 def build_settings_export(hass: HomeAssistant) -> dict[str, Any]:

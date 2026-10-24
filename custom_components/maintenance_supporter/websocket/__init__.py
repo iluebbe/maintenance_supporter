@@ -265,6 +265,8 @@ def _build_task_summary(
         "labels": task_data.get("labels", []),
         # D#183: external to-do lists the task is mirrored into while due.
         "mirror_todo_entities": task_data.get("mirror_todo_entities", []),
+        # #231: False = a task without its own lists stays off the default lists.
+        "mirror_todo_use_default": task_data.get("mirror_todo_use_default") is not False,
         # D#229: the entity whose change to a state completes the due task.
         "complete_when": task_data.get("complete_when"),
         # Payload diet (perf, 2026-08): the LIST response carries only the

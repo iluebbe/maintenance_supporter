@@ -382,7 +382,8 @@ localizes the created object and task names, else the server language;
   "checklist": ["Turn off power", "…"],// ≤100 items, each ≤500
   "reading_unit": "kWh",               // reading tasks — see "Meter readings" (also `readings` slots)
   "consumes_parts": [{"part_id": "p1", "quantity": 1}], // see "Spare parts"
-  "mirror_todo_entities": ["todo.household"], // ≤5 todo.* lists the task is mirrored into while due (D#183)
+  "mirror_todo_entities": ["todo.household"], // ≤5 todo.* lists the task is mirrored into while due (D#183); [] = the default lists
+  "mirror_todo_use_default": true,     // #231: false = off the default lists (mirror_todo_default_entities) too; stored only when false, dropped beside own lists
   "complete_when": {"entity_id": "binary_sensor.washer_door", "to_state": "on"},
                                        // D#229: while due, that entity changing INTO the state completes the task; null clears; malformed = invalid_input
   "on_complete_action": {"service": "counter.reset", "target": {"entity_id": "counter.x"}, "data": {}},
@@ -752,6 +753,10 @@ values dropped. Keys relevant to setup:
   banner clears it (optionally together with `row_action_style: "icons"`).
 - `shopping_list_entity` (str; a `todo.*` entity id, `""` = off) — 2.67: mirrors
   the auto buy reminders into that to-do list; check-off completes + restocks
+- `mirror_todo_default_entities` (list of `todo.*` ids, ≤5, `[]` = off; 2.110,
+  #231) — the to-do lists every task without its own `mirror_todo_entities` is
+  mirrored into while due (unless `mirror_todo_use_default` is false); our own
+  `todo.maintenance` = `invalid_mirror_todo`
 - `weekly_digest_enabled` (bool) — opt-in Monday summary
 - `notify_event_only` (bool; 2.80, #165) — fire `maintenance_supporter_notification`
   and send nothing (an automation delivers); `notify_extra_data` (str ≤ 2000;
@@ -889,7 +894,7 @@ the same validation as `global/update`; the response then adds
 the global scope; this second export carries groups, saved views, vacation
 config, notification/budget settings and the feature toggles. Instance-bound
 keys (panel-access user ids, the adopted-task stash, the `shopping_list_entity`
-target) stay out. Re-import via
+target, the `mirror_todo_default_entities` lists) stay out. Re-import via
 `json/import`.
 
 ### `csv/import` — admin — restore flat CSV

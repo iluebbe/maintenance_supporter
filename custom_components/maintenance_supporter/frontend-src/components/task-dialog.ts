@@ -212,6 +212,9 @@ export class MaintenanceTaskDialog extends LitElement {
   @property({ type: Boolean, attribute: "seasonal-feature" }) public seasonalFeature = false;
   @property({ type: Boolean, attribute: "environmental-feature" }) public environmentalFeature = false;
   @property({ type: Number, attribute: "default-warning-days" }) public defaultWarningDays = 7;
+  /** #231: the household's default to-do lists (Settings → General): with
+   *  some set, the mirror field asks default / other lists / none. */
+  @property({ attribute: false }) public mirrorTodoDefault: string[] = [];
   /** The object's spare parts — offered as "consumes parts" checkboxes. */
   @state() private parts: Array<{ id: string; name: string; unit?: string }> = [];
   /** #111: OTHER objects that own spare parts, so a task can draw on a shared
@@ -295,6 +298,8 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _detailsOpen = false;
   /** D#183: external todo.* lists the task is mirrored into while due. */
   @state() private _mirrorTodoEntities: string[] = [];
+  /** #231: the default lists, the task's own (the picker), or none. */
+  @state() private _mirrorTodoMode: "default" | "own" | "none" = "default";
   // D#229: the entity (and its state) whose change completes the due task.
   @state() private _completeWhenEntity = "";
   @state() private _completeWhenState = "";
@@ -554,6 +559,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._priority = task.priority || "normal";
     this._labels = (task.labels || []).join(", ");
     this._mirrorTodoEntities = [...(task.mirror_todo_entities || [])];
+    this._mirrorTodoMode = this._mirrorTodoEntities.length ? "own" : task.mirror_todo_use_default === false ? "none" : "default";
     this._completeWhenEntity = task.complete_when?.entity_id || "";
     this._completeWhenState = task.complete_when?.to_state || "";
     this._enabled = task.enabled !== false;
@@ -724,6 +730,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._priority = "normal";
     this._labels = "";
     this._mirrorTodoEntities = [];
+    this._mirrorTodoMode = "default";
     this._completeWhenEntity = "";
     this._completeWhenState = "";
     this._enabled = true;
@@ -1706,8 +1713,12 @@ export class MaintenanceTaskDialog extends LitElement {
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
-    // D#183: always sent — [] clears the mirror targets.
-    data.mirror_todo_entities = this._mirrorTodoEntities.filter(Boolean);
+    // D#183: always sent — [] clears the mirror targets. #231: with default
+    // lists the choice decides (other lists left empty = none); without, the
+    // picker alone, and an opt-out made earlier stays.
+    const ownLists = this.mirrorTodoDefault.length && this._mirrorTodoMode !== "own" ? [] : this._mirrorTodoEntities.filter(Boolean);
+    data.mirror_todo_entities = ownLists;
+    data.mirror_todo_use_default = this.mirrorTodoDefault.length ? this._mirrorTodoMode === "default" : this._mirrorTodoMode !== "none";
     data.enabled = this._enabled;
     if (!this._taskId || this._lastPerformed !== this._loadedLastPerformed) {
       data.last_performed = this._lastPerformed || null;
@@ -3591,7 +3602,47 @@ export class MaintenanceTaskDialog extends LitElement {
             <ha-icon icon=${this._notifyIcon.trim() || defaultNotifyIcon(this._type)}></ha-icon>
             ${t("notify_icon_hint", L).replace("{default}", defaultNotifyIcon(this._type))}
           </div>
+          ${this._renderMirrorTodo(L)}
+    `);
+  }
+
+  /** D#183 / #231: the to-do lists the due task is mirrored into. With
+   *  default lists set the field asks first (default / other lists / none)
+   *  and shows the picker for "other lists" only. */
+  private _renderMirrorTodo(L: string) {
+    const defaults = this.mirrorTodoDefault;
+    if (!defaults.length) {
+      return html`
           <div class="field mirror-todo-field">
+            ${this._renderMirrorTodoPicker(L)}
+            <div class="field-help">${t("task_mirror_todo_hint", L)}</div>
+          </div>`;
+    }
+    const names = defaults.map((eid) => String(this.hass?.states?.[eid]?.attributes?.friendly_name ?? eid)).join(", ");
+    const labels = {
+      default: t("task_mirror_todo_default", L).replace("{lists}", names),
+      own: t("task_mirror_todo_own", L),
+      none: t("task_mirror_todo_none", L),
+    } as const;
+    return html`
+          <div class="field mirror-todo-field">
+            <div class="mirror-todo-choice" role="radiogroup" aria-label=${t("task_mirror_todo", L)}>
+              <div class="field-label">${t("task_mirror_todo", L)}</div>
+              ${(Object.keys(labels) as Array<keyof typeof labels>).map((v) => html`
+                <label class="mirror-todo-option">
+                  <input type="radio" name="mirror-todo" value=${v} .checked=${this._mirrorTodoMode === v}
+                    @change=${() => (this._mirrorTodoMode = v)} />
+                  ${labels[v]}
+                </label>
+              `)}
+            </div>
+            ${this._mirrorTodoMode === "own" ? this._renderMirrorTodoPicker(L) : nothing}
+            ${this._mirrorTodoMode !== "none" ? html`<div class="field-help">${t("task_mirror_todo_hint", L)}</div>` : nothing}
+          </div>`;
+  }
+
+  private _renderMirrorTodoPicker(L: string) {
+    return html`
             ${this._entityPickerFallback ? html`
               <ms-textfield
                 label="${t("task_mirror_todo", L)}"
@@ -3616,10 +3667,7 @@ export class MaintenanceTaskDialog extends LitElement {
                   const ids = ((e.detail.value as { mirror_todo_entities?: string[] }).mirror_todo_entities || []).filter(Boolean);
                   this._mirrorTodoEntities = ids;
                 }}
-              ></ha-form>`}
-            <div class="field-help">${t("task_mirror_todo_hint", L)}</div>
-          </div>
-    `);
+              ></ha-form>`}`;
   }
 
   render() {
@@ -3665,13 +3713,15 @@ export class MaintenanceTaskDialog extends LitElement {
       margin: 8px 0;
     }
     /* D#229: one option per line — three sentences flowed into each other. */
-    .trigger-end {
+    .trigger-end,
+    .mirror-todo-choice {
       display: flex;
       flex-direction: column;
       gap: 4px;
       margin: 8px 0;
     }
-    .trigger-end-option {
+    .trigger-end-option,
+    .mirror-todo-option {
       display: flex;
       align-items: center;
       gap: 8px;

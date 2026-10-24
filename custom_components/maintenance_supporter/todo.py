@@ -15,7 +15,6 @@ notification actions use — one action layer, no duplicated logic.
 from __future__ import annotations
 
 import logging
-from datetime import date
 from typing import TYPE_CHECKING
 
 from homeassistant.components.todo import TodoItem, TodoListEntity
@@ -36,7 +35,7 @@ from .const import (
     MaintenanceStatus,
 )
 from .helpers.pause import is_task_inert
-from .helpers.todo_mirror import mirror_summary
+from .helpers.todo_mirror import mirror_summary, task_due_date
 from .helpers.trigger_detail import trigger_detail
 
 if TYPE_CHECKING:
@@ -125,13 +124,7 @@ class MaintenanceTodoList(TodoListEntity):
                     continue
                 task_live = live.get(task_id, {})
                 status = task_live.get("_status", MaintenanceStatus.OK)
-                due_iso = task_live.get("_next_due")
-                due: date | None = None
-                if isinstance(due_iso, str):
-                    try:
-                        due = date.fromisoformat(due_iso)
-                    except ValueError:
-                        due = None
+                due = task_due_date(task_live)
                 items.append(
                     TodoItem(
                         uid=f"{entry.entry_id}:{task_id}",

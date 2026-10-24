@@ -48,6 +48,8 @@ export interface SettingsCache {
   /** #104: spare parts count when bought ("purchase") or when used ("use") —
    *  decides what the complete dialog says about a completion's parts. */
   partsCostMode: PartsCostMode;
+  /** #231: the to-do lists every task without its own is mirrored into. */
+  mirrorTodoDefault: string[];
 }
 
 /** The row-action styles the settings view offers (#145). */
@@ -81,6 +83,9 @@ export function parseSettings(r: SettingsWire | null | undefined): SettingsCache
     refsInLists: r?.general?.ref_numbers_in_lists === true,
     objectsTableColumns: Array.isArray(r?.objects_table_columns) ? r!.objects_table_columns : undefined,
     partsCostMode: partsCostModeOf(r?.budget?.parts_cost_mode),
+    mirrorTodoDefault: Array.isArray(r?.general?.mirror_todo_default_entities)
+      ? r!.general!.mirror_todo_default_entities!.filter((x) => typeof x === "string" && x !== "")
+      : [],
   };
 }
 
@@ -91,6 +96,7 @@ export interface SettingsWire {
     row_action_style?: string;
     row_action_notice_pending?: boolean;
     ref_numbers_in_lists?: boolean;
+    mirror_todo_default_entities?: string[];
   };
   operator_write_enabled?: boolean;
   admin_panel_user_ids?: string[];
@@ -112,6 +118,7 @@ export const FALLBACK_SETTINGS: SettingsCache = {
   refsInLists: false,
   objectsTableColumns: undefined,
   partsCostMode: "purchase",
+  mirrorTodoDefault: [],
 };
 
 interface CacheSlot {

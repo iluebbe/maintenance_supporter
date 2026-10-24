@@ -10,6 +10,20 @@ point (``complete_maintenance(source="todo_mirror")``) and clears the rows on
 every list. Maintenance Supporter stays the single source of truth; the lists
 are a view.
 
+Default lists (#231): Settings → General names lists every task without its
+own lists is mirrored into (``mirror_todo_default_entities``); a task opts
+out with ``mirror_todo_use_default: False``, and its own lists replace the
+default ones. So a new task from any path (dialog, template, voice, import)
+lands on them without being configured, and changing the default moves every
+inheriting task's rows on the next pass (the global options listener calls
+:func:`settings_changed`).
+
+Due date (#231): on a list that takes one (``SET_DUE_DATE_ON_ITEM`` plus
+``UPDATE_TODO_ITEM``) the row carries the task's next due date, kept current
+with ``todo.update_item`` when it moves (a postpone, a changed interval, a
+moving prediction). The record remembers the date it sent, so a date a
+person changed by hand stays until the task's own date changes.
+
 Design rules (the shopping-list sync's, applied per task):
 
 * **Only our own rows.** Every row we create is remembered per task in the
@@ -35,17 +49,29 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
+from datetime import date
 from typing import TYPE_CHECKING, Any
 
+from homeassistant.components.todo import TodoListEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, Event, EventStateChangedData, HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
 
-from ..const import COMPLETION_PROVENANCE_NOTES, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID, NOTIFIABLE_STATUSES, UNAVAILABLE_STATES
+from ..const import (
+    COMPLETION_PROVENANCE_NOTES,
+    CONF_MIRROR_TODO_DEFAULT_ENTITIES,
+    CONF_TASKS,
+    DOMAIN,
+    GLOBAL_UNIQUE_ID,
+    NOTIFIABLE_STATUSES,
+    UNAVAILABLE_STATES,
+)
+from .global_options import global_option
 from .managed_timer import ManagedTimer
 from .phases import task_label
+from .sanitize import sanitize_mirror_todo_entities
 
 if TYPE_CHECKING:
     from ..coordinator import MaintenanceCoordinator
@@ -55,6 +81,10 @@ _LOGGER = logging.getLogger(__name__)
 
 TODO_MIRROR_KEY = "todo_mirror"
 MIRROR_FIELD = "mirror_todo_entities"
+# #231: False = a task without its own lists stays off the default lists.
+MIRROR_USE_DEFAULT_FIELD = "mirror_todo_use_default"
+# A list must take a due date on new rows AND updates for the row to carry one.
+_DUE_DATE_FEATURES = TodoListEntityFeature.SET_DUE_DATE_ON_ITEM | TodoListEntityFeature.UPDATE_TODO_ITEM
 # Store task-state key holding {list_entity: {"summary": str, "uid": str | None}}.
 MIRROR_STATE_KEY = "todo_mirror"
 _DEBOUNCE_SECONDS = 2.0
@@ -90,13 +120,30 @@ async def async_todo_get_items(hass: HomeAssistant, entity: str) -> list[dict[st
     return [i for i in items if isinstance(i, dict)] if isinstance(items, list) else []
 
 
-async def async_todo_add_item(hass: HomeAssistant, entity: str, summary: str) -> bool:
-    """Add a row; False when the call failed (``add_item`` returns no uid —
-    the callers re-list to claim it)."""
+async def async_todo_add_item(hass: HomeAssistant, entity: str, summary: str, *, due: date | None = None) -> bool:
+    """Add a row (with a due date, for a list that takes one); False when the
+    call failed (``add_item`` returns no uid — the callers re-list to claim it)."""
+    data: dict[str, Any] = {"entity_id": entity, "item": summary}
+    if due is not None:
+        data["due_date"] = due
     try:
-        await hass.services.async_call("todo", "add_item", {"entity_id": entity, "item": summary}, blocking=True)
+        await hass.services.async_call("todo", "add_item", data, blocking=True)
     except Exception:  # noqa: BLE001 — provider errors are retried on the next trigger
         _LOGGER.warning("todo.add_item %r on %s failed", summary, entity, exc_info=True)
+        return False
+    return True
+
+
+async def async_todo_update_item(hass: HomeAssistant, entity: str, rec: Mapping[str, Any], fields: Mapping[str, Any]) -> bool:
+    """Change fields of one of OUR rows, by uid (summary as a fallback);
+    False when the call failed or the record names no row."""
+    ref = rec.get("uid") or rec.get("summary")
+    if not ref:
+        return False
+    try:
+        await hass.services.async_call("todo", "update_item", {"entity_id": entity, "item": ref, **fields}, blocking=True)
+    except Exception:  # noqa: BLE001 — provider errors are retried on the next trigger
+        _LOGGER.warning("todo.update_item %r on %s failed", ref, entity, exc_info=True)
         return False
     return True
 
@@ -113,10 +160,31 @@ async def async_todo_remove_item(hass: HomeAssistant, entity: str, rec: Mapping[
         _LOGGER.warning("todo.remove_item %r on %s failed", ref, entity, exc_info=True)
 
 
-def mirror_lists(task: dict[str, Any]) -> list[str]:
-    """The task's configured mirror targets (validated shape assumed)."""
+def default_lists(hass: HomeAssistant) -> list[str]:
+    """The lists every task without its own goes to (#231; [] = off)."""
+    return sanitize_mirror_todo_entities(global_option(hass, CONF_MIRROR_TODO_DEFAULT_ENTITIES))
+
+
+def mirror_lists(task: Mapping[str, Any], defaults: Sequence[str] = ()) -> list[str]:
+    """The lists the task is mirrored into: its own (validated shape
+    assumed), else the default lists unless it opted out (#231)."""
     raw = task.get(MIRROR_FIELD)
-    return [e for e in raw if isinstance(e, str) and e] if isinstance(raw, list) else []
+    own = [e for e in raw if isinstance(e, str) and e] if isinstance(raw, list) else []
+    if own:
+        return own
+    return [] if task.get(MIRROR_USE_DEFAULT_FIELD) is False else list(defaults)
+
+
+def task_due_date(task_result: Mapping[str, Any]) -> date | None:
+    """The computed next due date of a task result (``_next_due``), as the
+    to-do rows carry it — ours and the mirrored ones."""
+    due_iso = task_result.get("_next_due")
+    if not isinstance(due_iso, str):
+        return None
+    try:
+        return date.fromisoformat(due_iso)
+    except ValueError:
+        return None
 
 
 def mirror_summary(object_name: str, task: Mapping[str, Any]) -> str:
@@ -135,6 +203,16 @@ def schedule_check(hass: HomeAssistant) -> None:
     mirror = hass.data.get(DOMAIN, {}).get(TODO_MIRROR_KEY)
     if mirror is not None:
         mirror.schedule_check()
+
+
+@callback
+def settings_changed(hass: HomeAssistant) -> None:
+    """The global settings were saved: if the default lists changed, follow
+    them (#231). The listener fires on every settings save, so the mirror
+    compares before it touches a list."""
+    mirror = hass.data.get(DOMAIN, {}).get(TODO_MIRROR_KEY)
+    if mirror is not None:
+        mirror.defaults_maybe_changed()
 
 
 @callback
@@ -163,11 +241,25 @@ class TodoMirror:
         self._checking = False
         self._recheck = False
         self._debounce = ManagedTimer(hass, f"{DOMAIN}_todo_mirror")
+        self._defaults_seen: tuple[str, ...] = ()
 
     async def async_setup(self) -> None:
         """Arm the list listeners for every task that names a list (the
         entries' data is readable before they are loaded)."""
+        self._defaults_seen = tuple(default_lists(self._hass))
         self._arm_listeners(self._configured_lists())
+
+    @callback
+    def defaults_maybe_changed(self) -> None:
+        """Re-arm and re-check once the default lists differ from the last
+        ones seen: the check's closing pass moves every inheriting task's
+        rows (off the old lists, onto the new ones)."""
+        now = tuple(default_lists(self._hass))
+        if now == self._defaults_seen:
+            return
+        self._defaults_seen = now
+        self.rearm()
+        self.schedule_check()
 
     @callback
     def async_teardown(self) -> None:
@@ -182,11 +274,12 @@ class TodoMirror:
         return [ce for ce in self._hass.config_entries.async_entries(DOMAIN) if ce.unique_id != GLOBAL_UNIQUE_ID]
 
     def _configured_lists(self) -> set[str]:
+        defaults = default_lists(self._hass)
         lists: set[str] = set()
         for ce in self._object_entries():
             for td in (ce.data.get(CONF_TASKS) or {}).values():
                 if isinstance(td, dict):
-                    lists.update(mirror_lists(td))
+                    lists.update(mirror_lists(td, defaults))
         return lists
 
     @callback
@@ -231,27 +324,31 @@ class TodoMirror:
     ) -> None:
         """Bring one object's rows in line with its freshly computed task
         results. Cheap when no task names a list and none has a record."""
-        has_config = any(mirror_lists(tr) for tr in task_results.values() if isinstance(tr, dict))
+        defaults = default_lists(self._hass)
+        has_config = any(mirror_lists(tr, defaults) for tr in task_results.values() if isinstance(tr, dict))
         has_records = any(store.get_task_state(tid).get(MIRROR_STATE_KEY) for tid in task_results)
         if not has_config and not has_records:
             return
         self._arm_listeners(self._configured_lists())
         async with self._lock:
             try:
-                await self._sync_entry_locked(task_results, store, object_name)
+                await self._sync_entry_locked(task_results, store, object_name, defaults)
             except Exception:  # never fail the coordinator refresh; retried next time
                 _LOGGER.exception("To-do mirror pass for entry %s failed", entry_id)
 
-    async def _sync_entry_locked(self, task_results: dict[str, Any], store: MaintenanceStore, object_name: str) -> None:
+    async def _sync_entry_locked(
+        self, task_results: dict[str, Any], store: MaintenanceStore, object_name: str, defaults: Sequence[str]
+    ) -> None:
         dirty = False
         for task_id, tr in task_results.items():
             if not isinstance(tr, dict):
                 continue
-            wanted = mirror_lists(tr) if tr.get("_status") in MIRRORED_STATUSES else []
+            wanted = mirror_lists(tr, defaults) if tr.get("_status") in MIRRORED_STATUSES else []
             record: dict[str, Any] = dict(store.get_task_state(task_id).get(MIRROR_STATE_KEY) or {})
             if not wanted and not record:
                 continue
             summary = mirror_summary(object_name, tr)
+            due = task_due_date(tr)
             changed = False
             # Rows we no longer want: list dropped from the config, task no
             # longer due, or the row text changed (task/object renamed).
@@ -261,14 +358,28 @@ class TodoMirror:
                 await self._remove_item(eid, rec)
                 record.pop(eid)
                 changed = True
-            # Rows still missing on a wanted list.
+            # Rows still missing on a wanted list; the kept ones follow the
+            # due date (#231).
             for eid in wanted:
-                if eid in record or not self._list_ready(eid):
+                if not self._list_ready(eid):
                     continue
-                uid = await self._add_item(eid, summary)
+                takes_due = self._takes_due_date(eid)
+                row_due = due if takes_due else None
+                sent = row_due.isoformat() if row_due is not None else None
+                rec = record.get(eid)
+                if rec is not None:
+                    # A record from before the date (no "due") reads None: a
+                    # list that takes a date gets it once, the others nothing.
+                    if rec.get("due") != sent and (
+                        not takes_due or await async_todo_update_item(self._hass, eid, rec, {"due_date": row_due})
+                    ):
+                        record[eid] = {**rec, "due": sent}
+                        changed = True
+                    continue
+                uid = await self._add_item(eid, summary, row_due)
                 if uid is False:
                     continue  # service failed — retried on the next refresh
-                record[eid] = {"summary": summary, "uid": uid}
+                record[eid] = {"summary": summary, "uid": uid, "due": sent}
                 changed = True
             if changed:
                 store.update_task_state(task_id, **{MIRROR_STATE_KEY: record or None})
@@ -393,6 +504,12 @@ class TodoMirror:
 
     # ── todo service wrappers (best effort) ───────────────────────────────
 
+    def _takes_due_date(self, entity: str) -> bool:
+        """The list takes a due date on its rows and lets us change it."""
+        state = self._hass.states.get(entity)
+        features = state.attributes.get("supported_features") if state is not None else None
+        return isinstance(features, int) and features & _DUE_DATE_FEATURES == _DUE_DATE_FEATURES
+
     def _list_ready(self, entity: str) -> bool:
         """The list exists, is available, is not ours, and todo services are up."""
         state = self._hass.states.get(entity)
@@ -413,11 +530,11 @@ class TodoMirror:
     async def _get_items(self, entity: str) -> list[dict[str, Any]] | None:
         return await async_todo_get_items(self._hass, entity)
 
-    async def _add_item(self, entity: str, summary: str) -> str | None | bool:
+    async def _add_item(self, entity: str, summary: str, due: date | None = None) -> str | None | bool:
         """Add a row; returns its uid, None when the provider hid it, False on failure."""
         before = await self._get_items(entity)
         known = {i.get("uid") for i in before or [] if i.get("uid")}
-        if not await async_todo_add_item(self._hass, entity, summary):
+        if not await async_todo_add_item(self._hass, entity, summary, due=due):
             return False
         # add_item returns nothing — re-list and claim the new uid: by summary
         # first, then the single unclaimed leftover (a provider that

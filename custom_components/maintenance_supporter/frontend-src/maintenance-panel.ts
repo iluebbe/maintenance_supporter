@@ -287,6 +287,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   // value in the task-create dialog so the Settings → General → "Default
   // warning days" choice actually flows through to new tasks.
   @state() private _defaultWarningDays = 7;
+  /** #231: the to-do mirror's default lists (task dialog + task page). */
+  @state() private _mirrorTodoDefault: string[] = [];
   /** #145: global "Task row actions" style (buttons_compact | buttons | icons). */
   @state() private _rowActionStyle = "buttons_compact";
   /** #170: reference numbers in front of names in the lists (global setting). */
@@ -868,6 +870,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._adminPanelUserIds = [...s.access.operatorIds];
       this._operatorWriteEnabled = s.access.operatorWriteEnabled;
       this._defaultWarningDays = s.defaultWarningDays;
+      this._mirrorTodoDefault = s.mirrorTodoDefault;
       this._rowActionStyle = s.rowActionStyle;
       this._rowActionNotice = s.rowActionNoticePending;
       this._refsInLists = s.refsInLists;
@@ -3401,6 +3404,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         .seasonalFeature=${this._features.seasonal}
         .environmentalFeature=${this._features.environmental}
         .defaultWarningDays=${this._defaultWarningDays}
+        .mirrorTodoDefault=${this._mirrorTodoDefault}
         @task-saved=${this._onDialogEvent}
       ></maintenance-task-dialog>
       <maintenance-complete-dialog
@@ -5552,6 +5556,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       moreMenuOpen: this._moreMenuOpen,
       activeTab: this._activeTab,
       features: this._features,
+      mirrorTodoDefault: this._mirrorTodoDefault,
       currencySymbol: this._currencySymbol,
       collapsedSections: this._collapsedSections,
       costDurationToggle: this._costDurationToggle,

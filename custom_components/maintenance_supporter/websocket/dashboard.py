@@ -49,6 +49,7 @@ from ..const import (
     CONF_INSTALL_ASSIST_SENTENCES,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_MEMBER_DISPLAY,
+    CONF_MIRROR_TODO_DEFAULT_ENTITIES,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
     CONF_NOTIFICATION_TITLE_STYLE,
@@ -272,6 +273,8 @@ def _build_full_settings(
             "notify_service": _opt(options, CONF_NOTIFY_SERVICE),
             # v2.67: buy-task shopping sync target ("" = off).
             "shopping_list_entity": _opt(options, CONF_SHOPPING_LIST_ENTITY),
+            # #231: the to-do mirror's default lists ([] = off).
+            "mirror_todo_default_entities": list(_opt(options, CONF_MIRROR_TODO_DEFAULT_ENTITIES) or []),
             # Shared pickable-target list so the panel picker can't drift from
             # the options-flow dropdown (both go through build_notify_targets).
             "notify_targets": notify_targets or [],
@@ -949,6 +952,16 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
             return filtered, "invalid_shopping_list_entity"
         filtered[CONF_SHOPPING_LIST_ENTITY] = raw_ent
 
+    # #231: the to-do mirror's default lists — the per-task field's shape
+    # rule (todo.* ids, deduped, capped); [] turns the default off. Our own
+    # to-do platform is refused by the WS handler (it needs hass).
+    if CONF_MIRROR_TODO_DEFAULT_ENTITIES in filtered:
+        from ..helpers.sanitize import sanitize_mirror_todo_entities
+
+        filtered[CONF_MIRROR_TODO_DEFAULT_ENTITIES] = sanitize_mirror_todo_entities(
+            filtered[CONF_MIRROR_TODO_DEFAULT_ENTITIES]
+        )
+
     # D#182: the shopping-search template — "" clears (automatic by country /
     # language); anything else must be an http(s) URL WITH the {q} placeholder,
     # or the search would open the same page for every part.
@@ -1008,6 +1021,14 @@ async def ws_update_global_settings(
     if not filtered:
         connection.send_error(msg["id"], "invalid_input", "No valid setting keys provided")
         return
+    # #231: a default list cannot be one of our own (the per-task rule).
+    if CONF_MIRROR_TODO_DEFAULT_ENTITIES in filtered:
+        from .tasks_validation import _mirror_todo_error
+
+        mirror_err = _mirror_todo_error(hass, filtered[CONF_MIRROR_TODO_DEFAULT_ENTITIES])
+        if mirror_err:
+            connection.send_error(msg["id"], "invalid_mirror_todo", mirror_err)
+            return
 
     # Merge with existing options
     merged = current_options

@@ -67,7 +67,14 @@ EXPECTED_DIFFS: dict[str, str] = _EXPECT["expected_diffs"]
 NON_PORTABLE_OPTIONS: set[str] = set(_EXPECT["non_portable_options"])
 
 # The recurrences FULL_TASK (an interval task) cannot show.
-ONE_TIME_TASK = {"name": "Chimney sweep", "type": "inspection", "schedule_type": "one_time", "due_date": "2026-11-20"}
+# #231: it also stays off the default to-do lists (an opt-out a move keeps).
+ONE_TIME_TASK = {
+    "name": "Chimney sweep",
+    "type": "inspection",
+    "schedule_type": "one_time",
+    "due_date": "2026-11-20",
+    "mirror_todo_use_default": False,
+}
 CALENDAR_TASK = {
     "name": "Put the bins out",
     "type": "cleaning",

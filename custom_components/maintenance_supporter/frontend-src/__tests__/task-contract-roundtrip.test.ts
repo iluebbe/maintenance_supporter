@@ -48,6 +48,8 @@ const EDITABLE: Record<string, string> = {
   labels: "labels",
   // D#183: mirror targets — the entity multi-picker re-sends the list whole.
   mirror_todo_entities: "mirror_todo_entities",
+  // #231: the default / other lists / none choice, sent on every save.
+  mirror_todo_use_default: "mirror_todo_use_default",
   complete_when: "complete_when",
   responsible_user_id: "responsible_user_id",
   assignee_pool: "assignee_pool",

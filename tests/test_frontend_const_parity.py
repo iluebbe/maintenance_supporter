@@ -736,3 +736,12 @@ def test_ts_document_limit_matches_backend_and_message() -> None:
     for path in sorted(_LOCALES_DIR.glob("*.json")):
         message = json.loads(path.read_text(encoding="utf-8"))["doc_too_large"]
         assert re.search(rf"(?<!\d){megabytes}(?!\d)", message), f"{path.name}: doc_too_large does not name {megabytes} MB: {message}"
+
+
+def test_ts_mirror_list_cap_matches_backend() -> None:
+    """#231: Settings → General stops offering default to-do lists at the cap
+    the backend sanitiser keeps (a sixth tick would be dropped silently)."""
+    from custom_components.maintenance_supporter.const import MAX_MIRROR_TODO_LISTS
+
+    m = re.search(r"const MAX_MIRROR_TODO_LISTS = (\d+);", _SETTINGS_VIEW_TS.read_text(encoding="utf-8"))
+    assert m and int(m.group(1)) == MAX_MIRROR_TODO_LISTS, "settings-view.ts MAX_MIRROR_TODO_LISTS drifted from const.py"
