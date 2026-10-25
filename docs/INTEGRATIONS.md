@@ -165,15 +165,26 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Refill Detergent | below the household consumable floor (default 10 %) | completing presses `reset_detergent` |
 |  |  | Replace Secondary Filter | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Silver-ion Module | below the household consumable floor (default 10 %) | completing presses `reset_silver_ion` |
+|  |  | Replace Squeegee | below the household consumable floor (default 10 %) | completing presses `reset_squeegee` |
+|  |  | Clean Dirty Water Tank | below the household consumable floor (default 10 %) | completing presses `reset_onboard_dirty_water_tank` |
+|  |  | Clean Dirty Water Channel | below the household consumable floor (default 10 %) | completing presses `reset_dirty_water_channel` |
+|  |  | Replace Odor Eliminator | below the household consumable floor (default 10 %) | completing presses `reset_deodorizer` |
+|  |  | Clean Wheels | below the household consumable floor (default 10 %) | completing presses `reset_wheel` |
+|  |  | Replace Scale Inhibitor | below the household consumable floor (default 10 %) | completing presses `reset_scale_inhibitor` |
+|  |  | Clean Fluffing Roller | below the household consumable floor (default 10 %) | completing presses `reset_fluffing_roller` |
+|  |  | Clean Roller Mop Filter | below the household consumable floor (default 10 %) | completing presses `reset_roller_mop_filter` |
+|  |  | Clean Water Outlet Filter | below the household consumable floor (default 10 %) | completing presses `reset_water_outlet_filter` |
 | Ecovacs | `ecovacs` | Replace Main Brush | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_brush` |
 |  |  | Replace Side Brush | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_side_brush` |
-|  |  | Replace Filter | below the household consumable floor (default 10 %) | one task per entity; completing presses `reset_lifespan_filter`/`reset_lifespan_hand_filter` |
+|  |  | Replace Filter | below the household consumable floor (default 10 %) | one task per entity; completing presses `reset_lifespan_filter`/`reset_lifespan_hand_filter`/`reset_lifespan_dust_case_heap`/`reset_lifespan_dust_container_filter` |
 |  |  | Replace Secondary Filter | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_station_filter` |
 |  |  | Replace Dust Bag | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_dust_bag` |
+|  |  | Empty and Wash the Dust Bin | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_dust_bucket` |
 |  |  | Replace Mop Pads | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_round_mop` |
-|  |  | Refill Detergent | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_cleaning_solution` |
+|  |  | Refill Detergent | below the household consumable floor (default 10 %) | one task per entity; completing presses `reset_lifespan_cleaning_solution`/`reset_lifespan_heavy_duty_cleaning_solution` |
 |  |  | Empty Dirty Water Tank | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_sewage_box` |
-|  |  | Clean Mop Tray | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_water_sink` |
+|  |  | Clean Mop Tray | below the household consumable floor (default 10 %) | one task per entity; completing presses `reset_lifespan_water_sink`/`reset_lifespan_mop_washing_tray` |
+|  |  | Replace Dock Strainer | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_strainer` |
 |  |  | Replace Air Freshener | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_air_freshener` |
 |  |  | Replace UV Lamp | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_uv_sanitizer` |
 |  |  | Replace Blades | below the household consumable floor (default 10 %) | completing presses `reset_lifespan_blade` |
@@ -306,6 +317,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Clean Undercarriage | every 25 units (counter delta) |  |
 | Hayward OmniLogic (local) | `omnilogic_local` | Refill Pool Salt | below 2700 |  |
 | Fluidra Pool (Fluidra Connect) | `fluidra_pool` | Replace UV Lamp | every 8000 units (counter delta) |  |
+| Orbit B-hyve | `bhyve` | Clean Sprinkler Heads | every 30 h counted by the engine | valve entity; active: open; one task per entity |
+| OpenSprinkler | `opensprinkler` | Clean Sprinkler Heads | every 30 h counted by the engine | binary_sensor entity; active: on; one task per entity |
 
 ## Cars and EVs — odometer-driven service duties
 
@@ -416,6 +429,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Annual Service | below 1000 |  |
 |  |  | Oil Service | below 14 days remaining |  |
 |  |  | Oil Service | below 1000 |  |
+| Škoda | `skoda` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
 
 ## EV chargers — cable/plug inspection by delivered energy
 
@@ -433,6 +448,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Zaptec EV charger | `zaptec` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
 | go-eCharger (MQTT) | `goecharger_mqtt` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
 | Fronius Wattpilot | `wattpilot` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
+| evcc | `evcc_intg` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
+| OCPP charge points | `ocpp` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
 
 ## Boilers, heating & water treatment
 
@@ -470,6 +487,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 | DROP (water treatment) | `drop_connect` | Replace Water Filter | below the household consumable floor (default 10 %) | one task per entity |
 |  |  | Refill Softener Salt | while the appliance reports 'on' | binary_sensor entity |
 | Victron GX (generator) | `victron_gx` | Oil Service | below 24 h remaining |  |
+| Victron MQTT (generator) | `victron_mqtt` | Oil Service | below 24 h remaining |  |
 | Stiebel Eltron ISG (LWZ) | `stiebel_eltron_isg` | Replace Ventilation Filter | while the appliance reports 'on' | binary_sensor entity |
 | Micronova Agua IOT (hydro stoves) | `aguaiot` | Refill Heating Water | below 1 |  |
 | Ecoforest pellet stoves | `ecoforest` | Stove Service | every 1500 units (counter delta) |  |
@@ -487,7 +505,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Dyson | `hass_dyson` | Replace Filter | below the household consumable floor (default 10 %) |  |
 |  |  | Descale Appliance | below 24 h remaining |  |
 | Dreo | `dreo` | Replace Filter | below the household consumable floor (default 10 %) |  |
-| VeSync (Levoit) | `vesync` | Replace Filter | below the household consumable floor (default 10 %) |  |
+| VeSync (Levoit) | `vesync` | Replace Filter | below the household consumable floor (default 10 %) | completing presses `reset_filter` |
 | Daikin AC | `daikin` | Filter Cleaning | every 100 h counted by the engine | climate entity; active: cool/dry/fan_only/heat/heat_cool |
 | Gree AC | `gree` | Filter Cleaning | every 100 h counted by the engine | climate entity; active: auto/cool/dry/fan_only/heat |
 | Zehnder ComfoAirQ | `comfoconnect` | Replace Ventilation Filter | below 7 days remaining |  |
@@ -543,6 +561,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Ambientika (SUEDWIND) | `ambientika` | Replace Ventilation Filter | while the appliance reports 'bad' | completing presses `filter_reset` |
 | Siku / Blauberg ventilation fans | `siku` | Replace Ventilation Filter | below 7 days remaining | completing presses `reset_filter_alarm` |
 | Vents / Blauberg EcoVent (v2) | `ecovent_v2` | Replace Ventilation Filter | below the household consumable floor (default 10 %) |  |
+| Govee Life (purifiers) | `goveelife` | Replace Filter | below the household consumable floor (default 10 %) |  |
 
 ## Kitchen & household appliances incl. espresso machines
 
@@ -665,6 +684,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Replace Drum Unit | below the household consumable floor (default 10 %) | one task per entity |
 | HP printer | `hpprinter` | Replace Ink or Toner | below the household consumable floor (default 10 %) | one task per entity |
 | Epson WorkForce | `epson_workforce` | Replace Ink or Toner | below the household consumable floor (default 10 %) | one task per entity |
+| HP Printer | `hp_printer` | Replace Ink or Toner | below the household consumable floor (default 10 %) | one task per entity |
 
 ## Smart locks — cycle-count lubrication duties
 
@@ -674,7 +694,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Tedee Smart Lock | `tedee` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
 | August lock | `august` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
 | Yale lock | `yale` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
-| SwitchBot Lock | `switchbot` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+| SwitchBot | `switchbot` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
+|  |  | Replace Filter | at 2160 h counted by the device | completing presses `reset_filter_usage` |
 | LOQED Smart Lock | `loqed` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
 | Homematic IP lock | `homematicip_cloud` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
 | Schlage lock | `schlage` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
@@ -686,6 +707,10 @@ due/auto-complete and un-adopt/re-adopt behave.
 | TTLock | `ttlock` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
 | Kwikset Smart Locks | `kwikset` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
 | Nuki Web | `nuki_web` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked; except Opener |
+| Homematic(IP) Local | `homematicip_local` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked; models: HmIP-DLD/HmIP-DLP/HM-Sec-Key |
+| Eufy Security (locks) | `eufy_security` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked; except T740 |
+| Nuki NG | `nuki_ng` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked; except Opener |
+| Hubitat | `hubitat` | Lubricate Cylinder | every 2000 cycles | lock entity; active: locked |
 
 ## Protocol/hub transports whose duties are entity-domain-gated
 
@@ -722,6 +747,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 | MOS NAS | `mos` | Storage Cleanup | above 85 |  |
 | Google Nest Protect | `nest_protect` | Replace Detectors | 30 days before the date the device reports |  |
 | Kidde HomeSafe | `kidde_homesafe` | Replace Detectors | below 30 days remaining |  |
+| Proxmox VE | `proxmoxve` | Storage Cleanup | above 85 | models: storage |
 
 ## Pet tech — feeders, fountains, litter boxes
 
@@ -764,6 +790,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**263 integrations / 552 verified signatures.**
+**276 integrations / 578 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).

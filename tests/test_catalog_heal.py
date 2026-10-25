@@ -174,3 +174,42 @@ async def test_a_trigger_stored_with_only_entity_ids_is_healed_too(hass: HomeAss
     tc = healed[CONF_TASKS]["t1"]["trigger_config"]
     assert "attribute" not in tc and tc["trigger_on_states"] == ["auto", "cool", "dry", "fan_only", "heat"]
     assert "entity_id" not in tc, "the stored shape is kept"
+
+
+def _dreame_sensors(hass: HomeAssistant, uid: str, *keys: str) -> list[str]:
+    src = MockConfigEntry(domain="dreame_vacuum", title="Dreame")
+    src.add_to_hass(hass)
+    dev = dr.async_get(hass).async_get_or_create(config_entry_id=src.entry_id, identifiers={("dreame_vacuum", uid)}, name="X40")
+    ent_reg = er.async_get(hass)
+    return [
+        ent_reg.async_get_or_create("sensor", "dreame_vacuum", f"{uid}_{key}", config_entry=src, device_id=dev.id, translation_key=key).entity_id
+        for key in keys
+    ]
+
+
+async def test_dreame_tank_filter_leaves_the_main_filter_trigger(hass: HomeAssistant) -> None:
+    """2026-10-25: Dreame 2.0's renamed tank filter was adopted into "Replace
+    Filter" through the '_filter_left' suffix. A trigger on exactly the main
+    and the tank filter of one vacuum keeps the main filter; other shapes
+    are the user's own."""
+    main, tank = _dreame_sensors(hass, "v1", "filter_left", "tank_filter_left")
+    other_main, brush = _dreame_sensors(hass, "v2", "filter_left", "main_brush_left")
+    (third_tank,) = _dreame_sensors(hass, "v3", "tank_filter_left")
+    joined = _threshold_task(main, trigger_below=10.0)
+    joined["trigger_config"]["entity_ids"] = [main, tank]
+    joined["trigger_config"]["entity_id"] = main
+    mine = _threshold_task(other_main, trigger_below=10.0)
+    mine["trigger_config"]["entity_ids"] = [other_main, brush]
+    across = _threshold_task(main, trigger_below=10.0)
+    across["trigger_config"]["entity_ids"] = [main, third_tank]  # two vacuums: not the fallback's pair
+    data = build_object_entry_data(
+        object_data=build_object_data(name="Vacuum"), tasks={"joined": joined, "mine": mine, "across": across}
+    )
+    healed = heal_catalog_triggers(hass, data)
+    assert healed is not None
+    tc = healed[CONF_TASKS]["joined"]["trigger_config"]
+    assert tc["entity_ids"] == [main] and tc["entity_id"] == main
+    assert tc["trigger_below"] == 10.0 and tc["auto_complete_on_recovery"] is True
+    assert healed[CONF_TASKS]["mine"] == data[CONF_TASKS]["mine"]
+    assert healed[CONF_TASKS]["across"] == data[CONF_TASKS]["across"]
+    assert heal_catalog_triggers(hass, healed) is None, "idempotent"

@@ -25,7 +25,9 @@ jobs:
         run: |
           set +e
           python3 scripts/check_signature_drift.py | tee drift.log
-          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          # The script's exit code, not tee's: $? after the pipe was always 0,
+          # so the issue step below never ran.
+          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
 
       - name: File or update drift issue
         if: steps.drift.outputs.exit_code != '0'
@@ -36,7 +38,7 @@ jobs:
           BODY="The weekly signature-drift check found catalog entries whose upstream source no longer contains the probe strings. Each listed integration needs a re-dive per docs/design/signature-evaluation-scheme.md (update keys, bump \`verified\`).
 
           \`\`\`
-          $(cat drift.log)
+          $(grep -v '^\[ok\]' drift.log)
           \`\`\`
 
           Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

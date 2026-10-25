@@ -11,11 +11,10 @@ integration's source; drift-probed weekly)."""
 
 from __future__ import annotations
 
-from dataclasses import replace
-
 from ._model import ConsumableSignature, IntegrationSignature
 from ._shared import (
     FILTER_LIFE_PERCENT,
+    FILTER_LIFE_RESET_FILTER,
     VACUUM_FILTER_CLEANING_RUNTIME,
     VACUUM_MAIN_BRUSH_RUNTIME,
 )
@@ -100,20 +99,35 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "dreame_vacuum": IntegrationSignature(
         name="Dreame Vacuum",
-        verified="2026-09-02 @ Tasshack/dreame-vacuum master (ae8422f2); resets 2026-09-27 @ ae8422f",
-        source=(
-            "Tasshack/dreame-vacuum custom_components/dreame_vacuum/sensor.py "
-            "(property_key *_LEFT, UNIT_PERCENT) + dreame/const.py PROPERTY_TO_NAME "
-            "(translation_key = first element, e.g. mop_pad_left); every *_left "
-            "sensor is entity_registry_enabled_default=False — the user enables "
-            "the ones their model has (#150, station consumables). Resets: "
-            "button.py BUTTONS action_key RESET_* → entity.py key/translation_key from "
-            "dreame/const.py ACTION_TO_NAME ('reset_main_brush', 'reset_side_brush', "
-            "'reset_filter', 'reset_sensor', 'reset_mop_pad', 'reset_detergent', "
-            "'reset_silver_ion'; DIAGNOSTIC, enabled; each created only when its counter "
-            "exists). The button is unavailable while its counter reads 100 %. "
-            "secondary_filter_left has no button (service vacuum_reset_consumable only)."
+        verified=(
+            "2026-09-02 @ Tasshack/dreame-vacuum master (ae8422f2); resets 2026-09-27 @ ae8422f; "
+            "v2.0 keys and the station consumables 2026-10-25 @ master (f5b8472b)"
         ),
+        source=(
+            "Tasshack/dreame-vacuum custom_components/dreame_vacuum/sensor.py SENSORS "
+            "(property_key *_LEFT, UNIT_PERCENT, each *_LEFT with a *_TIME_LEFT twin in "
+            "hours). Since v2.0 (2026-10-11) entity.py derives key AND translation_key "
+            "from the enum member (description.property_key.name.lower(), "
+            "action_key.name.lower()) — the old dreame/const.py PROPERTY_TO_NAME / "
+            "ACTION_TO_NAME tables are gone, the keys stayed except one: dreame/types.py "
+            "TANK_FILTER_LEFT (siid 17 piid 1) replaces SECONDARY_FILTER_LEFT, so the "
+            "secondary-filter duty carries both keys. Every entity sets a "
+            "translation_key, so they are authoritative: a renamed counter can no "
+            "longer fall into the '_filter_left' suffix of the main filter. Resets: "
+            "button.py BUTTONS action_key RESET_* (DIAGNOSTIC, each created only when "
+            "its counter exists: 'reset_main_brush', 'reset_side_brush', "
+            "'reset_filter', 'reset_sensor', 'reset_mop_pad', 'reset_detergent', "
+            "'reset_silver_ion' and since v2.0 'reset_squeegee', "
+            "'reset_onboard_dirty_water_tank', 'reset_dirty_water_channel', "
+            "'reset_deodorizer', 'reset_wheel', 'reset_scale_inhibitor', "
+            "'reset_fluffing_roller', 'reset_roller_mop_filter', "
+            "'reset_water_outlet_filter'); the button is unavailable while its counter "
+            "reads 100 %. The tank filter has no button (the RESET_TANK_FILTER action "
+            "has no ButtonEntityDescription). The new binary 'maintenance' (any "
+            "consumable at 5 % or less) is device_class problem → problem-sensor "
+            "adoption, not a duty."
+        ),
+        translation_keys_authoritative=True,
         tasks=(
             ConsumableSignature(("main_brush_left",), "Replace Main Brush", "percent_left", resets=(("main_brush_left", "reset_main_brush"),)),
             ConsumableSignature(("side_brush_left",), "Replace Side Brush", "percent_left", resets=(("side_brush_left", "reset_side_brush"),)),
@@ -123,8 +137,49 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             # counters — same percent scale, same *_left key convention.
             ConsumableSignature(("mop_pad_left",), "Replace Mop Pads", "percent_left", resets=(("mop_pad_left", "reset_mop_pad"),)),
             ConsumableSignature(("detergent_left",), "Refill Detergent", "percent_left", resets=(("detergent_left", "reset_detergent"),)),
-            ConsumableSignature(("secondary_filter_left",), "Replace Secondary Filter", "percent_left"),
+            ConsumableSignature(("secondary_filter_left", "tank_filter_left"), "Replace Secondary Filter", "percent_left"),
             ConsumableSignature(("silver_ion_left",), "Replace Silver-ion Module", "percent_left", resets=(("silver_ion_left", "reset_silver_ion"),)),
+            # v2.0 station and robot consumables, each gated upstream by a
+            # device capability (only the models that have the part get it).
+            ConsumableSignature(("squeegee_left",), "Replace Squeegee", "percent_left", resets=(("squeegee_left", "reset_squeegee"),)),
+            ConsumableSignature(
+                ("onboard_dirty_water_tank_left",),
+                "Clean Dirty Water Tank",
+                "percent_left",
+                resets=(("onboard_dirty_water_tank_left", "reset_onboard_dirty_water_tank"),),
+            ),
+            ConsumableSignature(
+                ("dirty_water_channel_dirty_left",),
+                "Clean Dirty Water Channel",
+                "percent_left",
+                resets=(("dirty_water_channel_dirty_left", "reset_dirty_water_channel"),),
+            ),
+            ConsumableSignature(("deodorizer_left",), "Replace Odor Eliminator", "percent_left", resets=(("deodorizer_left", "reset_deodorizer"),)),
+            ConsumableSignature(("wheel_dirty_left",), "Clean Wheels", "percent_left", resets=(("wheel_dirty_left", "reset_wheel"),)),
+            ConsumableSignature(
+                ("scale_inhibitor_left",),
+                "Replace Scale Inhibitor",
+                "percent_left",
+                resets=(("scale_inhibitor_left", "reset_scale_inhibitor"),),
+            ),
+            ConsumableSignature(
+                ("fluffing_roller_dirty_left",),
+                "Clean Fluffing Roller",
+                "percent_left",
+                resets=(("fluffing_roller_dirty_left", "reset_fluffing_roller"),),
+            ),
+            ConsumableSignature(
+                ("roller_mop_filter_dirty_left",),
+                "Clean Roller Mop Filter",
+                "percent_left",
+                resets=(("roller_mop_filter_dirty_left", "reset_roller_mop_filter"),),
+            ),
+            ConsumableSignature(
+                ("water_outlet_filter_dirty_left",),
+                "Clean Water Outlet Filter",
+                "percent_left",
+                resets=(("water_outlet_filter_dirty_left", "reset_water_outlet_filter"),),
+            ),
         ),
     ),
     "ecovacs": IntegrationSignature(
@@ -141,20 +196,57 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "sink), trimmer_brush and weed_rope (GOAT edge trimmer). "
             "total_stats_time_mower = the mower override of total_stats_time "
             "(SECONDS, suggested h, TOTAL_INCREASING lifetime). unit_care is "
-            "SKIPPED (which parts it covers is not established from source)."
+            "SKIPPED (which parts it covers is not established from source). "
+            "2026.11 (keys and buttons read 2026-10-25 @ dev) adds dust_bucket, "
+            "dust_case_heap ('Dust bin filter'), dust_container_filter, "
+            "heavy_duty_cleaning_solution, mop_washing_tray and strainer, each with "
+            "its reset_lifespan_* button; older cores simply have none of them."
         ),
         tasks=(
             ConsumableSignature(("lifespan_brush", "lifespan_main_brush"), "Replace Main Brush", "percent_left", resets=(("lifespan_brush", "reset_lifespan_brush"),)),
             ConsumableSignature(("lifespan_side_brush",), "Replace Side Brush", "percent_left", resets=(("lifespan_side_brush", "reset_lifespan_side_brush"),)),
-            # The robot's filter and the handheld unit's filter (combo models)
-            # are separate parts — one task per entity when a device has both.
-            ConsumableSignature(("lifespan_filter", "lifespan_hand_filter"), "Replace Filter", "percent_left", per_entity=True, resets=(("lifespan_filter", "reset_lifespan_filter"), ("lifespan_hand_filter", "reset_lifespan_hand_filter"))),
+            # The robot's filter, the handheld unit's filter (combo models) and
+            # the dust bin / dust container filters are separate parts — one
+            # task per entity when a device has several.
+            ConsumableSignature(
+                ("lifespan_filter", "lifespan_hand_filter", "lifespan_dust_case_heap", "lifespan_dust_container_filter"),
+                "Replace Filter",
+                "percent_left",
+                per_entity=True,
+                resets=(
+                    ("lifespan_filter", "reset_lifespan_filter"),
+                    ("lifespan_hand_filter", "reset_lifespan_hand_filter"),
+                    ("lifespan_dust_case_heap", "reset_lifespan_dust_case_heap"),
+                    ("lifespan_dust_container_filter", "reset_lifespan_dust_container_filter"),
+                ),
+            ),
             ConsumableSignature(("lifespan_station_filter",), "Replace Secondary Filter", "percent_left", resets=(("lifespan_station_filter", "reset_lifespan_station_filter"),)),
             ConsumableSignature(("lifespan_dust_bag",), "Replace Dust Bag", "percent_left", resets=(("lifespan_dust_bag", "reset_lifespan_dust_bag"),)),
+            ConsumableSignature(("lifespan_dust_bucket",), "Empty and Wash the Dust Bin", "percent_left", resets=(("lifespan_dust_bucket", "reset_lifespan_dust_bucket"),)),
             ConsumableSignature(("lifespan_round_mop",), "Replace Mop Pads", "percent_left", resets=(("lifespan_round_mop", "reset_lifespan_round_mop"),)),
-            ConsumableSignature(("lifespan_cleaning_solution",), "Refill Detergent", "percent_left", resets=(("lifespan_cleaning_solution", "reset_lifespan_cleaning_solution"),)),
+            # The regular and the heavy-duty solution are refilled separately.
+            ConsumableSignature(
+                ("lifespan_cleaning_solution", "lifespan_heavy_duty_cleaning_solution"),
+                "Refill Detergent",
+                "percent_left",
+                per_entity=True,
+                resets=(
+                    ("lifespan_cleaning_solution", "reset_lifespan_cleaning_solution"),
+                    ("lifespan_heavy_duty_cleaning_solution", "reset_lifespan_heavy_duty_cleaning_solution"),
+                ),
+            ),
             ConsumableSignature(("lifespan_sewage_box",), "Empty Dirty Water Tank", "percent_left", resets=(("lifespan_sewage_box", "reset_lifespan_sewage_box"),)),
-            ConsumableSignature(("lifespan_water_sink",), "Clean Mop Tray", "percent_left", resets=(("lifespan_water_sink", "reset_lifespan_water_sink"),)),
+            ConsumableSignature(
+                ("lifespan_water_sink", "lifespan_mop_washing_tray"),
+                "Clean Mop Tray",
+                "percent_left",
+                per_entity=True,
+                resets=(
+                    ("lifespan_water_sink", "reset_lifespan_water_sink"),
+                    ("lifespan_mop_washing_tray", "reset_lifespan_mop_washing_tray"),
+                ),
+            ),
+            ConsumableSignature(("lifespan_strainer",), "Replace Dock Strainer", "percent_left", resets=(("lifespan_strainer", "reset_lifespan_strainer"),)),
             ConsumableSignature(("lifespan_air_freshener",), "Replace Air Freshener", "percent_left", resets=(("lifespan_air_freshener", "reset_lifespan_air_freshener"),)),
             ConsumableSignature(("lifespan_uv_sanitizer",), "Replace UV Lamp", "percent_left", resets=(("lifespan_uv_sanitizer", "reset_lifespan_uv_sanitizer"),)),
             # GOAT robotic mowers report their wear parts through the same platform.
@@ -258,7 +350,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             # 2.95: each counter has its reset_* button (button.py category SD).
             ConsumableSignature(("rolling_brush_life",), "Replace Main Brush", "percent_left", resets=(("rolling_brush_life", "reset_roll_brush"),)),
             ConsumableSignature(("side_brush_life",), "Replace Side Brush", "percent_left", resets=(("side_brush_life", "reset_edge_brush"),)),
-            replace(FILTER_LIFE_PERCENT, resets=(("filter_life", "reset_filter"),)),
+            FILTER_LIFE_RESET_FILTER,
             ConsumableSignature(("duster_cloth_life",), "Replace Mop Pads", "percent_left", resets=(("duster_cloth_life", "reset_duster_cloth"),)),
             VACUUM_FILTER_CLEANING_RUNTIME,
             VACUUM_MAIN_BRUSH_RUNTIME,

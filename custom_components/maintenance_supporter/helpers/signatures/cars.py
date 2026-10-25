@@ -655,4 +655,20 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             _OIL_SERVICE_INSPECTION_DISTANCE,
         ),
     ),
+    # ─── Round 17 (2026-10-25) ───────────────────────────────────────────
+    "skoda": IntegrationSignature(
+        name="Škoda",
+        verified="2026-10-25 @ home-assistant/core dev (new in 2026.11)",
+        source=(
+            "core skoda (the official Škoda public API) sensor.py SENSOR_TYPES tk "
+            "'mileage' (km, DISTANCE, TOTAL_INCREASING; vehicles with the ODOMETER "
+            "capability) — the only maintenance signal, no service or inspection "
+            "data; the same key as the HACS myskoda entry, so the shared mileage "
+            "duties."
+        ),
+        tasks=(
+            ANNUAL_SERVICE_MILEAGE,
+            TIRE_ROTATION_MILEAGE,
+        ),
+    ),
 }

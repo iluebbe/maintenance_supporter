@@ -597,4 +597,51 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(ConsumableSignature(("uv_running_hours",), "Replace UV Lamp", "usage_delta", delta_units=8000),),
     ),
+    # ─── Round 17 (2026-10-25): irrigation controllers by engine runtime ─
+    "bhyve": IntegrationSignature(
+        name="Orbit B-hyve",
+        verified="2026-10-25 @ sebr/bhyve-home-assistant main (524281b, 4.1.3)",
+        source=(
+            "HACS bhyve valve.py: one valve per zone (VALVE_DESCRIPTION key and "
+            "translation_key 'zone', device_class water), several zones on one timer "
+            "device; is_closed is False while watering_status.current_station is the "
+            "zone → 'open' while it waters. switch.py now only holds programs, rain "
+            "delay and smart watering. No consumable signals — the ENGINE "
+            "accumulates watering time per zone (Rain Bird's 30 h convention)."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("zone",),
+                "Clean Sprinkler Heads",
+                "runtime_hours",
+                delta_units=30,
+                entity_domain="valve",
+                on_states=("open",),
+                per_entity=True,
+            ),
+        ),
+    ),
+    "opensprinkler": IntegrationSignature(
+        name="OpenSprinkler",
+        verified="2026-10-25 @ vinteo/hass-opensprinkler master (6f9e6ff, v2.2.3)",
+        source=(
+            "HACS opensprinkler binary_sensor.py: '<station> Station Running' "
+            "(device_class RUNNING, on while the station waters; no translation_key, "
+            "no has_entity_name → suffix _station_running), all stations on the "
+            "controller device. The station switches are ENABLE switches, not "
+            "runtime. The master station (pump / master valve) is a station too "
+            "and gets a task of its own, which the person can leave unticked."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("station_running",),
+                "Clean Sprinkler Heads",
+                "runtime_hours",
+                delta_units=30,
+                entity_domain="binary_sensor",
+                on_states=("on",),
+                per_entity=True,
+            ),
+        ),
+    ),
 }

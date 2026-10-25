@@ -195,16 +195,32 @@ def test_skip_auto_survives_the_sanitizer() -> None:
     assert "skip_auto" not in task["on_complete_action"]
 
 
+# Core reset buttons the catalog wires ahead of the release that ships them
+# (round 17 read them in core dev): checked only on that core or newer.
+_BUTTONS_FROM = {
+    ("ecovacs", "reset_lifespan_dust_bucket"): (2026, 11),
+    ("ecovacs", "reset_lifespan_dust_case_heap"): (2026, 11),
+    ("ecovacs", "reset_lifespan_dust_container_filter"): (2026, 11),
+    ("ecovacs", "reset_lifespan_heavy_duty_cleaning_solution"): (2026, 11),
+    ("ecovacs", "reset_lifespan_mop_washing_tray"): (2026, 11),
+    ("ecovacs", "reset_lifespan_strainer"): (2026, 11),
+    ("switchbot", "reset_filter_usage"): (2026, 11),
+    ("vesync", "reset_filter"): (2026, 11),
+}
+
+
 def test_every_reset_names_a_duty_key_and_a_real_button() -> None:
     """A reset pair's sensor key is one of the duty's keys, and — for core
     integrations — the button key exists in the integration's strings.json
     (checked from 2026.9 on: older cores lack the newer Ecovacs resets, which
-    the per-device lookup then simply does not find)."""
+    the per-device lookup then simply does not find; buttons of a later
+    release from that release on)."""
     import homeassistant.components as comps
     from homeassistant.const import MAJOR_VERSION, MINOR_VERSION
 
     core = Path(comps.__file__).parent
-    check_buttons = (MAJOR_VERSION, MINOR_VERSION) >= (2026, 9)
+    version = (MAJOR_VERSION, MINOR_VERSION)
+    check_buttons = version >= (2026, 9)
     problems = []
     for domain, catalog in SIGNATURES.items():
         buttons = None
@@ -215,6 +231,8 @@ def test_every_reset_names_a_duty_key_and_a_real_button() -> None:
             for sensor_key, button_key in sig.resets:
                 if sensor_key not in sig.keys:
                     problems.append(f"{domain} {sig.task_name}: {sensor_key!r} is not a duty key")
+                if version < _BUTTONS_FROM.get((domain, button_key), (0, 0)):
+                    continue
                 if buttons is not None and button_key not in buttons:
                     problems.append(f"{domain} {sig.task_name}: button {button_key!r} not in core strings.json")
     assert not problems, problems

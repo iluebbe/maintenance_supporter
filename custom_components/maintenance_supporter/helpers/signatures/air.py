@@ -12,6 +12,7 @@ from dataclasses import replace
 from ._model import ConsumableSignature, IntegrationSignature
 from ._shared import (
     FILTER_LIFE_PERCENT,
+    FILTER_LIFE_RESET_FILTER,
     PRE_FILTER_CLEANING_PERCENT,
     VENTILATION_FILTER_OPERATING_TIME,
     VENTILATION_FILTER_REMAIN,
@@ -57,17 +58,22 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "dreo": IntegrationSignature(
         name="Dreo",
-        verified="2026-07-18 @ JeffSteinbok/hass-dreo main",
+        verified="2026-07-18 @ JeffSteinbok/hass-dreo main; purifier re-checked 2026-10-25 (v1.11.10)",
         source=(
-            "JeffSteinbok/hass-dreo sensor.py (translation_key 'filter_life', unit '%', humidifiers with FILTERTIME support)."
+            "JeffSteinbok/hass-dreo sensor.py (translation_key 'filter_life', unit '%', humidifiers with FILTERTIME "
+            "support; since v1.11.10 also the DR-HAP007S air purifier)."
         ),
         tasks=(FILTER_LIFE_PERCENT,),
     ),
     "vesync": IntegrationSignature(
         name="VeSync (Levoit)",
-        verified="2026-07-19 @ core/dev vesync/sensor.py",
-        source="core vesync: tk 'filter_life', PERCENTAGE, MEASUREMENT (Levoit purifiers).",
-        tasks=(FILTER_LIFE_PERCENT,),
+        verified="2026-07-19 @ core/dev vesync/sensor.py; reset 2026-10-25 @ core dev (2026.11)",
+        source=(
+            "core vesync: tk 'filter_life', PERCENTAGE, MEASUREMENT (Levoit purifiers). 2026.11 adds "
+            "button.py 'reset_filter' (CONFIG, purifiers with PurifierFeatures.RESET_FILTER, "
+            "device.reset_filter()) — wired as the duty's reset; older cores have no button."
+        ),
+        tasks=(FILTER_LIFE_RESET_FILTER,),
     ),
     "daikin": IntegrationSignature(
         name="Daikin AC",
@@ -871,5 +877,20 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "entity SERVICE ecovent_v2.filter_timer_reset (no button)."
         ),
         tasks=(ConsumableSignature(("filter_remaining",), "Replace Ventilation Filter", "percent_left"),),
+    ),
+    # ─── Round 17 (2026-10-25) ───────────────────────────────────────────
+    "goveelife": IntegrationSignature(
+        name="Govee Life (purifiers)",
+        verified="2026-10-25 @ disforw/goveelife main (71b07eb, 4.1.8)",
+        source=(
+            "HACS goveelife sensor.py GoveeLifeSensor: one sensor per devices.capabilities.property "
+            "of an air purifier, named after the raw capability instance (self._name = "
+            "self._capability_name), no translation_key; 'filterLifeTime' gets PERCENTAGE and "
+            "DIAGNOSTIC (H7123/H7124/H7126 fixtures) = remaining filter life, the same Govee "
+            "OpenAPI property the govee entry reads. The entity id comes from the device name, "
+            "so only the original name's slug 'filterlifetime' identifies it. waterFullEvent / "
+            "lackWaterEvent are device_class problem binaries → problem-sensor adoption."
+        ),
+        tasks=(ConsumableSignature(("filterlifetime",), "Replace Filter", "percent_left"),),
     ),
 }

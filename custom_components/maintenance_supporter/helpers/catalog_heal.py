@@ -21,6 +21,13 @@ LEFT ("below 10 %"), but the sensors report the raw status, which counts UP
 after the filter was changed and resolved itself once it was worn out. Those
 filters are now wear gauges ("above 90 %"). A threshold trigger on those
 sensors with only a lower bound is the catalog's shape and is flipped.
+
+2026-10-25: Dreame Vacuum 2.0 renamed its secondary filter counter to
+``tank_filter_left``, and the entity-id suffix fallback adopted it into
+"Replace Filter" next to the main filter's ``filter_left`` (any-low: the tank
+filter's wear fired the main-filter task). A threshold trigger watching
+exactly those two sensors of one vacuum drops the tank filter, which now
+belongs to "Replace Secondary Filter".
 """
 
 from __future__ import annotations
@@ -118,6 +125,40 @@ def _healed_wear_trigger(hass: HomeAssistant, tc: Mapping[str, Any]) -> dict[str
     return healed
 
 
+# platform → (the key the trigger is for, a renamed key the suffix fallback
+# added next to it).
+_STRAY_KEY_HEALS: dict[str, tuple[str, str]] = {
+    "dreame_vacuum": ("filter_left", "tank_filter_left"),
+}
+
+
+def _healed_stray_key_trigger(hass: HomeAssistant, tc: Mapping[str, Any]) -> dict[str, Any] | None:
+    if tc.get("type") != "threshold" or tc.get("trigger_below") is None:
+        return None
+    from ..entity.triggers import normalize_entity_ids
+
+    entity_ids = normalize_entity_ids(dict(tc))
+    if len(entity_ids) != 2:
+        return None
+    ent_reg = er.async_get(hass)
+    regs = [ent_reg.async_get(entity_id) if isinstance(entity_id, str) else None for entity_id in entity_ids]
+    if any(reg is None for reg in regs):
+        return None
+    platforms = {reg.platform for reg in regs if reg is not None}
+    devices = {reg.device_id for reg in regs if reg is not None}
+    keys = _STRAY_KEY_HEALS.get(next(iter(platforms))) if len(platforms) == 1 and len(devices) == 1 else None
+    if keys is None:
+        return None
+    by_key = {reg.translation_key: reg.entity_id for reg in regs if reg is not None}
+    if set(by_key) != set(keys):
+        return None  # not the pair the fallback joined — the user's own trigger
+    keep = by_key[keys[0]]
+    healed = {**tc, "entity_ids": [keep]}
+    if "entity_id" in tc:
+        healed["entity_id"] = keep
+    return healed
+
+
 def heal_catalog_triggers(hass: HomeAssistant, data: Mapping[str, Any]) -> dict[str, Any] | None:
     """The entry data with healed triggers, or None when nothing changed."""
     tasks = data.get(CONF_TASKS)
@@ -128,7 +169,7 @@ def heal_catalog_triggers(hass: HomeAssistant, data: Mapping[str, Any]) -> dict[
         tc = td.get(CONF_TRIGGER_CONFIG) if isinstance(td, Mapping) else None
         if not isinstance(tc, Mapping):
             continue
-        healed = _healed_trigger(hass, tc) or _healed_wear_trigger(hass, tc)
+        healed = _healed_trigger(hass, tc) or _healed_wear_trigger(hass, tc) or _healed_stray_key_trigger(hass, tc)
         if healed is None:
             continue
         if new_tasks is None:

@@ -94,11 +94,29 @@ CHARGER_CABLE_TOTAL_ENERGY = ConsumableSignature(
     delta_units=5000,
 )
 
-# 7 integrations (air.py, vacuums.py).
+# 6 integrations (air.py, vacuums.py).
 FILTER_LIFE_PERCENT = ConsumableSignature(
     ("filter_life",),
     "Replace Filter",
     "percent_left",
+)
+
+# 2 integrations (air.py, vacuums.py): the filter percentage with the
+# integration's own 'reset_filter' button (Tuya robot vacuums, VeSync).
+FILTER_LIFE_RESET_FILTER = ConsumableSignature(
+    ("filter_life",),
+    "Replace Filter",
+    "percent_left",
+    resets=(("filter_life", "reset_filter"),),
+)
+
+# 2 integrations (heating.py): the Venus OS generator service counter
+# (run-hours LEFT until the configured service; core victron_gx and the
+# HACS victron_mqtt integration it grew out of).
+GENERATOR_SERVICE_COUNTER = ConsumableSignature(
+    ("generator_service_counter",),
+    "Oil Service",
+    "duration_left",
 )
 
 # 3 integrations (heating.py).
@@ -125,7 +143,7 @@ LANDROID_UNDERCARRIAGE_RUNTIME = ConsumableSignature(
     delta_units=25,
 )
 
-# 21 integrations (locks.py, transports.py).
+# 22 integrations (locks.py, transports.py).
 LOCK_CYLINDER_CYCLES = ConsumableSignature(
     (),
     "Lubricate Cylinder",
@@ -133,6 +151,18 @@ LOCK_CYLINDER_CYCLES = ConsumableSignature(
     delta_units=2000,
     entity_domain="lock",
     on_states=("locked",),
+)
+
+# 2 integrations (locks.py): Nuki integrations whose Opener is a lock entity
+# too and reports 'locked' while merely online — excluded by device model.
+LOCK_CYLINDER_CYCLES_NO_OPENER = ConsumableSignature(
+    (),
+    "Lubricate Cylinder",
+    "cycle_count",
+    delta_units=2000,
+    entity_domain="lock",
+    on_states=("locked",),
+    models_exclude=("Opener",),
 )
 
 # 3 integrations (garden.py, transports.py).

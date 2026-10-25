@@ -147,4 +147,39 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(ConsumableSignature(("totally_charged",), "Inspect Cable and Plug", "usage_delta", delta_units=5000),),
     ),
+    # ─── Round 17 (2026-10-25) ───────────────────────────────────────────
+    "evcc_intg": IntegrationSignature(
+        name="evcc",
+        verified="2026-10-25 @ marq24/ha-evcc main (395c3a9)",
+        source=(
+            "HACS evcc_intg pyevcc_ha/keys.py Tag CHARGETOTALIMPORT (json_key "
+            "'chargeTotalImport', per loadpoint); sensor.py sets the translation_key "
+            "to the lower-cased json_key → 'chargetotalimport' (kWh, ENERGY, "
+            "TOTAL_INCREASING; sensor.py never publishes a value below the previous "
+            "one) — the charger meter's lifetime reading. One device per loadpoint "
+            "when there are several. 'chargedenergy' (session) and the site "
+            "'stattotalchargedkwh' (evcc's session database, all loadpoints) are not "
+            "used. A loadpoint driving a heater or switch carries the counter too "
+            "and cannot be told apart (model 'Loadpoint <name>')."
+        ),
+        tasks=(ConsumableSignature(("chargetotalimport",), "Inspect Cable and Plug", "usage_delta", delta_units=5000),),
+    ),
+    "ocpp": IntegrationSignature(
+        name="OCPP charge points",
+        verified="2026-10-25 @ lbbrhzn/ocpp main (0fdf24b)",
+        source=(
+            "HACS ocpp sensor.py: the default measurand Energy.Active.Import.Register "
+            "(const.py DEFAULT_MEASURAND) is created per charge point and connector "
+            "without translation_key or has_entity_name, entity id forced to "
+            "sensor.<cpid>[_connector_<n>]_energy_active_import_register (kWh, "
+            "ENERGY, TOTAL_INCREASING). The 2026-07 round skipped it because some "
+            "chargers report SESSION energy as this register; chargepoint.py now "
+            "detects those (meter_start 0, a sample below meter_start) and routes "
+            "the transaction samples to session_energy instead, so the register "
+            "stays the lifetime meter (ocppv201.py: 'lifetime energy'). On such a "
+            "charger it only moves on samples outside a transaction, so the "
+            "interval can lag — it never runs backwards."
+        ),
+        tasks=(ConsumableSignature(("energy_active_import_register",), "Inspect Cable and Plug", "usage_delta", delta_units=5000),),
+    ),
 }

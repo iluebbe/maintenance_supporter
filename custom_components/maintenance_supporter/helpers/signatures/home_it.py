@@ -36,10 +36,15 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     # usage fires ABOVE 85 % and a cleanup that lowers it auto-resolves.
     "unraid": IntegrationSignature(
         name="Unraid",
-        verified="2026-09-25 @ ruaan-deysel/ha-unraid main (2026.9.1, HACS default)",
+        verified=(
+            "2026-09-25 @ ruaan-deysel/ha-unraid main (2026.9.1, HACS default); "
+            "re-checked 2026-10-25 @ tinkerologie/ha-unraid main (8f92262, 2026.10.5)"
+        ),
         source=(
             "HACS unraid sensor.py ArrayUsageSensor: _attr_translation_key "
-            "'array_usage', unit '%' (capacity.usage_percent of the array)."
+            "'array_usage', unit '%' (capacity.usage_percent of the array). The "
+            "repository moved from ruaan-deysel to tinkerologie in 2026-10 (same "
+            "integration, same domain)."
         ),
         tasks=(UNRAID_ARRAY_USAGE_HIGH,),
     ),
@@ -55,11 +60,14 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "unraid_management_agent": IntegrationSignature(
         name="Unraid Management Agent",
-        verified="2026-09-25 @ ruaan-deysel/ha-unraid-management-agent main (2026.6.5, HACS default)",
+        verified=(
+            "2026-09-25 @ ruaan-deysel/ha-unraid-management-agent main (2026.6.5, HACS default); "
+            "re-checked 2026-10-25 @ tinkerologie/ha-unraid-management-agent main (f2e65f0, 2026.10.1)"
+        ),
         source=(
             "HACS unraid_management_agent sensor.py ARRAY_SENSOR_DESCRIPTIONS "
             "translation_key 'array_usage' (PERCENTAGE, "
-            "array.computed_used_percent)."
+            "array.computed_used_percent). Moved to tinkerologie in 2026-10."
         ),
         tasks=(UNRAID_ARRAY_USAGE_HIGH,),
     ),
@@ -154,6 +162,35 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 "Replace Detectors",
                 "duration_left",
                 below_hours=720,
+            ),
+        ),
+    ),
+    # ─── Round 17 (2026-10-25) ───────────────────────────────────────────
+    "proxmoxve": IntegrationSignature(
+        name="Proxmox VE",
+        verified=(
+            "2026-10-25 @ dougiteixeira/proxmoxve main (8b19f82, 5.3.4) + "
+            "home-assistant/core 2026.10.4 and dev"
+        ),
+        source=(
+            "The domain is shared by the HACS integration and core (the HACS one overrides core "
+            "when installed). HACS sensor.py PROXMOX_SENSOR_DISK tk 'disk_used_perc' (%, enabled) "
+            "is spread into nodes, QEMU and LXC guests and storages; device models 'Storage' / "
+            "'Shared storage' (storages), 'QEMU', 'LXC', the CPU model string (nodes). Core "
+            "sensor.py tk 'storage_used_percentage' (%, DIAGNOSTIC, used_fraction × 100) on "
+            "storage devices (entity.py model 'Storage'). Gated to the storage devices: a full "
+            "thin pool or ZFS storage stops its guests, while the node's root file system is the "
+            "'local' storage again and guest disks would flood the proposals. 'zfs_used_perc' "
+            "(ZFS pools, the same space as their zfspool storage) and the SSD wear-out 'life_left' "
+            "are not signed."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("disk_used_perc", "storage_used_percentage"),
+                "Storage Cleanup",
+                "alert_above",
+                delta_units=85,
+                models=("storage",),
             ),
         ),
     ),

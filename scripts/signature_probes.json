@@ -46,24 +46,49 @@
  },
  "dreame_vacuum": {
   "urls": [
-   "https://raw.githubusercontent.com/Tasshack/dreame-vacuum/master/custom_components/dreame_vacuum/dreame/const.py"
+   "https://raw.githubusercontent.com/Tasshack/dreame-vacuum/master/custom_components/dreame_vacuum/sensor.py",
+   "https://raw.githubusercontent.com/Tasshack/dreame-vacuum/master/custom_components/dreame_vacuum/button.py",
+   "https://raw.githubusercontent.com/Tasshack/dreame-vacuum/master/custom_components/dreame_vacuum/entity.py",
+   "https://raw.githubusercontent.com/Tasshack/dreame-vacuum/master/custom_components/dreame_vacuum/dreame/types.py"
   ],
   "strings": [
-   "main_brush_left",
-   "side_brush_left",
-   "filter_left",
-   "sensor_dirty_left",
-   "mop_pad_left",
-   "detergent_left",
-   "secondary_filter_left",
-   "silver_ion_left",
-   "[\"reset_main_brush\", \"Reset Main Brush\"]",
-   "[\"reset_side_brush\", \"Reset Side Brush\"]",
-   "[\"reset_filter\", \"Reset Filter\"]",
-   "[\"reset_sensor\", \"Reset Sensor\"]",
-   "[\"reset_mop_pad\", \"Reset Mop Pad\"]",
-   "[\"reset_silver_ion\", \"Reset Silver-ion\"]",
-   "[\"reset_detergent\", \"Reset Detergent\"]"
+   "property_key=DreameVacuumProperty.MAIN_BRUSH_LEFT,",
+   "property_key=DreameVacuumProperty.SIDE_BRUSH_LEFT,",
+   "property_key=DreameVacuumProperty.FILTER_LEFT,",
+   "property_key=DreameVacuumProperty.SENSOR_DIRTY_LEFT,",
+   "property_key=DreameVacuumProperty.MOP_PAD_LEFT,",
+   "property_key=DreameVacuumProperty.DETERGENT_LEFT,",
+   "property_key=DreameVacuumProperty.TANK_FILTER_LEFT,",
+   "property_key=DreameVacuumProperty.SILVER_ION_LEFT,",
+   "property_key=DreameVacuumProperty.SQUEEGEE_LEFT,",
+   "property_key=DreameVacuumProperty.ONBOARD_DIRTY_WATER_TANK_LEFT,",
+   "property_key=DreameVacuumProperty.DIRTY_WATER_CHANNEL_DIRTY_LEFT,",
+   "property_key=DreameVacuumProperty.DEODORIZER_LEFT,",
+   "property_key=DreameVacuumProperty.WHEEL_DIRTY_LEFT,",
+   "property_key=DreameVacuumProperty.SCALE_INHIBITOR_LEFT,",
+   "property_key=DreameVacuumProperty.FLUFFING_ROLLER_DIRTY_LEFT,",
+   "property_key=DreameVacuumProperty.ROLLER_MOP_FILTER_DIRTY_LEFT,",
+   "property_key=DreameVacuumProperty.WATER_OUTLET_FILTER_DIRTY_LEFT,",
+   "action_key=DreameVacuumAction.RESET_MAIN_BRUSH,",
+   "action_key=DreameVacuumAction.RESET_SIDE_BRUSH,",
+   "action_key=DreameVacuumAction.RESET_FILTER,",
+   "action_key=DreameVacuumAction.RESET_SENSOR,",
+   "action_key=DreameVacuumAction.RESET_MOP_PAD,",
+   "action_key=DreameVacuumAction.RESET_SILVER_ION,",
+   "action_key=DreameVacuumAction.RESET_DETERGENT,",
+   "action_key=DreameVacuumAction.RESET_SQUEEGEE,",
+   "action_key=DreameVacuumAction.RESET_ONBOARD_DIRTY_WATER_TANK,",
+   "action_key=DreameVacuumAction.RESET_DIRTY_WATER_CHANNEL,",
+   "action_key=DreameVacuumAction.RESET_DEODORIZER,",
+   "action_key=DreameVacuumAction.RESET_SCALE_INHIBITOR,",
+   "action_key=DreameVacuumAction.RESET_WHEEL,",
+   "action_key=DreameVacuumAction.RESET_FLUFFING_ROLLER,",
+   "action_key=DreameVacuumAction.RESET_ROLLER_MOP_FILTER,",
+   "action_key=DreameVacuumAction.RESET_WATER_OUTLET_FILTER,",
+   "description.key = description.property_key.name.lower()",
+   "description.key = description.action_key.name.lower()",
+   "self._attr_translation_key = description.key",
+   "TANK_FILTER_LEFT = 143"
   ]
  },
  "xiaomi_miot": {
@@ -121,7 +146,13 @@
    "LifeSpan.WEED_ROPE",
    "\"main_brush\"",
    "total_stats_time_mower",
-   "reset_lifespan_"
+   "reset_lifespan_",
+   "LifeSpan.DUST_BUCKET",
+   "LifeSpan.DUST_CASE_HEAP",
+   "LifeSpan.DUST_CONTAINER_FILTER",
+   "LifeSpan.HEAVY_DUTY_CLEANING_SOLUTION",
+   "LifeSpan.MOP_WASHING_TRAY",
+   "LifeSpan.STRAINER"
   ]
  },
  "husqvarna_automower": {
@@ -499,10 +530,14 @@
  },
  "switchbot": {
   "urls": [
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/switchbot/lock.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/switchbot/lock.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/switchbot/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/switchbot/button.py"
   ],
   "strings": [
-   "LockEntity"
+   "LockEntity",
+   "translation_key=\"filter_usage\"",
+   "_attr_translation_key = \"reset_filter_usage\""
   ]
  },
  "loqed": {
@@ -799,10 +834,12 @@
  },
  "vesync": {
   "urls": [
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/vesync/sensor.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/vesync/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/vesync/button.py"
   ],
   "strings": [
-   "filter_life"
+   "translation_key=\"filter_life\"",
+   "translation_key=\"reset_filter\""
   ]
  },
  "comfoconnect": {
@@ -1537,7 +1574,7 @@
  },
  "unraid": {
   "urls": [
-   "https://raw.githubusercontent.com/ruaan-deysel/ha-unraid/main/custom_components/unraid/sensor.py"
+   "https://raw.githubusercontent.com/tinkerologie/ha-unraid/main/custom_components/unraid/sensor.py"
   ],
   "strings": [
    "_attr_translation_key = \"array_usage\""
@@ -1553,7 +1590,7 @@
  },
  "unraid_management_agent": {
   "urls": [
-   "https://raw.githubusercontent.com/ruaan-deysel/ha-unraid-management-agent/main/custom_components/unraid_management_agent/sensor.py"
+   "https://raw.githubusercontent.com/tinkerologie/ha-unraid-management-agent/main/custom_components/unraid_management_agent/sensor.py"
   ],
   "strings": [
    "translation_key=\"array_usage\""
@@ -1591,8 +1628,8 @@
    "https://raw.githubusercontent.com/krahabb/meross_lan/master/emulator/mixins/fan.py"
   ],
   "strings": [
-   "class MLFilterMaintenanceSensor",
-   "key_value = mc.KEY_LIFE",
+   "FilterMaintenanceSensor(",
+   "mc.KEY_LIFE",
    "mc.KEY_FILTER",
    "life - lifedec"
   ]
@@ -1706,11 +1743,12 @@
  "syr_connect": {
   "urls": [
    "https://raw.githubusercontent.com/alexhass/syr_connect/main/custom_components/syr_connect/sensor.py",
-   "https://raw.githubusercontent.com/alexhass/syr_connect/main/custom_components/syr_connect/const.py"
+   "https://raw.githubusercontent.com/alexhass/syr_connect/main/custom_components/syr_connect/entity.py"
   ],
   "strings": [
-   "self._attr_translation_key = sensor_key.lower()",
-   "\"getSS1\": UnitOfTime.WEEKS"
+   "self._attr_translation_key = translation_key or key.lower()",
+   "key=\"getSS1\"",
+   "UnitOfTime.WEEKS"
   ]
  },
  "salt_sentry": {
@@ -1948,7 +1986,7 @@
  },
  "wyzeapi": {
   "urls": [
-   "https://raw.githubusercontent.com/SecKatie/ha-wyzeapi/master/custom_components/wyzeapi/lock.py"
+   "https://raw.githubusercontent.com/SecKatie/ha-wyzeapi/main/custom_components/wyzeapi/lock.py"
   ],
   "strings": [
    "class WyzeLock(",
@@ -2768,13 +2806,14 @@
   "urls": [
    "https://raw.githubusercontent.com/jwillemsen/daikin_onecta/master/custom_components/daikin_onecta/climate.py",
    "https://raw.githubusercontent.com/jwillemsen/daikin_onecta/master/custom_components/daikin_onecta/entity_descriptions.py",
+   "https://raw.githubusercontent.com/jwillemsen/daikin_onecta/master/custom_components/daikin_onecta/entity.py",
    "https://raw.githubusercontent.com/jwillemsen/daikin_onecta/master/custom_components/daikin_onecta/device.py"
   ],
   "strings": [
    "\"auto\": HVACMode.HEAT_COOL",
    "translation_key=\"roomtemperature\"",
-   "device_info[\"model\"] = point.model_info.value",
-   "self._device.fill_gateway_device_info(self._attr_device_info)"
+   "info[\"model\"] = point.model",
+   "**gateway_device_info(self)"
   ]
  },
  "ambientika": {
@@ -2822,6 +2861,135 @@
    "STATE_PROBLEM",
    "self._attr_unique_id = self._config.entry_id",
    "async_add_entities([plant])"
+  ]
+ },
+ "hp_printer": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/hp_printer/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/hp_printer/strings.json"
+  ],
+  "strings": [
+   "self._attr_translation_key = f\"{consumable.color}_{description.key}\"",
+   "key=\"level\"",
+   "\"black_level\": {",
+   "\"cyan_level\": {",
+   "\"magenta_level\": {",
+   "\"yellow_level\": {",
+   "\"tri_color_level\": {"
+  ]
+ },
+ "skoda": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/skoda/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"mileage\"",
+   "UnitOfLength.KILOMETERS"
+  ]
+ },
+ "homematicip_local": {
+  "urls": [
+   "https://raw.githubusercontent.com/SukramJ/homematicip_local/main/custom_components/homematicip_local/lock.py",
+   "https://raw.githubusercontent.com/SukramJ/aiohomematic/main/aiohomematic/model/custom/lock.py"
+  ],
+  "strings": [
+   "data_point_type=DataPointType.LOCK",
+   "models=\"HM-Sec-Key\"",
+   "models=\"HmIP-DLD\"",
+   "models=\"HmIP-DLP\""
+  ]
+ },
+ "eufy_security": {
+  "urls": [
+   "https://raw.githubusercontent.com/fuatakgun/eufy_security/master/custom_components/eufy_security/lock.py"
+  ],
+  "strings": [
+   "class EufySecurityLock(LockEntity",
+   "MessageField.LOCKED.value",
+   "is_safe_lock"
+  ]
+ },
+ "nuki_ng": {
+  "urls": [
+   "https://raw.githubusercontent.com/kvj/hass_nuki_ng/main/custom_components/nuki_ng/lock.py",
+   "https://raw.githubusercontent.com/kvj/hass_nuki_ng/main/custom_components/nuki_ng/__init__.py"
+  ],
+  "strings": [
+   "class Lock(NukiEntity, LockEntity)",
+   "return \"Nuki Opener\""
+  ]
+ },
+ "hubitat": {
+  "urls": [
+   "https://raw.githubusercontent.com/jason0x43/hacs-hubitat/master/custom_components/hubitat/lock.py"
+  ],
+  "strings": [
+   "class HubitatLock(LockEntity"
+  ]
+ },
+ "proxmoxve": {
+  "urls": [
+   "https://raw.githubusercontent.com/dougiteixeira/proxmoxve/main/custom_components/proxmoxve/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/proxmoxve/sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/proxmoxve/entity.py"
+  ],
+  "strings": [
+   "translation_key=\"disk_used_perc\"",
+   "translation_key=\"storage_used_percentage\"",
+   "model=\"Storage\""
+  ]
+ },
+ "evcc_intg": {
+  "urls": [
+   "https://raw.githubusercontent.com/marq24/ha-evcc/main/custom_components/evcc_intg/pyevcc_ha/keys.py"
+  ],
+  "strings": [
+   "CHARGETOTALIMPORT = ApiKey(json_key=\"chargeTotalImport\""
+  ]
+ },
+ "ocpp": {
+  "urls": [
+   "https://raw.githubusercontent.com/lbbrhzn/ocpp/main/custom_components/ocpp/const.py"
+  ],
+  "strings": [
+   "DEFAULT_MEASURAND = Measurand.energy_active_import_register.value"
+  ]
+ },
+ "bhyve": {
+  "urls": [
+   "https://raw.githubusercontent.com/sebr/bhyve-home-assistant/main/custom_components/bhyve/valve.py"
+  ],
+  "strings": [
+   "translation_key=\"zone\"",
+   "is_closed"
+  ]
+ },
+ "opensprinkler": {
+  "urls": [
+   "https://raw.githubusercontent.com/vinteo/hass-opensprinkler/master/custom_components/opensprinkler/binary_sensor.py"
+  ],
+  "strings": [
+   "\" Station Running\"",
+   "BinarySensorDeviceClass.RUNNING"
+  ]
+ },
+ "victron_mqtt": {
+  "urls": [
+   "https://raw.githubusercontent.com/tomer-w/ha-victron-mqtt/main/custom_components/victron_mqtt/entity.py",
+   "https://raw.githubusercontent.com/tomer-w/ha-victron-mqtt/main/custom_components/victron_mqtt/_vendor/victron_mqtt/_victron_topics.py"
+  ],
+  "strings": [
+   "self._attr_translation_key = metric.generic_short_id",
+   "short_id=\"generator_service_counter\""
+  ]
+ },
+ "goveelife": {
+  "urls": [
+   "https://raw.githubusercontent.com/disforw/goveelife/main/custom_components/goveelife/sensor.py"
+  ],
+  "strings": [
+   "elif self._capability_name == \"filterLifeTime\":",
+   "self._name = self._capability_name"
   ]
  }
 }

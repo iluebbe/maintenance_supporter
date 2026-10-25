@@ -379,4 +379,28 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    # ─── Round 17 (2026-10-25) ───────────────────────────────────────────
+    "hp_printer": IntegrationSignature(
+        name="HP Printer",
+        verified="2026-10-25 @ home-assistant/core dev (new in 2026.11)",
+        source=(
+            "core hp_printer sensor.py CONSUMABLE_SENSORS: HpPrinterConsumableSensor "
+            "sets translation_key f'{consumable.color}_{description.key}' — "
+            "'black_level', 'cyan_level', 'magenta_level', 'yellow_level', "
+            "'tri_color_level' (strings.json), PERCENTAGE, value "
+            "percentage_level_remaining; created only for consumables with a colour "
+            "(so printheads and maintenance kits stay out). The "
+            "'<colour>_pages_remaining' twins describe the same cartridge — not "
+            "signed twice. Every entity sets a translation_key."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(
+                ("black_level", "cyan_level", "magenta_level", "yellow_level", "tri_color_level"),
+                "Replace Ink or Toner",
+                "percent_left",
+                per_entity=True,
+            ),
+        ),
+    ),
 }

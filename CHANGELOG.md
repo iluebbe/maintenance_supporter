@@ -2,6 +2,43 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.111.0] - 2026-10-25
+
+### ✨ Added
+
+- **Suggested setups know 13 more integrations** (276 integrations, 578 verified signatures; 128 duties now reset
+  the device's own counter when completed):
+  - *Home Assistant 2026.11:* the new HP Printer integration (*Replace Ink or Toner*, one task per cartridge) and
+    Škoda (*Annual Service* and *Tire Rotation* by mileage). Ecovacs robots gain six parts: the dust bin and dust
+    container filters, the heavy-duty cleaning solution and the mop washing tray (each a task of its own next to the
+    ones a robot already had), the dust bucket and the strainer, all with their reset buttons. The SwitchBot Air
+    Purifier gets *Replace Filter* after 2,160 filter hours, and completing it presses *Reset filter usage*; VeSync
+    purifiers press their new *Reset filter*. These are suggested once Home Assistant 2026.11 provides the entities.
+  - *Dreame Vacuum 2.0 (HACS):* nine station and robot parts (squeegee, onboard dirty water tank, dirty water channel,
+    deodorizer, wheels, scale inhibitor, fluffing roller, roller mop filter, water outlet filter), each completing
+    with the vacuum's own reset.
+  - *Locks (HACS):* *Lubricate Cylinder* for Homematic(IP) Local door locks (HmIP-DLD, HmIP-DLP and KeyMatic; the
+    button locks of thermostats stay out), eufy Security (not the smart safes), Nuki NG (not the Opener) and Hubitat.
+  - *More HACS:* Proxmox VE (*Storage Cleanup* above 85 % on storages, also with the core integration), evcc and OCPP
+    charge points (*Inspect Cable and Plug* every 5,000 kWh), Orbit B-hyve zones and OpenSprinkler stations (*Clean
+    Sprinkler Heads* every 30 hours of watering, one task per zone), Victron MQTT generators (*Oil Service* 24
+    run-hours before the service counter runs out) and Govee Life purifiers (*Replace Filter*).
+  - New task names in all 22 languages: Replace Squeegee, Clean Dirty Water Tank, Clean Dirty Water Channel, Clean
+    Wheels, Replace Scale Inhibitor, Clean Fluffing Roller, Clean Roller Mop Filter, Clean Water Outlet Filter.
+
+### 🐛 Fixed
+
+- **Dreame Vacuum 2.0** renamed its secondary filter counter, so *Replace Secondary Filter* was no longer suggested
+  and the tank filter joined *Replace Filter* instead, where its wear made the main filter fall due. The tank filter
+  belongs to *Replace Secondary Filter* again, and a *Replace Filter* task adopted with both filters is repaired at
+  startup: it keeps the main filter only.
+
+### 🔧 Internal
+
+- The weekly upstream check of the catalog never opened its issue, because it read the exit code of the wrong
+  command; this is how the Dreame rename went unnoticed. Its probes now also follow Daikin Onecta 5, SYR Connect,
+  meross_lan 6.0, the renamed Wyze trunk and the Unraid repositories' new owner.
+
 ## [2.110.0] - 2026-10-24
 
 ### ✨ Added

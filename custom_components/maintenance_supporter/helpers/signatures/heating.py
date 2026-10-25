@@ -8,7 +8,7 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
-from ._shared import HEATING_SYSTEM_PRESSURE_LOW, HEATING_WATER_PRESSURE_LOW, SOFTENER_SALT_LEVEL
+from ._shared import GENERATOR_SERVICE_COUNTER, HEATING_SYSTEM_PRESSURE_LOW, HEATING_WATER_PRESSURE_LOW, SOFTENER_SALT_LEVEL
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "vicare": IntegrationSignature(
@@ -235,8 +235,9 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "also exists (adoption path). Re-checked 2026-10-03 @ core "
             "2026.10.0b0: the sensor is disabled by default (the suggestion "
             "appears once it is enabled); 'total_runtime' (lifetime HOURS) and "
-            "'next_maintainance' (TIMESTAMP), both disabled by default too, "
-            "describe the same service — one duty, not signed twice."
+            "'next_maintenance' (TIMESTAMP; spelled 'next_maintainance' until "
+            "2026.10), both disabled by default too, describe the same service — "
+            "one duty, not signed twice."
         ),
         tasks=(ConsumableSignature(("runtime_since_last_maintenance",), "Oil Service", "usage_above", above_hours=100),),
     ),
@@ -415,7 +416,25 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "lifetime h) is the same service seen from the other side — not "
             "signed twice."
         ),
-        tasks=(ConsumableSignature(("generator_service_counter",), "Oil Service", "duration_left"),),
+        tasks=(GENERATOR_SERVICE_COUNTER,),
+    ),
+    "victron_mqtt": IntegrationSignature(
+        name="Victron MQTT (generator)",
+        verified="2026-10-25 @ tomer-w/ha-victron-mqtt main (5b7261b, v2026.10.2)",
+        source=(
+            "HACS victron_mqtt, the predecessor of core victron_gx (it ships "
+            "migrate_to_victron_gx.py): the same victron_mqtt library, vendored "
+            "(_vendor/victron_mqtt/_victron_topics.py short_id "
+            "'generator_service_counter', h, DURATION) and entity.py sets "
+            "translation_key = generic_short_id — so the victron_gx duty applies "
+            "unchanged. Its reset (generator_service_counter_reset) is a "
+            "MetricKind.SERVICE topic, not an HA button — nothing to wire. The "
+            "Modbus integration 'victron' (sfstar/hass-victron) is NOT signed: its "
+            "register 3510 is uint32 (dbus_modbustcp attributes.csv), so an "
+            "overdue (negative) counter would read as a huge value and complete "
+            "the task on its own."
+        ),
+        tasks=(GENERATOR_SERVICE_COUNTER,),
     ),
     # ─── Round 15 part 2 (2026-09-27): HACS heat pumps and stoves ────────
     "stiebel_eltron_isg": IntegrationSignature(

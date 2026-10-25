@@ -63,7 +63,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
 |    strategy       |    | - interval_analyzer (EWA + Weibull)
 +-------------------+    | - sensor_predictor (degradation + env)
                          | - entity_analyzer (stats + discovery)
-                         | - signatures/ (263 integrations, 552 signals)
+                         | - signatures/ (276 integrations, 578 signals)
                          | - battery_fleet, documents, parts, saved_views
                          | - notification_manager, csv_handler, qr_generator
                          +-------------------+
@@ -453,7 +453,7 @@ custom_components/maintenance_supporter/
 │   │   └── ms-part-use.ts         (217 lines)  #226: the Use pill, for some of a part used outside a task
 │   └── __tests__/              (31,950 lines)  222 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (34,812 lines)  105 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+├── helpers/                    (35,260 lines)  105 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,809 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (374 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
@@ -500,7 +500,7 @@ custom_components/maintenance_supporter/
 │   ├── aggregate.py               (266 lines)  compute_status_counts — the single KPI source
 │   ├── i18n.py                     (74 lines)  normalize_language_code (pt-br is its own table key)
 │   ├── integration_signatures.py   (28 lines)  Compatibility shim → signatures/
-│   ├── catalog_heal.py            (139 lines)  Repairs catalog-adopted triggers a later signature fix invalidated (gree/daikin AC runtime)
+│   ├── catalog_heal.py            (180 lines)  Repairs catalog-adopted triggers a later signature fix invalidated (gree/daikin AC runtime)
 │   ├── climate.py                 (236 lines)  Offline climate of the home location: Köppen class + coldest/warmest month → traits (freeze, snow, hot_humid, termites, cyclone …), hemisphere flip
 │   ├── home_profile.py            (407 lines)  House vs apartment from floors/areas/entities, `home_type` override, country, region (`home_region` override), radon countries, earthquake / Gulf-coast freeze boxes, Australia-wide bushfire/termites, equipment from integrations (UPS: NUT/apcupsd)
 │   ├── region.py                  (171 lines)  Offline state / province / region of the home location (ISO 3166-2): two-level grid from Natural Earth admin-1, nearest region on the coast
@@ -543,24 +543,24 @@ custom_components/maintenance_supporter/
 │   ├── prediction_cache.py         (80 lines)  Hourly cache for the recorder half of the sensor prediction
 │   ├── trigger_detail.py           (75 lines)  The trigger detail (#228): what a triggered task is about, in its own words
 │   ├── complete_when.py            (83 lines)  Complete a task when another entity changes to a state (D#229)
-│   └── signatures/              (6,955 lines)  19 files — Suggested-setups catalog: 263 integrations / 552 signatures
+│   └── signatures/              (7,362 lines)  19 files — Suggested-setups catalog: 276 integrations / 578 signatures
 │       ├── _model.py              (487 lines)  IntegrationSignature / ConsumableSignature + matcher mechanics
 │       ├── _discovery.py          (388 lines)  Entity-registry scan → per-duty setup proposals
 │       ├── _registry.py            (30 lines)  Merge + duplicate-domain guard
-│       ├── _shared.py             (255 lines)  Signatures shared verbatim by several integrations (DRY audit 2026-09-26 B)
-│       ├── air.py                 (875 lines)  Air treatment — purifiers, ACs and HRV/ventilation filters
-│       ├── cars.py                (658 lines)  Cars and EVs — odometer-driven service duties
-│       ├── garden.py              (600 lines)  Robot lawn mowers, irrigation and pool/spa water care
-│       ├── heating.py             (600 lines)  Boilers, heating & water treatment
-│       ├── home_it.py             (160 lines)  NAS, home IT & safety detectors
-│       ├── kitchen.py             (968 lines)  Kitchen & household appliances incl. espresso machines
-│       ├── locks.py               (215 lines)  Smart locks — cycle-count lubrication duties
+│       ├── _shared.py             (285 lines)  Signatures shared verbatim by several integrations (DRY audit 2026-09-26 B)
+│       ├── air.py                 (896 lines)  Air treatment — purifiers, ACs and HRV/ventilation filters
+│       ├── cars.py                (674 lines)  Cars and EVs — odometer-driven service duties
+│       ├── garden.py              (647 lines)  Robot lawn mowers, irrigation and pool/spa water care
+│       ├── heating.py             (619 lines)  Boilers, heating & water treatment
+│       ├── home_it.py             (197 lines)  NAS, home IT & safety detectors
+│       ├── kitchen.py             (973 lines)  Kitchen & household appliances incl. espresso machines
+│       ├── locks.py               (296 lines)  Smart locks — cycle-count lubrication duties
 │       ├── personal.py             (95 lines)  Personal-care devices
 │       ├── pets.py                (200 lines)  Pet tech — feeders, fountains, litter boxes
-│       ├── printers.py            (382 lines)  2D and 3D printers incl. Klipper via Moonraker
+│       ├── printers.py            (406 lines)  2D and 3D printers incl. Klipper via Moonraker
 │       ├── transports.py          (161 lines)  Protocol/hub transports whose duties are entity-domain-gated
-│       ├── vacuums.py             (638 lines)  Cleaning robots — vacuums, mops and the Dolphin pool robot
-│       ├── wallboxes.py           (150 lines)  EV chargers — cable/plug inspection by delivered energy
+│       ├── vacuums.py             (730 lines)  Cleaning robots — vacuums, mops and the Dolphin pool robot
+│       ├── wallboxes.py           (185 lines)  EV chargers — cable/plug inspection by delivered energy
 │       └── xiaomi.py               (66 lines)  Xiaomi ecosystem integrations (MIoT / Xiaomi Home) — multi-category
 │
 ├── models/                      (1,017 lines)  4 files — Task, object and maintenance-type models
@@ -572,7 +572,7 @@ custom_components/maintenance_supporter/
 │
 ├── templates.py                 (2,954 lines)  96 object templates in 10 categories (vehicle, home, building, household,
 │                                               appliance, garden, pool, tech, pets, health)
-├── templates_i18n.py           (18,619 lines)  Translations for the template catalog (largest module)
+├── templates_i18n.py           (18,804 lines)  Translations for the template catalog (largest module)
 ├── repairs.py                     (879 lines)  Repair flows: missing trigger entity, orphan admin-panel-user,
 │                                               stale on_complete_action entity
 ├── diagnostics.py                 (251 lines)  Integration diagnostics with PII redaction
@@ -764,7 +764,7 @@ The recorder half is cached per coordinator in `helpers/prediction_cache.py`: th
 
 ## Signature Catalog & Suggested Setups
 
-Popular integrations already expose the wear signals a maintenance task wants — a Roborock reports *filter time left*, a Brother printer its *drum remaining life*. `helpers/signatures/` turns that into a curated catalog so discovery can propose an object **with its trigger pre-wired** instead of a bare calendar interval. It currently holds **263 integrations / 552 verified signatures** across 14 category data modules (air, cars, garden, heating, home_it, kitchen, locks, personal, pets, printers, transports, vacuums, wallboxes, xiaomi); `_registry.py` merges them and raises on a duplicate domain, `_model.py` holds the dataclasses and matcher mechanics, `_discovery.py` does the entity-registry scan. The generated human-readable table is `docs/INTEGRATIONS.md`.
+Popular integrations already expose the wear signals a maintenance task wants — a Roborock reports *filter time left*, a Brother printer its *drum remaining life*. `helpers/signatures/` turns that into a curated catalog so discovery can propose an object **with its trigger pre-wired** instead of a bare calendar interval. It currently holds **276 integrations / 578 verified signatures** across 14 category data modules (air, cars, garden, heating, home_it, kitchen, locks, personal, pets, printers, transports, vacuums, wallboxes, xiaomi); `_registry.py` merges them and raises on a duplicate domain, `_model.py` holds the dataclasses and matcher mechanics, `_discovery.py` does the entity-registry scan. The generated human-readable table is `docs/INTEGRATIONS.md`.
 
 **Per-duty, not per-device.** A signature describes one *duty* (`ConsumableSignature`) — replace filter, replace main brush, descale — and each duty carries its own direction semantics, which decide the trigger the adoption builds:
 
