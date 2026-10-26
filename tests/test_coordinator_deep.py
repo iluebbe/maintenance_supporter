@@ -38,6 +38,7 @@ from .conftest import (
     make_object_entry as _make_object,
     setup_integration,
 )
+from .task_results import as_results, flat
 
 
 @pytest.fixture
@@ -191,7 +192,7 @@ async def test_notify_overdue_task(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data
-    assert data[CONF_TASKS][TASK_ID_1]["_status"] == "overdue"
+    assert data[CONF_TASKS][TASK_ID_1].status == "overdue"
 
 
 async def test_notify_bundled_sends(
@@ -221,8 +222,8 @@ async def test_notify_bundled_sends(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data
-    assert data[CONF_TASKS][TASK_ID_1]["_status"] == "overdue"
-    assert data[CONF_TASKS][TASK_ID_2]["_status"] == "overdue"
+    assert data[CONF_TASKS][TASK_ID_1].status == "overdue"
+    assert data[CONF_TASKS][TASK_ID_2].status == "overdue"
 
 
 async def test_vacation_active_suppresses_bundled_notifications(hass: HomeAssistant) -> None:
@@ -274,14 +275,14 @@ async def test_vacation_active_suppresses_bundled_notifications(hass: HomeAssist
     coord = entry.runtime_data.coordinator
     nm = hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY]
     assert isinstance(nm, NotificationManager) and nm.enabled  # setup sane
-    assert coord.data[CONF_TASKS][TASK_ID_1]["_status"] == "overdue"  # would bundle
+    assert coord.data[CONF_TASKS][TASK_ID_1].status == "overdue"  # would bundle
 
     with (
         patch.object(nm, "async_send_bundled", new_callable=AsyncMock) as bundled,
         patch.object(nm, "async_task_status_changed", new_callable=AsyncMock) as per_task,
     ):
         coord._previous_statuses = {}  # treat both as freshly notifiable
-        await coord._async_notify_status_changes(coord.data[CONF_TASKS])
+        await coord._async_notify_status_changes(as_results(coord.data[CONF_TASKS]))
 
     bundled.assert_not_called()  # the regression: no bundle during vacation
     per_task.assert_not_called()  # both silenced → nothing sent
@@ -333,7 +334,7 @@ async def test_notification_scope_view_filters_notifiable_tasks(hass: HomeAssist
         patch.object(nm, "async_task_status_changed", new_callable=AsyncMock) as per_task,
     ):
         coord._previous_statuses = {}
-        await coord._async_notify_status_changes(coord.data[CONF_TASKS])
+        await coord._async_notify_status_changes(as_results(coord.data[CONF_TASKS]))
     bundled.assert_not_called()  # only 1 task left in scope → below bundle threshold
     sent_ids = {c.kwargs.get("task_id") or c.args[1] for c in per_task.call_args_list}
     assert per_task.call_count == 1
@@ -349,7 +350,7 @@ async def test_notification_scope_view_filters_notifiable_tasks(hass: HomeAssist
         patch.object(nm, "async_task_status_changed", new_callable=AsyncMock) as per_task2,
     ):
         coord._previous_statuses = {}
-        await coord._async_notify_status_changes(coord.data[CONF_TASKS])
+        await coord._async_notify_status_changes(as_results(coord.data[CONF_TASKS]))
     assert per_task2.call_count == 2
 
 
@@ -465,7 +466,7 @@ async def test_fallback_no_trigger_config(
     assert entry is not None
     data = entry.runtime_data.coordinator.data
     # Should have _trigger_active = False for time-based tasks
-    assert data[CONF_TASKS][TASK_ID_1].get("_trigger_active") is False
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is False
 
 
 # ─── Trigger Fallback: Unavailable Entity ──────────────────────────────────
@@ -505,7 +506,7 @@ async def test_fallback_unavailable_entity(
     assert entry is not None
     data = entry.runtime_data.coordinator.data
     # Unavailable entity should not trigger
-    assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is False
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is False
 
 
 # ─── Trigger Fallback: Counter with Delta Mode ───────────────────────────
@@ -547,7 +548,7 @@ async def test_fallback_counter_delta(
     assert entry is not None
     data = entry.runtime_data.coordinator.data
     # Delta = 150 - 100 = 50, target = 100 → not triggered
-    assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is False
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is False
 
 
 async def test_fallback_counter_absolute_triggered(
@@ -585,7 +586,7 @@ async def test_fallback_counter_absolute_triggered(
     assert entry is not None
     data = entry.runtime_data.coordinator.data
     # 150 >= 100 → triggered
-    assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is True
 
 
 # ─── Trigger Fallback: Attribute-based Threshold ──────────────────────────
@@ -625,7 +626,7 @@ async def test_fallback_threshold_attribute(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data
-    assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is True
 
 
 # ─── Complete with Adaptive Config ────────────────────────────────────────
@@ -840,7 +841,7 @@ async def test_coordinator_disabled_task_status_ok(hass: HomeAssistant) -> None:
 
     coord = obj_entry.runtime_data.coordinator
     assert coord.data is not None
-    task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
+    task_result = flat(coord.data[CONF_TASKS].get(TASK_ID_1))
     from custom_components.maintenance_supporter.const import MaintenanceStatus
 
     assert task_result.get("_status") == MaintenanceStatus.OK
@@ -868,7 +869,7 @@ async def test_coordinator_threshold_for_minutes_deactivate(hass: HomeAssistant)
 
     coord = obj_entry.runtime_data.coordinator
     assert coord.data is not None
-    task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
+    task_result = flat(coord.data[CONF_TASKS].get(TASK_ID_1))
     assert task_result.get("_trigger_active") is False
 
 
@@ -891,7 +892,7 @@ async def test_coordinator_counter_unavailable_entity(hass: HomeAssistant) -> No
     await setup_integration(hass, global_entry, obj_entry)
 
     coord = obj_entry.runtime_data.coordinator
-    task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
+    task_result = flat(coord.data[CONF_TASKS].get(TASK_ID_1))
     # Unavailable entity → trigger stays inactive
     assert task_result.get("_trigger_active") is False
 
@@ -917,7 +918,7 @@ async def test_coordinator_counter_delta_no_baseline(hass: HomeAssistant) -> Non
     await setup_integration(hass, global_entry, obj_entry)
 
     coord = obj_entry.runtime_data.coordinator
-    task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
+    task_result = flat(coord.data[CONF_TASKS].get(TASK_ID_1))
     # Without baseline, delta mode can't fire — stays inactive
     assert task_result.get("_trigger_active") is False
 
@@ -1061,7 +1062,7 @@ async def test_coordinator_seeds_startup_state_for_overdue(hass: HomeAssistant) 
     coord = obj_entry.runtime_data.coordinator
     from custom_components.maintenance_supporter.const import MaintenanceStatus
 
-    task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
+    task_result = flat(coord.data[CONF_TASKS].get(TASK_ID_1))
     assert task_result.get("_status") == MaintenanceStatus.OVERDUE
     # Startup state must be seeded (no direct assertion possible but code ran)
     assert TASK_ID_1 in coord._previous_statuses
@@ -1277,8 +1278,8 @@ async def test_state_change_count_visible_in_refresh(
     coordinator = obj_entry.runtime_data.coordinator
     await coordinator.async_refresh()
     result = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert result["_trigger_current_value"] == 5.0
-    assert result["_trigger_active"] is False
+    assert result.trigger_current_value == 5.0
+    assert result.trigger_active is False
 
 
 async def test_runtime_hours_visible_in_refresh(
@@ -1321,8 +1322,8 @@ async def test_runtime_hours_visible_in_refresh(
     coordinator = obj_entry.runtime_data.coordinator
     await coordinator.async_refresh()
     result = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert result["_trigger_current_value"] == 400.0
-    assert result["_trigger_active"] is False
+    assert result.trigger_current_value == 400.0
+    assert result.trigger_active is False
 
 
 async def test_trigger_runtime_never_persists_into_entry_data(
@@ -1431,10 +1432,10 @@ async def test_counter_delta_baseline_after_completion(
     await coord.async_refresh()
     await hass.async_block_till_done()
     r = coord.data[CONF_TASKS][TASK_ID_1]
-    print("BEFORE:", r.get("_trigger_current_value"), r.get("_trigger_current_delta"), r.get("_trigger_baseline_value"))
-    assert r["_trigger_current_value"] == 1300.0
-    assert r.get("_trigger_baseline_value") == 1000.0
-    assert r.get("_trigger_current_delta") == 300.0
+    print("BEFORE:", r.trigger_current_value, r.trigger_current_delta, r.trigger_baseline_value)
+    assert r.trigger_current_value == 1300.0
+    assert r.trigger_baseline_value == 1000.0
+    assert r.trigger_current_delta == 300.0
 
     # Complete the task, then refresh (as the panel would re-fetch).
     await coord.complete_maintenance(TASK_ID_1)
@@ -1448,7 +1449,7 @@ async def test_counter_delta_baseline_after_completion(
     # post-completion cooldown leaves _trigger_current_value None. Before the fix
     # the baseline was gated on current_value, so it vanished and the chart fell
     # back to a stale baseline, leaving the graph stuck at the old 300 delta.
-    assert r.get("_trigger_baseline_value") == 1300.0, "baseline did not reset / was hidden"
+    assert r.trigger_baseline_value == 1300.0, "baseline did not reset / was hidden"
     # If a live value is present it must be a 0 delta, never the stale 300.
-    if r.get("_trigger_current_delta") is not None:
-        assert r["_trigger_current_delta"] == 0.0
+    if r.trigger_current_delta is not None:
+        assert r.trigger_current_delta == 0.0

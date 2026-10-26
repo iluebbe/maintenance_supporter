@@ -364,7 +364,7 @@ async def test_a_wear_counter_reset_after_completion_is_not_a_second_completion(
     hass.services.async_register("button", "press", _press)
     hass.states.async_set(blades, str(limit + 5), {"unit_of_measurement": "h"})
     await hass.async_block_till_done()
-    assert coordinator.data["tasks"][task_id]["_trigger_active"] is True
+    assert coordinator.data["tasks"][task_id].trigger_active is True
     with (
         patch.object(hass.auth, "async_get_user", return_value=object()),
         patch("custom_components.maintenance_supporter.helpers.action_listener._POST_ACTION_REFRESH_S", 0),
@@ -374,17 +374,17 @@ async def test_a_wear_counter_reset_after_completion_is_not_a_second_completion(
     assert len(presses) == 1
     # the task shows the reset counter right away (found live: it kept the
     # pre-press reading until the next periodic refresh, up to 5 minutes)
-    assert coordinator.data["tasks"][task_id]["_trigger_current_value"] == 0
-    assert coordinator.data["tasks"][task_id]["_trigger_active"] is False
+    assert coordinator.data["tasks"][task_id].trigger_current_value == 0
+    assert coordinator.data["tasks"][task_id].trigger_active is False
     freezer.tick(timedelta(minutes=5))
     hass.states.async_set(blades, "1", {"unit_of_measurement": "h"})
     await hass.async_block_till_done()
     assert len(completed_entries(entry.runtime_data.store.get_history(task_id))) == 1
-    assert coordinator.data["tasks"][task_id]["_trigger_active"] is False
+    assert coordinator.data["tasks"][task_id].trigger_active is False
     # a full blade life later the task is due again (the baseline followed the reset)
     hass.states.async_set(blades, str(limit + 1), {"unit_of_measurement": "h"})
     await hass.async_block_till_done()
-    assert coordinator.data["tasks"][task_id]["_trigger_active"] is True
+    assert coordinator.data["tasks"][task_id].trigger_active is True
 
 
 
@@ -410,8 +410,8 @@ async def test_the_value_shows_during_the_completion_cooldown_without_reactivati
     hass.states.async_set(sensor, "2", {"unit_of_measurement": "h"})
     await coordinator.async_refresh_now()
     task = coordinator.data["tasks"][task_id]
-    assert task["_trigger_current_value"] == 2.0
-    assert task["_trigger_active"] is False
+    assert task.trigger_current_value == 2.0
+    assert task.trigger_active is False
 
 
 async def test_adopting_reloads_each_object_once(hass: HomeAssistant) -> None:

@@ -23,6 +23,7 @@ from custom_components.maintenance_supporter.helpers.battery_fleet_setup import 
 
 from .conftest import make_global_entry, setup_integration
 from .test_export_roundtrip import _make_fleet_entry
+from .task_results import flat
 
 GARAGE = "sensor.garage_remote_battery"
 
@@ -51,7 +52,7 @@ async def _announced_fleet(hass: HomeAssistant) -> MockConfigEntry:
 def _fleet_task(hass: HomeAssistant, fleet: MockConfigEntry) -> tuple[list[str], str | None]:
     tid = next(iter(fleet.data[CONF_TASKS]))
     history = [h.get("type") for h in hass.data[STORES_CACHE_KEY][fleet.entry_id].get_history(tid)]
-    status = ((fleet.runtime_data.coordinator.data or {}).get(CONF_TASKS) or {}).get(tid, {}).get("_status")
+    status = flat(((fleet.runtime_data.coordinator.data or {}).get(CONF_TASKS) or {}).get(tid)).get("_status")
     return history, status
 
 

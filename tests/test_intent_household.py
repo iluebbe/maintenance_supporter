@@ -379,7 +379,7 @@ async def test_undo_puts_the_rotation_pointer_back(hass: HomeAssistant) -> None:
 
 async def test_skip_and_postpone_are_undone_too(hass: HomeAssistant) -> None:
     obj = await _object(hass, _task("Oil Change", days_ago=10), name="Car")
-    due_before = obj.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]["_next_due"]
+    due_before = obj.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1].next_due
 
     await _ask(hass, INTENT_POSTPONE_TASK, {"name": "oil change", "days": 5})
     assert get_task_store_state(hass, obj.entry_id, TASK_ID_1).get("due_override")
@@ -388,7 +388,7 @@ async def test_skip_and_postpone_are_undone_too(hass: HomeAssistant) -> None:
 
     await _ask(hass, INTENT_SKIP_TASK, {"name": "oil change"})
     assert "no longer skipped" in _speech(await _ask(hass, INTENT_UNDO))
-    assert obj.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]["_next_due"] == due_before
+    assert obj.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1].next_due == due_before
 
 
 async def test_a_snooze_is_undone(hass: HomeAssistant) -> None:

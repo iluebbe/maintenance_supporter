@@ -34,6 +34,8 @@ from .conftest import (
     make_object_entry as _make_object,
     setup_integration,
 )
+from custom_components.maintenance_supporter.helpers.status import compute_live_status
+from .task_results import as_result, as_results
 
 
 @pytest.fixture
@@ -274,11 +276,11 @@ async def test_binary_sensor_reacts_to_task_reset(
     rd = obj_entry.runtime_data
     coordinator = rd.coordinator
     tasks = coordinator.data.get(CONF_TASKS, {})
-    ct = tasks.get(TASK_ID_1, {})
-    ct["last_performed"] = dt_util.now().date().isoformat()
-    ct["_days_until_due"] = 30
-    ct["_status"] = MaintenanceStatus.OK
-    ct["_trigger_active"] = False
+    ct = tasks[TASK_ID_1]
+    ct.task["last_performed"] = dt_util.now().date().isoformat()
+    ct.days_until_due = 30
+    ct.status = MaintenanceStatus.OK
+    ct.trigger_active = False
 
     signal = SIGNAL_TASK_RESET.format(
         entry_id=obj_entry.entry_id,
@@ -339,7 +341,7 @@ def test_binary_sensor_compute_live_status_due_soon() -> None:
         "_days_until_due": 3,
         "warning_days": 7,
     }
-    status = MaintenanceBinarySensor._compute_live_status(task)
+    status = compute_live_status(as_result(task))
     assert status == MaintenanceStatus.DUE_SOON
 
 
@@ -428,15 +430,17 @@ class TestBinarySensorResetClearsValue:
         # Create a mock coordinator with data containing an active trigger
         coordinator = MagicMock()
         coordinator.data = {
-            CONF_TASKS: {
-                "task1": {
-                    "_trigger_active": True,
-                    "_trigger_current_value": 42.5,
-                    "_status": MaintenanceStatus.TRIGGERED,
-                    "_days_until_due": 10,
-                    "warning_days": 7,
+            CONF_TASKS: as_results(
+                {
+                    "task1": {
+                        "_trigger_active": True,
+                        "_trigger_current_value": 42.5,
+                        "_status": MaintenanceStatus.TRIGGERED,
+                        "_days_until_due": 10,
+                        "warning_days": 7,
+                    }
                 }
-            }
+            )
         }
         coordinator.entry.data = {
             CONF_OBJECT: {"name": "Test"},
@@ -452,9 +456,9 @@ class TestBinarySensorResetClearsValue:
         sensor._handle_task_reset()
 
         task = coordinator.data[CONF_TASKS]["task1"]
-        assert task["_trigger_active"] is False
-        assert task["_trigger_current_value"] is None
-        assert task["_status"] == MaintenanceStatus.OK
+        assert task.trigger_active is False
+        assert task.trigger_current_value is None
+        assert task.status == MaintenanceStatus.OK
 
 
 def _get_entities_by_domain(hass: HomeAssistant, entry: MockConfigEntry, domain: str):
@@ -525,14 +529,14 @@ async def test_binary_sensor_handle_task_reset(hass: HomeAssistant) -> None:
     coord = obj_entry.runtime_data.coordinator
     # Mark trigger active then complete to trigger reset signal
     if coord.data and TASK_ID_1 in coord.data.get(CONF_TASKS, {}):
-        coord.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] = True
+        coord.data[CONF_TASKS][TASK_ID_1].trigger_active = True
 
     await coord.complete_maintenance(TASK_ID_1)
     await hass.async_block_till_done()
 
     # After completion, trigger should be cleared
     if coord.data and TASK_ID_1 in coord.data.get(CONF_TASKS, {}):
-        assert not coord.data[CONF_TASKS][TASK_ID_1].get("_trigger_active", False)
+        assert not coord.data[CONF_TASKS][TASK_ID_1].trigger_active
 
 
 # ─── binary_sensor.py line 183 — _compute_live_status: overdue ───────────────
@@ -543,13 +547,13 @@ async def test_binary_sensor_compute_live_status_overdue(hass: HomeAssistant) ->
     from custom_components.maintenance_supporter.binary_sensor import MaintenanceBinarySensor
     from custom_components.maintenance_supporter.const import MaintenanceStatus
 
-    result = MaintenanceBinarySensor._compute_live_status(
+    result = compute_live_status(as_result(
         {
             "_trigger_active": False,
             "_days_until_due": -5,
             "warning_days": 7,
         }
-    )
+    ))
     assert result == MaintenanceStatus.OVERDUE
 
 
@@ -558,11 +562,11 @@ async def test_binary_sensor_compute_live_status_due_soon_from_dict(hass: HomeAs
     from custom_components.maintenance_supporter.binary_sensor import MaintenanceBinarySensor
     from custom_components.maintenance_supporter.const import MaintenanceStatus
 
-    result = MaintenanceBinarySensor._compute_live_status(
+    result = compute_live_status(as_result(
         {
             "_trigger_active": False,
             "_days_until_due": 3,
             "warning_days": 7,
         }
-    )
+    ))
     assert result == MaintenanceStatus.DUE_SOON

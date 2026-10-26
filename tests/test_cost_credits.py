@@ -35,6 +35,7 @@ from .conftest import (
     make_ws_connection,
     setup_integration,
 )
+from .task_results import as_result
 
 
 def _now_iso() -> str:
@@ -78,8 +79,8 @@ async def test_totals_net_credits_and_the_payload_names_them(hass: HomeAssistant
     entry = await _setup_washer(hass)
     coordinator = entry.runtime_data.coordinator
     task = coordinator.data[CONF_TASKS]["repair"]
-    assert task["_total_cost"] == 50.0, "200 spent, 150 back"
-    assert task["_average_cost"] == 200.0, "the credit is no job: one completion at 200"
+    assert task.total_cost == 50.0, "200 spent, 150 back"
+    assert task.average_cost == 200.0, "the credit is no job: one completion at 200"
     _month, year = compute_spend(hass)
     assert year == 50.0, "the budget counts the credit"
     area = entry_cost(hass, entry)
@@ -87,7 +88,7 @@ async def test_totals_net_credits_and_the_payload_names_them(hass: HomeAssistant
 
     from custom_components.maintenance_supporter.websocket import _build_task_summary
 
-    payload = _build_task_summary(hass, "repair", dict(entry.data[CONF_TASKS]["repair"]), task)
+    payload = _build_task_summary(hass, "repair", dict(entry.data[CONF_TASKS]["repair"]), as_result(task))
     assert payload["total_cost"] == 50.0 and payload["average_cost"] == 200.0
 
 

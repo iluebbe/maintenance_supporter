@@ -96,7 +96,7 @@ async def test_journey_equals_trigger_lives_with_a_stage_sensor(
     coordinator = obj.runtime_data.coordinator
 
     def status() -> str:
-        return coordinator.data[CONF_TASKS][TASK_ID_1]["_status"]
+        return coordinator.data[CONF_TASKS][TASK_ID_1].status
 
     # Stage climbs 1 -> 2: nothing (2 != 3).
     set_sensor_state(hass, "sensor.filter_stage", "2")
@@ -106,12 +106,12 @@ async def test_journey_equals_trigger_lives_with_a_stage_sensor(
     # Stage hits the service level: TRIGGERED.
     set_sensor_state(hass, "sensor.filter_stage", "3")
     await hass.async_block_till_done()
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].trigger_active is True
 
     # Stage moves past it (4 != 3): the condition clears again.
     set_sensor_state(hass, "sensor.filter_stage", "4")
     await hass.async_block_till_done()
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is False
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].trigger_active is False
 
 
 async def test_journey_not_equals_trigger_watches_a_mode_sensor(
@@ -138,11 +138,11 @@ async def test_journey_not_equals_trigger_watches_a_mode_sensor(
     # Deviates -> latches; back to auto -> clears.
     set_sensor_state(hass, "sensor.pump_mode", "0")
     await hass.async_block_till_done()
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].trigger_active is True
 
     set_sensor_state(hass, "sensor.pump_mode", "1")
     await hass.async_block_till_done()
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is False
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].trigger_active is False
 
 
 async def test_journey_all_combinator_waits_for_both_legs(
@@ -173,8 +173,8 @@ async def test_journey_all_combinator_waits_for_both_legs(
     set_sensor_state(hass, "sensor.salt_level", "15")
     await hass.async_block_till_done()
     tk = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert tk["_trigger_active"] is True
-    assert tk["_status"] != MaintenanceStatus.TRIGGERED
+    assert tk.trigger_active is True
+    assert tk.status != MaintenanceStatus.TRIGGERED
 
     # The interval leg matures (the last service ages past 30 days) — the
     # store-side reset is the no-reload way to move the anchor (see the
@@ -189,12 +189,12 @@ async def test_journey_all_combinator_waits_for_both_legs(
     await hass.async_block_till_done()
 
     tk = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert tk["_trigger_active"] is True
-    assert tk["_status"] == MaintenanceStatus.TRIGGERED
+    assert tk.trigger_active is True
+    assert tk.status == MaintenanceStatus.TRIGGERED
 
     # Completing services both legs: latch cleared, cycle restarted.
     await coordinator.complete_maintenance(TASK_ID_1, notes="refilled")
     await hass.async_block_till_done()
     tk = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert tk["_trigger_active"] is False
-    assert tk["_status"] != MaintenanceStatus.TRIGGERED
+    assert tk.trigger_active is False
+    assert tk.status != MaintenanceStatus.TRIGGERED

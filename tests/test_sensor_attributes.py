@@ -414,8 +414,8 @@ async def test_degradation_attrs(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     coordinator = entry.runtime_data.coordinator
-    coordinator.data[CONF_TASKS][TASK_ID_1]["_degradation_rate"] = 0.5
-    coordinator.data[CONF_TASKS][TASK_ID_1]["_degradation_trend"] = "rising"
+    coordinator.data[CONF_TASKS][TASK_ID_1].degradation_rate = 0.5
+    coordinator.data[CONF_TASKS][TASK_ID_1].degradation_trend = "rising"
 
     # Force entity state update
     entity_reg = er.async_get(hass)
@@ -444,12 +444,12 @@ async def test_threshold_prediction_attrs(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     coordinator = entry.runtime_data.coordinator
-    coordinator.data[CONF_TASKS][TASK_ID_1]["_days_until_threshold"] = 15
-    coordinator.data[CONF_TASKS][TASK_ID_1]["_threshold_prediction_confidence"] = 0.85
+    coordinator.data[CONF_TASKS][TASK_ID_1].days_until_threshold = 15
+    coordinator.data[CONF_TASKS][TASK_ID_1].threshold_prediction_confidence = 0.85
 
     # Verify the data is set
     data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert data["_days_until_threshold"] == 15
+    assert data.days_until_threshold == 15
 
 
 # ─── Trigger State Aggregation Tests ──────────────────────────────────────
@@ -479,7 +479,7 @@ async def test_update_trigger_state_single(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data
-    assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is False
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is False
 
 
 async def test_update_trigger_state_multi_any(
@@ -507,7 +507,7 @@ async def test_update_trigger_state_multi_any(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data
-    assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is True
 
 
 async def test_update_trigger_state_multi_all(
@@ -534,7 +534,7 @@ async def test_update_trigger_state_multi_all(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data
-    assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is True
 
 
 # ─── entity_slug → _attr_name override ───────────────────────────────────
@@ -624,7 +624,7 @@ async def test_sensor_weibull_random_failures(
     # Inject analysis data with weibull_beta = 1.0 (random failures)
     if CONF_TASKS in coordinator.data:
         for task_id in coordinator.data[CONF_TASKS]:
-            coordinator.data[CONF_TASKS][task_id]["_interval_analysis"] = {
+            coordinator.data[CONF_TASKS][task_id].interval_analysis = {
                 "seasonal_factor": None,
                 "weibull_beta": 1.0,
                 "weibull_eta": 30.0,

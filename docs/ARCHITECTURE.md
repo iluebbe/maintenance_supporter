@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.111.0 | 325 source files (184 Python + 141 TypeScript) | **98% test coverage** (6,036 backend tests + 1,471 frontend tests)
+**Version:** 2.111.0 | 327 source files (186 Python + 141 TypeScript) | **98% test coverage** (6,036 backend tests + 1,471 frontend tests)
 
 ---
 
@@ -110,10 +110,10 @@ Cross-object KPI counts (overdue / due_soon / triggered / needs_attention / ok /
 - the six global **summary sensors** (`sensor.maintenance_supporter_*`) via a no-poll `MaintenanceSummaryCoordinator` on the global entry, and
 - the dashboard-strategy Overview headline (which renders the summary entities through a markdown template).
 
-The summary coordinator never polls: it recomputes when any object coordinator updates, when a new object entry appears (`SIGNAL_NEW_OBJECT_ENTRY`), or when a trigger flips (`EVENT_TRIGGER_ACTIVATED` / `EVENT_TRIGGER_DEACTIVATED`) — mirroring the live-update path of `maintenance_supporter/subscribe`. Counts read each task's coordinator-computed `_status` (disabled tasks are already forced to `ok`), so the entities, panel chips, and strategy headline always show identical numbers.
+The summary coordinator never polls: it recomputes when any object coordinator updates, when a new object entry appears (`SIGNAL_NEW_OBJECT_ENTRY`), or when a trigger flips (`EVENT_TRIGGER_ACTIVATED` / `EVENT_TRIGGER_DEACTIVATED`) — mirroring the live-update path of `maintenance_supporter/subscribe`. Counts read each task's coordinator-computed `TaskResult.status` (disabled tasks are already forced to `ok`), so the entities, panel chips, and strategy headline always show identical numbers.
 
 ### Archive & Retention (2.10.0+)
-Tasks and objects can be **archived** — retired without deleting, so the long-term record (cost/budget, warranty, completion history, adaptive learning) survives. `archived` is a status with **highest precedence**: it's checked first in both `MaintenanceTask.status` and its dict twin `helpers/status.py::compute_status_from_task_dict`, so an archived item reads `archived` regardless of due/trigger state. That single status change makes it inert at most consumers *for free* — `archived` isn't in `_PROBLEM_STATUSES` (binary_sensor off), `notify_statuses` (no notifications), or `_COUNTED_STATUSES` (excluded from KPI counts). The rest filter explicitly: the coordinator short-circuits archived tasks (no trigger eval / adaptive / issue checks), the calendar and the `compute_status_counts` *total* skip them, action buttons go unavailable, and sensor trigger setup is skipped on reload. **Budget is the deliberate exception** — cost totals read completion *history*, not status, so already-spent costs keep counting.
+Tasks and objects can be **archived** — retired without deleting, so the long-term record (cost/budget, warranty, completion history, adaptive learning) survives. `archived` is a status with **highest precedence**: it's checked first in both `MaintenanceTask.status` and its twin `helpers/status.py::compute_live_status`, so an archived item reads `archived` regardless of due/trigger state. That single status change makes it inert at most consumers *for free* — `archived` isn't in `_PROBLEM_STATUSES` (binary_sensor off), `notify_statuses` (no notifications), or `_COUNTED_STATUSES` (excluded from KPI counts). The rest filter explicitly: the coordinator short-circuits archived tasks (no trigger eval / adaptive / issue checks), the calendar and the `compute_status_counts` *total* skip them, action buttons go unavailable, and sensor trigger setup is skipped on reload. **Budget is the deliberate exception** — cost totals read completion *history*, not status, so already-spent costs keep counting.
 
 State lives in `entry.data` (`archived_at` ISO timestamp + `archived_reason` ∈ `manual`/`auto`/`object`) — not a `_DYNAMIC_TASK_FIELDS` field, so it survives the Store merge with no storage migration. Archiving an **object** cascades `archived_reason=object` to its active tasks; unarchiving the object reverts exactly those, while unarchiving a recurring task re-anchors `last_performed=today` for a fresh cycle. A daily **retention sweep** (`helpers/retention.py`, a 24 h `async_track_time_interval` with `cancel_on_shutdown`) auto-archives completed one-offs past `archive_oneoff_days` and auto-deletes auto-archived one-offs past `delete_archived_oneoff_days` — pure decisions `should_auto_archive` / `should_auto_delete`; manual archives are never auto-deleted. WS: `task|object/archive|unarchive` (`@require_write`).
 
@@ -195,11 +195,11 @@ drifted. The descriptions are hand-written.
 
 ```
 custom_components/maintenance_supporter/
-├── __init__.py                  (2,618 lines)  Integration setup, services, lifecycle, async_migrate_entry
-├── const.py                     (1,004 lines)  Constants, enums, defaults, PLATFORMS
+├── __init__.py                  (2,620 lines)  Integration setup, services, lifecycle, async_migrate_entry
+├── const.py                       (999 lines)  Constants, enums, defaults, PLATFORMS
 ├── coordinator.py               (2,333 lines)  DataUpdateCoordinator per object
-├── storage.py                     (720 lines)  Per-entry Store (dynamic state, migration, part stock)
-├── parts_runtime.py               (726 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
+├── storage.py                     (747 lines)  Per-entry Store (dynamic state, migration, part stock)
+├── parts_runtime.py               (727 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
 ├── shopping_sync.py               (396 lines)  2.67: mirrors auto buy tasks into a user-picked todo.* list (own-rows uid map)
 │
 ├── config_flow.py                 (956 lines)  Initial setup flow + templates
@@ -211,7 +211,7 @@ custom_components/maintenance_supporter/
 │   ├── …_task_add.py               (96 lines)  Add-task steps of the options flow, on the shared config_flow_schedule.py
 │   ├── …_task_crud.py             (760 lines)  Manage / edit / delete / checklist steps
 │   ├── …_task_trigger.py          (518 lines)  Trigger edit / summary / remove steps
-│   ├── …_task_adaptive.py         (202 lines)  Adaptive-scheduling step + schema
+│   ├── …_task_adaptive.py         (196 lines)  Adaptive-scheduling step + schema
 │   └── …_task_object.py           (163 lines)  Object-settings (metadata) step
 ├── config_flow_trigger.py       (1,301 lines)  TriggerConfigMixin for trigger UI
 ├── config_flow_schedule.py        (444 lines)  Add-task + schedule-kind steps shared by BOTH task-creation flows
@@ -219,21 +219,21 @@ custom_components/maintenance_supporter/
 ├── condition.py                    (46 lines)  Purpose-specific automation conditions (HA 2026.7+, import-guarded)
 │
 │                                               Five platforms (const.PLATFORMS):
-├── sensor.py                    (1,122 lines)  MaintenanceSensor (enum, per task), MaintenanceNextDueSensor,
+├── sensor.py                    (1,117 lines)  MaintenanceSensor (enum, per task), MaintenanceNextDueSensor,
 │                                               MaintenanceDaysUntilDueSensor (numeric countdown, disabled by default),
 │                                               MaintenanceSummarySensor, PartStockSensor, PartsToReorderSensor,
 │                                               BatteryFleetLowSensor, DocumentStorageSensor (per-area cost: entity/area_cost.py)
-├── binary_sensor.py               (183 lines)  MaintenanceBinarySensor (problem, per task)
+├── binary_sensor.py               (168 lines)  MaintenanceBinarySensor (problem, per task)
 ├── button.py                      (132 lines)  Complete / Skip / Reset buttons per task (no global buttons)
-├── calendar.py                    (904 lines)  MaintenanceCalendar (global, all tasks)
-├── todo.py                        (178 lines)  Global to-do list aggregating every active task
-├── entity/                      (3,200 lines)  13 files — Entity bases shared by the platforms, the per-area cost sensors, the trigger engine
-│   ├── entity_base.py             (127 lines)  CoordinatorEntity base class
+├── calendar.py                    (896 lines)  MaintenanceCalendar (global, all tasks)
+├── todo.py                        (182 lines)  Global to-do list aggregating every active task
+├── entity/                      (3,204 lines)  13 files — Entity bases shared by the platforms, the per-area cost sensors, the trigger engine
+│   ├── entity_base.py             (130 lines)  CoordinatorEntity base class
 │   ├── summary_coordinator.py     (123 lines)  No-poll coordinator behind the global summary sensors
 │   ├── area_cost.py               (281 lines)  Maintenance cost per Home Assistant area as sensors (#191)
 │   ├── id_change.py                (27 lines)  In-place entity_id changes (Home Assistant 2026.11, #214)
-│   └── triggers/                (2,635 lines)  8 files — The trigger engine: one class per trigger type
-│       ├── __init__.py            (245 lines)  Factory: create_triggers(), multi-entity
+│   └── triggers/                (2,636 lines)  8 files — The trigger engine: one class per trigger type
+│       ├── __init__.py            (246 lines)  Factory: create_triggers(), multi-entity
 │       ├── base_trigger.py        (532 lines)  Abstract base with availability tracking
 │       ├── threshold.py           (180 lines)  Value above/below trigger
 │       ├── counter.py             (233 lines)  Accumulated value trigger
@@ -242,21 +242,21 @@ custom_components/maintenance_supporter/
 │       ├── compound.py            (436 lines)  AND/OR compound trigger
 │       └── due_date.py             (87 lines)  Due-date trigger: the device reports WHEN the maintenance is due
 │
-├── websocket/                  (11,906 lines)  110 commands, 25 files — split by domain; tasks.py re-exports the task modules drawn under it
-│   ├── __init__.py              (1,023 lines)  Shared helpers + registration
+├── websocket/                  (11,903 lines)  110 commands, 25 files — split by domain; tasks.py re-exports the task modules drawn under it
+│   ├── __init__.py              (1,024 lines)  Shared helpers + registration
 │   ├── objects.py               (1,180 lines)  13 commands: objects, object, object/create, object/update, object/delete,
 │   │                                           object/duplicate, object/from_template, object/archive, object/unarchive, object/pause,
 │   │                                           object/resume, object/replace, entity/attributes
 │   ├── tasks.py                    (87 lines)  Backward-compat re-export shim (no handlers of its own)
 │   │   ├── tasks_actions.py       (600 lines)  9 commands: task/complete, task/quick_complete, task/undo, task/skip, task/reset,
 │   │   │                                       task/set_phase, task/postpone, task/snooze, task/checklist_progress
-│   │   ├── tasks_crud.py        (1,217 lines)  5 commands: task/create, task/update, task/delete, task/duplicate, task/move
-│   │   ├── tasks_history.py       (376 lines)  2 commands: task/history/update, task/history/delete
+│   │   ├── tasks_crud.py        (1,218 lines)  5 commands: task/create, task/update, task/delete, task/duplicate, task/move
+│   │   ├── tasks_history.py       (377 lines)  2 commands: task/history/update, task/history/delete
 │   │   ├── tasks_lifecycle.py     (337 lines)  6 commands: task/archive, task/pause, task/resume, task/unarchive, task/list, task/history
-│   │   ├── tasks_persist.py       (469 lines)  Shared persist path (no handlers)
+│   │   ├── tasks_persist.py       (470 lines)  Shared persist path (no handlers)
 │   │   └── tasks_validation.py    (482 lines)  Shared task-payload validation (no handlers)
 │   ├── groups.py                  (183 lines)  4 commands: groups, group/create, group/update, group/delete
-│   ├── analysis.py                (316 lines)  5 commands: task/analyze_interval, task/apply_suggestion, task/seasonal_overrides,
+│   ├── analysis.py                (309 lines)  5 commands: task/analyze_interval, task/apply_suggestion, task/seasonal_overrides,
 │   │                                           task/set_environmental_entity, task/set_adaptive
 │   ├── users.py                   (167 lines)  3 commands: users/list, task/assign_user, tasks/by_user
 │   ├── io.py                    (1,811 lines)  10 commands: version, templates, export, csv/export, objects/csv, csv/import,
@@ -283,7 +283,7 @@ custom_components/maintenance_supporter/
 │
 ├── views.py                       (402 lines)  Four authenticated HTTP views: DocumentUploadView,
 │                                               DocumentServeView, DocumentExcerptView, DocumentsArchiveView
-├── intent.py                    (1,053 lines)  8 intents: ListTasks, CompleteTask, TaskInstructions, TaskDue, SnoozeTask, PartStock,
+├── intent.py                    (1,055 lines)  8 intents: ListTasks, CompleteTask, TaskInstructions, TaskDue, SnoozeTask, PartStock,
 │                                               PostponeTask, SkipTask
 ├── intent_household.py            (561 lines)  7 intents: RecordReading, AddNote, WhoseTurn, ShoppingList, BoughtPart, LowBatteries, Undo
 ├── logbook.py                     (315 lines)  Localized activity-timeline descriptions for lifecycle events
@@ -453,19 +453,19 @@ custom_components/maintenance_supporter/
 │   │   └── ms-part-use.ts         (217 lines)  #226: the Use pill, for some of a part used outside a task
 │   └── __tests__/              (31,950 lines)  222 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (35,260 lines)  105 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
-│   ├── notification_manager.py  (2,809 lines)  Multi-channel notification system
+├── helpers/                    (35,279 lines)  105 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+│   ├── notification_manager.py  (2,808 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (374 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
 │   ├── qrcodegen.py               (702 lines)  Vendored QR library (Nayuki, MIT) — excluded from coverage
-│   ├── interval_analyzer.py       (711 lines)  EWA + Weibull + seasonal analysis (pure Python)
+│   ├── interval_analyzer.py       (698 lines)  EWA + Weibull + seasonal analysis (pure Python)
 │   ├── schedule.py              (1,013 lines)  Schedule value object (discriminated-union recurrence) + adapters
 │   ├── calendar_source.py         (239 lines)  Calendar-entity occurrences (#187): `calendar.get_events` prefetch, 15-min cache in hass.data, provider for the pure engine
-│   ├── sensor_predictor.py        (936 lines)  Degradation + environmental correlation
-│   ├── documents.py             (1,054 lines)  Content-addressed manual/PDF storage + web links
+│   ├── sensor_predictor.py        (937 lines)  Degradation + environmental correlation
+│   ├── documents.py             (1,055 lines)  Content-addressed manual/PDF storage + web links
 │   ├── document_text.py           (470 lines)  Full-text index over the blobs: pypdf text layer → sidecar + inverted index (#171)
 │   ├── search_match.py            (212 lines)  Tolerant matcher (fold, digraph variants, one-edit typos, AND rule) — TS twin in the panel
-│   ├── reference_numbers.py       (314 lines)  Object / task / completion reference numbers (#170): counters, creation-order assignment
+│   ├── reference_numbers.py       (316 lines)  Object / task / completion reference numbers (#170): counters, creation-order assignment
 │   ├── battery_fleet.py         (1,855 lines)  Battery Notes aggregation, native-battery fallback, forecast
 │   ├── parts.py                   (769 lines)  Spare-parts rules: GTIN, stock transitions, buy-task reconciler
 │   ├── shared_parts.py            (322 lines)  Pools shared across objects (#111): borrower lookup, owner-deletion transfer
@@ -477,7 +477,7 @@ custom_components/maintenance_supporter/
 │   ├── intent_speech.py           (234 lines)  What the voice intents SAY, per language (assist_sentences/responses/)
 │   ├── assist_sentences.py        (184 lines)  Installs the shipped Assist sentence files into <config>/custom_sentences/
 │   ├── sanitize.py                (666 lines)  Defensive config-flow input sanitization (incl. rotation seeding)
-│   ├── csv_handler.py             (495 lines)  CSV import/export
+│   ├── csv_handler.py             (493 lines)  CSV import/export
 │   ├── vacation.py                (383 lines)  Vacation mode
 │   ├── battery_fleet_setup.py   (1,498 lines)  One-click fleet object + parts + single aggregate task
 │   ├── doc_archive.py             (622 lines)  Documents ZIP archive (the export that carries file contents)
@@ -485,7 +485,7 @@ custom_components/maintenance_supporter/
 │   ├── entity_attributes.py       (239 lines)  Domain→attribute mapping for trigger setup
 │   ├── entity_analyzer.py         (211 lines)  Entity discovery + recorder stats
 │   ├── retention.py               (253 lines)  Archive & auto-delete retention sweep
-│   ├── trigger_fallback.py        (398 lines)  Per-type fallback evaluators for the coordinator refresh
+│   ├── trigger_fallback.py        (399 lines)  Per-type fallback evaluators for the coordinator refresh
 │   ├── settings_registry.py       (287 lines)  Single source of truth for global-setting validation
 │   ├── dates.py                   (371 lines)  Pure calendar math: add_interval, nth-weekday, day-of-month clamping
 │   ├── entity_rename.py           (267 lines)  Rewrites entity_id references when HA renames an entity
@@ -497,14 +497,14 @@ custom_components/maintenance_supporter/
 │   ├── permissions.py             (125 lines)  @require_write / @require_admin authorization; `service_tier` holds service callers to the same tiers
 │   ├── object_names.py            (108 lines)  One object-name rule (by slug, current names) + a free config-entry unique id
 │   ├── url_safety.py              (101 lines)  Which stored links are safe (http/https, path-relative) — shared by WS, flows, imports
-│   ├── aggregate.py               (266 lines)  compute_status_counts — the single KPI source
+│   ├── aggregate.py               (276 lines)  compute_status_counts — the single KPI source
 │   ├── i18n.py                     (74 lines)  normalize_language_code (pt-br is its own table key)
 │   ├── integration_signatures.py   (28 lines)  Compatibility shim → signatures/
 │   ├── catalog_heal.py            (180 lines)  Repairs catalog-adopted triggers a later signature fix invalidated (gree/daikin AC runtime)
 │   ├── climate.py                 (236 lines)  Offline climate of the home location: Köppen class + coldest/warmest month → traits (freeze, snow, hot_humid, termites, cyclone …), hemisphere flip
 │   ├── home_profile.py            (407 lines)  House vs apartment from floors/areas/entities, `home_type` override, country, region (`home_region` override), radon countries, earthquake / Gulf-coast freeze boxes, Australia-wide bushfire/termites, equipment from integrations (UPS: NUT/apcupsd)
 │   ├── region.py                  (171 lines)  Offline state / province / region of the home location (ISO 3166-2): two-level grid from Natural Earth admin-1, nearest region on the coast
-│   ├── reading_slots.py           (237 lines)  #161 phase 2: reading slots — sanitize [{id,name,unit}], textarea form, resolve {id: value} / {name: value} into the entry snapshot, sensor attrs
+│   ├── reading_slots.py           (238 lines)  #161 phase 2: reading slots — sanitize [{id,name,unit}], textarea form, resolve {id: value} / {name: value} into the entry snapshot, sensor attrs
 │   ├── reset_wiring.py            (223 lines)  Completion presses the integration's counter reset (2.95); offers + wiring for existing tasks
 │   ├── task_origin.py             (167 lines)  Task fingerprint `origin` (2.95): catalog duty / problem sensor / template task; setup backfill
 │   ├── adopt_match.py             (217 lines)  Adoption without duplicates (2.94)
@@ -514,12 +514,12 @@ custom_components/maintenance_supporter/
 │   ├── budget.py                  (102 lines)  Booked spending, one walk (`completed_spend`): the budget and the per-area cost sensors
 │   ├── completion_photos.py        (47 lines)  Completion photos: the ids of the documents a history entry points at
 │   ├── completion_requirements.py (190 lines)  Per-task "you must record this when you finish" rules
-│   ├── coordinator_data.py         (15 lines)  Whether a coordinator has run its first refresh
+│   ├── coordinator_data.py         (28 lines)  Whether a coordinator has run its first refresh
 │   ├── device_link.py             (338 lines)  Keep a stored `ha_device_id` pointing at a device that still exists
 │   ├── device_swap.py             (208 lines)  Move an object's device-bound wiring to another Home Assistant device
-│   ├── entry_tasks.py              (99 lines)  Single write chokepoint for task dicts in ConfigEntry.data
+│   ├── entry_tasks.py             (100 lines)  Single write chokepoint for task dicts in ConfigEntry.data
 │   ├── global_options.py          (145 lines)  Cross-entry lookups for the global config entry's options
-│   ├── history.py                 (159 lines)  Tiny history-entry helpers shared by everything that reads a task's log
+│   ├── history.py                 (160 lines)  Tiny history-entry helpers shared by everything that reads a task's log
 │   ├── import_mapping.py          (432 lines)  Moving a backup to another instance: what ids cannot carry, names do
 │   ├── intent_match.py            (263 lines)  Matching a spoken name to a task or a spare part
 │   ├── issues.py                  (130 lines)  Repair-issue ids: ONE spelling per kind, and the purge that keeps them from outliving what they are about
@@ -529,10 +529,10 @@ custom_components/maintenance_supporter/
 │   ├── notification_gates.py      (144 lines)  The per-task notification gates, in one place
 │   ├── notification_ids.py        (123 lines)  The wire formats of a notification — one builder (and parser) each
 │   ├── notify_targets.py           (39 lines)  Canonical notify-target discovery
-│   ├── parts_cost.py              (219 lines)  What the spare parts of a completion cost — and when that counts (#104)
+│   ├── parts_cost.py              (222 lines)  What the spare parts of a completion cost — and when that counts (#104)
 │   ├── pause.py                   (237 lines)  Object and single-task pause (seasonal mode, #193): markers, auto-resume, fresh-cycle re-anchoring
-│   ├── phases.py                  (258 lines)  Task phases (#139): a cyclic sequence of different activities on ONE shared cadence
-│   ├── status.py                  (118 lines)  The task-status ladder — ONE implementation for the model and the dict twin
+│   ├── phases.py                  (253 lines)  Task phases (#139): a cyclic sequence of different activities on ONE shared cadence
+│   ├── status.py                  (124 lines)  The task-status ladder — ONE implementation for the model and the dict twin
 │   ├── task_fields.py              (98 lines)  Single source of truth for task-field enums + numeric ranges
 │   ├── template_usage.py          (121 lines)  Which templates this home already uses — "already set up" (v2.94)
 │   ├── voice_undo.py              (307 lines)  Undo the last thing somebody did by voice
@@ -563,20 +563,22 @@ custom_components/maintenance_supporter/
 │       ├── wallboxes.py           (185 lines)  EV chargers — cable/plug inspection by delivered energy
 │       └── xiaomi.py               (66 lines)  Xiaomi ecosystem integrations (MIoT / Xiaomi Home) — multi-category
 │
-├── models/                      (1,017 lines)  4 files — Task, object and maintenance-type models
-│   ├── maintenance_task.py        (803 lines)  Task: schedule, triggers, history, status, on_complete_action,
+├── models/                      (1,292 lines)  6 files — Task, object and maintenance-type models, the typed data shapes, the coordinator's task result
+│   ├── maintenance_task.py        (804 lines)  Task: schedule, triggers, history, status, on_complete_action,
 │   │                                           quick_complete_defaults, assignee_pool + rotation_strategy
 │   ├── maintenance_object.py      (114 lines)  Object: name, area, manufacturer, model, serial_number,
 │   │                                           installation_date, warranty_expiry (#67), documentation_url, notes
-│   └── maintenance_type.py         (86 lines)  Predefined maintenance categories
+│   ├── maintenance_type.py         (86 lines)  Predefined maintenance categories
+│   ├── shapes.py                  (191 lines)  The JSON shapes the integration stores and serves, as TypedDicts
+│   └── task_result.py              (83 lines)  What the coordinator publishes per task: the task, plus what one refresh computed
 │
 ├── templates.py                 (2,954 lines)  96 object templates in 10 categories (vehicle, home, building, household,
 │                                               appliance, garden, pool, tech, pets, health)
 ├── templates_i18n.py           (18,804 lines)  Translations for the template catalog (largest module)
 ├── repairs.py                     (879 lines)  Repair flows: missing trigger entity, orphan admin-panel-user,
 │                                               stale on_complete_action entity
-├── diagnostics.py                 (251 lines)  Integration diagnostics with PII redaction
-├── export.py                      (424 lines)  JSON/YAML data export
+├── diagnostics.py                 (249 lines)  Integration diagnostics with PII redaction
+├── export.py                      (425 lines)  JSON/YAML data export
 │
 ├── manifest.json                            Integration metadata
 ├── services.yaml                            12 service definitions

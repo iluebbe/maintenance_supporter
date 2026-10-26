@@ -308,11 +308,8 @@ class TestAnalyzeWithSeasonal:
             "min_interval_days": DEFAULT_ADAPTIVE_MIN_INTERVAL,
             "max_interval_days": DEFAULT_ADAPTIVE_MAX_INTERVAL,
             "feedback_count": 10,  # High confidence
-            "confidence": "high",
             "smoothed_interval": 30.0,
-            "base_interval": 30,
             "seasonal_enabled": True,
-            "hemisphere": "north",
         }
         config.update(kwargs)
         return config
@@ -341,8 +338,8 @@ class TestAnalyzeWithSeasonal:
             "history": history,
         }
 
-        config = self._make_adaptive_config(_current_month=7)  # July (summer)
-        analysis = analyzer.analyze(task_data, config)
+        config = self._make_adaptive_config()
+        analysis = analyzer.analyze(task_data, config, current_month=7)  # July (summer)
 
         # With summer seasonal factor, recommendation should be lower than base
         assert analysis.seasonal_factor is not None
@@ -377,9 +374,8 @@ class TestAnalyzeWithSeasonal:
         }
         config = self._make_adaptive_config(
             seasonal_overrides={7: 0.5},  # July = half interval
-            _current_month=7,
         )
-        analysis = analyzer.analyze(task_data, config)
+        analysis = analyzer.analyze(task_data, config, current_month=7)
 
         # Manual override should be applied
         assert analysis.seasonal_factor == 0.5
@@ -415,10 +411,8 @@ class TestAnalyzeWithSeasonal:
             "min_interval_days": 7,
             "max_interval_days": 365,
             "feedback_count": 10,
-            "confidence": "high",
             "smoothed_interval": 30.0,
-            "base_interval": 30,
-            # No seasonal_enabled, no hemisphere, no _current_month
+            # No seasonal_enabled
         }
         analysis = analyzer.analyze(task_data, config)
         # Should work without errors; seasonal defaults to enabled but
@@ -432,62 +426,23 @@ class TestAnalyzeWithSeasonal:
 
 
 class TestUpdateOnCompletionWithSeasonal:
-    """Test that update_on_completion handles seasonal fields."""
+    """The learning step stores the EWA inputs only — the seasonal factor is
+    applied by analyze() on every refresh."""
 
-    def test_no_crash_without_seasonal(self) -> None:
-        """Old config without seasonal fields doesn't crash."""
+    def test_seasonal_settings_are_left_alone(self) -> None:
         analyzer = IntervalAnalyzer()
         config = {
             "enabled": True,
             "ewa_alpha": 0.3,
             "smoothed_interval": 30.0,
             "feedback_count": 5,
-            "min_interval_days": 7,
-            "max_interval_days": 365,
-            "base_interval": 30,
-        }
-        result = analyzer.update_on_completion(config, 28, "needed")
-        assert "current_recommendation" in result
-        assert "smoothed_interval" in result
-
-    def test_seasonal_adjustment_on_recommendation(self) -> None:
-        """Stored seasonal factors are applied to current_recommendation."""
-        analyzer = IntervalAnalyzer()
-        config = {
-            "enabled": True,
-            "ewa_alpha": 0.3,
-            "smoothed_interval": 30.0,
-            "feedback_count": 10,
-            "confidence": "high",
-            "min_interval_days": 7,
-            "max_interval_days": 365,
-            "base_interval": 30,
             "seasonal_enabled": True,
-            "_seasonal_factors": [1.5, 1.5, 1.0, 1.0, 0.8, 0.7, 0.7, 0.7, 0.8, 1.0, 1.0, 1.5],
+            "seasonal_overrides": {7: 0.5},
         }
         result = analyzer.update_on_completion(config, 28, "needed")
-        # recommendation_reason should include "seasonal"
-        if result.get("current_recommendation") is not None:
-            assert "seasonal" in (result.get("recommendation_reason") or "")
-
-    def test_seasonal_disabled_no_adjustment(self) -> None:
-        """With seasonal_enabled=False, no seasonal adjustment on recommendation."""
-        analyzer = IntervalAnalyzer()
-        config = {
-            "enabled": True,
-            "ewa_alpha": 0.3,
-            "smoothed_interval": 30.0,
-            "feedback_count": 10,
-            "confidence": "high",
-            "min_interval_days": 7,
-            "max_interval_days": 365,
-            "base_interval": 30,
-            "seasonal_enabled": False,
-            "_seasonal_factors": [0.5] * 12,  # Would change rec if enabled
-        }
-        result = analyzer.update_on_completion(config, 28, "needed")
-        reason = result.get("recommendation_reason") or ""
-        assert "seasonal" not in reason
+        assert set(result) == set(config)
+        assert result["seasonal_overrides"] == {7: 0.5}
+        assert result["smoothed_interval"] == 29.4
 
 
 # ============================================================================
@@ -557,19 +512,13 @@ class TestPoolPumpScenario:
             "min_interval_days": 7,
             "max_interval_days": 90,
             "feedback_count": 30,
-            "confidence": "high",
             "smoothed_interval": 25.0,
-            "base_interval": 28,
             "seasonal_enabled": True,
-            "hemisphere": "north",
-            "_current_month": 7,
         }
-        summer_analysis = analyzer.analyze(task_data, config_summer)
+        summer_analysis = analyzer.analyze(task_data, config_summer, hemisphere="north", current_month=7)
 
         # Test in January (winter) → should recommend longer interval
-        config_winter = dict(config_summer)
-        config_winter["_current_month"] = 1
-        winter_analysis = analyzer.analyze(task_data, config_winter)
+        winter_analysis = analyzer.analyze(task_data, config_summer, hemisphere="north", current_month=1)
 
         # Summer recommendation should be shorter than winter
         if summer_analysis.recommended_interval and winter_analysis.recommended_interval:

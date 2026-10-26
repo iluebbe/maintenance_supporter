@@ -34,6 +34,8 @@ from .const import (
     NOTIFIABLE_STATUSES,
     MaintenanceStatus,
 )
+from .helpers.aggregate import task_results_of
+from .helpers.coordinator_data import task_results
 from .helpers.pause import is_task_inert
 from .helpers.todo_mirror import mirror_summary, task_due_date
 from .helpers.trigger_detail import trigger_detail
@@ -113,28 +115,30 @@ class MaintenanceTodoList(TodoListEntity):
                 continue
             obj_name = obj_data.get("name", "Unknown")
 
-            runtime_data = getattr(entry, "runtime_data", None)
-            coordinator = getattr(runtime_data, "coordinator", None)
-            live = coordinator.data.get(CONF_TASKS, {}) if coordinator and coordinator.data else {}
+            live = task_results_of(entry)
 
             for task_id, task_cfg in entry.data.get(CONF_TASKS, {}).items():
                 # Disabled, archived (retired) or paused (v2.20, N3: frozen) —
                 # none belongs on the actionable To-do list.
                 if is_task_inert(task_cfg, obj_data):
                     continue
-                task_live = live.get(task_id, {})
-                status = task_live.get("_status", MaintenanceStatus.OK)
+                task_live = live.get(task_id)
+                status = task_live.status if task_live is not None else MaintenanceStatus.OK
                 due = task_due_date(task_live)
                 items.append(
                     TodoItem(
                         uid=f"{entry.entry_id}:{task_id}",
                         # The shared row text (bug audit 2026-09-26): the due
                         # phase (#139) and the next calendar events (#189).
-                        summary=mirror_summary(obj_name, {**task_cfg, **task_live}),
+                        summary=mirror_summary(
+                            obj_name,
+                            {**task_cfg, **(task_live.task if task_live is not None else {})},
+                            task_live.next_event_titles if task_live is not None else None,
+                        ),
                         status=(TodoItemStatus.NEEDS_ACTION if status in _ACTION_STATUSES else TodoItemStatus.COMPLETED),
                         due=due,
                         # #228: what an active trigger is about.
-                        description=trigger_detail(self._hass, task_cfg.get("trigger_config")) if task_live.get("_trigger_active") else None,
+                        description=trigger_detail(self._hass, task_cfg.get("trigger_config")) if task_live is not None and task_live.trigger_active else None,
                     )
                 )
         return items
@@ -157,8 +161,8 @@ class MaintenanceTodoList(TodoListEntity):
         # Only a check of an OPEN item completes: renaming or re-dating an
         # item the list already shows as done sends it back as completed,
         # and that recorded a new completion (bug audit 2026-10-16, T7).
-        live = (coordinator.data or {}).get(CONF_TASKS, {}).get(task_id, {})
-        if live.get("_status", MaintenanceStatus.OK) not in _ACTION_STATUSES:
+        live = task_results(coordinator).get(task_id)
+        if (live.status if live is not None else MaintenanceStatus.OK) not in _ACTION_STATUSES:
             return
         # Respect a task's completion window — silently no-op (the item stays
         # needs_action) rather than completing an item that's not yet due.

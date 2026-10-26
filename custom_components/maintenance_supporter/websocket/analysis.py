@@ -22,6 +22,7 @@ from ..helpers.entry_tasks import write_task
 from ..helpers.interval_analyzer import hemisphere
 from ..helpers.permissions import require_write
 from ..helpers.task_fields import INTERVAL_DAYS_RANGE
+from ..models.shapes import AdaptiveConfig
 from . import ID_FIELD, _load_object_task, async_commit_store
 
 
@@ -29,7 +30,7 @@ async def _persist_adaptive_config(
     hass: HomeAssistant,
     entry: ConfigEntry,
     task_id: str,
-    adaptive_config: dict[str, Any],
+    adaptive_config: AdaptiveConfig,
 ) -> None:
     """Write a task's adaptive_config (store, or legacy entry data) and refresh."""
     rd = get_runtime_data(hass, entry.entry_id)
@@ -69,16 +70,14 @@ async def ws_analyze_interval(
     if ctx is None:
         return
     _entry, _rd, task_data = ctx
-    adaptive_config = dict(task_data.get("adaptive_config", {}))
 
-    # Inject hemisphere and current month for seasonal awareness
+    # Hemisphere and current month for seasonal awareness
     from homeassistant.util import dt as dt_util
 
-    adaptive_config["hemisphere"] = hemisphere(hass)
-    adaptive_config["_current_month"] = dt_util.now().month
-
     analyzer = IntervalAnalyzer()
-    analysis = analyzer.analyze(task_data, adaptive_config)
+    analysis = analyzer.analyze(
+        task_data, task_data.get("adaptive_config") or AdaptiveConfig(), hemisphere=hemisphere(hass), current_month=dt_util.now().month
+    )
 
     connection.send_result(
         msg["id"],
@@ -188,7 +187,7 @@ async def ws_seasonal_overrides(
         validated[month] = round(factor, 2)
 
     # Persist overrides in adaptive_config
-    adaptive_config = dict(task_data.get("adaptive_config", {}))
+    adaptive_config: AdaptiveConfig = (task_data.get("adaptive_config") or AdaptiveConfig()).copy()
     if validated:
         adaptive_config["seasonal_overrides"] = validated
     else:
@@ -227,7 +226,7 @@ async def ws_set_environmental_entity(
     entry, _rd, task_data = ctx
     task_id = msg["task_id"]
 
-    adaptive_config = dict(task_data.get("adaptive_config", {}))
+    adaptive_config: AdaptiveConfig = (task_data.get("adaptive_config") or AdaptiveConfig()).copy()
 
     env_entity = msg.get("environmental_entity")
     env_attribute = msg.get("environmental_attribute")
@@ -280,36 +279,30 @@ async def ws_set_adaptive(
     """Set the adaptive-scheduling tuning for a task (dialog parity with the
     options flow's adaptive step). The environmental binding has its own
     endpoint above; omitted optional fields keep their stored values."""
-    from ..helpers.schedule import read_legacy_fields
-
-    ctx = _load_object_task(hass, connection, msg, merged=True)
+    ctx =_load_object_task(hass, connection, msg, merged=True)
     if ctx is None:
         return
     entry, _rd, task_data = ctx
     task_id = msg["task_id"]
 
-    adaptive_config = dict(task_data.get("adaptive_config", {}))
+    adaptive_config: AdaptiveConfig = (task_data.get("adaptive_config") or AdaptiveConfig()).copy()
     adaptive_config["enabled"] = msg["enabled"]
-    for src, dst in (
-        ("ewa_alpha", "ewa_alpha"),
-        ("min_interval_days", "min_interval_days"),
-        ("max_interval_days", "max_interval_days"),
-        ("seasonal_enabled", "seasonal_enabled"),
-        ("sensor_prediction_enabled", "sensor_prediction_enabled"),
-    ):
-        if src in msg:
-            adaptive_config[dst] = msg[src]
+    if "ewa_alpha" in msg:
+        adaptive_config["ewa_alpha"] = msg["ewa_alpha"]
+    if "min_interval_days" in msg:
+        adaptive_config["min_interval_days"] = msg["min_interval_days"]
+    if "max_interval_days" in msg:
+        adaptive_config["max_interval_days"] = msg["max_interval_days"]
+    if "seasonal_enabled" in msg:
+        adaptive_config["seasonal_enabled"] = msg["seasonal_enabled"]
+    if "sensor_prediction_enabled" in msg:
+        adaptive_config["sensor_prediction_enabled"] = msg["sensor_prediction_enabled"]
 
     min_iv = adaptive_config.get("min_interval_days")
     max_iv = adaptive_config.get("max_interval_days")
     if min_iv is not None and max_iv is not None and min_iv > max_iv:
         connection.send_error(msg["id"], "invalid_format", "min_interval_days exceeds max_interval_days")
         return
-
-    # Same base_interval seeding as the options flow's adaptive step.
-    if "base_interval" not in adaptive_config:
-        base = read_legacy_fields(task_data)["interval_days"]
-        adaptive_config["base_interval"] = base if base is not None else 30
 
     await _persist_adaptive_config(hass, entry, task_id, adaptive_config)
 

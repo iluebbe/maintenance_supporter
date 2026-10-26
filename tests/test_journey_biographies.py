@@ -255,7 +255,7 @@ async def test_adaptive_suggestion_follows_history_correction(
     # The suggestion is a confidence-weighted blend of the configured 30 and
     # the observed ~10-day spacing — the exact value depends on the blend,
     # the journey claim is the DIRECTION: pulled well below the base…
-    before = coordinator.data["tasks"][TASK_ID_1]["_suggested_interval"]
+    before = coordinator.data["tasks"][TASK_ID_1].suggested_interval
     assert before is not None and before < 30, f"10-day spacing should pull the suggestion below 30, got {before}"
 
     # The correction: the two middle completions were logged on wrong dates —
@@ -282,5 +282,5 @@ async def test_adaptive_suggestion_follows_history_correction(
     await coordinator.async_refresh()
     await hass.async_block_till_done()
 
-    after = coordinator.data["tasks"][TASK_ID_1]["_suggested_interval"]
+    after = coordinator.data["tasks"][TASK_ID_1].suggested_interval
     assert after is not None and after > before, f"suggestion did not re-learn: before={before}, after={after}"

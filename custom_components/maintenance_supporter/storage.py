@@ -23,6 +23,7 @@ from .helpers.dates import local_date_from_iso
 from .helpers.history import latest_anchor_index, latest_anchor_stamp, trim_history
 from .helpers.parts import round_qty
 from .helpers.pause import write_anchor
+from .models.shapes import AdaptiveConfig, HistoryEntry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,8 +31,29 @@ STORE_VERSION = 1
 STORE_KEY_PREFIX = f"{DOMAIN}"
 STORE_SAVE_DELAY = 60.0  # seconds — debounce writes to protect SD cards
 
+# adaptive_config keys earlier versions stored and nothing reads: the
+# recommendation computed on completion (the shown one comes from the
+# analysis on every refresh), its inputs, the hemisphere/month stamps and
+# Weibull parameters the analysis now always fits itself. Dropped on load
+# (typing audit 2026-10-25).
+_RETIRED_ADAPTIVE_KEYS = frozenset(
+    {
+        "base_interval",
+        "confidence",
+        "current_recommendation",
+        "recommendation_reason",
+        "last_analysis_date",
+        "hemisphere",
+        "_current_month",
+        "_current_date",
+        "reliability_target",
+        "weibull_beta",
+        "weibull_eta",
+    }
+)
+
 # Fields that migrate from ConfigEntry.data to Store
-_DYNAMIC_TASK_FIELDS = ("last_performed", "last_planned_due", "planned_day", "due_override", "history", "adaptive_config", "phase_cursor")
+_DYNAMIC_TASK_FIELDS =("last_performed", "last_planned_due", "planned_day", "due_override", "history", "adaptive_config", "phase_cursor")
 
 # Presentation-state fields that SPLIT/migrate into the Store like the dynamic
 # fields but are deliberately NOT overlaid by merge_task_data: merged dicts feed
@@ -164,6 +186,10 @@ class MaintenanceStore:
                 if key in state and not isinstance(state[key], dict):
                     _LOGGER.warning("Dropping malformed %s for task %s", key, tid)
                     del state[key]
+            if isinstance(state.get("adaptive_config"), dict) and _RETIRED_ADAPTIVE_KEYS & state["adaptive_config"].keys():
+                state["adaptive_config"] = {
+                    k: v for k, v in state["adaptive_config"].items() if k not in _RETIRED_ADAPTIVE_KEYS
+                }
             # Element level — the container checks above are not enough:
             # a non-dict history entry crashes the statistics/history readers,
             # a non-dict per-entity runtime crashes the trigger restore, and a
@@ -402,12 +428,12 @@ class MaintenanceStore:
 
     # --- history ---
 
-    def get_history(self, task_id: str) -> list[dict[str, Any]]:
+    def get_history(self, task_id: str) -> list[HistoryEntry]:
         """Return the history list for a task."""
-        result: list[dict[str, Any]] = self.get_task_state(task_id).get("history", [])
+        result: list[HistoryEntry] = self.get_task_state(task_id).get("history", [])
         return result
 
-    def append_history(self, task_id: str, entry: dict[str, Any]) -> None:
+    def append_history(self, task_id: str, entry: HistoryEntry) -> None:
         """Append a history entry and trim to max size."""
         state = self._ensure_task(task_id)
         history = state.setdefault("history", [])
@@ -415,17 +441,18 @@ class MaintenanceStore:
         # The model's rule: noise first, completions last (C-11).
         state["history"] = trim_history(history, DEFAULT_MAX_HISTORY_ENTRIES)
 
-    def set_history(self, task_id: str, history: list[dict[str, Any]]) -> None:
+    def set_history(self, task_id: str, history: list[HistoryEntry]) -> None:
         """Replace the entire history list."""
         self._ensure_task(task_id)["history"] = history
 
     # --- adaptive_config ---
 
-    def get_adaptive_config(self, task_id: str) -> dict[str, Any] | None:
+    def get_adaptive_config(self, task_id: str) -> AdaptiveConfig | None:
         """Return the adaptive config (or None)."""
-        return self.get_task_state(task_id).get("adaptive_config")
+        config: AdaptiveConfig | None = self.get_task_state(task_id).get("adaptive_config")
+        return config
 
-    def set_adaptive_config(self, task_id: str, config: dict[str, Any]) -> None:
+    def set_adaptive_config(self, task_id: str, config: AdaptiveConfig) -> None:
         """Set the adaptive config."""
         self._ensure_task(task_id)["adaptive_config"] = config
 

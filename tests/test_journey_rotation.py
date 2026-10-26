@@ -280,7 +280,7 @@ async def test_the_reminder_follows_the_rotation(hass: HomeAssistant) -> None:
 
     coordinator = hass.config_entries.async_get_entry(obj.entry_id).runtime_data.coordinator
     await coordinator.async_refresh()
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["responsible_user_id"] == b.id
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].task["responsible_user_id"] == b.id
 
 
 async def test_reminder_falls_back_when_the_person_on_duty_has_no_phone(hass: HomeAssistant) -> None:

@@ -45,6 +45,7 @@ from .conftest import (
     make_ws_connection,
     setup_integration,
 )
+from .task_results import flat
 
 TASK_A = "task_1"
 TASK_B = "task_2"
@@ -86,7 +87,7 @@ async def _setup(hass: HomeAssistant) -> MockConfigEntry:
 def _computed(hass: HomeAssistant, entry: MockConfigEntry, task_id: str) -> dict[str, Any]:
     """What every surface reads: the coordinator's CACHED computation."""
     ce = hass.config_entries.async_get_entry(entry.entry_id)
-    return dict(ce.runtime_data.coordinator.data[CONF_TASKS][task_id])
+    return flat(ce.runtime_data.coordinator.data[CONF_TASKS][task_id])
 
 
 async def _ws(hass: HomeAssistant, handler, msg: dict[str, Any]) -> None:

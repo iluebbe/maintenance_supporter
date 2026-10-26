@@ -18,6 +18,7 @@ from .const import (
     TriggerEntityState,
 )
 from .entity.triggers import normalize_entity_ids
+from .helpers.aggregate import task_results_of
 from .helpers.schedule import read_legacy_fields
 
 if TYPE_CHECKING:
@@ -134,14 +135,11 @@ def _get_integration_overview(hass: HomeAssistant) -> dict[str, Any]:
         tasks = entry.data.get(CONF_TASKS, {})
         total_tasks += len(tasks)
 
-        runtime_data = getattr(entry, "runtime_data", None)
-        if runtime_data and runtime_data.coordinator and runtime_data.coordinator.data:
-            for task_data in runtime_data.coordinator.data.get("tasks", {}).values():
-                status = task_data.get("_status")
-                if status == MaintenanceStatus.OVERDUE:
-                    overdue += 1
-                elif status == MaintenanceStatus.DUE_SOON:
-                    due_soon += 1
+        for result in task_results_of(entry).values():
+            if result.status == MaintenanceStatus.OVERDUE:
+                overdue += 1
+            elif result.status == MaintenanceStatus.DUE_SOON:
+                due_soon += 1
 
     return {
         "total_objects": len(objects),

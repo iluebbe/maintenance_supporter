@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 from ...const import TriggerType
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
     from .base_trigger import TriggerHost
 
 
-def normalize_entity_ids(trigger_config: dict[str, Any]) -> list[str]:
+def normalize_entity_ids(trigger_config: Mapping[str, Any]) -> list[str]:
     """Return all entity IDs referenced by a trigger config.
 
     For non-compound triggers, reads the new ``entity_ids`` list or legacy

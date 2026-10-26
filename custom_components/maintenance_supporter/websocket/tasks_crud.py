@@ -66,6 +66,7 @@ from ..helpers.task_fields import (
     WARNING_DAYS_RANGE,
 )
 from ..helpers.ws_errors import send_translated_error, send_unsafe_url_error
+from ..models.shapes import HistoryEntry
 from . import (
     ID_FIELD,
     _load_object_entry,
@@ -449,7 +450,7 @@ async def ws_create_task(
 
     # Dynamic state (last_performed, history) for Store initialization
     initial_last_performed: str | None = None
-    initial_history: list[dict[str, Any]] = []
+    initial_history: list[HistoryEntry] = []
 
     # Recurrence: an explicit nested `schedule` (calendar kinds) takes
     # precedence; otherwise build from the flat v2.6.x fields.

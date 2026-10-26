@@ -3,7 +3,7 @@
 Covers the whole vertical:
 
 * **Status backbone** — ``archived`` is the highest-precedence status in both the
-  model property and the dict twin (``compute_status_from_task_dict``), and the
+  model property and the dict twin (``compute_live_status``), and the
   field round-trips through ``to_dict`` / ``from_dict``.
 * **Retention policy (pure)** — ``should_auto_archive`` / ``should_auto_delete``
   decisions over plain dicts: one-offs only, auto-reason gates delete.
@@ -47,7 +47,7 @@ from custom_components.maintenance_supporter.helpers.retention import (
     should_auto_delete,
 )
 from custom_components.maintenance_supporter.helpers.status import (
-    compute_status_from_task_dict,
+    compute_live_status,
 )
 from custom_components.maintenance_supporter.models.maintenance_task import (
     MaintenanceTask,
@@ -81,6 +81,7 @@ from .conftest import (
     make_ws_connection,
     setup_integration,
 )
+from .task_results import as_result
 
 _TODAY = dt_util.now().date()
 
@@ -182,19 +183,19 @@ def test_model_status_archived_has_highest_precedence() -> None:
 
 
 def test_dict_status_twin_archived_precedence() -> None:
-    """compute_status_from_task_dict mirrors the model: archived wins."""
+    """compute_live_status mirrors the model: archived wins."""
     assert (
-        compute_status_from_task_dict(
+        compute_live_status(as_result(
             {
                 "archived_at": _ts_days_ago(2),
                 "_trigger_active": True,
                 "_days_until_due": -99,
             }
-        )
+        ))
         == MaintenanceStatus.ARCHIVED
     )
     # Active task (no archived_at) keeps the normal ladder.
-    assert compute_status_from_task_dict({"_days_until_due": -1}) == MaintenanceStatus.OVERDUE
+    assert compute_live_status(as_result({"_days_until_due": -1})) == MaintenanceStatus.OVERDUE
 
 
 def test_archived_fields_round_trip_through_serialization() -> None:

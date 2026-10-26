@@ -144,8 +144,8 @@ async def test_journey_backfill_from_an_old_invoice(
 
     # Statistics count both services (times_performed via coordinator data).
     coord_task = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert coord_task["_times_performed"] == 2
-    assert coord_task["_total_cost"] == 339.0
+    assert coord_task.times_performed == 2
+    assert coord_task.total_cost == 339.0
 
     # The bus told the two apart.
     assert [e.data["backfill"] for e in events] == [False, True]
@@ -172,4 +172,4 @@ async def test_journey_did_it_three_days_ago(
     assert entry["duration"] == 45
 
     # The next cycle counts from the real day: 180d interval - 3 elapsed.
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_days_until_due"] == 177
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].days_until_due == 177

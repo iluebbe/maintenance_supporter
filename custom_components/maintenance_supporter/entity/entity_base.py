@@ -12,7 +12,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ..const import CONF_OBJECT, DOMAIN
 from ..coordinator import MaintenanceCoordinator
 from ..helpers import device_link
-from ..helpers.coordinator_data import has_coordinator_data
+from ..helpers.coordinator_data import task_results
+from ..models.task_result import TaskResult
 
 
 class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
@@ -118,10 +119,12 @@ class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
         return device_info
 
     @property
+    def _task_result(self) -> TaskResult | None:
+        """This task's published result (None before the first refresh)."""
+        return task_results(self.coordinator).get(self._task_id)
+
+    @property
     def _task_data(self) -> dict[str, Any]:
-        """Return the current task data from coordinator."""
-        if not has_coordinator_data(self.coordinator):
-            return {}
-        tasks: dict[str, Any] = self.coordinator.data.get("tasks", {})
-        result: dict[str, Any] = tasks.get(self._task_id, {})
-        return result
+        """The task dict of the published result ({} before the first refresh)."""
+        result = self._task_result
+        return result.task if result is not None else {}

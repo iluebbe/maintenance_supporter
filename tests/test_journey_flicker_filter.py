@@ -95,7 +95,7 @@ async def test_journey_adopted_problem_sensor_with_flicker_filter(
     (task_id,) = obj.data[CONF_TASKS].keys()
 
     def trigger_active() -> bool:
-        return bool(coordinator.data[CONF_TASKS][task_id]["_trigger_active"])
+        return bool(coordinator.data[CONF_TASKS][task_id].trigger_active)
 
     # Night-time flicker: problem for a moment, then gone. Never triggers.
     hass.states.async_set("binary_sensor.vacuum_problem", "on", {"device_class": "problem"})

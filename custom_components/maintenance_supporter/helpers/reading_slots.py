@@ -25,6 +25,7 @@ from typing import Any
 from uuid import uuid4
 
 from ..const import MAX_READING_UNIT_LENGTH
+from ..models.shapes import ReadingValue
 from .history import completed_entries
 
 # Enough for a nine-meter round twice over; small enough to keep the
@@ -129,7 +130,7 @@ def resolve_reading_values(
     *,
     keep: Iterable[Mapping[str, Any]] | None = None,
     default_unit: str | None = None,
-) -> list[dict[str, Any]]:
+) -> list[ReadingValue]:
     """Turn ``{slot_id: value}`` into the history snapshot, in slot order.
 
     ``None`` values (a meter not read this time) are skipped. Ids that are
@@ -151,7 +152,7 @@ def resolve_reading_values(
     unknown = [sid for sid in values if sid not in known]
     if unknown:
         raise ValueError(f"unknown reading slot: {unknown[0]}")
-    out: list[dict[str, Any]] = []
+    out: list[ReadingValue] = []
     for slot_id in order:
         if slot_id not in values:
             continue
@@ -168,7 +169,7 @@ def resolve_reading_values_by_name(
     values: Mapping[str, Any] | None,
     *,
     default_unit: str | None = None,
-) -> list[dict[str, Any]]:
+) -> list[ReadingValue]:
     """Service-call form: ``{name: value}`` (case-insensitive; an id works too).
 
     Automations know meters by name, not by the panel's generated ids.

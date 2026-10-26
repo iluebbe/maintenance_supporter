@@ -1,7 +1,7 @@
-"""The model status and its dict twin are ONE ladder (DRY review 2026-09-12).
+"""The model status and its twin are ONE ladder (DRY review 2026-09-12).
 
-``MaintenanceTask.status`` and ``helpers.status.compute_status_from_task_dict``
-(the entities' recomputation from the coordinator payload after a live
+``MaintenanceTask.status`` and ``helpers.status.compute_live_status``
+(the entities' recomputation from the published result after a live
 trigger update) both delegate to ``helpers.status.compute_status``. The twin
 used to omit the span-capped warning window (#58) and the sub-day
 ``schedule_time`` refinement, and neither knew that a disabled task reads OK.
@@ -22,13 +22,14 @@ from homeassistant.util import dt as dt_util
 from custom_components.maintenance_supporter.const import CONF_ADVANCED_SCHEDULE_TIME, CONF_TASKS, MaintenanceStatus
 from custom_components.maintenance_supporter.helpers.status import (
     compute_status,
-    compute_status_from_task_dict,
+    compute_live_status,
     effective_warning_days,
     is_past_schedule_time,
 )
 from custom_components.maintenance_supporter.models.maintenance_task import MaintenanceTask
 
 from .conftest import TASK_ID_1, TASK_ID_2, build_task_data, make_global_entry, make_object_entry, setup_integration
+from .task_results import as_result
 
 
 def _payload(task: MaintenanceTask) -> dict[str, Any]:
@@ -42,7 +43,7 @@ def _payload(task: MaintenanceTask) -> dict[str, Any]:
 
 def _agree(task: MaintenanceTask, expected: MaintenanceStatus) -> None:
     assert task.status == expected
-    assert compute_status_from_task_dict(_payload(task)) == expected
+    assert compute_live_status(as_result(_payload(task))) == expected
 
 
 def _days_ago(n: int) -> str:
@@ -63,7 +64,7 @@ def test_span_capped_warning_window_agrees() -> None:
     # the drift the coordinator field closes.
     stale = _payload(task)
     del stale["_warning_days_effective"]
-    assert compute_status_from_task_dict(stale) == MaintenanceStatus.DUE_SOON
+    assert compute_live_status(as_result(stale)) == MaintenanceStatus.DUE_SOON
     assert effective_warning_days(14, 5) == 4
     assert effective_warning_days(14, None) == 14
     assert effective_warning_days(14, 0) == 14
@@ -125,7 +126,7 @@ def test_archived_and_paused_precedence() -> None:
     _agree(task, MaintenanceStatus.ARCHIVED)
     paused = _payload(MaintenanceTask.from_dict(build_task_data(interval_days=30, last_performed=_days_ago(90))))
     paused["_paused"] = True
-    assert compute_status_from_task_dict(paused) == MaintenanceStatus.PAUSED
+    assert compute_live_status(as_result(paused)) == MaintenanceStatus.PAUSED
     # Disabled wins over archived — the coordinator's short-circuit order.
     assert compute_status(archived=True, enabled=False, days_until_due=-5, trigger_active=True, all_mode=False, warning_days=7, past_schedule_time=False) == MaintenanceStatus.OK
 
@@ -145,9 +146,9 @@ async def test_twin_reproduces_the_coordinator_status(hass: HomeAssistant) -> No
     obj = make_object_entry(hass, tasks=tasks, name="Twin", uid="status_twin")
     await setup_integration(hass, g, obj)
     published = obj.runtime_data.coordinator.data[CONF_TASKS]
-    assert published[TASK_ID_1]["_status"] == MaintenanceStatus.OK  # span cap
-    assert published[TASK_ID_2]["_status"] == MaintenanceStatus.OVERDUE  # due today, past 00:00
-    assert published["t3"]["_status"] == MaintenanceStatus.OK  # disabled
-    assert published["t4"]["_status"] == MaintenanceStatus.DUE_SOON
-    for task_id, payload in published.items():
-        assert compute_status_from_task_dict(payload) == payload["_status"], task_id
+    assert published[TASK_ID_1].status == MaintenanceStatus.OK  # span cap
+    assert published[TASK_ID_2].status == MaintenanceStatus.OVERDUE  # due today, past 00:00
+    assert published["t3"].status == MaintenanceStatus.OK  # disabled
+    assert published["t4"].status == MaintenanceStatus.DUE_SOON
+    for task_id, result in published.items():
+        assert compute_live_status(result) == result.status, task_id

@@ -57,6 +57,7 @@ from .const import (
 from .helpers.aggregate import task_sensor_entity_id as aggregate_task_sensor_entity_id
 from .helpers.budget import compute_spend
 from .helpers.calendar_source import next_event_titles
+from .helpers.coordinator_data import task_results
 from .helpers.entry_tasks import write_task, write_tasks
 from .helpers.global_options import global_option, is_schedule_time_enabled
 from .helpers.history import completed_entries
@@ -70,6 +71,8 @@ from .helpers.prediction_cache import PredictionCache
 from .helpers.schedule import FLAT_RECURRENCE_KEYS, KIND_INTERVAL, KIND_MANUAL, Schedule, read_legacy_fields
 from .models.maintenance_object import MaintenanceObject
 from .models.maintenance_task import MaintenanceTask
+from .models.shapes import ReadingValue, UsedPart
+from .models.task_result import CoordinatorData, TaskResult
 from .storage import MaintenanceStore
 
 _LOGGER = logging.getLogger(__name__)
@@ -86,10 +89,10 @@ def _double_tap_age(stamp: float | None) -> float | None:
     return age if age < MANUAL_COMPLETION_DEDUP_SECONDS else None
 
 
-def _notify_task_label(task: dict[str, Any]) -> str:
+def _notify_task_label(result: TaskResult) -> str:
     """Task name for notifications — the shared ``phases.task_label`` (due
     phase #139, next event titles #189) every surface now uses."""
-    return task_label(task)
+    return task_label(result.task, result.next_event_titles)
 
 
 # History entries that open or close a trigger "epoch": an activation, the
@@ -118,44 +121,41 @@ def _takes_day_suggestion(schedule: Schedule) -> bool:
     return schedule.kind == KIND_MANUAL or (schedule.kind == KIND_INTERVAL and (schedule.unit or "days") == "days")
 
 
-def _inert_task_result(task: MaintenanceTask, status: str, **extra: Any) -> dict[str, Any]:
+def _inert_task_result(task: MaintenanceTask, status: str, *, paused: bool = False) -> TaskResult:
     """Coordinator payload for a task that gets NO live evaluation (archived /
     paused): due fields nulled, trigger off, only cost/history-derived fields
     surfaced. The archived and paused short-circuits were hand-copied twins."""
-    task_result = task.to_dict()
-    task_result["_status"] = status
-    task_result["_days_until_due"] = None
-    task_result["_next_due"] = None
-    task_result["_is_done"] = task.is_done
-    task_result["_trigger_active"] = False
-    task_result["_times_performed"] = task.times_performed
-    task_result["_total_cost"] = task.total_cost
-    task_result["_average_cost"] = task.average_cost
-    task_result["_average_duration"] = task.average_duration
-    task_result["_last_entry"] = task.last_entry
-    task_result.update(extra)
-    return task_result
+    return TaskResult(
+        task=task.to_dict(),
+        status=status,
+        is_done=task.is_done,
+        paused=paused,
+        times_performed=task.times_performed,
+        total_cost=task.total_cost,
+        average_cost=task.average_cost,
+        average_duration=task.average_duration,
+        last_entry=task.last_entry,
+    )
 
 
-def _degraded_task_result(task: MaintenanceTask) -> dict[str, Any]:
+def _degraded_task_result(task: MaintenanceTask) -> TaskResult:
     """Payload for an active task whose status computation raised (bug audit
     2026-09-27): no due date, the trigger latch as far as it is known, and
     the status that follows from those. Every field read here is plain data,
     so this cannot fail the way the computation did."""
     try:
-        task_result = task.to_dict()
+        task_dict = task.to_dict()
     except Exception:  # noqa: BLE001 — last resort: the identity only
-        task_result = {"id": task.id, "name": task.name, "enabled": task.enabled}
-    task_result["_days_until_due"] = None
-    task_result["_next_due"] = None
-    task_result["_is_done"] = False
-    task_result["_trigger_active"] = task._trigger_active
-    task_result["_trigger_current_value"] = task._trigger_current_value
-    task_result["_status"] = MaintenanceStatus.TRIGGERED if task._trigger_active else MaintenanceStatus.OK
-    return task_result
+        task_dict = {"id": task.id, "name": task.name, "enabled": task.enabled}
+    return TaskResult(
+        task=task_dict,
+        status=MaintenanceStatus.TRIGGERED if task._trigger_active else MaintenanceStatus.OK,
+        trigger_active=task._trigger_active,
+        trigger_current_value=task._trigger_current_value,
+    )
 
 
-class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
+class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
     """Coordinator for a single maintenance object and its tasks."""
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry, store: MaintenanceStore) -> None:
@@ -328,6 +328,15 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._store.async_delay_save()
 
     @property
+    def task_results(self) -> dict[str, TaskResult]:
+        """The published result of every task ({} before the first refresh)."""
+        return task_results(self)
+
+    def task_result(self, task_id: str) -> TaskResult | None:
+        """The published result of one task (None before the first refresh)."""
+        return self.task_results.get(task_id)
+
+    @property
     def maintenance_object(self) -> MaintenanceObject:
         """Return the maintenance object from config entry data."""
         return MaintenanceObject.from_dict(self.entry.data.get(CONF_OBJECT, {}))
@@ -338,7 +347,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         tasks_data = self._store.merge_all_tasks(self.entry.data.get(CONF_TASKS, {}))
         return {task_id: MaintenanceTask.from_dict(task_data) for task_id, task_data in tasks_data.items()}
 
-    async def _async_update_data(self) -> dict[str, Any]:
+    async def _async_update_data(self) -> CoordinatorData:
         """Fetch and compute the current state of all tasks."""
         self._prediction_stale_ok = self._refresh_for_user
         self._refresh_for_user = False
@@ -354,7 +363,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Preserve live trigger state from previous data to avoid resetting
         # trigger state that was set by event-driven triggers between refreshes
-        prev_tasks = (self.data or {}).get(CONF_TASKS, {})
+        prev_tasks = self.task_results
         # Per task: the live-trigger sequence number seen right before its
         # latch is restored from prev_tasks (below) — flips after that are
         # overlaid at the end (_overlay_live_trigger_flips).
@@ -380,7 +389,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._recent_skips = {tid: ts for tid, ts in self._recent_skips.items() if _double_tap_age(ts) is not None}
         self._recent_backfills = {key: ts for key, ts in self._recent_backfills.items() if _double_tap_age(ts) is not None}
 
-        result: dict[str, Any] = {
+        result: CoordinatorData = {
             CONF_OBJECT: obj.to_dict(),
             CONF_TASKS: {},
         }
@@ -414,11 +423,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # v2.20 (N3): tasks of a paused object are frozen — status PAUSED,
             # no trigger evaluation, no due computation, nothing to notify.
             # Same short-circuit surface as archived, but the object remains a
-            # first-class citizen in every view. `_paused` mirrors the status
-            # for the dict-twin recomputation in helpers.status.
+            # first-class citizen in every view. `paused` mirrors the status
+            # for the status twin in helpers.status.
             paused_by_object = object_paused and pauses_with_object(self.entry.data.get(CONF_TASKS, {}).get(task_id) or {})
             if paused_by_object or task.paused_at is not None:
-                result[CONF_TASKS][task_id] = _inert_task_result(task, MaintenanceStatus.PAUSED, _paused=True)
+                result[CONF_TASKS][task_id] = _inert_task_result(task, MaintenanceStatus.PAUSED, paused=True)
                 continue
 
             # ONE task's bad data (a date past year 9999, a corrupt field) must
@@ -429,7 +438,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             trigger_seq_seen[task_id] = self._trigger_seq
             try:
                 result[CONF_TASKS][task_id] = await self._async_task_result(
-                    task_id, task, prev_tasks.get(task_id, {}), schedule_time_enabled
+                    task_id, task, prev_tasks.get(task_id), schedule_time_enabled
                 )
             except Exception:  # noqa: BLE001 — see above
                 self._log_analysis_failure(task_id, "status", "Computing the status of task %s failed — shown without a due date")
@@ -455,7 +464,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # previous process's stamps (N-5, 2026-10-17).
             seeding = isinstance(nm, NotificationManager) and nm.begin_startup_seed(self.entry.entry_id)
             for task_id_n, task_result_n in result[CONF_TASKS].items():
-                status = task_result_n.get("_status", MaintenanceStatus.OK)
+                status = task_result_n.status
                 self._previous_statuses[task_id_n] = status
                 if seeding and status in notify_statuses:
                     nm.seed_startup_state(self.entry.entry_id, task_id_n, status)
@@ -491,19 +500,19 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self,
         task_id: str,
         task: MaintenanceTask,
-        prev_task: dict[str, Any],
+        prev_task: TaskResult | None,
         schedule_time_enabled: bool,
-    ) -> dict[str, Any]:
+    ) -> TaskResult:
         """The coordinator payload of one ACTIVE task (enabled, not archived,
         object not paused) — the loop body of :meth:`_async_update_data`,
         split out so a failure is contained to its task."""
         # Restore live trigger state from previous coordinator data
         # but NOT for recently completed/skipped/reset tasks
-        if task_id not in self._recently_completed:
-            if prev_task.get("_trigger_active", False):
+        if task_id not in self._recently_completed and prev_task is not None:
+            if prev_task.trigger_active:
                 task._trigger_active = True
-            if prev_task.get("_trigger_current_value") is not None:
-                task._trigger_current_value = prev_task["_trigger_current_value"]
+            if prev_task.trigger_current_value is not None:
+                task._trigger_current_value = prev_task.trigger_current_value
 
         # Check sensor-based triggers (fallback for threshold/counter)
         if task.schedule_type == ScheduleType.SENSOR_BASED and task.trigger_config:
@@ -520,19 +529,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         status = task.status
 
         # Build task result
-        task_result = task.to_dict()
-        task_result["_status"] = status
-        task_result["_days_until_due"] = task.days_until_due
-        # The span-capped warning window (#58) for the dict status twin
-        # the entities recompute from after a live trigger update.
-        task_result["_warning_days_effective"] = task.effective_warning_days
-        task_result["_next_due"] = task.next_due.isoformat() if task.next_due else None
+        task_result = TaskResult(task=task.to_dict(), status=status)
+        task_result.days_until_due = task.days_until_due
+        # The span-capped warning window (#58) for the status twin the
+        # entities recompute from after a live trigger update.
+        task_result.warning_days_effective = task.effective_warning_days
+        task_result.next_due = task.next_due.isoformat() if task.next_due else None
         # #189: which calendar events that date stands for.
-        task_result["_next_event_titles"] = next_event_titles(self.hass, task._schedule(), task.next_due)
-        task_result["_is_done"] = task.is_done
-        task_result["_trigger_active"] = task._trigger_active
-        task_result["_trigger_current_value"] = task._trigger_current_value
-        task_result["_trigger_entity_state"] = self._trigger_entity_states.get(task_id, TriggerEntityState.AVAILABLE)
+        task_result.next_event_titles = next_event_titles(self.hass, task._schedule(), task.next_due)
+        task_result.is_done = task.is_done
+        task_result.trigger_active = task._trigger_active
+        task_result.trigger_current_value = task._trigger_current_value
+        task_result.trigger_entity_state = self._trigger_entity_states.get(task_id, TriggerEntityState.AVAILABLE)
 
         # Expose counter delta data for frontend visualization
         tc = task.trigger_config
@@ -553,16 +561,16 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # chart measures "progress since service" as reading − baseline,
                 # so it needs the fresh baseline to return to 0; gating it on
                 # current_value left the graph stuck at the old delta (#runtime-graph).
-                task_result["_trigger_baseline_value"] = baseline
+                task_result.trigger_baseline_value = baseline
                 if task._trigger_current_value is not None:
                     current = reading if reading is not None else task._trigger_current_value
-                    task_result["_trigger_current_value"] = current
-                    task_result["_trigger_current_delta"] = current - baseline
-        task_result["_times_performed"] = task.times_performed
-        task_result["_total_cost"] = task.total_cost
-        task_result["_average_cost"] = task.average_cost
-        task_result["_average_duration"] = task.average_duration
-        task_result["_last_entry"] = task.last_entry
+                    task_result.trigger_current_value = current
+                    task_result.trigger_current_delta = current - baseline
+        task_result.times_performed = task.times_performed
+        task_result.total_cost = task.total_cost
+        task_result.average_cost = task.average_cost
+        task_result.average_duration = task.average_duration
+        task_result.last_entry = task.last_entry
 
         # Adaptive scheduling analysis — day-based tasks only. The analyzer
         # reasons entirely in days and applying a suggestion overwrites
@@ -576,15 +584,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 from .helpers.interval_analyzer import IntervalAnalyzer
 
                 analyzer = IntervalAnalyzer()
-                # Inject hemisphere and current month for seasonal awareness.
+                # Hemisphere and current month for seasonal awareness.
                 # latitude is None on an un-onboarded HA → default to north.
-                analysis_config = dict(task.adaptive_config)
-                analysis_config["hemisphere"] = hemisphere(self.hass)
-                analysis_config["_current_month"] = dt_util.now().month
-                analysis = analyzer.analyze(task_result, analysis_config)
-                task_result["_suggested_interval"] = analysis.recommended_interval
-                task_result["_interval_confidence"] = analysis.confidence
-                task_result["_interval_analysis"] = {
+                analysis = analyzer.analyze(
+                    task_result.task, task.adaptive_config, hemisphere=hemisphere(self.hass), current_month=dt_util.now().month
+                )
+                task_result.suggested_interval = analysis.recommended_interval
+                task_result.interval_confidence = analysis.confidence
+                task_result.interval_analysis = {
                     "average_actual": analysis.average_actual_interval,
                     "ewa_prediction": analysis.ewa_prediction,
                     "weibull_beta": analysis.weibull_beta,
@@ -614,53 +621,53 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 from .helpers.sensor_predictor import SensorPredictor
 
                 predictor = SensorPredictor(self.hass, cache=self._prediction_cache, stale_ok=self._prediction_stale_ok)
-                prediction = await predictor.async_analyze(task_result, adaptive_cfg)
+                prediction = await predictor.async_analyze(task_result.task, adaptive_cfg)
                 if prediction:
                     # Degradation data
                     if prediction.degradation:
                         deg = prediction.degradation
-                        task_result["_degradation_rate"] = deg.slope_per_day
-                        task_result["_degradation_trend"] = deg.trend
-                        task_result["_degradation_r_squared"] = deg.r_squared
-                        task_result["_degradation_data_points"] = deg.data_points
-                        task_result["_prediction_cycles"] = deg.cycles_learned
+                        task_result.degradation_rate = deg.slope_per_day
+                        task_result.degradation_trend = deg.trend
+                        task_result.degradation_r_squared = deg.r_squared
+                        task_result.degradation_data_points = deg.data_points
+                        task_result.prediction_cycles = deg.cycles_learned
 
                     # Threshold prediction
                     if prediction.threshold_prediction:
                         tp = prediction.threshold_prediction
-                        task_result["_days_until_threshold"] = tp.days_until_threshold
-                        task_result["_threshold_prediction_date"] = tp.predicted_date
-                        task_result["_threshold_prediction_confidence"] = tp.confidence
+                        task_result.days_until_threshold = tp.days_until_threshold
+                        task_result.threshold_prediction_date = tp.predicted_date
+                        task_result.threshold_prediction_confidence = tp.confidence
 
                         # Urgency check: threshold will be reached sooner
                         # than the current maintenance interval — in real
                         # days (a 6-month task is ~183 days, not 6).
                         current_interval = task._schedule().span_days() or DEFAULT_INTERVAL_DAYS
-                        suggested = task_result.get("_suggested_interval")
+                        suggested = task_result.suggested_interval
                         effective_interval = suggested or current_interval
                         if (
                             tp.days_until_threshold is not None
                             and tp.days_until_threshold > 0
                             and tp.days_until_threshold < effective_interval * 0.9
                         ):
-                            task_result["_sensor_prediction_urgency"] = True
+                            task_result.sensor_prediction_urgency = True
                             # Override suggested interval with 90% safety —
                             # only where a day count can be applied; the
                             # urgency flag alone tells the others.
                             if _takes_day_suggestion(task._schedule()):
-                                task_result["_suggested_interval"] = max(1, int(tp.days_until_threshold * 0.9))
+                                task_result.suggested_interval = max(1, int(tp.days_until_threshold * 0.9))
 
                     # Environmental factor
                     if prediction.environmental:
                         env = prediction.environmental
-                        task_result["_environmental_factor"] = env.adjustment_factor
-                        task_result["_environmental_entity"] = env.entity_id
-                        task_result["_environmental_correlation"] = env.correlation
+                        task_result.environmental_factor = env.adjustment_factor
+                        task_result.environmental_entity = env.entity_id
+                        task_result.environmental_correlation = env.correlation
 
                         # Apply environmental factor to suggested interval
-                        si = task_result.get("_suggested_interval")
+                        si = task_result.suggested_interval
                         if si is not None and env.adjustment_factor != 1.0 and env.has_sufficient_data:
-                            task_result["_suggested_interval"] = max(
+                            task_result.suggested_interval = max(
                                 1,
                                 int(si * env.adjustment_factor),
                             )
@@ -669,7 +676,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         return task_result
 
-    async def _async_sync_todo_mirror(self, task_results: dict[str, Any]) -> None:
+    async def _async_sync_todo_mirror(self, task_results: dict[str, TaskResult]) -> None:
         """Hand this refresh's results to the to-do mirror (helpers/todo_mirror)."""
         from .helpers.todo_mirror import TODO_MIRROR_KEY
 
@@ -938,7 +945,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         },
                     )
 
-    async def _async_notify_status_changes(self, task_results: dict[str, Any]) -> None:
+    async def _async_notify_status_changes(self, task_results: dict[str, TaskResult]) -> None:
         """Pass tasks with notifiable statuses to the NotificationManager.
 
         The NotificationManager handles deduplication and repeat intervals
@@ -956,7 +963,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
 
         for task_id, task_result in task_results.items():
-            nm.rearm_left_statuses(self.entry.entry_id, task_id, task_result.get("_status"))
+            nm.rearm_left_statuses(self.entry.entry_id, task_id, task_result.status)
 
         obj_name = self.maintenance_object.name
 
@@ -970,9 +977,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # config (entry.data), which the computed task_result (model dict)
         # drops — so the gate sees config + payload merged.
         task_configs = self.entry.data.get(CONF_TASKS) or {}
-        notifiable: list[tuple[str, dict[str, Any], str, str | None]] = []
+        notifiable: list[tuple[str, TaskResult, str, str | None]] = []
         for task_id, task_result in task_results.items():
-            new_status = task_result.get("_status")
+            new_status = task_result.status
             if new_status not in NOTIFIABLE_STATUSES:
                 nm.release_waiting(self.entry.entry_id, task_id)
                 continue
@@ -981,7 +988,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self.entry.entry_id,
                 task_id,
                 new_status,
-                {**(task_configs.get(task_id) or {}), **task_result},
+                {**(task_configs.get(task_id) or {}), **task_result.task},
                 kind=KIND_STATUS,
                 manager=nm,
             )
@@ -994,7 +1001,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not notifiable:
             # No notifications needed — still update the cache
             for task_id, task_result in task_results.items():
-                self._previous_statuses[task_id] = task_result.get("_status")
+                self._previous_statuses[task_id] = task_result.status
             return
 
         # Check if bundling is enabled and threshold met
@@ -1021,7 +1028,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         "task_id": tid,
                         "task_name": _notify_task_label(tr),
                         "status": status,
-                        "days_until_due": tr.get("_days_until_due"),
+                        "days_until_due": tr.days_until_due,
                     }
                     for tid, tr, status, _old in due_now
                 ],
@@ -1029,7 +1036,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         else:
             # High priority first — with a daily limit the order decides who
             # gets the last slots (the manager's own reserves do the rest).
-            notifiable.sort(key=lambda item: nm._priority_rank({**(task_configs.get(item[0]) or {}), **item[1]}))
+            notifiable.sort(key=lambda item: nm._priority_rank({**(task_configs.get(item[0]) or {}), **item[1].task}))
             for task_id, task_result, new_status, _old_status in notifiable:
                 await nm.async_task_status_changed(
                     entry_id=self.entry.entry_id,
@@ -1037,14 +1044,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     task_name=_notify_task_label(task_result),
                     object_name=obj_name,
                     new_status=new_status,
-                    days_until_due=task_result.get("_days_until_due"),
-                    next_due=task_result.get("_next_due"),
-                    responsible_user_id=task_result.get("responsible_user_id"),
+                    days_until_due=task_result.days_until_due,
+                    next_due=task_result.next_due,
+                    responsible_user_id=task_result.task.get("responsible_user_id"),
                 )
 
         # Update the cache AFTER all notifications have been sent
         for task_id, task_result in task_results.items():
-            self._previous_statuses[task_id] = task_result.get("_status")
+            self._previous_statuses[task_id] = task_result.status
 
     def _recalculate_budget_cache(self) -> None:
         """Recompute global budget totals from all entries' history.
@@ -1066,7 +1073,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "last_updated": dt_util.now(),
         }
 
-    async def _async_check_budget(self, task_results: dict[str, Any]) -> None:
+    async def _async_check_budget(self, task_results: dict[str, TaskResult]) -> None:
         """Check budget thresholds using cached totals."""
         from .helpers.notification_manager import NotificationManager
 
@@ -1205,9 +1212,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         completed_by: str | None = None,
         photo_doc_ids: list[str] | None = None,
         reading_value: float | None = None,
-        reading_values: list[dict[str, Any]] | None = None,
+        reading_values: list[ReadingValue] | None = None,
         restock_quantity: float | None = None,
-        used_parts: list[dict[str, Any]] | None = None,
+        used_parts: list[UsedPart] | None = None,
         auto: bool = False,
         unattended: bool = False,
         completed_at: datetime | None = None,
@@ -1385,7 +1392,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # the completion notification names the step that was done (#139)
         # and the events it covered (#189), not the bare task name (bug audit
         # 2026-09-26).
-        done_label = task_label(merged[task_id], ((self.data or {}).get(CONF_TASKS, {}).get(task_id) or {}).get("_next_event_titles"))
+        published_result = self.task_result(task_id)
+        done_label = task_label(merged[task_id], published_result.next_event_titles if published_result is not None else None)
 
         # Compute actual interval before updating last_performed. Anchored on
         # the EFFECTIVE moment: "did it three days ago" must feed the real
@@ -1430,10 +1438,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if used_parts is not None
             else ((_phase_effective(merged[task_id], "consumes_parts") or []) if _automatic else [])
         )
-        enriched_used: list[dict[str, Any]] | None = None
+        enriched_used: list[UsedPart] | None = None
         if used_parts is not None or record_links:
 
-            def _part_name(link: dict[str, Any]) -> str:
+            def _part_name(link: Mapping[str, Any]) -> str:
                 from .parts_runtime import part_link_name
 
                 return part_link_name(self.hass, self.entry, link)
@@ -1487,21 +1495,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Update adaptive scheduling if enabled. Gated on is_latest: a pure
         # backfill is not a fresh service interval (its negative
         # actual_interval would be rejected below anyway — the gate makes the
-        # intent explicit and keeps the seasonal stamps off stale months).
+        # intent explicit).
         if is_latest and task.adaptive_config and task.adaptive_config.get("enabled"):
             if actual_interval is not None and actual_interval > 0:
                 from .helpers.interval_analyzer import IntervalAnalyzer
 
                 analyzer = IntervalAnalyzer()
-                # Store the base interval for blending reference
-                if "base_interval" not in task.adaptive_config:
-                    task.adaptive_config["base_interval"] = task.interval_days or DEFAULT_INTERVAL_DAYS
-                # Inject hemisphere + month/date of the EFFECTIVE completion
-                # moment for seasonal awareness (a completion logged today but
-                # performed in March belongs to March).
-                task.adaptive_config["hemisphere"] = hemisphere(self.hass)
-                task.adaptive_config["_current_month"] = effective_ts.month
-                task.adaptive_config["_current_date"] = effective_ts.date().isoformat()
                 try:
                     updated_config = analyzer.update_on_completion(task.adaptive_config, actual_interval, feedback)
                     task.adaptive_config = updated_config
@@ -1556,17 +1555,17 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # The refresh inside the persist above ran before this write: its
             # data named the previous person until the next refresh, five
             # minutes on (bug audit 2026-10-16, C-M).
-            published = (self.data or {}).get(CONF_TASKS, {}).get(task_id)
-            if isinstance(published, dict):
-                published["responsible_user_id"] = task.responsible_user_id
+            published = self.task_result(task_id)
+            if published is not None:
+                published.task["responsible_user_id"] = task.responsible_user_id
                 self.async_update_listeners()
 
         # Invalidate the budget cache when the entry carries money: a cost,
         # or the value of the parts it used ("when used", #104) — that one
         # alone left the totals stale until the next refresh hour (DRY audit
         # 2026-10-12, BR5-A9).
-        last_entry = task.history[-1] if task.history else {}
-        if cost is not None or last_entry.get("parts_cost") is not None:
+        last_entry = task.history[-1] if task.history else None
+        if cost is not None or (last_entry is not None and last_entry.get("parts_cost") is not None):
             self._recalculate_budget_cache()
 
         # Spare parts: consume linked parts / restock a completed buy task.
@@ -1667,9 +1666,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         records nothing. ``helpers.complete_when`` matches the change; this
         decides on the task, from the read model the panel shows.
         """
-        task_result = ((self.data or {}).get(CONF_TASKS) or {}).get(task_id) or {}
-        if task_result.get("_status") not in NOTIFIABLE_STATUSES:
-            _LOGGER.debug("Not completing %s from %s: the task is not due (%s)", task_id, entity_name, task_result.get("_status"))
+        task_result = self.task_result(task_id)
+        status = task_result.status if task_result is not None else None
+        if status not in NOTIFIABLE_STATUSES:
+            _LOGGER.debug("Not completing %s from %s: the task is not due (%s)", task_id, entity_name, status)
             return
         await self._async_auto_complete(task_id, f"Auto-completed: {entity_name} changed to {to_state}", source="auto_entity")
 
@@ -2096,12 +2096,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._trigger_seq += 1
         self._live_trigger_flips[task_id] = (self._trigger_seq, active, current_value)
 
-    def _overlay_live_trigger_flips(self, task_results: dict[str, Any], seen: dict[str, int]) -> None:
+    def _overlay_live_trigger_flips(self, task_results: dict[str, TaskResult], seen: dict[str, int]) -> None:
         """Apply the flips that landed after the refresh restored each task's
-        latch, and recompute that task's status from the result (the dict
+        latch, and recompute that task's status from the result (the status
         twin). An activation inside the post-completion cooldown is not
         applied — the same rule as the restore at the top of the refresh."""
-        from .helpers.status import compute_status_from_task_dict
+        from .helpers.status import compute_live_status
 
         for task_id, (seq, active, value) in self._live_trigger_flips.items():
             task_result = task_results.get(task_id)
@@ -2109,9 +2109,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 continue
             if active and task_id in self._recently_completed:
                 continue
-            task_result["_trigger_active"] = active
-            task_result["_trigger_current_value"] = value
-            task_result["_status"] = compute_status_from_task_dict(task_result)
+            task_result.trigger_active = active
+            task_result.trigger_current_value = value
+            task_result.status = compute_live_status(task_result)
 
     def _trigger_has_reading(self, entity_ids: list[str]) -> bool:
         """Whether at least one of a trigger's entities has a state at all

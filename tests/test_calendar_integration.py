@@ -256,7 +256,7 @@ async def test_calendar_triggered_task_shows_today(
     await hass.async_block_till_done()
 
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active"), "threshold trigger should activate (sensor 0.5 < trigger_below 1.0)"
+    assert task_data.trigger_active, "threshold trigger should activate (sensor 0.5 < trigger_below 1.0)"
 
     calendar = hass.data.get(DOMAIN, {}).get("_calendar_entity")
     assert calendar is not None, "calendar entity should be created on the global entry"

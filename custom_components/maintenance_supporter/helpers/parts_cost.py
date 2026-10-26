@@ -43,6 +43,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from ..const import PARTS_COST_MODES
+from ..models.shapes import HistoryEntry
 from .history import strict_amount
 
 DEFAULT_PARTS_COST_MODE = "purchase"
@@ -104,7 +105,7 @@ def parts_value(used_parts: Any) -> float | None:
     return round(total, 2) if priced else None
 
 
-def refresh_parts_cost(entry: dict[str, Any]) -> None:
+def refresh_parts_cost(entry: HistoryEntry) -> None:
     """Recompute an entry's ``parts_cost`` from its used parts (in place)."""
     value = parts_value(entry.get("used_parts"))
     if value is None:
@@ -132,7 +133,7 @@ def link_unit_cost(hass: HomeAssistant, entry: ConfigEntry, link: Mapping[str, A
 def mark_link_bases(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    history_entry: dict[str, Any],
+    history_entry: HistoryEntry,
     previous: Any = None,
 ) -> None:
     """Mark (in place) the used parts of an entry booked "when used" that
@@ -149,7 +150,9 @@ def mark_link_bases(
     }
     house = parts_cost_mode(hass)
     booked_on_use = history_entry.get("cost_basis") == COST_BASIS_USE
-    for link in history_entry.get("used_parts") or []:
+    # Hand-edited / imported entries may carry anything in the list.
+    links: list[Any] = history_entry.get("used_parts") or []
+    for link in links:
         if not isinstance(link, dict):
             continue
         part_id = str(link.get("part_id"))
@@ -169,7 +172,7 @@ def annotate_completion(
     hass: HomeAssistant,
     entry: ConfigEntry,
     task_data: Mapping[str, Any],
-    history_entry: dict[str, Any],
+    history_entry: HistoryEntry,
 ) -> None:
     """Book a fresh completion entry (in place): the price of every used
     part at this moment, their value, whether it was a purchase, and the

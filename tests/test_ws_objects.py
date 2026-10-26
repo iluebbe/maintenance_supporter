@@ -43,6 +43,7 @@ from .conftest import (
     make_ws_connection,
     setup_integration,
 )
+from .task_results import as_result
 
 
 @pytest.fixture
@@ -1574,7 +1575,7 @@ class TestWsListTasksConsistency:
             "_total_cost": 0.0,
         }
 
-        result = _build_task_summary(hass, "task1", task_data, ct)
+        result = _build_task_summary(hass, "task1", task_data, as_result(ct))
 
         # Should have structured fields, not raw internal fields
         assert "id" in result

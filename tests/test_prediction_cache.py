@@ -202,7 +202,7 @@ async def test_a_skip_does_not_query_the_recorder_again(
         await setup_integration(hass, global_entry, obj)
         coordinator = obj.runtime_data.coordinator
         assert fetch.await_count == 1
-        rate = coordinator.data[CONF_TASKS][SENSOR_TASK]["_degradation_rate"]
+        rate = coordinator.data[CONF_TASKS][SENSOR_TASK].degradation_rate
         assert rate == pytest.approx(12.0, rel=0.01)
 
         await coordinator.skip_maintenance(TIME_TASK)
@@ -213,8 +213,8 @@ async def test_a_skip_does_not_query_the_recorder_again(
         freezer.tick(timedelta(hours=1))
         await coordinator.skip_maintenance(TIME_TASK)
         assert fetch.await_count == 1
-        assert coordinator.data[CONF_TASKS][SENSOR_TASK]["_degradation_rate"] == rate
+        assert coordinator.data[CONF_TASKS][SENSOR_TASK].degradation_rate == rate
 
         await coordinator.async_refresh()
         assert fetch.await_count == 2
-        assert coordinator.data[CONF_TASKS][SENSOR_TASK]["_degradation_rate"] == pytest.approx(24.0, rel=0.01)
+        assert coordinator.data[CONF_TASKS][SENSOR_TASK].degradation_rate == pytest.approx(24.0, rel=0.01)

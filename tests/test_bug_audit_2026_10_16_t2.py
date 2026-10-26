@@ -342,7 +342,7 @@ async def test_a_completed_and_or_condition_over_two_sensors_needs_both_again(ha
     hass.states.async_set("sensor.b", "40")
     entry = await _setup(hass, {TASK: _compound_task()})
     await hass.async_block_till_done()
-    assert _coordinator(hass, entry).data[CONF_TASKS][TASK]["_trigger_active"] is True
+    assert _coordinator(hass, entry).data[CONF_TASKS][TASK].trigger_active is True
     await _coordinator(hass, entry).complete_maintenance(TASK)
     await hass.async_block_till_done()
     hass.states.async_set("sensor.b", "10")
@@ -350,7 +350,7 @@ async def test_a_completed_and_or_condition_over_two_sensors_needs_both_again(ha
     hass.states.async_set("sensor.a", "41")
     await hass.async_block_till_done()
     await _coordinator(hass, entry).async_refresh_now()
-    assert _coordinator(hass, entry).data[CONF_TASKS][TASK]["_trigger_active"] is False
+    assert _coordinator(hass, entry).data[CONF_TASKS][TASK].trigger_active is False
 
 
 async def test_an_and_or_trigger_completes_itself_when_it_recovers(hass: HomeAssistant) -> None:
@@ -717,8 +717,8 @@ async def test_a_pools_buy_task_on_a_paused_owner_stays_live(hass: HomeAssistant
     assert live.data[CONF_TASKS][buy].get("pool_in_use") is True
     assert not is_task_inert(live.data[CONF_TASKS][buy], live.data[CONF_OBJECT])
     data = _coordinator(hass, owner).data[CONF_TASKS]
-    assert data[buy]["_status"] != MaintenanceStatus.PAUSED
-    assert data[TASK]["_status"] == MaintenanceStatus.PAUSED
+    assert data[buy].status != MaintenanceStatus.PAUSED
+    assert data[TASK].status == MaintenanceStatus.PAUSED
 
 
 async def test_an_archived_objects_parts_are_not_counted(hass: HomeAssistant) -> None:

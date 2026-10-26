@@ -217,17 +217,17 @@ async def test_next_due_sensor_edge_values(hass: HomeAssistant, global_entry: Mo
 
     # Malformed next_due → None (defensive parse).
     coordinator = obj_entry.runtime_data.coordinator
-    coordinator.data[CONF_TASKS][TASK_ID_1]["_next_due"] = "not-a-date"
+    coordinator.data[CONF_TASKS][TASK_ID_1].next_due = "not-a-date"
     assert sensor.native_value is None
 
     # Archived → None.
-    coordinator.data[CONF_TASKS][TASK_ID_1]["_next_due"] = "2027-01-01"
-    coordinator.data[CONF_TASKS][TASK_ID_1]["_status"] = "archived"
+    coordinator.data[CONF_TASKS][TASK_ID_1].next_due = "2027-01-01"
+    coordinator.data[CONF_TASKS][TASK_ID_1].status = "archived"
     assert sensor.native_value is None
 
     # Missing next_due (manual task) → None.
-    coordinator.data[CONF_TASKS][TASK_ID_1]["_status"] = "ok"
-    coordinator.data[CONF_TASKS][TASK_ID_1]["_next_due"] = None
+    coordinator.data[CONF_TASKS][TASK_ID_1].status = "ok"
+    coordinator.data[CONF_TASKS][TASK_ID_1].next_due = None
     assert sensor.native_value is None
 
 

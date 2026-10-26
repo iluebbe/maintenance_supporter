@@ -36,6 +36,7 @@ from ..const import (
     DEGRADATION_MIN_CYCLE_HOURS,
     DEGRADATION_TREND_HORIZON_DAYS,
 )
+from ..models.shapes import AdaptiveConfig
 from .dates import stamp_instant
 from .history import completed_entries
 from .least_squares import linear_fit
@@ -173,7 +174,7 @@ class SensorPredictor:
     async def async_analyze(
         self,
         task_data: dict[str, Any],
-        adaptive_config: dict[str, Any],
+        adaptive_config: AdaptiveConfig,
     ) -> SensorPredictionResult | None:
         """Run full sensor prediction analysis for a task.
 

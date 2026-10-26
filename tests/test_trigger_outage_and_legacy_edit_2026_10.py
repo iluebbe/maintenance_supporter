@@ -195,8 +195,8 @@ async def test_a_counter_dropping_out_during_a_refresh_stays_triggered(hass: Hom
     await hass.async_block_till_done()
 
     task = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task["_trigger_active"] is True
-    assert task["_status"] == MaintenanceStatus.TRIGGERED
+    assert task.trigger_active is True
+    assert task.status == MaintenanceStatus.TRIGGERED
     assert coordinator._store.get_task_state(TASK_ID_1).get("trigger_cleared_at") is None
 
 
@@ -222,7 +222,7 @@ async def test_a_restart_after_a_dropout_does_not_announce_the_activation_again(
     await hass.async_block_till_done()
     assert _triggered_entries(hass, obj) == 1
     assert activations == []
-    assert _coordinator(hass, obj).data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.TRIGGERED
+    assert _coordinator(hass, obj).data[CONF_TASKS][TASK_ID_1].status == MaintenanceStatus.TRIGGERED
 
 
 async def test_the_coordinator_never_ends_an_episode_without_a_reading(hass: HomeAssistant) -> None:
@@ -238,7 +238,7 @@ async def test_the_coordinator_never_ends_an_episode_without_a_reading(hass: Hom
     ):
         await coordinator.async_refresh()
         await hass.async_block_till_done()
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].trigger_active is True
     assert coordinator._store.get_task_state(TASK_ID_1).get("trigger_cleared_at") is None
 
 
@@ -254,12 +254,12 @@ async def test_a_real_recovery_still_ends_the_episode(hass: HomeAssistant) -> No
     await hass.async_block_till_done()
     await coordinator.async_refresh()
     await hass.async_block_till_done()
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].trigger_active is True
     set_sensor_state(hass, SENSOR, "1")
     await hass.async_block_till_done()
     await coordinator.async_refresh()
     await hass.async_block_till_done()
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is False
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].trigger_active is False
     assert coordinator._store.get_task_state(TASK_ID_1).get("trigger_cleared_at") is not None
 
 
@@ -338,7 +338,7 @@ async def test_changing_the_target_of_a_legacy_task_keeps_its_baseline(hass: Hom
     coordinator = _coordinator(hass, obj)
     assert coordinator._store.get_trigger_runtime(TASK_ID_1, SENSOR).get("baseline_value") == 100
     task = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task["_status"] == MaintenanceStatus.TRIGGERED  # 104 - 100 >= 4
+    assert task.status == MaintenanceStatus.TRIGGERED  # 104 - 100 >= 4
 
 
 async def test_another_sensor_still_resets_the_baseline(hass: HomeAssistant) -> None:

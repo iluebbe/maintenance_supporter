@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.util import dt as dt_util
 
 from ..const import UNAVAILABLE_STATES
+from ..models.shapes import TriggerConfig
 from .dates import days_until, due_instant, parse_persisted_utc
 
 if TYPE_CHECKING:
@@ -125,7 +126,7 @@ def _numeric_entity_value(get_state: StateGetter, entity_id: str, attribute: str
 
 def evaluate_threshold(
     get_state: StateGetter,
-    trigger_config: dict[str, Any],
+    trigger_config: TriggerConfig,
     entity_ids: list[str],
 ) -> FallbackResult:
     """Threshold: value above/below a limit; for_minutes only ever deactivates."""
@@ -231,7 +232,7 @@ def counter_progress(
 
 def evaluate_counter(
     get_state: StateGetter,
-    trigger_config: dict[str, Any],
+    trigger_config: TriggerConfig,
     entity_ids: list[str],
 ) -> FallbackResult:
     """Counter: value (or delta from a per-entity baseline) reaches a target.
@@ -278,7 +279,7 @@ def evaluate_counter(
 
 
 def evaluate_state_change(
-    trigger_config: dict[str, Any],
+    trigger_config: TriggerConfig,
     entity_ids: list[str],
 ) -> FallbackResult:
     """State change: surface the persisted transition count (forum #16).
@@ -321,7 +322,7 @@ def evaluate_state_change(
 
 def evaluate_due_date(
     get_state: StateGetter,
-    trigger_config: dict[str, Any],
+    trigger_config: TriggerConfig,
     entity_ids: list[str],
     now: datetime | None = None,
 ) -> FallbackResult:
@@ -348,7 +349,7 @@ def evaluate_due_date(
 
 
 def evaluate_runtime(
-    trigger_config: dict[str, Any],
+    trigger_config: TriggerConfig,
     entity_ids: list[str],
 ) -> FallbackResult:
     """Runtime: reconstruct accumulated hours (+ live on-time while running)."""

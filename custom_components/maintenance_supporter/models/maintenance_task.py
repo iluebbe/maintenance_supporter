@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, datetime
-from typing import Any
+from typing import Any, cast
 from uuid import uuid4
 
 from homeassistant.util import dt as dt_util
@@ -22,6 +22,7 @@ from ..helpers.history import completed_entries, finite_amount, latest_anchor_st
 from ..helpers.phases import current_phase
 from ..helpers.schedule import KIND_ONE_TIME, Schedule, read_legacy_fields
 from ..helpers.status import compute_status, effective_warning_days, is_past_schedule_time
+from .shapes import AdaptiveConfig, CompleteWhen, HistoryEntry, ReadingSlot, ReadingValue, TaskSchedule, TriggerConfig, UsedPart
 
 
 def _planned_day_of(raw: Any) -> int | None:
@@ -68,10 +69,10 @@ class MaintenanceTask:
     # Raw nested schedule dict (schedule-model v2). The source of truth for the
     # calendar kinds (weekdays/nth_weekday/day_of_month), which the flat fields
     # above can't represent. None for legacy/flat-only data.
-    schedule_raw: dict[str, Any] | None = None
+    schedule_raw: TaskSchedule | None = None
 
     # --- Trigger ---
-    trigger_config: dict[str, Any] | None = None
+    trigger_config: TriggerConfig | None = None
 
     # --- Phases (#139): a cyclic sequence of different activities on ONE
     # shared cadence. Definitions + sequence are STATIC config (dict-only,
@@ -98,7 +99,7 @@ class MaintenanceTask:
     # D#229: {"entity_id", "to_state"} — the task completes itself when that
     # entity changes to the state while the task is due
     # (helpers/complete_when.py). Static config.
-    complete_when: dict[str, str] | None = None
+    complete_when: CompleteWhen | None = None
     # --- Meter readings (v2.20, #83) ---
     # Display unit for the recorded value of a `reading`-type task ("kWh",
     # "m³", …). The value itself lives per completion in the history entry
@@ -108,7 +109,7 @@ class MaintenanceTask:
     # slots records `reading_values` (a per-slot snapshot) on each
     # completion instead of the single `reading_value` scalar. Shapes and
     # caps: helpers/reading_slots.py.
-    readings: list[dict[str, Any]] = field(default_factory=list)
+    readings: list[ReadingSlot] = field(default_factory=list)
 
     # --- Archive (v2.10.0) ---
     # archived_at is an ISO timestamp; None means active. When set, the task
@@ -131,10 +132,10 @@ class MaintenanceTask:
     checklist: list[str] = field(default_factory=list)
 
     # --- Adaptive Scheduling ---
-    adaptive_config: dict[str, Any] | None = None
+    adaptive_config: AdaptiveConfig | None = None
 
     # --- History ---
-    history: list[dict[str, Any]] = field(default_factory=list)
+    history: list[HistoryEntry] = field(default_factory=list)
 
     # #170: reference number within the object ("8.3" = object 8, task 3) —
     # assigned once by the coordinator's refresh, never reused.
@@ -361,7 +362,7 @@ class MaintenanceTask:
         return sum(durations) / len(durations)
 
     @property
-    def last_entry(self) -> dict[str, Any] | None:
+    def last_entry(self) -> HistoryEntry | None:
         """Return the most recent history entry."""
         if not self.history:
             return None
@@ -404,8 +405,8 @@ class MaintenanceTask:
         completed_by: str | None = None,
         photo_doc_ids: list[str] | None = None,
         reading_value: float | None = None,
-        reading_values: list[dict[str, Any]] | None = None,
-        used_parts: list[dict[str, Any]] | None = None,
+        reading_values: list[ReadingValue] | None = None,
+        used_parts: list[UsedPart] | None = None,
         auto: bool = False,
         completed_at: datetime | None = None,
     ) -> bool:
@@ -591,8 +592,8 @@ class MaintenanceTask:
         completed_by: str | None = None,
         photo_doc_ids: list[str] | None = None,
         reading_value: float | None = None,
-        reading_values: list[dict[str, Any]] | None = None,
-        used_parts: list[dict[str, Any]] | None = None,
+        reading_values: list[ReadingValue] | None = None,
+        used_parts: list[UsedPart] | None = None,
         auto: bool = False,
         timestamp: str | None = None,
         phase_id: str | None = None,
@@ -603,7 +604,7 @@ class MaintenanceTask:
         ``timestamp`` overrides the default "now" (backdated completions,
         #133). Entries are APPENDED regardless of chronology — consumers that
         need order sort defensively, same as after a history-edit."""
-        entry: dict[str, Any] = {
+        entry: HistoryEntry = {
             "timestamp": timestamp or dt_util.now().isoformat(),
             "type": entry_type,
         }
@@ -641,7 +642,7 @@ class MaintenanceTask:
         # #161 phase 2: per-slot snapshot [{id, name, unit, value}] — name and
         # unit copied so a later slot rename never rewrites old entries.
         if reading_values:
-            entry["reading_values"] = [dict(v) for v in reading_values]
+            entry["reading_values"] = [ReadingValue(**v) for v in reading_values]
         if used_parts:
             # #99: the parts actually used on THIS completion ([{part_id,
             # name, quantity}]) — explicit per-completion consumption record.
@@ -709,7 +710,7 @@ class MaintenanceTask:
         if not self.mirror_todo_use_default:
             data["mirror_todo_use_default"] = False
         if self.complete_when:
-            data["complete_when"] = dict(self.complete_when)
+            data["complete_when"] = CompleteWhen(**self.complete_when)
         if self.earliest_completion_days is not None:
             data["earliest_completion_days"] = self.earliest_completion_days
         if self.ref_no is not None:
@@ -786,7 +787,7 @@ class MaintenanceTask:
             labels=data.get("labels", []),
             mirror_todo_entities=list(data.get("mirror_todo_entities") or []),
             mirror_todo_use_default=data.get("mirror_todo_use_default") is not False,
-            complete_when=dict(data["complete_when"]) if isinstance(data.get("complete_when"), dict) else None,
+            complete_when=cast("CompleteWhen", dict(data["complete_when"])) if isinstance(data.get("complete_when"), dict) else None,
             archived_at=data.get("archived_at"),
             archived_reason=data.get("archived_reason"),
             paused_at=data.get("paused_at"),

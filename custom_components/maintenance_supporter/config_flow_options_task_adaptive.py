@@ -23,10 +23,8 @@ from .const import (
     DEFAULT_ADAPTIVE_MIN_INTERVAL,
 )
 from .helpers.aggregate import store_of
-from .helpers.schedule import (
-    read_legacy_fields,
-)
 from .helpers.task_fields import INTERVAL_DAYS_RANGE
+from .models.shapes import AdaptiveConfig
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -58,17 +56,18 @@ class AdaptiveMixin:
         store = store_of(self.config_entry)
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
         task = tasks_data.get(self._selected_task_id or "", {})
+        current_adaptive: AdaptiveConfig
         if store is not None:
-            current_adaptive = store.get_adaptive_config(self._selected_task_id or "") or {}
+            current_adaptive = store.get_adaptive_config(self._selected_task_id or "") or AdaptiveConfig()
         else:
-            current_adaptive = task.get(CONF_ADAPTIVE_CONFIG, {})
+            current_adaptive = task.get(CONF_ADAPTIVE_CONFIG) or AdaptiveConfig()
 
         if user_input is not None:
             if user_input.get("go_back"):
                 return self._show_task_action_menu()
 
             enabled = user_input.get(CONF_ADAPTIVE_ENABLED, False)
-            adaptive_config: dict[str, Any] = dict(current_adaptive)
+            adaptive_config = current_adaptive.copy()
             adaptive_config["enabled"] = enabled
             adaptive_config[CONF_ADAPTIVE_EWA_ALPHA] = user_input.get(CONF_ADAPTIVE_EWA_ALPHA, DEFAULT_ADAPTIVE_EWA_ALPHA)
             min_iv = int(user_input.get(CONF_ADAPTIVE_MIN_INTERVAL, DEFAULT_ADAPTIVE_MIN_INTERVAL))
@@ -102,11 +101,6 @@ class AdaptiveMixin:
                 adaptive_config.pop("environmental_entity", None)
                 adaptive_config.pop("environmental_attribute", None)
 
-            # Store base_interval for blending if not yet set
-            if "base_interval" not in adaptive_config:
-                base = read_legacy_fields(task)["interval_days"]
-                adaptive_config["base_interval"] = base if base is not None else 30
-
             # ONE write path with the panel (task/set_adaptive): save now and
             # refresh. The flow's own copy only delay-saved (a restart within
             # the debounce lost the change) and never refreshed, so the new
@@ -127,7 +121,7 @@ class AdaptiveMixin:
 
     def _adaptive_schema(
         self,
-        current_adaptive: dict[str, Any],
+        current_adaptive: AdaptiveConfig,
         task: dict[str, Any],
     ) -> vol.Schema:
         """Build the adaptive scheduling form schema."""

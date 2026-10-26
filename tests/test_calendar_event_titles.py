@@ -33,6 +33,7 @@ from custom_components.maintenance_supporter.websocket import _build_task_summar
 
 from .conftest import TASK_ID_1, make_object_entry, setup_integration
 from .test_calendar_entity_prefetch import BIO, FakeCalendar, _calendar_task, _iso, global_entry
+from .task_results import as_result
 
 # ─── pure helpers ────────────────────────────────────────────────────────
 
@@ -92,7 +93,7 @@ def test_mirrored_rows_carry_the_titles_too() -> None:
     """The rows on external to-do lists read like our own list."""
     from custom_components.maintenance_supporter.helpers.todo_mirror import mirror_summary
 
-    assert mirror_summary("Bins", {"name": "Bins out", "_next_event_titles": ["Paper"]}) == "Bins: Bins out · Paper"
+    assert mirror_summary("Bins", {"name": "Bins out"}, ["Paper"]) == "Bins: Bins out · Paper"
     assert mirror_summary("Bins", {"name": "Bins out"}) == "Bins: Bins out"
 
 
@@ -120,13 +121,13 @@ async def test_every_surface_names_the_next_pickup(hass: HomeAssistant, global_e
     await hass.async_block_till_done()
 
     task = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task["_next_due"] == _iso(nxt)
-    assert task["_next_event_titles"] == ["Residual waste", "Paper"]
+    assert task.next_due == _iso(nxt)
+    assert task.next_event_titles == ["Residual waste", "Paper"]
     # The task's own name is untouched — only the labels carry the titles.
     assert hass.config_entries.async_get_entry(entry.entry_id).data[CONF_TASKS][TASK_ID_1]["name"] == "Bins out"
 
     stored = entry.data[CONF_TASKS][TASK_ID_1]
-    assert _build_task_summary(hass, TASK_ID_1, stored, task)["next_event_titles"] == ["Residual waste", "Paper"]
+    assert _build_task_summary(hass, TASK_ID_1, stored, as_result(task))["next_event_titles"] == ["Residual waste", "Paper"]
     assert _notify_task_label(task) == "Bins out · Residual waste, Paper"
 
     sensors = [e.entity_id for e in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id) if e.domain == "sensor"]
@@ -147,8 +148,8 @@ async def test_every_surface_names_the_next_pickup(hass: HomeAssistant, global_e
     await coordinator.complete_maintenance(TASK_ID_1, notes=None, unattended=True)
     await hass.async_block_till_done()
     task = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task["_next_due"] == _iso(later)
-    assert task["_next_event_titles"] == ["Bio"]
+    assert task.next_due == _iso(later)
+    assert task.next_event_titles == ["Bio"]
 
 
 async def test_a_task_of_another_kind_carries_no_titles(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
@@ -159,5 +160,5 @@ async def test_a_task_of_another_kind_carries_no_titles(hass: HomeAssistant, glo
     )
     await setup_integration(hass, global_entry, entry)
     task = entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task["_next_event_titles"] == []
+    assert task.next_event_titles == []
     assert _notify_task_label(task) == "Filter"

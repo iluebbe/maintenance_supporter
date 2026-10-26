@@ -112,6 +112,7 @@ from .helpers.aggregate import object_slug as aggregate_object_slug
 from .helpers.aggregate import task_sensor_entity_id as aggregate_task_sensor_entity_id
 from .helpers.assignees import person_of_user, shared_user_ids, task_is_for, task_user_ids
 from .helpers.assist_sentences import async_sync as async_sync_assist_sentences
+from .helpers.coordinator_data import task_results
 from .helpers.dates import INTERVAL_UNITS, local_date_from_iso
 from .helpers.documents import DocumentStore
 from .helpers.global_options import entry_option, get_default_warning_days, get_global_entry
@@ -439,7 +440,7 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
             continue
         # Merged data so last_performed reflects the Store, not stale entry data.
         merged = coordinator._get_merged_tasks_data()
-        payload = (coordinator.data or {}).get(CONF_TASKS) or {}
+        payload = task_results(coordinator)
         obj_name = aggregate_object_name(entry)
         for task_id, task_data in merged.items():
             # Disabled / archived task or a seasonally paused object (v2.20,
@@ -462,7 +463,7 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
                 # The label every other reminder carries (due phase #139,
                 # next calendar events #189) — this one sent the bare name
                 # (bug audit 2026-09-26).
-                task_name=task_label(task_data, (payload.get(task_id) or {}).get("_next_event_titles")),
+                task_name=task_label(task_data, published.next_event_titles if (published := payload.get(task_id)) else None),
                 object_name=obj_name,
                 days=days,
                 next_due=task.next_due.isoformat() if task.next_due else None,
@@ -933,8 +934,9 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         tasks: list[dict[str, Any]] = []
         # The shared cross-object walk (loaded objects, archived tasks left
         # out) — the Assist snapshot uses the same one (DRY audit 2026-09-26 B).
-        for ce, task_id, task in iter_live_tasks(hass, wanted_entry or None):
-            status = str(task.get("_status", ""))
+        for ce, task_id, result in iter_live_tasks(hass, wanted_entry or None):
+            task = result.task
+            status = str(result.status)
             if wanted_status and status != wanted_status:
                 continue
             if wanted_user and not task_is_for(task, wanted_user):
@@ -962,17 +964,17 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
                     "object_name": aggregate_object_name(ce),
                     "name": task.get("name"),
                     "status": status,
-                    "next_due": task.get("_next_due"),
-                    "days_until_due": task.get("_days_until_due"),
+                    "next_due": result.next_due,
+                    "days_until_due": result.days_until_due,
                     "type": task.get("type"),
                     "priority": task.get("priority", "normal"),
                     "last_performed": lp,
                     "days_since_last_completed": days_since,
                     "trigger_type": tc.get("type"),
-                    "trigger_current_value": task.get("_trigger_current_value"),
+                    "trigger_current_value": result.trigger_current_value,
                     # Delta-mode counters: progress since the last service
                     # (what the panel bar shows); None for every other trigger.
-                    "trigger_current_delta": task.get("_trigger_current_delta"),
+                    "trigger_current_delta": result.trigger_current_delta,
                     "trigger_target": trigger_target,
                     "trigger_unit": trigger_unit,
                     # #210: who does it, as the user id and as the person

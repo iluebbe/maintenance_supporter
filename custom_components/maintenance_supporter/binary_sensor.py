@@ -35,8 +35,7 @@ from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
 from .entity.id_change import entity_id_changed
 from .helpers.aggregate import object_slug as aggregate_object_slug
-from .helpers.coordinator_data import has_coordinator_data
-from .helpers.status import compute_status_from_task_dict
+from .helpers.status import compute_live_status
 
 if TYPE_CHECKING:
     from . import MaintenanceSupporterConfigEntry
@@ -109,22 +108,21 @@ class MaintenanceBinarySensor(MaintenanceEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         """Return True if the task is overdue or triggered."""
-        task = self._task_data
-        if not task:
+        result = self._task_result
+        if result is None:
             return None
-        status = task.get("_status", MaintenanceStatus.OK)
-        return status in _PROBLEM_STATUSES
+        return result.status in _PROBLEM_STATUSES
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return additional attributes."""
-        task = self._task_data
-        if not task:
+        result = self._task_result
+        if result is None:
             return {}
         return {
-            "maintenance_status": task.get("_status", MaintenanceStatus.OK),
-            "days_until_due": task.get("_days_until_due"),
-            "next_due": task.get("_next_due"),
+            "maintenance_status": result.status,
+            "days_until_due": result.days_until_due,
+            "next_due": result.next_due,
             "parent_object": self._object_data.get("name"),
         }
 
@@ -148,36 +146,23 @@ class MaintenanceBinarySensor(MaintenanceEntity, BinarySensorEntity):
         """Handle task reset (completion/skip/reset).
 
         The sensor entity's handler runs first (registered earlier during
-        platform setup) and updates coordinator.data with the new _status.
+        platform setup) and updates coordinator.data with the new status.
         We then re-read coordinator data and write our HA state so the
         binary sensor reflects the change immediately, not 5 minutes later.
 
-        Even if coordinator data is not yet refreshed, clearing _trigger_active
+        Even if coordinator data is not yet refreshed, clearing trigger_active
         and recomputing status here ensures correctness regardless of ordering.
         """
-        if not has_coordinator_data(self.coordinator):
-            return
-
-        tasks = self.coordinator.data.get(CONF_TASKS, {})
-        task = tasks.get(self._task_id, {})
-        if not task:
+        result = self._task_result
+        if result is None:
             return
 
         # Mirror what sensor._handle_task_reset does: clear trigger state
         # and recompute status so we don't depend on execution order.
-        task["_trigger_active"] = False
-        task["_trigger_current_value"] = None
-        new_status = self._compute_live_status(task)
-        task["_status"] = new_status
+        result.trigger_active = False
+        result.trigger_current_value = None
+        result.status = compute_live_status(result)
 
         # Always write state on reset — the task was explicitly acted upon,
         # and attributes like days_until_due / next_due have changed.
         self.async_write_ha_state()
-
-    @staticmethod
-    def _compute_live_status(task: dict[str, Any]) -> str:
-        """Compute task status from coordinator data dict.
-
-        Mirrors MaintenanceTask.status / MaintenanceSensor._compute_live_status.
-        """
-        return compute_status_from_task_dict(task)

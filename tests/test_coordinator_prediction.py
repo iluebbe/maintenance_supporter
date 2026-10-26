@@ -43,6 +43,7 @@ from .conftest import (
     make_object_entry,
     setup_integration,
 )
+from .task_results import as_results
 
 
 @pytest.fixture
@@ -119,10 +120,10 @@ async def test_update_data_with_degradation(
         await hass.async_block_till_done()
 
     data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert data.get("_degradation_rate") == 0.5
-    assert data.get("_degradation_trend") == "rising"
-    assert data.get("_degradation_r_squared") == 0.85
-    assert data.get("_degradation_data_points") == 50
+    assert data.degradation_rate == 0.5
+    assert data.degradation_trend == "rising"
+    assert data.degradation_r_squared == 0.85
+    assert data.degradation_data_points == 50
 
 
 async def test_update_data_with_threshold_prediction_urgency(
@@ -172,11 +173,11 @@ async def test_update_data_with_threshold_prediction_urgency(
         await hass.async_block_till_done()
 
     data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert data.get("_days_until_threshold") == 10
-    assert data.get("_threshold_prediction_date") == "2026-04-01"
-    assert data.get("_threshold_prediction_confidence") == "high"
-    assert data.get("_sensor_prediction_urgency") is True
-    assert data.get("_suggested_interval") == 9  # max(1, int(10*0.9))
+    assert data.days_until_threshold == 10
+    assert data.threshold_prediction_date == "2026-04-01"
+    assert data.threshold_prediction_confidence == "high"
+    assert data.sensor_prediction_urgency is True
+    assert data.suggested_interval == 9  # max(1, int(10*0.9))
 
 
 async def test_update_data_with_environmental_factor(
@@ -225,9 +226,9 @@ async def test_update_data_with_environmental_factor(
         await hass.async_block_till_done()
 
     data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert data.get("_environmental_factor") == 0.8
-    assert data.get("_environmental_entity") == "sensor.humidity"
-    assert data.get("_environmental_correlation") == 0.7
+    assert data.environmental_factor == 0.8
+    assert data.environmental_entity == "sensor.humidity"
+    assert data.environmental_correlation == 0.7
 
 
 async def test_update_data_prediction_exception(
@@ -265,7 +266,7 @@ async def test_update_data_prediction_exception(
         await hass.async_block_till_done()
 
     # Should not crash — data still valid
-    assert "_status" in coordinator.data[CONF_TASKS][TASK_ID_1]
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].status
     levels = [r.levelname for r in caplog.records if r.getMessage().startswith("Sensor prediction failed")]
     assert levels.count("WARNING") == 1 and "DEBUG" in levels[levels.index("WARNING") + 1 :]
 
@@ -300,7 +301,7 @@ async def test_update_data_prediction_returns_none(
         await hass.async_block_till_done()
 
     data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert "_degradation_rate" not in data
+    assert data.degradation_rate is None
 
 
 # ─── Fallback Counter: per-entity baseline from _trigger_state ───────
@@ -334,7 +335,7 @@ async def test_fallback_counter_per_entity_baseline(
     assert entry is not None
     data = entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]
     # delta=160-100=60 >= 50 → triggered
-    assert data.get("_trigger_active") is True
+    assert data.trigger_active is True
 
 
 async def test_fallback_counter_attribute(
@@ -363,7 +364,7 @@ async def test_fallback_counter_attribute(
     assert entry is not None
     data = entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]
     # 200 >= 100 → triggered
-    assert data.get("_trigger_active") is True
+    assert data.trigger_active is True
 
 
 async def test_fallback_threshold_below(
@@ -390,7 +391,7 @@ async def test_fallback_threshold_below(
     assert entry is not None
     data = entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]
     # 3 < 5 → triggered
-    assert data.get("_trigger_active") is True
+    assert data.trigger_active is True
 
 
 async def test_fallback_threshold_multi_all(
@@ -419,7 +420,7 @@ async def test_fallback_threshold_multi_all(
     assert entry is not None
     data = entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]
     # Both below threshold → all=False
-    assert data.get("_trigger_active") is False
+    assert data.trigger_active is False
 
 
 async def test_fallback_non_numeric_value(
@@ -445,7 +446,7 @@ async def test_fallback_non_numeric_value(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert data.get("_trigger_active") is False
+    assert data.trigger_active is False
 
 
 # ─── Issue Checking ──────────────────────────────────────────────────
@@ -661,8 +662,8 @@ async def test_complete_with_adaptive_config(
 
     state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
     adaptive = state.get("adaptive_config", {})
-    assert "base_interval" in adaptive
-    assert "hemisphere" in adaptive
+    # The learning step: 25 days since the last completion, no feedback.
+    assert adaptive == {"enabled": True, "smoothed_interval": 25}
 
 
 async def test_complete_with_invalid_last_performed(
@@ -715,7 +716,7 @@ async def test_disabled_task_status_ok(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert data["_status"] == MaintenanceStatus.OK
+    assert data.status == MaintenanceStatus.OK
 
 
 # ─── Budget Check with Monthly Alert ────────────────────────────────
@@ -760,7 +761,7 @@ async def test_budget_monthly_alert(hass: HomeAssistant) -> None:
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     coordinator = entry.runtime_data.coordinator
-    await coordinator._async_check_budget({})
+    await coordinator._async_check_budget(as_results({}))
     mock_nm.async_budget_alert.assert_called_once_with("monthly", 90.0, 100.0, "€", decimals=0)
 
 
@@ -803,7 +804,7 @@ async def test_budget_yearly_alert(hass: HomeAssistant) -> None:
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     coordinator = entry.runtime_data.coordinator
-    await coordinator._async_check_budget({})
+    await coordinator._async_check_budget(as_results({}))
     mock_nm.async_budget_alert.assert_called_once_with("yearly", 450.0, 500.0, "€", decimals=0)
 
 
@@ -1012,9 +1013,9 @@ async def test_notification_no_manager(
         del hass.data[DOMAIN]["_notification_manager"]
     # Should not crash
     await coord._async_notify_status_changes(
-        {
+        as_results({
             TASK_ID_1: {"_status": "overdue", "name": "Test"},
-        }
+        })
     )
 
 

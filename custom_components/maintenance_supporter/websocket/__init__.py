@@ -30,6 +30,7 @@ from ..helpers.aggregate import object_slug as aggregate_object_slug
 from ..helpers.parts import MAX_CONSUME_QUANTITY
 from ..helpers.phases import current_phase_summary
 from ..helpers.ws_errors import send_translated_error
+from ..models.task_result import CoordinatorData, TaskResult
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -114,7 +115,7 @@ def _build_task_summary(
     hass: HomeAssistant,
     task_id: str,
     task_data: dict[str, Any],
-    coordinator_task: dict[str, Any] | None,
+    coordinator_task: TaskResult | None,
     object_slug: str | None = None,
 ) -> dict[str, Any]:
     """Build a task summary dict for WS responses.
@@ -128,7 +129,7 @@ def _build_task_summary(
     from ..helpers.schedule import KIND_CALENDAR, Schedule, read_legacy_fields
     from ..helpers.trigger_detail import trigger_detail
 
-    ct = coordinator_task or {}
+    ct = coordinator_task if coordinator_task is not None else TaskResult(task={})
 
     # Recurrence is echoed in the flat shape the task-dialog expects (derived
     # from whichever storage shape this task uses — see read_legacy_fields /
@@ -291,46 +292,46 @@ def _build_task_summary(
         # panel can badge "postponed to …" and offer to clear it.
         "due_override": task_data.get("due_override"),
         # Computed fields from coordinator
-        "status": ct.get("_status", "ok"),
-        "is_done": ct.get("_is_done", False),
-        "days_until_due": ct.get("_days_until_due"),
-        "next_due": ct.get("_next_due"),
+        "status": ct.status,
+        "is_done": ct.is_done,
+        "days_until_due": ct.days_until_due,
+        "next_due": ct.next_due,
         # #189: titles of the calendar events behind next_due (calendar kind).
-        "next_event_titles": list(ct.get("_next_event_titles") or []),
-        "trigger_active": ct.get("_trigger_active", False),
+        "next_event_titles": list(ct.next_event_titles),
+        "trigger_active": ct.trigger_active,
         # #228: what the active trigger is about, from its detail attribute.
-        "trigger_detail": trigger_detail(hass, trigger_config) if ct.get("_trigger_active") else None,
-        "trigger_current_value": ct.get("_trigger_current_value"),
-        "trigger_entity_state": ct.get("_trigger_entity_state", "available"),
-        "trigger_current_delta": ct.get("_trigger_current_delta"),
-        "trigger_baseline_value": ct.get("_trigger_baseline_value"),
-        "times_performed": ct.get("_times_performed", 0),
-        "total_cost": ct.get("_total_cost", 0.0),
+        "trigger_detail": trigger_detail(hass, trigger_config) if ct.trigger_active else None,
+        "trigger_current_value": ct.trigger_current_value,
+        "trigger_entity_state": ct.trigger_entity_state,
+        "trigger_current_delta": ct.trigger_current_delta,
+        "trigger_baseline_value": ct.trigger_baseline_value,
+        "times_performed": ct.times_performed,
+        "total_cost": ct.total_cost,
         # #200: per completion, credits left out (total_cost nets them).
-        "average_cost": ct.get("_average_cost"),
-        "average_duration": ct.get("_average_duration"),
+        "average_cost": ct.average_cost,
+        "average_duration": ct.average_duration,
         # Adaptive scheduling
         "adaptive_config": task_data.get("adaptive_config"),
-        "suggested_interval": ct.get("_suggested_interval"),
-        "interval_confidence": ct.get("_interval_confidence"),
-        "interval_analysis": ct.get("_interval_analysis"),
+        "suggested_interval": ct.suggested_interval,
+        "interval_confidence": ct.interval_confidence,
+        "interval_analysis": ct.interval_analysis,
         # Seasonal scheduling (top-level for easy frontend access)
-        "seasonal_factor": (ct.get("_interval_analysis") or {}).get("seasonal_factor"),
-        "seasonal_factors": (ct.get("_interval_analysis") or {}).get("seasonal_factors"),
+        "seasonal_factor": ct.interval_analysis.get("seasonal_factor") if ct.interval_analysis else None,
+        "seasonal_factors": ct.interval_analysis.get("seasonal_factors") if ct.interval_analysis else None,
         # Sensor-driven predictions (Phase 3)
-        "degradation_rate": ct.get("_degradation_rate"),
-        "degradation_trend": ct.get("_degradation_trend"),
-        "degradation_r_squared": ct.get("_degradation_r_squared"),
+        "degradation_rate": ct.degradation_rate,
+        "degradation_trend": ct.degradation_trend,
+        "degradation_r_squared": ct.degradation_r_squared,
         # How many prior service cycles the rate learned from (sawtooth
         # sensors — ET-4800 finding). 0 = current window only.
-        "prediction_cycles": ct.get("_prediction_cycles", 0),
-        "days_until_threshold": ct.get("_days_until_threshold"),
-        "threshold_prediction_date": ct.get("_threshold_prediction_date"),
-        "threshold_prediction_confidence": ct.get("_threshold_prediction_confidence"),
-        "environmental_factor": ct.get("_environmental_factor"),
-        "environmental_entity": ct.get("_environmental_entity"),
-        "environmental_correlation": ct.get("_environmental_correlation"),
-        "sensor_prediction_urgency": ct.get("_sensor_prediction_urgency", False),
+        "prediction_cycles": ct.prediction_cycles,
+        "days_until_threshold": ct.days_until_threshold,
+        "threshold_prediction_date": ct.threshold_prediction_date,
+        "threshold_prediction_confidence": ct.threshold_prediction_confidence,
+        "environmental_factor": ct.environmental_factor,
+        "environmental_entity": ct.environmental_entity,
+        "environmental_correlation": ct.environmental_correlation,
+        "sensor_prediction_urgency": ct.sensor_prediction_urgency,
     }
 
 
@@ -372,14 +373,14 @@ def _place_fields(hass: HomeAssistant, obj_data: Mapping[str, Any]) -> dict[str,
 def _build_object_response(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    coordinator_data: dict[str, Any] | None,
+    coordinator_data: CoordinatorData | None,
     *,
     compact: bool = False,
 ) -> dict[str, Any]:
     """Build a full object response dict (compact: empty keys stripped)."""
     obj_data = entry.data.get(CONF_OBJECT, {})
     tasks_data = _get_merged_tasks(entry)
-    ct_tasks = (coordinator_data or {}).get(CONF_TASKS, {})
+    ct_tasks = coordinator_data[CONF_TASKS] if coordinator_data else {}
     object_slug = aggregate_object_slug(obj_data)
 
     tasks = [_build_task_summary(hass, tid, tdata, ct_tasks.get(tid), object_slug) for tid, tdata in tasks_data.items()]

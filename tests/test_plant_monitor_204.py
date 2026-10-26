@@ -116,9 +116,9 @@ async def test_adopted_it_follows_the_plant(hass: HomeAssistant, global_entry: M
         await hass.async_block_till_done()
         await coordinator.async_refresh()
         await hass.async_block_till_done()
-        return coordinator.data[CONF_TASKS][task_id]["_status"]
+        return coordinator.data[CONF_TASKS][task_id].status
 
-    assert coordinator.data[CONF_TASKS][task_id]["_status"] == "ok"
+    assert coordinator.data[CONF_TASKS][task_id].status == "ok"
     assert await status_after("problem") == "triggered", "too dry, too dark, …"
     assert await status_after("ok") == "ok", "watered: the task completes itself"
     history = [h["type"] for h in obj.runtime_data.store.get_history(task_id)]

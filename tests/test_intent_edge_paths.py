@@ -258,7 +258,7 @@ async def test_postpone_by_days_survives_a_malformed_due_date(hass: HomeAssistan
 
     assert response.error_code is None, _speech(response)
     expected = dt_util.now().date() + timedelta(days=4)
-    assert obj.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1].get("due_override") == expected.isoformat()
+    assert obj.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1].task.get("due_override") == expected.isoformat()
     from custom_components.maintenance_supporter.helpers.intent_speech import spoken_date
 
     assert spoken_date(expected, "en") in _speech(response)
@@ -284,7 +284,7 @@ async def test_postponing_a_paused_objects_task_is_refused(hass: HomeAssistant) 
 
     assert response.error_code == intent.IntentResponseErrorCode.FAILED_TO_HANDLE
     assert get_task_store_state(hass, obj.entry_id, TASK_ID_1).get("due_override") is None
-    assert obj.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1].get("due_override") is None
+    assert obj.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1].task.get("due_override") is None
 
 
 async def test_skip_lock_is_spoken_not_raised(hass: HomeAssistant) -> None:

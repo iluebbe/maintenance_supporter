@@ -25,9 +25,11 @@ from ..const import (
     slugify_object_name,
     task_unique_id,
 )
+from .coordinator_data import task_results
 
 if TYPE_CHECKING:
     from .. import MaintenanceSupporterData
+    from ..models.task_result import CoordinatorData, TaskResult
     from ..storage import MaintenanceStore
 
 # The status buckets we count. `ok` is included so the dashboard strategy
@@ -191,18 +193,31 @@ def get_store(hass: HomeAssistant, entry_id: str) -> MaintenanceStore | None:
     return store_of(entry) if entry is not None else None
 
 
-def get_coordinator_data(hass: HomeAssistant, entry_id: str) -> dict[str, Any] | None:
+def get_coordinator_data(hass: HomeAssistant, entry_id: str) -> CoordinatorData | None:
     """The entry coordinator's live data, or None when it is not loaded."""
     rd = get_runtime_data(hass, entry_id)
     coordinator = getattr(rd, "coordinator", None) if rd else None
     return coordinator.data if coordinator is not None else None
 
 
-def iter_live_tasks(hass: HomeAssistant, entry_id: str | None = None) -> Iterator[tuple[ConfigEntry, str, dict[str, Any]]]:
-    """``(entry, task_id, computed task)`` for every non-archived task of
+def task_results_of(entry: ConfigEntry) -> dict[str, TaskResult]:
+    """The published task results of the entry in hand ({} while it is not
+    loaded or before the coordinator's first refresh)."""
+    rd = getattr(entry, "runtime_data", None)
+    return task_results(getattr(rd, "coordinator", None) if rd else None)
+
+
+def get_task_results(hass: HomeAssistant, entry_id: str) -> dict[str, TaskResult]:
+    """:func:`task_results_of` by entry id; {} for an unknown entry too."""
+    entry = hass.config_entries.async_get_entry(entry_id)
+    return task_results_of(entry) if entry is not None else {}
+
+
+def iter_live_tasks(hass: HomeAssistant, entry_id: str | None = None) -> Iterator[tuple[ConfigEntry, str, TaskResult]]:
+    """``(entry, task_id, computed result)`` for every non-archived task of
     every LOADED object (optionally one object only).
 
-    The coordinator's computed payload, so ``_status`` / ``_next_due`` reflect
+    The coordinator's computed results, so ``status`` / ``next_due`` reflect
     the Store rather than stale entry data. An object that is not loaded
     (disabled, setup retry, mid-reload) has no coordinator data and
     contributes nothing. THE cross-object walk behind the ``list_tasks``
@@ -212,20 +227,16 @@ def iter_live_tasks(hass: HomeAssistant, entry_id: str | None = None) -> Iterato
     for entry in get_object_entries(hass):
         if entry_id is not None and entry.entry_id != entry_id:
             continue
-        rd = getattr(entry, "runtime_data", None)
-        coordinator = getattr(rd, "coordinator", None) if rd else None
-        if coordinator is None or not coordinator.data:
-            continue
-        for task_id, task in coordinator.data.get(CONF_TASKS, {}).items():
-            if str(task.get("_status", "")) == MaintenanceStatus.ARCHIVED:
+        for task_id, result in task_results_of(entry).items():
+            if result.status == MaintenanceStatus.ARCHIVED:
                 continue
-            yield entry, task_id, task
+            yield entry, task_id, result
 
 
 def compute_status_counts(hass: HomeAssistant) -> dict[str, Any]:
     """Aggregate task status counts across every maintenance object.
 
-    Status counts come from the live coordinator data (``_status``), which
+    Status counts come from the live coordinator data (``status``), which
     already forces disabled tasks to OK. ``total_tasks`` is the configured
     task count (static), matching the historical statistics-endpoint shape.
     """
@@ -237,16 +248,15 @@ def compute_status_counts(hass: HomeAssistant) -> dict[str, Any]:
     for entry in get_object_entries(hass):
         total_objects += 1
         # Archived tasks are inert: excluded from the task total and (via their
-        # ARCHIVED _status, which isn't a counted bucket) from every status
+        # ARCHIVED status, which isn't a counted bucket) from every status
         # count. Their cost still counts — budget is retained on archive.
         total_tasks += sum(1 for td in entry.data.get(CONF_TASKS, {}).values() if td.get("archived_at") is None)
 
-        coord_data = get_coordinator_data(hass, entry.entry_id)
-        for task in (coord_data or {}).get(CONF_TASKS, {}).values():
-            status = str(task.get("_status", MaintenanceStatus.OK))
+        for result in task_results_of(entry).values():
+            status = str(result.status)
             if status in counts:
                 counts[status] += 1
-            total_cost += task.get("_total_cost", 0.0) or 0.0
+            total_cost += result.total_cost or 0.0
 
     needs_attention = (
         counts[str(MaintenanceStatus.OVERDUE)]

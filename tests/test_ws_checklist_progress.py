@@ -123,7 +123,7 @@ async def test_ticks_persist_without_completing(
     # The task itself is untouched — no completion happened.
     rd = object_entry.runtime_data
     task = rd.coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert not task.get("history")
+    assert not task.task.get("history")
 
 
 async def test_unknown_items_are_dropped(

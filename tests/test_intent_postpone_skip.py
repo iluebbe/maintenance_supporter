@@ -42,6 +42,7 @@ from .conftest import (
     build_task_data,
     setup_integration,
 )
+from .task_results import flat
 
 TASK_ID = "task_1"
 
@@ -86,7 +87,7 @@ def _speech(response: intent.IntentResponse) -> str:
 def _stored(hass: HomeAssistant, entry: MockConfigEntry) -> dict[str, Any]:
     ce = hass.config_entries.async_get_entry(entry.entry_id)
     rd = getattr(ce, "runtime_data", None)
-    return dict(rd.coordinator.data[CONF_TASKS][TASK_ID])
+    return flat(rd.coordinator.data[CONF_TASKS][TASK_ID])
 
 
 # ─── postpone ─────────────────────────────────────────────────────────────

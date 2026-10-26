@@ -150,7 +150,7 @@ async def test_full_lifecycle_create_complete_reset(
     assert entry is not None
     coordinator = entry.runtime_data.coordinator
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data["_status"] == MaintenanceStatus.OVERDUE
+    assert task_data.status == MaintenanceStatus.OVERDUE
 
     # Complete task via WS
     conn = _mock_connection()
@@ -180,7 +180,7 @@ async def test_full_lifecycle_create_complete_reset(
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data["_status"] == MaintenanceStatus.OK
+    assert task_data.status == MaintenanceStatus.OK
 
     # Verify Store has the completion
     state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
@@ -207,7 +207,7 @@ async def test_full_lifecycle_create_complete_reset(
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data["_status"] == MaintenanceStatus.OK
+    assert task_data.status == MaintenanceStatus.OK
 
 
 async def test_compound_trigger_lifecycle(
@@ -263,14 +263,14 @@ async def test_compound_trigger_lifecycle(
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is False
+    assert task_data.trigger_active is False
 
     # Only one sensor above threshold → still not triggered (AND logic)
     set_sensor_state(hass, "sensor.temp1", "35.0")
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is False
+    assert task_data.trigger_active is False
 
 
 async def test_sensor_trigger_lifecycle(
@@ -313,14 +313,14 @@ async def test_sensor_trigger_lifecycle(
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is not True
+    assert task_data.trigger_active is not True
 
     # Sensor drops below threshold
     set_sensor_state(hass, "sensor.water_pressure", "1.0", {"unit_of_measurement": "bar"})
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is True
+    assert task_data.trigger_active is True
 
     # Complete task
     conn = _mock_connection()
@@ -481,7 +481,7 @@ async def test_notification_on_status_transition(
         hass.services.async_register("notify", "mobile_app", lambda call: None)
 
         # First refresh seeds _previous_statuses (status=OK, no notification)
-        assert coordinator.data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.OK
+        assert coordinator.data[CONF_TASKS][TASK_ID_1].status == MaintenanceStatus.OK
         mock_call.reset_mock()
 
         # Now make it overdue by changing last_performed in store
@@ -493,7 +493,7 @@ async def test_notification_on_status_transition(
         await coordinator.async_refresh()
         await hass.async_block_till_done()
 
-        assert coordinator.data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.OVERDUE
+        assert coordinator.data[CONF_TASKS][TASK_ID_1].status == MaintenanceStatus.OVERDUE
 
         # Check that notify service was called
         notify_calls = [c for c in mock_call.call_args_list if c[0][0] == "notify" and c[0][1] == "mobile_app"]
@@ -520,7 +520,7 @@ async def test_notification_suppressed_on_restart(
         coordinator = entry.runtime_data.coordinator
 
         # First refresh seeds _previous_statuses (OVERDUE) — no notification
-        assert coordinator.data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.OVERDUE
+        assert coordinator.data[CONF_TASKS][TASK_ID_1].status == MaintenanceStatus.OVERDUE
         mock_call.reset_mock()
 
         # Second refresh — status unchanged (still OVERDUE) → no notification

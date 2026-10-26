@@ -28,6 +28,7 @@ from ..helpers.schedule import (
     KIND_ONE_TIME,
     Schedule,
 )
+from ..models.shapes import HistoryEntry
 
 _TIME_BASED = "time_based"
 # The flat service schedule_type → the Schedule kind it means.
@@ -105,7 +106,7 @@ async def async_persist_task(
     task_data: dict[str, Any],
     *,
     last_performed: str | None = None,
-    history: list[dict[str, Any]] | None = None,
+    history: list[HistoryEntry] | None = None,
 ) -> None:
     """Persist a freshly-built task into an object entry and reload it.
 

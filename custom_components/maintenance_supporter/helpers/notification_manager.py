@@ -39,7 +39,7 @@ from ..const import (
     NOTIFICATION_TITLE_STYLES,
     MaintenanceStatus,
 )
-from .aggregate import priority_rank
+from .aggregate import priority_rank, task_results_of
 from .assignees import person_display_name, task_user_ids
 from .global_options import get_global_options, global_option
 from .i18n import format_text, normalize_language
@@ -1510,9 +1510,8 @@ class NotificationManager:
         entry = self.hass.config_entries.async_get_entry(entry_id)
         if entry is None or task_id not in (entry.data.get(CONF_TASKS) or {}):
             return False
-        coordinator = getattr(getattr(entry, "runtime_data", None), "coordinator", None)
-        live = ((coordinator.data or {}).get(CONF_TASKS) or {}).get(task_id) if coordinator is not None else None
-        status = str(live.get("_status")) if isinstance(live, dict) and live.get("_status") else str(facts.get("status"))
+        live = task_results_of(entry).get(task_id)
+        status = str(live.status) if live is not None and live.status else str(facts.get("status"))
         if status not in STATUS_ENABLED_KEYS:
             return False
         return bool(task_may_notify(self.hass, entry_id, task_id, status, self._task_config(entry_id, task_id), kind=KIND_STATUS, manager=self))

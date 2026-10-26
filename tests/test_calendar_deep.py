@@ -191,7 +191,7 @@ async def test_calendar_sensor_triggered_no_due_date(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     runtime_data = getattr(entry, "runtime_data", None)
     if runtime_data and hasattr(runtime_data, "coordinator") and runtime_data.coordinator:
-        runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] = True
+        runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1].trigger_active = True
 
     entity_comp = hass.data.get("entity_components", {}).get("calendar")
     assert entity_comp is not None, "calendar entity component should exist after setup"
@@ -372,8 +372,8 @@ async def test_calendar_sensor_triggered_task(hass: HomeAssistant) -> None:
     # Force trigger to active in coordinator data
     coord = obj_entry.runtime_data.coordinator
     if coord.data and TASK_ID_1 in coord.data.get(CONF_TASKS, {}):
-        coord.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] = True
-        coord.data[CONF_TASKS][TASK_ID_1]["_next_due"] = None
+        coord.data[CONF_TASKS][TASK_ID_1].trigger_active = True
+        coord.data[CONF_TASKS][TASK_ID_1].next_due = None
 
     cal_data = hass.data.get(DOMAIN, {}).get("_calendar_entity")
     if cal_data is None:

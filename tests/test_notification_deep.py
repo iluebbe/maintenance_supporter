@@ -42,6 +42,7 @@ from .conftest import (
     build_task_data,
     setup_integration,
 )
+from .task_results import as_results
 
 
 def _create_global_entry(
@@ -847,7 +848,7 @@ async def test_budget_both_zero_returns(
     hass.data[DOMAIN]["_notification_manager"] = nm
 
     coordinator = object_config_entry.runtime_data.coordinator
-    await coordinator._async_check_budget({})
+    await coordinator._async_check_budget(as_results({}))
 
 
 async def test_budget_skips_non_completed_and_no_cost(
@@ -897,7 +898,7 @@ async def test_budget_skips_non_completed_and_no_cost(
     hass.data[DOMAIN]["_notification_manager"] = nm
 
     coordinator = entry.runtime_data.coordinator
-    await coordinator._async_check_budget({})
+    await coordinator._async_check_budget(as_results({}))
 
 
 # === migrated from test_cov_helpers.py (behaviour-based split) ===

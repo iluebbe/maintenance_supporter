@@ -187,6 +187,8 @@ export interface HistoryEntry {
   /** #139: which cycle phase this LATEST completion recorded (backfills
    *  carry none — they never advanced the cursor). */
   phase_id?: string | null;
+  /** A reset: the day it reset the task to (the timestamp is when it was entered). */
+  reset_date?: string | null;
 }
 
 export interface AdaptiveConfig {
@@ -196,12 +198,6 @@ export interface AdaptiveConfig {
   max_interval_days?: number;
   smoothed_interval?: number;
   feedback_count?: number;
-  confidence?: string;
-  weibull_beta?: number | null;
-  weibull_eta?: number | null;
-  current_recommendation?: number | null;
-  recommendation_reason?: string | null;
-  last_analysis_date?: string | null;
   seasonal_enabled?: boolean;
   seasonal_overrides?: Record<number, number> | null;
   // Sensor prediction (Phase 3)
@@ -269,6 +265,10 @@ export interface MaintenanceTask {
   interval_unit?: IntervalUnit;
   due_date?: string | null; // one-time task due date (ISO)
   interval_anchor?: "completion" | "planned";
+  /** Planned anchor: the grid date the next occurrence is counted from. */
+  last_planned_due?: string | null;
+  /** The day of month a clamped planned anchor stands for (31 → 28 Feb). */
+  planned_day?: number | null;
   schedule?: TaskSchedule; // nested recurrence (calendar kinds read this)
   /** (#187) calendar kind: the picked calendar's friendly name (summary-only). */
   schedule_entity_name?: string | null;

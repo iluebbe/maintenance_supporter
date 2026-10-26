@@ -14,14 +14,13 @@ from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_OBJECT,
-    CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MaintenanceStatus,
     ScheduleType,
 )
 from .entity.id_change import entity_id_changed
-from .helpers.aggregate import merged_tasks
+from .helpers.aggregate import merged_tasks, task_results_of
 from .helpers.dates import interval_span_days, parse_hhmm
 from .helpers.global_options import is_schedule_time_enabled
 from .helpers.i18n import format_text, normalize_language
@@ -735,16 +734,7 @@ class MaintenanceCalendar(CalendarEntity):
 
             # Use live coordinator data (has trigger state) if available,
             # fall back to config entry data
-            runtime_data = getattr(entry, "runtime_data", None)
-            if (
-                runtime_data
-                and hasattr(runtime_data, "coordinator")
-                and runtime_data.coordinator
-                and runtime_data.coordinator.data
-            ):
-                live_tasks = runtime_data.coordinator.data.get(CONF_TASKS, {})
-            else:
-                live_tasks = {}
+            live_tasks = task_results_of(entry)
 
             # 2026-10 places: an object maintained away from home names its
             # place as the events' location (phone calendars show it).
@@ -783,13 +773,15 @@ class MaintenanceCalendar(CalendarEntity):
                     continue
 
                 # Inject live trigger state from coordinator
-                live = live_tasks.get(task_id, {})
-                if live.get("_trigger_active", False):
+                live = live_tasks.get(task_id)
+                if live is not None and live.trigger_active:
                     task._trigger_active = True
-                if live.get("_trigger_current_value") is not None:
-                    task._trigger_current_value = live["_trigger_current_value"]
+                if live is not None and live.trigger_current_value is not None:
+                    task._trigger_current_value = live.trigger_current_value
 
-                event = self._create_event_for_task(task, obj_name, start_d, end_d, live_status=live.get("_status"))
+                event = self._create_event_for_task(
+                    task, obj_name, start_d, end_d, live_status=live.status if live is not None else None
+                )
                 if event:
                     if place_name:
                         event = dataclasses.replace(event, location=place_name)

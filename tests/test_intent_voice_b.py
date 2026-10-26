@@ -241,7 +241,7 @@ async def test_skipping_a_task_without_a_next_date_says_no_date(hass: HomeAssist
 
     speech = _speech(await _ask(hass, INTENT_SKIP_TASK, {"name": "deep clean"}))
 
-    assert not obj.runtime_data.coordinator.data[CONF_TASKS]["t1"].get("_next_due")
+    assert not obj.runtime_data.coordinator.data[CONF_TASKS]["t1"].next_due
     assert speech == "Skipped this cycle of 'Deep clean' on Oven."
 
 

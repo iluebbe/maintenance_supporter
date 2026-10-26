@@ -49,6 +49,7 @@ from .conftest import (
     make_ws_connection,
     setup_integration,
 )
+from .task_results import as_results
 
 
 def _global(hass: HomeAssistant, *, notify_service: str = "notify.test", **options: object) -> MockConfigEntry:
@@ -120,7 +121,7 @@ async def test_muted_task_sends_nothing_on_status_change(hass: HomeAssistant) ->
         TASK_ID_2: {"name": "Quiet", "_status": MaintenanceStatus.OVERDUE, "_days_until_due": -10},
     }
     with patch.object(nm, "async_task_status_changed", notify):
-        await coordinator._async_notify_status_changes(results)
+        await coordinator._async_notify_status_changes(as_results(results))
     assert notify.await_count == 1
     assert notify.await_args.kwargs["task_name"] == "Loud"
     # The cache still learns the muted task's status (no spurious "change" later).
@@ -143,7 +144,7 @@ async def test_muted_task_neither_forces_nor_rides_in_a_bundle(hass: HomeAssista
         TASK_ID_2: {"name": "Quiet", "_status": MaintenanceStatus.OVERDUE, "_days_until_due": -10},
     }
     with patch.object(nm, "async_task_status_changed", single), patch.object(nm, "async_send_bundled", bundled):
-        await coordinator._async_notify_status_changes(results)
+        await coordinator._async_notify_status_changes(as_results(results))
     assert not bundled.called, "one loud task is below the threshold — the muted one must not count"
     assert single.await_count == 1 and single.await_args.kwargs["task_name"] == "Loud"
 

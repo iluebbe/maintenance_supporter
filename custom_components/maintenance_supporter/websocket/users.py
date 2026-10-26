@@ -13,7 +13,7 @@ from ..const import (
     DOMAIN,
     MAX_META_LENGTH,
 )
-from ..helpers.aggregate import get_coordinator_data, get_runtime_data, object_name
+from ..helpers.aggregate import get_runtime_data, get_task_results, object_name
 from ..helpers.assignees import task_is_for
 from ..helpers.entry_tasks import write_task
 from ..helpers.permissions import require_write, user_may_write
@@ -153,7 +153,7 @@ async def ws_tasks_by_user(
     result = []
 
     for entry in entries:
-        ct_tasks = (get_coordinator_data(hass, entry.entry_id) or {}).get(CONF_TASKS, {})
+        ct_tasks = get_task_results(hass, entry.entry_id)
         tasks_data = _get_merged_tasks(entry)
         obj_name = object_name(entry)
 

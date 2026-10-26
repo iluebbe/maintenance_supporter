@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import asyncio
 import re
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -46,6 +47,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.storage import Store
 
 from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+from ..models.shapes import HistoryEntry
 from .dates import stamp_instant
 from .history import completed_entries
 
@@ -113,7 +115,7 @@ def assign_task_refs(entry_data: dict[str, Any]) -> dict[str, Any] | None:
     return {**entry_data, CONF_OBJECT: obj, CONF_TASKS: new_tasks}
 
 
-def next_history_ref(store: MaintenanceStore, task_id: str, history: list[dict[str, Any]]) -> int:
+def next_history_ref(store: MaintenanceStore, task_id: str, history: Sequence[HistoryEntry]) -> int:
     """Hand out the next completion number for a task and bump the
     high-water mark in the task's dynamic state (imports that carry higher
     numbers move the mark up)."""

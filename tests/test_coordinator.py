@@ -81,8 +81,8 @@ async def test_update_data_basic_status(
     coordinator = entry.runtime_data.coordinator
     data = coordinator.data
 
-    assert data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.OK
-    assert data[CONF_TASKS][TASK_ID_2]["_status"] == MaintenanceStatus.DUE_SOON
+    assert data[CONF_TASKS][TASK_ID_1].status == MaintenanceStatus.OK
+    assert data[CONF_TASKS][TASK_ID_2].status == MaintenanceStatus.DUE_SOON
 
 
 async def test_update_data_disabled_task(
@@ -103,7 +103,7 @@ async def test_update_data_disabled_task(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data
-    assert data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.OK
+    assert data[CONF_TASKS][TASK_ID_1].status == MaintenanceStatus.OK
 
 
 async def test_update_data_preserves_trigger_state(
@@ -126,8 +126,8 @@ async def test_update_data_preserves_trigger_state(
     coordinator = entry.runtime_data.coordinator
 
     # Simulate trigger activation via previous data
-    coordinator.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] = True
-    coordinator.data[CONF_TASKS][TASK_ID_1]["_trigger_current_value"] = 35.0
+    coordinator.data[CONF_TASKS][TASK_ID_1].trigger_active = True
+    coordinator.data[CONF_TASKS][TASK_ID_1].trigger_current_value = 35.0
 
     # Force refresh
     await coordinator.async_refresh()
@@ -136,7 +136,7 @@ async def test_update_data_preserves_trigger_state(
     data = coordinator.data
     # The sensor shows 25 (below threshold), so fallback evaluation sets it to False
     # But the key point is the data flow works - the trigger was read from prev_tasks
-    assert "_trigger_active" in data[CONF_TASKS][TASK_ID_1]
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is False
 
 
 # ─── _evaluate_trigger_fallback Tests ─────────────────────────────────────
@@ -159,7 +159,7 @@ async def test_fallback_threshold_above(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data
-    assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is True
 
 
 async def test_fallback_threshold_below(
@@ -179,7 +179,7 @@ async def test_fallback_threshold_below(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data
-    assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is True
 
 
 async def test_fallback_threshold_multi_any(
@@ -206,7 +206,7 @@ async def test_fallback_threshold_multi_any(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data
-    assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is True
 
 
 async def test_fallback_threshold_multi_all(
@@ -233,7 +233,7 @@ async def test_fallback_threshold_multi_all(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data
-    assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is True
 
 
 async def test_fallback_threshold_unavailable(
@@ -253,7 +253,7 @@ async def test_fallback_threshold_unavailable(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data
-    assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is False
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is False
 
 
 async def test_fallback_threshold_attribute(
@@ -278,7 +278,7 @@ async def test_fallback_threshold_attribute(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data
-    assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is True
 
 
 async def test_fallback_counter_absolute(
@@ -302,7 +302,7 @@ async def test_fallback_counter_absolute(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data
-    assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is True
 
 
 async def test_fallback_counter_delta(
@@ -331,7 +331,7 @@ async def test_fallback_counter_delta(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     data = entry.runtime_data.coordinator.data
-    assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+    assert data[CONF_TASKS][TASK_ID_1].trigger_active is True
 
 
 # ─── _async_check_for_issues Tests ────────────────────────────────────────

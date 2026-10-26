@@ -15,7 +15,7 @@ from ..const import (
     CONF_TASKS,
     MAX_DATE_LENGTH,
 )
-from ..helpers.aggregate import get_coordinator_data, get_store, object_name
+from ..helpers.aggregate import get_store, get_task_results, object_name
 from ..helpers.entry_tasks import write_task
 from ..helpers.pause import clear_cycle_modifiers, reanchor_recurring_task, wants_fresh_cycle
 from ..helpers.permissions import require_write
@@ -297,7 +297,7 @@ def ws_list_tasks(
             continue
         entry_tasks = _get_merged_tasks(entry)
         obj_name = object_name(entry)
-        ct_tasks = (get_coordinator_data(hass, entry.entry_id) or {}).get(CONF_TASKS, {})
+        ct_tasks = get_task_results(hass, entry.entry_id)
         for task_id, task_data in entry_tasks.items():
             summary = _build_task_summary(hass, task_id, task_data, ct_tasks.get(task_id))
             summary["task_id"] = task_id

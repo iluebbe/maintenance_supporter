@@ -248,7 +248,7 @@ async def test_trigger_entity_unavailable_no_issue(
 
     # Trigger should not be active
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is not True
+    assert task_data.trigger_active is not True
 
 
 async def test_trigger_entity_unknown_state(
@@ -276,7 +276,7 @@ async def test_trigger_entity_unknown_state(
     await hass.async_block_till_done()
 
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is not True
+    assert task_data.trigger_active is not True
 
 
 # ─── Trigger Attribute Removed ────────────────────────────────────────────
@@ -313,7 +313,7 @@ async def test_trigger_attribute_removed(
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is not True
+    assert task_data.trigger_active is not True
 
     # Remove the attribute (entity still exists but attribute gone)
     hass.states.async_set(
@@ -329,7 +329,7 @@ async def test_trigger_attribute_removed(
 
     # Should not crash, trigger should not be active
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is not True
+    assert task_data.trigger_active is not True
 
 
 async def test_trigger_attribute_non_numeric(
@@ -359,7 +359,7 @@ async def test_trigger_attribute_non_numeric(
 
     # No crash, trigger not active
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is not True
+    assert task_data.trigger_active is not True
 
 
 # ─── Multi-Entity Trigger: Partial Removal ───────────────────────────────
@@ -408,7 +408,7 @@ async def test_multi_entity_trigger_one_removed(
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is not True
+    assert task_data.trigger_active is not True
 
     # Remove one entity
     hass.states.async_remove("sensor.tire_fr")
@@ -417,14 +417,14 @@ async def test_multi_entity_trigger_one_removed(
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is not True
+    assert task_data.trigger_active is not True
 
     # Drop remaining entity below threshold
     set_sensor_state(hass, "sensor.tire_fl", "1.5")
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is True
+    assert task_data.trigger_active is True
 
 
 async def test_multi_entity_trigger_all_logic_one_removed(
@@ -476,14 +476,14 @@ async def test_multi_entity_trigger_all_logic_one_removed(
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is True
+    assert task_data.trigger_active is True
 
     # Remove one entity → no reading, no verdict: the latch stays
     hass.states.async_remove("sensor.zone_b")
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is True
+    assert task_data.trigger_active is True
 
     # The remaining entity reads back in range → "all" is broken → not triggered
     set_sensor_state(hass, "sensor.zone_a", "2.5")
@@ -491,7 +491,7 @@ async def test_multi_entity_trigger_all_logic_one_removed(
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is not True
+    assert task_data.trigger_active is not True
 
 
 # ─── Device and Entity Cleanup ────────────────────────────────────────────
@@ -715,7 +715,7 @@ async def test_entity_appears_after_grace_period(
 
     # Should now be triggered
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is True
+    assert task_data.trigger_active is True
 
     # Trigger entity state should be AVAILABLE
     assert coordinator._trigger_entity_states.get(TASK_ID_1) == TriggerEntityState.AVAILABLE

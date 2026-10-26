@@ -691,7 +691,7 @@ async def test_environmental_entity_legacy_store_none(
 # ─── task/set_adaptive (dialog parity round) ────────────────────────────────
 
 
-async def test_set_adaptive_writes_tuning_and_seeds_base_interval(
+async def test_set_adaptive_writes_tuning(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
     object_entry: MockConfigEntry,
@@ -729,8 +729,7 @@ async def test_set_adaptive_writes_tuning_and_seeds_base_interval(
     assert ac["max_interval_days"] == 90
     assert ac["seasonal_enabled"] is False
     assert ac["sensor_prediction_enabled"] is True
-    # Same base_interval seeding as the options flow's adaptive step.
-    assert "base_interval" in ac
+    assert "base_interval" not in ac
 
 
 async def test_set_adaptive_rejects_min_over_max(

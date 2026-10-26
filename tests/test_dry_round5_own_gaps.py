@@ -71,6 +71,7 @@ from .conftest import (
     make_ws_connection,
     setup_integration,
 )
+from .task_results import as_results
 
 
 @pytest.fixture
@@ -316,7 +317,7 @@ async def test_without_a_household_service_a_bundle_goes_out_task_by_task(hass: 
         ):
             coord._previous_statuses = {}
             nm._last_notified.clear()  # both reminders due again
-            await coord._async_notify_status_changes(coord.data[CONF_TASKS])
+            await coord._async_notify_status_changes(as_results(coord.data[CONF_TASKS]))
         return bundled, per_task
 
     bundled, per_task = await _wave()

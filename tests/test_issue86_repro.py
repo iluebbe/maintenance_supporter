@@ -56,7 +56,7 @@ async def test_issue86_entry_sets_up_and_computes_status(hass: HomeAssistant, gl
     await hass.async_block_till_done()
     assert coordinator.last_update_success, "refresh failed"
     assert coordinator.data is not None
-    statuses = {t.get("_status") for t in coordinator.data[CONF_TASKS].values()}
+    statuses = {t.status for t in coordinator.data[CONF_TASKS].values()}
     assert None not in statuses, "tasks without computed status"
     print("STATUSES:", statuses)
 

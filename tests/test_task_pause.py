@@ -60,7 +60,7 @@ async def _ws(hass: HomeAssistant, handler: Any, payload: dict[str, Any]) -> tup
 
 
 def _status(entry: MockConfigEntry, task_id: str) -> str:
-    return str(entry.runtime_data.coordinator.data[CONF_TASKS][task_id]["_status"])
+    return str(entry.runtime_data.coordinator.data[CONF_TASKS][task_id].status)
 
 
 async def test_one_task_pauses_the_others_keep_running(hass: HomeAssistant) -> None:
@@ -88,8 +88,8 @@ async def test_resuming_starts_a_fresh_cycle(hass: HomeAssistant) -> None:
     assert error is None and result == {"success": True}
 
     data = entry.runtime_data.coordinator.data[CONF_TASKS][FILTER]
-    assert data["_status"] == MaintenanceStatus.OK
-    assert data["_days_until_due"] == 21, "the three weeks count from the day it went back in use"
+    assert data.status == MaintenanceStatus.OK
+    assert data.days_until_due == 21, "the three weeks count from the day it went back in use"
     assert "paused_at" not in entry.data[CONF_TASKS][FILTER]
 
     _, error = await _ws(hass, ws_resume_task, {"type": "x", "entry_id": entry.entry_id, "task_id": FILTER})

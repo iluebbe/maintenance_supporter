@@ -1,26 +1,29 @@
-"""The task-status ladder — ONE implementation for the model and the dict twin.
+"""The task-status ladder — ONE implementation for the model and the twin.
 
 :pyattr:`MaintenanceTask.status` (the coordinator's per-refresh computation)
-and :func:`compute_status_from_task_dict` (the per-task ``sensor`` /
+and :func:`compute_live_status` (the per-task ``sensor`` /
 ``binary_sensor`` recomputation right after a live trigger update, from the
-coordinator's plain data dict) used to be two hand-kept ladders; the dict
-twin silently lacked the span-capped warning window (issue #58) and the
-sub-day ``schedule_time`` refinement, and neither knew that a disabled task
-reads OK (only the coordinator's short-circuit did). Both now delegate to
-:func:`compute_status`; the coordinator publishes the inputs the dict twin
-cannot derive itself (``_warning_days_effective``) alongside
-``_days_until_due`` / ``_trigger_active`` / ``_paused``.
+coordinator's published :class:`TaskResult`) used to be two hand-kept
+ladders; the twin silently lacked the span-capped warning window (issue #58)
+and the sub-day ``schedule_time`` refinement, and neither knew that a
+disabled task reads OK (only the coordinator's short-circuit did). Both now
+delegate to :func:`compute_status`; the coordinator publishes the inputs the
+twin cannot derive itself (``warning_days_effective``) alongside
+``days_until_due`` / ``trigger_active`` / ``paused``.
 ``tests/test_status_twin.py`` pins the two callers to each other.
 """
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING
 
 from homeassistant.util import dt as dt_util
 
 from ..const import DEFAULT_WARNING_DAYS, MaintenanceStatus
 from .dates import parse_hhmm
+
+if TYPE_CHECKING:
+    from ..models.task_result import TaskResult
 
 
 def effective_warning_days(warning_days: int, span_days: int | None) -> int:
@@ -97,22 +100,25 @@ def compute_status(
     return MaintenanceStatus.OK
 
 
-def compute_status_from_task_dict(task: dict[str, Any]) -> str:
-    """Compute task status from a coordinator data dict.
+def compute_live_status(result: TaskResult) -> str:
+    """Compute a task's status from its published result.
 
-    ``_trigger_active``, ``_days_until_due``, ``_paused`` and
-    ``_warning_days_effective`` are the coordinator-computed live fields (the
-    last falls back to the raw ``warning_days`` for payloads that predate it);
-    ``schedule_time`` is only present when the feature is enabled (the
-    coordinator strips it otherwise), so the sub-day check is safe here.
+    ``trigger_active``, ``days_until_due``, ``paused`` and
+    ``warning_days_effective`` are the coordinator-computed live fields (the
+    last falls back to the raw ``warning_days`` on the inert and degraded
+    results, which carry none); ``schedule_time`` is only present when the
+    feature is enabled (the coordinator strips it otherwise), so the sub-day
+    check is safe here.
     """
+    task = result.task
+    warning_days = result.warning_days_effective
     return compute_status(
         archived=task.get("archived_at") is not None,
-        paused=bool(task.get("_paused")),
+        paused=result.paused,
         enabled=task.get("enabled", True) is not False,
-        days_until_due=task.get("_days_until_due"),
-        trigger_active=bool(task.get("_trigger_active", False)),
+        days_until_due=result.days_until_due,
+        trigger_active=result.trigger_active,
         all_mode=(task.get("trigger_config") or {}).get("trigger_combinator") == "all",
-        warning_days=task.get("_warning_days_effective", task.get("warning_days", DEFAULT_WARNING_DAYS)),
+        warning_days=warning_days if warning_days is not None else task.get("warning_days", DEFAULT_WARNING_DAYS),
         past_schedule_time=is_past_schedule_time(task.get("schedule_time")),
     )

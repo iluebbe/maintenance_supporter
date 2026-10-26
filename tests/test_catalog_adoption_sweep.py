@@ -119,7 +119,7 @@ async def test_every_duty_is_proposed_adopted_fired_and_reset(
         coordinator = hass.config_entries.async_get_entry(entry.entry_id).runtime_data.coordinator
         await coordinator.async_refresh()
         await hass.async_block_till_done()
-        status = coordinator.data[CONF_TASKS][task_id].get("_status")
+        status = coordinator.data[CONF_TASKS][task_id].status
         if status != "triggered":
             problems.append(f"{sig.task_name} ({sig.direction}): status {status!r} after the entity crossed its mark")
             continue

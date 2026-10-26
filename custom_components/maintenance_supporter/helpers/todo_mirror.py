@@ -49,7 +49,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from datetime import date
 from typing import TYPE_CHECKING, Any
 
@@ -68,6 +68,7 @@ from ..const import (
     NOTIFIABLE_STATUSES,
     UNAVAILABLE_STATES,
 )
+from .coordinator_data import task_results
 from .global_options import global_option
 from .managed_timer import ManagedTimer
 from .phases import task_label
@@ -75,6 +76,7 @@ from .sanitize import sanitize_mirror_todo_entities
 
 if TYPE_CHECKING:
     from ..coordinator import MaintenanceCoordinator
+    from ..models.task_result import TaskResult
     from ..storage import MaintenanceStore
 
 _LOGGER = logging.getLogger(__name__)
@@ -175,10 +177,10 @@ def mirror_lists(task: Mapping[str, Any], defaults: Sequence[str] = ()) -> list[
     return [] if task.get(MIRROR_USE_DEFAULT_FIELD) is False else list(defaults)
 
 
-def task_due_date(task_result: Mapping[str, Any]) -> date | None:
-    """The computed next due date of a task result (``_next_due``), as the
-    to-do rows carry it — ours and the mirrored ones."""
-    due_iso = task_result.get("_next_due")
+def task_due_date(task_result: TaskResult | None) -> date | None:
+    """The computed next due date of a task result, as the to-do rows carry
+    it — ours and the mirrored ones."""
+    due_iso = task_result.next_due if task_result is not None else None
     if not isinstance(due_iso, str):
         return None
     try:
@@ -187,14 +189,14 @@ def task_due_date(task_result: Mapping[str, Any]) -> date | None:
         return None
 
 
-def mirror_summary(object_name: str, task: Mapping[str, Any]) -> str:
+def mirror_summary(object_name: str, task: Mapping[str, Any], event_titles: Iterable[str] | None = None) -> str:
     """The to-do row text — "<object>: <task label>" — shared by the mirror,
     our own to-do platform and the shopping sync. The label is the one
     ``phases.task_label`` (due phase #139, next events #189); the rows used
     the bare name (bug audit 2026-09-26). A phase-less task's text is
     unchanged, so its mirrored rows keep matching; a phased task's row is
     replaced once by the reconcile's "text changed" path (by uid)."""
-    return f"{object_name}: {task_label(task)}"
+    return f"{object_name}: {task_label(task, event_titles)}"
 
 
 @callback
@@ -317,7 +319,7 @@ class TodoMirror:
     async def async_sync_entry(
         self,
         entry_id: str,
-        task_results: dict[str, Any],
+        task_results: dict[str, TaskResult],
         *,
         store: MaintenanceStore,
         object_name: str,
@@ -325,7 +327,7 @@ class TodoMirror:
         """Bring one object's rows in line with its freshly computed task
         results. Cheap when no task names a list and none has a record."""
         defaults = default_lists(self._hass)
-        has_config = any(mirror_lists(tr, defaults) for tr in task_results.values() if isinstance(tr, dict))
+        has_config = any(mirror_lists(tr.task, defaults) for tr in task_results.values())
         has_records = any(store.get_task_state(tid).get(MIRROR_STATE_KEY) for tid in task_results)
         if not has_config and not has_records:
             return
@@ -337,17 +339,15 @@ class TodoMirror:
                 _LOGGER.exception("To-do mirror pass for entry %s failed", entry_id)
 
     async def _sync_entry_locked(
-        self, task_results: dict[str, Any], store: MaintenanceStore, object_name: str, defaults: Sequence[str]
+        self, task_results: dict[str, TaskResult], store: MaintenanceStore, object_name: str, defaults: Sequence[str]
     ) -> None:
         dirty = False
         for task_id, tr in task_results.items():
-            if not isinstance(tr, dict):
-                continue
-            wanted = mirror_lists(tr, defaults) if tr.get("_status") in MIRRORED_STATUSES else []
+            wanted = mirror_lists(tr.task, defaults) if tr.status in MIRRORED_STATUSES else []
             record: dict[str, Any] = dict(store.get_task_state(task_id).get(MIRROR_STATE_KEY) or {})
             if not wanted and not record:
                 continue
-            summary = mirror_summary(object_name, tr)
+            summary = mirror_summary(object_name, tr.task, tr.next_event_titles)
             due = task_due_date(tr)
             changed = False
             # Rows we no longer want: list dropped from the config, task no
@@ -477,10 +477,10 @@ class TodoMirror:
                     store.async_delay_save()
             # Converge on the last computed status (rows for lists that just
             # appeared, rows deleted by hand, nothing after a completion).
-            task_results = (coordinator.data or {}).get(CONF_TASKS) or {}
-            if task_results:
+            results = task_results(coordinator)
+            if results:
                 await self.async_sync_entry(
-                    ce.entry_id, task_results, store=store, object_name=coordinator.maintenance_object.name
+                    ce.entry_id, results, store=store, object_name=coordinator.maintenance_object.name
                 )
 
     async def _complete(self, ce: ConfigEntry, coordinator: MaintenanceCoordinator, task_id: str, list_entity: str) -> None:

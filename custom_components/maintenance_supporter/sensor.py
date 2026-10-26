@@ -49,7 +49,8 @@ from .helpers.global_options import is_schedule_time_enabled
 from .helpers.pause import is_task_inert
 from .helpers.phases import current_phase_summary
 from .helpers.schedule import read_legacy_fields
-from .helpers.status import compute_status_from_task_dict
+from .helpers.status import compute_live_status
+from .models.task_result import TaskResult
 
 # (metric key in compute_status_counts, mdi icon) for the global summary sensors
 SUMMARY_METRICS: list[tuple[str, str]] = [
@@ -183,10 +184,10 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the current status of the task."""
-        task = self._task_data
-        if not task:
+        result = self._task_result
+        if result is None:
             return None
-        return str(task.get("_status", MaintenanceStatus.OK))
+        return str(result.status)
 
     @property
     def icon(self) -> str | None:
@@ -218,9 +219,10 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         accumulated_hours, change_count, etc.) are served via the WebSocket
         ``subscribe`` endpoint instead.
         """
-        task = self._task_data
-        if not task:
+        result = self._task_result
+        if result is None:
             return {}
+        task = result.task
 
         sched = read_legacy_fields(task)
         attrs: dict[str, Any] = {
@@ -232,12 +234,12 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             "due_date": sched["due_date"],
             "warning_days": task.get("warning_days"),
             "last_performed": task.get("last_performed"),
-            "next_due": task.get("_next_due"),
-            "days_until_due": task.get("_days_until_due"),
+            "next_due": result.next_due,
+            "days_until_due": result.days_until_due,
             "parent_object": self._object_data.get("name"),
-            "times_performed": task.get("_times_performed", 0),
-            "total_cost": task.get("_total_cost", 0.0),
-            "average_duration": task.get("_average_duration"),
+            "times_performed": result.times_performed,
+            "total_cost": result.total_cost,
+            "average_duration": result.average_duration,
             # notes + documentation_url are user-entered reference data (a short
             # note and a manual link), exposed here so dashboards/templates can
             # read them via state_attr(...). They are not secrets and are also
@@ -267,7 +269,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         # #189: the calendar events behind the next due date ("Residual
         # waste", "Paper") — stable until the next occurrence, only present
         # for a calendar-driven task that has them.
-        if titles := task.get("_next_event_titles"):
+        if titles := result.next_event_titles:
             attrs["next_event_titles"] = list(titles)
 
         # Task phases (#139): which cycle step is due — stable (changes once
@@ -285,7 +287,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         if trigger_config:
             ttype = trigger_config.get("type")
             attrs["trigger_type"] = ttype
-            attrs["trigger_active"] = task.get("_trigger_active", False)
+            attrs["trigger_active"] = result.trigger_active
             if trigger_config.get("trigger_combinator") == "all":
                 attrs["trigger_combinator"] = "all"
 
@@ -312,25 +314,25 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
                 attrs["compound_conditions_count"] = len(conditions)
 
         # Adaptive scheduling attributes
-        if task.get("_suggested_interval") is not None:
-            attrs["suggested_interval"] = task.get("_suggested_interval")
-            attrs["interval_confidence"] = task.get("_interval_confidence")
+        if result.suggested_interval is not None:
+            attrs["suggested_interval"] = result.suggested_interval
+            attrs["interval_confidence"] = result.interval_confidence
         adaptive_cfg = task.get("adaptive_config")
         if adaptive_cfg:
             attrs["adaptive_scheduling_enabled"] = adaptive_cfg.get("enabled", False)
 
         # Seasonal scheduling attributes
-        analysis = task.get("_interval_analysis")
+        analysis = result.interval_analysis
         if analysis and analysis.get("seasonal_factor") is not None:
             attrs["seasonal_factor"] = analysis["seasonal_factor"]
             attrs["seasonal_reason"] = analysis.get("seasonal_reason")
 
         # Weibull advanced statistics
-        if analysis and analysis.get("weibull_beta") is not None:
-            attrs["weibull_beta"] = analysis["weibull_beta"]
+        beta = analysis.get("weibull_beta") if analysis else None
+        if analysis and beta is not None:
+            attrs["weibull_beta"] = beta
             attrs["weibull_eta"] = analysis.get("weibull_eta")
             attrs["weibull_r_squared"] = analysis.get("weibull_r_squared")
-            beta = analysis["weibull_beta"]
             if beta < 0.8:
                 attrs["weibull_beta_interpretation"] = "early_failures"
             elif beta <= 1.2:
@@ -440,16 +442,12 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         # old latch before this reset and would publish it (bug audit
         # 2026-09-27, see MaintenanceCoordinator.note_live_trigger_state).
         self.coordinator.note_live_trigger_state(self._task_id, False, None)
-        if self.coordinator.data is not None:
-            tasks = self.coordinator.data.get(CONF_TASKS, {})
-            task = tasks.get(self._task_id, {})
-            if task:
-                task["_trigger_active"] = False
-                task["_trigger_current_value"] = None
-                _old_status = task.get("_status")
-                new_status = self._compute_live_status(task)
-                task["_status"] = new_status
-                self.async_write_ha_state()
+        result = self._task_result
+        if result is not None:
+            result.trigger_active = False
+            result.trigger_current_value = None
+            result.status = compute_live_status(result)
+            self.async_write_ha_state()
 
     @callback
     def async_update_trigger_state(
@@ -474,9 +472,10 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             # keeps the historical per-entity meaning.
             return not is_triggered
 
-        tasks = self.coordinator.data.get(CONF_TASKS, {})
-        task = tasks.get(self._task_id, {})
-        prev_active = task.get("_trigger_active", False)
+        # A task the last refresh did not publish (added since) aggregates
+        # into a stand-in; its state lands with the next refresh.
+        result = self._task_result or TaskResult(task={})
+        prev_active = result.trigger_active
 
         # Aggregate trigger states
         if len(self._triggers) > 1:
@@ -489,7 +488,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
                 if current_value is not None:
                     self._trigger_values[trigger_entity_id] = current_value
             aggregated = self._aggregate(entity_logic)
-            task["_trigger_active"] = aggregated
+            result.trigger_active = aggregated
             episode_closed = was_aggregated and not aggregated
         else:
             # Single trigger: direct assignment. It only reports False when
@@ -499,11 +498,11 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
                 self._trigger_states[trigger_entity_id] = is_triggered
                 if current_value is not None:
                     self._trigger_values[trigger_entity_id] = current_value
-            task["_trigger_active"] = is_triggered
+            result.trigger_active = is_triggered
             episode_closed = not is_triggered
 
         if current_value is not None:
-            task["_trigger_current_value"] = current_value
+            result.trigger_current_value = current_value
 
         # The coordinator keeps the live latch (a refresh under way must not
         # publish the state it restored before this flip — bug audit
@@ -511,23 +510,23 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         # the recovery, a NEW episode that began while Home Assistant was
         # down read as the old one and was only repainted on the next start
         # (R SCH-10).
-        self.coordinator.note_live_trigger_state(self._task_id, bool(task["_trigger_active"]), task.get("_trigger_current_value"))
+        self.coordinator.note_live_trigger_state(self._task_id, result.trigger_active, result.trigger_current_value)
         if episode_closed:
             self.coordinator.note_trigger_cleared(self._task_id)
 
-        # Recompute _status immediately so native_value reflects the change
-        old_status = task.get("_status")
-        new_status = self._compute_live_status(task)
-        task["_status"] = new_status
+        # Recompute the status immediately so native_value reflects the change
+        old_status = result.status
+        new_status = compute_live_status(result)
+        result.status = new_status
 
         # Only write HA state when the status — or the latched trigger flag —
         # actually changes, to avoid recorder writes on every value update.
         # With trigger_combinator="all" a latched trigger no longer implies a
         # status change (the interval leg may still be pending), but the
         # trigger_active attribute must repaint regardless.
-        if new_status != old_status or task.get("_trigger_active", False) != prev_active:
+        if new_status != old_status or result.trigger_active != prev_active:
             self.async_write_ha_state()
-        return bool(prev_active) and not task.get("_trigger_active", False)
+        return prev_active and not result.trigger_active
 
     def _aggregate(self, entity_logic: str, states: dict[str, bool] | None = None) -> bool:
         """The task-level latch of a multi-entity trigger ("all" / "any")."""
@@ -553,11 +552,6 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         entity_logic = trigger_config.get("entity_logic", DEFAULT_ENTITY_LOGIC)
         after = {**self._trigger_states, trigger_entity_id: is_triggered}
         return self._aggregate(entity_logic) != self._aggregate(entity_logic, after)
-
-    @staticmethod
-    def _compute_live_status(task: dict[str, Any]) -> str:
-        """Compute task status from coordinator data dict (mirrors MaintenanceTask.status)."""
-        return compute_status_from_task_dict(task)
 
 
 class MaintenanceNextDueSensor(MaintenanceEntity, SensorEntity):
@@ -594,12 +588,13 @@ class MaintenanceNextDueSensor(MaintenanceEntity, SensorEntity):
     @property
     def native_value(self) -> datetime | None:
         """The next due instant, or None (manual / archived / done tasks)."""
-        task = self._task_data
-        if not task:
+        result = self._task_result
+        if result is None:
             return None
-        if task.get("_status") == MaintenanceStatus.ARCHIVED:
+        if result.status == MaintenanceStatus.ARCHIVED:
             return None
-        raw = task.get("_next_due")
+        task = result.task
+        raw = result.next_due
         if not raw:
             return None
         try:
@@ -672,12 +667,12 @@ class MaintenanceDaysUntilDueSensor(MaintenanceEntity, SensorEntity):
     @property
     def native_value(self) -> int | None:
         """Days until due (negative = overdue), or None without a due date."""
-        task = self._task_data
-        if not task:
+        result = self._task_result
+        if result is None:
             return None
-        if task.get("_status") == MaintenanceStatus.ARCHIVED:
+        if result.status == MaintenanceStatus.ARCHIVED:
             return None
-        days = task.get("_days_until_due")
+        days = result.days_until_due
         return int(days) if days is not None else None
 
 

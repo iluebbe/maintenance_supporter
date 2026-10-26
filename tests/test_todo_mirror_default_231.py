@@ -59,6 +59,7 @@ from .conftest import (
     make_ws_connection,
     setup_integration,
 )
+from .task_results import as_result
 
 FAMILY = "todo.family"
 CLOUD = "todo.cloud"
@@ -155,8 +156,8 @@ def test_mirror_lists_rule() -> None:
     # own lists win over an opt-out left behind
     assert mirror_lists({"mirror_todo_entities": [FAMILY], "mirror_todo_use_default": False}, [CLOUD]) == [FAMILY]
     assert mirror_lists({}) == []
-    assert task_due_date({"_next_due": "2026-11-02"}) == date(2026, 11, 2)
-    assert task_due_date({"_next_due": "soon"}) is None and task_due_date({}) is None
+    assert task_due_date(as_result({"_next_due": "2026-11-02"})) == date(2026, 11, 2)
+    assert task_due_date(as_result({"_next_due": "soon"})) is None and task_due_date(as_result({})) is None
 
 
 async def test_default_lists_take_every_task_without_its_own(hass: HomeAssistant) -> None:
@@ -212,7 +213,7 @@ async def test_check_off_on_a_default_list_completes_the_task(hass: HomeAssistan
 
 async def test_a_list_that_takes_a_due_date_gets_the_tasks(hass: HomeAssistant) -> None:
     family, cloud, g, entry, mirror = await _setup(hass, [CLOUD, FAMILY])
-    due = date.fromisoformat(entry.runtime_data.coordinator.data[CONF_TASKS]["t1"]["_next_due"])
+    due = date.fromisoformat(entry.runtime_data.coordinator.data[CONF_TASKS]["t1"].next_due)
 
     assert cloud.rows()["Test Object: Filter"].due == due
     assert family.rows()["Test Object: Filter"].due is None  # this list takes none
@@ -224,7 +225,7 @@ async def test_a_list_that_takes_a_due_date_gets_the_tasks(hass: HomeAssistant) 
     uid = rec[CLOUD]["uid"]
     entry.runtime_data.store.set_anchor("t1", (dt_util.now().date() - timedelta(days=28)).isoformat())
     await _refresh(hass, entry)
-    moved = date.fromisoformat(entry.runtime_data.coordinator.data[CONF_TASKS]["t1"]["_next_due"])
+    moved = date.fromisoformat(entry.runtime_data.coordinator.data[CONF_TASKS]["t1"].next_due)
     assert moved != due
     row = cloud.rows()["Test Object: Filter"]
     assert row.due == moved and row.uid == uid
@@ -249,7 +250,7 @@ async def test_an_older_row_gets_the_date_once_and_a_hand_edit_stays(hass: HomeA
 
     monkeypatch.setattr(todo_mirror, "async_todo_update_item", spy)
     await _refresh(hass, entry)
-    due = date.fromisoformat(entry.runtime_data.coordinator.data[CONF_TASKS]["t1"]["_next_due"])
+    due = date.fromisoformat(entry.runtime_data.coordinator.data[CONF_TASKS]["t1"].next_due)
     assert calls == [{"due_date": due}]
     assert cloud.rows()["Test Object: Filter"].due == due
 
@@ -275,7 +276,7 @@ async def test_a_failed_date_update_is_retried(hass: HomeAssistant, monkeypatch)
     assert _record(entry)[CLOUD]["due"] is None  # not recorded — the next pass tries again
     monkeypatch.undo()
     await _refresh(hass, entry)
-    assert _record(entry)[CLOUD]["due"] == entry.runtime_data.coordinator.data[CONF_TASKS]["t1"]["_next_due"]
+    assert _record(entry)[CLOUD]["due"] == entry.runtime_data.coordinator.data[CONF_TASKS]["t1"].next_due
 
 
 async def test_the_update_wrapper_is_soft(hass: HomeAssistant) -> None:

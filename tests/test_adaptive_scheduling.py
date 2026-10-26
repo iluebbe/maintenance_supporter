@@ -327,7 +327,6 @@ class TestUpdateOnCompletion:
         updated = analyzer.update_on_completion(config, 28, "needed")
         assert updated["smoothed_interval"] == 28.0  # First value = raw
         assert updated["feedback_count"] == 1
-        assert updated["confidence"] == "low"
 
     def test_subsequent_completion(self) -> None:
         analyzer = IntervalAnalyzer()
@@ -374,22 +373,22 @@ class TestUpdateOnCompletion:
         assert updated["feedback_count"] == 5  # Not incremented
         assert updated["smoothed_interval"] is not None
 
-    def test_min_max_clamping(self) -> None:
+    def test_stores_only_the_learning_inputs(self) -> None:
+        """The learning step writes what analyze() reads and nothing else: a
+        recommendation computed here was stored and never read (typing audit
+        2026-10-25)."""
         analyzer = IntervalAnalyzer()
         config = {
             "enabled": True,
             "ewa_alpha": 0.3,
             "smoothed_interval": 5.0,
             "feedback_count": 8,
-            "base_interval": 7,
             "min_interval_days": 14,
             "max_interval_days": 60,
         }
         updated = analyzer.update_on_completion(config, 3, "needed")
-        # Even if prediction is very low, should be clamped to min
-        if updated["current_recommendation"] is not None:
-            assert updated["current_recommendation"] >= 14
-            assert updated["current_recommendation"] <= 60
+        assert set(updated) - set(config) == set()
+        assert updated["feedback_count"] == 9
 
     def test_original_config_not_mutated(self) -> None:
         analyzer = IntervalAnalyzer()

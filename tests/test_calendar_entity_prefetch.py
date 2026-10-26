@@ -194,15 +194,15 @@ async def test_coordinator_prefetches_events_and_task_comes_due_once_per_event(
     # … and the never-done task is overdue: its first occurrence on/after
     # created_at is the pickup 11 days ago (#30 semantics: visibly overdue).
     task = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task["_next_due"] == _iso(today - timedelta(days=11))
-    assert task["_status"] == MaintenanceStatus.OVERDUE
+    assert task.next_due == _iso(today - timedelta(days=11))
+    assert task.status == MaintenanceStatus.OVERDUE
 
     # Completing it moves to the NEXT event — not back onto the handled one.
     await coordinator.complete_maintenance(TASK_ID_1, notes=None, unattended=True)
     await hass.async_block_till_done()
     task = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task["_next_due"] == _iso(nxt)
-    assert task["_status"] == MaintenanceStatus.OK
+    assert task.next_due == _iso(nxt)
+    assert task.status == MaintenanceStatus.OK
 
 
 async def test_refresh_is_cached_for_15_minutes_and_forced_by_user_refresh(
@@ -250,7 +250,7 @@ async def test_fetch_failure_keeps_previous_dates(hass: HomeAssistant, global_en
     await coordinator.async_refresh_now()
     await coordinator.async_refresh_now()
     assert calendar_occurrences(BIO) == (today + timedelta(days=2),), "a flapping calendar must not wipe the cache"
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_next_due"] == _iso(today + timedelta(days=2))
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].next_due == _iso(today + timedelta(days=2))
     # Logged at debug, once — not again for the repeated failure.
     failures = [r for r in caplog.records if "Could not read events" in r.getMessage()]
     assert len(failures) == 1 and failures[0].levelname == "DEBUG"
@@ -266,8 +266,8 @@ async def test_missing_calendar_service_means_no_dates_not_a_crash(hass: HomeAss
     entry = make_object_entry(hass, tasks={TASK_ID_1: _calendar_task()}, uid="cal_nosvc")
     await setup_integration(hass, global_entry, entry)
     task = entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task["_next_due"] is None
-    assert task["_status"] == MaintenanceStatus.OK
+    assert task.next_due is None
+    assert task.status == MaintenanceStatus.OK
     assert calendar_occurrences(BIO) == ()
 
 
@@ -287,9 +287,9 @@ async def test_cache_is_shared_across_entries(hass: HomeAssistant, global_entry:
     assert sorted(c["entity_id"] for c in cal.calls) == [BIO, PAPER]
     await e2.runtime_data.coordinator.async_refresh()
     assert len(cal.calls) == 2, "the second object reads the shared cache"
-    assert e1.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]["_next_due"] == _iso(today + timedelta(days=1))
-    assert e2.runtime_data.coordinator.data[CONF_TASKS]["t2"]["_next_due"] == _iso(today + timedelta(days=4))
-    assert e2.runtime_data.coordinator.data[CONF_TASKS]["t3"]["_next_due"] == _iso(today + timedelta(days=1))
+    assert e1.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1].next_due == _iso(today + timedelta(days=1))
+    assert e2.runtime_data.coordinator.data[CONF_TASKS]["t2"].next_due == _iso(today + timedelta(days=4))
+    assert e2.runtime_data.coordinator.data[CONF_TASKS]["t3"].next_due == _iso(today + timedelta(days=1))
 
 
 async def test_removing_the_last_entry_removes_the_provider(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
@@ -377,7 +377,7 @@ async def test_ws_create_update_roundtrip_and_summary_name(hass: HomeAssistant, 
     entry = hass.config_entries.async_get_entry(entry.entry_id)
     cal.arm()
     await entry.runtime_data.coordinator.async_refresh_now()
-    assert entry.runtime_data.coordinator.data[CONF_TASKS][task_id]["_next_due"] == _iso(today + timedelta(days=6))
+    assert entry.runtime_data.coordinator.data[CONF_TASKS][task_id].next_due == _iso(today + timedelta(days=6))
     # A summary without a loaded calendar state omits the name rather than inventing one.
     assert "schedule_entity_name" not in _build_task_summary(hass, task_id, stored, None)
 

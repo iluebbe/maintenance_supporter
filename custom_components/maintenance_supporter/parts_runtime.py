@@ -10,6 +10,7 @@ and the event bus.
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -56,7 +57,7 @@ SIGNAL_PARTS_UPDATED = f"{DOMAIN}_parts_updated"
 def resolve_part_link(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    link: dict[str, Any],
+    link: Mapping[str, Any],
     *,
     link_owners: dict[str, str] | None = None,
 ) -> tuple[ConfigEntry | None, dict[str, Any] | None, Any]:
@@ -78,7 +79,7 @@ def resolve_part_link(
     return owner, part, store_or_cached(hass, owner)
 
 
-def part_link_name(hass: HomeAssistant, entry: ConfigEntry, link: dict[str, Any]) -> str:
+def part_link_name(hass: HomeAssistant, entry: ConfigEntry, link: Mapping[str, Any]) -> str:
     """Display name for a link's part, falling back to the raw part id."""
     _owner, part, _store = resolve_part_link(hass, entry, link)
     name = (part or {}).get("name")
@@ -238,7 +239,7 @@ async def async_handle_completion_parts(
     task_data: dict[str, Any],
     *,
     restock_quantity: float | None = None,
-    used_parts: list[dict[str, Any]] | None = None,
+    used_parts: Sequence[Mapping[str, Any]] | None = None,
 ) -> None:
     """Completion-side part effects: consume linked parts / restock a buy task.
 
@@ -280,7 +281,7 @@ async def async_handle_completion_parts(
     # automatic links are ignored there. An explicit selection still applies.
     # Any: the links come from storage or a completion request — each one is
     # shape-checked below.
-    links: list[Any]
+    links: Sequence[Any]
     if used_parts is not None:
         links = used_parts
     elif task_data.get(BATTERY_FLEET_TASK_FLAG):

@@ -41,6 +41,7 @@ from ..const import (
     MAX_TEXT_LENGTH,
     SIGNAL_DOCUMENTS_UPDATED,
 )
+from ..models.shapes import HistoryEntry
 from .aggregate import store_of
 from .url_safety import is_safe_link
 
@@ -144,7 +145,7 @@ async def async_rewrite_doc_refs(hass: HomeAssistant, rewrite: Callable[[str], s
             store_changed = False
             for task_id in list(entry.data.get(CONF_TASKS) or {}):
                 history = store.get_history(task_id)
-                new_history: list[dict[str, Any]] = []
+                new_history: list[HistoryEntry] = []
                 task_changed = False
                 for hist_entry in history:
                     photos = history_photo_ids(hist_entry) if isinstance(hist_entry, dict) else []
@@ -163,7 +164,7 @@ async def async_rewrite_doc_refs(hass: HomeAssistant, rewrite: Callable[[str], s
                     if not entry_changed and "photo_doc_id" not in hist_entry:
                         new_history.append(hist_entry)
                         continue
-                    patched = dict(hist_entry)
+                    patched = hist_entry.copy()
                     patched.pop("photo_doc_id", None)
                     if kept:
                         patched["photo_doc_ids"] = kept

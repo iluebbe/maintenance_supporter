@@ -120,7 +120,7 @@ async def test_notify_service_unavailable(
 
         # Coordinator still works
         assert coordinator.data is not None
-        assert coordinator.data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.OVERDUE
+        assert coordinator.data[CONF_TASKS][TASK_ID_1].status == MaintenanceStatus.OVERDUE
 
 
 async def test_trigger_entity_disappears(
@@ -220,19 +220,19 @@ async def test_trigger_entity_unavailable(
 
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
     # Unavailable must not ACTIVATE a trigger.
-    assert task_data.get("_trigger_active") is not True
+    assert task_data.trigger_active is not True
 
     # And it must not DEACTIVATE a latched one either: trigger with a real
     # reading, then drop to unavailable — the latch survives the sweep.
     hass.states.async_set("sensor.flaky", "0.5")  # below 1.0 → triggered
     await coordinator.async_refresh()
     await hass.async_block_till_done()
-    assert coordinator.data[CONF_TASKS][TASK_ID_1].get("_trigger_active") is True
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].trigger_active is True
 
     hass.states.async_set("sensor.flaky", "unavailable")
     await coordinator.async_refresh()
     await hass.async_block_till_done()
-    assert coordinator.data[CONF_TASKS][TASK_ID_1].get("_trigger_active") is True
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].trigger_active is True
 
 
 async def test_store_missing_on_reload(
@@ -397,4 +397,4 @@ async def test_threshold_trigger_non_numeric_state(
     await hass.async_block_till_done()
 
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data.get("_trigger_active") is not True
+    assert task_data.trigger_active is not True

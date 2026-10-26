@@ -16,11 +16,11 @@ from ..const import (
     CONF_OBJECT,
     CONF_OBJECT_PLACE,
     CONF_OBJECT_REMIND_ON_SITE,
-    CONF_TASKS,
     DEFAULT_TASK_PRIORITY,
     DEFAULT_WARNING_DAYS,
 )
-from .aggregate import merged_tasks
+from ..models.task_result import TaskResult
+from .aggregate import merged_tasks, task_results_of
 from .dates import INTERVAL_UNITS, import_day, normalize_hhmm, parse_iso_date
 from .global_options import get_default_warning_days
 from .pause import pause_end_day, write_anchor
@@ -126,9 +126,7 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
         # Merge static + Store dynamic data
         tasks_data = merged_tasks(entry)
 
-        rd = getattr(entry, "runtime_data", None)
-        coord_data = rd.coordinator.data if rd and rd.coordinator else None
-        ct_tasks = (coord_data or {}).get(CONF_TASKS, {})
+        ct_tasks = task_results_of(entry)
 
         object_row = {
             "object_entry_id": entry.entry_id,
@@ -152,7 +150,7 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
             writer.writerow(object_row)
 
         for tid, tdata in tasks_data.items():
-            ct = ct_tasks.get(tid, {})
+            ct = ct_tasks.get(tid) or TaskResult(task={})
             sched = read_legacy_fields(tdata)
             writer.writerow(
                 {
@@ -188,9 +186,9 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
                     # Labels ride one cell, "\n"-separated like the checklist.
                     "labels": "\n".join(_csv_safe(lb) for lb in (tdata.get("labels") or []) if lb),
                     "trigger_type": (tdata.get("trigger_config") or {}).get("type", ""),
-                    "status": ct.get("_status", "ok"),
-                    "times_performed": ct.get("_times_performed", 0),
-                    "total_cost": ct.get("_total_cost", 0.0),
+                    "status": ct.status,
+                    "times_performed": ct.times_performed,
+                    "total_cost": ct.total_cost,
                     # Each item is _csv_safe()-prefixed individually so a step
                     # starting with "=" can't trigger a formula in Excel after
                     # the cell is unpacked.

@@ -20,6 +20,7 @@ from .conftest import (
     build_task_data,
     setup_integration,
 )
+from .task_results import as_result
 
 # ─── 6.1 Unit Tests for MaintenanceTask.status ──────────────────────────
 
@@ -476,7 +477,7 @@ def test_maintenance_object_from_dict_all_fields() -> None:
     assert obj.slug == "test_object"
 
 
-# ─── F6: dict-twin parity — helpers.status.compute_status_from_task_dict ─────
+# ─── F6: dict-twin parity — helpers.status.compute_live_status ─────
 
 
 def _coord_dict(task: MaintenanceTask) -> dict:
@@ -491,14 +492,14 @@ def _coord_dict(task: MaintenanceTask) -> dict:
 
 
 def test_status_dict_twin_agrees_with_model_on_shared_ladder() -> None:
-    """helpers.status.compute_status_from_task_dict must agree with the model's
+    """helpers.status.compute_live_status must agree with the model's
     MaintenanceTask.status on the shared archived/triggered/overdue/due_soon/ok
     ladder. Uses interval 30 / warning 7 (span >= warning) and no schedule_time,
     so the model-only refinements (#58 span clamp, past-schedule_time) don't
     apply — this pins the SHARED precedence so a new tier can't drift.
     """
     from custom_components.maintenance_supporter.helpers.status import (
-        compute_status_from_task_dict,
+        compute_live_status,
     )
 
     def mk(days_ago: int) -> MaintenanceTask:
@@ -521,15 +522,15 @@ def test_status_dict_twin_agrees_with_model_on_shared_ladder() -> None:
         (archived, MaintenanceStatus.ARCHIVED),
     ):
         assert task.status == expected  # sanity: model computes the tier
-        assert compute_status_from_task_dict(_coord_dict(task)) == expected, f"dict-twin diverged from model for {expected}"
+        assert compute_live_status(as_result(_coord_dict(task))) == expected, f"dict-twin diverged from model for {expected}"
 
 
 class TestDictTwinCombinator:
-    """compute_status_from_task_dict mirrors the model for trigger_combinator."""
+    """compute_live_status mirrors the model for trigger_combinator."""
 
     def test_all_combinator_dict_twin(self) -> None:
         from custom_components.maintenance_supporter.helpers.status import (
-            compute_status_from_task_dict,
+            compute_live_status,
         )
 
         base = {
@@ -537,17 +538,17 @@ class TestDictTwinCombinator:
             "warning_days": 7,
         }
         # Trigger alone, interval not elapsed -> OK
-        assert compute_status_from_task_dict({**base, "_trigger_active": True, "_days_until_due": 25}) == MaintenanceStatus.OK
+        assert compute_live_status(as_result({**base, "_trigger_active": True, "_days_until_due": 25})) == MaintenanceStatus.OK
         # Interval alone -> OK
-        assert compute_status_from_task_dict({**base, "_trigger_active": False, "_days_until_due": -5}) == MaintenanceStatus.OK
+        assert compute_live_status(as_result({**base, "_trigger_active": False, "_days_until_due": -5})) == MaintenanceStatus.OK
         # Both -> TRIGGERED
-        assert compute_status_from_task_dict({**base, "_trigger_active": True, "_days_until_due": -5}) == MaintenanceStatus.TRIGGERED
+        assert compute_live_status(as_result({**base, "_trigger_active": True, "_days_until_due": -5})) == MaintenanceStatus.TRIGGERED
         # No schedule leg -> trigger alone governs
-        assert compute_status_from_task_dict({**base, "_trigger_active": True, "_days_until_due": None}) == MaintenanceStatus.TRIGGERED
+        assert compute_live_status(as_result({**base, "_trigger_active": True, "_days_until_due": None})) == MaintenanceStatus.TRIGGERED
 
     def test_any_combinator_dict_twin_unchanged(self) -> None:
         from custom_components.maintenance_supporter.helpers.status import (
-            compute_status_from_task_dict,
+            compute_live_status,
         )
 
         task = {
@@ -556,7 +557,7 @@ class TestDictTwinCombinator:
             "_days_until_due": 25,
             "warning_days": 7,
         }
-        assert compute_status_from_task_dict(task) == MaintenanceStatus.TRIGGERED
+        assert compute_live_status(as_result(task)) == MaintenanceStatus.TRIGGERED
 
 
 class TestDictTwinBoundaries:
@@ -564,24 +565,24 @@ class TestDictTwinBoundaries:
 
     def test_due_today_is_due_soon_not_overdue(self) -> None:
         from custom_components.maintenance_supporter.helpers.status import (
-            compute_status_from_task_dict,
+            compute_live_status,
         )
 
         task = {"_days_until_due": 0, "warning_days": 7}
-        assert compute_status_from_task_dict(task) == MaintenanceStatus.DUE_SOON
+        assert compute_live_status(as_result(task)) == MaintenanceStatus.DUE_SOON
 
     def test_exactly_at_warning_days_is_due_soon(self) -> None:
         from custom_components.maintenance_supporter.helpers.status import (
-            compute_status_from_task_dict,
+            compute_live_status,
         )
 
-        assert compute_status_from_task_dict({"_days_until_due": 7, "warning_days": 7}) == MaintenanceStatus.DUE_SOON
-        assert compute_status_from_task_dict({"_days_until_due": 8, "warning_days": 7}) == MaintenanceStatus.OK
+        assert compute_live_status(as_result({"_days_until_due": 7, "warning_days": 7})) == MaintenanceStatus.DUE_SOON
+        assert compute_live_status(as_result({"_days_until_due": 8, "warning_days": 7})) == MaintenanceStatus.OK
 
     def test_all_combinator_due_today_counts_as_time_met(self) -> None:
         """days == 0 IS time-met: a latched trigger actions on the due day."""
         from custom_components.maintenance_supporter.helpers.status import (
-            compute_status_from_task_dict,
+            compute_live_status,
         )
 
         task = {
@@ -590,8 +591,8 @@ class TestDictTwinBoundaries:
             "_days_until_due": 0,
             "warning_days": 7,
         }
-        assert compute_status_from_task_dict(task) == MaintenanceStatus.TRIGGERED
+        assert compute_live_status(as_result(task)) == MaintenanceStatus.TRIGGERED
         # One day early: not TRIGGERED yet — but the time ladder keeps
         # running, so the imminent due date still reads as a warning.
         task["_days_until_due"] = 1
-        assert compute_status_from_task_dict(task) == MaintenanceStatus.DUE_SOON
+        assert compute_live_status(as_result(task)) == MaintenanceStatus.DUE_SOON

@@ -247,7 +247,7 @@ async def _compound_entry(hass: HomeAssistant, **extra: Any) -> Any:
     await setup_integration(hass, make_global_entry(hass), obj)
     await hass.async_block_till_done()
     coordinator = obj.runtime_data.coordinator
-    assert coordinator.data["tasks"]["task_1"]["_trigger_active"] is True
+    assert coordinator.data["tasks"]["task_1"].trigger_active is True
     return coordinator
 
 
@@ -274,13 +274,13 @@ async def test_t4_a_held_back_activation_comes_back_after_the_cooldown(hass: Hom
     await hass.async_block_till_done()
     await _readings(hass, "41", "41")
     await coordinator.async_refresh_now()
-    assert coordinator.data["tasks"]["task_1"]["_trigger_active"] is False, "held back inside the cooldown"
+    assert coordinator.data["tasks"]["task_1"].trigger_active is False, "held back inside the cooldown"
 
     coordinator._recently_completed["task_1"] -= TRIGGER_COMPLETION_COOLDOWN_SECONDS + 5
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=TRIGGER_COMPLETION_COOLDOWN_SECONDS + 5))
     await hass.async_block_till_done()
     await coordinator.async_refresh_now()
-    assert coordinator.data["tasks"]["task_1"]["_trigger_active"] is True
+    assert coordinator.data["tasks"]["task_1"].trigger_active is True
 
 
 async def test_t4_clear_and_back_within_the_cooldown_is_a_new_problem(hass: HomeAssistant) -> None:
@@ -292,13 +292,13 @@ async def test_t4_clear_and_back_within_the_cooldown_is_a_new_problem(hass: Home
     await hass.async_block_till_done()
     await _readings(hass, "41", "41")
     await coordinator.async_refresh_now()
-    assert coordinator.data["tasks"]["task_1"]["_trigger_active"] is False
+    assert coordinator.data["tasks"]["task_1"].trigger_active is False
     with patch.object(coordinator, "async_auto_complete_on_recovery", AsyncMock()) as auto:
         await _readings(hass, "41", "10")
         auto.assert_not_awaited()
     await _readings(hass, "41", "45")
     await coordinator.async_refresh_now()
-    assert coordinator.data["tasks"]["task_1"]["_trigger_active"] is True, "a new edge, applied at once"
+    assert coordinator.data["tasks"]["task_1"].trigger_active is True, "a new edge, applied at once"
 
 
 # ─── T-5: an entity rename reaches an object that is not loaded ─────────────

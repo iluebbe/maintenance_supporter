@@ -27,6 +27,7 @@ from .const import (
 from .helpers.aggregate import get_object_entries, merged_tasks, store_of
 from .helpers.documents import doc_wire_dict
 from .helpers.schedule import Schedule, read_legacy_fields
+from .models.task_result import CoordinatorData, TaskResult
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,7 +53,7 @@ def _export_documents(doc_store: Any, object_id: str) -> list[dict[str, Any]]:
 def _build_export_object(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    coordinator_data: dict[str, Any] | None,
+    coordinator_data: CoordinatorData | None,
     include_history: bool,
 ) -> dict[str, Any]:
     """Build a single object's export dict."""
@@ -60,11 +61,11 @@ def _build_export_object(
     # Merge static + Store dynamic data for each task
     store = store_of(entry)
     tasks_data = merged_tasks(entry)
-    ct_tasks = (coordinator_data or {}).get(CONF_TASKS, {})
+    ct_tasks = coordinator_data[CONF_TASKS] if coordinator_data else {}
 
     tasks = []
     for tid, tdata in tasks_data.items():
-        ct = ct_tasks.get(tid, {})
+        ct = ct_tasks.get(tid) or TaskResult(task={})
         sched = read_legacy_fields(tdata)
         task: dict[str, Any] = {
             "id": tid,
@@ -154,12 +155,12 @@ def _build_export_object(
             # Spare parts: consumption links + the auto-buy-task marker.
             "consumes_parts": tdata.get("consumes_parts"),
             "part_ref": tdata.get("part_ref"),
-            "status": ct.get("_status", "ok"),
-            "days_until_due": ct.get("_days_until_due"),
-            "next_due": ct.get("_next_due"),
-            "times_performed": ct.get("_times_performed", 0),
-            "total_cost": ct.get("_total_cost", 0.0),
-            "average_duration": ct.get("_average_duration"),
+            "status": ct.status,
+            "days_until_due": ct.days_until_due,
+            "next_due": ct.next_due,
+            "times_performed": ct.times_performed,
+            "total_cost": ct.total_cost,
+            "average_duration": ct.average_duration,
         }
 
         trigger_config = tdata.get("trigger_config")

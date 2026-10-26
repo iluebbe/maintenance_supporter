@@ -138,10 +138,7 @@ def current_phase_summary(task: dict[str, Any] | None) -> dict[str, Any] | None:
     return {"id": phase["id"], "name": phase["name"], "index": phase["index"], "count": phase["count"]}
 
 
-_UNSET: Any = object()
-
-
-def task_label(task: Mapping[str, Any] | None, event_titles: Iterable[str] | None = _UNSET) -> str:
+def task_label(task: Mapping[str, Any] | None, event_titles: Iterable[str] | None = None) -> str:
     """THE display label of a task: its name, the cycle phase currently due
     (#139: "Mower blades · Replace blades" says what the work IS) and, for a
     calendar-driven task, the titles of the next events (#189: "Put the bins
@@ -150,17 +147,15 @@ def task_label(task: Mapping[str, Any] | None, event_titles: Iterable[str] | Non
     Every surface that names a task to a person goes through here — the
     status notifications had it, while lead reminders, the completion
     notification and the to-do rows sent the bare name (bug audit
-    2026-09-26, DRY BR-A5). *event_titles* defaults to the coordinator
-    payload's ``_next_event_titles``; pass it explicitly for a task dict
-    that is not a payload (``None`` = no titles).
+    2026-09-26, DRY BR-A5). *event_titles* are the next events' titles a
+    task result carries (``TaskResult.next_event_titles``; ``None`` = none).
     """
     from .calendar_source import with_event_titles  # calendar_source imports schedule
 
     data: Mapping[str, Any] = task or {}
     name = str(data.get("name") or data.get("id") or "")
     phase = current_phase(dict(data))
-    titles = data.get("_next_event_titles") if event_titles is _UNSET else event_titles
-    return with_event_titles(f"{name} · {phase['name']}" if phase else name, titles)
+    return with_event_titles(f"{name} · {phase['name']}" if phase else name, event_titles)
 
 
 def effective_field(task: dict[str, Any] | None, field: str) -> Any:

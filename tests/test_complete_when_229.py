@@ -122,7 +122,7 @@ async def _set(hass: HomeAssistant, entity_id: str, state: str) -> None:
 
 
 def _status(obj: MockConfigEntry, task_id: str = TASK_ID_1) -> str:
-    return str(obj.runtime_data.coordinator.data[CONF_TASKS][task_id]["_status"])
+    return str(obj.runtime_data.coordinator.data[CONF_TASKS][task_id].status)
 
 
 def _entries(obj: MockConfigEntry, kind: str, task_id: str = TASK_ID_1) -> list[dict[str, Any]]:

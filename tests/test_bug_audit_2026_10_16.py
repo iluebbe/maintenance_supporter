@@ -248,7 +248,7 @@ async def test_a_backfilled_completion_does_not_reset_the_triggers(hass: HomeAss
     await hass.async_block_till_done()
     assert signals == [1], "the backfill reset the triggers"
     assert not coordinator.in_completion_cooldown(TASK)
-    history = coordinator.data[CONF_TASKS][TASK]["history"]
+    history = coordinator.data[CONF_TASKS][TASK].task["history"]
     assert sum(1 for h in history if h.get("type") == "completed") == 2
 
 
@@ -265,7 +265,7 @@ async def test_undo_of_a_task_archive_keeps_its_dates(hass: HomeAssistant) -> No
     assert_ws_success(await _ws(hass, ws_archive_task, {"type": f"{DOMAIN}/task/archive", **base}))
     assert_ws_success(await _ws(hass, ws_unarchive_task, {"type": f"{DOMAIN}/task/unarchive", **base, "undo": True}))
     assert store.get_task_state(TASK)["last_performed"] == _days_ago(40)
-    assert _live(hass, entry).runtime_data.coordinator.data[CONF_TASKS][TASK]["_status"] == "overdue"
+    assert _live(hass, entry).runtime_data.coordinator.data[CONF_TASKS][TASK].status == "overdue"
 
     assert_ws_success(await _ws(hass, ws_archive_task, {"type": f"{DOMAIN}/task/archive", **base}))
     assert_ws_success(await _ws(hass, ws_unarchive_task, {"type": f"{DOMAIN}/task/unarchive", **base}))
@@ -286,7 +286,7 @@ async def test_undo_of_a_task_pause_keeps_a_postponed_date(hass: HomeAssistant) 
     assert_ws_success(await _ws(hass, ws_pause_task, {"type": f"{DOMAIN}/task/pause", **base}))
     assert_ws_success(await _ws(hass, ws_resume_task, {"type": f"{DOMAIN}/task/resume", **base, "undo": True}))
     data = _live(hass, entry).runtime_data.coordinator.data[CONF_TASKS][TASK]
-    assert data["_next_due"][:10] == until.isoformat()
+    assert data.next_due[:10] == until.isoformat()
     assert _live(hass, entry).runtime_data.store.get_task_state(TASK)["last_performed"] == _days_ago(40)
 
 
@@ -310,7 +310,7 @@ async def test_undo_of_an_object_archive_or_pause_keeps_the_dates(hass: HomeAssi
     assert_ws_success(await _ws(hass, ws_resume_object, {"type": f"{DOMAIN}/object/resume", **base, "undo": True}))
     assert _live(hass, entry).runtime_data.store.get_task_state(TASK)["last_performed"] == _days_ago(40)
     assert _live(hass, entry).data[CONF_OBJECT].get("paused_at") is None
-    assert _live(hass, entry).runtime_data.coordinator.data[CONF_TASKS][TASK]["_status"] == "overdue"
+    assert _live(hass, entry).runtime_data.coordinator.data[CONF_TASKS][TASK].status == "overdue"
 
 
 # ─── Calendar: overdue on today is all-day; an ended event is not next ───

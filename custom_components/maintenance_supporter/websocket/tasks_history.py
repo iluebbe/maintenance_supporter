@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
@@ -25,6 +25,7 @@ from ..helpers.completion_photos import (
 )
 from ..helpers.permissions import require_write
 from ..helpers.ws_errors import send_translated_error
+from ..models.shapes import HistoryEntry
 from ..storage import reanchor_from_history
 from . import (
     ID_FIELD,
@@ -253,7 +254,7 @@ async def ws_update_history_entry(
         # part already on it keeps how it was booked (#222).
         from ..helpers.parts_cost import mark_link_bases
 
-        mark_link_bases(hass, entry, patched, previous=old_used)
+        mark_link_bases(hass, entry, cast("HistoryEntry", patched), previous=old_used)
 
     before = list(history)
     history[target_index] = patched

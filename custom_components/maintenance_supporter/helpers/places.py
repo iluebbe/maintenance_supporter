@@ -50,6 +50,7 @@ from ..const import (
     MaintenanceStatus,
 )
 from .aggregate import get_object_entries
+from .coordinator_data import task_results
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -171,20 +172,19 @@ def due_tasks_at(hass: HomeAssistant, zone_id: str) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for entry in objects_at(hass, zone_id):
         coordinator = entry.runtime_data.coordinator
-        results = (coordinator.data or {}).get(CONF_TASKS) or {}
         configs = entry.data.get(CONF_TASKS) or {}
-        for task_id, result in results.items():
-            status = result.get("_status")
+        for task_id, result in task_results(coordinator).items():
+            status = result.status
             if status not in rank:
                 continue
             out.append(
                 {
                     "entry_id": entry.entry_id,
                     "task_id": task_id,
-                    "task_name": task_label(result),
+                    "task_name": task_label(result.task, result.next_event_titles),
                     "object_name": coordinator.maintenance_object.name,
                     "status": status,
-                    "task_data": {**(configs.get(task_id) or {}), **result},
+                    "task_data": {**(configs.get(task_id) or {}), **result.task},
                 }
             )
     out.sort(key=lambda t: (rank[t["status"]], t["object_name"], t["task_name"]))

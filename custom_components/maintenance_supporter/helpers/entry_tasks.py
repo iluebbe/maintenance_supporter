@@ -13,6 +13,7 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 from ..const import CONF_OBJECT, CONF_TASKS, MAX_TASKS_PER_OBJECT
+from ..models.shapes import HistoryEntry
 from .aggregate import get_store
 from .schedule import normalize_task_storage
 
@@ -46,7 +47,7 @@ def insert_new_task(
     task_data: dict[str, Any],
     *,
     last_performed: str | None = None,
-    history: list[dict[str, Any]] | None = None,
+    history: list[HistoryEntry] | None = None,
 ) -> Any:
     """Insert a freshly-built task into an object entry — the ONE create rule
     for the ``task/create`` WS command, the ``add_task`` service and the

@@ -11,7 +11,7 @@ shapes never diverge.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from typing import Any
 
 # Same order of magnitude as used_parts: enough for a before/after series,
@@ -41,7 +41,7 @@ def normalize_photo_doc_ids(ids: Iterable[Any] | None, legacy: Any = None) -> li
     return out
 
 
-def history_photo_ids(entry: dict[str, Any]) -> list[str]:
+def history_photo_ids(entry: Mapping[str, Any]) -> list[str]:
     """The photos of one history entry, whichever shape it was written in."""
     raw = entry.get("photo_doc_ids")
     return normalize_photo_doc_ids(raw if isinstance(raw, list) else None, entry.get("photo_doc_id"))

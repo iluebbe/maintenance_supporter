@@ -59,6 +59,7 @@ from .conftest import (
     set_sensor_state,
     setup_integration,
 )
+from .task_results import flat
 
 
 def _coordinator(hass: HomeAssistant, entry: MockConfigEntry) -> Any:
@@ -122,7 +123,7 @@ async def test_an_object_refresh_survives_a_stored_endless_vacation(hass: HomeAs
     coordinator = _coordinator(hass, obj)
     await coordinator.async_refresh()
     assert coordinator.last_update_success is True
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.OVERDUE
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].status == MaintenanceStatus.OVERDUE
 
 
 async def test_the_vacation_command_refuses_an_absurd_end_date(hass: HomeAssistant) -> None:
@@ -199,8 +200,8 @@ async def test_a_task_with_a_far_future_anchor_does_not_take_its_object_down(has
     coordinator = _coordinator(hass, obj)
     await coordinator.async_refresh()
     assert coordinator.last_update_success is True
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_next_due"] is None
-    assert coordinator.data[CONF_TASKS][TASK_ID_2]["_status"] == MaintenanceStatus.OVERDUE
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].next_due is None
+    assert coordinator.data[CONF_TASKS][TASK_ID_2].status == MaintenanceStatus.OVERDUE
 
 
 async def test_one_failing_task_is_contained_to_that_task(hass: HomeAssistant) -> None:
@@ -231,7 +232,7 @@ async def test_one_failing_task_is_contained_to_that_task(hass: HomeAssistant) -
         await coordinator.async_refresh()
     assert coordinator.last_update_success is True
     tasks = coordinator.data[CONF_TASKS]
-    broken, fine = tasks[TASK_ID_1], tasks[TASK_ID_2]
+    broken, fine = flat(tasks[TASK_ID_1]), flat(tasks[TASK_ID_2])
     assert broken["_next_due"] is None and broken["_status"] == MaintenanceStatus.OK
     assert fine["_status"] == MaintenanceStatus.OVERDUE
 
@@ -297,7 +298,7 @@ async def test_a_stored_absurd_nested_interval_keeps_the_object_alive(hass: Home
     await setup_integration(hass, g, obj)
     coordinator = _coordinator(hass, obj)
     assert coordinator.last_update_success is True
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_next_due"] is not None
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].next_due is not None
 
 
 # ─── Medium 6 (R SCH-1): early completions of a calendar task ───────────────
@@ -408,11 +409,11 @@ async def test_a_trigger_flip_during_a_refresh_is_not_lost(hass: HomeAssistant) 
         gate.set()
         await refresh
         await hass.async_block_till_done()
-        assert coordinator.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
-        assert coordinator.data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.TRIGGERED
+        assert coordinator.data[CONF_TASKS][TASK_ID_1].trigger_active is True
+        assert coordinator.data[CONF_TASKS][TASK_ID_1].status == MaintenanceStatus.TRIGGERED
         await coordinator.async_refresh()
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.TRIGGERED
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].trigger_active is True
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].status == MaintenanceStatus.TRIGGERED
 
 
 # ─── Medium 11: entity renames reach every reference ─────────────────────────
@@ -471,17 +472,17 @@ async def test_the_post_completion_cooldown_survives_a_reload(hass: HomeAssistan
     obj = make_object_entry(hass, tasks={TASK_ID_1: _threshold_task("sensor.salt", trigger_below=10)})
     await setup_integration(hass, g, obj)
     coordinator = _coordinator(hass, obj)
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.TRIGGERED
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].status == MaintenanceStatus.TRIGGERED
     await coordinator.complete_maintenance(TASK_ID_1)
     await hass.async_block_till_done()
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.OK
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].status == MaintenanceStatus.OK
 
     await hass.config_entries.async_reload(obj.entry_id)
     await hass.async_block_till_done()
     fresh = _coordinator(hass, obj)
     assert fresh is not coordinator
     await fresh.async_refresh()
-    assert fresh.data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.OK
+    assert fresh.data[CONF_TASKS][TASK_ID_1].status == MaintenanceStatus.OK
     assert fresh.in_completion_cooldown(TASK_ID_1) is True
 
 
@@ -525,7 +526,7 @@ async def test_a_held_quiet_hours_reminder_is_dropped_when_the_task_leaves_the_s
 
     await coordinator.async_postpone_task(TASK_ID_1, now.date() + timedelta(days=10))
     await coordinator.async_refresh()
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.OK
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].status == MaintenanceStatus.OK
     assert not nm._quiet_held
 
     hass.config_entries.async_update_entry(g, options={**g.data, **quiet, CONF_QUIET_HOURS_ENABLED: False})
@@ -560,7 +561,7 @@ async def test_a_compound_trigger_does_not_reannounce_on_reload(hass: HomeAssist
     assert _history_types(hass, obj).count("triggered") == 1
     coordinator = _coordinator(hass, obj)
     await coordinator.async_refresh()
-    assert coordinator.data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.TRIGGERED
+    assert coordinator.data[CONF_TASKS][TASK_ID_1].status == MaintenanceStatus.TRIGGERED
 
     # A real new episode is still announced: recover, then trigger again.
     set_sensor_state(hass, "sensor.a", "1")

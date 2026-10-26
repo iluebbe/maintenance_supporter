@@ -454,7 +454,7 @@ def _registered_setting_constants() -> set[str]:
         node.targets[0].id
         for node in tree.body
         if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)
-    }
+    } | {node.target.id for node in tree.body if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name)}
     registry = (COMPONENT / "helpers" / "settings_registry.py").read_text(encoding="utf-8")
     return {name for name in names if f"SettingSpec({name}," in registry}
 

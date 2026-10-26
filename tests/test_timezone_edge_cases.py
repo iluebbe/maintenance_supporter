@@ -240,7 +240,6 @@ class TestIntervalAnalyzerTimezones:
             adaptive_config={
                 "feedback_count": 12,
                 "seasonal_enabled": True,
-                "hemisphere": "north",
             },
         )
         # current_month is January (= 1) in both HA and system TZ for this freeze

@@ -358,8 +358,8 @@ async def test_prediction_urgency_measures_a_months_task_in_days(hass: HomeAssis
     ):
         entry = await _setup(hass, {TASK: task})
         result = _coordinator(hass, entry).data[CONF_TASKS][TASK]
-    assert result.get("_sensor_prediction_urgency") is True
-    assert result.get("_suggested_interval") is None
+    assert result.sensor_prediction_urgency is True
+    assert result.suggested_interval is None
 
     before = dict(entry.data[CONF_TASKS][TASK])
     await _coordinator(hass, entry).async_apply_suggested_interval(TASK, 18)
@@ -405,8 +405,8 @@ def test_the_task_label_names_phase_and_events() -> None:
     from custom_components.maintenance_supporter.helpers.todo_mirror import mirror_summary
 
     assert task_label({"name": "Blades", **_PHASES}) == "Blades · Swap disks"
-    assert task_label({"name": "Blades", **_PHASES, "phase_cursor": 1, "_next_event_titles": ["x"]}) == "Blades · Replace blades · x"
-    assert task_label({"name": "Bins", "_next_event_titles": ["Paper"]}, None) == "Bins", "explicit None = no titles"
+    assert task_label({"name": "Blades", **_PHASES, "phase_cursor": 1}, ["x"]) == "Blades · Replace blades · x"
+    assert task_label({"name": "Bins"}, None) == "Bins", "None = no titles"
     # A phase-less task's to-do row text is unchanged — mirrored rows keep matching.
     assert mirror_summary("Home", {"name": "Filter"}) == "Home: Filter"
 
@@ -525,7 +525,7 @@ async def test_the_calendar_prefix_follows_the_sensor_with_schedule_time_off(has
         # the feature ON for a task that carries a schedule_time).
         global_extra={CONF_ADVANCED_ADAPTIVE: False, CONF_ADVANCED_SCHEDULE_TIME: False},
     )
-    assert _coordinator(hass, entry).data[CONF_TASKS][TASK]["_status"] == MaintenanceStatus.DUE_SOON
+    assert _coordinator(hass, entry).data[CONF_TASKS][TASK].status == MaintenanceStatus.DUE_SOON
     calendar = hass.data[DOMAIN]["_calendar_entity"]
     assert isinstance(calendar, MaintenanceCalendar)
     today = dt_util.now().date()
@@ -581,9 +581,9 @@ async def test_the_coordinator_shows_one_entitys_counter_progress(hass: HomeAssi
     coordinator._store.set_trigger_runtime(TASK, "sensor.odo_b", {"baseline_value": 0.0})
     await coordinator.async_refresh_now()
     result = coordinator.data[CONF_TASKS][TASK]
-    assert result["_trigger_baseline_value"] == 900.0
-    assert result["_trigger_current_value"] == 1000.0
-    assert result["_trigger_current_delta"] == 100.0
+    assert result.trigger_baseline_value == 900.0
+    assert result.trigger_current_value == 1000.0
+    assert result.trigger_current_delta == 100.0
 
 
 def test_the_counter_forecast_uses_the_living_baseline() -> None:
@@ -649,7 +649,7 @@ async def test_a_completed_all_task_needs_every_sensor_again(hass: HomeAssistant
     sensor._handle_task_reset()
     assert sensor._trigger_states == {"sensor.p1": False, "sensor.p2": False}
     sensor.async_update_trigger_state(True, 35.0, "sensor.p1")
-    assert _coordinator(hass, entry).data[CONF_TASKS][TASK]["_trigger_active"] is False
+    assert _coordinator(hass, entry).data[CONF_TASKS][TASK].trigger_active is False
 
 
 async def test_auto_complete_waits_for_the_task_to_recover(hass: HomeAssistant) -> None:
@@ -699,7 +699,7 @@ async def test_a_restart_does_not_re_announce_a_standing_trigger(hass: HomeAssis
     await hass.async_block_till_done()
     assert _history_types(hass, entry).count(HistoryEntryType.TRIGGERED) == 1
     assert len(activations) == 1
-    assert _coordinator(hass, entry).data[CONF_TASKS][TASK]["_trigger_active"] is True, "restored, not dropped"
+    assert _coordinator(hass, entry).data[CONF_TASKS][TASK].trigger_active is True, "restored, not dropped"
 
     # After a completion the standing value IS news again.
     await _coordinator(hass, entry).complete_maintenance(TASK, notes="done")

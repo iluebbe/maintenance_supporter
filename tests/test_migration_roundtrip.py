@@ -971,4 +971,4 @@ async def test_an_archived_object_imports_with_its_tasks_archived(hass: HomeAssi
     assert task["archived_at"] == "2026-05-01T00:00:00+00:00"
     assert task["archived_reason"] == "object"
     (computed,) = entry.runtime_data.coordinator.data[CONF_TASKS].values()
-    assert computed["_status"] == "archived"
+    assert computed.status == "archived"

@@ -39,6 +39,7 @@ from .conftest import (
     setup_integration,
 )
 from .journey import simulate_restart
+from .task_results import as_result
 
 
 @pytest.fixture
@@ -427,11 +428,11 @@ def test_dict_twin_reports_paused() -> None:
     """The live-recompute path must not flip a frozen task to TRIGGERED."""
     from custom_components.maintenance_supporter.const import MaintenanceStatus
     from custom_components.maintenance_supporter.helpers.status import (
-        compute_status_from_task_dict,
+        compute_live_status,
     )
 
     task = {"_paused": True, "_trigger_active": True, "_days_until_due": -5}
-    assert compute_status_from_task_dict(task) == MaintenanceStatus.PAUSED
+    assert compute_live_status(as_result(task)) == MaintenanceStatus.PAUSED
 
 
 async def test_paused_object_with_trigger_task_wires_no_triggers(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:

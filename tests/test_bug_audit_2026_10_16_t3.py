@@ -45,6 +45,7 @@ from .conftest import (
     make_ws_connection,
     setup_integration,
 )
+from .task_results import as_results
 
 TASK = "t1"
 
@@ -394,12 +395,13 @@ async def test_ci_a_paused_task_gets_no_repair(hass: HomeAssistant) -> None:
 
 async def test_cj_archived_and_disabled_reads_archived_with_totals(hass: HomeAssistant) -> None:
     entry = await _setup(hass, enabled=False, archived_at="2026-09-01T00:00:00+00:00", archived_reason="manual")
-    other = _object(hass, name="Dryer", uid="dryer", enabled=False)
+    other = _object(hass, name="Dryer", uid="dryer", enabled=False, history=[{"timestamp": f"{_days_ago(10)}T08:00:00+00:00", "type": "completed", "cost": 4.0}])
     await hass.config_entries.async_setup(other.entry_id)
     await hass.async_block_till_done()
-    assert entry.runtime_data.coordinator.data[CONF_TASKS][TASK]["_status"] == MaintenanceStatus.ARCHIVED
+    assert entry.runtime_data.coordinator.data[CONF_TASKS][TASK].status == MaintenanceStatus.ARCHIVED
     disabled = _live(hass, other.entry_id).runtime_data.coordinator.data[CONF_TASKS][TASK]
-    assert disabled["_status"] == MaintenanceStatus.OK and "_times_performed" in disabled
+    assert disabled.status == MaintenanceStatus.OK
+    assert (disabled.times_performed, disabled.total_cost) == (1, 4.0)
 
 
 async def test_ck_a_done_one_time_task_is_not_postponed(hass: HomeAssistant) -> None:
@@ -423,7 +425,7 @@ async def test_cm_the_rotated_person_is_published_at_once(hass: HomeAssistant) -
     entry = await _setup(hass, assignee_pool=pool, rotation_strategy="round_robin", responsible_user_id=pool[0])
     coordinator = entry.runtime_data.coordinator
     await coordinator.complete_maintenance(TASK)
-    assert coordinator.data[CONF_TASKS][TASK]["responsible_user_id"] == pool[1]
+    assert coordinator.data[CONF_TASKS][TASK].task["responsible_user_id"] == pool[1]
 
 
 def test_stamps_compare_as_instants() -> None:
@@ -882,6 +884,6 @@ async def test_n7_a_bundle_counts_only_reminders_due_now(hass: HomeAssistant) ->
         patch.object(nm, "async_task_status_changed", new_callable=AsyncMock) as per_task,
     ):
         coord._previous_statuses = {}
-        await coord._async_notify_status_changes(coord.data[CONF_TASKS])
+        await coord._async_notify_status_changes(as_results(coord.data[CONF_TASKS]))
     assert bundled.call_count == 0
     assert per_task.call_count == 2

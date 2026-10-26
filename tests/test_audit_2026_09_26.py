@@ -86,7 +86,7 @@ async def test_postpone_keeps_the_trigger_progress(hass: HomeAssistant) -> None:
     await coordinator.async_postpone_task(TASK, until)
     await hass.async_block_till_done()
     assert signals == [], "postpone reset the sensor triggers"
-    assert coordinator.data[CONF_TASKS][TASK]["_next_due"][:10] == until.isoformat()
+    assert coordinator.data[CONF_TASKS][TASK].next_due[:10] == until.isoformat()
 
     await coordinator.reset_maintenance(TASK)
     await hass.async_block_till_done()
@@ -138,8 +138,8 @@ def test_manual_seasonal_overrides_work_after_a_restart() -> None:
     restored = json_loads(json_bytes({"adaptive_config": adaptive}))["adaptive_config"]
     assert list(restored["seasonal_overrides"]) == ["7", "1"]
     task = {"schedule": {"kind": "interval", "every": 30}, "history": []}
-    before = IntervalAnalyzer().analyze(task, dict(adaptive, _current_month=7))
-    after = IntervalAnalyzer().analyze(task, dict(restored, _current_month=7))
+    before = IntervalAnalyzer().analyze(task, adaptive, current_month=7)
+    after = IntervalAnalyzer().analyze(task, restored, current_month=7)
     assert after.seasonal_factor == before.seasonal_factor == 0.5
     assert month_overrides({"13": 1.0, "x": 2.0, "2": "nan"}) is None
 

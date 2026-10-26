@@ -257,7 +257,7 @@ async def test_disabled_task_always_ok(
     runtime = entry.runtime_data
     if runtime and runtime.coordinator and runtime.coordinator.data:
         task_result = runtime.coordinator.data.get("tasks", {}).get(TASK_ID_1, {})
-        assert task_result.get("_status") == MaintenanceStatus.OK
+        assert task_result.status == MaintenanceStatus.OK
 
 
 # ─── 12.6 Numeric Value Extraction ──────────────────────────────────────

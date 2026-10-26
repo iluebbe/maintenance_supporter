@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import math
 import statistics
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -34,6 +35,7 @@ from ..const import (
     SOUTHERN_SEASONS,
     MaintenanceFeedback,
 )
+from ..models.shapes import AdaptiveConfig, HistoryEntry
 from .history import completed_entries
 from .least_squares import linear_fit
 from .schedule import read_legacy_fields
@@ -133,7 +135,14 @@ class IntervalAnalyzer:
     Both are blended using confidence-weighted averaging.
     """
 
-    def analyze(self, task_data: dict[str, Any], adaptive_config: dict[str, Any]) -> IntervalAnalysis:
+    def analyze(
+        self,
+        task_data: Mapping[str, Any],
+        adaptive_config: AdaptiveConfig,
+        *,
+        hemisphere: str = "north",
+        current_month: int | None = None,
+    ) -> IntervalAnalysis:
         """Analyze a task's history and return interval recommendations.
 
         Called from coordinator._async_update_data() on each refresh.
@@ -142,6 +151,9 @@ class IntervalAnalyzer:
         Args:
             task_data: The full task dict (with history, interval_days, etc.)
             adaptive_config: The task's adaptive_config dict.
+            hemisphere: "north" / "south", the anchor of the seasonal factors.
+            current_month: The month the seasonal factor is taken for
+                (default: this month).
 
         Returns:
             IntervalAnalysis with all computed metrics and recommendation.
@@ -171,8 +183,8 @@ class IntervalAnalyzer:
             ewa_prediction = self._exponential_weighted_average([float(i) for i in intervals], alpha)
 
         # Weibull
-        weibull_beta: float | None = adaptive_config.get("weibull_beta")
-        weibull_eta: float | None = adaptive_config.get("weibull_eta")
+        weibull_beta: float | None = None
+        weibull_eta: float | None = None
         weibull_prediction: int | None = None
         weibull_r_squared: float | None = None
         confidence_low: int | None = None
@@ -182,8 +194,9 @@ class IntervalAnalyzer:
             fit = self._weibull_fit([float(i) for i in intervals])
             if fit is not None:
                 weibull_beta, weibull_eta, weibull_r_squared = fit
-                reliability = adaptive_config.get("reliability_target", DEFAULT_ADAPTIVE_RELIABILITY_TARGET)
-                weibull_prediction = self._weibull_recommended_interval(weibull_beta, weibull_eta, reliability)
+                weibull_prediction = self._weibull_recommended_interval(
+                    weibull_beta, weibull_eta, DEFAULT_ADAPTIVE_RELIABILITY_TARGET
+                )
                 # Confidence interval bounds (Phase 4)
                 confidence_low = self._weibull_recommended_interval(weibull_beta, weibull_eta, 0.95)
                 confidence_high = self._weibull_recommended_interval(weibull_beta, weibull_eta, 0.80)
@@ -210,10 +223,9 @@ class IntervalAnalyzer:
         seasonal_enabled = adaptive_config.get("seasonal_enabled", True)
         if recommended is not None and seasonal_enabled:
             intervals_with_months = self._compute_intervals_with_months(history)
-            hemisphere = adaptive_config.get("hemisphere", "north")
             manual_overrides = month_overrides(adaptive_config.get("seasonal_overrides"))
 
-            current_month = adaptive_config.get("_current_month") or dt_util.now().month
+            current_month = current_month or dt_util.now().month
 
             seasonal = self._compute_monthly_factors(intervals_with_months, hemisphere, manual_overrides, current_month)
 
@@ -260,13 +272,17 @@ class IntervalAnalyzer:
 
     def update_on_completion(
         self,
-        adaptive_config: dict[str, Any],
+        adaptive_config: AdaptiveConfig,
         actual_interval: int,
         feedback: str | None,
-    ) -> dict[str, Any]:
+    ) -> AdaptiveConfig:
         """Update adaptive config after a task completion.
 
         This is the learning step — called from coordinator.complete_maintenance().
+        It stores the inputs :meth:`analyze` reads (the smoothed interval and
+        the feedback count); the recommendation itself is computed by
+        ``analyze`` on every refresh. A second recommendation computed here
+        was stored and never read (typing audit 2026-10-25).
 
         Args:
             adaptive_config: Current adaptive_config dict (will be copied).
@@ -276,10 +292,8 @@ class IntervalAnalyzer:
         Returns:
             Updated adaptive_config dict (new object, original unchanged).
         """
-        config = dict(adaptive_config)
+        config = adaptive_config.copy()
         alpha = config.get("ewa_alpha", DEFAULT_ADAPTIVE_EWA_ALPHA)
-        min_interval = config.get("min_interval_days", DEFAULT_ADAPTIVE_MIN_INTERVAL)
-        max_interval = config.get("max_interval_days", DEFAULT_ADAPTIVE_MAX_INTERVAL)
 
         # Apply feedback multiplier to get effective interval
         multiplier = FEEDBACK_MULTIPLIERS.get(feedback or MaintenanceFeedback.NEEDED, 1.0)
@@ -298,37 +312,10 @@ class IntervalAnalyzer:
         if feedback is not None:
             config["feedback_count"] = config.get("feedback_count", 0) + 1
 
-        # Update confidence
-        config["confidence"] = self._compute_confidence(config.get("feedback_count", 0))
-
-        # Update recommendation
-        recommended, reason = self._blend_recommendations(
-            base=config.get("base_interval", actual_interval),
-            ewa=smoothed,
-            weibull=config.get("weibull_eta"),  # Re-use last Weibull if available
-            confidence=config["confidence"],
-        )
-        if recommended is not None:
-            recommended = max(min_interval, min(max_interval, recommended))
-
-            # Apply seasonal adjustment if factors are stored from last analyze()
-            seasonal_enabled = config.get("seasonal_enabled", True)
-            stored_factors = config.get("_seasonal_factors")
-            if seasonal_enabled and stored_factors and len(stored_factors) == 12:
-                current_month = config.get("_current_month") or dt_util.now().month
-                factor = stored_factors[current_month - 1]
-                recommended = self._apply_seasonal_adjustment(recommended, factor, min_interval, max_interval)
-                if reason:
-                    reason = f"{reason}_seasonal"
-
-        config["current_recommendation"] = recommended
-        config["recommendation_reason"] = reason
-        config["last_analysis_date"] = config.get("_current_date") or dt_util.now().date().isoformat()
-
         return config
 
     @staticmethod
-    def _completed_dates(history: list[dict[str, Any]]) -> list[datetime]:
+    def _completed_dates(history: Sequence[HistoryEntry]) -> list[datetime]:
         """Parse COMPLETED history entries into a chronologically sorted list.
 
         Single source for the timestamp parsing + naive-TZ normalisation +
@@ -360,7 +347,7 @@ class IntervalAnalyzer:
 
     @staticmethod
     def _compute_intervals_from_history(
-        history: list[dict[str, Any]],
+        history: Sequence[HistoryEntry],
     ) -> list[int]:
         """Extract days between consecutive COMPLETED entries from history.
 
@@ -529,7 +516,7 @@ class IntervalAnalyzer:
 
     @staticmethod
     def _compute_intervals_with_months(
-        history: list[dict[str, Any]],
+        history: Sequence[HistoryEntry],
     ) -> list[tuple[int, int]]:
         """Extract intervals with end-month from history.
 

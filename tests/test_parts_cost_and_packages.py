@@ -158,7 +158,7 @@ async def test_every_completion_records_the_value_of_its_parts(hass: HomeAssista
     assert last["parts_cost"] == 0.3  # 30 ml of a 4.99 / 500 ml can
     assert "cost_basis" not in last
     assert entry_spend(last) == 0
-    assert entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]["_total_cost"] == 0
+    assert entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1].total_cost == 0
 
 
 async def test_when_parts_count_when_used_every_surface_books_them(hass: HomeAssistant) -> None:
@@ -175,7 +175,7 @@ async def test_when_parts_count_when_used_every_surface_books_them(hass: HomeAss
     last = _last(hass, entry)
     assert last["cost_basis"] == "use" and last["parts_cost"] == 0.6
     assert entry_spend(last) == pytest.approx(5.6)
-    assert entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]["_total_cost"] == pytest.approx(5.6)
+    assert entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1].total_cost == pytest.approx(5.6)
     monthly, yearly = compute_spend(hass)
     assert monthly == pytest.approx(5.6) and yearly == pytest.approx(5.6)
     assert events[-1]["parts_cost"] == 0.6

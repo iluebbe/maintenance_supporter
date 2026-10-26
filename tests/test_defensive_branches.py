@@ -825,7 +825,7 @@ async def test_todo_list_skips_archived_and_bad_dates(hass: HomeAssistant, globa
     # Poison B's next_due with a bad iso string (defensive parse).
     coordinator = obj_b.runtime_data.coordinator
     await coordinator.async_refresh()
-    coordinator.data[CONF_TASKS][TASK_ID_1]["_next_due"] = "junk-date"
+    coordinator.data[CONF_TASKS][TASK_ID_1].next_due = "junk-date"
 
     from homeassistant.helpers import entity_registry as er
 

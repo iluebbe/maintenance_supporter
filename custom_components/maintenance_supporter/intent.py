@@ -46,6 +46,7 @@ from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_TASKS, DOMAIN,
 from .helpers.aggregate import get_object_entries, iter_live_tasks, priority_rank, store_of
 from .helpers.aggregate import object_name as aggregate_object_name
 from .helpers.assignees import task_user_ids
+from .helpers.coordinator_data import task_results
 
 INTENT_LIST_TASKS = "MaintenanceSupporterListTasks"
 INTENT_COMPLETE_TASK = "MaintenanceSupporterCompleteTask"
@@ -103,7 +104,8 @@ def _task_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
     from .helpers.phases import current_phase
 
     tasks: list[dict[str, Any]] = []
-    for ce, task_id, task in iter_live_tasks(hass):
+    for ce, task_id, result in iter_live_tasks(hass):
+        task = result.task
         obj = ce.data.get(CONF_OBJECT) or {}
         # Cycle phases (#139): name the step currently due, so answers
         # say WHICH work is meant ("Mower blades — next step: replace").
@@ -124,9 +126,9 @@ def _task_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
                 # Who it is meant for: that person, or everyone it is shared
                 # with while nobody is responsible ("my tasks" reads this).
                 "user_ids": task_user_ids(task),
-                "status": str(task.get("_status", "")),
-                "days_until_due": task.get("_days_until_due"),
-                "next_due": task.get("_next_due"),
+                "status": str(result.status),
+                "days_until_due": result.days_until_due,
+                "next_due": result.next_due,
                 "phase": str(phase["name"]) if phase else None,
                 # #134: high-priority work is named as such and listed first
                 # within the same urgency bucket.
@@ -498,8 +500,8 @@ class CompleteTaskIntent(intent.IntentHandler):
         if done_phase:
             from .helpers.phases import current_phase
 
-            next_task = (coordinator.data or {}).get(CONF_TASKS, {}).get(target["task_id"]) or {}
-            next_phase = current_phase(next_task)
+            next_result = task_results(coordinator).get(target["task_id"])
+            next_phase = current_phase(next_result.task if next_result is not None else None)
             response.async_set_speech(
                 _sp(
                     "completed_phase",

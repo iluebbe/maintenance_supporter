@@ -12,9 +12,10 @@ import hashlib
 import math
 import re
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, cast
 
 from ..const import LIFECYCLE_HISTORY_TYPES, HistoryEntryType
+from ..models.shapes import HistoryEntry
 from .dates import local_date_from_iso, parse_iso_date, stamp_instant
 
 # The note ``MaintenanceTask.reset`` has always written ("Reset to 2026-10-01")
@@ -149,11 +150,11 @@ def trim_history(history: list[Any], limit: int) -> list[Any]:
     return [entry for i, entry in enumerate(history) if i not in drop]
 
 
-def completed_entries(history: Iterable[Any] | None) -> list[dict[str, Any]]:
+def completed_entries(history: Iterable[Any] | None) -> list[HistoryEntry]:
     """The completion entries of ``history``, in stored order; non-dict
     entries (hand-edited / imported logs) are skipped."""
-    out: list[dict[str, Any]] = []
+    out: list[HistoryEntry] = []
     for entry in history or ():
         if isinstance(entry, dict) and entry.get("type") == HistoryEntryType.COMPLETED:
-            out.append(entry)
+            out.append(cast("HistoryEntry", entry))
     return out

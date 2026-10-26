@@ -28,6 +28,8 @@ from .conftest import (
     make_object_entry,
     setup_integration,
 )
+from custom_components.maintenance_supporter.helpers.status import compute_live_status
+from .task_results import as_result
 
 
 @pytest.fixture
@@ -78,31 +80,31 @@ def _get_sensor_state(hass: HomeAssistant, entry: MockConfigEntry) -> Any:
 def test_compute_live_status_triggered() -> None:
     """Test triggered status takes priority."""
     task = {"_trigger_active": True, "_days_until_due": 20, "warning_days": 7}
-    assert MaintenanceSensor._compute_live_status(task) == MaintenanceStatus.TRIGGERED
+    assert compute_live_status(as_result(task)) == MaintenanceStatus.TRIGGERED
 
 
 def test_compute_live_status_overdue() -> None:
     """Test overdue status when days < 0."""
     task = {"_trigger_active": False, "_days_until_due": -5, "warning_days": 7}
-    assert MaintenanceSensor._compute_live_status(task) == MaintenanceStatus.OVERDUE
+    assert compute_live_status(as_result(task)) == MaintenanceStatus.OVERDUE
 
 
 def test_compute_live_status_due_soon() -> None:
     """Test due_soon status when days <= warning_days."""
     task = {"_trigger_active": False, "_days_until_due": 3, "warning_days": 7}
-    assert MaintenanceSensor._compute_live_status(task) == MaintenanceStatus.DUE_SOON
+    assert compute_live_status(as_result(task)) == MaintenanceStatus.DUE_SOON
 
 
 def test_compute_live_status_ok() -> None:
     """Test OK status when days > warning_days."""
     task = {"_trigger_active": False, "_days_until_due": 20, "warning_days": 7}
-    assert MaintenanceSensor._compute_live_status(task) == MaintenanceStatus.OK
+    assert compute_live_status(as_result(task)) == MaintenanceStatus.OK
 
 
 def test_compute_live_status_no_due_date() -> None:
     """Test OK status when no days_until_due."""
     task = {"_trigger_active": False}
-    assert MaintenanceSensor._compute_live_status(task) == MaintenanceStatus.OK
+    assert compute_live_status(as_result(task)) == MaintenanceStatus.OK
 
 
 # ─── Counter Multi-Entity Attributes ──────────────────────────────────
@@ -417,8 +419,8 @@ async def test_degradation_attrs(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     coordinator = entry.runtime_data.coordinator
-    coordinator.data[CONF_TASKS][TASK_ID_1]["_degradation_rate"] = 0.05
-    coordinator.data[CONF_TASKS][TASK_ID_1]["_degradation_trend"] = "falling"
+    coordinator.data[CONF_TASKS][TASK_ID_1].degradation_rate = 0.05
+    coordinator.data[CONF_TASKS][TASK_ID_1].degradation_trend = "falling"
 
     sensor = _get_sensor_entity(hass, obj_entry)
     if sensor:
@@ -491,7 +493,7 @@ async def test_last_entry_attr(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     coordinator = entry.runtime_data.coordinator
-    coordinator.data[CONF_TASKS][TASK_ID_1]["_last_entry"] = {
+    coordinator.data[CONF_TASKS][TASK_ID_1].last_entry = {
         "type": "completed",
         "timestamp": "2025-01-01T00:00:00",
     }

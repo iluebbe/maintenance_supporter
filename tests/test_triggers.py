@@ -56,6 +56,7 @@ from .conftest import (
     set_sensor_state,
     setup_integration,
 )
+from .task_results import flat
 
 # ─── Helpers ─────────────────────────────────────────────────────────────
 
@@ -3159,7 +3160,7 @@ async def test_counter_trigger_baseline_init_on_setup(hass: HomeAssistant) -> No
     await setup_integration(hass, global_entry, obj_entry)
 
     coord = obj_entry.runtime_data.coordinator
-    task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
+    task_result = flat(coord.data[CONF_TASKS].get(TASK_ID_1))
     # Baseline should be initialized to 50, delta = 50-50 = 0 < 200 → inactive
     assert task_result.get("_trigger_active") is False
 
@@ -3246,7 +3247,7 @@ async def test_state_change_trigger_count_counts_and_deactivates(hass: HomeAssis
     await hass.async_block_till_done()
 
     coord = obj_entry.runtime_data.coordinator
-    task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
+    task_result = flat(coord.data[CONF_TASKS].get(TASK_ID_1))
     assert task_result.get("_trigger_active") is True
 
 
@@ -3368,7 +3369,7 @@ async def test_threshold_trigger_value_in_range(hass: HomeAssistant) -> None:
     await setup_integration(hass, global_entry, obj_entry)
 
     coord = obj_entry.runtime_data.coordinator
-    task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
+    task_result = flat(coord.data[CONF_TASKS].get(TASK_ID_1))
     assert task_result.get("_trigger_active") is False
 
 
@@ -3417,7 +3418,7 @@ async def test_create_triggers_multi_entity(hass: HomeAssistant) -> None:
 
     # Should have created 2 triggers; coord evaluates them with entity_logic=any
     coord = obj_entry.runtime_data.coordinator
-    task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
+    task_result = flat(coord.data[CONF_TASKS].get(TASK_ID_1))
     assert task_result.get("_trigger_active") is False  # Neither above 30
 
 
