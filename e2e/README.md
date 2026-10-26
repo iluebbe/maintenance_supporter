@@ -53,9 +53,9 @@ wiring to CI.
 
 **In CI** — the `e2e-lifecycle` job boots HA via `docker run`, installs Chromium
 (`npx playwright install --with-deps chromium`), and runs the lifecycle spec
-with `retries: 2`. It is **non-blocking (`continue-on-error`) for now** so a few
-CI-Linux runs confirm stability before it's promoted to a hard gate; it uploads
-traces on failure. The hard gate stays the unit suite (`npm test`).
+with `retries: 2`. It is a **hard gate** since its record on CI Linux (60 master
+runs without a failed step, 2026-10), next to the unit suite (`npm test`), and
+uploads traces on failure. The migration round trip below gates the same way.
 
 ## Environment knobs
 
