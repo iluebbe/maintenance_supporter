@@ -53,7 +53,7 @@ _RETIRED_ADAPTIVE_KEYS = frozenset(
 )
 
 # Fields that migrate from ConfigEntry.data to Store
-_DYNAMIC_TASK_FIELDS =("last_performed", "last_planned_due", "planned_day", "due_override", "history", "adaptive_config", "phase_cursor")
+_DYNAMIC_TASK_FIELDS = ("last_performed", "last_planned_due", "planned_day", "due_override", "history", "adaptive_config", "phase_cursor")
 
 # Presentation-state fields that SPLIT/migrate into the Store like the dynamic
 # fields but are deliberately NOT overlaid by merge_task_data: merged dicts feed

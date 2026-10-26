@@ -279,7 +279,7 @@ async def ws_set_adaptive(
     """Set the adaptive-scheduling tuning for a task (dialog parity with the
     options flow's adaptive step). The environmental binding has its own
     endpoint above; omitted optional fields keep their stored values."""
-    ctx =_load_object_task(hass, connection, msg, merged=True)
+    ctx = _load_object_task(hass, connection, msg, merged=True)
     if ctx is None:
         return
     entry, _rd, task_data = ctx
