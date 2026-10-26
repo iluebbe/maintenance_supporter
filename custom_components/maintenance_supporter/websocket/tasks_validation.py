@@ -1,7 +1,8 @@
-"""URL-safety, NFC-duplicate, and trigger-config validation helpers.
+"""Trigger-config validation for the task WS handlers (tasks_crud, io) + tests.
 
-Shared base layer for the task WS handlers (imported by tasks_crud) and by
-several sibling modules (objects, documents, io) + tests.
+The checks the options flow shares with these handlers live in helpers: the
+URL rule (url_safety), the NFC duplicate check (aggregate) and the to-do
+mirror targets (todo_mirror).
 """
 
 from __future__ import annotations
@@ -12,73 +13,12 @@ from typing import Any
 from homeassistant.core import HomeAssistant, valid_entity_id
 
 from ..const import (
-    CONF_TASKS,
     TRIGGER_FIELD_RANGES,
     TRIGGER_RUNTIME_HOURS_MAX,
     UNAVAILABLE_STATES,
     TriggerType,
 )
-from ..helpers.aggregate import object_name
 from ..helpers.trigger_fallback import threshold_limits_overlap
-from ..helpers.url_safety import is_safe_url
-from . import (
-    _get_object_entries,
-)
-
-# ---------------------------------------------------------------------------
-# Validation helpers
-# ---------------------------------------------------------------------------
-
-# The URL rule lives in helpers.url_safety (every write path shares it).
-_is_safe_url = is_safe_url
-
-
-# ---------------------------------------------------------------------------
-# NFC tag uniqueness check
-# ---------------------------------------------------------------------------
-
-
-def _check_nfc_tag_duplicate(hass: HomeAssistant, nfc_tag_id: str, exclude_task_id: str | None = None) -> str | None:
-    """Check if an NFC tag ID is already in use by another task.
-
-    Returns a warning message if duplicate, or None.
-    """
-    for entry in _get_object_entries(hass):
-        tasks = entry.data.get(CONF_TASKS, {})
-        obj_name = object_name(entry)
-        for tid, tdata in tasks.items():
-            if tid == exclude_task_id:
-                continue
-            if tdata.get("nfc_tag_id") == nfc_tag_id:
-                return f"NFC tag '{nfc_tag_id}' is already linked to task '{tdata.get('name', tid)}' on object '{obj_name}'"
-    return None
-
-
-# ---------------------------------------------------------------------------
-# To-do mirror targets (D#183)
-# ---------------------------------------------------------------------------
-
-
-def _mirror_todo_error(hass: HomeAssistant, entity_ids: list[str]) -> str | None:
-    """Refuse Maintenance Supporter's OWN to-do lists as mirror targets.
-
-    They only support updating rows (no create/delete), so ``todo.add_item``
-    would fail on every refresh — and a task mirrored into the list that
-    already shows it is circular. Returns the error text, or None when every
-    id is acceptable (unknown / not-yet-loaded lists are fine: the mirror
-    self-heals when they appear).
-    """
-    from homeassistant.helpers import entity_registry as er
-
-    from ..const import DOMAIN
-
-    registry = er.async_get(hass)
-    for eid in entity_ids:
-        reg_entry = registry.async_get(eid)
-        if reg_entry is not None and reg_entry.platform == DOMAIN:
-            return f"{eid} is a Maintenance Supporter list — a task cannot be mirrored into its own integration's list"
-    return None
-
 
 # ---------------------------------------------------------------------------
 # Trigger config validation

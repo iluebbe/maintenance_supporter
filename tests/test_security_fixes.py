@@ -1,7 +1,7 @@
 """Tests for the security-audit hardening fixes.
 
 Covers: the operator-allowlist enforcement (`helpers/permissions.py`) and the
-hardened URL-safety check (`websocket/tasks.py::_is_safe_url`).
+hardened URL-safety check (`helpers/url_safety.py::is_safe_url`).
 """
 
 from __future__ import annotations
@@ -26,10 +26,10 @@ from custom_components.maintenance_supporter.helpers.permissions import (
     require_write,
     user_may_write,
 )
-from custom_components.maintenance_supporter.websocket.tasks import _is_safe_url
+from custom_components.maintenance_supporter.helpers.url_safety import is_safe_url
 
 
-# ─── #4: _is_safe_url hardening ─────────────────────────────────────────────
+# ─── #4: is_safe_url hardening ─────────────────────────────────────────────
 
 
 @pytest.mark.parametrize(
@@ -67,7 +67,7 @@ from custom_components.maintenance_supporter.websocket.tasks import _is_safe_url
 )
 def test_is_safe_url(url: str | None, safe: bool) -> None:
     """Whitespace/control-char-masked hosts and blocked schemes are rejected."""
-    assert _is_safe_url(url) is safe
+    assert is_safe_url(url) is safe
 
 
 # ─── #3: operator-allowlist enforcement (helpers/permissions.py) ────────────

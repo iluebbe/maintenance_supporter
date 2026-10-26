@@ -158,7 +158,7 @@ async def ws_complete_task(
     if used_parts is not None:
         from ..const import CONF_PARTS
         from ..helpers.parts import sanitize_consumes_parts
-        from . import foreign_part_resolver
+        from ..helpers.shared_parts import foreign_part_resolver
 
         used_parts = sanitize_consumes_parts(
             used_parts,

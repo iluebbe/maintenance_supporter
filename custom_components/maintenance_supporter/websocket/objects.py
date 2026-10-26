@@ -37,6 +37,7 @@ from ..helpers.aggregate import get_coordinator_data, get_store, is_object_entry
 from ..helpers.pause import reanchor_recurring_task, wants_fresh_cycle
 from ..helpers.permissions import require_write
 from ..helpers.sanitize import cap_object_fields, strip_object_reference, strip_task_runtime_state
+from ..helpers.url_safety import is_safe_url
 from ..helpers.ws_errors import send_translated_error, send_unsafe_url_error
 from . import (
     ID_FIELD,
@@ -46,9 +47,6 @@ from . import (
     _parse_iso_date,
     _parse_pause_until,
     cleanup_group_refs,
-)
-from .tasks import (  # v1.4.0 (#43): reuse the existing URL safety check
-    _is_safe_url,
 )
 
 # The optional object string fields are identical between object/create and
@@ -365,7 +363,7 @@ async def ws_create_object(
 
     # v1.4.0 (#43): documentation_url
     documentation_url = (msg.get("documentation_url") or "").strip() or None
-    if documentation_url and not _is_safe_url(documentation_url):
+    if documentation_url and not is_safe_url(documentation_url):
         send_unsafe_url_error(connection, msg["id"])
         return
 
@@ -461,7 +459,7 @@ async def ws_update_object(
         if msg["documentation_url"] is not None:
             stripped = (msg["documentation_url"] or "").strip()
             msg["documentation_url"] = stripped or None
-        if msg["documentation_url"] and not _is_safe_url(msg["documentation_url"]):
+        if msg["documentation_url"] and not is_safe_url(msg["documentation_url"]):
             send_unsafe_url_error(connection, msg["id"])
             return
 

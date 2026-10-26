@@ -26,7 +26,7 @@ from ..models.shapes import AdaptiveConfig
 from . import ID_FIELD, _load_object_task, async_commit_store
 
 
-async def _persist_adaptive_config(
+async def async_persist_adaptive_config(
     hass: HomeAssistant,
     entry: ConfigEntry,
     task_id: str,
@@ -193,7 +193,7 @@ async def ws_seasonal_overrides(
     else:
         adaptive_config.pop("seasonal_overrides", None)
 
-    await _persist_adaptive_config(hass, entry, task_id, adaptive_config)
+    await async_persist_adaptive_config(hass, entry, task_id, adaptive_config)
 
     connection.send_result(msg["id"], {"success": True, "overrides": validated})
 
@@ -242,7 +242,7 @@ async def ws_set_environmental_entity(
         adaptive_config.pop("environmental_entity", None)
         adaptive_config.pop("environmental_attribute", None)
 
-    await _persist_adaptive_config(hass, entry, task_id, adaptive_config)
+    await async_persist_adaptive_config(hass, entry, task_id, adaptive_config)
 
     connection.send_result(
         msg["id"],
@@ -304,6 +304,6 @@ async def ws_set_adaptive(
         connection.send_error(msg["id"], "invalid_format", "min_interval_days exceeds max_interval_days")
         return
 
-    await _persist_adaptive_config(hass, entry, task_id, adaptive_config)
+    await async_persist_adaptive_config(hass, entry, task_id, adaptive_config)
 
     connection.send_result(msg["id"], {"success": True, "adaptive_config": adaptive_config})

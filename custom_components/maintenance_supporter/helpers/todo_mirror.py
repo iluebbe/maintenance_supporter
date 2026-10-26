@@ -162,6 +162,23 @@ async def async_todo_remove_item(hass: HomeAssistant, entity: str, rec: Mapping[
         _LOGGER.warning("todo.remove_item %r on %s failed", ref, entity, exc_info=True)
 
 
+def mirror_todo_error(hass: HomeAssistant, entity_ids: list[str]) -> str | None:
+    """Refuse Maintenance Supporter's OWN to-do lists as mirror targets (D#183).
+
+    They only support updating rows (no create/delete), so ``todo.add_item``
+    would fail on every refresh — and a task mirrored into the list that
+    already shows it is circular. Returns the error text, or None when every
+    id is acceptable (unknown / not-yet-loaded lists are fine: the mirror
+    self-heals when they appear).
+    """
+    registry = er.async_get(hass)
+    for eid in entity_ids:
+        reg_entry = registry.async_get(eid)
+        if reg_entry is not None and reg_entry.platform == DOMAIN:
+            return f"{eid} is a Maintenance Supporter list — a task cannot be mirrored into its own integration's list"
+    return None
+
+
 def default_lists(hass: HomeAssistant) -> list[str]:
     """The lists every task without its own goes to (#231; [] = off)."""
     return sanitize_mirror_todo_entities(global_option(hass, CONF_MIRROR_TODO_DEFAULT_ENTITIES))

@@ -29,6 +29,7 @@ from ..const import (
     MAX_URL_LENGTH,
 )
 from ..helpers.aggregate import object_name
+from ..helpers.documents import MAX_TAG_LEN, MAX_TAGS
 from ..helpers.permissions import require_write
 from ..helpers.search_match import query_tokens, score_fields, snippet
 from ..helpers.url_safety import is_safe_link
@@ -38,14 +39,12 @@ from . import ID_FIELD, _get_object_entries, _load_object_entry, object_id_for_e
 if TYPE_CHECKING:
     from ..helpers.documents import DocumentStore
 
-_MAX_TAGS = 20
-_MAX_TAG_LEN = 64
 _MAX_TASK_IDS = 100
 
 # A list of non-empty, length-capped tag strings, itself length-capped.
 _TAGS_SCHEMA = vol.All(
-    [vol.All(str, vol.Length(min=1, max=_MAX_TAG_LEN))],
-    vol.Length(max=_MAX_TAGS),
+    [vol.All(str, vol.Length(min=1, max=MAX_TAG_LEN))],
+    vol.Length(max=MAX_TAGS),
 )
 _TASK_IDS_SCHEMA = vol.All(
     [ID_FIELD],
@@ -132,7 +131,7 @@ async def ws_documents_add_link(
     url = msg["url"].strip()
     # Web-links must be absolute (http(s) or an app link, #207) — a relative
     # or scheme-less URL is meaningless as a stored external reference (and
-    # _is_safe_url treats those as "safe", so is_safe_link asks for a scheme).
+    # is_safe_url treats those as "safe", so is_safe_link asks for a scheme).
     if not is_safe_link(url):
         send_unsafe_url_error(connection, msg["id"])
         return

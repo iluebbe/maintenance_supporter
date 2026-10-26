@@ -55,10 +55,10 @@ _PANEL_SIBLING_WS = {
 }
 # The config-flow twin: fields a flow step persists through a SHARED writer
 # instead of a direct ``updated_task[...] =`` assignment. The adaptive step
-# writes through the WS layer's ``_persist_adaptive_config`` since the bug
+# writes through the WS layer's ``async_persist_adaptive_config`` since the bug
 # audit of 2026-09-26 (one write path: immediate save + refresh).
 _CONFIG_FLOW_SIBLING_WRITERS = {
-    "_persist_adaptive_config": "adaptive_config",
+    "async_persist_adaptive_config": "adaptive_config",
 }
 
 # ─── Intentional divergences (each needs a reason) ──────────────────────────
@@ -80,7 +80,7 @@ PANEL_ONLY = {
     "required_completion_fields",
     # Task phases (#139): the flow DOES edit these — the edit_phases step's
     # minimal textarea editor (names + checklists + sequence) writes both via
-    # the shared websocket _apply_phase_fields, which this extractor cannot
+    # the shared helpers.phases.apply_phase_fields, which this extractor cannot
     # see (it only reads direct `updated_task[...] = ` assignments in the
     # CONFIG_FLOW_SOURCES). Allowlisted so the indirection doesn't fail the
     # gate; per-phase parts/required-fields overrides remain panel-only like

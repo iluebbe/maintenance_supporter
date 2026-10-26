@@ -320,7 +320,7 @@ async def test_battery_lifetime_catalog_names_models_and_never_raises(hass: Home
 
     from homeassistant.helpers import device_registry as dr
 
-    from custom_components.maintenance_supporter.websocket.dashboard import _battery_lifetime_catalog
+    from custom_components.maintenance_supporter.helpers.battery_lifetime import fleet_lifetime_catalog
 
     g = _global(hass)
     dr.async_get(hass).async_get_or_create(config_entry_id=g.entry_id, identifiers={(DOMAIN, "lock-1")}, manufacturer="Acme", model="Lock")
@@ -330,7 +330,7 @@ async def test_battery_lifetime_catalog_names_models_and_never_raises(hass: Home
         patch("custom_components.maintenance_supporter.helpers.battery_fleet.discover_battery_types", return_value={"CR2032": 1}),
         patch("custom_components.maintenance_supporter.helpers.battery_lifetime.lifetime_catalog", side_effect=lambda hass, types, *, model_names: [{"types": types, "names": model_names}]) as cat,
     ):
-        rows = _battery_lifetime_catalog(hass)
+        rows = fleet_lifetime_catalog(hass)
     assert rows == [{"types": ["CR2032"], "names": {"acme|lock": "Acme Lock"}}] and cat.called
     with patch("custom_components.maintenance_supporter.helpers.battery_fleet.read_batteries", side_effect=RuntimeError("boom")):
-        assert _battery_lifetime_catalog(hass) == []
+        assert fleet_lifetime_catalog(hass) == []

@@ -4,7 +4,7 @@ The flow's edit_phases step is a single textarea: one line per sequence
 step, "Name: item; item" sets a phase's checklist. Pins:
 - serializer/parser round-trip, id stability via case-insensitive name match
 - panel-only per-phase overrides (parts / required fields) SURVIVE a flow edit
-- the flow step hydrates, saves through _apply_phase_fields, and clamps or
+- the flow step hydrates, saves through apply_phase_fields, and clamps or
   clears the Store cursor exactly like ws_update_task
 """
 
@@ -111,7 +111,7 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     last_performed = (dt_util.now().date() - timedelta(days=20)).isoformat()
     task = build_task_data(last_performed=last_performed)
     task["phases"] = {pid: dict(d) for pid, d in PHASES.items()}
-    # The fixture references part p_1 — it must exist or _apply_phase_fields
+    # The fixture references part p_1 — it must exist or apply_phase_fields
     # drops the link on save.
     task["phases"]["replace"]["consumes_parts"] = [{"part_id": "p_1", "quantity": 2}]
     task["phase_sequence"] = list(SEQUENCE)

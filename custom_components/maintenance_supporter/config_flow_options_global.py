@@ -869,10 +869,10 @@ class GlobalOptionsFlow(OptionsFlow):
             # cleared selector omits the key (= off), the shape sanitiser of
             # the per-task field, and none of our own lists.
             from .helpers.sanitize import sanitize_mirror_todo_entities
-            from .websocket.tasks_validation import _mirror_todo_error
+            from .helpers.todo_mirror import mirror_todo_error
 
             defaults = sanitize_mirror_todo_entities(user_input.get(CONF_MIRROR_TODO_DEFAULT_ENTITIES) or [])
-            if _mirror_todo_error(self.hass, defaults):
+            if mirror_todo_error(self.hass, defaults):
                 errors[CONF_MIRROR_TODO_DEFAULT_ENTITIES] = "invalid_mirror_todo"
             user_input[CONF_MIRROR_TODO_DEFAULT_ENTITIES] = defaults
 
@@ -1552,9 +1552,9 @@ class GlobalOptionsFlow(OptionsFlow):
         """Typical lifetime in months per battery type — the forecast for
         batteries without a level sensor. One field per type (the type is the
         label); blank = the built-in value."""
-        from .websocket.dashboard import _battery_lifetime_catalog
+        from .helpers.battery_lifetime import fleet_lifetime_catalog
 
-        rows = _battery_lifetime_catalog(self.hass)
+        rows = fleet_lifetime_catalog(self.hass)
         types = [str(r["type"]) for r in rows]
         if user_input is not None:
             overrides = {t: user_input[t] for t in types if isinstance(user_input.get(t), (int, float))}

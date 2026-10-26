@@ -35,7 +35,7 @@ from ..const import (
     MIN_COST,
     PARTS_COST_MODES,
 )
-from ..helpers.aggregate import object_name
+from ..helpers.aggregate import check_nfc_tag_duplicate, object_name
 from ..helpers.dates import canonical_iso_date, import_day, normalize_hhmm, parse_iso_date
 from ..helpers.global_options import get_default_warning_days
 from ..helpers.history import finite_amount, strict_amount
@@ -50,7 +50,7 @@ from ..helpers.qr_generator import (
 )
 from ..helpers.update_state import async_version_state
 from ..helpers.ws_errors import send_translated_error
-from ..websocket.tasks import _check_nfc_tag_duplicate, _validate_trigger_config
+from ..websocket.tasks import _validate_trigger_config
 from . import ID_FIELD, _get_object_entries, _load_object_entry, _load_object_task, _merge_global_options
 
 _LOGGER = logging.getLogger(__name__)
@@ -732,7 +732,7 @@ async def ws_import_csv(
         for t_data in obj_data.get("tasks", {}).values():
             nfc_val = t_data.get("nfc_tag_id")
             if nfc_val:
-                nfc_warn = _check_nfc_tag_duplicate(hass, nfc_val)
+                nfc_warn = check_nfc_tag_duplicate(hass, nfc_val)
                 if nfc_warn:
                     nfc_warnings.append(nfc_warn)
 
@@ -1505,7 +1505,7 @@ async def ws_import_json(
             for t_data in import_tasks.values():
                 nfc_val = t_data.get("nfc_tag_id")
                 if nfc_val:
-                    nfc_warn = _check_nfc_tag_duplicate(hass, nfc_val)
+                    nfc_warn = check_nfc_tag_duplicate(hass, nfc_val)
                     if nfc_warn:
                         nfc_warnings.append(nfc_warn)
 

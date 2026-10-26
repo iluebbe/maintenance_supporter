@@ -139,6 +139,22 @@ def get_object_entries(hass: HomeAssistant, entry_ids: set[str] | None = None) -
     ]
 
 
+def check_nfc_tag_duplicate(hass: HomeAssistant, nfc_tag_id: str, exclude_task_id: str | None = None) -> str | None:
+    """Check if an NFC tag ID is already in use by another task.
+
+    Returns a warning message if duplicate, or None.
+    """
+    for entry in get_object_entries(hass):
+        tasks = entry.data.get(CONF_TASKS, {})
+        obj_name = object_name(entry)
+        for tid, tdata in tasks.items():
+            if tid == exclude_task_id:
+                continue
+            if tdata.get("nfc_tag_id") == nfc_tag_id:
+                return f"NFC tag '{nfc_tag_id}' is already linked to task '{tdata.get('name', tid)}' on object '{obj_name}'"
+    return None
+
+
 def get_runtime_data(hass: HomeAssistant, entry_id: str) -> MaintenanceSupporterData | None:
     """Get runtime data for a config entry."""
     entry = hass.config_entries.async_get_entry(entry_id)

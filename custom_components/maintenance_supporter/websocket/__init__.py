@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 from datetime import date
 from typing import Any, Final
 
@@ -1004,21 +1004,3 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_documents_search)
     websocket_api.async_register_command(hass, ws_search)
     websocket_api.async_register_command(hass, ws_compact_reference_numbers)
-
-
-def foreign_part_resolver(hass: HomeAssistant) -> Callable[[str], set[str] | None]:
-    """Callback for ``sanitize_consumes_parts``: which parts an entry owns.
-
-    Returns None for an entry that does not exist or is not a maintenance
-    object, so a link to it is dropped rather than trusted.
-    """
-    from ..const import CONF_PARTS
-
-    def _resolve(entry_id: str) -> set[str] | None:
-        entry = hass.config_entries.async_get_entry(entry_id)
-        # is_object_entry() rejects None too; the explicit test narrows the type.
-        if entry is None or not is_object_entry(entry):
-            return None
-        return set(entry.data.get(CONF_PARTS) or {})
-
-    return _resolve

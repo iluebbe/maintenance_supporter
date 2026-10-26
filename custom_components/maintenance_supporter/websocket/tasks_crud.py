@@ -43,12 +43,13 @@ from ..const import (
     HistoryEntryType,
     ScheduleType,
 )
-from ..helpers.aggregate import get_store
+from ..helpers.aggregate import check_nfc_tag_duplicate, get_store
 from ..helpers.dates import INTERVAL_UNITS
 from ..helpers.entry_tasks import write_task
 from ..helpers.global_options import get_default_warning_days
 from ..helpers.notify_icons import is_valid_icon
 from ..helpers.permissions import require_write
+from ..helpers.phases import apply_phase_fields
 from ..helpers.sanitize import strip_task_runtime_state
 from ..helpers.schedule import (
     FLAT_RECURRENCE_KEYS,
@@ -65,6 +66,8 @@ from ..helpers.task_fields import (
     TASK_PRIORITIES,
     WARNING_DAYS_RANGE,
 )
+from ..helpers.todo_mirror import mirror_todo_error
+from ..helpers.url_safety import is_safe_url
 from ..helpers.ws_errors import send_translated_error, send_unsafe_url_error
 from ..models.shapes import HistoryEntry
 from . import (
@@ -76,12 +79,7 @@ from . import (
     cleanup_group_refs,
 )
 from .tasks_persist import async_persist_task
-from .tasks_validation import (
-    _check_nfc_tag_duplicate,
-    _is_safe_url,
-    _mirror_todo_error,
-    _validate_trigger_config,
-)
+from .tasks_validation import _validate_trigger_config
 
 _ENTITY_SLUG_RE = re.compile(r"[a-z0-9_]+")
 
@@ -134,7 +132,7 @@ def _normalize_nfc_tag(
     nfc_val = (msg.get("nfc_tag_id") or "").strip() or None
     msg["nfc_tag_id"] = nfc_val
     if nfc_val:
-        nfc_warn = _check_nfc_tag_duplicate(hass, nfc_val, exclude_task_id=exclude_task_id)
+        nfc_warn = check_nfc_tag_duplicate(hass, nfc_val, exclude_task_id=exclude_task_id)
         if nfc_warn:
             warnings.append(nfc_warn)
     return nfc_val
@@ -254,45 +252,6 @@ TASK_UPDATE_FIELD_MAP = {
     "on_complete_action": "on_complete_action",
     "quick_complete_defaults": "quick_complete_defaults",
 }
-
-
-def _apply_phase_fields(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    task_data: dict[str, Any],
-    raw_defs: object,
-    raw_sequence: object,
-) -> None:
-    """Sanitize + store the phase config (#139) — shared by create and update.
-
-    Empty/invalid defs or sequence remove BOTH fields (a task either has a
-    usable cycle or none). Per-phase consumes_parts get the same part-registry
-    validation the task-level field gets.
-    """
-    from ..const import CONF_PARTS
-    from ..helpers.parts import sanitize_consumes_parts
-    from ..helpers.phases import sanitize_phase_defs, sanitize_phase_sequence
-    from . import foreign_part_resolver
-
-    defs = sanitize_phase_defs(raw_defs)
-    for definition in defs.values():
-        if "consumes_parts" in definition:
-            links = sanitize_consumes_parts(
-                definition["consumes_parts"],
-                set(entry.data.get(CONF_PARTS) or {}),
-                foreign_part_ids=foreign_part_resolver(hass),
-            )
-            if links:
-                definition["consumes_parts"] = links
-            else:
-                del definition["consumes_parts"]
-    sequence = sanitize_phase_sequence(raw_sequence, defs)
-    if defs and sequence:
-        task_data["phases"] = defs
-        task_data["phase_sequence"] = sequence
-    else:
-        task_data.pop("phases", None)
-        task_data.pop("phase_sequence", None)
 
 
 # DRY audit 2026-09-26 B: the ONE validator per task field. task/create and
@@ -524,7 +483,7 @@ async def ws_create_task(
     # Trimmed like an object's link: the surrounding blanks were stored.
     documentation_url = (msg.get("documentation_url") or "").strip()
     if documentation_url:
-        if not _is_safe_url(documentation_url):
+        if not is_safe_url(documentation_url):
             send_unsafe_url_error(connection, msg["id"])
             return
         task_data["documentation_url"] = documentation_url
@@ -583,7 +542,7 @@ async def ws_create_task(
     if msg.get("consumes_parts") is not None:
         from ..const import CONF_PARTS
         from ..helpers.parts import sanitize_consumes_parts
-        from . import foreign_part_resolver
+        from ..helpers.shared_parts import foreign_part_resolver
 
         links = sanitize_consumes_parts(
             msg["consumes_parts"],
@@ -593,7 +552,7 @@ async def ws_create_task(
         if links:
             task_data["consumes_parts"] = links
     if msg.get("phases") is not None or msg.get("phase_sequence") is not None:
-        _apply_phase_fields(hass, entry, task_data, msg.get("phases"), msg.get("phase_sequence"))
+        apply_phase_fields(hass, entry, task_data, msg.get("phases"), msg.get("phase_sequence"))
     if msg.get("checklist"):
         task_data["checklist"] = msg["checklist"]
     if msg.get("labels"):
@@ -606,7 +565,7 @@ async def ws_create_task(
         from ..helpers.sanitize import sanitize_mirror_todo_entities
 
         mirrors = sanitize_mirror_todo_entities(msg["mirror_todo_entities"])
-        mirror_err = _mirror_todo_error(hass, mirrors)
+        mirror_err = mirror_todo_error(hass, mirrors)
         if mirror_err:
             connection.send_error(msg["id"], "invalid_mirror_todo", mirror_err)
             return
@@ -755,7 +714,7 @@ async def ws_update_task(
     # Validate documentation_url if provided (trimmed, like on create)
     if isinstance(msg.get("documentation_url"), str):
         msg["documentation_url"] = msg["documentation_url"].strip()
-    if "documentation_url" in msg and not _is_safe_url(msg["documentation_url"]):
+    if "documentation_url" in msg and not is_safe_url(msg["documentation_url"]):
         send_unsafe_url_error(connection, msg["id"])
         return
 
@@ -765,7 +724,7 @@ async def ws_update_task(
         from ..helpers.sanitize import sanitize_mirror_todo_entities
 
         msg["mirror_todo_entities"] = sanitize_mirror_todo_entities(msg["mirror_todo_entities"])
-        mirror_err = _mirror_todo_error(hass, msg["mirror_todo_entities"])
+        mirror_err = mirror_todo_error(hass, msg["mirror_todo_entities"])
         if mirror_err:
             connection.send_error(msg["id"], "invalid_mirror_todo", mirror_err)
             return
@@ -842,7 +801,7 @@ async def ws_update_task(
     if "consumes_parts" in msg:
         from ..const import CONF_PARTS
         from ..helpers.parts import sanitize_consumes_parts
-        from . import foreign_part_resolver
+        from ..helpers.shared_parts import foreign_part_resolver
 
         task["consumes_parts"] = sanitize_consumes_parts(
             msg["consumes_parts"],
@@ -866,7 +825,7 @@ async def ws_update_task(
     # against the possibly shortened sequence (the Store wins on restore, so
     # an out-of-range cursor would otherwise survive the edit forever).
     if "phases" in msg or "phase_sequence" in msg:
-        _apply_phase_fields(hass, entry, task, msg.get("phases", task.get("phases")), msg.get("phase_sequence", task.get("phase_sequence")))
+        apply_phase_fields(hass, entry, task, msg.get("phases", task.get("phases")), msg.get("phase_sequence", task.get("phase_sequence")))
         from ..helpers.phases import clamp_phase_cursor
 
         store_phase = get_store(hass, entry.entry_id)

@@ -17,12 +17,12 @@ from custom_components.maintenance_supporter.const import (
     GLOBAL_UNIQUE_ID,
     HistoryEntryType,
 )
+from custom_components.maintenance_supporter.helpers.aggregate import check_nfc_tag_duplicate
+from custom_components.maintenance_supporter.helpers.url_safety import is_safe_url
 from custom_components.maintenance_supporter.websocket.groups import (
     ws_create_group,
 )
 from custom_components.maintenance_supporter.websocket.tasks import (
-    _check_nfc_tag_duplicate,
-    _is_safe_url,
     _validate_compound_trigger,
     _validate_trigger_config,
     ws_complete_task,
@@ -2040,30 +2040,30 @@ def _c97_nid() -> int:
     return _c97_msg_id
 
 
-# ─── websocket/tasks.py: _is_safe_url ─────────────────────────────────
+# ─── helpers/url_safety.py: is_safe_url ─────────────────────────────────
 
 
 def test_is_safe_url_empty() -> None:
     """Line 36: empty URL returns True."""
-    assert _is_safe_url("") is True
-    assert _is_safe_url(None) is True
+    assert is_safe_url("") is True
+    assert is_safe_url(None) is True
 
 
 def test_is_safe_url_protocol_relative() -> None:
     """Line 39: protocol-relative URL rejected."""
-    assert _is_safe_url("//evil.com/hack") is False
+    assert is_safe_url("//evil.com/hack") is False
 
 
 def test_is_safe_url_javascript() -> None:
     """Non http/https schemes rejected (line 43)."""
-    assert _is_safe_url("javascript:alert(1)") is False
-    assert _is_safe_url("data:text/html,<h1>hi</h1>") is False
+    assert is_safe_url("javascript:alert(1)") is False
+    assert is_safe_url("data:text/html,<h1>hi</h1>") is False
 
 
 def test_is_safe_url_valid() -> None:
     """Valid http/https URLs accepted."""
-    assert _is_safe_url("https://example.com/docs") is True
-    assert _is_safe_url("http://example.com") is True
+    assert is_safe_url("https://example.com/docs") is True
+    assert is_safe_url("http://example.com") is True
 
 
 def test_is_safe_url_exception() -> None:
@@ -2072,10 +2072,10 @@ def test_is_safe_url_exception() -> None:
         "custom_components.maintenance_supporter.helpers.url_safety.urlparse",
         side_effect=ValueError("bad url"),
     ):
-        assert _is_safe_url("https://example.com") is False
+        assert is_safe_url("https://example.com") is False
 
 
-# ─── websocket/tasks.py: _check_nfc_tag_duplicate ─────────────────────
+# ─── helpers/aggregate.py: check_nfc_tag_duplicate ─────────────────────
 
 
 async def test_nfc_tag_duplicate_found(
@@ -2097,7 +2097,7 @@ async def test_nfc_tag_duplicate_found(
     entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, entry)
 
-    result = _check_nfc_tag_duplicate(hass, "TAG_ABC")
+    result = check_nfc_tag_duplicate(hass, "TAG_ABC")
     assert result is not None
     assert "TAG_ABC" in result
     assert "already linked" in result
@@ -2122,7 +2122,7 @@ async def test_nfc_tag_duplicate_excluded(
     entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, entry)
 
-    result = _check_nfc_tag_duplicate(hass, "TAG_XYZ", exclude_task_id=TASK_ID_1)
+    result = check_nfc_tag_duplicate(hass, "TAG_XYZ", exclude_task_id=TASK_ID_1)
     assert result is None
 
 

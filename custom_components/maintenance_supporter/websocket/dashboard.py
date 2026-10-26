@@ -95,6 +95,7 @@ from ..const import (
     TIME_HHMMSS_PATTERN,
 )
 from ..helpers.aggregate import compute_status_counts
+from ..helpers.battery_lifetime import fleet_lifetime_catalog
 from ..helpers.global_options import default_panel_title, get_global_options
 from ..helpers.notify_targets import build_notify_targets
 from ..helpers.region import is_region_setting
@@ -140,44 +141,6 @@ def _currency_block(options: Mapping[str, Any]) -> dict[str, Any]:
         "currency_symbol": BUDGET_CURRENCIES.get(code, BUDGET_CURRENCIES[DEFAULT_BUDGET_CURRENCY]),
         "currency_decimals": int(_opt(options, CONF_CURRENCY_DECIMALS)),
     }
-
-
-def _battery_lifetime_catalog(hass: HomeAssistant) -> list[dict[str, Any]]:
-    """The lifetime table as Settings shows it — fleet types first."""
-    try:
-        # Readable "Manufacturer Model" per pool key for the learned rows.
-        from homeassistant.helpers import device_registry as dr
-
-        from ..helpers.battery_fleet import discover_battery_types, read_batteries
-        from ..helpers.battery_lifetime import lifetime_catalog
-
-        names: dict[str, str] = {}
-        # HA 2026.9 deprecates mapping-style access on DeviceRegistry.devices
-        # (.values() logs a deprecation warning for custom integrations and
-        # stops working in 2027.9) and iterates ENTRIES; 2026.8 and older
-        # iterate ids and need .values(). Probe the collection itself, same as
-        # repairs.py.
-        registry_devices = dr.async_get(hass).devices
-        all_devices: list[Any] = list(
-            cast(Any, registry_devices).values() if isinstance(registry_devices, Mapping) else registry_devices
-        )
-        for bat in read_batteries(hass):
-            if bat.model_key and bat.model_key not in names:
-                for device in all_devices:
-                    if getattr(device, "parent_device_id", None) is not None:
-                        continue  # 2026.9 sub-device: never the appliance, and its make/model reads are deprecated
-                    manufacturer = str(getattr(device, "manufacturer", None) or "")
-                    model = str(getattr(device, "model", None) or getattr(device, "model_id", None) or "")
-                    key = f"{manufacturer.strip().lower()}|{model.strip().lower()}"
-                    if key == bat.model_key:
-                        names[bat.model_key] = " ".join(x for x in (manufacturer, model) if x)
-                        break
-        return lifetime_catalog(hass, list(discover_battery_types(hass)), model_names=names)
-    except Exception:  # a settings read must never fail on the fleet
-        # Logged, not swallowed: an HA API change here once went unnoticed
-        # because the table simply came back shorter.
-        _LOGGER.warning("Battery lifetime table could not be built", exc_info=True)
-        return []
 
 
 def _search_url_default(hass: HomeAssistant) -> str:
@@ -375,7 +338,7 @@ async def ws_get_settings(
                 {},
                 notify_targets=build_notify_targets(hass),
                 battery_notes=bn,
-                battery_lifetimes=_battery_lifetime_catalog(hass),
+                battery_lifetimes=fleet_lifetime_catalog(hass),
                 part_search_url_default=_search_url_default(hass),
                 panel_title_default=default_panel_title(hass),
             ),
@@ -389,7 +352,7 @@ async def ws_get_settings(
             options,
             notify_targets=build_notify_targets(hass, current=options.get(CONF_NOTIFY_SERVICE, "")),
             battery_notes=bn,
-            battery_lifetimes=_battery_lifetime_catalog(hass),
+            battery_lifetimes=fleet_lifetime_catalog(hass),
             part_search_url_default=_search_url_default(hass),
             panel_title_default=default_panel_title(hass),
         ),
@@ -1023,9 +986,9 @@ async def ws_update_global_settings(
         return
     # #231: a default list cannot be one of our own (the per-task rule).
     if CONF_MIRROR_TODO_DEFAULT_ENTITIES in filtered:
-        from .tasks_validation import _mirror_todo_error
+        from ..helpers.todo_mirror import mirror_todo_error
 
-        mirror_err = _mirror_todo_error(hass, filtered[CONF_MIRROR_TODO_DEFAULT_ENTITIES])
+        mirror_err = mirror_todo_error(hass, filtered[CONF_MIRROR_TODO_DEFAULT_ENTITIES])
         if mirror_err:
             connection.send_error(msg["id"], "invalid_mirror_todo", mirror_err)
             return
@@ -1042,7 +1005,7 @@ async def ws_update_global_settings(
         _build_full_settings(
             merged,
             notify_targets=build_notify_targets(hass, current=merged.get(CONF_NOTIFY_SERVICE, "")),
-            battery_lifetimes=_battery_lifetime_catalog(hass),
+            battery_lifetimes=fleet_lifetime_catalog(hass),
             part_search_url_default=_search_url_default(hass),
             panel_title_default=default_panel_title(hass),
         ),

@@ -26,9 +26,13 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterable, Mapping
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from .completion_requirements import sanitize_required_completion_fields
+
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
 
 MAX_PHASE_DEFS = 10
 MAX_PHASE_SEQUENCE = 12
@@ -89,6 +93,45 @@ def sanitize_phase_sequence(value: object, defs: dict[str, Any]) -> list[str]:
         return []
     seq = [item for item in value if isinstance(item, str) and item in defs]
     return seq[:MAX_PHASE_SEQUENCE]
+
+
+def apply_phase_fields(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    task_data: dict[str, Any],
+    raw_defs: object,
+    raw_sequence: object,
+) -> None:
+    """Sanitize + store the phase config (#139) — shared by the WS create and
+    update and the options flow's phases step.
+
+    Empty/invalid defs or sequence remove BOTH fields (a task either has a
+    usable cycle or none). Per-phase consumes_parts get the same part-registry
+    validation the task-level field gets.
+    """
+    from ..const import CONF_PARTS
+    from .parts import sanitize_consumes_parts
+    from .shared_parts import foreign_part_resolver
+
+    defs = sanitize_phase_defs(raw_defs)
+    for definition in defs.values():
+        if "consumes_parts" in definition:
+            links = sanitize_consumes_parts(
+                definition["consumes_parts"],
+                set(entry.data.get(CONF_PARTS) or {}),
+                foreign_part_ids=foreign_part_resolver(hass),
+            )
+            if links:
+                definition["consumes_parts"] = links
+            else:
+                del definition["consumes_parts"]
+    sequence = sanitize_phase_sequence(raw_sequence, defs)
+    if defs and sequence:
+        task_data["phases"] = defs
+        task_data["phase_sequence"] = sequence
+    else:
+        task_data.pop("phases", None)
+        task_data.pop("phase_sequence", None)
 
 
 def has_phases(task: dict[str, Any] | None) -> bool:
@@ -211,7 +254,7 @@ def parse_phases_text(
 ) -> tuple[dict[str, dict[str, Any]], list[str]]:
     """Inverse of :func:`phases_to_text` — RAW defs + sequence for the
     canonical sanitizers (callers run sanitize_phase_defs/_sequence, or
-    the shared ``_apply_phase_fields``, on the result).
+    the shared :func:`apply_phase_fields`, on the result).
 
     Names match existing definitions case-insensitively so their ids stay
     stable (history ``phase_id`` and the Store cursor key off them) and

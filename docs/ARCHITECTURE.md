@@ -209,7 +209,7 @@ custom_components/maintenance_supporter/
 ├── config_flow_options_task.py     (30 lines)  Per-object task options flow — a dispatcher assembled from the mixins below
 │   ├── …_task_base.py             (205 lines)  Shared state + threshold-floor (B1) helpers
 │   ├── …_task_add.py               (96 lines)  Add-task steps of the options flow, on the shared config_flow_schedule.py
-│   ├── …_task_crud.py             (760 lines)  Manage / edit / delete / checklist steps
+│   ├── …_task_crud.py             (759 lines)  Manage / edit / delete / checklist steps
 │   ├── …_task_trigger.py          (518 lines)  Trigger edit / summary / remove steps
 │   ├── …_task_adaptive.py         (196 lines)  Adaptive-scheduling step + schema
 │   └── …_task_object.py           (163 lines)  Object-settings (metadata) step
@@ -242,31 +242,31 @@ custom_components/maintenance_supporter/
 │       ├── compound.py            (436 lines)  AND/OR compound trigger
 │       └── due_date.py             (87 lines)  Due-date trigger: the device reports WHEN the maintenance is due
 │
-├── websocket/                  (11,903 lines)  110 commands, 25 files — split by domain; tasks.py re-exports the task modules drawn under it
-│   ├── __init__.py              (1,024 lines)  Shared helpers + registration
-│   ├── objects.py               (1,180 lines)  13 commands: objects, object, object/create, object/update, object/delete,
+├── websocket/                  (11,740 lines)  110 commands, 25 files — split by domain; tasks.py re-exports the task modules drawn under it
+│   ├── __init__.py              (1,006 lines)  Shared helpers + registration
+│   ├── objects.py               (1,178 lines)  13 commands: objects, object, object/create, object/update, object/delete,
 │   │                                           object/duplicate, object/from_template, object/archive, object/unarchive, object/pause,
 │   │                                           object/resume, object/replace, entity/attributes
-│   ├── tasks.py                    (87 lines)  Backward-compat re-export shim (no handlers of its own)
+│   ├── tasks.py                    (83 lines)  Backward-compat re-export shim (no handlers of its own)
 │   │   ├── tasks_actions.py       (600 lines)  9 commands: task/complete, task/quick_complete, task/undo, task/skip, task/reset,
 │   │   │                                       task/set_phase, task/postpone, task/snooze, task/checklist_progress
-│   │   ├── tasks_crud.py        (1,218 lines)  5 commands: task/create, task/update, task/delete, task/duplicate, task/move
+│   │   ├── tasks_crud.py        (1,177 lines)  5 commands: task/create, task/update, task/delete, task/duplicate, task/move
 │   │   ├── tasks_history.py       (377 lines)  2 commands: task/history/update, task/history/delete
 │   │   ├── tasks_lifecycle.py     (337 lines)  6 commands: task/archive, task/pause, task/resume, task/unarchive, task/list, task/history
 │   │   ├── tasks_persist.py       (470 lines)  Shared persist path (no handlers)
-│   │   └── tasks_validation.py    (482 lines)  Shared task-payload validation (no handlers)
+│   │   └── tasks_validation.py    (422 lines)  Shared task-payload validation (no handlers)
 │   ├── groups.py                  (183 lines)  4 commands: groups, group/create, group/update, group/delete
 │   ├── analysis.py                (309 lines)  5 commands: task/analyze_interval, task/apply_suggestion, task/seasonal_overrides,
 │   │                                           task/set_environmental_entity, task/set_adaptive
 │   ├── users.py                   (167 lines)  3 commands: users/list, task/assign_user, tasks/by_user
 │   ├── io.py                    (1,811 lines)  10 commands: version, templates, export, csv/export, objects/csv, csv/import,
 │   │                                           settings/export, json/import, qr/generate, qr/batch_generate
-│   ├── dashboard.py             (1,128 lines)  8 commands: settings, statistics, subscribe, schedule/preview, budget_status,
+│   ├── dashboard.py             (1,091 lines)  8 commands: settings, statistics, subscribe, schedule/preview, budget_status,
 │   │                                           global/update, global/test_notification, notify/user_targets
 │   ├── vacation.py                (208 lines)  4 commands: vacation/state, vacation/update, vacation/preview, vacation/end_now
 │   ├── parts.py                   (472 lines)  8 commands: part/create, part/update, part/delete, part/restock, part/use,
 │   │                                           part/ready_again, part/dispose, parts/overview
-│   ├── documents.py               (481 lines)  8 commands: documents/list, documents/storage, documents/add_link, documents/update,
+│   ├── documents.py               (480 lines)  8 commands: documents/list, documents/storage, documents/add_link, documents/update,
 │   │                                           documents/delete, documents/discard_upload, documents/search, search
 │   ├── problem_sensors.py         (257 lines)  3 commands: problem_sensors/discover, problem_sensors/preview, problem_sensors/adopt
 │   ├── saved_views.py             (100 lines)  3 commands: views/list, views/save, views/delete
@@ -281,7 +281,7 @@ custom_components/maintenance_supporter/
 │   ├── reference_numbers.py        (46 lines)  1 command: reference_numbers/compact
 │   └── tasks_bulk.py              (171 lines)  1 command: tasks/update_many
 │
-├── views.py                       (402 lines)  Four authenticated HTTP views: DocumentUploadView,
+├── views.py                       (401 lines)  Four authenticated HTTP views: DocumentUploadView,
 │                                               DocumentServeView, DocumentExcerptView, DocumentsArchiveView
 ├── intent.py                    (1,055 lines)  8 intents: ListTasks, CompleteTask, TaskInstructions, TaskDue, SnoozeTask, PartStock,
 │                                               PostponeTask, SkipTask
@@ -453,7 +453,7 @@ custom_components/maintenance_supporter/
 │   │   └── ms-part-use.ts         (217 lines)  #226: the Use pill, for some of a part used outside a task
 │   └── __tests__/              (31,950 lines)  222 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (35,279 lines)  105 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+├── helpers/                    (35,414 lines)  105 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,808 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (374 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
@@ -462,14 +462,14 @@ custom_components/maintenance_supporter/
 │   ├── schedule.py              (1,013 lines)  Schedule value object (discriminated-union recurrence) + adapters
 │   ├── calendar_source.py         (239 lines)  Calendar-entity occurrences (#187): `calendar.get_events` prefetch, 15-min cache in hass.data, provider for the pure engine
 │   ├── sensor_predictor.py        (937 lines)  Degradation + environmental correlation
-│   ├── documents.py             (1,055 lines)  Content-addressed manual/PDF storage + web links
+│   ├── documents.py             (1,059 lines)  Content-addressed manual/PDF storage + web links
 │   ├── document_text.py           (470 lines)  Full-text index over the blobs: pypdf text layer → sidecar + inverted index (#171)
 │   ├── search_match.py            (212 lines)  Tolerant matcher (fold, digraph variants, one-edit typos, AND rule) — TS twin in the panel
 │   ├── reference_numbers.py       (316 lines)  Object / task / completion reference numbers (#170): counters, creation-order assignment
 │   ├── battery_fleet.py         (1,855 lines)  Battery Notes aggregation, native-battery fallback, forecast
 │   ├── parts.py                   (769 lines)  Spare-parts rules: GTIN, stock transitions, buy-task reconciler
-│   ├── shared_parts.py            (322 lines)  Pools shared across objects (#111): borrower lookup, owner-deletion transfer
-│   ├── todo_mirror.py             (555 lines)  TodoMirror (2.87, D#183): per-task `mirror_todo_entities`, else the global
+│   ├── shared_parts.py            (340 lines)  Pools shared across objects (#111): borrower lookup, owner-deletion transfer
+│   ├── todo_mirror.py             (572 lines)  TodoMirror (2.87, D#183): per-task `mirror_todo_entities`, else the global
 │   │                                           `mirror_todo_default_entities` unless `mirror_todo_use_default` is false (#231), rows kept
 │   │                                           in sync from the coordinator refresh, with the next due date on lists that take one; a
 │   │                                           state-change listener + 2 s debounce completes the task through the chokepoint with
@@ -497,7 +497,7 @@ custom_components/maintenance_supporter/
 │   ├── permissions.py             (125 lines)  @require_write / @require_admin authorization; `service_tier` holds service callers to the same tiers
 │   ├── object_names.py            (108 lines)  One object-name rule (by slug, current names) + a free config-entry unique id
 │   ├── url_safety.py              (101 lines)  Which stored links are safe (http/https, path-relative) — shared by WS, flows, imports
-│   ├── aggregate.py               (276 lines)  compute_status_counts — the single KPI source
+│   ├── aggregate.py               (292 lines)  compute_status_counts — the single KPI source
 │   ├── i18n.py                     (74 lines)  normalize_language_code (pt-br is its own table key)
 │   ├── integration_signatures.py   (28 lines)  Compatibility shim → signatures/
 │   ├── catalog_heal.py            (180 lines)  Repairs catalog-adopted triggers a later signature fix invalidated (gree/daikin AC runtime)
@@ -510,7 +510,7 @@ custom_components/maintenance_supporter/
 │   ├── adopt_match.py             (217 lines)  Adoption without duplicates (2.94)
 │   ├── area_costs.py               (54 lines)  What maintenance cost per Home Assistant area (#191) — behind entity/area_cost.py
 │   ├── area_leftovers.py           (99 lines)  Areas an object's device created by mistake before 2.96 — and the way out
-│   ├── battery_lifetime.py        (534 lines)  Battery lifetimes: the type table, the user's overrides and what the fleet has learned from its own replacements (D#162 follow-up)
+│   ├── battery_lifetime.py        (571 lines)  Battery lifetimes: the type table, the user's overrides and what the fleet has learned from its own replacements (D#162 follow-up)
 │   ├── budget.py                  (102 lines)  Booked spending, one walk (`completed_spend`): the budget and the per-area cost sensors
 │   ├── completion_photos.py        (47 lines)  Completion photos: the ids of the documents a history entry points at
 │   ├── completion_requirements.py (190 lines)  Per-task "you must record this when you finish" rules
@@ -531,7 +531,7 @@ custom_components/maintenance_supporter/
 │   ├── notify_targets.py           (39 lines)  Canonical notify-target discovery
 │   ├── parts_cost.py              (222 lines)  What the spare parts of a completion cost — and when that counts (#104)
 │   ├── pause.py                   (237 lines)  Object and single-task pause (seasonal mode, #193): markers, auto-resume, fresh-cycle re-anchoring
-│   ├── phases.py                  (253 lines)  Task phases (#139): a cyclic sequence of different activities on ONE shared cadence
+│   ├── phases.py                  (296 lines)  Task phases (#139): a cyclic sequence of different activities on ONE shared cadence
 │   ├── status.py                  (124 lines)  The task-status ladder — ONE implementation for the model and the dict twin
 │   ├── task_fields.py              (98 lines)  Single source of truth for task-field enums + numeric ranges
 │   ├── template_usage.py          (121 lines)  Which templates this home already uses — "already set up" (v2.94)

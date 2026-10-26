@@ -38,12 +38,12 @@ from __future__ import annotations
 
 import logging
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import date
 from itertools import pairwise
 from statistics import median
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.core import HomeAssistant
 
@@ -532,3 +532,40 @@ def lifetime_catalog(hass: HomeAssistant, types_in_fleet: list[str] | None = Non
             }
         )
     return rows
+
+
+def fleet_lifetime_catalog(hass: HomeAssistant) -> list[dict[str, Any]]:
+    """The lifetime table as Settings shows it (the panel and the options
+    flow) — fleet types first, learned rows named "Manufacturer Model"."""
+    try:
+        from homeassistant.helpers import device_registry as dr
+
+        from .battery_fleet import discover_battery_types, read_batteries
+
+        names: dict[str, str] = {}
+        # HA 2026.9 deprecates mapping-style access on DeviceRegistry.devices
+        # (.values() logs a deprecation warning for custom integrations and
+        # stops working in 2027.9) and iterates ENTRIES; 2026.8 and older
+        # iterate ids and need .values(). Probe the collection itself, same as
+        # repairs.py.
+        registry_devices = dr.async_get(hass).devices
+        all_devices: list[Any] = list(
+            cast(Any, registry_devices).values() if isinstance(registry_devices, Mapping) else registry_devices
+        )
+        for bat in read_batteries(hass):
+            if bat.model_key and bat.model_key not in names:
+                for device in all_devices:
+                    if getattr(device, "parent_device_id", None) is not None:
+                        continue  # 2026.9 sub-device: never the appliance, and its make/model reads are deprecated
+                    manufacturer = str(getattr(device, "manufacturer", None) or "")
+                    model = str(getattr(device, "model", None) or getattr(device, "model_id", None) or "")
+                    key = f"{manufacturer.strip().lower()}|{model.strip().lower()}"
+                    if key == bat.model_key:
+                        names[bat.model_key] = " ".join(x for x in (manufacturer, model) if x)
+                        break
+        return lifetime_catalog(hass, list(discover_battery_types(hass)), model_names=names)
+    except Exception:  # a settings read must never fail on the fleet
+        # Logged, not swallowed: an HA API change here once went unnoticed
+        # because the table simply came back shorter.
+        _LOGGER.warning("Battery lifetime table could not be built", exc_info=True)
+        return []

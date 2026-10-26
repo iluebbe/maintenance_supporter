@@ -227,7 +227,7 @@ async def ws_adopt_problem_sensors(
                     # foreign_part_ids keeps pooled #111 cross-object links — the
                     # CRUD paths pass it, this copy had forgotten it (a re-adopted
                     # task silently lost its pooled part link).
-                    from . import foreign_part_resolver
+                    from ..helpers.shared_parts import foreign_part_resolver
 
                     links = sanitize_consumes_parts(
                         raw_links,

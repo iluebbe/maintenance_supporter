@@ -777,11 +777,11 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
 
     async def _handle_add_object(call: ServiceCall) -> dict[str, Any] | None:
         """Handle the add_object service — create a maintenance object."""
+        from .helpers.url_safety import is_safe_url
         from .websocket.objects import async_create_object
-        from .websocket.tasks import _is_safe_url
 
         url = call.data.get("documentation_url")
-        if url and not _is_safe_url(url):
+        if url and not is_safe_url(url):
             raise ServiceValidationError(translation_domain=DOMAIN, translation_key="unsafe_url")
         # The same answer for a taken name as the panel's (it was "The action
         # could not be carried out: already_configured", BI5-A2).

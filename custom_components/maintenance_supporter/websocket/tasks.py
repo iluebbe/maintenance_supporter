@@ -44,8 +44,6 @@ from .tasks_validation import (
     _TRIGGER_ALLOWED_KEYS,
     _TRIGGER_REQUIRED_FIELDS,
     _VALID_TRIGGER_TYPES,
-    _check_nfc_tag_duplicate,
-    _is_safe_url,
     _validate_compound_trigger,
     _validate_trigger_config,
 )
@@ -54,9 +52,7 @@ __all__ = [
     "_TRIGGER_ALLOWED_KEYS",
     "_TRIGGER_REQUIRED_FIELDS",
     "_VALID_TRIGGER_TYPES",
-    "_check_nfc_tag_duplicate",
     "_is_recurring_schedule",
-    "_is_safe_url",
     "_validate_compound_trigger",
     "_validate_trigger_config",
     "async_create_task_simple",

@@ -64,6 +64,10 @@ DOC_CATEGORIES = ("manual", "warranty", "invoice", "spare_parts", "photo", "othe
 # whole (copied and hashed in pieces, served from disk) the cap is about
 # backups only.
 MAX_DOC_BYTES = 100 * 1024 * 1024  # 100 MB
+# Tags per document and characters per tag — the WS schema and the upload
+# view cap the same way.
+MAX_TAGS = 20
+MAX_TAG_LEN = 64
 # A stored file is copied and hashed in pieces of this size.
 _COPY_CHUNK_BYTES = 1024 * 1024
 

@@ -173,9 +173,9 @@ class TaskCrudMixin:
             nfc_val = (user_input.get(CONF_TASK_NFC_TAG) or "").strip()
             stored_nfc = ((self.config_entry.data.get(CONF_TASKS) or {}).get(self._selected_task_id or "") or {}).get(CONF_TASK_NFC_TAG)
             if nfc_val and nfc_val != stored_nfc:
-                from .websocket.tasks import _check_nfc_tag_duplicate
+                from .helpers.aggregate import check_nfc_tag_duplicate
 
-                dup_warn = _check_nfc_tag_duplicate(
+                dup_warn = check_nfc_tag_duplicate(
                     self.hass,
                     nfc_val,
                     exclude_task_id=self._selected_task_id,
@@ -659,11 +659,10 @@ class TaskCrudMixin:
         Names matching existing phases keep their ids (history phase_id and
         the Store cursor stay stable) AND their panel-only overrides (parts /
         required fields). Sanitizing + storage go through the SAME
-        ``_apply_phase_fields`` as the WS write path, and the Store cursor is
+        ``apply_phase_fields`` as the WS write path, and the Store cursor is
         clamped the same way ws_update_task clamps it.
         """
-        from .helpers.phases import clamp_phase_cursor, parse_phases_text, phases_to_text
-        from .websocket.tasks_crud import _apply_phase_fields
+        from .helpers.phases import apply_phase_fields, clamp_phase_cursor, parse_phases_text, phases_to_text
 
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
         task = tasks_data.get(self._selected_task_id or "", {})
@@ -678,7 +677,7 @@ class TaskCrudMixin:
             new_data = dict(self.config_entry.data)
             new_tasks = dict(new_data.get(CONF_TASKS, {}))
             updated_task = dict(new_tasks.get(self._selected_task_id or "", {}))
-            _apply_phase_fields(self.hass, self.config_entry, updated_task, raw_defs, raw_seq)
+            apply_phase_fields(self.hass, self.config_entry, updated_task, raw_defs, raw_seq)
             new_tasks[self._selected_task_id or ""] = updated_task
             new_data[CONF_TASKS] = new_tasks
             self._update_config_entry(new_data)

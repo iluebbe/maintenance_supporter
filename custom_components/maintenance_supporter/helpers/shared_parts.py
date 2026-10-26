@@ -21,6 +21,7 @@ and no link is ever left pointing at nothing.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -34,7 +35,7 @@ from ..const import (
     DOMAIN,
     STORES_CACHE_KEY,
 )
-from .aggregate import get_object_entries, object_name
+from .aggregate import get_object_entries, is_object_entry, object_name
 from .entry_tasks import write_tasks
 from .issues import SHARED_PARTS_MOVED_PREFIX, shared_parts_moved_issue_id
 from .parts import iter_part_links, map_part_links
@@ -115,6 +116,23 @@ def live_parts(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, dict[str, A
         return shelf
     in_use = borrowed_part_ids(hass, entry.entry_id, active_only=True)
     return {pid: part for pid, part in shelf.items() if pid in in_use}
+
+
+def foreign_part_resolver(hass: HomeAssistant) -> Callable[[str], set[str] | None]:
+    """Callback for ``sanitize_consumes_parts``: which parts an entry owns.
+
+    Returns None for an entry that does not exist or is not a maintenance
+    object, so a link to it is dropped rather than trusted.
+    """
+
+    def _resolve(entry_id: str) -> set[str] | None:
+        entry = hass.config_entries.async_get_entry(entry_id)
+        # is_object_entry() rejects None too; the explicit test narrows the type.
+        if entry is None or not is_object_entry(entry):
+            return None
+        return set(entry.data.get(CONF_PARTS) or {})
+
+    return _resolve
 
 
 def relink_tasks(
