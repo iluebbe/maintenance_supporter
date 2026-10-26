@@ -706,7 +706,7 @@ async def test_completion_photos_are_linked_after_the_task_is_persisted(hass: Ho
         edited = {"type": "triggered", "timestamp": dt_util.now().isoformat(), "notes": "saved meanwhile"}
         store.set_history(task_id, [*store.get_history(task_id), edited])
 
-    with patch.object(coordinator, "_link_completion_photo", _racing_edit):
+    with patch.object(coordinator, "async_link_completion_photo", _racing_edit):
         await coordinator.complete_maintenance(TASK_ID_1, photo_doc_ids=["photo1"])
     history = store.get_history(TASK_ID_1)
     assert [h.get("type") for h in history].count("completed") == 1

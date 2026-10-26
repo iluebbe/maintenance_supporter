@@ -794,19 +794,24 @@ async def test_notification_excepts_fire_when_dispatch_raises(
 def test_completion_blocked_guards() -> None:
     from unittest.mock import MagicMock as MM
 
-    from custom_components.maintenance_supporter.websocket.tasks_actions import (
-        _completion_blocked,
-    )
+    from custom_components.maintenance_supporter.coordinator import MaintenanceCoordinator
+    from custom_components.maintenance_supporter.websocket.tasks_actions import _refuse_too_early
 
-    # No runtime data / no coordinator → not blocked.
-    assert _completion_blocked(None, "t1") is False
+    # No runtime data / no coordinator → not refused, nothing sent.
+    connection = MM()
+    msg = {"id": 1, "task_id": "t1"}
+    assert _refuse_too_early(connection, msg, None) is False
     rd = MM()
     rd.coordinator = None
-    assert _completion_blocked(rd, "t1") is False
-    # Unknown task → not blocked.
-    rd2 = MM()
-    rd2.coordinator._get_merged_tasks_data.return_value = {}
-    assert _completion_blocked(rd2, "t1") is False
+    assert _refuse_too_early(connection, msg, rd) is False
+    connection.send_error.assert_not_called()
+    # Unknown task → not blocked; merged_task has nothing to merge.
+    coordinator = MM()
+    coordinator.entry.data = {"tasks": {}}
+    assert MaintenanceCoordinator.merged_task(coordinator, "t1") is None
+    for missing in (None, {}):
+        coordinator.merged_task.return_value = missing
+        assert MaintenanceCoordinator.completion_blocked(coordinator, "t1") is False
 
 
 async def test_todo_list_skips_archived_and_bad_dates(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:

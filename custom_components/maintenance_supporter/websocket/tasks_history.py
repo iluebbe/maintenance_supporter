@@ -273,7 +273,7 @@ async def ws_update_history_entry(
         await async_commit_parts_edit(hass, parts_touched)
     if rd.coordinator:
         for doc_id in photos_to_link:
-            await rd.coordinator._link_completion_photo(doc_id, task_id)
+            await rd.coordinator.async_link_completion_photo(doc_id, task_id)
 
     # Save + budget cache + immediate refresh so the UI reflects the change.
     await async_commit_store(rd, budget=True)

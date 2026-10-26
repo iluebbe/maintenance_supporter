@@ -1053,7 +1053,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         for task_id, task_result in task_results.items():
             self._previous_statuses[task_id] = task_result.status
 
-    def _recalculate_budget_cache(self) -> None:
+    def recalculate_budget_cache(self) -> None:
         """Recompute global budget totals from all entries' history.
 
         Stores the result in hass.data[DOMAIN][BUDGET_CACHE_KEY] so that
@@ -1109,7 +1109,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             or cache["last_updated"].month != now_local.month
             or cache["last_updated"].year != now_local.year
         ):
-            self._recalculate_budget_cache()
+            self.recalculate_budget_cache()
             cache = self.hass.data[DOMAIN][BUDGET_CACHE_KEY]
 
         monthly_spent: float = cache["monthly_spent"]
@@ -1128,6 +1128,24 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
     def _get_merged_tasks_data(self) -> dict[str, Any]:
         """Return merged static (ConfigEntry) + dynamic (Store) task data."""
         return self._store.merge_all_tasks(dict(self.entry.data.get(CONF_TASKS, {})))
+
+    def merged_task(self, task_id: str) -> dict[str, Any] | None:
+        """One task's merged static (ConfigEntry) + dynamic (Store) data, or
+        None for a task the entry does not hold. The read for code outside the
+        coordinator that needs one task; all of them: aggregate.merged_tasks."""
+        static = (self.entry.data.get(CONF_TASKS) or {}).get(task_id)
+        if static is None:
+            return None
+        return self._store.merge_task_data(task_id, static)
+
+    def completion_blocked(self, task_id: str) -> bool:
+        """True iff the task's completion window (earliest_completion_days)
+        forbids completing it right now. The friendly pre-check of the WS, the
+        to-do list and voice; complete_maintenance enforces the same rule."""
+        task = self.merged_task(task_id)
+        if not task:
+            return False
+        return not MaintenanceTask.from_dict(task).can_complete_now
 
     def _persist_dynamic_state(self, task_id: str, task: MaintenanceTask) -> None:
         """Write task's dynamic state to Store (debounced)."""
@@ -1179,7 +1197,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
 
         self._persist_dynamic_state(task_id, task)
 
-    async def _link_completion_photo(self, photo_doc_id: str, task_id: str) -> None:
+    async def async_link_completion_photo(self, photo_doc_id: str, task_id: str) -> None:
         """Link an uploaded completion photo to its task (best-effort).
 
         The photo is already stored object-scoped by the upload view; this just
@@ -1538,7 +1556,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # store write was overwritten by the stale snapshot (bug audit
         # 2026-09-27).
         for photo_doc_id in photo_doc_ids or ():
-            await self._link_completion_photo(photo_doc_id, task_id)
+            await self.async_link_completion_photo(photo_doc_id, task_id)
 
         # Shared-task rotation: advance_rotation() (inside task.complete)
         # mutates responsible_user_id, which is a STATIC config field — the
@@ -1566,7 +1584,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # 2026-10-12, BR5-A9).
         last_entry = task.history[-1] if task.history else None
         if cost is not None or (last_entry is not None and last_entry.get("parts_cost") is not None):
-            self._recalculate_budget_cache()
+            self.recalculate_budget_cache()
 
         # Spare parts: consume linked parts / restock a completed buy task.
         # Best-effort side effect — a broken part link must never fail the
@@ -1848,7 +1866,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         await self._store.async_save()
         # The undone entry's cost leaves the budget too: the undo bypassed
         # the budget refresh every other history write runs (BR5-A9).
-        self._recalculate_budget_cache()
+        self.recalculate_budget_cache()
         await self.async_refresh_now()
 
     def _is_inert(self, task_data: dict[str, Any]) -> bool:
@@ -2139,7 +2157,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         repaints (BaseTrigger._restore_activation; bug audit 2026-09-26,
         SCH-10). Latest by timestamp — string compare like the history-edit
         reconciliation — with later list entries winning ties."""
-        task = self._get_merged_tasks_data().get(task_id) or {}
+        task = self.merged_task(task_id) or {}
         latest_type: str | None = None
         latest_ts = ""
         from .helpers.dates import parse_persisted_utc, stamp_instant

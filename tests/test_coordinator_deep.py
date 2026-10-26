@@ -1229,7 +1229,7 @@ async def test_double_photo_completion_is_deduped(
     async def _slow_link(self: object, photo_doc_id: str, task_id: str) -> None:
         await asyncio.sleep(0.02)  # force a loop yield so the two calls interleave
 
-    monkeypatch.setattr(type(coordinator), "_link_completion_photo", _slow_link)
+    monkeypatch.setattr(type(coordinator), "async_link_completion_photo", _slow_link)
     await asyncio.gather(
         coordinator.complete_maintenance(task_id=TASK_ID_1, photo_doc_ids=["doc-a"]),
         coordinator.complete_maintenance(task_id=TASK_ID_1, photo_doc_ids=["doc-b"]),

@@ -459,9 +459,7 @@ class CompleteTaskIntent(intent.IntentHandler):
 
         # Honour the completion window (earliest_completion_days) like the WS
         # and To-do paths do — voice must not bypass the contract.
-        from .websocket.tasks_actions import _completion_blocked
-
-        if _completion_blocked(rd, target["task_id"]):
+        if coordinator.completion_blocked(target["task_id"]):
             response.async_set_error(
                 intent.IntentResponseErrorCode.FAILED_TO_HANDLE,
                 _sp("too_early", lang, task=target["name"]),

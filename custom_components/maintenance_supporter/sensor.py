@@ -358,8 +358,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
 
         # Use merged data (static config + Store runtime) so that persisted
         # trigger state (_trigger_state) survives HA restarts.
-        static_task = self.coordinator.entry.data.get(CONF_TASKS, {}).get(self._task_id, {})
-        task_data = self.coordinator._store.merge_task_data(self._task_id, static_task)
+        task_data = self.coordinator.merged_task(self._task_id) or {}
         trigger_config = task_data.get("trigger_config")
 
         # Listen for task reset signals (completion/skip/reset) —

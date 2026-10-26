@@ -752,7 +752,7 @@ async def test_budget_ws_agrees_with_coordinator_cache(
 ) -> None:
     """The panel's budget figure and the ALERT's budget figure must be one number.
 
-    Regression guard: ``coordinator._recalculate_budget_cache`` (which feeds the
+    Regression guard: ``coordinator.recalculate_budget_cache`` (which feeds the
     budget-alert notification) and ``ws_get_budget_status`` (which draws the
     panel bars) each carried their own copy of the same ~35-line history scan,
     and the copies used DIFFERENT cost predicates — ``float(cost)`` in the
@@ -785,7 +785,7 @@ async def test_budget_ws_agrees_with_coordinator_cache(
     store.set_history(TASK_ID_1, history)
 
     coordinator = entry.runtime_data.coordinator
-    coordinator._recalculate_budget_cache()
+    coordinator.recalculate_budget_cache()
     cache = hass.data[DOMAIN]["_budget_cache"]
 
     conn = _mock_connection()

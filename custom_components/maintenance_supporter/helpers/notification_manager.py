@@ -1480,7 +1480,7 @@ class NotificationManager:
         coordinator = getattr(getattr(entry, "runtime_data", None), "coordinator", None)
         if coordinator is None:
             return True
-        task = coordinator._get_merged_tasks_data().get(task_id)
+        task = coordinator.merged_task(task_id)
         if not task:
             return True
         if task.get("require_tag_scan") or required_completion_fields(task):
@@ -1498,7 +1498,7 @@ class NotificationManager:
         coordinator = getattr(getattr(entry, "runtime_data", None), "coordinator", None)
         if coordinator is None:
             return None
-        task = coordinator._get_merged_tasks_data().get(task_id)
+        task = coordinator.merged_task(task_id)
         return cycle_token(task.get("history")) if task else None
 
     def _held_still_current(self, facts: Mapping[str, Any]) -> bool:

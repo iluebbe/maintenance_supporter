@@ -200,11 +200,11 @@ async def test_async_commit_store_sequence() -> None:
     rd.coordinator.async_refresh_now = AsyncMock()
     await async_commit_store(rd)
     rd.store.async_save.assert_awaited_once()
-    rd.coordinator._recalculate_budget_cache.assert_not_called()
+    rd.coordinator.recalculate_budget_cache.assert_not_called()
     rd.coordinator.async_refresh_now.assert_awaited_once()
 
     await async_commit_store(rd, budget=True)
-    rd.coordinator._recalculate_budget_cache.assert_called_once()
+    rd.coordinator.recalculate_budget_cache.assert_called_once()
 
     rd.coordinator = None
     await async_commit_store(rd)  # a store-only runtime still saves, never raises

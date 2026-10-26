@@ -106,7 +106,7 @@ from .const import (
 from .coordinator import MaintenanceCoordinator
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .frontend import async_register_card
-from .helpers.aggregate import async_store_even_unloaded, iter_live_tasks
+from .helpers.aggregate import async_store_even_unloaded, iter_live_tasks, merged_tasks
 from .helpers.aggregate import object_name as aggregate_object_name
 from .helpers.aggregate import object_slug as aggregate_object_slug
 from .helpers.aggregate import task_sensor_entity_id as aggregate_task_sensor_entity_id
@@ -439,7 +439,7 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
         if coordinator is None:
             continue
         # Merged data so last_performed reflects the Store, not stale entry data.
-        merged = coordinator._get_merged_tasks_data()
+        merged = merged_tasks(entry)
         payload = task_results(coordinator)
         obj_name = aggregate_object_name(entry)
         for task_id, task_data in merged.items():
@@ -698,7 +698,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             if call.data.get("reading_values"):
                 from .helpers.reading_slots import resolve_reading_values_by_name
 
-                slot_task = coordinator._get_merged_tasks_data().get(task_id) or {}
+                slot_task = coordinator.merged_task(task_id) or {}
                 try:
                     reading_values = (
                         resolve_reading_values_by_name(
@@ -1143,7 +1143,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         if sent_cycle is not None and action_type in ("complete", "skip"):
             from .helpers.history import cycle_token
 
-            current = runtime_data.coordinator._get_merged_tasks_data().get(task_id)
+            current = runtime_data.coordinator.merged_task(task_id)
             if current is not None and cycle_token(current.get("history")) != sent_cycle:
                 _LOGGER.info("Ignoring %s of task %s from an outdated reminder", action_type, task_id)
                 if nm is not None:

@@ -27,7 +27,6 @@ from ..helpers.completion_photos import MAX_COMPLETION_PHOTOS, normalize_photo_d
 from ..helpers.dates import is_past_dated
 from ..helpers.parts import MAX_PART_STOCK
 from ..helpers.ws_errors import send_exception_error, send_translated_error
-from ..models.maintenance_task import MaintenanceTask
 from . import (
     ID_FIELD,
     READING_VALUES_FIELD,
@@ -42,28 +41,13 @@ from . import (
 # ---------------------------------------------------------------------------
 
 
-def _completion_blocked(rd: Any, task_id: str) -> bool:
-    """True iff the task's completion window forbids completing it right now.
-
-    Uses the coordinator's merged (live) task data so ``last_performed`` /
-    ``next_due`` reflect the Store, not the stale config entry.
-    """
-    coordinator = getattr(rd, "coordinator", None)
-    if coordinator is None:
-        return False
-    merged = coordinator._get_merged_tasks_data()
-    td = merged.get(task_id)
-    if not td:
-        return False
-    return not MaintenanceTask.from_dict(td).can_complete_now
-
-
 def _refuse_too_early(connection: websocket_api.ActiveConnection, msg: dict[str, Any], rd: Any) -> bool:
     """Send ``too_early`` and return True when the completion window forbids
     completing the task now — the ONE pre-check shared by the complete and
     quick-complete commands (the coordinator choke point raises the same key
     for callers that skip it, e.g. the HA service)."""
-    if not _completion_blocked(rd, msg["task_id"]):
+    coordinator = getattr(rd, "coordinator", None)
+    if coordinator is None or not coordinator.completion_blocked(msg["task_id"]):
         return False
     connection.send_error(msg["id"], "too_early", "Task can only be completed closer to its due date")
     return True

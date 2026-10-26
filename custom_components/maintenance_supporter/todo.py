@@ -166,10 +166,7 @@ class MaintenanceTodoList(TodoListEntity):
             return
         # Respect a task's completion window — silently no-op (the item stays
         # needs_action) rather than completing an item that's not yet due.
-        from .models.maintenance_task import MaintenanceTask
-
-        td = coordinator._get_merged_tasks_data().get(task_id)
-        if td and not MaintenanceTask.from_dict(td).can_complete_now:
+        if coordinator.completion_blocked(task_id):
             return
         await coordinator.complete_maintenance(
             task_id,

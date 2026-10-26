@@ -1060,8 +1060,8 @@ async def test_budget_history_no_store(
     new_data[CONF_TASKS] = tasks
     hass.config_entries.async_update_entry(entry, data=new_data)
 
-    # Call _recalculate_budget_cache — hits line 693 fallback
-    coord._recalculate_budget_cache()
+    # Call recalculate_budget_cache — hits line 693 fallback
+    coord.recalculate_budget_cache()
     cache = hass.data.get(DOMAIN, {}).get("_budget_cache", {})
     assert cache.get("yearly_spent", 0) >= 25.0
 
@@ -1112,7 +1112,7 @@ async def test_budget_string_cost_no_crash(
     coord = entry.runtime_data.coordinator
 
     # Should not raise TypeError
-    coord._recalculate_budget_cache()
+    coord.recalculate_budget_cache()
     cache = hass.data.get(DOMAIN, {}).get("_budget_cache", {})
     # Only the real float counts; no NaN/inf can leak in via a string.
     assert cache.get("yearly_spent", 0) == pytest.approx(25.0)

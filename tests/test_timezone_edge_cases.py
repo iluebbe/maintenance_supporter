@@ -439,7 +439,7 @@ async def test_budget_naive_timestamp_at_year_boundary(
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
     assert refreshed is not None
     coordinator: MaintenanceCoordinator = refreshed.runtime_data.coordinator
-    coordinator._recalculate_budget_cache()
+    coordinator.recalculate_budget_cache()
     cache = hass.data[DOMAIN]["_budget_cache"]
 
     # In HA-local TZ now is 2025-12-31, so:

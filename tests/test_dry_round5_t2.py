@@ -344,7 +344,7 @@ async def test_the_parts_value_alone_refreshes_the_budget(hass: HomeAssistant) -
     entry.runtime_data.store.set_part_stock("spray", 1000)
     coordinator = entry.runtime_data.coordinator
 
-    with patch.object(coordinator, "_recalculate_budget_cache", wraps=coordinator._recalculate_budget_cache) as spy:
+    with patch.object(coordinator, "recalculate_budget_cache", wraps=coordinator.recalculate_budget_cache) as spy:
         await coordinator.complete_maintenance(TASK)
         assert spy.called, "a completion with only a parts value did not refresh the budget"
         spy.reset_mock()

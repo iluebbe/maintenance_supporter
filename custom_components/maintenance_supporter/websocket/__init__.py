@@ -684,7 +684,7 @@ async def async_commit_store(rd: Any, *, budget: bool = False) -> None:
     if coordinator is None:
         return
     if budget:
-        coordinator._recalculate_budget_cache()
+        coordinator.recalculate_budget_cache()
     await coordinator.async_refresh_now()
 
 
