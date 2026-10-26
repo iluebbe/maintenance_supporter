@@ -178,7 +178,7 @@ async def async_sync(hass: HomeAssistant, enabled: bool) -> tuple[list[str], lis
         if hass.services.has_service("conversation", "reload"):
             try:
                 await hass.services.async_call("conversation", "reload", blocking=True)
-            except Exception:  # noqa: BLE001 - a failed reload must not break setup
+            except Exception:  # a failed reload must not break setup
                 _LOGGER.debug("conversation.reload failed", exc_info=True)
 
     return written, skipped

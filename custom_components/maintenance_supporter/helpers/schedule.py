@@ -96,7 +96,7 @@ def calendar_occurrences(entity_id: str) -> tuple[date, ...]:
         return ()
     try:
         raw = _calendar_provider(entity_id)
-    except Exception:  # noqa: BLE001 — a broken provider must never take next_due down
+    except Exception:  # a broken provider must never take next_due down
         # Once per entity: next_due is recomputed on every refresh.
         if entity_id not in _provider_failures_logged:
             _provider_failures_logged.add(entity_id)

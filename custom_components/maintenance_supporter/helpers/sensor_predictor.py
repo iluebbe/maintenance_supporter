@@ -808,7 +808,7 @@ class SensorPredictor:
                     {"mean", "state"},
                 )
             )
-        except Exception:  # noqa: BLE001 - recorder fetch can fail many ways (DB lock, timeout, schema mismatch); empty list is a safe fallback
+        except Exception:  # recorder fetch can fail many ways (DB lock, timeout, schema mismatch); empty list is a safe fallback
             _LOGGER.debug("Failed to fetch statistics for %s", entity_id, exc_info=True)
             return []
 

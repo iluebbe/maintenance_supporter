@@ -1203,7 +1203,7 @@ def _notify_leaves(hass: HomeAssistant, service: str, depth: int = 0) -> list[st
                 if getattr(platform, "_service_name", None) == name:
                     members = [str(m.get("action") or m.get("service")) for m in getattr(platform, "entities", None) or [] if isinstance(m, dict)]
                     break
-        except Exception:  # noqa: BLE001 - another core's internals: no members, no dismissal
+        except Exception:  # another core's internals: no members, no dismissal
             _LOGGER.debug("Notify group %s unreadable", service, exc_info=True)
     if members is None:
         return [service]
@@ -2363,7 +2363,7 @@ class NotificationManager:
             try:
                 if await async_emit_and_dispatch(self.hass, target, service_data, context):
                     sent = True
-            except Exception:  # noqa: BLE001 — one phone failing must not stop the others
+            except Exception:  # one phone failing must not stop the others
                 _LOGGER.warning("Place arrival message to %s failed", target or "the event", exc_info=True)
         if sent:
             from .places import reminds_on_site
@@ -2771,7 +2771,7 @@ class NotificationManager:
         services = [self.notify_service]
         try:
             services.extend(await self._user_services(user_ids))
-        except Exception:  # noqa: BLE001 - a lookup failure must not keep the action from finishing
+        except Exception:  # a lookup failure must not keep the action from finishing
             _LOGGER.debug("User notify services unavailable for %s", user_ids, exc_info=True)
         tag = task_tag(task_id)
         leaves = [leaf for s in services if s for leaf in _notify_leaves(self.hass, s)]

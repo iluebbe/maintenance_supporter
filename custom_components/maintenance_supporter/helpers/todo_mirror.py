@@ -114,7 +114,7 @@ async def async_todo_get_items(hass: HomeAssistant, entity: str) -> list[dict[st
             blocking=True,
             return_response=True,
         )
-    except Exception:  # noqa: BLE001 — provider errors are retried on the next trigger
+    except Exception:  # provider errors are retried on the next trigger
         _LOGGER.warning("todo.get_items on %s failed", entity, exc_info=True)
         return None
     payload = (resp or {}).get(entity)
@@ -130,7 +130,7 @@ async def async_todo_add_item(hass: HomeAssistant, entity: str, summary: str, *,
         data["due_date"] = due
     try:
         await hass.services.async_call("todo", "add_item", data, blocking=True)
-    except Exception:  # noqa: BLE001 — provider errors are retried on the next trigger
+    except Exception:  # provider errors are retried on the next trigger
         _LOGGER.warning("todo.add_item %r on %s failed", summary, entity, exc_info=True)
         return False
     return True
@@ -144,7 +144,7 @@ async def async_todo_update_item(hass: HomeAssistant, entity: str, rec: Mapping[
         return False
     try:
         await hass.services.async_call("todo", "update_item", {"entity_id": entity, "item": ref, **fields}, blocking=True)
-    except Exception:  # noqa: BLE001 — provider errors are retried on the next trigger
+    except Exception:  # provider errors are retried on the next trigger
         _LOGGER.warning("todo.update_item %r on %s failed", ref, entity, exc_info=True)
         return False
     return True
@@ -158,7 +158,7 @@ async def async_todo_remove_item(hass: HomeAssistant, entity: str, rec: Mapping[
         return
     try:
         await hass.services.async_call("todo", "remove_item", {"entity_id": entity, "item": ref}, blocking=True)
-    except Exception:  # noqa: BLE001 — a row already gone is not an error worth more than a log line
+    except Exception:  # a row already gone is not an error worth more than a log line
         _LOGGER.warning("todo.remove_item %r on %s failed", ref, entity, exc_info=True)
 
 
@@ -530,7 +530,7 @@ class TodoMirror:
     async def _get_items(self, entity: str) -> list[dict[str, Any]] | None:
         return await async_todo_get_items(self._hass, entity)
 
-    async def _add_item(self, entity: str, summary: str, due: date | None = None) -> str | None | bool:
+    async def _add_item(self, entity: str, summary: str, due: date | None = None) -> str | bool | None:
         """Add a row; returns its uid, None when the provider hid it, False on failure."""
         before = await self._get_items(entity)
         known = {i.get("uid") for i in before or [] if i.get("uid")}

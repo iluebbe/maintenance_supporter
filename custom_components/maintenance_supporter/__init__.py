@@ -2438,7 +2438,7 @@ async def _async_forget_removed_object_tasks(hass: HomeAssistant, entry: ConfigE
         for task_id in task_ids:
             try:
                 await mirror.async_forget_task(store, task_id)
-            except Exception:  # noqa: BLE001 — a list provider error must not block the delete
+            except Exception:  # a list provider error must not block the delete
                 _LOGGER.warning("Could not take the to-do rows of task %s off their lists", task_id, exc_info=True)
 
     ge = get_global_entry(hass)

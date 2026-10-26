@@ -621,7 +621,7 @@ async def _send_test_to(
             if await async_emit_and_dispatch(hass, service, service_data, context, blocking=True):
                 sent_any = True
         return "success" if sent_any else "failed"
-    except Exception:  # noqa: BLE001 - any failure mode reports "failed" to the UI
+    except Exception:  # any failure mode reports "failed" to the UI
         _LOGGER.debug("Test notification failed for %s", services, exc_info=True)
         return "failed"
 

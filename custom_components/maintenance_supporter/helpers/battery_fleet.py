@@ -924,7 +924,7 @@ async def _async_auto_record(hass: HomeAssistant, entity_id: str) -> None:
         # not_available (Battery Notes gone), invalid_device (state-only
         # note), not_found (excluded meanwhile) - nothing to record on.
         _LOGGER.debug("Automatic replacement record for %s skipped: %s", entity_id, err)
-    except Exception:  # noqa: BLE001 - a hook must never take the fleet down
+    except Exception:  # a hook must never take the fleet down
         _LOGGER.warning("Automatic replacement record for %s failed", entity_id, exc_info=True)
     finally:
         _auto_record_inflight(hass).discard(entity_id)
@@ -1624,7 +1624,7 @@ async def async_trend_predictions(hass: HomeAssistant, batteries: list[Battery])
                 and pred.days_until_threshold <= _TREND_MAX_DAYS
             ):
                 result = (int(pred.days_until_threshold), pred.confidence)
-        except Exception:  # noqa: BLE001 - a recorder hiccup must never break the overview
+        except Exception:  # a recorder hiccup must never break the overview
             _LOGGER.debug("Trend prediction failed for %s", bat.entity_id, exc_info=True)
         cache[bat.entity_id] = (now, result)
         if result is not None:
@@ -1754,7 +1754,7 @@ async def async_level_history(hass: HomeAssistant, batteries: list[Battery]) -> 
                 # Deliberate reuse of the predictor's fetch so the sparkline
                 # and the regression see the same series.
                 points = _downsample(await predictor._async_fetch_statistics_points(bat.entity_id, 30))
-            except Exception:  # noqa: BLE001 - a recorder hiccup must never break the roster
+            except Exception:  # a recorder hiccup must never break the roster
                 _LOGGER.debug("Level history failed for %s", bat.entity_id, exc_info=True)
                 points = []
             cache[bat.entity_id] = (now, points)

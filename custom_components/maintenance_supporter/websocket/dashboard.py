@@ -173,7 +173,7 @@ def _battery_lifetime_catalog(hass: HomeAssistant) -> list[dict[str, Any]]:
                         names[bat.model_key] = " ".join(x for x in (manufacturer, model) if x)
                         break
         return lifetime_catalog(hass, list(discover_battery_types(hass)), model_names=names)
-    except Exception:  # noqa: BLE001 - a settings read must never fail on the fleet
+    except Exception:  # a settings read must never fail on the fleet
         # Logged, not swallowed: an HA API change here once went unnoticed
         # because the table simply came back shorter.
         _LOGGER.warning("Battery lifetime table could not be built", exc_info=True)

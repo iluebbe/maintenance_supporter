@@ -58,7 +58,7 @@ def is_business_day(d: date) -> bool:
     if _provider is not None:
         try:
             return _provider(d)
-        except Exception:  # noqa: BLE001 - degrade, never break scheduling
+        except Exception:  # degrade, never break scheduling
             _LOGGER.warning(
                 "Business-day provider raised; falling back to Mon-Fri rule",
                 exc_info=True,
@@ -105,7 +105,7 @@ def build_provider_from_workday_options(
     if holidays_excluded and country:
         try:
             calendar = holidays_pkg.country_holidays(country, subdiv=options.get("province") or None)
-        except Exception:  # noqa: BLE001 - unknown country/subdiv in options
+        except Exception:  # unknown country/subdiv in options
             _LOGGER.warning(
                 "Could not build a holiday calendar for Workday config %r",
                 country,

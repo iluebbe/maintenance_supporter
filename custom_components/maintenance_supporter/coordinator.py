@@ -2007,7 +2007,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
                 completed_at=completed_at,
                 task_data=(self.entry.data.get(CONF_TASKS) or {}).get(task_id),
             )
-        except Exception:  # noqa: BLE001 - a notification must never fail the completion
+        except Exception:  # a notification must never fail the completion
             _LOGGER.debug("Completion notification failed for %s", task_id, exc_info=True)
 
     def note_trigger_edge(self, task_id: str, *, recovered: bool = True) -> None:

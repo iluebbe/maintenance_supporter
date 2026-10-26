@@ -46,7 +46,7 @@ async def ws_list_tags(
                     if entity_id and (entity := ent_reg.async_get(entity_id)):
                         tag_name = entity.name or entity.original_name or ""
                 tags.append({"id": tag_id, "name": tag_name or tag_id})
-        except Exception:  # noqa: BLE001 - HA tag storage internals; an empty list lets the picker still render
+        except Exception:  # HA tag storage internals; an empty list lets the picker still render
             _LOGGER.warning("Failed to read NFC tag registry", exc_info=True)
 
     connection.send_result(msg["id"], {"tags": tags})

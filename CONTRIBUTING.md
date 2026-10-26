@@ -104,7 +104,7 @@ cd custom_components/maintenance_supporter/frontend-src && npm run typecheck   #
 integrations (`warn_unreachable`, `truthy-iterable`, `ignore-without-code`,
 `deprecated`) against both the minimum supported core and the newest one.
 
-All must be clean before commit. CI pins `ruff==0.15.22` — a newer ruff can
+All must be clean before commit. CI pins `ruff==0.17.2` — a newer ruff can
 flag different rules, so match the pin when in doubt.
 
 ### The architecture doc keeps itself current
