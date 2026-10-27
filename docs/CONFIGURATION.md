@@ -226,7 +226,7 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | `notes` | string (multiline, ≤2000 chars) | `""` | — | General notes about the task. Rendered as **Markdown** on the task detail since 2.67 |
 | `documentation_url` | string | `""` | — | URL to external documentation or manual; app links (`obsidian://…`) work too (#207) |
 | `responsible_user_id` | string | `""` | — | HA user ID of the person responsible for this task |
-| `assignee_pool` (2.17+) | list[string] | `[]` | max 25 | HA user IDs sharing this task. With ≥2 members and a `rotation_strategy`, `responsible_user_id` advances to the next member on every completion |
+| `assignee_pool` (2.17+) | list[string] | `[]` | max 25 | HA user IDs sharing this task (*Shared with*). With ≥2 members and a `rotation_strategy`, `responsible_user_id` advances to the next member on every completion. Without a rotation and without a responsible person, the task is meant for each of them: each one's reminders and *My Tasks* |
 | `rotation_strategy` (2.17+) | enum | *(none)* | `round_robin` / `least_completed` / `random` | How the responsible user rotates after each completion. Unset = no rotation |
 | `priority` (2.17+) | enum | `normal` | `low` / `normal` / `high` | Triage priority, shown as a badge (▲/▼) on task rows |
 | `labels` (2.17+) | list[string] | `[]` | each ≤40 chars, max 25 | Cross-cutting tags (e.g. `safety`, `seasonal`) shown as chips and searchable in the command palette. Entered comma-separated in the UIs |

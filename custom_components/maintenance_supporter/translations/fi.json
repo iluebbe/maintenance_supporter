@@ -1832,6 +1832,7 @@
     },
     "rotation_strategy": {
       "options": {
+        "none": "Ei kiertoa",
         "round_robin": "Vuorotellen",
         "least_completed": "Vähiten suorittanut",
         "random": "Satunnainen"
@@ -2019,6 +2020,18 @@
         "notes": {
           "name": "Muistiinpanot",
           "description": "Lisämuistiinpanot tai -ohjeet tälle tehtävälle."
+        },
+        "responsible_user": {
+          "name": "Vastuukäyttäjä",
+          "description": "Määrittää tehtävän tälle henkilölle (on oltava liitetty Home Assistant -käyttäjään)."
+        },
+        "shared_with": {
+          "name": "Jaettu",
+          "description": "Henkilöt, joiden kanssa tehtävä on jaettu (jokainen linkitetty Home Assistant -käyttäjään). Ilman vastuukäyttäjää se on tarkoitettu jokaiselle heistä; kierrossa he vuorottelevat. Tyhjä luettelo poistaa jaon."
+        },
+        "rotation": {
+          "name": "Kierto",
+          "description": "Miten vastuu siirtyy jokaisen valmistumisen jälkeen niiden henkilöiden kesken, joiden kanssa tehtävä on jaettu (vähintään kaksi); ”Ei kiertoa” poistaa sen käytöstä."
         }
       }
     },
@@ -2089,6 +2102,14 @@
         "clear_responsible_user": {
           "name": "Poista vastuuhenkilö",
           "description": "Poistaa nykyisen määrityksen. Ei voi yhdistää kohtaan \"Vastuukäyttäjä\"."
+        },
+        "shared_with": {
+          "name": "Jaettu",
+          "description": "Henkilöt, joiden kanssa tehtävä on jaettu (jokainen linkitetty Home Assistant -käyttäjään). Ilman vastuukäyttäjää se on tarkoitettu jokaiselle heistä; kierrossa he vuorottelevat. Tyhjä luettelo poistaa jaon."
+        },
+        "rotation": {
+          "name": "Kierto",
+          "description": "Miten vastuu siirtyy jokaisen valmistumisen jälkeen niiden henkilöiden kesken, joiden kanssa tehtävä on jaettu (vähintään kaksi); ”Ei kiertoa” poistaa sen käytöstä."
         }
       }
     },

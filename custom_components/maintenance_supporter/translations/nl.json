@@ -1832,6 +1832,7 @@
     },
     "rotation_strategy": {
       "options": {
+        "none": "Geen rotatie",
         "round_robin": "Om de beurt",
         "least_completed": "Minst voltooid",
         "random": "Willekeurig"
@@ -2019,6 +2020,18 @@
         "notes": {
           "name": "Notities",
           "description": "Aanvullende notities of instructies voor deze taak."
+        },
+        "responsible_user": {
+          "name": "Verantwoordelijke gebruiker",
+          "description": "Wijst de taak toe aan deze persoon (moet gekoppeld zijn aan een Home Assistant-gebruiker)."
+        },
+        "shared_with": {
+          "name": "Gedeeld met",
+          "description": "De personen met wie deze taak gedeeld is (elk gekoppeld aan een Home Assistant-gebruiker). Zonder verantwoordelijke gebruiker is ze voor elk van hen bedoeld; met een rotatie wisselen ze elkaar af. Een lege lijst wist ze."
+        },
+        "rotation": {
+          "name": "Rotatie",
+          "description": "Hoe de verantwoordelijkheid na elke afronding doorschuift onder de personen met wie de taak gedeeld is (minstens twee); \"Geen rotatie\" zet ze uit."
         }
       }
     },
@@ -2089,6 +2102,14 @@
         "clear_responsible_user": {
           "name": "Toewijzing verwijderen",
           "description": "Verwijdert de huidige toewijzing. Niet te combineren met 'Verantwoordelijke gebruiker'."
+        },
+        "shared_with": {
+          "name": "Gedeeld met",
+          "description": "De personen met wie deze taak gedeeld is (elk gekoppeld aan een Home Assistant-gebruiker). Zonder verantwoordelijke gebruiker is ze voor elk van hen bedoeld; met een rotatie wisselen ze elkaar af. Een lege lijst wist ze."
+        },
+        "rotation": {
+          "name": "Rotatie",
+          "description": "Hoe de verantwoordelijkheid na elke afronding doorschuift onder de personen met wie de taak gedeeld is (minstens twee); \"Geen rotatie\" zet ze uit."
         }
       }
     },

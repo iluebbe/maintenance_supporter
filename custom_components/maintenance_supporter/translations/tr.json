@@ -1832,6 +1832,7 @@
     },
     "rotation_strategy": {
       "options": {
+        "none": "Rotasyon yok",
         "round_robin": "Sırayla",
         "least_completed": "En az tamamlayan",
         "random": "Rastgele"
@@ -2019,6 +2020,18 @@
         "notes": {
           "name": "Notlar",
           "description": "Bu görev için ek notlar veya talimatlar."
+        },
+        "responsible_user": {
+          "name": "Sorumlu kullanıcı",
+          "description": "Görevi bu kişiye atar (bir Home Assistant kullanıcısına bağlı olmalıdır)."
+        },
+        "shared_with": {
+          "name": "Paylaşılanlar",
+          "description": "Bu görevin paylaşıldığı kişiler (her biri bir Home Assistant kullanıcısına bağlı). Sorumlu kullanıcı yoksa her biri içindir; rotasyonla sırayla yaparlar. Boş liste paylaşımı kaldırır."
+        },
+        "rotation": {
+          "name": "Rotasyon",
+          "description": "Her tamamlamadan sonra sorumluluğun paylaşılan kişiler (en az iki) arasında nasıl geçtiği; \"Rotasyon yok\" bunu kapatır."
         }
       }
     },
@@ -2089,6 +2102,14 @@
         "clear_responsible_user": {
           "name": "Sorumluyu Kaldır",
           "description": "Mevcut atamayı kaldırır. \"Sorumlu kullanıcı\" ile birlikte kullanılamaz."
+        },
+        "shared_with": {
+          "name": "Paylaşılanlar",
+          "description": "Bu görevin paylaşıldığı kişiler (her biri bir Home Assistant kullanıcısına bağlı). Sorumlu kullanıcı yoksa her biri içindir; rotasyonla sırayla yaparlar. Boş liste paylaşımı kaldırır."
+        },
+        "rotation": {
+          "name": "Rotasyon",
+          "description": "Her tamamlamadan sonra sorumluluğun paylaşılan kişiler (en az iki) arasında nasıl geçtiği; \"Rotasyon yok\" bunu kapatır."
         }
       }
     },

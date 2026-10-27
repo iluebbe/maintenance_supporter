@@ -59,3 +59,20 @@ export function renderPersonChip(person: PersonDisplay | null | undefined, extra
   if (!person) return nothing;
   return html`<span class="person-chip ${extraClass}" title=${person.name}>${renderPersonAvatar(person)}<span class="person-name">${person.name}</span></span>`;
 }
+
+/** The circles alone, overlapping a little when there are several (#232). */
+export function renderPeopleAvatars(people: Array<PersonDisplay | null | undefined>) {
+  const known = people.filter((p): p is PersonDisplay => !!p);
+  if (known.length <= 1) return renderPersonAvatar(known[0]);
+  return html`<span class="people-avatars">${known.map((p) => renderPersonAvatar(p))}</span>`;
+}
+
+/** Everyone a task is meant for as one chip (#232: a task shared with
+ *  two people named neither): their circles, then the names. One person is
+ *  {@link renderPersonChip}; nobody renders nothing. */
+export function renderPeopleChip(people: Array<PersonDisplay | null | undefined>, extraClass = "") {
+  const known = people.filter((p): p is PersonDisplay => !!p);
+  if (known.length <= 1) return renderPersonChip(known[0], extraClass);
+  const names = known.map((p) => p.name).join(", ");
+  return html`<span class="person-chip ${extraClass}" title=${names}>${renderPeopleAvatars(known)}<span class="person-name">${names}</span></span>`;
+}

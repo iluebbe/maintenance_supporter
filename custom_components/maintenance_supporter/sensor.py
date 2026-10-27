@@ -45,7 +45,7 @@ from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .entity.triggers import BaseTrigger, create_triggers, normalize_entity_ids
 from .helpers.aggregate import object_slug as aggregate_object_slug
 from .helpers.aggregate import store_of
-from .helpers.assignees import person_of_user
+from .helpers.assignees import task_people_attributes
 from .helpers.coordinator_data import has_coordinator_data
 from .helpers.dates import parse_hhmm
 from .helpers.global_options import is_schedule_time_enabled
@@ -253,11 +253,11 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             # (state_attr(..., 'priority') == 'high'). Always present — tasks
             # without an explicit value are "normal", the model default.
             "priority": task.get("priority") or DEFAULT_TASK_PRIORITY,
-            # #210: who does it, as the user id and as the person entity (the
-            # entity update_task takes as responsible_user), so an automation
-            # can pick one person's tasks. None while nobody is responsible.
-            "responsible_user_id": task.get("responsible_user_id") or None,
-            "responsible_user": person_of_user(self.hass, task.get("responsible_user_id")),
+            # #210 / #232: who it is for, the same fields list_tasks rows
+            # carry, so an automation or a dashboard template can pick one
+            # person's tasks (responsible, shared with, and who it is meant
+            # for: the responsible person, else everyone it is shared with).
+            **task_people_attributes(self.hass, task),
         }
 
         # Recorded readings (#83 / #161 phase 2): the newest completion's

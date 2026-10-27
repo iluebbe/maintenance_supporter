@@ -169,6 +169,8 @@ Documents feature. Do not fabricate model numbers or intervals.
    - Omit `warning_days` to use the household's default setting.
    - Who does it: `responsible_user_id`, or `assignee_pool` +
      `rotation_strategy` for a chore that rotates (ids from `users/list`).
+     `assignee_pool` without a rotation and without `responsible_user_id`
+     is a chore for each of those people (both parents, not the kids).
    - Name tasks the way people say them ("Water filter", not "WF-2000 swap"):
      voice assistants find a task by its spoken name.
    - Checklists, completion actions, adaptive scheduling and a time of day

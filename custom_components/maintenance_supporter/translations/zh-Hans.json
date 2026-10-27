@@ -1832,6 +1832,7 @@
     },
     "rotation_strategy": {
       "options": {
+        "none": "不轮换",
         "round_robin": "轮流",
         "least_completed": "完成最少者",
         "random": "随机"
@@ -2019,6 +2020,18 @@
         "notes": {
           "name": "备注",
           "description": "此任务的其他备注或说明。"
+        },
+        "responsible_user": {
+          "name": "负责人",
+          "description": "将任务分配给此人（必须关联 Home Assistant 用户）。"
+        },
+        "shared_with": {
+          "name": "共同负责",
+          "description": "与此任务共享的人员（每人需关联一个 Home Assistant 用户）。没有负责人时，任务面向其中每个人；设置轮换时，他们轮流负责。列表为空则清除。"
+        },
+        "rotation": {
+          "name": "轮换",
+          "description": "每次完成后责任如何在共享人员之间轮换（至少两人）；“不轮换”则关闭轮换。"
         }
       }
     },
@@ -2089,6 +2102,14 @@
         "clear_responsible_user": {
           "name": "清除负责人",
           "description": "移除当前分配。不能与\"负责用户\"同时使用。"
+        },
+        "shared_with": {
+          "name": "共同负责",
+          "description": "与此任务共享的人员（每人需关联一个 Home Assistant 用户）。没有负责人时，任务面向其中每个人；设置轮换时，他们轮流负责。列表为空则清除。"
+        },
+        "rotation": {
+          "name": "轮换",
+          "description": "每次完成后责任如何在共享人员之间轮换（至少两人）；“不轮换”则关闭轮换。"
         }
       }
     },

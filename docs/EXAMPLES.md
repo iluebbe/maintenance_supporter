@@ -489,7 +489,18 @@ service), `trigger_target` and `trigger_unit` (`h` for runtime, the source
 entity's unit for threshold/counter, none for state-change counts).
 Who does it (#210): `responsible_user_id` and `responsible_user` (the person
 entity, the same one `update_task` takes) name whoever is responsible, and
-`shared_with` lists the person entities under *Shared with*.
+`shared_with` lists the person entities under *Shared with*. Who it is meant
+for (#232): `assigned_user_ids` and `assigned_persons`, the responsible
+person, else everyone it is shared with. These are the people its
+reminders reach and whose *My Tasks* list it. The task sensors carry the
+same attributes, so a dashboard can show a chore only to the people who
+have to do it, wherever it evaluates templates (auto-entities filters, a
+template sensor, a custom card's conditions):
+
+```jinja
+{# true for a task shared with Anna and Ben and nobody responsible #}
+{{ 'person.anna' in state_attr('sensor.dishwasher_clean_filter', 'assigned_persons') }}
+```
 
 ```yaml
 # "printer ink at 54.2 %", "brush head 0.9 / 6 h" — then complete the first
@@ -603,6 +614,23 @@ To remove an assignment, call `update_task` with `clear_responsible_user: true`
 instead. For tasks with an assignee pool, a manual assignment simply sets the
 current responsible person — rotation continues from there on the next
 completion.
+
+`add_task` and `update_task` also take *Shared with* (#232): `shared_with`
+lists person entities (an empty list clears it) and `rotation` is
+`round_robin`, `least_completed`, `random` or `none`. A rotation needs at
+least two people and always has one of them on duty. Without a rotation
+and without a responsible person, the task is meant for each of them.
+
+```yaml
+# A chore for both parents, not for the kids
+service: maintenance_supporter.update_task
+data:
+  entry_id: "{{ entry_id }}"
+  task_id: "{{ task_id }}"
+  clear_responsible_user: true
+  shared_with: [person.anna, person.ben]
+  rotation: none
+```
 
 `list_tasks` picks one person's tasks (#210): the ones they are responsible
 for, and the ones shared with them that nobody is responsible for.

@@ -407,6 +407,8 @@ _BACKEND_VALUE_OK: dict[str, frozenset[str] | str] = {
     "Object": frozenset({"nl"}),
     "Orange": frozenset({"da", "de", "fr", "sv"}),
     "Person": frozenset({"da", "de", "nb", "sv"}),
+    # #232: the add_task / update_task rotation field (the panel's rotation_strategy).
+    "Rotation": frozenset({"da", "de", "fr", "sv"}),
     "Pink": frozenset({"da", "de"}),
     "Service": frozenset({"da", "de", "fr", "nb", "nl", "sv"}),
     "Stable": frozenset({"fr"}),

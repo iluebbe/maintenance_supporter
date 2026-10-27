@@ -1832,6 +1832,7 @@
     },
     "rotation_strategy": {
       "options": {
+        "none": "Nessuna rotazione",
         "round_robin": "A turno",
         "least_completed": "Meno completamenti",
         "random": "Casuale"
@@ -2019,6 +2020,18 @@
         "notes": {
           "name": "Note",
           "description": "Note aggiuntive o istruzioni per questa attività."
+        },
+        "responsible_user": {
+          "name": "Utente responsabile",
+          "description": "Assegna l'attività a questa persona (deve essere collegata a un utente Home Assistant)."
+        },
+        "shared_with": {
+          "name": "Condivisa con",
+          "description": "Le persone con cui questo compito è condiviso (ognuna collegata a un utente di Home Assistant). Senza un utente responsabile è destinato a ciascuna di loro; con una rotazione si alternano. Un elenco vuoto lo rimuove."
+        },
+        "rotation": {
+          "name": "Rotazione",
+          "description": "Come passa la responsabilità dopo ogni completamento tra le persone con cui il compito è condiviso (almeno due); \"Nessuna rotazione\" la disattiva."
         }
       }
     },
@@ -2089,6 +2102,14 @@
         "clear_responsible_user": {
           "name": "Rimuovi responsabile",
           "description": "Rimuove l'assegnazione attuale. Non combinabile con «Utente responsabile»."
+        },
+        "shared_with": {
+          "name": "Condivisa con",
+          "description": "Le persone con cui questo compito è condiviso (ognuna collegata a un utente di Home Assistant). Senza un utente responsabile è destinato a ciascuna di loro; con una rotazione si alternano. Un elenco vuoto lo rimuove."
+        },
+        "rotation": {
+          "name": "Rotazione",
+          "description": "Come passa la responsabilità dopo ogni completamento tra le persone con cui il compito è condiviso (almeno due); \"Nessuna rotazione\" la disattiva."
         }
       }
     },

@@ -63,7 +63,8 @@ describe("bulk edit dialog (D#199)", () => {
     const pending = el.open("assign", rows([[]]), USERS as never[]);
     await el.updateComplete;
     const radios = el.shadowRoot!.querySelectorAll<HTMLInputElement>("input[type=radio]");
-    radios[1].click();
+    // One person, several people each (#232), several in turns.
+    radios[2].click();
     await el.updateComplete;
     const boxes = el.shadowRoot!.querySelectorAll<HTMLInputElement>(".pool input[type=checkbox]");
     boxes[0].click();

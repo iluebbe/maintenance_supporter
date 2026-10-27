@@ -1832,6 +1832,7 @@
     },
     "rotation_strategy": {
       "options": {
+        "none": "Nincs rotáció",
         "round_robin": "Körforgás",
         "least_completed": "Legkevesebbet végezte",
         "random": "Véletlenszerű"
@@ -2019,6 +2020,18 @@
         "notes": {
           "name": "Megjegyzések",
           "description": "További megjegyzések vagy utasítások a feladathoz."
+        },
+        "responsible_user": {
+          "name": "Felelős felhasználó",
+          "description": "A feladatot ehhez a személyhez rendeli (Home Assistant-felhasználóhoz kell kapcsolódnia)."
+        },
+        "shared_with": {
+          "name": "Megosztva",
+          "description": "Azok a személyek, akikkel a feladat meg van osztva (mindegyik egy Home Assistant-felhasználóhoz kapcsolva). Felelős felhasználó nélkül mindegyiküknek szól; rotációval felváltva végzik. Az üres lista törli."
+        },
+        "rotation": {
+          "name": "Rotáció",
+          "description": "Hogyan száll tovább a felelősség minden elvégzés után a megosztott személyek között (legalább kettő); a „Nincs rotáció” kikapcsolja."
         }
       }
     },
@@ -2089,6 +2102,14 @@
         "clear_responsible_user": {
           "name": "Felelős törlése",
           "description": "Eltávolítja a jelenlegi hozzárendelést. Nem kombinálható a „Felelős felhasználó” mezővel."
+        },
+        "shared_with": {
+          "name": "Megosztva",
+          "description": "Azok a személyek, akikkel a feladat meg van osztva (mindegyik egy Home Assistant-felhasználóhoz kapcsolva). Felelős felhasználó nélkül mindegyiküknek szól; rotációval felváltva végzik. Az üres lista törli."
+        },
+        "rotation": {
+          "name": "Rotáció",
+          "description": "Hogyan száll tovább a felelősség minden elvégzés után a megosztott személyek között (legalább kettő); a „Nincs rotáció” kikapcsolja."
         }
       }
     },

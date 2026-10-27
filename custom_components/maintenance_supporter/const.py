@@ -542,6 +542,9 @@ CONF_TASK_ROTATION_STRATEGY: Final = "rotation_strategy"
 # Rotation strategies for shared tasks: advance the "currently responsible"
 # pointer on each completion. None/"" = no rotation (single-assignee behaviour).
 ROTATION_STRATEGIES = ("round_robin", "least_completed", "random")
+# The add_task / update_task value for "no rotation" (#232): a select
+# cannot offer an empty option.
+ROTATION_NONE: Final = "none"
 MAX_ASSIGNEE_POOL: Final = 25
 
 # --- Config Keys: User Assignment ---

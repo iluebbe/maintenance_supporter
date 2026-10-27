@@ -1832,6 +1832,7 @@
     },
     "rotation_strategy": {
       "options": {
+        "none": "Sem rodízio",
         "round_robin": "Revezamento",
         "least_completed": "Quem concluiu menos",
         "random": "Aleatório"
@@ -2019,6 +2020,18 @@
         "notes": {
           "name": "Observações",
           "description": "Observações ou instruções adicionais para esta tarefa."
+        },
+        "responsible_user": {
+          "name": "Usuário responsável",
+          "description": "Atribui a tarefa a esta pessoa (deve estar vinculada a um usuário do Home Assistant)."
+        },
+        "shared_with": {
+          "name": "Compartilhada com",
+          "description": "As pessoas com quem esta tarefa é compartilhada (cada uma vinculada a um usuário do Home Assistant). Sem usuário responsável, ela é para cada uma delas; com rodízio, elas se revezam. Uma lista vazia remove o compartilhamento."
+        },
+        "rotation": {
+          "name": "Rodízio",
+          "description": "Como a responsabilidade passa após cada conclusão entre as pessoas com quem a tarefa é compartilhada (pelo menos duas); \"Sem rodízio\" o desativa."
         }
       }
     },
@@ -2089,6 +2102,14 @@
         "clear_responsible_user": {
           "name": "Remover responsável",
           "description": "Remove a atribuição atual. Não pode ser combinado com \"Usuário responsável\"."
+        },
+        "shared_with": {
+          "name": "Compartilhada com",
+          "description": "As pessoas com quem esta tarefa é compartilhada (cada uma vinculada a um usuário do Home Assistant). Sem usuário responsável, ela é para cada uma delas; com rodízio, elas se revezam. Uma lista vazia remove o compartilhamento."
+        },
+        "rotation": {
+          "name": "Rodízio",
+          "description": "Como a responsabilidade passa após cada conclusão entre as pessoas com quem a tarefa é compartilhada (pelo menos duas); \"Sem rodízio\" o desativa."
         }
       }
     },

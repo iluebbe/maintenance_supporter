@@ -1832,6 +1832,7 @@
     },
     "rotation_strategy": {
       "options": {
+        "none": "No rotation",
         "round_robin": "Round-robin",
         "least_completed": "Least completed",
         "random": "Random"
@@ -2019,6 +2020,18 @@
         "notes": {
           "name": "Notes",
           "description": "Additional notes or instructions for this task."
+        },
+        "responsible_user": {
+          "name": "Responsible user",
+          "description": "Assign the task to this person (must be linked to a Home Assistant user)."
+        },
+        "shared_with": {
+          "name": "Shared with",
+          "description": "The people this task is shared with (each linked to a Home Assistant user). Without a responsible user it is meant for each of them; with a rotation they take turns. An empty list clears it."
+        },
+        "rotation": {
+          "name": "Rotation",
+          "description": "How responsibility moves on after each completion among the people it is shared with (at least two); \"No rotation\" turns it off."
         }
       }
     },
@@ -2089,6 +2102,14 @@
         "clear_responsible_user": {
           "name": "Clear responsible user",
           "description": "Remove the current assignment. Cannot be combined with \"Responsible user\"."
+        },
+        "shared_with": {
+          "name": "Shared with",
+          "description": "The people this task is shared with (each linked to a Home Assistant user). Without a responsible user it is meant for each of them; with a rotation they take turns. An empty list clears it."
+        },
+        "rotation": {
+          "name": "Rotation",
+          "description": "How responsibility moves on after each completion among the people it is shared with (at least two); \"No rotation\" turns it off."
         }
       }
     },

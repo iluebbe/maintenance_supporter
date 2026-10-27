@@ -259,6 +259,26 @@ add_task:
       selector:
         text:
           multiline: true
+    responsible_user:
+      name: Responsible user
+      description: Assign the task to this person (must be linked to a Home Assistant user).
+      selector:
+        entity:
+          domain: person
+    shared_with:
+      name: Shared with
+      description: The people this task is shared with (each linked to a Home Assistant user). Without a responsible user it is meant for each of them; with a rotation they take turns. An empty list clears it.
+      selector:
+        entity:
+          domain: person
+          multiple: true
+    rotation:
+      name: Rotation
+      description: How responsibility moves on after each completion among the people it is shared with (at least two); "No rotation" turns it off.
+      selector:
+        select:
+          options: ["none", "round_robin", "least_completed", "random"]
+          translation_key: rotation_strategy
 
 update_task:
   name: Update Task
@@ -357,6 +377,20 @@ update_task:
       description: Remove the current assignment. Cannot be combined with "Responsible user".
       selector:
         boolean:
+    shared_with:
+      name: Shared with
+      description: The people this task is shared with (each linked to a Home Assistant user). Without a responsible user it is meant for each of them; with a rotation they take turns. An empty list clears it.
+      selector:
+        entity:
+          domain: person
+          multiple: true
+    rotation:
+      name: Rotation
+      description: How responsibility moves on after each completion among the people it is shared with (at least two); "No rotation" turns it off.
+      selector:
+        select:
+          options: ["none", "round_robin", "least_completed", "random"]
+          translation_key: rotation_strategy
 
 delete_task:
   name: Delete Task

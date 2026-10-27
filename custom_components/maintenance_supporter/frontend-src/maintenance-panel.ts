@@ -120,7 +120,7 @@ import { haToday } from "./helpers/ha-time";
 import { renderTriggerProgress, renderMiniSparkline, computeTrend, renderDueText, renderLastDone } from "./renderers/progress";
 import { type HistoryContext } from "./renderers/history";
 import { renderUserBadge, type TaskDetailContext } from "./renderers/task-detail";
-import { renderPersonChip, type PersonDisplay } from "./helpers/person";
+import { renderPeopleChip, type PersonDisplay } from "./helpers/person";
 // The task-detail sub-view as a web component (light-DOM, panel styles apply).
 // Side-effect import: type-only imports get tree-shaken and the element
 // would never register.
@@ -3703,6 +3703,12 @@ export class MaintenanceSupporterPanel extends LitElement {
     `;
   }
 
+  /** Everyone a task is meant for (helpers/assignees), as avatars: the
+   *  responsible person, else everyone it is shared with (#232). */
+  private _peopleOf(task: { responsible_user_id?: string | null; assignee_pool?: string[] | null }): Array<PersonDisplay | null> {
+    return taskUserIds(task).map((id) => this._userService?.getPerson(id) ?? null);
+  }
+
   private _renderTodaySection(titleKey: string, rows: TaskRow[], cls: string) {
     if (rows.length === 0) return nothing;
     const L = this._lang;
@@ -3710,11 +3716,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     // member's avatar (initials in their colour) plus the name; narrow
     // layouts keep only the avatar. With the person filter active every
     // row belongs to the same person, so the chip would only repeat the
-    // filter — leave it out then.
-    const personOf = (row: TaskRow): PersonDisplay | null =>
-      this._filterUser || !row.responsible_user_id
-        ? null
-        : this._userService?.getPerson(row.responsible_user_id) ?? null;
+    // filter — leave it out then. A task shared with several people names
+    // each of them (#232).
+    const peopleOf = (row: TaskRow): Array<PersonDisplay | null> =>
+      this._filterUser ? [] : this._peopleOf(row);
     return html`
       <div class="today-section">
         <div class="today-section-header ${cls}">
@@ -3731,7 +3736,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   // done, like the dashboard's due column, not a bare dash.
                   ? renderLastDone(row.last_performed, L) ?? "—"
                   : formatDueDays(row.days_until_due, L)}</span>
-                ${renderPersonChip(personOf(row), "today-person")}
+                ${renderPeopleChip(peopleOf(row), "today-person")}
               </div>
             </div>
             ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), undefined, false)}
@@ -4880,8 +4885,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
 
     const areaName = row.area_id ? this.hass?.areas?.[row.area_id]?.name : null;
-    const userName = row.responsible_user_id ? this._userService?.getUserName(row.responsible_user_id) : null;
-    const hasSub = row.group_names.length > 0 || areaName || userName;
+    const people = this._peopleOf(row).filter((p) => p !== null);
+    const hasSub = row.group_names.length > 0 || areaName || people.length > 0;
 
     const bulkSelected = this._bulkMode && this._bulkSelected.has(this._bulkKey(row));
     return html`
@@ -4911,7 +4916,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             <span class="sub-chip">
               <ha-icon icon="mdi:map-marker-outline"></ha-icon>${areaName}
             </span>` : nothing}
-          ${userName ? renderPersonChip(this._userService?.getPerson(row.responsible_user_id) ?? null, "sub-chip") : nothing}
+          ${renderPeopleChip(people, "sub-chip")}
           ${(row.labels || []).map((label) => html`
             <span class="sub-chip label-chip" title="${t("labels", L)}">
               <ha-icon icon="mdi:tag-outline"></ha-icon>${label}
@@ -5171,7 +5176,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                     : nothing}
                 </span>
                 <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${this._listRef(obj.entry_id, task.id)}${task.name}${renderEventTitles(task.next_event_titles)}${renderTriggerDetail(task.trigger_detail)}</span>
-                <span class="task-sub${task.responsible_user_id ? '' : ' task-sub-empty'}">${renderUserBadge(task, (id) => this._userService?.getUserName(id) ?? null, (id) => this._userService?.getPerson(id) ?? null)}</span>
+                <span class="task-sub${taskUserIds(task).length ? '' : ' task-sub-empty'}">${renderUserBadge(task, (id) => this._userService?.getUserName(id) ?? null, (id) => this._userService?.getPerson(id) ?? null)}</span>
                 <span class="cell type">${t(task.type, L)}</span>
                 <span class="due-cell" @click=${() => this._showTask(obj.entry_id, task.id)}>
                   ${renderDueText(task.days_until_due, task.last_performed, L)}

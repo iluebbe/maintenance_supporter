@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { hydrateObjects } from "./helpers/hydrate-objects";
-import { taskIsFor } from "./helpers/assignees";
+import { taskIsFor, taskUserIds } from "./helpers/assignees";
 import { property, state } from "lit/decorators.js";
 import { syncLocaleFromHass, sharedStyles, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, langOf, currencySymbolOf, syncCurrencyDecimals} from "./styles";
 import { openSignedDocument } from "./helpers/document-url";
@@ -22,7 +22,7 @@ import type {
   SavedViewFilters,
 } from "./types";
 import { UserService } from "./user-service";
-import { personOf, renderPersonAvatar, type PersonDisplay } from "./helpers/person";
+import { personOf, renderPeopleAvatars, type PersonDisplay } from "./helpers/person";
 import { phaseLabel } from "./helpers/phases";
 import { renderEventTitles, renderTriggerDetail } from "./helpers/event-titles";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
@@ -153,7 +153,7 @@ export class MaintenanceSupporterCard extends LitElement {
       this.hass &&
       !this._userNamesLoaded &&
       this._config.show_assignee !== false &&
-      this._objects.some((o) => o.tasks.some((tk) => tk.responsible_user_id))
+      this._objects.some((o) => o.tasks.some((tk) => taskUserIds(tk).length > 0))
     ) {
       this._loadUserNames();
     }
@@ -211,15 +211,19 @@ export class MaintenanceSupporterCard extends LitElement {
     this._firstLoadDone = true;
   }
 
-  /** Display name of the task's responsible user, or "" when the badge must
-   *  stay hidden (feature off, nobody assigned, or the name not resolved).
-   *  With a rotation this is whoever is up next — the pointer the engine
-   *  advances on every completion. */
+  /** Display names of whoever the task is meant for, or "" when the badge
+   *  must stay hidden (feature off, nobody assigned, or no name resolved).
+   *  That is the responsible person (with a rotation whoever is up next,
+   *  the pointer the engine advances on every completion), else everyone
+   *  it is shared with (#232). */
   private _assigneeName(task: MaintenanceTask): string {
     if (this._config.show_assignee === false) return "";
-    const id = task.responsible_user_id;
-    if (!id) return "";
-    return this._userNames[id] || "";
+    return taskUserIds(task).map((id) => this._userNames[id]).filter(Boolean).join(", ");
+  }
+
+  /** Their avatars, next to {@link _assigneeName}. */
+  private _assigneeAvatars(task: MaintenanceTask) {
+    return renderPeopleAvatars(taskUserIds(task).map((id) => this._userPersons[id]));
   }
 
   /** Resolve display names for the assignee badge (best-effort).
@@ -599,13 +603,13 @@ export class MaintenanceSupporterCard extends LitElement {
                           ? html`<div class="task-meta">
                               ${object_name} · ${t(task.type, L)}${phaseLabel(task) ? html` · ${phaseLabel(task)}` : nothing}${this._assigneeName(task)
                                 ? html` · <span class="assignee"
-                                    >${renderPersonAvatar(this._userPersons[task.responsible_user_id!])}${this._assigneeName(task)}</span
+                                    >${this._assigneeAvatars(task)}${this._assigneeName(task)}</span
                                   >`
                                 : nothing}
                             </div>`
                           : this._assigneeName(task)
                             ? html`<div class="task-meta compact-assignee" title="${this._assigneeName(task)}">
-                                ${renderPersonAvatar(this._userPersons[task.responsible_user_id!])}${this._assigneeName(task)}
+                                ${this._assigneeAvatars(task)}${this._assigneeName(task)}
                               </div>`
                             : nothing}
                       </div>

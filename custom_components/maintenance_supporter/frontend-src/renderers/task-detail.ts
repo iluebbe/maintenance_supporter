@@ -13,7 +13,8 @@ import { html, nothing } from "lit";
 import { isSafeLink } from "../helpers/url";
 import { clickOnActivationKey } from "../helpers/keyboard";
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
-import { renderPersonAvatar, type PersonDisplay } from "../helpers/person";
+import { renderPeopleAvatars, type PersonDisplay } from "../helpers/person";
+import { taskUserIds } from "../helpers/assignees";
 import { t, formatDate, formatRecurrence, formatCost, formatDuration } from "../styles";
 import { renderRefChip } from "../helpers/reference";
 import type { AdvancedFeatures, HomeAssistant, MaintenanceTask, ManualDocRef } from "../types";
@@ -100,19 +101,21 @@ export interface TaskDetailContext {
   openSeasonalOverrides: (task: MaintenanceTask) => void;
 }
 
-/** User badge for a task (if a responsible user is assigned). Also used by
- *  the object-detail task list, so it takes the lookup directly. */
+/** User badge for a task: whoever it is meant for (the responsible person,
+ *  else everyone it is shared with, #232). Also used by the object-detail
+ *  task list, so it takes the lookup directly. */
 export function renderUserBadge(
   task: MaintenanceTask,
   getUserName: (userId: string) => string | null,
   getPerson?: (userId: string) => PersonDisplay | null,
 ) {
-  if (!task.responsible_user_id) return nothing;
-  const person = getPerson?.(task.responsible_user_id) ?? null;
-  if (person) {
-    return html`<span class="user-badge">${renderPersonAvatar(person)}${person.name}</span>`;
+  const ids = taskUserIds(task);
+  if (ids.length === 0) return nothing;
+  const people = ids.map((id) => getPerson?.(id) ?? null);
+  if (people.every((p) => p !== null)) {
+    return html`<span class="user-badge">${renderPeopleAvatars(people)}${people.map((p) => p!.name).join(", ")}</span>`;
   }
-  const userName = getUserName(task.responsible_user_id);
+  const userName = ids.map((id) => getUserName(id)).filter(Boolean).join(", ");
   if (!userName) return nothing;
   return html`
     <span class="user-badge">

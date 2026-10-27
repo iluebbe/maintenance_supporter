@@ -27,7 +27,8 @@ export class MaintenanceBulkEditDialog extends LitElement {
   @state() private _users: HAUser[] = [];
   @state() private _present: string[] = [];
   // Assign
-  @state() private _assignKind: "one" | "rotate" = "one";
+  // #232: "share" is several people without a rotation, meant for each of them.
+  @state() private _assignKind: "one" | "share" | "rotate" = "one";
   @state() private _person = "";
   @state() private _pool: Set<string> = new Set();
   @state() private _rotation: string = ROTATION_STRATEGIES[0];
@@ -89,6 +90,7 @@ export class MaintenanceBulkEditDialog extends LitElement {
       }
       const pool = this._users.map((u) => u.id).filter((id) => this._pool.has(id));
       if (pool.length < 2) return null;
+      if (this._assignKind === "share") return { assignee_pool: pool, rotation_strategy: null, responsible_user_id: null };
       // The backend seeds the first person on duty.
       return { assignee_pool: pool, rotation_strategy: this._rotation, responsible_user_id: null };
     }
@@ -125,10 +127,14 @@ export class MaintenanceBulkEditDialog extends LitElement {
           </select>`
         : nothing}
       <label class="choice">
+        <input type="radio" name="kind" .checked=${this._assignKind === "share"} @change=${() => (this._assignKind = "share")} />
+        ${t("bulk_assign_share", L)}
+      </label>
+      <label class="choice">
         <input type="radio" name="kind" .checked=${this._assignKind === "rotate"} @change=${() => (this._assignKind = "rotate")} />
         ${t("bulk_assign_rotate", L)}
       </label>
-      ${this._assignKind === "rotate"
+      ${this._assignKind !== "one"
         ? html`<div class="pool">
               ${this._users.map(
                 (u) => html`<label class="row">
@@ -137,12 +143,12 @@ export class MaintenanceBulkEditDialog extends LitElement {
                 </label>`,
               )}
             </div>
-            <label class="field">
+            ${this._assignKind === "rotate" ? html`<label class="field">
               <span>${t("rotation_strategy", L)}</span>
               <select class="rotation" .value=${this._rotation} @change=${(e: Event) => (this._rotation = (e.target as HTMLSelectElement).value)}>
                 ${ROTATION_STRATEGIES.map((r) => html`<option value=${r} ?selected=${this._rotation === r}>${t(`rotation_${r}`, L)}</option>`)}
               </select>
-            </label>
+            </label>` : nothing}
             ${this._pool.size < 2 ? html`<div class="hint">${t("bulk_rotation_min_two", L)}</div>` : nothing}`
         : nothing}
     `;

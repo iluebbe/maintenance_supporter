@@ -3587,8 +3587,11 @@ export class MaintenanceTaskDialog extends LitElement {
           </div>
           ${this._availableUsers.length >= 2 ? html`
             <div class="field">
-              <label>${t("shared_with", L)}</label>
-              <div class="field-help">${t("shared_with_help", L)}</div>
+              <label>${t("task_shared_with", L)}</label>
+              <div class="field-help">${t("task_shared_with_help", L)}</div>
+              ${this._responsibleUserId && this._assigneePool.length > 0 && !(this._assigneePool.length >= 2 && this._rotationStrategy)
+                ? html`<div class="field-help shared-responsible-wins">${t("task_shared_responsible_wins", L)}</div>`
+                : nothing}
               <div class="assignee-pool">
                 ${this._availableUsers.map((user) => html`
                   <label class="pool-item">
@@ -3864,6 +3867,10 @@ export class MaintenanceTaskDialog extends LitElement {
       justify-content: flex-end;
       gap: 8px;
       padding-top: 16px;
+    }
+    /* #232: a responsible person outranks the people it is shared with */
+    .shared-responsible-wins {
+      color: var(--warning-color, #ff9800);
     }
     /* #235: "2 of 5" while a series of tasks is edited */
     .series-position {

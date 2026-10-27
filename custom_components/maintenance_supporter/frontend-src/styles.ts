@@ -593,6 +593,12 @@ export const personStyles = css`
     font-variant-numeric: tabular-nums;
   }
   .person-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  /* #232: everyone a shared task is for, the circles overlapping a little */
+  .people-avatars { display: inline-flex; flex: none; }
+  .people-avatars .person-avatar + .person-avatar {
+    margin-inline-start: -5px;
+    box-shadow: 0 0 0 1.5px var(--card-background-color, var(--primary-background-color, #fff));
+  }
 `;
 
 /** #170: the muted reference-number chip ("#8.3") — shared by every surface. */

@@ -1832,6 +1832,7 @@
     },
     "rotation_strategy": {
       "options": {
+        "none": "Bez rotace",
         "round_robin": "Postupně",
         "least_completed": "Nejméně dokončení",
         "random": "Náhodná"
@@ -2019,6 +2020,18 @@
         "notes": {
           "name": "Poznámky",
           "description": "Další poznámky nebo pokyny pro tento úkol."
+        },
+        "responsible_user": {
+          "name": "Odpovědný uživatel",
+          "description": "Přiřadí úkol této osobě (musí být propojena s uživatelem Home Assistant)."
+        },
+        "shared_with": {
+          "name": "Sdíleno s",
+          "description": "Osoby, se kterými je úkol sdílen (každá propojená s uživatelem Home Assistant). Bez odpovědného uživatele je určen každé z nich; s rotací se střídají. Prázdný seznam sdílení zruší."
+        },
+        "rotation": {
+          "name": "Rotace",
+          "description": "Jak po každém dokončení přechází odpovědnost mezi osobami, se kterými je úkol sdílen (alespoň dvě); „Bez rotace“ ji vypne."
         }
       }
     },
@@ -2089,6 +2102,14 @@
         "clear_responsible_user": {
           "name": "Zrušit přiřazení",
           "description": "Zruší aktuální přiřazení. Nelze kombinovat s „Odpovědný uživatel“."
+        },
+        "shared_with": {
+          "name": "Sdíleno s",
+          "description": "Osoby, se kterými je úkol sdílen (každá propojená s uživatelem Home Assistant). Bez odpovědného uživatele je určen každé z nich; s rotací se střídají. Prázdný seznam sdílení zruší."
+        },
+        "rotation": {
+          "name": "Rotace",
+          "description": "Jak po každém dokončení přechází odpovědnost mezi osobami, se kterými je úkol sdílen (alespoň dvě); „Bez rotace“ ji vypne."
         }
       }
     },

@@ -5,6 +5,7 @@ parts and the battery fleet."""
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from copy import deepcopy
 from typing import Any
 from uuid import uuid4
@@ -40,7 +41,7 @@ from .global_options import (
 )
 from .issues import async_purge_task_issues
 from .parts import PART_REF_FIELD, map_part_links
-from .sanitize import cap_task_fields
+from .sanitize import cap_task_fields, sanitize_assignee_pool, seed_rotation_assignee
 from .schedule import (
     KIND_INTERVAL,
     KIND_MANUAL,
@@ -157,6 +158,7 @@ async def async_create_task_simple(
     enabled: bool = True,
     notes: str | None = None,
     schedule: dict[str, Any] | None = None,
+    people: Mapping[str, Any] | None = None,
 ) -> str:
     """Create a task with the common fields and persist it; return task_id.
 
@@ -178,6 +180,8 @@ async def async_create_task_simple(
     :func:`cap_task_fields` before persisting: the ``add_task`` *service*
     schema is the boundary for service callers, but this function is also
     reachable directly from Python, so the caps can't live only in the schema.
+
+    ``people`` sets who the task is for, as :func:`_apply_people` reads it.
     """
     entry = hass.config_entries.async_get_entry(entry_id)
     # is_object_entry() rejects None as well; the explicit test narrows the type.
@@ -216,12 +220,49 @@ async def async_create_task_simple(
         task_data["due_date"] = _checked_due_date(due_date)
     if notes:
         task_data["notes"] = notes
+    if people:
+        _apply_people(task_data, people)
     # Same sanitising as the config-flow create path, applied BEFORE the
     # storage normalisation inside async_persist_task so a capped
     # interval_days/warning_days is what the schedule model sees.
     cap_task_fields(task_data)
     await async_persist_task(hass, entry, task_data)
     return task_id
+
+
+def _apply_people(task: dict[str, Any], people: Mapping[str, Any]) -> None:
+    """Who a task is for, as the ``add_task`` / ``update_task`` actions set
+    it (#128 the responsible person, #232 *Shared with* and its rotation).
+
+    Each of ``responsible_user_id``, ``assignee_pool`` and
+    ``rotation_strategy`` is left alone when None, cleared when empty (a
+    user id is never empty) and set otherwise. A rotation needs two people
+    to rotate between, and then always has one of them on duty, as the
+    task dialog keeps it (:func:`seed_rotation_assignee`).
+    """
+    ruid = people.get("responsible_user_id")
+    if ruid is not None:
+        if ruid:
+            task["responsible_user_id"] = ruid
+        else:
+            task.pop("responsible_user_id", None)
+    pool = people.get("assignee_pool")
+    if pool is not None:
+        if cleaned := sanitize_assignee_pool(pool):
+            task["assignee_pool"] = cleaned
+        else:
+            task.pop("assignee_pool", None)
+    rotation = people.get("rotation_strategy")
+    if rotation is not None:
+        if rotation:
+            task["rotation_strategy"] = rotation
+        else:
+            task.pop("rotation_strategy", None)
+    if pool is None and rotation is None:
+        return
+    if task.get("rotation_strategy") and len(task.get("assignee_pool") or []) < 2:
+        raise ValueError("A rotation needs at least two people under shared_with")
+    seed_rotation_assignee(task)
 
 
 _UPDATABLE_FLAT_FIELDS = (
@@ -283,14 +324,7 @@ async def async_update_task_simple(
     for key in _UPDATABLE_FLAT_FIELDS:
         if key in updates and updates[key] is not None:
             task[key] = updates[key]
-    # #128: assignment via the update_task service. "" clears (a user id is
-    # never empty); None keeps the field untouched like everywhere else here.
-    ruid = updates.get("responsible_user_id")
-    if ruid is not None:
-        if ruid:
-            task["responsible_user_id"] = ruid
-        else:
-            task.pop("responsible_user_id", None)
+    _apply_people(task, updates)
     if isinstance(task.get("name"), str):
         task["name"] = task["name"].strip()
         if not task["name"]:

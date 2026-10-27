@@ -21,6 +21,7 @@ from ..const import (
     CONF_OBJECT_REMIND_ON_SITE,
     DEFAULT_TASK_PRIORITY,
     DEFAULT_WARNING_DAYS,
+    ROTATION_STRATEGIES,
 )
 from ..export import object_entries
 from ..models.task_result import TaskResult
@@ -29,6 +30,7 @@ from .dates import INTERVAL_UNITS, import_day, normalize_hhmm, parse_iso_date
 from .global_options import get_default_warning_days
 from .pause import pause_end_day, write_anchor
 from .reading_slots import parse_reading_slots_text, reading_slots_text
+from .sanitize import sanitize_assignee_pool, seed_rotation_assignee
 from .schedule import Schedule, read_legacy_fields
 from .task_fields import import_due_date, import_interval_days, import_warning_days
 
@@ -91,6 +93,10 @@ _COLUMNS = [
     "custom_icon",
     "nfc_tag_id",
     "responsible_user_id",
+    # #232: *Shared with* (user ids, one per line) and its rotation: a CSV
+    # round trip turned a task shared with two people into a household one.
+    "assignee_pool",
+    "rotation_strategy",
     # #134 audit: priority routes notifications/filters and labels drive views
     # — a CSV migration losing them silently was the object_notes class again.
     "priority",
@@ -187,6 +193,8 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
                     "custom_icon": _csv_safe(tdata.get("custom_icon", "")),
                     "nfc_tag_id": _csv_safe(tdata.get("nfc_tag_id", "")),
                     "responsible_user_id": _csv_safe(tdata.get("responsible_user_id", "")),
+                    "assignee_pool": "\n".join(_csv_safe(uid) for uid in (tdata.get("assignee_pool") or []) if uid),
+                    "rotation_strategy": tdata.get("rotation_strategy") or "",
                     "priority": tdata.get("priority") or DEFAULT_TASK_PRIORITY,
                     # Labels ride one cell, "\n"-separated like the checklist.
                     "labels": "\n".join(_csv_safe(lb) for lb in (tdata.get("labels") or []) if lb),
@@ -440,6 +448,12 @@ def import_objects_csv(
         resp_user = (row.get("responsible_user_id") or "").strip()
         if resp_user:
             task_data["responsible_user_id"] = resp_user
+        if pool := sanitize_assignee_pool((row.get("assignee_pool") or "").splitlines()):
+            task_data["assignee_pool"] = pool
+            rotation = (row.get("rotation_strategy") or "").strip()
+            if rotation in ROTATION_STRATEGIES and len(pool) >= 2:
+                task_data["rotation_strategy"] = rotation
+                seed_rotation_assignee(task_data)
 
         # #134 audit: priority (closed set) + labels ("\n" cell like checklist).
         priority = (row.get("priority") or "").strip().lower()

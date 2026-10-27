@@ -1832,6 +1832,7 @@
     },
     "rotation_strategy": {
       "options": {
+        "none": "Keine Rotation",
         "round_robin": "Reihum",
         "least_completed": "Am wenigsten erledigt",
         "random": "Zufällig"
@@ -2019,6 +2020,18 @@
         "notes": {
           "name": "Notizen",
           "description": "Zusätzliche Notizen oder Anweisungen für diese Aufgabe."
+        },
+        "responsible_user": {
+          "name": "Verantwortlicher Benutzer",
+          "description": "Weist die Aufgabe dieser Person zu (muss mit einem Home-Assistant-Benutzer verknüpft sein)."
+        },
+        "shared_with": {
+          "name": "Geteilt mit",
+          "description": "Die Personen, mit denen diese Aufgabe geteilt ist (jede mit einem Home-Assistant-Benutzer verknüpft). Ohne verantwortlichen Benutzer gilt sie für jede von ihnen; mit Rotation wechseln sie sich ab. Eine leere Liste entfernt alle."
+        },
+        "rotation": {
+          "name": "Rotation",
+          "description": "Wie die Verantwortung nach jedem Abschluss unter den Personen weitergeht, mit denen die Aufgabe geteilt ist (mindestens zwei); „Keine Rotation“ schaltet sie ab."
         }
       }
     },
@@ -2089,6 +2102,14 @@
         "clear_responsible_user": {
           "name": "Zuweisung entfernen",
           "description": "Entfernt die aktuelle Zuweisung. Nicht mit „Verantwortlicher Benutzer“ kombinierbar."
+        },
+        "shared_with": {
+          "name": "Geteilt mit",
+          "description": "Die Personen, mit denen diese Aufgabe geteilt ist (jede mit einem Home-Assistant-Benutzer verknüpft). Ohne verantwortlichen Benutzer gilt sie für jede von ihnen; mit Rotation wechseln sie sich ab. Eine leere Liste entfernt alle."
+        },
+        "rotation": {
+          "name": "Rotation",
+          "description": "Wie die Verantwortung nach jedem Abschluss unter den Personen weitergeht, mit denen die Aufgabe geteilt ist (mindestens zwei); „Keine Rotation“ schaltet sie ab."
         }
       }
     },

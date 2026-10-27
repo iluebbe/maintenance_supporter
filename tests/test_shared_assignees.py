@@ -310,3 +310,94 @@ async def test_the_task_sensor_says_who_is_responsible(hass: HomeAssistant) -> N
     assert anns.attributes["responsible_user"] == "person.ann"
     assert shared.attributes["responsible_user_id"] is None
     assert shared.attributes["responsible_user"] is None
+
+
+# ─── #232: who it is for, for templates, automations and spreadsheets ──────
+
+
+async def test_the_task_sensor_and_list_tasks_say_who_it_is_for(hass: HomeAssistant) -> None:
+    """#232: a dashboard template shows a task only to the people it is for.
+    The sensor said who is responsible, so a task shared with two people
+    showed to one of them or to every account."""
+    ann, ben, _bob, _entry = await _household(hass)
+    rows = await _list(hass)
+    expect = {
+        "shared": ([ann.id, ben.id], ["person.ann", "person.ben"]),
+        "anns": ([ann.id], ["person.ann"]),
+        "rota": ([ben.id], ["person.ben"]),  # whose turn it is
+        "house": ([], []),
+    }
+    for task_id, (user_ids, persons) in expect.items():
+        sensor = hass.states.get(rows[task_id]["entity_id"])
+        assert sensor is not None
+        for attrs in (sensor.attributes, rows[task_id]):
+            assert attrs["assigned_user_ids"] == user_ids, task_id
+            assert attrs["assigned_persons"] == persons, task_id
+    shared = hass.states.get(rows["shared"]["entity_id"])
+    assert shared is not None and shared.attributes["shared_with"] == ["person.ann", "person.ben"]
+
+
+async def _update(hass: HomeAssistant, entry: MockConfigEntry, task_id: str, **data: Any) -> dict[str, Any]:
+    await hass.services.async_call(DOMAIN, "update_task", {"entry_id": entry.entry_id, "task_id": task_id, **data}, blocking=True)
+    await hass.async_block_till_done()
+    return dict(hass.config_entries.async_get_entry(entry.entry_id).data["tasks"][task_id])
+
+
+async def test_update_task_shares_a_task_and_sets_its_rotation(hass: HomeAssistant) -> None:
+    ann, ben, _bob, entry = await _household(hass)
+    task = await _update(hass, entry, "house", shared_with=["person.ann", "person.ben"])
+    assert task["assignee_pool"] == [ann.id, ben.id] and "rotation_strategy" not in task
+    assert task_user_ids(task) == [ann.id, ben.id]
+    # A rotation keeps someone of them on duty, like the dialog.
+    task = await _update(hass, entry, "house", rotation="least_completed")
+    assert task["rotation_strategy"] == "least_completed" and task["responsible_user_id"] == ann.id
+    # "none" ends the rotation; an empty list ends the sharing.
+    task = await _update(hass, entry, "house", rotation="none", clear_responsible_user=True)
+    assert "rotation_strategy" not in task and "responsible_user_id" not in task
+    task = await _update(hass, entry, "house", shared_with=[])
+    assert "assignee_pool" not in task
+
+
+async def test_a_rotation_needs_two_people(hass: HomeAssistant) -> None:
+    _ann, _ben, _bob, entry = await _household(hass)
+    with pytest.raises(ServiceValidationError) as err:
+        await _update(hass, entry, "house", shared_with=["person.ann"], rotation="round_robin")
+    assert err.value.translation_key == "invalid_input"
+    with pytest.raises(ServiceValidationError) as err:
+        await _update(hass, entry, "house", shared_with=["person.guest"])
+    assert err.value.translation_key == "person_without_user"
+
+
+async def test_add_task_takes_who_it_is_for(hass: HomeAssistant) -> None:
+    ann, ben, _bob, entry = await _household(hass)
+    resp = await hass.services.async_call(
+        DOMAIN, "add_task",
+        {"entry_id": entry.entry_id, "name": "Water plants", "shared_with": ["person.ann", "person.ben"], "rotation": "round_robin"},
+        blocking=True, return_response=True,
+    )
+    assert isinstance(resp, dict)
+    task = hass.config_entries.async_get_entry(entry.entry_id).data["tasks"][resp["task_id"]]
+    assert task["assignee_pool"] == [ann.id, ben.id]
+    assert task["rotation_strategy"] == "round_robin" and task["responsible_user_id"] == ann.id
+    resp = await hass.services.async_call(
+        DOMAIN, "add_task", {"entry_id": entry.entry_id, "name": "Feed cat", "responsible_user": "person.ben"},
+        blocking=True, return_response=True,
+    )
+    assert isinstance(resp, dict)
+    assert hass.config_entries.async_get_entry(entry.entry_id).data["tasks"][resp["task_id"]]["responsible_user_id"] == ben.id
+
+
+async def test_a_csv_round_trip_keeps_who_a_task_is_shared_with(hass: HomeAssistant) -> None:
+    """#232: the CSV had no column for *Shared with*, so a round trip turned
+    a task shared with two people into a household one."""
+    from custom_components.maintenance_supporter.helpers.csv_handler import export_objects_csv, import_objects_csv
+
+    ann, ben, _bob, _entry = await _household(hass)
+    (obj,) = import_objects_csv(export_objects_csv(hass), hass=hass)
+    by_name = {t["name"]: t for t in obj["tasks"].values()}
+    assert by_name["Clean gutters"]["assignee_pool"] == [ann.id, ben.id]
+    assert "rotation_strategy" not in by_name["Clean gutters"]
+    assert by_name["Mow lawn"]["assignee_pool"] == [ann.id, ben.id]
+    assert by_name["Mow lawn"]["rotation_strategy"] == "round_robin"
+    assert by_name["Mow lawn"]["responsible_user_id"] == ben.id
+    assert "assignee_pool" not in by_name["Service boiler"]

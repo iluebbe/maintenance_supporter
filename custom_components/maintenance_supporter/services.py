@@ -38,6 +38,7 @@ from .const import (
     DOMAIN,
     FLAT_SCHEDULE_TYPES,
     GLOBAL_UNIQUE_ID,
+    MAX_ASSIGNEE_POOL,
     MAX_COST,
     MAX_DURATION_MINUTES,
     MAX_LABEL_LENGTH,
@@ -46,6 +47,8 @@ from .const import (
     MAX_TEXT_LENGTH,
     MAX_TYPE_LENGTH,
     MIN_COST,
+    ROTATION_NONE,
+    ROTATION_STRATEGIES,
     SERVICE_ADD_OBJECT,
     SERVICE_ADD_TASK,
     SERVICE_COMPLETE,
@@ -68,7 +71,7 @@ from .helpers.aggregate import iter_live_tasks, store_of
 from .helpers.aggregate import object_name as aggregate_object_name
 from .helpers.aggregate import object_slug as aggregate_object_slug
 from .helpers.aggregate import task_sensor_entity_id as aggregate_task_sensor_entity_id
-from .helpers.assignees import person_of_user, shared_user_ids, task_is_for
+from .helpers.assignees import task_is_for, task_people_attributes
 from .helpers.dates import INTERVAL_UNITS
 from .helpers.entry_tasks import ArchivedObjectError
 from .helpers.global_options import get_default_warning_days
@@ -184,6 +187,12 @@ SERVICE_ADD_TASK_SCHEMA = vol.Schema(
         vol.Optional("warning_days"): vol.All(vol.Coerce(int), vol.Range(min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1])),
         vol.Optional("enabled"): cv.boolean,
         vol.Optional("notes"): vol.All(cv.string, vol.Length(max=MAX_TEXT_LENGTH)),
+        # #232: who it is for, as update_task takes it.
+        vol.Optional("responsible_user"): cv.entity_id,
+        # #232: *Shared with* as person entities (each resolved to its HA
+        # user; an empty list clears it) and the rotation between them.
+        vol.Optional("shared_with"): vol.All(cv.entity_ids, vol.Length(max=MAX_ASSIGNEE_POOL)),
+        vol.Optional("rotation"): vol.In([*ROTATION_STRATEGIES, ROTATION_NONE]),
     }
 )
 
@@ -209,6 +218,10 @@ SERVICE_UPDATE_TASK_SCHEMA = vol.Schema(
         # linked HA user; the boolean clears the assignment instead.
         vol.Optional("responsible_user"): cv.entity_id,
         vol.Optional("clear_responsible_user"): cv.boolean,
+        # #232: *Shared with* as person entities (each resolved to its HA
+        # user; an empty list clears it) and the rotation between them.
+        vol.Optional("shared_with"): vol.All(cv.entity_ids, vol.Length(max=MAX_ASSIGNEE_POOL)),
+        vol.Optional("rotation"): vol.In([*ROTATION_STRATEGIES, ROTATION_NONE]),
     }
 )
 
@@ -582,6 +595,23 @@ async def _handle_add_object(call: ServiceCall) -> dict[str, Any] | None:
     return {"entry_id": entry_id} if call.return_response else None
 
 
+def _people_updates(hass: HomeAssistant, data: Mapping[str, Any]) -> dict[str, Any]:
+    """Who a task is for, from the add_task / update_task fields, as
+    ``task_persist._apply_people`` takes it: person entities become HA user
+    ids (#128), the clear flag and an empty *Shared with* map to empty
+    values, and ``rotation: none`` to no rotation (#232)."""
+    people: dict[str, Any] = {}
+    if data.get("responsible_user"):
+        people["responsible_user_id"] = _resolve_person_user_id(hass, data["responsible_user"])
+    elif data.get("clear_responsible_user"):
+        people["responsible_user_id"] = ""
+    if "shared_with" in data:
+        people["assignee_pool"] = [_resolve_person_user_id(hass, person) for person in data["shared_with"]]
+    if "rotation" in data:
+        people["rotation_strategy"] = "" if data["rotation"] == ROTATION_NONE else data["rotation"]
+    return people
+
+
 async def _handle_add_task(call: ServiceCall) -> dict[str, Any] | None:
     """Handle the add_task service — add a task to an existing object."""
     hass = call.hass
@@ -602,6 +632,7 @@ async def _handle_add_task(call: ServiceCall) -> dict[str, Any] | None:
             enabled=call.data.get("enabled", True),
             notes=call.data.get("notes"),
             schedule=call.data.get("schedule"),
+            people=_people_updates(hass, call.data),
         )
     except ArchivedObjectError as err:
         raise ServiceValidationError(translation_domain=DOMAIN, translation_key="archived_no_new_tasks") from err
@@ -632,14 +663,9 @@ async def _handle_update_task(call: ServiceCall) -> None:
         "priority": call.data.get("priority"),
         "labels": call.data.get("labels"),
     }
-    # #128: assignment via automations. Person entity -> HA user id; the
-    # clear flag maps to "" (async_update_task_simple pops the key).
     if call.data.get("responsible_user") and call.data.get("clear_responsible_user"):
         raise ServiceValidationError(translation_domain=DOMAIN, translation_key="responsible_user_conflict")
-    if call.data.get("responsible_user"):
-        updates["responsible_user_id"] = _resolve_person_user_id(hass, call.data["responsible_user"])
-    elif call.data.get("clear_responsible_user"):
-        updates["responsible_user_id"] = ""
+    updates.update(_people_updates(hass, call.data))
     try:
         await async_update_task_simple(
             hass,
@@ -694,7 +720,6 @@ async def _handle_list_tasks(call: ServiceCall) -> dict[str, Any]:
             continue
         # #151: last completion + live trigger reading, so
         # notification automations don't need extra lookups.
-        responsible = task.get("responsible_user_id") or None
         lp = task.get("last_performed")
         days_since: int | None = None
         if lp:
@@ -728,13 +753,8 @@ async def _handle_list_tasks(call: ServiceCall) -> dict[str, Any]:
                 "trigger_current_delta": result.trigger_current_delta,
                 "trigger_target": trigger_target,
                 "trigger_unit": trigger_unit,
-                # #210: who does it, as the user id and as the person
-                # entity (what update_task takes as responsible_user);
-                # shared_with is everyone under "Shared with" (on a
-                # rotation, the people it rotates between).
-                "responsible_user_id": responsible,
-                "responsible_user": person_of_user(hass, responsible),
-                "shared_with": [p for u in shared_user_ids(task) if (p := person_of_user(hass, u))],
+                # #210 / #232: who it is for, the task sensor's fields.
+                **task_people_attributes(hass, task),
             }
         )
     return {"tasks": tasks, "count": len(tasks)}

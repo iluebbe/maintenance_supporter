@@ -57,6 +57,31 @@ def person_of_user(hass: HomeAssistant, user_id: str | None) -> str | None:
     return state.entity_id if state is not None else None
 
 
+def task_people_attributes(hass: HomeAssistant, task: Mapping[str, Any]) -> dict[str, Any]:
+    """Who a task is for, as the task sensor and ``list_tasks`` say it.
+
+    * ``responsible_user_id`` / ``responsible_user`` (#210): the person on
+      duty, as the user id and as the person entity (what ``update_task``
+      takes as ``responsible_user``); None while nobody is responsible.
+    * ``shared_with``: the person entities under *Shared with* (on a
+      rotation, the people it rotates between).
+    * ``assigned_user_ids`` / ``assigned_persons`` (#232): who the task is
+      meant for by :func:`task_user_ids`: the responsible person, else
+      everyone it is shared with. The people its reminders reach and whose
+      "my tasks" list it, so a dashboard template that shows a task only to
+      them agrees with both.
+    """
+    responsible = task.get("responsible_user_id") or None
+    assigned = task_user_ids(task)
+    return {
+        "responsible_user_id": responsible,
+        "responsible_user": person_of_user(hass, responsible),
+        "shared_with": [p for u in shared_user_ids(task) if (p := person_of_user(hass, u))],
+        "assigned_user_ids": assigned,
+        "assigned_persons": [p for u in assigned if (p := person_of_user(hass, u))],
+    }
+
+
 async def person_display_name(hass: HomeAssistant, user_id: str | None) -> str | None:
     """How the household calls a user: the person's name, else the login's,
     else None. Voice named the person, the "completed by" notification the

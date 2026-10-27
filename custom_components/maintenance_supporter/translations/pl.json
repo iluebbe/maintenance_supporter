@@ -1832,6 +1832,7 @@
     },
     "rotation_strategy": {
       "options": {
+        "none": "Bez rotacji",
         "round_robin": "Po kolei",
         "least_completed": "Najmniej ukończeń",
         "random": "Losowa"
@@ -2019,6 +2020,18 @@
         "notes": {
           "name": "Notatki",
           "description": "Dodatkowe notatki lub instrukcje dla tego zadania."
+        },
+        "responsible_user": {
+          "name": "Użytkownik odpowiedzialny",
+          "description": "Przypisuje zadanie tej osobie (musi być powiązana z użytkownikiem Home Assistant)."
+        },
+        "shared_with": {
+          "name": "Współdzielone z",
+          "description": "Osoby, z którymi zadanie jest współdzielone (każda powiązana z użytkownikiem Home Assistant). Bez odpowiedzialnego użytkownika jest przeznaczone dla każdej z nich; przy rotacji zmieniają się kolejno. Pusta lista je usuwa."
+        },
+        "rotation": {
+          "name": "Rotacja",
+          "description": "Jak odpowiedzialność przechodzi po każdym ukończeniu między osobami, z którymi zadanie jest współdzielone (co najmniej dwie); „Bez rotacji” ją wyłącza."
         }
       }
     },
@@ -2089,6 +2102,14 @@
         "clear_responsible_user": {
           "name": "Usuń przypisanie",
           "description": "Usuwa bieżące przypisanie. Nie można łączyć z „Odpowiedzialny użytkownik”."
+        },
+        "shared_with": {
+          "name": "Współdzielone z",
+          "description": "Osoby, z którymi zadanie jest współdzielone (każda powiązana z użytkownikiem Home Assistant). Bez odpowiedzialnego użytkownika jest przeznaczone dla każdej z nich; przy rotacji zmieniają się kolejno. Pusta lista je usuwa."
+        },
+        "rotation": {
+          "name": "Rotacja",
+          "description": "Jak odpowiedzialność przechodzi po każdym ukończeniu między osobami, z którymi zadanie jest współdzielone (co najmniej dwie); „Bez rotacji” ją wyłącza."
         }
       }
     },

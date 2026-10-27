@@ -1832,6 +1832,7 @@
     },
     "rotation_strategy": {
       "options": {
+        "none": "Ingen rotasjon",
         "round_robin": "På omgang",
         "least_completed": "Færrest fullførte",
         "random": "Tilfeldig"
@@ -2019,6 +2020,18 @@
         "notes": {
           "name": "Notater",
           "description": "Ytterligere notater eller instruksjoner for denne oppgaven."
+        },
+        "responsible_user": {
+          "name": "Ansvarlig bruker",
+          "description": "Tildeler oppgaven til denne personen (må være knyttet til en Home Assistant-bruker)."
+        },
+        "shared_with": {
+          "name": "Delt med",
+          "description": "Personene oppgaven er delt med (hver knyttet til en Home Assistant-bruker). Uten ansvarlig bruker gjelder den hver av dem; med rotasjon bytter de på. En tom liste fjerner delingen."
+        },
+        "rotation": {
+          "name": "Rotasjon",
+          "description": "Hvordan ansvaret går videre etter hver fullføring blant personene oppgaven er delt med (minst to); «Ingen rotasjon» slår det av."
         }
       }
     },
@@ -2089,6 +2102,14 @@
         "clear_responsible_user": {
           "name": "Fjern ansvarlig",
           "description": "Fjerner gjeldende tildeling. Kan ikke kombineres med \"Ansvarlig bruker\"."
+        },
+        "shared_with": {
+          "name": "Delt med",
+          "description": "Personene oppgaven er delt med (hver knyttet til en Home Assistant-bruker). Uten ansvarlig bruker gjelder den hver av dem; med rotasjon bytter de på. En tom liste fjerner delingen."
+        },
+        "rotation": {
+          "name": "Rotasjon",
+          "description": "Hvordan ansvaret går videre etter hver fullføring blant personene oppgaven er delt med (minst to); «Ingen rotasjon» slår det av."
         }
       }
     },

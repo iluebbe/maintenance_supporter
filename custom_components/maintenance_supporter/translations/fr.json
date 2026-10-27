@@ -1832,6 +1832,7 @@
     },
     "rotation_strategy": {
       "options": {
+        "none": "Pas de rotation",
         "round_robin": "À tour de rôle",
         "least_completed": "Le moins de complétions",
         "random": "Aléatoire"
@@ -2019,6 +2020,18 @@
         "notes": {
           "name": "Notes",
           "description": "Notes supplémentaires ou instructions pour cette tâche."
+        },
+        "responsible_user": {
+          "name": "Utilisateur responsable",
+          "description": "Attribue la tâche à cette personne (doit être liée à un utilisateur Home Assistant)."
+        },
+        "shared_with": {
+          "name": "Partagée avec",
+          "description": "Les personnes avec qui cette tâche est partagée (chacune liée à un utilisateur Home Assistant). Sans utilisateur responsable, elle s'adresse à chacune d'elles ; avec une rotation, elles se relaient. Une liste vide la retire."
+        },
+        "rotation": {
+          "name": "Rotation",
+          "description": "Comment la responsabilité passe après chaque achèvement entre les personnes avec qui la tâche est partagée (au moins deux) ; « Pas de rotation » la désactive."
         }
       }
     },
@@ -2089,6 +2102,14 @@
         "clear_responsible_user": {
           "name": "Retirer le responsable",
           "description": "Supprime l'attribution actuelle. Non combinable avec « Utilisateur responsable »."
+        },
+        "shared_with": {
+          "name": "Partagée avec",
+          "description": "Les personnes avec qui cette tâche est partagée (chacune liée à un utilisateur Home Assistant). Sans utilisateur responsable, elle s'adresse à chacune d'elles ; avec une rotation, elles se relaient. Une liste vide la retire."
+        },
+        "rotation": {
+          "name": "Rotation",
+          "description": "Comment la responsabilité passe après chaque achèvement entre les personnes avec qui la tâche est partagée (au moins deux) ; « Pas de rotation » la désactive."
         }
       }
     },
