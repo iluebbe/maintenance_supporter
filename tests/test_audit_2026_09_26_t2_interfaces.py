@@ -488,7 +488,7 @@ async def test_new_tasks_take_the_configured_warning_default(hass: HomeAssistant
     """``task/create`` and the ``add_task`` helper used the constant 7 instead
     of the integration-wide warning default every other path uses."""
     from custom_components.maintenance_supporter.websocket.tasks_crud import ws_create_task
-    from custom_components.maintenance_supporter.websocket.tasks_persist import async_create_task_simple
+    from custom_components.maintenance_supporter.helpers.task_persist import async_create_task_simple
 
     entry = await _setup(hass, global_kwargs={"warning_days": 3})
     conn = await _ws(hass, ws_create_task, {"type": f"{DOMAIN}/task/create", "entry_id": entry.entry_id, "name": "WS task", "interval_days": 30})
@@ -697,7 +697,7 @@ async def test_a_move_keeps_a_completion_that_landed_meanwhile(hass: HomeAssista
     """task/move snapshotted the Store state, then the delete leg awaited the
     to-do mirror cleanup before dropping it — a completion in that window
     was lost with the source copy."""
-    from custom_components.maintenance_supporter.websocket.tasks_persist import async_move_task
+    from custom_components.maintenance_supporter.helpers.task_persist import async_move_task
 
     g = _global_entry(hass)
     boiler = _object_entry(hass)

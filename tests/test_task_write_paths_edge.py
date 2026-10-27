@@ -106,7 +106,7 @@ async def test_moving_into_a_full_object_is_refused_without_changes(hass: HomeAs
     await setup_integration(hass, g, src, dst)
     conn = make_ws_connection()
 
-    with patch("custom_components.maintenance_supporter.websocket.tasks_persist.MAX_TASKS_PER_OBJECT", 1):
+    with patch("custom_components.maintenance_supporter.helpers.task_persist.MAX_TASKS_PER_OBJECT", 1):
         await call_ws_handler(
             ws_move_task,
             hass,

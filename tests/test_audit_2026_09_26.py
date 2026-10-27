@@ -252,7 +252,7 @@ async def test_a_renamed_object_frees_its_old_name(hass: HomeAssistant) -> None:
     use is still refused, also when it only differs in spelling."""
     import pytest
 
-    from custom_components.maintenance_supporter.websocket.objects import async_create_object
+    from custom_components.maintenance_supporter.helpers.object_create import async_create_object
 
     entry = await _setup(hass)
     hass.config_entries.async_update_entry(entry, data={**entry.data, "object": {**entry.data["object"], "name": "Heater"}})

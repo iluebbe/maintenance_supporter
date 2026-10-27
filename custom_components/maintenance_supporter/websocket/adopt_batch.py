@@ -54,7 +54,7 @@ class AdoptBatch:
     async def create_object(self, *, name: str, ha_device_id: str | None) -> str:
         """Create the selection's target object; returns its entry id."""
         # Imported at call time (tests patch the module attributes).
-        from .objects import async_create_object
+        from ..helpers.object_create import async_create_object
 
         entry_id = await async_create_object(self.hass, name=name, ha_device_id=ha_device_id)
         self._new_entry_id = entry_id

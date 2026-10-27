@@ -9,7 +9,7 @@ helpers below right before persisting:
   buggy programmatic flow caller could otherwise bloat ConfigEntry.data. Every
   save handler caps.
 * **Services** (``add_task`` / ``update_task``) — their voluptuous schemas
-  mirror the WS caps, but ``websocket/tasks_persist.py``'s
+  mirror the WS caps, but ``helpers/task_persist.py``'s
   ``async_create_task_simple`` / ``async_update_task_simple`` are plain Python
   reachable in-process without going through a schema at all, so they cap too.
 

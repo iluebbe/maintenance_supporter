@@ -875,7 +875,7 @@ async def test_service_add_object_value_error(hass: HomeAssistant) -> None:
     await setup_integration(hass, global_entry)
 
     with patch(
-        "custom_components.maintenance_supporter.websocket.objects.async_create_object",
+        "custom_components.maintenance_supporter.helpers.object_create.async_create_object",
         side_effect=ValueError("duplicate name"),
     ):
         with pytest.raises(ServiceValidationError, match="duplicate name"):

@@ -251,7 +251,7 @@ async def test_adopt_extends_existing_object_and_flags_bad_entry(
     from custom_components.maintenance_supporter.websocket.integration_setups import (
         ws_adopt_integration_setups,
     )
-    from custom_components.maintenance_supporter.websocket.objects import async_create_object
+    from custom_components.maintenance_supporter.helpers.object_create import async_create_object
 
     await setup_integration(hass, global_entry)
     device_id = await _seed_roborock(hass)
@@ -1007,7 +1007,7 @@ async def test_adopt_into_user_picked_object_binds_device(
     from custom_components.maintenance_supporter.websocket.integration_setups import (
         ws_adopt_integration_setups,
     )
-    from custom_components.maintenance_supporter.websocket.objects import async_create_object
+    from custom_components.maintenance_supporter.helpers.object_create import async_create_object
 
     await setup_integration(hass, global_entry)
     device_id = await _seed_roborock(hass)
@@ -1363,8 +1363,8 @@ async def test_existing_task_name_on_bound_object_not_reproposed(
     )
     from uuid import uuid4
 
-    from custom_components.maintenance_supporter.websocket.objects import async_create_object
-    from custom_components.maintenance_supporter.websocket.tasks_persist import (
+    from custom_components.maintenance_supporter.helpers.object_create import async_create_object
+    from custom_components.maintenance_supporter.helpers.task_persist import (
         async_persist_task,
     )
 

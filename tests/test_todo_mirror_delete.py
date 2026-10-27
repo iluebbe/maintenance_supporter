@@ -49,13 +49,14 @@ async def test_forget_task_removes_rows_and_record(hass: HomeAssistant) -> None:
 
 
 async def test_delete_task_ws_forgets_rows(hass: HomeAssistant) -> None:
-    """The WS delete path calls the mirror before dropping the Store state."""
-    from custom_components.maintenance_supporter.websocket import tasks_crud
+    """The task delete behind the WS command (helpers.task_persist) calls the
+    mirror before dropping the Store state."""
+    from custom_components.maintenance_supporter.helpers import task_persist
 
     from pathlib import Path
 
-    src = Path(tasks_crud.__file__).read_text(encoding="utf-8")
-    delete_body = src.split("async def ws_delete_task", 1)[1]
+    src = Path(task_persist.__file__).read_text(encoding="utf-8")
+    delete_body = src.split("async def async_delete_task", 1)[1]
     assert "async_forget_task" in delete_body and delete_body.index("async_forget_task") < delete_body.index("store.remove_task(task_id)")
     mirror = MagicMock()
     mirror.async_forget_task = AsyncMock()

@@ -88,10 +88,10 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
     WS): the created object/task/part names and notes are localized through
     the ``_T`` table, falling back to the server language, then English.
     """
-    from ..websocket.objects import async_create_object
-    from ..websocket.tasks_persist import async_persist_task
     from .i18n import normalize_language, normalize_language_code
+    from .object_create import async_create_object
     from .parts import normalize_part
+    from .task_persist import async_persist_task
 
     lang = normalize_language_code(language) if language else normalize_language(hass)
     types = discover_battery_types(hass)  # {TYPE: total_qty}
@@ -934,7 +934,7 @@ async def _reconcile_fleet_task(hass: HomeAssistant, entry: ConfigEntry, lang: s
       keeping the user's name/type/translations untouched.
     * Task deleted entirely → recreate it fresh (localized).
     """
-    from ..websocket.tasks_persist import async_persist_task
+    from .task_persist import async_persist_task
 
     if fleet_task_trigger_ok(entry):
         return False

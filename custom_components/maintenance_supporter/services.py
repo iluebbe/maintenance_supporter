@@ -547,8 +547,8 @@ async def _handle_export(call: ServiceCall) -> None:
 async def _handle_add_object(call: ServiceCall) -> dict[str, Any] | None:
     """Handle the add_object service — create a maintenance object."""
     hass = call.hass
+    from .helpers.object_create import async_create_object
     from .helpers.url_safety import is_safe_url
-    from .websocket.objects import async_create_object
 
     url = call.data.get("documentation_url")
     if url and not is_safe_url(url):
@@ -587,7 +587,7 @@ async def _handle_add_task(call: ServiceCall) -> dict[str, Any] | None:
     """Handle the add_task service — add a task to an existing object."""
     hass = call.hass
     from .helpers.entry_tasks import ArchivedObjectError
-    from .websocket.tasks import async_create_task_simple
+    from .helpers.task_persist import async_create_task_simple
 
     try:
         task_id = await async_create_task_simple(
@@ -620,7 +620,7 @@ async def _handle_add_task(call: ServiceCall) -> dict[str, Any] | None:
 async def _handle_update_task(call: ServiceCall) -> None:
     """Handle update_task — patch the common fields of an existing task."""
     hass = call.hass
-    from .websocket.tasks_persist import async_update_task_simple
+    from .helpers.task_persist import async_update_task_simple
 
     updates = {
         "name": call.data.get("name"),
@@ -662,7 +662,7 @@ async def _handle_update_task(call: ServiceCall) -> None:
 async def _handle_delete_task(call: ServiceCall) -> None:
     """Handle delete_task — remove a task and its side-state."""
     hass = call.hass
-    from .websocket.tasks_crud import async_delete_task
+    from .helpers.task_persist import async_delete_task
 
     entry_id = call.data["entry_id"]
     entry = hass.config_entries.async_get_entry(entry_id)

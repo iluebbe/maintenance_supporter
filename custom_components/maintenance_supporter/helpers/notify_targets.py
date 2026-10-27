@@ -10,9 +10,14 @@ TypeScript — and the two had drifted (the panel excluded the
 ``notify.send_message`` *entity* and never injected the saved value; the
 options flow injected the saved value but only excluded the ``send_message``
 *service*). Routing both through here keeps them in lockstep.
+
+The validation of a typed notify service lives here too: the config flow,
+the options flow and the settings sanitizer apply the same rule.
 """
 
 from __future__ import annotations
+
+import re
 
 from homeassistant.core import HomeAssistant
 
@@ -37,3 +42,30 @@ def build_notify_targets(hass: HomeAssistant, *, current: str | None = None) -> 
     if current:
         targets.add(current)
     return sorted(targets)
+
+
+_VALID_SERVICE_PART = re.compile(r"^[a-z0-9_]+$")
+
+
+def validate_notify_service(raw: str, hass: HomeAssistant | None = None) -> tuple[str, str | None]:
+    """Normalize and validate a notify service string.
+
+    Returns (normalized_value, error_key | None).
+    """
+    value = raw.strip()
+    if not value:
+        return ("", None)
+
+    # Auto-fix: prepend "notify." if missing
+    if "." not in value:
+        value = f"notify.{value}"
+
+    parts = value.split(".")
+    if len(parts) != 2 or parts[0] != "notify" or not parts[1] or not _VALID_SERVICE_PART.match(parts[1]):
+        return (value, "invalid_notify_service")
+
+    # Check service existence (only when hass available, i.e. options flow)
+    if hass is not None and not hass.services.has_service(parts[0], parts[1]):
+        return (value, "notify_service_not_found")
+
+    return (value, None)

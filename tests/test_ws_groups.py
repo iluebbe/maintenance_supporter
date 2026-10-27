@@ -11,7 +11,7 @@ from custom_components.maintenance_supporter.const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
-from custom_components.maintenance_supporter.websocket import cleanup_group_refs
+from custom_components.maintenance_supporter.helpers.global_options import cleanup_group_refs
 from custom_components.maintenance_supporter.websocket.groups import (
     ws_create_group,
     ws_delete_group,

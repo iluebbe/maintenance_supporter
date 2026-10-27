@@ -105,7 +105,7 @@ class AdaptiveMixin:
             # refresh. The flow's own copy only delay-saved (a restart within
             # the debounce lost the change) and never refreshed, so the new
             # tuning showed only after the next poll (bug audit 2026-09-26).
-            from .websocket.analysis import async_persist_adaptive_config
+            from .helpers.task_persist import async_persist_adaptive_config
 
             await async_persist_adaptive_config(self.hass, self.config_entry, self._selected_task_id or "", adaptive_config)
 

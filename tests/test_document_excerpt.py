@@ -19,7 +19,7 @@ from custom_components.maintenance_supporter.const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
-from custom_components.maintenance_supporter.websocket import object_id_for_entry
+from custom_components.maintenance_supporter.helpers.aggregate import object_id_for_entry
 
 from .conftest import (
     TASK_ID_1,

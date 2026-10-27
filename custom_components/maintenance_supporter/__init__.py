@@ -1037,7 +1037,8 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     # v1.5.4: also called from ws_delete_object — but if the user removes the
     # config entry from HA's "Configure" UI, that path doesn't run, leaving
     # phantom task_refs in groups. Belt-and-suspenders.
-    from .websocket import cleanup_group_refs, object_id_for_entry
+    from .helpers.aggregate import object_id_for_entry
+    from .helpers.global_options import cleanup_group_refs
 
     cleanup_group_refs(hass, entry_id=entry.entry_id)
     # Objects nested under this one lose the parent pointer (W3).

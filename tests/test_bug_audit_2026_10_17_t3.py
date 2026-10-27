@@ -176,7 +176,7 @@ async def test_n10_general_settings_fills_the_q_placeholder(hass: HomeAssistant)
 async def test_n17_an_unsupported_currency_does_not_lock_the_form(hass: HomeAssistant) -> None:
     """A code from an import or the API became the dropdown default, and the
     form refused every save."""
-    from custom_components.maintenance_supporter.websocket.dashboard import sanitize_settings_input
+    from custom_components.maintenance_supporter.helpers.settings_sanitize import sanitize_settings_input
 
     result = await _general_settings(hass, {CONF_BUDGET_CURRENCY: "XYZ"})
     assert _schema_key(result, CONF_BUDGET_CURRENCY).default() == "EUR"

@@ -28,13 +28,13 @@ from ..const import (
     MAX_TEXT_LENGTH,
     MAX_URL_LENGTH,
 )
-from ..helpers.aggregate import object_name
+from ..helpers.aggregate import object_id_for_entry, object_name
 from ..helpers.documents import MAX_TAG_LEN, MAX_TAGS
 from ..helpers.permissions import require_write
 from ..helpers.search_match import query_tokens, score_fields, snippet
 from ..helpers.url_safety import is_safe_link
 from ..helpers.ws_errors import send_unsafe_url_error
-from . import ID_FIELD, _get_object_entries, _load_object_entry, object_id_for_entry
+from . import ID_FIELD, _get_object_entries, _load_object_entry
 
 if TYPE_CHECKING:
     from ..helpers.documents import DocumentStore

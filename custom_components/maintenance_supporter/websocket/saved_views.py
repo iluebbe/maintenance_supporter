@@ -15,10 +15,11 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
 from ..const import CONF_SAVED_FILTER_VIEWS, DOMAIN, MAX_ID_LENGTH, MAX_VIEW_NAME_LENGTH
+from ..helpers.global_options import merge_global_options
 from ..helpers.permissions import require_write
 from ..helpers.saved_views import list_saved_views, remove_view, sanitize_view, upsert_view
 from ..helpers.ws_errors import send_translated_error
-from . import ID_FIELD, _get_global_entry, _merge_global_options
+from . import ID_FIELD, _get_global_entry
 
 
 def _persist(hass: HomeAssistant, views: list[dict[str, Any]]) -> None:
@@ -26,7 +27,7 @@ def _persist(hass: HomeAssistant, views: list[dict[str, Any]]) -> None:
     global_entry = _get_global_entry(hass)
     if global_entry is None:
         raise LookupError("global_entry_missing")
-    _merge_global_options(hass, global_entry, {CONF_SAVED_FILTER_VIEWS: views})
+    merge_global_options(hass, global_entry, {CONF_SAVED_FILTER_VIEWS: views})
 
 
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/views/list"})

@@ -16,7 +16,8 @@ from custom_components.maintenance_supporter.helpers.parts import (
     resolve_shopping_url,
     valid_search_template,
 )
-from custom_components.maintenance_supporter.websocket.dashboard import _build_full_settings, _search_url_default, sanitize_settings_input
+from custom_components.maintenance_supporter.websocket.dashboard import _build_full_settings, _search_url_default
+from custom_components.maintenance_supporter.helpers.settings_sanitize import sanitize_settings_input
 
 from .conftest import setup_integration
 

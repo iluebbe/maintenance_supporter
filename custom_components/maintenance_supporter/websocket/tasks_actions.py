@@ -22,7 +22,7 @@ from ..const import (
     MAX_TIMESTAMP_LENGTH,
     MIN_COST,
 )
-from ..helpers.aggregate import object_name
+from ..helpers.aggregate import async_commit_store, object_name
 from ..helpers.completion_photos import MAX_COMPLETION_PHOTOS, normalize_photo_doc_ids
 from ..helpers.dates import is_past_dated
 from ..helpers.parts import MAX_PART_STOCK
@@ -33,7 +33,6 @@ from . import (
     USED_PARTS_FIELD,
     _load_object_task,
     _parse_iso_date,
-    async_commit_store,
 )
 
 # ---------------------------------------------------------------------------
@@ -170,8 +169,8 @@ async def ws_complete_task(
     # foreign doc id satisfied a required photo and got linked (and later
     # re-homed by task/move). This command is the one completion surface
     # that carries photos (bug audit 2026-09-26).
+    from ..helpers.aggregate import object_id_for_entry
     from ..helpers.completion_requirements import own_photo_doc_ids
-    from . import object_id_for_entry
 
     photo_doc_ids = own_photo_doc_ids(
         hass, object_id_for_entry(_entry), normalize_photo_doc_ids(msg.get("photo_doc_ids"), msg.get("photo_doc_id"))

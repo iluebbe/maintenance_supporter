@@ -7,9 +7,9 @@ Two parts:
   injected ``today``. No Home Assistant imports, so every branch is unit-testable
   with plain dicts.
 * **The sweep** — :func:`async_run_retention_sweep` walks every object entry once
-  (wired to a daily timer in ``__init__.async_setup``), applies the archives in
+  (wired to a daily timer in ``daily_jobs``), applies the archives in
   one ConfigEntry write per entry, deletes the eligible tasks via the shared
-  ``websocket.tasks.async_delete_task`` helper, and reloads each touched entry so
+  ``helpers.task_persist.async_delete_task``, and reloads each touched entry so
   its entities reflect the new state.
 
 Policy (locked design):
@@ -236,7 +236,7 @@ async def async_run_retention_sweep(hass: HomeAssistant) -> None:
             )
 
         if to_delete:
-            from ..websocket.tasks import async_delete_task
+            from .task_persist import async_delete_task
 
             deleted = 0
             for tid in to_delete:

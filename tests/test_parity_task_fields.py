@@ -55,7 +55,7 @@ _PANEL_SIBLING_WS = {
 }
 # The config-flow twin: fields a flow step persists through a SHARED writer
 # instead of a direct ``updated_task[...] =`` assignment. The adaptive step
-# writes through the WS layer's ``async_persist_adaptive_config`` since the bug
+# writes through helpers.task_persist's ``async_persist_adaptive_config`` since the bug
 # audit of 2026-09-26 (one write path: immediate save + refresh).
 _CONFIG_FLOW_SIBLING_WRITERS = {
     "async_persist_adaptive_config": "adaptive_config",

@@ -1,12 +1,17 @@
-"""Task persistence primitives shared by CRUD + the add_task service."""
+"""Task persistence: create, persist, update, move and delete a task with
+its side-state, and write its adaptive configuration. Shared by the WS task
+commands, the services, the options flow, the retention sweep, the spare
+parts and the battery fleet."""
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any
 from uuid import uuid4
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 
 from ..const import (
@@ -16,19 +21,20 @@ from ..const import (
     DOMAIN,
     FLAT_SCHEDULE_TYPES,
     MAX_TASKS_PER_OBJECT,
+    NOTIFICATION_MANAGER_KEY,
 )
-from ..helpers.aggregate import get_store, is_object_entry
-from ..helpers.dates import parse_iso_date
-from ..helpers.entry_tasks import insert_new_task, write_task
-from ..helpers.global_options import get_default_warning_days
-from ..helpers.sanitize import cap_task_fields
-from ..helpers.schedule import (
+from ..models.shapes import AdaptiveConfig, HistoryEntry
+from .aggregate import async_commit_store, get_runtime_data, get_store, is_object_entry
+from .dates import parse_iso_date
+from .entry_tasks import insert_new_task, write_task
+from .global_options import cleanup_group_refs, get_default_warning_days, merge_global_options
+from .sanitize import cap_task_fields
+from .schedule import (
     KIND_INTERVAL,
     KIND_MANUAL,
     KIND_ONE_TIME,
     Schedule,
 )
-from ..models.shapes import HistoryEntry
 
 _TIME_BASED = "time_based"
 # The flat service schedule_type → the Schedule kind it means.
@@ -361,9 +367,8 @@ async def async_move_task(
     from copy import deepcopy
 
     from ..const import CONF_VACATION_EXEMPT_TASK_IDS, DOCUMENT_STORE_KEY
-    from ..helpers.completion_photos import history_photo_ids
-    from ..helpers.parts import PART_REF_FIELD, map_part_links
-    from .tasks_crud import async_delete_task
+    from .completion_photos import history_photo_ids
+    from .parts import PART_REF_FIELD, map_part_links
 
     task_data = deepcopy(dict(source.data[CONF_TASKS][task_id]))
     # A buy task follows its spare part and the fleet task IS the battery
@@ -401,8 +406,7 @@ async def async_move_task(
 
     # Group memberships: snapshot, let the delete sweep them, re-add under the target.
     from ..const import CONF_GROUPS
-    from ..helpers.global_options import get_global_entry, get_global_options
-    from . import _merge_global_options
+    from .global_options import get_global_entry, get_global_options, merge_global_options
 
     member_groups: list[str] = []
     global_entry = get_global_entry(hass)
@@ -458,7 +462,7 @@ async def async_move_task(
     if vacation_exempt and global_entry is not None:
         current = get_global_options(hass).get(CONF_VACATION_EXEMPT_TASK_IDS) or []
         if task_id not in current:
-            _merge_global_options(hass, global_entry, {CONF_VACATION_EXEMPT_TASK_IDS: [*current, task_id]})
+            merge_global_options(hass, global_entry, {CONF_VACATION_EXEMPT_TASK_IDS: [*current, task_id]})
 
     if member_groups and global_entry is not None:
         groups = dict(get_global_options(hass).get(CONF_GROUPS) or {})
@@ -467,4 +471,127 @@ async def async_move_task(
             if group is None:
                 continue
             groups[gid] = {**group, "task_refs": [*group.get("task_refs", []), {"entry_id": target.entry_id, "task_id": task_id}]}
-        _merge_global_options(hass, global_entry, {CONF_GROUPS: groups})
+        merge_global_options(hass, global_entry, {CONF_GROUPS: groups})
+
+
+async def async_delete_task(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    task_id: str,
+    *,
+    removed_state: dict[str, Any] | None = None,
+) -> bool:
+    """Remove a task and all its side-state from an object entry.
+
+    Shared by the ``task/delete`` WS command and the retention auto-delete sweep
+    (helpers/retention). Does the ConfigEntry write plus the Store / notification
+    / entity-registry / group-ref / repair-issue cleanup, but NOT the entry
+    reload and NOT any WS reply — the caller reloads (once, even for a batch) and
+    replies. Returns False when ``task_id`` isn't in the entry.
+
+    ``removed_state`` (task/move): filled with the task's Store state as it
+    was at the moment of removal — the mirror cleanup before it awaits, and a
+    completion landing there was lost from a snapshot taken earlier (bug
+    audit 2026-09-26).
+    """
+    new_data = dict(entry.data)
+    new_tasks = dict(new_data.get(CONF_TASKS, {}))
+    if task_id not in new_tasks:
+        return False
+
+    # Adopted problem-sensor task? Preserve its notes + one-time setup
+    # (responsible user, priority, labels, part link) for a later re-adopt
+    # (no-op for everything else).
+    from .problem_sensors import stash_task_config_for_readopt
+
+    stash_task_config_for_readopt(hass, new_tasks[task_id])
+    del new_tasks[task_id]
+    new_data[CONF_TASKS] = new_tasks
+
+    # Remove from task_ids
+    obj = dict(new_data.get(CONF_OBJECT, {}))
+    obj["task_ids"] = [tid for tid in obj.get("task_ids", []) if tid != task_id]
+    new_data[CONF_OBJECT] = obj
+
+    hass.config_entries.async_update_entry(entry, data=new_data)
+
+    # Clean up Store (a mirrored task takes its to-do rows with it, D#183)
+    store = get_store(hass, entry.entry_id)
+    if store is not None:
+        mirror = hass.data.get(DOMAIN, {}).get("todo_mirror")
+        if mirror is not None and hasattr(mirror, "async_forget_task"):
+            await mirror.async_forget_task(store, task_id)
+        if removed_state is not None:
+            removed_state.update(deepcopy(store.get_task_state(task_id)))
+        store.remove_task(task_id)
+        await store.async_save()
+
+    # Clean up notification state for deleted task
+    nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+    if nm is not None:
+        nm.clear_task_state(entry.entry_id, task_id)
+
+    # Remove orphaned entity registry entries for the deleted task. Match any
+    # per-task entity — sensor (`_{task_id}`), binary_sensor (`_{task_id}_overdue`),
+    # action buttons (`_{task_id}_complete/skip/reset`) and any future platform.
+    # task_id is a UUID, so the contained-segment check is unambiguous.
+    ent_reg = er.async_get(hass)
+    for ent_entry in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
+        if ent_entry.unique_id and f"_{task_id}" in ent_entry.unique_id:
+            ent_reg.async_remove(ent_entry.entity_id)
+
+    # Clean up group references
+    cleanup_group_refs(hass, task_id=task_id)
+
+    # Drop the task's document links (task_ids / task_pages in the global
+    # DocumentStore) — persistent, task-id keyed, and otherwise never pruned.
+    from ..const import DOCUMENT_STORE_KEY
+
+    doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    if doc_store is not None:
+        await doc_store.async_unlink_task(task_id)
+
+    # Clean up the global vacation exempt list (journey L1): the list is
+    # persistent and task-id keyed — without this, deleted ids accumulate
+    # there forever and confuse the vacation preview UI.
+    from ..const import CONF_VACATION_EXEMPT_TASK_IDS
+    from .global_options import get_global_entry, get_global_options
+
+    ge = get_global_entry(hass)
+    if ge is not None:
+        exempt = get_global_options(hass).get(CONF_VACATION_EXEMPT_TASK_IDS) or []
+        if isinstance(exempt, list) and task_id in exempt:
+            merge_global_options(hass, ge, {CONF_VACATION_EXEMPT_TASK_IDS: [t for t in exempt if t != task_id]})
+
+    # Every repair issue about this task — not only its missing-trigger
+    # ones: a stale completion-action target outlived the task in Settings →
+    # Repairs with nothing left to fix (bug audit 2026-09-26, BR-A8).
+    from .issues import async_purge_task_issues
+
+    async_purge_task_issues(hass, entry.entry_id, task_id)
+
+    return True
+
+
+async def async_persist_adaptive_config(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    task_id: str,
+    adaptive_config: AdaptiveConfig,
+) -> None:
+    """Write a task's adaptive_config (store, or legacy entry data) and refresh."""
+    rd = get_runtime_data(hass, entry.entry_id)
+    if rd is not None and rd.store is not None:
+        rd.store.set_adaptive_config(task_id, adaptive_config)
+        # Immediate save like every other user-initiated write: a debounced
+        # 60 s timer would lose the change on a restart/reload in that window.
+        await async_commit_store(rd)
+        return
+
+    # Legacy: write to ConfigEntry.data
+    task = dict(entry.data.get(CONF_TASKS, {})[task_id])
+    task["adaptive_config"] = adaptive_config
+    write_task(hass, entry, task_id, task)
+
+    if rd and rd.coordinator:
+        await rd.coordinator.async_refresh_now()

@@ -119,7 +119,7 @@ class DocumentUploadView(HomeAssistantView):
         if entry is None or not is_object_entry(entry):
             return self.json_message("Object not found", HTTPStatus.NOT_FOUND)
 
-        from .websocket import object_id_for_entry
+        from .helpers.aggregate import object_id_for_entry
 
         if not may_write:
             # A non-writer's photos are meant for a completion; a runaway

@@ -736,7 +736,7 @@ class TaskCrudMixin:
                 # delete_task service (Store, notification state, registry
                 # entries, group refs, vacation exempt list, repair issues).
                 # The inline copy this replaced missed most of those.
-                from .websocket.tasks_crud import async_delete_task
+                from .helpers.task_persist import async_delete_task
 
                 if self._selected_task_id:
                     await async_delete_task(self.hass, self.config_entry, self._selected_task_id)

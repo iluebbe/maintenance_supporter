@@ -1605,7 +1605,7 @@ async def test_async_create_task_simple_empty_name(
     covws_object_entry: MockConfigEntry,
 ) -> None:
     """async_create_task_simple: empty name raises ValueError."""
-    from custom_components.maintenance_supporter.websocket.tasks import (
+    from custom_components.maintenance_supporter.helpers.task_persist import (
         async_create_task_simple,
     )
 
@@ -1625,7 +1625,7 @@ async def test_async_create_task_simple_bad_entry(
     covws_global_entry: MockConfigEntry,
 ) -> None:
     """async_create_task_simple: invalid entry_id raises ValueError."""
-    from custom_components.maintenance_supporter.websocket.tasks import (
+    from custom_components.maintenance_supporter.helpers.task_persist import (
         async_create_task_simple,
     )
 

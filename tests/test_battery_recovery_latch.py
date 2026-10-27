@@ -217,7 +217,8 @@ def test_pure_latch_rules() -> None:
 
 async def test_setting_range_default_and_echo(hass: HomeAssistant) -> None:
     from custom_components.maintenance_supporter.helpers.settings_registry import int_range, setting_default
-    from custom_components.maintenance_supporter.websocket.dashboard import _build_full_settings, sanitize_settings_input
+    from custom_components.maintenance_supporter.websocket.dashboard import _build_full_settings
+    from custom_components.maintenance_supporter.helpers.settings_sanitize import sanitize_settings_input
 
     assert BATTERY_RECOVERED_PERCENT_RANGE == (20, 100)
     assert int_range(CONF_BATTERY_RECOVERED_PERCENT) == (20, 100)

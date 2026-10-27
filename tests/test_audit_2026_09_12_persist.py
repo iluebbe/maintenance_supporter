@@ -42,7 +42,7 @@ from custom_components.maintenance_supporter.const import (
 from custom_components.maintenance_supporter.helpers.documents import DocumentStore, _safe_size
 from custom_components.maintenance_supporter.helpers.parts import PART_REF_FIELD
 from custom_components.maintenance_supporter.views import SERVE_URL, UPLOAD_URL
-from custom_components.maintenance_supporter.websocket.dashboard import sanitize_settings_input
+from custom_components.maintenance_supporter.helpers.settings_sanitize import sanitize_settings_input
 from custom_components.maintenance_supporter.websocket.io import ws_import_json
 from custom_components.maintenance_supporter.websocket.tasks import ws_create_task, ws_move_task, ws_update_task
 

@@ -35,8 +35,8 @@ from custom_components.maintenance_supporter.const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
+from custom_components.maintenance_supporter.helpers.settings_sanitize import _ALLOWED_SETTING_KEYS
 from custom_components.maintenance_supporter.websocket.dashboard import (
-    _ALLOWED_SETTING_KEYS,
     ws_get_settings,
     ws_update_global_settings,
 )

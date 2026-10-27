@@ -292,7 +292,7 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
     part_doc_ids = {str(part["doc_id"]) for part in pools.values() if isinstance(part.get("doc_id"), str) and part["doc_id"]}
     doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     if part_doc_ids and doc_store is not None:
-        from ..websocket import object_id_for_entry
+        from .aggregate import object_id_for_entry
 
         await doc_store.async_rehome(part_doc_ids, object_id_for_entry(heir))
 

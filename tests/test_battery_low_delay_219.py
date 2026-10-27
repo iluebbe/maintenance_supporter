@@ -163,7 +163,8 @@ async def test_a_dip_records_no_replacement(hass: HomeAssistant, global_entry: M
 
 async def test_the_setting(hass: HomeAssistant) -> None:
     from custom_components.maintenance_supporter.helpers.settings_registry import int_range, setting_default
-    from custom_components.maintenance_supporter.websocket.dashboard import _build_full_settings, sanitize_settings_input
+    from custom_components.maintenance_supporter.websocket.dashboard import _build_full_settings
+    from custom_components.maintenance_supporter.helpers.settings_sanitize import sanitize_settings_input
 
     assert int_range(CONF_BATTERY_LOW_DELAY_MINUTES) == BATTERY_LOW_DELAY_MINUTES_RANGE == (0, 1440)
     assert setting_default(CONF_BATTERY_LOW_DELAY_MINUTES) == 0

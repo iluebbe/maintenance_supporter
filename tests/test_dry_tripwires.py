@@ -9,6 +9,7 @@ were actual bugs.
 
 from __future__ import annotations
 
+import ast
 import re
 from pathlib import Path
 from typing import Any
@@ -52,6 +53,32 @@ def test_ws_modules_do_not_enumerate_entries_inline() -> None:
         if p.name != "__init__.py" and "async_entries(DOMAIN)" in p.read_text(encoding="utf-8")
     ]
     assert not offenders, f"inline config-entry enumeration in websocket/: {offenders} — use the shared helpers"
+
+
+def test_only_the_setup_imports_the_websocket_package() -> None:
+    """The WS package is the outermost layer. What it shares with the
+    services, the flows, the views and the helpers (the task and object write
+    paths, the settings sanitizer, object ids, the group clean-up) lives in
+    helpers/, so nothing else reaches into a command module. The setup
+    imports it only to register the commands."""
+    offenders = []
+    for path in sorted(COMPONENT.rglob("*.py")):
+        rel = path.relative_to(COMPONENT)
+        if rel.parts[0] == "websocket" or "node_modules" in rel.parts or "__pycache__" in rel.parts:
+            continue
+        # the package root, seen from this file: one dot per directory level
+        root_level = len(rel.parts)
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if not isinstance(node, ast.ImportFrom) or node.level != root_level:
+                continue
+            module = node.module or ""
+            names = {alias.name for alias in node.names}
+            if module.split(".")[0] != "websocket" and not (not module and "websocket" in names):
+                continue
+            if rel == Path("__init__.py") and module == "websocket" and names == {"async_register_commands"}:
+                continue
+            offenders.append(f"{rel.as_posix()}:{node.lineno}")
+    assert not offenders, f"imports from websocket/ outside it: {offenders} — move the shared code to helpers/"
 
 
 def test_lang_getters_delegate_to_langof() -> None:

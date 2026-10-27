@@ -368,11 +368,11 @@ async def test_merge_global_options_keeps_settings_that_live_in_data(hass: HomeA
     """A never-saved global entry keeps its settings in ``data``; a merge
     that started from ``options`` alone would have written an options dict
     holding only the change and hidden all of them."""
-    from custom_components.maintenance_supporter.websocket import _merge_global_options
+    from custom_components.maintenance_supporter.helpers.global_options import merge_global_options
 
     entry = make_global_entry(hass, warning_days=11)
     assert not entry.options
-    _merge_global_options(hass, entry, {CONF_SAVED_FILTER_VIEWS: []})
+    merge_global_options(hass, entry, {CONF_SAVED_FILTER_VIEWS: []})
     assert entry.options[CONF_DEFAULT_WARNING_DAYS] == 11
     assert entry.options[CONF_SAVED_FILTER_VIEWS] == []
 
@@ -381,7 +381,7 @@ def test_ws_layer_reads_global_options_with_the_shared_rule() -> None:
     options_only = re.compile(r"\.options\.get\(|dict\(\w+\.options\)|options=\{\*\*")
     for path in sorted((ROOT / "websocket").glob("*.py")):
         hits = options_only.findall(path.read_text(encoding="utf-8"))
-        assert not hits, f"{path.name}: global options read without the data fallback — use get_global_options / _merge_global_options"
+        assert not hits, f"{path.name}: global options read without the data fallback — use get_global_options / merge_global_options"
     views = (ROOT / "views.py").read_text(encoding="utf-8")
     assert "GLOBAL_UNIQUE_ID" not in views, "views.py: use aggregate.is_object_entry"
 

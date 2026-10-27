@@ -198,7 +198,7 @@ async def test_send_test_walks_the_hook(hass: HomeAssistant) -> None:
 
 
 async def test_settings_roundtrip_and_sanitising(hass: HomeAssistant) -> None:
-    from custom_components.maintenance_supporter.websocket.dashboard import sanitize_settings_input
+    from custom_components.maintenance_supporter.helpers.settings_sanitize import sanitize_settings_input
 
     filtered, err = sanitize_settings_input({CONF_NOTIFY_EVENT_ONLY: True, CONF_NOTIFY_EXTRA_DATA: "x" * 2500})
     assert err is None or "notify_extra_data" in str(err)

@@ -468,7 +468,7 @@ async def test_create_task_simple_caps_fields_for_direct_callers(hass: HomeAssis
     whatever it was handed. It now runs `cap_task_fields` (truncate/clamp),
     matching every other non-WS write path.
     """
-    from custom_components.maintenance_supporter.websocket.tasks_persist import (
+    from custom_components.maintenance_supporter.helpers.task_persist import (
         async_create_task_simple,
     )
 
@@ -496,7 +496,7 @@ async def test_create_task_simple_caps_fields_for_direct_callers(hass: HomeAssis
 
 async def test_update_task_simple_caps_fields_for_direct_callers(hass: HomeAssistant) -> None:
     """`async_update_task_simple` sanitises the merged task before persisting."""
-    from custom_components.maintenance_supporter.websocket.tasks_persist import (
+    from custom_components.maintenance_supporter.helpers.task_persist import (
         async_update_task_simple,
     )
 

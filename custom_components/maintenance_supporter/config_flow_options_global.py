@@ -7,7 +7,6 @@ Split from config_flow_options.py for better maintainability.
 from __future__ import annotations
 
 import logging
-import re
 from typing import Any
 from uuid import uuid4
 
@@ -100,7 +99,7 @@ from .const import (
 )
 from .helpers.dates import normalize_hhmm
 from .helpers.i18n import normalize_language
-from .helpers.notify_targets import build_notify_targets
+from .helpers.notify_targets import build_notify_targets, validate_notify_service
 from .helpers.settings_registry import float_range, int_range, setting_default
 
 _LOGGER = logging.getLogger(__name__)
@@ -124,7 +123,6 @@ _ALERT_MIN, _ALERT_MAX = int_range(CONF_BUDGET_ALERT_THRESHOLD)
 _BUDGET_MONTHLY_MIN, _BUDGET_MONTHLY_MAX = float_range(CONF_BUDGET_MONTHLY)
 _BUDGET_YEARLY_MIN, _BUDGET_YEARLY_MAX = float_range(CONF_BUDGET_YEARLY)
 
-_VALID_SERVICE_PART = re.compile(r"^[a-z0-9_]+$")
 # The notification scope's "every task" choice (a select option can't be "").
 _SCOPE_ALL = "__all__"
 # v1.4.6: HH:MM or HH:MM:SS, 0–23 hours, 0–59 minutes/seconds. Shared with the
@@ -143,30 +141,6 @@ def _safe_time(value: Any, fallback: str) -> str:
     if isinstance(value, str) and _VALID_TIME_PATTERN.match(value):
         return value
     return fallback
-
-
-def validate_notify_service(raw: str, hass: HomeAssistant | None = None) -> tuple[str, str | None]:
-    """Normalize and validate a notify service string.
-
-    Returns (normalized_value, error_key | None).
-    """
-    value = raw.strip()
-    if not value:
-        return ("", None)
-
-    # Auto-fix: prepend "notify." if missing
-    if "." not in value:
-        value = f"notify.{value}"
-
-    parts = value.split(".")
-    if len(parts) != 2 or parts[0] != "notify" or not parts[1] or not _VALID_SERVICE_PART.match(parts[1]):
-        return (value, "invalid_notify_service")
-
-    # Check service existence (only when hass available, i.e. options flow)
-    if hass is not None and not hass.services.has_service(parts[0], parts[1]):
-        return (value, "notify_service_not_found")
-
-    return (value, None)
 
 
 _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
@@ -671,7 +645,7 @@ class GlobalOptionsFlow(OptionsFlow):
         # and the two write paths must not drift. The steps validated the
         # notify service / shopping list / search template themselves; a
         # value the sanitiser drops is not saved.
-        from .websocket.dashboard import sanitize_settings_input
+        from .helpers.settings_sanitize import sanitize_settings_input
 
         registered = {k: v for k, v in user_input.items() if k in ALLOWED_SETTING_KEYS}
         cleaned, _error = sanitize_settings_input(registered)

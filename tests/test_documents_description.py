@@ -17,7 +17,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY, DOMAIN, MAX_TEXT_LENGTH
 from custom_components.maintenance_supporter.export import _export_documents
-from custom_components.maintenance_supporter.websocket import object_id_for_entry
+from custom_components.maintenance_supporter.helpers.aggregate import object_id_for_entry
 
 from .conftest import (
     make_global_entry as _global,

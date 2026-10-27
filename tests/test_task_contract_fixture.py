@@ -118,8 +118,8 @@ _MAXIMAL_TASK = {
 
 async def _build_contract_summary(hass: HomeAssistant) -> dict:
     from custom_components.maintenance_supporter.websocket import _build_task_summary
-    from custom_components.maintenance_supporter.websocket.objects import async_create_object
-    from custom_components.maintenance_supporter.websocket.tasks_persist import async_persist_task
+    from custom_components.maintenance_supporter.helpers.object_create import async_create_object
+    from custom_components.maintenance_supporter.helpers.task_persist import async_persist_task
 
     global_entry = MockConfigEntry(domain=DOMAIN, data=build_global_entry_data(), unique_id=GLOBAL_UNIQUE_ID)
     global_entry.add_to_hass(hass)

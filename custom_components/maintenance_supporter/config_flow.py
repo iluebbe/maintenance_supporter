@@ -16,7 +16,6 @@ from homeassistant.config_entries import (
 from homeassistant.core import HomeAssistant, State, callback
 from homeassistant.helpers import selector
 
-from .config_flow_options_global import validate_notify_service
 from .config_flow_schedule import ScheduleStepsMixin
 from .config_flow_trigger import TriggerConfigMixin
 from .const import (
@@ -40,6 +39,7 @@ from .const import (
 )
 from .helpers.global_options import get_global_entry
 from .helpers.i18n import normalize_language
+from .helpers.notify_targets import validate_notify_service
 from .helpers.schedule import normalize_task_storage
 from .helpers.task_fields import WARNING_DAYS_RANGE
 from .helpers.template_usage import OBJECT_TEMPLATE_ID

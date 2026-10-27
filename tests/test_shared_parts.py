@@ -837,7 +837,7 @@ async def test_assigning_to_a_task_deleted_mid_lookup_is_refused(
 async def test_persisting_an_edit_to_a_missing_task_raises(hass: HomeAssistant) -> None:
     """The service path shares this helper with the WS one; an unknown task has
     to be an error rather than a silently created one."""
-    from custom_components.maintenance_supporter.websocket.tasks_persist import (
+    from custom_components.maintenance_supporter.helpers.task_persist import (
         async_update_task_simple,
     )
 
@@ -854,7 +854,7 @@ async def test_persisting_an_edit_to_a_missing_task_raises(hass: HomeAssistant) 
 
 async def test_an_edit_that_blanks_the_name_is_refused(hass: HomeAssistant) -> None:
     """A whitespace-only name would leave an unnameable task in every list."""
-    from custom_components.maintenance_supporter.websocket.tasks_persist import (
+    from custom_components.maintenance_supporter.helpers.task_persist import (
         async_update_task_simple,
     )
 

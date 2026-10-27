@@ -263,10 +263,8 @@ async def test_get_settings_exposes_every_writable_setting_key(
     sync" — ``_build_full_settings`` is neither a registry nor a
     sync-target, so it slipped past that lens.
     """
-    from custom_components.maintenance_supporter.websocket.dashboard import (
-        _ALLOWED_SETTING_KEYS,
-        _build_full_settings,
-    )
+    from custom_components.maintenance_supporter.helpers.settings_sanitize import _ALLOWED_SETTING_KEYS
+    from custom_components.maintenance_supporter.websocket.dashboard import _build_full_settings
 
     # Build a full options dict where each writable key has a non-default
     # value, so we can detect both "key omitted from response" AND

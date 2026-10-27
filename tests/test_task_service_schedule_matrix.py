@@ -19,7 +19,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
 from custom_components.maintenance_supporter.helpers.schedule import Schedule
-from custom_components.maintenance_supporter.websocket.tasks_persist import (
+from custom_components.maintenance_supporter.helpers.task_persist import (
     async_create_task_simple,
     async_update_task_simple,
 )

@@ -136,7 +136,7 @@ async def test_object_archive_cascade_across_restart(hass: HomeAssistant, global
 
 
 async def test_object_delete_frees_document_blobs(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
-    from custom_components.maintenance_supporter.websocket import (
+    from custom_components.maintenance_supporter.helpers.aggregate import (
         object_id_for_entry,
     )
     from custom_components.maintenance_supporter.websocket.objects import (

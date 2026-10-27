@@ -803,7 +803,7 @@ async def test_task_duplicate_refuses_a_buy_task_and_the_fleet_task(hass: HomeAs
 async def test_add_object_refuses_a_malformed_date(hass: HomeAssistant) -> None:
     """The add_object service stored any string as installation / warranty
     date (the WS path validated them)."""
-    from custom_components.maintenance_supporter.websocket.objects import async_create_object
+    from custom_components.maintenance_supporter.helpers.object_create import async_create_object
 
     await setup_integration(hass, _global(hass))
     with pytest.raises(ValueError, match="installation_date"):

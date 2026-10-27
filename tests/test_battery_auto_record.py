@@ -242,7 +242,8 @@ async def test_in_flight_guard_schedules_once(hass: HomeAssistant, global_entry:
 
 async def test_setting_default_echo_and_sanitiser(hass: HomeAssistant) -> None:
     from custom_components.maintenance_supporter.helpers.settings_registry import setting_default
-    from custom_components.maintenance_supporter.websocket.dashboard import _build_full_settings, sanitize_settings_input
+    from custom_components.maintenance_supporter.websocket.dashboard import _build_full_settings
+    from custom_components.maintenance_supporter.helpers.settings_sanitize import sanitize_settings_input
 
     assert setting_default(CONF_BATTERY_AUTO_RECORD_RECOVERY) is False
     assert _build_full_settings({})["general"]["battery_auto_record_recovery"] is False

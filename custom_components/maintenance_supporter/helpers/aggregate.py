@@ -290,3 +290,33 @@ def compute_status_counts(hass: HomeAssistant) -> dict[str, Any]:
         "needs_attention": needs_attention,
         "total_cost": round(total_cost, 2),
     }
+
+
+def object_id_for_entry(entry: ConfigEntry) -> str:
+    """Return the stable document key for an object entry.
+
+    Documents are keyed by the object's own ``id`` (a uuid hex persisted in the
+    entry data) rather than the ``entry_id`` so the association survives
+    export/import — an imported object keeps its id but gets a fresh entry_id.
+    Falls back to ``entry_id`` only for legacy entries created before object ids
+    existed.
+    """
+    oid = entry.data.get(CONF_OBJECT, {}).get("id")
+    return oid if isinstance(oid, str) and oid else entry.entry_id
+
+
+async def async_commit_store(rd: Any, *, budget: bool = False) -> None:
+    """Flush a user-initiated Store write and make it visible NOW.
+
+    Save (never the debounced delay-save — a restart in that window would
+    lose the change), optionally rebuild the coordinator's budget cache (a
+    history edit moves costs), then ``async_refresh_now`` — a user action
+    must never wait for the 10 s refresh debounce.
+    """
+    await rd.store.async_save()
+    coordinator = getattr(rd, "coordinator", None)
+    if coordinator is None:
+        return
+    if budget:
+        coordinator.recalculate_budget_cache()
+    await coordinator.async_refresh_now()

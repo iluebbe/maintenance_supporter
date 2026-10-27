@@ -25,11 +25,11 @@ from custom_components.maintenance_supporter.helpers.aggregate import (
     get_store,
     is_object_entry,
 )
+from custom_components.maintenance_supporter.helpers.aggregate import async_commit_store
 from custom_components.maintenance_supporter.websocket import (
     USED_PARTS_FIELD,
     _load_object_task,
     _parse_iso_date,
-    async_commit_store,
 )
 
 from .conftest import (

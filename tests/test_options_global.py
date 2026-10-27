@@ -11,10 +11,8 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import selector
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.maintenance_supporter.config_flow_options_global import (
-    _get_test_result_text,
-    validate_notify_service,
-)
+from custom_components.maintenance_supporter.config_flow_options_global import _get_test_result_text
+from custom_components.maintenance_supporter.helpers.notify_targets import validate_notify_service
 from custom_components.maintenance_supporter.const import (
     CONF_ADVANCED_ADAPTIVE,
     CONF_ADVANCED_BUDGET,
@@ -638,7 +636,7 @@ async def test_options_flow_notification_settings_submit(
 
 def test_validate_notify_service_valid() -> None:
     """validate_notify_service returns normalized, no error for valid input."""
-    from custom_components.maintenance_supporter.config_flow_options_global import (
+    from custom_components.maintenance_supporter.helpers.notify_targets import (
         validate_notify_service,
     )
 
@@ -649,7 +647,7 @@ def test_validate_notify_service_valid() -> None:
 
 def test_validate_notify_service_auto_prefix() -> None:
     """validate_notify_service auto-prepends 'notify.' (line 94)."""
-    from custom_components.maintenance_supporter.config_flow_options_global import (
+    from custom_components.maintenance_supporter.helpers.notify_targets import (
         validate_notify_service,
     )
 
@@ -660,7 +658,7 @@ def test_validate_notify_service_auto_prefix() -> None:
 
 def test_validate_notify_service_invalid_format() -> None:
     """validate_notify_service returns error for invalid format (line 103)."""
-    from custom_components.maintenance_supporter.config_flow_options_global import (
+    from custom_components.maintenance_supporter.helpers.notify_targets import (
         validate_notify_service,
     )
 
@@ -670,7 +668,7 @@ def test_validate_notify_service_invalid_format() -> None:
 
 def test_validate_notify_service_service_not_found(hass: HomeAssistant) -> None:
     """validate_notify_service checks hass.services and returns error if not found (line 107, 77)."""
-    from custom_components.maintenance_supporter.config_flow_options_global import (
+    from custom_components.maintenance_supporter.helpers.notify_targets import (
         validate_notify_service,
     )
 

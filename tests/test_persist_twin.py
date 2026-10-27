@@ -21,7 +21,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID, MAX_TASKS_PER_OBJECT
 from custom_components.maintenance_supporter.helpers.entry_tasks import insert_new_task
-from custom_components.maintenance_supporter.websocket.tasks_persist import async_persist_task
+from custom_components.maintenance_supporter.helpers.task_persist import async_persist_task
 
 from .conftest import build_global_entry_data, build_object_entry_data, setup_integration
 
@@ -69,7 +69,7 @@ async def test_cap_is_the_same_rule_for_ws_and_flow(hass: HomeAssistant) -> None
 
 async def test_ws_path_saves_and_reloads_via_the_core(hass: HomeAssistant) -> None:
     obj = await _setup(hass)
-    with patch("custom_components.maintenance_supporter.websocket.tasks_persist.insert_new_task", wraps=insert_new_task) as core, \
+    with patch("custom_components.maintenance_supporter.helpers.task_persist.insert_new_task", wraps=insert_new_task) as core, \
          patch.object(hass.config_entries, "async_reload", wraps=hass.config_entries.async_reload) as reload:
         await async_persist_task(hass, obj, _record("t_ws"), last_performed="2026-07-01", history=[{"timestamp": "2026-07-01T10:00:00+00:00", "type": "completed"}])
     core.assert_called_once()

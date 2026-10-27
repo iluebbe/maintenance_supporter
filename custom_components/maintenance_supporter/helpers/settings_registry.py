@@ -16,7 +16,7 @@ the due-soon repeat or "off" for completion notifications is written once
 
 Bespoke normalisation that isn't a plain range/cap (panel-title trim,
 title-style enum, quiet-hours regex, list sanitisers, notify-service
-validation) stays in the WS handler; the registry only covers the mechanical
+validation) lives in helpers/settings_sanitize.py; the registry only covers the mechanical
 type + range + length checks.
 """
 

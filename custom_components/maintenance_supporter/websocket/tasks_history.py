@@ -18,6 +18,7 @@ from ..const import (
     MAX_TIMESTAMP_LENGTH,
     MIN_COST,
 )
+from ..helpers.aggregate import async_commit_store
 from ..helpers.completion_photos import (
     MAX_COMPLETION_PHOTOS,
     history_photo_ids,
@@ -32,7 +33,6 @@ from . import (
     READING_VALUES_FIELD,
     USED_PARTS_FIELD,
     _load_object_task,
-    async_commit_store,
 )
 
 # v2.2.0 — edit existing history entries (Discussion #49 follow-up).
@@ -196,8 +196,8 @@ async def ws_update_history_entry(
     # edited.
     photos_to_link: list[str] = []
     if "photo_doc_ids" in msg:
+        from ..helpers.aggregate import object_id_for_entry
         from ..helpers.completion_requirements import own_photo_doc_ids
-        from . import object_id_for_entry
 
         old_photos = history_photo_ids(patched)
         requested = normalize_photo_doc_ids(msg["photo_doc_ids"])

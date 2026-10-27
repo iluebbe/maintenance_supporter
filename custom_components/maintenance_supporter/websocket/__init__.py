@@ -17,7 +17,6 @@ from ..const import (
     BATTERY_FLEET_EXCLUDED,
     BATTERY_FLEET_OBJECT_FLAG,
     BATTERY_FLEET_TASK_FLAG,
-    CONF_GROUPS,
     CONF_OBJECT,
     CONF_TASKS,
     DEFAULT_TASK_PRIORITY,
@@ -532,20 +531,6 @@ def _save_global_options(hass: HomeAssistant, entry: ConfigEntry, options: dict[
     hass.config_entries.async_update_entry(entry, options=options)
 
 
-def _merge_global_options(hass: HomeAssistant, entry: ConfigEntry, changes: dict[str, Any]) -> None:
-    """Merge ``changes`` into the global entry's settings and save them.
-
-    The one read-modify-write for code that already holds the global entry
-    (DRY audit 2026-09-26 B — saved views, group cleanup, the vacation
-    exempt list on task delete/move, the settings import). The base is
-    ``options``, else the creation ``data`` — the read rule of
-    helpers.global_options.get_global_options; a copy that started from
-    ``entry.options`` alone would, on a never-saved entry, write an options
-    dict holding ONLY the change and hide every setting kept in ``data``.
-    """
-    _save_global_options(hass, entry, {**(entry.options or entry.data), **changes})
-
-
 def _load_object_entry(
     hass: HomeAssistant,
     connection: websocket_api.ActiveConnection,
@@ -669,75 +654,6 @@ def _parse_pause_until(connection: websocket_api.ActiveConnection, msg_id: Any, 
         send_translated_error(connection, msg_id, "invalid_date", "until must be a future date", translation_key="until_in_past")
         return False, None
     return True, until.isoformat()
-
-
-async def async_commit_store(rd: Any, *, budget: bool = False) -> None:
-    """Flush a user-initiated Store write and make it visible NOW.
-
-    Save (never the debounced delay-save — a restart in that window would
-    lose the change), optionally rebuild the coordinator's budget cache (a
-    history edit moves costs), then ``async_refresh_now`` — a user action
-    must never wait for the 10 s refresh debounce.
-    """
-    await rd.store.async_save()
-    coordinator = getattr(rd, "coordinator", None)
-    if coordinator is None:
-        return
-    if budget:
-        coordinator.recalculate_budget_cache()
-    await coordinator.async_refresh_now()
-
-
-def object_id_for_entry(entry: ConfigEntry) -> str:
-    """Return the stable document key for an object entry.
-
-    Documents are keyed by the object's own ``id`` (a uuid hex persisted in the
-    entry data) rather than the ``entry_id`` so the association survives
-    export/import — an imported object keeps its id but gets a fresh entry_id.
-    Falls back to ``entry_id`` only for legacy entries created before object ids
-    existed.
-    """
-    oid = entry.data.get(CONF_OBJECT, {}).get("id")
-    return oid if isinstance(oid, str) and oid else entry.entry_id
-
-
-def cleanup_group_refs(
-    hass: HomeAssistant,
-    *,
-    entry_id: str | None = None,
-    task_id: str | None = None,
-) -> None:
-    """Remove deleted task/object references from all groups.
-
-    Pass entry_id to remove all refs for that object.
-    Pass task_id to remove refs for a specific task.
-    """
-    global_entry = _get_global_entry(hass)
-    if global_entry is None:
-        return
-
-    groups = (global_entry.options or global_entry.data).get(CONF_GROUPS)
-    if not groups:
-        return
-
-    groups = dict(groups)
-    changed = False
-    for gid, group in groups.items():
-        old_refs = group.get("task_refs", [])
-        new_refs = [
-            ref
-            for ref in old_refs
-            if not (
-                (entry_id is not None and ref.get("entry_id") == entry_id)
-                or (task_id is not None and ref.get("task_id") == task_id)
-            )
-        ]
-        if len(new_refs) != len(old_refs):
-            groups[gid] = {**group, "task_refs": new_refs}
-            changed = True
-
-    if changed:
-        _merge_global_options(hass, global_entry, {CONF_GROUPS: groups})
 
 
 # ---------------------------------------------------------------------------

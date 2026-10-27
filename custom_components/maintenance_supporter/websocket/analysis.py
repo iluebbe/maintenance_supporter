@@ -6,48 +6,21 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from ..const import (
     ADAPTIVE_EWA_ALPHA_RANGE,
     ADAPTIVE_MIN_INTERVAL_CAP_DAYS,
-    CONF_TASKS,
     DOMAIN,
     MAX_ENTITY_ID_LENGTH,
     MAX_META_LENGTH,
 )
-from ..helpers.aggregate import get_runtime_data
-from ..helpers.entry_tasks import write_task
 from ..helpers.interval_analyzer import hemisphere
 from ..helpers.permissions import require_write
 from ..helpers.task_fields import INTERVAL_DAYS_RANGE
+from ..helpers.task_persist import async_persist_adaptive_config
 from ..models.shapes import AdaptiveConfig
-from . import ID_FIELD, _load_object_task, async_commit_store
-
-
-async def async_persist_adaptive_config(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    task_id: str,
-    adaptive_config: AdaptiveConfig,
-) -> None:
-    """Write a task's adaptive_config (store, or legacy entry data) and refresh."""
-    rd = get_runtime_data(hass, entry.entry_id)
-    if rd is not None and rd.store is not None:
-        rd.store.set_adaptive_config(task_id, adaptive_config)
-        # Immediate save like every other user-initiated write: a debounced
-        # 60 s timer would lose the change on a restart/reload in that window.
-        await async_commit_store(rd)
-        return
-
-    # Legacy: write to ConfigEntry.data
-    task = dict(entry.data.get(CONF_TASKS, {})[task_id])
-    task["adaptive_config"] = adaptive_config
-    write_task(hass, entry, task_id, task)
-
-    if rd and rd.coordinator:
-        await rd.coordinator.async_refresh_now()
+from . import ID_FIELD, _load_object_task
 
 
 @websocket_api.websocket_command(

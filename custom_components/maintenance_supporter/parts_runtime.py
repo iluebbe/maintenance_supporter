@@ -636,7 +636,7 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
 
     # Removals first, via the shared full-cleanup primitive (entity registry,
     # store state, group refs, notification state) — without per-task reloads.
-    from .websocket.tasks_crud import async_delete_task
+    from .helpers.task_persist import async_delete_task
 
     for tid in removed:
         await async_delete_task(hass, entry, tid)

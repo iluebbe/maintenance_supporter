@@ -22,6 +22,7 @@ from ..const import (
     CONF_BATTERY_LOW_PERCENT,
     CONF_DEFAULT_CONSUMABLE_THRESHOLD,
     CONF_DEFAULT_WARNING_DAYS,
+    CONF_GROUPS,
     CONF_PANEL_TITLE,
     DEFAULT_BATTERY_LOW_PERCENT,
     DEFAULT_CONSUMABLE_THRESHOLD,
@@ -143,3 +144,56 @@ def get_battery_low_percent(hass: HomeAssistant) -> int:
     """#146: the fleet-wide "battery low" floor for batteries without their
     own Battery Notes threshold (a higher Battery Notes threshold still wins)."""
     return _percent_option(hass, CONF_BATTERY_LOW_PERCENT, DEFAULT_BATTERY_LOW_PERCENT)
+
+
+def merge_global_options(hass: HomeAssistant, entry: ConfigEntry, changes: dict[str, Any]) -> None:
+    """Merge ``changes`` into the global entry's settings and save them.
+
+    The one read-modify-write for code that already holds the global entry
+    (DRY audit 2026-09-26 B — saved views, group cleanup, the vacation
+    exempt list on task delete/move, the settings import). The base is
+    ``options``, else the creation ``data`` — the read rule of
+    helpers.global_options.get_global_options; a copy that started from
+    ``entry.options`` alone would, on a never-saved entry, write an options
+    dict holding ONLY the change and hide every setting kept in ``data``.
+    """
+    hass.config_entries.async_update_entry(entry, options={**(entry.options or entry.data), **changes})
+
+
+def cleanup_group_refs(
+    hass: HomeAssistant,
+    *,
+    entry_id: str | None = None,
+    task_id: str | None = None,
+) -> None:
+    """Remove deleted task/object references from all groups.
+
+    Pass entry_id to remove all refs for that object.
+    Pass task_id to remove refs for a specific task.
+    """
+    global_entry = get_global_entry(hass)
+    if global_entry is None:
+        return
+
+    groups = (global_entry.options or global_entry.data).get(CONF_GROUPS)
+    if not groups:
+        return
+
+    groups = dict(groups)
+    changed = False
+    for gid, group in groups.items():
+        old_refs = group.get("task_refs", [])
+        new_refs = [
+            ref
+            for ref in old_refs
+            if not (
+                (entry_id is not None and ref.get("entry_id") == entry_id)
+                or (task_id is not None and ref.get("task_id") == task_id)
+            )
+        ]
+        if len(new_refs) != len(old_refs):
+            groups[gid] = {**group, "task_refs": new_refs}
+            changed = True
+
+    if changed:
+        merge_global_options(hass, global_entry, {CONF_GROUPS: groups})

@@ -37,7 +37,7 @@ from ..const import (
 )
 from ..helpers.aggregate import check_nfc_tag_duplicate, object_name
 from ..helpers.dates import canonical_iso_date, import_day, normalize_hhmm, parse_iso_date
-from ..helpers.global_options import get_default_warning_days
+from ..helpers.global_options import get_default_warning_days, merge_global_options
 from ..helpers.history import finite_amount, strict_amount
 from ..helpers.parts import PartValidationError, is_http_url, map_part_links, normalize_part, portable_stock
 from ..helpers.pause import pause_end_day
@@ -51,7 +51,7 @@ from ..helpers.qr_generator import (
 from ..helpers.update_state import async_version_state
 from ..helpers.ws_errors import send_translated_error
 from ..websocket.tasks import _validate_trigger_config
-from . import ID_FIELD, _get_object_entries, _load_object_entry, _load_object_task, _merge_global_options
+from . import ID_FIELD, _get_object_entries, _load_object_entry, _load_object_task
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -866,7 +866,7 @@ def _apply_settings_import(
     from ..helpers.sanitize import sanitize_group
     from ..helpers.saved_views import sanitize_view
     from ..helpers.settings_registry import ALLOWED_SETTING_KEYS
-    from .dashboard import sanitize_settings_input, settings_error_field
+    from ..helpers.settings_sanitize import sanitize_settings_input, settings_error_field
 
     entry = get_global_entry(hass)
     if entry is None or not isinstance(raw, dict):
@@ -962,7 +962,7 @@ def _apply_settings_import(
     from ..helpers.import_mapping import resolve_task_refs_by_name
 
     resolve_task_refs_by_name(hass, filtered, task_names)
-    _merge_global_options(hass, entry, filtered)
+    merge_global_options(hass, entry, filtered)
     _LOGGER.info("Settings import applied %d key(s)", len(filtered))
     return sorted(filtered)
 
@@ -1590,7 +1590,7 @@ async def ws_import_json(
 
         gentry = get_global_entry(hass)
         if gentry is not None and (changed := repair_task_refs(dict(get_global_options(hass)), hass, moved_tasks)):
-            _merge_global_options(hass, gentry, changed)
+            merge_global_options(hass, gentry, changed)
     if created:
         # References to people that match nobody here are cleared now, with
         # the rules the boot-time sweep applies (a rotation below two members

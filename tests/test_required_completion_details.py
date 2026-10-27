@@ -340,7 +340,7 @@ async def test_every_requirable_field_can_be_satisfied(
     photo_id = "unused"
     if field == "photo":
         from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY, DOMAIN
-        from custom_components.maintenance_supporter.websocket import object_id_for_entry
+        from custom_components.maintenance_supporter.helpers.aggregate import object_id_for_entry
 
         store = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
         photo_id = (await store.async_add_file(object_id_for_entry(obj), content=b"img", filename="p.jpg", mime="image/jpeg", tags=["photo"]))["id"]
