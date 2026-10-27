@@ -236,7 +236,7 @@ async def async_untrack_part_stock(hass: HomeAssistant, entry: ConfigEntry, part
 async def async_handle_completion_parts(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    task_data: dict[str, Any],
+    task_data: Mapping[str, Any],
     *,
     restock_quantity: float | None = None,
     used_parts: Sequence[Mapping[str, Any]] | None = None,

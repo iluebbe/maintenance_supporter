@@ -8,7 +8,7 @@ sensors compute their counts here, so the numbers can never diverge.
 from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -29,6 +29,7 @@ from .coordinator_data import task_results
 
 if TYPE_CHECKING:
     from ..models.runtime_data import MaintenanceSupporterData
+    from ..models.shapes import StoredTask
     from ..models.task_result import CoordinatorData, TaskResult
     from ..storage import MaintenanceStore
 
@@ -107,7 +108,7 @@ def task_sensor_entity_id(hass: HomeAssistant, obj_data: Mapping[str, Any], task
     return task_entity_id(hass, object_slug(obj_data), task_id)
 
 
-def merged_tasks(entry: ConfigEntry) -> dict[str, Any]:
+def merged_tasks(entry: ConfigEntry) -> dict[str, StoredTask]:
     """Merged task data (static ConfigEntry + dynamic Store) for an entry.
 
     THE read path for task dicts outside the coordinator — it was re-implemented
@@ -120,8 +121,8 @@ def merged_tasks(entry: ConfigEntry) -> dict[str, Any]:
     tasks_data: dict[str, Any] = entry.data.get(CONF_TASKS, {})
     store = store_of(entry)
     if store is None:
-        return tasks_data
-    merged: dict[str, Any] = store.merge_all_tasks(tasks_data)
+        return cast("dict[str, StoredTask]", tasks_data)
+    merged = store.merge_all_tasks(tasks_data)
     for tid, td in merged.items():
         progress = store.get_task_state(tid).get("checklist_progress")
         if progress:

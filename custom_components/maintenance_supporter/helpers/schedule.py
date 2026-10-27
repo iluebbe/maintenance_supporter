@@ -31,7 +31,7 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date, timedelta
 from itertools import pairwise
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 from ..const import MAX_INTERVAL_DAYS, MAX_SERIES_COUNT, SCHEDULE_OFFSET_MAX_DAYS
 from .dates import (
@@ -44,6 +44,9 @@ from .dates import (
     parse_iso_date,
     roll_back_to_business_day,
 )
+
+if TYPE_CHECKING:
+    from ..models.shapes import TaskSchedule
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -231,7 +234,7 @@ def _sanitize_months(raw: object) -> tuple[int, ...]:
     return tuple(sorted(seen))
 
 
-def keep_month_filter(new: dict[str, Any], sent: object, previous: object) -> None:
+def keep_month_filter(new: TaskSchedule | dict[str, Any], sent: object, previous: object) -> None:
     """Carry a stored month restriction onto an edited schedule that does not
     mention one.
 
@@ -674,7 +677,7 @@ class Schedule:
 
     # --- serialization (Phase 3: nested `schedule` storage) ----------------
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> TaskSchedule:
         """Canonical nested form for storage. Defaults are omitted to keep the
         stored dict minimal (``unit`` defaults to days, ``anchor`` to completion)."""
         d: dict[str, Any] = {"kind": self.kind}
@@ -715,7 +718,7 @@ class Schedule:
                 ends["until"] = self.ends_until.isoformat()
             if ends:
                 d["ends"] = ends
-        return d
+        return cast("TaskSchedule", d)
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> Schedule:

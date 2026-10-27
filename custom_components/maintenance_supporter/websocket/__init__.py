@@ -139,9 +139,10 @@ def _build_task_summary(
     # #187: a calendar-entity schedule carries the calendar's friendly name so
     # lists can read "Calendar: Bio waste" without a per-row state lookup.
     schedule_entity_name: str | None = None
-    if schedule_obj.get("kind") == KIND_CALENDAR and isinstance(schedule_obj.get("entity_id"), str):
-        cal_state = hass.states.get(schedule_obj["entity_id"])
-        schedule_entity_name = cal_state.attributes.get("friendly_name", schedule_obj["entity_id"]) if cal_state else None
+    calendar_id = schedule_obj.get("entity_id")
+    if schedule_obj.get("kind") == KIND_CALENDAR and isinstance(calendar_id, str):
+        cal_state = hass.states.get(calendar_id)
+        schedule_entity_name = cal_state.attributes.get("friendly_name", calendar_id) if cal_state else None
 
     # Enrich trigger config with entity friendly name and state info
     trigger_config = task_data.get("trigger_config")

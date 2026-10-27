@@ -16,6 +16,7 @@ from homeassistant.util import dt as dt_util
 
 if TYPE_CHECKING:
     from .calendar import MaintenanceCalendar
+    from .models.shapes import StoredTask
     from .todo import MaintenanceTodoList
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -1125,11 +1126,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
 
     # --- Helpers ---
 
-    def _get_merged_tasks_data(self) -> dict[str, Any]:
+    def _get_merged_tasks_data(self) -> dict[str, StoredTask]:
         """Return merged static (ConfigEntry) + dynamic (Store) task data."""
         return self._store.merge_all_tasks(dict(self.entry.data.get(CONF_TASKS, {})))
 
-    def merged_task(self, task_id: str) -> dict[str, Any] | None:
+    def merged_task(self, task_id: str) -> StoredTask | None:
         """One task's merged static (ConfigEntry) + dynamic (Store) data, or
         None for a task the entry does not hold. The read for code outside the
         coordinator that needs one task; all of them: aggregate.merged_tasks."""
@@ -1869,11 +1870,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         self.recalculate_budget_cache()
         await self.async_refresh_now()
 
-    def _is_inert(self, task_data: dict[str, Any]) -> bool:
+    def _is_inert(self, task_data: Mapping[str, Any]) -> bool:
         """Archived / disabled task, or a paused object (helpers.pause.is_task_inert)."""
         return is_task_inert(task_data, self.entry.data.get(CONF_OBJECT, {}))
 
-    def _require_active(self, task_id: str, task_data: dict[str, Any], *, translation_key: str) -> None:
+    def _require_active(self, task_id: str, task_data: Mapping[str, Any], *, translation_key: str) -> None:
         """Refuse a lifecycle action on an inert task with a translated error.
 
         The one gate behind complete / skip / reset / postpone — a stale
@@ -1989,7 +1990,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         )
 
 
-    def _record_purchase_price(self, task_data: dict[str, Any], cost: float, packages: float | None) -> None:
+    def _record_purchase_price(self, task_data: Mapping[str, Any], cost: float, packages: float | None) -> None:
         """A buy reminder's paid cost becomes its part's price (per package
         with a package size, else per unit) — for a part that counts when
         used (its own choice, else the household's; #222)."""

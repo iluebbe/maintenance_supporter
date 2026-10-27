@@ -12,7 +12,7 @@ from __future__ import annotations
 import itertools
 import logging
 import math
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Mapping
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
@@ -173,7 +173,7 @@ class SensorPredictor:
 
     async def async_analyze(
         self,
-        task_data: dict[str, Any],
+        task_data: Mapping[str, Any],
         adaptive_config: AdaptiveConfig,
     ) -> SensorPredictionResult | None:
         """Run full sensor prediction analysis for a task.
@@ -633,7 +633,7 @@ class SensorPredictor:
         self,
         env_entity_id: str,
         env_attribute: str | None,
-        task_data: dict[str, Any],
+        task_data: Mapping[str, Any],
     ) -> EnvironmentalAnalysis:
         """Analyze correlation between environmental sensor and maintenance intervals.
 

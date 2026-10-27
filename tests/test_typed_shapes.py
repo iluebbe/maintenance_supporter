@@ -82,7 +82,7 @@ def _ts_interface_keys(name: str) -> set[str]:
 def test_shapes_declare_the_keys_of_their_typescript_interface() -> None:
     mismatches = []
     for name, cls in _shape_classes().items():
-        if name in _INLINE_IN_TS:
+        if name in _INLINE_IN_TS or name in shapes.BACKEND_ONLY_SHAPES:
             continue
         python = _shape_keys(cls) - shapes.BACKEND_ONLY_KEYS.get(name, frozenset())
         ts = _ts_interface_keys(shapes.TS_INTERFACES.get(name, name))
@@ -159,6 +159,41 @@ def _shape_of(annotation: ast.AST | None) -> tuple[str | None, str | None]:
     return None, None
 
 
+def _return_shape(annotation: ast.AST | None) -> tuple[str | None, str | None]:
+    """(the shape a return annotation names, the shape of its elements or
+    dict values): ``StoredTask | None``, ``dict[str, StoredTask]``."""
+    if (
+        isinstance(annotation, ast.Subscript)
+        and isinstance(annotation.value, ast.Name)
+        and annotation.value.id in {"dict", "Mapping"}
+        and isinstance(annotation.slice, ast.Tuple)
+    ):
+        return None, _shape_of(annotation.slice.elts[1])[0]
+    return _shape_of(annotation)
+
+
+@cache
+def _typed_returns() -> dict[str, tuple[str | None, str | None]]:
+    """Functions whose return annotation names a shape (``merged_task``),
+    by name; a name defined with different returns is left out."""
+    seen: dict[str, set[tuple[str | None, str | None]]] = {}
+    for _rel, tree in _sources():
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+                seen.setdefault(node.name, set()).add(_return_shape(node.returns))
+    return {name: next(iter(shapes)) for name, shapes in seen.items() if len(shapes) == 1 and shapes != {(None, None)}}
+
+
+def _called_name(node: ast.AST) -> str | None:
+    """``f(...)`` / ``x.f(...)`` / ``f(...) or {}`` -> ``f``."""
+    if isinstance(node, ast.BoolOp) and node.values:
+        return _called_name(node.values[0])
+    if isinstance(node, ast.Call):
+        func = node.func
+        return func.id if isinstance(func, ast.Name) else func.attr if isinstance(func, ast.Attribute) else None
+    return None
+
+
 @cache
 def _typed_attributes() -> dict[str, tuple[str | None, str | None]]:
     """Dataclass fields of the models annotated with a shape (``task.history``)."""
@@ -206,11 +241,30 @@ class _ShapeReads(ast.NodeVisitor):
             self.scopes[-1][target.id] = shape
 
     def _bind_loop(self, target: ast.AST, iterable: ast.AST) -> None:
+        # f(...).values() / f(...).items() over a function returning dict[str, Shape]
+        if (
+            isinstance(iterable, ast.Call)
+            and isinstance(iterable.func, ast.Attribute)
+            and iterable.func.attr in {"values", "items"}
+            and (name := _called_name(iterable.func.value)) in _typed_returns()
+        ):
+            value = _typed_returns()[name][1]
+            if iterable.func.attr == "items" and isinstance(target, ast.Tuple) and len(target.elts) == 2:
+                target = target.elts[1]
+            self._bind(target, (value, None))
+            return
         element = self._lookup(_iter_source(iterable))[1]
         if isinstance(iterable, ast.Call) and isinstance(iterable.func, ast.Name) and iterable.func.id == "enumerate":
             if isinstance(target, ast.Tuple) and len(target.elts) == 2:
                 target = target.elts[1]
         self._bind(target, (element, None))
+
+    def visit_Assign(self, node: ast.Assign) -> None:
+        self.generic_visit(node)
+        if len(node.targets) == 1:
+            # x = merged_task(...) binds x to the shape; any other value unbinds it
+            name = _called_name(node.value)
+            self._bind(node.targets[0], _typed_returns().get(name or "", (None, None)))
 
     def visit_FunctionDef(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
         scope: dict[str, tuple[str | None, str | None]] = {}
@@ -370,3 +424,90 @@ def test_computed_task_fields_are_attributes_not_keys() -> None:
         if isinstance(node, ast.Constant) and node.value in retired
     ]
     assert not hits, "\n".join(hits)
+
+
+# --- the stored task dict --------------------------------------------------------
+
+
+def _export_task_keys() -> set[str]:
+    """The task keys the JSON export copies (``tdata.get(...)`` / ``tdata[...]``)."""
+    tree = next(tree for rel, tree in _sources() if rel == "export.py")
+    keys: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "get" and node.args:
+            receiver, key_node = node.func.value, node.args[0]
+        elif isinstance(node, ast.Subscript):
+            receiver, key_node = node.value, node.slice
+        else:
+            continue
+        if isinstance(receiver, ast.Name) and receiver.id == "tdata" and (key := _const_value(key_node)):
+            keys.add(key)
+    return keys
+
+
+def test_stored_task_declares_what_the_writers_store() -> None:
+    """Every key the export copies, the model serializes, the Store splits
+    off and the import accepts is a StoredTask key — a stored field the shape
+    lacks is one the typed reads cannot see."""
+    from custom_components.maintenance_supporter import storage
+    from custom_components.maintenance_supporter.models.maintenance_task import MaintenanceTask
+    from custom_components.maintenance_supporter.websocket import io
+
+    model = MaintenanceTask.from_dict(
+        {
+            "name": "Filter",
+            "last_planned_due": "2026-01-01",
+            "planned_day": 3,
+            "due_override": "2026-02-01",
+            "schedule_time": "08:00",
+            "last_performed": "2026-01-01",
+            "created_at": "2025-01-01",
+            "trigger_config": {"type": "threshold", "entity_id": "sensor.x", "trigger_above": 1},
+            "notes": "n",
+            "documentation_url": "https://example.org",
+            "custom_icon": "mdi:filter",
+            "nfc_tag_id": "tag",
+            "reading_unit": "kWh",
+            "readings": [{"id": "a", "name": "A"}],
+            "priority": "high",
+            "labels": ["x"],
+            "mirror_todo_entities": ["todo.x"],
+            "mirror_todo_use_default": False,
+            "complete_when": {"entity_id": "binary_sensor.door", "to_state": "on"},
+            "earliest_completion_days": 2,
+            "ref_no": 4,
+            "archived_at": "2026-03-01",
+            "archived_reason": "manual",
+            "paused_at": "2026-03-01",
+            "paused_until": "2026-04-01",
+            "responsible_user_id": "u1",
+            "assignee_pool": ["u1", "u2"],
+            "rotation_strategy": "round_robin",
+            "checklist": ["a"],
+            "adaptive_config": {"enabled": True},
+            "phases": {"p1": {"name": "P1"}},
+            "phase_sequence": ["p1"],
+        }
+    ).to_dict()
+    sources = {
+        "export": _export_task_keys(),
+        "MaintenanceTask.to_dict": set(model),
+        "the Store": set(storage._DYNAMIC_TASK_FIELDS) | set(storage._SPLIT_ONLY_TASK_FIELDS),
+        "the import": set(io._TASK_FIELD_TYPES),
+    }
+    declared = _shape_keys(shapes.StoredTask)
+    missing = {name: sorted(keys - declared) for name, keys in sources.items() if keys - declared}
+    assert not missing, f"stored task keys StoredTask does not declare: {missing}"
+
+
+def test_stored_task_keys_are_named_in_the_code() -> None:
+    """A declared key nothing in the integration names is a guess, not a field."""
+    python_strings = {
+        node.value
+        for rel, tree in _sources()
+        if rel != "models/shapes.py"
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Constant) and isinstance(node.value, str)
+    }
+    unnamed = sorted(key for key in _shape_keys(shapes.StoredTask) if key not in python_strings)
+    assert not unnamed, f"StoredTask keys no code names: {unnamed}"

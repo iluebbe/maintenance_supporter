@@ -9,7 +9,7 @@ holds a calling user to the tier of the matching WS command
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 from datetime import date as date_cls
 from typing import Any
 
@@ -252,7 +252,7 @@ SERVICE_PART_USE_SCHEMA = vol.Schema(
 # regardless of the watched entity (a switch has no unit_of_measurement),
 # state_change counts transitions (no unit), threshold/counter carry the
 # source entity's unit.
-def _trigger_target_and_unit(hass: HomeAssistant, tc: dict[str, Any]) -> tuple[float | None, str | None]:
+def _trigger_target_and_unit(hass: HomeAssistant, tc: Mapping[str, Any]) -> tuple[float | None, str | None]:
     ttype = tc.get("type")
     if ttype == TriggerType.RUNTIME:
         return tc.get("trigger_runtime_hours"), "h"

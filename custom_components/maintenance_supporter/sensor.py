@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import date, datetime, time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.components.sensor import (
     ENTITY_ID_FORMAT,
@@ -390,7 +390,9 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             self._triggers = create_triggers(
                 hass=self.hass,
                 entity=self,
-                trigger_config=trigger_config,
+                # The trigger engine works on (and seeds _trigger_state into)
+                # the untyped dict.
+                trigger_config=cast("dict[str, Any]", trigger_config),
             )
             # Pre-seed the aggregation map with False for EVERY entity — the
             # same H1 fix compound.py already carries: the map used to start

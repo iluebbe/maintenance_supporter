@@ -6,6 +6,7 @@ they all rely on. Assembled in config_flow_options_task.py."""
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 from uuid import uuid4
 
@@ -185,7 +186,7 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
 
         from .helpers.schedule import Schedule, cycle_state, preview_occurrences
 
-        merged: dict[str, Any] = dict(static_task)
+        merged: Mapping[str, Any] = dict(static_task)
         store = store_of(self.config_entry)
         if store is not None:
             merged = store.merge_task_data(task_id, merged)

@@ -134,7 +134,7 @@ def apply_phase_fields(
         task_data.pop("phase_sequence", None)
 
 
-def has_phases(task: dict[str, Any] | None) -> bool:
+def has_phases(task: Mapping[str, Any] | None) -> bool:
     return bool(task and task.get("phases") and task.get("phase_sequence"))
 
 
@@ -154,7 +154,7 @@ def clamp_phase_cursor(cursor: object, sequence_len: int) -> int:
     return value % sequence_len
 
 
-def current_phase(task: dict[str, Any] | None) -> dict[str, Any] | None:
+def current_phase(task: Mapping[str, Any] | None) -> dict[str, Any] | None:
     """The phase definition currently due, or None for a phase-less task.
 
     Returns ``{id, name, index, count, ...def fields}``.
@@ -171,7 +171,7 @@ def current_phase(task: dict[str, Any] | None) -> dict[str, Any] | None:
     return {"id": phase_id, "index": cursor, "count": len(seq), **definition}
 
 
-def current_phase_summary(task: dict[str, Any] | None) -> dict[str, Any] | None:
+def current_phase_summary(task: Mapping[str, Any] | None) -> dict[str, Any] | None:
     """``{id, name, index, count}`` of the phase currently due, or None (#139)
     — the compact shape the task sensor's attributes and the WS task summary
     expose. Each built its own copy (DRY audit 2026-09-26 B)."""
@@ -201,7 +201,7 @@ def task_label(task: Mapping[str, Any] | None, event_titles: Iterable[str] | Non
     return with_event_titles(f"{name} · {phase['name']}" if phase else name, event_titles)
 
 
-def effective_field(task: dict[str, Any] | None, field: str) -> Any:
+def effective_field(task: Mapping[str, Any] | None, field: str) -> Any:
     """The value *field* effectively has for the phase currently due:
     set on the phase → the phase's value; else the task's value."""
     phase = current_phase(task)

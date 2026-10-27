@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from typing import Any, TypedDict
 
 from ..const import MaintenanceStatus, TriggerEntityState
-from .shapes import HistoryEntry, IntervalAnalysis
+from .shapes import HistoryEntry, IntervalAnalysis, StoredTask
 
 
 @dataclass(slots=True, kw_only=True)
@@ -26,7 +26,7 @@ class TaskResult:
     # The task as ``MaintenanceTask.to_dict`` serializes it, with the Store's
     # dynamic state merged in. Fields only the config entry carries
     # (``notify_enabled``, ``consumes_parts``, ...) are not in it.
-    task: dict[str, Any]
+    task: StoredTask
     status: str = MaintenanceStatus.OK
     days_until_due: int | None = None
     next_due: str | None = None

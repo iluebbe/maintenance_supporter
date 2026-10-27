@@ -1,7 +1,8 @@
 """The JSON shapes the integration stores and serves, as TypedDicts.
 
 Each class mirrors the interface of the same name in ``frontend-src/types.ts``
-(:data:`TS_INTERFACES` maps the ones whose names differ);
+(:data:`TS_INTERFACES` maps the ones whose names differ, and
+:data:`BACKEND_ONLY_SHAPES` names the ones the panel never receives);
 ``tests/test_typed_shapes.py`` keeps the key sets of the two sides equal and
 checks that every ``.get`` on a name annotated with one of these shapes
 asks for a declared key (mypy checks ``d["key"]`` but not ``d.get("key")``).
@@ -180,8 +181,96 @@ class TriggerConfig(TypedDict, total=False):
     trigger_on_since: str | None
 
 
+class StoredTask(TypedDict, total=False):
+    """A task as ``entry.data[CONF_TASKS][task_id]`` holds it, with the
+    dynamic fields the Store lays over it (``MaintenanceStore.merge_task_data``)
+    and the in-cycle ticks ``helpers.aggregate.merged_tasks`` adds. Every key
+    is optional: an imported or hand-edited task can lack any of them, and
+    the flat recurrence keys of old entries survive until
+    ``normalize_task_storage`` folds them into ``schedule``.
+
+    Backend only: the panel never sees this dict, it gets the WS task
+    summary (``MaintenanceTask`` in types.ts)."""
+
+    id: str
+    object_id: str
+    name: str
+    type: str
+    enabled: bool
+    created_at: str | None
+    ref_no: int | None
+    entity_slug: str
+    origin: dict[str, str] | None
+    # When: the recurrence, the trigger, the completion window
+    schedule: TaskSchedule
+    warning_days: int
+    earliest_completion_days: int | None
+    schedule_time: str | None
+    trigger_config: TriggerConfig | None
+    complete_when: CompleteWhen | None
+    # The flat recurrence of old entries (schedule.read_legacy_fields)
+    schedule_type: str
+    interval_days: int | None
+    interval_unit: str
+    interval_anchor: str
+    due_date: str | None
+    # Dynamic: kept in the Store (storage._DYNAMIC_TASK_FIELDS)
+    last_performed: str | None
+    last_planned_due: str | None
+    planned_day: int | None
+    due_override: str | None
+    history: list[HistoryEntry]
+    adaptive_config: AdaptiveConfig | None
+    phase_cursor: int
+    # Split into the Store, laid over by merged_tasks (storage._SPLIT_ONLY_TASK_FIELDS)
+    checklist_progress: dict[str, bool]
+    battery_replacements: dict[str, dict[str, Any]]
+    battery_low_latch: dict[str, dict[str, Any]]
+    battery_installed_cells: dict[str, str]
+    next_history_ref: int
+    # What the work is
+    notes: str | None
+    documentation_url: str | None
+    custom_icon: str | None
+    priority: str
+    labels: list[str]
+    checklist: list[str]
+    phases: dict[str, Any] | None
+    phase_sequence: list[str]
+    reading_unit: str | None
+    readings: list[ReadingSlot]
+    # Who does it
+    responsible_user_id: str | None
+    assignee_pool: list[str]
+    rotation_strategy: str | None
+    # Completing it
+    nfc_tag_id: str | None
+    require_tag_scan: bool
+    allow_skip: bool
+    required_completion_fields: list[str]
+    on_complete_action: dict[str, Any] | None
+    quick_complete_defaults: dict[str, Any] | None
+    consumes_parts: list[dict[str, Any]]
+    part_ref: dict[str, str]
+    # Notifications and to-do lists
+    notify_enabled: bool
+    notify_icon: str | None
+    mirror_todo_entities: list[str]
+    mirror_todo_use_default: bool
+    # Retired or paused
+    archived_at: str | None
+    archived_reason: str | None
+    paused_at: str | None
+    paused_until: str | None
+    # The battery fleet's one task (const.BATTERY_FLEET_TASK_FLAG)
+    battery_fleet_task: bool
+
+
 # Python shape -> TypeScript interface, where the names differ.
 TS_INTERFACES: dict[str, str] = {}
+
+# Shapes the frontend never receives (no interface in types.ts).
+BACKEND_ONLY_SHAPES: frozenset[str] = frozenset({"StoredTask"})
 
 # Keys only the backend has, per shape (with the reason in the docstring).
 BACKEND_ONLY_KEYS: dict[str, frozenset[str]] = {

@@ -26,7 +26,7 @@ class ArchivedObjectError(ValueError):
     """The object is archived: it gets no new tasks."""
 
 
-def write_tasks(hass: HomeAssistant, entry: ConfigEntry, tasks: Mapping[str, dict[str, Any]]) -> None:
+def write_tasks(hass: HomeAssistant, entry: ConfigEntry, tasks: Mapping[str, Mapping[str, Any]]) -> None:
     """Write task dicts into ``entry.data``, normalized, in one update."""
     new_data = dict(entry.data)
     new_tasks = dict(new_data.get(CONF_TASKS, {}))
@@ -36,7 +36,7 @@ def write_tasks(hass: HomeAssistant, entry: ConfigEntry, tasks: Mapping[str, dic
     hass.config_entries.async_update_entry(entry, data=new_data)
 
 
-def write_task(hass: HomeAssistant, entry: ConfigEntry, task_id: str, task_data: dict[str, Any]) -> None:
+def write_task(hass: HomeAssistant, entry: ConfigEntry, task_id: str, task_data: Mapping[str, Any]) -> None:
     """Write ONE task dict into ``entry.data``, normalized."""
     write_tasks(hass, entry, {task_id: task_data})
 

@@ -21,6 +21,7 @@ on an automatic completion — nobody did the work, so nobody is asked for it.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -40,7 +41,7 @@ def sanitize_required_completion_fields(value: object) -> list[str]:
     return [field for field in REQUIRABLE_COMPLETION_FIELDS if field in seen]
 
 
-def required_completion_fields(task: dict[str, Any] | None) -> list[str]:
+def required_completion_fields(task: Mapping[str, Any] | None) -> list[str]:
     """The fields *task* demands on completion (empty when it demands none).
 
     Phase-aware (#139): a phase that sets its own required fields overrides
@@ -54,7 +55,7 @@ def required_completion_fields(task: dict[str, Any] | None) -> list[str]:
 
 
 def missing_completion_fields(
-    task: dict[str, Any] | None,
+    task: Mapping[str, Any] | None,
     *,
     notes: str | None = None,
     cost: float | None = None,

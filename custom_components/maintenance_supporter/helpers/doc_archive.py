@@ -227,7 +227,9 @@ def _completion_photo_refs(entry: Any) -> dict[str, tuple[str, str]]:
 
     refs: dict[str, tuple[str, str]] = {}
     for task in merged_tasks(entry).values():
-        for item in task.get("history") or []:
+        # Any: a history the load never cleaned (static entry data) can hold junk.
+        history: list[Any] = list(task.get("history") or [])
+        for item in history:
             if not isinstance(item, dict):
                 continue
             day = str(item.get("timestamp") or "")[:10]

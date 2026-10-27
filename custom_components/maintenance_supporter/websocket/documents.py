@@ -14,6 +14,7 @@ tasks — never the global-config tier.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
@@ -342,12 +343,21 @@ _GLOBAL_SEARCH_MAX = 20
 _HISTORY_NOTE_MAX = 4000
 
 
-def _history_hit(entry_id: str, task_id: str, td: dict[str, Any], object_name: str, h: dict[str, Any], *, score: int) -> dict[str, Any]:
+def _history_hit(
+    entry_id: str,
+    task_id: str,
+    td: Mapping[str, Any],
+    object_name: str,
+    h: Mapping[str, Any],
+    *,
+    score: int,
+    object_ref: Any = None,
+) -> dict[str, Any]:
     """One history hit of the global search; ``ref`` is the completion's
     reference ("8.3-2", #170) when the object, task and entry all carry one."""
     from ..helpers.reference_numbers import format_entry_ref
 
-    obj_ref = td.get("_object_ref")
+    obj_ref = object_ref
     return {
         "entry_id": entry_id,
         "task_id": task_id,
@@ -402,7 +412,7 @@ async def ws_search(
                     continue
                 for h in td.get("history") or []:
                     if isinstance(h, dict) and h.get("ref_no") == entry_ref:
-                        hit = _history_hit(entry.entry_id, tid, {**td, "_object_ref": obj_ref}, object_name(entry), h, score=1000)
+                        hit = _history_hit(entry.entry_id, tid, td, object_name(entry), h, score=1000, object_ref=obj_ref)
                         hit["snippet"] = " ".join(str(h.get("notes") or "").split())[:160]
                         connection.send_result(msg["id"], {"documents": [], "history": [hit]})
                         return
@@ -460,7 +470,6 @@ async def ws_search(
         # Not ``obj_ref``: that name is the parsed int of the reference branch above.
         object_ref = (entry.data.get(CONF_OBJECT) or {}).get("ref_no")
         for tid, td in merged_tasks(entry).items():
-            td = {**td, "_object_ref": object_ref}
             for h in td.get("history") or []:
                 notes = h.get("notes") if isinstance(h, dict) else None
                 if not isinstance(notes, str) or not notes.strip():
@@ -469,7 +478,7 @@ async def ws_search(
                 if score <= 0:
                     continue
                 piece, _at = snippet(notes, tokens[0][0], radius=60)
-                hit = _history_hit(entry.entry_id, tid, td, oname, h, score=score)
+                hit = _history_hit(entry.entry_id, tid, td, oname, h, score=score, object_ref=object_ref)
                 hit["snippet"] = piece or " ".join(notes.split())[:160]
                 history.append(hit)
     # Best first; equal scores newest first (two stable sorts).

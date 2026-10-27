@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Any, cast
@@ -22,7 +23,17 @@ from ..helpers.history import completed_entries, finite_amount, latest_anchor_st
 from ..helpers.phases import current_phase
 from ..helpers.schedule import KIND_ONE_TIME, Schedule, read_legacy_fields
 from ..helpers.status import compute_status, effective_warning_days, is_past_schedule_time
-from .shapes import AdaptiveConfig, CompleteWhen, HistoryEntry, ReadingSlot, ReadingValue, TaskSchedule, TriggerConfig, UsedPart
+from .shapes import (
+    AdaptiveConfig,
+    CompleteWhen,
+    HistoryEntry,
+    ReadingSlot,
+    ReadingValue,
+    StoredTask,
+    TaskSchedule,
+    TriggerConfig,
+    UsedPart,
+)
 
 
 def _planned_day_of(raw: Any) -> int | None:
@@ -659,9 +670,9 @@ class MaintenanceTask:
 
     # --- Serialization ---
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> StoredTask:
         """Serialize to dictionary for config entry storage."""
-        data: dict[str, Any] = {
+        data: StoredTask = {
             "id": self.id,
             "object_id": self.object_id,
             "name": self.name,
@@ -743,7 +754,7 @@ class MaintenanceTask:
         return data
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> MaintenanceTask:
+    def from_dict(cls, data: Mapping[str, Any]) -> MaintenanceTask:
         """Deserialize from dictionary.
 
         Accepts both the nested ``schedule`` storage (Phase 3) and the flat

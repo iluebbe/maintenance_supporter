@@ -13,6 +13,7 @@ from ..const import CONF_OBJECT, DOMAIN
 from ..coordinator import MaintenanceCoordinator
 from ..helpers import device_link
 from ..helpers.coordinator_data import task_results
+from ..models.shapes import StoredTask
 from ..models.task_result import TaskResult
 
 
@@ -124,7 +125,7 @@ class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
         return task_results(self.coordinator).get(self._task_id)
 
     @property
-    def _task_data(self) -> dict[str, Any]:
+    def _task_data(self) -> StoredTask:
         """The task dict of the published result ({} before the first refresh)."""
         result = self._task_result
         return result.task if result is not None else {}

@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
@@ -23,7 +23,7 @@ from .helpers.dates import local_date_from_iso
 from .helpers.history import latest_anchor_index, latest_anchor_stamp, trim_history
 from .helpers.parts import round_qty
 from .helpers.pause import write_anchor
-from .models.shapes import AdaptiveConfig, HistoryEntry
+from .models.shapes import AdaptiveConfig, HistoryEntry, StoredTask
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -507,12 +507,12 @@ class MaintenanceStore:
     # Merge / Split Helpers
     # ------------------------------------------------------------------
 
-    def merge_task_data(self, task_id: str, static_data: dict[str, Any]) -> dict[str, Any]:
+    def merge_task_data(self, task_id: str, static_data: Mapping[str, Any]) -> StoredTask:
         """Merge static ConfigEntry data with dynamic Store data.
 
         Returns a unified task dict compatible with ``MaintenanceTask.from_dict``.
         """
-        result = dict(static_data)
+        result: dict[str, Any] = dict(static_data)
         state = self.get_task_state(task_id)
 
         # Overlay dynamic fields
@@ -560,9 +560,9 @@ class MaintenanceStore:
                 tc["_trigger_state"] = trigger_runtime
             result["trigger_config"] = tc
 
-        return result
+        return cast("StoredTask", result)
 
-    def merge_all_tasks(self, static_tasks: dict[str, Any]) -> dict[str, Any]:
+    def merge_all_tasks(self, static_tasks: Mapping[str, Any]) -> dict[str, StoredTask]:
         """Merge all tasks' static data with Store dynamic data."""
         return {task_id: self.merge_task_data(task_id, task_data) for task_id, task_data in static_tasks.items()}
 

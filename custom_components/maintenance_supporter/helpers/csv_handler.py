@@ -101,9 +101,12 @@ _COLUMNS = [
 ]
 
 
-def _csv_safe(val: str) -> str:
-    """Prefix cells that start with formula-triggering characters to mitigate CSV injection."""
-    if val and val[0] in ("=", "+", "-", "@"):
+def _csv_safe(val: str | None) -> str:
+    """Prefix cells that start with formula-triggering characters to mitigate
+    CSV injection. A field stored as null is an empty cell."""
+    if not val:
+        return ""
+    if val[0] in ("=", "+", "-", "@"):
         return "\t" + val
     return val
 

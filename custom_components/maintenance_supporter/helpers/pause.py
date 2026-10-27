@@ -21,6 +21,7 @@ hand-copied blocks that had each forgotten ``due_override``.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import date
 from typing import TYPE_CHECKING, Any
 
@@ -30,12 +31,12 @@ if TYPE_CHECKING:
     from ..storage import MaintenanceStore
 
 
-def is_object_paused(obj: dict[str, Any]) -> bool:
+def is_object_paused(obj: Mapping[str, Any]) -> bool:
     """True when the object dict carries the pause marker."""
     return obj.get("paused_at") is not None
 
 
-def is_task_paused(task_data: dict[str, Any]) -> bool:
+def is_task_paused(task_data: Mapping[str, Any]) -> bool:
     """True when the task itself is paused (#193) — the same marker as an
     object's: ``paused_at`` set = paused, ``paused_until`` optionally ends it."""
     return task_data.get("paused_at") is not None
@@ -53,7 +54,7 @@ def wants_fresh_cycle(task_data: dict[str, Any]) -> bool:
     return not is_task_paused(task_data) and is_recurring(task_data)
 
 
-def pauses_with_object(task_data: dict[str, Any]) -> bool:
+def pauses_with_object(task_data: Mapping[str, Any]) -> bool:
     """Whether the object's pause freezes this task. The buy task of a shared
     pool other live objects still draw on does not (the buy-task reconcile
     marks it): frozen with its paused owner it reminded nobody, never reached
@@ -63,7 +64,7 @@ def pauses_with_object(task_data: dict[str, Any]) -> bool:
     return task_data.get(POOL_IN_USE_FIELD) is not True
 
 
-def is_task_inert(task_data: dict[str, Any], obj: dict[str, Any]) -> bool:
+def is_task_inert(task_data: Mapping[str, Any], obj: Mapping[str, Any]) -> bool:
     """True when nothing may happen to the task: it is archived, disabled or
     its object is paused. The one predicate behind the coordinator's
     complete / skip / reset / postpone gates and the silent auto-recovery
