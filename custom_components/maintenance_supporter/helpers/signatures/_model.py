@@ -82,6 +82,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import slugify
 
+from ..global_options import get_consumable_threshold
+
 # Hours a duration-countdown may still hold when the task should trigger.
 _DEFAULT_BELOW_HOURS = 24
 # Usage-hours a wear counter may accumulate before the task should trigger.
@@ -318,8 +320,6 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
         # #146: catalog-default floors follow the household setting; a
         # signature that pins its own floor (any value, 10 included) keeps it.
         if sig.below_percent is None:
-            from ..global_options import get_consumable_threshold
-
             return float(get_consumable_threshold(hass))
         return float(sig.below_percent)
     state = hass.states.get(entity_id)

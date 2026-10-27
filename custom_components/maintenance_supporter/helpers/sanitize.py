@@ -19,17 +19,30 @@ be writable through another.
 
 from __future__ import annotations
 
+import json
+import logging
+import re
 from typing import Any
 
+from homeassistant.core import valid_entity_id
+
 from ..const import (
+    MAX_ASSIGNEE_POOL,
+    MAX_CHECKLIST_ITEM_LENGTH,
+    MAX_CHECKLIST_ITEMS,
+    MAX_COMPLETE_WHEN_STATE_LENGTH,
     MAX_COST,
     MAX_DATE_LENGTH,
     MAX_DURATION_MINUTES,
     MAX_ENTITY_SLUG_LENGTH,
+    MAX_GROUP_TASK_REFS,
     MAX_ICON_LENGTH,
     MAX_ID_LENGTH,
     MAX_INTERVAL_DAYS,
+    MAX_LABEL_LENGTH,
+    MAX_LABELS,
     MAX_META_LENGTH,
+    MAX_MIRROR_TODO_LISTS,
     MAX_NAME_LENGTH,
     MAX_NFC_TAG_LENGTH,
     MAX_NOTIFY_ICON_LENGTH,
@@ -39,7 +52,13 @@ from ..const import (
     MAX_TYPE_LENGTH,
     MAX_URL_LENGTH,
     MIN_COST,
+    MIRROR_TODO_ENTITY_PATTERN,
+    ROTATION_STRATEGIES,
+    MaintenanceFeedback,
 )
+from .completion_requirements import sanitize_required_completion_fields
+from .places import normalize_place
+from .reading_slots import sanitize_reading_slots
 from .task_fields import EARLIEST_COMPLETION_RANGE, TASK_PRIORITIES
 from .url_safety import is_safe_url
 
@@ -238,8 +257,6 @@ def cap_task_fields(task_data: dict[str, Any], *, keep_action_owner: bool = Fals
         if not isinstance(cl, list):
             task_data.pop("checklist", None)
         else:
-            from ..const import MAX_CHECKLIST_ITEM_LENGTH, MAX_CHECKLIST_ITEMS
-
             cleaned = [item.strip()[:MAX_CHECKLIST_ITEM_LENGTH] for item in cl if isinstance(item, str)]
             cleaned = [c for c in cleaned if c]
             task_data["checklist"] = cleaned[:MAX_CHECKLIST_ITEMS]
@@ -248,8 +265,6 @@ def cap_task_fields(task_data: dict[str, Any], *, keep_action_owner: bool = Fals
     # empty/invalid list simply means "single value" and is dropped.
     rs = task_data.get("readings")
     if rs is not None:
-        from .reading_slots import sanitize_reading_slots
-
         slots = sanitize_reading_slots(rs)
         if slots:
             task_data["readings"] = slots
@@ -290,14 +305,10 @@ def cap_task_fields(task_data: dict[str, Any], *, keep_action_owner: bool = Fals
     # null for "none") is dropped too — as a select default it made the
     # options-flow task form unsaveable (bug audit 2026-09-26).
     if "rotation_strategy" in task_data:
-        from ..const import ROTATION_STRATEGIES
-
         if task_data["rotation_strategy"] not in ROTATION_STRATEGIES:
             task_data.pop("rotation_strategy", None)
 
     if task_data.get("required_completion_fields") is not None:
-        from .completion_requirements import sanitize_required_completion_fields
-
         task_data["required_completion_fields"] = sanitize_required_completion_fields(
             task_data["required_completion_fields"]
         )
@@ -333,7 +344,6 @@ def sanitize_labels(value: object) -> list[str]:
     """Clean a labels list: str items, trimmed, capped, deduped, ≤ MAX_LABELS."""
     if not isinstance(value, list):
         return []
-    from ..const import MAX_LABEL_LENGTH, MAX_LABELS
 
     seen: set[str] = set()
     out: list[str] = []
@@ -352,9 +362,6 @@ def sanitize_mirror_todo_entities(value: object) -> list[str]:
     trimmed, deduped, at most ``MAX_MIRROR_TODO_LISTS``."""
     if not isinstance(value, list):
         return []
-    import re
-
-    from ..const import MAX_MIRROR_TODO_LISTS, MIRROR_TODO_ENTITY_PATTERN
 
     pattern = re.compile(MIRROR_TODO_ENTITY_PATTERN)
     seen: set[str] = set()
@@ -376,9 +383,6 @@ def sanitize_complete_when(value: object) -> dict[str, str] | None:
     else is None (no rule)."""
     if not isinstance(value, dict):
         return None
-    from homeassistant.core import valid_entity_id
-
-    from ..const import MAX_COMPLETE_WHEN_STATE_LENGTH
 
     entity_id = value.get("entity_id")
     to_state = value.get("to_state")
@@ -422,7 +426,6 @@ def sanitize_assignee_pool(value: object) -> list[str]:
     """Clean an assignee pool: str user-ids, trimmed, deduped, ≤ MAX_ASSIGNEE_POOL."""
     if not isinstance(value, list):
         return []
-    from ..const import MAX_ASSIGNEE_POOL
 
     seen: set[str] = set()
     out: list[str] = []
@@ -462,8 +465,6 @@ def cap_action_field(task_data: dict[str, Any], *, keep_owner: bool = False) -> 
     path's stored action (``keep_owner``), dropped from anything else a
     client or an import could have written.
     """
-    import re
-
     action = task_data.get("on_complete_action")
     if action is None:
         return
@@ -504,8 +505,6 @@ def cap_action_field(task_data: dict[str, Any], *, keep_owner: bool = False) -> 
     data = action.get("data")
     if isinstance(data, dict):
         # Cheap size guard via JSON serialisation
-        import json
-
         try:
             serialised = json.dumps(data)
         except (TypeError, ValueError):
@@ -583,8 +582,6 @@ def cap_quick_complete_defaults_field(task_data: dict[str, Any]) -> None:
     if isinstance(duration, int) and 0 <= duration <= MAX_DURATION_MINUTES:
         cleaned["duration"] = duration
 
-    from ..const import MaintenanceFeedback
-
     feedback = defaults.get("feedback")
     # Use the enum (needed / not_needed / not_sure) — a bare ("needed",
     # "not_needed") literal silently dropped a valid not_sure feedback.
@@ -609,8 +606,6 @@ def _normalize_place(data: dict[str, Any]) -> None:
     """2026-10 places, on every create, edit and import path: a zone's entity
     id or nothing (home — also for ``zone.home`` and anything that is no
     zone), and ``remind_on_site`` only as a real True next to a place."""
-    from .places import normalize_place
-
     if "place" in data:
         place = normalize_place(data.get("place"))
         if place is None:
@@ -628,8 +623,6 @@ def _drop_unsafe_url(data: dict[str, Any]) -> None:
     audit 2026-09-26; the WS layer refuses it with an error before)."""
     url = data.get("documentation_url")
     if isinstance(url, str) and url and not is_safe_url(url):
-        import logging
-
         logging.getLogger(__name__).warning("Dropped an unsafe documentation link (%.40s)", url)
         data["documentation_url"] = None
 
@@ -640,8 +633,6 @@ def sanitize_group(raw: Any) -> dict[str, Any] | None:
     MAX_ID_LENGTH, at most MAX_GROUP_TASK_REFS of them. The options flow and
     the settings import each cleaned a group their own way; the import took
     references of any length and a number for a name (DRY audit 2026-10-12)."""
-    from ..const import MAX_GROUP_TASK_REFS
-
     if not isinstance(raw, dict):
         return None
     name = raw.get("name")

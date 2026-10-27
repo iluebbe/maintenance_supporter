@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import re
 from enum import StrEnum
 from typing import Final
@@ -43,8 +44,6 @@ def slugify_object_name(name: str) -> str:
     """
     slug = re.sub(r"_+", "_", re.sub(r"[^a-z0-9]", "_", name.lower())).strip("_")
     if not slug:
-        import hashlib
-
         slug = "obj_" + hashlib.sha1(name.strip().encode("utf-8")).hexdigest()[:12]
     return slug
 

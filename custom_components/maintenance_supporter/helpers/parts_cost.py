@@ -42,9 +42,12 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from ..const import PARTS_COST_MODES
+from ..const import BATTERY_FLEET_OBJECT_FLAG, CONF_OBJECT, CONF_PARTS_COST_MODE, PARTS_COST_MODES
 from ..models.shapes import HistoryEntry
+from ..parts_runtime import resolve_part_link
+from .global_options import global_option
 from .history import strict_amount
+from .parts import PART_REF_FIELD, unit_price
 
 DEFAULT_PARTS_COST_MODE = "purchase"
 COST_BASIS_USE = "use"
@@ -55,9 +58,6 @@ COST_BASIS_PURCHASE = "purchase"
 
 def parts_cost_mode(hass: HomeAssistant) -> str:
     """The configured mode (``purchase`` unless set to ``use``)."""
-    from ..const import CONF_PARTS_COST_MODE
-    from .global_options import global_option
-
     mode = global_option(hass, CONF_PARTS_COST_MODE)
     return mode if mode in PARTS_COST_MODES else DEFAULT_PARTS_COST_MODE
 
@@ -116,16 +116,12 @@ def refresh_parts_cost(entry: HistoryEntry) -> None:
 
 def _linked_part(hass: HomeAssistant, entry: ConfigEntry, link: Mapping[str, Any]) -> dict[str, Any] | None:
     """The part a link names (pools resolved), or None."""
-    from ..parts_runtime import resolve_part_link
-
     _owner, part, _store = resolve_part_link(hass, entry, dict(link))
     return part if isinstance(part, dict) else None
 
 
 def link_unit_cost(hass: HomeAssistant, entry: ConfigEntry, link: Mapping[str, Any]) -> float | None:
     """The current price of one unit of a used part (pools resolved)."""
-    from .parts import unit_price
-
     part = _linked_part(hass, entry, link)
     return unit_price(part) if part is not None else None
 
@@ -181,8 +177,6 @@ def annotate_completion(
     A purchase is booked "when used" when the part it buys counts when used;
     any other completion when one of its parts does — or, using none, when
     the household counts parts when used (#222)."""
-    from .parts import PART_REF_FIELD
-
     links = [link for link in history_entry.get("used_parts") or [] if isinstance(link, dict)]
     for link in links:
         if link.get("unit_cost") is None:
@@ -209,8 +203,6 @@ def _bought_for_the_battery_fleet(entry: ConfigEntry) -> bool:
     without a completion that could value them, so under "count when used"
     batteries cost nothing in the budget, the area cost or any total (bug
     audit 2026-10-17, S-6)."""
-    from ..const import BATTERY_FLEET_OBJECT_FLAG, CONF_OBJECT
-
     return bool((entry.data.get(CONF_OBJECT) or {}).get(BATTERY_FLEET_OBJECT_FLAG))
 
 

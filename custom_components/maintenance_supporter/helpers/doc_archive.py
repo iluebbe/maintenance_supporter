@@ -33,14 +33,19 @@ import io
 import json
 import logging
 import mimetypes
+import os
 import re
+import tempfile
+import unicodedata
 import zipfile
 from pathlib import PurePosixPath
 from typing import IO, Any
 
 from homeassistant.core import HomeAssistant
 
-from ..const import DOMAIN, GLOBAL_UNIQUE_ID
+from ..const import CONF_OBJECT, CONF_PARTS, CONF_TASKS, DOCUMENT_STORE_KEY, DOMAIN, GLOBAL_UNIQUE_ID
+from ..export import object_entries
+from .aggregate import merged_tasks
 from .completion_photos import history_photo_ids
 from .documents import KIND_WEBLINK, async_rewrite_doc_refs, doc_wire_dict
 
@@ -77,8 +82,6 @@ def _read_member_bounded(zf: zipfile.ZipFile, name: str, limit: int) -> bytes:
 
 
 def _get_store(hass: HomeAssistant) -> Any:
-    from .. import DOCUMENT_STORE_KEY
-
     return hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
 
 
@@ -87,8 +90,6 @@ def _object_name_map(hass: HomeAssistant) -> tuple[dict[str, str], dict[str, lis
     needs: existing object_ids (set) and name → [(object_id, archived)] for
     cross-instance matching — a list, since a replaced object and its
     successor share the name by default."""
-    from ..const import CONF_OBJECT
-
     ids: dict[str, str] = {}
     by_name: dict[str, list[tuple[str, bool]]] = {}
     for entry in hass.config_entries.async_entries(DOMAIN):
@@ -127,8 +128,6 @@ def _match_object(
 def _object_task_ids(hass: HomeAssistant, object_id: str) -> set[str]:
     """The current task ids of the object whose id is ``object_id`` (empty if
     none). Used to keep a same-instance archive restore's task links valid."""
-    from ..const import CONF_OBJECT, CONF_TASKS
-
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.unique_id == GLOBAL_UNIQUE_ID:
             continue
@@ -140,8 +139,6 @@ def _object_task_ids(hass: HomeAssistant, object_id: str) -> set[str]:
 def _object_part_ids(hass: HomeAssistant, object_id: str) -> set[str]:
     """The current spare-part ids of the object (same role as
     ``_object_task_ids``, for a doc's part links)."""
-    from ..const import CONF_OBJECT, CONF_PARTS
-
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.unique_id == GLOBAL_UNIQUE_ID:
             continue
@@ -223,8 +220,6 @@ class _Paths:
 def _completion_photo_refs(entry: Any) -> dict[str, tuple[str, str]]:
     """{document id: (task name, day done)} — the first completion each photo
     belongs to."""
-    from .aggregate import merged_tasks
-
     refs: dict[str, tuple[str, str]] = {}
     for task in merged_tasks(entry).values():
         # Any: a history the load never cleaned (static entry data) can hold junk.
@@ -243,9 +238,6 @@ def _gather_archive(hass: HomeAssistant, entry_ids: set[str] | None) -> tuple[An
 
     Metadata only — reads config entries and the document store.
     """
-    from ..const import CONF_OBJECT
-    from ..export import object_entries
-
     store = _get_store(hass)
     entries = object_entries(hass, entry_ids)
 
@@ -377,9 +369,6 @@ async def async_build_documents_archive_file(hass: HomeAssistant, entry_ids: set
     The caller streams it out and deletes it. Raises :class:`ArchiveTooLarge`
     (nothing left behind) when the selection exceeds the import ceiling.
     """
-    import os
-    import tempfile
-
     store, manifest, blob_hashes = _gather_archive(hass, entry_ids)
 
     def _write() -> str:
@@ -437,8 +426,6 @@ def _restore_files_sync(store: Any, source: IO[bytes]) -> tuple[Any, set[str], i
     archive carrying extra blobs must not litter /config with orphans that
     ride every HA backup and are never refcounted (disk-fill hardening).
     """
-    import unicodedata
-
     def nfc(text: str) -> str:
         return unicodedata.normalize("NFC", text)
 

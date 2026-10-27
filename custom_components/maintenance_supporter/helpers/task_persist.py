@@ -16,8 +16,11 @@ from homeassistant.util import dt as dt_util
 
 from ..const import (
     BATTERY_FLEET_TASK_FLAG,
+    CONF_GROUPS,
     CONF_OBJECT,
     CONF_TASKS,
+    CONF_VACATION_EXEMPT_TASK_IDS,
+    DOCUMENT_STORE_KEY,
     DOMAIN,
     FLAT_SCHEDULE_TYPES,
     MAX_TASKS_PER_OBJECT,
@@ -25,9 +28,18 @@ from ..const import (
 )
 from ..models.shapes import AdaptiveConfig, HistoryEntry
 from .aggregate import async_commit_store, get_runtime_data, get_store, is_object_entry
+from .completion_photos import history_photo_ids
 from .dates import parse_iso_date
 from .entry_tasks import insert_new_task, write_task
-from .global_options import cleanup_group_refs, get_default_warning_days, merge_global_options
+from .global_options import (
+    cleanup_group_refs,
+    get_default_warning_days,
+    get_global_entry,
+    get_global_options,
+    merge_global_options,
+)
+from .issues import async_purge_task_issues
+from .parts import PART_REF_FIELD, map_part_links
 from .sanitize import cap_task_fields
 from .schedule import (
     KIND_INTERVAL,
@@ -364,12 +376,6 @@ async def async_move_task(
     must stay with its object / an entry whose Store is not loaded, and a
     plain ValueError when the target is full.
     """
-    from copy import deepcopy
-
-    from ..const import CONF_VACATION_EXEMPT_TASK_IDS, DOCUMENT_STORE_KEY
-    from .completion_photos import history_photo_ids
-    from .parts import PART_REF_FIELD, map_part_links
-
     task_data = deepcopy(dict(source.data[CONF_TASKS][task_id]))
     # A buy task follows its spare part and the fleet task IS the battery
     # fleet — neither can live on another object (bug audit 2026-09-12).
@@ -405,9 +411,6 @@ async def async_move_task(
     state = _strip_refs(deepcopy(src_store.get_task_state(task_id)))
 
     # Group memberships: snapshot, let the delete sweep them, re-add under the target.
-    from ..const import CONF_GROUPS
-    from .global_options import get_global_entry, get_global_options, merge_global_options
-
     member_groups: list[str] = []
     global_entry = get_global_entry(hass)
     for gid, group in (get_global_options(hass).get(CONF_GROUPS) or {}).items():
@@ -545,8 +548,6 @@ async def async_delete_task(
 
     # Drop the task's document links (task_ids / task_pages in the global
     # DocumentStore) — persistent, task-id keyed, and otherwise never pruned.
-    from ..const import DOCUMENT_STORE_KEY
-
     doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     if doc_store is not None:
         await doc_store.async_unlink_task(task_id)
@@ -554,9 +555,6 @@ async def async_delete_task(
     # Clean up the global vacation exempt list (journey L1): the list is
     # persistent and task-id keyed — without this, deleted ids accumulate
     # there forever and confuse the vacation preview UI.
-    from ..const import CONF_VACATION_EXEMPT_TASK_IDS
-    from .global_options import get_global_entry, get_global_options
-
     ge = get_global_entry(hass)
     if ge is not None:
         exempt = get_global_options(hass).get(CONF_VACATION_EXEMPT_TASK_IDS) or []
@@ -566,8 +564,6 @@ async def async_delete_task(
     # Every repair issue about this task — not only its missing-trigger
     # ones: a stale completion-action target outlived the task in Settings →
     # Repairs with nothing left to fix (bug audit 2026-09-26, BR-A8).
-    from .issues import async_purge_task_issues
-
     async_purge_task_issues(hass, entry.entry_id, task_id)
 
     return True

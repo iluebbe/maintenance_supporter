@@ -25,6 +25,7 @@ from ..const import (
 from .completion_requirements import (
     REQUIRABLE_COMPLETION_FIELDS as _REQUIRABLE_COMPLETION_FIELDS,
 )
+from .dates import canonical_iso_date
 
 # ─── Enum option sets ────────────────────────────────────────────────────────
 
@@ -91,8 +92,6 @@ def import_warning_days(value: object, default: int) -> int:
 
 def import_due_date(value: object) -> str | None:
     """An imported one-time due date: a real ISO date, stored ``YYYY-MM-DD``."""
-    from .dates import canonical_iso_date
-
     if not isinstance(value, str):
         return None
     return canonical_iso_date(value.strip())

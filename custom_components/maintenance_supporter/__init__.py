@@ -20,8 +20,11 @@ from homeassistant.helpers import (
 from homeassistant.helpers import (
     entity_registry as er,
 )
+from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.start import async_at_started
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.util import dt as dt_util
 
 from .const import (
     BATTERY_FLEET_OBJECT_FLAG,
@@ -38,49 +41,72 @@ from .const import (
     CONF_INSTALL_ASSIST_SENTENCES,
     CONF_OBJECT,
     CONF_PANEL_ENABLED,
+    CONF_ROW_ACTION_NOTICE,
     CONF_TASKS,
     CONF_VACATION_EXEMPT_TASK_IDS,
+    DOCUMENT_STORE_KEY,
     DOCUMENT_TEXT_INDEX_KEY,
     DOMAIN,
     EVENT_UNSUBS_KEY,
     GLOBAL_UNIQUE_ID,
+    NOTIFICATION_MANAGER_KEY,
     PLATFORMS,
     SIGNAL_BATTERY_FLEET_CHANGED,
     SIGNAL_NEW_OBJECT_ENTRY,
     SIGNAL_OBJECT_ENTRY_REMOVED,
     STORES_CACHE_KEY,
 )
-from .const import (
-    DOCUMENT_STORE_KEY as _DS_KEY,
-)
-from .const import (
-    NOTIFICATION_MANAGER_KEY as _NM_KEY,
-)
 from .coordinator import MaintenanceCoordinator
 from .daily_jobs import async_track_daily_jobs
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .frontend import async_register_card
+from .helpers.aggregate import object_id_for_entry
 from .helpers.aggregate import object_name as aggregate_object_name
+from .helpers.area_leftovers import async_check_leftover_areas
 from .helpers.assist_sentences import async_sync as async_sync_assist_sentences
+from .helpers.battery_fleet_setup import retranslate_seeded_texts
+from .helpers.calendar_source import calendar_occurrence_provider
+from .helpers.catalog_heal import heal_catalog_triggers
+from .helpers.complete_when import async_track_complete_when
 from .helpers.dates import local_date_from_iso
-from .helpers.documents import DocumentStore
-from .helpers.global_options import entry_option, get_global_entry
+from .helpers.device_link import (
+    forget_removed_parent,
+    has_own_devices,
+    is_self_link,
+    resolve_linked_device_id,
+    shed_owned_devices,
+    sync_via_device_links,
+)
+from .helpers.document_text import DocumentTextIndex
+from .helpers.documents import DocumentStore, async_forget_doc_ids
+from .helpers.global_options import cleanup_group_refs, entry_option, get_global_entry
+from .helpers.i18n import normalize_language
+from .helpers.issues import async_purge_entry_issues, device_link_lost_issue_id
 from .helpers.notification_manager import NotificationManager
-from .helpers.schedule import normalize_task_storage
+from .helpers.places import PLACES_KEY, PlaceArrivals
+from .helpers.reference_numbers import REFERENCE_NUMBERS_KEY, ReferenceNumbers
+from .helpers.sanitize import seed_rotation_assignee
+from .helpers.schedule import normalize_task_storage, set_calendar_occurrence_provider
+from .helpers.task_origin import backfill_origins
+from .helpers.todo_mirror import TODO_MIRROR_KEY, TodoMirror
+from .helpers.todo_mirror import settings_changed as _todo_mirror_settings_changed
+from .helpers.update_state import async_remember_running_version
 from .helpers.user_orphans import async_prune_task_user_orphans, async_sync_admin_panel_orphan_issues
+from .helpers.workday import async_setup_business_days
 from .listeners import async_register_listeners
 from .models.runtime_data import MaintenanceSupporterConfigEntry, MaintenanceSupporterData
 from .panel import async_register_panel, async_unregister_panel
+from .parts_runtime import discard_reconcile_lock, schedule_buy_task_reconcile
 from .services import async_setup_services
+from .shopping_sync import SHOPPING_SYNC_KEY, ShoppingListSync, schedule_resync
+from .shopping_sync import schedule_resync as _schedule_shopping_resync
 from .storage import MaintenanceStore, async_migrate_to_store
+from .views import async_register_document_views
 from .websocket import async_register_commands
 
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-# Re-exported from const for the existing deferred `from . import ...` users.
-NOTIFICATION_MANAGER_KEY = _NM_KEY
-DOCUMENT_STORE_KEY = _DS_KEY
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -105,8 +131,6 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     # Which version this run imported: an update HACS installs later changes
     # the files (and HA's integration cache) but not the code in memory, and
     # the panel asks for a restart until they agree again.
-    from .helpers.update_state import async_remember_running_version
-
     await async_remember_running_version(hass)
 
     # The Lovelace card / calendar card / strategy modules FIRST (#184): HA
@@ -121,8 +145,6 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     # "Business day" scheduling (the day-of-month `business` flag) follows the
     # user's Workday integration when one is configured — public holidays and
     # custom working weekdays instead of the plain Mon-Fri rule (#83 follow-up).
-    from .helpers.workday import async_setup_business_days
-
     await async_setup_business_days(hass)
 
     # Create the notification manager (shared across all entries)
@@ -138,8 +160,6 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     # Full-text index over the blobs (#171): extraction meta loads now, the
     # sidecars are read on the first search, new blobs are extracted as they
     # arrive and the existing library is backfilled after HA started.
-    from .helpers.document_text import DocumentTextIndex
-
     text_index = DocumentTextIndex(hass, doc_store)
     await text_index.async_load()
     doc_store.text_index = text_index
@@ -147,8 +167,6 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
 
     # Reference numbers (#170): the object-level counter lives in its own
     # small Store; objects are numbered when their entry is set up.
-    from .helpers.reference_numbers import REFERENCE_NUMBERS_KEY, ReferenceNumbers
-
     reference_numbers = ReferenceNumbers(hass)
     await reference_numbers.async_load()
     hass.data[DOMAIN][REFERENCE_NUMBERS_KEY] = reference_numbers
@@ -156,15 +174,10 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     # Calendar-entity schedules (#187): the pure schedule engine reads a
     # calendar's event dates through this provider; the coordinators keep
     # the shared cache behind it warm. Removed again on the last unload.
-    from .helpers.calendar_source import calendar_occurrence_provider
-    from .helpers.schedule import set_calendar_occurrence_provider
-
     set_calendar_occurrence_provider(calendar_occurrence_provider(hass))
 
     # Authenticated upload + serve endpoints for document blobs (the blobs live
     # under /config, so they must never be exposed via an unauthenticated path).
-    from .views import async_register_document_views
-
     async_register_document_views(hass)
 
     async_setup_services(hass)
@@ -250,8 +263,6 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # 1 → 2: backfill created_at (issue #30)
     if minor < 2:
         if is_object_entry:
-            from homeassistant.util import dt as dt_util
-
             tasks_data = data.get(CONF_TASKS, {})
             if tasks_data:
                 today_iso = dt_util.now().date().isoformat()
@@ -287,8 +298,6 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # 3 → 4: rotation tasks without an initial assignee get one (discussion #49)
     if minor < 4:
         if is_object_entry:
-            from .helpers.sanitize import seed_rotation_assignee
-
             tasks_data = data.get(CONF_TASKS, {})
             if tasks_data:
                 new_tasks = {}
@@ -307,8 +316,6 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # here means the split never has anything to split.
     if minor < 5:
         if is_object_entry and (device_id := (data.get(CONF_OBJECT) or {}).get("ha_device_id")):
-            from .helpers.device_link import is_self_link, shed_owned_devices
-
             # A SELF-link (the stored id names our own device — the old picker
             # offered the object's doppelgänger) must not be shed: the "source"
             # is the very device the entities live on, and shedding it deletes
@@ -326,8 +333,6 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     new_options: dict[str, Any] | None = None
     if minor < 6:
         if not is_object_entry:
-            from .const import CONF_ROW_ACTION_NOTICE
-
             # Older installs keep their settings in entry.data with EMPTY
             # options (every reader uses `entry.options or entry.data`); the
             # first options write must carry them over, or the flag alone
@@ -373,8 +378,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # entry's lifecycle - created here, torn down in async_unload_entry -
         # so a reload of the hub entry gets a fresh instance (the shared-
         # runtime setup only runs once per boot; bug audit 2026-08-29).
-        from .shopping_sync import SHOPPING_SYNC_KEY, ShoppingListSync
-
         if SHOPPING_SYNC_KEY not in hass.data[DOMAIN]:
             shopping_sync = ShoppingListSync(hass)
             await shopping_sync.async_setup()
@@ -382,8 +385,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
 
         # D#183: per-task mirror into external to-do lists — same lifecycle
         # as the shopping sync (global entry owns it).
-        from .helpers.todo_mirror import TODO_MIRROR_KEY, TodoMirror
-
         if TODO_MIRROR_KEY not in hass.data[DOMAIN]:
             todo_mirror = TodoMirror(hass)
             await todo_mirror.async_setup()
@@ -391,8 +392,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
 
         # 2026-10 places: tell a person what is due where they just arrived —
         # same lifecycle as the mirrors (global entry owns it).
-        from .helpers.places import PLACES_KEY, PlaceArrivals
-
         if PLACES_KEY not in hass.data[DOMAIN]:
             place_arrivals = PlaceArrivals(hass)
             place_arrivals.async_setup()
@@ -438,8 +437,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
 
         # Devices an object created in a mistaken area before 2.96 move back,
         # and the empty leftover areas are offered for removal (repair issue).
-        from .helpers.area_leftovers import async_check_leftover_areas
-
         entry.async_on_unload(async_at_started(hass, async_check_leftover_areas))
 
         # Backfill the document search index (#171) a couple of minutes after
@@ -480,8 +477,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # Catalog triggers written by a signature that could never fire
         # (gree/daikin hvac_action runtime, 2026-09-25; hOn filters read
         # inverted, 2026-09-27) are repaired once.
-        from .helpers.catalog_heal import heal_catalog_triggers
-
         if (healed_data := heal_catalog_triggers(hass, entry.data)) is not None:
             _LOGGER.info("Repaired catalog trigger(s) of %s (see helpers/catalog_heal.py)", entry.title)
             hass.config_entries.async_update_entry(entry, data=healed_data)
@@ -489,8 +484,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # 2.95: tasks created before the fingerprint get their origin once,
         # where it is certain (catalog duty by name + entity, template task
         # by name) — a later rename no longer hides them.
-        from .helpers.task_origin import backfill_origins
-
         if (origin_data := backfill_origins(hass, entry.data)) is not None:
             hass.config_entries.async_update_entry(entry, data=origin_data)
 
@@ -532,12 +525,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # so the repair happens once rather than on every start.
         obj_data = entry.data.get(CONF_OBJECT) or {}
         if stored_device_id := obj_data.get("ha_device_id"):
-            from .helpers.device_link import (
-                has_own_devices,
-                resolve_linked_device_id,
-                shed_owned_devices,
-            )
-
             resolved = resolve_linked_device_id(hass, stored_device_id, own_entry_id=entry.entry_id)
             if resolved and resolved != stored_device_id:
                 _LOGGER.info(
@@ -562,11 +549,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
             # is worth telling them about rather than letting the object drift
             # onto a device of its own unannounced. The issue clears itself the
             # moment the link resolves again.
-            from homeassistant.helpers import issue_registry as ir
-
-            from .helpers.device_link import is_self_link
-            from .helpers.issues import device_link_lost_issue_id
-
             issue_id = device_link_lost_issue_id(entry.entry_id)
             if resolved is None:
                 # Two distinct stories share one issue id (so resolve/delete
@@ -605,16 +587,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # runtime string around them is translated. Rewrite the ones the user
         # never touched into the instance's language; edited texts stay.
         if obj_data.get(BATTERY_FLEET_OBJECT_FLAG):
-            from .helpers.battery_fleet_setup import retranslate_seeded_texts
-            from .helpers.i18n import normalize_language
-
             if retranslate_seeded_texts(hass, entry, normalize_language(hass)):
                 _LOGGER.info("Retranslated the battery fleet's seeded texts for %s", entry.title)
 
         # #170: give this object (and any other still unnumbered one) its
         # reference number before the first refresh numbers the tasks.
-        from .helpers.reference_numbers import REFERENCE_NUMBERS_KEY, ReferenceNumbers
-
         reference_numbers = hass.data[DOMAIN].get(REFERENCE_NUMBERS_KEY)
         if isinstance(reference_numbers, ReferenceNumbers):
             await reference_numbers.async_assign_objects()
@@ -628,24 +605,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
             # real count, not the hub's count from before this fleet loaded.
             # A stale 0 there was taken for a recovery, and the count catching
             # up announced the same low battery again (2026-10-05).
-            from homeassistant.helpers.dispatcher import async_dispatcher_send
-
             async_dispatcher_send(hass, SIGNAL_BATTERY_FLEET_CHANGED)
         await coordinator.async_config_entry_first_refresh()
 
         # D#229: a task may complete itself when another entity changes to a
         # state (the washer's door opens) — one listener for the entry, set up
         # once its tasks have a status to check.
-        from .helpers.complete_when import async_track_complete_when
-
         entry.async_on_unload(async_track_complete_when(hass, coordinator))
 
         # A shopping-list row checked while this object was not loaded (a
         # reload after a task edit, a setup retry) waits for it — the resync
         # books it now. At startup the pass after "started" covers it.
         if hass.state is CoreState.running:
-            from .shopping_sync import schedule_resync
-
             schedule_resync(hass)
 
         # #148: a battery type that becomes known only after fleet setup (a
@@ -659,7 +630,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
 
             async def _fleet_parts_at_start(_hass: HomeAssistant) -> None:
                 from .helpers.battery_fleet_setup import reconcile_fleet_parts_at_start
-                from .helpers.i18n import normalize_language
 
                 try:
                     result = await reconcile_fleet_parts_at_start(hass, entry, normalize_language(hass))
@@ -699,8 +669,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         entry.async_on_unload(entry.add_update_listener(_async_sync_obj_to_device))
 
         # Notify WS subscribers that a new object entry is available
-        from homeassistant.helpers.dispatcher import async_dispatcher_send
-
         async_dispatcher_send(hass, SIGNAL_NEW_OBJECT_ENTRY, entry.entry_id)
 
         # Buy-task catch-up (spare parts): converge the shopping reminders with
@@ -708,8 +676,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # resume/unarchive, and any change made while this entry was unloaded.
         # Declarative + idempotent, reloads only when something changed.
         if entry.data.get("parts"):
-            from .parts_runtime import schedule_buy_task_reconcile
-
             schedule_buy_task_reconcile(hass, entry)
 
         _LOGGER.debug(
@@ -726,8 +692,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # identifier tuple is deprecated (removal HA 2027.8) and its
         # cross-entry identifier lookup is what 2026.8's scoping ends. Runs
         # both directions, so a child that boots before its parent still nests.
-        from .helpers.device_link import sync_via_device_links
-
         sync_via_device_links(hass, entry)
 
     if linked_device_live:
@@ -805,8 +769,6 @@ _DOC_STORAGE_ISSUE_ID = "document_storage_issues"
 @callback
 def _schedule_document_text_backfill(hass: HomeAssistant) -> None:
     """Kick off the delayed full-text backfill (see helpers/document_text)."""
-    from .helpers.document_text import DocumentTextIndex
-
     index = hass.data.get(DOMAIN, {}).get(DOCUMENT_TEXT_INDEX_KEY)
     if isinstance(index, DocumentTextIndex):
         index.schedule_backfill()
@@ -821,8 +783,6 @@ async def _check_document_storage_issues(hass: HomeAssistant) -> None:
     right trigger. The fixable issue's flow reclaims the space; once a later
     scan comes back clean the issue is removed.
     """
-    from homeassistant.helpers import issue_registry as ir
-
     store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     if not isinstance(store, DocumentStore):
         return
@@ -855,8 +815,6 @@ def _sync_missing_global_entry_issue(hass: HomeAssistant) -> None:
     flow recreates the global entry with default settings; it clears itself once
     a global entry is present again.
     """
-    from homeassistant.helpers import issue_registry as ir
-
     entries = hass.config_entries.async_entries(DOMAIN)
     has_global = any(e.unique_id == GLOBAL_UNIQUE_ID for e in entries)
     has_objects = any(e.unique_id != GLOBAL_UNIQUE_ID for e in entries)
@@ -891,18 +849,12 @@ async def _async_global_options_updated(hass: HomeAssistant, entry: ConfigEntry)
     # This listener does NOT reload the entry, so the sync must be nudged
     # explicitly - it re-reads the option, re-arms its state listener and
     # pulls its rows out of a list that is no longer the target.
-    from .shopping_sync import schedule_resync
-
     schedule_resync(hass)
     # #231: the to-do mirror's default lists may have changed — it compares
     # and, if so, moves the inheriting tasks' rows.
-    from .helpers.todo_mirror import settings_changed as _todo_mirror_settings_changed
-
     _todo_mirror_settings_changed(hass)
     # The low/recovered battery percentages may have changed: the hub counts
     # now, not at its next poll.
-    from homeassistant.helpers.dispatcher import async_dispatcher_send
-
     async_dispatcher_send(hass, SIGNAL_BATTERY_FLEET_CHANGED)
 
 
@@ -911,17 +863,14 @@ async def async_unload_entry(hass: HomeAssistant, entry: MaintenanceSupporterCon
     if entry.unique_id == GLOBAL_UNIQUE_ID:
         # Unregister panel when global entry is unloaded
         await async_unregister_panel(hass)
-        from .shopping_sync import SHOPPING_SYNC_KEY
 
         shopping_sync = hass.data.get(DOMAIN, {}).pop(SHOPPING_SYNC_KEY, None)
         if shopping_sync is not None:
             shopping_sync.async_teardown()
-        from .helpers.todo_mirror import TODO_MIRROR_KEY
 
         todo_mirror = hass.data.get(DOMAIN, {}).pop(TODO_MIRROR_KEY, None)
         if todo_mirror is not None:
             todo_mirror.async_teardown()
-        from .helpers.places import PLACES_KEY
 
         place_arrivals = hass.data.get(DOMAIN, {}).pop(PLACES_KEY, None)
         if place_arrivals is not None:
@@ -955,7 +904,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: MaintenanceSupporterCon
             text_index.cancel()
         for unsub in hass.data.get(DOMAIN, {}).get(EVENT_UNSUBS_KEY, []):
             unsub()
-        from .helpers.schedule import set_calendar_occurrence_provider
 
         set_calendar_occurrence_provider(None)
         hass.data.pop(DOMAIN, None)
@@ -970,8 +918,6 @@ async def _async_forget_removed_object_tasks(hass: HomeAssistant, entry: ConfigE
     exempt list, and the notification manager's bookkeeping. All three
     outlived the object (bug audit 2026-09-27)."""
     task_ids = [str(tid) for tid in (entry.data.get(CONF_TASKS) or {})]
-
-    from .helpers.todo_mirror import TODO_MIRROR_KEY
 
     mirror = hass.data.get(DOMAIN, {}).get(TODO_MIRROR_KEY)
     if mirror is not None:
@@ -1009,8 +955,6 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     # answers itself with the object gone. Only the device-link notice was
     # deleted; the others stayed in Repairs for good, with a fix flow that had
     # nothing left to fix (bug audit 2026-09-26).
-    from .helpers.issues import async_purge_entry_issues
-
     async_purge_entry_issues(hass, entry.entry_id)
 
     # #111: hand any shared spare-part pool to a borrower BEFORE the Store goes
@@ -1031,19 +975,12 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     await store.async_remove()
     # Drop the per-entry reconcile lock — the module dict would otherwise grow
     # by one lock per object ever created in this HA run.
-    from .parts_runtime import discard_reconcile_lock
-
     discard_reconcile_lock(entry.entry_id)
     # v1.5.4: also called from ws_delete_object — but if the user removes the
     # config entry from HA's "Configure" UI, that path doesn't run, leaving
     # phantom task_refs in groups. Belt-and-suspenders.
-    from .helpers.aggregate import object_id_for_entry
-    from .helpers.global_options import cleanup_group_refs
-
     cleanup_group_refs(hass, entry_id=entry.entry_id)
     # Objects nested under this one lose the parent pointer (W3).
-    from .helpers.device_link import forget_removed_parent
-
     forget_removed_parent(hass, entry.entry_id)
 
     # Remove this object's documents (refcount-aware — a blob shared with another
@@ -1066,20 +1003,14 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         # completion photo on a moved task's history, a spare part's manual.
         # A document delete already forgot them; an object delete left them
         # dangling (bug audit 2026-09-26, SEC-10).
-        from .helpers.documents import async_forget_doc_ids
-
         await async_forget_doc_ids(hass, removed_doc_ids)
 
     _LOGGER.debug("Removed store for entry %s", entry.entry_id)
     # The global summary coordinator has no listener for entry removal, so tell
     # it to drop this object from its counts immediately (otherwise the summary
     # sensors stay stale until the next event or a restart).
-    from homeassistant.helpers.dispatcher import async_dispatcher_send
-
     async_dispatcher_send(hass, SIGNAL_OBJECT_ENTRY_REMOVED, entry.entry_id)
     # Its buy-task rows in the shopping list are orphans now (bug audit 2026-08-29).
-    from .shopping_sync import schedule_resync as _schedule_shopping_resync
-
     _schedule_shopping_resync(hass)
 
 

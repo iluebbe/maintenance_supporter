@@ -34,6 +34,7 @@ from ..const import (
     VACATION_BUFFER_DAYS_RANGE,
     ScheduleType,
 )
+from ..models.maintenance_task import MaintenanceTask  # models import helpers
 from .dates import parse_iso_date, try_add_interval
 from .pause import is_task_inert
 from .status import effective_warning_days
@@ -313,8 +314,6 @@ def compute_preview(
     window are omitted (caller may still want to display the task list
     elsewhere).
     """
-    from ..models.maintenance_task import MaintenanceTask  # models import helpers
-
     if state.start is None or state.end is None:
         return []
     today = today or dt_util.now().date()

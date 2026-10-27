@@ -17,7 +17,7 @@ from unittest.mock import patch
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
 from custom_components.maintenance_supporter.const import CONF_TASKS, DOMAIN
 from custom_components.maintenance_supporter.websocket.io import (
     _apply_settings_import,

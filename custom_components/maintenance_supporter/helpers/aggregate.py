@@ -20,11 +20,13 @@ from ..const import (
     DEFAULT_TASK_PRIORITY,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    STORES_CACHE_KEY,
     MaintenanceStatus,
     TaskPriority,
     slugify_object_name,
     task_unique_id,
 )
+from ..storage import MaintenanceStore
 from .coordinator_data import task_results
 
 if TYPE_CHECKING:
@@ -184,8 +186,6 @@ def store_or_cached(hass: HomeAssistant, entry: ConfigEntry) -> MaintenanceStore
     borrower's completion consumed nothing and raised a false "spare part no
     longer exists" repair (bug audit 2026-10-17, S-10). None for an entry
     being removed (its cache slot goes first)."""
-    from ..const import STORES_CACHE_KEY
-
     return store_of(entry) or hass.data.get(STORES_CACHE_KEY, {}).get(entry.entry_id)
 
 
@@ -198,7 +198,6 @@ async def async_store_even_unloaded(hass: HomeAssistant, entry: ConfigEntry) -> 
     store = store_or_cached(hass, entry)
     if store is not None:
         return store
-    from ..storage import MaintenanceStore
 
     disk = MaintenanceStore(hass, entry.entry_id)
     return disk if await disk.async_load() is not None else None

@@ -47,6 +47,7 @@ from .const import (
     CONF_DEFAULT_WARNING_DAYS,
     CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
     CONF_DISABLED_TEMPLATE_IDS,
+    CONF_GROUPS,
     CONF_HOME_REGION,
     CONF_HOME_TYPE,
     CONF_INSTALL_ASSIST_SENTENCES,
@@ -97,10 +98,20 @@ from .const import (
     ROW_ACTION_STYLES,
     TIME_HHMMSS_PATTERN,
 )
+from .helpers.battery_lifetime import MAX_LIFETIME_MONTHS, MIN_LIFETIME_MONTHS, fleet_lifetime_catalog
 from .helpers.dates import normalize_hhmm
+from .helpers.home_profile import async_home_profile
 from .helpers.i18n import normalize_language
+from .helpers.member_display import AVATAR_COLOR_NAMES, AVATAR_PALETTE, member_display
+from .helpers.notification_manager import build_action_buttons
+from .helpers.notify_hooks import async_emit_and_dispatch, sample_notification_context
 from .helpers.notify_targets import build_notify_targets, validate_notify_service
-from .helpers.settings_registry import float_range, int_range, setting_default
+from .helpers.parts import valid_search_template
+from .helpers.region import regions_of
+from .helpers.sanitize import sanitize_group, sanitize_mirror_todo_entities
+from .helpers.settings_registry import ALLOWED_SETTING_KEYS, float_range, int_range, setting_default
+from .helpers.settings_sanitize import sanitize_settings_input
+from .helpers.todo_mirror import mirror_todo_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -571,9 +582,6 @@ async def _send_test_to(
 ) -> str:
     """Send the test payload to every resolved service; "success" if any went."""
     try:
-        from .helpers.notification_manager import build_action_buttons
-        from .helpers.notify_hooks import async_emit_and_dispatch, sample_notification_context
-
         push_msg = _get_test_result_text(hass, "push_message")
         service_data: dict[str, Any] = {
             "title": "Maintenance Supporter",
@@ -619,8 +627,6 @@ class GlobalOptionsFlow(OptionsFlow):
 
     def _save_and_return(self, user_input: dict[str, Any]) -> ConfigFlowResult:
         """Merge user input into options and return to the menu."""
-        from .helpers.settings_registry import ALLOWED_SETTING_KEYS
-
         merged = self._current
         # HA's NumberSelector hands back floats; the settings registry (WS
         # writes, export/import) types these keys as int. Store what the
@@ -645,8 +651,6 @@ class GlobalOptionsFlow(OptionsFlow):
         # and the two write paths must not drift. The steps validated the
         # notify service / shopping list / search template themselves; a
         # value the sanitiser drops is not saved.
-        from .helpers.settings_sanitize import sanitize_settings_input
-
         registered = {k: v for k, v in user_input.items() if k in ALLOWED_SETTING_KEYS}
         cleaned, _error = sanitize_settings_input(registered)
         user_input = {**{k: v for k, v in user_input.items() if k not in ALLOWED_SETTING_KEYS}, **cleaned}
@@ -842,9 +846,6 @@ class GlobalOptionsFlow(OptionsFlow):
             # #231: the to-do mirror's default lists — the panel's rules: a
             # cleared selector omits the key (= off), the shape sanitiser of
             # the per-task field, and none of our own lists.
-            from .helpers.sanitize import sanitize_mirror_todo_entities
-            from .helpers.todo_mirror import mirror_todo_error
-
             defaults = sanitize_mirror_todo_entities(user_input.get(CONF_MIRROR_TODO_DEFAULT_ENTITIES) or [])
             if mirror_todo_error(self.hass, defaults):
                 errors[CONF_MIRROR_TODO_DEFAULT_ENTITIES] = "invalid_mirror_todo"
@@ -860,8 +861,6 @@ class GlobalOptionsFlow(OptionsFlow):
 
             # D#182: shopping-search template — blank = automatic (country,
             # then UI language); otherwise an http(s) URL with {q}.
-            from .helpers.parts import valid_search_template
-
             raw_tpl = (user_input.get(CONF_PART_SEARCH_URL_TEMPLATE) or "").strip()
             if raw_tpl and not valid_search_template(raw_tpl):
                 errors[CONF_PART_SEARCH_URL_TEMPLATE] = "invalid_search_template"
@@ -1343,8 +1342,6 @@ class GlobalOptionsFlow(OptionsFlow):
             user_input.setdefault(CONF_DISABLED_TEMPLATE_IDS, [])
             return self._save_and_return(user_input)
 
-        from .helpers.home_profile import async_home_profile
-        from .helpers.region import regions_of
         from .templates import TEMPLATE_CATEGORIES, TEMPLATES, localize_template_text
 
         lang = normalize_language(self.hass)
@@ -1450,8 +1447,6 @@ class GlobalOptionsFlow(OptionsFlow):
 
     async def async_step_member_avatars(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Pick the household member whose avatar (initials, colour) to change."""
-        from .helpers.member_display import member_display
-
         members = await self._members()
         if user_input is not None and user_input.get("member") in {u.id for u in members}:
             self._avatar_user_id = str(user_input["member"])
@@ -1474,8 +1469,6 @@ class GlobalOptionsFlow(OptionsFlow):
 
     async def async_step_member_avatar(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Initials + palette colour for one member (blank / automatic = the default)."""
-        from .helpers.member_display import AVATAR_COLOR_NAMES, AVATAR_PALETTE, member_display
-
         user_id = getattr(self, "_avatar_user_id", "")
         overrides = dict(self._opt(CONF_MEMBER_DISPLAY) or {})
         if user_input is not None:
@@ -1526,15 +1519,11 @@ class GlobalOptionsFlow(OptionsFlow):
         """Typical lifetime in months per battery type — the forecast for
         batteries without a level sensor. One field per type (the type is the
         label); blank = the built-in value."""
-        from .helpers.battery_lifetime import fleet_lifetime_catalog
-
         rows = fleet_lifetime_catalog(self.hass)
         types = [str(r["type"]) for r in rows]
         if user_input is not None:
             overrides = {t: user_input[t] for t in types if isinstance(user_input.get(t), (int, float))}
             return self._save_and_return({CONF_BATTERY_LIFETIME_MONTHS: overrides})
-
-        from .helpers.battery_lifetime import MAX_LIFETIME_MONTHS, MIN_LIFETIME_MONTHS
 
         return self.async_show_form(
             step_id="battery_lifetimes",
@@ -1617,8 +1606,6 @@ class GlobalOptionsFlow(OptionsFlow):
 
     async def async_step_manage_groups(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """List and manage maintenance groups."""
-        from .const import CONF_GROUPS
-
         current = self._current
         groups = current.get(CONF_GROUPS, {})
 
@@ -1661,9 +1648,6 @@ class GlobalOptionsFlow(OptionsFlow):
 
     async def async_step_add_group(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Add a new maintenance group."""
-        from .const import CONF_GROUPS
-        from .helpers.sanitize import sanitize_group
-
         if user_input is not None:
             new_group = sanitize_group(
                 {"name": user_input.get("group_name", ""), "description": user_input.get("group_description", "")}
@@ -1699,9 +1683,6 @@ class GlobalOptionsFlow(OptionsFlow):
 
     async def async_step_edit_group(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Rename a group, or delete it when the delete box is ticked."""
-        from .const import CONF_GROUPS
-        from .helpers.sanitize import sanitize_group
-
         group_id = self._editing_group or ""
         group = (self._current.get(CONF_GROUPS) or {}).get(group_id)
         if not isinstance(group, dict):
@@ -1744,8 +1725,6 @@ class GlobalOptionsFlow(OptionsFlow):
 
     async def _delete_group(self, group_id: str) -> ConfigFlowResult:
         """Delete a group and return to menu."""
-        from .const import CONF_GROUPS
-
         merged = self._current
         groups = dict(merged.get(CONF_GROUPS, {}))
         groups.pop(group_id, None)

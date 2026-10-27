@@ -23,7 +23,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.maintenance_supporter import NOTIFICATION_MANAGER_KEY
+from custom_components.maintenance_supporter.const import NOTIFICATION_MANAGER_KEY
 from custom_components.maintenance_supporter.daily_jobs import (
     async_maybe_send_lead_reminders,
     async_maybe_send_warranty_reminders,

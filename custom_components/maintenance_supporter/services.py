@@ -34,6 +34,7 @@ from homeassistant.util import dt as dt_util
 from .const import (
     CONF_OBJECT,
     CONF_PARTS,
+    CONF_TASKS,
     DOMAIN,
     FLAT_SCHEDULE_TYPES,
     GLOBAL_UNIQUE_ID,
@@ -61,21 +62,30 @@ from .const import (
     TriggerType,
 )
 from .coordinator import MaintenanceCoordinator
-from .helpers.aggregate import iter_live_tasks
+from .entity.triggers import primary_entity_id
+from .export import build_export_data, serialize_export_to_file
+from .helpers.aggregate import iter_live_tasks, store_of
 from .helpers.aggregate import object_name as aggregate_object_name
 from .helpers.aggregate import object_slug as aggregate_object_slug
 from .helpers.aggregate import task_sensor_entity_id as aggregate_task_sensor_entity_id
 from .helpers.assignees import person_of_user, shared_user_ids, task_is_for
 from .helpers.dates import INTERVAL_UNITS
+from .helpers.entry_tasks import ArchivedObjectError
 from .helpers.global_options import get_default_warning_days
+from .helpers.import_mapping import async_attach_move_hints
+from .helpers.object_names import name_taken
 from .helpers.parts import MAX_PART_STOCK
 from .helpers.permissions import service_tier
+from .helpers.reading_slots import resolve_reading_values_by_name
 from .helpers.task_fields import (
     INTERVAL_DAYS_RANGE,
     TASK_PRIORITIES,
     WARNING_DAYS_RANGE,
 )
+from .helpers.task_persist import async_create_task_simple, async_delete_task, async_update_task_simple
+from .helpers.url_safety import is_safe_url
 from .models.runtime_data import MaintenanceSupporterData
+from .parts_runtime import async_change_part_stock, async_part_dispose, async_part_ready_again, async_part_use
 
 # --- Service Schemas ---
 SERVICE_COMPLETE_SCHEMA = vol.Schema(
@@ -262,7 +272,6 @@ def _trigger_target_and_unit(hass: HomeAssistant, tc: Mapping[str, Any]) -> tupl
         return tc.get("trigger_days_before") or 0, "d"
     if ttype == TriggerType.COMPOUND:
         return None, None
-    from .entity.triggers import primary_entity_id
 
     unit: str | None = None
     # The first watched entity — a trigger stored with only the plural
@@ -334,8 +343,6 @@ def _get_task_id_for_entity(hass: HomeAssistant, entity_id: str) -> str | None:
     # sensors and the complete/skip/reset buttons each add one. Only
     # "_overdue" used to be recognised, so picking a task's next-due sensor
     # as the service target failed with no_task_for_entity.
-    from .const import CONF_TASKS
-
     tasks: dict[str, Any] = config_entry.data.get(CONF_TASKS, {})
     for task_id in tasks:
         marker = f"_{task_id}"
@@ -460,8 +467,6 @@ async def _handle_complete(call: ServiceCall) -> None:
     async def _one(coordinator: MaintenanceCoordinator, task_id: str) -> None:
         reading_values = None
         if call.data.get("reading_values"):
-            from .helpers.reading_slots import resolve_reading_values_by_name
-
             slot_task = coordinator.merged_task(task_id) or {}
             try:
                 reading_values = (
@@ -523,14 +528,11 @@ async def _handle_skip(call: ServiceCall) -> None:
 async def _handle_export(call: ServiceCall) -> None:
     """Handle the export_data service call."""
     hass = call.hass
-    from .export import build_export_data, serialize_export_to_file
 
     fmt = call.data.get("format", "json")
     include_history = call.data.get("include_history", True)
 
     # Phase 1: gather data on the event loop (accesses HA APIs)
-    from .helpers.import_mapping import async_attach_move_hints
-
     data = await async_attach_move_hints(hass, build_export_data(hass, include_history=include_history))
 
     # Phase 2: serialize in executor (CPU-bound, no HA API calls)
@@ -548,15 +550,12 @@ async def _handle_add_object(call: ServiceCall) -> dict[str, Any] | None:
     """Handle the add_object service — create a maintenance object."""
     hass = call.hass
     from .helpers.object_create import async_create_object
-    from .helpers.url_safety import is_safe_url
 
     url = call.data.get("documentation_url")
     if url and not is_safe_url(url):
         raise ServiceValidationError(translation_domain=DOMAIN, translation_key="unsafe_url")
     # The same answer for a taken name as the panel's (it was "The action
     # could not be carried out: already_configured", BI5-A2).
-    from .helpers.object_names import name_taken
-
     if not str(call.data["name"]).strip():
         raise ServiceValidationError(translation_domain=DOMAIN, translation_key="name_empty")
     if name_taken(hass, str(call.data["name"]).strip()):
@@ -586,8 +585,6 @@ async def _handle_add_object(call: ServiceCall) -> dict[str, Any] | None:
 async def _handle_add_task(call: ServiceCall) -> dict[str, Any] | None:
     """Handle the add_task service — add a task to an existing object."""
     hass = call.hass
-    from .helpers.entry_tasks import ArchivedObjectError
-    from .helpers.task_persist import async_create_task_simple
 
     try:
         task_id = await async_create_task_simple(
@@ -620,7 +617,6 @@ async def _handle_add_task(call: ServiceCall) -> dict[str, Any] | None:
 async def _handle_update_task(call: ServiceCall) -> None:
     """Handle update_task — patch the common fields of an existing task."""
     hass = call.hass
-    from .helpers.task_persist import async_update_task_simple
 
     updates = {
         "name": call.data.get("name"),
@@ -662,7 +658,6 @@ async def _handle_update_task(call: ServiceCall) -> None:
 async def _handle_delete_task(call: ServiceCall) -> None:
     """Handle delete_task — remove a task and its side-state."""
     hass = call.hass
-    from .helpers.task_persist import async_delete_task
 
     entry_id = call.data["entry_id"]
     entry = hass.config_entries.async_get_entry(entry_id)
@@ -773,8 +768,6 @@ def _resolve_part_targets(hass: HomeAssistant, entity_ids: list[str]) -> list[tu
 
 
 async def _handle_part_restock(call: ServiceCall) -> dict[str, Any] | None:
-    from .parts_runtime import async_change_part_stock
-
     hass = call.hass
     if ("delta" in call.data) == ("absolute" in call.data):
         raise ServiceValidationError(
@@ -800,8 +793,6 @@ def _reusable(eid: str, result: dict[str, float] | None) -> dict[str, float]:
 
 
 async def _handle_part_ready_again(call: ServiceCall) -> dict[str, Any] | None:
-    from .parts_runtime import async_part_ready_again
-
     hass = call.hass
     results = [
         {"entity_id": eid, **_reusable(eid, await async_part_ready_again(hass, entry, part_id, call.data.get("quantity")))}
@@ -811,8 +802,6 @@ async def _handle_part_ready_again(call: ServiceCall) -> dict[str, Any] | None:
 
 
 async def _handle_part_dispose(call: ServiceCall) -> dict[str, Any] | None:
-    from .parts_runtime import async_part_dispose
-
     hass = call.hass
     results = [
         {"entity_id": eid, **_reusable(eid, await async_part_dispose(hass, entry, part_id, call.data.get("quantity")))}
@@ -822,9 +811,6 @@ async def _handle_part_dispose(call: ServiceCall) -> dict[str, Any] | None:
 
 
 async def _handle_part_use(call: ServiceCall) -> dict[str, Any] | None:
-    from .helpers.aggregate import store_of
-    from .parts_runtime import async_part_use
-
     hass = call.hass
     targets = _resolve_part_targets(hass, call.data[ATTR_ENTITY_ID])
     # Every one must have a stock to count down before any is booked.

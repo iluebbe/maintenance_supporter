@@ -35,6 +35,7 @@ if TYPE_CHECKING:
 # Cap for the adaptive MINIMUM interval (one year). Shared with the
 # task/set_adaptive WS schema since the parity round — same field, two UIs.
 from .const import ADAPTIVE_MIN_INTERVAL_CAP_DAYS as _ADAPTIVE_MIN_INTERVAL_CAP_DAYS
+from .helpers.task_persist import async_persist_adaptive_config
 
 
 class AdaptiveMixin:
@@ -105,8 +106,6 @@ class AdaptiveMixin:
             # refresh. The flow's own copy only delay-saved (a restart within
             # the debounce lost the change) and never refreshed, so the new
             # tuning showed only after the next poll (bug audit 2026-09-26).
-            from .helpers.task_persist import async_persist_adaptive_config
-
             await async_persist_adaptive_config(self.hass, self.config_entry, self._selected_task_id or "", adaptive_config)
 
             return self._show_task_action_menu()

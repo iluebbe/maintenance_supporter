@@ -14,8 +14,13 @@ from uuid import uuid4
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 
-from ..const import CONF_OBJECT, DOMAIN, MAX_ENTITY_ID_LENGTH, MAX_NAME_LENGTH, TRIGGER_FIELD_RANGES
+from ..const import CONF_OBJECT, CONF_PARTS, DOMAIN, MAX_ENTITY_ID_LENGTH, MAX_NAME_LENGTH, TRIGGER_FIELD_RANGES
+from ..helpers.adopt_match import candidate_object
+from ..helpers.aggregate import is_object_entry
+from ..helpers.parts import sanitize_consumes_parts
 from ..helpers.permissions import require_write
 from ..helpers.problem_sensors import (
     build_problem_task,
@@ -23,6 +28,9 @@ from ..helpers.problem_sensors import (
     pop_stashed_config,
     sensor_covered_by,
 )
+from ..helpers.sanitize import sanitize_assignee_pool, seed_rotation_assignee
+from ..helpers.shared_parts import foreign_part_resolver
+from ..helpers.task_origin import ORIGIN_KEY, problem_sensor_origin
 from . import ID_FIELD
 from .adopt_batch import AdoptBatch
 
@@ -65,11 +73,6 @@ async def ws_preview_problem_sensors(
     (2.94): ``{covered: {entity_id: {task_id, name, reason} | null}}`` — the
     task that probably already watches this problem under another name.
     Read-only; a new object (no ``entry_id``) has nothing to cover."""
-    from homeassistant.helpers import device_registry as dr
-    from homeassistant.helpers import entity_registry as er
-
-    from ..helpers.aggregate import is_object_entry
-
     ent_reg, dev_reg = er.async_get(hass), dr.async_get(hass)
     covered: dict[str, Any] = {}
     for sel in msg["selections"]:
@@ -174,8 +177,6 @@ async def ws_adopt_problem_sensors(
                 # link it, so the next discovery finds it by device, as the
                 # suggested setups do. Any other pick stays unlinked.
                 if device_id and not (entry.data.get(CONF_OBJECT) or {}).get("ha_device_id"):
-                    from ..helpers.adopt_match import candidate_object
-
                     match = candidate_object(hass, device_id)
                     if match is not None and match["entry_id"] == entry.entry_id:
                         new_data = dict(entry.data)
@@ -197,10 +198,6 @@ async def ws_adopt_problem_sensors(
                 # setup the deleted predecessor task had accumulated for this
                 # sensor. Restored part links are re-validated below alongside the
                 # dialog's suggestion (the target object/parts may have changed).
-                from ..const import CONF_PARTS
-                from ..helpers.parts import sanitize_consumes_parts
-                from ..helpers.sanitize import sanitize_assignee_pool, seed_rotation_assignee
-
                 stashed = pop_stashed_config(hass, entity_id, consume=False) or {}
                 for field in ("notes", "responsible_user_id", "assignee_pool", "rotation_strategy", "priority", "labels"):
                     if stashed.get(field):
@@ -227,8 +224,6 @@ async def ws_adopt_problem_sensors(
                     # foreign_part_ids keeps pooled #111 cross-object links — the
                     # CRUD paths pass it, this copy had forgotten it (a re-adopted
                     # task silently lost its pooled part link).
-                    from ..helpers.shared_parts import foreign_part_resolver
-
                     links = sanitize_consumes_parts(
                         raw_links,
                         set(entry.data.get(CONF_PARTS) or {}),
@@ -237,8 +232,6 @@ async def ws_adopt_problem_sensors(
                     if links:
                         task_data["consumes_parts"] = links
                 # 2.95: the fingerprint — the sensor this task was adopted from.
-                from ..helpers.task_origin import ORIGIN_KEY, problem_sensor_origin
-
                 task_data[ORIGIN_KEY] = problem_sensor_origin(entity_id)
                 await batch.persist_task(entry, task_data)
                 pop_stashed_config(hass, entity_id)

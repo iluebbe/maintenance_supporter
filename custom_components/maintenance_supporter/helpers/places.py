@@ -51,6 +51,7 @@ from ..const import (
 )
 from .aggregate import get_object_entries
 from .coordinator_data import task_results
+from .phases import task_label
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -166,8 +167,6 @@ def due_tasks_at(hass: HomeAssistant, zone_id: str) -> list[dict[str, Any]]:
     are overdue, triggered or due soon (most urgent first). Each item
     carries the task's config merged with its computed state, for the
     per-task notification gates."""
-    from .phases import task_label
-
     rank = {status: i for i, status in enumerate(ARRIVAL_STATUSES)}
     out: list[dict[str, Any]] = []
     for entry in objects_at(hass, zone_id):

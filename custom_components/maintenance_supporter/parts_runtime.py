@@ -9,12 +9,15 @@ and the event bus.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from collections.abc import Mapping, Sequence
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.util import dt as dt_util
 
 from .const import (
@@ -34,13 +37,21 @@ from .helpers.aggregate import object_name as _object_name
 from .helpers.aggregate import store_of, store_or_cached
 from .helpers.global_options import global_option
 from .helpers.i18n import normalize_language
+from .helpers.issues import broken_part_link_issue_id
 from .helpers.parts import (
     PART_REF_FIELD,
     POOL_IN_USE_FIELD,
+    iter_part_links,
     on_hand,
     reconcile_buy_tasks,
+    restock_units,
     stock_transition,
+    unit_price,
 )
+from .helpers.phases import effective_field
+from .helpers.shared_parts import borrowed_part_ids
+from .helpers.task_persist import async_delete_task
+from .shopping_sync import schedule_resync
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -158,8 +169,6 @@ def _book_use(store: Any, part: dict[str, Any], qty: float, *, keeps_used: bool 
 
 
 def _signal_parts_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    from homeassistant.helpers.dispatcher import async_dispatcher_send
-
     async_dispatcher_send(hass, SIGNAL_PARTS_UPDATED, entry.entry_id)
 
 
@@ -260,8 +269,6 @@ async def async_handle_completion_parts(
         part = parts[ref["part_id"]]
         # Packages bought × package size (#98 follow-up); without a package
         # size one package is one unit.
-        from .helpers.parts import restock_units
-
         qty = restock_units(part, restock_quantity)
         old_owned = _owned(store, part)
         new = max(0, (store.get_part_stock(part["id"]) or 0) + qty)
@@ -273,8 +280,6 @@ async def async_handle_completion_parts(
     # including the empty selection ("nothing used this time"). None keeps the
     # automatic consumes_parts behaviour — phase-aware (#139): the phase
     # currently due may override which parts a completion consumes.
-    from .helpers.phases import effective_field
-
     # #181: the battery fleet task consumes per DEVICE (Battery Notes quantity,
     # in ``async_mark_replaced`` / ``async_record_replacement``); a task-level
     # link on it would be charged again on every fleet completion, so the
@@ -372,8 +377,6 @@ def apply_history_parts_edit(
     stored at that moment and a vanished entry is refused BEFORE any stock
     moved (bug audit 2026-09-27).
     """
-    from .helpers.parts import iter_part_links
-
     # Phase links name pools too (a phase may consume another object's part).
     link_owners: dict[str, str] = {}
     for link in iter_part_links(task_data):
@@ -417,8 +420,6 @@ def apply_history_parts_edit(
 
     # #104: a part already on the entry keeps the price it was booked at; one
     # added by the edit is valued at today's price.
-    from .helpers.parts import unit_price
-
     booked = {
         str(link["part_id"]): link["unit_cost"]
         for link in old_used
@@ -571,8 +572,6 @@ async def async_reconcile_buy_tasks(hass: HomeAssistant, entry: ConfigEntry) -> 
     could clobber a part/task another handler persisted in between (a lost
     update seen live when three part creates raced the first reconcile).
     """
-    import asyncio
-
     lock = _RECONCILE_LOCKS.setdefault(entry.entry_id, asyncio.Lock())
     async with lock:
         return await _reconcile_buy_tasks_locked(hass, entry)
@@ -591,8 +590,6 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
         # shelf is in use, only its owner retired. Suppressing those too
         # meant the borrowers ran the pool empty without a single reminder
         # (bug audit 2026-09-27).
-        from .helpers.shared_parts import borrowed_part_ids
-
         in_use = borrowed_part_ids(hass, entry.entry_id, active_only=True)
         parts = {pid: part for pid, part in parts.items() if pid in in_use}
     store = store_of(entry)
@@ -636,8 +633,6 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
 
     # Removals first, via the shared full-cleanup primitive (entity registry,
     # store state, group refs, notification state) — without per-task reloads.
-    from .helpers.task_persist import async_delete_task
-
     for tid in removed:
         await async_delete_task(hass, entry, tid)
 
@@ -688,8 +683,6 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
 
     # v2.67: mirror the new buy-task set into the configured shopping list
     # (no-op unless the global shopping_list_entity option is set).
-    from .shopping_sync import schedule_resync
-
     schedule_resync(hass)
     return True
 
@@ -702,10 +695,6 @@ def _raise_broken_link_issue(hass: HomeAssistant, entry: ConfigEntry, part_ids: 
     happen is the silent version — a tick that consumed nothing and said so
     nowhere.
     """
-    from homeassistant.helpers import issue_registry as ir
-
-    from .helpers.issues import broken_part_link_issue_id
-
     object_name = _object_name(entry)
     ir.async_create_issue(
         hass,

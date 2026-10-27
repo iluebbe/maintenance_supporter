@@ -45,7 +45,12 @@ from itertools import pairwise
 from statistics import median
 from typing import Any, cast
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, valid_entity_id
+from homeassistant.helpers import device_registry as dr
+
+from ..const import CONF_BATTERY_LIFETIME_MONTHS
+from .aggregate import store_of
+from .global_options import global_option
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -268,9 +273,6 @@ def sanitize_lifetime_overrides(raw: Any) -> dict[str, int]:
 
 
 def lifetime_overrides(hass: HomeAssistant) -> dict[str, int]:
-    from ..const import CONF_BATTERY_LIFETIME_MONTHS
-    from .global_options import global_option
-
     return sanitize_lifetime_overrides(global_option(hass, CONF_BATTERY_LIFETIME_MONTHS))
 
 
@@ -288,7 +290,6 @@ def _fleet_store_and_task(hass: HomeAssistant) -> tuple[Any, str] | None:
     entry = find_fleet_entry(hass)
     if entry is None:
         return None
-    from .aggregate import store_of
     store = store_of(entry)
     found = find_fleet_task(entry)
     if store is None or found is None:
@@ -321,8 +322,6 @@ def sanitize_replacement_log(raw: Any) -> dict[str, dict[str, Any]]:
     writes — valid entity ids, a canonical type, ISO dates (sorted, capped),
     the anchor flag. The log is the fleet's only record of past swaps; a
     backup used to leave it behind (round-trip audit 2026-09-29)."""
-    from homeassistant.core import valid_entity_id
-
     out: dict[str, dict[str, Any]] = {}
     if not isinstance(raw, dict):
         return out
@@ -538,8 +537,6 @@ def fleet_lifetime_catalog(hass: HomeAssistant) -> list[dict[str, Any]]:
     """The lifetime table as Settings shows it (the panel and the options
     flow) — fleet types first, learned rows named "Manufacturer Model"."""
     try:
-        from homeassistant.helpers import device_registry as dr
-
         from .battery_fleet import discover_battery_types, read_batteries
 
         names: dict[str, str] = {}

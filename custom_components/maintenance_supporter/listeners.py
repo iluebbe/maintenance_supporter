@@ -36,11 +36,18 @@ from .const import (
     GLOBAL_UNIQUE_ID,
     NOTIFICATION_MANAGER_KEY,
 )
+from .helpers.action_listener import register_action_listener
 from .helpers.aggregate import async_store_even_unloaded
 from .helpers.assignees import task_user_ids
+from .helpers.device_link import device_owner_ids
+from .helpers.entity_rename import rewrite_object, rewrite_store, rewrite_tasks
 from .helpers.global_options import get_global_entry
+from .helpers.history import cycle_token
 from .helpers.notification_ids import action_cycle, parse_action_id
+from .helpers.pause import is_task_inert
+from .helpers.todo_mirror import schedule_rearm as _rearm_todo_mirror
 from .helpers.user_orphans import async_prune_task_user_orphans, async_sync_admin_panel_orphan_issues
+from .shopping_sync import SHOPPING_SYNC_KEY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,8 +85,6 @@ async def _handle_notification_action(hass: HomeAssistant, event: Event) -> None
     # off the phones. Buttons from before 2.104 carry no cycle.
     sent_cycle = action_cycle(action)
     if sent_cycle is not None and action_type in ("complete", "skip"):
-        from .helpers.history import cycle_token
-
         current = runtime_data.coordinator.merged_task(task_id)
         if current is not None and cycle_token(current.get("history")) != sent_cycle:
             _LOGGER.info("Ignoring %s of task %s from an outdated reminder", action_type, task_id)
@@ -144,8 +149,6 @@ async def _handle_tag_scanned(hass: HomeAssistant, event: Event) -> None:
     # at the first match, so a tag moved on to a new task (the sticker
     # stays on the appliance) completed nothing once the old one was
     # retired (bug audit 2026-10-16, C-E). Active matches go first.
-    from .helpers.pause import is_task_inert
-
     matches = [
         (ce, task_id)
         for ce in hass.config_entries.async_entries(DOMAIN)
@@ -219,8 +222,6 @@ def _object_entries_for_device(
     seen: set[str] = set()
     # One config entry per device since 2026.8 (the plural is reported
     # from 2026.10) — helpers.device_link.device_owner_ids reads it.
-    from .helpers.device_link import device_owner_ids
-
     for ce_id in device_owner_ids(device):
         ce = hass.config_entries.async_get_entry(ce_id)
         if ce is not None and ce.domain == DOMAIN and ce.unique_id != GLOBAL_UNIQUE_ID:
@@ -275,8 +276,6 @@ async def _on_entity_registry_update(
     if not isinstance(old_eid, str) or old_eid == new_eid:
         return
 
-    from .helpers.entity_rename import rewrite_object, rewrite_store, rewrite_tasks
-
     # v2.67: the global shopping-list target is an entity reference too —
     # and so is a notify ENTITY picked as the notification target (a
     # renamed one used to leave notifications to a repair message; a
@@ -301,8 +300,6 @@ async def _on_entity_registry_update(
         if renamed:
             hass.config_entries.async_update_entry(gentry, options={**settings, **renamed})
         if CONF_SHOPPING_LIST_ENTITY in renamed:
-            from .shopping_sync import SHOPPING_SYNC_KEY
-
             sync = hass.data.get(DOMAIN, {}).get(SHOPPING_SYNC_KEY)
             if sync is not None:
                 await sync.async_handle_rename(old_eid, new_eid)
@@ -352,7 +349,6 @@ async def _on_entity_registry_update(
         # they re-instantiate against the new id. The to-do mirror's list
         # listeners are shared (global entry): re-armed on the new ids.
         hass.config_entries.async_schedule_reload(ce.entry_id)
-        from .helpers.todo_mirror import schedule_rearm as _rearm_todo_mirror
 
         _rearm_todo_mirror(hass)
         _LOGGER.info(
@@ -385,8 +381,6 @@ def async_register_listeners(hass: HomeAssistant) -> list[CALLBACK_TYPE]:
     # v1.3.0: per-task on_complete_action listener (Layer B). Subscribes to
     # EVENT_TASK_COMPLETED — same event power users can listen for in their
     # own automations. Single listener handles all entries' tasks.
-    from .helpers.action_listener import register_action_listener
-
     unsub_action = register_action_listener(hass)
     unsub_device = hass.bus.async_listen(dr.EVENT_DEVICE_REGISTRY_UPDATED, partial(_on_device_registry_update, hass))
     unsub_entity = hass.bus.async_listen(er.EVENT_ENTITY_REGISTRY_UPDATED, partial(_on_entity_registry_update, hass))

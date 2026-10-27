@@ -15,7 +15,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.maintenance_supporter import NOTIFICATION_MANAGER_KEY
+from custom_components.maintenance_supporter.const import NOTIFICATION_MANAGER_KEY
 from custom_components.maintenance_supporter.const import CONF_TASKS, DOMAIN
 
 

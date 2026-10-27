@@ -2,18 +2,23 @@
 
 from __future__ import annotations
 
+import csv
 import json as json_mod
 import logging
 import re
-from functools import lru_cache
+from datetime import UTC, datetime, timedelta
+from functools import lru_cache, partial
 from typing import Any
 from uuid import uuid4
+from uuid import uuid4 as _uuid4
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, valid_entity_id
+from homeassistant.util import dt as dt_util
 
 from ..const import (
+    ARCHIVE_REASON_OBJECT,
     BATTERY_FLEET_ASK_CELLS,
     BATTERY_FLEET_DUE_WITHOUT_SENSOR,
     BATTERY_FLEET_EXCLUDED,
@@ -22,24 +27,56 @@ from ..const import (
     BATTERY_FLEET_REMOVED_PARTS,
     BATTERY_FLEET_TASK_FLAG,
     BATTERY_FLEET_TRACK_SELF_CHARGING,
+    CONF_GROUPS,
     CONF_OBJECT,
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
+    CONF_SAVED_FILTER_VIEWS,
     CONF_TASKS,
+    CONF_VACATION_BUFFER_DAYS,
+    CONF_VACATION_ENABLED,
+    CONF_VACATION_END,
+    CONF_VACATION_EXEMPT_TASK_IDS,
+    CONF_VACATION_START,
+    DOCUMENT_STORE_KEY,
     DOMAIN,
     MAX_COST,
     MAX_ENTITY_SLUG_LENGTH,
     MAX_ID_LENGTH,
     MAX_IMPORT_PAYLOAD_BYTES,
+    MAX_INTERVAL_DAYS,
     MAX_JSON_IMPORT_PAYLOAD_BYTES,
+    MAX_SAVED_VIEWS,
     MIN_COST,
     PARTS_COST_MODES,
 )
+from ..export import _NON_PORTABLE_SETTINGS, build_settings_export
 from ..helpers.aggregate import check_nfc_tag_duplicate, object_name
+from ..helpers.battery_fleet import LOW_LATCH_KEY, sanitize_low_latch
+from ..helpers.battery_fleet_setup import FLEET_LIST_CAP, INSTALLED_CELLS_KEY, find_fleet_entry, sanitize_installed_cells
+from ..helpers.battery_lifetime import REPLACEMENT_LOG_KEY, sanitize_replacement_log
+from ..helpers.completion_photos import history_photo_ids
+from ..helpers.csv_handler import export_object_records_csv, export_objects_csv
 from ..helpers.dates import canonical_iso_date, import_day, normalize_hhmm, parse_iso_date
-from ..helpers.global_options import get_default_warning_days, merge_global_options
+from ..helpers.global_options import get_default_warning_days, get_global_entry, get_global_options, merge_global_options
 from ..helpers.history import finite_amount, strict_amount
-from ..helpers.parts import PartValidationError, is_http_url, map_part_links, normalize_part, portable_stock
+from ..helpers.home_profile import async_home_profile
+from ..helpers.i18n import normalize_language, normalize_language_code
+from ..helpers.import_mapping import (
+    DEVICES_KEY,
+    TASK_NAMES_KEY,
+    USERS_KEY,
+    async_attach_move_hints,
+    async_user_map,
+    device_map,
+    remap_task_device,
+    remap_task_users,
+    remap_view_users,
+    repair_task_refs,
+    resolve_task_refs_by_name,
+)
+from ..helpers.notify_icons import normalize_icon
+from ..helpers.parts import PartValidationError, is_http_url, iter_part_links, map_part_links, normalize_part, portable_stock
 from ..helpers.pause import pause_end_day
 from ..helpers.phases import clamp_phase_cursor, sanitize_phase_defs, sanitize_phase_sequence
 from ..helpers.qr_generator import (
@@ -48,7 +85,17 @@ from ..helpers.qr_generator import (
     generate_qr_svg,
     generate_qr_svg_data_uri,
 )
+from ..helpers.reading_slots import history_reading_values
+from ..helpers.sanitize import ACTION_OWNER_KEY, sanitize_group, seed_rotation_assignee
+from ..helpers.saved_views import sanitize_view
+from ..helpers.settings_registry import ALLOWED_SETTING_KEYS
+from ..helpers.settings_sanitize import sanitize_settings_input, settings_error_field
+from ..helpers.task_fields import import_due_date, import_interval_days, import_warning_days
+from ..helpers.task_origin import ORIGIN_KEY, sanitize_origin
+from ..helpers.template_usage import templates_in_use
 from ..helpers.update_state import async_version_state
+from ..helpers.user_orphans import async_prune_task_user_orphans
+from ..helpers.vacation import clean_exempt_task_ids, valid_buffer_days
 from ..helpers.ws_errors import send_translated_error
 from ..websocket.tasks import _validate_trigger_config
 from . import ID_FIELD, _get_object_entries, _load_object_entry, _load_object_task
@@ -69,8 +116,6 @@ def _iso_marker(value: Any) -> str | None:
     object as paused forever (and a malformed ``paused_until`` means auto-resume
     never fires). Validate on import so only a real timestamp restores the state.
     """
-    from datetime import datetime
-
     if not isinstance(value, str) or not value.strip():
         return None
     s = value.strip()
@@ -168,8 +213,6 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
             else:
                 clean["duration"] = int(minutes) if minutes.is_integer() else minutes
         if "reading_values" in clean:
-            from ..helpers.reading_slots import history_reading_values
-
             snapshot = history_reading_values(clean)
             if snapshot:
                 clean["reading_values"] = snapshot
@@ -189,8 +232,6 @@ def _history_timestamp(value: Any) -> str | None:
     is taken as a Unix epoch (seconds, or milliseconds when that large) and
     converted to UTC ISO; anything else is unreadable.
     """
-    from datetime import UTC, datetime
-
     if isinstance(value, str):
         text = value.strip()
         if not text:
@@ -229,8 +270,6 @@ _LINEAGE_KEYS = ("predecessor_entry_id", "replaced_by_entry_id", "parent_entry_i
 def _object_dependencies(obj_entry: Any) -> set[str]:
     """Old entry ids an import payload object needs created BEFORE it: the
     object it replaced and the owners of the pools its tasks draw on."""
-    from ..helpers.parts import iter_part_links
-
     deps: set[str] = set()
     if not isinstance(obj_entry, dict):
         return deps
@@ -386,8 +425,6 @@ def _stamp_imported_action_owner(task_data: dict[str, Any], user_id: str | None)
     system rights, and records who authorised it (bug audit 2026-09-27;
     docs/CONFIGURATION.md "Who the action runs as").
     """
-    from ..helpers.sanitize import ACTION_OWNER_KEY
-
     action = task_data.get("on_complete_action")
     if not isinstance(action, dict):
         return
@@ -401,8 +438,6 @@ def _future_last_performed(value: Any) -> bool:
     """A last-performed date after today — dropped on import with a warning
     (bug audit 2026-09-27: a year-9999 anchor overflowed the schedule math
     inside every refresh and kept the object in setup-retry)."""
-    from homeassistant.util import dt as dt_util
-
     parsed = parse_iso_date(value) if isinstance(value, str) else None
     return parsed is not None and parsed > dt_util.now().date()
 
@@ -420,8 +455,6 @@ def _remap_document_refs(
     file, a doc that vanished before the export) stay verbatim: a dangling
     reference renders as a missing picture, which is what it is.
     """
-    from ..helpers.completion_photos import history_photo_ids
-
     for task_data in import_tasks.values():
         for hist_entry in task_data.get("history") or []:
             if not isinstance(hist_entry, dict):
@@ -467,10 +500,6 @@ def _import_fleet_identity(
     """
     if obj_data.get(BATTERY_FLEET_OBJECT_FLAG) is not True:
         return False
-
-    from homeassistant.core import valid_entity_id
-
-    from ..helpers.battery_fleet_setup import FLEET_LIST_CAP, find_fleet_entry
 
     if find_fleet_entry(hass) is not None:
         _LOGGER.warning(
@@ -553,9 +582,6 @@ async def ws_get_templates(
     an active object already stands for it (helpers.template_usage), so it
     is not recommended again.
     """
-    from ..helpers.home_profile import async_home_profile
-    from ..helpers.i18n import normalize_language, normalize_language_code
-    from ..helpers.template_usage import templates_in_use
     from ..templates import (
         TEMPLATE_CATEGORIES,
         TEMPLATES,
@@ -625,8 +651,6 @@ async def ws_export_data(
 
     # Phase 1: gather data on the event loop (accesses HA APIs); name the HA
     # users it points at so another instance can map them by name.
-    from ..helpers.import_mapping import async_attach_move_hints
-
     data = await async_attach_move_hints(hass, build_export_data(hass, include_history=include_history, entry_ids=entry_ids))
 
     # Phase 2: serialize in executor (CPU-bound, no HA API calls)
@@ -649,8 +673,6 @@ async def ws_export_csv(
     msg: dict[str, Any],
 ) -> None:
     """Export all (or a selection of) maintenance data as CSV."""
-    from ..helpers.csv_handler import export_objects_csv
-
     entry_ids = set(msg["entry_ids"]) if msg.get("entry_ids") else None
     csv_data = export_objects_csv(hass, entry_ids=entry_ids)
     connection.send_result(msg["id"], {"csv": csv_data})
@@ -673,8 +695,6 @@ async def ws_export_objects_csv(
     Not admin-gated: it exposes only the asset fields the panel already sends
     to every user via ``maintenance_supporter/objects`` (no cost/history).
     """
-    from ..helpers.csv_handler import export_object_records_csv
-
     entry_ids = set(msg["entry_ids"]) if msg.get("entry_ids") else None
     csv_data = export_object_records_csv(hass, entry_ids=entry_ids)
     connection.send_result(msg["id"], {"csv": csv_data})
@@ -701,8 +721,6 @@ async def ws_import_csv(
     if len(csv_content) > MAX_IMPORT_PAYLOAD_BYTES:
         send_translated_error(connection, msg["id"], "too_large", "CSV content exceeds 1MB limit", translation_key="import_too_large", translation_placeholders={"limit": "1 MB"})
         return
-
-    import csv
 
     try:
         objects = import_objects_csv(csv_content, hass=hass)
@@ -767,8 +785,6 @@ async def ws_import_csv(
     if created:
         # The JSON import's sweep: a person no user here is cleared now, not
         # at the next restart (bug audit 2026-10-16).
-        from ..helpers.user_orphans import async_prune_task_user_orphans
-
         await async_prune_task_user_orphans(hass)
 
     resp: dict[str, Any] = {
@@ -824,9 +840,6 @@ async def ws_export_settings(
     its second half. Import goes through the regular json/import command,
     which recognizes the ``global_settings`` section.
     """
-    from ..export import build_settings_export
-    from ..helpers.import_mapping import async_attach_move_hints
-
     data = await async_attach_move_hints(hass, build_settings_export(hass))
     connection.send_result(msg["id"], {"format": "json", "data": json_mod.dumps(data, indent=2)})
 
@@ -851,23 +864,6 @@ def _apply_settings_import(
     here, and by the objects import's id map when they come later
     (helpers.import_mapping). A saved view's person follows ``user_map``.
     """
-    from ..const import (
-        CONF_GROUPS,
-        CONF_SAVED_FILTER_VIEWS,
-        CONF_VACATION_BUFFER_DAYS,
-        CONF_VACATION_ENABLED,
-        CONF_VACATION_END,
-        CONF_VACATION_EXEMPT_TASK_IDS,
-        CONF_VACATION_START,
-        MAX_SAVED_VIEWS,
-    )
-    from ..export import _NON_PORTABLE_SETTINGS
-    from ..helpers.global_options import get_global_entry
-    from ..helpers.sanitize import sanitize_group
-    from ..helpers.saved_views import sanitize_view
-    from ..helpers.settings_registry import ALLOWED_SETTING_KEYS
-    from ..helpers.settings_sanitize import sanitize_settings_input, settings_error_field
-
     entry = get_global_entry(hass)
     if entry is None or not isinstance(raw, dict):
         return []
@@ -910,8 +906,6 @@ def _apply_settings_import(
             if clean is not None:
                 views.append(clean)
         if views:
-            from ..helpers.import_mapping import remap_view_users
-
             remap_view_users(views, user_map or {})
             filtered[CONF_SAVED_FILTER_VIEWS] = views
 
@@ -920,12 +914,6 @@ def _apply_settings_import(
     # Same bound as vacation/update: a date more than MAX_INTERVAL_DAYS out
     # is no vacation — 9999-12-31 overflowed the calendar inside every
     # object's refresh (bug audit 2026-09-27). Dropped with a warning.
-    from datetime import timedelta
-
-    from homeassistant.util import dt as dt_util
-
-    from ..const import MAX_INTERVAL_DAYS
-
     latest_vacation_day = dt_util.now().date() + timedelta(days=MAX_INTERVAL_DAYS)
     for key in (CONF_VACATION_START, CONF_VACATION_END):
         val = raw.get(key)
@@ -948,8 +936,6 @@ def _apply_settings_import(
     # The rules of vacation/update: a buffer within its range, the exempt
     # list trimmed and each task once (the import took any int and kept
     # duplicates, BI5-A9).
-    from ..helpers.vacation import clean_exempt_task_ids, valid_buffer_days
-
     buffer_days = valid_buffer_days(raw.get(CONF_VACATION_BUFFER_DAYS))
     if buffer_days is not None:
         filtered[CONF_VACATION_BUFFER_DAYS] = buffer_days
@@ -959,7 +945,6 @@ def _apply_settings_import(
 
     if not filtered:
         return []
-    from ..helpers.import_mapping import resolve_task_refs_by_name
 
     resolve_task_refs_by_name(hass, filtered, task_names)
     merge_global_options(hass, entry, filtered)
@@ -1005,8 +990,6 @@ async def ws_import_json(
     # alongside an objects payload — apply it first either way.
     # HA user ids exist only on the instance that made them: the export names
     # them (``users``), and a move maps them onto this instance's people.
-    from ..helpers.import_mapping import DEVICES_KEY, TASK_NAMES_KEY, USERS_KEY, async_user_map, device_map
-
     user_map, unmatched_users = await async_user_map(hass, data.get(USERS_KEY))
     # Device ids are minted per instance too: the same appliance, found by its
     # integration identifiers.
@@ -1128,8 +1111,6 @@ async def ws_import_json(
             # Fleet type-parts keep their deterministic ``batt_<type>`` ids: the
             # fleet reconcile / mark-replaced paths key on them, so a re-minted
             # uuid would orphan the whole battery-type ↔ part mapping.
-            from uuid import uuid4 as _uuid4
-
             part_id_map: dict[str, str] = {}
             import_parts: dict[str, dict[str, Any]] = {}
             # Losses while importing parts, reported with the task warnings.
@@ -1289,23 +1270,16 @@ async def ws_import_json(
                     # fleet task's Store state; they ride entry.data into the
                     # fresh entry's Store on its first setup (storage.
                     # _SPLIT_ONLY_TASK_FIELDS). A backup used to leave them behind.
-                    from ..helpers.battery_fleet import LOW_LATCH_KEY, sanitize_low_latch
-                    from ..helpers.battery_lifetime import REPLACEMENT_LOG_KEY, sanitize_replacement_log
-
                     if log := sanitize_replacement_log(task_entry.get(REPLACEMENT_LOG_KEY)):
                         task_data[REPLACEMENT_LOG_KEY] = log
                     if latch := sanitize_low_latch(task_entry.get(LOW_LATCH_KEY)):
                         task_data[LOW_LATCH_KEY] = latch
                     # D#213: the cells chosen at Replaced.
-                    from ..helpers.battery_fleet_setup import INSTALLED_CELLS_KEY, sanitize_installed_cells
-
                     if cells := sanitize_installed_cells(task_entry.get(INSTALLED_CELLS_KEY)):
                         task_data[INSTALLED_CELLS_KEY] = cells
 
                 # 2.95: the task's fingerprint (catalog duty / template task) —
                 # shape-checked, it is untrusted input like everything imported.
-                from ..helpers.task_origin import ORIGIN_KEY, sanitize_origin
-
                 if (origin := sanitize_origin(task_entry.get(ORIGIN_KEY))) is not None:
                     task_data[ORIGIN_KEY] = origin
 
@@ -1380,8 +1354,6 @@ async def ws_import_json(
 
                 # Sanitize critical fields from import data — the rules the
                 # CSV import applies too (helpers.task_fields, BI5-A10).
-                from ..helpers.task_fields import import_due_date, import_interval_days, import_warning_days
-
                 if task_data.get("interval_days") is not None:
                     iv = import_interval_days(task_data["interval_days"])
                     if iv is None:
@@ -1408,8 +1380,6 @@ async def ws_import_json(
                 task_data["warning_days"] = import_warning_days(task_data.get("warning_days"), get_default_warning_days(hass))
                 # A rotation task must carry its effective assignee (imports from
                 # pre-seeding exports may lack one) — same rule as create/update.
-                from ..helpers.sanitize import seed_rotation_assignee
-
                 seed_rotation_assignee(task_data)
                 # checklist (strip + truncate + cap), reading slots and to-do
                 # mirror targets are NOT re-sanitized here: the config flow's
@@ -1421,8 +1391,6 @@ async def ws_import_json(
                 # #185: notify_icon — same shape rule as the WS write paths; a
                 # malformed or empty value drops the override (type default).
                 if "notify_icon" in task_data:
-                    from ..helpers.notify_icons import normalize_icon
-
                     icon = normalize_icon(task_data["notify_icon"])
                     if icon:
                         task_data["notify_icon"] = icon
@@ -1483,8 +1451,6 @@ async def ws_import_json(
                     task_data.pop("trigger_config", None)
                     task_warnings.append(f"{task_name}: trigger dropped — not a mapping")
 
-                from ..helpers.import_mapping import remap_task_device, remap_task_users
-
                 remap_task_users(task_data, user_map)
                 remap_task_device(task_data, dev_map)
                 # An archived object's tasks are archived with it (object/archive
@@ -1493,8 +1459,6 @@ async def ws_import_json(
                 # task of a retired machine on the dashboard (seen on the demo,
                 # 2026-09-29).
                 if import_obj.get("archived_at") and not task_data.get("archived_at"):
-                    from ..const import ARCHIVE_REASON_OBJECT
-
                     task_data["archived_at"] = import_obj["archived_at"]
                     task_data["archived_reason"] = ARCHIVE_REASON_OBJECT
                 import_tasks[task_id] = task_data
@@ -1519,8 +1483,6 @@ async def ws_import_json(
             doc_store = None
             import_docs = obj_entry.get("documents")
             if isinstance(import_docs, list) and import_docs:
-                from .. import DOCUMENT_STORE_KEY
-
                 doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
                 if doc_store is not None:
                     doc_id_map: dict[str, str] = {}
@@ -1585,9 +1547,6 @@ async def ws_import_json(
             await _drop_imported_documents(doc_store, obj_id)
     lineage.finish()
     if moved_tasks:
-        from ..helpers.global_options import get_global_entry, get_global_options
-        from ..helpers.import_mapping import repair_task_refs
-
         gentry = get_global_entry(hass)
         if gentry is not None and (changed := repair_task_refs(dict(get_global_options(hass)), hass, moved_tasks)):
             merge_global_options(hass, gentry, changed)
@@ -1596,8 +1555,6 @@ async def ws_import_json(
         # the rules the boot-time sweep applies (a rotation below two members
         # dissolves) — and named in the result instead of vanishing at the
         # next restart.
-        from ..helpers.user_orphans import async_prune_task_user_orphans
-
         await async_prune_task_user_orphans(hass)
 
     resp: dict[str, Any] = {
@@ -1663,7 +1620,6 @@ async def ws_generate_qr(
     except ValueError as err:
         send_translated_error(connection, msg["id"], "no_url", str(err), translation_key="qr_no_url")
         return
-    from functools import partial
 
     icon = _ACTION_ICON_MAP.get(action)
     gen_fn = partial(generate_qr_svg_data_uri, url, border=2, icon=icon)

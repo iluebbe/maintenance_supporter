@@ -26,6 +26,10 @@ from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.util import dt as dt_util
+
+from ..const import DOMAIN
+from .i18n import format_text, normalize_language_code
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -89,8 +93,6 @@ def speak(key: str, language: str | None, **fmt: Any) -> str:
     Falls back to English per key, so a translation that is missing one line
     costs that line and not the whole answer.
     """
-    from .i18n import format_text, normalize_language_code
-
     if not _TABLE:
         # async_load has not run (a direct handler call in a test, or setup
         # raced); read synchronously rather than answer nothing.
@@ -115,8 +117,6 @@ ONE_N_FORM_LANGUAGES = frozenset({"ru", "uk"})
 def plural_category(language: str | None, count: int) -> str:
     """The CLDR plural category of *count*, reduced to what the texts use:
     ``one``, ``few`` or ``other``."""
-    from .i18n import normalize_language_code
-
     lang = normalize_language_code(language)
     if lang in ONE_N_FORM_LANGUAGES:
         if count % 10 == 1 and count % 100 != 11:
@@ -146,8 +146,6 @@ def speak_count(key: str, language: str | None, number: int, **fmt: Any) -> str:
     own table — an English fallback would put a Russian noun in the wrong
     case, which is exactly the mistake these keys exist to prevent.
     """
-    from .i18n import normalize_language_code
-
     if not _TABLE:
         _TABLE.update(_load_all())
     own = _TABLE.get(normalize_language_code(language), {})
@@ -171,8 +169,6 @@ def spoken_date(day: date, language: str | None) -> str:
     other spoken text, so a translator fixes both in one place. The year is
     named only when it is not this year.
     """
-    from homeassistant.util import dt as dt_util
-
     months = [m.strip() for m in speak("months", language).split(",")]
     if len(months) != 12:  # a broken translation: say the date unambiguously
         return day.isoformat()
@@ -195,8 +191,6 @@ def spoken_iso_date(raw: Any, language: str | None) -> str | None:
 
 def _translation_language(language: str | None) -> str:
     """The ``translations/<file>`` name for a spoken language code."""
-    from .i18n import normalize_language_code
-
     lang = normalize_language_code(language)
     if lang == "pt-br":
         return "pt-BR"
@@ -215,8 +209,6 @@ async def async_refusal(hass: HomeAssistant, err: HomeAssistantError, language: 
     an error that carries no translation key.
     """
     from homeassistant.helpers.translation import async_get_translations
-
-    from ..const import DOMAIN
 
     key = getattr(err, "translation_key", None)
     if not key or getattr(err, "translation_domain", None) != DOMAIN:

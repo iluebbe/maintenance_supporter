@@ -15,8 +15,11 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import HomeAssistant, State, callback
 from homeassistant.helpers import selector
+from homeassistant.util import dt as dt_util
 
-from .config_flow_schedule import ScheduleStepsMixin
+from .config_flow_options_global import GlobalOptionsFlow
+from .config_flow_options_task import MaintenanceOptionsFlow
+from .config_flow_schedule import ScheduleStepsMixin, build_new_task_record
 from .config_flow_trigger import TriggerConfigMixin
 from .const import (
     CONF_DEFAULT_WARNING_DAYS,
@@ -37,12 +40,17 @@ from .const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
+from .helpers.entity_rename import migrate_object_unique_ids
 from .helpers.global_options import get_global_entry
+from .helpers.home_profile import async_home_profile
 from .helpers.i18n import normalize_language
 from .helpers.notify_targets import validate_notify_service
+from .helpers.object_names import name_changed_onto_taken, name_taken, object_unique_id
+from .helpers.parts import PartValidationError, normalize_part, portable_stock
+from .helpers.sanitize import cap_object_fields, cap_task_fields
 from .helpers.schedule import normalize_task_storage
 from .helpers.task_fields import WARNING_DAYS_RANGE
-from .helpers.template_usage import OBJECT_TEMPLATE_ID
+from .helpers.template_usage import OBJECT_TEMPLATE_ID, templates_in_use
 from .templates import (
     TEMPLATE_CATEGORIES,
     ObjectTemplate,
@@ -111,8 +119,6 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
         for the dwelling — the gallery's judgement (templates.recommend_template,
         helpers.template_usage), worked out once per flow."""
         if self._template_marks is None:
-            from .helpers.home_profile import async_home_profile
-            from .helpers.template_usage import templates_in_use
             from .templates import TEMPLATES, recommend_template
 
             profile = await async_home_profile(self.hass)
@@ -308,8 +314,6 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
             name = str(user_input[CONF_OBJECT_NAME]).strip()
 
             # Validate unique name (helpers.object_names: by slug, current names)
-            from .helpers.object_names import name_taken
-
             if not name:
                 errors[CONF_OBJECT_NAME] = "name_empty"
             elif name_taken(self.hass, name):
@@ -328,10 +332,6 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
                 }
 
                 # Build tasks from template
-                from homeassistant.util import dt as dt_util
-
-                from .helpers.sanitize import cap_object_fields, cap_task_fields
-
                 today_iso = dt_util.now().date().isoformat()
                 from .templates import async_build_template_tasks
 
@@ -404,8 +404,6 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
             # Validate unique name — only a CHANGED name: the successor of a
             # replace shares its archived predecessor's name and must stay
             # editable (bug audit 2026-09-27, helpers.object_names).
-            from .helpers.object_names import name_changed_onto_taken
-
             if not name:
                 errors[CONF_OBJECT_NAME] = "name_empty"
             elif name_changed_onto_taken(self.hass, entry, name):
@@ -414,8 +412,6 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
             if not errors:
                 # Migrate name-slug-based unique_ids BEFORE overwriting the
                 # name (see helpers.entity_rename.migrate_object_unique_ids).
-                from .helpers.entity_rename import migrate_object_unique_ids
-
                 migrate_object_unique_ids(self.hass, entry, obj_data.get("name"), name)
                 obj_data["name"] = name
                 obj_data["area_id"] = user_input.get(CONF_OBJECT_AREA)
@@ -428,7 +424,6 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
                 obj_data["documentation_url"] = user_input.get(CONF_OBJECT_DOCUMENTATION_URL) or None
                 # v1.4.10 (#46)
                 obj_data["notes"] = (user_input.get(CONF_OBJECT_NOTES) or "").strip() or None
-                from .helpers.sanitize import cap_object_fields
 
                 cap_object_fields(obj_data)
 
@@ -490,17 +485,12 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
 
     async def async_step_websocket(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle object creation from the WebSocket API (no UI)."""
-        from homeassistant.util import dt as dt_util
-
-        from .helpers.sanitize import cap_object_fields, cap_task_fields
-
         if user_input is None:
             return self.async_abort(reason="missing_data")
 
         obj_data = dict(user_input.get(CONF_OBJECT, {}))
         cap_object_fields(obj_data)
         object_name = obj_data.get(CONF_OBJECT_NAME, "Unknown")
-        from .helpers.object_names import object_unique_id
 
         # A replacement may reuse the name of the object it retires.
         unique_id = object_unique_id(self.hass, object_name, exclude_entry_id=obj_data.get("predecessor_entry_id"))
@@ -539,8 +529,6 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
         parts_in = user_input.get("parts")
         parts: dict[str, dict[str, Any]] = {}
         if isinstance(parts_in, dict):
-            from .helpers.parts import PartValidationError, normalize_part, portable_stock
-
             for pid, praw in parts_in.items():
                 try:
                     part = normalize_part({**praw, "id": pid})
@@ -572,15 +560,11 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
             name = str(user_input[CONF_OBJECT_NAME]).strip()
 
             # Validate unique name (helpers.object_names: by slug, current names)
-            from .helpers.object_names import name_taken
-
             if not name:
                 errors[CONF_OBJECT_NAME] = "name_empty"
             elif name_taken(self.hass, name):
                 errors[CONF_OBJECT_NAME] = "name_exists"
             else:
-                from .helpers.sanitize import cap_object_fields
-
                 self._object_data = {
                     "id": uuid4().hex,
                     CONF_OBJECT_NAME: name,
@@ -892,7 +876,6 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
             )
 
         object_name = self._object_data.get(CONF_OBJECT_NAME, "Unknown")
-        from .helpers.object_names import object_unique_id
 
         unique_id = object_unique_id(self.hass, object_name)
         if unique_id is None:
@@ -914,8 +897,6 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
 
     def _save_task_and_return(self) -> ConfigFlowResult:
         """Save the current task and return to task menu."""
-        from .config_flow_schedule import build_new_task_record
-
         task_id = self._current_task.get("id", uuid4().hex)
         task_data = build_new_task_record(
             self._current_task,
@@ -948,9 +929,6 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
         config_entry: ConfigEntry,
     ) -> OptionsFlow:
         """Get the options flow for this handler."""
-        from .config_flow_options_global import GlobalOptionsFlow
-        from .config_flow_options_task import MaintenanceOptionsFlow
-
         if config_entry.unique_id == GLOBAL_UNIQUE_ID:
             return GlobalOptionsFlow()
         return MaintenanceOptionsFlow()

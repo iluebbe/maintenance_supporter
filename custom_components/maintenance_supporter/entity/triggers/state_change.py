@@ -19,6 +19,7 @@ from ...helpers.managed_timer import ManagedTimer
 if TYPE_CHECKING:
     from .base_trigger import TriggerHost
 
+from ...helpers.dates import parse_persisted_utc
 from .base_trigger import BaseTrigger
 
 _LOGGER = logging.getLogger(__name__)
@@ -90,8 +91,6 @@ class StateChangeTrigger(BaseTrigger):
         self._pending_state: str | None = None
         self._pending_since: str | None = None
         # Persisted pending window from before a restart (consumed in setup).
-        from ...helpers.dates import parse_persisted_utc
-
         self._restored_pending_state: str | None = trigger_config.get("trigger_state_pending_state")
         self._restored_pending_dt: datetime | None = parse_persisted_utc(trigger_config.get("trigger_state_pending_since"))
         if self._restored_pending_dt is None:

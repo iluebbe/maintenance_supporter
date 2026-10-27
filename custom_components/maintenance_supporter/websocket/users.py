@@ -16,6 +16,8 @@ from ..const import (
 from ..helpers.aggregate import get_runtime_data, get_task_results, object_name
 from ..helpers.assignees import task_is_for
 from ..helpers.entry_tasks import write_task
+from ..helpers.global_options import get_global_options
+from ..helpers.member_display import member_display
 from ..helpers.permissions import require_write, user_may_write
 from ..helpers.sanitize import seed_rotation_assignee
 from . import (
@@ -46,9 +48,6 @@ async def ws_list_users(
     caller_is_admin = connection.user is not None and connection.user.is_admin
     # #169 follow-up: every caller gets the avatar (initials + colour) — the
     # resolved value, i.e. the admin override or the name/id-derived default.
-    from ..helpers.global_options import get_global_options
-    from ..helpers.member_display import member_display
-
     options = get_global_options(hass)
 
     for user in await hass.auth.async_get_users():

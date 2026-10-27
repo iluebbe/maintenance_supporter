@@ -7,21 +7,36 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.typing import VolDictType
 
-from ..const import BATTERY_FLEET_OBJECT_FLAG, BATTERY_FLEET_REMOVED_PARTS, CONF_OBJECT, CONF_PARTS, PARTS_COST_MODES
-from ..helpers.aggregate import get_store, object_name
+from ..const import BATTERY_FLEET_OBJECT_FLAG, BATTERY_FLEET_REMOVED_PARTS, CONF_OBJECT, CONF_PARTS, CONF_TASKS, PARTS_COST_MODES
+from ..helpers.aggregate import get_object_entries, get_store, object_name
 from ..helpers.entry_tasks import write_tasks
 from ..helpers.parts import (
     MAX_PART_STOCK,
     MAX_PARTS_PER_OBJECT,
     REUSE_KINDS,
     PartValidationError,
+    is_part_low,
     iter_part_links,
+    map_part_links,
     normalize_part,
 )
 from ..helpers.permissions import require_write
+from ..helpers.shared_parts import live_parts
 from ..helpers.ws_errors import send_translated_error
+from ..parts_runtime import (
+    SIGNAL_PARTS_UPDATED,
+    async_change_part_stock,
+    async_part_dispose,
+    async_part_ready_again,
+    async_part_use,
+    async_set_part_restoring,
+    async_untrack_part_stock,
+    schedule_buy_task_reconcile,
+)
 from . import ID_FIELD, _get_runtime_data, _load_object_entry
 
 
@@ -99,8 +114,6 @@ async def ws_create_part(
 
     stock = msg.get("stock")
     if stock is not None:
-        from ..parts_runtime import async_change_part_stock
-
         pile = msg.get("restoring") if part.get("reuse") else None
         await async_change_part_stock(
             hass, entry, part["id"], absolute=float(stock), restoring=float(pile) if pile is not None else None
@@ -144,13 +157,6 @@ async def ws_update_part(
     parts[part["id"]] = part
     _persist_parts(hass, entry, parts)
 
-    from ..parts_runtime import (
-        async_change_part_stock,
-        async_set_part_restoring,
-        async_untrack_part_stock,
-        schedule_buy_task_reconcile,
-    )
-
     # #208: the waiting pile goes with the part's reuse — set when given, and
     # gone when the part is no longer reusable. Booked together with the
     # stock: a first count creates the stock the pile lives next to.
@@ -170,10 +176,6 @@ async def ws_update_part(
         schedule_buy_task_reconcile(hass, entry)
     # The stock sensor repaints its name and attributes: without a stock
     # change nothing told it the part was renamed (bug audit 2026-10-16).
-    from homeassistant.helpers.dispatcher import async_dispatcher_send
-
-    from ..parts_runtime import SIGNAL_PARTS_UPDATED
-
     async_dispatcher_send(hass, SIGNAL_PARTS_UPDATED, entry.entry_id)
     connection.send_result(msg["id"], {"success": True})
 
@@ -211,9 +213,6 @@ async def ws_delete_part(
     # other objects draw on its pool with (#111). Only this object's own
     # task-level links were pruned; the rest dangled and raised a broken
     # part link repair on the next completion (DRY audit 2026-10-12, BI5-A3).
-    from ..const import CONF_TASKS
-    from ..helpers.parts import map_part_links
-
     part_id = msg["part_id"]
 
     def _pruned(task_entry_id: str, tasks: dict[str, Any]) -> tuple[dict[str, Any], bool]:
@@ -232,7 +231,6 @@ async def ws_delete_part(
     new_data = dict(entry.data)
     new_data[CONF_PARTS] = parts
     new_data[CONF_TASKS], _ = _pruned(entry.entry_id, dict(new_data.get(CONF_TASKS) or {}))
-    from ..helpers.aggregate import get_object_entries
 
     for other in get_object_entries(hass):
         if other.entry_id == entry.entry_id:
@@ -260,8 +258,6 @@ async def ws_delete_part(
     # prefix of ``_part_batt_aaa`` — the contained-segment match wiped the
     # AAA sensor's registry entry along with the AA part (bug review
     # 2026-09-04).
-    from homeassistant.helpers import entity_registry as er
-
     ent_reg = er.async_get(hass)
     for ent_entry in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
         if ent_entry.unique_id and ent_entry.unique_id.endswith(f"_part_{msg['part_id']}"):
@@ -269,8 +265,6 @@ async def ws_delete_part(
 
     # The reconcile removes an open buy task for the now-gone part (it reloads
     # when it changes anything); reload here regardless so the sensor vanishes.
-    from ..parts_runtime import schedule_buy_task_reconcile
-
     await hass.config_entries.async_reload(entry.entry_id)
     schedule_buy_task_reconcile(hass, entry)
     connection.send_result(msg["id"], {"success": True})
@@ -301,7 +295,6 @@ async def ws_restock_part(
     if ("delta" in msg) == ("absolute" in msg):
         connection.send_error(msg["id"], "invalid_input", "Provide exactly one of delta / absolute")
         return
-    from ..parts_runtime import async_change_part_stock
 
     new = await async_change_part_stock(
         hass,
@@ -337,7 +330,6 @@ async def ws_part_use(
     entry = _load_object_entry(hass, connection, msg)
     if entry is None:
         return
-    from ..parts_runtime import async_part_use
 
     result = await async_part_use(hass, entry, msg["part_id"], msg.get("quantity"))
     if result is None:
@@ -367,7 +359,6 @@ async def ws_part_ready_again(
     entry = _load_object_entry(hass, connection, msg)
     if entry is None:
         return
-    from ..parts_runtime import async_part_ready_again
 
     result = await async_part_ready_again(hass, entry, msg["part_id"], msg.get("quantity"))
     if result is None:
@@ -397,7 +388,6 @@ async def ws_part_dispose(
     entry = _load_object_entry(hass, connection, msg)
     if entry is None:
         return
-    from ..parts_runtime import async_part_dispose
 
     result = await async_part_dispose(hass, entry, msg["part_id"], msg.get("quantity"))
     if result is None:
@@ -419,7 +409,6 @@ async def ws_parts_overview(
     every consuming task — the object's own tasks and pooled #111 links from
     other objects. Read-only; the per-object CRUD stays on part/*.
     """
-    from ..helpers.parts import is_part_low
     from . import _get_merged_tasks, _get_object_entries
 
     entries = _get_object_entries(hass)
@@ -444,8 +433,6 @@ async def ws_parts_overview(
                         "pooled": owner != e.entry_id,
                     }
                 )
-
-    from ..helpers.shared_parts import live_parts
 
     rows: list[dict[str, Any]] = []
     for e in entries:

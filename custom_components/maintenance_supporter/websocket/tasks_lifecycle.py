@@ -19,6 +19,7 @@ from ..helpers.aggregate import get_store, get_task_results, object_name
 from ..helpers.entry_tasks import write_task
 from ..helpers.pause import clear_cycle_modifiers, reanchor_recurring_task, wants_fresh_cycle
 from ..helpers.permissions import require_write
+from ..helpers.schedule import is_recurring
 from ..helpers.ws_errors import send_translated_error
 from . import (
     ID_FIELD,
@@ -38,8 +39,6 @@ def _is_recurring_schedule(task: dict[str, Any]) -> bool:
     Delegates to the shared predicate in helpers.schedule (also used by the
     seasonal-pause resume, N3).
     """
-    from ..helpers.schedule import is_recurring
-
     return is_recurring(task)
 
 

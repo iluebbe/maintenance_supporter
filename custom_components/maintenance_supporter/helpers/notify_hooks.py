@@ -24,11 +24,14 @@ import json
 import logging
 from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, TemplateError
+from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers.template import Template
+from homeassistant.util import dt as dt_util
 from homeassistant.util.yaml import parse_yaml
 
 from ..const import (
@@ -39,10 +42,13 @@ from ..const import (
     EVENT_NOTIFICATION,
     GLOBAL_UNIQUE_ID,
 )
+from ..models.maintenance_task import MaintenanceTask
+from .aggregate import task_sensor_entity_id
 from .global_options import global_option
 from .notification_ids import PANEL_PATH, panel_url
 from .notify_icons import notify_icon_for
 from .reference_numbers import format_task_ref
+from .trigger_detail import trigger_detail
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -185,10 +191,7 @@ def sample_notification_context(hass: HomeAssistant) -> dict[str, Any]:
     (the samples ride ``**extra``), so a field added to the contract without
     a sample surfaces as ``None`` — the tripwire in
     tests/test_notify_event_fields.py refuses that."""
-    from homeassistant.util import dt as dt_util
-
     today = dt_util.now().date()
-    from datetime import timedelta
 
     return notification_context(
         hass,
@@ -238,7 +241,6 @@ def _task_config(hass: HomeAssistant, entry_id: Any, task_id: Any) -> dict[str, 
 def _area_name(hass: HomeAssistant, area_id: str | None) -> str | None:
     if not area_id:
         return None
-    from homeassistant.helpers import area_registry as ar
 
     area = ar.async_get(hass).async_get_area(area_id)
     return area.name if area is not None else None
@@ -250,8 +252,6 @@ def _task_block(hass: HomeAssistant, entry: Any, obj: Mapping[str, Any], task_id
     facts worth having - the last completion (Store) and the entity ids of
     its status sensor and trigger entity."""
     from ..entity.triggers import primary_entity_id
-    from .aggregate import task_sensor_entity_id
-    from .trigger_detail import trigger_detail
 
     td = (entry.data.get(CONF_TASKS) or {}).get(task_id) or {}
     if not td:
@@ -267,8 +267,6 @@ def _task_block(hass: HomeAssistant, entry: Any, obj: Mapping[str, Any], task_id
     schedule_type: str | None = None
     interval_days: int | None = None
     try:
-        from ..models.maintenance_task import MaintenanceTask
-
         model = MaintenanceTask.from_dict(td)
         schedule_type = str(getattr(model.schedule_type, "value", model.schedule_type)) if model.schedule_type else None
         # Real days, unit-aware: the raw count said 6 for a 6-month task

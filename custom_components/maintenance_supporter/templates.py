@@ -11,8 +11,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Protocol
+from uuid import uuid4
 
-from .const import DEFAULT_WARNING_DAYS
+from .const import CONF_DISABLED_TEMPLATE_IDS, DEFAULT_WARNING_DAYS
+from .helpers.climate import flip_months
+from .helpers.global_options import get_global_options
+from .helpers.home_profile import async_climate, async_home_place
+from .helpers.task_origin import ORIGIN_KEY, template_origin
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -2791,8 +2796,6 @@ def build_template_task(
     window is dropped where there is no cold season, so a Miami lawn is
     mowed all year), else the flat interval.
     """
-    from .helpers.climate import flip_months
-
     task: dict[str, Any] = {
         "name": localize_template_text(tt.name, lang) or tt.name,
         "type": tt.type,
@@ -2825,8 +2828,6 @@ async def async_home_template_tasks(hass: HomeAssistant, template: ObjectTemplat
     """The tasks ``template`` creates in THIS home — winter-only ones need a
     cold season, legal checks a duty in its region (the list the config flow
     shows before creating, 2.94)."""
-    from .helpers.home_profile import async_climate, async_home_place
-
     climate = await async_climate(hass)
     country, region = await async_home_place(hass)
     return template_tasks(template, has_winter=climate.has_winter if climate else True, country=country, region=region)
@@ -2843,11 +2844,6 @@ async def async_build_template_tasks(
     hemisphere and climate (helpers/climate.py; no climate data = northern
     hemisphere with winter), legal intervals and notes its country.
     """
-    from uuid import uuid4
-
-    from .helpers.home_profile import async_climate, async_home_place
-    from .helpers.task_origin import ORIGIN_KEY, template_origin
-
     climate = await async_climate(hass)
     hemisphere = climate.hemisphere if climate else "north"
     has_winter = climate.has_winter if climate else True
@@ -2947,8 +2943,5 @@ def get_disabled_template_ids(hass: HomeAssistant) -> set[str]:
     Read from the global entry's options; unknown ids are ignored so a stale
     list (e.g. after a template rename) can't hide anything by accident.
     """
-    from .const import CONF_DISABLED_TEMPLATE_IDS
-    from .helpers.global_options import get_global_options
-
     raw = get_global_options(hass).get(CONF_DISABLED_TEMPLATE_IDS) or []
     return {t for t in raw if isinstance(t, str) and t in KNOWN_TEMPLATE_IDS}

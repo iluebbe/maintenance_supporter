@@ -18,8 +18,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from homeassistant.util import dt as dt_util
+
 from ..const import CONF_OBJECT
+from ..export import object_entries
 from ..helpers.aggregate import is_object_entry
+from ..helpers.global_options import get_default_warning_days
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -81,10 +85,7 @@ class AdoptBatch:
     async def persist_task(self, entry: ConfigEntry, task_data: dict[str, Any]) -> None:
         """Persist one adopted task and count it (the object reloads once, in
         :meth:`finish`)."""
-        from homeassistant.util import dt as dt_util
-
         from ..helpers.entry_tasks import insert_new_task
-        from ..helpers.global_options import get_default_warning_days
 
         # Like every other create path: the creation day (the next-due
         # anchor, and what a backup restores) and the household's warning
@@ -127,8 +128,6 @@ class AdoptBatch:
 
     def result(self, **extra: Any) -> dict[str, Any]:
         """The WS result: counters, endpoint extras, the object total, errors."""
-        from ..export import object_entries
-
         result: dict[str, Any] = {
             "tasks_created": self.tasks_created,
             "objects_created": self.objects_created,

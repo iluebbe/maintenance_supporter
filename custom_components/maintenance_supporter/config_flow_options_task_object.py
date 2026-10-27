@@ -20,6 +20,9 @@ from .const import (
     CONF_OBJECT_SERIAL_NUMBER,
     CONF_OBJECT_WARRANTY_EXPIRY,
 )
+from .helpers.entity_rename import migrate_object_unique_ids
+from .helpers.object_names import name_changed_onto_taken
+from .helpers.sanitize import cap_object_fields
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -45,8 +48,6 @@ class ObjectSettingsMixin:
             # The name rule of every create path (helpers.object_names): a
             # rename onto another object's name was saved without a check
             # (bug audit 2026-09-27). An unchanged name always passes.
-            from .helpers.object_names import name_changed_onto_taken
-
             new_name = user_input.get(CONF_OBJECT_NAME)
             if isinstance(new_name, str):
                 new_name = new_name.strip()
@@ -58,14 +59,11 @@ class ObjectSettingsMixin:
         if user_input is not None and not errors:
             if user_input.get("go_back"):
                 return self._show_init_menu()
-            from .helpers.sanitize import cap_object_fields
 
             new_data = dict(self.config_entry.data)
             obj = dict(new_data.get(CONF_OBJECT, {}))
             # Migrate name-slug-based unique_ids BEFORE overwriting the name
             # (see helpers.entity_rename.migrate_object_unique_ids).
-            from .helpers.entity_rename import migrate_object_unique_ids
-
             migrate_object_unique_ids(
                 self.hass,
                 self.config_entry,

@@ -10,28 +10,38 @@ three options:
 from __future__ import annotations
 
 import logging
+import re
 from collections.abc import Mapping
 from typing import Any, cast
 
 import voluptuous as vol
 from homeassistant.components.repairs import RepairsFlow, RepairsFlowResult
+from homeassistant.config_entries import SOURCE_IMPORT
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import area_registry as ar
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers import selector
 
 from .config_flow_trigger import TRIGGER_ENTITY_DOMAINS
 from .const import (
     CONF_ADMIN_PANEL_USER_IDS,
+    CONF_OBJECT,
     CONF_TASKS,
+    DOCUMENT_STORE_KEY,
     DOMAIN,
     HistoryEntryType,
     ScheduleType,
 )
+from .entity.triggers import normalize_entity_ids
+from .helpers.action_listener import action_entity_ids, map_action_entity_ids
 from .helpers.aggregate import async_store_even_unloaded, object_name
+from .helpers.area_leftovers import async_leftover_areas
+from .helpers.device_link import is_maintenance_device
 from .helpers.entry_tasks import write_task
 from .helpers.global_options import entry_option
 from .helpers.issues import DEVICE_LINK_LOST_PREFIX, STALE_ACTION_PREFIX
-from .helpers.schedule import FLAT_RECURRENCE_KEYS, read_legacy_fields
+from .helpers.schedule import FLAT_RECURRENCE_KEYS, Schedule, read_legacy_fields
 from .models.maintenance_task import MaintenanceTask
 
 _LOGGER = logging.getLogger(__name__)
@@ -67,8 +77,6 @@ def _issue_resolved(flow: RepairsFlow) -> RepairsFlowResult:
 
 def _trigger_names(entry: Any, task_id: str, entity_id: str) -> bool:
     """Whether the task's trigger still uses ``entity_id``."""
-    from .entity.triggers import normalize_entity_ids
-
     trigger = ((entry.data.get(CONF_TASKS) or {}).get(task_id) or {}).get("trigger_config")
     return isinstance(trigger, dict) and entity_id in normalize_entity_ids(trigger)
 
@@ -406,8 +414,6 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         # A calendar schedule (weekdays, nth weekday, day of month, a
         # calendar) stays: rebuilt from the flat fields, which cannot say it,
         # the task became manual (bug audit 2026-10-16, N3).
-        from .helpers.schedule import Schedule
-
         if Schedule.parse(task_dict).is_calendar_kind:
             return f"Sensor trigger removed (entity was: {old_entity_id}). The calendar schedule stays."
 
@@ -599,8 +605,6 @@ class StaleActionEntityRepairFlow(RepairsFlow):
         """An abort when the task is gone or its action no longer names the
         stale entity (edited since) — a deleted task got a task dict holding
         only the action, and a working action was rewritten (N3)."""
-        from .helpers.action_listener import action_entity_ids
-
         task_id = str((self.data or {}).get("task_id", ""))
         if not _entry_has_task(entry, task_id):
             return self.async_abort(reason="task_deleted")
@@ -618,8 +622,6 @@ class StaleActionEntityRepairFlow(RepairsFlow):
         """Replace the missing entity wherever the action names it (target or
         data, one of several in a list) — the whole target used to be
         overwritten, dropping the other entities of a list."""
-        from .helpers.action_listener import map_action_entity_ids
-
         task_id = str((self.data or {}).get("task_id", ""))
         stale = str((self.data or {}).get("stale_entity", ""))
         task = dict(entry.data.get(CONF_TASKS, {}).get(task_id) or {})
@@ -649,8 +651,6 @@ class DocumentStorageRepairFlow(RepairsFlow):
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         """Confirm, then reclaim orphaned/dangling storage on submit."""
         if user_input is not None:
-            from . import DOCUMENT_STORE_KEY
-
             store = self.hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
             if store is not None:
                 await store.async_cleanup_issues()
@@ -666,10 +666,6 @@ class LeftoverAreasRepairFlow(RepairsFlow):
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         """Name the areas, remove them on submit."""
-        from homeassistant.helpers import area_registry as ar
-
-        from .helpers.area_leftovers import async_leftover_areas
-
         leftovers = async_leftover_areas(self.hass)
         if user_input is not None:
             area_reg = ar.async_get(self.hass)
@@ -697,8 +693,6 @@ class MissingGlobalEntryRepairFlow(RepairsFlow):
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         """Confirm, then recreate the global entry on submit."""
         if user_input is not None:
-            from homeassistant.config_entries import SOURCE_IMPORT
-
             await self.hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_IMPORT})
             return self.async_create_entry(data={})
 
@@ -737,10 +731,6 @@ class DeviceLinkRepairFlow(RepairsFlow):
         )
 
     async def async_step_relink(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
-        from homeassistant.helpers import device_registry as dr
-
-        from .helpers.device_link import is_maintenance_device
-
         entry = _entry_for_issue(self.hass, self.data)
         if entry is None:
             return self.async_abort(reason="entry_gone")
@@ -800,14 +790,7 @@ class DeviceLinkRepairFlow(RepairsFlow):
             return self._match
         self._match_cached = True
 
-        from homeassistant.helpers import device_registry as dr
-
-        from .const import CONF_OBJECT
-        from .helpers.device_link import is_maintenance_device
-
         def norm(value: Any) -> str:
-            import re
-
             return re.sub(r"[^a-z0-9]+", " ", str(value or "").lower()).strip()
 
         obj = entry.data.get(CONF_OBJECT, {}) or {}
@@ -850,8 +833,6 @@ class DeviceLinkRepairFlow(RepairsFlow):
     def _set_link(self, entry: Any, device_id: str | None) -> None:
         """Write the new link and reload — the entity→device attachment only
         changes on entity re-add (the same reason the WS update path reloads)."""
-        from .const import CONF_OBJECT
-
         obj = dict(entry.data.get(CONF_OBJECT, {}) or {})
         obj["ha_device_id"] = device_id
         self.hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_OBJECT: obj})

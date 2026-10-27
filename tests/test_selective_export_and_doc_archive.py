@@ -87,7 +87,7 @@ async def test_documents_archive_roundtrips_blobs_to_a_fresh_instance(
 ) -> None:
     """Upload a file, build the archive, wipe the blob, restore from the
     archive → the blob is back on disk and the doc is no longer dangling."""
-    from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+    from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
     from custom_components.maintenance_supporter.helpers.doc_archive import (
         build_documents_archive,
         import_documents_archive,
@@ -128,7 +128,7 @@ async def test_documents_archive_matches_object_by_name_cross_instance(
     """A cross-instance restore: the target object has the same NAME but a
     fresh id (as a JSON import would create). The archive re-attaches its docs
     by name and writes the blob."""
-    from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+    from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
     from custom_components.maintenance_supporter.helpers.doc_archive import (
         build_documents_archive,
         import_documents_archive,
@@ -168,7 +168,7 @@ async def test_document_task_links_survive_json_roundtrip(
     old task id is exported and remapped onto the fresh task id (mirrors the
     part-link remap). Before the fix task_ids were dropped, so a restored doc
     lost its task association."""
-    from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+    from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
     from custom_components.maintenance_supporter.const import CONF_TASKS
     from custom_components.maintenance_supporter.export import build_export_data
     from custom_components.maintenance_supporter.websocket.io import ws_import_json
@@ -205,7 +205,7 @@ async def test_objects_response_carries_per_task_document_count(
 ) -> None:
     """Each task in the objects WS response reports its own document_count so
     the task row can show a paperclip badge."""
-    from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+    from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
     from custom_components.maintenance_supporter.websocket.objects import ws_get_objects
 
     a = _object(hass, "Counted", "oid_counted", "maintenance_supporter_counted")

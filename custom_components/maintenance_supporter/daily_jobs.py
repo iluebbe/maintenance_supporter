@@ -4,7 +4,7 @@ lead-time reminders) and the noon retry of the lead-time reminders."""
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import date, timedelta
 from functools import partial
 from typing import Any
 
@@ -19,15 +19,20 @@ from homeassistant.helpers.event import (
     async_track_time_change,
     async_track_time_interval,
 )
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_OBJECT,
+    CONF_REMINDER_LEAD_DAYS,
+    CONF_WARRANTY_REMINDER_DAYS,
+    CONF_WARRANTY_REMINDER_ENABLED,
     CONF_WEEKLY_DIGEST_ENABLED,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     NOTIFICATION_MANAGER_KEY,
+    MaintenanceStatus,
 )
-from .helpers.aggregate import merged_tasks
+from .helpers.aggregate import compute_status_counts, merged_tasks
 from .helpers.aggregate import object_name as aggregate_object_name
 from .helpers.coordinator_data import task_results
 from .helpers.global_options import entry_option, get_global_entry
@@ -36,6 +41,7 @@ from .helpers.notify_hooks import KIND_LEAD_TIME
 from .helpers.pause import is_task_inert
 from .helpers.phases import task_label
 from .helpers.retention import async_run_retention_sweep
+from .models.maintenance_task import MaintenanceTask
 
 
 async def async_maybe_send_weekly_digest(hass: HomeAssistant, *, force: bool = False) -> None:
@@ -46,8 +52,6 @@ async def async_maybe_send_weekly_digest(hass: HomeAssistant, *, force: bool = F
     Extracted from the daily 08:00 time-change tick so it's unit-testable and
     can be triggered directly.
     """
-    from homeassistant.util import dt as dt_util
-
     if not force and dt_util.now().weekday() != 0:  # Monday only
         return
     global_entry = get_global_entry(hass)
@@ -55,7 +59,6 @@ async def async_maybe_send_weekly_digest(hass: HomeAssistant, *, force: bool = F
         return
     if not entry_option(global_entry, CONF_WEEKLY_DIGEST_ENABLED):
         return
-    from .helpers.aggregate import compute_status_counts
 
     counts = compute_status_counts(hass)
     overdue = int(counts.get("overdue", 0))
@@ -74,12 +77,6 @@ async def async_maybe_send_warranty_reminders(hass: HomeAssistant, *, force: boo
     exactly ``warranty_reminder_days`` days out — once, no per-object persistence
     needed. ``force`` widens it to the whole 0..N window (for the test hook).
     """
-    from datetime import date
-
-    from homeassistant.util import dt as dt_util
-
-    from .const import CONF_WARRANTY_REMINDER_DAYS, CONF_WARRANTY_REMINDER_ENABLED
-
     global_entry = get_global_entry(hass)
     if global_entry is None:
         return
@@ -125,9 +122,6 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
     per cycle overall (the day-match only occurs on one day per lead).
     Complements — does not replace — the warning_days status-change path.
     """
-    from .const import CONF_REMINDER_LEAD_DAYS, MaintenanceStatus
-    from .models.maintenance_task import MaintenanceTask
-
     global_entry = get_global_entry(hass)
     if global_entry is None:
         return

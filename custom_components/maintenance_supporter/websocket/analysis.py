@@ -7,6 +7,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 from ..const import (
     ADAPTIVE_EWA_ALPHA_RANGE,
@@ -15,7 +16,7 @@ from ..const import (
     MAX_ENTITY_ID_LENGTH,
     MAX_META_LENGTH,
 )
-from ..helpers.interval_analyzer import hemisphere
+from ..helpers.interval_analyzer import IntervalAnalyzer, hemisphere
 from ..helpers.permissions import require_write
 from ..helpers.task_fields import INTERVAL_DAYS_RANGE
 from ..helpers.task_persist import async_persist_adaptive_config
@@ -37,16 +38,12 @@ async def ws_analyze_interval(
     msg: dict[str, Any],
 ) -> None:
     """Return full interval analysis for a task (on-demand)."""
-    from ..helpers.interval_analyzer import IntervalAnalyzer
-
     ctx = _load_object_task(hass, connection, msg, merged=True)
     if ctx is None:
         return
     _entry, _rd, task_data = ctx
 
     # Hemisphere and current month for seasonal awareness
-    from homeassistant.util import dt as dt_util
-
     analyzer = IntervalAnalyzer()
     analysis = analyzer.analyze(
         task_data, task_data.get("adaptive_config") or AdaptiveConfig(), hemisphere=hemisphere(hass), current_month=dt_util.now().month

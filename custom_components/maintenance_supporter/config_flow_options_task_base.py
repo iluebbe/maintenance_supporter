@@ -7,12 +7,15 @@ they all rely on. Assembled in config_flow_options_task.py."""
 from __future__ import annotations
 
 from collections.abc import Mapping
+from datetime import date as date_cls
 from typing import Any
 from uuid import uuid4
 
 from homeassistant.config_entries import ConfigFlowResult, OptionsFlow
 from homeassistant.core import State, callback
+from homeassistant.util import dt as dt_util
 
+from .config_flow_schedule import build_new_task_record
 from .config_flow_trigger import TriggerConfigMixin
 from .const import (
     CONF_ADVANCED_ADAPTIVE,
@@ -22,9 +25,13 @@ from .const import (
     MAX_TASKS_PER_OBJECT,
 )
 from .helpers.aggregate import store_of
+from .helpers.global_options import get_global_options
 from .helpers.history import completed_entries
 from .helpers.schedule import (
+    Schedule,
+    cycle_state,
     normalize_task_storage,
+    preview_occurrences,
 )
 
 
@@ -56,7 +63,6 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
 
     def _save_new_task(self) -> ConfigFlowResult:
         """Save the current task and return to init."""
-        from .config_flow_schedule import build_new_task_record
         from .helpers.entry_tasks import insert_new_task
 
         task_id = uuid4().hex
@@ -135,8 +141,6 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
 
     def _get_global_options(self) -> dict[str, Any]:
         """Get global options from the global config entry."""
-        from .helpers.global_options import get_global_options
-
         return dict(get_global_options(self.hass))
 
     def _build_task_action_menu(self) -> list[str]:
@@ -180,12 +184,6 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
         Rendered ISO (YYYY-MM-DD): server-side text has no user locale, and
         ISO is the only order-unambiguous form. Menus re-render after every
         schedule edit, so the line updates right after saving."""
-        from datetime import date as date_cls
-
-        from homeassistant.util import dt as dt_util
-
-        from .helpers.schedule import Schedule, cycle_state, preview_occurrences
-
         merged: Mapping[str, Any] = dict(static_task)
         store = store_of(self.config_entry)
         if store is not None:

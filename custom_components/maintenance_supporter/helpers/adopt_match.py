@@ -25,7 +25,12 @@ import re
 from collections.abc import Collection, Iterable, Mapping
 from typing import TYPE_CHECKING, Any
 
+from homeassistant.helpers import device_registry as dr
+
 from ..const import CONF_OBJECT, CONF_TASKS
+from ..entity.triggers import normalize_entity_ids
+from .aggregate import get_object_entries, object_name
+from .device_link import device_owner_ids
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -89,8 +94,6 @@ def _attr(device: Any, name: str) -> str:
 
 
 def _integration_of(hass: HomeAssistant, device: Any) -> set[str]:
-    from .device_link import device_owner_ids
-
     return {
         e.domain
         for eid in device_owner_ids(device)
@@ -108,10 +111,6 @@ def candidate_object(hass: HomeAssistant, device_id: str) -> dict[str, Any] | No
     integration with the same maker and model — one object for two wallboxes).
     Two equally good objects → None: the user picks, we don't guess.
     """
-    from homeassistant.helpers import device_registry as dr
-
-    from .aggregate import get_object_entries, object_name
-
     dev_reg = dr.async_get(hass)
     device = dev_reg.async_get(device_id)
     if device is None:
@@ -191,8 +190,6 @@ def covering_task(
     names ("Nuki Smart Lock … Batterie kritisch" must not match "Akku laden
     (Smart Lock Pro)" on "smart" + "lock").
     """
-    from ..entity.triggers import normalize_entity_ids
-
     noise = set().union(*(_stems(t) for t in ignore if t)) if ignore else set()
     duty_stems = (set().union(*(_stems(n) for n in names if n)) if names else set()) - noise
     duty_action = _rare_action(duty_stems)

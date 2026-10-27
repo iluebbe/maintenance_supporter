@@ -27,7 +27,7 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.typing import ClientSessionGenerator
 
-from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
 from custom_components.maintenance_supporter.const import (
     BATTERY_FLEET_TASK_FLAG,
     CONF_BUDGET_MONTHLY,

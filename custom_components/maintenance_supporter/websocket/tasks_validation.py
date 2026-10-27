@@ -18,6 +18,7 @@ from ..const import (
     UNAVAILABLE_STATES,
     TriggerType,
 )
+from ..entity.triggers import normalize_entity_ids
 from ..helpers.trigger_fallback import threshold_limits_overlap
 
 # ---------------------------------------------------------------------------
@@ -88,8 +89,6 @@ def _validate_trigger_config(
     Returns (errors, warnings).
     Accepts both ``entity_id`` (str) and ``entity_ids`` (list[str]).
     """
-    from ..entity.triggers import normalize_entity_ids
-
     errors: list[str] = []
     warnings: list[str] = []
 

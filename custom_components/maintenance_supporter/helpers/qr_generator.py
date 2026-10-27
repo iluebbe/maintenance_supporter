@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
+from homeassistant.helpers.network import get_url
+
 from .notification_ids import PANEL_PATH
 from .qrcodegen import QrCode
 
@@ -50,8 +52,6 @@ def build_qr_url(
     else:
         # Try HA's get_url() which considers external/internal/cloud URLs
         try:
-            from homeassistant.helpers.network import get_url
-
             base = get_url(hass).rstrip("/")
         except Exception:  # noqa: BLE001 - get_url() can raise NoURLAvailableError + various network helpers
             if hass.config.external_url:

@@ -33,6 +33,7 @@ from ..const import (
     PANEL_TITLES,
     THRESHOLD_PERCENT_RANGE,
 )
+from .i18n import normalize_language
 from .settings_registry import setting_default
 
 
@@ -117,8 +118,6 @@ def get_panel_title(hass: HomeAssistant) -> str:
 
 def default_panel_title(hass: HomeAssistant) -> str:
     """The sidebar title an unset ``panel_title`` means, in the server's language."""
-    from .i18n import normalize_language
-
     return PANEL_TITLES.get(normalize_language(hass), PANEL_TITLES["en"])
 
 

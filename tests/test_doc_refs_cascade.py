@@ -18,7 +18,7 @@ import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
 from custom_components.maintenance_supporter.const import CONF_PARTS, CONF_TASKS, DOMAIN, HistoryEntryType
 from custom_components.maintenance_supporter.export import _export_documents
 from custom_components.maintenance_supporter.helpers import doc_archive

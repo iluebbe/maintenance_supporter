@@ -25,6 +25,7 @@ from ..const import (
     CONF_TASKS,
     DOMAIN,
 )
+from .dates import canonical_iso_date, parse_iso_date
 
 
 async def async_create_object(
@@ -56,8 +57,6 @@ async def async_create_object(
     spring" as an installation date broke every age / warranty computation
     that parses it (bug audit 2026-09-27). Raises ValueError.
     """
-    from .dates import canonical_iso_date, parse_iso_date
-
     for field, value in (("installation_date", installation_date), ("warranty_expiry", warranty_expiry)):
         if value and (not isinstance(value, str) or parse_iso_date(value) is None):
             raise ValueError(f"{field} must be a valid date (YYYY-MM-DD), got {value!r}")

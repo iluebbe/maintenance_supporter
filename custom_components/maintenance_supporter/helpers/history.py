@@ -12,11 +12,16 @@ import hashlib
 import math
 import re
 from collections.abc import Iterable
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from ..const import LIFECYCLE_HISTORY_TYPES, HistoryEntryType
-from ..models.shapes import HistoryEntry
 from .dates import local_date_from_iso, parse_iso_date, stamp_instant
+
+if TYPE_CHECKING:
+    # For types only: models/ loads MaintenanceTask, which imports this
+    # module, so a runtime import here is a cycle whose outcome depends on
+    # which of the two is imported first.
+    from ..models.shapes import HistoryEntry
 
 # The note ``MaintenanceTask.reset`` has always written ("Reset to 2026-10-01")
 # — the only record of the day on resets from before ``reset_date``.

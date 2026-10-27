@@ -28,7 +28,10 @@ import re
 from collections.abc import Iterable, Mapping
 from typing import TYPE_CHECKING, Any
 
+from ..const import CONF_PARTS
+from .calendar_source import with_event_titles  # calendar_source imports schedule
 from .completion_requirements import sanitize_required_completion_fields
+from .parts import sanitize_consumes_parts
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -109,8 +112,6 @@ def apply_phase_fields(
     usable cycle or none). Per-phase consumes_parts get the same part-registry
     validation the task-level field gets.
     """
-    from ..const import CONF_PARTS
-    from .parts import sanitize_consumes_parts
     from .shared_parts import foreign_part_resolver
 
     defs = sanitize_phase_defs(raw_defs)
@@ -193,8 +194,6 @@ def task_label(task: Mapping[str, Any] | None, event_titles: Iterable[str] | Non
     2026-09-26, DRY BR-A5). *event_titles* are the next events' titles a
     task result carries (``TaskResult.next_event_titles``; ``None`` = none).
     """
-    from .calendar_source import with_event_titles  # calendar_source imports schedule
-
     data: Mapping[str, Any] = task or {}
     name = str(data.get("name") or data.get("id") or "")
     phase = current_phase(dict(data))

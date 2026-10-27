@@ -24,6 +24,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
+from ..const import DOCUMENT_STORE_KEY, DOMAIN
+from .completion_photos import history_photo_ids
+
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
@@ -111,7 +114,6 @@ def photo_references(hass: HomeAssistant, *, strict: bool = True) -> set[str] | 
     :func:`is_unattached_photo` checks on its own.
     """
     from .aggregate import get_object_entries, merged_tasks, store_of
-    from .completion_photos import history_photo_ids
 
     refs: set[str] = set()
     for entry in get_object_entries(hass):
@@ -150,8 +152,6 @@ def is_unattached_photo(doc: dict[str, Any], doc_id: str, references: set[str]) 
 def unattached_photo_ids(hass: HomeAssistant, object_id: str | None = None, *, strict: bool = True) -> list[str] | None:
     """The unattached photos (of one object, or all); ``None`` when that
     cannot be decided (see :func:`photo_references`)."""
-    from ..const import DOCUMENT_STORE_KEY, DOMAIN
-
     store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     if store is None:
         return []
@@ -177,7 +177,6 @@ def own_photo_doc_ids(hass: HomeAssistant, object_id: str, photo_doc_ids: list[s
     """
     if not photo_doc_ids:
         return []
-    from ..const import DOCUMENT_STORE_KEY, DOMAIN
     from .documents import KIND_FILE
 
     store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)

@@ -19,6 +19,7 @@ from uuid import uuid4
 import voluptuous as vol
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.helpers import selector
+from homeassistant.util import dt as dt_util
 
 from .config_flow_helpers import (
     CALENDAR_KIND_VALUES,
@@ -51,6 +52,7 @@ from .const import (
 )
 from .helpers.global_options import get_default_warning_days
 from .helpers.pause import write_anchor
+from .helpers.sanitize import cap_task_fields, parse_labels_text
 from .helpers.schedule import KIND_WEEKDAYS
 from .helpers.task_fields import INTERVAL_DAYS_RANGE, TASK_PRIORITIES, WARNING_DAYS_RANGE
 
@@ -393,10 +395,6 @@ def build_new_task_record(
     dynamic state must ride entry.data; the options flow initializes both via
     the live Store instead.
     """
-    from homeassistant.util import dt as dt_util
-
-    from .helpers.sanitize import cap_task_fields, parse_labels_text
-
     task_data: dict[str, Any] = {
         "id": task_id,
         "object_id": object_id,

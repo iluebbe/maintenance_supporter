@@ -8,17 +8,20 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import selector
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_TASK_ENDS_COUNT,
     CONF_TASK_ENDS_UNTIL,
     CONF_TASK_INTERVAL_UNIT,
     CONF_TASK_SEASON_MONTHS,
+    DOMAIN,
     MAX_SERIES_COUNT,
     SCHEDULE_OFFSET_MAX_DAYS,
 )
-from .helpers.dates import INTERVAL_UNITS
+from .helpers.dates import INTERVAL_UNITS, parse_iso_date
 from .helpers.entity_analyzer import EntityAnalyzer
 from .helpers.schedule import (
     KIND_CALENDAR,
@@ -44,10 +47,6 @@ def is_future_date(value: Any) -> bool:
     refresh and kept the object in setup-retry (bug audit 2026-09-27). A
     malformed value is not "future" — the selectors already refuse it.
     """
-    from homeassistant.util import dt as dt_util
-
-    from .helpers.dates import parse_iso_date
-
     parsed = parse_iso_date(str(value)) if value else None
     return parsed is not None and parsed > dt_util.now().date()
 
@@ -85,10 +84,6 @@ def own_calendar_entity_ids(hass: HomeAssistant) -> list[str]:
     """This integration's own calendar — no source for a calendar schedule:
     its events ARE the tasks' due dates, a task scheduled by it chased its
     own tail (bug audit 2026-10-16)."""
-    from homeassistant.helpers import entity_registry as er
-
-    from .const import DOMAIN
-
     entity_id = er.async_get(hass).async_get_entity_id("calendar", DOMAIN, "maintenance_supporter_calendar")
     return [entity_id] if entity_id else []
 

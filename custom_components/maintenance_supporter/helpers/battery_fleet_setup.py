@@ -17,24 +17,31 @@ from typing import Any
 from uuid import uuid4
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, valid_entity_id
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 
 from ..const import (
+    BATTERY_FLEET_ASK_CELLS,
+    BATTERY_FLEET_DUE_WITHOUT_SENSOR,
     BATTERY_FLEET_EXCLUDED,
     BATTERY_FLEET_INCLUDED,
     BATTERY_FLEET_OBJECT_FLAG,
     BATTERY_FLEET_REMOVED_PARTS,
     BATTERY_FLEET_TASK_FLAG,
+    BATTERY_FLEET_TRACK_SELF_CHARGING,
     CONF_OBJECT,
     CONF_PARTS,
     CONF_TASK_CONSUMES_PARTS,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    STORES_CACHE_KEY,
 )
-from .aggregate import name_or_title, store_of, store_or_cached
+from ..entity.triggers import normalize_entity_ids
+from ..parts_runtime import async_change_part_stock
+from .aggregate import name_or_title, object_slug, store_of, store_or_cached
 from .battery_fleet import (
     canonical_type,
     discover_battery_types,
@@ -50,6 +57,9 @@ from .battery_fleet import (
 from .battery_lifetime import cell_size, charged_kind
 from .entry_tasks import write_task, write_tasks
 from .global_options import get_default_warning_days
+from .i18n import normalize_language, normalize_language_code
+from .parts import PART_REF_FIELD, iter_part_links, normalize_part
+from .task_persist import async_persist_task
 from .trigger_fallback import threshold_limits_overlap
 
 _LOGGER = logging.getLogger(__name__)
@@ -88,10 +98,7 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
     WS): the created object/task/part names and notes are localized through
     the ``_T`` table, falling back to the server language, then English.
     """
-    from .i18n import normalize_language, normalize_language_code
     from .object_create import async_create_object
-    from .parts import normalize_part
-    from .task_persist import async_persist_task
 
     lang = normalize_language_code(language) if language else normalize_language(hass)
     types = discover_battery_types(hass)  # {TYPE: total_qty}
@@ -484,8 +491,6 @@ async def async_mark_replaced(
         # A rechargeable kind offered before any note named it (cell_choices)
         # gets its part at the first Replaced that picks it. It starts
         # uncounted like every cell part; its stock sensor comes with a reload.
-        from .i18n import normalize_language
-
         went_in = {put_in for put_in, _out, _qty in swaps} | {right for _booked, right, _qty in corrections}
         kinds = {kind: 0 for kind in sorted(went_in) if is_rechargeable_type(kind)}
         if _reconcile_type_parts(hass, fleet, kinds, normalize_language(hass)):
@@ -548,7 +553,6 @@ def roster_cell_choices(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
     fleet = find_fleet_entry(hass)
     if fleet is None or not fleet_ask_cells(hass):
         return {}
-    from .i18n import normalize_language
 
     parts = fleet.data.get(CONF_PARTS) or {}
     lang = normalize_language(hass)
@@ -592,7 +596,6 @@ async def _async_book_swaps(hass: HomeAssistant, swaps: list[tuple[str, str, int
     store = store_or_cached(hass, fleet) if fleet is not None else None
     if not switched or fleet is None or store is None:
         return consumed
-    from ..parts_runtime import async_change_part_stock
 
     parts = fleet.data.get(CONF_PARTS) or {}
     for put_in, taken_out, qty in switched:
@@ -624,7 +627,6 @@ async def _async_correct_cells(hass: HomeAssistant, corrections: list[tuple[str,
     taken: dict[str, int] = {}
     if not corrections or fleet is None or store is None:
         return taken
-    from ..parts_runtime import async_change_part_stock
 
     parts = fleet.data.get(CONF_PARTS) or {}
     for booked, right, qty in corrections:
@@ -646,7 +648,6 @@ async def async_consume_type_parts(hass: HomeAssistant, by_type: dict[str, int])
     fleet = find_fleet_entry(hass)
     if fleet is None or not by_type:
         return consumed
-    from ..parts_runtime import async_change_part_stock
 
     parts = fleet.data.get(CONF_PARTS) or {}
     for btype, qty in by_type.items():
@@ -698,8 +699,6 @@ def sanitize_installed_cells(raw: Any) -> dict[str, str]:
     """An imported ``{entity_id: cell type}`` map reduced to valid entries —
     which devices hold rechargeable cells is the user's own record and rides
     the backup like the swap log."""
-    from homeassistant.core import valid_entity_id
-
     if not isinstance(raw, dict):
         return {}
     out: dict[str, str] = {}
@@ -754,8 +753,6 @@ async def async_record_replacement(hass: HomeAssistant, entity_id: str, replaced
     record on a level-driven recovery (#181 follow-up, setting
     ``battery_auto_record_recovery``, see battery_fleet._schedule_auto_record).
     """
-    from homeassistant.helpers import entity_registry as er
-
     parsed = dt_util.parse_datetime(replaced_at)
     if parsed is None:
         raise HomeAssistantError("invalid_date")
@@ -879,8 +876,6 @@ def set_track_self_charging(hass: HomeAssistant, enabled: bool) -> bool:
     Stored on the fleet object like the exclude/include lists. Returns False
     when no fleet exists yet.
     """
-    from ..const import BATTERY_FLEET_TRACK_SELF_CHARGING
-
     return _mutate_fleet_object(hass, lambda obj: obj.__setitem__(BATTERY_FLEET_TRACK_SELF_CHARGING, bool(enabled)))
 
 
@@ -890,16 +885,12 @@ def set_due_without_sensor(hass: HomeAssistant, enabled: bool) -> bool:
     On by default; stored as False to switch off. Returns False when no
     fleet exists yet.
     """
-    from ..const import BATTERY_FLEET_DUE_WITHOUT_SENSOR
-
     return _mutate_fleet_object(hass, lambda obj: obj.__setitem__(BATTERY_FLEET_DUE_WITHOUT_SENSOR, bool(enabled)))
 
 
 def set_ask_cells(hass: HomeAssistant, enabled: bool) -> bool:
     """Persist the fleet-wide ask-which-cells opt-in (D#213). Returns False
     when no fleet exists yet."""
-    from ..const import BATTERY_FLEET_ASK_CELLS
-
     return _mutate_fleet_object(hass, lambda obj: obj.__setitem__(BATTERY_FLEET_ASK_CELLS, bool(enabled)))
 
 
@@ -918,8 +909,6 @@ def fleet_task_trigger_ok(entry: ConfigEntry) -> bool:
     stored with only the plural ``entity_ids``); without it the task never
     fires or auto-completes. This is the health signal behind the repair path.
     """
-    from ..entity.triggers import normalize_entity_ids
-
     found = find_fleet_task(entry)
     if found is None:
         return False
@@ -934,8 +923,6 @@ async def _reconcile_fleet_task(hass: HomeAssistant, entry: ConfigEntry, lang: s
       keeping the user's name/type/translations untouched.
     * Task deleted entirely → recreate it fresh (localized).
     """
-    from .task_persist import async_persist_task
-
     if fleet_task_trigger_ok(entry):
         return False
 
@@ -962,8 +949,6 @@ def _heal_fleet_trigger_recovery_flag(hass: HomeAssistant, entry: ConfigEntry) -
     entity list stays untouched. Runs at every start, so restored backups
     from old exports heal too.
     """
-    from ..entity.triggers import normalize_entity_ids
-
     found = find_fleet_task(entry)
     if found is None:
         return False
@@ -1071,10 +1056,6 @@ async def reconcile_fleet_parts_at_start(hass: HomeAssistant, entry: ConfigEntry
     # claims the entity. Sweep every part-stock registry entry whose part no
     # longer exists; this also heals installs where the v2.70.0 prune
     # already ran (the part is gone, only the registry corpse remains).
-    from homeassistant.helpers import entity_registry as er
-
-    from .aggregate import object_slug
-
     ent_reg = er.async_get(hass)
     orphans_removed = 0
     # Exactly the stock sensors' shape: any unique id containing "_part_"
@@ -1265,8 +1246,6 @@ def _repoint_store_history(store: Any, task_ids: list[str], moves: dict[str, str
 
 def _repoint_tasks(tasks: dict[str, Any], moves: dict[str, str], *, owner_id: str, foreign: bool) -> tuple[dict[str, Any], bool]:
     """Consumption links (and, on the fleet itself, the auto-buy ``part_ref``)."""
-    from .parts import PART_REF_FIELD
-
     out: dict[str, Any] = {}
     changed = False
     for tid, task in tasks.items():
@@ -1317,10 +1296,6 @@ async def migrate_fleet_part_ids(hass: HomeAssistant, entry: ConfigEntry) -> dic
     sensor's registry entry (renamed so a customised entity id survives;
     removed when the canonical sensor exists). Returns ``{old: new}``.
     """
-    from homeassistant.helpers import entity_registry as er
-
-    from ..const import STORES_CACHE_KEY
-
     parts = dict(entry.data.get(CONF_PARTS) or {})
     moves: dict[str, str] = {}
     for pid in parts:
@@ -1433,8 +1408,6 @@ def _stale_cell_part_untouched(entry: ConfigEntry, part_id: str, part: dict[str,
     if _extract_placeholder(str(part.get("name") or ""), "{type} battery", "type") is None:
         return False
     # Phase links count (S7): a part only a phase uses is not untouched.
-    from .parts import iter_part_links
-
     for task in (entry.data.get(CONF_TASKS) or {}).values():
         if any(x.get("part_id") == part_id for x in iter_part_links(task)):
             return False
@@ -1469,7 +1442,6 @@ def _legacy_unknown_untouched(entry: ConfigEntry, legacy: dict[str, Any], stock:
     threshold = legacy.get("reorder_threshold")
     if not (isinstance(threshold, (int, float)) and threshold >= 2 and legacy.get("restock_quantity") == threshold * 2):
         return False
-    from .parts import iter_part_links
 
     for task in (entry.data.get(CONF_TASKS) or {}).values():
         if any(x.get("part_id") == "batt_unknown" for x in iter_part_links(task)):
@@ -1480,8 +1452,6 @@ def _legacy_unknown_untouched(entry: ConfigEntry, legacy: dict[str, Any], stock:
 def _reconcile_type_parts(hass: HomeAssistant, entry: ConfigEntry, types: dict[str, int], lang: str) -> list[str]:
     """Add parts for battery types newly seen since setup. Returns added ids
     (the caller initializes their stock, mirroring the create path)."""
-    from .parts import normalize_part
-
     parts = dict(entry.data.get(CONF_PARTS) or {})
     existing_ids = set(parts)
     removed = set(entry.data.get(CONF_OBJECT, {}).get(BATTERY_FLEET_REMOVED_PARTS) or [])

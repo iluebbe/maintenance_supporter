@@ -17,6 +17,8 @@ The frontend fetches served documents through HA's signed-path mechanism
 
 from __future__ import annotations
 
+import io as _io
+import os
 from http import HTTPStatus
 from typing import cast
 from urllib.parse import quote
@@ -25,9 +27,11 @@ from aiohttp import hdrs, web
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.http import HomeAssistantView
 
-from .const import DOMAIN, MAX_DOCS_PER_OBJECT, MAX_NAME_LENGTH
+from .const import DOCUMENT_STORE_KEY, DOMAIN, MAX_DOCS_PER_OBJECT, MAX_NAME_LENGTH
 from .helpers import documents as docmod
-from .helpers.aggregate import is_object_entry
+from .helpers.aggregate import is_object_entry, object_id_for_entry
+from .helpers.completion_requirements import MAX_UNATTACHED_PHOTOS_PER_OBJECT, unattached_photo_ids
+from .helpers.doc_archive import MAX_ARCHIVE_BYTES, ArchiveTooLarge, async_build_documents_archive_file, import_documents_archive
 from .helpers.documents import KIND_FILE, MAX_TAG_LEN, MAX_TAGS
 from .helpers.permissions import user_can_write
 
@@ -68,8 +72,6 @@ def _get_store(hass: HomeAssistant) -> docmod.DocumentStore:
     (Home Assistant cannot unregister them): after its last entry went, a
     document link answered with a KeyError 500 (bug audit 2026-10-16) —
     now a 404."""
-    from . import DOCUMENT_STORE_KEY
-
     store: docmod.DocumentStore | None = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     if store is None:
         raise web.HTTPNotFound
@@ -119,16 +121,12 @@ class DocumentUploadView(HomeAssistantView):
         if entry is None or not is_object_entry(entry):
             return self.json_message("Object not found", HTTPStatus.NOT_FOUND)
 
-        from .helpers.aggregate import object_id_for_entry
-
         if not may_write:
             # A non-writer's photos are meant for a completion; a runaway
             # (or hostile) client could otherwise fill any object's document
             # slots with orphans nobody but a writer could remove (bug audit
             # 2026-09-27, R SEC-3). Unattached ones are capped per object —
             # documents/discard_upload and the retention sweep clear them.
-            from .helpers.completion_requirements import MAX_UNATTACHED_PHOTOS_PER_OBJECT, unattached_photo_ids
-
             pending = unattached_photo_ids(self.hass, object_id_for_entry(entry), strict=False) or []
             if len(pending) >= MAX_UNATTACHED_PHOTOS_PER_OBJECT:
                 return self.json_message(
@@ -269,8 +267,6 @@ class DocumentExcerptView(HomeAssistantView):
             return web.Response(status=HTTPStatus.NOT_FOUND)
 
         def _extract() -> bytes | None:
-            import io as _io
-
             from pypdf import PdfReader, PdfWriter
 
             # An open file, not the path: pypdf reads a path into memory
@@ -334,9 +330,6 @@ class DocumentsArchiveView(HomeAssistantView):
         """
         if not self._require_admin(request):
             return web.Response(status=HTTPStatus.FORBIDDEN)
-        import os
-
-        from .helpers.doc_archive import ArchiveTooLarge, async_build_documents_archive_file
 
         raw = request.query.get("entry_ids")
         entry_ids = {e for e in raw.split(",") if e} if raw else None
@@ -371,7 +364,6 @@ class DocumentsArchiveView(HomeAssistantView):
         """Restore a documents archive ZIP (blobs + metadata)."""
         if not self._require_admin(request):
             return self.json_message("Not authorized", HTTPStatus.FORBIDDEN)
-        from .helpers.doc_archive import MAX_ARCHIVE_BYTES, import_documents_archive
 
         request._client_max_size = MAX_ARCHIVE_BYTES + 1024 * 1024
         data = await request.post()

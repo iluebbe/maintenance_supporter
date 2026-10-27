@@ -14,6 +14,7 @@ from homeassistant.helpers.event import (
     EventStateChangedData,
     async_track_state_change_event,
 )
+from homeassistant.helpers.start import async_at_started
 
 from ...const import (
     EVENT_TRIGGER_ACTIVATED,
@@ -327,8 +328,6 @@ class BaseTrigger(ABC):
         if self.hass.is_running:
             self._track(write())
         elif self.hass.state is CoreState.not_running:
-            from homeassistant.helpers.start import async_at_started
-
             @callback
             def _started(_hass: HomeAssistant) -> None:
                 self._track(write())

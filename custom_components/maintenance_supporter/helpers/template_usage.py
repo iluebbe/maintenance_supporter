@@ -21,6 +21,7 @@ from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 
 from ..const import CONF_OBJECT, CONF_TASKS
+from .aggregate import get_object_entries
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -108,8 +109,6 @@ def object_template_id(obj_data: dict[str, Any], tasks: dict[str, Any] | None) -
 
 def templates_in_use(hass: HomeAssistant) -> set[str]:
     """Ids of the templates an active (not archived) object stands for."""
-    from .aggregate import get_object_entries
-
     used: set[str] = set()
     for entry in get_object_entries(hass):
         obj_data = entry.data.get(CONF_OBJECT) or {}

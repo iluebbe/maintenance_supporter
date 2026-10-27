@@ -8,10 +8,8 @@ from homeassistant import data_entry_flow
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 
-from custom_components.maintenance_supporter import (
-    DOCUMENT_STORE_KEY,
-    _check_document_storage_issues,
-)
+from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
+from custom_components.maintenance_supporter import _check_document_storage_issues
 from custom_components.maintenance_supporter.const import DOMAIN
 from custom_components.maintenance_supporter.helpers.documents import DocumentStore
 from custom_components.maintenance_supporter.repairs import (

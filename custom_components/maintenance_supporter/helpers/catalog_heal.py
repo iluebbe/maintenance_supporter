@@ -39,6 +39,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
 from ..const import CONF_TASKS, CONF_TRIGGER_CONFIG
+from ..entity.triggers import normalize_entity_ids, primary_entity_id
 
 # platform → the on_states the OLD catalog wrote (the broken shape a heal
 # recognises — history, so spelled out). The healed states are read from the
@@ -65,7 +66,6 @@ def _catalog_on_states(platform: str) -> tuple[str, ...]:
 def _healed_trigger(hass: HomeAssistant, tc: Mapping[str, Any]) -> dict[str, Any] | None:
     if tc.get("type") != "runtime" or tc.get("attribute") != "hvac_action":
         return None
-    from ..entity.triggers import primary_entity_id
 
     # Either stored shape: a trigger with only the ``entity_ids`` list was
     # never healed (same-class audit 2026-10-04).
@@ -104,7 +104,6 @@ def _catalog_wear_limit(platform: str, key: str) -> float:
 def _healed_wear_trigger(hass: HomeAssistant, tc: Mapping[str, Any]) -> dict[str, Any] | None:
     if tc.get("type") != "threshold" or tc.get("trigger_below") is None or tc.get("trigger_above") is not None:
         return None
-    from ..entity.triggers import normalize_entity_ids
 
     entity_ids = normalize_entity_ids(dict(tc))
     if not entity_ids:
@@ -135,7 +134,6 @@ _STRAY_KEY_HEALS: dict[str, tuple[str, str]] = {
 def _healed_stray_key_trigger(hass: HomeAssistant, tc: Mapping[str, Any]) -> dict[str, Any] | None:
     if tc.get("type") != "threshold" or tc.get("trigger_below") is None:
         return None
-    from ..entity.triggers import normalize_entity_ids
 
     entity_ids = normalize_entity_ids(dict(tc))
     if len(entity_ids) != 2:

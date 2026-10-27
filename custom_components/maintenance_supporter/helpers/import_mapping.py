@@ -26,6 +26,7 @@ from collections.abc import Iterable
 from typing import Any
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 
 from ..const import (
     CONF_GROUPS,
@@ -165,8 +166,6 @@ def attach_device_hints(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, 
     """Add ``devices`` — the integration identifiers (stable across
     installations, e.g. ``["roborock", "q7_1234"]``) of every device an
     exported object is linked to or an adopted task was fingerprinted on."""
-    from homeassistant.helpers import device_registry as dr
-
     ids: set[str] = set()
     for obj in data.get("objects") or []:
         if not isinstance(obj, dict):
@@ -202,8 +201,6 @@ def device_map(hass: HomeAssistant, hints: Any) -> dict[str, str]:
     """old device id → the device on this instance with the same integration
     identifiers. An id that exists here stays; one that matches nothing stays
     too (the integration may not be set up yet — linking later works)."""
-    from homeassistant.helpers import device_registry as dr
-
     mapping: dict[str, str] = {}
     if not isinstance(hints, dict):
         return mapping

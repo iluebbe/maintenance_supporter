@@ -53,11 +53,14 @@ from .const import (
     MaintenanceTypeEnum,
     ScheduleType,
 )
-from .helpers.aggregate import store_of
+from .helpers.aggregate import check_nfc_tag_duplicate, merged_tasks, store_of
 from .helpers.dates import normalize_hhmm
 from .helpers.global_options import get_default_warning_days, is_schedule_time_enabled
+from .helpers.notify_icons import is_valid_icon
 from .helpers.pause import write_anchor
+from .helpers.phases import apply_phase_fields, clamp_phase_cursor, parse_phases_text, phases_to_text
 from .helpers.reading_slots import parse_reading_slots_text, reading_slots_text
+from .helpers.sanitize import cap_task_fields, parse_labels_text
 from .helpers.schedule import (
     keep_month_filter,
     read_legacy_fields,
@@ -68,6 +71,7 @@ from .helpers.task_fields import (
     TASK_PRIORITIES,
     WARNING_DAYS_RANGE,
 )
+from .helpers.task_persist import async_delete_task
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -156,8 +160,6 @@ class TaskCrudMixin:
         # that stale date back and rolled the completion anchor (and its
         # postpone) back (bug audit 2026-09-27). Pre-fill from the merged
         # view and write only a CHANGED date.
-        from .helpers.aggregate import merged_tasks
-
         current_lp = (merged_tasks(self.config_entry).get(self._selected_task_id or "") or {}).get(CONF_TASK_LAST_PERFORMED)
 
         errors: dict[str, str] = {}
@@ -173,8 +175,6 @@ class TaskCrudMixin:
             nfc_val = (user_input.get(CONF_TASK_NFC_TAG) or "").strip()
             stored_nfc = ((self.config_entry.data.get(CONF_TASKS) or {}).get(self._selected_task_id or "") or {}).get(CONF_TASK_NFC_TAG)
             if nfc_val and nfc_val != stored_nfc:
-                from .helpers.aggregate import check_nfc_tag_duplicate
-
                 dup_warn = check_nfc_tag_duplicate(
                     self.hass,
                     nfc_val,
@@ -187,8 +187,6 @@ class TaskCrudMixin:
             # malformed value is refused (same rule as the WS write paths).
             notify_icon_val = (user_input.get(CONF_TASK_NOTIFY_ICON) or "").strip()
             if notify_icon_val:
-                from .helpers.notify_icons import is_valid_icon
-
                 if not is_valid_icon(notify_icon_val):
                     errors[CONF_TASK_NOTIFY_ICON] = "invalid_notify_icon"
 
@@ -311,8 +309,6 @@ class TaskCrudMixin:
                 updated_task[CONF_TASK_PRIORITY] = user_input.get(CONF_TASK_PRIORITY, "normal")
                 labels_text = user_input.get(CONF_TASK_LABELS_TEXT, "")
                 if labels_text.strip():
-                    from .helpers.sanitize import parse_labels_text
-
                     updated_task["labels"] = parse_labels_text(labels_text)
                 else:
                     updated_task.pop("labels", None)
@@ -344,8 +340,6 @@ class TaskCrudMixin:
                     updated_task["readings"] = slots
                 else:
                     updated_task.pop("readings", None)
-
-                from .helpers.sanitize import cap_task_fields
 
                 # The form has no completion-action fields: the stored action
                 # keeps the user it runs as (bug audit 2026-09-27 — stripping
@@ -662,8 +656,6 @@ class TaskCrudMixin:
         ``apply_phase_fields`` as the WS write path, and the Store cursor is
         clamped the same way ws_update_task clamps it.
         """
-        from .helpers.phases import apply_phase_fields, clamp_phase_cursor, parse_phases_text, phases_to_text
-
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
         task = tasks_data.get(self._selected_task_id or "", {})
 
@@ -736,8 +728,6 @@ class TaskCrudMixin:
                 # delete_task service (Store, notification state, registry
                 # entries, group refs, vacation exempt list, repair issues).
                 # The inline copy this replaced missed most of those.
-                from .helpers.task_persist import async_delete_task
-
                 if self._selected_task_id:
                     await async_delete_task(self.hass, self.config_entry, self._selected_task_id)
 

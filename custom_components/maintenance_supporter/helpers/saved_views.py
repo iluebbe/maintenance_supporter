@@ -27,6 +27,7 @@ from ..const import (
     CONF_SAVED_FILTER_VIEWS,
     DEFAULT_TASK_PRIORITY,
     MAX_ID_LENGTH,
+    MAX_LABEL_LENGTH,
     MAX_SAVED_VIEWS,
     MAX_VIEW_NAME_LENGTH,
     TaskPriority,
@@ -64,8 +65,6 @@ def _clean_filters(raw: Any) -> dict[str, Any]:
 
     # v2.26: a label filter ("only tasks tagged 'garden'") — free text like the
     # labels themselves (capped to their length), None = no label filter.
-    from ..const import MAX_LABEL_LENGTH
-
     label = src.get("label")
     label = label.strip() if isinstance(label, str) and label.strip() else None
     if isinstance(label, str) and len(label) > MAX_LABEL_LENGTH:

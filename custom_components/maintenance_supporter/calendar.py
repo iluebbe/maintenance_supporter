@@ -21,10 +21,13 @@ from .const import (
 )
 from .entity.id_change import entity_id_changed
 from .helpers.aggregate import merged_tasks, task_results_of
+from .helpers.calendar_source import next_event_titles
 from .helpers.dates import interval_span_days, parse_hhmm
 from .helpers.global_options import is_schedule_time_enabled
 from .helpers.i18n import format_text, normalize_language
 from .helpers.pause import is_task_inert
+from .helpers.phases import task_label
+from .helpers.places import object_place, zone_name
 from .models.maintenance_task import MaintenanceTask
 
 if TYPE_CHECKING:
@@ -593,9 +596,6 @@ async def async_setup_entry(
 def _task_label(task: MaintenanceTask, hass: HomeAssistant | None = None) -> str:
     """Task name, with the due cycle phase appended for phased tasks (#139)
     and, for a calendar-driven task, the next events' titles (#189)."""
-    from .helpers.calendar_source import next_event_titles
-    from .helpers.phases import task_label
-
     titles = next_event_titles(hass, task._schedule(), task.next_due) if hass is not None else None
     return task_label(
         {"name": task.name, "phases": task.phases, "phase_sequence": task.phase_sequence, "phase_cursor": task.phase_cursor},
@@ -738,8 +738,6 @@ class MaintenanceCalendar(CalendarEntity):
 
             # 2026-10 places: an object maintained away from home names its
             # place as the events' location (phone calendars show it).
-            from .helpers.places import object_place, zone_name
-
             place_name = zone_name(self._hass, object_place(entry.data.get(CONF_OBJECT)))
 
             # Merge static (ConfigEntry) + dynamic (Store) task data

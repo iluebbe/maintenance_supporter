@@ -23,7 +23,7 @@ import zipfile
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
 from custom_components.maintenance_supporter.const import DOMAIN
 from custom_components.maintenance_supporter.helpers import doc_archive
 from custom_components.maintenance_supporter.helpers.import_mapping import async_user_map

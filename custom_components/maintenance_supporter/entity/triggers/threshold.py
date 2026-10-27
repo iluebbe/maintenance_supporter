@@ -12,6 +12,7 @@ from homeassistant.util import dt as dt_util
 if TYPE_CHECKING:
     from .base_trigger import TriggerHost
 
+from ...helpers.dates import parse_persisted_utc
 from ...helpers.managed_timer import ManagedTimer
 from ...helpers.trigger_fallback import threshold_exceeds
 from .base_trigger import BaseTrigger
@@ -48,8 +49,6 @@ class ThresholdTrigger(BaseTrigger):
         self._for_timer = ManagedTimer(hass, f"ThresholdTrigger:{self.entity_id}:for")
 
         # Restore persisted exceeded-since timestamp (survives HA restarts)
-        from ...helpers.dates import parse_persisted_utc
-
         exceeded_since = trigger_config.get("trigger_threshold_exceeded_since")
         self._exceeded_since_dt: datetime | None = parse_persisted_utc(exceeded_since)
         self._exceeded_since: str | None = exceeded_since if self._exceeded_since_dt is not None else None

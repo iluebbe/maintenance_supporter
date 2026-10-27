@@ -9,6 +9,14 @@ from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
+from ...const import CONF_TASKS
+from ...entity.triggers import normalize_entity_ids
+from ..adopt_match import candidate_object, covering_task
+from ..aggregate import get_object_entries
+from ..device_link import device_owner_ids
+from ..i18n import normalize_language
+from ..problem_sensors import _object_by_device
+from ..reset_wiring import pressable_reset_buttons
 from ..task_origin import origin_is_duty, task_origin
 from ._model import (
     _entity_matches,
@@ -26,10 +34,6 @@ from ._registry import SIGNATURES
 
 def _entity_watchers(hass: HomeAssistant) -> dict[str, set[str]]:
     """entity_id → lowercased names of the tasks watching it via a trigger."""
-    from ...const import CONF_TASKS
-    from ...entity.triggers import normalize_entity_ids
-    from ..aggregate import get_object_entries
-
     out: dict[str, set[str]] = {}
     known = _catalog_name_variants()
     for entry in get_object_entries(hass):
@@ -101,7 +105,6 @@ def reset_button_for(
     or None when the duty has none or the button is missing / user-disabled."""
     if not sig.resets or not matched:
         return None
-    from ..reset_wiring import pressable_reset_buttons
 
     buttons = pressable_reset_buttons(hass, device_id, integration)
     for entry in matched:
@@ -127,7 +130,6 @@ def _appliance_type(hass: HomeAssistant, device: Any, integration: str, key: str
     device (WashData: ``device_type``) — options first, then data."""
     if not key or device is None:
         return None
-    from ..device_link import device_owner_ids
 
     for entry_id in device_owner_ids(device):
         entry = hass.config_entries.async_get_entry(entry_id)
@@ -164,9 +166,6 @@ def annotate_for_target(
     under another name, which the dialog shows unticked. A task adopted from
     the same duty counts as present under any name (2.95 fingerprint).
     """
-    from ...const import CONF_TASKS
-    from ..adopt_match import covering_task
-
     tasks = dict(entry.data.get(CONF_TASKS, {})) if entry is not None else {}
     ignore = (device_name, entry.title if entry is not None else "")
     by_lower = {str(t.get("name", "")).lower(): str(t.get("name", "")) for t in tasks.values()}
@@ -206,9 +205,6 @@ def discover_integration_setups(hass: HomeAssistant, *, targets: dict[str, str] 
     per device for the dialog's preview (``""`` = a new object).
     """
     from ...templates import localize_template_text
-    from ..adopt_match import candidate_object
-    from ..i18n import normalize_language
-    from ..problem_sensors import _object_by_device
 
     lang = normalize_language(hass)
     ent_reg = er.async_get(hass)
@@ -366,7 +362,6 @@ def discover_integration_setups(hass: HomeAssistant, *, targets: dict[str, str] 
         if not tasks and targets is None:
             continue
         tasks.sort(key=lambda t: (t["task_name"], t["direction"]))
-        from ...const import CONF_TASKS
 
         out.append(
             {

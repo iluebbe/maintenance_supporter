@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any
 from uuid import uuid4
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import device_registry as dr
 from homeassistant.util import dt as dt_util
 
 from ..const import (
     ARCHIVE_REASON_OBJECT,
+    BATTERY_FLEET_OBJECT_FLAG,
     CONF_OBJECT,
     CONF_OBJECT_AREA,
     CONF_OBJECT_DOCUMENTATION_URL,
@@ -25,6 +28,7 @@ from ..const import (
     CONF_OBJECT_SERIAL_NUMBER,
     CONF_OBJECT_WARRANTY_EXPIRY,
     CONF_TASKS,
+    DOCUMENT_STORE_KEY,
     DOMAIN,
     MAX_DATE_LENGTH,
     MAX_ENTITY_ID_LENGTH,
@@ -33,14 +37,33 @@ from ..const import (
     MAX_TEXT_LENGTH,
     MAX_URL_LENGTH,
 )
-from ..helpers.aggregate import get_coordinator_data, get_store, is_object_entry, name_or_title
+from ..helpers.aggregate import (
+    get_coordinator_data,
+    get_object_entries,
+    get_runtime_data,
+    get_store,
+    is_object_entry,
+    name_or_title,
+    object_id_for_entry,
+)
+from ..helpers.device_link import is_maintenance_device
+from ..helpers.device_swap import move_tasks_to_device, old_device_ids
+from ..helpers.entity_attributes import get_entity_attributes
+from ..helpers.entity_rename import migrate_object_unique_ids
 from ..helpers.global_options import cleanup_group_refs
+from ..helpers.i18n import normalize_language, normalize_language_code
 from ..helpers.object_create import async_create_object
-from ..helpers.pause import reanchor_recurring_task, wants_fresh_cycle
+from ..helpers.object_names import name_changed_onto_taken, name_taken, unique_object_name
+from ..helpers.parts import PART_REF_FIELD, map_part_links
+from ..helpers.pause import build_resumed_entry_data, reanchor_recurring_task, wants_fresh_cycle
 from ..helpers.permissions import require_write
 from ..helpers.sanitize import cap_object_fields, strip_object_reference, strip_task_runtime_state
+from ..helpers.shared_parts import async_relink_history, borrowed_part_ids, relink_borrowers
+from ..helpers.task_origin import ORIGIN_KEY
+from ..helpers.template_usage import OBJECT_TEMPLATE_ID
 from ..helpers.url_safety import is_safe_url
 from ..helpers.ws_errors import send_translated_error, send_unsafe_url_error
+from ..parts_runtime import schedule_buy_task_reconcile
 from . import (
     ID_FIELD,
     _build_object_response,
@@ -107,8 +130,6 @@ def _remap_own_part_links(task: dict[str, Any], part_id_map: dict[str, str], own
     pool (#111) is carried verbatim; an own link to a part the shelf does not
     carry is dropped rather than left pointing at nothing.
     """
-    from ..helpers.parts import map_part_links
-
     def _rewrite(link: dict[str, Any]) -> dict[str, Any] | None:
         owner = str(link.get("entry_id") or "")
         if owner and owner != own_entry_id:
@@ -156,8 +177,6 @@ def _validate_device_link(
     """
     stored = stored or {}
     if (device_id := msg.get("ha_device_id")) and device_id != stored.get("ha_device_id"):
-        from homeassistant.helpers import device_registry as dr
-
         device = dr.async_get(hass).async_get(device_id)
         if device is None:
             connection.send_error(msg["id"], "invalid_device", f"No HA device {device_id!r}")
@@ -167,8 +186,6 @@ def _validate_device_link(
         # cannot exclude them, and ours carries the SAME NAME as the appliance
         # — three prod objects spent months linked to their own doppelgänger
         # before anyone noticed. For object hierarchy there is parent_entry_id.
-        from ..helpers.device_link import is_maintenance_device
-
         if is_maintenance_device(hass, device):
             connection.send_error(
                 msg["id"],
@@ -278,8 +295,6 @@ async def ws_create_object(
     # A taken name is refused the way a rename onto it is — before the dry
     # run too, which called it valid; the create then failed with a bare
     # "already_configured" (DRY audit 2026-10-12, BI5-A2).
-    from ..helpers.object_names import name_taken
-
     if name_taken(hass, name):
         send_translated_error(connection, msg["id"], "invalid_input", "Another object already has this name", translation_key="object_name_taken")
         return
@@ -369,8 +384,6 @@ async def ws_update_object(
         # (bug audit 2026-09-27). Only a CHANGED name is checked: the dialog
         # re-sends the name on every save, and the successor of a replace
         # legitimately shares its archived predecessor's name.
-        from ..helpers.object_names import name_changed_onto_taken
-
         if name_changed_onto_taken(hass, entry, msg["name"]):
             send_translated_error(connection, msg["id"], "invalid_input", "Another object already has this name", translation_key="object_name_taken")
             return
@@ -412,8 +425,6 @@ async def ws_update_object(
     if "name" in msg:
         # Per-task unique_ids embed the object's name slug — migrate the
         # entity registry on rename or the next reload orphans every entity.
-        from ..helpers.entity_rename import migrate_object_unique_ids
-
         migrate_object_unique_ids(hass, entry, obj.get(CONF_OBJECT_NAME), msg["name"])
         obj[CONF_OBJECT_NAME] = msg["name"]
     if "area_id" in msg:
@@ -445,8 +456,6 @@ async def ws_update_object(
         # A new device for this object (the appliance was replaced, or
         # re-paired and came back under a new id): its sensor triggers,
         # completion actions and adopted-task fingerprints follow it.
-        from ..helpers.device_swap import move_tasks_to_device, old_device_ids
-
         tasks = dict(new_data.get(CONF_TASKS) or {})
         moved_tasks, swap_report = move_tasks_to_device(
             hass, tasks, old_device_ids(obj, tasks.values(), new_device), new_device, user_id=connection.user.id
@@ -469,8 +478,6 @@ async def ws_update_object(
         # The other open panels and cards: their subscription pushes on a
         # coordinator update, and this write is none — a rename showed there
         # after the next 5-minute refresh (bug audit 2026-10-16, W5).
-        from ..helpers.aggregate import get_runtime_data
-
         rd = get_runtime_data(hass, entry.entry_id)
         if rd is not None and rd.coordinator is not None:
             rd.coordinator.async_update_listeners()
@@ -525,8 +532,6 @@ async def ws_duplicate_object(
     last_performed, its own new id, and no unique entity_slug / NFC tag). Ideal
     for fleets of near-identical assets (hotel rooms, identical pumps).
     """
-    from copy import deepcopy
-
     entry = _load_object_entry(hass, connection, msg)
     if entry is None:
         return
@@ -535,15 +540,12 @@ async def ws_duplicate_object(
     # There is ONE battery fleet: a copy carried the fleet flags on the object
     # and its task and ran a second fleet — double triggers and notifications
     # (bug audit 2026-09-27; task/duplicate refuses the fleet task alike).
-    from ..const import BATTERY_FLEET_OBJECT_FLAG
-
     if src_obj.get(BATTERY_FLEET_OBJECT_FLAG):
         send_translated_error(connection, msg["id"], "invalid_input", "The battery fleet object cannot be duplicated", translation_key="fleet_not_duplicable")
         return
     new_obj = deepcopy(dict(src_obj))
     new_obj["id"] = uuid4().hex
     base_name = str(src_obj.get(CONF_OBJECT_NAME, "")).strip() or "Object"
-    from ..helpers.object_names import unique_object_name
 
     new_obj[CONF_OBJECT_NAME] = unique_object_name(hass, f"{base_name[: MAX_NAME_LENGTH - 7]} (copy)")
     # Serial number identifies one physical unit — never duplicate it.
@@ -561,9 +563,6 @@ async def ws_duplicate_object(
     # (bug audit 2026-09-27). Stock does not travel — the copy is another
     # unit with its own shelf, untracked until counted.
     part_id_map, new_parts = _carry_parts_shelf(entry.data.get("parts"), keep_doc_links=False)
-
-    from ..helpers.parts import PART_REF_FIELD
-    from ..helpers.task_origin import ORIGIN_KEY
 
     new_tasks: dict[str, Any] = {}
     for src_task in entry.data.get(CONF_TASKS, {}).values():
@@ -619,10 +618,6 @@ async def ws_create_from_template(
     its tasks from the template and routes them through the same websocket flow
     step used elsewhere (cap + normalize + create).
     """
-    from uuid import uuid4
-
-    from ..helpers.i18n import normalize_language, normalize_language_code
-    from ..helpers.template_usage import OBJECT_TEMPLATE_ID
     from ..templates import async_build_template_tasks, get_template_by_id, localize_template_text
 
     template = get_template_by_id(msg["template_id"])
@@ -638,8 +633,6 @@ async def ws_create_from_template(
     # Auto-number on collision: applying the same template twice (or owning
     # three litter boxes) must not fail with already_configured — the second
     # object becomes "Name 2", then "Name 3", …
-    from ..helpers.object_names import unique_object_name
-
     name = unique_object_name(hass, name)
     object_id = uuid4().hex
     new_obj: dict[str, Any] = {
@@ -711,9 +704,6 @@ def _live_pool_buy_tasks(hass: HomeAssistant, entry: Any) -> set[str]:
     stay live (bug audit 2026-09-27; the buy-task reconcile keeps these
     parts, parts_runtime).
     """
-    from ..helpers.parts import PART_REF_FIELD
-    from ..helpers.shared_parts import borrowed_part_ids
-
     in_use = borrowed_part_ids(hass, entry.entry_id, active_only=True)
     if not in_use:
         return set()
@@ -893,8 +883,6 @@ async def ws_resume_object(
     pump comes back with a clean slate, not five months overdue. With
     ``undo`` (the Undo of the pause) the tasks keep their dates.
     """
-    from ..helpers.pause import build_resumed_entry_data
-
     entry = _load_object_entry(hass, connection, msg)
     if entry is None:
         return
@@ -943,8 +931,6 @@ async def ws_replace_object(
     installation date set to today, and serial number / warranty cleared —
     those belong to the specific old unit.
     """
-    from copy import deepcopy
-
     entry = _load_object_entry(hass, connection, msg)
     if entry is None:
         return
@@ -956,8 +942,6 @@ async def ws_replace_object(
     # The one battery fleet: a replacement ran a second fleet whose parts no
     # fleet code reaches, while the fleet commands kept acting on the archived
     # predecessor (bug audit 2026-10-17, W-1; object/duplicate refuses alike).
-    from ..const import BATTERY_FLEET_OBJECT_FLAG
-
     if src_obj.get(BATTERY_FLEET_OBJECT_FLAG):
         send_translated_error(connection, msg["id"], "invalid_input", "The battery fleet object cannot be replaced", translation_key="fleet_not_replaceable")
         return
@@ -1011,8 +995,6 @@ async def ws_replace_object(
     if "ha_device_id" in msg:
         new_device = msg["ha_device_id"]
         if new_device and new_device != src_obj.get("ha_device_id"):
-            from ..helpers.device_swap import move_tasks_to_device, old_device_ids
-
             new_tasks, swap_report = move_tasks_to_device(
                 hass, new_tasks, old_device_ids(src_obj, new_tasks.values(), new_device), new_device, user_id=connection.user.id
             )
@@ -1030,9 +1012,6 @@ async def ws_replace_object(
 
     # Carry the document library over — manuals outlive the machine. Blob
     # refcounts increase; nothing is copied on disk.
-    from .. import DOCUMENT_STORE_KEY
-    from ..helpers.aggregate import object_id_for_entry
-
     doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     if doc_store is not None:
         src_docs = doc_store.for_object(object_id_for_entry(entry))
@@ -1059,9 +1038,6 @@ async def ws_replace_object(
         # successor's shelf. They kept linking to the archived predecessor —
         # whose buy tasks the archive suppresses — so the pool silently split
         # in two (bug audit 2026-09-27).
-        from ..helpers.aggregate import get_object_entries
-        from ..helpers.shared_parts import async_relink_history, relink_borrowers
-
         relink_borrowers(hass, entry.entry_id, new_entry_id, part_id_map)
         # Their history too: a later edit or delete of a completion put the
         # parts back on the archived predecessor's shelf (audit 2026-10-17, S-7).
@@ -1069,8 +1045,6 @@ async def ws_replace_object(
             if other.entry_id not in (entry.entry_id, new_entry_id):
                 await async_relink_history(hass, other, entry.entry_id, new_entry_id, part_id_map)
         if new_entry is not None:
-            from ..parts_runtime import schedule_buy_task_reconcile
-
             schedule_buy_task_reconcile(hass, new_entry)
 
     # Retire the predecessor (archive cascade) with the successor pointer.
@@ -1105,7 +1079,5 @@ def ws_entity_attributes(
     Used by the frontend trigger setup to show a dropdown of suitable attributes
     instead of a free text field.
     """
-    from ..helpers.entity_attributes import get_entity_attributes
-
     result = get_entity_attributes(hass, msg["entity_id"])
     connection.send_result(msg["id"], result)

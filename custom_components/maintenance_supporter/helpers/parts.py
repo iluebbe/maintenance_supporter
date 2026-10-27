@@ -31,6 +31,8 @@ from urllib.parse import quote_plus
 from uuid import uuid4
 
 from ..const import DEFAULT_CURRENCY_DECIMALS, PARTS_COST_MODES
+from .i18n import normalize_language_code
+from .pause import is_task_inert
 
 # ── Limits (mirrored in the WS schemas + panel dialog) ──────────────────────
 MAX_PARTS_PER_OBJECT = 50
@@ -73,8 +75,6 @@ def is_open_buy_task(task: Mapping[str, Any], obj: Mapping[str, Any], last_perfo
     and voice "bought …" each spelled this out, and voice took a completed
     reminder for an open one and completed it again (DRY audit 2026-10-12,
     BR5-A8)."""
-    from .pause import is_task_inert
-
     return buy_task_part_id(task) is not None and last_performed is None and not is_task_inert(dict(task), dict(obj))
 
 
@@ -559,8 +559,6 @@ def default_search_template(lang: str, country: str | None = None) -> str:
     """The built-in shopping-search template: the HA country's Amazon store
     when the country is set and known (D#182), else the UI language's, else
     amazon.com."""
-    from .i18n import normalize_language_code
-
     code = str(country or "").strip().upper()
     if code in _COUNTRY_SEARCH_TEMPLATES:
         return _COUNTRY_SEARCH_TEMPLATES[code]
@@ -600,8 +598,6 @@ def resolve_shopping_url(part: Mapping[str, Any], template: str | None, lang: st
 
 
 def buy_task_name(part_name: str, lang: str) -> str:
-    from .i18n import normalize_language_code
-
     tpl = _BUY_NAME_TEMPLATES.get(normalize_language_code(lang), _BUY_NAME_TEMPLATES["en"])
     return tpl.replace("{name}", part_name)
 

@@ -18,7 +18,7 @@ from .const import (
     TriggerEntityState,
 )
 from .entity.triggers import normalize_entity_ids
-from .helpers.aggregate import task_results_of
+from .helpers.aggregate import merged_tasks, task_results_of
 from .helpers.schedule import read_legacy_fields
 
 if TYPE_CHECKING:
@@ -100,8 +100,6 @@ async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: Mainten
         diag["overview"] = _get_integration_overview(hass)
     else:
         # Object entry diagnostics — merge Store dynamic data for stats
-        from .helpers.aggregate import merged_tasks
-
         merged_data = dict(entry.data)
         merged_data[CONF_TASKS] = merged_tasks(entry)
 

@@ -30,8 +30,13 @@ from homeassistant.helpers import intent
 from homeassistant.util import dt as dt_util
 
 from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_TASKS, MAX_TEXT_LENGTH
+from .helpers import voice_undo
 from .helpers.aggregate import store_of
-from .helpers.parts import MAX_PART_STOCK
+from .helpers.assignees import person_display_name
+from .helpers.entry_tasks import write_task
+from .helpers.i18n import normalize_language_code
+from .helpers.parts import MAX_PART_STOCK, buy_task_part_id, is_open_buy_task, is_part_low, restock_units
+from .helpers.reading_slots import resolve_reading_values, sanitize_reading_slots
 from .intent import (
     INTENT_ADD_NOTE,
     INTENT_BOUGHT_PART,
@@ -52,6 +57,7 @@ from .intent import (
     _sp_n,
     _task_snapshot,
 )
+from .parts_runtime import async_change_part_stock
 
 # Languages that write a decimal COMMA ("12,5"). Everything else here writes
 # a point; the spoken answer follows the same convention.
@@ -62,8 +68,6 @@ _NUMBER = re.compile(r"-?\d[\d\s.,'’]*")
 
 
 def _lang(language: str | None) -> str:
-    from .helpers.i18n import normalize_language_code
-
     return normalize_language_code(language)
 
 
@@ -139,8 +143,6 @@ def _entry_and_static(hass: Any, target: dict[str, Any]) -> tuple[Any, dict[str,
 
 def _takes_a_reading(static: dict[str, Any]) -> bool:
     """Whether a task records a value: named readings, the reading kind, or a unit."""
-    from .helpers.reading_slots import sanitize_reading_slots
-
     return bool(
         sanitize_reading_slots(list(static.get("readings") or []))
         or static.get("type") == "reading"
@@ -169,8 +171,6 @@ class RecordReadingIntent(intent.IntentHandler):
         name = str(slots["name"]["value"]).strip()
         spoken = str(slots["value"]["value"]).strip()
         lang = intent_obj.language
-
-        from .helpers.reading_slots import resolve_reading_values, sanitize_reading_slots
 
         # Matched among the tasks that take a reading first: "the water meter
         # reads 1234" was ambiguous between its Reading and its Calibration,
@@ -222,8 +222,6 @@ class RecordReadingIntent(intent.IntentHandler):
                     slots_def, {slot["id"]: value}, default_unit=static.get("reading_unit")
                 )
             }
-
-        from .helpers import voice_undo
 
         before = voice_undo.capture(hass, target["entry_id"], target["task_id"])
         try:
@@ -296,9 +294,6 @@ class AddNoteIntent(intent.IntentHandler):
             )
             return response
 
-        from .helpers import voice_undo
-        from .helpers.entry_tasks import write_task
-
         before = voice_undo.capture(hass, target["entry_id"], target["task_id"])
         write_task(hass, entry, target["task_id"], {**static, "notes": combined})
         await coordinator.async_refresh_now()
@@ -309,8 +304,6 @@ class AddNoteIntent(intent.IntentHandler):
 
 async def _person_name(hass: Any, user_id: str) -> str:
     """How the household calls a user (helpers/assignees), else the raw id."""
-    from .helpers.assignees import person_display_name
-
     return await person_display_name(hass, user_id) or user_id
 
 
@@ -366,8 +359,6 @@ class ShoppingListIntent(intent.IntentHandler):
 
     async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
         """Handle the intent."""
-        from .helpers.parts import is_part_low
-
         lang = intent_obj.language
         response = intent_obj.create_response()
         low = sorted(
@@ -384,8 +375,6 @@ class ShoppingListIntent(intent.IntentHandler):
 
 def _open_buy_task(hass: Any, part: dict[str, Any]) -> str | None:
     """The live buy task restocking *part*, if the shopping reminder is open."""
-    from .helpers.parts import buy_task_part_id, is_open_buy_task
-
     entry = hass.config_entries.async_get_entry(part["entry_id"])
     store = store_of(entry) if entry is not None else None
     if entry is None or store is None:
@@ -431,9 +420,6 @@ class BoughtPartIntent(intent.IntentHandler):
         qty = slots.get("quantity", {}).get("value")
         quantity = float(qty) if qty else float(part.get("restock_quantity") or 1)
 
-        from .helpers import voice_undo
-        from .parts_runtime import async_change_part_stock
-
         entry = hass.config_entries.async_get_entry(part["entry_id"])
         if entry is None:
             response.async_set_error(
@@ -462,8 +448,6 @@ class BoughtPartIntent(intent.IntentHandler):
                 except ServiceValidationError:
                     completed = False
         if not completed:
-            from .helpers.parts import restock_units
-
             await async_change_part_stock(hass, entry, part["part_id"], delta=restock_units(part, quantity))
         voice_undo.remember(hass, intent_obj, "bought", before, part=part["name"], qty=say_number(quantity, lang))
         store = store_of(entry)
@@ -540,8 +524,6 @@ class UndoIntent(intent.IntentHandler):
 
     async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
         """Handle the intent."""
-        from .helpers import voice_undo
-
         hass = intent_obj.hass
         lang = intent_obj.language
         response = intent_obj.create_response()

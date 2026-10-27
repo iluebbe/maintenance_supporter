@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.typing import ClientSessionGenerator
 
-from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
 from custom_components.maintenance_supporter.const import DOMAIN, GLOBAL_UNIQUE_ID
 from custom_components.maintenance_supporter.helpers import documents as docmod
 from custom_components.maintenance_supporter.helpers.documents import DocumentStore

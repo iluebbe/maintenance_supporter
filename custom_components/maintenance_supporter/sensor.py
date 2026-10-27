@@ -24,9 +24,11 @@ from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_OBJECT,
+    CONF_PARTS,
     CONF_TASKS,
     DEFAULT_ENTITY_LOGIC,
     DEFAULT_TASK_PRIORITY,
+    DOCUMENT_STORE_KEY,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     SIGNAL_BATTERY_FLEET_CHANGED,
@@ -36,6 +38,7 @@ from .const import (
     task_unique_id,
 )
 from .coordinator import MaintenanceCoordinator
+from .entity.area_cost import AreaCostSensorManager
 from .entity.entity_base import MaintenanceEntity
 from .entity.id_change import entity_id_changed
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
@@ -46,11 +49,15 @@ from .helpers.assignees import person_of_user
 from .helpers.coordinator_data import has_coordinator_data
 from .helpers.dates import parse_hhmm
 from .helpers.global_options import is_schedule_time_enabled
+from .helpers.parts import is_part_low
 from .helpers.pause import is_task_inert
 from .helpers.phases import current_phase_summary
+from .helpers.reading_slots import last_reading_attributes
 from .helpers.schedule import read_legacy_fields
+from .helpers.shared_parts import live_parts
 from .helpers.status import compute_live_status
 from .models.task_result import TaskResult
+from .parts_runtime import SIGNAL_PARTS_UPDATED
 
 # (metric key in compute_status_counts, mdi icon) for the global summary sensors
 SUMMARY_METRICS: list[tuple[str, str]] = [
@@ -81,8 +88,6 @@ async def async_setup_entry(
     """Set up sensor entities for a maintenance object."""
     # Global entry: expose the aggregate summary sensors instead of per-task ones.
     if entry.unique_id == GLOBAL_UNIQUE_ID:
-        from . import DOCUMENT_STORE_KEY
-
         runtime_data = entry.runtime_data
         summary = runtime_data.summary_coordinator if runtime_data else None
         entities: list[SensorEntity] = []
@@ -100,8 +105,6 @@ async def async_setup_entry(
         # #191: maintenance cost per Home Assistant area (added as areas
         # appear) — they follow the summary coordinator's refreshes.
         if summary is not None:
-            from .entity.area_cost import AreaCostSensorManager
-
             manager = AreaCostSensorManager(hass, entry.entry_id, async_add_entities)
             entry.async_on_unload(manager.async_start(summary))
         return
@@ -125,8 +128,6 @@ async def async_setup_entry(
     entities.extend(MaintenanceDaysUntilDueSensor(coordinator, task_id) for task_id in tasks)
     # Spare parts: one stock sensor per part on the object device (catalog-only
     # parts without a tracked count read unavailable).
-    from .const import CONF_PARTS
-
     entities.extend(PartStockSensor(coordinator, part_id) for part_id in entry.data.get(CONF_PARTS) or {})
 
     async_add_entities(entities)
@@ -262,8 +263,6 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         # Recorded readings (#83 / #161 phase 2): the newest completion's
         # value(s) — stable between completions, so templates can read a
         # meter without parsing history. Only present once a value exists.
-        from .helpers.reading_slots import last_reading_attributes
-
         attrs.update(last_reading_attributes(task.get("history")))
 
         # #189: the calendar events behind the next due date ("Residual
@@ -753,8 +752,6 @@ class PartStockSensor(MaintenanceEntity, SensorEntity):
 
     @property
     def _part(self) -> dict[str, Any]:
-        from .const import CONF_PARTS
-
         parts = self.coordinator.entry.data.get(CONF_PARTS) or {}
         result: dict[str, Any] = parts.get(self._part_id, {})
         return result
@@ -767,7 +764,6 @@ class PartStockSensor(MaintenanceEntity, SensorEntity):
     async def async_added_to_hass(self) -> None:
         """Subscribe to stock-change notifications."""
         await super().async_added_to_hass()
-        from .parts_runtime import SIGNAL_PARTS_UPDATED
 
         self.async_on_remove(async_dispatcher_connect(self.hass, SIGNAL_PARTS_UPDATED, self._handle_parts_update))
 
@@ -801,8 +797,6 @@ class PartStockSensor(MaintenanceEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        from .helpers.parts import is_part_low
-
         part = self._part
         attrs: dict[str, Any] = {
             "part_name": part.get("name"),
@@ -854,7 +848,6 @@ class PartsToReorderSensor(SensorEntity):
     async def async_added_to_hass(self) -> None:
         """Subscribe to stock-change notifications (any entry)."""
         await super().async_added_to_hass()
-        from .parts_runtime import SIGNAL_PARTS_UPDATED
 
         self.async_on_remove(async_dispatcher_connect(self.hass, SIGNAL_PARTS_UPDATED, self._handle_parts_update))
 
@@ -864,9 +857,6 @@ class PartsToReorderSensor(SensorEntity):
 
     @property
     def native_value(self) -> int:
-        from .helpers.parts import is_part_low
-        from .helpers.shared_parts import live_parts
-
         count = 0
         for entry in self.hass.config_entries.async_entries(DOMAIN):
             if entry.unique_id == GLOBAL_UNIQUE_ID:

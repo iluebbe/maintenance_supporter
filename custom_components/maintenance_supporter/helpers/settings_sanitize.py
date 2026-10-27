@@ -33,12 +33,22 @@ from ..const import (
     CONF_ROW_ACTION_STYLE,
     CONF_SHOPPING_LIST_ENTITY,
     DEFAULT_OBJECTS_TABLE_COLUMNS,
+    HOME_TYPES,
     KNOWN_OBJECT_TABLE_COLUMNS,
     MAX_PANEL_TITLE_LENGTH,
     MAX_REMINDER_LEADS,
+    NOTIFICATION_TITLE_STYLES,
+    NOTIFY_COMPLETED_MODES,
+    PARTS_COST_MODES,
+    ROW_ACTION_STYLES,
     TIME_HHMMSS_PATTERN,
 )
+from .battery_lifetime import sanitize_lifetime_overrides
+from .member_display import sanitize_member_display
+from .notify_targets import validate_notify_service
+from .parts import valid_search_template
 from .region import is_region_setting
+from .sanitize import sanitize_mirror_todo_entities
 from .settings_registry import (
     ALLOWED_SETTING_KEYS,
     FLOAT_RANGES,
@@ -120,8 +130,6 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
     # v1.4.0 (#44): enum-validate notification_title_style. Anything outside
     # the known set is dropped silently so a bogus value can't get into the
     # ConfigEntry options.
-    from ..const import HOME_TYPES, NOTIFICATION_TITLE_STYLES, NOTIFY_COMPLETED_MODES, PARTS_COST_MODES
-
     if CONF_PARTS_COST_MODE in filtered and filtered[CONF_PARTS_COST_MODE] not in PARTS_COST_MODES:
         del filtered[CONF_PARTS_COST_MODE]
     # Only a currency the pickers offer (bug audit 2026-10-17, N-17).
@@ -138,8 +146,6 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
         del filtered[CONF_NOTIFICATION_TITLE_STYLE]
 
     # #145: same treatment for the row-action style.
-    from ..const import ROW_ACTION_STYLES
-
     if CONF_ROW_ACTION_STYLE in filtered and filtered[CONF_ROW_ACTION_STYLE] not in ROW_ACTION_STYLES:
         del filtered[CONF_ROW_ACTION_STYLE]
 
@@ -208,15 +214,11 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
     # #169 follow-up: member avatars — initials capped, colours from the
     # palette only, empty entries dropped (an empty map clears every override).
     if CONF_MEMBER_DISPLAY in filtered:
-        from .member_display import sanitize_member_display
-
         filtered[CONF_MEMBER_DISPLAY] = sanitize_member_display(filtered[CONF_MEMBER_DISPLAY])
 
     # D#162 follow-up: battery lifetime overrides — canonical type keys, months
     # within range, junk dropped (an empty map clears every override).
     if CONF_BATTERY_LIFETIME_MONTHS in filtered:
-        from .battery_lifetime import sanitize_lifetime_overrides
-
         filtered[CONF_BATTERY_LIFETIME_MONTHS] = sanitize_lifetime_overrides(filtered[CONF_BATTERY_LIFETIME_MONTHS])
 
     # v2.21: disabled_template_ids — keep only ids of templates that actually
@@ -246,8 +248,6 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
     # rule (todo.* ids, deduped, capped); [] turns the default off. Our own
     # to-do platform is refused by the WS handler (it needs hass).
     if CONF_MIRROR_TODO_DEFAULT_ENTITIES in filtered:
-        from .sanitize import sanitize_mirror_todo_entities
-
         filtered[CONF_MIRROR_TODO_DEFAULT_ENTITIES] = sanitize_mirror_todo_entities(
             filtered[CONF_MIRROR_TODO_DEFAULT_ENTITIES]
         )
@@ -256,8 +256,6 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
     # language); anything else must be an http(s) URL WITH the {q} placeholder,
     # or the search would open the same page for every part.
     if CONF_PART_SEARCH_URL_TEMPLATE in filtered:
-        from .parts import valid_search_template
-
         raw_tpl = (filtered[CONF_PART_SEARCH_URL_TEMPLATE] or "").strip()
         if raw_tpl and not valid_search_template(raw_tpl):
             return filtered, "invalid_search_template"
@@ -265,8 +263,6 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
 
     # Validate notify_service if provided
     if CONF_NOTIFY_SERVICE in filtered:
-        from .notify_targets import validate_notify_service
-
         normalized, error = validate_notify_service(filtered[CONF_NOTIFY_SERVICE])
         if error:
             return filtered, error

@@ -15,6 +15,7 @@ pure discovery/build logic lives here; the WS layer wires it to hass.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -25,12 +26,15 @@ from homeassistant.helpers import entity_registry as er
 from ..const import (
     CONF_ADOPTED_NOTES,
     CONF_OBJECT,
+    CONF_PARTS,
     CONF_TASKS,
     DOMAIN,
     MAX_ADOPTED_NOTES,
 )
+from ..entity.triggers import normalize_entity_ids
 from .adopt_match import candidate_object, covering_task
 from .aggregate import get_object_entries, object_name
+from .global_options import get_global_entry
 
 PROBLEM_DEVICE_CLASS = "problem"
 # safety (NAS disk-health / lifespan thresholds) and tamper alarms behave like
@@ -44,8 +48,6 @@ _MATCH_STOPWORDS = frozenset({"problem", "low", "empty", "sensor", "status", "wa
 
 def _name_tokens(name: str) -> set[str]:
     """Meaningful lowercase tokens (≥3 chars, stopwords removed) of a name."""
-    import re
-
     return {tok for tok in re.split(r"[^a-z0-9]+", name.lower()) if len(tok) >= 3 and tok not in _MATCH_STOPWORDS}
 
 
@@ -74,8 +76,6 @@ def match_part_for_sensor(sensor_name: str, parts: dict[str, Any]) -> tuple[str,
 def _adopted_entity_ids(hass: HomeAssistant) -> set[str]:
     """Every entity id already watched by some task's trigger — so discovery
     hides sensors that are already adopted (or manually wired to a trigger)."""
-    from ..entity.triggers import normalize_entity_ids
-
     watched: set[str] = set()
     for entry in get_object_entries(hass):
         for task in entry.data.get(CONF_TASKS, {}).values():
@@ -160,8 +160,6 @@ def discover_problem_sensors(hass: HomeAssistant) -> list[dict[str, Any]]:
         # adoption can pre-link it so completing the task consumes/restocks it.
         suggested_part: tuple[str, str] | None = None
         if suggested is not None:
-            from ..const import CONF_PARTS
-
             target_entry = hass.config_entries.async_get_entry(suggested["entry_id"])
             if target_entry is not None:
                 suggested_part = match_part_for_sensor(name, target_entry.data.get(CONF_PARTS) or {})
@@ -219,7 +217,6 @@ def stash_task_config_for_readopt(hass: HomeAssistant, task: dict[str, Any]) -> 
     tc = task.get("trigger_config")
     if not isinstance(tc, dict) or not tc.get("auto_complete_on_recovery"):
         return
-    from ..entity.triggers import normalize_entity_ids
 
     # Either stored shape: a task with only the legacy ``entity_id`` lost its
     # notes on un-adopt (same-class audit 2026-10-04).
@@ -230,7 +227,6 @@ def stash_task_config_for_readopt(hass: HomeAssistant, task: dict[str, Any]) -> 
         config.pop("priority")
     if not entity_ids or not config:
         return
-    from .global_options import get_global_entry
 
     entry = get_global_entry(hass)
     if entry is None:
@@ -254,8 +250,6 @@ def pop_stashed_config(hass: HomeAssistant, entity_id: str, *, consume: bool = T
     Pre-v2.37 stashes stored the notes string bare — normalized here to the
     dict shape so the adopt path has a single format to apply.
     """
-    from .global_options import get_global_entry
-
     entry = get_global_entry(hass)
     if entry is None:
         return None

@@ -310,7 +310,7 @@ async def test_skip_lock_is_spoken_not_raised(hass: HomeAssistant) -> None:
 async def test_instructions_ignore_other_tasks_documents_and_ghost_parts(hass: HomeAssistant) -> None:
     """A manual linked to a sibling task, and a consumes_parts link to a part
     that no longer exists, are not guidance for this task."""
-    from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+    from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
 
     g = make_global_entry(hass)
     lonely = _fresh("Belt Change")

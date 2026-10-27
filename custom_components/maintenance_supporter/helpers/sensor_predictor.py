@@ -36,6 +36,7 @@ from ..const import (
     DEGRADATION_MIN_CYCLE_HOURS,
     DEGRADATION_TREND_HORIZON_DAYS,
 )
+from ..entity.triggers import normalize_entity_ids
 from ..models.shapes import AdaptiveConfig
 from .dates import stamp_instant
 from .history import completed_entries
@@ -189,8 +190,6 @@ class SensorPredictor:
         # Every trigger shape: a catalog-adopted task names its sensor(s) in
         # ``entity_ids`` only and was never predicted (bug audit 2026-09-26,
         # SCH-9). The forecast follows the first sensor.
-        from ..entity.triggers import normalize_entity_ids
-
         entity_ids = normalize_entity_ids(trigger_config) if trigger_config.get("type") != "compound" else []
         if not entity_ids:
             return None

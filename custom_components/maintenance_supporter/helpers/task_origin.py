@@ -33,6 +33,10 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
+from ..const import CONF_OBJECT, CONF_TASKS
+from ..entity.triggers import normalize_entity_ids
+from .template_usage import OBJECT_TEMPLATE_ID
+
 ORIGIN_KEY = "origin"
 
 _KINDS = frozenset({"integration", "problem_sensor", "template"})
@@ -89,7 +93,6 @@ def _catalog_duty_for(hass: HomeAssistant, task: Mapping[str, Any], ent_reg: er.
     """An integration origin for a pre-2.95 task that is CERTAINLY a catalog
     duty: named as the duty (any language, per-entity suffix allowed) and
     watching an entity that duty matches."""
-    from ..entity.triggers import normalize_entity_ids
     from .signatures import SIGNATURES
     from .signatures._discovery import _matches_catalog_key
     from .signatures._model import PER_ENTITY_SEPARATOR, _entity_unit, _unit_compatible, catalog_base_name, task_name_variants
@@ -141,9 +144,6 @@ def backfill_origins(hass: HomeAssistant, data: Mapping[str, Any]) -> dict[str, 
     """The entry data with origins recorded for tasks where they are certain,
     or None when nothing changed. Idempotent: a task with an origin is left
     alone."""
-    from ..const import CONF_OBJECT, CONF_TASKS
-    from .template_usage import OBJECT_TEMPLATE_ID
-
     tasks = data.get(CONF_TASKS)
     if not isinstance(tasks, Mapping):
         return None

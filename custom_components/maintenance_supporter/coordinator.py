@@ -23,6 +23,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
+    BATTERY_FLEET_TASK_FLAG,
     BUDGET_CACHE_KEY,
     BUDGET_CURRENCIES,
     CONF_BUDGET_ALERT_THRESHOLD,
@@ -31,11 +32,15 @@ from .const import (
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
     CONF_CURRENCY_DECIMALS,
+    CONF_NOTIFICATION_BUNDLE_THRESHOLD,
+    CONF_NOTIFICATION_BUNDLING_ENABLED,
     CONF_OBJECT,
+    CONF_PARTS,
     CONF_TASKS,
     DEFAULT_BUDGET_CURRENCY,
     DEFAULT_INTERVAL_DAYS,
     DEFAULT_UPDATE_INTERVAL_MINUTES,
+    DOCUMENT_STORE_KEY,
     DOMAIN,
     EVENT_TASK_COMPLETED,
     EVENT_TASK_RESET,
@@ -55,25 +60,57 @@ from .const import (
     ScheduleType,
     TriggerEntityState,
 )
+from .helpers.action_listener import action_entity_ids
 from .helpers.aggregate import task_sensor_entity_id as aggregate_task_sensor_entity_id
+from .helpers.assignees import task_user_ids
 from .helpers.budget import compute_spend
-from .helpers.calendar_source import next_event_titles
+from .helpers.calendar_source import (
+    all_calendar_entity_ids,
+    async_refresh_calendar_occurrences,
+    calendar_entity_ids,
+    next_event_titles,
+)
+from .helpers.completion_requirements import (
+    missing_completion_fields,
+    required_completion_fields,
+)
 from .helpers.coordinator_data import task_results
+from .helpers.dates import is_past_dated, local_moment, parse_persisted_utc, stamp_instant
 from .helpers.entry_tasks import write_task, write_tasks
 from .helpers.global_options import global_option, is_schedule_time_enabled
 from .helpers.history import completed_entries
-from .helpers.interval_analyzer import hemisphere
-from .helpers.issues import async_purge_task_issues, missing_trigger_issue_id, stale_action_issue_id
+from .helpers.interval_analyzer import IntervalAnalyzer, hemisphere
+from .helpers.issues import (
+    async_purge_task_issues,
+    async_purge_unnamed_entity_issues,
+    missing_trigger_issue_id,
+    stale_action_issue_id,
+)
 from .helpers.notification_gates import task_may_notify
+from .helpers.notification_manager import NotificationManager
 from .helpers.notify_hooks import KIND_STATUS
-from .helpers.pause import is_task_inert, pauses_with_object
+from .helpers.parts import MAX_PART_COST, PART_REF_FIELD
+from .helpers.parts_cost import COST_BASIS_USE, annotate_completion, part_cost_mode, parts_cost_mode, purchase_unit_price
+from .helpers.pause import (
+    build_resumed_entry_data,
+    is_task_inert,
+    pause_due_for_auto_resume,
+    pauses_with_object,
+    resume_task_data,
+)
+from .helpers.phases import effective_field as _phase_effective
 from .helpers.phases import task_label
 from .helpers.prediction_cache import PredictionCache
+from .helpers.reference_numbers import assign_history_refs, assign_task_refs, next_history_ref
 from .helpers.schedule import FLAT_RECURRENCE_KEYS, KIND_INTERVAL, KIND_MANUAL, Schedule, read_legacy_fields
+from .helpers.status import compute_live_status
+from .helpers.todo_mirror import TODO_MIRROR_KEY
+from .helpers.trigger_fallback import counter_progress
 from .models.maintenance_object import MaintenanceObject
 from .models.maintenance_task import MaintenanceTask
 from .models.shapes import ReadingValue, UsedPart
 from .models.task_result import CoordinatorData, TaskResult
+from .parts_runtime import async_handle_completion_parts, part_link_name
 from .storage import MaintenanceStore
 
 _LOGGER = logging.getLogger(__name__)
@@ -254,8 +291,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         WS command: pause cleared, active recurring tasks re-anchored to a
         fresh cycle from today.
         """
-        from .helpers.pause import build_resumed_entry_data, pause_due_for_auto_resume
-
         obj_data = self.entry.data.get(CONF_OBJECT, {})
         today = dt_util.now().date()
         if not pause_due_for_auto_resume(obj_data, today):
@@ -277,8 +312,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
     async def _async_maybe_auto_resume_tasks(self, today: date) -> None:
         """#193: end single-task pauses whose ``paused_until`` day has come —
         the object auto-resume's rule, per task (fresh cycle for recurring)."""
-        from .helpers.pause import pause_due_for_auto_resume, resume_task_data
-
         tasks = dict(self.entry.data.get(CONF_TASKS) or {})
         due = [tid for tid, td in tasks.items() if isinstance(td, dict) and pause_due_for_auto_resume(td, today)]
         if not due:
@@ -300,12 +333,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         user action (``async_refresh_now``), so a completion on pickup day
         shows the next pickup right away.
         """
-        from .helpers.calendar_source import (
-            all_calendar_entity_ids,
-            async_refresh_calendar_occurrences,
-            calendar_entity_ids,
-        )
-
         forced = self._calendar_refresh_forced
         self._calendar_refresh_forced = False
         entity_ids = all_calendar_entity_ids(self.hass)
@@ -320,8 +347,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         the numbering existed — oldest first, so a first start after the
         update yields the numbering a user would have written down by hand.
         No-op when everything is numbered."""
-        from .helpers.reference_numbers import assign_history_refs, assign_task_refs
-
         new_data = assign_task_refs(dict(self.entry.data))
         if new_data is not None:
             self.hass.config_entries.async_update_entry(self.entry, data=new_data)
@@ -453,8 +478,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # the NotificationManager's _last_notified to avoid a burst of stale
         # alerts while still allowing future repeat reminders.
         if not self._previous_statuses:
-            from .helpers.notification_manager import NotificationManager
-
             nm = self.hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
             notify_statuses = NOTIFIABLE_STATUSES
             # Seed the manager only on the entry's FIRST refresh in this
@@ -551,7 +574,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             # subtracted from the last entity's reading on a multi-entity
             # counter (bug audit 2026-09-26, DRY BR-A10).
             from .entity.triggers import normalize_entity_ids
-            from .helpers.trigger_fallback import counter_progress
 
             reading, baseline = counter_progress(self.hass.states.get, tc, normalize_entity_ids(tc))
             if baseline is not None:
@@ -582,8 +604,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             # history / analysis error must not abort the whole refresh and
             # stall every task in this object.
             try:
-                from .helpers.interval_analyzer import IntervalAnalyzer
-
                 analyzer = IntervalAnalyzer()
                 # Hemisphere and current month for seasonal awareness.
                 # latitude is None on an un-onboarded HA → default to north.
@@ -679,8 +699,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
 
     async def _async_sync_todo_mirror(self, task_results: dict[str, TaskResult]) -> None:
         """Hand this refresh's results to the to-do mirror (helpers/todo_mirror)."""
-        from .helpers.todo_mirror import TODO_MIRROR_KEY
-
         mirror = self.hass.data.get(DOMAIN, {}).get(TODO_MIRROR_KEY)
         if mirror is None:
             return
@@ -792,9 +810,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
                 async_purge_task_issues(self.hass, self.entry.entry_id, task_id)
                 continue
             # Issues about entities the task no longer names go first (N3).
-            from .helpers.action_listener import action_entity_ids
-            from .helpers.issues import async_purge_unnamed_entity_issues
-
             async_purge_unnamed_entity_issues(
                 self.hass,
                 self.entry.entry_id,
@@ -917,7 +932,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
                 # stale target is no problem (a disabled task was flagged).
                 # Earlier issues were purged by the trigger scan above.
                 continue
-            from .helpers.action_listener import action_entity_ids
 
             for entity_id in action_entity_ids(task_dict.get("on_complete_action")):
                 issue_id = stale_action_issue_id(self.entry.entry_id, task_id, entity_id)
@@ -954,8 +968,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         seeds the NM so that already-notifiable tasks don't trigger an
         immediate burst but will still repeat after the configured interval.
         """
-        from .helpers.notification_manager import NotificationManager
-
         nm = self.hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
         if not isinstance(nm, NotificationManager):
             return
@@ -1006,11 +1018,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             return
 
         # Check if bundling is enabled and threshold met
-        from .const import (
-            CONF_NOTIFICATION_BUNDLE_THRESHOLD,
-            CONF_NOTIFICATION_BUNDLING_ENABLED,
-        )
-
         bundling_enabled = global_option(self.hass, CONF_NOTIFICATION_BUNDLING_ENABLED)
         bundle_threshold = int(global_option(self.hass, CONF_NOTIFICATION_BUNDLE_THRESHOLD))
 
@@ -1076,8 +1083,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
 
     async def _async_check_budget(self, task_results: dict[str, TaskResult]) -> None:
         """Check budget thresholds using cached totals."""
-        from .helpers.notification_manager import NotificationManager
-
         nm = self.hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
         if not isinstance(nm, NotificationManager) or not nm.enabled:
             return
@@ -1207,8 +1212,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         store not loaded) is swallowed — it must never fail the completion.
         """
         try:
-            from . import DOCUMENT_STORE_KEY
-
             store = self.hass.data[DOMAIN][DOCUMENT_STORE_KEY]
             doc = store.get(photo_doc_id)
             if doc is None:
@@ -1264,8 +1267,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             return
 
         if completed_at is not None:
-            from .helpers.dates import local_moment
-
             # Every date derived below (last_performed, the past-dated window
             # check, the cycle anchor) is the LOCAL day.
             completed_at = local_moment(completed_at)
@@ -1299,11 +1300,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # Automatic completions are exempt — a self-clearing problem sensor
         # has nobody to ask, and a required photo would strand the task.
         if not auto:
-            from .helpers.completion_requirements import (
-                missing_completion_fields,
-                required_completion_fields,
-            )
-
             if unattended:
                 # Nobody was asked, so nothing the caller attached counts as
                 # an answer — a canned "Completed from the To-do list" note is
@@ -1359,8 +1355,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # 2026-08-29). A completion dated on a PAST day is a history correction,
         # not early work, and bypasses the window exactly like the WS pre-check.
         if not auto:
-            from .helpers.dates import is_past_dated
-
             if not is_past_dated(completed_at) and not MaintenanceTask.from_dict(merged[task_id]).can_complete_now:
                 raise ServiceValidationError(
                     translation_domain=DOMAIN,
@@ -1433,8 +1427,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # will consume below — go on the record, so completions from the
         # no-dialog surfaces (service, button, QR, to-do, voice, recovery)
         # stay correctable through the history editor like dialog ones.
-        from .helpers.phases import effective_field as _phase_effective
-
         # A pure backfill (dated before the last completion) performed no work
         # in the CURRENT cycle: the automatic consumes_parts / buy-task restock
         # must not run for it (bug audit 2026-08-29) - an explicit used_parts
@@ -1449,8 +1441,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # (parts_runtime, #181): recorded anyway, they showed as used, were
         # valued in the budget and went back to the shelf on a history
         # delete, though they never left it (bug audit 2026-10-17, S-5).
-        from .const import BATTERY_FLEET_TASK_FLAG
-
         _automatic = not _is_backfill and not merged[task_id].get(BATTERY_FLEET_TASK_FLAG)
         record_links = (
             used_parts
@@ -1461,8 +1451,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         if used_parts is not None or record_links:
 
             def _part_name(link: Mapping[str, Any]) -> str:
-                from .parts_runtime import part_link_name
-
                 return part_link_name(self.hass, self.entry, link)
 
             enriched_used = [
@@ -1496,14 +1484,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # in the one place every completion path passes, from the task's
         # high-water counter, so a deleted or backdated entry never renumbers.
         if task.history:
-            from .helpers.reference_numbers import next_history_ref
-
             task.history[-1]["ref_no"] = next_history_ref(self._store, task_id, task.history)
             # #104: what the parts of this completion cost at this moment,
             # whether it was a purchase, and how it is booked — decided now,
             # so a later change of the setting never re-values it.
-            from .helpers.parts_cost import annotate_completion
-
             annotate_completion(self.hass, self.entry, merged[task_id], task.history[-1])
         # #73: a completed cycle retires its in-cycle checklist ticks — the
         # snapshot that matters is in the history entry above. A pure backfill
@@ -1517,8 +1501,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # intent explicit).
         if is_latest and task.adaptive_config and task.adaptive_config.get("enabled"):
             if actual_interval is not None and actual_interval > 0:
-                from .helpers.interval_analyzer import IntervalAnalyzer
-
                 analyzer = IntervalAnalyzer()
                 try:
                     updated_config = analyzer.update_on_completion(task.adaptive_config, actual_interval, feedback)
@@ -1590,8 +1572,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # Spare parts: consume linked parts / restock a completed buy task.
         # Best-effort side effect — a broken part link must never fail the
         # completion. Runs AFTER persistence so a crash loses only stock math.
-        from .parts_runtime import async_handle_completion_parts
-
         try:
             if is_latest or used_parts is not None:
                 await async_handle_completion_parts(
@@ -1716,8 +1696,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             # TypeError OUTSIDE the old try — the recovery coroutine died and
             # the auto-completion was silently never recorded (bug audit
             # 2026-08-22). The UTC assumption is harmless for a 120 s guard.
-            from .helpers.dates import stamp_instant
-
             # Naive stamps are local time: read as UTC (the old rule) one lay
             # hours ahead east of UTC and blocked the auto-completion for
             # those hours (bug audit 2026-10-16).
@@ -1903,9 +1881,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         The notification manager lives on the shared runtime; it may be absent
         in tests or during teardown - then there is nothing to clear.
         """
-        from .const import NOTIFICATION_MANAGER_KEY
-        from .helpers.assignees import task_user_ids
-
         nm = self.hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
         if nm is None:
             return
@@ -1994,10 +1969,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         """A buy reminder's paid cost becomes its part's price (per package
         with a package size, else per unit) — for a part that counts when
         used (its own choice, else the household's; #222)."""
-        from .const import CONF_PARTS
-        from .helpers.parts import MAX_PART_COST, PART_REF_FIELD
-        from .helpers.parts_cost import COST_BASIS_USE, part_cost_mode, parts_cost_mode, purchase_unit_price
-
         ref = task_data.get(PART_REF_FIELD)
         parts = dict(self.entry.data.get(CONF_PARTS) or {})
         part = parts.get(ref.get("part_id")) if isinstance(ref, dict) else None
@@ -2010,8 +1981,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         self.hass.config_entries.async_update_entry(self.entry, data={**self.entry.data, CONF_PARTS: parts})
 
     async def _async_notify_completed(self, task_id: str, label: str, source: str | None, completed_by: str | None, completed_at: str) -> None:
-        from .helpers.notification_manager import NotificationManager
-
         nm = self.hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
         if not isinstance(nm, NotificationManager):
             return
@@ -2075,8 +2044,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         exactly as ``complete_maintenance`` left it live. A skip / reset
         cooldown is not re-created: any activation lifts that one anyway,
         and a recovered trigger's next activation is a genuine edge."""
-        from .helpers.dates import parse_persisted_utc, stamp_instant
-
         now = dt_util.utcnow()
         now_mono = time.monotonic()
         for task_id, task in tasks.items():
@@ -2120,8 +2087,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         latch, and recompute that task's status from the result (the status
         twin). An activation inside the post-completion cooldown is not
         applied — the same rule as the restore at the top of the refresh."""
-        from .helpers.status import compute_live_status
-
         for task_id, (seq, active, value) in self._live_trigger_flips.items():
             task_result = task_results.get(task_id)
             if task_result is None or task_id not in seen or seq <= seen[task_id]:
@@ -2161,7 +2126,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         task = self.merged_task(task_id) or {}
         latest_type: str | None = None
         latest_ts = ""
-        from .helpers.dates import parse_persisted_utc, stamp_instant
 
         for entry in task.get("history") or []:
             if not isinstance(entry, dict) or entry.get("type") not in _TRIGGER_EPOCH_TYPES:

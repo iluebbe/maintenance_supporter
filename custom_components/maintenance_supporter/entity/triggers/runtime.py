@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from .base_trigger import TriggerHost
 from homeassistant.util import dt as dt_util
 
+from ...helpers.dates import parse_persisted_utc
 from .base_trigger import BaseTrigger
 
 _LOGGER = logging.getLogger(__name__)
@@ -75,8 +76,6 @@ class RuntimeTrigger(BaseTrigger):
         # coerces a naive legacy payload to UTC — dt_util.parse_datetime kept
         # it naive here, and `utcnow() - naive` raises TypeError in the
         # elapsed math (drift audit 2026-08; the sibling triggers coerced).
-        from ...helpers.dates import parse_persisted_utc
-
         on_since_str = trigger_config.get("trigger_on_since")
         self._on_since_dt: datetime | None = parse_persisted_utc(on_since_str)
         self._on_since: str | None = on_since_str if self._on_since_dt is not None else None

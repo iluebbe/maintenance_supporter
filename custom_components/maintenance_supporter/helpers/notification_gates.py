@@ -36,6 +36,7 @@ from ..const import (
 )
 from .global_options import get_global_options, global_option
 from .notify_hooks import KIND_STATUS, NOTIFICATION_KINDS
+from .places import somebody_on_site, waits_for_someone_on_site
 from .settings_registry import setting_default
 
 _LOGGER = logging.getLogger(__name__)
@@ -127,7 +128,6 @@ def task_may_notify(
     if "scope" in gates and not scope_view_matches(hass, task_data):
         return GateResult(False, "scope")
     if "vacation" in gates:
-        from .places import somebody_on_site
         from .vacation import get_vacation_state
 
         # Vacation is about being away from home: a place away from home with
@@ -135,8 +135,6 @@ def task_may_notify(
         if get_vacation_state(hass).is_silent_for(task_id) and not somebody_on_site(hass, entry_id):
             return GateResult(False, "vacation")
     if "on_site" in gates:
-        from .places import waits_for_someone_on_site
-
         if waits_for_someone_on_site(hass, entry_id):
             return GateResult(False, "on_site")
     if "snooze" in gates and nm is not None and nm.is_snoozed(entry_id, task_id, status):

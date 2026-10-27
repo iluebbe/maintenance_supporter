@@ -10,6 +10,7 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
 from ..const import (
+    CONF_GROUPS,
     DOMAIN,
     MAX_GROUP_TASK_REFS,
     MAX_NAME_LENGTH,
@@ -28,8 +29,6 @@ async def ws_get_groups(
     msg: dict[str, Any],
 ) -> None:
     """Return all maintenance groups."""
-    from ..const import CONF_GROUPS
-
     global_entry = _get_global_entry(hass)
     if global_entry is None:
         connection.send_result(msg["id"], {"groups": {}})
@@ -63,8 +62,6 @@ async def ws_create_group(
     msg: dict[str, Any],
 ) -> None:
     """Create a new maintenance group."""
-    from ..const import CONF_GROUPS
-
     ctx = _load_global_options(hass, connection, msg)
     if ctx is None:
         return
@@ -113,8 +110,6 @@ async def ws_update_group(
     msg: dict[str, Any],
 ) -> None:
     """Update an existing maintenance group."""
-    from ..const import CONF_GROUPS
-
     ctx = _load_global_options(hass, connection, msg)
     if ctx is None:
         return
@@ -162,8 +157,6 @@ async def ws_delete_group(
     msg: dict[str, Any],
 ) -> None:
     """Delete a maintenance group."""
-    from ..const import CONF_GROUPS
-
     ctx = _load_global_options(hass, connection, msg)
     if ctx is None:
         return

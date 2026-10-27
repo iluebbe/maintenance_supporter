@@ -224,7 +224,7 @@ async def test_instructions_speaks_only_stored_guidance(
 ) -> None:
     """Notes, checklist, linked doc (with page), required part (with location
     and live stock) all come straight from stored data."""
-    from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+    from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
     from custom_components.maintenance_supporter.intent import INTENT_TASK_INSTRUCTIONS
 
     task = _ok_task("Pump Service")
@@ -301,7 +301,7 @@ async def test_snooze_task_calls_the_notification_manager(
 ) -> None:
     from unittest.mock import MagicMock
 
-    from custom_components.maintenance_supporter import NOTIFICATION_MANAGER_KEY
+    from custom_components.maintenance_supporter.const import NOTIFICATION_MANAGER_KEY
     from custom_components.maintenance_supporter.intent import INTENT_SNOOZE_TASK
 
     obj = make_object_entry(
@@ -350,7 +350,7 @@ async def test_instructions_edge_branches(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:
     """Doc without a page hint, documentation URL, long-note truncation."""
-    from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+    from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
     from custom_components.maintenance_supporter.intent import INTENT_TASK_INSTRUCTIONS
 
     task = _ok_task("Belt Change")
@@ -374,7 +374,7 @@ async def test_instructions_edge_branches(
 async def test_snooze_without_notification_manager_errors(
     hass: HomeAssistant, global_entry: MockConfigEntry
 ) -> None:
-    from custom_components.maintenance_supporter import NOTIFICATION_MANAGER_KEY
+    from custom_components.maintenance_supporter.const import NOTIFICATION_MANAGER_KEY
     from custom_components.maintenance_supporter.intent import INTENT_SNOOZE_TASK
 
     obj = make_object_entry(hass, tasks={TASK_ID_1: _ok_task("Oil Change")}, name="Car", uid="intent_nonm")

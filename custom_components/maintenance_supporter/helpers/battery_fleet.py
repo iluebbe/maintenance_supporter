@@ -46,6 +46,32 @@ _LOGGER = logging.getLogger(__name__)
 
 # The typical-lifetime table, the household overrides and the learned values
 # live in battery_lifetime (D#162 follow-up); the names stay importable here.
+import threading
+from collections import Counter
+from itertools import pairwise
+
+from homeassistant.core import valid_entity_id
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
+
+from ..const import (
+    BATTERY_FLEET_ASK_CELLS,
+    BATTERY_FLEET_DUE_WITHOUT_SENSOR,
+    BATTERY_FLEET_EXCLUDED,
+    BATTERY_FLEET_INCLUDED,
+    BATTERY_FLEET_OBJECT_FLAG,
+    BATTERY_FLEET_TRACK_SELF_CHARGING,
+    BATTERY_LOW_DELAY_MINUTES_RANGE,
+    BATTERY_RECOVERED_PERCENT_RANGE,
+    CONF_BATTERY_AUTO_RECORD_RECOVERY,
+    CONF_BATTERY_LOW_DELAY_MINUTES,
+    CONF_BATTERY_RECOVERED_PERCENT,
+    CONF_OBJECT,
+    DEFAULT_BATTERY_LOW_DELAY_MINUTES,
+    DEFAULT_BATTERY_RECOVERED_PERCENT,
+    DOMAIN,
+)
 from .battery_lifetime import (
     TYPICAL_LIFETIME_MONTHS,
     LifetimeInfo,
@@ -59,6 +85,7 @@ from .battery_lifetime import (
     observe_replacements,
     table_lifetime_months,
 )
+from .global_options import get_battery_low_percent, global_option
 
 # How far ahead "needed soon" looks by default (days).
 DEFAULT_HORIZON_DAYS = 28
@@ -130,8 +157,6 @@ def note_sibling_entity(hass: HomeAssistant, entity_id: str, *, domain: str, uid
     ``button`` / ``_battery_replaced_button`` of a type sensor — or None when
     the entity has no Battery Notes registry entry (state-only) or the
     sibling was never created. Callers fall back to the naming contract."""
-    from homeassistant.helpers import entity_registry as er
-
     ent_reg = er.async_get(hass)
     reg = ent_reg.async_get(entity_id)
     if reg is None or reg.platform != "battery_notes" or not isinstance(reg.unique_id, str):
@@ -155,9 +180,6 @@ def _offline_note_attributes(hass: HomeAssistant, state: Any, *, binary: bool) -
     with its forecast instead of vanishing when it most likely just died.
     ``battery_low`` stays unknown here; the low latch carries it over.
     """
-    from homeassistant.helpers import device_registry as dr
-    from homeassistant.helpers import entity_registry as er
-
     if str(state.state).lower() not in _NO_READING:
         return None
     reg = er.async_get(hass).async_get(state.entity_id)
@@ -184,8 +206,6 @@ def _offline_note_attributes(hass: HomeAssistant, state: Any, *, binary: bool) -
 
 def _native_snapshot_cache(hass: HomeAssistant) -> dict[str, dict[str, Any]]:
     """Runtime cache of last-known native battery readings (per entity_id)."""
-    from ..const import DOMAIN
-
     cache: dict[str, dict[str, Any]] = hass.data.setdefault(DOMAIN, {}).setdefault("battery_fleet_native_cache", {})
     return cache
 
@@ -492,8 +512,6 @@ def _fleet_object(hass: HomeAssistant) -> dict[str, Any]:
     versa. The three getters below were three copies of this loop (drift
     audit 2026-08).
     """
-    from ..const import BATTERY_FLEET_OBJECT_FLAG, CONF_OBJECT, DOMAIN
-
     for entry in hass.config_entries.async_entries(DOMAIN):
         obj = entry.data.get(CONF_OBJECT, {})
         if obj.get(BATTERY_FLEET_OBJECT_FLAG):
@@ -503,8 +521,6 @@ def _fleet_object(hass: HomeAssistant) -> dict[str, Any]:
 
 def fleet_excluded_entities(hass: HomeAssistant) -> set[str]:
     """Manually excluded battery entity_ids, stored on the fleet object entry."""
-    from ..const import BATTERY_FLEET_EXCLUDED
-
     return set(_fleet_object(hass).get(BATTERY_FLEET_EXCLUDED) or [])
 
 
@@ -515,8 +531,6 @@ def fleet_included_entities(hass: HomeAssistant) -> set[str]:
     Battery Notes note, so the native-pass-only bypass never fired);
     Battery-Notes coverage and the exclusion list still win (no duplicate
     rows, exclusion stays king)."""
-    from ..const import BATTERY_FLEET_INCLUDED
-
     return set(_fleet_object(hass).get(BATTERY_FLEET_INCLUDED) or [])
 
 
@@ -528,8 +542,6 @@ def fleet_track_self_charging(hass: HomeAssistant) -> bool:
     "— recharge", never counted into the shopping needs — so a low phone or
     smart ring can drive a "charge it" notification. Exclusions still win.
     """
-    from ..const import BATTERY_FLEET_TRACK_SELF_CHARGING
-
     return bool(_fleet_object(hass).get(BATTERY_FLEET_TRACK_SELF_CHARGING))
 
 
@@ -543,8 +555,6 @@ def fleet_due_without_sensor(hass: HomeAssistant) -> bool:
     such notes only ever forecast (B1 behaviour — soon, never low). Stored
     as False to switch off; absent means on.
     """
-    from ..const import BATTERY_FLEET_DUE_WITHOUT_SENSOR
-
     return _fleet_object(hass).get(BATTERY_FLEET_DUE_WITHOUT_SENSOR) is not False
 
 
@@ -552,17 +562,12 @@ def fleet_ask_cells(hass: HomeAssistant) -> bool:
     """Whether Replaced asks which cells went in (D#213): a device takes
     whatever is in the drawer, disposable or rechargeable, and Battery Notes
     names one type per device. Opt-in, stored on the fleet object."""
-    from ..const import BATTERY_FLEET_ASK_CELLS
-
     return bool(_fleet_object(hass).get(BATTERY_FLEET_ASK_CELLS))
 
 
 def get_battery_recovered_percent(hass: HomeAssistant) -> int:
     """#180: the level a low battery must rise ABOVE to count as recovered
     (replaced). Out-of-range / junk values fall back to the default."""
-    from ..const import BATTERY_RECOVERED_PERCENT_RANGE, CONF_BATTERY_RECOVERED_PERCENT, DEFAULT_BATTERY_RECOVERED_PERCENT
-    from .global_options import global_option
-
     raw = global_option(hass, CONF_BATTERY_RECOVERED_PERCENT)
     try:
         value = int(raw)
@@ -575,9 +580,6 @@ def get_battery_recovered_percent(hass: HomeAssistant) -> int:
 def get_battery_low_delay_minutes(hass: HomeAssistant) -> int:
     """#219: how long a battery must read low before it counts as low
     (0 = at once). Out-of-range / junk values fall back to the default."""
-    from ..const import BATTERY_LOW_DELAY_MINUTES_RANGE, CONF_BATTERY_LOW_DELAY_MINUTES, DEFAULT_BATTERY_LOW_DELAY_MINUTES
-    from .global_options import global_option
-
     raw = global_option(hass, CONF_BATTERY_LOW_DELAY_MINUTES)
     try:
         value = int(raw)
@@ -592,9 +594,6 @@ def get_battery_auto_record_recovery(hass: HomeAssistant) -> bool:
     its replacement recorded automatically (the Battery Notes date + the
     type's cells from stock, see :func:`_schedule_auto_record`). Advanced
     option, off by default."""
-    from ..const import CONF_BATTERY_AUTO_RECORD_RECOVERY
-    from .global_options import global_option
-
     return bool(global_option(hass, CONF_BATTERY_AUTO_RECORD_RECOVERY))
 
 
@@ -648,8 +647,6 @@ def sanitize_low_latch(raw: Any) -> dict[str, dict[str, Any]]:
     valid entries, so a restore keeps an open low episode open instead of
     dropping a battery that sits between the low and the recovered level
     (round-trip audit 2026-09-29)."""
-    from homeassistant.core import valid_entity_id
-
     out: dict[str, dict[str, Any]] = {}
     if not isinstance(raw, dict):
         return out
@@ -801,7 +798,6 @@ def _minutes_between(earlier_iso: str, later_iso: str) -> float:
 def _latch_backend(hass: HomeAssistant) -> tuple[dict[str, Any], Callable[[], None]]:
     """The latch map + a save callback: the fleet task's Store state when a
     fleet exists, else an in-memory map (nothing to persist to yet)."""
-    from ..const import DOMAIN
     from .battery_lifetime import fleet_store_and_task
 
     found = fleet_store_and_task(hass)
@@ -820,8 +816,6 @@ def _latch_backend(hass: HomeAssistant) -> tuple[dict[str, Any], Callable[[], No
 
 
 def _apply_low_latch(hass: HomeAssistant, batteries: list[Battery], eligible: set[str], levelless: set[str] | None = None) -> None:
-    from ..const import DOMAIN
-
     latch, save = _latch_backend(hass)
     released: list[str] = []
     delay = get_battery_low_delay_minutes(hass)
@@ -867,8 +861,6 @@ _AUTO_RECORD_INFLIGHT_KEY = "battery_fleet_auto_record_inflight"
 
 
 def _auto_record_inflight(hass: HomeAssistant) -> set[str]:
-    from ..const import DOMAIN
-
     inflight: set[str] = hass.data.setdefault(DOMAIN, {}).setdefault(_AUTO_RECORD_INFLIGHT_KEY, set())
     return inflight
 
@@ -882,8 +874,6 @@ def _schedule_auto_record(hass: HomeAssistant, batteries: list[Battery]) -> int:
     the last Replaced while the fleet asks), not by the note: an "AA NiMH"
     note running on disposables recovered by a swap that was never recorded
     (S-12)."""
-    import threading
-
     from .battery_fleet_setup import held_cell_types
 
     inflight = _auto_record_inflight(hass)
@@ -909,8 +899,6 @@ def _schedule_auto_record(hass: HomeAssistant, batteries: list[Battery]) -> int:
 
 
 async def _async_auto_record(hass: HomeAssistant, entity_id: str) -> None:
-    from homeassistant.exceptions import HomeAssistantError
-
     from .battery_fleet_setup import async_record_replacement
 
     try:
@@ -950,7 +938,6 @@ def device_model_key(hass: HomeAssistant, device_id: str | None) -> str:
     unknown — the learning pool key (see battery_lifetime)."""
     if not device_id:
         return ""
-    from homeassistant.helpers import device_registry as dr
 
     device = dr.async_get(hass).async_get(device_id)
     if device is None:
@@ -981,8 +968,6 @@ def _is_self_charging(hass: HomeAssistant, device_id: str | None) -> bool:
     """
     if not device_id:
         return False
-    from homeassistant.helpers import device_registry as dr
-    from homeassistant.helpers import entity_registry as er
 
     device = dr.async_get(hass).async_get(device_id)
     # #127: identifiers are typed (domain, id) but the registry doesn't enforce
@@ -1057,11 +1042,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
       rechargeables (native rows typed "Rechargeable", never "Unknown").
     """
     # #146: the fleet-wide low floor is a household setting (default 20 %).
-    from .global_options import get_battery_low_percent
-
     floor = float(get_battery_low_percent(hass))
-    from homeassistant.helpers import device_registry as dr
-    from homeassistant.helpers import entity_registry as er
 
     ent_reg = er.async_get(hass)
     dev_reg = dr.async_get(hass)
@@ -1482,11 +1463,6 @@ def battery_notes_summary(hass: HomeAssistant) -> dict[str, Any] | None:
     device id when the registry knows one. ``None`` when Battery Notes is
     not present.
     """
-    from collections import Counter
-
-    from homeassistant.helpers import device_registry as dr
-    from homeassistant.helpers import entity_registry as er
-
     ent_reg = er.async_get(hass)
     dev_reg = dr.async_get(hass)
     per_device: dict[str, dict[str, Any]] = {}
@@ -1693,8 +1669,6 @@ def _detect_unrecorded_jump(
     that does not land ABOVE it is a bounce around the low floor, not a
     swap — the chip kept offering "newer dates" for those.
     """
-    from itertools import pairwise
-
     if rechargeable:
         return None
     for (_, v_prev), (ts, v) in pairwise(points):
@@ -1770,8 +1744,6 @@ async def async_level_history(hass: HomeAssistant, batteries: list[Battery]) -> 
                 # The Battery Notes service that records a replacement takes
                 # the DEVICE — resolve it here so the panel's one-click fix
                 # doesn't need a registry lookup of its own.
-                from homeassistant.helpers import entity_registry as er
-
                 reg = er.async_get(hass).async_get(bat.entity_id)
                 if reg and reg.device_id:
                     entry["jump"] = {**jump, "device_id": reg.device_id}

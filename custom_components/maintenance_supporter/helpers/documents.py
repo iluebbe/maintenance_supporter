@@ -43,6 +43,8 @@ from ..const import (
 )
 from ..models.shapes import HistoryEntry
 from .aggregate import store_of
+from .completion_photos import history_photo_ids
+from .document_text import text_sidecar_path
 from .url_safety import is_safe_link
 
 if TYPE_CHECKING:
@@ -138,8 +140,6 @@ async def async_rewrite_doc_refs(hass: HomeAssistant, rewrite: Callable[[str], s
     :func:`async_forget_doc_ids` (document delete) and the archive import's
     re-pointing of restored documents.
     """
-    from .completion_photos import history_photo_ids
-
     changed_total = 0
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.unique_id == GLOBAL_UNIQUE_ID:
@@ -886,8 +886,6 @@ class DocumentStore:
 
     def _delete_blob_sync(self, digest: str) -> None:
         """Delete a blob file and its extracted-text sidecar (executor)."""
-        from .document_text import text_sidecar_path
-
         try:
             self.blob_path(digest).unlink(missing_ok=True)
         except OSError:

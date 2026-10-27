@@ -9,18 +9,22 @@ from typing import Any
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
+from homeassistant.util import slugify
 
 from ..const import (
     BUDGET_CURRENCIES,
+    COMPLETION_SOURCES_AUTOMATIC,
     CONF_ACTION_COMPLETE_ENABLED,
     CONF_ACTION_SKIP_ENABLED,
     CONF_ACTION_SNOOZE_ENABLED,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFICATIONS_ENABLED,
+    CONF_NOTIFY_COMPLETED,
     CONF_NOTIFY_DUE_SOON_INTERVAL,
     CONF_NOTIFY_EVENT_ONLY,
     CONF_NOTIFY_OVERDUE_INTERVAL,
@@ -39,9 +43,12 @@ from ..const import (
     NOTIFICATION_TITLE_STYLES,
     MaintenanceStatus,
 )
+from ..models.maintenance_task import MaintenanceTask
 from .aggregate import priority_rank, task_results_of
 from .assignees import person_display_name, task_user_ids
+from .completion_requirements import required_completion_fields
 from .global_options import get_global_options, global_option
+from .history import cycle_token
 from .i18n import format_text, normalize_language
 from .notification_gates import STATUS_ENABLED_KEYS, status_reminder_enabled, task_may_notify
 from .notification_ids import (
@@ -59,6 +66,7 @@ from .notification_ids import (
 from .notify_hooks import (
     KIND_BUDGET,
     KIND_BUNDLE,
+    KIND_COMPLETED,
     KIND_DIGEST,
     KIND_LEAD_TIME,
     KIND_PLACE_ARRIVAL,
@@ -68,7 +76,9 @@ from .notify_hooks import (
     async_emit_and_dispatch,
     notification_context,
 )
+from .places import reminds_on_site
 from .settings_registry import setting_default
+from .trigger_detail import trigger_detail
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1149,9 +1159,6 @@ async def get_user_notify_services(hass: HomeAssistant, user_id: str) -> list[st
     3. Find corresponding notify.mobile_app_* services
     4. Return list of service names
     """
-    from homeassistant.helpers import device_registry as dr
-    from homeassistant.util import slugify
-
     device_reg = dr.async_get(hass)
     services: list[str] = []
     seen: set[str] = set()
@@ -1473,9 +1480,6 @@ class NotificationManager:
         is asked on a notification tap; phase-aware), and one whose completion
         window has not opened yet (a lead-time reminder). Unknown entries or
         tasks keep the button (nothing to check against)."""
-        from ..models.maintenance_task import MaintenanceTask
-        from .completion_requirements import required_completion_fields
-
         entry = self.hass.config_entries.async_get_entry(entry_id)
         coordinator = getattr(getattr(entry, "runtime_data", None), "coordinator", None)
         if coordinator is None:
@@ -1492,8 +1496,6 @@ class NotificationManager:
 
     def _cycle_token(self, entry_id: str, task_id: str) -> str | None:
         """The task's current ``cycle_token`` (``None`` when it is unknown)."""
-        from .history import cycle_token
-
         entry = self.hass.config_entries.async_get_entry(entry_id)
         coordinator = getattr(getattr(entry, "runtime_data", None), "coordinator", None)
         if coordinator is None:
@@ -1521,7 +1523,6 @@ class NotificationManager:
         attribute's value), for its reminder; None for any other status."""
         if str(status or "") != MaintenanceStatus.TRIGGERED or not entry_id or not task_id:
             return None
-        from .trigger_detail import trigger_detail
 
         cfg = task_data if task_data is not None else self._task_config(str(entry_id), str(task_id))
         return trigger_detail(self.hass, cfg.get("trigger_config"))
@@ -2139,9 +2140,6 @@ class NotificationManager:
         household service only: a completion is shared news, and the person
         who just pressed Complete needs no push about it.
         """
-        from ..const import COMPLETION_SOURCES_AUTOMATIC, CONF_NOTIFY_COMPLETED
-        from .notify_hooks import KIND_COMPLETED, async_emit_and_dispatch, notification_context
-
         mode = str(self._opt(CONF_NOTIFY_COMPLETED))
         if mode == "off" or not self.enabled or not self._has_target:
             return False
@@ -2366,8 +2364,6 @@ class NotificationManager:
             except Exception:  # one phone failing must not stop the others
                 _LOGGER.warning("Place arrival message to %s failed", target or "the event", exc_info=True)
         if sent:
-            from .places import reminds_on_site
-
             # For an object whose reminders wait for somebody on site this
             # message IS the visit's reminder: unstamped, the held reminders
             # followed on the next refresh, to everybody (at home too).

@@ -46,6 +46,7 @@ from homeassistant.helpers import intent
 from homeassistant.util import dt as dt_util
 
 from ..const import CONF_PARTS, CONF_TASKS, DOMAIN, NOTIFICATION_MANAGER_KEY
+from ..parts_runtime import async_change_part_stock, async_set_part_restoring, async_untrack_part_stock
 from .aggregate import get_object_entries, get_store, store_of
 
 UNDO_WINDOW = timedelta(minutes=10)
@@ -238,8 +239,6 @@ def unchanged_since(hass: HomeAssistant, record: UndoRecord) -> bool:
 
 async def async_restore(hass: HomeAssistant, record: UndoRecord) -> None:
     """Put back what *record*'s action changed."""
-    from ..parts_runtime import async_change_part_stock, async_set_part_restoring, async_untrack_part_stock
-
     before = record.before
     entry = hass.config_entries.async_get_entry(before.entry_id)
     rd = getattr(entry, "runtime_data", None) if entry else None

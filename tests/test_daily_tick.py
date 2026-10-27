@@ -18,10 +18,7 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.maintenance_supporter import (
-    DOMAIN,
-    NOTIFICATION_MANAGER_KEY,
-)
+from custom_components.maintenance_supporter.const import DOMAIN, NOTIFICATION_MANAGER_KEY
 from custom_components.maintenance_supporter.daily_jobs import async_maybe_send_weekly_digest
 from custom_components.maintenance_supporter.const import (
     CONF_WEEKLY_DIGEST_ENABLED,

@@ -23,15 +23,19 @@ from homeassistant.core import HomeAssistant
 
 from ..const import (
     CONF_OBJECT,
+    DOCUMENT_STORE_KEY,
     DOMAIN,
     MAX_DOCS_PER_OBJECT,
     MAX_NAME_LENGTH,
     MAX_TEXT_LENGTH,
     MAX_URL_LENGTH,
 )
-from ..helpers.aggregate import object_id_for_entry, object_name
-from ..helpers.documents import MAX_TAG_LEN, MAX_TAGS
+from ..helpers.aggregate import merged_tasks, object_id_for_entry, object_name
+from ..helpers.completion_requirements import is_unattached_photo, photo_references
+from ..helpers.dates import stamp_instant
+from ..helpers.documents import MAX_TAG_LEN, MAX_TAGS, async_forget_doc_ids
 from ..helpers.permissions import require_write
+from ..helpers.reference_numbers import format_entry_ref, parse_ref
 from ..helpers.search_match import query_tokens, score_fields, snippet
 from ..helpers.url_safety import is_safe_link
 from ..helpers.ws_errors import send_unsafe_url_error
@@ -59,8 +63,6 @@ _TASK_PAGES_SCHEMA = vol.Schema({str: vol.All(int, vol.Range(min=0, max=99999))}
 
 def _get_store(hass: HomeAssistant) -> DocumentStore:
     """Return the loaded document store (an async_setup invariant)."""
-    from .. import DOCUMENT_STORE_KEY
-
     store: DocumentStore = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
     return store
 
@@ -210,8 +212,6 @@ async def ws_documents_delete(
     """Remove a document. Frees blob bytes only when the last reference goes.
     History entries' completion photos and parts' ``doc_id`` that pointed at
     it are cleared too (they used to dangle)."""
-    from ..helpers.documents import async_forget_doc_ids
-
     store = _get_store(hass)
     if store.get(msg["doc_id"]) is None:
         connection.send_error(msg["id"], "not_found", "Document not found")
@@ -246,8 +246,6 @@ async def ws_documents_discard_upload(
     answers ``not_found``, whether it exists or not, so the command reveals
     nothing and can remove nothing that is part of the record.
     """
-    from ..helpers.completion_requirements import is_unattached_photo, photo_references
-
     entry = _load_object_entry(hass, connection, msg)
     if entry is None:
         return
@@ -355,8 +353,6 @@ def _history_hit(
 ) -> dict[str, Any]:
     """One history hit of the global search; ``ref`` is the completion's
     reference ("8.3-2", #170) when the object, task and entry all carry one."""
-    from ..helpers.reference_numbers import format_entry_ref
-
     obj_ref = object_ref
     return {
         "entry_id": entry_id,
@@ -392,9 +388,6 @@ async def ws_search(
     and the notes written into task histories. Both lists come back best
     first, ``limit`` each.
     """
-    from ..helpers.aggregate import merged_tasks, object_name
-    from ..helpers.reference_numbers import parse_ref
-
     query = msg["query"]
     limit = max(1, min(int(msg.get("limit", 8)), _GLOBAL_SEARCH_MAX))
 
@@ -482,8 +475,6 @@ async def ws_search(
                 hit["snippet"] = piece or " ".join(notes.split())[:160]
                 history.append(hit)
     # Best first; equal scores newest first (two stable sorts).
-    from ..helpers.dates import stamp_instant
-
     history.sort(key=lambda h: stamp_instant(h.get("timestamp")), reverse=True)
     history.sort(key=lambda h: -h["score"])
     connection.send_result(msg["id"], {"documents": documents, "history": history[:limit]})

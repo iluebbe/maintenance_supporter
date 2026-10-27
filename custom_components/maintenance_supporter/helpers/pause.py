@@ -22,10 +22,12 @@ hand-copied blocks that had each forgotten ``due_override``.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import date
+from datetime import date, datetime
 from typing import TYPE_CHECKING, Any
 
 from ..const import CONF_OBJECT, CONF_TASKS
+from .dates import parse_iso_date
+from .schedule import is_recurring
 
 if TYPE_CHECKING:
     from ..storage import MaintenanceStore
@@ -49,8 +51,6 @@ def wants_fresh_cycle(task_data: dict[str, Any]) -> bool:
     until the end of its own pause restarts it. The unarchive paths
     re-anchored it anyway, and the still-paused task read "done today" (DRY
     audit 2026-10-12). Archived state and Undo are the caller's."""
-    from .schedule import is_recurring
-
     return not is_task_paused(task_data) and is_recurring(task_data)
 
 
@@ -85,10 +85,6 @@ def pause_end_day(value: Any) -> str | None:
     kept a timestamp as typed; the auto-resume could not read it as a day and
     resumed the restored object (or task) on its first refresh (DRY audit
     2026-10-12)."""
-    from datetime import datetime
-
-    from .dates import parse_iso_date
-
     if not isinstance(value, str) or not value.strip():
         return None
     text = value.strip()

@@ -35,6 +35,9 @@ from typing import Any, cast
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import helper_integration
+
+from ..const import CONF_OBJECT, DOMAIN, GLOBAL_UNIQUE_ID
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -198,8 +201,6 @@ def is_maintenance_device(hass: HomeAssistant, device: object) -> bool:
     device-link surfaces: linking an object to a maintenance device is never
     meaningful (object hierarchy has ``parent_entry_id``).
     """
-    from ..const import DOMAIN
-
     if any(ident[0] == DOMAIN for ident in (getattr(device, "identifiers", None) or ())):
         return True
     return any(
@@ -236,8 +237,6 @@ def sync_via_device_links(hass: HomeAssistant, entry: Any) -> None:
     ``parent_entry_id`` clears the pointer again. Only OWN devices are ever
     touched; a linked object owns none and is skipped.
     """
-    from ..const import CONF_OBJECT, DOMAIN, GLOBAL_UNIQUE_ID
-
     dev_reg = dr.async_get(hass)
 
     def own_device(e: Any) -> dr.DeviceEntry | None:
@@ -276,8 +275,6 @@ def forget_removed_parent(hass: HomeAssistant, removed_entry_id: str) -> None:
     save: no change to a child object could be saved any more
     (``invalid_parent``, bug audit 2026-10-16, W3). The registry already
     dropped the device link with the parent's device."""
-    from ..const import CONF_OBJECT, DOMAIN
-
     for other in hass.config_entries.async_entries(DOMAIN):
         obj = other.data.get(CONF_OBJECT) or {}
         if other.entry_id != removed_entry_id and obj.get("parent_entry_id") == removed_entry_id:
@@ -311,8 +308,6 @@ def shed_owned_devices(hass: HomeAssistant, *, own_entry_id: str, source_device_
     """
     if not source_device_id:
         return
-
-    from homeassistant.helpers import helper_integration
 
     modern = getattr(helper_integration, "async_remove_helper_devices", None)
     if modern is not None:

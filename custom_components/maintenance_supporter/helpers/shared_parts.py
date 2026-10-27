@@ -26,6 +26,7 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
 
 from ..const import (
     CONF_OBJECT,
@@ -35,7 +36,8 @@ from ..const import (
     DOMAIN,
     STORES_CACHE_KEY,
 )
-from .aggregate import get_object_entries, is_object_entry, object_name
+from ..storage import MaintenanceStore
+from .aggregate import async_store_even_unloaded, get_object_entries, is_object_entry, object_id_for_entry, object_name
 from .entry_tasks import write_tasks
 from .issues import SHARED_PARTS_MOVED_PREFIX, shared_parts_moved_issue_id
 from .parts import iter_part_links, map_part_links
@@ -201,8 +203,6 @@ def relink_history(store: Any, old_owner: str, new_owner: str, moved: dict[str, 
 
 async def async_relink_history(hass: HomeAssistant, entry: ConfigEntry, old_owner: str, new_owner: str, moved: dict[str, str]) -> None:
     """:func:`relink_history` on an object's Store, loaded or not, saved."""
-    from .aggregate import async_store_even_unloaded
-
     store = await async_store_even_unloaded(hass, entry)
     if store is not None and relink_history(store, old_owner, new_owner, moved):
         await store.async_save()
@@ -234,10 +234,6 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
     for the panel's delete, Home Assistant's own *Configure → Delete* and the
     service alike; a warning dialog in the panel could never cover the second.
     """
-    from homeassistant.helpers import issue_registry as ir
-
-    from ..storage import MaintenanceStore
-
     owner_id = entry.entry_id
     wanted = borrowed_part_ids(hass, owner_id)
     if not wanted:
@@ -292,8 +288,6 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
     part_doc_ids = {str(part["doc_id"]) for part in pools.values() if isinstance(part.get("doc_id"), str) and part["doc_id"]}
     doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     if part_doc_ids and doc_store is not None:
-        from .aggregate import object_id_for_entry
-
         await doc_store.async_rehome(part_doc_ids, object_id_for_entry(heir))
 
     # Carry the stock over.

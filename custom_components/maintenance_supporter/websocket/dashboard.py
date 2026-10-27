@@ -2,16 +2,24 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import Callable, Mapping
+from datetime import date as date_cls
 from typing import Any
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.event import async_call_later
+from homeassistant.util import dt as dt_util
 
+from ..config_flow_options_global import (
+    _get_test_result_text,
+    send_test_notification,
+)
 from ..const import (
     BUDGET_CURRENCIES,
     CONF_ACTION_COMPLETE_ENABLED,
@@ -88,14 +96,23 @@ from ..const import (
     SIGNAL_NEW_OBJECT_ENTRY,
     SIGNAL_OBJECT_ENTRY_REMOVED,
 )
-from ..helpers.aggregate import compute_status_counts
+from ..helpers.aggregate import compute_status_counts, is_object_entry, merged_tasks
+from ..helpers.battery_fleet import battery_notes_summary
 from ..helpers.battery_lifetime import fleet_lifetime_catalog
+from ..helpers.budget import compute_spend
+from ..helpers.calendar_source import async_refresh_calendar_occurrences
 from ..helpers.global_options import default_panel_title, get_global_options
+from ..helpers.history import completed_entries
+from ..helpers.i18n import normalize_language
 from ..helpers.notify_targets import build_notify_targets
+from ..helpers.parts import default_search_template
+from ..helpers.schedule import KIND_CALENDAR, Schedule, cycle_state, preview_occurrences
 from ..helpers.settings_registry import (
     setting_default,
 )
 from ..helpers.settings_sanitize import sanitize_settings_input
+from ..helpers.todo_mirror import mirror_todo_error
+from ..helpers.vacation import VacationState
 from . import (
     ID_FIELD,
     _build_object_response,
@@ -128,9 +145,6 @@ def _currency_block(options: Mapping[str, Any]) -> dict[str, Any]:
 def _search_url_default(hass: HomeAssistant) -> str:
     """The shopping-search template in effect when none is set (D#182:
     country first, UI language second) — the Settings input's placeholder."""
-    from ..helpers.i18n import normalize_language
-    from ..helpers.parts import default_search_template
-
     return default_search_template(normalize_language(hass), hass.config.country)
 
 
@@ -296,8 +310,6 @@ def _vacation_summary(options: Mapping[str, Any]) -> dict[str, Any]:
     via its single wire serializer, so the /settings embed and /vacation/state
     can never drift (window/active math lives in one place).
     """
-    from ..helpers.vacation import VacationState
-
     return VacationState.from_options(options).as_wire_dict()
 
 
@@ -309,8 +321,6 @@ async def ws_get_settings(
     msg: dict[str, Any],
 ) -> None:
     """Return all global settings."""
-    from ..helpers.battery_fleet import battery_notes_summary
-
     bn = battery_notes_summary(hass)
     global_entry = _get_global_entry(hass)
     if global_entry is None:
@@ -359,8 +369,6 @@ async def ws_get_statistics(
     # differs (renamed by the user, a _2 collision suffix, or a pre-pinning
     # install that registered localized ids) — the chips then read "unknown"
     # forever. unique_ids are stable, so resolve through the registry.
-    from homeassistant.helpers import entity_registry as er
-
     ent_reg = er.async_get(hass)
     summary_entity_ids = {
         key: ent_reg.async_get_entity_id("sensor", DOMAIN, f"{GLOBAL_UNIQUE_ID}_summary_{key}")
@@ -423,8 +431,6 @@ async def ws_subscribe(
     Both protocols share the 1 s coalescing window and an immediate full
     snapshot on subscribe.
     """
-    import json
-
     deltas: bool = msg.get("deltas", False)
     compact: bool = msg.get("compact", False)
     attached_entry_ids: dict[str, tuple[Any, Callable[[], None]]] = {}
@@ -607,14 +613,6 @@ async def ws_schedule_preview(
     ±offsets and finite series all advance exactly as the engine would.
     Never a frontend reimplementation (the #103 drift lesson).
     """
-    from datetime import date as date_cls
-
-    from homeassistant.util import dt as dt_util
-
-    from ..helpers.aggregate import is_object_entry, merged_tasks
-    from ..helpers.history import completed_entries
-    from ..helpers.schedule import KIND_CALENDAR, Schedule, cycle_state, preview_occurrences
-
     lp: date_cls | None = None
     raw_lp = msg.get("last_performed")
     if raw_lp:
@@ -647,8 +645,6 @@ async def ws_schedule_preview(
         if sched.kind == KIND_CALENDAR and sched.entity_id:
             # #187: a calendar picked in the dialog is not in the coordinator
             # cache yet — fetch its events now so the preview shows real dates.
-            from ..helpers.calendar_source import async_refresh_calendar_occurrences
-
             await async_refresh_calendar_occurrences(hass, {sched.entity_id})
         dates, series_ended = preview_occurrences(
             sched,
@@ -676,8 +672,6 @@ async def ws_get_budget_status(
     msg: dict[str, Any],
 ) -> None:
     """Return current budget status (monthly/yearly spent vs budget)."""
-    from ..helpers.budget import compute_spend
-
     global_options = get_global_options(hass)
 
     monthly_budget = float(global_options.get(CONF_BUDGET_MONTHLY, 0))
@@ -747,8 +741,6 @@ async def ws_update_global_settings(
         return
     # #231: a default list cannot be one of our own (the per-task rule).
     if CONF_MIRROR_TODO_DEFAULT_ENTITIES in filtered:
-        from ..helpers.todo_mirror import mirror_todo_error
-
         mirror_err = mirror_todo_error(hass, filtered[CONF_MIRROR_TODO_DEFAULT_ENTITIES])
         if mirror_err:
             connection.send_error(msg["id"], "invalid_mirror_todo", mirror_err)
@@ -797,11 +789,6 @@ async def ws_test_notification(
     real reminders use, so a green result actually proves that member's phone
     is reachable.
     """
-    from ..config_flow_options_global import (
-        _get_test_result_text,
-        send_test_notification,
-    )
-
     ctx = _load_global_options(hass, connection, msg)
     if ctx is None:
         return

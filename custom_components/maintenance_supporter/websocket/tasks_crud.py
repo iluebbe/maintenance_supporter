@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from copy import deepcopy
+from datetime import datetime, time
 from typing import Any
 from uuid import uuid4
 
@@ -16,6 +17,7 @@ from homeassistant.util import dt as dt_util
 from ..const import (
     BATTERY_FLEET_TASK_FLAG,
     CONF_OBJECT,
+    CONF_PARTS,
     CONF_TASKS,
     DOMAIN,
     FLAT_SCHEDULE_TYPES,
@@ -41,20 +43,36 @@ from ..const import (
     HistoryEntryType,
     ScheduleType,
 )
+from ..entity.triggers import trigger_runtime_stale
 from ..helpers.aggregate import check_nfc_tag_duplicate, get_store
+from ..helpers.completion_requirements import sanitize_required_completion_fields
 from ..helpers.dates import INTERVAL_UNITS
 from ..helpers.entry_tasks import write_task
 from ..helpers.global_options import get_default_warning_days
 from ..helpers.notify_icons import is_valid_icon
+from ..helpers.parts import PART_REF_FIELD, sanitize_consumes_parts
 from ..helpers.permissions import require_write
-from ..helpers.phases import apply_phase_fields
-from ..helpers.sanitize import strip_task_runtime_state
+from ..helpers.phases import apply_phase_fields, clamp_phase_cursor
+from ..helpers.reading_slots import sanitize_reading_slots
+from ..helpers.sanitize import (
+    cap_action_field,
+    cap_quick_complete_defaults_field,
+    sanitize_assignee_pool,
+    sanitize_complete_when,
+    sanitize_labels,
+    sanitize_mirror_todo_entities,
+    seed_rotation_assignee,
+    settle_action_owner,
+    stamp_action_owner,
+    strip_task_runtime_state,
+)
 from ..helpers.schedule import (
     FLAT_RECURRENCE_KEYS,
     KIND_INTERVAL,
     Schedule,
     keep_month_filter,
 )
+from ..helpers.shared_parts import foreign_part_resolver
 from ..helpers.task_fields import (
     EARLIEST_COMPLETION_RANGE,
     INTERVAL_ANCHORS,
@@ -64,7 +82,8 @@ from ..helpers.task_fields import (
     TASK_PRIORITIES,
     WARNING_DAYS_RANGE,
 )
-from ..helpers.task_persist import async_delete_task, async_persist_task
+from ..helpers.task_origin import ORIGIN_KEY
+from ..helpers.task_persist import TaskMoveRefused, async_delete_task, async_move_task, async_persist_task
 from ..helpers.todo_mirror import mirror_todo_error
 from ..helpers.url_safety import is_safe_url
 from ..helpers.ws_errors import send_translated_error, send_unsafe_url_error
@@ -451,8 +470,6 @@ async def ws_create_task(
         initial_last_performed = lp_date.isoformat()
         # Add initial history entry so times_performed reflects the value.
         # Use HA-TZ-aware midnight to keep interval_analyzer consistent.
-        from datetime import datetime, time
-
         lp_dt = datetime.combine(lp_date, time.min, tzinfo=dt_util.DEFAULT_TIME_ZONE)
         initial_history.append(
             {
@@ -488,18 +505,13 @@ async def ws_create_task(
     if msg.get("earliest_completion_days") is not None:
         task_data["earliest_completion_days"] = msg["earliest_completion_days"]
     if msg.get("assignee_pool"):
-        from ..helpers.sanitize import sanitize_assignee_pool
-
         task_data["assignee_pool"] = sanitize_assignee_pool(msg["assignee_pool"])
     if msg.get("rotation_strategy"):
         task_data["rotation_strategy"] = msg["rotation_strategy"]
     if msg.get("required_completion_fields"):
-        from ..helpers.completion_requirements import sanitize_required_completion_fields
-
         task_data["required_completion_fields"] = sanitize_required_completion_fields(
             msg["required_completion_fields"]
         )
-    from ..helpers.sanitize import seed_rotation_assignee
 
     seed_rotation_assignee(task_data)
     if not _validate_entity_slug(connection, msg):
@@ -530,16 +542,10 @@ async def ws_create_task(
     if msg.get("reading_unit") is not None:
         task_data["reading_unit"] = (msg["reading_unit"] or "").strip() or None
     if msg.get("readings"):
-        from ..helpers.reading_slots import sanitize_reading_slots
-
         slots = sanitize_reading_slots(msg["readings"])
         if slots:
             task_data["readings"] = slots
     if msg.get("consumes_parts") is not None:
-        from ..const import CONF_PARTS
-        from ..helpers.parts import sanitize_consumes_parts
-        from ..helpers.shared_parts import foreign_part_resolver
-
         links = sanitize_consumes_parts(
             msg["consumes_parts"],
             set(entry.data.get(CONF_PARTS) or {}),
@@ -552,14 +558,10 @@ async def ws_create_task(
     if msg.get("checklist"):
         task_data["checklist"] = msg["checklist"]
     if msg.get("labels"):
-        from ..helpers.sanitize import sanitize_labels
-
         task_data["labels"] = sanitize_labels(msg["labels"])
     # D#183: mirror targets — shape-sanitized, and our own to-do platform is
     # refused (it cannot take rows, and mirroring into ourselves is circular).
     if msg.get("mirror_todo_entities"):
-        from ..helpers.sanitize import sanitize_mirror_todo_entities
-
         mirrors = sanitize_mirror_todo_entities(msg["mirror_todo_entities"])
         mirror_err = mirror_todo_error(hass, mirrors)
         if mirror_err:
@@ -573,8 +575,6 @@ async def ws_create_task(
         task_data["mirror_todo_use_default"] = False
     # D#229: the entity whose change to a state completes the task while due.
     if msg.get("complete_when"):
-        from ..helpers.sanitize import sanitize_complete_when
-
         rule = sanitize_complete_when(msg["complete_when"])
         if rule is None:
             connection.send_error(msg["id"], "invalid_input", "complete_when needs an entity_id and a to_state")
@@ -589,7 +589,6 @@ async def ws_create_task(
         task_data["on_complete_action"] = msg["on_complete_action"]
     if msg.get("quick_complete_defaults"):
         task_data["quick_complete_defaults"] = msg["quick_complete_defaults"]
-    from ..helpers.sanitize import cap_action_field, cap_quick_complete_defaults_field, stamp_action_owner
 
     cap_action_field(task_data)
     stamp_action_owner(task_data, connection.user.id if connection.user else None)
@@ -717,8 +716,6 @@ async def ws_update_task(
     # D#183: mirror targets — same sanitize + own-platform refusal as create;
     # an empty list clears the field (the raw-field-map lesson).
     if "mirror_todo_entities" in msg:
-        from ..helpers.sanitize import sanitize_mirror_todo_entities
-
         msg["mirror_todo_entities"] = sanitize_mirror_todo_entities(msg["mirror_todo_entities"])
         mirror_err = mirror_todo_error(hass, msg["mirror_todo_entities"])
         if mirror_err:
@@ -727,8 +724,6 @@ async def ws_update_task(
 
     # D#229: same shape check as create; null or {} clears the rule.
     if msg.get("complete_when"):
-        from ..helpers.sanitize import sanitize_complete_when
-
         rule = sanitize_complete_when(msg["complete_when"])
         if rule is None:
             connection.send_error(msg["id"], "invalid_input", "complete_when needs an entity_id and a to_state")
@@ -795,10 +790,6 @@ async def ws_update_task(
     # exist. Nothing complained: the consume path simply skipped it. Sanitize
     # here so both write paths agree.
     if "consumes_parts" in msg:
-        from ..const import CONF_PARTS
-        from ..helpers.parts import sanitize_consumes_parts
-        from ..helpers.shared_parts import foreign_part_resolver
-
         task["consumes_parts"] = sanitize_consumes_parts(
             msg["consumes_parts"],
             set(entry.data.get(CONF_PARTS) or {}),
@@ -808,8 +799,6 @@ async def ws_update_task(
     # #161 phase 2: same raw-field-map lesson — validate the slot list here so
     # both write paths persist the identical shape; an empty list clears.
     if "readings" in msg:
-        from ..helpers.reading_slots import sanitize_reading_slots
-
         slots = sanitize_reading_slots(msg["readings"])
         if slots:
             task["readings"] = slots
@@ -822,7 +811,6 @@ async def ws_update_task(
     # an out-of-range cursor would otherwise survive the edit forever).
     if "phases" in msg or "phase_sequence" in msg:
         apply_phase_fields(hass, entry, task, msg.get("phases", task.get("phases")), msg.get("phase_sequence", task.get("phase_sequence")))
-        from ..helpers.phases import clamp_phase_cursor
 
         store_phase = get_store(hass, entry.entry_id)
         if store_phase is not None:
@@ -887,15 +875,6 @@ async def ws_update_task(
     # the WS layer's reject-at-boundary semantics for silent clamping.
     # (The service path in helpers/task_persist.py DOES call cap_task_fields: those
     # functions are reachable directly from Python, not only behind a schema.)
-    from ..helpers.sanitize import (
-        cap_action_field,
-        cap_quick_complete_defaults_field,
-        sanitize_assignee_pool,
-        sanitize_labels,
-        seed_rotation_assignee,
-        settle_action_owner,
-    )
-
     # A changed action is re-stamped with the saving user; an unchanged one
     # (the panel dialog sends it back on every save) keeps the owner it was
     # stored with — an operator editing the notes must not re-author it.
@@ -907,15 +886,11 @@ async def ws_update_task(
     if "assignee_pool" in task:
         task["assignee_pool"] = sanitize_assignee_pool(task["assignee_pool"])
     if "required_completion_fields" in task:
-        from ..helpers.completion_requirements import sanitize_required_completion_fields
-
         task["required_completion_fields"] = sanitize_required_completion_fields(task["required_completion_fields"])
     seed_rotation_assignee(task)
 
     # Clear stale trigger runtime in Store only when trigger fundamentally changes
     if "trigger_config" in msg:
-        from ..entity.triggers import trigger_runtime_stale
-
         # An edited baseline counts as fundamental: the Store baseline wins
         # over the config on restore (#102 restart fix), so without clearing
         # it a user-entered start value would silently never take effect.
@@ -1001,8 +976,6 @@ async def ws_duplicate_task(
     # carrying part_ref was a second reminder for the same low episode) and
     # the fleet task IS the battery fleet — a copy carrying the flag was a
     # second fleet task (bug audit 2026-09-27).
-    from ..helpers.parts import PART_REF_FIELD
-
     if source.get(PART_REF_FIELD) or source.get(BATTERY_FLEET_TASK_FLAG):
         send_translated_error(connection, msg["id"], "invalid_input", "A spare-part buy task or the battery fleet task cannot be duplicated", translation_key="task_not_duplicable")
         return
@@ -1016,8 +989,6 @@ async def ws_duplicate_task(
     strip_task_runtime_state(new_task)
     # The copy is the user's own task, not the duty / template task the
     # original was created as (2.95 fingerprint).
-    from ..helpers.task_origin import ORIGIN_KEY
-
     new_task.pop(ORIGIN_KEY, None)
 
     await async_persist_task(hass, entry, new_task)
@@ -1058,7 +1029,6 @@ async def ws_move_task(
     if (target.data.get(CONF_OBJECT) or {}).get("archived_at"):
         send_translated_error(connection, msg["id"], "invalid_target", "The target object is archived", translation_key="move_target_archived")
         return
-    from ..helpers.task_persist import TaskMoveRefused, async_move_task
 
     try:
         await async_move_task(hass, entry, target, msg["task_id"])

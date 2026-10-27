@@ -9,8 +9,10 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
 
 from ..const import CONF_ADMIN_PANEL_USER_IDS, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+from .entry_tasks import write_tasks
 from .global_options import entry_option
 
 _LOGGER = logging.getLogger(__name__)
@@ -99,8 +101,6 @@ async def async_prune_task_user_orphans(hass: HomeAssistant) -> None:
                     new_td.pop("responsible_user_id", None)
             new_tasks[tid] = new_td
         if changed:
-            from .entry_tasks import write_tasks
-
             write_tasks(hass, entry, new_tasks)
 
 
@@ -112,8 +112,6 @@ async def async_sync_admin_panel_orphan_issues(hass: HomeAssistant, entry: Confi
     ids that have been validated, removed from the list, or restored are
     cleared automatically.
     """
-    from homeassistant.helpers import issue_registry as ir
-
     user_ids_raw = entry_option(entry, CONF_ADMIN_PANEL_USER_IDS) or []
     if not isinstance(user_ids_raw, list):
         user_ids_raw = []

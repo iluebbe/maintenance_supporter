@@ -34,19 +34,44 @@ sentence-matching agent additionally needs the sentence files shipped under
 
 from __future__ import annotations
 
+from datetime import date as date_cls
+from datetime import timedelta
 from typing import Any
 
 import voluptuous as vol
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import intent
+from homeassistant.util import dt as dt_util
 
-from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_TASKS, DOMAIN, NOTIFIABLE_STATUSES, MaintenanceStatus
+from .const import (
+    COMPLETION_PROVENANCE_NOTES,
+    CONF_OBJECT,
+    CONF_SNOOZE_DURATION_HOURS,
+    CONF_TASKS,
+    DOCUMENT_STORE_KEY,
+    DOMAIN,
+    MAX_INTERVAL_DAYS,
+    NOTIFIABLE_STATUSES,
+    NOTIFICATION_MANAGER_KEY,
+    MaintenanceStatus,
+)
+from .helpers import voice_undo
 from .helpers.aggregate import get_object_entries, iter_live_tasks, priority_rank, store_of
 from .helpers.aggregate import object_name as aggregate_object_name
 from .helpers.assignees import task_user_ids
 from .helpers.coordinator_data import task_results
+from .helpers.global_options import global_option
+from .helpers.intent_match import fold, match_rows
+from .helpers.intent_speech import async_load, async_refusal, speak, speak_count, spoken_iso_date
+from .helpers.parts import is_part_low
+from .helpers.phases import current_phase, effective_field
+from .helpers.shared_parts import live_parts
+from .parts_runtime import resolve_part_link
 
 INTENT_LIST_TASKS = "MaintenanceSupporterListTasks"
 INTENT_COMPLETE_TASK = "MaintenanceSupporterCompleteTask"
@@ -81,16 +106,12 @@ def _sp(key: str, language: str | None, **fmt: Any) -> str:
     Thin seam on purpose: every handler already calls ``_sp``, so the move
     to per-language files needed no changes at the call sites.
     """
-    from .helpers.intent_speech import speak
-
     return speak(key, language, **fmt)
 
 
 async def _refusal(hass: HomeAssistant, err: HomeAssistantError, language: str | None) -> str:
     """A coordinator's refusal in the spoken language (``str(err)`` is
     always English — see :func:`.helpers.intent_speech.async_refusal`)."""
-    from .helpers.intent_speech import async_refusal
-
     return await async_refusal(hass, err, language)
 
 
@@ -101,8 +122,6 @@ def _task_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
     :func:`~.helpers.aggregate.iter_live_tasks`: the coordinator's computed
     payload, so status/next_due reflect the Store, not stale entry data.
     """
-    from .helpers.phases import current_phase
-
     tasks: list[dict[str, Any]] = []
     for ce, task_id, result in iter_live_tasks(hass):
         task = result.task
@@ -145,9 +164,6 @@ def _asking_area(intent_obj: intent.Intent) -> str | None:
     and (for voice satellites) the satellite entity. Either can carry the area:
     an entity's own area override wins, otherwise its device's.
     """
-    from homeassistant.helpers import device_registry as dr
-    from homeassistant.helpers import entity_registry as er
-
     hass = intent_obj.hass
 
     satellite_id = getattr(intent_obj, "satellite_id", None)
@@ -176,10 +192,6 @@ def _area_id_for_name(hass: HomeAssistant, name: str) -> str | None:
     so the value is a name or an alias; an LLM agent may pass either, or the
     id itself.
     """
-    from homeassistant.helpers import area_registry as ar
-
-    from .helpers.intent_match import fold
-
     registry = ar.async_get(hass)
     if registry.async_get_area(name) is not None:
         return name
@@ -207,15 +219,11 @@ def _match_tasks(
 ) -> list[dict[str, Any]]:
     """Match a spoken name against tasks (object name counts too) — the rules
     live in :mod:`.helpers.intent_match`."""
-    from .helpers.intent_match import match_rows
-
     return match_rows(query, snapshot, language)
 
 
 def _sp_n(key: str, language: str | None, number: int, **fmt: Any) -> str:
     """:func:`_sp` for a text carrying a number — picks the number form."""
-    from .helpers.intent_speech import speak_count
-
     return speak_count(key, language, number, **fmt)
 
 
@@ -298,8 +306,6 @@ async def async_setup_intents(hass: HomeAssistant) -> None:
     """Register the Maintenance Supporter intents."""
     # Read the response texts now, in the executor: a handler answering a
     # spoken question must not block the event loop on disk.
-    from .helpers.intent_speech import async_load
-
     await async_load(hass)
 
     intent.async_register(hass, ListTasksIntent())
@@ -470,8 +476,6 @@ class CompleteTaskIntent(intent.IntentHandler):
         # the confirmation can say what was DONE and what comes next.
         done_phase = target.get("phase")
 
-        from .helpers import voice_undo
-
         before = voice_undo.capture(hass, target["entry_id"], target["task_id"])
         try:
             await coordinator.complete_maintenance(
@@ -496,8 +500,6 @@ class CompleteTaskIntent(intent.IntentHandler):
         )
 
         if done_phase:
-            from .helpers.phases import current_phase
-
             next_result = task_results(coordinator).get(target["task_id"])
             next_phase = current_phase(next_result.task if next_result is not None else None)
             response.async_set_speech(
@@ -558,8 +560,6 @@ class TaskInstructionsIntent(intent.IntentHandler):
         # DUE. Static defs live in entry.data; the cursor is Store state —
         # splice it in so current_phase/effective_field resolve like every
         # other surface. Falls through untouched for phase-less tasks.
-        from .helpers.phases import current_phase, effective_field
-
         store = store_of(entry) if entry is not None else None
         if store is not None and task.get("phases"):
             task["phase_cursor"] = store.get_task_state(target["task_id"]).get("phase_cursor", 0)
@@ -596,8 +596,6 @@ class TaskInstructionsIntent(intent.IntentHandler):
             )
 
         # Documents linked to THIS task, with the per-task page hint when set.
-        from . import DOCUMENT_STORE_KEY
-
         doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
         if doc_store is not None and entry is not None:
             object_id = entry.data.get(CONF_OBJECT, {}).get("id", "")
@@ -618,8 +616,6 @@ class TaskInstructionsIntent(intent.IntentHandler):
         # name another object's pool (#111): resolved through the one shared
         # resolver, which reads that pool's own parts and stock — the entry-
         # local lookup this used to do left pooled parts out of the answer.
-        from .parts_runtime import resolve_part_link
-
         links = effective_field(task, "consumes_parts") or []
         for link in links if entry is not None else []:
             if not isinstance(link, dict) or entry is None:
@@ -687,8 +683,6 @@ class TaskDueIntent(intent.IntentHandler):
         assert target is not None
         response = intent_obj.create_response()
 
-        from .helpers.intent_speech import spoken_iso_date
-
         speech = _describe(target, lang) + "."
         # Said the way a date is said ("October 3"), not read out as ISO.
         when = spoken_iso_date(target.get("next_due"), lang)
@@ -722,10 +716,6 @@ class SnoozeTaskIntent(intent.IntentHandler):
         assert target is not None
         response = intent_obj.create_response()
 
-        from . import NOTIFICATION_MANAGER_KEY
-        from .const import CONF_SNOOZE_DURATION_HOURS
-        from .helpers.global_options import global_option
-
         nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
         if nm is None:
             response.async_set_error(
@@ -733,8 +723,6 @@ class SnoozeTaskIntent(intent.IntentHandler):
                 _sp("snooze_unavailable", lang),
             )
             return response
-
-        from .helpers import voice_undo
 
         before = voice_undo.capture(hass, target["entry_id"], target["task_id"])
         nm.snooze_task(target["entry_id"], target["task_id"])
@@ -753,8 +741,6 @@ class SnoozeTaskIntent(intent.IntentHandler):
 def _part_snapshot(hass: HomeAssistant) -> list[dict[str, Any]]:
     """Every spare part across all objects, in the _match_tasks row shape
     (``name`` + ``object_name``) so the same fuzzy matcher applies."""
-    from .helpers.shared_parts import live_parts
-
     rows: list[dict[str, Any]] = []
     for ce in get_object_entries(hass):
         object_name = aggregate_object_name(ce)
@@ -836,8 +822,6 @@ class PartStockIntent(intent.IntentHandler):
             response.async_set_speech(_sp("stock_untracked", lang, part=part["name"]))
             return response
 
-        from .helpers.parts import is_part_low
-
         loc = _sp("stock_loc", lang, loc=part["storage_location"]) if part.get("storage_location") else ""
         # The shared stock rule: a decimal threshold ("0.5 bags") counts too —
         # the int-only check here never warned for one.
@@ -884,11 +868,6 @@ class PostponeTaskIntent(intent.IntentHandler):
 
     async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
         """Handle the intent."""
-        from datetime import date as date_cls
-        from datetime import timedelta
-
-        from homeassistant.util import dt as dt_util
-
         hass = intent_obj.hass
         slots = self.async_validate_slots(intent_obj.slots)
         name = str(slots["name"]["value"]).strip()
@@ -936,8 +915,6 @@ class PostponeTaskIntent(intent.IntentHandler):
             # Capped just past the longest interval: the coordinator refuses
             # that with its own reason, and a huge number from an LLM tool
             # call cannot overflow the date arithmetic first.
-            from .const import MAX_INTERVAL_DAYS
-
             until = base + timedelta(days=min(int(days), MAX_INTERVAL_DAYS + 1))
         else:
             response.async_set_error(
@@ -959,7 +936,6 @@ class PostponeTaskIntent(intent.IntentHandler):
         if err is not None:
             return err
 
-        from .helpers import voice_undo
         from .helpers.intent_speech import spoken_date
 
         before = voice_undo.capture(hass, target["entry_id"], target["task_id"])
@@ -1010,8 +986,6 @@ class SkipTaskIntent(intent.IntentHandler):
         if err is not None:
             return err
 
-        from .helpers import voice_undo
-
         before = voice_undo.capture(hass, target["entry_id"], target["task_id"])
         try:
             await coordinator.skip_maintenance(target["task_id"])
@@ -1040,7 +1014,6 @@ class SkipTaskIntent(intent.IntentHandler):
             ),
             None,
         )
-        from .helpers.intent_speech import spoken_iso_date
 
         due = spoken_iso_date((fresh or {}).get("next_due"), lang)
         response = intent_obj.create_response()

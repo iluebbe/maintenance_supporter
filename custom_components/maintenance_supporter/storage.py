@@ -21,7 +21,7 @@ from homeassistant.helpers.storage import Store
 from .const import CONF_PARTS, CONF_TASKS, DEFAULT_MAX_HISTORY_ENTRIES, DOMAIN
 from .helpers.dates import local_date_from_iso
 from .helpers.history import latest_anchor_index, latest_anchor_stamp, trim_history
-from .helpers.parts import round_qty
+from .helpers.parts import MAX_PART_STOCK, round_qty
 from .helpers.pause import write_anchor
 from .models.shapes import AdaptiveConfig, HistoryEntry, StoredTask
 
@@ -360,8 +360,6 @@ class MaintenanceStore:
         [0, MAX_PART_STOCK]. The WS schemas cap each INPUT at MAX_PART_STOCK,
         but additive paths (restock delta / buy-task completion) could push
         the SUM past it — this chokepoint clamp keeps every writer honest."""
-        from .helpers.parts import MAX_PART_STOCK
-
         parts: dict[str, Any] = self._data.setdefault("parts", {})
         if stock is None:
             parts.pop(part_id, None)
@@ -377,8 +375,6 @@ class MaintenanceStore:
     def set_part_restoring(self, part_id: str, count: float | None) -> None:
         """Set the waiting count, clamped like the stock. Only a tracked part
         has one: the count lives next to its stock and goes with it."""
-        from .helpers.parts import MAX_PART_STOCK
-
         state = self._data.get("parts", {}).get(part_id)
         if state is None:
             return

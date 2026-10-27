@@ -23,6 +23,8 @@ from collections.abc import Callable
 from typing import Any
 
 from homeassistant.core import Context, Event, EventOrigin, EventStateChangedData, HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.event import async_track_state_change_event
 
 from ..const import (
     CONF_TASKS,
@@ -124,8 +126,6 @@ async def _await_loaded_targets(hass: HomeAssistant, entity_ids: list[str]) -> N
     """
     if not entity_ids:
         return
-    from homeassistant.helpers import entity_registry as er
-    from homeassistant.helpers.event import async_track_state_change_event
 
     ent_reg = er.async_get(hass)
 

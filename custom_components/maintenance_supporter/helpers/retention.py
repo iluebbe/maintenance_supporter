@@ -28,14 +28,33 @@ Policy (locked design):
 from __future__ import annotations
 
 import logging
-from datetime import date
+from datetime import date, timedelta
 from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
-from ..const import ARCHIVE_REASON_AUTO
-from .dates import local_date_from_iso
+from ..const import (
+    ARCHIVE_REASON_AUTO,
+    CONF_ARCHIVE_ONEOFF_DAYS,
+    CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
+    CONF_TASKS,
+    DEFAULT_ARCHIVE_ONEOFF_DAYS,
+    DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
+    DOCUMENT_STORE_KEY,
+    DOMAIN,
+)
+from ..const import (
+    ARCHIVE_REASON_AUTO as _REASON_AUTO,
+)
+from .aggregate import get_object_entries, merged_tasks
+from .completion_requirements import UNATTACHED_PHOTO_MAX_AGE_HOURS, unattached_photo_ids
+from .dates import local_date_from_iso, parse_persisted_utc
+from .entry_tasks import write_tasks
+from .global_options import get_global_options
+from .history import completed_entries
+from .parts_cost import entry_spend
+from .task_persist import async_delete_task
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -100,8 +119,6 @@ def should_auto_delete(task: dict[str, Any], *, delete_days: int, today: date) -
     archived_on = _to_date(task.get("archived_at"))
     if archived_on is None:
         return False
-    from .history import completed_entries
-    from .parts_cost import entry_spend
 
     if any(entry_spend(entry) for entry in completed_entries(task.get("history"))):
         return False
@@ -118,15 +135,11 @@ def _coerce_int(value: Any, default: int) -> int:
 
 def _global_options(hass: HomeAssistant) -> dict[str, Any]:
     """Return the global entry's options (or data), or {} when absent."""
-    from .global_options import get_global_options
-
     return dict(get_global_options(hass))
 
 
 def _merged_tasks(entry: Any) -> dict[str, Any]:
     """Static (ConfigEntry) + dynamic (Store) task data for an object entry."""
-
-    from .aggregate import merged_tasks
 
     return merged_tasks(entry)
 
@@ -143,12 +156,6 @@ async def async_sweep_unattached_photos(hass: HomeAssistant) -> int:
     object's Store is not loaded — its history could reference a photo.
     Returns the number removed.
     """
-    from datetime import timedelta
-
-    from ..const import DOCUMENT_STORE_KEY, DOMAIN
-    from .completion_requirements import UNATTACHED_PHOTO_MAX_AGE_HOURS, unattached_photo_ids
-    from .dates import parse_persisted_utc
-
     store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     if store is None:
         return 0
@@ -176,18 +183,6 @@ async def async_run_retention_sweep(hass: HomeAssistant) -> None:
     Idempotent and cheap: only writes / reloads an entry that actually has work
     this pass. Safe to call from a daily timer or directly from a test.
     """
-    from ..const import (
-        ARCHIVE_REASON_AUTO as _REASON_AUTO,
-    )
-    from ..const import (
-        CONF_ARCHIVE_ONEOFF_DAYS,
-        CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
-        CONF_TASKS,
-        DEFAULT_ARCHIVE_ONEOFF_DAYS,
-        DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
-    )
-    from .aggregate import get_object_entries
-
     # Independent of the archive / delete thresholds: a completion photo that
     # never became part of a record is not a retention choice but an orphan.
     await async_sweep_unattached_photos(hass)
@@ -217,8 +212,6 @@ async def async_run_retention_sweep(hass: HomeAssistant) -> None:
             continue
 
         if to_archive:
-            from .entry_tasks import write_tasks
-
             existing = entry.data.get(CONF_TASKS, {})
             updates: dict[str, dict[str, Any]] = {}
             for tid in to_archive:
@@ -236,8 +229,6 @@ async def async_run_retention_sweep(hass: HomeAssistant) -> None:
             )
 
         if to_delete:
-            from .task_persist import async_delete_task
-
             deleted = 0
             for tid in to_delete:
                 if await async_delete_task(hass, entry, tid):

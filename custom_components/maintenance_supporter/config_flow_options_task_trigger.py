@@ -17,7 +17,9 @@ from .const import (
     ScheduleType,
     TriggerType,
 )
+from .entity.triggers import trigger_runtime_stale
 from .helpers.aggregate import store_of
+from .helpers.schedule import read_legacy_fields
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -197,8 +199,6 @@ class TriggerStepsMixin(TriggerConfigMixin):
     @staticmethod
     def _schedule_defaults(task: dict[str, Any]) -> dict[str, Any]:
         """The task's interval, unit and warning days as form defaults."""
-        from .helpers.schedule import read_legacy_fields
-
         flat = read_legacy_fields(task)
         return {
             "interval_days": flat.get("interval_days"),
@@ -214,8 +214,6 @@ class TriggerStepsMixin(TriggerConfigMixin):
         edit that changes type/entities/baseline must clear it or the old
         counters/anchors silently survive the edit (bug audit 2026-08-22).
         """
-        from .entity.triggers import trigger_runtime_stale
-
         if trigger_runtime_stale(old_tc, new_tc):
             store = store_of(self.config_entry)
             if store is not None:

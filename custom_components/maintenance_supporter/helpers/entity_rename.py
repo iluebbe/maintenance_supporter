@@ -14,8 +14,17 @@ bug as #48, but with feature breakage instead of a UI inconsistency.
 
 from __future__ import annotations
 
+import logging
 import re
 from typing import Any
+
+from homeassistant.helpers import entity_registry as er
+
+from ..const import BATTERY_FLEET_EXCLUDED, BATTERY_FLEET_INCLUDED, CONF_OBJECT_PLACE, slugify_object_name
+from .action_listener import map_action_entity_ids
+from .battery_fleet import LOW_LATCH_KEY
+from .battery_fleet_setup import INSTALLED_CELLS_KEY, RECORDED_REPLACEMENTS_KEY
+from .battery_lifetime import REPLACEMENT_LOG_KEY
 
 
 def rewrite_trigger_config(config: Any, old_id: str, new_id: str) -> tuple[Any, bool]:
@@ -116,8 +125,6 @@ def rewrite_task(task_data: dict[str, Any], old_id: str, new_id: str) -> tuple[d
     # counter running behind a repair message until someone re-picked it.
     action = new_task.get("on_complete_action")
     if isinstance(action, dict):
-        from .action_listener import map_action_entity_ids
-
         new_action, action_changed = map_action_entity_ids(action, lambda e: new_id if e == old_id else e)
         if action_changed:
             new_task["on_complete_action"] = new_action
@@ -131,8 +138,6 @@ def rewrite_object(obj: dict[str, Any], old_id: str, new_id: str) -> tuple[dict[
     a renamed battery sensor fell out of the fleet (include) or came back
     into it (exclude) after an entity rename (bug audit 2026-09-27) — and
     the object's place (2026-10): a renamed zone keeps its objects."""
-    from ..const import BATTERY_FLEET_EXCLUDED, BATTERY_FLEET_INCLUDED, CONF_OBJECT_PLACE
-
     new_obj = dict(obj)
     changed = False
     if new_obj.get(CONF_OBJECT_PLACE) == old_id and new_id.startswith("zone."):
@@ -173,10 +178,6 @@ def rewrite_store(store: Any, old_id: str, new_id: str) -> bool:
 
     Returns True iff anything was rewritten.
     """
-    from .battery_fleet import LOW_LATCH_KEY
-    from .battery_fleet_setup import INSTALLED_CELLS_KEY, RECORDED_REPLACEMENTS_KEY
-    from .battery_lifetime import REPLACEMENT_LOG_KEY
-
     changed = False
     compound_key = re.compile(r"_compound_(\d+)_" + re.escape(old_id))
     for state in store.all_task_states().values():
@@ -233,10 +234,6 @@ def migrate_object_unique_ids(hass: Any, entry: Any, old_name: str | None, new_n
     rather than raised — the reload then falls back to fresh entities for
     just that entry, which matches the pre-migration behaviour.
     """
-    from homeassistant.helpers import entity_registry as er
-
-    from ..const import slugify_object_name
-
     old_slug = slugify_object_name(old_name or "")
     new_slug = slugify_object_name(new_name or "")
     if not old_slug or not new_slug or old_slug == new_slug:
@@ -255,8 +252,6 @@ def migrate_object_unique_ids(hass: Any, entry: Any, old_name: str | None, new_n
             ent_reg.async_update_entity(reg_entry.entity_id, new_unique_id=new_uid)
             migrated += 1
         except ValueError:
-            import logging
-
             logging.getLogger(__name__).warning(
                 "unique_id %s already taken while renaming %r -> %r; leaving %s",
                 new_uid,

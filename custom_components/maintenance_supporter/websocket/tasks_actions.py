@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 import voluptuous as vol
@@ -12,20 +12,31 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.util import dt as dt_util
 
 from ..const import (
+    CONF_PARTS,
+    CONF_SNOOZE_DURATION_HOURS,
     CONF_TASKS,
+    DOMAIN,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
     MAX_COST,
     MAX_DATE_LENGTH,
     MAX_DURATION_MINUTES,
+    MAX_INTERVAL_DAYS,
     MAX_TEXT_LENGTH,
     MAX_TIMESTAMP_LENGTH,
     MIN_COST,
+    NOTIFICATION_MANAGER_KEY,
 )
-from ..helpers.aggregate import async_commit_store, object_name
+from ..helpers import voice_undo
+from ..helpers.aggregate import async_commit_store, object_id_for_entry, object_name
 from ..helpers.completion_photos import MAX_COMPLETION_PHOTOS, normalize_photo_doc_ids
+from ..helpers.completion_requirements import own_photo_doc_ids
 from ..helpers.dates import is_past_dated
-from ..helpers.parts import MAX_PART_STOCK
+from ..helpers.global_options import global_option
+from ..helpers.parts import MAX_PART_STOCK, sanitize_consumes_parts
+from ..helpers.phases import effective_field
+from ..helpers.reading_slots import resolve_reading_values
+from ..helpers.shared_parts import foreign_part_resolver
 from ..helpers.ws_errors import send_exception_error, send_translated_error
 from . import (
     ID_FIELD,
@@ -139,10 +150,6 @@ async def ws_complete_task(
     # automatic consumes_parts path is untouched.
     used_parts = msg.get("used_parts")
     if used_parts is not None:
-        from ..const import CONF_PARTS
-        from ..helpers.parts import sanitize_consumes_parts
-        from ..helpers.shared_parts import foreign_part_resolver
-
         used_parts = sanitize_consumes_parts(
             used_parts,
             set(_entry.data.get(CONF_PARTS) or {}),
@@ -152,8 +159,6 @@ async def ws_complete_task(
     # #161 phase 2: resolve the slot values into the history snapshot.
     reading_values = None
     if msg.get("reading_values"):
-        from ..helpers.reading_slots import resolve_reading_values
-
         try:
             reading_values = (
                 resolve_reading_values(
@@ -169,9 +174,6 @@ async def ws_complete_task(
     # foreign doc id satisfied a required photo and got linked (and later
     # re-homed by task/move). This command is the one completion surface
     # that carries photos (bug audit 2026-09-26).
-    from ..helpers.aggregate import object_id_for_entry
-    from ..helpers.completion_requirements import own_photo_doc_ids
-
     photo_doc_ids = own_photo_doc_ids(
         hass, object_id_for_entry(_entry), normalize_photo_doc_ids(msg.get("photo_doc_ids"), msg.get("photo_doc_id"))
     )
@@ -275,8 +277,6 @@ async def ws_quick_complete_task(
 
 def _undo_capture(hass: HomeAssistant, msg: dict[str, Any]) -> Any:
     """What a completion is about to change — for the person's Undo."""
-    from ..helpers import voice_undo
-
     return voice_undo.capture(hass, msg["entry_id"], msg["task_id"])
 
 
@@ -287,8 +287,6 @@ def _remember_for_undo(
     toast offer Undo for ten minutes — one level per person, the same record
     their voice's "undo that" reaches (helpers/voice_undo). False when the
     completion changed nothing (a double tap the guard swallowed): no Undo."""
-    from ..helpers import voice_undo
-
     return voice_undo.remember_as(
         hass,
         voice_undo.user_actor(connection.user.id if connection.user else None),
@@ -318,8 +316,6 @@ async def ws_undo_completion(
     was another task, the ten minutes are over, or the task changed since.
     What already happened outside stays: events, notifications, and a
     completion action — the answer says when the task has one."""
-    from ..helpers import voice_undo
-
     who = voice_undo.user_actor(connection.user.id if connection.user else None)
     record = voice_undo.peek_as(hass, who)
     if (
@@ -482,10 +478,6 @@ async def ws_postpone_task(
         return
     # Bug audit 2026-09-27: an override in year 9999 overflowed the calendar
     # entity's "next day" — a postpone reaches at most one maximum interval out.
-    from datetime import timedelta
-
-    from ..const import MAX_INTERVAL_DAYS
-
     if until > dt_util.now().date() + timedelta(days=MAX_INTERVAL_DAYS):
         send_translated_error(connection, msg["id"], "invalid_date", f"until must be within {MAX_INTERVAL_DAYS} days", translation_key="postpone_too_far", translation_placeholders={"days": str(MAX_INTERVAL_DAYS)})
         return
@@ -517,9 +509,6 @@ async def ws_snooze_task(
     due-soon/overdue/triggered reminders for ``snooze_duration_hours`` — it does
     not change the task's schedule or state.
     """
-    from ..const import CONF_SNOOZE_DURATION_HOURS, DOMAIN, NOTIFICATION_MANAGER_KEY
-    from ..helpers.global_options import global_option
-
     if _load_object_task(hass, connection, msg) is None:
         return
 
@@ -564,8 +553,6 @@ async def ws_checklist_progress(
     a step IS doing the work — the same household member who may complete the
     task must be able to record partial progress.
     """
-    from ..helpers.phases import effective_field
-
     # Merged view: the phase cursor lives in the Store. A phased task (#139)
     # shows the CURRENT phase's checklist; validating against the task-level
     # list dropped every tick on it (bug audit 2026-09-26).

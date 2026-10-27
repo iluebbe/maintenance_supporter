@@ -14,7 +14,8 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 
-from ..const import DOMAIN, MAX_ENTITY_ID_LENGTH
+from ..const import CONF_PARTS, DOMAIN, MAX_ENTITY_ID_LENGTH
+from ..helpers.aggregate import get_store
 from ..helpers.battery_fleet import (
     async_compute_overview,
     async_level_history,
@@ -48,8 +49,6 @@ def _charging(hass: HomeAssistant, fleet: Any) -> list[dict[str, Any]]:
     """The fleet's counted reusable parts: ready and waiting (#208)."""
     if fleet is None:
         return []
-    from ..const import CONF_PARTS
-    from ..helpers.aggregate import get_store
 
     store = get_store(hass, fleet.entry_id)
     if store is None:

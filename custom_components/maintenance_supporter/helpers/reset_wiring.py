@@ -23,6 +23,13 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
+from ..const import CONF_OBJECT, CONF_TASKS
+from ..entity.triggers import normalize_entity_ids
+from .aggregate import get_object_entries, object_name
+from .entry_tasks import write_tasks
+from .sanitize import cap_action_field, stamp_action_owner
+from .task_origin import ORIGIN_KEY, integration_origin, origin_is_duty, task_origin
+
 RESET_SERVICE = "button.press"
 
 
@@ -58,8 +65,6 @@ def enable_reset_button(hass: HomeAssistant, entity_id: str) -> bool:
 def apply_reset_action(hass: HomeAssistant, task_data: dict[str, Any], entity_id: str, user_id: str | None) -> None:
     """Set the reset as the task's completion action (validated, run as the
     user who wired it) and enable the button when the integration hid it."""
-    from .sanitize import cap_action_field, stamp_action_owner
-
     task_data["on_complete_action"] = reset_action(entity_id)
     cap_action_field(task_data)
     stamp_action_owner(task_data, user_id)
@@ -98,7 +103,6 @@ def _counter_duty(hass: HomeAssistant, entity: er.RegistryEntry, task: Mapping[s
     from .signatures import SIGNATURES
     from .signatures._discovery import _matches_catalog_key
     from .signatures._model import catalog_base_name, task_name_variants
-    from .task_origin import origin_is_duty, task_origin
 
     catalog = SIGNATURES.get(entity.platform)
     if catalog is None:
@@ -128,9 +132,6 @@ def _reset_candidates(hass: HomeAssistant) -> list[dict[str, Any]]:
     reset it, but whose completion does not press that reset yet — adopted
     before 2.95, or wired by hand without an action. Internal keys (``_*``)
     carry what wiring needs to record the task's fingerprint."""
-    from ..const import CONF_OBJECT, CONF_TASKS
-    from ..entity.triggers import normalize_entity_ids
-    from .aggregate import get_object_entries, object_name
     from .signatures._discovery import reset_button_for
     from .signatures._model import PER_ENTITY_SEPARATOR
 
@@ -192,10 +193,6 @@ def reset_offers(hass: HomeAssistant) -> list[dict[str, Any]]:
 def wire_resets(hass: HomeAssistant, items: list[dict[str, str]], user_id: str | None) -> int:
     """Wire the offered resets for the chosen (entry_id, task_id) pairs —
     recomputed here, never taken from the client. Returns how many."""
-    from ..const import CONF_TASKS
-    from .entry_tasks import write_tasks
-    from .task_origin import ORIGIN_KEY, integration_origin
-
     wanted = {(i["entry_id"], i["task_id"]) for i in items}
     by_entry: dict[str, dict[str, dict[str, Any]]] = {}
     for offer in _reset_candidates(hass):

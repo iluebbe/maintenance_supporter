@@ -25,7 +25,7 @@ from ..const import (
 from ..helpers.aggregate import object_name
 from ..helpers.dates import parse_iso_date
 from ..helpers.pause import is_task_inert
-from ..helpers.vacation import compute_preview, get_vacation_state
+from ..helpers.vacation import clean_exempt_task_ids, compute_preview, get_vacation_state
 from ..helpers.ws_errors import send_translated_error
 from . import ID_FIELD, _get_merged_tasks, _get_object_entries, _load_global_options, _parse_iso_date, _save_global_options
 
@@ -110,8 +110,6 @@ async def ws_vacation_update(
         options[CONF_VACATION_BUFFER_DAYS] = int(msg["buffer_days"])
 
     if "exempt_task_ids" in msg:
-        from ..helpers.vacation import clean_exempt_task_ids
-
         options[CONF_VACATION_EXEMPT_TASK_IDS] = clean_exempt_task_ids(msg["exempt_task_ids"])
 
     _save_global_options(hass, global_entry, options)

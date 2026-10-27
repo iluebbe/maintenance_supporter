@@ -196,7 +196,7 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
 
     # Documents: a manual linked to the task (with a page), a completion
     # photo on the history entry, a web link — and one on the other object.
-    from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+    from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
 
     docs = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
     rig_obj_id = "rig_obj"
@@ -455,7 +455,7 @@ def _object_labels(entries: list[Any]) -> dict[str, str]:
 
 async def _snapshot(hass: HomeAssistant) -> tuple[dict[str, Any], set[str]]:
     """(the storage with ids translated to names, Store task-state keys seen)."""
-    from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+    from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
 
     from homeassistant.helpers import device_registry as dr
 
@@ -809,7 +809,7 @@ async def test_a_version_1_archive_still_restores(hass: HomeAssistant, global_en
             assert hashlib.sha256(content).hexdigest() == digest
             zf.writestr(f"{doc_archive.BLOB_DIR}{digest}", content)
 
-    from custom_components.maintenance_supporter import DOCUMENT_STORE_KEY
+    from custom_components.maintenance_supporter.const import DOCUMENT_STORE_KEY
 
     docs = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
     for digest in files:

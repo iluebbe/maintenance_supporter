@@ -21,13 +21,15 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
 from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, MAX_NAME_LENGTH
+from ..helpers.aggregate import is_object_entry
+from ..helpers.i18n import normalize_language
 from ..helpers.integration_signatures import (
     SIGNATURES,
     build_setup_trigger,
     discover_integration_setups,
 )
 from ..helpers.permissions import require_write
-from ..helpers.reset_wiring import apply_reset_action
+from ..helpers.reset_wiring import apply_reset_action, reset_offers, wire_resets
 from ..helpers.task_origin import ORIGIN_KEY, integration_origin
 from . import ID_FIELD
 from .adopt_batch import AdoptBatch
@@ -62,8 +64,6 @@ async def ws_preview_integration_setup(
     the target already has (``already``), what it likely has under another
     name (``covered_by``) and how many tasks it holds now — the dialog's
     before/after. Read-only; adopt re-runs discovery itself."""
-    from ..helpers.aggregate import is_object_entry
-
     entry_id = msg.get("entry_id") or ""
     if entry_id and not is_object_entry(hass.config_entries.async_get_entry(entry_id)):
         connection.send_error(msg["id"], "not_found", "Target object not found")
@@ -115,7 +115,6 @@ async def ws_adopt_integration_setups(
     msg: dict[str, Any],
 ) -> None:
     """Create sensor-wired maintenance tasks for the selected suggestions."""
-    from ..helpers.i18n import normalize_language
     from ..templates import localize_template_text
 
     lang = normalize_language(hass)
@@ -237,8 +236,6 @@ async def ws_reset_offers(
 ) -> None:
     """2.95: existing tasks whose completion could also reset the
     integration's own counter (helpers/reset_wiring.reset_offers)."""
-    from ..helpers.reset_wiring import reset_offers
-
     connection.send_result(msg["id"], {"offers": reset_offers(hass)})
 
 
@@ -260,7 +257,5 @@ async def ws_wire_resets(
 ) -> None:
     """2.95: wire the chosen offers — the reset button becomes the task's
     completion action (enabled when the integration shipped it off)."""
-    from ..helpers.reset_wiring import wire_resets
-
     count = wire_resets(hass, msg["items"], connection.user.id if connection.user else None)
     connection.send_result(msg["id"], {"wired": count})

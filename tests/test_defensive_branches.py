@@ -412,7 +412,7 @@ async def test_ws_complete_blocked_by_earliest_completion_window(hass: HomeAssis
 
 
 async def test_ws_snooze_without_notification_manager(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
-    from custom_components.maintenance_supporter import NOTIFICATION_MANAGER_KEY
+    from custom_components.maintenance_supporter.const import NOTIFICATION_MANAGER_KEY
     from custom_components.maintenance_supporter.websocket.tasks_actions import (
         ws_snooze_task,
     )

@@ -6,12 +6,15 @@ import csv
 import io
 import json
 import logging
+from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 from ..const import (
+    ARCHIVE_REASON_MANUAL,
     ARCHIVE_REASON_OBJECT,
     CONF_OBJECT,
     CONF_OBJECT_PLACE,
@@ -19,6 +22,7 @@ from ..const import (
     DEFAULT_TASK_PRIORITY,
     DEFAULT_WARNING_DAYS,
 )
+from ..export import object_entries
 from ..models.task_result import TaskResult
 from .aggregate import merged_tasks, task_results_of
 from .dates import INTERVAL_UNITS, import_day, normalize_hhmm, parse_iso_date
@@ -116,8 +120,6 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
 
     Each row represents one task, with the parent object info repeated.
     """
-    from ..export import object_entries
-
     entries = object_entries(hass, entry_ids)
 
     output = io.StringIO()
@@ -230,8 +232,6 @@ def export_object_records_csv(hass: HomeAssistant, entry_ids: set[str] | None = 
     asset field set used by the objects table. ``entry_ids`` narrows to a
     selection (None = all).
     """
-    from ..export import object_entries
-
     entries = object_entries(hass, entry_ids)
 
     output = io.StringIO()
@@ -282,10 +282,6 @@ def import_objects_csv(
     remaps those to the new entry ids — and per-object ``warnings`` for
     values that were dropped.
     """
-    from homeassistant.util import dt as dt_util
-
-    from ..const import ARCHIVE_REASON_MANUAL
-
     default_warning_days = get_default_warning_days(hass) if hass is not None else 7
     today = dt_util.now().date()
     # A spreadsheet's "CSV UTF-8" save starts with a byte-order mark, which
@@ -484,8 +480,6 @@ def import_objects_csv(
 
 def _is_iso_moment(value: str) -> bool:
     """An ISO date / datetime string (the archive marker's shape)."""
-    from datetime import datetime
-
     if not value:
         return False
     try:

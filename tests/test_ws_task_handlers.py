@@ -2523,10 +2523,7 @@ async def test_snooze_task_suppresses_notifications(
     object_entry: MockConfigEntry,
 ) -> None:
     """task/snooze marks the task's notification keys snoozed."""
-    from custom_components.maintenance_supporter import (
-        DOMAIN,
-        NOTIFICATION_MANAGER_KEY,
-    )
+    from custom_components.maintenance_supporter.const import DOMAIN, NOTIFICATION_MANAGER_KEY
 
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()

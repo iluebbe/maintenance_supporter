@@ -12,22 +12,40 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.util import dt as dt_util
 
 from ..const import (
     BATTERY_FLEET_EXCLUDED,
     BATTERY_FLEET_OBJECT_FLAG,
     BATTERY_FLEET_TASK_FLAG,
     CONF_OBJECT,
+    CONF_PART_SEARCH_URL_TEMPLATE,
+    CONF_PARTS,
     CONF_TASKS,
     DEFAULT_TASK_PRIORITY,
     DEFAULT_WARNING_DAYS,
+    DOCUMENT_STORE_KEY,
     DOMAIN,
     MAX_ID_LENGTH,
 )
-from ..helpers.aggregate import get_object_entries, get_runtime_data, get_store, is_object_entry, object_name, task_entity_id
+from ..entity.triggers import normalize_entity_ids
+from ..helpers.aggregate import (
+    get_object_entries,
+    get_runtime_data,
+    get_store,
+    is_object_entry,
+    merged_tasks,
+    object_name,
+    task_entity_id,
+)
 from ..helpers.aggregate import object_slug as aggregate_object_slug
-from ..helpers.parts import MAX_CONSUME_QUANTITY
+from ..helpers.global_options import get_global_entry, get_global_options
+from ..helpers.i18n import normalize_language
+from ..helpers.parts import MAX_CONSUME_QUANTITY, is_part_low, resolve_shopping_url
 from ..helpers.phases import current_phase_summary
+from ..helpers.places import object_place, zone_name
+from ..helpers.schedule import KIND_CALENDAR, Schedule, read_legacy_fields
+from ..helpers.trigger_detail import trigger_detail
 from ..helpers.ws_errors import send_translated_error
 from ..models.task_result import CoordinatorData, TaskResult
 
@@ -92,8 +110,6 @@ _get_runtime_data = get_runtime_data
 
 def _get_merged_tasks(entry: ConfigEntry) -> dict[str, Any]:
     """Return merged task data (thin re-export of helpers.aggregate.merged_tasks)."""
-    from ..helpers.aggregate import merged_tasks
-
     return merged_tasks(entry)
 
 
@@ -124,10 +140,6 @@ def _build_task_summary(
     use HA's native entity_ids: filter pattern without re-implementing the
     slugify logic.
     """
-    from ..entity.triggers import normalize_entity_ids
-    from ..helpers.schedule import KIND_CALENDAR, Schedule, read_legacy_fields
-    from ..helpers.trigger_detail import trigger_detail
-
     ct = coordinator_task if coordinator_task is not None else TaskResult(task={})
 
     # Recurrence is echoed in the flat shape the task-dialog expects (derived
@@ -358,8 +370,6 @@ def _place_fields(hass: HomeAssistant, obj_data: Mapping[str, Any]) -> dict[str,
     """2026-10 places, for the object's payload: ``place`` (the zone, None =
     home), ``place_name``, ``place_missing`` (set but the zone is gone) and
     ``remind_on_site``."""
-    from ..helpers.places import object_place, zone_name
-
     place = object_place(obj_data)
     name = zone_name(hass, place)
     return {
@@ -387,8 +397,6 @@ def _build_object_response(
 
     # (roadmap P2) attached-document count for the objects-table paperclip badge,
     # plus a per-task count so each task row can carry its own document badge.
-    from .. import DOCUMENT_STORE_KEY
-
     doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     object_id = obj_data.get("id", "")
     object_docs = doc_store.for_object(object_id) if doc_store is not None and object_id else []
@@ -403,11 +411,6 @@ def _build_object_response(
     # Spare parts: full definition + merged stock + the derived helpers the
     # panel renders (is_low, resolved shopping URL). EVERY persisted field is
     # exposed (#50 field-completeness class).
-    from ..const import CONF_PART_SEARCH_URL_TEMPLATE, CONF_PARTS
-    from ..helpers.global_options import get_global_options
-    from ..helpers.i18n import normalize_language
-    from ..helpers.parts import is_part_low, resolve_shopping_url
-
     part_store = get_store(hass, entry.entry_id)
     search_template = get_global_options(hass).get(CONF_PART_SEARCH_URL_TEMPLATE)
     lang = normalize_language(hass)
@@ -503,8 +506,6 @@ def _build_object_response(
 
 def _get_global_entry(hass: HomeAssistant) -> ConfigEntry | None:
     """Get the global config entry (thin re-export of the shared helper)."""
-    from ..helpers.global_options import get_global_entry
-
     return get_global_entry(hass)
 
 
@@ -631,8 +632,6 @@ def _parse_iso_date(
         connection.send_error(msg_id, code, f"{field} must be a valid date (YYYY-MM-DD)")
         return None
     if not_future:
-        from homeassistant.util import dt as dt_util
-
         if parsed > dt_util.now().date():
             send_translated_error(connection, msg_id, "invalid_date", f"{field} must not be in the future", translation_key="date_in_future")
             return None
@@ -649,7 +648,6 @@ def _parse_pause_until(connection: websocket_api.ActiveConnection, msg_id: Any, 
     until = _parse_iso_date(connection, msg_id, value, field="until")
     if until is None:
         return False, None
-    from homeassistant.util import dt as dt_util
 
     if until <= dt_util.now().date():
         send_translated_error(connection, msg_id, "invalid_date", "until must be a future date", translation_key="until_in_past")

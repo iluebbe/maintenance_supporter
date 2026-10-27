@@ -18,15 +18,21 @@ from ..const import (
     MAX_TIMESTAMP_LENGTH,
     MIN_COST,
 )
-from ..helpers.aggregate import async_commit_store
+from ..helpers.aggregate import async_commit_store, object_id_for_entry
 from ..helpers.completion_photos import (
     MAX_COMPLETION_PHOTOS,
     history_photo_ids,
     normalize_photo_doc_ids,
 )
+from ..helpers.completion_requirements import own_photo_doc_ids
+from ..helpers.dates import stamp_instant
+from ..helpers.parts_cost import mark_link_bases
 from ..helpers.permissions import require_write
+from ..helpers.phases import clamp_phase_cursor
+from ..helpers.reading_slots import history_reading_values, resolve_reading_values
 from ..helpers.ws_errors import send_translated_error
 from ..models.shapes import HistoryEntry
+from ..parts_runtime import apply_history_parts_edit, async_commit_parts_edit
 from ..storage import reanchor_from_history
 from . import (
     ID_FIELD,
@@ -170,8 +176,6 @@ async def ws_update_history_entry(
     # slots OR the entry's own snapshot (a slot deleted since the completion
     # stays editable); anything else is refused rather than guessed.
     if "reading_values" in msg:
-        from ..helpers.reading_slots import history_reading_values, resolve_reading_values
-
         try:
             new_values = resolve_reading_values(
                 slot_task.get("readings") or [],
@@ -196,9 +200,6 @@ async def ws_update_history_entry(
     # edited.
     photos_to_link: list[str] = []
     if "photo_doc_ids" in msg:
-        from ..helpers.aggregate import object_id_for_entry
-        from ..helpers.completion_requirements import own_photo_doc_ids
-
         old_photos = history_photo_ids(patched)
         requested = normalize_photo_doc_ids(msg["photo_doc_ids"])
         # A NEW photo must be a file of this object (bug audit 2026-09-26,
@@ -236,8 +237,6 @@ async def ws_update_history_entry(
     # live completion path — a vanished part skips its stock math.
     parts_touched: list[Any] = []
     if "used_parts" in msg:
-        from ..parts_runtime import apply_history_parts_edit
-
         old_used = history[target_index].get("used_parts") or []
         # Deliberately NOT sanitize_consumes_parts here: an edited entry may
         # reference a part that has since been deleted, and that link must
@@ -252,8 +251,6 @@ async def ws_update_history_entry(
             patched.pop("used_parts", None)
         # #104: the entry's parts value follows the corrected selection; a
         # part already on it keeps how it was booked (#222).
-        from ..helpers.parts_cost import mark_link_bases
-
         mark_link_bases(hass, entry, cast("HistoryEntry", patched), previous=old_used)
 
     before = list(history)
@@ -268,8 +265,6 @@ async def ws_update_history_entry(
 
     # The awaiting side effects run only now, for an entry that is written.
     if parts_touched:
-        from ..parts_runtime import async_commit_parts_edit
-
         await async_commit_parts_edit(hass, parts_touched)
     if rd.coordinator:
         for doc_id in photos_to_link:
@@ -339,12 +334,8 @@ async def ws_delete_history_entry(
     old_used = removed.get("used_parts") or []
     parts_touched: list[Any] = []
     if old_used:
-        from ..parts_runtime import apply_history_parts_edit
-
         _kept, parts_touched = apply_history_parts_edit(hass, _entry, _task, old_used, [])
     if parts_touched:
-        from ..parts_runtime import async_commit_parts_edit
-
         await async_commit_parts_edit(hass, parts_touched)
     await async_commit_store(rd, budget=True)
     connection.send_result(msg["id"], {"success": True, "remaining": len(remaining), "parts_returned": bool(parts_touched)})
@@ -356,9 +347,6 @@ def _rewind_phase_cursor(store: Any, task_id: str, task: dict[str, Any], history
     (reanchor_from_history), but the cursor stayed — the step the user just
     un-did was skipped for good (bug audit 2026-09-27). Older completions and
     pure backfills never moved the cursor, so they leave it alone."""
-    from ..helpers.dates import stamp_instant
-    from ..helpers.phases import clamp_phase_cursor
-
     seq = [p for p in task.get("phase_sequence") or [] if isinstance(p, str)]
     lifecycle = [h for h in history if h.get("type") in LIFECYCLE_HISTORY_TYPES]
     if not seq or not lifecycle:

@@ -19,14 +19,28 @@ from .const import (
     BATTERY_FLEET_REMOVED_PARTS,
     BATTERY_FLEET_TASK_FLAG,
     BATTERY_FLEET_TRACK_SELF_CHARGING,
+    CONF_GROUPS,
     CONF_OBJECT,
+    CONF_SAVED_FILTER_VIEWS,
     CONF_TASKS,
+    CONF_VACATION_BUFFER_DAYS,
+    CONF_VACATION_ENABLED,
+    CONF_VACATION_END,
+    CONF_VACATION_EXEMPT_TASK_IDS,
+    CONF_VACATION_START,
     DEFAULT_WARNING_DAYS,
+    DOCUMENT_STORE_KEY,
     DOMAIN,
 )
 from .helpers.aggregate import get_object_entries, merged_tasks, store_of
+from .helpers.battery_fleet import LOW_LATCH_KEY
+from .helpers.battery_fleet_setup import INSTALLED_CELLS_KEY
+from .helpers.battery_lifetime import REPLACEMENT_LOG_KEY
 from .helpers.documents import doc_wire_dict
+from .helpers.global_options import get_global_options
+from .helpers.import_mapping import TASK_NAMES_KEY, settings_task_names
 from .helpers.schedule import Schedule, read_legacy_fields
+from .helpers.settings_registry import ALLOWED_SETTING_KEYS
 from .models.task_result import CoordinatorData, TaskResult
 
 _LOGGER = logging.getLogger(__name__)
@@ -175,10 +189,6 @@ def _build_export_object(
             # The fleet's replacement log and low latch live in the task's
             # Store state, which merged_tasks does not overlay — a backup
             # lost every recorded battery swap (round-trip audit 2026-09-29).
-            from .helpers.battery_fleet import LOW_LATCH_KEY
-            from .helpers.battery_fleet_setup import INSTALLED_CELLS_KEY
-            from .helpers.battery_lifetime import REPLACEMENT_LOG_KEY
-
             state = store.get_task_state(tid) if store is not None else {}
             for key in (REPLACEMENT_LOG_KEY, LOW_LATCH_KEY, INSTALLED_CELLS_KEY):
                 if state.get(key):
@@ -196,8 +206,6 @@ def _build_export_object(
         tasks.append(task)
 
     # (roadmap P6) attach document metadata + web-links.
-    from . import DOCUMENT_STORE_KEY
-
     doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     object_id = obj_data.get("id", "")
     documents = _export_documents(doc_store, object_id) if doc_store is not None and object_id else []
@@ -387,18 +395,6 @@ def build_settings_export(hass: HomeAssistant) -> dict[str, Any]:
     (2026-08 round-trip audit decision). Instance-bound keys are excluded
     (see ``_NON_PORTABLE_SETTINGS``).
     """
-    from .const import (
-        CONF_GROUPS,
-        CONF_SAVED_FILTER_VIEWS,
-        CONF_VACATION_BUFFER_DAYS,
-        CONF_VACATION_ENABLED,
-        CONF_VACATION_END,
-        CONF_VACATION_EXEMPT_TASK_IDS,
-        CONF_VACATION_START,
-    )
-    from .helpers.global_options import get_global_options
-    from .helpers.settings_registry import ALLOWED_SETTING_KEYS
-
     opts = get_global_options(hass)
     settings: dict[str, Any] = {
         k: opts[k] for k in ALLOWED_SETTING_KEYS if k in opts and k not in _NON_PORTABLE_SETTINGS
@@ -418,8 +414,6 @@ def build_settings_export(hass: HomeAssistant) -> dict[str, Any]:
     out: dict[str, Any] = {"version": 1, "global_settings": settings}
     # Group members and vacation exemptions point at tasks by id; a move to
     # another instance mints new ids, so name them (helpers.import_mapping).
-    from .helpers.import_mapping import TASK_NAMES_KEY, settings_task_names
-
     if task_names := settings_task_names(hass, settings):
         out[TASK_NAMES_KEY] = task_names
     return out

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import random
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -18,9 +19,9 @@ from ..const import (
     MaintenanceTypeEnum,
     ScheduleType,
 )
-from ..helpers.dates import parse_iso_date
+from ..helpers.dates import parse_iso_date, stamp_instant
 from ..helpers.history import completed_entries, finite_amount, latest_anchor_stamp, signed_amount, trim_history
-from ..helpers.phases import current_phase
+from ..helpers.phases import clamp_phase_cursor, current_phase
 from ..helpers.schedule import KIND_ONE_TIME, Schedule, read_legacy_fields
 from ..helpers.status import compute_status, effective_warning_days, is_past_schedule_time
 from .shapes import (
@@ -396,8 +397,6 @@ class MaintenanceTask:
         # Only string stamps: an imported history carrying an epoch number
         # made max() compare int with str and every completion of the task
         # raised TypeError (bug audit 2026-09-27).
-        from ..helpers.dates import stamp_instant
-
         anchors = [latest_anchor_stamp(self.history)]
         if self.last_performed:
             anchors.append(self.last_performed)
@@ -458,8 +457,6 @@ class MaintenanceTask:
         # attribution (we cannot know which step it was) and never rotates.
         completed_phase_id: str | None = None
         if is_latest and self.phases and self.phase_sequence:
-            from ..helpers.phases import clamp_phase_cursor
-
             cursor = clamp_phase_cursor(self.phase_cursor, len(self.phase_sequence))
             completed_phase_id = self.phase_sequence[cursor]
             self.phase_cursor = (cursor + 1) % len(self.phase_sequence)
@@ -534,8 +531,6 @@ class MaintenanceTask:
                     counts[who] += 1
             self.responsible_user_id = min(pool, key=lambda u: counts[u])
         elif self.rotation_strategy == "random":
-            import random
-
             others = [u for u in pool if u != current] or pool
             self.responsible_user_id = random.choice(others)
 

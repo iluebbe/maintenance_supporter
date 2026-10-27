@@ -34,6 +34,9 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
+from .action_listener import map_action_entity_ids
+from .sanitize import stamp_action_owner
+
 
 @dataclass
 class SwapReport:
@@ -183,8 +186,6 @@ def move_tasks_to_device(
             rule["entity_id"] = swap(rule["entity_id"])
         action = new_task.get("on_complete_action")
         if isinstance(action, dict):
-            from .action_listener import map_action_entity_ids
-
             action, _ = map_action_entity_ids(action, swap)
             new_task["on_complete_action"] = action
         if isinstance(action, dict) and isinstance(target := action.get("target"), dict):
@@ -197,8 +198,6 @@ def move_tasks_to_device(
                     else (new_device_id if devices in old_ids else devices)
                 )
         if isinstance(action, dict) and action != task.get("on_complete_action") and user_id:
-            from .sanitize import stamp_action_owner
-
             stamp_action_owner(new_task, user_id)
         origin = new_task.get("origin")
         if isinstance(origin, dict) and origin.get("device_id") in old_ids:

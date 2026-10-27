@@ -16,9 +16,12 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import area_registry as ar
+from homeassistant.helpers import floor_registry as fr
 
 from ..const import CONF_HOME_REGION, CONF_HOME_TYPE, DOMAIN, HOME_REGION_AUTO, HOME_TYPES
 from .climate import TRAIT_FREEZE, TRAIT_TERMITES, TRAIT_WILDFIRE, ClimateInfo, describe, load_grids
+from .global_options import global_option
 from .intent_match import fold
 from .region import (
     RegionGrid,
@@ -217,9 +220,6 @@ def detect_equipment(hass: HomeAssistant) -> frozenset[str]:
 
 
 def detect_dwelling(hass: HomeAssistant) -> DwellingGuess:
-    from homeassistant.helpers import area_registry as ar
-    from homeassistant.helpers import floor_registry as fr
-
     floors = list(fr.async_get(hass).async_list_floors())
     areas = list(ar.async_get(hass).async_list_areas())
     return guess_dwelling(
@@ -349,8 +349,6 @@ async def async_home_region(hass: HomeAssistant, country: str | None) -> HomeReg
     it names a region of ``country``, else the one the home location lies in
     (grid and names cached after the first read; only the home's country is
     unpacked)."""
-    from .global_options import global_option
-
     cache: dict[str, Any] = hass.data.setdefault(DOMAIN, {}).setdefault(_REGIONS_KEY, {})
     if "names" not in cache:
         try:
@@ -381,8 +379,6 @@ async def async_home_place(hass: HomeAssistant) -> tuple[str | None, str | None]
 
 
 async def async_home_profile(hass: HomeAssistant) -> HomeProfile:
-    from .global_options import global_option
-
     guess = detect_dwelling(hass)
     setting = str(global_option(hass, CONF_HOME_TYPE) or HOME_TYPE_AUTO)
     dwelling = setting if setting in (DWELLING_HOUSE, DWELLING_APARTMENT) else guess.kind

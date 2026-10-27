@@ -392,7 +392,7 @@ async def test_skip_and_postpone_are_undone_too(hass: HomeAssistant) -> None:
 
 
 async def test_a_snooze_is_undone(hass: HomeAssistant) -> None:
-    from custom_components.maintenance_supporter import NOTIFICATION_MANAGER_KEY
+    from custom_components.maintenance_supporter.const import NOTIFICATION_MANAGER_KEY
 
     obj = await _object(hass, _task("Oil Change"), name="Car")
     nm = hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY]
