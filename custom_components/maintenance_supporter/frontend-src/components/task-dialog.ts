@@ -238,6 +238,11 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _warning = "";
   @state() private _entryId = "";
   @state() private _taskId: string | null = null; // null = create
+  /** #235: tasks edited one after another (the problem sensors just
+   *  adopted). Save opens the next one, Skip moves on without saving, Cancel
+   *  ends the series; empty outside a series. */
+  @state() private _series: Array<{ entryId: string; task: MaintenanceTask }> = [];
+  @state() private _seriesIndex = 0;
   /** #181: the battery fleet task takes its quantities from Battery Notes per
    *  device — the parts picker is hidden for it (links there would be ignored). */
   @state() private _isFleetTask = false;
@@ -477,6 +482,7 @@ export class MaintenanceTaskDialog extends LitElement {
     entryId: string,
     objects?: Array<{ entry_id: string; object: { name: string; archived?: boolean; archived_at?: string | null } }>,
   ): Promise<void> {
+    this._series = [];
     this._entryId = entryId;
     this._taskId = null;
     this._isFleetTask = false;
@@ -504,6 +510,33 @@ export class MaintenanceTaskDialog extends LitElement {
   }
 
   public async openEdit(entryId: string, task: MaintenanceTask): Promise<void> {
+    this._series = [];
+    await this._edit(entryId, task);
+  }
+
+  /** #235: edit `items` one after another. The toast after adopting problem
+   *  sensors opened only the first of the tasks it had just created. */
+  public async openEditSeries(items: Array<{ entryId: string; task: MaintenanceTask }>): Promise<void> {
+    if (items.length === 0) return;
+    this._series = items;
+    await this._editSeriesItem(0);
+  }
+
+  private async _editSeriesItem(index: number): Promise<void> {
+    const item = this._series[index];
+    this._seriesIndex = index;
+    await this._edit(item.entryId, item.task);
+    // The dialog stays open: the next task starts at its top, not at the
+    // buttons where the last one was saved.
+    await this.updateComplete;
+    this.shadowRoot?.querySelector(".dialog-title")?.scrollIntoView({ block: "start" });
+  }
+
+  private _skipSeriesItem(): void {
+    void this._editSeriesItem(this._seriesIndex + 1);
+  }
+
+  private async _edit(entryId: string, task: MaintenanceTask): Promise<void> {
     this._entryId = entryId;
     this._taskId = task.id;
     this._error = "";
@@ -1566,6 +1599,7 @@ export class MaintenanceTaskDialog extends LitElement {
     if (!this._applyConsumesQtyText()) return;
     this._loading = true;
     this._error = "";
+    let next: number | undefined;
     try {
       // helpers/ws-run runWs: a refusal (or a payload that failed to build)
       // lands on the error line as the server's reason / "Save failed".
@@ -1632,13 +1666,17 @@ export class MaintenanceTaskDialog extends LitElement {
         // Keep the dialog open on the (now existing) task so a retry is an
         // update, never a second create; the panel still refreshes.
         if (savedTaskId) this._taskId = savedTaskId;
+      } else if (this._seriesIndex + 1 < this._series.length) {
+        next = this._seriesIndex + 1;
       } else {
         this._open = false;
+        this._series = [];
       }
       this.dispatchEvent(new CustomEvent("task-saved"));
     } finally {
       this._loading = false;
     }
+    if (next !== undefined) await this._editSeriesItem(next);
   }
 
   /** A one-time task without its date: the backend refuses it (DRY audit
@@ -1904,6 +1942,7 @@ export class MaintenanceTaskDialog extends LitElement {
 
   private _close(): void {
     this._open = false;
+    this._series = [];
     this._warning = "";
     if (this._pickerProbeTimer !== undefined) {
       clearTimeout(this._pickerProbeTimer);
@@ -3674,9 +3713,17 @@ export class MaintenanceTaskDialog extends LitElement {
     if (!this._open) return html``;
     const L = this._lang;
     const title = this._taskId ? t("edit_task", L) : t("new_task", L);
+    const hasNext = this._seriesIndex + 1 < this._series.length;
     return html`
       <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${title}</div>
+        <div class="dialog-title">
+          ${title}
+          ${this._series.length > 1
+            ? html`<span class="series-position">${t("task_series_position", L)
+                .replace("{n}", String(this._seriesIndex + 1))
+                .replace("{total}", String(this._series.length))}</span>`
+            : nothing}
+        </div>
         <div class="content">
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
           ${this._warning ? html`<div class="error warning">${this._warning}</div>` : nothing}
@@ -3689,11 +3736,16 @@ export class MaintenanceTaskDialog extends LitElement {
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._close}>${t("cancel", L)}</ha-button>
+          ${hasNext
+            ? html`<ha-button appearance="plain" class="series-skip" .disabled=${this._loading} @click=${this._skipSeriesItem}>
+                ${t("task_series_skip", L)}
+              </ha-button>`
+            : nothing}
           <ha-button
             @click=${this._save}
             .disabled=${this._loading || !this._name.trim() || this._missingDueDate()}
           >
-            ${this._loading ? t("saving", L) : t("save", L)}
+            ${this._loading ? t("saving", L) : t(hasNext ? "task_series_save_next" : "save", L)}
           </ha-button>
         </div>
       </ha-dialog>
@@ -3808,9 +3860,17 @@ export class MaintenanceTaskDialog extends LitElement {
     }
     .dialog-actions {
       display: flex;
+      flex-wrap: wrap;
       justify-content: flex-end;
       gap: 8px;
       padding-top: 16px;
+    }
+    /* #235: "2 of 5" while a series of tasks is edited */
+    .series-position {
+      margin-inline-start: 8px;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--secondary-text-color);
     }
     ms-textfield {
       display: block;

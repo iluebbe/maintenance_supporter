@@ -2147,14 +2147,16 @@ export class MaintenanceSupporterPanel extends LitElement {
     const msg = countText("adopt_problem_done", "adopt_problem_done_one", tasks, this._lang, "tasks");
     if (created.length > 0) {
       // Adopted tasks are fully configurable from day one (responsible user,
-      // priority, documents) — surface that with a direct path to the first.
+      // priority, documents) — surface that with a path through each of them
+      // in turn (#235: only the first one opened).
       this._showActionToast(msg, t("adopt_problem_configure", this._lang), () => {
-        const ref = created[0];
-        const obj = this._objects.find((o) => o.entry_id === ref.entry_id);
-        const tk = obj?.tasks.find((task) => task.id === ref.task_id);
-        if (obj && tk) {
+        const items = created.flatMap((ref) => {
+          const tk = this._objects.find((o) => o.entry_id === ref.entry_id)?.tasks.find((task) => task.id === ref.task_id);
+          return tk ? [{ entryId: ref.entry_id, task: tk }] : [];
+        });
+        if (items.length > 0) {
           void this._ui<MaintenanceTaskDialog>("maintenance-task-dialog")
-            .then((d) => d?.openEdit(ref.entry_id, tk));
+            .then((d) => d?.openEditSeries(items));
         }
       });
     } else {
