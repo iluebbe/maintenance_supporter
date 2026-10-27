@@ -42,6 +42,9 @@ export class MaintenanceBulkEditDialog extends LitElement {
   @state() private _priority = "normal";
   @state() private _setMute = false;
   @state() private _mute = false;
+  // #233: Quick complete on / off (a task's own prefill stays when on).
+  @state() private _setQuick = false;
+  @state() private _quick = true;
 
   private _resolve: ((value: BulkChanges | null) => void) | null = null;
 
@@ -68,6 +71,8 @@ export class MaintenanceBulkEditDialog extends LitElement {
     this._priority = "normal";
     this._setMute = false;
     this._mute = false;
+    this._setQuick = false;
+    this._quick = true;
     this._open = true;
     return new Promise((resolve) => {
       this._resolve = resolve;
@@ -103,6 +108,7 @@ export class MaintenanceBulkEditDialog extends LitElement {
     if (this._setWarning) out.warning_days = this._warning;
     if (this._setPriority) out.priority = this._priority;
     if (this._setMute) out.notify_enabled = !this._mute;
+    if (this._setQuick) out.quick_complete = this._quick;
     return Object.keys(out).length ? out : null;
   }
 
@@ -200,6 +206,11 @@ export class MaintenanceBulkEditDialog extends LitElement {
         <input type="checkbox" class="set-mute" .checked=${this._setMute} @change=${(e: Event) => (this._setMute = (e.target as HTMLInputElement).checked)} />
         <span class="grow">${t("bulk_no_notifications", L)}</span>
         <input type="checkbox" class="mute" .checked=${this._mute} ?disabled=${!this._setMute} @change=${(e: Event) => (this._mute = (e.target as HTMLInputElement).checked)} />
+      </div>
+      <div class="row edit-row">
+        <input type="checkbox" class="set-quick" .checked=${this._setQuick} @change=${(e: Event) => (this._setQuick = (e.target as HTMLInputElement).checked)} />
+        <span class="grow">${t("quick_complete_label", L)}</span>
+        <input type="checkbox" class="quick" .checked=${this._quick} ?disabled=${!this._setQuick} @change=${(e: Event) => (this._quick = (e.target as HTMLInputElement).checked)} />
       </div>
     `;
   }

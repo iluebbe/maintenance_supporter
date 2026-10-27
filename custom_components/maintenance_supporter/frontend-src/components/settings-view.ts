@@ -22,6 +22,7 @@ import { runWs } from "../helpers/ws-run";
 import { DOCS_ARCHIVE_MAX_BYTES, postMultipart } from "../helpers/photo-upload";
 import { countryName, detectionReasons, dwellingLabel, type HomeProfile } from "../helpers/home-profile";
 import { vacationPhase } from "../helpers/vacation-phase";
+import { quickCompleteOn } from "../helpers/quick-complete";
 import "./ms-date-field";
 
 /** One household member and the notify services they actually resolve to.
@@ -712,7 +713,7 @@ export class MaintenanceSettingsView extends LitElement {
       { key: "groups", settingKey: "advanced_groups_visible", label: t("feat_groups", L), desc: t("feat_groups_desc", L) },
       { key: "checklists", settingKey: "advanced_checklists_visible", label: t("feat_checklists", L), desc: t("feat_checklists_desc", L) },
       { key: "schedule_time", settingKey: "advanced_schedule_time_visible", label: t("feat_schedule_time", L), desc: t("feat_schedule_time_desc", L) },
-      { key: "completion_actions", settingKey: "advanced_completion_actions_visible", label: t("feat_completion_actions", L), desc: t("feat_completion_actions_desc", L) },
+      { key: "completion_actions", settingKey: "advanced_completion_actions_visible", label: t("feat_completion_actions", L), desc: t("feat_completion_actions_desc_v2", L) },
       { key: "places", settingKey: "advanced_places_visible", label: t("feat_places", L), desc: t("feat_places_desc", L) },
     ];
 
@@ -1843,7 +1844,7 @@ export class MaintenanceSettingsView extends LitElement {
                     const quickNone = a === "quick_complete" && quickCount === 0;
                     return html`
                     <label class="qr-action-chip ${this._qrActions.has(a) && !quickNone ? "active" : ""} ${quickNone ? "disabled" : ""}"
-                      title=${quickNone ? t("qr_print_quick_none", L) : nothing}>
+                      title=${quickNone ? t("qr_print_quick_off", L) : nothing}>
                       <input type="checkbox"
                         .checked=${this._qrActions.has(a) && !quickNone}
                         .disabled=${quickNone}
@@ -1853,7 +1854,7 @@ export class MaintenanceSettingsView extends LitElement {
                   `;
                   })}
                 </div>
-                ${quickCount === 0 ? html`<div class="hint qr-quick-hint">${t("qr_print_quick_none", L)}</div>` : nothing}
+                ${quickCount === 0 ? html`<div class="hint qr-quick-hint">${t("qr_print_quick_off", L)}</div>` : nothing}
               </div>
 
               <div class="qr-filter-group">
@@ -1926,7 +1927,7 @@ export class MaintenanceSettingsView extends LitElement {
       entry_id: o.entry_id,
       name: o.object.name,
       task_count: (o.tasks || []).length,
-      quick_count: (o.tasks || []).filter((tk) => tk.quick_complete_defaults && Object.keys(tk.quick_complete_defaults).length > 0).length,
+      quick_count: (o.tasks || []).filter((tk) => quickCompleteOn(tk)).length,
     })).sort((a, b) => a.name.localeCompare(b.name));
   }
 

@@ -388,7 +388,7 @@ localizes the created object and task names, else the server language;
                                        // D#229: while due, that entity changing INTO the state completes the task; null clears; malformed = invalid_input
   "on_complete_action": {"service": "counter.reset", "target": {"entity_id": "counter.x"}, "data": {}},
                                        // HA service called after each (non-backfill) completion; a privileged domain drops the action on save
-  "quick_complete_defaults": {"notes": "…", "cost": 0}, // what task/quick_complete (and the quick-complete QR) records
+  "quick_complete_defaults": {"notes": "…", "cost": 0}, // #233 Quick complete: present ({} too) = one tap everywhere, the values = its prefill; null = off
   "phases": {                          // #139 cycle phases (≤10 defs) | null clears
     "flip":    { "name": "Flip blades" },            // per-phase overrides (optional):
     "replace": { "name": "Replace blades",           //   checklist, consumes_parts,
@@ -460,10 +460,11 @@ Several tasks changed at once, across objects:
 `{updated: [{entry_id, task_id}], failed: [{entry_id, task_id, code}], previous: [{entry_id, task_id, changes}]}`.
 `changes` (shared, or per item — an item's own map wins) takes
 `responsible_user_id`, `assignee_pool`, `rotation_strategy`, `labels`,
-`priority`, `warning_days`, `notify_enabled` with the same rules as
+`priority`, `warning_days`, `notify_enabled`, `quick_complete_defaults` with the same rules as
 `task/update` (`null` clears a field; rotation `off` / reminders on are
 stored as their absence), plus `labels_add` / `labels_remove` to edit
-labels without replacing them. One write and one reload per object. A
+labels without replacing them, and `quick_complete` (bool, #233: on keeps a
+task's own prefill). One write and one reload per object. A
 task that cannot take the change is reported in `failed`
 (`not_found`, `invalid_user`, `invalid_input` = no change at all) while
 the others are saved.
@@ -472,7 +473,7 @@ items (without a shared `changes`) to undo.
 
 ### Task actions (no write gate)
 - `task/complete` `{entry_id, task_id, notes?, cost? (-1e6..1e6; below zero = a credit), duration? (min, 0..525600), checklist_state? {str:bool}, feedback? (needed|not_needed|not_sure), photo_doc_ids? [doc id, max 10]}` → `{"success": true}` — photos are documents uploaded beforehand via `POST /api/maintenance_supporter/document/upload` (multipart `entry_id`, `tags=photo`, `file`); the history entry stores them as `photo_doc_ids` (entries written before 2.75 carry a single `photo_doc_id`, still accepted on input) — refused with `tag_scan_required` when the task has `require_tag_scan` (only the NFC handler, `task/quick_complete` and the `complete` service with `via_tag_scan: true` pass). Also takes `completed_at` (see *Backdated completions*), `reading_value` / `reading_values` (*Meter readings*), `used_parts` (*Spare parts*) and `restock_quantity` (a buy task). `via_tag_scan: true` exists here too — it is the panel's QR deep-link fallback and ASSERTS that someone scanned the tag at the thing: an assistant must never send it. Other refusals: `too_early` (completion window), `completion_details_required` (required fields), `task_inactive` (archived / disabled / paused)
-- `task/quick_complete` `{entry_id, task_id}` → `{"success": true, "via": "quick"}` (needs stored `quick_complete_defaults`, else `no_defaults`)
+- `task/quick_complete` `{entry_id, task_id, source? (qr|panel, default qr)}` → `{"success": true, "via": "quick", "undo": bool}` — records the task's prefill; needs *Quick complete* on (`quick_complete_defaults` present, `{}` included), else `no_defaults`. Only `source: qr` (the code on the thing) counts as the tag scan; `panel` is a tap in the panel or on a card
 - `task/checklist_progress` `{entry_id, task_id, checklist_state (req, {item text: bool})}` →
   `{"success": true, "checklist_state": {...}}` — persists in-cycle ticks WITHOUT
   completing (#73). The dict REPLACES the stored progress; unknown items are

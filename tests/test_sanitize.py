@@ -127,11 +127,13 @@ def test_cap_quick_complete_non_dict_dropped() -> None:
     assert "quick_complete_defaults" not in data
 
 
-def test_cap_quick_complete_empty_cleaned_drops_key() -> None:
-    """Line 224: when cleaned dict is empty, key is removed."""
+def test_cap_quick_complete_empty_cleaned_keeps_the_switch() -> None:
+    """#233: invalid values are dropped, the mapping stays: *Quick complete*
+    is on (its presence is the switch), with nothing to prefill. Anything
+    but a mapping is off, stored as absence."""
     from custom_components.maintenance_supporter.helpers.sanitize import cap_quick_complete_defaults_field
 
-    # All fields invalid → cleaned is empty → key dropped
+    # All fields invalid → cleaned is empty → the switch stays on
     data: dict[str, Any] = {
         "quick_complete_defaults": {
             "notes": "",  # empty string → rejected
@@ -141,7 +143,11 @@ def test_cap_quick_complete_empty_cleaned_drops_key() -> None:
         }
     }
     cap_quick_complete_defaults_field(data)
-    assert "quick_complete_defaults" not in data
+    assert data["quick_complete_defaults"] == {}
+    for off in (None, "yes", []):
+        data = {"quick_complete_defaults": off}
+        cap_quick_complete_defaults_field(data)
+        assert "quick_complete_defaults" not in data
 
 
 def test_cap_quick_complete_valid_fields_kept() -> None:

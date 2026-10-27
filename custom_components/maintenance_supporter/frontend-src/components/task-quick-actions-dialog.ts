@@ -33,6 +33,8 @@ import type { PartsCostMode } from "../helpers/parts-cost";
 import { canWrite, NO_DELEGATION, type WriteAccess } from "../helpers/permissions";
 import { confirmAction } from "../helpers/confirm";
 import { ToastTimer } from "../helpers/toast";
+import { quickComplete, quickCompleteOn } from "../helpers/quick-complete";
+import { offerUndoToast } from "../helpers/undo-completion";
 import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
 import { renderRecommendationBars } from "../renderers/recommendation";
@@ -200,8 +202,14 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     );
   }
 
-  private _onComplete(): void {
+  /** Complete. A task with Quick complete (#233) completes in one tap;
+   *  `details` (Complete with details…) opens the dialog. */
+  private _onComplete(details = false): void {
     if (!this._entryId || !this._taskId || !this._task) return;
+    if (!details && quickCompleteOn(this._task)) {
+      void this._onQuickComplete();
+      return;
+    }
     // Reuse the existing rich complete-dialog by mounting it on body.
     // Pass EVERYTHING the card's direct path passes — omitting
     // required_completion_fields let a mandatory note be skipped, and a
@@ -244,6 +252,28 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
         this.close();
       }
     });
+  }
+
+  private async _onQuickComplete(): Promise<void> {
+    const entryId = this._entryId!;
+    const task = this._task!;
+    this._busy = true;
+    try {
+      const outcome = await quickComplete(this.hass, entryId, task.id, this._lang);
+      if (outcome.result === "dialog") {
+        this._onComplete(true);
+        return;
+      }
+      if (outcome.result === "failed") {
+        this._error = outcome.message;
+        return;
+      }
+      this._notifyChanged("complete");
+      if (outcome.undo) offerUndoToast(this, this.hass, { entryId, taskId: task.id, taskName: task.name }, this._lang, () => undefined);
+      this.close();
+    } finally {
+      this._busy = false;
+    }
   }
 
   private async _onSkipConfirm(): Promise<void> {
@@ -675,10 +705,17 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                   `
                 : html`
                     <div class="actions primary-row">
-                      <ha-button appearance="accent" variant="success" @click=${this._onComplete} .disabled=${this._busy}>
+                      <ha-button appearance="accent" variant="success" @click=${() => this._onComplete()} .disabled=${this._busy}
+                        title=${quickCompleteOn(task) ? t("qr_action_quick_complete", L) : t("complete", L)}>
                         <ha-icon slot="start" icon="mdi:check"></ha-icon>
                         ${t("complete", L)}
                       </ha-button>
+                      ${quickCompleteOn(task)
+                        ? html`<ha-button appearance="outlined" variant="success" class="qa-complete-details" @click=${() => this._onComplete(true)} .disabled=${this._busy}>
+                            <ha-icon slot="start" icon="mdi:text-box-edit-outline"></ha-icon>
+                            ${t("complete_with_details", L)}
+                          </ha-button>`
+                        : nothing}
                       ${task.allow_skip !== false
                         ? html`
                             <ha-button appearance="outlined" variant="warning" @click=${() => { this._showSkip = true; }} .disabled=${this._busy}>

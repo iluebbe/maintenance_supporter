@@ -26,6 +26,7 @@ from .const import (
     BATTERY_FLEET_TASK_FLAG,
     BUDGET_CACHE_KEY,
     BUDGET_CURRENCIES,
+    COMPLETION_SOURCES_AUTOMATIC,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_CURRENCY,
@@ -72,7 +73,8 @@ from .helpers.calendar_source import (
 )
 from .helpers.completion_requirements import (
     missing_completion_fields,
-    required_completion_fields,
+    quick_complete_values,
+    unattended_missing_fields,
 )
 from .helpers.coordinator_data import task_results
 from .helpers.dates import is_past_dated, local_moment, parse_persisted_utc, stamp_instant
@@ -1242,6 +1244,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         completed_at: datetime | None = None,
         tag_verified: bool = False,
         source: str | None = None,
+        quick: bool = False,
     ) -> None:
         """Mark a task as completed and persist.
 
@@ -1260,6 +1263,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         (dialog date field / service parameter). Validated HERE — the one
         point the WS command and the HA service both funnel through. See
         :meth:`MaintenanceTask.complete` for the latest-vs-backfill split.
+
+        ``quick`` (#233) is a one-tap completion (the task's *Quick
+        complete*, from the QR code, the panel or a card). It and every
+        unattended completion a person made record the task's prefill for
+        what the caller did not pass: a note beats the canned provenance
+        one, and a required note, cost or duration the prefill holds is
+        answered. Automatic completions get none of it, nobody did the work.
         """
         merged = self._get_merged_tasks_data()
         if task_id not in merged:
@@ -1287,6 +1297,20 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
                 translation_key="reading_slots_required",
             )
 
+        prefill = (
+            quick_complete_values(merged[task_id])
+            if not auto and (quick or (unattended and (source or "") not in COMPLETION_SOURCES_AUTOMATIC))
+            else {}
+        )
+        if prefill.get("notes"):
+            notes = prefill["notes"]
+        if cost is None:
+            cost = prefill.get("cost")
+        if duration is None:
+            duration = prefill.get("duration")
+        if feedback is None:
+            feedback = prefill.get("feedback")
+
         # Required completion details. Checked HERE — the one point every
         # surface funnels through — so a task demanding a note cannot be
         # closed out from a button, the to-do list, an NFC tag, a
@@ -1303,8 +1327,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             if unattended:
                 # Nobody was asked, so nothing the caller attached counts as
                 # an answer — a canned "Completed from the To-do list" note is
-                # provenance, not the note the task demands.
-                missing = required_completion_fields(merged[task_id])
+                # provenance, not the note the task demands. The task's own
+                # prefill is (#233).
+                missing = unattended_missing_fields(merged[task_id], prefill=prefill)
             else:
                 missing = missing_completion_fields(
                     merged[task_id],

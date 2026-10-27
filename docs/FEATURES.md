@@ -63,11 +63,10 @@ date; the shopping list groups what to buy by type:
 
 ![Battery fleet roster](images/gifs/battery-fleet.gif)
 
-**Scan the printed QR code, task done** — a task with quick-complete defaults
-(set in the task dialog with *Settings → Advanced Features → Completion
-actions* on) gets a third, lightning-bolt code in its QR dialog (2.95+); scanning it fires a
-quick-complete with the stored defaults (cost, duration, notes), and the only
-UI is the confirmation toast:
+**Scan the printed QR code, task done** — a task with *Quick complete* on
+(task dialog → *Completing it*) gets a third, lightning-bolt code in its QR
+dialog (2.95+); scanning it completes the task with its prefill (cost,
+duration, notes, if any), and the only UI is the confirmation toast:
 
 ![QR quick-complete](images/gifs/qr-quick-complete.gif)
 
@@ -850,13 +849,14 @@ filters apply on top of the card's own config.
 
 ### QR Codes
 Per-task QR pair: *view* opens the task, *complete* records the completion.
-A task with quick-complete defaults (task dialog, with *Completion actions*
-on in Advanced Features) gets a third, lightning-bolt code (2.95+, #192):
-scanning it records the completion with those defaults — no dialog. Download
+A task with *Quick complete* on gets a third, lightning-bolt code (2.95+,
+#192, #233): scanning it records the completion with the task's prefill, no
+dialog; the QR dialog says what it records, and how to turn it on where it is
+off. Download
 as SVG or print; URL modes for LAN, external URL, or the
 Companion app. Settings → *Print QR codes* also prints *Skip* codes (not in a single task's dialog) and offers the quick-complete code too,
-with the number of tasks that have defaults (greyed out with a hint when none
-has); only those tasks get one.
+with the number of tasks that have *Quick complete* on (greyed out with a hint
+when none has); only those tasks get one.
 
 ![QR Code](images/qr-dialog.png)
 
@@ -990,10 +990,31 @@ saving.
 
 ![On-Complete Action](images/task-dialog-action.png)
 
-### Quick-Complete Defaults (1.3.0+)
-Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
-*Settings → Advanced Features → Completion actions* is on. Scanning the lightning-bolt
-**quick-complete QR** records the completion in one tap, no dialog.
+### Quick complete (1.3.0+, per task since #233)
+A task with *Quick complete* on (task dialog → *Completing it*) completes in
+one tap, without the dialog: every Complete in the panel, on dashboard cards
+and in a card's quick actions, the lightning-bolt **quick-complete QR**, a
+notification's *Complete* button, the task's button entity, a to-do tick, an
+NFC tap and voice. Made for a shared tablet in the kitchen, and for chores
+where doing it is all there is to record.
+
+- **Prefill** (optional): notes, cost, duration and the *was it needed?*
+  answer, recorded by every completion without the dialog. The completion
+  dialog starts with them too. A required note, cost or duration the prefill
+  holds is answered, so such a task completes from a notification as well.
+- **Rules still hold.** A task that asks for a photo, a detail the prefill
+  leaves empty or a tag scan opens the dialog instead (only the tag or the QR
+  code on the thing proves someone was there), and one completed too early
+  says from when it can be. The checklist and readings are not asked.
+- **Complete with details…** on the task page and in a card's quick actions
+  opens the dialog anyway; adding a past completion always does.
+- The icon forms of Complete show an **open circle** to tick off for these
+  tasks, the to-do idiom, instead of a check that reads as done already.
+- **Undo** follows every one-tap completion (and voice: *undo that*).
+- **Bulk edit** turns it on or off for many tasks at once (a task's own
+  prefill stays).
+- Automatic completions (a sensor that recovered, a shopping list, an
+  automation's service call) record no prefill.
 
 ![Quick-Complete Defaults](images/task-dialog-quick-complete.png)
 
@@ -1110,7 +1131,7 @@ Pre-fill notes/cost/duration/feedback per task — in the task dialog, once
 - Per-task **on-complete action** — configure any HA service-call (service + target + data) to run when a task is completed. Failures are logged + swallowed so the completion is always recorded
 - **Validate configuration** button in the task dialog checks the wiring before saving — service format and registration, domain match, target entity — without running the action (a test run would already reset the device's counter as if the maintenance was done)
 - **Not when the task completes itself** (2.95+) — an action can skip automatic completions (the sensor recovered on its own); counter resets wired by Suggested setups use it
-- **Quick-complete QR codes** — pre-configure `notes / cost / duration / feedback` per task; the lightning-bolt QR (in the task's QR dialog and in Settings → Print QR codes, 2.95+) records a completion in one tap, no dialog. Falls back to the regular complete dialog when the task has no defaults
+- **Quick complete** (#233, not behind this switch any more) — see *Quick complete* below; its lightning-bolt QR (in the task's QR dialog and in Settings → Print QR codes, 2.95+) records a completion in one tap, no dialog
 - **Stale-entity repair flow** — if an action's target entity is renamed or removed, a repair issue offers Replace (pick a new entity) or Remove (drop the action)
 - The same lifecycle events (`task_completed / _skipped / _reset`) fire on every completion path, so user-written automations can hook in without having to set `on_complete_action` (see Events below)
 - All gated behind a feature toggle (Settings → Advanced Features → Completion actions). Default OFF — a task that already has an action (a counter reset wired by Suggested setups) shows it regardless

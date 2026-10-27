@@ -46,7 +46,7 @@ from ..const import (
 from ..models.maintenance_task import MaintenanceTask
 from .aggregate import priority_rank, task_results_of
 from .assignees import person_display_name, task_user_ids
-from .completion_requirements import required_completion_fields
+from .completion_requirements import quick_complete_values, unattended_missing_fields
 from .global_options import get_global_options, global_option
 from .history import cycle_token
 from .i18n import format_text, normalize_language
@@ -1487,7 +1487,9 @@ class NotificationManager:
         task = coordinator.merged_task(task_id)
         if not task:
             return True
-        if task.get("require_tag_scan") or required_completion_fields(task):
+        # #233: a required note, cost or duration the task's prefill holds is
+        # answered on a tap (the completion records it).
+        if task.get("require_tag_scan") or unattended_missing_fields(task, prefill=quick_complete_values(task)):
             return False
         try:
             return bool(MaintenanceTask.from_dict(task).can_complete_now)

@@ -194,7 +194,8 @@ describe("task dialog: a wired reset stays visible without the completion-action
     const msg = (sent as SentMessage[]).find((m) => m.type === "maintenance_supporter/task/update") as any;
     expect(msg.on_complete_action.service).to.equal("button.press");
     expect("skip_auto" in msg.on_complete_action).to.equal(false);
-    expect("quick_complete_defaults" in msg).to.equal(false);
+    // #233: Quick complete is its own switch now, saved as off.
+    expect(msg.quick_complete_defaults).to.equal(null);
 
     // the next task without an action: no section, no leftover flag
     await el.openEdit("e", { id: "t2", name: "Other", type: "custom", schedule_type: "time_based", interval_days: 30, warning_days: 7, enabled: true } as any);

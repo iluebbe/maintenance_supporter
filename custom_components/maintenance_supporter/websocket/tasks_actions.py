@@ -30,7 +30,7 @@ from ..const import (
 from ..helpers import voice_undo
 from ..helpers.aggregate import async_commit_store, object_id_for_entry, object_name
 from ..helpers.completion_photos import MAX_COMPLETION_PHOTOS, normalize_photo_doc_ids
-from ..helpers.completion_requirements import own_photo_doc_ids
+from ..helpers.completion_requirements import own_photo_doc_ids, quick_complete_on
 from ..helpers.dates import is_past_dated
 from ..helpers.global_options import global_option
 from ..helpers.parts import MAX_PART_STOCK, sanitize_consumes_parts
@@ -224,6 +224,9 @@ async def ws_complete_task(
         vol.Required("type"): "maintenance_supporter/task/quick_complete",
         vol.Required("entry_id"): ID_FIELD,
         vol.Required("task_id"): ID_FIELD,
+        # #233: "qr" (the code on the thing, proof of presence) or "panel"
+        # (one tap in the panel or on a dashboard card).
+        vol.Optional("source", default="qr"): vol.In(["qr", "panel"]),
     }
 )
 @websocket_api.async_response
@@ -232,7 +235,7 @@ async def ws_quick_complete_task(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Complete a task using its pre-configured `quick_complete_defaults`."""
+    """Complete a task with *Quick complete* on (#233), recording its prefill."""
     ctx = _load_object_task(hass, connection, msg, need_coordinator=True)
     if ctx is None:
         return
@@ -241,28 +244,26 @@ async def ws_quick_complete_task(
     if _refuse_too_early(connection, msg, rd):
         return
 
-    defaults = task.get("quick_complete_defaults") or {}
-    if not isinstance(defaults, dict) or not defaults:
+    if not quick_complete_on(task):
         # Frontend fallback: open the normal complete dialog so the user
         # is never stuck staring at a useless QR scan.
         connection.send_error(
             msg["id"],
             "no_defaults",
-            "Task has no quick_complete_defaults; open complete dialog instead",
+            "Quick complete is off for this task; open the complete dialog instead",
         )
         return
 
+    source = msg.get("source", "qr")
     before = _undo_capture(hass, msg)
     try:
         await rd.coordinator.complete_maintenance(
-            source="qr",
+            source=source,
             task_id=msg["task_id"],
-            notes=defaults.get("notes"),
-            cost=defaults.get("cost"),
-            duration=defaults.get("duration"),
-            feedback=defaults.get("feedback"),
+            quick=True,
             # The QR sticker hangs ON the thing — scanning it is presence.
-            tag_verified=True,
+            # A tap in the panel or on a card is not.
+            tag_verified=source == "qr",
             completed_by=connection.user.id if connection.user else None,
         )
     except ServiceValidationError as err:

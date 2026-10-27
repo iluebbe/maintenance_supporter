@@ -57,6 +57,38 @@ def required_completion_fields(task: Mapping[str, Any] | None) -> list[str]:
     return sanitize_required_completion_fields(effective_field(task, "required_completion_fields"))
 
 
+def quick_complete_on(task: Mapping[str, Any] | None) -> bool:
+    """#233: does *task* complete without a dialog (*Quick complete*)?
+
+    The switch is the presence of ``quick_complete_defaults``: an empty
+    mapping is "on, nothing to prefill". A task that had values for the
+    quick-complete QR code has it on already.
+    """
+    return task is not None and isinstance(task.get("quick_complete_defaults"), Mapping)
+
+
+def quick_complete_values(task: Mapping[str, Any] | None) -> dict[str, Any]:
+    """The prefill a completion without a dialog records (empty when the
+    task's *Quick complete* is off or it has nothing to prefill)."""
+    if not quick_complete_on(task):
+        return {}
+    assert task is not None
+    return dict(task["quick_complete_defaults"])
+
+
+def unattended_missing_fields(task: Mapping[str, Any] | None, *, prefill: Mapping[str, Any] | None = None) -> list[str]:
+    """The required fields a completion that asks nobody leaves open.
+
+    Nothing the caller attached counts (a canned "Completed via NFC tag" is
+    provenance, not the note a task demands); the task's own prefill does
+    (#233): the household wrote it for exactly this. A photo and "who did
+    it" stay open, nobody was asked.
+    """
+    if not prefill:
+        return required_completion_fields(task)
+    return missing_completion_fields(task, notes=prefill.get("notes"), cost=prefill.get("cost"), duration=prefill.get("duration"))
+
+
 def missing_completion_fields(
     task: Mapping[str, Any] | None,
     *,

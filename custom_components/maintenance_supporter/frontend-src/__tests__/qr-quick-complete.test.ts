@@ -51,12 +51,20 @@ describe("QR dialog: quick-complete code (#192)", () => {
     expect(el.shadowRoot!.querySelector(".qr-item.quick .qr-item-label")!.textContent).to.match(/quick-complete/i);
   });
 
-  it("does not offer it without defaults (it would only open the dialog)", async () => {
-    for (const defaults of [null, {}]) {
-      const { el, sent } = await openFor(defaults);
-      expect(actions(sent)).to.deep.equal(["view", "complete"]);
-      expect(el.shadowRoot!.querySelector(".qr-item.quick")).to.equal(null);
-    }
+  it("does not offer it while the task's Quick complete is off, and says how to turn it on (#233)", async () => {
+    const { el, sent } = await openFor(null);
+    expect(actions(sent)).to.deep.equal(["view", "complete"]);
+    expect(el.shadowRoot!.querySelector(".qr-item.quick")).to.equal(null);
+    expect(el.shadowRoot!.querySelector(".qr-quick-off")!.textContent).to.match(/Quick complete is off/);
+  });
+
+  it("offers it for Quick complete without a prefill and says what it records (#233)", async () => {
+    const { el, sent } = await openFor({});
+    expect(actions(sent)).to.deep.equal(["view", "complete", "quick_complete"]);
+    expect(el.shadowRoot!.querySelector(".qr-quick-records")!.textContent).to.equal("Records the completion only");
+    const valued = await openFor({ notes: "Filter swapped", cost: 12 });
+    expect(valued.el.shadowRoot!.querySelector(".qr-quick-records")!.textContent).to.equal("Records: \u201cFilter swapped\u201d, Cost 12");
+    expect(valued.el.shadowRoot!.querySelector(".qr-quick-off")).to.equal(null);
   });
 });
 
@@ -94,12 +102,12 @@ describe("Settings → QR print: quick-complete choice (#192)", () => {
     expect(section().querySelector(".qr-quick-hint")).to.equal(null);
   });
 
-  it("is shown disabled with a hint when no task has defaults", async () => {
-    const { section } = await mountSettings([[null, {}]]);
+  it("is shown disabled with a hint when no task has Quick complete on", async () => {
+    const { section } = await mountSettings([[null, null]]);
     const quick = [...section().querySelectorAll<HTMLElement>(".qr-action-chip")][3];
     expect(quick.classList.contains("disabled")).to.be.true;
     expect(quick.querySelector("input")!.disabled).to.be.true;
-    expect(section().querySelector(".qr-quick-hint")!.textContent).to.match(/quick-complete defaults/i);
+    expect(section().querySelector(".qr-quick-hint")!.textContent).to.match(/quick complete on/i);
   });
 
   it("estimates one code per task and action, quick-complete only for tasks with defaults", async () => {

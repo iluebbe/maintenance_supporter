@@ -15,6 +15,7 @@ import { openHtmlInNewTab, openSignedDocument, preopenTab, signApiPath } from ".
 import { readObjectsCache, writeObjectsCache } from "./helpers/objects-cache";
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { taskIsFor, taskUserIds } from "./helpers/assignees";
+import { quickCompleteOn } from "./helpers/quick-complete";
 import { daysProgress } from "./helpers/interval";
 import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
 import { warrantyStatus } from "./helpers/warranty";
@@ -3068,12 +3069,12 @@ export class MaintenanceSupporterPanel extends LitElement {
   // task has no quick_complete_defaults configured, falls back to the
   // normal complete dialog so the user is never stuck after a scan.
   private async _handleQuickComplete(
-    entryId: string, taskId: string, task: MaintenanceTask,
+    entryId: string, taskId: string, task: MaintenanceTask, source: "qr" | "panel" = "qr",
   ): Promise<void> {
     let failure: { message: string; code: string } | null = null;
     const res = await runWs(
       this,
-      { type: "maintenance_supporter/task/quick_complete", entry_id: entryId, task_id: taskId },
+      { type: "maintenance_supporter/task/quick_complete", entry_id: entryId, task_id: taskId, source },
       {
         fallbackKey: "action_error",
         onError: (message, e) => { failure = { message, code: (e as { code?: string })?.code || "" }; },
@@ -3081,16 +3082,17 @@ export class MaintenanceSupporterPanel extends LitElement {
     );
     if (res === undefined) {
       const { message, code } = failure ?? { message: "", code: "" };
-      // Both refusals mean "the dialog has to collect something": no
-      // quick-complete defaults configured, or the task demands completion
-      // details a silent complete cannot supply. The dialog opens as the
-      // scan's fallback — via_tag_scan keeps the proof of presence.
-      if (code === "no_defaults" || code === "completion_details_required") {
+      // These refusals mean "the dialog has to collect something": Quick
+      // complete is off, the task demands completion details the prefill
+      // does not cover, or a tag scan a tap is not. The dialog opens as
+      // the fallback — after a QR scan via_tag_scan keeps the proof of
+      // presence.
+      if (code === "no_defaults" || code === "completion_details_required" || code === "tag_scan_required") {
         this._openCompleteDialog(
           entryId, taskId, task.name,
           this._features.checklists ? task.checklist : undefined,
           this._features.adaptive && !!task.adaptive_config?.enabled,
-          { viaTagScan: true },
+          { viaTagScan: source === "qr", details: true },
         );
       } else {
         // Relay the server's reason (too_early carries the earliest date)
@@ -3265,10 +3267,18 @@ export class MaintenanceSupporterPanel extends LitElement {
     return run;
   }
 
+  /** Every Complete in the panel. A task with Quick complete (#233)
+   *  completes in one tap; `details` (Complete with details…, a past
+   *  completion) and the QR scan's own fallback open the dialog. */
   private _openCompleteDialog(
     entryId: string, taskId: string, taskName: string, checklist?: string[], adaptiveEnabled?: boolean,
-    opts?: { viaTagScan?: boolean },
+    opts?: { viaTagScan?: boolean; details?: boolean },
   ): void {
+    const task = this._getTask(entryId, taskId);
+    if (!opts?.details && !opts?.viaTagScan && task && quickCompleteOn(task)) {
+      void this._handleQuickComplete(entryId, taskId, task, "panel");
+      return;
+    }
     void this._ui<MaintenanceCompleteDialog>("maintenance-complete-dialog")
       .then((dlg) => dlg && this._fillAndOpenCompleteDialog(dlg, entryId, taskId, taskName, checklist, adaptiveEnabled, opts));
   }
@@ -3739,7 +3749,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 ${renderPeopleChip(peopleOf(row), "today-person")}
               </div>
             </div>
-            ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), undefined, false)}
+            ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), undefined, false, this._isQuick(row))}
           </div>
         `)}
       </div>
@@ -4935,7 +4945,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             : nothing}
           ${renderMiniSparkline(row, this._miniStatsData, this._lang)}
         </span>
-        ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), () => this._promptSkipTask(row.entry_id, row.task_id), row.allow_skip)}
+        ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), () => this._promptSkipTask(row.entry_id, row.task_id), row.allow_skip, this._isQuick(row))}
       </div>
     `;
   }
@@ -4963,8 +4973,13 @@ export class MaintenanceSupporterPanel extends LitElement {
   /** #145: row actions as HA buttons — labelled (accent/success + outlined
    *  warning, the task-detail pairing) or, for "buttons_compact" on narrow screens,
    *  icon-only — or the classic icon pair when the household chose "icons". */
-  private _renderRowActions(L: string, onComplete: () => void, onSkip?: () => void, allowSkip = true): TemplateResult {
+  /** A row's Complete (+ Skip). `quick` (#233): the task completes in one
+   *  tap, and the icon forms show an open circle to tick off (the to-do
+   *  idiom) instead of a check that reads as done already. */
+  private _renderRowActions(L: string, onComplete: () => void, onSkip?: () => void, allowSkip = true, quick = false): TemplateResult {
     const style = this._actionStyle();
+    const completeIcon = quick ? "mdi:checkbox-blank-circle-outline" : "mdi:check";
+    const completeTitle = quick ? t("qr_action_quick_complete", L) : t("complete", L);
     if (style === "buttons" || style === "buttons_compact") {
       const iconOnly = style === "buttons_compact" && (this.narrow || this.tight);
       if (iconOnly) {
@@ -4974,8 +4989,8 @@ export class MaintenanceSupporterPanel extends LitElement {
         // or not the word is there.
         return html`
           <span class="row-actions as-buttons compact">
-            <ha-button size="small" appearance="accent" variant="success" title="${t("complete", L)}" aria-label="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
-              <ha-icon icon="mdi:check"></ha-icon>
+            <ha-button size="small" appearance="accent" variant="success" title="${completeTitle}" aria-label="${completeTitle}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
+              <ha-icon icon=${completeIcon}></ha-icon>
             </ha-button>
             ${allowSkip ? html`
               <ha-button size="small" appearance="outlined" variant="warning" title="${t("skip", L)}" aria-label="${t("skip", L)}" ?disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip?.(); }}>
@@ -4985,7 +5000,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       }
       return html`
         <span class="row-actions as-buttons">
-          <ha-button size="small" appearance="accent" variant="success" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
+          <ha-button size="small" appearance="accent" variant="success" title="${completeTitle}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
             <ha-icon slot="start" icon="mdi:check"></ha-icon>${t("complete", L)}
           </ha-button>
           ${allowSkip ? html`
@@ -4996,14 +5011,19 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
     return html`
       <span class="row-actions">
-        <ha-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
-          <ha-icon icon="mdi:check"></ha-icon>
+        <ha-icon-button class="btn-complete${quick ? " quick" : ""}" title="${completeTitle}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
+          <ha-icon icon=${completeIcon}></ha-icon>
         </ha-icon-button>
         ${allowSkip ? html`
           <ha-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip?.(); }}>
             <ha-icon icon="mdi:skip-next"></ha-icon>
           </ha-icon-button>` : nothing}
       </span>`;
+  }
+
+  /** #233: does the row's task complete in one tap? */
+  private _isQuick(row: TaskRow): boolean {
+    return quickCompleteOn(this._getTask(row.entry_id, row.task_id));
   }
 
   private _openCompleteDialogForRow(row: TaskRow): void {
@@ -5190,6 +5210,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   () => this._openCompleteDialog(obj.entry_id, task.id, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled),
                   () => this._promptSkipTask(obj.entry_id, task.id),
                   task.allow_skip,
+                  quickCompleteOn(task),
                 )}
               </div>
             `)}</div>`}
@@ -5580,7 +5601,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       toggleMoreMenu: () => this._toggleMoreMenu(),
       closeMoreMenu: () => this._closeMoreMenu(),
       openEdit: (tk) => { void this._ui<MaintenanceTaskDialog>("maintenance-task-dialog").then((d) => d?.openEdit(entryId, tk)); },
-      openComplete: (tk) => this._openCompleteDialog(entryId, taskId, tk.name, this._features.checklists ? tk.checklist : undefined, this._features.adaptive && !!tk.adaptive_config?.enabled),
+      openComplete: (tk, opts) => this._openCompleteDialog(entryId, taskId, tk.name, this._features.checklists ? tk.checklist : undefined, this._features.adaptive && !!tk.adaptive_config?.enabled, opts),
       promptSkip: () => this._promptSkipTask(entryId, taskId),
       toggleArchive: (archived) => this._toggleArchiveTask(entryId, taskId, archived),
       togglePause: (paused) => this._togglePauseTask(entryId, taskId, paused),

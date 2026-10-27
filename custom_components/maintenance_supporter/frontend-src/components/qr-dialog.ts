@@ -9,7 +9,8 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
-import { langOf, t } from "../styles";
+import { formatCost, formatDuration, langOf, t } from "../styles";
+import { quickCompleteValues, type QuickCompleteValues } from "../helpers/quick-complete";
 import { downloadTextFile } from "../helpers/download";
 // document.write contexts: the apostrophe too (its own copy left it out).
 import { escapeHtml } from "../helpers/html-escape";
@@ -55,6 +56,8 @@ export class MaintenanceQrDialog extends LitElement {
   @state() private _viewResult: QrResult | null = null;
   @state() private _completeResult: QrResult | null = null;
   @state() private _quickResult: QrResult | null = null;
+  /** #233: the task's Quick complete prefill (null while the switch is off). */
+  @state() private _quickValues: QuickCompleteValues | null = null;
   @state() private _urlMode: "companion" | "local" | "server" = "companion";
 
   private _entryId = "";
@@ -103,6 +106,7 @@ export class MaintenanceQrDialog extends LitElement {
     this._viewResult = null;
     this._completeResult = null;
     this._quickResult = null;
+    this._quickValues = null;
     try {
       const base: Record<string, unknown> = {
         type: "maintenance_supporter/qr/generate",
@@ -119,9 +123,11 @@ export class MaintenanceQrDialog extends LitElement {
         promises.push(
           this.hass.connection.sendMessagePromise({ ...base, action: "complete" }),
         );
-        // The one-tap code only when the task has defaults to record — for
-        // any other task it would just open the complete dialog.
-        if (await this._hasQuickCompleteDefaults()) {
+        // The one-tap code only when the task's Quick complete is on (#233)
+        // — for any other task it would just open the complete dialog.
+        this._quickValues = await this._quickCompleteValues();
+        if (seq !== this._generateSeq) return;
+        if (this._quickValues) {
           promises.push(
             this.hass.connection.sendMessagePromise({ ...base, action: "quick_complete" }),
           );
@@ -150,16 +156,28 @@ export class MaintenanceQrDialog extends LitElement {
     }
   }
 
-  private async _hasQuickCompleteDefaults(): Promise<boolean> {
+  private async _quickCompleteValues(): Promise<QuickCompleteValues | null> {
     try {
       const obj = await this.hass.connection.sendMessagePromise<{
-        tasks?: Array<{ id: string; quick_complete_defaults?: Record<string, unknown> | null }>;
+        tasks?: Array<{ id: string; quick_complete_defaults?: QuickCompleteValues | null }>;
       }>({ type: "maintenance_supporter/object", entry_id: this._entryId });
-      const task = (obj.tasks || []).find((tk) => tk.id === this._taskId);
-      return !!task?.quick_complete_defaults && Object.keys(task.quick_complete_defaults).length > 0;
+      return quickCompleteValues((obj.tasks || []).find((tk) => tk.id === this._taskId));
     } catch {
-      return false;
+      return null;
     }
+  }
+
+  /** What the quick code records: the prefill, or the completion alone. */
+  private _quickRecords(L: string): string {
+    const v: QuickCompleteValues = this._quickValues ?? {};
+    const parts = [
+      v.notes ? `\u201c${v.notes.length > 40 ? `${v.notes.slice(0, 39)}\u2026` : v.notes}\u201d` : "",
+      // The dialog knows no household currency: the amount (in its
+      // decimals) with its label.
+      v.cost != null ? `${t("quick_complete_defaults_cost", L)} ${formatCost(v.cost, undefined, L)}` : "",
+      v.duration != null ? formatDuration(v.duration, L) : "",
+    ].filter(Boolean);
+    return parts.length ? t("qr_quick_records", L).replace("{values}", parts.join(", ")) : t("qr_quick_records_nothing", L);
   }
 
   private _setUrlMode(mode: "companion" | "local" | "server"): void {
@@ -308,6 +326,7 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
                                 alt="QR Quick-complete"
                               />
                               <div class="qr-item-label">${t("qr_action_quick_complete", L)}</div>
+                              <div class="qr-quick-records">${this._quickRecords(L)}</div>
                               <button class="dl-btn"
                                 @click=${() => this._downloadSvg(this._quickResult!, "quick-complete")}>
                                 <ha-icon icon="mdi:download"></ha-icon>
@@ -317,6 +336,9 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
                           `
                         : nothing}
                     </div>
+                    ${this._taskId && !this._quickResult
+                      ? html`<div class="qr-quick-off">${t("qr_quick_complete_off", L)}</div>`
+                      : nothing}
                     <div class="url-display">${this._viewResult!.url}</div>
                   `
                 : nothing}
@@ -387,6 +409,16 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
     .qr-image.small {
       width: 180px;
       height: 180px;
+    }
+    /* #233: what the quick code records; how to get one */
+    .qr-quick-records,
+    .qr-quick-off {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      text-align: center;
+    }
+    .qr-quick-off {
+      margin-top: 8px;
     }
     .qr-item-label {
       max-width: 180px;

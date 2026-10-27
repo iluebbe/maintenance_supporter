@@ -56,6 +56,7 @@ from ..helpers.battery_fleet import LOW_LATCH_KEY, sanitize_low_latch
 from ..helpers.battery_fleet_setup import FLEET_LIST_CAP, INSTALLED_CELLS_KEY, find_fleet_entry, sanitize_installed_cells
 from ..helpers.battery_lifetime import REPLACEMENT_LOG_KEY, sanitize_replacement_log
 from ..helpers.completion_photos import history_photo_ids
+from ..helpers.completion_requirements import quick_complete_on
 from ..helpers.csv_handler import export_object_records_csv, export_objects_csv
 from ..helpers.dates import canonical_iso_date, import_day, normalize_hhmm, parse_iso_date
 from ..helpers.global_options import get_default_warning_days, get_global_entry, get_global_options, merge_global_options
@@ -1709,12 +1710,12 @@ async def ws_batch_generate_qr(
         for task_id, task_data in tasks_data.items():
             if task_filter is not None and task_id not in task_filter:
                 continue
-            has_quick = bool(task_data.get("quick_complete_defaults"))
+            has_quick = quick_complete_on(task_data)
             targets.append((entry.entry_id, obj_name, task_id, task_data.get("name", ""), has_quick))
 
     actions: list[str] = msg["actions"]
-    # A quick-complete code only for tasks with quick-complete defaults — for
-    # the others it would just open the complete dialog (#192).
+    # A quick-complete code only for tasks with *Quick complete* on — for the
+    # others it would just open the complete dialog (#192, #233).
     pairs = [(target, action) for target in targets for action in actions if action != "quick_complete" or target[4]]
     total = len(pairs)
     if total == 0:

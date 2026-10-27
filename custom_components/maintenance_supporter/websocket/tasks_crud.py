@@ -587,7 +587,7 @@ async def ws_create_task(
     # below — accepted loosely here, dropped if malformed.
     if msg.get("on_complete_action"):
         task_data["on_complete_action"] = msg["on_complete_action"]
-    if msg.get("quick_complete_defaults"):
+    if isinstance(msg.get("quick_complete_defaults"), dict):
         task_data["quick_complete_defaults"] = msg["quick_complete_defaults"]
 
     cap_action_field(task_data)

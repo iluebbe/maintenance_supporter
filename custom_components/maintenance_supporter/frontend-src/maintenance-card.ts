@@ -4,6 +4,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { taskIsFor, taskUserIds } from "./helpers/assignees";
+import { quickComplete, quickCompleteOn } from "./helpers/quick-complete";
 import { property, state } from "lit/decorators.js";
 import { syncLocaleFromHass, sharedStyles, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, langOf, currencySymbolOf, syncCurrencyDecimals} from "./styles";
 import { openSignedDocument } from "./helpers/document-url";
@@ -474,8 +475,13 @@ export class MaintenanceSupporterCard extends LitElement {
 
   /** The row's Complete action — the SAME derivation the panel uses (phase
    *  override, parts incl. shared pools, tag-scan gate, restock default,
-   *  checklist ticks, feature gating) through helpers/complete-dialog-args. */
-  private _openComplete(entryId: string, task: MaintenanceTask): void {
+   *  checklist ticks, feature gating) through helpers/complete-dialog-args.
+   *  A task with Quick complete (#233) completes in one tap instead. */
+  private _openComplete(entryId: string, task: MaintenanceTask, details = false): void {
+    if (!details && quickCompleteOn(task)) {
+      void this._quickComplete(entryId, task);
+      return;
+    }
     const dlg = this.shadowRoot!.querySelector<MaintenanceCompleteDialog>("maintenance-complete-dialog")!;
     fillAndOpenCompleteDialog(
       dlg,
@@ -492,6 +498,26 @@ export class MaintenanceSupporterCard extends LitElement {
       }),
       this._lang,
     );
+  }
+
+  /** #233: one tap, then Home Assistant's toast with Undo (the card has no
+   *  toast of its own) — or the dialog, when the task needs it after all. */
+  private async _quickComplete(entryId: string, task: MaintenanceTask): Promise<void> {
+    const outcome = await quickComplete(this.hass, entryId, task.id, this._lang);
+    if (outcome.result === "dialog") {
+      this._openComplete(entryId, task, true);
+      return;
+    }
+    if (outcome.result === "failed") {
+      this.dispatchEvent(new CustomEvent("hass-notification", { detail: { message: outcome.message }, bubbles: true, composed: true }));
+      return;
+    }
+    await this._loadData();
+    if (outcome.undo) {
+      offerUndoToast(this, this.hass, { entryId, taskId: task.id, taskName: task.name }, this._lang, () => void this._loadData());
+    } else {
+      this.dispatchEvent(new CustomEvent("hass-notification", { detail: { message: t("quick_complete_success", this._lang) }, bubbles: true, composed: true }));
+    }
   }
 
   /** Header badges from the LIVE object list — the statistics call ran once
@@ -630,7 +656,7 @@ export class MaintenanceSupporterCard extends LitElement {
                               appearance="accent"
                               variant="success"
                               class="complete-btn-text"
-                              title="${t("complete", L)}"
+                              title="${quickCompleteOn(task) ? t("qr_action_quick_complete", L) : t("complete", L)}"
                               @click=${(e: Event) => {
                                 e.stopPropagation();
                                 this._openComplete(entry_id, task);
@@ -642,15 +668,16 @@ export class MaintenanceSupporterCard extends LitElement {
                         : showActions
                         ? html`
                             <ha-icon-button
-                              class="complete-btn"
-                              title="${t("complete", L)}"
+                              class="complete-btn${quickCompleteOn(task) ? " quick" : ""}"
+                              title="${quickCompleteOn(task) ? t("qr_action_quick_complete", L) : t("complete", L)}"
                               @click=${(e: Event) => {
                                 // Stop the row's open-task handler from also firing
                                 e.stopPropagation();
                                 this._openComplete(entry_id, task);
                               }}
                             >
-                              <ha-icon icon="mdi:check"></ha-icon>
+                              <!-- #233: an open circle to tick off; a check read as done already -->
+                              <ha-icon icon=${quickCompleteOn(task) ? "mdi:checkbox-blank-circle-outline" : "mdi:check"}></ha-icon>
                             </ha-icon-button>
                           `
                         : nothing}

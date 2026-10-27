@@ -17,6 +17,7 @@ import "./ms-date-field";
 import "./ms-cost-input";
 import "./ms-photo-picker";
 import { photoPickerStyles } from "./ms-photo-picker";
+import type { QuickCompleteValues } from "../helpers/quick-complete";
 
 /** The server's bounds (websocket USED_PARTS_FIELD quantity / task/complete
  *  restock_quantity) — validated on save with a message, never dropped.
@@ -121,6 +122,9 @@ export class MaintenanceCompleteDialog extends LitElement {
   /** #73: in-cycle ticks (keyed by item TEXT) recorded on the task detail —
    *  prefill the dialog so nobody re-ticks what is already done. */
   @property({ attribute: false }) public checklistPrefill: Record<string, boolean> = {};
+  /** #233: the task's Quick complete prefill: what a completion without
+   *  the dialog records is where this one starts too. */
+  @property({ attribute: false }) public prefill: QuickCompleteValues | null = null;
 
   public open(opts: { viaTagScan?: boolean } = {}): void {
     if (this._open) return;
@@ -128,9 +132,10 @@ export class MaintenanceCompleteDialog extends LitElement {
     // Reset on every open — a plain open after a scan fallback must not
     // keep claiming proof of presence.
     this.viaTagScan = !!opts.viaTagScan;
-    this._notes = "";
-    this._cost = "";
-    this._duration = "";
+    const prefill = this.prefill;
+    this._notes = prefill?.notes ?? "";
+    this._cost = prefill?.cost != null ? String(prefill.cost) : "";
+    this._duration = prefill?.duration != null ? String(prefill.duration) : "";
     this._error = "";
     // The dialog's own state is INDEX-keyed (historical shape, flows into the
     // history entry as-is) — map the text-keyed in-cycle ticks onto indices.
@@ -139,7 +144,7 @@ export class MaintenanceCompleteDialog extends LitElement {
         .map((item, i) => [String(i), !!this.checklistPrefill[item]] as const)
         .filter(([, done]) => done),
     );
-    this._feedback = "needed";
+    this._feedback = prefill?.feedback ?? "needed";
     this._photos.reset();
     this._readingValue = "";
     this._readingValues = {};

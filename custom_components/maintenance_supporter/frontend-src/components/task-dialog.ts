@@ -23,6 +23,7 @@ import {
   WARNING_DAYS_RANGE,
 } from "../helpers/setting-ranges";
 import { parseDurationMinutes } from "../helpers/duration";
+import { quickCompleteOn } from "../helpers/quick-complete";
 import type { TriggerType } from "../types";
 import { REQUIRED_COMPLETION_KEYS, REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import "./ms-textfield";
@@ -442,7 +443,8 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _actionTestResult: "" | "ok" | "error" = "";
   @state() private _actionTestError = "";
 
-  // v1.3.0: quick_complete_defaults (gated by completionActionsEnabled)
+  // #233: Quick complete (the switch) and its prefill (quick_complete_defaults)
+  @state() private _quickOn = false;
   @state() private _qcNotes = "";
   @state() private _qcCost = "";
   @state() private _qcDuration = "";
@@ -672,6 +674,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._actionPresent = false;
     }
     const qcd = task.quick_complete_defaults;
+    this._quickOn = quickCompleteOn(task);
     this._qcNotes = qcd?.notes || "";
     this._qcCost = qcd?.cost != null ? String(qcd.cost) : "";
     this._qcDuration = qcd?.duration != null ? String(qcd.duration) : "";
@@ -811,6 +814,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._actionTesting = false;
     this._actionTestResult = "";
     this._actionTestError = "";
+    this._quickOn = false;
     this._qcNotes = "";
     this._qcCost = "";
     this._qcDuration = "";
@@ -1040,6 +1044,69 @@ export class MaintenanceTaskDialog extends LitElement {
     ].join(", ");
   }
 
+  /** #233: Quick complete, the switch and its prefill. The hints say what
+   *  a one-tap completion cannot answer: a required photo or a detail the
+   *  prefill leaves empty (the dialog opens for it), a tag scan (only the
+   *  tag or the QR code on the thing), the checklist and readings (not
+   *  asked). "Who did it" needs no hint: the person tapping answers it. */
+  private _renderQuickComplete(L: string) {
+    const prefilled: Record<string, boolean> = {
+      notes: !!this._qcNotes.trim(),
+      cost: !isNaN(parseFloat(this._qcCost)),
+      duration: parseDurationMinutes(this._qcDuration) !== null,
+      photo: false,
+      user: true,
+    };
+    const open = this._requiredCompletion.filter((field) => !prefilled[field]);
+    const notAsked = !!this._checklistText.trim() || this._readings.length > 0;
+    return html`
+      <label class="req-option quick-complete-switch">
+        <input type="checkbox" .checked=${this._quickOn}
+          @change=${(e: Event) => (this._quickOn = (e.target as HTMLInputElement).checked)} />
+        <span>${t("quick_complete_label", L)}</span>
+      </label>
+      ${this._quickOn
+        ? html`
+            <div class="field-help">${t("quick_complete_help", L)}</div>
+            ${open.length
+              ? html`<div class="field-help quick-complete-note">${t("quick_complete_needs_dialog", L)
+                  .replace("{fields}", open.map((field) => t(REQUIRED_COMPLETION_LABELS[field], L)).join(", "))}</div>`
+              : nothing}
+            ${this._requireTagScan ? html`<div class="field-help quick-complete-note">${t("quick_complete_tag_hint", L)}</div>` : nothing}
+            ${notAsked ? html`<div class="field-help">${t("quick_complete_not_asked", L)}</div>` : nothing}
+            <details class="ca-section quick-complete-values" ?open=${Object.values(prefilled).slice(0, 3).some(Boolean) || !!this._qcFeedback}>
+              <summary>${t("quick_complete_values", L)}</summary>
+              <p class="field-help">${t("quick_complete_values_help", L)}</p>
+              <ms-textfield
+                label="${t("quick_complete_defaults_notes", L)}"
+                .value=${this._qcNotes}
+                @input=${(e: Event) => { this._qcNotes = (e.target as HTMLInputElement).value; }}
+              ></ms-textfield>
+              <div class="qc-cost">
+                <span class="qc-cost-label">${t("quick_complete_defaults_cost", L)}</span>
+                <ms-cost-input .lang=${L} .value=${this._qcCost}
+                  @value-changed=${(e: CustomEvent<{ value: string }>) => { this._qcCost = e.detail.value; }}></ms-cost-input>
+              </div>
+              <ms-textfield
+                label="${t("quick_complete_defaults_duration", L)}"
+                type="number" min="0" step="1"
+                .value=${this._qcDuration}
+                @input=${(e: Event) => { this._qcDuration = (e.target as HTMLInputElement).value; }}
+              ></ms-textfield>
+              <select class="qc-feedback" aria-label=${t("was_maintenance_needed", L)}
+                .value=${this._qcFeedback}
+                @change=${(e: Event) => { this._qcFeedback = (e.target as HTMLSelectElement).value as "" | "needed" | "not_needed" | "not_sure"; }}>
+                <option value="">${t("quick_complete_defaults_feedback_none", L)}</option>
+                <option value="needed">${t("quick_complete_defaults_feedback_needed", L)}</option>
+                <option value="not_needed">${t("quick_complete_defaults_feedback_not_needed", L)}</option>
+                <option value="not_sure">${t("feedback_not_sure", L)}</option>
+              </select>
+            </details>
+          `
+        : nothing}
+    `;
+  }
+
   private _renderCompletionActionsSection(L: string) {
     if (!this.completionActionsEnabled && !this._actionPresent) return nothing;
     const schema = this._serviceSchema();
@@ -1125,34 +1192,6 @@ export class MaintenanceTaskDialog extends LitElement {
         </div>
       </details>
 
-      ${this.completionActionsEnabled ? html`<details class="ca-section">
-        <summary>${t("quick_complete_defaults_title", L)}</summary>
-        <p class="field-help">${t("quick_complete_defaults_desc", L)}</p>
-        <ms-textfield
-          label="${t("quick_complete_defaults_notes", L)}"
-          .value=${this._qcNotes}
-          @input=${(e: Event) => { this._qcNotes = (e.target as HTMLInputElement).value; }}
-        ></ms-textfield>
-        <div class="qc-cost">
-          <span class="qc-cost-label">${t("quick_complete_defaults_cost", L)}</span>
-          <ms-cost-input .lang=${L} .value=${this._qcCost}
-            @value-changed=${(e: CustomEvent<{ value: string }>) => { this._qcCost = e.detail.value; }}></ms-cost-input>
-        </div>
-        <ms-textfield
-          label="${t("quick_complete_defaults_duration", L)}"
-          type="number" min="0" step="1"
-          .value=${this._qcDuration}
-          @input=${(e: Event) => { this._qcDuration = (e.target as HTMLInputElement).value; }}
-        ></ms-textfield>
-        <select class="qc-feedback" aria-label=${t("was_maintenance_needed", L)}
-          .value=${this._qcFeedback}
-          @change=${(e: Event) => { this._qcFeedback = (e.target as HTMLSelectElement).value as "" | "needed" | "not_needed" | "not_sure"; }}>
-          <option value="">${t("quick_complete_defaults_feedback_none", L)}</option>
-          <option value="needed">${t("quick_complete_defaults_feedback_needed", L)}</option>
-          <option value="not_needed">${t("quick_complete_defaults_feedback_not_needed", L)}</option>
-          <option value="not_sure">${t("feedback_not_sure", L)}</option>
-        </select>
-      </details>` : nothing}
     `;
   }
 
@@ -1926,7 +1965,8 @@ export class MaintenanceTaskDialog extends LitElement {
         data.on_complete_action = null;
       }
     }
-    if (this.completionActionsEnabled) {
+    {
+      // #233: off is null; on is the prefill, an empty object for none.
       const qcd: Record<string, unknown> = {};
       if (this._qcNotes.trim()) qcd.notes = this._qcNotes.trim();
       const cost = parseFloat(this._qcCost);
@@ -1934,7 +1974,7 @@ export class MaintenanceTaskDialog extends LitElement {
       const dur = parseDurationMinutes(this._qcDuration);
       if (dur !== null) qcd.duration = dur;
       if (this._qcFeedback) qcd.feedback = this._qcFeedback;
-      data.quick_complete_defaults = Object.keys(qcd).length ? qcd : null;
+      data.quick_complete_defaults = this._quickOn ? qcd : null;
     }
 
     return data;
@@ -3562,6 +3602,7 @@ export class MaintenanceTaskDialog extends LitElement {
             <span>${t("disallow_skip", L)}</span>
           </label>
           ${!this._allowSkip ? html`<div class="field-help">${t("disallow_skip_help", L)}</div>` : nothing}
+          ${this._renderQuickComplete(L)}
           ${this._renderCompleteWhen(L)}
           ${this._renderPhasesEditor(L)}
           ${this._renderCompletionActionsSection(L)}
@@ -3867,6 +3908,10 @@ export class MaintenanceTaskDialog extends LitElement {
       justify-content: flex-end;
       gap: 8px;
       padding-top: 16px;
+    }
+    /* #233: what a one-tap completion cannot answer */
+    .quick-complete-note {
+      color: var(--warning-color, #ff9800);
     }
     /* #232: a responsible person outranks the people it is shared with */
     .shared-responsible-wins {

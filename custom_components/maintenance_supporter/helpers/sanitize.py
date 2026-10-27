@@ -562,9 +562,8 @@ def cap_quick_complete_defaults_field(task_data: dict[str, Any]) -> None:
     Drops malformed entries silently (per-field), preserves the rest.
     """
     defaults = task_data.get("quick_complete_defaults")
-    if defaults is None:
-        return
     if not isinstance(defaults, dict):
+        # Off is absence (a stored None read as off already).
         task_data.pop("quick_complete_defaults", None)
         return
 
@@ -588,10 +587,8 @@ def cap_quick_complete_defaults_field(task_data: dict[str, Any]) -> None:
     if feedback in tuple(MaintenanceFeedback):
         cleaned["feedback"] = feedback
 
-    if cleaned:
-        task_data["quick_complete_defaults"] = cleaned
-    else:
-        task_data.pop("quick_complete_defaults", None)
+    # #233: an empty mapping is kept: *Quick complete* on, nothing to prefill.
+    task_data["quick_complete_defaults"] = cleaned
 
 
 def cap_object_fields(obj_data: dict[str, Any]) -> dict[str, Any]:

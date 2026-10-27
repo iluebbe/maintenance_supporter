@@ -20,9 +20,10 @@ from homeassistant.core import HomeAssistant
 
 from ..const import CONF_TASKS, MAX_LABEL_LENGTH, MAX_LABELS
 from ..helpers.aggregate import is_object_entry
+from ..helpers.completion_requirements import quick_complete_on
 from ..helpers.entry_tasks import write_tasks
 from ..helpers.permissions import require_write
-from ..helpers.sanitize import sanitize_assignee_pool, sanitize_labels, seed_rotation_assignee
+from ..helpers.sanitize import cap_quick_complete_defaults_field, sanitize_assignee_pool, sanitize_labels, seed_rotation_assignee
 from . import ID_FIELD
 from .tasks_crud import _TASK_FIELDS
 
@@ -39,6 +40,8 @@ BULK_FIELDS: tuple[str, ...] = (
     "priority",
     "warning_days",
     "notify_enabled",
+    # #233: the prefill as a task had it (the undo's shape; None is off).
+    "quick_complete_defaults",
 )
 _LABEL_LIST = vol.All([vol.All(str, vol.Length(max=MAX_LABEL_LENGTH))], vol.Length(max=MAX_LABELS))
 _CHANGES = {
@@ -46,6 +49,8 @@ _CHANGES = {
     # Added to / removed from each task's own labels (the rest stays).
     vol.Optional("labels_add"): _LABEL_LIST,
     vol.Optional("labels_remove"): _LABEL_LIST,
+    # #233: *Quick complete* on (a task's own prefill stays) or off.
+    vol.Optional("quick_complete"): bool,
 }
 
 
@@ -61,6 +66,8 @@ def apply_bulk_changes(task: dict[str, Any], changes: dict[str, Any]) -> tuple[d
     touched = [key for key in BULK_FIELDS if key in changes]
     if "labels_add" in changes or "labels_remove" in changes:
         touched.append("labels")
+    if "quick_complete" in changes and "quick_complete_defaults" not in touched:
+        touched.append("quick_complete_defaults")
     if any(key in touched for key in ("responsible_user_id", "assignee_pool", "rotation_strategy")):
         # A rotation re-seeds the assignee: undo all three together.
         touched = [*{*touched, "responsible_user_id", "assignee_pool", "rotation_strategy"}]
@@ -98,6 +105,14 @@ def apply_bulk_changes(task: dict[str, Any], changes: dict[str, Any]) -> tuple[d
             out["notify_enabled"] = False
         else:
             out.pop("notify_enabled", None)
+    if "quick_complete_defaults" in changes:
+        out["quick_complete_defaults"] = changes["quick_complete_defaults"]
+        cap_quick_complete_defaults_field(out)
+    if "quick_complete" in changes:
+        if not changes["quick_complete"]:
+            out.pop("quick_complete_defaults", None)
+        elif not quick_complete_on(out):
+            out["quick_complete_defaults"] = {}
     seed_rotation_assignee(out)
     return out, previous
 

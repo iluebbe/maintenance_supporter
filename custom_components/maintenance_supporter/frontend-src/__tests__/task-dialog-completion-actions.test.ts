@@ -75,16 +75,15 @@ describe("task-dialog completion-actions sections", () => {
     expect(caSections(el).length, "no .ca-section when gated off").to.equal(0);
   });
 
-  it("renders both sections when feature flag is on", async () => {
+  it("renders the action section when the feature flag is on; Quick complete is its own switch (#233)", async () => {
     const { el } = await mountDialog({ completionActions: true });
     await el.openCreate("entry_x");
     await el.updateComplete;
     const sections = caSections(el);
-    expect(sections.length, "two collapsible sections present").to.equal(2);
+    expect(sections.length, "the action section; the prefill only once switched on").to.equal(1);
     expect(sections[0].querySelector("summary")?.textContent || "")
       .to.match(/action|aktion/i);
-    expect(sections[1].querySelector("summary")?.textContent || "")
-      .to.match(/quick|schnell/i);
+    expect(el.shadowRoot!.querySelector(".quick-complete-switch")).to.exist;
   });
 
   it("hydrates on_complete_action from an existing task on openEdit", async () => {
@@ -121,19 +120,20 @@ describe("task-dialog completion-actions sections", () => {
     // Internal state pins the parsed data dict — ha-form gets it via .data prop.
     expect((el as any)._actionData.brightness, "data hydrated").to.equal(200);
 
-    // Quick-complete fields are in the second details panel.
+    // Quick-complete fields are in the prefill panel (#233: shown while the
+    // switch is on, which the stored prefill means).
     // v2.3.x: ha-textfield → ms-textfield to dodge HA's lazy-load (issues #46/#50).
-    const sections = caSections(el);
-    const qcInputs = sections[1].querySelectorAll<HTMLElement & { value: string }>(
+    const qcPanel = el.shadowRoot!.querySelector<HTMLElement>("details.quick-complete-values")!;
+    const qcInputs = qcPanel.querySelectorAll<HTMLElement & { value: string }>(
       "ms-textfield",
     );
     expect(qcInputs[0]?.value, "qc notes").to.equal("Quick note");
     // The cost has its own element (#200: Cost | Credit and the amount).
-    const qcCost = sections[1].querySelector<HTMLElement & { value: string }>("ms-cost-input");
+    const qcCost = qcPanel.querySelector<HTMLElement & { value: string }>("ms-cost-input");
     expect(qcCost?.value, "qc cost").to.equal("4.5");
     expect(qcInputs[1]?.value, "qc duration").to.equal("10");
 
-    const qcSelect = sections[1].querySelector<HTMLSelectElement>("select.qc-feedback");
+    const qcSelect = qcPanel.querySelector<HTMLSelectElement>("select.qc-feedback");
     expect(qcSelect?.value, "qc feedback").to.equal("needed");
   });
 

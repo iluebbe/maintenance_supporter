@@ -273,13 +273,13 @@ automation:
 
 The event approach is more flexible (template conditions, multiple actions, delay/wait, etc.); the per-task field is the no-YAML shortcut for the common case.
 
-### Quick-Complete QR (1.3.0+) — record completion in one tap
+### Quick complete (1.3.0+, per task since #233) — record a completion in one tap
 
-For tasks where the *act* of doing the maintenance is the input (no notes to type, no cost to enter), pre-fill the values once on the task (task dialog → *Quick-complete defaults*, shown with **Settings → Advanced Features → Completion actions** on) and print a **lightning-bolt QR code** instead of the regular check-mark one.
+For tasks where the *act* of doing the maintenance is the input (no notes to type, no cost to enter), turn on *Quick complete* once on the task (task dialog → *Completing it*), optionally with a prefill, and print a **lightning-bolt QR code** instead of the regular check-mark one. The same switch makes the task complete in one tap on a dashboard card (a kitchen tablet), in the panel and from a notification.
 
 Example for a **filter swap on the Roborock vacuum**: stick the lightning-bolt QR inside the dust-bin lid. Each filter replacement is just *swap → close lid → scan QR with phone* and the completion is recorded with your pre-set notes / cost / duration / *needed* feedback. No dialog, no typing. Great for high-frequency manual chores (litter-box scoop log, plant-watering log, espresso-machine-descale, HVAC quick-vacuum).
 
-If you forget to pre-fill the defaults, the QR scan falls back to the normal complete dialog so you're never stuck.
+If the task asks for something a tap cannot give (a photo, a required detail the prefill leaves empty), the scan falls back to the normal complete dialog so you're never stuck.
 
 ![QR dialog](images/qr-dialog.png)
 
@@ -294,7 +294,7 @@ its `entry_id` is the key (stable for the life of the object):
 | `/maintenance-supporter?entry_id=<entry_id>` | the object's detail page |
 | `/maintenance-supporter?entry_id=<entry_id>&task_id=<task_id>` | the task's detail page |
 | `…&task_id=<task_id>&action=complete` | the task with the completion dialog already open |
-| `…&task_id=<task_id>&action=quick_complete` | completes silently with the task's pre-filled defaults (falls back to the dialog if none are set) |
+| `…&task_id=<task_id>&action=quick_complete` | completes silently with the task's prefill (falls back to the dialog while *Quick complete* is off or the task needs details) |
 
 Overview deep links (2.74+) land on a tab of the panel's start page — with
 the task list already filtered, sorted or switched to a saved view — so a

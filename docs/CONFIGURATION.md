@@ -67,7 +67,7 @@ These toggles control which advanced features the panel offers and shows — the
 | `advanced_checklists_visible` | bool | `false` | Show checklist editing per task |
 | `advanced_schedule_time_visible` | bool | `false` | Expose the `schedule_time` (HH:MM) field on every date-driven task (interval, calendar kinds, one-time). When off, the coordinator strips stored times before computing status so tasks revert to midnight semantics (but retain the stored value for re-enable) |
 | `advanced_places_visible` | bool | `false` | Show an object's **place** (an HA zone) and *Remind only while somebody is there* in the panel's object dialog, plus the dashboard's *Place* filter. Visibility only: a place set before keeps working when it is switched off (see FEATURES → Places) |
-| `advanced_completion_actions_visible` | bool | `false` | (1.3.0+) Expose the `on_complete_action` (HA service-call) and `quick_complete_defaults` sections in the task dialog, plus the new `quick_complete` QR action. When off, the dialog hides both sections for new tasks — beginners aren't confronted with service-call YAML — but a task that already has an action (a counter reset wired by Suggested setups, 2.95+) still shows it; stored quick-complete defaults stay persisted |
+| `advanced_completion_actions_visible` | bool | `false` | (1.3.0+) Expose the `on_complete_action` (HA service-call) section in the task dialog. When off, the dialog hides it for new tasks — beginners aren't confronted with service-call YAML — but a task that already has an action (a counter reset wired by Suggested setups, 2.95+) still shows it. *Quick complete* and its prefill are a regular task setting since #233 |
 
 > **Operator mode (read-only end-user view, 1.0.44+)** is not a global flag — it's derived from the HA user role plus an explicit per-user override list:
 >
@@ -357,7 +357,7 @@ your action didn't stick.
 
 **Stale-entity repair** — coordinator scans `on_complete_action.target.entity_id` on every refresh. If the entity disappears, a repair issue surfaces with two options: **Replace** (pick a new entity via HA's entity picker) or **Remove** (drop the action entirely). Same lifecycle as the existing trigger-entity repair flow.
 
-**Quick-complete defaults** — pre-fills the values used when the user scans the new lightning-bolt `quick_complete` QR code. Schema mirrors `complete_maintenance(...)` kwargs.
+**Quick complete** (#233) — `quick_complete_defaults` is the per-task switch and its prefill: present (an empty object `{}` included) means the task completes in one tap, without the dialog, from every surface (panel, cards, the lightning-bolt `quick_complete` QR code, a notification button, the button entity, a to-do tick, NFC, voice); absent or `null` means off. The values are what every completion without the dialog records (and what the dialog starts with). Schema mirrors `complete_maintenance(...)` kwargs.
 
 | Parameter | Type | Range | Description |
 |-----------|------|-------|-------------|
@@ -366,7 +366,7 @@ your action didn't stick.
 | `quick_complete_defaults.duration` | int (minutes) | 0–525,600 | Duration to record |
 | `quick_complete_defaults.feedback` | enum | `needed` / `not_needed` / `not_sure` | Adaptive scheduling feedback (the full feedback enum) |
 
-If a task has **no** `quick_complete_defaults`, scanning a `quick_complete` QR routes back to the regular complete dialog (`no_defaults` error → frontend fallback) — the QR is never a dead-end.
+If *Quick complete* is off, scanning a `quick_complete` QR routes back to the regular complete dialog (`no_defaults` error → frontend fallback) — the QR is never a dead-end. The same fallback opens the dialog when the task requires a photo or a detail the prefill leaves empty. A required note, cost or duration the prefill holds counts as answered on unattended surfaces too (a notification's *Complete* button then appears). Automatic completions record no prefill.
 
 #### Service-Picker UI (1.3.1+)
 

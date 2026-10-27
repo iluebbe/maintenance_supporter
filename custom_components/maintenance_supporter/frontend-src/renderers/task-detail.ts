@@ -15,6 +15,7 @@ import { clickOnActivationKey } from "../helpers/keyboard";
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { renderPeopleAvatars, type PersonDisplay } from "../helpers/person";
 import { taskUserIds } from "../helpers/assignees";
+import { quickCompleteOn } from "../helpers/quick-complete";
 import { t, formatDate, formatRecurrence, formatCost, formatDuration } from "../styles";
 import { renderRefChip } from "../helpers/reference";
 import type { AdvancedFeatures, HomeAssistant, MaintenanceTask, ManualDocRef } from "../types";
@@ -80,7 +81,8 @@ export interface TaskDetailContext {
   closeMoreMenu: () => void;
   // ── Panel-owned actions (dialogs live in the panel's shadow root) ──────
   openEdit: (task: MaintenanceTask) => void;
-  openComplete: (task: MaintenanceTask) => void;
+  /** `details` (#233): open the dialog even for a Quick-complete task. */
+  openComplete: (task: MaintenanceTask, opts?: { details?: boolean }) => void;
   promptSkip: () => void;
   toggleArchive: (archived: boolean) => void;
   /** #193: pause (asks for an optional resume date) or resume this task. */
@@ -153,6 +155,9 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
               .replace("{entity}", String(ctx.hass?.states?.[task.complete_when.entity_id]?.attributes?.friendly_name ?? task.complete_when.entity_id))
               .replace("{state}", task.complete_when.to_state)}"><ha-icon icon="mdi:check-circle-outline"></ha-icon></span>`
           : nothing}
+        ${quickCompleteOn(task)
+          ? html`<span class="nfc-badge quick-complete-badge" title="${t("quick_complete_help", L)}"><ha-icon icon="mdi:flash-outline"></ha-icon> ${t("quick_complete_label", L)}</span>`
+          : nothing}
         ${task.nfc_tag_id
           ? html`<span class="nfc-badge" title="${t("nfc_tag_id", L)}: ${task.nfc_tag_id}"><ha-icon icon="mdi:nfc-variant"></ha-icon> NFC</span>`
           : !isOperator ? html`<span class="nfc-badge unlinked" title="${t("nfc_link_hint", L)}"
@@ -172,6 +177,9 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
             <div class="popup-menu" role="menu" @keydown=${clickOnActivationKey} @click=${(e: Event) => e.stopPropagation()}>
               ${!isOperator ? html`
                 <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.openEdit(task); }}>${t("edit", L)}</div>
+              ` : nothing}
+              ${quickCompleteOn(task) ? html`
+                <div role="menuitem" tabindex="0" class="popup-menu-item complete-details" @click=${() => { ctx.closeMoreMenu(); ctx.openComplete(task, { details: true }); }}>${t("complete_with_details", L)}</div>
               ` : nothing}
               <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.openQr(task.name); }}>${t("qr_code", L)}</div>
               <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.printWorksheet(); }}>${t("worksheet", L)}</div>
@@ -548,7 +556,7 @@ function renderHistoryTab(task: MaintenanceTask, ctx: TaskDetailContext) {
   return html`
     <div class="tab-content history-tab">
       <div class="history-add-past">
-        <ha-button appearance="plain" class="history-add-past-btn" @click=${() => ctx.openComplete(task)}>
+        <ha-button appearance="plain" class="history-add-past-btn" @click=${() => ctx.openComplete(task, { details: true })}>
           <ha-icon icon="mdi:calendar-plus"></ha-icon>
           ${t("history_add_past", ctx.lang)}
         </ha-button>
