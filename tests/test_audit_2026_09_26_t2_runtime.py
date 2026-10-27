@@ -262,7 +262,7 @@ async def test_an_inert_task_raises_no_stale_action_issue_and_drops_old_ones(has
 async def test_warranty_reminders_skip_archived_objects(hass: HomeAssistant) -> None:
     """A retired object's warranty was still announced (the lead reminders
     already skipped archived objects)."""
-    from custom_components.maintenance_supporter import async_maybe_send_warranty_reminders
+    from custom_components.maintenance_supporter.daily_jobs import async_maybe_send_warranty_reminders
 
     expiry = (dt_util.now().date() + timedelta(days=10)).isoformat()
     await _setup(
@@ -415,7 +415,7 @@ async def test_every_reminder_names_the_due_phase(hass: HomeAssistant) -> None:
     """Lead reminders (with their own title, ignoring the #44 title style),
     the completion notification and the to-do rows sent the bare task name;
     only the status push said which cycle step is due (#139)."""
-    from custom_components.maintenance_supporter import async_maybe_send_lead_reminders
+    from custom_components.maintenance_supporter.daily_jobs import async_maybe_send_lead_reminders
     from custom_components.maintenance_supporter.helpers.notify_hooks import KIND_COMPLETED, KIND_LEAD_TIME
 
     async_mock_service(hass, "notify", "test")

@@ -477,7 +477,7 @@ async def test_binary_sensor_no_coordinator(hass: HomeAssistant) -> None:
     await setup_integration(hass, global_entry)
 
     # Create entry with None coordinator
-    from custom_components.maintenance_supporter import MaintenanceSupporterData
+    from custom_components.maintenance_supporter.models.runtime_data import MaintenanceSupporterData
 
     fake_entry = MockConfigEntry(
         version=1,

@@ -41,7 +41,7 @@ from .helpers.todo_mirror import mirror_summary, task_due_date
 from .helpers.trigger_detail import trigger_detail
 
 if TYPE_CHECKING:
-    from . import MaintenanceSupporterConfigEntry
+    from .models.runtime_data import MaintenanceSupporterConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 

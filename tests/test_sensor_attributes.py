@@ -658,7 +658,7 @@ def _get_entities_by_domain(hass: HomeAssistant, entry: MockConfigEntry, domain:
 async def test_sensor_no_coordinator(hass: HomeAssistant) -> None:
     """sensor.py line 74-76: logs error when runtime_data.coordinator is None."""
     from custom_components.maintenance_supporter.sensor import async_setup_entry
-    from custom_components.maintenance_supporter import MaintenanceSupporterData
+    from custom_components.maintenance_supporter.models.runtime_data import MaintenanceSupporterData
 
     global_entry = _make_global(hass)
     await setup_integration(hass, global_entry)

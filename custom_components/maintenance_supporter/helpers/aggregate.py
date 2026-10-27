@@ -28,7 +28,7 @@ from ..const import (
 from .coordinator_data import task_results
 
 if TYPE_CHECKING:
-    from .. import MaintenanceSupporterData
+    from ..models.runtime_data import MaintenanceSupporterData
     from ..models.task_result import CoordinatorData, TaskResult
     from ..storage import MaintenanceStore
 

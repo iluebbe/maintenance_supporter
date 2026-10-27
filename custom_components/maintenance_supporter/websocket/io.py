@@ -767,9 +767,9 @@ async def ws_import_csv(
     if created:
         # The JSON import's sweep: a person no user here is cleared now, not
         # at the next restart (bug audit 2026-10-16).
-        from .. import _check_task_responsible_user_orphans
+        from ..helpers.user_orphans import async_prune_task_user_orphans
 
-        await _check_task_responsible_user_orphans(hass)
+        await async_prune_task_user_orphans(hass)
 
     resp: dict[str, Any] = {
         "imported": created,
@@ -1596,9 +1596,9 @@ async def ws_import_json(
         # the rules the boot-time sweep applies (a rotation below two members
         # dissolves) — and named in the result instead of vanishing at the
         # next restart.
-        from .. import _check_task_responsible_user_orphans
+        from ..helpers.user_orphans import async_prune_task_user_orphans
 
-        await _check_task_responsible_user_orphans(hass)
+        await async_prune_task_user_orphans(hass)
 
     resp: dict[str, Any] = {
         "imported": created,

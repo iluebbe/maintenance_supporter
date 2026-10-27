@@ -23,12 +23,12 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.maintenance_supporter import (
-    NOTIFICATION_MANAGER_KEY,
-    _trigger_target_and_unit,
+from custom_components.maintenance_supporter import NOTIFICATION_MANAGER_KEY
+from custom_components.maintenance_supporter.daily_jobs import (
     async_maybe_send_lead_reminders,
     async_maybe_send_warranty_reminders,
 )
+from custom_components.maintenance_supporter.services import _trigger_target_and_unit
 from custom_components.maintenance_supporter.const import (
     CONF_REMINDER_LEAD_DAYS,
     CONF_SHOPPING_LIST_ENTITY,
@@ -237,7 +237,7 @@ async def test_every_per_task_entity_resolves_to_its_task(hass: HomeAssistant) -
     the task sensor and the ``_overdue`` binary sensor used to resolve — a
     task's next-due / days-until-due sensor or its buttons failed with
     no_task_for_entity. Every per-task suffix resolves now."""
-    from custom_components.maintenance_supporter import _get_task_id_for_entity
+    from custom_components.maintenance_supporter.services import _get_task_id_for_entity
 
     g = make_global_entry(hass)
     obj = make_object_entry(

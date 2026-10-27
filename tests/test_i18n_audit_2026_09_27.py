@@ -80,7 +80,7 @@ def test_every_backend_history_note_is_translated_by_the_frontend() -> None:
     exact = set(re.findall(r'^\s+"([^"]+)": "hist_note_\w+",$', table, re.M))
     literals = set(COMPLETION_PROVENANCE_NOTES.values())
     for rel, pattern in (
-        ("__init__.py", r'reason="(Skipped from [^"]+)"'),
+        ("listeners.py", r'reason="(Skipped from [^"]+)"'),
         ("button.py", r'reason="(Skipped from [^"]+)"'),
         ("coordinator.py", r'notes="(Sensor trigger activated)"'),
         ("coordinator.py", r'notes = "(Auto-completed: sensor recovered)"'),

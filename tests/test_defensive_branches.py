@@ -17,10 +17,8 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import MockConfigEntry, MockUser
 
-from custom_components.maintenance_supporter import (
-    _check_admin_panel_user_orphans,
-    async_maybe_send_weekly_digest,
-)
+from custom_components.maintenance_supporter.daily_jobs import async_maybe_send_weekly_digest
+from custom_components.maintenance_supporter.helpers.user_orphans import async_sync_admin_panel_orphan_issues
 from custom_components.maintenance_supporter.const import (
     CONF_ADMIN_PANEL_USER_IDS,
     CONF_TASKS,
@@ -107,13 +105,13 @@ async def test_orphan_allowlist_issue_clears_when_user_returns(hass: HomeAssista
         global_entry,
         options={**dict(global_entry.options or {}), CONF_ADMIN_PANEL_USER_IDS: ["ghost-uid"]},
     )
-    await _check_admin_panel_user_orphans(hass, global_entry)
+    await async_sync_admin_panel_orphan_issues(hass, global_entry)
     issue_reg = ir.async_get(hass)
     assert issue_reg.async_get_issue(DOMAIN, "orphan_admin_panel_user_ghost-uid")
 
     # The user comes back → the stale issue is dropped on the next check.
     MockUser(id="ghost-uid", name="Returned").add_to_hass(hass)
-    await _check_admin_panel_user_orphans(hass, global_entry)
+    await async_sync_admin_panel_orphan_issues(hass, global_entry)
     assert issue_reg.async_get_issue(DOMAIN, "orphan_admin_panel_user_ghost-uid") is None
 
 
@@ -123,7 +121,7 @@ async def test_orphan_check_tolerates_non_list_allowlist(hass: HomeAssistant, gl
         global_entry,
         options={**dict(global_entry.options or {}), CONF_ADMIN_PANEL_USER_IDS: "not-a-list"},
     )
-    await _check_admin_panel_user_orphans(hass, global_entry)  # no crash
+    await async_sync_admin_panel_orphan_issues(hass, global_entry)  # no crash
 
 
 async def test_auto_complete_race_guard_skips_double_completion(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:

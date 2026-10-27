@@ -22,7 +22,7 @@ from .helpers.aggregate import task_results_of
 from .helpers.schedule import read_legacy_fields
 
 if TYPE_CHECKING:
-    from . import MaintenanceSupporterConfigEntry
+    from .models.runtime_data import MaintenanceSupporterConfigEntry
 
 # Fields to redact from diagnostics (downloads are admin-accessible and routinely
 # pasted into public GitHub issues, so anything free-text / identifying is redacted)

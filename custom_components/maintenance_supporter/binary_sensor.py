@@ -38,7 +38,7 @@ from .helpers.aggregate import object_slug as aggregate_object_slug
 from .helpers.status import compute_live_status
 
 if TYPE_CHECKING:
-    from . import MaintenanceSupporterConfigEntry
+    from .models.runtime_data import MaintenanceSupporterConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 

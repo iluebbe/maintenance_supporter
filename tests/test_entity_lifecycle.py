@@ -982,7 +982,7 @@ def test_get_coordinator_for_entity_not_in_registry(
     hass: HomeAssistant,
 ) -> None:
     """_get_coordinator_for_entity returns None when entity is not in registry."""
-    from custom_components.maintenance_supporter import _get_coordinator_for_entity
+    from custom_components.maintenance_supporter.services import _get_coordinator_for_entity
 
     result = _get_coordinator_for_entity(hass, "sensor.nonexistent")
     assert result is None
@@ -992,7 +992,7 @@ async def test_get_coordinator_for_entity_no_config_entry_id(
     hass: HomeAssistant,
 ) -> None:
     """_get_coordinator_for_entity returns None when config_entry_id is None."""
-    from custom_components.maintenance_supporter import _get_coordinator_for_entity
+    from custom_components.maintenance_supporter.services import _get_coordinator_for_entity
 
     entity_reg = er.async_get(hass)
     # Mock entity with config_entry_id=None
@@ -1010,7 +1010,7 @@ async def test_get_coordinator_for_entity_config_entry_gone(
     object_config_entry: ConfigEntry,
 ) -> None:
     """_get_coordinator_for_entity returns None when config entry doesn't exist."""
-    from custom_components.maintenance_supporter import _get_coordinator_for_entity
+    from custom_components.maintenance_supporter.services import _get_coordinator_for_entity
 
     await setup_integration(hass, global_config_entry, object_config_entry)
 
@@ -1029,7 +1029,7 @@ async def test_get_coordinator_for_entity_no_runtime_data(
     global_config_entry: ConfigEntry,
 ) -> None:
     """_get_coordinator_for_entity returns None when runtime_data is None."""
-    from custom_components.maintenance_supporter import _get_coordinator_for_entity
+    from custom_components.maintenance_supporter.services import _get_coordinator_for_entity
 
     await setup_integration(hass, global_config_entry)
 
@@ -1050,7 +1050,7 @@ def test_get_task_id_for_entity_not_in_registry(
     hass: HomeAssistant,
 ) -> None:
     """_get_task_id_for_entity returns None when entity not in registry."""
-    from custom_components.maintenance_supporter import _get_task_id_for_entity
+    from custom_components.maintenance_supporter.services import _get_task_id_for_entity
 
     result = _get_task_id_for_entity(hass, "sensor.nonexistent")
     assert result is None
@@ -1060,7 +1060,7 @@ async def test_get_task_id_for_entity_wrong_prefix(
     hass: HomeAssistant,
 ) -> None:
     """_get_task_id_for_entity returns None when unique_id has wrong prefix."""
-    from custom_components.maintenance_supporter import _get_task_id_for_entity
+    from custom_components.maintenance_supporter.services import _get_task_id_for_entity
 
     entity_reg = er.async_get(hass)
     with patch.object(entity_reg, "async_get") as mock_get:
@@ -1075,7 +1075,7 @@ async def test_get_task_id_for_entity_no_config_entry_id(
     hass: HomeAssistant,
 ) -> None:
     """_get_task_id_for_entity returns None when config_entry_id is None."""
-    from custom_components.maintenance_supporter import _get_task_id_for_entity
+    from custom_components.maintenance_supporter.services import _get_task_id_for_entity
 
     entity_reg = er.async_get(hass)
     with patch.object(entity_reg, "async_get") as mock_get:
@@ -1091,7 +1091,7 @@ async def test_get_task_id_for_entity_no_config_entry(
     hass: HomeAssistant,
 ) -> None:
     """_get_task_id_for_entity returns None when config entry doesn't exist."""
-    from custom_components.maintenance_supporter import _get_task_id_for_entity
+    from custom_components.maintenance_supporter.services import _get_task_id_for_entity
 
     entity_reg = er.async_get(hass)
     with patch.object(entity_reg, "async_get") as mock_get:
@@ -1109,7 +1109,7 @@ async def test_get_task_id_for_entity_no_matching_task(
     object_config_entry: ConfigEntry,
 ) -> None:
     """_get_task_id_for_entity returns None when no task matches unique_id."""
-    from custom_components.maintenance_supporter import _get_task_id_for_entity
+    from custom_components.maintenance_supporter.services import _get_task_id_for_entity
 
     await setup_integration(hass, global_config_entry, object_config_entry)
 
@@ -1129,7 +1129,7 @@ async def test_get_task_id_for_entity_binary_sensor(
     object_config_entry: ConfigEntry,
 ) -> None:
     """_get_task_id_for_entity works for binary_sensor unique_ids (_overdue suffix)."""
-    from custom_components.maintenance_supporter import _get_task_id_for_entity
+    from custom_components.maintenance_supporter.services import _get_task_id_for_entity
 
     await setup_integration(hass, global_config_entry, object_config_entry)
 
@@ -1150,7 +1150,7 @@ async def test_get_task_id_substring_no_false_match(
     object_config_entry: ConfigEntry,
 ) -> None:
     """_get_task_id_for_entity must not match on substring of task_id."""
-    from custom_components.maintenance_supporter import _get_task_id_for_entity
+    from custom_components.maintenance_supporter.services import _get_task_id_for_entity
 
     await setup_integration(hass, global_config_entry, object_config_entry)
 
@@ -1409,7 +1409,7 @@ async def test_get_task_id_for_sensor_entity(hass: HomeAssistant) -> None:
     if not sensors:
         pytest.skip("No sensor entities")
 
-    from custom_components.maintenance_supporter import _get_task_id_for_entity
+    from custom_components.maintenance_supporter.services import _get_task_id_for_entity
 
     task_id = _get_task_id_for_entity(hass, sensors[0].entity_id)
     assert task_id == TASK_ID_1
@@ -1426,7 +1426,7 @@ async def test_get_task_id_for_binary_sensor_entity(hass: HomeAssistant) -> None
     if not binary_sensors:
         pytest.skip("No binary sensor entities")
 
-    from custom_components.maintenance_supporter import _get_task_id_for_entity
+    from custom_components.maintenance_supporter.services import _get_task_id_for_entity
 
     task_id = _get_task_id_for_entity(hass, binary_sensors[0].entity_id)
     assert task_id == TASK_ID_1
@@ -1493,7 +1493,7 @@ async def test_get_coordinator_no_runtime_data(
     global_config_entry: ConfigEntry,
 ) -> None:
     """Line 497: _get_coordinator_for_entity returns None when no runtime_data."""
-    from custom_components.maintenance_supporter import _get_coordinator_for_entity
+    from custom_components.maintenance_supporter.services import _get_coordinator_for_entity
 
     await setup_integration(hass, global_config_entry)
 

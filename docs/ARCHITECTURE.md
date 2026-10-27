@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.111.0 | 327 source files (186 Python + 141 TypeScript) | **98% test coverage** (6,036 backend tests + 1,471 frontend tests)
+**Version:** 2.111.0 | 332 source files (191 Python + 141 TypeScript) | **98% test coverage** (6,036 backend tests + 1,471 frontend tests)
 
 ---
 
@@ -195,7 +195,11 @@ drifted. The descriptions are hand-written.
 
 ```
 custom_components/maintenance_supporter/
-├── __init__.py                  (2,620 lines)  Integration setup, services, lifecycle, async_migrate_entry
+├── __init__.py                  (1,092 lines)  Setup / unload / removal of the entries, async_migrate_entry, the shared runtime
+├── services.py                    (898 lines)  The service actions: schemas and handlers, registered from async_setup
+├── listeners.py                   (394 lines)  Integration-wide event listeners: notification buttons, NFC tags, registry changes,
+│                                               deleted users
+├── daily_jobs.py                  (230 lines)  Timers: retention sweep, the 08:00 digest / warranty / lead-time reminders, noon retry
 ├── const.py                       (999 lines)  Constants, enums, defaults, PLATFORMS
 ├── coordinator.py               (2,351 lines)  DataUpdateCoordinator per object
 ├── storage.py                     (747 lines)  Per-entry Store (dynamic state, migration, part stock)
@@ -453,7 +457,7 @@ custom_components/maintenance_supporter/
 │   │   └── ms-part-use.ts         (217 lines)  #226: the Use pill, for some of a part used outside a task
 │   └── __tests__/              (31,950 lines)  222 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (35,414 lines)  105 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+├── helpers/                    (35,561 lines)  106 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,808 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (374 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
@@ -543,6 +547,7 @@ custom_components/maintenance_supporter/
 │   ├── prediction_cache.py         (80 lines)  Hourly cache for the recorder half of the sensor prediction
 │   ├── trigger_detail.py           (75 lines)  The trigger detail (#228): what a triggered task is about, in its own words
 │   ├── complete_when.py            (83 lines)  Complete a task when another entity changes to a state (D#229)
+│   ├── user_orphans.py            (147 lines)  Deleted HA users still named: task assignments pruned, admin-panel allowlist as repairs
 │   └── signatures/              (7,362 lines)  19 files — Suggested-setups catalog: 276 integrations / 578 signatures
 │       ├── _model.py              (487 lines)  IntegrationSignature / ConsumableSignature + matcher mechanics
 │       ├── _discovery.py          (388 lines)  Entity-registry scan → per-duty setup proposals
@@ -563,14 +568,16 @@ custom_components/maintenance_supporter/
 │       ├── wallboxes.py           (185 lines)  EV chargers — cable/plug inspection by delivered energy
 │       └── xiaomi.py               (66 lines)  Xiaomi ecosystem integrations (MIoT / Xiaomi Home) — multi-category
 │
-├── models/                      (1,292 lines)  6 files — Task, object and maintenance-type models, the typed data shapes, the coordinator's task result
+├── models/                      (1,320 lines)  7 files — Task, object and maintenance-type models, the typed data shapes, the coordinator's task result,
+│   │                                           an entry's runtime data
 │   ├── maintenance_task.py        (804 lines)  Task: schedule, triggers, history, status, on_complete_action,
 │   │                                           quick_complete_defaults, assignee_pool + rotation_strategy
 │   ├── maintenance_object.py      (114 lines)  Object: name, area, manufacturer, model, serial_number,
 │   │                                           installation_date, warranty_expiry (#67), documentation_url, notes
 │   ├── maintenance_type.py         (86 lines)  Predefined maintenance categories
 │   ├── shapes.py                  (191 lines)  The JSON shapes the integration stores and serves, as TypedDicts
-│   └── task_result.py              (83 lines)  What the coordinator publishes per task: the task, plus what one refresh computed
+│   ├── task_result.py              (83 lines)  What the coordinator publishes per task: the task, plus what one refresh computed
+│   └── runtime_data.py             (28 lines)  entry.runtime_data (MaintenanceSupporterData) and the typed ConfigEntry
 │
 ├── templates.py                 (2,954 lines)  96 object templates in 10 categories (vehicle, home, building, household,
 │                                               appliance, garden, pool, tech, pets, health)
@@ -581,7 +588,7 @@ custom_components/maintenance_supporter/
 ├── export.py                      (425 lines)  JSON/YAML data export
 │
 ├── manifest.json                            Integration metadata
-├── services.yaml                            12 service definitions
+├── services.yaml                            13 service definitions
 ├── triggers.yaml / conditions.yaml          Purpose-specific automation building blocks
 ├── strings.json                             Localization keys
 ├── icons.json                               State-based icon mappings
@@ -924,7 +931,7 @@ Multi-channel notification with:
 - **Snooze**: Per-task temporary suppression
 - **Mobile actions**: Complete / Skip / Snooze buttons via Companion App
   - Action format: `MS_{ACTION}_{entry_id}_{task_id}`
-  - Parsed by `_handle_notification_action()` in `__init__.py`
+  - Parsed by `_handle_notification_action()` in `listeners.py`
 - **User-specific notifications**: Tasks assigned to a responsible user trigger separate notifications to that user's registered notification services, with fallback to global notification service
 - **Budget alerts**: Monthly/yearly budget threshold alerts with 24h rate limiting
 - **NFC tag linking**: Tasks can be linked to NFC tags via `nfc_tag_id`. Scanning a tag fires HA's `tag_scanned` event, which the integration listens for in `async_setup()` and auto-completes the matching task

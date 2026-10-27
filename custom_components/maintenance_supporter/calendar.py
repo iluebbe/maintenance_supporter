@@ -28,7 +28,7 @@ from .helpers.pause import is_task_inert
 from .models.maintenance_task import MaintenanceTask
 
 if TYPE_CHECKING:
-    from . import MaintenanceSupporterConfigEntry
+    from .models.runtime_data import MaintenanceSupporterConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -150,7 +150,7 @@ async def test_muted_task_neither_forces_nor_rides_in_a_bundle(hass: HomeAssista
 
 
 async def test_muted_task_gets_no_lead_reminder(hass: HomeAssistant) -> None:
-    from custom_components.maintenance_supporter import async_maybe_send_lead_reminders
+    from custom_components.maintenance_supporter.daily_jobs import async_maybe_send_lead_reminders
 
     g = _global(hass, **{CONF_REMINDER_LEAD_DAYS: [14]})
     hit = build_task_data(name="Hit", interval_days=30, last_performed=_days_ago(16))

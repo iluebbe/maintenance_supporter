@@ -29,7 +29,7 @@ from .helpers.aggregate import object_slug as aggregate_object_slug
 from .helpers.pause import is_task_inert
 
 if TYPE_CHECKING:
-    from . import MaintenanceSupporterConfigEntry
+    from .models.runtime_data import MaintenanceSupporterConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 

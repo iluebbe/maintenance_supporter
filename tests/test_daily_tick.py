@@ -21,8 +21,8 @@ from pytest_homeassistant_custom_component.common import (
 from custom_components.maintenance_supporter import (
     DOMAIN,
     NOTIFICATION_MANAGER_KEY,
-    async_maybe_send_weekly_digest,
 )
+from custom_components.maintenance_supporter.daily_jobs import async_maybe_send_weekly_digest
 from custom_components.maintenance_supporter.const import (
     CONF_WEEKLY_DIGEST_ENABLED,
 )
@@ -161,15 +161,15 @@ async def test_daily_tick_dispatches_digest_warranty_and_lead_reminders(
 
     with (
         patch(
-            "custom_components.maintenance_supporter.async_maybe_send_weekly_digest",
+            "custom_components.maintenance_supporter.daily_jobs.async_maybe_send_weekly_digest",
             new_callable=AsyncMock,
         ) as digest,
         patch(
-            "custom_components.maintenance_supporter.async_maybe_send_warranty_reminders",
+            "custom_components.maintenance_supporter.daily_jobs.async_maybe_send_warranty_reminders",
             new_callable=AsyncMock,
         ) as warranty,
         patch(
-            "custom_components.maintenance_supporter.async_maybe_send_lead_reminders",
+            "custom_components.maintenance_supporter.daily_jobs.async_maybe_send_lead_reminders",
             new_callable=AsyncMock,
         ) as leads,
     ):

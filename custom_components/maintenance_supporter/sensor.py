@@ -63,9 +63,9 @@ SUMMARY_METRICS: list[tuple[str, str]] = [
 ]
 
 if TYPE_CHECKING:
-    from . import MaintenanceSupporterConfigEntry
     from .helpers.battery_fleet import BatteryOverview
     from .helpers.documents import DocumentStore
+    from .models.runtime_data import MaintenanceSupporterConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 

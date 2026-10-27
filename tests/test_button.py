@@ -150,7 +150,7 @@ def _get_entities_by_domain(hass: HomeAssistant, entry: MockConfigEntry, domain:
 async def test_button_no_coordinator(hass: HomeAssistant) -> None:
     """button.py line 55-57: logs error when coordinator is None."""
     from custom_components.maintenance_supporter.button import async_setup_entry
-    from custom_components.maintenance_supporter import MaintenanceSupporterData
+    from custom_components.maintenance_supporter.models.runtime_data import MaintenanceSupporterData
 
     global_entry = _make_global(hass)
     await setup_integration(hass, global_entry)

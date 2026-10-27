@@ -590,12 +590,12 @@ async def test_clearing_the_shown_interval_removes_it(hass: HomeAssistant) -> No
 
 
 async def test_the_last_person_of_a_shared_task_keeps_it(hass: HomeAssistant) -> None:
-    from custom_components.maintenance_supporter import _check_task_responsible_user_orphans
+    from custom_components.maintenance_supporter.helpers.user_orphans import async_prune_task_user_orphans
 
     alice = await hass.auth.async_create_user("Alice")
     task = _task(responsible_user_id="deleted-user", assignee_pool=["deleted-user", alice.id])
     entry = await _setup(hass, {TASK: task})
-    await _check_task_responsible_user_orphans(hass)
+    await async_prune_task_user_orphans(hass)
     stored = _live(hass, entry).data[CONF_TASKS][TASK]
     assert stored.get("responsible_user_id") == alice.id
     assert "assignee_pool" not in stored

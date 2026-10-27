@@ -184,7 +184,7 @@ async def test_ws_task_create_and_update_refuse_a_future_last_performed(hass: Ho
 def test_reset_service_schema_refuses_a_future_date() -> None:
     """The reset service's ``cv.date`` accepted any date — the service path of
     the same overflow."""
-    from custom_components.maintenance_supporter import SERVICE_RESET_SCHEMA
+    from custom_components.maintenance_supporter.services import SERVICE_RESET_SCHEMA
 
     with pytest.raises(vol.Invalid):
         SERVICE_RESET_SCHEMA({"entity_id": "sensor.washer_change_filter", "date": FAR_FUTURE})
