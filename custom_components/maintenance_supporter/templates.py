@@ -888,6 +888,25 @@ TEMPLATES: list[ObjectTemplate] = [
             TaskTemplate("Oven Cleaning", "cleaning", "time_based", 90, 14),
         ],
     ),
+    # A template cannot know the pickup day: weekly works out of the box, and
+    # the note says how to pin it to a weekday or a waste collection calendar.
+    ObjectTemplate(
+        id="household_bins",
+        name="Bins & Recycling",
+        category="household",
+        starter=HOUSE_ONLY,
+        tasks=[
+            TaskTemplate(
+                "Put the Bins Out",
+                "service",
+                "time_based",
+                7,
+                1,
+                "Pickup day: set the schedule type to “Weekdays” and tick the day you put the bins out, or to “Calendar entity” to follow a waste collection calendar (offset -1 = the evening before).",
+            ),
+            TaskTemplate("Clean the Bins", "cleaning", "time_based", 30, 7, season_months=(4, 5, 6, 7, 8, 9, 10)),
+        ],
+    ),
     ObjectTemplate(
         id="home_knives",
         name="Kitchen Knives",

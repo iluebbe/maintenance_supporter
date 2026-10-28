@@ -138,6 +138,28 @@ def test_ev_template_has_no_combustion_tasks() -> None:
     assert "12V Battery Check" in names
 
 
+def test_bins_note_names_the_task_dialogs_schedule_types() -> None:
+    """A template cannot know the pickup day, so *Put the Bins Out* is weekly
+    and its note says which schedule type to switch to. It quotes them by the
+    task dialog's labels: a label renamed in a locale must not leave the note
+    pointing at an option that is not there."""
+    import json
+
+    from .test_i18n import _FRONTEND_LOCALES
+
+    bins = get_template_by_id("household_bins")
+    assert bins is not None and bins.category == "household"
+    put_out = next(tt for tt in bins.tasks if tt.name == "Put the Bins Out")
+    assert (put_out.schedule_type, put_out.interval_days, put_out.schedule) == ("time_based", 7, None)
+    assert put_out.notes
+    stale: list[str] = []
+    for path in sorted(_FRONTEND_LOCALES.glob("*.json")):
+        labels = json.loads(path.read_text(encoding="utf-8"))
+        note = localize_template_text(put_out.notes, path.stem) or ""
+        stale += [f"{path.stem}: {labels[key]!r}" for key in ("weekdays", "calendar") if labels[key] not in note]
+    assert not stale, "the bins note misses the task dialog's label:\n" + "\n".join(stale)
+
+
 async def test_templates_ws_localizes_names(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     await setup_integration(hass, global_entry)
     conn = _conn()
