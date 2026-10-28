@@ -601,11 +601,13 @@
         "description": "Administrátoři mají vždy plný přístup. Chcete-li delegovat vytváření, úpravy a mazání konkrétním uživatelům bez práv administrátora, zapněte možnost níže a vyberte je — ostatní vidí pouze Dokončit a Přeskočit. Nalezeno {user_count} uživatelů bez práv administrátora.",
         "data": {
           "operator_write_enabled": "Povolit vybraným uživatelům vytvářet, upravovat a mazat",
-          "admin_panel_user_ids": "Uživatelé s úplným přístupem k panelu"
+          "admin_panel_user_ids": "Uživatelé s úplným přístupem k panelu",
+          "shared_device_user_ids": "Sdílená zařízení"
         },
         "data_description": {
           "operator_write_enabled": "Vypnuto (výchozí): obsah mohou měnit pouze administrátoři. Zapnuto: plný přístup získají i vybraní uživatelé níže.",
-          "admin_panel_user_ids": "Uvedení uživatelé vidí úplný panel; ostatní vidí pouze Dokončit a Přeskočit u každého úkolu."
+          "admin_panel_user_ids": "Uvedení uživatelé vidí úplný panel; ostatní vidí pouze Dokončit a Přeskočit u každého úkolu.",
+          "shared_device_user_ids": "Účty, které používá více lidí, například kuchyňský tablet. Dokončení odtud se připíše tomu, kdo má službu (odpovědné osobě, při rotaci tomu, kdo je na řadě); historie zaznamená zařízení."
         }
       },
       "general_settings": {

@@ -601,11 +601,13 @@
         "description": "Az adminok mindig teljes hozzáféréssel rendelkeznek. Ha a létrehozást, szerkesztést és törlést adott nem admin felhasználókra bízná, kapcsolja be az alábbi opciót, és válassza ki őket — mindenki más csak az Elvégzés és a Kihagyás gombot látja. {user_count} nem admin felhasználó található.",
         "data": {
           "operator_write_enabled": "A kiválasztott felhasználók létrehozhatnak, szerkeszthetnek és törölhetnek",
-          "admin_panel_user_ids": "Teljes panel-hozzáféréssel rendelkező felhasználók"
+          "admin_panel_user_ids": "Teljes panel-hozzáféréssel rendelkező felhasználók",
+          "shared_device_user_ids": "Megosztott eszközök"
         },
         "data_description": {
           "operator_write_enabled": "Ki (alapértelmezés): csak adminok módosíthatnak tartalmat. Be: a lent kiválasztott felhasználók is teljes létrehozási/szerkesztési/törlési jogot kapnak.",
-          "admin_panel_user_ids": "A felsorolt felhasználók a teljes panelt látják; mindenki más feladatonként csak az Elvégzés és a Kihagyás gombot."
+          "admin_panel_user_ids": "A felsorolt felhasználók a teljes panelt látják; mindenki más feladatonként csak az Elvégzés és a Kihagyás gombot.",
+          "shared_device_user_ids": "Több személy által használt fiókok, például egy konyhai táblagép. Az onnan végzett elvégzés az ügyeletesnek számít (a felelősnek, rotációnál annak, aki soron van); az előzmények rögzítik az eszközt."
         }
       },
       "general_settings": {

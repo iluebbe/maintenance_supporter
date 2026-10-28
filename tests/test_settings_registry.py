@@ -78,12 +78,13 @@ def test_allowed_keys_count_and_types() -> None:
     # part_search_url_template; #181 follow-up battery_auto_record_recovery;
     # v2.93 home_type; 2.94 home_region; 2.96 dropped the no-op
     # advanced_predictions_visible; 2026-10 advanced_places_visible; #219
-    # battery_low_delay_minutes; #231 mirror_todo_default_entities).
-    assert len(ALLOWED_SETTING_KEYS) == 68
+    # battery_low_delay_minutes; #231 mirror_todo_default_entities; #233
+    # follow-up shared_device_user_ids).
+    assert len(ALLOWED_SETTING_KEYS) == 69
     assert all(isinstance(t, type) for t in ALLOWED_SETTING_KEYS.values())
     # No duplicate keys crept into the spec tuple.
     keys = [s.key for s in SETTING_SPECS]
-    assert len(keys) == len(set(keys)) == 68
+    assert len(keys) == len(set(keys)) == 69
 
 
 def test_every_ranged_key_is_declared_with_matching_type() -> None:

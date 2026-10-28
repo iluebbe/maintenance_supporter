@@ -601,11 +601,13 @@
         "description": "Admins haben immer Vollzugriff. Um Erstellen, Bearbeiten und Löschen an bestimmte Non-Admins zu delegieren, aktiviere die Option unten und wähle sie aus — alle anderen sehen nur Abhaken und Überspringen. {user_count} Non-Admin-User gefunden.",
         "data": {
           "operator_write_enabled": "Ausgewählten Nutzern Erstellen, Bearbeiten und Löschen erlauben",
-          "admin_panel_user_ids": "User mit Vollzugriff"
+          "admin_panel_user_ids": "User mit Vollzugriff",
+          "shared_device_user_ids": "Geteilte Geräte"
         },
         "data_description": {
           "operator_write_enabled": "Aus (Standard): nur Admins können Inhalte ändern. Ein: die unten ausgewählten Nutzer erhalten ebenfalls Vollzugriff.",
-          "admin_panel_user_ids": "Ausgewählte User sehen das volle Panel, alle anderen nur Abhaken und Überspringen."
+          "admin_panel_user_ids": "Ausgewählte User sehen das volle Panel, alle anderen nur Abhaken und Überspringen.",
+          "shared_device_user_ids": "Konten, die mehrere Personen benutzen, etwa ein Küchen-Tablet. Ein Abschluss von dort wird der Person gutgeschrieben, die dran ist (der verantwortlichen, bei einer Rotation der, die an der Reihe ist); der Verlauf vermerkt das Gerät."
         }
       },
       "general_settings": {

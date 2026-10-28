@@ -601,11 +601,13 @@
         "description": "Järjestelmänvalvojilla on aina täydet käyttöoikeudet. Delegoidaksesi luonti-, muokkaus- ja poisto-oikeudet tietyille ei-järjestelmänvalvojille, ota alla oleva asetus käyttöön ja valitse heidät – kaikki muut näkevät vain Valmis- ja Ohita-toiminnot. Löytyi {user_count} ei-järjestelmänvalvojakäyttäjää.",
         "data": {
           "operator_write_enabled": "Salli valittujen käyttäjien luoda, muokata ja poistaa",
-          "admin_panel_user_ids": "Käyttäjät, joilla on täydet paneelin käyttöoikeudet"
+          "admin_panel_user_ids": "Käyttäjät, joilla on täydet paneelin käyttöoikeudet",
+          "shared_device_user_ids": "Jaetut laitteet"
         },
         "data_description": {
           "operator_write_enabled": "Pois (oletus): vain järjestelmänvalvojat voivat muokata sisältöä. Päällä: myös alla valitut käyttäjät saavat täydet luonti-/muokkaus-/poisto-oikeudet.",
-          "admin_panel_user_ids": "Luetellut käyttäjät näkevät koko paneelin; kaikki muut näkevät vain Valmis- ja Ohita-toiminnot kussakin tehtävässä."
+          "admin_panel_user_ids": "Luetellut käyttäjät näkevät koko paneelin; kaikki muut näkevät vain Valmis- ja Ohita-toiminnot kussakin tehtävässä.",
+          "shared_device_user_ids": "Tilit, joita useampi henkilö käyttää, kuten keittiön tabletti. Sieltä tehty suoritus kirjataan vuorossa olevalle (vastuuhenkilölle, kierrossa sille, jonka vuoro on); historia merkitsee laitteen."
         }
       },
       "general_settings": {

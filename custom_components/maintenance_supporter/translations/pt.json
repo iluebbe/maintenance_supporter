@@ -601,11 +601,13 @@
         "description": "Os administradores sempre têm acesso completo. Para delegar criar, editar e excluir a não administradores específicos, ative a opção abaixo e selecione-os — os demais só veem Concluir e Ignorar. {user_count} usuário(s) não administrador(es) encontrado(s).",
         "data": {
           "operator_write_enabled": "Permitir que os usuários selecionados criem, editem e excluam",
-          "admin_panel_user_ids": "Utilizadores com acesso completo ao painel"
+          "admin_panel_user_ids": "Utilizadores com acesso completo ao painel",
+          "shared_device_user_ids": "Dispositivos partilhados"
         },
         "data_description": {
           "operator_write_enabled": "Desativado (padrão): apenas administradores podem alterar o conteúdo. Ativado: os usuários selecionados abaixo também obtêm acesso completo.",
-          "admin_panel_user_ids": "Os utilizadores selecionados veem o painel completo; todos os outros só veem Concluir e Ignorar."
+          "admin_panel_user_ids": "Os utilizadores selecionados veem o painel completo; todos os outros só veem Concluir e Ignorar.",
+          "shared_device_user_ids": "Contas usadas por várias pessoas, como um tablet de cozinha. Uma conclusão feita aí é atribuída a quem está de serviço (a pessoa responsável, com rotação a quem calha a vez); o histórico regista o dispositivo."
         }
       },
       "general_settings": {

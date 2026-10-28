@@ -81,6 +81,7 @@ from .const import (
     CONF_REF_NUMBERS_IN_LISTS,
     CONF_REMINDER_LEAD_DAYS,
     CONF_ROW_ACTION_STYLE,
+    CONF_SHARED_DEVICE_USER_IDS,
     CONF_SHOPPING_LIST_ENTITY,
     CONF_SNOOZE_DURATION_HOURS,
     CONF_WARRANTY_REMINDER_DAYS,
@@ -779,7 +780,8 @@ class GlobalOptionsFlow(OptionsFlow):
         # Build the multi-select option list from the HA auth registry,
         # mirroring the panel's own users/list filter (active humans only).
         users = await self.hass.auth.async_get_users()
-        non_admin = [u for u in users if not u.is_admin and not u.system_generated and u.is_active]
+        people = [u for u in users if not u.system_generated and u.is_active]
+        non_admin = [u for u in people if not u.is_admin]
         options = [
             selector.SelectOptionDict(
                 value=u.id,
@@ -787,6 +789,7 @@ class GlobalOptionsFlow(OptionsFlow):
             )
             for u in non_admin
         ]
+        device_options = [selector.SelectOptionDict(value=u.id, label=(u.name or u.id[:8])) for u in people]
 
         return self.async_show_form(
             step_id="panel_access",
@@ -805,6 +808,17 @@ class GlobalOptionsFlow(OptionsFlow):
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=options,
+                            multiple=True,
+                            mode=selector.SelectSelectorMode.LIST,
+                        ),
+                    ),
+                    # #233 follow-up: any account may be a shared device.
+                    vol.Optional(
+                        CONF_SHARED_DEVICE_USER_IDS,
+                        default=select_default(self._opt(CONF_SHARED_DEVICE_USER_IDS) or [], device_options),
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=device_options,
                             multiple=True,
                             mode=selector.SelectSelectorMode.LIST,
                         ),

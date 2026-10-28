@@ -601,11 +601,13 @@
         "description": "Admins hebben altijd volledige toegang. Om aanmaken, bewerken en verwijderen aan specifieke niet-admins te delegeren, schakel de optie hieronder in en selecteer hen — alle anderen zien alleen Voltooien en Overslaan. {user_count} niet-admin gebruiker(s) gevonden.",
         "data": {
           "operator_write_enabled": "Geselecteerde gebruikers laten aanmaken, bewerken en verwijderen",
-          "admin_panel_user_ids": "Gebruikers met volledige paneel-toegang"
+          "admin_panel_user_ids": "Gebruikers met volledige paneel-toegang",
+          "shared_device_user_ids": "Gedeelde apparaten"
         },
         "data_description": {
           "operator_write_enabled": "Uit (standaard): alleen admins kunnen inhoud wijzigen. Aan: de hieronder geselecteerde gebruikers krijgen ook volledige toegang.",
-          "admin_panel_user_ids": "Geselecteerde gebruikers zien het volledige paneel; alle anderen zien alleen Voltooien en Overslaan."
+          "admin_panel_user_ids": "Geselecteerde gebruikers zien het volledige paneel; alle anderen zien alleen Voltooien en Overslaan.",
+          "shared_device_user_ids": "Accounts die meerdere personen gebruiken, zoals een keukentablet. Een voltooiing daar telt voor wie aan de beurt is (de verantwoordelijke, bij een rotatie wie aan de beurt is); de geschiedenis noteert het apparaat."
         }
       },
       "general_settings": {

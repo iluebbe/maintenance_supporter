@@ -30,6 +30,8 @@ export interface ObjectHistoryEntry {
   duration: number | null;
   notes: string | null;
   completedBy: string | null;
+  /** The shared device it came from (completedBy is whoever was on duty). */
+  completedVia: string | null;
   /** #139: name of the cycle phase this completion recorded (null when the
    *  task is phase-less or the entry predates its phases). */
   phaseName: string | null;
@@ -114,6 +116,7 @@ export function mergeObjectHistory(
         duration: typeof h.duration === "number" ? h.duration : null,
         notes: h.notes ?? null,
         completedBy: h.completed_by ?? null,
+        completedVia: h.completed_via ?? null,
         phaseName: (h.phase_id && task.phases?.[h.phase_id]?.name) || null,
         refNo: typeof h.ref_no === "number" ? h.ref_no : null,
         taskRefNo: typeof task.ref_no === "number" ? task.ref_no : null,

@@ -601,11 +601,13 @@
         "description": "Gli amministratori hanno sempre accesso completo. Per delegare creazione, modifica ed eliminazione a non amministratori specifici, attiva l'opzione qui sotto e selezionali — gli altri vedono solo Completa e Salta. Trovati {user_count} utenti non amministratori.",
         "data": {
           "operator_write_enabled": "Consenti agli utenti selezionati di creare, modificare ed eliminare",
-          "admin_panel_user_ids": "Utenti con accesso completo al pannello"
+          "admin_panel_user_ids": "Utenti con accesso completo al pannello",
+          "shared_device_user_ids": "Dispositivi condivisi"
         },
         "data_description": {
           "operator_write_enabled": "Disattivato (predefinito): solo gli amministratori possono modificare i contenuti. Attivato: anche gli utenti selezionati qui sotto hanno accesso completo.",
-          "admin_panel_user_ids": "Gli utenti selezionati vedono il pannello completo; tutti gli altri vedono solo Completa e Salta."
+          "admin_panel_user_ids": "Gli utenti selezionati vedono il pannello completo; tutti gli altri vedono solo Completa e Salta.",
+          "shared_device_user_ids": "Account usati da più persone, come un tablet in cucina. Un completamento fatto lì viene attribuito a chi è di turno (il responsabile, con una rotazione chi tocca); la cronologia annota il dispositivo."
         }
       },
       "general_settings": {

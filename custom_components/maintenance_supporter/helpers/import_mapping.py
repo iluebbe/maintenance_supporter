@@ -57,8 +57,10 @@ def _task_user_ids(task: dict[str, Any]) -> Iterable[str]:
         if isinstance(uid, str):
             yield uid
     for entry in task.get("history") or []:
-        if isinstance(entry, dict) and isinstance(entry.get("completed_by"), str):
-            yield entry["completed_by"]
+        if isinstance(entry, dict):
+            for key in ("completed_by", "completed_via"):
+                if isinstance(entry.get(key), str):
+                    yield entry[key]
 
 
 def _view_user_ids(settings: dict[str, Any]) -> Iterable[str]:
@@ -145,8 +147,11 @@ def remap_task_users(task: dict[str, Any], mapping: dict[str, str]) -> None:
                 seen.append(new)
         task["assignee_pool"] = seen
     for entry in task.get("history") or []:
-        if isinstance(entry, dict) and isinstance(entry.get("completed_by"), str) and entry["completed_by"] in mapping:
-            entry["completed_by"] = mapping[entry["completed_by"]]
+        if not isinstance(entry, dict):
+            continue
+        for key in ("completed_by", "completed_via"):
+            if isinstance(entry.get(key), str) and entry[key] in mapping:
+                entry[key] = mapping[entry[key]]
 
 
 def remap_view_users(views: list[dict[str, Any]], mapping: dict[str, str]) -> None:

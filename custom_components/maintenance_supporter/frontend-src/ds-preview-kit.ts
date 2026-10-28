@@ -123,6 +123,7 @@ const SETTINGS = {
     completion_actions: true, places: true,
   },
   admin_panel_user_ids: [] as string[],
+  shared_device_user_ids: [] as string[],
   operator_write_enabled: false,
   general: { default_warning_days: 7, notifications_enabled: true, notify_service: "notify.mobile_app_demo", notify_targets: [] as string[], panel_enabled: true },
   notifications: {

@@ -251,7 +251,11 @@ export class MaintenanceObjectHistorySection extends LitElement {
     };
     const printable = filtered.map((e) => ({
       ...e,
-      completedBy: e.completedBy ? this.userName(e.completedBy) : null,
+      completedBy: e.completedBy
+        ? e.completedVia
+          ? t("completed_via", L).replace("{person}", this.userName(e.completedBy) ?? "").replace("{device}", this.userName(e.completedVia) ?? "")
+          : this.userName(e.completedBy)
+        : null,
       notes: e.notes ? historyNoteText(e.notes, L) : null,
     }));
     const htmlDoc = buildServiceRecordHtml(

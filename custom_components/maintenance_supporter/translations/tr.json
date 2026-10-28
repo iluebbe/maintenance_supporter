@@ -601,11 +601,13 @@
         "description": "Yöneticiler her zaman tam erişime sahiptir. Oluşturma, düzenleme ve silmeyi belirli yönetici olmayan kullanıcılara devretmek için aşağıdaki seçeneği açın ve onları seçin — diğer herkes yalnızca Tamamla ve Atla görür. {user_count} yönetici olmayan kullanıcı bulundu.",
         "data": {
           "operator_write_enabled": "Seçilen kullanıcıların oluşturmasına, düzenlemesine ve silmesine izin ver",
-          "admin_panel_user_ids": "Tam panel erişimine sahip kullanıcılar"
+          "admin_panel_user_ids": "Tam panel erişimine sahip kullanıcılar",
+          "shared_device_user_ids": "Paylaşılan cihazlar"
         },
         "data_description": {
           "operator_write_enabled": "Kapalı (varsayılan): yalnızca yöneticiler içeriği değiştirebilir. Açık: aşağıda seçilen kullanıcılar da tam oluşturma/düzenleme/silme erişimi alır.",
-          "admin_panel_user_ids": "Listelenen kullanıcılar tam paneli görür; diğer herkes her görevde yalnızca Tamamla ve Atla görür."
+          "admin_panel_user_ids": "Listelenen kullanıcılar tam paneli görür; diğer herkes her görevde yalnızca Tamamla ve Atla görür.",
+          "shared_device_user_ids": "Mutfak tableti gibi birkaç kişinin kullandığı hesaplar. Oradan yapılan tamamlama sırası gelen kişiye yazılır (sorumlu kişi, rotasyonda sırası olan); geçmiş cihazı not eder."
         }
       },
       "general_settings": {

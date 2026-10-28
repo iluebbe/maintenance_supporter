@@ -601,11 +601,13 @@
         "description": "Administradores sempre têm acesso total. Para delegar criação, edição e exclusão a não administradores específicos, ative a opção abaixo e selecione-os — os demais veem apenas Concluir e Pular. {user_count} usuário(s) não administrador(es) encontrado(s).",
         "data": {
           "operator_write_enabled": "Permitir que os usuários selecionados criem, editem e excluam",
-          "admin_panel_user_ids": "Usuários com acesso total ao painel"
+          "admin_panel_user_ids": "Usuários com acesso total ao painel",
+          "shared_device_user_ids": "Dispositivos compartilhados"
         },
         "data_description": {
           "operator_write_enabled": "Desligado (padrão): apenas administradores podem modificar o conteúdo. Ligado: os usuários selecionados abaixo também recebem acesso total de criação/edição/exclusão.",
-          "admin_panel_user_ids": "Os usuários listados veem o painel completo; os demais veem apenas Concluir e Pular em cada tarefa."
+          "admin_panel_user_ids": "Os usuários listados veem o painel completo; os demais veem apenas Concluir e Pular em cada tarefa.",
+          "shared_device_user_ids": "Contas usadas por várias pessoas, como um tablet de cozinha. Uma conclusão feita ali é atribuída a quem está na vez (a pessoa responsável, com rodízio a quem é a vez); o histórico registra o dispositivo."
         }
       },
       "general_settings": {

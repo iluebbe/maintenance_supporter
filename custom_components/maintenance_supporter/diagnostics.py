@@ -39,6 +39,7 @@ TO_REDACT = {
     # HA user UUIDs — redact for parity with responsible_user_id (were leaking).
     "assignee_pool",
     "admin_panel_user_ids",
+    "shared_device_user_ids",
     "serial_number",
     # Spare-part supplier/product identifiers (product_url can carry tokens).
     "product_url",

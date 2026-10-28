@@ -379,6 +379,7 @@ def export_maintenance_data(
 # state.
 _NON_PORTABLE_SETTINGS = (
     "admin_panel_user_ids",
+    "shared_device_user_ids",
     "adopted_task_notes",
     "shopping_list_entity",
     "mirror_todo_default_entities",

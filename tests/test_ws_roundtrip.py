@@ -718,6 +718,7 @@ _SETTING_SAMPLES: dict[str, Any] = {
     # qualified form round-trips unchanged.
     "shopping_list_entity": "todo.shopping_list",
     "mirror_todo_default_entities": ["todo.family", "todo.kids"],
+    "shared_device_user_ids": ["kitchen-tablet-user"],
     "panel_enabled": True,
     # Already trimmed + under the 50-char cap, so it round-trips unchanged.
     "panel_title": "Upkeep",
@@ -826,6 +827,7 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "notify_service": settings["general"]["notify_service"],
         "shopping_list_entity": settings["general"]["shopping_list_entity"],
         "mirror_todo_default_entities": settings["general"]["mirror_todo_default_entities"],
+        "shared_device_user_ids": settings["shared_device_user_ids"],
         "panel_enabled": settings["general"]["panel_enabled"],
         "panel_title": settings["general"]["panel_title"],
         "row_action_style": settings["general"]["row_action_style"],

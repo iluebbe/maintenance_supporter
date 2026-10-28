@@ -601,11 +601,13 @@
         "description": "Admins always have full access. To delegate create, edit and delete to specific non-admins, turn on the option below and select them — everyone else sees only Complete and Skip. Found {user_count} non-admin user(s).",
         "data": {
           "operator_write_enabled": "Allow selected users to create, edit and delete",
-          "admin_panel_user_ids": "Users with full panel access"
+          "admin_panel_user_ids": "Users with full panel access",
+          "shared_device_user_ids": "Shared devices"
         },
         "data_description": {
           "operator_write_enabled": "Off (default): only admins can modify content. On: the users selected below also get full create/edit/delete access.",
-          "admin_panel_user_ids": "Listed users see the full panel; everyone else sees only Complete and Skip on each task."
+          "admin_panel_user_ids": "Listed users see the full panel; everyone else sees only Complete and Skip on each task.",
+          "shared_device_user_ids": "Accounts several people use, like a kitchen tablet. A completion made there is credited to whoever is on duty (the responsible person, on a rotation whose turn it is); the history notes the device."
         }
       },
       "general_settings": {

@@ -601,11 +601,13 @@
         "description": "Los administradores siempre tienen acceso completo. Para delegar crear, editar y eliminar a no administradores específicos, activa la opción de abajo y selecciónalos — los demás solo ven Completar y Omitir. Se encontraron {user_count} usuario(s) no administrador(es).",
         "data": {
           "operator_write_enabled": "Permitir a los usuarios seleccionados crear, editar y eliminar",
-          "admin_panel_user_ids": "Usuarios con acceso completo al panel"
+          "admin_panel_user_ids": "Usuarios con acceso completo al panel",
+          "shared_device_user_ids": "Dispositivos compartidos"
         },
         "data_description": {
           "operator_write_enabled": "Desactivado (predeterminado): solo los administradores pueden modificar el contenido. Activado: los usuarios seleccionados abajo también obtienen acceso completo.",
-          "admin_panel_user_ids": "Los usuarios seleccionados ven el panel completo; todos los demás solo ven Completar y Omitir."
+          "admin_panel_user_ids": "Los usuarios seleccionados ven el panel completo; todos los demás solo ven Completar y Omitir.",
+          "shared_device_user_ids": "Cuentas que usan varias personas, como una tableta de cocina. Una finalización hecha allí se atribuye a quien le toca (la persona responsable, con una rotación a quien le toca el turno); el historial anota el dispositivo."
         }
       },
       "general_settings": {

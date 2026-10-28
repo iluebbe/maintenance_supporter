@@ -31,6 +31,7 @@ from ..const import (
     CONF_QUIET_HOURS_START,
     CONF_REMINDER_LEAD_DAYS,
     CONF_ROW_ACTION_STYLE,
+    CONF_SHARED_DEVICE_USER_IDS,
     CONF_SHOPPING_LIST_ENTITY,
     DEFAULT_OBJECTS_TABLE_COLUMNS,
     HOME_TYPES,
@@ -161,11 +162,13 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
             if not isinstance(v, str) or not TIME_HHMMSS_PATTERN.match(v):
                 del filtered[time_key]
 
-    # Sanitise admin_panel_user_ids: drop non-string entries + whitespace-only
-    # entries, cap each at 64 chars (HA user UUIDs are 32), cap list at 50
-    # entries, dedupe.
-    if CONF_ADMIN_PANEL_USER_IDS in filtered:
-        raw = filtered[CONF_ADMIN_PANEL_USER_IDS]
+    # Sanitise the user-id lists (admin_panel_user_ids, the shared devices):
+    # drop non-string entries + whitespace-only entries, cap each at 64
+    # chars (HA user UUIDs are 32), cap list at 50 entries, dedupe.
+    for user_ids_key in (CONF_ADMIN_PANEL_USER_IDS, CONF_SHARED_DEVICE_USER_IDS):
+        if user_ids_key not in filtered:
+            continue
+        raw = filtered[user_ids_key]
         cleaned: list[str] = []
         seen: set[str] = set()
         for v in raw:
@@ -180,7 +183,7 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
             cleaned.append(stripped)
             if len(cleaned) >= 50:
                 break
-        filtered[CONF_ADMIN_PANEL_USER_IDS] = cleaned
+        filtered[user_ids_key] = cleaned
 
     # Multiple lead-time reminders: keep only ints within 0..365, dedupe, sort
     # descending (furthest lead first), cap the list. Empty list is valid — it

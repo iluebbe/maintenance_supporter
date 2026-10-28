@@ -94,6 +94,7 @@ from ..const import (
     CONF_REMINDER_LEAD_DAYS,
     CONF_ROW_ACTION_NOTICE,
     CONF_ROW_ACTION_STYLE,
+    CONF_SHARED_DEVICE_USER_IDS,
     CONF_SHOPPING_LIST_ENTITY,
     CONF_SNOOZE_DURATION_HOURS,
     CONF_WARRANTY_REMINDER_DAYS,
@@ -184,6 +185,7 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_ADVANCED_PLACES, bool, False),
     # Governance (list elements sanitised by a bespoke rule in the handler)
     SettingSpec(CONF_ADMIN_PANEL_USER_IDS, list, []),
+    SettingSpec(CONF_SHARED_DEVICE_USER_IDS, list, []),
     SettingSpec(CONF_OPERATOR_WRITE_ENABLED, bool, False),
     SettingSpec(CONF_OBJECTS_TABLE_COLUMNS, list, DEFAULT_OBJECTS_TABLE_COLUMNS),
     # #169 follow-up: member avatars (bespoke palette/initials sanitiser)

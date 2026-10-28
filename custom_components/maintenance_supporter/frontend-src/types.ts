@@ -161,6 +161,9 @@ export interface HistoryEntry {
   checklist_state?: Record<string, boolean> | null;
   feedback?: string | null;
   completed_by?: string | null;
+  /** The shared device the completion came from; completed_by is whoever
+   *  was on duty (#233 follow-up). */
+  completed_via?: string | null;
   /** Pre-#161 single completion photo — read for old entries, never written. */
   photo_doc_id?: string | null;
   /** #161: every photo attached to this completion (see helpers/history-photos). */

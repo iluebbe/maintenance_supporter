@@ -601,11 +601,13 @@
         "description": "Administratorer har alltid full tilgang. For å delegere oppretting, redigering og sletting til bestemte ikke-administratorer, slå på alternativet nedenfor og velg dem – alle andre ser bare Fullfør og Hopp over. Fant {user_count} ikke-administratorbruker(e).",
         "data": {
           "operator_write_enabled": "Tillat at valgte brukere oppretter, redigerer og sletter",
-          "admin_panel_user_ids": "Brukere med full paneltilgang"
+          "admin_panel_user_ids": "Brukere med full paneltilgang",
+          "shared_device_user_ids": "Delte enheter"
         },
         "data_description": {
           "operator_write_enabled": "Av (standard): bare administratorer kan endre innhold. På: brukerne som er valgt nedenfor får også full tilgang til å opprette/redigere/slette.",
-          "admin_panel_user_ids": "Oppførte brukere ser hele panelet; alle andre ser bare Fullfør og Hopp over på hver oppgave."
+          "admin_panel_user_ids": "Oppførte brukere ser hele panelet; alle andre ser bare Fullfør og Hopp over på hver oppgave.",
+          "shared_device_user_ids": "Kontoer som flere personer bruker, som et kjøkkennettbrett. En fullføring derfra krediteres den som har tur (den ansvarlige, ved rotasjon den som står for tur); historikken noterer enheten."
         }
       },
       "general_settings": {

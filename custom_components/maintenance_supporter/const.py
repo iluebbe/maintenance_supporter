@@ -178,6 +178,9 @@ CONF_ADVANCED_PLACES: Final = "advanced_places_visible"
 # The allowlist grants create/edit/delete ONLY when CONF_OPERATOR_WRITE_ENABLED
 # is also on; with it off (the default) listed users get read-only access.
 CONF_ADMIN_PANEL_USER_IDS: Final = "admin_panel_user_ids"
+# #233 follow-up: accounts several people use (a kitchen tablet). A
+# completion from one counts for whoever is on duty (helpers/assignees).
+CONF_SHARED_DEVICE_USER_IDS: Final = "shared_device_user_ids"
 
 # v2.8.4: master switch for operator write delegation. Default OFF → only HA
 # admins may create/edit/delete and the panel-access allowlist is read-only.

@@ -85,6 +85,7 @@ from ..const import (
     CONF_REMINDER_LEAD_DAYS,
     CONF_ROW_ACTION_NOTICE,
     CONF_ROW_ACTION_STYLE,
+    CONF_SHARED_DEVICE_USER_IDS,
     CONF_SHOPPING_LIST_ENTITY,
     CONF_SNOOZE_DURATION_HOURS,
     CONF_WARRANTY_REMINDER_DAYS,
@@ -183,6 +184,7 @@ def _build_full_settings(
         # Top-level (not a feature toggle, not a bool): list of HA user IDs
         # whose UI gets the full admin panel even though they're not HA admins.
         "admin_panel_user_ids": _opt(options, CONF_ADMIN_PANEL_USER_IDS),
+        "shared_device_user_ids": _opt(options, CONF_SHARED_DEVICE_USER_IDS),
         # v2.8.4: master switch gating whether the allowlist actually grants
         # write. Default False → operator allowlist is read-only.
         "operator_write_enabled": _opt(options, CONF_OPERATOR_WRITE_ENABLED),

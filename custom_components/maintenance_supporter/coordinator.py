@@ -63,7 +63,7 @@ from .const import (
 )
 from .helpers.action_listener import action_entity_ids
 from .helpers.aggregate import task_sensor_entity_id as aggregate_task_sensor_entity_id
-from .helpers.assignees import task_user_ids
+from .helpers.assignees import credited_user, task_user_ids
 from .helpers.budget import compute_spend
 from .helpers.calendar_source import (
     all_calendar_entity_ids,
@@ -1297,6 +1297,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
                 translation_key="reading_slots_required",
             )
 
+        # A shared device (a kitchen tablet) credits whoever is on duty; the
+        # history keeps the device (#233 follow-up).
+        completed_by, completed_via = credited_user(self.hass, merged[task_id], completed_by)
         prefill = (
             quick_complete_values(merged[task_id])
             if not auto and (quick or (unattended and (source or "") not in COMPLETION_SOURCES_AUTOMATIC))
@@ -1510,6 +1513,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # high-water counter, so a deleted or backdated entry never renumbers.
         if task.history:
             task.history[-1]["ref_no"] = next_history_ref(self._store, task_id, task.history)
+            if completed_via:
+                task.history[-1]["completed_via"] = completed_via
             # #104: what the parts of this completion cost at this moment,
             # whether it was a purchase, and how it is booked — decided now,
             # so a later change of the setting never re-values it.

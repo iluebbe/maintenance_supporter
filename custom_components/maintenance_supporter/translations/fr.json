@@ -601,11 +601,13 @@
         "description": "Les administrateurs ont toujours un accès complet. Pour déléguer la création, la modification et la suppression à des non-administrateurs spécifiques, activez l'option ci-dessous et sélectionnez-les — les autres ne voient que Terminer et Ignorer. {user_count} utilisateur(s) non administrateur(s) trouvé(s).",
         "data": {
           "operator_write_enabled": "Autoriser les utilisateurs sélectionnés à créer, modifier et supprimer",
-          "admin_panel_user_ids": "Utilisateurs avec accès complet au panneau"
+          "admin_panel_user_ids": "Utilisateurs avec accès complet au panneau",
+          "shared_device_user_ids": "Appareils partagés"
         },
         "data_description": {
           "operator_write_enabled": "Désactivé (par défaut) : seuls les administrateurs peuvent modifier le contenu. Activé : les utilisateurs sélectionnés ci-dessous ont aussi un accès complet.",
-          "admin_panel_user_ids": "Les utilisateurs sélectionnés voient le panneau complet ; tous les autres ne voient que Terminer et Ignorer."
+          "admin_panel_user_ids": "Les utilisateurs sélectionnés voient le panneau complet ; tous les autres ne voient que Terminer et Ignorer.",
+          "shared_device_user_ids": "Comptes utilisés par plusieurs personnes, comme une tablette de cuisine. Une finalisation faite là est créditée à la personne de service (la responsable, avec une rotation celle dont c'est le tour) ; l'historique note l'appareil."
         }
       },
       "general_settings": {

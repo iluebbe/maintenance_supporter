@@ -15,6 +15,9 @@ from typing import Any
 
 from homeassistant.core import HomeAssistant, State
 
+from ..const import CONF_SHARED_DEVICE_USER_IDS
+from .global_options import global_option
+
 
 def shared_user_ids(task: Mapping[str, Any]) -> list[str]:
     """The HA user ids under *Shared with* (on a rotation, its members)."""
@@ -80,6 +83,26 @@ def task_people_attributes(hass: HomeAssistant, task: Mapping[str, Any]) -> dict
         "assigned_user_ids": assigned,
         "assigned_persons": [p for u in assigned if (p := person_of_user(hass, u))],
     }
+
+
+def credited_user(hass: HomeAssistant, task: Mapping[str, Any], completed_by: str | None) -> tuple[str | None, str | None]:
+    """Who a completion counts for, and the shared device it came from.
+
+    An account several people use (a kitchen tablet, Settings → Shared
+    devices) says nothing about who did the work: its completion counts
+    for whoever is on duty, the responsible person (on a rotation whose
+    turn it is). That keeps "hold them responsible" and a least-completed
+    rotation honest. Nobody on duty: the account keeps it. Returns
+    ``(completed_by, completed_via)``; ``completed_via`` is the device
+    account when the credit moved, else None.
+    """
+    if not completed_by:
+        return completed_by, None
+    devices = global_option(hass, CONF_SHARED_DEVICE_USER_IDS) or []
+    on_duty = task.get("responsible_user_id")
+    if completed_by in devices and isinstance(on_duty, str) and on_duty and on_duty != completed_by:
+        return on_duty, completed_by
+    return completed_by, None
 
 
 async def person_display_name(hass: HomeAssistant, user_id: str | None) -> str | None:

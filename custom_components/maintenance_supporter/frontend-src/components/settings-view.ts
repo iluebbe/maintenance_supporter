@@ -38,6 +38,8 @@ interface PersonNotifyTarget {
 interface SettingsResponse {
   features: AdvancedFeatures;
   admin_panel_user_ids?: string[];
+  /** #233 follow-up: accounts several people use (a kitchen tablet). */
+  shared_device_user_ids?: string[];
   /** #169 follow-up: per-member avatar overrides. */
   member_display?: Record<string, { initials?: string; color?: string }>;
   operator_write_enabled?: boolean;
@@ -621,6 +623,7 @@ export class MaintenanceSettingsView extends LitElement {
     return html`
       ${this._renderFeatures(L)}
       ${this._renderPanelAccess(L)}
+      ${this._renderSharedDevices(L)}
       ${this._renderMemberAvatars(L)}
       ${this._renderGeneral(L)}
       ${this._renderObjectsColumns(L)}
@@ -693,6 +696,34 @@ export class MaintenanceSettingsView extends LitElement {
                   @change=${(e: Event) => toggle(u.id, (e.target as HTMLInputElement).checked)} />
               </label>
             `)}
+      </div>
+    `;
+  }
+
+  // --- Section: Shared devices (#233 follow-up) ---
+
+  /** Accounts several people use: a completion from one counts for
+   *  whoever is on duty, and the history notes the device. Any account
+   *  can be one (a tablet is often its own person in Home Assistant). */
+  private _renderSharedDevices(L: string) {
+    const selected = new Set(this._settings!.shared_device_user_ids || []);
+    const toggle = (uid: string, on: boolean): void => {
+      const next = new Set(selected);
+      if (on) next.add(uid); else next.delete(uid);
+      this._updateSetting("shared_device_user_ids", [...next]);
+    };
+    return html`
+      <div class="settings-section shared-devices">
+        <h3>${t("settings_shared_devices", L)} ${selected.size > 0 ? html`<span class="section-badge">${selected.size}</span>` : nothing}</h3>
+        <p class="section-desc">${t("settings_shared_devices_desc", L)}</p>
+        ${this._users.map((u) => html`
+          <label class="setting-row">
+            <span><span class="setting-label">${u.name || u.id.slice(0, 8)}</span></span>
+            <input type="checkbox"
+              .checked=${selected.has(u.id)}
+              @change=${(e: Event) => toggle(u.id, (e.target as HTMLInputElement).checked)} />
+          </label>
+        `)}
       </div>
     `;
   }

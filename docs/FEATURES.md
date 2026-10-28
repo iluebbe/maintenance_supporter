@@ -1015,6 +1015,10 @@ where doing it is all there is to record.
   prefill stays).
 - Automatic completions (a sensor that recovered, a shopping list, an
   automation's service call) record no prefill.
+- **Shared devices** (Settings → Shared devices): a completion from an account
+  several people use, like the kitchen tablet, counts for whoever is on duty
+  (the responsible person, on a rotation whose turn it is), so a least-completed
+  rotation stays fair; the history notes the device.
 
 ![Quick-Complete Defaults](images/task-dialog-quick-complete.png)
 

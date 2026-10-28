@@ -601,11 +601,13 @@
         "description": "Administratorer har altid fuld adgang. For at uddelegere oprettelse, redigering og sletning til bestemte ikke-administratorer skal du aktivere indstillingen nedenfor og vælge dem — alle andre ser kun Fuldfør og Spring over. Fandt {user_count} ikke-administratorbruger(e).",
         "data": {
           "operator_write_enabled": "Tillad valgte brugere at oprette, redigere og slette",
-          "admin_panel_user_ids": "Brugere med fuld paneladgang"
+          "admin_panel_user_ids": "Brugere med fuld paneladgang",
+          "shared_device_user_ids": "Delte enheder"
         },
         "data_description": {
           "operator_write_enabled": "Fra (standard): kun administratorer kan ændre indhold. Til: de brugere, der vælges nedenfor, får også fuld adgang til at oprette/redigere/slette.",
-          "admin_panel_user_ids": "Anførte brugere ser det fulde panel; alle andre ser kun Fuldfør og Spring over på hver opgave."
+          "admin_panel_user_ids": "Anførte brugere ser det fulde panel; alle andre ser kun Fuldfør og Spring over på hver opgave.",
+          "shared_device_user_ids": "Konti, som flere personer bruger, f.eks. en køkkentablet. En fuldførelse derfra tilskrives den, der har tur (den ansvarlige, ved rotation den, hvis tur det er); historikken noterer enheden."
         }
       },
       "general_settings": {

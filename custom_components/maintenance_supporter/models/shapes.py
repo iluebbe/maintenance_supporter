@@ -58,6 +58,9 @@ class HistoryEntry(TypedDict):
     checklist_state: NotRequired[dict[str, bool] | None]
     feedback: NotRequired[str | None]
     completed_by: NotRequired[str | None]
+    # The shared device the completion came from (its credit went to
+    # completed_by, whoever was on duty).
+    completed_via: NotRequired[str | None]
     photo_doc_id: NotRequired[str | None]
     photo_doc_ids: NotRequired[list[str] | None]
     reading_value: NotRequired[float | None]

@@ -601,11 +601,13 @@
         "description": "Administratörer har alltid full åtkomst. För att delegera skapa, redigera och ta bort till specifika icke-admin-användare, slå på alternativet nedan och välj dem — alla andra ser endast Slutför och Hoppa över. Hittade {user_count} icke-admin-användare.",
         "data": {
           "operator_write_enabled": "Tillåt valda användare att skapa, redigera och ta bort",
-          "admin_panel_user_ids": "Användare med fullständig paneläåtkomst"
+          "admin_panel_user_ids": "Användare med fullständig paneläåtkomst",
+          "shared_device_user_ids": "Delade enheter"
         },
         "data_description": {
           "operator_write_enabled": "Av (standard): endast administratörer kan ändra innehåll. På: de valda användarna nedan får också full åtkomst.",
-          "admin_panel_user_ids": "Listade användare ser hela panelen; alla andra ser endast Slutför och Hoppa över på varje uppgift."
+          "admin_panel_user_ids": "Listade användare ser hela panelen; alla andra ser endast Slutför och Hoppa över på varje uppgift.",
+          "shared_device_user_ids": "Konton som flera personer använder, som en surfplatta i köket. Ett slutförande där krediteras den som har tur (den ansvariga, med rotation den vars tur det är); historiken noterar enheten."
         }
       },
       "general_settings": {
