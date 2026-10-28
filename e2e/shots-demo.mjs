@@ -1294,9 +1294,24 @@ await step("task-dialog-action.png", async () => {
   await closeDialogs();
 });
 
-// 14. Quick-complete defaults (Filter Replacement)
+// 14. Quick complete (Filter Replacement): since #233 a switch in the
+// Completion section with its prefill fold below it, no longer a <details>
+// of its own, so scroll to the switch instead of a summary text.
 await step("task-dialog-quick-complete.png", async () => {
-  await openTaskDialog("HVAC System", "Filter Replacement", "quick-complete");
+  await openPanel("dashboard");
+  await openTaskDialog("HVAC System", "Filter Replacement");
+  const found = await p.evaluate(({ finder }) => {
+    eval(finder);
+    const dlg = window.__panel.shadowRoot.querySelector("maintenance-task-dialog");
+    const sw = dlg?.shadowRoot?.querySelector(".quick-complete-switch");
+    const fold = dlg?.shadowRoot?.querySelector("details.quick-complete-values");
+    if (!sw || !fold) return false;
+    fold.open = true;
+    sw.scrollIntoView({ block: "start" });
+    return sw.querySelector("input")?.checked === true;
+  }, { finder: deepFindPanel });
+  if (!found) throw new Error("the Quick complete switch is not on for Filter Replacement");
+  await p.waitForTimeout(800);
   await shot("task-dialog-quick-complete.png");
   await closeDialogs();
 });

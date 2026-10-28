@@ -1018,9 +1018,10 @@ where doing it is all there is to record.
 - **Shared devices** (Settings → Shared devices): a completion from an account
   several people use, like the kitchen tablet, counts for whoever is on duty
   (the responsible person, on a rotation whose turn it is), so a least-completed
-  rotation stays fair; the history notes the device.
+  rotation stays fair. The history entry keeps the device, and the service
+  record and the area report name both: *Anna (via Kitchen tablet)*.
 
-![Quick-Complete Defaults](images/task-dialog-quick-complete.png)
+![Quick complete](images/task-dialog-quick-complete.png)
 
 </details>
 
