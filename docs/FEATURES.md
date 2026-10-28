@@ -1243,7 +1243,7 @@ announcement, the shopping list at the store) are in
 
 ### Data Management
 - **Move several tasks at once** (2.90+, #188) — in the task list's selection mode the bar's ⋯ menu offers *Move to another object…*: one target prompt, then every selected task moves with its history, readings and trigger state (tasks already in the target are skipped)
-- **Change several tasks at once** (2.97+, discussion #199) — the same ⋯ menu offers *Assign…* (one person, or several in turns), *Labels…* (add some, remove others; the rest stay), *Edit…* (warning days, priority, reminders — only the ticked settings change), *Pause…* (until a date or until resumed) and *Resume*. However many tasks of an object change, it is written and reloaded once, and *Undo* in the toast puts back exactly what was replaced. In *All objects*, *Area…* moves the selected objects to another Home Assistant area
+- **Change several tasks at once** (2.97+, discussion #199) — the same ⋯ menu offers *Assign…* (one person, several people each of them, or several in turns), *Labels…* (add some, remove others; the rest stay), *Edit…* (warning days, priority, reminders — only the ticked settings change), *Pause…* (until a date or until resumed) and *Resume*. However many tasks of an object change, it is written and reloaded once, and *Undo* in the toast puts back exactly what was replaced. In *All objects*, *Area…* moves the selected objects to another Home Assistant area
 
 ![Three tasks selected and the bulk Edit… dialog: warning days and priority ticked](images/bulk-edit.png)
 
