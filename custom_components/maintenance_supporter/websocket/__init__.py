@@ -349,6 +349,10 @@ def _build_task_summary(
 
 _EMPTY_LIST: list[Any] = []
 _EMPTY_DICT: dict[str, Any] = {}
+# Keys whose empty container is a value, not an absence: #233's Quick
+# complete is on while ``quick_complete_defaults`` is present, so ``{}``
+# reads "on, nothing to prefill" and must reach the client as such.
+COMPACT_KEEPS_EMPTY: frozenset[str] = frozenset({"quick_complete_defaults"})
 
 
 def _strip_empty(d: dict[str, Any]) -> dict[str, Any]:
@@ -361,9 +365,10 @@ def _strip_empty(d: dict[str, Any]) -> dict[str, Any]:
     two lists are pinned against each other by test_ws_compact_mode).
     Scalars stay droppable without a table because absent and null read the
     same through JS ``== null`` / ``||`` access. False, 0 and "" are kept —
-    they are meaningful values, not absences.
+    they are meaningful values, not absences, and so is an empty container
+    under :data:`COMPACT_KEEPS_EMPTY`.
     """
-    return {k: v for k, v in d.items() if not (v is None or v in (_EMPTY_LIST, _EMPTY_DICT))}
+    return {k: v for k, v in d.items() if not (v is None or (v in (_EMPTY_LIST, _EMPTY_DICT) and k not in COMPACT_KEEPS_EMPTY))}
 
 
 def _place_fields(hass: HomeAssistant, obj_data: Mapping[str, Any]) -> dict[str, Any]:

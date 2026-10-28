@@ -22,7 +22,7 @@ from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import DOMAIN
-from custom_components.maintenance_supporter.websocket import _build_task_summary
+from custom_components.maintenance_supporter.websocket import COMPACT_KEEPS_EMPTY, _build_task_summary
 from custom_components.maintenance_supporter.websocket.objects import ws_get_objects
 
 from .conftest import (
@@ -65,7 +65,7 @@ async def test_compact_strips_only_empties_and_keeps_values(
         for k, v in f.items():
             if k in ("object", "tasks"):
                 continue  # handled by their own level below
-            if _is_empty(v):
+            if _is_empty(v) and not (v == {} and k in COMPACT_KEEPS_EMPTY):
                 assert k not in c, f"empty key {k!r} must be stripped"
             else:
                 assert c[k] == v, f"non-empty key {k!r} must survive unchanged"
@@ -188,3 +188,34 @@ async def test_second_object_and_richer_task_roundtrip(
     assert task["checklist"] == ["step one", "step two"]
     assert task["labels"] == ["outdoor"]
     assert "environmental_correlation" not in task, "empty scalar keys are stripped"
+
+
+async def test_compact_keeps_quick_complete_switched_on_without_prefill(
+    hass: HomeAssistant,
+    global_config_entry: MockConfigEntry,
+) -> None:
+    """#233: ``quick_complete_defaults: {}`` is Quick complete ON with nothing
+    to prefill. Stripped like any empty dict, the panel and the cards (both
+    read the compact list) showed the switch off and opened the dialog."""
+    entry = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Quick Object",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Quick Object", object_id="objid_quick"),
+            tasks={
+                "task_on": {**build_task_data(task_id="task_on"), "quick_complete_defaults": {}},
+                "task_off": {**build_task_data(task_id="task_off"), "quick_complete_defaults": None},
+            },
+        ),
+        source="user",
+        unique_id="maintenance_supporter_quick_compact",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_config_entry, entry)
+
+    compact = await _get_objects(hass, compact=True)
+    tasks = {t["id"]: t for t in next(o for o in compact if o["object"]["name"] == "Quick Object")["tasks"]}
+    assert tasks["task_on"]["quick_complete_defaults"] == {}
+    assert "quick_complete_defaults" not in tasks["task_off"]
