@@ -2,6 +2,64 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.112.0] - 2026-10-28
+
+### ✨ Added
+
+- **Quick complete: a task that completes in one tap** (#233, thanks @randomletters). The task dialog's *Completing
+  it* section has a *Quick complete* switch with an optional prefill: notes, cost, duration and whether it was needed.
+  Every *Complete* for such a task in the panel, on a dashboard card and in a card's quick actions completes it
+  without the dialog, with *Undo*. *Complete with details…* opens the dialog anyway, starting with the prefill, and so
+  does adding a past completion.
+  - Every completion a person makes without a dialog records the prefill: the QR code, a notification's *Complete*
+    button, the button entity, a to-do tick, NFC and voice. A required note, cost or duration the prefill holds counts
+    as answered there, so such a task gets its notification button back. Automatic completions record none of it.
+  - A required photo, or a required detail the prefill leaves empty, still opens the dialog, and only the QR code or
+    tag on the thing counts as proof of presence.
+  - The icon forms of *Complete* show an open circle to tick off for these tasks. A task that already had values for
+    the quick-complete QR code has the switch on, and bulk edit turns it on or off for many tasks.
+  - WebSocket `task/quick_complete`, task field `quick_complete_defaults` (an empty object is on without a prefill).
+- **Shared devices: a kitchen tablet credits whoever is on duty.** *Settings → Shared devices* (also *Configure →
+  Panel Access*) lists the Home Assistant accounts several people use. A completion made from one counts for the
+  person on duty: the responsible person, or whoever's turn it is on a rotation, so a least-completed rotation stays
+  fair. The history entry keeps the device, and the service record and the area report read *Ann (via Kitchen
+  tablet)*. With nobody on duty the account keeps the completion. Setting `shared_device_user_ids`, history field
+  `completed_via`.
+- **A task shared with several people says who it is for** (#232, thanks @DUC750). A task with nobody responsible,
+  shared with several people and no rotation, is meant for each of them, and their reminders, *My Tasks*,
+  `list_tasks` and voice already agreed on that. Now:
+  - The task sensor and the `list_tasks` rows carry `assigned_user_ids` and `assigned_persons` (the responsible
+    person, else everyone it is shared with) next to `responsible_user_id`, `responsible_user` and `shared_with`, so a
+    dashboard template can show a chore to the people who do it.
+  - The panel's rows and *Today* list, the task page, the object's task list and the card show everyone a task is for.
+  - The task dialog says what each case means, and that a responsible person outranks the people it is shared with.
+  - Bulk edit also offers *Several people, each of them*. `add_task` and `update_task` take `shared_with` and
+    `rotation` (or `none`), and `add_task` takes `responsible_user` too.
+- **A simpler task card for a shared tablet** (#234, thanks @randomletters). The card's *New object* and *New task*
+  buttons have their own switch, `show_create` (unset, it follows `show_actions`). Compact rows put the person before
+  the task as an avatar and size *Complete* to the row. *Set up as a simple list* in the card editor sets compact rows,
+  the icon style, no create buttons or document chips and the person first, once; every option stays changeable.
+
+### 🐛 Fixed
+
+- **Configure after adopting problem sensors goes through every new task** (#235, thanks @DJaeger). The toast's
+  button opened the first task only. It now opens them as a series: the title shows where you are (*2 of 5*), *Save &
+  next* stores the task and opens the next one, *Skip* moves on without saving, and the last one closes with *Save*.
+  *Cancel* ends the series.
+- The card editor's title and max-items fields could stay empty, because Home Assistant loads its text field lazily,
+  so the title looked like a YAML-only option (#234).
+- The tasks CSV lost the people a task is shared with and its rotation on a round trip; export and import now carry
+  both (#232).
+
+### 🔧 Internal
+
+- The data shapes the backend sends are typed (`models/shapes.py`, with a parity test against the TypeScript types);
+  the computed task fields are a dataclass and the stored task a `TypedDict`.
+- The shared setup is split into services, listeners and daily jobs. The code around the coordinator reads it through
+  a public API, the checks the options flow shares with the WebSocket API live in helpers, and nothing but the command
+  registration imports `websocket/`. Imports sit at module level unless they have a reason to wait.
+- CI runs ruff 0.17.2, and the end-to-end lifecycle and migration round-trip jobs gate the run.
+
 ## [2.111.0] - 2026-10-25
 
 ### ✨ Added
