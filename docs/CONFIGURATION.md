@@ -627,13 +627,14 @@ The card is WS-driven (subscribes to `maintenance_supporter/subscribe`) so it al
 |---|---|---|---|
 | `title` | string | `"Maintenance"` (i18n) | Card header |
 | `show_header` | bool | `true` | Show the count badges (Overdue / Due Soon / Triggered). They count the tasks the card's filters and saved view select, before `max_items` (2.96+; earlier versions counted the whole home on a filtered card) |
-| `show_actions` | bool | `true` | Show the "Complete" button on each task row. `false` also hides the header's *New object* / *New task* buttons, which only users with write access see anyway |
+| `show_actions` | bool | `true` | Show the "Complete" button on each task row. `false` also hides the header's *New object* / *New task* buttons unless `show_create` says otherwise |
+| `show_create` (#234) | bool | follows `show_actions` | Show the header's *New object* / *New task* buttons (only users with write access see them anyway). `false` keeps *Complete* on a kitchen tablet without the create buttons |
 | `action_style` | `buttons` / `icons` | — | How that button looks (2.69+): a labelled HA button or the classic check icon. Omit to follow the household's *Task row actions* setting |
 | `show_assignee` | bool | `true` | Show the responsible user on each task row — with a rotation this is whose turn it is. Rows without an assignee show nothing; the name is resolved via `users/list` (a read-tier command, so non-admin household members see it too) |
 | `filter_labels` | list | — | Limit the card to tasks carrying at least one of these labels (OR semantics, like `filter_objects`) |
 | `filter_priority` (#134) | list | — | Limit the card to these priority levels (`low` / `normal` / `high`, OR semantics). Tasks without an explicit priority count as `normal` |
 | `show_documents` | bool | `true` | Show the task's linked documents and its documentation link as chips on the row; a web link opens directly, a stored file through a signed URL. Two chips at most, the rest as *+N* (the task lists them all); completion photos are left out. In a narrow card (a phone, a dashboard column) the chips sit on a line of their own under the task. Rows without documents render nothing |
-| `compact` | bool | `false` | Tighter rows without the *object · type · phase* line; the assignee stays |
+| `compact` | bool | `false` | Tighter rows without the *object · type · phase* line and a smaller *Complete*; the assignee sits before the task as their avatar (the name in the tooltip), so a row stays one line (#234) |
 | `max_items` | int | `0` (unlimited) | Cap on the number of tasks shown |
 | `filter_status` | string[] | `[]` | Show only tasks whose `status` is in the list. Values: `overdue`, `triggered`, `due_soon`, `ok` |
 | `filter_objects` | string[] | `[]` | Show only tasks of these objects. The card editor stores each object's entry id, so a renamed object stays on the card; object names written by hand work too (2.104+) |
@@ -645,7 +646,7 @@ The card is WS-driven (subscribes to `maintenance_supporter/subscribe`) so it al
 
 **Adding the card from the picker (1.0.45+)** auto-populates `filter_status: ["overdue", "triggered", "due_soon"]` and `max_items: 10` so the new card immediately shows the actionable subset rather than every task.
 
-**Visual editor** covers the everyday keys without touching YAML — title, header/actions/compact toggles, max items, status chip-row, object multi-checkbox-list, HA-native entity-multi-picker, and (2.26+) a saved-view dropdown (shown once any views exist; views are created in the panel toolbar). The two due-window keys (`filter_due_min_days` / `filter_due_max_days`) have **no editor controls** — set them in YAML; they survive a round-trip through the visual editor.
+**Visual editor** covers the everyday keys without touching YAML — title, header/actions/create/compact toggles, max items, *Set up as a simple list* (#234: compact rows, the open circle, no create buttons or document chips, the person before the task; each option stays changeable), status chip-row, object multi-checkbox-list, HA-native entity-multi-picker, and (2.26+) a saved-view dropdown (shown once any views exist; views are created in the panel toolbar). The two due-window keys (`filter_due_min_days` / `filter_due_max_days`) have **no editor controls** — set them in YAML; they survive a round-trip through the visual editor.
 
 ## Constants & Internal Defaults
 

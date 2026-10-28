@@ -6,6 +6,9 @@ import { t, langOf } from "./styles";
 import type { HomeAssistant, CardConfig, MaintenanceObjectResponse, SavedView } from "./types";
 import { STATUS_ORDER } from "./status-constants";
 import { TASK_PRIORITIES_HIGH_FIRST } from "./helpers/task-choices";
+// #234: HA loads ha-textfield lazily; in the card editor it could stay an
+// empty element, so the title (and max items) had no visible field.
+import "./components/ms-textfield";
 
 export class MaintenanceSupporterCardEditor extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -70,6 +73,23 @@ export class MaintenanceSupporterCardEditor extends LitElement {
       new CustomEvent("config-changed", { detail: { config: newConfig } })
     );
   }
+
+  /** #234: a simple list for a shared tablet. Compact rows, an open circle
+   *  to tick off, the person before the task, no create buttons or
+   *  document chips. Sets the options once; each stays changeable. */
+  private _applySimplePreset = (): void => {
+    const newConfig: CardConfig = {
+      ...this._config,
+      compact: true,
+      action_style: "icons",
+      show_actions: true,
+      show_create: false,
+      show_assignee: true,
+      show_documents: false,
+    };
+    this._config = newConfig;
+    this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: newConfig } }));
+  };
 
   private _toggleStatus(status: string, on: boolean): void {
     const current = new Set(this._config.filter_status || []);
@@ -178,12 +198,19 @@ export class MaintenanceSupporterCardEditor extends LitElement {
 
     return html`
       <div class="editor">
-        <ha-textfield
+        <ms-textfield
+          class="card-title"
           label="${t("card_title", L)}"
           .value=${this._config.title || ""}
           @input=${(e: Event) =>
             this._valueChanged("title", (e.target as HTMLInputElement).value)}
-        ></ha-textfield>
+        ></ms-textfield>
+
+        <!-- #234: a starting point for a kitchen tablet; every option stays its own -->
+        <div class="field simple-preset">
+          <button type="button" class="preset-btn" @click=${this._applySimplePreset}>${t("card_simple_preset", L)}</button>
+          <div class="field-help">${t("card_simple_preset_help", L)}</div>
+        </div>
 
         <!-- Status filter (chip row) -->
         <div class="field">
@@ -332,6 +359,15 @@ export class MaintenanceSupporterCardEditor extends LitElement {
           ></ha-switch>
         </ha-formfield>
 
+        <ha-formfield label="${t("card_show_create", L)}">
+          <ha-switch
+            class="show-create"
+            .checked=${this._config.show_create ?? this._config.show_actions !== false}
+            @change=${(e: Event) =>
+              this._valueChanged("show_create", (e.target as HTMLInputElement).checked)}
+          ></ha-switch>
+        </ha-formfield>
+
         <label class="editor-select">
           <span>${t("card_action_style", L)}</span>
           <select
@@ -371,13 +407,14 @@ export class MaintenanceSupporterCardEditor extends LitElement {
           ></ha-switch>
         </ha-formfield>
 
-        <ha-textfield
+        <ms-textfield
+          class="card-max-items"
           label="${t("card_max_items", L)}"
           type="number"
           .value=${String(this._config.max_items || 0)}
           @input=${(e: Event) =>
             this._valueChanged("max_items", parseInt((e.target as HTMLInputElement).value, 10) || 0)}
-        ></ha-textfield>
+        ></ms-textfield>
         ${nothing}
       </div>
     `;
@@ -390,7 +427,18 @@ export class MaintenanceSupporterCardEditor extends LitElement {
       gap: 16px;
       padding: 16px;
     }
-    ha-textfield { display: block; }
+    ha-textfield, ms-textfield { display: block; }
+    .simple-preset { gap: 4px; }
+    .preset-btn {
+      align-self: flex-start;
+      padding: 6px 12px;
+      border: 1px solid var(--primary-color);
+      border-radius: 18px;
+      background: none;
+      color: var(--primary-color);
+      font: inherit;
+      cursor: pointer;
+    }
     .field {
       display: flex;
       flex-direction: column;

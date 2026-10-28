@@ -126,7 +126,8 @@ describe("maintenance-card assignee badge", () => {
       "compact badge",
       { timeout: 2000 }
     );
-    const badge = el.shadowRoot!.querySelector(".compact-assignee");
-    expect(badge?.textContent?.trim()).to.contain("Alice");
+    // #234: the avatar before the task, the name in its tooltip.
+    const badge = el.shadowRoot!.querySelector(".task-name .compact-assignee");
+    expect(badge?.getAttribute("title")).to.contain("Alice");
   });
 });

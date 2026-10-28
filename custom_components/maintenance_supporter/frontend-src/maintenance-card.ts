@@ -552,7 +552,9 @@ export class MaintenanceSupporterCard extends LitElement {
     const useButtons = (this._config.action_style ?? (this._globalRowStyle === "icons" ? "icons" : "buttons")) === "buttons";
     const showActions = this._config.show_actions !== false;
     // Creating objects/tasks is write tier — the panel's canWrite rule.
-    const showCreate = showActions && canWrite(this.hass?.user, this._settings.access);
+    // #234: its own switch (unset = show_actions), so a kitchen tablet can
+    // keep Complete without the create buttons.
+    const showCreate = (this._config.show_create ?? showActions) && canWrite(this.hass?.user, this._settings.access);
     const compact = this._config.compact || false;
     const selected = this._selectedTasks;
     const { max_items } = this._config;
@@ -616,7 +618,9 @@ export class MaintenanceSupporterCard extends LitElement {
                       <div class="status-dot" style="background: ${statusColor(task)}"></div>
                       <div class="task-info">
                         <div class="task-name">
-                          ${task.name}${renderEventTitles(task.next_event_titles)}${renderTriggerDetail(task.trigger_detail)}
+                          ${compact && this._assigneeName(task)
+                            ? html`<span class="compact-assignee" title="${this._assigneeName(task)}">${this._assigneeAvatars(task)}</span>`
+                            : nothing}${task.name}${renderEventTitles(task.next_event_titles)}${renderTriggerDetail(task.trigger_detail)}
                           ${(task as any).due_override
                             ? html`<ha-icon
                                 class="postponed-icon"
@@ -633,11 +637,7 @@ export class MaintenanceSupporterCard extends LitElement {
                                   >`
                                 : nothing}
                             </div>`
-                          : this._assigneeName(task)
-                            ? html`<div class="task-meta compact-assignee" title="${this._assigneeName(task)}">
-                                ${this._assigneeAvatars(task)}${this._assigneeName(task)}
-                              </div>`
-                            : nothing}
+                          : nothing}
                       </div>
                       ${this._renderDocChips(entry_id, task)}
                       <div class="task-due">
@@ -793,12 +793,21 @@ export class MaintenanceSupporterCard extends LitElement {
         width: 13px;
         height: 13px;
       }
-      /* Compact rows have no meta line of their own — keep the name from
-         pushing the due column off a narrow phone card. */
+      /* #234: compact rows have no meta line — the person sits before the
+         task as their avatar (the name in the tooltip), so a row stays one
+         line. */
       .compact-assignee {
-        max-width: 11ch;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        margin-inline-end: 6px;
+      }
+      /* #234: Complete sized to a compact row */
+      .task-list.compact .complete-btn {
+        --ha-icon-button-size: 28px;
+        --mdc-icon-button-size: 28px;
+      }
+      .task-list.compact .complete-btn-text {
+        --ha-button-height: 28px;
+        --wa-form-control-padding-inline: 8px;
+        min-width: 0;
       }
 
       /* One line of chips that shrinks before the name does; a chip's label

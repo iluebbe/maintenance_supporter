@@ -531,6 +531,9 @@ export interface CardConfig {
   filter_due_max_days?: number;
   compact?: boolean;
   show_actions?: boolean;
+  // #234: the New object / New task buttons on their own. Unset follows
+  // show_actions, so a card without completion buttons keeps none.
+  show_create?: boolean;
   // Whose turn is it (v2.43): show the task's responsible user on each row.
   // Defaults to ON — with rotations the row is the only place a household
   // sees who is up next. Rows without an assignee simply render nothing.
