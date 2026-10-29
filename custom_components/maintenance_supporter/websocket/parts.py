@@ -7,14 +7,26 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.typing import VolDictType
 
-from ..const import BATTERY_FLEET_OBJECT_FLAG, BATTERY_FLEET_REMOVED_PARTS, CONF_OBJECT, CONF_PARTS, CONF_TASKS, PARTS_COST_MODES
+from ..const import (
+    BATTERY_FLEET_OBJECT_FLAG,
+    BATTERY_FLEET_REMOVED_PARTS,
+    CONF_OBJECT,
+    CONF_PARTS,
+    CONF_TASKS,
+    MAX_COST,
+    MAX_DATE_LENGTH,
+    MAX_TEXT_LENGTH,
+    PARTS_COST_MODES,
+)
 from ..helpers.aggregate import get_object_entries, get_store, object_name
 from ..helpers.entry_tasks import write_tasks
 from ..helpers.parts import (
+    MAX_PART_COST,
     MAX_PART_STOCK,
     MAX_PARTS_PER_OBJECT,
     REUSE_KINDS,
@@ -26,18 +38,19 @@ from ..helpers.parts import (
 )
 from ..helpers.permissions import require_write
 from ..helpers.shared_parts import live_parts
-from ..helpers.ws_errors import send_translated_error
+from ..helpers.ws_errors import send_exception_error, send_translated_error
 from ..parts_runtime import (
     SIGNAL_PARTS_UPDATED,
     async_change_part_stock,
     async_part_dispose,
+    async_part_purchase,
     async_part_ready_again,
     async_part_use,
     async_set_part_restoring,
     async_untrack_part_stock,
     schedule_buy_task_reconcile,
 )
-from . import ID_FIELD, _get_runtime_data, _load_object_entry
+from . import ID_FIELD, _get_runtime_data, _load_object_entry, _parse_iso_date
 
 
 def _parts_of(entry: Any) -> dict[str, dict[str, Any]]:
@@ -334,6 +347,63 @@ async def ws_part_use(
     result = await async_part_use(hass, entry, msg["part_id"], msg.get("quantity"))
     if result is None:
         connection.send_error(msg["id"], "not_found", "No part with a counted stock")
+        return
+    connection.send_result(msg["id"], result)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/part/purchase",
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("part_id"): ID_FIELD,
+        # What was bought: packages when the part has a package size, else
+        # units; the part's restock amount when left out.
+        vol.Optional("quantity"): vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=0, min_included=False, max=MAX_PART_STOCK)),
+        # What was paid, each (per package) or in total; neither books none.
+        vol.Exclusive("unit_price", "price"): vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=0, max=MAX_PART_COST)),
+        vol.Exclusive("cost", "price"): vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=0, max=MAX_COST)),
+        # The day it was bought (a receipt from last week); today when left out.
+        vol.Optional("date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
+        vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_part_purchase(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Spare parts bought (#238): into the stock with what was paid and
+    when, booked as the completion of the part's buy reminder."""
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+    day = None
+    if msg.get("date"):
+        day = _parse_iso_date(connection, msg["id"], msg["date"], field="date", not_future=True)
+        if day is None:
+            return
+    try:
+        result = await async_part_purchase(
+            hass,
+            entry,
+            msg["part_id"],
+            quantity=msg.get("quantity"),
+            unit_price=msg.get("unit_price"),
+            cost=msg.get("cost"),
+            day=day,
+            notes=msg.get("notes") or None,
+            completed_by=connection.user.id if connection.user else None,
+        )
+    except ServiceValidationError as err:
+        send_exception_error(connection, msg["id"], err, "invalid_input")
+        return
+    except ValueError as err:  # the object holds the most tasks it may
+        connection.send_error(msg["id"], "invalid_input", str(err))
+        return
+    if result is None:
+        connection.send_error(msg["id"], "not_found", "Part not found")
         return
     connection.send_result(msg["id"], result)
 

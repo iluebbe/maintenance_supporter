@@ -3,8 +3,9 @@
  *
  * Shows the object's parts list (stock badge, storage location, identifiers,
  * shopping link), lets admins add/edit/delete parts, adjust stock
- * (inventory correction / manual restock) and use some outside a task
- * (#226, ms-part-use). Follows the documents-section
+ * (inventory correction / manual restock), use some outside a task
+ * (#226, ms-part-use) and record a purchase (#238, ms-part-purchase).
+ * Follows the documents-section
  * conventions: standalone LitElement fed by the panel, native <input>s in the
  * inline form (the ha-textfield-in-custom-panel trap), t() i18n.
  *
@@ -26,6 +27,9 @@ import "./task-documents";
 // #226: use some outside a task.
 import "./ms-part-use";
 import type { PartUsedDetail } from "./ms-part-use";
+// #238: a purchase at any time, with what was paid.
+import "./ms-part-purchase";
+import type { PartBoughtDetail } from "./ms-part-purchase";
 
 /** #208: what readies a used part again (helpers/parts.py REUSE_KINDS). */
 export const REUSE_KINDS = ["charge", "sharpen", "clean", "dry", "refill", "restore"] as const;
@@ -300,6 +304,27 @@ export class MaintenancePartsSection extends LitElement {
     ></ms-part-use>`;
   }
 
+  /** #238: bought — the stock the server booked; the panel reloads for
+   *  the done buy task and the spending. */
+  private _onBought(part: MaintenancePart, detail: PartBoughtDetail): void {
+    part.stock = detail.stock;
+    this.requestUpdate();
+    this._notifyChanged();
+  }
+
+  /** The Bought… pill: for a counted part, an empty one too. */
+  private _renderBought(part: MaintenancePart) {
+    if (!this.canWrite || typeof part.stock !== "number") return nothing;
+    return html`<ms-part-purchase
+      .hass=${this.hass}
+      .entryId=${this.entryId}
+      .sparePart=${part}
+      .currencySymbol=${this.currencySymbol}
+      ?onUse=${!this.fleet && partCostMode(part, this.partsCostMode) === "use"}
+      @part-bought=${(e: CustomEvent<PartBoughtDetail>) => this._onBought(part, e.detail)}
+    ></ms-part-purchase>`;
+  }
+
   private _renderDispose(part: MaintenancePart, L: string) {
     if (this._disposeFor !== part.id) {
       return html`<button class="ready-again dispose" title=${t("part_dispose_hint", L)} .disabled=${this._busy}
@@ -360,6 +385,7 @@ export class MaintenancePartsSection extends LitElement {
                 >`
               : nothing}
             ${this._renderUse(part)}
+            ${this._renderBought(part)}
           </div>
           ${tracked && part.reuse && (part.restoring ?? 0) > 0
             ? html`<div class="part-waiting">
@@ -611,15 +637,18 @@ export class MaintenancePartsSection extends LitElement {
     }
     /* #226: an open Use field takes a line of its own below the name; on a
        narrow shelf the row's buttons step down a line to give it the width. */
-    .part-name ms-part-use[open] {
+    .part-name ms-part-use[open],
+    .part-name ms-part-purchase[open] {
       flex-basis: 100%;
     }
     @container (max-width: 520px) {
-      .part-row:has(ms-part-use[open]) {
+      .part-row:has(ms-part-use[open]),
+      .part-row:has(ms-part-purchase[open]) {
         flex-wrap: wrap;
         justify-content: flex-end;
       }
-      .part-row:has(ms-part-use[open]) .part-main {
+      .part-row:has(ms-part-use[open]) .part-main,
+      .part-row:has(ms-part-purchase[open]) .part-main {
         flex: 1 1 calc(100% - 40px);
       }
     }

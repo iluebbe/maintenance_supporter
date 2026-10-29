@@ -2179,6 +2179,36 @@
         }
       }
     },
+    "part_purchase": {
+      "name": "Varaosa ostettu",
+      "description": "Varaosia ostettiin: ne lisätään varastoon, ja maksettu summa kirjataan osan ostomuistutuksen suorittamisena (avoimen tai uuden). Osa, joka lasketaan kuluksi käytettäessä, saa sen sijaan hinnan keskiarvona jo olevan varaston kanssa.",
+      "fields": {
+        "entity_id": {
+          "name": "Varaosa",
+          "description": "Yhden tai useamman varaosan varastoanturi."
+        },
+        "quantity": {
+          "name": "Määrä",
+          "description": "Kuinka monta ostettiin: pakkauksia, jos osalla on pakkauskoko, muuten yksiköitä. Osan täydennysmäärä, jos jätetään pois."
+        },
+        "unit_price": {
+          "name": "Kappalehinta",
+          "description": "Mitä yksi maksoi (yksi pakkaus, jos osalla on pakkauskoko). Anna tämä tai kokonaissumma."
+        },
+        "cost": {
+          "name": "Yhteensä",
+          "description": "Mitä osto maksoi yhteensä. Anna tämä tai kappalehinta; ilman kumpaakaan kuluja ei kirjata."
+        },
+        "date": {
+          "name": "Päivämäärä",
+          "description": "Ostopäivä, tänään jos jätetään pois. Ei tulevaisuudessa."
+        },
+        "notes": {
+          "name": "Muistiinpanot",
+          "description": "Huomautus historiaan, esimerkiksi kauppa."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Varaosa taas valmis",
       "description": "Uudelleenkäytettävän osan käytetyt kappaleet ovat taas valmiita (ladattu, teroitettu, ...): odottavien pinosta takaisin varastoon.",
@@ -2500,6 +2530,9 @@
     },
     "archived_no_new_tasks": {
       "message": "Arkistoidulle kohteelle ei voi lisätä uusia tehtäviä — palauta se ensin."
+    },
+    "part_owner_archived": {
+      "message": "”{object_name}” on arkistoitu. Palauta se kirjataksesi oston."
     },
     "import_not_json_yaml": {
       "message": "Tiedosto ei ole kelvollista JSONia tai YAMLia."

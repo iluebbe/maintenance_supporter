@@ -951,6 +951,8 @@ export const panelStyles = css`
   .part-consumer-chip.pooled { border-style: dashed; }
   /* #226: the Use pill beside the stock. */
   .all-parts-stock ms-part-use { margin-left: 8px; vertical-align: middle; }
+  .all-parts-stock ms-part-purchase { margin-left: 8px; vertical-align: middle; }
+  .all-parts-stock ms-part-purchase[open] { margin: 6px 0 0; }
 
   /* (#67) Objects table (desktop All-Objects view) */
   .objects-table-wrap {

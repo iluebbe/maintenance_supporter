@@ -2179,6 +2179,36 @@
         }
       }
     },
+    "part_purchase": {
+      "name": "Náhradní díl koupen",
+      "description": "Byly koupeny náhradní díly: přidají se do zásoby a zaplacená částka se zaúčtuje jako dokončení připomínky nákupu dílu (otevřené nebo nové). Díl, který se počítá jako výdaj při spotřebě, místo toho převezme cenu zprůměrovanou se zásobou, která už je k dispozici.",
+      "fields": {
+        "entity_id": {
+          "name": "Náhradní díl",
+          "description": "Senzor zásoby jednoho nebo více náhradních dílů."
+        },
+        "quantity": {
+          "name": "Množství",
+          "description": "Kolik se koupilo: balení, pokud má díl velikost balení, jinak jednotky. Pokud vynecháte, množství k doplnění dílu."
+        },
+        "unit_price": {
+          "name": "Cena za kus",
+          "description": "Kolik stál jeden kus (jedno balení, pokud má díl velikost balení). Zadejte toto nebo celkem."
+        },
+        "cost": {
+          "name": "Celkem",
+          "description": "Kolik nákup stál celkem. Zadejte toto nebo cenu za kus; bez obojího se nic nezaúčtuje jako výdaj."
+        },
+        "date": {
+          "name": "Datum",
+          "description": "Den nákupu, pokud vynecháte, dnes. Ne v budoucnosti."
+        },
+        "notes": {
+          "name": "Poznámky",
+          "description": "Poznámka do historie, například obchod."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Náhradní díl znovu připraven",
       "description": "Použité kusy opakovaně použitelného dílu jsou znovu připravené (nabité, nabroušené, ...): z čekající hromádky zpět do zásoby.",
@@ -2500,6 +2530,9 @@
     },
     "archived_no_new_tasks": {
       "message": "Archivovanému objektu nelze přidávat nové úkoly — nejprve jej obnovte."
+    },
+    "part_owner_archived": {
+      "message": "„{object_name}“ je archivován. Obnovte jej, chcete-li zaznamenat nákup."
     },
     "import_not_json_yaml": {
       "message": "Soubor není platný JSON ani YAML."

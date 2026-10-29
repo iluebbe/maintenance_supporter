@@ -16,8 +16,8 @@ follows it everywhere:
 * ``use``: parts count when they are used. Every completion — from the
   panel, a button, an NFC tag, voice or an automation — books the value of
   the parts it consumed; a purchase is stock, not spending, and its price
-  updates the part's price instead (so the next use is valued at what was
-  actually paid).
+  goes into the part's price instead, averaged with the stock still there
+  (#238), so a use is valued at what the shelf actually cost.
 
 Every completion records how it was booked (``cost_basis: "use"``) together
 with the value of its parts at that moment (``unit_cost`` per used part).
@@ -47,7 +47,7 @@ from ..models.shapes import HistoryEntry
 from ..parts_runtime import resolve_part_link
 from .global_options import global_option
 from .history import strict_amount
-from .parts import PART_REF_FIELD, unit_price
+from .parts import PART_REF_FIELD, restock_units, unit_price
 
 DEFAULT_PARTS_COST_MODE = "purchase"
 COST_BASIS_USE = "use"
@@ -212,3 +212,22 @@ def purchase_unit_price(part: Mapping[str, Any], cost: float, packages: float | 
     if count <= 0 or cost <= 0:
         return None
     return round(cost / count, 2)
+
+
+def averaged_price(part: Mapping[str, Any], cost: float, packages: float | None, owned_after: float | None) -> float | None:
+    """The part's price after a purchase (#238): the average of what is on
+    the shelf, the ones there before at the part's price and the bought ones
+    at what was paid. Per package with a package size, like the price.
+
+    The price used to become the last purchase's: the stock still there was
+    revalued, and its use was booked at a price nobody paid for it.
+    ``owned_after`` is the on-hand count with the purchase in it."""
+    paid = purchase_unit_price(part, cost, packages)
+    if paid is None:
+        return None
+    old = strict_amount(part.get("cost"))
+    bought = restock_units(part, packages)
+    before = max(0.0, (owned_after or 0.0) - bought)
+    if old is None or before <= 0 or bought <= 0:
+        return paid
+    return round((before * old + bought * paid) / (before + bought), 2)

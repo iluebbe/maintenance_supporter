@@ -91,8 +91,8 @@ from .helpers.issues import (
 from .helpers.notification_gates import task_may_notify
 from .helpers.notification_manager import NotificationManager
 from .helpers.notify_hooks import KIND_STATUS
-from .helpers.parts import MAX_PART_COST, PART_REF_FIELD
-from .helpers.parts_cost import COST_BASIS_USE, annotate_completion, part_cost_mode, parts_cost_mode, purchase_unit_price
+from .helpers.parts import MAX_PART_COST, PART_REF_FIELD, on_hand
+from .helpers.parts_cost import COST_BASIS_USE, annotate_completion, averaged_price, part_cost_mode, parts_cost_mode
 from .helpers.pause import (
     build_resumed_entry_data,
     is_task_inert,
@@ -2011,15 +2011,17 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
 
 
     def _record_purchase_price(self, task_data: Mapping[str, Any], cost: float, packages: float | None) -> None:
-        """A buy reminder's paid cost becomes its part's price (per package
+        """A buy reminder's paid cost goes into its part's price (per package
         with a package size, else per unit) — for a part that counts when
-        used (its own choice, else the household's; #222)."""
+        used (its own choice, else the household's; #222). Averaged with the
+        stock already there (#238); the purchase is in the stock by now."""
         ref = task_data.get(PART_REF_FIELD)
         parts = dict(self.entry.data.get(CONF_PARTS) or {})
         part = parts.get(ref.get("part_id")) if isinstance(ref, dict) else None
         if not isinstance(part, dict) or part_cost_mode(part, parts_cost_mode(self.hass)) != COST_BASIS_USE:
             return
-        price = purchase_unit_price(part, cost, packages)
+        owned = on_hand(part, self._store.get_part_stock(part["id"]), self._store.get_part_restoring(part["id"]))
+        price = averaged_price(part, cost, packages, owned)
         if price is None or price > MAX_PART_COST or price == part.get("cost"):
             return
         parts[part["id"]] = {**part, "cost": price}

@@ -2179,6 +2179,36 @@
         }
       }
     },
+    "part_purchase": {
+      "name": "Yedek parça satın alındı",
+      "description": "Yedek parçalar satın alındı: stoğa eklenir ve ödenen tutar, parçanın satın alma hatırlatıcısının (açık olanın veya yeni birinin) tamamlanması olarak kaydedilir. Kullanıldığında harcama sayılan bir parça bunun yerine, mevcut stokla ortalaması alınmış fiyatı alır.",
+      "fields": {
+        "entity_id": {
+          "name": "Yedek parça",
+          "description": "Bir veya daha fazla yedek parçanın stok sensörü."
+        },
+        "quantity": {
+          "name": "Miktar",
+          "description": "Kaç tane satın alındığı: parçanın paket boyutu varsa paket, yoksa birim. Boş bırakılırsa parçanın tamamlama miktarı."
+        },
+        "unit_price": {
+          "name": "Birim fiyat",
+          "description": "Bir tanesinin maliyeti (parçanın paket boyutu varsa bir paket). Bunu veya toplamı girin."
+        },
+        "cost": {
+          "name": "Toplam",
+          "description": "Satın almanın toplam maliyeti. Bunu veya birim fiyatı girin; ikisi de yoksa harcama kaydedilmez."
+        },
+        "date": {
+          "name": "Tarih",
+          "description": "Satın alma günü, boş bırakılırsa bugün. Gelecekte olamaz."
+        },
+        "notes": {
+          "name": "Notlar",
+          "description": "Geçmiş için bir not, örneğin mağaza."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Yedek parça yeniden hazır",
       "description": "Yeniden kullanılabilir bir parçanın kullanılmış olanları yeniden hazır (şarj edildi, bilendi, ...): bekleyen yığından stoğa geri.",
@@ -2500,6 +2530,9 @@
     },
     "archived_no_new_tasks": {
       "message": "Arşivlenmiş bir nesneye yeni görev eklenemez — önce geri yükleyin."
+    },
+    "part_owner_archived": {
+      "message": "“{object_name}” arşivlendi. Satın alma kaydetmek için geri yükleyin."
     },
     "import_not_json_yaml": {
       "message": "Dosya geçerli bir JSON veya YAML değil."

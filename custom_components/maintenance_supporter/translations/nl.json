@@ -2179,6 +2179,36 @@
         }
       }
     },
+    "part_purchase": {
+      "name": "Reserveonderdeel gekocht",
+      "description": "Er zijn reserveonderdelen gekocht: ze gaan in de voorraad, en wat er betaald is wordt geboekt als het voltooien van de koopherinnering van het onderdeel (de openstaande of een nieuwe). Een onderdeel dat bij gebruik als uitgave telt, neemt in plaats daarvan de prijs over, gemiddeld met de voorraad die er al is.",
+      "fields": {
+        "entity_id": {
+          "name": "Reserveonderdeel",
+          "description": "De voorraadsensor van een of meer reserveonderdelen."
+        },
+        "quantity": {
+          "name": "Aantal",
+          "description": "Hoeveel er gekocht zijn: verpakkingen als het onderdeel een verpakkingsgrootte heeft, anders eenheden. Weggelaten: de aanvulhoeveelheid van het onderdeel."
+        },
+        "unit_price": {
+          "name": "Prijs per stuk",
+          "description": "Wat één stuk kostte (één verpakking als het onderdeel een verpakkingsgrootte heeft). Geef dit of het totaal op."
+        },
+        "cost": {
+          "name": "Totaal",
+          "description": "Wat de aankoop in totaal kostte. Geef dit of de prijs per stuk op; zonder beide wordt er niets als uitgave geboekt."
+        },
+        "date": {
+          "name": "Datum",
+          "description": "De dag van aankoop, vandaag als het is weggelaten. Niet in de toekomst."
+        },
+        "notes": {
+          "name": "Notities",
+          "description": "Een notitie voor de geschiedenis, zoals de winkel."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Reserveonderdeel weer klaar",
       "description": "Gebruikte exemplaren van een herbruikbaar onderdeel zijn weer klaar (opgeladen, geslepen, ...): van de wachtstapel terug naar de voorraad.",
@@ -2500,6 +2530,9 @@
     },
     "archived_no_new_tasks": {
       "message": "Een gearchiveerd object kan geen nieuwe taken krijgen — herstel het eerst."
+    },
+    "part_owner_archived": {
+      "message": "“{object_name}” is gearchiveerd. Herstel het om een aankoop vast te leggen."
     },
     "import_not_json_yaml": {
       "message": "Het bestand is geen geldige JSON of YAML."

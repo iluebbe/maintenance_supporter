@@ -341,8 +341,8 @@ admins.
 The object's parts shelf (below the task list): a stocked descaler (6 pcs),
 the water filter **at its reorder threshold** (orange low badge + cart icon —
 its auto-created *Buy…* task is already in the task list above), and a
-catalog-only seal with just identifiers. *Use* beside each counted stock
-(2.108+), stock adjust, edit and delete per row.
+catalog-only seal with just identifiers. *Use* (2.108+) and *Bought…*
+(2.113+) beside each counted stock, stock adjust, edit and delete per row.
 The paperclip on a row (2.26+) links the object's **documents** to that part —
 datasheet or receipt right at the shelf; part links survive export/import and
 *Replace object* like task links do.
@@ -368,7 +368,7 @@ counted takes the missing ones off the pile (charged, never marked ready), so a
 pile nobody empties stays at what is really out of the devices. Undo and
 deleting the completion take the use back, and the pile travels with
 export/import and *Replace object*. Automations and dashboard buttons book the
-same actions through the services `part_restock`, `part_use`,
+same actions through the services `part_restock`, `part_use`, `part_purchase`,
 `part_ready_again` and `part_dispose` (see [Services](#services)).
 
 **Used outside a task** (2.108+, #226): the washer fluid on the garage shelf
@@ -383,6 +383,18 @@ it on; for a part that counts when used, *Use* says so (such a part is best
 set to count when bought). *Adjust stock* stays for corrections.
 
 ![Use on the washer fluid: a whole 5 l jug prefilled](images/part-use.png)
+
+**Bought, at any time** (2.113+, #238): *Bought…* beside a counted part, on the
+parts shelf and in *All parts*, records a purchase whether or not the stock is
+low: on sale, before the reorder threshold is reached. It asks how many
+(packages for a part bought in packages, the restock amount prefilled), the
+price each or the total (the part's price prefilled), the day (a receipt from
+last week) and a note such as the shop. The purchase is booked as the
+completion of the part's buy task: the open *Buy…* reminder when there is one,
+else a new one done at once. So it adds to the stock, counts as spending for a
+part that counts when bought, and appears in the history, the budget and the
+area report like a completed reminder. The `part_purchase` service does the
+same for automations.
 
 **Bought in packages, used in their unit** (2.96+, discussion #98): give a part
 a *package size* — a 400 ml can of contact spray, a 25 kg bag of salt — and it
@@ -400,8 +412,10 @@ bought for €30 and used in one change is €30 spent, not €60.
   information (*Parts ≈ €15*), never in a total.
 - **When used:** every completion — panel, card, NFC tag, voice, automation —
   books the parts it used at their price (*Parts: €15*), so you enter only what
-  came on top. A purchase is stock, not spending: its price becomes the part's
-  price, and the next change is valued at what you actually paid. Batteries
+  came on top. A purchase is stock, not spending: its price goes into the
+  part's price, averaged with the stock still on the shelf (2.113+, #238), so
+  buying at another price no longer revalues what you bought before, and a
+  change is valued at what the shelf actually cost. Batteries
   for the battery fleet are the exception: they count when bought, because a
   swap in the fleet takes cells without a completion that could value them.
 
@@ -1321,7 +1335,7 @@ Archives from before 2.96 (files stored as `blobs/<hash>`) still restore.
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 110 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock / use), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
+- 111 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock / use / purchase), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -1432,13 +1446,15 @@ parameter.
 The spare-part actions are services too (2.105+, #218), addressed by the part's
 stock sensor: `part_restock` (`delta`, negative for a correction, or `absolute`),
 `part_use` (2.108+, #226: `quantity`, one when left out; used outside a task,
-booked like a completion's parts and valued nowhere), `part_ready_again`
+booked like a completion's parts and valued nowhere), `part_purchase` (2.113+, #238:
+`quantity`, `unit_price` or `cost`, `date`, `notes`; booked as the completion of the
+part's buy task), `part_ready_again`
 (`quantity`, all waiting ones when left out) and `part_dispose` (`quantity`, one
 when left out) for the used ones of a reusable part. They need
 write access like the panel's buttons, accept several parts at once, book
 nothing unless every entity is a part's stock sensor, and return the new counts
 when asked for a response.
-For the full WebSocket API (110 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (111 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

@@ -2179,6 +2179,36 @@
         }
       }
     },
+    "part_purchase": {
+      "name": "Ersatzteil gekauft",
+      "description": "Ersatzteile wurden gekauft: Sie kommen in den Bestand, und der bezahlte Betrag wird als Erledigung der Kauf-Aufgabe des Teils gebucht (der offenen oder einer neuen). Ein Teil, das beim Verbrauch als Ausgabe zählt, übernimmt stattdessen den Preis, gemittelt mit dem vorhandenen Bestand.",
+      "fields": {
+        "entity_id": {
+          "name": "Ersatzteil",
+          "description": "Der Bestandssensor eines oder mehrerer Ersatzteile."
+        },
+        "quantity": {
+          "name": "Menge",
+          "description": "Wie viele gekauft wurden: Packungen, wenn das Teil eine Packungsgröße hat, sonst Einheiten. Ohne Angabe die Nachkaufmenge des Teils."
+        },
+        "unit_price": {
+          "name": "Preis pro Stück",
+          "description": "Was eines gekostet hat (eine Packung, wenn das Teil eine Packungsgröße hat). Dies oder die Summe angeben."
+        },
+        "cost": {
+          "name": "Summe",
+          "description": "Was der Kauf insgesamt gekostet hat. Dies oder den Preis pro Stück angeben; ohne beides wird nichts als Ausgabe gebucht."
+        },
+        "date": {
+          "name": "Datum",
+          "description": "Der Tag des Kaufs, ohne Angabe heute. Nicht in der Zukunft."
+        },
+        "notes": {
+          "name": "Notizen",
+          "description": "Eine Notiz für den Verlauf, etwa der Laden."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Ersatzteil wieder bereit",
       "description": "Gebrauchte Stücke eines wiederverwendbaren Teils sind wieder bereit (geladen, geschärft, ...): vom Wartestapel zurück in den Bestand.",
@@ -2500,6 +2530,9 @@
     },
     "archived_no_new_tasks": {
       "message": "Ein archiviertes Objekt kann keine neuen Aufgaben erhalten — bitte zuerst wiederherstellen."
+    },
+    "part_owner_archived": {
+      "message": "„{object_name}“ ist archiviert. Bitte zuerst wiederherstellen, um einen Kauf zu erfassen."
     },
     "import_not_json_yaml": {
       "message": "Die Datei ist kein gültiges JSON oder YAML."

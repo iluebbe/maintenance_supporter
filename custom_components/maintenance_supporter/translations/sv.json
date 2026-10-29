@@ -2179,6 +2179,36 @@
         }
       }
     },
+    "part_purchase": {
+      "name": "Reservdel köpt",
+      "description": "Reservdelar köptes: de läggs till lagret, och det som betalades bokförs som slutförandet av delens köppåminnelse (den öppna eller en ny). En del som räknas som utgift när den används får i stället priset, i snitt med lagret som redan finns.",
+      "fields": {
+        "entity_id": {
+          "name": "Reservdel",
+          "description": "Lagersensorn för en eller flera reservdelar."
+        },
+        "quantity": {
+          "name": "Antal",
+          "description": "Hur många som köptes: förpackningar om delen har en förpackningsstorlek, annars enheter. Delens påfyllnadsmängd om det utelämnas."
+        },
+        "unit_price": {
+          "name": "Pris per styck",
+          "description": "Vad en kostade (en förpackning om delen har en förpackningsstorlek). Ange detta eller totalen."
+        },
+        "cost": {
+          "name": "Totalt",
+          "description": "Vad köpet kostade totalt. Ange detta eller priset per styck; utan något av dem bokförs ingen utgift."
+        },
+        "date": {
+          "name": "Datum",
+          "description": "Dagen för köpet, i dag om det utelämnas. Inte i framtiden."
+        },
+        "notes": {
+          "name": "Anteckningar",
+          "description": "En anteckning för historiken, till exempel butiken."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Reservdel klar igen",
       "description": "Använda exemplar av en återanvändbar del är klara igen (laddade, slipade, ...): från väntehögen tillbaka till lagret.",
@@ -2500,6 +2530,9 @@
     },
     "archived_no_new_tasks": {
       "message": "Ett arkiverat objekt kan inte få nya uppgifter — återställ det först."
+    },
+    "part_owner_archived": {
+      "message": "”{object_name}” är arkiverat. Återställ det för att registrera ett köp."
     },
     "import_not_json_yaml": {
       "message": "Filen är inte giltig JSON eller YAML."

@@ -1,7 +1,7 @@
 """Spare-parts runtime — the hass-aware driver around helpers/parts.py.
 
-Owns the mutations (consume on completion, a use outside a task, restock,
-manual adjust, a reusable part ready again) and applies the declarative buy-task reconcile to
+Owns the mutations (consume on completion, a use outside a task, a purchase,
+restock, manual adjust, a reusable part ready again) and applies the declarative buy-task reconcile to
 the entry. The pure rules live in
 :mod:`helpers.parts`; this module only wires them to the Store, the ConfigEntry
 and the event bus.
@@ -12,10 +12,12 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Mapping, Sequence
+from datetime import date, datetime, time
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.util import dt as dt_util
@@ -41,6 +43,9 @@ from .helpers.issues import broken_part_link_issue_id
 from .helpers.parts import (
     PART_REF_FIELD,
     POOL_IN_USE_FIELD,
+    build_buy_task,
+    buy_task_part_id,
+    is_open_buy_task,
     iter_part_links,
     on_hand,
     reconcile_buy_tasks,
@@ -50,7 +55,7 @@ from .helpers.parts import (
 )
 from .helpers.phases import effective_field
 from .helpers.shared_parts import borrowed_part_ids
-from .helpers.task_persist import async_delete_task
+from .helpers.task_persist import async_delete_task, async_persist_task
 from .shopping_sync import schedule_resync
 
 _LOGGER = logging.getLogger(__name__)
@@ -467,6 +472,101 @@ async def async_part_use(
     qty = 1.0 if quantity is None else max(0.0, float(quantity))
     stock = await async_change_part_stock(hass, entry, part_id, delta=-qty, use=True)
     return {"stock": stock or 0, "restoring": store.get_part_restoring(part_id)}
+
+
+async def async_part_purchase(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    part_id: str,
+    *,
+    quantity: float | None = None,
+    unit_price: float | None = None,
+    cost: float | None = None,
+    day: date | None = None,
+    notes: str | None = None,
+    completed_by: str | None = None,
+    source: str = "panel",
+) -> dict[str, Any] | None:
+    """Spare parts bought (#238), at any time: on sale before the reorder
+    threshold is reached, with what was paid and when.
+
+    Booked as the completion of the part's buy reminder, the open one or a
+    new one created for it, so a purchase lands where a completed reminder's
+    always has: the stock, the spending (a part that counts when used takes
+    the price instead), the budget, the area report, the history. A part that
+    is no longer low keeps the done reminder as a plain one-off, as before.
+
+    ``quantity`` counts what was bought: packages when the part has a package
+    size, else units; the part's restock amount when left out. ``unit_price``
+    is per package (per unit without a package size), ``cost`` the total;
+    with neither nothing is booked as spending. ``day`` backdates it.
+
+    None for an unknown part. Raises ServiceValidationError for an archived
+    object and for a day in the future."""
+    part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
+    store = store_of(entry)
+    if part is None or store is None:
+        return None
+    obj = entry.data.get(CONF_OBJECT) or {}
+    if obj.get("archived_at") is not None:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="part_owner_archived",
+            translation_placeholders={"object_name": _object_name(entry)},
+        )
+    packages = float(quantity) if quantity else float(part.get("restock_quantity") or 1)
+    if cost is None and unit_price is not None:
+        cost = round(float(unit_price) * packages, 2)
+    completed_at: datetime | None = None
+    if day is not None and day != dt_util.now().date():
+        # Noon of that day: far from a midnight a time zone could tip over.
+        completed_at = dt_util.as_local(datetime.combine(day, time(12), tzinfo=dt_util.DEFAULT_TIME_ZONE))
+
+    # Held from the creation to the completion: the reconcile the reload
+    # schedules would remove an open reminder for a part that is not low.
+    lock = _RECONCILE_LOCKS.setdefault(entry.entry_id, asyncio.Lock())
+    async with lock:
+        task_id = next(
+            (
+                tid
+                for tid, td in (entry.data.get(CONF_TASKS) or {}).items()
+                if buy_task_part_id(td) == part_id and is_open_buy_task(td, obj, store.get_last_performed(tid))
+            ),
+            None,
+        )
+        if task_id is None:
+            task = build_buy_task(
+                part,
+                _owned(store, part),
+                object_id=obj.get("id", ""),
+                lang=normalize_language(hass),
+                search_template=global_option(hass, CONF_PART_SEARCH_URL_TEMPLATE),
+                today=dt_util.now().date(),
+                decimals=int(global_option(hass, CONF_CURRENCY_DECIMALS)),
+                country=hass.config.country,
+            )
+            if obj.get("paused_at") is not None:
+                # Bought for a paused object (the pool's chlorine on sale in
+                # winter): the pause must not freeze its own purchase.
+                task[POOL_IN_USE_FIELD] = True
+            await async_persist_task(hass, entry, task)
+            task_id = task["id"]
+        current = hass.config_entries.async_get_entry(entry.entry_id)
+        rd = getattr(current, "runtime_data", None) if current is not None else None
+        coordinator = getattr(rd, "coordinator", None)
+        if current is None or coordinator is None:
+            return None
+        await coordinator.complete_maintenance(
+            task_id,
+            notes=notes,
+            cost=cost,
+            restock_quantity=packages,
+            completed_by=completed_by,
+            completed_at=completed_at,
+            source=source,
+        )
+    after = store_of(current) or store
+    return {"task_id": task_id, "stock": after.get_part_stock(part_id) or 0, "cost": cost}
 
 
 async def async_part_ready_again(

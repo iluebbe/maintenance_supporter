@@ -2179,6 +2179,36 @@
         }
       }
     },
+    "part_purchase": {
+      "name": "Peça sobressalente comprada",
+      "description": "Foram compradas peças sobressalentes: entram no stock, e o valor pago é registado como a conclusão do lembrete de compra da peça (o que está aberto ou um novo). Uma peça que conta como despesa ao ser usada fica antes com o preço, em média com o stock que já existe.",
+      "fields": {
+        "entity_id": {
+          "name": "Peça sobressalente",
+          "description": "O sensor de stock de uma ou mais peças sobressalentes."
+        },
+        "quantity": {
+          "name": "Quantidade",
+          "description": "Quantas foram compradas: embalagens se a peça tiver tamanho de embalagem, senão unidades. A quantidade de reposição da peça se omitido."
+        },
+        "unit_price": {
+          "name": "Preço por unidade",
+          "description": "O que custou uma (uma embalagem se a peça tiver tamanho de embalagem). Indique isto ou o total."
+        },
+        "cost": {
+          "name": "Valor total",
+          "description": "O que a compra custou no total. Indique isto ou o preço por unidade; sem nenhum dos dois, nada é registado como despesa."
+        },
+        "date": {
+          "name": "Data",
+          "description": "O dia da compra, hoje se omitido. Não no futuro."
+        },
+        "notes": {
+          "name": "Notas",
+          "description": "Uma nota para o histórico, como a loja."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Peça sobressalente pronta de novo",
       "description": "Unidades usadas de uma peça reutilizável estão prontas de novo (carregadas, afiadas, ...): da pilha em espera de volta ao stock.",
@@ -2500,6 +2530,9 @@
     },
     "archived_no_new_tasks": {
       "message": "Um objeto arquivado não pode receber novas tarefas — restaure-o primeiro."
+    },
+    "part_owner_archived": {
+      "message": "“{object_name}” está arquivado. Restaure-o para registar uma compra."
     },
     "import_not_json_yaml": {
       "message": "O ficheiro não é JSON nem YAML válido."

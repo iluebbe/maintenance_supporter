@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All 110 WebSocket commands the integration registers are covered here. Their
+All 111 WebSocket commands the integration registers are covered here. Their
 authorization tiers are frozen in `tests/test_ws_permission_matrix.py` — that
 test is the inventory of record; this file is its prose companion (and
 `tests/test_docs_counts_in_sync.py` keeps the counts quoted here honest).
@@ -244,6 +244,15 @@ required on every update; other omitted fields keep their stored values;
 task: off `stock` like a completion's parts (a reusable part's used ones onto
 `restoring`), one without `quantity` (> 0), never below zero; nothing is valued
 or recorded in a history; `not_found` for a part without a tracked stock.
+`part/purchase` (#238) `{entry_id, part_id, quantity?, unit_price? | cost?,
+date?, notes?}` → `{task_id, stock, cost}` — bought: booked as the completion
+of the part's buy task, the open reminder or a new one done at once (a part no
+longer low keeps it as a plain done one-off). `quantity` counts packages with a
+`package_size` (the part's `restock_quantity` when left out); `unit_price` is
+per package, `cost` the total (not both; neither books no spending). `date`
+`YYYY-MM-DD`, not in the future (`invalid_date`). A part that counts when used
+takes the price, averaged with the stock on hand. `part_owner_archived` on an
+archived object; a paused object's purchase goes through.
 `part/ready_again` (#208)
 `{entry_id, part_id, quantity?}` → `{moved, stock, restoring}` — used ones of a
 reusable part are ready again (charged, sharpened, ...): back from `restoring`

@@ -747,6 +747,8 @@ SERVICE_PART_READY_AGAIN: Final = "part_ready_again"
 SERVICE_PART_DISPOSE: Final = "part_dispose"
 # #226: some used outside a task (the washer fluid topped up).
 SERVICE_PART_USE: Final = "part_use"
+# #238: spare parts bought, with what was paid and when.
+SERVICE_PART_PURCHASE: Final = "part_purchase"
 
 
 class MaintenanceStatus(StrEnum):

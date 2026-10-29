@@ -2179,6 +2179,36 @@
         }
       }
     },
+    "part_purchase": {
+      "name": "Peça de reposição comprada",
+      "description": "Foram compradas peças de reposição: elas entram no estoque, e o valor pago é registrado como a conclusão do lembrete de compra da peça (o que está aberto ou um novo). Uma peça que conta como despesa ao ser usada fica com o preço em vez disso, em média com o estoque que já existe.",
+      "fields": {
+        "entity_id": {
+          "name": "Peça de reposição",
+          "description": "O sensor de estoque de uma ou mais peças de reposição."
+        },
+        "quantity": {
+          "name": "Quantidade",
+          "description": "Quantas foram compradas: embalagens se a peça tiver tamanho de embalagem, senão unidades. A quantidade de reposição da peça se omitido."
+        },
+        "unit_price": {
+          "name": "Preço por unidade",
+          "description": "O que custou uma (uma embalagem se a peça tiver tamanho de embalagem). Informe isto ou o total."
+        },
+        "cost": {
+          "name": "Valor total",
+          "description": "O que a compra custou no total. Informe isto ou o preço por unidade; sem nenhum dos dois, nada é registrado como despesa."
+        },
+        "date": {
+          "name": "Data",
+          "description": "O dia da compra, hoje se omitido. Não no futuro."
+        },
+        "notes": {
+          "name": "Observações",
+          "description": "Uma observação para o histórico, como a loja."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Peça de reposição pronta de novo",
       "description": "Unidades usadas de uma peça reutilizável estão prontas de novo (carregadas, afiadas, ...): da pilha em espera de volta ao estoque.",
@@ -2500,6 +2530,9 @@
     },
     "archived_no_new_tasks": {
       "message": "Um objeto arquivado não pode receber novas tarefas — restaure-o primeiro."
+    },
+    "part_owner_archived": {
+      "message": "“{object_name}” está arquivado. Restaure-o para registrar uma compra."
     },
     "import_not_json_yaml": {
       "message": "O arquivo não é um JSON ou YAML válido."

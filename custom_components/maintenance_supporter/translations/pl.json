@@ -2179,6 +2179,36 @@
         }
       }
     },
+    "part_purchase": {
+      "name": "Kupiono część zamienną",
+      "description": "Kupiono części zamienne: trafiają do zapasu, a zapłacona kwota jest księgowana jako wykonanie przypomnienia o zakupie tej części (otwartego lub nowego). Część liczona jako wydatek przy zużyciu przejmuje zamiast tego cenę, uśrednioną z zapasem, który już jest.",
+      "fields": {
+        "entity_id": {
+          "name": "Część zamienna",
+          "description": "Czujnik zapasu jednej lub kilku części zamiennych."
+        },
+        "quantity": {
+          "name": "Ilość",
+          "description": "Ile kupiono: opakowania, jeśli część ma rozmiar opakowania, w przeciwnym razie jednostki. Jeśli pominięto, ilość uzupełnienia części."
+        },
+        "unit_price": {
+          "name": "Cena za sztukę",
+          "description": "Ile kosztowała jedna (jedno opakowanie, jeśli część ma rozmiar opakowania). Podaj to lub sumę."
+        },
+        "cost": {
+          "name": "Suma",
+          "description": "Ile kosztował cały zakup. Podaj to lub cenę za sztukę; bez obu nic nie jest księgowane jako wydatek."
+        },
+        "date": {
+          "name": "Data",
+          "description": "Dzień zakupu, jeśli pominięto, dzisiaj. Nie w przyszłości."
+        },
+        "notes": {
+          "name": "Notatki",
+          "description": "Notatka do historii, np. sklep."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Część zamienna znów gotowa",
       "description": "Zużyte sztuki części wielokrotnego użytku są znów gotowe (naładowane, naostrzone, ...): z kolejki oczekujących z powrotem do zapasu.",
@@ -2500,6 +2530,9 @@
     },
     "archived_no_new_tasks": {
       "message": "Do zarchiwizowanego obiektu nie można dodawać nowych zadań — najpierw go przywróć."
+    },
+    "part_owner_archived": {
+      "message": "„{object_name}” jest zarchiwizowany. Przywróć go, aby zapisać zakup."
     },
     "import_not_json_yaml": {
       "message": "Plik nie zawiera prawidłowego JSON ani YAML."

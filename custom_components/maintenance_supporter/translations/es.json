@@ -2179,6 +2179,36 @@
         }
       }
     },
+    "part_purchase": {
+      "name": "Repuesto comprado",
+      "description": "Se compraron repuestos: entran en el stock, y lo pagado se registra como la realización del recordatorio de compra del repuesto (el abierto o uno nuevo). Un repuesto que cuenta como gasto al usarse toma el precio en su lugar, promediado con el stock que ya hay.",
+      "fields": {
+        "entity_id": {
+          "name": "Repuesto",
+          "description": "El sensor de stock de uno o más repuestos."
+        },
+        "quantity": {
+          "name": "Cantidad",
+          "description": "Cuántos se compraron: paquetes si el repuesto tiene tamaño de paquete, si no unidades. La cantidad de reposición del repuesto si se omite."
+        },
+        "unit_price": {
+          "name": "Precio por unidad",
+          "description": "Lo que costó uno (un paquete si el repuesto tiene tamaño de paquete). Indica esto o el total."
+        },
+        "cost": {
+          "name": "Importe total",
+          "description": "Lo que costó la compra en total. Indica esto o el precio por unidad; sin ninguno, no se registra ningún gasto."
+        },
+        "date": {
+          "name": "Fecha",
+          "description": "El día de la compra, hoy si se omite. No en el futuro."
+        },
+        "notes": {
+          "name": "Notas",
+          "description": "Una nota para el historial, como la tienda."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Repuesto listo de nuevo",
       "description": "Unidades usadas de un repuesto reutilizable vuelven a estar listas (cargadas, afiladas, ...): de la pila en espera de vuelta al stock.",
@@ -2500,6 +2530,9 @@
     },
     "archived_no_new_tasks": {
       "message": "Un objeto archivado no puede recibir tareas nuevas — restáuralo primero."
+    },
+    "part_owner_archived": {
+      "message": "«{object_name}» está archivado. Restáuralo para registrar una compra."
     },
     "import_not_json_yaml": {
       "message": "El archivo no es JSON ni YAML válido."

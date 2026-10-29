@@ -133,6 +133,7 @@ import { partCostMode, type PartsCostMode } from "./helpers/parts-cost";
 import { canWrite } from "./helpers/permissions";
 // #226: the All-parts view's Use pill (the parts shelf imports it too).
 import "./components/ms-part-use";
+import "./components/ms-part-purchase";
 import { ancestorsOf, buildObjectTree, sortTree, subtreeOf, treeRows, type ObjectTree } from "./helpers/object-tree";
 import { renderStatusBadge, statusKey, statusLabel, type StatusLike } from "./renderers/status";
 import { TOAST_MS, ACTION_TOAST_MS } from "./helpers/toast";
@@ -161,6 +162,8 @@ interface PartsOverviewRow {
   cost?: number | null;
   /** #98 follow-up: cost is then per package of this many units. */
   package_size?: number | null;
+  /** What one purchase buys (packages with a package size). */
+  restock_quantity?: number | null;
   storage_location?: string | null;
   vendor?: string | null;
   reorder_threshold?: number | null;
@@ -4498,7 +4501,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                         : nothing}
                     </td>
                     <td>${row.object_name || "—"}</td>
-                    <td class="all-parts-stock">${row.stock !== null ? formatQty(row.stock, row.unit, L) : "—"}${this._renderAllPartsUse(row)}</td>
+                    <td class="all-parts-stock">${row.stock !== null ? formatQty(row.stock, row.unit, L) : "—"}${this._renderAllPartsUse(row)}${this._renderAllPartsBought(row)}</td>
                     <td>${row.reorder_threshold ?? "—"}</td>
                     <td>${row.cost != null
                       ? row.package_size
@@ -4538,6 +4541,21 @@ export class MaintenanceSupporterPanel extends LitElement {
       ?notBooked=${!fleet && partCostMode(row, this._partsCostMode) === "use"}
       @part-used=${() => { void this._loadAllParts(); void this._loadData(); }}
     ></ms-part-use>`;
+  }
+
+  /** #238: a purchase beside the stock it goes into. */
+  private _renderAllPartsBought(row: PartsOverviewRow) {
+    if (this._isOperator || typeof row.stock !== "number") return nothing;
+    const fleet = !!this._getObject(row.entry_id)?.object.battery_fleet;
+    return html`<ms-part-purchase
+      .hass=${this.hass}
+      .entryId=${row.entry_id}
+      .sparePart=${{ id: row.part_id, unit: row.unit ?? undefined, package_size: row.package_size ?? undefined,
+        cost: row.cost ?? undefined, restock_quantity: row.restock_quantity ?? undefined }}
+      .currencySymbol=${this._currencySymbol}
+      ?onUse=${!fleet && partCostMode(row, this._partsCostMode) === "use"}
+      @part-bought=${() => { void this._loadAllParts(); void this._loadData(); }}
+    ></ms-part-purchase>`;
   }
 
   // ── #191: areas ──────────────────────────────────────────────────────────

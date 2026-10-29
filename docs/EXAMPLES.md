@@ -137,6 +137,21 @@ automation:
 
 Without `quantity` it takes one.
 
+`part_purchase` (2.113+, #238) records a purchase with its price, as the
+completion of the part's buy task (the open reminder, or a new one): the stock
+goes up and the price counts as spending, or for a part that counts when used,
+goes into its price. `quantity` counts packages for a part bought in packages;
+give `unit_price` or the total `cost`, and `date` for a past day:
+
+```yaml
+action: maintenance_supporter.part_purchase
+data:
+  entity_id: sensor.garage_shelf_washer_fluid_stock
+  quantity: 3
+  unit_price: 7.49
+  notes: Hardware store, on sale
+```
+
 ### React to sensor triggers firing
 
 Condition-based tasks (threshold / runtime / count) fire

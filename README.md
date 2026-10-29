@@ -159,11 +159,11 @@ count what needs attention, alongside *parts to reorder*, *batteries to
 replace* and *document storage*; spare parts get their own **stock
 sensors**, a **calendar** entity feeds your calendar cards, and a **to-do**
 entity mirrors open work. Lifecycle **events** (`…_task_completed`,
-`…_trigger_activated`, …) fire on every path, and thirteen **services** —
+`…_trigger_activated`, …) fire on every path, and fourteen **services** —
 `complete` / `skip` / `reset` / `export_data`, full task CRUD
 (`add_object`, `add_task`, `update_task`, `delete_task`, `list_tasks`) and
-the spare-part actions (`part_restock`, `part_use`, `part_ready_again`,
-`part_dispose`) —
+the spare-part actions (`part_restock`, `part_use`, `part_purchase`,
+`part_ready_again`, `part_dispose`) —
 cover scripting. 15 **Assist intents** answer *"what maintenance is due?"*
 (this week, in the kitchen), complete, skip, postpone or snooze tasks, record
 readings and notes, read out instructions, say whose turn it is, check stock,
@@ -190,7 +190,7 @@ with copy-paste automations: [EXAMPLES.md](docs/EXAMPLES.md).
 | [CONFIGURATION.md](docs/CONFIGURATION.md) | Every configurable parameter (global, per-object, per-task, triggers) |
 | [EXAMPLES.md](docs/EXAMPLES.md) | Use-case recipes, automation YAML, cards & dashboard strategies |
 | [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Known limitations, common issues, debug logging, uninstalling |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Internals: data flow, trigger engine, WebSocket API (110 commands), tests |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Internals: data flow, trigger engine, WebSocket API (111 commands), tests |
 | [ROADMAP.md](https://github.com/iluebbe/maintenance_supporter/blob/master/ROADMAP.md) | What's planned and what shipped — ideas welcome via [Discussions](https://github.com/iluebbe/maintenance_supporter/discussions) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 

@@ -2179,6 +2179,36 @@
         }
       }
     },
+    "part_purchase": {
+      "name": "Pièce de rechange achetée",
+      "description": "Des pièces de rechange ont été achetées : elles entrent dans le stock, et le montant payé est enregistré comme la réalisation du rappel d'achat de la pièce (celui en cours, ou un nouveau). Une pièce comptée comme dépense à l'utilisation prend plutôt le prix, en moyenne avec le stock déjà présent.",
+      "fields": {
+        "entity_id": {
+          "name": "Pièce de rechange",
+          "description": "Le capteur de stock d'une ou plusieurs pièces de rechange."
+        },
+        "quantity": {
+          "name": "Quantité",
+          "description": "Combien ont été achetées : des paquets si la pièce a une taille de paquet, sinon des unités. La quantité de réapprovisionnement de la pièce si omis."
+        },
+        "unit_price": {
+          "name": "Prix unitaire",
+          "description": "Ce qu'une pièce a coûté (un paquet si la pièce a une taille de paquet). Indiquez ceci ou le total."
+        },
+        "cost": {
+          "name": "Montant total",
+          "description": "Ce que l'achat a coûté au total. Indiquez ceci ou le prix unitaire ; sans les deux, aucune dépense n'est enregistrée."
+        },
+        "date": {
+          "name": "Date",
+          "description": "Le jour de l'achat, aujourd'hui si omis. Pas dans le futur."
+        },
+        "notes": {
+          "name": "Notes",
+          "description": "Une note pour l'historique, comme le magasin."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Pièce de rechange de nouveau prête",
       "description": "Des exemplaires usagés d'une pièce réutilisable sont de nouveau prêts (rechargés, affûtés, ...) : de la pile en attente vers le stock.",
@@ -2500,6 +2530,9 @@
     },
     "archived_no_new_tasks": {
       "message": "Un objet archivé ne peut pas recevoir de nouvelles tâches — restaurez-le d'abord."
+    },
+    "part_owner_archived": {
+      "message": "« {object_name} » est archivé. Restaurez-le pour enregistrer un achat."
     },
     "import_not_json_yaml": {
       "message": "Le fichier n'est pas un JSON ou un YAML valide."

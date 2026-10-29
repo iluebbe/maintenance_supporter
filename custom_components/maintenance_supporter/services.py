@@ -56,6 +56,7 @@ from .const import (
     SERVICE_EXPORT,
     SERVICE_LIST_TASKS,
     SERVICE_PART_DISPOSE,
+    SERVICE_PART_PURCHASE,
     SERVICE_PART_READY_AGAIN,
     SERVICE_PART_RESTOCK,
     SERVICE_PART_USE,
@@ -77,7 +78,7 @@ from .helpers.entry_tasks import ArchivedObjectError
 from .helpers.global_options import get_default_warning_days
 from .helpers.import_mapping import async_attach_move_hints
 from .helpers.object_names import name_taken
-from .helpers.parts import MAX_PART_STOCK
+from .helpers.parts import MAX_PART_COST, MAX_PART_STOCK
 from .helpers.permissions import service_tier
 from .helpers.reading_slots import resolve_reading_values_by_name
 from .helpers.task_fields import (
@@ -88,7 +89,13 @@ from .helpers.task_fields import (
 from .helpers.task_persist import async_create_task_simple, async_delete_task, async_update_task_simple
 from .helpers.url_safety import is_safe_url
 from .models.runtime_data import MaintenanceSupporterData
-from .parts_runtime import async_change_part_stock, async_part_dispose, async_part_ready_again, async_part_use
+from .parts_runtime import (
+    async_change_part_stock,
+    async_part_dispose,
+    async_part_purchase,
+    async_part_ready_again,
+    async_part_use,
+)
 
 # --- Service Schemas ---
 SERVICE_COMPLETE_SCHEMA = vol.Schema(
@@ -266,6 +273,18 @@ SERVICE_PART_USE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): vol.All(cv.entity_ids, vol.Length(min=1)),
         vol.Optional("quantity"): vol.All(vol.Coerce(float), vol.Range(min=0, min_included=False, max=MAX_PART_STOCK)),
+    }
+)
+
+# #238: a purchase. The bounds of part/purchase; the date a day, as bought.
+SERVICE_PART_PURCHASE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): vol.All(cv.entity_ids, vol.Length(min=1)),
+        vol.Optional("quantity"): vol.All(vol.Coerce(float), vol.Range(min=0, min_included=False, max=MAX_PART_STOCK)),
+        vol.Exclusive("unit_price", "price"): vol.All(vol.Coerce(float), vol.Range(min=0, max=MAX_PART_COST)),
+        vol.Exclusive("cost", "price"): vol.All(vol.Coerce(float), vol.Range(min=0, max=MAX_COST)),
+        vol.Optional("date"): cv.date,
+        vol.Optional("notes"): vol.All(cv.string, vol.Length(max=MAX_TEXT_LENGTH)),
     }
 )
 
@@ -849,6 +868,35 @@ async def _handle_part_use(call: ServiceCall) -> dict[str, Any] | None:
     return {"parts": results} if call.return_response else None
 
 
+async def _handle_part_purchase(call: ServiceCall) -> dict[str, Any] | None:
+    hass = call.hass
+    if (day := call.data.get("date")) is not None and day > dt_util.now().date():
+        raise ServiceValidationError(translation_domain=DOMAIN, translation_key="completed_at_in_future")
+    results = []
+    for eid, entry, part_id in _resolve_part_targets(hass, call.data[ATTR_ENTITY_ID]):
+        try:
+            result = await async_part_purchase(
+                hass,
+                entry,
+                part_id,
+                quantity=call.data.get("quantity"),
+                unit_price=call.data.get("unit_price"),
+                cost=call.data.get("cost"),
+                day=day,
+                notes=call.data.get("notes") or None,
+                completed_by=call.context.user_id if call.context else None,
+                source="service",
+            )
+        except ValueError as err:  # the object holds the most tasks it may
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="invalid_input",
+                translation_placeholders={"error": str(err)},
+            ) from err
+        results.append({"entity_id": eid, **(result or {})})
+    return {"parts": results} if call.return_response else None
+
+
 @callback
 def async_setup_services(hass: HomeAssistant) -> None:
     """Register the service actions. Safe to re-run: a registration
@@ -898,6 +946,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     for service, handler, schema in (
         (SERVICE_PART_RESTOCK, _handle_part_restock, SERVICE_PART_RESTOCK_SCHEMA),
         (SERVICE_PART_USE, _handle_part_use, SERVICE_PART_USE_SCHEMA),
+        (SERVICE_PART_PURCHASE, _handle_part_purchase, SERVICE_PART_PURCHASE_SCHEMA),
         (SERVICE_PART_READY_AGAIN, _handle_part_ready_again, SERVICE_PART_PILE_SCHEMA),
         (SERVICE_PART_DISPOSE, _handle_part_dispose, SERVICE_PART_PILE_SCHEMA),
     ):

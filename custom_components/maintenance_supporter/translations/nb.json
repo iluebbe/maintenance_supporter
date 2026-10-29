@@ -2179,6 +2179,36 @@
         }
       }
     },
+    "part_purchase": {
+      "name": "Reservedel kjøpt",
+      "description": "Det ble kjøpt reservedeler: de legges på lager, og det som ble betalt, føres som utførelsen av delens kjøpspåminnelse (den åpne eller en ny). En del som teller som utgift når den brukes, får i stedet prisen, i snitt med lageret som allerede finnes.",
+      "fields": {
+        "entity_id": {
+          "name": "Reservedel",
+          "description": "Lagersensoren for én eller flere reservedeler."
+        },
+        "quantity": {
+          "name": "Antall",
+          "description": "Hvor mange som ble kjøpt: pakker hvis delen har en pakkestørrelse, ellers enheter. Delens påfyllingsmengde hvis det utelates."
+        },
+        "unit_price": {
+          "name": "Pris per stk.",
+          "description": "Hva én kostet (én pakke hvis delen har en pakkestørrelse). Oppgi dette eller totalen."
+        },
+        "cost": {
+          "name": "Totalt",
+          "description": "Hva kjøpet kostet totalt. Oppgi dette eller prisen per stk.; uten noen av dem føres ingen utgift."
+        },
+        "date": {
+          "name": "Dato",
+          "description": "Dagen for kjøpet, i dag hvis det utelates. Ikke i fremtiden."
+        },
+        "notes": {
+          "name": "Notater",
+          "description": "Et notat til historikken, for eksempel butikken."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Reservedel klar igjen",
       "description": "Brukte eksemplarer av en gjenbrukbar del er klare igjen (ladet, slipt, ...): fra ventehaugen tilbake til lageret.",
@@ -2500,6 +2530,9 @@
     },
     "archived_no_new_tasks": {
       "message": "Et arkivert objekt kan ikke få nye oppgaver — gjenopprett det først."
+    },
+    "part_owner_archived": {
+      "message": "«{object_name}» er arkivert. Gjenopprett det for å registrere et kjøp."
     },
     "import_not_json_yaml": {
       "message": "Filen er ikke gyldig JSON eller YAML."

@@ -2179,6 +2179,36 @@
         }
       }
     },
+    "part_purchase": {
+      "name": "Ricambio acquistato",
+      "description": "Sono stati acquistati dei ricambi: entrano nella scorta, e quanto pagato viene registrato come completamento del promemoria di acquisto del ricambio (quello aperto o uno nuovo). Un ricambio che conta come spesa all'uso prende invece il prezzo, in media con la scorta già presente.",
+      "fields": {
+        "entity_id": {
+          "name": "Ricambio",
+          "description": "Il sensore di scorta di uno o più ricambi."
+        },
+        "quantity": {
+          "name": "Quantità",
+          "description": "Quanti ne sono stati acquistati: confezioni se il ricambio ha una dimensione della confezione, altrimenti unità. La quantità di riordino del ricambio se omesso."
+        },
+        "unit_price": {
+          "name": "Prezzo cadauno",
+          "description": "Quanto è costato uno (una confezione se il ricambio ha una dimensione della confezione). Indica questo o il totale."
+        },
+        "cost": {
+          "name": "Totale",
+          "description": "Quanto è costato l'acquisto in totale. Indica questo o il prezzo cadauno; senza nessuno dei due non viene registrata alcuna spesa."
+        },
+        "date": {
+          "name": "Data",
+          "description": "Il giorno dell'acquisto, oggi se omesso. Non nel futuro."
+        },
+        "notes": {
+          "name": "Note",
+          "description": "Una nota per lo storico, come il negozio."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Ricambio di nuovo pronto",
       "description": "Pezzi usati di un ricambio riutilizzabile sono di nuovo pronti (ricaricati, affilati, ...): dalla pila in attesa di nuovo alla scorta.",
@@ -2500,6 +2530,9 @@
     },
     "archived_no_new_tasks": {
       "message": "Un oggetto archiviato non può ricevere nuove attività — ripristinalo prima."
+    },
+    "part_owner_archived": {
+      "message": "«{object_name}» è archiviato. Ripristinalo per registrare un acquisto."
     },
     "import_not_json_yaml": {
       "message": "Il file non è un JSON o YAML valido."

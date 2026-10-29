@@ -2179,6 +2179,36 @@
         }
       }
     },
+    "part_purchase": {
+      "name": "Spare part bought",
+      "description": "Spare parts were bought: they go into the stock, and what was paid is booked as the completion of the part's buy task (the open one, or a new one). A part that counts as spending when used takes the price instead, averaged with the stock already there.",
+      "fields": {
+        "entity_id": {
+          "name": "Spare part",
+          "description": "The stock sensor of one or more spare parts."
+        },
+        "quantity": {
+          "name": "Quantity",
+          "description": "How many were bought: packages when the part has a package size, else units. The part's restock amount when left out."
+        },
+        "unit_price": {
+          "name": "Price each",
+          "description": "What one cost (one package when the part has a package size). Give this or the total."
+        },
+        "cost": {
+          "name": "Total",
+          "description": "What the purchase cost in total. Give this or the price each; with neither, nothing is booked as spending."
+        },
+        "date": {
+          "name": "Date",
+          "description": "The day it was bought, today when left out. Not in the future."
+        },
+        "notes": {
+          "name": "Notes",
+          "description": "A note for the history, such as the shop."
+        }
+      }
+    },
     "part_ready_again": {
       "name": "Spare part ready again",
       "description": "Used ones of a reusable part are ready again (charged, sharpened, ...): from the waiting pile back to the stock.",
@@ -2500,6 +2530,9 @@
     },
     "archived_no_new_tasks": {
       "message": "An archived object cannot get new tasks — restore it first."
+    },
+    "part_owner_archived": {
+      "message": "“{object_name}” is archived. Restore it to record a purchase."
     },
     "import_not_json_yaml": {
       "message": "The file is not valid JSON or YAML."
