@@ -1471,6 +1471,9 @@
   "complete_when_state": "erre vált",
   "complete_when_help": "Amíg a feladat esedékes, magától elvégzetté válik, amikor ez az entitás erre az állapotra vált, például amikor kinyílik a mosógép ajtaja.",
   "complete_when_badge": "Elvégezve, ha {entity} állapota {state} lesz",
+  "complete_when_any_time": "Akkor is, ha nem esedékes: minden alkalommal elvégzi, és indul a következő ciklus",
+  "complete_when_badge_for": "{minutes} percig",
+  "complete_when_badge_any_time": "akkor is, ha nem esedékes",
   "no_notifications": "Nincs értesítés ehhez a feladathoz",
   "no_notifications_help": "Nincs emlékeztető ehhez a feladathoz — sem állapotértesítés, sem ismétlés, sem előzetes emlékeztető, sem csoportos üzenet. Továbbra is látszik a műszerfalon és az entitásaiban; a heti összefoglaló továbbra is számolja.",
   "require_tag_scan_hint": "Ez a feladat csak az eszközön lévő NFC-címke vagy QR-kód beolvasásával fejezhető be — az itteni mentés el lesz utasítva."

@@ -1471,6 +1471,9 @@
   "complete_when_state": "changes to",
   "complete_when_help": "While the task is due, it completes itself when this entity changes to this state, for example when the washer's door opens.",
   "complete_when_badge": "Done when {entity} changes to {state}",
+  "complete_when_any_time": "Also when it is not due: each time completes it and starts the next cycle",
+  "complete_when_badge_for": "for {minutes} min",
+  "complete_when_badge_any_time": "also when not due",
   "no_notifications": "No notifications for this task",
   "no_notifications_help": "No reminders for this task — no status notifications, repeats, lead-time reminders or bundles. It still shows on the dashboard and in its entities; the weekly digest still counts it.",
   "require_tag_scan_hint": "This task completes only by scanning its NFC tag or QR code on the thing itself — saving here will be refused."

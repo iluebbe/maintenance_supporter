@@ -54,8 +54,10 @@ from ..const import (
     MIN_COST,
     MIRROR_TODO_ENTITY_PATTERN,
     ROTATION_STRATEGIES,
+    TRIGGER_FIELD_RANGES,
     MaintenanceFeedback,
 )
+from ..models.shapes import CompleteWhen
 from .completion_requirements import sanitize_required_completion_fields
 from .places import normalize_place
 from .reading_slots import sanitize_reading_slots
@@ -376,11 +378,15 @@ def sanitize_mirror_todo_entities(value: object) -> list[str]:
     return out[:MAX_MIRROR_TODO_LISTS]
 
 
-def sanitize_complete_when(value: object) -> dict[str, str] | None:
+def sanitize_complete_when(value: object) -> CompleteWhen | None:
     """Clean a ``complete_when`` rule (D#229): ``{"entity_id", "to_state"}``
     with a valid entity id and a non-empty state of at most
     ``MAX_COMPLETE_WHEN_STATE_LENGTH`` characters, both trimmed. Anything
-    else is None (no rule)."""
+    else is None (no rule).
+
+    D#240: ``any_time`` is kept when it is true, and ``for_minutes`` as whole
+    minutes within the trigger's hold-time range (a longer one is capped,
+    0 or anything that is no number means none)."""
     if not isinstance(value, dict):
         return None
 
@@ -391,7 +397,13 @@ def sanitize_complete_when(value: object) -> dict[str, str] | None:
     entity_id, to_state = entity_id.strip(), to_state.strip()
     if not valid_entity_id(entity_id) or not to_state or len(to_state) > MAX_COMPLETE_WHEN_STATE_LENGTH:
         return None
-    return {"entity_id": entity_id, "to_state": to_state}
+    rule = CompleteWhen(entity_id=entity_id, to_state=to_state)
+    if value.get("any_time") is True:
+        rule["any_time"] = True
+    minutes = value.get("for_minutes")
+    if isinstance(minutes, (int, float)) and not isinstance(minutes, bool) and minutes >= 1:
+        rule["for_minutes"] = min(int(minutes), TRIGGER_FIELD_RANGES["trigger_for_minutes"][1])
+    return rule
 
 
 def seed_rotation_assignee(task_data: dict[str, Any]) -> None:

@@ -1471,6 +1471,9 @@
   "complete_when_state": "次の状態になる",
   "complete_when_help": "タスクの期限中、このエンティティがこの状態になると（例：洗濯機のドアが開く）、自動的に完了します。",
   "complete_when_badge": "{entity} が {state} になると完了",
+  "complete_when_any_time": "期限前でも有効：毎回タスクを完了し、次のサイクルを開始します",
+  "complete_when_badge_for": "{minutes} 分間",
+  "complete_when_badge_any_time": "期限前でも",
   "no_notifications": "このタスクは通知しない",
   "no_notifications_help": "このタスクのリマインダーを止めます。ステータス通知・繰り返し・事前リマインダー・まとめ通知は送られません。ダッシュボードやエンティティには引き続き表示され、週次ダイジェストにも数えられます。",
   "require_tag_scan_hint": "このタスクは対象物のNFCタグまたはQRコードをスキャンしないと完了できません。ここでの保存は拒否されます。"

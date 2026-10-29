@@ -1471,6 +1471,9 @@
   "complete_when_state": "passe à",
   "complete_when_help": "Tant que la tâche est due, elle se termine d'elle-même quand cette entité passe à cet état, par exemple quand la porte du lave-linge s'ouvre.",
   "complete_when_badge": "Terminée quand {entity} passe à {state}",
+  "complete_when_any_time": "Même quand elle n'est pas due : chaque fois la termine et lance le cycle suivant",
+  "complete_when_badge_for": "pendant {minutes} min",
+  "complete_when_badge_any_time": "même si elle n'est pas due",
   "no_notifications": "Aucune notification pour cette tâche",
   "no_notifications_help": "Aucun rappel pour cette tâche — ni notifications de statut, ni répétitions, ni rappels anticipés, ni regroupements. Elle reste visible sur le tableau de bord et dans ses entités ; le résumé hebdomadaire la compte toujours.",
   "require_tag_scan_hint": "Cette tâche ne se termine qu'en scannant son tag NFC ou son QR code sur l'objet — l'enregistrement ici sera refusé."

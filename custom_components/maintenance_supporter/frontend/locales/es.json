@@ -1471,6 +1471,9 @@
   "complete_when_state": "cambia a",
   "complete_when_help": "Mientras la tarea esté pendiente, se completa sola cuando esta entidad cambia a este estado, por ejemplo cuando se abre la puerta de la lavadora.",
   "complete_when_badge": "Hecha cuando {entity} cambia a {state}",
+  "complete_when_any_time": "También cuando no vence: cada vez la completa e inicia el siguiente ciclo",
+  "complete_when_badge_for": "durante {minutes} min",
+  "complete_when_badge_any_time": "también si no vence",
   "no_notifications": "Sin notificaciones para esta tarea",
   "no_notifications_help": "Sin recordatorios para esta tarea — ni notificaciones de estado, ni repeticiones, ni avisos anticipados, ni agrupaciones. Sigue apareciendo en el panel y en sus entidades; el resumen semanal la sigue contando.",
   "require_tag_scan_hint": "Esta tarea solo se completa escaneando su etiqueta NFC o código QR en el propio objeto; guardar aquí será rechazado."

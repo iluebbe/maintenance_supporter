@@ -1471,6 +1471,9 @@
   "complete_when_state": "endres til",
   "complete_when_help": "Mens oppgaven er forfalt, utfører den seg selv når denne entiteten endres til denne tilstanden, for eksempel når vaskemaskinens dør åpnes.",
   "complete_when_badge": "Utført når {entity} endres til {state}",
+  "complete_when_any_time": "Også når den ikke er forfalt: hver gang fullføres den, og neste syklus starter",
+  "complete_when_badge_for": "i {minutes} min",
+  "complete_when_badge_any_time": "også når den ikke er forfalt",
   "no_notifications": "Ingen varsler for denne oppgaven",
   "no_notifications_help": "Ingen påminnelser for denne oppgaven — ingen statusvarsler, gjentakelser, forhåndspåminnelser eller bunter. Den vises fortsatt på dashbordet og i entitetene sine; ukesoppsummeringen teller den fortsatt med.",
   "require_tag_scan_hint": "Denne oppgaven fullføres bare ved å skanne NFC-taggen eller QR-koden på selve tingen — lagring her vil bli avvist."

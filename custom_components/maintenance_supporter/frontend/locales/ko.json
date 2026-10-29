@@ -1471,6 +1471,9 @@
   "complete_when_state": "다음 상태로 변경",
   "complete_when_help": "작업이 기한인 동안 이 엔티티가 이 상태로 바뀌면(예: 세탁기 문이 열리면) 작업이 자동으로 완료됩니다.",
   "complete_when_badge": "{entity}이(가) {state}(으)로 바뀌면 완료",
+  "complete_when_any_time": "기한 전에도 적용: 매번 작업을 완료하고 다음 주기를 시작합니다",
+  "complete_when_badge_for": "{minutes}분 동안",
+  "complete_when_badge_any_time": "기한 전에도",
   "no_notifications": "이 작업은 알림 없음",
   "no_notifications_help": "이 작업에는 리마인더가 없습니다. 상태 알림, 반복, 사전 알림, 묶음 알림이 모두 꺼집니다. 대시보드와 엔티티에는 계속 표시되며 주간 요약에는 계속 포함됩니다.",
   "require_tag_scan_hint": "이 작업은 기기의 NFC 태그나 QR 코드를 스캔해야만 완료됩니다. 여기서 저장하면 거부됩니다."

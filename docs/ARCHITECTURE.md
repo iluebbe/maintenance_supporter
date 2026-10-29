@@ -202,7 +202,7 @@ custom_components/maintenance_supporter/
 │                                               deleted users
 ├── daily_jobs.py                  (224 lines)  Timers: retention sweep, the 08:00 digest / warranty / lead-time reminders, noon retry
 ├── const.py                     (1,006 lines)  Constants, enums, defaults, PLATFORMS
-├── coordinator.py               (2,363 lines)  DataUpdateCoordinator per object
+├── coordinator.py               (2,365 lines)  DataUpdateCoordinator per object
 ├── storage.py                     (743 lines)  Per-entry Store (dynamic state, migration, part stock)
 ├── parts_runtime.py               (816 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
 ├── shopping_sync.py               (396 lines)  2.67: mirrors auto buy tasks into a user-picked todo.* list (own-rows uid map)
@@ -302,7 +302,7 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (47,571 lines)  143 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+├── frontend-src/               (47,620 lines)  143 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
 │   ├── maintenance-panel.ts     (5,694 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,263 lines)  Auto-generated dashboard strategy + 4 section strategies
@@ -320,7 +320,7 @@ custom_components/maintenance_supporter/
 │   │                                           number_format via the __msDateTimePrefs singleton) — tripwired
 │   │                                           by __tests__/profile-format-single-source.test.ts (#163);
 │   │                                           chart-utils px() is the one sanctioned toFixed (SVG geometry)
-│   ├── types.ts                   (760 lines)  TypeScript interfaces
+│   ├── types.ts                   (764 lines)  TypeScript interfaces
 │   ├── statistics-service.ts      (320 lines)  WS statistics cache
 │   ├── user-service.ts            (131 lines)  HA user list cache
 │   ├── dialog-mount.ts            (321 lines)  Lazy dialog mounting (open*Dialog helpers)
@@ -405,8 +405,8 @@ custom_components/maintenance_supporter/
 │   │   ├── keyboard.ts             (18 lines)  Keyboard activation for elements that are not native buttons
 │   │   ├── object-tree.ts         (136 lines)  #225: objects inside other objects
 │   │   └── quick-complete.ts       (56 lines)  #233: *Quick complete*, a task that completes without a dialog
-│   ├── renderers/               (2,514 lines)  11 files — Pure lit-html render functions of the task views and the charts
-│   │   ├── task-detail.ts         (609 lines)  The task detail view (header, ⋮ menu, sections) as a function of its context
+│   ├── renderers/               (2,525 lines)  11 files — Pure lit-html render functions of the task views and the charts
+│   │   ├── task-detail.ts         (620 lines)  The task detail view (header, ⋮ menu, sections) as a function of its context
 │   │   ├── chart-utils.ts         (112 lines)  Shared chart helpers: nice axis ticks and consistent number/date formats
 │   │   ├── charts.ts              (167 lines)  Cost/duration chart renderers (task detail)
 │   │   ├── history.ts             (249 lines)  Task history sub-view: filter chips + search + the timeline of entries
@@ -417,8 +417,8 @@ custom_components/maintenance_supporter/
 │   │   ├── sparkline.ts           (522 lines)  Trigger section renderer (task detail)
 │   │   ├── status.ts               (81 lines)  A task's status as the user sees it — THE derivation for every surface
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
-│   ├── components/             (21,551 lines)  39 files — Lit elements: dialogs, sections, views, cards
-│   │   ├── task-dialog.ts       (4,199 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
+│   ├── components/             (21,585 lines)  39 files — Lit elements: dialogs, sections, views, cards
+│   │   ├── task-dialog.ts       (4,233 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
 │   │   ├── settings-view.ts     (2,918 lines)  In-panel global settings editor
 │   │   ├── task-quick-actions-dialog.ts (974 lines)  Task ⋮ menu
 │   │   ├── documents-section.ts   (716 lines)  Object-detail documents/manuals section
@@ -457,9 +457,9 @@ custom_components/maintenance_supporter/
 │   │   ├── ms-cost-input.ts       (109 lines)  A cost that may be a credit (#200): a Cost | Credit switch and the amount
 │   │   ├── ms-part-use.ts         (217 lines)  #226: the Use pill, for some of a part used outside a task
 │   │   └── ms-part-purchase.ts    (314 lines)  #238: the Bought… pill, for a purchase recorded at any time
-│   └── __tests__/              (32,813 lines)  228 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (32,926 lines)  229 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (36,619 lines)  109 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+├── helpers/                    (36,683 lines)  109 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,806 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (372 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
@@ -482,7 +482,7 @@ custom_components/maintenance_supporter/
 │   │                                           source `todo_mirror` (Store task state `todo_mirror`)
 │   ├── intent_speech.py           (226 lines)  What the voice intents SAY, per language (assist_sentences/responses/)
 │   ├── assist_sentences.py        (184 lines)  Installs the shipped Assist sentence files into <config>/custom_sentences/
-│   ├── sanitize.py                (654 lines)  Defensive config-flow input sanitization (incl. rotation seeding)
+│   ├── sanitize.py                (666 lines)  Defensive config-flow input sanitization (incl. rotation seeding)
 │   ├── csv_handler.py             (504 lines)  CSV import/export
 │   ├── vacation.py                (382 lines)  Vacation mode
 │   ├── battery_fleet_setup.py   (1,468 lines)  One-click fleet object + parts + single aggregate task
@@ -549,7 +549,7 @@ custom_components/maintenance_supporter/
 │   ├── update_state.py             (58 lines)  An update installed on disk that Home Assistant does not run yet
 │   ├── prediction_cache.py         (80 lines)  Hourly cache for the recorder half of the sensor prediction
 │   ├── trigger_detail.py           (75 lines)  The trigger detail (#228): what a triggered task is about, in its own words
-│   ├── complete_when.py            (83 lines)  Complete a task when another entity changes to a state (D#229)
+│   ├── complete_when.py           (135 lines)  Complete a task when another entity changes to a state (D#229)
 │   ├── user_orphans.py            (145 lines)  Deleted HA users still named: task assignments pruned, admin-panel allowlist as repairs
 │   ├── object_create.py            (94 lines)  Create an object's config entry (object/create, add_object, adoption, battery hub)
 │   ├── settings_sanitize.py       (274 lines)  A settings write checked against the registry (global/update, settings import, options flow)
@@ -574,14 +574,14 @@ custom_components/maintenance_supporter/
 │       ├── wallboxes.py           (185 lines)  EV chargers — cable/plug inspection by delivered energy
 │       └── xiaomi.py               (66 lines)  Xiaomi ecosystem integrations (MIoT / Xiaomi Home) — multi-category
 │
-├── models/                      (1,418 lines)  7 files — Task, object and maintenance-type models, the typed data shapes, the coordinator's task result,
+├── models/                      (1,422 lines)  7 files — Task, object and maintenance-type models, the typed data shapes, the coordinator's task result,
 │   │                                           an entry's runtime data
 │   ├── maintenance_task.py        (810 lines)  Task: schedule, triggers, history, status, on_complete_action,
 │   │                                           quick_complete_defaults, assignee_pool + rotation_strategy
 │   ├── maintenance_object.py      (114 lines)  Object: name, area, manufacturer, model, serial_number,
 │   │                                           installation_date, warranty_expiry (#67), documentation_url, notes
 │   ├── maintenance_type.py         (86 lines)  Predefined maintenance categories
-│   ├── shapes.py                  (283 lines)  The JSON shapes the integration stores and serves, as TypedDicts
+│   ├── shapes.py                  (287 lines)  The JSON shapes the integration stores and serves, as TypedDicts
 │   ├── task_result.py              (83 lines)  What the coordinator publishes per task: the task, plus what one refresh computed
 │   └── runtime_data.py             (28 lines)  entry.runtime_data (MaintenanceSupporterData) and the typed ConfigEntry
 │

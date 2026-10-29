@@ -309,6 +309,9 @@ export class MaintenanceTaskDialog extends LitElement {
   // D#229: the entity (and its state) whose change completes the due task.
   @state() private _completeWhenEntity = "";
   @state() private _completeWhenState = "";
+  /** D#240: also when not due; the minutes the state must hold ("" = none). */
+  @state() private _completeWhenAnyTime = false;
+  @state() private _completeWhenFor = "";
   @state() private _enabled = true;
 
   // Trigger fields
@@ -597,6 +600,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._mirrorTodoMode = this._mirrorTodoEntities.length ? "own" : task.mirror_todo_use_default === false ? "none" : "default";
     this._completeWhenEntity = task.complete_when?.entity_id || "";
     this._completeWhenState = task.complete_when?.to_state || "";
+    this._completeWhenAnyTime = !!task.complete_when?.any_time;
+    this._completeWhenFor = task.complete_when?.for_minutes ? String(task.complete_when.for_minutes) : "";
     this._enabled = task.enabled !== false;
     this._lastPerformed = task.last_performed || "";
     this._loadedLastPerformed = this._lastPerformed;
@@ -769,6 +774,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._mirrorTodoMode = "default";
     this._completeWhenEntity = "";
     this._completeWhenState = "";
+    this._completeWhenAnyTime = false;
+    this._completeWhenFor = "";
     this._enabled = true;
     this._lastPerformed = "";
     this._nfcTagId = "";
@@ -1804,8 +1811,15 @@ export class MaintenanceTaskDialog extends LitElement {
     data.require_tag_scan = this._requireTagScan;
     data.allow_skip = this._allowSkip;
     // D#229: null clears the rule (an entity without a state is no rule).
+    // D#240: the options only when set.
+    const holdMinutes = parseInt(this._completeWhenFor, 10);
     data.complete_when = this._completeWhenEntity && this._completeWhenState.trim()
-      ? { entity_id: this._completeWhenEntity, to_state: this._completeWhenState.trim() }
+      ? {
+          entity_id: this._completeWhenEntity,
+          to_state: this._completeWhenState.trim(),
+          ...(this._completeWhenAnyTime ? { any_time: true } : {}),
+          ...(holdMinutes > 0 ? { for_minutes: holdMinutes } : {}),
+        }
       : null;
     data.notify_enabled = this._notifyEnabled;
     data.reading_unit = this._readingUnit.trim() || null;
@@ -2229,7 +2243,9 @@ export class MaintenanceTaskDialog extends LitElement {
 
   /** D#229: the task completes itself when one entity changes to a state
    *  while the task is due (the washer's door opens). A new entity clears
-   *  the state, which belonged to the old one. */
+   *  the state, which belonged to the old one. D#240: also when not due
+   *  (every run of the robot vacuum counts), and the state may have to hold
+   *  for some minutes first. */
   private _renderCompleteWhen(L: string) {
     return html`
       <div class="field complete-when-field">
@@ -2259,6 +2275,24 @@ export class MaintenanceTaskDialog extends LitElement {
           entityId: this._completeWhenEntity,
           onInput: (v) => (this._completeWhenState = v),
         }) : nothing}
+        ${this._completeWhenEntity ? html`
+          <ms-textfield
+            class="complete-when-for"
+            label="${t("for_at_least_minutes", L)}"
+            type="number"
+            min="0"
+            .value=${this._completeWhenFor}
+            @input=${(e: Event) => (this._completeWhenFor = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>
+          <label class="req-option complete-when-any-time">
+            <input
+              type="checkbox"
+              .checked=${this._completeWhenAnyTime}
+              @change=${(e: Event) => (this._completeWhenAnyTime = (e.target as HTMLInputElement).checked)}
+            />
+            <span>${t("complete_when_any_time", L)}</span>
+          </label>
+        ` : nothing}
         <div class="field-help">${t("complete_when_help", L)}</div>
       </div>
     `;

@@ -1471,6 +1471,9 @@
   "complete_when_state": "passa a",
   "complete_when_help": "Finché l'attività è in scadenza, si completa da sola quando questa entità passa a questo stato, ad esempio quando si apre lo sportello della lavatrice.",
   "complete_when_badge": "Completata quando {entity} passa a {state}",
+  "complete_when_any_time": "Anche quando non è in scadenza: ogni volta la completa e avvia il ciclo successivo",
+  "complete_when_badge_for": "per {minutes} min",
+  "complete_when_badge_any_time": "anche se non in scadenza",
   "no_notifications": "Nessuna notifica per questa attività",
   "no_notifications_help": "Nessun promemoria per questa attività — niente notifiche di stato, ripetizioni, promemoria anticipati o raggruppamenti. Resta visibile nella dashboard e nelle sue entità; il riepilogo settimanale la conta ancora.",
   "require_tag_scan_hint": "Questa attività si completa solo scansionando il suo tag NFC o codice QR sull'oggetto — il salvataggio qui verrà rifiutato."

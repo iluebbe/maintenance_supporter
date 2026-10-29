@@ -18,7 +18,7 @@ import { taskUserIds } from "../helpers/assignees";
 import { quickCompleteOn } from "../helpers/quick-complete";
 import { t, formatDate, formatRecurrence, formatCost, formatDuration } from "../styles";
 import { renderRefChip } from "../helpers/reference";
-import type { AdvancedFeatures, HomeAssistant, MaintenanceTask, ManualDocRef } from "../types";
+import type { AdvancedFeatures, CompleteWhen, HomeAssistant, MaintenanceTask, ManualDocRef } from "../types";
 import { renderTriggerSection, type SparklineContext } from "./sparkline";
 import { dueDaysOf } from "./progress";
 import { renderPredictionSection } from "./prediction";
@@ -127,6 +127,15 @@ export function renderUserBadge(
   `;
 }
 
+/** D#229: "Done when Washer door changes to on", with D#240's options:
+ *  "… for 5 min, also when not due". */
+export function completeWhenTitle(rule: CompleteWhen, entityName: string, L: string): string {
+  let title = t("complete_when_badge", L).replace("{entity}", entityName).replace("{state}", rule.to_state);
+  if (rule.for_minutes) title += ` ${t("complete_when_badge_for", L).replace("{minutes}", String(rule.for_minutes))}`;
+  if (rule.any_time) title += `, ${t("complete_when_badge_any_time", L)}`;
+  return title;
+}
+
 function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
   const L = ctx.lang;
   const isOperator = ctx.isOperator;
@@ -151,9 +160,11 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
           : nothing}
         ${renderMirrorBadge(task, ctx, L)}
         ${task.complete_when?.entity_id
-          ? html`<span class="nfc-badge complete-when-badge" title="${t("complete_when_badge", L)
-              .replace("{entity}", String(ctx.hass?.states?.[task.complete_when.entity_id]?.attributes?.friendly_name ?? task.complete_when.entity_id))
-              .replace("{state}", task.complete_when.to_state)}"><ha-icon icon="mdi:check-circle-outline"></ha-icon></span>`
+          ? html`<span class="nfc-badge complete-when-badge" title="${completeWhenTitle(
+              task.complete_when,
+              String(ctx.hass?.states?.[task.complete_when.entity_id]?.attributes?.friendly_name ?? task.complete_when.entity_id),
+              L,
+            )}"><ha-icon icon="mdi:check-circle-outline"></ha-icon></span>`
           : nothing}
         ${quickCompleteOn(task)
           ? html`<span class="nfc-badge quick-complete-badge" title="${t("quick_complete_help", L)}"><ha-icon icon="mdi:flash-outline"></ha-icon> ${t("quick_complete_label", L)}</span>`

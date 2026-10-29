@@ -1471,6 +1471,9 @@
   "complete_when_state": "změní se na",
   "complete_when_help": "Dokud je úkol splatný, dokončí se sám, když tato entita přejde do tohoto stavu, například když se otevřou dvířka pračky.",
   "complete_when_badge": "Hotovo, když {entity} přejde do stavu {state}",
+  "complete_when_any_time": "I když úkol není splatný: pokaždé jej dokončí a spustí další cyklus",
+  "complete_when_badge_for": "po dobu {minutes} min",
+  "complete_when_badge_any_time": "i když není splatný",
   "no_notifications": "Bez oznámení pro tento úkol",
   "no_notifications_help": "Bez připomínek pro tento úkol — žádná oznámení o stavu, opakování, předstihové připomínky ani souhrny. Zůstává vidět na přehledu a ve svých entitách; týdenní přehled ho stále počítá.",
   "require_tag_scan_hint": "Tento úkol lze dokončit pouze naskenováním jeho NFC štítku nebo QR kódu na zařízení — uložení zde bude odmítnuto."

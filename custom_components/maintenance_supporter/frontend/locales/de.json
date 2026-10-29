@@ -1471,6 +1471,9 @@
   "complete_when_state": "wechselt zu",
   "complete_when_help": "Solange die Aufgabe fällig ist, erledigt sie sich selbst, sobald diese Entität in diesen Zustand wechselt, zum Beispiel wenn die Tür der Waschmaschine aufgeht.",
   "complete_when_badge": "Erledigt, wenn {entity} zu {state} wechselt",
+  "complete_when_any_time": "Auch wenn sie nicht fällig ist: Jedes Mal erledigt sie und startet den nächsten Zyklus",
+  "complete_when_badge_for": "für {minutes} Min.",
+  "complete_when_badge_any_time": "auch wenn nicht fällig",
   "no_notifications": "Keine Benachrichtigungen für diese Aufgabe",
   "no_notifications_help": "Keine Erinnerungen für diese Aufgabe — keine Status-Benachrichtigungen, Wiederholungen, Vorlauf-Erinnerungen oder Bündel. Sie erscheint weiterhin im Dashboard und in ihren Entitäten; der Wochen-Digest zählt sie weiterhin mit.",
   "require_tag_scan_hint": "Diese Aufgabe kann nur per Scan des NFC-Tags oder QR-Codes am Gerät erledigt werden — Speichern hier wird abgelehnt."

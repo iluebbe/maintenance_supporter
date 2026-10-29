@@ -86,6 +86,10 @@ export interface ManualDocRef {
 export interface CompleteWhen {
   entity_id: string;
   to_state: string;
+  /** D#240: completes the task when it is not due as well. */
+  any_time?: boolean;
+  /** D#240: the state must hold this many minutes first. */
+  for_minutes?: number;
 }
 
 export interface TriggerConfig {

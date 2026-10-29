@@ -1471,6 +1471,9 @@
   "complete_when_state": "zmienia się na",
   "complete_when_help": "Dopóki zadanie jest należne, wykonuje się samo, gdy ta encja zmieni się na ten stan, na przykład gdy otworzą się drzwi pralki.",
   "complete_when_badge": "Wykonane, gdy {entity} zmieni się na {state}",
+  "complete_when_any_time": "Także gdy zadanie nie jest wymagalne: za każdym razem je wykonuje i zaczyna następny cykl",
+  "complete_when_badge_for": "przez {minutes} min",
+  "complete_when_badge_any_time": "także gdy nie jest wymagalne",
   "no_notifications": "Bez powiadomień dla tego zadania",
   "no_notifications_help": "Bez przypomnień dla tego zadania — bez powiadomień o statusie, powtórzeń, wcześniejszych przypomnień i pakietów. Nadal widać je na pulpicie i w jego encjach; tygodniowe podsumowanie wciąż je liczy.",
   "require_tag_scan_hint": "To zadanie można ukończyć tylko skanując jego tag NFC lub kod QR na urządzeniu — zapis tutaj zostanie odrzucony."

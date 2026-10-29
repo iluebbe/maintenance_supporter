@@ -1703,16 +1703,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             notes = f"Auto-completed: sensor recovered ({trigger_value:g})"
         await self._async_auto_complete(task_id, notes)
 
-    async def async_auto_complete_from_entity(self, task_id: str, entity_name: str, to_state: str) -> None:
+    async def async_auto_complete_from_entity(self, task_id: str, entity_name: str, to_state: str, *, any_time: bool = False) -> None:
         """Record a completion because the task's ``complete_when`` entity
         changed to its state (D#229): the washer's door opened, so the laundry
         is out. Only while the task is due — opening the door between washes
-        records nothing. ``helpers.complete_when`` matches the change; this
-        decides on the task, from the read model the panel shows.
+        records nothing — unless the rule says any time (D#240): every run of
+        the robot vacuum counts, and the weekly reminder only comes when it
+        has not run for a week. ``helpers.complete_when`` matches the change;
+        this decides on the task, from the read model the panel shows.
         """
         task_result = self.task_result(task_id)
         status = task_result.status if task_result is not None else None
-        if status not in NOTIFIABLE_STATUSES:
+        if not any_time and status not in NOTIFIABLE_STATUSES:
             _LOGGER.debug("Not completing %s from %s: the task is not due (%s)", task_id, entity_name, status)
             return
         await self._async_auto_complete(task_id, f"Auto-completed: {entity_name} changed to {to_state}", source="auto_entity")

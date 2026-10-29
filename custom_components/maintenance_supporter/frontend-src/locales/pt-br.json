@@ -1471,6 +1471,9 @@
   "complete_when_state": "passa para",
   "complete_when_help": "Enquanto a tarefa estiver pendente, ela se conclui sozinha quando esta entidade muda para este estado, por exemplo quando a porta da lavadora abre.",
   "complete_when_badge": "Concluída quando {entity} passa para {state}",
+  "complete_when_any_time": "Também quando não está pendente: cada vez a conclui e inicia o próximo ciclo",
+  "complete_when_badge_for": "por {minutes} min",
+  "complete_when_badge_any_time": "também se não estiver pendente",
   "no_notifications": "Sem notificações para esta tarefa",
   "no_notifications_help": "Sem lembretes para esta tarefa — sem notificações de status, repetições, avisos antecipados ou agrupamentos. Ela continua aparecendo no painel e em suas entidades; o resumo semanal ainda a conta.",
   "require_tag_scan_hint": "Esta tarefa só é concluída escaneando sua etiqueta NFC ou código QR no próprio objeto — salvar aqui será recusado."

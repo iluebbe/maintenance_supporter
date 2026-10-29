@@ -1471,6 +1471,9 @@
   "complete_when_state": "muuttuu tilaan",
   "complete_when_help": "Kun tehtävä on erääntymässä, se merkitään tehdyksi itsestään, kun tämä entiteetti muuttuu tähän tilaan, esimerkiksi kun pesukoneen luukku avataan.",
   "complete_when_badge": "Tehty, kun {entity} muuttuu tilaan {state}",
+  "complete_when_any_time": "Myös kun tehtävä ei ole erääntynyt: joka kerta se suoritetaan ja seuraava jakso alkaa",
+  "complete_when_badge_for": "{minutes} min ajan",
+  "complete_when_badge_any_time": "myös kun ei erääntynyt",
   "no_notifications": "Ei ilmoituksia tästä tehtävästä",
   "no_notifications_help": "Ei muistutuksia tästä tehtävästä — ei tilailmoituksia, toistoja, ennakkomuistutuksia eikä niputuksia. Se näkyy yhä kojelaudalla ja entiteeteissään; viikkokooste laskee sen edelleen mukaan.",
   "require_tag_scan_hint": "Tämä tehtävä valmistuu vain skannaamalla sen NFC-tunniste tai QR-koodi itse laitteesta — tallennus tässä estetään."

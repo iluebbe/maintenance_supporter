@@ -95,7 +95,7 @@ def test_which_tasks_listen() -> None:
         "d": {"complete_when": {"entity_id": "nonsense", "to_state": "on"}},
         "e": {},
     }
-    assert rules_by_entity(tasks, {}) == {DOOR: [("a", "on"), ("c", "off")]}
+    assert rules_by_entity(tasks, {}) == {DOOR: [("a", RULE), ("c", {"entity_id": DOOR, "to_state": "off"})]}
 
 
 # ─── the washer ─────────────────────────────────────────────────────────────

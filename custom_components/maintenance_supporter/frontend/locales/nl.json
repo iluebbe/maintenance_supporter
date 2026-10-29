@@ -1471,6 +1471,9 @@
   "complete_when_state": "verandert in",
   "complete_when_help": "Zolang de taak openstaat, voltooit ze zichzelf wanneer deze entiteit naar deze status gaat, bijvoorbeeld als de deur van de wasmachine opengaat.",
   "complete_when_badge": "Voltooid wanneer {entity} verandert in {state}",
+  "complete_when_any_time": "Ook als de taak niet aan de beurt is: elke keer voltooit de taak en start de volgende cyclus",
+  "complete_when_badge_for": "gedurende {minutes} min",
+  "complete_when_badge_any_time": "ook als niet aan de beurt",
   "no_notifications": "Geen notificaties voor deze taak",
   "no_notifications_help": "Geen herinneringen voor deze taak — geen statusnotificaties, herhalingen, vooraankondigingen of bundels. Ze blijft zichtbaar op het dashboard en in haar entiteiten; het weekoverzicht telt haar nog mee.",
   "require_tag_scan_hint": "Deze taak wordt alleen afgerond door de NFC-tag of QR-code op het apparaat te scannen — opslaan hier wordt geweigerd."

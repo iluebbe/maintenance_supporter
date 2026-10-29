@@ -1471,6 +1471,9 @@
   "complete_when_state": "şu duruma geçer",
   "complete_when_help": "Görevin vakti geldiği sürece, bu varlık bu duruma geçtiğinde, örneğin çamaşır makinesinin kapağı açıldığında, kendiliğinden tamamlanır.",
   "complete_when_badge": "{entity} {state} durumuna geçince tamamlanır",
+  "complete_when_any_time": "Vadesi gelmemişken de: her seferinde görevi tamamlar ve sonraki döngüyü başlatır",
+  "complete_when_badge_for": "{minutes} dk boyunca",
+  "complete_when_badge_any_time": "vadesi gelmemişken de",
   "no_notifications": "Bu görev için bildirim yok",
   "no_notifications_help": "Bu görev için hatırlatma yok — durum bildirimi, tekrar, önceden hatırlatma veya toplu bildirim gönderilmez. Panoda ve varlıklarında görünmeye devam eder; haftalık özet onu saymaya devam eder.",
   "require_tag_scan_hint": "Bu görev yalnızca cihazın üzerindeki NFC etiketi veya QR kodu taranarak tamamlanır — buradan kaydetme reddedilecektir."

@@ -108,10 +108,14 @@ class IntervalAnalysis(TypedDict):
 
 
 class CompleteWhen(TypedDict):
-    """D#229: the entity whose change to a state completes the due task."""
+    """D#229: the entity whose change to a state completes the due task.
+    D#240: ``any_time`` completes it when it is not due as well, and
+    ``for_minutes`` wants the state to hold that long first."""
 
     entity_id: str
     to_state: str
+    any_time: NotRequired[bool]
+    for_minutes: NotRequired[int]
 
 
 class ScheduleEnds(TypedDict, total=False):

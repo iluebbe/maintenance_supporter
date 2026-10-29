@@ -1471,6 +1471,9 @@
   "complete_when_state": "skifter til",
   "complete_when_help": "Mens opgaven er forfalden, udfører den sig selv, når denne entitet skifter til denne tilstand, f.eks. når vaskemaskinens låge åbnes.",
   "complete_when_badge": "Udført, når {entity} skifter til {state}",
+  "complete_when_any_time": "Også når den ikke er forfalden: hver gang fuldføres den, og næste cyklus starter",
+  "complete_when_badge_for": "i {minutes} min",
+  "complete_when_badge_any_time": "også når den ikke er forfalden",
   "no_notifications": "Ingen notifikationer for denne opgave",
   "no_notifications_help": "Ingen påmindelser for denne opgave — ingen statusnotifikationer, gentagelser, forudpåmindelser eller bundter. Den vises stadig på dashboardet og i sine entiteter; ugeoversigten tæller den stadig med.",
   "require_tag_scan_hint": "Denne opgave udføres kun ved at scanne dens NFC-tag eller QR-kode på selve tingen — at gemme her vil blive afvist."

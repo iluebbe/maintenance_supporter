@@ -395,6 +395,7 @@ localizes the created object and task names, else the server language;
   "mirror_todo_use_default": true,     // #231: false = off the default lists (mirror_todo_default_entities) too; stored only when false, dropped beside own lists
   "complete_when": {"entity_id": "binary_sensor.washer_door", "to_state": "on"},
                                        // D#229: while due, that entity changing INTO the state completes the task; null clears; malformed = invalid_input
+                                       // D#240: + "any_time": true (also when not due, restarts the cycle), "for_minutes": 1–1440 (the state must hold)
   "on_complete_action": {"service": "counter.reset", "target": {"entity_id": "counter.x"}, "data": {}},
                                        // HA service called after each (non-backfill) completion; a privileged domain drops the action on save
   "quick_complete_defaults": {"notes": "…", "cost": 0}, // #233 Quick complete: present ({} too) = one tap everywhere, the values = its prefill; null = off
