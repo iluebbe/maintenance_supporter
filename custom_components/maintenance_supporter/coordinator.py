@@ -997,6 +997,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             new_status = task_result.status
             if new_status not in NOTIFIABLE_STATUSES:
                 nm.release_waiting(self.entry.entry_id, task_id)
+                await self._async_dismiss_outdated_reminder(nm, task_id, {**(task_configs.get(task_id) or {}), **task_result.task})
                 continue
             gate = task_may_notify(
                 self.hass,
@@ -1062,6 +1063,20 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # Update the cache AFTER all notifications have been sent
         for task_id, task_result in task_results.items():
             self._previous_statuses[task_id] = task_result.status
+
+    async def _async_dismiss_outdated_reminder(self, nm: NotificationManager, task_id: str, task: Mapping[str, Any]) -> None:
+        """A task that left its reminder's status without being closed (the
+        sensor recovered, it was postponed, paused or archived) takes the
+        reminder off the phones. Only complete, skip and reset did that, so a
+        trigger that recovered on its own left one push per episode (#239).
+
+        Those three are inside their cooldown here and dismiss themselves,
+        for the people the reminder went to before a rotation handed on
+        (_clear_notification_state)."""
+        if self._previous_statuses.get(task_id) not in NOTIFIABLE_STATUSES or task_id in self._recently_completed:
+            return
+        if nm.was_reminded(self.entry.entry_id, task_id):
+            await nm.async_dismiss_task_notification(task_id, user_ids=task_user_ids(task))
 
     def recalculate_budget_cache(self) -> None:
         """Recompute global budget totals from all entries' history.

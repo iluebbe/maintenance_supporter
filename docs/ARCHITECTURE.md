@@ -201,7 +201,7 @@ custom_components/maintenance_supporter/
 │                                               deleted users
 ├── daily_jobs.py                  (224 lines)  Timers: retention sweep, the 08:00 digest / warranty / lead-time reminders, noon retry
 ├── const.py                     (1,004 lines)  Constants, enums, defaults, PLATFORMS
-├── coordinator.py               (2,346 lines)  DataUpdateCoordinator per object
+├── coordinator.py               (2,361 lines)  DataUpdateCoordinator per object
 ├── storage.py                     (743 lines)  Per-entry Store (dynamic state, migration, part stock)
 ├── parts_runtime.py               (716 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
 ├── shopping_sync.py               (396 lines)  2.67: mirrors auto buy tasks into a user-picked todo.* list (own-rows uid map)
