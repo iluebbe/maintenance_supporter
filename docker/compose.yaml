@@ -15,7 +15,7 @@ services:
       - ../pytest.ini:/config/pytest.ini:ro
       - ./faketime.txt:/config/faketime.txt:ro
     ports:
-      - "${HA_MAINT_PORT:-8125}:8123"
+      - "127.0.0.1:${HA_MAINT_PORT:-8125}:8123"
     environment:
       TZ: Europe/Berlin
       # Faketime: the custom run script (ha-run-faketime.sh) adds libfaketime
@@ -35,14 +35,14 @@ services:
     networks: [ha-net]
 
   homeassistant-fresh:
-    image: "ghcr.io/home-assistant/home-assistant:2026.7.2"
+    image: "ghcr.io/home-assistant/home-assistant:2026.10.4"
     container_name: ha-maint-fresh
     profiles: ["testing"]
     volumes:
       - ./config-fresh:/config
       - ../custom_components:/config/custom_components:ro
     ports:
-      - "${HA_FRESH_PORT:-8126}:8123"
+      - "127.0.0.1:${HA_FRESH_PORT:-8126}:8123"
     environment:
       TZ: Europe/Berlin
     restart: "no"
@@ -55,7 +55,7 @@ services:
     command: >
       /bin/sh -c "npx -y playwright@1.63.0 run-server --port 3000 --host 0.0.0.0"
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     init: true
     ipc: host
     user: pwuser

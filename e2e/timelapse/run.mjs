@@ -93,7 +93,7 @@ function start() {
   // Created, the clock file copied in, THEN started: Home Assistant's first
   // call already reads the faked date.
   docker(
-    "create", "--name", NAME, "-p", `${PORT}:8123`, "-e", "TZ=Europe/Berlin",
+    "create", "--name", NAME, "-p", `127.0.0.1:${PORT}:8123`, "-e", "TZ=Europe/Berlin",
     "-e", "FAKETIME_ENABLED=true", `-e`, `FAKETIME_TIMESTAMP_FILE=${CLOCK_FILE}`,
     "-e", "FAKETIME_NO_CACHE=1", "-e", "DONT_FAKE_MONOTONIC=1", "-e", "ROBOROCK_DEMO_WEAR=1",
     "-v", `${CONFIG}:/config`,

@@ -82,7 +82,7 @@ shared with the in-process twin `tests/test_migration_roundtrip.py`. The
 
 | Var | Meaning | Default |
 |-----|---------|---------|
-| `MIGRATION_IMAGE` | Home Assistant image for both containers | `ghcr.io/home-assistant/home-assistant:2026.7.2` |
+| `MIGRATION_IMAGE` | Home Assistant image for both containers | `ghcr.io/home-assistant/home-assistant:2026.10.4` |
 | `ORDER` | `objects-first` imports the objects before the settings | settings first |
 | `SOURCE_CONTAINER`, `SOURCE_URL`, `SOURCE_USER`, `SOURCE_PASS` | move an existing instance (e.g. the demo) instead of a seeded one; it is stopped briefly for the flush | _(seeded)_ |
 | `KEEP=1` | leave the containers for inspection | removed |

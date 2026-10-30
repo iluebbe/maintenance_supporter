@@ -16,7 +16,7 @@ set -u
 REPO="C:/Users/ilueb/OneDrive/Programming/maintenance_supporter_claude"
 OLD_CODE="C:/Users/ilueb/AppData/Local/Temp/ms-v2441/custom_components"   # released v2.44.1
 NEW_CODE="$REPO/custom_components"                                        # this working tree
-HA7="docker-homeassistant-dev:latest"                                     # 2026.7.2
+HA7="ghcr.io/home-assistant/home-assistant:2026.7.2"
 HA8="ghcr.io/home-assistant/home-assistant:2026.8.0b0"
 PORT=8134
 NAME="ha-scenario"
@@ -27,7 +27,7 @@ cd "$REPO" || exit 1
 
 boot() {  # boot <image> <code-dir>
   docker rm -f "$NAME" >/dev/null 2>&1
-  MSYS_NO_PATHCONV=1 docker run -d --name "$NAME" --network docker_ha-net -p "$PORT:8123" \
+  MSYS_NO_PATHCONV=1 docker run -d --name "$NAME" --network docker_ha-net -p "127.0.0.1:$PORT:8123" \
     -e TZ=Europe/Berlin \
     -v "$WORK:/config" -v "$2:/config/custom_components" "$1" >/dev/null 2>&1 || return 1
   for _ in $(seq 1 60); do
@@ -74,7 +74,7 @@ echo "== 5 HA -> 2026.8 first (broken), integration updated afterwards =="
 fresh_copy
 boot "$HA8" "$OLD_CODE" && node "$REPO/e2e/scenario-probe.mjs" probe "$PORT" "5a while still on the old integration      "
 docker rm -f "$NAME" >/dev/null 2>&1
-MSYS_NO_PATHCONV=1 docker run -d --name "$NAME" --network docker_ha-net -p "$PORT:8123" -e TZ=Europe/Berlin \
+MSYS_NO_PATHCONV=1 docker run -d --name "$NAME" --network docker_ha-net -p "127.0.0.1:$PORT:8123" -e TZ=Europe/Berlin \
   -v "$WORK:/config" -v "$NEW_CODE:/config/custom_components" "$HA8" >/dev/null 2>&1
 for _ in $(seq 1 60); do
   code=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$PORT/api/onboarding" 2>/dev/null)
@@ -90,7 +90,7 @@ echo "== 6 integration updated on 2026.7 first, then HA -> 2026.8 =="
 fresh_copy
 boot "$HA7" "$NEW_CODE" >/dev/null 2>&1
 docker rm -f "$NAME" >/dev/null 2>&1
-MSYS_NO_PATHCONV=1 docker run -d --name "$NAME" --network docker_ha-net -p "$PORT:8123" -e TZ=Europe/Berlin \
+MSYS_NO_PATHCONV=1 docker run -d --name "$NAME" --network docker_ha-net -p "127.0.0.1:$PORT:8123" -e TZ=Europe/Berlin \
   -v "$WORK:/config" -v "$NEW_CODE:/config/custom_components" "$HA8" >/dev/null 2>&1
 for _ in $(seq 1 60); do
   code=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$PORT/api/onboarding" 2>/dev/null)

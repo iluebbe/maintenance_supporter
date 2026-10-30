@@ -18,7 +18,7 @@
 // It is exported as is (no seed), stopped briefly for the flush and started
 // again.
 //
-// Env: MIGRATION_IMAGE (default ghcr.io/home-assistant/home-assistant:2026.7.2),
+// Env: MIGRATION_IMAGE (default ghcr.io/home-assistant/home-assistant:2026.10.4),
 // SOURCE_PORT / TARGET_PORT (8161 / 8162), ORDER=objects-first (default:
 // settings first), KEEP=1 (leave the containers for inspection).
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -31,7 +31,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, "..", "..");
 const RUN = join(HERE, ".run");
 const EXPECT = JSON.parse(readFileSync(join(REPO, "tests", "fixtures", "migration_expectations.json"), "utf8"));
-const IMAGE = process.env.MIGRATION_IMAGE || "ghcr.io/home-assistant/home-assistant:2026.7.2";
+const IMAGE = process.env.MIGRATION_IMAGE || "ghcr.io/home-assistant/home-assistant:2026.10.4";
 const SOURCE_PORT = Number(process.env.SOURCE_PORT || 8161);
 const TARGET_PORT = Number(process.env.TARGET_PORT || 8162);
 const EXTERNAL = process.env.SOURCE_CONTAINER || "";
@@ -53,7 +53,7 @@ function startContainer(name, port) {
   writeFileSync(join(config, "configuration.yaml"), "default_config:\nlogger:\n  default: warning\n");
   docker("rm", "-f", name);
   docker(
-    "run", "-d", "--name", name, "-p", `${port}:8123`, "-e", "TZ=UTC",
+    "run", "-d", "--name", name, "-p", `127.0.0.1:${port}:8123`, "-e", "TZ=UTC",
     "-v", `${config}:/config`,
     "-v", `${join(REPO, "custom_components", "maintenance_supporter")}:/config/custom_components/maintenance_supporter:ro`,
     // Two demo robots keyed like core Roborock, with reset buttons: the
