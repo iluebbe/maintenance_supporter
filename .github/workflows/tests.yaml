@@ -11,8 +11,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # pytest-homeassistant-custom-component 0.13.366 == homeassistant 2026.9.3
-  HA_STABLE_PHT: "0.13.366"
+  # pytest-homeassistant-custom-component 0.13.375 == homeassistant 2026.10.4
+  HA_STABLE_PHT: "0.13.375"
   # pytest-homeassistant-custom-component 0.13.344 == homeassistant 2026.7.0,
   # the minimum hacs.json declares (tests/test_min_ha_version_tested.py keeps
   # the two in step).
@@ -188,7 +188,7 @@ jobs:
     needs: [frontend-build]
     timeout-minutes: 8
     env:
-      HA_IMAGE: ghcr.io/home-assistant/home-assistant:2026.7.2
+      HA_IMAGE: ghcr.io/home-assistant/home-assistant:2026.10.4
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -329,7 +329,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      MIGRATION_IMAGE: ghcr.io/home-assistant/home-assistant:2026.7.2
+      MIGRATION_IMAGE: ghcr.io/home-assistant/home-assistant:2026.10.4
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -390,7 +390,7 @@ jobs:
             -v "${GITHUB_WORKSPACE}/ha-e2e-config:/config" \
             -v "${GITHUB_WORKSPACE}/custom_components:/config/custom_components:ro" \
             -e TZ=UTC -p 8123:8123 \
-            ghcr.io/home-assistant/home-assistant:2026.7.2
+            ghcr.io/home-assistant/home-assistant:2026.10.4
 
       - name: Wait for HA API (up to 300s)
         run: |
