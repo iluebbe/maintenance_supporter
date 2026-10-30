@@ -17,6 +17,7 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry, async_mock_service
 
 from custom_components.maintenance_supporter.const import (
+    CONF_QUIET_HOURS_ENABLED,
     CONF_TASKS,
     DOMAIN,
     NOTIFICATION_MANAGER_KEY,
@@ -36,6 +37,9 @@ from .task_results import as_results
 
 PHONE = "notify.mobile_app_phone"
 CLEAR = {"message": "clear_notification", "data": {"tag": f"maintenance_{TASK_ID_1}"}}
+# Quiet hours are on by default and the test clock is US/Pacific: at night
+# they would hold the reminder these tests take back.
+NO_QUIET_HOURS = {CONF_QUIET_HOURS_ENABLED: False}
 
 
 def _coordinator(hass: HomeAssistant, entry: MockConfigEntry) -> Any:
@@ -56,7 +60,7 @@ async def test_a_trigger_that_recovers_takes_its_reminder_off_the_phone(hass: Ho
     """The reported case: triggered, reminded, recovered without a completion."""
     phone = async_mock_service(hass, "notify", "mobile_app_phone")
     set_sensor_state(hass, "sensor.moisture", "50")
-    g = make_global_entry(hass, notifications_enabled=True, notify_service=PHONE)
+    g = make_global_entry(hass, notifications_enabled=True, notify_service=PHONE, extra_data=NO_QUIET_HOURS)
     obj = make_object_entry(hass, tasks={TASK_ID_1: _plant_task()})
     await setup_integration(hass, g, obj)
     coordinator = _coordinator(hass, obj)
@@ -84,7 +88,7 @@ async def test_a_completed_task_is_cleared_once(hass: HomeAssistant) -> None:
     before a rotation handed on; the refresh inside it leaves that alone."""
     phone = async_mock_service(hass, "notify", "mobile_app_phone")
     set_sensor_state(hass, "sensor.moisture", "10")
-    g = make_global_entry(hass, notifications_enabled=True, notify_service=PHONE)
+    g = make_global_entry(hass, notifications_enabled=True, notify_service=PHONE, extra_data=NO_QUIET_HOURS)
     obj = make_object_entry(hass, tasks={TASK_ID_1: _plant_task()})
     await setup_integration(hass, g, obj)
     coordinator = _coordinator(hass, obj)
@@ -99,7 +103,7 @@ async def test_a_completed_task_is_cleared_once(hass: HomeAssistant) -> None:
 
 async def test_a_postponed_task_takes_its_overdue_reminder_off_the_phone(hass: HomeAssistant) -> None:
     phone = async_mock_service(hass, "notify", "mobile_app_phone")
-    g = make_global_entry(hass, notifications_enabled=True, notify_service=PHONE)
+    g = make_global_entry(hass, notifications_enabled=True, notify_service=PHONE, extra_data=NO_QUIET_HOURS)
     last = (dt_util.now().date() - timedelta(days=60)).isoformat()
     obj = make_object_entry(hass, tasks={TASK_ID_1: build_task_data(interval_days=30, last_performed=last)})
     await setup_integration(hass, g, obj)
@@ -117,7 +121,7 @@ async def test_a_postponed_task_takes_its_overdue_reminder_off_the_phone(hass: H
 async def test_a_task_still_due_keeps_its_reminder(hass: HomeAssistant) -> None:
     """A trigger recovering while the task is due by its schedule is no
     reason to clear: the task still needs doing."""
-    g = make_global_entry(hass, notifications_enabled=True, notify_service=PHONE)
+    g = make_global_entry(hass, notifications_enabled=True, notify_service=PHONE, extra_data=NO_QUIET_HOURS)
     obj = make_object_entry(hass, tasks={TASK_ID_1: build_task_data(interval_days=30)})
     await setup_integration(hass, g, obj)
     coordinator = _coordinator(hass, obj)
