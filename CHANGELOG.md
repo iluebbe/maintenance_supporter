@@ -2,6 +2,48 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.113.0] - 2026-10-30
+
+### ✨ Added
+
+- **Bought…: record a spare part purchase at any time** (#238, thanks @MarcoK89). A purchase could only be booked by
+  completing the *Buy…* reminder, which appears once the stock is down to the reorder threshold. *Bought…* sits next
+  to *Use* on every counted part, on the object's parts shelf and in *All parts*. It asks how many (packages for a
+  part bought in packages, the restock amount prefilled), the price each or the total, the day (a receipt from last
+  week) and a note such as the shop.
+  - The purchase is booked as the completion of the part's buy task: the open *Buy…* reminder when there is one, else
+    a new one that is done at once. So the stock goes up, a part that counts when bought books the money as spending,
+    and the purchase shows up in the history, the budget and the area report like a completed reminder.
+  - A part of a paused object can be bought; for an archived object, restore it first.
+  - The service `part_purchase` does the same for automations and dashboard buttons (`quantity`, `unit_price` or the
+    total `cost`, `date`, `notes`). WebSocket `part/purchase`.
+- **Done when: also when the task is not due, and for at least some minutes** (D#240, thanks @DVDet). Two options in
+  the task dialog's *Completing it* section, once the rule has an entity and a state:
+  - *Also when it is not due:* every change into the state completes the task and starts the next cycle. With a weekly
+    *Tidy up for the robot vacuum* and *Done when* the vacuum changes to *cleaning*, the reminder only comes when the
+    vacuum has not run for a week.
+  - *For at least (minutes)* (1 to 1440): the state has to hold that long first, like the sensor trigger's option, so a
+    vacuum that starts and docks again at once is no run. Another state ends the wait; a dropped connection in between
+    does not. A restart during the wait starts over with the next change.
+  - The task page's badge names both. Fields `complete_when.any_time` and `complete_when.for_minutes`.
+- **A Bins & Recycling template** (asked for in the community forum). *Put the Bins Out* is weekly, and its note says
+  how to pin it to a weekday or to a waste collection calendar (offset -1 for the evening before). *Clean the Bins*
+  runs monthly from April to October. The template is part of the starter set for a house.
+
+### 🐛 Fixed
+
+- **A reminder leaves the phones once its task no longer needs doing** (#239, thanks @DJaeger). Only completing,
+  skipping or resetting took a reminder back. A trigger whose sensor recovered on its own (a plant sensor, several
+  times a day) put the task back to OK and left one push per episode behind, and a postponed task kept its *overdue*
+  push. A reminder is now cleared when its task leaves *due soon*, *overdue* or *triggered* without being closed; a
+  task still due by its schedule keeps it. This covers the Companion app and the persistent notification card.
+- **A purchase at another price no longer revalues the stock on the shelf** (#238). For a part that counts when used,
+  a purchase replaced the part's price. The price is now the average of what is there: the stock before at the old
+  price, the bought units at what was paid. 12 l at 10 per 5 l jug on the shelf plus two jugs bought at 14 gives 11.82
+  per jug. Completing the *Buy…* reminder averages too.
+- The Chinese labels of the *Weekdays* and *Nth weekday* schedule types read "working days"; they name days of the
+  week now.
+
 ## [2.112.0] - 2026-10-28
 
 ### ✨ Added
