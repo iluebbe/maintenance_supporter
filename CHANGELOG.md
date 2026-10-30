@@ -2,6 +2,17 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.113.1] - 2026-10-30
+
+### 🔒 Security
+
+- **pypdf 6.21.2 or newer.** The integration reads the text of every PDF you upload to an object (for the search and
+  the manual excerpts) with pypdf. Versions before 6.21.2 have known flaws where a crafted PDF makes that reading run
+  for a very long time or use a lot of memory. Only someone allowed to upload documents can add a PDF. Home Assistant
+  keeps an installed pypdf as long as the integration accepts it, so the minimum is raised: after this update and a
+  restart, Home Assistant installs the newer version by itself.
+- The dependencies of the frontend test tooling are updated as well. Nothing in the shipped panel or cards changes.
+
 ## [2.113.0] - 2026-10-30
 
 ### ✨ Added
