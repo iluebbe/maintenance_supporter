@@ -262,6 +262,7 @@
   "task_mirror_todo_default": "डिफ़ॉल्ट सूचियाँ: {lists}",
   "task_mirror_todo_own": "अन्य सूचियाँ",
   "task_mirror_todo_none": "किसी भी टू-डू सूची में नहीं",
+  "task_mirror_todo_max": "अधिकतम {max} सूचियाँ; Maintenance Supporter की अपनी सूचियाँ नहीं दिखाई जातीं।",
   "priority_low": "कम",
   "priority_normal": "सामान्य",
   "priority_high": "उच्च",

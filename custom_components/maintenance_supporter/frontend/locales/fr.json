@@ -260,6 +260,7 @@
   "task_mirror_todo_default": "Listes par défaut : {lists}",
   "task_mirror_todo_own": "Autres listes",
   "task_mirror_todo_none": "Dans aucune liste de tâches",
+  "task_mirror_todo_max": "{max} listes au plus ; les listes propres à Maintenance Supporter ne sont pas proposées.",
   "priority_low": "Basse",
   "priority_normal": "Normale",
   "priority_high": "Haute",

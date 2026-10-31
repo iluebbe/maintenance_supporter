@@ -262,6 +262,7 @@
   "task_mirror_todo_default": "Oletuslistat: {lists}",
   "task_mirror_todo_own": "Muut listat",
   "task_mirror_todo_none": "Ei millään tehtävälistalla",
+  "task_mirror_todo_max": "Enintään {max} luetteloa; Maintenance Supporterin omia luetteloita ei tarjota.",
   "priority_low": "Matala",
   "priority_normal": "Normaali",
   "priority_high": "Korkea",
