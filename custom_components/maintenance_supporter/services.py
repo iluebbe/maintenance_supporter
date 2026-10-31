@@ -870,29 +870,30 @@ async def _handle_part_use(call: ServiceCall) -> dict[str, Any] | None:
 
 async def _handle_part_purchase(call: ServiceCall) -> dict[str, Any] | None:
     hass = call.hass
-    if (day := call.data.get("date")) is not None and day > dt_util.now().date():
-        raise ServiceValidationError(translation_domain=DOMAIN, translation_key="completed_at_in_future")
+    targets = _resolve_part_targets(hass, call.data[ATTR_ENTITY_ID])
+    if len(targets) > 1 and call.data.get("cost") is not None:
+        # The total of ONE purchase: booked on every part it multiplied into
+        # the spending, as a complete's cost would (DRY audit 2026-10-30,
+        # BI6-A1). A price each still applies to every part.
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="single_entity_only",
+            translation_placeholders={"field": "cost"},
+        )
     results = []
-    for eid, entry, part_id in _resolve_part_targets(hass, call.data[ATTR_ENTITY_ID]):
-        try:
-            result = await async_part_purchase(
-                hass,
-                entry,
-                part_id,
-                quantity=call.data.get("quantity"),
-                unit_price=call.data.get("unit_price"),
-                cost=call.data.get("cost"),
-                day=day,
-                notes=call.data.get("notes") or None,
-                completed_by=call.context.user_id if call.context else None,
-                source="service",
-            )
-        except ValueError as err:  # the object holds the most tasks it may
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key="invalid_input",
-                translation_placeholders={"error": str(err)},
-            ) from err
+    for eid, entry, part_id in targets:
+        result = await async_part_purchase(
+            hass,
+            entry,
+            part_id,
+            quantity=call.data.get("quantity"),
+            unit_price=call.data.get("unit_price"),
+            cost=call.data.get("cost"),
+            day=call.data.get("date"),
+            notes=call.data.get("notes") or None,
+            completed_by=call.context.user_id if call.context else None,
+            source="service",
+        )
         results.append({"entity_id": eid, **(result or {})})
     return {"parts": results} if call.return_response else None
 

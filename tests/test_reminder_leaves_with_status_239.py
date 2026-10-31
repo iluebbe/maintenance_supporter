@@ -127,7 +127,7 @@ async def test_a_task_still_due_keeps_its_reminder(hass: HomeAssistant) -> None:
     coordinator = _coordinator(hass, obj)
     nm = hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY]
     nm._last_notified[f"{obj.entry_id}_{TASK_ID_1}_triggered"] = dt_util.now()
-    coordinator._previous_statuses[TASK_ID_1] = MaintenanceStatus.TRIGGERED
+    nm._on_phones[f"{obj.entry_id}_{TASK_ID_1}"] = "status"
 
     dismiss = AsyncMock()
     with patch.object(nm, "async_dismiss_task_notification", dismiss), patch.object(nm, "async_task_status_changed", AsyncMock()):

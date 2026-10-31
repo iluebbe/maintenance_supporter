@@ -304,20 +304,18 @@ async def test_voice_does_not_take_a_done_buy_reminder_for_an_open_one(hass: Hom
     """Voice "bought …" matched any task carrying the part link; a reminder
     completed a moment before (its link not yet detached) was completed a
     second time — two restocks for one purchase."""
-    from custom_components.maintenance_supporter.intent_household import _open_buy_task
-    from custom_components.maintenance_supporter.parts_runtime import async_reconcile_buy_tasks
+    from custom_components.maintenance_supporter.parts_runtime import async_reconcile_buy_tasks, open_buy_task_id
 
     entry = await _setup(hass, parts=_FILTERS)
     entry.runtime_data.store.set_part_stock("p1", 1)
     await async_reconcile_buy_tasks(hass, entry)
     await hass.async_block_till_done()
     (buy_id,) = _buy_tasks(hass, entry.entry_id, "p1")
-    part = {"entry_id": entry.entry_id, "part_id": "p1"}
+    live = _live(hass, entry.entry_id)
 
-    assert _open_buy_task(hass, part) == buy_id
-    store = _live(hass, entry.entry_id).runtime_data.store
-    with patch.object(store, "get_last_performed", side_effect=lambda tid: "2026-10-16" if tid == buy_id else None):
-        assert _open_buy_task(hass, part) is None
+    assert open_buy_task_id(live, "p1") == buy_id
+    with patch.object(live.runtime_data.store, "get_last_performed", side_effect=lambda tid: "2026-10-16" if tid == buy_id else None):
+        assert open_buy_task_id(live, "p1") is None
 
 
 def test_the_open_buy_reminder_rule() -> None:

@@ -2534,6 +2534,9 @@
     "part_owner_archived": {
       "message": "„{object_name}” archiválva van. Állítsa vissza egy vásárlás rögzítéséhez."
     },
+    "purchase_cost_too_high": {
+      "message": "Egy vásárlás összesen legfeljebb {max} lehet."
+    },
     "import_not_json_yaml": {
       "message": "A fájl nem érvényes JSON vagy YAML."
     },

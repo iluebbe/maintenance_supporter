@@ -34,9 +34,12 @@ from .const import (
     EVENT_PART_RESTOCKED,
     EVENT_PART_STOCK_LOW,
     EVENT_PART_STOCK_OUT,
+    MAX_COST,
+    MAX_TASKS_PER_OBJECT,
 )
 from .helpers.aggregate import object_name as _object_name
 from .helpers.aggregate import store_of, store_or_cached
+from .helpers.entry_tasks import ArchivedObjectError
 from .helpers.global_options import global_option
 from .helpers.i18n import normalize_language
 from .helpers.issues import broken_part_link_issue_id
@@ -54,7 +57,7 @@ from .helpers.parts import (
     unit_price,
 )
 from .helpers.phases import effective_field
-from .helpers.shared_parts import borrowed_part_ids
+from .helpers.shared_parts import borrowed_part_ids, live_parts
 from .helpers.task_persist import async_delete_task, async_persist_task
 from .shopping_sync import schedule_resync
 
@@ -474,6 +477,22 @@ async def async_part_use(
     return {"stock": stock or 0, "restoring": store.get_part_restoring(part_id)}
 
 
+def open_buy_task_id(entry: ConfigEntry, part_id: str) -> str | None:
+    """The part's buy reminder still to do, if there is one."""
+    store = store_of(entry)
+    if store is None:
+        return None
+    obj = entry.data.get(CONF_OBJECT) or {}
+    return next(
+        (
+            str(tid)
+            for tid, td in (entry.data.get(CONF_TASKS) or {}).items()
+            if buy_task_part_id(td) == part_id and is_open_buy_task(td, obj, store.get_last_performed(tid))
+        ),
+        None,
+    )
+
+
 async def async_part_purchase(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -486,6 +505,7 @@ async def async_part_purchase(
     notes: str | None = None,
     completed_by: str | None = None,
     source: str = "panel",
+    unattended: bool = False,
 ) -> dict[str, Any] | None:
     """Spare parts bought (#238), at any time: on sale before the reorder
     threshold is reached, with what was paid and when.
@@ -500,23 +520,40 @@ async def async_part_purchase(
     size, else units; the part's restock amount when left out. ``unit_price``
     is per package (per unit without a package size), ``cost`` the total;
     with neither nothing is booked as spending. ``day`` backdates it.
+    ``unattended``: a surface that cannot ask for anything (voice), see
+    ``complete_maintenance``.
 
-    None for an unknown part. Raises ServiceValidationError for an archived
-    object and for a day in the future."""
+    None for an unknown part. Raises ServiceValidationError, before anything
+    is booked, for an archived object (unless live objects still draw on
+    its pool, #111), a day in the future, a total above what one
+    completion books and an object that holds the most tasks it may. The
+    service and the WebSocket command each refused the date in their own
+    words, and nothing here did: the buy reminder was created before the
+    completion refused (DRY audit 2026-10-30, BI6-B4/A10)."""
     part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
     store = store_of(entry)
     if part is None or store is None:
         return None
     obj = entry.data.get(CONF_OBJECT) or {}
-    if obj.get("archived_at") is not None:
+    if obj.get("archived_at") is not None and part_id not in live_parts(hass, entry):
         raise ServiceValidationError(
             translation_domain=DOMAIN,
             translation_key="part_owner_archived",
             translation_placeholders={"object_name": _object_name(entry)},
         )
+    if day is not None and day > dt_util.now().date():
+        raise ServiceValidationError(translation_domain=DOMAIN, translation_key="date_in_future")
     packages = float(quantity) if quantity else float(part.get("restock_quantity") or 1)
     if cost is None and unit_price is not None:
         cost = round(float(unit_price) * packages, 2)
+    if cost is not None and cost > MAX_COST:
+        # Booked anyway, the history editor refused the entry later and an
+        # import dropped its cost (BI6-A6).
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="purchase_cost_too_high",
+            translation_placeholders={"max": str(MAX_COST)},
+        )
     completed_at: datetime | None = None
     if day is not None and day != dt_util.now().date():
         # Noon of that day: far from a midnight a time zone could tip over.
@@ -526,14 +563,7 @@ async def async_part_purchase(
     # schedules would remove an open reminder for a part that is not low.
     lock = _RECONCILE_LOCKS.setdefault(entry.entry_id, asyncio.Lock())
     async with lock:
-        task_id = next(
-            (
-                tid
-                for tid, td in (entry.data.get(CONF_TASKS) or {}).items()
-                if buy_task_part_id(td) == part_id and is_open_buy_task(td, obj, store.get_last_performed(tid))
-            ),
-            None,
-        )
+        task_id = open_buy_task_id(entry, part_id)
         if task_id is None:
             task = build_buy_task(
                 part,
@@ -545,11 +575,26 @@ async def async_part_purchase(
                 decimals=int(global_option(hass, CONF_CURRENCY_DECIMALS)),
                 country=hass.config.country,
             )
-            if obj.get("paused_at") is not None:
+            if obj.get("paused_at") is not None or obj.get("archived_at") is not None:
                 # Bought for a paused object (the pool's chlorine on sale in
-                # winter): the pause must not freeze its own purchase.
+                # winter) or a retired one whose pool is still in use: its
+                # pause must not freeze its own purchase (the reconcile marks
+                # such a reminder the same way).
                 task[POOL_IN_USE_FIELD] = True
-            await async_persist_task(hass, entry, task)
+            try:
+                await async_persist_task(hass, entry, task)
+            except ArchivedObjectError as err:
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="part_owner_archived",
+                    translation_placeholders={"object_name": _object_name(entry)},
+                ) from err
+            except ValueError as err:  # the object holds the most tasks it may
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="task_limit",
+                    translation_placeholders={"max": str(MAX_TASKS_PER_OBJECT)},
+                ) from err
             task_id = task["id"]
         current = hass.config_entries.async_get_entry(entry.entry_id)
         rd = getattr(current, "runtime_data", None) if current is not None else None
@@ -564,6 +609,7 @@ async def async_part_purchase(
             completed_by=completed_by,
             completed_at=completed_at,
             source=source,
+            unattended=unattended,
         )
     after = store_of(current) or store
     return {"task_id": task_id, "stock": after.get_part_stock(part_id) or 0, "cost": cost}

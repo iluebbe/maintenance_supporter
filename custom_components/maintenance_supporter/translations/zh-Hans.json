@@ -2534,6 +2534,9 @@
     "part_owner_archived": {
       "message": "“{object_name}”已归档。请先恢复，才能记录购买。"
     },
+    "purchase_cost_too_high": {
+      "message": "一次购买的总额最多为 {max}。"
+    },
     "import_not_json_yaml": {
       "message": "该文件不是有效的 JSON 或 YAML。"
     },

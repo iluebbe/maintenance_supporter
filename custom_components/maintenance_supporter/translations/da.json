@@ -2534,6 +2534,9 @@
     "part_owner_archived": {
       "message": "“{object_name}” er arkiveret. Gendan det for at registrere et køb."
     },
+    "purchase_cost_too_high": {
+      "message": "Et køb kan højst koste {max} i alt."
+    },
     "import_not_json_yaml": {
       "message": "Filen er ikke gyldig JSON eller YAML."
     },

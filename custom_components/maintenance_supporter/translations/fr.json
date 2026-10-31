@@ -2534,6 +2534,9 @@
     "part_owner_archived": {
       "message": "« {object_name} » est archivé. Restaurez-le pour enregistrer un achat."
     },
+    "purchase_cost_too_high": {
+      "message": "Un achat peut coûter au plus {max} au total."
+    },
     "import_not_json_yaml": {
       "message": "Le fichier n'est pas un JSON ou un YAML valide."
     },

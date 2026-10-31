@@ -29,13 +29,13 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import intent
 from homeassistant.util import dt as dt_util
 
-from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_TASKS, MAX_TEXT_LENGTH
+from .const import COMPLETION_PROVENANCE_NOTES, CONF_TASKS, MAX_TEXT_LENGTH
 from .helpers import voice_undo
 from .helpers.aggregate import store_of
 from .helpers.assignees import person_display_name
 from .helpers.entry_tasks import write_task
 from .helpers.i18n import normalize_language_code
-from .helpers.parts import MAX_PART_STOCK, buy_task_part_id, is_open_buy_task, is_part_low, restock_units
+from .helpers.parts import MAX_PART_STOCK, is_part_low, restock_units
 from .helpers.reading_slots import resolve_reading_values, sanitize_reading_slots
 from .intent import (
     INTENT_ADD_NOTE,
@@ -57,7 +57,7 @@ from .intent import (
     _sp_n,
     _task_snapshot,
 )
-from .parts_runtime import async_change_part_stock
+from .parts_runtime import async_change_part_stock, async_part_purchase, open_buy_task_id
 
 # Languages that write a decimal COMMA ("12,5"). Everything else here writes
 # a point; the spoken answer follows the same convention.
@@ -373,19 +373,6 @@ class ShoppingListIntent(intent.IntentHandler):
         return response
 
 
-def _open_buy_task(hass: Any, part: dict[str, Any]) -> str | None:
-    """The live buy task restocking *part*, if the shopping reminder is open."""
-    entry = hass.config_entries.async_get_entry(part["entry_id"])
-    store = store_of(entry) if entry is not None else None
-    if entry is None or store is None:
-        return None
-    obj = entry.data.get(CONF_OBJECT) or {}
-    for task_id, task in (entry.data.get(CONF_TASKS) or {}).items():
-        if buy_task_part_id(task) == part["part_id"] and is_open_buy_task(task, obj, store.get_last_performed(task_id)):
-            return str(task_id)
-    return None
-
-
 class BoughtPartIntent(intent.IntentHandler):
     """Put bought spare parts into stock."""
 
@@ -426,29 +413,32 @@ class BoughtPartIntent(intent.IntentHandler):
                 intent.IntentResponseErrorCode.FAILED_TO_HANDLE, _sp("part_not_found", lang, name=name)
             )
             return response
-        buy_task = _open_buy_task(hass, part)
+        buy_task = open_buy_task_id(entry, part["part_id"])
         before = voice_undo.capture(hass, part["entry_id"], buy_task)
-        completed = False
-        if buy_task is not None:
-            rd = getattr(entry, "runtime_data", None)
-            coordinator = getattr(rd, "coordinator", None) if rd else None
-            if coordinator is not None:
-                try:
-                    # The buy task's completion restocks by exactly this much
-                    # and leaves "bought" on its history.
-                    await coordinator.complete_maintenance(
-                        task_id=buy_task,
-                        completed_by=_asking_user(intent_obj),
-                        notes=COMPLETION_PROVENANCE_NOTES["voice"],
-                        restock_quantity=quantity,
-                        unattended=True,
-                        source="voice",
-                    )
-                    completed = True
-                except ServiceValidationError:
-                    completed = False
-        if not completed:
+        # Booked like Bought… in the panel: the completion of the part's buy
+        # reminder, the open one or a new one, so the purchase reaches the
+        # history and the spending. Without an open reminder only the stock
+        # moved (DRY audit 2026-10-30, BI6-A2).
+        try:
+            result = await async_part_purchase(
+                hass,
+                entry,
+                part["part_id"],
+                quantity=quantity,
+                notes=COMPLETION_PROVENANCE_NOTES["voice"],
+                completed_by=_asking_user(intent_obj),
+                source="voice",
+                unattended=True,
+            )
+        except ServiceValidationError:
+            result = None
+        if result is None:
+            # Refused (the object holds the most tasks it may): the cans are
+            # on the shelf all the same.
             await async_change_part_stock(hass, entry, part["part_id"], delta=restock_units(part, quantity))
+        elif buy_task is None:
+            # A reminder made for this purchase: the undo takes it away again.
+            before.task_id = result["task_id"]
         voice_undo.remember(hass, intent_obj, "bought", before, part=part["name"], qty=say_number(quantity, lang))
         store = store_of(entry)
         stock = store.get_part_stock(part["part_id"]) if store is not None else None

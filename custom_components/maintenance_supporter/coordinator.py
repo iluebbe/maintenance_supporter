@@ -489,11 +489,17 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             # (bug audit 2026-09-12). Nor when the manager restored the
             # previous process's stamps (N-5, 2026-10-17).
             seeding = isinstance(nm, NotificationManager) and nm.begin_startup_seed(self.entry.entry_id)
+            dismiss = isinstance(nm, NotificationManager) and nm.enabled
+            task_configs = self.entry.data.get(CONF_TASKS) or {}
             for task_id_n, task_result_n in result[CONF_TASKS].items():
                 status = task_result_n.status
                 self._previous_statuses[task_id_n] = status
                 if seeding and status in notify_statuses:
                     nm.seed_startup_state(self.entry.entry_id, task_id_n, status)
+                elif dismiss and status not in notify_statuses:
+                    # Paused or archived (both reload the object), or done
+                    # with while Home Assistant was down (BR6-A1).
+                    await self._async_dismiss_outdated_reminder(nm, task_id_n, {**(task_configs.get(task_id_n) or {}), **task_result_n.task})
         else:
             await self._async_notify_status_changes(result[CONF_TASKS])
 
@@ -1069,13 +1075,15 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         sensor recovered, it was postponed, paused or archived) takes the
         reminder off the phones. Only complete, skip and reset did that, so a
         trigger that recovered on its own left one push per episode (#239).
+        The manager knows which push is on the phones, across the reload a
+        pause or an archive does and across a restart (BR6-A1).
 
         Those three are inside their cooldown here and dismiss themselves,
         for the people the reminder went to before a rotation handed on
         (_clear_notification_state)."""
-        if self._previous_statuses.get(task_id) not in NOTIFIABLE_STATUSES or task_id in self._recently_completed:
+        if task_id in self._recently_completed:
             return
-        if nm.was_reminded(self.entry.entry_id, task_id):
+        if nm.take_outdated_off_phones(self.entry.entry_id, task_id, inert=self._is_inert(task)):
             await nm.async_dismiss_task_notification(task_id, user_ids=task_user_ids(task))
 
     def recalculate_budget_cache(self) -> None:
@@ -1931,13 +1939,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         nm = self.hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
         if nm is None:
             return
-        dismiss = reminded is not None and nm.was_reminded(self.entry.entry_id, task_id)
-        nm.clear_task_state(self.entry.entry_id, task_id)
-        if dismiss and reminded is not None:
-            self.hass.async_create_task(
-                nm.async_dismiss_task_notification(task_id, user_ids=task_user_ids(reminded)),
-                f"{DOMAIN} dismiss reminder {task_id}",
-            )
+        if reminded is None:
+            nm.clear_task_state(self.entry.entry_id, task_id)
+        else:
+            nm.clear_and_dismiss(self.entry.entry_id, task_id, reminded)
 
     async def skip_maintenance(
         self,

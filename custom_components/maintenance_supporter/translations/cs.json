@@ -2534,6 +2534,9 @@
     "part_owner_archived": {
       "message": "„{object_name}“ je archivován. Obnovte jej, chcete-li zaznamenat nákup."
     },
+    "purchase_cost_too_high": {
+      "message": "Nákup může stát celkem nejvýše {max}."
+    },
     "import_not_json_yaml": {
       "message": "Soubor není platný JSON ani YAML."
     },

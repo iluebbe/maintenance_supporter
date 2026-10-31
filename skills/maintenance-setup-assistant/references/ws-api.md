@@ -252,7 +252,9 @@ longer low keeps it as a plain done one-off). `quantity` counts packages with a
 per package, `cost` the total (not both; neither books no spending). `date`
 `YYYY-MM-DD`, not in the future (`invalid_date`). A part that counts when used
 takes the price, averaged with the stock on hand. `part_owner_archived` on an
-archived object; a paused object's purchase goes through.
+archived object, unless live objects still draw on the part (a #111 pool); a
+paused object's purchase goes through. `purchase_cost_too_high` for a total
+above 1,000,000, `task_limit` when no buy task fits; nothing is booked then.
 `part/ready_again` (#208)
 `{entry_id, part_id, quantity?}` → `{moved, stock, restoring}` — used ones of a
 reusable part are ready again (charged, sharpened, ...): back from `restoring`

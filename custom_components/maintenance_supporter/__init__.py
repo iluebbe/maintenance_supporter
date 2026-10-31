@@ -916,7 +916,8 @@ async def _async_forget_removed_object_tasks(hass: HomeAssistant, entry: ConfigE
     object: its rows on the family's to-do lists (D#183 — the Store record
     naming them goes with the object), its ids on the persistent vacation
     exempt list, and the notification manager's bookkeeping. All three
-    outlived the object (bug audit 2026-09-27)."""
+    outlived the object (bug audit 2026-09-27). And its reminder on the
+    phones (DRY audit 2026-10-30, BR6-A2)."""
     task_ids = [str(tid) for tid in (entry.data.get(CONF_TASKS) or {})]
 
     mirror = hass.data.get(DOMAIN, {}).get(TODO_MIRROR_KEY)
@@ -938,6 +939,9 @@ async def _async_forget_removed_object_tasks(hass: HomeAssistant, entry: ConfigE
 
     nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
     if isinstance(nm, NotificationManager):
+        for task_id, task in (entry.data.get(CONF_TASKS) or {}).items():
+            if isinstance(task, dict):
+                nm.clear_and_dismiss(entry.entry_id, str(task_id), task)
         nm.purge_entry(entry.entry_id)
 
 

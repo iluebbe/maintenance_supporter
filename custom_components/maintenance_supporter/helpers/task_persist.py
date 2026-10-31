@@ -542,7 +542,7 @@ async def async_delete_task(
     from .problem_sensors import stash_task_config_for_readopt
 
     stash_task_config_for_readopt(hass, new_tasks[task_id])
-    del new_tasks[task_id]
+    removed_task = new_tasks.pop(task_id)
     new_data[CONF_TASKS] = new_tasks
 
     # Remove from task_ids
@@ -563,10 +563,10 @@ async def async_delete_task(
         store.remove_task(task_id)
         await store.async_save()
 
-    # Clean up notification state for deleted task
+    # Its notification state, and its reminder off the phones.
     nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
     if nm is not None:
-        nm.clear_task_state(entry.entry_id, task_id)
+        nm.clear_and_dismiss(entry.entry_id, task_id, removed_task)
 
     # Remove orphaned entity registry entries for the deleted task. Match any
     # per-task entity — sensor (`_{task_id}`), binary_sensor (`_{task_id}_overdue`),

@@ -78,6 +78,21 @@ describe("Done when, also when not due and for at least (D#240): the dialog", ()
     expect(lastUpdate(sent).complete_when, "no state, no rule").to.equal(null);
   });
 
+  it("refuses more than a day instead of letting the backend cut it down (DRY audit 2026-10-30, X6-A2)", async () => {
+    const { el, sent } = await mountDialog();
+    await el.openEdit("e", tidyTask({ entity_id: VACUUM, to_state: "cleaning" }) as never);
+    await settle(el);
+    const field = el.shadowRoot!.querySelector(".complete-when-for") as HTMLElement & { max: string };
+    expect(field.getAttribute("max")).to.equal("1440");
+    el._completeWhenFor = "1441";
+    await el._save();
+    expect(el._error).to.contain("1,440");
+    expect(sent.some((m) => m.type === "maintenance_supporter/task/update"), "nothing sent").to.equal(false);
+    el._completeWhenFor = "1440";
+    await el._save();
+    expect(lastUpdate(sent).complete_when.for_minutes).to.equal(1440);
+  });
+
   it("offers no options without an entity, and a task without a rule starts without them", async () => {
     const { el } = await mountDialog();
     await el.openEdit("e", tidyTask({ entity_id: VACUUM, to_state: "cleaning", any_time: true, for_minutes: 5 }) as never);

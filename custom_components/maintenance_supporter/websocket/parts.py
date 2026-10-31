@@ -399,9 +399,6 @@ async def ws_part_purchase(
     except ServiceValidationError as err:
         send_exception_error(connection, msg["id"], err, "invalid_input")
         return
-    except ValueError as err:  # the object holds the most tasks it may
-        connection.send_error(msg["id"], "invalid_input", str(err))
-        return
     if result is None:
         connection.send_error(msg["id"], "not_found", "Part not found")
         return

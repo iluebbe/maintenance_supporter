@@ -2534,6 +2534,9 @@
     "part_owner_archived": {
       "message": "«{object_name}» в архиве. Восстановите его, чтобы записать покупку."
     },
+    "purchase_cost_too_high": {
+      "message": "Покупка может стоить в сумме не более {max}."
+    },
     "import_not_json_yaml": {
       "message": "Файл не является корректным JSON или YAML."
     },

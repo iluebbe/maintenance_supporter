@@ -1448,7 +1448,7 @@ stock sensor: `part_restock` (`delta`, negative for a correction, or `absolute`)
 `part_use` (2.108+, #226: `quantity`, one when left out; used outside a task,
 booked like a completion's parts and valued nowhere), `part_purchase` (2.113+, #238:
 `quantity`, `unit_price` or `cost`, `date`, `notes`; booked as the completion of the
-part's buy task), `part_ready_again`
+part's buy task; the total `cost` with one part only), `part_ready_again`
 (`quantity`, all waiting ones when left out) and `part_dispose` (`quantity`, one
 when left out) for the used ones of a reusable part. They need
 write access like the panel's buttons, accept several parts at once, book
@@ -1522,7 +1522,8 @@ Since 2.96, for the rest of the household routine:
   spare parts at or below their reorder threshold, with what is left.
 - **`MaintenanceSupporterBoughtPart`** — *"I bought four water filters"* —
   adds them to the stock (the part's usual restock amount when no number is
-  said) and closes the open buy reminder, which records the purchase.
+  said) and records the purchase like *Bought…*: as the completion of the open
+  buy reminder, or of a new one when none is open (2.114+).
 - **`MaintenanceSupporterLowBatteries`** — *"Which batteries are low?"* — the
   devices the battery fleet reports low, and the battery types to buy.
 - **`MaintenanceSupporterUndo`** — *"Undo that"* — takes back **your own last

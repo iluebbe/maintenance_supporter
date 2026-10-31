@@ -2,6 +2,32 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.114.0] - 2026-10-31
+
+### 🐛 Fixed
+
+- **A paused or archived task takes its reminder off the phones** (#239 follow-up). Pausing or archiving reloads the
+  object, and the reload forgot which reminders were out, so the push of a paused task stayed. Which push is on the
+  phones is now kept in the notification records, across reloads and restarts, and a task that stopped needing doing
+  while Home Assistant was down is cleared once it is back.
+- **Deleting a task or an object takes its reminder off the phones**, and so does a buy reminder that goes away by
+  itself because the part is no longer low.
+- **A completed task also takes back its lead-time reminder** ("due in 3 days"). Only the *due soon*, *overdue* and
+  *triggered* reminders were taken back. A lead-time reminder stays while the task is still coming up, and goes when
+  the task is paused or archived.
+- **"I bought four water filters" by voice is a purchase**, like *Bought…* in the panel. Without an open buy
+  reminder, voice only raised the stock: nothing in the history, no averaged price. It is now booked as the
+  completion of a buy reminder (a new one when none is open), and "undo that" takes that reminder away again.
+- **The `part_purchase` service books a total once.** With several parts and a `cost`, the total was booked on every
+  part. A total now takes one part; `unit_price` still applies to each.
+- **A purchase is checked before anything is booked.** A day in the future is refused with the same message in the
+  panel and the service, before a buy reminder is created for it. A total above 1,000,000 is refused instead of being
+  booked and then refused by the history editor. An object that holds the most tasks it may says so in your language.
+- **A part of an archived object can be bought while other objects still use it** (a shared pool, #111). The buy
+  reminder of such a pool stays live, and the purchase was refused all the same.
+- **Done when: *for at least (minutes)* stops at 1440**, as the notes of 2.113.0 said. A longer value was cut to a day
+  without a word; the dialog now says so.
+
 ## [2.113.1] - 2026-10-30
 
 ### 🔒 Security

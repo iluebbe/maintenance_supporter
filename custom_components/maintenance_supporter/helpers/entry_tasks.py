@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any
 from ..const import CONF_OBJECT, CONF_TASKS, MAX_TASKS_PER_OBJECT
 from ..models.shapes import HistoryEntry
 from .aggregate import get_store
+from .parts import POOL_IN_USE_FIELD
 from .schedule import normalize_task_storage
 
 if TYPE_CHECKING:
@@ -65,8 +66,11 @@ def insert_new_task(
     # An archived object is hidden and gets no new tasks: task/create and
     # task/duplicate refused it, but the add_task service, the options flow
     # and the adoption of discovered duties wrote into it — tasks nobody
-    # sees that still notify (DRY audit 2026-10-12, BI5-A4).
-    if (entry.data.get(CONF_OBJECT) or {}).get("archived_at"):
+    # sees that still notify (DRY audit 2026-10-12, BI5-A4). Except the buy
+    # reminder of a pool live objects still draw on (#111): the one task the
+    # buy-task reconcile keeps on a retired owner, and a purchase books on
+    # (DRY audit 2026-10-30, BI6-A3).
+    if (entry.data.get(CONF_OBJECT) or {}).get("archived_at") and task_data.get(POOL_IN_USE_FIELD) is not True:
         raise ArchivedObjectError("An archived object cannot get new tasks")
     task_data = normalize_task_storage(task_data)
     task_id = task_data["id"]

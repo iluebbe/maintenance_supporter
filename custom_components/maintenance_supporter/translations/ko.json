@@ -2534,6 +2534,9 @@
     "part_owner_archived": {
       "message": "“{object_name}”이(가) 보관되었습니다. 구매를 기록하려면 복원하세요."
     },
+    "purchase_cost_too_high": {
+      "message": "한 번 구매의 합계는 최대 {max}입니다."
+    },
     "import_not_json_yaml": {
       "message": "파일이 유효한 JSON 또는 YAML이 아닙니다."
     },

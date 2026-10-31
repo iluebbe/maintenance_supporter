@@ -15,7 +15,8 @@ What an undo covers, precisely:
   a postponement, the phase cursor, checklist ticks, adaptive learning;
 * the entry fields a voice action writes: the rotation pointer and the notes;
 * spare-part stock the action consumed or added — and, for a buy reminder,
-  its link to the part and the price its purchase set;
+  its link to the part and the price its purchase set; a buy reminder the
+  purchase was booked on because none was open is removed again;
 * a snooze;
 * the sensor trigger's progress a completion or a skip reset (the runtime
   hours, the counter's baseline, the counted changes): the object reloads so
@@ -48,6 +49,7 @@ from homeassistant.util import dt as dt_util
 from ..const import CONF_PARTS, CONF_TASKS, DOMAIN, NOTIFICATION_MANAGER_KEY
 from ..parts_runtime import async_change_part_stock, async_set_part_restoring, async_untrack_part_stock
 from .aggregate import get_object_entries, get_store, store_of
+from .task_persist import async_delete_task
 
 UNDO_WINDOW = timedelta(minutes=10)
 
@@ -256,6 +258,12 @@ async def async_restore(hass: HomeAssistant, record: UndoRecord) -> None:
         if before.task != record.after.task or static != {**record.after.static, **record.after.restore_only}:
             await coordinator.async_restore_task_fields(before.task_id, dict(before.task), static)
         await _async_restore_trigger_progress(hass, entry, record)
+    elif entry is not None and before.task_id and before.task is None and record.after.task is not None:
+        # A task the action made: "bought …" with no buy reminder open books
+        # the purchase on a new one. It goes, with the purchase's history
+        # entry and spending (DRY audit 2026-10-30, BI6-A2).
+        if await async_delete_task(hass, entry, before.task_id):
+            hass.config_entries.async_schedule_reload(entry.entry_id)
 
     # Stock and waiting pile (#208) go back in ONE booking through the one
     # stock writer: what is owned moves once, so the low / restocked edge

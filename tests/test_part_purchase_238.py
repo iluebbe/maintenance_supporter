@@ -266,7 +266,7 @@ async def test_the_service(hass: HomeAssistant) -> None:
 
     with pytest.raises(ServiceValidationError) as err:
         await hass.services.async_call(DOMAIN, "part_purchase", {"entity_id": fluid, "date": date.max.isoformat()}, blocking=True)
-    assert err.value.translation_key == "completed_at_in_future"
+    assert err.value.translation_key == "date_in_future", "the WebSocket command's words"
     with pytest.raises(vol.Invalid):
         await hass.services.async_call(DOMAIN, "part_purchase", {"entity_id": fluid, "unit_price": 1, "cost": 2}, blocking=True)
     assert _stock(hass, entry, FLUID) == 17

@@ -1643,6 +1643,14 @@ export class MaintenanceTaskDialog extends LitElement {
       return;
     }
     if (!this._applyConsumesQtyText()) return;
+    if (this._completeWhenEntity && parseInt(this._completeWhenFor, 10) > TRIGGER_FOR_MINUTES_RANGE[1]) {
+      // D#240: the backend keeps at most a day, and cut a longer hold down
+      // without a word (DRY audit 2026-10-30, X6-A2).
+      this._error = t("settings_value_out_of_range", this._lang)
+        .replace("{min}", "1")
+        .replace("{max}", formatNumber(TRIGGER_FOR_MINUTES_RANGE[1], this._lang));
+      return;
+    }
     this._loading = true;
     this._error = "";
     let next: number | undefined;
@@ -2280,7 +2288,8 @@ export class MaintenanceTaskDialog extends LitElement {
             class="complete-when-for"
             label="${t("for_at_least_minutes", L)}"
             type="number"
-            min="0"
+            min=${TRIGGER_FOR_MINUTES_RANGE[0]}
+            max=${TRIGGER_FOR_MINUTES_RANGE[1]}
             .value=${this._completeWhenFor}
             @input=${(e: Event) => (this._completeWhenFor = (e.target as HTMLInputElement).value)}
           ></ms-textfield>

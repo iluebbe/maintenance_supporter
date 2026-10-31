@@ -1303,6 +1303,11 @@ def notification_key(entry_id: str, task_id: str, status: str) -> str:
     return f"{entry_id}_{task_id}_{status}"
 
 
+# What kind of push about a task is on the phones (NotificationManager._on_phones).
+ON_PHONES_STATUS = "status"
+ON_PHONES_LEAD = "lead"
+
+
 class NotificationManager:
     """Manages maintenance notifications and reminders."""
 
@@ -1322,7 +1327,12 @@ class NotificationManager:
         self._served_today: set[str] = set()
         self._deferred_today: set[str] = set()
         self._starved: set[str] = set()
-        self._delivered_at: dict[str, datetime] = {}
+        # The tasks with a push of their own (the task's tag) on the phones,
+        # and its kind: ON_PHONES_STATUS (due soon, overdue, triggered) or
+        # ON_PHONES_LEAD (due in N days). Persisted, so the push still leaves
+        # once the task needs no doing after a reload or a restart (DRY audit
+        # 2026-10-30, BR6-A1).
+        self._on_phones: dict[str, str] = {}
         # Reminders that fell into quiet hours: key → the facts needed for the
         # one summary that goes out when the quiet hours end.
         self._quiet_held: dict[str, dict[str, Any]] = {}
@@ -1731,10 +1741,9 @@ class NotificationManager:
             parsed = _dt(value)
             if parsed is not None and parsed is not _SENT_ONCE:
                 self._snoozed_until[str(key)] = parsed
-        for key, value in (raw.get("delivered_at") or {}).items():
-            parsed = _dt(value)
-            if parsed is not None and parsed is not _SENT_ONCE:
-                self._delivered_at[str(key)] = parsed
+        on_phones = raw.get("on_phones")
+        if isinstance(on_phones, dict):
+            self._on_phones = {str(k): str(v) for k, v in on_phones.items()}
         lead = raw.get("lead_sent")
         if isinstance(lead, dict):
             self._lead_sent = {str(k): str(v) for k, v in lead.items()}
@@ -1759,7 +1768,7 @@ class NotificationManager:
         return {
             "last_notified": {k: _ser(v) for k, v in self._last_notified.items()},
             "snoozed_until": {k: v.isoformat() for k, v in self._snoozed_until.items()},
-            "delivered_at": {k: v.isoformat() for k, v in self._delivered_at.items()},
+            "on_phones": dict(self._on_phones),
             "lead_sent": dict(self._lead_sent),
             "daily_count": self._daily_count,
             "daily_reset_date": self._daily_reset_date.isoformat() if self._daily_reset_date else None,
@@ -1958,12 +1967,10 @@ class NotificationManager:
     def _mark_delivered(self, keys: list[str]) -> None:
         """Bookkeeping after a successful send: counts, served set, starvation."""
         self._daily_count += 1
-        now = dt_util.now()
         for k in keys:
             self._served_today.add(k)
             self._deferred_today.discard(k)
             self._starved.discard(k)
-            self._delivered_at[k] = now
         self._dirty()
 
     def _is_snoozed(self, key: str) -> bool:
@@ -2118,6 +2125,7 @@ class NotificationManager:
 
         self._stamp_status_sent(key, interval_hours)
         self._mark_delivered([task_key])
+        self._on_phones[task_key] = ON_PHONES_STATUS
 
         _LOGGER.debug("Notification sent: %s - %s", title, message)
 
@@ -2596,6 +2604,7 @@ class NotificationManager:
             context=context,
         ):
             self._mark_delivered([lead_task_key])
+            self._on_phones[lead_task_key] = ON_PHONES_LEAD
             # Keep only today's stamps - yesterday's are dead weight.
             self._lead_sent = {k: d for k, d in self._lead_sent.items() if d == today}
             self._lead_sent[lead_key] = today
@@ -2692,11 +2701,35 @@ class NotificationManager:
             self._last_notified[key] = _SENT_ONCE
         else:
             self._last_notified[key] = dt_util.now()
+        # Seeded as sent: the previous process's push is taken to be there.
+        self._on_phones.setdefault(tkey, ON_PHONES_STATUS)
         self._dirty()
 
     def was_reminded(self, entry_id: str, task_id: str) -> bool:
-        """Whether a reminder about the task went out in its current cycle."""
-        return any(notification_key(entry_id, task_id, status) in self._last_notified for status in NOTIFIABLE_STATUSES)
+        """Whether a reminder about the task went out in its current cycle:
+        a status reminder, or a lead-time one (due in N days), which a
+        completion left on the phones (DRY audit 2026-10-30, BR6-A3)."""
+        return task_key_of(entry_id, task_id) in self._on_phones or any(
+            notification_key(entry_id, task_id, status) in self._last_notified for status in NOTIFIABLE_STATUSES
+        )
+
+    def take_outdated_off_phones(self, entry_id: str, task_id: str, *, inert: bool) -> bool:
+        """Whether the task's push on the phones is outdated, now that its
+        status needs no reminder, and forget it: so it leaves once.
+
+        A status reminder is outdated (the sensor recovered, the task was
+        postponed). A lead-time one still says rightly that the task comes
+        up, unless the task is ``inert`` (paused, archived, disabled). Kept by
+        the manager, not the coordinator: an object reloads on every edit,
+        a pause and an archive too, and its coordinator starts with nothing
+        known, so the reminder of a paused task stayed (BR6-A1)."""
+        tkey = task_key_of(entry_id, task_id)
+        kind = self._on_phones.get(tkey)
+        if kind is None or (kind == ON_PHONES_LEAD and not inert):
+            return False
+        del self._on_phones[tkey]
+        self._dirty()
+        return True
 
     def clear_task_state(self, entry_id: str, task_id: str) -> None:
         """Clear notification state for a task (after completion/reset)."""
@@ -2712,7 +2745,23 @@ class NotificationManager:
         tkey = task_key_of(entry_id, task_id)
         self._deferred_today.discard(tkey)
         self._starved.discard(tkey)
+        self._on_phones.pop(tkey, None)
         self._dirty()
+
+    def clear_and_dismiss(self, entry_id: str, task_id: str, reminded: Mapping[str, Any]) -> None:
+        """:meth:`clear_task_state`, and a reminder of this cycle off the
+        phones of the people it went to. ``reminded`` is the task as it was
+        when it went out (before a completion hands a rotation on). The one
+        path for a task that is done or gone: a deleted task, a deleted
+        object and a buy reminder the reconcile removed only cleared the
+        bookkeeping and left the push (BR6-A2)."""
+        dismiss = self.was_reminded(entry_id, task_id)
+        self.clear_task_state(entry_id, task_id)
+        if dismiss:
+            self.hass.async_create_task(
+                self.async_dismiss_task_notification(task_id, user_ids=task_user_ids(reminded)),
+                f"{DOMAIN} dismiss reminder {task_id}",
+            )
 
     def release_waiting(self, entry_id: str, task_id: str) -> None:
         """A task that cannot notify now (postponed out of its status, muted,
@@ -2736,7 +2785,7 @@ class NotificationManager:
             self._last_notified,
             self._snoozed_until,
             self._quiet_held,
-            self._delivered_at,
+            self._on_phones,
             self._lead_sent,
         )
         for mapping in mappings:
@@ -2803,4 +2852,4 @@ class NotificationManager:
         self._served_today.clear()
         self._deferred_today.clear()
         self._starved.clear()
-        self._delivered_at.clear()
+        self._on_phones.clear()

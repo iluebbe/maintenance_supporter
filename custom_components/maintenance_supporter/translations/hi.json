@@ -2534,6 +2534,9 @@
     "part_owner_archived": {
       "message": "“{object_name}” संग्रहीत है। खरीद दर्ज करने के लिए इसे पुनर्स्थापित करें।"
     },
+    "purchase_cost_too_high": {
+      "message": "एक ख़रीद की कुल कीमत अधिकतम {max} हो सकती है।"
+    },
     "import_not_json_yaml": {
       "message": "फ़ाइल मान्य JSON या YAML नहीं है।"
     },
