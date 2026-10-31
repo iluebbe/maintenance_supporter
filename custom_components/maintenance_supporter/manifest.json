@@ -22,5 +22,5 @@
   "requirements": [
     "pypdf>=6.21.2"
   ],
-  "version": "2.113.1"
+  "version": "2.114.0"
 }
