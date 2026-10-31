@@ -306,7 +306,7 @@ async def test_the_panel_no_longer_persists_a_null_rotation(hass: HomeAssistant)
     assert_ws_success(conn)
     assert "rotation_strategy" not in _entry(hass, entry).data[CONF_TASKS][TASK]
     assert "rotation_strategy" not in cap_task_fields({"rotation_strategy": None})
-    assert cap_task_fields({"rotation_strategy": "round_robin"})["rotation_strategy"] == "round_robin"
+    assert cap_task_fields({"assignee_pool": ["u1", "u2"], "rotation_strategy": "round_robin"})["rotation_strategy"] == "round_robin"
 
 
 async def test_panel_access_saves_after_a_listed_user_left(hass: HomeAssistant) -> None:

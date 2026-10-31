@@ -184,21 +184,22 @@ async def test_the_event_carries_the_trigger_detail_only_while_triggered(hass: H
 
 
 async def test_a_shopping_list_tick_records_the_prefill_like_a_to_do_tick(hass: HomeAssistant) -> None:
-    from .conftest import TASK_ID_1, build_task_data, make_global_entry, make_object_entry, setup_integration
+    from .conftest import build_task_data, make_global_entry, make_object_entry, setup_integration
 
-    task = {**build_task_data(task_id=TASK_ID_1), "quick_complete_defaults": {"cost": 4.5, "notes": "Corner shop"}}
-    obj = make_object_entry(hass, tasks={TASK_ID_1: task})
+    sources = {"t_shop": "shopping_list", "t_todo": "todo_mirror", "t_auto": "service"}
+    tasks = {
+        tid: {**build_task_data(task_id=tid, name=tid), "quick_complete_defaults": {"cost": 4.5, "notes": "Corner shop"}}
+        for tid in sources
+    }
+    obj = make_object_entry(hass, tasks=tasks)
     await setup_integration(hass, make_global_entry(hass), obj)
-    coordinator = obj.runtime_data.coordinator
-    for source in ("shopping_list", "todo_mirror"):
-        await coordinator.complete_maintenance(TASK_ID_1, unattended=True, source=source)
+    for tid, source in sources.items():
+        await obj.runtime_data.coordinator.complete_maintenance(tid, unattended=True, source=source)
         await hass.async_block_till_done()
-        last = obj.runtime_data.store.get_history(TASK_ID_1)[-1]
-        assert (last.get("cost"), last.get("notes")) == (4.5, "Corner shop"), source
-        coordinator._recently_completed.clear()
-    await coordinator.complete_maintenance(TASK_ID_1, unattended=True, source="service")
-    await hass.async_block_till_done()
-    assert obj.runtime_data.store.get_history(TASK_ID_1)[-1].get("cost") is None, "an automation did no work"
+    history = {tid: obj.runtime_data.store.get_history(tid)[-1] for tid in sources}
+    assert (history["t_shop"].get("cost"), history["t_shop"].get("notes")) == (4.5, "Corner shop")
+    assert (history["t_todo"].get("cost"), history["t_todo"].get("notes")) == (4.5, "Corner shop")
+    assert history["t_auto"].get("cost") is None, "an automation did no work"
 
 
 # ─── BI6-A8: a replaced object hands on what sits inside it ─────────────────

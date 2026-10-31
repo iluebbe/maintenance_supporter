@@ -133,6 +133,8 @@ def test_sanitize_drops_invalid_strategy() -> None:
 
 
 def test_sanitize_keeps_valid_strategy() -> None:
-    task = {"name": "X", "rotation_strategy": "least_completed"}
+    # A rotation needs two people to rotate between (normalize_people).
+    task = {"name": "X", "assignee_pool": ["u1", "u2"], "rotation_strategy": "least_completed"}
     cap_task_fields(task)
     assert task["rotation_strategy"] == "least_completed"
+    assert "rotation_strategy" not in cap_task_fields({"name": "X", "rotation_strategy": "least_completed"})
