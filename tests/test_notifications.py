@@ -1094,6 +1094,7 @@ def test_clear_task_state() -> None:
     nm._snoozed_until = {
         "e1_t1_due_soon": dt_util.now() + timedelta(hours=1),
     }
+    nm._on_phones = {"e1_t1": "status", "e2_t2": "lead"}
 
     nm.clear_task_state("e1", "t1")
 
@@ -1105,6 +1106,8 @@ def test_clear_task_state() -> None:
     # ...and it waits for no daily-limit slot any more (bug audit 2026-09-27)
     assert nm._deferred_today == {"e2_t2"}
     assert nm._starved == set()
+    # ...and its push is no longer on the phones (DRY audit 2026-10-30).
+    assert nm._on_phones == {"e2_t2": "lead"}
 
     # Other task keys should remain
     assert "e2_t2_due_soon" in nm._last_notified
