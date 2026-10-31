@@ -281,6 +281,24 @@ def forget_removed_parent(hass: HomeAssistant, removed_entry_id: str) -> None:
             hass.config_entries.async_update_entry(other, data={**other.data, CONF_OBJECT: {**obj, "parent_entry_id": None}})
 
 
+def hand_on_children(hass: HomeAssistant, old_entry_id: str, new_entry_id: str) -> int:
+    """Move every object nested under ``old_entry_id`` under its successor
+    (object/replace, #225) and nest their devices there. The successor
+    takes the old object's place; what was inside stayed under the archived
+    one, and with it out of sight it stood on its own (DRY audit 2026-10-30,
+    BI6-A8). Returns how many moved."""
+    moved = 0
+    for other in hass.config_entries.async_entries(DOMAIN):
+        obj = other.data.get(CONF_OBJECT) or {}
+        if other.entry_id not in (old_entry_id, new_entry_id) and obj.get("parent_entry_id") == old_entry_id:
+            hass.config_entries.async_update_entry(other, data={**other.data, CONF_OBJECT: {**obj, "parent_entry_id": new_entry_id}})
+            moved += 1
+    successor = hass.config_entries.async_get_entry(new_entry_id)
+    if moved and successor is not None:
+        sync_via_device_links(hass, successor)
+    return moved
+
+
 def has_own_devices(hass: HomeAssistant, own_entry_id: str) -> bool:
     """Whether our config entry owns any device. A linked object owns none."""
     return bool(dr.async_entries_for_config_entry(dr.async_get(hass), own_entry_id))

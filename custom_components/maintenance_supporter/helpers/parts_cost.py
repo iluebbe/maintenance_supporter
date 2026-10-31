@@ -48,6 +48,7 @@ from ..parts_runtime import resolve_part_link
 from .global_options import global_option
 from .history import strict_amount
 from .parts import PART_REF_FIELD, restock_units, unit_price
+from .rounding import round2
 
 DEFAULT_PARTS_COST_MODE = "purchase"
 COST_BASIS_USE = "use"
@@ -62,9 +63,17 @@ def parts_cost_mode(hass: HomeAssistant) -> str:
     return mode if mode in PARTS_COST_MODES else DEFAULT_PARTS_COST_MODE
 
 
-def part_cost_mode(part: Any, house: str) -> str:
+def part_cost_mode(part: Any, house: str, *, owner: ConfigEntry | None = None) -> str:
     """When this part counts as spending: its own ``cost_mode`` (#222), else
-    the household's ``house`` mode (:func:`parts_cost_mode`)."""
+    the household's ``house`` mode (:func:`parts_cost_mode`).
+
+    A part the battery fleet owns (``owner``) counts when bought, whatever
+    is chosen (:func:`_bought_for_the_battery_fleet`). That rule sat in the
+    purchase branch only: a fleet cell another object took through a pool
+    link (#111) was booked when used on top of its purchase, and the paid
+    price was averaged into it (DRY audit 2026-10-30, BR6-A9)."""
+    if owner is not None and _bought_for_the_battery_fleet(owner):
+        return COST_BASIS_PURCHASE
     mode = part.get("cost_mode") if isinstance(part, Mapping) else None
     return mode if mode in PARTS_COST_MODES else house
 
@@ -102,7 +111,7 @@ def parts_value(used_parts: Any) -> float | None:
             continue
         total += unit * (qty if qty is not None else 1.0)
         priced = True
-    return round(total, 2) if priced else None
+    return round2(total) if priced else None
 
 
 def refresh_parts_cost(entry: HistoryEntry) -> None:
@@ -118,6 +127,13 @@ def _linked_part(hass: HomeAssistant, entry: ConfigEntry, link: Mapping[str, Any
     """The part a link names (pools resolved), or None."""
     _owner, part, _store = resolve_part_link(hass, entry, dict(link))
     return part if isinstance(part, dict) else None
+
+
+def _link_mode(hass: HomeAssistant, entry: ConfigEntry, link: Mapping[str, Any], house: str) -> str:
+    """When the part a link names counts (:func:`part_cost_mode`, with its
+    owner: a pool's part is judged on the object that holds it)."""
+    owner, part, _store = resolve_part_link(hass, entry, dict(link))
+    return part_cost_mode(part if isinstance(part, dict) else None, house, owner=owner)
 
 
 def link_unit_cost(hass: HomeAssistant, entry: ConfigEntry, link: Mapping[str, Any]) -> float | None:
@@ -155,7 +171,7 @@ def mark_link_bases(
         if part_id in kept:
             basis = kept[part_id]
         else:
-            counts_at_purchase = part_cost_mode(_linked_part(hass, entry, link), house) == COST_BASIS_PURCHASE
+            counts_at_purchase = _link_mode(hass, entry, link, house) == COST_BASIS_PURCHASE
             basis = COST_BASIS_PURCHASE if counts_at_purchase else None
         if booked_on_use and basis == COST_BASIS_PURCHASE:
             link["cost_basis"] = COST_BASIS_PURCHASE
@@ -187,9 +203,9 @@ def annotate_completion(
     ref = task_data.get(PART_REF_FIELD)
     if isinstance(ref, dict):
         history_entry["purchase"] = True
-        on_use = not _bought_for_the_battery_fleet(entry) and part_cost_mode(_linked_part(hass, entry, ref), house) == COST_BASIS_USE
+        on_use = _link_mode(hass, entry, ref, house) == COST_BASIS_USE
     elif links:
-        on_use = any(part_cost_mode(_linked_part(hass, entry, link), house) == COST_BASIS_USE for link in links)
+        on_use = any(_link_mode(hass, entry, link, house) == COST_BASIS_USE for link in links)
     else:
         on_use = house == COST_BASIS_USE
     if on_use:
@@ -211,7 +227,7 @@ def purchase_unit_price(part: Mapping[str, Any], cost: float, packages: float | 
     count = packages if packages and packages > 0 else strict_amount(part.get("restock_quantity")) or 1.0
     if count <= 0 or cost <= 0:
         return None
-    return round(cost / count, 2)
+    return round2(cost / count)
 
 
 def averaged_price(part: Mapping[str, Any], cost: float, packages: float | None, owned_after: float | None) -> float | None:
@@ -230,4 +246,4 @@ def averaged_price(part: Mapping[str, Any], cost: float, packages: float | None,
     before = max(0.0, (owned_after or 0.0) - bought)
     if old is None or before <= 0 or bought <= 0:
         return paid
-    return round((before * old + bought * paid) / (before + bought), 2)
+    return round2((before * old + bought * paid) / (before + bought))

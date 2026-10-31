@@ -109,8 +109,11 @@ export function partsForCompletion(
   objects: readonly PartOwner[],
   lang?: string,
 ): LinkedPart[] {
-  const own = objects.find((o) => o.entry_id === ownEntryId)?.parts || [];
-  const out: LinkedPart[] = own.map((p) => ({ ...p }));
+  const ownObject = objects.find((o) => o.entry_id === ownEntryId);
+  // The battery fleet's cells count when bought, whatever is chosen (S-6):
+  // valued as used, a pool's cell was booked twice (DRY audit 2026-10-30).
+  const fleetMode = (owner: PartOwner | undefined) => (owner?.object.battery_fleet ? { cost_mode: "purchase" as const } : {});
+  const out: LinkedPart[] = (ownObject?.parts || []).map((p) => ({ ...p, ...fleetMode(ownObject) }));
   const seen = new Set(out.map((p) => partLinkKey({ part_id: p.id })));
   for (const link of task?.consumes_parts || []) {
     if (!link.entry_id || link.entry_id === ownEntryId) continue;
@@ -128,6 +131,7 @@ export function partsForCompletion(
       cost: part?.cost ?? null,
       package_size: part?.package_size ?? null,
       cost_mode: part?.cost_mode ?? null,
+      ...fleetMode(objects.find((o) => o.entry_id === link.entry_id)),
       entry_id: link.entry_id,
       owner_name: ownerName,
     });

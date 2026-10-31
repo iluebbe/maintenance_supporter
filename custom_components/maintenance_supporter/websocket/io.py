@@ -94,6 +94,7 @@ from ..helpers.settings_sanitize import sanitize_settings_input, settings_error_
 from ..helpers.task_fields import import_due_date, import_interval_days, import_warning_days
 from ..helpers.task_origin import ORIGIN_KEY, sanitize_origin
 from ..helpers.template_usage import templates_in_use
+from ..helpers.todo_mirror import own_lists
 from ..helpers.update_state import async_version_state
 from ..helpers.user_orphans import async_prune_task_user_orphans
 from ..helpers.vacation import clean_exempt_task_ids, valid_buffer_days
@@ -1388,6 +1389,12 @@ async def ws_import_json(
                 # the same code, and nothing in between reads them (DRY audit
                 # 2026-09-26 B). The rotation seed above stays: it looks at the
                 # raw strategy, which cap_task_fields would drop first.
+                # Our own to-do lists, though, take no rows: task/create
+                # refuses them, a backup kept them (DRY audit 2026-10-30, BI6-A11).
+                mirrors = task_data.get("mirror_todo_entities")
+                if isinstance(mirrors, list) and (own := own_lists(hass, mirrors)):
+                    task_data["mirror_todo_entities"] = [e for e in mirrors if e not in own]
+                    task_warnings.append(f"{task_name}: {', '.join(own)} is a Maintenance Supporter list, not mirrored into")
 
                 # #185: notify_icon — same shape rule as the WS write paths; a
                 # malformed or empty value drops the override (type default).

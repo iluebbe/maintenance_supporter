@@ -2009,7 +2009,7 @@
         },
         "schedule": {
           "name": "Naptári ütemezés",
-          "description": "Beágyazott ismétlődés a naptári típusokhoz, pl. kind=nth_weekday, nth=1, weekday=5 az 1. szombathoz (weekday 0=hétfő ... 6=vasárnap), kind=weekdays, weekdays=[0, 3] hétfőhöz és csütörtökhöz, vagy kind=day_of_month, day=15. Elsőbbséget élvez az interval_days / schedule_type felett."
+          "description": "Beágyazott ismétlődés a naptári típusokhoz, pl. kind=nth_weekday, nth=1, weekday=5 az 1. szombathoz (weekday 0=hétfő ... 6=vasárnap), kind=weekdays, weekdays=[0, 3] hétfőhöz és csütörtökhöz, vagy kind=day_of_month, day=15. Elsőbbséget élvez az interval_days felett. A time_based-től eltérő schedule_type elutasításra kerül."
         },
         "warning_days": {
           "name": "Figyelmeztetés (nap)",
@@ -2075,7 +2075,7 @@
         },
         "schedule": {
           "name": "Ütemezés (naptári ismétlődés)",
-          "description": "Beágyazott ismétlődési objektum a naptári típusokhoz, pl. kind=day_of_month, day=-1, business=true. Elsőbbséget élvez a sima mezők felett."
+          "description": "Beágyazott ismétlődési objektum a naptári típusokhoz, pl. kind=day_of_month, day=-1, business=true. Elsőbbséget élvez a sima mezők felett. A time_based-től eltérő schedule_type elutasításra kerül."
         },
         "warning_days": {
           "name": "Figyelmeztetési napok",

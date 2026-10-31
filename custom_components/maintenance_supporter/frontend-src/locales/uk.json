@@ -260,6 +260,7 @@
   "task_mirror_todo_default": "Списки за замовчуванням: {lists}",
   "task_mirror_todo_own": "Інші списки",
   "task_mirror_todo_none": "У жодному списку справ",
+  "task_mirror_todo_max": "Не більше {max} списків; власні списки Maintenance Supporter не пропонуються.",
   "priority_low": "Низький",
   "priority_normal": "Звичайний",
   "priority_high": "Високий",

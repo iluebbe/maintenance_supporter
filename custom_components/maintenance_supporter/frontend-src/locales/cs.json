@@ -260,6 +260,7 @@
   "task_mirror_todo_default": "Výchozí seznamy: {lists}",
   "task_mirror_todo_own": "Jiné seznamy",
   "task_mirror_todo_none": "V žádném seznamu úkolů",
+  "task_mirror_todo_max": "Nejvýše {max} seznamů; vlastní seznamy Maintenance Supporter se nenabízejí.",
   "priority_low": "Nízká",
   "priority_normal": "Normální",
   "priority_high": "Vysoká",

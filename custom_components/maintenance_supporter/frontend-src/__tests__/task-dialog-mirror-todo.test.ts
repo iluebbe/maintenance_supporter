@@ -51,7 +51,10 @@ describe("task-dialog to-do mirror field (D#183)", () => {
     expect(form, "ha-form picker rendered").to.exist;
     expect(form.schema[0].selector.entity.domain).to.deep.equal(["todo"]);
     expect(form.schema[0].selector.entity.multiple).to.be.true;
-    expect(field!.querySelector(".field-help")!.textContent).to.contain("completes it here");
+    const help = [...field!.querySelectorAll(".field-help")].map((n) => n.textContent || "").join(" ");
+    expect(help).to.contain("completes it here");
+    // DRY audit 2026-10-30, X6-A3: the cap and our own lists are said.
+    expect(field!.querySelector(".mirror-todo-max")!.textContent).to.contain("At most 5 lists");
 
     form.dispatchEvent(new CustomEvent("value-changed", {
       bubbles: true, composed: true, detail: { value: { mirror_todo_entities: ["todo.family", ""] } },
@@ -75,6 +78,21 @@ describe("task-dialog to-do mirror field (D#183)", () => {
     await (el as any)._save();
     const msg = sent.find((m) => m.type === "maintenance_supporter/task/create") as any;
     expect(msg.mirror_todo_entities).to.deep.equal([]);
+  });
+
+  it("keeps out our own list and stops at five, as Settings does (DRY audit 2026-10-30, X6-A3)", async () => {
+    const { el } = await mountDialog();
+    (el as any).hass = { ...(el as any).hass, entities: { "todo.maintenance": { platform: "maintenance_supporter" }, "todo.family": { platform: "local_todo" } } };
+    await el.openCreate("e");
+    await el.updateComplete;
+    const form = el.shadowRoot!.querySelector(".mirror-todo-field ha-form") as any;
+    expect(form.schema[0].selector.entity.exclude_entities).to.deep.equal(["todo.maintenance"]);
+    form.dispatchEvent(new CustomEvent("value-changed", {
+      bubbles: true, composed: true,
+      detail: { value: { mirror_todo_entities: ["todo.maintenance", "todo.a", "todo.b", "todo.c", "todo.d", "todo.e", "todo.f"] } },
+    }));
+    await el.updateComplete;
+    expect((el as any)._mirrorTodoEntities).to.deep.equal(["todo.a", "todo.b", "todo.c", "todo.d", "todo.e"]);
   });
 
   it("falls back to a comma-separated text field when the picker context is broken", async () => {

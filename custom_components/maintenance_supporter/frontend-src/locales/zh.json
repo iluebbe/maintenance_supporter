@@ -262,6 +262,7 @@
   "task_mirror_todo_default": "默认清单：{lists}",
   "task_mirror_todo_own": "其他清单",
   "task_mirror_todo_none": "不在任何待办清单中",
+  "task_mirror_todo_max": "最多 {max} 个列表；不提供 Maintenance Supporter 自己的列表。",
   "priority_low": "低",
   "priority_normal": "普通",
   "priority_high": "高",

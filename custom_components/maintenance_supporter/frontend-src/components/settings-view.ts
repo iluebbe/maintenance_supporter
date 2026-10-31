@@ -23,6 +23,7 @@ import { DOCS_ARCHIVE_MAX_BYTES, postMultipart } from "../helpers/photo-upload";
 import { countryName, detectionReasons, dwellingLabel, type HomeProfile } from "../helpers/home-profile";
 import { vacationPhase } from "../helpers/vacation-phase";
 import { quickCompleteOn } from "../helpers/quick-complete";
+import { MAX_MIRROR_TODO_LISTS, isOwnTodoList } from "../helpers/mirror-lists";
 import "./ms-date-field";
 
 /** One household member and the notify services they actually resolve to.
@@ -185,10 +186,6 @@ const CURRENCIES = [
 
 /** The currency_decimals <select> options — derived from the registry range
  *  (0..3), not a literal list. */
-// #231: the default lists are capped like a task's own — keep in lockstep with
-// const.MAX_MIRROR_TODO_LISTS (tests/test_frontend_const_parity.py).
-const MAX_MIRROR_TODO_LISTS = 5;
-
 const CURRENCY_DECIMAL_OPTIONS: readonly number[] = (([lo, hi]) =>
   Array.from({ length: hi - lo + 1 }, (_, i) => lo + i))(SETTING_INT_RANGES.currency_decimals);
 
@@ -1200,7 +1197,7 @@ export class MaintenanceSettingsView extends LitElement {
    *  one checkbox per list (not our own Maintenance list, which takes no
    *  rows), at most as many as a task may name. */
   private _renderMirrorTodoDefault(L: string, picked: string[]) {
-    const lists = this._todoEntities("").filter((id) => this.hass?.entities?.[id]?.platform !== "maintenance_supporter");
+    const lists = this._todoEntities("").filter((id) => !isOwnTodoList(this.hass, id));
     for (const id of [...picked].reverse()) if (!lists.includes(id)) lists.unshift(id);
     const full = picked.length >= MAX_MIRROR_TODO_LISTS;
     const toggle = (id: string, on: boolean): void => {

@@ -32,7 +32,7 @@ from __future__ import annotations
 import logging
 import re
 from collections import OrderedDict
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Any, cast
@@ -308,6 +308,7 @@ def build_overview(
     horizon_days: int = DEFAULT_HORIZON_DAYS,
     trend_predictions: dict[str, tuple[int, str]] | None = None,
     lifetime_for: Callable[[Battery], LifetimeInfo] | None = None,
+    held: Mapping[str, str | None] | None = None,
 ) -> BatteryOverview:
     """Aggregate batteries into the fleet view.
 
@@ -328,6 +329,12 @@ def build_overview(
       rechargeable means "charge it", not "buy one".
     * ``all`` = every battery with its status, so a healthy device can be
       excluded BEFORE it ever becomes noisy.
+
+    ``held``: the cells each battery holds (:func:`held_cells`, D#213), which
+    decide its type, whether it is charged or bought, and its forecast. Only
+    the auto-record asked, so a note naming disposables on a device that
+    runs on NiMH cells was on the shopping list (DRY audit 2026-10-30,
+    BR6-A4). Without it, the note's type.
     """
     ov = BatteryOverview(total=len(batteries))
     types_seen: OrderedDict[str, None] = OrderedDict()
@@ -336,14 +343,15 @@ def build_overview(
         # ONE normalisation for grouping, part ids and the lifetime table
         # (DRY audit 2026-09): before, grouping only upper-cased, so an LR6
         # note minted its own part/chip while the forecast read it as AA.
-        t = canonical_type(bat.battery_type)
+        kind = (held or {}).get(bat.entity_id) or bat.battery_type
+        t = canonical_type(kind)
         types_seen[t] = None
-        rechargeable = is_rechargeable_type(bat.battery_type)
+        rechargeable = is_rechargeable_type(kind)
         # The shopping groupings list only types a part can stand behind —
         # the same predicate discover_battery_types mints parts by (a low
         # "UNKNOWN" / "Manual" battery used to land in needs_now with no
         # part to buy).
-        shoppable = is_shoppable_type(bat.battery_type)
+        shoppable = is_shoppable_type(kind)
         # Blend (#114 follow-up): the DISCHARGE TREND wins where the recorder
         # data supports it (medium/high confidence, filtered upstream) — it is
         # device-specific and usage-aware; the type's typical lifetime is the
@@ -353,14 +361,14 @@ def build_overview(
         # "replace the vacuum's pack" dated from the day the device was added),
         # so they get a ~date only when the trend has earned one.
         trend = (trend_predictions or {}).get(bat.entity_id)
-        info = lifetime_for(bat) if lifetime_for else LifetimeInfo(lifetime_months(bat.battery_type), "table")
+        info = lifetime_for(bat) if lifetime_for else LifetimeInfo(lifetime_months(kind), "table")
         if trend is not None:
             days_raw: int | None = trend[0]
             source, confidence = "trend", trend[1]
         else:
             # No type lifetime for rechargeables (the table describes primary
             # cells) nor for "Manual" / "Irreplaceable" / "Solar" notes.
-            pred = None if rechargeable or not has_type_forecast(bat.battery_type) else _predicted_date(bat, info.months)
+            pred = None if rechargeable or not has_type_forecast(kind) else _predicted_date(bat, info.months)
             days_raw = (pred - today).days if pred is not None else None
             source, confidence = "typical", None
         # B1 (decided 2026-08): a PASSED prediction while the battery is not
@@ -865,6 +873,15 @@ def _auto_record_inflight(hass: HomeAssistant) -> set[str]:
     return inflight
 
 
+def held_cells(hass: HomeAssistant, batteries: list[Battery]) -> dict[str, str | None]:
+    """The cells each Battery Notes battery holds (D#213,
+    :func:`battery_fleet_setup.held_cell_types`): the auto-record, the
+    overview and the swap detector judge a battery by them."""
+    from .battery_fleet_setup import held_cell_types
+
+    return held_cell_types(hass, [b for b in batteries if b.source == "battery_notes"])
+
+
 def _schedule_auto_record(hass: HomeAssistant, batteries: list[Battery]) -> int:
     """Schedule the auto-record for batteries just released by their level.
     Returns how many were scheduled: a native row has no Battery Notes note
@@ -874,10 +891,8 @@ def _schedule_auto_record(hass: HomeAssistant, batteries: list[Battery]) -> int:
     the last Replaced while the fleet asks), not by the note: an "AA NiMH"
     note running on disposables recovered by a swap that was never recorded
     (S-12)."""
-    from .battery_fleet_setup import held_cell_types
-
     inflight = _auto_record_inflight(hass)
-    held = held_cell_types(hass, [b for b in batteries if b.source == "battery_notes"])
+    held = held_cells(hass, batteries)
     scheduled = 0
     for bat in batteries:
         if bat.source != "battery_notes":
@@ -1536,7 +1551,9 @@ def compute_overview(hass: HomeAssistant, *, horizon_days: int = DEFAULT_HORIZON
     today = dt_util.now().date()
     batteries = read_batteries(hass)
     observe_replacements(hass, batteries)
-    return build_overview(batteries, today=today, horizon_days=horizon_days, lifetime_for=lifetime_resolver(hass))
+    return build_overview(
+        batteries, today=today, horizon_days=horizon_days, lifetime_for=lifetime_resolver(hass), held=held_cells(hass, batteries)
+    )
 
 
 # ── discharge-trend forecast (#114 follow-up) ───────────────────────────────
@@ -1614,7 +1631,12 @@ async def async_compute_overview(hass: HomeAssistant, *, horizon_days: int = DEF
     observe_replacements(hass, batteries)
     trends = await async_trend_predictions(hass, batteries)
     return build_overview(
-        batteries, today=dt_util.now().date(), horizon_days=horizon_days, trend_predictions=trends, lifetime_for=lifetime_resolver(hass)
+        batteries,
+        today=dt_util.now().date(),
+        horizon_days=horizon_days,
+        trend_predictions=trends,
+        lifetime_for=lifetime_resolver(hass),
+        held=held_cells(hass, batteries),
     )
 
 
@@ -1716,6 +1738,7 @@ async def async_level_history(hass: HomeAssistant, batteries: list[Battery]) -> 
     predictor = SensorPredictor(hass)
     out: dict[str, dict[str, Any]] = {}
     recovered = float(get_battery_recovered_percent(hass))
+    held = held_cells(hass, batteries)
 
     for bat in batteries:
         if bat.no_sensor or (bat.level is None and not bat.low):
@@ -1738,7 +1761,7 @@ async def async_level_history(hass: HomeAssistant, batteries: list[Battery]) -> 
                 "threshold": bat.low_threshold,
             }
             jump = _detect_unrecorded_jump(
-                points, bat.last_replaced, rechargeable=is_rechargeable_type(bat.battery_type), recovered=recovered
+                points, bat.last_replaced, rechargeable=is_rechargeable_type(held.get(bat.entity_id) or bat.battery_type), recovered=recovered
             )
             if jump is not None:
                 # The Battery Notes service that records a replacement takes

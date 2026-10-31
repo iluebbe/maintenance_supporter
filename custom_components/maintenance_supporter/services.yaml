@@ -234,8 +234,8 @@ add_task:
         Nested recurrence for the calendar kinds, e.g. {"kind": "nth_weekday",
         "nth": 1, "weekday": 5} for the 1st Saturday (weekday 0=Mon … 6=Sun),
         {"kind": "weekdays", "weekdays": [0, 3]} for Mon & Thu, or {"kind":
-        "day_of_month", "day": 15}. Takes precedence over interval_days /
-        schedule_type.
+        "day_of_month", "day": 15}. Takes precedence over interval_days. A
+        schedule_type other than time_based is refused.
       selector:
         object:
     warning_days:
@@ -334,7 +334,7 @@ update_task:
         date:
     schedule:
       name: Schedule (calendar recurrence)
-      description: "Nested recurrence object for the calendar kinds, e.g. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Takes precedence over the flat fields."
+      description: "Nested recurrence object for the calendar kinds, e.g. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Takes precedence over the flat fields. A schedule_type other than time_based is refused."
       selector:
         object:
     warning_days:
@@ -483,7 +483,7 @@ part_use:
       description: How many were used, in the part's unit. One when left out.
       selector:
         number:
-          min: 0
+          min: 0.01
           max: 100000
           step: any
           mode: box
@@ -506,7 +506,7 @@ part_purchase:
       description: "How many were bought: packages when the part has a package size, else units. The part's restock amount when left out."
       selector:
         number:
-          min: 0
+          min: 0.01
           max: 100000
           step: any
           mode: box

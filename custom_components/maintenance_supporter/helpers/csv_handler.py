@@ -21,7 +21,6 @@ from ..const import (
     CONF_OBJECT_REMIND_ON_SITE,
     DEFAULT_TASK_PRIORITY,
     DEFAULT_WARNING_DAYS,
-    ROTATION_STRATEGIES,
 )
 from ..export import object_entries
 from ..models.task_result import TaskResult
@@ -30,7 +29,7 @@ from .dates import INTERVAL_UNITS, import_day, normalize_hhmm, parse_iso_date
 from .global_options import get_default_warning_days
 from .pause import pause_end_day, write_anchor
 from .reading_slots import parse_reading_slots_text, reading_slots_text
-from .sanitize import sanitize_assignee_pool, seed_rotation_assignee
+from .sanitize import normalize_people
 from .schedule import Schedule, read_legacy_fields
 from .task_fields import import_due_date, import_interval_days, import_warning_days
 
@@ -47,6 +46,10 @@ _COLUMNS = [
     "object_entry_id",
     "object_archived_at",
     "object_predecessor_entry_id",
+    # #225: the object it sits inside, by its source entry id (remapped like
+    # the predecessor); a CSV round trip set every object on its own (DRY
+    # audit 2026-10-30, BI6-A7).
+    "object_parent_entry_id",
     "object_name",
     "object_manufacturer",
     "object_model",
@@ -143,6 +146,7 @@ def export_objects_csv(hass: HomeAssistant, entry_ids: set[str] | None = None) -
             "object_entry_id": entry.entry_id,
             "object_archived_at": _csv_safe(str(obj_data.get("archived_at") or "")),
             "object_predecessor_entry_id": _csv_safe(str(obj_data.get("predecessor_entry_id") or "")),
+            "object_parent_entry_id": _csv_safe(str(obj_data.get("parent_entry_id") or "")),
             "object_name": _csv_safe(obj_data.get("name", "")),
             "object_manufacturer": _csv_safe(obj_data.get("manufacturer", "")),
             "object_model": _csv_safe(obj_data.get("model", "")),
@@ -316,6 +320,7 @@ def import_objects_csv(
         if group not in objects_map:
             archived_at = (row.get("object_archived_at") or "").strip().lstrip("\t")
             predecessor = (row.get("object_predecessor_entry_id") or "").strip()
+            parent = (row.get("object_parent_entry_id") or "").strip()
             obj_warnings: list[str] = []
             objects_map[group] = {
                 "entry_id": source_id or None,
@@ -342,6 +347,7 @@ def import_objects_csv(
                     CONF_OBJECT_REMIND_ON_SITE: (row.get("object_remind_on_site") or "").strip().lower() == "true",
                     "archived_at": archived_at if _is_iso_moment(archived_at) else None,
                     "predecessor_entry_id": predecessor or None,
+                    "parent_entry_id": parent or None,
                     "task_ids": [],
                 },
                 "tasks": {},
@@ -448,12 +454,9 @@ def import_objects_csv(
         resp_user = (row.get("responsible_user_id") or "").strip()
         if resp_user:
             task_data["responsible_user_id"] = resp_user
-        if pool := sanitize_assignee_pool((row.get("assignee_pool") or "").splitlines()):
-            task_data["assignee_pool"] = pool
-            rotation = (row.get("rotation_strategy") or "").strip()
-            if rotation in ROTATION_STRATEGIES and len(pool) >= 2:
-                task_data["rotation_strategy"] = rotation
-                seed_rotation_assignee(task_data)
+        task_data["assignee_pool"] = (row.get("assignee_pool") or "").splitlines()
+        task_data["rotation_strategy"] = (row.get("rotation_strategy") or "").strip()
+        normalize_people(task_data)
 
         # #134 audit: priority (closed set) + labels ("\n" cell like checklist).
         priority = (row.get("priority") or "").strip().lower()

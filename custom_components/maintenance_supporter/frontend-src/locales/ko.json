@@ -262,6 +262,7 @@
   "task_mirror_todo_default": "기본 목록: {lists}",
   "task_mirror_todo_own": "다른 목록",
   "task_mirror_todo_none": "할 일 목록에 넣지 않음",
+  "task_mirror_todo_max": "최대 {max}개 목록. Maintenance Supporter 자체 목록은 표시되지 않습니다.",
   "priority_low": "낮음",
   "priority_normal": "보통",
   "priority_high": "높음",

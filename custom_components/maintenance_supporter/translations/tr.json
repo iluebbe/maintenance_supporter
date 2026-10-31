@@ -2009,7 +2009,7 @@
         },
         "schedule": {
           "name": "Takvim zamanlaması",
-          "description": "Takvim türleri için iç içe tekrar nesnesi, örn. 1. Cumartesi için kind=nth_weekday, nth=1, weekday=5 (weekday 0=Pzt ... 6=Paz), Pzt ve Per için kind=weekdays, weekdays=[0, 3] veya kind=day_of_month, day=15. interval_days / schedule_type üzerinde önceliklidir."
+          "description": "Takvim türleri için iç içe tekrar nesnesi, örn. 1. Cumartesi için kind=nth_weekday, nth=1, weekday=5 (weekday 0=Pzt ... 6=Paz), Pzt ve Per için kind=weekdays, weekdays=[0, 3] veya kind=day_of_month, day=15. interval_days üzerinde önceliklidir. time_based dışındaki bir schedule_type reddedilir."
         },
         "warning_days": {
           "name": "Uyarı (gün)",
@@ -2075,7 +2075,7 @@
         },
         "schedule": {
           "name": "Zamanlama (takvim tekrarı)",
-          "description": "Takvim türleri için iç içe tekrar nesnesi, örn. kind=day_of_month, day=-1, business=true. Düz alanlar üzerinde önceliklidir."
+          "description": "Takvim türleri için iç içe tekrar nesnesi, örn. kind=day_of_month, day=-1, business=true. Düz alanlar üzerinde önceliklidir. time_based dışındaki bir schedule_type reddedilir."
         },
         "warning_days": {
           "name": "Uyarı günleri",

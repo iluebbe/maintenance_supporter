@@ -41,6 +41,7 @@ from ..const import (
     CONF_TASKS,
     EVENT_NOTIFICATION,
     GLOBAL_UNIQUE_ID,
+    MaintenanceStatus,
 )
 from ..models.maintenance_task import MaintenanceTask
 from .aggregate import task_sensor_entity_id
@@ -147,7 +148,7 @@ def notification_context(
     # A bundle's tasks carry the same per-task facts as a single reminder
     # (#178): labels, notes, priority, refs - the caller's own fields win.
     task_items = [
-        {**(_task_block(hass, entry, obj, str(t.get("task_id"))) if entry is not None and t.get("task_id") else {}), **t}
+        _gate_detail({**(_task_block(hass, entry, obj, str(t.get("task_id"))) if entry is not None and t.get("task_id") else {}), **t})
         for t in (tasks or [])
     ]
     return {
@@ -176,7 +177,7 @@ def notification_context(
         "responsible_user_id": responsible_user_id,
         "sensor_entity_id": task.get("sensor_entity_id"),
         "trigger_entity_id": task.get("trigger_entity_id"),
-        "trigger_detail": task.get("trigger_detail"),
+        "trigger_detail": task.get("trigger_detail") if status == MaintenanceStatus.TRIGGERED else None,
         "url": url,
         "tasks": task_items,
         **extra,
@@ -244,6 +245,16 @@ def _area_name(hass: HomeAssistant, area_id: str | None) -> str | None:
 
     area = ar.async_get(hass).async_get_area(area_id)
     return area.name if area is not None else None
+
+
+def _gate_detail(item: dict[str, Any]) -> dict[str, Any]:
+    """#228: the trigger detail says what a TRIGGERED task is about, so it
+    rides only on a reminder of that status, as the push's own text and the
+    panel have it. The event carried it for every kind and status, also
+    when the trigger was not active (DRY audit 2026-10-30, BR6-A5)."""
+    if item.get("status") != MaintenanceStatus.TRIGGERED:
+        item["trigger_detail"] = None
+    return item
 
 
 def _task_block(hass: HomeAssistant, entry: Any, obj: Mapping[str, Any], task_id: str) -> dict[str, Any]:

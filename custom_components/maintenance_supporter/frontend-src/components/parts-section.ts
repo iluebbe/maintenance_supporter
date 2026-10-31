@@ -299,7 +299,7 @@ export class MaintenancePartsSection extends LitElement {
       .hass=${this.hass}
       .entryId=${this.entryId}
       .sparePart=${part}
-      ?notBooked=${!this.fleet && partCostMode(part, this.partsCostMode) === "use"}
+      ?notBooked=${partCostMode(part, this.partsCostMode, this.fleet) === "use"}
       @part-used=${(e: CustomEvent<PartUsedDetail>) => this._onUsed(part, e.detail)}
     ></ms-part-use>`;
   }
@@ -320,7 +320,7 @@ export class MaintenancePartsSection extends LitElement {
       .entryId=${this.entryId}
       .sparePart=${part}
       .currencySymbol=${this.currencySymbol}
-      ?onUse=${!this.fleet && partCostMode(part, this.partsCostMode) === "use"}
+      ?onUse=${partCostMode(part, this.partsCostMode, this.fleet) === "use"}
       @part-bought=${(e: CustomEvent<PartBoughtDetail>) => this._onBought(part, e.detail)}
     ></ms-part-purchase>`;
   }

@@ -28,7 +28,7 @@ from ..helpers.problem_sensors import (
     pop_stashed_config,
     sensor_covered_by,
 )
-from ..helpers.sanitize import sanitize_assignee_pool, seed_rotation_assignee
+from ..helpers.sanitize import normalize_people
 from ..helpers.shared_parts import foreign_part_resolver
 from ..helpers.task_origin import ORIGIN_KEY, problem_sensor_origin
 from . import ID_FIELD
@@ -202,8 +202,6 @@ async def ws_adopt_problem_sensors(
                 for field in ("notes", "responsible_user_id", "assignee_pool", "rotation_strategy", "priority", "labels"):
                     if stashed.get(field):
                         task_data[field] = stashed[field]
-                if "assignee_pool" in task_data:
-                    task_data["assignee_pool"] = sanitize_assignee_pool(task_data["assignee_pool"])
                 # An explicit dialog pick wins over the stashed responsible user;
                 # a rotation keeps someone of its pool on duty.
                 if sel.get("responsible_user_id"):
@@ -213,7 +211,7 @@ async def ws_adopt_problem_sensors(
                 # an unknown assignee (bug audit 2026-10-16, W8).
                 if task_data.get("responsible_user_id") and await hass.auth.async_get_user(task_data["responsible_user_id"]) is None:
                     task_data.pop("responsible_user_id")
-                seed_rotation_assignee(task_data)
+                normalize_people(task_data)
                 # Link the suggested spare part — or, absent one, the stashed link —
                 # validated against the target object's parts (an unknown id is
                 # silently dropped, same as the task-CRUD path).

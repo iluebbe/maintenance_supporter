@@ -260,6 +260,7 @@
   "task_mirror_todo_default": "Списки по умолчанию: {lists}",
   "task_mirror_todo_own": "Другие списки",
   "task_mirror_todo_none": "Ни в одном списке дел",
+  "task_mirror_todo_max": "Не более {max} списков; собственные списки Maintenance Supporter не предлагаются.",
   "priority_low": "Низкий",
   "priority_normal": "Обычный",
   "priority_high": "Высокий",

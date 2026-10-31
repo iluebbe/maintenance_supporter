@@ -345,6 +345,13 @@ COMPLETION_SOURCES = (
     "auto_entity",
 )
 COMPLETION_SOURCES_AUTOMATIC = frozenset({"shopping_list", "service", "auto_recovery", "auto_entity"})
+# The completions no person made at all (an automation, a sensor that
+# recovered, the done-when entity): they record no Quick-complete prefill
+# (#233). A tick on the shopping list is a person's, though it reaches the
+# household as news like an automatic one; it took the automatic set and no
+# prefill, while a tick on a mirrored to-do list had both (DRY audit
+# 2026-10-30, BR6-A6).
+COMPLETION_SOURCES_UNMANNED = frozenset({"service", "auto_recovery", "auto_entity"})
 # The canned history note an UNATTENDED surface attaches (nobody was asked
 # for one) — provenance, never the note a task demands. One table, so the
 # wording lives once; tests/test_completion_sources.py keeps it complete.

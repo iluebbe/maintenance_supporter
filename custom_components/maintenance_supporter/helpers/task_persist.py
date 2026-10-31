@@ -41,7 +41,7 @@ from .global_options import (
 )
 from .issues import async_purge_task_issues
 from .parts import PART_REF_FIELD, map_part_links
-from .sanitize import cap_task_fields, sanitize_assignee_pool, seed_rotation_assignee
+from .sanitize import cap_task_fields, normalize_people, sanitize_assignee_pool
 from .schedule import (
     KIND_INTERVAL,
     KIND_MANUAL,
@@ -236,9 +236,11 @@ def _apply_people(task: dict[str, Any], people: Mapping[str, Any]) -> None:
 
     Each of ``responsible_user_id``, ``assignee_pool`` and
     ``rotation_strategy`` is left alone when None, cleared when empty (a
-    user id is never empty) and set otherwise. A rotation needs two people
-    to rotate between, and then always has one of them on duty, as the
-    task dialog keeps it (:func:`seed_rotation_assignee`).
+    user id is never empty) and set otherwise; :func:`normalize_people` then
+    leaves the stored shape. A rotation the call asks for needs two people
+    to rotate between and is refused without them; a ``shared_with`` emptied
+    under a rotation clears the rotation too, as the action's text promises
+    (the refusal hit that as well, DRY audit 2026-10-30, BI6-A4).
     """
     ruid = people.get("responsible_user_id")
     if ruid is not None:
@@ -260,9 +262,9 @@ def _apply_people(task: dict[str, Any], people: Mapping[str, Any]) -> None:
             task.pop("rotation_strategy", None)
     if pool is None and rotation is None:
         return
-    if task.get("rotation_strategy") and len(task.get("assignee_pool") or []) < 2:
+    if rotation and len(sanitize_assignee_pool(task.get("assignee_pool"))) < 2:
         raise ValueError("A rotation needs at least two people under shared_with")
-    seed_rotation_assignee(task)
+    normalize_people(task)
 
 
 _UPDATABLE_FLAT_FIELDS = (

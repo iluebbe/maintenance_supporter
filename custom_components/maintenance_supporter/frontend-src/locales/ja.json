@@ -262,6 +262,7 @@
   "task_mirror_todo_default": "既定のリスト：{lists}",
   "task_mirror_todo_own": "ほかのリスト",
   "task_mirror_todo_none": "どのToDoリストにも載せない",
+  "task_mirror_todo_max": "最大 {max} 件のリスト。Maintenance Supporter 自身のリストは表示されません。",
   "priority_low": "低",
   "priority_normal": "標準",
   "priority_high": "高",

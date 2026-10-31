@@ -260,6 +260,7 @@
   "task_mirror_todo_default": "Standardlistor: {lists}",
   "task_mirror_todo_own": "Andra listor",
   "task_mirror_todo_none": "I ingen att-göra-lista",
+  "task_mirror_todo_max": "Högst {max} listor; Maintenance Supporters egna listor erbjuds inte.",
   "priority_low": "Låg",
   "priority_normal": "Normal",
   "priority_high": "Hög",

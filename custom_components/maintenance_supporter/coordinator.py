@@ -26,7 +26,7 @@ from .const import (
     BATTERY_FLEET_TASK_FLAG,
     BUDGET_CACHE_KEY,
     BUDGET_CURRENCIES,
-    COMPLETION_SOURCES_AUTOMATIC,
+    COMPLETION_SOURCES_UNMANNED,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_CURRENCY,
@@ -1325,7 +1325,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         completed_by, completed_via = credited_user(self.hass, merged[task_id], completed_by)
         prefill = (
             quick_complete_values(merged[task_id])
-            if not auto and (quick or (unattended and (source or "") not in COMPLETION_SOURCES_AUTOMATIC))
+            if not auto and (quick or (unattended and (source or "") not in COMPLETION_SOURCES_UNMANNED))
             else {}
         )
         if prefill.get("notes"):
@@ -2025,7 +2025,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         ref = task_data.get(PART_REF_FIELD)
         parts = dict(self.entry.data.get(CONF_PARTS) or {})
         part = parts.get(ref.get("part_id")) if isinstance(ref, dict) else None
-        if not isinstance(part, dict) or part_cost_mode(part, parts_cost_mode(self.hass)) != COST_BASIS_USE:
+        if not isinstance(part, dict) or part_cost_mode(part, parts_cost_mode(self.hass), owner=self.entry) != COST_BASIS_USE:
             return
         owned = on_hand(part, self._store.get_part_stock(part["id"]), self._store.get_part_restoring(part["id"]))
         price = averaged_price(part, cost, packages, owned)

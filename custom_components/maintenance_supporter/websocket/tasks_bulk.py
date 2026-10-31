@@ -23,7 +23,7 @@ from ..helpers.aggregate import is_object_entry
 from ..helpers.completion_requirements import quick_complete_on
 from ..helpers.entry_tasks import write_tasks
 from ..helpers.permissions import require_write
-from ..helpers.sanitize import cap_quick_complete_defaults_field, sanitize_assignee_pool, sanitize_labels, seed_rotation_assignee
+from ..helpers.sanitize import cap_quick_complete_defaults_field, normalize_people, sanitize_labels
 from . import ID_FIELD
 from .tasks_crud import _TASK_FIELDS
 
@@ -82,16 +82,9 @@ def apply_bulk_changes(task: dict[str, Any], changes: dict[str, Any]) -> tuple[d
             else:
                 out[key] = changes[key]
     if "assignee_pool" in changes:
-        pool = sanitize_assignee_pool(changes["assignee_pool"] or [])
-        if pool:
-            out["assignee_pool"] = pool
-        else:
-            out.pop("assignee_pool", None)
+        out["assignee_pool"] = changes["assignee_pool"] or []
     if "rotation_strategy" in changes:
-        if changes["rotation_strategy"]:
-            out["rotation_strategy"] = changes["rotation_strategy"]
-        else:
-            out.pop("rotation_strategy", None)
+        out["rotation_strategy"] = changes["rotation_strategy"]
     if "labels" in changes:
         out["labels"] = sanitize_labels(changes["labels"] or [])
     if "labels_add" in changes or "labels_remove" in changes:
@@ -113,7 +106,7 @@ def apply_bulk_changes(task: dict[str, Any], changes: dict[str, Any]) -> tuple[d
             out.pop("quick_complete_defaults", None)
         elif not quick_complete_on(out):
             out["quick_complete_defaults"] = {}
-    seed_rotation_assignee(out)
+    normalize_people(out)
     return out, previous
 
 

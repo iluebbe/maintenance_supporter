@@ -260,6 +260,7 @@
   "task_mirror_todo_default": "Standaardlijsten: {lists}",
   "task_mirror_todo_own": "Andere lijsten",
   "task_mirror_todo_none": "Op geen enkele takenlijst",
+  "task_mirror_todo_max": "Hoogstens {max} lijsten; de eigen lijsten van Maintenance Supporter worden niet aangeboden.",
   "priority_low": "Laag",
   "priority_normal": "Normaal",
   "priority_high": "Hoog",

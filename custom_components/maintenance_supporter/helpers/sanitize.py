@@ -300,22 +300,12 @@ def cap_task_fields(task_data: dict[str, Any], *, keep_action_owner: bool = Fals
         else:
             task_data.pop("complete_when", None)
 
-    if task_data.get("assignee_pool") is not None:
-        task_data["assignee_pool"] = sanitize_assignee_pool(task_data["assignee_pool"])
-
-    # Absence means "no rotation": a stored None / "" (the panel dialog sends
-    # null for "none") is dropped too — as a select default it made the
-    # options-flow task form unsaveable (bug audit 2026-09-26).
-    if "rotation_strategy" in task_data:
-        if task_data["rotation_strategy"] not in ROTATION_STRATEGIES:
-            task_data.pop("rotation_strategy", None)
+    normalize_people(task_data)
 
     if task_data.get("required_completion_fields") is not None:
         task_data["required_completion_fields"] = sanitize_required_completion_fields(
             task_data["required_completion_fields"]
         )
-
-    seed_rotation_assignee(task_data)
 
     # v1.3.0: per-task on_complete_action — embedded HA service-call config.
     # Strict shape: {service: "domain.name", target?: dict, data?: dict}.
@@ -432,6 +422,41 @@ def seed_rotation_assignee(task_data: dict[str, Any]) -> None:
         return
     if current not in pool:
         task_data["responsible_user_id"] = pool[0]
+
+
+def normalize_people(task_data: dict[str, Any]) -> None:
+    """Who a task is for, in the one shape every write leaves it (in place).
+
+    * ``assignee_pool`` (*Shared with*, #232) is cleaned; an empty one is
+      absent, not ``[]``.
+    * ``rotation_strategy`` is one of the strategies or absent: a None or
+      ``""`` (the panel dialog sends null for "none") is dropped too, as a
+      select default it made the options-flow task form unsaveable (bug
+      audit 2026-09-26).
+    * A rotation has one of its people on duty
+      (:func:`seed_rotation_assignee`), and needs two people to rotate
+      between: with fewer it is absent.
+
+    The WebSocket writes, the options flow, the adoption of a problem
+    sensor, the imports and the services each had their own version: the
+    services refused a rotation of one, the CSV import dropped it, the rest
+    kept it, and the WebSocket commands stored an empty pool (DRY audit
+    2026-10-30, BI6-A4). The deleted-user sweep goes one step further on
+    purpose: the one person left gets the task (helpers/user_orphans).
+    """
+    if "assignee_pool" in task_data:
+        pool = sanitize_assignee_pool(task_data["assignee_pool"])
+        if pool:
+            task_data["assignee_pool"] = pool
+        else:
+            task_data.pop("assignee_pool")
+    if task_data.get("rotation_strategy") not in ROTATION_STRATEGIES:
+        task_data.pop("rotation_strategy", None)
+    # Seeded first: a pool edited down to one still hands the task to the
+    # one left (seed_rotation_assignee's stale-assignee rule).
+    seed_rotation_assignee(task_data)
+    if len(task_data.get("assignee_pool") or []) < 2:
+        task_data.pop("rotation_strategy", None)
 
 
 def sanitize_assignee_pool(value: object) -> list[str]:

@@ -2,6 +2,36 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.115.0] - 2026-10-31
+
+### 🐛 Fixed
+
+- **The panel and Home Assistant round money the same way.** A total of 4.50 for four showed 1.13 each in the purchase
+  dialog and was stored as 1.12. An amount that ends in a half now rounds up everywhere, as the panel shows it.
+- **Battery fleet cells count when they are bought, also when another object uses them** (a shared pool, #111). Under
+  *count when used*, a cell another object took from the fleet's shelf was booked a second time, and the fleet's buy
+  reminder said its price would count when used.
+- **The battery fleet goes by the cells a device holds** (with *ask which cells went in* on, D#213). The shopping
+  list, the forecast and the hint about an unrecorded swap went by the type the note names, so a device running on
+  NiMH cells was on the list of batteries to buy.
+- **A task's own to-do lists:** at most five, and the integration's own list is no longer offered (saving refused it).
+  A backup naming the integration's own list imports without it, with a warning.
+- **Who a task is for follows one rule everywhere.** A rotation needs two people; with fewer it is dropped, in the
+  panel, a bulk edit, the imports and an adopted problem sensor alike, and an empty *Shared with* is stored as none.
+  `shared_with: []` in the `update_task` action now ends a rotation as its description says, instead of being refused.
+- **The object dialog's *Parent object*** no longer offers archived objects or the battery fleet, which take no
+  sub-objects anywhere else. A parent already set stays.
+- **Replacing an object hands on what sits inside it:** its sub-objects move under the new object, devices included.
+- **A CSV export keeps sub-objects inside their parent** when it is imported again (new column
+  `object_parent_entry_id`).
+- **No buy reminder past an object's 200 tasks.** The automatic buy reminders were created beyond the limit every
+  other new task meets.
+- **The notification event's `trigger_detail` is set on a *triggered* reminder only**, as the reminder's own text
+  has it.
+- **A tick on the shopping list fills in the task's *Quick complete* values**, like a tick on a mirrored to-do list.
+- The `add_task` and `update_task` texts said a calendar `schedule` overrides `schedule_type`; a contradicting one is
+  refused, and the texts say so now. The quantity of *Spare part used* and *Spare part bought* no longer offers 0.
+
 ## [2.114.0] - 2026-10-31
 
 ### 🐛 Fixed

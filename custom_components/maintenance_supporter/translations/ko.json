@@ -2009,7 +2009,7 @@
         },
         "schedule": {
           "name": "달력 일정",
-          "description": "달력 유형을 위한 중첩 반복 규칙입니다. 예: 첫째 주 토요일은 kind=nth_weekday, nth=1, weekday=5 (weekday 0=월 ... 6=일), 월요일과 목요일은 kind=weekdays, weekdays=[0, 3], 매월 15일은 kind=day_of_month, day=15. interval_days / schedule_type보다 우선합니다."
+          "description": "달력 유형을 위한 중첩 반복 규칙입니다. 예: 첫째 주 토요일은 kind=nth_weekday, nth=1, weekday=5 (weekday 0=월 ... 6=일), 월요일과 목요일은 kind=weekdays, weekdays=[0, 3], 매월 15일은 kind=day_of_month, day=15. interval_days보다 우선합니다. time_based가 아닌 schedule_type은 거부됩니다."
         },
         "warning_days": {
           "name": "경고(일)",
@@ -2075,7 +2075,7 @@
         },
         "schedule": {
           "name": "일정(달력 반복)",
-          "description": "달력 유형을 위한 중첩 반복 객체입니다. 예: kind=day_of_month, day=-1, business=true. 평면 필드보다 우선합니다."
+          "description": "달력 유형을 위한 중첩 반복 객체입니다. 예: kind=day_of_month, day=-1, business=true. 평면 필드보다 우선합니다. time_based가 아닌 schedule_type은 거부됩니다."
         },
         "warning_days": {
           "name": "경고 일수",

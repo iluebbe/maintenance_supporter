@@ -134,7 +134,7 @@ import { canWrite } from "./helpers/permissions";
 // #226: the All-parts view's Use pill (the parts shelf imports it too).
 import "./components/ms-part-use";
 import "./components/ms-part-purchase";
-import { ancestorsOf, buildObjectTree, sortTree, subtreeOf, treeRows, type ObjectTree } from "./helpers/object-tree";
+import { ancestorsOf, buildObjectTree, nests, sortTree, subtreeOf, treeRows, type ObjectTree } from "./helpers/object-tree";
 import { renderStatusBadge, statusKey, statusLabel, type StatusLike } from "./renderers/status";
 import { TOAST_MS, ACTION_TOAST_MS } from "./helpers/toast";
 import { isCounterTrigger, primaryTriggerEntity } from "./helpers/trigger-entities";
@@ -1669,8 +1669,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const objs = this._objects;
     const above = new Set(ancestorsOf(objs, parentEntryId).map((o) => o.entry_id));
     return objs
-      .filter((o) => o.entry_id !== parentEntryId && !above.has(o.entry_id) && o.object.parent_entry_id !== parentEntryId
-        && !o.object.archived && !o.object.battery_fleet)
+      .filter((o) => o.entry_id !== parentEntryId && !above.has(o.entry_id) && o.object.parent_entry_id !== parentEntryId && nests(o))
       .map((o) => ({ value: o.entry_id, label: [...ancestorsOf(objs, o.entry_id), o].map((x) => x.object.name).join(" › ") }))
       .sort((a, b) => a.label.localeCompare(b.label));
   }
@@ -4538,7 +4537,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       .hass=${this.hass}
       .entryId=${row.entry_id}
       .sparePart=${{ id: row.part_id, unit: row.unit ?? undefined, package_size: row.package_size ?? undefined }}
-      ?notBooked=${!fleet && partCostMode(row, this._partsCostMode) === "use"}
+      ?notBooked=${partCostMode(row, this._partsCostMode, fleet) === "use"}
       @part-used=${() => { void this._loadAllParts(); void this._loadData(); }}
     ></ms-part-use>`;
   }
@@ -4553,7 +4552,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       .sparePart=${{ id: row.part_id, unit: row.unit ?? undefined, package_size: row.package_size ?? undefined,
         cost: row.cost ?? undefined, restock_quantity: row.restock_quantity ?? undefined }}
       .currencySymbol=${this._currencySymbol}
-      ?onUse=${!fleet && partCostMode(row, this._partsCostMode) === "use"}
+      ?onUse=${partCostMode(row, this._partsCostMode, fleet) === "use"}
       @part-bought=${() => { void this._loadAllParts(); void this._loadData(); }}
     ></ms-part-purchase>`;
   }
@@ -5076,7 +5075,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     // All-objects view (this object itself always counts, archived or not).
     const tree = this._arrangeObjects(this._objects.filter((x) => x.entry_id === obj.entry_id || this._showArchived || !x.object.archived));
     const kids = tree.children.get(obj.entry_id) ?? [];
-    const canNest = !isOperator && !o.archived && !o.battery_fleet;
+    const canNest = !isOperator && nests(obj);
 
     return html`
       <div class="detail-section">

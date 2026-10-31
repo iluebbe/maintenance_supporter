@@ -57,6 +57,7 @@ from .helpers.parts import (
     unit_price,
 )
 from .helpers.phases import effective_field
+from .helpers.rounding import round2
 from .helpers.shared_parts import borrowed_part_ids, live_parts
 from .helpers.task_persist import async_delete_task, async_persist_task
 from .shopping_sync import schedule_resync
@@ -545,7 +546,7 @@ async def async_part_purchase(
         raise ServiceValidationError(translation_domain=DOMAIN, translation_key="date_in_future")
     packages = float(quantity) if quantity else float(part.get("restock_quantity") or 1)
     if cost is None and unit_price is not None:
-        cost = round(float(unit_price) * packages, 2)
+        cost = round2(float(unit_price) * packages)
     if cost is not None and cost > MAX_COST:
         # Booked anyway, the history editor refused the entry later and an
         # import dropped its cost (BI6-A6).
@@ -788,6 +789,13 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
         return True
     new_data = dict(current.data)
     merged_tasks = dict(new_data.get(CONF_TASKS, {}))
+    # The cap every other new task meets (insert_new_task): written past it,
+    # an object held more tasks than any edit of it may save (DRY audit
+    # 2026-10-30, BR6-A10). The next reconcile tries again.
+    room = max(0, MAX_TASKS_PER_OBJECT - len(merged_tasks))
+    if len(created) > room:
+        _LOGGER.warning("%s holds the most tasks it may: %d buy reminder(s) not created", entry.title, len(created) - room)
+        created = created[:room]
     obj = dict(new_data.get(CONF_OBJECT, {}))
     task_ids = list(obj.get("task_ids", []))
     for tid in created:

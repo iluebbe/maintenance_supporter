@@ -171,12 +171,15 @@ def mirror_todo_error(hass: HomeAssistant, entity_ids: list[str]) -> str | None:
     id is acceptable (unknown / not-yet-loaded lists are fine: the mirror
     self-heals when they appear).
     """
+    own = own_lists(hass, entity_ids)
+    return f"{own[0]} is a Maintenance Supporter list — a task cannot be mirrored into its own integration's list" if own else None
+
+
+def own_lists(hass: HomeAssistant, entity_ids: Iterable[Any]) -> list[str]:
+    """Which of ``entity_ids`` are Maintenance Supporter's own to-do lists:
+    the ones :func:`mirror_todo_error` refuses and an import drops."""
     registry = er.async_get(hass)
-    for eid in entity_ids:
-        reg_entry = registry.async_get(eid)
-        if reg_entry is not None and reg_entry.platform == DOMAIN:
-            return f"{eid} is a Maintenance Supporter list — a task cannot be mirrored into its own integration's list"
-    return None
+    return [eid for eid in entity_ids if isinstance(eid, str) and (reg := registry.async_get(eid)) is not None and reg.platform == DOMAIN]
 
 
 def default_lists(hass: HomeAssistant) -> list[str]:

@@ -452,4 +452,26 @@ describe("the object dialog's parent (#225)", () => {
       ["car2", "Vehicles › Car 2"],
     ]);
   });
+
+  it("offers no archived object and not the battery fleet, but keeps the parent set (DRY audit 2026-10-30, FE6-A2)", async () => {
+    const { hass } = createMockHass();
+    const objects = [
+      ...fleet(),
+      child("old", null, [], "Old shed", { archived: true }),
+      child("bat", null, [], "Battery fleet", { battery_fleet: true }),
+      child("tool", "old", [], "Toolbox"),
+    ];
+    const el = await fixture<MaintenanceObjectDialog>(html`
+      <maintenance-object-dialog .hass=${hass as never} .objects=${objects as never}></maintenance-object-dialog>
+    `);
+    el.openEdit("boil", objects.find((o) => o.entry_id === "boil")!.object as never);
+    await el.updateComplete;
+    const offered = options(el).map(([id]) => id);
+    expect(offered).to.not.include("old");
+    expect(offered).to.not.include("bat");
+    el.openEdit("tool", objects.find((o) => o.entry_id === "tool")!.object as never);
+    await el.updateComplete;
+    expect(options(el).map(([id]) => id), "the archived parent it already has").to.include("old");
+    expect(el.shadowRoot!.querySelector<HTMLSelectElement>(".parent-select")!.value).to.equal("old");
+  });
 });

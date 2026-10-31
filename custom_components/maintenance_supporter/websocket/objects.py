@@ -46,7 +46,7 @@ from ..helpers.aggregate import (
     name_or_title,
     object_id_for_entry,
 )
-from ..helpers.device_link import is_maintenance_device
+from ..helpers.device_link import hand_on_children, is_maintenance_device
 from ..helpers.device_swap import move_tasks_to_device, old_device_ids
 from ..helpers.entity_attributes import get_entity_attributes
 from ..helpers.entity_rename import migrate_object_unique_ids
@@ -1046,6 +1046,9 @@ async def ws_replace_object(
                 await async_relink_history(hass, other, entry.entry_id, new_entry_id, part_id_map)
         if new_entry is not None:
             schedule_buy_task_reconcile(hass, new_entry)
+
+    # What sat inside the predecessor sits inside the successor (#225).
+    hand_on_children(hass, entry.entry_id, new_entry_id)
 
     # Retire the predecessor (archive cascade) with the successor pointer.
     now_iso = dt_util.now().isoformat()

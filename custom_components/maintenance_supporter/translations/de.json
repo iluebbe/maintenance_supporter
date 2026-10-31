@@ -2009,7 +2009,7 @@
         },
         "schedule": {
           "name": "Kalender-Zeitplan",
-          "description": "Verschachtelte Wiederholung für die Kalenderarten, z. B. kind=nth_weekday, nth=1, weekday=5 für den 1. Samstag (weekday 0=Mo ... 6=So), kind=weekdays, weekdays=[0, 3] für Mo & Do oder kind=day_of_month, day=15. Hat Vorrang vor interval_days / schedule_type."
+          "description": "Verschachtelte Wiederholung für die Kalenderarten, z. B. kind=nth_weekday, nth=1, weekday=5 für den 1. Samstag (weekday 0=Mo ... 6=So), kind=weekdays, weekdays=[0, 3] für Mo & Do oder kind=day_of_month, day=15. Hat Vorrang vor interval_days. Ein anderer schedule_type als time_based wird abgelehnt."
         },
         "warning_days": {
           "name": "Vorwarnung (Tage)",
@@ -2075,7 +2075,7 @@
         },
         "schedule": {
           "name": "Zeitplan (Kalender-Wiederholung)",
-          "description": "Verschachteltes Wiederholungsobjekt für die Kalenderarten, z. B. kind=day_of_month, day=-1, business=true. Hat Vorrang vor den flachen Feldern."
+          "description": "Verschachteltes Wiederholungsobjekt für die Kalenderarten, z. B. kind=day_of_month, day=-1, business=true. Hat Vorrang vor den flachen Feldern. Ein anderer schedule_type als time_based wird abgelehnt."
         },
         "warning_days": {
           "name": "Warntage",

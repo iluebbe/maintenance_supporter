@@ -30,6 +30,7 @@ import "./ms-textfield";
 import { defaultNotifyIcon } from "../helpers/notify-icons";
 import { primaryTriggerEntity, triggerEntityIds } from "../helpers/trigger-entities";
 import { ROTATION_STRATEGIES, TASK_PRIORITIES } from "../helpers/task-choices";
+import { MAX_MIRROR_TODO_LISTS, mirrorTargets, ownTodoLists } from "../helpers/mirror-lists";
 import "./ms-date-field";
 import "./ms-cost-input";
 
@@ -1808,7 +1809,7 @@ export class MaintenanceTaskDialog extends LitElement {
     // D#183: always sent — [] clears the mirror targets. #231: with default
     // lists the choice decides (other lists left empty = none); without, the
     // picker alone, and an opt-out made earlier stays.
-    const ownLists = this.mirrorTodoDefault.length && this._mirrorTodoMode !== "own" ? [] : this._mirrorTodoEntities.filter(Boolean);
+    const ownLists = this.mirrorTodoDefault.length && this._mirrorTodoMode !== "own" ? [] : mirrorTargets(this.hass, this._mirrorTodoEntities);
     data.mirror_todo_entities = ownLists;
     data.mirror_todo_use_default = this.mirrorTodoDefault.length ? this._mirrorTodoMode === "default" : this._mirrorTodoMode !== "none";
     data.enabled = this._enabled;
@@ -3775,8 +3776,8 @@ export class MaintenanceTaskDialog extends LitElement {
                 placeholder="todo.family, todo.kids"
                 .value=${this._mirrorTodoEntities.join(", ")}
                 @input=${(e: Event) => {
-                  this._mirrorTodoEntities = (e.target as HTMLInputElement).value
-                    .split(",").map((s: string) => s.trim()).filter(Boolean);
+                  this._mirrorTodoEntities = mirrorTargets(this.hass, (e.target as HTMLInputElement).value
+                    .split(",").map((s: string) => s.trim()));
                 }}
               ></ms-textfield>
             ` : html`
@@ -3785,15 +3786,15 @@ export class MaintenanceTaskDialog extends LitElement {
                 .hass=${this.hass}
                 .schema=${[{
                   name: "mirror_todo_entities",
-                  selector: { entity: { multiple: true, domain: ["todo"] } },
+                  selector: { entity: { multiple: true, domain: ["todo"], exclude_entities: ownTodoLists(this.hass) } },
                 }]}
                 .data=${{ mirror_todo_entities: this._mirrorTodoEntities }}
                 .computeLabel=${() => t("task_mirror_todo", L)}
                 @value-changed=${(e: CustomEvent) => {
-                  const ids = ((e.detail.value as { mirror_todo_entities?: string[] }).mirror_todo_entities || []).filter(Boolean);
-                  this._mirrorTodoEntities = ids;
+                  this._mirrorTodoEntities = mirrorTargets(this.hass, (e.detail.value as { mirror_todo_entities?: string[] }).mirror_todo_entities || []);
                 }}
-              ></ha-form>`}`;
+              ></ha-form>`}
+            <div class="field-help mirror-todo-max">${t("task_mirror_todo_max", L).replace("{max}", String(MAX_MIRROR_TODO_LISTS))}</div>`;
   }
 
   render() {

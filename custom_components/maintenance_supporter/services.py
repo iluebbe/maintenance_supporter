@@ -491,6 +491,8 @@ async def _handle_complete(call: ServiceCall) -> None:
             )
     # #128: explicit person beats the call context; the context covers the
     # common case for free (a dashboard tap propagates the tapping user).
+    # Open to every account on purpose: the per-person buttons on a family
+    # tablet ("Alice did it") run under the tablet's own, plain user.
     if call.data.get("completed_by"):
         completed_by: str | None = _resolve_person_user_id(hass, call.data["completed_by"])
     else:

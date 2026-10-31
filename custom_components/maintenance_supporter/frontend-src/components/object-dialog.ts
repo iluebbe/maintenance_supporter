@@ -14,7 +14,7 @@ type ReplaceDevice = "keep" | "other" | "none";
 import { t, langOf } from "../styles";
 
 import { runWs } from "../helpers/ws-run";
-import { ancestorsOf, descendantIds } from "../helpers/object-tree";
+import { ancestorsOf, descendantIds, nests } from "../helpers/object-tree";
 import "./ms-textfield";
 import "./ms-date-field";
 
@@ -269,12 +269,14 @@ export class MaintenanceObjectDialog extends LitElement {
   }
 
   /** Every object but this one and those inside it (the server refuses the
-   *  cycle), each named by its path — "Vehicles › Car" — in path order. */
+   *  cycle) and those that hold no sub-objects (archived, the battery fleet;
+   *  the parent already set stays, so a save keeps it), each named by its
+   *  path — "Vehicles › Car" — in path order. */
   private _parentChoices(): Array<{ entryId: string; label: string }> {
     const objs = this.objects || [];
     const below = this._entryId ? descendantIds(objs, this._entryId) : new Set<string>();
     return objs
-      .filter((o) => o.entry_id !== this._entryId && !below.has(o.entry_id))
+      .filter((o) => o.entry_id !== this._entryId && !below.has(o.entry_id) && (nests(o) || o.entry_id === this._parentEntryId))
       .map((o) => ({
         entryId: o.entry_id,
         label: [...ancestorsOf(objs, o.entry_id), o].map((x) => x.object.name).join(" › "),

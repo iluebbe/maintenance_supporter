@@ -380,8 +380,11 @@ def test_s6_battery_purchases_count_when_bought_in_use_mode() -> None:
     def booked(fleet: bool) -> float:
         entry = SimpleNamespace(data={"object": {BATTERY_FLEET_OBJECT_FLAG: True} if fleet else {}})
         record: dict[str, Any] = {"type": "completed", "cost": 12.0}
-        # #222: the bought part is looked up for its own mode — none here.
-        with patch.object(parts_cost, "parts_cost_mode", return_value="use"), patch.object(parts_cost, "_linked_part", return_value=None):
+        # #222: the bought part is looked up for its own mode — none here;
+        # its owner is the entry itself.
+        with patch.object(parts_cost, "parts_cost_mode", return_value="use"), patch.object(
+            parts_cost, "resolve_part_link", return_value=(entry, None, None)
+        ):
             parts_cost.annotate_completion(MagicMock(), entry, {"part_ref": {"part_id": "batt_aa"}}, record)
         return parts_cost.entry_spend(record)
 

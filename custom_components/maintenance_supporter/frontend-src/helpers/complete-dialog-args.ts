@@ -116,7 +116,8 @@ export function buildCompleteDialogArgs(o: BuildCompleteDialogArgsOptions): Comp
   const links = phase ? phase.consumesParts : (task?.consumes_parts || []);
   // A buy task RESTOCKS via the qty field instead of consuming parts.
   const isBuy = !!task?.part_ref;
-  const objParts = o.objects.find((obj) => obj.entry_id === o.entryId)?.parts || [];
+  const own = o.objects.find((obj) => obj.entry_id === o.entryId);
+  const objParts = own?.parts || [];
   const refPart = isBuy ? objParts.find((pt) => pt.id === task!.part_ref!.part_id) : undefined;
   const checklistsEnabled = o.features ? o.features.checklists : (o.checklistsEnabled ?? true);
   const taskChecklist = o.features
@@ -158,7 +159,9 @@ export function buildCompleteDialogArgs(o: BuildCompleteDialogArgsOptions): Comp
     via_tag_scan: !!o.viaTagScan,
     // #222: a purchase follows the part it buys; a completion that uses
     // parts judges each by its own (the dialog reads them from `parts`).
-    parts_cost_mode: isBuy ? partCostMode(refPart, o.partsCostMode ?? "purchase") : (o.partsCostMode ?? "purchase"),
+    parts_cost_mode: isBuy
+      ? partCostMode(refPart, o.partsCostMode ?? "purchase", !!own?.object.battery_fleet)
+      : (o.partsCostMode ?? "purchase"),
     prefill: quickCompleteValues(task),
   };
 }

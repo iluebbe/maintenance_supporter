@@ -262,6 +262,7 @@
   "task_mirror_todo_default": "Varsayılan listeler: {lists}",
   "task_mirror_todo_own": "Diğer listeler",
   "task_mirror_todo_none": "Hiçbir yapılacaklar listesinde değil",
+  "task_mirror_todo_max": "En fazla {max} liste; Maintenance Supporter'ın kendi listeleri sunulmaz.",
   "priority_low": "Düşük",
   "priority_normal": "Normal",
   "priority_high": "Yüksek",

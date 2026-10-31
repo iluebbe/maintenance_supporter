@@ -743,5 +743,7 @@ def test_ts_mirror_list_cap_matches_backend() -> None:
     the backend sanitiser keeps (a sixth tick would be dropped silently)."""
     from custom_components.maintenance_supporter.const import MAX_MIRROR_TODO_LISTS
 
-    m = re.search(r"const MAX_MIRROR_TODO_LISTS = (\d+);", _SETTINGS_VIEW_TS.read_text(encoding="utf-8"))
-    assert m and int(m.group(1)) == MAX_MIRROR_TODO_LISTS, "settings-view.ts MAX_MIRROR_TODO_LISTS drifted from const.py"
+    # Both pickers take it from helpers/mirror-lists.ts (DRY audit 2026-10-30).
+    path = _SETTINGS_VIEW_TS.parent.parent / "helpers" / "mirror-lists.ts"
+    m = re.search(r"export const MAX_MIRROR_TODO_LISTS = (\d+);", path.read_text(encoding="utf-8"))
+    assert m and int(m.group(1)) == MAX_MIRROR_TODO_LISTS, "mirror-lists.ts MAX_MIRROR_TODO_LISTS drifted from const.py"

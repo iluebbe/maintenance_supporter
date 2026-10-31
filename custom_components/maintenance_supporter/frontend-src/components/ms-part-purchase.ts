@@ -19,7 +19,7 @@ import { property, state } from "lit/decorators.js";
 import { t, langOf, formatQty } from "../styles";
 import { runWs } from "../helpers/ws-run";
 import { haToday } from "../helpers/ha-time";
-import { restockUnits } from "../helpers/parts-cost";
+import { restockUnits, round2 } from "../helpers/parts-cost";
 import type { HomeAssistant, MaintenancePart } from "../types";
 import "./ms-date-field";
 
@@ -37,7 +37,6 @@ export function defaultPurchaseQuantity(part: Pick<MaintenancePart, "restock_qua
   return typeof q === "number" && Number.isFinite(q) && q > 0 ? q : 1;
 }
 
-const round2 = (n: number): number => Math.round(n * 100) / 100;
 const numOf = (s: string): number => (s.trim() === "" ? NaN : parseFloat(s));
 
 export class MsPartPurchase extends LitElement {

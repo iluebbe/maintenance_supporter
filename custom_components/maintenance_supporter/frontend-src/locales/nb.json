@@ -262,6 +262,7 @@
   "task_mirror_todo_default": "Standardlister: {lists}",
   "task_mirror_todo_own": "Andre lister",
   "task_mirror_todo_none": "På ingen gjøremålsliste",
+  "task_mirror_todo_max": "Høyst {max} lister; Maintenance Supporters egne lister tilbys ikke.",
   "priority_low": "Lav",
   "priority_normal": "Normal",
   "priority_high": "Høy",

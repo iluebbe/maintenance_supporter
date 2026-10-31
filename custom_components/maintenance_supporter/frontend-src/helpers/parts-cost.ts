@@ -26,13 +26,27 @@ export function partsCostModeOf(value: unknown): PartsCostMode {
 }
 
 /** #222: when one part counts — its own choice, else the household's
- *  (helpers/parts_cost.py part_cost_mode). */
-export function partCostMode(part: Pick<MaintenancePart, "cost_mode"> | null | undefined, house: PartsCostMode): PartsCostMode {
+ *  (helpers/parts_cost.py part_cost_mode). A part the battery fleet owns
+ *  (`fleetOwned`) counts when bought, whatever is chosen (S-6). The buy
+ *  reminder's dialog left that out and said the price would count when
+ *  used (DRY audit 2026-10-30, FE6-A1). */
+export function partCostMode(
+  part: Pick<MaintenancePart, "cost_mode"> | null | undefined,
+  house: PartsCostMode,
+  fleetOwned = false,
+): PartsCostMode {
+  if (fleetOwned) return "purchase";
   const own = part?.cost_mode;
   return own === "use" || own === "purchase" ? own : house;
 }
 
 const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
+
+/** Money and part quantities to two decimals, a half up: helpers/rounding.py
+ *  round2 computes the same, pinned by __tests__/fixtures/rounding-vectors.json.
+ *  Python's round() sent a half to the even neighbour, so a total of 4.50
+ *  for four showed 1.13 each and was stored as 1.12 (DRY audit 2026-10-30). */
+export const round2 = (n: number): number => Math.round(n * 100) / 100;
 
 /** Price of ONE stock unit, or null when the part has no price. */
 export function unitPrice(part: Pick<MaintenancePart, "cost" | "package_size"> | null | undefined): number | null {
@@ -50,7 +64,7 @@ export function restockUnits(
 ): number {
   const count = num(packages) && packages! > 0 ? packages! : (num(part.restock_quantity) || 1);
   const size = num(part.package_size);
-  return Math.round(count * (size && size > 0 ? size : 1) * 100) / 100;
+  return round2(count * (size && size > 0 ? size : 1));
 }
 
 /** What one entry counts as spending; null when it records no money at all. */

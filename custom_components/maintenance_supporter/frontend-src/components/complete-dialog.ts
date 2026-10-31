@@ -9,7 +9,7 @@ import { runWs } from "../helpers/ws-run";
 import { haNowMinute, stampMs } from "../helpers/ha-time";
 import { PART_QTY_RANGE, RESTOCK_QTY_RANGE } from "../helpers/setting-ranges";
 import { partLinkKey, type LinkedPart } from "../helpers/shared-parts";
-import { partCostMode, unitPrice, type PartsCostMode } from "../helpers/parts-cost";
+import { partCostMode, round2, unitPrice, type PartsCostMode } from "../helpers/parts-cost";
 import { REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import { PhotoUploadController } from "../helpers/photo-upload-controller";
 import { parseDurationMinutes } from "../helpers/duration";
@@ -356,7 +356,7 @@ export class MaintenanceCompleteDialog extends LitElement {
     if (this.restockDefault === null) return null;
     const qty = parseFloat(this._restockQty);
     if (this.restockUnitCost == null || !Number.isFinite(qty) || qty <= 0) return null;
-    return Math.round(this.restockUnitCost * qty * 100) / 100;
+    return round2(this.restockUnitCost * qty);
   }
 
   /** #104: the value of the SELECTED parts used (qty × each part's price per
@@ -378,7 +378,7 @@ export class MaintenanceCompleteDialog extends LitElement {
       out[side] = (out[side] ?? 0) + price * (link.quantity || 1);
     }
     for (const side of ["booked", "info"] as const) {
-      if (out[side] !== null) out[side] = Math.round(out[side]! * 100) / 100;
+      if (out[side] !== null) out[side] = round2(out[side]!);
     }
     return out;
   }
@@ -400,7 +400,7 @@ export class MaintenanceCompleteDialog extends LitElement {
       return html`<button
           type="button"
           class="cost-suggestion"
-          @click=${() => (this._cost = String(Math.round(purchase * 100) / 100))}
+          @click=${() => (this._cost = String(round2(purchase)))}
         >${t("cost_from_parts", L).replace("{amount}", amount)}</button>${hint}`;
     }
     const { booked, info } = this._partsValues();

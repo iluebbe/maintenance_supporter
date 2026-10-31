@@ -28,6 +28,14 @@ function parentOf(o: Obj): string | null {
   return o.object.parent_entry_id || null;
 }
 
+/** Whether an object takes part in nesting: an archived one and the
+ *  battery fleet hold no sub-objects and go inside none. The panel's Add
+ *  sub-object and Move here kept to it, the object dialog offered both as
+ *  a parent (DRY audit 2026-10-30, FE6-A2). */
+export function nests(o: Obj): boolean {
+  return !o.object.archived && !o.object.battery_fleet;
+}
+
 /** The tree of `objs`: a parent counts only when it is in `objs` too. */
 export function buildObjectTree(objs: readonly Obj[]): ObjectTree {
   const byId = new Map(objs.map((o) => [o.entry_id, o] as const));

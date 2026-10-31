@@ -57,11 +57,10 @@ from ..helpers.reading_slots import sanitize_reading_slots
 from ..helpers.sanitize import (
     cap_action_field,
     cap_quick_complete_defaults_field,
-    sanitize_assignee_pool,
+    normalize_people,
     sanitize_complete_when,
     sanitize_labels,
     sanitize_mirror_todo_entities,
-    seed_rotation_assignee,
     settle_action_owner,
     stamp_action_owner,
     strip_task_runtime_state,
@@ -505,7 +504,7 @@ async def ws_create_task(
     if msg.get("earliest_completion_days") is not None:
         task_data["earliest_completion_days"] = msg["earliest_completion_days"]
     if msg.get("assignee_pool"):
-        task_data["assignee_pool"] = sanitize_assignee_pool(msg["assignee_pool"])
+        task_data["assignee_pool"] = msg["assignee_pool"]
     if msg.get("rotation_strategy"):
         task_data["rotation_strategy"] = msg["rotation_strategy"]
     if msg.get("required_completion_fields"):
@@ -513,7 +512,7 @@ async def ws_create_task(
             msg["required_completion_fields"]
         )
 
-    seed_rotation_assignee(task_data)
+    normalize_people(task_data)
     if not _validate_entity_slug(connection, msg):
         return
     if msg.get("entity_slug") is not None:
@@ -778,12 +777,6 @@ async def ws_update_task(
     # D#229: no rule is ABSENCE, not a stored null.
     if "complete_when" in msg and not msg["complete_when"]:
         task.pop("complete_when", None)
-    # No rotation is ABSENCE: the dialog sends null on every save, and the
-    # stored None came back as the options flow's select default, failing
-    # its validation — the task form could not be saved (bug audit 2026-09-26).
-    if "rotation_strategy" in msg and not msg["rotation_strategy"]:
-        task.pop("rotation_strategy", None)
-
     # The loop above copies values verbatim, which is wrong for part links:
     # `task/create` validates them and `task/update` did not, so an edit could
     # persist a link to a part — or, since #111, to an OBJECT — that does not
@@ -883,11 +876,11 @@ async def ws_update_task(
     cap_quick_complete_defaults_field(task)
     if "labels" in task:
         task["labels"] = sanitize_labels(task["labels"])
-    if "assignee_pool" in task:
-        task["assignee_pool"] = sanitize_assignee_pool(task["assignee_pool"])
     if "required_completion_fields" in task:
         task["required_completion_fields"] = sanitize_required_completion_fields(task["required_completion_fields"])
-    seed_rotation_assignee(task)
+    # Who it is for, and no rotation as ABSENCE: the dialog sends null on
+    # every save (normalize_people).
+    normalize_people(task)
 
     # Clear stale trigger runtime in Store only when trigger fundamentally changes
     if "trigger_config" in msg:

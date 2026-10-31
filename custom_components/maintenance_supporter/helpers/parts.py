@@ -33,6 +33,7 @@ from uuid import uuid4
 from ..const import DEFAULT_CURRENCY_DECIMALS, PARTS_COST_MODES
 from .i18n import normalize_language_code
 from .pause import is_task_inert
+from .rounding import round2
 
 # ── Limits (mirrored in the WS schemas + panel dialog) ──────────────────────
 MAX_PARTS_PER_OBJECT = 50
@@ -247,7 +248,7 @@ def _clean_cost(raw: Any) -> float | None:
     if raw in (None, ""):
         return None
     try:
-        v = round(float(raw), 2)
+        v = round2(float(raw))
     except (TypeError, ValueError) as err:
         raise PartValidationError("cost must be a number") from err
     if not 0 <= v <= MAX_PART_COST:
@@ -258,7 +259,7 @@ def _clean_cost(raw: Any) -> float | None:
 def round_qty(v: float) -> float | int:
     """Canonical quantity rounding (#98 decimal consumables): 2 decimals,
     whole numbers collapse back to int so exports/UI stay clean."""
-    r = round(float(v), 2)
+    r = round2(float(v))
     return int(r) if r.is_integer() else r
 
 

@@ -262,6 +262,7 @@
   "task_mirror_todo_default": "Alapértelmezett listák: {lists}",
   "task_mirror_todo_own": "Más listák",
   "task_mirror_todo_none": "Egyik teendőlistán sem",
+  "task_mirror_todo_max": "Legfeljebb {max} lista; a Maintenance Supporter saját listái nem választhatók.",
   "priority_low": "Alacsony",
   "priority_normal": "Normál",
   "priority_high": "Magas",
