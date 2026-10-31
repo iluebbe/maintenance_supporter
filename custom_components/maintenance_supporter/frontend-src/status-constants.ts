@@ -70,6 +70,16 @@ export function statusRank(status: string | null | undefined): number {
   return _STATUS_RANK[status ?? ""] ?? STATUS_ORDER.length;
 }
 
+/** The statuses that need doing now: the panel's overdue marks, the area
+ *  report's count and the calendar's today slot each spelled the pair out
+ *  (DRY audit 2026-10-30). Python twin: const.URGENT_STATUSES
+ *  (tests/test_frontend_const_parity.py). */
+export const URGENT_STATUSES = ["overdue", "triggered"] as const;
+
+export function isUrgentStatus(status: string | null | undefined): boolean {
+  return (URGENT_STATUSES as readonly string[]).includes(status ?? "");
+}
+
 export type ActionableStatus = (typeof ACTIONABLE_STATUSES)[number];
 
 export function isActionableStatus(status: string | null | undefined): status is ActionableStatus {

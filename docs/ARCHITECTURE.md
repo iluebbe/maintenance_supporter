@@ -201,10 +201,10 @@ custom_components/maintenance_supporter/
 ├── listeners.py                   (388 lines)  Integration-wide event listeners: notification buttons, NFC tags, registry changes,
 │                                               deleted users
 ├── daily_jobs.py                  (224 lines)  Timers: retention sweep, the 08:00 digest / warranty / lead-time reminders, noon retry
-├── const.py                     (1,013 lines)  Constants, enums, defaults, PLATFORMS
+├── const.py                     (1,017 lines)  Constants, enums, defaults, PLATFORMS
 ├── coordinator.py               (2,370 lines)  DataUpdateCoordinator per object
 ├── storage.py                     (743 lines)  Per-entry Store (dynamic state, migration, part stock)
-├── parts_runtime.py               (870 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
+├── parts_runtime.py               (871 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
 ├── shopping_sync.py               (396 lines)  2.67: mirrors auto buy tasks into a user-picked todo.* list (own-rows uid map)
 │
 ├── config_flow.py                 (934 lines)  Initial setup flow + templates
@@ -228,9 +228,9 @@ custom_components/maintenance_supporter/
 │                                               MaintenanceDaysUntilDueSensor (numeric countdown, disabled by default),
 │                                               MaintenanceSummarySensor, PartStockSensor, PartsToReorderSensor,
 │                                               BatteryFleetLowSensor, DocumentStorageSensor (per-area cost: entity/area_cost.py)
-├── binary_sensor.py               (168 lines)  MaintenanceBinarySensor (problem, per task)
+├── binary_sensor.py               (165 lines)  MaintenanceBinarySensor (problem, per task)
 ├── button.py                      (132 lines)  Complete / Skip / Reset buttons per task (no global buttons)
-├── calendar.py                    (894 lines)  MaintenanceCalendar (global, all tasks)
+├── calendar.py                    (895 lines)  MaintenanceCalendar (global, all tasks)
 ├── todo.py                        (179 lines)  Global to-do list aggregating every active task
 ├── entity/                      (3,201 lines)  13 files — Entity bases shared by the platforms, the per-area cost sensors, the trigger engine
 │   ├── entity_base.py             (131 lines)  CoordinatorEntity base class
@@ -289,7 +289,7 @@ custom_components/maintenance_supporter/
 │                                               DocumentServeView, DocumentExcerptView, DocumentsArchiveView
 ├── intent.py                    (1,026 lines)  8 intents: ListTasks, CompleteTask, TaskInstructions, TaskDue, SnoozeTask, PartStock,
 │                                               PostponeTask, SkipTask
-├── intent_household.py            (533 lines)  7 intents: RecordReading, AddNote, WhoseTurn, ShoppingList, BoughtPart, LowBatteries, Undo
+├── intent_household.py            (532 lines)  7 intents: RecordReading, AddNote, WhoseTurn, ShoppingList, BoughtPart, LowBatteries, Undo
 ├── logbook.py                     (315 lines)  Localized activity-timeline descriptions for lifecycle events
 ├── panel.py                       (144 lines)  Sidebar panel registration
 ├── frontend/                                  Built esbuild output (committed)
@@ -302,8 +302,8 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (47,682 lines)  144 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
-│   ├── maintenance-panel.ts     (5,693 lines)  Panel shell: today / dashboard / calendar / settings tabs,
+├── frontend-src/               (47,723 lines)  144 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+│   ├── maintenance-panel.ts     (5,697 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,263 lines)  Auto-generated dashboard strategy + 4 section strategies
 │   ├── maintenance-card.ts        (904 lines)  Lovelace card
@@ -330,15 +330,15 @@ custom_components/maintenance_supporter/
 │   ├── ds-mdi-map.ts              (204 lines)  Design-sync previews: mdi icon paths for every `mdi:*` name the frontend uses
 │   ├── ds-preview-kit.ts          (230 lines)  Design-sync preview kit: a demo household behind a mock `hass`
 │   ├── maintenance-panel-card.ts  (369 lines)  The whole panel as a Lovelace card (#174)
-│   ├── status-constants.ts         (90 lines)  Status colors + icons — THE single source for every renderer
-│   ├── helpers/                 (6,502 lines)  74 files — Pure functions and small services shared by the panel, the cards and the dialogs
+│   ├── status-constants.ts        (100 lines)  Status colors + icons — THE single source for every renderer
+│   ├── helpers/                 (6,528 lines)  74 files — Pure functions and small services shared by the panel, the cards and the dialogs
 │   │   ├── calendar-bucket.ts     (415 lines)  Pure 7/14/30/365-day projection, 5 occurrences max per task, no projection for sensor-based
 │   │   ├── notes-markdown.ts      (119 lines)  Notes rendering (ha-markdown hand-off)
 │   │   ├── bundle-version.ts       (35 lines)  Stale-bundle guard
 │   │   ├── history-photos.ts       (33 lines)  #161: photo_doc_ids ∪ legacy photo_doc_id, cap 10
 │   │   ├── photo-upload.ts        (130 lines)  Multipart upload + orphan cleanup
 │   │   ├── reading-slots.ts       (130 lines)  #161 phase 2: entry snapshot, last value per slot, per-slot delta
-│   │   ├── area-history.ts        (420 lines)  Area history and costs (#191): every object of an area merged into one lifecycle history
+│   │   ├── area-history.ts        (421 lines)  Area history and costs (#191): every object of an area merged into one lifecycle history
 │   │   ├── area-record.ts         (203 lines)  Printable area report (#191): period, key figures, cost per object
 │   │   ├── backend-errors.ts       (63 lines)  Backend error texts in the user's language (i18n audit 2026-09-27)
 │   │   ├── companion.ts            (23 lines)  Which Home Assistant Companion app hosts the panel, when any
@@ -367,7 +367,7 @@ custom_components/maintenance_supporter/
 │   │   ├── object-history.ts      (175 lines)  Object lifecycle history (#138): every task's history merged into one chronological record
 │   │   ├── objects-cache.ts        (53 lines)  Skeleton-from-cache: the last known objects payload in localStorage
 │   │   ├── overview-tabs.ts         (7 lines)  The overview's tabs — one list for the sidebar panel and the panel-as-card editor
-│   │   ├── parts-cost.ts           (78 lines)  What spare parts cost, and when that counts (#104, #98 follow-up)
+│   │   ├── parts-cost.ts           (88 lines)  What spare parts cost, and when that counts (#104, #98 follow-up)
 │   │   ├── permissions.ts          (54 lines)  Who may do what — the frontend twin of the three backend tiers (helpers/permissions.py)
 │   │   ├── person.ts               (78 lines)  Household member avatars — initials in a coloured circle (#169 follow-up)
 │   │   ├── phases.ts               (70 lines)  Task phases (#139) — frontend twin of helpers/phases.py
@@ -395,7 +395,7 @@ custom_components/maintenance_supporter/
 │   │   ├── ws-run.ts              (154 lines)  One WS round-trip with its error routed to the surface's own feedback (toast / error line)
 │   │   ├── ha-time.ts             (258 lines)  Home Assistant's clock: the time zone behind every date the UI computes or shows
 │   │   ├── undo-completion.ts      (71 lines)  Undo a completion the current person just made — the panel's and the dashboard card's toast action (2026-10)
-│   │   ├── trigger-entities.ts     (41 lines)  The entities a stored trigger watches, in either stored shape
+│   │   ├── trigger-entities.ts     (49 lines)  The entities a stored trigger watches, in either stored shape
 │   │   ├── assignees.ts            (24 lines)  Who a task is meant for: the one rule every person filter reads
 │   │   ├── vacation-phase.ts       (25 lines)  Where a vacation stands — one rule for the panel's settings and the Lovelace vacation card
 │   │   ├── budget-level.ts         (23 lines)  How full a budget is and how loudly to say it — the panel's budget tiles and the dashboard's budget card
@@ -403,11 +403,11 @@ custom_components/maintenance_supporter/
 │   │   ├── task-choices.ts         (18 lines)  The fixed choice lists of a task — one copy for every dialog, filter and editor
 │   │   ├── task-history-fetch.ts   (29 lines)  THE `task/history` call: one task's full history (the list payloads carry only the most recent window)
 │   │   ├── keyboard.ts             (18 lines)  Keyboard activation for elements that are not native buttons
-│   │   ├── object-tree.ts         (144 lines)  #225: objects inside other objects
+│   │   ├── object-tree.ts         (151 lines)  #225: objects inside other objects
 │   │   ├── quick-complete.ts       (56 lines)  #233: *Quick complete*, a task that completes without a dialog
 │   │   └── mirror-lists.ts         (26 lines)  The to-do lists a task can be mirrored into (D#183, #231): the rule both pickers apply, Settings' default lists and the …
-│   ├── renderers/               (2,525 lines)  11 files — Pure lit-html render functions of the task views and the charts
-│   │   ├── task-detail.ts         (620 lines)  The task detail view (header, ⋮ menu, sections) as a function of its context
+│   ├── renderers/               (2,526 lines)  11 files — Pure lit-html render functions of the task views and the charts
+│   │   ├── task-detail.ts         (621 lines)  The task detail view (header, ⋮ menu, sections) as a function of its context
 │   │   ├── chart-utils.ts         (112 lines)  Shared chart helpers: nice axis ticks and consistent number/date formats
 │   │   ├── charts.ts              (167 lines)  Cost/duration chart renderers (task detail)
 │   │   ├── history.ts             (249 lines)  Task history sub-view: filter chips + search + the timeline of entries
@@ -420,7 +420,7 @@ custom_components/maintenance_supporter/
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
 │   ├── components/             (21,593 lines)  39 files — Lit elements: dialogs, sections, views, cards
 │   │   ├── task-dialog.ts       (4,243 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
-│   │   ├── settings-view.ts     (2,915 lines)  In-panel global settings editor
+│   │   ├── settings-view.ts     (2,916 lines)  In-panel global settings editor
 │   │   ├── task-quick-actions-dialog.ts (974 lines)  Task ⋮ menu
 │   │   ├── documents-section.ts   (716 lines)  Object-detail documents/manuals section
 │   │   ├── parts-section.ts       (860 lines)  Object-detail spare-parts section
@@ -457,10 +457,10 @@ custom_components/maintenance_supporter/
 │   │   ├── bulk-edit-dialog.ts    (282 lines)  Several tasks changed at once (discussion #199): who is assigned, their labels, and the few settings that make sense in bulk
 │   │   ├── ms-cost-input.ts       (109 lines)  A cost that may be a credit (#200): a Cost | Credit switch and the amount
 │   │   ├── ms-part-use.ts         (217 lines)  #226: the Use pill, for some of a part used outside a task
-│   │   └── ms-part-purchase.ts    (313 lines)  #238: the Bought… pill, for a purchase recorded at any time
+│   │   └── ms-part-purchase.ts    (312 lines)  #238: the Bought… pill, for a purchase recorded at any time
 │   └── __tests__/              (33,047 lines)  231 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (36,872 lines)  110 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+├── helpers/                    (36,891 lines)  110 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (2,855 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (383 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
@@ -474,7 +474,7 @@ custom_components/maintenance_supporter/
 │   ├── search_match.py            (212 lines)  Tolerant matcher (fold, digraph variants, one-edit typos, AND rule) — TS twin in the panel
 │   ├── reference_numbers.py       (316 lines)  Object / task / completion reference numbers (#170): counters, creation-order assignment
 │   ├── battery_fleet.py         (1,850 lines)  Battery Notes aggregation, native-battery fallback, forecast
-│   ├── parts.py                   (766 lines)  Spare-parts rules: GTIN, stock transitions, buy-task reconciler
+│   ├── parts.py                   (779 lines)  Spare-parts rules: GTIN, stock transitions, buy-task reconciler
 │   ├── shared_parts.py            (334 lines)  Pools shared across objects (#111): borrower lookup, owner-deletion transfer
 │   ├── todo_mirror.py             (575 lines)  TodoMirror (2.87, D#183): per-task `mirror_todo_entities`, else the global
 │   │                                           `mirror_todo_default_entities` unless `mirror_todo_use_default` is false (#231), rows kept
@@ -495,7 +495,7 @@ custom_components/maintenance_supporter/
 │   ├── trigger_fallback.py        (399 lines)  Per-type fallback evaluators for the coordinator refresh
 │   ├── settings_registry.py       (289 lines)  Single source of truth for global-setting validation
 │   ├── dates.py                   (371 lines)  Pure calendar math: add_interval, nth-weekday, day-of-month clamping
-│   ├── entity_rename.py           (262 lines)  Rewrites entity_id references when HA renames an entity
+│   ├── entity_rename.py           (280 lines)  Rewrites entity_id references when HA renames an entity
 │   ├── workday.py                 (177 lines)  Business-day provider bridging HA's Workday integration
 │   ├── qr_generator.py            (173 lines)  QR code URL builder + SVG generator
 │   ├── saved_views.py             (182 lines)  Named, shared panel-filter views
@@ -523,7 +523,7 @@ custom_components/maintenance_supporter/
 │   ├── completion_requirements.py (222 lines)  Per-task "you must record this when you finish" rules
 │   ├── coordinator_data.py         (28 lines)  Whether a coordinator has run its first refresh
 │   ├── device_link.py             (351 lines)  Keep a stored `ha_device_id` pointing at a device that still exists
-│   ├── device_swap.py             (207 lines)  Move an object's device-bound wiring to another Home Assistant device
+│   ├── device_swap.py             (196 lines)  Move an object's device-bound wiring to another Home Assistant device
 │   ├── entry_tasks.py             (104 lines)  Single write chokepoint for task dicts in ConfigEntry.data
 │   ├── global_options.py          (198 lines)  Cross-entry lookups for the global config entry's options, the one merge-and-save
 │   │                                           write, the group clean-up
@@ -537,7 +537,7 @@ custom_components/maintenance_supporter/
 │   ├── notification_gates.py      (142 lines)  The per-task notification gates, in one place
 │   ├── notification_ids.py        (123 lines)  The wire formats of a notification — one builder (and parser) each
 │   ├── notify_targets.py           (71 lines)  Canonical notify-target discovery and the notify-service validation
-│   ├── parts_cost.py              (249 lines)  What the spare parts of a completion cost — and when that counts (#104)
+│   ├── parts_cost.py              (248 lines)  What the spare parts of a completion cost — and when that counts (#104)
 │   ├── pause.py                   (234 lines)  Object and single-task pause (seasonal mode, #193): markers, auto-resume, fresh-cycle re-anchoring
 │   ├── phases.py                  (295 lines)  Task phases (#139): a cyclic sequence of different activities on ONE shared cadence
 │   ├── status.py                  (124 lines)  The task-status ladder — ONE implementation for the model and the dict twin

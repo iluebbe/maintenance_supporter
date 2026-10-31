@@ -240,3 +240,29 @@ async def test_the_csv_carries_the_parent(hass: HomeAssistant) -> None:
     assert parsed["Roof box"]["object"]["parent_entry_id"] == car.entry_id
     assert parsed["Roof box"]["entry_id"] == box.entry_id
     assert parsed["Car"]["object"]["parent_entry_id"] is None
+
+
+# ─── T3: one walker for the entities a trigger names ────────────────────────
+
+
+async def test_a_swapped_device_moves_a_compound_conditions_nested_trigger(hass: HomeAssistant) -> None:
+    """The rename walked ``conditions[].trigger_config``, the device swap
+    did not: a condition stored that way kept watching the old device."""
+    from custom_components.maintenance_supporter.helpers.device_swap import move_tasks_to_device
+
+    from .conftest import build_task_data
+    from .test_device_swap import _vacuum
+
+    old_dev, old = _vacuum(hass, "q7_old", "Robot Old")
+    new_dev, new = _vacuum(hass, "q7_new", "Robot New")
+    task = build_task_data(task_id="t", name="Brush")
+    task["trigger_config"] = {
+        "type": "compound",
+        "conditions": [{"trigger_config": {"type": "threshold", "entity_id": old["main_brush_time_left"], "trigger_below": 5}}],
+        "_trigger_state": {old["main_brush_time_left"]: {"since": 1}},
+    }
+    moved, report = move_tasks_to_device(hass, {"t": task}, {old_dev.id}, new_dev.id, user_id=None)
+    trigger = moved["t"]["trigger_config"]
+    assert trigger["conditions"][0]["trigger_config"]["entity_id"] == new["main_brush_time_left"]
+    assert trigger["_trigger_state"] == {old["main_brush_time_left"]: {"since": 1}}, "a new device starts fresh"
+    assert report.moved == 1

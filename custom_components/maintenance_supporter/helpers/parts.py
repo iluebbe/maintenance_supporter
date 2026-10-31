@@ -278,6 +278,19 @@ def _clean_package_size(raw: Any) -> float | int | None:
     return size
 
 
+def packages_bought(part: Mapping[str, Any], packages: float | None = None) -> float:
+    """How many packages a purchase counts (units without a package size):
+    ``packages`` when it is a positive number, else the part's restock
+    amount when that is one, else one. The purchase, voice "bought", the
+    restock and the price paid each spelled it out, and disagreed on a
+    negative count (DRY audit 2026-10-30, BR6-B2). Panel twin:
+    parts-cost.ts packagesBought."""
+    for value in (packages, part.get("restock_quantity")):
+        if isinstance(value, (int, float)) and not isinstance(value, bool) and 0 < value < float("inf"):
+            return float(value)
+    return 1.0
+
+
 def restock_units(part: Mapping[str, Any], packages: float | None = None) -> float:
     """What a purchase adds to the stock, in the part's unit.
 
@@ -285,7 +298,7 @@ def restock_units(part: Mapping[str, Any], packages: float | None = None) -> flo
     ``restock_quantity``), else the part's own restock amount, else one.
     Without a package size a "package" is one unit — the old behaviour.
     """
-    count = float(packages) if packages and packages > 0 else float(part.get("restock_quantity") or 1)
+    count = packages_bought(part, packages)
     size = part.get("package_size")
     return round_qty(count * float(size)) if size else round_qty(count)
 

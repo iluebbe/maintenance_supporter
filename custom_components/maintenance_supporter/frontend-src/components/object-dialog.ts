@@ -14,7 +14,7 @@ type ReplaceDevice = "keep" | "other" | "none";
 import { t, langOf } from "../styles";
 
 import { runWs } from "../helpers/ws-run";
-import { ancestorsOf, descendantIds, nests } from "../helpers/object-tree";
+import { descendantIds, nests, objectPath } from "../helpers/object-tree";
 import "./ms-textfield";
 import "./ms-date-field";
 
@@ -279,7 +279,7 @@ export class MaintenanceObjectDialog extends LitElement {
       .filter((o) => o.entry_id !== this._entryId && !below.has(o.entry_id) && (nests(o) || o.entry_id === this._parentEntryId))
       .map((o) => ({
         entryId: o.entry_id,
-        label: [...ancestorsOf(objs, o.entry_id), o].map((x) => x.object.name).join(" › "),
+        label: objectPath(objs, o),
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
   }

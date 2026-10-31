@@ -51,6 +51,7 @@ from .helpers.parts import (
     is_open_buy_task,
     iter_part_links,
     on_hand,
+    packages_bought,
     reconcile_buy_tasks,
     restock_units,
     stock_transition,
@@ -544,7 +545,7 @@ async def async_part_purchase(
         )
     if day is not None and day > dt_util.now().date():
         raise ServiceValidationError(translation_domain=DOMAIN, translation_key="date_in_future")
-    packages = float(quantity) if quantity else float(part.get("restock_quantity") or 1)
+    packages = packages_bought(part, quantity)
     if cost is None and unit_price is not None:
         cost = round2(float(unit_price) * packages)
     if cost is not None and cost > MAX_COST:

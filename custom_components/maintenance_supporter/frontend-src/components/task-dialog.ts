@@ -28,7 +28,7 @@ import type { TriggerType } from "../types";
 import { REQUIRED_COMPLETION_KEYS, REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import "./ms-textfield";
 import { defaultNotifyIcon } from "../helpers/notify-icons";
-import { primaryTriggerEntity, triggerEntityIds } from "../helpers/trigger-entities";
+import { entityName, primaryTriggerEntity, triggerEntityIds } from "../helpers/trigger-entities";
 import { ROTATION_STRATEGIES, TASK_PRIORITIES } from "../helpers/task-choices";
 import { MAX_MIRROR_TODO_LISTS, mirrorTargets, ownTodoLists } from "../helpers/mirror-lists";
 import "./ms-date-field";
@@ -1044,7 +1044,7 @@ export class MaintenanceTaskDialog extends LitElement {
       floors?: Record<string, { name?: string }>;
     };
     return [
-      ...ids(st.entity_id).map((id) => h.states?.[id]?.attributes?.friendly_name || id),
+      ...ids(st.entity_id).map((id) => entityName(this.hass, id)),
       ...ids(st.device_id).map((id) => h.devices?.[id]?.name_by_user || h.devices?.[id]?.name || id),
       ...ids(st.area_id).map((id) => h.areas?.[id]?.name || id),
       ...ids(st.floor_id).map((id) => h.floors?.[id]?.name || id),
@@ -3745,7 +3745,7 @@ export class MaintenanceTaskDialog extends LitElement {
             <div class="field-help">${t("task_mirror_todo_hint", L)}</div>
           </div>`;
     }
-    const names = defaults.map((eid) => String(this.hass?.states?.[eid]?.attributes?.friendly_name ?? eid)).join(", ");
+    const names = defaults.map((eid) => entityName(this.hass, eid)).join(", ");
     const labels = {
       default: t("task_mirror_todo_default", L).replace("{lists}", names),
       own: t("task_mirror_todo_own", L),

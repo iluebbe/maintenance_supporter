@@ -28,7 +28,7 @@ from .const import (
     CONF_TASKS,
     GLOBAL_UNIQUE_ID,
     SIGNAL_TASK_RESET,
-    MaintenanceStatus,
+    URGENT_STATUSES,
     task_unique_id,
 )
 from .coordinator import MaintenanceCoordinator
@@ -43,9 +43,6 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 0
-
-_PROBLEM_STATUSES = {MaintenanceStatus.OVERDUE, MaintenanceStatus.TRIGGERED}
-
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -111,7 +108,7 @@ class MaintenanceBinarySensor(MaintenanceEntity, BinarySensorEntity):
         result = self._task_result
         if result is None:
             return None
-        return result.status in _PROBLEM_STATUSES
+        return result.status in URGENT_STATUSES
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

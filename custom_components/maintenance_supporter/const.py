@@ -785,6 +785,10 @@ class MaintenanceStatus(StrEnum):
 NOTIFIABLE_STATUSES: frozenset[str] = frozenset(
     {MaintenanceStatus.DUE_SOON, MaintenanceStatus.OVERDUE, MaintenanceStatus.TRIGGERED}
 )
+# The statuses that need doing now: the overdue binary sensor, the calendar's
+# all-day mark and voice's "what is overdue" each spelled the pair out (DRY
+# audit 2026-10-30). Panel twin: status-constants.ts URGENT_STATUSES.
+URGENT_STATUSES: frozenset[str] = frozenset({MaintenanceStatus.OVERDUE, MaintenanceStatus.TRIGGERED})
 
 
 class MaintenanceTypeEnum(StrEnum):

@@ -35,6 +35,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
 from .action_listener import map_action_entity_ids
+from .entity_rename import map_trigger_entity_ids
 from .sanitize import stamp_action_owner
 
 
@@ -159,27 +160,15 @@ def move_tasks_to_device(
             moved.add((current, entity_id))
         return target
 
-    def swap_list(value: Any) -> Any:
-        if isinstance(value, list):
-            return [swap(v) for v in value]
-        return swap(value)
-
-    def swap_trigger(config: dict[str, Any]) -> dict[str, Any]:
-        if "entity_ids" in config:
-            config["entity_ids"] = swap_list(config["entity_ids"])
-        if "entity_id" in config:
-            config["entity_id"] = swap(config["entity_id"])
-        for condition in config.get("conditions") or []:
-            if isinstance(condition, dict):
-                swap_trigger(condition)
-        return config
-
     out: dict[str, dict[str, Any]] = {}
     for task_id, task in tasks.items():
         current = task_id
         new_task = copy.deepcopy(task)
         if isinstance(trigger := new_task.get("trigger_config"), dict):
-            new_task["trigger_config"] = swap_trigger(trigger)
+            # The rename's walker: a compound condition's nested
+            # trigger_config moves too. A new device starts its sensors
+            # fresh, so the per-entity trigger state stays behind.
+            new_task["trigger_config"], _ = map_trigger_entity_ids(trigger, swap, move_state=False)
         # D#229: a door sensor of the replaced washer moves with it; another
         # device's sensor stays (the matcher keeps it).
         if isinstance(rule := new_task.get("complete_when"), dict) and "entity_id" in rule:

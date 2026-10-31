@@ -58,7 +58,7 @@ from .const import (
     MAX_INTERVAL_DAYS,
     NOTIFIABLE_STATUSES,
     NOTIFICATION_MANAGER_KEY,
-    MaintenanceStatus,
+    URGENT_STATUSES,
 )
 from .helpers import voice_undo
 from .helpers.aggregate import get_object_entries, iter_live_tasks, priority_rank, store_of
@@ -364,7 +364,7 @@ class ListTasksIntent(intent.IntentHandler):
             tasks = [
                 t
                 for t in snapshot
-                if t["status"] in (MaintenanceStatus.OVERDUE, MaintenanceStatus.TRIGGERED)
+                if t["status"] in URGENT_STATUSES
                 or (isinstance(t["days_until_due"], int) and t["days_until_due"] <= int(within))
             ]
         else:

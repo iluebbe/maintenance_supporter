@@ -47,7 +47,7 @@ from ..models.shapes import HistoryEntry
 from ..parts_runtime import resolve_part_link
 from .global_options import global_option
 from .history import strict_amount
-from .parts import PART_REF_FIELD, restock_units, unit_price
+from .parts import PART_REF_FIELD, packages_bought, restock_units, unit_price
 from .rounding import round2
 
 DEFAULT_PARTS_COST_MODE = "purchase"
@@ -224,10 +224,9 @@ def _bought_for_the_battery_fleet(entry: ConfigEntry) -> bool:
 
 def purchase_unit_price(part: Mapping[str, Any], cost: float, packages: float | None) -> float | None:
     """The price one package (or unit) cost on this purchase."""
-    count = packages if packages and packages > 0 else strict_amount(part.get("restock_quantity")) or 1.0
-    if count <= 0 or cost <= 0:
+    if cost <= 0:
         return None
-    return round2(cost / count)
+    return round2(cost / packages_bought(part, packages))
 
 
 def averaged_price(part: Mapping[str, Any], cost: float, packages: float | None, owned_after: float | None) -> float | None:

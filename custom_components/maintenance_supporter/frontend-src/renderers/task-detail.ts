@@ -16,6 +16,7 @@ import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { renderPeopleAvatars, type PersonDisplay } from "../helpers/person";
 import { taskUserIds } from "../helpers/assignees";
 import { quickCompleteOn } from "../helpers/quick-complete";
+import { entityName } from "../helpers/trigger-entities";
 import { t, formatDate, formatRecurrence, formatCost, formatDuration } from "../styles";
 import { renderRefChip } from "../helpers/reference";
 import type { AdvancedFeatures, CompleteWhen, HomeAssistant, MaintenanceTask, ManualDocRef } from "../types";
@@ -162,7 +163,7 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
         ${task.complete_when?.entity_id
           ? html`<span class="nfc-badge complete-when-badge" title="${completeWhenTitle(
               task.complete_when,
-              String(ctx.hass?.states?.[task.complete_when.entity_id]?.attributes?.friendly_name ?? task.complete_when.entity_id),
+              entityName(ctx.hass, task.complete_when.entity_id),
               L,
             )}"><ha-icon icon="mdi:check-circle-outline"></ha-icon></span>`
           : nothing}
@@ -598,7 +599,7 @@ function renderMirrorBadge(task: MaintenanceTask, ctx: TaskDetailContext, L: str
   const own = task.mirror_todo_entities ?? [];
   const lists = own.length ? own : task.mirror_todo_use_default === false ? [] : ctx.mirrorTodoDefault ?? [];
   if (!lists.length) return nothing;
-  const names = lists.map((eid) => String(ctx.hass?.states?.[eid]?.attributes?.friendly_name ?? eid)).join(", ");
+  const names = lists.map((eid) => entityName(ctx.hass, eid)).join(", ");
   const title = own.length ? `${t("task_mirror_todo", L)}: ${names}` : t("task_mirror_todo_default", L).replace("{lists}", names);
   return html`<span class="nfc-badge mirror-badge ${own.length ? "" : "inherited"}" title=${title}><ha-icon icon="mdi:clipboard-list-outline"></ha-icon></span>`;
 }

@@ -56,13 +56,23 @@ export function unitPrice(part: Pick<MaintenancePart, "cost" | "package_size"> |
   return size && size > 0 ? cost / size : cost;
 }
 
+/** How many packages a purchase counts (units without a package size):
+ *  `packages` when a positive number, else the part's restock amount when
+ *  positive, else one. helpers/parts.py packages_bought; the purchase dialog
+ *  and the restock each had theirs (DRY audit 2026-10-30). */
+export function packagesBought(part: Pick<MaintenancePart, "restock_quantity">, packages?: number | null): number {
+  const positive = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v) && v > 0;
+  if (positive(packages)) return packages;
+  return positive(part.restock_quantity) ? part.restock_quantity : 1;
+}
+
 /** Stock units one restock adds: `packages` (default: the part's restock
  *  amount, else 1) × the package size (1 without one). */
 export function restockUnits(
   part: Pick<MaintenancePart, "restock_quantity" | "package_size">,
   packages?: number | null,
 ): number {
-  const count = num(packages) && packages! > 0 ? packages! : (num(part.restock_quantity) || 1);
+  const count = packagesBought(part, packages);
   const size = num(part.package_size);
   return round2(count * (size && size > 0 ? size : 1));
 }

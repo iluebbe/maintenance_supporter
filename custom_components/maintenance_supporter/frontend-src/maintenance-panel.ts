@@ -8,7 +8,7 @@ import { objectRef, parseRef, renderRefChip, taskRef, type HasRef } from "./help
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle, pendingRestartVersion, type ServerVersion } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
-import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, countText, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, formatQty, syncCurrencyDecimals} from "./styles";
+import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, countText, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, formatNumber, formatQty, syncCurrencyDecimals} from "./styles";
 import { OVERVIEW_TABS, type OverviewTab } from "./helpers/overview-tabs";
 import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
 import { openHtmlInNewTab, openSignedDocument, preopenTab, signApiPath } from "./helpers/document-url";
@@ -134,7 +134,7 @@ import { canWrite } from "./helpers/permissions";
 // #226: the All-parts view's Use pill (the parts shelf imports it too).
 import "./components/ms-part-use";
 import "./components/ms-part-purchase";
-import { ancestorsOf, buildObjectTree, nests, sortTree, subtreeOf, treeRows, type ObjectTree } from "./helpers/object-tree";
+import { ancestorsOf, buildObjectTree, nests, objectPath, sortTree, subtreeOf, treeRows, type ObjectTree } from "./helpers/object-tree";
 import { renderStatusBadge, statusKey, statusLabel, type StatusLike } from "./renderers/status";
 import { TOAST_MS, ACTION_TOAST_MS } from "./helpers/toast";
 import { isCounterTrigger, primaryTriggerEntity } from "./helpers/trigger-entities";
@@ -145,7 +145,7 @@ import { buildHistoryEntryDraft } from "./helpers/history-draft";
 import { readingSlotDelta } from "./helpers/reading-slots";
 import { bulkResultMessage, codedFailures, runWs, runWsEach } from "./helpers/ws-run";
 import { snoozedMessage, type SnoozeResult } from "./helpers/snooze";
-import { STATUS_ORDER, statusRank } from "./status-constants";
+import { STATUS_ORDER, isUrgentStatus, statusRank } from "./status-constants";
 
 // #191: all_areas = the areas page, area = one area's history and costs.
 type View = "overview" | "object" | "task" | "all_objects" | "all_parts" | "all_areas" | "area";
@@ -200,6 +200,10 @@ const STATUS_FILTERS: readonly string[] = STATUS_ORDER;
 type ObjectSection = "children" | "tasks" | "documents" | "parts" | "history";
 // #225: "children" = the objects inside this one.
 const OBJECT_SECTIONS: readonly ObjectSection[] = ["children", "tasks", "documents", "parts", "history"];
+
+/** The paperclip badge's tooltip: "Documents: 3". It read "1 Documents"
+ *  (DRY audit 2026-10-30: the count beside a plural label, three times). */
+const docBadgeTitle = (count: number, lang: string): string => `${t("documents", lang)}: ${formatNumber(count, lang)}`;
 
 // Chart dimension constants for mini sparklines (overview)
 
@@ -1670,7 +1674,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const above = new Set(ancestorsOf(objs, parentEntryId).map((o) => o.entry_id));
     return objs
       .filter((o) => o.entry_id !== parentEntryId && !above.has(o.entry_id) && o.object.parent_entry_id !== parentEntryId && nests(o))
-      .map((o) => ({ value: o.entry_id, label: [...ancestorsOf(objs, o.entry_id), o].map((x) => x.object.name).join(" › ") }))
+      .map((o) => ({ value: o.entry_id, label: objectPath(objs, o) }))
       .sort((a, b) => a.label.localeCompare(b.label));
   }
 
@@ -4390,7 +4394,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _renderObjectCard(obj: MaintenanceObjectResponse, tree: ObjectTree) {
     const L = this._lang;
     const kids = tree.children.get(obj.entry_id) ?? [];
-    const isOverdue = (o: MaintenanceObjectResponse) => o.tasks.some((tk) => tk.status === "overdue" || tk.status === "triggered");
+    const isOverdue = (o: MaintenanceObjectResponse) => o.tasks.some((tk) => isUrgentStatus(tk.status));
     const overdueInside = (o: MaintenanceObjectResponse) => subtreeOf(tree, o).some(isOverdue);
     const overdue = overdueInside(obj);
     // Select mode belongs to the All-objects view, not an object page.
@@ -4413,7 +4417,7 @@ export class MaintenanceSupporterPanel extends LitElement {
               </span>`
             : nothing}
           ${obj.object.document_count
-            ? html`<span class="doc-badge" title="${obj.object.document_count} ${t("documents", L)}">
+            ? html`<span class="doc-badge" title="${docBadgeTitle(obj.object.document_count, L)}">
                 <ha-icon icon="mdi:paperclip"></ha-icon>${obj.object.document_count}
               </span>`
             : nothing}
@@ -4706,7 +4710,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       <span class="objects-table-name">${this._objRef(o)}${o.name}</span>
       ${kids && !open ? html`<span class="object-tree-count" title=${t("sub_objects", L)}>${kids}</span>` : nothing}
       ${o.document_count
-        ? html`<span class="doc-badge" title="${o.document_count} ${t("documents", L)}">
+        ? html`<span class="doc-badge" title="${docBadgeTitle(o.document_count, L)}">
             <ha-icon icon="mdi:paperclip"></ha-icon>${o.document_count}
           </span>`
         : nothing}
@@ -5209,7 +5213,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   ${!task.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
                   ${task.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
                   ${task.document_count
-                    ? html`<span class="doc-badge" title="${task.document_count} ${t("documents", L)}"><ha-icon icon="mdi:paperclip"></ha-icon>${task.document_count}</span>`
+                    ? html`<span class="doc-badge" title="${docBadgeTitle(task.document_count, L)}"><ha-icon icon="mdi:paperclip"></ha-icon>${task.document_count}</span>`
                     : nothing}
                 </span>
                 <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${this._listRef(obj.entry_id, task.id)}${task.name}${renderEventTitles(task.next_event_titles)}${renderTriggerDetail(task.trigger_detail)}</span>

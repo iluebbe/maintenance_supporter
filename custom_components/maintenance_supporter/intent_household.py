@@ -35,7 +35,7 @@ from .helpers.aggregate import store_of
 from .helpers.assignees import person_display_name
 from .helpers.entry_tasks import write_task
 from .helpers.i18n import normalize_language_code
-from .helpers.parts import MAX_PART_STOCK, is_part_low, restock_units
+from .helpers.parts import MAX_PART_STOCK, is_part_low, packages_bought, restock_units
 from .helpers.reading_slots import resolve_reading_values, sanitize_reading_slots
 from .intent import (
     INTENT_ADD_NOTE,
@@ -404,8 +404,7 @@ class BoughtPartIntent(intent.IntentHandler):
         response = intent_obj.create_response()
         # What was bought: packages when the part has a package size (#98
         # follow-up — "I bought two cans"), else units.
-        qty = slots.get("quantity", {}).get("value")
-        quantity = float(qty) if qty else float(part.get("restock_quantity") or 1)
+        quantity = packages_bought(part, slots.get("quantity", {}).get("value"))
 
         entry = hass.config_entries.async_get_entry(part["entry_id"])
         if entry is None:

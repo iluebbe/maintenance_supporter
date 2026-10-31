@@ -17,7 +17,7 @@
 import type { HistoryEntry, MaintenanceObjectResponse } from "../types";
 import { entrySpend } from "./parts-cost";
 import { intervalSpanDays } from "./interval";
-import { statusRank } from "../status-constants";
+import { isUrgentStatus, statusRank } from "../status-constants";
 import { taskIsFor } from "./assignees";
 import { addDaysIso, stampDate } from "./ha-time";
 
@@ -113,7 +113,7 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
     // "OVERDUE 211d" on the May 7 projection of a 7-day-interval task) is
     // misleading — the projection IS the assumption that the user completes
     // it today, so the projected slot should read as a fresh "ok" event.
-    status: projected && (task.status === "overdue" || task.status === "triggered")
+    status: projected && isUrgentStatus(task.status)
       ? "ok"
       : task.status,
     days_until_due: projected ? null : (task.days_until_due ?? null),
@@ -135,7 +135,7 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
   );
 
   // Overdue / triggered → bucket on today (windowStart) regardless of next_due
-  if (task.status === "overdue" || task.status === "triggered") {
+  if (isUrgentStatus(task.status)) {
     out.push(baseEvent(windowStart, false));
     // Continue projecting from "today" forward for time-based tasks
     if (task.schedule_type === "time_based" && task.interval_days && task.interval_days > 0) {

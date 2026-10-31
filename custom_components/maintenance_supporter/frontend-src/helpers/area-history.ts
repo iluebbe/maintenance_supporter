@@ -21,6 +21,7 @@ import {
   type ObjectHistoryEntry,
 } from "./object-history";
 import { matchesQuery } from "./search-match";
+import { isUrgentStatus } from "../status-constants";
 
 /** Key of the "No area" bucket. HA builds area ids with slugify, which never
  *  yields a leading underscore — this can not collide with a real area. */
@@ -347,7 +348,7 @@ export function summarizeAreas(
       icon: areaIcon(key, opts.areas),
       objects: objs.length,
       tasks: live.length,
-      overdue: active.filter((task) => task.status === "overdue" || task.status === "triggered").length,
+      overdue: active.filter((task) => isUrgentStatus(task.status)).length,
       dueSoon: active.filter((task) => task.status === "due_soon").length,
       costYear,
       costTotal,

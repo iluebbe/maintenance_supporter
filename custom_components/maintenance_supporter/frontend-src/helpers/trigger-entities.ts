@@ -12,6 +12,14 @@ import type { TriggerConfig } from "../types";
 
 /** Every entity of a single-source trigger: ``entity_ids``, else the legacy
  *  ``entity_id``. A compound keeps its entities in its conditions. */
+/** An entity as people know it: its friendly name, else the id. Settings,
+ *  the task dialog and the task page each read the attribute by hand (DRY
+ *  audit 2026-10-30). */
+export function entityName(hass: { states?: Record<string, { attributes?: { friendly_name?: unknown } } | undefined> } | null | undefined, entityId: string): string {
+  const name = hass?.states?.[entityId]?.attributes?.friendly_name;
+  return typeof name === "string" && name ? name : entityId;
+}
+
 export function triggerEntityIds(tc: TriggerConfig | null | undefined): string[] {
   if (!tc) return [];
   if (Array.isArray(tc.entity_ids) && tc.entity_ids.length > 0) return [...tc.entity_ids];

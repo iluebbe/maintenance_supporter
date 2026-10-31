@@ -24,6 +24,7 @@ import { countryName, detectionReasons, dwellingLabel, type HomeProfile } from "
 import { vacationPhase } from "../helpers/vacation-phase";
 import { quickCompleteOn } from "../helpers/quick-complete";
 import { MAX_MIRROR_TODO_LISTS, isOwnTodoList } from "../helpers/mirror-lists";
+import { entityName } from "../helpers/trigger-entities";
 import "./ms-date-field";
 
 /** One household member and the notify services they actually resolve to.
@@ -1213,7 +1214,7 @@ export class MaintenanceSettingsView extends LitElement {
         ${lists.length
           ? lists.map((id) => html`
             <label class="setting-row mirror-todo-default-list">
-              <span class="setting-label">${String(this.hass?.states?.[id]?.attributes?.friendly_name ?? id)}</span>
+              <span class="setting-label">${entityName(this.hass, id)}</span>
               <input type="checkbox" data-list=${id} .checked=${picked.includes(id)}
                 ?disabled=${full && !picked.includes(id)}
                 @change=${(e: Event) => toggle(id, (e.target as HTMLInputElement).checked)} />

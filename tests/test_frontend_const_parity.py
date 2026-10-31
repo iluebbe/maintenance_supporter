@@ -283,6 +283,22 @@ def test_actionable_statuses_match_backend() -> None:
     assert not offenders, f"hand-kept status rank/list in {offenders} — use status-constants STATUS_ORDER / statusRank / ACTIONABLE_STATUSES"
 
 
+def test_urgent_statuses_match_backend() -> None:
+    """status-constants URGENT_STATUSES is const.URGENT_STATUSES, and no
+    surface spells the pair out again (DRY audit 2026-10-30)."""
+    from custom_components.maintenance_supporter.const import URGENT_STATUSES
+
+    src = (_FRONTEND / "status-constants.ts").read_text(encoding="utf-8")
+    assert set(_ts_string_tuple(src, "URGENT_STATUSES")) == set(URGENT_STATUSES)
+    pair = re.compile(r"status === \"overdue\" \|\| \w+(?:\.status)? === \"triggered\"|status === \"triggered\" \|\| \w+(?:\.status)? === \"overdue\"")
+    offenders = [
+        p.name
+        for p in _FRONTEND.rglob("*.ts")
+        if "__tests__" not in p.parts and "node_modules" not in p.parts and pair.search(p.read_text(encoding="utf-8"))
+    ]
+    assert not offenders, f"overdue/triggered spelled out in {offenders} — use status-constants isUrgentStatus"
+
+
 def test_history_type_map_covers_every_history_entry_type() -> None:
     """The calendar's past-mode map and the history filter chips must know
     every HistoryEntryType — `missed` was absent from the map and fell

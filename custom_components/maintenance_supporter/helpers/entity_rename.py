@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import logging
 import re
+from collections.abc import Callable
 from typing import Any
 
 from homeassistant.helpers import entity_registry as er
@@ -27,14 +28,20 @@ from .battery_fleet_setup import INSTALLED_CELLS_KEY, RECORDED_REPLACEMENTS_KEY
 from .battery_lifetime import REPLACEMENT_LOG_KEY
 
 
-def rewrite_trigger_config(config: Any, old_id: str, new_id: str) -> tuple[Any, bool]:
-    """Return (new_config, changed) with all entity_id references rewritten.
+def map_trigger_entity_ids(config: Any, fn: Callable[[str], str], *, move_state: bool = True) -> tuple[Any, bool]:
+    """Return (new_config, changed) with every entity id a trigger names
+    passed through ``fn``.
 
     Handles:
       - flat ``entity_id`` (legacy single-entity)
       - ``entity_ids`` list (multi-entity)
-      - ``_trigger_state`` keyed by entity_id (per-entity persisted state)
-      - compound triggers — recursive into ``conditions[].trigger_config``
+      - ``_trigger_state`` keyed by entity_id (per-entity persisted state),
+        with ``move_state``; a swapped device starts its sensors fresh
+      - compound triggers — each condition's own ids and a nested
+        ``conditions[].trigger_config``
+
+    The rename and the device swap each walked it, and the swap skipped a
+    condition's nested ``trigger_config`` (DRY audit 2026-10-30).
     """
     if not isinstance(config, dict):
         return config, False
@@ -42,39 +49,50 @@ def rewrite_trigger_config(config: Any, old_id: str, new_id: str) -> tuple[Any, 
     new_config = dict(config)
     changed = False
 
-    if new_config.get("entity_id") == old_id:
-        new_config["entity_id"] = new_id
+    eid = new_config.get("entity_id")
+    if isinstance(eid, str) and eid and (mapped := fn(eid)) != eid:
+        new_config["entity_id"] = mapped
         changed = True
 
     eids = new_config.get("entity_ids")
-    if isinstance(eids, list) and old_id in eids:
-        new_config["entity_ids"] = [new_id if e == old_id else e for e in eids]
-        changed = True
+    if isinstance(eids, list):
+        new_eids = [fn(e) if isinstance(e, str) and e else e for e in eids]
+        if new_eids != eids:
+            new_config["entity_ids"] = new_eids
+            changed = True
 
     state = new_config.get("_trigger_state")
-    if isinstance(state, dict) and old_id in state:
-        new_state = dict(state)
-        new_state[new_id] = new_state.pop(old_id)
-        new_config["_trigger_state"] = new_state
-        changed = True
+    if move_state and isinstance(state, dict):
+        new_state = {(fn(k) if isinstance(k, str) and k.count(".") == 1 else k): v for k, v in state.items()}
+        if list(new_state) != list(state):
+            new_config["_trigger_state"] = new_state
+            changed = True
 
-    if new_config.get("type") == "compound":
-        new_conditions: list[dict[str, Any]] = []
-        for cond in new_config.get("conditions", []) or []:
-            new_cond, cond_changed = rewrite_trigger_config(cond, old_id, new_id)
+    conditions = new_config.get("conditions")
+    if isinstance(conditions, list):
+        new_conditions: list[Any] = []
+        conds_changed = False
+        for cond in conditions:
+            new_cond, cond_changed = map_trigger_entity_ids(cond, fn, move_state=move_state)
             inner = new_cond.get("trigger_config") if isinstance(new_cond, dict) else None
             if isinstance(inner, dict):
-                rewritten_inner, inner_changed = rewrite_trigger_config(inner, old_id, new_id)
+                mapped_inner, inner_changed = map_trigger_entity_ids(inner, fn, move_state=move_state)
                 if inner_changed:
-                    new_cond = {**new_cond, "trigger_config": rewritten_inner}
+                    new_cond = {**new_cond, "trigger_config": mapped_inner}
                     cond_changed = True
-            if cond_changed:
-                changed = True
+            conds_changed = conds_changed or cond_changed
             new_conditions.append(new_cond)
-        if changed:
+        if conds_changed:
             new_config["conditions"] = new_conditions
+            changed = True
 
     return new_config, changed
+
+
+def rewrite_trigger_config(config: Any, old_id: str, new_id: str) -> tuple[Any, bool]:
+    """Return (new_config, changed) with every reference to ``old_id``
+    rewritten to ``new_id`` (:func:`map_trigger_entity_ids`)."""
+    return map_trigger_entity_ids(config, lambda e: new_id if e == old_id else e)
 
 
 def rewrite_task(task_data: dict[str, Any], old_id: str, new_id: str) -> tuple[dict[str, Any], bool]:

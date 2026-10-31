@@ -31,6 +31,14 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **A tick on the shopping list fills in the task's *Quick complete* values**, like a tick on a mirrored to-do list.
 - The `add_task` and `update_task` texts said a calendar `schedule` overrides `schedule_type`; a contradicting one is
   refused, and the texts say so now. The quantity of *Spare part used* and *Spare part bought* no longer offers 0.
+- **Moving tasks to a new device also moves a combined trigger's conditions** stored with their own trigger settings.
+  Renaming an entity followed them; changing the object's device left them on the old one.
+- The paperclip badge's tooltip reads *Documents: 3* instead of *1 Documents*.
+
+### 🔧 Internal
+
+- One rule each where two copies drifted (DRY audit round 6): the statuses that need doing now, the packages a
+  purchase counts, an object's path name, an entity's display name, and the walk over the entities a trigger names.
 
 ## [2.114.0] - 2026-10-31
 

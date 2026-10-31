@@ -19,7 +19,7 @@ import { property, state } from "lit/decorators.js";
 import { t, langOf, formatQty } from "../styles";
 import { runWs } from "../helpers/ws-run";
 import { haToday } from "../helpers/ha-time";
-import { restockUnits, round2 } from "../helpers/parts-cost";
+import { packagesBought, restockUnits, round2 } from "../helpers/parts-cost";
 import type { HomeAssistant, MaintenancePart } from "../types";
 import "./ms-date-field";
 
@@ -33,8 +33,7 @@ export interface PartBoughtDetail {
 /** What one purchase buys by default: the part's restock amount (packages
  *  of a part bought in packages), else one. */
 export function defaultPurchaseQuantity(part: Pick<MaintenancePart, "restock_quantity">): number {
-  const q = part.restock_quantity;
-  return typeof q === "number" && Number.isFinite(q) && q > 0 ? q : 1;
+  return packagesBought(part);
 }
 
 const numOf = (s: string): number => (s.trim() === "" ? NaN : parseFloat(s));

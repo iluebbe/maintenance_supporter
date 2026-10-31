@@ -99,6 +99,13 @@ export function ancestorsOf(objs: readonly Obj[], entryId: string): Obj[] {
   return chain;
 }
 
+/** An object named by its path, outermost first: "Vehicles › Car 1" (the
+ *  object dialog's parent choices and the panel's Move here, DRY audit
+ *  2026-10-30). */
+export function objectPath(objs: readonly Obj[], o: Obj): string {
+  return [...ancestorsOf(objs, o.entry_id), o].map((x) => x.object.name).join(" › ");
+}
+
 /** Every object below `entryId` in the full list — what may not become its
  *  parent (the server refuses the cycle; the picker does not offer it). */
 export function descendantIds(objs: readonly Obj[], entryId: string): Set<string> {

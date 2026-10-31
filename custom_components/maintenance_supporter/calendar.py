@@ -16,6 +16,7 @@ from .const import (
     CONF_OBJECT,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    URGENT_STATUSES,
     MaintenanceStatus,
     ScheduleType,
 )
@@ -849,7 +850,7 @@ class MaintenanceCalendar(CalendarEntity):
         # the past where the calendar hid it (consistency audit 2026-10-16).
         # Its own due date stays in the description.
         event_day = next_due
-        if status in (MaintenanceStatus.OVERDUE, MaintenanceStatus.TRIGGERED):
+        if status in URGENT_STATUSES:
             event_day = dt_util.now().date()
         if event_day < start_d or event_day > end_d:
             return None
