@@ -1173,7 +1173,7 @@ Three services in `compose.yaml`:
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  ha-maint (:8125)       │  ha-maint-fresh      │  playwright │
-│  HA 2026.10.4           │  (:8126)             │  v1.63.0    │
+│  HA 2026.10.4           │  (:8126)             │  v1.64.1    │
 │  + libfaketime          │  HA 2026.10.4 stock  │  run-server │
 │  custom_components r/w  │  read-only mounts    │  :3000      │
 │  config-dev/ volume     │  profile: testing    │             │
@@ -1187,7 +1187,7 @@ Three services in `compose.yaml`:
 | `homeassistant-fresh` | Clean HA instance for fresh-install testing | `testing` |
 | `playwright` | Browser automation for E2E tests | `testing` |
 
-The Playwright **client and server versions must match exactly** — the image is `mcr.microsoft.com/playwright:v1.63.0-noble` and the container runs `npx playwright@1.63.0 run-server`; a mismatched `@playwright/test` in `e2e/` fails the handshake.
+The Playwright **client and server versions must match exactly** — the image is `mcr.microsoft.com/playwright:v1.64.1-noble` and the container runs `npx playwright@1.64.1 run-server`; a mismatched `@playwright/test` in `e2e/` fails the handshake.
 
 ### Faketime (Time Manipulation)
 
