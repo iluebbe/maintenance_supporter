@@ -172,6 +172,11 @@ CONF_ADVANCED_COMPLETION_ACTIONS: Final = "advanced_completion_actions_visible"
 # 2026-10: shows the object's place (an HA zone) and "remind only on site" in
 # the panel. Visibility only, like the others: a place set before keeps working.
 CONF_ADVANCED_PLACES: Final = "advanced_places_visible"
+# 2026-10 beta: the task dialog as rule rows with a sidebar (the HA 2026.11
+# automation editor's way), a start screen for new tasks, a template preview
+# and the task trace. Off: everything as before; traces are recorded only
+# while it is on.
+CONF_ADVANCED_BETA_EDITOR: Final = "advanced_beta_editor_visible"
 
 # Panel-access overrides: HA user IDs who get the full admin panel despite
 # not being HA admins. Empty list means only admins see the full panel.

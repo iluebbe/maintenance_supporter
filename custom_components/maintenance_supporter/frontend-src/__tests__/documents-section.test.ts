@@ -9,6 +9,7 @@
 import { expect, fixture, html } from "@open-wc/testing";
 import "../components/documents-section.js";
 import type { MaintenanceDocumentsSection } from "../components/documents-section";
+import type { MaintenanceConfirmDialog } from "../components/confirm-dialog";
 import { DOC_MAX_BYTES } from "../helpers/photo-upload.js";
 import { createMockHass } from "./_test-utils.js";
 
@@ -73,17 +74,23 @@ describe("documents-section", () => {
   });
 
   it("deletes a document via WS after confirmation", async () => {
-    const orig = window.confirm;
-    window.confirm = () => true;
     try {
       const { el, sent } = await mount();
       el.shadowRoot!.querySelector<HTMLButtonElement>(".icon-btn.danger")!.click();
-      await el.updateComplete;
+      // The question is our confirm dialog (helpers/confirm), not window.confirm.
+      let dlg: MaintenanceConfirmDialog | null = null;
+      for (let i = 0; i < 50 && !dlg?.shadowRoot?.querySelector("ha-dialog"); i++) {
+        await new Promise((r) => setTimeout(r, 10));
+        dlg = document.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog[data-ms-lovelace-confirm]");
+      }
+      const buttons = dlg!.shadowRoot!.querySelectorAll<HTMLElement>(".dialog-actions ha-button");
+      buttons[buttons.length - 1].click();
+      await new Promise((r) => setTimeout(r, 20));
       const msg = sent.find((m) => m.type === "maintenance_supporter/documents/delete");
       expect(msg, "delete WS sent").to.exist;
       expect(msg!.doc_id).to.equal("d1");
     } finally {
-      window.confirm = orig;
+      document.querySelectorAll("maintenance-confirm-dialog[data-ms-lovelace-confirm]").forEach((d) => d.remove());
     }
   });
 
@@ -121,6 +128,8 @@ describe("documents-section", () => {
     await new Promise((r) => setTimeout(r, 10));
     await el.updateComplete;
     expect(el.shadowRoot!.querySelector(".lightbox"), "lightbox open").to.exist;
+    // In the top layer: HA 2026.11's docked sidebar covered its left side.
+    expect(el.shadowRoot!.querySelector(".lightbox")!.matches(":popover-open"), "lightbox in the top layer").to.equal(true);
   });
 
   it("opens a document by clicking its title row, not just the icons", async () => {

@@ -479,6 +479,23 @@ async def async_part_use(
     return {"stock": stock or 0, "restoring": store.get_part_restoring(part_id)}
 
 
+def disable_buy_reminder(hass: HomeAssistant, entry: ConfigEntry, task: Mapping[str, Any]) -> bool:
+    """#247: turn off the automatic buy reminder of the part ``task`` is the
+    buy task of. Deleted on its own, a buy task comes back at the next
+    reconcile while its part stays low, so the delete dialog offers this with
+    it. False when ``task`` is no buy task, or its part is gone or already off.
+    The shopping list mirror drops the part's row on its next pass."""
+    part_id = buy_task_part_id(task)
+    parts = dict(entry.data.get(CONF_PARTS) or {})
+    part = parts.get(part_id) if part_id else None
+    if part_id is None or part is None or not part.get("auto_buy_task"):
+        return False
+    parts[part_id] = {**part, "auto_buy_task": False}
+    hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_PARTS: parts})
+    schedule_resync(hass)
+    return True
+
+
 def open_buy_task_id(entry: ConfigEntry, part_id: str) -> str | None:
     """The part's buy reminder still to do, if there is one."""
     store = store_of(entry)

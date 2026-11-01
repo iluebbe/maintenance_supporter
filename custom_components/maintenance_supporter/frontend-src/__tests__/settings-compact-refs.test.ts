@@ -8,10 +8,25 @@ import { expect, fixture, html } from "@open-wc/testing";
 import "../components/settings-view.js";
 import type { MaintenanceSettingsView } from "../components/settings-view";
 import { DEFAULT_FEATURES, createMockHass, type SentMessage } from "./_test-utils.js";
+import type { MaintenanceConfirmDialog } from "../components/confirm-dialog";
+
+/** Answer the confirm dialog (helpers/confirm): the question asks there
+ *  since 2026-11, no longer through window.confirm. */
+async function answerConfirm(yes: boolean): Promise<void> {
+  let dlg: MaintenanceConfirmDialog | null = null;
+  for (let i = 0; i < 50 && !dlg?.shadowRoot?.querySelector("ha-dialog"); i++) {
+    await new Promise((r) => setTimeout(r, 10));
+    dlg = document.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog[data-ms-lovelace-confirm]");
+  }
+  const buttons = dlg!.shadowRoot!.querySelectorAll<HTMLElement>(".dialog-actions ha-button");
+  buttons[yes ? buttons.length - 1 : 0].click();
+  await new Promise((r) => setTimeout(r, 10));
+}
 
 describe("settings: compact reference numbers (#170)", () => {
-  const realConfirm = window.confirm;
-  afterEach(() => { window.confirm = realConfirm; });
+  afterEach(() => {
+    document.querySelectorAll("maintenance-confirm-dialog[data-ms-lovelace-confirm]").forEach((d) => d.remove());
+  });
 
   async function mount(isAdmin = true) {
     const { hass, sent } = createMockHass({
@@ -32,11 +47,11 @@ describe("settings: compact reference numbers (#170)", () => {
   });
 
   it("confirms, calls the command and reports the counts", async () => {
-    window.confirm = () => true;
     const { el, sent } = await mount();
     const btn = el.shadowRoot!.querySelector<HTMLButtonElement>("button.compact-refs")!;
     expect(btn).to.exist;
     btn.click();
+    await answerConfirm(true);
     await new Promise((r) => setTimeout(r, 30));
     await el.updateComplete;
     expect(sent.some((m) => m.type === "maintenance_supporter/reference_numbers/compact")).to.equal(true);
@@ -45,9 +60,9 @@ describe("settings: compact reference numbers (#170)", () => {
   });
 
   it("sends nothing when the confirm is declined", async () => {
-    window.confirm = () => false;
     const { el, sent } = await mount();
     el.shadowRoot!.querySelector<HTMLButtonElement>("button.compact-refs")!.click();
+    await answerConfirm(false);
     await new Promise((r) => setTimeout(r, 20));
     expect(sent.some((m) => m.type === "maintenance_supporter/reference_numbers/compact")).to.equal(false);
   });

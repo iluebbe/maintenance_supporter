@@ -93,7 +93,7 @@ class DsHaButton extends LitElement {
       font: 500 14px/36px Roboto, system-ui, sans-serif;
       letter-spacing: 0.5px;
       padding: 0 16px;
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       border: none;
       cursor: pointer;
       /* Honor the mwc theme override first — HA's .danger idiom recolors

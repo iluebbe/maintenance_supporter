@@ -17,8 +17,9 @@ import { property, state } from "lit/decorators.js";
 
 import { t, ensureLocale, langOf } from "../styles";
 import { runWs } from "../helpers/ws-run";
-import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
+import { focusModalShell, modalShellStyles, renderModalShell, shellIsHa } from "../helpers/modal-shell";
 import type { HomeAssistant, SavedView, SavedViewFilters } from "../types";
+import { notice } from "../helpers/notice";
 
 interface ViewsResponse {
   views: SavedView[];
@@ -96,9 +97,9 @@ export class MaintenanceSavedViewsDialog extends LitElement {
     if (!this._open) return html``;
     const L = this._lang;
     return renderModalShell(() => this._close(), html`
-        <div class="title">${t("views_dialog_title", L)}</div>
+        ${shellIsHa() ? nothing : html`<div class="title">${t("views_dialog_title", L)}</div>`}
         <div class="hint">${t("views_dialog_hint", L)}</div>
-        ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+        ${this._error ? notice("error", this._error) : nothing}
 
         <div class="save-row">
           <input
@@ -140,7 +141,7 @@ export class MaintenanceSavedViewsDialog extends LitElement {
         <div class="actions">
           <ha-button appearance="plain" @click=${this._close}>${t("close", L)}</ha-button>
         </div>
-    `);
+    `, { title: t("views_dialog_title", L) });
   }
 
   static styles = [modalShellStyles, css`
@@ -170,7 +171,7 @@ export class MaintenanceSavedViewsDialog extends LitElement {
       flex: 1;
       padding: 8px 10px;
       border: 1px solid var(--divider-color);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       background: var(--card-background-color, #fff);
       color: var(--primary-text-color);
       font-size: 14px;
@@ -190,7 +191,7 @@ export class MaintenanceSavedViewsDialog extends LitElement {
       gap: 10px;
       padding: 6px 8px;
       border: 1px solid var(--divider-color);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
     }
     .row-name {
       font-size: 14px;

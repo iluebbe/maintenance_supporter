@@ -582,7 +582,8 @@
           "advanced_checklists_visible": "Listes de contrôle",
           "advanced_schedule_time_visible": "Planification à l'heure",
           "advanced_completion_actions_visible": "Actions de finalisation",
-          "advanced_places_visible": "Lieux"
+          "advanced_places_visible": "Lieux",
+          "advanced_beta_editor_visible": "Nouvelle interface et éditeur de tâches"
         },
         "data_description": {
           "advanced_adaptive_visible": "Afficher l'analyse EWA, Weibull et les suggestions d'intervalle pour les tâches.",
@@ -593,7 +594,8 @@
           "advanced_checklists_visible": "Afficher les listes de contrôle pour la réalisation étape par étape des tâches.",
           "advanced_schedule_time_visible": "Permettre aux tâches d'arriver à échéance à une heure précise plutôt qu'à minuit.",
           "advanced_completion_actions_visible": "Action HA par tâche lors de la finalisation + QR de finalisation rapide avec valeurs pré-définies.",
-          "advanced_places_visible": "Objets entretenus à un autre endroit (une zone Home Assistant) : rappels seulement quand quelqu'un y est, et un message à l'arrivée."
+          "advanced_places_visible": "Objets entretenus à un autre endroit (une zone Home Assistant) : rappels seulement quand quelqu'un y est, et un message à l'arrivée.",
+          "advanced_beta_editor_visible": "Les commandes de Home Assistant dans tout le panneau, les tâches sous forme de règles comme dans l'éditeur d'automatisations, et une trace de chaque tâche. Activé par défaut ; désactivez-le pour l'interface classique."
         }
       },
       "panel_access": {

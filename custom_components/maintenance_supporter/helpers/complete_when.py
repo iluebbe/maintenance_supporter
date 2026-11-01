@@ -39,6 +39,7 @@ from ..const import CONF_OBJECT, CONF_TASKS, UNAVAILABLE_STATES
 from ..models.shapes import CompleteWhen
 from .pause import is_task_inert
 from .sanitize import sanitize_complete_when
+from .task_trace import KIND_DONE_WHEN, record
 
 if TYPE_CHECKING:
     from ..coordinator import MaintenanceCoordinator
@@ -90,6 +91,12 @@ def async_track_complete_when(hass: HomeAssistant, coordinator: MaintenanceCoord
         return lambda: None
     # task_id → cancel of the wait for a rule's state to hold (D#240).
     waiting: dict[str, CALLBACK_TYPE] = {}
+    entry_id = coordinator.entry.entry_id
+
+    @callback
+    def _trace(task_id: str, rule: CompleteWhen, state: State | None, result: str) -> None:
+        name = state.name if state is not None else rule["entity_id"]
+        record(hass, entry_id, task_id, KIND_DONE_WHEN, entity=name, state=rule["to_state"], result=result, minutes=rule.get("for_minutes", 0))
 
     @callback
     def _complete(task_id: str, rule: CompleteWhen, state: State) -> None:
@@ -106,6 +113,8 @@ def async_track_complete_when(hass: HomeAssistant, coordinator: MaintenanceCoord
             state = hass.states.get(rule["entity_id"])
             if state is not None and _norm(state.state) == _norm(rule["to_state"]):
                 _complete(task_id, rule, state)
+            else:
+                _trace(task_id, rule, state, "left_early")
 
         if (cancel := waiting.pop(task_id, None)) is not None:
             cancel()
@@ -117,11 +126,13 @@ def async_track_complete_when(hass: HomeAssistant, coordinator: MaintenanceCoord
         for task_id, rule in rules.get(event.data["entity_id"], ()):
             if new_state is not None and completes(rule["to_state"], old_state, new_state):
                 if rule.get("for_minutes"):
+                    _trace(task_id, rule, new_state, "waiting")
                     _wait(task_id, rule)
                 else:
                     _complete(task_id, rule, new_state)
             elif task_id in waiting and _left(rule["to_state"], new_state):
                 waiting.pop(task_id)()
+                _trace(task_id, rule, new_state, "left_early")
 
     unsubscribe = async_track_state_change_event(hass, list(rules), _on_change)
 

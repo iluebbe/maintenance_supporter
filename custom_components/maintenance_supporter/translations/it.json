@@ -582,7 +582,8 @@
           "advanced_checklists_visible": "Liste di controllo",
           "advanced_schedule_time_visible": "Pianificazione oraria",
           "advanced_completion_actions_visible": "Azioni di completamento",
-          "advanced_places_visible": "Luoghi"
+          "advanced_places_visible": "Luoghi",
+          "advanced_beta_editor_visible": "Nuova interfaccia ed editor delle attività"
         },
         "data_description": {
           "advanced_adaptive_visible": "Mostra analisi EWA, Weibull e suggerimenti di intervallo per le attività.",
@@ -593,7 +594,8 @@
           "advanced_checklists_visible": "Mostra liste di controllo per il completamento passo per passo delle attività.",
           "advanced_schedule_time_visible": "Consente alle attività di scadere a un'ora specifica anziché a mezzanotte.",
           "advanced_completion_actions_visible": "Azione HA per attività al completamento + QR completamento rapido con valori predefiniti.",
-          "advanced_places_visible": "Oggetti curati in un altro luogo (una zona di Home Assistant): promemoria solo quando qualcuno è lì e un messaggio all'arrivo."
+          "advanced_places_visible": "Oggetti curati in un altro luogo (una zona di Home Assistant): promemoria solo quando qualcuno è lì e un messaggio all'arrivo.",
+          "advanced_beta_editor_visible": "I controlli di Home Assistant in tutto il pannello, le attività come regole come nell'editor delle automazioni e una traccia di ogni attività. Attivo per impostazione predefinita; disattivalo per l'interfaccia classica."
         }
       },
       "panel_access": {

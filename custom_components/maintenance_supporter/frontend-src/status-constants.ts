@@ -86,6 +86,15 @@ export function isActionableStatus(status: string | null | undefined): status is
   return (ACTIONABLE_STATUSES as readonly string[]).includes(status ?? "");
 }
 
+/** Nothing may happen to the task: archived, switched off, or paused (on its
+ *  own or with its object). The server refuses complete / skip / reset /
+ *  postpone on it (helpers.pause.is_task_inert), so no surface offers them.
+ *  The card showed a paused task with a live Complete button and the dialog
+ *  then failed (2026-11-01). */
+export function isInertTask(task: { archived?: boolean; enabled?: boolean; status?: string; paused?: boolean }): boolean {
+  return !!task.archived || task.enabled === false || task.status === "paused" || task.paused === true;
+}
+
 export const STATUS_ICONS: Record<string, string> = {
   ok: "mdi:check-circle",
   due_soon: "mdi:alert-circle",

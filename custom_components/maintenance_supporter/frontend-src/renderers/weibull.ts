@@ -1,7 +1,7 @@
 /** Weibull reliability analysis renderers. */
 
 import { html, svg, nothing } from "lit";
-import { t, formatNumber } from "../styles";
+import { t, formatDayCount, formatNumber } from "../styles";
 import { px } from "./chart-utils";
 import type { MaintenanceTask } from "../types";
 
@@ -142,7 +142,7 @@ function renderWeibullInfo(analysis: NonNullable<MaintenanceTask["interval_analy
     <div class="weibull-info-row">
       <div class="weibull-info-item">
         <span>${t("characteristic_life", lang)}</span>
-        <span class="weibull-info-value">${Math.round(analysis.weibull_eta!)} ${t("days", lang)}</span>
+        <span class="weibull-info-value">${formatDayCount(Math.round(analysis.weibull_eta!), lang)}</span>
       </div>
       ${analysis.weibull_r_squared != null ? html`
         <div class="weibull-info-item">
@@ -172,7 +172,7 @@ function renderConfidenceInterval(analysis: NonNullable<MaintenanceTask["interva
   return html`
     <div class="confidence-range">
       <div class="confidence-range-title">
-        ${t("confidence_interval", lang)}: ${rec} ${t("days", lang)} (${low}\u2013${high})
+        ${t("confidence_interval", lang)}: ${formatDayCount(rec, lang)} (${low}\u2013${high})
       </div>
       <div class="confidence-bar">
         <div class="confidence-fill" style="left:${px(fillLeft)}%;width:${px(fillWidth)}%"></div>

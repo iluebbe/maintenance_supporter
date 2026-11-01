@@ -417,7 +417,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
     .print-btn { margin-left: auto; }
     .print-btn ha-icon { --mdc-icon-size: 16px; margin-right: 4px; }
     .print-options {
-      border: 1px solid var(--divider-color); border-radius: 10px; padding: 12px 14px; margin: 0 0 12px;
+      border: 1px solid var(--divider-color); border-radius: var(--ms-radius-10, 10px); padding: 12px 14px; margin: 0 0 12px;
       background: var(--card-background-color); display: flex; flex-direction: column; gap: 10px; font-size: 13px;
     }
     .po-title { font-weight: 600; }
@@ -434,7 +434,21 @@ export class MaintenanceObjectHistorySection extends LitElement {
       background: var(--card-background-color, transparent);
       color: var(--primary-text-color);
       border: 1px solid var(--divider-color);
-      border-radius: 6px; padding: 5px 8px; font: inherit;
+      border-radius: var(--ms-radius-6, 6px); padding: 5px 8px; font: inherit;
+    }
+    /* A select is as wide as its longest option: a long task name pushed the
+       filter past a phone's edge (2026-10-31, 373 px in a 320 px section). */
+    .filters select {
+      max-width: 100%;
+      min-width: 0;
+      text-overflow: ellipsis;
+    }
+    /* HA's date picker is about 286 px at its narrowest: on a 320 px phone the
+       From/To fields stuck out of the section. They may shrink in the row. */
+    .filters ms-date-field {
+      flex: 1 1 140px;
+      min-width: 0;
+      max-width: 100%;
     }
     .filters label { display: inline-flex; align-items: center; gap: 6px; }
     .rows { display: flex; flex-direction: column; }

@@ -31,7 +31,7 @@ import { fetchSettingsOnce, FALLBACK_SETTINGS, type SettingsCache } from "./help
 import { canWrite } from "./helpers/permissions";
 import { statusColor } from "./renderers/status";
 import { renderLastDone } from "./renderers/progress";
-import { ACTIONABLE_STATUSES, isActionableStatus, statusRank } from "./status-constants";
+import { ACTIONABLE_STATUSES, isActionableStatus, isInertTask, statusRank } from "./status-constants";
 import "./maintenance-card-editor";
 import "./components/complete-dialog";
 import type { MaintenanceCompleteDialog, TaskCompletedDetail } from "./components/complete-dialog";
@@ -508,7 +508,7 @@ export class MaintenanceSupporterCard extends LitElement {
       this._openComplete(entryId, task, true);
       return;
     }
-    if (outcome.result === "failed") {
+    if (outcome.result === "failed" || outcome.result === "already") {
       this.dispatchEvent(new CustomEvent("hass-notification", { detail: { message: outcome.message }, bubbles: true, composed: true }));
       return;
     }
@@ -649,7 +649,9 @@ export class MaintenanceSupporterCard extends LitElement {
                           ? "⚡"
                           : renderLastDone(task.last_performed, L) ?? "—"}
                       </div>
-                      ${showActions && useButtons
+                      ${showActions && isInertTask(task)
+                        ? html`<span class="inert-label">${t(task.enabled === false ? "disabled" : "paused", L)}</span>`
+                        : showActions && useButtons
                         ? html`
                             <ha-button
                               size="small"
@@ -830,7 +832,7 @@ export class MaintenanceSupporterCard extends LitElement {
         max-width: 22ch;
         padding: 1px 6px;
         border: 1px solid var(--divider-color, #e0e0e0);
-        border-radius: 10px;
+        border-radius: var(--ms-radius-10, 10px);
         background: none;
         color: var(--secondary-text-color);
         font: inherit;
@@ -872,6 +874,8 @@ export class MaintenanceSupporterCard extends LitElement {
       /* DESIGN PROTOTYPE (#145): action_style: buttons — HA-native labelled button. */
       .complete-btn-text { --ha-button-font-size: 13px; flex: none; white-space: nowrap; }
       .complete-btn-text ha-icon { --mdc-icon-size: 18px; }
+      /* In the button's place on a task nothing may be done to (paused, off). */
+      .inert-label { font-size: 12px; color: var(--secondary-text-color); white-space: nowrap; flex: none; }
     `,
   ];
 }

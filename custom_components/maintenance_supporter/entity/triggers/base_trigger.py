@@ -80,6 +80,10 @@ class BaseTrigger(ABC):
     # carry the flags (see the instance comments in __init__).
     _recovered_since_reset: bool = True
     _evaluated_once: bool = True
+    # The verdict is a level of the current reading (over a limit, a date
+    # within reach), so a reset does not end it while the reading stays. A
+    # counter, a runtime and a count of changes start again from zero.
+    holds_level: bool = False
     """Base class for all maintenance triggers."""
 
     def __init__(
@@ -274,6 +278,21 @@ class BaseTrigger(ABC):
             self._logged_unavailable = False
 
         value = self._get_numeric_value(new_state)
+        if value is not None:
+            self._current_value = value
+            self._evaluate_and_update(value)
+
+    def evaluate_live(self) -> None:
+        """Evaluate the entity's current reading now, as its next state event
+        would. Only for kinds whose verdict is a level of the reading
+        (``holds_level``); a compound asks its conditions after a completion,
+        see CompoundTrigger._relearn_conditions."""
+        if not self.holds_level:
+            return
+        state = self.hass.states.get(self.entity_id)
+        if state is None or state.state in UNAVAILABLE_STATES:
+            return
+        value = self._get_numeric_value(state)
         if value is not None:
             self._current_value = value
             self._evaluate_and_update(value)

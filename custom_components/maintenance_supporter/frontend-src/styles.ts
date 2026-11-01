@@ -180,6 +180,18 @@ export function countText(key: string, oneKey: string, n: number, lang: string, 
   return n === 1 ? t(oneKey, lang) : t(key, lang).replace(`{${placeholder}}`, formatNumber(n, lang));
 }
 
+/** A number with its unit in the language's own plural: "30 days", "30 Tage",
+ *  "30 дней" (the ECMA-402 units). The beta task editor's rule sentences
+ *  read intervals and durations through here. */
+export function formatUnit(n: number, unit: "day" | "week" | "month" | "year" | "hour" | "minute", lang?: string): string {
+  const opts: Intl.NumberFormatOptions = { style: "unit", unit, unitDisplay: "long", maximumFractionDigits: 2 };
+  try {
+    return new Intl.NumberFormat(numberLocale(lang), opts).format(n);
+  } catch {
+    return `${formatNumber(n, lang)} ${unit}`;
+  }
+}
+
 export function formatNumber(n: number, lang?: string, digits?: number | Intl.NumberFormatOptions): string {
   if (!Number.isFinite(n)) return String(n);
   const opts: Intl.NumberFormatOptions =
@@ -323,16 +335,29 @@ export function formatDueDays(days: number | null | undefined, lang?: string): s
   const l = lang || "en";
   if (days < 0) return `${Math.abs(days)} ${t("d_overdue", l)}`;
   if (days === 0) return t("today", l);
-  // The language's plural rule: "3 дней" / "22 дней" / "21 дней" in Russian,
-  // Ukrainian and Czech, where 2–4 (and 22–24 …) take their own form and 21
-  // the singular (bug audit 2026-10-16, FE-6).
-  let form = days === 1 ? "one" : "other";
+  return formatDayCount(days, l);
+}
+
+/** A number of days in the language's plural form: "1 day", "3 days",
+ *  "3 дня". The places that wrote `${n} ${t("days")}` read "1 Tage" or
+ *  "1 päivää" (language check 2026-11-01). */
+export function formatDayCount(n: number, lang?: string): string {
+  const l = lang || "en";
+  return `${n} ${t(pluralKey(n, l, { one: "day", few: "days_few", other: "days" }), l)}`;
+}
+
+/** Which of a count's locale keys the language's plural rule picks: "3
+ *  дней" / "22 дней" / "21 дней" in Russian, Ukrainian and Czech, where 2–4
+ *  (and 22–24 …) take their own form and 21 the singular (bug audit
+ *  2026-10-16, FE-6). The keys are named in full, so a search finds them. */
+export function pluralKey(n: number, lang: string, keys: { one: string; few: string; other: string }): string {
+  let form = n === 1 ? "one" : "other";
   try {
-    form = new Intl.PluralRules(l).select(days);
+    form = new Intl.PluralRules(lang).select(n);
   } catch {
     // an unknown language tag: the English rule above
   }
-  return `${days} ${form === "one" ? t("day", l) : form === "few" ? t("days_few", l) : t("days", l)}`;
+  return form === "one" ? keys.one : form === "few" ? keys.few : keys.other;
 }
 
 /** "done 23 d ago" / "done today" on HA's calendar — what the due column
@@ -492,7 +517,7 @@ export const nativeFieldStyles = css`
     padding: 8px 10px; font-size: 14px;
     background: var(--secondary-background-color, rgba(0,0,0,0.06));
     color: var(--primary-text-color);
-    border: 1px solid var(--divider-color); border-radius: 6px;
+    border: 1px solid var(--divider-color); border-radius: var(--ms-radius-6, 6px);
     font-family: inherit; width: 100%; box-sizing: border-box;
   }
   .field-input:focus { outline: none; border-color: var(--primary-color); }
@@ -525,7 +550,7 @@ export const formStyles = css`
     background: var(--secondary-background-color, rgba(0,0,0,0.06));
     color: var(--primary-text-color);
     border: 1px solid var(--divider-color);
-    border-radius: 6px;
+    border-radius: var(--ms-radius-6, 6px);
   }
   .select-row select:focus { outline: none; border-color: var(--primary-color); }
   /* #216 follow-up: the open list took the select's grey fill and the chosen
@@ -545,7 +570,7 @@ export const formStyles = css`
       background: var(--card-background-color, #fff);
       color: var(--primary-text-color);
       border: 1px solid var(--divider-color);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       padding: 4px 0;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
@@ -605,7 +630,7 @@ export const personStyles = css`
 export const refStyles = css`
   .ref-chip {
     display: inline-block; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 3px 6px;
-    border-radius: 6px; border: 1px solid var(--divider-color); color: var(--secondary-text-color);
+    border-radius: var(--ms-radius-6, 6px); border: 1px solid var(--divider-color); color: var(--secondary-text-color);
     font-variant-numeric: tabular-nums; letter-spacing: .02em; vertical-align: middle; white-space: nowrap;
     user-select: all;
   }
@@ -779,7 +804,7 @@ export const sharedStyles = css`
   .object-tree-toggle ha-icon { --mdc-icon-size: 18px; }
   .object-tree-spacer { display: inline-block; width: 26px; }
   .object-tree-count {
-    margin-left: 6px; padding: 0 7px; border-radius: 10px;
+    margin-left: 6px; padding: 0 7px; border-radius: var(--ms-radius-10, 10px);
     font-size: 12px; vertical-align: middle;
     background: var(--secondary-background-color, rgba(0, 0, 0, 0.06));
     color: var(--secondary-text-color);
@@ -918,7 +943,7 @@ export const sharedStyles = css`
     margin-right: auto;
     font-size: 11px;
     padding: 1px 8px;
-    border-radius: 10px;
+    border-radius: var(--ms-radius-10, 10px);
     background: var(--secondary-background-color);
     color: var(--secondary-text-color);
     white-space: nowrap;
@@ -930,7 +955,7 @@ export const sharedStyles = css`
     margin-right: auto;
     font-size: 11px;
     padding: 1px 8px;
-    border-radius: 10px;
+    border-radius: var(--ms-radius-10, 10px);
     background: var(--secondary-background-color);
     color: var(--secondary-text-color);
     white-space: nowrap;
@@ -1099,6 +1124,55 @@ export const sharedStyles = css`
     margin: 8px 0;
     border: 1px solid var(--divider-color);
   }
+
+  /* Beta UI: the sensor rule as a Home Assistant card (renderers/sparkline.ts
+     renderSensorRule) — rows as HA's entities card draws them: a 40 px state
+     badge, 16 px gap, the name at 14 px with the condition below it, the
+     state on the right; a tap opens more-info. */
+  .sensor-rule-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .sensor-rule-title {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .sensor-rule-sub { font-size: 12px; font-weight: 400; color: var(--secondary-text-color); }
+  .sensor-rows { display: flex; flex-direction: column; margin: 0 -8px; }
+  .sensor-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 48px;
+    padding: 4px 8px;
+    border-radius: var(--ms-radius-10, 10px);
+    cursor: pointer;
+  }
+  .sensor-row:hover { background: var(--secondary-background-color); }
+  .sensor-row:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
+  .sensor-badge { flex: none; }
+  ha-icon.sensor-badge { width: 40px; display: flex; justify-content: center; color: var(--state-icon-color); }
+  .sensor-info { flex: 1; min-width: 0; }
+  .sensor-name { font-size: 14px; color: var(--primary-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sensor-cond { font-size: 12px; color: var(--secondary-text-color); overflow-wrap: anywhere; }
+  .sensor-state { flex: none; max-width: 45%; font-size: 14px; color: var(--primary-text-color); text-align: end; overflow-wrap: anywhere; }
+  /* The sensor's recent course (renderSensorTrend), like HA's tile trend graph. */
+  .sensor-trend { flex: none; width: 88px; height: 28px; overflow: visible; }
+  .sensor-trend-line { fill: none; stroke: var(--primary-color); stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+  .sensor-trend-area { fill: var(--primary-color); opacity: 0.12; stroke: none; }
+  .sensor-trend-limit { stroke: var(--error-color, #db4437); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; opacity: 0.8; }
+  .sensor-trend.past .sensor-trend-line { stroke: var(--error-color, #db4437); }
+  .sensor-trend.past .sensor-trend-area { fill: var(--error-color, #db4437); }
+  @media (max-width: 420px) { .sensor-trend { width: 56px; } }
+  .sensor-rule-foot { display: flex; justify-content: flex-end; margin-top: 4px; }
+  .sensor-rule-more { color: var(--primary-color); font-size: 14px; font-weight: 500; text-decoration: none; }
+  .sensor-rule-more:hover { text-decoration: underline; }
 
   .trigger-header {
     display: flex;
@@ -1498,7 +1572,7 @@ export const sharedStyles = css`
     gap: 4px;
     font-size: 11px;
     padding: 2px 8px;
-    border-radius: 10px;
+    border-radius: var(--ms-radius-10, 10px);
     background: var(--secondary-background-color, #f5f5f5);
     color: var(--primary-text-color);
     max-width: 100%;
@@ -1603,7 +1677,7 @@ export const sharedStyles = css`
     align-items: center;
     gap: 4px;
     padding: 2px 8px;
-    border-radius: 10px;
+    border-radius: var(--ms-radius-10, 10px);
     font-size: 11px;
     font-weight: 500;
     background: var(--secondary-background-color, #f5f5f5);
@@ -1631,6 +1705,8 @@ export const sharedStyles = css`
     border: 1px solid var(--divider-color, #e0e0e0);
   }
 
+  /* Text in the theme's text colour, the warning colour on the icon, as HA's
+     own warning alert does: orange on light orange read at 1.75:1. */
   .prediction-urgency-banner {
     display: flex;
     align-items: center;
@@ -1639,13 +1715,14 @@ export const sharedStyles = css`
     margin-bottom: 12px;
     border-radius: 8px;
     background: rgba(255, 152, 0, 0.15);
-    color: var(--warning-color, #ff9800);
+    color: var(--primary-text-color);
     font-size: 13px;
     font-weight: 500;
   }
   .prediction-urgency-banner ha-svg-icon {
     --mdc-icon-size: 18px;
     flex-shrink: 0;
+    color: var(--warning-color, #ff9800);
   }
 
   .prediction-title {
@@ -1692,8 +1769,10 @@ export const sharedStyles = css`
   .prediction-value.rising { color: var(--error-color, #f44336); }
   .prediction-value.falling { color: var(--info-color, #2196f3); }
   .prediction-value.stable { color: var(--success-color, #4caf50); }
-  .prediction-value.exceeded { color: var(--error-color, #f44336); font-weight: 700; }
-  .prediction-value.urgent { color: var(--warning-color, #ff9800); font-weight: 700; }
+  /* Mixed toward the text colour: plain warning orange on a light card read
+     at 1.96:1 for the bold "~1 day" (4.5:1 wanted); the hue stays. */
+  .prediction-value.exceeded { color: color-mix(in srgb, var(--error-color, #f44336) 70%, var(--primary-text-color, #212121)); font-weight: 700; }
+  .prediction-value.urgent { color: color-mix(in srgb, var(--warning-color, #ff9800) 55%, var(--primary-text-color, #212121)); font-weight: 700; }
 
   .prediction-rate {
     font-size: 11px;
@@ -1896,9 +1975,10 @@ export const sharedStyles = css`
        delete button of one lay over the next group. The buttons get the
        same 44 px targets as the task rows, apart from each other; the
        negative margin lets them reach into the card's padding instead of
-       pushing the tasks down. */
+       pushing the tasks down. Not to the right: reaching 8 px past the head
+       there made the head wider than its card (clip check 2026-11-01). */
     .group-card { flex: 1 1 100%; min-width: 0; max-width: 100%; }
-    .group-card-actions { gap: 8px; margin: -8px -8px -8px 0; }
+    .group-card-actions { gap: 8px; margin: -8px 0; }
     .group-card-actions ha-icon-button {
       --ha-icon-button-size: 44px;
       --mdc-icon-button-size: 44px;

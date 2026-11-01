@@ -138,6 +138,8 @@ describe("camera lens switch (#161)", () => {
     expect(calls.length).to.equal(2);
     expect((calls[1].video as MediaTrackConstraints).facingMode).to.deep.equal({ ideal: "environment" });
     expect(el.shadowRoot!.querySelector(".overlay")).to.exist;
+    // In the top layer: HA 2026.11's docked sidebar covered its left side.
+    expect(el.shadowRoot!.querySelector(".overlay")!.matches(":popover-open"), "viewfinder in the top layer").to.equal(true);
     expect(el.shadowRoot!.querySelector(".switch-note"), "the camera we have IS the main one").to.equal(null);
     el.close();
   });

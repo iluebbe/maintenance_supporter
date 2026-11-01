@@ -14,7 +14,7 @@ import type { HomeAssistant, ReadingSlot, ReadingValue } from "../types";
 import { runWs } from "../helpers/ws-run";
 import { haWallTime } from "../helpers/ha-time";
 import { PART_QTY_RANGE } from "../helpers/setting-ranges";
-import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
+import { focusModalShell, modalShellStyles, renderModalShell, shellIsHa } from "../helpers/modal-shell";
 import { PhotoUploadController } from "../helpers/photo-upload-controller";
 import { parseDurationMinutes } from "../helpers/duration";
 import { confirmAction } from "../helpers/confirm";
@@ -23,6 +23,7 @@ import "./ms-cost-input";
 import "./history-photo";
 import "./ms-photo-picker";
 import { photoPickerStyles } from "./ms-photo-picker";
+import { notice } from "../helpers/notice";
 
 export interface HistoryEntryDraft {
   entry_id: string;
@@ -381,7 +382,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     const d = this._draft;
     const error = this._error || this._photos.errorText(L);
     return renderModalShell(() => this.close(), html`
-        <h2>${t("history_edit_title", L)}</h2>
+        ${shellIsHa() ? nothing : html`<h2>${t("history_edit_title", L)}</h2>`}
         <div class="entry-type">
           <ha-icon icon="mdi:tag-outline"></ha-icon>
           <span>${t(d.type, L) || d.type}</span>
@@ -479,7 +480,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
             : html`<span class="photos-hint">${t("photos_limit", L).replace("{max}", String(this._photos.max))}</span>`}
           <span class="photos-hint">${t("history_edit_photos_hint", L)}</span>
         </div>
-        ${error ? html`<div class="error">${error}</div>` : nothing}
+        ${error ? notice("error", error) : nothing}
         <div class="actions">
           <button class="delete-entry" @click=${this._delete} ?disabled=${this._saving} title=${t("history_delete_entry", L)}>
             <ha-icon icon="mdi:delete-outline"></ha-icon> ${t("history_delete_entry", L)}
@@ -492,7 +493,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
             ${this._saving ? t("saving", L) : t("save", L)}
           </button>
         </div>
-    `);
+    `, { title: t("history_edit_title", L) });
   }
 
   protected updated(changed: Map<string, unknown>): void {
@@ -551,11 +552,11 @@ export class MaintenanceHistoryEditDialog extends LitElement {
       background: var(--secondary-background-color, #2c2c2c);
       color: var(--primary-text-color);
       border: 1px solid var(--divider-color, #444);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       width: 100%; box-sizing: border-box;
       font-family: inherit;
     }
-    .delete-entry { margin-right: auto; color: var(--error-color, #d32f2f); background: transparent; border: 1px solid var(--error-color, #d32f2f); border-radius: 6px; padding: 6px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .delete-entry { margin-right: auto; color: var(--error-color, #d32f2f); background: transparent; border: 1px solid var(--error-color, #d32f2f); border-radius: var(--ms-radius-6, 6px); padding: 6px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
     .delete-entry ha-icon { --mdc-icon-size: 18px; }
     .actions {
       display: flex; gap: 8px; justify-content: flex-end;
@@ -563,7 +564,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     }
     button {
       padding: 8px 16px; font-size: 14px;
-      border-radius: 6px; cursor: pointer;
+      border-radius: var(--ms-radius-6, 6px); cursor: pointer;
       border: none; font-weight: 500;
     }
     button.cancel {
@@ -580,13 +581,13 @@ export class MaintenanceHistoryEditDialog extends LitElement {
       color: var(--error-color, #d32f2f);
       font-size: 13px; padding: 8px;
       background: rgba(211,47,47,0.1);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
     }
     /* #130: parts on the entry */
     .parts-block {
       display: flex; flex-direction: column; gap: 6px;
       border: 1px solid var(--divider-color, #444);
-      border-radius: 6px; padding: 8px;
+      border-radius: var(--ms-radius-6, 6px); padding: 8px;
     }
     .parts-title { color: var(--secondary-text-color); font-size: 12px; font-weight: 500; }
     .part-row-edit {
@@ -600,7 +601,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     .readings-block {
       display: flex; flex-direction: column; gap: 6px;
       border: 1px solid var(--divider-color, #444);
-      border-radius: 6px; padding: 8px;
+      border-radius: var(--ms-radius-6, 6px); padding: 8px;
     }
     .reading-row-edit {
       display: flex; flex-direction: row; align-items: center; gap: 8px;
@@ -612,7 +613,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
     .photos-block {
       display: flex; flex-direction: column; gap: 6px;
       border: 1px solid var(--divider-color, #444);
-      border-radius: 6px; padding: 8px;
+      border-radius: var(--ms-radius-6, 6px); padding: 8px;
     }
     .photo-strip { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
     .photo-tile { position: relative; width: fit-content; }

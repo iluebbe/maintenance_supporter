@@ -41,6 +41,15 @@ export async function undoCompletion(hass: HomeAssistant, entryId: string, taskI
   return { ok: true, message: t(res?.action_ran ? "undo_done_action_ran" : "undo_done", lang) };
 }
 
+/** The answer to a completion the server's double-tap guard dropped (the
+ *  same task completed seconds before, here or on another device): what the
+ *  surfaces say instead of "completed" with an Undo; null for a completion
+ *  that was recorded. The second tap used to read as done, silently. */
+export function alreadyRecordedMessage(res: unknown, lang: string): string | null {
+  const seconds = (res as { already_recorded_seconds?: unknown } | null)?.already_recorded_seconds;
+  return typeof seconds === "number" ? t("completion_already_recorded", lang).replace("{seconds}", String(seconds)) : null;
+}
+
 /** Home Assistant's own toast with an Undo button — for surfaces without a
  *  toast of their own (the dashboard card). The outcome is a second toast;
  *  `after` runs after a successful undo (reload the list). */

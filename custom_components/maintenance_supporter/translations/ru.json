@@ -582,7 +582,8 @@
           "advanced_checklists_visible": "Контрольные списки",
           "advanced_schedule_time_visible": "Планирование по времени",
           "advanced_completion_actions_visible": "Действия при завершении",
-          "advanced_places_visible": "Места"
+          "advanced_places_visible": "Места",
+          "advanced_beta_editor_visible": "Новый интерфейс и редактор задач"
         },
         "data_description": {
           "advanced_adaptive_visible": "Показывать EWA, анализ Вейбулла и предложения интервалов для задач.",
@@ -593,7 +594,8 @@
           "advanced_checklists_visible": "Показывать контрольные списки задач для пошагового выполнения.",
           "advanced_schedule_time_visible": "Позволяет задачам становиться просроченными в определённое время дня, а не в полночь.",
           "advanced_completion_actions_visible": "HA-действие по задаче при завершении + QR быстрого завершения с предустановленными значениями.",
-          "advanced_places_visible": "Объекты в другом месте (зона Home Assistant): напоминания только когда там кто-то есть, и сообщение по прибытии."
+          "advanced_places_visible": "Объекты в другом месте (зона Home Assistant): напоминания только когда там кто-то есть, и сообщение по прибытии.",
+          "advanced_beta_editor_visible": "Элементы управления Home Assistant во всей панели, задачи в виде правил, как в редакторе автоматизаций, и трассировка каждой задачи. Включено по умолчанию; выключите для классического интерфейса."
         }
       },
       "panel_access": {

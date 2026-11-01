@@ -37,6 +37,10 @@ export const LS_KEYS = {
   /** #225: the objects table's parents opened to show their sub-objects
    *  (JSON list of entry ids). */
   objectTreeOpen: "msp-object-tree-open",
+  /** The objects table's column sort ("manufacturer:asc"); empty = the Sort dropdown's order. */
+  objectTableSort: "msp-object-table-sort",
+  /** Beta overview: the filter pane is open ("1"). */
+  filterPane: "msp-filter-pane",
 } as const;
 
 /**

@@ -22,7 +22,11 @@
 // fresh instance with e2e/migration/run.mjs and compares everything.
 //
 // Env: TIMELAPSE_IMAGE (docker-homeassistant-dev:latest), TIMELAPSE_PORT
-// (8163), WEEKS (52), SEED (1, the PRNG seed).
+// (8163), WEEKS (52), SEED (1, the PRNG seed), TIMELAPSE_NAME (ms-timelapse)
+// and TIMELAPSE_RUN_DIR (.run) for a second instance next to the first,
+// HOUSEHOLD=large (large.mjs: thirty template objects and sensor rules of
+// every kind on sensors that move day by day), BETA=1 (the beta switch on
+// from the start, so the task trace records the whole year).
 //
 // Faketime limits: interval timers run on the real monotonic clock
 // (DONT_FAKE_MONOTONIC=1), so the weekly steps refresh the coordinators
@@ -33,12 +37,15 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { addIntegration, connect, docker, onboard, setState, sleep, upload, waitForHttp } from "../migration/lib.mjs";
+import * as large from "./large.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, "..", "..");
-const RUN = join(HERE, ".run");
+const RUN = process.env.TIMELAPSE_RUN_DIR || join(HERE, ".run");
 const CONFIG = join(RUN, "config");
-const NAME = "ms-timelapse";
+const NAME = process.env.TIMELAPSE_NAME || "ms-timelapse";
+const LARGE = process.env.HOUSEHOLD === "large";
+const BETA = process.env.BETA === "1";
 const IMAGE = process.env.TIMELAPSE_IMAGE || "docker-homeassistant-dev:latest";
 const PORT = Number(process.env.TIMELAPSE_PORT || 8163);
 const WEEKS = Number(process.env.WEEKS || 52);
@@ -78,6 +85,8 @@ function setClock(date) {
   writeClock(`@${date.toISOString().slice(0, 10)} 12:00:00`);
 }
 const isoDay = (d) => d.toISOString().slice(0, 10);
+// The large household's sensors (large.mjs), when it is on.
+let LARGE_STATE = null;
 
 // ── setup ────────────────────────────────────────────────────────────────────
 function start() {
@@ -171,7 +180,10 @@ async function complete(api, o, t) {
   if (t.name === "Top up the pressure") STATE.pressure = 1.8;
   if (t.name === "Refill salt") STATE.saltDone = true;
   await api.ws.call(msg).then(
-    () => COUNT.complete++,
+    () => {
+      COUNT.complete++;
+      if (LARGE_STATE) large.completed(LARGE_STATE, t.name);
+    },
     async (e) => {
       // A phase can demand details its task does not (the mower's "replace"
       // wants the cost) — answer the refusal like a person would.
@@ -283,6 +295,12 @@ async function main() {
   // The battery fleet over the Battery-Notes-shaped sensors.
   await ws.call({ type: "maintenance_supporter/battery_fleet/setup" }).catch((e) => log("fleet setup:", e.message));
   await sleep(6000);
+  if (BETA) await ws.call({ type: "maintenance_supporter/global/update", settings: { advanced_beta_editor_visible: true } });
+  if (LARGE) {
+    LARGE_STATE = large.sensors(rand);
+    await large.push(BASE, lived, LARGE_STATE);
+    await large.setup(api, ws, log);
+  }
 
   // What to refresh each week: one task sensor per object, and the robots.
   const reg = await ws.call({ type: "config/entity_registry/list" });
@@ -303,7 +321,16 @@ async function main() {
   };
 
   for (let week = 1; week <= WEEKS; week++) {
+    // The large household's sensors move every day; the clock still jumps a
+    // week at a time (each write of the clock file is a chance for
+    // libfaketime to read it half-replaced and abort Home Assistant). Their
+    // daily values become hourly statistics at the end (large.importSeries).
+    for (let d = 1; LARGE_STATE && d <= 7; d++) {
+      large.day(LARGE_STATE);
+      large.note(LARGE_STATE, new Date(START.getTime() + ((week - 1) * 7 + d) * DAY));
+    }
     setClock(new Date(START.getTime() + week * 7 * DAY));
+    if (LARGE_STATE) await large.push(BASE, api.token, LARGE_STATE);
     drift();
     await pushSensors(api);
     await seasons(api, week);
@@ -313,6 +340,7 @@ async function main() {
   }
 
   writeClock("+0");
+  if (LARGE_STATE) log(`imported ${await large.importSeries(ws, LARGE_STATE)} hourly statistics`);
   await refresh(api);
   await summarize(api, { notifications, notificationKinds });
   ws.close();

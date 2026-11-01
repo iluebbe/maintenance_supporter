@@ -27,6 +27,7 @@ from ..const import (
     CONF_ACTION_SNOOZE_ENABLED,
     CONF_ADMIN_PANEL_USER_IDS,
     CONF_ADVANCED_ADAPTIVE,
+    CONF_ADVANCED_BETA_EDITOR,
     CONF_ADVANCED_BUDGET,
     CONF_ADVANCED_CHECKLISTS,
     CONF_ADVANCED_COMPLETION_ACTIONS,
@@ -180,6 +181,7 @@ def _build_full_settings(
             "schedule_time": _opt(options, CONF_ADVANCED_SCHEDULE_TIME),
             "completion_actions": _opt(options, CONF_ADVANCED_COMPLETION_ACTIONS),
             "places": _opt(options, CONF_ADVANCED_PLACES),
+            "beta_editor": _opt(options, CONF_ADVANCED_BETA_EDITOR),
         },
         # Top-level (not a feature toggle, not a bool): list of HA user IDs
         # whose UI gets the full admin panel even though they're not HA admins.
@@ -251,6 +253,10 @@ def _build_full_settings(
             # (set by the 5→6 migration for existing installs, cleared by the
             # panel banner).
             "row_action_style": _opt(options, CONF_ROW_ACTION_STYLE),
+            # Whether the household picked a style or still has the default:
+            # with the beta UI the default rows are icons, as in Home
+            # Assistant's tables, while a style someone chose stays.
+            "row_action_style_set": CONF_ROW_ACTION_STYLE in options,
             "row_action_notice_pending": _opt(options, CONF_ROW_ACTION_NOTICE),
             "ref_numbers_in_lists": bool(_opt(options, CONF_REF_NUMBERS_IN_LISTS)),
         },

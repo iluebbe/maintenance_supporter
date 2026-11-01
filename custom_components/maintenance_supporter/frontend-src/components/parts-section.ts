@@ -30,6 +30,8 @@ import type { PartUsedDetail } from "./ms-part-use";
 // #238: a purchase at any time, with what was paid.
 import "./ms-part-purchase";
 import type { PartBoughtDetail } from "./ms-part-purchase";
+import { confirmAction } from "../helpers/confirm";
+import { notice } from "../helpers/notice";
 
 /** #208: what readies a used part again (helpers/parts.py REUSE_KINDS). */
 export const REUSE_KINDS = ["charge", "sharpen", "clean", "dry", "refill", "restore"] as const;
@@ -205,7 +207,13 @@ export class MaintenancePartsSection extends LitElement {
   private async _delete(part: MaintenancePart): Promise<void> {
     // Deleting a part drops its stock tracking, task links and buy reminder —
     // destructive enough to warrant an explicit confirmation (user request).
-    if (!window.confirm(t("part_delete_confirm", this._lang).replace("{name}", part.name))) return;
+    const ok = await confirmAction(this.hass, {
+      title: t("delete", this._lang),
+      message: t("part_delete_confirm", this._lang).replace("{name}", part.name),
+      confirmText: t("delete", this._lang),
+      danger: true,
+    });
+    if (!ok) return;
     const result = await this._send<{ success: boolean }>({
       type: "maintenance_supporter/part/delete",
       entry_id: this.entryId,
@@ -623,7 +631,7 @@ export class MaintenancePartsSection extends LitElement {
             </ha-button>`
           : nothing}
       </div>
-      ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+      ${this._error ? notice("error", this._error) : nothing}
       ${this._editing ? this._renderForm() : nothing}
       ${this.parts.map((part) => this._renderRow(part))}
     `;
@@ -698,7 +706,7 @@ export class MaintenancePartsSection extends LitElement {
     .stock-badge {
       font-size: 12px;
       padding: 1px 8px;
-      border-radius: 10px;
+      border-radius: var(--ms-radius-10, 10px);
       background: var(--secondary-background-color);
     }
     .stock-badge.low {
@@ -728,7 +736,7 @@ export class MaintenancePartsSection extends LitElement {
     .waiting-badge {
       font-size: 12px;
       padding: 1px 8px;
-      border-radius: 10px;
+      border-radius: var(--ms-radius-10, 10px);
       background: var(--secondary-background-color, #eee);
       color: var(--primary-text-color);
     }

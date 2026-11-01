@@ -54,7 +54,7 @@ export class MaintenanceHistoryPhoto extends LitElement {
       width: 96px;
       height: 96px;
       object-fit: cover;
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       display: block;
       border: 1px solid var(--divider-color);
       box-sizing: border-box;
@@ -62,7 +62,7 @@ export class MaintenanceHistoryPhoto extends LitElement {
     .ph {
       width: 96px;
       height: 96px;
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       margin-top: 4px;
     }

@@ -120,7 +120,7 @@ const SETTINGS = {
   features: {
     adaptive: true, seasonal: true, environmental: false,
     budget: true, groups: true, checklists: true, schedule_time: true,
-    completion_actions: true, places: true,
+    completion_actions: true, places: true, beta_editor: false,
   },
   admin_panel_user_ids: [] as string[],
   shared_device_user_ids: [] as string[],

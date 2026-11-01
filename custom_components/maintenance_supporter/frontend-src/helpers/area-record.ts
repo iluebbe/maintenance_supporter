@@ -137,7 +137,7 @@ export function buildAreaRecordHtml(
   h2 { font-size: 15px; margin: 24px 0 8px; }
   .sub { color: #666; margin: 0 0 16px; }
   .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 0 0 8px; }
-  .kpi { border: 1px solid #ddd; border-radius: 6px; padding: 8px 10px; }
+  .kpi { border: 1px solid #ddd; border-radius: var(--ms-radius-6, 6px); padding: 8px 10px; }
   .kpi .k { color: #777; font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; }
   .kpi .v { font-size: 16px; font-weight: 600; }
   table { border-collapse: collapse; width: 100%; }

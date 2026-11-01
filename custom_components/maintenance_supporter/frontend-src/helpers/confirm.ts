@@ -7,6 +7,10 @@
  * 2026-09-26). One singleton, mounted where dialog-mount puts every
  * Lovelace dialog: inside <home-assistant>'s shadow root, so HA's context
  * providers stay reachable (#129); document.body only as a fallback.
+ *
+ * The panel's own sections that still used `window.confirm` (delete a
+ * document, delete a spare part, compact the reference numbers) ask here
+ * too since 2026-11: translated title, a red button for what destroys.
  */
 
 import "../components/confirm-dialog";
@@ -21,8 +25,8 @@ function host(): ShadowRoot | HTMLElement {
   return document.querySelector("home-assistant")?.shadowRoot ?? document.body;
 }
 
-/** Ask a yes/no question; resolves false on cancel / dismiss. */
-export function confirmAction(hass: HomeAssistant, opts: ConfirmOptions): Promise<boolean> {
+/** The singleton itself, for a question with more than yes/no (helpers/delete-task). */
+export function confirmDialog(hass: HomeAssistant): MaintenanceConfirmDialog {
   const root = host();
   let dlg = root.querySelector<MaintenanceConfirmDialog>(`${TAG}[${MARK}]`);
   if (!dlg) {
@@ -31,5 +35,10 @@ export function confirmAction(hass: HomeAssistant, opts: ConfirmOptions): Promis
     root.appendChild(dlg);
   }
   dlg.hass = hass;
-  return dlg.confirm(opts);
+  return dlg;
+}
+
+/** Ask a yes/no question; resolves false on cancel / dismiss. */
+export function confirmAction(hass: HomeAssistant, opts: ConfirmOptions): Promise<boolean> {
+  return confirmDialog(hass).confirm(opts);
 }

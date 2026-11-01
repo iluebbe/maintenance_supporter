@@ -13,6 +13,7 @@
  */
 import type { HomeAssistant, MaintenanceTask } from "../types";
 import { runWs } from "./ws-run";
+import { alreadyRecordedMessage } from "./undo-completion";
 
 export type QuickCompleteValues = NonNullable<MaintenanceTask["quick_complete_defaults"]>;
 
@@ -29,6 +30,8 @@ export function quickCompleteValues(task: { quick_complete_defaults?: QuickCompl
 
 export type QuickCompleteOutcome =
   | { result: "done"; undo: boolean }
+  /** The double-tap guard dropped it: completed seconds before (the message says when). */
+  | { result: "already"; message: string }
   | { result: "dialog" }
   | { result: "failed"; message: string };
 
@@ -52,5 +55,7 @@ export async function quickComplete(hass: HomeAssistant, entryId: string, taskId
   if (res === undefined) {
     return NEEDS_DIALOG.has(failure.code) ? { result: "dialog" } : { result: "failed", message: failure.message };
   }
+  const already = alreadyRecordedMessage(res, lang);
+  if (already) return { result: "already", message: already };
   return { result: "done", undo: res?.undo === true };
 }

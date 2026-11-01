@@ -582,7 +582,8 @@
           "advanced_checklists_visible": "Ellenőrzőlisták",
           "advanced_schedule_time_visible": "Napszakhoz kötött ütemezés",
           "advanced_completion_actions_visible": "Elvégzési műveletek",
-          "advanced_places_visible": "Helyszínek"
+          "advanced_places_visible": "Helyszínek",
+          "advanced_beta_editor_visible": "Új megjelenés és feladatszerkesztő"
         },
         "data_description": {
           "advanced_adaptive_visible": "EWA, Weibull-elemzés és intervallumjavaslatok megjelenítése a feladatokhoz.",
@@ -593,7 +594,8 @@
           "advanced_checklists_visible": "Feladat-ellenőrzőlisták megjelenítése a lépésenkénti elvégzéshez.",
           "advanced_schedule_time_visible": "A feladatok nem éjfélkor, hanem egy megadott napszakban válhassanak lejárttá.",
           "advanced_completion_actions_visible": "Feladatonkénti HA művelet elvégzéskor + gyorselvégző QR előre beállított értékekkel.",
-          "advanced_places_visible": "Másik helyszínen (Home Assistant-zóna) karbantartott objektumok: emlékeztető csak akkor, ha valaki ott van, és üzenet érkezéskor."
+          "advanced_places_visible": "Másik helyszínen (Home Assistant-zóna) karbantartott objektumok: emlékeztető csak akkor, ha valaki ott van, és üzenet érkezéskor.",
+          "advanced_beta_editor_visible": "A Home Assistant saját vezérlői az egész panelen, a feladatok szabályokként, mint az automatizálás-szerkesztőben, és minden feladat nyomkövetése. Alapértelmezetten be; kapcsold ki a klasszikus megjelenéshez."
         }
       },
       "panel_access": {

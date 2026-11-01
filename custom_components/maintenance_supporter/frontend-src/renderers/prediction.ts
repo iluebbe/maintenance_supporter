@@ -1,8 +1,16 @@
 /** Sensor prediction section renderer. */
 
 import { html, nothing } from "lit";
-import { t, formatDate, fireMoreInfo, formatNumber } from "../styles";
+import { t, formatDate, fireMoreInfo, formatNumber, formatDueDays, pluralKey } from "../styles";
 import type { MaintenanceTask, AdvancedFeatures } from "../types";
+
+/** The predicted days, whole and at least one: "~0 days" read as today and
+ *  "~1 days" was English for no language. */
+function aboutDays(days: number | null | undefined): number {
+  return Math.max(1, Math.round(days || 0));
+}
+
+const URGENCY_KEYS = { one: "sensor_prediction_urgency_one", few: "sensor_prediction_urgency_few", other: "sensor_prediction_urgency" };
 
 export function renderPredictionSection(task: MaintenanceTask, lang: string, features: AdvancedFeatures) {
   const hasDegradation = task.degradation_trend != null && task.degradation_trend !== "insufficient_data";
@@ -21,7 +29,7 @@ export function renderPredictionSection(task: MaintenanceTask, lang: string, fea
       ${task.sensor_prediction_urgency ? html`
         <div class="prediction-urgency-banner">
           <ha-svg-icon path="M1,21H23L12,2L1,21M12,18A1,1 0 0,1 11,17A1,1 0 0,1 12,16A1,1 0 0,1 13,17A1,1 0 0,1 12,18M13,15H11V10H13V15Z"></ha-svg-icon>
-          ${t("sensor_prediction_urgency", lang).replace("{days}", String(Math.round(task.days_until_threshold || 0)))}
+          ${t(pluralKey(aboutDays(task.days_until_threshold), lang, URGENCY_KEYS), lang).replace("{days}", String(aboutDays(task.days_until_threshold)))}
         </div>
       ` : nothing}
       <div class="prediction-title">
@@ -41,7 +49,7 @@ export function renderPredictionSection(task: MaintenanceTask, lang: string, fea
           <div class="prediction-item">
             <ha-svg-icon path="M12,20A7,7 0 0,1 5,13A7,7 0 0,1 12,6A7,7 0 0,1 19,13A7,7 0 0,1 12,20M12,4A9,9 0 0,0 3,13A9,9 0 0,0 12,22A9,9 0 0,0 21,13A9,9 0 0,0 12,4M12.5,8H11V14L15.75,16.85L16.5,15.62L12.5,13.25V8M7.88,3.39L6.6,1.86L2,5.71L3.29,7.24L7.88,3.39M22,5.72L17.4,1.86L16.11,3.39L20.71,7.25L22,5.72Z"></ha-svg-icon>
             <span class="prediction-label">${t("days_until_threshold", lang)}</span>
-            <span class="prediction-value prediction-days${task.days_until_threshold === 0 ? " exceeded" : task.sensor_prediction_urgency ? " urgent" : ""}">${task.days_until_threshold === 0 ? t("threshold_exceeded", lang) : "~" + Math.round(task.days_until_threshold!) + " " + t("days", lang)}</span>
+            <span class="prediction-value prediction-days${task.days_until_threshold === 0 ? " exceeded" : task.sensor_prediction_urgency ? " urgent" : ""}">${task.days_until_threshold === 0 ? t("threshold_exceeded", lang) : "~" + formatDueDays(aboutDays(task.days_until_threshold), lang)}</span>
             ${task.threshold_prediction_date ? html`<span class="prediction-date">${formatDate(task.threshold_prediction_date, lang)}</span>` : nothing}
             ${task.threshold_prediction_confidence ? html`<span class="confidence-dot ${task.threshold_prediction_confidence}"></span>` : nothing}
             ${(task.prediction_cycles ?? 0) > 0 ? html`<span class="prediction-cycles">${t("prediction_cycles", lang)}: ${task.prediction_cycles}</span>` : nothing}

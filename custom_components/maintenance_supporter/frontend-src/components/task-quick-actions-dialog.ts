@@ -18,7 +18,7 @@ import { property, state } from "lit/decorators.js";
 import { sharedStyles, t, formatDate, formatInterval, formatRecurrence, formatCost, formatDuration, currencySymbolOf, langOf, syncCurrencyDecimals} from "../styles";
 import { runWs } from "../helpers/ws-run";
 import { snoozedMessage, type SnoozeResult } from "../helpers/snooze";
-import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
+import { focusModalShell, modalShellStyles, renderModalShell, shellIsHa } from "../helpers/modal-shell";
 import { haToday } from "../helpers/ha-time";
 import { buildCompleteDialogArgs } from "../helpers/complete-dialog-args";
 import { phaseLabel } from "../helpers/phases";
@@ -28,10 +28,12 @@ import { readingSlotDelta } from "../helpers/reading-slots";
 import { taskRef } from "../helpers/reference";
 import { newestFirst, renderHistoryEntry } from "../renderers/history";
 import { renderStatusBadge, statusColor } from "../renderers/status";
+import { isInertTask } from "../status-constants";
 import { fetchSettingsOnce } from "../helpers/settings-cache";
 import type { PartsCostMode } from "../helpers/parts-cost";
 import { canWrite, NO_DELEGATION, type WriteAccess } from "../helpers/permissions";
-import { confirmAction } from "../helpers/confirm";
+import { confirmDialog } from "../helpers/confirm";
+import { askDeleteTask } from "../helpers/delete-task";
 import { ToastTimer } from "../helpers/toast";
 import { quickComplete, quickCompleteOn } from "../helpers/quick-complete";
 import { offerUndoToast } from "../helpers/undo-completion";
@@ -51,6 +53,7 @@ import type {
   MaintenanceTask,
   AdvancedFeatures,
 } from "../types";
+import { notice } from "../helpers/notice";
 
 interface MaintenanceObjectFull {
   entry_id: string;
@@ -81,7 +84,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
   @state() private _features: AdvancedFeatures = {
     adaptive: false, seasonal: false, environmental: false,
     budget: false, groups: false, checklists: false, schedule_time: false,
-    completion_actions: false, places: false,
+    completion_actions: false, places: false, beta_editor: false,
   };
   @state() private _toast = "";
   private readonly _toastTimer = new ToastTimer();
@@ -268,6 +271,11 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
         this._error = outcome.message;
         return;
       }
+      if (outcome.result === "already") {
+        this.dispatchEvent(new CustomEvent("hass-notification", { detail: { message: outcome.message }, bubbles: true, composed: true }));
+        this.close();
+        return;
+      }
       this._notifyChanged("complete");
       if (outcome.undo) offerUndoToast(this, this.hass, { entryId, taskId: task.id, taskName: task.name }, this._lang, () => undefined);
       this.close();
@@ -364,17 +372,13 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
 
   private async _onDelete(): Promise<void> {
     if (!this._entryId || !this._taskId) return;
-    const confirmed = await confirmAction(this.hass, {
-      title: t("delete", this._lang),
-      message: t("delete_task_confirm", this._lang),
-      confirmText: t("delete", this._lang),
-      danger: true,
-    });
-    if (!confirmed) return;
+    const extra = await askDeleteTask(confirmDialog(this.hass), this._task, this._lang);
+    if (!extra) return;
     const ok = await this._runWs({
       type: "maintenance_supporter/task/delete",
       entry_id: this._entryId,
       task_id: this._taskId,
+      ...extra,
     });
     if (ok !== undefined) {
       this._notifyChanged("delete");
@@ -602,7 +606,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     const writer = canWrite(this.hass?.user, this._access);
     // The server refuses to postpone an archived, disabled or paused task,
     // and such a task sends no reminders to snooze.
-    const inert = !!task && (!!task.archived || task.enabled === false || task.status === "paused");
+    const inert = !!task && isInertTask(task);
 
     return renderModalShell(() => this.close(), html`
         ${task
@@ -610,7 +614,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
               <div class="header">
                 <div class="title">
                   <span class="status-dot" style="background: ${statusColor(task)}"></span>
-                  <span class="task-name">${task.name}</span>
+                  ${shellIsHa() ? nothing : html`<span class="task-name">${task.name}</span>`}
                   ${renderStatusBadge(task, L)}
                 </div>
                 <div class="object">
@@ -642,7 +646,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
               </div>
 
               ${this._error
-                ? html`<div class="error">${this._error}</div>`
+                ? notice("error", this._error)
                 : nothing}
 
               ${this._showSkip
@@ -796,9 +800,9 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                   `}
             `
           : this._error
-            ? html`<div class="error">${this._error}</div>`
+            ? notice("error", this._error)
             : html`<div class="loading">${t("loading", L)}</div>`}
-    `);
+    `, { title: task?.name });
   }
 
   protected updated(changed: Map<string, unknown>): void {
@@ -847,7 +851,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     .actions.secondary-row ha-button { --ha-button-font-size: 13px; }
     .btn {
       padding: 8px 12px; font-size: 14px;
-      border-radius: 6px; cursor: pointer;
+      border-radius: var(--ms-radius-6, 6px); cursor: pointer;
       border: 1px solid var(--divider-color);
       background: var(--secondary-background-color, transparent);
       color: var(--primary-text-color);
@@ -868,7 +872,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     .btn ha-icon { --mdc-icon-size: 18px; }
     .inline-form { display: flex; flex-direction: column; gap: 8px; }
     .notes-body {
-      margin-top: 8px; padding: 8px; border-radius: 6px;
+      margin-top: 8px; padding: 8px; border-radius: var(--ms-radius-6, 6px);
       background: var(--secondary-background-color);
       font-size: 13px; white-space: pre-wrap; word-break: break-word;
     }
@@ -884,7 +888,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     .link ha-icon { --mdc-icon-size: 14px; }
     .loading { padding: 24px; text-align: center; color: var(--secondary-text-color); }
     .error {
-      padding: 8px; border-radius: 6px;
+      padding: 8px; border-radius: var(--ms-radius-6, 6px);
       background: rgba(211,47,47,0.1);
       color: var(--error-color, #d32f2f); font-size: 13px;
     }
@@ -902,7 +906,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     .stat {
       display: flex; flex-direction: column; gap: 2px;
       background: var(--secondary-background-color, rgba(255,255,255,0.04));
-      padding: 8px; border-radius: 6px;
+      padding: 8px; border-radius: var(--ms-radius-6, 6px);
       align-items: center;
     }
     .stat-label { font-size: 11px; color: var(--secondary-text-color); text-transform: uppercase; letter-spacing: 0.5px; }
@@ -921,7 +925,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
        local. */
     .history-list { display: flex; flex-direction: column; max-height: 280px; overflow: auto; }
     .history-list .history-entry {
-      padding: 6px 8px; border-radius: 6px; border-bottom: none; margin-bottom: 6px;
+      padding: 6px 8px; border-radius: var(--ms-radius-6, 6px); border-bottom: none; margin-bottom: 6px;
       background: var(--secondary-background-color, rgba(255,255,255,0.03));
     }
     .history-list .history-date { font-size: 11px; }
@@ -942,7 +946,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       border-top: 1px solid var(--divider-color);
     }
     .toast {
-      padding: 8px 12px; border-radius: 6px;
+      padding: 8px 12px; border-radius: var(--ms-radius-6, 6px);
       background: rgba(76, 175, 80, 0.15);
       color: var(--success-color, #4caf50); font-size: 13px; font-weight: 500;
     }

@@ -36,3 +36,13 @@ export class ToastTimer {
     return this._handle !== null;
   }
 }
+
+/** Home Assistant's own toast (the beta UI's, at the foot of the screen as
+ *  for every HA message), with an optional action button such as Undo. */
+export function haToast(from: EventTarget, message: string, action?: { text: string; action: () => void }): void {
+  from.dispatchEvent(new CustomEvent("hass-notification", {
+    detail: { message, ...(action ? { action } : {}), duration: action ? ACTION_TOAST_MS : TOAST_MS },
+    bubbles: true,
+    composed: true,
+  }));
+}

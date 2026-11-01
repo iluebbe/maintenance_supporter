@@ -1,9 +1,15 @@
 {
   "entity": {
     "button": {
-      "button_complete": { "default": "mdi:check-circle" },
-      "button_skip": { "default": "mdi:skip-next" },
-      "button_reset": { "default": "mdi:restore" }
+      "button_complete": {
+        "default": "mdi:check-circle"
+      },
+      "button_skip": {
+        "default": "mdi:skip-next"
+      },
+      "button_reset": {
+        "default": "mdi:restore"
+      }
     },
     "sensor": {
       "maintenance_task": {
@@ -15,6 +21,78 @@
           "triggered": "mdi:bell-alert"
         }
       }
+    }
+  },
+  "services": {
+    "complete": {
+      "service": "mdi:check-circle"
+    },
+    "reset": {
+      "service": "mdi:restore"
+    },
+    "skip": {
+      "service": "mdi:skip-next"
+    },
+    "export_data": {
+      "service": "mdi:database-export"
+    },
+    "add_object": {
+      "service": "mdi:package-variant-closed-plus"
+    },
+    "add_task": {
+      "service": "mdi:clipboard-plus-outline"
+    },
+    "update_task": {
+      "service": "mdi:clipboard-edit-outline"
+    },
+    "delete_task": {
+      "service": "mdi:clipboard-remove-outline"
+    },
+    "list_tasks": {
+      "service": "mdi:clipboard-list-outline"
+    },
+    "part_restock": {
+      "service": "mdi:package-variant-plus"
+    },
+    "part_use": {
+      "service": "mdi:package-variant-minus"
+    },
+    "part_purchase": {
+      "service": "mdi:cart-plus"
+    },
+    "part_ready_again": {
+      "service": "mdi:package-variant-closed-check"
+    },
+    "part_dispose": {
+      "service": "mdi:package-variant-remove"
+    }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "trigger": "mdi:alert-octagon"
+    },
+    "task_became_due_soon": {
+      "trigger": "mdi:alert-circle"
+    },
+    "sensor_trigger_activated": {
+      "trigger": "mdi:bell-alert"
+    },
+    "task_became_ok": {
+      "trigger": "mdi:check-circle"
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "condition": "mdi:alert-octagon"
+    },
+    "task_is_due_soon": {
+      "condition": "mdi:alert-circle"
+    },
+    "task_is_triggered": {
+      "condition": "mdi:bell-alert"
+    },
+    "task_needs_attention": {
+      "condition": "mdi:alert"
     }
   }
 }

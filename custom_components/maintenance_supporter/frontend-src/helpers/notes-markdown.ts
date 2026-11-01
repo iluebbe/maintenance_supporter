@@ -37,6 +37,30 @@ export function renderNotesMarkdown(
   return html`${notes}`;
 }
 
+/** Notes as one line of plain text for the one-line sites (a table cell and
+ *  its tooltip): the marks of the markdown dropped, a link's text kept, line
+ *  breaks as spaces. The objects table showed the raw source, "**Filter**
+ *  [manual](https://…)" (column test on the faketime year, 2026-11-01). */
+export function notesPlainText(notes: string | null | undefined): string {
+  if (!notes) return "";
+  const lines = notes
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/<((?:https?|mailto):[^>\s]+)>/g, "$1")
+    .split(/\r?\n/)
+    .filter((line) => !/^\s*(```|~~~)/.test(line) && !/^\s*([-*_])(\s*\1){2,}\s*$/.test(line))
+    .map((line) => line.replace(/^\s*(?:#{1,6}\s+|>\s?|[-*+]\s+(?:\[[ xX]\]\s+)?|\d+[.)]\s+)/, ""));
+  return lines
+    .join(" ")
+    .replace(/(\*\*|__)(.+?)\1/g, "$2")
+    .replace(/~~(.+?)~~/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/(^|[^\w*])\*(?!\s)([^*]*?\S)\*(?!\w)/g, "$1$2")
+    .replace(/(^|[^\w])_(?!\s)([^_]*?\S)_(?!\w)/g, "$1$2")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /** The placeholder an app link travels as (".invalid" never resolves). */
 export const APP_LINK_PLACEHOLDER = "https://app-link.invalid/";
 

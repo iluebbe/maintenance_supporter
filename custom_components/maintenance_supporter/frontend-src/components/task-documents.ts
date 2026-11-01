@@ -293,7 +293,7 @@ export class MaintenanceTaskDocuments extends LitElement {
     .doc-filter { display: flex; align-items: center; gap: 6px; margin: 4px 0 8px; }
     .doc-filter ha-icon { --mdc-icon-size: 18px; color: var(--secondary-text-color, #888); }
     .doc-filter input {
-      flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 6px 8px; border-radius: 6px;
+      flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 6px 8px; border-radius: var(--ms-radius-6, 6px);
       border: 1px solid var(--divider-color); background: var(--card-background-color, #fff);
       color: var(--primary-text-color);
     }
@@ -303,7 +303,7 @@ export class MaintenanceTaskDocuments extends LitElement {
       border: 1px solid var(--divider-color); border-radius: 8px;
     }
     .tdoc-icon { color: var(--primary-color); --mdc-icon-size: 22px; flex: none; }
-    .tdoc-info { flex: 1; min-width: 0; cursor: pointer; border-radius: 6px; }
+    .tdoc-info { flex: 1; min-width: 0; cursor: pointer; border-radius: var(--ms-radius-6, 6px); }
     .tdoc-info:hover .tdoc-title { text-decoration: underline; }
     .tdoc-info:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
     .tdoc-title { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -311,7 +311,7 @@ export class MaintenanceTaskDocuments extends LitElement {
     .tdoc-desc { font-size: 12px; color: var(--secondary-text-color, #888); white-space: pre-line; }
     .tdoc-pagetag { color: var(--primary-color); font-weight: 500; }
     .tdoc-page {
-      flex: none; width: 76px; padding: 5px 8px; border-radius: 6px; font: inherit; font-size: 13px;
+      flex: none; width: 76px; padding: 5px 8px; border-radius: var(--ms-radius-6, 6px); font: inherit; font-size: 13px;
       background: var(--secondary-background-color, rgba(0, 0, 0, 0.06));
       color: var(--primary-text-color); border: 1px solid var(--divider-color);
     }
@@ -326,13 +326,13 @@ export class MaintenanceTaskDocuments extends LitElement {
     .icon-btn ha-icon { --mdc-icon-size: 20px; }
     .tdoc-attach { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
     .tdoc-select {
-      flex: 1; min-width: 160px; padding: 6px 10px; border-radius: 6px; font: inherit;
+      flex: 1; min-width: 160px; padding: 6px 10px; border-radius: var(--ms-radius-6, 6px); font: inherit;
       background: var(--secondary-background-color, rgba(0, 0, 0, 0.06));
       color: var(--primary-text-color); border: 1px solid var(--divider-color);
     }
     .tdoc-btn {
       display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
-      padding: 6px 12px; border-radius: 6px; font: inherit; font-size: 13px;
+      padding: 6px 12px; border-radius: var(--ms-radius-6, 6px); font: inherit; font-size: 13px;
       background: var(--secondary-background-color, rgba(0, 0, 0, 0.06));
       color: var(--primary-text-color); border: 1px solid var(--divider-color);
     }

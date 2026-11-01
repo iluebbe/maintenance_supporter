@@ -30,6 +30,8 @@ class ThresholdTrigger(BaseTrigger):
     - Duration requirement (value must exceed for X minutes)
     """
 
+    holds_level = True
+
     def __init__(
         self,
         hass: HomeAssistant,

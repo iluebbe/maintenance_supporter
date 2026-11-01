@@ -23,6 +23,7 @@ from .const import (
     CONF_ACTION_SNOOZE_ENABLED,
     CONF_ADMIN_PANEL_USER_IDS,
     CONF_ADVANCED_ADAPTIVE,
+    CONF_ADVANCED_BETA_EDITOR,
     CONF_ADVANCED_BUDGET,
     CONF_ADVANCED_CHECKLISTS,
     CONF_ADVANCED_COMPLETION_ACTIONS,
@@ -759,6 +760,10 @@ class GlobalOptionsFlow(OptionsFlow):
                     vol.Optional(
                         CONF_ADVANCED_PLACES,
                         default=self._opt(CONF_ADVANCED_PLACES),
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_ADVANCED_BETA_EDITOR,
+                        default=self._opt(CONF_ADVANCED_BETA_EDITOR),
                     ): selector.BooleanSelector(),
                 }
             ),

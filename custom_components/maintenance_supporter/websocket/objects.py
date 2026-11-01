@@ -603,6 +603,11 @@ async def ws_duplicate_object(
         # #225: the new object goes inside this one (Add sub-object › From
         # a template).
         vol.Optional("parent_entry_id"): vol.Any(ID_FIELD, None),
+        # 2026-10 beta: the template preview creates only the ticked tasks,
+        # named as the template list showed them (in ``language``).
+        vol.Optional("task_names"): vol.All(
+            [vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH))], vol.Length(min=1, max=100)
+        ),
     }
 )
 @require_write
@@ -645,6 +650,12 @@ async def ws_create_from_template(
     }
     # Seasons follow the home's hemisphere and climate (helpers/climate.py).
     new_tasks = await async_build_template_tasks(hass, template, lang, object_id)
+    if msg.get("task_names"):
+        wanted = set(msg["task_names"])
+        new_tasks = {tid: task for tid, task in new_tasks.items() if task.get("name") in wanted}
+        if not new_tasks:
+            connection.send_error(msg["id"], "invalid_input", "None of the chosen tasks belongs to the template")
+            return
     new_obj["task_ids"] = list(new_tasks)
 
     result = await hass.config_entries.flow.async_init(

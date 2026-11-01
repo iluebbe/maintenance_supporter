@@ -17,6 +17,8 @@ import { runWs } from "../helpers/ws-run";
 import { descendantIds, nests, objectPath } from "../helpers/object-tree";
 import "./ms-textfield";
 import "./ms-date-field";
+import { headerTitle, titleLine } from "../helpers/beta-ui";
+import { notice } from "../helpers/notice";
 
 export class MaintenanceObjectDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -169,10 +171,10 @@ export class MaintenanceObjectDialog extends LitElement {
     </label>`;
     const blocked = this._replaceDevice === "other" && !this._haDeviceId;
     return html`
-      <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${t("replace_object", L)}</div>
+      <ha-dialog open .headerTitle=${headerTitle(t("replace_object", L))} @closed=${this._close}>
+        ${titleLine(t("replace_object", L))}
         <div class="content">
-          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+          ${this._error ? notice("error", this._error) : nothing}
           <div class="hint">${t("replace_object_prompt", L)}</div>
           <ms-textfield
             label="${t("replace_name_label", L)}"
@@ -294,10 +296,10 @@ export class MaintenanceObjectDialog extends LitElement {
     const L = this._lang;
     const title = this._entryId ? t("edit_object", L) : t("new_object", L);
     return html`
-      <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${title}</div>
+      <ha-dialog open .headerTitle=${headerTitle(title)} @closed=${this._close}>
+        ${titleLine(title)}
         <div class="content">
-          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+          ${this._error ? notice("error", this._error) : nothing}
           <ms-textfield
             label="${t("name", L)}"
             required
@@ -457,7 +459,7 @@ export class MaintenanceObjectDialog extends LitElement {
       padding: 8px 10px; font-size: 14px; font-family: inherit;
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color);
-      border: 1px solid var(--divider-color); border-radius: 6px;
+      border: 1px solid var(--divider-color); border-radius: var(--ms-radius-6, 6px);
       resize: vertical;
     }
     .textarea-field textarea:focus {
@@ -471,7 +473,7 @@ export class MaintenanceObjectDialog extends LitElement {
       padding: 8px 10px; font-size: 14px; font-family: inherit;
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color);
-      border: 1px solid var(--divider-color); border-radius: 6px;
+      border: 1px solid var(--divider-color); border-radius: var(--ms-radius-6, 6px);
     }
     .error {
       color: var(--error-color, #f44336);

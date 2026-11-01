@@ -278,6 +278,10 @@ _VALUE_OK: dict[str, frozenset[str] | str] = {
     "compound_condition": frozenset({"fr"}),
     "dashboard": frozenset({"de", "it", "nl"}),
     "degradation_trend": frozenset({"de", "nl", "pl", "sv", "nb", "cs", "hu"}),
+    # The beta overview's filter pane: "Status" and "Filters" are the words
+    # these languages use (as Home Assistant's own filter pane does).
+    "beta_filter_status": frozenset({"da", "de", "nb", "nl", "pl", "pt-br", "sv"}),
+    "beta_filters": frozenset({"nl"}),
     "doc_cat_manual": frozenset({"es", "pt", "sv", "pt-br"}),
     "documentation_url_label": frozenset({"es", "pt", "sv", "da", "pt-br"}),
     "manual": frozenset({"es", "pt", "pt-br"}),

@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.115.0 | 338 source files (194 Python + 144 TypeScript) | **98% test coverage** (6,091 backend tests + 1,508 frontend tests)
+**Version:** 2.116.0 | 353 source files (195 Python + 158 TypeScript) | **98% test coverage** (6,145 backend tests + 1,703 frontend tests)
 
 ---
 
@@ -36,7 +36,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
                          |                   |
 +-------------------+    | - history         |    +-------------------+
 |   WebSocket API   |--->|                   +--->|  Button Entities  |
-| (111 commands)    |    +--------+----------+    | (complete / skip /|
+| (112 commands)    |    +--------+----------+    | (complete / skip /|
 | - CRUD objects    |             |          |    |  reset, per task) |
 | - statistics      |             |          |    +-------------------+
 | - subscribe       |             |          |    +-------------------+
@@ -196,21 +196,21 @@ drifted. The descriptions are hand-written.
 
 ```
 custom_components/maintenance_supporter/
-├── __init__.py                  (1,028 lines)  Setup / unload / removal of the entries, async_migrate_entry, the shared runtime
+├── __init__.py                  (1,036 lines)  Setup / unload / removal of the entries, async_migrate_entry, the shared runtime
 ├── services.py                    (956 lines)  The service actions: schemas and handlers, registered from async_setup
 ├── listeners.py                   (388 lines)  Integration-wide event listeners: notification buttons, NFC tags, registry changes,
 │                                               deleted users
 ├── daily_jobs.py                  (224 lines)  Timers: retention sweep, the 08:00 digest / warranty / lead-time reminders, noon retry
-├── const.py                     (1,017 lines)  Constants, enums, defaults, PLATFORMS
-├── coordinator.py               (2,370 lines)  DataUpdateCoordinator per object
+├── const.py                     (1,022 lines)  Constants, enums, defaults, PLATFORMS
+├── coordinator.py               (2,397 lines)  DataUpdateCoordinator per object
 ├── storage.py                     (743 lines)  Per-entry Store (dynamic state, migration, part stock)
-├── parts_runtime.py               (871 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
+├── parts_runtime.py               (888 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
 ├── shopping_sync.py               (396 lines)  2.67: mirrors auto buy tasks into a user-picked todo.* list (own-rows uid map)
 │
 ├── config_flow.py                 (934 lines)  Initial setup flow + templates
 ├── config_flow_helpers.py         (372 lines)  Shared config flow utilities
 ├── config_flow_options.py          (13 lines)  Options dispatcher
-├── config_flow_options_global.py (1,750 lines)  Global settings (general incl. currency, notifications, budgets, panel access)
+├── config_flow_options_global.py (1,755 lines)  Global settings (general incl. currency, notifications, budgets, panel access)
 ├── config_flow_options_task.py     (30 lines)  Per-object task options flow — a dispatcher assembled from the mixins below
 │   ├── …_task_base.py             (204 lines)  Shared state + threshold-floor (B1) helpers
 │   ├── …_task_add.py               (96 lines)  Add-task steps of the options flow, on the shared config_flow_schedule.py
@@ -232,32 +232,33 @@ custom_components/maintenance_supporter/
 ├── button.py                      (132 lines)  Complete / Skip / Reset buttons per task (no global buttons)
 ├── calendar.py                    (895 lines)  MaintenanceCalendar (global, all tasks)
 ├── todo.py                        (179 lines)  Global to-do list aggregating every active task
-├── entity/                      (3,201 lines)  13 files — Entity bases shared by the platforms, the per-area cost sensors, the trigger engine
+├── entity/                      (3,326 lines)  13 files — Entity bases shared by the platforms, the per-area cost sensors, the trigger engine
 │   ├── entity_base.py             (131 lines)  CoordinatorEntity base class
 │   ├── summary_coordinator.py     (123 lines)  No-poll coordinator behind the global summary sensors
 │   ├── area_cost.py               (281 lines)  Maintenance cost per Home Assistant area as sensors (#191)
 │   ├── id_change.py                (27 lines)  In-place entity_id changes (Home Assistant 2026.11, #214)
-│   └── triggers/                (2,632 lines)  8 files — The trigger engine: one class per trigger type
+│   └── triggers/                (2,757 lines)  8 files — The trigger engine: one class per trigger type
 │       ├── __init__.py            (246 lines)  Factory: create_triggers(), multi-entity
-│       ├── base_trigger.py        (531 lines)  Abstract base with availability tracking
-│       ├── threshold.py           (179 lines)  Value above/below trigger
+│       ├── base_trigger.py        (550 lines)  Abstract base with availability tracking
+│       ├── threshold.py           (181 lines)  Value above/below trigger
 │       ├── counter.py             (233 lines)  Accumulated value trigger
 │       ├── state_change.py        (493 lines)  State transition counter
 │       ├── runtime.py             (427 lines)  Accumulated operating hours trigger
-│       ├── compound.py            (436 lines)  AND/OR compound trigger
-│       └── due_date.py             (87 lines)  Due-date trigger: the device reports WHEN the maintenance is due
+│       ├── compound.py            (538 lines)  AND/OR compound trigger
+│       └── due_date.py             (89 lines)  Due-date trigger: the device reports WHEN the maintenance is due
 │
-├── websocket/                  (10,631 lines)  111 commands, 24 files — split by domain; tasks.py re-exports the task modules drawn under it
-│   ├── __init__.py                (928 lines)  Shared helpers + registration
-│   ├── objects.py               (1,086 lines)  13 commands: objects, object, object/create, object/update, object/delete,
+├── websocket/                  (10,717 lines)  112 commands, 24 files — split by domain; tasks.py re-exports the task modules drawn under it
+│   ├── __init__.py                (930 lines)  Shared helpers + registration
+│   ├── objects.py               (1,097 lines)  13 commands: objects, object, object/create, object/update, object/delete,
 │   │                                           object/duplicate, object/from_template, object/archive, object/unarchive, object/pause,
 │   │                                           object/resume, object/replace, entity/attributes
-│   ├── tasks.py                    (76 lines)  Backward-compat re-export shim (no handlers of its own)
-│   │   ├── tasks_actions.py       (571 lines)  9 commands: task/complete, task/quick_complete, task/undo, task/skip, task/reset,
+│   ├── tasks.py                    (78 lines)  Backward-compat re-export shim (no handlers of its own)
+│   │   ├── tasks_actions.py       (588 lines)  9 commands: task/complete, task/quick_complete, task/undo, task/skip, task/reset,
 │   │   │                                       task/set_phase, task/postpone, task/snooze, task/checklist_progress
-│   │   ├── tasks_crud.py        (1,037 lines)  5 commands: task/create, task/update, task/delete, task/duplicate, task/move
+│   │   ├── tasks_crud.py        (1,052 lines)  5 commands: task/create, task/update, task/delete, task/duplicate, task/move
 │   │   ├── tasks_history.py       (365 lines)  2 commands: task/history/update, task/history/delete
-│   │   ├── tasks_lifecycle.py     (336 lines)  6 commands: task/archive, task/pause, task/resume, task/unarchive, task/list, task/history
+│   │   ├── tasks_lifecycle.py     (369 lines)  7 commands: task/archive, task/pause, task/resume, task/unarchive, task/list,
+│   │   │                                       task/history, task/trace
 │   │   └── tasks_validation.py    (421 lines)  Shared task-payload validation (no handlers)
 │   ├── groups.py                  (176 lines)  4 commands: groups, group/create, group/update, group/delete
 │   ├── analysis.py                (279 lines)  5 commands: task/analyze_interval, task/apply_suggestion, task/seasonal_overrides,
@@ -265,7 +266,7 @@ custom_components/maintenance_supporter/
 │   ├── users.py                   (166 lines)  3 commands: users/list, task/assign_user, tasks/by_user
 │   ├── io.py                    (1,775 lines)  10 commands: version, templates, export, csv/export, objects/csv, csv/import,
 │   │                                           settings/export, json/import, qr/generate, qr/batch_generate
-│   ├── dashboard.py               (841 lines)  8 commands: settings, statistics, subscribe, schedule/preview, budget_status,
+│   ├── dashboard.py               (847 lines)  8 commands: settings, statistics, subscribe, schedule/preview, budget_status,
 │   │                                           global/update, global/test_notification, notify/user_targets
 │   ├── vacation.py                (206 lines)  4 commands: vacation/state, vacation/update, vacation/preview, vacation/end_now
 │   ├── parts.py                   (526 lines)  9 commands: part/create, part/update, part/delete, part/restock, part/use, part/purchase,
@@ -302,38 +303,38 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (47,723 lines)  144 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
-│   ├── maintenance-panel.ts     (5,697 lines)  Panel shell: today / dashboard / calendar / settings tabs,
+├── frontend-src/               (51,223 lines)  158 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+│   ├── maintenance-panel.ts     (6,081 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,263 lines)  Auto-generated dashboard strategy + 4 section strategies
-│   ├── maintenance-card.ts        (904 lines)  Lovelace card
+│   ├── maintenance-card.ts        (908 lines)  Lovelace card
 │   ├── maintenance-calendar-card.ts (813 lines)  Calendar card (object filter, #83)
 │   ├── maintenance-card-editor.ts (526 lines)  Visual editor of the Lovelace card
 │   ├── maintenance-strategy-shim.ts (448 lines)  Zero-import boot shim: defines the dashboard AND the four
 │   │                                           section strategy tags synchronously (lazy-loads the bundle on
 │   │                                           first generate(); v2.73.0), picker entries, scoped-registry self-heal
-│   ├── panel-styles.ts          (2,214 lines)  Panel-specific CSS
+│   ├── panel-styles.ts          (2,555 lines)  Panel-specific CSS
 │   ├── calendar-styles.ts         (208 lines)  Calendar-card CSS
-│   ├── styles.ts                (1,935 lines)  Shared CSS, i18n runtime loader (bundled EN + on-demand fetch
+│   ├── styles.ts                (2,015 lines)  Shared CSS, i18n runtime loader (bundled EN + on-demand fetch
 │   │                                           of the other 21) + shared helpers; the ONLY module that formats
 │   │                                           dates, times and numbers (HA profile date_format/time_format/
 │   │                                           number_format via the __msDateTimePrefs singleton) — tripwired
 │   │                                           by __tests__/profile-format-single-source.test.ts (#163);
 │   │                                           chart-utils px() is the one sanctioned toFixed (SVG geometry)
-│   ├── types.ts                   (764 lines)  TypeScript interfaces
+│   ├── types.ts                   (776 lines)  TypeScript interfaces
 │   ├── statistics-service.ts      (320 lines)  WS statistics cache
 │   ├── user-service.ts            (131 lines)  HA user list cache
-│   ├── dialog-mount.ts            (321 lines)  Lazy dialog mounting (open*Dialog helpers)
+│   ├── dialog-mount.ts            (322 lines)  Lazy dialog mounting (open*Dialog helpers)
 │   ├── ws-errors.ts               (284 lines)  WS error → localized message mapping
 │   ├── ds-entry.ts                 (58 lines)  Design-sync bundle entry
 │   ├── ds-host-stubs.ts           (287 lines)  Design-sync host-element fallbacks
 │   ├── ds-mdi-map.ts              (204 lines)  Design-sync previews: mdi icon paths for every `mdi:*` name the frontend uses
 │   ├── ds-preview-kit.ts          (230 lines)  Design-sync preview kit: a demo household behind a mock `hass`
 │   ├── maintenance-panel-card.ts  (369 lines)  The whole panel as a Lovelace card (#174)
-│   ├── status-constants.ts        (100 lines)  Status colors + icons — THE single source for every renderer
-│   ├── helpers/                 (6,528 lines)  74 files — Pure functions and small services shared by the panel, the cards and the dialogs
+│   ├── status-constants.ts        (109 lines)  Status colors + icons — THE single source for every renderer
+│   ├── helpers/                 (7,913 lines)  85 files — Pure functions and small services shared by the panel, the cards and the dialogs
 │   │   ├── calendar-bucket.ts     (415 lines)  Pure 7/14/30/365-day projection, 5 occurrences max per task, no projection for sensor-based
-│   │   ├── notes-markdown.ts      (119 lines)  Notes rendering (ha-markdown hand-off)
+│   │   ├── notes-markdown.ts      (143 lines)  Notes rendering (ha-markdown hand-off)
 │   │   ├── bundle-version.ts       (35 lines)  Stale-bundle guard
 │   │   ├── history-photos.ts       (33 lines)  #161: photo_doc_ids ∪ legacy photo_doc_id, cap 10
 │   │   ├── photo-upload.ts        (130 lines)  Multipart upload + orphan cleanup
@@ -343,7 +344,7 @@ custom_components/maintenance_supporter/
 │   │   ├── backend-errors.ts       (63 lines)  Backend error texts in the user's language (i18n audit 2026-09-27)
 │   │   ├── companion.ts            (23 lines)  Which Home Assistant Companion app hosts the panel, when any
 │   │   ├── complete-dialog-args.ts (210 lines)  Everything <maintenance-complete-dialog> needs for ONE task, derived once
-│   │   ├── confirm.ts              (35 lines)  The panel's <maintenance-confirm-dialog> for surfaces OUTSIDE the panel
+│   │   ├── confirm.ts              (44 lines)  The panel's <maintenance-confirm-dialog> for surfaces OUTSIDE the panel
 │   │   ├── date-parse.ts           (49 lines)  Typed date entry (forum #23): what a person types → `YYYY-MM-DD`
 │   │   ├── document-categories.ts  (44 lines)  Document category tags + icons for the documents section and the task-documents card
 │   │   ├── document-filter.ts      (72 lines)  Local filter for a loaded document list (#171) — the object page's documents section and a task's linked documents
@@ -361,11 +362,11 @@ custom_components/maintenance_supporter/
 │   │   ├── import-format.ts        (16 lines)  Which importer a pasted export belongs to (Settings → Import)
 │   │   ├── interval.ts             (41 lines)  Unit-aware interval math (issue #59) for the frontend's progress bars and calendar projection stepping
 │   │   ├── locale-core.ts         (161 lines)  Locale store + lookup without Lit and without the English table (the dashboard strategy translates too)
-│   │   ├── modal-shell.ts          (77 lines)  Modal frame of the dialogs that are not <ha-dialog> (history-entry editor, object / task dialogs)
+│   │   ├── modal-shell.ts         (115 lines)  Modal frame of the dialogs that are not <ha-dialog> (history-entry editor, object / task dialogs)
 │   │   ├── notify-icons.ts         (20 lines)  #185: default push-notification icon per maintenance type (twin of helpers/notify_icons.py)
 │   │   ├── object-columns.ts       (67 lines)  (#67) Objects-table column catalog
 │   │   ├── object-history.ts      (175 lines)  Object lifecycle history (#138): every task's history merged into one chronological record
-│   │   ├── objects-cache.ts        (53 lines)  Skeleton-from-cache: the last known objects payload in localStorage
+│   │   ├── objects-cache.ts        (59 lines)  Skeleton-from-cache: the last known objects payload in localStorage
 │   │   ├── overview-tabs.ts         (7 lines)  The overview's tabs — one list for the sidebar panel and the panel-as-card editor
 │   │   ├── parts-cost.ts           (88 lines)  What spare parts cost, and when that counts (#104, #98 follow-up)
 │   │   ├── permissions.ts          (54 lines)  Who may do what — the frontend twin of the three backend tiers (helpers/permissions.py)
@@ -380,21 +381,21 @@ custom_components/maintenance_supporter/
 │   │   ├── search-match.ts        (150 lines)  Tolerant text matching (#171) — the TypeScript twin of helpers/search_match.py
 │   │   ├── service-record.ts      (345 lines)  Printable object service record (#138, #170): every completed maintenance of all tasks
 │   │   ├── setting-ranges.ts       (73 lines)  Bounds of the integer global settings — mirror of helpers/settings_registry.py
-│   │   ├── settings-cache.ts      (152 lines)  Household settings the surfaces outside the panel read once per page (`window.__msSettingsCache`)
+│   │   ├── settings-cache.ts      (167 lines)  Household settings the surfaces outside the panel read once per page (`window.__msSettingsCache`)
 │   │   ├── shared-parts.ts        (140 lines)  Rendering task→part links when the pool may belong to ANOTHER object (#111)
 │   │   ├── snooze.ts               (30 lines)  What a snooze did, in words (#193)
 │   │   ├── sticky-pane.ts         (108 lines)  Scroll-aware docking for the master-detail task pane (split view)
-│   │   ├── storage-keys.ts         (64 lines)  localStorage keys for panel UI preferences — single source of truth
+│   │   ├── storage-keys.ts         (68 lines)  localStorage keys for panel UI preferences — single source of truth
 │   │   ├── subscription-merge.ts   (51 lines)  Merge logic for the 2.52 delta subscription protocol
-│   │   ├── toast.ts                (38 lines)  Toast timing — one set for every surface that shows a transient message
+│   │   ├── toast.ts                (48 lines)  Toast timing — one set for every surface that shows a transient message
 │   │   ├── trigger-domains.ts      (44 lines)  Domains offered by the trigger entity pickers (#129)
 │   │   ├── url.ts                  (62 lines)  Shared URL-safety guard for rendering user-supplied links
-│   │   ├── virtual-window.ts       (69 lines)  Windowing math for the virtualized dashboard task table (500+ tasks)
+│   │   ├── virtual-window.ts      (131 lines)  Windowing math for the virtualized dashboard task table (500+ tasks)
 │   │   ├── warranty.ts             (41 lines)  (#67) Warranty status computation for object asset tracking
 │   │   ├── worksheet.ts           (179 lines)  Task work sheet (v2.21) — a printable one-pager for a single task
 │   │   ├── ws-run.ts              (154 lines)  One WS round-trip with its error routed to the surface's own feedback (toast / error line)
 │   │   ├── ha-time.ts             (258 lines)  Home Assistant's clock: the time zone behind every date the UI computes or shows
-│   │   ├── undo-completion.ts      (71 lines)  Undo a completion the current person just made — the panel's and the dashboard card's toast action (2026-10)
+│   │   ├── undo-completion.ts      (80 lines)  Undo a completion the current person just made — the panel's and the dashboard card's toast action (2026-10)
 │   │   ├── trigger-entities.ts     (49 lines)  The entities a stored trigger watches, in either stored shape
 │   │   ├── assignees.ts            (24 lines)  Who a task is meant for: the one rule every person filter reads
 │   │   ├── vacation-phase.ts       (25 lines)  Where a vacation stands — one rule for the panel's settings and the Lovelace vacation card
@@ -404,64 +405,78 @@ custom_components/maintenance_supporter/
 │   │   ├── task-history-fetch.ts   (29 lines)  THE `task/history` call: one task's full history (the list payloads carry only the most recent window)
 │   │   ├── keyboard.ts             (18 lines)  Keyboard activation for elements that are not native buttons
 │   │   ├── object-tree.ts         (151 lines)  #225: objects inside other objects
-│   │   ├── quick-complete.ts       (56 lines)  #233: *Quick complete*, a task that completes without a dialog
-│   │   └── mirror-lists.ts         (26 lines)  The to-do lists a task can be mirrored into (D#183, #231): the rule both pickers apply, Settings' default lists and the …
-│   ├── renderers/               (2,526 lines)  11 files — Pure lit-html render functions of the task views and the charts
-│   │   ├── task-detail.ts         (621 lines)  The task detail view (header, ⋮ menu, sections) as a function of its context
+│   │   ├── quick-complete.ts       (61 lines)  #233: *Quick complete*, a task that completes without a dialog
+│   │   ├── mirror-lists.ts         (26 lines)  The to-do lists a task can be mirrored into (D#183, #231): the rule both pickers apply, Settings' default lists and the …
+│   │   ├── task-rules.ts          (537 lines)  Beta task editor: the dialog's state as rule rows (one sentence each), the add picker's choices, device suggestions
+│   │   ├── task-trace.ts          (265 lines)  Beta task trace: the journal and the history merged and split into due cycles
+│   │   ├── top-layer.ts            (59 lines)  Lifts the panel's own overlays into the top layer, above HA 2026.11's docked sidebar
+│   │   ├── beta-ui.ts              (74 lines)  The new look (Settings › Advanced features › New look and task editor; `advanced_beta_editor_visible`, on by default since 2026-11-01): with it on, every …
+│   │   ├── check-field.ts          (37 lines)  A checkbox with its label: our `<label><input type="checkbox">…</label>` (classic — the markup each place had, box …
+│   │   ├── collapsible.ts          (34 lines)  A section that folds: our `<details>` (classic), or with the beta UI Home Assistant's ha-expansion-panel (HA's chevron, …
+│   │   ├── menu.ts                 (64 lines)  A popup menu listed once and drawn two ways: our own `.popup-menu` (classic), or with the beta UI Home Assistant's …
+│   │   ├── notice.ts               (14 lines)  A message in a form or dialog — an error, a warning: our `.error` box (classic), or with the beta UI Home Assistant's …
+│   │   ├── select-field.ts         (49 lines)  A dropdown whose `<option>` template is written once: a native `<select>` (classic — the same element each place had), …
+│   │   ├── tab-bar.ts              (38 lines)  A row of tabs: our `.tab-bar` of `.tab`s (classic), or with the beta UI Home Assistant's ha-tab-group (HA's indicator, …
+│   │   └── delete-task.ts          (32 lines)  The question before a task is deleted, the same in the panel and in the card's quick actions
+│   ├── renderers/               (2,701 lines)  11 files — Pure lit-html render functions of the task views and the charts
+│   │   ├── task-detail.ts         (625 lines)  The task detail view (header, ⋮ menu, sections) as a function of its context
 │   │   ├── chart-utils.ts         (112 lines)  Shared chart helpers: nice axis ticks and consistent number/date formats
 │   │   ├── charts.ts              (167 lines)  Cost/duration chart renderers (task detail)
 │   │   ├── history.ts             (249 lines)  Task history sub-view: filter chips + search + the timeline of entries
-│   │   ├── prediction.ts           (61 lines)  Sensor prediction section renderer
+│   │   ├── prediction.ts           (69 lines)  Sensor prediction section renderer
 │   │   ├── progress.ts            (358 lines)  Progress renderers shared by the dashboard rows, the object-detail view and the task-detail overview tab
 │   │   ├── recommendation.ts       (49 lines)  Shared recommendation-card visuals (bars + confidence badge)
 │   │   ├── seasonal.ts            (118 lines)  Seasonal factor chart renderers
-│   │   ├── sparkline.ts           (522 lines)  Trigger section renderer (task detail)
+│   │   ├── sparkline.ts           (685 lines)  Trigger section renderer (task detail)
 │   │   ├── status.ts               (81 lines)  A task's status as the user sees it — THE derivation for every surface
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
-│   ├── components/             (21,593 lines)  39 files — Lit elements: dialogs, sections, views, cards
-│   │   ├── task-dialog.ts       (4,243 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
-│   │   ├── settings-view.ts     (2,916 lines)  In-panel global settings editor
-│   │   ├── task-quick-actions-dialog.ts (974 lines)  Task ⋮ menu
-│   │   ├── documents-section.ts   (716 lines)  Object-detail documents/manuals section
-│   │   ├── parts-section.ts       (860 lines)  Object-detail spare-parts section
-│   │   ├── complete-dialog.ts     (851 lines)  Mark task complete
-│   │   ├── qr-dialog.ts           (507 lines)  QR code generation
-│   │   ├── adopt-problem-sensors-dialog.ts (638 lines)  Adopt HA problem sensors
-│   │   ├── battery-fleet-section.ts (1,422 lines)  Task-detail battery-fleet section
+│   ├── components/             (22,702 lines)  42 files — Lit elements: dialogs, sections, views, cards
+│   │   ├── task-dialog.ts       (4,662 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
+│   │   ├── settings-view.ts     (2,825 lines)  In-panel global settings editor
+│   │   ├── task-quick-actions-dialog.ts (978 lines)  Task ⋮ menu
+│   │   ├── documents-section.ts   (724 lines)  Object-detail documents/manuals section
+│   │   ├── parts-section.ts       (868 lines)  Object-detail spare-parts section
+│   │   ├── complete-dialog.ts     (855 lines)  Mark task complete
+│   │   ├── qr-dialog.ts           (509 lines)  QR code generation
+│   │   ├── adopt-problem-sensors-dialog.ts (633 lines)  Adopt HA problem sensors
+│   │   ├── battery-fleet-section.ts (1,398 lines)  Task-detail battery-fleet section
 │   │   ├── trigger-chart.ts       (397 lines)  Responsive sensor-history chart of the task detail
-│   │   ├── storage-section-card.ts (380 lines)  Document-storage overview card (panel overview)
+│   │   ├── storage-section-card.ts (381 lines)  Document-storage overview card (panel overview)
 │   │   ├── task-documents.ts      (346 lines)  Documents linked to a task — or (v2.26) to a spare part
-│   │   ├── suggested-setups-dialog.ts (515 lines)  Signature-catalog discovery UI
-│   │   ├── groups-section-card.ts (328 lines)  Interactive groups section card (dashboard strategy)
-│   │   ├── vacation-section-card.ts (346 lines)  Interactive vacation section card (dashboard strategy)
-│   │   ├── object-quick-actions-dialog.ts (341 lines)  Object ⋮ menu
-│   │   ├── object-dialog.ts       (505 lines)  Add/edit object
-│   │   ├── budget-section-card.ts (285 lines)  Interactive budget section card (dashboard strategy)
-│   │   ├── history-edit-dialog.ts (635 lines)  Timestamp / notes / cost / duration / parts / photos (#161)
-│   │   ├── saved-views-dialog.ts  (214 lines)  Named panel filter/sort/group views
-│   │   ├── group-dialog.ts        (243 lines)  Create / edit a maintenance group
-│   │   ├── seasonal-overrides-dialog.ts (193 lines)  Manual seasonal factors (12 months)
-│   │   ├── confirm-dialog.ts      (173 lines)  Generic confirmation dialog
+│   │   ├── suggested-setups-dialog.ts (516 lines)  Signature-catalog discovery UI
+│   │   ├── groups-section-card.ts (329 lines)  Interactive groups section card (dashboard strategy)
+│   │   ├── vacation-section-card.ts (347 lines)  Interactive vacation section card (dashboard strategy)
+│   │   ├── object-quick-actions-dialog.ts (342 lines)  Object ⋮ menu
+│   │   ├── object-dialog.ts       (507 lines)  Add/edit object
+│   │   ├── budget-section-card.ts (286 lines)  Interactive budget section card (dashboard strategy)
+│   │   ├── history-edit-dialog.ts (636 lines)  Timestamp / notes / cost / duration / parts / photos (#161)
+│   │   ├── saved-views-dialog.ts  (215 lines)  Named panel filter/sort/group views
+│   │   ├── group-dialog.ts        (245 lines)  Create / edit a maintenance group
+│   │   ├── seasonal-overrides-dialog.ts (195 lines)  Manual seasonal factors (12 months)
+│   │   ├── confirm-dialog.ts      (199 lines)  Generic confirmation dialog
 │   │   ├── ms-date-field.ts       (254 lines)  Date/time/datetime input over <ha-selector> — follows the HA profile format (#163)
-│   │   ├── ms-textfield.ts        (145 lines)  Drop-in for <ha-textfield> that renders even where HA has not loaded it yet (#50)
+│   │   ├── ms-textfield.ts        (175 lines)  Drop-in for <ha-textfield> that renders even where HA has not loaded it yet (#50)
 │   │   ├── section-card-shared-styles.ts (77 lines)  Shared CSS of the vacation / budget / groups section cards
 │   │   ├── history-photo.ts        (74 lines)  Thumbnail of a completion photo in the task history
 │   │   ├── task-detail-view.ts     (37 lines)  Thin host element over renderers/task-detail.ts
 │   │   ├── area-view.ts           (483 lines)  <maintenance-area-view> (#191): one Home Assistant area across all its objects
 │   │   ├── areas-view.ts          (202 lines)  <maintenance-areas-view> (#191): the areas page, one row per Home Assistant area
 │   │   ├── battery-fleet-card.ts   (70 lines)  Battery-fleet Lovelace card (#135 follow-up)
-│   │   ├── camera-capture.ts      (624 lines)  In-app camera (#161 follow-up)
+│   │   ├── camera-capture.ts      (625 lines)  In-app camera (#161 follow-up)
 │   │   ├── ms-photo-picker.ts     (172 lines)  <ms-photo-picker> — the "Take photo" / "Choose photos" pair (#161)
-│   │   ├── object-history-section.ts (480 lines)  Object lifecycle history section (#138): the object's cross-task service booklet
+│   │   ├── object-history-section.ts (494 lines)  Object lifecycle history section (#138): the object's cross-task service booklet
 │   │   ├── required-completion-labels.ts (27 lines)  Labels of the details a task can demand on completion (mirror of helpers/completion_requirements.py)
-│   │   ├── bulk-edit-dialog.ts    (282 lines)  Several tasks changed at once (discussion #199): who is assigned, their labels, and the few settings that make sense in bulk
+│   │   ├── bulk-edit-dialog.ts    (278 lines)  Several tasks changed at once (discussion #199): who is assigned, their labels, and the few settings that make sense in bulk
 │   │   ├── ms-cost-input.ts       (109 lines)  A cost that may be a credit (#200): a Cost | Credit switch and the amount
-│   │   ├── ms-part-use.ts         (217 lines)  #226: the Use pill, for some of a part used outside a task
-│   │   └── ms-part-purchase.ts    (312 lines)  #238: the Bought… pill, for a purchase recorded at any time
-│   └── __tests__/              (33,047 lines)  231 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   │   ├── ms-part-use.ts         (218 lines)  #226: the Use pill, for some of a part used outside a task
+│   │   ├── ms-part-purchase.ts    (313 lines)  #238: the Bought… pill, for a purchase recorded at any time
+│   │   ├── task-rules-styles.ts   (368 lines)  Beta task editor styles: rule rows, sidebar, add picker, new-task start screen
+│   │   ├── task-trace-view.ts     (252 lines)  <maintenance-task-trace>: the task page's Trace tab (the new look), one due cycle at a time
+│   │   └── ms-ha-select.ts         (81 lines)  ms-ha-select — the beta UI's dropdown: Home Assistant's ha-select fed by `<option>` children, so one options template …
+│   └── __tests__/              (36,134 lines)  251 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (36,891 lines)  110 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
-│   ├── notification_manager.py  (2,855 lines)  Multi-channel notification system
+├── helpers/                    (37,111 lines)  111 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+│   ├── notification_manager.py  (2,878 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (383 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
 │   ├── qrcodegen.py               (702 lines)  Vendored QR library (Nayuki, MIT) — excluded from coverage
@@ -493,7 +508,7 @@ custom_components/maintenance_supporter/
 │   ├── entity_analyzer.py         (211 lines)  Entity discovery + recorder stats
 │   ├── retention.py               (244 lines)  Archive & auto-delete retention sweep
 │   ├── trigger_fallback.py        (399 lines)  Per-type fallback evaluators for the coordinator refresh
-│   ├── settings_registry.py       (289 lines)  Single source of truth for global-setting validation
+│   ├── settings_registry.py       (293 lines)  Single source of truth for global-setting validation
 │   ├── dates.py                   (371 lines)  Pure calendar math: add_interval, nth-weekday, day-of-month clamping
 │   ├── entity_rename.py           (280 lines)  Rewrites entity_id references when HA renames an entity
 │   ├── workday.py                 (177 lines)  Business-day provider bridging HA's Workday integration
@@ -550,12 +565,13 @@ custom_components/maintenance_supporter/
 │   ├── update_state.py             (58 lines)  An update installed on disk that Home Assistant does not run yet
 │   ├── prediction_cache.py         (80 lines)  Hourly cache for the recorder half of the sensor prediction
 │   ├── trigger_detail.py           (75 lines)  The trigger detail (#228): what a triggered task is about, in its own words
-│   ├── complete_when.py           (135 lines)  Complete a task when another entity changes to a state (D#229)
+│   ├── complete_when.py           (146 lines)  Complete a task when another entity changes to a state (D#229)
 │   ├── user_orphans.py            (145 lines)  Deleted HA users still named: task assignments pruned, admin-panel allowlist as repairs
 │   ├── object_create.py            (94 lines)  Create an object's config entry (object/create, add_object, adoption, battery hub)
 │   ├── settings_sanitize.py       (274 lines)  A settings write checked against the registry (global/update, settings import, options flow)
-│   ├── task_persist.py            (629 lines)  Task writes: create / persist / update / move / delete with side-state, adaptive config
+│   ├── task_persist.py            (631 lines)  Task writes: create / persist / update / move / delete with side-state, adaptive config
 │   ├── rounding.py                 (26 lines)  Two decimals the way the panel rounds them
+│   ├── task_trace.py              (180 lines)  Task traces (the new look): what happened to a task, cycle by cycle
 │   └── signatures/              (7,357 lines)  19 files — Suggested-setups catalog: 276 integrations / 578 signatures
 │       ├── _model.py              (487 lines)  IntegrationSignature / ConsumableSignature + matcher mechanics
 │       ├── _discovery.py          (383 lines)  Entity-registry scan → per-duty setup proposals
@@ -1018,7 +1034,7 @@ Every `maintenance_supporter_notification` event — and the `notify_extra_data`
 
 ## WebSocket API
 
-111 commands organized by function. The authoritative inventory (command → permission tier) is `tests/test_ws_permission_matrix.py`, which fails if a handler is added without a tier.
+112 commands organized by function. The authoritative inventory (command → permission tier) is `tests/test_ws_permission_matrix.py`, which fails if a handler is added without a tier.
 
 **History payload diet (perf):** task summaries in `objects`/`task/list` carry only the most recent `_HISTORY_WINDOW` (20) history entries plus `history_count` — full histories made the list payload scale with history depth (906 KB at 40 entries/task, store cap 500). The detail view fetches the complete record lazily via `task/history` when a task is opened; a data refresh while a task is open refetches. Benchmarked by the committed harness `e2e/perf-seed.mjs` (prod-scale seed via `json/import`, real history entries) + `e2e/perf-panel.mjs` (cold-load timeline, per-WS payload bytes, long tasks; one subprocess per run and a single in-page evaluate per page — the remote playwright run-server wedges on more, see the script headers).
 
@@ -1060,7 +1076,7 @@ All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-The backend exposes 111 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
+The backend exposes 112 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
 
 | Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|

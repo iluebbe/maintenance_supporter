@@ -26,6 +26,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property } from "lit/decorators.js";
+import { betaWith } from "../helpers/beta-ui";
 
 export class MsTextfield extends LitElement {
   @property() public label = "";
@@ -56,7 +57,35 @@ export class MsTextfield extends LitElement {
     );
   }
 
+  /** Beta UI: HA's ha-input fires its own composed `input` / `change`;
+   *  ours replaces them, so a consumer hears one event with our value. */
+  private _onHaInput(e: Event): void {
+    e.stopPropagation();
+    this.value = (e.target as HTMLInputElement).value ?? "";
+    this.dispatchEvent(new CustomEvent(e.type === "change" ? "change" : "input", { bubbles: true, composed: true, detail: { value: this.value } }));
+  }
+
   render() {
+    // Beta UI: Home Assistant's own text field (label, hint and focus line
+    // as in HA's forms). It has no multi-line mode: notes keep ours.
+    if (!this.multiline && betaWith("ha-input")) {
+      return html`
+        <ha-input class="ha-field"
+          .label=${this.label}
+          .value=${this.value ?? ""}
+          .type=${this.type}
+          .placeholder=${this.placeholder}
+          .hint=${this.helper ?? ""}
+          .required=${this.required}
+          .disabled=${this.disabled}
+          .min=${this.min}
+          .max=${this.max}
+          .step=${this.step}
+          .pattern=${this.pattern}
+          @input=${this._onHaInput}
+          @change=${this._onHaInput}
+        ></ha-input>`;
+    }
     return html`
       <label class="field">
         ${this.label ? html`<span class="label">${this.label}${this.required ? html`<span class="req">*</span>` : nothing}</span>` : nothing}
@@ -90,6 +119,7 @@ export class MsTextfield extends LitElement {
 
   static styles = css`
     :host { display: block; }
+    .ha-field { display: block; width: 100%; }
     .field {
       display: flex;
       flex-direction: column;
@@ -107,7 +137,7 @@ export class MsTextfield extends LitElement {
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color);
       border: 1px solid var(--divider-color, rgba(255,255,255,0.12));
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       font-family: inherit;
       width: 100%;
       box-sizing: border-box;
@@ -123,7 +153,7 @@ export class MsTextfield extends LitElement {
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color);
       border: 1px solid var(--divider-color, rgba(255,255,255,0.12));
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       font-family: inherit;
       width: 100%;
       box-sizing: border-box;

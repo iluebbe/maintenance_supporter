@@ -36,6 +36,7 @@ from ..const import (
     CONF_ACTION_SNOOZE_ENABLED,
     CONF_ADMIN_PANEL_USER_IDS,
     CONF_ADVANCED_ADAPTIVE,
+    CONF_ADVANCED_BETA_EDITOR,
     CONF_ADVANCED_BUDGET,
     CONF_ADVANCED_CHECKLISTS,
     CONF_ADVANCED_COMPLETION_ACTIONS,
@@ -183,6 +184,9 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_ADVANCED_SCHEDULE_TIME, bool, False),
     SettingSpec(CONF_ADVANCED_COMPLETION_ACTIONS, bool, False),
     SettingSpec(CONF_ADVANCED_PLACES, bool, False),
+    # The new look and task editor is the default (2026-11-01); the switch
+    # turns back to the classic one.
+    SettingSpec(CONF_ADVANCED_BETA_EDITOR, bool, True),
     # Governance (list elements sanitised by a bespoke rule in the handler)
     SettingSpec(CONF_ADMIN_PANEL_USER_IDS, list, []),
     SettingSpec(CONF_SHARED_DEVICE_USER_IDS, list, []),

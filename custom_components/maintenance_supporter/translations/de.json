@@ -582,7 +582,8 @@
           "advanced_checklists_visible": "Checklisten",
           "advanced_schedule_time_visible": "Uhrzeit-Scheduling",
           "advanced_completion_actions_visible": "Completion-Actions",
-          "advanced_places_visible": "Orte"
+          "advanced_places_visible": "Orte",
+          "advanced_beta_editor_visible": "Neue Oberfläche und Aufgaben-Editor"
         },
         "data_description": {
           "advanced_adaptive_visible": "EWA-, Weibull-Analyse und Intervallvorschläge für Aufgaben anzeigen.",
@@ -593,7 +594,8 @@
           "advanced_checklists_visible": "Aufgaben-Checklisten für schrittweise Erledigung anzeigen.",
           "advanced_schedule_time_visible": "Erlaubt Tasks, zu einer festen Uhrzeit fällig zu werden statt um Mitternacht.",
           "advanced_completion_actions_visible": "Pro Aufgabe HA-Action beim Abschluss konfigurieren + Quick-Complete-QR mit voreingestellten Werten.",
-          "advanced_places_visible": "Objekte an einem anderen Ort (eine Home-Assistant-Zone): Erinnerungen nur, wenn jemand dort ist, und eine Nachricht bei Ankunft."
+          "advanced_places_visible": "Objekte an einem anderen Ort (eine Home-Assistant-Zone): Erinnerungen nur, wenn jemand dort ist, und eine Nachricht bei Ankunft.",
+          "advanced_beta_editor_visible": "Die Bausteine von Home Assistant im ganzen Panel, Aufgaben als Regeln wie im Automations-Editor und ein Trace jeder Aufgabe. Standardmäßig an; ausgeschaltet gibt es die klassische Oberfläche."
         }
       },
       "panel_access": {

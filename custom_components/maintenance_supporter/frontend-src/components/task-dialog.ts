@@ -31,8 +31,38 @@ import { defaultNotifyIcon } from "../helpers/notify-icons";
 import { entityName, primaryTriggerEntity, triggerEntityIds } from "../helpers/trigger-entities";
 import { ROTATION_STRATEGIES, TASK_PRIORITIES } from "../helpers/task-choices";
 import { MAX_MIRROR_TODO_LISTS, mirrorTargets, ownTodoLists } from "../helpers/mirror-lists";
+import {
+  buildRuleRows,
+  deviceEntityFacts,
+  ruleChoices,
+  suggestionsFor,
+  type RuleChoice,
+  type RuleDraft,
+  type RuleRowId,
+  type RuleSuggestion,
+} from "../helpers/task-rules";
+import { rulesStyles } from "./task-rules-styles";
 import "./ms-date-field";
 import "./ms-cost-input";
+import { collapsible } from "../helpers/collapsible";
+import { notice } from "../helpers/notice";
+import { selectField, selectIsHa } from "../helpers/select-field";
+import { checkField } from "../helpers/check-field";
+
+/** mdi:delete-outline and mdi:close for the beta editor's icon buttons. */
+const DELETE_PATH = "M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8,9H16V19H8V9M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z";
+const CLOSE_PATH = "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z";
+const BACK_PATH = "M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z";
+
+/** A template's task as the start screen offers it (maintenance_supporter/templates). */
+interface TemplateTaskChoice {
+  template: string;
+  name: string;
+  type: string;
+  schedule_type: string;
+  interval_days: number | null;
+  warning_days: number | null;
+}
 
 const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibration", "service", "reading", "custom"];
 const SCHEDULE_TYPE_KEYS = ["time_based", "weekdays", "nth_weekday", "day_of_month", "calendar", "sensor_based", "one_time", "manual"];
@@ -217,6 +247,21 @@ export class MaintenanceTaskDialog extends LitElement {
   /** #231: the household's default to-do lists (Settings → General): with
    *  some set, the mirror field asks default / other lists / none. */
   @property({ attribute: false }) public mirrorTodoDefault: string[] = [];
+  /** 2026-10 beta (advanced_beta_editor_visible): the dialog as rule rows
+   *  with a sidebar, like the HA 2026.11 automation editor, and a start
+   *  screen for a new task. The sections, state and save are the same. */
+  @property({ type: Boolean, attribute: "beta-editor" }) public betaEditor = false;
+  /** Beta: the row whose section the sidebar shows; "add" = the rule picker. */
+  @state() private _ruleSel: RuleRowId | "add" | null = null;
+  @state() private _addTab: "type" | "device" = "type";
+  /** Beta, a new task: the start screen, a template's task or a task to
+   *  copy is picked first, then the rules. */
+  @state() private _betaStep: "choose" | "template" | "copy" | "form" = "form";
+  @state() private _chooserFilter = "";
+  @state() private _templateChoices: TemplateTaskChoice[] | null = null;
+  @state() private _copyChoices: Array<{ entryId: string; objectName: string; task: MaintenanceTask }> | null = null;
+  /** Beta: the object's device (or area) whose entities suggest rules. */
+  @state() private _objectDevice: { entryId: string; deviceId: string | null; areaId: string | null } | null = null;
   /** The object's spare parts — offered as "consumes parts" checkboxes. */
   @state() private parts: Array<{ id: string; name: string; unit?: string }> = [];
   /** #111: OTHER objects that own spare parts, so a task can draw on a shared
@@ -511,6 +556,10 @@ export class MaintenanceTaskDialog extends LitElement {
       this._objectChoices = [];
     }
     this._resetFields();
+    this._betaStep = this.betaEditor ? "choose" : "form";
+    this._ruleSel = "task";
+    this._addTab = "type";
+    this._chooserFilter = "";
     await Promise.all([this._loadUsers(), this._loadTags(), this._loadParts(), this._loadForeignPools()]);
     this._open = true;
   }
@@ -547,6 +596,9 @@ export class MaintenanceTaskDialog extends LitElement {
     this._taskId = task.id;
     this._error = "";
     this._warning = "";
+    this._betaStep = "form";
+    this._ruleSel = null;
+    this._addTab = "type";
     // The object picker belongs to CREATE only. openCreate("", objects) left
     // the choices behind, so Create → Cancel → Edit showed the dropdown in
     // edit mode — and picking another object re-pointed _entryId while
@@ -1068,11 +1120,7 @@ export class MaintenanceTaskDialog extends LitElement {
     const open = this._requiredCompletion.filter((field) => !prefilled[field]);
     const notAsked = !!this._checklistText.trim() || this._readings.length > 0;
     return html`
-      <label class="req-option quick-complete-switch">
-        <input type="checkbox" .checked=${this._quickOn}
-          @change=${(e: Event) => (this._quickOn = (e.target as HTMLInputElement).checked)} />
-        <span>${t("quick_complete_label", L)}</span>
-      </label>
+      ${checkField({ cls: "req-option quick-complete-switch", checked: this._quickOn, onChange: (e: Event) => (this._quickOn = (e.target as HTMLInputElement).checked) }, html`<span>${t("quick_complete_label", L)}</span>`)}
       ${this._quickOn
         ? html`
             <div class="field-help">${t("quick_complete_help", L)}</div>
@@ -1082,8 +1130,7 @@ export class MaintenanceTaskDialog extends LitElement {
               : nothing}
             ${this._requireTagScan ? html`<div class="field-help quick-complete-note">${t("quick_complete_tag_hint", L)}</div>` : nothing}
             ${notAsked ? html`<div class="field-help">${t("quick_complete_not_asked", L)}</div>` : nothing}
-            <details class="ca-section quick-complete-values" ?open=${Object.values(prefilled).slice(0, 3).some(Boolean) || !!this._qcFeedback}>
-              <summary>${t("quick_complete_values", L)}</summary>
+            ${collapsible({ cls: "ca-section quick-complete-values", open: Object.values(prefilled).slice(0, 3).some(Boolean) || !!this._qcFeedback, header: t("quick_complete_values", L) }, html`
               <p class="field-help">${t("quick_complete_values_help", L)}</p>
               <ms-textfield
                 label="${t("quick_complete_defaults_notes", L)}"
@@ -1101,15 +1148,13 @@ export class MaintenanceTaskDialog extends LitElement {
                 .value=${this._qcDuration}
                 @input=${(e: Event) => { this._qcDuration = (e.target as HTMLInputElement).value; }}
               ></ms-textfield>
-              <select class="qc-feedback" aria-label=${t("was_maintenance_needed", L)}
-                .value=${this._qcFeedback}
-                @change=${(e: Event) => { this._qcFeedback = (e.target as HTMLSelectElement).value as "" | "needed" | "not_needed" | "not_sure"; }}>
+              ${selectField({ label: t("was_maintenance_needed", L), cls: "qc-feedback", value: this._qcFeedback, onChange: (e: Event) => { this._qcFeedback = (e.target as HTMLSelectElement).value as "" | "needed" | "not_needed" | "not_sure"; } }, html`
                 <option value="">${t("quick_complete_defaults_feedback_none", L)}</option>
                 <option value="needed">${t("quick_complete_defaults_feedback_needed", L)}</option>
                 <option value="not_needed">${t("quick_complete_defaults_feedback_not_needed", L)}</option>
                 <option value="not_sure">${t("feedback_not_sure", L)}</option>
-              </select>
-            </details>
+              `)}
+            `)}
           `
         : nothing}
     `;
@@ -1119,8 +1164,7 @@ export class MaintenanceTaskDialog extends LitElement {
     if (!this.completionActionsEnabled && !this._actionPresent) return nothing;
     const schema = this._serviceSchema();
     return html`
-      <details class="ca-section">
-        <summary>${t("on_complete_action_title", L)}</summary>
+      ${collapsible({ cls: "ca-section", header: t("on_complete_action_title", L) }, html`
         <p class="field-help">${t("on_complete_action_desc", L)}</p>
         <ha-service-picker
           .hass=${this.hass}
@@ -1156,11 +1200,7 @@ export class MaintenanceTaskDialog extends LitElement {
         <p class="field-help ca-domain-hint">
           ${t("on_complete_action_target_hint", L)}
         </p>
-        <label class="ca-skip-auto">
-          <input type="checkbox" .checked=${this._actionSkipAuto}
-            @change=${(e: Event) => { this._actionSkipAuto = (e.target as HTMLInputElement).checked; }} />
-          <span>${t("on_complete_action_skip_auto", L)}</span>
-        </label>
+        ${checkField({ cls: "ca-skip-auto", checked: this._actionSkipAuto, onChange: (e: Event) => { this._actionSkipAuto = (e.target as HTMLInputElement).checked; } }, html`<span>${t("on_complete_action_skip_auto", L)}</span>`)}
         ${schema
           ? html`
               <ha-form
@@ -1198,7 +1238,7 @@ export class MaintenanceTaskDialog extends LitElement {
               </div>`
             : nothing}
         </div>
-      </details>
+      `)}
 
     `;
   }
@@ -1373,11 +1413,7 @@ export class MaintenanceTaskDialog extends LitElement {
       : { part_id: part.id, quantity: 1 };
     return html`
       <div class="consumes-row">
-        <label class="consumes-check">
-          <input
-            type="checkbox"
-            .checked=${link !== undefined}
-            @change=${(e: Event) => {
+        ${checkField({ cls: "consumes-check", checked: link !== undefined, onChange: (e: Event) => {
               const next = { ...this._consumesParts };
               if ((e.target as HTMLInputElement).checked) next[key] = next[key] || base;
               else {
@@ -1387,10 +1423,7 @@ export class MaintenanceTaskDialog extends LitElement {
                 this._consumesQtyText = text;
               }
               this._consumesParts = next;
-            }}
-          />
-          <span>${part.name}${part.unit ? ` (${part.unit})` : ""}</span>
-        </label>
+            } }, html`<span>${part.name}${part.unit ? ` (${part.unit})` : ""}</span>`)}
         ${link !== undefined
           ? html`<input
               class="consumes-qty"
@@ -1516,8 +1549,7 @@ export class MaintenanceTaskDialog extends LitElement {
   private _renderPhasesEditor(L: string) {
     const defName = (id: string) => this._phaseDefs.find((d) => d.id === id)?.name || id;
     return html`
-      <details class="phases-section" ?open=${this._phaseDefs.length > 0}>
-      <summary>${t("phases_section", L)}</summary>
+      ${collapsible({ cls: "phases-section", open: this._phaseDefs.length > 0, header: t("phases_section", L) }, html`
       <div class="field-help">${t("phases_hint", L)}</div>
       ${this._phaseDefs.map((d) => html`
         <div class="phase-def">
@@ -1528,18 +1560,13 @@ export class MaintenanceTaskDialog extends LitElement {
               @input=${(e: Event) => this._patchPhaseDef(d.id, { name: (e.target as HTMLInputElement).value })}
             ></ms-textfield>
             ${this.parts.length ? html`
-              <select
-                class="phase-part"
-                aria-label=${t("spare_part", L)}
-                .value=${d.partId}
-                @change=${(e: Event) => {
+              ${selectField({ label: t("spare_part", L), cls: "phase-part", value: d.partId, onChange: (e: Event) => {
                   const partId = (e.target as HTMLSelectElement).value;
                   this._patchPhaseDef(d.id, d.partQty ? { partId } : { partId, partQty: "1" });
-                }}
-              >
+                } }, html`
                 <option value="">—</option>
                 ${this.parts.map((p) => html`<option value=${p.id} ?selected=${p.id === d.partId}>${p.name}</option>`)}
-              </select>
+              `)}
               ${d.partId ? html`
                 <!-- The typed text as-is: a "|| '1'" here rewrote a cleared
                      field to 1 and the next digit gave "13" (bug audit
@@ -1561,30 +1588,16 @@ export class MaintenanceTaskDialog extends LitElement {
               @input=${(e: Event) => this._patchPhaseDef(d.id, { checklistText: (e.target as HTMLTextAreaElement).value })}
             ></textarea>
           ` : nothing}
-          <label class="req-option phase-req-toggle">
-            <input
-              type="checkbox"
-              .checked=${d.reqOverride}
-              @change=${(e: Event) => this._patchPhaseDef(d.id, { reqOverride: (e.target as HTMLInputElement).checked })}
-            />
-            <span>${t("phase_require_override", L)}</span>
-          </label>
+          ${checkField({ cls: "req-option phase-req-toggle", checked: d.reqOverride, onChange: (e: Event) => this._patchPhaseDef(d.id, { reqOverride: (e.target as HTMLInputElement).checked }) }, html`<span>${t("phase_require_override", L)}</span>`)}
           ${d.reqOverride ? html`
             <div class="required-completion phase-req-fields">
               ${REQUIRED_COMPLETION_KEYS.map((field) => html`
-                <label class="req-option">
-                  <input
-                    type="checkbox"
-                    .checked=${d.reqFields.includes(field)}
-                    @change=${(e: Event) => {
+                ${checkField({ cls: "req-option", checked: d.reqFields.includes(field), onChange: (e: Event) => {
                       const on = (e.target as HTMLInputElement).checked;
                       const next = new Set(d.reqFields);
                       if (on) next.add(field); else next.delete(field);
                       this._patchPhaseDef(d.id, { reqFields: [...next] });
-                    }}
-                  />
-                  <span>${t(REQUIRED_COMPLETION_LABELS[field], L)}</span>
-                </label>
+                    } }, html`<span>${t(REQUIRED_COMPLETION_LABELS[field], L)}</span>`)}
               `)}
             </div>
           ` : nothing}
@@ -1604,22 +1617,17 @@ export class MaintenanceTaskDialog extends LitElement {
               }}>✕</button>
             </span>
           `)}
-          <select
-            class="phase-seq-add"
-            aria-label=${t("phase_sequence_add_step", L)}
-            .value=${""}
-            @change=${(e: Event) => {
+          ${selectField({ label: t("phase_sequence_add_step", L), cls: "phase-seq-add", value: "", onChange: (e: Event) => {
               const id = (e.target as HTMLSelectElement).value;
               if (id) this._phaseSeq = [...this._phaseSeq, id];
               (e.target as HTMLSelectElement).value = "";
-            }}
-          >
+            } }, html`
             <option value="">+ ${t("phase_sequence_add_step", L)}</option>
             ${this._phaseDefs.filter((d) => d.name.trim()).map((d) => html`<option value=${d.id}>${d.name}</option>`)}
-          </select>
+          `)}
         </div>
       ` : nothing}
-      </details>
+      `)}
     `;
   }
 
@@ -2021,15 +2029,12 @@ export class MaintenanceTaskDialog extends LitElement {
     const isCompound = this._triggerType === "compound";
     return html`
       <div class="select-row">
-        <label>${t("trigger_type", L)}</label>
-        <select aria-label=${t("trigger_type", L)}
-          .value=${this._triggerType}
-          @change=${(e: Event) => (this._triggerType = (e.target as HTMLSelectElement).value as TriggerType)}
-        >
+        ${selectIsHa() ? nothing : html`<label>${t("trigger_type", L)}</label>`}
+        ${selectField({ label: t("trigger_type", L), value: this._triggerType, onChange: (e: Event) => (this._triggerType = (e.target as HTMLSelectElement).value as TriggerType) }, html`
           ${TRIGGER_TYPE_KEYS_WITH_COMPOUND.map(
             (key) => html`<option value=${key} ?selected=${key === this._triggerType}>${triggerTypeLabel(key, L)}</option>`
           )}
-        </select>
+        `)}
       </div>
       ${isCompound ? this._renderCompoundEditor() : html`
         ${this._entityPickerFallback ? html`
@@ -2068,14 +2073,11 @@ export class MaintenanceTaskDialog extends LitElement {
         ></ha-form>`}
         ${this._triggerEntityIds.length > 1 ? html`
           <div class="select-row">
-            <label>${t("entity_logic", L)}</label>
-            <select aria-label=${t("entity_logic", L)}
-              .value=${this._triggerEntityLogic}
-              @change=${(e: Event) => (this._triggerEntityLogic = (e.target as HTMLSelectElement).value as "any" | "all")}
-            >
+            ${selectIsHa() ? nothing : html`<label>${t("entity_logic", L)}</label>`}
+            ${selectField({ label: t("entity_logic", L), value: this._triggerEntityLogic, onChange: (e: Event) => (this._triggerEntityLogic = (e.target as HTMLSelectElement).value as "any" | "all") }, html`
               <option value="any" ?selected=${this._triggerEntityLogic === "any"}>${t("entity_logic_any", L)}</option>
               <option value="all" ?selected=${this._triggerEntityLogic === "all"}>${t("entity_logic_all", L)}</option>
-            </select>
+            `)}
           </div>
         ` : nothing}
         ${this._renderAttributeSelect({
@@ -2090,14 +2092,7 @@ export class MaintenanceTaskDialog extends LitElement {
       `}
       ${this._renderDetailAttributeSelect(L)}
       ${this._isStateLatch() ? this._renderTriggerEnd(L) : html`
-        <label>
-          <input
-            type="checkbox"
-            .checked=${this._autoCompleteOnRecovery}
-            @change=${(e: Event) => (this._autoCompleteOnRecovery = (e.target as HTMLInputElement).checked)}
-          />
-          ${t("auto_complete_on_recovery", L)}
-        </label>
+        ${checkField({ checked: this._autoCompleteOnRecovery, onChange: (e: Event) => (this._autoCompleteOnRecovery = (e.target as HTMLInputElement).checked) }, html`${t("auto_complete_on_recovery", L)}`)}
         <div class="field-help">${t("auto_complete_on_recovery_help", L)}</div>
       `}
       <ms-textfield
@@ -2110,13 +2105,11 @@ export class MaintenanceTaskDialog extends LitElement {
       ${this._intervalDays
         ? html`
             <div class="select-row">
-              <label>${t("trigger_combinator", L)}</label>
-              <select aria-label=${t("trigger_combinator", L)}
-                @change=${(e: Event) => (this._triggerCombinator = (e.target as HTMLSelectElement).value as "any" | "all")}
-              >
+              ${selectIsHa() ? nothing : html`<label>${t("trigger_combinator", L)}</label>`}
+              ${selectField({ label: t("trigger_combinator", L), onChange: (e: Event) => (this._triggerCombinator = (e.target as HTMLSelectElement).value as "any" | "all") }, html`
                 <option value="any" ?selected=${this._triggerCombinator === "any"}>${t("trigger_combinator_any", L)}</option>
                 <option value="all" ?selected=${this._triggerCombinator === "all"}>${t("trigger_combinator_all", L)}</option>
-              </select>
+              `)}
             </div>
           `
         : nothing}
@@ -2136,6 +2129,21 @@ export class MaintenanceTaskDialog extends LitElement {
 
   private _removeCondition(index: number): void {
     this._compoundConditions = this._compoundConditions.filter((_, i) => i !== index);
+    // Beta: a compound down to one condition is a plain sensor rule again
+    // (the backend refuses a compound with fewer than two).
+    if (this.betaEditor && this._compoundConditions.length === 1) this._flattenCompound();
+  }
+
+  private _flattenCompound(): void {
+    const [only] = this._compoundConditions;
+    if (!only) return;
+    const ids = only.entityIds.split(",").map((s) => s.trim()).filter(Boolean);
+    const { entityIds: _ids, carry: _carry, ...fields } = only;
+    this._compoundConditions = [];
+    this._setTypeFields(fields);
+    this._triggerEntityId = ids[0] || "";
+    this._triggerEntityIds = ids;
+    if (ids[0]) void this._fetchEntityAttributes(ids[0]);
   }
 
   /** Compound trigger editor: AND/OR logic + a list of inline conditions. */
@@ -2143,14 +2151,11 @@ export class MaintenanceTaskDialog extends LitElement {
     const L = this._lang;
     return html`
       <div class="select-row">
-        <label>${t("compound_logic", L)}</label>
-        <select aria-label=${t("compound_logic", L)}
-          .value=${this._compoundLogic}
-          @change=${(e: Event) => (this._compoundLogic = (e.target as HTMLSelectElement).value as "AND" | "OR")}
-        >
+        ${selectIsHa() ? nothing : html`<label>${t("compound_logic", L)}</label>`}
+        ${selectField({ label: t("compound_logic", L), value: this._compoundLogic, onChange: (e: Event) => (this._compoundLogic = (e.target as HTMLSelectElement).value as "AND" | "OR") }, html`
           <option value="AND" ?selected=${this._compoundLogic === "AND"}>${t("compound_logic_and", L)}</option>
           <option value="OR" ?selected=${this._compoundLogic === "OR"}>${t("compound_logic_or", L)}</option>
-        </select>
+        `)}
       </div>
       <div class="field-help">${t("compound_help", L)}</div>
       ${this._compoundConditions.length === 0
@@ -2200,15 +2205,12 @@ export class MaintenanceTaskDialog extends LitElement {
         ></ha-form>`}
         ${this._renderConditionAttribute(c, i)}
         <div class="select-row">
-          <label>${t("trigger_type", L)}</label>
-          <select aria-label=${t("trigger_type", L)}
-            .value=${c.type}
-            @change=${(e: Event) => this._patchCondition(i, { type: (e.target as HTMLSelectElement).value as TriggerType })}
-          >
+          ${selectIsHa() ? nothing : html`<label>${t("trigger_type", L)}</label>`}
+          ${selectField({ label: t("trigger_type", L), value: c.type, onChange: (e: Event) => this._patchCondition(i, { type: (e.target as HTMLSelectElement).value as TriggerType }) }, html`
             ${TRIGGER_TYPE_KEYS.map(
               (key) => html`<option value=${key} ?selected=${key === c.type}>${triggerTypeLabel(key, L)}</option>`
             )}
-          </select>
+          `)}
         </div>
         ${this._renderConditionTypeFields(c, i)}
       </div>
@@ -2294,14 +2296,7 @@ export class MaintenanceTaskDialog extends LitElement {
             .value=${this._completeWhenFor}
             @input=${(e: Event) => (this._completeWhenFor = (e.target as HTMLInputElement).value)}
           ></ms-textfield>
-          <label class="req-option complete-when-any-time">
-            <input
-              type="checkbox"
-              .checked=${this._completeWhenAnyTime}
-              @change=${(e: Event) => (this._completeWhenAnyTime = (e.target as HTMLInputElement).checked)}
-            />
-            <span>${t("complete_when_any_time", L)}</span>
-          </label>
+          ${checkField({ cls: "req-option complete-when-any-time", checked: this._completeWhenAnyTime, onChange: (e: Event) => (this._completeWhenAnyTime = (e.target as HTMLInputElement).checked) }, html`<span>${t("complete_when_any_time", L)}</span>`)}
         ` : nothing}
         <div class="field-help">${t("complete_when_help", L)}</div>
       </div>
@@ -2374,16 +2369,8 @@ export class MaintenanceTaskDialog extends LitElement {
     if (this._scheduleType === "one_time" || this._scheduleType === "manual") return nothing;
     if (!this.adaptiveFeature && !this._adaptiveWasEnabled) return nothing;
     return html`
-      <details class="adaptive-section" ?open=${this._adaptiveEnabled}>
-        <summary>${t("adaptive_section_title", L)}</summary>
-        <label>
-          <input
-            type="checkbox"
-            .checked=${this._adaptiveEnabled}
-            @change=${(e: Event) => (this._adaptiveEnabled = (e.target as HTMLInputElement).checked)}
-          />
-          ${t("adaptive_enabled", L)}
-        </label>
+      ${collapsible({ cls: "adaptive-section", open: this._adaptiveEnabled, header: t("adaptive_section_title", L) }, html`
+        ${checkField({ checked: this._adaptiveEnabled, onChange: (e: Event) => (this._adaptiveEnabled = (e.target as HTMLInputElement).checked) }, html`${t("adaptive_enabled", L)}`)}
         ${this._adaptiveEnabled ? html`
           <ms-textfield
             label="${t("adaptive_min_interval", L)}"
@@ -2408,24 +2395,10 @@ export class MaintenanceTaskDialog extends LitElement {
             .value=${this._adaptiveAlpha}
             @input=${(e: Event) => (this._adaptiveAlpha = (e.target as HTMLInputElement).value)}
           ></ms-textfield>
-          ${this.seasonalFeature ? html`<label>
-            <input
-              type="checkbox"
-              .checked=${this._adaptiveSeasonal}
-              @change=${(e: Event) => (this._adaptiveSeasonal = (e.target as HTMLInputElement).checked)}
-            />
-            ${t("adaptive_seasonal_enabled", L)}
-          </label>` : nothing}
-          <label>
-            <input
-              type="checkbox"
-              .checked=${this._adaptivePrediction}
-              @change=${(e: Event) => (this._adaptivePrediction = (e.target as HTMLInputElement).checked)}
-            />
-            ${t("adaptive_prediction_enabled", L)}
-          </label>
+          ${this.seasonalFeature ? html`${checkField({ checked: this._adaptiveSeasonal, onChange: (e: Event) => (this._adaptiveSeasonal = (e.target as HTMLInputElement).checked) }, html`${t("adaptive_seasonal_enabled", L)}`)}` : nothing}
+          ${checkField({ checked: this._adaptivePrediction, onChange: (e: Event) => (this._adaptivePrediction = (e.target as HTMLInputElement).checked) }, html`${t("adaptive_prediction_enabled", L)}`)}
         ` : nothing}
-      </details>
+      `)}
     `;
   }
 
@@ -2442,11 +2415,8 @@ export class MaintenanceTaskDialog extends LitElement {
     if (cfg.available.length > 0) {
       return html`
         <div class="select-row">
-          <label>${cfg.label}</label>
-          <select aria-label=${cfg.label}
-            .value=${cfg.value}
-            @change=${(e: Event) => cfg.onSelect((e.target as HTMLSelectElement).value)}
-          >
+          ${selectIsHa() ? nothing : html`<label>${cfg.label}</label>`}
+          ${selectField({ label: cfg.label, value: cfg.value, onChange: (e: Event) => cfg.onSelect((e.target as HTMLSelectElement).value) }, html`
             <option value="" ?selected=${!cfg.value}>${t("use_entity_state", L)}</option>
             ${cfg.suggested.map(
               (attr) => html`<option value=${attr} ?selected=${attr === cfg.value}>${attr} ★</option>`
@@ -2456,7 +2426,7 @@ export class MaintenanceTaskDialog extends LitElement {
               .map(
                 (a) => html`<option value=${a.name} ?selected=${a.name === cfg.value}>${a.name}${a.numeric ? "" : " (non-numeric)"}</option>`
               )}
-          </select>
+          `)}
         </div>
       `;
     }
@@ -2492,13 +2462,12 @@ export class MaintenanceTaskDialog extends LitElement {
     const field = names.size
       ? html`
         <div class="select-row">
-          <label>${label}</label>
-          <select class="detail-attribute-select" aria-label=${label} .value=${value}
-            @change=${(e: Event) => (this._triggerDetailAttribute = (e.target as HTMLSelectElement).value)}>
+          ${selectIsHa() ? nothing : html`<label>${label}</label>`}
+          ${selectField({ label: label, cls: "detail-attribute-select", value: value, onChange: (e: Event) => (this._triggerDetailAttribute = (e.target as HTMLSelectElement).value) }, html`
             <option value="" ?selected=${!value}>${t("trigger_detail_none", L)}</option>
             ${[...names.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([name, now]) =>
               html`<option value=${name} ?selected=${name === value}>${now ? `${name}: ${now}` : name}</option>`)}
-          </select>
+          `)}
         </div>`
       : html`
         <ms-textfield class="detail-attribute-input" label=${label} .value=${value}
@@ -2557,11 +2526,7 @@ export class MaintenanceTaskDialog extends LitElement {
       return html`
         <ms-textfield label="${t("target_value", L)}" type="number" .value=${c.targetValue}
           @input=${(e: Event) => this._patchCondition(i, { targetValue: (e.target as HTMLInputElement).value })}></ms-textfield>
-        <label>
-          <input type="checkbox" .checked=${c.deltaMode}
-            @change=${(e: Event) => this._patchCondition(i, { deltaMode: (e.target as HTMLInputElement).checked })} />
-          ${t("delta_mode", L)}
-        </label>
+        ${checkField({ checked: c.deltaMode, onChange: (e: Event) => this._patchCondition(i, { deltaMode: (e.target as HTMLInputElement).checked }) }, html`${t("delta_mode", L)}`)}
       `;
     }
     if (c.type === "state_change") {
@@ -2613,15 +2578,12 @@ export class MaintenanceTaskDialog extends LitElement {
     const L = this._lang;
     return html`
       <div class="select-row">
-        <label>${t("interval_unit", L)}</label>
-        <select aria-label=${t("interval_unit", L)}
-          .value=${this._intervalUnit}
-          @change=${(e: Event) => (this._intervalUnit = (e.target as HTMLSelectElement).value)}
-        >
+        ${selectIsHa() ? nothing : html`<label>${t("interval_unit", L)}</label>`}
+        ${selectField({ label: t("interval_unit", L), value: this._intervalUnit, onChange: (e: Event) => (this._intervalUnit = (e.target as HTMLSelectElement).value) }, html`
           ${["days", "weeks", "months", "years"].map(
             (u) => html`<option value=${u} ?selected=${u === this._intervalUnit}>${t("unit_" + u, L)}</option>`
           )}
-        </select>
+        `)}
       </div>`;
   }
 
@@ -2888,12 +2850,11 @@ export class MaintenanceTaskDialog extends LitElement {
 
       <label class="field-label">${t("series_end_label", L)}</label>
       <div class="select-row">
-        <select aria-label=${t("series_end_label", L)} .value=${this._endsMode}
-          @change=${(e: Event) => (this._endsMode = (e.target as HTMLSelectElement).value as "never" | "count" | "until")}>
+        ${selectField({ label: t("series_end_label", L), value: this._endsMode, onChange: (e: Event) => (this._endsMode = (e.target as HTMLSelectElement).value as "never" | "count" | "until") }, html`
           <option value="never" ?selected=${this._endsMode === "never"}>${t("series_end_never", L)}</option>
           <option value="count" ?selected=${this._endsMode === "count"}>${t("series_end_after_count", L)}</option>
           <option value="until" ?selected=${this._endsMode === "until"}>${t("series_end_until", L)}</option>
-        </select>
+        `)}
       </div>
       ${this._endsMode === "count" ? html`
         <!-- max: MAX_SERIES_COUNT (const.py), what the history can count. -->
@@ -2939,16 +2900,16 @@ export class MaintenanceTaskDialog extends LitElement {
       ];
       return html`
         <div class="select-row">
-          <label>${t("recurrence_occurrence", L)}</label>
-          <select aria-label=${t("recurrence_occurrence", L)} .value=${this._nth} @change=${(e: Event) => (this._nth = (e.target as HTMLSelectElement).value)}>
+          ${selectIsHa() ? nothing : html`<label>${t("recurrence_occurrence", L)}</label>`}
+          ${selectField({ label: t("recurrence_occurrence", L), value: this._nth, onChange: (e: Event) => (this._nth = (e.target as HTMLSelectElement).value) }, html`
             ${nths.map(([v, lbl]) => html`<option value=${v} ?selected=${v === this._nth}>${lbl}</option>`)}
-          </select>
+          `)}
         </div>
         <div class="select-row">
-          <label>${t("recurrence_weekday", L)}</label>
-          <select aria-label=${t("recurrence_weekday", L)} .value=${this._nthWeekday} @change=${(e: Event) => (this._nthWeekday = (e.target as HTMLSelectElement).value)}>
+          ${selectIsHa() ? nothing : html`<label>${t("recurrence_weekday", L)}</label>`}
+          ${selectField({ label: t("recurrence_weekday", L), value: this._nthWeekday, onChange: (e: Event) => (this._nthWeekday = (e.target as HTMLSelectElement).value) }, html`
             ${days.map((name, i) => html`<option value=${String(i)} ?selected=${String(i) === this._nthWeekday}>${name}</option>`)}
-          </select>
+          `)}
         </div>
         ${this._renderCalMonths()}
         ${this._renderCalOffsetField()}`;
@@ -2991,16 +2952,8 @@ export class MaintenanceTaskDialog extends LitElement {
             .value=${this._domDay}
             @input=${(e: Event) => (this._domDay = (e.target as HTMLInputElement).value)}
           ></ms-textfield>`}
-        <label class="checkbox-row">
-          <input type="checkbox" .checked=${this._domLastDay}
-            @change=${(e: Event) => (this._domLastDay = (e.target as HTMLInputElement).checked)} />
-          <span>${t("recurrence_last_day", L)}</span>
-        </label>
-        <label class="checkbox-row">
-          <input type="checkbox" .checked=${this._domBusiness}
-            @change=${(e: Event) => (this._domBusiness = (e.target as HTMLInputElement).checked)} />
-          <span>${t("recurrence_business_day", L)}</span>
-        </label>
+        ${checkField({ cls: "checkbox-row", checked: this._domLastDay, onChange: (e: Event) => (this._domLastDay = (e.target as HTMLInputElement).checked) }, html`<span>${t("recurrence_last_day", L)}</span>`)}
+        ${checkField({ cls: "checkbox-row", checked: this._domBusiness, onChange: (e: Event) => (this._domBusiness = (e.target as HTMLInputElement).checked) }, html`<span>${t("recurrence_business_day", L)}</span>`)}
         ${this._renderCalMonths()}
         ${this._renderCalOffsetField()}`;
     }
@@ -3176,14 +3129,7 @@ export class MaintenanceTaskDialog extends LitElement {
           .value=${this._triggerTargetValue}
           @input=${(e: Event) => (this._triggerTargetValue = (e.target as HTMLInputElement).value)}
         ></ms-textfield>
-        <label>
-          <input
-            type="checkbox"
-            .checked=${this._triggerDeltaMode}
-            @change=${(e: Event) => (this._triggerDeltaMode = (e.target as HTMLInputElement).checked)}
-          />
-          ${t("delta_mode", L)}
-        </label>
+        ${checkField({ checked: this._triggerDeltaMode, onChange: (e: Event) => (this._triggerDeltaMode = (e.target as HTMLInputElement).checked) }, html`${t("delta_mode", L)}`)}
         ${this._triggerDeltaMode
           ? html`
               <ms-textfield
@@ -3305,10 +3251,8 @@ export class MaintenanceTaskDialog extends LitElement {
     return html`
           ${this._taskId === null && this._objectChoices.length > 0 ? html`
             <div class="select-row">
-              <label>${t("object", L)}</label>
-              <select aria-label=${t("object", L)}
-                .value=${this._entryId}
-                @change=${(e: Event) => {
+              ${selectIsHa() ? nothing : html`<label>${t("object", L)}</label>`}
+              ${selectField({ label: t("object", L), value: this._entryId, onChange: (e: Event) => {
                   this._entryId = (e.target as HTMLSelectElement).value;
                   this._consumesParts = {};
                   this._consumesQtyText = {};
@@ -3316,12 +3260,11 @@ export class MaintenanceTaskDialog extends LitElement {
                   // The new owner drops out of the shared-pool list and the old
                   // one joins it, so this has to be recomputed too (#111).
                   this._loadForeignPools();
-                }}
-              >
+                } }, html`
                 ${this._objectChoices.map(
                   (o) => html`<option value=${o.entry_id} ?selected=${o.entry_id === this._entryId}>${o.name}</option>`
                 )}
-              </select>
+              `)}
             </div>
           ` : nothing}
           <ms-textfield
@@ -3331,15 +3274,12 @@ export class MaintenanceTaskDialog extends LitElement {
             @input=${(e: Event) => (this._name = (e.target as HTMLInputElement).value)}
           ></ms-textfield>
           <div class="select-row">
-            <label>${t("maintenance_type", L)}</label>
-            <select aria-label=${t("maintenance_type", L)}
-              .value=${this._type}
-              @change=${(e: Event) => (this._type = (e.target as HTMLSelectElement).value)}
-            >
+            ${selectIsHa() ? nothing : html`<label>${t("maintenance_type", L)}</label>`}
+            ${selectField({ label: t("maintenance_type", L), value: this._type, onChange: (e: Event) => (this._type = (e.target as HTMLSelectElement).value) }, html`
               ${MAINTENANCE_TYPE_KEYS.map(
                 (key) => html`<option value=${key} ?selected=${key === this._type}>${t(key, L)}</option>`
               )}
-            </select>
+            `)}
           </div>
           <ms-textfield
             label="${t("notes_optional", L)}"
@@ -3350,14 +3290,7 @@ export class MaintenanceTaskDialog extends LitElement {
             @input=${(e: Event) => (this._notes = (e.target as HTMLInputElement).value)}
           ></ms-textfield>
           ${this._renderDetails(L)}
-          <label class="toggle-row">
-            <input
-              type="checkbox"
-              .checked=${this._enabled}
-              @change=${(e: Event) => (this._enabled = (e.target as HTMLInputElement).checked)}
-            />
-            ${t("task_enabled", L)}
-          </label>
+          ${checkField({ cls: "toggle-row", checked: this._enabled, onChange: (e: Event) => (this._enabled = (e.target as HTMLInputElement).checked) }, html`${t("task_enabled", L)}`)}
     `;
   }
 
@@ -3365,18 +3298,14 @@ export class MaintenanceTaskDialog extends LitElement {
    *  notes first and the rarely changed rest folded below them. */
   private _renderDetails(L: string) {
     return html`
-      <details class="details-section" ?open=${this._detailsOpen}>
-        <summary>${t("task_section_details", L)}</summary>
+      ${collapsible({ cls: "details-section", open: this._detailsOpen, header: t("task_section_details", L) }, html`
         <div class="select-row">
-          <label>${t("priority", L)}</label>
-          <select aria-label=${t("priority", L)}
-            .value=${this._priority}
-            @change=${(e: Event) => (this._priority = (e.target as HTMLSelectElement).value)}
-          >
+          ${selectIsHa() ? nothing : html`<label>${t("priority", L)}</label>`}
+          ${selectField({ label: t("priority", L), value: this._priority, onChange: (e: Event) => (this._priority = (e.target as HTMLSelectElement).value) }, html`
             ${TASK_PRIORITIES.map(
               (key) => html`<option value=${key} ?selected=${key === this._priority}>${t("priority_" + key, L)}</option>`
             )}
-          </select>
+          `)}
         </div>
         <ms-textfield
           label="${t("labels", L)}"
@@ -3397,22 +3326,19 @@ export class MaintenanceTaskDialog extends LitElement {
           @value-changed=${(e: CustomEvent) =>
             (this._customIcon = (e.detail.value as string) || "")}
         ></ha-icon-picker>
-      </details>
+      `)}
     `;
   }
 
   private _renderScheduleSection(L: string) {
     return this._section("schedule-section", t("task_section_schedule", L), html`
           <div class="select-row">
-            <label>${t("schedule_type", L)}</label>
-            <select aria-label=${t("schedule_type", L)}
-              .value=${this._scheduleType}
-              @change=${(e: Event) => (this._scheduleType = (e.target as HTMLSelectElement).value)}
-            >
+            ${selectIsHa() ? nothing : html`<label>${t("schedule_type", L)}</label>`}
+            ${selectField({ label: t("schedule_type", L), value: this._scheduleType, onChange: (e: Event) => (this._scheduleType = (e.target as HTMLSelectElement).value) }, html`
               ${SCHEDULE_TYPE_KEYS.map(
                 (key) => html`<option value=${key} ?selected=${key === this._scheduleType}>${t(key, L)}</option>`
               )}
-            </select>
+            `)}
           </div>
           ${this._scheduleType === "time_based"
             ? html`
@@ -3424,14 +3350,11 @@ export class MaintenanceTaskDialog extends LitElement {
                 ></ms-textfield>
                 ${this._renderUnitSelect()}
                 <div class="select-row">
-                  <label>${t("interval_anchor", L)}</label>
-                  <select aria-label=${t("interval_anchor", L)}
-                    .value=${this._intervalAnchor}
-                    @change=${(e: Event) => (this._intervalAnchor = (e.target as HTMLSelectElement).value as "completion" | "planned")}
-                  >
+                  ${selectIsHa() ? nothing : html`<label>${t("interval_anchor", L)}</label>`}
+                  ${selectField({ label: t("interval_anchor", L), value: this._intervalAnchor, onChange: (e: Event) => (this._intervalAnchor = (e.target as HTMLSelectElement).value as "completion" | "planned") }, html`
                     <option value="completion" ?selected=${this._intervalAnchor === "completion"}>${t("anchor_completion", L)}</option>
                     <option value="planned" ?selected=${this._intervalAnchor === "planned"}>${t("anchor_planned", L)}</option>
-                  </select>
+                  `)}
                   <div class="field-help anchor-help">${t("interval_anchor_hint", L)}</div>
                 </div>
               `
@@ -3450,11 +3373,7 @@ export class MaintenanceTaskDialog extends LitElement {
               `
             : nothing}
           ${this.scheduleTimeEnabled && SCHEDULE_TIME_KINDS.includes(this._scheduleType) ? html`
-            <label class="checkbox-row schedule-time-toggle">
-              <input type="checkbox" .checked=${this._scheduleTimeOn}
-                @change=${(e: Event) => (this._scheduleTimeOn = (e.target as HTMLInputElement).checked)} />
-              <span>${t("schedule_time_toggle", L)}</span>
-            </label>
+            ${checkField({ cls: "checkbox-row schedule-time-toggle", checked: this._scheduleTimeOn, onChange: (e: Event) => (this._scheduleTimeOn = (e.target as HTMLInputElement).checked) }, html`<span>${t("schedule_time_toggle", L)}</span>`)}
             ${this._scheduleTimeOn ? html`
               <ms-date-field
                 kind="time"
@@ -3565,8 +3484,7 @@ export class MaintenanceTaskDialog extends LitElement {
                   ${this.parts.map((part) => this._renderConsumesRow(part))}
                   ${this._foreignOwners.length
                     ? html`
-                        <details class="shared-pools" ?open=${this._hasForeignPick}>
-                          <summary>${t("shared_parts_other_objects", L)}</summary>
+                        ${collapsible({ cls: "shared-pools", open: this._hasForeignPick, header: t("shared_parts_other_objects", L) }, html`
                           <div class="field-help">${t("shared_parts_help", L)}</div>
                           ${this._foreignOwners.map(
                             (owner) => html`
@@ -3576,7 +3494,7 @@ export class MaintenanceTaskDialog extends LitElement {
                               )}
                             `,
                           )}
-                        </details>
+                        `)}
                       `
                     : nothing}
                 </div>
@@ -3585,29 +3503,19 @@ export class MaintenanceTaskDialog extends LitElement {
           <div class="field-label">${t("require_on_completion", L)}</div>
           <div class="required-completion">
             ${REQUIRED_COMPLETION_KEYS.map((field) => html`
-              <label class="req-option">
-                <input
-                  type="checkbox"
-                  .checked=${this._requiredCompletion.includes(field)}
-                  @change=${(e: Event) => this._toggleRequired(field, (e.target as HTMLInputElement).checked)}
-                />
-                <span>${t(REQUIRED_COMPLETION_LABELS[field], L)}</span>
-              </label>
+              ${checkField({ cls: "req-option", checked: this._requiredCompletion.includes(field), onChange: (e: Event) => this._toggleRequired(field, (e.target as HTMLInputElement).checked) }, html`<span>${t(REQUIRED_COMPLETION_LABELS[field], L)}</span>`)}
             `)}
           </div>
           ${this._availableTags.length > 0
             ? html`
               <div class="select-row">
-                <label>${t("nfc_tag_id_optional", L)}</label>
-                <select aria-label=${t("nfc_tag_id_optional", L)}
-                  .value=${this._nfcTagId}
-                  @change=${(e: Event) => (this._nfcTagId = (e.target as HTMLSelectElement).value)}
-                >
+                ${selectIsHa() ? nothing : html`<label>${t("nfc_tag_id_optional", L)}</label>`}
+                ${selectField({ label: t("nfc_tag_id_optional", L), value: this._nfcTagId, onChange: (e: Event) => (this._nfcTagId = (e.target as HTMLSelectElement).value) }, html`
                   <option value="" ?selected=${!this._nfcTagId}>${t("no_nfc_tag", L)}</option>
                   ${this._availableTags.map(
                     (tag) => html`<option value=${tag.id} ?selected=${tag.id === this._nfcTagId}>${tag.name}</option>`
                   )}
-                </select>
+                `)}
                 <button type="button" class="link-button" @click=${this._loadTags}
                   title="${t("nfc_tags_refresh", L)}">↻</button>
               </div>
@@ -3628,23 +3536,9 @@ export class MaintenanceTaskDialog extends LitElement {
               </div>
             `
           }
-          <label class="req-option">
-            <input
-              type="checkbox"
-              .checked=${this._requireTagScan}
-              @change=${(e: Event) => (this._requireTagScan = (e.target as HTMLInputElement).checked)}
-            />
-            <span>${t("require_tag_scan", L)}</span>
-          </label>
+          ${checkField({ cls: "req-option", checked: this._requireTagScan, onChange: (e: Event) => (this._requireTagScan = (e.target as HTMLInputElement).checked) }, html`<span>${t("require_tag_scan", L)}</span>`)}
           ${this._requireTagScan ? html`<div class="field-help">${t("require_tag_scan_help", L)}</div>` : nothing}
-          <label class="req-option">
-            <input
-              type="checkbox"
-              .checked=${!this._allowSkip}
-              @change=${(e: Event) => (this._allowSkip = !(e.target as HTMLInputElement).checked)}
-            />
-            <span>${t("disallow_skip", L)}</span>
-          </label>
+          ${checkField({ cls: "req-option", checked: !this._allowSkip, onChange: (e: Event) => (this._allowSkip = !(e.target as HTMLInputElement).checked) }, html`<span>${t("disallow_skip", L)}</span>`)}
           ${!this._allowSkip ? html`<div class="field-help">${t("disallow_skip_help", L)}</div>` : nothing}
           ${this._renderQuickComplete(L)}
           ${this._renderCompleteWhen(L)}
@@ -3656,19 +3550,16 @@ export class MaintenanceTaskDialog extends LitElement {
   private _renderPeopleSection(L: string) {
     return this._section("people-section", t("task_section_people", L), html`
           <div class="select-row">
-            <label>${t("responsible_user", L)}</label>
-            <select aria-label=${t("responsible_user", L)}
-              .value=${this._responsibleUserId || ""}
-              @change=${(e: Event) => {
+            ${selectIsHa() ? nothing : html`<label>${t("responsible_user", L)}</label>`}
+            ${selectField({ label: t("responsible_user", L), value: this._responsibleUserId || "", onChange: (e: Event) => {
                 const val = (e.target as HTMLSelectElement).value;
                 this._responsibleUserId = val || null;
-              }}
-            >
+              } }, html`
               <option value="" ?selected=${!this._responsibleUserId}>${t("no_user_assigned", L)}</option>
               ${this._availableUsers.map(
                 (user) => html`<option value=${user.id} ?selected=${user.id === this._responsibleUserId}>${user.name}</option>`
               )}
-            </select>
+            `)}
           </div>
           ${this._availableUsers.length >= 2 ? html`
             <div class="field">
@@ -3679,26 +3570,18 @@ export class MaintenanceTaskDialog extends LitElement {
                 : nothing}
               <div class="assignee-pool">
                 ${this._availableUsers.map((user) => html`
-                  <label class="pool-item">
-                    <input type="checkbox"
-                      .checked=${this._assigneePool.includes(user.id)}
-                      @change=${() => this._toggleAssignee(user.id)} />
-                    <span>${user.name}</span>
-                  </label>`)}
+                  ${checkField({ cls: "pool-item", checked: this._assigneePool.includes(user.id), onChange: () => this._toggleAssignee(user.id) }, html`<span>${user.name}</span>`)}`)}
               </div>
             </div>
             ${this._assigneePool.length >= 2 ? html`
               <div class="select-row">
-                <label>${t("rotation_strategy", L)}</label>
-                <select aria-label=${t("rotation_strategy", L)}
-                  .value=${this._rotationStrategy}
-                  @change=${(e: Event) => (this._rotationStrategy = (e.target as HTMLSelectElement).value)}
-                >
+                ${selectIsHa() ? nothing : html`<label>${t("rotation_strategy", L)}</label>`}
+                ${selectField({ label: t("rotation_strategy", L), value: this._rotationStrategy, onChange: (e: Event) => (this._rotationStrategy = (e.target as HTMLSelectElement).value) }, html`
                   <option value="" ?selected=${!this._rotationStrategy}>${t("rotation_none", L)}</option>
                   ${ROTATION_STRATEGIES.map(
                     (key) => html`<option value=${key} ?selected=${key === this._rotationStrategy}>${t("rotation_" + key, L)}</option>`
                   )}
-                </select>
+                `)}
               </div>` : nothing}
           ` : nothing}
     `);
@@ -3708,14 +3591,7 @@ export class MaintenanceTaskDialog extends LitElement {
    *  shared-with list, "No notifications" read as one of its people. */
   private _renderNotificationsSection(L: string) {
     return this._section("notifications-section", t("task_section_notifications", L), html`
-          <label class="req-option">
-            <input
-              type="checkbox"
-              .checked=${!this._notifyEnabled}
-              @change=${(e: Event) => (this._notifyEnabled = !(e.target as HTMLInputElement).checked)}
-            />
-            <span>${t("no_notifications", L)}</span>
-          </label>
+          ${checkField({ cls: "req-option", checked: !this._notifyEnabled, onChange: (e: Event) => (this._notifyEnabled = !(e.target as HTMLInputElement).checked) }, html`<span>${t("no_notifications", L)}</span>`)}
           ${!this._notifyEnabled ? html`<div class="field-help">${t("no_notifications_help", L)}</div>` : nothing}
           <ha-icon-picker
             class="notify-icon-picker"
@@ -3797,11 +3673,551 @@ export class MaintenanceTaskDialog extends LitElement {
             <div class="field-help mirror-todo-max">${t("task_mirror_todo_max", L).replace("{max}", String(MAX_MIRROR_TODO_LISTS))}</div>`;
   }
 
+  // ── Beta editor (advanced_beta_editor_visible) ───────────────────────────
+
+  /** The form state as the rule rows read it (helpers/task-rules). */
+  private _ruleDraft(): RuleDraft {
+    const flatIds = this._triggerEntityIds.length ? this._triggerEntityIds : this._triggerEntityId ? [this._triggerEntityId] : [];
+    return {
+      name: this._name,
+      enabled: this._enabled,
+      typeLabel: t(this._type, this._lang),
+      scheduleType: this._scheduleType,
+      intervalDays: this._intervalDays,
+      intervalUnit: this._intervalUnit,
+      intervalAnchor: this._intervalAnchor,
+      dueDate: this._dueDate,
+      weekdays: this._weekdays,
+      nth: this._nth,
+      nthWeekday: this._nthWeekday,
+      domDay: this._domDay,
+      domLastDay: this._domLastDay,
+      calendarEntity: this._calendarEntity ? entityName(this.hass, this._calendarEntity) : "",
+      warningDays: this._warningDays,
+      triggerType: this._triggerType,
+      triggerEntityIds: flatIds,
+      triggerAttribute: this._triggerAttribute,
+      above: this._triggerAbove,
+      below: this._triggerBelow,
+      forMinutes: this._triggerForMinutes,
+      targetValue: this._triggerTargetValue,
+      deltaMode: this._triggerDeltaMode,
+      fromState: this._triggerFromState,
+      toState: this._triggerToState,
+      targetChanges: this._triggerTargetChanges,
+      runtimeHours: this._triggerRuntimeHours,
+      daysBefore: this._triggerDaysBefore,
+      triggerCombinator: this._triggerCombinator,
+      entityLogic: this._triggerEntityLogic,
+      compoundLogic: this._compoundLogic,
+      compoundCount: this._compoundConditions.length,
+      compoundEntityIds: this._compoundConditions.flatMap((c) => c.entityIds.split(",").map((s) => s.trim()).filter(Boolean)),
+      completeWhenEntity: this._completeWhenEntity,
+      completeWhenState: this._completeWhenState,
+      completeWhenFor: this._completeWhenFor,
+      completeWhenAnyTime: this._completeWhenAnyTime,
+      quickOn: this._quickOn,
+      requiredCount: this._requiredCompletion.length,
+      allowSkip: this._allowSkip,
+      requireTagScan: this._requireTagScan,
+      checklistCount: this.checklistsEnabled ? this._checklistText.split("\n").filter((s) => s.trim()).length : 0,
+      partsCount: Object.keys(this._consumesParts).length,
+      responsibleUserId: this._responsibleUserId,
+      pool: this._assigneePool,
+      rotation: this._rotationStrategy,
+      notifyEnabled: this._notifyEnabled,
+      mirrorLists: this._mirrorListsShown(),
+    };
+  }
+
+  /** The lists the task goes onto while due, as the save sends them. */
+  private _mirrorListsShown(): string[] {
+    if (!this.mirrorTodoDefault.length) return this._mirrorTodoMode === "none" ? [] : this._mirrorTodoEntities;
+    if (this._mirrorTodoMode === "default") return this.mirrorTodoDefault;
+    return this._mirrorTodoMode === "own" ? this._mirrorTodoEntities : [];
+  }
+
+  private _userName(userId: string): string {
+    return this._availableUsers.find((u) => u.id === userId)?.name ?? userId;
+  }
+
+  private _sidebarTitle(sel: RuleRowId | "add", L: string): string {
+    switch (sel) {
+      case "task": return t("task_section_details", L);
+      case "schedule": return t("task_section_schedule", L);
+      case "trigger": return t("task_section_trigger", L);
+      case "completion": return t("task_section_completion", L);
+      case "people": return t("task_section_people", L);
+      case "notifications": return t("task_section_notifications", L);
+      default: return t("beta_rules_add_rule", L);
+    }
+  }
+
+  private _selectRule(sel: RuleRowId | "add" | null): void {
+    this._ruleSel = this._ruleSel === sel ? null : sel;
+    if (sel === "add") void this._loadObjectDevice();
+  }
+
+  /** Remove a rule: the sensor rule leaves the interval as the schedule (or
+   *  none); the schedule of a sensor-based task is its safety interval, any
+   *  other schedule leaves the task without one. */
+  private _removeRule(id: RuleRowId): void {
+    if (id === "trigger") {
+      this._resetTriggerFields();
+      this._scheduleType = parseInt(this._intervalDays, 10) > 0 ? "time_based" : "manual";
+    } else if (id === "schedule") {
+      if (this._scheduleType === "sensor_based") this._intervalDays = "";
+      else this._scheduleType = "manual";
+    }
+    if (this._ruleSel === id) this._ruleSel = null;
+  }
+
+  /** A sensor rule joins the current one: both become conditions of a
+   *  compound trigger that fires on either (the first one comes from the
+   *  flat form, with its per-type fields). */
+  private _combineTrigger(type: TriggerType, entityId = ""): void {
+    if (this._triggerType !== "compound") {
+      const ids = this._triggerEntityIds.length ? this._triggerEntityIds : this._triggerEntityId ? [this._triggerEntityId] : [];
+      this._compoundConditions = [{ entityIds: ids.join(", "), ...this._typeFields(), carry: {} }];
+      this._compoundLogic = "OR";
+      this._triggerType = "compound";
+      this._triggerEntityId = "";
+      this._triggerEntityIds = [];
+    }
+    this._compoundConditions = [...this._compoundConditions, { ...emptyCondition(), type, entityIds: entityId }];
+  }
+
+  /** A sensor rule of `type` replaces the schedule: a time-based interval
+   *  stays as its safety interval, any other schedule goes. */
+  private _setSensorRule(type: TriggerType, entityId = ""): void {
+    if (this._scheduleType !== "time_based" && this._scheduleType !== "sensor_based") this._intervalDays = "";
+    this._scheduleType = "sensor_based";
+    this._resetTriggerFields();
+    this._triggerType = type;
+    if (type === "compound") this._compoundConditions = [emptyCondition()];
+    if (entityId) {
+      this._triggerEntityId = entityId;
+      this._triggerEntityIds = [entityId];
+      void this._fetchEntityAttributes(entityId);
+    }
+  }
+
+  private _applyChoice(c: RuleChoice): void {
+    if (c.kind === "schedule") {
+      if (c.effect === "safety") {
+        if (!(parseInt(this._intervalDays, 10) > 0)) this._intervalDays = "30";
+        this._ruleSel = "trigger";
+        return;
+      }
+      if (this._scheduleType === "sensor_based") this._resetTriggerFields();
+      if (c.value === "time_based" && !(parseInt(this._intervalDays, 10) > 0)) this._intervalDays = "30";
+      this._scheduleType = c.value;
+      this._ruleSel = "schedule";
+      return;
+    }
+    const type = c.value as TriggerType;
+    if (c.effect === "combine") this._combineTrigger(type);
+    else this._setSensorRule(type);
+    this._ruleSel = "trigger";
+  }
+
+  private _applySuggestion(s: RuleSuggestion): void {
+    if (s.target === "done_when") {
+      if (s.entityId !== this._completeWhenEntity) this._completeWhenState = "";
+      this._completeWhenEntity = s.entityId;
+      this._ruleSel = "completion";
+      return;
+    }
+    const type = s.triggerType ?? "threshold";
+    const hasRule = this._scheduleType === "sensor_based" && (this._triggerType === "compound" || !!this._triggerEntityId);
+    if (hasRule) this._combineTrigger(type, s.entityId);
+    else this._setSensorRule(type, s.entityId);
+    this._ruleSel = "trigger";
+  }
+
+  /** The object's linked device (else its area) for the "By device" tab. */
+  private async _loadObjectDevice(): Promise<void> {
+    const entryId = this._entryId;
+    if (!entryId || this._objectDevice?.entryId === entryId) return;
+    let deviceId: string | null = null;
+    let areaId: string | null = null;
+    try {
+      const res = await this.hass.connection.sendMessagePromise<{
+        objects?: Array<{ entry_id: string; object: { ha_device_id?: string | null; area_id?: string | null } }>;
+      }>({ type: "maintenance_supporter/objects" });
+      const obj = (res?.objects ?? []).find((o) => o.entry_id === entryId);
+      deviceId = obj?.object.ha_device_id ?? null;
+      areaId = obj?.object.area_id ?? null;
+    } catch {
+      // No suggestions then; the By type tab still works.
+    }
+    if (this._entryId === entryId) this._objectDevice = { entryId, deviceId, areaId };
+  }
+
+  private async _loadTemplateChoices(): Promise<void> {
+    if (this._templateChoices !== null) return;
+    try {
+      const res = await this.hass.connection.sendMessagePromise<{
+        templates?: Array<{ name: string; disabled?: boolean; tasks?: Array<Omit<TemplateTaskChoice, "template">> }>;
+      }>({ type: "maintenance_supporter/templates", language: this._lang });
+      this._templateChoices = (res?.templates ?? [])
+        .filter((tpl) => !tpl.disabled)
+        .flatMap((tpl) => (tpl.tasks ?? []).map((tt) => ({ ...tt, template: tpl.name })));
+    } catch {
+      this._templateChoices = [];
+    }
+  }
+
+  private async _loadCopyChoices(): Promise<void> {
+    if (this._copyChoices !== null) return;
+    try {
+      const res = await this.hass.connection.sendMessagePromise<{
+        objects?: Array<{ entry_id: string; object: { name: string }; tasks?: MaintenanceTask[] }>;
+      }>({ type: "maintenance_supporter/objects" });
+      this._copyChoices = (res?.objects ?? []).flatMap((o) =>
+        (o.tasks ?? [])
+          .filter((tk) => !tk.battery_fleet_task && !tk.part_ref)
+          .map((task) => ({ entryId: o.entry_id, objectName: o.object.name, task })),
+      );
+    } catch {
+      this._copyChoices = [];
+    }
+  }
+
+  private _applyTemplateTask(tt: TemplateTaskChoice): void {
+    this._name = tt.name;
+    this._type = MAINTENANCE_TYPE_KEYS.includes(tt.type) ? tt.type : "custom";
+    const days = tt.interval_days && tt.interval_days > 0 ? String(tt.interval_days) : "";
+    if (tt.schedule_type === "sensor_based") {
+      this._scheduleType = "sensor_based";
+      this._intervalDays = days;
+    } else if (tt.schedule_type === "manual" || !days) {
+      this._scheduleType = "manual";
+    } else {
+      this._scheduleType = "time_based";
+      this._intervalDays = days;
+      this._intervalUnit = "days";
+    }
+    if (tt.warning_days !== null && tt.warning_days !== undefined) this._warningDays = String(tt.warning_days);
+    this._betaStep = "form";
+    this._ruleSel = this._scheduleType === "sensor_based" ? "add" : "schedule";
+    if (this._ruleSel === "add") {
+      this._addTab = "device";
+      void this._loadObjectDevice();
+    }
+  }
+
+  /** Copy a task's settings into this new task (its object keeps the parts
+   *  and tag of its own: those are left out). */
+  private async _applyCopy(item: { entryId: string; task: MaintenanceTask }): Promise<void> {
+    const target = this._entryId;
+    const choices = this._objectChoices;
+    await this._edit(item.entryId, item.task);
+    this._taskId = null;
+    this._entryId = target;
+    this._objectChoices = choices;
+    this._series = [];
+    this._isFleetTask = false;
+    this._lastPerformed = "";
+    this._nfcTagId = "";
+    this._consumesParts = {};
+    this._consumesQtyText = {};
+    this._phaseDefs = this._phaseDefs.map((d) => ({ ...d, partId: "", partQty: "", extraParts: [] }));
+    await Promise.all([this._loadParts(), this._loadForeignPools()]);
+    this._betaStep = "form";
+    this._ruleSel = "task";
+  }
+
+  private _choiceNote(c: RuleChoice, L: string): string {
+    if (c.effect === "replace") return t("beta_rules_replaces", L);
+    if (c.effect === "combine") return t("beta_rules_combines", L);
+    if (c.effect === "safety") return t("beta_rules_adds_safety", L);
+    return "";
+  }
+
+  private _renderAddPicker(L: string) {
+    const tabs = html`
+      <div class="add-tabs" role="tablist" aria-label=${t("beta_rules_add_rule", L)}>
+        <button type="button" role="tab" class="add-tab-type" aria-selected=${this._addTab === "type" ? "true" : "false"}
+          @click=${() => { this._addTab = "type"; }}>${t("beta_rules_by_type", L)}</button>
+        <button type="button" role="tab" class="add-tab-device" aria-selected=${this._addTab === "device" ? "true" : "false"}
+          @click=${() => { this._addTab = "device"; void this._loadObjectDevice(); }}>${t("beta_rules_by_device", L)}</button>
+      </div>`;
+    if (this._addTab === "type") {
+      const choices = ruleChoices({ scheduleType: this._scheduleType, intervalDays: this._intervalDays, triggerType: this._triggerType });
+      const item = (c: RuleChoice) => {
+        const note = this._choiceNote(c, L);
+        return html`
+          <button type="button" class="add-choice" data-kind=${c.kind} data-value=${c.value} @click=${() => this._applyChoice(c)}>
+            <ha-icon icon=${c.icon}></ha-icon>
+            <span class="add-choice-text">
+              <span>${c.kind === "trigger" ? triggerTypeLabel(c.value, L) : t(c.value, L)}</span>
+              ${note ? html`<span class="add-choice-note">${note}</span>` : nothing}
+            </span>
+          </button>`;
+      };
+      return html`${tabs}
+        <div class="add-group">${t("task_section_schedule", L)}</div>
+        ${choices.filter((c) => c.kind === "schedule").map(item)}
+        <div class="add-group">${t("task_section_trigger", L)}</div>
+        ${choices.filter((c) => c.kind === "trigger").map(item)}`;
+    }
+    const dev = this._objectDevice;
+    if (dev === null || dev.entryId !== this._entryId) return html`${tabs}<div class="field-help">…</div>`;
+    if (!dev.deviceId && !dev.areaId) return html`${tabs}<div class="field-help beta-no-device">${t("beta_rules_no_device", L)}</div>`;
+    const facts = deviceEntityFacts(this.hass, { deviceId: dev.deviceId, areaId: dev.areaId, ownPlatform: "maintenance_supporter" });
+    if (!facts.length) {
+      return html`${tabs}<div class="field-help beta-no-device">${t(dev.deviceId ? "beta_rules_no_device_entities" : "beta_rules_no_area_entities", L)}</div>`;
+    }
+    // The device's own entities first, under their own heading; the rest of
+    // the area after them (2026-10-31: the device's are the likeliest).
+    const areaId = dev.areaId || (dev.deviceId ? this.hass.devices?.[dev.deviceId]?.area_id : null) || "";
+    const areaName = this.hass.areas?.[areaId]?.name || areaId;
+    const hasDevice = facts.some((f) => f.group === "device");
+    const heading = (f: (typeof facts)[number], i: number) => {
+      if (i > 0 && facts[i - 1].group === f.group) return nothing;
+      const text = f.group === "device"
+        ? t("beta_rules_group_device", L)
+        : t(hasDevice ? "beta_rules_group_area_more" : "beta_rules_group_area", L).replace("{area}", areaName);
+      return html`<div class="add-group device-group" data-group=${f.group}>${text}</div>`;
+    };
+    return html`${tabs}
+      ${facts.map((f, i) => html`${heading(f, i)}
+        <div class="device-entity" data-entity=${f.entityId} data-group=${f.group}>
+          <div class="device-entity-name">${f.name}</div>
+          <div class="device-entity-choices">
+            ${suggestionsFor(f).map((s) => html`
+              <button type="button" class="add-choice" data-target=${s.target} data-type=${s.triggerType ?? ""} @click=${() => this._applySuggestion(s)}>
+                <ha-icon icon=${s.icon}></ha-icon>
+                <span>${s.target === "done_when" ? t("beta_rules_done_when_suggest", L) : triggerTypeLabel(s.triggerType ?? "", L)}</span>
+              </button>`)}
+          </div>
+        </div>`)}`;
+  }
+
+  private _renderSidebarBody(sel: RuleRowId | "add", L: string) {
+    switch (sel) {
+      case "task": return this._renderIdentity(L);
+      case "schedule": return this._renderScheduleSection(L);
+      case "trigger": return this._renderTriggerSection(L);
+      case "completion": return this._renderCompletionSection(L);
+      case "people": return this._renderPeopleSection(L);
+      case "notifications": return this._renderNotificationsSection(L);
+      default: return this._renderAddPicker(L);
+    }
+  }
+
+  /** The rows on the left, the selected one's section on the right (on a
+   *  phone: right below the row). CSS `order` places the sidebar after the
+   *  selected row, so both layouts come from one list. */
+  private _renderRules(L: string) {
+    const rows = buildRuleRows(this._ruleDraft(), {
+      lang: L,
+      entityName: (id) => entityName(this.hass, id),
+      userName: (id) => this._userName(id),
+    });
+    const byId = new Map(rows.map((r) => [r.id, r]));
+    const groups: Array<{ title: string; ids: RuleRowId[]; add?: boolean }> = [
+      { title: t("task_section_details", L), ids: ["task"] },
+      { title: t("task_section_schedule", L), ids: ["schedule", "trigger"], add: true },
+      { title: t("task_section_completion", L), ids: ["completion"] },
+      { title: t("task_section_people", L), ids: ["people"] },
+      { title: t("task_section_notifications", L), ids: ["notifications"] },
+    ];
+    let order = 0;
+    let sidebarOrder = 1;
+    const items: unknown[] = [];
+    for (const g of groups) {
+      order += 2;
+      items.push(html`<h3 class="rules-group-title" style="order:${order}">${g.title}</h3>`);
+      for (const id of g.ids) {
+        const row = byId.get(id);
+        if (!row) continue;
+        order += 2;
+        if (this._ruleSel === id) sidebarOrder = order + 1;
+        const selected = this._ruleSel === id;
+        items.push(html`
+          <div class="rule-row ${selected ? "selected" : ""}" data-row=${row.id} style="order:${order}">
+            <button type="button" class="rule-main" aria-expanded=${selected ? "true" : "false"} @click=${() => this._selectRule(row.id)}>
+              <ha-icon icon=${row.icon}></ha-icon>
+              <span class="rule-text">
+                <span class="rule-sentence">${row.text}</span>
+                ${row.chips.map((c) => html`<span class="rule-chip">${c}</span>`)}
+                ${row.badges.length ? html`<span class="rule-badges">${row.badges.map((b) => html`<span class="rule-badge">${b}</span>`)}</span>` : nothing}
+              </span>
+            </button>
+            ${row.removable ? html`
+              <ha-icon-button class="rule-remove" .path=${DELETE_PATH} .label=${t("remove", L)} title=${t("remove", L)}
+                @click=${() => this._removeRule(row.id)}></ha-icon-button>` : nothing}
+          </div>`);
+      }
+      if (g.add) {
+        order += 2;
+        if (this._ruleSel === "add") sidebarOrder = order + 1;
+        items.push(html`
+          <button type="button" class="rule-add" style="order:${order}" aria-expanded=${this._ruleSel === "add" ? "true" : "false"}
+            @click=${() => this._selectRule("add")}>
+            <ha-icon icon="mdi:plus"></ha-icon>${t("beta_rules_add_rule", L)}
+          </button>`);
+      }
+    }
+    const sel = this._ruleSel;
+    return html`
+      <div class="rules-layout">
+        ${items}
+        <aside class="rules-sidebar ${sel ? "open" : ""}" style="order:${sidebarOrder}" aria-label=${sel ? this._sidebarTitle(sel, L) : t("beta_rules_select_hint", L)}>
+          ${sel
+            ? html`
+                <div class="sidebar-head">
+                  <ha-icon-button .path=${CLOSE_PATH} .label=${t("close", L)} @click=${() => { this._ruleSel = null; }}></ha-icon-button>
+                  <span class="sidebar-title">${this._sidebarTitle(sel, L)}</span>
+                </div>
+                <div class="sidebar-body">${this._renderSidebarBody(sel, L)}</div>`
+            : html`<div class="sidebar-hint">${t("beta_rules_select_hint", L)}</div>`}
+        </aside>
+      </div>`;
+  }
+
+  /** The object a new task goes to, when the dialog was opened without one. */
+  private _renderObjectChoice(L: string) {
+    if (this._taskId !== null || this._objectChoices.length === 0) return nothing;
+    return html`
+      <div class="select-row">
+        ${selectIsHa() ? nothing : html`<label>${t("object", L)}</label>`}
+        ${selectField({ label: t("object", L), value: this._entryId, onChange: (e: Event) => {
+            this._entryId = (e.target as HTMLSelectElement).value;
+            this._consumesParts = {};
+            this._consumesQtyText = {};
+            void this._loadParts();
+            void this._loadForeignPools();
+          } }, html`
+          ${this._objectChoices.map((o) => html`<option value=${o.entry_id} ?selected=${o.entry_id === this._entryId}>${o.name}</option>`)}
+        `)}
+      </div>`;
+  }
+
+  private _renderChooser(L: string) {
+    const item = (cls: string, icon: string, title: string, desc: string, go: () => void) => html`
+      <button type="button" class="chooser-item ${cls}" @click=${go}>
+        <ha-icon icon=${icon}></ha-icon>
+        <span class="chooser-text">
+          <span class="chooser-title">${title}</span>
+          <span class="chooser-desc">${desc}</span>
+        </span>
+        <ha-icon icon="mdi:chevron-right"></ha-icon>
+      </button>`;
+    return html`
+      ${this._renderObjectChoice(L)}
+      <div class="chooser">
+        ${item("chooser-scratch", "mdi:pencil", t("beta_new_scratch", L), t("beta_new_scratch_desc", L), () => {
+          this._betaStep = "form";
+          this._ruleSel = "task";
+        })}
+        ${item("chooser-sensor", "mdi:auto-fix", t("beta_new_from_sensor", L), t("beta_new_from_sensor_desc", L), () => {
+          this._betaStep = "form";
+          this._ruleSel = "add";
+          this._addTab = "device";
+          void this._loadObjectDevice();
+        })}
+        ${item("chooser-template", "mdi:text-box-outline", t("templates_from", L), t("beta_new_from_template_desc", L), () => {
+          this._betaStep = "template";
+          this._chooserFilter = "";
+          void this._loadTemplateChoices();
+        })}
+        ${item("chooser-copy", "mdi:content-copy", t("beta_new_copy", L), t("beta_new_copy_desc", L), () => {
+          this._betaStep = "copy";
+          this._chooserFilter = "";
+          void this._loadCopyChoices();
+        })}
+      </div>`;
+  }
+
+  private _renderSearch(L: string) {
+    return html`<input type="search" class="chooser-search" aria-label=${t("beta_new_search", L)} placeholder=${t("beta_new_search", L)}
+      .value=${this._chooserFilter} @input=${(e: Event) => { this._chooserFilter = (e.target as HTMLInputElement).value; }} />`;
+  }
+
+  private _renderTemplatePick(L: string) {
+    if (this._templateChoices === null) return html`<div class="chooser-empty">…</div>`;
+    const q = this._chooserFilter.trim().toLowerCase();
+    const list = this._templateChoices.filter((tt) => !q || `${tt.name} ${tt.template}`.toLowerCase().includes(q)).slice(0, 200);
+    return html`
+      ${this._renderSearch(L)}
+      <div class="chooser">
+        ${list.length ? list.map((tt) => html`
+          <button type="button" class="chooser-item template-task" @click=${() => this._applyTemplateTask(tt)}>
+            <ha-icon icon=${tt.schedule_type === "sensor_based" ? "mdi:gauge" : "mdi:calendar-sync"}></ha-icon>
+            <span class="chooser-text">
+              <span class="chooser-title">${tt.name}</span>
+              <span class="chooser-desc">${tt.template}${tt.interval_days ? html` · ${formatNumber(tt.interval_days, L)} ${t("unit_days", L)}` : nothing}</span>
+            </span>
+          </button>`) : html`<div class="chooser-empty">—</div>`}
+      </div>`;
+  }
+
+  private _renderCopyPick(L: string) {
+    if (this._copyChoices === null) return html`<div class="chooser-empty">…</div>`;
+    const q = this._chooserFilter.trim().toLowerCase();
+    const list = this._copyChoices.filter((c) => !q || `${c.task.name} ${c.objectName}`.toLowerCase().includes(q)).slice(0, 200);
+    return html`
+      ${this._renderSearch(L)}
+      <div class="chooser">
+        ${list.length ? list.map((c) => html`
+          <button type="button" class="chooser-item copy-task" @click=${() => void this._applyCopy(c)}>
+            <ha-icon icon="mdi:content-copy"></ha-icon>
+            <span class="chooser-text">
+              <span class="chooser-title">${c.task.name}</span>
+              <span class="chooser-desc">${c.objectName}</span>
+            </span>
+          </button>`) : html`<div class="chooser-empty">—</div>`}
+      </div>`;
+  }
+
+  private _renderBeta(L: string, title: string, hasNext: boolean) {
+    const step = this._betaStep;
+    return html`
+      <ha-dialog open class="beta-dialog" .headerTitle=${title}
+        .headerSubtitle=${this._series.length > 1
+          ? t("task_series_position", L).replace("{n}", String(this._seriesIndex + 1)).replace("{total}", String(this._series.length))
+          : undefined}
+        @closed=${this._close}>
+        <!-- HA's header (2026): the title beside the close button; on a
+             step under the start screen HA's back arrow takes its place. -->
+        ${step === "template" || step === "copy"
+          ? html`<ha-icon-button slot="headerNavigationIcon" class="beta-back" .path=${BACK_PATH} .label=${t("back", L)}
+              @click=${() => { this._betaStep = "choose"; }}></ha-icon-button>`
+          : nothing}
+        <div class="content beta-content">
+          ${this._error ? notice("error", this._error) : nothing}
+          ${this._warning ? notice("warning", this._warning) : nothing}
+          ${step === "choose" ? this._renderChooser(L)
+            : step === "template" ? this._renderTemplatePick(L)
+            : step === "copy" ? this._renderCopyPick(L)
+            : this._renderRules(L)}
+        </div>
+        <div class="dialog-actions">
+          <ha-button appearance="plain" @click=${this._close}>${t("cancel", L)}</ha-button>
+          ${step === "form" && hasNext
+            ? html`<ha-button appearance="plain" class="series-skip" .disabled=${this._loading} @click=${this._skipSeriesItem}>
+                ${t("task_series_skip", L)}
+              </ha-button>`
+            : nothing}
+          ${step === "form"
+            ? html`<ha-button @click=${this._save} .disabled=${this._loading || !this._name.trim() || this._missingDueDate()}>
+                ${this._loading ? t("saving", L) : t(hasNext ? "task_series_save_next" : "save", L)}
+              </ha-button>`
+            : nothing}
+        </div>
+      </ha-dialog>
+    `;
+  }
+
   render() {
     if (!this._open) return html``;
     const L = this._lang;
     const title = this._taskId ? t("edit_task", L) : t("new_task", L);
     const hasNext = this._seriesIndex + 1 < this._series.length;
+    if (this.betaEditor) return this._renderBeta(L, title, hasNext);
     return html`
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">
@@ -3813,8 +4229,8 @@ export class MaintenanceTaskDialog extends LitElement {
             : nothing}
         </div>
         <div class="content">
-          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
-          ${this._warning ? html`<div class="error warning">${this._warning}</div>` : nothing}
+          ${this._error ? notice("error", this._error) : nothing}
+          ${this._warning ? notice("warning", this._warning) : nothing}
           ${this._renderIdentity(L)}
           ${this._renderScheduleSection(L)}
           ${this._renderTriggerSection(L)}
@@ -3840,7 +4256,7 @@ export class MaintenanceTaskDialog extends LitElement {
     `;
   }
 
-  static styles = [nativeFieldStyles, formStyles, css`
+  static styles = [nativeFieldStyles, formStyles, rulesStyles, css`
     .dialog-title {
       font-size: 18px;
       font-weight: 500;
@@ -3873,7 +4289,7 @@ export class MaintenanceTaskDialog extends LitElement {
     .phases-section,
     .details-section {
       border: 1px solid var(--divider-color);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       padding: 8px 12px;
       margin-top: 8px;
     }
@@ -3940,7 +4356,10 @@ export class MaintenanceTaskDialog extends LitElement {
       max-height: 70vh;
       overflow-y: auto;
     }
-    @media (max-width: 600px) {
+    /* A phone, and a phone held sideways: 70 % of 390 px plus the title and
+       the buttons was taller than the screen, so Save sat below its edge
+       with nothing to scroll (2026-10-31). The dialog scrolls as a whole. */
+    @media (max-width: 600px), (max-height: 500px) {
       .content {
         min-width: 0;
         max-height: none;
@@ -3992,7 +4411,7 @@ export class MaintenanceTaskDialog extends LitElement {
     }
     .phase-def {
       border: 1px solid var(--divider-color);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       padding: 8px;
       margin: 6px 0;
     }

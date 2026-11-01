@@ -1335,7 +1335,7 @@ Archives from before 2.96 (files stored as `blobs/<hash>`) still restore.
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 111 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock / use / purchase), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
+- 112 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock / use / purchase), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -1454,7 +1454,7 @@ when left out) for the used ones of a reusable part. They need
 write access like the panel's buttons, accept several parts at once, book
 nothing unless every entity is a part's stock sensor, and return the new counts
 when asked for a response.
-For the full WebSocket API (111 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (112 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

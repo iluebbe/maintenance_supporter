@@ -582,7 +582,8 @@
           "advanced_checklists_visible": "체크리스트",
           "advanced_schedule_time_visible": "시간대 지정 일정",
           "advanced_completion_actions_visible": "완료 동작",
-          "advanced_places_visible": "장소"
+          "advanced_places_visible": "장소",
+          "advanced_beta_editor_visible": "새 디자인 및 작업 편집기"
         },
         "data_description": {
           "advanced_adaptive_visible": "작업에 대한 EWA, Weibull 분석 및 주기 제안을 표시합니다.",
@@ -593,7 +594,8 @@
           "advanced_checklists_visible": "단계별 완료를 위한 작업 체크리스트를 표시합니다.",
           "advanced_schedule_time_visible": "작업이 자정이 아닌 특정 시각에 기한 초과가 되도록 허용합니다.",
           "advanced_completion_actions_visible": "완료 시 작업별 HA 동작 실행 + 사전 설정값이 있는 빠른 완료 QR.",
-          "advanced_places_visible": "다른 장소(Home Assistant 구역)에서 관리하는 개체: 누군가 그곳에 있을 때만 알림을 보내고, 도착하면 메시지를 보냅니다."
+          "advanced_places_visible": "다른 장소(Home Assistant 구역)에서 관리하는 개체: 누군가 그곳에 있을 때만 알림을 보내고, 도착하면 메시지를 보냅니다.",
+          "advanced_beta_editor_visible": "패널 전체에 Home Assistant 기본 컨트롤을 사용하고, 자동화 편집기처럼 작업을 규칙으로 표시하며, 각 작업의 추적을 기록합니다. 기본적으로 켜짐; 끄면 클래식 디자인으로 돌아갑니다."
         }
       },
       "panel_access": {

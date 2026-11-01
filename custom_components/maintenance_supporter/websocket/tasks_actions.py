@@ -178,6 +178,10 @@ async def ws_complete_task(
         hass, object_id_for_entry(_entry), normalize_photo_doc_ids(msg.get("photo_doc_ids"), msg.get("photo_doc_id"))
     )
 
+    # The same task completed seconds ago (a second device, a double tap):
+    # the coordinator drops this one. Answered as such, with no Undo — the
+    # Undo would have restored the first completion's own result.
+    repeat_age = rd.coordinator.double_tap_age(msg["task_id"]) if completed_at is None else None
     before = _undo_capture(hass, msg)
     try:
         await rd.coordinator.complete_maintenance(
@@ -211,8 +215,17 @@ async def ws_complete_task(
         # exception's own key rather than a traceback.
         send_exception_error(connection, msg["id"], err, "completion_details_required")
         return
+    if repeat_age is not None:
+        connection.send_result(msg["id"], _already_recorded(repeat_age))
+        return
     undo = _remember_for_undo(hass, connection, _entry, slot_task, before)
     connection.send_result(msg["id"], {"success": True, "undo": undo})
+
+
+def _already_recorded(age: float) -> dict[str, Any]:
+    """The answer to a completion the double-tap guard dropped: it is done
+    (by the first tap), nothing new to undo, and how long ago that was."""
+    return {"success": True, "undo": False, "already_recorded_seconds": max(1, round(age))}
 
 
 # v1.3.0: One-tap completion using values pre-configured on the task.
@@ -255,6 +268,7 @@ async def ws_quick_complete_task(
         return
 
     source = msg.get("source", "qr")
+    repeat_age = rd.coordinator.double_tap_age(msg["task_id"])  # see ws_complete_task
     before = _undo_capture(hass, msg)
     try:
         await rd.coordinator.complete_maintenance(
@@ -271,6 +285,9 @@ async def ws_quick_complete_task(
         # same fallback as `no_defaults`: the caller opens the full dialog.
         # Other refusals (too_early, task_inactive) keep their own key.
         send_exception_error(connection, msg["id"], err, "completion_details_required")
+        return
+    if repeat_age is not None:
+        connection.send_result(msg["id"], {**_already_recorded(repeat_age), "via": "quick"})
         return
     undo = _remember_for_undo(hass, connection, _entry, task, before)
     connection.send_result(msg["id"], {"success": True, "via": "quick", "undo": undo})

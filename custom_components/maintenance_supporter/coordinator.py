@@ -106,6 +106,8 @@ from .helpers.prediction_cache import PredictionCache
 from .helpers.reference_numbers import assign_history_refs, assign_task_refs, next_history_ref
 from .helpers.schedule import FLAT_RECURRENCE_KEYS, KIND_INTERVAL, KIND_MANUAL, Schedule, read_legacy_fields
 from .helpers.status import compute_live_status
+from .helpers.task_trace import KIND_DONE_WHEN, observe_statuses
+from .helpers.task_trace import record as record_trace
 from .helpers.todo_mirror import TODO_MIRROR_KEY
 from .helpers.trigger_fallback import counter_progress
 from .models.maintenance_object import MaintenanceObject
@@ -474,6 +476,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
 
         # Check for issues (repairs)
         await self._async_check_for_issues(tasks)
+
+        # The task traces note every status change (beta editor only).
+        observe_statuses(self.hass, self.entry.entry_id, {tid: tr.status for tid, tr in result[CONF_TASKS].items()})
 
         # Send notifications for status changes / repeats.
         # On first refresh after startup, seed both _previous_statuses and
@@ -1724,12 +1729,23 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         status = task_result.status if task_result is not None else None
         if not any_time and status not in NOTIFIABLE_STATUSES:
             _LOGGER.debug("Not completing %s from %s: the task is not due (%s)", task_id, entity_name, status)
+            record_trace(self.hass, self.entry.entry_id, task_id, KIND_DONE_WHEN, entity=entity_name, state=to_state, result="not_due", status=str(status))
             return
-        await self._async_auto_complete(task_id, f"Auto-completed: {entity_name} changed to {to_state}", source="auto_entity")
+        await self._async_auto_complete(
+            task_id, f"Auto-completed: {entity_name} changed to {to_state}", source="auto_entity", done_when=(entity_name, to_state)
+        )
 
-    async def _async_auto_complete(self, task_id: str, notes: str, *, source: str | None = None) -> None:
+    async def _async_auto_complete(
+        self, task_id: str, notes: str, *, source: str | None = None, done_when: tuple[str, str] | None = None
+    ) -> None:
         """The automatic completions' shared gates: an inert task records
-        nothing, and a completion moments ago is not repeated."""
+        nothing, and a completion moments ago is not repeated. ``done_when``
+        (entity name, state) traces what a Done-when change came to."""
+
+        def _trace(result: str) -> None:
+            if done_when is not None:
+                record_trace(self.hass, self.entry.entry_id, task_id, KIND_DONE_WHEN, entity=done_when[0], state=done_when[1], result=result)
+
         merged = self._get_merged_tasks_data()
         task_data = merged.get(task_id)
         if task_data is None:
@@ -1739,6 +1755,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # path must too (else a paused object whose sensor recovers records a
         # real completion, defeating the pause). Silent, unlike the manual gates.
         if self._is_inert(task_data):
+            _trace("inert")
             return
         # Race guard: if a completion was recorded moments ago (e.g. a manual
         # complete whose trigger reset crossed paths with a queued state
@@ -1757,10 +1774,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             age = (dt_util.utcnow() - stamp_instant(entry.get("timestamp"))).total_seconds()
             if 0 <= age < 120:
                 _LOGGER.debug("Skipping auto-complete for %s: completed %.0fs ago", task_id, age)
+                _trace("recent")
                 return
             break
 
         _LOGGER.info("Auto-completing task %s on %s: %s", task_id, self.maintenance_object.name, notes)
+        _trace("counted")
         await self.complete_maintenance(task_id, notes=notes, auto=True, source=source)
 
     async def reset_maintenance(
@@ -2070,6 +2089,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             return
         self._recently_completed.pop(task_id, None)
         self._completion_cooldown.discard(task_id)
+
+    def double_tap_age(self, task_id: str) -> float | None:
+        """Seconds since the task's last manual completion while that is
+        inside the double-tap window, else None. complete_maintenance drops a
+        completion in that window; a surface that asks first can say so
+        instead of reporting a plain success (the second tap read as done and
+        recorded nothing, live 2026-11-01)."""
+        return _double_tap_age(self._recent_manual_completions.get(task_id))
 
     def in_completion_cooldown(self, task_id: str) -> bool:
         """True while the task is inside its post-COMPLETION cooldown (not a

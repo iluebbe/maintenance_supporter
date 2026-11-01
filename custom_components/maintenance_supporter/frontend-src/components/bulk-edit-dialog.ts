@@ -13,6 +13,8 @@ import { ROTATION_STRATEGIES, TASK_PRIORITIES } from "../helpers/task-choices";
 import { WARNING_DAYS_RANGE } from "../helpers/setting-ranges";
 import "./ms-textfield";
 import type { HAUser, HomeAssistant, TaskRow } from "../types";
+import { headerTitle, titleLine } from "../helpers/beta-ui";
+import { checkField } from "../helpers/check-field";
 
 export type BulkMode = "assign" | "labels" | "edit";
 export type BulkChanges = Record<string, unknown>;
@@ -143,10 +145,7 @@ export class MaintenanceBulkEditDialog extends LitElement {
       ${this._assignKind !== "one"
         ? html`<div class="pool">
               ${this._users.map(
-                (u) => html`<label class="row">
-                  <input type="checkbox" .checked=${this._pool.has(u.id)} @change=${() => (this._pool = this._toggle(this._pool, u.id))} />
-                  ${u.name}
-                </label>`,
+                (u) => html`${checkField({ cls: "row", checked: this._pool.has(u.id), onChange: () => (this._pool = this._toggle(this._pool, u.id)) }, html`${u.name}`)}`,
               )}
             </div>
             ${this._assignKind === "rotate" ? html`<label class="field">
@@ -173,10 +172,7 @@ export class MaintenanceBulkEditDialog extends LitElement {
         ? html`<div class="section-title">${t("bulk_labels_remove", L)}</div>
             <div class="pool">
               ${this._present.map(
-                (label) => html`<label class="row">
-                  <input type="checkbox" .checked=${this._remove.has(label)} @change=${() => (this._remove = this._toggle(this._remove, label))} />
-                  ${label}
-                </label>`,
+                (label) => html`${checkField({ cls: "row", checked: this._remove.has(label), onChange: () => (this._remove = this._toggle(this._remove, label)) }, html`${label}`)}`,
               )}
             </div>`
         : nothing}
@@ -223,8 +219,8 @@ export class MaintenanceBulkEditDialog extends LitElement {
     // The title is our own element: Home Assistant's dialog draws no
     // `heading` (the other dialogs here render theirs the same way).
     return html`
-      <ha-dialog open @closed=${() => this._finish(null)}>
-        <div class="dialog-title">${heading}</div>
+      <ha-dialog open .headerTitle=${headerTitle(heading)} @closed=${() => this._finish(null)}>
+        ${titleLine(heading)}
         <div class="content">
           <div class="count">${t("bulk_n_selected", L).replace("{n}", String(this._count))}</div>
           ${this._mode === "assign" ? this._renderAssign(L) : this._mode === "labels" ? this._renderLabels(L) : this._renderEdit(L)}

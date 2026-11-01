@@ -582,7 +582,8 @@
           "advanced_checklists_visible": "Listy kontrolne",
           "advanced_schedule_time_visible": "Harmonogram z porą dnia",
           "advanced_completion_actions_visible": "Akcje po zakończeniu",
-          "advanced_places_visible": "Miejsca"
+          "advanced_places_visible": "Miejsca",
+          "advanced_beta_editor_visible": "Nowy wygląd i edytor zadań"
         },
         "data_description": {
           "advanced_adaptive_visible": "Pokaż EWA, analizę Weibulla i sugestie interwałów dla zadań.",
@@ -593,7 +594,8 @@
           "advanced_checklists_visible": "Pokaż listy kontrolne zadań do realizacji krok po kroku.",
           "advanced_schedule_time_visible": "Zezwalaj zadaniom stać się przeterminowanymi o określonej porze dnia zamiast o północy.",
           "advanced_completion_actions_visible": "Akcja HA per zadanie po zakończeniu + QR szybkiego zakończenia z predefiniowanymi wartościami.",
-          "advanced_places_visible": "Obiekty w innym miejscu (strefa Home Assistant): przypomnienia tylko wtedy, gdy ktoś tam jest, i wiadomość po przybyciu."
+          "advanced_places_visible": "Obiekty w innym miejscu (strefa Home Assistant): przypomnienia tylko wtedy, gdy ktoś tam jest, i wiadomość po przybyciu.",
+          "advanced_beta_editor_visible": "Kontrolki Home Assistant w całym panelu, zadania jako reguły jak w edytorze automatyzacji i śledzenie każdego zadania. Domyślnie włączone; wyłącz, aby wrócić do klasycznego wyglądu."
         }
       },
       "panel_access": {

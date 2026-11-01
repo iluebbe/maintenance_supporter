@@ -12,6 +12,8 @@ import type {
   MaintenanceGroup,
   MaintenanceObjectResponse,
 } from "../types";
+import { headerTitle, titleLine } from "../helpers/beta-ui";
+import { notice } from "../helpers/notice";
 
 export class MaintenanceGroupDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -108,10 +110,10 @@ export class MaintenanceGroupDialog extends LitElement {
 
     // Our own title element: Home Assistant's dialog draws no `heading`.
     return html`
-      <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${title}</div>
+      <ha-dialog open .headerTitle=${headerTitle(title)} @closed=${this._close}>
+        ${titleLine(title)}
         <div class="content">
-          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+          ${this._error ? notice("error", this._error) : nothing}
           <ms-textfield
             label="${t("name", L)}"
             required
@@ -208,7 +210,7 @@ export class MaintenanceGroupDialog extends LitElement {
     .objects { display: flex; flex-direction: column; gap: 8px; }
     .object-block {
       border: 1px solid var(--divider-color);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       padding: 8px;
     }
     .object-name {

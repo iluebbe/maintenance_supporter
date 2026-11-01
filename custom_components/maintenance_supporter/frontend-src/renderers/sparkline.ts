@@ -11,18 +11,23 @@
  * - everything else plots the raw series.
  */
 
-import { html, nothing } from "lit";
+import { html, nothing, svg } from "lit";
 import { t, fireMoreInfo, formatDueDays } from "../styles";
-import { fmtNum, fmtVal } from "./chart-utils";
+import { fmtNum, fmtVal, px } from "./chart-utils";
 import { dueDaysOf } from "./progress";
 import { stampMs } from "../helpers/ha-time";
 import { primaryTriggerEntity, triggerEntityIds } from "../helpers/trigger-entities";
+import { betaUi } from "../helpers/beta-ui";
+import { conditionText } from "../helpers/task-rules";
 import "../components/trigger-chart";
 import type { ChartPoint, ChartEvent } from "../components/trigger-chart";
-import type { MaintenanceTask, TriggerConfig, StatisticsPoint } from "../types";
+import type { HomeAssistant, MaintenanceTask, TriggerConfig, StatisticsPoint } from "../types";
 
 export interface SparklineContext {
   lang: string;
+  /** The beta UI's sensor rows read the live states through it (HA's state
+   *  formatting, the state badge, more-info). */
+  hass?: HomeAssistant;
   detailStatsData: Map<string, StatisticsPoint[]>;
   hasStatsService: boolean;
   /** #141: entities whose series is recorder STATE HISTORY (no long-term
@@ -154,6 +159,7 @@ export function filterOutliers(points: ChartPoint[]): ChartPoint[] {
 export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContext) {
   const tc = task.trigger_config;
   if (!tc) return nothing;
+  if (betaUi()) return renderSensorRule(task, ctx);
   const L = ctx.lang;
   const info = task.trigger_entity_info;
   const infos = task.trigger_entity_infos;
@@ -230,6 +236,158 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
       ` : nothing}
 
       ${renderChart(task, unit, ctx)}
+    </div>
+  `;
+}
+
+/** One sensor of the rule: the entity and the condition it answers. */
+interface RuleSensor {
+  entityId: string;
+  cond: TriggerConfig;
+}
+
+/** The sensors a rule watches, one row each: every entity of a single or
+ *  multi-entity rule with the rule's condition, every entity of every
+ *  condition of a compound with that condition's. */
+export function ruleSensors(tc: TriggerConfig): RuleSensor[] {
+  if (tc.type === "compound") {
+    return (tc.conditions || []).flatMap((c) => triggerEntityIds(c).map((entityId) => ({ entityId, cond: c })));
+  }
+  return triggerEntityIds(tc).map((entityId) => ({ entityId, cond: tc }));
+}
+
+/** Home Assistant's own way into a sensor's past: its history page. */
+function openHistory(ev: Event, entityIds: string[]): void {
+  ev.preventDefault();
+  history.pushState(null, "", `/history?entity_id=${entityIds.map(encodeURIComponent).join(",")}`);
+  window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));
+}
+
+const TREND_W = 88;
+const TREND_H = 28;
+const TREND_POINTS = 48;
+
+/** A sensor's recent course as a small line, like the trend graph a Home
+ *  Assistant tile can show: the statistics the page loaded for it, thinned
+ *  to a few dozen points, the condition's limit dashed across when it lies
+ *  near the line (the scale takes it in), the line red once its last value
+ *  is past the limit. Nothing without two points (a text sensor has no
+ *  statistics). */
+export function renderSensorTrend(stats: StatisticsPoint[] | undefined, cond: TriggerConfig, live: number | null = null) {
+  if (!stats || stats.length < 2) return nothing;
+  // The statistics end at the last full hour; the line ends where the state
+  // next to it stands, and "past the limit" is judged on that.
+  const points = live !== null && Number.isFinite(live) && stats[stats.length - 1].ts < Date.now()
+    ? [...stats, { ts: Date.now(), val: live }]
+    : stats;
+  const step = Math.max(1, Math.ceil(points.length / TREND_POINTS));
+  const thin: StatisticsPoint[] = [];
+  for (let i = 0; i < points.length; i += step) thin.push(points[i]);
+  if (thin[thin.length - 1] !== points[points.length - 1]) thin.push(points[points.length - 1]);
+  const limits = (cond.type || "threshold") === "threshold"
+    ? [cond.trigger_above, cond.trigger_below].filter((v): v is number => typeof v === "number")
+    : [];
+  const vals = thin.map((p) => p.val);
+  let lo = Math.min(...vals);
+  let hi = Math.max(...vals);
+  const span0 = hi - lo || Math.abs(hi) || 1;
+  // A limit far off the line would flatten it; within two spans it is drawn.
+  const shown = limits.filter((l) => l >= lo - 2 * span0 && l <= hi + 2 * span0);
+  for (const l of shown) { lo = Math.min(lo, l); hi = Math.max(hi, l); }
+  const span = hi - lo || 1;
+  const t0 = thin[0].ts;
+  const t1 = thin[thin.length - 1].ts;
+  const x = (ts: number) => (t1 === t0 ? 0 : ((ts - t0) / (t1 - t0)) * (TREND_W - 2) + 1);
+  const y = (v: number) => TREND_H - 2 - ((v - lo) / span) * (TREND_H - 4);
+  const line = thin.map((p, i) => `${i ? "L" : "M"}${px(x(p.ts))},${px(y(p.val))}`).join(" ");
+  const last = thin[thin.length - 1].val;
+  const past = (cond.trigger_above != null && last > cond.trigger_above) || (cond.trigger_below != null && last < cond.trigger_below);
+  return html`<svg class="sensor-trend ${past ? "past" : ""}" viewBox="0 0 ${TREND_W} ${TREND_H}" width=${TREND_W} height=${TREND_H}
+    preserveAspectRatio="none" aria-hidden="true">
+    ${shown.map((l) => svg`<line class="sensor-trend-limit" x1="0" x2=${TREND_W} y1=${px(y(l))} y2=${px(y(l))}></line>`)}
+    <path class="sensor-trend-area" d=${`${line} L${px(x(t1))},${TREND_H} L${px(x(t0))},${TREND_H} Z`}></path>
+    <path class="sensor-trend-line" d=${line}></path>
+  </svg>`;
+}
+
+/** A sensor as Home Assistant's entities card shows one: its state badge,
+ *  its name with the rule's condition below, its state as HA formats it.
+ *  A tap opens HA's more-info, as everywhere in HA. No entity ids — those
+ *  belong to the settings, not to a task page. */
+function renderSensorRow(s: RuleSensor, ctx: SparklineContext, task: MaintenanceTask) {
+  const L = ctx.lang;
+  const hass = ctx.hass;
+  const so = hass?.states?.[s.entityId];
+  const info = (task.trigger_entity_infos || []).find((i) => i.entity_id === s.entityId)
+    ?? (task.trigger_entity_info?.entity_id === s.entityId ? task.trigger_entity_info : undefined);
+  const unit = (so?.attributes?.unit_of_measurement as string | undefined) ?? info?.unit_of_measurement ?? "";
+  const name = (so?.attributes?.friendly_name as string | undefined) || info?.friendly_name || s.entityId;
+  const h = hass as (HomeAssistant & {
+    formatEntityState?: (so: unknown) => string;
+    formatEntityAttributeValue?: (so: unknown, attr: string) => string;
+  }) | undefined;
+  let state = "—";
+  if (so) {
+    if (s.cond.attribute) {
+      state = h?.formatEntityAttributeValue?.(so, s.cond.attribute) ?? String(so.attributes?.[s.cond.attribute] ?? "—");
+    } else {
+      state = h?.formatEntityState?.(so) ?? `${so.state}${unit ? ` ${unit}` : ""}`;
+    }
+  }
+  const open = (ev: Event) => fireMoreInfo(ev, s.entityId);
+  return html`
+    <div class="sensor-row" role="button" tabindex="0" data-entity=${s.entityId} title=${name}
+      @click=${open}
+      @keydown=${(ev: KeyboardEvent) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); open(ev); } }}>
+      ${so && customElements.get("state-badge")
+        ? html`<state-badge class="sensor-badge" .hass=${hass} .stateObj=${so} stateColor></state-badge>`
+        : html`<ha-icon class="sensor-badge" icon=${(so?.attributes?.icon as string | undefined) || "mdi:eye"}></ha-icon>`}
+      <div class="sensor-info">
+        <div class="sensor-name">${name}</div>
+        <div class="sensor-cond">${conditionText(s.cond, unit, L)}</div>
+      </div>
+      ${renderSensorTrend(ctx.detailStatsData.get(s.entityId), s.cond, so ? parseFloat(String(s.cond.attribute ? so.attributes?.[s.cond.attribute] : so.state)) : null)}
+      <div class="sensor-state">${state}</div>
+    </div>
+  `;
+}
+
+/** The beta UI's trigger section: the sensor rule as a Home Assistant card
+ *  — its title and state, one entities-card row per sensor (the condition
+ *  under the name, HA's formatted state on the right, a tap for more-info),
+ *  the progress where the rule counts, the chart, and "Show more" into HA's
+ *  history of the rule's sensors, like the more-info dialog's. */
+function renderSensorRule(task: MaintenanceTask, ctx: SparklineContext) {
+  const tc = task.trigger_config!;
+  const L = ctx.lang;
+  const sensors = ruleSensors(tc);
+  const ids = [...new Set(sensors.map((s) => s.entityId))];
+  const primary = primaryTriggerEntity(tc) || "";
+  const unit = (ctx.hass?.states?.[primary]?.attributes?.unit_of_measurement as string | undefined) ?? task.trigger_entity_info?.unit_of_measurement ?? "";
+  const spec = progressSpec(task, unit, ctx);
+  const many = tc.type === "compound" ? (tc.conditions || []).length : ids.length;
+  const all = tc.type === "compound" ? (tc.compound_logic || "AND") === "AND" : tc.entity_logic === "all";
+  const subtitle = many > 1 ? t(all ? "beta_rules_all_of" : "beta_rules_any_of", L).split("{n}").join(String(many)) : "";
+  return html`
+    <div class="trigger-card sensor-rule">
+      <div class="sensor-rule-head">
+        <div class="sensor-rule-title">
+          <span>${t("beta_sensor_rule", L)}</span>
+          ${subtitle ? html`<span class="sensor-rule-sub">${subtitle}</span>` : nothing}
+        </div>
+        <span class="status-badge ${task.trigger_active ? "triggered" : "ok"}">
+          ${task.trigger_active ? t("triggered", L) : t("ok", L)}
+        </span>
+      </div>
+      <div class="sensor-rows">${sensors.map((s) => renderSensorRow(s, ctx, task))}</div>
+      ${spec ? renderProgress(spec, L) : nothing}
+      ${renderChart(task, unit, ctx)}
+      ${ids.length
+        ? html`<div class="sensor-rule-foot">
+            <a class="sensor-rule-more" href=${`/history?entity_id=${ids.map(encodeURIComponent).join(",")}`}
+              @click=${(ev: Event) => openHistory(ev, ids)}>${t("beta_show_history", L)}</a>
+          </div>`
+        : nothing}
     </div>
   `;
 }
@@ -410,6 +568,11 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
   // say so instead of letting the thin chart look broken.
   const statsFetchedEmpty =
     !!entityId && ctx.detailStatsData.has(entityId) && (ctx.detailStatsData.get(entityId)?.length ?? 0) < 2;
+  // The beta UI draws no line for a state change that has neither
+  // statistics nor recorder history: the values noted at completions are
+  // not the sensor (a straight 1 → 0 across a year); "Show more" opens HA's
+  // own history of it instead.
+  if (betaUi() && triggerType === "state_change" && statsFetchedEmpty && !(entityId && ctx.historyFallbackIds?.has(entityId))) return nothing;
 
   // The history fallback can span years; honor the selected window when enough
   // points remain (never crop below a drawable series).

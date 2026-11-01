@@ -36,7 +36,7 @@ export const sectionCardSharedStyles = css`
   /* Button family — primary action / muted-saved-state / link / icon-with-text */
   .btn {
     padding: 6px 12px; font-size: 13px;
-    border-radius: 6px; cursor: pointer;
+    border-radius: var(--ms-radius-6, 6px); cursor: pointer;
     border: 1px solid var(--divider-color);
     background: var(--secondary-background-color, transparent);
     color: var(--primary-text-color);
@@ -66,7 +66,7 @@ export const sectionCardSharedStyles = css`
 
   /* Error + loading states */
   .error {
-    padding: 8px; border-radius: 6px;
+    padding: 8px; border-radius: var(--ms-radius-6, 6px);
     background: rgba(211, 47, 47, 0.1);
     color: var(--error-color, #d32f2f); font-size: 13px;
   }

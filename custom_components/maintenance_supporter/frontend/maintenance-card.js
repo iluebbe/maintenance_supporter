@@ -1,9 +1,9 @@
-/*! maintenance_supporter frontend 2.115.0 */
-var ks=Object.defineProperty;var Ya=Object.getOwnPropertyDescriptor;var y=(r,s,e)=>()=>{if(e)throw e[0];try{return r&&(s=r(r=0)),s}catch(t){throw e=[t],t}};var Qa=(r,s)=>{for(var e in s)ks(r,e,{get:s[e],enumerable:!0})};var d=(r,s,e,t)=>{for(var i=t>1?void 0:t?Ya(s,e):s,o=r.length-1,a;o>=0;o--)(a=r[o])&&(i=(t?a(s,e,i):a(i))||i);return t&&i&&ks(s,e,i),i};var ti,ii,er,$s,Et,Es,$,Ss,tr,ir=y(()=>{ti=globalThis,ii=ti.ShadowRoot&&(ti.ShadyCSS===void 0||ti.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,er=Symbol(),$s=new WeakMap,Et=class{constructor(s,e,t){if(this._$cssResult$=!0,t!==er)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=s,this.t=e}get styleSheet(){let s=this.o,e=this.t;if(ii&&s===void 0){let t=e!==void 0&&e.length===1;t&&(s=$s.get(e)),s===void 0&&((this.o=s=new CSSStyleSheet).replaceSync(this.cssText),t&&$s.set(e,s))}return s}toString(){return this.cssText}},Es=r=>new Et(typeof r=="string"?r:r+"",void 0,er),$=(r,...s)=>{let e=r.length===1?r[0]:s.reduce((t,i,o)=>t+(a=>{if(a._$cssResult$===!0)return a.cssText;if(typeof a=="number")return a;throw Error("Value passed to 'css' function must be a 'css' function result: "+a+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+r[o+1],r[0]);return new Et(e,r,er)},Ss=(r,s)=>{if(ii)r.adoptedStyleSheets=s.map(e=>e instanceof CSSStyleSheet?e:e.styleSheet);else for(let e of s){let t=document.createElement("style"),i=ti.litNonce;i!==void 0&&t.setAttribute("nonce",i),t.textContent=e.cssText,r.appendChild(t)}},tr=ii?r=>r:r=>r instanceof CSSStyleSheet?(s=>{let e="";for(let t of s.cssRules)e+=t.cssText;return Es(e)})(r):r});var Za,Ja,Xa,el,tl,il,ri,Ts,rl,sl,St,Tt,si,As,ue,At=y(()=>{ir();ir();({is:Za,defineProperty:Ja,getOwnPropertyDescriptor:Xa,getOwnPropertyNames:el,getOwnPropertySymbols:tl,getPrototypeOf:il}=Object),ri=globalThis,Ts=ri.trustedTypes,rl=Ts?Ts.emptyScript:"",sl=ri.reactiveElementPolyfillSupport,St=(r,s)=>r,Tt={toAttribute(r,s){switch(s){case Boolean:r=r?rl:null;break;case Object:case Array:r=r==null?r:JSON.stringify(r)}return r},fromAttribute(r,s){let e=r;switch(s){case Boolean:e=r!==null;break;case Number:e=r===null?null:Number(r);break;case Object:case Array:try{e=JSON.parse(r)}catch{e=null}}return e}},si=(r,s)=>!Za(r,s),As={attribute:!0,type:String,converter:Tt,reflect:!1,useDefault:!1,hasChanged:si};Symbol.metadata??=Symbol("metadata"),ri.litPropertyMetadata??=new WeakMap;ue=class extends HTMLElement{static addInitializer(s){this._$Ei(),(this.l??=[]).push(s)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(s,e=As){if(e.state&&(e.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(s)&&((e=Object.create(e)).wrapped=!0),this.elementProperties.set(s,e),!e.noAccessor){let t=Symbol(),i=this.getPropertyDescriptor(s,t,e);i!==void 0&&Ja(this.prototype,s,i)}}static getPropertyDescriptor(s,e,t){let{get:i,set:o}=Xa(this.prototype,s)??{get(){return this[e]},set(a){this[e]=a}};return{get:i,set(a){let c=i?.call(this);o?.call(this,a),this.requestUpdate(s,c,t)},configurable:!0,enumerable:!0}}static getPropertyOptions(s){return this.elementProperties.get(s)??As}static _$Ei(){if(this.hasOwnProperty(St("elementProperties")))return;let s=il(this);s.finalize(),s.l!==void 0&&(this.l=[...s.l]),this.elementProperties=new Map(s.elementProperties)}static finalize(){if(this.hasOwnProperty(St("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(St("properties"))){let e=this.properties,t=[...el(e),...tl(e)];for(let i of t)this.createProperty(i,e[i])}let s=this[Symbol.metadata];if(s!==null){let e=litPropertyMetadata.get(s);if(e!==void 0)for(let[t,i]of e)this.elementProperties.set(t,i)}this._$Eh=new Map;for(let[e,t]of this.elementProperties){let i=this._$Eu(e,t);i!==void 0&&this._$Eh.set(i,e)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(s){let e=[];if(Array.isArray(s)){let t=new Set(s.flat(1/0).reverse());for(let i of t)e.unshift(tr(i))}else s!==void 0&&e.push(tr(s));return e}static _$Eu(s,e){let t=e.attribute;return t===!1?void 0:typeof t=="string"?t:typeof s=="string"?s.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(s=>this.enableUpdating=s),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(s=>s(this))}addController(s){(this._$EO??=new Set).add(s),this.renderRoot!==void 0&&this.isConnected&&s.hostConnected?.()}removeController(s){this._$EO?.delete(s)}_$E_(){let s=new Map,e=this.constructor.elementProperties;for(let t of e.keys())this.hasOwnProperty(t)&&(s.set(t,this[t]),delete this[t]);s.size>0&&(this._$Ep=s)}createRenderRoot(){let s=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return Ss(s,this.constructor.elementStyles),s}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(s=>s.hostConnected?.())}enableUpdating(s){}disconnectedCallback(){this._$EO?.forEach(s=>s.hostDisconnected?.())}attributeChangedCallback(s,e,t){this._$AK(s,t)}_$ET(s,e){let t=this.constructor.elementProperties.get(s),i=this.constructor._$Eu(s,t);if(i!==void 0&&t.reflect===!0){let o=(t.converter?.toAttribute!==void 0?t.converter:Tt).toAttribute(e,t.type);this._$Em=s,o==null?this.removeAttribute(i):this.setAttribute(i,o),this._$Em=null}}_$AK(s,e){let t=this.constructor,i=t._$Eh.get(s);if(i!==void 0&&this._$Em!==i){let o=t.getPropertyOptions(i),a=typeof o.converter=="function"?{fromAttribute:o.converter}:o.converter?.fromAttribute!==void 0?o.converter:Tt;this._$Em=i;let c=a.fromAttribute(e,o.type);this[i]=c??this._$Ej?.get(i)??c,this._$Em=null}}requestUpdate(s,e,t,i=!1,o){if(s!==void 0){let a=this.constructor;if(i===!1&&(o=this[s]),t??=a.getPropertyOptions(s),!((t.hasChanged??si)(o,e)||t.useDefault&&t.reflect&&o===this._$Ej?.get(s)&&!this.hasAttribute(a._$Eu(s,t))))return;this.C(s,e,t)}this.isUpdatePending===!1&&(this._$ES=this._$EP())}C(s,e,{useDefault:t,reflect:i,wrapped:o},a){t&&!(this._$Ej??=new Map).has(s)&&(this._$Ej.set(s,a??e??this[s]),o!==!0||a!==void 0)||(this._$AL.has(s)||(this.hasUpdated||t||(e=void 0),this._$AL.set(s,e)),i===!0&&this._$Em!==s&&(this._$Eq??=new Set).add(s))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(e){Promise.reject(e)}let s=this.scheduleUpdate();return s!=null&&await s,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(let[i,o]of this._$Ep)this[i]=o;this._$Ep=void 0}let t=this.constructor.elementProperties;if(t.size>0)for(let[i,o]of t){let{wrapped:a}=o,c=this[i];a!==!0||this._$AL.has(i)||c===void 0||this.C(i,void 0,o,c)}}let s=!1,e=this._$AL;try{s=this.shouldUpdate(e),s?(this.willUpdate(e),this._$EO?.forEach(t=>t.hostUpdate?.()),this.update(e)):this._$EM()}catch(t){throw s=!1,this._$EM(),t}s&&this._$AE(e)}willUpdate(s){}_$AE(s){this._$EO?.forEach(e=>e.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(s)),this.updated(s)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(s){return!0}update(s){this._$Eq&&=this._$Eq.forEach(e=>this._$ET(e,this[e])),this._$EM()}updated(s){}firstUpdated(s){}};ue.elementStyles=[],ue.shadowRootOptions={mode:"open"},ue[St("elementProperties")]=new Map,ue[St("finalized")]=new Map,sl?.({ReactiveElement:ue}),(ri.reactiveElementVersions??=[]).push("2.1.2")});function Hs(r,s){if(!ar(r)||!r.hasOwnProperty("raw"))throw Error("invalid template strings array");return Rs!==void 0?Rs.createHTML(s):s}function He(r,s,e=r,t){if(s===Me)return s;let i=t!==void 0?e._$Co?.[t]:e._$Cl,o=It(s)?void 0:s._$litDirective$;return i?.constructor!==o&&(i?._$AO?.(!1),o===void 0?i=void 0:(i=new o(r),i._$AT(r,e,t)),t!==void 0?(e._$Co??=[])[t]=i:e._$Cl=i),i!==void 0&&(s=He(r,i._$AS(r,s.values),i,t)),s}var sr,Cs,ni,Rs,nr,he,or,nl,qe,Rt,It,ar,qs,rr,Ct,Is,Ps,je,Os,js,Ms,lr,l,Ze,fd,Me,p,Ns,Ne,Ls,Pt,oi,Qe,Le,ai,li,ci,di,Ds,ol,zs,Je=y(()=>{sr=globalThis,Cs=r=>r,ni=sr.trustedTypes,Rs=ni?ni.createPolicy("lit-html",{createHTML:r=>r}):void 0,nr="$lit$",he=`lit$${Math.random().toFixed(9).slice(2)}$`,or="?"+he,nl=`<${or}>`,qe=document,Rt=()=>qe.createComment(""),It=r=>r===null||typeof r!="object"&&typeof r!="function",ar=Array.isArray,qs=r=>ar(r)||typeof r?.[Symbol.iterator]=="function",rr=`[ 	
-\f\r]`,Ct=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,Is=/-->/g,Ps=/>/g,je=RegExp(`>|${rr}(?:([^\\s"'>=/]+)(${rr}*=${rr}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`,"g"),Os=/'/g,js=/"/g,Ms=/^(?:script|style|textarea|title)$/i,lr=r=>(s,...e)=>({_$litType$:r,strings:s,values:e}),l=lr(1),Ze=lr(2),fd=lr(3),Me=Symbol.for("lit-noChange"),p=Symbol.for("lit-nothing"),Ns=new WeakMap,Ne=qe.createTreeWalker(qe,129);Ls=(r,s)=>{let e=r.length-1,t=[],i,o=s===2?"<svg>":s===3?"<math>":"",a=Ct;for(let c=0;c<e;c++){let u=r[c],_,m,f=-1,x=0;for(;x<u.length&&(a.lastIndex=x,m=a.exec(u),m!==null);)x=a.lastIndex,a===Ct?m[1]==="!--"?a=Is:m[1]!==void 0?a=Ps:m[2]!==void 0?(Ms.test(m[2])&&(i=RegExp("</"+m[2],"g")),a=je):m[3]!==void 0&&(a=je):a===je?m[0]===">"?(a=i??Ct,f=-1):m[1]===void 0?f=-2:(f=a.lastIndex-m[2].length,_=m[1],a=m[3]===void 0?je:m[3]==='"'?js:Os):a===js||a===Os?a=je:a===Is||a===Ps?a=Ct:(a=je,i=void 0);let w=a===je&&r[c+1].startsWith("/>")?" ":"";o+=a===Ct?u+nl:f>=0?(t.push(_),u.slice(0,f)+nr+u.slice(f)+he+w):u+he+(f===-2?c:w)}return[Hs(r,o+(r[e]||"<?>")+(s===2?"</svg>":s===3?"</math>":"")),t]},Pt=class r{constructor({strings:s,_$litType$:e},t){let i;this.parts=[];let o=0,a=0,c=s.length-1,u=this.parts,[_,m]=Ls(s,e);if(this.el=r.createElement(_,t),Ne.currentNode=this.el.content,e===2||e===3){let f=this.el.content.firstChild;f.replaceWith(...f.childNodes)}for(;(i=Ne.nextNode())!==null&&u.length<c;){if(i.nodeType===1){if(i.hasAttributes())for(let f of i.getAttributeNames())if(f.endsWith(nr)){let x=m[a++],w=i.getAttribute(f).split(he),R=/([.?@])?(.*)/.exec(x);u.push({type:1,index:o,name:R[2],strings:w,ctor:R[1]==="."?ai:R[1]==="?"?li:R[1]==="@"?ci:Le}),i.removeAttribute(f)}else f.startsWith(he)&&(u.push({type:6,index:o}),i.removeAttribute(f));if(Ms.test(i.tagName)){let f=i.textContent.split(he),x=f.length-1;if(x>0){i.textContent=ni?ni.emptyScript:"";for(let w=0;w<x;w++)i.append(f[w],Rt()),Ne.nextNode(),u.push({type:2,index:++o});i.append(f[x],Rt())}}}else if(i.nodeType===8)if(i.data===or)u.push({type:2,index:o});else{let f=-1;for(;(f=i.data.indexOf(he,f+1))!==-1;)u.push({type:7,index:o}),f+=he.length-1}o++}}static createElement(s,e){let t=qe.createElement("template");return t.innerHTML=s,t}};oi=class{constructor(s,e){this._$AV=[],this._$AN=void 0,this._$AD=s,this._$AM=e}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(s){let{el:{content:e},parts:t}=this._$AD,i=(s?.creationScope??qe).importNode(e,!0);Ne.currentNode=i;let o=Ne.nextNode(),a=0,c=0,u=t[0];for(;u!==void 0;){if(a===u.index){let _;u.type===2?_=new Qe(o,o.nextSibling,this,s):u.type===1?_=new u.ctor(o,u.name,u.strings,this,s):u.type===6&&(_=new di(o,this,s)),this._$AV.push(_),u=t[++c]}a!==u?.index&&(o=Ne.nextNode(),a++)}return Ne.currentNode=qe,i}p(s){let e=0;for(let t of this._$AV)t!==void 0&&(t.strings!==void 0?(t._$AI(s,t,e),e+=t.strings.length-2):t._$AI(s[e])),e++}},Qe=class r{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(s,e,t,i){this.type=2,this._$AH=p,this._$AN=void 0,this._$AA=s,this._$AB=e,this._$AM=t,this.options=i,this._$Cv=i?.isConnected??!0}get parentNode(){let s=this._$AA.parentNode,e=this._$AM;return e!==void 0&&s?.nodeType===11&&(s=e.parentNode),s}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(s,e=this){s=He(this,s,e),It(s)?s===p||s==null||s===""?(this._$AH!==p&&this._$AR(),this._$AH=p):s!==this._$AH&&s!==Me&&this._(s):s._$litType$!==void 0?this.$(s):s.nodeType!==void 0?this.T(s):qs(s)?this.k(s):this._(s)}O(s){return this._$AA.parentNode.insertBefore(s,this._$AB)}T(s){this._$AH!==s&&(this._$AR(),this._$AH=this.O(s))}_(s){this._$AH!==p&&It(this._$AH)?this._$AA.nextSibling.data=s:this.T(qe.createTextNode(s)),this._$AH=s}$(s){let{values:e,_$litType$:t}=s,i=typeof t=="number"?this._$AC(s):(t.el===void 0&&(t.el=Pt.createElement(Hs(t.h,t.h[0]),this.options)),t);if(this._$AH?._$AD===i)this._$AH.p(e);else{let o=new oi(i,this),a=o.u(this.options);o.p(e),this.T(a),this._$AH=o}}_$AC(s){let e=Ns.get(s.strings);return e===void 0&&Ns.set(s.strings,e=new Pt(s)),e}k(s){ar(this._$AH)||(this._$AH=[],this._$AR());let e=this._$AH,t,i=0;for(let o of s)i===e.length?e.push(t=new r(this.O(Rt()),this.O(Rt()),this,this.options)):t=e[i],t._$AI(o),i++;i<e.length&&(this._$AR(t&&t._$AB.nextSibling,i),e.length=i)}_$AR(s=this._$AA.nextSibling,e){for(this._$AP?.(!1,!0,e);s!==this._$AB;){let t=Cs(s).nextSibling;Cs(s).remove(),s=t}}setConnected(s){this._$AM===void 0&&(this._$Cv=s,this._$AP?.(s))}},Le=class{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(s,e,t,i,o){this.type=1,this._$AH=p,this._$AN=void 0,this.element=s,this.name=e,this._$AM=i,this.options=o,t.length>2||t[0]!==""||t[1]!==""?(this._$AH=Array(t.length-1).fill(new String),this.strings=t):this._$AH=p}_$AI(s,e=this,t,i){let o=this.strings,a=!1;if(o===void 0)s=He(this,s,e,0),a=!It(s)||s!==this._$AH&&s!==Me,a&&(this._$AH=s);else{let c=s,u,_;for(s=o[0],u=0;u<o.length-1;u++)_=He(this,c[t+u],e,u),_===Me&&(_=this._$AH[u]),a||=!It(_)||_!==this._$AH[u],_===p?s=p:s!==p&&(s+=(_??"")+o[u+1]),this._$AH[u]=_}a&&!i&&this.j(s)}j(s){s===p?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,s??"")}},ai=class extends Le{constructor(){super(...arguments),this.type=3}j(s){this.element[this.name]=s===p?void 0:s}},li=class extends Le{constructor(){super(...arguments),this.type=4}j(s){this.element.toggleAttribute(this.name,!!s&&s!==p)}},ci=class extends Le{constructor(s,e,t,i,o){super(s,e,t,i,o),this.type=5}_$AI(s,e=this){if((s=He(this,s,e,0)??p)===Me)return;let t=this._$AH,i=s===p&&t!==p||s.capture!==t.capture||s.once!==t.once||s.passive!==t.passive,o=s!==p&&(t===p||i);i&&this.element.removeEventListener(this.name,this,t),o&&this.element.addEventListener(this.name,this,s),this._$AH=s}handleEvent(s){typeof this._$AH=="function"?this._$AH.call(this.options?.host??this.element,s):this._$AH.handleEvent(s)}},di=class{constructor(s,e,t){this.element=s,this.type=6,this._$AN=void 0,this._$AM=e,this.options=t}get _$AU(){return this._$AM._$AU}_$AI(s){He(this,s)}},Ds={M:nr,P:he,A:or,C:1,L:Ls,R:oi,D:qs,V:He,I:Qe,H:Le,N:li,U:ci,B:ai,F:di},ol=sr.litHtmlPolyfillSupport;ol?.(Pt,Qe),(sr.litHtmlVersions??=[]).push("3.3.2");zs=(r,s,e)=>{let t=e?.renderBefore??s,i=t._$litPart$;if(i===void 0){let o=e?.renderBefore??null;t._$litPart$=i=new Qe(s.insertBefore(Rt(),o),o,void 0,e??{})}return i._$AI(r),i}});var cr,S,al,Fs=y(()=>{At();At();Je();Je();cr=globalThis,S=class extends ue{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){let s=super.createRenderRoot();return this.renderOptions.renderBefore??=s.firstChild,s}update(s){let e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(s),this._$Do=zs(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return Me}};S._$litElement$=!0,S.finalized=!0,cr.litElementHydrateSupport?.({LitElement:S});al=cr.litElementPolyfillSupport;al?.({LitElement:S});(cr.litElementVersions??=[]).push("4.2.2")});var Us=y(()=>{});var O=y(()=>{At();Je();Fs();Us()});var Gs,Vs=y(()=>{Gs={maintenance:"Maintenance",objects:"Objects",tasks:"Tasks",overdue:"Overdue",due_soon:"Due Soon",triggered:"Triggered",trigger_replaced:"Trigger replaced",trigger_removed:"Trigger removed",ok:"OK",all:"All",new_object:"+ New Object",templates_from:"From template",templates_title:"Start from a template",templates_task_count:"{n} tasks",templates_task_count_one:"1 task",template_created:"Created from template",onboard_hint:"Add your first object to start tracking maintenance.",edit:"Edit",duplicate:"Duplicate",task_duplicated:"Task duplicated",task_moved:"Task moved",move_task_target:"Target object",move_task_message:"Choose the object this task should belong to. Its history, readings and trigger state move with it; it gets a new reference number and its entities are recreated under the new object. Linked documents stay with the current object.",bulk_move_message:"Choose the object the selected tasks should belong to. Tasks that already live there are skipped; history, readings and trigger state move along.",bulk_moved:"{n} tasks moved",more_actions:"More actions",back:"Back",quantity:"Quantity",spare_part:"Spare part",move_task_title:"Move task",move_task:"Move to another object\u2026",object_duplicated:"Object duplicated",delete:"Delete",add_task:"+ Add Task",complete:"Complete",completed:"Completed",skip:"Skip",skipped:"Skipped",missed:"Missed",reset:"Reset",snooze:"Snooze",snoozed:"Snoozed",snoozed_for:"Reminders muted for {hours} hours \u2014 until {until}",snoozed_for_one:"Reminders muted for one hour \u2014 until {until}",cancel:"Cancel",bulk_select:"Select",bulk_select_all:"Select all",bulk_n_selected:"{n} selected",bulk_completed:"{n} tasks completed",bulk_archived:"{n} tasks archived",bulk_delete_objects_confirm:"Delete {n} objects and all their tasks? Archiving keeps their history instead.",bulk_objects_deleted:"{n} objects deleted",bulk_objects_archived:"{n} objects archived",bulk_assign:"Assign",bulk_assign_one:"One person",bulk_assign_share:"Several people, each of them",bulk_assign_rotate:"Several people, in turns",bulk_assign_hint:"Replaces who is assigned to the selected tasks \u2014 a rotation included.",bulk_rotation_min_two:"Pick at least two people.",bulk_labels_add:"Add labels",bulk_labels_remove:"Remove labels",bulk_edit_hint:"Only the ticked settings change; everything else stays as it is.",bulk_no_notifications:"No notifications for these tasks",bulk_updated:"{n} tasks updated",bulk_paused:"{n} tasks paused",bulk_resumed:"{n} tasks resumed",bulk_objects_area:"Area set for {n} objects",bulk_failed:"{n} failed: {reason}",completing:"Completing\u2026",interval:"Interval",warning:"Warning",last_performed:"Last performed",last_done_days_ago:"done {n} d ago",last_done_today:"done today",no_due_date:"No due date",next_due:"Next due",kpi_reported_by_sensor:"Reported by the sensor",days_until_due:"Days until due",avg_duration:"Avg duration",trigger:"Trigger",trigger_type:"Trigger type",threshold_above:"Upper limit",threshold_below:"Lower limit",threshold:"Threshold",counter:"Counter",state_change:"State change",runtime:"Runtime",trigger_type_due_date:"Date from a sensor",runtime_hours:"Target runtime (hours)",days_before:"Days before the date",days_before_help:`For a sensor that reports when the maintenance is due (a date or timestamp). 0 = on the date itself. The device's own "done" button moves the date forward, which clears the trigger \u2014 make it the completion action.`,target_value:"Target value",target_changes:"Target changes",for_minutes:"For (minutes)",time_based:"Time-based",sensor_based:"Sensor-based",manual:"Manual",one_time:"One-time",weekdays:"Weekdays",nth_weekday:"Nth weekday of month",day_of_month:"Day of month",calendar:"Calendar entity",calendar_entity_label:"Calendar",calendar_entity_hint:"Due once per event of this calendar, on the event's start date \u2014 the next event after the last completion.",calendar_entity_required:"Choose a calendar entity.",recurrence_on_days:"Repeat on",recurrence_occurrence:"Occurrence",recurrence_weekday:"Weekday",recurrence_day:"Day of month (1\u201331)",recurrence_last_day:"Last day of the month",recurrence_business_day:"Business days only (roll back from weekend)",recurrence_offset:"Offset (days, \xB1)",recurrence_offset_help:"Shift the date by \xB1N days, e.g. -2 = two days before.",recurrence_months_label:"Only in these months",recurrence_months_hint:"The date repeats in the selected months only; pick one month for a yearly task. None = every month.",last_day_month:"Last day of month",last_business_day_month:"Last business day",ord_1:"1st",ord_2:"2nd",ord_3:"3rd",ord_4:"4th",ord_5:"5th",ord_last:"Last",day_word:"Day",interval_value:"Interval",interval_unit:"Unit",unit_days:"Days",unit_weeks:"Weeks",unit_months:"Months",unit_years:"Years",due_date:"Due date",cleaning:"Cleaning",inspection:"Inspection",replacement:"Replacement",calibration:"Calibration",service:"Service",reading:"Reading",custom:"Custom",history:"History",cost:"Cost",cost_kind_credit:"Credit",cost_credit_hint:"Money back \u2014 a sale, a refund. It lowers the totals; the average per completion leaves it out.",report_button:"Report",report_title:"Maintenance report",report_generated:"Generated",report_times_done:"Done",report_total_cost:"Total cost",report_notes:"Notes",report_col_type:"Type",report_col_status:"Status",report_col_schedule:"Schedule",duration:"Duration",minutes_short:"min",both:"Both",trigger_val:"Trigger value",complete_title:"Complete: ",checklist:"Checklist",require_on_completion:"Require on completion",checklist_steps_optional:"Checklist steps (optional)",checklist_placeholder:`Clean filter
+/*! maintenance_supporter frontend 2.116.0 */
+var ln=Object.defineProperty;var Wl=Object.getOwnPropertyDescriptor;var x=(i,s,e)=>()=>{if(e)throw e[0];try{return i&&(s=i(i=0)),s}catch(t){throw e=[t],t}};var Vl=(i,s)=>{for(var e in s)ln(i,e,{get:s[e],enumerable:!0})};var d=(i,s,e,t)=>{for(var r=t>1?void 0:t?Wl(s,e):s,o=i.length-1,a;o>=0;o--)(a=i[o])&&(r=(t?a(s,e,r):a(r))||r);return t&&r&&ln(s,e,r),r};var Ei,Ti,Ir,cn,Wt,dn,$,pn,Rr,Pr=x(()=>{Ei=globalThis,Ti=Ei.ShadowRoot&&(Ei.ShadyCSS===void 0||Ei.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,Ir=Symbol(),cn=new WeakMap,Wt=class{constructor(s,e,t){if(this._$cssResult$=!0,t!==Ir)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=s,this.t=e}get styleSheet(){let s=this.o,e=this.t;if(Ti&&s===void 0){let t=e!==void 0&&e.length===1;t&&(s=cn.get(e)),s===void 0&&((this.o=s=new CSSStyleSheet).replaceSync(this.cssText),t&&cn.set(e,s))}return s}toString(){return this.cssText}},dn=i=>new Wt(typeof i=="string"?i:i+"",void 0,Ir),$=(i,...s)=>{let e=i.length===1?i[0]:s.reduce((t,r,o)=>t+(a=>{if(a._$cssResult$===!0)return a.cssText;if(typeof a=="number")return a;throw Error("Value passed to 'css' function must be a 'css' function result: "+a+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(r)+i[o+1],i[0]);return new Wt(e,i,Ir)},pn=(i,s)=>{if(Ti)i.adoptedStyleSheets=s.map(e=>e instanceof CSSStyleSheet?e:e.styleSheet);else for(let e of s){let t=document.createElement("style"),r=Ei.litNonce;r!==void 0&&t.setAttribute("nonce",r),t.textContent=e.cssText,i.appendChild(t)}},Rr=Ti?i=>i:i=>i instanceof CSSStyleSheet?(s=>{let e="";for(let t of s.cssRules)e+=t.cssText;return dn(e)})(i):i});var Gl,Kl,Yl,Ql,Zl,Jl,Si,un,Xl,ec,Vt,Gt,Ci,hn,we,Kt=x(()=>{Pr();Pr();({is:Gl,defineProperty:Kl,getOwnPropertyDescriptor:Yl,getOwnPropertyNames:Ql,getOwnPropertySymbols:Zl,getPrototypeOf:Jl}=Object),Si=globalThis,un=Si.trustedTypes,Xl=un?un.emptyScript:"",ec=Si.reactiveElementPolyfillSupport,Vt=(i,s)=>i,Gt={toAttribute(i,s){switch(s){case Boolean:i=i?Xl:null;break;case Object:case Array:i=i==null?i:JSON.stringify(i)}return i},fromAttribute(i,s){let e=i;switch(s){case Boolean:e=i!==null;break;case Number:e=i===null?null:Number(i);break;case Object:case Array:try{e=JSON.parse(i)}catch{e=null}}return e}},Ci=(i,s)=>!Gl(i,s),hn={attribute:!0,type:String,converter:Gt,reflect:!1,useDefault:!1,hasChanged:Ci};Symbol.metadata??=Symbol("metadata"),Si.litPropertyMetadata??=new WeakMap;we=class extends HTMLElement{static addInitializer(s){this._$Ei(),(this.l??=[]).push(s)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(s,e=hn){if(e.state&&(e.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(s)&&((e=Object.create(e)).wrapped=!0),this.elementProperties.set(s,e),!e.noAccessor){let t=Symbol(),r=this.getPropertyDescriptor(s,t,e);r!==void 0&&Kl(this.prototype,s,r)}}static getPropertyDescriptor(s,e,t){let{get:r,set:o}=Yl(this.prototype,s)??{get(){return this[e]},set(a){this[e]=a}};return{get:r,set(a){let c=r?.call(this);o?.call(this,a),this.requestUpdate(s,c,t)},configurable:!0,enumerable:!0}}static getPropertyOptions(s){return this.elementProperties.get(s)??hn}static _$Ei(){if(this.hasOwnProperty(Vt("elementProperties")))return;let s=Jl(this);s.finalize(),s.l!==void 0&&(this.l=[...s.l]),this.elementProperties=new Map(s.elementProperties)}static finalize(){if(this.hasOwnProperty(Vt("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(Vt("properties"))){let e=this.properties,t=[...Ql(e),...Zl(e)];for(let r of t)this.createProperty(r,e[r])}let s=this[Symbol.metadata];if(s!==null){let e=litPropertyMetadata.get(s);if(e!==void 0)for(let[t,r]of e)this.elementProperties.set(t,r)}this._$Eh=new Map;for(let[e,t]of this.elementProperties){let r=this._$Eu(e,t);r!==void 0&&this._$Eh.set(r,e)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(s){let e=[];if(Array.isArray(s)){let t=new Set(s.flat(1/0).reverse());for(let r of t)e.unshift(Rr(r))}else s!==void 0&&e.push(Rr(s));return e}static _$Eu(s,e){let t=e.attribute;return t===!1?void 0:typeof t=="string"?t:typeof s=="string"?s.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(s=>this.enableUpdating=s),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(s=>s(this))}addController(s){(this._$EO??=new Set).add(s),this.renderRoot!==void 0&&this.isConnected&&s.hostConnected?.()}removeController(s){this._$EO?.delete(s)}_$E_(){let s=new Map,e=this.constructor.elementProperties;for(let t of e.keys())this.hasOwnProperty(t)&&(s.set(t,this[t]),delete this[t]);s.size>0&&(this._$Ep=s)}createRenderRoot(){let s=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return pn(s,this.constructor.elementStyles),s}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(s=>s.hostConnected?.())}enableUpdating(s){}disconnectedCallback(){this._$EO?.forEach(s=>s.hostDisconnected?.())}attributeChangedCallback(s,e,t){this._$AK(s,t)}_$ET(s,e){let t=this.constructor.elementProperties.get(s),r=this.constructor._$Eu(s,t);if(r!==void 0&&t.reflect===!0){let o=(t.converter?.toAttribute!==void 0?t.converter:Gt).toAttribute(e,t.type);this._$Em=s,o==null?this.removeAttribute(r):this.setAttribute(r,o),this._$Em=null}}_$AK(s,e){let t=this.constructor,r=t._$Eh.get(s);if(r!==void 0&&this._$Em!==r){let o=t.getPropertyOptions(r),a=typeof o.converter=="function"?{fromAttribute:o.converter}:o.converter?.fromAttribute!==void 0?o.converter:Gt;this._$Em=r;let c=a.fromAttribute(e,o.type);this[r]=c??this._$Ej?.get(r)??c,this._$Em=null}}requestUpdate(s,e,t,r=!1,o){if(s!==void 0){let a=this.constructor;if(r===!1&&(o=this[s]),t??=a.getPropertyOptions(s),!((t.hasChanged??Ci)(o,e)||t.useDefault&&t.reflect&&o===this._$Ej?.get(s)&&!this.hasAttribute(a._$Eu(s,t))))return;this.C(s,e,t)}this.isUpdatePending===!1&&(this._$ES=this._$EP())}C(s,e,{useDefault:t,reflect:r,wrapped:o},a){t&&!(this._$Ej??=new Map).has(s)&&(this._$Ej.set(s,a??e??this[s]),o!==!0||a!==void 0)||(this._$AL.has(s)||(this.hasUpdated||t||(e=void 0),this._$AL.set(s,e)),r===!0&&this._$Em!==s&&(this._$Eq??=new Set).add(s))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(e){Promise.reject(e)}let s=this.scheduleUpdate();return s!=null&&await s,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(let[r,o]of this._$Ep)this[r]=o;this._$Ep=void 0}let t=this.constructor.elementProperties;if(t.size>0)for(let[r,o]of t){let{wrapped:a}=o,c=this[r];a!==!0||this._$AL.has(r)||c===void 0||this.C(r,void 0,o,c)}}let s=!1,e=this._$AL;try{s=this.shouldUpdate(e),s?(this.willUpdate(e),this._$EO?.forEach(t=>t.hostUpdate?.()),this.update(e)):this._$EM()}catch(t){throw s=!1,this._$EM(),t}s&&this._$AE(e)}willUpdate(s){}_$AE(s){this._$EO?.forEach(e=>e.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(s)),this.updated(s)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(s){return!0}update(s){this._$Eq&&=this._$Eq.forEach(e=>this._$ET(e,this[e])),this._$EM()}updated(s){}firstUpdated(s){}};we.elementStyles=[],we.shadowRootOptions={mode:"open"},we[Vt("elementProperties")]=new Map,we[Vt("finalized")]=new Map,ec?.({ReactiveElement:we}),(Si.reactiveElementVersions??=[]).push("2.1.2")});function kn(i,s){if(!Dr(i)||!i.hasOwnProperty("raw"))throw Error("invalid template strings array");return mn!==void 0?mn.createHTML(s):s}function Xe(i,s,e=i,t){if(s===re)return s;let r=t!==void 0?e._$Co?.[t]:e._$Cl,o=Zt(s)?void 0:s._$litDirective$;return r?.constructor!==o&&(r?._$AO?.(!1),o===void 0?r=void 0:(r=new o(i),r._$AT(i,e,t)),t!==void 0?(e._$Co??=[])[t]=r:e._$Cl=r),r!==void 0&&(s=Xe(i,r._$AS(i,s.values),r,t)),s}var Nr,_n,Ai,mn,jr,ke,qr,tc,Je,Qt,Zt,Dr,xn,Or,Yt,gn,fn,Qe,vn,bn,wn,Mr,l,ht,Dp,re,p,yn,Ze,$n,Jt,Ii,ut,et,Ri,Pi,Oi,Ni,En,ic,Tn,tt=x(()=>{Nr=globalThis,_n=i=>i,Ai=Nr.trustedTypes,mn=Ai?Ai.createPolicy("lit-html",{createHTML:i=>i}):void 0,jr="$lit$",ke=`lit$${Math.random().toFixed(9).slice(2)}$`,qr="?"+ke,tc=`<${qr}>`,Je=document,Qt=()=>Je.createComment(""),Zt=i=>i===null||typeof i!="object"&&typeof i!="function",Dr=Array.isArray,xn=i=>Dr(i)||typeof i?.[Symbol.iterator]=="function",Or=`[ 	
+\f\r]`,Yt=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,gn=/-->/g,fn=/>/g,Qe=RegExp(`>|${Or}(?:([^\\s"'>=/]+)(${Or}*=${Or}*(?:[^ 	
+\f\r"'\`<>=]|("|')|))|$)`,"g"),vn=/'/g,bn=/"/g,wn=/^(?:script|style|textarea|title)$/i,Mr=i=>(s,...e)=>({_$litType$:i,strings:s,values:e}),l=Mr(1),ht=Mr(2),Dp=Mr(3),re=Symbol.for("lit-noChange"),p=Symbol.for("lit-nothing"),yn=new WeakMap,Ze=Je.createTreeWalker(Je,129);$n=(i,s)=>{let e=i.length-1,t=[],r,o=s===2?"<svg>":s===3?"<math>":"",a=Yt;for(let c=0;c<e;c++){let u=i[c],_,m,f=-1,v=0;for(;v<u.length&&(a.lastIndex=v,m=a.exec(u),m!==null);)v=a.lastIndex,a===Yt?m[1]==="!--"?a=gn:m[1]!==void 0?a=fn:m[2]!==void 0?(wn.test(m[2])&&(r=RegExp("</"+m[2],"g")),a=Qe):m[3]!==void 0&&(a=Qe):a===Qe?m[0]===">"?(a=r??Yt,f=-1):m[1]===void 0?f=-2:(f=a.lastIndex-m[2].length,_=m[1],a=m[3]===void 0?Qe:m[3]==='"'?bn:vn):a===bn||a===vn?a=Qe:a===gn||a===fn?a=Yt:(a=Qe,r=void 0);let w=a===Qe&&i[c+1].startsWith("/>")?" ":"";o+=a===Yt?u+tc:f>=0?(t.push(_),u.slice(0,f)+jr+u.slice(f)+ke+w):u+ke+(f===-2?c:w)}return[kn(i,o+(i[e]||"<?>")+(s===2?"</svg>":s===3?"</math>":"")),t]},Jt=class i{constructor({strings:s,_$litType$:e},t){let r;this.parts=[];let o=0,a=0,c=s.length-1,u=this.parts,[_,m]=$n(s,e);if(this.el=i.createElement(_,t),Ze.currentNode=this.el.content,e===2||e===3){let f=this.el.content.firstChild;f.replaceWith(...f.childNodes)}for(;(r=Ze.nextNode())!==null&&u.length<c;){if(r.nodeType===1){if(r.hasAttributes())for(let f of r.getAttributeNames())if(f.endsWith(jr)){let v=m[a++],w=r.getAttribute(f).split(ke),A=/([.?@])?(.*)/.exec(v);u.push({type:1,index:o,name:A[2],strings:w,ctor:A[1]==="."?Ri:A[1]==="?"?Pi:A[1]==="@"?Oi:et}),r.removeAttribute(f)}else f.startsWith(ke)&&(u.push({type:6,index:o}),r.removeAttribute(f));if(wn.test(r.tagName)){let f=r.textContent.split(ke),v=f.length-1;if(v>0){r.textContent=Ai?Ai.emptyScript:"";for(let w=0;w<v;w++)r.append(f[w],Qt()),Ze.nextNode(),u.push({type:2,index:++o});r.append(f[v],Qt())}}}else if(r.nodeType===8)if(r.data===qr)u.push({type:2,index:o});else{let f=-1;for(;(f=r.data.indexOf(ke,f+1))!==-1;)u.push({type:7,index:o}),f+=ke.length-1}o++}}static createElement(s,e){let t=Je.createElement("template");return t.innerHTML=s,t}};Ii=class{constructor(s,e){this._$AV=[],this._$AN=void 0,this._$AD=s,this._$AM=e}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(s){let{el:{content:e},parts:t}=this._$AD,r=(s?.creationScope??Je).importNode(e,!0);Ze.currentNode=r;let o=Ze.nextNode(),a=0,c=0,u=t[0];for(;u!==void 0;){if(a===u.index){let _;u.type===2?_=new ut(o,o.nextSibling,this,s):u.type===1?_=new u.ctor(o,u.name,u.strings,this,s):u.type===6&&(_=new Ni(o,this,s)),this._$AV.push(_),u=t[++c]}a!==u?.index&&(o=Ze.nextNode(),a++)}return Ze.currentNode=Je,r}p(s){let e=0;for(let t of this._$AV)t!==void 0&&(t.strings!==void 0?(t._$AI(s,t,e),e+=t.strings.length-2):t._$AI(s[e])),e++}},ut=class i{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(s,e,t,r){this.type=2,this._$AH=p,this._$AN=void 0,this._$AA=s,this._$AB=e,this._$AM=t,this.options=r,this._$Cv=r?.isConnected??!0}get parentNode(){let s=this._$AA.parentNode,e=this._$AM;return e!==void 0&&s?.nodeType===11&&(s=e.parentNode),s}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(s,e=this){s=Xe(this,s,e),Zt(s)?s===p||s==null||s===""?(this._$AH!==p&&this._$AR(),this._$AH=p):s!==this._$AH&&s!==re&&this._(s):s._$litType$!==void 0?this.$(s):s.nodeType!==void 0?this.T(s):xn(s)?this.k(s):this._(s)}O(s){return this._$AA.parentNode.insertBefore(s,this._$AB)}T(s){this._$AH!==s&&(this._$AR(),this._$AH=this.O(s))}_(s){this._$AH!==p&&Zt(this._$AH)?this._$AA.nextSibling.data=s:this.T(Je.createTextNode(s)),this._$AH=s}$(s){let{values:e,_$litType$:t}=s,r=typeof t=="number"?this._$AC(s):(t.el===void 0&&(t.el=Jt.createElement(kn(t.h,t.h[0]),this.options)),t);if(this._$AH?._$AD===r)this._$AH.p(e);else{let o=new Ii(r,this),a=o.u(this.options);o.p(e),this.T(a),this._$AH=o}}_$AC(s){let e=yn.get(s.strings);return e===void 0&&yn.set(s.strings,e=new Jt(s)),e}k(s){Dr(this._$AH)||(this._$AH=[],this._$AR());let e=this._$AH,t,r=0;for(let o of s)r===e.length?e.push(t=new i(this.O(Qt()),this.O(Qt()),this,this.options)):t=e[r],t._$AI(o),r++;r<e.length&&(this._$AR(t&&t._$AB.nextSibling,r),e.length=r)}_$AR(s=this._$AA.nextSibling,e){for(this._$AP?.(!1,!0,e);s!==this._$AB;){let t=_n(s).nextSibling;_n(s).remove(),s=t}}setConnected(s){this._$AM===void 0&&(this._$Cv=s,this._$AP?.(s))}},et=class{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(s,e,t,r,o){this.type=1,this._$AH=p,this._$AN=void 0,this.element=s,this.name=e,this._$AM=r,this.options=o,t.length>2||t[0]!==""||t[1]!==""?(this._$AH=Array(t.length-1).fill(new String),this.strings=t):this._$AH=p}_$AI(s,e=this,t,r){let o=this.strings,a=!1;if(o===void 0)s=Xe(this,s,e,0),a=!Zt(s)||s!==this._$AH&&s!==re,a&&(this._$AH=s);else{let c=s,u,_;for(s=o[0],u=0;u<o.length-1;u++)_=Xe(this,c[t+u],e,u),_===re&&(_=this._$AH[u]),a||=!Zt(_)||_!==this._$AH[u],_===p?s=p:s!==p&&(s+=(_??"")+o[u+1]),this._$AH[u]=_}a&&!r&&this.j(s)}j(s){s===p?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,s??"")}},Ri=class extends et{constructor(){super(...arguments),this.type=3}j(s){this.element[this.name]=s===p?void 0:s}},Pi=class extends et{constructor(){super(...arguments),this.type=4}j(s){this.element.toggleAttribute(this.name,!!s&&s!==p)}},Oi=class extends et{constructor(s,e,t,r,o){super(s,e,t,r,o),this.type=5}_$AI(s,e=this){if((s=Xe(this,s,e,0)??p)===re)return;let t=this._$AH,r=s===p&&t!==p||s.capture!==t.capture||s.once!==t.once||s.passive!==t.passive,o=s!==p&&(t===p||r);r&&this.element.removeEventListener(this.name,this,t),o&&this.element.addEventListener(this.name,this,s),this._$AH=s}handleEvent(s){typeof this._$AH=="function"?this._$AH.call(this.options?.host??this.element,s):this._$AH.handleEvent(s)}},Ni=class{constructor(s,e,t){this.element=s,this.type=6,this._$AN=void 0,this._$AM=e,this.options=t}get _$AU(){return this._$AM._$AU}_$AI(s){Xe(this,s)}},En={M:jr,P:ke,A:qr,C:1,L:$n,R:Ii,D:xn,V:Xe,I:ut,H:et,N:Pi,U:Oi,B:Ri,F:Ni},ic=Nr.litHtmlPolyfillSupport;ic?.(Jt,ut),(Nr.litHtmlVersions??=[]).push("3.3.2");Tn=(i,s,e)=>{let t=e?.renderBefore??s,r=t._$litPart$;if(r===void 0){let o=e?.renderBefore??null;t._$litPart$=r=new ut(s.insertBefore(Qt(),o),o,void 0,e??{})}return r._$AI(i),r}});var Hr,T,rc,Sn=x(()=>{Kt();Kt();tt();tt();Hr=globalThis,T=class extends we{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){let s=super.createRenderRoot();return this.renderOptions.renderBefore??=s.firstChild,s}update(s){let e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(s),this._$Do=Tn(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return re}};T._$litElement$=!0,T.finalized=!0,Hr.litElementHydrateSupport?.({LitElement:T});rc=Hr.litElementPolyfillSupport;rc?.({LitElement:T});(Hr.litElementVersions??=[]).push("4.2.2")});var Cn=x(()=>{});var I=x(()=>{Kt();tt();Sn();Cn()});var Pn,Rn=x(()=>{Pn={maintenance:"Maintenance",objects:"Objects",tasks:"Tasks",overdue:"Overdue",due_soon:"Due Soon",triggered:"Triggered",trigger_replaced:"Trigger replaced",trigger_removed:"Trigger removed",ok:"OK",all:"All",new_object:"+ New Object",templates_from:"From template",templates_title:"Start from a template",templates_task_count:"{n} tasks",templates_task_count_one:"1 task",template_created:"Created from template",onboard_hint:"Add your first object to start tracking maintenance.",edit:"Edit",duplicate:"Duplicate",task_duplicated:"Task duplicated",task_moved:"Task moved",move_task_target:"Target object",move_task_message:"Choose the object this task should belong to. Its history, readings and trigger state move with it; it gets a new reference number and its entities are recreated under the new object. Linked documents stay with the current object.",bulk_move_message:"Choose the object the selected tasks should belong to. Tasks that already live there are skipped; history, readings and trigger state move along.",bulk_moved:"{n} tasks moved",more_actions:"More actions",back:"Back",quantity:"Quantity",spare_part:"Spare part",move_task_title:"Move task",move_task:"Move to another object\u2026",object_duplicated:"Object duplicated",delete:"Delete",add_task:"+ Add Task",complete:"Complete",completed:"Completed",skip:"Skip",skipped:"Skipped",missed:"Missed",reset:"Reset",snooze:"Snooze",snoozed:"Snoozed",snoozed_for:"Reminders muted for {hours} hours \u2014 until {until}",snoozed_for_one:"Reminders muted for one hour \u2014 until {until}",cancel:"Cancel",bulk_select:"Select",bulk_select_all:"Select all",bulk_n_selected:"{n} selected",bulk_completed:"{n} tasks completed",bulk_archived:"{n} tasks archived",bulk_delete_objects_confirm:"Delete {n} objects and all their tasks? Archiving keeps their history instead.",bulk_objects_deleted:"{n} objects deleted",bulk_objects_archived:"{n} objects archived",bulk_assign:"Assign",bulk_assign_one:"One person",bulk_assign_share:"Several people, each of them",bulk_assign_rotate:"Several people, in turns",bulk_assign_hint:"Replaces who is assigned to the selected tasks \u2014 a rotation included.",bulk_rotation_min_two:"Pick at least two people.",bulk_labels_add:"Add labels",bulk_labels_remove:"Remove labels",bulk_edit_hint:"Only the ticked settings change; everything else stays as it is.",bulk_no_notifications:"No notifications for these tasks",bulk_updated:"{n} tasks updated",bulk_paused:"{n} tasks paused",bulk_resumed:"{n} tasks resumed",bulk_objects_area:"Area set for {n} objects",bulk_failed:"{n} failed: {reason}",completing:"Completing\u2026",interval:"Interval",warning:"Warning",last_performed:"Last performed",last_done_days_ago:"done {n} d ago",last_done_today:"done today",no_due_date:"No due date",next_due:"Next due",kpi_reported_by_sensor:"Reported by the sensor",days_until_due:"Days until due",avg_duration:"Avg duration",trigger:"Trigger",trigger_type:"Trigger type",threshold_above:"Upper limit",threshold_below:"Lower limit",threshold:"Threshold",counter:"Counter",state_change:"State change",runtime:"Runtime",trigger_type_due_date:"Date from a sensor",runtime_hours:"Target runtime (hours)",days_before:"Days before the date",days_before_help:`For a sensor that reports when the maintenance is due (a date or timestamp). 0 = on the date itself. The device's own "done" button moves the date forward, which clears the trigger \u2014 make it the completion action.`,target_value:"Target value",target_changes:"Target changes",for_minutes:"For (minutes)",time_based:"Time-based",sensor_based:"Sensor-based",manual:"Manual",one_time:"One-time",weekdays:"Weekdays",nth_weekday:"Nth weekday of month",day_of_month:"Day of month",calendar:"Calendar entity",calendar_entity_label:"Calendar",calendar_entity_hint:"Due once per event of this calendar, on the event's start date \u2014 the next event after the last completion.",calendar_entity_required:"Choose a calendar entity.",recurrence_on_days:"Repeat on",recurrence_occurrence:"Occurrence",recurrence_weekday:"Weekday",recurrence_day:"Day of month (1\u201331)",recurrence_last_day:"Last day of the month",recurrence_business_day:"Business days only (roll back from weekend)",recurrence_offset:"Offset (days, \xB1)",recurrence_offset_help:"Shift the date by \xB1N days, e.g. -2 = two days before.",recurrence_months_label:"Only in these months",recurrence_months_hint:"The date repeats in the selected months only; pick one month for a yearly task. None = every month.",last_day_month:"Last day of month",last_business_day_month:"Last business day",ord_1:"1st",ord_2:"2nd",ord_3:"3rd",ord_4:"4th",ord_5:"5th",ord_last:"Last",day_word:"Day",interval_value:"Interval",interval_unit:"Unit",unit_days:"Days",unit_weeks:"Weeks",unit_months:"Months",unit_years:"Years",due_date:"Due date",cleaning:"Cleaning",inspection:"Inspection",replacement:"Replacement",calibration:"Calibration",service:"Service",reading:"Reading",custom:"Custom",history:"History",cost:"Cost",cost_kind_credit:"Credit",cost_credit_hint:"Money back \u2014 a sale, a refund. It lowers the totals; the average per completion leaves it out.",report_button:"Report",report_title:"Maintenance report",report_generated:"Generated",report_times_done:"Done",report_total_cost:"Total cost",report_notes:"Notes",report_col_type:"Type",report_col_status:"Status",report_col_schedule:"Schedule",duration:"Duration",minutes_short:"min",both:"Both",trigger_val:"Trigger value",complete_title:"Complete: ",checklist:"Checklist",require_on_completion:"Require on completion",checklist_steps_optional:"Checklist steps (optional)",checklist_placeholder:`Clean filter
 Replace seal
-Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"{field}: too long (max {n} characters)",err_too_short:"{field}: too short (min {n} characters)",err_value_too_high:"{field}: too large (max {n})",err_value_too_low:"{field}: too small (min {n})",err_required:"{field}: required",err_wrong_type:"{field}: wrong type (expected: {type})",err_invalid_choice:"{field}: not an allowed value",err_invalid_value:"{field}: invalid value",ws_err_not_found:"Not found \u2014 it may have been deleted meanwhile",ws_err_invalid_input:"Invalid input",ws_err_invalid_date:"Invalid date",ws_err_invalid_format:"Invalid format",ws_err_invalid_url:"Invalid link",ws_err_invalid_mirror_todo:"Invalid to-do list",ws_err_not_configured:"Not set up yet",ws_err_not_loaded:"Not loaded yet \u2014 try again in a moment",ws_err_limit_reached:"Limit reached",ws_err_too_many:"Too many entries",ws_err_too_large:"Too large",ws_err_not_archived:"Not archived",ws_err_invalid_target:"Invalid target",ws_err_create_failed:"Could not be created",ws_err_archived:"Archived \u2014 restore it first",ws_err_already_archived:"Already archived",ws_err_unavailable:"Currently unavailable",ws_err_unauthorized:"Not permitted for your user",ws_err_too_many_views:"Too many saved views",ws_err_replace_failed:"Replacement failed",ws_err_not_paused:"Not paused",ws_err_not_available:"Nothing available",ws_err_no_url:"No link given",ws_err_no_phases:"This task has no phases",ws_err_invalid_view:"Invalid view",ws_err_invalid_user:"Unknown user",ws_err_invalid_range:"Invalid range",ws_err_invalid_parent:"Invalid parent object",ws_err_invalid_device:"Unknown device",ws_err_empty_csv:"The CSV file is empty",ws_err_empty:"Nothing to import",ws_err_duplicate_failed:"Could not duplicate",ws_err_already_paused:"Already paused",ws_err_invalid_cursor:"Invalid phase position",ws_err_invalid_entity_slug:"Invalid entity name",ws_err_invalid_trigger_config:"Invalid trigger configuration",ws_err_no_defaults:"No quick-complete defaults set",ws_err_self_link_device:"An object cannot be linked to itself",ws_err_too_early:"Too early \u2014 this task can only be completed closer to its due date",ws_err_invalid_search_template:"The search link must be an http(s) URL containing {q}",ws_err_invalid_notify_service:"Invalid notification service format. Use 'notify.service_name' (e.g., notify.mobile_app_phone).",ws_err_notify_service_not_found:"This notification service was not found in Home Assistant. Please verify the service name.",ws_err_invalid_shopping_list_entity:"The shopping list must be a to-do entity (todo.\u2026).",ws_err_invalid_icon:"The notification icon must be an mdi: name, e.g. mdi:air-filter",feat_schedule_time:"Time-of-day scheduling",feat_schedule_time_desc:"Tasks become overdue at a specific time of day instead of midnight.",schedule_time_toggle:"Due at a specific time",schedule_time_help:"Empty = midnight (default). HA timezone.",at_time:"at",notes_optional:"Notes (optional)",notes_markdown_hint:"Markdown is supported \u2014 **bold**, lists, [links](\u2026)",cost_optional:"Cost (optional)",duration_minutes:"Duration in minutes (optional)",completed_at_optional:"Completed at (optional, empty = now)",completed_at_pick:"Set date & time",completed_at_future_error:"The completion date cannot be in the future.",ha_time_zone_hint:"Time in Home Assistant's time zone ({zone})",days:"days",days_few:"days",day:"day",today:"Today",d_overdue:"d overdue",no_tasks:"No maintenance tasks yet. Create an object to get started.",no_tasks_short:"No tasks",no_history:"No history entries yet.",show_all:"Show all",cost_duration_chart:"Cost & Duration",installed:"Installed",min:"Min",max:"Max",save:"Save",saving:"Saving\u2026",edit_task:"Edit Task",task_series_position:"{n} of {total}",task_series_skip:"Skip",task_series_save_next:"Save & next",task_section_schedule:"Schedule",task_section_trigger:"Sensor trigger",task_section_completion:"Completing it",task_section_people:"People",task_section_notifications:"Notifications",task_section_details:"Details",new_task:"New Maintenance Task",task_name:"Task name",maintenance_type:"Maintenance type",priority:"Priority",labels:"Labels",labels_placeholder:"e.g. safety, seasonal, tenant-visible",labels_help:"Comma-separated tags for filtering and reporting.",task_mirror_todo:"Mirror into to-do lists",task_mirror_todo_hint:"The task appears in these lists while it is due; checking it off there completes it here.",task_mirror_todo_default:"Default lists: {lists}",task_mirror_todo_own:"Other lists",task_mirror_todo_none:"Not on any to-do list",task_mirror_todo_max:"At most {max} lists; Maintenance Supporter's own lists are not offered.",priority_low:"Low",priority_normal:"Normal",priority_high:"High",all_priorities:"All priorities",schedule_type:"Schedule type",interval_days:"Interval (days)",warning_days:"Warning days",earliest_completion_days:"Earliest completion (days before due)",earliest_completion_days_help:"Leave empty to allow completing any time. 0 = only on/after the due date.",last_performed_optional:"Last performed (optional)",interval_anchor:"Interval anchor",anchor_completion:"From completion date",anchor_planned:"From planned date (no drift)",interval_anchor_hint:"From completion date: the next due date counts from the day the task is marked done, so doing it early or late moves the schedule. From planned date: the schedule keeps its dates, for example when a bill is paid weeks before it is due.",edit_object:"Edit Object",name:"Name",manufacturer_optional:"Manufacturer (optional)",model_optional:"Model (optional)",serial_number_optional:"Serial number (optional)",serial_number_label:"S/N",object_replaces:"Replaces",object_replaced_by:"Replaced by",documentation_url_label:"Manual",object_notes_label:"Notes",sort_due_date:"Due date",sort_object:"Object name",sort_type:"Type",sort_task_name:"Task name",all_objects:"All objects",all_parts:"All parts",all_areas:"All areas",areas_filter:"Filter areas\u2026",areas_filter_none:"No area matches the filter.",area_cost_year:"Cost {year}",area_object_count:"{n} objects",area_object_count_one:"1 object",area_range_12m:"Last 12 months",area_range_all:"All time",area_task_filter:"Filter by task\u2026",area_kpi_completions:"Completions",area_kpi_total_time:"Total time",area_cost_per_month:"Cost per month",area_cost_per_year:"Cost per year",area_cost_per_object:"Cost per object",area_cost_share:"Share",area_history_section:"History (all objects)",area_report_print:"Area report (PDF)",area_report_title:"Area report",area_report_period:"Period",area_no_costs:"No costs recorded in this period.",no_tasks_yet:"No tasks yet",add_first_task:"Add first task",entity_id:"Entity ID",comma_separated:"comma-separated",entity_logic:"Entity logic",entity_logic_any:"Any entity triggers",entity_logic_all:"All entities must trigger",entities:"entities",attribute_optional:"Attribute (optional, blank = state)",use_entity_state:"Use entity state (no attribute)",trigger_above:"Trigger above",trigger_below:"Trigger below",trigger_equals:"Trigger when equal to (=)",trigger_not_equals:"Trigger when different from (\u2260)",for_at_least_minutes:"For at least (minutes)",safety_interval:"Safety interval (optional)",trigger_combinator:"Combine trigger and interval",trigger_combinator_any:"Trigger or interval (whichever first)",trigger_combinator_all:"Trigger and interval (both required)",delta_mode:"Delta mode",from_state_optional:"From state (optional)",to_state_optional:"To state (optional)",documentation_url_optional:"Documentation URL (optional)",object_notes_optional:"Notes (optional)",nfc_tag_id_optional:"NFC Tag ID (optional)",nfc_tags_empty_help:"No NFC tags registered in Home Assistant yet.",nfc_tags_open_settings:"Open Tags settings",nfc_tags_refresh:"Refresh",environmental_entity_optional:"Environmental sensor (optional)",environmental_entity_helper:"e.g. sensor.outdoor_temperature \u2014 adjusts the interval based on environmental conditions",adaptive_prediction_enabled:"Enable sensor-driven predictions",adaptive_seasonal_enabled:"Enable seasonal awareness",adaptive_max_interval:"Maximum interval (days)",adaptive_min_interval:"Minimum interval (days)",adaptive_ewa_alpha:"Learning rate (alpha)",adaptive_enabled:"Enable adaptive scheduling",adaptive_section_title:"Adaptive Scheduling",environmental_attribute_optional:"Environmental attribute (optional)",nfc_tag_id:"NFC Tag ID",nfc_linked:"NFC tag linked",nfc_link_hint:"Click to link NFC tag",responsible_user:"Responsible User",task_shared_with:"Shared with",task_shared_with_help:"Without a responsible person, the task is meant for each of them: everyone gets its reminders and finds it under My Tasks. With a rotation, they take turns.",task_shared_responsible_wins:"Someone is responsible, so the task is meant for them alone. Clear Responsible User to share it.",rotation_strategy:"Rotation",rotation_none:"No rotation",rotation_round_robin:"Round-robin",rotation_least_completed:"Least completed",rotation_random:"Random",no_user_assigned:"(No user assigned)",all_users:"All Users",my_tasks:"My Tasks",tab_calendar:"Calendar",cal_no_events:"No maintenance",cal_every_n_days:"every {n} days",cal_every_day:"every day",cal_source_time:"Time-based",cal_source_time_adaptive:"Time-based (adaptive)",cal_source_sensor:"Sensor-based",cal_predicted:"predicted",cal_confidence_high:"high confidence",cal_confidence_medium:"medium confidence",cal_confidence_low:"low confidence",budget_monthly:"Monthly budget",budget_yearly:"Yearly budget",groups:"Groups",new_group:"New group",edit_group:"Edit group",no_groups:"No groups yet",delete_group:"Delete group",delete_group_confirm:"Delete group '{name}'?",group_select_tasks:"Select tasks",group_name_required:"Name is required",description_optional:"Description (optional)",selected:"Selected",loading_chart:"Loading chart data...",hide_outliers:"Hide outliers (sensor glitches)",was_maintenance_needed:"Was this maintenance needed?",feedback_needed:"Needed",feedback_not_needed:"Not needed",feedback_not_sure:"Not sure",suggested_interval:"Suggested interval",apply_suggestion:"Apply",reanalyze:"Re-analyze",reanalyze_result:"New analysis",reanalyze_insufficient_data:"Not enough data to produce a recommendation",data_points:"data points",dismiss_suggestion:"Dismiss",confidence_low:"Low",confidence_medium:"Medium",confidence_high:"High",recommended:"recommended",seasonal_awareness:"Seasonal Awareness",edit_seasonal_overrides:"Edit seasonal factors",seasonal_overrides_title:"Seasonal factors (override)",seasonal_overrides_hint:"Factor per month (0.1\u20135.0). Empty = learned automatically.",seasonal_override_invalid:"Invalid value",seasonal_override_range:"Factor must be between 0.1 and 5.0",clear_all:"Clear all",clear:"Clear",date_type_toggle:"Type the date",date_type_invalid:"Not a valid date \u2014 try 1978-03-15, a year like 1978, or your own date format",seasonal_chart_title:"Seasonal Factors",seasonal_learned:"Learned",seasonal_manual:"Manual",month_jan:"Jan",month_feb:"Feb",month_mar:"Mar",month_apr:"Apr",month_may:"May",month_jun:"Jun",month_jul:"Jul",month_aug:"Aug",month_sep:"Sep",month_oct:"Oct",month_nov:"Nov",month_dec:"Dec",sensor_prediction:"Sensor Prediction",degradation_trend:"Trend",trend_rising:"Rising",trend_falling:"Falling",trend_stable:"Stable",trend_insufficient_data:"Insufficient data",days_until_threshold:"Days until threshold",threshold_exceeded:"Threshold exceeded",environmental_adjustment:"Environmental factor",sensor_prediction_urgency:"Sensor predicts threshold in ~{days} days",day_short:"day",weibull_reliability_curve:"Reliability Curve",weibull_failure_probability:"Failure Probability",weibull_r_squared:"Fit R\xB2",beta_early_failures:"Early Failures",beta_random_failures:"Random Failures",beta_wear_out:"Wear-out",beta_highly_predictable:"Highly Predictable",confidence_interval:"Confidence Interval",confidence_conservative:"Conservative",confidence_aggressive:"Optimistic",current_interval_marker:"Current interval",recommended_marker:"Recommended",characteristic_life:"Characteristic life",chart_mini_sparkline:"Trend sparkline",chart_history:"Cost and duration history",chart_seasonal:"Seasonal factors, 12 months",chart_weibull:"Weibull reliability curve",chart_sparkline:"Sensor trigger value chart",days_progress:"Days progress",qr_code:"QR Code",qr_generating:"Generating QR code\u2026",qr_error:"Failed to generate QR code.",qr_error_no_url:"No HA URL configured. Please set an external or internal URL in Settings \u2192 System \u2192 Network.",save_error:"Failed to save. Please try again.",subsave_warning:"Saved, but one setting was rejected: {detail}",qr_print:"Print",qr_download:"Download SVG",qr_action_view:"View maintenance info",qr_action_complete:"Mark maintenance as complete",qr_action_quick_complete:"Quick-complete \u2014 no dialog",qr_quick_complete_off:"Quick complete is off for this task. Turn it on in the task: Completing it \u2192 Quick complete.",qr_quick_records:"Records: {values}",qr_quick_records_nothing:"Records the completion only",qr_print_quick_off:"Quick-complete codes need tasks with quick complete on (task \u2192 Completing it \u2192 Quick complete). None of the chosen objects' tasks has it.",qr_url_mode:"Link type",qr_mode_companion:"Companion App",qr_mode_local:"Local (mDNS)",qr_mode_server:"Server URL",overview:"Overview",strat_this_month:"This Month",strat_later:"Later",strat_week:"Week",strat_fortnight:"Fortnight",strat_month:"Month",strat_year:"Year",strat_other:"Other",strat_status:"Status",strat_empty_title:"No maintenance objects yet",strat_empty_content:"Open the Maintenance panel to add your first object \u2014 pool pump, HVAC filter, vehicle, anything that needs scheduled care.",strat_open_panel:"Open Maintenance panel",strat_add_object:"Add object",strat_not_loaded:"**Maintenance Supporter** is not loaded. Install/enable the integration first.",strat_group_by:"Group views by",strat_group_area:"By area (default)",strat_group_status:"By status (Overdue / Triggered / Due Soon / OK)",strat_group_floor:"By floor (uses HA floors)",strat_group_due_date:"By due date (Overdue / Today / Week / Month / Later)",strat_group_calendar:"Rolling calendar (Week / Fortnight / Month / Year)",strat_editor_help:'The "Overview" view is always first. Empty groups are skipped.',picker_name_calendar:"Maintenance Supporter \u2014 Calendar",picker_name_panel:"Maintenance Supporter \u2014 Panel",picker_name_budget:"Maintenance Supporter \u2014 Budget",picker_name_groups:"Maintenance Supporter \u2014 Groups",picker_name_vacation:"Maintenance Supporter \u2014 Vacation",picker_name_battery_fleet:"Battery Fleet",picker_name_section:"Maintenance Supporter \u2014 Section",picker_name_vacation_status:"Maintenance Supporter \u2014 Vacation Status",picker_name_budget_status:"Maintenance Supporter \u2014 Budget Status",picker_desc_card:"Overview of your maintenance tasks with quick actions.",picker_desc_calendar:"Rolling calendar of maintenance tasks with 7/14/30/365 day windows, source icons, and prediction-confidence pills.",picker_desc_panel:"The complete Maintenance Supporter panel as a card \u2014 for a panel view / dashboard subview without the sidebar entry.",picker_desc_budget:"Edit the monthly and yearly budget right on the dashboard.",picker_desc_groups:"Create, rename and delete task groups right on the dashboard.",picker_desc_vacation:"Switch vacation mode on or off and set its dates right on the dashboard.",picker_desc_battery_fleet:"All tracked batteries: what is low now, what runs out soon, and what to buy.",picker_desc_dashboard:"Auto-generated dashboard. Group views by area, status, floor, or due date \u2014 picked from the strategy editor or YAML.",picker_desc_section:"Embed maintenance tasks (filterable by area, status, due date) as a section in any dashboard view.",picker_desc_vacation_status:"Compact vacation-mode status banner. Tap to open settings in the panel.",picker_desc_budget_status:"Monthly + yearly maintenance budget overview. Tap for details.",picker_desc_groups_status:"List of configured task groups with member counts.",hist_note_button:"Completed from dashboard button",hist_note_todo:"Completed from the To-do list",hist_note_voice:"Completed by voice",hist_note_notification:"Completed from the notification",hist_note_nfc:"Completed via NFC tag",hist_note_shopping_list:"Completed from the shopping list",hist_note_todo_mirror:"Completed from a mirrored to-do list",hist_note_skipped_notification:"Skipped from notification",hist_note_skipped_button:"Skipped from dashboard button",hist_note_sensor_triggered:"Sensor trigger activated",hist_note_initial:"Initial value set during task creation",hist_note_auto_recovered:"Auto-completed: sensor recovered ({value})",hist_note_auto_entity:"Auto-completed: {entity} changed to {state}",hist_note_auto_recovered_plain:"Auto-completed: sensor recovered",hist_note_reset:"Reset to {date}",hist_note_trigger_replaced:"Trigger entity replaced: {old} \u2192 {new}",hist_note_trigger_removed:"Sensor trigger removed (entity was: {entity}). Schedule converted to {schedule}.",hist_note_compound_removed:"Entity {entity} removed from compound trigger; {count} conditions remain.",recent_activities:"Recent Activities",search_notes:"Search notes",avg_cost:"Avg Cost",current:"Current",shorter:"Shorter",longer:"Longer",normal:"Normal",disabled:"Disabled",compound_logic:"Compound logic",compound:"Compound (multiple conditions)",compound_logic_and:"AND \u2014 all conditions must trigger",compound_logic_or:"OR \u2014 any condition triggers",compound_help:"Combine several sensor conditions into one trigger.",compound_no_conditions:"No conditions yet \u2014 add at least one.",compound_add_condition:"Add condition",compound_condition:"Condition",compound_remove_condition:"Remove condition",card_title:"Title",card_simple_preset:"Set up as a simple list",card_simple_preset_help:"Compact rows, an open circle to tick off, no create buttons or document chips, the person before the task. Each option stays changeable.",card_show_header:"Show header with statistics",card_show_actions:"Show action buttons",card_show_create:"Show create buttons",card_action_style:"Complete button style",card_compact:"Compact mode",card_max_items:"Max items (0 = all)",card_filter_status:"Filter by status",card_filter_status_help:"Empty = show all statuses.",card_filter_objects:"Filter by objects",card_filter_objects_help:"Empty = show all objects.",card_filter_areas:"Filter by areas",card_filter_areas_help:"Empty = show all areas.",card_filter_priority_help:"Empty = show all priorities. Tasks without an explicit priority count as Normal.",card_filter_entities:"Filter by entities (entity_ids)",card_filter_entities_help:"Pick sensor / binary_sensor entities from this integration. Empty = all.",card_loading_objects:"Loading objects\u2026",card_load_error:"Could not load objects \u2014 check the WebSocket connection.",card_no_tasks_title:"No maintenance tasks yet",card_no_tasks_cta:"\u2192 Create one in the Maintenance panel",no_objects:"No objects yet.",action_error:"Action failed. Please try again.",area_id_optional:"Area (optional)",place_optional:"Place (zone, optional)",remind_on_site:"Remind only while somebody is there",remind_on_site_hint:"Reminders wait until somebody is in this zone. Whoever arrives there gets a message with what is due.",place_missing:"Zone not found: reminders as at home",place_home:"Home",installation_date_optional:"Installation date (optional)",warranty_expiry_optional:"Warranty expiry (optional)",warranty:"Warranty",warranty_valid_until:"valid until {date}",warranty_expires_in:"expires in {days} days",warranty_expired:"expired",cal_past_windows:"Past windows",cal_forward_windows:"Forward windows",history_edit_title:"Edit history entry",history_delete_entry:"Delete entry",history_delete_confirm_entry:"Delete this history entry? The task's last-performed date falls back to the previous completion; photos stay with the object.",history_delete_returns_parts:"The parts it used go back to stock: {parts}.",history_edit_timestamp:"Timestamp",manufacturer:"Manufacturer",model:"Model",area:"Area",actions:"Actions",view_mode_label:"View",view_cards:"Card view",view_table:"Table view",objects_table_columns_label:"Objects table columns",objects_table_columns_hint:"Choose which columns appear in the objects table view.",custom_icon_optional:"Icon (optional, e.g. mdi:wrench)",notify_icon:"Notification icon",notify_icon_hint:"Shown by the Companion app on Android. Empty = the icon of this task's maintenance type ({default}).",task_enabled:"Task enabled",skip_reason_prompt:"Skip this task?",reason_optional:"Reason (optional)",reset_date_prompt:"Mark task as performed?",reset_date_optional:"Last performed date (optional, defaults to today)",notes_label:"Notes",documentation_label:"Documentation",no_nfc_tag:"\u2014 No tag \u2014",dashboard:"Dashboard",tab_today:"Today",palette_placeholder:"Search objects, tasks, spare parts, documents, notes\u2026",palette_no_results:"No matches",palette_hint:"\u2191\u2193 to navigate \xB7 Enter to open \xB7 Esc to close \xB7 / opens the search anywhere",search_open:"Search",search_group_parts:"Spare parts",search_group_content:"In documents",search_group_history:"History notes",search_page:"Page {page}",search_empty_hint:"Type to search objects, tasks, spare parts, documents and notes",search_searching:"Searching documents and notes\u2026",search_index_status:"Full-text search: {indexed} of {total} files indexed \xB7 {no_text} without text layer \xB7 {pending} pending",today_all_caught_up:"All caught up! Nothing due this week.",today_overdue:"Overdue",today_due_today:"Due today",today_this_week:"This week",settings:"Settings",settings_features:"Advanced Features",settings_features_desc:"Enable or disable advanced features. Disabling hides them from the UI but does not delete data.",feat_adaptive:"Adaptive Scheduling",feat_adaptive_desc:"Learn optimal intervals from maintenance history",feat_seasonal:"Seasonal Adjustments",feat_seasonal_desc:"Adjust intervals based on seasonal patterns",feat_environmental:"Environmental Correlation",feat_environmental_desc:"Correlate intervals with temperature/humidity",feat_budget:"Budget Tracking",feat_budget_desc:"Track monthly and yearly maintenance spending",feat_groups:"Task Groups",feat_groups_desc:"Organize tasks into logical groups",feat_checklists:"Checklists",feat_checklists_desc:"Multi-step procedures for task completion",settings_general:"General",settings_default_warning:"Default warning days",settings_consumable_threshold:"Consumable low threshold (%)",settings_battery_low_percent:"Battery low threshold (%)",settings_battery_recovered_percent:"Battery counts as replaced above (%)",settings_battery_recovered_percent_hint:"A low battery stays counted as low until its level rises above this value or a replacement is recorded \u2014 so a level hovering around the low threshold cannot complete the fleet task again and again.",settings_battery_low_delay:"Battery counts as low after (minutes)",settings_battery_low_delay_hint:"A battery must read low this long before it counts as low, so a sensor that reports a very low level for a moment and recovers by itself does not put it on the list. 0 = at once.",settings_battery_auto_record:"Record a replacement automatically when a low battery recovers",settings_battery_auto_record_hint:"When a battery that was low rises above the recovery threshold, the replacement date is recorded in Battery Notes and the spare cells are taken from stock \u2014 no tap needed.",settings_battery_lifetimes:"Typical battery lifetimes",settings_battery_lifetimes_hint:'Only used for batteries without a percentage: a Battery Notes note that has just a type and a last-replaced date, or a sensor that only reports "low". Their due date is last replaced + this lifetime. Batteries that report a level get their forecast from the measured discharge instead. Once the fleet has seen three replacements of a type, the median interval takes over from the built-in value \u2014 your own value always wins.',settings_battery_lifetime_months:"months",settings_battery_lifetime_reset:"Use default",settings_battery_lifetime_in_fleet:"in your fleet",settings_battery_lifetime_learned_models:"Learned per model: {list}",settings_thresholds_hint:"Defaults for new Suggested setups (percent-remaining consumables) and for fleet batteries without their own Battery Notes threshold. Existing tasks keep their value.",settings_part_search_url:"Shopping search link",settings_part_search_url_hint:"URL with {q} in place of the search terms, used for parts without a product link. Leave empty for the automatic store (by country, then by language).",settings_value_out_of_range:"Value must be between {min} and {max}",bn_summary:"{name}: {pct} % for {n} batteries",bn_floor_decides:"Your {floor} % floor decides for all of them; the higher of the two thresholds counts per battery.",bn_above_floor:"That is above your {floor} % floor, so {name} decides for all noted batteries.",bn_overrides:"{n} devices with their own threshold:",bn_more:"+ {n} more",settings_row_actions:"Task row actions",settings_ref_numbers_in_lists:"Reference numbers in lists",settings_ref_numbers_in_lists_hint:"Show the #8 / #8.3 chips in front of object and task names in the Today list, the task table, the object cards and the objects table.",settings_compact_refs:"Compact reference numbers",settings_compact_refs_hint:"Renumbers all objects, tasks and completions in order (1, 2, 3 \u2026) and closes the gaps left by deletions. Numbers already printed on service booklets, photos or notes will no longer match.",settings_compact_refs_confirm:"Renumber every object, task and completion sequentially in creation order? Numbers already written on printed service booklets, photos or notes will no longer match. This cannot be undone.",settings_compact_refs_done:"Renumbered {objects} objects, {tasks} tasks and {completions} completions.",row_actions_buttons_compact:"Buttons (icons only on phones)",row_actions_buttons:"Buttons with text",row_actions_icons:"Icons (classic)",row_actions_follow:"Follow the household setting",settings_panel_enabled:"Sidebar panel",settings_panel_title:"Sidebar panel title",settings_notifications:"Notifications",settings_notify_service:"Notification service",settings_shopping_list:"Shopping list (buy tasks)",settings_shopping_list_help:"Low-part buy reminders appear in this to-do list; checking one off restocks the part.",shopping_list_none:"Off \u2014 no shopping list",settings_mirror_todo_default:"Default to-do lists for tasks",settings_mirror_todo_default_help:"While a task is due, it appears on the lists ticked here, unless the task picks its own lists or none. Checking it off there completes the task. A list that takes a due date gets the task's.",settings_mirror_todo_default_none:"No to-do lists in Home Assistant yet.",settings_install_assist_sentences:"Install Assist sentences",settings_install_assist_sentences_hint:"Copies the voice sentences into your configuration so the classic Assist agent recognises them. A file you edited yourself is never overwritten.",test_notification:"Test notification",send_test:"Send test",testing:"Sending\u2026",test_notification_success:"Test notification sent",test_notification_failed:"Test notification failed",notify_per_person:"Per-person delivery",member_avatars:"Member avatars",member_avatars_hint:"Shown next to assigned tasks \u2014 initials in the member's colour. Defaults come from the name; set your own initials or pick a colour to tell members apart.",member_initials:"Initials",member_color:"Colour",member_avatar_reset:"Reset",notify_no_own_device:"No own device \u2014 uses the household service",settings_notify_due_soon:"Notify when due soon",settings_notify_overdue:"Notify when overdue",settings_notify_triggered:"Notify when triggered",settings_interval_hours:"Repeat interval (hours, 0 = once)",settings_quiet_hours:"Quiet hours",settings_quiet_start:"Start",settings_quiet_end:"End",settings_max_per_day:"Max notifications per day (0 = unlimited)",settings_bundling:"Bundle notifications",settings_bundle_threshold:"Bundle threshold",settings_reminder_leads:"Extra reminders (days before due)",settings_reminder_leads_hint:"Comma-separated lead times, e.g. 14, 3, 0 \u2014 one extra reminder fires on each matching day. Empty = off.",settings_actions:"Mobile Action Buttons",settings_action_complete:"Show 'Complete' button",settings_action_skip:"Show 'Skip' button",settings_action_snooze:"Show 'Snooze' button",settings_weekly_digest:"Weekly digest",settings_weekly_digest_hint:"A single summary notification on Monday morning when tasks are due.",settings_warranty_reminder:"Warranty expiry reminder",settings_warranty_reminder_days:"Days before expiry",settings_warranty_reminder_hint:"Notify once when an object's warranty is this many days from expiring.",settings_snooze_hours:"Snooze duration (hours)",settings_snooze_hours_hint:"How long Snooze mutes a task's reminders \u2014 from the task menu, a card, voice or the phone's Snooze button. The due date stays as it is.",settings_budget:"Budget",settings_currency:"Currency",settings_currency_decimals:"Decimal places for amounts",settings_currency_decimals_hint:"How many decimals every amount shows: KPIs, budgets, costs in lists and reports, budget alerts. 0 = whole numbers.",settings_parts_cost_mode:"Spare parts count as spending",settings_parts_cost_purchase:"When bought",settings_parts_cost_use:"When used",settings_parts_cost_mode_hint:"When bought: a buy reminder's cost counts, and the parts a job uses are shown as information. When used: every completion books the value of the parts it used, and a purchase sets the part's price instead of counting. Applies to completions from now on \u2014 history keeps how it was booked.",settings_budget_monthly:"Monthly budget",settings_budget_yearly:"Yearly budget",settings_budget_alerts:"Budget alerts",settings_budget_threshold:"Alert threshold (%)",settings_import_export:"Import / Export",settings_export_json:"Export JSON",settings_export_yaml:"Export YAML",settings_export_csv:"Export CSV",settings_export_settings:"Export settings (JSON)",settings_import_placeholder:"Paste JSON or CSV content here\u2026",settings_import_btn:"Import",settings_import_success:"{count} objects imported successfully.",settings_import_unmatched_users:"Not found on this instance: {names}. Their task assignments were removed \u2014 add people with the same names in Home Assistant and import again to keep them.",settings_export_success:"Export downloaded.",settings_saved:"Setting saved.",settings_include_history:"Include history",settings_export_selection:"Limit to selected objects (optional)",settings_docs_archive:"Documents archive (with files)",settings_docs_archive_hint:"The JSON and YAML exports list your documents but not their files; CSV leaves documents out. This ZIP holds the uploaded files \u2014 restore it after importing the JSON and nothing is missing.",settings_docs_export_btn:"Download documents ZIP",settings_docs_import_btn:"Restore documents ZIP",settings_docs_import_success:"Restored: {blobs} files, {docs} documents",settings_docs_import_missing:"{n} skipped \u2014 their files were not in the ZIP",settings_docs_import_unmatched:"No object here matches {names}: their files were kept but not attached",sort_alphabetical:"Alphabetical",sort_due_soonest:"Due soonest",sort_task_count:"Task count",sort_area:"Area",sort_assigned_user:"Assigned user",sort_group:"Group",groupby_none:"No grouping",groupby_area:"By area",groupby_group:"By group",groupby_user:"By user",groupby_object:"By object",filter_label:"Filter",user_label:"User",photo_label:"Photo",sort_label:"Sort",group_by_label:"Group by",state_value_help:'Use the HA state value (usually lowercase, e.g. "on"/"off"). Case is normalised on save.',target_changes_help:"Number of matching transitions before the trigger fires (default: 1).",state_latch_help:"With 1 transition the trigger is a latch: it recovers when the entity leaves the To-state \u2014 or, with only a From-state set, when it returns to that state.",for_minutes_state_help:"0 counts every change immediately. Set minutes and the new state must hold that long first \u2014 brief flickers then neither trigger nor count.",qr_print_title:"Print QR codes",qr_print_desc:"Generate a printable page of QR codes to cut out and stick on your equipment.",qr_print_load:"Load objects",qr_print_filter:"Filter",qr_print_objects:"Objects",qr_print_actions:"Actions",qr_print_url_mode:"Link type",qr_print_estimate:"Estimated QR codes",qr_print_over_limit:"cap is 200, narrow the filter",qr_print_generate:"Generate QR codes",qr_print_generating:"Generating\u2026",qr_print_ready:"QR codes ready",qr_print_print_button:"Print",qr_print_empty:"Nothing to generate",qr_action_skip:"Skip",vacation_title:"Vacation mode",vacation_active:"active",vacation_ended:"ended",vacation_desc:"Plan a vacation: notifications are paused during the period plus a buffer of days. You can opt specific tasks back in.",vacation_enable:"Enable vacation mode",vacation_start:"Start",vacation_end:"End",vacation_buffer:"Buffer (days)",vacation_exempt_title:"Notify anyway during vacation",vacation_exempt_desc:"Pick tasks that should still notify during vacation (e.g. critical pool chemistry).",vacation_load_tasks:"Load tasks",vacation_preview_btn:"Show preview",vacation_preview_affected:"tasks affected",vacation_event_due_soon:"becomes due soon",vacation_event_overdue:"becomes overdue",vacation_event_triggered_est:"sensor trigger possible",vacation_sensor_based:"(sensor-based)",vacation_action_notify:"Notify anyway",vacation_action_unsilence:"Silence again",vacation_marked_complete:"Marked complete",vacation_marked_skip:"Skipped",vacation_end_now:"End vacation now",add:"Add",show_stats:"Show stats + graphs",hide_stats:"Hide stats",adaptive_no_data:"Not enough completion history yet for adaptive analysis. Complete this task a few more times to unlock interval recommendations and reliability charts.",suggestion_applied:"Suggested interval applied",vacation_mode:"Vacation mode",vacation_status_active:"Active now",vacation_status_scheduled:"Scheduled",vacation_status_ended:"Ended",vacation_status_inactive:"Inactive",vacation_end_now_confirm:"End vacation immediately?",vacation_exempt_count:"exempt",vacation_advanced:"Advanced\u2026",vacation_open_panel:"Open in panel",enable:"Enable",saved:"Saved",budget_monthly_set:"Set monthly",budget_yearly_set:"Set yearly",budget_advanced:"Currency, alerts\u2026",budget_open_panel:"Open in panel",groups_empty:"No groups yet.",group_new_placeholder:"Add group\u2026",groups_manage_tasks:"Manage task assignments\u2026",groups_open_panel:"Open in panel",unassigned:"Unassigned",no_area:"No area",has_overdue:"Has overdue tasks",object:"Object",settings_panel_access:"Panel access",settings_panel_access_desc:"Admins always have full access. To delegate create, edit and delete to specific non-admins, switch this on and pick them below \u2014 everyone else only gets Complete, Skip, Reset, Postpone and Snooze.",settings_shared_devices:"Shared devices",settings_shared_devices_desc:"Accounts several people use, like a kitchen tablet. A completion made there is credited to whoever is on duty (the responsible person, on a rotation whose turn it is); the history notes the device.",settings_operator_write:"Allow selected users to create, edit & delete",settings_operator_write_desc:"Off: only admins can change content. On: the selected users below get full access too.",no_non_admin_users:"No non-admin users found. Add some in Settings \u2192 People.",owner_label:"Owner",feat_completion_actions:"Completion actions",feat_completion_actions_desc_v2:"Per-task HA action on complete.",feat_places:"Places",feat_places_desc:"Objects maintained at another place (a Home Assistant zone): reminders only while somebody is there, and a message on arrival.",on_complete_action_title:"On complete: trigger HA action (optional)",on_complete_action_desc:"Calls an HA service when the task is completed \u2014 e.g. reset a counter on the device.",on_complete_action_target:"Target entity",on_complete_action_target_hint:"Note: the entity domain must match the service \u2014 e.g. 'button.press' only works on button.*, 'counter.increment' only on counter.*, 'input_button.press' only on input_button.* etc. On a mismatch the action will silently fail (HA logs 'Referenced entities ... missing or not currently available').",on_complete_action_target_more:"This action targets more than this field shows: {targets}. That is kept as it is \u2014 choosing another entity here replaces the whole target.",on_complete_action_skip_auto:"Not when the task completes itself (its sensor recovered)",on_complete_action_data:"Data (JSON, optional)",on_complete_action_test:"Validate configuration",on_complete_action_test_success:"\u2713 Configuration valid (action will fire only on task completion)",on_complete_action_test_failed:"Failed",action_test_bad_format:"Invalid service format (expected 'domain.service')",action_test_unknown_service:'Service "{service}" is not registered in Home Assistant. Check the spelling and that the integration providing it is loaded.',action_test_domain_mismatch:`Service "{service}" only works on {domain}.* entities; entity "{entity}" is in {entity_domain}.* \u2014 pick a service that matches the entity's domain (e.g. {suggestion})`,action_test_entity_missing:'Target entity "{entity}" was not found in Home Assistant \u2014 it may have been renamed or its integration removed.',quick_complete_defaults_notes:"Notes",quick_complete_defaults_cost:"Cost",quick_complete_defaults_duration:"Duration (minutes)",quick_complete_defaults_feedback_none:"No feedback",quick_complete_defaults_feedback_needed:"Was needed",quick_complete_defaults_feedback_not_needed:"Not needed",quick_complete_success:"Quickly marked complete",quick_complete_label:"Quick complete",quick_complete_help:"One tap completes it, without a dialog: in the panel and on dashboard cards, with the quick-complete QR code, from a notification, a button, a to-do list or by voice.",quick_complete_values:"Prefill (optional)",quick_complete_values_help:"Entered by every completion without a dialog. The completion dialog starts with them too.",quick_complete_needs_dialog:"Asks on completion for: {fields}. A quick completion opens the dialog for it.",quick_complete_tag_hint:"Needs a tag scan: only the tag or the quick-complete QR code on the thing completes it in one go.",quick_complete_not_asked:"A quick completion does not ask for the checklist or the readings.",complete_with_details:"Complete with details\u2026",show_all_objects:"Show all objects",show_all_tasks:"Clear filter \u2014 show all tasks",filter_to_overdue:"Filter task list to overdue only",filter_to_due_soon:"Filter task list to due-soon only",filter_to_triggered:"Filter task list to triggered only",open_task:"Open task",show_details:"Show history + stats",hide_details:"Hide details",history_empty:"No history yet.",history_edit_button:"Edit entry",total_cost:"Total cost",times_performed:"Performed",older_entries:"older",open_in_panel:"Open in Maintenance panel",skip_reason:"Skip reason (optional)",reset_to_date:"Reset last_performed to",delete_task_confirm:"Delete this task and its history?",delete_object_confirm:"Delete this object and all its tasks?",loading:"Loading\u2026",archive:"Archive",undo:"Undo",task_completed_named:"Completed: {task}",undo_done:"Completion undone",undo_done_action_ran:"Completion undone. Its completion action had already run and cannot be taken back.",undo_nothing:"Nothing to undo. Only your own last completion can be taken back, within 10 minutes.",undo_changed:"Can't undo. The task has changed since.",task_archived:"Task archived",object_archived:"Object archived",unarchive:"Unarchive",archived:"Archived",show_archived:"Show archived",hide_archived:"Hide archived",section_collapse:"Collapse section",section_expand:"Expand section",confirm_archive_object:"Archive this object and its tasks? They keep their history and can be unarchived later.",settings_archive:"Archive & Retention",settings_archive_desc:"Retire completed one-off tasks without deleting them. Archived items are hidden and inert but keep their history and cost.",settings_archive_oneoff_days:"Auto-archive completed one-off tasks after (days, 0 = off)",settings_delete_archived_oneoff_days:"Auto-delete archived one-off tasks after (days, 0 = never)",archive_object:"Archive object",unarchive_object:"Unarchive object",documents:"Documents",documents_empty:"No documents yet.",doc_upload:"Upload file",doc_uploading:"Uploading\u2026",doc_add_link:"Add link",doc_link_url:"URL (https://\u2026)",doc_link_title:"Title (optional)",doc_open:"Open",doc_delete_confirm:'Delete "{name}"?',doc_too_large:"File is too large (max 100 MB).",doc_upload_failed:"Upload failed.",docs_archive_too_large:"The archive is too large (max {max}).",docs_archive_no_manifest:"This ZIP has no manifest.json, so the restore cannot tell which document a file belongs to. Keep manifest.json next to the folders when zipping again.",completion_photos_optional:"Completion photos (optional)",completion_photos:"Completion photos",choose_photos:"Choose photos",choose_photo:"Choose photo",photos_android_hint:"The Android app hands over one photo per pick \u2014 each pick is added.",photos_limit:"Up to {max} photos per completion",history_edit_photos_hint:"Removing a photo here keeps the file in the object's documents.",uploading:"Uploading\u2026",remove:"Remove",doc_deduped:"Already stored elsewhere \u2014 shared, no extra space used.",doc_dup_in_object:"This file is already attached to this object.",doc_link_not_allowed:"This link is not allowed: links that run scripts or open local files (javascript:, data:, file: \u2026) are refused.",doc_cat_manual:"Manual",doc_cat_warranty:"Warranty",doc_cat_invoice:"Invoice",doc_cat_spare_parts:"Spare parts",doc_cat_photo:"Photo",doc_cat_other:"Other",doc_link_badge:"Link",doc_storage_title:"Document storage",doc_storage_saved:"Saved via deduplication",doc_storage_refresh:"Refresh",doc_download:"Download",doc_close:"Close",doc_camera:"Take photo",camera_capture_shoot:"Capture",camera_switch_lens:"Switch camera",camera_switching:"Switching camera\u2026",camera_not_answered:"This camera did not answer. Tap the switch again to try the next one, or use the file picker.",camera_diagnostics:"Details for a bug report",camera_copy:"Copy",camera_copied:"Copied",doc_drop_hint:"Drop files here",doc_task_none:"No documents linked to this task.",doc_link_existing:"Link a document\u2026",doc_attach:"Link",doc_unlink:"Unlink",doc_page:"Page",chart_range_7d:"7d",chart_range_30d:"30d",chart_range_90d:"90d",chart_range_1y:"1y",chart_since_service:"since last service",chart_no_stats:"No long-term statistics for this entity \u2014 showing maintenance-event values only",auto_complete_on_recovery:"Auto-complete when the sensor recovers",auto_complete_on_recovery_help:"Records a completion (sets last performed) when the trigger clears itself \u2014 e.g. salt refilled, filter replaced.",trigger_end:"When the state ends",trigger_end_ok:"The task goes back to OK",trigger_end_done:"Record the task as done",trigger_end_hold:"Keep the task triggered until it is done",trigger_end_hold_help:"For a state that lasts only a moment, such as a finished wash: the task stays until it is completed, by hand or by its Done when entity.",trigger_detail_attribute:"Show with the task (optional)",trigger_detail_none:"Nothing",trigger_detail_attribute_help:"While the trigger is active, the value of this attribute shows after the task's name and in its reminder: which medicine is running low, which window is open.",doc_search:"Search documents\u2026",doc_search_none:"No matching documents",doc_description:"Description (optional)",doc_sort:"Sort documents",doc_sort_newest:"Newest first",doc_sort_oldest:"Oldest first",doc_sort_title:"By title (1, 2, 3 \u2026)",doc_sort_category:"By category",link_device_optional:"Link to existing device (optional)",parent_object_optional:"Parent object (optional)",parent_none:"(No parent)",parent_object_hint:"Shown inside the parent in the lists of objects.",sub_objects:"Sub-objects",sub_objects_count:"{n} sub-objects",sub_objects_count_one:"1 sub-object",add_sub_object:"Add sub-object",sub_object_move_here:"Move an existing object here",sub_object_move_message:"The object moves inside {name}, with everything inside it. Its tasks and history stay as they are.",sub_object_move_confirm:"Move here",sub_object_moved:"Moved inside {name}",templates_inside:"The new object goes inside {name}.",sub_objects_show:"Show sub-objects",sub_objects_hide:"Hide sub-objects",paused:"Paused",pause_object:"Pause",resume_object:"Resume",pause_task:"Pause",resume_task:"Resume",pause_task_prompt:"Freeze this task's schedule \u2014 it does not become due and does not notify until you resume it, and resuming starts a fresh cycle from that day. The object's other tasks keep running. Optionally set a date to resume by itself.",task_paused:"Task paused",task_resumed:"Task resumed \u2014 its schedule restarted",pause_until_prompt:"Freeze this object's schedules \u2014 nothing becomes due and nothing notifies until it is resumed. Optionally set an auto-resume date.",pause_until_label:"Resume on (optional)",object_paused:"Object paused",object_resumed:"Object resumed \u2014 schedules restarted",object_paused_badge:"Paused",paused_until_label:"until",replace_object:"Replace\u2026",replace_object_prompt:"Retire this object and create a successor. History and costs stay archived on the old one; tasks and documents carry over to the new one, counters start fresh.",replace_name_label:"Successor name",replace_device_heading:"Device in Home Assistant",replace_device_keep:"Same device as before ({device})",replace_device_keep_hint:"Also the choice when the new unit is not in Home Assistant yet: once it is, pick it as the object's device in its settings \u2014 the sensor triggers move along then.",replace_device_other:"The new unit is another device",replace_device_pick:"Device of the new unit",replace_device_other_hint:"Sensor triggers, completion actions and the counter reset move to the matching entities of that device.",replace_device_none:"No device",object_replaced:"Object replaced \u2014 successor created",device_swap_moved:"{count} sensor links moved to the new device.",device_swap_moved_one:"One sensor link moved to the new device.",device_swap_unmatched:"{count} could not be matched \u2014 check those tasks' sensor triggers.",device_swap_unmatched_one:"One could not be matched \u2014 check that task's sensor trigger.",reading_unit_label:"Reading unit (e.g. kWh, m\xB3)",reading_unit_help:"Shown next to the recorded value when completing this task.",reading_value_label:"Reading value",reading_label:"Reading",readings_section:"Readings",readings_hint:"Several named values per completion \u2014 one row per meter. Leave empty to record a single value.",reading_name_label:"Reading name",reading_unit_short:"Unit",reading_add:"Add reading",reading_duplicate_name:"Name already used",reading_last:"last: {value}",reading_below_last:"Lower than the last reading ({value})",settings_templates_label:"Template gallery",settings_templates_hint:`Untick templates you'll never need \u2014 they disappear from the "From template" pickers (panel and config flow). Nothing else changes; you can re-enable them any time.`,home_profile_title:"Home profile",home_profile_hint:"Recommends templates and sets seasonal windows for your climate and hemisphere. Everything is worked out locally from your floors, areas and home location.",home_type_label:"Home type",home_type_auto:"Automatic ({detected})",home_region_label:"State, province or region",home_region_none:"not found",home_region_hint:"Some rules differ within a country \u2014 a yearly vehicle inspection in one state, none in the next. Found from your home location.",home_dwelling_house:"House",home_dwelling_apartment:"Apartment",home_dwelling_unknown:"not recognised",home_detected_from:"Detected from: {reasons}",home_reason_floors:"several floors",home_reason_basement:"a basement",home_reason_garden:"a garden",home_reason_shed:"a shed",home_reason_driveway:"a driveway",home_reason_garage:"a garage",home_reason_attic:"an attic",home_reason_lawn_mower:"a lawn mower",home_reason_gate:"a gate",home_reason_balcony:"a balcony",home_reason_small_home:"few rooms on one floor",home_reason_ups:"a UPS",home_climate_label:"Climate",home_climate_value:"K\xF6ppen {koppen} \xB7 coldest month {cold} \xB0C \xB7 warmest month {warm} \xB0C",home_climate_unknown:"No home location set in Home Assistant",home_hemisphere_south:"Southern hemisphere \u2014 seasonal windows are mirrored",home_trait_freeze:"Frost in winter",home_trait_snow:"Snowy winters",home_trait_severe_winter:"Severe winters",home_trait_damp:"Damp climate",home_trait_mediterranean:"Mediterranean climate",home_trait_earthquake:"Earthquake region",home_trait_hot_summer:"Hot summers",home_trait_hot_humid:"Hot and humid",home_trait_hot_dry:"Hot and dry",home_trait_termites:"Termite region",home_trait_wildfire:"Wildfire risk",home_trait_cyclone:"Hurricane / typhoon region",home_trait_tropical:"Tropical climate",home_trait_radon:"Radon test recommended",home_reason_starter:"Basics for your home",home_reason_country:"Common in {country}",home_reason_feature:"Found in your home: {feature}",templates_recommended_title:"Recommended for your home",templates_recommended_hint:"Based on your home profile \u2014 adjust it in Settings.",templates_legal_hint:"Notes on legal duties and intervals are guidance, not legal advice. Rules vary by region and change over time \u2014 local regulations and the manufacturer's instructions take precedence.",templates_not_typical:"Not typical for your home type",templates_set_up:"Already set up",worksheet:"Work sheet",worksheet_scan_view:"Scan to open the task",worksheet_scan_complete:"Scan to complete",worksheet_manual_excerpt:"Manual excerpt",worksheet_pages:"pages",worksheet_printed:"Printed",worksheet_never:"Never",card_all_caught_up:"All caught up \u2014 nothing needs attention",postpone:"Postpone",postpone_date_prompt:"Postpone this occurrence to which date?",postpone_date_label:"New due date",postponed:"Postponed",postponed_to:"Postponed to",season_window_label:"Seasonal window (months)",season_window_hint:"Only due in the selected months; off-season dates roll to the next active month. None = all year.",series_end_label:"Ends",series_end_never:"Never (repeats indefinitely)",series_end_after_count:"After a number of times",series_end_until:"On a date",series_end_count_label:"Number of times",series_end_until_label:"End date",parts_section:"Parts & consumables",parts_inventory_value:"Inventory value",part_add:"Add part",part_name:"Name",part_vendor:"Manufacturer",part_storage_location:"Storage location",part_product_url:"Product URL",part_unit:"Unit",part_cost:"Unit price",part_cost_mode:"Counts as spending",part_cost_mode_house:"As in Settings ({mode})",part_cost_mode_hint:"When bought: the purchase counts, in the year it is made. When used: every completion that uses the part books its price on the object, and so the area, where it is used.",part_stock:"Stock",part_reorder_threshold:"Reorder at",part_restock_quantity:"Restock quantity",part_package_size:"Package size (units)",part_restock_packages:"Restock amount (packages)",part_package_hint:"Bought in packages, used in the unit: stock, the amount a task uses and the reorder threshold count units; the restock amount and the price are per package.",part_auto_buy:"Auto-create buy task when low",part_reuse:"After use",part_reuse_none:"Used up",part_reuse_charge:"Charged",part_reuse_sharpen:"Sharpened",part_reuse_clean:"Cleaned",part_reuse_dry:"Dried",part_reuse_refill:"Refilled",part_reuse_restore:"Restored",part_waiting_charge:"{count} to charge",part_waiting_sharpen:"{count} to sharpen",part_waiting_clean:"{count} to clean",part_waiting_dry:"{count} to dry",part_waiting_refill:"{count} to refill",part_waiting_restore:"{count} to restore",part_restoring:"Used, not ready yet",part_ready_again_hint:"All used ones are ready again",part_dispose:"Dispose",part_dispose_hint:"Gone for good, such as a dead cell: off the waiting pile, not back to the stock",part_dispose_how_many:"How many are gone for good",part_use:"Use",part_use_hint:"Used outside a task: off the stock like the parts of a completion",part_use_how_many:"How much was used",part_use_not_booked:"Not booked as spending: this part counts when used, which only a task's completion books.",part_bought:"Bought\u2026",part_bought_hint:"Record a purchase: into the stock, with what was paid and when",part_bought_quantity:"How many",part_bought_packages:"Packages of {size}",part_bought_price_each:"Price each",part_bought_price_package:"Price per package",part_bought_total:"Total",part_bought_date:"Bought on",part_bought_note:"Shop, receipt, \u2026",part_bought_confirm:"Record purchase",part_bought_adds:"Adds {qty} to the stock",part_bought_on_use:"Stock, not spending: this part counts when used, and its price becomes the average of what is on the shelf.",part_reuse_hint:"A used one is not gone: it waits until it is ready again and still counts as owned, so it is not bought again.",part_restock:"Adjust stock",parts_used_by:"Used by",restock_quantity_label:"Quantity bought",consumes_parts_label:"Consumes parts",task_parts_fleet_hint:"Battery quantities come from Battery Notes per device \u2014 nothing to link here.",shared_parts_other_objects:"Parts from other objects",shared_parts_help:"Several objects can share one stock. Completing this task takes from the owning object.",shared_part_unknown:"Unknown part",parts_load_failed:"Couldn't load this object's parts \u2014 the consumes-parts options are unavailable right now.",adopt_problem_button:"Adopt problem sensors",adopt_problem_title:"Adopt problem sensors",adopt_problem_hint:"Turn HA problem sensors (printer errors, filter warnings, low battery) into maintenance tasks that trigger while the problem is active and clear themselves when it resolves.",adopt_problem_none:"No problem sensors found that aren't already tracked.",adopt_problem_active:"active",adopt_problem_ok:"ok",adopt_problem_new_object:"(new)",adopt_object_hint:"Give several sensors the same object name and they become one object; type an existing object's name to add them there.",adopt_summary_title:"What adopting changes",adopt_summary_existing:'"{name}": tasks {before} \u2192 {after}',adopt_summary_totals:"Tasks: {tasks} \xB7 objects: {objects}",adopt_summary_totals_new:"Tasks: {tasks} \xB7 objects: {objects} ({new} new)",adopt_problem_adopt:"Adopt selected",adopt_problem_done:"Adopted {tasks} problem sensor(s)",adopt_problem_done_one:"Adopted 1 problem sensor",views_label:"Views",views_none:"\u2014 No view \u2014",views_manage:"Save / manage views",views_dialog_title:"Saved views",views_dialog_hint:"Save the current filters as a named view everyone can reuse.",views_name_placeholder:"View name",views_save_current:"Save current filters",views_none_yet:"No saved views yet.",close:"Close",trigger_hint_now:"The sensor reads {value} right now.",trigger_hint_above:"The task triggers once it rises above {target}.",trigger_hint_below:"It triggers once it falls below {target}.",trigger_hint_equals:"It triggers when it reads exactly {target}.",trigger_hint_not_equals:"It triggers when it reads anything but {target}.",trigger_hint_overlap:"These limits overlap: every reading triggers the task and it can never recover. Leave one of them empty.",trigger_hint_counter_delta:"Counts from the current reading ({value}): due at {due} (+{target}), and the count restarts after each completion.",trigger_hint_counter_delta_edit:"Counts usage since the last completion: due after +{target}; the count restarts after each completion.",trigger_hint_counter_abs:"The task becomes due once the sensor reaches {target}.",trigger_hint_runtime:"The task becomes due after {hours} h of accumulated on-time; the counter restarts after each completion.",trigger_hint_due_date:"The task becomes due {days} days before the date the sensor reports.",trigger_hint_due_date_one:"The task becomes due one day before the date the sensor reports.",trigger_hint_due_date_same_day:"The task becomes due on the date the sensor reports.",trigger_hint_due_date_now:"Reported date: {date}.",trigger_hint_state_change:"The task becomes due after {count} state change(s).",trigger_hint_state_change_to:"The task becomes due after {count} change(s) to \u201C{state}\u201D.",trigger_hint_state_now:"Current state: {value}.",adopt_problem_part:"Uses part: {name}",label_filter:"Label",all_labels:"All labels",filter_place:"Place",filter_place_all:"All places",settings_notify_scope:"Notify only for view",settings_notify_scope_all:"All tasks",settings_notify_scope_hint:"Only tasks matching the selected saved view's label/user filters send reminders. Status, sorting and grouping of the view are ignored here.",settings_notify_completed:"Completion notifications",settings_notify_completed_hint:`Household news when a task is completed, with the reason and who did it. "Automatic only" announces just the completions nobody made on the spot: sensor recovery, shopping-list check-off, an automation's service call. Sent to the household service only; quiet hours and the daily cap apply.`,settings_title_style:"Notification title style",settings_title_style_hint:"What appears as the notification's TITLE. Default keeps the per-status text (e.g. 'Maintenance overdue!'). Object name / Task name help when phone notifications stack.",title_style_default:"Default (per-status title)",title_style_object_name:"Object name as title",title_style_task_name:"Task name as title",notify_completed_off:"Off",notify_completed_automatic:"Automatic completions only",notify_completed_all:"All completions",settings_notify_rule:"Your own notification rule",settings_notify_rule_hint:"Every notification also fires the event maintenance_supporter_notification (kind, status, object, task, reference numbers, priority, deep link, the payload). Route it with an automation \u2014 e.g. into Ticker, Telegram or Pushover.",settings_notify_event_only:"Only fire the event, send nothing myself",settings_notify_event_only_hint:"Your automation is the whole delivery. Rate limits, quiet hours and the daily cap still apply to when the event fires.",settings_notify_extra_data:"Extra notification data (template)",settings_notify_extra_data_hint:"JSON or YAML, Jinja allowed; merged into the notify call's data (your keys win). Variables: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message. Test it with the Send test button.",card_saved_view:"Saved view",card_saved_view_none:"None",card_saved_view_help:"Applies the view's status, user, label and priority filters on top of the filters above. The view's sorting and grouping are panel display settings and are not applied on the card.",panel_card_tab:"Open on tab",panel_card_tab_default:"Remembered tab (as in the panel)",panel_card_view:"Open with saved view",panel_card_height:"Height",panel_card_height_help:"Empty = fill the screen below the card (panel view). Otherwise a CSS length such as 600px or 80vh for views with other cards.",panel_card_not_registered:"The Maintenance Supporter panel is not available \u2014 is the integration set up?",panel_card_load_failed:"The Maintenance Supporter panel could not be loaded \u2014 reload the page (after an update: clear the browser cache).",doc_part_none:"No documents linked to this part.",settings_templates_toggle_group:"Enable or disable all templates in this group",setups_button:"Suggested setups",setups_title:"Suggested setups (Beta)",setups_hint:"Devices of supported integrations whose consumable sensors can drive maintenance tasks. Adopting creates the object and wires each task to its sensor \u2014 it triggers when the consumable runs low and resolves itself after replacement.",setups_none:"No supported devices with unwired consumable sensors found.",setups_adopt:"Set up selected",setups_done:"{tasks} sensor-wired tasks created.",setups_done_one:"1 sensor-wired task created.",complete_parts_used:"Parts used this time",part_delete_confirm:"Delete part '{name}'? Its stock tracking, task links and any open buy reminder will be removed.",baseline_start_value:"Start reading (optional)",baseline_start_help:"Counting starts from this reading. Leave empty to count from the current value; enter the reading at the last service so usage since then already counts.",setups_baseline_hint:"reading at last service (optional)",baseline_start_help_edit:"Leave empty to keep the existing counting. Entering a value re-anchors the counting (e.g. the reading at the last service).",baseline_current_effective:"Currently effective start value: {value}",runtime_on_states:"Active states",runtime_on_states_help:"States that count as running \u2014 default: on. E.g. mowing, cleaning, printing. With an attribute selected, its values are matched instead.",runtime_max_session:"Max session runtime (seconds)",runtime_max_session_help:"A single run counts at most this many seconds \u2014 protects against a sensor stuck ON (lost connection, restart). Empty = no cap.",trend_approaching:"Heading toward the threshold",trend_easing:"Easing away from the threshold",split_select_hint:"Select a task to see its details here",setups_target_new:"Create new: {name}",setups_target_match:"{name} \u2014 matches: {reasons}",setups_reason_model:"model number",setups_reason_name:"name",setups_reason_area:"area",setups_reason_sibling:"same model on another device",setups_maybe_covered:'Probably there already as "{name}"',setups_already:"Already there: {names}",setups_reset_line:"Completing it also resets the counter in the integration (\u201C{button}\u201D)",setups_reset_enable:"\u2014 the button gets switched on for this",reset_offers_title:"Reset counters on completion",reset_offers_hint:"These tasks watch a counter the integration keeps itself. Connected, completing the task here also presses the integration's reset button \u2014 otherwise the counter keeps running and the task falls due again right away.",reset_offers_before:"Now: completing it leaves the counter in {integration} running",reset_offers_after:"Then: it also presses \u201C{button}\u201D",reset_offers_renamed:"Renamed since it was set up \u2014 check that this task is for this part",reset_offers_apply:"Connect resets",reset_offers_done:"{count} tasks now reset their counter on completion",reset_offers_done_one:"1 task now resets its counter on completion",setups_before_after:"Tasks on the object: {before} \u2192 {after}",setups_new_object_count:'New object "{name}" \xB7 tasks: {count}',schedule_preview_title:"Next dates",schedule_preview_ontime:"Assuming on-time completion.",schedule_preview_ends:"(series ends)",adopt_problem_responsible:"Responsible user for all adopted tasks (optional)",adopt_for_minutes_hint:"Only trigger once the problem has persisted this long \u2014 0 reacts to the first flicker.",adopt_problem_configure:"Configure",history_auto:"Automatic",battery_fleet_title:"Battery fleet",battery_fleet_none_low:"All batteries OK \u2014 nothing to replace.",battery_fleet_progress:"{n} to replace",battery_fleet_buy_now:"Buy now",battery_fleet_soon:"Needed soon",battery_fleet_soon_hint:"Predicted from the last replacement date \u2014 order ahead.",battery_fleet_mark_all:"Mark all replaced",battery_fleet_mark_one:"Mark this battery replaced",battery_fleet_offline:"offline",battery_fleet_no_sensor:"No sensor",battery_fleet_trigger_lost:"This task's sensor trigger was lost \u2014 it will not fire or auto-complete.",battery_fleet_repair:"Repair",battery_fleet_exclude:"Exclude from the fleet",battery_fleet_excluded:"Excluded",battery_fleet_include:"Track again",battery_fleet_all:"All tracked batteries",battery_fleet_all_hint:"Exclude a device here to drop it from the fleet before it ever reports low \u2014 a vacuum that recharges itself, or a phone that warns you on its own.",battery_fleet_add:"Add a battery",battery_fleet_add_hint:"Pick a battery sensor the automatic discovery missed \u2014 it joins the roster immediately.",battery_fleet_track_self:"Track self-charging batteries",battery_fleet_track_self_hint:"Phones, vacuums and other devices that recharge themselves appear as rechargeables \u2014 a low one asks for a charge, never for new cells.",battery_fleet_due_without_sensor:"Treat a passed forecast as due when a battery has no sensor",battery_fleet_due_without_sensor_hint:"Some devices report no battery level at all \u2014 Battery Notes only knows the type and the last replacement. Once the typical lifetime has passed, such a battery counts as low and the fleet task reminds you; marking it replaced resets the forecast.",battery_fleet_ask_cells:"Ask which cells went in when a battery is replaced",battery_fleet_ask_cells_hint:"A device takes whatever is in the drawer. Replaced then asks whether disposable or rechargeable cells of its size went in, books those and remembers them for the device. Battery Notes keeps its type; the shopping list and the forecast follow it.",battery_fleet_cells_question:"Which cells went in?",battery_fleet_cells_rechargeable:"rechargeable",battery_fleet_status_low:"Low",battery_fleet_status_soon:"Soon",battery_fleet_status_ok:"Healthy",battery_fleet_status_due:"Due",battery_fleet_predicted_on:"Expected around {date}",battery_fleet_predicted_typical:"Expected around {date} \u2014 {months} months typical for {type} ({source})",lifetime_source_default:"built-in default",lifetime_source_table:"built-in table",lifetime_source_learned:"learned from {n} replacements",lifetime_source_override:"your setting",lifetime_source_learned_device:"learned from this device's {n} replacements",lifetime_source_learned_model:"learned from {n} replacements on devices of this model",battery_fleet_predicted_trend:"Predicted from this battery's discharge trend: around {date} ({confidence})",battery_fleet_rechargeable:"Rechargeable: charge instead of replacing \u2014 never on the shopping list",battery_fleet_sort_name:"Sort by name",battery_fleet_sort_urgency:"Sort by urgency",battery_fleet_mark_recharged:"Mark as recharged",battery_fleet_charging:"Rechargeable spares",battery_fleet_ready:"{count} ready",battery_fleet_sparkline_hint:"Battery level over the last 30 days \u2014 dotted: projected until the low threshold",battery_fleet_filter_type:"Show only this battery type",battery_fleet_record_replacement:"The level jumped around {date} \u2014 record this replacement in Battery Notes",battery_fleet_total:"{n} batteries tracked",battery_fleet_setup_button:"Battery fleet",battery_fleet_setup_done:"Battery fleet set up \u2014 one task tracks all your batteries.",update_banner:"A newer version of Maintenance Supporter is on the server \u2014 reload to update the panel.",update_reload:"Reload",restart_pending_banner:"Maintenance Supporter was updated to {version}. Restart Home Assistant to finish the update.",restart_pending_error:"That did not work: Maintenance Supporter was updated to {version}, but Home Assistant has not been restarted since. Restart Home Assistant, then try again.",row_actions_banner:"Complete and Skip in task rows are now buttons. Prefer the old icons?",row_actions_keep:"Keep buttons",row_actions_back:"Back to icons",battery_fleet_forecast_overdue:"Predicted date passed \u2014 the battery still reports healthy. If you swapped it, record the replacement; otherwise the forecast was off.",cost_from_parts:"Use \u2248 {amount} from parts",cost_parts_booked:"Parts used \u2248 {amount} are booked automatically \u2014 enter only additional costs.",cost_parts_info:"Parts used \u2248 {amount} \u2014 counted when they were bought, not here.",cost_purchase_use_hint:"The price paid becomes the part's price \u2014 spare parts count when they are used.",history_parts_counted:"Parts: {amount}",history_parts_counted_hint:"Value of the parts used \u2014 counted as spending",history_parts_info:"Parts \u2248 {amount}",history_parts_info_hint:"Value of the parts used \u2014 information only; the money counted when they were bought",history_purchase_stock:"Bought for {amount} (counted when used)",dismiss:"Dismiss",gs_label:"Getting started \u2014 these hints retire as your setup grows",gs_setups_chip:"Suggested setups found {n} devices with pre-wired triggers",gs_setups_chip_one:"Suggested setups found 1 device with pre-wired triggers",gs_adopt_chip:"{n} problem sensors can become maintenance tasks",gs_adopt_chip_one:"1 problem sensor can become a maintenance task",gs_fleet_chip:"One click sets up the battery fleet",gs_reset_chip:"{n} tasks can reset their counter in the integration",gs_reset_chip_one:"1 task can reset its counter in the integration",cal_editor_window:"Default window",cal_editor_window_week:"Week (7 days)",cal_editor_window_fortnight:"Fortnight (14 days)",cal_editor_window_month:"Month (30 days, default)",cal_editor_window_year:"Year (365 days, empty days collapsed)",cal_editor_window_past_30:"Past 30 days (history)",cal_editor_window_past_90:"Past 90 days (history)",cal_editor_show_chips:"Show window chips inside the card",cal_editor_chips_hint:"Hide the chips when the card is embedded in a strategy view that already serves as the window selector.",cal_editor_show_user_filter:"Show user filter dropdown",cal_editor_default_user:"Default user filter",cal_editor_my_tasks:"My tasks (current user)",cal_editor_show_object_filter:"Show object filter dropdown",cal_editor_object_hint:'Pre-select one object via YAML: object_filter: "<object name>" \u2014 or a list of names to restrict the card to several objects.',object_history_section:"History (all tasks)",object_history_all_tasks:"All tasks",object_history_empty:"No entries in this range.",object_history_cap_note:"History keeps up to 500 entries per task \u2014 very old entries may be missing.",service_record_title:"Service record",service_record_print:"Service record (PDF)",date:"Date",service_record_entries:"entries",ref_number:"Reference number",print_options_title:"Print service record",print_layout:"Layout",print_layout_chronological:"Chronological",print_layout_by_task:"By task",print_include:"Include",print_inc_readings:"Readings",print_inc_parts:"Parts used",print_inc_photos:"Photos",print_inc_documents:"Linked documents",print_inc_doc_desc:"Document descriptions",print_inc_checklist:"Checklist",print_inc_notes:"Notes",print_inc_costs:"Cost and duration",print_inc_person:"Completed by",print_inc_refs:"Reference numbers",print_inc_bare:"Completions without details",print_inc_qr:"QR code per task",print_button:"Print",report_scan_hint:"Scan to open the task",completed_by:"Completed by",completed_via:"{person} (via {device})",date_from:"From",date_to:"To",phases_section:"Cycle phases (optional)",phases_hint:"Different work on one shared schedule \u2014 each completion moves to the next step (e.g. small service, small service, big service).",phase_add:"Add phase",phase_name:"Phase name",phase_sequence_label:"Cycle order",phase_sequence_add_step:"Add step",phase_current:"Current phase",phase_set:"Set as current",chart_history_fallback:"No long-term statistics for this entity \u2014 showing recorder state history (typically the last ~10 days)",chart_history_alarm:"Trigger view from recorder state history: 1 = alert state held for the hold time, 0 = fine (typically the last ~10 days)",chart_history_count:"Change count rebuilt from recorder state history since the last service (typically the last ~10 days)",prediction_cycles:"Learned from cycles",phase_require_override:"Override \u201CRequire on completion\u201D for this phase",history_add_past:"Add past completion",require_tag_scan:"Only complete by scanning the tag",require_tag_scan_help:"Proof of presence: Done is blocked on every surface until the NFC tag or QR code on the thing itself is scanned. Automations can pass 'via_tag_scan' to the complete service.",disallow_skip:"Don't allow skipping",disallow_skip_help:"The Skip action disappears from every surface, and the server refuses a skip from automations and voice too.",complete_when:"Done when (optional)",complete_when_state:"changes to",complete_when_help:"While the task is due, it completes itself when this entity changes to this state, for example when the washer's door opens.",complete_when_badge:"Done when {entity} changes to {state}",complete_when_any_time:"Also when it is not due: each time completes it and starts the next cycle",complete_when_badge_for:"for {minutes} min",complete_when_badge_any_time:"also when not due",no_notifications:"No notifications for this task",no_notifications_help:"No reminders for this task \u2014 no status notifications, repeats, lead-time reminders or bundles. It still shows on the dashboard and in its entities; the weekly digest still counts it.",require_tag_scan_hint:"This task completes only by scanning its NFC tag or QR code on the thing itself \u2014 saving here will be refused."}});function pr(r){return Ks[r]??"var(--secondary-text-color)"}function hr(r){return ml[r??""]??pi.length}function Qs(r){return ur.includes(r??"")}var xe,Ks,Ys,pi,ur,ml,Nt,De=y(()=>{"use strict";xe={ok:"var(--success-color, #4caf50)",due_soon:"var(--warning-color, #ff9800)",overdue:"var(--error-color, #f44336)",triggered:"var(--deep-orange-color, #ff5722)",archived:"var(--disabled-color, #9e9e9e)",paused:"var(--info-color, #2196f3)"},Ks={completed:xe.ok,missed:xe.overdue,reset:xe.paused,skipped:"var(--secondary-text-color)",triggered:xe.triggered,trigger_replaced:xe.triggered,trigger_removed:"var(--secondary-text-color)"},Ys=["completed","reset","skipped"];pi=["overdue","triggered","due_soon","ok"],ur=["overdue","triggered","due_soon"],ml=Object.fromEntries(pi.map((r,s)=>[r,s]));Nt={ok:"mdi:check-circle",due_soon:"mdi:alert-circle",overdue:"mdi:alert-octagon",triggered:"mdi:bell-alert",archived:"mdi:archive-outline",paused:"mdi:pause-circle-outline",completed:"mdi:check-circle",skipped:"mdi:skip-next",missed:"mdi:calendar-remove",reset:"mdi:refresh"}});function Js(r){return r?.restart_pending&&r.installed_version?r.installed_version:null}var Zs,_r=y(()=>{"use strict";Zs="2.115.0"});function vr(r){ze.en=Object.assign({},r,ze.en??{})}function we(r){let s=(r||gr).toLowerCase();return s.startsWith("pt")&&s.endsWith("br")?"pt-br":s.substring(0,2)}function j(r){return r?.language||"en"}function n(r,s,e){let t=we(s);return ze[t]?.[r]??ze.en?.[r]??e??r}function Xe(r){let s=we(r);return s===gr||s in ze||!Xs.has(s)}function _e(r){let s=we(r);if(s===gr||s in ze||!Xs.has(s))return Promise.resolve();let e=mr[s];return e!==void 0&&Date.now()-e<gl?Promise.resolve():(s in qt||(qt[s]=fetch(`${fl}/${s}.json?v=${Zs}`).then(t=>t.ok?t.json():null).then(t=>{t?ze[s]=t:(delete qt[s],mr[s]=Date.now())}).catch(()=>{delete qt[s],mr[s]=Date.now()})),qt[s])}var gr,fr,ze,qt,mr,gl,Xs,fl,Mt=y(()=>{"use strict";_r();gr="en",fr=(()=>{let r=window;return r.__msLocales||(r.__msLocales={store:{},inflight:{}}),r.__msLocales.failedAt||(r.__msLocales.failedAt={}),r.__msLocales})(),ze=fr.store,qt=fr.inflight,mr=fr.failedAt,gl=6e4;Xs=new Set(["de","nl","fr","it","es","pt","pt-br","ru","uk","pl","cs","sv","zh","da","fi","nb","ja","hi","hu","ko","tr"]),fl="/maintenance_supporter_locales"});function en(r){let s=r?.language;!s||typeof r?.loadBackendTranslation!="function"||te.lang===s&&(te.localize||te.inflight)||(te.lang=s,te.localize=null,te.inflight=r.loadBackendTranslation("exceptions",br).then(e=>{te.lang===s&&(te.localize=e)}).catch(()=>{}).finally(()=>{te.inflight=null}))}function tn(r,s,e){if(!s||!te.localize||r&&r!==br)return null;let t=`component.${br}.exceptions.${s}.message`,i=te.localize(t,e??void 0);return i&&i!==t?i:null}var br,te,yr=y(()=>{"use strict";br="maintenance_supporter",te=(()=>{let r=window;return r.__msBackendErrors??={lang:"",localize:null,inflight:null}})()});function Ht(r){let s=rn.get(r);if(s===void 0){try{s=new Intl.DateTimeFormat("en-US",{timeZone:r,hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"})}catch{s=null}rn.set(r,s)}return s}function on(){if(xr===void 0){let r;try{r=new Intl.DateTimeFormat().resolvedOptions().timeZone}catch{}xr=r&&Ht(r)?r:null}return xr}function an(){return on()??"UTC"}function ke(){let r=nn.serverTimeZone;return r&&Ht(r)?r:an()}function $e(){let r=on();return nn.timeZone!=="server"&&r?r:ke()}function ui(r,s){let e=Ht(s)??Ht(an())??Ht("UTC"),t={};for(let i of e.formatToParts(r))i.type!=="literal"&&(t[i.type]=Number(i.value));return{y:t.year,mo:t.month,d:t.day,h:t.hour%24,mi:t.minute,s:t.second}}function Ee(r,s){return $r(ui(+r,s))}function hi(r,s){let e=ui(+r,s);return`${$r(e)}T${ie(e.h)}:${ie(e.mi)}`}function me(){return Ee(Date.now(),ke())}function ln(){return hi(Date.now(),ke())}function wr(r,s){let e=ui(r,s);return Date.UTC(e.y,e.mo-1,e.d,e.h,e.mi,e.s)-Math.floor(r/1e3)*1e3}function vl(r,s,e,t,i,o,a){let c=Date.UTC(r,s-1,e,t,i,o),u=wr(c-kr,a),_=wr(c+kr,a);for(let m of u===_?[u]:[u,_])if(wr(c-m,a)===m)return c-m;return c-u}function cn(r,s,e){if(r.has(s))return r.get(s);r.size>=xl&&r.clear();let t=e();return r.set(s,t),t}function U(r){if(typeof r!="string"||!r)return NaN;let s=Er.exec(r);if(!s)return Date.parse(r);let e=ke();return cn(yl,`${e}|${r}`,()=>{let[t,i,o,a,c,u]=[s[1],s[2],s[3],s[4]??"0",s[5]??"0",s[6]??"0"].map(Number);if(i<1||i>12||new Date(Date.UTC(t,i-1,o)).getUTCDate()!==o||a>23||c>59||u>59)return NaN;let _=s[7]?Math.floor(+`0.${s[7]}`*1e3):0;return vl(t,i,o,a,c,u,e)+_})}function _i(r){if(typeof r!="string"||!r)return null;let s=Er.exec(r);if(s)return`${s[1]}-${s[2]}-${s[3]}`;let e=ke();return cn(bl,`${e}|${r}`,()=>{let t=Date.parse(r);return Number.isFinite(t)?Ee(t,e):/^\d{4}-\d{2}-\d{2}/.test(r)?r.slice(0,10):null})}function dn(r){if(typeof r!="string"||!r)return"";let s=Er.exec(r);if(s)return`${s[1]}-${s[2]}-${s[3]}T${s[4]??"00"}:${s[5]??"00"}:${s[6]??"00"}`;let e=Date.parse(r);if(!Number.isFinite(e))return"";let t=ui(e,ke());return`${$r(t)}T${ie(t.h)}:${ie(t.mi)}:${ie(t.s)}`}function sn(r){let s=pn.exec(r);if(!s)return NaN;let[e,t,i]=[Number(s[1]),Number(s[2]),Number(s[3])],o=Date.UTC(e,t-1,i);return t>=1&&t<=12&&new Date(o).getUTCDate()===i?o/kr:NaN}function un(r,s){let e=pn.exec(r);if(!e)return r;let t=new Date(Date.UTC(Number(e[1]),Number(e[2])-1,Number(e[3])+Math.round(s)));return`${ie(t.getUTCFullYear(),4)}-${ie(t.getUTCMonth()+1)}-${ie(t.getUTCDate())}`}function hn(r,s){return sn(s)-sn(r)}var nn,kr,ie,rn,xr,$r,Er,bl,yl,xl,pn,W=y(()=>{"use strict";nn=window.__msDateTimePrefs??={},kr=864e5,ie=(r,s=2)=>String(r).padStart(s,"0"),rn=new Map;$r=r=>`${ie(r.y,4)}-${ie(r.mo)}-${ie(r.d)}`;Er=/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?)?$/,bl=new Map,yl=new Map,xl=2e4;pn=/^(\d{4})-(\d{2})-(\d{2})$/});function Fe(r){return r?.currency_symbol||wl}function mi(r,s){s.has("hass")&&Tr(r.hass?.locale,r.hass?.config?.country,r.hass?.config?.time_zone);let e=r.hass?.language;e&&!Xe(e)&&_e(e).then(()=>{Xe(e)&&r.requestUpdate()}),en(r.hass)}function _n(r){let s=we(r);return{de:"de-DE",en:"en-US",nl:"nl-NL",fr:"fr-FR",it:"it-IT",es:"es-ES",pt:"pt-PT",ru:"ru-RU",uk:"uk-UA",zh:"zh-CN",da:"da-DK",fi:"fi-FI",nb:"nb-NO",ja:"ja-JP",hi:"hi-IN",pl:"pl-PL",cs:"cs-CZ",sv:"sv-SE","pt-br":"pt-BR",hu:"hu-HU",ko:"ko-KR",tr:"tr-TR"}[s]??"en-US"}function kl(r){gn.decimals=typeof r=="number"&&Number.isInteger(r)&&r>=0&&r<=3?r:0}function $l(){return gn.decimals??0}function gi(r){r&&r.currency_decimals!==void 0&&r.currency_decimals!==null&&kl(Number(r.currency_decimals))}function Tr(r,s,e){e!==void 0&&(re.serverTimeZone=e||void 0),r&&(re.date=r.date_format,re.time=r.time_format,re.number=r.number_format,re.timeZone=r.time_zone,s!==void 0&&(re.country=s||void 0))}function El(r){switch(re.number){case"comma_decimal":return["en-US","en"];case"decimal_comma":return["de","es","it"];case"space_comma":return["fr","sv","cs"];case"system":return;default:return _n(r)}}function fi(r,s,e,t,i="n"){return e===1?n(s,t):n(r,t).replace(`{${i}}`,P(e,t))}function P(r,s,e){if(!Number.isFinite(r))return String(r);let t=typeof e=="number"?{minimumFractionDigits:e,maximumFractionDigits:e}:{maximumFractionDigits:2,...e};if(re.number==="none"){let i=Math.pow(10,t.maximumFractionDigits??2);return String(Math.round(r*i)/i)}try{return new Intl.NumberFormat(El(s),t).format(r)}catch{return new Intl.NumberFormat(void 0,t).format(r)}}function fn(r,s,e){return r<0?`${n("cost_kind_credit",e??"en")}: ${K(-r,s,e)}`:K(r,s,e)}function K(r,s,e,t){let i=t??$l(),o=Math.abs(r)<.5/Math.pow(10,i)?0:r,a=P(o,e,i);return s?`${a} ${s}`:a}function tt(r,s,e){let t=P(r,e);return s?`${t} ${s}`:t}function et(r){let s=_n(r),e=re.country;if(e&&/^[A-Za-z]{2}$/.test(e)){let t=`${we(r).split("-")[0]}-${e.toUpperCase()}`;try{return new Intl.DateTimeFormat(t),t}catch{}}return s}function Sr(r,s,e){let t=re.date;if(t==="DMY"||t==="MDY"||t==="YMD"){let[o,a,c]=Ee(r,e).split("-");return t==="DMY"?`${c}/${a}/${o}`:t==="MDY"?`${a}/${c}/${o}`:`${o}-${a}-${c}`}let i=t==="system"?void 0:et(s);return r.toLocaleDateString(i,{day:"2-digit",month:"2-digit",year:"numeric",timeZone:e})}function vi(r,s){let e=$e();switch(re.time){case"12":return r.toLocaleTimeString(et(s),{hour:"2-digit",minute:"2-digit",hour12:!0,timeZone:e});case"24":return r.toLocaleTimeString(et(s),{hour:"2-digit",minute:"2-digit",hour12:!1,timeZone:e});case"system":return r.toLocaleTimeString(void 0,{hour:"2-digit",minute:"2-digit",timeZone:e});default:return r.toLocaleTimeString(et(s),{hour:"2-digit",minute:"2-digit",timeZone:e})}}function q(r,s){if(!r)return"\u2014";try{let e=vn.exec(r);return e?Sr(new Date(Date.UTC(+e[1],+e[2]-1,+e[3])),s,"UTC"):Sr(new Date(U(r)),s,$e())}catch{return r}}function bi(r,s){if(!r)return"\u2014";if(vn.test(r))return q(r,s);try{let e=new Date(U(r));return Sr(e,s,$e())+" "+vi(e,s)}catch{return r}}function yi(r,s=Date.now()){let e=ke();return hi(s,e)===hi(s,$e())?"":n("ha_time_zone_hint",r).replace("{zone}",e)}function xi(r,s){if(r==null)return"\u2014";let e=s||"en";if(r<0)return`${Math.abs(r)} ${n("d_overdue",e)}`;if(r===0)return n("today",e);let t=r===1?"one":"other";try{t=new Intl.PluralRules(e).select(r)}catch{}return`${r} ${t==="one"?n("day",e):t==="few"?n("days_few",e):n("days",e)}`}function bn(r,s){let e=_i(r);if(!e)return null;let t=hn(e,me());return Number.isFinite(t)?t<=0?n("last_done_today",s||"en"):n("last_done_days_ago",s||"en").replace("{n}",String(t)):null}function Lt(r,s,e){return r==null?"\u2014":`${r} ${n("unit_"+(s||"days"),e)}`}function it(r,s){return r==null?"\u2014":`${P(r,s,{maximumFractionDigits:1})} ${n("minutes_short",s)}`}function Dt(r,s,e="long"){return new Date(Date.UTC(2024,0,1+r)).toLocaleDateString(et(s),{weekday:e,timeZone:"UTC"})}function Ar(r,s,e="long"){return new Date(Date.UTC(2024,r,1)).toLocaleDateString(et(s),{month:e,timeZone:"UTC"})}function yn(r,s){let e=r.schedule;if(r.schedule_type==="sensor_based"){let o=n("sensor_based",s),a=e&&e.kind==="interval"&&e.every?e.every:r.interval_days;return a?`${o} \xB7 ${Lt(a,(e&&e.kind==="interval"?e.unit:r.interval_unit)||"days",s)}`:o}let t=e?.offset?` ${e.offset>0?"+":"\u2212"}${Math.abs(e.offset)}d`:"",i=e?.months?.length?` \xB7 ${[...e.months].sort((o,a)=>o-a).map(o=>Ar(o-1,s,"short")).join(", ")}`:"";switch(e?.kind){case"weekdays":return((e.weekdays||[]).map(o=>Dt(o,s,"short")).join(" & ")||"\u2014")+t;case"nth_weekday":return e.weekday==null||e.nth==null?"\u2014":`${e.nth===-1?n("ord_last",s):n("ord_"+e.nth,s)} ${Dt(e.weekday,s,"long")}${t}${i}`;case"day_of_month":return e.day==null?"\u2014":(e.day===-1?n(e.business?"last_business_day_month":"last_day_month",s):`${n("day_word",s)} ${e.day}`)+t+i;case"calendar":return`${n("calendar_entity_label",s)}: ${r.schedule_entity_name||e.entity_id||"\u2014"}${t}`;case"one_time":return r.due_date?q(r.due_date,s):n("one_time",s);case"manual":return n("manual",s);case"interval":return Lt(e.every,e.unit,s)}return r.schedule_type==="one_time"?r.due_date?q(r.due_date,s):n("one_time",s):r.schedule_type==="manual"?n("manual",s):r.schedule_type==="sensor_based"?n("sensor_based",s):r.interval_days!=null?Lt(r.interval_days,r.interval_unit,s):"\u2014"}function xn(r,s){r.currentTarget.dispatchEvent(new CustomEvent("hass-more-info",{detail:{entityId:s},bubbles:!0,composed:!0}))}var wl,mn,re,gn,vn,Se,wn,Sl,Tl,wi,I=y(()=>{"use strict";O();Vs();De();Mt();yr();W();Mt();wl="\u20AC";vr(Gs);mn=window,re=mn.__msDateTimePrefs??={},gn=mn.__msMoneyPrefs??={};vn=/^(\d{4})-(\d{2})-(\d{2})$/;Se=$`
+Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"{field}: too long (max {n} characters)",err_too_short:"{field}: too short (min {n} characters)",err_value_too_high:"{field}: too large (max {n})",err_value_too_low:"{field}: too small (min {n})",err_required:"{field}: required",err_wrong_type:"{field}: wrong type (expected: {type})",err_invalid_choice:"{field}: not an allowed value",err_invalid_value:"{field}: invalid value",ws_err_not_found:"Not found \u2014 it may have been deleted meanwhile",ws_err_invalid_input:"Invalid input",ws_err_invalid_date:"Invalid date",ws_err_invalid_format:"Invalid format",ws_err_invalid_url:"Invalid link",ws_err_invalid_mirror_todo:"Invalid to-do list",ws_err_not_configured:"Not set up yet",ws_err_not_loaded:"Not loaded yet \u2014 try again in a moment",ws_err_limit_reached:"Limit reached",ws_err_too_many:"Too many entries",ws_err_too_large:"Too large",ws_err_not_archived:"Not archived",ws_err_invalid_target:"Invalid target",ws_err_create_failed:"Could not be created",ws_err_archived:"Archived \u2014 restore it first",ws_err_already_archived:"Already archived",ws_err_unavailable:"Currently unavailable",ws_err_unauthorized:"Not permitted for your user",ws_err_too_many_views:"Too many saved views",ws_err_replace_failed:"Replacement failed",ws_err_not_paused:"Not paused",ws_err_not_available:"Nothing available",ws_err_no_url:"No link given",ws_err_no_phases:"This task has no phases",ws_err_invalid_view:"Invalid view",ws_err_invalid_user:"Unknown user",ws_err_invalid_range:"Invalid range",ws_err_invalid_parent:"Invalid parent object",ws_err_invalid_device:"Unknown device",ws_err_empty_csv:"The CSV file is empty",ws_err_empty:"Nothing to import",ws_err_duplicate_failed:"Could not duplicate",ws_err_already_paused:"Already paused",ws_err_invalid_cursor:"Invalid phase position",ws_err_invalid_entity_slug:"Invalid entity name",ws_err_invalid_trigger_config:"Invalid trigger configuration",ws_err_no_defaults:"No quick-complete defaults set",ws_err_self_link_device:"An object cannot be linked to itself",ws_err_too_early:"Too early \u2014 this task can only be completed closer to its due date",ws_err_invalid_search_template:"The search link must be an http(s) URL containing {q}",ws_err_invalid_notify_service:"Invalid notification service format. Use 'notify.service_name' (e.g., notify.mobile_app_phone).",ws_err_notify_service_not_found:"This notification service was not found in Home Assistant. Please verify the service name.",ws_err_invalid_shopping_list_entity:"The shopping list must be a to-do entity (todo.\u2026).",ws_err_invalid_icon:"The notification icon must be an mdi: name, e.g. mdi:air-filter",feat_schedule_time:"Time-of-day scheduling",feat_schedule_time_desc:"Tasks become overdue at a specific time of day instead of midnight.",schedule_time_toggle:"Due at a specific time",schedule_time_help:"Empty = midnight (default). HA timezone.",at_time:"at",notes_optional:"Notes (optional)",notes_markdown_hint:"Markdown is supported \u2014 **bold**, lists, [links](\u2026)",cost_optional:"Cost (optional)",duration_minutes:"Duration in minutes (optional)",completed_at_optional:"Completed at (optional, empty = now)",completed_at_pick:"Set date & time",completed_at_future_error:"The completion date cannot be in the future.",ha_time_zone_hint:"Time in Home Assistant's time zone ({zone})",days:"days",days_few:"days",day:"day",today:"Today",d_overdue:"d overdue",no_tasks:"No maintenance tasks yet. Create an object to get started.",no_tasks_short:"No tasks",no_history:"No history entries yet.",show_all:"Show all",cost_duration_chart:"Cost & Duration",installed:"Installed",min:"Min",max:"Max",save:"Save",saving:"Saving\u2026",edit_task:"Edit Task",task_series_position:"{n} of {total}",task_series_skip:"Skip",task_series_save_next:"Save & next",task_section_schedule:"Schedule",task_section_trigger:"Sensor trigger",task_section_completion:"Completing it",task_section_people:"People",task_section_notifications:"Notifications",task_section_details:"Details",new_task:"New Maintenance Task",task_name:"Task name",maintenance_type:"Maintenance type",priority:"Priority",labels:"Labels",labels_placeholder:"e.g. safety, seasonal, tenant-visible",labels_help:"Comma-separated tags for filtering and reporting.",task_mirror_todo:"Mirror into to-do lists",task_mirror_todo_hint:"The task appears in these lists while it is due; checking it off there completes it here.",task_mirror_todo_default:"Default lists: {lists}",task_mirror_todo_own:"Other lists",task_mirror_todo_none:"Not on any to-do list",task_mirror_todo_max:"At most {max} lists; Maintenance Supporter's own lists are not offered.",priority_low:"Low",priority_normal:"Normal",priority_high:"High",all_priorities:"All priorities",schedule_type:"Schedule type",interval_days:"Interval (days)",warning_days:"Warning days",earliest_completion_days:"Earliest completion (days before due)",earliest_completion_days_help:"Leave empty to allow completing any time. 0 = only on/after the due date.",last_performed_optional:"Last performed (optional)",interval_anchor:"Interval anchor",anchor_completion:"From completion date",anchor_planned:"From planned date (no drift)",interval_anchor_hint:"From completion date: the next due date counts from the day the task is marked done, so doing it early or late moves the schedule. From planned date: the schedule keeps its dates, for example when a bill is paid weeks before it is due.",edit_object:"Edit Object",name:"Name",manufacturer_optional:"Manufacturer (optional)",model_optional:"Model (optional)",serial_number_optional:"Serial number (optional)",serial_number_label:"S/N",object_replaces:"Replaces",object_replaced_by:"Replaced by",documentation_url_label:"Manual",object_notes_label:"Notes",sort_due_date:"Due date",sort_object:"Object name",sort_type:"Type",sort_task_name:"Task name",all_objects:"All objects",all_parts:"All parts",all_areas:"All areas",areas_filter:"Filter areas\u2026",areas_filter_none:"No area matches the filter.",area_cost_year:"Cost {year}",area_object_count:"{n} objects",area_object_count_one:"1 object",area_range_12m:"Last 12 months",area_range_all:"All time",area_task_filter:"Filter by task\u2026",area_kpi_completions:"Completions",area_kpi_total_time:"Total time",area_cost_per_month:"Cost per month",area_cost_per_year:"Cost per year",area_cost_per_object:"Cost per object",area_cost_share:"Share",area_history_section:"History (all objects)",area_report_print:"Area report (PDF)",area_report_title:"Area report",area_report_period:"Period",area_no_costs:"No costs recorded in this period.",no_tasks_yet:"No tasks yet",add_first_task:"Add first task",entity_id:"Entity ID",comma_separated:"comma-separated",entity_logic:"Entity logic",entity_logic_any:"Any entity triggers",entity_logic_all:"All entities must trigger",entities:"entities",attribute_optional:"Attribute (optional, blank = state)",use_entity_state:"Use entity state (no attribute)",trigger_above:"Trigger above",trigger_below:"Trigger below",trigger_equals:"Trigger when equal to (=)",trigger_not_equals:"Trigger when different from (\u2260)",for_at_least_minutes:"For at least (minutes)",safety_interval:"Safety interval (optional)",trigger_combinator:"Combine trigger and interval",trigger_combinator_any:"Trigger or interval (whichever first)",trigger_combinator_all:"Trigger and interval (both required)",delta_mode:"Delta mode",from_state_optional:"From state (optional)",to_state_optional:"To state (optional)",documentation_url_optional:"Documentation URL (optional)",object_notes_optional:"Notes (optional)",nfc_tag_id_optional:"NFC Tag ID (optional)",nfc_tags_empty_help:"No NFC tags registered in Home Assistant yet.",nfc_tags_open_settings:"Open Tags settings",nfc_tags_refresh:"Refresh",environmental_entity_optional:"Environmental sensor (optional)",environmental_entity_helper:"e.g. sensor.outdoor_temperature \u2014 adjusts the interval based on environmental conditions",adaptive_prediction_enabled:"Enable sensor-driven predictions",adaptive_seasonal_enabled:"Enable seasonal awareness",adaptive_max_interval:"Maximum interval (days)",adaptive_min_interval:"Minimum interval (days)",adaptive_ewa_alpha:"Learning rate (alpha)",adaptive_enabled:"Enable adaptive scheduling",adaptive_section_title:"Adaptive Scheduling",environmental_attribute_optional:"Environmental attribute (optional)",nfc_tag_id:"NFC Tag ID",nfc_linked:"NFC tag linked",nfc_link_hint:"Click to link NFC tag",responsible_user:"Responsible User",task_shared_with:"Shared with",task_shared_with_help:"Without a responsible person, the task is meant for each of them: everyone gets its reminders and finds it under My Tasks. With a rotation, they take turns.",task_shared_responsible_wins:"Someone is responsible, so the task is meant for them alone. Clear Responsible User to share it.",rotation_strategy:"Rotation",rotation_none:"No rotation",rotation_round_robin:"Round-robin",rotation_least_completed:"Least completed",rotation_random:"Random",no_user_assigned:"(No user assigned)",all_users:"All Users",my_tasks:"My Tasks",tab_calendar:"Calendar",cal_no_events:"No maintenance",cal_every_n_days:"every {n} days",cal_every_day:"every day",cal_source_time:"Time-based",cal_source_time_adaptive:"Time-based (adaptive)",cal_source_sensor:"Sensor-based",cal_predicted:"predicted",cal_confidence_high:"high confidence",cal_confidence_medium:"medium confidence",cal_confidence_low:"low confidence",budget_monthly:"Monthly budget",budget_yearly:"Yearly budget",groups:"Groups",new_group:"New group",edit_group:"Edit group",no_groups:"No groups yet",delete_group:"Delete group",delete_group_confirm:"Delete group '{name}'?",group_select_tasks:"Select tasks",group_name_required:"Name is required",description_optional:"Description (optional)",selected:"Selected",loading_chart:"Loading chart data...",hide_outliers:"Hide outliers (sensor glitches)",was_maintenance_needed:"Was this maintenance needed?",feedback_needed:"Needed",feedback_not_needed:"Not needed",feedback_not_sure:"Not sure",suggested_interval:"Suggested interval",apply_suggestion:"Apply",reanalyze:"Re-analyze",reanalyze_result:"New analysis",reanalyze_insufficient_data:"Not enough data to produce a recommendation",data_points:"data points",dismiss_suggestion:"Dismiss",confidence_low:"Low",confidence_medium:"Medium",confidence_high:"High",recommended:"recommended",seasonal_awareness:"Seasonal Awareness",edit_seasonal_overrides:"Edit seasonal factors",seasonal_overrides_title:"Seasonal factors (override)",seasonal_overrides_hint:"Factor per month (0.1\u20135.0). Empty = learned automatically.",seasonal_override_invalid:"Invalid value",seasonal_override_range:"Factor must be between 0.1 and 5.0",clear_all:"Clear all",clear:"Clear",date_type_toggle:"Type the date",date_type_invalid:"Not a valid date \u2014 try 1978-03-15, a year like 1978, or your own date format",seasonal_chart_title:"Seasonal Factors",seasonal_learned:"Learned",seasonal_manual:"Manual",month_jan:"Jan",month_feb:"Feb",month_mar:"Mar",month_apr:"Apr",month_may:"May",month_jun:"Jun",month_jul:"Jul",month_aug:"Aug",month_sep:"Sep",month_oct:"Oct",month_nov:"Nov",month_dec:"Dec",sensor_prediction:"Sensor Prediction",degradation_trend:"Trend",trend_rising:"Rising",trend_falling:"Falling",trend_stable:"Stable",trend_insufficient_data:"Insufficient data",days_until_threshold:"Days until threshold",threshold_exceeded:"Threshold exceeded",environmental_adjustment:"Environmental factor",sensor_prediction_urgency:"Sensor predicts threshold in ~{days} days",sensor_prediction_urgency_one:"Sensor predicts threshold in ~{days} day",sensor_prediction_urgency_few:"Sensor predicts threshold in ~{days} days",day_short:"day",weibull_reliability_curve:"Reliability Curve",weibull_failure_probability:"Failure Probability",weibull_r_squared:"Fit R\xB2",beta_early_failures:"Early Failures",beta_random_failures:"Random Failures",beta_wear_out:"Wear-out",beta_highly_predictable:"Highly Predictable",confidence_interval:"Confidence Interval",confidence_conservative:"Conservative",confidence_aggressive:"Optimistic",current_interval_marker:"Current interval",recommended_marker:"Recommended",characteristic_life:"Characteristic life",chart_mini_sparkline:"Trend sparkline",chart_history:"Cost and duration history",chart_seasonal:"Seasonal factors, 12 months",chart_weibull:"Weibull reliability curve",chart_sparkline:"Sensor trigger value chart",days_progress:"Days progress",qr_code:"QR Code",qr_generating:"Generating QR code\u2026",qr_error:"Failed to generate QR code.",qr_error_no_url:"No HA URL configured. Please set an external or internal URL in Settings \u2192 System \u2192 Network.",save_error:"Failed to save. Please try again.",subsave_warning:"Saved, but one setting was rejected: {detail}",qr_print:"Print",qr_download:"Download SVG",qr_action_view:"View maintenance info",qr_action_complete:"Mark maintenance as complete",qr_action_quick_complete:"Quick-complete \u2014 no dialog",qr_quick_complete_off:"Quick complete is off for this task. Turn it on in the task: Completing it \u2192 Quick complete.",qr_quick_records:"Records: {values}",qr_quick_records_nothing:"Records the completion only",qr_print_quick_off:"Quick-complete codes need tasks with quick complete on (task \u2192 Completing it \u2192 Quick complete). None of the chosen objects' tasks has it.",qr_url_mode:"Link type",qr_mode_companion:"Companion App",qr_mode_local:"Local (mDNS)",qr_mode_server:"Server URL",overview:"Overview",strat_this_month:"This Month",strat_later:"Later",strat_week:"Week",strat_fortnight:"Fortnight",strat_month:"Month",strat_year:"Year",strat_other:"Other",strat_status:"Status",strat_empty_title:"No maintenance objects yet",strat_empty_content:"Open the Maintenance panel to add your first object \u2014 pool pump, HVAC filter, vehicle, anything that needs scheduled care.",strat_open_panel:"Open Maintenance panel",strat_add_object:"Add object",strat_not_loaded:"**Maintenance Supporter** is not loaded. Install/enable the integration first.",strat_group_by:"Group views by",strat_group_area:"By area (default)",strat_group_status:"By status (Overdue / Triggered / Due Soon / OK)",strat_group_floor:"By floor (uses HA floors)",strat_group_due_date:"By due date (Overdue / Today / Week / Month / Later)",strat_group_calendar:"Rolling calendar (Week / Fortnight / Month / Year)",strat_editor_help:'The "Overview" view is always first. Empty groups are skipped.',picker_name_calendar:"Maintenance Supporter \u2014 Calendar",picker_name_panel:"Maintenance Supporter \u2014 Panel",picker_name_budget:"Maintenance Supporter \u2014 Budget",picker_name_groups:"Maintenance Supporter \u2014 Groups",picker_name_vacation:"Maintenance Supporter \u2014 Vacation",picker_name_battery_fleet:"Battery Fleet",picker_name_section:"Maintenance Supporter \u2014 Section",picker_name_vacation_status:"Maintenance Supporter \u2014 Vacation Status",picker_name_budget_status:"Maintenance Supporter \u2014 Budget Status",picker_desc_card:"Overview of your maintenance tasks with quick actions.",picker_desc_calendar:"Rolling calendar of maintenance tasks with 7/14/30/365 day windows, source icons, and prediction-confidence pills.",picker_desc_panel:"The complete Maintenance Supporter panel as a card \u2014 for a panel view / dashboard subview without the sidebar entry.",picker_desc_budget:"Edit the monthly and yearly budget right on the dashboard.",picker_desc_groups:"Create, rename and delete task groups right on the dashboard.",picker_desc_vacation:"Switch vacation mode on or off and set its dates right on the dashboard.",picker_desc_battery_fleet:"All tracked batteries: what is low now, what runs out soon, and what to buy.",picker_desc_dashboard:"Auto-generated dashboard. Group views by area, status, floor, or due date \u2014 picked from the strategy editor or YAML.",picker_desc_section:"Embed maintenance tasks (filterable by area, status, due date) as a section in any dashboard view.",picker_desc_vacation_status:"Compact vacation-mode status banner. Tap to open settings in the panel.",picker_desc_budget_status:"Monthly + yearly maintenance budget overview. Tap for details.",picker_desc_groups_status:"List of configured task groups with member counts.",hist_note_button:"Completed from dashboard button",hist_note_todo:"Completed from the To-do list",hist_note_voice:"Completed by voice",hist_note_notification:"Completed from the notification",hist_note_nfc:"Completed via NFC tag",hist_note_shopping_list:"Completed from the shopping list",hist_note_todo_mirror:"Completed from a mirrored to-do list",hist_note_skipped_notification:"Skipped from notification",hist_note_skipped_button:"Skipped from dashboard button",hist_note_sensor_triggered:"Sensor trigger activated",hist_note_initial:"Initial value set during task creation",hist_note_auto_recovered:"Auto-completed: sensor recovered ({value})",hist_note_auto_entity:"Auto-completed: {entity} changed to {state}",hist_note_auto_recovered_plain:"Auto-completed: sensor recovered",hist_note_reset:"Reset to {date}",hist_note_trigger_replaced:"Trigger entity replaced: {old} \u2192 {new}",hist_note_trigger_removed:"Sensor trigger removed (entity was: {entity}). Schedule converted to {schedule}.",hist_note_compound_removed:"Entity {entity} removed from compound trigger; {count} conditions remain.",recent_activities:"Recent Activities",search_notes:"Search notes",avg_cost:"Avg Cost",current:"Current",shorter:"Shorter",longer:"Longer",normal:"Normal",disabled:"Disabled",compound_logic:"Compound logic",compound:"Compound (multiple conditions)",compound_logic_and:"AND \u2014 all conditions must trigger",compound_logic_or:"OR \u2014 any condition triggers",compound_help:"Combine several sensor conditions into one trigger.",compound_no_conditions:"No conditions yet \u2014 add at least one.",compound_add_condition:"Add condition",compound_condition:"Condition",compound_remove_condition:"Remove condition",card_title:"Title",card_simple_preset:"Set up as a simple list",card_simple_preset_help:"Compact rows, an open circle to tick off, no create buttons or document chips, the person before the task. Each option stays changeable.",card_show_header:"Show header with statistics",card_show_actions:"Show action buttons",card_show_create:"Show create buttons",card_action_style:"Complete button style",card_compact:"Compact mode",card_max_items:"Max items (0 = all)",card_filter_status:"Filter by status",card_filter_status_help:"Empty = show all statuses.",card_filter_objects:"Filter by objects",card_filter_objects_help:"Empty = show all objects.",card_filter_areas:"Filter by areas",card_filter_areas_help:"Empty = show all areas.",card_filter_priority_help:"Empty = show all priorities. Tasks without an explicit priority count as Normal.",card_filter_entities:"Filter by entities (entity_ids)",card_filter_entities_help:"Pick sensor / binary_sensor entities from this integration. Empty = all.",card_loading_objects:"Loading objects\u2026",card_load_error:"Could not load objects \u2014 check the WebSocket connection.",card_no_tasks_title:"No maintenance tasks yet",card_no_tasks_cta:"\u2192 Create one in the Maintenance panel",no_objects:"No objects yet.",action_error:"Action failed. Please try again.",area_id_optional:"Area (optional)",place_optional:"Place (zone, optional)",remind_on_site:"Remind only while somebody is there",remind_on_site_hint:"Reminders wait until somebody is in this zone. Whoever arrives there gets a message with what is due.",place_missing:"Zone not found: reminders as at home",place_home:"Home",installation_date_optional:"Installation date (optional)",warranty_expiry_optional:"Warranty expiry (optional)",warranty:"Warranty",warranty_valid_until:"valid until {date}",warranty_expires_in:"expires in {days} days",warranty_expired:"expired",cal_past_windows:"Past windows",cal_forward_windows:"Forward windows",history_edit_title:"Edit history entry",history_delete_entry:"Delete entry",history_delete_confirm_entry:"Delete this history entry? The task's last-performed date falls back to the previous completion; photos stay with the object.",history_delete_returns_parts:"The parts it used go back to stock: {parts}.",history_edit_timestamp:"Timestamp",manufacturer:"Manufacturer",model:"Model",area:"Area",actions:"Actions",view_mode_label:"View",view_cards:"Card view",view_table:"Table view",objects_table_columns_label:"Objects table columns",objects_table_columns_hint:"Choose which columns appear in the objects table view.",custom_icon_optional:"Icon (optional, e.g. mdi:wrench)",notify_icon:"Notification icon",notify_icon_hint:"Shown by the Companion app on Android. Empty = the icon of this task's maintenance type ({default}).",task_enabled:"Task enabled",skip_reason_prompt:"Skip this task?",reason_optional:"Reason (optional)",reset_date_prompt:"Mark task as performed?",reset_date_optional:"Last performed date (optional, defaults to today)",notes_label:"Notes",documentation_label:"Documentation",no_nfc_tag:"\u2014 No tag \u2014",dashboard:"Dashboard",tab_today:"Today",palette_placeholder:"Search objects, tasks, spare parts, documents, notes\u2026",palette_no_results:"No matches",palette_hint:"\u2191\u2193 to navigate \xB7 Enter to open \xB7 Esc to close \xB7 / opens the search anywhere",search_open:"Search",search_group_parts:"Spare parts",search_group_content:"In documents",search_group_history:"History notes",search_page:"Page {page}",search_empty_hint:"Type to search objects, tasks, spare parts, documents and notes",search_searching:"Searching documents and notes\u2026",search_index_status:"Full-text search: {indexed} of {total} files indexed \xB7 {no_text} without text layer \xB7 {pending} pending",today_all_caught_up:"All caught up! Nothing due this week.",today_overdue:"Overdue",today_due_today:"Due today",today_this_week:"This week",settings:"Settings",settings_features:"Advanced Features",settings_features_desc:"Enable or disable advanced features. Disabling hides them from the UI but does not delete data.",feat_adaptive:"Adaptive Scheduling",feat_adaptive_desc:"Learn optimal intervals from maintenance history",feat_seasonal:"Seasonal Adjustments",feat_seasonal_desc:"Adjust intervals based on seasonal patterns",feat_environmental:"Environmental Correlation",feat_environmental_desc:"Correlate intervals with temperature/humidity",feat_budget:"Budget Tracking",feat_budget_desc:"Track monthly and yearly maintenance spending",feat_groups:"Task Groups",feat_groups_desc:"Organize tasks into logical groups",feat_checklists:"Checklists",feat_checklists_desc:"Multi-step procedures for task completion",settings_general:"General",settings_default_warning:"Default warning days",settings_consumable_threshold:"Consumable low threshold (%)",settings_battery_low_percent:"Battery low threshold (%)",settings_battery_recovered_percent:"Battery counts as replaced above (%)",settings_battery_recovered_percent_hint:"A low battery stays counted as low until its level rises above this value or a replacement is recorded \u2014 so a level hovering around the low threshold cannot complete the fleet task again and again.",settings_battery_low_delay:"Battery counts as low after (minutes)",settings_battery_low_delay_hint:"A battery must read low this long before it counts as low, so a sensor that reports a very low level for a moment and recovers by itself does not put it on the list. 0 = at once.",settings_battery_auto_record:"Record a replacement automatically when a low battery recovers",settings_battery_auto_record_hint:"When a battery that was low rises above the recovery threshold, the replacement date is recorded in Battery Notes and the spare cells are taken from stock \u2014 no tap needed.",settings_battery_lifetimes:"Typical battery lifetimes",settings_battery_lifetimes_hint:'Only used for batteries without a percentage: a Battery Notes note that has just a type and a last-replaced date, or a sensor that only reports "low". Their due date is last replaced + this lifetime. Batteries that report a level get their forecast from the measured discharge instead. Once the fleet has seen three replacements of a type, the median interval takes over from the built-in value \u2014 your own value always wins.',settings_battery_lifetime_months:"months",settings_battery_lifetime_reset:"Use default",settings_battery_lifetime_in_fleet:"in your fleet",settings_battery_lifetime_learned_models:"Learned per model: {list}",settings_thresholds_hint:"Defaults for new Suggested setups (percent-remaining consumables) and for fleet batteries without their own Battery Notes threshold. Existing tasks keep their value.",settings_part_search_url:"Shopping search link",settings_part_search_url_hint:"URL with {q} in place of the search terms, used for parts without a product link. Leave empty for the automatic store (by country, then by language).",settings_value_out_of_range:"Value must be between {min} and {max}",bn_summary:"{name}: {pct} % for {n} batteries",bn_floor_decides:"Your {floor} % floor decides for all of them; the higher of the two thresholds counts per battery.",bn_above_floor:"That is above your {floor} % floor, so {name} decides for all noted batteries.",bn_overrides:"{n} devices with their own threshold:",bn_more:"+ {n} more",settings_row_actions:"Task row actions",settings_ref_numbers_in_lists:"Reference numbers in lists",settings_ref_numbers_in_lists_hint:"Show the #8 / #8.3 chips in front of object and task names in the Today list, the task table, the object cards and the objects table.",settings_compact_refs:"Compact reference numbers",settings_compact_refs_hint:"Renumbers all objects, tasks and completions in order (1, 2, 3 \u2026) and closes the gaps left by deletions. Numbers already printed on service booklets, photos or notes will no longer match.",settings_compact_refs_confirm:"Renumber every object, task and completion sequentially in creation order? Numbers already written on printed service booklets, photos or notes will no longer match. This cannot be undone.",settings_compact_refs_done:"Renumbered {objects} objects, {tasks} tasks and {completions} completions.",row_actions_buttons_compact:"Buttons (icons only on phones)",row_actions_buttons:"Buttons with text",row_actions_icons:"Icons (classic)",row_actions_follow:"Follow the household setting",settings_panel_enabled:"Sidebar panel",settings_panel_title:"Sidebar panel title",settings_notifications:"Notifications",settings_notify_service:"Notification service",settings_shopping_list:"Shopping list (buy tasks)",settings_shopping_list_help:"Low-part buy reminders appear in this to-do list; checking one off restocks the part.",shopping_list_none:"Off \u2014 no shopping list",settings_mirror_todo_default:"Default to-do lists for tasks",settings_mirror_todo_default_help:"While a task is due, it appears on the lists ticked here, unless the task picks its own lists or none. Checking it off there completes the task. A list that takes a due date gets the task's.",settings_mirror_todo_default_none:"No to-do lists in Home Assistant yet.",settings_install_assist_sentences:"Install Assist sentences",settings_install_assist_sentences_hint:"Copies the voice sentences into your configuration so the classic Assist agent recognises them. A file you edited yourself is never overwritten.",test_notification:"Test notification",send_test:"Send test",testing:"Sending\u2026",test_notification_success:"Test notification sent",test_notification_failed:"Test notification failed",notify_per_person:"Per-person delivery",member_avatars:"Member avatars",member_avatars_hint:"Shown next to assigned tasks \u2014 initials in the member's colour. Defaults come from the name; set your own initials or pick a colour to tell members apart.",member_initials:"Initials",member_color:"Colour",member_avatar_reset:"Reset",notify_no_own_device:"No own device \u2014 uses the household service",settings_notify_due_soon:"Notify when due soon",settings_notify_overdue:"Notify when overdue",settings_notify_triggered:"Notify when triggered",settings_interval_hours:"Repeat interval (hours, 0 = once)",settings_quiet_hours:"Quiet hours",settings_quiet_start:"Start",settings_quiet_end:"End",settings_max_per_day:"Max notifications per day (0 = unlimited)",settings_bundling:"Bundle notifications",settings_bundle_threshold:"Bundle threshold",settings_reminder_leads:"Extra reminders (days before due)",settings_reminder_leads_hint:"Comma-separated lead times, e.g. 14, 3, 0 \u2014 one extra reminder fires on each matching day. Empty = off.",settings_actions:"Mobile Action Buttons",settings_action_complete:"Show 'Complete' button",settings_action_skip:"Show 'Skip' button",settings_action_snooze:"Show 'Snooze' button",settings_weekly_digest:"Weekly digest",settings_weekly_digest_hint:"A single summary notification on Monday morning when tasks are due.",settings_warranty_reminder:"Warranty expiry reminder",settings_warranty_reminder_days:"Days before expiry",settings_warranty_reminder_hint:"Notify once when an object's warranty is this many days from expiring.",settings_snooze_hours:"Snooze duration (hours)",settings_snooze_hours_hint:"How long Snooze mutes a task's reminders \u2014 from the task menu, a card, voice or the phone's Snooze button. The due date stays as it is.",settings_budget:"Budget",settings_currency:"Currency",settings_currency_decimals:"Decimal places for amounts",settings_currency_decimals_hint:"How many decimals every amount shows: KPIs, budgets, costs in lists and reports, budget alerts. 0 = whole numbers.",settings_parts_cost_mode:"Spare parts count as spending",settings_parts_cost_purchase:"When bought",settings_parts_cost_use:"When used",settings_parts_cost_mode_hint:"When bought: a buy reminder's cost counts, and the parts a job uses are shown as information. When used: every completion books the value of the parts it used, and a purchase sets the part's price instead of counting. Applies to completions from now on \u2014 history keeps how it was booked.",settings_budget_monthly:"Monthly budget",settings_budget_yearly:"Yearly budget",settings_budget_alerts:"Budget alerts",settings_budget_threshold:"Alert threshold (%)",settings_import_export:"Import / Export",settings_export_json:"Export JSON",settings_export_yaml:"Export YAML",settings_export_csv:"Export CSV",settings_export_settings:"Export settings (JSON)",settings_import_placeholder:"Paste JSON or CSV content here\u2026",settings_import_btn:"Import",settings_import_success:"{count} objects imported successfully.",settings_import_unmatched_users:"Not found on this instance: {names}. Their task assignments were removed \u2014 add people with the same names in Home Assistant and import again to keep them.",settings_export_success:"Export downloaded.",settings_saved:"Setting saved.",settings_include_history:"Include history",settings_export_selection:"Limit to selected objects (optional)",settings_docs_archive:"Documents archive (with files)",settings_docs_archive_hint:"The JSON and YAML exports list your documents but not their files; CSV leaves documents out. This ZIP holds the uploaded files \u2014 restore it after importing the JSON and nothing is missing.",settings_docs_export_btn:"Download documents ZIP",settings_docs_import_btn:"Restore documents ZIP",settings_docs_import_success:"Restored: {blobs} files, {docs} documents",settings_docs_import_missing:"{n} skipped \u2014 their files were not in the ZIP",settings_docs_import_unmatched:"No object here matches {names}: their files were kept but not attached",sort_alphabetical:"Alphabetical",sort_due_soonest:"Due soonest",sort_task_count:"Task count",sort_area:"Area",sort_assigned_user:"Assigned user",sort_group:"Group",groupby_none:"No grouping",groupby_area:"By area",groupby_group:"By group",groupby_user:"By user",groupby_object:"By object",filter_label:"Filter",user_label:"User",photo_label:"Photo",sort_label:"Sort",group_by_label:"Group by",state_value_help:'Use the HA state value (usually lowercase, e.g. "on"/"off"). Case is normalised on save.',target_changes_help:"Number of matching transitions before the trigger fires (default: 1).",state_latch_help:"With 1 transition the trigger is a latch: it recovers when the entity leaves the To-state \u2014 or, with only a From-state set, when it returns to that state.",for_minutes_state_help:"0 counts every change immediately. Set minutes and the new state must hold that long first \u2014 brief flickers then neither trigger nor count.",qr_print_title:"Print QR codes",qr_print_desc:"Generate a printable page of QR codes to cut out and stick on your equipment.",qr_print_load:"Load objects",qr_print_filter:"Filter",qr_print_objects:"Objects",qr_print_actions:"Actions",qr_print_url_mode:"Link type",qr_print_estimate:"Estimated QR codes",qr_print_over_limit:"cap is 200, narrow the filter",qr_print_generate:"Generate QR codes",qr_print_generating:"Generating\u2026",qr_print_ready:"QR codes ready",qr_print_print_button:"Print",qr_print_empty:"Nothing to generate",qr_action_skip:"Skip",vacation_title:"Vacation mode",vacation_active:"active",vacation_ended:"ended",vacation_desc:"Plan a vacation: notifications are paused during the period plus a buffer of days. You can opt specific tasks back in.",vacation_enable:"Enable vacation mode",vacation_start:"Start",vacation_end:"End",vacation_buffer:"Buffer (days)",vacation_exempt_title:"Notify anyway during vacation",vacation_exempt_desc:"Pick tasks that should still notify during vacation (e.g. critical pool chemistry).",vacation_load_tasks:"Load tasks",vacation_preview_btn:"Show preview",vacation_preview_affected:"tasks affected",vacation_event_due_soon:"becomes due soon",vacation_event_overdue:"becomes overdue",vacation_event_triggered_est:"sensor trigger possible",vacation_sensor_based:"(sensor-based)",vacation_action_notify:"Notify anyway",vacation_action_unsilence:"Silence again",vacation_marked_complete:"Marked complete",vacation_marked_skip:"Skipped",vacation_end_now:"End vacation now",add:"Add",show_stats:"Show stats + graphs",hide_stats:"Hide stats",adaptive_no_data:"Not enough completion history yet for adaptive analysis. Complete this task a few more times to unlock interval recommendations and reliability charts.",suggestion_applied:"Suggested interval applied",vacation_mode:"Vacation mode",vacation_status_active:"Active now",vacation_status_scheduled:"Scheduled",vacation_status_ended:"Ended",vacation_status_inactive:"Inactive",vacation_end_now_confirm:"End vacation immediately?",vacation_exempt_count:"exempt",vacation_advanced:"Advanced\u2026",vacation_open_panel:"Open in panel",enable:"Enable",saved:"Saved",budget_monthly_set:"Set monthly",budget_yearly_set:"Set yearly",budget_advanced:"Currency, alerts\u2026",budget_open_panel:"Open in panel",groups_empty:"No groups yet.",group_new_placeholder:"Add group\u2026",groups_manage_tasks:"Manage task assignments\u2026",groups_open_panel:"Open in panel",unassigned:"Unassigned",no_area:"No area",has_overdue:"Has overdue tasks",object:"Object",settings_panel_access:"Panel access",settings_panel_access_desc:"Admins always have full access. To delegate create, edit and delete to specific non-admins, switch this on and pick them below \u2014 everyone else only gets Complete, Skip, Reset, Postpone and Snooze.",settings_shared_devices:"Shared devices",settings_shared_devices_desc:"Accounts several people use, like a kitchen tablet. A completion made there is credited to whoever is on duty (the responsible person, on a rotation whose turn it is); the history notes the device.",settings_operator_write:"Allow selected users to create, edit & delete",settings_operator_write_desc:"Off: only admins can change content. On: the selected users below get full access too.",no_non_admin_users:"No non-admin users found. Add some in Settings \u2192 People.",owner_label:"Owner",feat_completion_actions:"Completion actions",feat_completion_actions_desc_v2:"Per-task HA action on complete.",feat_places:"Places",feat_places_desc:"Objects maintained at another place (a Home Assistant zone): reminders only while somebody is there, and a message on arrival.",on_complete_action_title:"On complete: trigger HA action (optional)",on_complete_action_desc:"Calls an HA service when the task is completed \u2014 e.g. reset a counter on the device.",on_complete_action_target:"Target entity",on_complete_action_target_hint:"Note: the entity domain must match the service \u2014 e.g. 'button.press' only works on button.*, 'counter.increment' only on counter.*, 'input_button.press' only on input_button.* etc. On a mismatch the action will silently fail (HA logs 'Referenced entities ... missing or not currently available').",on_complete_action_target_more:"This action targets more than this field shows: {targets}. That is kept as it is \u2014 choosing another entity here replaces the whole target.",on_complete_action_skip_auto:"Not when the task completes itself (its sensor recovered)",on_complete_action_data:"Data (JSON, optional)",on_complete_action_test:"Validate configuration",on_complete_action_test_success:"\u2713 Configuration valid (action will fire only on task completion)",on_complete_action_test_failed:"Failed",action_test_bad_format:"Invalid service format (expected 'domain.service')",action_test_unknown_service:'Service "{service}" is not registered in Home Assistant. Check the spelling and that the integration providing it is loaded.',action_test_domain_mismatch:`Service "{service}" only works on {domain}.* entities; entity "{entity}" is in {entity_domain}.* \u2014 pick a service that matches the entity's domain (e.g. {suggestion})`,action_test_entity_missing:'Target entity "{entity}" was not found in Home Assistant \u2014 it may have been renamed or its integration removed.',quick_complete_defaults_notes:"Notes",quick_complete_defaults_cost:"Cost",quick_complete_defaults_duration:"Duration (minutes)",quick_complete_defaults_feedback_none:"No feedback",quick_complete_defaults_feedback_needed:"Was needed",quick_complete_defaults_feedback_not_needed:"Not needed",quick_complete_success:"Quickly marked complete",completion_already_recorded:"Already recorded {seconds} s ago, not counted twice",quick_complete_label:"Quick complete",quick_complete_help:"One tap completes it, without a dialog: in the panel and on dashboard cards, with the quick-complete QR code, from a notification, a button, a to-do list or by voice.",quick_complete_values:"Prefill (optional)",quick_complete_values_help:"Entered by every completion without a dialog. The completion dialog starts with them too.",quick_complete_needs_dialog:"Asks on completion for: {fields}. A quick completion opens the dialog for it.",quick_complete_tag_hint:"Needs a tag scan: only the tag or the quick-complete QR code on the thing completes it in one go.",quick_complete_not_asked:"A quick completion does not ask for the checklist or the readings.",complete_with_details:"Complete with details\u2026",show_all_objects:"Show all objects",show_all_tasks:"Clear filter \u2014 show all tasks",filter_to_overdue:"Filter task list to overdue only",filter_to_due_soon:"Filter task list to due-soon only",filter_to_triggered:"Filter task list to triggered only",open_task:"Open task",show_details:"Show history + stats",hide_details:"Hide details",history_empty:"No history yet.",history_edit_button:"Edit entry",total_cost:"Total cost",times_performed:"Performed",older_entries:"older",open_in_panel:"Open in Maintenance panel",skip_reason:"Skip reason (optional)",reset_to_date:"Reset last_performed to",delete_task_confirm:"Delete this task and its history?",delete_buy_task_confirm:"This task reminds you to buy a spare part that is running low. Deleted on its own, it comes back as long as the part stays low.",delete_buy_task_off:"Also turn off the buy reminder for this part",delete_object_confirm:"Delete this object and all its tasks?",loading:"Loading\u2026",archive:"Archive",undo:"Undo",task_completed_named:"Completed: {task}",undo_done:"Completion undone",undo_done_action_ran:"Completion undone. Its completion action had already run and cannot be taken back.",undo_nothing:"Nothing to undo. Only your own last completion can be taken back, within 10 minutes.",undo_changed:"Can't undo. The task has changed since.",task_archived:"Task archived",object_archived:"Object archived",unarchive:"Unarchive",archived:"Archived",show_archived:"Show archived",hide_archived:"Hide archived",section_collapse:"Collapse section",section_expand:"Expand section",confirm_archive_object:"Archive this object and its tasks? They keep their history and can be unarchived later.",settings_archive:"Archive & Retention",settings_archive_desc:"Retire completed one-off tasks without deleting them. Archived items are hidden and inert but keep their history and cost.",settings_archive_oneoff_days:"Auto-archive completed one-off tasks after (days, 0 = off)",settings_delete_archived_oneoff_days:"Auto-delete archived one-off tasks after (days, 0 = never)",archive_object:"Archive object",unarchive_object:"Unarchive object",documents:"Documents",documents_empty:"No documents yet.",doc_upload:"Upload file",doc_uploading:"Uploading\u2026",doc_add_link:"Add link",doc_link_url:"URL (https://\u2026)",doc_link_title:"Title (optional)",doc_open:"Open",doc_delete_confirm:'Delete "{name}"?',doc_too_large:"File is too large (max 100 MB).",doc_upload_failed:"Upload failed.",docs_archive_too_large:"The archive is too large (max {max}).",docs_archive_no_manifest:"This ZIP has no manifest.json, so the restore cannot tell which document a file belongs to. Keep manifest.json next to the folders when zipping again.",completion_photos_optional:"Completion photos (optional)",completion_photos:"Completion photos",choose_photos:"Choose photos",choose_photo:"Choose photo",photos_android_hint:"The Android app hands over one photo per pick \u2014 each pick is added.",photos_limit:"Up to {max} photos per completion",history_edit_photos_hint:"Removing a photo here keeps the file in the object's documents.",uploading:"Uploading\u2026",remove:"Remove",doc_deduped:"Already stored elsewhere \u2014 shared, no extra space used.",doc_dup_in_object:"This file is already attached to this object.",doc_link_not_allowed:"This link is not allowed: links that run scripts or open local files (javascript:, data:, file: \u2026) are refused.",doc_cat_manual:"Manual",doc_cat_warranty:"Warranty",doc_cat_invoice:"Invoice",doc_cat_spare_parts:"Spare parts",doc_cat_photo:"Photo",doc_cat_other:"Other",doc_link_badge:"Link",doc_storage_title:"Document storage",doc_storage_saved:"Saved via deduplication",doc_storage_refresh:"Refresh",doc_download:"Download",doc_close:"Close",doc_camera:"Take photo",camera_capture_shoot:"Capture",camera_switch_lens:"Switch camera",camera_switching:"Switching camera\u2026",camera_not_answered:"This camera did not answer. Tap the switch again to try the next one, or use the file picker.",camera_diagnostics:"Details for a bug report",camera_copy:"Copy",camera_copied:"Copied",doc_drop_hint:"Drop files here",doc_task_none:"No documents linked to this task.",doc_link_existing:"Link a document\u2026",doc_attach:"Link",doc_unlink:"Unlink",doc_page:"Page",chart_range_7d:"7d",chart_range_30d:"30d",chart_range_90d:"90d",chart_range_1y:"1y",chart_since_service:"since last service",chart_no_stats:"No long-term statistics for this entity \u2014 showing maintenance-event values only",auto_complete_on_recovery:"Auto-complete when the sensor recovers",auto_complete_on_recovery_help:"Records a completion (sets last performed) when the trigger clears itself \u2014 e.g. salt refilled, filter replaced.",trigger_end:"When the state ends",trigger_end_ok:"The task goes back to OK",trigger_end_done:"Record the task as done",trigger_end_hold:"Keep the task triggered until it is done",trigger_end_hold_help:"For a state that lasts only a moment, such as a finished wash: the task stays until it is completed, by hand or by its Done when entity.",trigger_detail_attribute:"Show with the task (optional)",trigger_detail_none:"Nothing",trigger_detail_attribute_help:"While the trigger is active, the value of this attribute shows after the task's name and in its reminder: which medicine is running low, which window is open.",doc_search:"Search documents\u2026",doc_search_none:"No matching documents",doc_description:"Description (optional)",doc_sort:"Sort documents",doc_sort_newest:"Newest first",doc_sort_oldest:"Oldest first",doc_sort_title:"By title (1, 2, 3 \u2026)",doc_sort_category:"By category",link_device_optional:"Link to existing device (optional)",parent_object_optional:"Parent object (optional)",parent_none:"(No parent)",parent_object_hint:"Shown inside the parent in the lists of objects.",sub_objects:"Sub-objects",sub_objects_count:"{n} sub-objects",sub_objects_count_one:"1 sub-object",add_sub_object:"Add sub-object",sub_object_move_here:"Move an existing object here",sub_object_move_message:"The object moves inside {name}, with everything inside it. Its tasks and history stay as they are.",sub_object_move_confirm:"Move here",sub_object_moved:"Moved inside {name}",templates_inside:"The new object goes inside {name}.",sub_objects_show:"Show sub-objects",sub_objects_hide:"Hide sub-objects",paused:"Paused",pause_object:"Pause",resume_object:"Resume",pause_task:"Pause",resume_task:"Resume",pause_task_prompt:"Freeze this task's schedule \u2014 it does not become due and does not notify until you resume it, and resuming starts a fresh cycle from that day. The object's other tasks keep running. Optionally set a date to resume by itself.",task_paused:"Task paused",task_resumed:"Task resumed \u2014 its schedule restarted",pause_until_prompt:"Freeze this object's schedules \u2014 nothing becomes due and nothing notifies until it is resumed. Optionally set an auto-resume date.",pause_until_label:"Resume on (optional)",object_paused:"Object paused",object_resumed:"Object resumed \u2014 schedules restarted",object_paused_badge:"Paused",paused_until_label:"until",replace_object:"Replace\u2026",replace_object_prompt:"Retire this object and create a successor. History and costs stay archived on the old one; tasks and documents carry over to the new one, counters start fresh.",replace_name_label:"Successor name",replace_device_heading:"Device in Home Assistant",replace_device_keep:"Same device as before ({device})",replace_device_keep_hint:"Also the choice when the new unit is not in Home Assistant yet: once it is, pick it as the object's device in its settings \u2014 the sensor triggers move along then.",replace_device_other:"The new unit is another device",replace_device_pick:"Device of the new unit",replace_device_other_hint:"Sensor triggers, completion actions and the counter reset move to the matching entities of that device.",replace_device_none:"No device",object_replaced:"Object replaced \u2014 successor created",device_swap_moved:"{count} sensor links moved to the new device.",device_swap_moved_one:"One sensor link moved to the new device.",device_swap_unmatched:"{count} could not be matched \u2014 check those tasks' sensor triggers.",device_swap_unmatched_one:"One could not be matched \u2014 check that task's sensor trigger.",reading_unit_label:"Reading unit (e.g. kWh, m\xB3)",reading_unit_help:"Shown next to the recorded value when completing this task.",reading_value_label:"Reading value",reading_label:"Reading",readings_section:"Readings",readings_hint:"Several named values per completion \u2014 one row per meter. Leave empty to record a single value.",reading_name_label:"Reading name",reading_unit_short:"Unit",reading_add:"Add reading",reading_duplicate_name:"Name already used",reading_last:"last: {value}",reading_below_last:"Lower than the last reading ({value})",settings_templates_label:"Template gallery",settings_templates_hint:`Untick templates you'll never need \u2014 they disappear from the "From template" pickers (panel and config flow). Nothing else changes; you can re-enable them any time.`,home_profile_title:"Home profile",home_profile_hint:"Recommends templates and sets seasonal windows for your climate and hemisphere. Everything is worked out locally from your floors, areas and home location.",home_type_label:"Home type",home_type_auto:"Automatic ({detected})",home_region_label:"State, province or region",home_region_none:"not found",home_region_hint:"Some rules differ within a country \u2014 a yearly vehicle inspection in one state, none in the next. Found from your home location.",home_dwelling_house:"House",home_dwelling_apartment:"Apartment",home_dwelling_unknown:"not recognised",home_detected_from:"Detected from: {reasons}",home_reason_floors:"several floors",home_reason_basement:"a basement",home_reason_garden:"a garden",home_reason_shed:"a shed",home_reason_driveway:"a driveway",home_reason_garage:"a garage",home_reason_attic:"an attic",home_reason_lawn_mower:"a lawn mower",home_reason_gate:"a gate",home_reason_balcony:"a balcony",home_reason_small_home:"few rooms on one floor",home_reason_ups:"a UPS",home_climate_label:"Climate",home_climate_value:"K\xF6ppen {koppen} \xB7 coldest month {cold} \xB0C \xB7 warmest month {warm} \xB0C",home_climate_unknown:"No home location set in Home Assistant",home_hemisphere_south:"Southern hemisphere \u2014 seasonal windows are mirrored",home_trait_freeze:"Frost in winter",home_trait_snow:"Snowy winters",home_trait_severe_winter:"Severe winters",home_trait_damp:"Damp climate",home_trait_mediterranean:"Mediterranean climate",home_trait_earthquake:"Earthquake region",home_trait_hot_summer:"Hot summers",home_trait_hot_humid:"Hot and humid",home_trait_hot_dry:"Hot and dry",home_trait_termites:"Termite region",home_trait_wildfire:"Wildfire risk",home_trait_cyclone:"Hurricane / typhoon region",home_trait_tropical:"Tropical climate",home_trait_radon:"Radon test recommended",home_reason_starter:"Basics for your home",home_reason_country:"Common in {country}",home_reason_feature:"Found in your home: {feature}",templates_recommended_title:"Recommended for your home",templates_recommended_hint:"Based on your home profile \u2014 adjust it in Settings.",templates_legal_hint:"Notes on legal duties and intervals are guidance, not legal advice. Rules vary by region and change over time \u2014 local regulations and the manufacturer's instructions take precedence.",templates_not_typical:"Not typical for your home type",templates_set_up:"Already set up",worksheet:"Work sheet",worksheet_scan_view:"Scan to open the task",worksheet_scan_complete:"Scan to complete",worksheet_manual_excerpt:"Manual excerpt",worksheet_pages:"pages",worksheet_printed:"Printed",worksheet_never:"Never",card_all_caught_up:"All caught up \u2014 nothing needs attention",postpone:"Postpone",postpone_date_prompt:"Postpone this occurrence to which date?",postpone_date_label:"New due date",postponed:"Postponed",postponed_to:"Postponed to",season_window_label:"Seasonal window (months)",season_window_hint:"Only due in the selected months; off-season dates roll to the next active month. None = all year.",series_end_label:"Ends",series_end_never:"Never (repeats indefinitely)",series_end_after_count:"After a number of times",series_end_until:"On a date",series_end_count_label:"Number of times",series_end_until_label:"End date",parts_section:"Parts & consumables",parts_inventory_value:"Inventory value",part_add:"Add part",part_name:"Name",part_vendor:"Manufacturer",part_storage_location:"Storage location",part_product_url:"Product URL",part_unit:"Unit",part_cost:"Unit price",part_cost_mode:"Counts as spending",part_cost_mode_house:"As in Settings ({mode})",part_cost_mode_hint:"When bought: the purchase counts, in the year it is made. When used: every completion that uses the part books its price on the object, and so the area, where it is used.",part_stock:"Stock",part_reorder_threshold:"Reorder at",part_restock_quantity:"Restock quantity",part_package_size:"Package size (units)",part_restock_packages:"Restock amount (packages)",part_package_hint:"Bought in packages, used in the unit: stock, the amount a task uses and the reorder threshold count units; the restock amount and the price are per package.",part_auto_buy:"Auto-create buy task when low",part_reuse:"After use",part_reuse_none:"Used up",part_reuse_charge:"Charged",part_reuse_sharpen:"Sharpened",part_reuse_clean:"Cleaned",part_reuse_dry:"Dried",part_reuse_refill:"Refilled",part_reuse_restore:"Restored",part_waiting_charge:"{count} to charge",part_waiting_sharpen:"{count} to sharpen",part_waiting_clean:"{count} to clean",part_waiting_dry:"{count} to dry",part_waiting_refill:"{count} to refill",part_waiting_restore:"{count} to restore",part_restoring:"Used, not ready yet",part_ready_again_hint:"All used ones are ready again",part_dispose:"Dispose",part_dispose_hint:"Gone for good, such as a dead cell: off the waiting pile, not back to the stock",part_dispose_how_many:"How many are gone for good",part_use:"Use",part_use_hint:"Used outside a task: off the stock like the parts of a completion",part_use_how_many:"How much was used",part_use_not_booked:"Not booked as spending: this part counts when used, which only a task's completion books.",part_bought:"Bought\u2026",part_bought_hint:"Record a purchase: into the stock, with what was paid and when",part_bought_quantity:"How many",part_bought_packages:"Packages of {size}",part_bought_price_each:"Price each",part_bought_price_package:"Price per package",part_bought_total:"Total",part_bought_date:"Bought on",part_bought_note:"Shop, receipt, \u2026",part_bought_confirm:"Record purchase",part_bought_adds:"Adds {qty} to the stock",part_bought_on_use:"Stock, not spending: this part counts when used, and its price becomes the average of what is on the shelf.",part_reuse_hint:"A used one is not gone: it waits until it is ready again and still counts as owned, so it is not bought again.",part_restock:"Adjust stock",parts_used_by:"Used by",restock_quantity_label:"Quantity bought",consumes_parts_label:"Consumes parts",task_parts_fleet_hint:"Battery quantities come from Battery Notes per device \u2014 nothing to link here.",shared_parts_other_objects:"Parts from other objects",shared_parts_help:"Several objects can share one stock. Completing this task takes from the owning object.",shared_part_unknown:"Unknown part",parts_load_failed:"Couldn't load this object's parts \u2014 the consumes-parts options are unavailable right now.",adopt_problem_button:"Adopt problem sensors",adopt_problem_title:"Adopt problem sensors",adopt_problem_hint:"Turn HA problem sensors (printer errors, filter warnings, low battery) into maintenance tasks that trigger while the problem is active and clear themselves when it resolves.",adopt_problem_none:"No problem sensors found that aren't already tracked.",adopt_problem_active:"active",adopt_problem_ok:"ok",adopt_problem_new_object:"(new)",adopt_object_hint:"Give several sensors the same object name and they become one object; type an existing object's name to add them there.",adopt_summary_title:"What adopting changes",adopt_summary_existing:'"{name}": tasks {before} \u2192 {after}',adopt_summary_totals:"Tasks: {tasks} \xB7 objects: {objects}",adopt_summary_totals_new:"Tasks: {tasks} \xB7 objects: {objects} ({new} new)",adopt_problem_adopt:"Adopt selected",adopt_problem_done:"Adopted {tasks} problem sensor(s)",adopt_problem_done_one:"Adopted 1 problem sensor",views_label:"Views",views_none:"\u2014 No view \u2014",views_manage:"Save / manage views",views_dialog_title:"Saved views",views_dialog_hint:"Save the current filters as a named view everyone can reuse.",views_name_placeholder:"View name",views_save_current:"Save current filters",views_none_yet:"No saved views yet.",close:"Close",trigger_hint_now:"The sensor reads {value} right now.",trigger_hint_above:"The task triggers once it rises above {target}.",trigger_hint_below:"It triggers once it falls below {target}.",trigger_hint_equals:"It triggers when it reads exactly {target}.",trigger_hint_not_equals:"It triggers when it reads anything but {target}.",trigger_hint_overlap:"These limits overlap: every reading triggers the task and it can never recover. Leave one of them empty.",trigger_hint_counter_delta:"Counts from the current reading ({value}): due at {due} (+{target}), and the count restarts after each completion.",trigger_hint_counter_delta_edit:"Counts usage since the last completion: due after +{target}; the count restarts after each completion.",trigger_hint_counter_abs:"The task becomes due once the sensor reaches {target}.",trigger_hint_runtime:"The task becomes due after {hours} h of accumulated on-time; the counter restarts after each completion.",trigger_hint_due_date:"The task becomes due {days} days before the date the sensor reports.",trigger_hint_due_date_one:"The task becomes due one day before the date the sensor reports.",trigger_hint_due_date_same_day:"The task becomes due on the date the sensor reports.",trigger_hint_due_date_now:"Reported date: {date}.",trigger_hint_state_change:"The task becomes due after {count} state change(s).",trigger_hint_state_change_to:"The task becomes due after {count} change(s) to \u201C{state}\u201D.",trigger_hint_state_now:"Current state: {value}.",adopt_problem_part:"Uses part: {name}",label_filter:"Label",all_labels:"All labels",filter_place:"Place",filter_place_all:"All places",settings_notify_scope:"Notify only for view",settings_notify_scope_all:"All tasks",settings_notify_scope_hint:"Only tasks matching the selected saved view's label/user filters send reminders. Status, sorting and grouping of the view are ignored here.",settings_notify_completed:"Completion notifications",settings_notify_completed_hint:`Household news when a task is completed, with the reason and who did it. "Automatic only" announces just the completions nobody made on the spot: sensor recovery, shopping-list check-off, an automation's service call. Sent to the household service only; quiet hours and the daily cap apply.`,settings_title_style:"Notification title style",settings_title_style_hint:"What appears as the notification's TITLE. Default keeps the per-status text (e.g. 'Maintenance overdue!'). Object name / Task name help when phone notifications stack.",title_style_default:"Default (per-status title)",title_style_object_name:"Object name as title",title_style_task_name:"Task name as title",notify_completed_off:"Off",notify_completed_automatic:"Automatic completions only",notify_completed_all:"All completions",settings_notify_rule:"Your own notification rule",settings_notify_rule_hint:"Every notification also fires the event maintenance_supporter_notification (kind, status, object, task, reference numbers, priority, deep link, the payload). Route it with an automation \u2014 e.g. into Ticker, Telegram or Pushover.",settings_notify_event_only:"Only fire the event, send nothing myself",settings_notify_event_only_hint:"Your automation is the whole delivery. Rate limits, quiet hours and the daily cap still apply to when the event fires.",settings_notify_extra_data:"Extra notification data (template)",settings_notify_extra_data_hint:"JSON or YAML, Jinja allowed; merged into the notify call's data (your keys win). Variables: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message. Test it with the Send test button.",card_saved_view:"Saved view",card_saved_view_none:"None",card_saved_view_help:"Applies the view's status, user, label and priority filters on top of the filters above. The view's sorting and grouping are panel display settings and are not applied on the card.",panel_card_tab:"Open on tab",panel_card_tab_default:"Remembered tab (as in the panel)",panel_card_view:"Open with saved view",panel_card_height:"Height",panel_card_height_help:"Empty = fill the screen below the card (panel view). Otherwise a CSS length such as 600px or 80vh for views with other cards.",panel_card_not_registered:"The Maintenance Supporter panel is not available \u2014 is the integration set up?",panel_card_load_failed:"The Maintenance Supporter panel could not be loaded \u2014 reload the page (after an update: clear the browser cache).",doc_part_none:"No documents linked to this part.",settings_templates_toggle_group:"Enable or disable all templates in this group",setups_button:"Suggested setups",setups_title:"Suggested setups (Beta)",setups_hint:"Devices of supported integrations whose consumable sensors can drive maintenance tasks. Adopting creates the object and wires each task to its sensor \u2014 it triggers when the consumable runs low and resolves itself after replacement.",setups_none:"No supported devices with unwired consumable sensors found.",setups_adopt:"Set up selected",setups_done:"{tasks} sensor-wired tasks created.",setups_done_one:"1 sensor-wired task created.",complete_parts_used:"Parts used this time",part_delete_confirm:"Delete part '{name}'? Its stock tracking, task links and any open buy reminder will be removed.",baseline_start_value:"Start reading (optional)",baseline_start_help:"Counting starts from this reading. Leave empty to count from the current value; enter the reading at the last service so usage since then already counts.",setups_baseline_hint:"reading at last service (optional)",baseline_start_help_edit:"Leave empty to keep the existing counting. Entering a value re-anchors the counting (e.g. the reading at the last service).",baseline_current_effective:"Currently effective start value: {value}",runtime_on_states:"Active states",runtime_on_states_help:"States that count as running \u2014 default: on. E.g. mowing, cleaning, printing. With an attribute selected, its values are matched instead.",runtime_max_session:"Max session runtime (seconds)",runtime_max_session_help:"A single run counts at most this many seconds \u2014 protects against a sensor stuck ON (lost connection, restart). Empty = no cap.",trend_approaching:"Heading toward the threshold",trend_easing:"Easing away from the threshold",split_select_hint:"Select a task to see its details here",setups_target_new:"Create new: {name}",setups_target_match:"{name} \u2014 matches: {reasons}",setups_reason_model:"model number",setups_reason_name:"name",setups_reason_area:"area",setups_reason_sibling:"same model on another device",setups_maybe_covered:'Probably there already as "{name}"',setups_already:"Already there: {names}",setups_reset_line:"Completing it also resets the counter in the integration (\u201C{button}\u201D)",setups_reset_enable:"\u2014 the button gets switched on for this",reset_offers_title:"Reset counters on completion",reset_offers_hint:"These tasks watch a counter the integration keeps itself. Connected, completing the task here also presses the integration's reset button \u2014 otherwise the counter keeps running and the task falls due again right away.",reset_offers_before:"Now: completing it leaves the counter in {integration} running",reset_offers_after:"Then: it also presses \u201C{button}\u201D",reset_offers_renamed:"Renamed since it was set up \u2014 check that this task is for this part",reset_offers_apply:"Connect resets",reset_offers_done:"{count} tasks now reset their counter on completion",reset_offers_done_one:"1 task now resets its counter on completion",setups_before_after:"Tasks on the object: {before} \u2192 {after}",setups_new_object_count:'New object "{name}" \xB7 tasks: {count}',schedule_preview_title:"Next dates",schedule_preview_ontime:"Assuming on-time completion.",schedule_preview_ends:"(series ends)",adopt_problem_responsible:"Responsible user for all adopted tasks (optional)",adopt_for_minutes_hint:"Only trigger once the problem has persisted this long \u2014 0 reacts to the first flicker.",adopt_problem_configure:"Configure",history_auto:"Automatic",battery_fleet_title:"Battery fleet",battery_fleet_none_low:"All batteries OK \u2014 nothing to replace.",battery_fleet_progress:"{n} to replace",battery_fleet_buy_now:"Buy now",battery_fleet_soon:"Needed soon",battery_fleet_soon_hint:"Predicted from the last replacement date \u2014 order ahead.",battery_fleet_mark_all:"Mark all replaced",battery_fleet_mark_one:"Mark this battery replaced",battery_fleet_offline:"offline",battery_fleet_no_sensor:"No sensor",battery_fleet_trigger_lost:"This task's sensor trigger was lost \u2014 it will not fire or auto-complete.",battery_fleet_repair:"Repair",battery_fleet_exclude:"Exclude from the fleet",battery_fleet_excluded:"Excluded",battery_fleet_include:"Track again",battery_fleet_all:"All tracked batteries",battery_fleet_all_hint:"Exclude a device here to drop it from the fleet before it ever reports low \u2014 a vacuum that recharges itself, or a phone that warns you on its own.",battery_fleet_add:"Add a battery",battery_fleet_add_hint:"Pick a battery sensor the automatic discovery missed \u2014 it joins the roster immediately.",battery_fleet_track_self:"Track self-charging batteries",battery_fleet_track_self_hint:"Phones, vacuums and other devices that recharge themselves appear as rechargeables \u2014 a low one asks for a charge, never for new cells.",battery_fleet_due_without_sensor:"Treat a passed forecast as due when a battery has no sensor",battery_fleet_due_without_sensor_hint:"Some devices report no battery level at all \u2014 Battery Notes only knows the type and the last replacement. Once the typical lifetime has passed, such a battery counts as low and the fleet task reminds you; marking it replaced resets the forecast.",battery_fleet_ask_cells:"Ask which cells went in when a battery is replaced",battery_fleet_ask_cells_hint:"A device takes whatever is in the drawer. Replaced then asks whether disposable or rechargeable cells of its size went in, books those and remembers them for the device. Battery Notes keeps its type; the shopping list and the forecast follow it.",battery_fleet_cells_question:"Which cells went in?",battery_fleet_cells_rechargeable:"rechargeable",battery_fleet_status_low:"Low",battery_fleet_status_soon:"Soon",battery_fleet_status_ok:"Healthy",battery_fleet_status_due:"Due",battery_fleet_predicted_on:"Expected around {date}",battery_fleet_predicted_typical:"Expected around {date} \u2014 {months} months typical for {type} ({source})",lifetime_source_default:"built-in default",lifetime_source_table:"built-in table",lifetime_source_learned:"learned from {n} replacements",lifetime_source_override:"your setting",lifetime_source_learned_device:"learned from this device's {n} replacements",lifetime_source_learned_model:"learned from {n} replacements on devices of this model",battery_fleet_predicted_trend:"Predicted from this battery's discharge trend: around {date} ({confidence})",battery_fleet_rechargeable:"Rechargeable: charge instead of replacing \u2014 never on the shopping list",battery_fleet_sort_name:"Sort by name",battery_fleet_sort_urgency:"Sort by urgency",battery_fleet_mark_recharged:"Mark as recharged",battery_fleet_charging:"Rechargeable spares",battery_fleet_ready:"{count} ready",battery_fleet_sparkline_hint:"Battery level over the last 30 days \u2014 dotted: projected until the low threshold",battery_fleet_filter_type:"Show only this battery type",battery_fleet_record_replacement:"The level jumped around {date} \u2014 record this replacement in Battery Notes",battery_fleet_total:"{n} batteries tracked",battery_fleet_setup_button:"Battery fleet",battery_fleet_setup_done:"Battery fleet set up \u2014 one task tracks all your batteries.",update_banner:"A newer version of Maintenance Supporter is on the server \u2014 reload to update the panel.",update_reload:"Reload",restart_pending_banner:"Maintenance Supporter was updated to {version}. Restart Home Assistant to finish the update.",restart_pending_error:"That did not work: Maintenance Supporter was updated to {version}, but Home Assistant has not been restarted since. Restart Home Assistant, then try again.",row_actions_banner:"Complete and Skip in task rows are now buttons. Prefer the old icons?",row_actions_keep:"Keep buttons",row_actions_back:"Back to icons",battery_fleet_forecast_overdue:"Predicted date passed \u2014 the battery still reports healthy. If you swapped it, record the replacement; otherwise the forecast was off.",cost_from_parts:"Use \u2248 {amount} from parts",cost_parts_booked:"Parts used \u2248 {amount} are booked automatically \u2014 enter only additional costs.",cost_parts_info:"Parts used \u2248 {amount} \u2014 counted when they were bought, not here.",cost_purchase_use_hint:"The price paid becomes the part's price \u2014 spare parts count when they are used.",history_parts_counted:"Parts: {amount}",history_parts_counted_hint:"Value of the parts used \u2014 counted as spending",history_parts_info:"Parts \u2248 {amount}",history_parts_info_hint:"Value of the parts used \u2014 information only; the money counted when they were bought",history_purchase_stock:"Bought for {amount} (counted when used)",dismiss:"Dismiss",gs_label:"Getting started \u2014 these hints retire as your setup grows",gs_setups_chip:"Suggested setups found {n} devices with pre-wired triggers",gs_setups_chip_one:"Suggested setups found 1 device with pre-wired triggers",gs_adopt_chip:"{n} problem sensors can become maintenance tasks",gs_adopt_chip_one:"1 problem sensor can become a maintenance task",gs_fleet_chip:"One click sets up the battery fleet",gs_reset_chip:"{n} tasks can reset their counter in the integration",gs_reset_chip_one:"1 task can reset its counter in the integration",cal_editor_window:"Default window",cal_editor_window_week:"Week (7 days)",cal_editor_window_fortnight:"Fortnight (14 days)",cal_editor_window_month:"Month (30 days, default)",cal_editor_window_year:"Year (365 days, empty days collapsed)",cal_editor_window_past_30:"Past 30 days (history)",cal_editor_window_past_90:"Past 90 days (history)",cal_editor_show_chips:"Show window chips inside the card",cal_editor_chips_hint:"Hide the chips when the card is embedded in a strategy view that already serves as the window selector.",cal_editor_show_user_filter:"Show user filter dropdown",cal_editor_default_user:"Default user filter",cal_editor_my_tasks:"My tasks (current user)",cal_editor_show_object_filter:"Show object filter dropdown",cal_editor_object_hint:'Pre-select one object via YAML: object_filter: "<object name>" \u2014 or a list of names to restrict the card to several objects.',object_history_section:"History (all tasks)",object_history_all_tasks:"All tasks",object_history_empty:"No entries in this range.",object_history_cap_note:"History keeps up to 500 entries per task \u2014 very old entries may be missing.",service_record_title:"Service record",service_record_print:"Service record (PDF)",date:"Date",service_record_entries:"entries",ref_number:"Reference number",print_options_title:"Print service record",print_layout:"Layout",print_layout_chronological:"Chronological",print_layout_by_task:"By task",print_include:"Include",print_inc_readings:"Readings",print_inc_parts:"Parts used",print_inc_photos:"Photos",print_inc_documents:"Linked documents",print_inc_doc_desc:"Document descriptions",print_inc_checklist:"Checklist",print_inc_notes:"Notes",print_inc_costs:"Cost and duration",print_inc_person:"Completed by",print_inc_refs:"Reference numbers",print_inc_bare:"Completions without details",print_inc_qr:"QR code per task",print_button:"Print",report_scan_hint:"Scan to open the task",completed_by:"Completed by",completed_via:"{person} (via {device})",date_from:"From",date_to:"To",phases_section:"Cycle phases (optional)",phases_hint:"Different work on one shared schedule \u2014 each completion moves to the next step (e.g. small service, small service, big service).",phase_add:"Add phase",phase_name:"Phase name",phase_sequence_label:"Cycle order",phase_sequence_add_step:"Add step",phase_current:"Current phase",phase_set:"Set as current",chart_history_fallback:"No long-term statistics for this entity \u2014 showing recorder state history (typically the last ~10 days)",chart_history_alarm:"Trigger view from recorder state history: 1 = alert state held for the hold time, 0 = fine (typically the last ~10 days)",chart_history_count:"Change count rebuilt from recorder state history since the last service (typically the last ~10 days)",prediction_cycles:"Learned from cycles",phase_require_override:"Override \u201CRequire on completion\u201D for this phase",history_add_past:"Add past completion",require_tag_scan:"Only complete by scanning the tag",require_tag_scan_help:"Proof of presence: Done is blocked on every surface until the NFC tag or QR code on the thing itself is scanned. Automations can pass 'via_tag_scan' to the complete service.",disallow_skip:"Don't allow skipping",disallow_skip_help:"The Skip action disappears from every surface, and the server refuses a skip from automations and voice too.",complete_when:"Done when (optional)",complete_when_state:"changes to",complete_when_help:"While the task is due, it completes itself when this entity changes to this state, for example when the washer's door opens.",complete_when_badge:"Done when {entity} changes to {state}",complete_when_any_time:"Also when it is not due: each time completes it and starts the next cycle",complete_when_badge_for:"for {minutes} min",complete_when_badge_any_time:"also when not due",no_notifications:"No notifications for this task",no_notifications_help:"No reminders for this task \u2014 no status notifications, repeats, lead-time reminders or bundles. It still shows on the dashboard and in its entities; the weekly digest still counts it.",require_tag_scan_hint:"This task completes only by scanning its NFC tag or QR code on the thing itself \u2014 saving here will be refused.",feat_beta_editor:"New look and task editor",feat_beta_editor_desc:"Home Assistant's own controls across the panel, tasks as rules like the automation editor, and a trace of each task. On by default; switch it off for the classic look.",beta_new_scratch:"Create new task",beta_new_scratch_desc:"Start with an empty task",beta_new_from_sensor:"Start from a sensor",beta_new_from_sensor_desc:"One of the object's sensors makes the task due",beta_new_from_template_desc:"A task from the template library",beta_new_copy:"Copy an existing task",beta_new_copy_desc:"Its settings, for this object",beta_new_search:"Search",beta_rules_add_rule:"Add rule",beta_rules_select_hint:"Select a row to change it.",beta_rules_every:"Every {interval}",beta_rules_once_on:"Once, on {date}",beta_rules_no_date:"Once, the date is still missing",beta_rules_manual:"No schedule: whenever it is needed",beta_rules_sensor_only:"Only when the sensor rule says so",beta_rules_safety_any:"Or every {interval}, whichever comes first",beta_rules_safety_all:"At the earliest after {interval}",beta_rules_due_soon:"Due soon {interval} before",beta_rules_above:"above {value}",beta_rules_below:"below {value}",beta_rules_for:"for {duration}",beta_rules_counter_delta:"goes up by {value} since the last completion",beta_rules_counter_reaches:"reaches {value}",beta_rules_changes_from:"changes from {state}",beta_rules_changes_to:"changes to {state}",beta_rules_changes:"changes state",beta_rules_times:"{n} times",beta_rules_runs_for:"has run for {duration}",beta_rules_date_before:"{interval} before the date it reports",beta_rules_date_on:"on the date it reports",beta_rules_all_of:"All conditions apply ({n})",beta_rules_any_of:"Any condition applies ({n})",beta_rules_pick_entity:"Pick a sensor",beta_rules_by_hand:"By hand: Complete, a tag or voice",beta_rules_nobody:"Nobody in particular",beta_rules_reminders_on:"Reminders as set in the settings",beta_rules_name_missing:"Give the task a name",beta_rules_by_type:"By type",beta_rules_by_device:"By device",beta_rules_replaces:"Replaces the current schedule",beta_rules_combines:"Joins the current sensor rule",beta_rules_adds_safety:"Adds a safety interval",beta_rules_no_device:"This object is not linked to a device or an area. Link it in the object's settings, or choose a rule under By type.",beta_rules_no_device_entities:"Its device has no entities to suggest.",beta_rules_done_when_suggest:"Done when it changes",beta_template_pick:"Tasks to create",beta_template_none:"Tick at least one task.",beta_template_create:"Create {n} tasks",beta_template_create_one:"Create 1 task",beta_trace:"Trace",beta_sensor_rule:"Sensor rule",beta_show_history:"Show more",beta_trace_off:"Traces are recorded while the new look is on. Completions and the rest of the history show either way.",beta_trace_current:"Current cycle",beta_trace_older:"Older cycle",beta_trace_newer:"Newer cycle",beta_trace_empty:"Nothing happened in this cycle yet.",beta_trace_load_failed:"Could not load the trace.",beta_trace_reminder:"Reminder sent: {status}",beta_trace_reminder_lead:"Heads-up sent: due in {interval}",beta_trace_cleared_done:"Reminder taken off the phones: done",beta_trace_cleared_status:"Reminder taken off the phones: no longer needed",beta_trace_cleared_inert:"Reminder taken off the phones: paused or archived",beta_trace_snoozed:"Snoozed until {time}",beta_trace_dw_counted:"{entity} changed to {state}: counts as done",beta_trace_dw_waiting:"{entity} changed to {state}: waiting {duration}",beta_trace_dw_left_early:"{entity} left {state} too early: not counted",beta_trace_dw_not_due:"{entity} changed to {state}: not counted, the task was not due",beta_trace_dw_inert:"{entity} changed to {state}: not counted, the task is paused or archived",beta_trace_dw_recent:"{entity} changed to {state}: not counted, it was done moments ago",beta_trace_edited:"Task changed: {fields}",beta_trace_edited_other:"other settings",beta_rules_group_device:"This device",beta_rules_group_area_more:"More in the {area} area",beta_rules_group_area:"In the {area} area",beta_rules_no_area_entities:"Nothing in its area suggests a rule.",beta_filters_clear:"Clear filters",beta_search_tasks:"Search {count} tasks",beta_sort_by:"Sort by {sort}",beta_filters:"Filters",beta_filter_status:"Status"}});function zr(i){return On[i]??"var(--secondary-text-color)"}function Ur(i){return pc[i??""]??ji.length}function jn(i){return Fr.includes(i??"")}function qi(i){return!!i.archived||i.enabled===!1||i.status==="paused"||i.paused===!0}var Ne,On,Nn,ji,Fr,pc,ti,je=x(()=>{"use strict";Ne={ok:"var(--success-color, #4caf50)",due_soon:"var(--warning-color, #ff9800)",overdue:"var(--error-color, #f44336)",triggered:"var(--deep-orange-color, #ff5722)",archived:"var(--disabled-color, #9e9e9e)",paused:"var(--info-color, #2196f3)"},On={completed:Ne.ok,missed:Ne.overdue,reset:Ne.paused,skipped:"var(--secondary-text-color)",triggered:Ne.triggered,trigger_replaced:Ne.triggered,trigger_removed:"var(--secondary-text-color)"},Nn=["completed","reset","skipped"];ji=["overdue","triggered","due_soon","ok"],Fr=["overdue","triggered","due_soon"],pc=Object.fromEntries(ji.map((i,s)=>[i,s]));ti={ok:"mdi:check-circle",due_soon:"mdi:alert-circle",overdue:"mdi:alert-octagon",triggered:"mdi:bell-alert",archived:"mdi:archive-outline",paused:"mdi:pause-circle-outline",completed:"mdi:check-circle",skipped:"mdi:skip-next",missed:"mdi:calendar-remove",reset:"mdi:refresh"}});function Dn(i){return i?.restart_pending&&i.installed_version?i.installed_version:null}var qn,Br=x(()=>{"use strict";qn="2.116.0"});function Kr(i){it.en=Object.assign({},i,it.en??{})}function qe(i){let s=(i||Vr).toLowerCase();return s.startsWith("pt")&&s.endsWith("br")?"pt-br":s.substring(0,2)}function N(i){return i?.language||"en"}function n(i,s,e){let t=qe(s);return it[t]?.[i]??it.en?.[i]??e??i}function _t(i){let s=qe(i);return s===Vr||s in it||!Mn.has(s)}function $e(i){let s=qe(i);if(s===Vr||s in it||!Mn.has(s))return Promise.resolve();let e=Wr[s];return e!==void 0&&Date.now()-e<uc?Promise.resolve():(s in ii||(ii[s]=fetch(`${hc}/${s}.json?v=${qn}`).then(t=>t.ok?t.json():null).then(t=>{t?it[s]=t:(delete ii[s],Wr[s]=Date.now())}).catch(()=>{delete ii[s],Wr[s]=Date.now()})),ii[s])}var Vr,Gr,it,ii,Wr,uc,Mn,hc,ri=x(()=>{"use strict";Br();Vr="en",Gr=(()=>{let i=window;return i.__msLocales||(i.__msLocales={store:{},inflight:{}}),i.__msLocales.failedAt||(i.__msLocales.failedAt={}),i.__msLocales})(),it=Gr.store,ii=Gr.inflight,Wr=Gr.failedAt,uc=6e4;Mn=new Set(["de","nl","fr","it","es","pt","pt-br","ru","uk","pl","cs","sv","zh","da","fi","nb","ja","hi","hu","ko","tr"]),hc="/maintenance_supporter_locales"});function Hn(i){let s=i?.language;!s||typeof i?.loadBackendTranslation!="function"||ce.lang===s&&(ce.localize||ce.inflight)||(ce.lang=s,ce.localize=null,ce.inflight=i.loadBackendTranslation("exceptions",Yr).then(e=>{ce.lang===s&&(ce.localize=e)}).catch(()=>{}).finally(()=>{ce.inflight=null}))}function Ln(i,s,e){if(!s||!ce.localize||i&&i!==Yr)return null;let t=`component.${Yr}.exceptions.${s}.message`,r=ce.localize(t,e??void 0);return r&&r!==t?r:null}var Yr,ce,Qr=x(()=>{"use strict";Yr="maintenance_supporter",ce=(()=>{let i=window;return i.__msBackendErrors??={lang:"",localize:null,inflight:null}})()});function si(i){let s=zn.get(i);if(s===void 0){try{s=new Intl.DateTimeFormat("en-US",{timeZone:i,hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"})}catch{s=null}zn.set(i,s)}return s}function Bn(){if(Zr===void 0){let i;try{i=new Intl.DateTimeFormat().resolvedOptions().timeZone}catch{}Zr=i&&si(i)?i:null}return Zr}function Wn(){return Bn()??"UTC"}function De(){let i=Un.serverTimeZone;return i&&si(i)?i:Wn()}function Me(){let i=Bn();return Un.timeZone!=="server"&&i?i:De()}function Di(i,s){let e=si(s)??si(Wn())??si("UTC"),t={};for(let r of e.formatToParts(i))r.type!=="literal"&&(t[r.type]=Number(r.value));return{y:t.year,mo:t.month,d:t.day,h:t.hour%24,mi:t.minute,s:t.second}}function He(i,s){return es(Di(+i,s))}function Mi(i,s){let e=Di(+i,s);return`${es(e)}T${de(e.h)}:${de(e.mi)}`}function Ee(){return He(Date.now(),De())}function Vn(){return Mi(Date.now(),De())}function Jr(i,s){let e=Di(i,s);return Date.UTC(e.y,e.mo-1,e.d,e.h,e.mi,e.s)-Math.floor(i/1e3)*1e3}function _c(i,s,e,t,r,o,a){let c=Date.UTC(i,s-1,e,t,r,o),u=Jr(c-Xr,a),_=Jr(c+Xr,a);for(let m of u===_?[u]:[u,_])if(Jr(c-m,a)===m)return c-m;return c-u}function Gn(i,s,e){if(i.has(s))return i.get(s);i.size>=fc&&i.clear();let t=e();return i.set(s,t),t}function Y(i){if(typeof i!="string"||!i)return NaN;let s=ts.exec(i);if(!s)return Date.parse(i);let e=De();return Gn(gc,`${e}|${i}`,()=>{let[t,r,o,a,c,u]=[s[1],s[2],s[3],s[4]??"0",s[5]??"0",s[6]??"0"].map(Number);if(r<1||r>12||new Date(Date.UTC(t,r-1,o)).getUTCDate()!==o||a>23||c>59||u>59)return NaN;let _=s[7]?Math.floor(+`0.${s[7]}`*1e3):0;return _c(t,r,o,a,c,u,e)+_})}function Hi(i){if(typeof i!="string"||!i)return null;let s=ts.exec(i);if(s)return`${s[1]}-${s[2]}-${s[3]}`;let e=De();return Gn(mc,`${e}|${i}`,()=>{let t=Date.parse(i);return Number.isFinite(t)?He(t,e):/^\d{4}-\d{2}-\d{2}/.test(i)?i.slice(0,10):null})}function Kn(i){if(typeof i!="string"||!i)return"";let s=ts.exec(i);if(s)return`${s[1]}-${s[2]}-${s[3]}T${s[4]??"00"}:${s[5]??"00"}:${s[6]??"00"}`;let e=Date.parse(i);if(!Number.isFinite(e))return"";let t=Di(e,De());return`${es(t)}T${de(t.h)}:${de(t.mi)}:${de(t.s)}`}function Fn(i){let s=Yn.exec(i);if(!s)return NaN;let[e,t,r]=[Number(s[1]),Number(s[2]),Number(s[3])],o=Date.UTC(e,t-1,r);return t>=1&&t<=12&&new Date(o).getUTCDate()===r?o/Xr:NaN}function Qn(i,s){let e=Yn.exec(i);if(!e)return i;let t=new Date(Date.UTC(Number(e[1]),Number(e[2])-1,Number(e[3])+Math.round(s)));return`${de(t.getUTCFullYear(),4)}-${de(t.getUTCMonth()+1)}-${de(t.getUTCDate())}`}function Zn(i,s){return Fn(s)-Fn(i)}var Un,Xr,de,zn,Zr,es,ts,mc,gc,fc,Yn,Z=x(()=>{"use strict";Un=window.__msDateTimePrefs??={},Xr=864e5,de=(i,s=2)=>String(i).padStart(s,"0"),zn=new Map;es=i=>`${de(i.y,4)}-${de(i.mo)}-${de(i.d)}`;ts=/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?)?$/,mc=new Map,gc=new Map,fc=2e4;Yn=/^(\d{4})-(\d{2})-(\d{2})$/});function rt(i){return i?.currency_symbol||vc}function Li(i,s){s.has("hass")&&rs(i.hass?.locale,i.hass?.config?.country,i.hass?.config?.time_zone);let e=i.hass?.language;e&&!_t(e)&&$e(e).then(()=>{_t(e)&&i.requestUpdate()}),Hn(i.hass)}function Jn(i){let s=qe(i);return{de:"de-DE",en:"en-US",nl:"nl-NL",fr:"fr-FR",it:"it-IT",es:"es-ES",pt:"pt-PT",ru:"ru-RU",uk:"uk-UA",zh:"zh-CN",da:"da-DK",fi:"fi-FI",nb:"nb-NO",ja:"ja-JP",hi:"hi-IN",pl:"pl-PL",cs:"cs-CZ",sv:"sv-SE","pt-br":"pt-BR",hu:"hu-HU",ko:"ko-KR",tr:"tr-TR"}[s]??"en-US"}function bc(i){eo.decimals=typeof i=="number"&&Number.isInteger(i)&&i>=0&&i<=3?i:0}function yc(){return eo.decimals??0}function zi(i){i&&i.currency_decimals!==void 0&&i.currency_decimals!==null&&bc(Number(i.currency_decimals))}function rs(i,s,e){e!==void 0&&(pe.serverTimeZone=e||void 0),i&&(pe.date=i.date_format,pe.time=i.time_format,pe.number=i.number_format,pe.timeZone=i.time_zone,s!==void 0&&(pe.country=s||void 0))}function to(i){switch(pe.number){case"comma_decimal":return["en-US","en"];case"decimal_comma":return["de","es","it"];case"space_comma":return["fr","sv","cs"];case"system":return;default:return Jn(i)}}function Fi(i,s,e,t,r="n"){return e===1?n(s,t):n(i,t).replace(`{${r}}`,S(e,t))}function gt(i,s,e){let t={style:"unit",unit:s,unitDisplay:"long",maximumFractionDigits:2};try{return new Intl.NumberFormat(to(e),t).format(i)}catch{return`${S(i,e)} ${s}`}}function S(i,s,e){if(!Number.isFinite(i))return String(i);let t=typeof e=="number"?{minimumFractionDigits:e,maximumFractionDigits:e}:{maximumFractionDigits:2,...e};if(pe.number==="none"){let r=Math.pow(10,t.maximumFractionDigits??2);return String(Math.round(i*r)/r)}try{return new Intl.NumberFormat(to(s),t).format(i)}catch{return new Intl.NumberFormat(void 0,t).format(i)}}function io(i,s,e){return i<0?`${n("cost_kind_credit",e??"en")}: ${X(-i,s,e)}`:X(i,s,e)}function X(i,s,e,t){let r=t??yc(),o=Math.abs(i)<.5/Math.pow(10,r)?0:i,a=S(o,e,r);return s?`${a} ${s}`:a}function ft(i,s,e){let t=S(i,e);return s?`${t} ${s}`:t}function mt(i){let s=Jn(i),e=pe.country;if(e&&/^[A-Za-z]{2}$/.test(e)){let t=`${qe(i).split("-")[0]}-${e.toUpperCase()}`;try{return new Intl.DateTimeFormat(t),t}catch{}}return s}function is(i,s,e){let t=pe.date;if(t==="DMY"||t==="MDY"||t==="YMD"){let[o,a,c]=He(i,e).split("-");return t==="DMY"?`${c}/${a}/${o}`:t==="MDY"?`${a}/${c}/${o}`:`${o}-${a}-${c}`}let r=t==="system"?void 0:mt(s);return i.toLocaleDateString(r,{day:"2-digit",month:"2-digit",year:"numeric",timeZone:e})}function Ui(i,s){let e=Me();switch(pe.time){case"12":return i.toLocaleTimeString(mt(s),{hour:"2-digit",minute:"2-digit",hour12:!0,timeZone:e});case"24":return i.toLocaleTimeString(mt(s),{hour:"2-digit",minute:"2-digit",hour12:!1,timeZone:e});case"system":return i.toLocaleTimeString(void 0,{hour:"2-digit",minute:"2-digit",timeZone:e});default:return i.toLocaleTimeString(mt(s),{hour:"2-digit",minute:"2-digit",timeZone:e})}}function q(i,s){if(!i)return"\u2014";try{let e=ro.exec(i);return e?is(new Date(Date.UTC(+e[1],+e[2]-1,+e[3])),s,"UTC"):is(new Date(Y(i)),s,Me())}catch{return i}}function Bi(i,s){if(!i)return"\u2014";if(ro.test(i))return q(i,s);try{let e=new Date(Y(i));return is(e,s,Me())+" "+Ui(e,s)}catch{return i}}function Wi(i,s=Date.now()){let e=De();return Mi(s,e)===Mi(s,Me())?"":n("ha_time_zone_hint",i).replace("{zone}",e)}function vt(i,s){if(i==null)return"\u2014";let e=s||"en";return i<0?`${Math.abs(i)} ${n("d_overdue",e)}`:i===0?n("today",e):st(i,e)}function st(i,s){let e=s||"en";return`${i} ${n(ss(i,e,{one:"day",few:"days_few",other:"days"}),e)}`}function ss(i,s,e){let t=i===1?"one":"other";try{t=new Intl.PluralRules(s).select(i)}catch{}return t==="one"?e.one:t==="few"?e.few:e.other}function so(i,s){let e=Hi(i);if(!e)return null;let t=Zn(e,Ee());return Number.isFinite(t)?t<=0?n("last_done_today",s||"en"):n("last_done_days_ago",s||"en").replace("{n}",String(t)):null}function ni(i,s,e){return i==null?"\u2014":`${i} ${n("unit_"+(s||"days"),e)}`}function bt(i,s){return i==null?"\u2014":`${S(i,s,{maximumFractionDigits:1})} ${n("minutes_short",s)}`}function Le(i,s,e="long"){return new Date(Date.UTC(2024,0,1+i)).toLocaleDateString(mt(s),{weekday:e,timeZone:"UTC"})}function ns(i,s,e="long"){return new Date(Date.UTC(2024,i,1)).toLocaleDateString(mt(s),{month:e,timeZone:"UTC"})}function no(i,s){let e=i.schedule;if(i.schedule_type==="sensor_based"){let o=n("sensor_based",s),a=e&&e.kind==="interval"&&e.every?e.every:i.interval_days;return a?`${o} \xB7 ${ni(a,(e&&e.kind==="interval"?e.unit:i.interval_unit)||"days",s)}`:o}let t=e?.offset?` ${e.offset>0?"+":"\u2212"}${Math.abs(e.offset)}d`:"",r=e?.months?.length?` \xB7 ${[...e.months].sort((o,a)=>o-a).map(o=>ns(o-1,s,"short")).join(", ")}`:"";switch(e?.kind){case"weekdays":return((e.weekdays||[]).map(o=>Le(o,s,"short")).join(" & ")||"\u2014")+t;case"nth_weekday":return e.weekday==null||e.nth==null?"\u2014":`${e.nth===-1?n("ord_last",s):n("ord_"+e.nth,s)} ${Le(e.weekday,s,"long")}${t}${r}`;case"day_of_month":return e.day==null?"\u2014":(e.day===-1?n(e.business?"last_business_day_month":"last_day_month",s):`${n("day_word",s)} ${e.day}`)+t+r;case"calendar":return`${n("calendar_entity_label",s)}: ${i.schedule_entity_name||e.entity_id||"\u2014"}${t}`;case"one_time":return i.due_date?q(i.due_date,s):n("one_time",s);case"manual":return n("manual",s);case"interval":return ni(e.every,e.unit,s)}return i.schedule_type==="one_time"?i.due_date?q(i.due_date,s):n("one_time",s):i.schedule_type==="manual"?n("manual",s):i.schedule_type==="sensor_based"?n("sensor_based",s):i.interval_days!=null?ni(i.interval_days,i.interval_unit,s):"\u2014"}function oo(i,s){i.currentTarget.dispatchEvent(new CustomEvent("hass-more-info",{detail:{entityId:s},bubbles:!0,composed:!0}))}var vc,Xn,pe,eo,ro,ze,ao,xc,wc,Vi,P=x(()=>{"use strict";I();Rn();je();ri();Qr();Z();ri();vc="\u20AC";Kr(Pn);Xn=window,pe=Xn.__msDateTimePrefs??={},eo=Xn.__msMoneyPrefs??={};ro=/^(\d{4})-(\d{2})-(\d{2})$/;ze=$`
   .field { display: flex; flex-direction: column; gap: 4px; }
   /* The label of ms-textfield / ms-date-field: every field label reads alike. */
   .field-label { font-size: 12px; font-weight: 500; color: var(--secondary-text-color); }
@@ -11,11 +11,11 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     padding: 8px 10px; font-size: 14px;
     background: var(--secondary-background-color, rgba(0,0,0,0.06));
     color: var(--primary-text-color);
-    border: 1px solid var(--divider-color); border-radius: 6px;
+    border: 1px solid var(--divider-color); border-radius: var(--ms-radius-6, 6px);
     font-family: inherit; width: 100%; box-sizing: border-box;
   }
   .field-input:focus { outline: none; border-color: var(--primary-color); }
-`,wn=$`
+`,ao=$`
   .form-section { display: flex; flex-direction: column; gap: 12px; }
   .section-title {
     margin: 8px 0 0;
@@ -36,7 +36,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     background: var(--secondary-background-color, rgba(0,0,0,0.06));
     color: var(--primary-text-color);
     border: 1px solid var(--divider-color);
-    border-radius: 6px;
+    border-radius: var(--ms-radius-6, 6px);
   }
   .select-row select:focus { outline: none; border-color: var(--primary-color); }
   /* #216 follow-up: the open list took the select's grey fill and the chosen
@@ -56,7 +56,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       background: var(--card-background-color, #fff);
       color: var(--primary-text-color);
       border: 1px solid var(--divider-color);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       padding: 4px 0;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
@@ -89,7 +89,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
   .toggle-row input[type="checkbox"],
   .checkbox-row input[type="checkbox"],
   .pool-item input[type="checkbox"] { width: 16px; height: 16px; margin: 0; flex: none; cursor: pointer; }
-`,Sl=$`
+`,xc=$`
   .person-chip { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; vertical-align: middle; }
   .person-avatar {
     width: 22px; height: 22px; border-radius: 50%; flex: none;
@@ -105,18 +105,18 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     margin-inline-start: -5px;
     box-shadow: 0 0 0 1.5px var(--card-background-color, var(--primary-background-color, #fff));
   }
-`,Tl=$`
+`,wc=$`
   .ref-chip {
     display: inline-block; font-size: 11.5px; font-weight: 500; line-height: 1; padding: 3px 6px;
-    border-radius: 6px; border: 1px solid var(--divider-color); color: var(--secondary-text-color);
+    border-radius: var(--ms-radius-6, 6px); border: 1px solid var(--divider-color); color: var(--secondary-text-color);
     font-variant-numeric: tabular-nums; letter-spacing: .02em; vertical-align: middle; white-space: nowrap;
     user-select: all;
   }
   /* #189: "· Residual waste, Paper" after a calendar-driven task's name. */
   .event-titles { color: var(--secondary-text-color); font-weight: 400; }
-`,wi=$`
-  ${Sl}
-  ${Tl}
+`,Vi=$`
+  ${xc}
+  ${wc}
   :host {
     --maint-ok-color: var(--success-color, #4caf50);
     --maint-due-soon-color: var(--warning-color, #ff9800);
@@ -280,7 +280,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
   .object-tree-toggle ha-icon { --mdc-icon-size: 18px; }
   .object-tree-spacer { display: inline-block; width: 26px; }
   .object-tree-count {
-    margin-left: 6px; padding: 0 7px; border-radius: 10px;
+    margin-left: 6px; padding: 0 7px; border-radius: var(--ms-radius-10, 10px);
     font-size: 12px; vertical-align: middle;
     background: var(--secondary-background-color, rgba(0, 0, 0, 0.06));
     color: var(--secondary-text-color);
@@ -419,7 +419,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     margin-right: auto;
     font-size: 11px;
     padding: 1px 8px;
-    border-radius: 10px;
+    border-radius: var(--ms-radius-10, 10px);
     background: var(--secondary-background-color);
     color: var(--secondary-text-color);
     white-space: nowrap;
@@ -431,7 +431,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     margin-right: auto;
     font-size: 11px;
     padding: 1px 8px;
-    border-radius: 10px;
+    border-radius: var(--ms-radius-10, 10px);
     background: var(--secondary-background-color);
     color: var(--secondary-text-color);
     white-space: nowrap;
@@ -600,6 +600,55 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     margin: 8px 0;
     border: 1px solid var(--divider-color);
   }
+
+  /* Beta UI: the sensor rule as a Home Assistant card (renderers/sparkline.ts
+     renderSensorRule) — rows as HA's entities card draws them: a 40 px state
+     badge, 16 px gap, the name at 14 px with the condition below it, the
+     state on the right; a tap opens more-info. */
+  .sensor-rule-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .sensor-rule-title {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .sensor-rule-sub { font-size: 12px; font-weight: 400; color: var(--secondary-text-color); }
+  .sensor-rows { display: flex; flex-direction: column; margin: 0 -8px; }
+  .sensor-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 48px;
+    padding: 4px 8px;
+    border-radius: var(--ms-radius-10, 10px);
+    cursor: pointer;
+  }
+  .sensor-row:hover { background: var(--secondary-background-color); }
+  .sensor-row:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
+  .sensor-badge { flex: none; }
+  ha-icon.sensor-badge { width: 40px; display: flex; justify-content: center; color: var(--state-icon-color); }
+  .sensor-info { flex: 1; min-width: 0; }
+  .sensor-name { font-size: 14px; color: var(--primary-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sensor-cond { font-size: 12px; color: var(--secondary-text-color); overflow-wrap: anywhere; }
+  .sensor-state { flex: none; max-width: 45%; font-size: 14px; color: var(--primary-text-color); text-align: end; overflow-wrap: anywhere; }
+  /* The sensor's recent course (renderSensorTrend), like HA's tile trend graph. */
+  .sensor-trend { flex: none; width: 88px; height: 28px; overflow: visible; }
+  .sensor-trend-line { fill: none; stroke: var(--primary-color); stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+  .sensor-trend-area { fill: var(--primary-color); opacity: 0.12; stroke: none; }
+  .sensor-trend-limit { stroke: var(--error-color, #db4437); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; opacity: 0.8; }
+  .sensor-trend.past .sensor-trend-line { stroke: var(--error-color, #db4437); }
+  .sensor-trend.past .sensor-trend-area { fill: var(--error-color, #db4437); }
+  @media (max-width: 420px) { .sensor-trend { width: 56px; } }
+  .sensor-rule-foot { display: flex; justify-content: flex-end; margin-top: 4px; }
+  .sensor-rule-more { color: var(--primary-color); font-size: 14px; font-weight: 500; text-decoration: none; }
+  .sensor-rule-more:hover { text-decoration: underline; }
 
   .trigger-header {
     display: flex;
@@ -999,7 +1048,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     gap: 4px;
     font-size: 11px;
     padding: 2px 8px;
-    border-radius: 10px;
+    border-radius: var(--ms-radius-10, 10px);
     background: var(--secondary-background-color, #f5f5f5);
     color: var(--primary-text-color);
     max-width: 100%;
@@ -1104,7 +1153,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     align-items: center;
     gap: 4px;
     padding: 2px 8px;
-    border-radius: 10px;
+    border-radius: var(--ms-radius-10, 10px);
     font-size: 11px;
     font-weight: 500;
     background: var(--secondary-background-color, #f5f5f5);
@@ -1132,6 +1181,8 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     border: 1px solid var(--divider-color, #e0e0e0);
   }
 
+  /* Text in the theme's text colour, the warning colour on the icon, as HA's
+     own warning alert does: orange on light orange read at 1.75:1. */
   .prediction-urgency-banner {
     display: flex;
     align-items: center;
@@ -1140,13 +1191,14 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     margin-bottom: 12px;
     border-radius: 8px;
     background: rgba(255, 152, 0, 0.15);
-    color: var(--warning-color, #ff9800);
+    color: var(--primary-text-color);
     font-size: 13px;
     font-weight: 500;
   }
   .prediction-urgency-banner ha-svg-icon {
     --mdc-icon-size: 18px;
     flex-shrink: 0;
+    color: var(--warning-color, #ff9800);
   }
 
   .prediction-title {
@@ -1193,8 +1245,10 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
   .prediction-value.rising { color: var(--error-color, #f44336); }
   .prediction-value.falling { color: var(--info-color, #2196f3); }
   .prediction-value.stable { color: var(--success-color, #4caf50); }
-  .prediction-value.exceeded { color: var(--error-color, #f44336); font-weight: 700; }
-  .prediction-value.urgent { color: var(--warning-color, #ff9800); font-weight: 700; }
+  /* Mixed toward the text colour: plain warning orange on a light card read
+     at 1.96:1 for the bold "~1 day" (4.5:1 wanted); the hue stays. */
+  .prediction-value.exceeded { color: color-mix(in srgb, var(--error-color, #f44336) 70%, var(--primary-text-color, #212121)); font-weight: 700; }
+  .prediction-value.urgent { color: color-mix(in srgb, var(--warning-color, #ff9800) 55%, var(--primary-text-color, #212121)); font-weight: 700; }
 
   .prediction-rate {
     font-size: 11px;
@@ -1397,9 +1451,10 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
        delete button of one lay over the next group. The buttons get the
        same 44 px targets as the task rows, apart from each other; the
        negative margin lets them reach into the card's padding instead of
-       pushing the tasks down. */
+       pushing the tasks down. Not to the right: reaching 8 px past the head
+       there made the head wider than its card (clip check 2026-11-01). */
     .group-card { flex: 1 1 100%; min-width: 0; max-width: 100%; }
-    .group-card-actions { gap: 8px; margin: -8px -8px -8px 0; }
+    .group-card-actions { gap: 8px; margin: -8px 0; }
     .group-card-actions ha-icon-button {
       --ha-icon-button-size: 44px;
       --mdc-icon-button-size: 44px;
@@ -1433,7 +1488,22 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     .stat-item .stat-label { font-size: 11px; white-space: normal; text-align: center; line-height: 1.2; hyphens: auto; overflow-wrap: anywhere; }
     .stat-value { font-size: 20px; }
   }
-`});function Rl(r){let s=r.replace(/_ids?$/,"").split("_").filter(Boolean);if(s.length===0)return r;let e=s.join(" ");return e.charAt(0).toUpperCase()+e.slice(1)}function Il(r,s){let e=Cl[r];if(e){let t=n(e,s);if(t&&t!==e)return t}return Rl(r)}function Pl(r){let s=[...r.matchAll(/\['([^']+)'\]/g)].map(i=>i[1]),e=s.length?s[s.length-1]:void 0,t;return(t=r.match(/length of value must be at most (\d+)/))?{field:e,rule:"too_long",param:t[1]}:(t=r.match(/length of value must be at least (\d+)/))?{field:e,rule:"too_short",param:t[1]}:(t=r.match(/value must be at most (\S+)/))?{field:e,rule:"value_too_high",param:t[1]}:(t=r.match(/value must be at least (\S+)/))?{field:e,rule:"value_too_low",param:t[1]}:/required key not provided/.test(r)?{field:e,rule:"required"}:(t=r.match(/expected (\w+)/))?{field:e,rule:"wrong_type",param:t[1]}:/value must be one of/.test(r)?{field:e,rule:"invalid_choice"}:/not a valid value/.test(r)?{field:e,rule:"invalid_value"}:{field:e,rule:"unknown"}}function Ol(r,s){let e=new Set(kn(s));return kn(r).every(t=>e.has(t))}function $n(r,s,e){if(e=e??n("action_error",s),typeof r=="string")return r;if(typeof r!="object"||r===null)return e;let t=r,i=t.message||t.error?.message||"",o=t.code||t.error?.code||"",a=o?Al[o]:void 0,c=tn(t.translation_domain??t.error?.translation_domain,t.translation_key??t.error?.translation_key,t.translation_placeholders??t.error?.translation_placeholders);if(c)return c;if(!i&&!a)return e;let u=Pl(i),_=u.field?Il(u.field,s):"",m=f=>n(f,s).replace("{field}",_).replace("{n}",u.param??"");switch(u.rule){case"too_long":return m("err_too_long");case"too_short":return m("err_too_short");case"value_too_high":return m("err_value_too_high");case"value_too_low":return m("err_value_too_low");case"required":return m("err_required");case"wrong_type":return m("err_wrong_type").replace("{type}",u.param??"");case"invalid_choice":return m("err_invalid_choice");case"invalid_value":return m("err_invalid_value");default:if(a){let f=n(a,s);return we(s)==="en"&&i&&!Ol(i,o)?`${f} (${i})`:f}return i||e}}var Al,Cl,kn,En=y(()=>{"use strict";I();yr();Mt();Al={already_archived:"ws_err_already_archived",already_paused:"ws_err_already_paused",archived:"ws_err_archived",changed_since:"undo_changed",create_failed:"ws_err_create_failed",duplicate_failed:"ws_err_duplicate_failed",empty:"ws_err_empty",empty_csv:"ws_err_empty_csv",invalid_cursor:"ws_err_invalid_cursor",invalid_date:"ws_err_invalid_date",invalid_device:"ws_err_invalid_device",invalid_entity_slug:"ws_err_invalid_entity_slug",invalid_format:"ws_err_invalid_format",invalid_input:"ws_err_invalid_input",invalid_mirror_todo:"ws_err_invalid_mirror_todo",invalid_notify_service:"ws_err_invalid_notify_service",invalid_parent:"ws_err_invalid_parent",invalid_icon:"ws_err_invalid_icon",invalid_range:"ws_err_invalid_range",invalid_search_template:"ws_err_invalid_search_template",invalid_shopping_list_entity:"ws_err_invalid_shopping_list_entity",invalid_target:"ws_err_invalid_target",invalid_trigger_config:"ws_err_invalid_trigger_config",invalid_url:"ws_err_invalid_url",invalid_user:"ws_err_invalid_user",invalid_view:"ws_err_invalid_view",limit_reached:"ws_err_limit_reached",no_defaults:"ws_err_no_defaults",no_phases:"ws_err_no_phases",no_url:"ws_err_no_url",not_archived:"ws_err_not_archived",not_available:"ws_err_not_available",not_configured:"ws_err_not_configured",not_found:"ws_err_not_found",notify_service_not_found:"ws_err_notify_service_not_found",not_loaded:"ws_err_not_loaded",not_paused:"ws_err_not_paused",nothing_to_undo:"undo_nothing",replace_failed:"ws_err_replace_failed",self_link_device:"ws_err_self_link_device",too_early:"ws_err_too_early",too_large:"ws_err_too_large",too_many:"ws_err_too_many",too_many_views:"ws_err_too_many_views",unauthorized:"ws_err_unauthorized",unavailable:"ws_err_unavailable"},Cl={entry_id:"object",name:"name",task_type:"maintenance_type",schedule_type:"schedule_type",interval_days:"interval_days",interval_anchor:"interval_anchor",warning_days:"warning_days",last_performed:"last_performed_optional",notes:"notes_optional",documentation_url:"documentation_url_optional",custom_icon:"custom_icon_optional",nfc_tag_id:"nfc_tag_id_optional",responsible_user_id:"responsible_user",entity_slug:"entity_slug",entity_id:"entity_id",area_id:"area_id_optional",manufacturer:"manufacturer_optional",model:"model_optional",serial_number:"serial_number_optional",installation_date:"installation_date_optional",warranty_expiry:"warranty_expiry_optional",checklist:"checklist_steps_optional",reason:"reason",feedback:"feedback",cost:"cost",duration:"duration",description:"description_optional",environmental_entity:"environmental_entity_optional",environmental_attribute:"environmental_attribute_optional",trigger_above:"trigger_above",trigger_below:"trigger_below",trigger_equals:"trigger_equals",trigger_not_equals:"trigger_not_equals",trigger_for_minutes:"trigger_for_minutes"};kn=r=>r.toLowerCase().split(/[^a-z0-9]+/).filter(s=>s.length>1)});async function H(r,s,e={}){e.busy?.(!0);try{let t=typeof s=="function"?await s():await r.hass.connection.sendMessagePromise(s);return e.reload&&await e.reload(),e.successToast&&e.onSuccess?.(e.successToast),t===void 0?null:t}catch(t){let i=e.lang||j(r.hass),o=await Nl(r,t,i)??$n(t,i,e.fallbackKey?n(e.fallbackKey,i):void 0);e.onError?.(o,t);return}finally{e.busy?.(!1)}}async function Nl(r,s,e){let t=typeof s=="object"&&s!==null?s:{};if(!jl.has(t.code||t.error?.code||""))return null;try{let i=Js(await r.hass.connection.sendMessagePromise({type:"maintenance_supporter/version"}));return i?n("restart_pending_error",e).replace("{version}",i):null}catch{return null}}var jl,oe=y(()=>{"use strict";En();I();_r();jl=new Set(["unknown_error","invalid_format","unknown_command"])});function Y(r){let s=r?.quick_complete_defaults;return!!s&&typeof s=="object"&&!Array.isArray(s)}function ki(r){return Y(r)?{...r.quick_complete_defaults}:null}async function $i(r,s,e,t){let i={message:"",code:""},o=await H({hass:r},{type:"maintenance_supporter/task/quick_complete",entry_id:s,task_id:e,source:"panel"},{lang:t,fallbackKey:"action_error",onError:(a,c)=>{i={message:a,code:c?.code??""}}});return o===void 0?ql.has(i.code)?{result:"dialog"}:{result:"failed",message:i.message}:{result:"done",undo:o?.undo===!0}}var ql,rt=y(()=>{"use strict";oe();ql=new Set(["no_defaults","completion_details_required","tag_scan_required"])});var Sn=y(()=>{});function b(r){return(s,e)=>typeof e=="object"?Hl(r,s,e):((t,i,o)=>{let a=i.hasOwnProperty(o);return i.constructor.createProperty(o,t),a?Object.getOwnPropertyDescriptor(i,o):void 0})(r,s,e)}var Ml,Hl,Cr=y(()=>{At();Ml={attribute:!0,type:String,converter:Tt,reflect:!1,hasChanged:si},Hl=(r=Ml,s,e)=>{let{kind:t,metadata:i}=e,o=globalThis.litPropertyMetadata.get(i);if(o===void 0&&globalThis.litPropertyMetadata.set(i,o=new Map),t==="setter"&&((r=Object.create(r)).wrapped=!0),o.set(e.name,r),t==="accessor"){let{name:a}=e;return{set(c){let u=s.get.call(this);s.set.call(this,c),this.requestUpdate(a,u,r,!0,c)},init(c){return c!==void 0&&this.C(a,void 0,r,c),c}}}if(t==="setter"){let{name:a}=e;return function(c){let u=this[a];s.call(this,c),this.requestUpdate(a,u,r,!0,c)}}throw Error("Unsupported decorator location: "+t)}});function h(r){return b({...r,state:!0,attribute:!1})}var Tn=y(()=>{Cr();});var An=y(()=>{});var st=y(()=>{});var Cn=y(()=>{st();});var Rn=y(()=>{st();});var In=y(()=>{st();});var Pn=y(()=>{st();});var On=y(()=>{st();});var L=y(()=>{Sn();Cr();Tn();An();Cn();Rn();In();Pn();On()});function jn(r,s,e){let t=new Blob([r],{type:e}),i=URL.createObjectURL(t),o=document.createElement("a");o.href=i,o.download=s,o.target="_blank",o.rel="noopener",o.style.display="none",document.body.appendChild(o),o.dispatchEvent(new MouseEvent("click")),document.body.removeChild(o),setTimeout(()=>URL.revokeObjectURL(i),6e4)}var Rr=y(()=>{"use strict"});async function Ll(r,s,e=300){return(await r.connection.sendMessagePromise({type:"auth/sign_path",path:s,expires:e})).path}async function Ir(r,s,e=300){return Ll(r,`/api/maintenance_supporter/document/${s}`,e)}async function Nn(r,s,e=""){let t=window.open("about:blank","_blank");try{let i=await Ir(r,s);t&&(t.location.href=new URL(i+e,window.location.origin).href)}catch(i){throw t&&t.close(),i}}var Pr=y(()=>{"use strict";Rr()});function Or(r){return r.replace(/[\t\n\r]/g,"").replace(/^[\u0000-\u0020]+|[\u0000-\u0020]+$/g,"")}function jr(r){let s=/^([a-z][a-z0-9+.-]+):/i.exec(Or(r||""));return s?s[1].toLowerCase():null}function nt(r){let s=jr(r);return s!==null&&!Dl.has(s)}function Mn(r){return!!r&&/^https?:\/\//i.test(r)}var Dl,Si=y(()=>{"use strict";Dl=new Set(["about","blob","data","file","filesystem","javascript","livescript","ms-appinstaller","ms-cxh","ms-cxh-full","ms-msdt","ms-officecmd","search","search-ms","view-source","vbscript"])});function Ul(r){let s=(r||"").split(/\s+/).filter(Boolean);return s.length===0?"?":s.length===1?s[0][0].toUpperCase():(s[0][0]+s[s.length-1][0]).toUpperCase()}function Bl(r){let s=0;for(let e of r)s=s*31+e.charCodeAt(0)>>>0;return Dn[s%Dn.length]}function Ai(r){return r?{id:r.id,name:r.name,initials:r.initials||Ul(r.name),color:r.color||Bl(r.id)}:null}function zn(r){return r?l`<span class="person-avatar" style="--person-color: ${r.color}" title=${r.name}>${r.initials}</span>`:p}function Fn(r){let s=r.filter(e=>!!e);return s.length<=1?zn(s[0]):l`<span class="people-avatars">${s.map(e=>zn(e))}</span>`}var Dn,qr=y(()=>{"use strict";O();Dn=["#c62828","#ad1457","#6a1b9a","#4527a0","#283593","#1565c0","#00838f","#2e7d32","#558b2f","#ef6c00","#6d4c41","#546e7a"]});var at,Mr=y(()=>{"use strict";qr();at=class{constructor(s){this.usersCache=null;this.cacheTimestamp=0;this.CACHE_TTL_MS=6e4;this.hass=s}updateHass(s){this.hass=s}async getUsers(s=!1){let e=Date.now();if(!s&&this.usersCache&&e-this.cacheTimestamp<this.CACHE_TTL_MS)return this.usersCache;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/users/list"});return this.usersCache=t.users,this.cacheTimestamp=e,this.usersCache}catch(t){return console.error("Failed to fetch users:",t),this.usersCache||[]}}async assignUser(s,e,t){await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/assign_user",entry_id:s,task_id:e,user_id:t})}async getTasksByUser(s){return(await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tasks/by_user",user_id:s})).tasks}getUserName(s){return!s||!this.usersCache?null:this.usersCache.find(t=>t.id===s)?.name||null}getPerson(s){return Ai(this.getUser(s))}getUser(s){return!s||!this.usersCache?null:this.usersCache.find(e=>e.id===s)||null}getCurrentUserId(){return this.hass.user?.id||null}isCurrentUser(s){return s?s===this.getCurrentUserId():!1}clearCache(){this.usersCache=null,this.cacheTimestamp=0}}});function Wl(r,s){if(s<=0)return 0;let e=typeof r=="number"&&Number.isFinite(r)?Math.trunc(r):0;return e<0?0:e%s}function Vl(r){return!!(r?.phases&&r.phase_sequence&&r.phase_sequence.length>0)}function Hr(r){if(!r||!Vl(r))return null;let s=r.phase_sequence,e=Wl(r.phase_cursor,s.length),t=s[e],i=r.phases?.[t];return i?{id:t,name:i.name,index:e,count:s.length,notes:i.notes,checklist:i.checklist!==void 0?i.checklist:r.checklist??[],consumesParts:i.consumes_parts!==void 0?i.consumes_parts:r.consumes_parts??[],requiredFields:i.required_completion_fields!==void 0?i.required_completion_fields:r.required_completion_fields??[]}:null}function Te(r){let s=Hr(r);return s?`${s.index+1}/${s.count} \xB7 ${s.name}`:""}var Ci=y(()=>{"use strict"});function Wn(){let r=new Uint8Array(4);return(globalThis.crypto??{getRandomValues:s=>s.map(()=>Math.floor(Math.random()*256))}).getRandomValues(r),Array.from(r,s=>s.toString(16).padStart(2,"0")).join("")}function Ae(r){let s=r?.reading_values;if(!Array.isArray(s))return[];let e=[],t=new Set;for(let i of s){if(!i||typeof i!="object")continue;let o=i;typeof o.id!="string"||!o.id||t.has(o.id)||typeof o.value!="number"||!Number.isFinite(o.value)||(t.add(o.id),e.push({id:o.id,name:typeof o.name=="string"?o.name:o.id,unit:typeof o.unit=="string"?o.unit:null,value:o.value}))}return e}function Vn(r){return r.filter(s=>s.type==="completed"&&(s.reading_value!=null||Ae(s).length>0)).sort((s,e)=>s.timestamp.localeCompare(e.timestamp))}function Gn(r){return Vn(r??[]).map(s=>({timestamp:s.timestamp,values:Ae(s)})).filter(s=>s.values.length>0)}function Kn(r,s,e){let t;for(let i of r){if(e!==void 0){let a=U(i.timestamp);if(!isNaN(a)&&a>=e)break}let o=i.values.find(a=>a.id===s);o&&(t=o)}return t}function Yn(r,s,e){let t=Ae(s).find(o=>o.id===e);if(!t)return null;let i=null;for(let o of Vn(r)){if(o.timestamp>=s.timestamp)break;let a=Ae(o).find(c=>c.id===e);a&&(i=a.value)}return i==null?null:t.value-i}function Qn(r){let s=new Set,e=new Set;for(let t of r){let i=(t.name||"").trim().toLowerCase();i&&(s.has(i)?e.add(t.id):s.add(i))}return e}function Zn(r){let s=[],e=new Set,t=new Set;for(let i of r){let o=(i.name||"").trim();if(!(!o||e.has(i.id)||t.has(o.toLowerCase()))&&(e.add(i.id),t.add(o.toLowerCase()),s.push({id:i.id,name:o,unit:(i.unit||"").trim()||null}),s.length>=Lr))break}return s}var Lr,Ue=y(()=>{"use strict";W();Lr=20});function ae(r){return`${r.entry_id??""}\0${r.part_id}`}function Jn(r,s,e,t){let i=!!r.entry_id&&r.entry_id!==s,o=i?r.entry_id:s,a=e.find(m=>m.entry_id===o),c=(a?.parts||[]).find(m=>m.id===r.part_id)||null,u=i&&a?.object?.name||"",_=c?.name||n("shared_part_unknown",t);return{part:c,foreign:i,ownerName:u,label:u?`${_} (${u})`:_}}function Xn(r,s,e,t){let{part:i,label:o}=Jn(r,s,e,t),a=i&&i.stock!==null&&i.stock!==void 0?` (${tt(i.stock,i.unit,t)})`:"",c=i?.storage_location?` \u2014 ${i.storage_location}`:"";return`${P(r.quantity,t)}\xD7 ${o}${a}${c}`}function eo(r,s,e,t){let i=e.find(u=>u.entry_id===s),o=u=>u?.object.battery_fleet?{cost_mode:"purchase"}:{},a=(i?.parts||[]).map(u=>({...u,...o(i)})),c=new Set(a.map(u=>ae({part_id:u.id})));for(let u of r?.consumes_parts||[]){if(!u.entry_id||u.entry_id===s)continue;let _=ae(u);if(c.has(_))continue;c.add(_);let{part:m,ownerName:f}=Jn(u,s,e,t);a.push({id:u.part_id,name:m?.name||n("shared_part_unknown",t),unit:m?.unit,stock:m?.stock??null,storage_location:m?.storage_location,cost:m?.cost??null,package_size:m?.package_size??null,cost_mode:m?.cost_mode??null,...o(e.find(x=>x.entry_id===u.entry_id)),entry_id:u.entry_id,owner_name:f})}return a}var Ri=y(()=>{"use strict";I()});function io(r){return r==="use"?"use":"purchase"}function Ii(r,s,e=!1){if(e)return"purchase";let t=r?.cost_mode;return t==="use"||t==="purchase"?t:s}function ro(r){let s=to(r?.cost);if(s===null)return null;let e=to(r?.package_size);return e&&e>0?s/e:s}var to,Pi,zt=y(()=>{"use strict";to=r=>typeof r=="number"&&Number.isFinite(r)?r:null,Pi=r=>Math.round(r*100)/100});function Gl(r,s){return typeof r=="number"&&Number.isFinite(r)&&r>=.01?r:s}function Oi(r){let s=r.task??null,e=s?Hr(s):null,t=e?e.consumesParts:s?.consumes_parts||[],i=!!s?.part_ref,o=r.objects.find(f=>f.entry_id===r.entryId),a=o?.parts||[],c=i?a.find(f=>f.id===s.part_ref.part_id):void 0,u=r.features?r.features.checklists:r.checklistsEnabled??!0,_=r.features?r.features.checklists?r.checklist??s?.checklist??[]:[]:r.checklist??[],m=r.features?r.features.adaptive&&(r.adaptiveEnabled??!!s?.adaptive_config?.enabled):!!r.adaptiveEnabled;return{entry_id:r.entryId,task_id:r.taskId,task_name:r.taskName,checklist:e?u?e.checklist:[]:_,adaptive_enabled:m,required_completion_fields:e?e.requiredFields:s?.required_completion_fields||[],task_type:s?.type||"",reading_unit:s?.reading_unit||"",readings:s?.readings||[],reading_history:Gn(s?.history),parts:i?[]:eo({consumes_parts:t},r.entryId,r.objects,r.lang),consumes_parts:i?[]:t,phase_label:e?Te(s):"",require_tag_scan:!!s?.require_tag_scan,restock_default:i?Gl(c?.restock_quantity,1):null,restock_unit_cost:i?c?.cost??null:null,restock_package:i&&c?.package_size?tt(c.package_size,c.unit,r.lang):"",currency_symbol:Fe({currency_symbol:r.currencySymbol}),consumes_info:t.map(f=>Xn(f,r.entryId,r.objects,r.lang)),checklist_prefill:s?.checklist_progress||{},via_tag_scan:!!r.viaTagScan,parts_cost_mode:i?Ii(c,r.partsCostMode??"purchase",!!o?.object.battery_fleet):r.partsCostMode??"purchase",prefill:ki(s)}}function ji(r,s,e){r.entryId=s.entry_id,r.taskId=s.task_id,r.taskName=s.task_name,r.lang=e,r.checklist=s.checklist??[],r.adaptiveEnabled=!!s.adaptive_enabled,r.requiredFields=s.required_completion_fields??[],r.taskType=s.task_type??"",r.readingUnit=s.reading_unit??"",r.readings=s.readings??[],r.readingHistory=s.reading_history??[],r.parts=s.parts??[],r.consumesParts=s.consumes_parts??[],r.phaseLabel=s.phase_label??"",r.requireTagScan=!!s.require_tag_scan,r.restockDefault=s.restock_default??null,r.restockUnitCost=s.restock_unit_cost??null,r.restockPackage=s.restock_package??"",r.currencySymbol=Fe(s),r.consumesInfo=s.consumes_info??[],r.checklistPrefill=s.checklist_prefill??{},r.viaTagScan=!!s.via_tag_scan,r.partsCostMode=s.parts_cost_mode??"purchase",r.prefill=s.prefill??null,r.open({viaTagScan:!!s.via_tag_scan})}var Ni=y(()=>{"use strict";Ue();Ri();Ci();I();zt();rt()});function le(r,s=ge){return r?r.is_admin?!0:s.operatorWriteEnabled&&s.operatorIds.includes(r.id):!1}var ge,lt=y(()=>{"use strict";ge={operatorWriteEnabled:!1,operatorIds:[]}});var so,ct,no,Ft,Ut,Bt,Dr,Ce,dt,Wt=y(()=>{"use strict";so={default_warning_days:[0,365],default_consumable_threshold:[1,90],battery_low_percent:[1,90],battery_recovered_percent:[20,100],battery_low_delay_minutes:[0,1440],archive_oneoff_days:[0,3650],delete_archived_oneoff_days:[0,3650],notify_due_soon_interval_hours:[0,720],notify_overdue_interval_hours:[0,720],notify_triggered_interval_hours:[0,720],max_notifications_per_day:[0,1e3],notification_bundle_threshold:[2,20],snooze_duration_hours:[1,168],warranty_reminder_days:[1,365],budget_alert_threshold:[10,100],currency_decimals:[0,3]},ct=[0,1440],no=[1,1e4],Ft=[0,365],Ut=15,Bt=[.1,.9],Dr=[0,365],Ce=[.01,1e4],dt=[.01,1e5]});function Yl(r){let[s,e]=so.default_warning_days,t=r?.general?.default_warning_days,i=r?.general?.row_action_style;return{features:{...pt.features,...r?.features??{}},defaultWarningDays:typeof t=="number"&&Number.isFinite(t)&&t>=s&&t<=e?t:pt.defaultWarningDays,rowActionStyle:Kl.includes(i??"")?i:pt.rowActionStyle,access:{operatorWriteEnabled:r?.operator_write_enabled===!0,operatorIds:Array.isArray(r?.admin_panel_user_ids)?r.admin_panel_user_ids.filter(o=>typeof o=="string"):[]},budget:r?.budget??null,rowActionNoticePending:r?.general?.row_action_notice_pending===!0,refsInLists:r?.general?.ref_numbers_in_lists===!0,objectsTableColumns:Array.isArray(r?.objects_table_columns)?r.objects_table_columns:void 0,partsCostMode:io(r?.budget?.parts_cost_mode),mirrorTodoDefault:Array.isArray(r?.general?.mirror_todo_default_entities)?r.general.mirror_todo_default_entities.filter(o=>typeof o=="string"&&o!==""):[]}}function oo(){let r=window;return r.__msSettingsCache??={promise:null}}function Q(r){let s=oo();if(s.promise)return s.promise;let e=r.connection.sendMessagePromise({type:"maintenance_supporter/settings"}).then(t=>Yl(t)).catch(()=>(s.promise===e&&(s.promise=null),pt));return s.promise=e,e}function ao(){oo().promise=null}var Kl,pt,ut=y(()=>{"use strict";lt();Wt();zt();Kl=["buttons_compact","buttons","icons"];pt={features:{adaptive:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1,places:!1},defaultWarningDays:7,rowActionStyle:"buttons_compact",access:ge,budget:null,rowActionNoticePending:!1,refsInLists:!1,objectsTableColumns:void 0,partsCostMode:"purchase",mirrorTodoDefault:[]}});function Vt(r){if(r.archived)return"archived";if(r.is_done)return"done";let s=r.status||"ok";return s==="ok"&&r.schedule_type==="manual"&&r.days_until_due==null?"no_due":s}function zr(r,s){return n(Jl[r]??r,s)}function ht(r){let s=Vt(r);return s==="done"?Ql:s==="no_due"?Zl:xe[s]||"var(--disabled-color, #9e9e9e)"}function Xl(r){return r==="no_due"?"mdi:calendar-blank-outline":Nt[r==="done"?"completed":r]||"mdi:circle-medium"}function lo(r,s,e="pill"){let t=Vt(r),i=zr(t,s);return e==="chip"?l`<span class="status-chip ${t}">${i}</span>`:l`<span class="status-badge ${t}" role="img" title="${i}" aria-label="${i}"><ha-icon icon="${Xl(t)}"></ha-icon><span class="status-label">${i}</span></span>`}var Ql,Zl,Jl,qi=y(()=>{"use strict";O();I();De();Ql="var(--maint-done-color, #78909c)",Zl="var(--secondary-text-color, #727272)";Jl={done:"completed",no_due:"no_due_date"}});function C(r){return r.toFixed(1)}var Gt=y(()=>{"use strict";I();W()});function Fr(r,s){let e=r?.states?.[s]?.attributes?.friendly_name;return typeof e=="string"&&e?e:s}function Mi(r){return r?Array.isArray(r.entity_ids)&&r.entity_ids.length>0?[...r.entity_ids]:r.entity_id?[r.entity_id]:[]:[]}function Ur(r){if(!(!r||r.type==="compound"))return Mi(r)[0]}var Br=y(()=>{"use strict"});var Wr,po,uo,Vr=y(()=>{"use strict";Wr=["low","normal","high"],po=[...Wr].reverse(),uo=["round_robin","least_completed","random"]});var z,Kt=y(()=>{"use strict";O();L();z=class extends S{constructor(){super(...arguments);this.label="";this.value="";this.placeholder="";this.type="text";this.required=!1;this.disabled=!1;this.multiline=!1;this.rows=3}_onInput(e){let t=e.target.value;this.value=t,this.dispatchEvent(new CustomEvent("input",{bubbles:!0,composed:!0,detail:{value:t}}))}render(){return l`
+`});function Ec(i){let s=i.replace(/_ids?$/,"").split("_").filter(Boolean);if(s.length===0)return i;let e=s.join(" ");return e.charAt(0).toUpperCase()+e.slice(1)}function Tc(i,s){let e=$c[i];if(e){let t=n(e,s);if(t&&t!==e)return t}return Ec(i)}function Sc(i){let s=[...i.matchAll(/\['([^']+)'\]/g)].map(r=>r[1]),e=s.length?s[s.length-1]:void 0,t;return(t=i.match(/length of value must be at most (\d+)/))?{field:e,rule:"too_long",param:t[1]}:(t=i.match(/length of value must be at least (\d+)/))?{field:e,rule:"too_short",param:t[1]}:(t=i.match(/value must be at most (\S+)/))?{field:e,rule:"value_too_high",param:t[1]}:(t=i.match(/value must be at least (\S+)/))?{field:e,rule:"value_too_low",param:t[1]}:/required key not provided/.test(i)?{field:e,rule:"required"}:(t=i.match(/expected (\w+)/))?{field:e,rule:"wrong_type",param:t[1]}:/value must be one of/.test(i)?{field:e,rule:"invalid_choice"}:/not a valid value/.test(i)?{field:e,rule:"invalid_value"}:{field:e,rule:"unknown"}}function Cc(i,s){let e=new Set(lo(s));return lo(i).every(t=>e.has(t))}function co(i,s,e){if(e=e??n("action_error",s),typeof i=="string")return i;if(typeof i!="object"||i===null)return e;let t=i,r=t.message||t.error?.message||"",o=t.code||t.error?.code||"",a=o?kc[o]:void 0,c=Ln(t.translation_domain??t.error?.translation_domain,t.translation_key??t.error?.translation_key,t.translation_placeholders??t.error?.translation_placeholders);if(c)return c;if(!r&&!a)return e;let u=Sc(r),_=u.field?Tc(u.field,s):"",m=f=>n(f,s).replace("{field}",_).replace("{n}",u.param??"");switch(u.rule){case"too_long":return m("err_too_long");case"too_short":return m("err_too_short");case"value_too_high":return m("err_value_too_high");case"value_too_low":return m("err_value_too_low");case"required":return m("err_required");case"wrong_type":return m("err_wrong_type").replace("{type}",u.param??"");case"invalid_choice":return m("err_invalid_choice");case"invalid_value":return m("err_invalid_value");default:if(a){let f=n(a,s);return qe(s)==="en"&&r&&!Cc(r,o)?`${f} (${r})`:f}return r||e}}var kc,$c,lo,po=x(()=>{"use strict";P();Qr();ri();kc={already_archived:"ws_err_already_archived",already_paused:"ws_err_already_paused",archived:"ws_err_archived",changed_since:"undo_changed",create_failed:"ws_err_create_failed",duplicate_failed:"ws_err_duplicate_failed",empty:"ws_err_empty",empty_csv:"ws_err_empty_csv",invalid_cursor:"ws_err_invalid_cursor",invalid_date:"ws_err_invalid_date",invalid_device:"ws_err_invalid_device",invalid_entity_slug:"ws_err_invalid_entity_slug",invalid_format:"ws_err_invalid_format",invalid_input:"ws_err_invalid_input",invalid_mirror_todo:"ws_err_invalid_mirror_todo",invalid_notify_service:"ws_err_invalid_notify_service",invalid_parent:"ws_err_invalid_parent",invalid_icon:"ws_err_invalid_icon",invalid_range:"ws_err_invalid_range",invalid_search_template:"ws_err_invalid_search_template",invalid_shopping_list_entity:"ws_err_invalid_shopping_list_entity",invalid_target:"ws_err_invalid_target",invalid_trigger_config:"ws_err_invalid_trigger_config",invalid_url:"ws_err_invalid_url",invalid_user:"ws_err_invalid_user",invalid_view:"ws_err_invalid_view",limit_reached:"ws_err_limit_reached",no_defaults:"ws_err_no_defaults",no_phases:"ws_err_no_phases",no_url:"ws_err_no_url",not_archived:"ws_err_not_archived",not_available:"ws_err_not_available",not_configured:"ws_err_not_configured",not_found:"ws_err_not_found",notify_service_not_found:"ws_err_notify_service_not_found",not_loaded:"ws_err_not_loaded",not_paused:"ws_err_not_paused",nothing_to_undo:"undo_nothing",replace_failed:"ws_err_replace_failed",self_link_device:"ws_err_self_link_device",too_early:"ws_err_too_early",too_large:"ws_err_too_large",too_many:"ws_err_too_many",too_many_views:"ws_err_too_many_views",unauthorized:"ws_err_unauthorized",unavailable:"ws_err_unavailable"},$c={entry_id:"object",name:"name",task_type:"maintenance_type",schedule_type:"schedule_type",interval_days:"interval_days",interval_anchor:"interval_anchor",warning_days:"warning_days",last_performed:"last_performed_optional",notes:"notes_optional",documentation_url:"documentation_url_optional",custom_icon:"custom_icon_optional",nfc_tag_id:"nfc_tag_id_optional",responsible_user_id:"responsible_user",entity_slug:"entity_slug",entity_id:"entity_id",area_id:"area_id_optional",manufacturer:"manufacturer_optional",model:"model_optional",serial_number:"serial_number_optional",installation_date:"installation_date_optional",warranty_expiry:"warranty_expiry_optional",checklist:"checklist_steps_optional",reason:"reason",feedback:"feedback",cost:"cost",duration:"duration",description:"description_optional",environmental_entity:"environmental_entity_optional",environmental_attribute:"environmental_attribute_optional",trigger_above:"trigger_above",trigger_below:"trigger_below",trigger_equals:"trigger_equals",trigger_not_equals:"trigger_not_equals",trigger_for_minutes:"trigger_for_minutes"};lo=i=>i.toLowerCase().split(/[^a-z0-9]+/).filter(s=>s.length>1)});async function L(i,s,e={}){e.busy?.(!0);try{let t=typeof s=="function"?await s():await i.hass.connection.sendMessagePromise(s);return e.reload&&await e.reload(),e.successToast&&e.onSuccess?.(e.successToast),t===void 0?null:t}catch(t){let r=e.lang||N(i.hass),o=await Ic(i,t,r)??co(t,r,e.fallbackKey?n(e.fallbackKey,r):void 0);e.onError?.(o,t);return}finally{e.busy?.(!1)}}async function Ic(i,s,e){let t=typeof s=="object"&&s!==null?s:{};if(!Ac.has(t.code||t.error?.code||""))return null;try{let r=Dn(await i.hass.connection.sendMessagePromise({type:"maintenance_supporter/version"}));return r?n("restart_pending_error",e).replace("{version}",r):null}catch{return null}}var Ac,me=x(()=>{"use strict";po();P();Br();Ac=new Set(["unknown_error","invalid_format","unknown_command"])});async function Pc(i,s,e,t){let r="",o=await L({hass:i},{type:"maintenance_supporter/task/undo",entry_id:s,task_id:e},{lang:t,onError:(a,c)=>{let u=Rc[c?.code??""];r=u?n(u,t):a}});return o===void 0?{ok:!1,message:r}:{ok:!0,message:n(o?.action_ran?"undo_done_action_ran":"undo_done",t)}}function Gi(i,s){let e=i?.already_recorded_seconds;return typeof e=="number"?n("completion_already_recorded",s).replace("{seconds}",String(e)):null}function nt(i,s,e,t,r){let o=(a,c)=>i.dispatchEvent(new CustomEvent("hass-notification",{detail:c?{message:a,action:c,duration:1e4}:{message:a},bubbles:!0,composed:!0}));o(n("task_completed_named",t).replace("{task}",e.taskName),{text:n("undo",t),action:()=>{Pc(s,e.entryId,e.taskId,t).then(a=>{o(a.message),a.ok&&r()})}})}var Rc,yt=x(()=>{"use strict";P();me();Rc={changed_since:"undo_changed",nothing_to_undo:"undo_nothing"}});function ee(i){let s=i?.quick_complete_defaults;return!!s&&typeof s=="object"&&!Array.isArray(s)}function Ki(i){return ee(i)?{...i.quick_complete_defaults}:null}async function Yi(i,s,e,t){let r={message:"",code:""},o=await L({hass:i},{type:"maintenance_supporter/task/quick_complete",entry_id:s,task_id:e,source:"panel"},{lang:t,fallbackKey:"action_error",onError:(c,u)=>{r={message:c,code:u?.code??""}}});if(o===void 0)return Oc.has(r.code)?{result:"dialog"}:{result:"failed",message:r.message};let a=Gi(o,t);return a?{result:"already",message:a}:{result:"done",undo:o?.undo===!0}}var Oc,xt=x(()=>{"use strict";me();yt();Oc=new Set(["no_defaults","completion_details_required","tag_scan_required"])});var uo=x(()=>{});function b(i){return(s,e)=>typeof e=="object"?jc(i,s,e):((t,r,o)=>{let a=r.hasOwnProperty(o);return r.constructor.createProperty(o,t),a?Object.getOwnPropertyDescriptor(r,o):void 0})(i,s,e)}var Nc,jc,os=x(()=>{Kt();Nc={attribute:!0,type:String,converter:Gt,reflect:!1,hasChanged:Ci},jc=(i=Nc,s,e)=>{let{kind:t,metadata:r}=e,o=globalThis.litPropertyMetadata.get(r);if(o===void 0&&globalThis.litPropertyMetadata.set(r,o=new Map),t==="setter"&&((i=Object.create(i)).wrapped=!0),o.set(e.name,i),t==="accessor"){let{name:a}=e;return{set(c){let u=s.get.call(this);s.set.call(this,c),this.requestUpdate(a,u,i,!0,c)},init(c){return c!==void 0&&this.C(a,void 0,i,c),c}}}if(t==="setter"){let{name:a}=e;return function(c){let u=this[a];s.call(this,c),this.requestUpdate(a,u,i,!0,c)}}throw Error("Unsupported decorator location: "+t)}});function h(i){return b({...i,state:!0,attribute:!1})}var ho=x(()=>{os();});var _o=x(()=>{});var wt=x(()=>{});var mo=x(()=>{wt();});var go=x(()=>{wt();});var fo=x(()=>{wt();});var vo=x(()=>{wt();});var bo=x(()=>{wt();});var z=x(()=>{uo();os();ho();_o();mo();go();fo();vo();bo()});function yo(i,s,e){let t=new Blob([i],{type:e}),r=URL.createObjectURL(t),o=document.createElement("a");o.href=r,o.download=s,o.target="_blank",o.rel="noopener",o.style.display="none",document.body.appendChild(o),o.dispatchEvent(new MouseEvent("click")),document.body.removeChild(o),setTimeout(()=>URL.revokeObjectURL(r),6e4)}var as=x(()=>{"use strict"});async function qc(i,s,e=300){return(await i.connection.sendMessagePromise({type:"auth/sign_path",path:s,expires:e})).path}async function ls(i,s,e=300){return qc(i,`/api/maintenance_supporter/document/${s}`,e)}async function xo(i,s,e=""){let t=window.open("about:blank","_blank");try{let r=await ls(i,s);t&&(t.location.href=new URL(r+e,window.location.origin).href)}catch(r){throw t&&t.close(),r}}var cs=x(()=>{"use strict";as()});function ds(i){return i.replace(/[\t\n\r]/g,"").replace(/^[\u0000-\u0020]+|[\u0000-\u0020]+$/g,"")}function ps(i){let s=/^([a-z][a-z0-9+.-]+):/i.exec(ds(i||""));return s?s[1].toLowerCase():null}function kt(i){let s=ps(i);return s!==null&&!Dc.has(s)}function ko(i){return!!i&&/^https?:\/\//i.test(i)}var Dc,Zi=x(()=>{"use strict";Dc=new Set(["about","blob","data","file","filesystem","javascript","livescript","ms-appinstaller","ms-cxh","ms-cxh-full","ms-msdt","ms-officecmd","search","search-ms","view-source","vbscript"])});function Lc(i){let s=(i||"").split(/\s+/).filter(Boolean);return s.length===0?"?":s.length===1?s[0][0].toUpperCase():(s[0][0]+s[s.length-1][0]).toUpperCase()}function zc(i){let s=0;for(let e of i)s=s*31+e.charCodeAt(0)>>>0;return To[s%To.length]}function Xi(i){return i?{id:i.id,name:i.name,initials:i.initials||Lc(i.name),color:i.color||zc(i.id)}:null}function So(i){return i?l`<span class="person-avatar" style="--person-color: ${i.color}" title=${i.name}>${i.initials}</span>`:p}function Co(i){let s=i.filter(e=>!!e);return s.length<=1?So(s[0]):l`<span class="people-avatars">${s.map(e=>So(e))}</span>`}var To,hs=x(()=>{"use strict";I();To=["#c62828","#ad1457","#6a1b9a","#4527a0","#283593","#1565c0","#00838f","#2e7d32","#558b2f","#ef6c00","#6d4c41","#546e7a"]});var Et,_s=x(()=>{"use strict";hs();Et=class{constructor(s){this.usersCache=null;this.cacheTimestamp=0;this.CACHE_TTL_MS=6e4;this.hass=s}updateHass(s){this.hass=s}async getUsers(s=!1){let e=Date.now();if(!s&&this.usersCache&&e-this.cacheTimestamp<this.CACHE_TTL_MS)return this.usersCache;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/users/list"});return this.usersCache=t.users,this.cacheTimestamp=e,this.usersCache}catch(t){return console.error("Failed to fetch users:",t),this.usersCache||[]}}async assignUser(s,e,t){await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/assign_user",entry_id:s,task_id:e,user_id:t})}async getTasksByUser(s){return(await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tasks/by_user",user_id:s})).tasks}getUserName(s){return!s||!this.usersCache?null:this.usersCache.find(t=>t.id===s)?.name||null}getPerson(s){return Xi(this.getUser(s))}getUser(s){return!s||!this.usersCache?null:this.usersCache.find(e=>e.id===s)||null}getCurrentUserId(){return this.hass.user?.id||null}isCurrentUser(s){return s?s===this.getCurrentUserId():!1}clearCache(){this.usersCache=null,this.cacheTimestamp=0}}});function Fc(i,s){if(s<=0)return 0;let e=typeof i=="number"&&Number.isFinite(i)?Math.trunc(i):0;return e<0?0:e%s}function Uc(i){return!!(i?.phases&&i.phase_sequence&&i.phase_sequence.length>0)}function ms(i){if(!i||!Uc(i))return null;let s=i.phase_sequence,e=Fc(i.phase_cursor,s.length),t=s[e],r=i.phases?.[t];return r?{id:t,name:r.name,index:e,count:s.length,notes:r.notes,checklist:r.checklist!==void 0?r.checklist:i.checklist??[],consumesParts:r.consumes_parts!==void 0?r.consumes_parts:i.consumes_parts??[],requiredFields:r.required_completion_fields!==void 0?r.required_completion_fields:i.required_completion_fields??[]}:null}function Fe(i){let s=ms(i);return s?`${s.index+1}/${s.count} \xB7 ${s.name}`:""}var er=x(()=>{"use strict"});function Ro(){let i=new Uint8Array(4);return(globalThis.crypto??{getRandomValues:s=>s.map(()=>Math.floor(Math.random()*256))}).getRandomValues(i),Array.from(i,s=>s.toString(16).padStart(2,"0")).join("")}function Ue(i){let s=i?.reading_values;if(!Array.isArray(s))return[];let e=[],t=new Set;for(let r of s){if(!r||typeof r!="object")continue;let o=r;typeof o.id!="string"||!o.id||t.has(o.id)||typeof o.value!="number"||!Number.isFinite(o.value)||(t.add(o.id),e.push({id:o.id,name:typeof o.name=="string"?o.name:o.id,unit:typeof o.unit=="string"?o.unit:null,value:o.value}))}return e}function Po(i){return i.filter(s=>s.type==="completed"&&(s.reading_value!=null||Ue(s).length>0)).sort((s,e)=>s.timestamp.localeCompare(e.timestamp))}function Oo(i){return Po(i??[]).map(s=>({timestamp:s.timestamp,values:Ue(s)})).filter(s=>s.values.length>0)}function No(i,s,e){let t;for(let r of i){if(e!==void 0){let a=Y(r.timestamp);if(!isNaN(a)&&a>=e)break}let o=r.values.find(a=>a.id===s);o&&(t=o)}return t}function jo(i,s,e){let t=Ue(s).find(o=>o.id===e);if(!t)return null;let r=null;for(let o of Po(i)){if(o.timestamp>=s.timestamp)break;let a=Ue(o).find(c=>c.id===e);a&&(r=a.value)}return r==null?null:t.value-r}function qo(i){let s=new Set,e=new Set;for(let t of i){let r=(t.name||"").trim().toLowerCase();r&&(s.has(r)?e.add(t.id):s.add(r))}return e}function Do(i){let s=[],e=new Set,t=new Set;for(let r of i){let o=(r.name||"").trim();if(!(!o||e.has(r.id)||t.has(o.toLowerCase()))&&(e.add(r.id),t.add(o.toLowerCase()),s.push({id:r.id,name:o,unit:(r.unit||"").trim()||null}),s.length>=gs))break}return s}var gs,ot=x(()=>{"use strict";Z();gs=20});function ge(i){return`${i.entry_id??""}\0${i.part_id}`}function Mo(i,s,e,t){let r=!!i.entry_id&&i.entry_id!==s,o=r?i.entry_id:s,a=e.find(m=>m.entry_id===o),c=(a?.parts||[]).find(m=>m.id===i.part_id)||null,u=r&&a?.object?.name||"",_=c?.name||n("shared_part_unknown",t);return{part:c,foreign:r,ownerName:u,label:u?`${_} (${u})`:_}}function Ho(i,s,e,t){let{part:r,label:o}=Mo(i,s,e,t),a=r&&r.stock!==null&&r.stock!==void 0?` (${ft(r.stock,r.unit,t)})`:"",c=r?.storage_location?` \u2014 ${r.storage_location}`:"";return`${S(i.quantity,t)}\xD7 ${o}${a}${c}`}function Lo(i,s,e,t){let r=e.find(u=>u.entry_id===s),o=u=>u?.object.battery_fleet?{cost_mode:"purchase"}:{},a=(r?.parts||[]).map(u=>({...u,...o(r)})),c=new Set(a.map(u=>ge({part_id:u.id})));for(let u of i?.consumes_parts||[]){if(!u.entry_id||u.entry_id===s)continue;let _=ge(u);if(c.has(_))continue;c.add(_);let{part:m,ownerName:f}=Mo(u,s,e,t);a.push({id:u.part_id,name:m?.name||n("shared_part_unknown",t),unit:m?.unit,stock:m?.stock??null,storage_location:m?.storage_location,cost:m?.cost??null,package_size:m?.package_size??null,cost_mode:m?.cost_mode??null,...o(e.find(v=>v.entry_id===u.entry_id)),entry_id:u.entry_id,owner_name:f})}return a}var tr=x(()=>{"use strict";P()});function Fo(i){return i==="use"?"use":"purchase"}function ir(i,s,e=!1){if(e)return"purchase";let t=i?.cost_mode;return t==="use"||t==="purchase"?t:s}function Uo(i){let s=zo(i?.cost);if(s===null)return null;let e=zo(i?.package_size);return e&&e>0?s/e:s}var zo,rr,oi=x(()=>{"use strict";zo=i=>typeof i=="number"&&Number.isFinite(i)?i:null,rr=i=>Math.round(i*100)/100});function Bc(i,s){return typeof i=="number"&&Number.isFinite(i)&&i>=.01?i:s}function sr(i){let s=i.task??null,e=s?ms(s):null,t=e?e.consumesParts:s?.consumes_parts||[],r=!!s?.part_ref,o=i.objects.find(f=>f.entry_id===i.entryId),a=o?.parts||[],c=r?a.find(f=>f.id===s.part_ref.part_id):void 0,u=i.features?i.features.checklists:i.checklistsEnabled??!0,_=i.features?i.features.checklists?i.checklist??s?.checklist??[]:[]:i.checklist??[],m=i.features?i.features.adaptive&&(i.adaptiveEnabled??!!s?.adaptive_config?.enabled):!!i.adaptiveEnabled;return{entry_id:i.entryId,task_id:i.taskId,task_name:i.taskName,checklist:e?u?e.checklist:[]:_,adaptive_enabled:m,required_completion_fields:e?e.requiredFields:s?.required_completion_fields||[],task_type:s?.type||"",reading_unit:s?.reading_unit||"",readings:s?.readings||[],reading_history:Oo(s?.history),parts:r?[]:Lo({consumes_parts:t},i.entryId,i.objects,i.lang),consumes_parts:r?[]:t,phase_label:e?Fe(s):"",require_tag_scan:!!s?.require_tag_scan,restock_default:r?Bc(c?.restock_quantity,1):null,restock_unit_cost:r?c?.cost??null:null,restock_package:r&&c?.package_size?ft(c.package_size,c.unit,i.lang):"",currency_symbol:rt({currency_symbol:i.currencySymbol}),consumes_info:t.map(f=>Ho(f,i.entryId,i.objects,i.lang)),checklist_prefill:s?.checklist_progress||{},via_tag_scan:!!i.viaTagScan,parts_cost_mode:r?ir(c,i.partsCostMode??"purchase",!!o?.object.battery_fleet):i.partsCostMode??"purchase",prefill:Ki(s)}}function nr(i,s,e){i.entryId=s.entry_id,i.taskId=s.task_id,i.taskName=s.task_name,i.lang=e,i.checklist=s.checklist??[],i.adaptiveEnabled=!!s.adaptive_enabled,i.requiredFields=s.required_completion_fields??[],i.taskType=s.task_type??"",i.readingUnit=s.reading_unit??"",i.readings=s.readings??[],i.readingHistory=s.reading_history??[],i.parts=s.parts??[],i.consumesParts=s.consumes_parts??[],i.phaseLabel=s.phase_label??"",i.requireTagScan=!!s.require_tag_scan,i.restockDefault=s.restock_default??null,i.restockUnitCost=s.restock_unit_cost??null,i.restockPackage=s.restock_package??"",i.currencySymbol=rt(s),i.consumesInfo=s.consumes_info??[],i.checklistPrefill=s.checklist_prefill??{},i.viaTagScan=!!s.via_tag_scan,i.partsCostMode=s.parts_cost_mode??"purchase",i.prefill=s.prefill??null,i.open({viaTagScan:!!s.via_tag_scan})}var or=x(()=>{"use strict";ot();tr();er();P();oi();xt()});function vs(){return window[fs]===!0}function Bo(i){let s=window;if(s[fs]===i)return;s[fs]=i;let e=document.documentElement.style;for(let[t,r]of Object.entries(Vc))i?e.setProperty(t,r):e.removeProperty(t);window.dispatchEvent(new CustomEvent(Wc))}function Gc(i){return!!customElements.get(i)}function se(i){return vs()&&Gc(i)}function Te(i){return vs()?i:void 0}function Se(i){return vs()?p:l`<div class="dialog-title">${i}</div>`}var fs,Wc,Vc,ne=x(()=>{"use strict";I();fs="__msBetaUi",Wc="ms-beta-ui-changed",Vc={"--ms-radius-6":"var(--ha-border-radius-md, 8px)","--ms-radius-10":"var(--ha-border-radius-lg, 12px)"}});function fe(i,s=Ce){return i?i.is_admin?!0:s.operatorWriteEnabled&&s.operatorIds.includes(i.id):!1}var Ce,Tt=x(()=>{"use strict";Ce={operatorWriteEnabled:!1,operatorIds:[]}});var Wo,St,Vo,ai,li,ci,bs,Be,Ct,di=x(()=>{"use strict";Wo={default_warning_days:[0,365],default_consumable_threshold:[1,90],battery_low_percent:[1,90],battery_recovered_percent:[20,100],battery_low_delay_minutes:[0,1440],archive_oneoff_days:[0,3650],delete_archived_oneoff_days:[0,3650],notify_due_soon_interval_hours:[0,720],notify_overdue_interval_hours:[0,720],notify_triggered_interval_hours:[0,720],max_notifications_per_day:[0,1e3],notification_bundle_threshold:[2,20],snooze_duration_hours:[1,168],warranty_reminder_days:[1,365],budget_alert_threshold:[10,100],currency_decimals:[0,3]},St=[0,1440],Vo=[1,1e4],ai=[0,365],li=15,ci=[.1,.9],bs=[0,365],Be=[.01,1e4],Ct=[.01,1e5]});function Yc(i){let[s,e]=Wo.default_warning_days,t=i?.general?.default_warning_days,r={...At.features,...i?.features??{}};return{features:r,defaultWarningDays:typeof t=="number"&&Number.isFinite(t)&&t>=s&&t<=e?t:At.defaultWarningDays,rowActionStyle:Qc(i?.general?.row_action_style,i?.general?.row_action_style_set,r.beta_editor),access:{operatorWriteEnabled:i?.operator_write_enabled===!0,operatorIds:Array.isArray(i?.admin_panel_user_ids)?i.admin_panel_user_ids.filter(o=>typeof o=="string"):[]},budget:i?.budget??null,rowActionNoticePending:i?.general?.row_action_notice_pending===!0,refsInLists:i?.general?.ref_numbers_in_lists===!0,objectsTableColumns:Array.isArray(i?.objects_table_columns)?i.objects_table_columns:void 0,partsCostMode:Fo(i?.budget?.parts_cost_mode),mirrorTodoDefault:Array.isArray(i?.general?.mirror_todo_default_entities)?i.general.mirror_todo_default_entities.filter(o=>typeof o=="string"&&o!==""):[]}}function Qc(i,s,e){return s===!1&&e?"icons":Kc.includes(i??"")?i:At.rowActionStyle}function Go(){let i=window;return i.__msSettingsCache??={promise:null}}function te(i){let s=Go();if(s.promise)return s.promise;let e=i.connection.sendMessagePromise({type:"maintenance_supporter/settings"}).then(t=>{let r=Yc(t);return Bo(r.features.beta_editor),r}).catch(()=>(s.promise===e&&(s.promise=null),At));return s.promise=e,e}function Ko(){Go().promise=null}var Kc,At,It=x(()=>{"use strict";ne();Tt();di();oi();Kc=["buttons_compact","buttons","icons"];At={features:{adaptive:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1,places:!1,beta_editor:!1},defaultWarningDays:7,rowActionStyle:"buttons_compact",access:Ce,budget:null,rowActionNoticePending:!1,refsInLists:!1,objectsTableColumns:void 0,partsCostMode:"purchase",mirrorTodoDefault:[]}});function pi(i){if(i.archived)return"archived";if(i.is_done)return"done";let s=i.status||"ok";return s==="ok"&&i.schedule_type==="manual"&&i.days_until_due==null?"no_due":s}function ys(i,s){return n(Xc[i]??i,s)}function Rt(i){let s=pi(i);return s==="done"?Zc:s==="no_due"?Jc:Ne[s]||"var(--disabled-color, #9e9e9e)"}function ed(i){return i==="no_due"?"mdi:calendar-blank-outline":ti[i==="done"?"completed":i]||"mdi:circle-medium"}function Yo(i,s,e="pill"){let t=pi(i),r=ys(t,s);return e==="chip"?l`<span class="status-chip ${t}">${r}</span>`:l`<span class="status-badge ${t}" role="img" title="${r}" aria-label="${r}"><ha-icon icon="${ed(t)}"></ha-icon><span class="status-label">${r}</span></span>`}var Zc,Jc,Xc,ar=x(()=>{"use strict";I();P();je();Zc="var(--maint-done-color, #78909c)",Jc="var(--secondary-text-color, #727272)";Xc={done:"completed",no_due:"no_due_date"}});function O(i){return i.toFixed(1)}var ui=x(()=>{"use strict";P();Z()});function hi(i,s){let e=i?.states?.[s]?.attributes?.friendly_name;return typeof e=="string"&&e?e:s}function lr(i){return i?Array.isArray(i.entity_ids)&&i.entity_ids.length>0?[...i.entity_ids]:i.entity_id?[i.entity_id]:[]:[]}function xs(i){if(!(!i||i.type==="compound"))return lr(i)[0]}var ws=x(()=>{"use strict"});var ks,Zo,Jo,$s=x(()=>{"use strict";ks=["low","normal","high"],Zo=[...ks].reverse(),Jo=["round_robin","least_completed","random"]});var W,_i=x(()=>{"use strict";I();z();ne();W=class extends T{constructor(){super(...arguments);this.label="";this.value="";this.placeholder="";this.type="text";this.required=!1;this.disabled=!1;this.multiline=!1;this.rows=3}_onInput(e){let t=e.target.value;this.value=t,this.dispatchEvent(new CustomEvent("input",{bubbles:!0,composed:!0,detail:{value:t}}))}_onHaInput(e){e.stopPropagation(),this.value=e.target.value??"",this.dispatchEvent(new CustomEvent(e.type==="change"?"change":"input",{bubbles:!0,composed:!0,detail:{value:this.value}}))}render(){return!this.multiline&&se("ha-input")?l`
+        <ha-input class="ha-field"
+          .label=${this.label}
+          .value=${this.value??""}
+          .type=${this.type}
+          .placeholder=${this.placeholder}
+          .hint=${this.helper??""}
+          .required=${this.required}
+          .disabled=${this.disabled}
+          .min=${this.min}
+          .max=${this.max}
+          .step=${this.step}
+          .pattern=${this.pattern}
+          @input=${this._onHaInput}
+          @change=${this._onHaInput}
+        ></ha-input>`:l`
       <label class="field">
         ${this.label?l`<span class="label">${this.label}${this.required?l`<span class="req">*</span>`:p}</span>`:p}
         ${this.multiline?l`
@@ -1461,8 +1531,9 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
         />`}
         ${this.helper?l`<span class="helper">${this.helper}</span>`:p}
       </label>
-    `}};z.styles=$`
+    `}};W.styles=$`
     :host { display: block; }
+    .ha-field { display: block; width: 100%; }
     .field {
       display: flex;
       flex-direction: column;
@@ -1480,7 +1551,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color);
       border: 1px solid var(--divider-color, rgba(255,255,255,0.12));
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       font-family: inherit;
       width: 100%;
       box-sizing: border-box;
@@ -1496,7 +1567,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color);
       border: 1px solid var(--divider-color, rgba(255,255,255,0.12));
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       font-family: inherit;
       width: 100%;
       box-sizing: border-box;
@@ -1510,7 +1581,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       font-size: 12px;
       color: var(--secondary-text-color);
     }
-  `,d([b()],z.prototype,"label",2),d([b()],z.prototype,"value",2),d([b()],z.prototype,"placeholder",2),d([b()],z.prototype,"type",2),d([b({type:Boolean})],z.prototype,"required",2),d([b({type:Boolean})],z.prototype,"disabled",2),d([b()],z.prototype,"step",2),d([b()],z.prototype,"min",2),d([b()],z.prototype,"max",2),d([b()],z.prototype,"pattern",2),d([b()],z.prototype,"helper",2),d([b({type:Boolean})],z.prototype,"multiline",2),d([b({type:Number})],z.prototype,"rows",2);customElements.get("ms-textfield")||customElements.define("ms-textfield",z)});var Gr,_t,Kr=y(()=>{"use strict";Gr=["notes","cost","duration","photo","user"],_t={notes:"notes_label",cost:"cost",duration:"duration",photo:"photo_label",user:"user_label"}});function Yt(r){if(!r)return[];let s=[],e=r.photo_doc_id;typeof e=="string"&&s.push(e);let t=r.photo_doc_ids;Array.isArray(t)&&s.push(...t);let i=[];for(let o of s){if(typeof o!="string")continue;let a=o.trim();if(!(!a||i.includes(a))&&(i.push(a),i.length>=10))break}return i}var Qt=y(()=>{"use strict"});async function ec(r,s,e){let t=r.auth;if(t?.expired&&t.refreshAccessToken)try{await t.refreshAccessToken()}catch{}return fetch(s,{...e,headers:{...e.headers??{},Authorization:`Bearer ${t?.data?.access_token??""}`}})}async function ic(r,s,e,t="doc_too_large",i=[]){let o=await ec(r,s,{method:"POST",body:e});if(o.status===413)throw new Error(t);if(!o.ok){let a=await o.json().catch(()=>null);throw typeof a?.code=="string"&&i.includes(a.code)?new Error(a.code):new Error("doc_upload_failed")}return await o.json()}async function rc(r,s,e,t,i){if(e.size>tc)throw new Error("doc_too_large");let o=new FormData;o.append("entry_id",s);for(let c of t)o.append("tags",c);i&&o.append("purpose",i),o.append("file",e,e.name);let a=await ic(r,"/api/maintenance_supporter/document/upload",o);if(!a.id)throw new Error("doc_upload_failed");return{id:a.id,deduped:!!a.deduped,duplicate_in_object:a.duplicate_in_object??null}}async function _o(r,s,e){return(await rc(r,s,e,["photo"],"completion")).id}async function Yr(r,s,e){await Promise.all(e.map(t=>r.connection.sendMessagePromise({type:"maintenance_supporter/documents/discard_upload",entry_id:s,doc_id:t}).catch(()=>{})))}var tc,Zu,mo=y(()=>{"use strict";Qt();tc=100*1024*1024,Zu=500*1024*1024});var mt,Qr=y(()=>{"use strict";I();mo();mt=class{constructor(s,e){this.host=s;this.opts=e;this.photos=[];this.uploadedIds=[];this.uploading=!1;this.errorKey="";this._session=0;this._uploadEntry=new Map;this.max=e.max??10,s.addController(this)}hostConnected(){}get ids(){return this.photos.map(s=>s.id)}get remaining(){return Math.max(this.max-this.photos.length,0)}get full(){return this.remaining===0}errorText(s){return this.errorKey?n(this.errorKey,s).replace("{max}",String(this.max)):""}clearError(){this.errorKey=""}reset(s=[]){this._endSession(),this._revokeAll(),this.photos=s.map(e=>({id:e,preview:""})),this.uploadedIds=[],this._uploadEntry.clear(),this.errorKey="",this.host.requestUpdate()}async addFiles(s){if(s.length===0)return;let e=this._session,t=this.opts.hass(),i=this.opts.entryId(),o=s.slice(0,this.remaining);this.uploading=!0,this.errorKey="",this.host.requestUpdate();try{for(let a of o){let c=await _o(t,i,a);if(e!==this._session){Yr(t,i,[c]);return}this.uploadedIds=[...this.uploadedIds,c],this._uploadEntry.set(c,i),this.photos=[...this.photos,{id:c,preview:URL.createObjectURL(a)}],this.host.requestUpdate()}s.length>o.length&&(this.errorKey="photos_limit")}catch(a){if(e!==this._session)return;this.errorKey=a instanceof Error&&a.message==="doc_too_large"?"doc_too_large":"doc_upload_failed"}finally{e===this._session&&(this.uploading=!1,this.host.requestUpdate())}}remove(s){let e=this.photos.find(t=>t.id===s);e?.preview&&URL.revokeObjectURL(e.preview),this.photos=this.photos.filter(t=>t.id!==s),this.uploadedIds.includes(s)&&(this.uploadedIds=this.uploadedIds.filter(t=>t!==s),this._discard([s])),this.host.requestUpdate()}discardOrphans(){if(this._endSession(),this.uploadedIds.length===0)return;let s=this.uploadedIds;this.uploadedIds=[],this._discard(s)}markAttached(){this._endSession(),this.uploadedIds=[],this._uploadEntry.clear()}_endSession(){this._session++,this.uploading=!1}_discard(s){let e=new Map;for(let i of s){let o=this._uploadEntry.get(i)??this.opts.entryId();this._uploadEntry.delete(i),e.set(o,[...e.get(o)??[],i])}let t=this.opts.hass();for(let[i,o]of e)Yr(t,i,o)}_revokeAll(){for(let s of this.photos)s.preview&&URL.revokeObjectURL(s.preview)}}});function Be(r){let s=(r??"").trim();if(s==="")return null;let e=Number(s.replace(",","."));return!Number.isFinite(e)||e<0?null:Math.round(e)}var Hi=y(()=>{"use strict"});function sc(r){let e=q("2001-02-03",r).match(/\d+/g)||[],t=c=>e.findIndex(u=>Number(u)===c),i=t(2001),o=t(2),a=t(3);return i===0?"YMD":o>=0&&a>=0&&o<a?"MDY":"DMY"}function gt(r,s,e){if(r<1e3||r>9999||s<1||s>12||e<1||e>31)return null;let t=new Date(r,s-1,e);return t.getFullYear()!==r||t.getMonth()!==s-1||t.getDate()!==e?null:`${r}-${String(s).padStart(2,"0")}-${String(e).padStart(2,"0")}`}function go(r,s){let e=r.trim(),t;if(t=e.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))return gt(+t[1],+t[2],+t[3]);if(t=e.match(/^(\d{4})$/))return gt(+t[1],1,1);if(t=e.match(/^(\d{1,2})[./](\d{4})$/))return gt(+t[2],+t[1],1);if(t=e.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/))return gt(+t[3],+t[2],+t[1]);if(t=e.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/)){let i=+t[1],o=+t[2],a=+t[3];return sc(s)==="MDY"?gt(a,i,o):gt(a,o,i)}return null}var fo=y(()=>{"use strict";I()});function nc(r,s){if(s)switch(r){case"date":return s.split("T")[0];case"time":return s.length===5?`${s}:00`:s;case"datetime":{let[e,t="00:00:00"]=s.split("T");return`${e} ${t.length===5?`${t}:00`:t}`}}}function oc(r,s){if(typeof s!="string"||!s)return"";switch(r){case"date":return s.slice(0,10);case"time":return s.slice(0,5);case"datetime":{let[e,t="00:00:00"]=s.split(" ");return`${e}T${t.length===5?`${t}:00`:t}`}}}var F,ft=y(()=>{"use strict";O();L();I();fo();F=class extends S{constructor(){super(...arguments);this.kind="date";this.label="";this.value="";this.clearable=!1;this.disabled=!1;this.required=!1;this.lang="en";this._typing=!1;this._typed="";this._typedInvalid=!1}_startTyping(){this._typed=this.value,this._typedInvalid=!1,this._typing=!0,this.updateComplete.then(()=>this.shadowRoot?.querySelector("input.typed")?.focus())}_commitTyped(){if(!this._typed.trim()){this._typing=!1;return}let e=go(this._typed,this.lang);if(!e){this._typedInvalid=!0;return}this._typing=!1,this._typedInvalid=!1,this._emit(e)}_onTypedKey(e){e.key==="Enter"?(e.preventDefault(),this._commitTyped()):e.key==="Escape"&&(e.preventDefault(),this._typing=!1,this._typedInvalid=!1)}_selector(){switch(this.kind){case"date":return{date:{}};case"time":return{time:{no_second:!0}};case"datetime":return{datetime:{}}}}_onSelectorChange(e){e.stopPropagation(),this._emit(oc(this.kind,e.detail?.value))}_clear(){this._emit("")}_emit(e){e!==this.value&&(this.value=e,this.dispatchEvent(new CustomEvent("value-changed",{bubbles:!0,composed:!0,detail:{value:e}})))}render(){return l`
+  `,d([b()],W.prototype,"label",2),d([b()],W.prototype,"value",2),d([b()],W.prototype,"placeholder",2),d([b()],W.prototype,"type",2),d([b({type:Boolean})],W.prototype,"required",2),d([b({type:Boolean})],W.prototype,"disabled",2),d([b()],W.prototype,"step",2),d([b()],W.prototype,"min",2),d([b()],W.prototype,"max",2),d([b()],W.prototype,"pattern",2),d([b()],W.prototype,"helper",2),d([b({type:Boolean})],W.prototype,"multiline",2),d([b({type:Number})],W.prototype,"rows",2);customElements.get("ms-textfield")||customElements.define("ms-textfield",W)});var Es,Pt,Ts=x(()=>{"use strict";Es=["notes","cost","duration","photo","user"],Pt={notes:"notes_label",cost:"cost",duration:"duration",photo:"photo_label",user:"user_label"}});function mi(i){if(!i)return[];let s=[],e=i.photo_doc_id;typeof e=="string"&&s.push(e);let t=i.photo_doc_ids;Array.isArray(t)&&s.push(...t);let r=[];for(let o of s){if(typeof o!="string")continue;let a=o.trim();if(!(!a||r.includes(a))&&(r.push(a),r.length>=10))break}return r}var gi=x(()=>{"use strict"});async function td(i,s,e){let t=i.auth;if(t?.expired&&t.refreshAccessToken)try{await t.refreshAccessToken()}catch{}return fetch(s,{...e,headers:{...e.headers??{},Authorization:`Bearer ${t?.data?.access_token??""}`}})}async function rd(i,s,e,t="doc_too_large",r=[]){let o=await td(i,s,{method:"POST",body:e});if(o.status===413)throw new Error(t);if(!o.ok){let a=await o.json().catch(()=>null);throw typeof a?.code=="string"&&r.includes(a.code)?new Error(a.code):new Error("doc_upload_failed")}return await o.json()}async function sd(i,s,e,t,r){if(e.size>id)throw new Error("doc_too_large");let o=new FormData;o.append("entry_id",s);for(let c of t)o.append("tags",c);r&&o.append("purpose",r),o.append("file",e,e.name);let a=await rd(i,"/api/maintenance_supporter/document/upload",o);if(!a.id)throw new Error("doc_upload_failed");return{id:a.id,deduped:!!a.deduped,duplicate_in_object:a.duplicate_in_object??null}}async function ea(i,s,e){return(await sd(i,s,e,["photo"],"completion")).id}async function Ss(i,s,e){await Promise.all(e.map(t=>i.connection.sendMessagePromise({type:"maintenance_supporter/documents/discard_upload",entry_id:s,doc_id:t}).catch(()=>{})))}var id,E_,ta=x(()=>{"use strict";gi();id=100*1024*1024,E_=500*1024*1024});var Ot,Cs=x(()=>{"use strict";P();ta();Ot=class{constructor(s,e){this.host=s;this.opts=e;this.photos=[];this.uploadedIds=[];this.uploading=!1;this.errorKey="";this._session=0;this._uploadEntry=new Map;this.max=e.max??10,s.addController(this)}hostConnected(){}get ids(){return this.photos.map(s=>s.id)}get remaining(){return Math.max(this.max-this.photos.length,0)}get full(){return this.remaining===0}errorText(s){return this.errorKey?n(this.errorKey,s).replace("{max}",String(this.max)):""}clearError(){this.errorKey=""}reset(s=[]){this._endSession(),this._revokeAll(),this.photos=s.map(e=>({id:e,preview:""})),this.uploadedIds=[],this._uploadEntry.clear(),this.errorKey="",this.host.requestUpdate()}async addFiles(s){if(s.length===0)return;let e=this._session,t=this.opts.hass(),r=this.opts.entryId(),o=s.slice(0,this.remaining);this.uploading=!0,this.errorKey="",this.host.requestUpdate();try{for(let a of o){let c=await ea(t,r,a);if(e!==this._session){Ss(t,r,[c]);return}this.uploadedIds=[...this.uploadedIds,c],this._uploadEntry.set(c,r),this.photos=[...this.photos,{id:c,preview:URL.createObjectURL(a)}],this.host.requestUpdate()}s.length>o.length&&(this.errorKey="photos_limit")}catch(a){if(e!==this._session)return;this.errorKey=a instanceof Error&&a.message==="doc_too_large"?"doc_too_large":"doc_upload_failed"}finally{e===this._session&&(this.uploading=!1,this.host.requestUpdate())}}remove(s){let e=this.photos.find(t=>t.id===s);e?.preview&&URL.revokeObjectURL(e.preview),this.photos=this.photos.filter(t=>t.id!==s),this.uploadedIds.includes(s)&&(this.uploadedIds=this.uploadedIds.filter(t=>t!==s),this._discard([s])),this.host.requestUpdate()}discardOrphans(){if(this._endSession(),this.uploadedIds.length===0)return;let s=this.uploadedIds;this.uploadedIds=[],this._discard(s)}markAttached(){this._endSession(),this.uploadedIds=[],this._uploadEntry.clear()}_endSession(){this._session++,this.uploading=!1}_discard(s){let e=new Map;for(let r of s){let o=this._uploadEntry.get(r)??this.opts.entryId();this._uploadEntry.delete(r),e.set(o,[...e.get(o)??[],r])}let t=this.opts.hass();for(let[r,o]of e)Ss(t,r,o)}_revokeAll(){for(let s of this.photos)s.preview&&URL.revokeObjectURL(s.preview)}}});function at(i){let s=(i??"").trim();if(s==="")return null;let e=Number(s.replace(",","."));return!Number.isFinite(e)||e<0?null:Math.round(e)}var cr=x(()=>{"use strict"});function nd(i){let e=q("2001-02-03",i).match(/\d+/g)||[],t=c=>e.findIndex(u=>Number(u)===c),r=t(2001),o=t(2),a=t(3);return r===0?"YMD":o>=0&&a>=0&&o<a?"MDY":"DMY"}function Nt(i,s,e){if(i<1e3||i>9999||s<1||s>12||e<1||e>31)return null;let t=new Date(i,s-1,e);return t.getFullYear()!==i||t.getMonth()!==s-1||t.getDate()!==e?null:`${i}-${String(s).padStart(2,"0")}-${String(e).padStart(2,"0")}`}function ia(i,s){let e=i.trim(),t;if(t=e.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))return Nt(+t[1],+t[2],+t[3]);if(t=e.match(/^(\d{4})$/))return Nt(+t[1],1,1);if(t=e.match(/^(\d{1,2})[./](\d{4})$/))return Nt(+t[2],+t[1],1);if(t=e.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/))return Nt(+t[3],+t[2],+t[1]);if(t=e.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/)){let r=+t[1],o=+t[2],a=+t[3];return nd(s)==="MDY"?Nt(a,r,o):Nt(a,o,r)}return null}var ra=x(()=>{"use strict";P()});function od(i,s){if(s)switch(i){case"date":return s.split("T")[0];case"time":return s.length===5?`${s}:00`:s;case"datetime":{let[e,t="00:00:00"]=s.split("T");return`${e} ${t.length===5?`${t}:00`:t}`}}}function ad(i,s){if(typeof s!="string"||!s)return"";switch(i){case"date":return s.slice(0,10);case"time":return s.slice(0,5);case"datetime":{let[e,t="00:00:00"]=s.split(" ");return`${e}T${t.length===5?`${t}:00`:t}`}}}var V,jt=x(()=>{"use strict";I();z();P();ra();V=class extends T{constructor(){super(...arguments);this.kind="date";this.label="";this.value="";this.clearable=!1;this.disabled=!1;this.required=!1;this.lang="en";this._typing=!1;this._typed="";this._typedInvalid=!1}_startTyping(){this._typed=this.value,this._typedInvalid=!1,this._typing=!0,this.updateComplete.then(()=>this.shadowRoot?.querySelector("input.typed")?.focus())}_commitTyped(){if(!this._typed.trim()){this._typing=!1;return}let e=ia(this._typed,this.lang);if(!e){this._typedInvalid=!0;return}this._typing=!1,this._typedInvalid=!1,this._emit(e)}_onTypedKey(e){e.key==="Enter"?(e.preventDefault(),this._commitTyped()):e.key==="Escape"&&(e.preventDefault(),this._typing=!1,this._typedInvalid=!1)}_selector(){switch(this.kind){case"date":return{date:{}};case"time":return{time:{no_second:!0}};case"datetime":return{datetime:{}}}}_onSelectorChange(e){e.stopPropagation(),this._emit(ad(this.kind,e.detail?.value))}_clear(){this._emit("")}_emit(e){e!==this.value&&(this.value=e,this.dispatchEvent(new CustomEvent("value-changed",{bubbles:!0,composed:!0,detail:{value:e}})))}render(){return l`
       <div class="field">
         ${this.label?l`<span class="label">${this.label}${this.required?l`<span class="req">*</span>`:p}</span>`:p}
         <div class="row">
@@ -1523,7 +1594,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                 @blur=${this._commitTyped} />`:l`<ha-selector
                 .hass=${this.hass}
                 .selector=${this._selector()}
-                .value=${nc(this.kind,this.value)}
+                .value=${od(this.kind,this.value)}
                 .required=${this.required}
                 .disabled=${this.disabled}
                 @value-changed=${this._onSelectorChange}
@@ -1537,7 +1608,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
         </div>
         ${this._typedInvalid?l`<span class="helper invalid">${n("date_type_invalid",this.lang)}</span>`:this.helper?l`<span class="helper">${this.helper}</span>`:p}
       </div>
-    `}};F.styles=$`
+    `}};V.styles=$`
     :host { display: block; }
     .field {
       display: flex;
@@ -1596,7 +1667,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     }
     input.typed[aria-invalid="true"] { border-color: var(--error-color, #f44336); }
     input.typed:focus { outline: 2px solid var(--primary-color); outline-offset: -1px; }
-  `,d([b({attribute:!1})],F.prototype,"hass",2),d([b()],F.prototype,"kind",2),d([b()],F.prototype,"label",2),d([b()],F.prototype,"value",2),d([b()],F.prototype,"helper",2),d([b({type:Boolean})],F.prototype,"clearable",2),d([b({type:Boolean})],F.prototype,"disabled",2),d([b({type:Boolean})],F.prototype,"required",2),d([b()],F.prototype,"lang",2),d([h()],F.prototype,"_typing",2),d([h()],F.prototype,"_typed",2),d([h()],F.prototype,"_typedInvalid",2);customElements.get("ms-date-field")||customElements.define("ms-date-field",F)});var Re,Li=y(()=>{"use strict";O();L();I();Re=class extends S{constructor(){super(...arguments);this.value="";this.lang="en";this._credit=!1;this._amount=""}willUpdate(e){if(!e.has("value"))return;let t=(this.value??"").trim();if(t===this._signed())return;let i=parseFloat(t);if(t===""||Number.isNaN(i)){this._amount="",this._credit=!1;return}this._credit=i<0,this._amount=String(Math.abs(i))}_signed(){let e=this._amount.trim();return e===""?"":this._credit?`-${e}`:e}_emit(){this.value=this._signed(),this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:this.value},bubbles:!0,composed:!0}))}_setCredit(e){this._credit!==e&&(this._credit=e,this._emit())}_onInput(e){let t=e.target.value;t.startsWith("-")&&(this._credit=!0),this._amount=t.replace(/^-+/,""),this._emit()}render(){let e=this.lang;return l`
+  `,d([b({attribute:!1})],V.prototype,"hass",2),d([b()],V.prototype,"kind",2),d([b()],V.prototype,"label",2),d([b()],V.prototype,"value",2),d([b()],V.prototype,"helper",2),d([b({type:Boolean})],V.prototype,"clearable",2),d([b({type:Boolean})],V.prototype,"disabled",2),d([b({type:Boolean})],V.prototype,"required",2),d([b()],V.prototype,"lang",2),d([h()],V.prototype,"_typing",2),d([h()],V.prototype,"_typed",2),d([h()],V.prototype,"_typedInvalid",2);customElements.get("ms-date-field")||customElements.define("ms-date-field",V)});var We,dr=x(()=>{"use strict";I();z();P();We=class extends T{constructor(){super(...arguments);this.value="";this.lang="en";this._credit=!1;this._amount=""}willUpdate(e){if(!e.has("value"))return;let t=(this.value??"").trim();if(t===this._signed())return;let r=parseFloat(t);if(t===""||Number.isNaN(r)){this._amount="",this._credit=!1;return}this._credit=r<0,this._amount=String(Math.abs(r))}_signed(){let e=this._amount.trim();return e===""?"":this._credit?`-${e}`:e}_emit(){this.value=this._signed(),this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:this.value},bubbles:!0,composed:!0}))}_setCredit(e){this._credit!==e&&(this._credit=e,this._emit())}_onInput(e){let t=e.target.value;t.startsWith("-")&&(this._credit=!0),this._amount=t.replace(/^-+/,""),this._emit()}render(){let e=this.lang;return l`
       <div class="wrap">
         <div class="sign" role="group">
           <button type="button" class="kind cost ${this._credit?"":"on"}" aria-pressed=${String(!this._credit)}
@@ -1608,14 +1679,14 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           .value=${this._amount} @input=${this._onInput} />
       </div>
       ${this._credit?l`<div class="hint">${n("cost_credit_hint",e)}</div>`:p}
-    `}};Re.styles=[Se,$`
+    `}};We.styles=[ze,$`
       :host { display: block; }
       .wrap { display: flex; gap: 8px; align-items: stretch; }
       .sign {
         display: inline-flex;
         flex: none;
         border: 1px solid var(--divider-color);
-        border-radius: 6px;
+        border-radius: var(--ms-radius-6, 6px);
         overflow: hidden;
       }
       .kind {
@@ -1631,19 +1702,39 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       .kind.credit.on { background: var(--success-color, #4caf50); }
       .amount { flex: 1; min-width: 0; }
       .hint { margin-top: 4px; font-size: 12px; color: var(--secondary-text-color); }
-    `],d([b()],Re.prototype,"value",2),d([b()],Re.prototype,"lang",2),d([h()],Re.prototype,"_credit",2),d([h()],Re.prototype,"_amount",2);customElements.get("ms-cost-input")||customElements.define("ms-cost-input",Re)});function Di(){if(window.externalApp!==void 0)return!0;let s=typeof navigator<"u"&&navigator.userAgent||"";return/Home Assistant\//.test(s)&&/Android/.test(s)}var Zr=y(()=>{"use strict"});function Zt(r){try{return localStorage.getItem(r)}catch{return null}}function Jt(r,s){try{localStorage.setItem(r,s)}catch{}}var Ie,Jr=y(()=>{"use strict";Ie={objectSections:"msp-object-sections",printOptions:"msp-print-options",batteryRosterOpen:"msp-bf-roster-open",docSort:"msp-doc-sort",cameraLabel:"msp-camera-label",overviewTab:"msp-overview-tab",collapsedSections:"msp-collapsed-sections",chartRange:"msp-chart-range",chartHideOutliers:"msp-chart-hide-outliers",taskSort:"maintenance_supporter_sort",objectSort:"maintenance_supporter_object_sort",groupBy:"maintenance_supporter_groupby",objectView:"maintenance_supporter_object_view",objectsCache:"msp-objects-cache",gettingStartedDismissed:"msp-gs-dismissed",batteryRosterSort:"ms_bf_roster_sort",areaSort:"msp-area-sort",objectTreeOpen:"msp-object-tree-open"}});function ko(){if(!Di())return!1;let r=typeof navigator<"u"?navigator.mediaDevices:void 0;return!!r&&typeof r.getUserMedia=="function"}function yo(r){let s=/camera2?\s*(\d+)/i.exec(r);return s?Number(s[1]):Number.MAX_SAFE_INTEGER}function xo(r,s){if(s){let t=r.find(i=>i.label===s);if(t)return t}return r.filter(t=>t.label&&$o.test(t.label)).sort((t,i)=>yo(t.label)-yo(i.label))[0]??null}var ac,lc,cc,dc,vo,$o,bo,wo,pc,J,Xr=y(()=>{"use strict";O();L();I();Zr();Jr();ac=1920,lc=.88,cc={retryMs:500,windowMs:5e3},dc=new Set(["NotReadableError","AbortError","TrackStartError"]),vo=80,$o=/back|rear|environment|rück|hinten/i,bo=/front|user|selfie|vorne/i;wo=r=>r?.name||"Error",pc=r=>r?.message||"",J=class extends S{constructor(){super(...arguments);this.lang="en";this._open=!1;this._busy=!1;this._switching=!1;this._devices=[];this._deviceIndex=-1;this._switchFailed=!1;this._copied=!1;this.timing={...cc};this._facing="environment";this._stream=null;this._opening=!1;this._gen=0;this._refused=new Set;this._log=[];this._t0=0;this._lastError=""}async open(){if(this._open||this._opening)return;this._opening=!0;let e=++this._gen;try{await this._acquireAndShow(e)}finally{this._opening=!1}}_live(e){return e===this._gen&&this.isConnected}async _acquireAndShow(e){let t=typeof navigator<"u"?navigator.mediaDevices:void 0;if(!t||typeof t.getUserMedia!="function"){this._unavailable("no_media_devices");return}this._log=[],this._t0=Date.now(),this._lastError="",this._refused.clear(),this._switchFailed=!1,this._copied=!1,this._note(navigator.userAgent);let i=Zt(Ie.cameraLabel),o=await this._enumerate(t);if(!this._live(e))return;let a=xo(o,i),c="refused";if(a&&(c=await this._openPatiently(t,e,this._byDevice(a))),c==="cancelled")return;if(c!=="ok"){if(c=await this._openPatiently(t,e,{video:{facingMode:{ideal:"environment"}},what:"facing environment"}),c==="cancelled")return;if(c!=="ok"){this._unavailable(this._lastError||"camera_unavailable");return}if(o=await this._enumerate(t),!this._live(e)){this._stopStream();return}}if(this._devices=o,this._deviceIndex=this._indexOfCurrent(),this._facing=this._currentFacing(),this._open=!0,await this.updateComplete,!this._live(e)){this._stopStream(),this._open=!1;return}await this._attach();let u=a?null:xo(o,i),_=this._deviceIndex>=0?o[this._deviceIndex]:void 0;if(!u||u.deviceId===_?.deviceId)return;let m=await this._replace(t,e,[this._byDevice(u)],this._restoreCandidates(_));if(m!=="cancelled"){if(m==="lost"){this._unavailable("camera_lost");return}this._settle(m)}}async _openPatiently(e,t,i){let o=Date.now();for(;;){let a;try{a=await e.getUserMedia({video:i.video,audio:!1})}catch(c){let u=wo(c),_=pc(c);if(this._lastError=u,this._note(`${i.what} \u2192 ${u}${_&&_!==u?`: ${_}`:""}`),!this._live(t))return"cancelled";if(!dc.has(u))return"refused";if(Date.now()-o+this.timing.retryMs>this.timing.windowMs)return"busy";if(await new Promise(m=>setTimeout(m,this.timing.retryMs)),!this._live(t))return"cancelled";continue}if(!this._live(t)){for(let c of a.getTracks())c.stop();return"cancelled"}return this._stream=a,this._note(`${i.what} \u2192 ok (${this._describeTrack()})`),"ok"}}async _replace(e,t,i,o){this._switching=!0,this._stopStream();try{for(let a of i){let c=await this._openPatiently(e,t,a);if(c==="ok")return a;if(c==="cancelled")return c;if(c==="busy"){a.deviceId&&this._refused.add(a.deviceId);break}}for(let a of o){let c=await this._openPatiently(e,t,a);if(c==="ok")return"restored";if(c==="cancelled")return c}return"lost"}finally{this._switching=!1}}_settle(e){if(e==="restored"){this._switchFailed=!0;let i=this._indexOfCurrent();return i>=0&&(this._deviceIndex=i),this._attach(),!1}this._switchFailed=!1;let t=e.deviceId?this._devices.findIndex(i=>i.deviceId===e.deviceId):-1;return this._deviceIndex=t>=0?t:this._indexOfCurrent(),this._facing=this._currentFacing(),this._attach(),!0}_byDevice(e){return{video:{deviceId:{exact:e.deviceId}},what:e.label||"camera (no label)",deviceId:e.deviceId}}_restoreCandidates(e,t){let i=[],o=e?.deviceId||t;return o&&i.push({video:{deviceId:{exact:o}},what:`${e?.label||"previous camera"} (back again)`,deviceId:o}),i.push({video:{facingMode:{ideal:this._facing}},what:`facing ${this._facing} (back again)`}),i}async _attach(){let e=this._video;if(!(!e||!this._stream)){e.srcObject=this._stream;try{await e.play()}catch{}}}async _enumerate(e){if(typeof e.enumerateDevices!="function")return[];try{let t=(await e.enumerateDevices()).filter(i=>i.kind==="videoinput"&&!!i.deviceId);return this._note(`cameras: ${t.map(i=>i.label||"(no label)").join(" | ")||"none listed"}`),t}catch(t){return this._note(`enumerateDevices \u2192 ${wo(t)}`),[]}}_indexOfCurrent(){let e=this._stream?.getVideoTracks()[0];if(!e)return-1;let t=e.getSettings().deviceId,i=t?this._devices.findIndex(o=>o.deviceId===t):-1;return i>=0?i:e.label?this._devices.findIndex(o=>o.label===e.label):-1}_currentFacing(){let e=this._stream?.getVideoTracks()[0],t=e?.getSettings().facingMode;if(t==="user"||t==="environment")return t;let i=(this._deviceIndex>=0?this._devices[this._deviceIndex]?.label:"")||e?.label||"";return bo.test(i)?"user":$o.test(i)?"environment":this._facing}_describeTrack(){let e=this._stream?.getVideoTracks()[0];if(!e)return"no track";let t=e.getSettings(),i=t.width&&t.height?`${t.width}\xD7${t.height}`:"size ?";return[e.label||"no label",i,t.facingMode].filter(Boolean).join(", ")}_note(e){this._log.push(`+${Date.now()-this._t0} ms ${e}`),this._log.length>vo&&this._log.splice(1,this._log.length-vo)}async _switchCamera(){let e=typeof navigator<"u"?navigator.mediaDevices:void 0;if(!e||this._devices.length<2||this._busy||this._switching)return;let t=this._gen,i=this._deviceIndex,o=i>=0?this._devices[i]:void 0,a=this._stream?.getVideoTracks()[0]?.getSettings().deviceId||o?.deviceId,c=this._facing==="user"?"environment":"user",u=this._nextCameras(i,a);!u.length&&this._refused.size&&(this._refused.clear(),u=this._nextCameras(i,a)),this._note(`switch from ${o?.label||"unknown camera"}`);let _=[...u.map(m=>this._byDevice(this._devices[m])),{video:{facingMode:{exact:c}},what:`facing ${c} (exact)`},{video:{facingMode:{ideal:c}},what:`facing ${c}`}];this._busy=!0,this._switchFailed=!1,this._copied=!1;try{let m=await this._replace(e,t,_,this._restoreCandidates(o,a));if(m==="cancelled")return;if(m==="lost"){this._unavailable("camera_lost");return}if(m!=="restored"&&!m.deviceId){if(this._isCamera(a,this._facing)){this._switchFailed=!0,await this._attach();return}this._facing=c}if(this._settle(m)&&m!=="restored"&&m.deviceId){let f=this._devices[this._deviceIndex]?.label??"";f&&Jt(Ie.cameraLabel,bo.test(f)?"":f)}}finally{this._busy=!1}}_nextCameras(e,t){let i=this._devices.length,o=[];for(let a=1;a<=(e<0?i:i-1);a++){let c=(e+a)%i,u=this._devices[c].deviceId;u===t||this._refused.has(u)||o.push(c)}return o}_isCamera(e,t){let i=this._stream?.getVideoTracks()[0]?.getSettings();return e&&i?.deviceId?i.deviceId===e:!!i?.facingMode&&i.facingMode===t}close(){this._gen++,this._stopStream(),this._open=!1,this._busy=!1,this._switching=!1}disconnectedCallback(){super.disconnectedCallback(),this._gen++,this._stopStream()}get _video(){return this.shadowRoot?.querySelector("video")??null}_stopStream(){for(let t of this._stream?.getTracks()??[])t.stop();this._stream=null;let e=this._video;e&&(e.srcObject=null)}_unavailable(e){this._stopStream(),this._open=!1,this.dispatchEvent(new CustomEvent("capture-unavailable",{detail:{reason:e},bubbles:!0,composed:!0}))}async _copyLog(){let e=this._log.join(`
-`),t=!1;try{navigator.clipboard?.writeText&&(await navigator.clipboard.writeText(e),t=!0)}catch{}if(!t){let i=this.shadowRoot?.querySelector(".details textarea");if(i){i.focus(),i.select();try{t=document.execCommand("copy")}catch{t=!1}}}this._copied=t}async _shoot(){let e=this._video;if(!(!e||this._busy||this._switching)){this._busy=!0;try{let t=e.videoWidth||640,i=e.videoHeight||480,o=Math.min(1,ac/Math.max(t,i)),a=document.createElement("canvas");a.width=Math.round(t*o),a.height=Math.round(i*o);let c=a.getContext("2d");if(!c)throw new Error("no_canvas");c.drawImage(e,0,0,a.width,a.height);let u=await new Promise(f=>a.toBlob(f,"image/jpeg",lc));if(!u)throw new Error("no_blob");let _=new Date().toISOString().replace(/[-:]/g,"").slice(0,15),m=new File([u],`photo-${_}.jpg`,{type:"image/jpeg"});this.close(),this.dispatchEvent(new CustomEvent("photo-captured",{detail:{file:m},bubbles:!0,composed:!0}))}catch(t){this._unavailable(t instanceof Error?t.message:String(t))}finally{this._busy=!1}}}render(){if(!this._open)return p;let e=this.lang,t=this._busy||this._switching;return l`
-      <div class="overlay" role="dialog" aria-modal="true" aria-label=${n("doc_camera",e)}>
+    `],d([b()],We.prototype,"value",2),d([b()],We.prototype,"lang",2),d([h()],We.prototype,"_credit",2),d([h()],We.prototype,"_amount",2);customElements.get("ms-cost-input")||customElements.define("ms-cost-input",We)});function pr(){if(window.externalApp!==void 0)return!0;let s=typeof navigator<"u"&&navigator.userAgent||"";return/Home Assistant\//.test(s)&&/Android/.test(s)}var As=x(()=>{"use strict"});var G_,ur,ld,sa,Is=x(()=>{tt();({I:G_}=En),ur=i=>i.strings===void 0,ld={},sa=(i,s=ld)=>i._$AH=s});var Ae,fi,qt,vi=x(()=>{Ae={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},fi=i=>(...s)=>({_$litDirective$:i,values:s}),qt=class{constructor(s){}get _$AU(){return this._$AM._$AU}_$AT(s,e,t){this._$Ct=s,this._$AM=e,this._$Ci=t}_$AS(s,e){return this.update(s,e)}update(s,e){return this.render(...e)}}});function cd(i){this._$AN!==void 0?(hr(this),this._$AM=i,na(this)):this._$AM=i}function dd(i,s=!1,e=0){let t=this._$AH,r=this._$AN;if(r!==void 0&&r.size!==0)if(s)if(Array.isArray(t))for(let o=e;o<t.length;o++)bi(t[o],!1),hr(t[o]);else t!=null&&(bi(t,!1),hr(t));else bi(this,i)}var bi,hr,na,pd,_r,oa=x(()=>{Is();vi();vi();bi=(i,s)=>{let e=i._$AN;if(e===void 0)return!1;for(let t of e)t._$AO?.(s,!1),bi(t,s);return!0},hr=i=>{let s,e;do{if((s=i._$AM)===void 0)break;e=s._$AN,e.delete(i),i=s}while(e?.size===0)},na=i=>{for(let s;s=i._$AM;i=s){let e=s._$AN;if(e===void 0)s._$AN=e=new Set;else if(e.has(i))break;e.add(i),pd(s)}};pd=i=>{i.type==Ae.CHILD&&(i._$AP??=dd,i._$AQ??=cd)},_r=class extends qt{constructor(){super(...arguments),this._$AN=void 0}_$AT(s,e,t){super._$AT(s,e,t),na(this),this.isConnected=s._$AU}_$AO(s,e=!0){s!==this.isConnected&&(this.isConnected=s,s?this.reconnected?.():this.disconnected?.()),e&&(bi(this,s),hr(this))}setValue(s){if(ur(this._$Ct))this._$Ct._$AI(s,this);else{let e=[...this._$Ct._$AH];e[this._$Ci]=s,this._$Ct._$AI(e,this,0)}}disconnected(){}reconnected(){}}});var Rs,Dt,aa=x(()=>{tt();oa();vi();Rs=new WeakMap,Dt=fi(class extends _r{render(i){return p}update(i,[s]){let e=s!==this.G;return e&&this.G!==void 0&&this.rt(void 0),(e||this.lt!==this.ct)&&(this.G=s,this.ht=i.options?.host,this.rt(this.ct=i.element)),p}rt(i){if(this.isConnected||(i=void 0),typeof this.G=="function"){let s=this.ht??globalThis,e=Rs.get(s);e===void 0&&(e=new WeakMap,Rs.set(s,e)),e.get(this.G)!==void 0&&this.G.call(this.ht,void 0),e.set(this.G,i),i!==void 0&&this.G.call(this.ht,i)}else this.G.value=i}get lt(){return typeof this.G=="function"?Rs.get(this.ht??globalThis)?.get(this.G):this.G?.value}disconnected(){this.lt===this.ct&&this.rt(void 0)}reconnected(){this.rt(this.ct)}})});var mr=x(()=>{aa()});function ud(i){!(i instanceof HTMLElement)||typeof i.showPopover!="function"||queueMicrotask(()=>{if(!(!i.isConnected||i.matches(":popover-open")))try{i.showPopover()}catch{}})}var gr,fr,Ps=x(()=>{"use strict";I();mr();gr=Dt(ud),fr=$`
+  :where(.top-layer[popover]) {
+    position: fixed;
+    inset: 0;
+    width: auto;
+    height: auto;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    border: 0;
+    padding: 0;
+    overflow: visible;
+    color: inherit;
+    background: none;
+  }
+`});function yi(i){try{return localStorage.getItem(i)}catch{return null}}function xi(i,s){try{localStorage.setItem(i,s)}catch{}}var Ve,Os=x(()=>{"use strict";Ve={objectSections:"msp-object-sections",printOptions:"msp-print-options",batteryRosterOpen:"msp-bf-roster-open",docSort:"msp-doc-sort",cameraLabel:"msp-camera-label",overviewTab:"msp-overview-tab",collapsedSections:"msp-collapsed-sections",chartRange:"msp-chart-range",chartHideOutliers:"msp-chart-hide-outliers",taskSort:"maintenance_supporter_sort",objectSort:"maintenance_supporter_object_sort",groupBy:"maintenance_supporter_groupby",objectView:"maintenance_supporter_object_view",objectsCache:"msp-objects-cache",gettingStartedDismissed:"msp-gs-dismissed",batteryRosterSort:"ms_bf_roster_sort",areaSort:"msp-area-sort",objectTreeOpen:"msp-object-tree-open",objectTableSort:"msp-object-table-sort",filterPane:"msp-filter-pane"}});function ue(i,s){return se("ha-expansion-panel")?l`
+      <ha-expansion-panel class=${i.cls??""} outlined .expanded=${!!i.open}
+        @expanded-changed=${e=>{e.target===e.currentTarget&&i.onToggle?.(e.detail.expanded)}}>
+        <div slot="header" class=${i.headerCls??"collapsible-header"}>${i.header}</div>
+        ${s}
+      </ha-expansion-panel>`:l`<details class=${i.cls??""} ?open=${!!i.open}
+    @toggle=${i.onToggle?e=>i.onToggle(e.target.open):p}><summary class=${i.headerCls??p}>${i.header}</summary>${s}</details>`}var vr=x(()=>{"use strict";I();ne()});function ha(){if(!pr())return!1;let i=typeof navigator<"u"?navigator.mediaDevices:void 0;return!!i&&typeof i.getUserMedia=="function"}function da(i){let s=/camera2?\s*(\d+)/i.exec(i);return s?Number(s[1]):Number.MAX_SAFE_INTEGER}function pa(i,s){if(s){let t=i.find(r=>r.label===s);if(t)return t}return i.filter(t=>t.label&&_a.test(t.label)).sort((t,r)=>da(t.label)-da(r.label))[0]??null}var hd,_d,md,gd,la,_a,ca,ua,fd,oe,Ns=x(()=>{"use strict";I();z();P();As();Ps();Os();vr();hd=1920,_d=.88,md={retryMs:500,windowMs:5e3},gd=new Set(["NotReadableError","AbortError","TrackStartError"]),la=80,_a=/back|rear|environment|rück|hinten/i,ca=/front|user|selfie|vorne/i;ua=i=>i?.name||"Error",fd=i=>i?.message||"",oe=class extends T{constructor(){super(...arguments);this.lang="en";this._open=!1;this._busy=!1;this._switching=!1;this._devices=[];this._deviceIndex=-1;this._switchFailed=!1;this._copied=!1;this.timing={...md};this._facing="environment";this._stream=null;this._opening=!1;this._gen=0;this._refused=new Set;this._log=[];this._t0=0;this._lastError=""}async open(){if(this._open||this._opening)return;this._opening=!0;let e=++this._gen;try{await this._acquireAndShow(e)}finally{this._opening=!1}}_live(e){return e===this._gen&&this.isConnected}async _acquireAndShow(e){let t=typeof navigator<"u"?navigator.mediaDevices:void 0;if(!t||typeof t.getUserMedia!="function"){this._unavailable("no_media_devices");return}this._log=[],this._t0=Date.now(),this._lastError="",this._refused.clear(),this._switchFailed=!1,this._copied=!1,this._note(navigator.userAgent);let r=yi(Ve.cameraLabel),o=await this._enumerate(t);if(!this._live(e))return;let a=pa(o,r),c="refused";if(a&&(c=await this._openPatiently(t,e,this._byDevice(a))),c==="cancelled")return;if(c!=="ok"){if(c=await this._openPatiently(t,e,{video:{facingMode:{ideal:"environment"}},what:"facing environment"}),c==="cancelled")return;if(c!=="ok"){this._unavailable(this._lastError||"camera_unavailable");return}if(o=await this._enumerate(t),!this._live(e)){this._stopStream();return}}if(this._devices=o,this._deviceIndex=this._indexOfCurrent(),this._facing=this._currentFacing(),this._open=!0,await this.updateComplete,!this._live(e)){this._stopStream(),this._open=!1;return}await this._attach();let u=a?null:pa(o,r),_=this._deviceIndex>=0?o[this._deviceIndex]:void 0;if(!u||u.deviceId===_?.deviceId)return;let m=await this._replace(t,e,[this._byDevice(u)],this._restoreCandidates(_));if(m!=="cancelled"){if(m==="lost"){this._unavailable("camera_lost");return}this._settle(m)}}async _openPatiently(e,t,r){let o=Date.now();for(;;){let a;try{a=await e.getUserMedia({video:r.video,audio:!1})}catch(c){let u=ua(c),_=fd(c);if(this._lastError=u,this._note(`${r.what} \u2192 ${u}${_&&_!==u?`: ${_}`:""}`),!this._live(t))return"cancelled";if(!gd.has(u))return"refused";if(Date.now()-o+this.timing.retryMs>this.timing.windowMs)return"busy";if(await new Promise(m=>setTimeout(m,this.timing.retryMs)),!this._live(t))return"cancelled";continue}if(!this._live(t)){for(let c of a.getTracks())c.stop();return"cancelled"}return this._stream=a,this._note(`${r.what} \u2192 ok (${this._describeTrack()})`),"ok"}}async _replace(e,t,r,o){this._switching=!0,this._stopStream();try{for(let a of r){let c=await this._openPatiently(e,t,a);if(c==="ok")return a;if(c==="cancelled")return c;if(c==="busy"){a.deviceId&&this._refused.add(a.deviceId);break}}for(let a of o){let c=await this._openPatiently(e,t,a);if(c==="ok")return"restored";if(c==="cancelled")return c}return"lost"}finally{this._switching=!1}}_settle(e){if(e==="restored"){this._switchFailed=!0;let r=this._indexOfCurrent();return r>=0&&(this._deviceIndex=r),this._attach(),!1}this._switchFailed=!1;let t=e.deviceId?this._devices.findIndex(r=>r.deviceId===e.deviceId):-1;return this._deviceIndex=t>=0?t:this._indexOfCurrent(),this._facing=this._currentFacing(),this._attach(),!0}_byDevice(e){return{video:{deviceId:{exact:e.deviceId}},what:e.label||"camera (no label)",deviceId:e.deviceId}}_restoreCandidates(e,t){let r=[],o=e?.deviceId||t;return o&&r.push({video:{deviceId:{exact:o}},what:`${e?.label||"previous camera"} (back again)`,deviceId:o}),r.push({video:{facingMode:{ideal:this._facing}},what:`facing ${this._facing} (back again)`}),r}async _attach(){let e=this._video;if(!(!e||!this._stream)){e.srcObject=this._stream;try{await e.play()}catch{}}}async _enumerate(e){if(typeof e.enumerateDevices!="function")return[];try{let t=(await e.enumerateDevices()).filter(r=>r.kind==="videoinput"&&!!r.deviceId);return this._note(`cameras: ${t.map(r=>r.label||"(no label)").join(" | ")||"none listed"}`),t}catch(t){return this._note(`enumerateDevices \u2192 ${ua(t)}`),[]}}_indexOfCurrent(){let e=this._stream?.getVideoTracks()[0];if(!e)return-1;let t=e.getSettings().deviceId,r=t?this._devices.findIndex(o=>o.deviceId===t):-1;return r>=0?r:e.label?this._devices.findIndex(o=>o.label===e.label):-1}_currentFacing(){let e=this._stream?.getVideoTracks()[0],t=e?.getSettings().facingMode;if(t==="user"||t==="environment")return t;let r=(this._deviceIndex>=0?this._devices[this._deviceIndex]?.label:"")||e?.label||"";return ca.test(r)?"user":_a.test(r)?"environment":this._facing}_describeTrack(){let e=this._stream?.getVideoTracks()[0];if(!e)return"no track";let t=e.getSettings(),r=t.width&&t.height?`${t.width}\xD7${t.height}`:"size ?";return[e.label||"no label",r,t.facingMode].filter(Boolean).join(", ")}_note(e){this._log.push(`+${Date.now()-this._t0} ms ${e}`),this._log.length>la&&this._log.splice(1,this._log.length-la)}async _switchCamera(){let e=typeof navigator<"u"?navigator.mediaDevices:void 0;if(!e||this._devices.length<2||this._busy||this._switching)return;let t=this._gen,r=this._deviceIndex,o=r>=0?this._devices[r]:void 0,a=this._stream?.getVideoTracks()[0]?.getSettings().deviceId||o?.deviceId,c=this._facing==="user"?"environment":"user",u=this._nextCameras(r,a);!u.length&&this._refused.size&&(this._refused.clear(),u=this._nextCameras(r,a)),this._note(`switch from ${o?.label||"unknown camera"}`);let _=[...u.map(m=>this._byDevice(this._devices[m])),{video:{facingMode:{exact:c}},what:`facing ${c} (exact)`},{video:{facingMode:{ideal:c}},what:`facing ${c}`}];this._busy=!0,this._switchFailed=!1,this._copied=!1;try{let m=await this._replace(e,t,_,this._restoreCandidates(o,a));if(m==="cancelled")return;if(m==="lost"){this._unavailable("camera_lost");return}if(m!=="restored"&&!m.deviceId){if(this._isCamera(a,this._facing)){this._switchFailed=!0,await this._attach();return}this._facing=c}if(this._settle(m)&&m!=="restored"&&m.deviceId){let f=this._devices[this._deviceIndex]?.label??"";f&&xi(Ve.cameraLabel,ca.test(f)?"":f)}}finally{this._busy=!1}}_nextCameras(e,t){let r=this._devices.length,o=[];for(let a=1;a<=(e<0?r:r-1);a++){let c=(e+a)%r,u=this._devices[c].deviceId;u===t||this._refused.has(u)||o.push(c)}return o}_isCamera(e,t){let r=this._stream?.getVideoTracks()[0]?.getSettings();return e&&r?.deviceId?r.deviceId===e:!!r?.facingMode&&r.facingMode===t}close(){this._gen++,this._stopStream(),this._open=!1,this._busy=!1,this._switching=!1}disconnectedCallback(){super.disconnectedCallback(),this._gen++,this._stopStream()}get _video(){return this.shadowRoot?.querySelector("video")??null}_stopStream(){for(let t of this._stream?.getTracks()??[])t.stop();this._stream=null;let e=this._video;e&&(e.srcObject=null)}_unavailable(e){this._stopStream(),this._open=!1,this.dispatchEvent(new CustomEvent("capture-unavailable",{detail:{reason:e},bubbles:!0,composed:!0}))}async _copyLog(){let e=this._log.join(`
+`),t=!1;try{navigator.clipboard?.writeText&&(await navigator.clipboard.writeText(e),t=!0)}catch{}if(!t){let r=this.shadowRoot?.querySelector(".details textarea");if(r){r.focus(),r.select();try{t=document.execCommand("copy")}catch{t=!1}}}this._copied=t}async _shoot(){let e=this._video;if(!(!e||this._busy||this._switching)){this._busy=!0;try{let t=e.videoWidth||640,r=e.videoHeight||480,o=Math.min(1,hd/Math.max(t,r)),a=document.createElement("canvas");a.width=Math.round(t*o),a.height=Math.round(r*o);let c=a.getContext("2d");if(!c)throw new Error("no_canvas");c.drawImage(e,0,0,a.width,a.height);let u=await new Promise(f=>a.toBlob(f,"image/jpeg",_d));if(!u)throw new Error("no_blob");let _=new Date().toISOString().replace(/[-:]/g,"").slice(0,15),m=new File([u],`photo-${_}.jpg`,{type:"image/jpeg"});this.close(),this.dispatchEvent(new CustomEvent("photo-captured",{detail:{file:m},bubbles:!0,composed:!0}))}catch(t){this._unavailable(t instanceof Error?t.message:String(t))}finally{this._busy=!1}}}render(){if(!this._open)return p;let e=this.lang,t=this._busy||this._switching;return l`
+      <div class="overlay top-layer" popover="manual" ${gr} role="dialog" aria-modal="true" aria-label=${n("doc_camera",e)}>
         <video autoplay playsinline muted></video>
         ${this._switching?l`<div class="switching" role="status">${n("camera_switching",e)}</div>`:p}
         ${this._switchFailed?l`<div class="switch-note" role="status">
               <div>${n("camera_not_answered",e)}</div>
-              <details class="details">
-                <summary>${n("camera_diagnostics",e)}</summary>
+              ${ue({cls:"details",header:n("camera_diagnostics",e)},l`
                 <textarea readonly rows="6" .value=${this._log.join(`
 `)}></textarea>
                 <button type="button" class="copy" @click=${this._copyLog}>${n(this._copied?"camera_copied":"camera_copy",e)}</button>
-              </details>
+              `)}
             </div>`:p}
         <div class="bar">
           <button type="button" class="cancel" @click=${this.close}>${n("cancel",e)}</button>
@@ -1656,7 +1747,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           </button>
         </div>
       </div>
-    `}};J.styles=$`
+    `}};oe.styles=[fr,$`
     :host { display: contents; }
     .overlay {
       position: fixed; inset: 0; z-index: 10000;
@@ -1691,13 +1782,13 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     .details textarea {
       display: block; box-sizing: border-box; width: 100%; margin: 6px 0;
       font: 11px/1.35 monospace; color: #fff; background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 6px; padding: 6px; resize: vertical;
+      border: 1px solid rgba(255, 255, 255, 0.3); border-radius: var(--ms-radius-6, 6px); padding: 6px; resize: vertical;
     }
     .copy { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, 0.6); padding: 6px 14px; font-size: 13px; }
     .shoot { background: var(--primary-color, #03a9f4); color: #fff; border: none; font-weight: 600; }
     .shoot[disabled] { opacity: 0.6; cursor: default; }
     .shoot ha-icon { --mdc-icon-size: 22px; }
-  `,d([b({type:String})],J.prototype,"lang",2),d([h()],J.prototype,"_open",2),d([h()],J.prototype,"_busy",2),d([h()],J.prototype,"_switching",2),d([h()],J.prototype,"_devices",2),d([h()],J.prototype,"_deviceIndex",2),d([h()],J.prototype,"_switchFailed",2),d([h()],J.prototype,"_copied",2);customElements.get("ms-camera-capture")||customElements.define("ms-camera-capture",J)});var zi,X,Xt=y(()=>{"use strict";O();L();I();Zr();Xr();Xr();zi=$`
+  `],d([b({type:String})],oe.prototype,"lang",2),d([h()],oe.prototype,"_open",2),d([h()],oe.prototype,"_busy",2),d([h()],oe.prototype,"_switching",2),d([h()],oe.prototype,"_devices",2),d([h()],oe.prototype,"_deviceIndex",2),d([h()],oe.prototype,"_switchFailed",2),d([h()],oe.prototype,"_copied",2);customElements.get("ms-camera-capture")||customElements.define("ms-camera-capture",oe)});var br,ae,wi=x(()=>{"use strict";I();z();P();As();Ns();Ns();br=$`
   ms-photo-picker { display: contents; }
   .photo-pickers {
     display: flex;
@@ -1726,13 +1817,13 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     color: var(--secondary-text-color);
     margin-top: 4px;
   }
-`,X=class extends S{constructor(){super(...arguments);this.lang="en";this.disabled=!1;this.busy=!1;this.accept="image/*";this.showCamera=!0;this.showGallery=!0;this.compact=!1;this.remaining=1/0;this._singlePick=Di();this._inAppCamera=ko()}createRenderRoot(){return this}get _locked(){return this.disabled||this.busy}_emit(e){e.length!==0&&this.dispatchEvent(new CustomEvent("files-picked",{detail:{files:e},bubbles:!0,composed:!0}))}_onInput(e){let t=e.target,i=Array.from(t.files??[]);t.value="",this._emit(i)}_onCameraClick(e){!this._inAppCamera||this._locked||(e.preventDefault(),this.querySelector("ms-camera-capture")?.open())}_onCameraUnavailable(){this._inAppCamera=!1,this.querySelector(".photo-pick-camera input")?.click()}_onKeydown(e){e.key!=="Enter"&&e.key!==" "||(e.preventDefault(),!this._locked&&e.currentTarget.click())}render(){if(this.remaining<=0||!this.showCamera&&!this.showGallery)return p;let e=this.lang,t=this._locked?"disabled":"",i=this.busy?n("uploading",e):n("doc_camera",e),o=n(this._singlePick?"choose_photo":"choose_photos",e);return l`
+`,ae=class extends T{constructor(){super(...arguments);this.lang="en";this.disabled=!1;this.busy=!1;this.accept="image/*";this.showCamera=!0;this.showGallery=!0;this.compact=!1;this.remaining=1/0;this._singlePick=pr();this._inAppCamera=ha()}createRenderRoot(){return this}get _locked(){return this.disabled||this.busy}_emit(e){e.length!==0&&this.dispatchEvent(new CustomEvent("files-picked",{detail:{files:e},bubbles:!0,composed:!0}))}_onInput(e){let t=e.target,r=Array.from(t.files??[]);t.value="",this._emit(r)}_onCameraClick(e){!this._inAppCamera||this._locked||(e.preventDefault(),this.querySelector("ms-camera-capture")?.open())}_onCameraUnavailable(){this._inAppCamera=!1,this.querySelector(".photo-pick-camera input")?.click()}_onKeydown(e){e.key!=="Enter"&&e.key!==" "||(e.preventDefault(),!this._locked&&e.currentTarget.click())}render(){if(this.remaining<=0||!this.showCamera&&!this.showGallery)return p;let e=this.lang,t=this._locked?"disabled":"",r=this.busy?n("uploading",e):n("doc_camera",e),o=n(this._singlePick?"choose_photo":"choose_photos",e);return l`
       <div class="photo-pickers">
         ${this.showCamera?l`<label class="photo-pick photo-pick-camera ${t}" role="button" tabindex="0"
-              aria-label=${i} title=${this.compact?i:p}
+              aria-label=${r} title=${this.compact?r:p}
               @click=${this._onCameraClick} @keydown=${this._onKeydown}>
               <ha-icon icon="mdi:camera"></ha-icon>
-              ${this.compact?p:l`<span>${i}</span>`}
+              ${this.compact?p:l`<span>${r}</span>`}
               <input type="file" accept=${this.accept} capture="environment"
                 ?disabled=${this._locked} @change=${this._onInput} />
             </label>`:p}
@@ -1749,7 +1840,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       ${this.showCamera&&this._inAppCamera?l`<ms-camera-capture .lang=${e}
             @photo-captured=${a=>this._emit([a.detail.file])}
             @capture-unavailable=${this._onCameraUnavailable}></ms-camera-capture>`:p}
-    `}};d([b({type:String})],X.prototype,"lang",2),d([b({type:Boolean})],X.prototype,"disabled",2),d([b({type:Boolean})],X.prototype,"busy",2),d([b({type:String})],X.prototype,"accept",2),d([b({type:Boolean})],X.prototype,"showCamera",2),d([b({type:Boolean})],X.prototype,"showGallery",2),d([b({type:Boolean})],X.prototype,"compact",2),d([b({type:Number})],X.prototype,"remaining",2),d([h()],X.prototype,"_inAppCamera",2);customElements.get("ms-photo-picker")||customElements.define("ms-photo-picker",X)});var vt,T,es=y(()=>{"use strict";O();L();Ue();I();oe();W();Wt();Ri();zt();Kr();Qr();Hi();ft();Li();Xt();Xt();vt=Ce,T=class extends S{constructor(){super(...arguments);this.entryId="";this.taskId="";this.taskName="";this.lang="en";this.checklist=[];this.adaptiveEnabled=!1;this.taskType="";this.readingUnit="";this.readings=[];this.readingHistory=[];this.restockDefault=null;this.restockUnitCost=null;this.restockPackage="";this.currencySymbol="";this.partsCostMode="purchase";this.parts=[];this.consumesParts=[];this.consumesInfo=[];this.requiredFields=[];this.phaseLabel="";this.requireTagScan=!1;this.viaTagScan=!1;this._open=!1;this._notes="";this._cost="";this._duration="";this._loading=!1;this._error="";this._checklistState={};this._feedback="needed";this._photos=new mt(this,{entryId:()=>this.entryId,hass:()=>this.hass});this._readingValue="";this._readingValues={};this._restockQty="";this._completedAt="";this._usedParts={};this._usedQtyText={};this.checklistPrefill={};this.prefill=null}open(e={}){if(this._open)return;this._open=!0,this.viaTagScan=!!e.viaTagScan;let t=this.prefill;this._notes=t?.notes??"",this._cost=t?.cost!=null?String(t.cost):"",this._duration=t?.duration!=null?String(t.duration):"",this._error="",this._checklistState=Object.fromEntries(this.checklist.map((i,o)=>[String(o),!!this.checklistPrefill[i]]).filter(([,i])=>i)),this._feedback=t?.feedback??"needed",this._photos.reset(),this._readingValue="",this._readingValues={},this._restockQty=this.restockDefault!==null?String(this.restockDefault):"",this._completedAt="",this._usedParts=Object.fromEntries(this.consumesParts.map(i=>[ae(i),{...i}])),this._usedQtyText={}}_rangeError(e,t){let i=this.lang;return n("settings_value_out_of_range",i).replace("{min}",P(e,i,{maximumFractionDigits:2})).replace("{max}",P(t,i,{maximumFractionDigits:2}))}_toggleCheck(e){let t=String(e);this._checklistState={...this._checklistState,[t]:!this._checklistState[t]}}_setFeedback(e){this._feedback=e}async _complete(){if(this._loading||this._photos.uploading)return;this._error="",this._photos.clearError();let e={type:"maintenance_supporter/task/complete",entry_id:this.entryId,task_id:this.taskId},t=this._notes.trim();if(t&&(e.notes=t),this._cost){let c=parseFloat(this._cost);isNaN(c)||(e.cost=c)}let i=Be(this._duration);if(i!==null&&(e.duration=i),this.checklist.length>0&&(e.checklist_state=this._checklistState),this.adaptiveEnabled&&(e.feedback=this._feedback),this._photos.photos.length>0&&(e.photo_doc_ids=this._photos.ids),this.viaTagScan&&(e.via_tag_scan=!0),this._completedAt){if(U(this._completedAt)>Date.now()){this._error=n("completed_at_future_error",this.lang);return}e.completed_at=this._completedAt.length===16?`${this._completedAt}:00`:this._completedAt}if(this.readings.length>0){let c={};for(let u of this.readings){let _=(this._readingValues[u.id]??"").trim();if(_==="")continue;let m=parseFloat(_.replace(",","."));isNaN(m)||(c[u.id]=m)}Object.keys(c).length>0&&(e.reading_values=c)}else if(this._readingValue!==""){let c=parseFloat(this._readingValue);isNaN(c)||(e.reading_value=c)}if(this.restockDefault!==null&&this._restockQty.trim()!==""){let c=parseFloat(this._restockQty.replace(",","."));if(!Number.isFinite(c)||c<dt[0]||c>dt[1]){this._error=this._rangeError(...dt);return}e.restock_quantity=c}if(this.parts.length>0){let c=[];for(let[u,_]of Object.entries(this._usedParts)){let m=this._usedQtyText[u],f=m===void 0?_.quantity:parseFloat(m.replace(",","."));if(!Number.isFinite(f)||f<vt[0]||f>vt[1]){this._error=this._rangeError(...vt);return}c.push({..._,quantity:f})}e.used_parts=c.map(u=>u.entry_id?{part_id:u.part_id,quantity:u.quantity,entry_id:u.entry_id}:{part_id:u.part_id,quantity:u.quantity})}let o=await H(this,e,{busy:c=>{this._loading=c},lang:this.lang,fallbackKey:"save_error",onError:c=>{this._error=c}});if(o===void 0)return;this._photos.markAttached(),this._open=!1;let a={entryId:this.entryId,taskId:this.taskId,taskName:this.taskName,undo:o?.undo===!0};this.dispatchEvent(new CustomEvent("task-completed",{detail:a}))}_renderReadingField(e,t){let i=this._completedAt?U(this._completedAt):NaN,o=Kn(this.readingHistory,e.id,isNaN(i)?void 0:i),a=e.unit||this.readingUnit,c=(this._readingValues[e.id]??"").trim(),u=c===""?NaN:parseFloat(c.replace(",",".")),_=o!==void 0&&!isNaN(u)&&u<o.value,m=o!==void 0?P(o.value,t,{maximumFractionDigits:3}):"";return l`
+    `}};d([b({type:String})],ae.prototype,"lang",2),d([b({type:Boolean})],ae.prototype,"disabled",2),d([b({type:Boolean})],ae.prototype,"busy",2),d([b({type:String})],ae.prototype,"accept",2),d([b({type:Boolean})],ae.prototype,"showCamera",2),d([b({type:Boolean})],ae.prototype,"showGallery",2),d([b({type:Boolean})],ae.prototype,"compact",2),d([b({type:Number})],ae.prototype,"remaining",2),d([h()],ae.prototype,"_inAppCamera",2);customElements.get("ms-photo-picker")||customElements.define("ms-photo-picker",ae)});function U(i,s){return se("ha-alert")?l`<ha-alert alert-type=${i} class="notice notice-${i}">${s}</ha-alert>`:l`<div class=${i==="warning"?"error warning":"error"}>${s}</div>`}var Ge=x(()=>{"use strict";I();ne()});function j(i,s){if(se("ha-checkbox")){let t=l`<ha-checkbox .checked=${i.checked} .disabled=${!!i.disabled} @change=${i.onChange}>${s}</ha-checkbox>`;return i.cls?l`<span class=${i.cls}>${t}</span>`:t}let e=l`<input type="checkbox" class=${i.inputCls??p} .checked=${i.checked} ?disabled=${!!i.disabled} @change=${i.onChange} />`;return i.boxAfter?l`<label class=${i.cls??p}>${s}${e}</label>`:l`<label class=${i.cls??p}>${e}${s}</label>`}var ki=x(()=>{"use strict";I();ne()});var Mt,C,js=x(()=>{"use strict";I();z();ot();P();me();yt();Z();di();tr();oi();Ts();Cs();cr();jt();dr();wi();wi();ne();Ge();ki();Mt=Be,C=class extends T{constructor(){super(...arguments);this.entryId="";this.taskId="";this.taskName="";this.lang="en";this.checklist=[];this.adaptiveEnabled=!1;this.taskType="";this.readingUnit="";this.readings=[];this.readingHistory=[];this.restockDefault=null;this.restockUnitCost=null;this.restockPackage="";this.currencySymbol="";this.partsCostMode="purchase";this.parts=[];this.consumesParts=[];this.consumesInfo=[];this.requiredFields=[];this.phaseLabel="";this.requireTagScan=!1;this.viaTagScan=!1;this._open=!1;this._notes="";this._cost="";this._duration="";this._loading=!1;this._error="";this._checklistState={};this._feedback="needed";this._photos=new Ot(this,{entryId:()=>this.entryId,hass:()=>this.hass});this._readingValue="";this._readingValues={};this._restockQty="";this._completedAt="";this._usedParts={};this._usedQtyText={};this.checklistPrefill={};this.prefill=null}open(e={}){if(this._open)return;this._open=!0,this.viaTagScan=!!e.viaTagScan;let t=this.prefill;this._notes=t?.notes??"",this._cost=t?.cost!=null?String(t.cost):"",this._duration=t?.duration!=null?String(t.duration):"",this._error="",this._checklistState=Object.fromEntries(this.checklist.map((r,o)=>[String(o),!!this.checklistPrefill[r]]).filter(([,r])=>r)),this._feedback=t?.feedback??"needed",this._photos.reset(),this._readingValue="",this._readingValues={},this._restockQty=this.restockDefault!==null?String(this.restockDefault):"",this._completedAt="",this._usedParts=Object.fromEntries(this.consumesParts.map(r=>[ge(r),{...r}])),this._usedQtyText={}}_rangeError(e,t){let r=this.lang;return n("settings_value_out_of_range",r).replace("{min}",S(e,r,{maximumFractionDigits:2})).replace("{max}",S(t,r,{maximumFractionDigits:2}))}_toggleCheck(e){let t=String(e);this._checklistState={...this._checklistState,[t]:!this._checklistState[t]}}_setFeedback(e){this._feedback=e}async _complete(){if(this._loading||this._photos.uploading)return;this._error="",this._photos.clearError();let e={type:"maintenance_supporter/task/complete",entry_id:this.entryId,task_id:this.taskId},t=this._notes.trim();if(t&&(e.notes=t),this._cost){let u=parseFloat(this._cost);isNaN(u)||(e.cost=u)}let r=at(this._duration);if(r!==null&&(e.duration=r),this.checklist.length>0&&(e.checklist_state=this._checklistState),this.adaptiveEnabled&&(e.feedback=this._feedback),this._photos.photos.length>0&&(e.photo_doc_ids=this._photos.ids),this.viaTagScan&&(e.via_tag_scan=!0),this._completedAt){if(Y(this._completedAt)>Date.now()){this._error=n("completed_at_future_error",this.lang);return}e.completed_at=this._completedAt.length===16?`${this._completedAt}:00`:this._completedAt}if(this.readings.length>0){let u={};for(let _ of this.readings){let m=(this._readingValues[_.id]??"").trim();if(m==="")continue;let f=parseFloat(m.replace(",","."));isNaN(f)||(u[_.id]=f)}Object.keys(u).length>0&&(e.reading_values=u)}else if(this._readingValue!==""){let u=parseFloat(this._readingValue);isNaN(u)||(e.reading_value=u)}if(this.restockDefault!==null&&this._restockQty.trim()!==""){let u=parseFloat(this._restockQty.replace(",","."));if(!Number.isFinite(u)||u<Ct[0]||u>Ct[1]){this._error=this._rangeError(...Ct);return}e.restock_quantity=u}if(this.parts.length>0){let u=[];for(let[_,m]of Object.entries(this._usedParts)){let f=this._usedQtyText[_],v=f===void 0?m.quantity:parseFloat(f.replace(",","."));if(!Number.isFinite(v)||v<Mt[0]||v>Mt[1]){this._error=this._rangeError(...Mt);return}u.push({...m,quantity:v})}e.used_parts=u.map(_=>_.entry_id?{part_id:_.part_id,quantity:_.quantity,entry_id:_.entry_id}:{part_id:_.part_id,quantity:_.quantity})}let o=await L(this,e,{busy:u=>{this._loading=u},lang:this.lang,fallbackKey:"save_error",onError:u=>{this._error=u}});if(o===void 0)return;let a=Gi(o,this.lang);if(a){this._close(),this.dispatchEvent(new CustomEvent("hass-notification",{detail:{message:a},bubbles:!0,composed:!0}));return}this._photos.markAttached(),this._open=!1;let c={entryId:this.entryId,taskId:this.taskId,taskName:this.taskName,undo:o?.undo===!0};this.dispatchEvent(new CustomEvent("task-completed",{detail:c}))}_renderReadingField(e,t){let r=this._completedAt?Y(this._completedAt):NaN,o=No(this.readingHistory,e.id,isNaN(r)?void 0:r),a=e.unit||this.readingUnit,c=(this._readingValues[e.id]??"").trim(),u=c===""?NaN:parseFloat(c.replace(",",".")),_=o!==void 0&&!isNaN(u)&&u<o.value,m=o!==void 0?S(o.value,t,{maximumFractionDigits:3}):"";return l`
       <label class="field reading-field">
         <span class="field-label">${e.name}${a?` (${a})`:""}</span>
         <input type="text" inputmode="decimal" class="field-input"
@@ -1757,62 +1848,54 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           .value=${this._readingValues[e.id]??""}
           @input=${f=>{this._readingValues={...this._readingValues,[e.id]:f.target.value}}} />
         ${_?l`<span class="reading-warn">${n("reading_below_last",t).replace("{value}",m)}</span>`:p}
-      </label>`}get _missingRequired(){let e={notes:this._notes.trim()!=="",cost:this._cost.trim()!=="",duration:this._duration.trim()!=="",photo:this._photos.photos.length>0,user:!!this.hass?.user};return this.requiredFields.filter(t=>!e[t])}_demands(e){return this.requiredFields.includes(e)}_req(e){return this._demands(e)?l`<span class="req-mark" aria-hidden="true">*</span>`:p}_purchaseSuggestion(){if(this.restockDefault===null)return null;let e=parseFloat(this._restockQty);return this.restockUnitCost==null||!Number.isFinite(e)||e<=0?null:Pi(this.restockUnitCost*e)}_partsValues(){let e={booked:null,info:null};if(this.restockDefault!==null||!this.parts.length)return e;for(let t of Object.values(this._usedParts)){let i=this.parts.find(c=>ae({part_id:c.id,entry_id:c.entry_id})===ae(t)),o=ro(i);if(o===null)continue;let a=Ii(i,this.partsCostMode)==="use"?"booked":"info";e[a]=(e[a]??0)+o*(t.quantity||1)}for(let t of["booked","info"])e[t]!==null&&(e[t]=Pi(e[t]));return e}_renderCostSuggestion(e){let t=this._purchaseSuggestion();if(this.restockDefault!==null){let c=this.partsCostMode==="use"?l`<div class="cost-note">${n("cost_purchase_use_hint",e)}</div>`:p;if(this._cost.trim()!==""||t==null||t<=0)return c;let u=K(t,this.currencySymbol,e);return l`<button
+      </label>`}get _missingRequired(){let e={notes:this._notes.trim()!=="",cost:this._cost.trim()!=="",duration:this._duration.trim()!=="",photo:this._photos.photos.length>0,user:!!this.hass?.user};return this.requiredFields.filter(t=>!e[t])}_demands(e){return this.requiredFields.includes(e)}_req(e){return this._demands(e)?l`<span class="req-mark" aria-hidden="true">*</span>`:p}_purchaseSuggestion(){if(this.restockDefault===null)return null;let e=parseFloat(this._restockQty);return this.restockUnitCost==null||!Number.isFinite(e)||e<=0?null:rr(this.restockUnitCost*e)}_partsValues(){let e={booked:null,info:null};if(this.restockDefault!==null||!this.parts.length)return e;for(let t of Object.values(this._usedParts)){let r=this.parts.find(c=>ge({part_id:c.id,entry_id:c.entry_id})===ge(t)),o=Uo(r);if(o===null)continue;let a=ir(r,this.partsCostMode)==="use"?"booked":"info";e[a]=(e[a]??0)+o*(t.quantity||1)}for(let t of["booked","info"])e[t]!==null&&(e[t]=rr(e[t]));return e}_renderCostSuggestion(e){let t=this._purchaseSuggestion();if(this.restockDefault!==null){let c=this.partsCostMode==="use"?l`<div class="cost-note">${n("cost_purchase_use_hint",e)}</div>`:p;if(this._cost.trim()!==""||t==null||t<=0)return c;let u=X(t,this.currencySymbol,e);return l`<button
           type="button"
           class="cost-suggestion"
-          @click=${()=>this._cost=String(Pi(t))}
-        >${n("cost_from_parts",e).replace("{amount}",u)}</button>${c}`}let{booked:i,info:o}=this._partsValues(),a=(c,u)=>c!=null&&c>0?l`<div class="cost-note">${n(u,e).replace("{amount}",K(c,this.currencySymbol,e))}</div>`:p;return l`${a(i,"cost_parts_booked")}${a(o,"cost_parts_info")}`}_close(){this._open=!1,this._photos.discardOrphans()}_pickCompletedAt(){this._completedAt=`${ln()}:00`}render(){if(!this._open)return l``;let e=this.lang||j(this.hass),t=this._error||this._photos.errorText(e);return l`
-      <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${n("complete_title",e)}${this.taskName}</div>
+          @click=${()=>this._cost=String(rr(t))}
+        >${n("cost_from_parts",e).replace("{amount}",u)}</button>${c}`}let{booked:r,info:o}=this._partsValues(),a=(c,u)=>c!=null&&c>0?l`<div class="cost-note">${n(u,e).replace("{amount}",X(c,this.currencySymbol,e))}</div>`:p;return l`${a(r,"cost_parts_booked")}${a(o,"cost_parts_info")}`}_close(){this._open=!1,this._photos.discardOrphans()}_pickCompletedAt(){this._completedAt=`${Vn()}:00`}render(){if(!this._open)return l``;let e=this.lang||N(this.hass),t=this._error||this._photos.errorText(e);return l`
+      <ha-dialog open .headerTitle=${Te(`${n("complete_title",e)}${this.taskName}`)} @closed=${this._close}>
+        ${Se(`${n("complete_title",e)}${this.taskName}`)}
         ${this.phaseLabel?l`<div class="phase-line">${n("phase_current",e)}: ${this.phaseLabel}</div>`:p}
         ${this.requireTagScan&&!this.viaTagScan?l`<div class="scan-required-note">${n("require_tag_scan_hint",e)}</div>`:p}
         <div class="content">
-          ${t?l`<div class="error">${t}</div>`:p}
+          ${t?U("error",t):p}
           ${this.checklist.length>0?l`
             <div class="checklist-section">
               <label class="checklist-label">${n("checklist",e)}</label>
-              ${this.checklist.map((i,o)=>l`
-                <label class="checklist-item">
-                  <input type="checkbox" .checked=${!!this._checklistState[String(o)]}
-                    @change=${()=>this._toggleCheck(o)} />
-                  <span>${i}</span>
-                </label>
+              ${this.checklist.map((r,o)=>l`
+                ${j({cls:"checklist-item",checked:!!this._checklistState[String(o)],onChange:()=>this._toggleCheck(o)},l`<span>${r}</span>`)}
               `)}
             </div>
           `:p}
           ${this.readings.length>0?l`<div class="readings-block">
                 <span class="field-label">${n("readings_section",e)}</span>
-                ${this.readings.map(i=>this._renderReadingField(i,e))}
+                ${this.readings.map(r=>this._renderReadingField(r,e))}
               </div>`:this.taskType==="reading"?l`
               <label class="field">
                 <span class="field-label">${n("reading_value_label",e)}${this.readingUnit?` (${this.readingUnit})`:""}</span>
                 <input type="number" step="any" class="field-input"
                   .value=${this._readingValue}
-                  @input=${i=>this._readingValue=i.target.value} />
+                  @input=${r=>this._readingValue=r.target.value} />
               </label>`:p}
           ${this.parts.length?l`<div class="used-parts">
                 <span class="field-label">${n("complete_parts_used",e)}</span>
-                ${this.parts.map(i=>{let o=ae({part_id:i.id,entry_id:i.entry_id}),a=this._usedParts[o],c=a!==void 0,u=i.entry_id?{part_id:i.id,quantity:1,entry_id:i.entry_id}:{part_id:i.id,quantity:1};return l`<div class="used-part-row">
-                    <label class="used-part-check">
-                      <input type="checkbox" .checked=${c}
-                        @change=${_=>{let m={...this._usedParts};if(_.target.checked)m[o]=m[o]||u;else{delete m[o];let f={...this._usedQtyText};delete f[o],this._usedQtyText=f}this._usedParts=m}} />
-                      <span
-                        >${i.name}${i.owner_name?l`<span class="used-part-owner"> (${i.owner_name})</span>`:p}${i.stock!==null&&i.stock!==void 0?` (${tt(i.stock,i.unit,e)})`:""}</span
-                      >
-                    </label>
-                    ${c?l`<input class="used-part-qty" type="number" min=${vt[0]} max=${vt[1]} step="0.01"
+                ${this.parts.map(r=>{let o=ge({part_id:r.id,entry_id:r.entry_id}),a=this._usedParts[o],c=a!==void 0,u=r.entry_id?{part_id:r.id,quantity:1,entry_id:r.entry_id}:{part_id:r.id,quantity:1};return l`<div class="used-part-row">
+                    ${j({cls:"used-part-check",checked:c,onChange:_=>{let m={...this._usedParts};if(_.target.checked)m[o]=m[o]||u;else{delete m[o];let f={...this._usedQtyText};delete f[o],this._usedQtyText=f}this._usedParts=m}},l`<span
+                        >${r.name}${r.owner_name?l`<span class="used-part-owner"> (${r.owner_name})</span>`:p}${r.stock!==null&&r.stock!==void 0?` (${ft(r.stock,r.unit,e)})`:""}</span
+                      >`)}
+                    ${c?l`<input class="used-part-qty" type="number" min=${Mt[0]} max=${Mt[1]} step="0.01"
                           .value=${this._usedQtyText[o]??String(a.quantity)}
-                          @input=${_=>{let m=_.target.value;this._usedQtyText={...this._usedQtyText,[o]:m};let f=parseFloat(m.replace(",","."));Number.isFinite(f)&&f>=vt[0]&&(this._usedParts={...this._usedParts,[o]:{...u,quantity:f}})}} />`:p}
+                          @input=${_=>{let m=_.target.value;this._usedQtyText={...this._usedQtyText,[o]:m};let f=parseFloat(m.replace(",","."));Number.isFinite(f)&&f>=Mt[0]&&(this._usedParts={...this._usedParts,[o]:{...u,quantity:f}})}} />`:p}
                   </div>`})}
               </div>`:this.consumesInfo.length?l`<div class="consumes-hint">
-                  ${this.consumesInfo.map(i=>l`<div>${i}</div>`)}
+                  ${this.consumesInfo.map(r=>l`<div>${r}</div>`)}
                 </div>`:p}
           ${this.restockDefault!==null?l`
               <label class="field">
                 <span class="field-label">${n("restock_quantity_label",e)}${this.restockPackage?` (\xD7 ${this.restockPackage})`:""}</span>
-                <input type="number" step="0.01" min=${dt[0]} max=${dt[1]} class="field-input"
+                <input type="number" step="0.01" min=${Ct[0]} max=${Ct[1]} class="field-input"
                   .value=${this._restockQty}
-                  @input=${i=>this._restockQty=i.target.value} />
+                  @input=${r=>this._restockQty=r.target.value} />
               </label>`:p}
           <!-- Native <input>s rather than <ha-textfield>: when this dialog
                is opened from a Lovelace card via dialog-mount, ha-textfield
@@ -1827,19 +1910,19 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                  notes as plain text, so no Markdown hint here. -->
             <textarea class="field-input notes-input" rows="3"
               .value=${this._notes}
-              @input=${i=>this._notes=i.target.value}></textarea>
+              @input=${r=>this._notes=r.target.value}></textarea>
           </label>
           <div class="field">
             <span class="field-label">${this._demands("cost")?n("cost",e):n("cost_optional",e)}${this._req("cost")}</span>
             <ms-cost-input .lang=${e} .value=${this._cost}
-              @value-changed=${i=>this._cost=i.detail.value}></ms-cost-input>
+              @value-changed=${r=>this._cost=r.detail.value}></ms-cost-input>
             ${this._renderCostSuggestion(e)}
           </div>
           <label class="field">
             <span class="field-label">${this._demands("duration")?n("quick_complete_defaults_duration",e):n("duration_minutes",e)}${this._req("duration")}</span>
             <input type="number" step="1" min="0" inputmode="numeric" class="field-input"
               .value=${this._duration}
-              @input=${i=>this._duration=i.target.value} />
+              @input=${r=>this._duration=r.target.value} />
           </label>
           <div class="field">
             <span class="field-label">${n("completed_at_optional",e)}</span>
@@ -1849,8 +1932,8 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                   .hass=${this.hass}
                   .lang=${e}
                   .value=${this._completedAt}
-                  .helper=${yi(e)}
-                  @value-changed=${i=>this._completedAt=i.detail.value}
+                  .helper=${Wi(e)}
+                  @value-changed=${r=>this._completedAt=r.detail.value}
                 ></ms-date-field>`:l`<button type="button" class="backdate-pick" @click=${this._pickCompletedAt}>
                   <ha-icon icon="mdi:calendar-clock"></ha-icon>${n("completed_at_pick",e)}
                 </button>`}
@@ -1858,15 +1941,15 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           <div class="field">
             <span class="field-label">${this._demands("photo")?n("completion_photos",e):n("completion_photos_optional",e)}${this._req("photo")}</span>
             ${this._photos.photos.length>0?l`<div class="photo-strip">
-                  ${this._photos.photos.map(i=>l`
+                  ${this._photos.photos.map(r=>l`
                     <div class="photo-preview">
-                      <img src=${i.preview} alt="" />
-                      <button type="button" class="photo-remove" @click=${()=>this._photos.remove(i.id)}
+                      <img src=${r.preview} alt="" />
+                      <button type="button" class="photo-remove" @click=${()=>this._photos.remove(r.id)}
                         title="${n("remove",e)}">✕</button>
                     </div>`)}
                 </div>`:p}
             ${this._photos.full?l`<div class="photo-limit">${n("photos_limit",e).replace("{max}",String(this._photos.max))}</div>`:l`<ms-photo-picker .lang=${e} .busy=${this._photos.uploading} .remaining=${this._photos.remaining}
-                  @files-picked=${i=>this._photos.addFiles(i.detail.files)}
+                  @files-picked=${r=>this._photos.addFiles(r.detail.files)}
                 ></ms-photo-picker>`}
           </div>
           ${this.adaptiveEnabled?l`
@@ -1896,13 +1979,13 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           <ha-button
             @click=${this._complete}
             .disabled=${this._loading||this._photos.uploading||this._missingRequired.length>0}
-            title=${this._photos.uploading?n("uploading",e):this._missingRequired.length?this._missingRequired.map(i=>n("err_required",e).replace("{field}",n(_t[i]??i,e))).join(" \xB7 "):""}
+            title=${this._photos.uploading?n("uploading",e):this._missingRequired.length?this._missingRequired.map(r=>n("err_required",e).replace("{field}",n(Pt[r]??r,e))).join(" \xB7 "):""}
           >
             ${this._loading?n("completing",e):n("complete",e)}
           </ha-button>
         </div>
       </ha-dialog>
-    `}};T.styles=[Se,zi,$`
+    `}};C.styles=[ze,br,$`
     .req-mark {
       color: var(--error-color, #f44336);
       margin-left: 2px;
@@ -1936,7 +2019,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     .scan-required-note {
       margin: -4px 0 12px;
       padding: 8px 10px;
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       background: rgba(255, 152, 0, 0.12);
       color: var(--primary-text-color);
       font-size: 13px;
@@ -1979,7 +2062,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
        unlabelled foreign pool is indistinguishable from an own part. */
     .used-part-owner { color: var(--secondary-text-color); }
     .used-part-qty {
-      width: 76px; padding: 6px 8px; border-radius: 6px; font: inherit; font-size: 14px;
+      width: 76px; padding: 6px 8px; border-radius: var(--ms-radius-6, 6px); font: inherit; font-size: 14px;
       border: 1px solid var(--divider-color);
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color);
@@ -2120,7 +2203,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       color: var(--text-primary-color, #fff);
       border-color: var(--primary-color);
     }
-  `],d([b({attribute:!1})],T.prototype,"hass",2),d([b()],T.prototype,"entryId",2),d([b()],T.prototype,"taskId",2),d([b()],T.prototype,"taskName",2),d([b()],T.prototype,"lang",2),d([b({type:Array})],T.prototype,"checklist",2),d([b({type:Boolean})],T.prototype,"adaptiveEnabled",2),d([b()],T.prototype,"taskType",2),d([b()],T.prototype,"readingUnit",2),d([b({attribute:!1})],T.prototype,"readings",2),d([b({attribute:!1})],T.prototype,"readingHistory",2),d([b({attribute:!1})],T.prototype,"restockDefault",2),d([b({attribute:!1})],T.prototype,"restockUnitCost",2),d([b({attribute:!1})],T.prototype,"restockPackage",2),d([b()],T.prototype,"currencySymbol",2),d([b({attribute:!1})],T.prototype,"partsCostMode",2),d([b({attribute:!1})],T.prototype,"parts",2),d([b({attribute:!1})],T.prototype,"consumesParts",2),d([b({type:Array})],T.prototype,"consumesInfo",2),d([b({type:Array})],T.prototype,"requiredFields",2),d([b()],T.prototype,"phaseLabel",2),d([b({type:Boolean})],T.prototype,"requireTagScan",2),d([b({type:Boolean})],T.prototype,"viaTagScan",2),d([h()],T.prototype,"_open",2),d([h()],T.prototype,"_notes",2),d([h()],T.prototype,"_cost",2),d([h()],T.prototype,"_duration",2),d([h()],T.prototype,"_loading",2),d([h()],T.prototype,"_error",2),d([h()],T.prototype,"_checklistState",2),d([h()],T.prototype,"_feedback",2),d([h()],T.prototype,"_readingValue",2),d([h()],T.prototype,"_readingValues",2),d([h()],T.prototype,"_restockQty",2),d([h()],T.prototype,"_completedAt",2),d([h()],T.prototype,"_usedParts",2),d([h()],T.prototype,"_usedQtyText",2),d([b({attribute:!1})],T.prototype,"checklistPrefill",2),d([b({attribute:!1})],T.prototype,"prefill",2);customElements.get("maintenance-complete-dialog")||customElements.define("maintenance-complete-dialog",T)});async function hc(r,s,e,t){let i="",o=await H({hass:r},{type:"maintenance_supporter/task/undo",entry_id:s,task_id:e},{lang:t,onError:(a,c)=>{let u=uc[c?.code??""];i=u?n(u,t):a}});return o===void 0?{ok:!1,message:i}:{ok:!0,message:n(o?.action_ran?"undo_done_action_ran":"undo_done",t)}}function We(r,s,e,t,i){let o=(a,c)=>r.dispatchEvent(new CustomEvent("hass-notification",{detail:c?{message:a,action:c,duration:1e4}:{message:a},bubbles:!0,composed:!0}));o(n("task_completed_named",t).replace("{task}",e.taskName),{text:n("undo",t),action:()=>{hc(s,e.entryId,e.taskId,t).then(a=>{o(a.message),a.ok&&i()})}})}var uc,Fi=y(()=>{"use strict";I();oe();uc={changed_since:"undo_changed",nothing_to_undo:"undo_nothing"}});function So(r){return r.object.parent_entry_id||null}function To(r){return!r.object.archived&&!r.object.battery_fleet}function _c(r,s){let e=new Map(r.map(a=>[a.entry_id,a])),t=[],i=new Set([s]),o=e.get(s);for(;o;){let a=So(o);if(!a||i.has(a))break;let c=e.get(a);if(!c)break;i.add(a),t.unshift(c),o=c}return t}function Ao(r,s){return[..._c(r,s.entry_id),s].map(e=>e.object.name).join(" \u203A ")}function Co(r,s){let e=new Map;for(let o of r){let a=So(o);a&&(e.has(a)||e.set(a,[]),e.get(a).push(o.entry_id))}let t=new Set,i=[...e.get(s)??[]];for(;i.length;){let o=i.pop();o===s||t.has(o)||(t.add(o),i.push(...e.get(o)??[]))}return t}var Ro=y(()=>{"use strict"});var N,Io=y(()=>{"use strict";O();L();I();oe();Ro();Kt();ft();N=class extends S{constructor(){super(...arguments);this.objects=[];this.placesEnabled=!1;this._open=!1;this._loading=!1;this._error="";this._name="";this._manufacturer="";this._model="";this._serialNumber="";this._areaId="";this._installationDate="";this._warrantyExpiry="";this._documentationUrl="";this._notes="";this._haDeviceId="";this._parentEntryId="";this._place="";this._remindOnSite=!1;this._entryId=null;this._replacing=!1;this._oldDeviceId="";this._replaceDevice="keep"}get _lang(){return j(this.hass)}openCreate(e=""){this._entryId=null,this._name="",this._manufacturer="",this._model="",this._serialNumber="",this._areaId="",this._installationDate="",this._warrantyExpiry="",this._documentationUrl="",this._notes="",this._haDeviceId="",this._parentEntryId=e,this._place="",this._remindOnSite=!1,this._replacing=!1,this._error="",this._open=!0}openReplace(e,t){this._entryId=e,this._replacing=!0,this._name=t.name||"",this._oldDeviceId=t.ha_device_id||"",this._haDeviceId="",this._replaceDevice="keep",this._error="",this._open=!0}openEdit(e,t){this._entryId=e,this._name=t.name||"",this._manufacturer=t.manufacturer||"",this._model=t.model||"",this._serialNumber=t.serial_number||"",this._areaId=t.area_id||"",this._installationDate=t.installation_date||"",this._warrantyExpiry=t.warranty_expiry||"",this._documentationUrl=t.documentation_url||"",this._notes=t.notes||"",this._haDeviceId=t.ha_device_id||"",this._parentEntryId=t.parent_entry_id||"",this._place=t.place||"",this._remindOnSite=!!t.remind_on_site,this._replacing=!1,this._error="",this._open=!0}async _replace(){if(this._loading||!this._entryId)return;let e={type:"maintenance_supporter/object/replace",entry_id:this._entryId,name:this._name.trim()||null};this._oldDeviceId?(this._replaceDevice==="other"&&(e.ha_device_id=this._haDeviceId),this._replaceDevice==="none"&&(e.ha_device_id=null)):this._haDeviceId&&(e.ha_device_id=this._haDeviceId);let t=await H(this,e,{busy:i=>{this._loading=i},fallbackKey:"save_error",onError:i=>{this._error=i}});t!==void 0&&(this._open=!1,this.dispatchEvent(new CustomEvent("object-replaced",{detail:{entry_id:t?.entry_id,device_swap:t?.device_swap}})))}_deviceName(e){let i=this.hass?.devices?.[e];return i?.name_by_user||i?.name||e}_deviceSelector(e){return l`<ha-form
+  `],d([b({attribute:!1})],C.prototype,"hass",2),d([b()],C.prototype,"entryId",2),d([b()],C.prototype,"taskId",2),d([b()],C.prototype,"taskName",2),d([b()],C.prototype,"lang",2),d([b({type:Array})],C.prototype,"checklist",2),d([b({type:Boolean})],C.prototype,"adaptiveEnabled",2),d([b()],C.prototype,"taskType",2),d([b()],C.prototype,"readingUnit",2),d([b({attribute:!1})],C.prototype,"readings",2),d([b({attribute:!1})],C.prototype,"readingHistory",2),d([b({attribute:!1})],C.prototype,"restockDefault",2),d([b({attribute:!1})],C.prototype,"restockUnitCost",2),d([b({attribute:!1})],C.prototype,"restockPackage",2),d([b()],C.prototype,"currencySymbol",2),d([b({attribute:!1})],C.prototype,"partsCostMode",2),d([b({attribute:!1})],C.prototype,"parts",2),d([b({attribute:!1})],C.prototype,"consumesParts",2),d([b({type:Array})],C.prototype,"consumesInfo",2),d([b({type:Array})],C.prototype,"requiredFields",2),d([b()],C.prototype,"phaseLabel",2),d([b({type:Boolean})],C.prototype,"requireTagScan",2),d([b({type:Boolean})],C.prototype,"viaTagScan",2),d([h()],C.prototype,"_open",2),d([h()],C.prototype,"_notes",2),d([h()],C.prototype,"_cost",2),d([h()],C.prototype,"_duration",2),d([h()],C.prototype,"_loading",2),d([h()],C.prototype,"_error",2),d([h()],C.prototype,"_checklistState",2),d([h()],C.prototype,"_feedback",2),d([h()],C.prototype,"_readingValue",2),d([h()],C.prototype,"_readingValues",2),d([h()],C.prototype,"_restockQty",2),d([h()],C.prototype,"_completedAt",2),d([h()],C.prototype,"_usedParts",2),d([h()],C.prototype,"_usedQtyText",2),d([b({attribute:!1})],C.prototype,"checklistPrefill",2),d([b({attribute:!1})],C.prototype,"prefill",2);customElements.get("maintenance-complete-dialog")||customElements.define("maintenance-complete-dialog",C)});function ga(i){return i.object.parent_entry_id||null}function fa(i){return!i.object.archived&&!i.object.battery_fleet}function vd(i,s){let e=new Map(i.map(a=>[a.entry_id,a])),t=[],r=new Set([s]),o=e.get(s);for(;o;){let a=ga(o);if(!a||r.has(a))break;let c=e.get(a);if(!c)break;r.add(a),t.unshift(c),o=c}return t}function va(i,s){return[...vd(i,s.entry_id),s].map(e=>e.object.name).join(" \u203A ")}function ba(i,s){let e=new Map;for(let o of i){let a=ga(o);a&&(e.has(a)||e.set(a,[]),e.get(a).push(o.entry_id))}let t=new Set,r=[...e.get(s)??[]];for(;r.length;){let o=r.pop();o===s||t.has(o)||(t.add(o),r.push(...e.get(o)??[]))}return t}var ya=x(()=>{"use strict"});var D,xa=x(()=>{"use strict";I();z();P();me();ya();_i();jt();ne();Ge();D=class extends T{constructor(){super(...arguments);this.objects=[];this.placesEnabled=!1;this._open=!1;this._loading=!1;this._error="";this._name="";this._manufacturer="";this._model="";this._serialNumber="";this._areaId="";this._installationDate="";this._warrantyExpiry="";this._documentationUrl="";this._notes="";this._haDeviceId="";this._parentEntryId="";this._place="";this._remindOnSite=!1;this._entryId=null;this._replacing=!1;this._oldDeviceId="";this._replaceDevice="keep"}get _lang(){return N(this.hass)}openCreate(e=""){this._entryId=null,this._name="",this._manufacturer="",this._model="",this._serialNumber="",this._areaId="",this._installationDate="",this._warrantyExpiry="",this._documentationUrl="",this._notes="",this._haDeviceId="",this._parentEntryId=e,this._place="",this._remindOnSite=!1,this._replacing=!1,this._error="",this._open=!0}openReplace(e,t){this._entryId=e,this._replacing=!0,this._name=t.name||"",this._oldDeviceId=t.ha_device_id||"",this._haDeviceId="",this._replaceDevice="keep",this._error="",this._open=!0}openEdit(e,t){this._entryId=e,this._name=t.name||"",this._manufacturer=t.manufacturer||"",this._model=t.model||"",this._serialNumber=t.serial_number||"",this._areaId=t.area_id||"",this._installationDate=t.installation_date||"",this._warrantyExpiry=t.warranty_expiry||"",this._documentationUrl=t.documentation_url||"",this._notes=t.notes||"",this._haDeviceId=t.ha_device_id||"",this._parentEntryId=t.parent_entry_id||"",this._place=t.place||"",this._remindOnSite=!!t.remind_on_site,this._replacing=!1,this._error="",this._open=!0}async _replace(){if(this._loading||!this._entryId)return;let e={type:"maintenance_supporter/object/replace",entry_id:this._entryId,name:this._name.trim()||null};this._oldDeviceId?(this._replaceDevice==="other"&&(e.ha_device_id=this._haDeviceId),this._replaceDevice==="none"&&(e.ha_device_id=null)):this._haDeviceId&&(e.ha_device_id=this._haDeviceId);let t=await L(this,e,{busy:r=>{this._loading=r},fallbackKey:"save_error",onError:r=>{this._error=r}});t!==void 0&&(this._open=!1,this.dispatchEvent(new CustomEvent("object-replaced",{detail:{entry_id:t?.entry_id,device_swap:t?.device_swap}})))}_deviceName(e){let r=this.hass?.devices?.[e];return r?.name_by_user||r?.name||e}_deviceSelector(e){return l`<ha-form
       .hass=${this.hass}
       .data=${{device:this._haDeviceId||void 0}}
       .schema=${[{name:"device",selector:{device:{}}}]}
@@ -2134,11 +2217,11 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
         @change=${()=>{this._replaceDevice=o}}
       />
       <span>${a}</span>
-    </label>`,i=this._replaceDevice==="other"&&!this._haDeviceId;return l`
-      <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${n("replace_object",e)}</div>
+    </label>`,r=this._replaceDevice==="other"&&!this._haDeviceId;return l`
+      <ha-dialog open .headerTitle=${Te(n("replace_object",e))} @closed=${this._close}>
+        ${Se(n("replace_object",e))}
         <div class="content">
-          ${this._error?l`<div class="error">${this._error}</div>`:p}
+          ${this._error?U("error",this._error):p}
           <div class="hint">${n("replace_object_prompt",e)}</div>
           <ms-textfield
             label="${n("replace_name_label",e)}"
@@ -2159,7 +2242,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           <ha-button appearance="plain" @click=${this._close}>
             ${n("cancel",e)}
           </ha-button>
-          <ha-button @click=${this._replace} .disabled=${this._loading||i}>
+          <ha-button @click=${this._replace} .disabled=${this._loading||r}>
             ${this._loading?n("saving",e):n("replace_object",e)}
           </ha-button>
         </div>
@@ -2170,7 +2253,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
         .data=${{place:this._place||void 0}}
         .schema=${[{name:"place",selector:{entity:{domain:"zone"}}}]}
         .computeLabel=${()=>n("place_optional",e)}
-        @value-changed=${i=>{this._place=i.detail.value?.place||"",this._place||(this._remindOnSite=!1)}}
+        @value-changed=${r=>{this._place=r.detail.value?.place||"",this._place||(this._remindOnSite=!1)}}
       ></ha-form>
       ${t?l`<div class="place-missing">${n("place_missing",e)}</div>`:p}
       <label class="place-on-site ${this._place?"":"disabled"}">
@@ -2178,48 +2261,48 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           type="checkbox"
           .checked=${this._remindOnSite}
           ?disabled=${!this._place}
-          @change=${i=>this._remindOnSite=i.target.checked}
+          @change=${r=>this._remindOnSite=r.target.checked}
         />
         <span>${n("remind_on_site",e)}</span>
       </label>
       ${this._place?l`<div class="place-hint">${n("remind_on_site_hint",e)}</div>`:p}
-    `}async _save(){if(this._loading||!this._name.trim())return;this._error="";let e={name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null,ha_device_id:this._haDeviceId||null,parent_entry_id:this._parentEntryId||null,...this.placesEnabled?{place:this._place||null,remind_on_site:!!this._place&&this._remindOnSite}:{}},t=await H(this,this._entryId?{type:"maintenance_supporter/object/update",entry_id:this._entryId,...e}:{type:"maintenance_supporter/object/create",...e},{busy:i=>{this._loading=i},fallbackKey:"save_error",onError:i=>{this._error=i}});t!==void 0&&(this._open=!1,this.dispatchEvent(new CustomEvent("object-saved",{detail:{device_swap:t?.device_swap}})))}_parentChoices(){let e=this.objects||[],t=this._entryId?Co(e,this._entryId):new Set;return e.filter(i=>i.entry_id!==this._entryId&&!t.has(i.entry_id)&&(To(i)||i.entry_id===this._parentEntryId)).map(i=>({entryId:i.entry_id,label:Ao(e,i)})).sort((i,o)=>i.label.localeCompare(o.label))}_close(){this._open=!1}render(){if(!this._open)return l``;if(this._replacing)return this._renderReplace();let e=this._lang,t=this._entryId?n("edit_object",e):n("new_object",e);return l`
-      <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${t}</div>
+    `}async _save(){if(this._loading||!this._name.trim())return;this._error="";let e={name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null,ha_device_id:this._haDeviceId||null,parent_entry_id:this._parentEntryId||null,...this.placesEnabled?{place:this._place||null,remind_on_site:!!this._place&&this._remindOnSite}:{}},t=await L(this,this._entryId?{type:"maintenance_supporter/object/update",entry_id:this._entryId,...e}:{type:"maintenance_supporter/object/create",...e},{busy:r=>{this._loading=r},fallbackKey:"save_error",onError:r=>{this._error=r}});t!==void 0&&(this._open=!1,this.dispatchEvent(new CustomEvent("object-saved",{detail:{device_swap:t?.device_swap}})))}_parentChoices(){let e=this.objects||[],t=this._entryId?ba(e,this._entryId):new Set;return e.filter(r=>r.entry_id!==this._entryId&&!t.has(r.entry_id)&&(fa(r)||r.entry_id===this._parentEntryId)).map(r=>({entryId:r.entry_id,label:va(e,r)})).sort((r,o)=>r.label.localeCompare(o.label))}_close(){this._open=!1}render(){if(!this._open)return l``;if(this._replacing)return this._renderReplace();let e=this._lang,t=this._entryId?n("edit_object",e):n("new_object",e);return l`
+      <ha-dialog open .headerTitle=${Te(t)} @closed=${this._close}>
+        ${Se(t)}
         <div class="content">
-          ${this._error?l`<div class="error">${this._error}</div>`:p}
+          ${this._error?U("error",this._error):p}
           <ms-textfield
             label="${n("name",e)}"
             required
             .value=${this._name}
-            @input=${i=>this._name=i.target.value}
+            @input=${r=>this._name=r.target.value}
           ></ms-textfield>
           <ms-textfield
             label="${n("manufacturer_optional",e)}"
             .value=${this._manufacturer}
-            @input=${i=>this._manufacturer=i.target.value}
+            @input=${r=>this._manufacturer=r.target.value}
           ></ms-textfield>
           <ms-textfield
             label="${n("model_optional",e)}"
             .value=${this._model}
-            @input=${i=>this._model=i.target.value}
+            @input=${r=>this._model=r.target.value}
           ></ms-textfield>
           <ms-textfield
             label="${n("serial_number_optional",e)}"
             .value=${this._serialNumber}
-            @input=${i=>this._serialNumber=i.target.value}
+            @input=${r=>this._serialNumber=r.target.value}
           ></ms-textfield>
           <ms-textfield
             label="${n("documentation_url_optional",e)}"
             type="url"
             .value=${this._documentationUrl}
-            @input=${i=>this._documentationUrl=i.target.value}
+            @input=${r=>this._documentationUrl=r.target.value}
           ></ms-textfield>
           <ha-area-picker
             .hass=${this.hass}
             label="${n("area_id_optional",e)}"
             .value=${this._areaId}
-            @value-changed=${i=>this._areaId=i.detail.value||""}
+            @value-changed=${r=>this._areaId=r.detail.value||""}
           ></ha-area-picker>
           ${this.placesEnabled?this._renderPlace(e):p}
           <ms-date-field
@@ -2229,7 +2312,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             .lang=${e}
             label="${n("installation_date_optional",e)}"
             .value=${this._installationDate}
-            @value-changed=${i=>this._installationDate=i.detail.value}
+            @value-changed=${r=>this._installationDate=r.detail.value}
           ></ms-date-field>
           <ms-date-field
             kind="date"
@@ -2238,29 +2321,29 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             .lang=${e}
             label="${n("warranty_expiry_optional",e)}"
             .value=${this._warrantyExpiry}
-            @value-changed=${i=>this._warrantyExpiry=i.detail.value}
+            @value-changed=${r=>this._warrantyExpiry=r.detail.value}
           ></ms-date-field>
           <ha-form
             .hass=${this.hass}
             .data=${{device:this._haDeviceId||void 0}}
             .schema=${[{name:"device",selector:{device:{}}}]}
             .computeLabel=${()=>n("link_device_optional",e)}
-            @value-changed=${i=>this._haDeviceId=i.detail.value?.device||""}
+            @value-changed=${r=>this._haDeviceId=r.detail.value?.device||""}
           ></ha-form>
           ${this._parentChoices().length?l`<label class="textarea-field">
                 <span class="textarea-label">${n("parent_object_optional",e)}</span>
                 <select
                   class="parent-select"
                   .value=${this._parentEntryId}
-                  @change=${i=>this._parentEntryId=i.target.value}
+                  @change=${r=>this._parentEntryId=r.target.value}
                 >
                   <option value="" ?selected=${!this._parentEntryId}>
                     ${n("parent_none",e)}
                   </option>
-                  ${this._parentChoices().map(i=>l`<option
-                      value=${i.entryId}
-                      ?selected=${this._parentEntryId===i.entryId}
-                    >${i.label}</option>`)}
+                  ${this._parentChoices().map(r=>l`<option
+                      value=${r.entryId}
+                      ?selected=${this._parentEntryId===r.entryId}
+                    >${r.label}</option>`)}
                 </select>
                 <span class="md-hint">${n("parent_object_hint",e)}</span>
               </label>`:p}
@@ -2269,7 +2352,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             <textarea
               rows="3"
               .value=${this._notes}
-              @input=${i=>this._notes=i.target.value}
+              @input=${r=>this._notes=r.target.value}
             ></textarea>
             <span class="md-hint">${n("notes_markdown_hint",e)}</span>
           </label>
@@ -2286,7 +2369,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           </ha-button>
         </div>
       </ha-dialog>
-    `}};N.styles=$`
+    `}};D.styles=$`
     .place-on-site {
       display: flex;
       align-items: center;
@@ -2336,7 +2419,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       padding: 8px 10px; font-size: 14px; font-family: inherit;
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color);
-      border: 1px solid var(--divider-color); border-radius: 6px;
+      border: 1px solid var(--divider-color); border-radius: var(--ms-radius-6, 6px);
       resize: vertical;
     }
     .textarea-field textarea:focus {
@@ -2350,7 +2433,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       padding: 8px 10px; font-size: 14px; font-family: inherit;
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color);
-      border: 1px solid var(--divider-color); border-radius: 6px;
+      border: 1px solid var(--divider-color); border-radius: var(--ms-radius-6, 6px);
     }
     .error {
       color: var(--error-color, #f44336);
@@ -2376,21 +2459,390 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     .radio-row input {
       margin: 0;
     }
-  `,d([b({attribute:!1})],N.prototype,"hass",2),d([b({attribute:!1})],N.prototype,"objects",2),d([b({type:Boolean})],N.prototype,"placesEnabled",2),d([h()],N.prototype,"_open",2),d([h()],N.prototype,"_loading",2),d([h()],N.prototype,"_error",2),d([h()],N.prototype,"_name",2),d([h()],N.prototype,"_manufacturer",2),d([h()],N.prototype,"_model",2),d([h()],N.prototype,"_serialNumber",2),d([h()],N.prototype,"_areaId",2),d([h()],N.prototype,"_installationDate",2),d([h()],N.prototype,"_warrantyExpiry",2),d([h()],N.prototype,"_documentationUrl",2),d([h()],N.prototype,"_notes",2),d([h()],N.prototype,"_haDeviceId",2),d([h()],N.prototype,"_parentEntryId",2),d([h()],N.prototype,"_place",2),d([h()],N.prototype,"_remindOnSite",2),d([h()],N.prototype,"_entryId",2),d([h()],N.prototype,"_replacing",2),d([h()],N.prototype,"_oldDeviceId",2),d([h()],N.prototype,"_replaceDevice",2);customElements.get("maintenance-object-dialog")||customElements.define("maintenance-object-dialog",N)});var is,Po,Oo=y(()=>{"use strict";is=["sensor","binary_sensor","number","input_number","input_boolean","counter","switch","climate","vacuum","cover","fan","light","water_heater","humidifier","media_player","weather","air_quality","valve","lawn_mower","lock","plant","input_select","select","input_datetime","date","datetime","timer","update"],Po=["sensor"]});var mc,gc,rs,jo=y(()=>{"use strict";mc={cleaning:"mdi:broom",inspection:"mdi:magnify",replacement:"mdi:swap-horizontal",calibration:"mdi:tune",service:"mdi:wrench",reading:"mdi:counter",custom:"mdi:wrench-clock"},gc="mdi:wrench-clock",rs=r=>r&&mc[r]||gc});function No(r,s){return r?.entities?.[s]?.platform==="maintenance_supporter"}function qo(r){return Object.keys(r?.entities||{}).filter(s=>s.startsWith("todo.")&&No(r,s))}function Ui(r,s){return[...new Set(s.filter(e=>e&&!No(r,e)))].slice(0,5)}var Mo=y(()=>{"use strict"});function Do(){return{entityIds:"",type:"threshold",attribute:"",above:"",below:"",equals:"",notEquals:"",forMinutes:"0",targetValue:"",deltaMode:!1,fromState:"",toState:"",targetChanges:"",runtimeHours:"",onStates:"",daysBefore:"0",carry:{}}}function Uo(r){return{type:r.type||"threshold",attribute:r.attribute||"",above:r.trigger_above?.toString()??"",below:r.trigger_below?.toString()??"",equals:r.trigger_equals?.toString()??"",notEquals:r.trigger_not_equals?.toString()??"",forMinutes:r.trigger_for_minutes?.toString()??"0",targetValue:r.trigger_target_value?.toString()??"",deltaMode:r.trigger_delta_mode||!1,fromState:r.trigger_from_state||"",toState:r.trigger_to_state||"",targetChanges:r.trigger_target_changes?.toString()??"",runtimeHours:r.trigger_runtime_hours?.toString()??"",onStates:(r.trigger_on_states||[]).join(", "),daysBefore:r.trigger_days_before?.toString()??"0"}}function Bo(r,s){s.attribute&&(r.attribute=s.attribute);let e=parseInt(s.forMinutes,10);if(s.type==="threshold"){let t=parseFloat(s.above);isNaN(t)||(r.trigger_above=t);let i=parseFloat(s.below);isNaN(i)||(r.trigger_below=i);let o=parseFloat(s.equals);isNaN(o)||(r.trigger_equals=o);let a=parseFloat(s.notEquals);isNaN(a)||(r.trigger_not_equals=a),isNaN(e)||(r.trigger_for_minutes=e)}else if(s.type==="counter"){let t=parseFloat(s.targetValue);isNaN(t)||(r.trigger_target_value=t),r.trigger_delta_mode=s.deltaMode}else if(s.type==="state_change"){s.fromState&&(r.trigger_from_state=s.fromState),s.toState&&(r.trigger_to_state=s.toState);let t=parseInt(s.targetChanges,10);isNaN(t)||(r.trigger_target_changes=t),isNaN(e)||(r.trigger_for_minutes=e)}else if(s.type==="runtime"){let t=parseFloat(s.runtimeHours);isNaN(t)||(r.trigger_runtime_hours=t);let i=(s.onStates||"").split(",").map(o=>o.trim()).filter(Boolean);i.length>0&&(r.trigger_on_states=i)}else if(s.type==="due_date"){let t=parseInt(s.daysBefore,10);r.trigger_days_before=isNaN(t)?0:t}}function wc(r){return{entityIds:Mi(r).join(", "),...Uo(r),carry:Object.fromEntries(Object.entries(r).filter(([e])=>!xc.has(e)&&!e.startsWith("_")))}}function kc(r){let s=r.entityIds.split(",").map(t=>t.trim()).filter(Boolean);if(s.length===0)return null;let e={...r.carry||{},entity_id:s[0],entity_ids:s,type:r.type};return Bo(e,r),e}function $c(r){return Array.from({length:7},(s,e)=>Dt(e,r,"short"))}function zo(r){return Array.from({length:12},(s,e)=>Ar(e,r,"short"))}function Ec(r){let s=Array.isArray(r)?r.filter(e=>e!=null&&e!=="").join(", "):r!==null&&typeof r=="object"||r==null?"":String(r);return s.length>40?`${s.slice(0,39)}\u2026`:s}var vc,bc,Bi,Ho,Fo,Lo,yc,fe,Ve,xc,g,ss,Wo=y(()=>{"use strict";O();L();I();Mr();Ri();Ue();Oo();oe();Wt();Hi();rt();Kr();Kt();jo();Br();Vr();Mo();ft();Li();vc=["cleaning","inspection","replacement","calibration","service","reading","custom"],bc=["time_based","weekdays","nth_weekday","day_of_month","calendar","sensor_based","one_time","manual"],Bi=["weekdays","nth_weekday","day_of_month","calendar"],Ho=["time_based","one_time",...Bi],Fo=["threshold","counter","state_change","runtime","due_date"],Lo=(r,s)=>n(r==="due_date"?"trigger_type_due_date":r,s),yc=[...Fo,"compound"],fe={alpha:"0.3",min:"7",max:"365"},Ve=Ce;xc=new Set(["entity_id","entity_ids","type","attribute","trigger_above","trigger_below","trigger_equals","trigger_not_equals","trigger_for_minutes","trigger_target_value","trigger_delta_mode","trigger_from_state","trigger_to_state","trigger_target_changes","trigger_runtime_hours","trigger_on_states","trigger_days_before"]);g=class g extends S{constructor(){super(...arguments);this.checklistsEnabled=!1;this.scheduleTimeEnabled=!1;this.completionActionsEnabled=!1;this.adaptiveFeature=!1;this.seasonalFeature=!1;this.environmentalFeature=!1;this.defaultWarningDays=7;this.mirrorTodoDefault=[];this.parts=[];this._foreignOwners=[];this._open=!1;this._entityPickerFallback=!1;this._pickerProbeStrikes=0;this._loading=!1;this._error="";this._warning="";this._entryId="";this._taskId=null;this._series=[];this._seriesIndex=0;this._isFleetTask=!1;this._objectChoices=[];this._name="";this._type="custom";this._scheduleType="time_based";this._intervalDays="30";this._intervalUnit="days";this._dueDate="";this._warningDays="7";this._earliestCompletionDays="";this._intervalAnchor="completion";this._weekdays=[];this._nth="1";this._nthWeekday="5";this._domDay="1";this._domLastDay=!1;this._domBusiness=!1;this._calOffset="0";this._calMonths=[];this._hadCalMonths=!1;this._calendarEntity="";this._seasonMonths=[];this._endsMode="never";this._endsCount="";this._endsUntil="";this._schedulePreview=[];this._schedulePreviewEnded=!1;this._previewSeq=0;this._notes="";this._documentationUrl="";this._customIcon="";this._notifyIcon="";this._priority="normal";this._labels="";this._detailsOpen=!1;this._mirrorTodoEntities=[];this._mirrorTodoMode="default";this._completeWhenEntity="";this._completeWhenState="";this._completeWhenAnyTime=!1;this._completeWhenFor="";this._enabled=!0;this._triggerEntityId="";this._triggerEntityIds=[];this._triggerEntityLogic="any";this._triggerAttribute="";this._triggerType="threshold";this._triggerAbove="";this._triggerBelow="";this._triggerEquals="";this._triggerNotEquals="";this._triggerForMinutes="0";this._triggerCombinator="any";this._triggerTargetValue="";this._triggerDeltaMode=!1;this._triggerBaselineValue="";this._liveBaselineValue=null;this._autoCompleteOnRecovery=!1;this._holdUntilDone=!1;this._triggerFromState="";this._triggerToState="";this._triggerTargetChanges="";this._triggerRuntimeHours="";this._triggerDaysBefore="0";this._triggerRuntimeMaxSession="";this._triggerOnStates="";this._triggerDetailAttribute="";this._compoundLogic="AND";this._compoundConditions=[];this._suggestedAttributes=[];this._availableAttributes=[];this._entityDomain="";this._lastPerformed="";this._nfcTagId="";this._requireTagScan=!1;this._allowSkip=!0;this._notifyEnabled=!0;this._readingUnit="";this._readings=[];this._consumesParts={};this._consumesQtyText={};this._partsLoadFailed=!1;this._availableTags=[];this._responsibleUserId=null;this._loadedLastPerformed="";this._loadedResponsibleUserId=null;this._assigneePool=[];this._rotationStrategy="";this._availableUsers=[];this._checklistText="";this._phaseDefs=[];this._phaseSeq=[];this._requiredCompletion=[];this._scheduleTime="";this._scheduleTimeOn=!1;this._actionService="";this._actionTargetEntity="";this._actionTargetStored=null;this._actionTargetInitial="";this._actionSkipAuto=!1;this._actionPresent=!1;this._actionData={};this._actionDataJsonFallback="";this._actionTesting=!1;this._actionTestResult="";this._actionTestError="";this._quickOn=!1;this._qcNotes="";this._qcCost="";this._qcDuration="";this._qcFeedback="";this._environmentalEntity="";this._environmentalAttribute="";this._environmentalInitial="";this._environmentalAttributeInitial="";this._adaptiveEnabled=!1;this._adaptiveAlpha=fe.alpha;this._adaptiveMin=fe.min;this._adaptiveMax=fe.max;this._adaptiveSeasonal=!0;this._adaptivePrediction=!0;this._adaptiveInitial="";this._adaptiveWasEnabled=!1;this._userService=null;this._conditionAttrOptions={};this._conditionAttrPending=new Set;this._attrSeq=0}_adaptiveSnapshot(){return JSON.stringify([this._adaptiveEnabled,this._adaptiveAlpha,this._adaptiveMin,this._adaptiveMax,this._adaptiveSeasonal,this._adaptivePrediction])}get _lang(){return j(this.hass)}async openCreate(e,t){this._series=[],this._entryId=e,this._taskId=null,this._isFleetTask=!1,this._error="",this._warning="";let i=(t||[]).filter(o=>!o.object.archived&&!o.object.archived_at);!e&&i.length>0?(this._objectChoices=i.map(o=>({entry_id:o.entry_id,name:o.object.name})).sort((o,a)=>o.name.localeCompare(a.name)),this._entryId=this._objectChoices[0].entry_id):this._objectChoices=[],this._resetFields(),await Promise.all([this._loadUsers(),this._loadTags(),this._loadParts(),this._loadForeignPools()]),this._open=!0}async openEdit(e,t){this._series=[],await this._edit(e,t)}async openEditSeries(e){e.length!==0&&(this._series=e,await this._editSeriesItem(0))}async _editSeriesItem(e){let t=this._series[e];this._seriesIndex=e,await this._edit(t.entryId,t.task),await this.updateComplete,this.shadowRoot?.querySelector(".dialog-title")?.scrollIntoView({block:"start"})}_skipSeriesItem(){this._editSeriesItem(this._seriesIndex+1)}async _edit(e,t){this._entryId=e,this._taskId=t.id,this._error="",this._warning="",this._objectChoices=[],this._isFleetTask=t.battery_fleet_task===!0,this._name=t.name,this._type=t.type,this._scheduleType=t.schedule_type,this._intervalDays=t.interval_days!=null?String(t.interval_days):"",this._intervalUnit=t.interval_unit||"days",this._dueDate=t.due_date||"";let i=t.schedule;this._weekdays=i?.kind==="weekdays"?[...i.weekdays??[]]:[],this._nth=i?.kind==="nth_weekday"?String(i.nth??1):"1",this._nthWeekday=i?.kind==="nth_weekday"?String(i.weekday??5):"5",this._domDay=i?.kind==="day_of_month"&&(i.day??1)>=1?String(i.day??1):"1",this._domLastDay=i?.kind==="day_of_month"&&i.day===-1,this._domBusiness=i?.kind==="day_of_month"&&i.business===!0,this._calMonths=(i?.kind==="day_of_month"||i?.kind==="nth_weekday")&&Array.isArray(i.months)?[...i.months]:[],this._hadCalMonths=this._calMonths.length>0,this._calendarEntity=i?.kind==="calendar"&&i.entity_id||"",this._calOffset=i?.offset?String(i.offset):"0",this._seasonMonths=Array.isArray(i?.season_months)?[...i.season_months]:[];let o=i?.ends;o&&typeof o.count=="number"?(this._endsMode="count",this._endsCount=String(o.count),this._endsUntil=""):o&&typeof o.until=="string"?(this._endsMode="until",this._endsUntil=o.until,this._endsCount=""):(this._endsMode="never",this._endsCount="",this._endsUntil=""),this._warningDays=t.warning_days.toString(),this._earliestCompletionDays=t.earliest_completion_days!=null?String(t.earliest_completion_days):"",this._intervalAnchor=t.interval_anchor||"completion",this._notes=t.notes||"",this._documentationUrl=t.documentation_url||"",this._customIcon=t.custom_icon||"",this._notifyIcon=t.notify_icon||"",this._priority=t.priority||"normal",this._labels=(t.labels||[]).join(", "),this._mirrorTodoEntities=[...t.mirror_todo_entities||[]],this._mirrorTodoMode=this._mirrorTodoEntities.length?"own":t.mirror_todo_use_default===!1?"none":"default",this._completeWhenEntity=t.complete_when?.entity_id||"",this._completeWhenState=t.complete_when?.to_state||"",this._completeWhenAnyTime=!!t.complete_when?.any_time,this._completeWhenFor=t.complete_when?.for_minutes?String(t.complete_when.for_minutes):"",this._enabled=t.enabled!==!1,this._lastPerformed=t.last_performed||"",this._loadedLastPerformed=this._lastPerformed,this._nfcTagId=t.nfc_tag_id||"",this._requireTagScan=!!t.require_tag_scan,this._allowSkip=t.allow_skip!==!1,this._notifyEnabled=t.notify_enabled!==!1,this._readingUnit=t.reading_unit||"",this._readings=(t.readings||[]).map(_=>({..._})),this._consumesParts=Object.fromEntries((t.consumes_parts||[]).map(_=>[ae(_),{..._}])),this._consumesQtyText={},this._responsibleUserId=t.responsible_user_id||null,this._loadedResponsibleUserId=this._responsibleUserId,this._assigneePool=[...t.assignee_pool||[]],this._rotationStrategy=t.rotation_strategy||"",this._checklistText=(t.checklist||[]).join(`
-`),this._phaseDefs=Object.entries(t.phases||{}).map(([_,m])=>{let{name:f,checklist:x,consumes_parts:w,required_completion_fields:R,...k}=m,E=m.consumes_parts||[],v=E.findIndex(pe=>!pe.entry_id),A=v>=0?E[v]:void 0;return{id:_,name:m.name||_,checklistText:(m.checklist||[]).join(`
-`),partId:A?.part_id||"",partQty:A?.quantity!=null?String(A.quantity):"",reqOverride:m.required_completion_fields!==void 0,reqFields:[...m.required_completion_fields||[]],extraParts:E.filter((pe,Ye)=>Ye!==v).map(pe=>({...pe})),carry:k}}),this._phaseSeq=[...t.phase_sequence||[]],this._requiredCompletion=[...t.required_completion_fields||[]],this._scheduleTime=t.schedule_time||"",this._scheduleTimeOn=!!t.schedule_time;let a=t.on_complete_action;if(a&&a.service){this._actionService=a.service;let _=a.target?.entity_id;this._actionTargetEntity=Array.isArray(_)?_[0]||"":_||"",this._actionTargetStored=a.target&&typeof a.target=="object"?JSON.parse(JSON.stringify(a.target)):null,this._actionTargetInitial=this._actionTargetEntity,this._actionData=a.data&&typeof a.data=="object"?{...a.data}:{},this._actionDataJsonFallback="",this._actionSkipAuto=a.skip_auto===!0,this._actionPresent=!0}else this._actionService="",this._actionTargetEntity="",this._actionTargetStored=null,this._actionTargetInitial="",this._actionData={},this._actionDataJsonFallback="",this._actionSkipAuto=!1,this._actionPresent=!1;let c=t.quick_complete_defaults;this._quickOn=Y(t),this._qcNotes=c?.notes||"",this._qcCost=c?.cost!=null?String(c.cost):"",this._qcDuration=c?.duration!=null?String(c.duration):"",this._qcFeedback=c?.feedback||"";let u=t.adaptive_config||{};if(this._environmentalEntity=u.environmental_entity||"",this._environmentalAttribute=u.environmental_attribute||"",this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute,this._adaptiveEnabled=!!u.enabled,this._adaptiveAlpha=u.ewa_alpha?.toString()??fe.alpha,this._adaptiveMin=u.min_interval_days?.toString()??fe.min,this._adaptiveMax=u.max_interval_days?.toString()??fe.max,this._adaptiveSeasonal=u.seasonal_enabled!==!1,this._adaptivePrediction=u.sensor_prediction_enabled!==!1,this._adaptiveInitial=this._adaptiveSnapshot(),this._adaptiveWasEnabled=this._adaptiveEnabled,t.trigger_config){let _=t.trigger_config;this._triggerEntityId=Ur(_)||"",this._triggerEntityIds=Mi(_),this._triggerEntityLogic=_.entity_logic||"any",this._setTypeFields(Uo(_)),this._triggerCombinator=_.trigger_combinator==="all"?"all":"any",this._triggerBaselineValue=_.trigger_baseline_value?.toString()||"",this._liveBaselineValue=t.trigger_baseline_value??null,this._autoCompleteOnRecovery=_.auto_complete_on_recovery||!1,this._holdUntilDone=_.trigger_hold_until_done===!0,this._triggerRuntimeMaxSession=_.trigger_runtime_max_session_seconds?.toString()||"",this._triggerDetailAttribute=_.detail_attribute||"",_.type==="compound"?(this._compoundLogic=_.compound_logic==="OR"?"OR":"AND",this._compoundConditions=(_.conditions||[]).map(wc)):(this._compoundLogic="AND",this._compoundConditions=[])}else this._resetTriggerFields();this._triggerEntityId&&this._fetchEntityAttributes(this._triggerEntityId),this._detailsOpen=this._priority!=="normal"||!!this._labels.trim()||!!this._documentationUrl.trim()||!!this._customIcon,await Promise.all([this._loadUsers(),this._loadTags(),this._loadParts(),this._loadForeignPools()]),this._open=!0}_resetFields(){this._detailsOpen=!1,this._name="",this._type="custom",this._scheduleType="time_based",this._intervalDays="30",this._intervalUnit="days",this._dueDate="",this._warningDays=String(this.defaultWarningDays),this._earliestCompletionDays="",this._intervalAnchor="completion",this._weekdays=[],this._nth="1",this._nthWeekday="5",this._domDay="1",this._domLastDay=!1,this._domBusiness=!1,this._calOffset="0",this._calMonths=[],this._hadCalMonths=!1,this._calendarEntity="",this._seasonMonths=[],this._endsMode="never",this._endsCount="",this._endsUntil="",this._notes="",this._documentationUrl="",this._customIcon="",this._notifyIcon="",this._priority="normal",this._labels="",this._mirrorTodoEntities=[],this._mirrorTodoMode="default",this._completeWhenEntity="",this._completeWhenState="",this._completeWhenAnyTime=!1,this._completeWhenFor="",this._enabled=!0,this._lastPerformed="",this._nfcTagId="",this._requireTagScan=!1,this._allowSkip=!0,this._notifyEnabled=!0,this._readingUnit="",this._readings=[],this._consumesParts={},this._consumesQtyText={},this._responsibleUserId=null,this._assigneePool=[],this._rotationStrategy="",this._checklistText="",this._phaseDefs=[],this._phaseSeq=[],this._requiredCompletion=[],this._scheduleTime="",this._scheduleTimeOn=!1,this._environmentalEntity="",this._environmentalAttribute="",this._environmentalInitial="",this._environmentalAttributeInitial="",this._adaptiveEnabled=!1,this._adaptiveAlpha=fe.alpha,this._adaptiveMin=fe.min,this._adaptiveMax=fe.max,this._adaptiveSeasonal=!0,this._adaptivePrediction=!0,this._adaptiveInitial=this._adaptiveSnapshot(),this._adaptiveWasEnabled=!1,this._actionService="",this._actionTargetEntity="",this._actionTargetStored=null,this._actionTargetInitial="",this._actionData={},this._actionDataJsonFallback="",this._actionSkipAuto=!1,this._actionPresent=!1,this._actionTesting=!1,this._actionTestResult="",this._actionTestError="",this._quickOn=!1,this._qcNotes="",this._qcCost="",this._qcDuration="",this._qcFeedback="",this._resetTriggerFields()}_typeFields(){return{type:this._triggerType,attribute:this._triggerAttribute,above:this._triggerAbove,below:this._triggerBelow,equals:this._triggerEquals,notEquals:this._triggerNotEquals,forMinutes:this._triggerForMinutes,targetValue:this._triggerTargetValue,deltaMode:this._triggerDeltaMode,fromState:this._triggerFromState,toState:this._triggerToState,targetChanges:this._triggerTargetChanges,runtimeHours:this._triggerRuntimeHours,onStates:this._triggerOnStates,daysBefore:this._triggerDaysBefore}}_setTypeFields(e){this._triggerType=e.type,this._triggerAttribute=e.attribute,this._triggerAbove=e.above,this._triggerBelow=e.below,this._triggerEquals=e.equals,this._triggerNotEquals=e.notEquals,this._triggerForMinutes=e.forMinutes,this._triggerTargetValue=e.targetValue,this._triggerDeltaMode=e.deltaMode,this._triggerFromState=e.fromState,this._triggerToState=e.toState,this._triggerTargetChanges=e.targetChanges,this._triggerRuntimeHours=e.runtimeHours,this._triggerOnStates=e.onStates,this._triggerDaysBefore=e.daysBefore}_resetTriggerFields(){++this._attrSeq,this._triggerEntityId="",this._triggerEntityIds=[],this._triggerEntityLogic="any",this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="",this._setTypeFields(Do()),this._triggerCombinator="any",this._triggerBaselineValue="",this._liveBaselineValue=null,this._autoCompleteOnRecovery=!1,this._holdUntilDone=!1,this._triggerRuntimeMaxSession="",this._triggerDetailAttribute="",this._compoundLogic="AND",this._compoundConditions=[]}async _loadUsers(){this._userService||(this._userService=new at(this.hass));try{this._availableUsers=await this._userService.getUsers()}catch(e){console.error("Failed to load users:",e),this._availableUsers=[]}}_toggleAssignee(e){this._assigneePool=this._assigneePool.includes(e)?this._assigneePool.filter(t=>t!==e):[...this._assigneePool,e]}async _testAction(){let e=this._actionService.trim();if(!e||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(e)){this._actionTestResult="error",this._actionTestError=n("action_test_bad_format",this._lang),setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3);return}let[t,i]=e.split(".");if(!this.hass?.services?.[t]?.[i]){this._actionTestResult="error",this._actionTestError=n("action_test_unknown_service",this._lang).replace("{service}",e),setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}let o=this._actionTargetEntity.trim();if(o){let a=o.split(".")[0];if(a!==t&&!new Set(["homeassistant","scene","notify","persistent_notification"]).has(t)){this._actionTestResult="error",this._actionTestError=n("action_test_domain_mismatch",this._lang).replace("{service}",e).replace("{domain}",t).replace("{entity}",o).replace("{entity_domain}",a).replace("{suggestion}",`${a}.${i}`),setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}if(!this.hass.states?.[o]){this._actionTestResult="error",this._actionTestError=n("action_test_entity_missing",this._lang).replace("{entity}",o),setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}}this._actionTestResult="ok",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3)}_buildActionData(){if(this._actionDataJsonFallback.trim())try{let e=JSON.parse(this._actionDataJsonFallback);if(e&&typeof e=="object"&&!Array.isArray(e))return e}catch{}return{...this._actionData}}_serviceSchema(){let e=this._actionService.trim();if(!e||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(e))return null;let[t,i]=e.split("."),o=this.hass?.services?.[t]?.[i]?.fields;return!o||Object.keys(o).length===0?null:Object.entries(o).map(([a,c])=>({name:a,required:!!c.required,selector:c.selector||{text:{}}}))}_actionTargetExtended(){let e=this._actionTargetStored;return e?Object.entries(e).some(([t,i])=>t==="entity_id"?Array.isArray(i)&&i.length>1:Array.isArray(i)?i.length>0:!!i):!1}_actionTargetSummary(){let e=this._actionTargetStored||{},t=o=>(Array.isArray(o)?o:[o]).filter(a=>typeof a=="string"&&!!a),i=this.hass;return[...t(e.entity_id).map(o=>Fr(this.hass,o)),...t(e.device_id).map(o=>i.devices?.[o]?.name_by_user||i.devices?.[o]?.name||o),...t(e.area_id).map(o=>i.areas?.[o]?.name||o),...t(e.floor_id).map(o=>i.floors?.[o]?.name||o),...t(e.label_id)].join(", ")}_renderQuickComplete(e){let t={notes:!!this._qcNotes.trim(),cost:!isNaN(parseFloat(this._qcCost)),duration:Be(this._qcDuration)!==null,photo:!1,user:!0},i=this._requiredCompletion.filter(a=>!t[a]),o=!!this._checklistText.trim()||this._readings.length>0;return l`
-      <label class="req-option quick-complete-switch">
-        <input type="checkbox" .checked=${this._quickOn}
-          @change=${a=>this._quickOn=a.target.checked} />
-        <span>${n("quick_complete_label",e)}</span>
-      </label>
+  `,d([b({attribute:!1})],D.prototype,"hass",2),d([b({attribute:!1})],D.prototype,"objects",2),d([b({type:Boolean})],D.prototype,"placesEnabled",2),d([h()],D.prototype,"_open",2),d([h()],D.prototype,"_loading",2),d([h()],D.prototype,"_error",2),d([h()],D.prototype,"_name",2),d([h()],D.prototype,"_manufacturer",2),d([h()],D.prototype,"_model",2),d([h()],D.prototype,"_serialNumber",2),d([h()],D.prototype,"_areaId",2),d([h()],D.prototype,"_installationDate",2),d([h()],D.prototype,"_warrantyExpiry",2),d([h()],D.prototype,"_documentationUrl",2),d([h()],D.prototype,"_notes",2),d([h()],D.prototype,"_haDeviceId",2),d([h()],D.prototype,"_parentEntryId",2),d([h()],D.prototype,"_place",2),d([h()],D.prototype,"_remindOnSite",2),d([h()],D.prototype,"_entryId",2),d([h()],D.prototype,"_replacing",2),d([h()],D.prototype,"_oldDeviceId",2),d([h()],D.prototype,"_replaceDevice",2);customElements.get("maintenance-object-dialog")||customElements.define("maintenance-object-dialog",D)});var Ds,wa,ka=x(()=>{"use strict";Ds=["sensor","binary_sensor","number","input_number","input_boolean","counter","switch","climate","vacuum","cover","fan","light","water_heater","humidifier","media_player","weather","air_quality","valve","lawn_mower","lock","plant","input_select","select","input_datetime","date","datetime","timer","update"],wa=["sensor"]});var bd,yd,Ms,$a=x(()=>{"use strict";bd={cleaning:"mdi:broom",inspection:"mdi:magnify",replacement:"mdi:swap-horizontal",calibration:"mdi:tune",service:"mdi:wrench",reading:"mdi:counter",custom:"mdi:wrench-clock"},yd="mdi:wrench-clock",Ms=i=>i&&bd[i]||yd});function Ea(i,s){return i?.entities?.[s]?.platform==="maintenance_supporter"}function Ta(i){return Object.keys(i?.entities||{}).filter(s=>s.startsWith("todo.")&&Ea(i,s))}function yr(i,s){return[...new Set(s.filter(e=>e&&!Ea(i,e)))].slice(0,5)}var Sa=x(()=>{"use strict"});function Ca(i){return $d[i]??"mdi:calendar"}function Td(i,s,e){return gt(i,Ed[s]??"day",e)}function xr(i){let s=parseFloat(i);return Number.isFinite(s)?s:null}function G(i,s){return Object.entries(s).reduce((e,[t,r])=>e.split(`{${t}}`).join(r),i)}function Sd(i,s){let e=s,t=()=>{let r=parseInt(i.intervalDays,10);return Number.isFinite(r)&&r>0?Td(r,i.intervalUnit,e):null};switch(i.scheduleType){case"time_based":{let r=t();return r?G(n("beta_rules_every",e),{interval:r}):n("beta_rules_manual",e)}case"one_time":return i.dueDate?G(n("beta_rules_once_on",e),{date:q(i.dueDate,e)}):n("beta_rules_no_date",e);case"manual":return n("beta_rules_manual",e);case"weekdays":{let r=[...i.weekdays].sort((o,a)=>o-a).map(o=>Le(o,e,"short"));return`${n("recurrence_on_days",e)}: ${r.length?r.join(", "):"\u2014"}`}case"nth_weekday":{let r=i.nth==="-1"?n("ord_last",e):n(`ord_${i.nth}`,e);return`${n("nth_weekday",e)}: ${r} ${Le(parseInt(i.nthWeekday,10)||0,e,"long")}`}case"day_of_month":return`${n("day_of_month",e)}: ${i.domLastDay?n("recurrence_last_day",e):i.domDay}`;case"calendar":return`${n("calendar_entity_label",e)}: ${i.calendarEntity||"\u2014"}`;case"sensor_based":{let r=t();return r?G(n(i.triggerCombinator==="all"?"beta_rules_safety_all":"beta_rules_safety_any",e),{interval:r}):n("beta_rules_sensor_only",e)}default:return n(i.scheduleType,e)}}function Cd(i,s){let e=[];i.scheduleType==="time_based"&&parseInt(i.intervalDays,10)>0&&e.push(n(i.intervalAnchor==="planned"?"anchor_planned":"anchor_completion",s));let t=parseInt(i.warningDays,10);return i.scheduleType!=="manual"&&Number.isFinite(t)&&t>0&&e.push(G(n("beta_rules_due_soon",s),{interval:gt(t,"day",s)})),e}function Ad(i,s){let e=s;if(i.triggerType==="compound"){let c=i.compoundLogic==="OR"?"beta_rules_any_of":"beta_rules_all_of";return G(n(c,e),{n:S(i.compoundCount,e)})}if(!i.triggerEntityIds.length)return n("beta_rules_pick_entity",e);let t=[],r=parseInt(i.forMinutes,10),o=Number.isFinite(r)&&r>0?G(n("beta_rules_for",e),{duration:gt(r,"minute",e)}):"";switch(i.triggerType){case"threshold":{let c=xr(i.above),u=xr(i.below);c!==null&&t.push(G(n("beta_rules_above",e),{value:S(c,e)})),u!==null&&t.push(G(n("beta_rules_below",e),{value:S(u,e)})),t.length||t.push(n("threshold",e)),o&&t.push(o);break}case"counter":{let c=xr(i.targetValue),u=c===null?"\u2014":S(c,e);t.push(G(n(i.deltaMode?"beta_rules_counter_delta":"beta_rules_counter_reaches",e),{value:u}));break}case"state_change":{let c=i.fromState.trim(),u=i.toState.trim();c&&t.push(G(n("beta_rules_changes_from",e),{state:c})),u&&t.push(G(n("beta_rules_changes_to",e),{state:u})),!c&&!u&&t.push(n("beta_rules_changes",e));let _=parseInt(i.targetChanges,10);Number.isFinite(_)&&_>1&&t.push(G(n("beta_rules_times",e),{n:S(_,e)})),o&&t.push(o);break}case"runtime":{let c=xr(i.runtimeHours);t.push(G(n("beta_rules_runs_for",e),{duration:c===null?"\u2014":gt(c,"hour",e)}));break}case"due_date":{let c=parseInt(i.daysBefore,10);t.push(Number.isFinite(c)&&c>0?G(n("beta_rules_date_before",e),{interval:gt(c,"day",e)}):n("beta_rules_date_on",e));break}}let a=t.join(" \xB7 ");return i.triggerAttribute?`${a} (${i.triggerAttribute})`:a}function Id(i,s){let e=s.lang,t=[],r;if(i.completeWhenEntity&&i.completeWhenState.trim()){let a=s.entityName(i.completeWhenEntity);t.push(a),r=G(n("complete_when_badge",e),{entity:a,state:i.completeWhenState.trim()});let c=parseInt(i.completeWhenFor,10);Number.isFinite(c)&&c>0&&(r+=` \xB7 ${G(n("complete_when_badge_for",e),{minutes:S(c,e)})}`),i.completeWhenAnyTime&&(r+=` \xB7 ${n("complete_when_badge_any_time",e)}`)}else r=n("beta_rules_by_hand",e);let o=[];return i.quickOn&&o.push(n("quick_complete_label",e)),i.requiredCount>0&&o.push(`${n("require_on_completion",e)}: ${S(i.requiredCount,e)}`),i.checklistCount>0&&o.push(`${n("checklist",e)}: ${S(i.checklistCount,e)}`),i.partsCount>0&&o.push(`${n("consumes_parts_label",e)}: ${S(i.partsCount,e)}`),i.requireTagScan&&o.push(n("require_tag_scan",e)),i.allowSkip||o.push(n("disallow_skip",e)),{text:r,chips:t,badges:o}}function Aa(i,s){let e=s.lang,t=[];t.push({id:"task",icon:"mdi:clipboard-text-outline",text:i.name.trim()||n("beta_rules_name_missing",e),chips:[],badges:[i.typeLabel,...i.enabled?[]:[n("disabled",e)]],removable:!1});let r=i.scheduleType==="sensor_based";if(t.push({id:"schedule",icon:Ca(i.scheduleType),text:Sd(i,e),chips:[],badges:Cd(i,e),removable:r?parseInt(i.intervalDays,10)>0:i.scheduleType!=="manual"}),r){let u=i.triggerType==="compound"?i.compoundEntityIds:i.triggerEntityIds;t.push({id:"trigger",icon:Hs[i.triggerType]??"mdi:gauge",text:Ad(i,e),chips:[...new Set(u)].map(_=>s.entityName(_)),badges:i.triggerType!=="compound"&&i.triggerEntityIds.length>1?[n(i.entityLogic==="all"?"entity_logic_all":"entity_logic_any",e)]:[],removable:!0})}let o=Id(i,s);t.push({id:"completion",icon:"mdi:check-circle-outline",text:o.text,chips:o.chips,badges:o.badges,removable:!1});let a=i.pool.length>=2&&i.rotation?[n(`rotation_${i.rotation}`,e)]:[],c;return i.responsibleUserId?c=`${n("responsible_user",e)}: ${s.userName(i.responsibleUserId)}`:i.pool.length?c=`${n("task_shared_with",e)}: ${i.pool.map(u=>s.userName(u)).join(", ")}`:c=n("beta_rules_nobody",e),t.push({id:"people",icon:"mdi:account-multiple",text:c,chips:[],badges:a,removable:!1}),t.push({id:"notifications",icon:i.notifyEnabled?"mdi:bell-ring-outline":"mdi:bell-off-outline",text:i.notifyEnabled?n("beta_rules_reminders_on",e):n("no_notifications",e),chips:i.mirrorLists.map(u=>s.entityName(u)),badges:[],removable:!1}),t}function Ia(i){let s=i.scheduleType==="sensor_based",e=parseInt(i.intervalDays,10)>0,t=[];for(let r of wd){if(r===i.scheduleType)continue;let o;if(s)if(r==="time_based"){if(e)continue;o="safety"}else o="replace";else o=i.scheduleType==="manual"?"set":"replace";t.push({kind:"schedule",value:r,icon:Ca(r),effect:o})}for(let r of kd){if(s&&r==="compound")continue;let o;s?o="combine":o=i.scheduleType==="time_based"||i.scheduleType==="manual"?"set":"replace",t.push({kind:"trigger",value:r,icon:Hs[r],effect:o})}return t}function Ls(i){let s={entityId:i.entityId,name:i.name},e=r=>({...s,target:"trigger",triggerType:r,icon:Hs[r]}),t={...s,target:"done_when",icon:"mdi:check-circle-outline"};if(i.domain==="sensor")return i.deviceClass==="timestamp"||i.deviceClass==="date"?[e("due_date")]:i.numeric?jd.has(i.stateClass??"")?[e("counter"),e("threshold")]:i.deviceClass==="duration"?[e("threshold"),e("counter")]:[e("threshold")]:[e("state_change"),t];if(i.domain==="counter")return[e("counter")];if(i.domain==="number"||i.domain==="input_number")return[e("threshold")];if(Rd.has(i.domain)){let r=[];return Nd.has(i.deviceClass??"")&&r.push(t),r.push(e("state_change")),(Pd.has(i.domain)||Od.has(i.deviceClass??""))&&r.push(e("runtime")),r.includes(t)||r.push(t),r}return qd.has(i.domain)?[e("state_change"),t]:[]}function Ra(i,s){let e=i.devices??{},t=s.areaId||(s.deviceId?e[s.deviceId]?.area_id:null)||null,r=c=>c.area_id||(c.device_id?e[c.device_id]?.area_id:null)||null,o=[];for(let[c,u]of Object.entries(i.entities??{})){if(u.platform===s.ownPlatform||u.hidden)continue;let _;if(s.deviceId&&u.device_id===s.deviceId)_="device";else if(t&&r(u)===t)_="area";else continue;let m=i.states?.[c];if(!m)continue;let f=m.attributes??{};o.push({entityId:c,name:typeof f.friendly_name=="string"?f.friendly_name:c,domain:c.split(".")[0],deviceClass:typeof f.device_class=="string"?f.device_class:void 0,stateClass:typeof f.state_class=="string"?f.state_class:void 0,numeric:m.state!==""&&Number.isFinite(Number(m.state))||typeof f.unit_of_measurement=="string",group:_,secondary:!!u.entity_category})}let a=c=>c.group==="device"?0:1;return o.sort((c,u)=>a(c)-a(u)||Number(c.secondary)-Number(u.secondary)||c.name.localeCompare(u.name)),o.map(({secondary:c,...u})=>u).filter(c=>Ls(c).length>0)}var xd,wd,kd,$d,Hs,Ed,Rd,Pd,Od,Nd,jd,qd,Pa=x(()=>{"use strict";P();xd=["weekdays","nth_weekday","day_of_month","calendar"],wd=["time_based",...xd,"one_time"],kd=["threshold","counter","state_change","runtime","due_date","compound"],$d={time_based:"mdi:calendar-sync",weekdays:"mdi:calendar-week",nth_weekday:"mdi:calendar-today",day_of_month:"mdi:calendar-month",calendar:"mdi:calendar-star",one_time:"mdi:calendar-check",manual:"mdi:gesture-tap",sensor_based:"mdi:calendar-sync"},Hs={threshold:"mdi:gauge",counter:"mdi:counter",state_change:"mdi:state-machine",runtime:"mdi:timer-outline",due_date:"mdi:calendar-alert",compound:"mdi:set-center"};Ed={days:"day",weeks:"week",months:"month",years:"year"};Rd=new Set(["binary_sensor","input_boolean","switch","fan","light","lock","cover","valve","siren"]),Pd=new Set(["switch","fan","light","valve","input_boolean"]),Od=new Set(["running","power","plug","heat","cold","moving","vibration"]),Nd=new Set(["door","opening","window","garage_door","lock","running","moving","vibration","occupancy","presence"]),jd=new Set(["total","total_increasing"]),qd=new Set(["select","input_select","vacuum","lawn_mower","climate","water_heater","media_player","alarm_control_panel","event"])});var Oa,Na=x(()=>{"use strict";I();Oa=$`
+  ha-dialog.beta-dialog {
+    --mdc-dialog-min-width: min(1100px, calc(100vw - 32px));
+    --mdc-dialog-max-width: min(1100px, calc(100vw - 32px));
+    --ha-dialog-width-md: min(1100px, calc(100vw - 32px));
+    --ha-dialog-width-lg: min(1100px, calc(100vw - 32px));
+  }
+  .beta-content {
+    min-width: 0;
+  }
+  .rules-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+    column-gap: 16px;
+    row-gap: 8px;
+    align-items: start;
+  }
+  .rules-layout > * {
+    grid-column: 1;
+    min-width: 0;
+  }
+  .rules-layout > .rules-sidebar {
+    grid-column: 2;
+    grid-row: 1 / span 60;
+    position: sticky;
+    top: 0;
+  }
+  @media (max-width: 870px) {
+    .rules-layout {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    /* Below its row it scrolls with the rows: stuck to the top, it covered
+       the rows under it (tablet portrait, phone held sideways). */
+    .rules-layout > .rules-sidebar {
+      position: static;
+    }
+    .rules-layout > .rules-sidebar:not(.open) {
+      display: none;
+    }
+  }
+  .rules-group-title {
+    margin: 12px 0 0;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 26px;
+    color: var(--primary-text-color);
+  }
+  .rule-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 48px;
+    border: 1px solid var(--divider-color);
+    border-radius: 12px;
+    background: var(--card-background-color, #fff);
+    box-sizing: border-box;
+  }
+  .rule-row.selected {
+    border: 2px solid var(--primary-color);
+  }
+  .rule-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 8px 6px 14px;
+    border: 0;
+    background: none;
+    color: var(--primary-text-color);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    border-radius: 12px;
+  }
+  .rule-main:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+  }
+  .rule-main > ha-icon {
+    flex: none;
+    color: var(--secondary-text-color);
+  }
+  .rule-text {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    min-width: 0;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .rule-sentence {
+    overflow-wrap: anywhere;
+  }
+  .rule-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 8px;
+    background: var(--secondary-background-color, #e6e6e6);
+    color: var(--primary-text-color);
+    font-size: 13px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .rule-badge {
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--secondary-text-color);
+  }
+  .rule-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    width: 100%;
+  }
+  .rule-remove {
+    flex: none;
+    --ha-icon-button-size: 40px;
+    --mdc-icon-button-size: 40px;
+    color: var(--secondary-text-color);
+  }
+  .rule-add {
+    justify-self: start;
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 16px 0 10px;
+    border: 0;
+    border-radius: 9999px;
+    background: var(--primary-color);
+    color: var(--text-primary-color, #fff);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .rule-add:focus-visible {
+    outline: 2px solid var(--primary-text-color);
+    outline-offset: 2px;
+  }
+  /* The head stays put and only the body scrolls: a sticky head covered
+     the first controls whenever one was scrolled into view. */
+  .rules-sidebar {
+    border: 2px solid var(--primary-color);
+    border-radius: 16px;
+    background: var(--card-background-color, #fff);
+    padding: 4px 0 0;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    max-height: 70vh;
+    overflow: hidden;
+  }
+  .sidebar-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 14px 14px;
+  }
+  /* In the scrolling column nothing may shrink: the tabs (overflow hidden,
+     so no content minimum) were squeezed to nothing under a long list. */
+  .sidebar-body > * {
+    flex-shrink: 0;
+  }
+  @media (max-width: 870px) {
+    .rules-sidebar {
+      max-height: none;
+    }
+  }
+  .rules-sidebar:not(.open) {
+    border-style: dashed;
+    border-color: var(--divider-color);
+  }
+  .rules-sidebar .section-title {
+    display: none;
+  }
+  .rules-sidebar .form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .sidebar-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 14px 0 6px;
+    border-bottom: 1px solid var(--divider-color);
+  }
+  .sidebar-title {
+    flex: 1 1 auto;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 24px;
+  }
+  .sidebar-hint {
+    padding: 16px 18px;
+    color: var(--secondary-text-color);
+    font-size: 14px;
+  }
+  .add-tabs {
+    display: flex;
+    height: 32px;
+    border-radius: 9999px;
+    overflow: hidden;
+    background: var(--secondary-background-color, #e6e6e6);
+  }
+  .add-tabs button {
+    flex: 1 1 0;
+    border: 0;
+    background: transparent;
+    color: var(--secondary-text-color);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .add-tabs button[aria-selected="true"] {
+    background: var(--primary-color);
+    color: var(--text-primary-color, #fff);
+  }
+  .add-group {
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--secondary-text-color);
+  }
+  .add-choice {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 44px;
+    padding: 6px 12px;
+    border: 1px solid var(--divider-color);
+    border-radius: 12px;
+    background: var(--card-background-color, #fff);
+    color: var(--primary-text-color);
+    font: inherit;
+    font-size: 14px;
+    text-align: start;
+    cursor: pointer;
+  }
+  .add-choice:hover {
+    border-color: var(--primary-color);
+  }
+  .add-choice > ha-icon {
+    flex: none;
+    color: var(--secondary-text-color);
+  }
+  .add-choice-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .add-choice-note {
+    font-size: 12px;
+    color: var(--secondary-text-color);
+  }
+  .device-entity {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 0;
+    border-top: 1px solid var(--divider-color);
+  }
+  .device-entity-name {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .device-entity-choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .device-entity-choices .add-choice {
+    width: auto;
+    min-height: 36px;
+    border-radius: 9999px;
+  }
+  .chooser {
+    display: flex;
+    flex-direction: column;
+  }
+  .chooser-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 60px;
+    padding: 8px 12px;
+    border: 0;
+    border-bottom: 1px solid var(--divider-color);
+    background: none;
+    color: var(--primary-text-color);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
+  .chooser-item:last-child {
+    border-bottom: 0;
+  }
+  .chooser-item:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+  }
+  .chooser-item > ha-icon {
+    flex: none;
+    color: var(--secondary-text-color);
+  }
+  .chooser-text {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .chooser-title {
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .chooser-desc {
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--secondary-text-color);
+  }
+  .chooser-search {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border: 1px solid var(--divider-color);
+    border-radius: 8px;
+    background: var(--card-background-color, #fff);
+    color: var(--primary-text-color);
+    font: inherit;
+    font-size: 14px;
+  }
+  .chooser-group {
+    padding: 12px 12px 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--secondary-text-color);
+  }
+  .chooser-empty {
+    padding: 16px 12px;
+    color: var(--secondary-text-color);
+  }
+`});var ja,qa=x(()=>{tt();vi();Is();ja=fi(class extends qt{constructor(i){if(super(i),i.type!==Ae.PROPERTY&&i.type!==Ae.ATTRIBUTE&&i.type!==Ae.BOOLEAN_ATTRIBUTE)throw Error("The `live` directive is not allowed on child or event bindings");if(!ur(i))throw Error("`live` bindings can only contain a single expression")}render(i){return i}update(i,[s]){if(s===re||s===p)return s;let e=i.element,t=i.name;if(i.type===Ae.PROPERTY){if(s===e[t])return re}else if(i.type===Ae.BOOLEAN_ATTRIBUTE){if(!!s===e.hasAttribute(t))return re}else if(i.type===Ae.ATTRIBUTE&&e.getAttribute(t)===s+"")return re;return sa(i),s}})});var Da=x(()=>{qa()});var Ha,Ma,be,La=x(()=>{"use strict";I();z();Ha="__ms_empty__",Ma=i=>i===""?Ha:i,be=class extends T{constructor(){super(...arguments);this.label="";this.value=void 0;this.disabled=!1;this.helper="";this._options=[];this._selected="";this._observer=null}connectedCallback(){super.connectedCallback(),this._read(),this._observer=new MutationObserver(()=>this._read()),this._observer.observe(this,{childList:!0,subtree:!0,characterData:!0,attributes:!0})}disconnectedCallback(){super.disconnectedCallback(),this._observer?.disconnect(),this._observer=null}_read(){let e=[...this.querySelectorAll("option")];this._options=e.map(t=>({value:Ma(t.value),label:(t.textContent??"").replace(/\s+/g," ").trim()})),this._selected=e.find(t=>t.hasAttribute("selected")||t.selected)?.value??e[0]?.value??""}_picked(e){e.stopPropagation(),this.value=e.detail.value===Ha?"":e.detail.value,this.dispatchEvent(new Event("change",{bubbles:!0,composed:!0}))}render(){return l`
+      <ha-select
+        .label=${this.label}
+        .helper=${this.helper}
+        .options=${this._options}
+        .value=${Ma(this.value??this._selected)}
+        .disabled=${this.disabled}
+        @selected=${this._picked}
+      ></ha-select>`}};be.styles=$`
+    :host { display: block; }
+    ha-select { display: block; width: 100%; }
+  `,d([b()],be.prototype,"label",2),d([b()],be.prototype,"value",2),d([b({type:Boolean})],be.prototype,"disabled",2),d([b()],be.prototype,"helper",2),d([h()],be.prototype,"_options",2),d([h()],be.prototype,"_selected",2);customElements.get("ms-ha-select")||customElements.define("ms-ha-select",be)});function F(){return se("ha-select")}function M(i,s){if(F())return l`<ms-ha-select class=${i.cls??p} .label=${i.label??""} .value=${i.value} .disabled=${!!i.disabled}
+      @change=${i.onChange}>${s}</ms-ha-select>`;if(i.value===void 0)return l`<select class=${i.cls??p} id=${i.id??p} aria-label=${i.label??p} ?disabled=${!!i.disabled}
+      @change=${i.onChange}>${s}</select>`;let e=i.value;return l`<select class=${i.cls??p} id=${i.id??p} aria-label=${i.label??p} ?disabled=${!!i.disabled}
+    .value=${i.live?ja(e):e} @change=${i.onChange}
+    ${Dt(t=>{t instanceof HTMLSelectElement&&queueMicrotask(()=>{t.value!==e&&(t.value=e)})})}>${s}</select>`}var zs=x(()=>{"use strict";I();Da();mr();ne();La()});function kr(){return{entityIds:"",type:"threshold",attribute:"",above:"",below:"",equals:"",notEquals:"",forMinutes:"0",targetValue:"",deltaMode:!1,fromState:"",toState:"",targetChanges:"",runtimeHours:"",onStates:"",daysBefore:"0",carry:{}}}function Wa(i){return{type:i.type||"threshold",attribute:i.attribute||"",above:i.trigger_above?.toString()??"",below:i.trigger_below?.toString()??"",equals:i.trigger_equals?.toString()??"",notEquals:i.trigger_not_equals?.toString()??"",forMinutes:i.trigger_for_minutes?.toString()??"0",targetValue:i.trigger_target_value?.toString()??"",deltaMode:i.trigger_delta_mode||!1,fromState:i.trigger_from_state||"",toState:i.trigger_to_state||"",targetChanges:i.trigger_target_changes?.toString()??"",runtimeHours:i.trigger_runtime_hours?.toString()??"",onStates:(i.trigger_on_states||[]).join(", "),daysBefore:i.trigger_days_before?.toString()??"0"}}function Va(i,s){s.attribute&&(i.attribute=s.attribute);let e=parseInt(s.forMinutes,10);if(s.type==="threshold"){let t=parseFloat(s.above);isNaN(t)||(i.trigger_above=t);let r=parseFloat(s.below);isNaN(r)||(i.trigger_below=r);let o=parseFloat(s.equals);isNaN(o)||(i.trigger_equals=o);let a=parseFloat(s.notEquals);isNaN(a)||(i.trigger_not_equals=a),isNaN(e)||(i.trigger_for_minutes=e)}else if(s.type==="counter"){let t=parseFloat(s.targetValue);isNaN(t)||(i.trigger_target_value=t),i.trigger_delta_mode=s.deltaMode}else if(s.type==="state_change"){s.fromState&&(i.trigger_from_state=s.fromState),s.toState&&(i.trigger_to_state=s.toState);let t=parseInt(s.targetChanges,10);isNaN(t)||(i.trigger_target_changes=t),isNaN(e)||(i.trigger_for_minutes=e)}else if(s.type==="runtime"){let t=parseFloat(s.runtimeHours);isNaN(t)||(i.trigger_runtime_hours=t);let r=(s.onStates||"").split(",").map(o=>o.trim()).filter(Boolean);r.length>0&&(i.trigger_on_states=r)}else if(s.type==="due_date"){let t=parseInt(s.daysBefore,10);i.trigger_days_before=isNaN(t)?0:t}}function Bd(i){return{entityIds:lr(i).join(", "),...Wa(i),carry:Object.fromEntries(Object.entries(i).filter(([e])=>!Ud.has(e)&&!e.startsWith("_")))}}function Wd(i){let s=i.entityIds.split(",").map(t=>t.trim()).filter(Boolean);if(s.length===0)return null;let e={...i.carry||{},entity_id:s[0],entity_ids:s,type:i.type};return Va(e,i),e}function Vd(i){return Array.from({length:7},(s,e)=>Le(e,i,"short"))}function Ua(i){return Array.from({length:12},(s,e)=>ns(e,i,"short"))}function Gd(i){let s=Array.isArray(i)?i.filter(e=>e!=null&&e!=="").join(", "):i!==null&&typeof i=="object"||i==null?"":String(i);return s.length>40?`${s.slice(0,39)}\u2026`:s}var Md,Hd,Ld,za,zd,$r,Fa,Ba,wr,Fd,Ie,lt,Ud,g,Fs,Ga=x(()=>{"use strict";I();z();P();_s();tr();ot();ka();me();di();cr();xt();Ts();_i();$a();ws();$s();Sa();Pa();Na();jt();dr();vr();Ge();zs();ki();Md="M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8,9H16V19H8V9M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z",Hd="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z",Ld="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z",za=["cleaning","inspection","replacement","calibration","service","reading","custom"],zd=["time_based","weekdays","nth_weekday","day_of_month","calendar","sensor_based","one_time","manual"],$r=["weekdays","nth_weekday","day_of_month","calendar"],Fa=["time_based","one_time",...$r],Ba=["threshold","counter","state_change","runtime","due_date"],wr=(i,s)=>n(i==="due_date"?"trigger_type_due_date":i,s),Fd=[...Ba,"compound"],Ie={alpha:"0.3",min:"7",max:"365"},lt=Be;Ud=new Set(["entity_id","entity_ids","type","attribute","trigger_above","trigger_below","trigger_equals","trigger_not_equals","trigger_for_minutes","trigger_target_value","trigger_delta_mode","trigger_from_state","trigger_to_state","trigger_target_changes","trigger_runtime_hours","trigger_on_states","trigger_days_before"]);g=class g extends T{constructor(){super(...arguments);this.checklistsEnabled=!1;this.scheduleTimeEnabled=!1;this.completionActionsEnabled=!1;this.adaptiveFeature=!1;this.seasonalFeature=!1;this.environmentalFeature=!1;this.defaultWarningDays=7;this.mirrorTodoDefault=[];this.betaEditor=!1;this._ruleSel=null;this._addTab="type";this._betaStep="form";this._chooserFilter="";this._templateChoices=null;this._copyChoices=null;this._objectDevice=null;this.parts=[];this._foreignOwners=[];this._open=!1;this._entityPickerFallback=!1;this._pickerProbeStrikes=0;this._loading=!1;this._error="";this._warning="";this._entryId="";this._taskId=null;this._series=[];this._seriesIndex=0;this._isFleetTask=!1;this._objectChoices=[];this._name="";this._type="custom";this._scheduleType="time_based";this._intervalDays="30";this._intervalUnit="days";this._dueDate="";this._warningDays="7";this._earliestCompletionDays="";this._intervalAnchor="completion";this._weekdays=[];this._nth="1";this._nthWeekday="5";this._domDay="1";this._domLastDay=!1;this._domBusiness=!1;this._calOffset="0";this._calMonths=[];this._hadCalMonths=!1;this._calendarEntity="";this._seasonMonths=[];this._endsMode="never";this._endsCount="";this._endsUntil="";this._schedulePreview=[];this._schedulePreviewEnded=!1;this._previewSeq=0;this._notes="";this._documentationUrl="";this._customIcon="";this._notifyIcon="";this._priority="normal";this._labels="";this._detailsOpen=!1;this._mirrorTodoEntities=[];this._mirrorTodoMode="default";this._completeWhenEntity="";this._completeWhenState="";this._completeWhenAnyTime=!1;this._completeWhenFor="";this._enabled=!0;this._triggerEntityId="";this._triggerEntityIds=[];this._triggerEntityLogic="any";this._triggerAttribute="";this._triggerType="threshold";this._triggerAbove="";this._triggerBelow="";this._triggerEquals="";this._triggerNotEquals="";this._triggerForMinutes="0";this._triggerCombinator="any";this._triggerTargetValue="";this._triggerDeltaMode=!1;this._triggerBaselineValue="";this._liveBaselineValue=null;this._autoCompleteOnRecovery=!1;this._holdUntilDone=!1;this._triggerFromState="";this._triggerToState="";this._triggerTargetChanges="";this._triggerRuntimeHours="";this._triggerDaysBefore="0";this._triggerRuntimeMaxSession="";this._triggerOnStates="";this._triggerDetailAttribute="";this._compoundLogic="AND";this._compoundConditions=[];this._suggestedAttributes=[];this._availableAttributes=[];this._entityDomain="";this._lastPerformed="";this._nfcTagId="";this._requireTagScan=!1;this._allowSkip=!0;this._notifyEnabled=!0;this._readingUnit="";this._readings=[];this._consumesParts={};this._consumesQtyText={};this._partsLoadFailed=!1;this._availableTags=[];this._responsibleUserId=null;this._loadedLastPerformed="";this._loadedResponsibleUserId=null;this._assigneePool=[];this._rotationStrategy="";this._availableUsers=[];this._checklistText="";this._phaseDefs=[];this._phaseSeq=[];this._requiredCompletion=[];this._scheduleTime="";this._scheduleTimeOn=!1;this._actionService="";this._actionTargetEntity="";this._actionTargetStored=null;this._actionTargetInitial="";this._actionSkipAuto=!1;this._actionPresent=!1;this._actionData={};this._actionDataJsonFallback="";this._actionTesting=!1;this._actionTestResult="";this._actionTestError="";this._quickOn=!1;this._qcNotes="";this._qcCost="";this._qcDuration="";this._qcFeedback="";this._environmentalEntity="";this._environmentalAttribute="";this._environmentalInitial="";this._environmentalAttributeInitial="";this._adaptiveEnabled=!1;this._adaptiveAlpha=Ie.alpha;this._adaptiveMin=Ie.min;this._adaptiveMax=Ie.max;this._adaptiveSeasonal=!0;this._adaptivePrediction=!0;this._adaptiveInitial="";this._adaptiveWasEnabled=!1;this._userService=null;this._conditionAttrOptions={};this._conditionAttrPending=new Set;this._attrSeq=0}_adaptiveSnapshot(){return JSON.stringify([this._adaptiveEnabled,this._adaptiveAlpha,this._adaptiveMin,this._adaptiveMax,this._adaptiveSeasonal,this._adaptivePrediction])}get _lang(){return N(this.hass)}async openCreate(e,t){this._series=[],this._entryId=e,this._taskId=null,this._isFleetTask=!1,this._error="",this._warning="";let r=(t||[]).filter(o=>!o.object.archived&&!o.object.archived_at);!e&&r.length>0?(this._objectChoices=r.map(o=>({entry_id:o.entry_id,name:o.object.name})).sort((o,a)=>o.name.localeCompare(a.name)),this._entryId=this._objectChoices[0].entry_id):this._objectChoices=[],this._resetFields(),this._betaStep=this.betaEditor?"choose":"form",this._ruleSel="task",this._addTab="type",this._chooserFilter="",await Promise.all([this._loadUsers(),this._loadTags(),this._loadParts(),this._loadForeignPools()]),this._open=!0}async openEdit(e,t){this._series=[],await this._edit(e,t)}async openEditSeries(e){e.length!==0&&(this._series=e,await this._editSeriesItem(0))}async _editSeriesItem(e){let t=this._series[e];this._seriesIndex=e,await this._edit(t.entryId,t.task),await this.updateComplete,this.shadowRoot?.querySelector(".dialog-title")?.scrollIntoView({block:"start"})}_skipSeriesItem(){this._editSeriesItem(this._seriesIndex+1)}async _edit(e,t){this._entryId=e,this._taskId=t.id,this._error="",this._warning="",this._betaStep="form",this._ruleSel=null,this._addTab="type",this._objectChoices=[],this._isFleetTask=t.battery_fleet_task===!0,this._name=t.name,this._type=t.type,this._scheduleType=t.schedule_type,this._intervalDays=t.interval_days!=null?String(t.interval_days):"",this._intervalUnit=t.interval_unit||"days",this._dueDate=t.due_date||"";let r=t.schedule;this._weekdays=r?.kind==="weekdays"?[...r.weekdays??[]]:[],this._nth=r?.kind==="nth_weekday"?String(r.nth??1):"1",this._nthWeekday=r?.kind==="nth_weekday"?String(r.weekday??5):"5",this._domDay=r?.kind==="day_of_month"&&(r.day??1)>=1?String(r.day??1):"1",this._domLastDay=r?.kind==="day_of_month"&&r.day===-1,this._domBusiness=r?.kind==="day_of_month"&&r.business===!0,this._calMonths=(r?.kind==="day_of_month"||r?.kind==="nth_weekday")&&Array.isArray(r.months)?[...r.months]:[],this._hadCalMonths=this._calMonths.length>0,this._calendarEntity=r?.kind==="calendar"&&r.entity_id||"",this._calOffset=r?.offset?String(r.offset):"0",this._seasonMonths=Array.isArray(r?.season_months)?[...r.season_months]:[];let o=r?.ends;o&&typeof o.count=="number"?(this._endsMode="count",this._endsCount=String(o.count),this._endsUntil=""):o&&typeof o.until=="string"?(this._endsMode="until",this._endsUntil=o.until,this._endsCount=""):(this._endsMode="never",this._endsCount="",this._endsUntil=""),this._warningDays=t.warning_days.toString(),this._earliestCompletionDays=t.earliest_completion_days!=null?String(t.earliest_completion_days):"",this._intervalAnchor=t.interval_anchor||"completion",this._notes=t.notes||"",this._documentationUrl=t.documentation_url||"",this._customIcon=t.custom_icon||"",this._notifyIcon=t.notify_icon||"",this._priority=t.priority||"normal",this._labels=(t.labels||[]).join(", "),this._mirrorTodoEntities=[...t.mirror_todo_entities||[]],this._mirrorTodoMode=this._mirrorTodoEntities.length?"own":t.mirror_todo_use_default===!1?"none":"default",this._completeWhenEntity=t.complete_when?.entity_id||"",this._completeWhenState=t.complete_when?.to_state||"",this._completeWhenAnyTime=!!t.complete_when?.any_time,this._completeWhenFor=t.complete_when?.for_minutes?String(t.complete_when.for_minutes):"",this._enabled=t.enabled!==!1,this._lastPerformed=t.last_performed||"",this._loadedLastPerformed=this._lastPerformed,this._nfcTagId=t.nfc_tag_id||"",this._requireTagScan=!!t.require_tag_scan,this._allowSkip=t.allow_skip!==!1,this._notifyEnabled=t.notify_enabled!==!1,this._readingUnit=t.reading_unit||"",this._readings=(t.readings||[]).map(_=>({..._})),this._consumesParts=Object.fromEntries((t.consumes_parts||[]).map(_=>[ge(_),{..._}])),this._consumesQtyText={},this._responsibleUserId=t.responsible_user_id||null,this._loadedResponsibleUserId=this._responsibleUserId,this._assigneePool=[...t.assignee_pool||[]],this._rotationStrategy=t.rotation_strategy||"",this._checklistText=(t.checklist||[]).join(`
+`),this._phaseDefs=Object.entries(t.phases||{}).map(([_,m])=>{let{name:f,checklist:v,consumes_parts:w,required_completion_fields:A,...k}=m,E=m.consumes_parts||[],y=E.findIndex(xe=>!xe.entry_id),R=y>=0?E[y]:void 0;return{id:_,name:m.name||_,checklistText:(m.checklist||[]).join(`
+`),partId:R?.part_id||"",partQty:R?.quantity!=null?String(R.quantity):"",reqOverride:m.required_completion_fields!==void 0,reqFields:[...m.required_completion_fields||[]],extraParts:E.filter((xe,pt)=>pt!==y).map(xe=>({...xe})),carry:k}}),this._phaseSeq=[...t.phase_sequence||[]],this._requiredCompletion=[...t.required_completion_fields||[]],this._scheduleTime=t.schedule_time||"",this._scheduleTimeOn=!!t.schedule_time;let a=t.on_complete_action;if(a&&a.service){this._actionService=a.service;let _=a.target?.entity_id;this._actionTargetEntity=Array.isArray(_)?_[0]||"":_||"",this._actionTargetStored=a.target&&typeof a.target=="object"?JSON.parse(JSON.stringify(a.target)):null,this._actionTargetInitial=this._actionTargetEntity,this._actionData=a.data&&typeof a.data=="object"?{...a.data}:{},this._actionDataJsonFallback="",this._actionSkipAuto=a.skip_auto===!0,this._actionPresent=!0}else this._actionService="",this._actionTargetEntity="",this._actionTargetStored=null,this._actionTargetInitial="",this._actionData={},this._actionDataJsonFallback="",this._actionSkipAuto=!1,this._actionPresent=!1;let c=t.quick_complete_defaults;this._quickOn=ee(t),this._qcNotes=c?.notes||"",this._qcCost=c?.cost!=null?String(c.cost):"",this._qcDuration=c?.duration!=null?String(c.duration):"",this._qcFeedback=c?.feedback||"";let u=t.adaptive_config||{};if(this._environmentalEntity=u.environmental_entity||"",this._environmentalAttribute=u.environmental_attribute||"",this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute,this._adaptiveEnabled=!!u.enabled,this._adaptiveAlpha=u.ewa_alpha?.toString()??Ie.alpha,this._adaptiveMin=u.min_interval_days?.toString()??Ie.min,this._adaptiveMax=u.max_interval_days?.toString()??Ie.max,this._adaptiveSeasonal=u.seasonal_enabled!==!1,this._adaptivePrediction=u.sensor_prediction_enabled!==!1,this._adaptiveInitial=this._adaptiveSnapshot(),this._adaptiveWasEnabled=this._adaptiveEnabled,t.trigger_config){let _=t.trigger_config;this._triggerEntityId=xs(_)||"",this._triggerEntityIds=lr(_),this._triggerEntityLogic=_.entity_logic||"any",this._setTypeFields(Wa(_)),this._triggerCombinator=_.trigger_combinator==="all"?"all":"any",this._triggerBaselineValue=_.trigger_baseline_value?.toString()||"",this._liveBaselineValue=t.trigger_baseline_value??null,this._autoCompleteOnRecovery=_.auto_complete_on_recovery||!1,this._holdUntilDone=_.trigger_hold_until_done===!0,this._triggerRuntimeMaxSession=_.trigger_runtime_max_session_seconds?.toString()||"",this._triggerDetailAttribute=_.detail_attribute||"",_.type==="compound"?(this._compoundLogic=_.compound_logic==="OR"?"OR":"AND",this._compoundConditions=(_.conditions||[]).map(Bd)):(this._compoundLogic="AND",this._compoundConditions=[])}else this._resetTriggerFields();this._triggerEntityId&&this._fetchEntityAttributes(this._triggerEntityId),this._detailsOpen=this._priority!=="normal"||!!this._labels.trim()||!!this._documentationUrl.trim()||!!this._customIcon,await Promise.all([this._loadUsers(),this._loadTags(),this._loadParts(),this._loadForeignPools()]),this._open=!0}_resetFields(){this._detailsOpen=!1,this._name="",this._type="custom",this._scheduleType="time_based",this._intervalDays="30",this._intervalUnit="days",this._dueDate="",this._warningDays=String(this.defaultWarningDays),this._earliestCompletionDays="",this._intervalAnchor="completion",this._weekdays=[],this._nth="1",this._nthWeekday="5",this._domDay="1",this._domLastDay=!1,this._domBusiness=!1,this._calOffset="0",this._calMonths=[],this._hadCalMonths=!1,this._calendarEntity="",this._seasonMonths=[],this._endsMode="never",this._endsCount="",this._endsUntil="",this._notes="",this._documentationUrl="",this._customIcon="",this._notifyIcon="",this._priority="normal",this._labels="",this._mirrorTodoEntities=[],this._mirrorTodoMode="default",this._completeWhenEntity="",this._completeWhenState="",this._completeWhenAnyTime=!1,this._completeWhenFor="",this._enabled=!0,this._lastPerformed="",this._nfcTagId="",this._requireTagScan=!1,this._allowSkip=!0,this._notifyEnabled=!0,this._readingUnit="",this._readings=[],this._consumesParts={},this._consumesQtyText={},this._responsibleUserId=null,this._assigneePool=[],this._rotationStrategy="",this._checklistText="",this._phaseDefs=[],this._phaseSeq=[],this._requiredCompletion=[],this._scheduleTime="",this._scheduleTimeOn=!1,this._environmentalEntity="",this._environmentalAttribute="",this._environmentalInitial="",this._environmentalAttributeInitial="",this._adaptiveEnabled=!1,this._adaptiveAlpha=Ie.alpha,this._adaptiveMin=Ie.min,this._adaptiveMax=Ie.max,this._adaptiveSeasonal=!0,this._adaptivePrediction=!0,this._adaptiveInitial=this._adaptiveSnapshot(),this._adaptiveWasEnabled=!1,this._actionService="",this._actionTargetEntity="",this._actionTargetStored=null,this._actionTargetInitial="",this._actionData={},this._actionDataJsonFallback="",this._actionSkipAuto=!1,this._actionPresent=!1,this._actionTesting=!1,this._actionTestResult="",this._actionTestError="",this._quickOn=!1,this._qcNotes="",this._qcCost="",this._qcDuration="",this._qcFeedback="",this._resetTriggerFields()}_typeFields(){return{type:this._triggerType,attribute:this._triggerAttribute,above:this._triggerAbove,below:this._triggerBelow,equals:this._triggerEquals,notEquals:this._triggerNotEquals,forMinutes:this._triggerForMinutes,targetValue:this._triggerTargetValue,deltaMode:this._triggerDeltaMode,fromState:this._triggerFromState,toState:this._triggerToState,targetChanges:this._triggerTargetChanges,runtimeHours:this._triggerRuntimeHours,onStates:this._triggerOnStates,daysBefore:this._triggerDaysBefore}}_setTypeFields(e){this._triggerType=e.type,this._triggerAttribute=e.attribute,this._triggerAbove=e.above,this._triggerBelow=e.below,this._triggerEquals=e.equals,this._triggerNotEquals=e.notEquals,this._triggerForMinutes=e.forMinutes,this._triggerTargetValue=e.targetValue,this._triggerDeltaMode=e.deltaMode,this._triggerFromState=e.fromState,this._triggerToState=e.toState,this._triggerTargetChanges=e.targetChanges,this._triggerRuntimeHours=e.runtimeHours,this._triggerOnStates=e.onStates,this._triggerDaysBefore=e.daysBefore}_resetTriggerFields(){++this._attrSeq,this._triggerEntityId="",this._triggerEntityIds=[],this._triggerEntityLogic="any",this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="",this._setTypeFields(kr()),this._triggerCombinator="any",this._triggerBaselineValue="",this._liveBaselineValue=null,this._autoCompleteOnRecovery=!1,this._holdUntilDone=!1,this._triggerRuntimeMaxSession="",this._triggerDetailAttribute="",this._compoundLogic="AND",this._compoundConditions=[]}async _loadUsers(){this._userService||(this._userService=new Et(this.hass));try{this._availableUsers=await this._userService.getUsers()}catch(e){console.error("Failed to load users:",e),this._availableUsers=[]}}_toggleAssignee(e){this._assigneePool=this._assigneePool.includes(e)?this._assigneePool.filter(t=>t!==e):[...this._assigneePool,e]}async _testAction(){let e=this._actionService.trim();if(!e||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(e)){this._actionTestResult="error",this._actionTestError=n("action_test_bad_format",this._lang),setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3);return}let[t,r]=e.split(".");if(!this.hass?.services?.[t]?.[r]){this._actionTestResult="error",this._actionTestError=n("action_test_unknown_service",this._lang).replace("{service}",e),setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}let o=this._actionTargetEntity.trim();if(o){let a=o.split(".")[0];if(a!==t&&!new Set(["homeassistant","scene","notify","persistent_notification"]).has(t)){this._actionTestResult="error",this._actionTestError=n("action_test_domain_mismatch",this._lang).replace("{service}",e).replace("{domain}",t).replace("{entity}",o).replace("{entity_domain}",a).replace("{suggestion}",`${a}.${r}`),setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}if(!this.hass.states?.[o]){this._actionTestResult="error",this._actionTestError=n("action_test_entity_missing",this._lang).replace("{entity}",o),setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}}this._actionTestResult="ok",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3)}_buildActionData(){if(this._actionDataJsonFallback.trim())try{let e=JSON.parse(this._actionDataJsonFallback);if(e&&typeof e=="object"&&!Array.isArray(e))return e}catch{}return{...this._actionData}}_serviceSchema(){let e=this._actionService.trim();if(!e||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(e))return null;let[t,r]=e.split("."),o=this.hass?.services?.[t]?.[r]?.fields;return!o||Object.keys(o).length===0?null:Object.entries(o).map(([a,c])=>({name:a,required:!!c.required,selector:c.selector||{text:{}}}))}_actionTargetExtended(){let e=this._actionTargetStored;return e?Object.entries(e).some(([t,r])=>t==="entity_id"?Array.isArray(r)&&r.length>1:Array.isArray(r)?r.length>0:!!r):!1}_actionTargetSummary(){let e=this._actionTargetStored||{},t=o=>(Array.isArray(o)?o:[o]).filter(a=>typeof a=="string"&&!!a),r=this.hass;return[...t(e.entity_id).map(o=>hi(this.hass,o)),...t(e.device_id).map(o=>r.devices?.[o]?.name_by_user||r.devices?.[o]?.name||o),...t(e.area_id).map(o=>r.areas?.[o]?.name||o),...t(e.floor_id).map(o=>r.floors?.[o]?.name||o),...t(e.label_id)].join(", ")}_renderQuickComplete(e){let t={notes:!!this._qcNotes.trim(),cost:!isNaN(parseFloat(this._qcCost)),duration:at(this._qcDuration)!==null,photo:!1,user:!0},r=this._requiredCompletion.filter(a=>!t[a]),o=!!this._checklistText.trim()||this._readings.length>0;return l`
+      ${j({cls:"req-option quick-complete-switch",checked:this._quickOn,onChange:a=>this._quickOn=a.target.checked},l`<span>${n("quick_complete_label",e)}</span>`)}
       ${this._quickOn?l`
             <div class="field-help">${n("quick_complete_help",e)}</div>
-            ${i.length?l`<div class="field-help quick-complete-note">${n("quick_complete_needs_dialog",e).replace("{fields}",i.map(a=>n(_t[a],e)).join(", "))}</div>`:p}
+            ${r.length?l`<div class="field-help quick-complete-note">${n("quick_complete_needs_dialog",e).replace("{fields}",r.map(a=>n(Pt[a],e)).join(", "))}</div>`:p}
             ${this._requireTagScan?l`<div class="field-help quick-complete-note">${n("quick_complete_tag_hint",e)}</div>`:p}
             ${o?l`<div class="field-help">${n("quick_complete_not_asked",e)}</div>`:p}
-            <details class="ca-section quick-complete-values" ?open=${Object.values(t).slice(0,3).some(Boolean)||!!this._qcFeedback}>
-              <summary>${n("quick_complete_values",e)}</summary>
+            ${ue({cls:"ca-section quick-complete-values",open:Object.values(t).slice(0,3).some(Boolean)||!!this._qcFeedback,header:n("quick_complete_values",e)},l`
               <p class="field-help">${n("quick_complete_values_help",e)}</p>
               <ms-textfield
                 label="${n("quick_complete_defaults_notes",e)}"
@@ -2408,55 +2860,48 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                 .value=${this._qcDuration}
                 @input=${a=>{this._qcDuration=a.target.value}}
               ></ms-textfield>
-              <select class="qc-feedback" aria-label=${n("was_maintenance_needed",e)}
-                .value=${this._qcFeedback}
-                @change=${a=>{this._qcFeedback=a.target.value}}>
+              ${M({label:n("was_maintenance_needed",e),cls:"qc-feedback",value:this._qcFeedback,onChange:a=>{this._qcFeedback=a.target.value}},l`
                 <option value="">${n("quick_complete_defaults_feedback_none",e)}</option>
                 <option value="needed">${n("quick_complete_defaults_feedback_needed",e)}</option>
                 <option value="not_needed">${n("quick_complete_defaults_feedback_not_needed",e)}</option>
                 <option value="not_sure">${n("feedback_not_sure",e)}</option>
-              </select>
-            </details>
+              `)}
+            `)}
           `:p}
     `}_renderCompletionActionsSection(e){if(!this.completionActionsEnabled&&!this._actionPresent)return p;let t=this._serviceSchema();return l`
-      <details class="ca-section">
-        <summary>${n("on_complete_action_title",e)}</summary>
+      ${ue({cls:"ca-section",header:n("on_complete_action_title",e)},l`
         <p class="field-help">${n("on_complete_action_desc",e)}</p>
         <ha-service-picker
           .hass=${this.hass}
           .value=${this._actionService}
-          @value-changed=${i=>{this._actionService=i.detail.value||"";let o=this._serviceSchema();if(o){let a=new Set(o.map(c=>c.name));this._actionData=Object.fromEntries(Object.entries(this._actionData).filter(([c])=>a.has(c)))}}}
+          @value-changed=${r=>{this._actionService=r.detail.value||"";let o=this._serviceSchema();if(o){let a=new Set(o.map(c=>c.name));this._actionData=Object.fromEntries(Object.entries(this._actionData).filter(([c])=>a.has(c)))}}}
         ></ha-service-picker>
         <ha-form
           .hass=${this.hass}
           .schema=${[{name:"target_entity",selector:{entity:{}}}]}
           .data=${{target_entity:this._actionTargetEntity}}
           .computeLabel=${()=>n("on_complete_action_target",e)}
-          @value-changed=${i=>{let o=i.detail.value;this._actionTargetEntity=o.target_entity||""}}
+          @value-changed=${r=>{let o=r.detail.value;this._actionTargetEntity=o.target_entity||""}}
         ></ha-form>
         ${this._actionTargetExtended()&&this._actionTargetEntity.trim()===this._actionTargetInitial?l`<p class="field-help ca-target-more">${n("on_complete_action_target_more",e).replace("{targets}",this._actionTargetSummary())}</p>`:p}
         <p class="field-help ca-domain-hint">
           ${n("on_complete_action_target_hint",e)}
         </p>
-        <label class="ca-skip-auto">
-          <input type="checkbox" .checked=${this._actionSkipAuto}
-            @change=${i=>{this._actionSkipAuto=i.target.checked}} />
-          <span>${n("on_complete_action_skip_auto",e)}</span>
-        </label>
+        ${j({cls:"ca-skip-auto",checked:this._actionSkipAuto,onChange:r=>{this._actionSkipAuto=r.target.checked}},l`<span>${n("on_complete_action_skip_auto",e)}</span>`)}
         ${t?l`
               <ha-form
                 class="ca-data-form"
                 .hass=${this.hass}
                 .schema=${t}
                 .data=${this._actionData}
-                @value-changed=${i=>{this._actionData={...i.detail.value}}}
+                @value-changed=${r=>{this._actionData={...r.detail.value}}}
               ></ha-form>
             `:l`
               <ms-textfield
                 label="${n("on_complete_action_data",e)}"
                 placeholder="{}"
                 .value=${this._actionDataJsonFallback}
-                @input=${i=>{this._actionDataJsonFallback=i.target.value}}
+                @input=${r=>{this._actionDataJsonFallback=r.target.value}}
               ></ms-textfield>
             `}
         <div class="ca-test-row">
@@ -2470,90 +2915,77 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                 ${this._actionTestError?l`<div class="ca-test-error-detail">${this._actionTestError}</div>`:p}
               </div>`:p}
         </div>
-      </details>
+      `)}
 
-    `}async _loadParts(){this.parts=[];let e=this._entryId;if(e)try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:e});if(e!==this._entryId)return;this.parts=t.parts||[],this._partsLoadFailed=!1}catch{if(e!==this._entryId)return;this.parts=[],this._partsLoadFailed=!0}}async _loadForeignPools(){this._foreignOwners=[];let e=this._entryId;if(e)try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"});if(e!==this._entryId)return;this._foreignOwners=(t.objects||[]).filter(i=>i.entry_id!==e&&(i.parts||[]).length>0).map(i=>({entry_id:i.entry_id,name:i.object?.name||i.entry_id,parts:i.parts||[]})).sort((i,o)=>i.name.localeCompare(o.name))}catch{this._foreignOwners=[]}}async _loadTags(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tags/list"});this._availableTags=e.tags||[]}catch{this._availableTags=[]}}_fetchConditionAttributes(e){!e||!this.hass||this._conditionAttrOptions[e]||this._conditionAttrPending.has(e)||(this._conditionAttrPending.add(e),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/entity/attributes",entity_id:e}).then(t=>{let i=t;this._conditionAttrOptions={...this._conditionAttrOptions,[e]:{suggested:i.suggested_attributes||[],available:i.available_attributes||[]}}}).catch(()=>{this._conditionAttrOptions={...this._conditionAttrOptions,[e]:{suggested:[],available:[]}}}))}async _fetchEntityAttributes(e){let t=++this._attrSeq;if(!e||!this.hass){this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="";return}try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/entity/attributes",entity_id:e});if(t!==this._attrSeq)return;this._entityDomain=i.domain||"",this._suggestedAttributes=i.suggested_attributes||[],this._availableAttributes=i.available_attributes||[]}catch{if(t!==this._attrSeq)return;this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain=""}}get _hasForeignPick(){return Object.values(this._consumesParts).some(e=>!!e.entry_id)}_renderConsumesRow(e,t){let i=ae({part_id:e.id,entry_id:t}),o=this._consumesParts[i],a=t?{part_id:e.id,quantity:1,entry_id:t}:{part_id:e.id,quantity:1};return l`
+    `}async _loadParts(){this.parts=[];let e=this._entryId;if(e)try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:e});if(e!==this._entryId)return;this.parts=t.parts||[],this._partsLoadFailed=!1}catch{if(e!==this._entryId)return;this.parts=[],this._partsLoadFailed=!0}}async _loadForeignPools(){this._foreignOwners=[];let e=this._entryId;if(e)try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"});if(e!==this._entryId)return;this._foreignOwners=(t.objects||[]).filter(r=>r.entry_id!==e&&(r.parts||[]).length>0).map(r=>({entry_id:r.entry_id,name:r.object?.name||r.entry_id,parts:r.parts||[]})).sort((r,o)=>r.name.localeCompare(o.name))}catch{this._foreignOwners=[]}}async _loadTags(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tags/list"});this._availableTags=e.tags||[]}catch{this._availableTags=[]}}_fetchConditionAttributes(e){!e||!this.hass||this._conditionAttrOptions[e]||this._conditionAttrPending.has(e)||(this._conditionAttrPending.add(e),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/entity/attributes",entity_id:e}).then(t=>{let r=t;this._conditionAttrOptions={...this._conditionAttrOptions,[e]:{suggested:r.suggested_attributes||[],available:r.available_attributes||[]}}}).catch(()=>{this._conditionAttrOptions={...this._conditionAttrOptions,[e]:{suggested:[],available:[]}}}))}async _fetchEntityAttributes(e){let t=++this._attrSeq;if(!e||!this.hass){this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="";return}try{let r=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/entity/attributes",entity_id:e});if(t!==this._attrSeq)return;this._entityDomain=r.domain||"",this._suggestedAttributes=r.suggested_attributes||[],this._availableAttributes=r.available_attributes||[]}catch{if(t!==this._attrSeq)return;this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain=""}}get _hasForeignPick(){return Object.values(this._consumesParts).some(e=>!!e.entry_id)}_renderConsumesRow(e,t){let r=ge({part_id:e.id,entry_id:t}),o=this._consumesParts[r],a=t?{part_id:e.id,quantity:1,entry_id:t}:{part_id:e.id,quantity:1};return l`
       <div class="consumes-row">
-        <label class="consumes-check">
-          <input
-            type="checkbox"
-            .checked=${o!==void 0}
-            @change=${c=>{let u={...this._consumesParts};if(c.target.checked)u[i]=u[i]||a;else{delete u[i];let _={...this._consumesQtyText};delete _[i],this._consumesQtyText=_}this._consumesParts=u}}
-          />
-          <span>${e.name}${e.unit?` (${e.unit})`:""}</span>
-        </label>
+        ${j({cls:"consumes-check",checked:o!==void 0,onChange:c=>{let u={...this._consumesParts};if(c.target.checked)u[r]=u[r]||a;else{delete u[r];let _={...this._consumesQtyText};delete _[r],this._consumesQtyText=_}this._consumesParts=u}},l`<span>${e.name}${e.unit?` (${e.unit})`:""}</span>`)}
         ${o!==void 0?l`<input
               class="consumes-qty"
               aria-label=${`${e.name}: ${n("quantity",this._lang)}`}
               type="number"
-              min=${Ve[0]}
-              max=${Ve[1]}
+              min=${lt[0]}
+              max=${lt[1]}
               step="0.01"
-              .value=${this._consumesQtyText[i]??String(o.quantity)}
-              @input=${c=>{let u=c.target.value;this._consumesQtyText={...this._consumesQtyText,[i]:u};let _=parseFloat(u.replace(",","."));Number.isFinite(_)&&_>=Ve[0]&&(this._consumesParts={...this._consumesParts,[i]:{...a,quantity:_}})}}
+              .value=${this._consumesQtyText[r]??String(o.quantity)}
+              @input=${c=>{let u=c.target.value;this._consumesQtyText={...this._consumesQtyText,[r]:u};let _=parseFloat(u.replace(",","."));Number.isFinite(_)&&_>=lt[0]&&(this._consumesParts={...this._consumesParts,[r]:{...a,quantity:_}})}}
             />`:p}
       </div>
-    `}_applyConsumesQtyText(){let e={...this._consumesParts};for(let t of Object.keys(e)){let i=this._consumesQtyText[t];if(i===void 0)continue;let o=parseFloat(i.replace(",","."));if(!Number.isFinite(o)||o<Ve[0]||o>Ve[1]){let a=c=>P(c,this._lang,{maximumFractionDigits:2});return this._error=n("settings_value_out_of_range",this._lang).replace("{min}",a(Ve[0])).replace("{max}",a(Ve[1])),!1}e[t]={...e[t],quantity:o}}return this._consumesParts=e,!0}_toggleRequired(e,t){let i=new Set(this._requiredCompletion);t?i.add(e):i.delete(e),this._requiredCompletion=[...i]}_patchReading(e,t){this._readings=this._readings.map(i=>i.id===e?{...i,...t}:i)}_renderReadingsEditor(e){let t=Qn(this._readings);return l`
+    `}_applyConsumesQtyText(){let e={...this._consumesParts};for(let t of Object.keys(e)){let r=this._consumesQtyText[t];if(r===void 0)continue;let o=parseFloat(r.replace(",","."));if(!Number.isFinite(o)||o<lt[0]||o>lt[1]){let a=c=>S(c,this._lang,{maximumFractionDigits:2});return this._error=n("settings_value_out_of_range",this._lang).replace("{min}",a(lt[0])).replace("{max}",a(lt[1])),!1}e[t]={...e[t],quantity:o}}return this._consumesParts=e,!0}_toggleRequired(e,t){let r=new Set(this._requiredCompletion);t?r.add(e):r.delete(e),this._requiredCompletion=[...r]}_patchReading(e,t){this._readings=this._readings.map(r=>r.id===e?{...r,...t}:r)}_renderReadingsEditor(e){let t=qo(this._readings);return l`
       <div class="readings-editor">
         <div class="field-label">${n("readings_section",e)}</div>
         <div class="field-help">${n("readings_hint",e)}</div>
-        ${this._readings.map(i=>l`
-          ${t.has(i.id)?l`<div class="field-help reading-dup">${n("reading_duplicate_name",e)}</div>`:p}
+        ${this._readings.map(r=>l`
+          ${t.has(r.id)?l`<div class="field-help reading-dup">${n("reading_duplicate_name",e)}</div>`:p}
           <div class="reading-row">
             <ms-textfield
               class="reading-name"
               label="${n("reading_name_label",e)}"
-              .value=${i.name}
-              @input=${o=>this._patchReading(i.id,{name:o.target.value})}
+              .value=${r.name}
+              @input=${o=>this._patchReading(r.id,{name:o.target.value})}
             ></ms-textfield>
             <ms-textfield
               class="reading-unit"
               label="${n("reading_unit_short",e)}"
-              .value=${i.unit||""}
-              @input=${o=>this._patchReading(i.id,{unit:o.target.value})}
+              .value=${r.unit||""}
+              @input=${o=>this._patchReading(r.id,{unit:o.target.value})}
             ></ms-textfield>
-            <ha-icon-button class="phase-remove reading-remove" .label=${n("remove",e)} @click=${()=>this._readings=this._readings.filter(o=>o.id!==i.id)}>
+            <ha-icon-button class="phase-remove reading-remove" .label=${n("remove",e)} @click=${()=>this._readings=this._readings.filter(o=>o.id!==r.id)}>
               <ha-icon icon="mdi:delete-outline"></ha-icon>
             </ha-icon-button>
           </div>
         `)}
-        ${this._readings.length<Lr?l`
+        ${this._readings.length<gs?l`
           <ha-button appearance="plain" class="reading-add"
-            @click=${()=>this._readings=[...this._readings,{id:Wn(),name:"",unit:this._readings.length?this._readings[this._readings.length-1].unit:this._readingUnit}]}>
+            @click=${()=>this._readings=[...this._readings,{id:Ro(),name:"",unit:this._readings.length?this._readings[this._readings.length-1].unit:this._readingUnit}]}>
             <ha-icon icon="mdi:plus"></ha-icon> ${n("reading_add",e)}
           </ha-button>`:p}
       </div>
-    `}_phaseSlug(e){let t=e.toLowerCase().replace(/[^a-z0-9_-]+/g,"-").replace(/^-+|-+$/g,"").slice(0,24)||"phase",i=t,o=2;for(;this._phaseDefs.some(a=>a.id===i);)i=`${t}-${o++}`;return i}_addPhaseDef(){let e=this._phaseSlug(`phase-${this._phaseDefs.length+1}`);this._phaseDefs=[...this._phaseDefs,{id:e,name:"",checklistText:"",partId:"",partQty:"",reqOverride:!1,reqFields:[],extraParts:[],carry:{}}]}_removePhaseDef(e){this._phaseDefs=this._phaseDefs.filter(t=>t.id!==e),this._phaseSeq=this._phaseSeq.filter(t=>t!==e)}_patchPhaseDef(e,t){this._phaseDefs=this._phaseDefs.map(i=>i.id===e?{...i,...t}:i)}_renderPhasesEditor(e){let t=i=>this._phaseDefs.find(o=>o.id===i)?.name||i;return l`
-      <details class="phases-section" ?open=${this._phaseDefs.length>0}>
-      <summary>${n("phases_section",e)}</summary>
+    `}_phaseSlug(e){let t=e.toLowerCase().replace(/[^a-z0-9_-]+/g,"-").replace(/^-+|-+$/g,"").slice(0,24)||"phase",r=t,o=2;for(;this._phaseDefs.some(a=>a.id===r);)r=`${t}-${o++}`;return r}_addPhaseDef(){let e=this._phaseSlug(`phase-${this._phaseDefs.length+1}`);this._phaseDefs=[...this._phaseDefs,{id:e,name:"",checklistText:"",partId:"",partQty:"",reqOverride:!1,reqFields:[],extraParts:[],carry:{}}]}_removePhaseDef(e){this._phaseDefs=this._phaseDefs.filter(t=>t.id!==e),this._phaseSeq=this._phaseSeq.filter(t=>t!==e)}_patchPhaseDef(e,t){this._phaseDefs=this._phaseDefs.map(r=>r.id===e?{...r,...t}:r)}_renderPhasesEditor(e){let t=r=>this._phaseDefs.find(o=>o.id===r)?.name||r;return l`
+      ${ue({cls:"phases-section",open:this._phaseDefs.length>0,header:n("phases_section",e)},l`
       <div class="field-help">${n("phases_hint",e)}</div>
-      ${this._phaseDefs.map(i=>l`
+      ${this._phaseDefs.map(r=>l`
         <div class="phase-def">
           <div class="phase-def-head">
             <ms-textfield
               label="${n("phase_name",e)}"
-              .value=${i.name}
-              @input=${o=>this._patchPhaseDef(i.id,{name:o.target.value})}
+              .value=${r.name}
+              @input=${o=>this._patchPhaseDef(r.id,{name:o.target.value})}
             ></ms-textfield>
             ${this.parts.length?l`
-              <select
-                class="phase-part"
-                aria-label=${n("spare_part",e)}
-                .value=${i.partId}
-                @change=${o=>{let a=o.target.value;this._patchPhaseDef(i.id,i.partQty?{partId:a}:{partId:a,partQty:"1"})}}
-              >
+              ${M({label:n("spare_part",e),cls:"phase-part",value:r.partId,onChange:o=>{let a=o.target.value;this._patchPhaseDef(r.id,r.partQty?{partId:a}:{partId:a,partQty:"1"})}},l`
                 <option value="">—</option>
-                ${this.parts.map(o=>l`<option value=${o.id} ?selected=${o.id===i.partId}>${o.name}</option>`)}
-              </select>
-              ${i.partId?l`
+                ${this.parts.map(o=>l`<option value=${o.id} ?selected=${o.id===r.partId}>${o.name}</option>`)}
+              `)}
+              ${r.partId?l`
                 <!-- The typed text as-is: a "|| '1'" here rewrote a cleared
                      field to 1 and the next digit gave "13" (bug audit
                      2026-09-26 #2); an empty field saves as 1. -->
-                <input class="phase-qty" aria-label=${n("quantity",e)} type="number" min=${Ce[0]} step="0.01" placeholder="1" .value=${i.partQty}
-                  @input=${o=>this._patchPhaseDef(i.id,{partQty:o.target.value})} />
+                <input class="phase-qty" aria-label=${n("quantity",e)} type="number" min=${Be[0]} step="0.01" placeholder="1" .value=${r.partQty}
+                  @input=${o=>this._patchPhaseDef(r.id,{partQty:o.target.value})} />
               `:p}
             `:p}
-            <ha-icon-button class="phase-remove" .label=${n("remove",e)} @click=${()=>this._removePhaseDef(i.id)}>
+            <ha-icon-button class="phase-remove" .label=${n("remove",e)} @click=${()=>this._removePhaseDef(r.id)}>
               <ha-icon icon="mdi:delete-outline"></ha-icon>
             </ha-icon-button>
           </div>
@@ -2562,29 +2994,15 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
               class="checklist-textarea phase-checklist"
               rows="2"
               placeholder="${n("checklist_placeholder",e)}"
-              .value=${i.checklistText}
-              @input=${o=>this._patchPhaseDef(i.id,{checklistText:o.target.value})}
+              .value=${r.checklistText}
+              @input=${o=>this._patchPhaseDef(r.id,{checklistText:o.target.value})}
             ></textarea>
           `:p}
-          <label class="req-option phase-req-toggle">
-            <input
-              type="checkbox"
-              .checked=${i.reqOverride}
-              @change=${o=>this._patchPhaseDef(i.id,{reqOverride:o.target.checked})}
-            />
-            <span>${n("phase_require_override",e)}</span>
-          </label>
-          ${i.reqOverride?l`
+          ${j({cls:"req-option phase-req-toggle",checked:r.reqOverride,onChange:o=>this._patchPhaseDef(r.id,{reqOverride:o.target.checked})},l`<span>${n("phase_require_override",e)}</span>`)}
+          ${r.reqOverride?l`
             <div class="required-completion phase-req-fields">
-              ${Gr.map(o=>l`
-                <label class="req-option">
-                  <input
-                    type="checkbox"
-                    .checked=${i.reqFields.includes(o)}
-                    @change=${a=>{let c=a.target.checked,u=new Set(i.reqFields);c?u.add(o):u.delete(o),this._patchPhaseDef(i.id,{reqFields:[...u]})}}
-                  />
-                  <span>${n(_t[o],e)}</span>
-                </label>
+              ${Es.map(o=>l`
+                ${j({cls:"req-option",checked:r.reqFields.includes(o),onChange:a=>{let c=a.target.checked,u=new Set(r.reqFields);c?u.add(o):u.delete(o),this._patchPhaseDef(r.id,{reqFields:[...u]})}},l`<span>${n(Pt[o],e)}</span>`)}
               `)}
             </div>
           `:p}
@@ -2593,131 +3011,108 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       <ha-button appearance="plain" @click=${this._addPhaseDef}>
         <ha-icon icon="mdi:plus"></ha-icon> ${n("phase_add",e)}
       </ha-button>
-      ${this._phaseDefs.some(i=>i.name.trim())?l`
+      ${this._phaseDefs.some(r=>r.name.trim())?l`
         <div class="phase-seq-label">${n("phase_sequence_label",e)}</div>
         <div class="phase-seq">
-          ${this._phaseSeq.map((i,o)=>l`
+          ${this._phaseSeq.map((r,o)=>l`
             <span class="phase-chip">
-              ${o+1}. ${t(i)}
+              ${o+1}. ${t(r)}
               <button class="phase-chip-x" @click=${()=>{this._phaseSeq=this._phaseSeq.filter((a,c)=>c!==o)}}>✕</button>
             </span>
           `)}
-          <select
-            class="phase-seq-add"
-            aria-label=${n("phase_sequence_add_step",e)}
-            .value=${""}
-            @change=${i=>{let o=i.target.value;o&&(this._phaseSeq=[...this._phaseSeq,o]),i.target.value=""}}
-          >
+          ${M({label:n("phase_sequence_add_step",e),cls:"phase-seq-add",value:"",onChange:r=>{let o=r.target.value;o&&(this._phaseSeq=[...this._phaseSeq,o]),r.target.value=""}},l`
             <option value="">+ ${n("phase_sequence_add_step",e)}</option>
-            ${this._phaseDefs.filter(i=>i.name.trim()).map(i=>l`<option value=${i.id}>${i.name}</option>`)}
-          </select>
+            ${this._phaseDefs.filter(r=>r.name.trim()).map(r=>l`<option value=${r.id}>${r.name}</option>`)}
+          `)}
         </div>
       `:p}
-      </details>
-    `}async _save(){if(this._loading||!this._name.trim()||this._missingDueDate())return;if(this._adaptiveSnapshot()!==this._adaptiveInitial){let t=parseInt(this._adaptiveMin,10),i=parseInt(this._adaptiveMax,10);if(!isNaN(t)&&!isNaN(i)&&t>i){this._error=`${n("adaptive_min_interval",this._lang)} > ${n("adaptive_max_interval",this._lang)}`;return}}if(this._triggerType==="threshold"&&this._thresholdLimitsOverlap()){this._error=n("trigger_hint_overlap",this._lang);return}if(this._scheduleType==="calendar"&&!this._calendarEntity.trim().startsWith("calendar.")){this._error=n("calendar_entity_required",this._lang);return}if(!this._applyConsumesQtyText())return;if(this._completeWhenEntity&&parseInt(this._completeWhenFor,10)>ct[1]){this._error=n("settings_value_out_of_range",this._lang).replace("{min}","1").replace("{max}",P(ct[1],this._lang));return}this._loading=!0,this._error="";let e;try{let t=await H(this,()=>this.hass.connection.sendMessagePromise(this._savePayload()),{fallbackKey:"save_error",onError:c=>{this._error=c}});if(t===void 0)return;let i=this._taskId||t?.task_id,o=this._environmentalEntity!==this._environmentalInitial||this._environmentalAttribute!==this._environmentalAttributeInitial;this._warning="";let a=c=>{this._warning=n("subsave_warning",this._lang).replace("{detail}",c)};if(i&&this._scheduleType==="sensor_based"&&o&&await H(this,{type:"maintenance_supporter/task/set_environmental_entity",entry_id:this._entryId,task_id:i,environmental_entity:this._environmentalEntity||null,environmental_attribute:this._environmentalAttribute||null},{onError:a})!==void 0&&(this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute),i&&this._adaptiveSnapshot()!==this._adaptiveInitial){let c=parseFloat(this._adaptiveAlpha),u=parseInt(this._adaptiveMin,10),_=parseInt(this._adaptiveMax,10);await H(this,{type:"maintenance_supporter/task/set_adaptive",entry_id:this._entryId,task_id:i,enabled:this._adaptiveEnabled,...c>=Bt[0]&&c<=Bt[1]?{ewa_alpha:c}:{},...!isNaN(u)&&u>=1?{min_interval_days:u}:{},...!isNaN(_)&&_>=1?{max_interval_days:_}:{},seasonal_enabled:this._adaptiveSeasonal,sensor_prediction_enabled:this._adaptivePrediction},{onError:a})!==void 0&&(this._adaptiveInitial=this._adaptiveSnapshot())}this._warning?i&&(this._taskId=i):this._seriesIndex+1<this._series.length?e=this._seriesIndex+1:(this._open=!1,this._series=[]),this.dispatchEvent(new CustomEvent("task-saved"))}finally{this._loading=!1}e!==void 0&&await this._editSeriesItem(e)}_missingDueDate(){return this._scheduleType==="one_time"&&!this._dueDate}_savePayload(){let e={type:this._taskId?"maintenance_supporter/task/update":"maintenance_supporter/task/create",entry_id:this._entryId,name:this._name,task_type:this._type,schedule_type:this._scheduleType,warning_days:Number.isNaN(parseInt(this._warningDays,10))?this.defaultWarningDays:Math.max(0,parseInt(this._warningDays,10))},t=this._earliestCompletionDays.trim();e.earliest_completion_days=t===""?null:Math.max(0,parseInt(t,10)||0),this._taskId&&(e.task_id=this._taskId),this._scheduleType==="one_time"?(e.due_date=this._dueDate||null,e.interval_days=null):Bi.includes(this._scheduleType)?(e.schedule={...this._buildSchedule(),...this._recurrenceExtras()},e.interval_days=null,this._taskId&&(e.due_date=null)):(this._taskId&&(e.due_date=null),this._scheduleType!=="manual"&&this._intervalDays?(e.interval_days=parseInt(this._intervalDays,10),e.interval_unit=this._intervalUnit,e.interval_anchor=this._intervalAnchor,this._scheduleType==="time_based"&&(e.schedule={kind:"interval",...this._recurrenceExtras()})):this._taskId&&(e.interval_days=null,e.interval_anchor="completion")),e.notes=this._notes||null,e.documentation_url=this._documentationUrl||null,e.custom_icon=this._customIcon||null,e.notify_icon=this._notifyIcon.trim()||null,e.priority=this._priority,e.labels=this._labels.split(",").map(a=>a.trim()).filter(Boolean);let i=this.mirrorTodoDefault.length&&this._mirrorTodoMode!=="own"?[]:Ui(this.hass,this._mirrorTodoEntities);e.mirror_todo_entities=i,e.mirror_todo_use_default=this.mirrorTodoDefault.length?this._mirrorTodoMode==="default":this._mirrorTodoMode!=="none",e.enabled=this._enabled,(!this._taskId||this._lastPerformed!==this._loadedLastPerformed)&&(e.last_performed=this._lastPerformed||null),e.nfc_tag_id=this._nfcTagId||null,e.require_tag_scan=this._requireTagScan,e.allow_skip=this._allowSkip;let o=parseInt(this._completeWhenFor,10);e.complete_when=this._completeWhenEntity&&this._completeWhenState.trim()?{entity_id:this._completeWhenEntity,to_state:this._completeWhenState.trim(),...this._completeWhenAnyTime?{any_time:!0}:{},...o>0?{for_minutes:o}:{}}:null,e.notify_enabled=this._notifyEnabled,e.reading_unit=this._readingUnit.trim()||null,e.readings=Zn(this._readings);{let a={};for(let u of this._phaseDefs){if(!u.name.trim())continue;let _={...u.carry,name:u.name.trim()},m=u.checklistText.split(`
-`).map(x=>x.trim()).filter(Boolean);m.length&&(_.checklist=m);let f=[];if(u.partId){let x=parseFloat(u.partQty);f.push({part_id:u.partId,quantity:Number.isFinite(x)&&x>0?x:1})}for(let x of u.extraParts)f.push(x.entry_id?{part_id:x.part_id,quantity:x.quantity,entry_id:x.entry_id}:{part_id:x.part_id,quantity:x.quantity});f.length&&(_.consumes_parts=f),u.reqOverride&&(_.required_completion_fields=[...u.reqFields]),a[u.id]=_}let c=this._phaseSeq.filter(u=>u in a);e.phases=Object.keys(a).length&&c.length?a:null,e.phase_sequence=e.phases?c:null}if((this.parts.length||this._foreignOwners.length)&&(e.consumes_parts=Object.values(this._consumesParts).map(a=>a.entry_id?{part_id:a.part_id,quantity:a.quantity,entry_id:a.entry_id}:{part_id:a.part_id,quantity:a.quantity})),(!this._taskId||this._responsibleUserId!==this._loadedResponsibleUserId)&&(e.responsible_user_id=this._responsibleUserId),e.assignee_pool=this._assigneePool,e.required_completion_fields=this._requiredCompletion,e.rotation_strategy=this._assigneePool.length>=2&&this._rotationStrategy?this._rotationStrategy:null,this._scheduleType==="sensor_based"&&this._triggerType==="compound"){let a=this._compoundConditions.map(kc).filter(c=>c!==null);if(a.length>0){let c={type:"compound",compound_logic:this._compoundLogic,conditions:a};this._autoCompleteOnRecovery&&(c.auto_complete_on_recovery=!0),this._triggerCombinator==="all"&&(c.trigger_combinator="all"),this._triggerDetailAttribute&&(c.detail_attribute=this._triggerDetailAttribute),e.trigger_config=c}else this._taskId&&(e.trigger_config=null)}else if(this._scheduleType==="sensor_based"&&this._triggerEntityId){let a=this._triggerEntityIds.length>0?this._triggerEntityIds:[this._triggerEntityId],c={entity_id:a[0],entity_ids:a,type:this._triggerType};if(Bo(c,this._typeFields()),this._holdUntilDone&&this._isStateLatch()?c.trigger_hold_until_done=!0:this._autoCompleteOnRecovery&&(c.auto_complete_on_recovery=!0),this._triggerCombinator==="all"&&(c.trigger_combinator="all"),this._triggerDetailAttribute&&(c.detail_attribute=this._triggerDetailAttribute),a.length>1&&(c.entity_logic=this._triggerEntityLogic),this._triggerType==="counter"&&this._triggerDeltaMode&&this._triggerBaselineValue){let u=parseFloat(this._triggerBaselineValue);!isNaN(u)&&u>=0&&(c.trigger_baseline_value=u)}else if(this._triggerType==="runtime"&&this._triggerRuntimeMaxSession){let u=parseInt(this._triggerRuntimeMaxSession,10);!isNaN(u)&&u>0&&(c.trigger_runtime_max_session_seconds=u)}e.trigger_config=c}else this._taskId&&(e.trigger_config=null);if(this.scheduleTimeEnabled&&Ho.includes(this._scheduleType)){let a=this._scheduleTimeOn?this._scheduleTime.trim():"";e.schedule_time=/^([01]\d|2[0-3]):[0-5]\d$/.test(a)?a:null}if(this.checklistsEnabled){let a=this._checklistText.split(`
-`).map(c=>c.trim()).filter(Boolean).slice(0,100);e.checklist=a.length?a:null}if(this.completionActionsEnabled||this._actionPresent){let a=this._actionService.trim();if(a&&/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(a)){let c={service:a},u=this._actionTargetEntity.trim();this._actionTargetStored&&u===this._actionTargetInitial?c.target=JSON.parse(JSON.stringify(this._actionTargetStored)):u&&(c.target={entity_id:u});let _=this._buildActionData();Object.keys(_).length>0&&(c.data=_),this._actionSkipAuto&&(c.skip_auto=!0),e.on_complete_action=c}else e.on_complete_action=null}{let a={};this._qcNotes.trim()&&(a.notes=this._qcNotes.trim());let c=parseFloat(this._qcCost);isNaN(c)||(a.cost=c);let u=Be(this._qcDuration);u!==null&&(a.duration=u),this._qcFeedback&&(a.feedback=this._qcFeedback),e.quick_complete_defaults=this._quickOn?a:null}return e}_close(){this._open=!1,this._series=[],this._warning="",this._pickerProbeTimer!==void 0&&(clearTimeout(this._pickerProbeTimer),this._pickerProbeTimer=void 0),this._pickerProbeStrikes=0}_renderTriggerFields(){if(this._scheduleType!=="sensor_based")return p;let e=this._lang,t=this._triggerType==="compound";return l`
+      `)}
+    `}async _save(){if(this._loading||!this._name.trim()||this._missingDueDate())return;if(this._adaptiveSnapshot()!==this._adaptiveInitial){let t=parseInt(this._adaptiveMin,10),r=parseInt(this._adaptiveMax,10);if(!isNaN(t)&&!isNaN(r)&&t>r){this._error=`${n("adaptive_min_interval",this._lang)} > ${n("adaptive_max_interval",this._lang)}`;return}}if(this._triggerType==="threshold"&&this._thresholdLimitsOverlap()){this._error=n("trigger_hint_overlap",this._lang);return}if(this._scheduleType==="calendar"&&!this._calendarEntity.trim().startsWith("calendar.")){this._error=n("calendar_entity_required",this._lang);return}if(!this._applyConsumesQtyText())return;if(this._completeWhenEntity&&parseInt(this._completeWhenFor,10)>St[1]){this._error=n("settings_value_out_of_range",this._lang).replace("{min}","1").replace("{max}",S(St[1],this._lang));return}this._loading=!0,this._error="";let e;try{let t=await L(this,()=>this.hass.connection.sendMessagePromise(this._savePayload()),{fallbackKey:"save_error",onError:c=>{this._error=c}});if(t===void 0)return;let r=this._taskId||t?.task_id,o=this._environmentalEntity!==this._environmentalInitial||this._environmentalAttribute!==this._environmentalAttributeInitial;this._warning="";let a=c=>{this._warning=n("subsave_warning",this._lang).replace("{detail}",c)};if(r&&this._scheduleType==="sensor_based"&&o&&await L(this,{type:"maintenance_supporter/task/set_environmental_entity",entry_id:this._entryId,task_id:r,environmental_entity:this._environmentalEntity||null,environmental_attribute:this._environmentalAttribute||null},{onError:a})!==void 0&&(this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute),r&&this._adaptiveSnapshot()!==this._adaptiveInitial){let c=parseFloat(this._adaptiveAlpha),u=parseInt(this._adaptiveMin,10),_=parseInt(this._adaptiveMax,10);await L(this,{type:"maintenance_supporter/task/set_adaptive",entry_id:this._entryId,task_id:r,enabled:this._adaptiveEnabled,...c>=ci[0]&&c<=ci[1]?{ewa_alpha:c}:{},...!isNaN(u)&&u>=1?{min_interval_days:u}:{},...!isNaN(_)&&_>=1?{max_interval_days:_}:{},seasonal_enabled:this._adaptiveSeasonal,sensor_prediction_enabled:this._adaptivePrediction},{onError:a})!==void 0&&(this._adaptiveInitial=this._adaptiveSnapshot())}this._warning?r&&(this._taskId=r):this._seriesIndex+1<this._series.length?e=this._seriesIndex+1:(this._open=!1,this._series=[]),this.dispatchEvent(new CustomEvent("task-saved"))}finally{this._loading=!1}e!==void 0&&await this._editSeriesItem(e)}_missingDueDate(){return this._scheduleType==="one_time"&&!this._dueDate}_savePayload(){let e={type:this._taskId?"maintenance_supporter/task/update":"maintenance_supporter/task/create",entry_id:this._entryId,name:this._name,task_type:this._type,schedule_type:this._scheduleType,warning_days:Number.isNaN(parseInt(this._warningDays,10))?this.defaultWarningDays:Math.max(0,parseInt(this._warningDays,10))},t=this._earliestCompletionDays.trim();e.earliest_completion_days=t===""?null:Math.max(0,parseInt(t,10)||0),this._taskId&&(e.task_id=this._taskId),this._scheduleType==="one_time"?(e.due_date=this._dueDate||null,e.interval_days=null):$r.includes(this._scheduleType)?(e.schedule={...this._buildSchedule(),...this._recurrenceExtras()},e.interval_days=null,this._taskId&&(e.due_date=null)):(this._taskId&&(e.due_date=null),this._scheduleType!=="manual"&&this._intervalDays?(e.interval_days=parseInt(this._intervalDays,10),e.interval_unit=this._intervalUnit,e.interval_anchor=this._intervalAnchor,this._scheduleType==="time_based"&&(e.schedule={kind:"interval",...this._recurrenceExtras()})):this._taskId&&(e.interval_days=null,e.interval_anchor="completion")),e.notes=this._notes||null,e.documentation_url=this._documentationUrl||null,e.custom_icon=this._customIcon||null,e.notify_icon=this._notifyIcon.trim()||null,e.priority=this._priority,e.labels=this._labels.split(",").map(a=>a.trim()).filter(Boolean);let r=this.mirrorTodoDefault.length&&this._mirrorTodoMode!=="own"?[]:yr(this.hass,this._mirrorTodoEntities);e.mirror_todo_entities=r,e.mirror_todo_use_default=this.mirrorTodoDefault.length?this._mirrorTodoMode==="default":this._mirrorTodoMode!=="none",e.enabled=this._enabled,(!this._taskId||this._lastPerformed!==this._loadedLastPerformed)&&(e.last_performed=this._lastPerformed||null),e.nfc_tag_id=this._nfcTagId||null,e.require_tag_scan=this._requireTagScan,e.allow_skip=this._allowSkip;let o=parseInt(this._completeWhenFor,10);e.complete_when=this._completeWhenEntity&&this._completeWhenState.trim()?{entity_id:this._completeWhenEntity,to_state:this._completeWhenState.trim(),...this._completeWhenAnyTime?{any_time:!0}:{},...o>0?{for_minutes:o}:{}}:null,e.notify_enabled=this._notifyEnabled,e.reading_unit=this._readingUnit.trim()||null,e.readings=Do(this._readings);{let a={};for(let u of this._phaseDefs){if(!u.name.trim())continue;let _={...u.carry,name:u.name.trim()},m=u.checklistText.split(`
+`).map(v=>v.trim()).filter(Boolean);m.length&&(_.checklist=m);let f=[];if(u.partId){let v=parseFloat(u.partQty);f.push({part_id:u.partId,quantity:Number.isFinite(v)&&v>0?v:1})}for(let v of u.extraParts)f.push(v.entry_id?{part_id:v.part_id,quantity:v.quantity,entry_id:v.entry_id}:{part_id:v.part_id,quantity:v.quantity});f.length&&(_.consumes_parts=f),u.reqOverride&&(_.required_completion_fields=[...u.reqFields]),a[u.id]=_}let c=this._phaseSeq.filter(u=>u in a);e.phases=Object.keys(a).length&&c.length?a:null,e.phase_sequence=e.phases?c:null}if((this.parts.length||this._foreignOwners.length)&&(e.consumes_parts=Object.values(this._consumesParts).map(a=>a.entry_id?{part_id:a.part_id,quantity:a.quantity,entry_id:a.entry_id}:{part_id:a.part_id,quantity:a.quantity})),(!this._taskId||this._responsibleUserId!==this._loadedResponsibleUserId)&&(e.responsible_user_id=this._responsibleUserId),e.assignee_pool=this._assigneePool,e.required_completion_fields=this._requiredCompletion,e.rotation_strategy=this._assigneePool.length>=2&&this._rotationStrategy?this._rotationStrategy:null,this._scheduleType==="sensor_based"&&this._triggerType==="compound"){let a=this._compoundConditions.map(Wd).filter(c=>c!==null);if(a.length>0){let c={type:"compound",compound_logic:this._compoundLogic,conditions:a};this._autoCompleteOnRecovery&&(c.auto_complete_on_recovery=!0),this._triggerCombinator==="all"&&(c.trigger_combinator="all"),this._triggerDetailAttribute&&(c.detail_attribute=this._triggerDetailAttribute),e.trigger_config=c}else this._taskId&&(e.trigger_config=null)}else if(this._scheduleType==="sensor_based"&&this._triggerEntityId){let a=this._triggerEntityIds.length>0?this._triggerEntityIds:[this._triggerEntityId],c={entity_id:a[0],entity_ids:a,type:this._triggerType};if(Va(c,this._typeFields()),this._holdUntilDone&&this._isStateLatch()?c.trigger_hold_until_done=!0:this._autoCompleteOnRecovery&&(c.auto_complete_on_recovery=!0),this._triggerCombinator==="all"&&(c.trigger_combinator="all"),this._triggerDetailAttribute&&(c.detail_attribute=this._triggerDetailAttribute),a.length>1&&(c.entity_logic=this._triggerEntityLogic),this._triggerType==="counter"&&this._triggerDeltaMode&&this._triggerBaselineValue){let u=parseFloat(this._triggerBaselineValue);!isNaN(u)&&u>=0&&(c.trigger_baseline_value=u)}else if(this._triggerType==="runtime"&&this._triggerRuntimeMaxSession){let u=parseInt(this._triggerRuntimeMaxSession,10);!isNaN(u)&&u>0&&(c.trigger_runtime_max_session_seconds=u)}e.trigger_config=c}else this._taskId&&(e.trigger_config=null);if(this.scheduleTimeEnabled&&Fa.includes(this._scheduleType)){let a=this._scheduleTimeOn?this._scheduleTime.trim():"";e.schedule_time=/^([01]\d|2[0-3]):[0-5]\d$/.test(a)?a:null}if(this.checklistsEnabled){let a=this._checklistText.split(`
+`).map(c=>c.trim()).filter(Boolean).slice(0,100);e.checklist=a.length?a:null}if(this.completionActionsEnabled||this._actionPresent){let a=this._actionService.trim();if(a&&/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(a)){let c={service:a},u=this._actionTargetEntity.trim();this._actionTargetStored&&u===this._actionTargetInitial?c.target=JSON.parse(JSON.stringify(this._actionTargetStored)):u&&(c.target={entity_id:u});let _=this._buildActionData();Object.keys(_).length>0&&(c.data=_),this._actionSkipAuto&&(c.skip_auto=!0),e.on_complete_action=c}else e.on_complete_action=null}{let a={};this._qcNotes.trim()&&(a.notes=this._qcNotes.trim());let c=parseFloat(this._qcCost);isNaN(c)||(a.cost=c);let u=at(this._qcDuration);u!==null&&(a.duration=u),this._qcFeedback&&(a.feedback=this._qcFeedback),e.quick_complete_defaults=this._quickOn?a:null}return e}_close(){this._open=!1,this._series=[],this._warning="",this._pickerProbeTimer!==void 0&&(clearTimeout(this._pickerProbeTimer),this._pickerProbeTimer=void 0),this._pickerProbeStrikes=0}_renderTriggerFields(){if(this._scheduleType!=="sensor_based")return p;let e=this._lang,t=this._triggerType==="compound";return l`
       <div class="select-row">
-        <label>${n("trigger_type",e)}</label>
-        <select aria-label=${n("trigger_type",e)}
-          .value=${this._triggerType}
-          @change=${i=>this._triggerType=i.target.value}
-        >
-          ${yc.map(i=>l`<option value=${i} ?selected=${i===this._triggerType}>${Lo(i,e)}</option>`)}
-        </select>
+        ${F()?p:l`<label>${n("trigger_type",e)}</label>`}
+        ${M({label:n("trigger_type",e),value:this._triggerType,onChange:r=>this._triggerType=r.target.value},l`
+          ${Fd.map(r=>l`<option value=${r} ?selected=${r===this._triggerType}>${wr(r,e)}</option>`)}
+        `)}
       </div>
       ${t?this._renderCompoundEditor():l`
         ${this._entityPickerFallback?l`
           <ms-textfield
             label="${n("entity_id",e)} (${n("comma_separated",e)})"
             .value=${this._triggerEntityIds.length>0?this._triggerEntityIds.join(", "):this._triggerEntityId}
-            @input=${i=>{let a=i.target.value.split(",").map(c=>c.trim()).filter(Boolean);this._triggerEntityId=a[0]||"",this._triggerEntityIds=a,a[0]&&this._fetchEntityAttributes(a[0])}}
+            @input=${r=>{let a=r.target.value.split(",").map(c=>c.trim()).filter(Boolean);this._triggerEntityId=a[0]||"",this._triggerEntityIds=a,a[0]&&this._fetchEntityAttributes(a[0])}}
           ></ms-textfield>
         `:l`
         <ha-form
           class="entity-picker-form"
           .hass=${this.hass}
-          .schema=${[{name:"trigger_entities",selector:{entity:{multiple:!0,domain:is}}}]}
+          .schema=${[{name:"trigger_entities",selector:{entity:{multiple:!0,domain:Ds}}}]}
           .data=${{trigger_entities:this._triggerEntityIds.length>0?this._triggerEntityIds:this._triggerEntityId?[this._triggerEntityId]:[]}}
           .computeLabel=${()=>n("entity_id",e)}
-          @value-changed=${i=>{let o=(i.detail.value.trigger_entities||[]).filter(Boolean);this._triggerEntityId=o[0]||"",this._triggerEntityIds=o,o[0]?this._fetchEntityAttributes(o[0]):this._fetchEntityAttributes("")}}
+          @value-changed=${r=>{let o=(r.detail.value.trigger_entities||[]).filter(Boolean);this._triggerEntityId=o[0]||"",this._triggerEntityIds=o,o[0]?this._fetchEntityAttributes(o[0]):this._fetchEntityAttributes("")}}
         ></ha-form>`}
         ${this._triggerEntityIds.length>1?l`
           <div class="select-row">
-            <label>${n("entity_logic",e)}</label>
-            <select aria-label=${n("entity_logic",e)}
-              .value=${this._triggerEntityLogic}
-              @change=${i=>this._triggerEntityLogic=i.target.value}
-            >
+            ${F()?p:l`<label>${n("entity_logic",e)}</label>`}
+            ${M({label:n("entity_logic",e),value:this._triggerEntityLogic,onChange:r=>this._triggerEntityLogic=r.target.value},l`
               <option value="any" ?selected=${this._triggerEntityLogic==="any"}>${n("entity_logic_any",e)}</option>
               <option value="all" ?selected=${this._triggerEntityLogic==="all"}>${n("entity_logic_all",e)}</option>
-            </select>
+            `)}
           </div>
         `:p}
-        ${this._renderAttributeSelect({label:n("attribute_optional",e),value:this._triggerAttribute,suggested:this._suggestedAttributes,available:this._availableAttributes,onSelect:i=>this._triggerAttribute=i})}
+        ${this._renderAttributeSelect({label:n("attribute_optional",e),value:this._triggerAttribute,suggested:this._suggestedAttributes,available:this._availableAttributes,onSelect:r=>this._triggerAttribute=r})}
         ${this._renderTriggerTypeFields()}
         ${this._renderTriggerLiveHint()}
       `}
       ${this._renderDetailAttributeSelect(e)}
       ${this._isStateLatch()?this._renderTriggerEnd(e):l`
-        <label>
-          <input
-            type="checkbox"
-            .checked=${this._autoCompleteOnRecovery}
-            @change=${i=>this._autoCompleteOnRecovery=i.target.checked}
-          />
-          ${n("auto_complete_on_recovery",e)}
-        </label>
+        ${j({checked:this._autoCompleteOnRecovery,onChange:r=>this._autoCompleteOnRecovery=r.target.checked},l`${n("auto_complete_on_recovery",e)}`)}
         <div class="field-help">${n("auto_complete_on_recovery_help",e)}</div>
       `}
       <ms-textfield
         label="${n("safety_interval",e)}"
         type="number"
         .value=${this._intervalDays}
-        @input=${i=>this._intervalDays=i.target.value}
+        @input=${r=>this._intervalDays=r.target.value}
       ></ms-textfield>
       ${this._intervalDays?this._renderUnitSelect():p}
       ${this._intervalDays?l`
             <div class="select-row">
-              <label>${n("trigger_combinator",e)}</label>
-              <select aria-label=${n("trigger_combinator",e)}
-                @change=${i=>this._triggerCombinator=i.target.value}
-              >
+              ${F()?p:l`<label>${n("trigger_combinator",e)}</label>`}
+              ${M({label:n("trigger_combinator",e),onChange:r=>this._triggerCombinator=r.target.value},l`
                 <option value="any" ?selected=${this._triggerCombinator==="any"}>${n("trigger_combinator_any",e)}</option>
                 <option value="all" ?selected=${this._triggerCombinator==="all"}>${n("trigger_combinator_all",e)}</option>
-              </select>
+              `)}
             </div>
           `:p}
-    `}_patchCondition(e,t){this._compoundConditions=this._compoundConditions.map((i,o)=>o===e?{...i,...t}:i)}_addCondition(){this._compoundConditions=[...this._compoundConditions,Do()]}_removeCondition(e){this._compoundConditions=this._compoundConditions.filter((t,i)=>i!==e)}_renderCompoundEditor(){let e=this._lang;return l`
+    `}_patchCondition(e,t){this._compoundConditions=this._compoundConditions.map((r,o)=>o===e?{...r,...t}:r)}_addCondition(){this._compoundConditions=[...this._compoundConditions,kr()]}_removeCondition(e){this._compoundConditions=this._compoundConditions.filter((t,r)=>r!==e),this.betaEditor&&this._compoundConditions.length===1&&this._flattenCompound()}_flattenCompound(){let[e]=this._compoundConditions;if(!e)return;let t=e.entityIds.split(",").map(c=>c.trim()).filter(Boolean),{entityIds:r,carry:o,...a}=e;this._compoundConditions=[],this._setTypeFields(a),this._triggerEntityId=t[0]||"",this._triggerEntityIds=t,t[0]&&this._fetchEntityAttributes(t[0])}_renderCompoundEditor(){let e=this._lang;return l`
       <div class="select-row">
-        <label>${n("compound_logic",e)}</label>
-        <select aria-label=${n("compound_logic",e)}
-          .value=${this._compoundLogic}
-          @change=${t=>this._compoundLogic=t.target.value}
-        >
+        ${F()?p:l`<label>${n("compound_logic",e)}</label>`}
+        ${M({label:n("compound_logic",e),value:this._compoundLogic,onChange:t=>this._compoundLogic=t.target.value},l`
           <option value="AND" ?selected=${this._compoundLogic==="AND"}>${n("compound_logic_and",e)}</option>
           <option value="OR" ?selected=${this._compoundLogic==="OR"}>${n("compound_logic_or",e)}</option>
-        </select>
+        `)}
       </div>
       <div class="field-help">${n("compound_help",e)}</div>
-      ${this._compoundConditions.length===0?l`<div class="field-help">${n("compound_no_conditions",e)}</div>`:this._compoundConditions.map((t,i)=>this._renderCondition(t,i))}
+      ${this._compoundConditions.length===0?l`<div class="field-help">${n("compound_no_conditions",e)}</div>`:this._compoundConditions.map((t,r)=>this._renderCondition(t,r))}
       <button type="button" class="secondary-btn" @click=${()=>this._addCondition()}>
         + ${n("compound_add_condition",e)}
       </button>
-    `}_renderCondition(e,t){let i=this._lang,o=t+1;return l`
+    `}_renderCondition(e,t){let r=this._lang,o=t+1;return l`
       <div class="compound-condition">
         <div class="compound-condition-head">
-          <span class="compound-condition-title">${n("compound_condition",i)} ${o}</span>
+          <span class="compound-condition-title">${n("compound_condition",r)} ${o}</span>
           <button
             type="button"
             class="icon-btn"
-            title="${n("compound_remove_condition",i)}"
+            title="${n("compound_remove_condition",r)}"
             @click=${()=>this._removeCondition(t)}
           >✕</button>
         </div>
         ${this._entityPickerFallback?l`
           <ms-textfield
-            label="${n("entity_id",i)} (${n("comma_separated",i)})"
+            label="${n("entity_id",r)} (${n("comma_separated",r)})"
             .value=${e.entityIds}
             @input=${a=>this._patchCondition(t,{entityIds:a.target.value})}
           ></ms-textfield>
@@ -2725,30 +3120,27 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
         <ha-form
           class="entity-picker-form"
           .hass=${this.hass}
-          .schema=${[{name:"condition_entities",selector:{entity:{multiple:!0,domain:is}}}]}
+          .schema=${[{name:"condition_entities",selector:{entity:{multiple:!0,domain:Ds}}}]}
           .data=${{condition_entities:e.entityIds.split(",").map(a=>a.trim()).filter(Boolean)}}
-          .computeLabel=${()=>n("entity_id",i)}
+          .computeLabel=${()=>n("entity_id",r)}
           @value-changed=${a=>{let c=(a.detail.value.condition_entities||[]).filter(Boolean);this._patchCondition(t,{entityIds:c.join(", ")})}}
         ></ha-form>`}
         ${this._renderConditionAttribute(e,t)}
         <div class="select-row">
-          <label>${n("trigger_type",i)}</label>
-          <select aria-label=${n("trigger_type",i)}
-            .value=${e.type}
-            @change=${a=>this._patchCondition(t,{type:a.target.value})}
-          >
-            ${Fo.map(a=>l`<option value=${a} ?selected=${a===e.type}>${Lo(a,i)}</option>`)}
-          </select>
+          ${F()?p:l`<label>${n("trigger_type",r)}</label>`}
+          ${M({label:n("trigger_type",r),value:e.type,onChange:a=>this._patchCondition(t,{type:a.target.value})},l`
+            ${Ba.map(a=>l`<option value=${a} ?selected=${a===e.type}>${wr(a,r)}</option>`)}
+          `)}
         </div>
         ${this._renderConditionTypeFields(e,t)}
       </div>
-    `}_isStateLatch(){return this._triggerType==="state_change"&&(this._triggerTargetChanges===""||Number(this._triggerTargetChanges)===1)&&!!(this._triggerFromState.trim()||this._triggerToState.trim())}_renderTriggerEnd(e){let t=this._holdUntilDone?"hold":this._autoCompleteOnRecovery?"done":"ok",i={ok:"trigger_end_ok",done:"trigger_end_done",hold:"trigger_end_hold"},o=a=>{this._autoCompleteOnRecovery=a==="done",this._holdUntilDone=a==="hold"};return l`
+    `}_isStateLatch(){return this._triggerType==="state_change"&&(this._triggerTargetChanges===""||Number(this._triggerTargetChanges)===1)&&!!(this._triggerFromState.trim()||this._triggerToState.trim())}_renderTriggerEnd(e){let t=this._holdUntilDone?"hold":this._autoCompleteOnRecovery?"done":"ok",r={ok:"trigger_end_ok",done:"trigger_end_done",hold:"trigger_end_hold"},o=a=>{this._autoCompleteOnRecovery=a==="done",this._holdUntilDone=a==="hold"};return l`
       <div class="trigger-end" role="radiogroup" aria-label=${n("trigger_end",e)}>
         <div class="field-label">${n("trigger_end",e)}</div>
-        ${Object.keys(i).map(a=>l`
+        ${Object.keys(r).map(a=>l`
           <label class="trigger-end-option">
             <input type="radio" name="trigger-end" value=${a} .checked=${t===a} @change=${()=>o(a)} />
-            ${n(i[a],e)}
+            ${n(r[a],e)}
           </label>
         `)}
         ${t==="done"?l`<div class="field-help">${n("auto_complete_on_recovery_help",e)}</div>`:p}
@@ -2770,7 +3162,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             .schema=${[{name:"complete_when",selector:{entity:{}}}]}
             .data=${{complete_when:this._completeWhenEntity}}
             .computeLabel=${()=>n("complete_when",e)}
-            @value-changed=${t=>{let i=(t.detail.value.complete_when||"").trim();i!==this._completeWhenEntity&&(this._completeWhenState=""),this._completeWhenEntity=i}}
+            @value-changed=${t=>{let r=(t.detail.value.complete_when||"").trim();r!==this._completeWhenEntity&&(this._completeWhenState=""),this._completeWhenEntity=r}}
           ></ha-form>`}
         ${this._completeWhenEntity?this._renderStateField({label:n("complete_when_state",e),value:this._completeWhenState,entityId:this._completeWhenEntity,onInput:t=>this._completeWhenState=t}):p}
         ${this._completeWhenEntity?l`
@@ -2778,19 +3170,12 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             class="complete-when-for"
             label="${n("for_at_least_minutes",e)}"
             type="number"
-            min=${ct[0]}
-            max=${ct[1]}
+            min=${St[0]}
+            max=${St[1]}
             .value=${this._completeWhenFor}
             @input=${t=>this._completeWhenFor=t.target.value}
           ></ms-textfield>
-          <label class="req-option complete-when-any-time">
-            <input
-              type="checkbox"
-              .checked=${this._completeWhenAnyTime}
-              @change=${t=>this._completeWhenAnyTime=t.target.checked}
-            />
-            <span>${n("complete_when_any_time",e)}</span>
-          </label>
+          ${j({cls:"req-option complete-when-any-time",checked:this._completeWhenAnyTime,onChange:t=>this._completeWhenAnyTime=t.target.checked},l`<span>${n("complete_when_any_time",e)}</span>`)}
         `:p}
         <div class="field-help">${n("complete_when_help",e)}</div>
       </div>
@@ -2814,28 +3199,20 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           label="${n("runtime_on_states",t)}"
           placeholder="on"
           .value=${e.value}
-          @input=${i=>e.onInput(i.target.value)}
+          @input=${r=>e.onInput(r.target.value)}
         ></ms-textfield>
       `:l`
       <ha-form
         class="state-picker-form"
         .hass=${this.hass}
         .schema=${[{name:"s",selector:{state:{entity_id:e.entityId,multiple:!0}}}]}
-        .data=${{s:(e.value||"").split(",").map(i=>i.trim()).filter(Boolean)}}
+        .data=${{s:(e.value||"").split(",").map(r=>r.trim()).filter(Boolean)}}
         .computeLabel=${()=>n("runtime_on_states",t)}
-        @value-changed=${i=>e.onInput((i.detail.value.s||[]).join(", "))}
+        @value-changed=${r=>e.onInput((r.detail.value.s||[]).join(", "))}
       ></ha-form>
     `}_renderAdaptiveSection(e){return this._scheduleType==="one_time"||this._scheduleType==="manual"?p:!this.adaptiveFeature&&!this._adaptiveWasEnabled?p:l`
-      <details class="adaptive-section" ?open=${this._adaptiveEnabled}>
-        <summary>${n("adaptive_section_title",e)}</summary>
-        <label>
-          <input
-            type="checkbox"
-            .checked=${this._adaptiveEnabled}
-            @change=${t=>this._adaptiveEnabled=t.target.checked}
-          />
-          ${n("adaptive_enabled",e)}
-        </label>
+      ${ue({cls:"adaptive-section",open:this._adaptiveEnabled,header:n("adaptive_section_title",e)},l`
+        ${j({checked:this._adaptiveEnabled,onChange:t=>this._adaptiveEnabled=t.target.checked},l`${n("adaptive_enabled",e)}`)}
         ${this._adaptiveEnabled?l`
           <ms-textfield
             label="${n("adaptive_min_interval",e)}"
@@ -2854,121 +3231,96 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           <ms-textfield
             label="${n("adaptive_ewa_alpha",e)}"
             type="number"
-            min=${Bt[0]}
-            max=${Bt[1]}
+            min=${ci[0]}
+            max=${ci[1]}
             step="0.1"
             .value=${this._adaptiveAlpha}
             @input=${t=>this._adaptiveAlpha=t.target.value}
           ></ms-textfield>
-          ${this.seasonalFeature?l`<label>
-            <input
-              type="checkbox"
-              .checked=${this._adaptiveSeasonal}
-              @change=${t=>this._adaptiveSeasonal=t.target.checked}
-            />
-            ${n("adaptive_seasonal_enabled",e)}
-          </label>`:p}
-          <label>
-            <input
-              type="checkbox"
-              .checked=${this._adaptivePrediction}
-              @change=${t=>this._adaptivePrediction=t.target.checked}
-            />
-            ${n("adaptive_prediction_enabled",e)}
-          </label>
+          ${this.seasonalFeature?l`${j({checked:this._adaptiveSeasonal,onChange:t=>this._adaptiveSeasonal=t.target.checked},l`${n("adaptive_seasonal_enabled",e)}`)}`:p}
+          ${j({checked:this._adaptivePrediction,onChange:t=>this._adaptivePrediction=t.target.checked},l`${n("adaptive_prediction_enabled",e)}`)}
         `:p}
-      </details>
+      `)}
     `}_renderAttributeSelect(e){let t=this._lang;return e.available.length>0?l`
         <div class="select-row">
-          <label>${e.label}</label>
-          <select aria-label=${e.label}
-            .value=${e.value}
-            @change=${i=>e.onSelect(i.target.value)}
-          >
+          ${F()?p:l`<label>${e.label}</label>`}
+          ${M({label:e.label,value:e.value,onChange:r=>e.onSelect(r.target.value)},l`
             <option value="" ?selected=${!e.value}>${n("use_entity_state",t)}</option>
-            ${e.suggested.map(i=>l`<option value=${i} ?selected=${i===e.value}>${i} ★</option>`)}
-            ${e.available.filter(i=>!e.suggested.includes(i.name)).map(i=>l`<option value=${i.name} ?selected=${i.name===e.value}>${i.name}${i.numeric?"":" (non-numeric)"}</option>`)}
-          </select>
+            ${e.suggested.map(r=>l`<option value=${r} ?selected=${r===e.value}>${r} ★</option>`)}
+            ${e.available.filter(r=>!e.suggested.includes(r.name)).map(r=>l`<option value=${r.name} ?selected=${r.name===e.value}>${r.name}${r.numeric?"":" (non-numeric)"}</option>`)}
+          `)}
         </div>
       `:l`
       <ms-textfield
         label="${e.label}"
         .value=${e.value}
-        @input=${i=>e.onSelect(i.target.value.trim())}
+        @input=${r=>e.onSelect(r.target.value.trim())}
       ></ms-textfield>
-    `}_renderDetailAttributeSelect(e){let t=this._triggerType==="compound"?this._compoundConditions.flatMap(_=>_.entityIds.split(",").map(m=>m.trim()).filter(Boolean)):(this._triggerEntityIds.length?this._triggerEntityIds:[this._triggerEntityId]).filter(Boolean);if(!t.length)return p;let i=this.hass?.states??{},o=new Map;for(let _ of t){this._fetchConditionAttributes(_);for(let m of this._conditionAttrOptions[_]?.available??[])o.has(m.name)||o.set(m.name,Ec(i[_]?.attributes?.[m.name]))}let a=this._triggerDetailAttribute;a&&!o.has(a)&&o.set(a,"");let c=n("trigger_detail_attribute",e),u=o.size?l`
+    `}_renderDetailAttributeSelect(e){let t=this._triggerType==="compound"?this._compoundConditions.flatMap(_=>_.entityIds.split(",").map(m=>m.trim()).filter(Boolean)):(this._triggerEntityIds.length?this._triggerEntityIds:[this._triggerEntityId]).filter(Boolean);if(!t.length)return p;let r=this.hass?.states??{},o=new Map;for(let _ of t){this._fetchConditionAttributes(_);for(let m of this._conditionAttrOptions[_]?.available??[])o.has(m.name)||o.set(m.name,Gd(r[_]?.attributes?.[m.name]))}let a=this._triggerDetailAttribute;a&&!o.has(a)&&o.set(a,"");let c=n("trigger_detail_attribute",e),u=o.size?l`
         <div class="select-row">
-          <label>${c}</label>
-          <select class="detail-attribute-select" aria-label=${c} .value=${a}
-            @change=${_=>this._triggerDetailAttribute=_.target.value}>
+          ${F()?p:l`<label>${c}</label>`}
+          ${M({label:c,cls:"detail-attribute-select",value:a,onChange:_=>this._triggerDetailAttribute=_.target.value},l`
             <option value="" ?selected=${!a}>${n("trigger_detail_none",e)}</option>
             ${[...o.entries()].sort(([_],[m])=>_.localeCompare(m)).map(([_,m])=>l`<option value=${_} ?selected=${_===a}>${m?`${_}: ${m}`:_}</option>`)}
-          </select>
+          `)}
         </div>`:l`
         <ms-textfield class="detail-attribute-input" label=${c} .value=${a}
-          @input=${_=>this._triggerDetailAttribute=_.target.value.trim()}></ms-textfield>`;return l`${u}<div class="field-help">${n("trigger_detail_attribute_help",e)}</div>`}_renderEnvironmentalAttribute(e){this._fetchConditionAttributes(this._environmentalEntity);let t=this._conditionAttrOptions[this._environmentalEntity];return this._renderAttributeSelect({label:n("environmental_attribute_optional",e),value:this._environmentalAttribute,suggested:t?.suggested??[],available:t?.available??[],onSelect:i=>this._environmentalAttribute=i})}_renderConditionAttribute(e,t){let i=e.entityIds.split(",")[0]?.trim()||"";i&&this._fetchConditionAttributes(i);let o=i?this._conditionAttrOptions[i]:void 0;return this._renderAttributeSelect({label:n("attribute_optional",this._lang),value:e.attribute,suggested:o?.suggested??[],available:o?.available??[],onSelect:a=>this._patchCondition(t,{attribute:a})})}_renderConditionTypeFields(e,t){let i=this._lang;if(e.type==="threshold")return l`
-        <ms-textfield label="${n("trigger_above",i)}" type="number" .value=${e.above}
+          @input=${_=>this._triggerDetailAttribute=_.target.value.trim()}></ms-textfield>`;return l`${u}<div class="field-help">${n("trigger_detail_attribute_help",e)}</div>`}_renderEnvironmentalAttribute(e){this._fetchConditionAttributes(this._environmentalEntity);let t=this._conditionAttrOptions[this._environmentalEntity];return this._renderAttributeSelect({label:n("environmental_attribute_optional",e),value:this._environmentalAttribute,suggested:t?.suggested??[],available:t?.available??[],onSelect:r=>this._environmentalAttribute=r})}_renderConditionAttribute(e,t){let r=e.entityIds.split(",")[0]?.trim()||"";r&&this._fetchConditionAttributes(r);let o=r?this._conditionAttrOptions[r]:void 0;return this._renderAttributeSelect({label:n("attribute_optional",this._lang),value:e.attribute,suggested:o?.suggested??[],available:o?.available??[],onSelect:a=>this._patchCondition(t,{attribute:a})})}_renderConditionTypeFields(e,t){let r=this._lang;if(e.type==="threshold")return l`
+        <ms-textfield label="${n("trigger_above",r)}" type="number" .value=${e.above}
           @input=${o=>this._patchCondition(t,{above:o.target.value})}></ms-textfield>
-        <ms-textfield label="${n("trigger_below",i)}" type="number" .value=${e.below}
+        <ms-textfield label="${n("trigger_below",r)}" type="number" .value=${e.below}
           @input=${o=>this._patchCondition(t,{below:o.target.value})}></ms-textfield>
-        <ms-textfield label="${n("trigger_equals",i)}" type="number" .value=${e.equals}
+        <ms-textfield label="${n("trigger_equals",r)}" type="number" .value=${e.equals}
           @input=${o=>this._patchCondition(t,{equals:o.target.value})}></ms-textfield>
-        <ms-textfield label="${n("trigger_not_equals",i)}" type="number" .value=${e.notEquals}
+        <ms-textfield label="${n("trigger_not_equals",r)}" type="number" .value=${e.notEquals}
           @input=${o=>this._patchCondition(t,{notEquals:o.target.value})}></ms-textfield>
-        <ms-textfield label="${n("for_minutes",i)}" type="number" .value=${e.forMinutes}
+        <ms-textfield label="${n("for_minutes",r)}" type="number" .value=${e.forMinutes}
           @input=${o=>this._patchCondition(t,{forMinutes:o.target.value})}></ms-textfield>
       `;if(e.type==="counter")return l`
-        <ms-textfield label="${n("target_value",i)}" type="number" .value=${e.targetValue}
+        <ms-textfield label="${n("target_value",r)}" type="number" .value=${e.targetValue}
           @input=${o=>this._patchCondition(t,{targetValue:o.target.value})}></ms-textfield>
-        <label>
-          <input type="checkbox" .checked=${e.deltaMode}
-            @change=${o=>this._patchCondition(t,{deltaMode:o.target.checked})} />
-          ${n("delta_mode",i)}
-        </label>
+        ${j({checked:e.deltaMode,onChange:o=>this._patchCondition(t,{deltaMode:o.target.checked})},l`${n("delta_mode",r)}`)}
       `;if(e.type==="state_change"){let o=e.entityIds.split(",")[0]?.trim()||"";return l`
-        ${this._renderStateField({label:n("from_state_optional",i),value:e.fromState,entityId:o,onInput:a=>this._patchCondition(t,{fromState:a})})}
-        ${this._renderStateField({label:n("to_state_optional",i),value:e.toState,entityId:o,onInput:a=>this._patchCondition(t,{toState:a})})}
-        <ms-textfield label="${n("target_changes",i)}" type="number" .value=${e.targetChanges}
+        ${this._renderStateField({label:n("from_state_optional",r),value:e.fromState,entityId:o,onInput:a=>this._patchCondition(t,{fromState:a})})}
+        ${this._renderStateField({label:n("to_state_optional",r),value:e.toState,entityId:o,onInput:a=>this._patchCondition(t,{toState:a})})}
+        <ms-textfield label="${n("target_changes",r)}" type="number" .value=${e.targetChanges}
           @input=${a=>this._patchCondition(t,{targetChanges:a.target.value})}></ms-textfield>
-        <ms-textfield label="${n("for_minutes",i)}" type="number" .value=${e.forMinutes}
+        <ms-textfield label="${n("for_minutes",r)}" type="number" .value=${e.forMinutes}
           @input=${a=>this._patchCondition(t,{forMinutes:a.target.value})}></ms-textfield>
       `}if(e.type==="runtime"){let o=e.entityIds.split(",")[0]?.trim()||"";return l`
-        <ms-textfield label="${n("runtime_hours",i)}" type="number" .value=${e.runtimeHours}
+        <ms-textfield label="${n("runtime_hours",r)}" type="number" .value=${e.runtimeHours}
           @input=${a=>this._patchCondition(t,{runtimeHours:a.target.value})}></ms-textfield>
         ${this._renderOnStatesField({value:e.onStates,entityId:o,onInput:a=>this._patchCondition(t,{onStates:a})})}
       `}return e.type==="due_date"?l`
-        <ms-textfield label="${n("days_before",i)}" type="number" step="1"
-          min=${Ft[0]} max=${Ft[1]} .value=${e.daysBefore}
+        <ms-textfield label="${n("days_before",r)}" type="number" step="1"
+          min=${ai[0]} max=${ai[1]} .value=${e.daysBefore}
           @input=${o=>this._patchCondition(t,{daysBefore:o.target.value})}></ms-textfield>
       `:p}_renderUnitSelect(){let e=this._lang;return l`
       <div class="select-row">
-        <label>${n("interval_unit",e)}</label>
-        <select aria-label=${n("interval_unit",e)}
-          .value=${this._intervalUnit}
-          @change=${t=>this._intervalUnit=t.target.value}
-        >
+        ${F()?p:l`<label>${n("interval_unit",e)}</label>`}
+        ${M({label:n("interval_unit",e),value:this._intervalUnit,onChange:t=>this._intervalUnit=t.target.value},l`
           ${["days","weeks","months","years"].map(t=>l`<option value=${t} ?selected=${t===this._intervalUnit}>${n("unit_"+t,e)}</option>`)}
-        </select>
-      </div>`}_toggleWeekday(e){this._weekdays=this._weekdays.includes(e)?this._weekdays.filter(t=>t!==e):[...this._weekdays,e]}_previewScheduleDict(){if(this._scheduleType==="one_time")return this._dueDate?{kind:"one_time",due_date:this._dueDate}:null;if(this._scheduleType==="calendar"&&!this._calendarEntity.trim())return null;if(Bi.includes(this._scheduleType))return{...this._buildSchedule(),...this._recurrenceExtras()};let e=parseInt(this._intervalDays,10);return this._scheduleType==="manual"||!e||e<=0?null:{kind:"interval",every:e,unit:this._intervalUnit,anchor:this._intervalAnchor,...this._recurrenceExtras()}}updated(e){super.updated?.(e),this._scheduleEntityPickerProbe();for(let t of e.keys())if(g._PREVIEW_RELEVANT.has(String(t))){this._schedulePreviewRefresh();return}}_scheduleEntityPickerProbe(){this._entityPickerFallback||this._pickerProbeTimer!==void 0||!this._open||this._scheduleType!=="sensor_based"||(this._pickerProbeTimer=setTimeout(()=>this._probeEntityPickers(),1500))}_probeEntityPickers(){if(this._pickerProbeTimer=void 0,this._entityPickerFallback||!this._open)return;let e=this.shadowRoot?.querySelector("ha-form.entity-picker-form"),t=(this.shadowRoot?.querySelector(".content")?.offsetHeight??0)>0;if(!e||!t){this._pickerProbeStrikes=0;return}let i=(u,_,m=0)=>{if(!(!u||m>10)){(u.tagName?.toLowerCase()??"")==="ha-entity-picker"&&_.push(u);for(let f of[u.shadowRoot,u])if(f)for(let x of Array.from(f.children??[]))i(x,_,m+1)}},o=[...this.shadowRoot?.querySelectorAll("ha-form.entity-picker-form")??[]],a=[];for(let u of o)i(u,a);let c=a.length===0||a.some(u=>u.offsetHeight===0);if(e.offsetHeight===0||c){if(this._pickerProbeStrikes+=1,this._pickerProbeStrikes>=2){this._entityPickerFallback=!0;return}this._pickerProbeTimer=setTimeout(()=>this._probeEntityPickers(),700)}else this._pickerProbeStrikes=0}_schedulePreviewRefresh(){this._previewTimer&&clearTimeout(this._previewTimer),this._previewTimer=setTimeout(()=>{this._fetchSchedulePreview()},300)}async _fetchSchedulePreview(){let e=this._open?this._previewScheduleDict():null;if(!e){++this._previewSeq,this._schedulePreview=[],this._schedulePreviewEnded=!1;return}let t=++this._previewSeq;try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/schedule/preview",schedule:e,...this._lastPerformed?{last_performed:this._lastPerformed}:{},...this._taskId?{entry_id:this._entryId,task_id:this._taskId}:{}});if(t!==this._previewSeq)return;this._schedulePreview=i.occurrences||[],this._schedulePreviewEnded=!!i.series_ended}catch{}}_renderSchedulePreview(){if(this._schedulePreview.length===0)return p;let e=this._lang,t=this.scheduleTimeEnabled&&this._scheduleTimeOn&&this._scheduleTime?` ${this._scheduleTime}`:"",i=this._schedulePreview.map((a,c)=>{let u=new Date(`${a}T12:00:00`).getDay();return`${Dt(u===0?6:u-1,e,"short")} ${q(a,e)}${c===0?t:""}`}).join(" \xB7 "),o=this._scheduleType==="time_based"&&this._intervalAnchor==="completion"?l`<div class="field-help">${n("schedule_preview_ontime",e)}</div>`:p;return l`
+        `)}
+      </div>`}_toggleWeekday(e){this._weekdays=this._weekdays.includes(e)?this._weekdays.filter(t=>t!==e):[...this._weekdays,e]}_previewScheduleDict(){if(this._scheduleType==="one_time")return this._dueDate?{kind:"one_time",due_date:this._dueDate}:null;if(this._scheduleType==="calendar"&&!this._calendarEntity.trim())return null;if($r.includes(this._scheduleType))return{...this._buildSchedule(),...this._recurrenceExtras()};let e=parseInt(this._intervalDays,10);return this._scheduleType==="manual"||!e||e<=0?null:{kind:"interval",every:e,unit:this._intervalUnit,anchor:this._intervalAnchor,...this._recurrenceExtras()}}updated(e){super.updated?.(e),this._scheduleEntityPickerProbe();for(let t of e.keys())if(g._PREVIEW_RELEVANT.has(String(t))){this._schedulePreviewRefresh();return}}_scheduleEntityPickerProbe(){this._entityPickerFallback||this._pickerProbeTimer!==void 0||!this._open||this._scheduleType!=="sensor_based"||(this._pickerProbeTimer=setTimeout(()=>this._probeEntityPickers(),1500))}_probeEntityPickers(){if(this._pickerProbeTimer=void 0,this._entityPickerFallback||!this._open)return;let e=this.shadowRoot?.querySelector("ha-form.entity-picker-form"),t=(this.shadowRoot?.querySelector(".content")?.offsetHeight??0)>0;if(!e||!t){this._pickerProbeStrikes=0;return}let r=(u,_,m=0)=>{if(!(!u||m>10)){(u.tagName?.toLowerCase()??"")==="ha-entity-picker"&&_.push(u);for(let f of[u.shadowRoot,u])if(f)for(let v of Array.from(f.children??[]))r(v,_,m+1)}},o=[...this.shadowRoot?.querySelectorAll("ha-form.entity-picker-form")??[]],a=[];for(let u of o)r(u,a);let c=a.length===0||a.some(u=>u.offsetHeight===0);if(e.offsetHeight===0||c){if(this._pickerProbeStrikes+=1,this._pickerProbeStrikes>=2){this._entityPickerFallback=!0;return}this._pickerProbeTimer=setTimeout(()=>this._probeEntityPickers(),700)}else this._pickerProbeStrikes=0}_schedulePreviewRefresh(){this._previewTimer&&clearTimeout(this._previewTimer),this._previewTimer=setTimeout(()=>{this._fetchSchedulePreview()},300)}async _fetchSchedulePreview(){let e=this._open?this._previewScheduleDict():null;if(!e){++this._previewSeq,this._schedulePreview=[],this._schedulePreviewEnded=!1;return}let t=++this._previewSeq;try{let r=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/schedule/preview",schedule:e,...this._lastPerformed?{last_performed:this._lastPerformed}:{},...this._taskId?{entry_id:this._entryId,task_id:this._taskId}:{}});if(t!==this._previewSeq)return;this._schedulePreview=r.occurrences||[],this._schedulePreviewEnded=!!r.series_ended}catch{}}_renderSchedulePreview(){if(this._schedulePreview.length===0)return p;let e=this._lang,t=this.scheduleTimeEnabled&&this._scheduleTimeOn&&this._scheduleTime?` ${this._scheduleTime}`:"",r=this._schedulePreview.map((a,c)=>{let u=new Date(`${a}T12:00:00`).getDay();return`${Le(u===0?6:u-1,e,"short")} ${q(a,e)}${c===0?t:""}`}).join(" \xB7 "),o=this._scheduleType==="time_based"&&this._intervalAnchor==="completion"?l`<div class="field-help">${n("schedule_preview_ontime",e)}</div>`:p;return l`
       <div class="trigger-live-hint schedule-preview">
-        ${n("schedule_preview_title",e)}: ${i}${this._schedulePreviewEnded?l` <span class="field-help">${n("schedule_preview_ends",e)}</span>`:p}
+        ${n("schedule_preview_title",e)}: ${r}${this._schedulePreviewEnded?l` <span class="field-help">${n("schedule_preview_ends",e)}</span>`:p}
         ${o}
       </div>
-    `}_buildSchedule(){let e=o=>{let a=parseInt(this._calOffset,10)||0;return a&&(o.offset=Math.max(-Ut,Math.min(a,Ut))),o},t=o=>((this._calMonths.length||this._hadCalMonths)&&(o.months=[...this._calMonths].sort((a,c)=>a-c)),e(o));if(this._scheduleType==="weekdays")return e({kind:"weekdays",weekdays:[...this._weekdays].sort((o,a)=>o-a)});if(this._scheduleType==="nth_weekday")return t({kind:"nth_weekday",nth:parseInt(this._nth,10),weekday:parseInt(this._nthWeekday,10)});if(this._scheduleType==="calendar")return e({kind:"calendar",entity_id:this._calendarEntity.trim()});let i={kind:"day_of_month",day:this._domLastDay?-1:parseInt(this._domDay,10)||1};return this._domBusiness&&(i.business=!0),t(i)}_recurrenceExtras(){let e={};if(this._seasonMonths.length&&(e.season_months=[...this._seasonMonths].sort((t,i)=>t-i)),this._endsMode==="count"){let t=parseInt(this._endsCount,10);t>=1&&(e.ends={count:t})}else this._endsMode==="until"&&this._endsUntil&&(e.ends={until:this._endsUntil});return e}_toggleCalMonth(e){this._calMonths=this._calMonths.includes(e)?this._calMonths.filter(t=>t!==e):[...this._calMonths,e]}_renderCalMonths(){let e=this._lang;return l`
+    `}_buildSchedule(){let e=o=>{let a=parseInt(this._calOffset,10)||0;return a&&(o.offset=Math.max(-li,Math.min(a,li))),o},t=o=>((this._calMonths.length||this._hadCalMonths)&&(o.months=[...this._calMonths].sort((a,c)=>a-c)),e(o));if(this._scheduleType==="weekdays")return e({kind:"weekdays",weekdays:[...this._weekdays].sort((o,a)=>o-a)});if(this._scheduleType==="nth_weekday")return t({kind:"nth_weekday",nth:parseInt(this._nth,10),weekday:parseInt(this._nthWeekday,10)});if(this._scheduleType==="calendar")return e({kind:"calendar",entity_id:this._calendarEntity.trim()});let r={kind:"day_of_month",day:this._domLastDay?-1:parseInt(this._domDay,10)||1};return this._domBusiness&&(r.business=!0),t(r)}_recurrenceExtras(){let e={};if(this._seasonMonths.length&&(e.season_months=[...this._seasonMonths].sort((t,r)=>t-r)),this._endsMode==="count"){let t=parseInt(this._endsCount,10);t>=1&&(e.ends={count:t})}else this._endsMode==="until"&&this._endsUntil&&(e.ends={until:this._endsUntil});return e}_toggleCalMonth(e){this._calMonths=this._calMonths.includes(e)?this._calMonths.filter(t=>t!==e):[...this._calMonths,e]}_renderCalMonths(){let e=this._lang;return l`
       <label class="field-label">${n("recurrence_months_label",e)}</label>
       <div class="field-help">${n("recurrence_months_hint",e)}</div>
       <div class="weekday-chips season-chips cal-month-chips">
-        ${zo(e).map((t,i)=>l`
+        ${Ua(e).map((t,r)=>l`
           <button
             type="button"
-            class="season-chip ${this._calMonths.includes(i+1)?"selected":""}"
-            @click=${()=>this._toggleCalMonth(i+1)}
+            class="season-chip ${this._calMonths.includes(r+1)?"selected":""}"
+            @click=${()=>this._toggleCalMonth(r+1)}
           >${t}</button>`)}
-      </div>`}_toggleSeasonMonth(e){this._seasonMonths=this._seasonMonths.includes(e)?this._seasonMonths.filter(t=>t!==e):[...this._seasonMonths,e]}_renderRecurrenceExtras(){let e=this._lang;if(!(this._scheduleType==="time_based"||Bi.includes(this._scheduleType)))return p;let i=zo(e);return l`
+      </div>`}_toggleSeasonMonth(e){this._seasonMonths=this._seasonMonths.includes(e)?this._seasonMonths.filter(t=>t!==e):[...this._seasonMonths,e]}_renderRecurrenceExtras(){let e=this._lang;if(!(this._scheduleType==="time_based"||$r.includes(this._scheduleType)))return p;let r=Ua(e);return l`
       <label class="field-label">${n("season_window_label",e)}</label>
       <div class="field-help">${n("season_window_hint",e)}</div>
       <div class="weekday-chips season-chips">
-        ${i.map((o,a)=>l`
+        ${r.map((o,a)=>l`
           <button
             type="button"
             class="season-chip ${this._seasonMonths.includes(a+1)?"selected":""}"
@@ -2978,12 +3330,11 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
 
       <label class="field-label">${n("series_end_label",e)}</label>
       <div class="select-row">
-        <select aria-label=${n("series_end_label",e)} .value=${this._endsMode}
-          @change=${o=>this._endsMode=o.target.value}>
+        ${M({label:n("series_end_label",e),value:this._endsMode,onChange:o=>this._endsMode=o.target.value},l`
           <option value="never" ?selected=${this._endsMode==="never"}>${n("series_end_never",e)}</option>
           <option value="count" ?selected=${this._endsMode==="count"}>${n("series_end_after_count",e)}</option>
           <option value="until" ?selected=${this._endsMode==="until"}>${n("series_end_until",e)}</option>
-        </select>
+        `)}
       </div>
       ${this._endsMode==="count"?l`
         <!-- max: MAX_SERIES_COUNT (const.py), what the history can count. -->
@@ -3002,28 +3353,28 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           .value=${this._endsUntil}
           @value-changed=${o=>this._endsUntil=o.detail.value}
         ></ms-date-field>`:p}
-    `}_renderCalendarFields(){let e=this._lang,t=$c(e);if(this._scheduleType==="weekdays")return l`
+    `}_renderCalendarFields(){let e=this._lang,t=Vd(e);if(this._scheduleType==="weekdays")return l`
         <label class="field-label">${n("recurrence_on_days",e)}</label>
         <div class="weekday-chips">
-          ${t.map((i,o)=>l`
+          ${t.map((r,o)=>l`
             <button
               type="button"
               class="weekday-chip ${this._weekdays.includes(o)?"selected":""}"
               @click=${()=>this._toggleWeekday(o)}
-            >${i}</button>`)}
+            >${r}</button>`)}
         </div>
-        ${this._renderCalOffsetField()}`;if(this._scheduleType==="nth_weekday"){let i=[["1",n("ord_1",e)],["2",n("ord_2",e)],["3",n("ord_3",e)],["4",n("ord_4",e)],["5",n("ord_5",e)],["-1",n("ord_last",e)]];return l`
+        ${this._renderCalOffsetField()}`;if(this._scheduleType==="nth_weekday"){let r=[["1",n("ord_1",e)],["2",n("ord_2",e)],["3",n("ord_3",e)],["4",n("ord_4",e)],["5",n("ord_5",e)],["-1",n("ord_last",e)]];return l`
         <div class="select-row">
-          <label>${n("recurrence_occurrence",e)}</label>
-          <select aria-label=${n("recurrence_occurrence",e)} .value=${this._nth} @change=${o=>this._nth=o.target.value}>
-            ${i.map(([o,a])=>l`<option value=${o} ?selected=${o===this._nth}>${a}</option>`)}
-          </select>
+          ${F()?p:l`<label>${n("recurrence_occurrence",e)}</label>`}
+          ${M({label:n("recurrence_occurrence",e),value:this._nth,onChange:o=>this._nth=o.target.value},l`
+            ${r.map(([o,a])=>l`<option value=${o} ?selected=${o===this._nth}>${a}</option>`)}
+          `)}
         </div>
         <div class="select-row">
-          <label>${n("recurrence_weekday",e)}</label>
-          <select aria-label=${n("recurrence_weekday",e)} .value=${this._nthWeekday} @change=${o=>this._nthWeekday=o.target.value}>
+          ${F()?p:l`<label>${n("recurrence_weekday",e)}</label>`}
+          ${M({label:n("recurrence_weekday",e),value:this._nthWeekday,onChange:o=>this._nthWeekday=o.target.value},l`
             ${t.map((o,a)=>l`<option value=${String(a)} ?selected=${String(a)===this._nthWeekday}>${o}</option>`)}
-          </select>
+          `)}
         </div>
         ${this._renderCalMonths()}
         ${this._renderCalOffsetField()}`}return this._scheduleType==="calendar"?l`
@@ -3032,7 +3383,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             label="${n("calendar_entity_label",e)}"
             helper="${n("calendar_entity_hint",e)}"
             .value=${this._calendarEntity}
-            @input=${i=>this._calendarEntity=i.target.value.trim()}
+            @input=${r=>this._calendarEntity=r.target.value.trim()}
           ></ms-textfield>
         `:l`
           <ha-form
@@ -3042,7 +3393,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             .data=${{calendar_entity:this._calendarEntity}}
             .computeLabel=${()=>n("calendar_entity_label",e)}
             .computeHelper=${()=>n("calendar_entity_hint",e)}
-            @value-changed=${i=>{this._calendarEntity=(i.detail.value.calendar_entity||"").trim()}}
+            @value-changed=${r=>{this._calendarEntity=(r.detail.value.calendar_entity||"").trim()}}
           ></ha-form>`}
         ${this._renderCalOffsetField()}`:this._scheduleType==="day_of_month"?l`
         ${this._domLastDay?p:l`
@@ -3052,29 +3403,21 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             min="1"
             max="31"
             .value=${this._domDay}
-            @input=${i=>this._domDay=i.target.value}
+            @input=${r=>this._domDay=r.target.value}
           ></ms-textfield>`}
-        <label class="checkbox-row">
-          <input type="checkbox" .checked=${this._domLastDay}
-            @change=${i=>this._domLastDay=i.target.checked} />
-          <span>${n("recurrence_last_day",e)}</span>
-        </label>
-        <label class="checkbox-row">
-          <input type="checkbox" .checked=${this._domBusiness}
-            @change=${i=>this._domBusiness=i.target.checked} />
-          <span>${n("recurrence_business_day",e)}</span>
-        </label>
+        ${j({cls:"checkbox-row",checked:this._domLastDay,onChange:r=>this._domLastDay=r.target.checked},l`<span>${n("recurrence_last_day",e)}</span>`)}
+        ${j({cls:"checkbox-row",checked:this._domBusiness,onChange:r=>this._domBusiness=r.target.checked},l`<span>${n("recurrence_business_day",e)}</span>`)}
         ${this._renderCalMonths()}
         ${this._renderCalOffsetField()}`:p}_renderCalOffsetField(){let e=this._lang;return l`
       <ms-textfield
         label="${n("recurrence_offset",e)}"
         helper="${n("recurrence_offset_help",e)}"
         type="number"
-        min=${-Ut}
-        max=${Ut}
+        min=${-li}
+        max=${li}
         .value=${this._calOffset}
         @input=${t=>this._calOffset=t.target.value}
-      ></ms-textfield>`}_thresholdLimitsOverlap(){let e=parseFloat(this._triggerAbove),t=parseFloat(this._triggerBelow);return!isNaN(e)&&!isNaN(t)&&t>e}_renderTriggerLiveHint(){if(this._triggerType==="compound")return p;let e=this._triggerType==="threshold"&&this._thresholdLimitsOverlap()?l`<div class="trigger-live-hint warn">${n("trigger_hint_overlap",this._lang)}</div>`:p,t=this._triggerEntityId||this._triggerEntityIds[0];if(!t||!this.hass?.states)return e;let i=this.hass.states[t];if(!i)return e;let o=this._lang,a=i.attributes?.unit_of_measurement,c=typeof a=="string"&&a?` ${a}`:"",u=this._triggerAttribute?i.attributes?.[this._triggerAttribute]:i.state,_=typeof u=="number"?u:parseFloat(String(u)),m=u!=="unknown"&&u!=="unavailable"&&u!=null&&!isNaN(_),f=w=>P(w,o,{maximumFractionDigits:1}),x=[];if(this._triggerType==="threshold"){let w=parseFloat(this._triggerAbove),R=parseFloat(this._triggerBelow),k=parseFloat(this._triggerEquals),E=parseFloat(this._triggerNotEquals);if([w,R,k,E].every(v=>isNaN(v)))return p;m&&x.push(n("trigger_hint_now",o).replace("{value}",f(_)+c)),isNaN(w)||x.push(n("trigger_hint_above",o).replace("{target}",f(w)+c)),isNaN(R)||x.push(n("trigger_hint_below",o).replace("{target}",f(R)+c)),isNaN(k)||x.push(n("trigger_hint_equals",o).replace("{target}",f(k)+c)),isNaN(E)||x.push(n("trigger_hint_not_equals",o).replace("{target}",f(E)+c))}else if(this._triggerType==="counter"){let w=parseFloat(this._triggerTargetValue);if(isNaN(w))return p;this._triggerDeltaMode?this._taskId?x.push(n("trigger_hint_counter_delta_edit",o).replace("{target}",f(w)+c)):m?x.push(n("trigger_hint_counter_delta",o).replace("{value}",f(_)+c).replace("{due}",f(_+w)+c).replace("{target}",f(w)+c)):x.push(n("trigger_hint_counter_delta_edit",o).replace("{target}",f(w)+c)):(m&&x.push(n("trigger_hint_now",o).replace("{value}",f(_)+c)),x.push(n("trigger_hint_counter_abs",o).replace("{target}",f(w)+c)))}else if(this._triggerType==="runtime"){let w=parseFloat(this._triggerRuntimeHours);if(isNaN(w))return p;x.push(n("trigger_hint_runtime",o).replace("{hours}",f(w))),x.push(n("trigger_hint_state_now",o).replace("{value}",String(i.state)))}else if(this._triggerType==="state_change"){let w=parseInt(this._triggerTargetChanges,10)||1,R=this._triggerToState.trim();x.push((R?n("trigger_hint_state_change_to",o).replace("{state}",R):n("trigger_hint_state_change",o)).replace("{count}",String(w))),x.push(n("trigger_hint_state_now",o).replace("{value}",String(i.state)))}else if(this._triggerType==="due_date"){let w=parseInt(this._triggerDaysBefore,10)||0;x.push(w===0?n("trigger_hint_due_date_same_day",o):fi("trigger_hint_due_date","trigger_hint_due_date_one",w,o,"days"));let R=u==null?"":String(u);R&&!isNaN(Date.parse(R))&&x.push(n("trigger_hint_due_date_now",o).replace("{date}",q(R,o)))}return x.length?l`<div class="trigger-live-hint">${x.join(" ")}</div>${e}`:e}_renderTriggerTypeFields(){let e=this._lang;return this._triggerType==="threshold"?l`
+      ></ms-textfield>`}_thresholdLimitsOverlap(){let e=parseFloat(this._triggerAbove),t=parseFloat(this._triggerBelow);return!isNaN(e)&&!isNaN(t)&&t>e}_renderTriggerLiveHint(){if(this._triggerType==="compound")return p;let e=this._triggerType==="threshold"&&this._thresholdLimitsOverlap()?l`<div class="trigger-live-hint warn">${n("trigger_hint_overlap",this._lang)}</div>`:p,t=this._triggerEntityId||this._triggerEntityIds[0];if(!t||!this.hass?.states)return e;let r=this.hass.states[t];if(!r)return e;let o=this._lang,a=r.attributes?.unit_of_measurement,c=typeof a=="string"&&a?` ${a}`:"",u=this._triggerAttribute?r.attributes?.[this._triggerAttribute]:r.state,_=typeof u=="number"?u:parseFloat(String(u)),m=u!=="unknown"&&u!=="unavailable"&&u!=null&&!isNaN(_),f=w=>S(w,o,{maximumFractionDigits:1}),v=[];if(this._triggerType==="threshold"){let w=parseFloat(this._triggerAbove),A=parseFloat(this._triggerBelow),k=parseFloat(this._triggerEquals),E=parseFloat(this._triggerNotEquals);if([w,A,k,E].every(y=>isNaN(y)))return p;m&&v.push(n("trigger_hint_now",o).replace("{value}",f(_)+c)),isNaN(w)||v.push(n("trigger_hint_above",o).replace("{target}",f(w)+c)),isNaN(A)||v.push(n("trigger_hint_below",o).replace("{target}",f(A)+c)),isNaN(k)||v.push(n("trigger_hint_equals",o).replace("{target}",f(k)+c)),isNaN(E)||v.push(n("trigger_hint_not_equals",o).replace("{target}",f(E)+c))}else if(this._triggerType==="counter"){let w=parseFloat(this._triggerTargetValue);if(isNaN(w))return p;this._triggerDeltaMode?this._taskId?v.push(n("trigger_hint_counter_delta_edit",o).replace("{target}",f(w)+c)):m?v.push(n("trigger_hint_counter_delta",o).replace("{value}",f(_)+c).replace("{due}",f(_+w)+c).replace("{target}",f(w)+c)):v.push(n("trigger_hint_counter_delta_edit",o).replace("{target}",f(w)+c)):(m&&v.push(n("trigger_hint_now",o).replace("{value}",f(_)+c)),v.push(n("trigger_hint_counter_abs",o).replace("{target}",f(w)+c)))}else if(this._triggerType==="runtime"){let w=parseFloat(this._triggerRuntimeHours);if(isNaN(w))return p;v.push(n("trigger_hint_runtime",o).replace("{hours}",f(w))),v.push(n("trigger_hint_state_now",o).replace("{value}",String(r.state)))}else if(this._triggerType==="state_change"){let w=parseInt(this._triggerTargetChanges,10)||1,A=this._triggerToState.trim();v.push((A?n("trigger_hint_state_change_to",o).replace("{state}",A):n("trigger_hint_state_change",o)).replace("{count}",String(w))),v.push(n("trigger_hint_state_now",o).replace("{value}",String(r.state)))}else if(this._triggerType==="due_date"){let w=parseInt(this._triggerDaysBefore,10)||0;v.push(w===0?n("trigger_hint_due_date_same_day",o):Fi("trigger_hint_due_date","trigger_hint_due_date_one",w,o,"days"));let A=u==null?"":String(u);A&&!isNaN(Date.parse(A))&&v.push(n("trigger_hint_due_date_now",o).replace("{date}",q(A,o)))}return v.length?l`<div class="trigger-live-hint">${v.join(" ")}</div>${e}`:e}_renderTriggerTypeFields(){let e=this._lang;return this._triggerType==="threshold"?l`
         <ms-textfield
           label="${n("trigger_above",e)}"
           type="number"
@@ -3117,14 +3460,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           .value=${this._triggerTargetValue}
           @input=${t=>this._triggerTargetValue=t.target.value}
         ></ms-textfield>
-        <label>
-          <input
-            type="checkbox"
-            .checked=${this._triggerDeltaMode}
-            @change=${t=>this._triggerDeltaMode=t.target.checked}
-          />
-          ${n("delta_mode",e)}
-        </label>
+        ${j({checked:this._triggerDeltaMode,onChange:t=>this._triggerDeltaMode=t.target.checked},l`${n("delta_mode",e)}`)}
         ${this._triggerDeltaMode?l`
               <ms-textfield
                 label="${n("baseline_start_value",e)}"
@@ -3147,7 +3483,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
         <ms-textfield
           label="${n("target_changes",e)}"
           type="number"
-          min=${no[0]}
+          min=${Vo[0]}
           .value=${this._triggerTargetChanges}
           @input=${t=>this._triggerTargetChanges=t.target.value}
         ></ms-textfield>
@@ -3156,7 +3492,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
         <ms-textfield
           label="${n("for_at_least_minutes",e)}"
           type="number"
-          min=${ct[0]}
+          min=${St[0]}
           .value=${this._triggerForMinutes}
           @input=${t=>this._triggerForMinutes=t.target.value}
         ></ms-textfield>
@@ -3184,25 +3520,22 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           label="${n("days_before",e)}"
           type="number"
           step="1"
-          min=${Ft[0]}
-          max=${Ft[1]}
+          min=${ai[0]}
+          max=${ai[1]}
           .value=${this._triggerDaysBefore}
           @input=${t=>this._triggerDaysBefore=t.target.value}
         ></ms-textfield>
         <div class="field-help">${n("days_before_help",e)}</div>
-      `:p}_section(e,t,i){return l`<section class="form-section ${e}">
+      `:p}_section(e,t,r){return l`<section class="form-section ${e}">
       <h3 class="section-title">${t}</h3>
-      ${i}
+      ${r}
     </section>`}_renderIdentity(e){return l`
           ${this._taskId===null&&this._objectChoices.length>0?l`
             <div class="select-row">
-              <label>${n("object",e)}</label>
-              <select aria-label=${n("object",e)}
-                .value=${this._entryId}
-                @change=${t=>{this._entryId=t.target.value,this._consumesParts={},this._consumesQtyText={},this._loadParts(),this._loadForeignPools()}}
-              >
+              ${F()?p:l`<label>${n("object",e)}</label>`}
+              ${M({label:n("object",e),value:this._entryId,onChange:t=>{this._entryId=t.target.value,this._consumesParts={},this._consumesQtyText={},this._loadParts(),this._loadForeignPools()}},l`
                 ${this._objectChoices.map(t=>l`<option value=${t.entry_id} ?selected=${t.entry_id===this._entryId}>${t.name}</option>`)}
-              </select>
+              `)}
             </div>
           `:p}
           <ms-textfield
@@ -3212,13 +3545,10 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             @input=${t=>this._name=t.target.value}
           ></ms-textfield>
           <div class="select-row">
-            <label>${n("maintenance_type",e)}</label>
-            <select aria-label=${n("maintenance_type",e)}
-              .value=${this._type}
-              @change=${t=>this._type=t.target.value}
-            >
-              ${vc.map(t=>l`<option value=${t} ?selected=${t===this._type}>${n(t,e)}</option>`)}
-            </select>
+            ${F()?p:l`<label>${n("maintenance_type",e)}</label>`}
+            ${M({label:n("maintenance_type",e),value:this._type,onChange:t=>this._type=t.target.value},l`
+              ${za.map(t=>l`<option value=${t} ?selected=${t===this._type}>${n(t,e)}</option>`)}
+            `)}
           </div>
           <ms-textfield
             label="${n("notes_optional",e)}"
@@ -3229,25 +3559,14 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             @input=${t=>this._notes=t.target.value}
           ></ms-textfield>
           ${this._renderDetails(e)}
-          <label class="toggle-row">
-            <input
-              type="checkbox"
-              .checked=${this._enabled}
-              @change=${t=>this._enabled=t.target.checked}
-            />
-            ${n("task_enabled",e)}
-          </label>
+          ${j({cls:"toggle-row",checked:this._enabled,onChange:t=>this._enabled=t.target.checked},l`${n("task_enabled",e)}`)}
     `}_renderDetails(e){return l`
-      <details class="details-section" ?open=${this._detailsOpen}>
-        <summary>${n("task_section_details",e)}</summary>
+      ${ue({cls:"details-section",open:this._detailsOpen,header:n("task_section_details",e)},l`
         <div class="select-row">
-          <label>${n("priority",e)}</label>
-          <select aria-label=${n("priority",e)}
-            .value=${this._priority}
-            @change=${t=>this._priority=t.target.value}
-          >
-            ${Wr.map(t=>l`<option value=${t} ?selected=${t===this._priority}>${n("priority_"+t,e)}</option>`)}
-          </select>
+          ${F()?p:l`<label>${n("priority",e)}</label>`}
+          ${M({label:n("priority",e),value:this._priority,onChange:t=>this._priority=t.target.value},l`
+            ${ks.map(t=>l`<option value=${t} ?selected=${t===this._priority}>${n("priority_"+t,e)}</option>`)}
+          `)}
         </div>
         <ms-textfield
           label="${n("labels",e)}"
@@ -3267,16 +3586,13 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           .value=${this._customIcon}
           @value-changed=${t=>this._customIcon=t.detail.value||""}
         ></ha-icon-picker>
-      </details>
+      `)}
     `}_renderScheduleSection(e){return this._section("schedule-section",n("task_section_schedule",e),l`
           <div class="select-row">
-            <label>${n("schedule_type",e)}</label>
-            <select aria-label=${n("schedule_type",e)}
-              .value=${this._scheduleType}
-              @change=${t=>this._scheduleType=t.target.value}
-            >
-              ${bc.map(t=>l`<option value=${t} ?selected=${t===this._scheduleType}>${n(t,e)}</option>`)}
-            </select>
+            ${F()?p:l`<label>${n("schedule_type",e)}</label>`}
+            ${M({label:n("schedule_type",e),value:this._scheduleType,onChange:t=>this._scheduleType=t.target.value},l`
+              ${zd.map(t=>l`<option value=${t} ?selected=${t===this._scheduleType}>${n(t,e)}</option>`)}
+            `)}
           </div>
           ${this._scheduleType==="time_based"?l`
                 <ms-textfield
@@ -3287,14 +3603,11 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                 ></ms-textfield>
                 ${this._renderUnitSelect()}
                 <div class="select-row">
-                  <label>${n("interval_anchor",e)}</label>
-                  <select aria-label=${n("interval_anchor",e)}
-                    .value=${this._intervalAnchor}
-                    @change=${t=>this._intervalAnchor=t.target.value}
-                  >
+                  ${F()?p:l`<label>${n("interval_anchor",e)}</label>`}
+                  ${M({label:n("interval_anchor",e),value:this._intervalAnchor,onChange:t=>this._intervalAnchor=t.target.value},l`
                     <option value="completion" ?selected=${this._intervalAnchor==="completion"}>${n("anchor_completion",e)}</option>
                     <option value="planned" ?selected=${this._intervalAnchor==="planned"}>${n("anchor_planned",e)}</option>
-                  </select>
+                  `)}
                   <div class="field-help anchor-help">${n("interval_anchor_hint",e)}</div>
                 </div>
               `:p}
@@ -3309,12 +3622,8 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                   @value-changed=${t=>this._dueDate=t.detail.value}
                 ></ms-date-field>
               `:p}
-          ${this.scheduleTimeEnabled&&Ho.includes(this._scheduleType)?l`
-            <label class="checkbox-row schedule-time-toggle">
-              <input type="checkbox" .checked=${this._scheduleTimeOn}
-                @change=${t=>this._scheduleTimeOn=t.target.checked} />
-              <span>${n("schedule_time_toggle",e)}</span>
-            </label>
+          ${this.scheduleTimeEnabled&&Fa.includes(this._scheduleType)?l`
+            ${j({cls:"checkbox-row schedule-time-toggle",checked:this._scheduleTimeOn,onChange:t=>this._scheduleTimeOn=t.target.checked},l`<span>${n("schedule_time_toggle",e)}</span>`)}
             ${this._scheduleTimeOn?l`
               <ms-date-field
                 kind="time"
@@ -3340,8 +3649,8 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           <ms-textfield
             label="${n("warning_days",e)}"
             type="number"
-            min=${Dr[0]}
-            max=${Dr[1]}
+            min=${bs[0]}
+            max=${bs[1]}
             .value=${this._warningDays}
             @input=${t=>this._warningDays=t.target.value}
           ></ms-textfield>
@@ -3367,7 +3676,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             <ha-form
               class="entity-picker-form"
               .hass=${this.hass}
-              .schema=${[{name:"environmental_entity",selector:{entity:{domain:Po}}}]}
+              .schema=${[{name:"environmental_entity",selector:{entity:{domain:wa}}}]}
               .data=${{environmental_entity:this._environmentalEntity}}
               .computeLabel=${()=>n("environmental_entity_optional",e)}
               .computeHelper=${()=>n("environmental_entity_helper",e)}
@@ -3403,40 +3712,29 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                   <label>${n("consumes_parts_label",e)}</label>
                   ${this.parts.map(t=>this._renderConsumesRow(t))}
                   ${this._foreignOwners.length?l`
-                        <details class="shared-pools" ?open=${this._hasForeignPick}>
-                          <summary>${n("shared_parts_other_objects",e)}</summary>
+                        ${ue({cls:"shared-pools",open:this._hasForeignPick,header:n("shared_parts_other_objects",e)},l`
                           <div class="field-help">${n("shared_parts_help",e)}</div>
                           ${this._foreignOwners.map(t=>l`
                               <div class="shared-pool-owner">${t.name}</div>
-                              ${t.parts.map(i=>this._renderConsumesRow(i,t.entry_id))}
+                              ${t.parts.map(r=>this._renderConsumesRow(r,t.entry_id))}
                             `)}
-                        </details>
+                        `)}
                       `:p}
                 </div>
               `:p}
           <div class="field-label">${n("require_on_completion",e)}</div>
           <div class="required-completion">
-            ${Gr.map(t=>l`
-              <label class="req-option">
-                <input
-                  type="checkbox"
-                  .checked=${this._requiredCompletion.includes(t)}
-                  @change=${i=>this._toggleRequired(t,i.target.checked)}
-                />
-                <span>${n(_t[t],e)}</span>
-              </label>
+            ${Es.map(t=>l`
+              ${j({cls:"req-option",checked:this._requiredCompletion.includes(t),onChange:r=>this._toggleRequired(t,r.target.checked)},l`<span>${n(Pt[t],e)}</span>`)}
             `)}
           </div>
           ${this._availableTags.length>0?l`
               <div class="select-row">
-                <label>${n("nfc_tag_id_optional",e)}</label>
-                <select aria-label=${n("nfc_tag_id_optional",e)}
-                  .value=${this._nfcTagId}
-                  @change=${t=>this._nfcTagId=t.target.value}
-                >
+                ${F()?p:l`<label>${n("nfc_tag_id_optional",e)}</label>`}
+                ${M({label:n("nfc_tag_id_optional",e),value:this._nfcTagId,onChange:t=>this._nfcTagId=t.target.value},l`
                   <option value="" ?selected=${!this._nfcTagId}>${n("no_nfc_tag",e)}</option>
                   ${this._availableTags.map(t=>l`<option value=${t.id} ?selected=${t.id===this._nfcTagId}>${t.name}</option>`)}
-                </select>
+                `)}
                 <button type="button" class="link-button" @click=${this._loadTags}
                   title="${n("nfc_tags_refresh",e)}">↻</button>
               </div>
@@ -3455,23 +3753,9 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                 </button>
               </div>
             `}
-          <label class="req-option">
-            <input
-              type="checkbox"
-              .checked=${this._requireTagScan}
-              @change=${t=>this._requireTagScan=t.target.checked}
-            />
-            <span>${n("require_tag_scan",e)}</span>
-          </label>
+          ${j({cls:"req-option",checked:this._requireTagScan,onChange:t=>this._requireTagScan=t.target.checked},l`<span>${n("require_tag_scan",e)}</span>`)}
           ${this._requireTagScan?l`<div class="field-help">${n("require_tag_scan_help",e)}</div>`:p}
-          <label class="req-option">
-            <input
-              type="checkbox"
-              .checked=${!this._allowSkip}
-              @change=${t=>this._allowSkip=!t.target.checked}
-            />
-            <span>${n("disallow_skip",e)}</span>
-          </label>
+          ${j({cls:"req-option",checked:!this._allowSkip,onChange:t=>this._allowSkip=!t.target.checked},l`<span>${n("disallow_skip",e)}</span>`)}
           ${this._allowSkip?p:l`<div class="field-help">${n("disallow_skip_help",e)}</div>`}
           ${this._renderQuickComplete(e)}
           ${this._renderCompleteWhen(e)}
@@ -3479,14 +3763,11 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           ${this._renderCompletionActionsSection(e)}
     `)}_renderPeopleSection(e){return this._section("people-section",n("task_section_people",e),l`
           <div class="select-row">
-            <label>${n("responsible_user",e)}</label>
-            <select aria-label=${n("responsible_user",e)}
-              .value=${this._responsibleUserId||""}
-              @change=${t=>{let i=t.target.value;this._responsibleUserId=i||null}}
-            >
+            ${F()?p:l`<label>${n("responsible_user",e)}</label>`}
+            ${M({label:n("responsible_user",e),value:this._responsibleUserId||"",onChange:t=>{let r=t.target.value;this._responsibleUserId=r||null}},l`
               <option value="" ?selected=${!this._responsibleUserId}>${n("no_user_assigned",e)}</option>
               ${this._availableUsers.map(t=>l`<option value=${t.id} ?selected=${t.id===this._responsibleUserId}>${t.name}</option>`)}
-            </select>
+            `)}
           </div>
           ${this._availableUsers.length>=2?l`
             <div class="field">
@@ -3495,35 +3776,20 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
               ${this._responsibleUserId&&this._assigneePool.length>0&&!(this._assigneePool.length>=2&&this._rotationStrategy)?l`<div class="field-help shared-responsible-wins">${n("task_shared_responsible_wins",e)}</div>`:p}
               <div class="assignee-pool">
                 ${this._availableUsers.map(t=>l`
-                  <label class="pool-item">
-                    <input type="checkbox"
-                      .checked=${this._assigneePool.includes(t.id)}
-                      @change=${()=>this._toggleAssignee(t.id)} />
-                    <span>${t.name}</span>
-                  </label>`)}
+                  ${j({cls:"pool-item",checked:this._assigneePool.includes(t.id),onChange:()=>this._toggleAssignee(t.id)},l`<span>${t.name}</span>`)}`)}
               </div>
             </div>
             ${this._assigneePool.length>=2?l`
               <div class="select-row">
-                <label>${n("rotation_strategy",e)}</label>
-                <select aria-label=${n("rotation_strategy",e)}
-                  .value=${this._rotationStrategy}
-                  @change=${t=>this._rotationStrategy=t.target.value}
-                >
+                ${F()?p:l`<label>${n("rotation_strategy",e)}</label>`}
+                ${M({label:n("rotation_strategy",e),value:this._rotationStrategy,onChange:t=>this._rotationStrategy=t.target.value},l`
                   <option value="" ?selected=${!this._rotationStrategy}>${n("rotation_none",e)}</option>
-                  ${uo.map(t=>l`<option value=${t} ?selected=${t===this._rotationStrategy}>${n("rotation_"+t,e)}</option>`)}
-                </select>
+                  ${Jo.map(t=>l`<option value=${t} ?selected=${t===this._rotationStrategy}>${n("rotation_"+t,e)}</option>`)}
+                `)}
               </div>`:p}
           `:p}
     `)}_renderNotificationsSection(e){return this._section("notifications-section",n("task_section_notifications",e),l`
-          <label class="req-option">
-            <input
-              type="checkbox"
-              .checked=${!this._notifyEnabled}
-              @change=${t=>this._notifyEnabled=!t.target.checked}
-            />
-            <span>${n("no_notifications",e)}</span>
-          </label>
+          ${j({cls:"req-option",checked:!this._notifyEnabled,onChange:t=>this._notifyEnabled=!t.target.checked},l`<span>${n("no_notifications",e)}</span>`)}
           ${this._notifyEnabled?p:l`<div class="field-help">${n("no_notifications_help",e)}</div>`}
           <ha-icon-picker
             class="notify-icon-picker"
@@ -3533,15 +3799,15 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             @value-changed=${t=>this._notifyIcon=t.detail.value||""}
           ></ha-icon-picker>
           <div class="field-help notify-icon-help">
-            <ha-icon icon=${this._notifyIcon.trim()||rs(this._type)}></ha-icon>
-            ${n("notify_icon_hint",e).replace("{default}",rs(this._type))}
+            <ha-icon icon=${this._notifyIcon.trim()||Ms(this._type)}></ha-icon>
+            ${n("notify_icon_hint",e).replace("{default}",Ms(this._type))}
           </div>
           ${this._renderMirrorTodo(e)}
     `)}_renderMirrorTodo(e){let t=this.mirrorTodoDefault;if(!t.length)return l`
           <div class="field mirror-todo-field">
             ${this._renderMirrorTodoPicker(e)}
             <div class="field-help">${n("task_mirror_todo_hint",e)}</div>
-          </div>`;let i=t.map(a=>Fr(this.hass,a)).join(", "),o={default:n("task_mirror_todo_default",e).replace("{lists}",i),own:n("task_mirror_todo_own",e),none:n("task_mirror_todo_none",e)};return l`
+          </div>`;let r=t.map(a=>hi(this.hass,a)).join(", "),o={default:n("task_mirror_todo_default",e).replace("{lists}",r),own:n("task_mirror_todo_own",e),none:n("task_mirror_todo_none",e)};return l`
           <div class="field mirror-todo-field">
             <div class="mirror-todo-choice" role="radiogroup" aria-label=${n("task_mirror_todo",e)}>
               <div class="field-label">${n("task_mirror_todo",e)}</div>
@@ -3561,26 +3827,150 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                 label="${n("task_mirror_todo",e)}"
                 placeholder="todo.family, todo.kids"
                 .value=${this._mirrorTodoEntities.join(", ")}
-                @input=${t=>{this._mirrorTodoEntities=Ui(this.hass,t.target.value.split(",").map(i=>i.trim()))}}
+                @input=${t=>{this._mirrorTodoEntities=yr(this.hass,t.target.value.split(",").map(r=>r.trim()))}}
               ></ms-textfield>
             `:l`
               <ha-form
                 class="entity-picker-form"
                 .hass=${this.hass}
-                .schema=${[{name:"mirror_todo_entities",selector:{entity:{multiple:!0,domain:["todo"],exclude_entities:qo(this.hass)}}}]}
+                .schema=${[{name:"mirror_todo_entities",selector:{entity:{multiple:!0,domain:["todo"],exclude_entities:Ta(this.hass)}}}]}
                 .data=${{mirror_todo_entities:this._mirrorTodoEntities}}
                 .computeLabel=${()=>n("task_mirror_todo",e)}
-                @value-changed=${t=>{this._mirrorTodoEntities=Ui(this.hass,t.detail.value.mirror_todo_entities||[])}}
+                @value-changed=${t=>{this._mirrorTodoEntities=yr(this.hass,t.detail.value.mirror_todo_entities||[])}}
               ></ha-form>`}
-            <div class="field-help mirror-todo-max">${n("task_mirror_todo_max",e).replace("{max}",String(5))}</div>`}render(){if(!this._open)return l``;let e=this._lang,t=this._taskId?n("edit_task",e):n("new_task",e),i=this._seriesIndex+1<this._series.length;return l`
+            <div class="field-help mirror-todo-max">${n("task_mirror_todo_max",e).replace("{max}",String(5))}</div>`}_ruleDraft(){let e=this._triggerEntityIds.length?this._triggerEntityIds:this._triggerEntityId?[this._triggerEntityId]:[];return{name:this._name,enabled:this._enabled,typeLabel:n(this._type,this._lang),scheduleType:this._scheduleType,intervalDays:this._intervalDays,intervalUnit:this._intervalUnit,intervalAnchor:this._intervalAnchor,dueDate:this._dueDate,weekdays:this._weekdays,nth:this._nth,nthWeekday:this._nthWeekday,domDay:this._domDay,domLastDay:this._domLastDay,calendarEntity:this._calendarEntity?hi(this.hass,this._calendarEntity):"",warningDays:this._warningDays,triggerType:this._triggerType,triggerEntityIds:e,triggerAttribute:this._triggerAttribute,above:this._triggerAbove,below:this._triggerBelow,forMinutes:this._triggerForMinutes,targetValue:this._triggerTargetValue,deltaMode:this._triggerDeltaMode,fromState:this._triggerFromState,toState:this._triggerToState,targetChanges:this._triggerTargetChanges,runtimeHours:this._triggerRuntimeHours,daysBefore:this._triggerDaysBefore,triggerCombinator:this._triggerCombinator,entityLogic:this._triggerEntityLogic,compoundLogic:this._compoundLogic,compoundCount:this._compoundConditions.length,compoundEntityIds:this._compoundConditions.flatMap(t=>t.entityIds.split(",").map(r=>r.trim()).filter(Boolean)),completeWhenEntity:this._completeWhenEntity,completeWhenState:this._completeWhenState,completeWhenFor:this._completeWhenFor,completeWhenAnyTime:this._completeWhenAnyTime,quickOn:this._quickOn,requiredCount:this._requiredCompletion.length,allowSkip:this._allowSkip,requireTagScan:this._requireTagScan,checklistCount:this.checklistsEnabled?this._checklistText.split(`
+`).filter(t=>t.trim()).length:0,partsCount:Object.keys(this._consumesParts).length,responsibleUserId:this._responsibleUserId,pool:this._assigneePool,rotation:this._rotationStrategy,notifyEnabled:this._notifyEnabled,mirrorLists:this._mirrorListsShown()}}_mirrorListsShown(){return this.mirrorTodoDefault.length?this._mirrorTodoMode==="default"?this.mirrorTodoDefault:this._mirrorTodoMode==="own"?this._mirrorTodoEntities:[]:this._mirrorTodoMode==="none"?[]:this._mirrorTodoEntities}_userName(e){return this._availableUsers.find(t=>t.id===e)?.name??e}_sidebarTitle(e,t){switch(e){case"task":return n("task_section_details",t);case"schedule":return n("task_section_schedule",t);case"trigger":return n("task_section_trigger",t);case"completion":return n("task_section_completion",t);case"people":return n("task_section_people",t);case"notifications":return n("task_section_notifications",t);default:return n("beta_rules_add_rule",t)}}_selectRule(e){this._ruleSel=this._ruleSel===e?null:e,e==="add"&&this._loadObjectDevice()}_removeRule(e){e==="trigger"?(this._resetTriggerFields(),this._scheduleType=parseInt(this._intervalDays,10)>0?"time_based":"manual"):e==="schedule"&&(this._scheduleType==="sensor_based"?this._intervalDays="":this._scheduleType="manual"),this._ruleSel===e&&(this._ruleSel=null)}_combineTrigger(e,t=""){if(this._triggerType!=="compound"){let r=this._triggerEntityIds.length?this._triggerEntityIds:this._triggerEntityId?[this._triggerEntityId]:[];this._compoundConditions=[{entityIds:r.join(", "),...this._typeFields(),carry:{}}],this._compoundLogic="OR",this._triggerType="compound",this._triggerEntityId="",this._triggerEntityIds=[]}this._compoundConditions=[...this._compoundConditions,{...kr(),type:e,entityIds:t}]}_setSensorRule(e,t=""){this._scheduleType!=="time_based"&&this._scheduleType!=="sensor_based"&&(this._intervalDays=""),this._scheduleType="sensor_based",this._resetTriggerFields(),this._triggerType=e,e==="compound"&&(this._compoundConditions=[kr()]),t&&(this._triggerEntityId=t,this._triggerEntityIds=[t],this._fetchEntityAttributes(t))}_applyChoice(e){if(e.kind==="schedule"){if(e.effect==="safety"){parseInt(this._intervalDays,10)>0||(this._intervalDays="30"),this._ruleSel="trigger";return}this._scheduleType==="sensor_based"&&this._resetTriggerFields(),e.value==="time_based"&&!(parseInt(this._intervalDays,10)>0)&&(this._intervalDays="30"),this._scheduleType=e.value,this._ruleSel="schedule";return}let t=e.value;e.effect==="combine"?this._combineTrigger(t):this._setSensorRule(t),this._ruleSel="trigger"}_applySuggestion(e){if(e.target==="done_when"){e.entityId!==this._completeWhenEntity&&(this._completeWhenState=""),this._completeWhenEntity=e.entityId,this._ruleSel="completion";return}let t=e.triggerType??"threshold";this._scheduleType==="sensor_based"&&(this._triggerType==="compound"||!!this._triggerEntityId)?this._combineTrigger(t,e.entityId):this._setSensorRule(t,e.entityId),this._ruleSel="trigger"}async _loadObjectDevice(){let e=this._entryId;if(!e||this._objectDevice?.entryId===e)return;let t=null,r=null;try{let a=((await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"}))?.objects??[]).find(c=>c.entry_id===e);t=a?.object.ha_device_id??null,r=a?.object.area_id??null}catch{}this._entryId===e&&(this._objectDevice={entryId:e,deviceId:t,areaId:r})}async _loadTemplateChoices(){if(this._templateChoices===null)try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/templates",language:this._lang});this._templateChoices=(e?.templates??[]).filter(t=>!t.disabled).flatMap(t=>(t.tasks??[]).map(r=>({...r,template:t.name})))}catch{this._templateChoices=[]}}async _loadCopyChoices(){if(this._copyChoices===null)try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"});this._copyChoices=(e?.objects??[]).flatMap(t=>(t.tasks??[]).filter(r=>!r.battery_fleet_task&&!r.part_ref).map(r=>({entryId:t.entry_id,objectName:t.object.name,task:r})))}catch{this._copyChoices=[]}}_applyTemplateTask(e){this._name=e.name,this._type=za.includes(e.type)?e.type:"custom";let t=e.interval_days&&e.interval_days>0?String(e.interval_days):"";e.schedule_type==="sensor_based"?(this._scheduleType="sensor_based",this._intervalDays=t):e.schedule_type==="manual"||!t?this._scheduleType="manual":(this._scheduleType="time_based",this._intervalDays=t,this._intervalUnit="days"),e.warning_days!==null&&e.warning_days!==void 0&&(this._warningDays=String(e.warning_days)),this._betaStep="form",this._ruleSel=this._scheduleType==="sensor_based"?"add":"schedule",this._ruleSel==="add"&&(this._addTab="device",this._loadObjectDevice())}async _applyCopy(e){let t=this._entryId,r=this._objectChoices;await this._edit(e.entryId,e.task),this._taskId=null,this._entryId=t,this._objectChoices=r,this._series=[],this._isFleetTask=!1,this._lastPerformed="",this._nfcTagId="",this._consumesParts={},this._consumesQtyText={},this._phaseDefs=this._phaseDefs.map(o=>({...o,partId:"",partQty:"",extraParts:[]})),await Promise.all([this._loadParts(),this._loadForeignPools()]),this._betaStep="form",this._ruleSel="task"}_choiceNote(e,t){return e.effect==="replace"?n("beta_rules_replaces",t):e.effect==="combine"?n("beta_rules_combines",t):e.effect==="safety"?n("beta_rules_adds_safety",t):""}_renderAddPicker(e){let t=l`
+      <div class="add-tabs" role="tablist" aria-label=${n("beta_rules_add_rule",e)}>
+        <button type="button" role="tab" class="add-tab-type" aria-selected=${this._addTab==="type"?"true":"false"}
+          @click=${()=>{this._addTab="type"}}>${n("beta_rules_by_type",e)}</button>
+        <button type="button" role="tab" class="add-tab-device" aria-selected=${this._addTab==="device"?"true":"false"}
+          @click=${()=>{this._addTab="device",this._loadObjectDevice()}}>${n("beta_rules_by_device",e)}</button>
+      </div>`;if(this._addTab==="type"){let m=Ia({scheduleType:this._scheduleType,intervalDays:this._intervalDays,triggerType:this._triggerType}),f=v=>{let w=this._choiceNote(v,e);return l`
+          <button type="button" class="add-choice" data-kind=${v.kind} data-value=${v.value} @click=${()=>this._applyChoice(v)}>
+            <ha-icon icon=${v.icon}></ha-icon>
+            <span class="add-choice-text">
+              <span>${v.kind==="trigger"?wr(v.value,e):n(v.value,e)}</span>
+              ${w?l`<span class="add-choice-note">${w}</span>`:p}
+            </span>
+          </button>`};return l`${t}
+        <div class="add-group">${n("task_section_schedule",e)}</div>
+        ${m.filter(v=>v.kind==="schedule").map(f)}
+        <div class="add-group">${n("task_section_trigger",e)}</div>
+        ${m.filter(v=>v.kind==="trigger").map(f)}`}let r=this._objectDevice;if(r===null||r.entryId!==this._entryId)return l`${t}<div class="field-help">…</div>`;if(!r.deviceId&&!r.areaId)return l`${t}<div class="field-help beta-no-device">${n("beta_rules_no_device",e)}</div>`;let o=Ra(this.hass,{deviceId:r.deviceId,areaId:r.areaId,ownPlatform:"maintenance_supporter"});if(!o.length)return l`${t}<div class="field-help beta-no-device">${n(r.deviceId?"beta_rules_no_device_entities":"beta_rules_no_area_entities",e)}</div>`;let a=r.areaId||(r.deviceId?this.hass.devices?.[r.deviceId]?.area_id:null)||"",c=this.hass.areas?.[a]?.name||a,u=o.some(m=>m.group==="device"),_=(m,f)=>{if(f>0&&o[f-1].group===m.group)return p;let v=m.group==="device"?n("beta_rules_group_device",e):n(u?"beta_rules_group_area_more":"beta_rules_group_area",e).replace("{area}",c);return l`<div class="add-group device-group" data-group=${m.group}>${v}</div>`};return l`${t}
+      ${o.map((m,f)=>l`${_(m,f)}
+        <div class="device-entity" data-entity=${m.entityId} data-group=${m.group}>
+          <div class="device-entity-name">${m.name}</div>
+          <div class="device-entity-choices">
+            ${Ls(m).map(v=>l`
+              <button type="button" class="add-choice" data-target=${v.target} data-type=${v.triggerType??""} @click=${()=>this._applySuggestion(v)}>
+                <ha-icon icon=${v.icon}></ha-icon>
+                <span>${v.target==="done_when"?n("beta_rules_done_when_suggest",e):wr(v.triggerType??"",e)}</span>
+              </button>`)}
+          </div>
+        </div>`)}`}_renderSidebarBody(e,t){switch(e){case"task":return this._renderIdentity(t);case"schedule":return this._renderScheduleSection(t);case"trigger":return this._renderTriggerSection(t);case"completion":return this._renderCompletionSection(t);case"people":return this._renderPeopleSection(t);case"notifications":return this._renderNotificationsSection(t);default:return this._renderAddPicker(t)}}_renderRules(e){let t=Aa(this._ruleDraft(),{lang:e,entityName:m=>hi(this.hass,m),userName:m=>this._userName(m)}),r=new Map(t.map(m=>[m.id,m])),o=[{title:n("task_section_details",e),ids:["task"]},{title:n("task_section_schedule",e),ids:["schedule","trigger"],add:!0},{title:n("task_section_completion",e),ids:["completion"]},{title:n("task_section_people",e),ids:["people"]},{title:n("task_section_notifications",e),ids:["notifications"]}],a=0,c=1,u=[];for(let m of o){a+=2,u.push(l`<h3 class="rules-group-title" style="order:${a}">${m.title}</h3>`);for(let f of m.ids){let v=r.get(f);if(!v)continue;a+=2,this._ruleSel===f&&(c=a+1);let w=this._ruleSel===f;u.push(l`
+          <div class="rule-row ${w?"selected":""}" data-row=${v.id} style="order:${a}">
+            <button type="button" class="rule-main" aria-expanded=${w?"true":"false"} @click=${()=>this._selectRule(v.id)}>
+              <ha-icon icon=${v.icon}></ha-icon>
+              <span class="rule-text">
+                <span class="rule-sentence">${v.text}</span>
+                ${v.chips.map(A=>l`<span class="rule-chip">${A}</span>`)}
+                ${v.badges.length?l`<span class="rule-badges">${v.badges.map(A=>l`<span class="rule-badge">${A}</span>`)}</span>`:p}
+              </span>
+            </button>
+            ${v.removable?l`
+              <ha-icon-button class="rule-remove" .path=${Md} .label=${n("remove",e)} title=${n("remove",e)}
+                @click=${()=>this._removeRule(v.id)}></ha-icon-button>`:p}
+          </div>`)}m.add&&(a+=2,this._ruleSel==="add"&&(c=a+1),u.push(l`
+          <button type="button" class="rule-add" style="order:${a}" aria-expanded=${this._ruleSel==="add"?"true":"false"}
+            @click=${()=>this._selectRule("add")}>
+            <ha-icon icon="mdi:plus"></ha-icon>${n("beta_rules_add_rule",e)}
+          </button>`))}let _=this._ruleSel;return l`
+      <div class="rules-layout">
+        ${u}
+        <aside class="rules-sidebar ${_?"open":""}" style="order:${c}" aria-label=${_?this._sidebarTitle(_,e):n("beta_rules_select_hint",e)}>
+          ${_?l`
+                <div class="sidebar-head">
+                  <ha-icon-button .path=${Hd} .label=${n("close",e)} @click=${()=>{this._ruleSel=null}}></ha-icon-button>
+                  <span class="sidebar-title">${this._sidebarTitle(_,e)}</span>
+                </div>
+                <div class="sidebar-body">${this._renderSidebarBody(_,e)}</div>`:l`<div class="sidebar-hint">${n("beta_rules_select_hint",e)}</div>`}
+        </aside>
+      </div>`}_renderObjectChoice(e){return this._taskId!==null||this._objectChoices.length===0?p:l`
+      <div class="select-row">
+        ${F()?p:l`<label>${n("object",e)}</label>`}
+        ${M({label:n("object",e),value:this._entryId,onChange:t=>{this._entryId=t.target.value,this._consumesParts={},this._consumesQtyText={},this._loadParts(),this._loadForeignPools()}},l`
+          ${this._objectChoices.map(t=>l`<option value=${t.entry_id} ?selected=${t.entry_id===this._entryId}>${t.name}</option>`)}
+        `)}
+      </div>`}_renderChooser(e){let t=(r,o,a,c,u)=>l`
+      <button type="button" class="chooser-item ${r}" @click=${u}>
+        <ha-icon icon=${o}></ha-icon>
+        <span class="chooser-text">
+          <span class="chooser-title">${a}</span>
+          <span class="chooser-desc">${c}</span>
+        </span>
+        <ha-icon icon="mdi:chevron-right"></ha-icon>
+      </button>`;return l`
+      ${this._renderObjectChoice(e)}
+      <div class="chooser">
+        ${t("chooser-scratch","mdi:pencil",n("beta_new_scratch",e),n("beta_new_scratch_desc",e),()=>{this._betaStep="form",this._ruleSel="task"})}
+        ${t("chooser-sensor","mdi:auto-fix",n("beta_new_from_sensor",e),n("beta_new_from_sensor_desc",e),()=>{this._betaStep="form",this._ruleSel="add",this._addTab="device",this._loadObjectDevice()})}
+        ${t("chooser-template","mdi:text-box-outline",n("templates_from",e),n("beta_new_from_template_desc",e),()=>{this._betaStep="template",this._chooserFilter="",this._loadTemplateChoices()})}
+        ${t("chooser-copy","mdi:content-copy",n("beta_new_copy",e),n("beta_new_copy_desc",e),()=>{this._betaStep="copy",this._chooserFilter="",this._loadCopyChoices()})}
+      </div>`}_renderSearch(e){return l`<input type="search" class="chooser-search" aria-label=${n("beta_new_search",e)} placeholder=${n("beta_new_search",e)}
+      .value=${this._chooserFilter} @input=${t=>{this._chooserFilter=t.target.value}} />`}_renderTemplatePick(e){if(this._templateChoices===null)return l`<div class="chooser-empty">…</div>`;let t=this._chooserFilter.trim().toLowerCase(),r=this._templateChoices.filter(o=>!t||`${o.name} ${o.template}`.toLowerCase().includes(t)).slice(0,200);return l`
+      ${this._renderSearch(e)}
+      <div class="chooser">
+        ${r.length?r.map(o=>l`
+          <button type="button" class="chooser-item template-task" @click=${()=>this._applyTemplateTask(o)}>
+            <ha-icon icon=${o.schedule_type==="sensor_based"?"mdi:gauge":"mdi:calendar-sync"}></ha-icon>
+            <span class="chooser-text">
+              <span class="chooser-title">${o.name}</span>
+              <span class="chooser-desc">${o.template}${o.interval_days?l` · ${S(o.interval_days,e)} ${n("unit_days",e)}`:p}</span>
+            </span>
+          </button>`):l`<div class="chooser-empty">—</div>`}
+      </div>`}_renderCopyPick(e){if(this._copyChoices===null)return l`<div class="chooser-empty">…</div>`;let t=this._chooserFilter.trim().toLowerCase(),r=this._copyChoices.filter(o=>!t||`${o.task.name} ${o.objectName}`.toLowerCase().includes(t)).slice(0,200);return l`
+      ${this._renderSearch(e)}
+      <div class="chooser">
+        ${r.length?r.map(o=>l`
+          <button type="button" class="chooser-item copy-task" @click=${()=>{this._applyCopy(o)}}>
+            <ha-icon icon="mdi:content-copy"></ha-icon>
+            <span class="chooser-text">
+              <span class="chooser-title">${o.task.name}</span>
+              <span class="chooser-desc">${o.objectName}</span>
+            </span>
+          </button>`):l`<div class="chooser-empty">—</div>`}
+      </div>`}_renderBeta(e,t,r){let o=this._betaStep;return l`
+      <ha-dialog open class="beta-dialog" .headerTitle=${t}
+        .headerSubtitle=${this._series.length>1?n("task_series_position",e).replace("{n}",String(this._seriesIndex+1)).replace("{total}",String(this._series.length)):void 0}
+        @closed=${this._close}>
+        <!-- HA's header (2026): the title beside the close button; on a
+             step under the start screen HA's back arrow takes its place. -->
+        ${o==="template"||o==="copy"?l`<ha-icon-button slot="headerNavigationIcon" class="beta-back" .path=${Ld} .label=${n("back",e)}
+              @click=${()=>{this._betaStep="choose"}}></ha-icon-button>`:p}
+        <div class="content beta-content">
+          ${this._error?U("error",this._error):p}
+          ${this._warning?U("warning",this._warning):p}
+          ${o==="choose"?this._renderChooser(e):o==="template"?this._renderTemplatePick(e):o==="copy"?this._renderCopyPick(e):this._renderRules(e)}
+        </div>
+        <div class="dialog-actions">
+          <ha-button appearance="plain" @click=${this._close}>${n("cancel",e)}</ha-button>
+          ${o==="form"&&r?l`<ha-button appearance="plain" class="series-skip" .disabled=${this._loading} @click=${this._skipSeriesItem}>
+                ${n("task_series_skip",e)}
+              </ha-button>`:p}
+          ${o==="form"?l`<ha-button @click=${this._save} .disabled=${this._loading||!this._name.trim()||this._missingDueDate()}>
+                ${this._loading?n("saving",e):n(r?"task_series_save_next":"save",e)}
+              </ha-button>`:p}
+        </div>
+      </ha-dialog>
+    `}render(){if(!this._open)return l``;let e=this._lang,t=this._taskId?n("edit_task",e):n("new_task",e),r=this._seriesIndex+1<this._series.length;return this.betaEditor?this._renderBeta(e,t,r):l`
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">
           ${t}
           ${this._series.length>1?l`<span class="series-position">${n("task_series_position",e).replace("{n}",String(this._seriesIndex+1)).replace("{total}",String(this._series.length))}</span>`:p}
         </div>
         <div class="content">
-          ${this._error?l`<div class="error">${this._error}</div>`:p}
-          ${this._warning?l`<div class="error warning">${this._warning}</div>`:p}
+          ${this._error?U("error",this._error):p}
+          ${this._warning?U("warning",this._warning):p}
           ${this._renderIdentity(e)}
           ${this._renderScheduleSection(e)}
           ${this._renderTriggerSection(e)}
@@ -3590,18 +3980,18 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._close}>${n("cancel",e)}</ha-button>
-          ${i?l`<ha-button appearance="plain" class="series-skip" .disabled=${this._loading} @click=${this._skipSeriesItem}>
+          ${r?l`<ha-button appearance="plain" class="series-skip" .disabled=${this._loading} @click=${this._skipSeriesItem}>
                 ${n("task_series_skip",e)}
               </ha-button>`:p}
           <ha-button
             @click=${this._save}
             .disabled=${this._loading||!this._name.trim()||this._missingDueDate()}
           >
-            ${this._loading?n("saving",e):n(i?"task_series_save_next":"save",e)}
+            ${this._loading?n("saving",e):n(r?"task_series_save_next":"save",e)}
           </ha-button>
         </div>
       </ha-dialog>
-    `}};g._PREVIEW_RELEVANT=new Set(["_open","_scheduleType","_intervalDays","_intervalUnit","_intervalAnchor","_dueDate","_weekdays","_nth","_nthWeekday","_domDay","_domLastDay","_domBusiness","_calOffset","_calMonths","_calendarEntity","_seasonMonths","_endsMode","_endsCount","_endsUntil","_lastPerformed"]),g.styles=[Se,wn,$`
+    `}};g._PREVIEW_RELEVANT=new Set(["_open","_scheduleType","_intervalDays","_intervalUnit","_intervalAnchor","_dueDate","_weekdays","_nth","_nthWeekday","_domDay","_domLastDay","_domBusiness","_calOffset","_calMonths","_calendarEntity","_seasonMonths","_endsMode","_endsCount","_endsUntil","_lastPerformed"]),g.styles=[ze,ao,Oa,$`
     .dialog-title {
       font-size: 18px;
       font-weight: 500;
@@ -3634,7 +4024,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     .phases-section,
     .details-section {
       border: 1px solid var(--divider-color);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       padding: 8px 12px;
       margin-top: 8px;
     }
@@ -3701,7 +4091,10 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       max-height: 70vh;
       overflow-y: auto;
     }
-    @media (max-width: 600px) {
+    /* A phone, and a phone held sideways: 70 % of 390 px plus the title and
+       the buttons was taller than the screen, so Save sat below its edge
+       with nothing to scroll (2026-10-31). The dialog scrolls as a whole. */
+    @media (max-width: 600px), (max-height: 500px) {
       .content {
         min-width: 0;
         max-height: none;
@@ -3753,7 +4146,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     }
     .phase-def {
       border: 1px solid var(--divider-color);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       padding: 8px;
       margin: 6px 0;
     }
@@ -3996,11 +4389,23 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       flex-wrap: wrap;
       gap: 6px 16px;
     }
-  `],d([b({attribute:!1})],g.prototype,"hass",2),d([b({type:Boolean,attribute:"checklists-enabled"})],g.prototype,"checklistsEnabled",2),d([b({type:Boolean,attribute:"schedule-time-enabled"})],g.prototype,"scheduleTimeEnabled",2),d([b({type:Boolean,attribute:"completion-actions-enabled"})],g.prototype,"completionActionsEnabled",2),d([b({type:Boolean,attribute:"adaptive-feature"})],g.prototype,"adaptiveFeature",2),d([b({type:Boolean,attribute:"seasonal-feature"})],g.prototype,"seasonalFeature",2),d([b({type:Boolean,attribute:"environmental-feature"})],g.prototype,"environmentalFeature",2),d([b({type:Number,attribute:"default-warning-days"})],g.prototype,"defaultWarningDays",2),d([b({attribute:!1})],g.prototype,"mirrorTodoDefault",2),d([h()],g.prototype,"parts",2),d([h()],g.prototype,"_foreignOwners",2),d([h()],g.prototype,"_open",2),d([h()],g.prototype,"_entityPickerFallback",2),d([h()],g.prototype,"_loading",2),d([h()],g.prototype,"_error",2),d([h()],g.prototype,"_warning",2),d([h()],g.prototype,"_entryId",2),d([h()],g.prototype,"_taskId",2),d([h()],g.prototype,"_series",2),d([h()],g.prototype,"_seriesIndex",2),d([h()],g.prototype,"_isFleetTask",2),d([h()],g.prototype,"_objectChoices",2),d([h()],g.prototype,"_name",2),d([h()],g.prototype,"_type",2),d([h()],g.prototype,"_scheduleType",2),d([h()],g.prototype,"_intervalDays",2),d([h()],g.prototype,"_intervalUnit",2),d([h()],g.prototype,"_dueDate",2),d([h()],g.prototype,"_warningDays",2),d([h()],g.prototype,"_earliestCompletionDays",2),d([h()],g.prototype,"_intervalAnchor",2),d([h()],g.prototype,"_weekdays",2),d([h()],g.prototype,"_nth",2),d([h()],g.prototype,"_nthWeekday",2),d([h()],g.prototype,"_domDay",2),d([h()],g.prototype,"_domLastDay",2),d([h()],g.prototype,"_domBusiness",2),d([h()],g.prototype,"_calOffset",2),d([h()],g.prototype,"_calMonths",2),d([h()],g.prototype,"_calendarEntity",2),d([h()],g.prototype,"_seasonMonths",2),d([h()],g.prototype,"_endsMode",2),d([h()],g.prototype,"_endsCount",2),d([h()],g.prototype,"_endsUntil",2),d([h()],g.prototype,"_schedulePreview",2),d([h()],g.prototype,"_schedulePreviewEnded",2),d([h()],g.prototype,"_notes",2),d([h()],g.prototype,"_documentationUrl",2),d([h()],g.prototype,"_customIcon",2),d([h()],g.prototype,"_notifyIcon",2),d([h()],g.prototype,"_priority",2),d([h()],g.prototype,"_labels",2),d([h()],g.prototype,"_detailsOpen",2),d([h()],g.prototype,"_mirrorTodoEntities",2),d([h()],g.prototype,"_mirrorTodoMode",2),d([h()],g.prototype,"_completeWhenEntity",2),d([h()],g.prototype,"_completeWhenState",2),d([h()],g.prototype,"_completeWhenAnyTime",2),d([h()],g.prototype,"_completeWhenFor",2),d([h()],g.prototype,"_enabled",2),d([h()],g.prototype,"_triggerEntityId",2),d([h()],g.prototype,"_triggerEntityIds",2),d([h()],g.prototype,"_triggerEntityLogic",2),d([h()],g.prototype,"_triggerAttribute",2),d([h()],g.prototype,"_triggerType",2),d([h()],g.prototype,"_triggerAbove",2),d([h()],g.prototype,"_triggerBelow",2),d([h()],g.prototype,"_triggerEquals",2),d([h()],g.prototype,"_triggerNotEquals",2),d([h()],g.prototype,"_triggerForMinutes",2),d([h()],g.prototype,"_triggerCombinator",2),d([h()],g.prototype,"_triggerTargetValue",2),d([h()],g.prototype,"_triggerDeltaMode",2),d([h()],g.prototype,"_triggerBaselineValue",2),d([h()],g.prototype,"_liveBaselineValue",2),d([h()],g.prototype,"_autoCompleteOnRecovery",2),d([h()],g.prototype,"_holdUntilDone",2),d([h()],g.prototype,"_triggerFromState",2),d([h()],g.prototype,"_triggerToState",2),d([h()],g.prototype,"_triggerTargetChanges",2),d([h()],g.prototype,"_triggerRuntimeHours",2),d([h()],g.prototype,"_triggerDaysBefore",2),d([h()],g.prototype,"_triggerRuntimeMaxSession",2),d([h()],g.prototype,"_triggerOnStates",2),d([h()],g.prototype,"_triggerDetailAttribute",2),d([h()],g.prototype,"_compoundLogic",2),d([h()],g.prototype,"_compoundConditions",2),d([h()],g.prototype,"_suggestedAttributes",2),d([h()],g.prototype,"_availableAttributes",2),d([h()],g.prototype,"_entityDomain",2),d([h()],g.prototype,"_lastPerformed",2),d([h()],g.prototype,"_nfcTagId",2),d([h()],g.prototype,"_requireTagScan",2),d([h()],g.prototype,"_allowSkip",2),d([h()],g.prototype,"_notifyEnabled",2),d([h()],g.prototype,"_readingUnit",2),d([h()],g.prototype,"_readings",2),d([h()],g.prototype,"_consumesParts",2),d([h()],g.prototype,"_consumesQtyText",2),d([h()],g.prototype,"_partsLoadFailed",2),d([h()],g.prototype,"_availableTags",2),d([h()],g.prototype,"_responsibleUserId",2),d([h()],g.prototype,"_assigneePool",2),d([h()],g.prototype,"_rotationStrategy",2),d([h()],g.prototype,"_availableUsers",2),d([h()],g.prototype,"_checklistText",2),d([h()],g.prototype,"_phaseDefs",2),d([h()],g.prototype,"_phaseSeq",2),d([h()],g.prototype,"_requiredCompletion",2),d([h()],g.prototype,"_scheduleTime",2),d([h()],g.prototype,"_scheduleTimeOn",2),d([h()],g.prototype,"_actionService",2),d([h()],g.prototype,"_actionTargetEntity",2),d([h()],g.prototype,"_actionSkipAuto",2),d([h()],g.prototype,"_actionPresent",2),d([h()],g.prototype,"_actionData",2),d([h()],g.prototype,"_actionDataJsonFallback",2),d([h()],g.prototype,"_actionTesting",2),d([h()],g.prototype,"_actionTestResult",2),d([h()],g.prototype,"_actionTestError",2),d([h()],g.prototype,"_quickOn",2),d([h()],g.prototype,"_qcNotes",2),d([h()],g.prototype,"_qcCost",2),d([h()],g.prototype,"_qcDuration",2),d([h()],g.prototype,"_qcFeedback",2),d([h()],g.prototype,"_environmentalEntity",2),d([h()],g.prototype,"_environmentalAttribute",2),d([h()],g.prototype,"_adaptiveEnabled",2),d([h()],g.prototype,"_adaptiveAlpha",2),d([h()],g.prototype,"_adaptiveMin",2),d([h()],g.prototype,"_adaptiveMax",2),d([h()],g.prototype,"_adaptiveSeasonal",2),d([h()],g.prototype,"_adaptivePrediction",2),d([h()],g.prototype,"_conditionAttrOptions",2);ss=g;customElements.get("maintenance-task-dialog")||customElements.define("maintenance-task-dialog",ss)});function Sc(r,s){r.key!=="Escape"||r.defaultPrevented||r.composedPath().some(e=>e instanceof Element&&e.localName==="ms-camera-capture")||(r.preventDefault(),r.stopPropagation(),s())}function xt(r,s){return l`
-    <div class="backdrop" @click=${r}></div>
-    <div class="dialog" role="dialog" aria-modal="true" tabindex="-1"
-      @keydown=${e=>Sc(e,r)}>${s}</div>
-  `}function wt(r){r?.querySelector(".dialog")?.focus({preventScroll:!0})}var yt,Wi=y(()=>{"use strict";O();yt=$`
+  `],d([b({attribute:!1})],g.prototype,"hass",2),d([b({type:Boolean,attribute:"checklists-enabled"})],g.prototype,"checklistsEnabled",2),d([b({type:Boolean,attribute:"schedule-time-enabled"})],g.prototype,"scheduleTimeEnabled",2),d([b({type:Boolean,attribute:"completion-actions-enabled"})],g.prototype,"completionActionsEnabled",2),d([b({type:Boolean,attribute:"adaptive-feature"})],g.prototype,"adaptiveFeature",2),d([b({type:Boolean,attribute:"seasonal-feature"})],g.prototype,"seasonalFeature",2),d([b({type:Boolean,attribute:"environmental-feature"})],g.prototype,"environmentalFeature",2),d([b({type:Number,attribute:"default-warning-days"})],g.prototype,"defaultWarningDays",2),d([b({attribute:!1})],g.prototype,"mirrorTodoDefault",2),d([b({type:Boolean,attribute:"beta-editor"})],g.prototype,"betaEditor",2),d([h()],g.prototype,"_ruleSel",2),d([h()],g.prototype,"_addTab",2),d([h()],g.prototype,"_betaStep",2),d([h()],g.prototype,"_chooserFilter",2),d([h()],g.prototype,"_templateChoices",2),d([h()],g.prototype,"_copyChoices",2),d([h()],g.prototype,"_objectDevice",2),d([h()],g.prototype,"parts",2),d([h()],g.prototype,"_foreignOwners",2),d([h()],g.prototype,"_open",2),d([h()],g.prototype,"_entityPickerFallback",2),d([h()],g.prototype,"_loading",2),d([h()],g.prototype,"_error",2),d([h()],g.prototype,"_warning",2),d([h()],g.prototype,"_entryId",2),d([h()],g.prototype,"_taskId",2),d([h()],g.prototype,"_series",2),d([h()],g.prototype,"_seriesIndex",2),d([h()],g.prototype,"_isFleetTask",2),d([h()],g.prototype,"_objectChoices",2),d([h()],g.prototype,"_name",2),d([h()],g.prototype,"_type",2),d([h()],g.prototype,"_scheduleType",2),d([h()],g.prototype,"_intervalDays",2),d([h()],g.prototype,"_intervalUnit",2),d([h()],g.prototype,"_dueDate",2),d([h()],g.prototype,"_warningDays",2),d([h()],g.prototype,"_earliestCompletionDays",2),d([h()],g.prototype,"_intervalAnchor",2),d([h()],g.prototype,"_weekdays",2),d([h()],g.prototype,"_nth",2),d([h()],g.prototype,"_nthWeekday",2),d([h()],g.prototype,"_domDay",2),d([h()],g.prototype,"_domLastDay",2),d([h()],g.prototype,"_domBusiness",2),d([h()],g.prototype,"_calOffset",2),d([h()],g.prototype,"_calMonths",2),d([h()],g.prototype,"_calendarEntity",2),d([h()],g.prototype,"_seasonMonths",2),d([h()],g.prototype,"_endsMode",2),d([h()],g.prototype,"_endsCount",2),d([h()],g.prototype,"_endsUntil",2),d([h()],g.prototype,"_schedulePreview",2),d([h()],g.prototype,"_schedulePreviewEnded",2),d([h()],g.prototype,"_notes",2),d([h()],g.prototype,"_documentationUrl",2),d([h()],g.prototype,"_customIcon",2),d([h()],g.prototype,"_notifyIcon",2),d([h()],g.prototype,"_priority",2),d([h()],g.prototype,"_labels",2),d([h()],g.prototype,"_detailsOpen",2),d([h()],g.prototype,"_mirrorTodoEntities",2),d([h()],g.prototype,"_mirrorTodoMode",2),d([h()],g.prototype,"_completeWhenEntity",2),d([h()],g.prototype,"_completeWhenState",2),d([h()],g.prototype,"_completeWhenAnyTime",2),d([h()],g.prototype,"_completeWhenFor",2),d([h()],g.prototype,"_enabled",2),d([h()],g.prototype,"_triggerEntityId",2),d([h()],g.prototype,"_triggerEntityIds",2),d([h()],g.prototype,"_triggerEntityLogic",2),d([h()],g.prototype,"_triggerAttribute",2),d([h()],g.prototype,"_triggerType",2),d([h()],g.prototype,"_triggerAbove",2),d([h()],g.prototype,"_triggerBelow",2),d([h()],g.prototype,"_triggerEquals",2),d([h()],g.prototype,"_triggerNotEquals",2),d([h()],g.prototype,"_triggerForMinutes",2),d([h()],g.prototype,"_triggerCombinator",2),d([h()],g.prototype,"_triggerTargetValue",2),d([h()],g.prototype,"_triggerDeltaMode",2),d([h()],g.prototype,"_triggerBaselineValue",2),d([h()],g.prototype,"_liveBaselineValue",2),d([h()],g.prototype,"_autoCompleteOnRecovery",2),d([h()],g.prototype,"_holdUntilDone",2),d([h()],g.prototype,"_triggerFromState",2),d([h()],g.prototype,"_triggerToState",2),d([h()],g.prototype,"_triggerTargetChanges",2),d([h()],g.prototype,"_triggerRuntimeHours",2),d([h()],g.prototype,"_triggerDaysBefore",2),d([h()],g.prototype,"_triggerRuntimeMaxSession",2),d([h()],g.prototype,"_triggerOnStates",2),d([h()],g.prototype,"_triggerDetailAttribute",2),d([h()],g.prototype,"_compoundLogic",2),d([h()],g.prototype,"_compoundConditions",2),d([h()],g.prototype,"_suggestedAttributes",2),d([h()],g.prototype,"_availableAttributes",2),d([h()],g.prototype,"_entityDomain",2),d([h()],g.prototype,"_lastPerformed",2),d([h()],g.prototype,"_nfcTagId",2),d([h()],g.prototype,"_requireTagScan",2),d([h()],g.prototype,"_allowSkip",2),d([h()],g.prototype,"_notifyEnabled",2),d([h()],g.prototype,"_readingUnit",2),d([h()],g.prototype,"_readings",2),d([h()],g.prototype,"_consumesParts",2),d([h()],g.prototype,"_consumesQtyText",2),d([h()],g.prototype,"_partsLoadFailed",2),d([h()],g.prototype,"_availableTags",2),d([h()],g.prototype,"_responsibleUserId",2),d([h()],g.prototype,"_assigneePool",2),d([h()],g.prototype,"_rotationStrategy",2),d([h()],g.prototype,"_availableUsers",2),d([h()],g.prototype,"_checklistText",2),d([h()],g.prototype,"_phaseDefs",2),d([h()],g.prototype,"_phaseSeq",2),d([h()],g.prototype,"_requiredCompletion",2),d([h()],g.prototype,"_scheduleTime",2),d([h()],g.prototype,"_scheduleTimeOn",2),d([h()],g.prototype,"_actionService",2),d([h()],g.prototype,"_actionTargetEntity",2),d([h()],g.prototype,"_actionSkipAuto",2),d([h()],g.prototype,"_actionPresent",2),d([h()],g.prototype,"_actionData",2),d([h()],g.prototype,"_actionDataJsonFallback",2),d([h()],g.prototype,"_actionTesting",2),d([h()],g.prototype,"_actionTestResult",2),d([h()],g.prototype,"_actionTestError",2),d([h()],g.prototype,"_quickOn",2),d([h()],g.prototype,"_qcNotes",2),d([h()],g.prototype,"_qcCost",2),d([h()],g.prototype,"_qcDuration",2),d([h()],g.prototype,"_qcFeedback",2),d([h()],g.prototype,"_environmentalEntity",2),d([h()],g.prototype,"_environmentalAttribute",2),d([h()],g.prototype,"_adaptiveEnabled",2),d([h()],g.prototype,"_adaptiveAlpha",2),d([h()],g.prototype,"_adaptiveMin",2),d([h()],g.prototype,"_adaptiveMax",2),d([h()],g.prototype,"_adaptiveSeasonal",2),d([h()],g.prototype,"_adaptivePrediction",2),d([h()],g.prototype,"_conditionAttrOptions",2);Fs=g;customElements.get("maintenance-task-dialog")||customElements.define("maintenance-task-dialog",Fs)});function Kd(i,s){i.key!=="Escape"||i.defaultPrevented||i.composedPath().some(e=>e instanceof Element&&e.localName==="ms-camera-capture")||(i.preventDefault(),i.stopPropagation(),s())}function ct(){return se("ha-adaptive-dialog")}function zt(i,s,e={}){return ct()?l`
+      <ha-adaptive-dialog open .headerTitle=${e.title}
+        @closed=${t=>{t.target===t.currentTarget&&i()}}>
+        <div class="ha-shell-body">${s}</div>
+      </ha-adaptive-dialog>
+    `:l`
+    <div class="modal-layer top-layer" popover="manual" ${gr}>
+      <div class="backdrop" @click=${i}></div>
+      <div class="dialog" role="dialog" aria-modal="true" tabindex="-1"
+        @keydown=${t=>Kd(t,i)}>${s}</div>
+    </div>
+  `}function Ft(i){i?.querySelector(".dialog")?.focus({preventScroll:!0})}var Lt,Er=x(()=>{"use strict";I();ne();Ps();Lt=$`
+  ${fr}
+  .modal-layer {
+    display: block;
+    z-index: var(--ms-modal-z, 100);
+  }
   .backdrop {
     position: fixed; inset: 0; z-index: var(--ms-modal-z, 100);
     background: rgba(0,0,0,0.5);
@@ -4018,6 +4423,10 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     display: flex; flex-direction: column; gap: var(--ms-modal-gap, 14px);
     z-index: calc(var(--ms-modal-z, 100) + 1);
   }
+  /* The beta UI's body inside ha-adaptive-dialog: the frame's column. */
+  .ha-shell-body {
+    display: flex; flex-direction: column; gap: var(--ms-modal-gap, 14px);
+  }
   /* Focused programmatically on open (so Escape works at once) — no ring. */
   .dialog:focus { outline: none; }
   /* The one part that shrinks and scrolls (min-height: 0); the header and the
@@ -4027,11 +4436,12 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     overflow-y: auto; overscroll-behavior: contain;
     display: flex; flex-direction: column; gap: var(--ms-modal-gap, 14px);
   }
-`});var V,Vo=y(()=>{"use strict";O();L();I();V=class extends S{constructor(){super(...arguments);this._open=!1;this._title="";this._message="";this._confirmText="";this._danger=!1;this._inputLabel="";this._inputType="";this._options=null;this._inputValue="";this._resolve=null;this._promptResolve=null}confirm(e){return this._title=e.title,this._message=e.message,this._confirmText=e.confirmText||"OK",this._danger=e.danger||!1,this._inputLabel="",this._inputType="",this._options=null,this._inputValue="",this._open=!0,new Promise(t=>{this._resolve=t,this._promptResolve=null})}prompt(e){return this._title=e.title,this._message=e.message,this._confirmText=e.confirmText||"OK",this._danger=e.danger||!1,this._inputLabel=e.inputLabel||"",this._inputType=e.inputType||"text",this._options=e.options&&e.options.length?e.options:null,this._inputValue=e.inputValue||"",this._open=!0,new Promise(t=>{this._promptResolve=t,this._resolve=null})}_cancel(){this._open=!1,this._promptResolve&&(this._promptResolve({confirmed:!1,value:""}),this._promptResolve=null),this._resolve?.(!1),this._resolve=null}_confirmAction(){this._open=!1,this._promptResolve&&(this._promptResolve({confirmed:!0,value:this._inputValue}),this._promptResolve=null),this._resolve?.(!0),this._resolve=null}render(){if(!this._open)return p;let e=j(this.hass);return l`
-      <ha-dialog open @closed=${this._cancel}>
-        <div class="dialog-title">${this._title}</div>
+`});var K,Ka=x(()=>{"use strict";I();z();P();ne();zs();ki();K=class extends T{constructor(){super(...arguments);this._open=!1;this._title="";this._message="";this._confirmText="";this._danger=!1;this._inputLabel="";this._inputType="";this._options=null;this._inputValue="";this._check="";this._checked=!0;this._resolve=null;this._promptResolve=null;this._checkResolve=null}_show(e){this._title=e.title,this._message=e.message,this._confirmText=e.confirmText||"OK",this._danger=e.danger||!1,this._inputLabel=e.inputLabel||"",this._inputType=e.inputType||"",this._options=e.options&&e.options.length?e.options:null,this._inputValue=e.inputValue||"",this._check=e.check||"",this._checked=!0,this._resolve=null,this._promptResolve=null,this._checkResolve=null,this._open=!0}confirm(e){return this._show(e),new Promise(t=>this._resolve=t)}confirmWithCheck(e){return this._show(e),new Promise(t=>this._checkResolve=t)}prompt(e){return this._show(e),new Promise(t=>this._promptResolve=t)}_cancel(){this._open=!1,this._promptResolve&&(this._promptResolve({confirmed:!1,value:""}),this._promptResolve=null),this._checkResolve?.({confirmed:!1,checked:!1}),this._checkResolve=null,this._resolve?.(!1),this._resolve=null}_confirmAction(){this._open=!1,this._promptResolve&&(this._promptResolve({confirmed:!0,value:this._inputValue}),this._promptResolve=null),this._checkResolve?.({confirmed:!0,checked:this._checked}),this._checkResolve=null,this._resolve?.(!0),this._resolve=null}render(){if(!this._open)return p;let e=N(this.hass);return l`
+      <ha-dialog open .headerTitle=${Te(this._title)} @closed=${this._cancel}>
+        ${Se(this._title)}
         <div class="content">
           ${this._message}
+          ${this._check?j({cls:"confirm-check",checked:this._checked,onChange:t=>this._checked=t.target.checked},this._check):p}
           ${this._inputLabel?l`
             <!-- Native <input> rather than <ha-textfield>: HA loads
                  ha-textfield lazily for its own panels, so inside this custom
@@ -4040,10 +4450,9 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                  the pause/replace prompts; same fix as complete-dialog). -->
             <label class="field">
               <span class="field-label">${this._inputLabel}</span>
-              ${this._options?l`<select class="field-input field-select"
-                    @change=${t=>this._inputValue=t.target.value}>
+              ${this._options?l`${M({cls:"field-input field-select",onChange:t=>this._inputValue=t.target.value},l`
                     ${this._options.map(t=>l`<option value=${t.value} ?selected=${t.value===this._inputValue}>${t.label}</option>`)}
-                  </select>`:l`<input class="field-input"
+                  `)}`:l`<input class="field-input"
                     type="${this._inputType||"text"}"
                     .value=${this._inputValue}
                     @input=${t=>this._inputValue=t.target.value} />`}
@@ -4056,13 +4465,14 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           </ha-button>
           <ha-button
             class="${this._danger?"danger":""}"
+            variant=${this._danger?"danger":"brand"}
             @click=${this._confirmAction}
           >
             ${this._confirmText}
           </ha-button>
         </div>
       </ha-dialog>
-    `}};V.styles=[Se,$`
+    `}};K.styles=[ze,$`
     .dialog-title {
       font-size: 18px;
       font-weight: 500;
@@ -4071,6 +4481,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     /* shared native-field scaffold from nativeFieldStyles; the prompt input
        follows the message text, hence the extra top margin here */
     .field { margin-top: 12px; }
+    .confirm-check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
     .content {
       padding: 8px 0;
       min-width: 280px;
@@ -4091,11 +4502,11 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     ha-button.danger {
       --mdc-theme-primary: var(--error-color, #f44336);
     }
-  `],d([b({attribute:!1})],V.prototype,"hass",2),d([h()],V.prototype,"_open",2),d([h()],V.prototype,"_title",2),d([h()],V.prototype,"_message",2),d([h()],V.prototype,"_confirmText",2),d([h()],V.prototype,"_danger",2),d([h()],V.prototype,"_inputLabel",2),d([h()],V.prototype,"_inputType",2),d([h()],V.prototype,"_options",2),d([h()],V.prototype,"_inputValue",2);customElements.get("maintenance-confirm-dialog")||customElements.define("maintenance-confirm-dialog",V)});function Tc(){return document.querySelector("home-assistant")?.shadowRoot??document.body}function Ge(r,s){let e=Tc(),t=e.querySelector(`${Go}[${Ko}]`);return t||(t=document.createElement(Go),t.setAttribute(Ko,""),e.appendChild(t)),t.hass=r,t.confirm(s)}var Go,Ko,Vi=y(()=>{"use strict";Vo();Go="maintenance-confirm-dialog",Ko="data-ms-lovelace-confirm"});var Pe,ns=y(()=>{"use strict";O();L();Pr();Pe=class extends S{constructor(){super(...arguments);this.docId="";this._url="";this._failed=!1;this._signedFor=""}updated(){this.hass&&this.docId&&this._signedFor!==this.docId&&(this._signedFor=this.docId,this._url="",this._failed=!1,this._sign())}async _sign(){try{this._url=await Ir(this.hass,this.docId)}catch{this._failed=!0}}render(){return this._failed||!this.docId?p:this._url?l`
+  `],d([b({attribute:!1})],K.prototype,"hass",2),d([h()],K.prototype,"_open",2),d([h()],K.prototype,"_title",2),d([h()],K.prototype,"_message",2),d([h()],K.prototype,"_confirmText",2),d([h()],K.prototype,"_danger",2),d([h()],K.prototype,"_inputLabel",2),d([h()],K.prototype,"_inputType",2),d([h()],K.prototype,"_options",2),d([h()],K.prototype,"_inputValue",2),d([h()],K.prototype,"_check",2),d([h()],K.prototype,"_checked",2);customElements.get("maintenance-confirm-dialog")||customElements.define("maintenance-confirm-dialog",K)});function Yd(){return document.querySelector("home-assistant")?.shadowRoot??document.body}function Us(i){let s=Yd(),e=s.querySelector(`${Ya}[${Qa}]`);return e||(e=document.createElement(Ya),e.setAttribute(Qa,""),s.appendChild(e)),e.hass=i,e}function $i(i,s){return Us(i).confirm(s)}var Ya,Qa,Tr=x(()=>{"use strict";Ka();Ya="maintenance-confirm-dialog",Qa="data-ms-lovelace-confirm"});var Ke,Bs=x(()=>{"use strict";I();z();cs();Ke=class extends T{constructor(){super(...arguments);this.docId="";this._url="";this._failed=!1;this._signedFor=""}updated(){this.hass&&this.docId&&this._signedFor!==this.docId&&(this._signedFor=this.docId,this._url="",this._failed=!1,this._sign())}async _sign(){try{this._url=await ls(this.hass,this.docId)}catch{this._failed=!0}}render(){return this._failed||!this.docId?p:this._url?l`
       <a href=${this._url} target="_blank" rel="noopener" class="wrap">
         <img src=${this._url} alt="" loading="lazy"
           @error=${()=>this._failed=!0} />
-      </a>`:l`<div class="ph"></div>`}};Pe.styles=$`
+      </a>`:l`<div class="ph"></div>`}};Ke.styles=$`
     .wrap { display: inline-block; margin-top: 4px; }
     /* #161: uniform 96px tiles — several photos sit in a strip, so a
        tiny or portrait shot must not collapse its slot. */
@@ -4103,7 +4514,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       width: 96px;
       height: 96px;
       object-fit: cover;
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       display: block;
       border: 1px solid var(--divider-color);
       box-sizing: border-box;
@@ -4111,12 +4522,12 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     .ph {
       width: 96px;
       height: 96px;
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       margin-top: 4px;
     }
-  `,d([b({attribute:!1})],Pe.prototype,"hass",2),d([b()],Pe.prototype,"docId",2),d([h()],Pe.prototype,"_url",2),d([h()],Pe.prototype,"_failed",2);customElements.get("maintenance-history-photo")||customElements.define("maintenance-history-photo",Pe)});var Z,Yo=y(()=>{"use strict";O();L();I();oe();W();Wt();Wi();Qr();Hi();Vi();ft();Li();ns();Xt();Xt();Z=class extends S{constructor(){super(...arguments);this._open=!1;this._saving=!1;this._error="";this._draft=null;this._originalSnapshot=null;this._partOptions=null;this._partQty={};this._partQtyOriginal="";this._openGen=0;this._photos=new mt(this,{entryId:()=>this._draft?.entry_id??"",hass:()=>this.hass});this._photosOriginal="";this._readingRows=[];this._readingText={};this._readingsOriginal=""}get _lang(){return j(this.hass)}openEdit(e){this._openGen++,this._draft={...e},this._originalSnapshot={...e},this._error="",this._open=!0,this._partOptions=null,this._partQty={},this._partQtyOriginal="",this._photos.reset(e.photo_doc_ids??[]),this._photosOriginal=JSON.stringify(this._photos.ids),this._seedReadings(e),this._loadPartOptions()}_seedReadings(e){let t=[],i=new Set;for(let a of e.readings??[])i.has(a.id)||(i.add(a.id),t.push({id:a.id,name:a.name,unit:a.unit??null}));for(let a of e.reading_values??[])i.has(a.id)||(i.add(a.id),t.push({id:a.id,name:a.name,unit:a.unit??null}));this._readingRows=t;let o={};for(let a of e.reading_values??[])o[a.id]=String(a.value);this._readingText=o,this._readingsOriginal=JSON.stringify(this._readingNumbers())}_readingNumbers(){let e={};for(let t of this._readingRows){let i=(this._readingText[t.id]??"").trim();if(i==="")continue;let o=parseFloat(i.replace(",","."));isNaN(o)||(e[t.id]=o)}return e}async _loadPartOptions(){let e=this._draft;if(!e)return;let t=this._openGen;try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/parts/overview"});if(t!==this._openGen)return;let o=[];for(let c of i.parts||[]){let u=c.entry_id===e.entry_id,_=c.consumers.some(m=>m.entry_id===e.entry_id&&m.task_id===e.task_id);!u&&!_||o.push({part_id:c.part_id,name:c.name,entry_id:c.entry_id,foreign:!u,object_name:c.object_name})}for(let c of e.used_parts||[]){let u=c.entry_id||e.entry_id;o.some(_=>_.part_id===c.part_id&&_.entry_id===u)||o.push({part_id:c.part_id,name:c.name||c.part_id,entry_id:u,foreign:u!==e.entry_id,object_name:null})}let a={};for(let c of e.used_parts||[])a[`${c.entry_id||e.entry_id}:${c.part_id}`]=c.quantity??1;this._partOptions=o,this._partQty=a,this._partQtyOriginal=this._partSelectionKey()}catch{if(t!==this._openGen)return;this._partOptions=[]}}_partSelectionKey(){return JSON.stringify(Object.entries(this._partQty).filter(([,e])=>e>0).sort(([e],[t])=>e.localeCompare(t)))}close(){this._openGen++,this._open=!1,this._error="",this._draft=null,this._originalSnapshot=null,this._photos.discardOrphans()}_set(e,t){this._draft&&(this._draft={...this._draft,[e]:t})}async _delete(){if(!this._draft||!this._originalSnapshot)return;let e=this._lang,i=(this._originalSnapshot.used_parts||[]).filter(u=>u.quantity>0).map(u=>`${P(u.quantity,e)}\xD7 ${u.name||u.part_id}`).join(", ");if(!await Ge(this.hass,{title:n("history_delete_entry",e),message:i?`${n("history_delete_confirm_entry",e)} ${n("history_delete_returns_parts",e).replace("{parts}",i)}`:n("history_delete_confirm_entry",e),confirmText:n("delete",e),danger:!0})||!this._draft||!this._originalSnapshot)return;let a=this._draft;this._error="",await this._runWs({type:"maintenance_supporter/task/history/delete",entry_id:a.entry_id,task_id:a.task_id,timestamp:this._originalSnapshot.original_timestamp})!==void 0&&(this.dispatchEvent(new CustomEvent("history-entry-saved",{detail:{entry_id:a.entry_id,task_id:a.task_id,deleted:!0},bubbles:!0,composed:!0})),this.close())}_runWs(e){return H(this,e,{busy:t=>{this._saving=t},onError:t=>{this._error=t}})}async _save(){if(!this._draft||!this._originalSnapshot||this._saving||this._photos.uploading)return;this._error="",this._photos.clearError();let e=this._draft,t=this._originalSnapshot,i={type:"maintenance_supporter/task/history/update",entry_id:e.entry_id,task_id:e.task_id,original_timestamp:t.original_timestamp};if(e.timestamp!==t.timestamp&&(i.timestamp=e.timestamp),e.notes!==t.notes&&(i.notes=e.notes),e.cost!==t.cost&&(i.cost=e.cost),e.duration!==t.duration&&(i.duration=e.duration),e.completed_by!==t.completed_by&&(i.completed_by=e.completed_by),this._partOptions!==null&&this._partSelectionKey()!==this._partQtyOriginal&&(i.used_parts=(this._partOptions||[]).filter(a=>(this._partQty[`${a.entry_id}:${a.part_id}`]||0)>0).map(a=>({part_id:a.part_id,quantity:this._partQty[`${a.entry_id}:${a.part_id}`],...a.foreign?{entry_id:a.entry_id}:{}}))),e.reading_value!==t.reading_value&&(i.reading_value=e.reading_value??null),this._readingRows.length>0&&JSON.stringify(this._readingNumbers())!==this._readingsOriginal){let a=this._readingNumbers(),c={};for(let u of this._readingRows)c[u.id]=a[u.id]??null;i.reading_values=c}if(JSON.stringify(this._photos.ids)!==this._photosOriginal&&(i.photo_doc_ids=this._photos.ids),Object.keys(i).filter(a=>!["type","entry_id","task_id","original_timestamp"].includes(a)).length===0){this.close();return}await this._runWs(i)!==void 0&&(this._photos.markAttached(),this.dispatchEvent(new CustomEvent("history-entry-saved",{detail:{entry_id:e.entry_id,task_id:e.task_id,new_timestamp:e.timestamp},bubbles:!0,composed:!0})),this.close())}render(){if(!this._open||!this._draft)return p;let e=this._lang,t=this._draft,i=this._error||this._photos.errorText(e);return xt(()=>this.close(),l`
-        <h2>${n("history_edit_title",e)}</h2>
+  `,d([b({attribute:!1})],Ke.prototype,"hass",2),d([b()],Ke.prototype,"docId",2),d([h()],Ke.prototype,"_url",2),d([h()],Ke.prototype,"_failed",2);customElements.get("maintenance-history-photo")||customElements.define("maintenance-history-photo",Ke)});var ie,Za=x(()=>{"use strict";I();z();P();me();Z();di();Er();Cs();cr();Tr();jt();dr();Bs();wi();wi();Ge();ie=class extends T{constructor(){super(...arguments);this._open=!1;this._saving=!1;this._error="";this._draft=null;this._originalSnapshot=null;this._partOptions=null;this._partQty={};this._partQtyOriginal="";this._openGen=0;this._photos=new Ot(this,{entryId:()=>this._draft?.entry_id??"",hass:()=>this.hass});this._photosOriginal="";this._readingRows=[];this._readingText={};this._readingsOriginal=""}get _lang(){return N(this.hass)}openEdit(e){this._openGen++,this._draft={...e},this._originalSnapshot={...e},this._error="",this._open=!0,this._partOptions=null,this._partQty={},this._partQtyOriginal="",this._photos.reset(e.photo_doc_ids??[]),this._photosOriginal=JSON.stringify(this._photos.ids),this._seedReadings(e),this._loadPartOptions()}_seedReadings(e){let t=[],r=new Set;for(let a of e.readings??[])r.has(a.id)||(r.add(a.id),t.push({id:a.id,name:a.name,unit:a.unit??null}));for(let a of e.reading_values??[])r.has(a.id)||(r.add(a.id),t.push({id:a.id,name:a.name,unit:a.unit??null}));this._readingRows=t;let o={};for(let a of e.reading_values??[])o[a.id]=String(a.value);this._readingText=o,this._readingsOriginal=JSON.stringify(this._readingNumbers())}_readingNumbers(){let e={};for(let t of this._readingRows){let r=(this._readingText[t.id]??"").trim();if(r==="")continue;let o=parseFloat(r.replace(",","."));isNaN(o)||(e[t.id]=o)}return e}async _loadPartOptions(){let e=this._draft;if(!e)return;let t=this._openGen;try{let r=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/parts/overview"});if(t!==this._openGen)return;let o=[];for(let c of r.parts||[]){let u=c.entry_id===e.entry_id,_=c.consumers.some(m=>m.entry_id===e.entry_id&&m.task_id===e.task_id);!u&&!_||o.push({part_id:c.part_id,name:c.name,entry_id:c.entry_id,foreign:!u,object_name:c.object_name})}for(let c of e.used_parts||[]){let u=c.entry_id||e.entry_id;o.some(_=>_.part_id===c.part_id&&_.entry_id===u)||o.push({part_id:c.part_id,name:c.name||c.part_id,entry_id:u,foreign:u!==e.entry_id,object_name:null})}let a={};for(let c of e.used_parts||[])a[`${c.entry_id||e.entry_id}:${c.part_id}`]=c.quantity??1;this._partOptions=o,this._partQty=a,this._partQtyOriginal=this._partSelectionKey()}catch{if(t!==this._openGen)return;this._partOptions=[]}}_partSelectionKey(){return JSON.stringify(Object.entries(this._partQty).filter(([,e])=>e>0).sort(([e],[t])=>e.localeCompare(t)))}close(){this._openGen++,this._open=!1,this._error="",this._draft=null,this._originalSnapshot=null,this._photos.discardOrphans()}_set(e,t){this._draft&&(this._draft={...this._draft,[e]:t})}async _delete(){if(!this._draft||!this._originalSnapshot)return;let e=this._lang,r=(this._originalSnapshot.used_parts||[]).filter(u=>u.quantity>0).map(u=>`${S(u.quantity,e)}\xD7 ${u.name||u.part_id}`).join(", ");if(!await $i(this.hass,{title:n("history_delete_entry",e),message:r?`${n("history_delete_confirm_entry",e)} ${n("history_delete_returns_parts",e).replace("{parts}",r)}`:n("history_delete_confirm_entry",e),confirmText:n("delete",e),danger:!0})||!this._draft||!this._originalSnapshot)return;let a=this._draft;this._error="",await this._runWs({type:"maintenance_supporter/task/history/delete",entry_id:a.entry_id,task_id:a.task_id,timestamp:this._originalSnapshot.original_timestamp})!==void 0&&(this.dispatchEvent(new CustomEvent("history-entry-saved",{detail:{entry_id:a.entry_id,task_id:a.task_id,deleted:!0},bubbles:!0,composed:!0})),this.close())}_runWs(e){return L(this,e,{busy:t=>{this._saving=t},onError:t=>{this._error=t}})}async _save(){if(!this._draft||!this._originalSnapshot||this._saving||this._photos.uploading)return;this._error="",this._photos.clearError();let e=this._draft,t=this._originalSnapshot,r={type:"maintenance_supporter/task/history/update",entry_id:e.entry_id,task_id:e.task_id,original_timestamp:t.original_timestamp};if(e.timestamp!==t.timestamp&&(r.timestamp=e.timestamp),e.notes!==t.notes&&(r.notes=e.notes),e.cost!==t.cost&&(r.cost=e.cost),e.duration!==t.duration&&(r.duration=e.duration),e.completed_by!==t.completed_by&&(r.completed_by=e.completed_by),this._partOptions!==null&&this._partSelectionKey()!==this._partQtyOriginal&&(r.used_parts=(this._partOptions||[]).filter(a=>(this._partQty[`${a.entry_id}:${a.part_id}`]||0)>0).map(a=>({part_id:a.part_id,quantity:this._partQty[`${a.entry_id}:${a.part_id}`],...a.foreign?{entry_id:a.entry_id}:{}}))),e.reading_value!==t.reading_value&&(r.reading_value=e.reading_value??null),this._readingRows.length>0&&JSON.stringify(this._readingNumbers())!==this._readingsOriginal){let a=this._readingNumbers(),c={};for(let u of this._readingRows)c[u.id]=a[u.id]??null;r.reading_values=c}if(JSON.stringify(this._photos.ids)!==this._photosOriginal&&(r.photo_doc_ids=this._photos.ids),Object.keys(r).filter(a=>!["type","entry_id","task_id","original_timestamp"].includes(a)).length===0){this.close();return}await this._runWs(r)!==void 0&&(this._photos.markAttached(),this.dispatchEvent(new CustomEvent("history-entry-saved",{detail:{entry_id:e.entry_id,task_id:e.task_id,new_timestamp:e.timestamp},bubbles:!0,composed:!0})),this.close())}render(){if(!this._open||!this._draft)return p;let e=this._lang,t=this._draft,r=this._error||this._photos.errorText(e);return zt(()=>this.close(),l`
+        ${ct()?p:l`<h2>${n("history_edit_title",e)}</h2>`}
         <div class="entry-type">
           <ha-icon icon="mdi:tag-outline"></ha-icon>
           <span>${n(t.type,e)||t.type}</span>
@@ -4127,8 +4538,8 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           .hass=${this.hass}
           .lang=${e}
           .label=${n("history_edit_timestamp",e)}
-          .helper=${yi(e)}
-          .value=${dn(t.timestamp)}
+          .helper=${Wi(e)}
+          .value=${Kn(t.timestamp)}
           @value-changed=${o=>{let a=o.detail.value;a&&this._set("timestamp",a)}}
         ></ms-date-field>
         <label>
@@ -4148,7 +4559,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             <span>${n("duration",e)}</span>
             <input type="number" min="0" step="1" inputmode="numeric"
               .value=${t.duration!=null?String(t.duration):""}
-              @input=${o=>{this._set("duration",Be(o.target.value))}} />
+              @input=${o=>{this._set("duration",at(o.target.value))}} />
           </label>
         </div>
         ${this._renderReadings(t,e)}
@@ -4161,7 +4572,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                     @change=${u=>{let _=u.target.checked;this._partQty={...this._partQty,[a]:_?1:0}}} />
                   <span class="part-label">${o.name}${o.foreign&&o.object_name?` (${o.object_name})`:""}</span>
                   ${c>0?l`
-                    <input class="part-qty" type="number" min=${Ce[0]} max=${Ce[1]} step="0.01"
+                    <input class="part-qty" type="number" min=${Be[0]} max=${Be[1]} step="0.01"
                       .value=${String(c)}
                       @input=${u=>{let _=parseFloat(u.target.value);!isNaN(_)&&_>0&&(this._partQty={...this._partQty,[a]:_})}} />
                   `:p}
@@ -4185,7 +4596,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
               ></ms-photo-picker>`}
           <span class="photos-hint">${n("history_edit_photos_hint",e)}</span>
         </div>
-        ${i?l`<div class="error">${i}</div>`:p}
+        ${r?U("error",r):p}
         <div class="actions">
           <button class="delete-entry" @click=${this._delete} ?disabled=${this._saving} title=${n("history_delete_entry",e)}>
             <ha-icon icon="mdi:delete-outline"></ha-icon> ${n("history_delete_entry",e)}
@@ -4198,15 +4609,15 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             ${this._saving?n("saving",e):n("save",e)}
           </button>
         </div>
-    `)}updated(e){e.has("_open")&&this._open&&wt(this.shadowRoot)}_renderReadings(e,t){return this._readingRows.length>0?l`
+    `,{title:n("history_edit_title",e)})}updated(e){e.has("_open")&&this._open&&Ft(this.shadowRoot)}_renderReadings(e,t){return this._readingRows.length>0?l`
         <div class="readings-block">
           <span class="parts-title">${n("readings_section",t)}</span>
-          ${this._readingRows.map(i=>l`
+          ${this._readingRows.map(r=>l`
             <label class="reading-row-edit">
-              <span class="reading-row-name">${i.name}${i.unit?` (${i.unit})`:""}</span>
+              <span class="reading-row-name">${r.name}${r.unit?` (${r.unit})`:""}</span>
               <input type="text" inputmode="decimal" class="reading-row-input"
-                .value=${this._readingText[i.id]??""}
-                @input=${o=>{this._readingText={...this._readingText,[i.id]:o.target.value}}} />
+                .value=${this._readingText[r.id]??""}
+                @input=${o=>{this._readingText={...this._readingText,[r.id]:o.target.value}}} />
             </label>
           `)}
         </div>`:e.reading_value==null&&e.task_type!=="reading"?p:l`
@@ -4214,8 +4625,8 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
         <span>${n("reading_value_label",t)}${e.reading_unit?` (${e.reading_unit})`:""}</span>
         <input type="number" step="any"
           .value=${e.reading_value!=null?String(e.reading_value):""}
-          @input=${i=>{let o=i.target.value,a=o===""?NaN:Number(o);this._set("reading_value",isNaN(a)?null:a)}} />
-      </label>`}};Z.styles=[zi,yt,$`
+          @input=${r=>{let o=r.target.value,a=o===""?NaN:Number(o);this._set("reading_value",isNaN(a)?null:a)}} />
+      </label>`}};ie.styles=[br,Lt,$`
     :host { display: contents; --ms-modal-max-height: 90vh; --ms-modal-gap: 12px; }
     h2 { margin: 0; font-size: 18px; font-weight: 500; }
     .entry-type {
@@ -4234,11 +4645,11 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       background: var(--secondary-background-color, #2c2c2c);
       color: var(--primary-text-color);
       border: 1px solid var(--divider-color, #444);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       width: 100%; box-sizing: border-box;
       font-family: inherit;
     }
-    .delete-entry { margin-right: auto; color: var(--error-color, #d32f2f); background: transparent; border: 1px solid var(--error-color, #d32f2f); border-radius: 6px; padding: 6px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .delete-entry { margin-right: auto; color: var(--error-color, #d32f2f); background: transparent; border: 1px solid var(--error-color, #d32f2f); border-radius: var(--ms-radius-6, 6px); padding: 6px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
     .delete-entry ha-icon { --mdc-icon-size: 18px; }
     .actions {
       display: flex; gap: 8px; justify-content: flex-end;
@@ -4246,7 +4657,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     }
     button {
       padding: 8px 16px; font-size: 14px;
-      border-radius: 6px; cursor: pointer;
+      border-radius: var(--ms-radius-6, 6px); cursor: pointer;
       border: none; font-weight: 500;
     }
     button.cancel {
@@ -4263,13 +4674,13 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       color: var(--error-color, #d32f2f);
       font-size: 13px; padding: 8px;
       background: rgba(211,47,47,0.1);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
     }
     /* #130: parts on the entry */
     .parts-block {
       display: flex; flex-direction: column; gap: 6px;
       border: 1px solid var(--divider-color, #444);
-      border-radius: 6px; padding: 8px;
+      border-radius: var(--ms-radius-6, 6px); padding: 8px;
     }
     .parts-title { color: var(--secondary-text-color); font-size: 12px; font-weight: 500; }
     .part-row-edit {
@@ -4283,7 +4694,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     .readings-block {
       display: flex; flex-direction: column; gap: 6px;
       border: 1px solid var(--divider-color, #444);
-      border-radius: 6px; padding: 8px;
+      border-radius: var(--ms-radius-6, 6px); padding: 8px;
     }
     .reading-row-edit {
       display: flex; flex-direction: row; align-items: center; gap: 8px;
@@ -4295,7 +4706,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     .photos-block {
       display: flex; flex-direction: column; gap: 6px;
       border: 1px solid var(--divider-color, #444);
-      border-radius: 6px; padding: 8px;
+      border-radius: var(--ms-radius-6, 6px); padding: 8px;
     }
     .photo-strip { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
     .photo-tile { position: relative; width: fit-content; }
@@ -4307,7 +4718,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     }
     /* the camera / gallery pickers come from photoPickerStyles (ms-photo-picker) */
     .photos-hint { font-size: 12px; color: var(--secondary-text-color); }
-  `],d([b({attribute:!1})],Z.prototype,"hass",2),d([h()],Z.prototype,"_open",2),d([h()],Z.prototype,"_saving",2),d([h()],Z.prototype,"_error",2),d([h()],Z.prototype,"_draft",2),d([h()],Z.prototype,"_partOptions",2),d([h()],Z.prototype,"_partQty",2),d([h()],Z.prototype,"_readingRows",2),d([h()],Z.prototype,"_readingText",2);customElements.get("maintenance-history-edit-dialog")||customElements.define("maintenance-history-edit-dialog",Z)});function Oe(r){return String(r??"").replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[s])}var Qo=y(()=>{"use strict"});function os(r){return!r.startsWith("data:image/svg+xml,")&&!r.startsWith("data:image/png;base64,")?"":Oe(r)}function Ac(r){return r.replace(/[/\\:*?"<>|#%]+/g,"").replace(/\s+/g,"-").toLowerCase().substring(0,100)}var G,Zo=y(()=>{"use strict";O();L();I();rt();Rr();Qo();G=class extends S{constructor(){super(...arguments);this.lang="";this._open=!1;this._loading=!1;this._error="";this._viewResult=null;this._completeResult=null;this._quickResult=null;this._quickValues=null;this._urlMode="companion";this._entryId="";this._taskId=null;this._objectName="";this._taskName="";this._generateSeq=0}get _dialogLang(){return this.lang||j(this.hass)}openForObject(e,t){this._entryId=e,this._taskId=null,this._objectName=t,this._taskName="",this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._quickResult=null,this._open=!0,this._generate()}openForTask(e,t,i,o){this._entryId=e,this._taskId=t,this._objectName=i,this._taskName=o,this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._quickResult=null,this._open=!0,this._generate()}async _generate(){let e=++this._generateSeq;this._loading=!0,this._error="",this._viewResult=null,this._completeResult=null,this._quickResult=null,this._quickValues=null;try{let t={type:"maintenance_supporter/qr/generate",entry_id:this._entryId,url_mode:this._urlMode};this._taskId&&(t.task_id=this._taskId);let i=[this.hass.connection.sendMessagePromise({...t,action:"view"})];if(this._taskId){if(i.push(this.hass.connection.sendMessagePromise({...t,action:"complete"})),this._quickValues=await this._quickCompleteValues(),e!==this._generateSeq)return;this._quickValues&&i.push(this.hass.connection.sendMessagePromise({...t,action:"quick_complete"}))}let o=await Promise.all(i);if(e!==this._generateSeq)return;this._viewResult=o[0],o.length>1&&(this._completeResult=o[1]),o.length>2&&(this._quickResult=o[2])}catch(t){if(e!==this._generateSeq)return;let i=t?.code,o=t?.message;this._error=i==="no_url"||typeof o=="string"&&o.includes("No Home Assistant URL")?n("qr_error_no_url",this._dialogLang):n("qr_error",this._dialogLang)}finally{e===this._generateSeq&&(this._loading=!1)}}async _quickCompleteValues(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:this._entryId});return ki((e.tasks||[]).find(t=>t.id===this._taskId))}catch{return null}}_quickRecords(e){let t=this._quickValues??{},i=[t.notes?`\u201C${t.notes.length>40?`${t.notes.slice(0,39)}\u2026`:t.notes}\u201D`:"",t.cost!=null?`${n("quick_complete_defaults_cost",e)} ${K(t.cost,void 0,e)}`:"",t.duration!=null?it(t.duration,e):""].filter(Boolean);return i.length?n("qr_quick_records",e).replace("{values}",i.join(", ")):n("qr_quick_records_nothing",e)}_setUrlMode(e){this._urlMode!==e&&(this._urlMode=e,this._generate())}_print(){if(!this._viewResult)return;let e=this._viewResult,t=e.label.task_name?`${e.label.object_name} \u2014 ${e.label.task_name}`:e.label.object_name,i=[e.label.manufacturer,e.label.model].filter(Boolean).join(" "),o=window.open("","_blank","width=600,height=500");if(!o)return;let a=this._dialogLang,c=Oe(t),u=Oe(i),_=!!this._completeResult,m=!!this._quickResult,f=Oe(n("qr_action_view",a)),x=Oe(n("qr_action_complete",a)),w=Oe(n("qr_action_quick_complete",a));o.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+  `],d([b({attribute:!1})],ie.prototype,"hass",2),d([h()],ie.prototype,"_open",2),d([h()],ie.prototype,"_saving",2),d([h()],ie.prototype,"_error",2),d([h()],ie.prototype,"_draft",2),d([h()],ie.prototype,"_partOptions",2),d([h()],ie.prototype,"_partQty",2),d([h()],ie.prototype,"_readingRows",2),d([h()],ie.prototype,"_readingText",2);customElements.get("maintenance-history-edit-dialog")||customElements.define("maintenance-history-edit-dialog",ie)});function Ye(i){return String(i??"").replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[s])}var Ja=x(()=>{"use strict"});function Ws(i){return!i.startsWith("data:image/svg+xml,")&&!i.startsWith("data:image/png;base64,")?"":Ye(i)}function Qd(i){return i.replace(/[/\\:*?"<>|#%]+/g,"").replace(/\s+/g,"-").toLowerCase().substring(0,100)}var J,Xa=x(()=>{"use strict";I();z();P();xt();as();Ja();ne();Ge();J=class extends T{constructor(){super(...arguments);this.lang="";this._open=!1;this._loading=!1;this._error="";this._viewResult=null;this._completeResult=null;this._quickResult=null;this._quickValues=null;this._urlMode="companion";this._entryId="";this._taskId=null;this._objectName="";this._taskName="";this._generateSeq=0}get _dialogLang(){return this.lang||N(this.hass)}openForObject(e,t){this._entryId=e,this._taskId=null,this._objectName=t,this._taskName="",this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._quickResult=null,this._open=!0,this._generate()}openForTask(e,t,r,o){this._entryId=e,this._taskId=t,this._objectName=r,this._taskName=o,this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._quickResult=null,this._open=!0,this._generate()}async _generate(){let e=++this._generateSeq;this._loading=!0,this._error="",this._viewResult=null,this._completeResult=null,this._quickResult=null,this._quickValues=null;try{let t={type:"maintenance_supporter/qr/generate",entry_id:this._entryId,url_mode:this._urlMode};this._taskId&&(t.task_id=this._taskId);let r=[this.hass.connection.sendMessagePromise({...t,action:"view"})];if(this._taskId){if(r.push(this.hass.connection.sendMessagePromise({...t,action:"complete"})),this._quickValues=await this._quickCompleteValues(),e!==this._generateSeq)return;this._quickValues&&r.push(this.hass.connection.sendMessagePromise({...t,action:"quick_complete"}))}let o=await Promise.all(r);if(e!==this._generateSeq)return;this._viewResult=o[0],o.length>1&&(this._completeResult=o[1]),o.length>2&&(this._quickResult=o[2])}catch(t){if(e!==this._generateSeq)return;let r=t?.code,o=t?.message;this._error=r==="no_url"||typeof o=="string"&&o.includes("No Home Assistant URL")?n("qr_error_no_url",this._dialogLang):n("qr_error",this._dialogLang)}finally{e===this._generateSeq&&(this._loading=!1)}}async _quickCompleteValues(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:this._entryId});return Ki((e.tasks||[]).find(t=>t.id===this._taskId))}catch{return null}}_quickRecords(e){let t=this._quickValues??{},r=[t.notes?`\u201C${t.notes.length>40?`${t.notes.slice(0,39)}\u2026`:t.notes}\u201D`:"",t.cost!=null?`${n("quick_complete_defaults_cost",e)} ${X(t.cost,void 0,e)}`:"",t.duration!=null?bt(t.duration,e):""].filter(Boolean);return r.length?n("qr_quick_records",e).replace("{values}",r.join(", ")):n("qr_quick_records_nothing",e)}_setUrlMode(e){this._urlMode!==e&&(this._urlMode=e,this._generate())}_print(){if(!this._viewResult)return;let e=this._viewResult,t=e.label.task_name?`${e.label.object_name} \u2014 ${e.label.task_name}`:e.label.object_name,r=[e.label.manufacturer,e.label.model].filter(Boolean).join(" "),o=window.open("","_blank","width=600,height=500");if(!o)return;let a=this._dialogLang,c=Ye(t),u=Ye(r),_=!!this._completeResult,m=!!this._quickResult,f=Ye(n("qr_action_view",a)),v=Ye(n("qr_action_complete",a)),w=Ye(n("qr_action_quick_complete",a));o.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
 <meta name="color-scheme" content="light">
 <title>${c}</title>
 <style>
@@ -4329,25 +4740,25 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
 ${u?`<div class="sub">${u}</div>`:""}
 <div class="qr-row">
   <div class="qr-col">
-    <img src="${os(this._viewResult.svg_data_uri)}" alt="QR Info" />
+    <img src="${Ws(this._viewResult.svg_data_uri)}" alt="QR Info" />
     <div class="qr-label">${f}</div>
   </div>
   ${_?`<div class="qr-col">
-    <img src="${os(this._completeResult.svg_data_uri)}" alt="QR Complete" />
-    <div class="qr-label">${x}</div>
+    <img src="${Ws(this._completeResult.svg_data_uri)}" alt="QR Complete" />
+    <div class="qr-label">${v}</div>
   </div>`:""}
   ${m?`<div class="qr-col">
-    <img src="${os(this._quickResult.svg_data_uri)}" alt="QR Quick-complete" />
+    <img src="${Ws(this._quickResult.svg_data_uri)}" alt="QR Quick-complete" />
     <div class="qr-label">${w}</div>
   </div>`:""}
 </div>
-<div class="url">${Oe(this._viewResult.url)}</div>
+<div class="url">${Ye(this._viewResult.url)}</div>
 <script>setTimeout(()=>window.print(),300)<\/script>
-</body></html>`),o.document.close()}_downloadSvg(e,t){let i=decodeURIComponent(e.svg_data_uri.replace("data:image/svg+xml,","")),o=this._taskName?`${this._objectName}-${this._taskName}`:this._objectName;jn(i,`qr-${Ac(o)}-${t}.svg`,"image/svg+xml")}_close(){this._open=!1,this._viewResult=null,this._completeResult=null,this._quickResult=null,this._error="",this._loading=!1}render(){if(!this._open)return l``;let e=this._dialogLang,t=this._taskName?`${n("qr_code",e)}: ${this._objectName} \u2014 ${this._taskName}`:`${n("qr_code",e)}: ${this._objectName}`,i=!!this._viewResult;return l`
-      <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${t}</div>
+</body></html>`),o.document.close()}_downloadSvg(e,t){let r=decodeURIComponent(e.svg_data_uri.replace("data:image/svg+xml,","")),o=this._taskName?`${this._objectName}-${this._taskName}`:this._objectName;yo(r,`qr-${Qd(o)}-${t}.svg`,"image/svg+xml")}_close(){this._open=!1,this._viewResult=null,this._completeResult=null,this._quickResult=null,this._error="",this._loading=!1}render(){if(!this._open)return l``;let e=this._dialogLang,t=this._taskName?`${n("qr_code",e)}: ${this._objectName} \u2014 ${this._taskName}`:`${n("qr_code",e)}: ${this._objectName}`,r=!!this._viewResult;return l`
+      <ha-dialog open .headerTitle=${Te(t)} @closed=${this._close}>
+        ${Se(t)}
         <div class="content">
-          ${this._loading?l`<div class="loading">${n("qr_generating",e)}</div>`:this._error?l`<div class="error">${this._error}</div>`:i?l`
+          ${this._loading?l`<div class="loading">${n("qr_generating",e)}</div>`:this._error?U("error",this._error):r?l`
                     <div class="qr-pair">
                       <div class="qr-item">
                         <img
@@ -4415,13 +4826,13 @@ ${u?`<div class="sub">${u}</div>`:""}
           </ha-button>
           <ha-button
             @click=${this._print}
-            .disabled=${!i}
+            .disabled=${!r}
           >
             ${n("qr_print",e)}
           </ha-button>
         </div>
       </ha-dialog>
-    `}};G.styles=$`
+    `}};J.styles=$`
     .dialog-title {
       font-size: 18px;
       font-weight: 500;
@@ -4528,7 +4939,7 @@ ${u?`<div class="sub">${u}</div>`:""}
       display: flex;
       gap: 4px;
       background: var(--divider-color, #e0e0e0);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       padding: 3px;
     }
     .toggle-btn {
@@ -4551,95 +4962,95 @@ ${u?`<div class="sub">${u}</div>`:""}
       color: var(--text-primary-color, #fff);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
     }
-  `,d([b({attribute:!1})],G.prototype,"hass",2),d([b()],G.prototype,"lang",2),d([h()],G.prototype,"_open",2),d([h()],G.prototype,"_loading",2),d([h()],G.prototype,"_error",2),d([h()],G.prototype,"_viewResult",2),d([h()],G.prototype,"_completeResult",2),d([h()],G.prototype,"_quickResult",2),d([h()],G.prototype,"_quickValues",2),d([h()],G.prototype,"_urlMode",2);customElements.get("maintenance-qr-dialog")||customElements.define("maintenance-qr-dialog",G)});function Jo(r,s,e=new Date){let t=r?.hours,i=U(r?.snoozed_until);if(typeof t!="number"||!Number.isFinite(i))return n("snoozed",s);let o=$e(),c=Ee(i,o)===Ee(e,o)?vi(new Date(i),s):bi(r.snoozed_until,s);return fi("snoozed_for","snoozed_for_one",t,s,"hours").replace("{until}",c)}var Xo=y(()=>{"use strict";I();W()});var Wm,ea,ta=y(()=>{Je();({I:Wm}=Ds),ea=r=>r.strings===void 0});var ia,as,Gi,Ki=y(()=>{ia={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},as=r=>(...s)=>({_$litDirective$:r,values:s}),Gi=class{constructor(s){}get _$AU(){return this._$AM._$AU}_$AT(s,e,t){this._$Ct=s,this._$AM=e,this._$Ci=t}_$AS(s,e){return this.update(s,e)}update(s,e){return this.render(...e)}}});function Cc(r){this._$AN!==void 0?(Yi(this),this._$AM=r,ra(this)):this._$AM=r}function Rc(r,s=!1,e=0){let t=this._$AH,i=this._$AN;if(i!==void 0&&i.size!==0)if(s)if(Array.isArray(t))for(let o=e;o<t.length;o++)ei(t[o],!1),Yi(t[o]);else t!=null&&(ei(t,!1),Yi(t));else ei(this,r)}var ei,Yi,ra,Ic,Qi,sa=y(()=>{ta();Ki();Ki();ei=(r,s)=>{let e=r._$AN;if(e===void 0)return!1;for(let t of e)t._$AO?.(s,!1),ei(t,s);return!0},Yi=r=>{let s,e;do{if((s=r._$AM)===void 0)break;e=s._$AN,e.delete(r),r=s}while(e?.size===0)},ra=r=>{for(let s;s=r._$AM;r=s){let e=s._$AN;if(e===void 0)s._$AN=e=new Set;else if(e.has(r))break;e.add(r),Ic(s)}};Ic=r=>{r.type==ia.CHILD&&(r._$AP??=Rc,r._$AQ??=Cc)},Qi=class extends Gi{constructor(){super(...arguments),this._$AN=void 0}_$AT(s,e,t){super._$AT(s,e,t),ra(this),this.isConnected=s._$AU}_$AO(s,e=!0){s!==this.isConnected&&(this.isConnected=s,s?this.reconnected?.():this.disconnected?.()),e&&(ei(this,s),Yi(this))}setValue(s){if(ea(this._$Ct))this._$Ct._$AI(s,this);else{let e=[...this._$Ct._$AH];e[this._$Ci]=s,this._$Ct._$AI(e,this,0)}}disconnected(){}reconnected(){}}});var ls,na,oa=y(()=>{Je();sa();Ki();ls=new WeakMap,na=as(class extends Qi{render(r){return p}update(r,[s]){let e=s!==this.G;return e&&this.G!==void 0&&this.rt(void 0),(e||this.lt!==this.ct)&&(this.G=s,this.ht=r.options?.host,this.rt(this.ct=r.element)),p}rt(r){if(this.isConnected||(r=void 0),typeof this.G=="function"){let s=this.ht??globalThis,e=ls.get(s);e===void 0&&(e=new WeakMap,ls.set(s,e)),e.get(this.G)!==void 0&&this.G.call(this.ht,void 0),e.set(this.G,r),r!==void 0&&this.G.call(this.ht,r)}else this.G.value=r}get lt(){return typeof this.G=="function"?ls.get(this.ht??globalThis)?.get(this.G):this.G?.value}disconnected(){this.lt===this.ct&&this.rt(void 0)}reconnected(){this.rt(this.ct)}})});var aa=y(()=>{oa()});function Ji(r){if(!r)return p;if(customElements.get("ha-markdown")){let{content:s,links:e}=jc(r);return l`<ha-markdown
+  `,d([b({attribute:!1})],J.prototype,"hass",2),d([b()],J.prototype,"lang",2),d([h()],J.prototype,"_open",2),d([h()],J.prototype,"_loading",2),d([h()],J.prototype,"_error",2),d([h()],J.prototype,"_viewResult",2),d([h()],J.prototype,"_completeResult",2),d([h()],J.prototype,"_quickResult",2),d([h()],J.prototype,"_quickValues",2),d([h()],J.prototype,"_urlMode",2);customElements.get("maintenance-qr-dialog")||customElements.define("maintenance-qr-dialog",J)});function el(i,s,e=new Date){let t=i?.hours,r=Y(i?.snoozed_until);if(typeof t!="number"||!Number.isFinite(r))return n("snoozed",s);let o=Me(),c=He(r,o)===He(e,o)?Ui(new Date(r),s):Bi(i.snoozed_until,s);return Fi("snoozed_for","snoozed_for_one",t,s,"hours").replace("{until}",c)}var tl=x(()=>{"use strict";P();Z()});function Cr(i){if(!i)return p;if(customElements.get("ha-markdown")){let{content:s,links:e}=Xd(i);return l`<ha-markdown
       class="notes-md"
       .content=${s}
       breaks
-      ${na(t=>Nc(t,e))}
-    ></ha-markdown>`}return l`${r}`}function jc(r){let s=[],e=o=>{let a=jr(o);return!a||Pc.has(a)||!nt(o)?null:(s.push(Or(o)),`${ds}${s.length-1}`)},t=o=>o.replace(new RegExp(`(!?)(\\[[^\\]\\n]*\\]\\(\\s*)<(${Zi}[^>\\n]*)>`,"g"),(a,c,u,_)=>{let m=c?null:e(_);return m?`${u}${m}`:a}).replace(new RegExp(`(!?)(\\[[^\\]\\n]*\\]\\(\\s*)(${Zi}[^\\s)]*)`,"g"),(a,c,u,_)=>{let m=c?null:e(_);return m?`${u}${m}`:a}).replace(new RegExp(`(^|[^(])<(${Zi}[^\\s<>]*)>`,"gm"),(a,c,u)=>{let _=e(u);return _?`${c}[${u.replace(/([\\[\]])/g,"\\$1")}](${_})`:a}).replace(new RegExp(`^( {0,3}\\[[^\\]\\n]+\\]:[ \\t]*)<?(${Zi}[^\\s>]*)>?`,"gm"),(a,c,u)=>{let _=e(u);return _?`${c}${_}`:a});return{content:r.split(Oc).map((o,a)=>a%2?o:t(o)).join(""),links:s}}function cs(r,s){for(let e of r.querySelectorAll(`a[href^="${ds}"]`)){let t=s[Number(e.getAttribute("href").slice(ds.length))];t&&e.setAttribute("href",t)}}function Nc(r,s){if(!r)return;let e=la.get(r);if(!e&&s.length===0)return;if(e){e.links=s,r.shadowRoot&&cs(r.shadowRoot,s);return}let t={links:s};la.set(r,t),(async()=>{await r.updateComplete;let i=r.shadowRoot;i&&(new MutationObserver(()=>cs(i,t.links)).observe(i,{childList:!0,subtree:!0}),cs(i,t.links))})()}var ds,Pc,Oc,Zi,la,ps=y(()=>{"use strict";O();aa();Si();ds="https://app-link.invalid/",Pc=new Set(["http","https","mailto","tel","ftp"]),Oc=/(```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`\n]*`)/,Zi="[a-zA-Z][a-zA-Z0-9+.-]+:";la=new WeakMap});var ca=y(()=>{"use strict"});function da(r,s,e,t){let i=e,o=u=>typeof u=="string"?u:null,a=u=>typeof u=="number"?u:null,c=o(i.timestamp)??"";return{entry_id:r,task_id:s,original_timestamp:c,type:o(i.type)||"completed",timestamp:c,notes:o(i.notes),cost:a(i.cost),duration:a(i.duration),completed_by:o(i.completed_by),used_parts:Array.isArray(i.used_parts)?i.used_parts:null,photo_doc_ids:Yt(i),reading_value:a(i.reading_value),reading_values:Ae(i),readings:t?.readings??[],task_type:t?.type??null,reading_unit:t?.reading_unit??null}}var pa=y(()=>{"use strict";Qt();Ue();ca()});function qc(r){return r&&ua(r.ref_no)?String(r.ref_no):null}function ha(r,s){let e=qc(r);return e&&s&&ua(s.ref_no)?`${e}.${s.ref_no}`:null}function _a(r,s){return r?l`<span class="ref-chip" title=${s??""}>#${r}</span>`:p}var ua,us=y(()=>{"use strict";O();ua=r=>typeof r=="number"&&Number.isInteger(r)&&r>0});var hs=y(()=>{"use strict"});function ma(r,s){if(!r)return"";let e=Mc[r.trim()];if(e)return n(e,s);for(let[t,i,o]of Hc){let a=r.trim().match(t);if(a){let c=o(a,s);return n(i,s).replace(/\{(\w+)\}/g,(u,_)=>c[_]??u)}}return r}var Mc,Hc,ga=y(()=>{"use strict";I();Mc={"Completed from dashboard button":"hist_note_button","Auto-completed: sensor recovered":"hist_note_auto_recovered_plain","Completed from the To-do list":"hist_note_todo","Completed by voice":"hist_note_voice","Completed from the notification":"hist_note_notification","Completed via NFC tag":"hist_note_nfc","Completed from the shopping list":"hist_note_shopping_list","Completed from a mirrored to-do list":"hist_note_todo_mirror","Skipped from notification":"hist_note_skipped_notification","Skipped from dashboard button":"hist_note_skipped_button","Sensor trigger activated":"hist_note_sensor_triggered","Initial value set during task creation":"hist_note_initial"},Hc=[[/^Auto-completed: sensor recovered \((.+)\)$/,"hist_note_auto_recovered",r=>({value:r[1]})],[/^Auto-completed: (.+) changed to (.+)$/,"hist_note_auto_entity",r=>({entity:r[1],state:r[2]})],[/^Reset to (\d{4}-\d{2}-\d{2})$/,"hist_note_reset",(r,s)=>({date:q(r[1],s)})],[/^Trigger entity replaced: (.+) → (.+)$/,"hist_note_trigger_replaced",r=>({old:r[1],new:r[2]})],[/^Sensor trigger removed \(entity was: (.+)\)\. Schedule converted to (\w+)\.$/,"hist_note_trigger_removed",(r,s)=>({entity:r[1],schedule:n(r[2],s)})],[/^Entity (.+) removed from compound trigger; (\d+) conditions remain\.$/,"hist_note_compound_removed",r=>({entity:r[1],count:r[2]})]]});function fa(r){let s=e=>{let t=U(e.timestamp);return Number.isNaN(t)?-1/0:t};return(r??[]).map((e,t)=>({entry:e,index:t,at:s(e)})).sort((e,t)=>t.at-e.at||t.index-e.index).map(e=>e.entry)}function Dc(r,s){return r.taskRef&&s.ref_no?`${r.taskRef}-${s.ref_no}`:null}function zc(r,s){let e=Yt(s);return e.length>0?l`<div class="history-photos">
-        ${e.map(t=>l`<maintenance-history-photo .hass=${r} .docId=${t}></maintenance-history-photo>`)}
-      </div>`:p}function Fc(r,s){let e=s.lang,t=a=>P(a,e,{maximumFractionDigits:3}),i=a=>a==null?"":` (${a>=0?"+":""}${t(a)})`,o=Ae(r);return o.length>0?l`<div class="history-readings">
+      ${Dt(t=>ep(t,e))}
+    ></ha-markdown>`}return l`${i}`}function Xd(i){let s=[],e=o=>{let a=ps(o);return!a||Zd.has(a)||!kt(o)?null:(s.push(ds(o)),`${Gs}${s.length-1}`)},t=o=>o.replace(new RegExp(`(!?)(\\[[^\\]\\n]*\\]\\(\\s*)<(${Sr}[^>\\n]*)>`,"g"),(a,c,u,_)=>{let m=c?null:e(_);return m?`${u}${m}`:a}).replace(new RegExp(`(!?)(\\[[^\\]\\n]*\\]\\(\\s*)(${Sr}[^\\s)]*)`,"g"),(a,c,u,_)=>{let m=c?null:e(_);return m?`${u}${m}`:a}).replace(new RegExp(`(^|[^(])<(${Sr}[^\\s<>]*)>`,"gm"),(a,c,u)=>{let _=e(u);return _?`${c}[${u.replace(/([\\[\]])/g,"\\$1")}](${_})`:a}).replace(new RegExp(`^( {0,3}\\[[^\\]\\n]+\\]:[ \\t]*)<?(${Sr}[^\\s>]*)>?`,"gm"),(a,c,u)=>{let _=e(u);return _?`${c}${_}`:a});return{content:i.split(Jd).map((o,a)=>a%2?o:t(o)).join(""),links:s}}function Vs(i,s){for(let e of i.querySelectorAll(`a[href^="${Gs}"]`)){let t=s[Number(e.getAttribute("href").slice(Gs.length))];t&&e.setAttribute("href",t)}}function ep(i,s){if(!i)return;let e=il.get(i);if(!e&&s.length===0)return;if(e){e.links=s,i.shadowRoot&&Vs(i.shadowRoot,s);return}let t={links:s};il.set(i,t),(async()=>{await i.updateComplete;let r=i.shadowRoot;r&&(new MutationObserver(()=>Vs(r,t.links)).observe(r,{childList:!0,subtree:!0}),Vs(r,t.links))})()}var Gs,Zd,Jd,Sr,il,Ks=x(()=>{"use strict";I();mr();Zi();Gs="https://app-link.invalid/",Zd=new Set(["http","https","mailto","tel","ftp"]),Jd=/(```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`\n]*`)/,Sr="[a-zA-Z][a-zA-Z0-9+.-]+:";il=new WeakMap});var rl=x(()=>{"use strict"});function sl(i,s,e,t){let r=e,o=u=>typeof u=="string"?u:null,a=u=>typeof u=="number"?u:null,c=o(r.timestamp)??"";return{entry_id:i,task_id:s,original_timestamp:c,type:o(r.type)||"completed",timestamp:c,notes:o(r.notes),cost:a(r.cost),duration:a(r.duration),completed_by:o(r.completed_by),used_parts:Array.isArray(r.used_parts)?r.used_parts:null,photo_doc_ids:mi(r),reading_value:a(r.reading_value),reading_values:Ue(r),readings:t?.readings??[],task_type:t?.type??null,reading_unit:t?.reading_unit??null}}var nl=x(()=>{"use strict";gi();ot();rl()});function tp(i){return i&&ol(i.ref_no)?String(i.ref_no):null}function al(i,s){let e=tp(i);return e&&s&&ol(s.ref_no)?`${e}.${s.ref_no}`:null}function ll(i,s){return i?l`<span class="ref-chip" title=${s??""}>#${i}</span>`:p}var ol,Ys=x(()=>{"use strict";I();ol=i=>typeof i=="number"&&Number.isInteger(i)&&i>0});var Qs=x(()=>{"use strict"});function cl(i,s){if(!i)return"";let e=ip[i.trim()];if(e)return n(e,s);for(let[t,r,o]of rp){let a=i.trim().match(t);if(a){let c=o(a,s);return n(r,s).replace(/\{(\w+)\}/g,(u,_)=>c[_]??u)}}return i}var ip,rp,dl=x(()=>{"use strict";P();ip={"Completed from dashboard button":"hist_note_button","Auto-completed: sensor recovered":"hist_note_auto_recovered_plain","Completed from the To-do list":"hist_note_todo","Completed by voice":"hist_note_voice","Completed from the notification":"hist_note_notification","Completed via NFC tag":"hist_note_nfc","Completed from the shopping list":"hist_note_shopping_list","Completed from a mirrored to-do list":"hist_note_todo_mirror","Skipped from notification":"hist_note_skipped_notification","Skipped from dashboard button":"hist_note_skipped_button","Sensor trigger activated":"hist_note_sensor_triggered","Initial value set during task creation":"hist_note_initial"},rp=[[/^Auto-completed: sensor recovered \((.+)\)$/,"hist_note_auto_recovered",i=>({value:i[1]})],[/^Auto-completed: (.+) changed to (.+)$/,"hist_note_auto_entity",i=>({entity:i[1],state:i[2]})],[/^Reset to (\d{4}-\d{2}-\d{2})$/,"hist_note_reset",(i,s)=>({date:q(i[1],s)})],[/^Trigger entity replaced: (.+) → (.+)$/,"hist_note_trigger_replaced",i=>({old:i[1],new:i[2]})],[/^Sensor trigger removed \(entity was: (.+)\)\. Schedule converted to (\w+)\.$/,"hist_note_trigger_removed",(i,s)=>({entity:i[1],schedule:n(i[2],s)})],[/^Entity (.+) removed from compound trigger; (\d+) conditions remain\.$/,"hist_note_compound_removed",i=>({entity:i[1],count:i[2]})]]});function pl(i){let s=e=>{let t=Y(e.timestamp);return Number.isNaN(t)?-1/0:t};return(i??[]).map((e,t)=>({entry:e,index:t,at:s(e)})).sort((e,t)=>t.at-e.at||t.index-e.index).map(e=>e.entry)}function np(i,s){return i.taskRef&&s.ref_no?`${i.taskRef}-${s.ref_no}`:null}function op(i,s){let e=mi(s);return e.length>0?l`<div class="history-photos">
+        ${e.map(t=>l`<maintenance-history-photo .hass=${i} .docId=${t}></maintenance-history-photo>`)}
+      </div>`:p}function ap(i,s){let e=s.lang,t=a=>S(a,e,{maximumFractionDigits:3}),r=a=>a==null?"":` (${a>=0?"+":""}${t(a)})`,o=Ue(i);return o.length>0?l`<div class="history-readings">
       ${o.map(a=>l`<span class="history-reading">
         <span class="history-reading-name">${a.name}</span>
-        <span class="history-reading-value">${t(a.value)}${a.unit?` ${a.unit}`:""}${i(s.readingSlotDelta?.(r,a.id))}</span>
+        <span class="history-reading-value">${t(a.value)}${a.unit?` ${a.unit}`:""}${r(s.readingSlotDelta?.(i,a.id))}</span>
       </span>`)}
-    </div>`:r.reading_value!=null?l`<div class="history-readings"><span class="history-reading">
+    </div>`:i.reading_value!=null?l`<div class="history-readings"><span class="history-reading">
       <span class="history-reading-name">${n("reading_label",e)}</span>
-      <span class="history-reading-value">${t(r.reading_value)}${s.readingUnit?` ${s.readingUnit}`:""}${i(s.readingDelta?.(r))}</span>
-    </span></div>`:p}function va(r,s,e={}){let t=s.lang,{compact:i=!1,showRef:o=!0,showBadges:a=!0,showEdit:c=!0}=e,u=s.openEdit,_=c&&!!u&&Ys.includes(r.type),m=typeof r.parts_cost=="number"?r.parts_cost:null,f=r.cost_basis==="use",x=f&&!!r.purchase;return l`
-    <div class="history-entry${i?" compact":""}">
-      ${i?p:l`<div class="history-icon ${r.type}" style="background: ${pr(r.type)}">
-            <ha-icon .icon=${Nt[r.type]||"mdi:circle"}></ha-icon>
+      <span class="history-reading-value">${t(i.reading_value)}${s.readingUnit?` ${s.readingUnit}`:""}${r(s.readingDelta?.(i))}</span>
+    </span></div>`:p}function ul(i,s,e={}){let t=s.lang,{compact:r=!1,showRef:o=!0,showBadges:a=!0,showEdit:c=!0}=e,u=s.openEdit,_=c&&!!u&&Nn.includes(i.type),m=typeof i.parts_cost=="number"?i.parts_cost:null,f=i.cost_basis==="use",v=f&&!!i.purchase;return l`
+    <div class="history-entry${r?" compact":""}">
+      ${r?p:l`<div class="history-icon ${i.type}" style="background: ${zr(i.type)}">
+            <ha-icon .icon=${ti[i.type]||"mdi:circle"}></ha-icon>
           </div>`}
       <div class="history-content">
         <div class="history-row">
-          <strong>${n(r.type,t)}</strong>
-          ${o?_a(Dc(s,r),n("ref_number",t)):p}
-          ${a&&r.phase_id?l`<span class="history-phase-badge">${s.phaseNames?.[r.phase_id]||r.phase_id}</span>`:p}
-          ${a&&r.auto?l`<span class="history-auto-badge">${n("history_auto",t)}</span>`:p}
+          <strong>${n(i.type,t)}</strong>
+          ${o?ll(np(s,i),n("ref_number",t)):p}
+          ${a&&i.phase_id?l`<span class="history-phase-badge">${s.phaseNames?.[i.phase_id]||i.phase_id}</span>`:p}
+          ${a&&i.auto?l`<span class="history-auto-badge">${n("history_auto",t)}</span>`:p}
           ${_?l`<button class="history-edit-btn"
                      title=${n("history_edit_button",t)}
-                     @click=${()=>u(r)}>
+                     @click=${()=>u(i)}>
                 <ha-icon icon="mdi:pencil"></ha-icon>
               </button>`:p}
         </div>
-        <div class="history-date">${bi(r.timestamp,t)}</div>
-        ${r.notes?l`<div class="history-notes">${ma(r.notes,t)}</div>`:p}
-        ${zc(s.hass,r)}
-        ${Fc(r,s)}
-        ${r.cost!=null||r.duration!=null||r.trigger_value!=null||m!=null?l`<div class="history-details">
-              ${r.cost!=null?x?l`<span>${n("history_purchase_stock",t).replace("{amount}",K(r.cost,s.currencySymbol,t))}</span>`:r.cost<0?l`<span class="history-credit">${fn(r.cost,s.currencySymbol,t)}</span>`:l`<span>${n("cost",t)}: ${K(r.cost,s.currencySymbol,t)}</span>`:p}
-              ${m!=null?l`<span title=${n(f?"history_parts_counted_hint":"history_parts_info_hint",t)}>${n(f?"history_parts_counted":"history_parts_info",t).replace("{amount}",K(m,s.currencySymbol,t))}</span>`:p}
-              ${r.duration!=null?l`<span>${n("duration",t)}: ${it(r.duration,t)}</span>`:p}
-              ${r.trigger_value!=null?l`<span>${n("trigger_val",t)}: ${r.trigger_value}</span>`:p}
+        <div class="history-date">${Bi(i.timestamp,t)}</div>
+        ${i.notes?l`<div class="history-notes">${cl(i.notes,t)}</div>`:p}
+        ${op(s.hass,i)}
+        ${ap(i,s)}
+        ${i.cost!=null||i.duration!=null||i.trigger_value!=null||m!=null?l`<div class="history-details">
+              ${i.cost!=null?v?l`<span>${n("history_purchase_stock",t).replace("{amount}",X(i.cost,s.currencySymbol,t))}</span>`:i.cost<0?l`<span class="history-credit">${io(i.cost,s.currencySymbol,t)}</span>`:l`<span>${n("cost",t)}: ${X(i.cost,s.currencySymbol,t)}</span>`:p}
+              ${m!=null?l`<span title=${n(f?"history_parts_counted_hint":"history_parts_info_hint",t)}>${n(f?"history_parts_counted":"history_parts_info",t).replace("{amount}",X(m,s.currencySymbol,t))}</span>`:p}
+              ${i.duration!=null?l`<span>${n("duration",t)}: ${bt(i.duration,t)}</span>`:p}
+              ${i.trigger_value!=null?l`<span>${n("trigger_val",t)}: ${i.trigger_value}</span>`:p}
             </div>`:p}
       </div>
     </div>
-  `}var ba=y(()=>{"use strict";O();I();ns();Qt();us();Ue();hs();ga();W();De()});var Xi,ya=y(()=>{"use strict";Xi=class{constructor(){this._handle=null}schedule(s,e=4e3){this.clear(),this._handle=setTimeout(()=>{this._handle=null,s()},e)}clear(){this._handle!==null&&(clearTimeout(this._handle),this._handle=null)}get pending(){return this._handle!==null}}});function xa(r,s){let e=r.interval_analysis,t=e?.weibull_beta,i=e?.weibull_eta;if(t==null||i==null||i<=0)return p;let o=r.interval_days??0,a=r.suggested_interval??o;return l`
+  `}var hl=x(()=>{"use strict";I();P();Bs();gi();Ys();ot();Qs();dl();Z();je()});async function _l(i,s,e){if(!i)return null;let t={title:n("delete",e),confirmText:n("delete",e),danger:!0};if(!s?.part_ref)return await i.confirm({...t,message:n("delete_task_confirm",e)})?{}:null;let r=await i.confirmWithCheck({...t,message:n("delete_buy_task_confirm",e),check:n("delete_buy_task_off",e)});return r.confirmed?r.checked?{disable_auto_buy_task:!0}:{}:null}var ml=x(()=>{"use strict";P()});var Ar,gl=x(()=>{"use strict";Ar=class{constructor(){this._handle=null}schedule(s,e=4e3){this.clear(),this._handle=setTimeout(()=>{this._handle=null,s()},e)}clear(){this._handle!==null&&(clearTimeout(this._handle),this._handle=null)}get pending(){return this._handle!==null}}});function fl(i,s){let e=i.interval_analysis,t=e?.weibull_beta,r=e?.weibull_eta;if(t==null||r==null||r<=0)return p;let o=i.interval_days??0,a=i.suggested_interval??o;return l`
     <div class="weibull-section">
       <div class="weibull-title">
         <ha-svg-icon aria-hidden="true" path="M3,14L3.5,14.07L8.07,9.5C7.89,8.85 8.06,8.11 8.59,7.59C9.37,6.8 10.63,6.8 11.41,7.59C11.94,8.11 12.11,8.85 11.93,9.5L14.5,12.07L15,12C15.18,12 15.35,12 15.5,12.07L19.07,8.5C19,8.35 19,8.18 19,8A2,2 0 0,1 21,6A2,2 0 0,1 23,8A2,2 0 0,1 21,10C20.82,10 20.65,10 20.5,9.93L16.93,13.5C17,13.65 17,13.82 17,14A2,2 0 0,1 15,16A2,2 0 0,1 13,14L13.07,13.5L10.5,10.93C10.18,11 9.82,11 9.5,10.93L4.93,15.5L5,16A2,2 0 0,1 3,18A2,2 0 0,1 1,16A2,2 0 0,1 3,14Z"></ha-svg-icon>
         ${n("weibull_reliability_curve",s)}
-        ${Uc(t,s)}
+        ${lp(t,s)}
       </div>
-      ${Bc(t,i,o,a,s)}
-      ${Wc(e,s)}
-      ${e?.confidence_interval_low!=null?Vc(e,r,s):p}
+      ${cp(t,r,o,a,s)}
+      ${dp(e,s)}
+      ${e?.confidence_interval_low!=null?pp(e,i,s):p}
     </div>
-  `}function Uc(r,s){let e,t,i;return r<.8?(e="early_failures",t="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z",i="beta_early_failures"):r<=1.2?(e="random_failures",t="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M13,17H11V15H13V17M13,13H11V7H13V13Z",i="beta_random_failures"):r<=3.5?(e="wear_out",t="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12H12V6Z",i="beta_wear_out"):(e="highly_predictable",t="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z",i="beta_highly_predictable"),l`
+  `}function lp(i,s){let e,t,r;return i<.8?(e="early_failures",t="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z",r="beta_early_failures"):i<=1.2?(e="random_failures",t="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M13,17H11V15H13V17M13,13H11V7H13V13Z",r="beta_random_failures"):i<=3.5?(e="wear_out",t="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12H12V6Z",r="beta_wear_out"):(e="highly_predictable",t="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z",r="beta_highly_predictable"),l`
     <span class="beta-badge ${e}">
       <ha-svg-icon path="${t}"></ha-svg-icon>
-      ${n(i,s)} (\u03B2=${P(r,s,2)})
+      ${n(r,s)} (\u03B2=${S(i,s,2)})
     </span>
-  `}function Bc(r,s,e,t,i){let w=Math.max(e,t,s,1)*1.3,R=50,k=[];for(let ee=0;ee<=R;ee++){let ne=ee/R*w,Va=1-Math.exp(-Math.pow(ne/s,r)),Ga=32+ne/w*260,Ka=136-Va*128;k.push([Ga,Ka])}let E=k.map(([ee,ne])=>`${C(ee)},${C(ne)}`).join(" "),v="M32,136 "+k.map(([ee,ne])=>`L${C(ee)},${C(ne)}`).join(" ")+` L${C(k[R][0])},136 Z`,A=32+e/w*260,pe=1-Math.exp(-Math.pow(e/s,r)),Ye=136-pe*128,Ba=P((1-pe)*100,i,0),ws=32+t/w*260,Wa=[0,.25,.5,.75,1];return l`
+  `}function cp(i,s,e,t,r){let w=Math.max(e,t,s,1)*1.3,A=50,k=[];for(let le=0;le<=A;le++){let _e=le/A*w,Fl=1-Math.exp(-Math.pow(_e/s,i)),Ul=32+_e/w*260,Bl=136-Fl*128;k.push([Ul,Bl])}let E=k.map(([le,_e])=>`${O(le)},${O(_e)}`).join(" "),y="M32,136 "+k.map(([le,_e])=>`L${O(le)},${O(_e)}`).join(" ")+` L${O(k[A][0])},136 Z`,R=32+e/w*260,xe=1-Math.exp(-Math.pow(e/s,i)),pt=136-xe*128,Ll=S((1-xe)*100,r,0),an=32+t/w*260,zl=[0,.25,.5,.75,1];return l`
     <div class="weibull-chart">
-      <svg viewBox="0 0 ${300} ${160}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${n("chart_weibull",i)}">
-        ${Wa.map(ee=>{let ne=136-ee*128;return Ze`
-            <line x1="${32}" y1="${C(ne)}" x2="${292}" y2="${C(ne)}"
-              stroke="var(--divider-color)" stroke-width="0.5" stroke-dasharray="${ee===.5?"4,3":p}" />
-            <text x="${28}" y="${C(ne+3)}" fill="var(--secondary-text-color)"
-              font-size="8" text-anchor="end">${P(ee*100,i,0)}%</text>
+      <svg viewBox="0 0 ${300} ${160}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${n("chart_weibull",r)}">
+        ${zl.map(le=>{let _e=136-le*128;return ht`
+            <line x1="${32}" y1="${O(_e)}" x2="${292}" y2="${O(_e)}"
+              stroke="var(--divider-color)" stroke-width="0.5" stroke-dasharray="${le===.5?"4,3":p}" />
+            <text x="${28}" y="${O(_e+3)}" fill="var(--secondary-text-color)"
+              font-size="8" text-anchor="end">${S(le*100,r,0)}%</text>
           `})}
 
         <text x="${32}" y="${156}" fill="var(--secondary-text-color)" font-size="8" text-anchor="middle">0</text>
         <text x="${324/2}" y="${156}" fill="var(--secondary-text-color)" font-size="8" text-anchor="middle">${Math.round(w/2)}</text>
         <text x="${292}" y="${156}" fill="var(--secondary-text-color)" font-size="8" text-anchor="middle">${Math.round(w)}</text>
 
-        <path d="${v}" fill="var(--primary-color, #03a9f4)" opacity="0.08" />
+        <path d="${y}" fill="var(--primary-color, #03a9f4)" opacity="0.08" />
         <polyline points="${E}" fill="none"
           stroke="var(--primary-color, #03a9f4)" stroke-width="2" />
 
-        ${e>0?Ze`
-          <line x1="${C(A)}" y1="${8}" x2="${C(A)}" y2="${C(136)}"
+        ${e>0?ht`
+          <line x1="${O(R)}" y1="${8}" x2="${O(R)}" y2="${O(136)}"
             stroke="var(--primary-color, #03a9f4)" stroke-width="1.5" stroke-dasharray="4,3" />
-          <circle cx="${C(A)}" cy="${C(Ye)}" r="3"
+          <circle cx="${O(R)}" cy="${O(pt)}" r="3"
             fill="var(--primary-color, #03a9f4)" />
-          <text x="${C(A+4)}" y="${C(Ye-6)}" fill="var(--primary-color, #03a9f4)"
-            font-size="9" font-weight="600">R=${Ba}%</text>
+          <text x="${O(R+4)}" y="${O(pt-6)}" fill="var(--primary-color, #03a9f4)"
+            font-size="9" font-weight="600">R=${Ll}%</text>
         `:p}
 
-        ${t>0&&t!==e?Ze`
-          <line x1="${C(ws)}" y1="${8}" x2="${C(ws)}" y2="${C(136)}"
+        ${t>0&&t!==e?ht`
+          <line x1="${O(an)}" y1="${8}" x2="${O(an)}" y2="${O(136)}"
             stroke="var(--success-color, #4caf50)" stroke-width="1.5" stroke-dasharray="4,3" />
         `:p}
 
@@ -4650,44 +5061,44 @@ ${u?`<div class="sub">${u}</div>`:""}
       </svg>
     </div>
     <div class="chart-legend">
-      <span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4)"></span> ${n("weibull_failure_probability",i)}</span>
-      ${e>0?l`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4); opacity:0.5"></span> ${n("current_interval_marker",i)}</span>`:p}
-      ${t>0&&t!==e?l`<span class="legend-item"><span class="legend-swatch" style="background:var(--success-color, #4caf50)"></span> ${n("recommended_marker",i)}</span>`:p}
+      <span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4)"></span> ${n("weibull_failure_probability",r)}</span>
+      ${e>0?l`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4); opacity:0.5"></span> ${n("current_interval_marker",r)}</span>`:p}
+      ${t>0&&t!==e?l`<span class="legend-item"><span class="legend-swatch" style="background:var(--success-color, #4caf50)"></span> ${n("recommended_marker",r)}</span>`:p}
     </div>
-  `}function Wc(r,s){return l`
+  `}function dp(i,s){return l`
     <div class="weibull-info-row">
       <div class="weibull-info-item">
         <span>${n("characteristic_life",s)}</span>
-        <span class="weibull-info-value">${Math.round(r.weibull_eta)} ${n("days",s)}</span>
+        <span class="weibull-info-value">${st(Math.round(i.weibull_eta),s)}</span>
       </div>
-      ${r.weibull_r_squared!=null?l`
+      ${i.weibull_r_squared!=null?l`
         <div class="weibull-info-item">
           <span>${n("weibull_r_squared",s)}</span>
-          <span class="weibull-info-value">${P(r.weibull_r_squared,s,3)}</span>
+          <span class="weibull-info-value">${S(i.weibull_r_squared,s,3)}</span>
         </div>
       `:p}
     </div>
-  `}function Vc(r,s,e){let t=r.confidence_interval_low,i=r.confidence_interval_high,o=s.suggested_interval??s.interval_days??0,a=s.interval_days??0,c=Math.max(0,t-5),_=i+5-c,m=(t-c)/_*100,f=(i-t)/_*100,x=(o-c)/_*100,w=a>0?(a-c)/_*100:-1;return l`
+  `}function pp(i,s,e){let t=i.confidence_interval_low,r=i.confidence_interval_high,o=s.suggested_interval??s.interval_days??0,a=s.interval_days??0,c=Math.max(0,t-5),_=r+5-c,m=(t-c)/_*100,f=(r-t)/_*100,v=(o-c)/_*100,w=a>0?(a-c)/_*100:-1;return l`
     <div class="confidence-range">
       <div class="confidence-range-title">
-        ${n("confidence_interval",e)}: ${o} ${n("days",e)} (${t}\u2013${i})
+        ${n("confidence_interval",e)}: ${st(o,e)} (${t}\u2013${r})
       </div>
       <div class="confidence-bar">
-        <div class="confidence-fill" style="left:${C(m)}%;width:${C(f)}%"></div>
-        ${w>=0?l`<div class="confidence-marker current" style="left:${C(w)}%"></div>`:p}
-        <div class="confidence-marker recommended" style="left:${C(x)}%"></div>
+        <div class="confidence-fill" style="left:${O(m)}%;width:${O(f)}%"></div>
+        ${w>=0?l`<div class="confidence-marker current" style="left:${O(w)}%"></div>`:p}
+        <div class="confidence-marker recommended" style="left:${O(v)}%"></div>
       </div>
       <div class="confidence-labels">
         <span class="confidence-text low">${n("confidence_conservative",e)} (${t}${n("days",e).charAt(0)})</span>
-        <span class="confidence-text high">${n("confidence_aggressive",e)} (${i}${n("days",e).charAt(0)})</span>
+        <span class="confidence-text high">${n("confidence_aggressive",e)} (${r}${n("days",e).charAt(0)})</span>
       </div>
     </div>
-  `}var wa=y(()=>{"use strict";O();I();Gt()});function ka(r,s,e){let t=r.degradation_trend!=null&&r.degradation_trend!=="insufficient_data",i=r.days_until_threshold!=null,o=r.environmental_factor!=null&&r.environmental_factor!==1;if(!t&&!i&&!o)return p;let a=r.degradation_trend==="rising"?"M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6H16Z":r.degradation_trend==="falling"?"M16,18L18.29,15.71L13.41,10.83L9.41,14.83L2,7.41L3.41,6L9.41,12L13.41,8L19.71,14.29L22,12V18H16Z":"M22,12L18,8V11H3V13H18V16L22,12Z";return l`
+  `}var vl=x(()=>{"use strict";I();P();ui()});function Zs(i){return Math.max(1,Math.round(i||0))}function bl(i,s,e){let t=i.degradation_trend!=null&&i.degradation_trend!=="insufficient_data",r=i.days_until_threshold!=null,o=i.environmental_factor!=null&&i.environmental_factor!==1;if(!t&&!r&&!o)return p;let a=i.degradation_trend==="rising"?"M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6H16Z":i.degradation_trend==="falling"?"M16,18L18.29,15.71L13.41,10.83L9.41,14.83L2,7.41L3.41,6L9.41,12L13.41,8L19.71,14.29L22,12V18H16Z":"M22,12L18,8V11H3V13H18V16L22,12Z";return l`
     <div class="prediction-section">
-      ${r.sensor_prediction_urgency?l`
+      ${i.sensor_prediction_urgency?l`
         <div class="prediction-urgency-banner">
           <ha-svg-icon path="M1,21H23L12,2L1,21M12,18A1,1 0 0,1 11,17A1,1 0 0,1 12,16A1,1 0 0,1 13,17A1,1 0 0,1 12,18M13,15H11V10H13V15Z"></ha-svg-icon>
-          ${n("sensor_prediction_urgency",s).replace("{days}",String(Math.round(r.days_until_threshold||0)))}
+          ${n(ss(Zs(i.days_until_threshold),s,up),s).replace("{days}",String(Zs(i.days_until_threshold)))}
         </div>
       `:p}
       <div class="prediction-title">
@@ -4699,56 +5110,56 @@ ${u?`<div class="sub">${u}</div>`:""}
           <div class="prediction-item">
             <ha-svg-icon path="${a}"></ha-svg-icon>
             <span class="prediction-label">${n("degradation_trend",s)}</span>
-            <span class="prediction-value ${r.degradation_trend}">${n("trend_"+r.degradation_trend,s)}</span>
-            ${r.degradation_rate!=null?l`<span class="prediction-rate">${r.degradation_rate>0?"+":""}${P(r.degradation_rate,s,Math.abs(r.degradation_rate)>=10?0:1)} ${r.trigger_entity_info?.unit_of_measurement||""}/${n("day_short",s)}</span>`:p}
+            <span class="prediction-value ${i.degradation_trend}">${n("trend_"+i.degradation_trend,s)}</span>
+            ${i.degradation_rate!=null?l`<span class="prediction-rate">${i.degradation_rate>0?"+":""}${S(i.degradation_rate,s,Math.abs(i.degradation_rate)>=10?0:1)} ${i.trigger_entity_info?.unit_of_measurement||""}/${n("day_short",s)}</span>`:p}
           </div>
         `:p}
-        ${i?l`
+        ${r?l`
           <div class="prediction-item">
             <ha-svg-icon path="M12,20A7,7 0 0,1 5,13A7,7 0 0,1 12,6A7,7 0 0,1 19,13A7,7 0 0,1 12,20M12,4A9,9 0 0,0 3,13A9,9 0 0,0 12,22A9,9 0 0,0 21,13A9,9 0 0,0 12,4M12.5,8H11V14L15.75,16.85L16.5,15.62L12.5,13.25V8M7.88,3.39L6.6,1.86L2,5.71L3.29,7.24L7.88,3.39M22,5.72L17.4,1.86L16.11,3.39L20.71,7.25L22,5.72Z"></ha-svg-icon>
             <span class="prediction-label">${n("days_until_threshold",s)}</span>
-            <span class="prediction-value prediction-days${r.days_until_threshold===0?" exceeded":r.sensor_prediction_urgency?" urgent":""}">${r.days_until_threshold===0?n("threshold_exceeded",s):"~"+Math.round(r.days_until_threshold)+" "+n("days",s)}</span>
-            ${r.threshold_prediction_date?l`<span class="prediction-date">${q(r.threshold_prediction_date,s)}</span>`:p}
-            ${r.threshold_prediction_confidence?l`<span class="confidence-dot ${r.threshold_prediction_confidence}"></span>`:p}
-            ${(r.prediction_cycles??0)>0?l`<span class="prediction-cycles">${n("prediction_cycles",s)}: ${r.prediction_cycles}</span>`:p}
+            <span class="prediction-value prediction-days${i.days_until_threshold===0?" exceeded":i.sensor_prediction_urgency?" urgent":""}">${i.days_until_threshold===0?n("threshold_exceeded",s):"~"+vt(Zs(i.days_until_threshold),s)}</span>
+            ${i.threshold_prediction_date?l`<span class="prediction-date">${q(i.threshold_prediction_date,s)}</span>`:p}
+            ${i.threshold_prediction_confidence?l`<span class="confidence-dot ${i.threshold_prediction_confidence}"></span>`:p}
+            ${(i.prediction_cycles??0)>0?l`<span class="prediction-cycles">${n("prediction_cycles",s)}: ${i.prediction_cycles}</span>`:p}
           </div>
         `:p}
         ${o&&e.environmental?l`
           <div class="prediction-item">
             <ha-svg-icon path="M15,13V5A3,3 0 0,0 12,2A3,3 0 0,0 9,5V13A5,5 0 0,0 7,17A5,5 0 0,0 12,22A5,5 0 0,0 17,17A5,5 0 0,0 15,13M12,4A1,1 0 0,1 13,5V8H11V5A1,1 0 0,1 12,4Z"></ha-svg-icon>
             <span class="prediction-label">${n("environmental_adjustment",s)}</span>
-            <span class="prediction-value">${P(r.environmental_factor,s,2)}x</span>
-            ${r.environmental_entity?l`<span class="prediction-entity entity-link" @click=${c=>xn(c,r.environmental_entity)}>${r.environmental_entity}</span>`:p}
+            <span class="prediction-value">${S(i.environmental_factor,s,2)}x</span>
+            ${i.environmental_entity?l`<span class="prediction-entity entity-link" @click=${c=>oo(c,i.environmental_entity)}>${i.environmental_entity}</span>`:p}
           </div>
         `:p}
       </div>
     </div>
-  `}var $a=y(()=>{"use strict";O();I()});function Ea(r,s,e,t){let i=Math.max(r||1,s);return l`
+  `}var up,yl=x(()=>{"use strict";I();P();up={one:"sensor_prediction_urgency_one",few:"sensor_prediction_urgency_few",other:"sensor_prediction_urgency"}});function xl(i,s,e,t){let r=Math.max(i||1,s);return l`
     <div class="interval-comparison">
       <div class="interval-bar">
         <div class="interval-label">
-          ${n("current",t)}: ${r??"\u2014"} ${r!=null?n("days",t):""}
+          ${n("current",t)}: ${i!=null?st(i,t):"\u2014"}
         </div>
         <div class="interval-visual current"
-          style="width: ${r!=null?Math.min(r/i*100,100):0}%"></div>
+          style="width: ${i!=null?Math.min(i/r*100,100):0}%"></div>
       </div>
       <div class="interval-bar">
         <div class="interval-label">
-          ${n("recommended",t)}: ${s} ${n("days",t)}
+          ${n("recommended",t)}: ${st(s,t)}
           <span class="confidence-badge ${e}">${n(`confidence_${e}`,t)}</span>
         </div>
         <div class="interval-visual suggested"
-          style="width: ${Math.min(s/i*100,100)}%"></div>
+          style="width: ${Math.min(s/r*100,100)}%"></div>
       </div>
     </div>
-  `}var Sa=y(()=>{"use strict";O();I()});function Aa(){return Number(me().slice(5,7))-1}function Ca(r,s,e){if(!e.seasonal||!r.seasonal_factor||r.seasonal_factor===1)return p;let t=Ta.map(c=>n(c,s)),i=Aa(),o=r.seasonal_factors||r.interval_analysis?.seasonal_factors||null,a=o&&o.length===12?o:t.map((c,u)=>{let _=r.seasonal_factor||1,m=Math.sin((u-6)*Math.PI/6)*.3;return Math.max(.7,Math.min(1.3,_+m))});return l`
+  `}var wl=x(()=>{"use strict";I();P()});function $l(){return Number(Ee().slice(5,7))-1}function El(i,s,e){if(!e.seasonal||!i.seasonal_factor||i.seasonal_factor===1)return p;let t=kl.map(c=>n(c,s)),r=$l(),o=i.seasonal_factors||i.interval_analysis?.seasonal_factors||null,a=o&&o.length===12?o:t.map((c,u)=>{let _=i.seasonal_factor||1,m=Math.sin((u-6)*Math.PI/6)*.3;return Math.max(.7,Math.min(1.3,_+m))});return l`
     <div class="seasonal-card-compact">
       <h4>${n("seasonal_awareness",s)}</h4>
       <div class="seasonal-mini-chart">
         ${a.map((c,u)=>{let _=c*40,m=c<.9?"low":c>1.1?"high":"normal";return l`
-            <div class="seasonal-bar ${m} ${u===i?"current":""}"
+            <div class="seasonal-bar ${m} ${u===r?"current":""}"
                  style="height: ${_}px"
-                 title="${t[u]}: ${P(c,s,2)}x">
+                 title="${t[u]}: ${S(c,s,2)}x">
             </div>
           `})}
       </div>
@@ -4758,7 +5169,7 @@ ${u?`<div class="sub">${u}</div>`:""}
         <span class="legend-item"><span class="dot high"></span> ${n("longer",s)}</span>
       </div>
     </div>
-  `}function Ra(r,s){return Gc(r,s)}function Gc(r,s){let e=r.seasonal_factors??r.interval_analysis?.seasonal_factors;if(!e||e.length!==12)return p;let t=r.interval_analysis?.seasonal_reason,i=Aa(),o=300,a=100,c=8,_=a-c-4,m=Math.max(...e,1.5),f=o/12,x=f*.65,w=c+_-1/m*_;return l`
+  `}function Tl(i,s){return hp(i,s)}function hp(i,s){let e=i.seasonal_factors??i.interval_analysis?.seasonal_factors;if(!e||e.length!==12)return p;let t=i.interval_analysis?.seasonal_reason,r=$l(),o=300,a=100,c=8,_=a-c-4,m=Math.max(...e,1.5),f=o/12,v=f*.65,w=c+_-1/m*_;return l`
     <div class="seasonal-chart">
       <div class="seasonal-chart-title">
         <ha-svg-icon aria-hidden="true" path="M17.75 4.09L15.22 6.03L16.13 9.09L13.5 7.28L10.87 9.09L11.78 6.03L9.25 4.09L12.44 4L13.5 1L14.56 4L17.75 4.09M21.25 11L19.61 12.25L20.2 14.23L18.5 13.06L16.8 14.23L17.39 12.25L15.75 11L17.81 10.95L18.5 9L19.19 10.95L21.25 11M18.97 15.95C19.8 15.87 20.69 17.05 20.16 17.8C19.84 18.25 19.5 18.67 19.08 19.07C15.17 23 8.84 23 4.94 19.07C1.03 15.17 1.03 8.83 4.94 4.93C5.34 4.53 5.76 4.17 6.21 3.85C6.96 3.32 8.14 4.21 8.06 5.04C7.79 7.9 8.75 10.87 10.95 13.06C13.14 15.26 16.1 16.22 18.97 15.95Z"></ha-svg-icon>
@@ -4766,24 +5177,24 @@ ${u?`<div class="sub">${u}</div>`:""}
         ${t?l`<span class="source-tag">${t==="learned"?n("seasonal_learned",s):n("seasonal_manual",s)}</span>`:p}
       </div>
       <svg viewBox="0 0 ${o} ${a}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${n("chart_seasonal",s)}">
-        <line x1="0" y1="${C(w)}" x2="${o}" y2="${C(w)}"
+        <line x1="0" y1="${O(w)}" x2="${o}" y2="${O(w)}"
           stroke="var(--divider-color)" stroke-width="1" stroke-dasharray="4,3" />
-        ${e.map((R,k)=>{let E=R/m*_,v=k*f+(f-x)/2,A=c+_-E,pe=k===i,Ye=R<1?"var(--success-color, #4caf50)":R>1?"var(--warning-color, #ff9800)":"var(--secondary-text-color)";return Ze`
-            <rect x="${C(v)}" y="${C(A)}"
-              width="${C(x)}" height="${C(E)}"
-              fill="${Ye}" opacity="${pe?1:.5}" rx="2" />
+        ${e.map((A,k)=>{let E=A/m*_,y=k*f+(f-v)/2,R=c+_-E,xe=k===r,pt=A<1?"var(--success-color, #4caf50)":A>1?"var(--warning-color, #ff9800)":"var(--secondary-text-color)";return ht`
+            <rect x="${O(y)}" y="${O(R)}"
+              width="${O(v)}" height="${O(E)}"
+              fill="${pt}" opacity="${xe?1:.5}" rx="2" />
           `})}
       </svg>
       <div class="seasonal-labels">
-        ${Ta.map((R,k)=>l`<span class="seasonal-label ${k===i?"active-month":""}">${n(R,s)}</span>`)}
+        ${kl.map((A,k)=>l`<span class="seasonal-label ${k===r?"active-month":""}">${n(A,s)}</span>`)}
       </div>
     </div>
-  `}var Ta,Ia=y(()=>{"use strict";O();I();Gt();W();Ta=["month_jan","month_feb","month_mar","month_apr","month_may","month_jun","month_jul","month_aug","month_sep","month_oct","month_nov","month_dec"]});var M,Pa=y(()=>{"use strict";O();L();I();oe();Xo();Wi();W();Ni();Ci();ps();pa();Ue();us();ba();qi();ut();lt();Vi();ya();rt();Fi();wa();$a();Sa();ft();Kt();Ia();M=class extends S{constructor(){super(...arguments);this._open=!1;this._entryId=null;this._taskId=null;this._task=null;this._objectName="";this._taskRef=null;this._busy=!1;this._error="";this._showSkip=!1;this._showReset=!1;this._showPostpone=!1;this._showDetails=!1;this._showAdaptive=!1;this._skipReason="";this._resetDate="";this._postponeDate="";this._features={adaptive:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1,places:!1};this._toast="";this._toastTimer=new Xi;this._access=ge;this._currencySymbol="";this._partsCostMode="purchase";this._loadSeq=0}get _lang(){return j(this.hass)}async openFor(e,t){(e!==this._entryId||t!==this._taskId)&&(this._task=null),this._entryId=e,this._taskId=t,this._error="",this._showSkip=!1,this._showReset=!1,this._showPostpone=!1,this._showAdaptive=!1,this._skipReason="",this._postponeDate="",this._resetDate=me(),this._open=!0,await Promise.all([this._loadTask(),this._loadFeatures()])}async _loadFeatures(){let e=await Q(this.hass);this._features={...this._features,...e.features},this._access=e.access,this._currencySymbol=Fe(e.budget??void 0),gi(e.budget??void 0),this._partsCostMode=e.partsCostMode}close(){this._loadSeq++,this._open=!1,this._task=null,this._error="",this._toastTimer.clear(),this._toast=""}_showToast(e,t){this._toast=e,this._toastTimer.schedule(()=>{this._toast=""},t)}async _loadTask(){let e=this._entryId,t=this._taskId;if(!e||!t)return;let i=++this._loadSeq,o="",a=await H(this,{type:"maintenance_supporter/object",entry_id:e},{onError:u=>{o=u}});if(i!==this._loadSeq)return;if(a===void 0){this._error=o;return}this._objectName=a?.object?.name||"";let c=(a?.tasks||[]).find(u=>u.id===t);this._task=c??null,this._taskRef=ha(a?.object,c),c||(this._error=n("ws_err_not_found",this._lang))}_runWs(e){return this._error="",H(this,e,{busy:t=>{this._busy=t},onError:t=>{this._error=t}})}_notifyChanged(e){this.dispatchEvent(new CustomEvent("task-action-fired",{detail:{entry_id:this._entryId,task_id:this._taskId,action:e},bubbles:!0,composed:!0}))}_onComplete(e=!1){if(!(!this._entryId||!this._taskId||!this._task)){if(!e&&Y(this._task)){this._onQuickComplete();return}Promise.resolve().then(()=>(de(),ve)).then(async({openCompleteDialog:t})=>{let i=this._task,o=[];try{o=(await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects",compact:!0})).objects||[]}catch{}t(Oi({entryId:this._entryId,taskId:this._taskId,taskName:i.name,task:i,objects:o,lang:this._lang,features:this._features,currencySymbol:this._currencySymbol,partsCostMode:this._partsCostMode}))&&(this._notifyChanged("complete"),this.close())})}}async _onQuickComplete(){let e=this._entryId,t=this._task;this._busy=!0;try{let i=await $i(this.hass,e,t.id,this._lang);if(i.result==="dialog"){this._onComplete(!0);return}if(i.result==="failed"){this._error=i.message;return}this._notifyChanged("complete"),i.undo&&We(this,this.hass,{entryId:e,taskId:t.id,taskName:t.name},this._lang,()=>{}),this.close()}finally{this._busy=!1}}async _onSkipConfirm(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/skip",entry_id:this._entryId,task_id:this._taskId,reason:this._skipReason.trim()||null})!==void 0&&(this._notifyChanged("skip"),this.close())}async _onResetConfirm(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/reset",entry_id:this._entryId,task_id:this._taskId,date:this._resetDate||void 0})!==void 0&&(this._notifyChanged("reset"),this.close())}async _onPostponeConfirm(){if(!this._entryId||!this._taskId||!this._postponeDate)return;await this._runWs({type:"maintenance_supporter/task/postpone",entry_id:this._entryId,task_id:this._taskId,until:this._postponeDate})!==void 0&&(this._notifyChanged("postpone"),this.close())}async _onSnooze(){if(!this._entryId||!this._taskId)return;let e=await this._runWs({type:"maintenance_supporter/task/snooze",entry_id:this._entryId,task_id:this._taskId});e!==void 0&&(this._notifyChanged("snooze"),this.dispatchEvent(new CustomEvent("hass-notification",{detail:{message:Jo(e,this._lang)},bubbles:!0,composed:!0})),this.close())}_onEdit(){!this._entryId||!this._taskId||Promise.resolve().then(()=>(de(),ve)).then(({openEditTaskDialog:e})=>{e(this._entryId,this._taskId),this.close()})}_onQr(){!this._entryId||!this._taskId||!this._task||Promise.resolve().then(()=>(de(),ve)).then(({openQrDialog:e})=>{e({entry_id:this._entryId,task_id:this._taskId,task_name:this._task.name,object_name:this._objectName}),this.close()})}async _onDelete(){if(!this._entryId||!this._taskId||!await Ge(this.hass,{title:n("delete",this._lang),message:n("delete_task_confirm",this._lang),confirmText:n("delete",this._lang),danger:!0}))return;await this._runWs({type:"maintenance_supporter/task/delete",entry_id:this._entryId,task_id:this._taskId})!==void 0&&(this._notifyChanged("delete"),this.close())}async _onArchive(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/archive",entry_id:this._entryId,task_id:this._taskId})!==void 0&&(this._notifyChanged("archive"),this.close())}async _onUnarchive(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/unarchive",entry_id:this._entryId,task_id:this._taskId})!==void 0&&(this._notifyChanged("unarchive"),this.close())}_onOpenInPanel(){if(!this._entryId||!this._taskId)return;let e=`/maintenance-supporter?entry_id=${encodeURIComponent(this._entryId)}&task_id=${encodeURIComponent(this._taskId)}`;history.pushState(null,"",e),window.dispatchEvent(new CustomEvent("location-changed")),this.close()}async _applySuggestion(){if(!this._entryId||!this._taskId||!this._task?.suggested_interval)return;await this._runWs({type:"maintenance_supporter/task/apply_suggestion",entry_id:this._entryId,task_id:this._taskId,interval:this._task.suggested_interval})!==void 0&&(this._showToast(n("suggestion_applied",this._lang)),this._notifyChanged("apply_suggestion"),await this._loadTask())}async _reanalyzeInterval(){if(!this._entryId||!this._taskId)return;let e=await this._runWs({type:"maintenance_supporter/task/analyze_interval",entry_id:this._entryId,task_id:this._taskId});e!==void 0&&(this._showToast(e?.recommended_interval?`${n("reanalyze_result",this._lang)}: ${Lt(e.recommended_interval,"days",this._lang)} (${e.data_points} ${n("data_points",this._lang)})`:n("reanalyze_insufficient_data",this._lang)),await this._loadTask())}_onEditHistoryEntry(e){if(!this._entryId||!this._taskId)return;let t=da(this._entryId,this._taskId,e,this._task);Promise.resolve().then(()=>(de(),ve)).then(({openHistoryEditDialog:i})=>i(t))}_renderRecommendation(e){if(!this._features.adaptive||!e.suggested_interval||e.suggested_interval===e.interval_days)return p;let t=this._lang;return l`
+  `}var kl,Sl=x(()=>{"use strict";I();P();ui();Z();kl=["month_jan","month_feb","month_mar","month_apr","month_may","month_jun","month_jul","month_aug","month_sep","month_oct","month_nov","month_dec"]});var H,Cl=x(()=>{"use strict";I();z();P();me();tl();Er();Z();or();er();Ks();nl();ot();Ys();hl();ar();je();It();Tt();Tr();ml();gl();xt();yt();vl();yl();wl();jt();_i();Sl();Ge();H=class extends T{constructor(){super(...arguments);this._open=!1;this._entryId=null;this._taskId=null;this._task=null;this._objectName="";this._taskRef=null;this._busy=!1;this._error="";this._showSkip=!1;this._showReset=!1;this._showPostpone=!1;this._showDetails=!1;this._showAdaptive=!1;this._skipReason="";this._resetDate="";this._postponeDate="";this._features={adaptive:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1,places:!1,beta_editor:!1};this._toast="";this._toastTimer=new Ar;this._access=Ce;this._currencySymbol="";this._partsCostMode="purchase";this._loadSeq=0}get _lang(){return N(this.hass)}async openFor(e,t){(e!==this._entryId||t!==this._taskId)&&(this._task=null),this._entryId=e,this._taskId=t,this._error="",this._showSkip=!1,this._showReset=!1,this._showPostpone=!1,this._showAdaptive=!1,this._skipReason="",this._postponeDate="",this._resetDate=Ee(),this._open=!0,await Promise.all([this._loadTask(),this._loadFeatures()])}async _loadFeatures(){let e=await te(this.hass);this._features={...this._features,...e.features},this._access=e.access,this._currencySymbol=rt(e.budget??void 0),zi(e.budget??void 0),this._partsCostMode=e.partsCostMode}close(){this._loadSeq++,this._open=!1,this._task=null,this._error="",this._toastTimer.clear(),this._toast=""}_showToast(e,t){this._toast=e,this._toastTimer.schedule(()=>{this._toast=""},t)}async _loadTask(){let e=this._entryId,t=this._taskId;if(!e||!t)return;let r=++this._loadSeq,o="",a=await L(this,{type:"maintenance_supporter/object",entry_id:e},{onError:u=>{o=u}});if(r!==this._loadSeq)return;if(a===void 0){this._error=o;return}this._objectName=a?.object?.name||"";let c=(a?.tasks||[]).find(u=>u.id===t);this._task=c??null,this._taskRef=al(a?.object,c),c||(this._error=n("ws_err_not_found",this._lang))}_runWs(e){return this._error="",L(this,e,{busy:t=>{this._busy=t},onError:t=>{this._error=t}})}_notifyChanged(e){this.dispatchEvent(new CustomEvent("task-action-fired",{detail:{entry_id:this._entryId,task_id:this._taskId,action:e},bubbles:!0,composed:!0}))}_onComplete(e=!1){if(!(!this._entryId||!this._taskId||!this._task)){if(!e&&ee(this._task)){this._onQuickComplete();return}Promise.resolve().then(()=>(ye(),Re)).then(async({openCompleteDialog:t})=>{let r=this._task,o=[];try{o=(await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects",compact:!0})).objects||[]}catch{}t(sr({entryId:this._entryId,taskId:this._taskId,taskName:r.name,task:r,objects:o,lang:this._lang,features:this._features,currencySymbol:this._currencySymbol,partsCostMode:this._partsCostMode}))&&(this._notifyChanged("complete"),this.close())})}}async _onQuickComplete(){let e=this._entryId,t=this._task;this._busy=!0;try{let r=await Yi(this.hass,e,t.id,this._lang);if(r.result==="dialog"){this._onComplete(!0);return}if(r.result==="failed"){this._error=r.message;return}if(r.result==="already"){this.dispatchEvent(new CustomEvent("hass-notification",{detail:{message:r.message},bubbles:!0,composed:!0})),this.close();return}this._notifyChanged("complete"),r.undo&&nt(this,this.hass,{entryId:e,taskId:t.id,taskName:t.name},this._lang,()=>{}),this.close()}finally{this._busy=!1}}async _onSkipConfirm(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/skip",entry_id:this._entryId,task_id:this._taskId,reason:this._skipReason.trim()||null})!==void 0&&(this._notifyChanged("skip"),this.close())}async _onResetConfirm(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/reset",entry_id:this._entryId,task_id:this._taskId,date:this._resetDate||void 0})!==void 0&&(this._notifyChanged("reset"),this.close())}async _onPostponeConfirm(){if(!this._entryId||!this._taskId||!this._postponeDate)return;await this._runWs({type:"maintenance_supporter/task/postpone",entry_id:this._entryId,task_id:this._taskId,until:this._postponeDate})!==void 0&&(this._notifyChanged("postpone"),this.close())}async _onSnooze(){if(!this._entryId||!this._taskId)return;let e=await this._runWs({type:"maintenance_supporter/task/snooze",entry_id:this._entryId,task_id:this._taskId});e!==void 0&&(this._notifyChanged("snooze"),this.dispatchEvent(new CustomEvent("hass-notification",{detail:{message:el(e,this._lang)},bubbles:!0,composed:!0})),this.close())}_onEdit(){!this._entryId||!this._taskId||Promise.resolve().then(()=>(ye(),Re)).then(({openEditTaskDialog:e})=>{e(this._entryId,this._taskId),this.close()})}_onQr(){!this._entryId||!this._taskId||!this._task||Promise.resolve().then(()=>(ye(),Re)).then(({openQrDialog:e})=>{e({entry_id:this._entryId,task_id:this._taskId,task_name:this._task.name,object_name:this._objectName}),this.close()})}async _onDelete(){if(!this._entryId||!this._taskId)return;let e=await _l(Us(this.hass),this._task,this._lang);if(!e)return;await this._runWs({type:"maintenance_supporter/task/delete",entry_id:this._entryId,task_id:this._taskId,...e})!==void 0&&(this._notifyChanged("delete"),this.close())}async _onArchive(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/archive",entry_id:this._entryId,task_id:this._taskId})!==void 0&&(this._notifyChanged("archive"),this.close())}async _onUnarchive(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/unarchive",entry_id:this._entryId,task_id:this._taskId})!==void 0&&(this._notifyChanged("unarchive"),this.close())}_onOpenInPanel(){if(!this._entryId||!this._taskId)return;let e=`/maintenance-supporter?entry_id=${encodeURIComponent(this._entryId)}&task_id=${encodeURIComponent(this._taskId)}`;history.pushState(null,"",e),window.dispatchEvent(new CustomEvent("location-changed")),this.close()}async _applySuggestion(){if(!this._entryId||!this._taskId||!this._task?.suggested_interval)return;await this._runWs({type:"maintenance_supporter/task/apply_suggestion",entry_id:this._entryId,task_id:this._taskId,interval:this._task.suggested_interval})!==void 0&&(this._showToast(n("suggestion_applied",this._lang)),this._notifyChanged("apply_suggestion"),await this._loadTask())}async _reanalyzeInterval(){if(!this._entryId||!this._taskId)return;let e=await this._runWs({type:"maintenance_supporter/task/analyze_interval",entry_id:this._entryId,task_id:this._taskId});e!==void 0&&(this._showToast(e?.recommended_interval?`${n("reanalyze_result",this._lang)}: ${ni(e.recommended_interval,"days",this._lang)} (${e.data_points} ${n("data_points",this._lang)})`:n("reanalyze_insufficient_data",this._lang)),await this._loadTask())}_onEditHistoryEntry(e){if(!this._entryId||!this._taskId)return;let t=sl(this._entryId,this._taskId,e,this._task);Promise.resolve().then(()=>(ye(),Re)).then(({openHistoryEditDialog:r})=>r(t))}_renderRecommendation(e){if(!this._features.adaptive||!e.suggested_interval||e.suggested_interval===e.interval_days)return p;let t=this._lang;return l`
       <div class="recommendation-card">
         <h4>${n("suggested_interval",t)}</h4>
-        ${Ea(e.interval_days,e.suggested_interval,e.interval_confidence||"medium",t)}
+        ${xl(e.interval_days,e.suggested_interval,e.interval_confidence||"medium",t)}
         <div class="recommendation-actions">
-          ${le(this.hass?.user,this._access)?l`<button class="btn primary qa-apply-suggestion"
+          ${fe(this.hass?.user,this._access)?l`<button class="btn primary qa-apply-suggestion"
                 @click=${this._applySuggestion} ?disabled=${this._busy}>
                 <ha-icon icon="mdi:check"></ha-icon>
                 ${n("apply_suggestion",t)}
@@ -4795,20 +5206,20 @@ ${u?`<div class="sub">${u}</div>`:""}
           </button>
         </div>
       </div>
-    `}_renderAdaptive(e){let t=this._lang,i=this._features.adaptive&&e.suggested_interval&&e.suggested_interval!==e.interval_days,o=e.degradation_trend!=null&&e.degradation_trend!=="insufficient_data"||e.days_until_threshold!=null||e.environmental_factor!=null&&e.environmental_factor!==1,a=this._features.adaptive&&e.interval_analysis?.weibull_beta!=null&&e.interval_analysis?.weibull_eta!=null,c=this._features.seasonal&&e.seasonal_factor&&e.seasonal_factor!==1;return!i&&!o&&!a&&!c?l`<div class="adaptive-empty">
+    `}_renderAdaptive(e){let t=this._lang,r=this._features.adaptive&&e.suggested_interval&&e.suggested_interval!==e.interval_days,o=e.degradation_trend!=null&&e.degradation_trend!=="insufficient_data"||e.days_until_threshold!=null||e.environmental_factor!=null&&e.environmental_factor!==1,a=this._features.adaptive&&e.interval_analysis?.weibull_beta!=null&&e.interval_analysis?.weibull_eta!=null,c=this._features.seasonal&&e.seasonal_factor&&e.seasonal_factor!==1;return!r&&!o&&!a&&!c?l`<div class="adaptive-empty">
         ${n("adaptive_no_data",t)}
       </div>`:l`
       <div class="adaptive-stack">
         ${this._toast?l`<div class="toast">${this._toast}</div>`:p}
-        ${i?this._renderRecommendation(e):p}
-        ${o?ka(e,t,this._features):p}
-        ${a?xa(e,t):p}
+        ${r?this._renderRecommendation(e):p}
+        ${o?bl(e,t,this._features):p}
+        ${a?fl(e,t):p}
         ${c?l`
-          ${Ca(e,t,this._features)}
-          ${e.seasonal_factors?.length===12||e.interval_analysis?.seasonal_factors?.length===12?Ra(e,t):p}
+          ${El(e,t,this._features)}
+          ${e.seasonal_factors?.length===12||e.interval_analysis?.seasonal_factors?.length===12?Tl(e,t):p}
         `:p}
       </div>
-    `}_renderDetails(e){let t=this._lang,i=e.history||[],o=e.history_count??i.length,a=fa(i).slice(0,20);return l`
+    `}_renderDetails(e){let t=this._lang,r=e.history||[],o=e.history_count??r.length,a=pl(r).slice(0,20);return l`
       <div class="details">
         <div class="stats-grid">
           <div class="stat">
@@ -4817,45 +5228,45 @@ ${u?`<div class="sub">${u}</div>`:""}
           </div>
           <div class="stat">
             <span class="stat-label">${n("total_cost",t)}</span>
-            <span class="stat-value">${K(e.total_cost??0,this._currencySymbol,t)}</span>
+            <span class="stat-value">${X(e.total_cost??0,this._currencySymbol,t)}</span>
           </div>
           <div class="stat">
             <span class="stat-label">${n("avg_duration",t)}</span>
-            <span class="stat-value">${it(e.average_duration!=null?Math.round(e.average_duration):null,t)}</span>
+            <span class="stat-value">${bt(e.average_duration!=null?Math.round(e.average_duration):null,t)}</span>
           </div>
         </div>
         <div class="history-header">
           <strong>${n("history",t)}</strong>
           <span class="history-count">${o}</span>
         </div>
-        ${i.length===0?l`<div class="history-empty">${n("history_empty",t)}</div>`:l`
+        ${r.length===0?l`<div class="history-empty">${n("history_empty",t)}</div>`:l`
               <div class="history-list">
-                ${a.map(c=>va(c,{lang:t,hass:this.hass,currencySymbol:this._currencySymbol,openEdit:le(this.hass?.user,this._access)?u=>this._onEditHistoryEntry(u):void 0,readingUnit:e.reading_unit,readingSlotDelta:(u,_)=>Yn(i,u,_),taskRef:this._taskRef},{compact:!0}))}
+                ${a.map(c=>ul(c,{lang:t,hass:this.hass,currencySymbol:this._currencySymbol,openEdit:fe(this.hass?.user,this._access)?u=>this._onEditHistoryEntry(u):void 0,readingUnit:e.reading_unit,readingSlotDelta:(u,_)=>jo(r,u,_),taskRef:this._taskRef},{compact:!0}))}
                 ${o>a.length?l`<div class="history-more">… +${o-a.length} ${n("older_entries",t)}</div>`:p}
               </div>
             `}
       </div>
-    `}render(){if(!this._open)return p;let e=this._lang,t=this._task,i=le(this.hass?.user,this._access),o=!!t&&(!!t.archived||t.enabled===!1||t.status==="paused");return xt(()=>this.close(),l`
+    `}render(){if(!this._open)return p;let e=this._lang,t=this._task,r=fe(this.hass?.user,this._access),o=!!t&&qi(t);return zt(()=>this.close(),l`
         ${t?l`
               <div class="header">
                 <div class="title">
-                  <span class="status-dot" style="background: ${ht(t)}"></span>
-                  <span class="task-name">${t.name}</span>
-                  ${lo(t,e)}
+                  <span class="status-dot" style="background: ${Rt(t)}"></span>
+                  ${ct()?p:l`<span class="task-name">${t.name}</span>`}
+                  ${Yo(t,e)}
                 </div>
                 <div class="object">
-                  <button class="link-inline" @click=${()=>{this._entryId&&Promise.resolve().then(()=>(de(),ve)).then(({openObjectQuickActions:a})=>{a(this._entryId),this.close()})}}>${this._objectName}</button>
+                  <button class="link-inline" @click=${()=>{this._entryId&&Promise.resolve().then(()=>(ye(),Re)).then(({openObjectQuickActions:a})=>{a(this._entryId),this.close()})}}>${this._objectName}</button>
                 </div>
                 <div class="quick-info">
                   ${t.next_due?l`<span><strong>${n("next_due",e)}:</strong> ${q(t.next_due,e)}</span>`:p}
                   ${t.last_performed?l`<span><strong>${n("last_performed",e)}:</strong> ${q(t.last_performed,e)}</span>`:p}
-                  ${t.schedule?.kind&&!["manual","one_time"].includes(t.schedule.kind)||t.interval_days!=null?l`<span><strong>${n("interval",e)}:</strong> ${yn(t,e)}</span>`:p}
-                  ${Te(t)?l`<span><strong>${n("phase_current",e)}:</strong> ${Te(t)}</span>`:p}
+                  ${t.schedule?.kind&&!["manual","one_time"].includes(t.schedule.kind)||t.interval_days!=null?l`<span><strong>${n("interval",e)}:</strong> ${no(t,e)}</span>`:p}
+                  ${Fe(t)?l`<span><strong>${n("phase_current",e)}:</strong> ${Fe(t)}</span>`:p}
                 </div>
-                ${t.notes?l`<div class="notes-body">${Ji(t.notes)}</div>`:p}
+                ${t.notes?l`<div class="notes-body">${Cr(t.notes)}</div>`:p}
               </div>
 
-              ${this._error?l`<div class="error">${this._error}</div>`:p}
+              ${this._error?U("error",this._error):p}
 
               ${this._showSkip?l`
                     <div class="inline-form">
@@ -4912,11 +5323,11 @@ ${u?`<div class="sub">${u}</div>`:""}
                   `:l`
                     <div class="actions primary-row">
                       <ha-button appearance="accent" variant="success" @click=${()=>this._onComplete()} .disabled=${this._busy}
-                        title=${Y(t)?n("qr_action_quick_complete",e):n("complete",e)}>
+                        title=${ee(t)?n("qr_action_quick_complete",e):n("complete",e)}>
                         <ha-icon slot="start" icon="mdi:check"></ha-icon>
                         ${n("complete",e)}
                       </ha-button>
-                      ${Y(t)?l`<ha-button appearance="outlined" variant="success" class="qa-complete-details" @click=${()=>this._onComplete(!0)} .disabled=${this._busy}>
+                      ${ee(t)?l`<ha-button appearance="outlined" variant="success" class="qa-complete-details" @click=${()=>this._onComplete(!0)} .disabled=${this._busy}>
                             <ha-icon slot="start" icon="mdi:text-box-edit-outline"></ha-icon>
                             ${n("complete_with_details",e)}
                           </ha-button>`:p}
@@ -4935,7 +5346,7 @@ ${u?`<div class="sub">${u}</div>`:""}
                          Edit / Archive / Delete follow canWrite() — the panel's
                          operator delegation, not is_admin alone. -->
                     <div class="actions secondary-row">
-                      ${i?l`<ha-button size="small" appearance="outlined" variant="neutral" class="qa-edit" @click=${this._onEdit} .disabled=${this._busy}>
+                      ${r?l`<ha-button size="small" appearance="outlined" variant="neutral" class="qa-edit" @click=${this._onEdit} .disabled=${this._busy}>
                             <ha-icon slot="start" icon="mdi:pencil"></ha-icon>
                             ${n("edit",e)}
                           </ha-button>`:p}
@@ -4952,7 +5363,7 @@ ${u?`<div class="sub">${u}</div>`:""}
                             <ha-icon slot="start" icon="mdi:bell-sleep-outline"></ha-icon>
                             ${n("snooze",e)}
                           </ha-button>`}
-                      ${i?l`<ha-button size="small" appearance="outlined" variant="neutral" class="qa-archive"
+                      ${r?l`<ha-button size="small" appearance="outlined" variant="neutral" class="qa-archive"
                             @click=${t.archived?this._onUnarchive:this._onArchive}
                             .disabled=${this._busy}>
                             <ha-icon slot="start" icon="${t.archived?"mdi:archive-arrow-up-outline":"mdi:archive-outline"}"></ha-icon>
@@ -4982,8 +5393,8 @@ ${u?`<div class="sub">${u}</div>`:""}
                       </button>
                     </div>
                   `}
-            `:this._error?l`<div class="error">${this._error}</div>`:l`<div class="loading">${n("loading",e)}</div>`}
-    `)}updated(e){e.has("_open")&&this._open&&wt(this.shadowRoot)}};M.styles=[wi,yt,$`
+            `:this._error?U("error",this._error):l`<div class="loading">${n("loading",e)}</div>`}
+    `,{title:t?.name})}updated(e){e.has("_open")&&this._open&&Ft(this.shadowRoot)}};H.styles=[Vi,Lt,$`
     :host { display: contents; --ms-modal-max-width: 460px; }
     .header { display: flex; flex-direction: column; gap: 6px; }
     .title { display: flex; align-items: center; gap: 10px; }
@@ -5025,7 +5436,7 @@ ${u?`<div class="sub">${u}</div>`:""}
     .actions.secondary-row ha-button { --ha-button-font-size: 13px; }
     .btn {
       padding: 8px 12px; font-size: 14px;
-      border-radius: 6px; cursor: pointer;
+      border-radius: var(--ms-radius-6, 6px); cursor: pointer;
       border: 1px solid var(--divider-color);
       background: var(--secondary-background-color, transparent);
       color: var(--primary-text-color);
@@ -5046,7 +5457,7 @@ ${u?`<div class="sub">${u}</div>`:""}
     .btn ha-icon { --mdc-icon-size: 18px; }
     .inline-form { display: flex; flex-direction: column; gap: 8px; }
     .notes-body {
-      margin-top: 8px; padding: 8px; border-radius: 6px;
+      margin-top: 8px; padding: 8px; border-radius: var(--ms-radius-6, 6px);
       background: var(--secondary-background-color);
       font-size: 13px; white-space: pre-wrap; word-break: break-word;
     }
@@ -5062,7 +5473,7 @@ ${u?`<div class="sub">${u}</div>`:""}
     .link ha-icon { --mdc-icon-size: 14px; }
     .loading { padding: 24px; text-align: center; color: var(--secondary-text-color); }
     .error {
-      padding: 8px; border-radius: 6px;
+      padding: 8px; border-radius: var(--ms-radius-6, 6px);
       background: rgba(211,47,47,0.1);
       color: var(--error-color, #d32f2f); font-size: 13px;
     }
@@ -5080,7 +5491,7 @@ ${u?`<div class="sub">${u}</div>`:""}
     .stat {
       display: flex; flex-direction: column; gap: 2px;
       background: var(--secondary-background-color, rgba(255,255,255,0.04));
-      padding: 8px; border-radius: 6px;
+      padding: 8px; border-radius: var(--ms-radius-6, 6px);
       align-items: center;
     }
     .stat-label { font-size: 11px; color: var(--secondary-text-color); text-transform: uppercase; letter-spacing: 0.5px; }
@@ -5099,7 +5510,7 @@ ${u?`<div class="sub">${u}</div>`:""}
        local. */
     .history-list { display: flex; flex-direction: column; max-height: 280px; overflow: auto; }
     .history-list .history-entry {
-      padding: 6px 8px; border-radius: 6px; border-bottom: none; margin-bottom: 6px;
+      padding: 6px 8px; border-radius: var(--ms-radius-6, 6px); border-bottom: none; margin-bottom: 6px;
       background: var(--secondary-background-color, rgba(255,255,255,0.03));
     }
     .history-list .history-date { font-size: 11px; }
@@ -5120,7 +5531,7 @@ ${u?`<div class="sub">${u}</div>`:""}
       border-top: 1px solid var(--divider-color);
     }
     .toast {
-      padding: 8px 12px; border-radius: 6px;
+      padding: 8px 12px; border-radius: var(--ms-radius-6, 6px);
       background: rgba(76, 175, 80, 0.15);
       color: var(--success-color, #4caf50); font-size: 13px; font-weight: 500;
     }
@@ -5141,14 +5552,14 @@ ${u?`<div class="sub">${u}</div>`:""}
     .weibull-section, .seasonal-card-compact { max-width: 100%; }
     .weibull-chart svg { max-width: 100%; height: auto; }
     .details-toggle { gap: 12px; flex-wrap: wrap; }
-  `],d([b({attribute:!1})],M.prototype,"hass",2),d([h()],M.prototype,"_open",2),d([h()],M.prototype,"_entryId",2),d([h()],M.prototype,"_taskId",2),d([h()],M.prototype,"_task",2),d([h()],M.prototype,"_objectName",2),d([h()],M.prototype,"_taskRef",2),d([h()],M.prototype,"_busy",2),d([h()],M.prototype,"_error",2),d([h()],M.prototype,"_showSkip",2),d([h()],M.prototype,"_showReset",2),d([h()],M.prototype,"_showPostpone",2),d([h()],M.prototype,"_showDetails",2),d([h()],M.prototype,"_showAdaptive",2),d([h()],M.prototype,"_skipReason",2),d([h()],M.prototype,"_resetDate",2),d([h()],M.prototype,"_postponeDate",2),d([h()],M.prototype,"_features",2),d([h()],M.prototype,"_toast",2),d([h()],M.prototype,"_access",2),d([h()],M.prototype,"_partsCostMode",2);customElements.get("maintenance-task-quick-actions-dialog")||customElements.define("maintenance-task-quick-actions-dialog",M)});var Oa=y(()=>{"use strict";Qt();zt();W()});function ja(r,s,e){return r&&s?.[r]?.name||e}var Na=y(()=>{"use strict";W();Oa();hs();De()});function qa(r){if(r.key!=="Enter"&&r.key!==" ")return;let e=r.target?.closest?.('[role="menuitem"], [role="button"]');!e||e.getAttribute("aria-disabled")==="true"||(r.preventDefault(),e.click())}var Ma=y(()=>{"use strict"});var se,Ha=y(()=>{"use strict";O();Si();ps();L();I();Na();oe();qi();ut();lt();Vi();Wi();Ma();se=class extends S{constructor(){super(...arguments);this._open=!1;this._entryId=null;this._data=null;this._busy=!1;this._error="";this._access=ge;this._loadSeq=0}get _lang(){return j(this.hass)}async openFor(e){e!==this._entryId&&(this._data=null),this._entryId=e,this._error="",this._open=!0,await Promise.all([this._load(),Q(this.hass).then(t=>{this._access=t.access})])}close(){this._loadSeq++,this._open=!1,this._data=null,this._error=""}async _load(){let e=this._entryId;if(!e)return;let t=++this._loadSeq,i="",o=await H(this,{type:"maintenance_supporter/object",entry_id:e},{onError:a=>{i=a}});t===this._loadSeq&&(o===void 0?this._error=i:this._data=o)}_runWs(e){return this._error="",H(this,e,{busy:t=>{this._busy=t},onError:t=>{this._error=t}})}_onEditObject(){!this._entryId||!this._data||Promise.resolve().then(()=>(de(),ve)).then(({openEditObjectDialog:e})=>{e(this._entryId,this._data.object),this.close()})}_onAddTask(){this._entryId&&Promise.resolve().then(()=>(de(),ve)).then(({openCreateTaskDialog:e})=>{e(this._entryId),this.close()})}async _onDelete(){if(!this._entryId||!this._data||!await Ge(this.hass,{title:n("delete",this._lang),message:n("delete_object_confirm",this._lang),confirmText:n("delete",this._lang),danger:!0}))return;let t=this._entryId;await this._runWs({type:"maintenance_supporter/object/delete",entry_id:t})!==void 0&&(this.dispatchEvent(new CustomEvent("object-deleted",{detail:{entry_id:t},bubbles:!0,composed:!0})),this.close())}async _onArchiveObject(){if(!this._entryId||!this._data)return;let e=!!this._data.object.archived;if(!e&&!await Ge(this.hass,{title:n("archive_object",this._lang),message:n("confirm_archive_object",this._lang),confirmText:n("archive_object",this._lang)}))return;let t=this._entryId;await this._runWs({type:e?"maintenance_supporter/object/unarchive":"maintenance_supporter/object/archive",entry_id:t})!==void 0&&(this.dispatchEvent(new CustomEvent("object-changed",{detail:{entry_id:t},bubbles:!0,composed:!0})),this.close())}_onTaskClick(e){this._entryId&&Promise.resolve().then(()=>(de(),ve)).then(({openTaskQuickActions:t})=>{t(this._entryId,e)})}render(){if(!this._open)return p;let e=this._lang,t=this._data,i=t?.object,o=t?.tasks||[],a=le(this.hass?.user,this._access);return xt(()=>this.close(),l`
-        ${t&&i?l`
+  `],d([b({attribute:!1})],H.prototype,"hass",2),d([h()],H.prototype,"_open",2),d([h()],H.prototype,"_entryId",2),d([h()],H.prototype,"_taskId",2),d([h()],H.prototype,"_task",2),d([h()],H.prototype,"_objectName",2),d([h()],H.prototype,"_taskRef",2),d([h()],H.prototype,"_busy",2),d([h()],H.prototype,"_error",2),d([h()],H.prototype,"_showSkip",2),d([h()],H.prototype,"_showReset",2),d([h()],H.prototype,"_showPostpone",2),d([h()],H.prototype,"_showDetails",2),d([h()],H.prototype,"_showAdaptive",2),d([h()],H.prototype,"_skipReason",2),d([h()],H.prototype,"_resetDate",2),d([h()],H.prototype,"_postponeDate",2),d([h()],H.prototype,"_features",2),d([h()],H.prototype,"_toast",2),d([h()],H.prototype,"_access",2),d([h()],H.prototype,"_partsCostMode",2);customElements.get("maintenance-task-quick-actions-dialog")||customElements.define("maintenance-task-quick-actions-dialog",H)});var Al=x(()=>{"use strict";gi();oi();Z()});function Il(i,s,e){return i&&s?.[i]?.name||e}var Rl=x(()=>{"use strict";Z();Al();Qs();je()});function Pl(i){if(i.key!=="Enter"&&i.key!==" ")return;let e=i.target?.closest?.('[role="menuitem"], [role="button"]');!e||e.getAttribute("aria-disabled")==="true"||(i.preventDefault(),e.click())}var Ol=x(()=>{"use strict"});var he,Nl=x(()=>{"use strict";I();Zi();Ks();z();P();Rl();me();ar();It();Tt();Tr();Er();Ol();Ge();he=class extends T{constructor(){super(...arguments);this._open=!1;this._entryId=null;this._data=null;this._busy=!1;this._error="";this._access=Ce;this._loadSeq=0}get _lang(){return N(this.hass)}async openFor(e){e!==this._entryId&&(this._data=null),this._entryId=e,this._error="",this._open=!0,await Promise.all([this._load(),te(this.hass).then(t=>{this._access=t.access})])}close(){this._loadSeq++,this._open=!1,this._data=null,this._error=""}async _load(){let e=this._entryId;if(!e)return;let t=++this._loadSeq,r="",o=await L(this,{type:"maintenance_supporter/object",entry_id:e},{onError:a=>{r=a}});t===this._loadSeq&&(o===void 0?this._error=r:this._data=o)}_runWs(e){return this._error="",L(this,e,{busy:t=>{this._busy=t},onError:t=>{this._error=t}})}_onEditObject(){!this._entryId||!this._data||Promise.resolve().then(()=>(ye(),Re)).then(({openEditObjectDialog:e})=>{e(this._entryId,this._data.object),this.close()})}_onAddTask(){this._entryId&&Promise.resolve().then(()=>(ye(),Re)).then(({openCreateTaskDialog:e})=>{e(this._entryId),this.close()})}async _onDelete(){if(!this._entryId||!this._data||!await $i(this.hass,{title:n("delete",this._lang),message:n("delete_object_confirm",this._lang),confirmText:n("delete",this._lang),danger:!0}))return;let t=this._entryId;await this._runWs({type:"maintenance_supporter/object/delete",entry_id:t})!==void 0&&(this.dispatchEvent(new CustomEvent("object-deleted",{detail:{entry_id:t},bubbles:!0,composed:!0})),this.close())}async _onArchiveObject(){if(!this._entryId||!this._data)return;let e=!!this._data.object.archived;if(!e&&!await $i(this.hass,{title:n("archive_object",this._lang),message:n("confirm_archive_object",this._lang),confirmText:n("archive_object",this._lang)}))return;let t=this._entryId;await this._runWs({type:e?"maintenance_supporter/object/unarchive":"maintenance_supporter/object/archive",entry_id:t})!==void 0&&(this.dispatchEvent(new CustomEvent("object-changed",{detail:{entry_id:t},bubbles:!0,composed:!0})),this.close())}_onTaskClick(e){this._entryId&&Promise.resolve().then(()=>(ye(),Re)).then(({openTaskQuickActions:t})=>{t(this._entryId,e)})}render(){if(!this._open)return p;let e=this._lang,t=this._data,r=t?.object,o=t?.tasks||[],a=fe(this.hass?.user,this._access);return zt(()=>this.close(),l`
+        ${t&&r?l`
               <div class="header">
-                <div class="title">${i.name}</div>
-                ${this._renderMetaRow(i)}
+                ${ct()?p:l`<div class="title">${r.name}</div>`}
+                ${this._renderMetaRow(r)}
               </div>
 
-              ${this._error?l`<div class="error">${this._error}</div>`:p}
+              ${this._error?U("error",this._error):p}
 
               <div class="tasks-section">
                 <div class="section-header">
@@ -5158,20 +5569,20 @@ ${u?`<div class="sub">${u}</div>`:""}
                 ${o.length===0?l`<div class="empty">${n("no_tasks",e)}</div>`:l`
                       <div class="task-list">
                         ${o.map(c=>l`
-                          <div class="task-row" role="button" tabindex="0" @click=${()=>this._onTaskClick(c.id)} @keydown=${qa}>
-                            <span class="status-dot" style="background: ${ht(c)}"></span>
+                          <div class="task-row" role="button" tabindex="0" @click=${()=>this._onTaskClick(c.id)} @keydown=${Pl}>
+                            <span class="status-dot" style="background: ${Rt(c)}"></span>
                             <span class="task-name">${c.name}</span>
-                            <span class="task-status ${Vt(c)}">${zr(Vt(c),e)}</span>
+                            <span class="task-status ${pi(c)}">${ys(pi(c),e)}</span>
                           </div>
                         `)}
                       </div>
                     `}
               </div>
 
-              ${i.notes?l`
+              ${r.notes?l`
                     <div class="notes-section">
                       <strong>${n("object_notes_label",e)}</strong>
-                      <div class="notes-body">${Ji(i.notes)}</div>
+                      <div class="notes-body">${Cr(r.notes)}</div>
                     </div>
                   `:p}
 
@@ -5186,8 +5597,8 @@ ${u?`<div class="sub">${u}</div>`:""}
                         ${n("edit",e)}
                       </button>
                       <button class="btn" @click=${this._onArchiveObject} ?disabled=${this._busy}>
-                        <ha-icon icon="${i.archived?"mdi:archive-arrow-up-outline":"mdi:archive-outline"}"></ha-icon>
-                        ${i.archived?n("unarchive_object",e):n("archive_object",e)}
+                        <ha-icon icon="${r.archived?"mdi:archive-arrow-up-outline":"mdi:archive-outline"}"></ha-icon>
+                        ${r.archived?n("unarchive_object",e):n("archive_object",e)}
                       </button>
                       <button class="btn danger" @click=${this._onDelete} ?disabled=${this._busy}>
                         <ha-icon icon="mdi:delete"></ha-icon>
@@ -5195,17 +5606,17 @@ ${u?`<div class="sub">${u}</div>`:""}
                       </button>
                     </div>
                   `:p}
-            `:this._error?l`<div class="error">${this._error}</div>`:l`<div class="loading">${n("loading",e)}</div>`}
-    `)}updated(e){e.has("_open")&&this._open&&wt(this.shadowRoot)}_renderMetaRow(e){let t=this._lang,i=[];return e.area_id&&i.push([n("area",t),ja(e.area_id,this.hass?.areas,n("no_area",t))]),e.manufacturer&&i.push([n("manufacturer",t),e.manufacturer]),e.model&&i.push([n("model",t),e.model]),e.serial_number&&i.push([n("serial_number_label",t),e.serial_number]),e.installation_date&&i.push([n("installed",t),q(e.installation_date,t)]),e.warranty_expiry&&i.push([n("warranty",t),q(e.warranty_expiry,t)]),e.documentation_url&&i.push([n("documentation_url_label",t),e.documentation_url,nt(e.documentation_url)]),i.length===0?p:l`
+            `:this._error?U("error",this._error):l`<div class="loading">${n("loading",e)}</div>`}
+    `,{title:r?.name})}updated(e){e.has("_open")&&this._open&&Ft(this.shadowRoot)}_renderMetaRow(e){let t=this._lang,r=[];return e.area_id&&r.push([n("area",t),Il(e.area_id,this.hass?.areas,n("no_area",t))]),e.manufacturer&&r.push([n("manufacturer",t),e.manufacturer]),e.model&&r.push([n("model",t),e.model]),e.serial_number&&r.push([n("serial_number_label",t),e.serial_number]),e.installation_date&&r.push([n("installed",t),q(e.installation_date,t)]),e.warranty_expiry&&r.push([n("warranty",t),q(e.warranty_expiry,t)]),e.documentation_url&&r.push([n("documentation_url_label",t),e.documentation_url,kt(e.documentation_url)]),r.length===0?p:l`
       <div class="meta">
-        ${i.map(([o,a,c])=>l`
+        ${r.map(([o,a,c])=>l`
             <div class="meta-item">
               <span class="meta-label">${o}</span>
-              <span class="meta-value">${c||Mn(a)?l`<a href="${a}" target="_blank" rel="noopener noreferrer">${a}</a>`:a}</span>
+              <span class="meta-value">${c||ko(a)?l`<a href="${a}" target="_blank" rel="noopener noreferrer">${a}</a>`:a}</span>
             </div>
           `)}
       </div>
-    `}};se.styles=[yt,$`
+    `}};he.styles=[Lt,$`
     :host { display: contents; }
     .header { display: flex; flex-direction: column; gap: 6px; }
     .title { font-size: 20px; font-weight: 600; }
@@ -5224,7 +5635,7 @@ ${u?`<div class="sub">${u}</div>`:""}
     .task-list { display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow: auto; }
     .task-row {
       display: flex; align-items: center; gap: 10px;
-      padding: 8px; border-radius: 6px; cursor: pointer;
+      padding: 8px; border-radius: var(--ms-radius-6, 6px); cursor: pointer;
       background: var(--secondary-background-color, rgba(255,255,255,0.03));
       transition: background 0.12s;
     }
@@ -5233,12 +5644,12 @@ ${u?`<div class="sub">${u}</div>`:""}
     .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .task-name { flex: 1; font-size: 14px; }
     .task-status { font-size: 11px; color: var(--secondary-text-color); text-transform: uppercase; }
-    .notes-body { white-space: pre-wrap; font-size: 13px; padding: 8px; background: var(--secondary-background-color); border-radius: 6px; }
+    .notes-body { white-space: pre-wrap; font-size: 13px; padding: 8px; background: var(--secondary-background-color); border-radius: var(--ms-radius-6, 6px); }
     .notes-body ha-markdown { white-space: normal; }
     .actions { display: flex; gap: 8px; padding-top: 8px; border-top: 1px solid var(--divider-color); }
     .actions .btn { flex: 1; }
     .btn {
-      padding: 8px; font-size: 13px; border-radius: 6px; cursor: pointer;
+      padding: 8px; font-size: 13px; border-radius: var(--ms-radius-6, 6px); cursor: pointer;
       border: 1px solid var(--divider-color);
       background: var(--secondary-background-color, transparent);
       color: var(--primary-text-color); font-weight: 500;
@@ -5250,19 +5661,19 @@ ${u?`<div class="sub">${u}</div>`:""}
     .btn.danger { color: var(--error-color); }
     .btn ha-icon { --mdc-icon-size: 16px; }
     .loading { padding: 24px; text-align: center; color: var(--secondary-text-color); }
-    .error { padding: 8px; border-radius: 6px; background: rgba(211,47,47,0.1); color: var(--error-color); font-size: 13px; }
-  `],d([b({attribute:!1})],se.prototype,"hass",2),d([h()],se.prototype,"_open",2),d([h()],se.prototype,"_entryId",2),d([h()],se.prototype,"_data",2),d([h()],se.prototype,"_busy",2),d([h()],se.prototype,"_error",2),d([h()],se.prototype,"_access",2);customElements.get("maintenance-object-quick-actions-dialog")||customElements.define("maintenance-object-quick-actions-dialog",se)});var ve={};Qa(ve,{__resetSettingsCacheForTests:()=>td,getRowActionStyle:()=>ed,openCompleteDialog:()=>nd,openCreateObjectDialog:()=>_s,openCreateTaskDialog:()=>ms,openEditObjectDialog:()=>id,openEditTaskDialog:()=>rd,openHistoryEditDialog:()=>sd,openObjectQuickActions:()=>ad,openQrDialog:()=>od,openTaskQuickActions:()=>gs});function kt(){return document.querySelector("home-assistant")?.hass}function Xc(){return document.querySelector("home-assistant")?.shadowRoot??document.body}function be(r){let s=Xc(),e=s.querySelector(r)??document.body.querySelector(r);return e?e.parentNode!==s&&s.appendChild(e):(e=document.createElement(r),s.appendChild(e)),e}function ye(r){let s=kt();if(!s)return!1;r.hass=s;let e=j(s);return Xe(e)||_e(e).then(()=>{r.requestUpdate?.()}),Tr(s.locale,s.config?.country,s.config?.time_zone),!0}function ed(r){return Q(r).then(s=>s.rowActionStyle)}function td(){ao()}function _s(){let r=be(La);return ye(r)?(r.openCreate(),za(r),!0):!1}async function za(r){let s=kt();s&&(r.placesEnabled=(await Q(s)).features.places)}function id(r,s){let e=be(La);return ye(e)?(e.openEdit(r,s),za(e),!0):!1}function ms(r="",s){let e=be(Da);if(!ye(e))return!1;let t=kt();return t?((async()=>{let i=await Q(t),o=e;Fa(o,i),o.openCreate(r,s)})(),!0):!1}function Fa(r,s){r.checklistsEnabled=s.features.checklists,r.scheduleTimeEnabled=s.features.schedule_time,r.completionActionsEnabled=s.features.completion_actions,r.adaptiveFeature=s.features.adaptive,r.seasonalFeature=s.features.seasonal,r.environmentalFeature=s.features.environmental,r.defaultWarningDays=s.defaultWarningDays,r.mirrorTodoDefault=s.mirrorTodoDefault}function rd(r,s){let e=be(Da);if(!ye(e))return!1;let t=kt();return t?((async()=>{try{let[i,o]=await Promise.all([t.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:r}),Q(t)]),a=(i.tasks||[]).find(u=>u.id===s);if(!a){console.warn(`openEditTaskDialog: task ${s} not found in entry ${r}`);return}let c=e;Fa(c,o),await c.openEdit(r,a)}catch(i){console.warn("openEditTaskDialog: failed to load task/features",i)}})(),!0):!1}function sd(r){let s=be(Kc);return ye(s)?(s.openEdit(r),!0):!1}function nd(r){let s=be(Yc);if(!ye(s))return!1;let e=s;return e.__msUndoWired||(e.__msUndoWired=!0,s.addEventListener("task-completed",t=>{let i=t.detail,o=kt();i?.undo&&o&&We(s,o,i,j(o),()=>{})})),ji(s,r,j(kt())),!0}function od(r){let s=be(Qc);return ye(s)?(s.openForTask(r.entry_id,r.task_id,r.object_name,r.task_name),!0):!1}function gs(r,s){let e=be(Zc);return ye(e)?(e.openFor(r,s),!0):!1}function ad(r){let s=be(Jc);return ye(s)?(s.openFor(r),!0):!1}var La,Da,Kc,Yc,Qc,Zc,Jc,de=y(()=>{"use strict";Io();Wo();es();Yo();Zo();Pa();Ha();Fi();I();Ni();ut();La="maintenance-object-dialog",Da="maintenance-task-dialog",Kc="maintenance-history-edit-dialog",Yc="maintenance-complete-dialog",Qc="maintenance-qr-dialog",Zc="maintenance-task-quick-actions-dialog",Jc="maintenance-object-quick-actions-dialog"});O();var ll=["assignee_pool","required_completion_fields","checklist","labels","mirror_todo_entities","next_event_titles","history","readings"],cl=["checklist_progress"],dl=["tasks","parts"],pl=["manual_docs","battery_fleet_excluded"];function dr(r,s,e=[]){for(let t of s)r[t]===void 0&&(r[t]=[]);for(let t of e)r[t]===void 0&&(r[t]={})}function ul(r){let s=r;dr(s,dl),s.object&&typeof s.object=="object"&&dr(s.object,pl);for(let e of s.tasks)dr(e,ll,cl);return r}function Ot(r){for(let s of r)ul(s);return r}function hl(r,s){if(s.objects)return s.objects;let e=s.delta||[],t=s.removed||[];if(!e.length&&!t.length)return null;let i=new Map(r.map(o=>[o.entry_id,o]));for(let o of e)i.set(o.entry_id,o);for(let o of t)i.delete(o);return[...i.values()]}function Bs(r,s){return s.objects&&Ot(s.objects),s.delta&&Ot(s.delta),hl(r,s)}function jt(r){return r.responsible_user_id?[r.responsible_user_id]:[...new Set((r.assignee_pool||[]).filter(s=>typeof s=="string"&&s))]}function Ws(r,s){return!!s&&jt(r).includes(s)}rt();L();I();Pr();function qn(r){return(r.tags||[]).includes("photo")}Si();function Hn(){return window.customCards??[]}function ot(r){let s=window;s.customCards=s.customCards||[],s.customCards.some(e=>e.type===r.type)||s.customCards.push(r)}function Ln(r,s,e=t=>import(t)){let t=window,i;try{let m=new URL(s);i=m.origin+m.pathname}catch{return}let o=`__msCardHeal:${r[0]}:${i}`;if(t[o])return;t[o]=!0;let a=0,c=0,u=!1,_=()=>{if(a+=1,r.some(f=>!customElements.get(f))&&c<3&&!u){c+=1,u=!0;try{let f=new URL(s);f.searchParams.set("heal",`${Date.now()}`),e(f.href).catch(()=>{}).finally(()=>{u=!1})}catch{return}}a<20&&window.setTimeout(_,a<8?500:2e3)};window.setTimeout(_,250)}Mt();var zl={"maintenance-supporter-card":[null,"picker_desc_card"],"maintenance-supporter-calendar-card":["picker_name_calendar","picker_desc_calendar"],"maintenance-supporter-panel-card":["picker_name_panel","picker_desc_panel"],"maintenance-budget-section-card":["picker_name_budget","picker_desc_budget"],"maintenance-groups-section-card":["picker_name_groups","picker_desc_groups"],"maintenance-vacation-section-card":["picker_name_vacation","picker_desc_vacation"],"maintenance-battery-fleet-card":["picker_name_battery_fleet","picker_desc_battery_fleet"],"maintenance-supporter":[null,"picker_desc_dashboard"],"maintenance-supporter-section":["picker_name_section","picker_desc_section"],"maintenance-supporter-vacation":["picker_name_vacation_status","picker_desc_vacation_status"],"maintenance-supporter-budget":["picker_name_budget_status","picker_desc_budget_status"],"maintenance-supporter-groups":["picker_name_groups","picker_desc_groups_status"]},Nr=new WeakMap;function Fl(r){let s=window;for(let e of[...Hn(),...s.customStrategies??[]]){let t=zl[e.type];if(!t)continue;Nr.has(e)||Nr.set(e,{name:e.name,description:e.description});let i=Nr.get(e),[o,a]=t;o&&(e.name=n(o,r,i.name)),e.description=n(a,r,i.description)}}function Ti(){let r=0,s=()=>{let e=document.querySelector("home-assistant")?.hass;if(e?.language){let t=e.language;_e(t).then(()=>Fl(t));return}++r<60&&setTimeout(s,1e3)};s()}Mr();qr();Ci();O();function Un(r){let s=(r??[]).filter(e=>!!e);return s.length?l`<span class="event-titles"> · ${s.join(", ")}</span>`:p}function Bn(r){return r?l`<span class="event-titles trigger-detail"> · ${r}</span>`:p}Ni();ut();lt();qi();O();I();Gt();W();Br();function co(r,s,e="last-done"){let t=bn(r,s);return t?l`<span class="${e}" title="${n("last_performed",s)}: ${q(r,s)}">${t}</span>`:null}De();O();L();I();De();Vr();Kt();var ce=class extends S{constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-card"};this._objects=[];this._loadingObjects=!0;this._loadError=!1;this._views=[];this._objectsLoaded=!1;this._applySimplePreset=()=>{let e={...this._config,compact:!0,action_style:"icons",show_actions:!0,show_create:!1,show_assignee:!0,show_documents:!1};this._config=e,this.dispatchEvent(new CustomEvent("config-changed",{detail:{config:e}}))};this._onEntitiesChanged=e=>{this._valueChanged("entity_ids",e.detail.value||[])}}get _lang(){return j(this.hass)}setConfig(e){this._config={...e}}updated(e){super.updated(e),e.has("hass")&&this.hass&&!this._objectsLoaded&&(this._objectsLoaded=!0,this._loadObjects())}async _loadObjects(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"});this._objects=e.objects||[],this._loadError=!1}catch{this._objects=[],this._loadError=!0}this._loadingObjects=!1;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/views/list"});this._views=e.views||[]}catch{this._views=[]}}_valueChanged(e,t){let i={...this._config,[e]:t};(Array.isArray(t)&&t.length===0||t===""||t===void 0||t===null)&&delete i[e],this._config=i,this.dispatchEvent(new CustomEvent("config-changed",{detail:{config:i}}))}_toggleStatus(e,t){let i=new Set(this._config.filter_status||[]);t?i.add(e):i.delete(e),this._valueChanged("filter_status",[...i])}_toggleObject(e,t,i){let o=new Set(this._config.filter_objects||[]);o.delete(t),i?o.add(e):o.delete(e),this._valueChanged("filter_objects",[...o])}_dropStale(e,t){this._valueChanged(e,(this._config[e]||[]).filter(i=>i!==t))}_toggleLabel(e,t){let i=new Set(this._config.filter_labels||[]);t?i.add(e):i.delete(e),this._valueChanged("filter_labels",[...i])}_toggleArea(e,t){let i=new Set(this._config.filter_areas||[]);t?i.add(e):i.delete(e),this._valueChanged("filter_areas",[...i])}_togglePriority(e,t){let i=new Set(this._config.filter_priority||[]);t?i.add(e):i.delete(e),this._valueChanged("filter_priority",[...i])}_staleRow(e,t){return l`
+    .error { padding: 8px; border-radius: var(--ms-radius-6, 6px); background: rgba(211,47,47,0.1); color: var(--error-color); font-size: 13px; }
+  `],d([b({attribute:!1})],he.prototype,"hass",2),d([h()],he.prototype,"_open",2),d([h()],he.prototype,"_entryId",2),d([h()],he.prototype,"_data",2),d([h()],he.prototype,"_busy",2),d([h()],he.prototype,"_error",2),d([h()],he.prototype,"_access",2);customElements.get("maintenance-object-quick-actions-dialog")||customElements.define("maintenance-object-quick-actions-dialog",he)});var Re={};Vl(Re,{__resetSettingsCacheForTests:()=>xp,getRowActionStyle:()=>yp,openCompleteDialog:()=>Ep,openCreateObjectDialog:()=>Js,openCreateTaskDialog:()=>Xs,openEditObjectDialog:()=>wp,openEditTaskDialog:()=>kp,openHistoryEditDialog:()=>$p,openObjectQuickActions:()=>Sp,openQrDialog:()=>Tp,openTaskQuickActions:()=>en});function Ut(){return document.querySelector("home-assistant")?.hass}function bp(){return document.querySelector("home-assistant")?.shadowRoot??document.body}function Pe(i){let s=bp(),e=s.querySelector(i)??document.body.querySelector(i);return e?e.parentNode!==s&&s.appendChild(e):(e=document.createElement(i),s.appendChild(e)),e}function Oe(i){let s=Ut();if(!s)return!1;i.hass=s;let e=N(s);return _t(e)||$e(e).then(()=>{i.requestUpdate?.()}),rs(s.locale,s.config?.country,s.config?.time_zone),!0}function yp(i){return te(i).then(s=>s.rowActionStyle)}function xp(){Ko()}function Js(){let i=Pe(jl);return Oe(i)?(i.openCreate(),Dl(i),!0):!1}async function Dl(i){let s=Ut();s&&(i.placesEnabled=(await te(s)).features.places)}function wp(i,s){let e=Pe(jl);return Oe(e)?(e.openEdit(i,s),Dl(e),!0):!1}function Xs(i="",s){let e=Pe(ql);if(!Oe(e))return!1;let t=Ut();return t?((async()=>{let r=await te(t),o=e;Ml(o,r),o.openCreate(i,s)})(),!0):!1}function Ml(i,s){i.checklistsEnabled=s.features.checklists,i.scheduleTimeEnabled=s.features.schedule_time,i.completionActionsEnabled=s.features.completion_actions,i.adaptiveFeature=s.features.adaptive,i.seasonalFeature=s.features.seasonal,i.environmentalFeature=s.features.environmental,i.defaultWarningDays=s.defaultWarningDays,i.mirrorTodoDefault=s.mirrorTodoDefault,i.betaEditor=s.features.beta_editor}function kp(i,s){let e=Pe(ql);if(!Oe(e))return!1;let t=Ut();return t?((async()=>{try{let[r,o]=await Promise.all([t.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:i}),te(t)]),a=(r.tasks||[]).find(u=>u.id===s);if(!a){console.warn(`openEditTaskDialog: task ${s} not found in entry ${i}`);return}let c=e;Ml(c,o),await c.openEdit(i,a)}catch(r){console.warn("openEditTaskDialog: failed to load task/features",r)}})(),!0):!1}function $p(i){let s=Pe(_p);return Oe(s)?(s.openEdit(i),!0):!1}function Ep(i){let s=Pe(mp);if(!Oe(s))return!1;let e=s;return e.__msUndoWired||(e.__msUndoWired=!0,s.addEventListener("task-completed",t=>{let r=t.detail,o=Ut();r?.undo&&o&&nt(s,o,r,N(o),()=>{})})),nr(s,i,N(Ut())),!0}function Tp(i){let s=Pe(gp);return Oe(s)?(s.openForTask(i.entry_id,i.task_id,i.object_name,i.task_name),!0):!1}function en(i,s){let e=Pe(fp);return Oe(e)?(e.openFor(i,s),!0):!1}function Sp(i){let s=Pe(vp);return Oe(s)?(s.openFor(i),!0):!1}var jl,ql,_p,mp,gp,fp,vp,ye=x(()=>{"use strict";xa();Ga();js();Za();Xa();Cl();Nl();yt();P();or();It();jl="maintenance-object-dialog",ql="maintenance-task-dialog",_p="maintenance-history-edit-dialog",mp="maintenance-complete-dialog",gp="maintenance-qr-dialog",fp="maintenance-task-quick-actions-dialog",vp="maintenance-object-quick-actions-dialog"});I();var sc=["assignee_pool","required_completion_fields","checklist","labels","mirror_todo_entities","next_event_titles","history","readings"],nc=["checklist_progress"],oc=["tasks","parts"],ac=["manual_docs","battery_fleet_excluded"];function Lr(i,s,e=[]){for(let t of s)i[t]===void 0&&(i[t]=[]);for(let t of e)i[t]===void 0&&(i[t]={})}function lc(i){let s=i;Lr(s,oc),s.object&&typeof s.object=="object"&&Lr(s.object,ac);for(let e of s.tasks)Lr(e,sc,nc);return i}function Xt(i){for(let s of i)lc(s);return i}function cc(i,s){if(s.objects)return s.objects;let e=s.delta||[],t=s.removed||[];if(!e.length&&!t.length)return null;let r=new Map(i.map(o=>[o.entry_id,o]));for(let o of e)r.set(o.entry_id,o);for(let o of t)r.delete(o);return[...r.values()]}function An(i,s){return s.objects&&Xt(s.objects),s.delta&&Xt(s.delta),cc(i,s)}function ei(i){return i.responsible_user_id?[i.responsible_user_id]:[...new Set((i.assignee_pool||[]).filter(s=>typeof s=="string"&&s))]}function In(i,s){return!!s&&ei(i).includes(s)}xt();z();P();cs();function wo(i){return(i.tags||[]).includes("photo")}Zi();function $o(){return window.customCards??[]}function $t(i){let s=window;s.customCards=s.customCards||[],s.customCards.some(e=>e.type===i.type)||s.customCards.push(i)}function Eo(i,s,e=t=>import(t)){let t=window,r;try{let m=new URL(s);r=m.origin+m.pathname}catch{return}let o=`__msCardHeal:${i[0]}:${r}`;if(t[o])return;t[o]=!0;let a=0,c=0,u=!1,_=()=>{if(a+=1,i.some(f=>!customElements.get(f))&&c<3&&!u){c+=1,u=!0;try{let f=new URL(s);f.searchParams.set("heal",`${Date.now()}`),e(f.href).catch(()=>{}).finally(()=>{u=!1})}catch{return}}a<20&&window.setTimeout(_,a<8?500:2e3)};window.setTimeout(_,250)}ri();var Mc={"maintenance-supporter-card":[null,"picker_desc_card"],"maintenance-supporter-calendar-card":["picker_name_calendar","picker_desc_calendar"],"maintenance-supporter-panel-card":["picker_name_panel","picker_desc_panel"],"maintenance-budget-section-card":["picker_name_budget","picker_desc_budget"],"maintenance-groups-section-card":["picker_name_groups","picker_desc_groups"],"maintenance-vacation-section-card":["picker_name_vacation","picker_desc_vacation"],"maintenance-battery-fleet-card":["picker_name_battery_fleet","picker_desc_battery_fleet"],"maintenance-supporter":[null,"picker_desc_dashboard"],"maintenance-supporter-section":["picker_name_section","picker_desc_section"],"maintenance-supporter-vacation":["picker_name_vacation_status","picker_desc_vacation_status"],"maintenance-supporter-budget":["picker_name_budget_status","picker_desc_budget_status"],"maintenance-supporter-groups":["picker_name_groups","picker_desc_groups_status"]},us=new WeakMap;function Hc(i){let s=window;for(let e of[...$o(),...s.customStrategies??[]]){let t=Mc[e.type];if(!t)continue;us.has(e)||us.set(e,{name:e.name,description:e.description});let r=us.get(e),[o,a]=t;o&&(e.name=n(o,i,r.name)),e.description=n(a,i,r.description)}}function Ji(){let i=0,s=()=>{let e=document.querySelector("home-assistant")?.hass;if(e?.language){let t=e.language;$e(t).then(()=>Hc(t));return}++i<60&&setTimeout(s,1e3)};s()}_s();hs();er();I();function Ao(i){let s=(i??[]).filter(e=>!!e);return s.length?l`<span class="event-titles"> · ${s.join(", ")}</span>`:p}function Io(i){return i?l`<span class="event-titles trigger-detail"> · ${i}</span>`:p}or();It();Tt();ar();I();P();ui();Z();ws();function Qo(i,s,e="last-done"){let t=so(i,s);return t?l`<span class="${e}" title="${n("last_performed",s)}: ${q(i,s)}">${t}</span>`:null}je();I();z();P();je();$s();_i();var ve=class extends T{constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-card"};this._objects=[];this._loadingObjects=!0;this._loadError=!1;this._views=[];this._objectsLoaded=!1;this._applySimplePreset=()=>{let e={...this._config,compact:!0,action_style:"icons",show_actions:!0,show_create:!1,show_assignee:!0,show_documents:!1};this._config=e,this.dispatchEvent(new CustomEvent("config-changed",{detail:{config:e}}))};this._onEntitiesChanged=e=>{this._valueChanged("entity_ids",e.detail.value||[])}}get _lang(){return N(this.hass)}setConfig(e){this._config={...e}}updated(e){super.updated(e),e.has("hass")&&this.hass&&!this._objectsLoaded&&(this._objectsLoaded=!0,this._loadObjects())}async _loadObjects(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"});this._objects=e.objects||[],this._loadError=!1}catch{this._objects=[],this._loadError=!0}this._loadingObjects=!1;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/views/list"});this._views=e.views||[]}catch{this._views=[]}}_valueChanged(e,t){let r={...this._config,[e]:t};(Array.isArray(t)&&t.length===0||t===""||t===void 0||t===null)&&delete r[e],this._config=r,this.dispatchEvent(new CustomEvent("config-changed",{detail:{config:r}}))}_toggleStatus(e,t){let r=new Set(this._config.filter_status||[]);t?r.add(e):r.delete(e),this._valueChanged("filter_status",[...r])}_toggleObject(e,t,r){let o=new Set(this._config.filter_objects||[]);o.delete(t),r?o.add(e):o.delete(e),this._valueChanged("filter_objects",[...o])}_dropStale(e,t){this._valueChanged(e,(this._config[e]||[]).filter(r=>r!==t))}_toggleLabel(e,t){let r=new Set(this._config.filter_labels||[]);t?r.add(e):r.delete(e),this._valueChanged("filter_labels",[...r])}_toggleArea(e,t){let r=new Set(this._config.filter_areas||[]);t?r.add(e):r.delete(e),this._valueChanged("filter_areas",[...r])}_togglePriority(e,t){let r=new Set(this._config.filter_priority||[]);t?r.add(e):r.delete(e),this._valueChanged("filter_priority",[...r])}_staleRow(e,t){return l`
       <label class="object-row stale">
         <input type="checkbox" .checked=${!0} @change=${()=>this._dropStale(e,t)} />
         <span>${t}</span>
       </label>
-    `}render(){let e=this._lang,t=new Set(this._config.filter_status||[]),i=new Set(this._config.filter_objects||[]),o=[...this._objects].map(v=>({entryId:v.entry_id,name:v.object.name,checked:i.has(v.entry_id)||i.has(v.object.name)})).sort((v,A)=>v.name.localeCompare(A.name)),a=new Set(this._objects.flatMap(v=>[v.entry_id,v.object.name])),c=[...i].filter(v=>!a.has(v)),u=new Set(this._config.filter_areas||[]),_=[...new Set(this._objects.map(v=>v.object.area_id).filter(v=>!!v).concat([...u]))],m=v=>this.hass?.areas?.[v]?.name||v,f=_.map(v=>({id:v,name:m(v)})).sort((v,A)=>v.name.localeCompare(A.name)),x=new Set(this._config.filter_labels||[]),w=new Set(this._config.filter_priority||[]),R=[...new Set(this._objects.flatMap(v=>v.tasks.flatMap(A=>A.labels||[])))].sort((v,A)=>v.localeCompare(A)),k=[...x].filter(v=>!R.includes(v)),E=[];for(let v of this._objects)for(let A of v.tasks)A.sensor_entity_id&&E.push(A.sensor_entity_id),A.binary_sensor_entity_id&&E.push(A.binary_sensor_entity_id);return l`
+    `}render(){let e=this._lang,t=new Set(this._config.filter_status||[]),r=new Set(this._config.filter_objects||[]),o=[...this._objects].map(y=>({entryId:y.entry_id,name:y.object.name,checked:r.has(y.entry_id)||r.has(y.object.name)})).sort((y,R)=>y.name.localeCompare(R.name)),a=new Set(this._objects.flatMap(y=>[y.entry_id,y.object.name])),c=[...r].filter(y=>!a.has(y)),u=new Set(this._config.filter_areas||[]),_=[...new Set(this._objects.map(y=>y.object.area_id).filter(y=>!!y).concat([...u]))],m=y=>this.hass?.areas?.[y]?.name||y,f=_.map(y=>({id:y,name:m(y)})).sort((y,R)=>y.name.localeCompare(R.name)),v=new Set(this._config.filter_labels||[]),w=new Set(this._config.filter_priority||[]),A=[...new Set(this._objects.flatMap(y=>y.tasks.flatMap(R=>R.labels||[])))].sort((y,R)=>y.localeCompare(R)),k=[...v].filter(y=>!A.includes(y)),E=[];for(let y of this._objects)for(let R of y.tasks)R.sensor_entity_id&&E.push(R.sensor_entity_id),R.binary_sensor_entity_id&&E.push(R.binary_sensor_entity_id);return l`
       <div class="editor">
         <ms-textfield
           class="card-title"
           label="${n("card_title",e)}"
           .value=${this._config.title||""}
-          @input=${v=>this._valueChanged("title",v.target.value)}
+          @input=${y=>this._valueChanged("title",y.target.value)}
         ></ms-textfield>
 
         <!-- #234: a starting point for a kitchen tablet; every option stays its own -->
@@ -5275,12 +5686,12 @@ ${u?`<div class="sub">${u}</div>`:""}
         <div class="field">
           <div class="field-label">${n("card_filter_status",e)}</div>
           <div class="chip-row">
-            ${pi.map(v=>l`
-              <label class="chip ${t.has(v)?"active":""}">
+            ${ji.map(y=>l`
+              <label class="chip ${t.has(y)?"active":""}">
                 <input type="checkbox"
-                  .checked=${t.has(v)}
-                  @change=${A=>this._toggleStatus(v,A.target.checked)} />
-                ${n(v,e)}
+                  .checked=${t.has(y)}
+                  @change=${R=>this._toggleStatus(y,R.target.checked)} />
+                ${n(y,e)}
               </label>
             `)}
           </div>
@@ -5292,15 +5703,15 @@ ${u?`<div class="sub">${u}</div>`:""}
           <div class="field-label">${n("card_filter_objects",e)}</div>
           ${this._loadingObjects?l`<div class="field-help">${n("card_loading_objects",e)}</div>`:this._loadError?l`<div class="field-help error-text">${n("card_load_error",e)}</div>`:o.length===0&&c.length===0?l`<div class="field-help">${n("no_objects",e)}</div>`:l`
                 <div class="object-list">
-                  ${o.map(v=>l`
+                  ${o.map(y=>l`
                     <label class="object-row">
                       <input type="checkbox"
-                        .checked=${v.checked}
-                        @change=${A=>this._toggleObject(v.entryId,v.name,A.target.checked)} />
-                      <span>${v.name}</span>
+                        .checked=${y.checked}
+                        @change=${R=>this._toggleObject(y.entryId,y.name,R.target.checked)} />
+                      <span>${y.name}</span>
                     </label>
                   `)}
-                  ${c.map(v=>this._staleRow("filter_objects",v))}
+                  ${c.map(y=>this._staleRow("filter_objects",y))}
                 </div>
                 <div class="field-help">${n("card_filter_objects_help",e)}</div>
               `}
@@ -5312,41 +5723,41 @@ ${u?`<div class="sub">${u}</div>`:""}
         <div class="field">
           <div class="field-label">${n("card_filter_areas",e)}</div>
           <div class="object-list">
-            ${f.map(v=>l`
+            ${f.map(y=>l`
               <label class="object-row">
                 <input type="checkbox"
-                  .checked=${u.has(v.id)}
-                  @change=${A=>this._toggleArea(v.id,A.target.checked)} />
-                <span>${v.name}</span>
+                  .checked=${u.has(y.id)}
+                  @change=${R=>this._toggleArea(y.id,R.target.checked)} />
+                <span>${y.name}</span>
               </label>
             `)}
           </div>
           <div class="field-help">${n("card_filter_areas_help",e)}</div>
         </div>`:p}
-        ${R.length||k.length?l`
+        ${A.length||k.length?l`
         <div class="field">
           <div class="field-label">${n("labels",e)}</div>
           <div class="object-list">
-            ${R.map(v=>l`
+            ${A.map(y=>l`
               <label class="object-row">
                 <input type="checkbox"
-                  .checked=${x.has(v)}
-                  @change=${A=>this._toggleLabel(v,A.target.checked)} />
-                <span>${v}</span>
+                  .checked=${v.has(y)}
+                  @change=${R=>this._toggleLabel(y,R.target.checked)} />
+                <span>${y}</span>
               </label>
             `)}
-            ${k.map(v=>this._staleRow("filter_labels",v))}
+            ${k.map(y=>this._staleRow("filter_labels",y))}
           </div>
         </div>`:p}
         <div class="field">
           <div class="field-label">${n("priority",e)}</div>
           <div class="object-list">
-            ${po.map(v=>l`
+            ${Zo.map(y=>l`
               <label class="object-row">
                 <input type="checkbox"
-                  .checked=${w.has(v)}
-                  @change=${A=>this._togglePriority(v,A.target.checked)} />
-                <span>${n(`priority_${v}`,e)}</span>
+                  .checked=${w.has(y)}
+                  @change=${R=>this._togglePriority(y,R.target.checked)} />
+                <span>${n(`priority_${y}`,e)}</span>
               </label>
             `)}
           </div>
@@ -5377,13 +5788,13 @@ ${u?`<div class="sub">${u}</div>`:""}
                 <select
                   class="view-select"
                   .value=${this._config.view_id||""}
-                  @change=${v=>this._valueChanged("view_id",v.target.value)}
+                  @change=${y=>this._valueChanged("view_id",y.target.value)}
                 >
                   <option value="" ?selected=${!this._config.view_id}>
                     ${n("card_saved_view_none",e)}
                   </option>
-                  ${this._views.map(v=>l`<option value=${v.id} ?selected=${this._config.view_id===v.id}>
-                      ${v.name}
+                  ${this._views.map(y=>l`<option value=${y.id} ?selected=${this._config.view_id===y.id}>
+                      ${y.name}
                     </option>`)}
                 </select>
                 <div class="field-help">${n("card_saved_view_help",e)}</div>
@@ -5393,14 +5804,14 @@ ${u?`<div class="sub">${u}</div>`:""}
         <ha-formfield label="${n("card_show_header",e)}">
           <ha-switch
             .checked=${this._config.show_header!==!1}
-            @change=${v=>this._valueChanged("show_header",v.target.checked)}
+            @change=${y=>this._valueChanged("show_header",y.target.checked)}
           ></ha-switch>
         </ha-formfield>
 
         <ha-formfield label="${n("card_show_actions",e)}">
           <ha-switch
             .checked=${this._config.show_actions!==!1}
-            @change=${v=>this._valueChanged("show_actions",v.target.checked)}
+            @change=${y=>this._valueChanged("show_actions",y.target.checked)}
           ></ha-switch>
         </ha-formfield>
 
@@ -5408,7 +5819,7 @@ ${u?`<div class="sub">${u}</div>`:""}
           <ha-switch
             class="show-create"
             .checked=${this._config.show_create??this._config.show_actions!==!1}
-            @change=${v=>this._valueChanged("show_create",v.target.checked)}
+            @change=${y=>this._valueChanged("show_create",y.target.checked)}
           ></ha-switch>
         </ha-formfield>
 
@@ -5416,7 +5827,7 @@ ${u?`<div class="sub">${u}</div>`:""}
           <span>${n("card_action_style",e)}</span>
           <select
             .value=${this._config.action_style??""}
-            @change=${v=>{let A=v.target.value;this._valueChanged("action_style",A===""?void 0:A)}}
+            @change=${y=>{let R=y.target.value;this._valueChanged("action_style",R===""?void 0:R)}}
           >
             <option value="" ?selected=${!this._config.action_style}>${n("row_actions_follow",e)}</option>
             <option value="buttons" ?selected=${this._config.action_style==="buttons"}>${n("row_actions_buttons",e)}</option>
@@ -5427,21 +5838,21 @@ ${u?`<div class="sub">${u}</div>`:""}
         <ha-formfield label="${n("responsible_user",e)}">
           <ha-switch
             .checked=${this._config.show_assignee!==!1}
-            @change=${v=>this._valueChanged("show_assignee",v.target.checked)}
+            @change=${y=>this._valueChanged("show_assignee",y.target.checked)}
           ></ha-switch>
         </ha-formfield>
 
         <ha-formfield label="${n("documents",e)}">
           <ha-switch
             .checked=${this._config.show_documents!==!1}
-            @change=${v=>this._valueChanged("show_documents",v.target.checked)}
+            @change=${y=>this._valueChanged("show_documents",y.target.checked)}
           ></ha-switch>
         </ha-formfield>
 
         <ha-formfield label="${n("card_compact",e)}">
           <ha-switch
             .checked=${this._config.compact||!1}
-            @change=${v=>this._valueChanged("compact",v.target.checked)}
+            @change=${y=>this._valueChanged("compact",y.target.checked)}
           ></ha-switch>
         </ha-formfield>
 
@@ -5450,11 +5861,11 @@ ${u?`<div class="sub">${u}</div>`:""}
           label="${n("card_max_items",e)}"
           type="number"
           .value=${String(this._config.max_items||0)}
-          @input=${v=>this._valueChanged("max_items",parseInt(v.target.value,10)||0)}
+          @input=${y=>this._valueChanged("max_items",parseInt(y.target.value,10)||0)}
         ></ms-textfield>
         ${p}
       </div>
-    `}};ce.styles=$`
+    `}};ve.styles=$`
     .editor {
       display: flex;
       flex-direction: column;
@@ -5545,96 +5956,96 @@ ${u?`<div class="sub">${u}</div>`:""}
       font-size: 14px;
       max-width: 320px;
     }
-  `,d([b({attribute:!1})],ce.prototype,"hass",2),d([h()],ce.prototype,"_config",2),d([h()],ce.prototype,"_objects",2),d([h()],ce.prototype,"_loadingObjects",2),d([h()],ce.prototype,"_loadError",2),d([h()],ce.prototype,"_views",2);customElements.get("maintenance-supporter-card-editor")||customElements.define("maintenance-supporter-card-editor",ce);es();Fi();O();L();O();L();I();I();function Eo(r,s,e){return n(`part_waiting_${r}`,e).replace("{count}",P(s,e))}Jr();oe();lt();ut();W();Gt();var D=class D extends S{constructor(){super(...arguments);this.flat=!1;this._ov=null;this._loading=!1;this._marking=!1;this._choosing=null;this._error="";this._disposeFor=null;this._disposeQty="1";this._history=null;this._rosterSort=D._storedSort();this._typeFilter=null;this._recorded=[];this._access=ge;this._historyRequested=!1;this._localeReady=!1;this._markAll=async()=>{await this._mark(void 0)};this._repair=async()=>{await this._act({type:"maintenance_supporter/battery_fleet/setup",language:this._lang})};this._loadHistory=async e=>{let t=e.target.open;if(Jt(Ie.batteryRosterOpen,t?"1":"0"),!(!t||this._historyRequested)){this._historyRequested=!0;try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/battery_fleet/overview_history"});this._history=i.series}catch{this._history=null}}}}get _lang(){return j(this.hass)}get _canWrite(){return le(this.hass?.user,this._access)}connectedCallback(){super.connectedCallback(),this.hass&&this._load()}updated(e){mi(this,e),e.has("hass")&&this.hass&&!this._localeReady&&(this._localeReady=!0,_e(this._lang).then(()=>this.requestUpdate()),Q(this.hass).then(t=>{this._access=t.access}),this._ov===null&&!this._loading&&this._load())}async _load(){this._error="";let e=await H(this,{type:"maintenance_supporter/battery_fleet/overview"},{busy:t=>{this._loading=t},onError:t=>{this._error=t}});e!==void 0&&(this._ov=e)}async _act(e,t){return this._marking?!1:(this._error="",await H(this,e,{busy:o=>{this._marking=o},reload:async()=>{t?.(),await this._load()},onError:o=>{this._error=o}})!==void 0)}async _dispose(e,t){let i=parseFloat(this._disposeQty);!Number.isFinite(i)||i<=0||await this._act({type:"maintenance_supporter/part/dispose",entry_id:e,part_id:t,quantity:i})&&(this._disposeFor=null)}_renderDispose(e,t,i){return this._disposeFor!==t.part_id?l`<button class="bf-charged bf-dispose" title=${n("part_dispose_hint",i)} .disabled=${this._marking}
-        @click=${()=>{this._disposeFor=t.part_id,this._disposeQty="1"}}><ha-icon icon="mdi:trash-can-outline"></ha-icon>${n("part_dispose",i)}</button>`:l`<input
+  `,d([b({attribute:!1})],ve.prototype,"hass",2),d([h()],ve.prototype,"_config",2),d([h()],ve.prototype,"_objects",2),d([h()],ve.prototype,"_loadingObjects",2),d([h()],ve.prototype,"_loadError",2),d([h()],ve.prototype,"_views",2);customElements.get("maintenance-supporter-card-editor")||customElements.define("maintenance-supporter-card-editor",ve);js();yt();I();z();I();z();P();P();function ma(i,s,e){return n(`part_waiting_${i}`,e).replace("{count}",S(s,e))}Os();me();Tt();It();Z();ui();vr();ki();var B=class B extends T{constructor(){super(...arguments);this.flat=!1;this._ov=null;this._loading=!1;this._marking=!1;this._choosing=null;this._error="";this._disposeFor=null;this._disposeQty="1";this._history=null;this._rosterSort=B._storedSort();this._typeFilter=null;this._recorded=[];this._access=Ce;this._historyRequested=!1;this._localeReady=!1;this._markAll=async()=>{await this._mark(void 0)};this._repair=async()=>{await this._act({type:"maintenance_supporter/battery_fleet/setup",language:this._lang})};this._loadHistory=async e=>{if(xi(Ve.batteryRosterOpen,e?"1":"0"),!(!e||this._historyRequested)){this._historyRequested=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/battery_fleet/overview_history"});this._history=t.series}catch{this._history=null}}}}get _lang(){return N(this.hass)}get _canWrite(){return fe(this.hass?.user,this._access)}connectedCallback(){super.connectedCallback(),this.hass&&this._load()}updated(e){Li(this,e),e.has("hass")&&this.hass&&!this._localeReady&&(this._localeReady=!0,$e(this._lang).then(()=>this.requestUpdate()),te(this.hass).then(t=>{this._access=t.access}),this._ov===null&&!this._loading&&this._load())}async _load(){this._error="";let e=await L(this,{type:"maintenance_supporter/battery_fleet/overview"},{busy:t=>{this._loading=t},onError:t=>{this._error=t}});e!==void 0&&(this._ov=e)}async _act(e,t){return this._marking?!1:(this._error="",await L(this,e,{busy:o=>{this._marking=o},reload:async()=>{t?.(),await this._load()},onError:o=>{this._error=o}})!==void 0)}async _dispose(e,t){let r=parseFloat(this._disposeQty);!Number.isFinite(r)||r<=0||await this._act({type:"maintenance_supporter/part/dispose",entry_id:e,part_id:t,quantity:r})&&(this._disposeFor=null)}_renderDispose(e,t,r){return this._disposeFor!==t.part_id?l`<button class="bf-charged bf-dispose" title=${n("part_dispose_hint",r)} .disabled=${this._marking}
+        @click=${()=>{this._disposeFor=t.part_id,this._disposeQty="1"}}><ha-icon icon="mdi:trash-can-outline"></ha-icon>${n("part_dispose",r)}</button>`:l`<input
         class="bf-dispose-qty"
         type="number"
         min="1"
         max=${String(t.restoring)}
         .value=${this._disposeQty}
-        aria-label=${n("part_dispose_how_many",i)}
-        title=${n("part_dispose_how_many",i)}
+        aria-label=${n("part_dispose_how_many",r)}
+        title=${n("part_dispose_how_many",r)}
         @input=${o=>this._disposeQty=o.target.value}
         @keydown=${o=>{o.key==="Enter"&&this._dispose(e,t.part_id),o.key==="Escape"&&(this._disposeFor=null)}}
-      /><button class="bf-charged bf-dispose confirm" title=${n("part_dispose_hint",i)} .disabled=${this._marking}
-        @click=${()=>this._dispose(e,t.part_id)}><ha-icon icon="mdi:check"></ha-icon>${n("part_dispose",i)}</button
-      ><button class="bf-charged bf-dispose" title=${n("cancel",i)} @click=${()=>this._disposeFor=null}
+      /><button class="bf-charged bf-dispose confirm" title=${n("part_dispose_hint",r)} .disabled=${this._marking}
+        @click=${()=>this._dispose(e,t.part_id)}><ha-icon icon="mdi:check"></ha-icon>${n("part_dispose",r)}</button
+      ><button class="bf-charged bf-dispose" title=${n("cancel",r)} @click=${()=>this._disposeFor=null}
         ><ha-icon icon="mdi:close"></ha-icon
-      ></button>`}_markOne(e,t){if(e.cell_choices&&e.cell_choices.length>1){this._choosing={entityId:e.entity_id,list:t,selected:e.cells_installed||e.cell_choices[0].type};return}this._mark([e.entity_id])}async _confirmCells(){let e=this._choosing;e&&(this._choosing=null,await this._act({type:"maintenance_supporter/battery_fleet/mark_replaced",entity_ids:[e.entityId],cells:{[e.entityId]:e.selected}}))}_renderCellChooser(e,t,i){let o=this._choosing;return!o||o.entityId!==e.entity_id||o.list!==t||!e.cell_choices?p:l`
-      <div class="bf-cells" role="group" aria-label=${n("battery_fleet_cells_question",i)}>
-        <div class="bf-cells-q">${n("battery_fleet_cells_question",i)}</div>
+      ></button>`}_markOne(e,t){if(e.cell_choices&&e.cell_choices.length>1){this._choosing={entityId:e.entity_id,list:t,selected:e.cells_installed||e.cell_choices[0].type};return}this._mark([e.entity_id])}async _confirmCells(){let e=this._choosing;e&&(this._choosing=null,await this._act({type:"maintenance_supporter/battery_fleet/mark_replaced",entity_ids:[e.entityId],cells:{[e.entityId]:e.selected}}))}_renderCellChooser(e,t,r){let o=this._choosing;return!o||o.entityId!==e.entity_id||o.list!==t||!e.cell_choices?p:l`
+      <div class="bf-cells" role="group" aria-label=${n("battery_fleet_cells_question",r)}>
+        <div class="bf-cells-q">${n("battery_fleet_cells_question",r)}</div>
         ${e.cell_choices.map(a=>l`
           <label class="bf-cell-choice">
             <input type="radio" name=${`cells-${e.entity_id}`} .checked=${o.selected===a.type}
               @change=${()=>{this._choosing={...o,selected:a.type}}} />
             <span>${a.name}</span>
-            ${a.rechargeable?l`<span class="bf-cell-tag">${n("battery_fleet_cells_rechargeable",i)}</span>`:p}
+            ${a.rechargeable?l`<span class="bf-cell-tag">${n("battery_fleet_cells_rechargeable",r)}</span>`:p}
           </label>`)}
         <div class="bf-cells-actions">
-          <button class="bf-cells-cancel" @click=${()=>{this._choosing=null}}>${n("cancel",i)}</button>
+          <button class="bf-cells-cancel" @click=${()=>{this._choosing=null}}>${n("cancel",r)}</button>
           <button class="bf-cells-ok" .disabled=${this._marking} @click=${()=>this._confirmCells()}>
-            ${n("battery_fleet_mark_one",i)}
+            ${n("battery_fleet_mark_one",r)}
           </button>
         </div>
       </div>
-    `}async _mark(e){await this._act({type:"maintenance_supporter/battery_fleet/mark_replaced",...e?{entity_ids:e}:{}})}async _setExcluded(e,t){await this._act({type:"maintenance_supporter/battery_fleet/set_excluded",entity_id:e,excluded:t})}async _addBattery(e){let t=e.detail?.value;t&&await this._act({type:"maintenance_supporter/battery_fleet/set_included",entity_id:t,included:!0})}async _setTrackSelf(e){await this._setFleetOption("set_track_self_charging",e.target)}async _setDueWithoutSensor(e){await this._setFleetOption("set_due_without_sensor",e.target)}async _setAskCells(e){await this._setFleetOption("set_ask_cells",e.target)}async _setFleetOption(e,t){let i=t.checked;await this._act({type:`maintenance_supporter/battery_fleet/${e}`,enabled:i})||(t.checked=!i)}_rosterOpen(){return Zt(Ie.batteryRosterOpen)!=="0"}_predictedTitle(e,t){if(e.forecast_overdue)return n("battery_fleet_forecast_overdue",t);let i=this._predictedDate(this._forecastDays(e)??0);if(e.predicted_source==="trend")return n("battery_fleet_predicted_trend",t).replace("{date}",i).replace("{confidence}",n("cal_confidence_"+(e.prediction_confidence||"medium"),t));if(e.lifetime_months!=null&&e.lifetime_source){let o=n("lifetime_source_"+e.lifetime_source,t).replace("{n}",String(e.lifetime_samples??0));return n("battery_fleet_predicted_typical",t).replace("{date}",i).replace("{months}",String(e.lifetime_months)).replace("{type}",e.battery_type).replace("{source}",o)}return n("battery_fleet_predicted_on",t).replace("{date}",i)}_sparkline(e){let t=this._history?.[e.entity_id];if(!t||t.points.length<2)return p;let i=110,o=24,a=2,c=t.points[0][0],u=t.points[t.points.length-1][0],_=Date.now()/1e3,m=e.status!=="low"&&e.predicted_source==="trend"&&e.days_until!=null?_+e.days_until*86400:null,f=Math.max(u,m??u),x=v=>f===c?a:a+(v-c)/(f-c)*(i-2*a),w=v=>a+(1-Math.min(100,Math.max(0,v))/100)*(o-2*a),R=t.points.map(([v,A])=>`${C(x(v))},${C(w(A))}`).join(" "),k=t.points[t.points.length-1][1],E=C(w(t.threshold));return l`<svg
+    `}async _mark(e){await this._act({type:"maintenance_supporter/battery_fleet/mark_replaced",...e?{entity_ids:e}:{}})}async _setExcluded(e,t){await this._act({type:"maintenance_supporter/battery_fleet/set_excluded",entity_id:e,excluded:t})}async _addBattery(e){let t=e.detail?.value;t&&await this._act({type:"maintenance_supporter/battery_fleet/set_included",entity_id:t,included:!0})}async _setTrackSelf(e){await this._setFleetOption("set_track_self_charging",e.target)}async _setDueWithoutSensor(e){await this._setFleetOption("set_due_without_sensor",e.target)}async _setAskCells(e){await this._setFleetOption("set_ask_cells",e.target)}async _setFleetOption(e,t){let r=t.checked;await this._act({type:`maintenance_supporter/battery_fleet/${e}`,enabled:r})||(t.checked=!r)}_rosterOpen(){return yi(Ve.batteryRosterOpen)!=="0"}_predictedTitle(e,t){if(e.forecast_overdue)return n("battery_fleet_forecast_overdue",t);let r=this._predictedDate(this._forecastDays(e)??0);if(e.predicted_source==="trend")return n("battery_fleet_predicted_trend",t).replace("{date}",r).replace("{confidence}",n("cal_confidence_"+(e.prediction_confidence||"medium"),t));if(e.lifetime_months!=null&&e.lifetime_source){let o=n("lifetime_source_"+e.lifetime_source,t).replace("{n}",String(e.lifetime_samples??0));return n("battery_fleet_predicted_typical",t).replace("{date}",r).replace("{months}",String(e.lifetime_months)).replace("{type}",e.battery_type).replace("{source}",o)}return n("battery_fleet_predicted_on",t).replace("{date}",r)}_sparkline(e){let t=this._history?.[e.entity_id];if(!t||t.points.length<2)return p;let r=110,o=24,a=2,c=t.points[0][0],u=t.points[t.points.length-1][0],_=Date.now()/1e3,m=e.status!=="low"&&e.predicted_source==="trend"&&e.days_until!=null?_+e.days_until*86400:null,f=Math.max(u,m??u),v=y=>f===c?a:a+(y-c)/(f-c)*(r-2*a),w=y=>a+(1-Math.min(100,Math.max(0,y))/100)*(o-2*a),A=t.points.map(([y,R])=>`${O(v(y))},${O(w(R))}`).join(" "),k=t.points[t.points.length-1][1],E=O(w(t.threshold));return l`<svg
       class="bf-spark"
-      viewBox="0 0 ${i} ${o}"
+      viewBox="0 0 ${r} ${o}"
       role="img"
       aria-label=${n("battery_fleet_sparkline_hint",this._lang)}
     >
       <title>${n("battery_fleet_sparkline_hint",this._lang)}</title>
-      <line class="bf-spark-th" x1="0" y1=${E} x2=${i} y2=${E}></line>
-      <polyline class="bf-spark-line" points=${R}></polyline>
+      <line class="bf-spark-th" x1="0" y1=${E} x2=${r} y2=${E}></line>
+      <polyline class="bf-spark-line" points=${A}></polyline>
       ${m!==null?l`<line
             class="bf-spark-proj"
-            x1=${C(x(u))}
-            y1=${C(w(k))}
-            x2=${C(x(m))}
+            x1=${O(v(u))}
+            y1=${O(w(k))}
+            x2=${O(v(m))}
             y2=${E}
           ></line>`:p}
-    </svg>`}static _storedSort(){return Zt(Ie.batteryRosterSort)==="name"?"name":"urgency"}_setSort(e){this._rosterSort=e,Jt(Ie.batteryRosterSort,e)}_sortedRoster(e){let t=this._typeFilter===null?e:e.filter(o=>o.battery_type===this._typeFilter);if(this._rosterSort==="name")return t;let i=o=>o.status==="low"?-1e3+(o.level??101)/101:o.days_until??1/0;return[...t].sort((o,a)=>i(o)-i(a)||o.device_name.localeCompare(a.device_name))}_predictedDate(e){return q(un(me(),e),this._lang)}_forecastDays(e){return e.forecast_days!==void 0?e.forecast_days:e.days_until}_fmtDate(e){return Number.isFinite(e)?q(new Date(e).toISOString(),this._lang):"\u2014"}_shoppingLine(e){return Object.entries(e).map(([t,i])=>l`<button
+    </svg>`}static _storedSort(){return yi(Ve.batteryRosterSort)==="name"?"name":"urgency"}_setSort(e){this._rosterSort=e,xi(Ve.batteryRosterSort,e)}_sortedRoster(e){let t=this._typeFilter===null?e:e.filter(o=>o.battery_type===this._typeFilter);if(this._rosterSort==="name")return t;let r=o=>o.status==="low"?-1e3+(o.level??101)/101:o.days_until??1/0;return[...t].sort((o,a)=>r(o)-r(a)||o.device_name.localeCompare(a.device_name))}_predictedDate(e){return q(Qn(Ee(),e),this._lang)}_forecastDays(e){return e.forecast_days!==void 0?e.forecast_days:e.days_until}_fmtDate(e){return Number.isFinite(e)?q(new Date(e).toISOString(),this._lang):"\u2014"}_shoppingLine(e){return Object.entries(e).map(([t,r])=>l`<button
         class="bf-type-chip ${this._typeFilter===t?"bf-type-chip-active":""}"
         title=${n("battery_fleet_filter_type",this._lang)}
         @click=${()=>this._toggleTypeFilter(t)}
       >
-        ${i}× ${t}
-      </button>`)}_toggleTypeFilter(e){if(this._typeFilter=this._typeFilter===e?null:e,this._typeFilter!==null){let t=this.shadowRoot?.querySelector("details.bf-roster");t&&!t.open&&(t.open=!0)}}async _recordJump(e,t){await this._act({type:"maintenance_supporter/battery_fleet/record_replacement",entity_id:e,replaced_at:new Date(t.at*1e3).toISOString()},()=>{this._recorded=[...this._recorded,e]})}_levelTone(e,t){let i=t.low_threshold??20;return e<=i?"bad":e<=i+20?"warn":"good"}_levelBar(e){let t=e.level;return t==null?p:l`<span class="bf-bar" aria-hidden="true"
+        ${r}× ${t}
+      </button>`)}_toggleTypeFilter(e){if(this._typeFilter=this._typeFilter===e?null:e,this._typeFilter!==null){let t=this.shadowRoot?.querySelector("details.bf-roster");t&&!t.open&&(t.open=!0)}}async _recordJump(e,t){await this._act({type:"maintenance_supporter/battery_fleet/record_replacement",entity_id:e,replaced_at:new Date(t.at*1e3).toISOString()},()=>{this._recorded=[...this._recorded,e]})}_levelTone(e,t){let r=t.low_threshold??20;return e<=r?"bad":e<=r+20?"warn":"good"}_levelBar(e){let t=e.level;return t==null?p:l`<span class="bf-bar" aria-hidden="true"
       ><span class="bf-bar-fill bf-bar-${this._levelTone(t,e)}" style="width: ${Math.min(100,Math.max(0,t))}%"></span
-    ></span>`}_jumpButton(e,t){let i=this._history?.[e.entity_id]?.jump;return!i||this._recorded.includes(e.entity_id)?p:l`<button
+    ></span>`}_jumpButton(e,t){let r=this._history?.[e.entity_id]?.jump;return!r||this._recorded.includes(e.entity_id)?p:l`<button
       class="bf-mark bf-jump"
-      title=${n("battery_fleet_record_replacement",t).replace("{date}",this._fmtDate(i.at*1e3))}
+      title=${n("battery_fleet_record_replacement",t).replace("{date}",this._fmtDate(r.at*1e3))}
       .disabled=${this._marking}
-      @click=${()=>this._recordJump(e.entity_id,i)}
+      @click=${()=>this._recordJump(e.entity_id,r)}
     >
       <ha-icon icon="mdi:calendar-sync"></ha-icon>
-    </button>`}_renderRow(e,t,i){let o=e.available===!1?l`<span class="bf-offline">${n("battery_fleet_offline",t)}</span>`:e.no_sensor?l`<span class="bf-offline bf-nosensor">${n("battery_fleet_no_sensor",t)}</span>`:p,a=`${e.quantity}\xD7 ${e.battery_type}`,c=l`<span class="bf-type" title=${a}>${a}</span>`,u=this._canWrite,_=u&&(i.mark==="always"||e.no_sensor||e.can_mark_replaced),m=this._forecastDays(e);return l`
+    </button>`}_renderRow(e,t,r){let o=e.available===!1?l`<span class="bf-offline">${n("battery_fleet_offline",t)}</span>`:e.no_sensor?l`<span class="bf-offline bf-nosensor">${n("battery_fleet_no_sensor",t)}</span>`:p,a=`${e.quantity}\xD7 ${e.battery_type}`,c=l`<span class="bf-type" title=${a}>${a}</span>`,u=this._canWrite,_=u&&(r.mark==="always"||e.no_sensor||e.can_mark_replaced),m=this._forecastDays(e);return l`
       <div class="bf-row">
         <span class="bf-dev">${e.device_name}</span>
-        ${i.status?l`<span class="bf-status bf-${e.status}"
+        ${r.status?l`<span class="bf-status bf-${e.status}"
                 >${e.no_sensor&&e.status==="low"?n("battery_fleet_status_due",t):n("battery_fleet_status_"+e.status,t)}</span
               >${c}${o}`:l`${o}${c}`}
-        ${i.recharge&&e.rechargeable?l`<span class="bf-recharge" title=${n("battery_fleet_rechargeable",t)}
+        ${r.recharge&&e.rechargeable?l`<span class="bf-recharge" title=${n("battery_fleet_rechargeable",t)}
               ><ha-icon icon="mdi:battery-charging-outline"></ha-icon
             ></span>`:p}
-        ${i.sparkline?this._sparkline(e):p}
+        ${r.sparkline?this._sparkline(e):p}
         ${this._levelBar(e)}
         ${e.level!=null?l`<span class="bf-level bf-level-${this._levelTone(e.level,e)}">${e.level}%</span>`:p}
         ${_?l`<button
-              class="bf-mark${i.mark==="replaced"?" bf-replaced":""}"
+              class="bf-mark${r.mark==="replaced"?" bf-replaced":""}"
               title=${e.rechargeable?n("battery_fleet_mark_recharged",t):n("battery_fleet_mark_one",t)}
               .disabled=${this._marking}
-              @click=${()=>this._markOne(e,i.list)}
+              @click=${()=>this._markOne(e,r.list)}
             >
               <ha-icon icon="mdi:battery-sync"></ha-icon>
             </button>`:p}
-        ${i.jump&&u?this._jumpButton(e,t):p}
-        ${i.predicted&&m!=null?l`<span
+        ${r.jump&&u?this._jumpButton(e,t):p}
+        ${r.predicted&&m!=null?l`<span
               class="bf-predicted ${e.predicted_source==="trend"?"bf-trend":""} ${e.forecast_overdue?"bf-overdue":""} ${e.forecast_overdue&&e.status==="ok"?"bf-quiet":""}"
               title=${this._predictedTitle(e,t)}
               >${e.forecast_overdue?l`<ha-icon icon="mdi:calendar-alert"></ha-icon>`:p}~${this._predictedDate(m)}</span
             >`:p}
-        ${i.exclude&&u?l`<button
+        ${r.exclude&&u?l`<button
               class="bf-mark bf-exclude"
               title=${n("battery_fleet_exclude",t)}
               .disabled=${this._marking}
@@ -5643,13 +6054,13 @@ ${u?`<div class="sub">${u}</div>`:""}
               <ha-icon icon="mdi:eye-off-outline"></ha-icon>
             </button>`:p}
       </div>
-      ${this._renderCellChooser(e,i.list,t)}
-    `}render(){let e=this._lang;if(this._loading&&this._ov===null)return l`<div class="bf-card"><div class="bf-loading">…</div></div>`;let t=this._ov;if(!t)return this._error?l`<div class="bf-card"><div class="bf-error">${this._error}</div></div>`:p;let i=t.low.length;return l`
+      ${this._renderCellChooser(e,r.list,t)}
+    `}render(){let e=this._lang;if(this._loading&&this._ov===null)return l`<div class="bf-card"><div class="bf-loading">…</div></div>`;let t=this._ov;if(!t)return this._error?l`<div class="bf-card"><div class="bf-error">${this._error}</div></div>`:p;let r=t.low.length;return l`
       <div class="bf-card">
         <div class="bf-head">
           <ha-icon icon="mdi:battery-alert"></ha-icon>
           <span class="bf-title">${n("battery_fleet_title",e)}</span>
-          <span class="bf-count ${i?"bad":"ok"}">${i}</span>
+          <span class="bf-count ${r?"bad":"ok"}">${r}</span>
         </div>
         ${this._error?l`<div class="bf-error">${this._error}</div>`:p}
 
@@ -5662,7 +6073,7 @@ ${u?`<div class="sub">${u}</div>`:""}
               </div>
             `:p}
 
-        ${i===0?l`<div class="bf-empty">${n("battery_fleet_none_low",e)}</div>`:l`
+        ${r===0?l`<div class="bf-empty">${n("battery_fleet_none_low",e)}</div>`:l`
               <div class="bf-shopping">
                 <span class="bf-label">${n("battery_fleet_buy_now",e)}</span>
                 <span class="bf-list">${this._shoppingLine(t.needs_now)}</span>
@@ -5682,8 +6093,8 @@ ${u?`<div class="sub">${u}</div>`:""}
                 <span class="bf-label">${n("battery_fleet_charging",e)}</span>
                 ${t.charging.map(o=>l`<span class="bf-charge-item">
                     <span class="bf-charge-name">${o.name}</span>
-                    <span>${n("battery_fleet_ready",e).replace("{count}",P(o.stock,e))}</span>
-                    ${o.restoring>0?l`<span class="bf-charge-waiting">${Eo(o.reuse,o.restoring,e)}</span>
+                    <span>${n("battery_fleet_ready",e).replace("{count}",S(o.stock,e))}</span>
+                    ${o.restoring>0?l`<span class="bf-charge-waiting">${ma(o.reuse,o.restoring,e)}</span>
                           ${this._canWrite?l`<button
                                 class="bf-charged"
                                 title=${n("part_ready_again_hint",e)}
@@ -5705,8 +6116,7 @@ ${u?`<div class="sub">${u}</div>`:""}
               </div>
             `:p}
         ${t.all?.length?l`
-              <details class="bf-roster" ?open=${this._rosterOpen()} @toggle=${this._loadHistory}>
-                <summary>${n("battery_fleet_all",e)} (${t.all.length})</summary>
+              ${ue({cls:"bf-roster",open:this._rosterOpen(),onToggle:this._loadHistory,header:l`${n("battery_fleet_all",e)} (${t.all.length})`},l`
                 <div class="bf-roster-tools">
                   <button
                     class="bf-sort ${this._rosterSort==="urgency"?"bf-sort-active":""}"
@@ -5726,7 +6136,7 @@ ${u?`<div class="sub">${u}</div>`:""}
                 </div>
                 <div class="bf-roster-hint">${n("battery_fleet_all_hint",e)}</div>
                 ${this._canWrite?this._renderRosterSettings(t,e):p}
-              </details>
+              `)}
             `:p}
         ${this._renderExcluded(t,e)}
         <div class="bf-total">${n("battery_fleet_total",e).replace("{n}",String(t.total))}</div>
@@ -5742,48 +6152,24 @@ ${u?`<div class="sub">${u}</div>`:""}
                   ></ha-selector>
                   <div class="bf-roster-hint">${n("battery_fleet_add_hint",t)}</div>
                 </div>
-                <label class="bf-track-self">
-                  <input
-                    type="checkbox"
-                    .checked=${!!e.track_self_charging}
-                    .disabled=${this._marking}
-                    @change=${this._setTrackSelf}
-                  />
-                  ${n("battery_fleet_track_self",t)}
-                </label>
+                ${j({cls:"bf-track-self",checked:!!e.track_self_charging,disabled:this._marking,onChange:this._setTrackSelf},l`${n("battery_fleet_track_self",t)}`)}
                 <div class="bf-roster-hint">${n("battery_fleet_track_self_hint",t)}</div>
-                <label class="bf-track-self bf-due-nosensor">
-                  <input
-                    type="checkbox"
-                    .checked=${e.due_without_sensor!==!1}
-                    .disabled=${this._marking}
-                    @change=${this._setDueWithoutSensor}
-                  />
-                  ${n("battery_fleet_due_without_sensor",t)}
-                </label>
+                ${j({cls:"bf-track-self bf-due-nosensor",checked:e.due_without_sensor!==!1,disabled:this._marking,onChange:this._setDueWithoutSensor},l`${n("battery_fleet_due_without_sensor",t)}`)}
                 <div class="bf-roster-hint">${n("battery_fleet_due_without_sensor_hint",t)}</div>
-                <label class="bf-track-self bf-ask-cells">
-                  <input
-                    type="checkbox"
-                    .checked=${!!e.ask_cells}
-                    .disabled=${this._marking}
-                    @change=${this._setAskCells}
-                  />
-                  ${n("battery_fleet_ask_cells",t)}
-                </label>
+                ${j({cls:"bf-track-self bf-ask-cells",checked:!!e.ask_cells,disabled:this._marking,onChange:this._setAskCells},l`${n("battery_fleet_ask_cells",t)}`)}
                 <div class="bf-roster-hint">${n("battery_fleet_ask_cells_hint",t)}</div>
     `}_renderExcluded(e,t){return l`
         ${e.excluded?.length?l`
               <div class="bf-excluded">
                 <span class="bf-label">${n("battery_fleet_excluded",t)}</span>
-                ${e.excluded.map(i=>l`
+                ${e.excluded.map(r=>l`
                     <span class="bf-excluded-chip">
-                      ${i.device_name}
+                      ${r.device_name}
                       ${this._canWrite?l`<button
                             class="bf-mark"
                             title=${n("battery_fleet_include",t)}
                             .disabled=${this._marking}
-                            @click=${()=>this._setExcluded(i.entity_id,!1)}
+                            @click=${()=>this._setExcluded(r.entity_id,!1)}
                           >
                             <ha-icon icon="mdi:eye-outline"></ha-icon>
                           </button>`:p}
@@ -5791,14 +6177,14 @@ ${u?`<div class="sub">${u}</div>`:""}
                   `)}
               </div>
             `:p}
-    `}};D.styles=$`
+    `}};B.styles=$`
     /* The query container of the row layout (see "In a narrow list" below):
      * the list's own width, not the screen's. */
     .bf-card {
       container: bf-fleet / inline-size;
       background: var(--card-background-color, #fff);
       border: 1px solid var(--divider-color);
-      border-radius: 10px;
+      border-radius: var(--ms-radius-10, 10px);
       padding: 14px 16px;
       margin: 12px 0;
       display: flex;
@@ -5824,7 +6210,7 @@ ${u?`<div class="sub">${u}</div>`:""}
     .bf-count {
       font-size: 13px;
       padding: 1px 9px;
-      border-radius: 10px;
+      border-radius: var(--ms-radius-10, 10px);
     }
     .bf-count.bad {
       background: var(--error-color, #f44336);
@@ -6148,7 +6534,7 @@ ${u?`<div class="sub">${u}</div>`:""}
     .bf-type-chip {
       background: none;
       border: 1px solid var(--divider-color);
-      border-radius: 10px;
+      border-radius: var(--ms-radius-10, 10px);
       padding: 1px 8px;
       margin: 0 4px 2px 0;
       font-size: 13px;
@@ -6273,7 +6659,7 @@ ${u?`<div class="sub">${u}</div>`:""}
     .bf-cells-actions { display: flex; justify-content: flex-end; gap: 8px; }
     .bf-cells-actions button {
       padding: 6px 12px;
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       border: 1px solid var(--divider-color);
       background: transparent;
       color: var(--primary-text-color);
@@ -6355,7 +6741,7 @@ ${u?`<div class="sub">${u}</div>`:""}
       font-size: 12px;
       color: var(--secondary-text-color);
       background: var(--secondary-background-color);
-      border-radius: 10px;
+      border-radius: var(--ms-radius-10, 10px);
       padding: 1px 4px 1px 10px;
     }
     .bf-track-self {
@@ -6370,56 +6756,56 @@ ${u?`<div class="sub">${u}</div>`:""}
       accent-color: var(--primary-color);
       margin: 0;
     }
-  `,d([b({attribute:!1})],D.prototype,"hass",2),d([b({type:Boolean})],D.prototype,"flat",2),d([h()],D.prototype,"_ov",2),d([h()],D.prototype,"_loading",2),d([h()],D.prototype,"_marking",2),d([h()],D.prototype,"_choosing",2),d([h()],D.prototype,"_error",2),d([h()],D.prototype,"_disposeFor",2),d([h()],D.prototype,"_disposeQty",2),d([h()],D.prototype,"_history",2),d([h()],D.prototype,"_rosterSort",2),d([h()],D.prototype,"_typeFilter",2),d([h()],D.prototype,"_recorded",2),d([h()],D.prototype,"_access",2);var ts=D;customElements.get("maintenance-battery-fleet-section")||customElements.define("maintenance-battery-fleet-section",ts);var bt=class extends S{constructor(){super(...arguments);this._config={type:"custom:maintenance-battery-fleet-card"}}static getStubConfig(){return{type:"custom:maintenance-battery-fleet-card"}}setConfig(e){this._config=e}getCardSize(){return 6}render(){return this.hass?l`
+  `,d([b({attribute:!1})],B.prototype,"hass",2),d([b({type:Boolean})],B.prototype,"flat",2),d([h()],B.prototype,"_ov",2),d([h()],B.prototype,"_loading",2),d([h()],B.prototype,"_marking",2),d([h()],B.prototype,"_choosing",2),d([h()],B.prototype,"_error",2),d([h()],B.prototype,"_disposeFor",2),d([h()],B.prototype,"_disposeQty",2),d([h()],B.prototype,"_history",2),d([h()],B.prototype,"_rosterSort",2),d([h()],B.prototype,"_typeFilter",2),d([h()],B.prototype,"_recorded",2),d([h()],B.prototype,"_access",2);var qs=B;customElements.get("maintenance-battery-fleet-section")||customElements.define("maintenance-battery-fleet-section",qs);var Ht=class extends T{constructor(){super(...arguments);this._config={type:"custom:maintenance-battery-fleet-card"}}static getStubConfig(){return{type:"custom:maintenance-battery-fleet-card"}}setConfig(e){this._config=e}getCardSize(){return 6}render(){return this.hass?l`
       <ha-card .header=${this._config.title||void 0}>
         <div class="content">
           <maintenance-battery-fleet-section flat .hass=${this.hass}></maintenance-battery-fleet-section>
         </div>
       </ha-card>
-    `:p}};bt.styles=$`
+    `:p}};Ht.styles=$`
     ha-card {
       overflow: hidden;
     }
     .content {
       padding: 12px 16px 14px;
     }
-  `,d([b({attribute:!1})],bt.prototype,"hass",2),d([h()],bt.prototype,"_config",2);customElements.get("maintenance-battery-fleet-card")||customElements.define("maintenance-battery-fleet-card",bt);ot({type:"maintenance-battery-fleet-card",name:"Battery Fleet",description:"All tracked batteries: what is low now, what runs out soon, and what to buy.",preview:!1});de();O();L();var fs=["today","dashboard","calendar","settings"];I();var $t="maintenance-supporter-panel-card",vs="maintenance-supporter-panel",ys="maintenance-supporter",bs=870,ld=320,cd=480;function dd(r){let e=r?.panels?.[ys]?.config?._panel_custom?.module_url;return typeof e=="string"&&e.startsWith("/")?e:null}function pd(r){if(r==null||r===""||r==="fill")return null;if(typeof r=="number")return r>0?`${Math.round(r)}px`:null;let s=String(r).trim();return/^\d+(\.\d+)?$/.test(s)?`${s}px`:s||null}var xs=class extends HTMLElement{constructor(){super();this._config={type:`custom:${$t}`};this._panel=null;this._loading=null;this._observer=null;this._lastWidth=-1;this._preview=!1;this._onResize=()=>this._layout(!0);let e=this.attachShadow({mode:"open"}),t=document.createElement("style");t.textContent=`
+  `,d([b({attribute:!1})],Ht.prototype,"hass",2),d([h()],Ht.prototype,"_config",2);customElements.get("maintenance-battery-fleet-card")||customElements.define("maintenance-battery-fleet-card",Ht);$t({type:"maintenance-battery-fleet-card",name:"Battery Fleet",description:"All tracked batteries: what is low now, what runs out soon, and what to buy.",preview:!1});ye();I();z();var tn=["today","dashboard","calendar","settings"];P();var Bt="maintenance-supporter-panel-card",rn="maintenance-supporter-panel",nn="maintenance-supporter",sn=870,Cp=320,Ap=480;function Ip(i){let e=i?.panels?.[nn]?.config?._panel_custom?.module_url;return typeof e=="string"&&e.startsWith("/")?e:null}function Rp(i){if(i==null||i===""||i==="fill")return null;if(typeof i=="number")return i>0?`${Math.round(i)}px`:null;let s=String(i).trim();return/^\d+(\.\d+)?$/.test(s)?`${s}px`:s||null}var on=class extends HTMLElement{constructor(){super();this._config={type:`custom:${Bt}`};this._panel=null;this._loading=null;this._observer=null;this._lastWidth=-1;this._preview=!1;this._onResize=()=>this._layout(!0);let e=this.attachShadow({mode:"open"}),t=document.createElement("style");t.textContent=`
       :host { display: block; box-sizing: border-box; overflow: hidden; border-radius: var(--ha-card-border-radius, 12px); }
       .status { padding: 16px; color: var(--secondary-text-color); font-size: 14px; }
-      ${vs} { display: block; height: 100%; }
-    `,e.appendChild(t),this._status=document.createElement("div"),this._status.className="status",this._status.hidden=!0,e.appendChild(this._status)}static getConfigElement(){return document.createElement("maintenance-supporter-panel-card-editor")}static getStubConfig(){return{type:`custom:${$t}`}}set preview(e){this._preview=!!e,this._layout(!0)}get preview(){return this._preview}_inEditorPreview(){if(this._preview)return!0;let e=this;for(let t=0;e&&t<40;t++){let i=e;if(i.tagName==="HUI-CARD-PREVIEW"||i.tagName==="HUI-DIALOG-EDIT-CARD")return!0;e=i.parentElement??i.getRootNode().host??null}return!1}setConfig(e){this._config={...e},this._panel&&(this._panel.presets=this._presets()),this._layout(!0)}getCardSize(){return 12}getGridOptions(){return{columns:"full",rows:"auto"}}set hass(e){this._hass=e,this._panel?this._panel.hass=e:this._mount()}get hass(){return this._hass}connectedCallback(){typeof ResizeObserver<"u"&&!this._observer&&(this._observer=new ResizeObserver(()=>this._layout(!1)),this._observer.observe(this)),window.addEventListener("resize",this._onResize),this._layout(!0),this._hass&&this._mount()}disconnectedCallback(){this._observer?.disconnect(),this._observer=null,window.removeEventListener("resize",this._onResize)}_presets(){let e={};return fs.includes(this._config.tab??"")&&(e.tab=this._config.tab),typeof this._config.view=="string"&&this._config.view.trim()&&(e.view=this._config.view.trim()),e}_setStatus(e){this._status.textContent=e,this._status.hidden=!1}async _mount(){if(this._panel||this._loading||!this._hass||!this.isConnected)return;let e=j(this._hass);if(!customElements.get(vs)){let i=dd(this._hass);if(!i){this._setStatus(n("panel_card_not_registered",e));return}this._loading=import(i).then(()=>{},()=>{throw this._setStatus(n("panel_card_load_failed",e)),new Error("panel bundle failed to load")});try{await this._loading}catch{return}finally{this._loading=null}if(this._panel||!this._hass||!this.isConnected)return}let t=document.createElement(vs);t.embedded=!0,t.panel=this._hass.panels?.[ys]??{url_path:ys},t.presets=this._presets(),t.narrow=this._narrow(),t.hass=this._hass,this._status.hidden=!0,this.shadowRoot.appendChild(t),this._panel=t,this._layout(!0)}_narrow(){let e=this.getBoundingClientRect().width;return e>0?e<bs:window.innerWidth<bs}_layout(e){let t=this.getBoundingClientRect(),i=Math.round(t.width)!==this._lastWidth;if(!e&&!i)return;this._lastWidth=Math.round(t.width),this._panel&&t.width>0&&(this._panel.narrow=t.width<bs);let o=pd(this._config.height);if(o){this.style.height=o;return}if(!this.isConnected)return;if(this._inEditorPreview()){this.style.height=`${cd}px`;return}let a=Math.max(0,this._unscrolledTop(t)),c=Math.max(ld,Math.floor(window.innerHeight-a));this.style.height=`${c}px`}_unscrolledTop(e){let t=e.top+window.scrollY,i=this.ownerDocument,o=this.parentElement??this.getRootNode().host??null;for(let a=0;o&&a<100;a++){let c=o;c!==i.documentElement&&c!==i.body&&typeof c.scrollTop=="number"&&c.scrollTop>0&&(t+=c.scrollTop),o=c.parentElement??c.getRootNode().host??null}return t}},Ke=class extends S{constructor(){super(...arguments);this._config={type:`custom:${$t}`};this._views=[];this._viewsLoaded=!1}setConfig(e){this._config={...e}}updated(e){super.updated(e),e.has("hass")&&this.hass&&!this._viewsLoaded&&(this._viewsLoaded=!0,this._loadViews())}async _loadViews(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/views/list"});this._views=e?.views||[]}catch{this._views=[]}}_set(e,t){let i={...this._config};t===""||t===void 0?delete i[e]:i[e]=t,this._config=i,this.dispatchEvent(new CustomEvent("config-changed",{detail:{config:i},bubbles:!0,composed:!0}))}render(){let e=j(this.hass),t=i=>n(i==="today"?"tab_today":i==="calendar"?"tab_calendar":i,e);return l`
+      ${rn} { display: block; height: 100%; }
+    `,e.appendChild(t),this._status=document.createElement("div"),this._status.className="status",this._status.hidden=!0,e.appendChild(this._status)}static getConfigElement(){return document.createElement("maintenance-supporter-panel-card-editor")}static getStubConfig(){return{type:`custom:${Bt}`}}set preview(e){this._preview=!!e,this._layout(!0)}get preview(){return this._preview}_inEditorPreview(){if(this._preview)return!0;let e=this;for(let t=0;e&&t<40;t++){let r=e;if(r.tagName==="HUI-CARD-PREVIEW"||r.tagName==="HUI-DIALOG-EDIT-CARD")return!0;e=r.parentElement??r.getRootNode().host??null}return!1}setConfig(e){this._config={...e},this._panel&&(this._panel.presets=this._presets()),this._layout(!0)}getCardSize(){return 12}getGridOptions(){return{columns:"full",rows:"auto"}}set hass(e){this._hass=e,this._panel?this._panel.hass=e:this._mount()}get hass(){return this._hass}connectedCallback(){typeof ResizeObserver<"u"&&!this._observer&&(this._observer=new ResizeObserver(()=>this._layout(!1)),this._observer.observe(this)),window.addEventListener("resize",this._onResize),this._layout(!0),this._hass&&this._mount()}disconnectedCallback(){this._observer?.disconnect(),this._observer=null,window.removeEventListener("resize",this._onResize)}_presets(){let e={};return tn.includes(this._config.tab??"")&&(e.tab=this._config.tab),typeof this._config.view=="string"&&this._config.view.trim()&&(e.view=this._config.view.trim()),e}_setStatus(e){this._status.textContent=e,this._status.hidden=!1}async _mount(){if(this._panel||this._loading||!this._hass||!this.isConnected)return;let e=N(this._hass);if(!customElements.get(rn)){let r=Ip(this._hass);if(!r){this._setStatus(n("panel_card_not_registered",e));return}this._loading=import(r).then(()=>{},()=>{throw this._setStatus(n("panel_card_load_failed",e)),new Error("panel bundle failed to load")});try{await this._loading}catch{return}finally{this._loading=null}if(this._panel||!this._hass||!this.isConnected)return}let t=document.createElement(rn);t.embedded=!0,t.panel=this._hass.panels?.[nn]??{url_path:nn},t.presets=this._presets(),t.narrow=this._narrow(),t.hass=this._hass,this._status.hidden=!0,this.shadowRoot.appendChild(t),this._panel=t,this._layout(!0)}_narrow(){let e=this.getBoundingClientRect().width;return e>0?e<sn:window.innerWidth<sn}_layout(e){let t=this.getBoundingClientRect(),r=Math.round(t.width)!==this._lastWidth;if(!e&&!r)return;this._lastWidth=Math.round(t.width),this._panel&&t.width>0&&(this._panel.narrow=t.width<sn);let o=Rp(this._config.height);if(o){this.style.height=o;return}if(!this.isConnected)return;if(this._inEditorPreview()){this.style.height=`${Ap}px`;return}let a=Math.max(0,this._unscrolledTop(t)),c=Math.max(Cp,Math.floor(window.innerHeight-a));this.style.height=`${c}px`}_unscrolledTop(e){let t=e.top+window.scrollY,r=this.ownerDocument,o=this.parentElement??this.getRootNode().host??null;for(let a=0;o&&a<100;a++){let c=o;c!==r.documentElement&&c!==r.body&&typeof c.scrollTop=="number"&&c.scrollTop>0&&(t+=c.scrollTop),o=c.parentElement??c.getRootNode().host??null}return t}},dt=class extends T{constructor(){super(...arguments);this._config={type:`custom:${Bt}`};this._views=[];this._viewsLoaded=!1}setConfig(e){this._config={...e}}updated(e){super.updated(e),e.has("hass")&&this.hass&&!this._viewsLoaded&&(this._viewsLoaded=!0,this._loadViews())}async _loadViews(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/views/list"});this._views=e?.views||[]}catch{this._views=[]}}_set(e,t){let r={...this._config};t===""||t===void 0?delete r[e]:r[e]=t,this._config=r,this.dispatchEvent(new CustomEvent("config-changed",{detail:{config:r},bubbles:!0,composed:!0}))}render(){let e=N(this.hass),t=r=>n(r==="today"?"tab_today":r==="calendar"?"tab_calendar":r,e);return l`
       <div class="editor">
         <div class="field">
           <div class="field-label">${n("panel_card_tab",e)}</div>
-          <select class="tab-select" .value=${this._config.tab||""} @change=${i=>this._set("tab",i.target.value)}>
+          <select class="tab-select" .value=${this._config.tab||""} @change=${r=>this._set("tab",r.target.value)}>
             <option value="" ?selected=${!this._config.tab}>${n("panel_card_tab_default",e)}</option>
-            ${fs.map(i=>l`<option value=${i} ?selected=${this._config.tab===i}>${t(i)}</option>`)}
+            ${tn.map(r=>l`<option value=${r} ?selected=${this._config.tab===r}>${t(r)}</option>`)}
           </select>
         </div>
         ${this._views.length>0?l`<div class="field">
               <div class="field-label">${n("panel_card_view",e)}</div>
-              <select class="view-select" .value=${this._config.view||""} @change=${i=>this._set("view",i.target.value)}>
+              <select class="view-select" .value=${this._config.view||""} @change=${r=>this._set("view",r.target.value)}>
                 <option value="" ?selected=${!this._config.view}>${n("card_saved_view_none",e)}</option>
-                ${this._views.map(i=>l`<option value=${i.id} ?selected=${this._config.view===i.id||this._config.view===i.name}>${i.name}</option>`)}
+                ${this._views.map(r=>l`<option value=${r.id} ?selected=${this._config.view===r.id||this._config.view===r.name}>${r.name}</option>`)}
               </select>
             </div>`:p}
         <div class="field">
           <div class="field-label">${n("panel_card_height",e)}</div>
           <input class="height-input" type="text" placeholder="fill"
             .value=${this._config.height===void 0?"":String(this._config.height)}
-            @change=${i=>this._set("height",i.target.value.trim())} />
+            @change=${r=>this._set("height",r.target.value.trim())} />
           <div class="field-help">${n("panel_card_height_help",e)}</div>
         </div>
       </div>
-    `}};Ke.styles=$`
+    `}};dt.styles=$`
     .editor { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
     input.height-input { padding: 8px; border-radius: 4px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); font-size: 14px; max-width: 320px; box-sizing: border-box; }
     .field { display: flex; flex-direction: column; gap: 6px; }
     .field-label { font-size: 13px; color: var(--secondary-text-color); font-weight: 500; }
     .field-help { font-size: 12px; color: var(--secondary-text-color); }
     select { padding: 8px; border-radius: 4px; border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); font-size: 14px; max-width: 320px; }
-  `,d([b({attribute:!1})],Ke.prototype,"hass",2),d([h()],Ke.prototype,"_config",2),d([h()],Ke.prototype,"_views",2);customElements.get($t)||customElements.define($t,xs);customElements.get("maintenance-supporter-panel-card-editor")||customElements.define("maintenance-supporter-panel-card-editor",Ke);ot({type:$t,name:"Maintenance Supporter \u2014 Panel",description:"The complete Maintenance Supporter panel as a card \u2014 for a panel view / dashboard subview without the sidebar entry.",preview:!1});Ti();var Ua=2,B=class extends S{constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-card"};this._globalRowStyle="buttons_compact";this._settings=pt;this._firstLoadDone=!1;this._objects=[];this._stats=null;this._unsub=null;this._viewFilters=null;this._userNames={};this._userPersons={};this._userService=null;this._userNamesLoaded=!1;this._taskDocs={};this._docsLoadedFor=new Set;this._dataLoaded=!1;this._lastConnection=null;this._subGen=0;this._onCompleted=async e=>{await this._loadData();let t=e.detail;t?.undo&&We(this,this.hass,t,this._lang,()=>{this._loadData()})}}get _lang(){return j(this.hass)}static getConfigElement(){return document.createElement("maintenance-supporter-card-editor")}static getStubConfig(){return{type:"custom:maintenance-supporter-card",show_header:!0,show_actions:!0,filter_status:[...ur],max_items:10}}setConfig(e){let t=e.view_id!==this._config.view_id;this._config=e,t&&this._dataLoaded&&this.hass&&this._loadViewFilters()}getCardSize(){return 3}connectedCallback(){super.connectedCallback()}disconnectedCallback(){super.disconnectedCallback(),this._subGen++,this._unsub&&(this._unsub(),this._unsub=null),this._dataLoaded=!1,this._lastConnection=null}updated(e){if(super.updated(e),mi(this,e),this.hass&&!this._userNamesLoaded&&this._config.show_assignee!==!1&&this._objects.some(t=>t.tasks.some(i=>jt(i).length>0))&&this._loadUserNames(),this.hass&&this._config.show_documents!==!1)for(let t of this._objects)this._docsLoadedFor.has(t.entry_id)||t.tasks.some(i=>(i.document_count??0)>0)&&this._loadDocuments(t.entry_id);if(e.has("hass")&&this.hass){if(!this._dataLoaded)this._dataLoaded=!0,this._lastConnection=this.hass.connection,this._loadData(),this._subscribe();else if(this.hass.connection!==this._lastConnection){if(this._lastConnection=this.hass.connection,this._unsub){try{this._unsub()}catch{}this._unsub=null}this._subscribe(),this._loadData()}}}async _loadData(){Q(this.hass).then(t=>{this._settings=t,this._globalRowStyle=t.rowActionStyle}).catch(()=>{});let e=this._loadViewFilters();try{let[t,i]=await Promise.all([this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects",compact:!0}),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/statistics"})]);await e,this._objects=Ot(t.objects),this._stats=i,gi(this._stats.budget)}catch{}await e,this._firstLoadDone=!0}_assigneeName(e){return this._config.show_assignee===!1?"":jt(e).map(t=>this._userNames[t]).filter(Boolean).join(", ")}_assigneeAvatars(e){return Fn(jt(e).map(t=>this._userPersons[t]))}async _loadUserNames(){this._userNamesLoaded=!0,this._userService?this._userService.updateHass(this.hass):this._userService=new at(this.hass);try{let e=await this._userService.getUsers();this._userPersons=Object.fromEntries(e.map(t=>[t.id,Ai(t)])),this._userNames=Object.fromEntries(e.map(t=>[t.id,t.name]))}catch{}}async _loadDocuments(e){this._docsLoadedFor.add(e);try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/list",entry_id:e}),i={};for(let o of t.documents||[])if(!qn(o))for(let a of o.task_ids||[])(i[a]||=[]).push({id:o.id,title:o.title,kind:o.kind,url:o.url});this._taskDocs={...this._taskDocs,[e]:i}}catch{}}_docsFor(e,t){if(this._config.show_documents===!1)return[];let o=[...this._taskDocs[e]?.[t.id]||[]];return t.documentation_url&&o.push({id:`url:${t.id}`,title:n("documentation_label",this._lang),kind:"weblink",url:t.documentation_url}),o}_renderDocChips(e,t){let i=this._docsFor(e,t);if(!i.length)return p;let o=i.slice(Ua);return l`<div class="doc-chips">
-      ${i.slice(0,Ua).map(a=>l`
+  `,d([b({attribute:!1})],dt.prototype,"hass",2),d([h()],dt.prototype,"_config",2),d([h()],dt.prototype,"_views",2);customElements.get(Bt)||customElements.define(Bt,on);customElements.get("maintenance-supporter-panel-card-editor")||customElements.define("maintenance-supporter-panel-card-editor",dt);$t({type:Bt,name:"Maintenance Supporter \u2014 Panel",description:"The complete Maintenance Supporter panel as a card \u2014 for a panel view / dashboard subview without the sidebar entry.",preview:!1});Ji();var Hl=2,Q=class extends T{constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-card"};this._globalRowStyle="buttons_compact";this._settings=At;this._firstLoadDone=!1;this._objects=[];this._stats=null;this._unsub=null;this._viewFilters=null;this._userNames={};this._userPersons={};this._userService=null;this._userNamesLoaded=!1;this._taskDocs={};this._docsLoadedFor=new Set;this._dataLoaded=!1;this._lastConnection=null;this._subGen=0;this._onCompleted=async e=>{await this._loadData();let t=e.detail;t?.undo&&nt(this,this.hass,t,this._lang,()=>{this._loadData()})}}get _lang(){return N(this.hass)}static getConfigElement(){return document.createElement("maintenance-supporter-card-editor")}static getStubConfig(){return{type:"custom:maintenance-supporter-card",show_header:!0,show_actions:!0,filter_status:[...Fr],max_items:10}}setConfig(e){let t=e.view_id!==this._config.view_id;this._config=e,t&&this._dataLoaded&&this.hass&&this._loadViewFilters()}getCardSize(){return 3}connectedCallback(){super.connectedCallback()}disconnectedCallback(){super.disconnectedCallback(),this._subGen++,this._unsub&&(this._unsub(),this._unsub=null),this._dataLoaded=!1,this._lastConnection=null}updated(e){if(super.updated(e),Li(this,e),this.hass&&!this._userNamesLoaded&&this._config.show_assignee!==!1&&this._objects.some(t=>t.tasks.some(r=>ei(r).length>0))&&this._loadUserNames(),this.hass&&this._config.show_documents!==!1)for(let t of this._objects)this._docsLoadedFor.has(t.entry_id)||t.tasks.some(r=>(r.document_count??0)>0)&&this._loadDocuments(t.entry_id);if(e.has("hass")&&this.hass){if(!this._dataLoaded)this._dataLoaded=!0,this._lastConnection=this.hass.connection,this._loadData(),this._subscribe();else if(this.hass.connection!==this._lastConnection){if(this._lastConnection=this.hass.connection,this._unsub){try{this._unsub()}catch{}this._unsub=null}this._subscribe(),this._loadData()}}}async _loadData(){te(this.hass).then(t=>{this._settings=t,this._globalRowStyle=t.rowActionStyle}).catch(()=>{});let e=this._loadViewFilters();try{let[t,r]=await Promise.all([this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects",compact:!0}),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/statistics"})]);await e,this._objects=Xt(t.objects),this._stats=r,zi(this._stats.budget)}catch{}await e,this._firstLoadDone=!0}_assigneeName(e){return this._config.show_assignee===!1?"":ei(e).map(t=>this._userNames[t]).filter(Boolean).join(", ")}_assigneeAvatars(e){return Co(ei(e).map(t=>this._userPersons[t]))}async _loadUserNames(){this._userNamesLoaded=!0,this._userService?this._userService.updateHass(this.hass):this._userService=new Et(this.hass);try{let e=await this._userService.getUsers();this._userPersons=Object.fromEntries(e.map(t=>[t.id,Xi(t)])),this._userNames=Object.fromEntries(e.map(t=>[t.id,t.name]))}catch{}}async _loadDocuments(e){this._docsLoadedFor.add(e);try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/list",entry_id:e}),r={};for(let o of t.documents||[])if(!wo(o))for(let a of o.task_ids||[])(r[a]||=[]).push({id:o.id,title:o.title,kind:o.kind,url:o.url});this._taskDocs={...this._taskDocs,[e]:r}}catch{}}_docsFor(e,t){if(this._config.show_documents===!1)return[];let o=[...this._taskDocs[e]?.[t.id]||[]];return t.documentation_url&&o.push({id:`url:${t.id}`,title:n("documentation_label",this._lang),kind:"weblink",url:t.documentation_url}),o}_renderDocChips(e,t){let r=this._docsFor(e,t);if(!r.length)return p;let o=r.slice(Hl);return l`<div class="doc-chips">
+      ${r.slice(0,Hl).map(a=>l`
         <button
           type="button"
           class="doc-chip"
@@ -6432,30 +6818,30 @@ ${u?`<div class="sub">${u}</div>`:""}
       `)}
       ${o.length?l`<span class="doc-chip doc-more" title="${o.map(a=>a.title).join(`
 `)}">+${o.length}</span>`:p}
-    </div>`}async _openDoc(e){if(e.kind==="weblink"&&e.url){nt(e.url)&&window.open(e.url,"_blank","noopener");return}try{await Nn(this.hass,e.id)}catch{}}async _loadViewFilters(){if(!this._config.view_id){this._viewFilters=null;return}try{let t=((await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/views/list"})).views||[]).find(i=>i.id===this._config.view_id);this._viewFilters=t?t.filters:null}catch{this._viewFilters=null}}async _subscribe(){let e=++this._subGen;try{let t=await this.hass.connection.subscribeMessage(i=>{let o=Bs(this._objects,i);o!==null&&(this._objects=o)},{type:"maintenance_supporter/subscribe",deltas:!0,compact:!0});if(!this.isConnected||e!==this._subGen){t();return}this._unsub=t}catch{}}get _selectedTasks(){let e=[],{filter_status:t,filter_objects:i,entity_ids:o,filter_due_min_days:a,filter_due_max_days:c,filter_labels:u,filter_priority:_,filter_areas:m}=this._config,f=o?.length?new Set(o):null,x=a!==void 0||c!==void 0,w=this._viewFilters,R=w?.user_id==="current_user"?this.hass.user?.id??null:w?.user_id??null;for(let k of this._objects)if(!(w?.place&&(k.object.place||"home")!==w.place)&&!(i?.length&&!i.includes(k.entry_id)&&!i.includes(k.object.name))){if(m?.length){let E=k.object.area_id;if(!E||!m.includes(E))continue}for(let E of k.tasks)if(!E.is_done&&!(E.archived||k.object.archived)&&!(t?.length&&!t.includes(E.status))&&!(u?.length&&!(E.labels||[]).some(v=>u.includes(v)))&&!(_?.length&&!_.includes(E.priority||"normal"))&&!(f&&!(E.sensor_entity_id&&f.has(E.sensor_entity_id)||E.binary_sensor_entity_id&&f.has(E.binary_sensor_entity_id)))){if(x){let v=E.days_until_due;if(v==null||a!==void 0&&v<a||c!==void 0&&v>c)continue}w&&(w.status&&E.status!==w.status||w.label&&!(E.labels||[]).includes(w.label)||w.priority&&(E.priority||"normal")!==w.priority||R&&!Ws(E,R))||e.push({entry_id:k.entry_id,object_name:k.object.name,task:E})}}return e.sort((k,E)=>{let v=hr(k.task.status)-hr(E.task.status);return v!==0?v:(k.task.days_until_due??1/0)-(E.task.days_until_due??1/0)}),e}_openComplete(e,t,i=!1){if(!i&&Y(t)){this._quickComplete(e,t);return}let o=this.shadowRoot.querySelector("maintenance-complete-dialog");ji(o,Oi({entryId:e,taskId:t.id,taskName:t.name,task:t,objects:this._objects,lang:this._lang,features:this._settings.features,currencySymbol:Fe(this._stats?.budget),partsCostMode:this._settings.partsCostMode}),this._lang)}async _quickComplete(e,t){let i=await $i(this.hass,e,t.id,this._lang);if(i.result==="dialog"){this._openComplete(e,t,!0);return}if(i.result==="failed"){this.dispatchEvent(new CustomEvent("hass-notification",{detail:{message:i.message},bubbles:!0,composed:!0}));return}await this._loadData(),i.undo?We(this,this.hass,{entryId:e,taskId:t.id,taskName:t.name},this._lang,()=>{this._loadData()}):this.dispatchEvent(new CustomEvent("hass-notification",{detail:{message:n("quick_complete_success",this._lang)},bubbles:!0,composed:!0}))}_headerCounts(e){let t={overdue:0,due_soon:0,triggered:0};for(let{task:i}of e)Qs(i.status)&&(t[i.status]+=1);return t}_openTaskDetail(e,t){gs(e,t)}render(){let e=this._lang,t=this._config.title||n("maintenance",e),i=this._config.show_header!==!1,o=(this._config.action_style??(this._globalRowStyle==="icons"?"icons":"buttons"))==="buttons",a=this._config.show_actions!==!1,c=(this._config.show_create??a)&&le(this.hass?.user,this._settings.access),u=this._config.compact||!1,_=this._selectedTasks,{max_items:m}=this._config,f=m&&m>0?_.slice(0,m):_,x=this._objects.length||this._stats?this._headerCounts(_):null;return l`
+    </div>`}async _openDoc(e){if(e.kind==="weblink"&&e.url){kt(e.url)&&window.open(e.url,"_blank","noopener");return}try{await xo(this.hass,e.id)}catch{}}async _loadViewFilters(){if(!this._config.view_id){this._viewFilters=null;return}try{let t=((await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/views/list"})).views||[]).find(r=>r.id===this._config.view_id);this._viewFilters=t?t.filters:null}catch{this._viewFilters=null}}async _subscribe(){let e=++this._subGen;try{let t=await this.hass.connection.subscribeMessage(r=>{let o=An(this._objects,r);o!==null&&(this._objects=o)},{type:"maintenance_supporter/subscribe",deltas:!0,compact:!0});if(!this.isConnected||e!==this._subGen){t();return}this._unsub=t}catch{}}get _selectedTasks(){let e=[],{filter_status:t,filter_objects:r,entity_ids:o,filter_due_min_days:a,filter_due_max_days:c,filter_labels:u,filter_priority:_,filter_areas:m}=this._config,f=o?.length?new Set(o):null,v=a!==void 0||c!==void 0,w=this._viewFilters,A=w?.user_id==="current_user"?this.hass.user?.id??null:w?.user_id??null;for(let k of this._objects)if(!(w?.place&&(k.object.place||"home")!==w.place)&&!(r?.length&&!r.includes(k.entry_id)&&!r.includes(k.object.name))){if(m?.length){let E=k.object.area_id;if(!E||!m.includes(E))continue}for(let E of k.tasks)if(!E.is_done&&!(E.archived||k.object.archived)&&!(t?.length&&!t.includes(E.status))&&!(u?.length&&!(E.labels||[]).some(y=>u.includes(y)))&&!(_?.length&&!_.includes(E.priority||"normal"))&&!(f&&!(E.sensor_entity_id&&f.has(E.sensor_entity_id)||E.binary_sensor_entity_id&&f.has(E.binary_sensor_entity_id)))){if(v){let y=E.days_until_due;if(y==null||a!==void 0&&y<a||c!==void 0&&y>c)continue}w&&(w.status&&E.status!==w.status||w.label&&!(E.labels||[]).includes(w.label)||w.priority&&(E.priority||"normal")!==w.priority||A&&!In(E,A))||e.push({entry_id:k.entry_id,object_name:k.object.name,task:E})}}return e.sort((k,E)=>{let y=Ur(k.task.status)-Ur(E.task.status);return y!==0?y:(k.task.days_until_due??1/0)-(E.task.days_until_due??1/0)}),e}_openComplete(e,t,r=!1){if(!r&&ee(t)){this._quickComplete(e,t);return}let o=this.shadowRoot.querySelector("maintenance-complete-dialog");nr(o,sr({entryId:e,taskId:t.id,taskName:t.name,task:t,objects:this._objects,lang:this._lang,features:this._settings.features,currencySymbol:rt(this._stats?.budget),partsCostMode:this._settings.partsCostMode}),this._lang)}async _quickComplete(e,t){let r=await Yi(this.hass,e,t.id,this._lang);if(r.result==="dialog"){this._openComplete(e,t,!0);return}if(r.result==="failed"||r.result==="already"){this.dispatchEvent(new CustomEvent("hass-notification",{detail:{message:r.message},bubbles:!0,composed:!0}));return}await this._loadData(),r.undo?nt(this,this.hass,{entryId:e,taskId:t.id,taskName:t.name},this._lang,()=>{this._loadData()}):this.dispatchEvent(new CustomEvent("hass-notification",{detail:{message:n("quick_complete_success",this._lang)},bubbles:!0,composed:!0}))}_headerCounts(e){let t={overdue:0,due_soon:0,triggered:0};for(let{task:r}of e)jn(r.status)&&(t[r.status]+=1);return t}_openTaskDetail(e,t){en(e,t)}render(){let e=this._lang,t=this._config.title||n("maintenance",e),r=this._config.show_header!==!1,o=(this._config.action_style??(this._globalRowStyle==="icons"?"icons":"buttons"))==="buttons",a=this._config.show_actions!==!1,c=(this._config.show_create??a)&&fe(this.hass?.user,this._settings.access),u=this._config.compact||!1,_=this._selectedTasks,{max_items:m}=this._config,f=m&&m>0?_.slice(0,m):_,v=this._objects.length||this._stats?this._headerCounts(_):null;return l`
       <ha-card>
         <div class="card-header">
           <h1>${t}</h1>
           <div class="header-right">
-            ${i&&x?l`
+            ${r&&v?l`
                   <div class="header-stats">
-                    ${x.overdue>0?l`<span class="badge overdue">${x.overdue}</span>`:p}
-                    ${x.due_soon>0?l`<span class="badge due_soon">${x.due_soon}</span>`:p}
-                    ${x.triggered>0?l`<span class="badge triggered">${x.triggered}</span>`:p}
+                    ${v.overdue>0?l`<span class="badge overdue">${v.overdue}</span>`:p}
+                    ${v.due_soon>0?l`<span class="badge due_soon">${v.due_soon}</span>`:p}
+                    ${v.triggered>0?l`<span class="badge triggered">${v.triggered}</span>`:p}
                   </div>
                 `:p}
             ${c?l`
                   <ha-icon-button
                     class="hdr-add"
                     title="${n("new_object",e)}"
-                    @click=${()=>_s()}
+                    @click=${()=>Js()}
                   >
                     <ha-icon icon="mdi:plus-box"></ha-icon>
                   </ha-icon-button>
                   <ha-icon-button
                     class="hdr-add"
                     title="${n("add_task",e)}"
-                    @click=${()=>ms("",this._objects)}
+                    @click=${()=>Xs("",this._objects)}
                   >
                     <ha-icon icon="mdi:playlist-plus"></ha-icon>
                   </ha-icon-button>
@@ -6471,14 +6857,14 @@ ${u?`<div class="sub">${u}</div>`:""}
                 <a class="empty-link" href="/maintenance-supporter">${n("card_no_tasks_cta",e)}</a>
               </div>`:l`
               <div class="task-list ${u?"compact":""}">
-                ${f.map(({entry_id:w,object_name:R,task:k})=>l`
+                ${f.map(({entry_id:w,object_name:A,task:k})=>l`
                     <div class="task-item clickable"
                          @click=${()=>this._openTaskDetail(w,k.id)}
                          title="${n("open_task",e)}">
-                      <div class="status-dot" style="background: ${ht(k)}"></div>
+                      <div class="status-dot" style="background: ${Rt(k)}"></div>
                       <div class="task-info">
                         <div class="task-name">
-                          ${u&&this._assigneeName(k)?l`<span class="compact-assignee" title="${this._assigneeName(k)}">${this._assigneeAvatars(k)}</span>`:p}${k.name}${Un(k.next_event_titles)}${Bn(k.trigger_detail)}
+                          ${u&&this._assigneeName(k)?l`<span class="compact-assignee" title="${this._assigneeName(k)}">${this._assigneeAvatars(k)}</span>`:p}${k.name}${Ao(k.next_event_titles)}${Io(k.trigger_detail)}
                           ${k.due_override?l`<ha-icon
                                 class="postponed-icon"
                                 icon="mdi:calendar-clock"
@@ -6486,34 +6872,34 @@ ${u?`<div class="sub">${u}</div>`:""}
                               ></ha-icon>`:p}
                         </div>
                         ${u?p:l`<div class="task-meta">
-                              ${R} · ${n(k.type,e)}${Te(k)?l` · ${Te(k)}`:p}${this._assigneeName(k)?l` · <span class="assignee"
+                              ${A} · ${n(k.type,e)}${Fe(k)?l` · ${Fe(k)}`:p}${this._assigneeName(k)?l` · <span class="assignee"
                                     >${this._assigneeAvatars(k)}${this._assigneeName(k)}</span
                                   >`:p}
                             </div>`}
                       </div>
                       ${this._renderDocChips(w,k)}
                       <div class="task-due">
-                        ${k.days_until_due!==null&&k.days_until_due!==void 0?k.days_until_due<0?l`<span class="overdue-text">${xi(k.days_until_due,e)}</span>`:xi(k.days_until_due,e):k.trigger_active?"\u26A1":co(k.last_performed,e)??"\u2014"}
+                        ${k.days_until_due!==null&&k.days_until_due!==void 0?k.days_until_due<0?l`<span class="overdue-text">${vt(k.days_until_due,e)}</span>`:vt(k.days_until_due,e):k.trigger_active?"\u26A1":Qo(k.last_performed,e)??"\u2014"}
                       </div>
-                      ${a&&o?l`
+                      ${a&&qi(k)?l`<span class="inert-label">${n(k.enabled===!1?"disabled":"paused",e)}</span>`:a&&o?l`
                             <ha-button
                               size="small"
                               appearance="accent"
                               variant="success"
                               class="complete-btn-text"
-                              title="${Y(k)?n("qr_action_quick_complete",e):n("complete",e)}"
+                              title="${ee(k)?n("qr_action_quick_complete",e):n("complete",e)}"
                               @click=${E=>{E.stopPropagation(),this._openComplete(w,k)}}
                             >
                               <ha-icon slot="start" icon="mdi:check"></ha-icon>${n("complete",e)}
                             </ha-button>
                           `:a?l`
                             <ha-icon-button
-                              class="complete-btn${Y(k)?" quick":""}"
-                              title="${Y(k)?n("qr_action_quick_complete",e):n("complete",e)}"
+                              class="complete-btn${ee(k)?" quick":""}"
+                              title="${ee(k)?n("qr_action_quick_complete",e):n("complete",e)}"
                               @click=${E=>{E.stopPropagation(),this._openComplete(w,k)}}
                             >
                               <!-- #233: an open circle to tick off; a check read as done already -->
-                              <ha-icon icon=${Y(k)?"mdi:checkbox-blank-circle-outline":"mdi:check"}></ha-icon>
+                              <ha-icon icon=${ee(k)?"mdi:checkbox-blank-circle-outline":"mdi:check"}></ha-icon>
                             </ha-icon-button>
                           `:p}
                     </div>
@@ -6525,7 +6911,7 @@ ${u?`<div class="sub">${u}</div>`:""}
         .hass=${this.hass}
         @task-completed=${this._onCompleted}
       ></maintenance-complete-dialog>
-    `}};B.styles=[wi,$`
+    `}};Q.styles=[Vi,$`
       ha-card { overflow: hidden; }
 
       .card-header {
@@ -6659,7 +7045,7 @@ ${u?`<div class="sub">${u}</div>`:""}
         max-width: 22ch;
         padding: 1px 6px;
         border: 1px solid var(--divider-color, #e0e0e0);
-        border-radius: 10px;
+        border-radius: var(--ms-radius-10, 10px);
         background: none;
         color: var(--secondary-text-color);
         font: inherit;
@@ -6701,7 +7087,9 @@ ${u?`<div class="sub">${u}</div>`:""}
       /* DESIGN PROTOTYPE (#145): action_style: buttons — HA-native labelled button. */
       .complete-btn-text { --ha-button-font-size: 13px; flex: none; white-space: nowrap; }
       .complete-btn-text ha-icon { --mdc-icon-size: 18px; }
-    `],d([b({attribute:!1})],B.prototype,"hass",2),d([h()],B.prototype,"_config",2),d([h()],B.prototype,"_globalRowStyle",2),d([h()],B.prototype,"_settings",2),d([h()],B.prototype,"_firstLoadDone",2),d([h()],B.prototype,"_objects",2),d([h()],B.prototype,"_stats",2),d([h()],B.prototype,"_unsub",2),d([h()],B.prototype,"_viewFilters",2),d([h()],B.prototype,"_userNames",2),d([h()],B.prototype,"_taskDocs",2);customElements.get("maintenance-supporter-card")||customElements.define("maintenance-supporter-card",B);ot({type:"maintenance-supporter-card",name:"Maintenance Supporter",description:"Overview of your maintenance tasks with quick actions.",preview:!0});Ti();Ln(["maintenance-supporter-card","maintenance-battery-fleet-card","maintenance-supporter-panel-card"],import.meta.url);export{B as MaintenanceSupporterCard};
+      /* In the button's place on a task nothing may be done to (paused, off). */
+      .inert-label { font-size: 12px; color: var(--secondary-text-color); white-space: nowrap; flex: none; }
+    `],d([b({attribute:!1})],Q.prototype,"hass",2),d([h()],Q.prototype,"_config",2),d([h()],Q.prototype,"_globalRowStyle",2),d([h()],Q.prototype,"_settings",2),d([h()],Q.prototype,"_firstLoadDone",2),d([h()],Q.prototype,"_objects",2),d([h()],Q.prototype,"_stats",2),d([h()],Q.prototype,"_unsub",2),d([h()],Q.prototype,"_viewFilters",2),d([h()],Q.prototype,"_userNames",2),d([h()],Q.prototype,"_taskDocs",2);customElements.get("maintenance-supporter-card")||customElements.define("maintenance-supporter-card",Q);$t({type:"maintenance-supporter-card",name:"Maintenance Supporter",description:"Overview of your maintenance tasks with quick actions.",preview:!0});Ji();Eo(["maintenance-supporter-card","maintenance-battery-fleet-card","maintenance-supporter-panel-card"],import.meta.url);export{Q as MaintenanceSupporterCard};
 /*! Bundled license information:
 
 @lit/reactive-element/css-tag.js:
@@ -6747,6 +7135,7 @@ lit-html/is-server.js:
 
 lit-html/directive-helpers.js:
 lit-html/directives/ref.js:
+lit-html/directives/live.js:
   (**
    * @license
    * Copyright 2020 Google LLC

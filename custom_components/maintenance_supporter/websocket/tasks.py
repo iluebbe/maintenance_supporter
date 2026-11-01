@@ -34,6 +34,7 @@ from .tasks_lifecycle import (
     ws_pause_task,
     ws_resume_task,
     ws_task_history,
+    ws_task_trace,
     ws_unarchive_task,
 )
 from .tasks_validation import (
@@ -69,6 +70,7 @@ __all__ = [
     "ws_skip_task",
     "ws_snooze_task",
     "ws_task_history",
+    "ws_task_trace",
     "ws_unarchive_task",
     "ws_undo_completion",
     "ws_update_history_entry",

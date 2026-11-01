@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
@@ -118,10 +119,16 @@ class _CompoundCoordinatorProxy:
     stores data under ``_trigger_state.conditions[idx][entity_id]``.
     """
 
-    def __init__(self, real_coordinator: TriggerCoordinator, condition_idx: int) -> None:
+    def __init__(
+        self,
+        real_coordinator: TriggerCoordinator,
+        condition_idx: int,
+        on_recovered: Callable[[int], None] | None = None,
+    ) -> None:
         """Initialize the proxy."""
         self._real = real_coordinator
         self._condition_idx = condition_idx
+        self._on_recovered = on_recovered
 
     def __getattr__(self, name: str) -> Any:
         """Delegate all other attributes to the real coordinator."""
@@ -159,6 +166,15 @@ class _CompoundCoordinatorProxy:
     def note_trigger_edge(self, task_id: str, *, recovered: bool = True) -> None:
         """No-op for a condition — the compound reports its own edge."""
 
+    def note_trigger_recovered(self, task_id: str) -> None:
+        """A sub-trigger of this condition saw its sensor back on the normal
+        side after the completion. Whether the TASK's rule has recovered is
+        the compound's call, so it goes there, never to the coordinator: one
+        clear condition of an OR rule that another condition still holds is
+        no recovery."""
+        if self._on_recovered is not None:
+            self._on_recovered(self._condition_idx)
+
     async def async_request_refresh(self) -> None:
         """Delegate to the object's coordinator."""
         await self._real.async_request_refresh()
@@ -181,6 +197,9 @@ class CompoundTrigger(BaseTrigger):
     _setting_up: bool = False
     _settled: bool = True
     _cooldown_timer: ManagedTimer | None = None
+    _held_at_reset: frozenset[int] = frozenset()
+    _clear_since_reset: dict[int, int] | None = None
+    _relearning: bool = False
 
     def __init__(
         self,
@@ -212,6 +231,11 @@ class CompoundTrigger(BaseTrigger):
         self._settled = False
         # Re-latches an activation the post-completion cooldown held back.
         self._cooldown_timer = ManagedTimer(hass, f"CompoundTrigger:{self._task_id}:cooldown")
+        # Since the last completion: the conditions that still held at it, and
+        # per condition how many of its sub-triggers have been seen on the
+        # normal side (each tells once per reset) — see _on_condition_recovered.
+        self._held_at_reset = frozenset()
+        self._clear_since_reset = {}
 
     @property
     def condition_states(self) -> list[bool]:
@@ -254,7 +278,7 @@ class CompoundTrigger(BaseTrigger):
                     cond_config["_trigger_state"] = cond_state
 
             # Wrap the real coordinator with a proxy for persistence
-            proxy_coordinator = _CompoundCoordinatorProxy(self._coordinator, idx)
+            proxy_coordinator = _CompoundCoordinatorProxy(self._coordinator, idx, self._on_condition_recovered)
             sub_entity.coordinator = proxy_coordinator
 
             sub_triggers = create_triggers(self.hass, sub_entity, cond_config)
@@ -298,20 +322,89 @@ class CompoundTrigger(BaseTrigger):
 
     def reset(self) -> None:
         """Reset all sub-triggers (and what their conditions aggregate)."""
+        held = frozenset(i for i, active in enumerate(self._condition_states) if active)
         super().reset()
         if self._cooldown_timer is not None:
             self._cooldown_timer.cancel()
+        self._held_at_reset = held
+        self._clear_since_reset = {}
         self._condition_states = [False] * len(self._conditions)
         for sub_entity in self._sub_entities:
             sub_entity.reset()
         for trigger_list in self._sub_triggers:
             for trigger in trigger_list:
                 trigger.reset()
+        self._relearn_conditions()
+
+    def _relearn_conditions(self) -> None:
+        """Right after a reset, read which conditions still hold from the live
+        readings, quietly: a level that has not moved is no new edge. The
+        reset forgot them, and only a condition's next state event told it
+        again, so an AND rule completed while one sensor stayed high kept
+        quiet when the other one crossed later: it read that sensor as fine
+        until it changed (faketime year, 2026-11-01). When the whole rule
+        still holds, it comes back once the cooldown is over, as a sensor
+        rule re-latches on the coordinator's sweep."""
+        self._relearning = True
+        try:
+            for trigger_list in self._sub_triggers:
+                for trigger in trigger_list:
+                    trigger.evaluate_live()
+        finally:
+            self._relearning = False
+        if self._conditions and self.evaluate(0.0) and self._cooldown_timer is not None:
+            # From the reset, not from the coordinator's cooldown: a completion
+            # records that only after the reset ran (_on_cooldown_over waits
+            # for it), and a skip has the same window without the cooldown.
+            self._cooldown_timer.schedule_at(
+                dt_util.utcnow() + timedelta(seconds=TRIGGER_COMPLETION_COOLDOWN_SECONDS + 1), self._on_cooldown_over
+            )
+
+    @callback
+    def _on_condition_recovered(self, condition_idx: int) -> None:
+        """A sub-trigger of a condition saw its sensor back on the normal side
+        after the completion (it tells once per reset, just before it marks
+        itself recovered). The rule has recovered once it is clear: for OR,
+        once the conditions that still held at the completion are; an AND
+        rule is clear as soon as any of its conditions is, one that held or
+        one that never did — a condition being clear when all its sensors are
+        (entity_logic "any") or one is ("all").
+        Then it tells the coordinator, as a plain sensor rule does, so its next
+        activation is a new problem instead of being held for the cooldown as
+        the one the user completed before fixing. Its sub-triggers' notes went
+        to the condition proxy, which dropped them, and a reset had already
+        taken the compound's own falling edge: a problem back within ten
+        minutes of a cleared one was announced late, without a history entry
+        (faketime year, 2026-11-01)."""
+        if self._recovered_since_reset or not 0 <= condition_idx < len(self._conditions):
+            return
+        counts = dict(self._clear_since_reset or {})
+        counts[condition_idx] = counts.get(condition_idx, 0) + 1
+        self._clear_since_reset = counts
+
+        def clear(idx: int) -> bool:
+            seen = counts.get(idx, 0)
+            if self._conditions[idx].get("entity_logic", "any") == "all":
+                return seen >= 1
+            return seen >= max(1, len(self._sub_triggers[idx]) if idx < len(self._sub_triggers) else 1)
+
+        held = self._held_at_reset
+        if not held:
+            recovered = True  # clear at the completion: any condition seen clear is the evidence
+        elif self._compound_logic == "AND":
+            recovered = any(clear(i) for i in range(len(self._conditions)))
+        else:
+            recovered = all(clear(i) for i in held)
+        if recovered:
+            self._recovered_since_reset = True
+            self._note_recovered()
 
     @callback
     def _on_condition_changed(self, condition_idx: int, is_triggered: bool) -> None:
         """Handle a condition state change and re-aggregate."""
         self._condition_states[condition_idx] = is_triggered
+        if self._relearning:
+            return  # what still holds after a reset, no edge (see _relearn_conditions)
 
         was_triggered = self._triggered
         if self._compound_logic == "AND":
@@ -359,8 +452,17 @@ class CompoundTrigger(BaseTrigger):
 
     @callback
     def _on_cooldown_over(self, _now: datetime) -> None:
-        if self._triggered and not self._in_completion_cooldown():
+        if self._in_completion_cooldown():
+            self._relatch_after_cooldown()  # it started after this timer was set
+            return
+        if self._triggered:
             self._restore_activation(0.0)
+        elif self._conditions and self.evaluate(0.0):
+            # Held from the completion through the cooldown, never seen clear:
+            # the activation a sensor rule records on its first reading after
+            # the reset (see _relearn_conditions).
+            self._triggered = True
+            self._on_trigger_activated(0.0)
 
     def _restore_activation(self, value: float) -> None:
         """Repaint an activation already on record (see ``_settled``) — no

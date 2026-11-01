@@ -22,6 +22,7 @@ import { haToday } from "../helpers/ha-time";
 import { packagesBought, restockUnits, round2 } from "../helpers/parts-cost";
 import type { HomeAssistant, MaintenancePart } from "../types";
 import "./ms-date-field";
+import { notice } from "../helpers/notice";
 
 export type PurchasablePart = Pick<MaintenancePart, "id" | "unit" | "package_size" | "cost" | "restock_quantity">;
 
@@ -192,7 +193,7 @@ export class MsPartPurchase extends LitElement {
             : nothing}
         </div>
         ${this.onUse ? html`<div class="note">${t("part_bought_on_use", L)}</div>` : nothing}
-        ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+        ${this._error ? notice("error", this._error) : nothing}
         <div class="actions">
           <button class="buy-pill confirm" .disabled=${this._busy} @click=${() => this._record()}>
             <ha-icon icon="mdi:check"></ha-icon>${t("part_bought_confirm", L)}

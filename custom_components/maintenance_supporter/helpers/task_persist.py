@@ -48,6 +48,7 @@ from .schedule import (
     KIND_ONE_TIME,
     Schedule,
 )
+from .task_trace import forget_task as forget_task_trace
 
 _TIME_BASED = "time_based"
 # The flat service schedule_type → the Schedule kind it means.
@@ -569,6 +570,7 @@ async def async_delete_task(
     nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
     if nm is not None:
         nm.clear_and_dismiss(entry.entry_id, task_id, removed_task)
+    forget_task_trace(hass, entry.entry_id, task_id)
 
     # Remove orphaned entity registry entries for the deleted task. Match any
     # per-task entity — sensor (`_{task_id}`), binary_sensor (`_{task_id}_overdue`),

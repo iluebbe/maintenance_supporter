@@ -582,7 +582,8 @@
           "advanced_checklists_visible": "Checklists",
           "advanced_schedule_time_visible": "Time-of-day scheduling",
           "advanced_completion_actions_visible": "Completion actions",
-          "advanced_places_visible": "Places"
+          "advanced_places_visible": "Places",
+          "advanced_beta_editor_visible": "New look and task editor"
         },
         "data_description": {
           "advanced_adaptive_visible": "Show EWA, Weibull analysis, and interval suggestions for tasks.",
@@ -593,7 +594,8 @@
           "advanced_checklists_visible": "Show task checklists for step-by-step completion.",
           "advanced_schedule_time_visible": "Allow tasks to become overdue at a specific time of day instead of midnight.",
           "advanced_completion_actions_visible": "Per-task HA action on complete + quick-complete QR with pre-set values.",
-          "advanced_places_visible": "Objects maintained at another place (a Home Assistant zone): reminders only while somebody is there, and a message on arrival."
+          "advanced_places_visible": "Objects maintained at another place (a Home Assistant zone): reminders only while somebody is there, and a message on arrival.",
+          "advanced_beta_editor_visible": "Home Assistant's own controls across the panel, tasks as rules like the automation editor, and a trace of each task. On by default; switch it off for the classic look."
         }
       },
       "panel_access": {

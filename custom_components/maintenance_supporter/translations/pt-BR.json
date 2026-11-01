@@ -582,7 +582,8 @@
           "advanced_checklists_visible": "Checklists",
           "advanced_schedule_time_visible": "Agendamento por horário",
           "advanced_completion_actions_visible": "Ações de conclusão",
-          "advanced_places_visible": "Locais"
+          "advanced_places_visible": "Locais",
+          "advanced_beta_editor_visible": "Nova interface e editor de tarefas"
         },
         "data_description": {
           "advanced_adaptive_visible": "Mostra EWA, análise de Weibull e sugestões de intervalo para as tarefas.",
@@ -593,7 +594,8 @@
           "advanced_checklists_visible": "Mostra checklists de tarefas para conclusão passo a passo.",
           "advanced_schedule_time_visible": "Permite que as tarefas fiquem atrasadas em um horário específico do dia, em vez de à meia-noite.",
           "advanced_completion_actions_visible": "Ação do HA por tarefa ao concluir + QR de conclusão rápida com valores predefinidos.",
-          "advanced_places_visible": "Objetos mantidos em outro local (uma zona do Home Assistant): lembretes só quando alguém está lá e uma mensagem na chegada."
+          "advanced_places_visible": "Objetos mantidos em outro local (uma zona do Home Assistant): lembretes só quando alguém está lá e uma mensagem na chegada.",
+          "advanced_beta_editor_visible": "Os controles do Home Assistant em todo o painel, as tarefas como regras como no editor de automações e um rastreamento de cada tarefa. Ativado por padrão; desative para a interface clássica."
         }
       },
       "panel_access": {

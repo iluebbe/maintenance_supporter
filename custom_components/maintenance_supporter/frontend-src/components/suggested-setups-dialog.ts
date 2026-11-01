@@ -29,8 +29,9 @@ import { property, state } from "lit/decorators.js";
 
 import { t, ensureLocale, langOf } from "../styles";
 import { runWs } from "../helpers/ws-run";
-import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
+import { focusModalShell, modalShellStyles, renderModalShell, shellIsHa } from "../helpers/modal-shell";
 import type { HomeAssistant } from "../types";
+import { notice } from "../helpers/notice";
 
 interface SetupTask {
   task_name: string;
@@ -342,8 +343,8 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
     const L = this._lang;
 
     return renderModalShell(() => this._close(), html`
-        <div class="title">${t("setups_title", L)}</div>
-        ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+        ${shellIsHa() ? nothing : html`<div class="title">${t("setups_title", L)}</div>`}
+        ${this._error ? notice("error", this._error) : nothing}
 
         <div class="dialog-scroll">
           <div class="hint">${t("setups_hint", L)}</div>
@@ -442,7 +443,7 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
             ${t("setups_adopt", L)}
           </ha-button>
         </div>
-    `);
+    `, { title: t("setups_title", L) });
   }
 
   static styles = [modalShellStyles, css`
@@ -459,7 +460,7 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
     .list { display: flex; flex-direction: column; gap: 6px; }
     .row {
       display: flex; align-items: flex-start; gap: 10px; padding: 8px;
-      border: 1px solid var(--divider-color); border-radius: 6px;
+      border: 1px solid var(--divider-color); border-radius: var(--ms-radius-6, 6px);
     }
     .row.off .row-main { opacity: 0.6; }
     .row input { margin-top: 2px; cursor: pointer; }
@@ -481,7 +482,7 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
     .reset { font-size: 11px; color: var(--secondary-text-color); }
     .offers {
       display: flex; flex-direction: column; gap: 6px; padding: 8px;
-      border: 1px solid var(--primary-color); border-radius: 6px;
+      border: 1px solid var(--primary-color); border-radius: var(--ms-radius-6, 6px);
     }
     .offers-title { font-weight: 500; font-size: 14px; }
     .offer { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; cursor: pointer; }

@@ -598,6 +598,9 @@ export interface AdvancedFeatures {
   completion_actions: boolean;
   /** 2026-10: an object's place (an HA zone) and "remind only on site". */
   places: boolean;
+  /** 2026-10 beta: the task editor as rule rows with a sidebar, the new-task
+   *  start screen, the template preview and the task trace. */
+  beta_editor: boolean;
 }
 
 /** A single point in a recorder statistics time series. */
@@ -710,7 +713,16 @@ export interface HomeAssistant {
   areas?: Record<string, { area_id: string; name: string; icon?: string | null }>;
   /** The entity registry's display entries — `platform` names the
    *  integration an entity belongs to. */
-  entities?: Record<string, { entity_id?: string; platform?: string }>;
+  entities?: Record<string, {
+    entity_id?: string;
+    platform?: string;
+    device_id?: string | null;
+    area_id?: string | null;
+    entity_category?: string | null;
+    hidden?: boolean;
+  }>;
+  /** The device registry's display entries (the beta editor's device suggestions). */
+  devices?: Record<string, { id?: string; name?: string | null; name_by_user?: string | null; area_id?: string | null }>;
   /**
    * HA service registry, mirroring the structure exposed to the frontend.
    * Used by the task-dialog action section to drive ha-service-picker

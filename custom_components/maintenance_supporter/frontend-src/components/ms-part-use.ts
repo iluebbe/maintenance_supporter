@@ -18,6 +18,7 @@ import { property, state } from "lit/decorators.js";
 import { t, langOf } from "../styles";
 import { runWs } from "../helpers/ws-run";
 import type { HomeAssistant, MaintenancePart } from "../types";
+import { notice } from "../helpers/notice";
 
 export type UsablePart = Pick<MaintenancePart, "id" | "unit" | "package_size">;
 
@@ -128,7 +129,7 @@ export class MsPartUse extends LitElement {
         ></ha-icon-button>
       </span>
       ${this.notBooked ? html`<div class="note">${t("part_use_not_booked", L)}</div>` : nothing}
-      ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+      ${this._error ? notice("error", this._error) : nothing}
     `;
   }
 

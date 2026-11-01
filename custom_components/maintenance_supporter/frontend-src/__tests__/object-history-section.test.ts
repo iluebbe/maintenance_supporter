@@ -84,4 +84,30 @@ describe("object-history-section", () => {
     const { el: el2 } = await mount({ t_oil: capped, t_tires: [] });
     expect(el2.shadowRoot!.querySelector(".cap-note"), "cap note shown").to.exist;
   });
+
+  it("the task filter stays inside a phone-wide section with a long task name", async () => {
+    const { hass } = createMockHass({ handlers: { "maintenance_supporter/task/history": () => ({ history: FULL.t_oil }) } });
+    const longTasks = [{ id: "t_long", name: "Clean the drum filter, the door seal and the detergent drawer of the washer", history: [] }];
+    const el = await fixture<MaintenanceObjectHistorySection>(html`
+      <div style="width: 320px">
+        <maintenance-object-history-section
+          .hass=${hass as never}
+          .entryId=${"e1"}
+          .object=${{ name: "Family Car" } as never}
+          .tasks=${longTasks as never}
+          .currencySymbol=${"€"}
+        ></maintenance-object-history-section>
+      </div>
+    `).then((wrap) => wrap.querySelector("maintenance-object-history-section") as MaintenanceObjectHistorySection);
+    await waitUntil(() => el.shadowRoot!.querySelector(".filters select"), "filter renders");
+    const filters = el.shadowRoot!.querySelector(".filters") as HTMLElement;
+    const select = filters.querySelector("select") as HTMLSelectElement;
+    expect(select.getBoundingClientRect().right).to.be.at.most(filters.getBoundingClientRect().right + 1);
+    // HA's date picker (not rendered here) is ~286 px wide at its narrowest:
+    // the From/To fields must be allowed to shrink below it on a 320 px phone.
+    for (const field of filters.querySelectorAll("ms-date-field")) {
+      expect(getComputedStyle(field).minWidth).to.equal("0px");
+      expect(getComputedStyle(field).flexShrink).to.equal("1");
+    }
+  });
 });

@@ -14,9 +14,10 @@ import { AVATAR_PALETTE, personOf, renderPersonAvatar } from "../helpers/person"
 import { OBJECT_COLUMNS, sanitizeColumns } from "../helpers/object-columns";
 import { downloadTextFile } from "../helpers/download";
 import { escapeHtml } from "../helpers/html-escape";
-import { invalidateSettingsCache, ROW_ACTION_STYLES } from "../helpers/settings-cache";
+import { effectiveRowActionStyle, invalidateSettingsCache, ROW_ACTION_STYLES } from "../helpers/settings-cache";
 import { SETTING_INT_RANGES, VACATION_BUFFER_DAYS_RANGE, settingIntRange } from "../helpers/setting-ranges";
-import { ToastTimer } from "../helpers/toast";
+import { ToastTimer, haToast } from "../helpers/toast";
+import { betaUi, betaWith, haHas, onBetaUiChange, setBetaUi } from "../helpers/beta-ui";
 import { haToday } from "../helpers/ha-time";
 import { runWs } from "../helpers/ws-run";
 import { DOCS_ARCHIVE_MAX_BYTES, postMultipart } from "../helpers/photo-upload";
@@ -26,6 +27,10 @@ import { quickCompleteOn } from "../helpers/quick-complete";
 import { MAX_MIRROR_TODO_LISTS, isOwnTodoList } from "../helpers/mirror-lists";
 import { entityName } from "../helpers/trigger-entities";
 import "./ms-date-field";
+import { confirmAction } from "../helpers/confirm";
+import { collapsible } from "../helpers/collapsible";
+import { selectField, selectIsHa } from "../helpers/select-field";
+import { checkField } from "../helpers/check-field";
 
 /** One household member and the notify services they actually resolve to.
  *  Empty `services` means no Companion device is linked, so their reminders
@@ -100,6 +105,7 @@ interface SettingsResponse {
     } | null;
     /** #145: how task rows show Complete / Skip. */
     row_action_style?: "buttons_compact" | "buttons" | "icons";
+    row_action_style_set?: boolean;
     /** #170: reference numbers in front of names in every list. */
     ref_numbers_in_lists?: boolean;
     row_action_notice_pending?: boolean;
@@ -381,7 +387,7 @@ export class MaintenanceSettingsView extends LitElement {
       <div class="bl-table">
         ${fleetRows.map(row)}
         ${otherRows.length
-          ? html`<details class="bl-more"><summary>${otherRows.length} ×</summary>${otherRows.map(row)}</details>`
+          ? html`${collapsible({ cls: "bl-more", header: html`${otherRows.length} ×` }, html`${otherRows.map(row)}`)}`
           : nothing}
       </div>
     `;
@@ -491,6 +497,8 @@ export class MaintenanceSettingsView extends LitElement {
       // The card / Lovelace dialogs read their copy through a page-wide
       // cache — drop it so they follow the change without a reload.
       invalidateSettingsCache();
+      // The beta UI follows its switch at once, this page included.
+      if (key === "advanced_beta_editor_visible") setBetaUi(value === true);
       this._showToast(t("settings_saved", this._lang));
       this.dispatchEvent(new CustomEvent("settings-changed"));
       return true;
@@ -530,12 +538,26 @@ export class MaintenanceSettingsView extends LitElement {
   private readonly _toastTimer = new ToastTimer();
 
   private _showToast(msg: string): void {
+    if (betaUi()) {
+      haToast(this, msg);
+      return;
+    }
     this._toast = msg;
     this._toastTimer.schedule(() => { this._toast = ""; });
   }
 
+  /** The beta switch lives on this page: its rows redraw as it flips. */
+  private _offBetaUi: (() => void) | null = null;
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this._offBetaUi = onBetaUiChange(() => this.requestUpdate());
+  }
+
   disconnectedCallback(): void {
     super.disconnectedCallback();
+    this._offBetaUi?.();
+    this._offBetaUi = null;
     // A pending hide must not fire into a detached view (DRY audit 2026-09-26).
     this._toastTimer.clear();
     this._toast = "";
@@ -560,7 +582,14 @@ export class MaintenanceSettingsView extends LitElement {
    *  old numbers, so this is never done silently). */
   private async _compactReferenceNumbers(): Promise<void> {
     const L = this._lang;
-    if (this._compacting || !window.confirm(t("settings_compact_refs_confirm", L))) return;
+    if (this._compacting) return;
+    const ok = await confirmAction(this.hass, {
+      title: t("settings_compact_refs", L),
+      message: t("settings_compact_refs_confirm", L),
+      confirmText: t("settings_compact_refs", L),
+      danger: true,
+    });
+    if (!ok) return;
     const res = await this._ws<{ objects: number; tasks: number; completions: number }>(
       { type: "maintenance_supporter/reference_numbers/compact" },
       "action_error",
@@ -670,29 +699,14 @@ export class MaintenanceSettingsView extends LitElement {
       <div class="settings-section">
         <h3>${t("settings_panel_access", L)} ${writeEnabled && selected.size > 0 ? html`<span class="section-badge">${selected.size}</span>` : nothing}</h3>
         <p class="section-desc">${t("settings_panel_access_desc", L)}</p>
-        <label class="setting-row">
-          <span>
-            <span class="setting-label">${t("settings_operator_write", L)}</span>
-            <span class="setting-desc">${t("settings_operator_write_desc", L)}</span>
-          </span>
-          <input type="checkbox"
-            .checked=${writeEnabled}
-            @change=${(e: Event) => this._updateSetting("operator_write_enabled", (e.target as HTMLInputElement).checked)} />
-        </label>
+        ${this._switchRow(t("settings_operator_write", L), t("settings_operator_write_desc", L), writeEnabled,
+          (on) => this._updateSetting("operator_write_enabled", on))}
         ${!writeEnabled
           ? nothing
           : nonAdmins.length === 0
             ? html`<div class="setting-row hint">${t("no_non_admin_users", L)}</div>`
             : nonAdmins.map((u) => html`
-              <label class="setting-row">
-                <span>
-                  <span class="setting-label">${u.name || u.id.slice(0, 8)}</span>
-                  <span class="setting-desc">${u.is_owner ? t("owner_label", L) : ""}</span>
-                </span>
-                <input type="checkbox"
-                  .checked=${selected.has(u.id)}
-                  @change=${(e: Event) => toggle(u.id, (e.target as HTMLInputElement).checked)} />
-              </label>
+              ${this._switchRow(u.name || u.id.slice(0, 8), u.is_owner ? t("owner_label", L) : "", selected.has(u.id), (on) => toggle(u.id, on))}
             `)}
       </div>
     `;
@@ -715,18 +729,39 @@ export class MaintenanceSettingsView extends LitElement {
         <h3>${t("settings_shared_devices", L)} ${selected.size > 0 ? html`<span class="section-badge">${selected.size}</span>` : nothing}</h3>
         <p class="section-desc">${t("settings_shared_devices_desc", L)}</p>
         ${this._users.map((u) => html`
-          <label class="setting-row">
-            <span><span class="setting-label">${u.name || u.id.slice(0, 8)}</span></span>
-            <input type="checkbox"
-              .checked=${selected.has(u.id)}
-              @change=${(e: Event) => toggle(u.id, (e.target as HTMLInputElement).checked)} />
-          </label>
+          ${this._switchRow(u.name || u.id.slice(0, 8), undefined, selected.has(u.id), (on) => toggle(u.id, on))}
         `)}
       </div>
     `;
   }
 
   // --- Section: Features ---
+
+  /** On/off rows are HA's ha-settings-row + ha-switch (beta UI). */
+  private _switchesAreHa(): boolean {
+    return betaWith("ha-settings-row") && haHas("ha-switch");
+  }
+
+  /** An on/off setting: our label + checkbox, or with the beta UI Home
+   *  Assistant's settings row with a switch, as in HA's own settings. */
+  private _switchRow(label: unknown, desc: unknown, checked: boolean, onChange: (on: boolean) => void, cls = "") {
+    if (this._switchesAreHa()) {
+      return html`
+        <ha-settings-row class="ha-setting-row${cls ? " " + cls : ""}">
+          <span slot="heading">${label}</span>
+          ${desc ? html`<span slot="description">${desc}</span>` : nothing}
+          <ha-switch .checked=${checked} @change=${(e: Event) => onChange((e.target as HTMLInputElement).checked)}></ha-switch>
+        </ha-settings-row>`;
+    }
+    return html`
+      <label class="setting-row${cls ? " " + cls : ""}">
+        <span>
+          <span class="setting-label">${label}</span>
+          ${desc !== undefined ? html`<span class="setting-desc">${desc}</span>` : nothing}
+        </span>
+        <input type="checkbox" .checked=${checked} @change=${(e: Event) => onChange((e.target as HTMLInputElement).checked)} />
+      </label>`;
+  }
 
   private _renderFeatures(L: string) {
     const f = this._settings!.features;
@@ -744,22 +779,14 @@ export class MaintenanceSettingsView extends LitElement {
       { key: "schedule_time", settingKey: "advanced_schedule_time_visible", label: t("feat_schedule_time", L), desc: t("feat_schedule_time_desc", L) },
       { key: "completion_actions", settingKey: "advanced_completion_actions_visible", label: t("feat_completion_actions", L), desc: t("feat_completion_actions_desc_v2", L) },
       { key: "places", settingKey: "advanced_places_visible", label: t("feat_places", L), desc: t("feat_places_desc", L) },
+      { key: "beta_editor", settingKey: "advanced_beta_editor_visible", label: t("feat_beta_editor", L), desc: t("feat_beta_editor_desc", L) },
     ];
 
     return html`
       <div class="settings-section" data-section="settings" data-section-alt="groups">
         <h3>${t("settings_features", L)}</h3>
         <p class="section-desc">${t("settings_features_desc", L)}</p>
-        ${items.map((item) => html`
-          <label class="setting-row">
-            <span>
-              <span class="setting-label">${item.label}</span>
-              <span class="setting-desc">${item.desc}</span>
-            </span>
-            <input type="checkbox" .checked=${f[item.key]}
-              @change=${(e: Event) => this._updateSetting(item.settingKey, (e.target as HTMLInputElement).checked)} />
-          </label>
-        `)}
+        ${items.map((item) => this._switchRow(item.label, item.desc, f[item.key], (on) => this._updateSetting(item.settingKey, on)))}
       </div>
     `;
   }
@@ -817,14 +844,13 @@ export class MaintenanceSettingsView extends LitElement {
         <p class="section-desc">${t("home_profile_hint", L)}</p>
         <label class="setting-row">
           <span class="setting-label">${t("home_type_label", L)}</span>
-          <select class="home-type" .value=${live(setting)}
-            @change=${(e: Event) => void this._setHomeType((e.target as HTMLSelectElement).value)}>
+          ${selectField({ cls: "home-type", value: setting, live: true, onChange: (e: Event) => void this._setHomeType((e.target as HTMLSelectElement).value) }, html`
             <option value="auto" ?selected=${setting === "auto"}>
               ${t("home_type_auto", L).replace("{detected}", dwellingLabel(p?.dwelling_detected ?? "unknown", L))}
             </option>
             <option value="house" ?selected=${setting === "house"}>${t("home_dwelling_house", L)}</option>
             <option value="apartment" ?selected=${setting === "apartment"}>${t("home_dwelling_apartment", L)}</option>
-          </select>
+          `)}
         </label>
         ${p && p.dwelling_reasons.length
           ? html`<div class="setting-hint home-detected">
@@ -856,11 +882,10 @@ export class MaintenanceSettingsView extends LitElement {
     return html`
       <label class="setting-row">
         <span class="setting-label">${t("home_region_label", L)}</span>
-        <select class="home-region" .value=${live(value)}
-          @change=${(e: Event) => void this._setHomeRegion((e.target as HTMLSelectElement).value)}>
+        ${selectField({ cls: "home-region", value: value, live: true, onChange: (e: Event) => void this._setHomeRegion((e.target as HTMLSelectElement).value) }, html`
           <option value="auto" ?selected=${value === "auto"}>${t("home_type_auto", L).replace("{detected}", detected)}</option>
           ${regions.map((r) => html`<option value=${r.code} ?selected=${value === r.code}>${r.name}</option>`)}
-        </select>
+        `)}
       </label>
       <div class="setting-hint">${t("home_region_hint", L)}</div>
     `;
@@ -937,14 +962,9 @@ export class MaintenanceSettingsView extends LitElement {
               </div>
               ${open
                 ? tpls.map((tpl) => html`
-                    <label class="setting-row tpl-row">
-                      <span class="setting-label">${tpl.name}</span>
-                      <input
-                        type="checkbox"
-                        .checked=${!hidden.has(tpl.id)}
-                        @change=${(e: Event) => this._toggleTemplate(tpl.id, (e.target as HTMLInputElement).checked)}
-                      />
-                    </label>
+                    ${this._switchesAreHa()
+                      ? this._switchRow(tpl.name, undefined, !hidden.has(tpl.id), (on) => this._toggleTemplate(tpl.id, on), "tpl-row")
+                      : html`${checkField({ cls: "setting-row tpl-row", checked: !hidden.has(tpl.id), onChange: (e: Event) => this._toggleTemplate(tpl.id, (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${tpl.name}</span>`)}`}
                   `)
                 : nothing}
             </div>
@@ -986,15 +1006,7 @@ export class MaintenanceSettingsView extends LitElement {
         <h3>${t("objects_table_columns_label", L)}</h3>
         <p class="section-desc">${t("objects_table_columns_hint", L)}</p>
         ${OBJECT_COLUMNS.map((col) => html`
-          <label class="setting-row">
-            <span class="setting-label">${t(col.labelKey, L)}</span>
-            <input
-              type="checkbox"
-              .checked=${selected.includes(col.key)}
-              ?disabled=${!!col.required}
-              @change=${(e: Event) => this._toggleColumn(col.key, (e.target as HTMLInputElement).checked)}
-            />
-          </label>
+          ${checkField({ cls: "setting-row", checked: selected.includes(col.key), disabled: !!col.required, onChange: (e: Event) => this._toggleColumn(col.key, (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${t(col.labelKey, L)}</span>`)}
         `)}
       </div>
     `;
@@ -1015,6 +1027,8 @@ export class MaintenanceSettingsView extends LitElement {
 
   private _renderGeneral(L: string) {
     const g = this._settings!.general;
+    // What the rows show now: with the beta UI icons while nobody chose.
+    const rowStyle = effectiveRowActionStyle(g.row_action_style, g.row_action_style_set, !!this.features?.beta_editor);
     // Suggestible notify targets for the picker below come from the backend
     // (build_notify_targets → general.notify_targets): legacy notify services +
     // notify entities minus the generic send_message, plus the current saved
@@ -1052,12 +1066,7 @@ export class MaintenanceSettingsView extends LitElement {
           ${this._intSetting("battery_low_delay_minutes", g.battery_low_delay_minutes ?? 0)}
         </label>
         <div class="setting-hint">${t("settings_battery_low_delay_hint", L)}</div>
-        <label class="setting-row">
-          <span class="setting-label">${t("settings_battery_auto_record", L)}</span>
-          <input type="checkbox" class="auto-record-recovery"
-            .checked=${g.battery_auto_record_recovery === true}
-            @change=${(e: Event) => this._updateSetting("battery_auto_record_recovery", (e.target as HTMLInputElement).checked)} />
-        </label>
+        ${checkField({ cls: "setting-row", inputCls: "auto-record-recovery", checked: g.battery_auto_record_recovery === true, onChange: (e: Event) => this._updateSetting("battery_auto_record_recovery", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${t("settings_battery_auto_record", L)}</span>`)}
         <div class="setting-hint">${t("settings_battery_auto_record_hint", L)}</div>
         ${this._renderBatteryNotesHint(L)}
         ${this._renderBatteryLifetimes(L)}
@@ -1073,17 +1082,12 @@ export class MaintenanceSettingsView extends LitElement {
         <div class="setting-hint">${t("settings_part_search_url_hint", L)}</div>
         <label class="setting-row">
           <span class="setting-label">${t("settings_row_actions", L)}</span>
-          <select .value=${live(g.row_action_style || "buttons_compact")}
-            @change=${(e: Event) => this._updateSetting("row_action_style", (e.target as HTMLSelectElement).value)}>
+          ${selectField({ value: rowStyle, live: true, onChange: (e: Event) => this._updateSetting("row_action_style", (e.target as HTMLSelectElement).value) }, html`
             ${ROW_ACTION_STYLES.map((v) => html`
-              <option value=${v} ?selected=${(g.row_action_style || "buttons_compact") === v}>${t(`row_actions_${v}`, L)}</option>`)}
-          </select>
+              <option value=${v} ?selected=${rowStyle === v}>${t(`row_actions_${v}`, L)}</option>`)}
+          `)}
         </label>
-        <label class="setting-row">
-          <span class="setting-label">${t("settings_ref_numbers_in_lists", L)}</span>
-          <input type="checkbox" class="refs-in-lists" .checked=${g.ref_numbers_in_lists === true}
-            @change=${(e: Event) => this._updateSetting("ref_numbers_in_lists", (e.target as HTMLInputElement).checked)} />
-        </label>
+        ${checkField({ cls: "setting-row", inputCls: "refs-in-lists", checked: g.ref_numbers_in_lists === true, onChange: (e: Event) => this._updateSetting("ref_numbers_in_lists", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${t("settings_ref_numbers_in_lists", L)}</span>`)}
         <div class="setting-hint">${t("settings_ref_numbers_in_lists_hint", L)}</div>
         ${this.hass?.user?.is_admin
           ? html`<div class="setting-row">
@@ -1096,32 +1100,26 @@ export class MaintenanceSettingsView extends LitElement {
           : nothing}
         <label class="setting-row">
           <span class="setting-label">${t("settings_currency", L)}</span>
-          <select .value=${live(b.currency)} @change=${(e: Event) => this._updateSetting("budget_currency", (e.target as HTMLSelectElement).value)}>
+          ${selectField({ value: b.currency, live: true, onChange: (e: Event) => this._updateSetting("budget_currency", (e.target as HTMLSelectElement).value) }, html`
             ${CURRENCIES.map((c) => html`<option value=${c} ?selected=${b.currency === c}>${c}</option>`)}
-          </select>
+          `)}
         </label>
         <label class="setting-row">
           <span class="setting-label">${t("settings_currency_decimals", L)}</span>
-          <select class="currency-decimals" .value=${live(String(b.currency_decimals ?? 0))}
-            @change=${(e: Event) => this._updateSetting("currency_decimals", Number((e.target as HTMLSelectElement).value))}>
+          ${selectField({ cls: "currency-decimals", value: String(b.currency_decimals ?? 0), live: true, onChange: (e: Event) => this._updateSetting("currency_decimals", Number((e.target as HTMLSelectElement).value)) }, html`
             ${CURRENCY_DECIMAL_OPTIONS.map((d) => html`<option value=${String(d)} ?selected=${(b.currency_decimals ?? 0) === d}>${d}</option>`)}
-          </select>
+          `)}
         </label>
         <div class="setting-hint">${t("settings_currency_decimals_hint", L)}</div>
         <label class="setting-row">
           <span class="setting-label">${t("settings_parts_cost_mode", L)}</span>
-          <select class="parts-cost-mode" .value=${live(b.parts_cost_mode === "use" ? "use" : "purchase")}
-            @change=${(e: Event) => this._updateSetting("parts_cost_mode", (e.target as HTMLSelectElement).value)}>
+          ${selectField({ cls: "parts-cost-mode", value: b.parts_cost_mode === "use" ? "use" : "purchase", live: true, onChange: (e: Event) => this._updateSetting("parts_cost_mode", (e.target as HTMLSelectElement).value) }, html`
             <option value="purchase" ?selected=${b.parts_cost_mode !== "use"}>${t("settings_parts_cost_purchase", L)}</option>
             <option value="use" ?selected=${b.parts_cost_mode === "use"}>${t("settings_parts_cost_use", L)}</option>
-          </select>
+          `)}
         </label>
         <div class="setting-hint">${t("settings_parts_cost_mode_hint", L)}</div>
-        <label class="setting-row">
-          <span class="setting-label">${t("settings_panel_enabled", L)}</span>
-          <input type="checkbox" .checked=${g.panel_enabled}
-            @change=${(e: Event) => this._updateSetting("panel_enabled", (e.target as HTMLInputElement).checked)} />
-        </label>
+        ${checkField({ cls: "setting-row", checked: g.panel_enabled, onChange: (e: Event) => this._updateSetting("panel_enabled", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${t("settings_panel_enabled", L)}</span>`)}
         ${g.panel_enabled ? html`
           <label class="setting-row">
             <span class="setting-label">${t("settings_panel_title", L)}</span>
@@ -1131,17 +1129,9 @@ export class MaintenanceSettingsView extends LitElement {
               @change=${(e: Event) => this._updateSetting("panel_title", (e.target as HTMLInputElement).value.trim())} />
           </label>
         ` : ""}
-        <label class="setting-row">
-          <span class="setting-label">${t("settings_install_assist_sentences", L)}</span>
-          <input type="checkbox" .checked=${g.install_assist_sentences ?? false}
-            @change=${(e: Event) => this._updateSetting("install_assist_sentences", (e.target as HTMLInputElement).checked)} />
-        </label>
+        ${checkField({ cls: "setting-row", checked: g.install_assist_sentences ?? false, onChange: (e: Event) => this._updateSetting("install_assist_sentences", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${t("settings_install_assist_sentences", L)}</span>`)}
         <div class="setting-hint">${t("settings_install_assist_sentences_hint", L)}</div>
-        <label class="setting-row">
-          <span class="setting-label">${t("settings_notifications", L)}</span>
-          <input type="checkbox" .checked=${g.notifications_enabled}
-            @change=${(e: Event) => this._updateSetting("notifications_enabled", (e.target as HTMLInputElement).checked)} />
-        </label>
+        ${checkField({ cls: "setting-row", checked: g.notifications_enabled, onChange: (e: Event) => this._updateSetting("notifications_enabled", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${t("settings_notifications", L)}</span>`)}
         ${g.notifications_enabled ? html`
           <label class="setting-row">
             <span class="setting-label">${t("settings_notify_service", L)}</span>
@@ -1181,13 +1171,12 @@ export class MaintenanceSettingsView extends LitElement {
 
         <label class="setting-row">
           <span class="setting-label" title=${t("settings_shopping_list_help", L)}>${t("settings_shopping_list", L)}</span>
-          <select .value=${live(g.shopping_list_entity || "")}
-            @change=${(e: Event) => this._updateSetting("shopping_list_entity", (e.target as HTMLSelectElement).value)}>
+          ${selectField({ value: g.shopping_list_entity || "", live: true, onChange: (e: Event) => this._updateSetting("shopping_list_entity", (e.target as HTMLSelectElement).value) }, html`
             <option value="" ?selected=${!g.shopping_list_entity}>${t("shopping_list_none", L)}</option>
             ${this._todoEntities(g.shopping_list_entity || "").map((id) => html`
               <option value=${id} ?selected=${g.shopping_list_entity === id}>${id}</option>
             `)}
-          </select>
+          `)}
         </label>
         ${this._renderMirrorTodoDefault(L, g.mirror_todo_default_entities ?? [])}
       </div>
@@ -1240,13 +1229,9 @@ export class MaintenanceSettingsView extends LitElement {
       <div class="settings-section">
         <h3>${t("settings_notifications", L)}</h3>
 
-        <label class="setting-row">
-          <span>
+        ${checkField({ cls: "setting-row", checked: n.due_soon_enabled, onChange: (e: Event) => this._updateSetting("notify_due_soon_enabled", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span>
             <span class="setting-label">${t("settings_notify_due_soon", L)}</span>
-          </span>
-          <input type="checkbox" .checked=${n.due_soon_enabled}
-            @change=${(e: Event) => this._updateSetting("notify_due_soon_enabled", (e.target as HTMLInputElement).checked)} />
-        </label>
+          </span>`)}
         ${n.due_soon_enabled ? html`
           <label class="setting-row sub-row">
             <span class="setting-desc">${t("settings_interval_hours", L)}</span>
@@ -1254,13 +1239,9 @@ export class MaintenanceSettingsView extends LitElement {
           </label>
         ` : nothing}
 
-        <label class="setting-row">
-          <span>
+        ${checkField({ cls: "setting-row", checked: n.overdue_enabled, onChange: (e: Event) => this._updateSetting("notify_overdue_enabled", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span>
             <span class="setting-label">${t("settings_notify_overdue", L)}</span>
-          </span>
-          <input type="checkbox" .checked=${n.overdue_enabled}
-            @change=${(e: Event) => this._updateSetting("notify_overdue_enabled", (e.target as HTMLInputElement).checked)} />
-        </label>
+          </span>`)}
         ${n.overdue_enabled ? html`
           <label class="setting-row sub-row">
             <span class="setting-desc">${t("settings_interval_hours", L)}</span>
@@ -1268,13 +1249,9 @@ export class MaintenanceSettingsView extends LitElement {
           </label>
         ` : nothing}
 
-        <label class="setting-row">
-          <span>
+        ${checkField({ cls: "setting-row", checked: n.triggered_enabled, onChange: (e: Event) => this._updateSetting("notify_triggered_enabled", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span>
             <span class="setting-label">${t("settings_notify_triggered", L)}</span>
-          </span>
-          <input type="checkbox" .checked=${n.triggered_enabled}
-            @change=${(e: Event) => this._updateSetting("notify_triggered_enabled", (e.target as HTMLInputElement).checked)} />
-        </label>
+          </span>`)}
         ${n.triggered_enabled ? html`
           <label class="setting-row sub-row">
             <span class="setting-desc">${t("settings_interval_hours", L)}</span>
@@ -1282,11 +1259,7 @@ export class MaintenanceSettingsView extends LitElement {
           </label>
         ` : nothing}
 
-        <label class="setting-row">
-          <span class="setting-label">${t("settings_quiet_hours", L)}</span>
-          <input type="checkbox" .checked=${n.quiet_hours_enabled}
-            @change=${(e: Event) => this._updateSetting("quiet_hours_enabled", (e.target as HTMLInputElement).checked)} />
-        </label>
+        ${checkField({ cls: "setting-row", checked: n.quiet_hours_enabled, onChange: (e: Event) => this._updateSetting("quiet_hours_enabled", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${t("settings_quiet_hours", L)}</span>`)}
         ${n.quiet_hours_enabled ? html`
           <div class="setting-row sub-row">
             <span class="setting-desc">${t("settings_quiet_start", L)}</span>
@@ -1325,11 +1298,7 @@ export class MaintenanceSettingsView extends LitElement {
         </label>
         <div class="setting-hint">${t("settings_snooze_hours_hint", L)}</div>
 
-        <label class="setting-row">
-          <span class="setting-label">${t("settings_bundling", L)}</span>
-          <input type="checkbox" .checked=${n.bundling_enabled}
-            @change=${(e: Event) => this._updateSetting("notification_bundling_enabled", (e.target as HTMLInputElement).checked)} />
-        </label>
+        ${checkField({ cls: "setting-row", checked: n.bundling_enabled, onChange: (e: Event) => this._updateSetting("notification_bundling_enabled", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${t("settings_bundling", L)}</span>`)}
         ${n.bundling_enabled ? html`
           <label class="setting-row sub-row">
             <span class="setting-desc">${t("settings_bundle_threshold", L)}</span>
@@ -1351,46 +1320,37 @@ export class MaintenanceSettingsView extends LitElement {
         <div class="setting-hint">${t("settings_reminder_leads_hint", L)}</div>
         <label class="setting-row">
           <span class="setting-label">${t("settings_notify_scope", L)}</span>
-          <select
-            .value=${live(n.scope_view_id || "")}
-            @change=${(e: Event) => this._updateSetting("notify_scope_view_id", (e.target as HTMLSelectElement).value)}
-          >
+          ${selectField({ value: n.scope_view_id || "", live: true, onChange: (e: Event) => this._updateSetting("notify_scope_view_id", (e.target as HTMLSelectElement).value) }, html`
             <option value="" ?selected=${!n.scope_view_id}>${t("settings_notify_scope_all", L)}</option>
             ${this._savedViews.map(
               (v) => html`<option value=${v.id} ?selected=${n.scope_view_id === v.id}>${v.name}</option>`
             )}
-          </select>
+          `)}
         </label>
         <div class="setting-hint">${t("settings_notify_scope_hint", L)}</div>
         <label class="setting-row">
           <span class="setting-label">${t("settings_notify_completed", L)}</span>
-          <select class="notify-completed" .value=${live(n.completed || "off")}
-            @change=${(e: Event) => this._updateSetting("notify_completed", (e.target as HTMLSelectElement).value)}>
+          ${selectField({ cls: "notify-completed", value: n.completed || "off", live: true, onChange: (e: Event) => this._updateSetting("notify_completed", (e.target as HTMLSelectElement).value) }, html`
             <option value="off">${t("notify_completed_off", L)}</option>
             <option value="automatic">${t("notify_completed_automatic", L)}</option>
             <option value="all">${t("notify_completed_all", L)}</option>
-          </select>
+          `)}
         </label>
         <div class="setting-hint">${t("settings_notify_completed_hint", L)}</div>
         <label class="setting-row">
           <span class="setting-label">${t("settings_title_style", L)}</span>
-          <select class="notify-title-style" .value=${live(n.title_style || "default")}
-            @change=${(e: Event) => this._updateSetting("notification_title_style", (e.target as HTMLSelectElement).value)}>
+          ${selectField({ cls: "notify-title-style", value: n.title_style || "default", live: true, onChange: (e: Event) => this._updateSetting("notification_title_style", (e.target as HTMLSelectElement).value) }, html`
             <option value="default">${t("title_style_default", L)}</option>
             <option value="object_name">${t("title_style_object_name", L)}</option>
             <option value="task_name">${t("title_style_task_name", L)}</option>
-          </select>
+          `)}
         </label>
         <div class="setting-hint">${t("settings_title_style_hint", L)}</div>
 
         <div class="notify-rule">
         <h4 style="margin: 16px 0 8px; font-size: 14px;">${t("settings_notify_rule", L)}</h4>
         <div class="setting-hint">${t("settings_notify_rule_hint", L)}</div>
-        <label class="setting-row">
-          <span class="setting-label">${t("settings_notify_event_only", L)}</span>
-          <input type="checkbox" .checked=${!!n.event_only}
-            @change=${(e: Event) => this._updateSetting("notify_event_only", (e.target as HTMLInputElement).checked)} />
-        </label>
+        ${checkField({ cls: "setting-row", checked: !!n.event_only, onChange: (e: Event) => this._updateSetting("notify_event_only", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${t("settings_notify_event_only", L)}</span>`)}
         <div class="setting-hint">${t("settings_notify_event_only_hint", L)}</div>
         <label class="setting-row setting-row-block">
           <span class="setting-label">${t("settings_notify_extra_data", L)}</span>
@@ -1405,32 +1365,12 @@ export class MaintenanceSettingsView extends LitElement {
         </div>
 
         <h4 style="margin: 16px 0 8px; font-size: 14px;">${t("settings_actions", L)}</h4>
-        <label class="setting-row">
-          <span class="setting-label">${t("settings_action_complete", L)}</span>
-          <input type="checkbox" .checked=${a.complete_enabled}
-            @change=${(e: Event) => this._updateSetting("action_complete_enabled", (e.target as HTMLInputElement).checked)} />
-        </label>
-        <label class="setting-row">
-          <span class="setting-label">${t("settings_action_skip", L)}</span>
-          <input type="checkbox" .checked=${a.skip_enabled}
-            @change=${(e: Event) => this._updateSetting("action_skip_enabled", (e.target as HTMLInputElement).checked)} />
-        </label>
-        <label class="setting-row">
-          <span class="setting-label">${t("settings_action_snooze", L)}</span>
-          <input type="checkbox" .checked=${a.snooze_enabled}
-            @change=${(e: Event) => this._updateSetting("action_snooze_enabled", (e.target as HTMLInputElement).checked)} />
-        </label>
-        <label class="setting-row">
-          <span class="setting-label">${t("settings_weekly_digest", L)}</span>
-          <input type="checkbox" .checked=${a.weekly_digest_enabled}
-            @change=${(e: Event) => this._updateSetting("weekly_digest_enabled", (e.target as HTMLInputElement).checked)} />
-        </label>
+        ${checkField({ cls: "setting-row", checked: a.complete_enabled, onChange: (e: Event) => this._updateSetting("action_complete_enabled", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${t("settings_action_complete", L)}</span>`)}
+        ${checkField({ cls: "setting-row", checked: a.skip_enabled, onChange: (e: Event) => this._updateSetting("action_skip_enabled", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${t("settings_action_skip", L)}</span>`)}
+        ${checkField({ cls: "setting-row", checked: a.snooze_enabled, onChange: (e: Event) => this._updateSetting("action_snooze_enabled", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${t("settings_action_snooze", L)}</span>`)}
+        ${checkField({ cls: "setting-row", checked: a.weekly_digest_enabled, onChange: (e: Event) => this._updateSetting("weekly_digest_enabled", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${t("settings_weekly_digest", L)}</span>`)}
         <div class="setting-hint">${t("settings_weekly_digest_hint", L)}</div>
-        <label class="setting-row">
-          <span class="setting-label">${t("settings_warranty_reminder", L)}</span>
-          <input type="checkbox" .checked=${a.warranty_reminder_enabled}
-            @change=${(e: Event) => this._updateSetting("warranty_reminder_enabled", (e.target as HTMLInputElement).checked)} />
-        </label>
+        ${checkField({ cls: "setting-row", checked: a.warranty_reminder_enabled, onChange: (e: Event) => this._updateSetting("warranty_reminder_enabled", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${t("settings_warranty_reminder", L)}</span>`)}
         ${a.warranty_reminder_enabled ? html`
           <label class="setting-row sub-row">
             <span class="setting-desc">${t("settings_warranty_reminder_days", L)}</span>
@@ -1459,11 +1399,7 @@ export class MaintenanceSettingsView extends LitElement {
           <input type="number" min="0" step="0.01" .value=${String(b.yearly)}
             @change=${(e: Event) => this._updateSetting("budget_yearly", parseFloat((e.target as HTMLInputElement).value) || 0)} />
         </label>
-        <label class="setting-row">
-          <span class="setting-label">${t("settings_budget_alerts", L)}</span>
-          <input type="checkbox" .checked=${b.alerts_enabled}
-            @change=${(e: Event) => this._updateSetting("budget_alerts_enabled", (e.target as HTMLInputElement).checked)} />
-        </label>
+        ${checkField({ cls: "setting-row", checked: b.alerts_enabled, onChange: (e: Event) => this._updateSetting("budget_alerts_enabled", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-label">${t("settings_budget_alerts", L)}</span>`)}
         ${b.alerts_enabled ? html`
           <label class="setting-row sub-row">
             <span class="setting-desc">${t("settings_budget_threshold", L)}</span>
@@ -1515,11 +1451,7 @@ export class MaintenanceSettingsView extends LitElement {
         </h3>
         <p class="section-desc">${t("vacation_desc", L)}</p>
 
-        <label class="vac-toggle">
-          <input type="checkbox" .checked=${this._vacEnabled}
-            @change=${(e: Event) => this._toggleVacationEnabled((e.target as HTMLInputElement).checked)} />
-          ${t("vacation_enable", L)}
-        </label>
+        ${checkField({ cls: "vac-toggle", checked: this._vacEnabled, onChange: (e: Event) => this._toggleVacationEnabled((e.target as HTMLInputElement).checked) }, html`${t("vacation_enable", L)}`)}
 
         <div class="vac-grid">
           <div class="vac-field">
@@ -1551,11 +1483,10 @@ export class MaintenanceSettingsView extends LitElement {
           </label>
         </div>
 
-        <details class="vac-exempt-panel">
-          <summary>
+        ${collapsible({ cls: "vac-exempt-panel", header: html`
             ${t("vacation_exempt_title", L)}
             ${exemptCount > 0 ? html`<span class="section-badge">${exemptCount}</span>` : nothing}
-          </summary>
+          ` }, html`
           <p class="section-desc">${t("vacation_exempt_desc", L)}</p>
           ${this._vacAllTasks.length === 0
             ? html`<button @click=${this._loadAllTasksForVacation}>${t("vacation_load_tasks", L)}</button>`
@@ -1564,7 +1495,7 @@ export class MaintenanceSettingsView extends LitElement {
                 ${this._renderVacationTaskList(L)}
               </div>
             `}
-        </details>
+        `)}
 
         ${this._vacStart && this._vacEnd ? html`
           <div class="vac-preview-toolbar">
@@ -1604,12 +1535,7 @@ export class MaintenanceSettingsView extends LitElement {
         ${tasks
           .sort((a, b) => a.task_name.localeCompare(b.task_name))
           .map((task) => html`
-            <label class="vac-task-row">
-              <input type="checkbox"
-                .checked=${this._vacExempt.has(task.task_id)}
-                @change=${(e: Event) => this._toggleVacationExempt(task.task_id, (e.target as HTMLInputElement).checked)} />
-              <span>${task.task_name}</span>
-            </label>
+            ${checkField({ cls: "vac-task-row", checked: this._vacExempt.has(task.task_id), onChange: (e: Event) => this._toggleVacationExempt(task.task_id, (e.target as HTMLInputElement).checked) }, html`<span>${task.task_name}</span>`)}
           `)}
       </div>
     `);
@@ -1846,8 +1772,7 @@ export class MaintenanceSettingsView extends LitElement {
         ${!this._qrObjectsLoaded
           ? html`<button @click=${this._loadQrObjects}>${t("qr_print_load", L)}</button>`
           : html`
-            <details open class="qr-filter-panel">
-              <summary>${t("qr_print_filter", L)}</summary>
+            ${collapsible({ cls: "qr-filter-panel", open: true, header: t("qr_print_filter", L) }, html`
 
               <div class="qr-filter-group">
                 <div class="qr-filter-label">${t("qr_print_objects", L)}</div>
@@ -1855,13 +1780,8 @@ export class MaintenanceSettingsView extends LitElement {
                   ${this._qrObjects.length === 0
                     ? html`<div class="hint">${t("no_objects", L)}</div>`
                     : this._qrObjects.map((obj) => html`
-                      <label class="qr-object-row">
-                        <input type="checkbox"
-                          .checked=${this._qrSelectedEntries.size === 0 || this._qrSelectedEntries.has(obj.entry_id)}
-                          @change=${(e: Event) => this._toggleQrObject(obj.entry_id, (e.target as HTMLInputElement).checked)} />
-                        <span>${obj.name}</span>
-                        <span class="qr-task-count">${obj.task_count}</span>
-                      </label>
+                      ${checkField({ cls: "qr-object-row", checked: this._qrSelectedEntries.size === 0 || this._qrSelectedEntries.has(obj.entry_id), onChange: (e: Event) => this._toggleQrObject(obj.entry_id, (e.target as HTMLInputElement).checked) }, html`<span>${obj.name}</span>
+                        <span class="qr-task-count">${obj.task_count}</span>`)}
                     `)}
                 </div>
               </div>
@@ -1888,12 +1808,11 @@ export class MaintenanceSettingsView extends LitElement {
 
               <div class="qr-filter-group">
                 <div class="qr-filter-label">${t("qr_print_url_mode", L)}</div>
-                <select .value=${this._qrUrlMode}
-                  @change=${(e: Event) => { this._qrUrlMode = (e.target as HTMLSelectElement).value as typeof this._qrUrlMode; }}>
+                ${selectField({ value: this._qrUrlMode, onChange: (e: Event) => { this._qrUrlMode = (e.target as HTMLSelectElement).value as typeof this._qrUrlMode; } }, html`
                   <option value="companion">${t("qr_mode_companion", L)}</option>
                   <option value="local">${t("qr_mode_local", L)}</option>
                   <option value="server">${t("qr_mode_server", L)}</option>
-                </select>
+                `)}
               </div>
 
               <div class="qr-filter-group qr-filter-actions">
@@ -1907,7 +1826,7 @@ export class MaintenanceSettingsView extends LitElement {
                   ${this._qrBatchLoading ? t("qr_print_generating", L) : t("qr_print_generate", L)}
                 </button>
               </div>
-            </details>
+            `)}
 
             ${this._qrBatchResults.length > 0
               ? html`
@@ -2084,32 +2003,22 @@ export class MaintenanceSettingsView extends LitElement {
       <div class="settings-section">
         <h3>${t("settings_import_export", L)}</h3>
         <div class="settings-actions">
-          <label class="export-history-toggle">
-            <input type="checkbox" .checked=${this._includeHistory}
-              @change=${(e: Event) => { this._includeHistory = (e.target as HTMLInputElement).checked; }} />
-            ${t("settings_include_history", L)}
-          </label>
+          ${checkField({ cls: "export-history-toggle", checked: this._includeHistory, onChange: (e: Event) => { this._includeHistory = (e.target as HTMLInputElement).checked; } }, html`${t("settings_include_history", L)}`)}
         </div>
         <div class="settings-actions">
           ${!this._exportObjectsLoaded
             ? html`<button @click=${this._loadExportObjects}>${t("settings_export_selection", L)}</button>`
             : html`
-              <details class="qr-filter-panel">
-                <summary>${t("settings_export_selection", L)}</summary>
+              ${collapsible({ cls: "qr-filter-panel", header: t("settings_export_selection", L) }, html`
                 <div class="qr-object-list">
                   ${this._exportObjects.length === 0
                     ? html`<div class="hint">${t("no_objects", L)}</div>`
                     : this._exportObjects.map((obj) => html`
-                      <label class="qr-object-row">
-                        <input type="checkbox"
-                          .checked=${this._exportSelectedEntries.size === 0 || this._exportSelectedEntries.has(obj.entry_id)}
-                          @change=${(e: Event) => this._toggleExportObject(obj.entry_id, (e.target as HTMLInputElement).checked)} />
-                        <span>${obj.name}</span>
-                        <span class="qr-task-count">${obj.task_count}</span>
-                      </label>
+                      ${checkField({ cls: "qr-object-row", checked: this._exportSelectedEntries.size === 0 || this._exportSelectedEntries.has(obj.entry_id), onChange: (e: Event) => this._toggleExportObject(obj.entry_id, (e.target as HTMLInputElement).checked) }, html`<span>${obj.name}</span>
+                        <span class="qr-task-count">${obj.task_count}</span>`)}
                     `)}
                 </div>
-              </details>
+              `)}
             `}
         </div>
         <div class="settings-actions">
@@ -2410,7 +2319,7 @@ export class MaintenanceSettingsView extends LitElement {
     .member-avatar-name { font-weight: 500; min-width: 120px; }
     .member-initials {
       width: 4.5em; padding: 4px 6px; text-align: center; text-transform: uppercase;
-      border: 1px solid var(--divider-color, #e0e0e0); border-radius: 6px;
+      border: 1px solid var(--divider-color, #e0e0e0); border-radius: var(--ms-radius-6, 6px);
       background: var(--card-background-color); color: var(--primary-text-color); font: inherit;
     }
     .member-palette { display: inline-flex; gap: 4px; flex-wrap: wrap; }
@@ -2616,7 +2525,7 @@ export class MaintenanceSettingsView extends LitElement {
       letter-spacing: 0.4px;
       text-transform: uppercase;
       padding: 2px 8px;
-      border-radius: 10px;
+      border-radius: var(--ms-radius-10, 10px);
     }
     .vac-badge.active {
       background: var(--success-color, #4caf50);
@@ -2655,7 +2564,7 @@ export class MaintenanceSettingsView extends LitElement {
     }
     .vac-exempt-panel {
       border: 1px solid var(--divider-color);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       padding: 10px;
       margin: 12px 0;
     }
@@ -2672,7 +2581,7 @@ export class MaintenanceSettingsView extends LitElement {
       font-size: 11px;
       font-weight: 600;
       padding: 1px 8px;
-      border-radius: 10px;
+      border-radius: var(--ms-radius-10, 10px);
     }
     .vac-task-list {
       max-height: 280px;
@@ -2719,7 +2628,7 @@ export class MaintenanceSettingsView extends LitElement {
       gap: 12px;
       padding: 10px 12px;
       background: var(--secondary-background-color, rgba(127,127,127,0.08));
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       border-left: 3px solid var(--warning-color, #ff9800);
     }
     .vac-preview-row.exempt {
@@ -2758,7 +2667,7 @@ export class MaintenanceSettingsView extends LitElement {
 
     .qr-filter-panel {
       border: 1px solid var(--divider-color);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       padding: 12px;
       margin-top: 8px;
     }
@@ -2842,7 +2751,7 @@ export class MaintenanceSettingsView extends LitElement {
       margin-top: 16px;
       padding: 8px 12px;
       background: var(--secondary-background-color, rgba(127,127,127,0.1));
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
     }
 
     .qr-print-grid {
@@ -2853,7 +2762,7 @@ export class MaintenanceSettingsView extends LitElement {
     }
     .qr-print-cell {
       border: 1px solid var(--divider-color);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       padding: 8px;
       display: flex;
       flex-direction: column;

@@ -43,12 +43,13 @@ export interface MockFeatures {
   schedule_time: boolean;
   completion_actions: boolean;
   places: boolean;
+  beta_editor: boolean;
 }
 
 export const DEFAULT_FEATURES: MockFeatures = {
   adaptive: false, seasonal: false,
   environmental: false, budget: false, groups: false,
-  checklists: false, schedule_time: false, completion_actions: false, places: false,
+  checklists: false, schedule_time: false, completion_actions: false, places: false, beta_editor: false,
 };
 
 /**

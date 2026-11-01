@@ -582,7 +582,8 @@
           "advanced_checklists_visible": "Kontrol Listeleri",
           "advanced_schedule_time_visible": "Günün saatine göre zamanlama",
           "advanced_completion_actions_visible": "Tamamlama eylemleri",
-          "advanced_places_visible": "Yerler"
+          "advanced_places_visible": "Yerler",
+          "advanced_beta_editor_visible": "Yeni görünüm ve görev düzenleyici"
         },
         "data_description": {
           "advanced_adaptive_visible": "Görevler için EWA, Weibull analizi ve aralık önerilerini göster.",
@@ -593,7 +594,8 @@
           "advanced_checklists_visible": "Adım adım tamamlama için görev kontrol listelerini göster.",
           "advanced_schedule_time_visible": "Görevlerin gece yarısı yerine günün belirli bir saatinde gecikmiş duruma geçmesine izin ver.",
           "advanced_completion_actions_visible": "Görev başına tamamlamada HA eylemi + önceden ayarlı değerlerle hızlı tamamlama QR'ı.",
-          "advanced_places_visible": "Başka bir yerde (Home Assistant bölgesi) bakımı yapılan nesneler: hatırlatmalar yalnızca biri oradayken, varışta bir mesaj."
+          "advanced_places_visible": "Başka bir yerde (Home Assistant bölgesi) bakımı yapılan nesneler: hatırlatmalar yalnızca biri oradayken, varışta bir mesaj.",
+          "advanced_beta_editor_visible": "Panelin tamamında Home Assistant'ın kendi denetimleri, otomasyon düzenleyicisindeki gibi kurallar olarak görevler ve her görevin izi. Varsayılan olarak açık; klasik görünüm için kapatın."
         }
       },
       "panel_access": {

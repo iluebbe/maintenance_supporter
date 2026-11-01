@@ -582,7 +582,8 @@
           "advanced_checklists_visible": "Tarkistuslistat",
           "advanced_schedule_time_visible": "Kellonaikaan perustuva aikataulutus",
           "advanced_completion_actions_visible": "Suoritustoiminnot",
-          "advanced_places_visible": "Paikat"
+          "advanced_places_visible": "Paikat",
+          "advanced_beta_editor_visible": "Uusi ulkoasu ja tehtäväeditori"
         },
         "data_description": {
           "advanced_adaptive_visible": "Näytä EWA-, Weibull-analyysi ja aikaväliehdotukset tehtäville.",
@@ -593,7 +594,8 @@
           "advanced_checklists_visible": "Näytä tehtävien tarkistuslistat vaiheittaista suorittamista varten.",
           "advanced_schedule_time_visible": "Salli tehtävien erääntyminen tiettyyn kellonaikaan keskiyön sijaan.",
           "advanced_completion_actions_visible": "Tehtäväkohtainen HA-toiminto suorituksen yhteydessä + pikasuoritus-QR esiasetetuilla arvoilla.",
-          "advanced_places_visible": "Toisessa paikassa (Home Assistant -vyöhyke) huollettavat kohteet: muistutukset vain, kun joku on paikalla, ja viesti saavuttaessa."
+          "advanced_places_visible": "Toisessa paikassa (Home Assistant -vyöhyke) huollettavat kohteet: muistutukset vain, kun joku on paikalla, ja viesti saavuttaessa.",
+          "advanced_beta_editor_visible": "Home Assistantin omat säätimet koko paneelissa, tehtävät sääntöinä kuten automaatioeditorissa ja jäljitys jokaisesta tehtävästä. Oletuksena päällä; poista käytöstä klassista ulkoasua varten."
         }
       },
       "panel_access": {

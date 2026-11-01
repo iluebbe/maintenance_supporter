@@ -18,7 +18,7 @@
  */
 
 import { html, type TemplateResult } from "lit";
-import { t } from "../styles";
+import { formatDayCount, t } from "../styles";
 
 export function renderRecommendationBars(
   current: number | null | undefined,
@@ -31,14 +31,14 @@ export function renderRecommendationBars(
     <div class="interval-comparison">
       <div class="interval-bar">
         <div class="interval-label">
-          ${t("current", lang)}: ${current ?? "—"} ${current != null ? t("days", lang) : ""}
+          ${t("current", lang)}: ${current != null ? formatDayCount(current, lang) : "—"}
         </div>
         <div class="interval-visual current"
           style="width: ${current != null ? Math.min((current / maxBar) * 100, 100) : 0}%"></div>
       </div>
       <div class="interval-bar">
         <div class="interval-label">
-          ${t("recommended", lang)}: ${suggested} ${t("days", lang)}
+          ${t("recommended", lang)}: ${formatDayCount(suggested, lang)}
           <span class="confidence-badge ${confidence}">${t(`confidence_${confidence}`, lang)}</span>
         </div>
         <div class="interval-visual suggested"

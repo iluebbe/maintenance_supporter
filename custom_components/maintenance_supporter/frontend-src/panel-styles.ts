@@ -179,6 +179,226 @@ export const panelStyles = css`
     margin: 0 -2px 0 -4px;
   }
 
+  /* ── Beta overview as Home Assistant's list pages (Settings › Entities,
+     2026.11, measured): a 56-px toolbar of 32-px chips with a 10-px radius,
+     12-px labels and 16-px gaps; the filter pane beside the list, 250 px,
+     its head as tall as the toolbar; the table's header row; the create
+     button at the bottom right. ── */
+  .ms-list-layout.with-pane {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    align-items: start;
+  }
+  .ms-list-main { min-width: 0; padding-bottom: 88px; }
+  .ms-list-layout.with-pane .ms-list-main { padding-left: 16px; }
+  .ms-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 56px;
+    box-sizing: border-box;
+  }
+  .ms-chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    height: 32px;
+    padding: 0 12px 0 8px;
+    box-sizing: border-box;
+    border: 1px solid var(--outline-color, var(--divider-color));
+    border-radius: 10px;
+    background: transparent;
+    color: var(--primary-text-color);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .ms-chip ha-icon { --mdc-icon-size: 18px; color: var(--secondary-text-color); }
+  .ms-chip:hover { background: color-mix(in srgb, var(--primary-text-color) 6%, transparent); }
+  .ms-chip:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+  .ms-chip.active {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--primary-color) 15%, transparent);
+  }
+  .ms-chip.active ha-icon { color: var(--primary-color); }
+  .ms-chip.icon-only { width: 34px; padding: 0; justify-content: center; }
+  .ms-chip .ms-chip-caret { margin: 0 -4px 0 -2px; }
+  .ms-chip-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    background: var(--primary-color);
+    color: var(--text-primary-color, #fff);
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .ms-pane-section-head .ms-chip-badge { position: static; margin-left: 8px; }
+  .ms-search {
+    flex: 1;
+    min-width: 140px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 8px 0 10px;
+    box-sizing: border-box;
+    border: 1px solid var(--outline-color, var(--divider-color));
+    border-radius: 10px;
+    color: var(--secondary-text-color);
+  }
+  .ms-search:focus-within { border-color: var(--primary-color); }
+  .ms-search ha-icon { --mdc-icon-size: 18px; }
+  .ms-search input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--primary-text-color);
+    font: inherit;
+    font-size: 14px;
+  }
+  .ms-search input::-webkit-search-cancel-button { display: none; }
+  .ms-search-clear { display: inline-flex; padding: 0; border: none; background: none; color: var(--secondary-text-color); cursor: pointer; }
+  ha-dropdown-item.selected { color: var(--primary-color); font-weight: 500; }
+  .ms-filter-pane {
+    position: sticky;
+    top: 0;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    border-right: 1px solid var(--divider-color);
+  }
+  .ms-pane-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 56px;
+    padding-right: 4px;
+    border-bottom: 1px solid var(--divider-color);
+  }
+  .ms-pane-clear { color: var(--secondary-text-color); }
+  .ms-pane-section {
+    display: block;
+    border-bottom: 1px solid var(--divider-color);
+    --expansion-panel-summary-padding: 0 12px 0 8px;
+    --expansion-panel-content-padding: 0;
+  }
+  .ms-pane-section-head { display: flex; align-items: center; font-size: 14px; font-weight: 500; }
+  .ms-pane-options { display: flex; flex-direction: column; padding-bottom: 8px; }
+  .ms-pane-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 44px;
+    padding: 0 12px 0 16px;
+    border: none;
+    background: none;
+    color: var(--primary-text-color);
+    font: inherit;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .ms-pane-option:hover { background: color-mix(in srgb, var(--primary-text-color) 5%, transparent); }
+  .ms-pane-option:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
+  .ms-pane-option ha-icon { --mdc-icon-size: 22px; color: var(--secondary-text-color); flex: none; }
+  .ms-pane-option.on ha-icon { color: var(--primary-color); }
+  .ms-pane-option-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ms-pane-link {
+    align-self: flex-start;
+    margin: 4px 16px 0;
+    padding: 6px 0;
+    border: none;
+    background: none;
+    color: var(--primary-color);
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  /* The table's header row: the columns named, the sortable ones tappable
+     with HA's arrow on the one in force. Same subgrid as the rows. */
+  .task-head {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    align-items: center;
+    column-gap: 12px;
+    min-height: 48px;
+    padding: 0 12px;
+    border-top: 1px solid var(--divider-color);
+    border-bottom: 1px solid var(--divider-color);
+  }
+  .task-head .th {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--primary-text-color);
+  }
+  .task-head button.th {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    justify-self: start;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--primary-text-color);
+    cursor: pointer;
+  }
+  .task-head button.th:hover span { text-decoration: underline; }
+  .task-head button.th ha-icon { --mdc-icon-size: 16px; }
+  .task-head .th.th-due { justify-self: end; }
+  .split-list .task-head .th-type, .split-list .task-head .th-sub { display: none; }
+  /* With the filter pane open the list is 250 px narrower: below 1700 px it
+     drops the type and the chips, as the split list does, before the task
+     name has to wrap. */
+  @media (max-width: 1700px) {
+    :host(:not([narrow]):not([tight])) .ms-list-layout.with-pane .task-table:not(.object-tasks) { grid-template-columns: auto minmax(100px, 180px) minmax(120px, 1fr) 150px auto; }
+    :host(:not([narrow]):not([tight])) .ms-list-layout.with-pane .task-table.bulk:not(.object-tasks) { grid-template-columns: auto auto minmax(100px, 180px) minmax(120px, 1fr) 150px auto; }
+    :host(:not([narrow]):not([tight])) .ms-list-layout.with-pane .task-table .cell.type,
+    :host(:not([narrow]):not([tight])) .ms-list-layout.with-pane .task-table .task-sub,
+    :host(:not([narrow]):not([tight])) .ms-list-layout.with-pane .task-head .th-type,
+    :host(:not([narrow]):not([tight])) .ms-list-layout.with-pane .task-head .th-sub { display: none; }
+  }
+  /* Create, at the bottom right like Home Assistant's "Create automation". */
+  .ms-fab-wrapper {
+    position: fixed;
+    right: calc(16px + env(safe-area-inset-right, 0px));
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    z-index: 5;
+  }
+  .ms-fab { box-shadow: var(--ha-box-shadow-l, 0 4px 12px rgba(0, 0, 0, 0.24)); border-radius: 16px; }
+  :host([narrow]) .ms-toolbar { flex-wrap: wrap; gap: 8px; padding: 8px 0; }
+  :host([narrow]) .ms-search { order: 5; flex-basis: 100%; }
+  :host([narrow]) .ms-list-layout.with-pane { grid-template-columns: minmax(0, 1fr); }
+  :host([narrow]) .ms-filter-pane { position: static; max-height: none; border-right: none; border-bottom: 1px solid var(--divider-color); }
+  :host([narrow]) .ms-list-layout.with-pane .ms-list-main { padding-left: 0; }
+
+  /* Beta: Home Assistant's select, its label inside — as wide as the native
+     one reads (the floor below), wrapping like it. */
+  .filter-bar ms-ha-select { display: block; min-width: 160px; }
+  :host([narrow]) .filter-bar ms-ha-select { min-width: 0; width: 100%; }
+
   .filter-bar select {
     padding: 8px;
     border: 1px solid var(--divider-color);
@@ -249,7 +469,12 @@ export const panelStyles = css`
      height so the scrollbar stays honest. The sizer row is invisible and
      zero-height but its badge cell still participates in subgrid track
      sizing — pinning the content-sized badge column to the widest badge set
-     across ALL rows, so columns can't jitter while scrolling. */
+     across ALL rows, so columns can't jitter while scrolling.
+     No scroll anchoring inside it: lit reuses the row elements by position,
+     so after the window moves an element shows a row further down, Chrome
+     reads that as the anchor having moved, scrolls after it, the window
+     moves again, and one wheel step ran off to the end of the list. */
+  .task-table.virtual { overflow-anchor: none; }
   .virt-spacer { grid-column: 1 / -1; }
   .task-row.virt-sizer {
     height: 0;
@@ -345,6 +570,53 @@ export const panelStyles = css`
   .split-list .task-table.bulk { grid-template-columns: auto auto minmax(100px, 180px) minmax(120px, 1fr) 150px auto; }
   .split-list .cell.type { display: none; }
   .split-list .task-sub { display: none; }
+
+  /* 2560 px and wider (a QHD or 4K screen at 100 %): the name or chips track
+     took all the slack, so the due date and the buttons sat 1000 px and more
+     to the right of the task's name (4K capture 2026-11-01). The name hugs
+     the longest name, the chips get a bounded track, and an empty last track
+     takes the rest: a row reads left to right in one sweep. The rows span
+     every track (1 / -1), so the empty one still belongs to the row. The
+     object column grows to 360 px there: at 180 px a long object name took
+     four lines beside all that space. */
+  @media (min-width: 2400px) {
+    .task-table {
+      grid-template-columns: auto fit-content(360px) fit-content(520px) minmax(0, 440px) 100px 150px auto minmax(0, 1fr);
+    }
+    .task-table.bulk {
+      grid-template-columns: auto auto fit-content(360px) fit-content(520px) minmax(0, 440px) 100px 150px auto minmax(0, 1fr);
+    }
+    .task-table.object-tasks {
+      grid-template-columns: auto fit-content(520px) minmax(0, 440px) 100px 150px auto minmax(0, 1fr);
+    }
+    .split-list .task-table { grid-template-columns: auto fit-content(360px) fit-content(720px) 150px auto minmax(0, 1fr); }
+    .split-list .task-table.bulk { grid-template-columns: auto auto fit-content(360px) fit-content(720px) 150px auto minmax(0, 1fr); }
+  }
+
+  /* The object page as master-detail (beta, from 1500 px): its task list has
+     no object column, so inside the split it is badges, name, due date and
+     buttons (the shared split template would shift every cell one track). */
+  .split-list .task-table.object-tasks { grid-template-columns: auto minmax(120px, 1fr) 150px auto; }
+  @media (min-width: 2400px) {
+    .split-list .task-table.object-tasks { grid-template-columns: auto fit-content(720px) 150px auto minmax(0, 1fr); }
+  }
+  /* From 2200 px of panel (beta): the work on the left (sub-objects, tasks,
+     history), what the object is and has on the right (its data, documents,
+     parts), side by side instead of one long column. */
+  .object-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 24px;
+    align-items: start;
+  }
+  .object-col { min-width: 0; }
+  .object-meta {
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    border: 1px solid var(--divider-color);
+    border-radius: var(--ms-radius-10, 12px);
+  }
+  .object-meta .meta:first-child { margin-top: 0; }
   /* Grouped list: the section cards carry a 12px vertical margin that does
      not collapse inside the grid, so the first card sat 12px below the
      pane's top edge and the two cards read as misaligned. Level them. */
@@ -394,7 +666,7 @@ export const panelStyles = css`
   /* Collapsible analysis sections on the task-detail overview tab. The header
      owns the title, so the wrapped card's own title row is hidden to avoid
      showing it twice. */
-  .collapsible { margin: 8px 0; border: 1px solid var(--divider-color); border-radius: 10px; overflow: hidden; }
+  .collapsible { margin: 8px 0; border: 1px solid var(--divider-color); border-radius: var(--ms-radius-10, 10px); overflow: hidden; }
   .collapsible-head {
     display: flex; align-items: center; gap: 8px; width: 100%;
     font: inherit; font-weight: 600; font-size: 14px; text-align: left;
@@ -469,7 +741,9 @@ export const panelStyles = css`
   .palette-backdrop {
     position: fixed; inset: 0; z-index: 1100; background: rgba(0,0,0,.4);
     display: flex; align-items: flex-start; justify-content: center; padding-top: 12vh;
-    animation: toast-in .15s ease;
+    /* Its own fade: the toast's keyframes carry the toast's translateX(-50%),
+       which slid the search and the gallery in from half a screen left. */
+    animation: backdrop-in .15s ease;
   }
   .palette {
     width: min(620px, 92vw); max-height: 66vh; display: flex; flex-direction: column;
@@ -491,7 +765,7 @@ export const panelStyles = css`
   .palette-line { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .palette-label { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .palette-sub { margin-left: auto; color: var(--secondary-text-color); font-size: 12.5px; flex: none; padding-left: 10px; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .palette-page { flex: none; font-size: 11.5px; padding: 1px 7px; border-radius: 10px; background: color-mix(in srgb, var(--primary-color) 14%, transparent); color: var(--primary-color); }
+  .palette-page { flex: none; font-size: 11.5px; padding: 1px 7px; border-radius: var(--ms-radius-10, 10px); background: color-mix(in srgb, var(--primary-color) 14%, transparent); color: var(--primary-color); }
   .palette-snippet { font-size: 12.5px; color: var(--secondary-text-color); margin-top: 2px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .palette-group { padding: 10px 16px 4px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--secondary-text-color); }
   .palette-group + .palette-item { border-top: none; }
@@ -520,7 +794,7 @@ export const panelStyles = css`
   .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
   .template-card {
     display: flex; flex-direction: column; gap: 4px; text-align: left; cursor: pointer;
-    padding: 12px 14px; border: 1px solid var(--divider-color); border-radius: 10px;
+    padding: 12px 14px; border: 1px solid var(--divider-color); border-radius: var(--ms-radius-10, 10px);
     background: var(--card-background-color); font: inherit; color: var(--primary-text-color);
   }
   .template-card:hover { border-color: var(--primary-color); background: color-mix(in srgb, var(--primary-color) 6%, transparent); }
@@ -532,10 +806,21 @@ export const panelStyles = css`
   .template-cat-hint { font-size: 12px; color: var(--secondary-text-color); margin: -4px 0 8px; }
   .template-card-reasons { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
   .template-card-reason {
-    font-size: 11px; padding: 1px 6px; border-radius: 10px;
+    font-size: 11px; padding: 1px 6px; border-radius: var(--ms-radius-10, 10px);
     background: color-mix(in srgb, var(--primary-color) 12%, transparent); color: var(--primary-text-color);
   }
   .template-card.not-typical { opacity: .6; }
+  /* 2026-10 beta: a template's tasks to tick before creating it. */
+  .template-preview-name { flex: 1 1 auto; min-width: 0; }
+  .template-preview-task {
+    display: flex; gap: 12px; align-items: flex-start; padding: 8px 4px;
+    border-bottom: 1px solid var(--divider-color); cursor: pointer;
+  }
+  .template-preview-task input { margin-top: 3px; flex: none; }
+  .template-preview-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .template-preview-task-name { font-size: 14px; }
+  .template-preview-rule { font-size: 12px; color: var(--secondary-text-color); }
+  .template-preview-actions { display: flex; justify-content: flex-end; padding-top: 12px; }
   /* 2.94: the home already has an object for this template. */
   .template-card-setup {
     display: inline-flex; align-items: center; gap: 4px; font-size: 12px;
@@ -574,6 +859,13 @@ export const panelStyles = css`
   .row-head { display: contents; }
   .cell.object-name { color: var(--primary-color); cursor: pointer; }
   .cell.task-name { font-weight: 500; }
+  /* A word with no break in it ("Kondensatablaufschlauchreinigungs…", 53
+     letters) ran out of its cell over the due date, and on a phone over the
+     object's name: names may break anywhere when nothing else fits. */
+  .cell.task-name, .cell.object-name, .detail-header h2, .task-header-title, .task-name-breadcrumb {
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
   .cell.type { color: var(--secondary-text-color); }
 
   /* Task subline chips (group / area / assigned user) — desktop shows inline, mobile wraps below */
@@ -605,7 +897,7 @@ export const panelStyles = css`
     gap: 4px;
     white-space: nowrap;
     padding: 2px 8px;
-    border-radius: 10px;
+    border-radius: var(--ms-radius-10, 10px);
     background: var(--secondary-background-color, rgba(127, 127, 127, 0.1));
     line-height: 1.4;
     /* A single chip wider than the squeezed track truncates instead of
@@ -867,7 +1159,7 @@ export const panelStyles = css`
   .warranty-chip {
     display: inline-block;
     padding: 2px 8px;
-    border-radius: 10px;
+    border-radius: var(--ms-radius-10, 10px);
     font-size: 12px;
     font-weight: 500;
     white-space: nowrap;
@@ -944,7 +1236,7 @@ export const panelStyles = css`
     margin: 1px 4px 1px 0;
     padding: 1px 8px;
     border: 1px solid var(--divider-color);
-    border-radius: 10px;
+    border-radius: var(--ms-radius-10, 10px);
     font-size: 12px;
     color: var(--secondary-text-color);
   }
@@ -985,9 +1277,29 @@ export const panelStyles = css`
   }
   .objects-table tbody tr:last-child td { border-bottom: none; }
   .objects-table-name { font-weight: 500; color: var(--primary-text-color); }
+  /* The name stays put while the other columns scroll sideways: with a dozen
+     columns it went out of view, and the rows read as nobody's (column test
+     2026-11-01). Opaque, the row's own tint laid over the card. */
+  .objects-table .oc-name {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--card-background-color, #fff);
+    box-shadow: inset -1px 0 0 var(--divider-color);
+  }
+  .objects-table thead th.oc-name {
+    z-index: 2;
+    background: linear-gradient(var(--secondary-background-color, rgba(0, 0, 0, 0.03)), var(--secondary-background-color, rgba(0, 0, 0, 0.03))), var(--card-background-color, #fff);
+  }
+  .objects-table tbody tr:hover td.oc-name {
+    background: linear-gradient(var(--secondary-background-color, rgba(0, 0, 0, 0.04)), var(--secondary-background-color, rgba(0, 0, 0, 0.04))), var(--card-background-color, #fff);
+  }
+  .objects-table tbody tr.bulk-selected td.oc-name {
+    background: linear-gradient(color-mix(in srgb, var(--primary-color) 10%, transparent), color-mix(in srgb, var(--primary-color) 10%, transparent)), var(--card-background-color, #fff);
+  }
   .doc-badge {
     display: inline-flex; align-items: center; gap: 2px; vertical-align: middle;
-    margin-left: 8px; padding: 1px 7px 1px 5px; border-radius: 10px;
+    margin-left: 8px; padding: 1px 7px 1px 5px; border-radius: var(--ms-radius-10, 10px);
     font-size: 12px; font-weight: 600;
     background: var(--secondary-background-color, rgba(0, 0, 0, 0.06));
     color: var(--secondary-text-color, #888);
@@ -1034,7 +1346,7 @@ export const panelStyles = css`
   .area-sort ha-icon { --mdc-icon-size: 14px; }
   .area-row-icon { --mdc-icon-size: 18px; color: var(--secondary-text-color); margin-right: 8px; vertical-align: middle; }
   .area-count {
-    display: inline-block; min-width: 20px; padding: 0 7px; border-radius: 10px;
+    display: inline-block; min-width: 20px; padding: 0 7px; border-radius: var(--ms-radius-10, 10px);
     text-align: center; font-size: 12px; font-weight: 600;
     background: var(--secondary-background-color); color: var(--secondary-text-color);
   }
@@ -1161,7 +1473,7 @@ export const panelStyles = css`
     margin-left: 8px;
     background: var(--secondary-background-color, #e8e8e8);
     color: var(--secondary-text-color);
-    border-radius: 10px;
+    border-radius: var(--ms-radius-10, 10px);
     font-size: 11px;
     font-weight: 500;
   }
@@ -1277,6 +1589,25 @@ export const panelStyles = css`
     border-bottom: 2px solid var(--divider-color);
     margin-bottom: 16px;
   }
+  /* Beta UI: HA's ha-tab-group draws its own track and indicator. */
+  .tab-bar.ha-tabs {
+    align-items: center;
+    border-bottom: 0;
+  }
+  .tab-bar.ha-tabs ha-tab-group {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  /* HA's tabs are wide: at 390 px "Today" scrolled out behind a scroll
+     button. Narrower sides keep all four on a phone. */
+  .tab-bar.ha-tabs ha-tab-group-tab::part(base) {
+    padding-inline: 12px;
+  }
+  @media (max-width: 420px) {
+    .tab-bar.ha-tabs ha-tab-group-tab::part(base) {
+      padding-inline: 8px;
+    }
+  }
 
   .tab {
     padding: 12px 24px;
@@ -1301,9 +1632,13 @@ export const panelStyles = css`
     padding: 16px 0;
   }
 
+  /* As many cards in a row as fit, the rest in the next: seven in one row on
+     a full page, two rows in a docked task beside the list (seven fixed
+     columns ran 5 px past a 635 px pane at 1920 with the filter pane open,
+     clip check 2026-11-01). */
   .kpi-bar {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
     gap: 12px;
     margin-bottom: 24px;
   }
@@ -1314,6 +1649,8 @@ export const panelStyles = css`
     padding: 16px 12px;
     text-align: center;
     border: 1px solid var(--divider-color);
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .kpi-card.warning {
@@ -2204,11 +2541,15 @@ export const panelStyles = css`
   .toast-undo {
     font: inherit; font-weight: 600; color: #fff; cursor: pointer;
     background: transparent; border: 1px solid rgba(255,255,255,.6);
-    border-radius: 6px; padding: 4px 12px; text-transform: uppercase; font-size: 12.5px;
+    border-radius: var(--ms-radius-6, 6px); padding: 4px 12px; text-transform: uppercase; font-size: 12.5px;
   }
   .toast-undo:hover { background: rgba(255,255,255,.15); }
   @keyframes toast-in {
     from { opacity: 0; transform: translateX(-50%) translateY(16px); }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  @keyframes backdrop-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 `;

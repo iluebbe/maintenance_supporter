@@ -17,6 +17,7 @@
  */
 
 import type { HomeAssistant } from "../types";
+import { setBetaUi } from "./beta-ui";
 import { NO_DELEGATION, type WriteAccess } from "./permissions";
 import { SETTING_INT_RANGES } from "./setting-ranges";
 import { partsCostModeOf, type PartsCostMode } from "./parts-cost";
@@ -26,6 +27,7 @@ export interface SettingsCache {
     adaptive: boolean; seasonal: boolean;
     environmental: boolean; budget: boolean; groups: boolean;
     checklists: boolean; schedule_time: boolean; completion_actions: boolean; places: boolean;
+    beta_editor: boolean;
   };
   defaultWarningDays: number;
   /** #145: global "Task row actions" style (buttons_compact | buttons | icons). */
@@ -64,16 +66,14 @@ export const ROW_ACTION_STYLES = ["buttons_compact", "buttons", "icons"] as cons
 export function parseSettings(r: SettingsWire | null | undefined): SettingsCache {
   const [dwdMin, dwdMax] = SETTING_INT_RANGES.default_warning_days;
   const dwd = r?.general?.default_warning_days;
-  const ras = r?.general?.row_action_style;
+  const features = { ...FALLBACK_SETTINGS.features, ...(r?.features ?? {}) };
   return {
-    features: { ...FALLBACK_SETTINGS.features, ...(r?.features ?? {}) },
+    features,
     defaultWarningDays:
       typeof dwd === "number" && Number.isFinite(dwd) && dwd >= dwdMin && dwd <= dwdMax
         ? dwd
         : FALLBACK_SETTINGS.defaultWarningDays,
-    rowActionStyle: (ROW_ACTION_STYLES as readonly string[]).includes(ras ?? "")
-      ? (ras as string)
-      : FALLBACK_SETTINGS.rowActionStyle,
+    rowActionStyle: effectiveRowActionStyle(r?.general?.row_action_style, r?.general?.row_action_style_set, features.beta_editor),
     access: {
       operatorWriteEnabled: r?.operator_write_enabled === true,
       operatorIds: Array.isArray(r?.admin_panel_user_ids) ? r!.admin_panel_user_ids!.filter((x) => typeof x === "string") : [],
@@ -89,11 +89,21 @@ export function parseSettings(r: SettingsWire | null | undefined): SettingsCache
   };
 }
 
+/** How task rows show Complete / Skip: the household's choice; while nobody
+ *  has chosen, icons with the beta UI (Home Assistant's tables carry icons,
+ *  not labelled buttons — user decision 2026-11-01), else the default. An
+ *  older server that does not say whether it was chosen counts as chosen. */
+export function effectiveRowActionStyle(style: string | undefined, chosen: boolean | undefined, beta: boolean): string {
+  if (chosen === false && beta) return "icons";
+  return (ROW_ACTION_STYLES as readonly string[]).includes(style ?? "") ? (style as string) : FALLBACK_SETTINGS.rowActionStyle;
+}
+
 export interface SettingsWire {
   features?: Partial<SettingsCache["features"]>;
   general?: {
     default_warning_days?: number;
     row_action_style?: string;
+    row_action_style_set?: boolean;
     row_action_notice_pending?: boolean;
     ref_numbers_in_lists?: boolean;
     mirror_todo_default_entities?: string[];
@@ -108,7 +118,7 @@ export const FALLBACK_SETTINGS: SettingsCache = {
   features: {
     adaptive: false, seasonal: false,
     environmental: false, budget: false, groups: false,
-    checklists: false, schedule_time: false, completion_actions: false, places: false,
+    checklists: false, schedule_time: false, completion_actions: false, places: false, beta_editor: false,
   },
   defaultWarningDays: 7,
   rowActionStyle: "buttons_compact",
@@ -135,7 +145,12 @@ export function fetchSettingsOnce(hass: HomeAssistant): Promise<SettingsCache> {
   if (s.promise) return s.promise;
   const p: Promise<SettingsCache> = hass.connection
     .sendMessagePromise<SettingsWire>({ type: "maintenance_supporter/settings" })
-    .then((r) => parseSettings(r))
+    .then((r) => {
+      const parsed = parseSettings(r);
+      // Cards and the dialogs mounted on dashboards read the beta UI here.
+      setBetaUi(parsed.features.beta_editor);
+      return parsed;
+    })
     .catch(() => {
       // Only drop OUR promise — an invalidate + refetch may have replaced it.
       if (s.promise === p) s.promise = null;

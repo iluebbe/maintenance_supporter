@@ -23,7 +23,9 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t } from "../styles";
 import { isAndroidCompanion } from "../helpers/companion";
+import { topLayer, topLayerStyles } from "../helpers/top-layer";
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
+import { collapsible } from "../helpers/collapsible";
 
 export function inAppCameraPreferred(): boolean {
   if (!isAndroidCompanion()) return false;
@@ -540,17 +542,16 @@ export class MsCameraCapture extends LitElement {
     const L = this.lang;
     const locked = this._busy || this._switching;
     return html`
-      <div class="overlay" role="dialog" aria-modal="true" aria-label=${t("doc_camera", L)}>
+      <div class="overlay top-layer" popover="manual" ${topLayer} role="dialog" aria-modal="true" aria-label=${t("doc_camera", L)}>
         <video autoplay playsinline muted></video>
         ${this._switching ? html`<div class="switching" role="status">${t("camera_switching", L)}</div>` : nothing}
         ${this._switchFailed
           ? html`<div class="switch-note" role="status">
               <div>${t("camera_not_answered", L)}</div>
-              <details class="details">
-                <summary>${t("camera_diagnostics", L)}</summary>
+              ${collapsible({ cls: "details", header: t("camera_diagnostics", L) }, html`
                 <textarea readonly rows="6" .value=${this._log.join("\n")}></textarea>
                 <button type="button" class="copy" @click=${this._copyLog}>${t(this._copied ? "camera_copied" : "camera_copy", L)}</button>
-              </details>
+              `)}
             </div>`
           : nothing}
         <div class="bar">
@@ -569,7 +570,7 @@ export class MsCameraCapture extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [topLayerStyles, css`
     :host { display: contents; }
     .overlay {
       position: fixed; inset: 0; z-index: 10000;
@@ -604,13 +605,13 @@ export class MsCameraCapture extends LitElement {
     .details textarea {
       display: block; box-sizing: border-box; width: 100%; margin: 6px 0;
       font: 11px/1.35 monospace; color: #fff; background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 6px; padding: 6px; resize: vertical;
+      border: 1px solid rgba(255, 255, 255, 0.3); border-radius: var(--ms-radius-6, 6px); padding: 6px; resize: vertical;
     }
     .copy { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, 0.6); padding: 6px 14px; font-size: 13px; }
     .shoot { background: var(--primary-color, #03a9f4); color: #fff; border: none; font-weight: 600; }
     .shoot[disabled] { opacity: 0.6; cursor: default; }
     .shoot ha-icon { --mdc-icon-size: 22px; }
-  `;
+  `];
 }
 
 if (!customElements.get("ms-camera-capture")) {

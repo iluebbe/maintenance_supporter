@@ -24,10 +24,13 @@ import { property, state } from "lit/decorators.js";
 
 import { t, ensureLocale, langOf } from "../styles";
 import { runWs } from "../helpers/ws-run";
-import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
+import { focusModalShell, modalShellStyles, renderModalShell, shellIsHa } from "../helpers/modal-shell";
 import { TRIGGER_FOR_MINUTES_RANGE } from "../helpers/setting-ranges";
 import { UserService } from "../user-service";
 import type { HAUser, HomeAssistant } from "../types";
+import { collapsible } from "../helpers/collapsible";
+import { notice } from "../helpers/notice";
+import { checkField } from "../helpers/check-field";
 
 interface ProblemSensor {
   entity_id: string;
@@ -217,15 +220,14 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
       .replace("{objects}", String(groups.length))
       .replace("{new}", String(created));
     return html`
-      <details
-        class="summary"
-        .open=${this._summaryOpen}
-        @toggle=${(e: Event) => { this._summaryOpen = (e.target as HTMLDetailsElement).open; }}
-      >
-        <summary>
+      ${collapsible({
+        cls: "summary",
+        open: this._summaryOpen,
+        onToggle: (open) => { this._summaryOpen = open; },
+        header: html`
           <span class="summary-title">${t("adopt_summary_title", L)}</span>
-          <span class="summary-totals">${totals}</span>
-        </summary>
+          <span class="summary-totals">${totals}</span>`,
+      }, html`
         ${groups.map((g) => {
           if (!g.entry) {
             return html`<div class="summary-line new">
@@ -240,7 +242,7 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
               .replace("{after}", String(before + g.adding))}
           </div>`;
         })}
-      </details>
+      `)}
     `;
   }
 
@@ -311,8 +313,8 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
       this._sensors.length > 0 && this._selected.size === this._sensors.length;
 
     return renderModalShell(() => this._close(), html`
-        <div class="title">${t("adopt_problem_title", L)}</div>
-        ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+        ${shellIsHa() ? nothing : html`<div class="title">${t("adopt_problem_title", L)}</div>`}
+        ${this._error ? notice("error", this._error) : nothing}
 
         <div class="dialog-scroll">
           <div class="hint">${t("adopt_problem_hint", L)}</div>
@@ -321,14 +323,7 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
             : this._sensors.length === 0
               ? html`<div class="empty">${t("adopt_problem_none", L)}</div>`
               : html`
-                  <label class="select-all">
-                    <input
-                      type="checkbox"
-                      .checked=${allSelected}
-                      @change=${this._toggleAll}
-                    />
-                    <span>${t("selected", L)}: ${this._selected.size} / ${this._sensors.length}</span>
-                  </label>
+                  ${checkField({ cls: "select-all", checked: allSelected, onChange: this._toggleAll }, html`<span>${t("selected", L)}: ${this._selected.size} / ${this._sensors.length}</span>`)}
                   <div class="row-sub adopt-object-hint">${t("adopt_object_hint", L)}</div>
                   <datalist id="adopt-object-names">
                     ${this._objects.map((o) => html`<option value=${o.name}></option>`)}
@@ -445,7 +440,7 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
             ${t("adopt_problem_adopt", L)}
           </ha-button>
         </div>
-    `);
+    `, { title: t("adopt_problem_title", L) });
   }
 
   static styles = [modalShellStyles, css`
@@ -503,7 +498,7 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
       gap: 10px;
       padding: 8px;
       border: 1px solid var(--divider-color);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       cursor: pointer;
     }
     .row input {
@@ -533,7 +528,7 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
     .row-object { margin-top: 6px; }
     .row-object input {
       width: 100%; box-sizing: border-box; padding: 6px 8px; font: inherit;
-      border: 1px solid var(--divider-color); border-radius: 6px;
+      border: 1px solid var(--divider-color); border-radius: var(--ms-radius-6, 6px);
       background: var(--card-background-color); color: var(--primary-text-color);
     }
     .adopt-object-hint { margin: 0 0 8px; }
@@ -579,7 +574,7 @@ export class MaintenanceAdoptProblemSensorsDialog extends LitElement {
     .chip {
       font-size: 11px;
       padding: 1px 8px;
-      border-radius: 10px;
+      border-radius: var(--ms-radius-10, 10px);
       white-space: nowrap;
     }
     .chip-active {

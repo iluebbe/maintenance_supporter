@@ -78,6 +78,8 @@ from .notify_hooks import (
 )
 from .places import reminds_on_site
 from .settings_registry import setting_default
+from .task_trace import KIND_REMINDER, KIND_REMINDER_CLEARED, KIND_SNOOZED
+from .task_trace import record as record_trace
 from .trigger_detail import trigger_detail
 
 _LOGGER = logging.getLogger(__name__)
@@ -105,6 +107,15 @@ _SENT_ONCE = datetime.max  # noqa: DTZ901 - intentional naive sentinel, see comm
 # a new push waits at least this long: a sensor flapping around its limit
 # cannot turn "once" into a stream.
 _REARM_MIN_SECONDS = 3600
+
+
+def _elapsed_seconds(stamp: datetime) -> float:
+    """Real seconds since ``stamp``. Against ``utcnow``, not ``now``: two
+    times in the local zone subtract by the wall clock, and in the hour the
+    clocks go back a reminder sent at 01:50 looked 40 minutes in the future
+    at 01:10 standard time (and a repeat waited an hour more). The stamps
+    stay local times; only the difference is taken in real time."""
+    return (dt_util.utcnow() - stamp).total_seconds()
 
 # The manager's bookkeeping survives a restart (2026-09-13): what was sent when
 # (incl. the "once" marks), snoozes, the daily counter, the lead dedup, the
@@ -1380,7 +1391,7 @@ class NotificationManager:
         if last == _SENT_ONCE:
             return False
         min_seconds = interval_hours * 3600 if interval_hours > 0 else _REARM_MIN_SECONDS
-        return (dt_util.now() - last).total_seconds() >= min_seconds
+        return _elapsed_seconds(last) >= min_seconds
 
     def rearm_left_statuses(self, entry_id: str, task_id: str, current_status: str | None) -> None:
         """Re-arm the "notify once" stamps of the statuses the task is no
@@ -1416,7 +1427,7 @@ class NotificationManager:
         last = self._last_notified.get(key)
         if last is None or last == _SENT_ONCE:
             return False
-        return (dt_util.now() - last).total_seconds() < min_seconds
+        return _elapsed_seconds(last) < min_seconds
 
     async def _resolve_and_send(
         self,
@@ -1978,7 +1989,9 @@ class NotificationManager:
         until = self._snoozed_until.get(key)
         if until is None:
             return False
-        if dt_util.now() >= until:
+        # utcnow: two times in the local zone compare by the wall clock, which
+        # runs an hour back once a year (see _elapsed_seconds).
+        if dt_util.utcnow() >= until:
             # Snooze expired
             del self._snoozed_until[key]
             return False
@@ -2011,12 +2024,15 @@ class NotificationManager:
     def snooze_task(self, entry_id: str, task_id: str) -> datetime:
         """Snooze all notifications for a task; returns when it ends."""
         hours = self._opt(CONF_SNOOZE_DURATION_HOURS)
-        until = dt_util.now() + timedelta(hours=hours)
+        # Real hours, shown in local time: local time plus a timedelta adds to
+        # the wall clock, and across the autumn clock change "4 hours" lasted 5.
+        until = dt_util.as_local(dt_util.utcnow() + timedelta(hours=hours))
         # Snooze for all status types
         for status in NOTIFIABLE_STATUSES:
             self._snoozed_until[notification_key(entry_id, task_id, status)] = until
             self._dirty()
         _LOGGER.debug("Snoozed task %s for %s hours (until %s)", task_id, hours, until)
+        record_trace(self.hass, entry_id, task_id, KIND_SNOOZED, until=until.isoformat(), hours=hours)
         return until
 
     async def async_task_status_changed(
@@ -2126,6 +2142,7 @@ class NotificationManager:
         self._stamp_status_sent(key, interval_hours)
         self._mark_delivered([task_key])
         self._on_phones[task_key] = ON_PHONES_STATUS
+        record_trace(self.hass, entry_id, task_id, KIND_REMINDER, reminder="status", status=str(new_status))
 
         _LOGGER.debug("Notification sent: %s - %s", title, message)
 
@@ -2475,6 +2492,9 @@ class NotificationManager:
                     if t.get("task_id"):
                         self._stamp_status_sent(notification_key(entry_id, t["task_id"], t["status"]), self._get_interval_hours(t["status"]))
                 self._mark_delivered(member_keys)
+                for t in tasks:
+                    if t.get("task_id"):
+                        record_trace(self.hass, entry_id, t["task_id"], KIND_REMINDER, reminder="bundle", status=str(t.get("status")))
                 _LOGGER.debug("Bundled notification sent: %s - %s", title, message)
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.exception("Failed to send bundled notification")
@@ -2605,6 +2625,7 @@ class NotificationManager:
         ):
             self._mark_delivered([lead_task_key])
             self._on_phones[lead_task_key] = ON_PHONES_LEAD
+            record_trace(self.hass, entry_id, task_id, KIND_REMINDER, reminder="lead", days=days)
             # Keep only today's stamps - yesterday's are dead weight.
             self._lead_sent = {k: d for k, d in self._lead_sent.items() if d == today}
             self._lead_sent[lead_key] = today
@@ -2729,6 +2750,7 @@ class NotificationManager:
             return False
         del self._on_phones[tkey]
         self._dirty()
+        record_trace(self.hass, entry_id, task_id, KIND_REMINDER_CLEARED, reason="inert" if inert else "status_left")
         return True
 
     def clear_task_state(self, entry_id: str, task_id: str) -> None:
@@ -2758,6 +2780,7 @@ class NotificationManager:
         dismiss = self.was_reminded(entry_id, task_id)
         self.clear_task_state(entry_id, task_id)
         if dismiss:
+            record_trace(self.hass, entry_id, task_id, KIND_REMINDER_CLEARED, reason="done")
             self.hass.async_create_task(
                 self.async_dismiss_task_notification(task_id, user_ids=task_user_ids(reminded)),
                 f"{DOMAIN} dismiss reminder {task_id}",

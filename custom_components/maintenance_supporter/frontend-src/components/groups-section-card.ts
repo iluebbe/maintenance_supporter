@@ -16,6 +16,7 @@ import { fetchSettingsOnce } from "../helpers/settings-cache";
 import { canWrite, NO_DELEGATION, type WriteAccess } from "../helpers/permissions";
 import { confirmAction } from "../helpers/confirm";
 import type { HomeAssistant } from "../types";
+import { notice } from "../helpers/notice";
 
 interface GroupEntry {
   name?: string;
@@ -166,7 +167,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
             </div>
           </div>
 
-          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+          ${this._error ? notice("error", this._error) : nothing}
 
           ${ids.length === 0
             ? html`<div class="empty">${t("groups_empty", L)}</div>`
@@ -268,7 +269,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
     .group-list { display: flex; flex-direction: column; gap: 4px; }
     .group-row {
       display: flex; align-items: center; gap: 8px;
-      padding: 6px 8px; border-radius: 6px;
+      padding: 6px 8px; border-radius: var(--ms-radius-6, 6px);
       background: var(--secondary-background-color, rgba(255,255,255,0.03));
     }
     .group-name { flex: 1; font-size: 14px; }
@@ -304,7 +305,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
       flex: 1; padding: 6px 8px; font-size: 13px;
       background: var(--secondary-background-color, #2c2c2c);
       color: var(--primary-text-color);
-      border: 1px solid var(--divider-color); border-radius: 6px;
+      border: 1px solid var(--divider-color); border-radius: var(--ms-radius-6, 6px);
       font-family: inherit;
     }
     /* Card-specific overrides on the shared .btn */

@@ -39,6 +39,8 @@ _READ_ONLY_TASK_QUERIES = frozenset(
         "task/analyze_interval",
         "task/history",
         "task/list",
+        # 2026-10 beta: the Trace tab reads the journal and the history.
+        "task/trace",
     }
 )
 

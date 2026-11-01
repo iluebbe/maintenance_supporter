@@ -15,6 +15,7 @@ import { openSignedDocument } from "../helpers/document-url";
 import { isSafeLink } from "../helpers/url";
 import { formatBytes } from "../helpers/format-bytes";
 import type { HomeAssistant } from "../types";
+import { notice } from "../helpers/notice";
 
 interface StorageSummary {
   total_bytes: number;
@@ -243,7 +244,7 @@ export class MaintenanceStorageSectionCard extends LitElement {
                     />
                   </div>
 
-                  ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+                  ${this._error ? notice("error", this._error) : nothing}
 
                   ${this._query.trim()
                     ? this._results.length
@@ -326,7 +327,7 @@ export class MaintenanceStorageSectionCard extends LitElement {
       background: none; border: none; padding: 4px 0; margin: 0; cursor: pointer;
       font: inherit; color: var(--primary-text-color); text-align: left;
     }
-    .toggle:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; border-radius: 6px; }
+    .toggle:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; border-radius: var(--ms-radius-6, 6px); }
     .chevron { --mdc-icon-size: 22px; color: var(--secondary-text-color, #888); flex: none; }
     .title-text {
       font-size: 16px; font-weight: 500; min-width: 0;
@@ -350,7 +351,7 @@ export class MaintenanceStorageSectionCard extends LitElement {
     .obj-list { display: flex; flex-direction: column; gap: 2px; margin-top: 8px; }
     .obj-row {
       display: flex; align-items: center; gap: 10px;
-      padding: 6px 8px; border-radius: 6px;
+      padding: 6px 8px; border-radius: var(--ms-radius-6, 6px);
     }
     .obj-row:nth-child(odd) { background: var(--secondary-background-color, rgba(0,0,0,0.04)); }
     .obj-row.clickable { cursor: pointer; }

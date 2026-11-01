@@ -4,11 +4,16 @@
  *  immediately on mount and reconciles when the live payload lands. The
  *  cache is version-stamped (a bundle update discards it), age-capped, and
  *  written back on every successful live load.
+ *
+ *  2026-11-01, the new look became the default: the entry remembers the look
+ *  the list was painted in, so a revisit does not flash the classic list
+ *  until the settings arrive.
  */
 
 import { expect } from "@open-wc/testing";
 import { LS_KEYS } from "../helpers/storage-keys.js";
 import { BUNDLE_VERSION } from "../helpers/bundle-version.js";
+import { betaUi, setBetaUi } from "../helpers/beta-ui.js";
 import { mountPanel, obj, resetTaskSeq, sr, task } from "./_panel-utils.js";
 
 function seedCache(over: Record<string, unknown> = {}) {
@@ -31,7 +36,10 @@ describe("skeleton from cache", () => {
     localStorage.removeItem(LS_KEYS.objectsCache);
     localStorage.setItem(LS_KEYS.overviewTab, "dashboard");
   });
-  afterEach(() => localStorage.removeItem(LS_KEYS.objectsCache));
+  afterEach(() => {
+    localStorage.removeItem(LS_KEYS.objectsCache);
+    setBetaUi(false);
+  });
 
   it("paints cached rows before the live payload arrives, then reconciles", async () => {
     seedCache();
@@ -80,6 +88,39 @@ describe("skeleton from cache", () => {
     const entry = JSON.parse(raw!);
     expect(entry.v).to.equal(BUNDLE_VERSION);
     expect(entry.objects[0].object.name).to.equal("Fresh Pump");
+  });
+
+  it("paints the skeleton in the look it was cached in, before the settings arrive", async () => {
+    setBetaUi(false);
+    seedCache({ beta: true });
+    let resolveLive!: (v: unknown) => void;
+    const live = new Promise((r) => { resolveLive = r; });
+    await mountPanel([], {
+      "maintenance_supporter/objects": () => live,
+      "maintenance_supporter/settings": () => live,
+    });
+    expect(betaUi(), "the new look from the cache").to.equal(true);
+    resolveLive({ objects: [], features: { beta_editor: false } });
+    await new Promise((r) => setTimeout(r, 30));
+    expect(betaUi(), "the live settings have the last word").to.equal(false);
+  });
+
+  it("an entry from before the look was remembered leaves the look alone", async () => {
+    setBetaUi(false);
+    seedCache();
+    let resolveLive!: (v: unknown) => void;
+    const live = new Promise((r) => { resolveLive = r; });
+    await mountPanel([], { "maintenance_supporter/objects": () => live });
+    expect(betaUi()).to.equal(false);
+    resolveLive({ objects: [] });
+  });
+
+  it("writes the look of the live settings with the cache", async () => {
+    setBetaUi(false);
+    await mountPanel([obj("e1", [task({ name: "Fresh Task" })], "Fresh Pump")], {
+      "maintenance_supporter/settings": () => ({ features: { beta_editor: true } }),
+    });
+    expect(JSON.parse(localStorage.getItem(LS_KEYS.objectsCache)!).beta).to.equal(true);
   });
 
   it("a corrupt cache entry is ignored, not fatal", async () => {

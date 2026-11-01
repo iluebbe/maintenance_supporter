@@ -11,13 +11,13 @@
 
 import { html, nothing } from "lit";
 import { isSafeLink } from "../helpers/url";
-import { clickOnActivationKey } from "../helpers/keyboard";
+import { menuIsHa, renderHaMenu, renderPopupMenu, type MenuEntry } from "../helpers/menu";
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { renderPeopleAvatars, type PersonDisplay } from "../helpers/person";
 import { taskUserIds } from "../helpers/assignees";
 import { quickCompleteOn } from "../helpers/quick-complete";
 import { entityName } from "../helpers/trigger-entities";
-import { t, formatDate, formatRecurrence, formatCost, formatDuration } from "../styles";
+import { t, formatDate, formatDayCount, formatRecurrence, formatCost, formatDuration } from "../styles";
 import { renderRefChip } from "../helpers/reference";
 import type { AdvancedFeatures, CompleteWhen, HomeAssistant, MaintenanceTask, ManualDocRef } from "../types";
 import { renderTriggerSection, type SparklineContext } from "./sparkline";
@@ -33,6 +33,8 @@ import { renderStatusBadge } from "./status";
 import { clampPhaseCursor, effectivePhase, hasPhases } from "../helpers/phases";
 import { renderEventTitles, renderTriggerDetail } from "../helpers/event-titles";
 import "../components/task-documents";
+import "../components/task-trace-view";
+import { renderTabBar as tabBar } from "../helpers/tab-bar";
 
 export interface TaskDetailContext {
   lang: string;
@@ -57,7 +59,8 @@ export interface TaskDetailContext {
   isOperator: boolean;
   actionLoading: boolean;
   moreMenuOpen: boolean;
-  activeTab: "overview" | "history";
+  /** "trace" only with the beta editor on (2026-10). */
+  activeTab: "overview" | "history" | "trace";
   features: AdvancedFeatures;
   /** #231: the to-do mirror's default lists — a task without its own shows them. */
   mirrorTodoDefault?: string[];
@@ -73,7 +76,7 @@ export interface TaskDetailContext {
   /** #169 follow-up: avatar + name of a member (null = unknown / not loaded). */
   getPerson?: (userId: string) => PersonDisplay | null;
   // ── Panel-owned state mutations ────────────────────────────────────────
-  setActiveTab: (tab: "overview" | "history") => void;
+  setActiveTab: (tab: "overview" | "history" | "trace") => void;
   toggleSection: (key: string) => void;
   setCostDurationToggle: (v: "cost" | "duration" | "both") => void;
   showTaskView: () => void;
@@ -137,6 +140,35 @@ export function completeWhenTitle(rule: CompleteWhen, entityName: string, L: str
   return title;
 }
 
+const MORE_PATH = "M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z";
+
+/** The task's ⋮ menu, listed once for our popup and HA's dropdown. */
+function taskMenuEntries(task: MaintenanceTask, ctx: TaskDetailContext, L: string): MenuEntry[] {
+  const writer = !ctx.isOperator;
+  return [
+    writer && { label: t("edit", L), action: () => ctx.openEdit(task) },
+    quickCompleteOn(task) && { label: t("complete_with_details", L), cls: "complete-details", action: () => ctx.openComplete(task, { details: true }) },
+    { label: t("qr_code", L), action: () => ctx.openQr(task.name) },
+    { label: t("worksheet", L), action: () => ctx.printWorksheet() },
+    // The recommendation card carries Re-analyze too, but only once a
+    // differing suggestion exists — the analysis it is meant to trigger was
+    // unreachable before (audit 2026-09-28).
+    ctx.features.adaptive && task.adaptive_config?.enabled && { label: t("reanalyze", L), cls: "reanalyze", action: () => ctx.reanalyze() },
+    writer && { label: t("duplicate", L), action: () => ctx.duplicateTask() },
+    writer && { label: t("move_task", L), action: () => ctx.moveTask() },
+    // Reset / Postpone / Snooze are household actions (read tier,
+    // helpers/permissions HOUSEHOLD_ACTIONS): offered to everyone, like
+    // Complete / Skip and the Lovelace quick-actions Reset.
+    { label: t("reset", L), action: () => ctx.promptReset() },
+    { label: `${t("postpone", L)}…`, action: () => ctx.promptPostpone() },
+    { label: t("snooze", L), action: () => ctx.snoozeTask() },
+    writer && !task.archived && { label: task.paused ? t("resume_task", L) : `${t("pause_task", L)}…`, action: () => ctx.togglePause(!!task.paused) },
+    writer && { label: task.archived ? t("unarchive", L) : t("archive", L), action: () => ctx.toggleArchive(!!task.archived) },
+    writer && "divider",
+    writer && { label: t("delete", L), danger: true, action: () => ctx.deleteTask() },
+  ];
+}
+
 function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
   const L = ctx.lang;
   const isOperator = ctx.isOperator;
@@ -184,41 +216,11 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
           ? html`<ha-button appearance="outlined" variant="warning" .disabled=${ctx.actionLoading} @click=${() => ctx.promptSkip()}>${t("skip", L)}</ha-button>`
           : nothing}
         <div class="more-menu-wrapper">
-          <ha-icon-button .disabled=${ctx.actionLoading} .label=${t("more_actions", L)} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${() => ctx.toggleMoreMenu()}></ha-icon-button>
-          ${ctx.moreMenuOpen ? html`
-            <div class="popup-menu" role="menu" @keydown=${clickOnActivationKey} @click=${(e: Event) => e.stopPropagation()}>
-              ${!isOperator ? html`
-                <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.openEdit(task); }}>${t("edit", L)}</div>
-              ` : nothing}
-              ${quickCompleteOn(task) ? html`
-                <div role="menuitem" tabindex="0" class="popup-menu-item complete-details" @click=${() => { ctx.closeMoreMenu(); ctx.openComplete(task, { details: true }); }}>${t("complete_with_details", L)}</div>
-              ` : nothing}
-              <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.openQr(task.name); }}>${t("qr_code", L)}</div>
-              <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.printWorksheet(); }}>${t("worksheet", L)}</div>
-              ${ctx.features.adaptive && task.adaptive_config?.enabled ? html`
-                <!-- The recommendation card carries Re-analyze too, but only
-                     once a differing suggestion exists — the analysis it is
-                     meant to trigger was unreachable before (audit 2026-09-28). -->
-                <div role="menuitem" tabindex="0" class="popup-menu-item reanalyze" @click=${() => { ctx.closeMoreMenu(); ctx.reanalyze(); }}>${t("reanalyze", L)}</div>
-              ` : nothing}
-              ${!isOperator ? html`
-                <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => ctx.duplicateTask()}>${t("duplicate", L)}</div>
-                <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => ctx.moveTask()}>${t("move_task", L)}</div>
-              ` : nothing}
-              <!-- Reset / Postpone / Snooze are household actions (read tier,
-                   helpers/permissions HOUSEHOLD_ACTIONS): offered to everyone,
-                   like Complete / Skip and the Lovelace quick-actions Reset. -->
-              <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptReset(); }}>${t("reset", L)}</div>
-              <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptPostpone(); }}>${t("postpone", L)}…</div>
-              <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.snoozeTask(); }}>${t("snooze", L)}</div>
-              ${!isOperator ? html`
-                ${!task.archived ? html`<div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.togglePause(!!task.paused); }}>${task.paused ? t("resume_task", L) : `${t("pause_task", L)}…`}</div>` : nothing}
-                <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.toggleArchive(!!task.archived); }}>${task.archived ? t("unarchive", L) : t("archive", L)}</div>
-                <div class="popup-menu-divider"></div>
-                <div role="menuitem" tabindex="0" class="popup-menu-item danger" @click=${() => { ctx.closeMoreMenu(); ctx.deleteTask(); }}>${t("delete", L)}</div>
-              ` : nothing}
-            </div>
-          ` : nothing}
+          ${menuIsHa()
+            ? renderHaMenu(html`<ha-icon-button slot="trigger" .disabled=${ctx.actionLoading} .label=${t("more_actions", L)} .path=${MORE_PATH}></ha-icon-button>`,
+                taskMenuEntries(task, ctx, L))
+            : html`<ha-icon-button .disabled=${ctx.actionLoading} .label=${t("more_actions", L)} .path=${MORE_PATH} @click=${() => ctx.toggleMoreMenu()}></ha-icon-button>
+              ${ctx.moreMenuOpen ? renderPopupMenu(taskMenuEntries(task, ctx, L), () => ctx.closeMoreMenu()) : nothing}`}
         </div>
       </div>
     </div>
@@ -227,16 +229,11 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
 
 function renderTabBar(ctx: TaskDetailContext) {
   const L = ctx.lang;
-  return html`
-    <div class="tab-bar">
-      <div class="tab ${ctx.activeTab === "overview" ? "active" : ""}" @click=${() => ctx.setActiveTab("overview")}>
-        ${t("overview", L)}
-      </div>
-      <div class="tab ${ctx.activeTab === "history" ? "active" : ""}" @click=${() => ctx.setActiveTab("history")}>
-        ${t("history", L)}
-      </div>
-    </div>
-  `;
+  return tabBar([
+    { key: "overview", label: t("overview", L) },
+    { key: "history", label: t("history", L) },
+    ctx.features.beta_editor && { key: "trace", label: t("beta_trace", L), cls: "trace-tab" },
+  ], ctx.activeTab, (tab) => ctx.setActiveTab(tab));
 }
 
 /** Wrap a task-detail analysis card in a collapsible section. The section
@@ -424,7 +421,7 @@ function renderKPIBar(task: MaintenanceTask, ctx: TaskDetailContext) {
       </div>
       <div class="kpi-card">
         <div class="kpi-label">${t("warning", L)}</div>
-        <div class="kpi-value">${task.warning_days} ${t("days", L)}</div>
+        <div class="kpi-value">${formatDayCount(task.warning_days, L)}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">${t("last_performed", L)}</div>
@@ -585,6 +582,13 @@ function renderTabContent(task: MaintenanceTask, ctx: TaskDetailContext) {
       return renderOverviewTab(task, ctx);
     case "history":
       return renderHistoryTab(task, ctx);
+    case "trace":
+      // Beta (2026-10): switched off while the tab was open, it is the overview again.
+      return ctx.features.beta_editor
+        ? html`<div class="tab-content trace-tab-content">
+            <maintenance-task-trace .hass=${ctx.hass} .entryId=${ctx.entryId} .taskId=${ctx.taskId}></maintenance-task-trace>
+          </div>`
+        : renderOverviewTab(task, ctx);
     default:
       return nothing;
   }

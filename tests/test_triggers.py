@@ -2632,10 +2632,12 @@ class TestCompoundTrigger:
         assert trigger.condition_states[0] is True
         assert trigger._triggered is True
 
-        # Reset
+        # Reset: the rule itself is no longer triggered, but a condition whose
+        # sensor still reads beyond its limit is known to hold (a = 25), read
+        # from the live state, not forgotten (faketime year 2026-11-01).
         trigger.reset()
         assert trigger._triggered is False
-        assert all(s is False for s in trigger.condition_states)
+        assert trigger.condition_states == [True, False]
 
         await trigger.async_teardown()
 

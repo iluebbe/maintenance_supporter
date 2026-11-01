@@ -487,8 +487,13 @@ describe("audit 2026-09-26 tranche 2", () => {
     for (const dropped of ["confirm_delete_task", "confirm_delete_object", "group_delete_confirm"]) {
       expect(all, dropped).to.not.contain(`"${dropped}"`);
     }
-    expect(src["maintenance-panel.ts"]).to.contain('t("delete_task_confirm"');
-    expect(src["components/task-quick-actions-dialog.ts"]).to.contain('t("delete_task_confirm"');
+    // #247: the one question lives in helpers/delete-task (a buy task gets its
+    // own wording there); both surfaces ask through it.
+    expect(src["helpers/delete-task.ts"]).to.contain('t("delete_task_confirm"');
+    expect(src["maintenance-panel.ts"]).to.contain("askDeleteTask(");
+    expect(src["components/task-quick-actions-dialog.ts"]).to.contain("askDeleteTask(");
+    expect(src["maintenance-panel.ts"]).to.not.contain('t("delete_task_confirm"');
+    expect(src["components/task-quick-actions-dialog.ts"]).to.not.contain('t("delete_task_confirm"');
   });
 
   // ── FE-A11: one toast timer per surface ──────────────────────────────────

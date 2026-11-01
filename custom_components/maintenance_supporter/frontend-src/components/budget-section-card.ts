@@ -14,6 +14,7 @@ import { runWs } from "../helpers/ws-run";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
 import type { BudgetStatus, HomeAssistant } from "../types";
 import { budgetLevel } from "../helpers/budget-level";
+import { notice } from "../helpers/notice";
 
 interface CardConfig { type: string; title?: string; }
 
@@ -122,7 +123,7 @@ export class MaintenanceBudgetSectionCard extends LitElement {
             <span class="currency">${sym}</span>
           </div>
 
-          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+          ${this._error ? notice("error", this._error) : nothing}
 
           ${tracks.map((track) => {
             // #104: budget tracking without a maximum — a bar needs a
@@ -258,7 +259,7 @@ export class MaintenanceBudgetSectionCard extends LitElement {
       flex: 1; min-width: 0; width: 100%; box-sizing: border-box; padding: 6px 32px 6px 8px; font-size: 13px;
       background: var(--secondary-background-color, #2c2c2c);
       color: var(--primary-text-color);
-      border: 1px solid var(--divider-color); border-radius: 6px;
+      border: 1px solid var(--divider-color); border-radius: var(--ms-radius-6, 6px);
       font-family: inherit;
     }
     .input-suffix {

@@ -22,6 +22,7 @@ import { sectionCardSharedStyles } from "./section-card-shared-styles";
 import { vacationPhase, type VacationPhase } from "../helpers/vacation-phase";
 import "./ms-date-field";
 import type { HomeAssistant } from "../types";
+import { notice } from "../helpers/notice";
 
 /** The status pill's text per phase (literal keys: the locale tripwire reads them). */
 const PHASE_LABEL_KEYS: Record<VacationPhase, string> = {
@@ -184,7 +185,7 @@ export class MaintenanceVacationSectionCard extends LitElement {
             <span class="status-pill ${statusClass}">${statusLabel}</span>
           </div>
 
-          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+          ${this._error ? notice("error", this._error) : nothing}
 
           ${this._isAdmin
             ? html`
@@ -320,7 +321,7 @@ export class MaintenanceVacationSectionCard extends LitElement {
       padding: 6px 8px; font-size: 13px;
       background: var(--secondary-background-color, #2c2c2c);
       color: var(--primary-text-color);
-      border: 1px solid var(--divider-color); border-radius: 6px;
+      border: 1px solid var(--divider-color); border-radius: var(--ms-radius-6, 6px);
       font-family: inherit;
     }
     .date-field input:disabled { opacity: 0.5; cursor: not-allowed; }

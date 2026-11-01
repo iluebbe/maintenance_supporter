@@ -7,6 +7,8 @@ import { t, langOf } from "../styles";
 import { runWs } from "../helpers/ws-run";
 import { SEASONAL_FACTOR_RANGE } from "../helpers/setting-ranges";
 import type { HomeAssistant } from "../types";
+import { headerTitle, titleLine } from "../helpers/beta-ui";
+import { notice } from "../helpers/notice";
 
 const MONTH_KEYS = [
   "month_jan", "month_feb", "month_mar", "month_apr",
@@ -102,11 +104,11 @@ export class SeasonalOverridesDialog extends LitElement {
     const L = this._lang;
     // Our own title element: Home Assistant's dialog draws no `heading`.
     return html`
-      <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${t("seasonal_overrides_title", L)}</div>
+      <ha-dialog open .headerTitle=${headerTitle(t("seasonal_overrides_title", L))} @closed=${this._close}>
+        ${titleLine(t("seasonal_overrides_title", L))}
         <div class="content">
           <p class="hint">${t("seasonal_overrides_hint", L)}</p>
-          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+          ${this._error ? notice("error", this._error) : nothing}
           <div class="months">
             ${MONTH_KEYS.map((key, i) => html`
               <label class="month">

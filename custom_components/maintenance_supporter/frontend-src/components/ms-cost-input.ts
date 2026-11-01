@@ -84,7 +84,7 @@ export class MsCostInput extends LitElement {
         display: inline-flex;
         flex: none;
         border: 1px solid var(--divider-color);
-        border-radius: 6px;
+        border-radius: var(--ms-radius-6, 6px);
         overflow: hidden;
       }
       .kind {

@@ -6,6 +6,7 @@ import type { HomeAssistant, ReadingSlot, TaskPartLink } from "../types";
 import { lastReadingBefore, type ReadingHistoryEntry } from "../helpers/reading-slots";
 import { t, langOf, nativeFieldStyles, formatCost, formatNumber, formatQty, haTimeZoneHint } from "../styles";
 import { runWs } from "../helpers/ws-run";
+import { alreadyRecordedMessage } from "../helpers/undo-completion";
 import { haNowMinute, stampMs } from "../helpers/ha-time";
 import { PART_QTY_RANGE, RESTOCK_QTY_RANGE } from "../helpers/setting-ranges";
 import { partLinkKey, type LinkedPart } from "../helpers/shared-parts";
@@ -18,6 +19,9 @@ import "./ms-cost-input";
 import "./ms-photo-picker";
 import { photoPickerStyles } from "./ms-photo-picker";
 import type { QuickCompleteValues } from "../helpers/quick-complete";
+import { headerTitle, titleLine } from "../helpers/beta-ui";
+import { notice } from "../helpers/notice";
+import { checkField } from "../helpers/check-field";
 
 /** The server's bounds (websocket USED_PARTS_FIELD quantity / task/complete
  *  restock_quantity) — validated on save with a message, never dropped.
@@ -285,6 +289,14 @@ export class MaintenanceCompleteDialog extends LitElement {
       onError: (m) => { this._error = m; },
     });
     if (res === undefined) return;
+    const already = alreadyRecordedMessage(res, this.lang);
+    if (already) {
+      // Nothing new was recorded (its photos with it): say so in Home
+      // Assistant's toast, which every opener's page shows.
+      this._close();
+      this.dispatchEvent(new CustomEvent("hass-notification", { detail: { message: already }, bubbles: true, composed: true }));
+      return;
+    }
     this._photos.markAttached(); // attached now — Cancel cleanup must not touch them
     this._open = false;
     // The opener offers Undo when the server remembered the completion for
@@ -429,21 +441,17 @@ export class MaintenanceCompleteDialog extends LitElement {
     const L = this.lang || langOf(this.hass);
     const error = this._error || this._photos.errorText(L);
     return html`
-      <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${t("complete_title", L)}${this.taskName}</div>
+      <ha-dialog open .headerTitle=${headerTitle(`${t("complete_title", L)}${this.taskName}`)} @closed=${this._close}>
+        ${titleLine(`${t("complete_title", L)}${this.taskName}`)}
         ${this.phaseLabel ? html`<div class="phase-line">${t("phase_current", L)}: ${this.phaseLabel}</div>` : nothing}
         ${this.requireTagScan && !this.viaTagScan ? html`<div class="scan-required-note">${t("require_tag_scan_hint", L)}</div>` : nothing}
         <div class="content">
-          ${error ? html`<div class="error">${error}</div>` : nothing}
+          ${error ? notice("error", error) : nothing}
           ${this.checklist.length > 0 ? html`
             <div class="checklist-section">
               <label class="checklist-label">${t("checklist", L)}</label>
               ${this.checklist.map((item, idx) => html`
-                <label class="checklist-item">
-                  <input type="checkbox" .checked=${!!this._checklistState[String(idx)]}
-                    @change=${() => this._toggleCheck(idx)} />
-                  <span>${item}</span>
-                </label>
+                ${checkField({ cls: "checklist-item", checked: !!this._checklistState[String(idx)], onChange: () => this._toggleCheck(idx) }, html`<span>${item}</span>`)}
               `)}
             </div>
           ` : nothing}
@@ -472,9 +480,7 @@ export class MaintenanceCompleteDialog extends LitElement {
                     ? { part_id: pt.id, quantity: 1, entry_id: pt.entry_id }
                     : { part_id: pt.id, quantity: 1 };
                   return html`<div class="used-part-row">
-                    <label class="used-part-check">
-                      <input type="checkbox" .checked=${checked}
-                        @change=${(e: Event) => {
+                    ${checkField({ cls: "used-part-check", checked: checked, onChange: (e: Event) => {
                           const next = { ...this._usedParts };
                           if ((e.target as HTMLInputElement).checked) next[key] = next[key] || base;
                           else {
@@ -484,13 +490,11 @@ export class MaintenanceCompleteDialog extends LitElement {
                             this._usedQtyText = text;
                           }
                           this._usedParts = next;
-                        }} />
-                      <span
+                        } }, html`<span
                         >${pt.name}${pt.owner_name
                           ? html`<span class="used-part-owner"> (${pt.owner_name})</span>`
                           : nothing}${pt.stock !== null && pt.stock !== undefined ? ` (${formatQty(pt.stock, pt.unit, L)})` : ""}</span
-                      >
-                    </label>
+                      >`)}
                     ${checked
                       ? html`<input class="used-part-qty" type="number" min=${USED_QTY_RANGE[0]} max=${USED_QTY_RANGE[1]} step="0.01"
                           .value=${this._usedQtyText[key] ?? String(link.quantity)}
@@ -658,7 +662,7 @@ export class MaintenanceCompleteDialog extends LitElement {
     .scan-required-note {
       margin: -4px 0 12px;
       padding: 8px 10px;
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       background: rgba(255, 152, 0, 0.12);
       color: var(--primary-text-color);
       font-size: 13px;
@@ -701,7 +705,7 @@ export class MaintenanceCompleteDialog extends LitElement {
        unlabelled foreign pool is indistinguishable from an own part. */
     .used-part-owner { color: var(--secondary-text-color); }
     .used-part-qty {
-      width: 76px; padding: 6px 8px; border-radius: 6px; font: inherit; font-size: 14px;
+      width: 76px; padding: 6px 8px; border-radius: var(--ms-radius-6, 6px); font: inherit; font-size: 14px;
       border: 1px solid var(--divider-color);
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color);

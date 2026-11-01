@@ -83,10 +83,13 @@ from ..helpers.task_fields import (
 )
 from ..helpers.task_origin import ORIGIN_KEY
 from ..helpers.task_persist import TaskMoveRefused, async_delete_task, async_move_task, async_persist_task
+from ..helpers.task_trace import KIND_EDITED
+from ..helpers.task_trace import record as record_trace
 from ..helpers.todo_mirror import mirror_todo_error
 from ..helpers.url_safety import is_safe_url
 from ..helpers.ws_errors import send_translated_error, send_unsafe_url_error
 from ..models.shapes import HistoryEntry
+from ..parts_runtime import disable_buy_reminder
 from . import (
     ID_FIELD,
     _load_object_entry,
@@ -895,6 +898,11 @@ async def ws_update_task(
                 store_tc.clear_trigger_runtime(task_id)
                 store_tc.async_delay_save()
 
+    # The task trace notes which settings changed (beta editor only).
+    changed = sorted(k for k in {*task, *stored_task} if not k.startswith("_") and task.get(k) != stored_task.get(k))
+    if changed:
+        record_trace(hass, entry.entry_id, task_id, KIND_EDITED, fields=changed[:20])
+
     # Patch only this task's key onto a fresh read (normalized) — never write
     # back a whole-map snapshot taken before the store awaits above.
     write_task(hass, entry, task_id, task)
@@ -913,6 +921,9 @@ async def ws_update_task(
         vol.Required("type"): "maintenance_supporter/task/delete",
         vol.Required("entry_id"): ID_FIELD,
         vol.Required("task_id"): ID_FIELD,
+        # #247: a buy task comes back while its part stays low; this turns
+        # the part's automatic buy reminder off with it.
+        vol.Optional("disable_auto_buy_task", default=False): bool,
     }
 )
 @require_write
@@ -922,12 +933,16 @@ async def ws_delete_task(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Delete a task from a maintenance object."""
+    """Delete a task from a maintenance object (a buy task can take its
+    part's automatic buy reminder with it: `disable_auto_buy_task`)."""
     ctx = _load_object_task(hass, connection, msg)
     if ctx is None:
         return
-    entry, _rd, _task = ctx
+    entry, _rd, task = ctx
 
+    # Before the delete: the reload after it re-plans the buy tasks.
+    if msg.get("disable_auto_buy_task"):
+        disable_buy_reminder(hass, entry, task)
     await async_delete_task(hass, entry, msg["task_id"])
 
     # Reload to re-create remaining entities

@@ -3,25 +3,27 @@
 import { LitElement, html, nothing, type TemplateResult } from "lit";
 import { isSafeLink } from "./helpers/url";
 import { clickOnActivationKey } from "./helpers/keyboard";
-import { queryTokens, scoreFields } from "./helpers/search-match";
+import { matchesQuery, queryTokens, scoreFields } from "./helpers/search-match";
 import { objectRef, parseRef, renderRefChip, taskRef, type HasRef } from "./helpers/reference";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle, pendingRestartVersion, type ServerVersion } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
-import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, countText, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, formatNumber, formatQty, syncCurrencyDecimals} from "./styles";
+import { repeat } from "lit/directives/repeat.js";
+import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDayCount, formatDueDays, countText, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, formatNumber, formatQty, formatUnit, syncCurrencyDecimals} from "./styles";
 import { OVERVIEW_TABS, type OverviewTab } from "./helpers/overview-tabs";
 import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
 import { openHtmlInNewTab, openSignedDocument, preopenTab, signApiPath } from "./helpers/document-url";
 import { readObjectsCache, writeObjectsCache } from "./helpers/objects-cache";
+import { askDeleteTask } from "./helpers/delete-task";
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { taskIsFor, taskUserIds } from "./helpers/assignees";
 import { quickCompleteOn } from "./helpers/quick-complete";
 import { daysProgress } from "./helpers/interval";
 import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
 import { warrantyStatus } from "./helpers/warranty";
-import { OBJECT_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS, sanitizeColumns } from "./helpers/object-columns";
+import { OBJECT_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS, KNOWN_OBJECT_COLUMNS, sanitizeColumns } from "./helpers/object-columns";
 import { downloadTextFile } from "./helpers/download";
-import { renderNotesMarkdown } from "./helpers/notes-markdown";
+import { notesPlainText, renderNotesMarkdown } from "./helpers/notes-markdown";
 import { buildTaskWorksheetHtml, type WorksheetExcerpt, type WorksheetLabels } from "./helpers/worksheet";
 import { describePartLink } from "./helpers/shared-parts";
 import { docDisplayName } from "./helpers/document-categories";
@@ -31,6 +33,9 @@ import { recommendationReason, type HomeProfile, type TemplateRecommendation } f
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
 import { areaDisplayName, areaKeyOf, areaLabel } from "./helpers/area-history";
 import { panelStyles } from "./panel-styles";
+import { topLayer, topLayerStyles } from "./helpers/top-layer";
+import { betaUi, betaWith, setBetaUi } from "./helpers/beta-ui";
+import { menuIsHa, renderHaMenu, renderPopupMenu, type MenuEntry } from "./helpers/menu";
 
 // Global search (#171): what the panel needs to know about a hit — enough
 // to render one row and to act on it (open the page / the document).
@@ -91,7 +96,7 @@ import "./components/object-history-section";
 import "./components/task-documents";
 import type { MaintenanceTaskDialog } from "./components/task-dialog";
 import type { MaintenanceCompleteDialog, TaskCompletedDetail } from "./components/complete-dialog";
-import { undoCompletion } from "./helpers/undo-completion";
+import { alreadyRecordedMessage, undoCompletion } from "./helpers/undo-completion";
 import type { MaintenanceQrDialog } from "./components/qr-dialog";
 import type { MaintenanceAdoptProblemSensorsDialog } from "./components/adopt-problem-sensors-dialog";
 import "./components/battery-fleet-section";
@@ -115,7 +120,7 @@ import "./components/group-dialog";
 import type { MaintenanceGroupDialog } from "./components/group-dialog";
 import "./components/saved-views-dialog";
 import type { MaintenanceSavedViewsDialog } from "./components/saved-views-dialog";
-import { type SparklineContext } from "./renderers/sparkline";
+import { ruleSensors, type SparklineContext } from "./renderers/sparkline";
 import { buildCalendarBuckets, type CalendarEvent } from "./helpers/calendar-bucket";
 import { haToday } from "./helpers/ha-time";
 import { renderTriggerProgress, renderMiniSparkline, computeTrend, renderDueText, renderLastDone } from "./renderers/progress";
@@ -126,7 +131,7 @@ import { renderPeopleChip, type PersonDisplay } from "./helpers/person";
 // Side-effect import: type-only imports get tree-shaken and the element
 // would never register.
 import "./components/task-detail-view";
-import { computeWindow, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
+import { computeWindow, RowHeights, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
 import { INITIAL_STICKY, nextStickyState, stickyStateOnSelect, stickyTop, type StickyState } from "./helpers/sticky-pane";
 import { invalidateSettingsCache, parseSettings, type SettingsWire } from "./helpers/settings-cache";
 import { partCostMode, type PartsCostMode } from "./helpers/parts-cost";
@@ -136,7 +141,7 @@ import "./components/ms-part-use";
 import "./components/ms-part-purchase";
 import { ancestorsOf, buildObjectTree, nests, objectPath, sortTree, subtreeOf, treeRows, type ObjectTree } from "./helpers/object-tree";
 import { renderStatusBadge, statusKey, statusLabel, type StatusLike } from "./renderers/status";
-import { TOAST_MS, ACTION_TOAST_MS } from "./helpers/toast";
+import { TOAST_MS, ACTION_TOAST_MS, haToast } from "./helpers/toast";
 import { isCounterTrigger, primaryTriggerEntity } from "./helpers/trigger-entities";
 import { TASK_PRIORITIES_HIGH_FIRST } from "./helpers/task-choices";
 import { fetchTaskHistory } from "./helpers/task-history-fetch";
@@ -146,9 +151,15 @@ import { readingSlotDelta } from "./helpers/reading-slots";
 import { bulkResultMessage, codedFailures, runWs, runWsEach } from "./helpers/ws-run";
 import { snoozedMessage, type SnoozeResult } from "./helpers/snooze";
 import { STATUS_ORDER, isUrgentStatus, statusRank } from "./status-constants";
+import { collapsible } from "./helpers/collapsible";
+import { selectField, selectIsHa } from "./helpers/select-field";
+import { checkField } from "./helpers/check-field";
+import { renderTabBar } from "./helpers/tab-bar";
 
 // #191: all_areas = the areas page, area = one area's history and costs.
 type View = "overview" | "object" | "task" | "all_objects" | "all_parts" | "all_areas" | "area";
+/** What a panel history entry carries (_pushPanelState). */
+type PanelState = { msp_view?: View; msp_entry?: string | null; msp_task?: string | null; msp_area?: string | null };
 
 /** One row of the instance-wide parts overview (#130) — the WS response of
  *  `parts/overview`: the stored part fields plus owner, live stock and the
@@ -201,11 +212,19 @@ type ObjectSection = "children" | "tasks" | "documents" | "parts" | "history";
 // #225: "children" = the objects inside this one.
 const OBJECT_SECTIONS: readonly ObjectSection[] = ["children", "tasks", "documents", "parts", "history"];
 
+/** A task row's identity. The rows are rendered by it (lit's repeat), so a
+ *  row's element stays with its task when the list moves: the scroll window
+ *  shifts, a completion re-sorts. Rendered by position, the element that
+ *  held the keyboard focus showed the next task instead (2026-11-01). */
+const rowKey = (r: TaskRow): string => `${r.entry_id}/${r.task_id}`;
 /** The paperclip badge's tooltip: "Documents: 3". It read "1 Documents"
  *  (DRY audit 2026-10-30: the count beside a plural label, three times). */
 const docBadgeTitle = (count: number, lang: string): string => `${t("documents", lang)}: ${formatNumber(count, lang)}`;
 
 // Chart dimension constants for mini sparklines (overview)
+
+/** The ⋮ of the object and task menus. */
+const MORE_PATH = "M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z";
 
 @customElement("maintenance-supporter-panel")
 export class MaintenanceSupporterPanel extends LitElement {
@@ -220,6 +239,9 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  keeps the task list on the left and docks the task detail on the right
    *  (a mail client's preview pane). Reflected for the CSS. */
   @property({ type: Boolean, reflect: true }) public split = false;
+  /** Panel at least 2200 px wide (a 2560 screen beside the sidebar): the
+   *  object page (beta) lays its sections out in two columns. */
+  @property({ type: Boolean, reflect: true }) public wide = false;
   private _tightObserver: ResizeObserver | null = null;
   @property({ attribute: false }) public panel: Record<string, unknown> = {};
   /** #174: mounted inside `maintenance-supporter-panel-card` rather than as
@@ -285,7 +307,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _groups: Record<string, MaintenanceGroup> = {};
   @state() private _detailStatsData: Map<string, StatisticsPoint[]> = new Map();
   @state() private _miniStatsData: Map<string, StatisticsPoint[]> = new Map();
-  @state() private _features: AdvancedFeatures = { adaptive: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false, schedule_time: false, completion_actions: false, places: false };
+  @state() private _features: AdvancedFeatures = { adaptive: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false, schedule_time: false, completion_actions: false, places: false, beta_editor: false };
   // HA user IDs (UUIDs) granted full panel access despite not being HA admins.
   @state() private _adminPanelUserIds: string[] = [];
   // v2.8.4: master switch — the allowlist only grants the full panel when this
@@ -321,6 +343,12 @@ export class MaintenanceSupporterPanel extends LitElement {
   // occasional-use — collapsed behind two toggle buttons so the task list
   // starts above the fold on phones. Desktop renders them inline as before.
   @state() private _filtersOpen = false;
+  /** Beta overview (Home Assistant's list pages): the inline search over the
+   *  task list, and whether the filter pane is open. */
+  @state() private _listSearch = "";
+  @state() private _filterPaneOpen = lsGet(LS_KEYS.filterPane) === "1";
+  /** The filter pane's sections the user opened (Status opens by default). */
+  @state() private _paneSections = new Set<string>(["status"]);
   // #125: the one "New" menu replacing the six action buttons, plus the
   // getting-started chip discovery counts (fetched once, young installs only).
   @state() private _newMenuOpen = false;
@@ -350,11 +378,14 @@ export class MaintenanceSupporterPanel extends LitElement {
       return v === "today" || v === "calendar" ? v : "dashboard";
     } catch { return "dashboard"; }
   })();
-  @state() private _activeTab: "overview" | "history" = "overview";
+  @state() private _activeTab: "overview" | "history" | "trace" = "overview";
   @state() private _costDurationToggle: "cost" | "duration" | "both" = "both";
   @state() private _historySearch = "";
   @state() private _sortMode: SortMode = "due_date";
   @state() private _objectSortMode: ObjectSortMode = "alphabetical";
+  /** The objects table's column sort, over the Sort dropdown's order while
+   *  set (picking from the dropdown clears it). */
+  @state() private _objTableSort: { key: string; dir: "asc" | "desc" } | null = null;
   @state() private _groupByMode: GroupByMode = "none";
   // (#67): All-Objects view mode (cards|table) + the configurable table
   // columns sourced from the global setting (sanitised; defaults until loaded).
@@ -376,10 +407,14 @@ export class MaintenanceSupporterPanel extends LitElement {
   // window is recomputed from `.content` scroll/resize (rAF-throttled).
   @state() private _virtStart = 0;
   @state() private _virtEnd = 0; // 0 = uninitialized → initial slice
-  private _virtRowHeight = 53;
-  /** Set by the first render and by every scroll/resize: the next window
-   *  pass may re-measure the row height (see _updateVirtualWindow). */
-  private _virtMeasure = true;
+  /** Measured height of every row that has been on screen, by row key. */
+  private _virtHeights = new RowHeights();
+  /** Row keys of the table in render order, and where the rendered slice
+   *  starts, so a window pass can tell which row each element is. */
+  private _virtKeys: string[] = [];
+  private _virtRenderedStart = 0;
+  /** Window moves since the last scroll/resize or list change (loop guard). */
+  private _virtPasses = 0;
   private _virtTotalRows = 0;
   private _virtScrollAttached = false;
   private _virtRaf = 0;
@@ -440,6 +475,10 @@ export class MaintenanceSupporterPanel extends LitElement {
   /** #225: the object a template's new object goes inside, while the
    *  gallery is open from Add sub-object. */
   @state() private _templateParentId: string | null = null;
+  /** Beta editor (2026-10): a template opens its task list first, with
+   *  every task ticked; Create makes only the ticked ones. */
+  @state() private _templatePreview: (typeof this._templates)[number] | null = null;
+  @state() private _templatePicked: Set<number> = new Set();
   // v1.5.0: Calendar tab state
   // v2.0.0: window-days + user-filter state moved into the
   // <maintenance-supporter-calendar-card> custom element — the panel just
@@ -536,6 +575,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         // from there up the chips track keeps ≥150 px of slack.
         if (w > 0) this.tight = w < 1000;
         if (w > 0) this.split = w >= 1500;
+        if (w > 0) this.wide = w >= 2200;
       });
       this._tightObserver.observe(this);
     }
@@ -553,6 +593,10 @@ export class MaintenanceSupporterPanel extends LitElement {
       if (savedObj && ["alphabetical", "due_soonest", "task_count"].includes(savedObj)) {
         this._objectSortMode = savedObj as ObjectSortMode;
       }
+      const [tableKey, tableDir] = (lsGet(LS_KEYS.objectTableSort) ?? "").split(":");
+      if (KNOWN_OBJECT_COLUMNS.includes(tableKey) && tableKey !== "actions" && (tableDir === "asc" || tableDir === "desc")) {
+        this._objTableSort = { key: tableKey, dir: tableDir };
+      }
       const savedGroup = lsGet(LS_KEYS.groupBy);
       if (savedGroup && (GROUP_BY_MODES as readonly string[]).includes(savedGroup)) {
         this._groupByMode = savedGroup as GroupByMode;
@@ -569,6 +613,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (this._objects.length === 0) {
       const cached = readObjectsCache<MaintenanceObjectResponse, StatisticsResponse>();
       if (cached) {
+        // In the look it was painted in; the settings confirm it on load.
+        if (cached.beta !== undefined) setBetaUi(cached.beta);
         this._objects = cached.objects;
         if (cached.stats) this._stats = cached.stats;
       }
@@ -625,8 +671,13 @@ export class MaintenanceSupporterPanel extends LitElement {
       if (!this._dataLoaded) {
         this._dataLoaded = true;
         this._watchConnection(this.hass.connection);
-        // Seed initial history state so back button returns to overview
-        history.replaceState({ msp_view: "overview", msp_entry: null, msp_task: null }, "");
+        // A reload (F5) keeps the history entry and its state: back on the
+        // page the user was on once the objects are in (_restoreAfterReload).
+        // Otherwise seed the state so the back button returns to overview.
+        // The reload always started over at the overview (2026-11-01).
+        const prior = history.state as PanelState | null;
+        if (!this.embedded && prior?.msp_view && prior.msp_view !== "overview") this._reloadState = prior;
+        else history.replaceState({ msp_view: "overview", msp_entry: null, msp_task: null }, "");
         this._loadData();
         this._subscribe();
       } else if (this.hass.connection !== this._lastConnection) {
@@ -657,9 +708,9 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     // Virtualized task table: attach the scroll listener once `.content`
     // exists (lit keeps the node stable across renders), then reconcile the
-    // window with the just-rendered DOM (clamps). Only sets state when the
-    // window actually moved, and the row-height estimate holds still until
-    // the next scroll or resize, so this can't loop.
+    // window with the just-rendered DOM (measures the new rows, clamps). Only
+    // sets state when the window actually moved, a bounded number of times
+    // per scroll, so this can't loop.
     const content = this.shadowRoot?.querySelector(".content");
     if (content && !this._virtScrollAttached) {
       content.addEventListener("scroll", this._onVirtualScroll, { passive: true });
@@ -754,7 +805,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   /** rAF-throttled scroll/resize handler for the virtualized task table. */
   private _onVirtualScroll = (): void => {
-    this._virtMeasure = true;
+    this._virtPasses = 0;
     if (this._virtRaf) return;
     this._virtRaf = requestAnimationFrame(() => {
       this._virtRaf = 0;
@@ -768,35 +819,36 @@ export class MaintenanceSupporterPanel extends LitElement {
     const content = this.shadowRoot?.querySelector<HTMLElement>(".content");
     const table = this.shadowRoot?.querySelector<HTMLElement>(".task-table.virtual");
     if (!content || !table) return;
-    // The row-height estimate is the mean of the rendered rows (the hidden
-    // sizer row is height 0 and excluded), taken on the first render and
-    // after each scroll or resize, never from the render the new window
-    // caused. Rows are not uniform: a sensor row carries a value and a
-    // sparkline under its date. Probing the first row after every render
-    // fed a loop: window A measured a short row, the new estimate moved the
-    // window to B, B's first row was a tall one, the estimate moved it back
-    // to A, and the page froze (2026-10-13, a 125-task install).
-    if (this._virtMeasure) {
-      const rows = [...table.querySelectorAll<HTMLElement>(".task-row:not(.virt-sizer)")];
-      const mean = rows.length ? rows.reduce((n, r) => n + r.offsetHeight, 0) / rows.length : 0;
-      if (mean > 20) {
-        if (Math.abs(mean - this._virtRowHeight) >= 2) this._virtRowHeight = Math.round(mean);
-        this._virtMeasure = false;
-      }
-    }
+    // Every rendered row's height goes into the cache under its key (the
+    // hidden sizer row is not a data row). The window then comes from the
+    // real offsets of the rows above the scroll position, so scrolling down
+    // lands on the right row however tall the rows before it were.
+    this._virtHeights.setWidth(table.clientWidth);
+    const rendered = table.querySelectorAll<HTMLElement>(".task-row:not(.virt-sizer)");
+    rendered.forEach((el, i) => {
+      const key = this._virtKeys[this._virtRenderedStart + i];
+      if (key !== undefined) this._virtHeights.record(key, el.offsetHeight);
+    });
+    // From the sizer row: the rows start below the beta's header row.
+    const anchor = table.querySelector<HTMLElement>(".virt-sizer") ?? table;
     const listTop =
-      table.getBoundingClientRect().top - content.getBoundingClientRect().top + content.scrollTop;
+      anchor.getBoundingClientRect().top - content.getBoundingClientRect().top + content.scrollTop;
     const w = computeWindow({
       scrollTop: content.scrollTop,
       viewportHeight: content.clientHeight,
       listTop,
-      rowHeight: this._virtRowHeight,
+      offsets: this._virtHeights.offsets(this._virtKeys),
       total: this._virtTotalRows,
     });
-    if (w.start !== this._virtStart || w.end !== this._virtEnd) {
-      this._virtStart = w.start;
-      this._virtEnd = w.end;
-    }
+    if (w.start === this._virtStart && w.end === this._virtEnd) return;
+    // Each pass turns estimated heights into measured ones, so the window
+    // settles within a few passes. The cap is insurance against a row whose
+    // height depends on the window (a 125-task install froze on such a loop,
+    // 2026-10-13): the window then holds until the next scroll.
+    if (this._virtPasses >= 8) return;
+    this._virtPasses++;
+    this._virtStart = w.start;
+    this._virtEnd = w.end;
   }
 
   /** Follow `conn`'s reconnects for the version check (and stop following
@@ -836,7 +888,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (viewsResult) this._savedViews = (viewsResult as { views: SavedView[] }).views || [];
     if (objResult) {
       this._objects = hydrateObjects((objResult as { objects: MaintenanceObjectResponse[] }).objects);
-      writeObjectsCache(this._objects, (statsResult as StatisticsResponse | null) ?? this._stats ?? null);
+      writeObjectsCache(
+        this._objects,
+        (statsResult as StatisticsResponse | null) ?? this._stats ?? null,
+        settingsResult ? parseSettings(settingsResult as SettingsWire).features.beta_editor : betaUi(),
+      );
       // #125: getting-started discovery runs AFTER the objects are known —
       // judging youth on the pre-load empty list would bill every mature
       // install for two discovery calls.
@@ -875,6 +931,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       // own copy of the field rules (DRY audit 2026-09-26).
       const s = parseSettings(settingsResult as SettingsWire);
       this._features = s.features;
+      setBetaUi(s.features.beta_editor);
       this._adminPanelUserIds = [...s.access.operatorIds];
       this._operatorWriteEnabled = s.access.operatorWriteEnabled;
       this._defaultWarningDays = s.defaultWarningDays;
@@ -891,10 +948,32 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     // Handle deep-link URL parameters (from QR code scan)
     this._initialLoadDone = true;
+    const linked = !!window.location.search;
     this._handleDeepLink();
+    this._restoreAfterReload(linked);
+  }
+
+  /** The view a reload left on this history entry, taken back once the
+   *  objects are in; a deep link in the URL wins, and an object or task
+   *  deleted meanwhile lands on the overview. */
+  private _restoreAfterReload(linked: boolean): void {
+    const s = this._reloadState;
+    this._reloadState = null;
+    if (!s?.msp_view || linked || this._deepLinkHandled) return;
+    const gone =
+      ((s.msp_view === "object" || s.msp_view === "task") && !this._getObject(s.msp_entry ?? "")) ||
+      (s.msp_view === "task" && !this._getTask(s.msp_entry ?? "", s.msp_task ?? "")) ||
+      (s.msp_view === "area" && !this._objects.some((o) => areaKeyOf(o.object) === s.msp_area));
+    if (gone) {
+      history.replaceState({ msp_view: "overview", msp_entry: null, msp_task: null }, "");
+      return;
+    }
+    this._applyPanelState(s);
   }
 
   private _deepLinkHandled = false;
+  /** The view a reload left on this history entry (see updated()). */
+  private _reloadState: PanelState | null = null;
   /** Set while an in-app deep link (see _onLocationChanged) is routed:
    *  _pushPanelState replaces HA's freshly pushed entry instead of pushing. */
   private _deepLinkInPlace = false;
@@ -1149,6 +1228,21 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._detailStatsData = updated;
   }
 
+  /** The statistics a task page draws: its rule's first sensor for the
+   *  chart, and every sensor of the rule for the small trend in each sensor
+   *  row of the beta UI (renderers/sparkline.ts). Not gated on the beta: a
+   *  deep link opens the task before the settings say whether it is on, and
+   *  an AND/OR rule has no first sensor at all. */
+  private _fetchRuleStats(task: MaintenanceTask | null | undefined): void {
+    const tc = task?.trigger_config;
+    if (!tc) return;
+    const entityId = primaryTriggerEntity(tc);
+    if (entityId) this._fetchDetailStats(entityId, isCounterTrigger(tc));
+    for (const s of ruleSensors(tc)) {
+      if (s.entityId !== entityId) void this._fetchDetailStats(s.entityId, isCounterTrigger(s.cond));
+    }
+  }
+
   /** Chart range chips (7/30/90/365 d): persist the choice and refetch the
    *  open task's stats at the new window. */
   private _setChartRange(days: number): void {
@@ -1284,10 +1378,13 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  status filter out — the Today tab's sections are statuses, and a
    *  status picked on the dashboard emptied it without a word (bug audit
    *  2026-10-16, P5). */
-  private _rowsFiltered(filterStatus: boolean): TaskRow[] {
+  private _rowsFiltered(filterStatus: boolean, search = filterStatus): TaskRow[] {
     const rows: TaskRow[] = [];
+    const query = search && betaUi() ? this._listSearch.trim() : "";
     for (const obj of this._objects) {
       for (const task of obj.tasks) {
+        // Beta: the toolbar's search, over what a row shows.
+        if (query && !matchesQuery([task.name, obj.object.name, ...(task.labels || []), obj.object.area_id ? this.hass?.areas?.[obj.object.area_id]?.name : ""].join(" "), query)) continue;
         // v2.10.0: archived tasks are hidden unless the toggle reveals them.
         if (!this._showArchived && task.archived) continue;
         if (filterStatus && this._filterStatus && task.status !== this._filterStatus) continue;
@@ -1433,30 +1530,31 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   /** Handle browser back/forward button. */
   private _onPopState(e: PopStateEvent): void {
-    const s = e.state as { msp_view?: View; msp_entry?: string; msp_task?: string; msp_area?: string } | null;
+    const s = e.state as PanelState | null;
     if (!s?.msp_view) {
       // No panel state → we're leaving the panel, let HA handle it
       return;
     }
-    // Restore view without pushing another history entry
-    this._view = s.msp_view;
+    this._applyPanelState(s);
+  }
+
+  /** Show the view a history entry describes, without pushing another one
+   *  (back / forward, and a reload). */
+  private _applyPanelState(s: PanelState): void {
+    this._view = s.msp_view ?? "overview";
     this._selectedEntryId = s.msp_entry || null;
     this._selectedTaskId = s.msp_task || null;
     this._selectedAreaId = s.msp_area || null;
     this._moreMenuOpen = false;
     this._objectSectionOverride = null;
     if (s.msp_view === "all_parts") void this._loadAllParts();
-    if (s.msp_view === "task" && s.msp_entry && s.msp_task) {
+    if ((s.msp_view === "task" || s.msp_view === "object") && s.msp_entry && s.msp_task) {
       this._historyFilter = null;
       // The list payload carries the last 20 entries only: back / forward
       // into a task page showed those until it was opened afresh (bug
       // audit 2026-10-16, P6).
       this._fetchFullHistory(s.msp_entry, s.msp_task);
-      const task = this._getTask(s.msp_entry, s.msp_task);
-      const entityId = primaryTriggerEntity(task?.trigger_config);
-      if (task && entityId) {
-        this._fetchDetailStats(entityId, isCounterTrigger(task.trigger_config));
-      }
+      this._fetchRuleStats(this._getTask(s.msp_entry, s.msp_task));
     }
   }
 
@@ -1713,21 +1811,43 @@ export class MaintenanceSupporterPanel extends LitElement {
   /** #225: Add sub-object: a new object, one from a template, or one that
    *  exists already, moved inside. */
   private _renderSubObjMenu(parentEntryId: string, L: string) {
-    return html`
-      <div class="popup-menu sub-object-menu ${this._subObjMenu === "head" ? "sub-object-menu-head" : ""}" role="menu"
-        @keydown=${clickOnActivationKey} @click=${(e: Event) => e.stopPropagation()}>
-        <div role="menuitem" tabindex="0" class="popup-menu-item sub-object-new" @click=${() => { this._closeSubObjMenu(); this._addSubObject(parentEntryId); }}>
-          <ha-icon icon="mdi:package-variant-closed-plus"></ha-icon> ${t("new_object", L).replace(/^\+\s*/, "")}
-        </div>
-        <div role="menuitem" tabindex="0" class="popup-menu-item sub-object-template" @click=${() => { this._closeSubObjMenu(); void this._openTemplateGallery(parentEntryId); }}>
-          <ha-icon icon="mdi:view-grid-plus-outline"></ha-icon> ${t("templates_from", L)}
-        </div>
-        ${this._moveHereChoices(parentEntryId).length ? html`
-          <div role="menuitem" tabindex="0" class="popup-menu-item sub-object-move" @click=${() => { this._closeSubObjMenu(); void this._moveObjectHere(parentEntryId); }}>
-            <ha-icon icon="mdi:folder-move-outline"></ha-icon> ${t("sub_object_move_here", L)}
-          </div>` : nothing}
-      </div>
-    `;
+    return renderPopupMenu(this._subObjEntries(parentEntryId, L), () => this._closeSubObjMenu(),
+      `sub-object-menu${this._subObjMenu === "head" ? " sub-object-menu-head" : ""}`);
+  }
+
+  /** #225's three ways to add a sub-object. `prefix` names them where they
+   *  stand among other items (HA's object menu: no menu inside a menu). */
+  private _subObjEntries(parentEntryId: string, L: string, prefix = ""): MenuEntry[] {
+    const named = (label: string) => (prefix ? `${prefix}: ${label}` : label);
+    return [
+      { label: named(t("new_object", L).replace(/^\+\s*/, "")), icon: "mdi:package-variant-closed-plus", cls: "sub-object-new", action: () => this._addSubObject(parentEntryId) },
+      { label: named(t("templates_from", L)), icon: "mdi:view-grid-plus-outline", cls: "sub-object-template", action: () => void this._openTemplateGallery(parentEntryId) },
+      this._moveHereChoices(parentEntryId).length > 0 && {
+        label: named(t("sub_object_move_here", L)), icon: "mdi:folder-move-outline", cls: "sub-object-move", action: () => void this._moveObjectHere(parentEntryId),
+      },
+    ];
+  }
+
+  /** The object's ⋮ menu. `flatSub`: HA's dropdown lists the sub-object
+   *  choices in place of the item that opens our second popup. */
+  private _objMenuEntries(obj: MaintenanceObjectResponse, canNest: boolean, isOperator: boolean, L: string, flatSub: boolean): MenuEntry[] {
+    const o = obj.object;
+    const writer = !isOperator;
+    return [
+      { label: t("qr_code", L), action: () => this._openQrForObject(obj.entry_id, o.name) },
+      { label: t("report_button", L), action: () => this._printObjectReport(obj.entry_id) },
+      writer && !o.battery_fleet && { label: t("duplicate", L), action: () => this._duplicateObject(obj.entry_id) },
+      ...(writer && canNest
+        ? flatSub
+          ? this._subObjEntries(obj.entry_id, L, t("add_sub_object", L))
+          : [{ label: t("add_sub_object", L), cls: "add-sub-object-item", action: () => this._toggleSubObjMenu("more") }]
+        : []),
+      writer && !o.archived && { label: o.paused ? t("resume_object", L) : t("pause_object", L), action: () => this._togglePauseObject(obj.entry_id, !!o.paused) },
+      writer && !o.archived && !o.battery_fleet && { label: t("replace_object", L), action: () => this._replaceObject(obj.entry_id, o) },
+      writer && { label: o.archived ? t("unarchive_object", L) : t("archive_object", L), action: () => this._toggleArchiveObject(obj.entry_id, !!o.archived) },
+      writer && "divider",
+      writer && { label: t("delete", L), danger: true, action: () => this._deleteObject(obj.entry_id) },
+    ];
   }
 
   private _showObject(entryId: string, section: ObjectSection | null = null): void {
@@ -1769,7 +1889,15 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  detail's history frozen after a pushed completion or a data refresh
    *  (bug review 2026-09-04). */
   private _detailOpen(): boolean {
-    return (this._view === "task" || this._splitActive()) && !!this._selectedEntryId && !!this._selectedTaskId;
+    return (this._view === "task" || this._splitActive() || this._objectSplitActive()) && !!this._selectedEntryId && !!this._selectedTaskId;
+  }
+
+  /** The object page as master-detail (beta, wide panel): a task docks on
+   *  the right like on the dashboard and the object page stays. At 2560 and
+   *  4K the page ran one column across the whole width and every task opened
+   *  as a page of its own. */
+  private _objectSplitActive(): boolean {
+    return betaUi() && this.split && !this.narrow && !this.tight && this._view === "object" && !this._objBulkMode;
   }
 
   /** The docked detail's breadcrumb opens the full task page (a no-op on
@@ -1791,7 +1919,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     // and no history entry — the detail docks on the right like a mail
     // client's preview pane. The detail's breadcrumb (showTaskView) still
     // opens the full page.
-    if (this._splitActive()) {
+    // The object page docks its own tasks the same way; the entry keeps the
+    // docked task, so a reload brings it back.
+    const objectDock = this._objectSplitActive() && entryId === this._selectedEntryId;
+    if (objectDock) history.replaceState({ ...(history.state as PanelState | null), msp_task: taskId }, "");
+    if (this._splitActive() || objectDock) {
       this._selectedEntryId = entryId;
       this._selectedTaskId = taskId;
       this._activeTab = "overview";
@@ -1799,11 +1931,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._historySearch = "";
       this._resetStickyPane();
       this._fetchFullHistory(entryId, taskId);
-      const task = this._getTask(entryId, taskId);
-      const entityId = primaryTriggerEntity(task?.trigger_config);
-      if (task && entityId) {
-        this._fetchDetailStats(entityId, isCounterTrigger(task.trigger_config));
-      }
+      this._fetchRuleStats(this._getTask(entryId, taskId));
       return;
     }
     this._pushPanelState("task", entryId, taskId);
@@ -1822,16 +1950,16 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._fetchFullHistory(entryId, taskId);
 
     // Lazy-load statistics for the task's trigger entity
-    const task = this._getTask(entryId, taskId);
-    const entityId = primaryTriggerEntity(task?.trigger_config);
-    if (task && entityId) {
-      this._fetchDetailStats(entityId, isCounterTrigger(task.trigger_config));
-    }
+    this._fetchRuleStats(this._getTask(entryId, taskId));
   }
 
   // --- Toast ---
 
   private _showToast(msg: string, kind: "error" | "info" = "error"): void {
+    if (betaUi()) {
+      haToast(this, msg);
+      return;
+    }
     if (this._toastTimer) clearTimeout(this._toastTimer);
     this._toastKind = kind;
     this._toastUndo = null;
@@ -1845,14 +1973,18 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  freshly adopted task). Longer-lived so the user has time to react; the
    *  callback dismisses it. */
   private _showActionToast(msg: string, label: string, action: () => void): void {
-    this._showUndoToast(msg, action);
-    this._toastActionLabel = label;
+    this._showUndoToast(msg, action, label);
   }
 
-  private _showUndoToast(msg: string, undo: () => void): void {
+  /** `label`: the button's text when it is not Undo. */
+  private _showUndoToast(msg: string, undo: () => void, label = ""): void {
+    if (betaUi()) {
+      haToast(this, msg, { text: label || t("undo", this._lang), action: undo });
+      return;
+    }
     if (this._toastTimer) clearTimeout(this._toastTimer);
     this._toastKind = "info";
-    this._toastActionLabel = "";
+    this._toastActionLabel = label;
     this._toastMessage = msg;
     this._toastUndo = undo;
     this._toastTimer = setTimeout(() => {
@@ -2097,7 +2229,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const waiting = q.length >= SEARCH_MIN_CHARS && (!this._searchRemote || this._searchRemote.query !== q);
     let lastKind: SearchHit["kind"] | null = null;
     return html`
-      <div class="palette-backdrop" @click=${() => this._closePalette()}>
+      <div class="palette-backdrop top-layer" popover="manual" ${topLayer} @click=${() => this._closePalette()}>
         <div class="palette" role="dialog" aria-label=${t("search_open", L)} @click=${(e: Event) => e.stopPropagation()}>
           <input
             class="palette-input"
@@ -2221,6 +2353,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private async _openTemplateGallery(parentEntryId: string | null = null): Promise<void> {
     this._templateParentId = parentEntryId;
     this._templateGalleryOpen = true;
+    this._templatePreview = null;
     // Refetched on every open (the last list shows meanwhile): the home
     // profile behind the recommendations can change in Settings. A refusal
     // toasts the server's reason, like every _runAction path (DRY audit
@@ -2237,18 +2370,20 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._homeProfile = res?.profile ?? null;
   }
 
-  private async _createFromTemplate(templateId: string): Promise<void> {
+  private async _createFromTemplate(templateId: string, taskNames?: string[]): Promise<void> {
     // e.g. "Limit reached" / a create_failed reason instead of "Action failed".
     const res = await runWs<{ entry_id?: string }>(
       this,
       {
         type: "maintenance_supporter/object/from_template", language: this._lang, template_id: templateId,
         ...(this._templateParentId ? { parent_entry_id: this._templateParentId } : {}),
+        ...(taskNames ? { task_names: taskNames } : {}),
       },
       {
         busy: (b) => { this._templateBusy = b; },
         reload: async () => {
           this._templateGalleryOpen = false;
+          this._templatePreview = null;
           await this._loadData();
         },
         successToast: t("template_created", this._lang),
@@ -2271,7 +2406,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     return html`
       <button class="template-card ${tpl.dwelling_mismatch ? "not-typical" : ""}" .disabled=${this._templateBusy}
         title=${tpl.dwelling_mismatch ? t("templates_not_typical", L) : ""}
-        @click=${() => this._createFromTemplate(tpl.id)}>
+        @click=${() => (this._features.beta_editor ? this._openTemplatePreview(tpl) : this._createFromTemplate(tpl.id))}>
         <span class="template-card-name">${tpl.name}</span>
         <span class="template-card-count">${countText("templates_task_count", "templates_task_count_one", tpl.tasks.length, L)}</span>
         ${withReasons && tpl.reasons?.length
@@ -2286,8 +2421,60 @@ export class MaintenanceSupporterPanel extends LitElement {
     `;
   }
 
+  private _openTemplatePreview(tpl: (typeof this._templates)[number]): void {
+    this._templatePreview = tpl;
+    this._templatePicked = new Set(tpl.tasks.map((_, i) => i));
+  }
+
+  private _toggleTemplateTask(i: number, on: boolean): void {
+    const next = new Set(this._templatePicked);
+    if (on) next.add(i); else next.delete(i);
+    this._templatePicked = next;
+  }
+
+  /** Beta: the template's tasks, each with its schedule, to tick before creating. */
+  private _renderTemplatePreview(tpl: (typeof this._templates)[number]) {
+    const L = this._lang;
+    const tasks = tpl.tasks as Array<{ name: string; schedule_type?: string; interval_days?: number | null }>;
+    const picked = this._templatePicked;
+    const n = tasks.filter((_, i) => picked.has(i)).length;
+    const rule = (tt: (typeof tasks)[number]): string => tt.interval_days && tt.interval_days > 0
+      ? t("beta_rules_every", L).replace("{interval}", formatUnit(tt.interval_days, "day", L))
+      : t(tt.schedule_type || "manual", L);
+    const close = () => { this._templateGalleryOpen = false; this._templatePreview = null; };
+    return html`
+      <div class="palette-backdrop top-layer" popover="manual" ${topLayer} @click=${close}>
+        <div class="template-gallery template-preview" @click=${(e: Event) => e.stopPropagation()}>
+          <div class="template-gallery-head">
+            <ha-icon-button class="template-preview-back" .label=${t("back", L)} .path=${"M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"}
+              @click=${() => { this._templatePreview = null; }}></ha-icon-button>
+            <span class="template-preview-name">${tpl.name}</span>
+            <ha-icon-button .label=${t("close", L)} .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
+              @click=${close}></ha-icon-button>
+          </div>
+          <div class="template-gallery-body">
+            <div class="template-cat-head">${t("beta_template_pick", L)}</div>
+            ${tasks.map((tt, i) => html`
+              ${checkField({ cls: "template-preview-task", checked: picked.has(i), onChange: (e: Event) => this._toggleTemplateTask(i, (e.target as HTMLInputElement).checked) }, html`<span class="template-preview-text">
+                  <span class="template-preview-task-name">${tt.name}</span>
+                  <span class="template-preview-rule">${rule(tt)}</span>
+                </span>`)}`)}
+            ${n === 0 ? html`<div class="template-cat-hint template-preview-none">${t("beta_template_none", L)}</div>` : nothing}
+            <div class="template-preview-actions">
+              <ha-button class="template-preview-create" .disabled=${n === 0 || this._templateBusy}
+                @click=${() => this._createFromTemplate(tpl.id, tasks.filter((_, i) => picked.has(i)).map((tt) => tt.name))}>
+                ${countText("beta_template_create", "beta_template_create_one", n, L)}
+              </ha-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   private _renderTemplateGallery() {
     if (!this._templateGalleryOpen) return nothing;
+    if (this._templatePreview) return this._renderTemplatePreview(this._templatePreview);
     const L = this._lang;
     // Group templates by category, preserving category declaration order.
     // v2.93: templates untypical for the home's dwelling move to the end of
@@ -2303,7 +2490,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const recommended = this._templates.filter((tpl) => tpl.recommended && !tpl.set_up);
     const parent = this._templateParentId ? this._objects.find((o) => o.entry_id === this._templateParentId) : undefined;
     return html`
-      <div class="palette-backdrop" @click=${() => { this._templateGalleryOpen = false; }}>
+      <div class="palette-backdrop top-layer" popover="manual" ${topLayer} @click=${() => { this._templateGalleryOpen = false; }}>
         <div class="template-gallery" @click=${(e: Event) => e.stopPropagation()}>
           <div class="template-gallery-head">
             <span>${t("templates_title", L)}</span>
@@ -2548,10 +2735,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const allSelected = objs.length > 0 && objs.every((o) => this._objBulkSelected.has(o.entry_id));
     return html`
       <div class="bulk-bar obj-bulk-bar">
-        <label class="bulk-selectall">
-          <input type="checkbox" .checked=${allSelected} @change=${() => this._objBulkSelectAll(objs)} />
-          ${t("bulk_select_all", L)}
-        </label>
+        ${checkField({ cls: "bulk-selectall", checked: allSelected, onChange: () => this._objBulkSelectAll(objs) }, html`${t("bulk_select_all", L)}`)}
         <span class="bulk-count">${t("bulk_n_selected", L).replace("{n}", String(n))}</span>
         <span class="bulk-actions">
           <ha-button appearance="plain" class="obj-bulk-area" .disabled=${n === 0 || this._actionLoading} @click=${() => void this._objBulkArea()}>
@@ -2768,17 +2952,13 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private async _deleteTask(entryId: string, taskId: string): Promise<void> {
     const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
-    const ok = await dlg?.confirm({
-      title: t("delete", this._lang),
-      message: t("delete_task_confirm", this._lang),
-      confirmText: t("delete", this._lang),
-      danger: true,
-    });
-    if (!ok) return;
+    const extra = await askDeleteTask(dlg, this._getTask(entryId, taskId), this._lang);
+    if (!extra) return;
     const res = await this._runAction({
       type: "maintenance_supporter/task/delete",
       entry_id: entryId,
       task_id: taskId,
+      ...extra,
     });
     if (res) this._showObject(entryId);
   }
@@ -2995,7 +3175,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (!res) return;
     if (res.recommended_interval) {
       this._showToast(
-        `${t("reanalyze_result", this._lang)}: ${res.recommended_interval} ${t("days", this._lang)} ` +
+        `${t("reanalyze_result", this._lang)}: ${formatDayCount(res.recommended_interval, this._lang)} ` +
         `(${t(`confidence_${res.confidence}`, this._lang)}, ${res.data_points} ${t("data_points", this._lang)})`,
         "info",
       );
@@ -3105,6 +3285,11 @@ export class MaintenanceSupporterPanel extends LitElement {
         // instead of a generic "action failed".
         this._showToast(message);
       }
+      return;
+    }
+    const already = alreadyRecordedMessage(res, this._lang);
+    if (already) {
+      this._showToast(already, "info");
       return;
     }
     if ((res as { undo?: boolean } | null)?.undo) this._offerUndo(entryId, taskId, t("quick_complete_success", this._lang));
@@ -3423,6 +3608,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         .environmentalFeature=${this._features.environmental}
         .defaultWarningDays=${this._defaultWarningDays}
         .mirrorTodoDefault=${this._mirrorTodoDefault}
+        .betaEditor=${this._features.beta_editor}
         @task-saved=${this._onDialogEvent}
       ></maintenance-task-dialog>
       <maintenance-complete-dialog
@@ -3530,7 +3716,10 @@ export class MaintenanceSupporterPanel extends LitElement {
             ></ha-icon-button>`
           : nothing}
         <div class="breadcrumbs">
-          ${crumbs.map(
+          ${/* Beta UI on a phone: the title alone, as Home Assistant's own
+               sub-pages show it (the back arrow climbs) — the parents had
+               shrunk to nothing between their slashes. */
+          (betaUi() && this.narrow ? crumbs.slice(-1) : crumbs).map(
             (c, i) => html`
               ${i > 0 ? html`<span class="sep">/</span>` : nothing}
               ${c.action
@@ -3593,27 +3782,12 @@ export class MaintenanceSupporterPanel extends LitElement {
             </div>
           `
         : nothing}
-      <div class="tab-bar">
-        <div class="tab ${this._overviewTab === "today" ? "active" : ""}"
-          @click=${() => this._setOverviewTab("today")}>
-          ${t("tab_today", L)}
-        </div>
-        <div class="tab ${this._overviewTab === "dashboard" ? "active" : ""}"
-          @click=${() => this._setOverviewTab("dashboard")}>
-          ${t("dashboard", L)}
-        </div>
-        <div class="tab ${this._overviewTab === "calendar" ? "active" : ""}"
-          @click=${() => this._setOverviewTab("calendar")}>
-          ${t("tab_calendar", L)}
-        </div>
-        ${isAdmin ? html`
-          <div class="tab ${this._overviewTab === "settings" ? "active" : ""}"
-            @click=${() => this._setOverviewTab("settings")}>
-            ${t("settings", L)}
-          </div>
-        ` : nothing}
-        ${this.narrow ? nothing : this._renderSearchButton("tab-search")}
-      </div>
+      ${renderTabBar<OverviewTab>([
+        { key: "today", label: t("tab_today", L) },
+        { key: "dashboard", label: t("dashboard", L) },
+        { key: "calendar", label: t("tab_calendar", L) },
+        isAdmin && { key: "settings", label: t("settings", L) },
+      ], this._overviewTab, (tab) => this._setOverviewTab(tab), this.narrow ? nothing : this._renderSearchButton("tab-search"))}
       ${this._overviewTab === "today"
         ? this._renderToday()
         : this._overviewTab === "dashboard"
@@ -3795,8 +3969,12 @@ export class MaintenanceSupporterPanel extends LitElement {
       (this._filterPriority ? 1 : 0) +
       (this._activeViewId ? 1 : 0);
 
-    return html`
-
+    // Filter pane open below 2200 px of panel (beta): no empty task pane
+    // beside it, the three columns left the list a third of the width and
+    // names wrapped over five lines (2026-11-01). A tapped task docks again.
+    const docked = !!(this._selectedEntryId && this._selectedTaskId && this._getTask(this._selectedEntryId, this._selectedTaskId));
+    const showSplit = this._splitActive() && !(betaUi() && this._filterPaneOpen && !this.wide && !docked);
+    const classicTop = html`
       ${this.narrow ? html`
         <div class="mobile-controls">
           <ha-button
@@ -3811,18 +3989,12 @@ export class MaintenanceSupporterPanel extends LitElement {
       ` : nothing}
 
       <div class="filter-bar ${this.narrow && !this._filtersOpen ? "collapsed" : ""}">
-        <label class="filter-field">
-          <span class="filter-label">${t("views_label", L)}</span>
-          <select
-            .value=${this._activeViewId}
-            @change=${(e: Event) => this._applyView((e.target as HTMLSelectElement).value)}
-          >
+        ${this._filterSelect(t("views_label", L), this._activeViewId, (e: Event) => this._applyView((e.target as HTMLSelectElement).value), html`
             <option value="">${t("views_none", L)}</option>
             ${this._savedViews.map(
               (v) => html`<option value=${v.id} ?selected=${this._activeViewId === v.id}>${v.name}</option>`,
             )}
-          </select>
-        </label>
+        `)}
         ${!isOperator ? html`
           <ha-icon-button
             class="views-save-btn"
@@ -3832,92 +4004,57 @@ export class MaintenanceSupporterPanel extends LitElement {
             @click=${() => this._openSavedViewsDialog()}
           ></ha-icon-button>
         ` : nothing}
-        <label class="filter-field">
-          <span class="filter-label">${t("filter_label", L)}</span>
-          <select
-            .value=${this._filterStatus}
-            @change=${(e: Event) => { this._filterStatus = (e.target as HTMLSelectElement).value; this._activeViewId = ""; }}
-          >
+        ${this._filterSelect(t("filter_label", L), this._filterStatus, (e: Event) => { this._filterStatus = (e.target as HTMLSelectElement).value; this._activeViewId = ""; }, html`
             <option value="">${t("all", L)}</option>
             ${STATUS_FILTERS.map((s) => html`<option value=${s} ?selected=${this._filterStatus === s}>${t(s, L)}</option>`)}
-          </select>
-        </label>
-        <label class="filter-field">
-          <span class="filter-label">${t("user_label", L)}</span>
-          <select
-            .value=${this._filterUser || ""}
-            @change=${(e: Event) => {
+        `)}
+        ${this._filterSelect(t("user_label", L), this._filterUser || "", (e: Event) => {
               const val = (e.target as HTMLSelectElement).value;
               this._filterUser = val || null;
               this._activeViewId = "";
-            }}
-          >
+            }, html`
             <option value="">${t("all_users", L)}</option>
             <option value="current_user" ?selected=${this._filterUser === "current_user"}>${t("my_tasks", L)}</option>
             ${personOptions.map((p) => html`<option value=${p.id} ?selected=${this._filterUser === p.id}>${p.name ?? p.id}</option>`)}
-          </select>
-        </label>
+        `)}
         ${this._allLabels.length > 0 ? html`
-          <label class="filter-field">
-            <span class="filter-label">${t("label_filter", L)}</span>
-            <select
-              .value=${this._filterLabel || ""}
-              @change=${(e: Event) => {
+          ${this._filterSelect(t("label_filter", L), this._filterLabel || "", (e: Event) => {
                 const val = (e.target as HTMLSelectElement).value;
                 this._filterLabel = val || null;
                 this._activeViewId = "";
-              }}
-            >
+              }, html`
               <option value="">${t("all_labels", L)}</option>
               ${this._allLabels.map(
                 (lb) => html`<option value=${lb} ?selected=${this._filterLabel === lb}>${lb}</option>`
               )}
-            </select>
-          </label>
+          `)}
         ` : nothing}
         ${this._features.places && this._allPlaces.length > 0 ? html`
-          <label class="filter-field">
-            <span class="filter-label">${t("filter_place", L)}</span>
-            <select
-              .value=${this._filterPlace}
-              @change=${(e: Event) => {
+          ${this._filterSelect(t("filter_place", L), this._filterPlace, (e: Event) => {
                 this._filterPlace = (e.target as HTMLSelectElement).value;
                 this._activeViewId = "";
-              }}
-            >
+              }, html`
               <option value="">${t("filter_place_all", L)}</option>
               <option value="home" ?selected=${this._filterPlace === "home"}>${t("place_home", L)}</option>
               ${this._allPlaces.map(
                 (pl) => html`<option value=${pl.id} ?selected=${this._filterPlace === pl.id}>${pl.name}</option>`
               )}
-            </select>
-          </label>
+          `)}
         ` : nothing}
-        <label class="filter-field">
-          <span class="filter-label">${t("priority", L)}</span>
-          <select
-            .value=${this._filterPriority}
-            @change=${(e: Event) => {
+        ${this._filterSelect(t("priority", L), this._filterPriority, (e: Event) => {
               this._filterPriority = (e.target as HTMLSelectElement).value;
               this._activeViewId = "";
-            }}
-          >
+            }, html`
             <option value="">${t("all_priorities", L)}</option>
             ${TASK_PRIORITIES_HIGH_FIRST.map(
               (pr) => html`<option value=${pr} ?selected=${this._filterPriority === pr}>${t(`priority_${pr}`, L)}</option>`
             )}
-          </select>
-        </label>
-        <label class="filter-field">
-          <span class="filter-label">${t("sort_label", L)}</span>
-          <select
-            .value=${this._sortMode}
-            @change=${(e: Event) => {
+        `)}
+        ${this._filterSelect(t("sort_label", L), this._sortMode, (e: Event) => {
               this._sortMode = (e.target as HTMLSelectElement).value as SortMode;
               this._activeViewId = "";
               try { lsSet(LS_KEYS.taskSort, this._sortMode); } catch { /* private mode */ }
-            }}
-          >
+            }, html`
             <option value="due_date" ?selected=${this._sortMode === "due_date"}>${t("sort_due_date", L)}</option>
             <option value="object" ?selected=${this._sortMode === "object"}>${t("sort_object", L)}</option>
             <option value="type" ?selected=${this._sortMode === "type"}>${t("sort_type", L)}</option>
@@ -3925,25 +4062,18 @@ export class MaintenanceSupporterPanel extends LitElement {
             <option value="area" ?selected=${this._sortMode === "area"}>${t("sort_area", L)}</option>
             <option value="assigned_user" ?selected=${this._sortMode === "assigned_user"}>${t("sort_assigned_user", L)}</option>
             <option value="group" ?selected=${this._sortMode === "group"}>${t("sort_group", L)}</option>
-          </select>
-        </label>
-        <label class="filter-field">
-          <span class="filter-label">${t("group_by_label", L)}</span>
-          <select
-            .value=${this._groupByMode}
-            @change=${(e: Event) => {
+        `)}
+        ${this._filterSelect(t("group_by_label", L), this._groupByMode, (e: Event) => {
               this._groupByMode = (e.target as HTMLSelectElement).value as GroupByMode;
               this._activeViewId = "";
               try { lsSet(LS_KEYS.groupBy, this._groupByMode); } catch { /* private mode */ }
-            }}
-          >
+            }, html`
             <option value="none" ?selected=${this._groupByMode === "none"}>${t("groupby_none", L)}</option>
             <option value="area" ?selected=${this._groupByMode === "area"}>${t("groupby_area", L)}</option>
             ${this._features.groups ? html`<option value="group" ?selected=${this._groupByMode === "group"}>${t("groupby_group", L)}</option>` : nothing}
             <option value="user" ?selected=${this._groupByMode === "user"}>${t("groupby_user", L)}</option>
             <option value="object" ?selected=${this._groupByMode === "object"}>${t("groupby_object", L)}</option>
-          </select>
-        </label>
+        `)}
         ${archivedCount > 0 ? html`
           <ha-button
             class="archived-toggle ${this._showArchived ? "active" : ""}"
@@ -3964,9 +4094,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         ` : nothing}
         ${!isOperator && !this.narrow ? this._renderNewMenu(L) : nothing}
       </div>
-
-      ${!isOperator ? this._renderGettingStartedChips(L) : nothing}
-
+    `;
+    const hints = !isOperator ? this._renderGettingStartedChips(L) : nothing;
+    const list = html`
       ${rows.length === 0
         ? html`
             <div class="empty-state">
@@ -3987,7 +4117,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           `
         : html`
             ${this._bulkMode ? this._renderBulkBar(rows, L) : nothing}
-            ${this._splitActive()
+            ${showSplit
               ? html`
                   <div class="split-layout">
                     <div class="split-list">
@@ -4004,6 +4134,22 @@ export class MaintenanceSupporterPanel extends LitElement {
               ? this._renderTaskTable(rows)
               : this._renderGroupedTasks(rows, L)}
           `}
+    `;
+    // Beta: Home Assistant's list page (toolbar, filter pane, create button
+    // at the bottom right); classic keeps its filter bar.
+    const beta = betaUi() && menuIsHa();
+    return html`
+      ${beta
+        ? html`
+            <div class="ms-list-layout ${this._filterPaneOpen ? "with-pane" : ""}">
+              ${this._filterPaneOpen ? this._renderFilterPane(personOptions, archivedCount, isOperator, L) : nothing}
+              <div class="ms-list-main">
+                ${this._renderBetaToolbar(this._rowsFiltered(true, false).length, activeFilterCount, isOperator, L)}
+                ${hints}${list}
+              </div>
+            </div>
+            ${!isOperator ? this._renderNewMenu(L, !this.embedded) : nothing}`
+        : html`${classicTop}${hints}${list}`}
 
       ${this._features.groups && !isOperator ? this._renderGroupsSection() : nothing}
       ${!isOperator
@@ -4019,6 +4165,138 @@ export class MaintenanceSupporterPanel extends LitElement {
     `;
   }
 
+  /** Beta: the overview's toolbar as Home Assistant's list pages have it
+   *  (Settings › Entities, 2026.11): Filters, selection mode, a search over
+   *  the list, Group by and Sort by, one row of 32-px chips. The six
+   *  dropdowns it replaces took two rows of 56 px, and HA's select showed an
+   *  "All" choice as an empty field (2026-11-01). */
+  private _renderBetaToolbar(total: number, activeFilters: number, isOperator: boolean, L: string) {
+    const groupLabel: Record<GroupByMode, string> = {
+      none: t("groupby_none", L), area: t("sort_area", L), group: t("sort_group", L), user: t("sort_assigned_user", L), object: t("object", L),
+    };
+    const sortLabel: Record<SortMode, string> = {
+      due_date: t("sort_due_date", L), object: t("sort_object", L), type: t("sort_type", L), task_name: t("sort_task_name", L),
+      area: t("sort_area", L), assigned_user: t("sort_assigned_user", L), group: t("sort_group", L),
+    };
+    const chip = (label: string) => html`<button class="ms-chip" slot="trigger" type="button">
+      <span>${label}</span><ha-icon class="ms-chip-caret" icon="mdi:menu-down"></ha-icon></button>`;
+    const groups = GROUP_BY_MODES.filter((g) => g !== "group" || this._features.groups);
+    const sorts = SORT_MODES.filter((s) => s !== "group" || this._features.groups);
+    const g = this._groupByMode;
+    return html`
+      <div class="ms-toolbar">
+        ${this._filterPaneOpen ? nothing : html`
+          <button class="ms-chip ${activeFilters ? "active" : ""}" type="button" aria-expanded="false" @click=${() => this._toggleFilterPane()}>
+            <ha-icon icon="mdi:filter-variant"></ha-icon><span>${t("beta_filters", L)}</span>
+            ${activeFilters ? html`<span class="ms-chip-badge">${activeFilters}</span>` : nothing}
+          </button>`}
+        ${!isOperator && total > 0 ? html`
+          <button class="ms-chip icon-only ${this._bulkMode ? "active" : ""}" type="button" title=${t("bulk_select", L)} aria-label=${t("bulk_select", L)}
+            aria-pressed=${this._bulkMode ? "true" : "false"} @click=${() => this._toggleBulkMode()}>
+            <ha-icon icon="mdi:order-bool-ascending-variant"></ha-icon>
+          </button>` : nothing}
+        <label class="ms-search">
+          <ha-icon icon="mdi:magnify"></ha-icon>
+          <input type="search" .value=${this._listSearch} placeholder=${t("beta_search_tasks", L).replace("{count}", String(total))}
+            aria-label=${t("beta_search_tasks", L).replace("{count}", String(total))}
+            @input=${(e: Event) => { this._listSearch = (e.target as HTMLInputElement).value; }} />
+          ${this._listSearch ? html`<button class="ms-search-clear" type="button" aria-label=${t("clear", L)} title=${t("clear", L)}
+            @click=${() => { this._listSearch = ""; }}><ha-icon icon="mdi:close"></ha-icon></button>` : nothing}
+        </label>
+        ${renderHaMenu(chip(g === "none" ? t("group_by_label", L) : `${t("group_by_label", L)} ${groupLabel[g]}`),
+          groups.map((mode) => ({ label: groupLabel[mode], selected: mode === g, action: () => this._setGroupBy(mode) })), { cls: "ms-chip-menu" })}
+        ${renderHaMenu(chip(t("beta_sort_by", L).replace("{sort}", sortLabel[this._sortMode])),
+          sorts.map((mode) => ({ label: sortLabel[mode], selected: mode === this._sortMode, action: () => this._setSortMode(mode) })), { cls: "ms-chip-menu" })}
+      </div>
+    `;
+  }
+
+  private _toggleFilterPane(): void {
+    this._filterPaneOpen = !this._filterPaneOpen;
+    lsSet(LS_KEYS.filterPane, this._filterPaneOpen ? "1" : "");
+  }
+
+  private _setGroupBy(mode: GroupByMode): void {
+    this._groupByMode = mode;
+    this._activeViewId = "";
+    lsSet(LS_KEYS.groupBy, mode);
+  }
+
+  private _setSortMode(mode: SortMode): void {
+    this._sortMode = mode;
+    this._activeViewId = "";
+    lsSet(LS_KEYS.taskSort, mode);
+  }
+
+  /** Beta: the filter pane beside the list, as Home Assistant's: a folding
+   *  section per filter with its choices ticked on the right, the number of
+   *  active filters on the Filters chip, one tap to clear them all. Our
+   *  filters hold one choice each, so a tick replaces the last one and a
+   *  second tap takes it back. Saved views and archived tasks join them. */
+  private _renderFilterPane(people: Array<{ id: string; name: string | null }>, archivedCount: number, isOperator: boolean, L: string) {
+    const option = (label: unknown, on: boolean, pick: () => void) => html`
+      <button class="ms-pane-option ${on ? "on" : ""}" type="button" role="menuitemcheckbox" aria-checked=${on ? "true" : "false"} @click=${pick}>
+        <span class="ms-pane-option-label">${label}</span>
+        <ha-icon icon=${on ? "mdi:checkbox-marked" : "mdi:checkbox-blank-outline"}></ha-icon>
+      </button>`;
+    const section = (key: string, title: string, active: boolean, body: unknown) => html`
+      <ha-expansion-panel class="ms-pane-section" .expanded=${active || this._paneSections.has(key)}
+        @expanded-changed=${(e: CustomEvent<{ expanded: boolean }>) => {
+          if (e.target !== e.currentTarget) return;
+          const next = new Set(this._paneSections);
+          if (e.detail.expanded) next.add(key);
+          else next.delete(key);
+          this._paneSections = next;
+        }}>
+        <div slot="header" class="ms-pane-section-head">${title}${active ? html`<span class="ms-chip-badge">1</span>` : nothing}</div>
+        <div class="ms-pane-options">${body}</div>
+      </ha-expansion-panel>`;
+    const set = (apply: () => void) => () => { apply(); this._activeViewId = ""; };
+    const anyActive = !!(this._filterStatus || this._filterUser || this._filterLabel || this._filterPlace || this._filterPriority || this._activeViewId);
+    return html`
+      <aside class="ms-filter-pane" aria-label=${t("beta_filters", L)}>
+        <div class="ms-pane-head">
+          <button class="ms-chip active" type="button" aria-expanded="true" @click=${() => this._toggleFilterPane()}>
+            <ha-icon icon="mdi:filter-variant"></ha-icon><span>${t("beta_filters", L)}</span>
+          </button>
+          ${anyActive ? html`<ha-icon-button class="ms-pane-clear" .label=${t("beta_filters_clear", L)} title=${t("beta_filters_clear", L)}
+            .path=${"M14.76,20.83L17.6,18L14.76,15.17L16.17,13.76L19,16.57L21.83,13.76L23.24,15.17L20.41,18L23.24,20.83L21.83,22.24L19,19.4L16.17,22.24L14.76,20.83M12,12V19.88C12.04,20.18 11.94,20.5 11.71,20.71C11.32,21.1 10.69,21.1 10.3,20.71L8.29,18.7C8.06,18.47 7.96,18.16 8,17.87V12H7.97L2.21,4.62C1.87,4.19 1.95,3.56 2.38,3.22C2.57,3.08 2.78,3 3,3H17C17.22,3 17.43,3.08 17.62,3.22C18.05,3.56 18.13,4.19 17.79,4.62L12.03,12H12Z"}
+            @click=${() => this._clearFilters()}></ha-icon-button>` : nothing}
+        </div>
+        ${this._savedViews.length || !isOperator ? section("views", t("views_label", L), !!this._activeViewId, html`
+          ${this._savedViews.map((v) => option(v.name, this._activeViewId === v.id, () => this._applyView(this._activeViewId === v.id ? "" : v.id)))}
+          ${!isOperator ? html`<button class="ms-pane-link" type="button" @click=${() => this._openSavedViewsDialog()}>${t("views_manage", L)}</button>` : nothing}
+        `) : nothing}
+        ${section("status", t("beta_filter_status", L), !!this._filterStatus, STATUS_FILTERS.map((s) =>
+          option(t(s, L), this._filterStatus === s, set(() => { this._filterStatus = this._filterStatus === s ? "" : s; }))))}
+        ${section("user", t("user_label", L), !!this._filterUser, html`
+          ${option(t("my_tasks", L), this._filterUser === "current_user", set(() => { this._filterUser = this._filterUser === "current_user" ? null : "current_user"; }))}
+          ${people.map((p) => option(p.name ?? p.id, this._filterUser === p.id, set(() => { this._filterUser = this._filterUser === p.id ? null : p.id; })))}
+        `)}
+        ${this._allLabels.length ? section("label", t("label_filter", L), !!this._filterLabel, this._allLabels.map((lb) =>
+          option(lb, this._filterLabel === lb, set(() => { this._filterLabel = this._filterLabel === lb ? null : lb; })))) : nothing}
+        ${this._features.places && this._allPlaces.length ? section("place", t("filter_place", L), !!this._filterPlace, html`
+          ${option(t("place_home", L), this._filterPlace === "home", set(() => { this._filterPlace = this._filterPlace === "home" ? "" : "home"; }))}
+          ${this._allPlaces.map((pl) => option(pl.name, this._filterPlace === pl.id, set(() => { this._filterPlace = this._filterPlace === pl.id ? "" : pl.id; })))}
+        `) : nothing}
+        ${section("priority", t("priority", L), !!this._filterPriority, TASK_PRIORITIES_HIGH_FIRST.map((pr) =>
+          option(t(`priority_${pr}`, L), this._filterPriority === pr, set(() => { this._filterPriority = this._filterPriority === pr ? "" : pr; }))))}
+        ${archivedCount > 0 ? section("archived", t("show_archived", L), this._showArchived,
+          option(`${t("show_archived", L)} (${archivedCount})`, this._showArchived, set(() => { this._showArchived = !this._showArchived; }))) : nothing}
+      </aside>
+    `;
+  }
+
+  /** Every filter of the overview off (the filter pane's clear button). */
+  private _clearFilters(): void {
+    this._filterStatus = "";
+    this._filterUser = null;
+    this._filterLabel = null;
+    this._filterPlace = "";
+    this._filterPriority = "";
+    this._activeViewId = "";
+  }
+
   /** The flat dashboard task table. Below VIRTUAL_MIN_ROWS (or on narrow
    *  layouts, where rows aren't uniform-height) every row renders directly.
    *  Above it, only the scroll window is in the DOM: two grid-spanning
@@ -4031,25 +4309,58 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (this.narrow || rows.length < VIRTUAL_MIN_ROWS) {
       return html`
         <div class="task-table${bulkCls}">
-          ${rows.map((row) => this._renderOverviewRow(row))}
+          ${this._renderTaskHead()}
+          ${repeat(rows, rowKey, (row) => this._renderOverviewRow(row))}
         </div>
       `;
     }
     const total = rows.length;
-    const rh = this._virtRowHeight;
+    const keys = rows.map(rowKey);
+    // A new list (filter, sort, data) may need its own few passes to settle.
+    if (keys.length !== this._virtKeys.length || keys.some((k, i) => k !== this._virtKeys[i])) {
+      this._virtPasses = 0;
+    }
+    this._virtKeys = keys;
+    const offsets = this._virtHeights.offsets(keys);
     let start = Math.max(0, Math.min(this._virtStart, total));
     let end = this._virtEnd > 0 ? Math.min(this._virtEnd, total) : Math.min(total, 40);
     if (end < start) { start = 0; end = Math.min(total, 40); }
-    const padTop = start * rh;
-    const padBottom = (total - end) * rh;
+    this._virtRenderedStart = start;
+    const padTop = offsets[start];
+    const padBottom = offsets[total] - offsets[end];
     return html`
       <div class="task-table${bulkCls} virtual">
+        ${this._renderTaskHead()}
         ${this._renderVirtSizerRow(rows)}
         ${padTop > 0 ? html`<div class="virt-spacer" style="height:${padTop}px"></div>` : nothing}
-        ${rows.slice(start, end).map((row) => this._renderOverviewRow(row))}
+        ${repeat(rows.slice(start, end), rowKey, (row) => this._renderOverviewRow(row))}
         ${padBottom > 0 ? html`<div class="virt-spacer" style="height:${padBottom}px"></div>` : nothing}
       </div>
     `;
+  }
+
+  /** Beta: the list's header row, as Home Assistant's tables have one: the
+   *  columns named, the ones the list can sort by sort on a tap (the active
+   *  one with HA's arrow). In the same subgrid as the rows, so it lines up. */
+  private _renderTaskHead() {
+    if (!betaUi() || this.narrow || this.tight) return nothing;
+    const L = this._lang;
+    const th = (label: string, cls: string, sort?: SortMode) => sort
+      ? html`<button class="th ${cls} sortable ${this._sortMode === sort ? "active" : ""}" type="button" role="columnheader"
+          aria-sort=${this._sortMode === sort ? "ascending" : "none"} @click=${() => this._setSortMode(sort)}>
+          ${this._sortMode === sort ? html`<ha-icon icon="mdi:arrow-up"></ha-icon>` : nothing}<span>${label}</span></button>`
+      : html`<span class="th ${cls}" role="columnheader">${label}</span>`;
+    return html`
+      <div class="task-head" role="row">
+        ${this._bulkMode ? html`<span></span>` : nothing}
+        ${th(t("beta_filter_status", L), "th-status")}
+        ${th(t("object", L), "th-object", "object")}
+        ${th(t("task_name", L), "th-task", "task_name")}
+        <span class="th th-sub"></span>
+        ${th(t("sort_type", L), "th-type", "type")}
+        ${th(t("sort_due_date", L), "th-due", "due_date")}
+        <span class="th th-actions"></span>
+      </div>`;
   }
 
   /** Invisible zero-height row whose badge cell carries the union of the
@@ -4088,10 +4399,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const allSelected = rows.length > 0 && rows.every((r) => this._bulkSelected.has(this._bulkKey(r)));
     return html`
       <div class="bulk-bar">
-        <label class="bulk-selectall">
-          <input type="checkbox" .checked=${allSelected} @change=${() => this._bulkSelectAll(rows)} />
-          ${t("bulk_select_all", L)}
-        </label>
+        ${checkField({ cls: "bulk-selectall", checked: allSelected, onChange: () => this._bulkSelectAll(rows) }, html`${t("bulk_select_all", L)}`)}
         <span class="bulk-count">${t("bulk_n_selected", L).replace("{n}", String(n))}</span>
         <span class="bulk-actions">
           <ha-button appearance="filled" .disabled=${n === 0 || this._actionLoading}
@@ -4103,20 +4411,26 @@ export class MaintenanceSupporterPanel extends LitElement {
             <ha-icon icon="mdi:archive-outline"></ha-icon> ${t("archive", L)}
           </ha-button>
           <span class="bulk-more-wrapper">
-            <ha-button appearance="plain" class="bulk-more" title=${t("more_actions", L)} aria-label=${t("more_actions", L)} .disabled=${n === 0 || this._actionLoading}
-              @click=${(e: Event) => { e.stopPropagation(); this._bulkMenuOpen = !this._bulkMenuOpen; }}>
-              <ha-icon icon="mdi:dots-vertical"></ha-icon>
-            </ha-button>
-            ${this._bulkMenuOpen ? html`
-              <div class="popup-menu" role="menu" @keydown=${clickOnActivationKey} @click=${(e: Event) => e.stopPropagation()}>
-                <div role="menuitem" tabindex="0" class="popup-menu-item bulk-move" @click=${() => { this._bulkMenuOpen = false; void this._bulkMove(rows); }}>${t("move_task", L)}</div>
-                <div role="menuitem" tabindex="0" class="popup-menu-item bulk-assign" @click=${() => { this._bulkMenuOpen = false; void this._bulkEdit("assign", rows); }}>${t("bulk_assign", L)}…</div>
-                <div role="menuitem" tabindex="0" class="popup-menu-item bulk-labels" @click=${() => { this._bulkMenuOpen = false; void this._bulkEdit("labels", rows); }}>${t("labels", L)}…</div>
-                <div role="menuitem" tabindex="0" class="popup-menu-item bulk-edit" @click=${() => { this._bulkMenuOpen = false; void this._bulkEdit("edit", rows); }}>${t("edit", L)}…</div>
-                <div role="menuitem" tabindex="0" class="popup-menu-item bulk-pause" @click=${() => { this._bulkMenuOpen = false; void this._bulkPause(rows); }}>${t("pause_task", L)}…</div>
-                <div role="menuitem" tabindex="0" class="popup-menu-item bulk-resume" @click=${() => { this._bulkMenuOpen = false; this._bulkResume(rows); }}>${t("resume_task", L)}</div>
-              </div>
-            ` : nothing}
+            ${(() => {
+              const entries: MenuEntry[] = [
+                { label: t("move_task", L), cls: "bulk-move", action: () => void this._bulkMove(rows) },
+                { label: `${t("bulk_assign", L)}…`, cls: "bulk-assign", action: () => void this._bulkEdit("assign", rows) },
+                { label: `${t("labels", L)}…`, cls: "bulk-labels", action: () => void this._bulkEdit("labels", rows) },
+                { label: `${t("edit", L)}…`, cls: "bulk-edit", action: () => void this._bulkEdit("edit", rows) },
+                { label: `${t("pause_task", L)}…`, cls: "bulk-pause", action: () => void this._bulkPause(rows) },
+                { label: t("resume_task", L), cls: "bulk-resume", action: () => this._bulkResume(rows) },
+              ];
+              const disabled = n === 0 || this._actionLoading;
+              return menuIsHa()
+                ? renderHaMenu(html`<ha-button slot="trigger" appearance="plain" class="bulk-more" title=${t("more_actions", L)} aria-label=${t("more_actions", L)} .disabled=${disabled}>
+                    <ha-icon icon="mdi:dots-vertical"></ha-icon>
+                  </ha-button>`, entries)
+                : html`<ha-button appearance="plain" class="bulk-more" title=${t("more_actions", L)} aria-label=${t("more_actions", L)} .disabled=${disabled}
+                    @click=${(e: Event) => { e.stopPropagation(); this._bulkMenuOpen = !this._bulkMenuOpen; }}>
+                    <ha-icon icon="mdi:dots-vertical"></ha-icon>
+                  </ha-button>
+                  ${this._bulkMenuOpen ? renderPopupMenu(entries, () => { this._bulkMenuOpen = false; }) : nothing}`;
+            })()}
           </span>
         </span>
       </div>
@@ -4165,6 +4479,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     // div-based disclosure with its own collapsed state.
     return html`
       <div class="task-table grouped${this._bulkMode ? " bulk" : ""}">
+        ${this._renderTaskHead()}
         ${sorted.map(([key, taskRows]) => {
           const open = !this._collapsedGroups.has(key);
           return html`
@@ -4187,7 +4502,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 <span class="group-section-count">(${taskRows.length})</span>
               </div>
               ${open
-                ? html`<div class="group-rows">${taskRows.map((row) => this._renderOverviewRow(row))}</div>`
+                ? html`<div class="group-rows">${repeat(taskRows, rowKey, (row) => this._renderOverviewRow(row))}</div>`
                 : nothing}
             </div>
           `;
@@ -4217,6 +4532,17 @@ export class MaintenanceSupporterPanel extends LitElement {
     const ws = warrantyStatus(iso);
     return html`<p class="meta">${t("warranty", L)}:
       <span class="warranty-chip warranty-${ws.kind}">${this._warrantyLabel(ws, iso, L)}</span></p>`;
+  }
+
+  /** One dropdown of a filter bar (the dashboard's, the objects view's):
+   *  the native select under its small caption, or with the beta UI Home
+   *  Assistant's own select carrying the caption as its label. The beta's
+   *  filter bars were the one place still on the browser's select. */
+  private _filterSelect(label: string, value: string, onChange: (e: Event) => void, options: unknown) {
+    const field = selectField({ label, value, onChange }, options);
+    return selectIsHa()
+      ? html`<div class="filter-field">${field}</div>`
+      : html`<label class="filter-field"><span class="filter-label">${label}</span>${field}</label>`;
   }
 
   private _renderAllObjects() {
@@ -4262,20 +4588,16 @@ export class MaintenanceSupporterPanel extends LitElement {
         </button>
       </div>
       <div class="filter-bar">
-        <label class="filter-field">
-          <span class="filter-label">${t("sort_label", L)}</span>
-          <select
-            .value=${this._objectSortMode}
-            @change=${(e: Event) => {
+        ${this._filterSelect(t("sort_label", L), this._objectSortMode, (e: Event) => {
               this._objectSortMode = (e.target as HTMLSelectElement).value as ObjectSortMode;
               try { lsSet(LS_KEYS.objectSort, this._objectSortMode); } catch { /* private mode */ }
-            }}
-          >
+              // A pick here is the sort the user wants now: the table's column sort steps back.
+              this._setObjTableSort(null);
+            }, html`
             <option value="alphabetical" ?selected=${this._objectSortMode === "alphabetical"}>${t("sort_alphabetical", L)}</option>
             <option value="due_soonest" ?selected=${this._objectSortMode === "due_soonest"}>${t("sort_due_soonest", L)}</option>
             <option value="task_count" ?selected=${this._objectSortMode === "task_count"}>${t("sort_task_count", L)}</option>
-          </select>
-        </label>
+        `)}
         ${!this.narrow ? html`
           <div class="view-toggle" role="group" aria-label="${t("view_mode_label", L)}">
             <button
@@ -4291,19 +4613,13 @@ export class MaintenanceSupporterPanel extends LitElement {
           </div>
         ` : nothing}
         ${!tableMode ? html`
-        <label class="filter-field">
-          <span class="filter-label">${t("group_by_label", L)}</span>
-          <select
-            .value=${this._groupByMode}
-            @change=${(e: Event) => {
+        ${this._filterSelect(t("group_by_label", L), this._groupByMode, (e: Event) => {
               this._groupByMode = (e.target as HTMLSelectElement).value as GroupByMode;
               try { lsSet(LS_KEYS.groupBy, this._groupByMode); } catch { /* private mode */ }
-            }}
-          >
+            }, html`
             <option value="none" ?selected=${this._groupByMode === "none"}>${t("groupby_none", L)}</option>
             <option value="area" ?selected=${this._groupByMode === "area"}>${t("groupby_area", L)}</option>
-          </select>
-        </label>
+        `)}
         ` : nothing}
         ${!isOperator ? html`
           <ha-button
@@ -4339,14 +4655,17 @@ export class MaintenanceSupporterPanel extends LitElement {
           ${groupedByArea().map(([area, objs]) => {
             const tree = arrange(objs);
             return html`
-            <details class="group-section" open>
-              <summary class="group-section-header">
+            ${collapsible({
+              cls: "group-section",
+              open: true,
+              headerCls: "group-section-header",
+              header: html`
                 <ha-icon icon="mdi:map-marker-outline"></ha-icon>
                 <span>${area}</span>
-                <span class="group-section-count">(${objs.length})</span>
-              </summary>
+                <span class="group-section-count">(${objs.length})</span>`,
+            }, html`
               <div class="objects-grid">${tree.roots.map((o) => this._renderObjectCard(o, tree))}</div>
-            </details>
+            `)}
           `;
           })}
         `
@@ -4656,6 +4975,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _renderObjectsTable(tree: ObjectTree) {
     const L = this._lang;
     const cols = this._objectsTableColumns;
+    const sort = this._objTableSort;
+    if (sort) sortTree(tree, this._objColumnCompare(sort.key, sort.dir));
     const rows = treeRows(tree, (id) => this._objTreeOpen.has(id));
     // With a tree in the table, names without a chevron line up behind a
     // spacer where it would sit.
@@ -4669,8 +4990,16 @@ export class MaintenanceSupporterPanel extends LitElement {
               ${cols.map((key) => {
                 const def = OBJECT_COLUMNS.find((c) => c.key === key);
                 // The actions column header stays blank (icon-only cells).
-                const label = def && def.key !== "actions" ? t(def.labelKey, L) : "";
-                return html`<th class="oc-${key}">${label}</th>`;
+                if (!def || def.key === "actions") return html`<th class="oc-${key}"></th>`;
+                // Every other header sorts by its column, as the areas table
+                // does; a second tap turns the order round.
+                const active = sort?.key === key;
+                return html`<th class="oc-${key}" aria-sort=${active ? (sort!.dir === "asc" ? "ascending" : "descending") : "none"}>
+                  <button class="area-sort ${active ? "active" : ""}" title=${t("sort_label", L)} @click=${() => this._setObjTableSort(key)}>
+                    ${t(def.labelKey, L)}
+                    ${active ? html`<ha-icon icon=${sort!.dir === "asc" ? "mdi:arrow-up" : "mdi:arrow-down"}></ha-icon>` : nothing}
+                  </button>
+                </th>`;
               })}
             </tr>
           </thead>
@@ -4692,6 +5021,52 @@ export class MaintenanceSupporterPanel extends LitElement {
         </table>
       </div>
     `;
+  }
+
+  /** Sort the objects table by a column (null: back to the Sort dropdown's
+   *  order). The same column again turns the order round; a new one starts
+   *  ascending, the task count with the most first. */
+  private _setObjTableSort(key: string | null): void {
+    const cur = this._objTableSort;
+    this._objTableSort = key === null
+      ? null
+      : cur?.key === key
+      ? { key, dir: cur.dir === "asc" ? "desc" : "asc" }
+      : { key, dir: key === "task_count" ? "desc" : "asc" };
+    const s = this._objTableSort;
+    lsSet(LS_KEYS.objectTableSort, s ? `${s.key}:${s.dir}` : "");
+  }
+
+  /** What the objects table sorts a column by: the value its cell shows
+   *  (null for an empty cell, which sorts last either way). */
+  private _objColumnValue(key: string, obj: MaintenanceObjectResponse): string | number | null {
+    const o = obj.object;
+    switch (key) {
+      case "name": return o.name;
+      case "ref_no": return objectRef(o) || null;
+      case "area_id": return o.area_id ? areaLabel(o.area_id, this.hass?.areas, "") || null : null;
+      case "documentation_url": return isSafeLink(o.documentation_url) || (o.manual_docs || []).length ? 1 : null;
+      case "notes": return notesPlainText(o.notes) || null;
+      case "task_count": return obj.tasks.length;
+      default: {
+        const v = (o as unknown as Record<string, unknown>)[key];
+        return typeof v === "string" && v.trim() ? v : null;
+      }
+    }
+  }
+
+  private _objColumnCompare(key: string, dir: "asc" | "desc"): (a: MaintenanceObjectResponse, b: MaintenanceObjectResponse) => number {
+    const sign = dir === "asc" ? 1 : -1;
+    const byName = (a: MaintenanceObjectResponse, b: MaintenanceObjectResponse) => a.object.name.localeCompare(b.object.name, this._lang);
+    return (a, b) => {
+      const va = this._objColumnValue(key, a);
+      const vb = this._objColumnValue(key, b);
+      if (va === null || vb === null) return va === vb ? byName(a, b) : va === null ? 1 : -1;
+      const c = typeof va === "number" && typeof vb === "number"
+        ? va - vb
+        : String(va).localeCompare(String(vb), this._lang, { numeric: true, sensitivity: "base" });
+      return c * sign || byName(a, b);
+    };
   }
 
   /** The table's name cell — #225: indented by its depth, with a chevron
@@ -4760,8 +5135,12 @@ export class MaintenanceSupporterPanel extends LitElement {
               : "—"
         }</td>`;
       }
-      case "notes":
-        return html`<td class="oc-notes" title=${o.notes || ""}>${o.notes || "—"}</td>`;
+      case "notes": {
+        // One line: the notes' text without their markdown (the object page
+        // renders it).
+        const plain = notesPlainText(o.notes);
+        return html`<td class="oc-notes" title=${plain}>${plain || "—"}</td>`;
+      }
       case "task_count":
         return html`<td class="oc-task_count">${obj.tasks.length}</td>`;
       case "ref_no":
@@ -5081,8 +5460,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const kids = tree.children.get(obj.entry_id) ?? [];
     const canNest = !isOperator && nests(obj);
 
-    return html`
-      <div class="detail-section">
+    const headerPart = html`
         <div class="detail-header">
           <h2>${o.name} ${renderRefChip(objectRef(o), t("ref_number", L))}</h2>
           <div class="action-buttons">
@@ -5097,31 +5475,12 @@ export class MaintenanceSupporterPanel extends LitElement {
               }}>${t("edit", L)}</ha-button>
             ` : nothing}
             <div class="more-menu-wrapper">
-              <ha-icon-button .disabled=${this._actionLoading} .label=${t("more_actions", L)} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${() => this._toggleObjMenu()}></ha-icon-button>
-              ${this._objMenuOpen ? html`
-                <div class="popup-menu" role="menu" @keydown=${clickOnActivationKey} @click=${(e: Event) => e.stopPropagation()}>
-                  <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._openQrForObject(obj.entry_id, o.name); }}>${t("qr_code", L)}</div>
-                  <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._printObjectReport(obj.entry_id); }}>${t("report_button", L)}</div>
-                  ${!isOperator ? html`
-                    ${!o.battery_fleet ? html`
-                      <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._duplicateObject(obj.entry_id); }}>${t("duplicate", L)}</div>
-                    ` : nothing}
-                    ${canNest ? html`
-                      <div role="menuitem" tabindex="0" class="popup-menu-item add-sub-object-item" @click=${() => { this._closeObjMenu(); this._toggleSubObjMenu("more"); }}>${t("add_sub_object", L)}</div>
-                    ` : nothing}
-                    ${!o.archived ? html`
-                      <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._togglePauseObject(obj.entry_id, !!o.paused); }}>${o.paused ? t("resume_object", L) : t("pause_object", L)}</div>
-                      ${!o.battery_fleet ? html`
-                        <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._replaceObject(obj.entry_id, o); }}>${t("replace_object", L)}</div>
-                      ` : nothing}
-                    ` : nothing}
-                    <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeObjMenu(); this._toggleArchiveObject(obj.entry_id, !!o.archived); }}>${o.archived ? t("unarchive_object", L) : t("archive_object", L)}</div>
-                    <div class="popup-menu-divider"></div>
-                    <div role="menuitem" tabindex="0" class="popup-menu-item danger" @click=${() => { this._closeObjMenu(); this._deleteObject(obj.entry_id); }}>${t("delete", L)}</div>
-                  ` : nothing}
-                </div>
-              ` : nothing}
-              ${this._subObjMenu === "more" && canNest ? this._renderSubObjMenu(obj.entry_id, L) : nothing}
+              ${menuIsHa()
+                ? renderHaMenu(html`<ha-icon-button slot="trigger" .disabled=${this._actionLoading} .label=${t("more_actions", L)} .path=${MORE_PATH}></ha-icon-button>`,
+                    this._objMenuEntries(obj, canNest, isOperator, L, true))
+                : html`<ha-icon-button .disabled=${this._actionLoading} .label=${t("more_actions", L)} .path=${MORE_PATH} @click=${() => this._toggleObjMenu()}></ha-icon-button>
+                  ${this._objMenuOpen ? renderPopupMenu(this._objMenuEntries(obj, canNest, isOperator, L, false), () => this._closeObjMenu()) : nothing}
+                  ${this._subObjMenu === "more" && canNest ? this._renderSubObjMenu(obj.entry_id, L) : nothing}`}
             </div>
           </div>
         </div>
@@ -5133,6 +5492,8 @@ export class MaintenanceSupporterPanel extends LitElement {
                 : nothing}
             </p>`
           : nothing}
+    `;
+    const metaPart = html`
         ${o.manufacturer || o.model
           ? html`<p class="meta">${[o.manufacturer, o.model].filter(Boolean).join(" ")}</p>`
           : nothing}
@@ -5173,19 +5534,26 @@ export class MaintenanceSupporterPanel extends LitElement {
               <div class="object-notes-body">${renderNotesMarkdown(o.notes)}</div>
             </div>`
           : nothing}
-
+    `;
+    const childrenPart = html`
         ${kids.length ? this._renderObjectSection("children", t("sub_objects", L), kids.length, () => html`
         <h3 class="sub-objects-head"><span>${t("sub_objects", L)} (${kids.length})</span>${canNest ? html`
           <span class="sub-object-add-wrap">
-            <ha-button appearance="plain" class="add-sub-object" @click=${() => this._toggleSubObjMenu("head")}>
-              <ha-icon icon="mdi:plus"></ha-icon> ${t("add_sub_object", L)}
-              <ha-icon icon="mdi:menu-down"></ha-icon>
-            </ha-button>
-            ${this._subObjMenu === "head" ? this._renderSubObjMenu(obj.entry_id, L) : nothing}
+            ${menuIsHa()
+              ? renderHaMenu(html`<ha-button slot="trigger" appearance="plain" class="add-sub-object">
+                    <ha-icon icon="mdi:plus"></ha-icon> ${t("add_sub_object", L)}
+                    <ha-icon icon="mdi:menu-down"></ha-icon>
+                  </ha-button>`, this._subObjEntries(obj.entry_id, L), { placement: "bottom-start" })
+              : html`<ha-button appearance="plain" class="add-sub-object" @click=${() => this._toggleSubObjMenu("head")}>
+                  <ha-icon icon="mdi:plus"></ha-icon> ${t("add_sub_object", L)}
+                  <ha-icon icon="mdi:menu-down"></ha-icon>
+                </ha-button>
+                ${this._subObjMenu === "head" ? this._renderSubObjMenu(obj.entry_id, L) : nothing}`}
           </span>` : nothing}</h3>
         <div class="objects-grid sub-objects">${kids.map((k) => this._renderObjectCard(k, tree))}</div>
         `) : nothing}
-
+    `;
+    const tasksPart = html`
         ${this._renderObjectSection("tasks", t("tasks", L), visibleTasks.length, () => html`
         <h3>${t("tasks", L)} (${visibleTasks.length})${archivedInObj > 0 ? html`
           <ha-button
@@ -5207,7 +5575,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           : html`<div class="task-table object-tasks">${[...visibleTasks].sort((a, b) =>
               statusRank(a.status) - statusRank(b.status) || (a.days_until_due ?? 99999) - (b.days_until_due ?? 99999),
             ).map((task) => html`
-              <div class="task-row${!task.enabled ? ' task-disabled' : ''}">
+              <div class="task-row${!task.enabled ? ' task-disabled' : ''}${this._objectSplitActive() && task.id === this._selectedTaskId ? ' selected' : ''}">
                 <span class="cell-badges">
                   ${this._statusBadge(task)}
                   ${!task.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
@@ -5236,7 +5604,8 @@ export class MaintenanceSupporterPanel extends LitElement {
               </div>
             `)}</div>`}
         `)}
-
+    `;
+    const docsPart = html`
         ${this._renderObjectSection("documents", t("documents", L), typeof o.document_count === "number" ? o.document_count : null, () => html`
         <maintenance-documents-section
           .hass=${this.hass}
@@ -5244,7 +5613,8 @@ export class MaintenanceSupporterPanel extends LitElement {
           .canWrite=${!isOperator}
         ></maintenance-documents-section>
         `)}
-
+    `;
+    const partsPart = html`
         ${(obj.parts || []).length || !isOperator ? this._renderObjectSection("parts", t("parts_section", L), (obj.parts || []).length, () => html`
         <maintenance-parts-section
           .hass=${this.hass}
@@ -5257,7 +5627,8 @@ export class MaintenanceSupporterPanel extends LitElement {
           @parts-changed=${() => this._loadData()}
         ></maintenance-parts-section>
         `) : nothing}
-
+    `;
+    const historyPart = html`
         ${obj.tasks.some((tk) => (tk.times_performed || 0) > 0 || (tk.history || []).length > 0) ? this._renderObjectSection("history", t("object_history_section", L), null, () => html`
         <maintenance-object-history-section
           .hass=${this.hass}
@@ -5269,6 +5640,30 @@ export class MaintenanceSupporterPanel extends LitElement {
           @open-task=${(e: CustomEvent<{ taskId: string }>) => this._showTask(obj.entry_id, e.detail.taskId)}
         ></maintenance-object-history-section>
         `) : nothing}
+    `;
+
+    // Wide (beta): the work on the left (sub-objects, tasks, history), what
+    // the object is and has on the right (its data, documents, parts).
+    const hasMeta = !!(o.manufacturer || o.model || o.serial_number || o.predecessor_entry_id || o.replaced_by_entry_id || o.area_id
+      || o.place || isSafeLink(o.documentation_url) || (o.manual_docs || []).length || o.installation_date || o.warranty_expiry || o.notes);
+    const page = this.wide && betaUi()
+      ? html`${headerPart}
+          <div class="object-columns">
+            <div class="object-col">${childrenPart}${tasksPart}${historyPart}</div>
+            <div class="object-col">${hasMeta ? html`<div class="object-meta">${metaPart}</div>` : nothing}${docsPart}${partsPart}</div>
+          </div>`
+      : html`${headerPart}${metaPart}${childrenPart}${tasksPart}${docsPart}${partsPart}${historyPart}`;
+    const content = html`<div class="detail-section">${page}</div>`;
+    if (!this._objectSplitActive()) return content;
+    const docked = this._selectedTaskId && this._getTask(obj.entry_id, this._selectedTaskId);
+    return html`
+      <div class="split-layout object-split">
+        <div class="split-list">${content}</div>
+        <div class="split-pane">
+          ${docked
+            ? this._renderTaskDetail()
+            : html`<div class="split-pane-empty"><ha-icon icon="mdi:cursor-default-click-outline"></ha-icon><p>${t("split_select_hint", L)}</p></div>`}
+        </div>
       </div>
     `;
   }
@@ -5310,39 +5705,27 @@ export class MaintenanceSupporterPanel extends LitElement {
   /** #125: the one "New ▾" menu replacing the six action buttons. Same
    *  popup pattern as the object/task menus; on narrow it lives in the
    *  mobile-controls row and replaced the old collapsed actions bar. */
-  private _renderNewMenu(L: string) {
+  private _renderNewMenu(L: string, fab = false) {
+    const button = (slot: boolean) => html`
+      <ha-button appearance=${fab ? "accent" : "filled"} class="new-menu-button${fab ? " ms-fab" : ""}" size=${fab ? "large" : nothing} slot=${slot ? "trigger" : nothing}
+        @click=${slot ? nothing : (e: Event) => { e.stopPropagation(); this._toggleNewMenu(); }}>
+        <ha-icon icon="mdi:plus"></ha-icon> ${t("add", L)}
+        <ha-icon icon="mdi:menu-down"></ha-icon>
+      </ha-button>`;
+    const entries: MenuEntry[] = [
+      { label: t("new_task", L), icon: "mdi:clipboard-plus-outline", action: () => void this._ui<MaintenanceTaskDialog>("maintenance-task-dialog").then((d) => d?.openCreate("", this._objects)) },
+      { label: t("new_object", L).replace(/^\+\s*/, ""), icon: "mdi:package-variant-closed-plus", action: () => void this._ui<MaintenanceObjectDialog>("maintenance-object-dialog").then((d) => d?.openCreate()) },
+      { label: t("templates_from", L), icon: "mdi:view-grid-plus-outline", action: () => void this._openTemplateGallery() },
+      "divider",
+      { label: t("adopt_problem_button", L), icon: "mdi:alert-circle-check-outline", action: () => this._openAdoptProblemSensors() },
+      { label: t("setups_button", L), icon: "mdi:auto-fix", action: () => this._openSuggestedSetups() },
+      this._batteryFleetSetupAvailable && { label: t("battery_fleet_setup_button", L), icon: "mdi:battery-sync", action: () => void this._setupBatteryFleet() },
+    ];
     return html`
-      <div class="new-menu-wrapper">
-        <ha-button appearance="filled" class="new-menu-button"
-          @click=${(e: Event) => { e.stopPropagation(); this._toggleNewMenu(); }}>
-          <ha-icon icon="mdi:plus"></ha-icon> ${t("add", L)}
-          <ha-icon icon="mdi:menu-down"></ha-icon>
-        </ha-button>
-        ${this._newMenuOpen ? html`
-          <div class="popup-menu new-menu-popup" role="menu" @keydown=${clickOnActivationKey} @click=${(e: Event) => e.stopPropagation()}>
-            <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeNewMenu(); void this._ui<MaintenanceTaskDialog>("maintenance-task-dialog").then((d) => d?.openCreate("", this._objects)); }}>
-              <ha-icon icon="mdi:clipboard-plus-outline"></ha-icon> ${t("new_task", L)}
-            </div>
-            <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeNewMenu(); void this._ui<MaintenanceObjectDialog>("maintenance-object-dialog").then((d) => d?.openCreate()); }}>
-              <ha-icon icon="mdi:package-variant-closed-plus"></ha-icon> ${t("new_object", L).replace(/^\+\s*/, "")}
-            </div>
-            <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._openTemplateGallery(); }}>
-              <ha-icon icon="mdi:view-grid-plus-outline"></ha-icon> ${t("templates_from", L)}
-            </div>
-            <div class="popup-menu-divider"></div>
-            <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._openAdoptProblemSensors(); }}>
-              <ha-icon icon="mdi:alert-circle-check-outline"></ha-icon> ${t("adopt_problem_button", L)}
-            </div>
-            <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._openSuggestedSetups(); }}>
-              <ha-icon icon="mdi:auto-fix"></ha-icon> ${t("setups_button", L)}
-            </div>
-            ${this._batteryFleetSetupAvailable ? html`
-              <div role="menuitem" tabindex="0" class="popup-menu-item" @click=${() => { this._closeNewMenu(); this._setupBatteryFleet(); }}>
-                <ha-icon icon="mdi:battery-sync"></ha-icon> ${t("battery_fleet_setup_button", L)}
-              </div>
-            ` : nothing}
-          </div>
-        ` : nothing}
+      <div class="new-menu-wrapper${fab ? " ms-fab-wrapper" : ""}">
+        ${menuIsHa()
+          ? renderHaMenu(button(true), entries, fab ? { placement: "top-end" } : {})
+          : html`${button(false)}${this._newMenuOpen ? renderPopupMenu(entries, () => this._closeNewMenu(), "new-menu-popup") : nothing}`}
       </div>
     `;
   }
@@ -5512,6 +5895,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private get _sparklineCtx(): SparklineContext {
     return {
       lang: this._lang,
+      hass: this.hass,
       detailStatsData: this._detailStatsData,
       hasStatsService: !!this._statsService,
       historyFallbackIds: this._statsService?.historyFallbackIds,
@@ -5693,5 +6077,5 @@ export class MaintenanceSupporterPanel extends LitElement {
     await this._loadData();
   };
 
-  static styles = [sharedStyles, panelStyles];
+  static styles = [sharedStyles, topLayerStyles, panelStyles];
 }

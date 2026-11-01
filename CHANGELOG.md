@@ -2,6 +2,132 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.116.0] - 2026-11-01
+
+### ✨ Added
+
+- **A new look and task editor, on by default.** Tasks read the way the Home Assistant 2026.11 automation editor
+  shows automations, and the whole panel uses Home Assistant's own controls. The switch under *Settings › Advanced
+  features* (`advanced_beta_editor_visible`, *New look and task editor*) turns it off for the classic look, which
+  stays as it was.
+  - The task dialog becomes rows, one sentence each: the task, its schedule, its sensor rule, how it is completed, who
+    it is for and who hears about it. A row opens its fields in a sidebar (on a phone, right below the row).
+  - *Add rule* offers the schedules and sensor rules by type, or the rules that fit the entities of the object's
+    device (a door suggests *Done when*, a wash counter a counter rule): the device's own entities first, then the
+    rest of its area. A sensor rule on a time-based task keeps the
+    interval as its safety interval; a second sensor rule joins the first as a compound that fires on either.
+  - A new task starts on a screen to begin from scratch, from one of the device's sensors, from a template's task,
+    or as a copy of an existing task (its rules, without its date, tag and parts).
+  - Clicking a template in the gallery shows its tasks first, each with its schedule, to tick before creating
+    (`object/from_template` takes `task_names`).
+  - The task page gets a *Trace* tab: what happened in each due cycle, like an automation trace. Status changes,
+    reminders sent and taken off the phones, snoozes, edits, and the *Done when* changes that did not count (with
+    the reason) join the history; arrows step through the cycles. Recorded only while the new look is on, at most 200
+    events per task (WS `task/trace`). The notes the integration writes itself and the settings an edit changed
+    read in the user's language, named as the dialog names them.
+  - The dashboard's task list is laid out like Home Assistant's own list pages (Settings ›
+    Entities): one toolbar with *Filters*, selection mode, a search over the list, *Group by* and *Sort by*; the
+    filters in a pane beside the list, a section each with its choices ticked and the number of active filters on
+    the chip; a header row whose columns sort the list; *Add* as the button at the bottom right. The field row it
+    replaces took two lines, and Home Assistant's dropdown showed an "All" choice as an empty field. With the
+    filter pane open on a screen below about 2560 px, the empty task pane steps aside until a task is picked. Complete and
+    Skip in the rows are icons there, as in Home Assistant's tables, until the household picks another style under
+    *Task row actions* (the settings answer says whether one was picked: `row_action_style_set`).
+  - On a wide screen the object page works like the dashboard: from about 1500 px a task opens
+    beside the object page instead of replacing it (a reload keeps it open), and from 2200 px (a 2560 screen beside
+    the sidebar) the page itself is two columns, the sub-objects, tasks and history on the left and the object's
+    data, documents and parts on the right.
+  - The new editor saves exactly what the classic dialog saves.
+  - The whole panel uses Home Assistant's own controls: HA's menus (the sub-object choices stand
+    in the object menu itself), dialog frames with the title in the header and a bottom sheet on a phone, dropdowns,
+    text fields, checkboxes, switches in settings rows, folding sections, alerts, tabs, HA's toast with Undo, and
+    HA's corner radii. On a phone the breadcrumb shows only where you are. A revisit paints the remembered list in
+    the look it was left in, not in the classic one until the settings arrive.
+  - A task's sensor rule reads like a Home Assistant card: one row per sensor (for an AND/OR
+    rule, per condition) with HA's state icon, the sensor's name, the condition below it ("below 60%") and its
+    state as HA formats it on the right; a tap opens HA's more-info, and *Show more* opens HA's history of the
+    rule's sensors. The entity ids are gone from the page, an AND/OR rule shows what each sensor reads and the
+    limit it is held to, and a state change without history no longer draws a line from the values noted at
+    completions.
+- **Icons for the actions, triggers and conditions.** The automation editor shows an icon next to each of the 14
+  actions, the 4 triggers and the 4 conditions of the integration.
+
+### 🐛 Fixed
+
+- **Snoozes and reminder repeats count real hours across the autumn clock change.** In the hour the clocks go
+  back, a snooze of 4 hours lasted 5, and a reminder sent shortly before the change looked like it lay in the
+  future, so its repeat waited up to an hour longer. Durations are now measured in real time and still shown in
+  local time.
+- **An AND/OR sensor rule takes a new problem at once after the old one cleared.** Completed while one of its
+  conditions still held, the rule did not notice that condition coming back to normal: when another sensor then
+  crossed its limit within ten minutes, the task was held back as if it were the old problem and turned up late,
+  without a history entry and without a notification. A plain sensor rule always did this right; the AND/OR rule
+  now follows it (all held conditions clear for OR, one for AND).
+- **A Delete question shows a red button again.** Deleting a task, an object, a group or a history entry asked
+  with its Delete button in the normal blue, because Home Assistant's button no longer reads the colour the panel
+  set. It now uses the button's own red.
+- **Deleting a document or a spare part asks in Home Assistant's dialog.** These two questions, and the one
+  before compacting the reference numbers, still used the browser's own prompt (an untitled box, a system alert
+  in the Companion app). They now ask in the same dialog as every other question, with a translated title.
+- **Home Assistant 2026.11: the sidebar no longer covers the panel's own windows.** HA 2026.11 keeps everything a
+  panel draws below its sidebar, so on screens from about 870 to 1230 px wide the docked sidebar lay over the left
+  side of the search, the template gallery, the history editor, the saved views, the setup suggestions, the photo
+  preview and the camera viewfinder, and a tap there went to the sidebar. They now open above it, like Home
+  Assistant's own dialogs. Home Assistant 2026.10 and older were not affected.
+- **The search and the template gallery fade in where they belong.** They borrowed the toast's animation and slid
+  in from half a screen to the left.
+- **Save is reachable on a phone held sideways.** The task dialog kept its own scroll box at 70 % of the screen
+  height, so on a landscape phone the buttons sat below the screen with nothing to scroll. On a low screen the
+  whole dialog now scrolls.
+- **The object history fits a narrow phone.** A long task name widened the task filter, and the date fields did not
+  shrink below their natural width, so both ran past the right edge of the section at 320 to 360 px.
+- **A long task list shows every row while scrolling.** From 120 tasks the list only draws the rows on screen. It
+  placed them by one average row height, so where tall sensor rows gave way to short ones the rows in between never
+  appeared (18 of 138 in a test household), and in Chrome a single scroll step could run off to the end of the
+  list. It now places each row by its measured height.
+- **An AND/OR sensor rule remembers what still holds after a completion.** Completed while one sensor stayed high,
+  the rule read that sensor as fine until it changed again, so an AND rule kept quiet when the other sensor crossed
+  its limit later. When the whole rule still holds, the task comes back once the post-completion cooldown is over,
+  as a single-sensor rule does, without waiting for a new reading. An AND rule completed while it was clear takes
+  its next problem at once.
+- **The dashboard card offers no Complete on a paused or switched-off task.** The button was there and the dialog
+  then failed; the card now says *Paused* or *Disabled* in its place.
+- **A second Complete within 30 seconds says so.** Two people (or two devices) completing the same task moments
+  apart record it once, as before, but the second one was told it had worked. It now reads "Already recorded 12 s
+  ago, not counted twice" and offers no Undo.
+- **The sensor prediction reads "~1 day" and can be read.** The banner was orange on light orange (1.75:1) and the
+  urgent value orange on white; both now meet the 4.5:1 contrast for text. One day was "1 days" in every language;
+  the banner now uses each language's singular and plural forms, and so do the recommended interval, the warning
+  days on the task page, the failure analysis and the re-analysis message ("recommended: 1 Tage" in German).
+- **Reloading the page keeps you on the task or object you were looking at.** A reload always started over on the
+  overview. A link in the address bar still wins, and a task deleted meanwhile lands on the overview.
+- **On a 2560 px or wider screen a task row stays together.** The due date and the buttons sat 1000 px and more to
+  the right of the task's name; the spare width now goes after them, and the object column grows to 360 px (a long
+  object name took four lines there).
+- **A long word in a name no longer runs over its neighbours.** A task named with one long compound word
+  ("Kondensatablaufschlauchreinigungsintervallüberprüfung") ran out of its cell over the due date, and on a phone
+  over the object's name. Names now break inside such a word when nothing else fits.
+- **A deleted buy task no longer comes straight back (#247).** A task that reminds you to buy a spare part belongs
+  to the part: while the part stays below its reorder level, the next check created it again, so deleting it seemed
+  to do nothing. Deleting one now says so and offers to turn off the part's buy reminder with it (ticked at first),
+  in the panel and in the card's quick actions (`task/delete` takes `disable_auto_buy_task`).
+- **The task list's rows stay with their task.** The rows were drawn by position: when a long list scrolled on or a
+  completion re-sorted it, the row that held the keyboard focus showed the next task. Each row is now drawn for its
+  task.
+- **A docked task's figures fit beside the list.** The seven figures at the top of a task stood in one row and ran a
+  few pixels past the task pane beside the list (a 1920 px screen with the filter pane open); a narrow pane now puts
+  them in two rows. On a phone a group's buttons no longer reach past the edge of its card.
+- **The objects table: notes as text, a name that stays, sortable columns.** The Notes column showed the raw
+  markdown; it shows the text. With many columns the name scrolled out of view; it stays put. Every column header
+  sorts the table (again turns the order round), and the *Sort* dropdown takes over again when you pick from it.
+  In the new look the filter bars use Home Assistant's dropdown too.
+
+### 🔧 Internal
+
+- Dependencies: Playwright 1.64.1 in `e2e/` and `frontend-src/`, together with the local `playwright-server` image
+  and its `run-server` pin (a 1.64 client fails the handshake with the 1.63 server); pixelmatch 8 for the visual
+  regression check; React 19.3.1 for the design previews.
+
 ## [2.115.0] - 2026-10-31
 
 ### 🐛 Fixed

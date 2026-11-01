@@ -20,9 +20,11 @@ import { DOC_FILTER_MIN, DOC_SORT_MODES, asDocSortMode, filterDocuments, sortDoc
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import type { HomeAssistant } from "../types";
 import { isAndroidCompanion } from "../helpers/companion";
+import { topLayer, topLayerStyles } from "../helpers/top-layer";
 import { uploadDocument } from "../helpers/photo-upload";
 import "./ms-photo-picker";
 import { photoPickerStyles } from "./ms-photo-picker";
+import { confirmAction } from "../helpers/confirm";
 
 interface MaintenanceDocument {
   id: string;
@@ -320,7 +322,13 @@ export class MaintenanceDocumentsSection extends LitElement {
 
   private async _delete(doc: MaintenanceDocument): Promise<void> {
     const name = docDisplayName(doc);
-    if (!window.confirm(t("doc_delete_confirm", this._lang).replace("{name}", name))) return;
+    const ok = await confirmAction(this.hass, {
+      title: t("delete", this._lang),
+      message: t("doc_delete_confirm", this._lang).replace("{name}", name),
+      confirmText: t("delete", this._lang),
+      danger: true,
+    });
+    if (!ok) return;
     await this._write({ type: "maintenance_supporter/documents/delete", doc_id: doc.id });
   }
 
@@ -461,7 +469,7 @@ export class MaintenanceDocumentsSection extends LitElement {
             })()}
 
       ${this._lightboxUrl
-        ? html`<div class="lightbox" @click=${() => (this._lightboxUrl = "")}>
+        ? html`<div class="lightbox top-layer" popover="manual" ${topLayer} @click=${() => (this._lightboxUrl = "")}>
             <img class="lightbox-img" src=${this._lightboxUrl} @click=${(e: Event) => e.stopPropagation()} />
             <button class="lightbox-close" title=${t("doc_close", L)} @click=${() => (this._lightboxUrl = "")}>
               <ha-icon icon="mdi:close"></ha-icon>
@@ -583,7 +591,7 @@ export class MaintenanceDocumentsSection extends LitElement {
     `;
   }
 
-  static styles = [photoPickerStyles, css`
+  static styles = [photoPickerStyles, topLayerStyles, css`
     :host { display: block; margin: 8px 0 4px; }
     .doc-zone { position: relative; }
     .doc-zone.drag-over {
@@ -600,7 +608,7 @@ export class MaintenanceDocumentsSection extends LitElement {
     /* The camera picker (ms-photo-picker, light DOM) wears the toolbar's
        .btn look instead of the dialogs' dashed tile. */
     .doc-actions .photo-pick {
-      padding: 6px 10px; gap: 6px; border-style: solid; border-radius: 6px;
+      padding: 6px 10px; gap: 6px; border-style: solid; border-radius: var(--ms-radius-6, 6px);
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color); border-color: var(--divider-color);
     }
@@ -613,13 +621,13 @@ export class MaintenanceDocumentsSection extends LitElement {
     h3 { margin: 8px 0; font-size: 16px; }
     .doc-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .cat-select {
-      padding: 6px 8px; border-radius: 6px; font: inherit;
+      padding: 6px 8px; border-radius: var(--ms-radius-6, 6px); font: inherit;
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color); border: 1px solid var(--divider-color);
     }
     .btn {
       display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
-      padding: 6px 12px; border-radius: 6px; font: inherit; font-size: 13px;
+      padding: 6px 12px; border-radius: var(--ms-radius-6, 6px); font: inherit; font-size: 13px;
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color); border: 1px solid var(--divider-color);
     }
@@ -631,7 +639,7 @@ export class MaintenanceDocumentsSection extends LitElement {
     .btn ha-icon { --mdc-icon-size: 18px; }
     .link-form { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
     .link-form input {
-      flex: 1 1 180px; padding: 6px 10px; border-radius: 6px; font: inherit;
+      flex: 1 1 180px; padding: 6px 10px; border-radius: var(--ms-radius-6, 6px); font: inherit;
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color); border: 1px solid var(--divider-color);
     }
@@ -642,7 +650,7 @@ export class MaintenanceDocumentsSection extends LitElement {
     .doc-filter { display: flex; align-items: center; gap: 6px; margin: 4px 0 8px; }
     .doc-filter ha-icon { --mdc-icon-size: 18px; color: var(--secondary-text-color, #888); }
     .doc-filter input {
-      flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 6px 8px; border-radius: 6px;
+      flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 6px 8px; border-radius: var(--ms-radius-6, 6px);
       border: 1px solid var(--divider-color); background: var(--card-background-color, #fff);
       color: var(--primary-text-color);
     }
@@ -655,14 +663,14 @@ export class MaintenanceDocumentsSection extends LitElement {
     }
     .doc-row.editing { gap: 8px; }
     .edit-title {
-      flex: 1; min-width: 0; padding: 6px 10px; border-radius: 6px; font: inherit;
+      flex: 1; min-width: 0; padding: 6px 10px; border-radius: var(--ms-radius-6, 6px); font: inherit;
       background: var(--secondary-background-color, rgba(0, 0, 0, 0.06));
       color: var(--primary-text-color); border: 1px solid var(--divider-color);
     }
     .doc-icon { color: var(--primary-color); --mdc-icon-size: 24px; flex: none; }
     .doc-icon.clickable { cursor: pointer; }
     .doc-thumb {
-      width: 40px; height: 40px; object-fit: cover; border-radius: 6px; flex: none;
+      width: 40px; height: 40px; object-fit: cover; border-radius: var(--ms-radius-6, 6px); flex: none;
       cursor: pointer; border: 1px solid var(--divider-color);
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
     }
@@ -682,7 +690,7 @@ export class MaintenanceDocumentsSection extends LitElement {
       background: rgba(0, 0, 0, 0.5); color: #fff;
     }
     .lightbox-close ha-icon { --mdc-icon-size: 26px; }
-    .doc-info { flex: 1; min-width: 0; cursor: pointer; border-radius: 6px; }
+    .doc-info { flex: 1; min-width: 0; cursor: pointer; border-radius: var(--ms-radius-6, 6px); }
     .doc-info:hover .doc-title { text-decoration: underline; }
     .doc-info:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
     .doc-title { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -691,7 +699,7 @@ export class MaintenanceDocumentsSection extends LitElement {
     .doc-tools { display: flex; align-items: center; gap: 6px; margin: 6px 0 2px; color: var(--secondary-text-color, #888); }
     .doc-tools ha-icon { --mdc-icon-size: 18px; }
     .sort-select {
-      padding: 4px 6px; border-radius: 6px; font: inherit; font-size: 13px;
+      padding: 4px 6px; border-radius: var(--ms-radius-6, 6px); font: inherit; font-size: 13px;
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       color: var(--primary-text-color); border: 1px solid var(--divider-color);
     }

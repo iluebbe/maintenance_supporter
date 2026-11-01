@@ -20,6 +20,7 @@ from ..helpers.entry_tasks import write_task
 from ..helpers.pause import clear_cycle_modifiers, reanchor_recurring_task, wants_fresh_cycle
 from ..helpers.permissions import require_write
 from ..helpers.schedule import is_recurring
+from ..helpers.task_trace import get_trace, tracing_enabled
 from ..helpers.ws_errors import send_translated_error
 from . import (
     ID_FIELD,
@@ -334,3 +335,35 @@ def ws_task_history(
     _entry, _rd, task_data = ctx
     history = task_data.get("history") or []
     connection.send_result(msg["id"], {"history": history, "count": len(history)})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/task/trace",
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("task_id"): ID_FIELD,
+    }
+)
+@callback
+def ws_task_trace(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """The task's trace (2026-10 beta, read tier like ``task/history``):
+    its journal (helpers.task_trace) and its full history, which the panel
+    splits into due cycles. ``enabled`` says whether events are recorded
+    now; the history is there either way."""
+    ctx = _load_object_task(hass, connection, msg, merged=True)
+    if ctx is None:
+        return
+    _entry, _rd, task_data = ctx
+    trace = get_trace(hass)
+    connection.send_result(
+        msg["id"],
+        {
+            "enabled": tracing_enabled(hass),
+            "events": trace.events(msg["entry_id"], msg["task_id"]) if trace is not None else [],
+            "history": task_data.get("history") or [],
+        },
+    )

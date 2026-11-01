@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All 111 WebSocket commands the integration registers are covered here. Their
+All 112 WebSocket commands the integration registers are covered here. Their
 authorization tiers are frozen in `tests/test_ws_permission_matrix.py` — that
 test is the inventory of record; this file is its prose companion (and
 `tests/test_docs_counts_in_sync.py` keeps the counts quoted here honest).
@@ -349,10 +349,13 @@ guidance researched in September 2026, never as legal advice: rules vary by
 region and change, and local regulations take precedence.
 
 ### `object/from_template` — `@require_write`
-`{template_id (req), name?, language?, parent_entry_id?}` → `{entry_id}`. Creates the object **and
+`{template_id (req), name?, language?, parent_entry_id?, task_names?}` → `{entry_id}`. Creates the object **and
 all of the template's tasks** in one call; `language` (the user's UI language)
 localizes the created object and task names, else the server language;
-`parent_entry_id` (2.109+) creates it inside that object (`invalid_parent` when it is none). `object/duplicate` `{entry_id}` → `{entry_id}`.
+`parent_entry_id` (2.109+) creates it inside that object (`invalid_parent` when it is none).
+`task_names` (2026-10, the beta editor's template preview) creates only those
+tasks, named as `templates` lists them in that `language`; none of them in the
+template → `invalid_input`. `object/duplicate` `{entry_id}` → `{entry_id}`.
 
 ---
 
@@ -451,7 +454,9 @@ it is prefixed with `Condition <index>:`.
 
 ### `task/update` / `task/delete` / `task/duplicate` / `task/move` / `task/archive` / `task/unarchive` — `@require_write`
 `update`: `{entry_id, task_id, + any task field}` (partial). `delete`:
-`{entry_id, task_id}`. Recurrence edit: an explicit nested `schedule` wins; a
+`{entry_id, task_id, disable_auto_buy_task?}`: a buy task (`part_ref`) comes
+back at the next reconcile while its part stays low, so `true` also turns the
+part's `auto_buy_task` off (#247; ignored for any other task). Recurrence edit: an explicit nested `schedule` wins; a
 flat interval edit rebuilds from flat and drops the nested schedule. A month
 restriction (`months` on `nth_weekday` / `day_of_month`, the yearly template
 tasks) is kept when the sent schedule of the same kind leaves `months` out;
@@ -524,6 +529,16 @@ status fields. The flat counterpart to `objects` when you only care about tasks.
 ### `task/history` — read
 `{entry_id (req), task_id (req)}` → `{history:[…], count}` — the FULL history
 of one task, oldest first, exactly as stored. Error: `not_found`.
+
+### `task/trace` — read (2026-10 beta)
+`{entry_id (req), task_id (req)}` → `{enabled, events:[…], history:[…]}` — the
+task's journal and its full history, which the panel's Trace tab splits into
+due cycles. `events` are `{at, kind, …}`: `status` `{from, to}`, `reminder`
+`{reminder: status|lead|bundle, status?, days?}`, `reminder_cleared` `{reason:
+done|status_left|inert}`, `snoozed` `{until, hours}`, `done_when` `{entity,
+state, result: counted|waiting|left_early|not_due|inert|recent, minutes?,
+status?}`, `edited` `{fields}`; at most 200 per task. They are recorded only
+while `advanced_beta_editor_visible` is on (`enabled`). Error: `not_found`.
 
 ### `tasks/by_user` — read (self) / write (others)
 `{user_id (req)}` → `{tasks:[…]}` — the tasks meant for that user (theirs, and

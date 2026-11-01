@@ -341,7 +341,8 @@ async def test_get_settings_no_global_entry(
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
-    # No global entry → _build_full_settings({}) returns all defaults (all False)
+    # No global entry → _build_full_settings({}) returns all defaults (all off
+    # but the new look, which is on by default since 2026-11-01)
     assert result["features"] == {
         "adaptive": False,
         "seasonal": False,
@@ -352,6 +353,7 @@ async def test_get_settings_no_global_entry(
         "schedule_time": False,
         "completion_actions": False,
         "places": False,
+        "beta_editor": True,
     }
 
 

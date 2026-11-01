@@ -15,6 +15,8 @@ import { fetchSettingsOnce } from "../helpers/settings-cache";
 import { addDaysIso, haToday } from "../helpers/ha-time";
 import { px } from "../renderers/chart-utils";
 import type { HomeAssistant } from "../types";
+import { collapsible } from "../helpers/collapsible";
+import { checkField } from "../helpers/check-field";
 
 interface BatteryRow {
   entity_id: string;
@@ -365,8 +367,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     return t("battery_fleet_predicted_on", L).replace("{date}", date);
   }
 
-  private _loadHistory = async (e: Event): Promise<void> => {
-    const open = (e.target as HTMLDetailsElement).open;
+  private _loadHistory = async (open: boolean): Promise<void> => {
     lsSet(LS_KEYS.batteryRosterOpen, open ? "1" : "0");
     if (!open || this._historyRequested) return;
     this._historyRequested = true;
@@ -727,8 +728,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
           : nothing}
         ${ov.all?.length
           ? html`
-              <details class="bf-roster" ?open=${this._rosterOpen()} @toggle=${this._loadHistory}>
-                <summary>${t("battery_fleet_all", L)} (${ov.all.length})</summary>
+              ${collapsible({ cls: "bf-roster", open: this._rosterOpen(), onToggle: this._loadHistory, header: html`${t("battery_fleet_all", L)} (${ov.all.length})` }, html`
                 <div class="bf-roster-tools">
                   <button
                     class="bf-sort ${this._rosterSort === "urgency" ? "bf-sort-active" : ""}"
@@ -750,7 +750,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                 </div>
                 <div class="bf-roster-hint">${t("battery_fleet_all_hint", L)}</div>
                 ${this._canWrite ? this._renderRosterSettings(ov, L) : nothing}
-              </details>
+              `)}
             `
           : nothing}
         ${this._renderExcluded(ov, L)}
@@ -772,35 +772,11 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                   ></ha-selector>
                   <div class="bf-roster-hint">${t("battery_fleet_add_hint", L)}</div>
                 </div>
-                <label class="bf-track-self">
-                  <input
-                    type="checkbox"
-                    .checked=${!!ov.track_self_charging}
-                    .disabled=${this._marking}
-                    @change=${this._setTrackSelf}
-                  />
-                  ${t("battery_fleet_track_self", L)}
-                </label>
+                ${checkField({ cls: "bf-track-self", checked: !!ov.track_self_charging, disabled: this._marking, onChange: this._setTrackSelf }, html`${t("battery_fleet_track_self", L)}`)}
                 <div class="bf-roster-hint">${t("battery_fleet_track_self_hint", L)}</div>
-                <label class="bf-track-self bf-due-nosensor">
-                  <input
-                    type="checkbox"
-                    .checked=${ov.due_without_sensor !== false}
-                    .disabled=${this._marking}
-                    @change=${this._setDueWithoutSensor}
-                  />
-                  ${t("battery_fleet_due_without_sensor", L)}
-                </label>
+                ${checkField({ cls: "bf-track-self bf-due-nosensor", checked: ov.due_without_sensor !== false, disabled: this._marking, onChange: this._setDueWithoutSensor }, html`${t("battery_fleet_due_without_sensor", L)}`)}
                 <div class="bf-roster-hint">${t("battery_fleet_due_without_sensor_hint", L)}</div>
-                <label class="bf-track-self bf-ask-cells">
-                  <input
-                    type="checkbox"
-                    .checked=${!!ov.ask_cells}
-                    .disabled=${this._marking}
-                    @change=${this._setAskCells}
-                  />
-                  ${t("battery_fleet_ask_cells", L)}
-                </label>
+                ${checkField({ cls: "bf-track-self bf-ask-cells", checked: !!ov.ask_cells, disabled: this._marking, onChange: this._setAskCells }, html`${t("battery_fleet_ask_cells", L)}`)}
                 <div class="bf-roster-hint">${t("battery_fleet_ask_cells_hint", L)}</div>
     `;
   }
@@ -842,7 +818,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       container: bf-fleet / inline-size;
       background: var(--card-background-color, #fff);
       border: 1px solid var(--divider-color);
-      border-radius: 10px;
+      border-radius: var(--ms-radius-10, 10px);
       padding: 14px 16px;
       margin: 12px 0;
       display: flex;
@@ -868,7 +844,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     .bf-count {
       font-size: 13px;
       padding: 1px 9px;
-      border-radius: 10px;
+      border-radius: var(--ms-radius-10, 10px);
     }
     .bf-count.bad {
       background: var(--error-color, #f44336);
@@ -1192,7 +1168,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     .bf-type-chip {
       background: none;
       border: 1px solid var(--divider-color);
-      border-radius: 10px;
+      border-radius: var(--ms-radius-10, 10px);
       padding: 1px 8px;
       margin: 0 4px 2px 0;
       font-size: 13px;
@@ -1317,7 +1293,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     .bf-cells-actions { display: flex; justify-content: flex-end; gap: 8px; }
     .bf-cells-actions button {
       padding: 6px 12px;
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       border: 1px solid var(--divider-color);
       background: transparent;
       color: var(--primary-text-color);
@@ -1399,7 +1375,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       font-size: 12px;
       color: var(--secondary-text-color);
       background: var(--secondary-background-color);
-      border-radius: 10px;
+      border-radius: var(--ms-radius-10, 10px);
       padding: 1px 4px 1px 10px;
     }
     .bf-track-self {

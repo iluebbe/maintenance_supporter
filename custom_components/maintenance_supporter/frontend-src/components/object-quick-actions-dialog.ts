@@ -19,9 +19,10 @@ import { statusColor, statusKey, statusLabel } from "../renderers/status";
 import { fetchSettingsOnce } from "../helpers/settings-cache";
 import { canWrite, NO_DELEGATION, type WriteAccess } from "../helpers/permissions";
 import { confirmAction } from "../helpers/confirm";
-import { focusModalShell, modalShellStyles, renderModalShell } from "../helpers/modal-shell";
+import { focusModalShell, modalShellStyles, renderModalShell, shellIsHa } from "../helpers/modal-shell";
 import type { HomeAssistant, MaintenanceObject, MaintenanceTask } from "../types";
 import { clickOnActivationKey } from "../helpers/keyboard";
+import { notice } from "../helpers/notice";
 
 interface ObjectFull {
   entry_id: string;
@@ -179,11 +180,11 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
         ${data && obj
           ? html`
               <div class="header">
-                <div class="title">${obj.name}</div>
+                ${shellIsHa() ? nothing : html`<div class="title">${obj.name}</div>`}
                 ${this._renderMetaRow(obj)}
               </div>
 
-              ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+              ${this._error ? notice("error", this._error) : nothing}
 
               <div class="tasks-section">
                 <div class="section-header">
@@ -239,9 +240,9 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
             `
           : this._error
             // A failed load said "Loading…" for good (bug audit 2026-10-16, P8).
-            ? html`<div class="error">${this._error}</div>`
+            ? notice("error", this._error)
             : html`<div class="loading">${t("loading", L)}</div>`}
-    `);
+    `, { title: obj?.name });
   }
 
   protected updated(changed: Map<string, unknown>): void {
@@ -303,7 +304,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     .task-list { display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow: auto; }
     .task-row {
       display: flex; align-items: center; gap: 10px;
-      padding: 8px; border-radius: 6px; cursor: pointer;
+      padding: 8px; border-radius: var(--ms-radius-6, 6px); cursor: pointer;
       background: var(--secondary-background-color, rgba(255,255,255,0.03));
       transition: background 0.12s;
     }
@@ -312,12 +313,12 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .task-name { flex: 1; font-size: 14px; }
     .task-status { font-size: 11px; color: var(--secondary-text-color); text-transform: uppercase; }
-    .notes-body { white-space: pre-wrap; font-size: 13px; padding: 8px; background: var(--secondary-background-color); border-radius: 6px; }
+    .notes-body { white-space: pre-wrap; font-size: 13px; padding: 8px; background: var(--secondary-background-color); border-radius: var(--ms-radius-6, 6px); }
     .notes-body ha-markdown { white-space: normal; }
     .actions { display: flex; gap: 8px; padding-top: 8px; border-top: 1px solid var(--divider-color); }
     .actions .btn { flex: 1; }
     .btn {
-      padding: 8px; font-size: 13px; border-radius: 6px; cursor: pointer;
+      padding: 8px; font-size: 13px; border-radius: var(--ms-radius-6, 6px); cursor: pointer;
       border: 1px solid var(--divider-color);
       background: var(--secondary-background-color, transparent);
       color: var(--primary-text-color); font-weight: 500;
@@ -329,7 +330,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     .btn.danger { color: var(--error-color); }
     .btn ha-icon { --mdc-icon-size: 16px; }
     .loading { padding: 24px; text-align: center; color: var(--secondary-text-color); }
-    .error { padding: 8px; border-radius: 6px; background: rgba(211,47,47,0.1); color: var(--error-color); font-size: 13px; }
+    .error { padding: 8px; border-radius: var(--ms-radius-6, 6px); background: rgba(211,47,47,0.1); color: var(--error-color); font-size: 13px; }
   `];
 }
 

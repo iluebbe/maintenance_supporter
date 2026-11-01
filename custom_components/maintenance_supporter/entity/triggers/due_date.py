@@ -31,6 +31,8 @@ if TYPE_CHECKING:
 class DueDateTrigger(BaseTrigger):
     """Active from ``trigger_days_before`` days before the reported date."""
 
+    holds_level = True
+
     def __init__(
         self,
         hass: HomeAssistant,

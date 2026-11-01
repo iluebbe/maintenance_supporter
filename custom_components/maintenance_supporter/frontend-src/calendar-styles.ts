@@ -66,7 +66,7 @@ export const calendarStyles = css`
     background: var(--card-background-color, var(--ha-card-background, #1c1c1c));
     color: var(--primary-text-color);
     border: 1px solid var(--divider-color);
-    border-radius: 6px;
+    border-radius: var(--ms-radius-6, 6px);
     font-size: 13px;
     cursor: pointer;
   }

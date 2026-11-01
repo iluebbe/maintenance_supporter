@@ -92,6 +92,8 @@ async def test_settings_expose_style_default_and_notice(hass: HomeAssistant) -> 
     general = conn.send_result.call_args[0][1]["general"]
     assert general["row_action_style"] == DEFAULT_ROW_ACTION_STYLE == "buttons_compact"
     assert general["row_action_notice_pending"] is False
+    # Nobody chose yet: the beta UI shows icons then (the panel decides).
+    assert general["row_action_style_set"] is False
 
 
 async def test_update_validates_the_style_and_clears_the_notice(hass: HomeAssistant) -> None:
@@ -112,6 +114,7 @@ async def test_update_validates_the_style_and_clears_the_notice(hass: HomeAssist
     # The banner's "back to icons": style + notice in one write.
     general = await update({CONF_ROW_ACTION_STYLE: "icons", CONF_ROW_ACTION_NOTICE: False})
     assert general["row_action_style"] == "icons" and general["row_action_notice_pending"] is False
+    assert general["row_action_style_set"] is True, "a style the household picked stays its own"
     options = hass.config_entries.async_get_entry(entry.entry_id).options
     assert options[CONF_ROW_ACTION_STYLE] == "icons" and options[CONF_ROW_ACTION_NOTICE] is False
 

@@ -88,6 +88,8 @@ from .helpers.reference_numbers import REFERENCE_NUMBERS_KEY, ReferenceNumbers
 from .helpers.sanitize import seed_rotation_assignee
 from .helpers.schedule import normalize_task_storage, set_calendar_occurrence_provider
 from .helpers.task_origin import backfill_origins
+from .helpers.task_trace import TASK_TRACE_KEY, TaskTrace
+from .helpers.task_trace import forget_entry as forget_trace_entry
 from .helpers.todo_mirror import TODO_MIRROR_KEY, TodoMirror
 from .helpers.todo_mirror import settings_changed as _todo_mirror_settings_changed
 from .helpers.update_state import async_remember_running_version
@@ -170,6 +172,11 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     reference_numbers = ReferenceNumbers(hass)
     await reference_numbers.async_load()
     hass.data[DOMAIN][REFERENCE_NUMBERS_KEY] = reference_numbers
+
+    # Task traces (2026-10 beta): recorded only while the beta editor is on.
+    task_trace = TaskTrace(hass)
+    await task_trace.async_load()
+    hass.data[DOMAIN][TASK_TRACE_KEY] = task_trace
 
     # Calendar-entity schedules (#187): the pure schedule engine reads a
     # calendar's event dates through this provider; the coordinators keep
@@ -943,6 +950,7 @@ async def _async_forget_removed_object_tasks(hass: HomeAssistant, entry: ConfigE
             if isinstance(task, dict):
                 nm.clear_and_dismiss(entry.entry_id, str(task_id), task)
         nm.purge_entry(entry.entry_id)
+    forget_trace_entry(hass, entry.entry_id)
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:

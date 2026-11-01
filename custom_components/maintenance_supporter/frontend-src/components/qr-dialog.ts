@@ -14,6 +14,8 @@ import { quickCompleteValues, type QuickCompleteValues } from "../helpers/quick-
 import { downloadTextFile } from "../helpers/download";
 // document.write contexts: the apostrophe too (its own copy left it out).
 import { escapeHtml } from "../helpers/html-escape";
+import { headerTitle, titleLine } from "../helpers/beta-ui";
+import { notice } from "../helpers/notice";
 
 interface QrResult {
   svg_data_uri: string;
@@ -277,13 +279,13 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
       : `${t("qr_code", L)}: ${this._objectName}`;
     const hasResults = !!this._viewResult;
     return html`
-      <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${heading}</div>
+      <ha-dialog open .headerTitle=${headerTitle(heading)} @closed=${this._close}>
+        ${titleLine(heading)}
         <div class="content">
           ${this._loading
             ? html`<div class="loading">${t("qr_generating", L)}</div>`
             : this._error
-              ? html`<div class="error">${this._error}</div>`
+              ? notice("error", this._error)
               : hasResults
                 ? html`
                     <div class="qr-pair">
@@ -476,7 +478,7 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
       display: flex;
       gap: 4px;
       background: var(--divider-color, #e0e0e0);
-      border-radius: 6px;
+      border-radius: var(--ms-radius-6, 6px);
       padding: 3px;
     }
     .toggle-btn {

@@ -17,11 +17,26 @@
  *
  *  Escape is handled on the frame itself, not on window: a dialog stacked
  *  ON TOP (the confirm dialog, the complete dialog a quick action opens)
- *  keeps its keystrokes, because they never bubble through this frame. */
+ *  keeps its keystrokes, because they never bubble through this frame.
+ *
+ *  Backdrop and frame sit in one top-layer popover (`helpers/top-layer`):
+ *  inside the panel, HA 2026.11's docked sidebar covered their left side.
+ *
+ *  With the beta UI the frame is Home Assistant's own ha-adaptive-dialog:
+ *  the title in HA's header beside the close button, a bottom sheet on a
+ *  phone, HA's Escape and close button. The dialog then leaves out its own
+ *  title line (`shellIsHa()`). */
 
 import { css, html, type TemplateResult } from "lit";
+import { betaWith } from "./beta-ui";
+import { topLayer, topLayerStyles } from "./top-layer";
 
 export const modalShellStyles = css`
+  ${topLayerStyles}
+  .modal-layer {
+    display: block;
+    z-index: var(--ms-modal-z, 100);
+  }
   .backdrop {
     position: fixed; inset: 0; z-index: var(--ms-modal-z, 100);
     background: rgba(0,0,0,0.5);
@@ -38,6 +53,10 @@ export const modalShellStyles = css`
     padding: 20px;
     display: flex; flex-direction: column; gap: var(--ms-modal-gap, 14px);
     z-index: calc(var(--ms-modal-z, 100) + 1);
+  }
+  /* The beta UI's body inside ha-adaptive-dialog: the frame's column. */
+  .ha-shell-body {
+    display: flex; flex-direction: column; gap: var(--ms-modal-gap, 14px);
   }
   /* Focused programmatically on open (so Escape works at once) — no ring. */
   .dialog:focus { outline: none; }
@@ -61,12 +80,31 @@ export function closeOnEscape(e: KeyboardEvent, close: () => void): void {
   close();
 }
 
-/** Backdrop (click = close) + the focusable dialog frame around `body`. */
-export function renderModalShell(close: () => void, body: unknown): TemplateResult {
+/** The frame is Home Assistant's dialog (beta UI, HA has it): the title
+ *  goes into its header, the dialog leaves out its own title line. */
+export function shellIsHa(): boolean {
+  return betaWith("ha-adaptive-dialog");
+}
+
+/** Backdrop (click = close) + the focusable dialog frame around `body`;
+ *  with the beta UI HA's ha-adaptive-dialog with `title` in its header. */
+export function renderModalShell(close: () => void, body: unknown, opts: { title?: string } = {}): TemplateResult {
+  if (shellIsHa()) {
+    // `closed` bubbles from HA components inside (a picker's list): only
+    // the dialog's own closes it.
+    return html`
+      <ha-adaptive-dialog open .headerTitle=${opts.title}
+        @closed=${(e: Event) => { if (e.target === e.currentTarget) close(); }}>
+        <div class="ha-shell-body">${body}</div>
+      </ha-adaptive-dialog>
+    `;
+  }
   return html`
-    <div class="backdrop" @click=${close}></div>
-    <div class="dialog" role="dialog" aria-modal="true" tabindex="-1"
-      @keydown=${(e: KeyboardEvent) => closeOnEscape(e, close)}>${body}</div>
+    <div class="modal-layer top-layer" popover="manual" ${topLayer}>
+      <div class="backdrop" @click=${close}></div>
+      <div class="dialog" role="dialog" aria-modal="true" tabindex="-1"
+        @keydown=${(e: KeyboardEvent) => closeOnEscape(e, close)}>${body}</div>
+    </div>
   `;
 }
 
