@@ -227,9 +227,10 @@ async def test_round16b_reviewed_candidates_stay_unmatched(hass: HomeAssistant, 
     Xiaomi Air Fresh filter days), a function flag (LG kimchi fridge
     one-touch filter), a performed-maintenance tally (Miele descaling
     cycles), undocumented counters (Tuya fountain, SmartThings dust-bag
-    cycles) and a setting (ScreenLogic Salt/TDS). Fjäråskupan and SmartTub
-    only ship problem-class binaries — problem-sensor adoption, no catalog
-    entry."""
+    cycles) and a setting (ScreenLogic Salt/TDS). SmartTub only ships
+    problem-class binaries — problem-sensor adoption, no catalog entry
+    (Fjäråskupan did too, until 2026.11 gave its grease filter a reset
+    button: a catalog duty since round 18)."""
     await setup_integration(hass, global_entry)
     kimchi = await _seed(
         hass,
@@ -350,4 +351,4 @@ async def test_round16b_reviewed_candidates_stay_unmatched(hass: HomeAssistant, 
     for device_id in (miele_coffee, fountain, station):
         assert device_id not in setups
 
-    assert "fjaraskupan" not in SIGNATURES and "smarttub" not in SIGNATURES
+    assert "smarttub" not in SIGNATURES

@@ -25,22 +25,25 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "the resets 'reset_n50_odor_eliminator' (litter boxes except T7) and "
             "'reset_n60_odor_eliminator' (camera boxes T5/T6/T7). "
             "'purification_n60_left_days' is skipped (a third N60 countdown whose part "
-            "is not established)."
+            "is not established). 2026-11-01 @ RobertD502/home-assistant-petkit main 43b0bb6, "
+            "the second repository with this domain: fountain filter tk 'filter' (PERCENTAGE, "
+            "unique id '_filter_percent'), feeder desiccant tk 'desiccant_days_remaining' "
+            "(UnitOfTime.DAYS), resets tk 'reset_filter' / 'reset_desiccant'."
         ),
         tasks=(
             # 48 canonical hours = warn at 2 days of desiccant left.
             ConsumableSignature(
-                ("desiccant_left_days",),
+                ("desiccant_left_days", "desiccant_days_remaining"),
                 "Replace Desiccant",
                 "duration_left",
                 below_hours=48,
-                resets=(("desiccant_left_days", "reset_desiccant"),),
+                resets=(("desiccant_left_days", "reset_desiccant"), ("desiccant_days_remaining", "reset_desiccant")),
             ),
             ConsumableSignature(
-                ("filter_percent",),
+                ("filter_percent", "filter"),
                 "Replace Water Filter",
                 "percent_left",
-                resets=(("filter_percent", "reset_filter"),),
+                resets=(("filter_percent", "reset_filter"), ("filter", "reset_filter")),
             ),
             # N50 block / N60 spray are separate parts → one task each where a
             # box reports both.

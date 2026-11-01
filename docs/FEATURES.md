@@ -561,7 +561,7 @@ devices they sit on), type an existing object's name and they join it.
 
 **Suggested setups** (in the dashboard's *Add ▾* menu) discovers devices of supported integrations
 whose consumable sensors can drive maintenance tasks and sets them up in one
-click. The catalog currently covers **276 integrations with 578 verified
+click. The catalog currently covers **288 integrations with 603 verified
 signatures** — vacuums, mowers, kitchen appliances, printers, cars (including
 Škoda/Audi service countdowns straight from the vehicle), air purifiers,
 heating and water treatment, locks, pet tech and more; the complete,

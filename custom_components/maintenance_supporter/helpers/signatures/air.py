@@ -893,4 +893,88 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(ConsumableSignature(("filterlifetime",), "Replace Filter", "percent_left"),),
     ),
+    "helty_cloud": IntegrationSignature(
+        name="Helty Flow (cloud)",
+        verified="2026-11-01 @ home-assistant/core dev 8e864cd (new in 2026.11)",
+        source=(
+            "core helty_cloud sensor.py: tk 'filter_volume' ('Air treated by filter', VOLUME, "
+            "UnitOfVolume.CUBIC_METERS, TOTAL_INCREASING, value filter_partial_m3). The docs: the "
+            "unit raises its filter alarm at 90,000 m3 of treated air and the value drops back to "
+            "zero when the filter is reset; their own reminder example fires at 85,000 m3, so does "
+            "this duty, and the reset completes it. binary_sensor.py tk 'filter' (PROBLEM) is the "
+            "alarm itself → problem-sensor adoption. 'total_volume' is the lifetime counter, not "
+            "signed. No button platform."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(ConsumableSignature(("filter_volume",), "Replace Ventilation Filter", "usage_above", above_hours=85000),),
+    ),
+    "ramses_cc": IntegrationSignature(
+        name="RAMSES RF (Honeywell evohome / Itho / Orcon / Nuaire)",
+        verified="2026-11-01 @ ramses-rf/ramses_cc master 9c88dbe + ramses-rf/ramses_rf master 9075a30",
+        source=(
+            "HACS ramses_cc sensor.py: RamsesSensorEntityDescription key SZ_FILTER_REMAINING "
+            "(ramses_rf/const.py: 'filter_remaining'), name 'Filter remaining', UnitOfTime.DAYS, no "
+            "translation_key — has_entity_name, so the entity id ends in '_filter_remaining' "
+            "(suffix match). Its twin 'Filter remaining (%)' (SZ_FILTER_REMAINING_PERCENT) slugs to "
+            "the same name; should HA hand it the plain suffix, the duration direction's unit check "
+            "keeps the % twin out. button.py: per-FAN 'reset_filter_counter' (translation_key, W "
+            "10D0 via the remote) on the same device. binary 'filter_dirty' / 'service_request' "
+            "(PROBLEM) → problem-sensor adoption."
+        ),
+        tasks=(
+            ConsumableSignature(
+                ("filter_remaining",),
+                "Replace Ventilation Filter",
+                "duration_left",
+                below_hours=168,
+                resets=(("filter_remaining", "reset_filter_counter"),),
+            ),
+        ),
+    ),
+    "philips_homeid": IntegrationSignature(
+        name="Philips Home iD",
+        verified="2026-11-01 @ renaudallard/homeassistant_philips_homeid main 80ecdec",
+        source=(
+            "HACS philips_homeid sensor_descriptions.py (every description sets translation_key = "
+            "key). MUJI purifiers: 'muji_filter0_remaining' (D0520D) and 'muji_filter1_remaining' "
+            "(D0540E), UnitOfTime.HOURS; button.py 'muji_reset_filter_clean' resets D0520D to 720 h "
+            "and 'muji_reset_filter_replace' D0540E to 4800 h — the first is the filter to clean, "
+            "the second the one to replace. Rita espresso machines: 'rita_aquaclean_autonomy' "
+            "(AqAutmy) and 'rita_descale_autonomy' (DescAutmy), PERCENTAGE remaining. Skipped: "
+            "'filter_pre'/'filter_hepa'/'filter_carbon'/'filter_wick' (fltsts0-2/wicksts, labelled "
+            "% although the classic Philips protocol reports hours there), the 'muji_*_lifetime' "
+            "nominal values and the descale/filter status enums."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(
+                ("muji_filter0_remaining",),
+                "Filter Cleaning",
+                "duration_left",
+                below_hours=72,
+                resets=(("muji_filter0_remaining", "muji_reset_filter_clean"),),
+            ),
+            ConsumableSignature(
+                ("muji_filter1_remaining",),
+                "Replace Filter",
+                "duration_left",
+                below_hours=168,
+                resets=(("muji_filter1_remaining", "muji_reset_filter_replace"),),
+            ),
+            ConsumableSignature(("rita_aquaclean_autonomy",), "Replace Water Filter", "percent_left"),
+            ConsumableSignature(("rita_descale_autonomy",), "Descaling", "percent_left"),
+        ),
+    ),
+    "rituals_perfume_genie": IntegrationSignature(
+        name="Rituals Perfume Genie",
+        verified="2026-11-01 @ home-assistant/core dev 8e864cd (fill as % from 2026.11)",
+        source=(
+            "core rituals_perfume_genie sensor.py: tk 'fill' (PERCENTAGE, value fill_percentage) "
+            "from 2026.11; older cores report the same key as text ('70-80%') without a unit, so "
+            "the duty requires '%' (require_unit). binary_sensor.py tk 'cartridge' (no device "
+            "class) says whether a cartridge is in — not a duty."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(ConsumableSignature(("fill",), "Replace Fragrance Cartridge", "percent_left", require_unit="%"),),
+    ),
 }

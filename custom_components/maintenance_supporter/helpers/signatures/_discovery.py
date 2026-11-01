@@ -262,6 +262,8 @@ def discover_integration_setups(hass: HomeAssistant, *, targets: dict[str, str] 
                     continue
                 if not _unit_compatible(sig.direction, _entity_unit(hass, entry)):
                     continue
+                if sig.require_unit and _entity_unit(hass, entry) != sig.require_unit:
+                    continue
                 # Empty keys (non-sensor domains only, tripwire-enforced) match
                 # the device's single entity of that domain — THE lawn_mower.
                 if sig.keys and not any(

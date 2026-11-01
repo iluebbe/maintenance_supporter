@@ -27,6 +27,9 @@ from ._shared import (
 _ANNUAL_SERVICE_INSPECTION_DISTANCE = ConsumableSignature(
     ("service_inspection_distance",), "Annual Service", "value_below", delta_units=1000
 )
+# 'oil' = Ford's oilLifeRemaining in %: FordConnect Query and the FordPass
+# repository by marq24 (same tag keys).
+_OIL_SERVICE_OIL_LIFE = ConsumableSignature(("oil",), "Oil Service", "percent_left")
 # 'Days to service': the unofficial Polestar API and Smart #1/#3.
 _ANNUAL_SERVICE_DAYS_TO_SERVICE = ConsumableSignature(
     ("days_to_service",), "Annual Service", "duration_left", below_hours=336
@@ -141,11 +144,18 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "fordpass": IntegrationSignature(
         name="Ford (FordPass)",
-        verified="2026-07-19 @ itchannel/fordpass-ha master sensor.py",
-        source="HACS fordpass: dict-key 'odometer' sensor (name-style, suffix match).",
+        verified="2026-07-19 @ itchannel/fordpass-ha master sensor.py; oil 2026-11-01 @ marq24/ha-fordpass main 3d856a3",
+        source=(
+            "HACS fordpass: dict-key 'odometer' sensor (name-style, suffix match). The second "
+            "repository with this domain (marq24/ha-fordpass) sets translation_key = the tag key "
+            "lower-cased (__init__.py FordPassEntity) and entity ids 'fordpass_<vin>_<key>': "
+            "'odometer' as well, and const_tags.py Tag.OIL key 'oil' (oilLifeRemaining, "
+            "PERCENTAGE) → Oil Service at the household's floor."
+        ),
         tasks=(
             ANNUAL_SERVICE_ODOMETER,
             TIRE_ROTATION_ODOMETER,
+            _OIL_SERVICE_OIL_LIFE,
         ),
     ),
     "toyota": IntegrationSignature(
@@ -547,7 +557,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         tasks=(
             ANNUAL_SERVICE_ODOMETER,
             TIRE_ROTATION_ODOMETER,
-            ConsumableSignature(("oil",), "Oil Service", "percent_left"),
+            _OIL_SERVICE_OIL_LIFE,
         ),
     ),
     # ─── Round 16 (2026-10-03): HACS cars, car alarms and the UK MOT ────────
@@ -669,6 +679,18 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         tasks=(
             ANNUAL_SERVICE_MILEAGE,
             TIRE_ROTATION_MILEAGE,
+        ),
+    ),
+    "lojack": IntegrationSignature(
+        name="LoJack",
+        verified="2026-11-01 @ home-assistant/core dev 8e864cd (sensor platform new in 2026.11)",
+        source=(
+            "core lojack sensor.py: tk 'odometer' (DISTANCE, UnitOfLength.MILES native, "
+            "TOTAL_INCREASING) — the shared odometer duties; the unit-aware threshold reads miles."
+        ),
+        tasks=(
+            ANNUAL_SERVICE_ODOMETER,
+            TIRE_ROTATION_ODOMETER,
         ),
     ),
 }

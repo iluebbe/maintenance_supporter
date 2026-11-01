@@ -319,6 +319,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Fluidra Pool (Fluidra Connect) | `fluidra_pool` | Replace UV Lamp | every 8000 units (counter delta) |  |
 | Orbit B-hyve | `bhyve` | Clean Sprinkler Heads | every 30 h counted by the engine | valve entity; active: open; one task per entity |
 | OpenSprinkler | `opensprinkler` | Clean Sprinkler Heads | every 30 h counted by the engine | binary_sensor entity; active: on; one task per entity |
+| SmartyPlants | `smartyplants` | Fertilizing | below 24 h remaining |  |
 
 ## Cars and EVs — odometer-driven service duties
 
@@ -342,6 +343,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Tire Rotation | every 10000 units (counter delta) |  |
 | Ford (FordPass) | `fordpass` | Annual Service | every 15000 units (counter delta) |  |
 |  |  | Tire Rotation | every 10000 units (counter delta) |  |
+|  |  | Oil Service | below the household consumable floor (default 10 %) |  |
 | Toyota Connected | `toyota` | Annual Service | every 15000 units (counter delta) |  |
 |  |  | Tire Rotation | every 10000 units (counter delta) |  |
 | MG/SAIC iSMART | `mg_saic` | Annual Service | every 15000 units (counter delta) |  |
@@ -431,6 +433,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Oil Service | below 1000 |  |
 | Škoda | `skoda` | Annual Service | every 15000 units (counter delta) |  |
 |  |  | Tire Rotation | every 10000 units (counter delta) |  |
+| LoJack | `lojack` | Annual Service | every 15000 units (counter delta) |  |
+|  |  | Tire Rotation | every 10000 units (counter delta) |  |
 
 ## EV chargers — cable/plug inspection by delivered energy
 
@@ -450,6 +454,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Fronius Wattpilot | `wattpilot` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
 | evcc | `evcc_intg` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
 | OCPP charge points | `ocpp` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
+| Exicom Spin (Bluetooth) | `exicom_spin_ble` | Inspect Cable and Plug | every 5000 units (counter delta) |  |
 
 ## Boilers, heating & water treatment
 
@@ -457,6 +462,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 |---|---|---|---|---|
 | Viessmann ViCare | `vicare` | Replace Filter | below 24 h remaining |  |
 |  |  | Annual Inspection | every 2000 units (counter delta) |  |
+|  |  | Empty Ash Pan | above 85 |  |
 | Bosch/Buderus heating | `bosch` | Refill Heating Water | below 1 |  |
 | OpenTherm Gateway | `opentherm_gw` | Refill Heating Water | below 1 |  |
 | Plugwise (Anna/Adam) | `plugwise` | Refill Heating Water | below 1 |  |
@@ -562,6 +568,13 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Siku / Blauberg ventilation fans | `siku` | Replace Ventilation Filter | below 7 days remaining | completing presses `reset_filter_alarm` |
 | Vents / Blauberg EcoVent (v2) | `ecovent_v2` | Replace Ventilation Filter | below the household consumable floor (default 10 %) |  |
 | Govee Life (purifiers) | `goveelife` | Replace Filter | below the household consumable floor (default 10 %) |  |
+| Helty Flow (cloud) | `helty_cloud` | Replace Ventilation Filter | at 85000 h counted by the device |  |
+| RAMSES RF (Honeywell evohome / Itho / Orcon / Nuaire) | `ramses_cc` | Replace Ventilation Filter | below 7 days remaining | completing presses `reset_filter_counter` |
+| Philips Home iD | `philips_homeid` | Filter Cleaning | below 3 days remaining | completing presses `muji_reset_filter_clean` |
+|  |  | Replace Filter | below 7 days remaining | completing presses `muji_reset_filter_replace` |
+|  |  | Replace Water Filter | below the household consumable floor (default 10 %) |  |
+|  |  | Descaling | below the household consumable floor (default 10 %) |  |
+| Rituals Perfume Genie | `rituals_perfume_genie` | Replace Fragrance Cartridge | below the household consumable floor (default 10 %) |  |
 
 ## Kitchen & household appliances incl. espresso machines
 
@@ -605,6 +618,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Midea (core) | `midea` | Refill Softener Salt | below the household consumable floor (default 10 %) |  |
 |  |  | Replace Water Filter | below the household consumable floor (default 10 %) | models: Water Drinking Appliance |
 |  |  | Replace Filter | below the household consumable floor (default 10 %) | models: Air Purifier/Toilet |
+|  |  | Filter Cleaning | while the appliance reports 'on' | binary_sensor entity; completing presses `reset_filter` |
 | La Marzocco | `lamarzocco` | Backflush Espresso Group | every 100 units (counter delta) |  |
 |  |  | Replace Water Filter | every 1000 units (counter delta) |  |
 | Haier hOn (Haier/Candy/Hoover) | `hon` | Replace Filter | below the household consumable floor (default 10 %) |  |
@@ -653,6 +667,17 @@ due/auto-complete and un-adopt/re-adopt behave.
 |  |  | Clean Tank | below 24 h remaining | completing presses `button_reset_tank` |
 |  |  | Clean Pre-Filter | below the household consumable floor (default 10 %) |  |
 |  |  | Anode Rod Inspection | below 14 days remaining |  |
+| JURA (Wi-Fi) | `jura_wifi` | Run Cleaning Program | while the appliance reports 'on' | binary_sensor entity |
+|  |  | Descaling | while the appliance reports 'on' | binary_sensor entity |
+|  |  | Replace Water Filter | while the appliance reports 'on' | binary_sensor entity |
+|  |  | Clean Milk System | while the appliance reports 'on' | binary_sensor entity |
+| EcoWater (cloud) | `ecowater_cloud` | Refill Softener Salt | below 7 days remaining |  |
+| Culligan (Azure IoT) | `culligan_azure` | Refill Softener Salt | below 7 days remaining |  |
+| Ypsilon / Runxin softener (local) | `ypsilon_local` | Refill Softener Salt | while the appliance reports 'on' | binary_sensor entity |
+|  |  | Replace Softener Resin | while the appliance reports 'on' | binary_sensor entity |
+|  |  | Replace Filter | while the appliance reports 'on' | binary_sensor entity |
+| Fjäråskupan | `fjaraskupan` | Clean Grease Filter | while the appliance reports 'on' | binary_sensor entity; completing presses `reset_grease_filter` |
+|  |  | Replace Filter | while the appliance reports 'on' | binary_sensor entity |
 
 ## 2D and 3D printers incl. Klipper via Moonraker
 
@@ -753,8 +778,8 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 | Integration | Domain | Task | Default | Notes |
 |---|---|---|---|---|
-| PetKit | `petkit` | Replace Desiccant | below 2 days remaining | completing presses `reset_desiccant` |
-|  |  | Replace Water Filter | below the household consumable floor (default 10 %) | completing presses `reset_filter` |
+| PetKit | `petkit` | Replace Desiccant | below 2 days remaining | completing presses `reset_desiccant`/`reset_desiccant` |
+|  |  | Replace Water Filter | below the household consumable floor (default 10 %) | completing presses `reset_filter`/`reset_filter` |
 |  |  | Replace Odor Eliminator | below 2 days remaining | one task per entity; completing presses `reset_n50_odor_eliminator`/`reset_n60_odor_eliminator` |
 | Litter-Robot | `litterrobot` | Empty Waste Drawer | above 90 | completing presses `reset_waste_drawer` |
 |  |  | Refill Litter | below the household consumable floor (default 10 %) |  |
@@ -790,6 +815,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**276 integrations / 578 verified signatures.**
+**288 integrations / 603 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).

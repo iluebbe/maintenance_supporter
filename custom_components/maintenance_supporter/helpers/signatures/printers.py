@@ -140,7 +140,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "NOTE: 'Totals Print Time' is a formatted STRING — unusable. "
             "Nozzle interval is an editorial default (~1000 m on brass)."
         ),
-        tasks=(ConsumableSignature(("totals_filament_used",), "Replace Nozzle", "usage_delta", delta_units=1000),),
+        tasks=(ConsumableSignature(("totals_filament_used",), "Replace Nozzle", "usage_delta", delta_units=1000, unit_base="m"),),
     ),
     "ha_creality_ws": IntegrationSignature(
         name="Creality (WebSocket)",

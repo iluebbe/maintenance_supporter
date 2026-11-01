@@ -8,7 +8,13 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
-from ._shared import GENERATOR_SERVICE_COUNTER, HEATING_SYSTEM_PRESSURE_LOW, HEATING_WATER_PRESSURE_LOW, SOFTENER_SALT_LEVEL
+from ._shared import (
+    GENERATOR_SERVICE_COUNTER,
+    HEATING_SYSTEM_PRESSURE_LOW,
+    HEATING_WATER_PRESSURE_LOW,
+    SOFTENER_SALT_DAYS_UNTIL_OUT,
+    SOFTENER_SALT_LEVEL,
+)
 
 SIGNATURES: dict[str, IntegrationSignature] = {
     "vicare": IntegrationSignature(
@@ -39,6 +45,9 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 "usage_delta",
                 delta_units=2000,
             ),
+            # 2026.11 (core dev 8e864cd): tk 'ash_level' (PERCENTAGE, DIAGNOSTIC;
+            # PyViCare heating.boiler.ash.level.current, pellet boilers).
+            ConsumableSignature(("ash_level",), "Empty Ash Pan", "alert_above", delta_units=85),
         ),
     ),
     "bosch": IntegrationSignature(
@@ -135,7 +144,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(
             ConsumableSignature(("salt_level_percentage",), "Refill Softener Salt", "percent_left"),
-            ConsumableSignature(("days_until_out_of_salt",), "Refill Softener Salt", "duration_left", below_hours=168),
+            SOFTENER_SALT_DAYS_UNTIL_OUT,
         ),
     ),
     "wolflink": IntegrationSignature(

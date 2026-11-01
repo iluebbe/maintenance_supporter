@@ -157,6 +157,15 @@ class ConsumableSignature:
     # "Reset main brush consumable"); without it the counter kept running and
     # the task fell due again. Verified against the integration's button.py.
     resets: tuple[tuple[str, str], ...] = ()
+    # Round 18: the unit ``delta_units`` / ``above_hours`` count in when it is a
+    # length or a volume. Empty: kilometres (odometers) resp. cubic metres; the
+    # filament counter of a 3D printer counts metres.
+    unit_base: str = ""
+    # Round 18: the entity's unit must be exactly this — a missing unit
+    # rejects, unlike the lenient direction check. For a key an integration's
+    # older versions reported as text (Rituals' fill level was "70-80%" before
+    # 2026.11): the text sensor has no unit and must not be matched.
+    require_unit: str = ""
 
 
 @dataclass(frozen=True)
@@ -302,6 +311,11 @@ def _unit_compatible(direction: str, unit: str | None) -> bool:
     return unit != "%"
 
 
+# Display units per kilometre resp. per cubic metre (round 18).
+_LENGTH_PER_KM = {"km": 1.0, "mi": 0.62137, "miles": 0.62137, "m": 1000.0, "ft": 3280.84, "yd": 1093.61}
+_VOLUME_PER_M3 = {"m³": 1.0, "L": 1000.0, "ft³": 35.3147, "gal": 264.172}
+
+
 def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str) -> float:
     """The trigger threshold in the entity's CURRENT display unit.
 
@@ -324,8 +338,8 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
         return float(sig.below_percent)
     state = hass.states.get(entity_id)
     unit = (state.attributes.get("unit_of_measurement") if state else None) or "h"
-    # Canonical → display unit: time counters are stored in hours, odometers in
-    # kilometres; the entity may display s/min/d resp. miles.
+    # Canonical → display unit: time counters are stored in hours, energy in
+    # kWh; lengths and volumes in the signature's unit_base (below).
     # Every duration unit HA lets a user pick as display unit is listed —
     # a missing one silently fell back to 1.0 (a "24 h" floor became "24 w").
     factors = {
@@ -349,15 +363,21 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
         "days": 1 / 24,
         "week": 1 / 168,
         "weeks": 1 / 168,
-        "km": 1.0,
-        "mi": 0.62137,
-        "miles": 0.62137,
         # energy counters are canonical in kWh (wallbox cable inspection)
         "Wh": 1000.0,
         "kWh": 1.0,
         "MWh": 0.001,
     }
     factor = factors.get(unit) or factors.get(str(unit).strip().lower(), 1.0)
+    # Lengths and volumes relative to the signature's base (round 18): an
+    # odometer shown in metres read the km floor as metres, while the
+    # filament counter's metres are its base.
+    for table, default_base in ((_LENGTH_PER_KM, "km"), (_VOLUME_PER_M3, "m³")):
+        key = unit if unit in table else str(unit).strip().lower()
+        if key in table:
+            base = sig.unit_base if sig.unit_base in table else default_base
+            factor = table[key] / table[base]
+            break
     hours = {
         "usage_above": sig.above_hours,
         "usage_delta": sig.delta_units,

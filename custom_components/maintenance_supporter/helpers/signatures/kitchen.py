@@ -8,7 +8,7 @@ integration's source; drift-probed weekly)."""
 from __future__ import annotations
 
 from ._model import ConsumableSignature, IntegrationSignature
-from ._shared import PRE_FILTER_CLEANING_PERCENT
+from ._shared import PRE_FILTER_CLEANING_PERCENT, SOFTENER_SALT_DAYS_UNTIL_OUT
 
 # LG dishwasher "rinse refill needed": a plain binary (no problem class, so
 # problem-sensor adoption does not cover it) in both LG integrations — one
@@ -406,6 +406,18 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 "Replace Filter",
                 "percent_left",
                 models=("Air Purifier", "Toilet"),
+            ),
+            # 2026.11 (core dev 8e864cd): button.py tk 'reset_filter' (CONFIG,
+            # air conditioners that support it) resets the dust-filter reminder,
+            # so the AC/A1/CE 'full_dust' problem binary becomes a catalog duty
+            # that the reset completes; devices without the button keep the latch.
+            ConsumableSignature(
+                ("full_dust",),
+                "Filter Cleaning",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+                resets=(("full_dust", "reset_filter"),),
             ),
         ),
     ),
@@ -968,6 +980,95 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
             ConsumableSignature(("pre_filter_retain",), "Clean Pre-Filter", "percent_left"),
             ConsumableSignature(("anode_retain",), "Anode Rod Inspection", "duration_left", below_hours=336),
+        ),
+    ),
+    "jura_wifi": IntegrationSignature(
+        name="JURA (Wi-Fi)",
+        verified="2026-11-01 @ dominikgysin/HomeAssistant-Jura-WiFi-Integration main d39f3e5",
+        source=(
+            "HACS jura_wifi binary_sensor.py ALERT_DESCRIPTIONS: _problem(key) sets "
+            "translation_key = key, device_class PROBLEM, on while the machine shows the alert: "
+            "'cleaning_due' (cleaning_alert), 'descaling_due' (descale_alert), "
+            "'filter_change_due' (filter_alert), 'milk_clean_due' (cappu_clean_alert) — each "
+            "clears itself once the program has run. Skipped: 'milk_rinse_due' (a rinse after "
+            "use), the refill/empty/insert alerts (part of daily use), the *_recommended "
+            "early sensors (the same duties a little sooner) and the maintenance % sensors "
+            "(disabled by default)."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(("cleaning_due",), "Run Cleaning Program", "event_present", entity_domain="binary_sensor", on_states=("on",)),
+            ConsumableSignature(("descaling_due",), "Descaling", "event_present", entity_domain="binary_sensor", on_states=("on",)),
+            ConsumableSignature(("filter_change_due",), "Replace Water Filter", "event_present", entity_domain="binary_sensor", on_states=("on",)),
+            ConsumableSignature(("milk_clean_due",), "Clean Milk System", "event_present", entity_domain="binary_sensor", on_states=("on",)),
+        ),
+    ),
+    "ecowater_cloud": IntegrationSignature(
+        name="EcoWater (cloud)",
+        verified="2026-11-01 @ andrewtryder/ha-ecowater-cloud main 9349df6",
+        source=(
+            "HACS ecowater_cloud sensor.py: tk 'days_until_out_of_salt' (DURATION, "
+            "UnitOfTime.DAYS) → Refill Softener Salt a week ahead (the EcoWater precedent). "
+            "'salt_level' (%) reads the same tank; the binaries 'low_salt_alert' / "
+            "'service_reminder_alert' → problem-sensor adoption."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(SOFTENER_SALT_DAYS_UNTIL_OUT,),
+    ),
+    "culligan_azure": IntegrationSignature(
+        name="Culligan (Azure IoT)",
+        verified="2026-11-01 @ heidrickla/ha-culligan-azure main 1db5d2c",
+        source=(
+            "HACS culligan_azure sensor.py: tk 'days_salt_remaining' (UnitOfTime.DAYS) → Refill "
+            "Softener Salt a week ahead. Skipped: 'salt_level' (% of the same tank) and the "
+            "resin estimates ('resin_life_remaining' in 'years', 'resin_capacity_fade' %), "
+            "derived figures rather than the device's own."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(ConsumableSignature(("days_salt_remaining",), "Refill Softener Salt", "duration_left", below_hours=168),),
+    ),
+    "ypsilon_local": IntegrationSignature(
+        name="Ypsilon / Runxin softener (local)",
+        verified="2026-11-01 @ Danirv/runxin-local main 63ca284",
+        source=(
+            "HACS ypsilon_local binary_sensor.py: translation_key = key, device_class PROBLEM, "
+            "the valve's own reminders: 'salt_shortage_reminder' and 'salt_shortage_alarm' (one "
+            "duty, either fires), 'resin_replacement' (resinReplacementReminder) and "
+            "'filter_reminder' (filterMaterialReminder)."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(
+                ("salt_shortage_reminder", "salt_shortage_alarm"),
+                "Refill Softener Salt",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+            ),
+            ConsumableSignature(("resin_replacement",), "Replace Softener Resin", "event_present", entity_domain="binary_sensor", on_states=("on",)),
+            ConsumableSignature(("filter_reminder",), "Replace Filter", "event_present", entity_domain="binary_sensor", on_states=("on",)),
+        ),
+    ),
+    "fjaraskupan": IntegrationSignature(
+        name="Fjäråskupan",
+        verified="2026-11-01 @ home-assistant/core dev 8e864cd (reset button new in 2026.11)",
+        source=(
+            "core fjaraskupan binary_sensor.py: tk 'grease_filter' and 'carbon_filter' "
+            "(PROBLEM, the hood's own filter reminders); button.py ResetGreaseFilter "
+            "_attr_translation_key 'reset_grease_filter' (CONFIG, 2026.11) on the same device — "
+            "the grease filter duty presses it. The carbon filter has no reset."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(
+            ConsumableSignature(
+                ("grease_filter",),
+                "Clean Grease Filter",
+                "event_present",
+                entity_domain="binary_sensor",
+                on_states=("on",),
+                resets=(("grease_filter", "reset_grease_filter"),),
+            ),
+            ConsumableSignature(("carbon_filter",), "Replace Filter", "event_present", entity_domain="binary_sensor", on_states=("on",)),
         ),
     ),
 }

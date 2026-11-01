@@ -644,4 +644,16 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ),
         ),
     ),
+    "smartyplants": IntegrationSignature(
+        name="SmartyPlants",
+        verified="2026-11-01 @ home-assistant/core dev 8e864cd (new in 2026.11)",
+        source=(
+            "core smartyplants sensor.py: tk 'fertilize' ('Fertilize in', DURATION, "
+            "UnitOfTime.DAYS, value days_until_fertilise; unknown while the sensor is still "
+            "calculating) — the maker's own countdown, due a day ahead. 'moisture' is left out: "
+            "how dry is too dry depends on the plant."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(ConsumableSignature(("fertilize",), "Fertilizing", "duration_left", below_hours=24),),
+    ),
 }

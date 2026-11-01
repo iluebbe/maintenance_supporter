@@ -206,6 +206,9 @@ _BUTTONS_FROM = {
     ("ecovacs", "reset_lifespan_strainer"): (2026, 11),
     ("switchbot", "reset_filter_usage"): (2026, 11),
     ("vesync", "reset_filter"): (2026, 11),
+    # round 18
+    ("fjaraskupan", "reset_grease_filter"): (2026, 11),
+    ("midea", "reset_filter"): (2026, 11),
 }
 
 

@@ -182,4 +182,15 @@ SIGNATURES: dict[str, IntegrationSignature] = {
         ),
         tasks=(ConsumableSignature(("energy_active_import_register",), "Inspect Cable and Plug", "usage_delta", delta_units=5000),),
     ),
+    "exicom_spin_ble": IntegrationSignature(
+        name="Exicom Spin (Bluetooth)",
+        verified="2026-11-01 @ home-assistant/core dev 8e864cd (new in 2026.11)",
+        source=(
+            "core exicom_spin_ble sensor.py: tk 'lifetime_energy' (ENERGY, KILO_WATT_HOUR, "
+            "TOTAL_INCREASING) → the cable inspection every 5,000 kWh; 'session_energy' is per "
+            "charge."
+        ),
+        translation_keys_authoritative=True,
+        tasks=(CHARGER_CABLE_LIFETIME_ENERGY,),
+    ),
 }

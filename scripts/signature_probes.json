@@ -232,7 +232,8 @@
   "strings": [
    "filter_remaining_hours",
    "burner_hours",
-   "compressor_hours"
+   "compressor_hours",
+   "translation_key=\"ash_level\""
   ]
  },
  "home_connect": {
@@ -872,7 +873,9 @@
  "petkit": {
   "urls": [
    "https://raw.githubusercontent.com/Jezza34000/homeassistant_petkit/main/custom_components/petkit/sensor.py",
-   "https://raw.githubusercontent.com/Jezza34000/homeassistant_petkit/main/custom_components/petkit/button.py"
+   "https://raw.githubusercontent.com/Jezza34000/homeassistant_petkit/main/custom_components/petkit/button.py",
+   "https://raw.githubusercontent.com/RobertD502/home-assistant-petkit/main/custom_components/petkit/sensor.py",
+   "https://raw.githubusercontent.com/RobertD502/home-assistant-petkit/main/custom_components/petkit/button.py"
   ],
   "strings": [
    "desiccant_left_days",
@@ -882,7 +885,10 @@
    "translation_key=\"reset_desiccant\"",
    "translation_key=\"reset_filter\"",
    "translation_key=\"reset_n50_odor_eliminator\"",
-   "translation_key=\"reset_n60_odor_eliminator\""
+   "translation_key=\"reset_n60_odor_eliminator\"",
+   "return \"desiccant_days_remaining\"",
+   "return \"filter\"",
+   "return \"reset_desiccant\""
   ]
  },
  "moonraker": {
@@ -969,10 +975,15 @@
  },
  "fordpass": {
   "urls": [
-   "https://raw.githubusercontent.com/itchannel/fordpass-ha/master/custom_components/fordpass/sensor.py"
+   "https://raw.githubusercontent.com/itchannel/fordpass-ha/master/custom_components/fordpass/sensor.py",
+   "https://raw.githubusercontent.com/marq24/ha-fordpass/main/custom_components/fordpass/const_tags.py",
+   "https://raw.githubusercontent.com/marq24/ha-fordpass/main/custom_components/fordpass/__init__.py"
   ],
   "strings": [
-   "odometer"
+   "odometer",
+   "ApiKey(key=\"oil\"",
+   "\"oilLifeRemaining\"",
+   "self._attr_translation_key = a_tag.key.lower()"
   ]
  },
  "toyota": {
@@ -1515,7 +1526,9 @@
  "midea": {
   "urls": [
    "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/midea/sensor.py",
-   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/midea/device_catalog.py"
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/midea/device_catalog.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/midea/binary_sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/midea/button.py"
   ],
   "strings": [
    "translation_key=\"salt_available\"",
@@ -1525,7 +1538,9 @@
    "key=\"filter1_life\"",
    "\"Water Drinking Appliance\"",
    "\"Air Purifier\"",
-   "\"Toilet\""
+   "\"Toilet\"",
+   "translation_key=\"full_dust\"",
+   "translation_key=\"reset_filter\""
   ]
  },
  "electrolux": {
@@ -2990,6 +3005,134 @@
   "strings": [
    "elif self._capability_name == \"filterLifeTime\":",
    "self._name = self._capability_name"
+  ]
+ },
+ "helty_cloud": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/helty_cloud/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"filter_volume\"",
+   "UnitOfVolume.CUBIC_METERS",
+   "filter_partial_m3"
+  ]
+ },
+ "ramses_cc": {
+  "urls": [
+   "https://raw.githubusercontent.com/ramses-rf/ramses_cc/master/custom_components/ramses_cc/sensor.py",
+   "https://raw.githubusercontent.com/ramses-rf/ramses_cc/master/custom_components/ramses_cc/button.py",
+   "https://raw.githubusercontent.com/ramses-rf/ramses_rf/master/src/ramses_rf/const.py"
+  ],
+  "strings": [
+   "SZ_FILTER_REMAINING: Final = \"filter_remaining\"",
+   "name=\"Filter remaining\"",
+   "FILTER_RESET_KEY = \"reset_filter_counter\"",
+   "translation_key=FILTER_RESET_KEY"
+  ]
+ },
+ "philips_homeid": {
+  "urls": [
+   "https://raw.githubusercontent.com/renaudallard/homeassistant_philips_homeid/main/custom_components/philips_homeid/sensor_descriptions.py",
+   "https://raw.githubusercontent.com/renaudallard/homeassistant_philips_homeid/main/custom_components/philips_homeid/button.py"
+  ],
+  "strings": [
+   "translation_key=\"muji_filter0_remaining\"",
+   "translation_key=\"muji_filter1_remaining\"",
+   "translation_key=\"rita_aquaclean_autonomy\"",
+   "translation_key=\"rita_descale_autonomy\"",
+   "translation_key=\"muji_reset_filter_clean\"",
+   "translation_key=\"muji_reset_filter_replace\"",
+   "c.async_reset_filter(\"D0520D\", 720)",
+   "c.async_reset_filter(\"D0540E\", 4800)"
+  ]
+ },
+ "rituals_perfume_genie": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/rituals_perfume_genie/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"fill\"",
+   "sensors.fill_percentage"
+  ]
+ },
+ "lojack": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/lojack/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"odometer\"",
+   "UnitOfLength.MILES"
+  ]
+ },
+ "exicom_spin_ble": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/exicom_spin_ble/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"lifetime_energy\"",
+   "UnitOfEnergy.KILO_WATT_HOUR"
+  ]
+ },
+ "smartyplants": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/smartyplants/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"fertilize\"",
+   "days_until_fertilise",
+   "UnitOfTime.DAYS"
+  ]
+ },
+ "jura_wifi": {
+  "urls": [
+   "https://raw.githubusercontent.com/dominikgysin/HomeAssistant-Jura-WiFi-Integration/main/custom_components/jura_wifi/binary_sensor.py"
+  ],
+  "strings": [
+   "_problem(\"cleaning_due\", \"cleaning_alert\")",
+   "_problem(\"descaling_due\", \"descale_alert\")",
+   "_problem(\"filter_change_due\", \"filter_alert\")",
+   "_problem(\"milk_clean_due\", \"cappu_clean_alert\")",
+   "translation_key=key"
+  ]
+ },
+ "ecowater_cloud": {
+  "urls": [
+   "https://raw.githubusercontent.com/andrewtryder/ha-ecowater-cloud/main/custom_components/ecowater_cloud/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"days_until_out_of_salt\"",
+   "UnitOfTime.DAYS"
+  ]
+ },
+ "culligan_azure": {
+  "urls": [
+   "https://raw.githubusercontent.com/heidrickla/ha-culligan-azure/main/custom_components/culligan_azure/sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"days_salt_remaining\"",
+   "UnitOfTime.DAYS"
+  ]
+ },
+ "ypsilon_local": {
+  "urls": [
+   "https://raw.githubusercontent.com/Danirv/runxin-local/main/custom_components/ypsilon_local/binary_sensor.py"
+  ],
+  "strings": [
+   "translation_key=\"salt_shortage_reminder\"",
+   "translation_key=\"salt_shortage_alarm\"",
+   "translation_key=\"resin_replacement\"",
+   "translation_key=\"filter_reminder\""
+  ]
+ },
+ "fjaraskupan": {
+  "urls": [
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/fjaraskupan/binary_sensor.py",
+   "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/fjaraskupan/button.py"
+  ],
+  "strings": [
+   "translation_key=\"grease_filter\"",
+   "translation_key=\"carbon_filter\"",
+   "_attr_translation_key = \"reset_grease_filter\""
   ]
  }
 }

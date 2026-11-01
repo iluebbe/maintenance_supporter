@@ -30,7 +30,7 @@ ANNUAL_SERVICE_MILEAGE = ConsumableSignature(
     delta_units=15000,
 )
 
-# 11 integrations (cars.py).
+# 12 integrations (cars.py).
 ANNUAL_SERVICE_ODOMETER = ConsumableSignature(
     ("odometer",),
     "Annual Service",
@@ -78,7 +78,7 @@ CHARGER_CABLE_ETO = ConsumableSignature(
     delta_units=5000,
 )
 
-# 2 integrations (wallboxes.py).
+# 3 integrations (wallboxes.py).
 CHARGER_CABLE_LIFETIME_ENERGY = ConsumableSignature(
     ("lifetime_energy",),
     "Inspect Cable and Plug",
@@ -208,6 +208,14 @@ PRE_FILTER_CLEANING_PERCENT = ConsumableSignature(
     "percent_left",
 )
 
+# 2 integrations (heating.py, kitchen.py): EcoWater's local and cloud integrations.
+SOFTENER_SALT_DAYS_UNTIL_OUT = ConsumableSignature(
+    ("days_until_out_of_salt",),
+    "Refill Softener Salt",
+    "duration_left",
+    below_hours=168,
+)
+
 # 3 integrations (heating.py).
 SOFTENER_SALT_LEVEL = ConsumableSignature(
     ("salt_level",),
@@ -223,7 +231,7 @@ TIRE_ROTATION_MILEAGE = ConsumableSignature(
     delta_units=10000,
 )
 
-# 15 integrations (cars.py).
+# 16 integrations (cars.py).
 TIRE_ROTATION_ODOMETER = ConsumableSignature(
     ("odometer",),
     "Tire Rotation",

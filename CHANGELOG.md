@@ -2,6 +2,32 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Suggested setups: 12 more integrations and new duties for four known ones (catalog round 18).** 288
+  integrations / 603 verified signatures (was 276 / 578).
+  - Home Assistant 2026.11: Helty Flow's ventilation filter by the air it has treated (85,000 m³, the reminder the
+    docs suggest ahead of the unit's alarm at 90,000 m³), the Exicom Spin wallbox's cable inspection by its
+    lifetime energy, LoJack's new odometer (service and tire rotation), the Rituals Perfume Genie's cartridge now
+    that the fill level is a percentage (an older core's text value is left alone), SmartyPlants' fertilising
+    countdown and Viessmann ViCare's ash level on pellet boilers. Fjäråskupan's grease filter and the dust filter
+    of Midea air conditioners become duties whose completion presses the reset button 2026.11 added.
+  - HACS: RAMSES RF ventilation units (the filter's days left, with the reset button), Philips Home iD (the MUJI
+    purifier filters with their resets, AquaClean filter and descaling of the Rita espresso machines), JURA Wi-Fi
+    coffee machines (cleaning, descaling, filter, milk system), the EcoWater cloud, Culligan Azure and Ypsilon /
+    Runxin water softeners, and the second repositories of PetKit and FordPass, which name their sensors
+    differently (the fountain filter and the desiccant with their resets, the oil life).
+  - Four new task names in all 22 languages. Every key is read in the integration's source and pinned by a drift
+    probe.
+
+### 🐛 Fixed
+
+- **Suggested setups convert odometers shown in metres and volume counters.** With an odometer shown in metres,
+  the kilometre floor of a service duty was read as metres. Volume counters convert between cubic metres, litres,
+  cubic feet and gallons.
+
 ## [2.116.0] - 2026-11-01
 
 ### ✨ Added
