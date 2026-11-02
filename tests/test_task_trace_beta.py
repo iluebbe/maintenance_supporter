@@ -9,6 +9,7 @@ panel the journal and the full history in one answer.
 
 from __future__ import annotations
 
+import json
 from datetime import timedelta
 from typing import Any
 from unittest.mock import patch
@@ -28,9 +29,11 @@ from custom_components.maintenance_supporter.const import (
 )
 from custom_components.maintenance_supporter.helpers.notification_manager import task_key_of
 from custom_components.maintenance_supporter.helpers.task_trace import (
+    MAX_CHANGES_CHARS,
     MAX_EVENTS,
     TASK_TRACE_KEY,
     TaskTrace,
+    changed_values,
     get_trace,
     record,
 )
@@ -217,7 +220,22 @@ async def test_an_edit_traces_which_settings_changed(hass: HomeAssistant) -> Non
     )
     await hass.async_block_till_done()
     edited = [e for e in _events(hass, obj) if e["kind"] == "edited"]
-    assert edited and "interval_days" in edited[-1]["fields"]
+    # Compared as stored: the flat interval is the nested schedule, and the
+    # trace keeps it from what to what ("Every 30 days → Every 45 days").
+    assert edited and edited[-1]["fields"] == ["schedule"]
+    old, new = edited[-1]["changes"]["schedule"]
+    assert (old["every"], new["every"]) == (30, 45)
+
+
+def test_an_edit_keeps_short_values_and_names_long_ones() -> None:
+    before = {"interval_days": 30, "notes": "x" * 2000, "warning_days": 7}
+    after = {"interval_days": 60, "notes": "y" * 2000, "warning_days": 3}
+    changes = changed_values(before, after, ["interval_days", "notes", "warning_days"])
+    # The note would overrun what one edit keeps: named only, the rest kept.
+    assert changes == {"interval_days": [30, 60], "warning_days": [7, 3]}
+    assert len(json.dumps(changes)) <= MAX_CHANGES_CHARS
+    # A value JSON cannot hold is skipped, never raised.
+    assert changed_values({"a": object()}, {"a": 1}, ["a"]) == {}
 
 
 async def test_task_trace_ws_returns_the_journal_and_the_full_history(hass: HomeAssistant) -> None:

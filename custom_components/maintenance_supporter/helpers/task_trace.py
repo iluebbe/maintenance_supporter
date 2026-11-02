@@ -16,8 +16,9 @@ it never raises into the code it watches.
 
 from __future__ import annotations
 
+import json
 import logging
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from typing import Any
 
 from homeassistant.core import HomeAssistant, callback
@@ -34,6 +35,10 @@ TRACE_STORE_VERSION = 1
 TASK_TRACE_KEY = "_task_trace"
 #: Events kept per task: several cycles of a task reminded every day.
 MAX_EVENTS = 200
+#: What one edit may keep of its values ("30 → 60 days"), as JSON text: a
+#: changed field whose old and new value would overrun it (a long note, a big
+#: compound rule) is only named. 200 edits of a task stay under 300 kB.
+MAX_CHANGES_CHARS = 1500
 _SAVE_DELAY = 10
 
 # The event kinds; the panel's trace view knows the same set.
@@ -42,7 +47,7 @@ KIND_REMINDER = "reminder"  # {"reminder": "status"|"lead"|"bundle", "status"?, 
 KIND_REMINDER_CLEARED = "reminder_cleared"  # {"reason": "done"|"status_left"|"inert"}
 KIND_SNOOZED = "snoozed"  # {"until", "hours"}
 KIND_DONE_WHEN = "done_when"  # {"entity", "state", "result", "minutes"?, "status"?}
-KIND_EDITED = "edited"  # {"fields": [...]}
+KIND_EDITED = "edited"  # {"fields": [...], "changes"?: {field: [old, new]}}
 TRACE_KINDS = frozenset(
     {KIND_STATUS, KIND_REMINDER, KIND_REMINDER_CLEARED, KIND_SNOOZED, KIND_DONE_WHEN, KIND_EDITED}
 )
@@ -52,6 +57,23 @@ TRACE_KINDS = frozenset(
 # counts only while the task is due), inert (paused, archived or disabled),
 # recent (a completion moments ago).
 DONE_WHEN_RESULTS = frozenset({"counted", "waiting", "left_early", "not_due", "inert", "recent"})
+
+
+def changed_values(before: Mapping[str, Any], after: Mapping[str, Any], fields: Iterable[str]) -> dict[str, list[Any]]:
+    """Old and new value of each changed field, for the trace's "before →
+    after", as far as :data:`MAX_CHANGES_CHARS` allows (fields in order)."""
+    changes: dict[str, list[Any]] = {}
+    budget = MAX_CHANGES_CHARS
+    for field in fields:
+        pair = [before.get(field), after.get(field)]
+        try:
+            size = len(json.dumps(pair, ensure_ascii=False))
+        except (TypeError, ValueError):
+            continue
+        if size <= budget:
+            changes[field] = pair
+            budget -= size
+    return changes
 
 
 def tracing_enabled(hass: HomeAssistant) -> bool:

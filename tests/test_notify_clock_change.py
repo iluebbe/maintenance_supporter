@@ -1,9 +1,12 @@
-"""Reminder timing across the autumn clock change counts real time.
+"""Reminder timing across both clock changes counts real time.
 
 Found on 2026-11-01, when the full suite ran in the hour US/Pacific (the
 test zone) repeats: a snooze of 4 hours ended after 5, and a reminder stamped
 at 01:50 daylight time looked 40 minutes in the future at 01:10 standard time
 — two times in the local zone subtract and compare by the wall clock.
+In spring the same arithmetic ran the other way: the skipped hour cut a
+4-hour snooze to 3, and an hourly repeat came 20 real minutes after the
+reminder (the wall clock had jumped an hour).
 """
 
 from __future__ import annotations
@@ -22,6 +25,9 @@ from .test_audit_2026_09_26 import TASK, _setup
 # US/Pacific falls back at 09:00 UTC on 2026-11-01 (02:00 PDT -> 01:00 PST).
 AT_0137_PDT = "2026-11-01 08:37:40+00:00"
 AT_0150_PDT = "2026-11-01 08:50:00+00:00"
+# ...and springs forward at 10:00 UTC on 2027-03-14 (02:00 PST -> 03:00 PDT).
+AT_0130_PST = "2027-03-14 09:30:00+00:00"
+AT_0150_PST = "2027-03-14 09:50:00+00:00"
 
 
 async def test_a_snooze_lasts_real_hours_across_the_clock_change(hass: HomeAssistant, freezer: Any) -> None:
@@ -51,3 +57,31 @@ async def test_a_reminder_stamp_counts_real_time_in_the_repeated_hour(hass: Home
     assert not nm._status_due(key, 1)
     freezer.tick(timedelta(minutes=41))  # 61 real minutes after the stamp
     assert nm._status_due(key, 1), "the hourly repeat is due after an hour, not two"
+
+
+async def test_a_snooze_lasts_real_hours_across_the_spring_change(hass: HomeAssistant, freezer: Any) -> None:
+    freezer.move_to(AT_0130_PST)
+    entry = await _setup(hass)
+    nm = hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY]
+    hours = nm._opt(CONF_SNOOZE_DURATION_HOURS)
+    until = nm.snooze_task(entry.entry_id, TASK)
+    assert until - dt_util.utcnow() == timedelta(hours=hours)
+    assert until.utcoffset() == timedelta(hours=-7), "shown in local (daylight) time"
+    key = notification_key(entry.entry_id, TASK, "overdue")
+    freezer.tick(timedelta(hours=hours) - timedelta(minutes=1))
+    assert nm._is_snoozed(key), "the skipped hour does not shorten the snooze"
+    freezer.tick(timedelta(minutes=2))
+    assert not nm._is_snoozed(key)
+
+
+async def test_a_reminder_stamp_counts_real_time_past_the_skipped_hour(hass: HomeAssistant, freezer: Any) -> None:
+    freezer.move_to(AT_0150_PST)
+    entry = await _setup(hass)
+    nm = hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY]
+    key = notification_key(entry.entry_id, TASK, "triggered")
+    nm._stamp_status_sent(key, 1)
+    freezer.tick(timedelta(minutes=20))  # 03:10 PDT: 80 minutes on the wall clock, 20 real
+    assert dt_util.now().hour == 3 and dt_util.now().minute == 10
+    assert not nm._status_due(key, 1), "the hourly repeat waits an hour, not 20 minutes"
+    freezer.tick(timedelta(minutes=41))  # 61 real minutes after the stamp
+    assert nm._status_due(key, 1)

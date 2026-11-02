@@ -33,6 +33,34 @@ export function primaryTriggerEntity(tc: TriggerConfig | null | undefined): stri
   return triggerEntityIds(tc)[0];
 }
 
+/** The unit of the sensor a single-source trigger watches: its state's,
+ *  else the one the backend reported. The sensor rule's chart, the history
+ *  and the trace show a firing's value with it. */
+export function triggerUnit(
+  hass: { states?: Record<string, { attributes?: { unit_of_measurement?: unknown } } | undefined> } | null | undefined,
+  task: { trigger_config?: TriggerConfig | null; trigger_entity_info?: { unit_of_measurement?: string | null } | null } | null | undefined,
+): string {
+  const primary = primaryTriggerEntity(task?.trigger_config);
+  const own = primary ? hass?.states?.[primary]?.attributes?.unit_of_measurement : undefined;
+  return (typeof own === "string" ? own : undefined) ?? task?.trigger_entity_info?.unit_of_measurement ?? "";
+}
+
+/** One sensor of the rule: the entity and the condition it answers. */
+export interface RuleSensor {
+  entityId: string;
+  cond: TriggerConfig;
+}
+
+/** The sensors a rule watches, one row each: every entity of a single or
+ *  multi-entity rule with the rule's condition, every entity of every
+ *  condition of a compound with that condition's. */
+export function ruleSensors(tc: TriggerConfig): RuleSensor[] {
+  if (tc.type === "compound") {
+    return (tc.conditions || []).flatMap((c) => triggerEntityIds(c).map((entityId) => ({ entityId, cond: c })));
+  }
+  return triggerEntityIds(tc).map((entityId) => ({ entityId, cond: tc }));
+}
+
 /** Counter-style triggers chart the recorder's sum / change, every other
  *  kind a level (mean / min / max): two different series of one entity. */
 export function isCounterTrigger(tc: TriggerConfig | null | undefined): boolean {

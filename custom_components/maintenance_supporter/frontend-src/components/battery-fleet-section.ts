@@ -492,8 +492,16 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   private _toggleTypeFilter(type: string): void {
     this._typeFilter = this._typeFilter === type ? null : type;
     if (this._typeFilter !== null) {
-      const details = this.shadowRoot?.querySelector<HTMLDetailsElement>("details.bf-roster");
-      if (details && !details.open) details.open = true; // fires toggle → history loads
+      // The filtered roster must be visible: a <details> (classic) or Home
+      // Assistant's ha-expansion-panel (the new look), which this lookup
+      // missed, so a chip filtered a folded list (2026-11-01).
+      const roster = this.shadowRoot?.querySelector<HTMLElement & { expanded?: boolean }>(".bf-roster");
+      if (roster instanceof HTMLDetailsElement) {
+        if (!roster.open) roster.open = true; // fires toggle → history loads
+      } else if (roster && !roster.expanded) {
+        roster.expanded = true;
+        void this._loadHistory(true); // setting `expanded` fires no expanded-changed
+      }
     }
   }
 

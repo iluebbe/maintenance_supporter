@@ -163,8 +163,8 @@ async function clickInPanel(p, regexSrc, scope = "") {
     const root = scope ? panel.shadowRoot.querySelector(scope) : panel.shadowRoot;
     if (!root) return "no scope " + scope;
     const re = new RegExp(regexSrc, "i");
-    const nodes = [...root.querySelectorAll("ha-button, button, .tab, [class*='task'], .popup-menu-item, mwc-button")]
-      .filter((el) => re.test(el.textContent || ""));
+    const nodes = [...root.querySelectorAll("ha-button, button, .tab, [class*='task'], .popup-menu-item, mwc-button, ha-dropdown-item")]
+      .filter((el) => re.test((el.textContent || "").trim()));
     if (!nodes.length) return "no match " + regexSrc;
     nodes[0].click();
     return "clicked";
@@ -199,6 +199,8 @@ async function record(token, name, flow) {
     recordVideo: { dir: VIDEO_DIR, size: { width: 1440, height: 860 } },
   });
   const p = await ctx.newPage();
+  // F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+  await p.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
   await p.addInitScript(tokensInit, { t: token, ha: HA });
   const t0 = Date.now();
   let actionAt = 0;
@@ -318,7 +320,20 @@ const flowUndoComplete = async (p, mark) => {
   await flowComplete(p, mark);
   const undone = await p.evaluate((fnStr) => {
     const panel = eval(`(${fnStr})`)();
-    const btn = panel.shadowRoot.querySelector(".toast-undo");
+    // Ours (classic) or Undo in Home Assistant's toast (the new look, 2.116).
+    let btn = panel.shadowRoot.querySelector(".toast-undo");
+    if (!btn) {
+      const walk = (root) => {
+        for (const el of root.querySelectorAll("*")) {
+          if (el.localName === "ha-toast" && el.shadowRoot?.querySelector(".toast.visible")) return el;
+          const inner = el.shadowRoot && walk(el.shadowRoot);
+          if (inner) return inner;
+        }
+        return null;
+      };
+      const toast = walk(document);
+      btn = toast && [...toast.querySelectorAll("ha-button, mwc-button, button")].find((b) => /undo/i.test(b.textContent || ""));
+    }
     if (!btn) return "no undo";
     btn.click();
     return "undo";
@@ -423,10 +438,21 @@ async function openTaskEditor(p, objectRe, taskRe) {
 
 /** Scroll something inside the task dialog's shadow root into view. */
 async function revealInTaskDialog(p, selector) {
-  const r = await p.evaluate(({ fnStr, selector }) => {
+  const r = await p.evaluate(async ({ fnStr, selector }) => {
     const panel = eval(`(${fnStr})`)();
     const dlg = panel.shadowRoot.querySelector("maintenance-task-dialog");
-    const el = dlg?.shadowRoot?.querySelector(selector);
+    let el = dlg?.shadowRoot?.querySelector(selector);
+    // The new look (2.116) edits a task as rule rows: the fields are in the
+    // sidebar of the rule they belong to — open the one that holds them.
+    if (!el && dlg?.shadowRoot?.querySelector(".beta-content")) {
+      for (const rule of ["trigger", "schedule", "completion", "notifications", "people", "task"]) {
+        dlg._ruleSel = rule;
+        dlg.requestUpdate();
+        await dlg.updateComplete;
+        el = dlg.shadowRoot.querySelector(selector);
+        if (el) break;
+      }
+    }
     if (!el) return "not found " + selector;
     el.scrollIntoView({ block: "center" });
     return "revealed " + selector;
@@ -439,11 +465,19 @@ async function revealInTaskDialog(p, selector) {
  *  that make a sensor-based task come due. Anchored on the heading text so it
  *  cannot land on an unrelated select row. */
 async function revealTriggerConfig(p) {
-  const r = await p.evaluate((fnStr) => {
+  const r = await p.evaluate(async (fnStr) => {
     const panel = eval(`(${fnStr})`)();
-    const root = panel.shadowRoot.querySelector("maintenance-task-dialog")?.shadowRoot;
+    const dlg = panel.shadowRoot.querySelector("maintenance-task-dialog");
+    const root = dlg?.shadowRoot;
     if (!root) return "no dialog";
-    const head = [...root.querySelectorAll("h3")]
+    // The new look (2.116): the sensor rule's fields open in its sidebar.
+    if (root.querySelector(".beta-content")) {
+      dlg._ruleSel = "trigger";
+      dlg.requestUpdate();
+      await dlg.updateComplete;
+      await new Promise((res) => setTimeout(res, 400));
+    }
+    const head = [...root.querySelectorAll("h3, .sidebar-title, .beta-sidebar-title")]
       .find((h) => /trigger/i.test(h.textContent || ""));
     const target = head || root.querySelector(".trigger-live-hint");
     if (!target) return "no trigger section";
@@ -577,7 +611,20 @@ const flowSchedulePreview = async (p, mark) => {
     const host = [...(root?.querySelectorAll("ms-textfield") || [])]
       .find((el) => /interval/i.test(el.getAttribute("label") || ""));
     if (!host) return "no interval field";
-    const el = host.shadowRoot?.querySelector("input");
+    // The new look (2.116) wraps Home Assistant's ha-input, one shadow root
+    // deeper: find the native input through every shadow root below the host.
+    const deepInput = (node) => {
+      const stack = [node];
+      while (stack.length) {
+        const n = stack.pop();
+        if (!n) continue;
+        if (n.localName === "input") return n;
+        if (n.shadowRoot) stack.push(n.shadowRoot);
+        for (const c of n.children || []) stack.push(c);
+      }
+      return null;
+    };
+    const el = host.shadowRoot ? deepInput(host.shadowRoot) : null;
     if (!el) return "interval field has no inner input";
     host.scrollIntoView({ block: "center" });
     el.focus();
@@ -659,11 +706,17 @@ const flowBatteryFleet = async (p, mark) => {
   const expanded = await p.evaluate((fnStr) => {
     const panel = eval(`(${fnStr})`)();
     const section = panel.shadowRoot.querySelector("maintenance-battery-fleet-section");
-    const details = section?.shadowRoot?.querySelector("details.bf-roster");
+    // A <details> (classic) or Home Assistant's ha-expansion-panel (the new look).
+    const details = section?.shadowRoot?.querySelector(".bf-roster");
     if (!details) return "no roster";
     details.scrollIntoView({ block: "center" });
-    details.open = true;
-    details.dispatchEvent(new Event("toggle"));
+    if (details.localName === "ha-expansion-panel") {
+      details.expanded = true;
+      details.dispatchEvent(new CustomEvent("expanded-changed", { detail: { expanded: true } }));
+    } else {
+      details.open = true;
+      details.dispatchEvent(new Event("toggle"));
+    }
     return "roster expanded";
   }, panelOf.toString());
   log("  " + expanded);
@@ -811,7 +864,8 @@ const flowNotificationEvent = (token) => async (p, mark) => {
     await p.evaluate((fnStr) => {
       const panel = eval(`(${fnStr})`)();
       const view = panel.shadowRoot.querySelector("maintenance-settings-view");
-      view.shadowRoot.querySelector(".notify-rule input[type=checkbox]").click();
+      // The real checkbox: a native input (classic) or HA's ha-checkbox (the new look).
+      (view.shadowRoot.querySelector(".notify-rule ha-checkbox") || view.shadowRoot.querySelector(".notify-rule input[type=checkbox]")).click();
     }, panelOf.toString());
     await p.waitForTimeout(1400);
     await p.evaluate(({ fnStr, tpl }) => {
@@ -923,7 +977,19 @@ const flowCalendarSchedule = async (p, mark) => {
     const root = dlg?.shadowRoot;
     const host = [...(root?.querySelectorAll("ms-textfield") || [])]
       .find((el) => /offset/i.test(el.getAttribute("label") || ""));
-    const el = host ? host.shadowRoot?.querySelector("input")
+    // The new look wraps HA's ha-input, one shadow root deeper.
+    const deepInput = (node) => {
+      const stack = [node];
+      while (stack.length) {
+        const n = stack.pop();
+        if (!n) continue;
+        if (n.localName === "input") return n;
+        if (n.shadowRoot) stack.push(n.shadowRoot);
+        for (const c of n.children || []) stack.push(c);
+      }
+      return null;
+    };
+    const el = host ? (host.shadowRoot ? deepInput(host.shadowRoot) : null)
       : [...(root?.querySelectorAll("input[type=number]") || [])].find((i) => /offset/i.test((i.closest("label, .field")?.textContent) || ""));
     if (!el) return "no offset field";
     (host || el).scrollIntoView({ block: "center" });
@@ -1004,7 +1070,9 @@ const flowCounterReset = (token) => async (p, mark) => {
   await p.waitForTimeout(2500);
   mark();
   await p.waitForTimeout(2500);          // 3 h left, triggered
-  await clickInPanel(p, "^complete");
+  // The whole word: "^complete" first hit the header's action row (its text
+  // starts with the button's), and a click on the row does nothing.
+  await clickInPanel(p, "^complete$");
   await p.waitForTimeout(2200);
   await submitComplete(p);
   await p.waitForTimeout(7000);          // reset pressed → 300 h, OK
@@ -1117,7 +1185,8 @@ const flowBulkEdit = async (p, mark) => {
   mark();
   const toggled = await p.evaluate((fnStr) => {
     const panel = eval(`(${fnStr})`)();
-    const btn = panel.shadowRoot.querySelector(".bulk-toggle");
+    // Classic button, or the selection chip of the new look's toolbar.
+    const btn = panel.shadowRoot.querySelector(".bulk-toggle") || panel.shadowRoot.querySelector(".ms-toolbar .ms-chip.icon-only");
     if (!btn) return "no bulk toggle";
     btn.click();
     return "select mode";
@@ -1142,7 +1211,7 @@ const flowBulkEdit = async (p, mark) => {
   await p.waitForTimeout(600);
   await p.evaluate((fnStr) => { eval(`(${fnStr})`)().shadowRoot.querySelector(".bulk-more")?.click(); }, panelOf.toString());
   await p.waitForTimeout(1200);
-  await clickInPanel(p, "^assign", ".popup-menu");
+  await clickInPanel(p, "^assign", ".bulk-more-wrapper");
   await p.waitForTimeout(1800);
   const picked = await p.evaluate((fnStr) => {
     const panel = eval(`(${fnStr})`)();
@@ -1164,7 +1233,20 @@ const flowBulkEdit = async (p, mark) => {
   await p.waitForTimeout(4500);           // one write + reload per object, the list refreshes
   const undone = await p.evaluate((fnStr) => {
     const panel = eval(`(${fnStr})`)();
-    const btn = panel.shadowRoot.querySelector(".toast-undo");
+    // Ours (classic) or Undo in Home Assistant's toast (the new look, 2.116).
+    let btn = panel.shadowRoot.querySelector(".toast-undo");
+    if (!btn) {
+      const walk = (root) => {
+        for (const el of root.querySelectorAll("*")) {
+          if (el.localName === "ha-toast" && el.shadowRoot?.querySelector(".toast.visible")) return el;
+          const inner = el.shadowRoot && walk(el.shadowRoot);
+          if (inner) return inner;
+        }
+        return null;
+      };
+      const toast = walk(document);
+      btn = toast && [...toast.querySelectorAll("ha-button, mwc-button, button")].find((b) => /undo/i.test(b.textContent || ""));
+    }
     if (!btn) return "no undo";
     btn.click();
     return "undo";

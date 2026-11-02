@@ -906,7 +906,8 @@ export const panelStyles = css`
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .sub-chip ha-icon {
+  .sub-chip ha-icon,
+  .sub-chip ha-svg-icon {
     --mdc-icon-size: 14px;
     opacity: 0.75;
   }
@@ -1462,7 +1463,8 @@ export const panelStyles = css`
   .cell-badges > .status-badge + * {
     margin-left: auto;
   }
-  .priority-badge ha-icon {
+  .priority-badge ha-icon,
+  .priority-badge ha-svg-icon {
     --mdc-icon-size: 16px;
   }
   .postponed-badge {
@@ -1489,10 +1491,12 @@ export const panelStyles = css`
     color: var(--text-primary-color, #fff);
     opacity: 0.85;
   }
-  .label-chip ha-icon {
+  .label-chip ha-icon,
+  .label-chip ha-svg-icon {
     --mdc-icon-size: 13px;
   }
-  .nfc-badge ha-icon {
+  .nfc-badge ha-icon,
+  .nfc-badge ha-svg-icon {
     --mdc-icon-size: 14px;
   }
   .nfc-badge.unlinked {

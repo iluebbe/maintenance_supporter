@@ -586,7 +586,8 @@ function renderTabContent(task: MaintenanceTask, ctx: TaskDetailContext) {
       // Beta (2026-10): switched off while the tab was open, it is the overview again.
       return ctx.features.beta_editor
         ? html`<div class="tab-content trace-tab-content">
-            <maintenance-task-trace .hass=${ctx.hass} .entryId=${ctx.entryId} .taskId=${ctx.taskId}></maintenance-task-trace>
+            <maintenance-task-trace .hass=${ctx.hass} .entryId=${ctx.entryId} .taskId=${ctx.taskId} .task=${task}
+              .currencySymbol=${ctx.currencySymbol} .taskRef=${ctx.taskRef ?? null} .userName=${ctx.getUserName}></maintenance-task-trace>
           </div>`
         : renderOverviewTab(task, ctx);
     default:

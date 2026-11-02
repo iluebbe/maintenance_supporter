@@ -65,6 +65,8 @@ export interface HistoryEntryContext {
   phaseNames?: Record<string, string>;
   /** #170: the task's reference ("8.3") — completions render "#8.3-<n>". */
   taskRef?: string | null;
+  /** The trigger sensor's unit, after a firing's recorded value. */
+  triggerUnit?: string | null;
 }
 
 export interface HistoryContext extends HistoryEntryContext {
@@ -85,6 +87,9 @@ export interface HistoryEntryOptions {
   showBadges?: boolean;
   /** The pencil on editable entries (default on). */
   showEdit?: boolean;
+  /** The type and date line (default on); the trace's step details sit
+   *  under a line that already says both. */
+  showHead?: boolean;
 }
 
 // Every HistoryEntryType is filterable (drift audit 2026-08: the repair-flow
@@ -194,7 +199,7 @@ function renderHistoryReadings(entry: HistoryEntry, ctx: HistoryEntryContext) {
 
 export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext, opts: HistoryEntryOptions = {}) {
   const L = ctx.lang;
-  const { compact = false, showRef = true, showBadges = true, showEdit = true } = opts;
+  const { compact = false, showRef = true, showBadges = true, showEdit = true, showHead = true } = opts;
   const openEdit = ctx.openEdit;
   const editable = showEdit && !!openEdit && EDITABLE_HISTORY_TYPES.includes(entry.type);
   // #104: the parts this completion used, and whether their value counts
@@ -210,7 +215,7 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext
             <ha-icon .icon=${STATUS_ICONS[entry.type] || "mdi:circle"}></ha-icon>
           </div>`}
       <div class="history-content">
-        <div class="history-row">
+        ${showHead ? html`<div class="history-row">
           <strong>${t(entry.type, L)}</strong>
           ${showRef ? renderRefChip(entryRefOf(ctx, entry), t("ref_number", L)) : nothing}
           ${showBadges && entry.phase_id ? html`<span class="history-phase-badge">${ctx.phaseNames?.[entry.phase_id] || entry.phase_id}</span>` : nothing}
@@ -223,7 +228,7 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext
               </button>`
             : nothing}
         </div>
-        <div class="history-date">${formatDateTime(entry.timestamp, L)}</div>
+        <div class="history-date">${formatDateTime(entry.timestamp, L)}</div>` : nothing}
         ${entry.notes ? html`<div class="history-notes">${historyNoteText(entry.notes, L)}</div>` : nothing}
         ${renderHistoryPhotos(ctx.hass, entry)}
         ${renderHistoryReadings(entry, ctx)}
@@ -240,7 +245,7 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext
                 ? html`<span title=${t(partsCounted ? "history_parts_counted_hint" : "history_parts_info_hint", L)}>${t(partsCounted ? "history_parts_counted" : "history_parts_info", L).replace("{amount}", formatCost(partsCost, ctx.currencySymbol, L))}</span>`
                 : nothing}
               ${entry.duration != null ? html`<span>${t("duration", L)}: ${formatDuration(entry.duration, L)}</span>` : nothing}
-              ${entry.trigger_value != null ? html`<span>${t("trigger_val", L)}: ${entry.trigger_value}</span>` : nothing}
+              ${entry.trigger_value != null ? html`<span>${t("trigger_val", L)}: ${entry.trigger_value}${ctx.triggerUnit ? ` ${ctx.triggerUnit}` : ""}</span>` : nothing}
             </div>`
           : nothing}
       </div>

@@ -16,7 +16,7 @@ import { t, fireMoreInfo, formatDueDays } from "../styles";
 import { fmtNum, fmtVal, px } from "./chart-utils";
 import { dueDaysOf } from "./progress";
 import { stampMs } from "../helpers/ha-time";
-import { primaryTriggerEntity, triggerEntityIds } from "../helpers/trigger-entities";
+import { primaryTriggerEntity, ruleSensors, triggerEntityIds, triggerUnit, type RuleSensor } from "../helpers/trigger-entities";
 import { betaUi } from "../helpers/beta-ui";
 import { conditionText } from "../helpers/task-rules";
 import "../components/trigger-chart";
@@ -240,21 +240,9 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
   `;
 }
 
-/** One sensor of the rule: the entity and the condition it answers. */
-interface RuleSensor {
-  entityId: string;
-  cond: TriggerConfig;
-}
-
-/** The sensors a rule watches, one row each: every entity of a single or
- *  multi-entity rule with the rule's condition, every entity of every
- *  condition of a compound with that condition's. */
-export function ruleSensors(tc: TriggerConfig): RuleSensor[] {
-  if (tc.type === "compound") {
-    return (tc.conditions || []).flatMap((c) => triggerEntityIds(c).map((entityId) => ({ entityId, cond: c })));
-  }
-  return triggerEntityIds(tc).map((entityId) => ({ entityId, cond: tc }));
-}
+// The rule's sensors live with the other trigger readers (the trace asks
+// for them as well); the panel and the tests import them from here.
+export { ruleSensors };
 
 /** Home Assistant's own way into a sensor's past: its history page. */
 function openHistory(ev: Event, entityIds: string[]): void {
@@ -362,8 +350,7 @@ function renderSensorRule(task: MaintenanceTask, ctx: SparklineContext) {
   const L = ctx.lang;
   const sensors = ruleSensors(tc);
   const ids = [...new Set(sensors.map((s) => s.entityId))];
-  const primary = primaryTriggerEntity(tc) || "";
-  const unit = (ctx.hass?.states?.[primary]?.attributes?.unit_of_measurement as string | undefined) ?? task.trigger_entity_info?.unit_of_measurement ?? "";
+  const unit = triggerUnit(ctx.hass, task);
   const spec = progressSpec(task, unit, ctx);
   const many = tc.type === "compound" ? (tc.conditions || []).length : ids.length;
   const all = tc.type === "compound" ? (tc.compound_logic || "AND") === "AND" : tc.entity_logic === "all";

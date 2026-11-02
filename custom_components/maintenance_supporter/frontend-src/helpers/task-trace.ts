@@ -2,12 +2,21 @@
  *  reminders, snoozes, Done-when changes, edits — helpers/task_trace.py)
  *  merged with the task's history and split into due cycles, the way a HA
  *  automation trace is one run. A completion, a skip or a reset ends a
- *  cycle; what came after it is the current one. Pure, unit-tested in
- *  task-trace.test.ts. */
+ *  cycle; what came after it is the current one.
+ *
+ *  What the trace adds to the history, after HA's own traces: each step's
+ *  details when clicked (exact time, what it came to, how long a status
+ *  lasted), the time between steps ("3 days later"), the cycle's result
+ *  (done how long after it was due, reminders, snoozes) and same-shape
+ *  steps in a row folded into one (fifteen trigger firings are one line,
+ *  their values in the details). Pure, unit-tested in task-trace.test.ts. */
 
-import { formatDateTime, formatUnit, t } from "../styles";
+import { countText, formatDate, formatDateTime, formatNumber, formatRecurrence, formatUnit, t } from "../styles";
 import { historyNoteText } from "./history-note";
-import type { HistoryEntry } from "../types";
+import { conditionText } from "./task-rules";
+import { triggerEntityIds } from "./trigger-entities";
+import { URGENT_STATUSES } from "../status-constants";
+import type { HistoryEntry, TriggerConfig } from "../types";
 
 /** One event of the journal, as `maintenance_supporter/task/trace` sends it. */
 export interface TraceEvent {
@@ -20,11 +29,37 @@ export interface TraceEvent {
  *  that did not count (dashed). */
 export type TraceTone = "done" | "status" | "info" | "skipped";
 
+/** One line of a step's details: a label and its value. */
+export interface TraceDetail {
+  label: string;
+  value: string;
+}
+
 export interface TraceItem {
   at: string;
   icon: string;
   text: string;
   tone: TraceTone;
+  /** What a click on the step adds to its line (HA's "step details"). */
+  details: TraceDetail[];
+  /** The step's shape: steps with the same one in a row fold into one. */
+  group: string;
+  /** The text of a folded run, without what differs between its steps
+   *  (a trigger's value); the steps' own texts are in `repeats`. */
+  foldText?: string;
+  /** The history entry behind a history step: the view renders its notes,
+   *  photos, readings and costs the way the history does. */
+  history?: HistoryEntry;
+  /** A folded run, oldest first, this step included. */
+  repeats?: TraceItem[];
+  /** Time since the step before it in the cycle, ms; null for the first. */
+  gapMs?: number | null;
+  /** An edit's values, field → [before, after] (the backend keeps the
+   *  short ones); the view words them with changeDetails. */
+  changes?: Record<string, [unknown, unknown]>;
+  /** Whose sensors the step is about, for the activity around it: the
+   *  sensor rule's or the Done-when entity's. */
+  watch?: "rule" | "done_when";
 }
 
 export interface TraceCycle {
@@ -34,6 +69,19 @@ export interface TraceCycle {
   /** False for the current cycle (no completion, skip or reset yet). */
   closed: boolean;
   items: TraceItem[];
+  /** The history type that closed it (completed, skipped, reset). */
+  endType?: string;
+  /** When the cycle before it ended: where this cycle's interval began. */
+  since?: string;
+  /** Since when the task was due without a break when the cycle ended (or
+   *  is still, for the current one): a firing that was missed and fired
+   *  again counts from the second time. */
+  dueAt?: string;
+}
+
+export interface TraceOptions {
+  /** The trigger sensor's unit, for the values its firings recorded. */
+  triggerUnit?: string;
 }
 
 const STATUS_ICONS: Record<string, string> = {
@@ -57,6 +105,14 @@ const HISTORY_ICONS: Record<string, string> = {
 
 /** The history entries that end a cycle. */
 const CYCLE_ENDS = new Set(["completed", "skipped", "reset"]);
+
+/** The statuses that make a task due (status-constants): the moment it
+ *  entered one is when it was due. */
+const DUE_STATUSES = new Set<string>(URGENT_STATUSES);
+
+/** The note the backend writes on every trigger firing (coordinator); it
+ *  says what the type already says. */
+const TRIGGER_NOTE = "Sensor trigger activated";
 
 const DONE_WHEN_KEYS: Record<string, string> = {
   counted: "beta_trace_dw_counted",
@@ -85,17 +141,36 @@ function statusLabel(status: string, lang: string): string {
   return status ? t(status, lang) : "—";
 }
 
+/** A label without the hint in brackets ("Done when (optional)"). */
+function bare(label: string): string {
+  return label.replace(/\s*[(（][^)）]*[)）]\s*$/, "").trim();
+}
+
+/** A span of time in the largest unit that reads well: minutes under an
+ *  hour, hours under two days, days beyond. */
+export function spanText(ms: number, lang: string): string {
+  const minutes = Math.max(1, Math.round(ms / 60_000));
+  if (minutes < 60) return formatUnit(minutes, "minute", lang);
+  const hours = Math.round(ms / 3_600_000);
+  if (hours < 48) return formatUnit(hours, "hour", lang);
+  return formatUnit(Math.round(ms / 86_400_000), "day", lang);
+}
+
 /** One journal event as a timeline step. */
 export function eventItem(e: TraceEvent, lang: string): TraceItem {
   const L = lang;
   switch (e.kind) {
     case "status": {
+      const from = str(e.from);
       const to = str(e.to);
       return {
         at: e.at,
         icon: STATUS_ICONS[to] ?? "mdi:information-outline",
-        text: `${statusLabel(str(e.from), L)} → ${statusLabel(to, L)}`,
+        text: `${statusLabel(from, L)} → ${statusLabel(to, L)}`,
         tone: "status",
+        details: [],
+        group: `status:${from}>${to}`,
+        watch: from === "triggered" || to === "triggered" ? "rule" : undefined,
       };
     }
     case "reminder": {
@@ -106,34 +181,75 @@ export function eventItem(e: TraceEvent, lang: string): TraceItem {
           icon: "mdi:bell-outline",
           text: fill(t("beta_trace_reminder_lead", L), { interval: Number.isFinite(days) ? formatUnit(days, "day", L) : "—" }),
           tone: "info",
+          details: [],
+          group: `reminder:lead:${str(e.days)}`,
         };
       }
-      return { at: e.at, icon: "mdi:bell-ring-outline", text: fill(t("beta_trace_reminder", L), { status: statusLabel(str(e.status), L) }), tone: "info" };
+      const bundled = e.reminder === "bundle";
+      return {
+        at: e.at,
+        icon: "mdi:bell-ring-outline",
+        text: fill(t("beta_trace_reminder", L), { status: statusLabel(str(e.status), L) }),
+        tone: "info",
+        details: bundled ? [{ label: t("beta_trace_message", L), value: t("beta_trace_bundle", L) }] : [],
+        group: `reminder:${str(e.reminder)}:${str(e.status)}`,
+      };
     }
     case "reminder_cleared":
-      return { at: e.at, icon: "mdi:bell-off-outline", text: t(CLEARED_KEYS[str(e.reason)] ?? "beta_trace_cleared_done", L), tone: "info" };
-    case "snoozed":
-      return { at: e.at, icon: "mdi:alarm-snooze", text: fill(t("beta_trace_snoozed", L), { time: formatDateTime(str(e.until), L) }), tone: "info" };
+      return {
+        at: e.at,
+        icon: "mdi:bell-off-outline",
+        text: t(CLEARED_KEYS[str(e.reason)] ?? "beta_trace_cleared_done", L),
+        tone: "info",
+        details: [],
+        group: `cleared:${str(e.reason)}`,
+      };
+    case "snoozed": {
+      const hours = Number(e.hours);
+      return {
+        at: e.at,
+        icon: "mdi:alarm-snooze",
+        text: fill(t("beta_trace_snoozed", L), { time: formatDateTime(str(e.until), L) }),
+        tone: "info",
+        details: Number.isFinite(hours) && hours > 0 ? [{ label: t("duration", L), value: formatUnit(hours, "hour", L) }] : [],
+        group: `snoozed:${str(e.until)}`,
+      };
+    }
     case "done_when": {
       const result = str(e.result);
       const minutes = Number(e.minutes);
+      const entity = str(e.entity) || "—";
+      const state = str(e.state) || "—";
+      const details: TraceDetail[] = [{ label: bare(t("complete_when", L)), value: `${entity} → ${state}` }];
+      if (result === "not_due" && str(e.status)) details.push({ label: t("report_col_status", L), value: statusLabel(str(e.status), L) });
       return {
         at: e.at,
         icon: result === "counted" ? "mdi:check-circle-outline" : result === "waiting" ? "mdi:timer-sand" : "mdi:cancel",
         text: fill(t(DONE_WHEN_KEYS[result] ?? "beta_trace_dw_not_due", L), {
-          entity: str(e.entity) || "—",
-          state: str(e.state) || "—",
+          entity,
+          state,
           duration: Number.isFinite(minutes) && minutes > 0 ? formatUnit(minutes, "minute", L) : "—",
         }),
         tone: result === "counted" ? "done" : result === "waiting" ? "info" : "skipped",
+        details,
+        group: `done_when:${result}:${entity}:${state}`,
+        watch: "done_when",
       };
     }
     case "edited": {
       const fields = Array.isArray(e.fields) ? e.fields.map(str).filter(Boolean) : [];
-      return { at: e.at, icon: "mdi:pencil-outline", text: fill(t("beta_trace_edited", L), { fields: editedFieldsText(fields, L) || "—" }), tone: "info" };
+      const text = fill(t("beta_trace_edited", L), { fields: editedFieldsText(fields, L) || "—" });
+      const changes: Record<string, [unknown, unknown]> = {};
+      if (isRecord(e.changes)) {
+        for (const [field, pair] of Object.entries(e.changes)) {
+          if (Array.isArray(pair) && pair.length === 2) changes[field] = [pair[0], pair[1]];
+        }
+      }
+      // Two edits never fold: each has its own values.
+      return { at: e.at, icon: "mdi:pencil-outline", text, tone: "info", details: [], group: `edited:${e.at}`, changes };
     }
     default:
-      return { at: e.at, icon: "mdi:information-outline", text: e.kind, tone: "info" };
+      return { at: e.at, icon: "mdi:information-outline", text: e.kind, tone: "info", details: [], group: `kind:${e.kind}` };
   }
 }
 
@@ -194,26 +310,189 @@ export function editedFieldsText(fields: string[], lang: string): string {
       other = true;
       continue;
     }
-    const label = t(key, lang).replace(/\s*[(（][^)）]*[)）]\s*$/, "").trim();
+    const label = bare(t(key, lang));
     if (label && !labels.includes(label)) labels.push(label);
   }
   if (other) labels.push(t("beta_trace_edited_other", lang));
   return labels.join(", ");
 }
 
+/** What words an edit's values need from the view, looked up when the
+ *  details are drawn (the members load after the trace). */
+export interface ChangeContext {
+  lang: string;
+  entityName: (entityId: string) => string;
+  userName: (userId: string) => string | null;
+  /** The trigger sensor's unit, for a rule's values. */
+  unit?: string;
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return !!v && typeof v === "object" && !Array.isArray(v);
+}
+
+const ENTITY_ID = /^[a-z_]+\.[a-z0-9_]+$/;
+
+function clip(text: string, max: number): string {
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
+
+/** A sensor rule in a few words: its sensors and their condition, or how
+ *  many conditions a compound has. */
+function ruleText(rule: TriggerConfig, ctx: ChangeContext): string {
+  const L = ctx.lang;
+  if (rule.type === "compound") {
+    const n = String((rule.conditions || []).length);
+    return t((rule.compound_logic || "AND") === "AND" ? "beta_rules_all_of" : "beta_rules_any_of", L).split("{n}").join(n);
+  }
+  const who = triggerEntityIds(rule).map(ctx.entityName).join(", ");
+  const what = conditionText(rule, ctx.unit, L);
+  return who ? `${who}: ${what}` : what;
+}
+
+/** One stored value of a task field the way the dialog would say it: a
+ *  schedule as its recurrence, a rule as its sentence, people and entities
+ *  by name, days with their unit; "—" for none. */
+export function changeValue(field: string, v: unknown, ctx: ChangeContext): string {
+  const L = ctx.lang;
+  if (v === null || v === undefined || v === "" || (Array.isArray(v) && !v.length)) return "—";
+  switch (field) {
+    case "schedule":
+      return isRecord(v) ? formatRecurrence({ schedule: v } as Parameters<typeof formatRecurrence>[0], L) : "—";
+    case "trigger_config":
+      return isRecord(v) ? ruleText(v as unknown as TriggerConfig, ctx) : "—";
+    case "complete_when":
+      return isRecord(v) && typeof v.entity_id === "string" ? `${ctx.entityName(v.entity_id)} → ${str(v.to_state) || "—"}` : "—";
+    case "interval_days":
+    case "warning_days":
+    case "earliest_completion_days":
+      return typeof v === "number" ? formatUnit(v, "day", L) : str(v);
+    case "responsible_user_id":
+      return typeof v === "string" ? ctx.userName(v) ?? v : "—";
+    case "assignee_pool":
+      return Array.isArray(v) ? v.map((id) => (typeof id === "string" ? ctx.userName(id) ?? id : str(id))).join(", ") : "—";
+    case "due_date":
+    case "due_override":
+    case "last_performed":
+      return typeof v === "string" ? formatDate(v, L) : "—";
+    case "priority":
+      return t(`priority_${str(v)}`, L);
+    case "type":
+      return t(str(v), L);
+  }
+  if (typeof v === "boolean") return v ? "✓" : "✗";
+  if (typeof v === "number") return formatNumber(v, L);
+  if (typeof v === "string") return ENTITY_ID.test(v) ? ctx.entityName(v) : clip(v, 60);
+  if (Array.isArray(v) && v.every((x) => x === null || typeof x !== "object")) {
+    return clip(v.map((x) => (typeof x === "string" && ENTITY_ID.test(x) ? ctx.entityName(x) : str(x))).join(", "), 80);
+  }
+  return "…";
+}
+
+/** An edit's values as detail lines, "Schedule: Every 30 days → Every 60
+ *  days", labelled as the dialog labels the field; a field without a label
+ *  of its own stays "other settings" in the step's line and gets none. */
+export function changeDetails(changes: Record<string, [unknown, unknown]> | undefined, ctx: ChangeContext): TraceDetail[] {
+  if (!changes) return [];
+  const rows: TraceDetail[] = [];
+  for (const [field, [before, after]] of Object.entries(changes)) {
+    const key = FIELD_LABELS[field];
+    if (!key) continue;
+    rows.push({ label: bare(t(key, ctx.lang)), value: `${changeValue(field, before, ctx)} → ${changeValue(field, after, ctx)}` });
+  }
+  return rows;
+}
+
+/** One recorded state of a watched sensor around a step. */
+export interface ActivityRow {
+  at: number;
+  entityId: string;
+  state: string;
+}
+
+/** A recorded state as `history/history_during_period` sends it (the
+ *  compressed form: `s`, `lu`/`lc` in seconds; the long one as fallback). */
+interface RecordedState {
+  s?: string;
+  lu?: number;
+  lc?: number;
+  state?: string;
+  last_updated?: string;
+  last_changed?: string;
+}
+
+/** The states the recorder kept around a step: every watched sensor's,
+ *  merged, the `limit` closest to the step, in time order. */
+export function activityRows(res: Record<string, RecordedState[] | undefined> | null | undefined, atMs: number, limit = 20): ActivityRow[] {
+  const rows: ActivityRow[] = [];
+  for (const [entityId, states] of Object.entries(res ?? {})) {
+    for (const st of states ?? []) {
+      const seconds = st.lu ?? st.lc;
+      const at = typeof seconds === "number" ? seconds * 1000 : Date.parse(st.last_updated ?? st.last_changed ?? "");
+      const state = st.s ?? st.state;
+      if (Number.isFinite(at) && typeof state === "string") rows.push({ at, entityId, state });
+    }
+  }
+  return rows
+    .sort((a, b) => Math.abs(a.at - atMs) - Math.abs(b.at - atMs))
+    .slice(0, limit)
+    .sort((a, b) => a.at - b.at);
+}
+
+/** Who did a completion (and on which device), for its details; the view
+ *  asks when it draws them, the members load after the trace. */
+export function completedByDetail(h: HistoryEntry, userName: (userId: string) => string | null, lang: string): TraceDetail | null {
+  const by = h.completed_by ? userName(h.completed_by) : null;
+  if (!by) return null;
+  const via = h.completed_via ? userName(h.completed_via) : null;
+  return { label: t("completed_by", lang), value: via ? fill(t("completed_via", lang), { person: by, device: via }) : by };
+}
+
+/** What a history entry adds that its row in the history does not show:
+ *  the checklist and the "was it needed" answer (who did it: see
+ *  completedByDetail). Notes, photos, readings, costs and the trigger value
+ *  come with the history's own renderer (renderHistoryEntry). */
+function historyDetails(h: HistoryEntry, lang: string): TraceDetail[] {
+  const L = lang;
+  const details: TraceDetail[] = [];
+  const checklist = h.checklist_state && typeof h.checklist_state === "object" ? Object.values(h.checklist_state) : [];
+  if (checklist.length) details.push({ label: t("checklist", L), value: `${checklist.filter(Boolean).length}/${checklist.length}` });
+  if (h.feedback) details.push({ label: t("was_maintenance_needed", L), value: t(`feedback_${h.feedback}`, L) });
+  return details;
+}
+
 /** One history entry as a timeline step. A note the backend wrote itself
- *  ("Sensor trigger activated") in the reader's language, as the history
- *  shows it; the trace showed it in English in every language. */
-export function historyItem(h: HistoryEntry, lang: string): TraceItem {
+ *  ("Auto-completed: …") in the reader's language, as the history shows it;
+ *  the trace showed it in English in every language. A trigger firing says
+ *  the value it fired at instead of the note it always carries. */
+export function historyItem(h: HistoryEntry, lang: string, opts: TraceOptions = {}): TraceItem {
   const type = str(h.type);
-  const notes = historyNoteText(str(h.notes), lang).trim();
+  const rawNote = str(h.notes).trim();
+  const ownNote = type === "triggered" && rawNote === TRIGGER_NOTE;
+  const notes = ownNote ? "" : historyNoteText(rawNote, lang).trim();
   const short = notes.length > 80 ? `${notes.slice(0, 79)}…` : notes;
+  const base = short ? `${t(type, lang)} · ${short}` : t(type, lang);
+  const value = type === "triggered" && typeof h.trigger_value === "number" && Number.isFinite(h.trigger_value)
+    ? `${formatNumber(h.trigger_value, lang, { maximumFractionDigits: 3 })}${opts.triggerUnit ? ` ${opts.triggerUnit}` : ""}`
+    : "";
   return {
     at: str(h.timestamp),
     icon: HISTORY_ICONS[type] ?? "mdi:history",
-    text: short ? `${t(type, lang)} · ${short}` : t(type, lang),
+    text: value ? `${base} · ${t("trigger_val", lang)}: ${value}` : base,
     tone: CYCLE_ENDS.has(type) ? "done" : type === "triggered" ? "status" : "info",
+    details: historyDetails(h, lang),
+    // Firings and misses fold (same note); one completion is never another.
+    group: type === "triggered" || type === "missed" ? `history:${type}:${rawNote}` : `history:${type}:${str(h.timestamp)}`,
+    foldText: base,
+    history: h,
+    watch: type === "triggered" ? "rule" : undefined,
   };
+}
+
+/** The history entry as a step's details show it: without the note every
+ *  trigger firing carries (the step's line already says it fired). */
+export function detailEntry(h: HistoryEntry): HistoryEntry {
+  return str(h.type) === "triggered" && str(h.notes).trim() === TRIGGER_NOTE ? { ...h, notes: null } : h;
 }
 
 function instant(at: string): number {
@@ -226,26 +505,62 @@ function instant(at: string): number {
 const AFTERMATH_KINDS = new Set(["status", "reminder_cleared"]);
 const AFTERMATH_MS = 60_000;
 
+/** Same-shape steps in a row as one step, and each step's distance to the
+ *  one before it (from the last of a folded run). */
+function fold(items: TraceItem[]): TraceItem[] {
+  const out: TraceItem[] = [];
+  for (const item of items) {
+    const prev = out[out.length - 1];
+    if (prev && prev.group === item.group) {
+      // The run's first step as it was, beside the ones that followed it.
+      if (!prev.repeats) prev.repeats = [{ ...prev }];
+      prev.repeats.push(item);
+      continue;
+    }
+    out.push(item);
+  }
+  let lastAt: string | null = null;
+  for (const item of out) {
+    item.gapMs = lastAt === null ? null : instant(item.at) - instant(lastAt);
+    lastAt = item.repeats ? item.repeats[item.repeats.length - 1].at : item.at;
+  }
+  return out;
+}
+
 /** Journal and history merged in time order and split into cycles, oldest
  *  first. A completion, skip or reset ends its cycle; the steps after the
  *  last one are the current cycle (left out while it has none). */
-export function buildCycles(events: TraceEvent[], history: HistoryEntry[], lang: string): TraceCycle[] {
-  const steps: Array<{ item: TraceItem; ends: boolean; kind: string; order: number }> = [];
+export function buildCycles(events: TraceEvent[], history: HistoryEntry[], lang: string, opts: TraceOptions = {}): TraceCycle[] {
+  const steps: Array<{ item: TraceItem; ends: boolean; kind: string; order: number; type: string }> = [];
   let order = 0;
   for (const e of events) {
     if (!e || typeof e.at !== "string" || typeof e.kind !== "string") continue;
-    steps.push({ item: eventItem(e, lang), ends: false, kind: e.kind, order: order++ });
+    steps.push({ item: eventItem(e, lang), ends: false, kind: e.kind, order: order++, type: "" });
   }
   for (const h of history) {
     if (!h || typeof h.timestamp !== "string") continue;
-    steps.push({ item: historyItem(h, lang), ends: CYCLE_ENDS.has(str(h.type)), kind: `history:${str(h.type)}`, order: order++ });
+    const type = str(h.type);
+    steps.push({ item: historyItem(h, lang, opts), ends: CYCLE_ENDS.has(type), kind: `history:${type}`, order: order++, type });
   }
   // Same instant: the journal first (the door that counted, then the
   // completion it made), else in arrival order.
   steps.sort((a, b) => instant(a.item.at) - instant(b.item.at) || a.order - b.order);
+  // How long each status lasted: until the next status change.
+  let lastStatus: TraceItem | null = null;
+  for (const s of steps) {
+    if (s.kind !== "status") continue;
+    if (lastStatus) lastStatus.details.push({ label: t("duration", lang), value: spanText(instant(s.item.at) - instant(lastStatus.at), lang) });
+    lastStatus = s.item;
+  }
   const cycles: TraceCycle[] = [];
   let current: TraceItem[] = [];
+  let dueSince: string | undefined;
   for (const s of steps) {
+    if (s.kind === "status") {
+      const to = s.item.group.slice(s.item.group.indexOf(">") + 1);
+      if (!DUE_STATUSES.has(to)) dueSince = undefined;
+      else dueSince ??= s.item.at;
+    }
     const last = cycles[cycles.length - 1];
     if (
       !current.length && last && AFTERMATH_KINDS.has(s.kind)
@@ -256,10 +571,52 @@ export function buildCycles(events: TraceEvent[], history: HistoryEntry[], lang:
     }
     current.push(s.item);
     if (s.ends) {
-      cycles.push({ start: current[0].at, end: s.item.at, closed: true, items: current });
+      cycles.push({ start: current[0].at, end: s.item.at, closed: true, items: current, endType: s.type, since: last?.end, dueAt: dueSince });
       current = [];
     }
   }
-  if (current.length) cycles.push({ start: current[0].at, end: current[current.length - 1].at, closed: false, items: current });
+  if (current.length) {
+    cycles.push({ start: current[0].at, end: current[current.length - 1].at, closed: false, items: current, since: cycles[cycles.length - 1]?.end, dueAt: dueSince });
+  }
+  for (const c of cycles) c.items = fold(c.items);
   return cycles;
+}
+
+/** The status steps of a cycle (folded runs unfolded), oldest first. */
+function statusSteps(cycle: TraceCycle): Array<{ at: string; group: string }> {
+  return cycle.items.flatMap((i) => i.repeats ?? [i]).filter((i) => i.group.startsWith("status:"));
+}
+
+function count(cycle: TraceCycle, prefix: string): number {
+  return cycle.items.flatMap((i) => i.repeats ?? [i]).filter((i) => i.group.startsWith(prefix)).length;
+}
+
+/** The cycle's result, the way a HA trace ends ("Finished at …"): how it
+ *  ended or that it still runs, then what only the trace knows: how long
+ *  after it was due it was done, how long it has been due, the reminders
+ *  and snoozes it took, the interval since the cycle before. */
+export function cycleResult(cycle: TraceCycle, lang: string, nowMs: number = Date.now()): { text: string; icon: string; tone: TraceTone; facts: string[] } {
+  const L = lang;
+  const statuses = statusSteps(cycle);
+  const toOf = (g: string) => g.slice(g.indexOf(">") + 1);
+  const dueAt = cycle.dueAt;
+  const facts: string[] = [];
+  if (cycle.closed) {
+    if (cycle.endType === "completed") {
+      // Within a minute (a Done-when rule, a firing done at once) says nothing.
+      const late = dueAt ? instant(cycle.end) - instant(dueAt) : 0;
+      if (dueAt && late >= 60_000) facts.push(fill(t("beta_trace_after_due", L), { span: spanText(late, L) }));
+      else if (statuses.some((s) => toOf(s.group) === "due_soon")) facts.push(t("beta_trace_before_due", L));
+    }
+    if (cycle.since) facts.push(fill(t("beta_trace_cycle_length", L), { span: spanText(instant(cycle.end) - instant(cycle.since), L) }));
+  } else if (dueAt) {
+    facts.push(fill(t("beta_trace_due_for", L), { span: spanText(nowMs - instant(dueAt), L) }));
+  }
+  const reminders = count(cycle, "reminder:");
+  if (reminders) facts.push(countText("beta_trace_reminders", "beta_trace_reminders_one", reminders, L));
+  const snoozes = count(cycle, "snoozed:");
+  if (snoozes) facts.push(countText("beta_trace_snoozes", "beta_trace_snoozes_one", snoozes, L));
+  if (!cycle.closed) return { text: t("beta_trace_running", L), icon: "mdi:progress-clock", tone: "info", facts };
+  const type = cycle.endType ?? "completed";
+  return { text: `${t(type, L)} · ${formatDateTime(cycle.end, L)}`, icon: HISTORY_ICONS[type] ?? "mdi:check-circle", tone: "done", facts };
 }

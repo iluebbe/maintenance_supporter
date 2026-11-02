@@ -21,6 +21,8 @@ await fetch(`${REST}/api/states/${SENSOR}`, { method: "POST", headers: H, body: 
 const b = await chromium.connect(PW_WS, { timeout: 20000 });
 try {
   const ctx = await b.newContext({ viewport: { width: 1600, height: 1000 }, colorScheme: "dark" });
+  // F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+  await ctx.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
   await ctx.addInitScript(({ t, ha }) => {
     localStorage.setItem("hassTokens", JSON.stringify({ access_token: t, token_type: "Bearer", expires_in: 1800, hassUrl: ha, clientId: ha + "/", expires: Date.now() + 9e11, refresh_token: "" }));
     localStorage.setItem("msp-overview-tab", '"dashboard"');
@@ -51,6 +53,12 @@ try {
     dlg._triggerType = "threshold";
     dlg._triggerBelow = "3";
     dlg._triggerEquals = "360";
+    // The new look (2.116): past the start screen, the sensor rule's fields
+    // open in the sidebar.
+    if (dlg._betaStep !== undefined && window.__msBetaUi) {
+      dlg._betaStep = "form";
+      dlg._ruleSel = "trigger";
+    }
     await dlg._fetchEntityAttributes?.("sensor.filter_days_left");
     await dlg.updateComplete;
     await wait(1200);
@@ -62,6 +70,8 @@ try {
     return { hint: /42/.test(text) && /below 3|falls below/i.test(text), below: dlg._triggerBelow, equals: dlg._triggerEquals };
   }, PANEL);
   console.log("filled:", JSON.stringify(filled));
+  // A dialog that never got to the limits (the start screen) is no picture of them.
+  if (!filled.hint) throw new Error("the limits and their hint did not render");
   await p.screenshot({ path: OUT + "threshold-multi-limit.png" });
   console.log("SHOT threshold-multi-limit.png");
   await p.evaluate(async (src) => { const panel = eval(src); const dlg = panel.shadowRoot.querySelector("maintenance-task-dialog"); if (dlg) dlg._open = false; }, PANEL).catch(() => {});

@@ -16,6 +16,7 @@ import { createMockHass } from "./_test-utils.js";
 import { formatDate, setProfilePrefs } from "../styles";
 import { addDaysIso, haToday } from "../helpers/ha-time";
 import { setViewport } from "@web/test-runner-commands";
+import { setBetaUi } from "../helpers/beta-ui";
 
 const LOW = {
   entity_id: "sensor.lock_battery_plus", device_name: "Front Lock",
@@ -344,6 +345,27 @@ it("shows the predicted replacement date where a forecast exists (#114)", async 
     await el.updateComplete;
     names = [...roster(el)!.querySelectorAll(".bf-dev")].map((n) => n.textContent?.trim());
     expect(names).to.deep.equal(["Front Lock", "Robot Vacuum"], "clicking again clears the filter");
+  });
+
+  it("the new look: a type chip unfolds Home Assistant's expansion panel as well", async () => {
+    if (!customElements.get("ha-expansion-panel")) {
+      customElements.define("ha-expansion-panel", class extends HTMLElement { expanded = false; });
+    }
+    localStorage.setItem("msp-bf-roster-open", "0");
+    setBetaUi(true);
+    try {
+      const { el } = await mount();
+      const panel = el.shadowRoot!.querySelector<HTMLElement & { expanded: boolean }>("ha-expansion-panel.bf-roster");
+      expect(panel !== null, "the roster is HA's panel").to.equal(true);
+      expect(panel!.expanded, "remembered as folded").to.equal(false);
+      el.shadowRoot!.querySelector<HTMLButtonElement>("button.bf-type-chip")!.click();
+      await el.updateComplete;
+      expect(panel!.expanded, "filtering unfolds it").to.equal(true);
+      expect(localStorage.getItem("msp-bf-roster-open")).to.equal("1");
+    } finally {
+      setBetaUi(false);
+      localStorage.removeItem("msp-bf-roster-open");
+    }
   });
 
   it("renders a level bar colored by charge", async () => {

@@ -846,11 +846,12 @@ least one battery device is present and the fleet isn't set up yet.
 ### Saved filter views
 Name a combination of the panel task-list filters — status, responsible user,
 **label**, **priority** (#134), archived, plus sort and group-by — and reapply
-the whole set in one tap from the toolbar (e.g. *"Kitchen overdue"*,
+the whole set in one tap from the *Views* section of the filter pane (the
+classic look: the toolbar's dropdown) (e.g. *"Kitchen overdue"*,
 *"Unassigned this week"*, *"High priority"*). Views are **shared** across
 everyone who opens the panel and persist across restarts; save the current
 filters or manage/delete existing views from the same dialog. Hand-editing any
-filter clears the active-view selection, so the dropdown never lies. A view can
+filter clears the active-view selection, so the view list never lies. A view can
 also **route notifications**: pick it under Settings → Notifications → *"Notify
 only for view"* and reminders fire only for tasks matching its
 label/user/priority filters (display-only dimensions are ignored) — a *"High
@@ -859,7 +860,7 @@ digest automation covers the rest. And the **Lovelace card** can be scoped to a
 view (`view_id` option / editor dropdown): the view's status/user/label/priority
 filters apply on top of the card's own config.
 
-![A saved view applied from the toolbar](images/saved-view.png)
+![A saved view applied from the filter pane: Anna's tasks, with Anna ticked under User](images/saved-view.png)
 
 ### QR Codes
 Per-task QR pair: *view* opens the task, *complete* records the completion.

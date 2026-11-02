@@ -87,6 +87,8 @@ function initScript(tab) {
 
 // ── Mobile first (fresh connection = reliable second context) ──────────────
 const mctx = await b.newContext({ viewport: { width: 400, height: 860 }, colorScheme: "dark", isMobile: true, hasTouch: true });
+// F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+await mctx.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
 await mctx.addInitScript(...initScript("today"));
 const mp = await mctx.newPage();
 
@@ -112,6 +114,8 @@ await mctx.close();
 
 // ── Desktop fixes ───────────────────────────────────────────────────────────
 const ctx = await b.newContext({ viewport: { width: 1600, height: 1000 }, colorScheme: "dark" });
+// F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+await ctx.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
 await ctx.addInitScript(...initScript("dashboard"));
 const p = await ctx.newPage();
 await p.goto(HA + "/maintenance-supporter", { waitUntil: "domcontentloaded" });

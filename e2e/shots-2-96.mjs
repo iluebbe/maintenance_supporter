@@ -21,6 +21,8 @@ const DEEP = `const deep = (pred) => { const st=[document.documentElement]; cons
 const token = await haLogin(REST, { user: "demo", pass: "demo-pass-1", cid: HA + "/" });
 const b = await chromium.connect(PW_WS, { timeout: 20000 });
 const ctx = await b.newContext({ viewport: { width: 1600, height: 1000 }, colorScheme: "dark" });
+// F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+await ctx.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
 await ctx.addInitScript(({ t, ha }) => {
   localStorage.setItem("hassTokens", JSON.stringify({
     access_token: t, token_type: "Bearer", expires_in: 1800,
@@ -93,13 +95,19 @@ await shoot("saved-view.png", async ({ d }) => {
   const panel = window.__panel;
   const view = (panel._savedViews || []).find((v) => v.name === "Anna's tasks");
   if (view) panel._applyView(view.id);
+  // The new look (2.116) shows views and filters in the pane beside the list.
+  if (window.__msBetaUi && !panel._filterPaneOpen) panel._toggleFilterPane();
   await panel.updateComplete;
 }, { verify: ({ d }) => {
   eval(d);
   const panel = window.__panel;
-  // The person select must name the view's person, not stay blank.
+  if (!panel._activeViewId) return false;
+  // New look: the view and its person ticked in the filter pane.
+  const on = [...panel.shadowRoot.querySelectorAll(".ms-filter-pane .ms-pane-option.on .ms-pane-option-label")].map((x) => x.textContent.trim());
+  if (on.length) return on.includes("Anna's tasks") && on.includes("Anna");
+  // Classic: the person select must name the view's person, not stay blank.
   const sel = [...panel.shadowRoot.querySelectorAll("select")].find((s) => s.querySelector('option[value="current_user"]'));
-  return !!panel._activeViewId && sel?.selectedOptions[0]?.textContent.trim() === "Anna";
+  return sel?.selectedOptions[0]?.textContent.trim() === "Anna";
 } });
 
 await shoot("vacation-settings.png", async ({ d }) => {

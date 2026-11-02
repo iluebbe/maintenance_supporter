@@ -22,6 +22,8 @@ const DEEP = `const deep = (pred) => { const st=[document.documentElement]; cons
 const token = await haLogin(REST, { user: "demo", pass: "demo-pass-1", cid: HA + "/" });
 const b = await chromium.connect(PW_WS, { timeout: 20000 });
 const ctx = await b.newContext({ viewport: { width: 1600, height: 1000 }, colorScheme: "dark" });
+// F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+await ctx.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
 await ctx.addInitScript(({ t, ha }) => {
   localStorage.setItem("hassTokens", JSON.stringify({
     access_token: t, token_type: "Bearer", expires_in: 1800,
@@ -128,16 +130,16 @@ await shoot("bulk-edit.png", async ({ d }) => {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const panel = window.__panel;
   const root = panel.shadowRoot;
-  root.querySelector(".bulk-toggle").click();
+  // The panel's own toggle: the classic button and the new look's toolbar chip call it.
+  panel._toggleBulkMode();
   await panel.updateComplete;
   await sleep(300);
   for (const box of [...root.querySelectorAll("label.cell.bulk-check input")].slice(0, 3)) {
     box.click();
     await panel.updateComplete;
   }
-  root.querySelector(".bulk-more").click();
-  await panel.updateComplete;
-  root.querySelector(".popup-menu-item.bulk-edit").click();
+  // Select mode's ⋮ › Edit… (a popup menu, or HA's dropdown in the new look).
+  void panel._bulkEdit("edit", panel._rowsFiltered(true));
   let dlg = null;
   for (let i = 0; i < 20 && !dlg?.shadowRoot?.querySelector("input.set-priority"); i++) {
     await sleep(250);

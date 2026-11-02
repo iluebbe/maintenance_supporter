@@ -194,8 +194,9 @@ describe("date/time formatting has a single source (#163 tripwire)", () => {
 
   it("B'. styles.ts itself still owns the formatting (guards against the rule going stale)", () => {
     const src = manifest[AUTHORITY];
-    expect(src).to.match(/\.toLocaleDateString\s*\(/);
-    expect(src).to.match(/\.toLocaleTimeString\s*\(/);
+    // Its formatters are built here, once per locale and options (perf
+    // 2026-11-02: a chart built thousands per render).
+    expect(src).to.match(/\bIntl\.DateTimeFormat\s*\(/);
     expect(src).to.match(/\bIntl\.NumberFormat\s*\(/);
     for (const name of ["formatDate", "formatDateTime", "formatDateShort", "formatTimeOfDay", "formatWeekday", "formatMonth", "weekdayName", "monthName", "formatNumber", "formatCost"]) {
       expect(src, `styles.ts exports ${name}`).to.match(new RegExp(`export function ${name}\\(`));

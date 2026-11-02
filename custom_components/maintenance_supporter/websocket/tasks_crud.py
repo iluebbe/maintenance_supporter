@@ -70,6 +70,7 @@ from ..helpers.schedule import (
     KIND_INTERVAL,
     Schedule,
     keep_month_filter,
+    normalize_task_storage,
 )
 from ..helpers.shared_parts import foreign_part_resolver
 from ..helpers.task_fields import (
@@ -83,7 +84,7 @@ from ..helpers.task_fields import (
 )
 from ..helpers.task_origin import ORIGIN_KEY
 from ..helpers.task_persist import TaskMoveRefused, async_delete_task, async_move_task, async_persist_task
-from ..helpers.task_trace import KIND_EDITED
+from ..helpers.task_trace import KIND_EDITED, changed_values
 from ..helpers.task_trace import record as record_trace
 from ..helpers.todo_mirror import mirror_todo_error
 from ..helpers.url_safety import is_safe_url
@@ -898,10 +899,14 @@ async def ws_update_task(
                 store_tc.clear_trigger_runtime(task_id)
                 store_tc.async_delay_save()
 
-    # The task trace notes which settings changed (beta editor only).
-    changed = sorted(k for k in {*task, *stored_task} if not k.startswith("_") and task.get(k) != stored_task.get(k))
+    # The task trace notes which settings changed, and from what to what
+    # where the values are short (the new look only). Both sides as they are
+    # stored: the dialog sends the interval flat and a missing rule as null,
+    # the store keeps the nested schedule and no rule.
+    before, after = normalize_task_storage(stored_task), normalize_task_storage(task)
+    changed = sorted(k for k in {*after, *before} if not k.startswith("_") and after.get(k) != before.get(k))[:20]
     if changed:
-        record_trace(hass, entry.entry_id, task_id, KIND_EDITED, fields=changed[:20])
+        record_trace(hass, entry.entry_id, task_id, KIND_EDITED, fields=changed, changes=changed_values(before, after, changed))
 
     # Patch only this task's key onto a fresh read (normalized) — never write
     # back a whole-map snapshot taken before the store awaits above.

@@ -69,6 +69,8 @@ try {
 
 const b = await chromium.connect(PW_WS, { timeout: 20000 });
 const ctx = await b.newContext({ viewport: { width: 1600, height: 1000 }, colorScheme: "dark" });
+// F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+await ctx.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
 await ctx.addInitScript(({ t, ha }) => {
   localStorage.setItem("hassTokens", JSON.stringify({
     access_token: t, token_type: "Bearer", expires_in: 1800,
@@ -162,16 +164,19 @@ try {
     panel._view = "overview";
     if (panel._setOverviewTab) panel._setOverviewTab("dashboard");
     panel._filterPlace = zone;
+    // The new look (2.116) shows the place filter in the pane beside the list.
+    if (window.__msBetaUi && !panel._filterPaneOpen) panel._toggleFilterPane();
   }, {
     height: 620,
     verify: ({ d, zone }) => {
       eval(d);
       const sr = window.__panel.shadowRoot;
       const option = sr.querySelector(`option[value="${zone}"]`);
+      const paneOn = [...sr.querySelectorAll(".ms-filter-pane .ms-pane-option.on .ms-pane-option-label")].some((x) => /allotment/i.test(x.textContent));
       const rows = [...sr.querySelectorAll("*")]
         .filter((el) => el.className && String(el.className).includes("task-name"))
         .map((el) => el.textContent.trim());
-      return !!option && option.selected && rows.length === 3 && rows.every((r) => /gate|barrel|roof/i.test(r));
+      return ((!!option && option.selected) || paneOn) && rows.length === 3 && rows.every((r) => /gate|barrel|roof/i.test(r));
     },
   });
 } finally {

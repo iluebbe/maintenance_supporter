@@ -25,6 +25,8 @@ log("seeded problem sensors");
 
 const b = await chromium.connect(PW_WS, { timeout: 20000 });
 const ctx = await b.newContext({ viewport: { width: 1600, height: 1000 }, colorScheme: "dark" });
+// F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+await ctx.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
 await ctx.addInitScript(() => {
   localStorage.setItem("selectedTheme", JSON.stringify({ dark: true }));
 });

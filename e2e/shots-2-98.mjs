@@ -34,6 +34,8 @@ const tokensInit = ({ t, ha }) => {
   localStorage.setItem("msp-overview-tab", '"dashboard"');
 };
 const ctx = await b.newContext({ viewport: { width: 1600, height: 1000 }, colorScheme: "dark" });
+// F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+await ctx.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
 await ctx.addInitScript(tokensInit, { t: token, ha: HA });
 const p = await ctx.newPage();
 const failures = [];
@@ -93,12 +95,38 @@ if (want("undo-toast.png")) {
       }
       const buttons = [...dlg.shadowRoot.querySelectorAll(".dialog-actions ha-button")];
       buttons[buttons.length - 1].click();
-      for (let i = 0; i < 24 && !panel.shadowRoot.querySelector(".toast-undo"); i++) await sleep(250);
+      // Ours (classic) or Home Assistant's toast (the new look, 2.116).
+      const haToast = () => {
+        const walk = (root) => {
+          for (const el of root.querySelectorAll("*")) {
+            if (el.localName === "ha-toast" && el.labelText && el.shadowRoot?.querySelector(".toast.visible")) return el;
+            const inner = el.shadowRoot && walk(el.shadowRoot);
+            if (inner) return inner;
+          }
+          return null;
+        };
+        return walk(document);
+      };
+      for (let i = 0; i < 24 && !panel.shadowRoot.querySelector(".toast-undo") && !haToast(); i++) await sleep(250);
       return pick;
     }, { d: DEEP });
     if (!target) throw new Error("no task to complete");
     await p.waitForTimeout(700);
-    const toast = await p.evaluate(({ d }) => { eval(d); const t = window.__panel.shadowRoot.querySelector(".toast"); return t ? t.textContent.replace(/\s+/g, " ").trim() : ""; }, { d: DEEP });
+    const toast = await p.evaluate(({ d }) => {
+      eval(d);
+      const ours = window.__panel.shadowRoot.querySelector(".toast");
+      if (ours) return ours.textContent.replace(/\s+/g, " ").trim();
+      const walk = (root) => {
+        for (const el of root.querySelectorAll("*")) {
+          if (el.localName === "ha-toast" && el.labelText && el.shadowRoot?.querySelector(".toast.visible")) return el;
+          const inner = el.shadowRoot && walk(el.shadowRoot);
+          if (inner) return inner;
+        }
+        return null;
+      };
+      const ha = walk(document);
+      return ha ? `${ha.labelText} ${ha.textContent}`.replace(/\s+/g, " ").trim() : "";
+    }, { d: DEEP });
     if (!/Undo/.test(toast)) throw new Error("no Undo in the toast: " + toast);
     await p.screenshot({ path: OUT + "undo-toast.png", clip: await panelClip() });
     log("SHOT undo-toast.png", JSON.stringify(toast));
@@ -220,6 +248,8 @@ if (want("card-docs-column.png")) {
     });
 
     const cctx = await b.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: "dark" });
+    // F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+    await cctx.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
     await cctx.addInitScript(tokensInit, { t: token, ha: HA });
     const cp = await cctx.newPage();
     await cp.goto(`${HA}/${URL_PATH}/0`, { waitUntil: "domcontentloaded" });

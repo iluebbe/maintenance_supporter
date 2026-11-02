@@ -180,13 +180,41 @@ export function countText(key: string, oneKey: string, n: number, lang: string, 
   return n === 1 ? t(oneKey, lang) : t(key, lang).replace(`{${placeholder}}`, formatNumber(n, lang));
 }
 
+/** Intl formatters are slow to build and quick to use: one per locale and
+ *  options, kept for the session. The task page built thousands per render
+ *  (a chart formats every point) and a list scroll hundreds; on a
+ *  mid-range phone that was most of a click's time (perf 2026-11-02). A
+ *  locale Intl refuses throws here as it did at the call sites. */
+const NUMBER_FORMATS = new Map<string, Intl.NumberFormat>();
+const DATE_FORMATS = new Map<string, Intl.DateTimeFormat>();
+
+function numberFormat(locale: string | string[] | undefined, opts: Intl.NumberFormatOptions): Intl.NumberFormat {
+  const key = `${String(locale ?? "")}|${JSON.stringify(opts)}`;
+  let f = NUMBER_FORMATS.get(key);
+  if (!f) {
+    f = new Intl.NumberFormat(locale, opts);
+    NUMBER_FORMATS.set(key, f);
+  }
+  return f;
+}
+
+function dateFormat(locale: string | undefined, opts: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  const key = `${locale ?? ""}|${JSON.stringify(opts)}`;
+  let f = DATE_FORMATS.get(key);
+  if (!f) {
+    f = new Intl.DateTimeFormat(locale, opts);
+    DATE_FORMATS.set(key, f);
+  }
+  return f;
+}
+
 /** A number with its unit in the language's own plural: "30 days", "30 Tage",
  *  "30 дней" (the ECMA-402 units). The beta task editor's rule sentences
  *  read intervals and durations through here. */
 export function formatUnit(n: number, unit: "day" | "week" | "month" | "year" | "hour" | "minute", lang?: string): string {
   const opts: Intl.NumberFormatOptions = { style: "unit", unit, unitDisplay: "long", maximumFractionDigits: 2 };
   try {
-    return new Intl.NumberFormat(numberLocale(lang), opts).format(n);
+    return numberFormat(numberLocale(lang), opts).format(n);
   } catch {
     return `${formatNumber(n, lang)} ${unit}`;
   }
@@ -203,9 +231,9 @@ export function formatNumber(n: number, lang?: string, digits?: number | Intl.Nu
     return String(Math.round(n * f) / f);
   }
   try {
-    return new Intl.NumberFormat(numberLocale(lang), opts).format(n);
+    return numberFormat(numberLocale(lang), opts).format(n);
   } catch {
-    return new Intl.NumberFormat(undefined, opts).format(n);
+    return numberFormat(undefined, opts).format(n);
   }
 }
 
@@ -241,19 +269,25 @@ export function formatQty(n: number, unit?: string | null, lang?: string): strin
 /** BCP-47 locale for the "language" default: the UI language regionalized
  *  by the server country when Intl knows the combination (#140). Explicit
  *  profile formats (DMY/MDY/YMD/system) never reach this path. */
+const RESOLVED_LOCALES = new Map<string, string>();
+
 function resolveLocale(lang?: string): string {
-  const base = langToLocale(lang);
   const country = DT_PREFS.country;
+  const key = `${lang ?? ""}|${country ?? ""}`;
+  const known = RESOLVED_LOCALES.get(key);
+  if (known !== undefined) return known;
+  let locale = langToLocale(lang);
   if (country && /^[A-Za-z]{2}$/.test(country)) {
     const candidate = `${normLang(lang).split("-")[0]}-${country.toUpperCase()}`;
     try {
-      new Intl.DateTimeFormat(candidate);
-      return candidate;
+      dateFormat(candidate, {});
+      locale = candidate;
     } catch {
       // syntactically invalid tag — keep the language mapping
     }
   }
-  return base;
+  RESOLVED_LOCALES.set(key, locale);
+  return locale;
 }
 
 /** The profile's numeric date of an instant, read in `timeZone` — the
@@ -270,20 +304,22 @@ function _formatDateObj(d: Date, lang: string | undefined, timeZone: string): st
   // "system" = the browser's locale; "language" or unset = the UI language,
   // regionalized by the server country (#140).
   const locale = order === "system" ? undefined : resolveLocale(lang);
-  return d.toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric", timeZone });
+  return dateFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric", timeZone }).format(d);
 }
 
 /** Time of day of an instant honouring the HA profile time format (12/24h)
  *  and its time zone. Every clock-time string in the UI goes through here —
  *  chart crosshairs included (#163: a bare toLocaleDateString({hour,
  *  minute}) ignored the profile). */
-export function formatTimeOfDay(d: Date, lang?: string): string {
+export function formatTimeOfDay(d: Date, lang?: string, seconds = false): string {
   const timeZone = displayTimeZone();
+  // With seconds: a trace step's exact time, as HA's own trace shows it.
+  const parts: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit", ...(seconds ? { second: "2-digit" } : {}) };
   switch (DT_PREFS.time) {
-    case "12": return d.toLocaleTimeString(resolveLocale(lang), { hour: "2-digit", minute: "2-digit", hour12: true, timeZone });
-    case "24": return d.toLocaleTimeString(resolveLocale(lang), { hour: "2-digit", minute: "2-digit", hour12: false, timeZone });
-    case "system": return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", timeZone });
-    default: return d.toLocaleTimeString(resolveLocale(lang), { hour: "2-digit", minute: "2-digit", timeZone });
+    case "12": return dateFormat(resolveLocale(lang), { ...parts, hour12: true, timeZone }).format(d);
+    case "24": return dateFormat(resolveLocale(lang), { ...parts, hour12: false, timeZone }).format(d);
+    case "system": return dateFormat(undefined, { ...parts, timeZone }).format(d);
+    default: return dateFormat(resolveLocale(lang), { ...parts, timeZone }).format(d);
   }
 }
 
@@ -307,12 +343,12 @@ export function formatDate(iso: string | null | undefined, lang?: string): strin
 /** Format a datetime string (ISO) honouring the HA profile date/time formats
  *  and time zone (a zone-less value is HA local time; a date-only one has no
  *  time of day to show). */
-export function formatDateTime(iso: string | null | undefined, lang?: string): string {
+export function formatDateTime(iso: string | null | undefined, lang?: string, seconds = false): string {
   if (!iso) return "—";
   if (DATE_ONLY.test(iso)) return formatDate(iso, lang);
   try {
     const d = new Date(stampMs(iso));
-    return _formatDateObj(d, lang, displayTimeZone()) + " " + formatTimeOfDay(d, lang);
+    return _formatDateObj(d, lang, displayTimeZone()) + " " + formatTimeOfDay(d, lang, seconds);
   } catch {
     return iso;
   }
@@ -350,10 +386,17 @@ export function formatDayCount(n: number, lang?: string): string {
  *  дней" / "22 дней" / "21 дней" in Russian, Ukrainian and Czech, where 2–4
  *  (and 22–24 …) take their own form and 21 the singular (bug audit
  *  2026-10-16, FE-6). The keys are named in full, so a search finds them. */
+const PLURAL_RULES = new Map<string, Intl.PluralRules>();
+
 export function pluralKey(n: number, lang: string, keys: { one: string; few: string; other: string }): string {
   let form = n === 1 ? "one" : "other";
   try {
-    form = new Intl.PluralRules(lang).select(n);
+    let rules = PLURAL_RULES.get(lang);
+    if (!rules) {
+      rules = new Intl.PluralRules(lang);
+      PLURAL_RULES.set(lang, rules);
+    }
+    form = rules.select(n);
   } catch {
     // an unknown language tag: the English rule above
   }
@@ -400,12 +443,12 @@ export function formatDuration(minutes: number | null | undefined, lang?: string
  *  the only module allowed to call Intl for dates and numbers (see
  *  __tests__/profile-format-single-source.test.ts, #163). */
 export function weekdayName(i: number, lang?: string, style: "long" | "short" = "long"): string {
-  return new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(resolveLocale(lang), { weekday: style, timeZone: "UTC" });
+  return dateFormat(resolveLocale(lang), { weekday: style, timeZone: "UTC" }).format(new Date(Date.UTC(2024, 0, 1 + i)));
 }
 
 /** Localized month name (0=Jan … 11=Dec). */
 export function monthName(i: number, lang?: string, style: "long" | "short" = "long"): string {
-  return new Date(Date.UTC(2024, i, 1)).toLocaleDateString(resolveLocale(lang), { month: style, timeZone: "UTC" });
+  return dateFormat(resolveLocale(lang), { month: style, timeZone: "UTC" }).format(new Date(Date.UTC(2024, i, 1)));
 }
 
 /** Weekday / month name of a local Date (calendar day rows). */
@@ -421,7 +464,7 @@ export function formatMonth(d: Date, lang?: string, style: "long" | "short" = "l
  *  disambiguating — chart axis ticks and tooltips. */
 export function formatDateShort(d: Date, lang?: string, withYear = false): string {
   const shape: Intl.DateTimeFormatOptions = withYear ? { month: "short", day: "numeric", year: "2-digit" } : { month: "short", day: "numeric" };
-  return d.toLocaleDateString(resolveLocale(lang), { ...shape, timeZone: displayTimeZone() });
+  return dateFormat(resolveLocale(lang), { ...shape, timeZone: displayTimeZone() }).format(d);
 }
 
 /** Recurrence shape carried on the WS payload (see types.TaskSchedule). */

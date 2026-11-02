@@ -17,6 +17,8 @@ try {
   browser = await chromium.connect(PW_WS);
   const ctx = await browser.newContext({ viewport: { width: 1400, height: 1100 }, deviceScaleFactor: 2, colorScheme: "dark" });
   const p = await ctx.newPage();
+  // F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+  await p.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
   await p.addInitScript(hassTokensInit, { t: token, ha: HA });
   await p.goto(HA + "/maintenance-supporter", { waitUntil: "domcontentloaded", timeout: 30000 });
   await p.waitForTimeout(4000);
@@ -38,6 +40,12 @@ try {
     dlg._nth = "2";
     dlg._nthWeekday = "5"; // Saturday
     dlg._seasonMonths = [1, 7];
+    // The new look (2.116): past the start screen, the schedule rule's fields
+    // (and its preview) open in the sidebar.
+    if (dlg._betaStep !== undefined && window.__msBetaUi) {
+      dlg._betaStep = "form";
+      dlg._ruleSel = "schedule";
+    }
     await dlg.updateComplete;
     await new Promise((r) => setTimeout(r, 700)); // debounce + WS roundtrip
     await dlg.updateComplete;
@@ -47,7 +55,7 @@ try {
     await new Promise((r) => setTimeout(r, 200));
     // The dialog is an <ha-dialog>; clip to its content area intersected
     // with the viewport (the content can be taller than the screen).
-    const c = dlg.shadowRoot.querySelector(".content").getBoundingClientRect();
+    const c = (dlg.shadowRoot.querySelector(".beta-content") || dlg.shadowRoot.querySelector(".content")).getBoundingClientRect();
     const x = Math.max(0, c.x - 24), y = Math.max(0, c.y - 56);
     const width = Math.min(window.innerWidth - x, c.width + 48);
     const height = Math.min(window.innerHeight - y, c.height + 72);

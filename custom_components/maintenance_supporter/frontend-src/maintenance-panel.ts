@@ -9,6 +9,12 @@ import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscr
 import { isStaleBundle, pendingRestartVersion, type ServerVersion } from "./helpers/bundle-version";
 import { customElement, property, state } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
+import { guard } from "lit/directives/guard.js";
+import { HASS_STATES_REDRAW_MS, onlyStatesChanged } from "./helpers/hass-changes";
+import {
+  mdiCheck, mdiCheckboxBlankCircleOutline, mdiChevronDoubleDown, mdiChevronDoubleUp, mdiFolderOutline, mdiMapMarkerOutline,
+  mdiNfcVariant, mdiSkipNext, mdiTagOutline,
+} from "@mdi/js";
 import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDayCount, formatDueDays, countText, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, formatNumber, formatQty, formatUnit, syncCurrencyDecimals} from "./styles";
 import { OVERVIEW_TABS, type OverviewTab } from "./helpers/overview-tabs";
 import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
@@ -65,6 +71,8 @@ interface RemoteHistoryHit {
 }
 const SEARCH_MIN_CHARS = 2;
 const SEARCH_DEBOUNCE_MS = 250;
+/** The new look's list search follows the box after this pause in typing. */
+const LIST_SEARCH_PAUSE_MS = 150;
 const SEARCH_GROUP_CAP = { objects: 6, tasks: 10, parts: 6, documents: 8, history: 6 } as const;
 const MDI_MAGNIFY = "M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z";
 import type {
@@ -142,7 +150,7 @@ import "./components/ms-part-purchase";
 import { ancestorsOf, buildObjectTree, nests, objectPath, sortTree, subtreeOf, treeRows, type ObjectTree } from "./helpers/object-tree";
 import { renderStatusBadge, statusKey, statusLabel, type StatusLike } from "./renderers/status";
 import { TOAST_MS, ACTION_TOAST_MS, haToast } from "./helpers/toast";
-import { isCounterTrigger, primaryTriggerEntity } from "./helpers/trigger-entities";
+import { isCounterTrigger, primaryTriggerEntity, triggerUnit } from "./helpers/trigger-entities";
 import { TASK_PRIORITIES_HIGH_FIRST } from "./helpers/task-choices";
 import { fetchTaskHistory } from "./helpers/task-history-fetch";
 import { budgetLevel } from "./helpers/budget-level";
@@ -346,6 +354,11 @@ export class MaintenanceSupporterPanel extends LitElement {
   /** Beta overview (Home Assistant's list pages): the inline search over the
    *  task list, and whether the filter pane is open. */
   @state() private _listSearch = "";
+  /** What the search box holds: the list follows a moment after typing
+   *  stops, not on every key (a list redraw per key cost a phone a click's
+   *  time, perf 2026-11-02). */
+  private _listSearchDraft = "";
+  private _listSearchTimer = 0;
   @state() private _filterPaneOpen = lsGet(LS_KEYS.filterPane) === "1";
   /** The filter pane's sections the user opened (Status opens by default). */
   @state() private _paneSections = new Set<string>(["status"]);
@@ -486,6 +499,25 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _statsService: StatisticsService | null = null;
   private _userService: UserService | null = null;
+  /** Bumped when the members' names arrive: they name and sort the rows. */
+  private _usersVersion = 0;
+  /** The rows of the last computation per (filterStatus, search), with the
+   *  inputs they came from. A render asks several times, and an update that
+   *  left every input alone (a scroll step, a change of some sensor's state)
+   *  gets the same rows, the same objects, so the rows draw nothing new
+   *  (perf 2026-11-02). */
+  private _rowsMemo = new Map<string, TaskRow[]>();
+  private _rowsMemoInputs: readonly unknown[] = [];
+  /** Bumped each time the rows are computed anew. */
+  private _rowsGeneration = 0;
+  /** The virtual table's rendered slice, and the one last measured. */
+  private _virtRenderedSig = "";
+  private _virtMeasuredSig = "";
+  /** A `hass` whose only change was `states`, held back (see shouldUpdate):
+   *  its predecessor, handed to the next update as the changed value. */
+  private _hassHeld: HomeAssistant | null = null;
+  private _hassTimer = 0;
+  private _lastRender = 0;
   private _dataLoaded = false;
   private _lastConnection: HomeAssistant["connection"] | null = null;
 
@@ -655,8 +687,41 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._statsService = null;
   }
 
+  /** Home Assistant hands the panel a new `hass` on every state change in
+   *  the home, many a second in a busy one, and each one redrew the whole
+   *  panel and measured its list. The panel draws no entity state of its
+   *  own: a change of only `states` redraws at most once a second, and any
+   *  other change (a click, areas, the user, the language …) at once, with
+   *  the newest `hass` (perf 2026-11-02). */
+  protected shouldUpdate(changedProps: Map<string, unknown>): boolean {
+    if (this.hasUpdated && changedProps.size === 1 && changedProps.has("hass")) {
+      const old = changedProps.get("hass") as HomeAssistant | undefined;
+      const wait = HASS_STATES_REDRAW_MS - (performance.now() - this._lastRender);
+      if (old && this.hass && wait > 0 && onlyStatesChanged(old, this.hass)) {
+        this._hassHeld ??= old;
+        if (!this._hassTimer) {
+          this._hassTimer = window.setTimeout(() => {
+            this._hassTimer = 0;
+            this.requestUpdate();
+          }, wait);
+        }
+        return false;
+      }
+    }
+    return true;
+  }
+
   willUpdate(changedProps: Map<string, unknown>): void {
     super.willUpdate(changedProps);
+    // A held `hass` change goes with this update, whatever started it.
+    if (this._hassHeld) {
+      if (!changedProps.has("hass")) changedProps.set("hass", this._hassHeld);
+      this._hassHeld = null;
+    }
+    if (this._hassTimer) {
+      clearTimeout(this._hassTimer);
+      this._hassTimer = 0;
+    }
     // Section labels are mode-specific ("Kitchen" vs "Family Car"): a
     // collapsed set from the previous mode would fold random new sections.
     if (changedProps.has("_groupByMode") && this._collapsedGroups.size > 0) {
@@ -666,6 +731,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
+    this._lastRender = performance.now();
     syncLocaleFromHass(this, changedProps);
     if (changedProps.has("hass") && this.hass) {
       if (!this._dataLoaded) {
@@ -700,7 +766,10 @@ export class MaintenanceSupporterPanel extends LitElement {
       if (!this._userService) {
         this._userService = new UserService(this.hass);
         // Names feed the person filter and the row chips — render once known.
-        void this._userService.getUsers().then(() => this.requestUpdate());
+        void this._userService.getUsers().then(() => {
+          this._usersVersion++;
+          this.requestUpdate();
+        });
       } else {
         this._userService.updateHass(this.hass);
       }
@@ -716,7 +785,13 @@ export class MaintenanceSupporterPanel extends LitElement {
       content.addEventListener("scroll", this._onVirtualScroll, { passive: true });
       this._virtScrollAttached = true;
     }
-    this._updateVirtualWindow();
+    // Measuring forces a layout: not after a `hass` change that drew the
+    // same slice of the same rows again.
+    const hassOnly = changedProps.size === 1 && changedProps.has("hass");
+    if (!hassOnly || this._virtRenderedSig !== this._virtMeasuredSig) {
+      this._virtMeasuredSig = this._virtRenderedSig;
+      this._updateVirtualWindow();
+    }
     this._syncStickyPane(content);
   }
 
@@ -1379,6 +1454,19 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  status picked on the dashboard emptied it without a word (bug audit
    *  2026-10-16, P5). */
   private _rowsFiltered(filterStatus: boolean, search = filterStatus): TaskRow[] {
+    // Everything the rows below read, and how they are sorted.
+    const inputs = [
+      this._objects, this._groups, this._listSearch, this._showArchived, this._filterStatus, this._filterUser, this._filterLabel,
+      this._filterPlace, this._filterPriority, this._sortMode, this.hass?.areas, this.hass?.user?.id, betaUi(), this._usersVersion,
+    ];
+    if (inputs.length !== this._rowsMemoInputs.length || inputs.some((v, i) => v !== this._rowsMemoInputs[i])) {
+      this._rowsMemo = new Map();
+      this._rowsMemoInputs = inputs;
+      this._rowsGeneration++;
+    }
+    const memoKey = `${filterStatus}|${search}`;
+    const known = this._rowsMemo.get(memoKey);
+    if (known) return known;
     const rows: TaskRow[] = [];
     const query = search && betaUi() ? this._listSearch.trim() : "";
     for (const obj of this._objects) {
@@ -1493,6 +1581,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       },
     };
     rows.sort(sorts[this._sortMode]);
+    this._rowsMemo.set(memoKey, rows);
     return rows;
   }
 
@@ -4197,11 +4286,11 @@ export class MaintenanceSupporterPanel extends LitElement {
           </button>` : nothing}
         <label class="ms-search">
           <ha-icon icon="mdi:magnify"></ha-icon>
-          <input type="search" .value=${this._listSearch} placeholder=${t("beta_search_tasks", L).replace("{count}", String(total))}
+          <input type="search" .value=${this._listSearchDraft} placeholder=${t("beta_search_tasks", L).replace("{count}", String(total))}
             aria-label=${t("beta_search_tasks", L).replace("{count}", String(total))}
-            @input=${(e: Event) => { this._listSearch = (e.target as HTMLInputElement).value; }} />
-          ${this._listSearch ? html`<button class="ms-search-clear" type="button" aria-label=${t("clear", L)} title=${t("clear", L)}
-            @click=${() => { this._listSearch = ""; }}><ha-icon icon="mdi:close"></ha-icon></button>` : nothing}
+            @input=${(e: Event) => this._onListSearchInput((e.target as HTMLInputElement).value)} />
+          ${this._listSearch || this._listSearchDraft ? html`<button class="ms-search-clear" type="button" aria-label=${t("clear", L)} title=${t("clear", L)}
+            @click=${() => this._setListSearch("")}><ha-icon icon="mdi:close"></ha-icon></button>` : nothing}
         </label>
         ${renderHaMenu(chip(g === "none" ? t("group_by_label", L) : `${t("group_by_label", L)} ${groupLabel[g]}`),
           groups.map((mode) => ({ label: groupLabel[mode], selected: mode === g, action: () => this._setGroupBy(mode) })), { cls: "ms-chip-menu" })}
@@ -4287,6 +4376,19 @@ export class MaintenanceSupporterPanel extends LitElement {
     `;
   }
 
+  private _onListSearchInput(value: string): void {
+    this._listSearchDraft = value;
+    clearTimeout(this._listSearchTimer);
+    this._listSearchTimer = window.setTimeout(() => this._setListSearch(this._listSearchDraft), LIST_SEARCH_PAUSE_MS);
+  }
+
+  /** The search in force at once (the clear button, the pause after typing). */
+  private _setListSearch(value: string): void {
+    clearTimeout(this._listSearchTimer);
+    this._listSearchDraft = value;
+    this._listSearch = value;
+  }
+
   /** Every filter of the overview off (the filter pane's clear button). */
   private _clearFilters(): void {
     this._filterStatus = "";
@@ -4307,10 +4409,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     const bulkCls = this._bulkMode ? " bulk" : "";
     this._virtTotalRows = rows.length;
     if (this.narrow || rows.length < VIRTUAL_MIN_ROWS) {
+      this._virtRenderedSig = "";
       return html`
         <div class="task-table${bulkCls}">
           ${this._renderTaskHead()}
-          ${repeat(rows, rowKey, (row) => this._renderOverviewRow(row))}
+          ${this._renderRows(rows)}
         </div>
       `;
     }
@@ -4326,6 +4429,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     let end = this._virtEnd > 0 ? Math.min(this._virtEnd, total) : Math.min(total, 40);
     if (end < start) { start = 0; end = Math.min(total, 40); }
     this._virtRenderedStart = start;
+    this._virtRenderedSig = `${this._rowsGeneration}:${start}:${end}:${total}`;
     const padTop = offsets[start];
     const padBottom = offsets[total] - offsets[end];
     return html`
@@ -4333,7 +4437,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         ${this._renderTaskHead()}
         ${this._renderVirtSizerRow(rows)}
         ${padTop > 0 ? html`<div class="virt-spacer" style="height:${padTop}px"></div>` : nothing}
-        ${repeat(rows.slice(start, end), rowKey, (row) => this._renderOverviewRow(row))}
+        ${this._renderRows(rows.slice(start, end))}
         ${padBottom > 0 ? html`<div class="virt-spacer" style="height:${padBottom}px"></div>` : nothing}
       </div>
     `;
@@ -4502,7 +4606,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 <span class="group-section-count">(${taskRows.length})</span>
               </div>
               ${open
-                ? html`<div class="group-rows">${repeat(taskRows, rowKey, (row) => this._renderOverviewRow(row))}</div>`
+                ? html`<div class="group-rows">${this._renderRows(taskRows)}</div>`
                 : nothing}
             </div>
           `;
@@ -5279,6 +5383,17 @@ export class MaintenanceSupporterPanel extends LitElement {
     `;
   }
 
+  /** The task rows, each bound to its task (keyed) and drawn again only
+   *  when the row or what every row reads changed: a scroll step draws just
+   *  the rows it brings in (perf 2026-11-02). */
+  private _renderRows(rows: TaskRow[]) {
+    const deps = [
+      this._lang, isLocaleLoaded(this._lang), this.hass?.locale, this._bulkMode, this._bulkSelected, this._selectedEntryId, this._selectedTaskId,
+      this._splitActive(), this._miniStatsData, this._actionLoading, this._rowActionStyle, this.narrow, this.tight,
+    ];
+    return repeat(rows, rowKey, (row) => guard([row, ...deps], () => this._renderOverviewRow(row)));
+  }
+
   private _renderOverviewRow(row: TaskRow) {
     const L = this._lang;
     // Compute days progress bar
@@ -5309,9 +5424,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         <span class="cell-badges">
           ${this._statusBadge(row)}
           ${!row.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
-          ${row.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
-          ${row.priority === "high" ? html`<span class="priority-badge priority-high" title="${t("priority_high", L)}"><ha-icon icon="mdi:chevron-double-up"></ha-icon></span>` : nothing}
-          ${row.priority === "low" ? html`<span class="priority-badge priority-low" title="${t("priority_low", L)}"><ha-icon icon="mdi:chevron-double-down"></ha-icon></span>` : nothing}
+          ${row.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-svg-icon .path=${mdiNfcVariant}></ha-svg-icon></span>` : nothing}
+          ${row.priority === "high" ? html`<span class="priority-badge priority-high" title="${t("priority_high", L)}"><ha-svg-icon .path=${mdiChevronDoubleUp}></ha-svg-icon></span>` : nothing}
+          ${row.priority === "low" ? html`<span class="priority-badge priority-low" title="${t("priority_low", L)}"><ha-svg-icon .path=${mdiChevronDoubleDown}></ha-svg-icon></span>` : nothing}
         </span>
         <span class="row-head">
           <span class="cell object-name" @click=${(e: Event) => { e.stopPropagation(); this._showObject(row.entry_id); }}>${row.object_name}</span>
@@ -5320,16 +5435,16 @@ export class MaintenanceSupporterPanel extends LitElement {
         <span class="task-sub${hasSub ? '' : ' task-sub-empty'}">
           ${row.group_names.length > 0 ? html`
             <span class="sub-chip" title="${t("groups", L)}">
-              <ha-icon icon="mdi:folder-outline"></ha-icon>${row.group_names.join(", ")}
+              <ha-svg-icon .path=${mdiFolderOutline}></ha-svg-icon>${row.group_names.join(", ")}
             </span>` : nothing}
           ${areaName ? html`
             <span class="sub-chip">
-              <ha-icon icon="mdi:map-marker-outline"></ha-icon>${areaName}
+              <ha-svg-icon .path=${mdiMapMarkerOutline}></ha-svg-icon>${areaName}
             </span>` : nothing}
           ${renderPeopleChip(people, "sub-chip")}
           ${(row.labels || []).map((label) => html`
             <span class="sub-chip label-chip" title="${t("labels", L)}">
-              <ha-icon icon="mdi:tag-outline"></ha-icon>${label}
+              <ha-svg-icon .path=${mdiTagOutline}></ha-svg-icon>${label}
             </span>`)}
         </span>
         <span class="cell type">${t(row.type, L)}</span>
@@ -5411,13 +5526,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
     return html`
       <span class="row-actions">
-        <ha-icon-button class="btn-complete${quick ? " quick" : ""}" title="${completeTitle}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
-          <ha-icon icon=${completeIcon}></ha-icon>
-        </ha-icon-button>
+        <ha-icon-button class="btn-complete${quick ? " quick" : ""}" title="${completeTitle}" .label=${completeTitle}
+          .path=${quick ? mdiCheckboxBlankCircleOutline : mdiCheck} @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}></ha-icon-button>
         ${allowSkip ? html`
-          <ha-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip?.(); }}>
-            <ha-icon icon="mdi:skip-next"></ha-icon>
-          </ha-icon-button>` : nothing}
+          <ha-icon-button class="btn-skip" title="${t("skip", L)}" .label=${t("skip", L)} .path=${mdiSkipNext} .disabled=${this._actionLoading}
+            @click=${(e: Event) => { e.stopPropagation(); onSkip?.(); }}></ha-icon-button>` : nothing}
       </span>`;
   }
 
@@ -5944,6 +6057,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       // Write tier (task/history/update): no pencil for a read-only member.
       openEdit: this._isOperator ? undefined : (entry) => this._openHistoryEdit(entry),
       readingUnit: task?.reading_unit ?? null,
+      triggerUnit: triggerUnit(this.hass, task) || null,
       taskRef: taskRef(this._selectedEntryId ? this._getObject(this._selectedEntryId)?.object : null, task),
       // #139: name the phase badge on entries stamped with a phase_id.
       phaseNames: Object.fromEntries(

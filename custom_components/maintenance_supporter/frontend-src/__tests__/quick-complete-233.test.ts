@@ -13,6 +13,7 @@
  */
 
 import { expect, fixture, html, waitUntil } from "@open-wc/testing";
+import { mdiCheck, mdiCheckboxBlankCircleOutline } from "@mdi/js";
 import { render } from "lit";
 import "../components/task-dialog.js";
 import "../components/complete-dialog.js";
@@ -109,9 +110,11 @@ describe("#233: one tap in the panel", () => {
     el._rowActionStyle = "icons";
     const host = document.createElement("div");
     render(el._renderRowActions("en", () => undefined, undefined, false, true), host);
-    expect(host.querySelector(".btn-complete.quick ha-icon")!.getAttribute("icon")).to.equal("mdi:checkbox-blank-circle-outline");
+    // The icon is the button's own path (no icon lookup per row, perf 2026-11-02).
+    const pathOf = (sel: string) => (host.querySelector(sel) as HTMLElement & { path?: string }).path;
+    expect(pathOf(".btn-complete.quick")).to.equal(mdiCheckboxBlankCircleOutline);
     render(el._renderRowActions("en", () => undefined, undefined, false, false), host);
-    expect(host.querySelector(".btn-complete ha-icon")!.getAttribute("icon")).to.equal("mdi:check");
+    expect(pathOf(".btn-complete")).to.equal(mdiCheck);
   });
 });
 

@@ -54,6 +54,8 @@ try {
 
   browser = await chromium.connect(PW_WS, { timeout: 20000 });
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 2900 }, colorScheme: "dark" });
+  // F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+  await ctx.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
   await ctx.addInitScript(({ t, ha }) => {
     localStorage.setItem("hassTokens", JSON.stringify({
       access_token: t, token_type: "Bearer", expires_in: 1800,

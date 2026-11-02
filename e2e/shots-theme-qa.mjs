@@ -27,6 +27,8 @@ async function setTheme(mode) {
 }
 
 async function seedAuth(page) {
+  // F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+  await page.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
   await page.addInitScript(hassTokensInit, { t: token, ha: HA });
 }
 

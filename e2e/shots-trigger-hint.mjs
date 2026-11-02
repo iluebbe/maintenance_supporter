@@ -40,6 +40,8 @@ const deepFindPanel = `
 const b = await chromium.connect(PW_WS, { timeout: 20000 });
 const ctx = await b.newContext({ viewport: { width: 1200, height: 1000 }, colorScheme: "dark", deviceScaleFactor: 2 });
 const p = await ctx.newPage();
+// F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+await p.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
 await p.addInitScript(hassTokensInit, { t: token, ha: HA });
 await p.goto(HA + "/maintenance-supporter", { waitUntil: "domcontentloaded" });
 let mounted = false;

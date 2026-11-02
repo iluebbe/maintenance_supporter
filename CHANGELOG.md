@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.117.0] - 2026-11-02
 
 ### ✨ Added
 
@@ -21,12 +21,61 @@ All notable changes to Maintenance Supporter are documented in this file.
     differently (the fountain filter and the desiccant with their resets, the oil life).
   - Four new task names in all 22 languages. Every key is read in the integration's source and pinned by a drift
     probe.
+- **The Trace tab tells more than the history, the way Home Assistant's automation traces do.**
+  - Each cycle opens with its result: how it ended, how long after the task was due it was done (counted from
+    when it last became due, so a firing that was missed and fired again counts from the second time), how long
+    the cycle took, and how many reminders and snoozes it needed. The current cycle says how long the task has
+    been due.
+  - A click on a step opens its details under it: the exact time to the second, how long a status lasted, which
+    entity and state a Done-when change was and why it did not count, a snooze's length, a bundled reminder. A
+    history step adds what the history knows (notes, photos, readings, costs, the trigger value with its unit)
+    and who completed it on which device.
+  - Under each step's time: how long after the step before it came ("3 days later").
+  - The same step several times in a row is one line with its count: fifteen trigger firings are one line, each
+    with its time and value in the details. A firing shows the value it fired at instead of the note every firing
+    carries.
+  - A change to the task says from what to what: "Schedule: Every 30 days → Every 60 days", the sensor rule as its
+    sentence, people and entities by name. Recorded from this version on; older changes keep naming the fields.
+  - The activity around a step: what Home Assistant recorded of the rule's sensors (or the Done-when entity) from an
+    hour before the step to a quarter after it, the way an automation trace shows its related activity.
+  - *Download trace* saves the task's trace with the task as a JSON file, for a bug report.
+
+### ⚡ Performance
+
+- **The panel answers clicks faster, most of all on phones.** Measured with real clicks on a home with 138 tasks
+  and the processor slowed to a mid-range phone's.
+  - Home Assistant hands the panel new data on every state change anywhere in the home, many times a second in a
+    busy one, and each time the whole panel was drawn again and its list measured. A change of only entity states
+    (the panel shows none of them) now redraws at most once a second; a click and every other change draw at once.
+  - Scrolling, filtering and sorting draw only the rows that changed, and the rows are worked out once per change
+    instead of several times per drawing.
+  - Dates and numbers are formatted with formatters built once instead of on every call. A task's charts built
+    thousands of them each time the page opened.
+  - The list search follows the search box a moment after typing stops instead of on every key.
+  - The task rows' buttons and badges draw their icons directly.
+  - Counted on that home: 20 sensor changes in two seconds drew the panel 20 times with 480 rows and 580 new
+    formatters, now 4 times without a row or a formatter; three scroll steps drew 114 rows, now 24; typing
+    "filter" drew the list 6 times with 151 rows, now once with 20; opening a task built 83 formatters, now 4.
 
 ### 🐛 Fixed
 
 - **Suggested setups convert odometers shown in metres and volume counters.** With an odometer shown in metres,
   the kilometre floor of a service duty was read as metres. Volume counters convert between cubic metres, litres,
   cubic feet and gallons.
+- **The Trace tab's nodes sit on the line of their step.** The nodes were a column of their own beside the
+  timeline, so a step whose text took two lines pushed the two apart. Node and text now share one line.
+- **The new look: a battery type chip unfolds the battery list.** In the battery fleet, a click on a type chip
+  filtered the list but left it folded when Home Assistant's expansion panel drew it.
+- **The history shows a trigger value with its sensor's unit.**
+- **The trace no longer lists unchanged settings as changed.** The task dialog sends the interval as single fields
+  and no sensor rule as an empty one, while the task is stored with a nested schedule and without a rule: a save
+  that changed nothing could read "Task changed: Schedule, Sensor rule". The trace now compares the stored form.
+
+### 🔧 Internal
+
+- The documentation's screenshots and animations show the new look.
+- Tests show that snoozes and repeated reminders keep their length across the spring clock change as well as the
+  autumn one.
 
 ## [2.116.0] - 2026-11-01
 

@@ -801,6 +801,8 @@ log("DOC UPLOADED", JSON.stringify(up).slice(0, 200));
 // navigates to its own URL.
 const b = await chromium.connect(PW_WS, { timeout: 20000 });
 const ctx = await b.newContext({ viewport: { width: 1600, height: 1000 }, colorScheme: "dark" });
+// F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+await ctx.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
 await ctx.addInitScript(({ t, ha }) => {
   localStorage.setItem("hassTokens", JSON.stringify({
     access_token: t, token_type: "Bearer", expires_in: 1800,
@@ -865,14 +867,25 @@ async function shot(name, page = p) {
 
 // Open the task dialog in edit mode for a named task, optionally scrolling a
 // section heading into view (matched by rendered text).
-async function openTaskDialog(objName, taskName, scrollToText, retry = false) {
-  await p.evaluate(({ finder, objName, taskName, scrollToText }) => {
+// `rule`: the new look (2.116) edits a task as rule rows; the row's fields
+// open in the sidebar (task | schedule | trigger | completion | people |
+// notifications), where the scroll target is then looked for.
+async function openTaskDialog(objName, taskName, scrollToText, retry = false, rule = null) {
+  await p.evaluate(({ finder, objName, taskName, scrollToText, rule }) => {
     eval(finder);
     const panel = window.__panel;
     const o = panel._objects.find((x) => x.object.name === objName);
     const t2 = o.tasks.find((x) => x.name === taskName);
     const dlg = panel.shadowRoot.querySelector("maintenance-task-dialog");
     dlg.openEdit(o.entry_id, t2);
+    if (rule) {
+      setTimeout(() => {
+        if (dlg.shadowRoot.querySelector(".beta-content")) {
+          dlg._ruleSel = rule;
+          dlg.requestUpdate();
+        }
+      }, 500);
+    }
     if (scrollToText) {
       // The action + quick-complete sections are collapsed <details> — open
       // the matching one and scroll its summary into view. Plain section
@@ -893,7 +906,7 @@ async function openTaskDialog(objName, taskName, scrollToText, retry = false) {
         }
       }, 900);
     }
-  }, { finder: deepFindPanel, objName, taskName, scrollToText: scrollToText || null });
+  }, { finder: deepFindPanel, objName, taskName, scrollToText: scrollToText || null, rule });
   await p.waitForTimeout(2000);
   // An Escape on the previous dialog closes it only after its animation: an
   // openEdit that lands before that is undone by the late "closed" event
@@ -906,7 +919,7 @@ async function openTaskDialog(objName, taskName, scrollToText, retry = false) {
   if (!open) {
     if (retry) throw new Error(`task dialog for ${taskName} did not open`);
     await p.waitForTimeout(800);
-    return openTaskDialog(objName, taskName, scrollToText, true);
+    return openTaskDialog(objName, taskName, scrollToText, true, rule);
   }
 }
 
@@ -1227,7 +1240,7 @@ await step("objects-bulk-select.png", async () => {
 // 8d. (2.89, #187) Task dialog — a calendar entity as the schedule, next dates from its events
 await step("task-dialog-calendar.png", async () => {
   await openPanel("dashboard");
-  await openTaskDialog("Household", "Put the bins out");
+  await openTaskDialog("Household", "Put the bins out", null, false, "schedule");
   await p.evaluate(({ finder }) => {
     eval(finder);
     const dlg = window.__panel.shadowRoot.querySelector("maintenance-task-dialog");
@@ -1245,7 +1258,7 @@ await step("task-dialog-calendar.png", async () => {
 // 8e. (2.89, #185) Task dialog — notification icon override with preview + type default
 await step("task-dialog-notify-icon.png", async () => {
   await openPanel("dashboard");
-  await openTaskDialog("Smoke Detectors", "Test Buttons");
+  await openTaskDialog("Smoke Detectors", "Test Buttons", null, false, "notifications");
   await p.evaluate(({ finder }) => {
     eval(finder);
     const dlg = window.__panel.shadowRoot.querySelector("maintenance-task-dialog");
@@ -1267,7 +1280,7 @@ await step("settings-view.png", async () => {
 // 10. Task dialog — Reading type + end-of-month schedule (last business day)
 await step("task-dialog-schedule.png", async () => {
   await openPanel("dashboard");
-  await openTaskDialog("Utility Meters", "Water Meter Reading");
+  await openTaskDialog("Utility Meters", "Water Meter Reading", null, false, "schedule");
   await shot("task-dialog-schedule.png");
   await closeDialogs();
 });
@@ -1275,21 +1288,21 @@ await step("task-dialog-schedule.png", async () => {
 // 11. Multi-entity trigger (Smoke Detectors battery — ANY-of-two threshold)
 await step("multi-entity-trigger.png", async () => {
   await openPanel("dashboard");
-  await openTaskDialog("Smoke Detectors", "Battery Replacement", "sensor trigger");
+  await openTaskDialog("Smoke Detectors", "Battery Replacement", "sensor trigger", false, "trigger");
   await shot("multi-entity-trigger.png");
   await closeDialogs();
 });
 
 // 12. Compound trigger (Pump Service — runtime OR pressure)
 await step("compound-trigger.png", async () => {
-  await openTaskDialog("Pool Pump", "Pump Service", "sensor trigger");
+  await openTaskDialog("Pool Pump", "Pump Service", "sensor trigger", false, "trigger");
   await shot("compound-trigger.png");
   await closeDialogs();
 });
 
 // 13. Completion action editor (Impeller Cleaning — turn pump back on)
 await step("task-dialog-action.png", async () => {
-  await openTaskDialog("Pool Pump", "Impeller Cleaning", "on complete");
+  await openTaskDialog("Pool Pump", "Impeller Cleaning", "on complete", false, "completion");
   await shot("task-dialog-action.png");
   await closeDialogs();
 });
@@ -1299,16 +1312,19 @@ await step("task-dialog-action.png", async () => {
 // of its own, so scroll to the switch instead of a summary text.
 await step("task-dialog-quick-complete.png", async () => {
   await openPanel("dashboard");
-  await openTaskDialog("HVAC System", "Filter Replacement");
+  await openTaskDialog("HVAC System", "Filter Replacement", null, false, "completion");
   const found = await p.evaluate(({ finder }) => {
     eval(finder);
     const dlg = window.__panel.shadowRoot.querySelector("maintenance-task-dialog");
+    // The new look: HA's ha-checkbox and ha-expansion-panel in the
+    // completion rule's sidebar; classic: an input and a <details>.
     const sw = dlg?.shadowRoot?.querySelector(".quick-complete-switch");
-    const fold = dlg?.shadowRoot?.querySelector("details.quick-complete-values");
+    const fold = dlg?.shadowRoot?.querySelector(".quick-complete-values");
     if (!sw || !fold) return false;
-    fold.open = true;
+    if (fold.tagName === "HA-EXPANSION-PANEL") fold.expanded = true;
+    else fold.open = true;
     sw.scrollIntoView({ block: "start" });
-    return sw.querySelector("input")?.checked === true;
+    return (sw.querySelector("ha-checkbox") ?? sw.querySelector("input"))?.checked === true;
   }, { finder: deepFindPanel });
   if (!found) throw new Error("the Quick complete switch is not on for Filter Replacement");
   await p.waitForTimeout(800);
@@ -1519,7 +1535,7 @@ await step("settings-shopping-list.png", async () => {
 // (next to the NFC tag field) and the complete dialog's up-front notice.
 await step("task-dialog-tag-scan.png", async () => {
   await openPanel("dashboard");
-  await openTaskDialog("Smoke Detectors", "Test Buttons");
+  await openTaskDialog("Smoke Detectors", "Test Buttons", null, false, "completion");
   await p.evaluate(({ finder }) => {
     eval(finder);
     const dlg = window.__panel.shadowRoot.querySelector("maintenance-task-dialog");
@@ -1587,6 +1603,8 @@ await step("config-flow.png", async () => {
 // playwright-server container and run e2e/shots-fix.mjs, which shoots mobile
 // first on a fresh connection.
 const mctx = await b.newContext({ viewport: { width: 400, height: 860 }, colorScheme: "dark", isMobile: true, hasTouch: true });
+// F5 keeps the panel's page since 2.116 (history state); every visit here starts fresh.
+await mctx.addInitScript(() => { try { history.replaceState(null, ""); } catch { /* ignore */ } });
 await mctx.addInitScript(({ t, ha }) => {
   localStorage.setItem("hassTokens", JSON.stringify({
     access_token: t, token_type: "Bearer", expires_in: 1800,

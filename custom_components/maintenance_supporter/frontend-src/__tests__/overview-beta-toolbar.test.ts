@@ -99,8 +99,13 @@ describe("beta overview: Home Assistant's list page", () => {
     const input = sr(p).querySelector<HTMLInputElement>(".ms-search input")!;
     input.value = "washing";
     input.dispatchEvent(new Event("input"));
+    // The list follows a moment after typing stops, not on every key.
+    await settle(p);
+    expect(names(p).length).to.equal(3);
+    await new Promise((r) => setTimeout(r, 200));
     await settle(p);
     expect(names(p)).to.deep.equal(["Descale"]);
+    expect(input.value).to.equal("washing");
     sr(p).querySelector<HTMLButtonElement>(".ms-search-clear")!.click();
     await settle(p);
     expect(names(p).length).to.equal(3);
